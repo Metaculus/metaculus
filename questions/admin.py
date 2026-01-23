@@ -444,7 +444,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         "id",
         "title_original",
         "description_original",
-        "post_id",
+        "=post__id",
         "post__title",
     ]
     actions = [

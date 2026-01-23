@@ -1828,7 +1828,7 @@
   "tournamentsTabSeries": "Série otázek",
   "tournamentsTabIndexes": "Indexy",
   "tournamentsTabArchived": "Archivováno",
-  "tournamentTimelineClosed": "Čekání na vyřešení",
+  "tournamentTimelineClosed": "Čekající vyřešení",
   "questionsPreviouslyPredicted": "{count, plural, =1 {# otázka} other {# otázek}} dříve předpovězených",
   "includeMyForecastAtTheTime": "Zahrnout mou předpověď v daném čase <strong>({forecast})</strong>",
   "tournamentsInfoTitle": "Jsme <predmarket>nepredikční trh</predmarket>. Můžete se účastnit zdarma a vyhrát peněžní ceny za přesnost.",
@@ -1887,5 +1887,7 @@
   "futureEval": "Budoucí posouzení",
   "launchATournament": "Spusťte turnaj",
   "allCategoriesTopQuestions": "Nejlepší otázky v každé kategorii",
+  "feedTileSummary": "Souhrn na dlaždici kanálu",
+  "feedTileSummaryPlaceholder": "Volitelně: Zadejte vlastní text souhrnu, který se zobrazí na dlaždicích kanálu (pokud není poskytnut, souhrn bude automaticky vygenerován z obsahu notebooku)",
   "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }

@@ -1847,7 +1847,7 @@
   "tournamentTimelineJustStarted": "Just started",
   "tournamentTimelineStarts": "Starts {when}",
   "tournamentTimelineEnds": "Ends {when}",
-  "tournamentTimelineClosed": "Waiting resolutions",
+  "tournamentTimelineClosed": "Pending resolutions",
   "tournamentTimelineAllResolved": "All questions resolved",
   "tournamentRelativeSoon": "soon",
   "tournamentRelativeUnderMinute": "in under a minute",
@@ -1880,5 +1880,7 @@
   "leaderboardDataNotAvailable": "Leaderboard data not currently available, please check back soon!",
   "viewLess": "View less",
   "allCategoriesTopQuestions": "Top questions in every category",
-  "explore": "Explore"
+  "explore": "Explore",
+  "feedTileSummary": "Feed Tile Summary",
+  "feedTileSummaryPlaceholder": "Optional: Enter a custom summary text to display on feed tiles (if not provided, a summary will be auto-generated from the notebook content)"
 }

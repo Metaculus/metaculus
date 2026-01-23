@@ -1825,7 +1825,7 @@
   "tournamentsTabSeries": "Série de Perguntas",
   "tournamentsTabIndexes": "Índices",
   "tournamentsTabArchived": "Arquivado",
-  "tournamentTimelineClosed": "Aguardando resoluções",
+  "tournamentTimelineClosed": "Resoluções pendentes",
   "questionsPreviouslyPredicted": "{count, plural, =1 {# pergunta} other {# perguntas}} previamente previstas",
   "includeMyForecastAtTheTime": "Incluir minha previsão no momento <strong>({forecast})</strong>",
   "tournamentsInfoTitle": "Nós <predmarket>não somos um mercado de previsões</predmarket>. Você pode participar gratuitamente e ganhar prêmios em dinheiro por ser preciso.",
@@ -1885,5 +1885,7 @@
   "periodMinutes": "{count, plural, one {# minuto} other {# minutos}}",
   "periodSeconds": "{count, plural, one {# segundo} other {# segundos}}",
   "choicesLockedHelp": "As opções só podem ser alteradas através do painel de administração uma vez iniciado o processo de previsão.",
+  "feedTileSummary": "Resumo do Bloco de Feed",
+  "feedTileSummaryPlaceholder": "Opcional: Insira um texto de resumo personalizado para exibir nos blocos de feed (se não for fornecido, um resumo será gerado automaticamente a partir do conteúdo do caderno)",
   "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
 }

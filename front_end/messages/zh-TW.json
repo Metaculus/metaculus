@@ -1824,7 +1824,7 @@
   "tournamentsTabSeries": "問答系列",
   "tournamentsTabIndexes": "指數",
   "tournamentsTabArchived": "已存檔",
-  "tournamentTimelineClosed": "等待裁定",
+  "tournamentTimelineClosed": "待处理的决议",
   "questionsPreviouslyPredicted": "先前預測的{count, plural, =1 {# 個問題} other {# 個問題}}",
   "includeMyForecastAtTheTime": "包括我當時的預測 <strong>({forecast})</strong>",
   "dismiss": "關閉",
@@ -1884,5 +1884,7 @@
   "periodMinutes": "{count, plural, one {# 分鐘} other {# 分鐘}}",
   "periodSeconds": "{count, plural, one {# 秒} other {# 秒}}",
   "choicesLockedHelp": "一旦預測開始後，選項只能透過管理平台進行更改。",
+  "feedTileSummary": "Feed 磁貼摘要",
+  "feedTileSummaryPlaceholder": "選擇性：輸入自訂摘要文字以顯示在Feed磁貼上（如果未提供，將從筆記本內容自動生成摘要）",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }

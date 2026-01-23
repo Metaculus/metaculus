@@ -70,7 +70,7 @@ export function extractLeaderboardFiltersFromParams(
   let year = new Date(currentDate.getTime() - gracePeriod * 24 * 60 * 60 * 1000)
     .getFullYear()
     .toString();
-  // if year is not in periods, fall back to the lastest period
+  // if year is not in periods, fall back to the latest period
   if (!periods.find((p) => p.value === year)) {
     year = periods[periods.length - 1]?.value ?? "2025";
   }

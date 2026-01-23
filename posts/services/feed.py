@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Iterable
 
-from django.db.models import Q, Exists, OuterRef, QuerySet
+from django.db.models import Q, QuerySet, Exists, OuterRef
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError, PermissionDenied
 
@@ -131,63 +131,14 @@ def get_posts_feed(
 
     statuses = list(statuses or [])
     now = timezone.now()
-    status_q = Q()
+    post_status_q = Q()
+    question_status_q = Q()
 
     for status in statuses:
         if status in Post.CurationStatus:
-            status_q |= Q(curation_status=status)
-        if status == "upcoming":
-            status_q |= (
-                Q(notebook__isnull=True)
-                & Q(curation_status=Post.CurationStatus.APPROVED)
-                & Exists(
-                    Question.objects.filter(
-                        post_id=OuterRef("pk"),
-                        open_time__gte=now,
-                    )
-                )
-            )
-        if status == "closed":
-            status_q |= (
-                Q(notebook__isnull=True)
-                & Q(curation_status=Post.CurationStatus.APPROVED)
-                & Exists(
-                    Question.objects.filter(
-                        post_id=OuterRef("pk"),
-                        resolution__isnull=True,
-                    ).filter(
-                        Q(actual_close_time__isnull=False)
-                        | Q(scheduled_close_time__lte=now)
-                    )
-                )
-            )
-        if status == "pending_resolution":
-            status_q |= (
-                Q(notebook__isnull=True)
-                & Q(curation_status=Post.CurationStatus.APPROVED)
-                & Exists(
-                    Question.objects.filter(
-                        post_id=OuterRef("pk"),
-                        resolution__isnull=True,
-                        scheduled_resolve_time__lte=now,
-                    )
-                )
-            )
-            if order_by in [None, "-" + PostFilterSerializer.Order.HOTNESS]:
-                order_by = "-" + PostFilterSerializer.Order.SCHEDULED_RESOLVE_TIME
-        if status == "resolved":
-            status_q |= (
-                Q(notebook__isnull=True)
-                & Q(curation_status=Post.CurationStatus.APPROVED)
-                & Exists(
-                    Question.objects.filter(
-                        post_id=OuterRef("pk"),
-                        resolution__isnull=False,
-                    )
-                )
-            )
+            post_status_q |= Q(curation_status=status)
         if status == "open":
-            status_q |= Q(
+            post_status_q |= Q(
                 Q(published_at__lte=now)
                 & Q(curation_status=Post.CurationStatus.APPROVED)
                 & (
@@ -205,17 +156,49 @@ def get_posts_feed(
                     )
                 ),
             )
+        if status == "pending_resolution":
+            if order_by in [None, "-" + PostFilterSerializer.Order.HOTNESS]:
+                order_by = "-" + PostFilterSerializer.Order.SCHEDULED_RESOLVE_TIME
+
+        # Subquestion statuses
+        # Build a single combined filter for question-based statuses
+        # This avoids multiple Exists subqueries that become expensive hashed SubPlans
+        if status == "upcoming":
+            question_status_q |= Q(open_time__gte=now)
+
+        if status == "closed":
+            question_status_q |= Q(
+                resolution__isnull=True,
+            ) & (Q(actual_close_time__isnull=False) | Q(scheduled_close_time__lte=now))
+
+        if status == "resolved":
+            question_status_q |= Q(resolution__isnull=False)
+
+        if status == "pending_resolution":
+            question_status_q |= Q(
+                resolution__isnull=True,
+                scheduled_resolve_time__lte=now,
+            )
+
+    # Get post IDs matching any of these question-based statuses
+    if question_status_q:
+        post_status_q |= Q(
+            notebook__isnull=True,
+            curation_status=Post.CurationStatus.APPROVED,
+            pk__in=Question.objects.filter(question_status_q).values("post_id"),
+        )
 
     # Include only approved posts if no curation status specified
     if not any(status in Post.CurationStatus for status in statuses):
-        status_q &= Q(curation_status=Post.CurationStatus.APPROVED)
+        post_status_q &= Q(curation_status=Post.CurationStatus.APPROVED)
 
-    qs = qs.filter(status_q)
+    qs = qs.filter(post_status_q)
 
     if forecaster_id:
-        qs = qs.annotate_user_last_forecasts_date(forecaster_id).filter(
-            user_last_forecasts_date__isnull=False
-        )
+        # Use Exists for efficient filtering (Semi Join), then annotate for display
+        qs = qs.filter_user_has_forecasted(
+            forecaster_id
+        ).annotate_user_last_forecasts_date(forecaster_id)
 
         if order_by == PostFilterSerializer.Order.USER_NEXT_WITHDRAW_TIME:
             qs = qs.annotate_next_withdraw_time(forecaster_id)
@@ -352,29 +335,23 @@ def filter_for_consumer_view(qs: QuerySet[Post]) -> QuerySet[Post]:
 
     # Display only programs/research notebooks
     qs = qs.filter(
-        Q(notebook__isnull=True)
-        | Exists(
-            Post.projects.through.objects.filter(
-                post_id=OuterRef("pk"),
-                project__in=allowed_projects,
-            )
-        )
-        | Q(default_project__in=allowed_projects)
+        Q(default_project__in=allowed_projects)
+        | Q(notebook__isnull=True)
+        | Q(projects__in=allowed_projects)
     )
 
-    # Exclude posts that have a single question with a reveal time in the future.
-    qs = qs.exclude(question__cp_reveal_time__gte=now)
-
-    # We should keep groups where at least one subquestion is open and has its CP revealed.
+    # We should keep posts where at least one question has CP revealed.
+    # For group questions, also check they're still open.
     qs = qs.filter(
-        Q(group_of_questions__isnull=True)
+        Q(notebook__isnull=False)
+        | Q(question__cp_reveal_time__lt=now)
         | Exists(
             Question.objects.filter(
-                Q(actual_resolve_time__isnull=True) | Q(actual_resolve_time__gte=now),
-                Q(actual_close_time__isnull=True)
-                | Q(actual_close_time__gte=timezone.now()),
-                Q(cp_reveal_time__lt=now),
-            ).filter(group_id=OuterRef("group_of_questions__id"))
+                Q(actual_close_time__isnull=True) | Q(actual_close_time__gte=now),
+                cp_reveal_time__lt=now,
+                group_id__isnull=False,
+                post_id=OuterRef("pk"),
+            )
         )
     )
 

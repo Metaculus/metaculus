@@ -167,10 +167,10 @@ def check_and_schedule_forecast_widrawal_due_notifications():
         question__actual_close_time__lte=now
     )
 
-    forecast_alreday_withdrawn = Q(forecast__end_time__lt=now)
+    forecast_already_withdrawn = Q(forecast__end_time__lt=now)
 
     all_notifications = UserForecastNotification.objects.filter(due_and_unsent).exclude(
-        user_is_unsubscribed | question_is_closed | forecast_alreday_withdrawn
+        user_is_unsubscribed | question_is_closed | forecast_already_withdrawn
     )
 
     # Group notifications by user and post

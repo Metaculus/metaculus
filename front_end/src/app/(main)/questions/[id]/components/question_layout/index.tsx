@@ -20,7 +20,6 @@ const QuestionLayout: React.FC<PropsWithChildren<Props>> = ({
   return (
     <QuestionLayoutProvider>
       <QuestionVariantComposer
-        postData={postData}
         consumer={
           <ConsumerQuestionLayout
             postData={postData}

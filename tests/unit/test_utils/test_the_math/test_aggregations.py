@@ -33,7 +33,7 @@ from utils.typing import (
 
 
 @pytest.mark.parametrize(
-    "array, max_size, expceted_array",
+    "array, max_size, expected_array",
     [
         ([], 10, []),
         (range(10), 10, range(10)),
@@ -43,11 +43,11 @@ from utils.typing import (
         (range(10), 5, [0, 3, 5, 7, 9]),
     ],
 )
-def test_summarize_array(array, max_size, expceted_array):
+def test_summarize_array(array, max_size, expected_array):
     summarized = summarize_array(array, max_size)
 
     # Check that the summarized list has the correct length
-    assert np.allclose(summarized, expceted_array)
+    assert np.allclose(summarized, expected_array)
 
 
 class TestAggregations:
