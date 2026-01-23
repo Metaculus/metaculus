@@ -21,7 +21,6 @@ import PostVoter from "@/components/post_card/basic_post_card/post_voter";
 import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import Chip from "@/components/ui/chip";
 import CircleDivider from "@/components/ui/circle_divider";
-import { POST_CATEGORIES_FILTER } from "@/constants/posts_feed";
 import { PostSubscriptionProvider } from "@/contexts/post_subscription_context";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
