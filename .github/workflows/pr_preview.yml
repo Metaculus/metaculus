@@ -94,8 +94,8 @@ jobs:
         id: find_comment
         with:
           issue-number: ${{ github.event.number }}
-          comment-author: 'github-actions[bot]'
-          body-includes: 'Preview environments are not available for fork PRs'
+          comment-author: "github-actions[bot]"
+          body-includes: "Preview environments are not available for fork PRs"
 
       - name: Create comment for fork PRs
         if: |
@@ -133,15 +133,15 @@ jobs:
         run: |
           # Slugify branch name: lowercase, replace invalid chars, truncate
           BRANCH_SLUG="$(printf '%s' "$BRANCH_REF" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-30)"
-          
+
           # Base preview identifier: pr-{number}-{branch_slug}
           PREVIEW_ID="pr-${PR_NUMBER}-${BRANCH_SLUG}"
-          
+
           # Resource names with service-specific prefixes
           echo "fly_app=metaculus-${PREVIEW_ID}" >> $GITHUB_OUTPUT
           echo "neon_branch=preview/${PREVIEW_ID}" >> $GITHUB_OUTPUT
           echo "redis_name=mtc-redis-${PREVIEW_ID}" >> $GITHUB_OUTPUT
-          
+
           echo "Preview ID: ${PREVIEW_ID}"
 
   # ===========================================================================
@@ -194,7 +194,7 @@ jobs:
           REDIS_NAME="${{ needs.setup.outputs.redis_name }}"
           FLY_ORG="${{ vars.FLY_ORG || 'personal' }}"
           REDIS_REGION="${{ vars.FLY_REDIS_REGION || 'iad' }}"
-          
+
           # Check if database already exists
           if flyctl redis list --org "${FLY_ORG}" | grep -qw "${REDIS_NAME}"; then
             echo "✅ Found existing Redis database: ${REDIS_NAME}"
@@ -208,16 +208,16 @@ jobs:
               --org "${FLY_ORG}"
             echo "✅ Created new Redis database: ${REDIS_NAME}"
           fi
-          
+
           # Get Redis connection URL from status (parse text output)
           REDIS_URL=$(flyctl redis status "${REDIS_NAME}" | grep -i "Private URL" | awk -F'= ' '{print $2}' | tr -d ' ')
-          
+
           if [ -z "$REDIS_URL" ]; then
             echo "❌ Failed to get Redis URL from status"
             flyctl redis status "${REDIS_NAME}"
             exit 1
           fi
-          
+
           # Set outputs
           echo "redis_cache_url=${REDIS_URL}" >> $GITHUB_OUTPUT
           echo "redis_mq_url=${REDIS_URL}" >> $GITHUB_OUTPUT
@@ -227,7 +227,7 @@ jobs:
         id: deploy
         run: |
           APP_NAME="${{ needs.setup.outputs.fly_app }}"
-          
+
           # Check if app exists, create if not
           if ! flyctl apps list | grep -qw "${APP_NAME}"; then
             echo "Creating new Fly app: ${APP_NAME}"
@@ -296,8 +296,8 @@ jobs:
         id: find_comment
         with:
           issue-number: ${{ github.event.number }}
-          comment-author: 'github-actions[bot]'
-          body-includes: 'Preview Environment'
+          comment-author: "github-actions[bot]"
+          body-includes: "Preview Environment"
 
       - name: Create or update comment
         uses: peter-evans/create-or-update-comment@v4
@@ -374,7 +374,7 @@ jobs:
         run: |
           FLY_ORG="${{ vars.FLY_ORG || 'personal' }}"
           REDIS_NAME="${{ needs.setup.outputs.redis_name }}"
-          
+
           if flyctl redis list --org "${FLY_ORG}" | grep -qw "${REDIS_NAME}"; then
             echo "Deleting Fly Redis database: ${REDIS_NAME}"
             flyctl redis destroy "${REDIS_NAME}" --yes
@@ -397,8 +397,8 @@ jobs:
         id: find_comment
         with:
           issue-number: ${{ github.event.number }}
-          comment-author: 'github-actions[bot]'
-          body-includes: 'Preview Environment'
+          comment-author: "github-actions[bot]"
+          body-includes: "Preview Environment"
 
       - name: Update comment to show cleanup
         if: steps.find_comment.outputs.comment-id != ''

@@ -89,12 +89,12 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
             -H "Content-Type: application/json" \
             --data '{"purge_everything":true}')
-          
+
           if [ "$(echo "$RESPONSE" | jq -r '.success')" != "true" ]; then
             echo "::warning::Cloudflare cache purge failed: $RESPONSE"
             exit 0  # Don't fail the workflow
           fi
-          
+
           echo "✅ Cloudflare cache purged successfully"
 
       - name: Login to GitHub Container Registry

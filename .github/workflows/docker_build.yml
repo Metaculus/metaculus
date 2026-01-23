@@ -13,7 +13,7 @@
 # - Multi-source cache: reads from main + branch-specific caches
 #
 # Generated Tags:
-# - SHA tag: {branch}-sha-{sha} (immutable, for deployments/rollbacks)
+# - SHA tag: {branch}-{sha} (immutable, for deployments/rollbacks)
 # - Mutable tag: {branch} (latest build for this branch)
 # - Latest tag: latest (optional, only for production)
 #
@@ -51,46 +51,46 @@ on:
     inputs:
       # Include latest tag (for production deployments)
       include_latest_tag:
-        description: 'Include latest tag'
+        description: "Include latest tag"
         required: false
         type: boolean
         default: false
 
       # Heroku app name - if provided, builds and pushes Heroku-specific targets
       heroku_app:
-        description: 'Heroku app name (enables Heroku target builds if set)'
+        description: "Heroku app name (enables Heroku target builds if set)"
         required: false
         type: string
-        default: ''
+        default: ""
 
       # Heroku targets to build (space-separated)
       heroku_targets:
-        description: 'Heroku targets to build (space-separated)'
+        description: "Heroku targets to build (space-separated)"
         required: false
         type: string
-        default: 'release dramatiq_worker django_cron web'
+        default: "release dramatiq_worker django_cron web"
 
     outputs:
       image_name:
-        description: 'Full image name (without tag)'
+        description: "Full image name (without tag)"
         value: ${{ jobs.build.outputs.image_name }}
       image_tags:
-        description: 'All image tags (newline-separated)'
+        description: "All image tags (newline-separated)"
         value: ${{ jobs.build.outputs.image_tags }}
       labels:
-        description: 'OCI image labels (newline-separated)'
+        description: "OCI image labels (newline-separated)"
         value: ${{ jobs.build.outputs.labels }}
       primary_tag:
-        description: 'Primary immutable tag (SHA-based)'
+        description: "Primary immutable tag (SHA-based)"
         value: ${{ jobs.build.outputs.primary_tag }}
       image_url:
-        description: 'Primary full image URL (image:tag)'
+        description: "Primary full image URL (image:tag)"
         value: ${{ jobs.build.outputs.image_url }}
       branch_slug:
-        description: 'Slugified branch name'
+        description: "Slugified branch name"
         value: ${{ jobs.build.outputs.branch_slug }}
       heroku_targets:
-        description: 'Heroku targets that were built (space-separated)'
+        description: "Heroku targets that were built (space-separated)"
         value: ${{ jobs.build.outputs.heroku_targets }}
 
 permissions:
@@ -144,7 +144,7 @@ jobs:
           IMAGE_NAME="ghcr.io/${{ github.repository }}"
           IMAGE_NAME_LOWER="$(printf '%s' "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
           echo "image_name=${IMAGE_NAME_LOWER}" >> $GITHUB_OUTPUT
-          
+
           # Compute branch prefix for SHA tag
           # - For PRs: use head_ref (source branch)
           # - For pushes: use ref_name
@@ -176,14 +176,14 @@ jobs:
         id: cache
         run: |
           BRANCH_SLUG="${{ steps.vars.outputs.branch_slug }}"
-          
+
           # Determine if this is the main branch (writes to main cache)
           if [ "${{ github.ref_name }}" = "main" ] || [ "${{ github.ref_name }}" = "master" ]; then
             echo "cache_write_tag=buildcache-main" >> $GITHUB_OUTPUT
           else
             echo "cache_write_tag=buildcache-${BRANCH_SLUG}" >> $GITHUB_OUTPUT
           fi
-          
+
           echo "cache_scope=${BRANCH_SLUG}" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
@@ -209,7 +209,7 @@ jobs:
           set -e
           IMAGE_NAME="${{ steps.vars.outputs.image_name }}"
           CACHE_SCOPE="${{ steps.cache.outputs.cache_scope }}"
-          
+
           for target in ${{ inputs.heroku_targets }}; do
             echo "Building Heroku target: $target"
             docker buildx build \
