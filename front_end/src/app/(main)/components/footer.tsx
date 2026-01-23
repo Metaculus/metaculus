@@ -167,19 +167,19 @@ const LanguageSelector: FC = () => {
   const posthog = usePostHog();
 
   const updateLanguage = (language: string) => {
-    // Track language change in PostHog
-    posthog.capture("language_changed", {
-      previous_language: selectedLanguage,
-      new_language: language,
-    });
-
-    // Update user property for language
-    if (user) {
-      posthog.setPersonProperties({ language });
-    }
-
     updateLanguagePreference(language, false)
-      .then(() => router.refresh())
+      .then(() => {
+        // Track language change in PostHog only after preference is successfully persisted
+        posthog.capture("language_changed", {
+          previous_language: selectedLanguage,
+          new_language: language,
+        });
+        // Update user property for language only after preference is successfully persisted
+        if (user) {
+          posthog.setPersonProperties({ language });
+        }
+        router.refresh();
+      })
       .catch(logError);
   };
 
