@@ -54,13 +54,16 @@ safe_default() {
   exit 0
 }
 
-# Get the last successful deployment commit using GraphQL
-LAST_DEPLOYED=$(gh api graphql -f query='
+# Get the last successful deployment info using GraphQL
+DEPLOYMENT_INFO=$(gh api graphql -f query='
   query($owner: String!, $repo: String!, $env: String!) {
     repository(owner: $owner, name: $repo) {
       deployments(environments: [$env], first: 20, orderBy: {field: CREATED_AT, direction: DESC}) {
         nodes {
-          commitOid
+          commit {
+            oid
+            committedDate
+          }
           latestStatus {
             state
           }
@@ -69,21 +72,32 @@ LAST_DEPLOYED=$(gh api graphql -f query='
     }
   }
 ' -f owner="$OWNER" -f repo="$REPO" -f env="$ENVIRONMENT" \
-  --jq '.data.repository.deployments.nodes[] | select(.latestStatus.state == "SUCCESS") | .commitOid' \
+  --jq '.data.repository.deployments.nodes[] | select(.latestStatus.state == "SUCCESS") | "\(.commit.oid) \(.commit.committedDate)"' \
   2>/dev/null | head -n 1) || safe_default "Failed to fetch deployment history"
 
+# Parse commit OID and date from response
+LAST_DEPLOYED=$(echo "$DEPLOYMENT_INFO" | awk '{print $1}')
+DEPLOYED_DATE=$(echo "$DEPLOYMENT_INFO" | awk '{print $2}')
+
 echo "Last deployed commit: $LAST_DEPLOYED" >&2
+echo "Last deployed date: $DEPLOYED_DATE" >&2
 echo "Current commit: $CURRENT_SHA" >&2
 
 if [ -z "$LAST_DEPLOYED" ] || [ "$LAST_DEPLOYED" = "null" ]; then
   safe_default "No previous deployment found"
 fi
 
+# Calculate date - 1 day for safe shallow fetch
+# Use date command to subtract 1 day from the deployed date
+FETCH_SINCE_DATE=$(date -u -d "$DEPLOYED_DATE - 1 day" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || \
+                   date -u -v-1d -j -f "%Y-%m-%dT%H:%M:%SZ" "$DEPLOYED_DATE" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || \
+                   echo "$DEPLOYED_DATE")
+
+echo "Fetching commits since: $FETCH_SINCE_DATE" >&2
+
 # Fetch only the history needed to compare with last deployment
-# These are best-effort fetches - if they fail, we rely on the git diff below
-# to catch missing history and trigger safe_default
-git fetch --shallow-exclude="$LAST_DEPLOYED" origin "$REF_NAME" 2>/dev/null || true
-git fetch --deepen=1 origin "$REF_NAME" 2>/dev/null || true
+# Use --shallow-since with date - 1 day to be safe
+git fetch --shallow-since="$FETCH_SINCE_DATE" origin "$REF_NAME" 2>/dev/null || true
 
 # Get all changed files (fails with safe_default if history is unavailable)
 ALL_CHANGES=$(git diff "$LAST_DEPLOYED" "$CURRENT_SHA" --name-only 2>/dev/null) || safe_default "Failed to diff commits"
