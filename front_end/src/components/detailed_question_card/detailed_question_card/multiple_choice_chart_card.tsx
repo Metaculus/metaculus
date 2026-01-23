@@ -59,10 +59,10 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
 
   const generateList = useCallback(
     (q: QuestionWithMultipleChoiceForecasts) =>
-      generateChoiceItemsFromMultipleChoiceForecast(q, {
+      generateChoiceItemsFromMultipleChoiceForecast(q, t, {
         activeCount: maxVisibleCheckboxes,
       }),
-    [maxVisibleCheckboxes]
+    [t, maxVisibleCheckboxes]
   );
 
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(

@@ -1,4 +1,5 @@
 import { isNil, uniq } from "lodash";
+import { useTranslations } from "next-intl";
 
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { ChoiceItem } from "@/types/choices";
@@ -22,6 +23,7 @@ import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 export function generateChoiceItemsFromMultipleChoiceForecast(
   question: QuestionWithMultipleChoiceForecasts,
+  t: ReturnType<typeof useTranslations>,
   config?: {
     withMinMax?: boolean;
     activeCount?: number;
@@ -117,9 +119,9 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
     return {
       choice: choice,
       label: isDeleted
-        ? choice + " (deleted)"
+        ? choice + " (" + t("deleted") + ")"
         : isUpcoming
-          ? choice + " (upcoming)"
+          ? choice + " (" + t("Upcoming") + ")"
           : choice,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       highlighted: false,

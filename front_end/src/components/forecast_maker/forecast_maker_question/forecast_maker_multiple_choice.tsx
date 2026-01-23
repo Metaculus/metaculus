@@ -236,7 +236,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     generateChoiceOptions(
       question,
       question.aggregations[question.default_aggregation_method],
-      userLastForecast
+      userLastForecast,
+      t
     )
   );
 
@@ -714,7 +715,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 function generateChoiceOptions(
   question: QuestionWithMultipleChoiceForecasts,
   aggregate: MultipleChoiceAggregateForecastHistory,
-  userLastForecast: MultipleChoiceUserForecast | undefined
+  userLastForecast: MultipleChoiceUserForecast | undefined,
+  t: ReturnType<typeof useTranslations>
 ): ChoiceOption[] {
   const latest = aggregate.latest;
   const allOptions = getAllOptionsHistory(question);
@@ -729,9 +731,9 @@ function generateChoiceOptions(
     return {
       name: option,
       label: isDeleted
-        ? option + " (deleted)"
+        ? option + " (" + t("deleted") + ")"
         : isUpcoming
-          ? option + " (upcoming)"
+          ? option + " (" + t("Upcoming") + ")"
           : option,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       communityForecast:
