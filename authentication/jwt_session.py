@@ -145,9 +145,8 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
     """
     try:
         refresh = SessionRefreshToken(refresh_token_str, verify=False)
-    except Exception:
-        # Do not expose internal exception details to the client
-        raise InvalidToken("Invalid token")
+    except TokenError as e:
+        raise InvalidToken(e.args[0]) from e
 
     session_id = refresh.get("session_id")
     if not session_id:
@@ -169,7 +168,7 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
     try:
         refresh.verify()
     except TokenError as e:
-        raise InvalidToken(str(e))
+        raise InvalidToken(e.args[0]) from e
 
     # Generate new tokens with lock to handle race conditions
     lock_key = f"{grace_key}:lock"
