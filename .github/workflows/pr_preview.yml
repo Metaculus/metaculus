@@ -38,6 +38,7 @@
 # - PUBLIC_SCREENSHOT_SERVICE_ENABLED: Enable screenshot service
 # - SENTRY_DNS: Sentry DSN for error tracking (for backend)
 # - PUBLIC_FRONTEND_SENTRY_DSN: Frontend Sentry DSN
+# - PUBLIC_POSTHOG_KEY: PostHog project API key
 # =============================================================================
 
 name: PR Preview Environment
@@ -262,6 +263,7 @@ jobs:
             SENTRY_DNS="${{ vars.SENTRY_DNS }}" \
             PUBLIC_FRONTEND_SENTRY_DSN="${{ vars.PUBLIC_FRONTEND_SENTRY_DSN }}" \
             SENTRY_AUTH_TOKEN="${{ secrets.SENTRY_AUTH_TOKEN }}" \
+            PUBLIC_POSTHOG_KEY="${{ vars.PUBLIC_POSTHOG_KEY }}" \
             --app "${APP_NAME}" \
             --stage
 
