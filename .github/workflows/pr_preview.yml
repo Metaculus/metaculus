@@ -235,11 +235,9 @@ jobs:
               --org ${{ vars.FLY_ORG || 'personal' }}
           fi
 
-          # Define app URLs
-          # APP_DOMAIN: fly.dev hostname (used by nginx for host validation)
-          # PUBLIC_APP_URL: vanity URL via Cloudflare Worker (shown in PR comments)
-          APP_DOMAIN="${APP_NAME}.fly.dev"
-          PUBLIC_APP_URL="https://${APP_NAME}-preview.mtcl.cc"
+          # Define app URLs (used for secrets and outputs)
+          APP_DOMAIN="${APP_NAME}-preview.mtcl.cc" 
+          PUBLIC_APP_URL="https://${APP_DOMAIN}"
 
           # Set all secrets and environment variables for the app
           # Secrets are encrypted at rest in Fly.io
