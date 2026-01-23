@@ -1,5 +1,4 @@
 import json
-import time
 import uuid
 
 from django.conf import settings
@@ -191,8 +190,8 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
         if old_token_iat:
             whitelist_token(session_id, old_token_iat)
 
-        # Set enforce_at to now - tokens with iat < now are revoked (unless whitelisted)
-        set_session_enforce_at(session_id, int(time.time()))
+        # Set enforce_at to new token's iat - tokens with iat < this are revoked (unless whitelisted)
+        set_session_enforce_at(session_id, refresh["iat"])
 
         return data
 
