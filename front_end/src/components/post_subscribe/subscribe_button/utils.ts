@@ -9,7 +9,7 @@ import { PostSubscription, PostSubscriptionType } from "@/types/post";
 export const getDefaultSubscriptionProps = () =>
   ({
     [PostSubscriptionType.NEW_COMMENTS]: {
-      comments_frequency: 10,
+      comments_frequency: 1,
     },
     [PostSubscriptionType.STATUS_CHANGE]: {},
     [PostSubscriptionType.MILESTONE]: {
