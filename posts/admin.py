@@ -97,10 +97,7 @@ class PostAdmin(CustomTranslationAdmin):
     hotness_explanation.short_description = "Hotness Explanation"
 
     def view_questions(self, obj):
-        url = (
-            reverse("admin:questions_question_changelist")
-            + f"?related_posts__post={obj.id}"
-        )
+        url = reverse("admin:questions_question_changelist") + f"?post={obj.id}"
         return format_html('<a href="{}">View Questions</a>', url)
 
     def update_pseudo_materialized_fields_button(self, obj):
@@ -144,7 +141,7 @@ class PostAdmin(CustomTranslationAdmin):
         # generate a zip file with three csv files: question_data, forecast_data,
         # and comment_data
 
-        questions = Question.objects.filter(related_posts__post__in=queryset).distinct()
+        questions = Question.objects.filter(post__in=queryset)
 
         data = export_all_data_for_questions(
             questions,
@@ -231,7 +228,7 @@ class NotebookAdmin(CustomTranslationAdmin):
         "comments",
         "votes",
         "post_link",
-        "markdown_summary",
+        "feed_tile_summary",
     ]
     readonly_fields = ["post_link"]
     search_fields = ["post__title_original"]

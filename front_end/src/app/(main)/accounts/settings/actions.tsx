@@ -3,14 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import ServerAuthApi from "@/services/api/auth/auth.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
-import {
-  deleteImpersonatorSession,
-  getImpersonatorSession,
-  getServerSession,
-  setImpersonatorSession,
-  setServerSession,
-} from "@/services/session";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 import { ApiError } from "@/utils/core/errors";
 
 export async function changePassword(password: string, new_password: string) {
@@ -116,12 +111,52 @@ export async function getBotTokenAction(botId: number) {
   }
 }
 
-export async function stopImpersonatingAction() {
-  const impersonatorToken = await getImpersonatorSession();
+export async function getApiKeyAction() {
+  try {
+    const data = await ServerAuthApi.getApiKey();
 
-  if (impersonatorToken) {
-    await setServerSession(impersonatorToken);
-    await deleteImpersonatorSession();
+    return {
+      key: data.key,
+    };
+  } catch (err) {
+    if (!ApiError.isApiError(err)) {
+      throw err;
+    }
+
+    return {
+      errors: err.data,
+    };
+  }
+}
+
+export async function rotateApiKeyAction() {
+  try {
+    const data = await ServerAuthApi.rotateApiKey();
+
+    return {
+      key: data.key,
+    };
+  } catch (err) {
+    if (!ApiError.isApiError(err)) {
+      throw err;
+    }
+
+    return {
+      errors: err.data,
+    };
+  }
+}
+
+export async function stopImpersonatingAction() {
+  const authManager = await getAuthCookieManager();
+  const impersonatorRefreshToken = authManager.getImpersonatorRefreshToken();
+
+  if (impersonatorRefreshToken) {
+    const tokens = await ServerAuthApi.refreshTokens(impersonatorRefreshToken);
+    if (tokens) {
+      authManager.setAuthTokens(tokens);
+    }
+    authManager.clearImpersonatorRefreshToken();
   }
 
   redirect("/accounts/settings/bots/");
@@ -129,14 +164,15 @@ export async function stopImpersonatingAction() {
 
 export async function impersonateBotAction(botId: number) {
   try {
-    const userToken = await getServerSession();
-    const { token: botToken } = await ServerProfileApi.getBotToken(botId);
+    const authManager = await getAuthCookieManager();
+    const userRefreshToken = authManager.getRefreshToken();
+    const botTokens = await ServerProfileApi.getBotJwt(botId);
 
-    if (userToken) {
-      await setImpersonatorSession(userToken);
+    if (userRefreshToken) {
+      authManager.setImpersonatorRefreshToken(userRefreshToken);
     }
 
-    await setServerSession(botToken);
+    authManager.setAuthTokens(botTokens);
 
     redirect("/");
   } catch (err) {

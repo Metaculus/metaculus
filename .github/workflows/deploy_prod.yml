@@ -39,6 +39,6 @@ jobs:
         run: |
           docker run -w /app/front_end -e SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} registry.heroku.com/$HEROKU_APP/web npx sentry-cli sourcemaps upload  /app/front_end/.next/ --project metaculus-frontend --org metaculus
   deploy-storybook:
-    needs: [ deploy-to-prod ]
+    needs: [deploy-to-prod]
     uses: ./.github/workflows/storybook.yml
     secrets: inherit

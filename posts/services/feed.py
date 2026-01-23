@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Iterable
 
-from django.db.models import Q, Exists, OuterRef, QuerySet
+from django.db.models import Q, QuerySet, Exists, OuterRef
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError, PermissionDenied
 
@@ -130,70 +130,75 @@ def get_posts_feed(
     qs = qs.filter(forecast_type_q)
 
     statuses = list(statuses or [])
-
-    q = Q()
+    now = timezone.now()
+    post_status_q = Q()
+    question_status_q = Q()
 
     for status in statuses:
         if status in Post.CurationStatus:
-            q |= Q(curation_status=status)
-        if status == "upcoming":
-            q |= Q(
-                Q(notebook__isnull=True)
-                & Q(curation_status=Post.CurationStatus.APPROVED)
-                & Q(open_time__gte=timezone.now())
-            )
-        if status == "closed":
-            q |= Q(notebook__isnull=True) & (
-                Q(curation_status=Post.CurationStatus.APPROVED)
-                & (
-                    Q(actual_close_time__isnull=False, resolved=False)
-                    | Q(scheduled_close_time__lte=timezone.now(), resolved=False)
-                )
-            )
-        if status == "pending_resolution":
-            q |= (
-                Q(notebook__isnull=True)
-                & Q(curation_status=Post.CurationStatus.APPROVED)
-                & Q(resolved=False, scheduled_resolve_time__lte=timezone.now())
-            )
-            if order_by in [None, "-" + PostFilterSerializer.Order.HOTNESS]:
-                order_by = "-" + PostFilterSerializer.Order.SCHEDULED_RESOLVE_TIME
-        if status == "resolved":
-            q |= Q(notebook__isnull=True) & Q(
-                resolved=True, curation_status=Post.CurationStatus.APPROVED
-            )
+            post_status_q |= Q(curation_status=status)
         if status == "open":
-            q |= Q(
-                Q(published_at__lte=timezone.now())
+            post_status_q |= Q(
+                Q(published_at__lte=now)
                 & Q(curation_status=Post.CurationStatus.APPROVED)
                 & (
-                    # Notebooks don't support statuses filter
-                    # So we add fallback condition list this
                     Q(notebook_id__isnull=False)
                     | (
-                        Q(open_time__lte=timezone.now())
+                        Q(open_time__lte=now)
                         & Q(
                             (
                                 Q(actual_close_time__isnull=True)
-                                | Q(actual_close_time__gte=timezone.now())
+                                | Q(actual_close_time__gte=now)
                             )
-                            & Q(scheduled_close_time__gte=timezone.now())
+                            & Q(scheduled_close_time__gte=now)
                         )
                         & Q(resolved=False)
                     )
                 ),
             )
+        if status == "pending_resolution":
+            if order_by in [None, "-" + PostFilterSerializer.Order.HOTNESS]:
+                order_by = "-" + PostFilterSerializer.Order.SCHEDULED_RESOLVE_TIME
+
+        # Subquestion statuses
+        # Build a single combined filter for question-based statuses
+        # This avoids multiple Exists subqueries that become expensive hashed SubPlans
+        if status == "upcoming":
+            question_status_q |= Q(open_time__gte=now)
+
+        if status == "closed":
+            question_status_q |= Q(
+                resolution__isnull=True,
+            ) & (Q(actual_close_time__isnull=False) | Q(scheduled_close_time__lte=now))
+
+        if status == "resolved":
+            question_status_q |= Q(resolution__isnull=False)
+
+        if status == "pending_resolution":
+            question_status_q |= Q(
+                resolution__isnull=True,
+                scheduled_resolve_time__lte=now,
+            )
+
+    # Get post IDs matching any of these question-based statuses
+    if question_status_q:
+        post_status_q |= Q(
+            notebook__isnull=True,
+            curation_status=Post.CurationStatus.APPROVED,
+            pk__in=Question.objects.filter(question_status_q).values("post_id"),
+        )
 
     # Include only approved posts if no curation status specified
     if not any(status in Post.CurationStatus for status in statuses):
-        q &= Q(curation_status=Post.CurationStatus.APPROVED)
+        post_status_q &= Q(curation_status=Post.CurationStatus.APPROVED)
 
-    qs = qs.filter(q)
+    qs = qs.filter(post_status_q)
 
     if forecaster_id:
-        qs = qs.annotate_user_last_forecasts_date(forecaster_id).filter(
-            user_last_forecasts_date__isnull=False
-        )
+        # Use Exists for efficient filtering (Semi Join), then annotate for display
+        qs = qs.filter_user_has_forecasted(
+            forecaster_id
+        ).annotate_user_last_forecasts_date(forecaster_id)
 
         if order_by == PostFilterSerializer.Order.USER_NEXT_WITHDRAW_TIME:
             qs = qs.annotate_next_withdraw_time(forecaster_id)
@@ -202,10 +207,9 @@ def get_posts_feed(
             qs = qs.annotate_has_active_forecast(forecaster_id).filter(
                 has_active_forecast=not withdrawn
             )
+
     if not_forecaster_id:
-        qs = qs.annotate_user_last_forecasts_date(not_forecaster_id).filter(
-            user_last_forecasts_date__isnull=True
-        )
+        qs = qs.filter_user_has_not_forecasted(not_forecaster_id)
 
     if upvoted_by:
         qs = qs.filter(
@@ -296,7 +300,7 @@ def get_posts_feed(
         )
     if order_type == PostFilterSerializer.Order.NEWS_HOTNESS:
         if not order_desc:
-            raise ValidationError("Ascending is not supported for “In the news” order")
+            raise ValidationError('Ascending is not supported for "In the news" order')
 
         # Annotate news hotness and exclude notebooks
         qs = qs.annotate_news_hotness().filter(notebook__isnull=True)
@@ -331,29 +335,23 @@ def filter_for_consumer_view(qs: QuerySet[Post]) -> QuerySet[Post]:
 
     # Display only programs/research notebooks
     qs = qs.filter(
-        Q(notebook__isnull=True)
-        | Exists(
-            Post.projects.through.objects.filter(
-                post_id=OuterRef("pk"),
-                project__in=allowed_projects,
-            )
-        )
-        | Q(default_project__in=allowed_projects)
+        Q(default_project__in=allowed_projects)
+        | Q(notebook__isnull=True)
+        | Q(projects__in=allowed_projects)
     )
 
-    # Exclude posts that have a single question with a reveal time in the future.
-    qs = qs.exclude(question__cp_reveal_time__gte=now)
-
-    # We should keep groups where at least one subquestion is open and has its CP revealed.
+    # We should keep posts where at least one question has CP revealed.
+    # For group questions, also check they're still open.
     qs = qs.filter(
-        Q(group_of_questions__isnull=True)
+        Q(notebook__isnull=False)
+        | Q(question__cp_reveal_time__lt=now)
         | Exists(
             Question.objects.filter(
-                Q(actual_resolve_time__isnull=True) | Q(actual_resolve_time__gte=now),
-                Q(actual_close_time__isnull=True)
-                | Q(actual_close_time__gte=timezone.now()),
-                Q(cp_reveal_time__lt=now),
-            ).filter(group_id=OuterRef("group_of_questions__id"))
+                Q(actual_close_time__isnull=True) | Q(actual_close_time__gte=now),
+                cp_reveal_time__lt=now,
+                group_id__isnull=False,
+                post_id=OuterRef("pk"),
+            )
         )
     )
 

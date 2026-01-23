@@ -1,8 +1,10 @@
 "use client";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
+import { FC, ReactNode, useCallback, useMemo, useState } from "react";
+import { VictoryThemeDefinition } from "victory";
 
+import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_cp_status";
 import NumericTimeline from "@/components/charts/numeric_timeline";
 import QuestionPredictionTooltip from "@/components/charts/primitives/question_prediction_tooltip";
@@ -13,6 +15,7 @@ import {
   QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { ThemeColor } from "@/types/theme";
 import { getCursorForecast } from "@/utils/charts/cursor";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
@@ -33,6 +36,11 @@ type Props = {
   forecastAvailability?: ForecastAvailability;
   hideTitle?: boolean;
   isConsumerView?: boolean;
+  embedChartHeight?: number;
+  extraTheme?: VictoryThemeDefinition;
+  colorOverride?: ThemeColor | string;
+  defaultZoom?: TimelineChartZoomOption;
+  withZoomPicker?: boolean;
 };
 
 const DetailedContinuousChartCard: FC<Props> = ({
@@ -42,9 +50,19 @@ const DetailedContinuousChartCard: FC<Props> = ({
   forecastAvailability,
   hideTitle,
   isConsumerView: isConsumerViewProp,
+  embedChartHeight,
+  extraTheme,
+  colorOverride,
+  defaultZoom,
+  withZoomPicker,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
+  const effectiveDefaultZoom =
+    defaultZoom ??
+    (user ? TimelineChartZoomOption.All : TimelineChartZoomOption.TwoMonths);
+
+  const effectiveWithZoomPicker = withZoomPicker ?? true;
   const isConsumerView = isConsumerViewProp ?? !user;
   const [isChartReady, setIsChartReady] = useState(false);
 
@@ -162,13 +180,17 @@ const DetailedContinuousChartCard: FC<Props> = ({
     setIsChartReady(true);
   }, []);
 
+  const isEmbed = useIsEmbedMode();
+
+  const tooltipIsConsumerView = isConsumerView && !isEmbed;
+
   const cursorTooltip = useMemo(() => {
     return (
       <QuestionPredictionTooltip
         communityPrediction={cpCursorElement}
         userPrediction={userCursorElement}
         totalForecasters={cursorData.forecasterCount}
-        isConsumerView={isConsumerView}
+        isConsumerView={tooltipIsConsumerView}
         questionStatus={question.status}
       />
     );
@@ -176,9 +198,74 @@ const DetailedContinuousChartCard: FC<Props> = ({
     cpCursorElement,
     userCursorElement,
     cursorData.forecasterCount,
-    isConsumerView,
+    tooltipIsConsumerView,
     question.status,
   ]);
+
+  const shouldOverlayCp =
+    isEmbed &&
+    !hideCP &&
+    !forecastAvailability?.isEmpty &&
+    !forecastAvailability?.cpRevealsOn &&
+    (question.type === QuestionType.Binary || isContinuousQuestion(question));
+
+  const timelineTitle =
+    !isEmbed && !hideTitle ? t("forecastTimelineHeading") : undefined;
+
+  const chartHeight = embedChartHeight ?? 150;
+
+  const renderTimeline = () => (
+    <NumericTimeline
+      aggregation={question.aggregations[question.default_aggregation_method]}
+      myForecasts={question.my_forecasts}
+      resolution={question.resolution}
+      resolveTime={question.actual_resolve_time}
+      cursorTimestamp={cursorTimestamp}
+      onCursorChange={handleCursorChange}
+      onChartReady={handleChartReady}
+      questionType={question.type}
+      questionStatus={question.status}
+      actualCloseTime={getPostDrivenTime(question.actual_close_time)}
+      scaling={question.scaling}
+      defaultZoom={effectiveDefaultZoom}
+      withZoomPicker={effectiveWithZoomPicker}
+      hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
+      isEmptyDomain={
+        !!forecastAvailability?.isEmpty || !!forecastAvailability?.cpRevealsOn
+      }
+      openTime={getPostDrivenTime(question.open_time)}
+      unit={question.unit}
+      inboundOutcomeCount={question.inbound_outcome_count}
+      simplifiedCursor={
+        question.type !== QuestionType.Binary || (!user && !isEmbed)
+      }
+      title={timelineTitle}
+      forecastAvailability={forecastAvailability}
+      cursorTooltip={
+        question.type === QuestionType.Binary && !user && !isEmbed
+          ? undefined
+          : cursorTooltip
+      }
+      isConsumerView={isConsumerView}
+      isEmbedded={isEmbed}
+      height={chartHeight}
+      extraTheme={extraTheme}
+      colorOverride={colorOverride}
+    />
+  );
+
+  const cpColorOverride: string | undefined =
+    typeof colorOverride === "string" ? colorOverride : undefined;
+
+  const overlayNode = (
+    <QuestionHeaderCPStatus
+      question={question}
+      size="md"
+      hideLabel={isContinuousQuestion(question)}
+      colorOverride={cpColorOverride}
+      chartTheme={extraTheme}
+    />
+  );
 
   return (
     <div
@@ -189,143 +276,69 @@ const DetailedContinuousChartCard: FC<Props> = ({
     >
       {!isConsumerView ? (
         <>
-          {/* Large screens: side-by-side layout */}
+          {/* Desktop */}
           <div className="hidden items-stretch gap-4 md:flex">
-            {isContinuousQuestion(question) && (
+            {isContinuousQuestion(question) && !isEmbed && (
               <QuestionHeaderCPStatus
                 question={question}
                 size="lg"
                 hideLabel={true}
               />
             )}
+
             <div className="relative flex-1">
-              <NumericTimeline
-                aggregation={
-                  question.aggregations[question.default_aggregation_method]
-                }
-                myForecasts={question.my_forecasts}
-                resolution={question.resolution}
-                resolveTime={question.actual_resolve_time}
-                cursorTimestamp={cursorTimestamp}
-                onCursorChange={handleCursorChange}
-                onChartReady={handleChartReady}
-                questionType={question.type}
-                questionStatus={question.status}
-                actualCloseTime={getPostDrivenTime(question.actual_close_time)}
-                scaling={question.scaling}
-                defaultZoom={
-                  user
-                    ? TimelineChartZoomOption.All
-                    : TimelineChartZoomOption.TwoMonths
-                }
-                withZoomPicker
-                hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
-                isEmptyDomain={
-                  !!forecastAvailability?.isEmpty ||
-                  !!forecastAvailability?.cpRevealsOn
-                }
-                openTime={getPostDrivenTime(question.open_time)}
-                unit={question.unit}
-                inboundOutcomeCount={question.inbound_outcome_count}
-                simplifiedCursor={
-                  question.type !== QuestionType.Binary || !user
-                }
-                title={hideTitle ? undefined : t("forecastTimelineHeading")}
-                forecastAvailability={forecastAvailability}
-                cursorTooltip={
-                  question.type === QuestionType.Binary && !user
-                    ? undefined
-                    : cursorTooltip
-                }
-                isConsumerView={isConsumerView}
+              <OverlayableTimeline
+                enabled={shouldOverlayCp}
+                timeline={renderTimeline()}
+                overlay={overlayNode}
               />
             </div>
           </div>
 
-          {/* Small screens: timeline only (CP status shown in header) */}
+          {/* Mobile */}
           <div className="relative md:hidden">
-            <NumericTimeline
-              aggregation={
-                question.aggregations[question.default_aggregation_method]
-              }
-              myForecasts={question.my_forecasts}
-              resolution={question.resolution}
-              resolveTime={question.actual_resolve_time}
-              cursorTimestamp={cursorTimestamp}
-              onCursorChange={handleCursorChange}
-              onChartReady={handleChartReady}
-              questionType={question.type}
-              questionStatus={question.status}
-              actualCloseTime={getPostDrivenTime(question.actual_close_time)}
-              scaling={question.scaling}
-              defaultZoom={
-                user
-                  ? TimelineChartZoomOption.All
-                  : TimelineChartZoomOption.TwoMonths
-              }
-              withZoomPicker
-              hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
-              isEmptyDomain={
-                !!forecastAvailability?.isEmpty ||
-                !!forecastAvailability?.cpRevealsOn
-              }
-              openTime={getPostDrivenTime(question.open_time)}
-              unit={question.unit}
-              inboundOutcomeCount={question.inbound_outcome_count}
-              simplifiedCursor={question.type !== QuestionType.Binary || !user}
-              title={hideTitle ? undefined : t("forecastTimelineHeading")}
-              forecastAvailability={forecastAvailability}
-              cursorTooltip={
-                question.type === QuestionType.Binary && !user
-                  ? undefined
-                  : cursorTooltip
-              }
-              isConsumerView={isConsumerView}
+            <OverlayableTimeline
+              enabled={shouldOverlayCp}
+              timeline={renderTimeline()}
+              overlay={overlayNode}
             />
           </div>
         </>
       ) : (
         <div className="relative">
-          <NumericTimeline
-            aggregation={
-              question.aggregations[question.default_aggregation_method]
-            }
-            myForecasts={question.my_forecasts}
-            resolution={question.resolution}
-            resolveTime={question.actual_resolve_time}
-            cursorTimestamp={cursorTimestamp}
-            onCursorChange={handleCursorChange}
-            onChartReady={handleChartReady}
-            questionType={question.type}
-            questionStatus={question.status}
-            actualCloseTime={getPostDrivenTime(question.actual_close_time)}
-            scaling={question.scaling}
-            defaultZoom={
-              user
-                ? TimelineChartZoomOption.All
-                : TimelineChartZoomOption.TwoMonths
-            }
-            withZoomPicker
-            hideCP={hideCP || !!forecastAvailability?.cpRevealsOn}
-            isEmptyDomain={
-              !!forecastAvailability?.isEmpty ||
-              !!forecastAvailability?.cpRevealsOn
-            }
-            openTime={getPostDrivenTime(question.open_time)}
-            unit={question.unit}
-            inboundOutcomeCount={question.inbound_outcome_count}
-            simplifiedCursor={question.type !== QuestionType.Binary || !user}
-            title={hideTitle ? undefined : t("forecastTimelineHeading")}
-            forecastAvailability={forecastAvailability}
-            cursorTooltip={
-              question.type === QuestionType.Binary && !user
-                ? undefined
-                : cursorTooltip
-            }
-            isConsumerView={isConsumerView}
+          <OverlayableTimeline
+            enabled={shouldOverlayCp}
+            timeline={renderTimeline()}
+            overlay={overlayNode}
           />
         </div>
       )}
+    </div>
+  );
+};
+
+type OverlayableTimelineProps = {
+  enabled: boolean;
+  timeline: ReactNode;
+  overlay: ReactNode;
+};
+
+const OverlayableTimeline: FC<OverlayableTimelineProps> = ({
+  enabled,
+  timeline,
+  overlay,
+}) => {
+  if (!enabled) return <>{timeline}</>;
+
+  return (
+    <div className="group relative">
+      <div className="opacity-10 transition-opacity duration-200 group-focus-within:opacity-100 group-hover:opacity-100 @[23.5rem]:opacity-100">
+        {timeline}
+      </div>
+
+      <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center opacity-100 transition-opacity duration-200 group-focus-within:opacity-0 group-hover:opacity-0 @[23.5rem]:hidden">
+        {overlay}
+      </div>
     </div>
   );
 };

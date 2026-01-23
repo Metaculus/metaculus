@@ -171,7 +171,7 @@ export default async function TournamentSlug(props: Props) {
       {/* Description block */}
       <div className="mx-4 mt-4 rounded-md bg-gray-0 p-4 dark:bg-gray-0-dark sm:p-8 lg:mx-0">
         <div>
-          <HtmlContent content={tournament.description} />
+          <HtmlContent content={tournament.description} allowStyleTag />
 
           {tournament.score_type && (
             <div className="mt-3 flex flex-col gap-3">

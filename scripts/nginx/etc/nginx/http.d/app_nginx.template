@@ -2,6 +2,12 @@ log_format response_time_log '$remote_addr - $remote_user [$time_local] "$reques
                              '$status $body_bytes_sent "$http_referer" '
                              '"$http_user_agent" "$request_time" "$upstream_response_time"';
 
+# Use incoming X-Forwarded-Proto if set (from Fly.io/upstream proxy), otherwise use $scheme
+# This prevents "Contradictory scheme headers" error in gunicorn
+map $http_x_forwarded_proto $proxy_x_forwarded_proto {
+    default $http_x_forwarded_proto;
+    ''      $scheme;
+}
 
 server {
     listen 8000;

@@ -4,7 +4,7 @@ from datetime import timedelta
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 from rest_framework import serializers, status
-from rest_framework.authtoken.models import Token
+from authentication.models import ApiKey
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
@@ -12,6 +12,7 @@ from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from authentication.services import get_tokens_for_user
 from users.models import User, UserSpamActivity
 from users.serializers import (
     UserPrivateSerializer,
@@ -234,7 +235,7 @@ def create_bot_api_view(request: Request):
     username = validate_username(username)
 
     bot = create_bot(bot_owner=user, username=username)
-    token, _ = Token.objects.get_or_create(user=bot)
+    token, _ = ApiKey.objects.get_or_create(user=bot)
 
     return Response({"token": token.key, "user": UserPrivateSerializer(bot).data})
 
@@ -284,6 +285,19 @@ def my_bots_api_view(request: Request):
 @api_view(["GET"])
 def bot_token_api_view(request: Request, pk: int):
     bot = get_object_or_404(get_user_bots(request.user), pk=pk)
-    token, _ = Token.objects.get_or_create(user=bot)
+    token, _ = ApiKey.objects.get_or_create(user=bot)
 
     return Response({"token": token.key})
+
+
+@api_view(["POST"])
+def bot_jwt_api_view(request: Request, pk: int):
+    """
+    Get JWT tokens to impersonate a bot account.
+    Returns access and refresh tokens for the bot.
+    """
+
+    bot = get_object_or_404(get_user_bots(request.user), pk=pk)
+    tokens = get_tokens_for_user(bot)
+
+    return Response(tokens)

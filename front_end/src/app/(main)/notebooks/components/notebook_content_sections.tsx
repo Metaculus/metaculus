@@ -21,6 +21,9 @@ type Props = {
   unreadComments?: number;
 };
 
+const MOBILE_SCROLL_OFFSET = 66 + 48 + 16;
+const DESKTOP_SCROLL_OFFSET = 66;
+
 const NotebookContentSections: FC<Props> = ({
   commentsCount,
   unreadComments,
@@ -29,26 +32,26 @@ const NotebookContentSections: FC<Props> = ({
   const hash = useHash();
 
   const headings = useSectionHeadings(NOTEBOOK_CONTENT_SECTION);
-  const [activeHeading, setActiveHeading] = useState<HTMLHeadingElement>();
-  const [notebookTitle, setNotebookTitle] = useState<
-    string | null | undefined
-  >();
+  const [activeHeadingId, setActiveHeadingId] = useState<string | undefined>();
+  const [notebookTitle, setNotebookTitle] = useState<string | null>();
   const [isNotebookTitleVisible, setIsNotebookTitleVisible] =
     useState<boolean>(true);
   const isLargeScreen = useBreakpoint("md");
-
   useEffect(() => {
-    if (headings.length) {
-      headings.forEach((heading) => {
-        heading.classList.add("scroll-mt-32");
-        heading.classList.add("md:scroll-mt-16");
-      });
+    for (const h of headings) {
+      const el = document.getElementById(h.id);
+      el?.classList.add("scroll-mt-32", "md:scroll-mt-16");
     }
-  }, [headings, headings.length]);
+    document
+      .getElementById(NOTEBOOK_COMMENTS_TITLE)
+      ?.classList.add("scroll-mt-32", "md:scroll-mt-16");
+  }, [headings]);
 
   useEffect(() => {
-    const notebookTitleElement = document.querySelector(`#${NOTEBOOK_TITLE}`);
-    setNotebookTitle(notebookTitleElement?.textContent);
+    const notebookTitleElement = document.querySelector(
+      `#${NOTEBOOK_TITLE}`
+    ) as HTMLElement | null;
+    setNotebookTitle(notebookTitleElement?.textContent ?? null);
   }, []);
 
   useEffect(() => {
@@ -56,32 +59,36 @@ const NotebookContentSections: FC<Props> = ({
       /** changing the table title to notebook title when it becomes invisible */
       const notebookTitleElement = document.querySelector(
         `#${NOTEBOOK_TITLE}`
-      ) as HTMLElement;
-      const pageHeaderElement = document.querySelector("header") as HTMLElement;
-      const notebookTitleBottomOffsetTop =
-        notebookTitleElement?.offsetTop +
-        notebookTitleElement?.offsetHeight -
-        pageHeaderElement?.offsetHeight;
-      setIsNotebookTitleVisible(window.scrollY < notebookTitleBottomOffsetTop);
+      ) as HTMLElement | null;
+      const pageHeaderElement = document.querySelector(
+        "header"
+      ) as HTMLElement | null;
 
-      /** keep heading active until the next heading scrolls to the top */
-      const totalHeadings: HTMLHeadingElement[] = [...headings];
-      const commentSection = document.querySelector(
-        `#${NOTEBOOK_COMMENTS_TITLE}`
-      );
-      if (commentSection) {
-        totalHeadings.push(commentSection as HTMLHeadingElement);
-      }
-      const activeHeading = totalHeadings
-        .reverse()
-        .find(
-          (heading) =>
-            window.scrollY >
-            heading.getBoundingClientRect().top +
-              window.scrollY -
-              (isLargeScreen ? 66 : 66 + 48 + 16)
+      if (notebookTitleElement && pageHeaderElement) {
+        const notebookTitleBottomOffsetTop =
+          notebookTitleElement.offsetTop +
+          notebookTitleElement.offsetHeight -
+          pageHeaderElement.offsetHeight;
+        setIsNotebookTitleVisible(
+          window.scrollY < notebookTitleBottomOffsetTop
         );
-      setActiveHeading(activeHeading);
+      }
+      const ids: string[] = headings.map((h) => h.id);
+      ids.push(NOTEBOOK_COMMENTS_TITLE);
+
+      const offset = isLargeScreen
+        ? DESKTOP_SCROLL_OFFSET
+        : MOBILE_SCROLL_OFFSET;
+
+      const activeId = [...ids].reverse().find((id) => {
+        const el = document.getElementById(id);
+        if (!el) return false;
+
+        const top = el.getBoundingClientRect().top + window.scrollY - offset;
+
+        return window.scrollY > top;
+      });
+      setActiveHeadingId(activeId);
     };
 
     handleOnScroll();
@@ -106,6 +113,31 @@ const NotebookContentSections: FC<Props> = ({
     return `${commentsCount || ""} ${commentCount} ${unreadText}`.trim();
   }, [commentsCount, unreadComments, t]);
 
+  const activeLabel = useMemo(() => {
+    if (!activeHeadingId) {
+      return isNotebookTitleVisible && headings.length
+        ? "Table of Contents"
+        : notebookTitle ?? undefined;
+    }
+
+    if (activeHeadingId === NOTEBOOK_COMMENTS_TITLE) return commentsTitle;
+
+    const active = headings.find((h) => h.id === activeHeadingId);
+    return active?.textContent ?? notebookTitle ?? undefined;
+  }, [
+    activeHeadingId,
+    commentsTitle,
+    headings,
+    isNotebookTitleVisible,
+    notebookTitle,
+  ]);
+
+  const headerLabel = useMemo(() => {
+    return isNotebookTitleVisible && headings.length
+      ? "Table of Contents"
+      : notebookTitle ?? "Table of Contents";
+  }, [headings.length, isNotebookTitleVisible, notebookTitle]);
+
   return (
     <Popover
       as="nav"
@@ -118,13 +150,7 @@ const NotebookContentSections: FC<Props> = ({
             className="flex items-center justify-between gap-2.5 text-left focus:outline-none md:hidden"
           >
             <span className="ml-4 block flex-1 py-2 font-bold">
-              {activeHeading
-                ? activeHeading.id === NOTEBOOK_COMMENTS_TITLE
-                  ? commentsTitle
-                  : activeHeading.textContent
-                : isNotebookTitleVisible && !!headings.length
-                  ? "Table of Contents"
-                  : notebookTitle}
+              {activeLabel}
             </span>
 
             <FontAwesomeIcon
@@ -146,15 +172,14 @@ const NotebookContentSections: FC<Props> = ({
                 className={cn(
                   "block flex-1 py-2 no-underline max-md:ml-4 md:py-1",
                   {
-                    "font-bold": !activeHeading,
+                    "font-bold": !activeHeadingId,
                   }
                 )}
               >
-                {isNotebookTitleVisible && headings.length
-                  ? "Table of Contents"
-                  : notebookTitle}
+                {headerLabel}
               </Link>
             </div>
+
             <div className="flex flex-col max-md:mx-4 max-md:mb-2">
               <hr className="mb-1 mt-0 border-gray-300 dark:border-gray-300-dark md:mt-1" />
               {headings.map(({ id, textContent, tagName }) => (
@@ -164,9 +189,8 @@ const NotebookContentSections: FC<Props> = ({
                   className={cn("block py-1 no-underline", {
                     "pl-4": tagName === "H2",
                     "pl-8": tagName === "H3",
-                    "font-bold": activeHeading?.id === id,
-                    "font-medium":
-                      activeHeading?.id !== id && hash === `#${id}`,
+                    "font-bold": activeHeadingId === id,
+                    "font-medium": activeHeadingId !== id && hash === `#${id}`,
                   })}
                   onClick={close}
                 >
@@ -185,9 +209,9 @@ const NotebookContentSections: FC<Props> = ({
               <Link
                 href={`#${NOTEBOOK_COMMENTS_TITLE}`}
                 className={cn("block py-1 no-underline", {
-                  "font-bold": activeHeading?.id === NOTEBOOK_COMMENTS_TITLE,
+                  "font-bold": activeHeadingId === NOTEBOOK_COMMENTS_TITLE,
                   "font-medium":
-                    activeHeading?.id !== NOTEBOOK_COMMENTS_TITLE &&
+                    activeHeadingId !== NOTEBOOK_COMMENTS_TITLE &&
                     hash === `#${NOTEBOOK_COMMENTS_TITLE}`,
                 })}
                 onClick={close}

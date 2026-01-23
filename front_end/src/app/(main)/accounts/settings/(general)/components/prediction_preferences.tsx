@@ -143,7 +143,10 @@ const PredictionPreferences: FC<Props> = ({ user }) => {
                   {(tags) =>
                     t.rich("withdrawAfterPercentSettingDescription", {
                       ...tags,
-                      value: Math.round((10 * +localExpirationPercent) / 100),
+                      value: Math.max(
+                        1,
+                        Math.round((10 * +localExpirationPercent) / 100)
+                      ),
                     })
                   }
                 </RichText>

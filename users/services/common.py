@@ -111,7 +111,7 @@ def change_email_from_token(user: User, token: str):
         raise ValidationError("Invalid token")
 
     if user.id != user_id:
-        raise ValidationError("User missmatch")
+        raise ValidationError("User mismatch")
 
     if User.objects.filter(email__iexact=new_email).exists():
         raise ValidationError("The email is already in use")

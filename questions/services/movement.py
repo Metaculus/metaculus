@@ -80,7 +80,7 @@ def calculate_period_movement_for_questions(
             compare_periods_map.keys(),
             aggregated_forecast_qs=(
                 AggregateForecast.objects.filter_default_aggregation().only(
-                    "id", "start_time", "question_id", "end_time"
+                    "id", "start_time", "question_id", "end_time", "forecaster_count"
                 )
             ),
             include_cp_history=True,
@@ -104,6 +104,16 @@ def calculate_period_movement_for_questions(
                 continue
 
             last_agg = get_last_forecast_in_the_past(aggregated_forecasts)
+
+            # Skip movement for questions that are too new and have too few forecasters
+            # Must be either 2+ weeks old OR have 20+ forecasters
+            is_old_enough = (
+                question.open_time and question.open_time <= now - timedelta(days=14)
+            )
+            has_enough_forecasters = last_agg and (last_agg.forecaster_count or 0) >= 20
+            if not is_old_enough and not has_enough_forecasters:
+                continue
+
             first_agg = (
                 next(
                     (

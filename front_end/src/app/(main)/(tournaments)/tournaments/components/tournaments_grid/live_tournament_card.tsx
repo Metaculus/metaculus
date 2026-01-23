@@ -11,6 +11,7 @@ import { bucketRelativeMs } from "@/utils/formatters/date";
 
 import TournamentCardShell from "./tournament_card_shell";
 import GradientProgressLine from "../../../tournament/components/gradient_progress_line";
+import { safeTs } from "../../helpers";
 
 type Props = {
   item: TournamentPreview;
@@ -114,20 +115,23 @@ function TournamentTimelineBar({
   const closedTs = safeTs(forecastingEndDate ?? closeDate ?? null);
   if (!startTs || !closedTs) return null;
 
-  const isClosed =
+  const now = nowTs ?? Date.now();
+
+  const rawClosed =
     timeline?.all_questions_closed != null
       ? Boolean(timeline.all_questions_closed)
       : !isOngoing;
 
+  const isClosed = rawClosed && now >= closedTs;
   const isResolved = Boolean(timeline?.all_questions_resolved);
 
   if (!isClosed) {
-    return <ActiveMiniBar nowTs={nowTs} startTs={startTs} endTs={closedTs} />;
+    return <ActiveMiniBar nowTs={now} startTs={startTs} endTs={closedTs} />;
   }
 
   return (
     <ClosedMiniBar
-      nowTs={nowTs}
+      nowTs={now}
       isResolved={isResolved}
       closeDate={closeDate ?? null}
       timeline={timeline}
@@ -257,12 +261,6 @@ function ClosedChip({
       />
     </div>
   );
-}
-
-function safeTs(iso?: string | null): number | null {
-  if (!iso) return null;
-  const t = new Date(iso).getTime();
-  return Number.isFinite(t) ? t : null;
 }
 
 function clamp01(x: number) {

@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.views.decorators.cache import cache_page
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
@@ -7,7 +8,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from posts.models import Post
-from posts.serializers import serialize_posts_many_forecast_flow
+from posts.serializers import serialize_posts_many_forecast_flow, serialize_post
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers.common import (
@@ -74,6 +75,38 @@ def news_categories_list_api_view(request: Request):
             "is_subscribed": getattr(obj, "is_subscribed", False),
         }
         for obj in qs.all()
+    ]
+
+    return Response(data)
+
+
+@cache_page(60 * 30)
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def homepage_categories_list_api_view(request: Request):
+    qs = (
+        get_projects_qs(user=request.user)
+        .filter_category()
+        .annotate_categories_with_top_n_posts_ids()
+    )
+
+    categories = list(qs.all())
+    all_post_ids = set()
+    for cat in categories:
+        all_post_ids.update(cat.top_n_post_ids or [])
+
+    posts = Post.objects.filter(id__in=all_post_ids)
+    posts_map = {p.id: serialize_post(p) for p in posts}
+
+    data = [
+        {
+            **CategorySerializer(obj).data,
+            "posts": [
+                posts_map[pid] for pid in (obj.top_n_post_ids or []) if pid in posts_map
+            ],
+        }
+        for obj in categories
+        if len(obj.top_n_post_ids) > 0
     ]
 
     return Response(data)
@@ -237,7 +270,7 @@ def project_delete_api_view(request: Request, project_id: int):
     permission = get_project_permission_for_user(obj, user=request.user)
     ObjectPermission.can_edit_project(permission, raise_exception=True)
 
-    Question.objects.filter(related_posts__post__default_project=obj).delete()
+    Question.objects.filter(post__default_project=obj).delete()
     Post.objects.filter(default_project=obj).delete()
     obj.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)

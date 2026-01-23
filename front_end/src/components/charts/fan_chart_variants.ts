@@ -44,7 +44,7 @@ export type VariantConfig = {
   };
   axisLabelOffsetX: (args: VariantArgs) => number;
   forceTickCount?: number;
-  palette: (args: Pick<VariantArgs, "getThemeColor">) => {
+  palette: (args: Pick<VariantArgs, "getThemeColor" | "isEmbedded">) => {
     communityArea: string;
     communityLine: string;
     userArea: string;
@@ -82,7 +82,8 @@ export const fanVariants: Record<FanChartVariant, VariantConfig> = {
       ticks: { stroke: "transparent" },
       axis: { stroke: "transparent" },
     }),
-    domainPadding: () => ({ x: [150 / 2, 150 / 2] }),
+    domainPadding: ({ isEmbedded }) =>
+      isEmbedded ? { x: [16, 16] } : { x: [150 / 2, 150 / 2] },
     padding: ({ maxLeftPadding }) => ({
       left: maxLeftPadding,
       top: 10,
@@ -90,17 +91,19 @@ export const fanVariants: Record<FanChartVariant, VariantConfig> = {
       bottom: 20,
     }),
     axisLabelOffsetX: ({ maxLeftPadding }) => Math.max(maxLeftPadding - 2, 8),
-    palette: ({ getThemeColor }) => ({
+    palette: ({ getThemeColor, isEmbedded }) => ({
       communityArea: getThemeColor(METAC_COLORS.olive["500"]),
       communityLine: getThemeColor(METAC_COLORS.olive["800"]),
       userArea: getThemeColor(METAC_COLORS.orange["500"]),
       userLine: getThemeColor(METAC_COLORS.orange["700"]),
       resolutionStroke: getThemeColor(METAC_COLORS.purple["800"]),
-      communityPoint: getThemeColor(METAC_COLORS.olive["800"]),
+      communityPoint: isEmbedded
+        ? getThemeColor(METAC_COLORS.olive["700"])
+        : getThemeColor(METAC_COLORS.olive["800"]),
     }),
     resolutionPoint: {
-      size: 8,
-      strokeWidth: 2,
+      size: 10,
+      strokeWidth: 2.5,
       fill: () => "none",
     },
   },

@@ -17,8 +17,8 @@ class ServerCommentsApiClass extends CommentsApi {
     return await this.post<null, null>(`/comments/${id}/delete/`, null);
   }
 
-  async editComment(commentData: EditCommentParams): Promise<Response | null> {
-    return await this.post<null, EditCommentParams>(
+  async editComment(commentData: EditCommentParams): Promise<BECommentType> {
+    return await this.post<BECommentType, EditCommentParams>(
       `/comments/${commentData.id}/edit/`,
       commentData
     );

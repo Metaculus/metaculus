@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getLocale } from "next-intl/server";
 
-import { getServerSession, getAlphaTokenSession } from "@/services/session";
+import { refreshWithSingleFlight } from "@/services/auth_refresh";
+import {
+  AuthCookieManager,
+  AuthTokens,
+  getAuthCookieManager,
+} from "@/services/auth_tokens";
+import { getAlphaTokenSession } from "@/services/session";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 export async function GET(request: NextRequest) {
@@ -34,7 +40,7 @@ async function handleProxyRequest(request: NextRequest, method: string) {
   const includeLocale = request.headers.get("x-include-locale") !== "false";
 
   const shouldPassAuth = passAuthHeader || PUBLIC_AUTHENTICATION_REQUIRED;
-  const authToken = shouldPassAuth ? await getServerSession() : null;
+  const authManager = await getAuthCookieManager();
   const alphaToken = await getAlphaTokenSession();
   const locale = includeLocale ? await getLocale() : "en";
 
@@ -51,6 +57,12 @@ async function handleProxyRequest(request: NextRequest, method: string) {
     "x-forwarded-host",
     "x-forwarded-port",
     "x-forwarded-proto",
+    // Additional scheme headers that can cause "Contradictory scheme headers" warning on Fly.io
+    "x-forwarded-ssl",
+    "x-forwarded-scheme",
+    "x-scheme",
+    "x-url-scheme",
+    "forwarded",
 
     // custom headers used to apply the same logic as on server fetcher
     "x-empty-content",
@@ -58,32 +70,55 @@ async function handleProxyRequest(request: NextRequest, method: string) {
     "x-include-locale",
   ];
 
-  const requestHeaders: HeadersInit = new Headers({
-    ...Object.fromEntries(
-      Array.from(request.headers.entries()).filter(
-        ([key]) => !blocklistHeaders.includes(key.toLowerCase())
-      )
-    ),
-  });
+  const buildHeaders = (accessToken?: string): Headers => {
+    const headers = new Headers({
+      ...Object.fromEntries(
+        Array.from(request.headers.entries()).filter(
+          ([key]) => !blocklistHeaders.includes(key.toLowerCase())
+        )
+      ),
+    });
 
-  requestHeaders.set("Accept", "application/json");
-  requestHeaders.set("Accept-Language", locale);
+    headers.set("Accept", "application/json");
+    headers.set("Accept-Language", locale);
+    if (emptyContentType) headers.delete("Content-Type");
 
-  if (emptyContentType && requestHeaders.has("Content-Type")) {
-    requestHeaders.delete("Content-Type");
+    const token =
+      accessToken ?? (shouldPassAuth ? authManager.getAccessToken() : null);
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    if (alphaToken) headers.set("x-alpha-auth-token", alphaToken);
+
+    return headers;
+  };
+
+  let refreshedTokens: AuthTokens | null = null;
+
+  // Proactive refresh: check expiration before making request
+  if (shouldPassAuth && authManager.isAccessTokenExpired()) {
+    const refreshToken = authManager.getRefreshToken();
+    if (refreshToken) {
+      const newTokens = await refreshWithSingleFlight(refreshToken);
+      if (newTokens) {
+        refreshedTokens = newTokens;
+      }
+    }
   }
 
-  if (authToken) {
-    requestHeaders.set("Authorization", `Token ${authToken}`);
-  }
-  if (alphaToken) {
-    requestHeaders.set("x-alpha-auth-token", alphaToken);
-  }
+  let headers = buildHeaders(refreshedTokens?.access);
+  let response = await fetch(targetUrl, { method, headers });
 
-  const response = await fetch(targetUrl, {
-    method,
-    headers: requestHeaders,
-  });
+  // Fallback: retry on 401 (in case proactive check missed edge cases)
+  if (response.status === 401 && shouldPassAuth) {
+    const refreshToken = authManager.getRefreshToken();
+    if (refreshToken) {
+      const newTokens = await refreshWithSingleFlight(refreshToken);
+      if (newTokens) {
+        refreshedTokens = newTokens;
+        headers = buildHeaders(newTokens.access);
+        response = await fetch(targetUrl, { method, headers });
+      }
+    }
+  }
 
   const responseData = await response.blob();
   const responseHeaders: HeadersInit = {};
@@ -97,11 +132,17 @@ async function handleProxyRequest(request: NextRequest, method: string) {
     }
   });
 
-  return new NextResponse(responseData, {
+  const nextResponse = new NextResponse(responseData, {
     status: response.status,
     statusText: response.statusText,
     headers: responseHeaders,
   });
+
+  if (refreshedTokens) {
+    new AuthCookieManager(nextResponse.cookies).setAuthTokens(refreshedTokens);
+  }
+
+  return nextResponse;
 }
 
 // Normalize the Content-Disposition header to ensure the filename is quoted correctly

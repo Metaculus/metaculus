@@ -7,6 +7,8 @@ import {
   TOURNAMENTS_SORT,
 } from "../constants/query_params";
 
+import { safeTs } from ".";
+
 type ParamsLike = Pick<URLSearchParams, "get">;
 
 type Options = {
@@ -25,7 +27,7 @@ export function filterTournamentsFromParams(
     ? null
     : (params.get(TOURNAMENTS_SORT) as TournamentsSortBy | null) ??
       opts.defaultSort ??
-      TournamentsSortBy.StartDateDesc;
+      TournamentsSortBy.Featured;
 
   return filterTournaments(items, decodeURIComponent(searchString), sortBy);
 }
@@ -48,6 +50,8 @@ export function filterTournaments(
 
   if (!sortBy) return filtered;
 
+  const ts = Date.now();
+
   return [...filtered].sort((a, b) => {
     switch (sortBy) {
       case TournamentsSortBy.PrizePoolDesc:
@@ -60,19 +64,58 @@ export function filterTournaments(
         );
 
       case TournamentsSortBy.StartDateDesc:
-        // Primary sort: Order
-        const orderDiff = (a.order ?? 0) - (b.order ?? 0);
-        if (orderDiff !== 0) {
-          return orderDiff;
-        }
+        return differenceInMilliseconds(
+          new Date(b.start_date),
+          new Date(a.start_date)
+        );
+
+      case TournamentsSortBy.Featured: {
+        // 1) Open tournaments first
+        const statusDiff = statusRank(a, ts) - statusRank(b, ts);
+        if (statusDiff !== 0) return statusDiff;
+
+        // 2) Admin order (undefined last)
+        const orderDiff = orderValue(a) - orderValue(b);
+        if (orderDiff !== 0) return orderDiff;
+
+        // 3) Earlier-in-run first (smaller % passed ranks higher)
+        const pctDiff = durationPctPassed(a, ts) - durationPctPassed(b, ts);
+        if (pctDiff !== 0) return pctDiff;
 
         return differenceInMilliseconds(
           new Date(b.start_date),
           new Date(a.start_date)
         );
+      }
 
       default:
         return 0;
     }
   });
 }
+
+const statusRank = (t: TournamentPreview, nowTs: number): number => {
+  if (t.timeline?.all_questions_resolved) return 2;
+
+  const endTs = safeTs(t.close_date ?? t.forecasting_end_date);
+  const closedByDate = endTs != null ? nowTs >= endTs : false;
+  const closedByTimeline = !!t.timeline?.all_questions_closed;
+
+  const isOpen = !(closedByDate || closedByTimeline);
+  return isOpen ? 0 : 1;
+};
+
+const orderValue = (t: TournamentPreview): number =>
+  t.order == null ? Number.POSITIVE_INFINITY : t.order;
+
+const durationPctPassed = (t: TournamentPreview, nowTs: number): number => {
+  const startTs = safeTs(t.start_date);
+  const endTs = safeTs(t.close_date ?? t.forecasting_end_date);
+  if (startTs == null || endTs == null || endTs <= startTs) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  const raw = (nowTs - startTs) / (endTs - startTs);
+  if (!Number.isFinite(raw)) return Number.POSITIVE_INFINITY;
+  return Math.min(1, Math.max(0, raw));
+};

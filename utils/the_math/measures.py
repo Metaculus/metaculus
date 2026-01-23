@@ -1,6 +1,6 @@
 import numpy as np
 
-from questions.models import Question, AggregateForecast
+from questions.models import AggregateForecast, Question
 from questions.types import Direction
 from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.typing import (
@@ -25,6 +25,8 @@ def weighted_percentile_2d(
     percentiles = np.array(percentiles or [50.0])
 
     sorted_values = values.copy()  # avoid side effects
+    # replace None with -1.0 for calculations (return to None at the end)
+    sorted_values[np.equal(sorted_values, None)] = -1.0
     sorted_values.sort(axis=0)
 
     # get the normalized cumulative weights
@@ -42,19 +44,24 @@ def weighted_percentile_2d(
             normalized_cumulative_weights >= (percentile / 100.0), axis=0
         )
         # return the median of these values
-        column_indicies = np.arange(values.shape[1])
+        column_indices = np.arange(values.shape[1])
         weighted_percentiles.append(
             0.5
             * (
-                sorted_values[left_indexes, column_indicies]
-                + sorted_values[right_indexes, column_indicies]
+                sorted_values[left_indexes, column_indices]
+                + sorted_values[right_indexes, column_indices]
             )
         )
-    return np.array(weighted_percentiles)
+    # replace -1.0 back to None
+    weighted_percentiles = np.array(weighted_percentiles)
+    weighted_percentiles = np.where(
+        weighted_percentiles == -1.0, None, weighted_percentiles
+    )
+    return weighted_percentiles.tolist()
 
 
 def percent_point_function(
-    cdf: ForecastValues, percentiles: Percentiles | float | int
+    cdf: ForecastValues, percentiles: Percentiles | list[float] | float | int
 ) -> Percentiles:
     """returns the x-location in the cdf where it crosses the given percentiles,
     treating the cdf as starting at x=0 and ending at x=1
@@ -66,6 +73,8 @@ def percent_point_function(
     if return_float := isinstance(percentiles, float | int):
         percentiles = np.array([percentiles])
     ppf_values = []
+    if any(v is None for v in cdf):
+        raise ValueError("cdf contains None values")
     for percent in percentiles:
         # percent is a float between 0 and 100
         if percent < cdf[0] * 100:
@@ -95,6 +104,8 @@ def prediction_difference_for_sorting(
     """for binary and multiple choice, takes pmfs
     for continuous takes cdfs"""
     p1, p2 = np.array(p1), np.array(p2)
+    p1[np.equal(p1, None)] = -1.0  # replace None with -1.0 for calculations
+    p2[np.equal(p2, None)] = -1.0  # replace None with -1.0 for calculations
     # Uses Jeffrey's Divergence
     if question_type in ["binary", "multiple_choice"]:
         return sum([(p - q) * np.log2(p / q) for p, q in zip(p1, p2)])
@@ -111,13 +122,16 @@ def prediction_difference_for_display(
 ) -> list[tuple[float, float]]:
     """for binary and multiple choice, takes pmfs
     for continuous takes cdfs"""
+    p1, p2 = np.array(p1), np.array(p2)
+    p1[np.equal(p1, None)] = -1.0  # replace None with -1.0 for calculations
+    p2[np.equal(p2, None)] = -1.0  # replace None with -1.0 for calculations
     if question.type == "binary":
         # single-item list of (pred diff, ratio of odds)
         return [(p2[1] - p1[1], (p2[1] / (1 - p2[1])) / (p1[1] / (1 - p1[1])))]
     elif question.type == "multiple_choice":
         # list of (pred diff, ratio of odds)
         return [(q - p, (q / (1 - q)) / (p / (1 - p))) for p, q in zip(p1, p2)]
-    # total earth mover's distance, assymmetric earth mover's distance
+    # total earth mover's distance, asymmetric earth mover's distance
     x_locations = unscaled_location_to_scaled_location(
         np.linspace(0, 1, len(p1)), question
     )
@@ -168,7 +182,7 @@ def get_difference_display(
         return [to_direction_and_magnitude(asymmetry)]
 
     # Otherwise, compare spread of prediction intervals
-    def get_scaled_interval(forecast):
+    def get_scaled_interval(forecast: AggregateForecast):
         # Try to use precomputed bounds
         lower = (forecast.interval_lower_bounds or [None])[0]
         upper = (forecast.interval_upper_bounds or [None])[0]
