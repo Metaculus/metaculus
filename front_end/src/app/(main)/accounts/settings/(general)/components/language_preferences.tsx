@@ -28,16 +28,18 @@ const LanguagePreferences: FC<Props> = ({ user }) => {
       if (!isPendingUpdateLanguage) {
         const previousLanguage = user.language || currentLocale;
 
-        // Track language change in PostHog
-        posthog.capture("language_changed", {
-          previous_language: previousLanguage,
-          new_language: language,
-        });
+        updateLanguagePreference(language)
+          .then(() => {
+            // Track language change in PostHog
+            posthog.capture("language_changed", {
+              previous_language: previousLanguage,
+              new_language: language,
+            });
 
-        // Update user property for language
-        posthog.setPersonProperties({ language });
-
-        updateLanguagePreference(language).catch(logError);
+            // Update user property for language
+            posthog.setPersonProperties({ language });
+          })
+          .catch(logError);
       }
     }
   );
