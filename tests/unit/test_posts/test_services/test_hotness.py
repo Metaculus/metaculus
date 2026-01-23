@@ -64,7 +64,7 @@ def test_decay(dt: datetime.datetime, expected: float):
                 "scheduled_close_time": make_aware(datetime.datetime(2025, 4, 25)),
                 "movement": 0.4,
             },
-            13.0,
+            10.5,
         ],
         # Resolved question
         [
@@ -77,7 +77,7 @@ def test_decay(dt: datetime.datetime, expected: float):
                 # Should be ignored
                 "movement": 0.4,
             },
-            6.25,
+            5.625,
         ],
         # Unsuccessfully resolved question
         [
@@ -88,7 +88,7 @@ def test_decay(dt: datetime.datetime, expected: float):
                 "resolution_set_time": make_aware(datetime.datetime(2025, 4, 11)),
                 "resolution": "annulled",
             },
-            1.25,
+            0.625,
         ],
     ],
 )
@@ -204,7 +204,7 @@ def test_compute_post_hotness(user1):
     # Add ITN article
     PostArticle.objects.create(post=post, article=factory_itn_article(), distance=0.1)
 
-    assert compute_post_hotness(post) == 99.65
+    assert compute_post_hotness(post) == 109.025
 
 
 @freeze_time("2025-04-18")
