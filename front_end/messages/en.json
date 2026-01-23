@@ -1925,5 +1925,8 @@
   "publishedWithLabel": "Published {label}",
   "hostWorkshop": "Host a workshop",
   "hostWorkshopDescription": "Bring together experts and stakeholders to align on complex problems in focused, real-time sessions. Our team manages the process end-to-end, using proven forecasting methods to rapidly surface critical uncertainties, key insights, and areas of disagreement.",
+  "tellUsAboutYourNeeds": "Tell us about your needs...",
+  "yourOrganization": "Your organization",
+  "yourMessageForm": "Your message",
   "feedTileSummaryPlaceholder": "Optional: Enter a custom summary text to display on feed tiles (if not provided, a summary will be auto-generated from the notebook content)"
 }

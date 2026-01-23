@@ -1929,5 +1929,8 @@
   "publishedWithLabel": "發佈 {label}",
   "hostWorkshop": "主持工作坊",
   "hostWorkshopDescription": "聚集專家和利害關係者，在專注的現場會議中就複雜問題達成共識。我們的團隊全程管理這個過程，使用經驗證的預測方法快速發掘關鍵不確定性、重要見解和分歧領域。",
+  "tellUsAboutYourNeeds": "告訴我們您的需求...",
+  "yourOrganization": "您的組織",
+  "yourMessageForm": "您的訊息",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }

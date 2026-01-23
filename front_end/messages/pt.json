@@ -1930,5 +1930,8 @@
   "publishedWithLabel": "Publicado {label}",
   "hostWorkshop": "Organizar um workshop",
   "hostWorkshopDescription": "Reúna especialistas e partes interessadas para alinharem-se em problemas complexos em sessões focadas e em tempo real. Nossa equipe gerencia o processo de ponta a ponta, usando métodos de previsão comprovados para rapidamente revelar incertezas críticas, insights chave e áreas de desacordo.",
+  "tellUsAboutYourNeeds": "Conte-nos sobre suas necessidades...",
+  "yourOrganization": "Sua organização",
+  "yourMessageForm": "Sua mensagem",
   "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
 }
