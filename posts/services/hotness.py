@@ -95,7 +95,7 @@ def compute_question_hotness(question: Question) -> float:
 def _compute_hotness_approval_score(post: Post) -> float:
     now = timezone.now()
     return (
-        decay(20, post.published_at)
+        decay(10, post.published_at)
         if post.published_at and now > post.published_at
         else 0
     )
