@@ -30,7 +30,11 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Question, Forecast
 from questions.services.forecasts import create_forecast_bulk
-from questions.serializers.common import serialize_question, ForecastWriteSerializer
+from questions.serializers.common import (
+    serialize_question,
+    ForecastWriteSerializer,
+    MyForecastSerializer,
+)
 from scoring.models import Leaderboard
 from users.models import User
 
@@ -163,12 +167,46 @@ def get_links_for_questions(request):
     ).distinct("id")
     if links_user is not None:
         links = links.filter(user=links_user)
+    questions = Question.objects.filter(id__in=question_ids)
 
     serialized_links = CoherenceLinkSerializer(links, many=True).data
     serialized_questions = [
         serialize_question(q) for q in Question.objects.filter(id__in=question_ids)
     ]
-    return Response({"links": serialized_links, "questions": serialized_questions})
+    # annotate all coherence bots' 2 most recent forecasts
+    # coherence_bots = User.objects.filter(metadata__has_key="coherence_bot_for_user_id")
+    coherence_bots = User.objects.filter()
+    coherence_bot_forecasts = Forecast.objects.filter(
+        author__in=coherence_bots, question__in=questions
+    ).order_by("-start_time")
+    coherence_bot_forecasts_by_question_by_bot = dict()
+    for forecast in coherence_bot_forecasts:
+        question_id = forecast.question_id
+        if question_id not in coherence_bot_forecasts_by_question_by_bot:
+            coherence_bot_forecasts_by_question_by_bot[question_id] = dict()
+        question_data = coherence_bot_forecasts_by_question_by_bot[question_id]
+        bot = forecast.author
+        coherence_user_id = bot.metadata["coherence_bot_for_user_id"]
+        if coherence_user_id not in question_data:
+            question_data[coherence_user_id] = {
+                "latest": None,
+                "second_latest": None,
+            }
+        if question_data[coherence_user_id]["latest"] is None:
+            question_data[coherence_user_id]["latest"] = MyForecastSerializer(
+                forecast
+            ).data
+        elif question_data[coherence_user_id]["second_latest"] is None:
+            question_data[coherence_user_id]["second_latest"] = MyForecastSerializer(
+                forecast
+            ).data
+    return Response(
+        {
+            "links": serialized_links,
+            "questions": serialized_questions,
+            "coherence_bot_forecasts": coherence_bot_forecasts_by_question_by_bot,
+        }
+    )
 
 
 class CoherenceBotForecastSerializer(ForecastWriteSerializer):
