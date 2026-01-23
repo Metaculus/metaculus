@@ -1,6 +1,5 @@
 "use client";
 
-import { Radio, RadioGroup } from "@headlessui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Turnstile, TurnstileInstance } from "@marsidev/react-turnstile";
 import Link from "next/link";
@@ -23,12 +22,12 @@ import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
-import RadioButton from "@/components/ui/radio_button";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { sendAnalyticsEvent } from "@/utils/analytics";
+import cn from "@/utils/core/cn";
 
 import { bwInitAndTrackRegistrationIfConsent } from "../../utils/pixel-apis";
 
@@ -43,11 +42,15 @@ export const tournamentRegistrationSchema = z
     addToProject: z.number().optional(),
     fullName: z.string().min(1, "Field required"),
     country: z.string().min(1, "Field required"),
-    undergrad: z.boolean(),
+    undergrad: z.boolean().nullable(),
     institution: z.string().optional(),
     major: z.string().optional(),
     graduationYear: z.number().optional(),
     accepted_terms: z.boolean(),
+  })
+  .refine((data) => data.undergrad !== null && data.undergrad !== undefined, {
+    message: "Please select Yes or No",
+    path: ["undergrad"],
   })
   .refine(
     (data) => {
@@ -131,6 +134,7 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
 }) => {
   const { register, setValue, watch } = useFormContext();
   const t = useTranslations();
+  const undergradValue = watch("undergrad") as boolean | null;
 
   return (
     <>
@@ -159,28 +163,40 @@ const ExtraDataRegistrationFragment: FC<{ errors: ErrorResponse }> = ({
           {t("undergraduateStudentQuestion")}
         </p>
 
-        <RadioGroup
-          value={watch("undergrad")}
-          onChange={(value) => setValue("undergrad", value === "yes")}
-          aria-label="Server size"
-          as="ul"
-          className="flex gap-4"
-        >
-          <Radio value={"no"} as="li" key={"no"}>
-            <RadioButton checked={!watch("undergrad")} size="small">
-              No
-            </RadioButton>
-          </Radio>
-
-          <Radio value={"yes"} as="li" key={"yes"}>
-            <RadioButton checked={watch("undergrad")} size="small">
-              Yes
-            </RadioButton>
-          </Radio>
-        </RadioGroup>
+        <div className="flex">
+          <Button
+            variant={undergradValue === true ? "primary" : "secondary"}
+            onClick={() =>
+              setValue("undergrad", true, { shouldValidate: true })
+            }
+            type="button"
+            className={cn(
+              "rounded-r-none px-3 py-1.5 text-sm",
+              undergradValue === null &&
+                "bg-gray-0 text-gray-900 hover:bg-gray-300 dark:bg-gray-0-dark dark:text-gray-900-dark dark:hover:bg-gray-300-dark"
+            )}
+          >
+            Yes
+          </Button>
+          <Button
+            variant={undergradValue === false ? "primary" : "secondary"}
+            onClick={() =>
+              setValue("undergrad", false, { shouldValidate: true })
+            }
+            type="button"
+            className={cn(
+              "ml-[-1px] rounded-l-none px-3 py-1.5 text-sm",
+              undergradValue === null &&
+                "bg-gray-0 text-gray-900 hover:bg-gray-300 dark:bg-gray-0-dark dark:text-gray-900-dark dark:hover:bg-gray-300-dark"
+            )}
+          >
+            No
+          </Button>
+        </div>
+        <FormError errors={errors} name="undergrad" className="mt-1" />
       </div>
 
-      {watch("undergrad") && (
+      {undergradValue && (
         <>
           <InputContainer labelText={t("institution")}>
             <Input
@@ -236,8 +252,7 @@ export const RegistrationAndSignupForm: FC<
       )
     ),
     defaultValues: {
-      isBot: false,
-      undergrad: false,
+      undergrad: null,
       addToProject,
       campaignKey,
     },
@@ -421,7 +436,7 @@ export const RegistrationForm: FC<
   const methods = useForm<TournamentRegistrationSchema>({
     resolver: zodResolver(tournamentRegistrationSchema),
     defaultValues: {
-      undergrad: false,
+      undergrad: null,
       accepted_terms: false,
     },
   });

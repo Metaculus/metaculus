@@ -6,11 +6,9 @@ from django.contrib import admin
 from django.db.models import QuerySet, Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import path
-from django.urls import reverse
+from django.urls import path, reverse
 from django.utils.html import format_html, format_html_join
 from django_select2.forms import ModelSelect2MultipleWidget
-from rest_framework.authtoken.models import Token
 
 from posts.models import Post
 from projects.models import (
@@ -430,8 +428,7 @@ class ProjectAdmin(CustomTranslationAdmin):
         # and comment_data
 
         questions = Question.objects.filter(
-            Q(related_posts__post__default_project__in=queryset)
-            | Q(related_posts__post__projects__in=queryset)
+            Q(post__default_project__in=queryset) | Q(post__projects__in=queryset)
         ).distinct()
 
         data = export_all_data_for_questions(
@@ -484,8 +481,7 @@ class ProjectAdmin(CustomTranslationAdmin):
     ):
         question_ids = list(
             Question.objects.filter(
-                Q(related_posts__post__default_project__in=queryset)
-                | Q(related_posts__post__projects__in=queryset)
+                Q(post__default_project__in=queryset) | Q(post__projects__in=queryset)
             )
             .distinct()
             .values_list("id", flat=True)
@@ -563,7 +559,6 @@ class ProjectAdmin(CustomTranslationAdmin):
             )
             user.set_password(username)
             user.save()
-            Token.objects.create(user=user)
             data += f"{user.username}\n"
             for project in queryset:
                 ProjectUserPermission.objects.create(
@@ -621,7 +616,6 @@ class ProjectAdmin(CustomTranslationAdmin):
             )
             user.set_password(password)
             user.save()
-            Token.objects.create(user=user)
             data += f"{user.username},{password}\n"
             for project in queryset:
                 ProjectUserPermission.objects.create(
@@ -837,8 +831,7 @@ class ProjectAdmin(CustomTranslationAdmin):
         if obj.type == Project.ProjectTypes.SITE_MAIN:
             return None
         questions = Question.objects.filter(
-            Q(related_posts__post__projects=obj)
-            | Q(related_posts__post__default_project=obj),
+            Q(post__projects=obj) | Q(post__default_project=obj),
         ).distinct()
         latest_resolving_time = None
         for question in questions:

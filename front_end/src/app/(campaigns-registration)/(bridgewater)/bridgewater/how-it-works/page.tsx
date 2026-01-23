@@ -65,25 +65,23 @@ export default function HowItWorks() {
           />
         </div>
         <h2 className="mb-4 mt-8 text-2xl font-bold text-gray-700 dark:text-gray-200">
-          Warm-up Questions
+          Tournament Questions
         </h2>
 
         <p className="mb-4">
-          Practice forecasting with our{" "}
+          The contest is now live! Head to the{" "}
           <a
-            href="https://www.metaculus.com/project/bridgewater-warmup/"
+            href="https://www.metaculus.com/tournament/bridgewater/"
             className="text-blue-600 hover:underline"
           >
-            warm-up questions
+            tournament page
           </a>{" "}
-          before the contest begins January 12th. Warm-up questions won&apos;t
-          affect your contest ranking.
+          to start forecasting.
         </p>
 
         <div className="mb-8 rounded-md bg-green-100 px-4 pb-4 pt-2 dark:bg-green-900">
           <h4 className="font-bold text-gray-800 dark:text-white">
-            The Forecasting Contest officially begins at 11:00 AM ET on January
-            12, 2026.
+            The Forecasting Contest is live! It runs until March 13, 2026.
           </h4>
         </div>
 
@@ -217,10 +215,10 @@ export default function HowItWorks() {
           </li>
           <li>
             <a
-              href="https://www.metaculus.com/project/bridgewater-warmup/"
+              href="https://www.metaculus.com/tournament/bridgewater/"
               className="text-blue-600 hover:underline"
             >
-              Warmup with Practice Questions
+              Tournament Page
             </a>
           </li>
         </ul>

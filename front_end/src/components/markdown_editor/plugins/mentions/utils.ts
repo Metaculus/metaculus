@@ -1,4 +1,5 @@
 import ClientProfileApi from "@/services/api/profile/profile.client";
+import { ProjectPermissions } from "@/types/post";
 
 import { MentionItem } from "./types";
 
@@ -6,14 +7,19 @@ export async function queryMentions(
   _trigger: string,
   query: string | null | undefined,
   defaultUserMentions?: MentionItem[],
-  isStuff?: boolean
+  userPermission?: ProjectPermissions
 ): Promise<MentionItem[]> {
   const usersGroupMentions = [
     { value: "moderators" },
     { value: "admins" },
     { value: "members" },
   ];
-  if (isStuff) {
+  if (
+    userPermission &&
+    [ProjectPermissions.CURATOR, ProjectPermissions.ADMIN].includes(
+      userPermission
+    )
+  ) {
     usersGroupMentions.push({ value: "predictors" });
   }
   const fallbackUserMentions = defaultUserMentions ? defaultUserMentions : [];

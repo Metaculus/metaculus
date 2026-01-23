@@ -1,7 +1,7 @@
 import {
   faCircleQuestion,
   faClipboardList,
-  faMugHot,
+  faTrophy,
   IconDefinition,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -27,9 +27,9 @@ const FooterLinks: FC = () => {
         href={BRIDGEWATER_2026.contestRulesUrl}
       />
       <FooterLinkCard
-        icon={faMugHot}
-        title="Warm-up Questions"
-        href={BRIDGEWATER_2026.practiceQuestionsUrl}
+        icon={faTrophy}
+        title="Tournament Page"
+        href={BRIDGEWATER_2026.tournamentUrl}
       />
     </div>
   );

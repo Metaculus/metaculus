@@ -204,6 +204,19 @@ const people: Person[] = [
     introduction:
       "Passionate about AI safety and fueled by a love for math and logic games, Luke previously worked as a personal assistant to Max Tegmark and conducted research at UPenn's superforecasting team under Philip Tetlock. His diverse experience, spanning AI safety research to collaborating with quantum physicists, led him to work on development for Metaculus. Beyond technology, Luke enjoys exploring nature through climbing, running, biking, and birdwatching.",
   },
+  {
+    name: "Cemre Inanc",
+    position: "Software Developer",
+    imgSrc: "https://cdn.metaculus.com/about/cemre_inanc.webp",
+    introduction:
+      "Cemre is a Software Developer with a degree in Visual Communication Design and over a decade of experience building interactive platforms, virtual event systems, and digital archives. Through his studio Kraftend, he has delivered projects for brands like Nike, Beko, Samsung, Netflix, and Red Bull. At Metaculus, he focuses on platform development and delivering seamless user experiences.",
+    socials: [
+      {
+        link: "https://www.linkedin.com/in/cemreinanc/",
+        platform: "LinkedIn",
+      },
+    ],
+  },
 
   {
     userId: 100912,
@@ -368,6 +381,7 @@ const groups: Groups = {
     "Abhimanyu Pallavi Sudhir",
     "John Bash",
     "Felipe Oliveira",
+    "Cemre Inanc",
   ],
   board: [
     "Anthony Aguirre",

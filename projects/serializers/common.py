@@ -1,5 +1,6 @@
+import logging
 from collections import defaultdict
-from typing import Any
+from typing import Any, Callable, Iterable
 
 from django.db.models import Q
 from rest_framework import serializers
@@ -7,8 +8,12 @@ from rest_framework.exceptions import ValidationError
 
 from projects.models import Project, ProjectUserPermission, ProjectIndex
 from projects.serializers.communities import CommunitySerializer
+from projects.services.cache import get_projects_questions_count_cached
+from projects.services.common import get_timeline_data_for_projects
 from projects.services.indexes import get_multi_year_index_data, get_default_index_data
 from users.serializers import UserPublicSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -73,6 +78,7 @@ class TopicSerializer(serializers.ModelSerializer):
 class TournamentShortSerializer(serializers.ModelSerializer):
     score_type = serializers.SerializerMethodField(read_only=True)
     is_current_content_translated = serializers.SerializerMethodField(read_only=True)
+    description_preview = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Project
@@ -89,14 +95,23 @@ class TournamentShortSerializer(serializers.ModelSerializer):
             "html_metadata_json",
             "is_ongoing",
             "user_permission",
+            "order",
             "created_at",
             "edited_at",
             "score_type",
             "default_permission",
             "visibility",
+            "show_on_homepage",
             "is_current_content_translated",
             "bot_leaderboard_status",
+            "description_preview",
         )
+
+    def get_description_preview(self, project: Project) -> str:
+        raw = (project.description or "").strip()
+        if not raw:
+            return ""
+        return raw[:140].rstrip()
 
     def get_score_type(self, project: Project) -> str | None:
         if not project.primary_leaderboard_id:
@@ -249,3 +264,42 @@ def serialize_index_data(index: ProjectIndex):
         "increasing_is_good": index.increasing_is_good,
         **data,
     }
+
+
+def serialize_tournaments_with_counts(
+    projects: Iterable[Project],
+    sort_key: Callable[[dict], Any] = None,
+    with_timeline: bool = False,
+) -> list[dict]:
+    projects = list(projects)
+    questions_count_map = get_projects_questions_count_cached([p.id for p in projects])
+
+    projects_timeline_map = {}
+
+    if with_timeline:
+        try:
+            projects_timeline_map = get_timeline_data_for_projects(
+                [x.id for x in projects]
+            )
+        except Exception:
+            logger.exception("Failed to get projects timeline data")
+
+    data: list[dict] = []
+    for obj in projects:
+        serialized_tournament = TournamentShortSerializer(obj).data
+
+        serialized_tournament.update(
+            {
+                "questions_count": questions_count_map.get(obj.id) or 0,
+                "forecasts_count": obj.forecasts_count,
+                "forecasters_count": obj.forecasters_count,
+                "timeline": projects_timeline_map.get(obj.id),
+            }
+        )
+
+        data.append(serialized_tournament)
+
+    if sort_key:
+        data.sort(key=sort_key, reverse=True)
+
+    return data

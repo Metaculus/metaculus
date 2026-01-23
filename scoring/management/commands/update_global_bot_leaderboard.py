@@ -51,7 +51,7 @@ def get_score_pair(
         for gm in geometric_means[::-1]:
             end = max(min(current_timestamp, actual_close_time), forecast_horizon_start)
             start = max(min(gm.timestamp, actual_close_time), forecast_horizon_start)
-            if gm.num_forecasters == 2:  # converage only when both have a forecast
+            if gm.num_forecasters == 2:  # coverage only when both have a forecast
                 coverage += max(0, (end - start)) / total_duration
                 cvs.append(max(0, (end - start)) / total_duration)
             current_timestamp = gm.timestamp
@@ -161,16 +161,14 @@ def gather_data(
     aib_question_map: dict[Question, Question | None] = dict()
     for aib in aib_projects:
         pro_id = aib_to_pro_version[aib.id]
-        aib_questions = Question.objects.filter(
-            related_posts__post__default_project=aib
-        )
+        aib_questions = Question.objects.filter(post__default_project=aib)
         pro_questions_by_title: dict[str, Question] = {
             q.title: q
             for q in (
                 []
                 if not pro_id
                 else Question.objects.filter(
-                    related_posts__post__default_project=pro_id,
+                    post__default_project=pro_id,
                     resolution__isnull=False,
                 ).exclude(resolution__in=UnsuccessfulResolutionType)
             )
@@ -570,7 +568,7 @@ def bootstrap_skills(
         boot_question_ids: list[int] = []
         boot_scores: list[float] = []
         boot_weights: list[float] = []
-        # resample questions with repalcement
+        # resample questions with replacement
         for question_id in random.choices(question_ids_set, k=len(question_ids_set)):
             data = data_by_question[question_id]
             boot_user1_ids.extend(data[0])
@@ -627,13 +625,13 @@ class Command(BaseCommand):
         questions: QuerySet[Question] = (
             Question.objects.filter(
                 Q(
-                    related_posts__post__default_project__default_permission__in=[
+                    post__default_project__default_permission__in=[
                         "viewer",
                         "forecaster",
                     ]
                 )
                 | Q(
-                    related_posts__post__default_project_id__in=[
+                    post__default_project_id__in=[
                         3349,  # aib q3 2024
                         32506,  # aib q4 2024
                         32627,  # aib q1 2025
@@ -641,11 +639,11 @@ class Command(BaseCommand):
                         32813,  # aib fall 2025
                     ]
                 ),
-                related_posts__post__curation_status=Post.CurationStatus.APPROVED,
+                post__curation_status=Post.CurationStatus.APPROVED,
                 resolution__isnull=False,
                 scheduled_close_time__lte=timezone.now(),
             )
-            .exclude(related_posts__post__default_project__slug__startswith="minibench")
+            .exclude(post__default_project__slug__startswith="minibench")
             .exclude(resolution__in=UnsuccessfulResolutionType)
             .filter(Exists(user_forecast_exists))
             .prefetch_related(  # only prefetch forecasts from those users
@@ -855,7 +853,7 @@ class Command(BaseCommand):
         # TESTS
         skills_array = np.array(list(skills.values()))
 
-        # 1. Correllation between skill and avg_score (DO NOT HAVE YET - need avg_score)
+        # 1. Correlation between skill and avg_score (DO NOT HAVE YET - need avg_score)
         x = []
         y = []
         for uid in user1_ids:

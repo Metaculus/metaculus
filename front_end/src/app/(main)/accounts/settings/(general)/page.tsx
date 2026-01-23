@@ -5,6 +5,10 @@ import ServerProfileApi from "@/services/api/profile/profile.server";
 import DisplayPreferences from "./components/display_preferences";
 import PredictionPreferences from "./components/prediction_preferences";
 
+export const metadata = {
+  title: "General Settings",
+};
+
 export default async function Settings() {
   const currentUser = await ServerProfileApi.getMyProfile();
   invariant(currentUser);

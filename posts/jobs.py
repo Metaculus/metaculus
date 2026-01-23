@@ -36,7 +36,14 @@ def job_subscription_notify_date():
 @dramatiq.actor
 def job_compute_movement():
     chunk_size = 100
-    qs = Post.objects.filter_active().filter_questions().prefetch_questions()
+    base_qs = Post.objects.filter_questions().prefetch_related("questions")
+    active = base_qs.filter_active()
+    # Also include resolved posts that have non-zero movement as they will update to
+    # having 0.0 movement 7 days after resolution to remove them from the movers feed
+    resolved_with_movement = base_qs.filter(resolved=True).exclude(
+        Q(movement=0.0) | Q(movement__isnull=True)
+    )
+    qs = active.union(resolved_with_movement)
     logger.info(f"Start computing movement for {qs.count()} posts")
 
     with (
@@ -48,7 +55,7 @@ def job_compute_movement():
         ) as questions_updater,
     ):
         for post in qs.iterator(chunk_size):
-            questions = post.get_questions()
+            questions = list(post.questions.all())
 
             for question in questions:
                 question.movement = compute_question_movement(question)
@@ -73,7 +80,7 @@ def job_check_post_open_event():
     """
 
     questions_qs = Question.objects.filter(
-        related_posts__post__in=Post.objects.filter_published(),
+        post__in=Post.objects.filter_published(),
         open_time__lte=timezone.now(),
         open_time_triggered=False,
     ).filter(

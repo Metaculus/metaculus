@@ -67,6 +67,10 @@ export type CurrentUser = User & {
   language?: string | null;
 };
 
+export type CurrentBot = CurrentUser & {
+  is_primary_bot: boolean;
+};
+
 export enum InterfaceType {
   ConsumerView = "consumer_view",
   ForecasterView = "forecaster_view",

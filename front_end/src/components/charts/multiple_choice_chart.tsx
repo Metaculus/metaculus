@@ -42,11 +42,11 @@ import {
   generateScale,
   generateTimestampXScale,
   generateTimeSeriesYDomain,
-  getAxisLeftPadding,
   getTickLabelFontSize,
   getAxisRightPadding,
 } from "@/utils/charts/axis";
 import { findPreviousTimestamp } from "@/utils/charts/cursor";
+import { truncateLabel } from "@/utils/formatters/string";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
 import ChartContainer from "./primitives/chart_container";
@@ -54,6 +54,7 @@ import ChartCursorLabel from "./primitives/chart_cursor_label";
 import XTickLabel from "./primitives/x_tick_label";
 import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
 import SvgWrapper from "./primitives/svg_wrapper";
+import YTickLabel from "./primitives/y_tick_label";
 
 type ColoredLinePoint = {
   x: number;
@@ -76,6 +77,7 @@ type Props = {
   hideCP?: boolean;
   onCursorChange?: (value: number, format: TickFormat) => void;
   onChartReady?: () => void;
+  onCursorActiveChange?: (active: boolean) => void;
   attachRef?: (node: HTMLElement | null) => void;
   extraTheme?: VictoryThemeDefinition;
   scaling?: Scaling;
@@ -104,6 +106,7 @@ const MultipleChoiceChart: FC<Props> = ({
   hideCP,
   onCursorChange,
   onChartReady,
+  onCursorActiveChange,
   attachRef,
   extraTheme,
   scaling,
@@ -180,12 +183,6 @@ const MultipleChoiceChart: FC<Props> = ({
       forFeedPage,
     ]
   );
-  const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
-  }, [yScale, tickLabelFontSize, yLabel]);
-  const maxLeftPadding = useMemo(() => {
-    return Math.max(leftPadding, MIN_LEFT_PADDING);
-  }, [leftPadding, MIN_LEFT_PADDING]);
 
   const { rightPadding, MIN_RIGHT_PADDING } = useMemo(() => {
     return getAxisRightPadding(yScale, tickLabelFontSize as number, yLabel);
@@ -239,7 +236,10 @@ const MultipleChoiceChart: FC<Props> = ({
         />
       }
       cursorLabelComponent={
-        <ChartCursorLabel positionY={height - 10} isActive={isCursorActive} />
+        <ChartCursorLabel
+          positionY={height - (isEmbedded ? 4 : 10)}
+          isActive={isCursorActive}
+        />
       }
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number" && onCursorChange) {
@@ -257,6 +257,14 @@ const MultipleChoiceChart: FC<Props> = ({
     />
   );
 
+  const topPadding = isEmbedded ? 0 : height < 150 ? 5 : 10;
+  const BASE_BOTTOM_PADDING = 20;
+  const EMBED_EXTRA_BOTTOM_PADDING = 6;
+
+  const bottomPadding = isEmbedded
+    ? BASE_BOTTOM_PADDING - EMBED_EXTRA_BOTTOM_PADDING
+    : BASE_BOTTOM_PADDING;
+
   return (
     <div className="relative" ref={chartContainerRef}>
       <ChartContainer
@@ -271,10 +279,10 @@ const MultipleChoiceChart: FC<Props> = ({
             height={height}
             theme={actualTheme}
             padding={{
-              left: isEmbedded ? maxLeftPadding : 0,
-              top: height < 150 ? 5 : 10,
-              right: isEmbedded ? 10 : maxRightPadding,
-              bottom: BOTTOM_PADDING,
+              left: 0,
+              top: topPadding,
+              right: maxRightPadding,
+              bottom: bottomPadding,
             }}
             events={[
               {
@@ -283,10 +291,22 @@ const MultipleChoiceChart: FC<Props> = ({
                   onMouseOverCapture: () => {
                     if (!onCursorChange) return;
                     setIsCursorActive(true);
+                    onCursorActiveChange?.(true);
                   },
                   onMouseOutCapture: () => {
                     if (!onCursorChange) return;
                     setIsCursorActive(false);
+                    onCursorActiveChange?.(false);
+                  },
+                  onTouchStartCapture: () => {
+                    if (!onCursorChange) return;
+                    setIsCursorActive(true);
+                    onCursorActiveChange?.(true);
+                  },
+                  onTouchEndCapture: () => {
+                    if (!onCursorChange) return;
+                    setIsCursorActive(false);
+                    onCursorActiveChange?.(false);
                   },
                 },
               },
@@ -342,6 +362,12 @@ const MultipleChoiceChart: FC<Props> = ({
               dependentAxis
               tickValues={yScale.ticks}
               tickFormat={yScale.tickFormat}
+              tickLabelComponent={
+                <YTickLabel
+                  nudgeTop={isEmbedded ? 6 : 0}
+                  nudgeBottom={isEmbedded ? 6 : 0}
+                />
+              }
               style={{
                 ticks: {
                   stroke: "transparent",
@@ -372,11 +398,7 @@ const MultipleChoiceChart: FC<Props> = ({
               }}
               label={yLabel}
               offsetX={
-                isEmbedded
-                  ? maxLeftPadding
-                  : isNil(yLabel)
-                    ? chartWidth + 5
-                    : chartWidth - TICK_FONT_SIZE + 5
+                isNil(yLabel) ? chartWidth + 5 : chartWidth - TICK_FONT_SIZE + 5
               }
               orientation={"left"}
               axisLabelComponent={<VictoryLabel x={chartWidth} />}
@@ -397,6 +419,7 @@ const MultipleChoiceChart: FC<Props> = ({
                     chartWidth={chartWidth}
                     withCursor={!!onCursorChange}
                     fontSize={tickLabelFontSize as number}
+                    dx={isEmbedded ? 16 : 0}
                   />
                 </VictoryPortal>
               }
@@ -858,8 +881,9 @@ const ResolutionChip: FC<{
 
   const { getThemeColor } = useAppTheme();
   const { x, y, compact, datum, chartHeight, text, color, scale } = props;
-  const adjustedText =
-    compact && text.length > RESOLUTION_TEXT_LIMIT ? "Yes" : text;
+  const adjustedText = compact
+    ? truncateLabel(text, RESOLUTION_TEXT_LIMIT)
+    : text;
   const [textWidth, setTextWidth] = useState(0);
   const textRef = useRef<SVGTextElement>(null);
 
