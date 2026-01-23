@@ -92,15 +92,6 @@ def compute_question_hotness(question: Question) -> float:
 #
 # Post hotness calculations
 #
-def _compute_hotness_approval_score(post: Post) -> float:
-    now = timezone.now()
-    return (
-        decay(10, post.published_at)
-        if post.published_at and now > post.published_at
-        else 0
-    )
-
-
 def _compute_hotness_relevant_news(post: Post) -> float:
     # Notebooks should not have news hotness score
     if post.notebook_id:
@@ -158,7 +149,6 @@ def compute_hotness_total_boosts(post: Post) -> float:
 
 
 POST_HOTNESS_COMPONENTS = [
-    ("Approval score", _compute_hotness_approval_score),
     ("Relevant ITN news", _compute_hotness_relevant_news),
     ("Net post votes score", _compute_hotness_post_votes),
     ("Posted comments score", _compute_hotness_comments),
