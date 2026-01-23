@@ -25,6 +25,7 @@ from authentication.services import (
     send_password_reset_email,
     check_password_reset,
     SignupInviteService,
+    get_tokens_for_user,
 )
 from projects.models import ProjectUserPermission
 from projects.permissions import ObjectPermission
@@ -62,9 +63,9 @@ def login_api_view(request):
     if not user:
         raise ValidationError({"password": ["incorrect login / password"]})
 
-    token, _ = ApiKey.objects.get_or_create(user=user)
+    tokens = get_tokens_for_user(user)
 
-    return Response({"token": token.key, "user": UserPrivateSerializer(user).data})
+    return Response({"tokens": tokens, "user": UserPrivateSerializer(user).data})
 
 
 @api_view(["POST"])
@@ -120,13 +121,12 @@ def signup_api_view(request):
             )
 
         is_active = user.is_active
-        token = None
+        tokens = None
 
         if is_active:
             # We need to treat this as login action, so we should call `authenticate` service as well
             user = authenticate(login=email, password=password)
-            token_obj, _ = ApiKey.objects.get_or_create(user=user)
-            token = token_obj.key
+            tokens = get_tokens_for_user(user)
 
     if not is_active:
         send_activation_email(user, redirect_url)
@@ -137,8 +137,8 @@ def signup_api_view(request):
     return Response(
         {
             "is_active": is_active,
-            "token": token,
             "user": UserPrivateSerializer(user).data,
+            "tokens": tokens,
         },
         status=status.HTTP_201_CREATED,
     )
@@ -169,14 +169,13 @@ def signup_simplified_api_view(request):
         last_login=timezone.now(),
     )
 
-    token_obj, _ = ApiKey.objects.get_or_create(user=user)
-    token = token_obj.key
+    tokens = get_tokens_for_user(user)
 
     return Response(
         {
             "is_active": user.is_active,
-            "token": token,
             "user": UserPrivateSerializer(user).data,
+            "tokens": tokens,
         },
         status=status.HTTP_201_CREATED,
     )
@@ -210,9 +209,9 @@ def signup_activate_api_view(request):
     token = serializer.validated_data["token"]
 
     user = check_and_activate_user(user_id, token)
-    token, _ = ApiKey.objects.get_or_create(user=user)
+    tokens = get_tokens_for_user(user)
 
-    return Response({"token": token.key, "user": UserPrivateSerializer(user).data})
+    return Response({"tokens": tokens, "user": UserPrivateSerializer(user).data})
 
 
 @api_view(["GET"])
@@ -253,9 +252,9 @@ def password_reset_confirm_api_view(request):
         user.set_password(password)
         user.save()
 
-        token, _ = ApiKey.objects.get_or_create(user=user)
+        tokens = get_tokens_for_user(user)
 
-        return Response({"token": token.key, "user": UserPrivateSerializer(user).data})
+        return Response({"tokens": tokens, "user": UserPrivateSerializer(user).data})
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -290,3 +289,28 @@ def api_key_rotate_api_view(request):
     api_key = ApiKey.objects.create(user=request.user)
 
     return Response({"key": api_key.key}, status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def exchange_legacy_token_api_view(request):
+    """
+    Exchange a legacy DRF auth token for new JWT tokens.
+
+    DEPRECATED: This endpoint exists only for backward compatibility during
+    the migration period. It should be removed after the grace period (30 days).
+    """
+    token = serializers.CharField().run_validation(request.data.get("token"))
+
+    try:
+        token_obj = ApiKey.objects.get(key=token)
+    except ApiKey.DoesNotExist:
+        raise ValidationError({"token": ["Invalid token"]})
+
+    user = token_obj.user
+    if not user.is_active:
+        raise ValidationError({"token": ["User account is inactive"]})
+
+    tokens = get_tokens_for_user(user)
+
+    return Response({"tokens": tokens})
