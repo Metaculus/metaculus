@@ -142,6 +142,7 @@ def delete_link_api_view(request, pk):
 
 
 @api_view(["GET"])
+@permission_classes([IsAdminUser])
 def get_links_for_questions(request):
     user = request.user
     if not user.is_authenticated:
