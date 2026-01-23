@@ -104,8 +104,13 @@ def get_score_pair(
 def gather_data(
     users: QuerySet[User],
     questions: QuerySet[Question],
-    cache: bool = False,
+    cache: bool = True,
 ) -> tuple[list[int | str], list[int | str], list[int], list[float], list[float]]:
+    user1_ids: list[int | str] = []
+    user2_ids: list[int | str] = []
+    question_ids: list[int] = []
+    scores: list[float] = []
+    coverages: list[float] = []
     if cache:
         csv_path = Path("HtH_score_data.csv")
         if csv_path.exists():
@@ -124,11 +129,6 @@ def gather_data(
                 except ValueError:
                     return value
 
-            user1_ids: list[int | str] = []
-            user2_ids: list[int | str] = []
-            question_ids: list[int] = []
-            scores: list[float] = []
-            coverages: list[float] = []
             with csv_path.open() as input_file:
                 reader = csv.DictReader(input_file)
                 for row in reader:
@@ -138,7 +138,7 @@ def gather_data(
                         question_ids.append(int(row["questionid"]))
                         scores.append(float(row["score"]))
                         coverages.append(float(row["coverage"]))
-            return (user1_ids, user2_ids, question_ids, scores, coverages)
+    cached_question_ids = set(question_ids)
 
     # TODO: make authoritative mapping
     print("creating AIB <> Pro AIB question mapping...", end="\r")
@@ -187,12 +187,10 @@ def gather_data(
     print("|   Question  |  ID   |   Pairing   |    Duration    | Est. Duration  |")
     t0 = datetime.now()
     question_count = len(questions)
-    user1_ids: list[int | str] = []
-    user2_ids: list[int | str] = []
-    question_ids: list[int] = []
-    scores: list[float] = []
-    coverages: list[float] = []
     for question_number, question in enumerate(questions.iterator(chunk_size=10), 1):
+        if question.id in cached_question_ids:
+            # Skip questions that are already cached
+            continue
         # if question_number % 50 != 0:
         #     continue
         question_print_str = (
