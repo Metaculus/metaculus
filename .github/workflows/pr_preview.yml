@@ -275,6 +275,16 @@ jobs:
             --ha=false \
             --now
 
+          # Start machines after deployment
+          echo "Starting machines for ${APP_NAME}..."
+          flyctl machine list -q -a "${APP_NAME}" | while read id; do
+            if [ -n "$id" ]; then
+              echo "Starting machine: $id"
+              flyctl machine start "$id" -a "${APP_NAME}"
+            fi
+          done
+          echo "✅ Machines started"
+
           # Output the app URL for other jobs
           echo "url=${PUBLIC_APP_URL}" >> $GITHUB_OUTPUT
           echo "app_name=${APP_NAME}" >> $GITHUB_OUTPUT
