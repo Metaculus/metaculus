@@ -87,7 +87,8 @@ export function createFetcher(fetchInitializer: FetchInitializer): Fetcher {
   const post = <T = Response, B = Record<string, unknown>>(
     url: string,
     body: B,
-    options: FetchOptions = {}
+    options: FetchOptions = {},
+    config?: FetchConfig
   ): Promise<T> => {
     const isFormData = body instanceof FormData;
 
@@ -98,7 +99,7 @@ export function createFetcher(fetchInitializer: FetchInitializer): Fetcher {
         method: "POST",
         body: isFormData ? body : JSON.stringify(body),
       },
-      { emptyContentType: isFormData }
+      { emptyContentType: isFormData, ...config }
     );
   };
 

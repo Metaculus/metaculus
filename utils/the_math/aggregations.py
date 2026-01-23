@@ -594,7 +594,7 @@ class Aggregation(AggregatorMixin):
         ]
 
     def get_weights(self, forecast_set: ForecastSet) -> Weights | int:
-        """returns 0 as a sentinal for uniform 0 weights"""
+        """returns 0 as a sentinel for uniform 0 weights"""
         weights = None
         for weighting in self.weightings:
             new_weights = weighting.calculate_weights(forecast_set)
@@ -809,7 +809,7 @@ def minimize_history(
     The front end graphs have zoomed views on 1 day, 1 week, 2 months, and all time
     so this makes sure that the history contains sufficiently high resolution data
     for each interval.
-    max_size dictates the maximum numer of returned datetimes.
+    max_size dictates the maximum number of returned datetimes.
     """
     if len(history) <= max_size:
         return history
@@ -992,7 +992,7 @@ def get_aggregation_history(
     forecaster_ids = set(forecast.author_id for forecast in forecasts)
     for method in aggregation_methods:
         if method == AggregationMethod.METACULUS_PREDICTION:
-            # saved in the database - not reproducable or updateable
+            # saved in the database - not reproducible or updateable
             full_summary[method] = list(
                 AggregateForecast.objects.filter(
                     question_id=question.id, method=method

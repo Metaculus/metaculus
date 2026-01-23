@@ -228,7 +228,7 @@ class NotebookAdmin(CustomTranslationAdmin):
         "comments",
         "votes",
         "post_link",
-        "markdown_summary",
+        "feed_tile_summary",
     ]
     readonly_fields = ["post_link"]
     search_fields = ["post__title_original"]

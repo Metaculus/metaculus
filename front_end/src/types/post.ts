@@ -112,7 +112,7 @@ export type Notebook = {
   edited_at: string;
   markdown: string;
   image_url: string;
-  markdown_summary: string;
+  feed_tile_summary: string;
 };
 
 export type PostPrivateNote = {

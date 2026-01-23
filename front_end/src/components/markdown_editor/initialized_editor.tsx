@@ -36,10 +36,10 @@ import toast from "react-hot-toast";
 import { mergeRefs } from "react-merge-refs";
 
 import { uploadImage } from "@/app/(main)/questions/actions";
-import { useAuth } from "@/contexts/auth_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
+import { ProjectPermissions } from "@/types/post";
 import cn from "@/utils/core/cn";
 
 import EditorToolbar from "./editor_toolbar";
@@ -127,6 +127,7 @@ export type MarkdownEditorProps = {
   onChange?: (markdown: string) => void;
   onBlur?: (event: FocusEvent) => void;
   withUserMentions?: boolean;
+  userPermission?: ProjectPermissions;
   contentEditableClassName?: string;
   shouldConfirmLeave?: boolean;
   withUgcLinks?: boolean;
@@ -149,6 +150,7 @@ const InitializedMarkdownEditor: FC<
   onChange,
   onBlur,
   withUserMentions,
+  userPermission,
   contentEditableClassName,
   className,
   shouldConfirmLeave = false,
@@ -157,7 +159,6 @@ const InitializedMarkdownEditor: FC<
   withTwitterPreview = false,
   withCodeBlocks = false,
 }) => {
-  const { user } = useAuth();
   const { theme } = useAppTheme();
   const t = useTranslations();
   const [errorMarkdown, setErrorMarkdown] = useState<string | null>(null);
@@ -239,7 +240,7 @@ const InitializedMarkdownEditor: FC<
         ? [
             mentionsPlugin({
               initialMention,
-              isStuff: user?.is_staff || user?.is_superuser,
+              userPermission,
             }),
           ]
         : []),
@@ -279,8 +280,7 @@ const InitializedMarkdownEditor: FC<
     withUgcLinks,
     withUserMentions,
     initialMention,
-    user?.is_staff,
-    user?.is_superuser,
+    userPermission,
     imageUploadHandler,
     mode,
     withCodeBlocks,
@@ -335,6 +335,7 @@ const InitializedMarkdownEditor: FC<
         "content markdown-editor",
         {
           "dark-theme": theme === "dark",
+          "markdown-editor-read": mode === "read",
         },
         className
       )}

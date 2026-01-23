@@ -6,11 +6,9 @@ from django.contrib import admin
 from django.db.models import QuerySet, Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import path
-from django.urls import reverse
+from django.urls import path, reverse
 from django.utils.html import format_html, format_html_join
 from django_select2.forms import ModelSelect2MultipleWidget
-from rest_framework.authtoken.models import Token
 
 from posts.models import Post
 from projects.models import (
@@ -561,7 +559,6 @@ class ProjectAdmin(CustomTranslationAdmin):
             )
             user.set_password(username)
             user.save()
-            Token.objects.create(user=user)
             data += f"{user.username}\n"
             for project in queryset:
                 ProjectUserPermission.objects.create(
@@ -619,7 +616,6 @@ class ProjectAdmin(CustomTranslationAdmin):
             )
             user.set_password(password)
             user.save()
-            Token.objects.create(user=user)
             data += f"{user.username},{password}\n"
             for project in queryset:
                 ProjectUserPermission.objects.create(

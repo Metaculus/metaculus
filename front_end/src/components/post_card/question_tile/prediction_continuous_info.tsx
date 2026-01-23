@@ -9,6 +9,7 @@ import ContinuousCPBar from "@/components/post_card/question_tile/continuous_cp_
 import { useHideCP } from "@/contexts/cp_context";
 import { QuestionStatus } from "@/types/post";
 import { QuestionWithNumericForecasts, UserForecast } from "@/types/question";
+import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 import { formatResolution } from "@/utils/formatters/resolution";
 import { isSuccessfullyResolved } from "@/utils/questions/resolution";
@@ -18,6 +19,7 @@ type Props = {
   onReaffirm?: (userForecast: UserForecast) => void;
   canPredict?: boolean;
   showMyPrediction?: boolean;
+  className?: string;
 };
 
 const PredictionContinuousInfo: FC<Props> = ({
@@ -25,6 +27,7 @@ const PredictionContinuousInfo: FC<Props> = ({
   onReaffirm,
   canPredict,
   showMyPrediction,
+  className,
 }) => {
   const locale = useLocale();
   const { hideCP } = useHideCP();
@@ -59,7 +62,12 @@ const PredictionContinuousInfo: FC<Props> = ({
   }
 
   return (
-    <div className="flex w-full flex-row gap-1.5 md:flex-col md:gap-0.5">
+    <div
+      className={cn(
+        "flex w-full flex-row gap-1.5 md:flex-col md:gap-0.5",
+        className
+      )}
+    >
       <div className="flex w-full flex-col gap-1 md:gap-1.5">
         {!hideCP && (
           <>

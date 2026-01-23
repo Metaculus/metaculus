@@ -48,13 +48,10 @@ import {
 import { QuestionStatus } from "@/types/post";
 import { ForecastAvailability, QuestionType } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
-import {
-  getAxisLeftPadding,
-  getAxisRightPadding,
-  getTickLabelFontSize,
-} from "@/utils/charts/axis";
+import { getAxisRightPadding, getTickLabelFontSize } from "@/utils/charts/axis";
 import { findLastIndexBefore } from "@/utils/charts/helpers";
 import cn from "@/utils/core/cn";
+import { resolveToCssColor } from "@/utils/resolve_color";
 
 import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
 import ChartValueBox from "./primitives/chart_value_box";
@@ -85,7 +82,7 @@ type Props = {
   cursorTimestamp?: number | null;
   onCursorChange?: (value: number | null) => void;
   getCursorValue?: (value: number) => string;
-  colorOverride?: ThemeColor;
+  colorOverride?: ThemeColor | string;
   nonInteractive?: boolean;
   isEmbedded?: boolean;
   simplifiedCursor?: boolean;
@@ -207,13 +204,6 @@ const NumericChart: FC<Props> = ({
     return getAxisRightPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
 
-  const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getAxisLeftPadding(yScale, tickLabelFontSize as number, yLabel);
-  }, [yScale, tickLabelFontSize, yLabel]);
-
-  const maxLeftPadding = useMemo(() => {
-    return Math.max(leftPadding, MIN_LEFT_PADDING);
-  }, [leftPadding, MIN_LEFT_PADDING]);
   const maxRightPadding = useMemo(() => {
     return Math.max(rightPadding, MIN_RIGHT_PADDING);
   }, [rightPadding, MIN_RIGHT_PADDING]);
@@ -405,6 +395,76 @@ const NumericChart: FC<Props> = ({
     }));
   }, [points, yMin, yMax]);
 
+  const themeLineData = (
+    actualTheme?.line as
+      | { style?: { data?: Record<string, unknown> } }
+      | undefined
+  )?.style?.data as Record<string, unknown> | undefined;
+
+  const themeAreaData = (
+    actualTheme?.area as
+      | { style?: { data?: Record<string, unknown> } }
+      | undefined
+  )?.style?.data as Record<string, unknown> | undefined;
+
+  const asCssColor = (v: unknown): string | undefined =>
+    typeof v === "string" && v.trim().length ? v : undefined;
+
+  const cpLineStroke = useMemo(() => {
+    const overrideCss = resolveToCssColor(getThemeColor, colorOverride);
+    if (overrideCss) return overrideCss;
+
+    if (hasExternalTheme) {
+      const fromTheme = asCssColor(themeLineData?.stroke);
+      if (fromTheme) return fromTheme;
+    }
+    return getThemeColor(colorPalette.lineStroke);
+  }, [
+    colorOverride,
+    hasExternalTheme,
+    themeLineData?.stroke,
+    getThemeColor,
+    colorPalette.lineStroke,
+  ]);
+
+  const cpRangeFill = useMemo(() => {
+    const overrideCss = resolveToCssColor(getThemeColor, colorOverride);
+    if (overrideCss) return overrideCss;
+
+    if (hasExternalTheme) {
+      const fromTheme = asCssColor(themeAreaData?.fill);
+      if (fromTheme) return fromTheme;
+    }
+    return getThemeColor(colorPalette.cpRange);
+  }, [
+    colorOverride,
+    hasExternalTheme,
+    themeAreaData?.fill,
+    getThemeColor,
+    colorPalette.cpRange,
+  ]);
+
+  const cpRangeOpacity = useMemo(() => {
+    if (!hasExternalTheme) return 0.3;
+    const fromTheme = themeAreaData?.opacity;
+    return typeof fromTheme === "number" ? fromTheme : 0.3;
+  }, [hasExternalTheme, themeAreaData?.opacity]);
+
+  const rightPad = Math.max(rightPadding, MIN_RIGHT_PADDING);
+  const yAxisLabel = !isNil(yLabel) ? `(${yLabel})` : undefined;
+  const leftPad = 10;
+
+  const chartPadding = isEmbedded
+    ? {
+        top: 10,
+        bottom: BOTTOM_PADDING + 15,
+        left: leftPad,
+        right: rightPad,
+      }
+    : { top: 10, bottom: BOTTOM_PADDING, left: 10, right: rightPad };
+
+  const useSimplifiedCursor = simplifiedCursor && !isEmbedded;
+
   return (
     <>
       <div
@@ -420,8 +480,8 @@ const NumericChart: FC<Props> = ({
           className="text-xs text-gray-700 dark:text-gray-700-dark"
           textClassName="pl-0"
           style={{
-            paddingRight: isEmbedded ? 10 : maxRightPadding,
-            paddingLeft: isEmbedded ? maxLeftPadding : 0,
+            paddingRight: rightPad,
+            paddingLeft: 0,
             paddingTop: withZoomPicker ? 24 : 0,
           }}
         />
@@ -440,20 +500,35 @@ const NumericChart: FC<Props> = ({
               width={chartWidth}
               height={height}
               theme={actualTheme}
-              padding={{
-                right: isEmbedded ? 10 : maxRightPadding,
-                top: 10,
-                left: isEmbedded ? maxLeftPadding : 10,
-                bottom: BOTTOM_PADDING,
-              }}
+              padding={chartPadding}
               events={chartEvents}
               containerComponent={containerComponent}
             >
-              {/* Y axis */}
+              {/* Y axis used for GRIDLINES */}
+              <VictoryAxis
+                dependentAxis
+                orientation="left"
+                style={{
+                  ticks: { stroke: "transparent" },
+                  tickLabels: { fill: "transparent" }, // hide labels
+                  axis: { stroke: "transparent" },
+                  grid: {
+                    stroke: getThemeColor(METAC_COLORS.gray["400"]),
+                    strokeWidth: 1,
+                    strokeDasharray: "3, 2",
+                  },
+                }}
+                tickValues={yScaleTicks}
+                tickFormat={yScale.tickFormat}
+              />
+
+              {/* Y axis used for LABELS */}
               <VictoryAxis
                 dependentAxis
                 style={{
                   ticks: { stroke: "transparent" },
+                  axis: { stroke: "transparent" },
+                  grid: { stroke: "transparent" },
                   axisLabel: {
                     fontFamily: LABEL_FONT_FAMILY,
                     fontSize: tickLabelFontSize,
@@ -469,25 +544,15 @@ const NumericChart: FC<Props> = ({
                       ? {}
                       : { fill: getThemeColor(METAC_COLORS.gray["700"]) }),
                   },
-                  axis: { stroke: "transparent" },
-                  grid: {
-                    ...(hasExternalTheme
-                      ? {}
-                      : { stroke: getThemeColor(METAC_COLORS.gray["400"]) }),
-                    strokeWidth: 1,
-                    strokeDasharray: "3, 2",
-                  },
                 }}
                 tickValues={yScaleTicks}
                 tickFormat={yScale.tickFormat}
-                label={!isNil(yLabel) ? `(${yLabel})` : undefined}
+                label={yAxisLabel}
                 orientation={"left"}
                 offsetX={
-                  isEmbedded
-                    ? maxLeftPadding
-                    : isNil(yLabel)
-                      ? chartWidth + 5
-                      : chartWidth - tickLabelFontSize + 5
+                  isNil(yLabel)
+                    ? chartWidth + 5
+                    : chartWidth - tickLabelFontSize + 5
                 }
                 axisLabelComponent={<VictoryLabel x={chartWidth} />}
               />
@@ -498,7 +563,7 @@ const NumericChart: FC<Props> = ({
                   ticks: { stroke: "transparent" },
                   axis: { stroke: "transparent" },
                 }}
-                offsetY={isEmbedded ? 0 : BOTTOM_PADDING}
+                offsetY={isEmbedded ? BOTTOM_PADDING - 5 : BOTTOM_PADDING}
                 tickValues={xScale.ticks}
                 tickFormat={
                   hideCP
@@ -530,10 +595,8 @@ const NumericChart: FC<Props> = ({
                   data={area}
                   style={{
                     data: {
-                      opacity: 0.3,
-                      fill: isNil(colorOverride)
-                        ? getThemeColor(colorPalette.cpRange)
-                        : getThemeColor(colorOverride),
+                      opacity: cpRangeOpacity,
+                      fill: cpRangeFill,
                     },
                   }}
                   interpolation="stepAfter"
@@ -547,9 +610,7 @@ const NumericChart: FC<Props> = ({
                   style={{
                     data: {
                       strokeWidth: 2.5,
-                      stroke: isNil(colorOverride)
-                        ? getThemeColor(colorPalette.lineStroke)
-                        : getThemeColor(colorOverride),
+                      stroke: cpLineStroke,
                       opacity: 0.2,
                     },
                   }}
@@ -564,9 +625,7 @@ const NumericChart: FC<Props> = ({
                   style={{
                     data: {
                       strokeWidth: simplifiedCursor ? 2.5 : 1.5,
-                      stroke: isNil(colorOverride)
-                        ? getThemeColor(colorPalette.lineStroke)
-                        : getThemeColor(colorOverride),
+                      stroke: cpLineStroke,
                     },
                   }}
                   interpolation="stepAfter"
@@ -577,7 +636,11 @@ const NumericChart: FC<Props> = ({
               <VictoryPortal>
                 <VictoryScatter
                   data={clampedPoints}
-                  dataComponent={<PredictionWithRange />}
+                  dataComponent={
+                    <PredictionWithRange
+                      colorOverride={colorOverride ?? colorPalette.chip}
+                    />
+                  }
                 />
               </VictoryPortal>
 
@@ -634,7 +697,7 @@ const NumericChart: FC<Props> = ({
                   data={[highlightedPoint]}
                   dataComponent={
                     <VictoryPortal>
-                      {simplifiedCursor ? (
+                      {useSimplifiedCursor ? (
                         <CursorChip
                           shouldRender={
                             isConsumerView
@@ -652,10 +715,10 @@ const NumericChart: FC<Props> = ({
                           }
                           chartWidth={chartWidth}
                           rightPadding={maxRightPadding}
-                          colorOverride={colorOverride ?? colorPalette.chip}
                           getCursorValue={getCursorValue}
                           resolution={resolution}
                           questionType={questionType}
+                          colorOverride={colorOverride ?? colorPalette.chip}
                         />
                       )}
                     </VictoryPortal>
@@ -696,30 +759,18 @@ const NumericChart: FC<Props> = ({
 const CursorChip: FC<{
   x?: number;
   y?: number;
-  colorOverride?: ThemeColor;
+  colorOverride?: ThemeColor | string;
   shouldRender?: boolean;
   isEmbedded?: boolean;
-}> = (props) => {
+}> = ({ x, y, colorOverride, shouldRender, isEmbedded }) => {
   const { getThemeColor } = useAppTheme();
-  const { x, y, colorOverride, shouldRender, isEmbedded } = props;
-  const innerCircleRadius = isEmbedded ? 5 : 4;
-
   if (isNil(x) || isNil(y) || !shouldRender) return null;
 
-  return (
-    <g>
-      <circle
-        cx={x}
-        cy={y}
-        r={innerCircleRadius}
-        fill={
-          isNil(colorOverride)
-            ? getThemeColor(METAC_COLORS.olive["700"])
-            : getThemeColor(colorOverride)
-        }
-      />
-    </g>
-  );
+  const fill =
+    resolveToCssColor(getThemeColor, colorOverride) ??
+    getThemeColor(METAC_COLORS.olive["700"]);
+
+  return <circle cx={x} cy={y} r={isEmbedded ? 5 : 4} fill={fill} />;
 };
 
 export default memo(NumericChart);

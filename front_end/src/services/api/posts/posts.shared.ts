@@ -152,6 +152,26 @@ class PostsApi extends ApiService {
     });
   }
 
+  async getPostsWithCPForHomepage(
+    params?: PostsParams
+  ): Promise<PaginatedPayload<PostWithForecasts>> {
+    const queryParams = encodeQueryParams({
+      ...(params ?? {}),
+      with_cp: true,
+      include_descriptions: false,
+      include_cp_history: true,
+      include_movements: true,
+    });
+
+    return await this.get<PaginatedPayload<PostWithForecasts>>(
+      `/posts/${queryParams}`,
+      {
+        next: {
+          revalidate: 30 * 60,
+        },
+      }
+    );
+  }
   async getTournamentForecastFlowPosts(
     tournamentSlug: string
   ): Promise<PredictionFlowPost[]> {
