@@ -100,7 +100,7 @@ class Migration(migrations.Migration):
             name="zero_point",
             field=models.FloatField(
                 blank=True,
-                help_text="For Continuous only. NOT for Discrete.\n        If logaritmically scaled, the value of the zero point.",
+                help_text="For Continuous only. NOT for Discrete.\n        If logarithmically scaled, the value of the zero point.",
                 null=True,
             ),
         ),

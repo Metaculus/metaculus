@@ -46,7 +46,7 @@ info:
     <details>
     <summary>Expand for CDF generation details and examples</summary>
 
-    To start off, let's take an example question: "What will be the temperature (in Celcius) in New York City on January 1st, 3000?"<br>
+    To start off, let's take an example question: "What will be the temperature (in Celsius) in New York City on January 1st, 3000?"<br>
 
     If you were to open the question on the website, you would see that the prediction input will have an x-axis that goes from `-40` to `110`.
     You could also find those values in the api by looking at the `"range_min"` and `"range_max"` properties inside `question["scaling"]`.
@@ -121,7 +121,7 @@ info:
         example percentiles:
         percentiles = {
           "percentile_01": 25,
-          "precentile_25.123": 500,
+          "percentile_25.123": 500,
           "50": 650,
           "percentile_75": "700",
           "percentile_99": 990,
@@ -190,7 +190,7 @@ info:
     mean Metaculus will accept it. We'll have to make sure it obeys a few rules, lest it be rejected as invalid.
     
     1. The cdf must be strictly increasing by at least 0.00005 per step (1% / inbound_outcome_count). This is because Metaculus 
-        evaluates continuous forecasts by their PDF (technically a PMF) dervied as the set of differences between consecutive 
+        evaluates continuous forecasts by their PDF (technically a PMF) derived as the set of differences between consecutive 
         CDF points, and 0.00005 is the minimum value allowed to avoid scores getting too arbitrarily negative. Note that if the 
         inbound_outcome_count is less than the normal 200, this threshold will be larger.
     
@@ -604,7 +604,7 @@ components:
           type: number
           format: float
           nullable: true
-          description: "Only populated if the question has logaritmic scaling. See 'continuous_range' for exact locations where the CDF gets evaluated."
+          description: "Only populated if the question has logarithmic scaling. See 'continuous_range' for exact locations where the CDF gets evaluated."
         open_upper_bound:
           type: boolean
           nullable: true
@@ -1959,7 +1959,7 @@ paths:
             type: boolean
           description: Defaults to True. If False, "aggregation_methods" parameter is also required. If False, will include all data
             points in the recalculated aggregations. For questions with many forecasts, this may result in a very large file, or
-            cause a server timeout. If the server times out, please consider removing this paramater.
+            cause a server timeout. If the server times out, please consider removing this parameter.
         - name: include_comments
           in: query
           required: false

@@ -148,7 +148,7 @@ def get_author(row_values):
     try:
         return User.objects.get(username=username)
     except User.DoesNotExist:
-        raise ValueError(f"Author username is not valud '{username}'")
+        raise ValueError(f"Author username is not valid '{username}'")
 
 
 common_fields = [

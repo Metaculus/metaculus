@@ -61,6 +61,7 @@ const createNotebookSchema = (t: ReturnType<typeof useTranslations>) => {
     markdown: z.string().min(1, {
       message: t("errorMinLength", { field: "String", minLength: 1 }),
     }),
+    feed_tile_summary: z.string().optional(),
   });
 };
 type FormData = z.infer<ReturnType<typeof createNotebookSchema>>;
@@ -136,6 +137,7 @@ const NotebookForm: React.FC<Props> = ({
       categories: categoriesList.map((x) => x.id),
       notebook: {
         markdown: data["markdown"],
+        feed_tile_summary: data["feed_tile_summary"] || "",
       },
     };
 
@@ -259,6 +261,15 @@ const NotebookForm: React.FC<Props> = ({
             errors={form.formState.errors.short_title}
             defaultValue={post?.short_title}
             className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+          />
+        </InputContainer>
+        <InputContainer labelText={t("feedTileSummary")}>
+          <Textarea
+            {...form.register("feed_tile_summary")}
+            errors={form.formState.errors.feed_tile_summary}
+            defaultValue={post?.notebook?.feed_tile_summary}
+            placeholder={t("feedTileSummaryPlaceholder")}
+            className="min-h-24 rounded border border-gray-500 p-3 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
         </InputContainer>
         <div className="flex flex-col gap-1.5">
