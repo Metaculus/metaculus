@@ -213,6 +213,7 @@ jobs:
           for target in ${{ inputs.heroku_targets }}; do
             echo "Building Heroku target: $target"
             docker buildx build \
+              --provenance=false \
               --platform linux/amd64 \
               --target "$target" \
               --tag "registry.heroku.com/${{ inputs.heroku_app }}/$target" \
