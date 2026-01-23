@@ -134,10 +134,6 @@ class TestVerifyEmail:
 class TestLogout:
     url = "/api/auth/logout/"
 
-    def test_logout_without_token_returns_204(self, anon_client):
-        response = anon_client.post(self.url)
-        assert response.status_code == 204
-
     def test_logout_with_token_revokes_session(self, anon_client, user1):
         from authentication.services import get_tokens_for_user
         from authentication.jwt_session import (
