@@ -28,7 +28,7 @@ class TestVerifyEmail:
 
         assert response.status_code == 201
         assert response.data["is_active"] == user.is_active == False
-        assert not response.data["token"]
+        assert not response.data["tokens"]
         assert not user.last_login
         mock_send_activation_email.assert_called_once()
 
@@ -53,7 +53,7 @@ class TestVerifyEmail:
         assert response.status_code == 201
         assert response.data["is_active"] == user.is_active == True
         assert user.last_login
-        assert response.data["token"]
+        assert response.data["tokens"]
         mock_send_activation_email.assert_not_called()
 
     @override_settings(PUBLIC_ALLOW_SIGNUP=False)
@@ -100,10 +100,10 @@ class TestVerifyEmail:
         )
         assert response.status_code == 201
         assert response.data["is_active"] == True
-        assert response.data["token"]
+        assert response.data["tokens"]
 
     @pytest.mark.parametrize(
-        "params,expected_langauge",
+        "params,expected_language",
         [
             [{"language": "unknown"}, None],
             [{"language": None}, None],
@@ -111,7 +111,7 @@ class TestVerifyEmail:
         ],
     )
     def test_signup__language_variations(
-        self, anon_client, mocker, params, expected_langauge
+        self, anon_client, mocker, params, expected_language
     ):
         mocker.patch("authentication.views.common.send_activation_email")
 
@@ -128,4 +128,4 @@ class TestVerifyEmail:
         )
         assert response.status_code == 201
         user = User.objects.get(username="new_user")
-        assert user.language == expected_langauge
+        assert user.language == expected_language

@@ -165,6 +165,14 @@ export const SENTRY_IGNORE_ERRORS: string[] = [
   "Can't find variable: logMutedMessage",
 ];
 
+export const SENTRY_DENY_URLS: (string | RegExp)[] = [
+  /^app:\/\/\//,
+  /extensions\//i,
+  /^chrome:\/\//i,
+  /^chrome-extension:\/\//i,
+  /^moz-extension:\/\//i,
+];
+
 export function beforeSentryAlertSend(event: ErrorEvent, hint: EventHint) {
   const error = hint.originalException;
 
