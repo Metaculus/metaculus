@@ -74,7 +74,7 @@ def is_token_revoked(token) -> bool:
     """
     session_id = token.get("session_id")
     if not session_id:
-        return False
+        raise InvalidToken("Token missing session_id claim")
 
     enforce_at = get_session_enforce_at(session_id)
     if enforce_at is None:
@@ -144,36 +144,21 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
         AuthenticationFailed if user is no longer active
     """
     try:
-        refresh = SessionRefreshToken(refresh_token_str, verify=False)
+        refresh = SessionRefreshToken(refresh_token_str)
     except TokenError as e:
         raise InvalidToken(e.args[0]) from e
 
     session_id = refresh.get("session_id")
-    if not session_id:
-        raise InvalidToken("Token missing session_id claim")
-
     old_token_iat = refresh.get("iat")
     grace_key = _get_grace_key(session_id)
-
-    # Check if token is revoked before anything else
-    if is_token_revoked(refresh):
-        raise InvalidToken("Token has been revoked")
 
     # Check grace period cache - only reached if token is valid
     cached = cache.get(grace_key)
     if cached:
         return json.loads(cached)
 
-    # Verify token (includes signature, expiry check - revocation already checked)
-    try:
-        refresh.verify()
-    except TokenError as e:
-        raise InvalidToken(e.args[0]) from e
-
     # Generate new tokens with lock to handle race conditions
-    lock_key = f"{grace_key}:lock"
-
-    with cache.lock(lock_key, timeout=5, blocking_timeout=1):
+    with cache.lock(f"{grace_key}:lock", timeout=5, blocking_timeout=1):
         # Re-check revocation in case it changed while waiting for lock
         if is_token_revoked(refresh):
             raise InvalidToken("Token has been revoked")
