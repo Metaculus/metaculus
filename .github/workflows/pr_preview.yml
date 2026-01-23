@@ -38,6 +38,7 @@
 # - PUBLIC_SCREENSHOT_SERVICE_ENABLED: Enable screenshot service
 # - SENTRY_DNS: Sentry DSN for error tracking (for backend)
 # - PUBLIC_FRONTEND_SENTRY_DSN: Frontend Sentry DSN
+# - PUBLIC_POSTHOG_KEY: PostHog project API key
 # =============================================================================
 
 name: PR Preview Environment
@@ -93,8 +94,8 @@ jobs:
         id: find_comment
         with:
           issue-number: ${{ github.event.number }}
-          comment-author: 'github-actions[bot]'
-          body-includes: 'Preview environments are not available for fork PRs'
+          comment-author: "github-actions[bot]"
+          body-includes: "Preview environments are not available for fork PRs"
 
       - name: Create comment for fork PRs
         if: |
@@ -123,43 +124,25 @@ jobs:
       fly_app: ${{ steps.names.outputs.fly_app }}
       neon_branch: ${{ steps.names.outputs.neon_branch }}
       redis_name: ${{ steps.names.outputs.redis_name }}
-      image_tag: ${{ steps.names.outputs.image_tag }}
-      image_tag_sha: ${{ steps.names.outputs.image_tag_sha }}
-      image_name: ${{ steps.names.outputs.image_name }}
     steps:
-      - name: Slugify branch name
-        id: slugify
-        uses: rlespinasse/slugify-value@v1.4.0
-        with:
-          key: BRANCH
-          value: ${{ github.head_ref || github.ref_name }}
-          slug-maxlength: 30
-
       - name: Generate resource names
         id: names
+        env:
+          BRANCH_REF: ${{ github.head_ref || github.ref_name }}
+          PR_NUMBER: ${{ github.event.number }}
         run: |
+          # Slugify branch name: lowercase, replace invalid chars, truncate
+          BRANCH_SLUG="$(printf '%s' "$BRANCH_REF" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-30)"
+
           # Base preview identifier: pr-{number}-{branch_slug}
-          PREVIEW_ID="pr-${{ github.event.number }}-${{ steps.slugify.outputs.slug-url }}"
-          SHORT_SHA="${GITHUB_SHA::7}"
-          
-          # Docker image name (must be lowercase for ghcr.io)
-          IMAGE_NAME="ghcr.io/${{ github.repository }}"
-          IMAGE_NAME_LOWER=$(echo "${IMAGE_NAME}" | tr '[:upper:]' '[:lower:]')
-          echo "image_name=${IMAGE_NAME_LOWER}" >> $GITHUB_OUTPUT
-          
+          PREVIEW_ID="pr-${PR_NUMBER}-${BRANCH_SLUG}"
+
           # Resource names with service-specific prefixes
           echo "fly_app=metaculus-${PREVIEW_ID}" >> $GITHUB_OUTPUT
           echo "neon_branch=preview/${PREVIEW_ID}" >> $GITHUB_OUTPUT
           echo "redis_name=mtc-redis-${PREVIEW_ID}" >> $GITHUB_OUTPUT
-          
-          # Docker image tags
-          # - image_tag: mutable, always points to latest build for this PR/branch
-          # - image_tag_sha: immutable, unique per commit (for rollbacks/debugging)
-          echo "image_tag=${{ steps.slugify.outputs.slug-url }}" >> $GITHUB_OUTPUT
-          echo "image_tag_sha=${{ steps.slugify.outputs.slug-url }}-${SHORT_SHA}" >> $GITHUB_OUTPUT
-          
+
           echo "Preview ID: ${PREVIEW_ID}"
-          echo "Image Name: ${IMAGE_NAME_LOWER}:${{ steps.slugify.outputs.slug-url }}-${SHORT_SHA}"
 
   # ===========================================================================
   # Build Docker Image - Build and push to GitHub Container Registry
@@ -170,45 +153,8 @@ jobs:
     if: |
       github.event.action != 'closed' &&
       needs.fork-check.outputs.is_fork != 'true'
-    runs-on: ubuntu-24.04
-    outputs:
-      image_url: ${{ steps.meta.outputs.tags }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ needs.setup.outputs.image_name }}
-          tags: |
-            # Mutable tag - always points to latest build for this PR/branch
-            type=raw,value=${{ needs.setup.outputs.image_tag }}
-            # Immutable tag - unique per commit (for rollbacks/debugging)
-            type=raw,value=${{ needs.setup.outputs.image_tag_sha }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          target: all_runners
-          platforms: linux/amd64
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+    uses: ./.github/workflows/docker_build.yml
+    secrets: inherit
 
   # ===========================================================================
   # Deploy to Fly.io - Deploy preview app with the built image
@@ -228,7 +174,7 @@ jobs:
       app_name: ${{ steps.deploy.outputs.app_name }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Fly.io CLI
         uses: superfly/flyctl-actions/setup-flyctl@master
@@ -248,7 +194,7 @@ jobs:
           REDIS_NAME="${{ needs.setup.outputs.redis_name }}"
           FLY_ORG="${{ vars.FLY_ORG || 'personal' }}"
           REDIS_REGION="${{ vars.FLY_REDIS_REGION || 'iad' }}"
-          
+
           # Check if database already exists
           if flyctl redis list --org "${FLY_ORG}" | grep -qw "${REDIS_NAME}"; then
             echo "✅ Found existing Redis database: ${REDIS_NAME}"
@@ -262,16 +208,16 @@ jobs:
               --org "${FLY_ORG}"
             echo "✅ Created new Redis database: ${REDIS_NAME}"
           fi
-          
+
           # Get Redis connection URL from status (parse text output)
           REDIS_URL=$(flyctl redis status "${REDIS_NAME}" | grep -i "Private URL" | awk -F'= ' '{print $2}' | tr -d ' ')
-          
+
           if [ -z "$REDIS_URL" ]; then
             echo "❌ Failed to get Redis URL from status"
             flyctl redis status "${REDIS_NAME}"
             exit 1
           fi
-          
+
           # Set outputs
           echo "redis_cache_url=${REDIS_URL}" >> $GITHUB_OUTPUT
           echo "redis_mq_url=${REDIS_URL}" >> $GITHUB_OUTPUT
@@ -281,7 +227,7 @@ jobs:
         id: deploy
         run: |
           APP_NAME="${{ needs.setup.outputs.fly_app }}"
-          
+
           # Check if app exists, create if not
           if ! flyctl apps list | grep -qw "${APP_NAME}"; then
             echo "Creating new Fly app: ${APP_NAME}"
@@ -317,6 +263,7 @@ jobs:
             SENTRY_DNS="${{ vars.SENTRY_DNS }}" \
             PUBLIC_FRONTEND_SENTRY_DSN="${{ vars.PUBLIC_FRONTEND_SENTRY_DSN }}" \
             SENTRY_AUTH_TOKEN="${{ secrets.SENTRY_AUTH_TOKEN }}" \
+            PUBLIC_POSTHOG_KEY="${{ vars.PUBLIC_POSTHOG_KEY }}" \
             --app "${APP_NAME}" \
             --stage
 
@@ -324,9 +271,19 @@ jobs:
           flyctl deploy \
             --app "${APP_NAME}" \
             --config fly.preview.toml \
-            --image ${{ needs.setup.outputs.image_name }}:${{ needs.setup.outputs.image_tag_sha }} \
+            --image ${{ needs.build-image.outputs.image_url }} \
             --ha=false \
             --now
+
+          # Start machines after deployment
+          echo "Starting machines for ${APP_NAME}..."
+          flyctl machine list -q -a "${APP_NAME}" | while read id; do
+            if [ -n "$id" ]; then
+              echo "Starting machine: $id"
+              flyctl machine start "$id" -a "${APP_NAME}"
+            fi
+          done
+          echo "✅ Machines started"
 
           # Output the app URL for other jobs
           echo "url=${PUBLIC_APP_URL}" >> $GITHUB_OUTPUT
@@ -338,7 +295,7 @@ jobs:
   # ===========================================================================
   comment-on-pr:
     name: Comment on PR
-    needs: [fork-check, setup, deploy-preview]
+    needs: [fork-check, setup, build-image, deploy-preview]
     if: |
       github.event.action != 'closed' &&
       needs.fork-check.outputs.is_fork != 'true'
@@ -349,8 +306,8 @@ jobs:
         id: find_comment
         with:
           issue-number: ${{ github.event.number }}
-          comment-author: 'github-actions[bot]'
-          body-includes: 'Preview Environment'
+          comment-author: "github-actions[bot]"
+          body-includes: "Preview Environment"
 
       - name: Create or update comment
         uses: peter-evans/create-or-update-comment@v4
@@ -366,7 +323,7 @@ jobs:
             | Resource | Details |
             |----------|---------|
             | 🌐 **Preview URL** | ${{ needs.deploy-preview.outputs.url }} |
-            | 📦 **Docker Image** | `${{ needs.setup.outputs.image_name }}:${{ needs.setup.outputs.image_tag_sha }}` |
+            | 📦 **Docker Image** | `${{ needs.build-image.outputs.image_url }}` |
             | 🗄️ **PostgreSQL** | NeonDB branch `${{ needs.setup.outputs.neon_branch }}` |
             | ⚡ **Redis** | Fly Redis `${{ needs.setup.outputs.redis_name }}` |
 
@@ -427,7 +384,7 @@ jobs:
         run: |
           FLY_ORG="${{ vars.FLY_ORG || 'personal' }}"
           REDIS_NAME="${{ needs.setup.outputs.redis_name }}"
-          
+
           if flyctl redis list --org "${FLY_ORG}" | grep -qw "${REDIS_NAME}"; then
             echo "Deleting Fly Redis database: ${REDIS_NAME}"
             flyctl redis destroy "${REDIS_NAME}" --yes
@@ -450,8 +407,8 @@ jobs:
         id: find_comment
         with:
           issue-number: ${{ github.event.number }}
-          comment-author: 'github-actions[bot]'
-          body-includes: 'Preview Environment'
+          comment-author: "github-actions[bot]"
+          body-includes: "Preview Environment"
 
       - name: Update comment to show cleanup
         if: steps.find_comment.outputs.comment-id != ''

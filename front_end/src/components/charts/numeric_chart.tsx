@@ -463,6 +463,8 @@ const NumericChart: FC<Props> = ({
       }
     : { top: 10, bottom: BOTTOM_PADDING, left: 10, right: rightPad };
 
+  const useSimplifiedCursor = simplifiedCursor && !isEmbedded;
+
   return (
     <>
       <div
@@ -695,7 +697,7 @@ const NumericChart: FC<Props> = ({
                   data={[highlightedPoint]}
                   dataComponent={
                     <VictoryPortal>
-                      {simplifiedCursor ? (
+                      {useSimplifiedCursor ? (
                         <CursorChip
                           shouldRender={
                             isConsumerView
