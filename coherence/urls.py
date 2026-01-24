@@ -29,6 +29,11 @@ urlpatterns = [
         views.post_coherence_bot_forecast,
         name="post-coherence-bot-forecast",
     ),
+    path(
+        "coherence/bot-comment/",
+        views.post_coherence_bot_comment,
+        name="post-coherence-bot-comment",
+    ),
     # Question-level links
     path(
         "coherence/question/<int:pk>/links/",

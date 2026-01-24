@@ -7,6 +7,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from django.db import transaction
+
 from coherence.models import (
     CoherenceLink,
     AggregateCoherenceLink,
@@ -37,6 +39,8 @@ from questions.serializers.common import (
 )
 from scoring.models import Leaderboard
 from users.models import User
+from comments.serializers.common import CommentWriteSerializer, serialize_comment_many
+from comments.services.common import create_comment
 
 
 @api_view(["POST"])
@@ -262,3 +266,42 @@ def post_coherence_bot_forecast(request):
         coherence_leaderboard.user_list.add(request.user)
 
     return Response({"status": "success"}, status=200)
+
+
+class CoherenceBotCommentSerializer(CommentWriteSerializer):
+    commenter_id = serializers.IntegerField()
+
+    class Meta(CommentWriteSerializer.Meta):
+        fields = CommentWriteSerializer.Meta.fields + ("commenter_id",)
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+@transaction.atomic
+def post_coherence_bot_comment(request: Request):
+    user: User = request.user
+    serializer = CoherenceBotCommentSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    coherence_bot = User.objects.filter(
+        metadata={
+            "coherence_bot_for_user_id": serializer.validated_data.pop("commenter_id")
+        }
+    ).first()
+    serializer.validated_data.pop("included_forecast")
+    on_post = serializer.validated_data["on_post"]
+
+    forecast = (
+        on_post.question.user_forecasts.filter(author_id=coherence_bot.id)
+        .order_by("-start_time")
+        .first()
+    )
+
+    new_comment = create_comment(
+        **serializer.validated_data, included_forecast=forecast, user=coherence_bot
+    )
+
+    return Response(
+        serialize_comment_many([new_comment], with_key_factors=True)[0],
+        status=status.HTTP_201_CREATED,
+    )
