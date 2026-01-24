@@ -326,14 +326,14 @@ const people: Person[] = [
   {
     name: "Kelley Edelmann",
     position: "Head of Consulting Services",
-    imgSrc: "https://metaculus-media.s3.us-west-2.amazonaws.com/Kelley.webp",
+    imgSrc: "https://cdn.metaculus.com/Kelley.webp",
     introduction:
       "Kelley leads Consulting Services at Metaculus, partnering with organizations to translate complex forecasting data into actionable insights that inform high-stakes decisions. She brings nearly two decades of consulting experience in the market research industry, most recently as a strategist at Ipsos. Kelley has led global engagements for Fortune 100 companies across technology, healthcare, and consumer packaged goods sectors, delivering insight that shapes C-suite strategy. Her experience spans B2B and B2C contexts worldwide, applying mixed methodologies with analytical rigor and human empathy to drive meaningful impact.",
   },
   {
     name: "Grace McLain",
     position: "Project Delivery Associate",
-    imgSrc: "https://metaculus-media.s3.us-west-2.amazonaws.com/Grace.webp",
+    imgSrc: "https://cdn.metaculus.com/Grace.webp",
     introduction:
       "Grace is a researcher and evaluator with over a decade of experience in global health. She brings to Metaculus her experience in decision making under uncertainty, mixed methods research, and project delivery. She holds a Master of Science in Public Health from Johns Hopkins. In her spare time, she enjoys crafting/drawing, video/board games, and hiking in beautiful places.",
   },
