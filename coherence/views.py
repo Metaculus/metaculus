@@ -154,15 +154,14 @@ def get_links_for_questions(request):
             "Authentication is required to get questions requiring update."
         )
 
+    # TODO: GET requests usually don't have a body
+    # use query parameters instead
     serializer = NeedsUpdateQuerySerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     question_ids = serializer.validated_data["question_ids"]
-    # datetime = serializer.validated_data["datetime"]
     retrieve_all_data = serializer.validated_data.get("retrieve_all_data", False)
 
     if retrieve_all_data:
-        if not (user.is_staff or user.is_superuser):
-            raise PermissionDenied("Non-admin user can't request to retrieve all data")
         links_user = None
     else:
         links_user = user
@@ -237,7 +236,7 @@ def post_coherence_bot_forecast(request):
     forecaster_id = forecast_data.pop("forecaster_id")
     user = get_object_or_404(User, id=forecaster_id)
     coherence_bot = User.objects.filter(
-        metadata={"coherence_bot_for_user_id": forecaster_id}
+        metadata__coherence_bot_for_user_id=forecaster_id
     ).first()
     bot_created = False
     if not coherence_bot:
@@ -288,7 +287,7 @@ def post_coherence_bot_comment(request: Request):
 
     # coherence_bot already exists since forecast was called before this
     coherence_bot = User.objects.filter(
-        metadata={"coherence_bot_for_user_id": comment_data.pop("commenter_id")}
+        metadata__coherence_bot_for_user_id=comment_data.pop("commenter_id")
     ).first()
     comment_data.pop("included_forecast")
     on_post = comment_data["on_post"]
