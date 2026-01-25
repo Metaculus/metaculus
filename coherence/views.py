@@ -1,4 +1,4 @@
-from django.db.models import Q, Exists, OuterRef
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes
@@ -227,18 +227,19 @@ def post_coherence_bot_forecast(request):
     """
     Posts a forecast as a Coherence Bot for a given user
     """
+    # TODO: support bulk forecasting
     serializer = CoherenceBotForecastSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    forecast = serializer.validated_data
+    forecast_data = serializer.validated_data
 
-    forecaster_id = forecast.pop("forecaster_id")
-    question: Question = Question.objects.get(id=forecast["question"])
-    forecast["question"] = question  # used in create_foreacst_bulk
+    question: Question = Question.objects.get(id=forecast_data["question"])
+    forecast_data["question"] = question  # used in create_forecast_bulk
 
     # get coherence bot for user
+    forecaster_id = forecast_data.pop("forecaster_id")
     user = User.objects.get(id=forecaster_id)
     coherence_bot = User.objects.filter(
-        metadata={"coherence_bot_for_user_id": user.id}
+        metadata={"coherence_bot_for_user_id": forecaster_id}
     ).first()
     bot_created = False
     if not coherence_bot:
@@ -251,7 +252,7 @@ def post_coherence_bot_forecast(request):
             metadata={"coherence_bot_for_user_id": user.id},
         )
 
-    create_forecast_bulk(user=coherence_bot, forecasts=[forecast])
+    create_forecast_bulk(user=coherence_bot, forecasts=[forecast_data])
 
     if bot_created:
         # add coherence_bot to coherence Leaderboard
@@ -279,17 +280,20 @@ class CoherenceBotCommentSerializer(CommentWriteSerializer):
 @permission_classes([IsAdminUser])
 @transaction.atomic
 def post_coherence_bot_comment(request: Request):
-    user: User = request.user
+    """
+    Post comment as a coherence bot for given user
+    """
+    # TODO: integrate this with the forecast view above
     serializer = CoherenceBotCommentSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
+    comment_data = serializer.validated_data
 
+    # coherence_bot already exists since forecast was called before this
     coherence_bot = User.objects.filter(
-        metadata={
-            "coherence_bot_for_user_id": serializer.validated_data.pop("commenter_id")
-        }
+        metadata={"coherence_bot_for_user_id": comment_data.pop("commenter_id")}
     ).first()
-    serializer.validated_data.pop("included_forecast")
-    on_post = serializer.validated_data["on_post"]
+    comment_data.pop("included_forecast")
+    on_post = comment_data["on_post"]
 
     forecast = (
         on_post.question.user_forecasts.filter(author_id=coherence_bot.id)
@@ -298,7 +302,7 @@ def post_coherence_bot_comment(request: Request):
     )
 
     new_comment = create_comment(
-        **serializer.validated_data, included_forecast=forecast, user=coherence_bot
+        **comment_data, included_forecast=forecast, user=coherence_bot
     )
 
     return Response(

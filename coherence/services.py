@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from typing import Iterable
 
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from coherence.models import (
@@ -63,6 +64,11 @@ def create_aggregate_coherence_link(
             obj.save()
 
     return obj
+
+
+def get_links_for_question(question: Question, user: User):
+    links = CoherenceLink.objects.filter(Q(question1=question), user=user)
+    return links
 
 
 def get_stale_linked_questions(
