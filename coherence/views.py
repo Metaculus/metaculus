@@ -175,9 +175,7 @@ def get_links_for_questions(request):
     questions = Question.objects.filter(id__in=question_ids)
 
     serialized_links = CoherenceLinkSerializer(links, many=True).data
-    serialized_questions = [
-        serialize_question(q) for q in Question.objects.filter(id__in=question_ids)
-    ]
+    serialized_questions = [serialize_question(q) for q in questions]
     # annotate all coherence bots' 2 most recent forecasts
     coherence_bots = User.objects.filter(metadata__has_key="coherence_bot_for_user_id")
     # coherence_bots = User.objects.filter()
@@ -237,7 +235,7 @@ def post_coherence_bot_forecast(request):
 
     # get coherence bot for user
     forecaster_id = forecast_data.pop("forecaster_id")
-    user = User.objects.get(id=forecaster_id)
+    user = get_object_or_404(User, id=forecaster_id)
     coherence_bot = User.objects.filter(
         metadata={"coherence_bot_for_user_id": forecaster_id}
     ).first()
