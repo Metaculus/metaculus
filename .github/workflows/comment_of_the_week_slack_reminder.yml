@@ -1,0 +1,17 @@
+name: Weekly Slack Reminder
+
+on:
+  schedule:
+    - cron: '0 9 * * 5'  # Fridays at 9am UTC
+  workflow_dispatch:  # Manual trigger for testing
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack message
+        run: |
+          DATE=$(date -d '7 days ago' '+%Y-%m-%d')
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"Reminder: Finalize the <https://www.metaculus.com/questions/?weekly_top_comments=true&start_date=$DATE|weekly top comments> by EOD for Sunday email. Someone kindly go in and exclude comments you think are bad and react to this message when done ✅\"}" \
+            ${{ secrets.COMMENTOFTHEWEEK_SLACK_WEBHOOK_URL }}
