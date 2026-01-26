@@ -84,43 +84,20 @@ if ! wait $WAIT_NJ_PID; then
   exit 1
 fi
 
+echo "All upstreams are ready. Starting Nginx..."
+
 # 4) Render Nginx config & launch
 export PORT="${PORT:-8080}"
 export APP_DOMAIN="${APP_DOMAIN:-}"
-echo "Configuring Nginx to listen on port $PORT..."
 
 envsubst '${PORT},${APP_DOMAIN}' \
   < /etc/nginx/conf.d/app_nginx.template \
   > /etc/nginx/conf.d/app_nginx.conf
 
-# Cleanup default nginx configuration (before test)
 rm -f /etc/nginx/conf.d/default.conf
 
-# Debug: show listen directives
-echo "Nginx listen config:"
-grep -E "^\s*listen" /etc/nginx/conf.d/app_nginx.conf || echo "No listen directives found!"
-
-# Test nginx config
-nginx -t 2>&1 || { echo "Nginx config test failed!"; exit 1; }
-
-echo "All upstreams are ready. Starting Nginx..."
-nginx -g "daemon off;" 2>&1 &
+nginx -g "daemon off;" &
 NGINX_PID=$!
-echo "Nginx started with PID $NGINX_PID"
-
-# Wait for nginx to actually bind
-sleep 2
-if timeout 1 bash -c ">/dev/tcp/localhost/$PORT" 2>/dev/null; then
-  echo "Nginx is listening on port $PORT"
-else
-  echo "ERROR: Nginx not listening on port $PORT"
-  echo "Checking nginx process..."
-  ps aux | grep -E "[n]ginx" || echo "No nginx process found!"
-  echo "Checking what's listening..."
-  cat /proc/net/tcp 2>/dev/null | head -5 || ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || echo "Cannot check ports"
-  echo "Nginx error log:"
-  tail -20 /var/log/nginx/error.log 2>/dev/null || echo "No error log"
-fi
 
 # 5) Monitor services and report which one exits
 echo "[Supervisor]: All services started (Gunicorn=$GUNICORN_PID, Next.js=$NEXTJS_PID, Nginx=$NGINX_PID)"
