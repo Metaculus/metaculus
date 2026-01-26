@@ -1,7 +1,7 @@
 FROM python:3.12.3-slim-bookworm AS base
 
 # Install system dependencies + Node.js
-RUN echo "cache-bust-v1" && apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
     nginx \
