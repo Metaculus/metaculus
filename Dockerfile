@@ -10,8 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -f /etc/nginx/sites-enabled/default /etc/nginx/conf.d/default.conf
+    && rm -rf /var/lib/apt/lists/*
 
 # ============================================================
 # FRONTEND DEPENDENCIES
@@ -72,11 +71,11 @@ WORKDIR /app
 
 # Configure nginx
 COPY ./scripts/nginx/ /
-RUN mkdir -p /var/cache/nginx /var/log/nginx /var/lib/nginx \
+RUN rm -f /etc/nginx/sites-enabled/default /etc/nginx/conf.d/default.conf \
+    && mkdir -p /var/cache/nginx /var/log/nginx /var/lib/nginx \
     && touch /run/nginx.pid \
     && chown -R 1001:0 /var/cache/nginx /var/log/nginx /var/lib/nginx /run/nginx.pid /etc/nginx \
-    && chmod -R 755 /var/lib/nginx /var/log/nginx \
-    && rm -f /etc/nginx/sites-enabled/default
+    && chmod -R 755 /var/lib/nginx /var/log/nginx
 
 # Copy ALL source code (backend + frontend source, but .next is overwritten)
 COPY . /app/
