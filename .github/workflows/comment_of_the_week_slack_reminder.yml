@@ -1,5 +1,8 @@
 name: Weekly Slack Reminder
 
+permissions:
+  contents: read
+
 on:
   schedule:
     - cron: '0 9 * * 5'  # Fridays at 9am UTC
