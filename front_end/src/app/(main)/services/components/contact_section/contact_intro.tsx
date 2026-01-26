@@ -15,12 +15,12 @@ const ContactIntro: React.FC = () => {
   const partners = ServiceConfig.partnersLogos as PartnerLogo[];
 
   return (
-    <aside className="flex min-w-0 max-w-[436px] flex-1 flex-col p-8">
-      <h2 className="m-0 text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-900-dark">
+    <aside className="flex min-w-0 max-w-[436px] flex-1 flex-col p-3 sm:p-6 lg:p-8">
+      <h2 className="m-0 text-xl font-bold tracking-tight text-gray-900 dark:text-gray-900-dark sm:text-3xl">
         Contact our partnership team
       </h2>
 
-      <ul className="mt-8 flex list-none flex-col gap-3 p-0">
+      <ul className="mt-4 flex list-none flex-col gap-3 p-0 sm:mt-8">
         {BULLETS.map((text) => (
           <li key={text} className="flex items-center gap-2">
             <span
@@ -29,14 +29,14 @@ const ContactIntro: React.FC = () => {
             >
               ✓
             </span>
-            <span className="text-base leading-5 text-gray-700 dark:text-gray-700-dark">
+            <span className="text-sm leading-5 text-gray-700 dark:text-gray-700-dark sm:text-base">
               {text}
             </span>
           </li>
         ))}
       </ul>
 
-      <p className="m-0 mt-12 text-base leading-5 text-blue-700 dark:text-blue-700-dark">
+      <p className="m-0 mt-6 text-base leading-5 text-blue-700 dark:text-blue-700-dark sm:mt-12">
         Leading companies partner with Metaculus
       </p>
 
@@ -50,7 +50,7 @@ const ContactIntro: React.FC = () => {
             className="flex items-center justify-center rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
             aria-label={p.alt}
           >
-            <div className="relative h-[20px] w-[80px]">
+            <div className="relative h-[20px] w-[70px] sm:w-[80px]">
               <Image
                 src={p.light}
                 alt={p.alt}
