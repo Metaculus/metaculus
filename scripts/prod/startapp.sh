@@ -93,6 +93,9 @@ envsubst '${PORT},${APP_DOMAIN}' \
   < /etc/nginx/http.d/app_nginx.template \
   > /etc/nginx/http.d/app_nginx.conf
 
+# Cleanup default nginx configuration (before test)
+rm -f /etc/nginx/http.d/default.conf
+
 # Debug: show listen directives
 echo "Nginx listen config:"
 grep -E "^\s*listen" /etc/nginx/http.d/app_nginx.conf || echo "No listen directives found!"
@@ -100,11 +103,16 @@ grep -E "^\s*listen" /etc/nginx/http.d/app_nginx.conf || echo "No listen directi
 # Test nginx config
 nginx -t 2>&1 || { echo "Nginx config test failed!"; exit 1; }
 
-# Cleanup default nginx configuration
-rm -f /etc/nginx/http.d/default.conf
-
 echo "All upstreams are ready. Starting Nginx..."
 nginx &
+
+# Wait for nginx to actually bind
+sleep 1
+if ! timeout 1 bash -c ">/dev/tcp/localhost/$PORT" 2>/dev/null; then
+  echo "WARNING: Nginx not listening on port $PORT after 1s"
+  # Check if nginx process is running
+  ps aux | grep nginx || echo "No nginx process found!"
+fi
 NGINX_PID=$!
 
 # 5) Monitor services and report which one exits
