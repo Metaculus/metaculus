@@ -30,6 +30,7 @@ source venv/bin/activate
     --error-logfile - \
   2>&1 | sed 's/^/[Backend]: /'
 ) &
+GUNICORN_PID=$!
 
 # 2) Next.js Frontend
 export NODE_ENV=production
@@ -40,35 +41,52 @@ export UV_THREADPOOL_SIZE=2
   npm run pm2-runtime \
   2>&1 | sed 's/^/[Frontend]: /'
 ) &
+NEXTJS_PID=$!
 
-# 3) Wait for Gunicorn and Next.js before starting Nginx
-# wait for Gunicorn socket to appear
-timeout=15
-echo "Waiting for Gunicorn socket…"
-while [ $timeout -gt 0 ] && [ ! -S ./gunicorn.sock ]; do
-  sleep 1
-  timeout=$((timeout - 1))
-done
-if [ ! -S ./gunicorn.sock ]; then
+# 3) Wait for both services IN PARALLEL
+echo "Waiting for services to become ready..."
+
+wait_for_gunicorn() {
+  local timeout=15
+  while [ $timeout -gt 0 ]; do
+    [ -S ./gunicorn.sock ] && return 0
+    sleep 1
+    timeout=$((timeout - 1))
+  done
+  return 1
+}
+
+wait_for_nextjs() {
+  local timeout=15
+  while [ $timeout -gt 0 ]; do
+    timeout 1 bash -c ">/dev/tcp/localhost/3000" 2>/dev/null && return 0
+    sleep 1
+    timeout=$((timeout - 1))
+  done
+  return 1
+}
+
+# Run both waits in parallel
+wait_for_gunicorn &
+WAIT_GU_PID=$!
+
+wait_for_nextjs &
+WAIT_NJ_PID=$!
+
+# Check results
+if ! wait $WAIT_GU_PID; then
   echo "Gunicorn socket never appeared; aborting."
   exit 1
 fi
 
-# wait for Next.js
-timeout=15
-echo "Waiting for Next.js on localhost:3000…"
-while [ $timeout -gt 0 ] && ! nc -z localhost 3000; do
-  sleep 1
-  timeout=$((timeout - 1))
-done
-if ! nc -z localhost 3000; then
+if ! wait $WAIT_NJ_PID; then
   echo "Next.js never started; aborting."
   exit 1
 fi
 
 echo "All upstreams are ready. Starting Nginx..."
 
-# 4) Render Nginx config & launch it
+# 4) Render Nginx config & launch
 PORT="${PORT:-8080}" \
 APP_DOMAIN="${APP_DOMAIN:-}" \
 envsubst '${PORT},${APP_DOMAIN}' \
@@ -79,8 +97,19 @@ envsubst '${PORT},${APP_DOMAIN}' \
 rm -f /etc/nginx/http.d/default.conf
 
 nginx &
+NGINX_PID=$!
 
-# 5) If *any* child process exits, kill the rest and crash the dyno
-wait -n
-echo "[Supervisor]: one of the services has exited, shutting down"
+# 5) Monitor services and report which one exits
+echo "[Supervisor]: All services started (Gunicorn=$GUNICORN_PID, Next.js=$NEXTJS_PID, Nginx=$NGINX_PID)"
+
+EXITED_PID=""
+wait -n -p EXITED_PID $GUNICORN_PID $NEXTJS_PID $NGINX_PID || true
+
+case "$EXITED_PID" in
+  "$GUNICORN_PID") echo "[Supervisor]: Gunicorn exited" ;;
+  "$NEXTJS_PID")   echo "[Supervisor]: Next.js exited" ;;
+  "$NGINX_PID")    echo "[Supervisor]: Nginx exited" ;;
+  *)               echo "[Supervisor]: Unknown process exited (PID: $EXITED_PID)" ;;
+esac
+
 exit 1
