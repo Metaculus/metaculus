@@ -94,8 +94,6 @@ envsubst '${PORT},${APP_DOMAIN}' \
   < /etc/nginx/conf.d/app_nginx.template \
   > /etc/nginx/conf.d/app_nginx.conf
 
-rm -f /etc/nginx/conf.d/default.conf
-
 nginx -g "daemon off;" &
 NGINX_PID=$!
 
