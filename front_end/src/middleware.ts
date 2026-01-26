@@ -112,7 +112,12 @@ export async function middleware(request: NextRequest) {
     // Skip verification if tokens were just refreshed (they're valid by definition)
     // Only verify existing tokens to catch banned users or revoked tokens
     if (!tokensRefreshed) {
-      await verifyToken(responseAuth);
+      if (requestAuth.getAccessToken()) {
+        await verifyToken(responseAuth);
+      } else {
+        // No access token and refresh failed - clear the invalid refresh token
+        responseAuth.clearAuthTokens();
+      }
     }
   }
 
