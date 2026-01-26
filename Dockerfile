@@ -70,8 +70,7 @@ WORKDIR /app
 
 # Configure nginx
 COPY ./scripts/nginx/ /
-RUN echo "daemon off;" >> /etc/nginx/nginx.conf \
-    && mkdir -p /var/cache/nginx /var/log/nginx /var/lib/nginx \
+RUN mkdir -p /var/cache/nginx /var/log/nginx /var/lib/nginx \
     && touch /run/nginx.pid \
     && chown -R 1001:0 /var/cache/nginx /var/log/nginx /var/lib/nginx /run/nginx.pid /etc/nginx \
     && chmod -R 755 /var/lib/nginx /var/log/nginx \

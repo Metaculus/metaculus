@@ -104,7 +104,7 @@ grep -E "^\s*listen" /etc/nginx/http.d/app_nginx.conf || echo "No listen directi
 nginx -t 2>&1 || { echo "Nginx config test failed!"; exit 1; }
 
 echo "All upstreams are ready. Starting Nginx..."
-nginx 2>&1 &
+nginx -g "daemon off;" 2>&1 &
 NGINX_PID=$!
 echo "Nginx started with PID $NGINX_PID"
 
