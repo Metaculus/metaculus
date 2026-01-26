@@ -5,7 +5,7 @@ on:
   workflow_call:
 
 jobs:
-  deploy-to-prod:
+  deploy-storybook:
     runs-on: ubuntu-24.04
     environment: Storybook
     defaults:

@@ -1,11 +1,4 @@
-# NEW WORKFLOW - Testing phase
-# This replaces deploy_prod.yml with improved features:
-# - Migration detection for smart preboot toggle
-# - Shared Docker build workflow for better caching and consistency
-#
-# TODO: Once validated, deprecate and delete deploy_prod.yml
-
-name: Deploy PRODUCTION (v2)
+name: Deploy PRODUCTION
 
 run-name: 🚀 Deploy to PRODUCTION by @${{ github.actor }}
 
