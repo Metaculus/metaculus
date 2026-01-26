@@ -1,7 +1,7 @@
 import { TCaseStudyCard } from "./types";
-import AEILogo from "../../assets/aei.svg";
-import CoefficientGivingLogo from "../../assets/coefficient-giving.svg";
-import ForbesLogo from "../../assets/forbes.svg";
+import AEILogo from "../../assets/aei.svg?url";
+import CoefficientGivingLogo from "../../assets/coefficient-giving.svg?url";
+import ForbesLogo from "../../assets/forbes.svg?url";
 import NihNsfPreview from "../../assets/nih-nsf-report-preview.png";
 
 export const CASE_STUDIES: TCaseStudyCard[] = [
