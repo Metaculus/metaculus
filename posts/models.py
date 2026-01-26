@@ -841,7 +841,11 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         Update forecasts count cache
         """
 
-        self.forecasts_count = self.forecasts.filter_within_question_period().count()
+        self.forecasts_count = (
+            self.forecasts.filter_within_question_period()
+            .exclude(source=Forecast.SourceChoices.AUTOMATIC)
+            .count()
+        )
         self.save(update_fields=["forecasts_count"])
 
     def update_forecasters_count(self):

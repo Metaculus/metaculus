@@ -10,11 +10,13 @@ from rest_framework.reverse import reverse
 
 from posts.models import Post
 from questions.models import Forecast, Question, UserForecastNotification
+from questions.types import OptionsHistoryType
 from questions.tasks import check_and_schedule_forecast_widrawal_due_notifications
 from tests.unit.test_posts.conftest import *  # noqa
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_questions.factories import create_question
+from users.models import User
 
 
 class TestQuestionForecast:
@@ -75,30 +77,173 @@ class TestQuestionForecast:
         )
         assert response.status_code == 400
 
+    @freeze_time("2025-01-01")
     @pytest.mark.parametrize(
-        "props",
+        "options_history,forecast_props,expected",
         [
-            {"probability_yes_per_category": {"a": 0.1, "b": 0.2, "c": 0.3, "d": 0.4}},
+            (
+                [("0001-01-01T00:00:00", ["a", "other"])],
+                {
+                    "probability_yes_per_category": {
+                        "a": 0.6,
+                        "other": 0.4,
+                    },
+                    "end_time": "2026-01-01",
+                },
+                [
+                    Forecast(
+                        probability_yes_per_category=[0.6, 0.4],
+                        start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
+                        end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                    ),
+                ],
+            ),  # simple path
+            (
+                [("0001-01-01T00:00:00", ["a", "b", "other"])],
+                {
+                    "probability_yes_per_category": {
+                        "a": 0.6,
+                        "b": 0.15,
+                        "other": 0.25,
+                    },
+                    "end_time": "2026-01-01",
+                },
+                [
+                    Forecast(
+                        probability_yes_per_category=[0.6, 0.15, 0.25],
+                        start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
+                        end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                    ),
+                ],
+            ),  # simple path 3 options
+            (
+                [
+                    ("0001-01-01T00:00:00", ["a", "b", "other"]),
+                    (datetime(2024, 1, 1).isoformat(), ["a", "other"]),
+                ],
+                {
+                    "probability_yes_per_category": {
+                        "a": 0.6,
+                        "other": 0.4,
+                    },
+                    "end_time": "2026-01-01",
+                },
+                [
+                    Forecast(
+                        probability_yes_per_category=[0.6, None, 0.4],
+                        start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
+                        end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                    ),
+                ],
+            ),  # option deletion
+            (
+                [
+                    ("0001-01-01T00:00:00", ["a", "b", "other"]),
+                    (datetime(2024, 1, 1).isoformat(), ["a", "b", "c", "other"]),
+                ],
+                {
+                    "probability_yes_per_category": {
+                        "a": 0.6,
+                        "b": 0.15,
+                        "c": 0.20,
+                        "other": 0.05,
+                    },
+                    "end_time": "2026-01-01",
+                },
+                [
+                    Forecast(
+                        probability_yes_per_category=[0.6, 0.15, 0.20, 0.05],
+                        start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
+                        end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                    ),
+                ],
+            ),  # option addition
+            (
+                [
+                    ("0001-01-01T00:00:00", ["a", "b", "other"]),
+                    (datetime(2026, 1, 1).isoformat(), ["a", "b", "c", "other"]),
+                ],
+                {
+                    "probability_yes_per_category": {
+                        "a": 0.6,
+                        "b": 0.15,
+                        "c": 0.20,
+                        "other": 0.05,
+                    },
+                },
+                [
+                    Forecast(
+                        probability_yes_per_category=[0.6, 0.15, None, 0.25],
+                        start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
+                        end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                    ),
+                    Forecast(
+                        probability_yes_per_category=[0.6, 0.15, 0.20, 0.05],
+                        start_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        end_time=None,
+                        source=Forecast.SourceChoices.AUTOMATIC,
+                    ),
+                ],
+            ),  # forecasting during a grace period
+            (
+                [
+                    ("0001-01-01T00:00:00", ["a", "b", "other"]),
+                    (datetime(2026, 1, 1).isoformat(), ["a", "b", "c", "other"]),
+                ],
+                {
+                    "probability_yes_per_category": {
+                        "a": 0.6,
+                        "b": 0.15,
+                        "c": 0.20,
+                        "other": 0.05,
+                    },
+                    "end_time": "2027-01-01",
+                },
+                [
+                    Forecast(
+                        probability_yes_per_category=[0.6, 0.15, None, 0.25],
+                        start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
+                        end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                    ),
+                    Forecast(
+                        probability_yes_per_category=[0.6, 0.15, 0.20, 0.05],
+                        start_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        end_time=datetime(2027, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.AUTOMATIC,
+                    ),
+                ],
+            ),  # forecasting during a grace period with end time
         ],
     )
     def test_forecast_multiple_choice(
-        self, post_multiple_choice_public, user1, user1_client, props
+        self,
+        post_multiple_choice_public: Post,
+        user1: User,
+        user1_client,
+        options_history: OptionsHistoryType,
+        forecast_props: dict,
+        expected: list[Forecast],
     ):
+        question = post_multiple_choice_public.question
+        question.options_history = options_history
+        question.options = options_history[-1][1]
+        question.save()
         response = user1_client.post(
             self.url,
-            data=json.dumps(
-                [{"question": post_multiple_choice_public.question.id, **props}]
-            ),
+            data=json.dumps([{"question": question.id, **forecast_props}]),
             content_type="application/json",
         )
         assert response.status_code == 201
-        forecast = Forecast.objects.filter(
-            question=post_multiple_choice_public.question, author=user1
-        ).first()
-        assert forecast
-        assert forecast.probability_yes_per_category == list(
-            props.get("probability_yes_per_category").values()
-        )
+        forecasts = Forecast.objects.filter(
+            question=post_multiple_choice_public.question,
+            author=user1,
+        ).order_by("start_time")
+        assert len(forecasts) == len(expected)
+        for f, e in zip(forecasts, expected):
+            assert f.start_time == e.start_time
+            assert f.end_time == e.end_time
+            assert f.probability_yes_per_category == e.probability_yes_per_category
+            assert f.source == e.source
 
     @pytest.mark.parametrize(
         "props",

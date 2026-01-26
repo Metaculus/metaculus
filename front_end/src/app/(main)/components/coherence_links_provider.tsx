@@ -51,24 +51,14 @@ export const CoherenceLinksProvider: FC<
   const isLoggedIn = !isNil(user);
 
   useEffect(() => {
-    if (
-      !isLoggedIn ||
-      !post.question ||
-      !post.question.coherence_links?.length ||
-      !post.question.coherence_link_aggregations?.length
-    ) {
-      setCoherenceLinks({ data: [] });
-      setAggregateCoherenceLinks({ data: [] });
-      return;
-    }
-
-    setCoherenceLinks({ data: post.question.coherence_links });
+    setCoherenceLinks({
+      data: post?.question?.coherence_links ?? [],
+    });
     setAggregateCoherenceLinks({
-      data: post.question.coherence_link_aggregations,
+      data: post?.question?.coherence_link_aggregations ?? [],
     });
   }, [
     isLoggedIn,
-    post.question,
     post.question?.coherence_links,
     post.question?.coherence_link_aggregations,
   ]);

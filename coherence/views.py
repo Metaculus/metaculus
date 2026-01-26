@@ -2,10 +2,12 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import PermissionDenied, NotFound
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
+
+from django.db import transaction
 
 from coherence.models import (
     CoherenceLink,
@@ -22,16 +24,23 @@ from coherence.serializers import (
 )
 from coherence.services import (
     create_coherence_link,
-    get_stale_linked_questions,
-    get_links_for_question,
     aggregate_coherence_link_vote,
 )
 from coherence.utils import get_aggregation_results, get_aggregations_links
 from posts.services.common import get_post_permission_for_user
+from projects.models import Project
 from projects.permissions import ObjectPermission
-from questions.models import Question
-from questions.serializers.common import serialize_question
+from questions.models import Question, Forecast
+from questions.services.forecasts import create_forecast_bulk
+from questions.serializers.common import (
+    serialize_question,
+    ForecastWriteSerializer,
+    MyForecastSerializer,
+)
+from scoring.models import Leaderboard
 from users.models import User
+from comments.serializers.common import CommentWriteSerializer, serialize_comment_many
+from comments.services.common import create_comment
 
 
 @api_view(["POST"])
@@ -44,14 +53,14 @@ def create_link_api_view(request):
     question1_id = data["question1_id"]
     question1 = Question.objects.get(id=question1_id)
     question1_permission = get_post_permission_for_user(
-        question1.get_post(), user=request.user
+        question1.post, user=request.user
     )
     ObjectPermission.can_view(question1_permission, raise_exception=True)
 
     question2_id = data["question2_id"]
     question2 = Question.objects.get(id=question2_id)
     question2_permission = get_post_permission_for_user(
-        question2.get_post(), user=request.user
+        question2.post, user=request.user
     )
     ObjectPermission.can_view(question2_permission, raise_exception=True)
     coherence_link = create_coherence_link(
@@ -137,32 +146,169 @@ def delete_link_api_view(request, pk):
 
 
 @api_view(["GET"])
-def get_questions_requiring_update(request, pk):
-    question = get_object_or_404(Question, pk=pk)
+@permission_classes([IsAdminUser])
+def get_links_for_questions(request):
     user = request.user
+    if not user.is_authenticated:
+        raise PermissionDenied(
+            "Authentication is required to get questions requiring update."
+        )
 
+    # TODO: GET requests usually don't have a body
+    # use query parameters instead
     serializer = NeedsUpdateQuerySerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    datetime = serializer.validated_data["datetime"]
-    user_id_for_links = serializer.validated_data.get("user_id_for_links", None)
+    question_ids = serializer.validated_data["question_ids"]
+    retrieve_all_data = serializer.validated_data.get("retrieve_all_data", False)
 
-    links_user = user
-    if user_id_for_links:
-        is_user_admin = user.is_staff or user.is_superuser
-        if not is_user_admin:
-            raise PermissionDenied(
-                "Non-admin user can't request to use the links of another user"
-            )
-        links_user = User.objects.filter(pk=user_id_for_links).first()
-        if links_user is None:
-            raise NotFound("Links user not found.")
+    if retrieve_all_data:
+        links_user = None
+    else:
+        links_user = user
 
-    links = get_links_for_question(question, links_user)
-    questions_to_update = get_stale_linked_questions(links, question, user, datetime)
-    serialized_questions = [serialize_question(q) for q in questions_to_update]
+    links = CoherenceLink.objects.filter(
+        Q(question1_id__in=question_ids) | Q(question2_id__in=question_ids)
+    ).distinct("id")
+    if links_user is not None:
+        links = links.filter(user=links_user)
+    all_relevant_question_ids = set(question_ids)
+    for link in links:
+        all_relevant_question_ids.add(link.question1_id)
+        all_relevant_question_ids.add(link.question2_id)
+    questions = Question.objects.filter(id__in=all_relevant_question_ids)
+
+    serialized_links = CoherenceLinkSerializer(links, many=True).data
+    serialized_questions = [
+        serialize_question(q, include_descriptions=True) for q in questions
+    ]
+    # annotate all coherence bots' 2 most recent forecasts
+    coherence_bots = User.objects.filter(metadata__has_key="coherence_bot_for_user_id")
+    # coherence_bots = User.objects.filter()
+    coherence_bot_forecasts = Forecast.objects.filter(
+        author__in=coherence_bots, question__in=questions
+    ).order_by("-start_time")
+    coherence_bot_forecasts_by_question_by_bot = dict()
+    for forecast in coherence_bot_forecasts:
+        question_id = forecast.question_id
+        if question_id not in coherence_bot_forecasts_by_question_by_bot:
+            coherence_bot_forecasts_by_question_by_bot[question_id] = dict()
+        question_data = coherence_bot_forecasts_by_question_by_bot[question_id]
+        bot = forecast.author
+        coherence_user_id = bot.metadata["coherence_bot_for_user_id"]
+        if coherence_user_id not in question_data:
+            question_data[coherence_user_id] = {
+                "latest": None,
+                "second_latest": None,
+            }
+        if question_data[coherence_user_id]["latest"] is None:
+            question_data[coherence_user_id]["latest"] = MyForecastSerializer(
+                forecast
+            ).data
+        elif question_data[coherence_user_id]["second_latest"] is None:
+            question_data[coherence_user_id]["second_latest"] = MyForecastSerializer(
+                forecast
+            ).data
     return Response(
         {
+            "links": serialized_links,
             "questions": serialized_questions,
-            "links": serialize_coherence_link_many(links, serialize_questions=False),
+            "coherence_bot_forecasts": coherence_bot_forecasts_by_question_by_bot,
         }
+    )
+
+
+class CoherenceBotForecastSerializer(ForecastWriteSerializer):
+    forecaster_id = serializers.IntegerField()
+
+    class Meta(ForecastWriteSerializer.Meta):
+        fields = ForecastWriteSerializer.Meta.fields + ("forecaster_id",)
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def post_coherence_bot_forecast(request):
+    """
+    Posts a forecast as a Coherence Bot for a given user
+    """
+    # TODO: support bulk forecasting
+    serializer = CoherenceBotForecastSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    forecast_data = serializer.validated_data
+
+    question: Question = Question.objects.get(id=forecast_data["question"])
+    forecast_data["question"] = question  # used in create_forecast_bulk
+
+    # get coherence bot for user
+    forecaster_id = forecast_data.pop("forecaster_id")
+    user = get_object_or_404(User, id=forecaster_id)
+    coherence_bot = User.objects.filter(
+        metadata__coherence_bot_for_user_id=forecaster_id
+    ).first()
+    bot_created = False
+    if not coherence_bot:
+        bot_created = True
+        coherence_bot = User.objects.create(
+            username=f"{user.username}-coherence-bot",
+            is_bot=True,
+            check_for_spam=False,
+            bot_owner=request.user,
+            metadata={"coherence_bot_for_user_id": user.id},
+        )
+
+    create_forecast_bulk(user=coherence_bot, forecasts=[forecast_data])
+
+    if bot_created:
+        # add coherence_bot to coherence Leaderboard
+        project: Project = question.post.default_project
+        coherence_leaderboard, _ = Leaderboard.objects.get_or_create(
+            project=project,
+            name="Coherence Leaderboard",
+            score_type="peer_tournament",
+            bot_status=Project.BotLeaderboardStatus.BOTS_ONLY,
+        )
+        coherence_leaderboard.user_list.add(coherence_bot)
+        coherence_leaderboard.user_list.add(request.user)
+
+    return Response({"status": "success"}, status=200)
+
+
+class CoherenceBotCommentSerializer(CommentWriteSerializer):
+    commenter_id = serializers.IntegerField()
+
+    class Meta(CommentWriteSerializer.Meta):
+        fields = CommentWriteSerializer.Meta.fields + ("commenter_id",)
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+@transaction.atomic
+def post_coherence_bot_comment(request: Request):
+    """
+    Post comment as a coherence bot for given user
+    """
+    # TODO: integrate this with the forecast view above
+    serializer = CoherenceBotCommentSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    comment_data = serializer.validated_data
+
+    # coherence_bot already exists since forecast was called before this
+    coherence_bot = User.objects.filter(
+        metadata__coherence_bot_for_user_id=comment_data.pop("commenter_id")
+    ).first()
+    comment_data.pop("included_forecast")
+    on_post = comment_data["on_post"]
+
+    forecast = (
+        on_post.question.user_forecasts.filter(author_id=coherence_bot.id)
+        .order_by("-start_time")
+        .first()
+    )
+
+    new_comment = create_comment(
+        **comment_data, included_forecast=forecast, user=coherence_bot
+    )
+
+    return Response(
+        serialize_comment_many([new_comment], with_key_factors=True)[0],
+        status=status.HTTP_201_CREATED,
     )
