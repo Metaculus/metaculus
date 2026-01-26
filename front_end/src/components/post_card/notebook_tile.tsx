@@ -22,7 +22,7 @@ const NotebookTile: FC<Props> = ({ post }) => {
         <MarkdownEditor
           mode="read"
           markdown={
-            notebook.markdown_summary ||
+            notebook.feed_tile_summary ||
             getMarkdownSummary({
               markdown: notebook.markdown,
               width,

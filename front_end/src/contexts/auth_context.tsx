@@ -29,12 +29,13 @@ const AuthProvider: FC<
 
   useEffect(() => {
     if (initialUser) {
-      const { id, username, is_superuser, is_staff } = initialUser;
+      const { id, username, is_superuser, is_staff, language } = initialUser;
       posthog.identify(id.toString(), {
         username,
         is_superuser,
         is_staff,
         locale,
+        language: language || locale,
       });
     } else {
       if (posthog._isIdentified()) {

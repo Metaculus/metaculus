@@ -8,6 +8,7 @@ import { Scaling } from "./question";
 export type ChoiceItem = {
   id?: number;
   choice: string; // multiple choice option or subquestion label
+  label?: string; // label to display if different from "choice"
   color: ThemeColor;
   highlighted: boolean;
   active: boolean;
