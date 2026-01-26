@@ -57,7 +57,8 @@ COPY --from=frontend_deps /app/front_end/node_modules /app/front_end/node_module
 # Build frontend
 ENV NODE_ENV=production
 RUN cd front_end \
-    && NODE_OPTIONS=--max-old-space-size=4096 npm run build
+    && NODE_OPTIONS=--max-old-space-size=4096 npm run build \
+    && rm -rf .next/cache
 
 # Inject Sentry sourcemaps
 RUN cd front_end && npx sentry-cli sourcemaps inject .next
