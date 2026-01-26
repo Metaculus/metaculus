@@ -7,6 +7,8 @@
 
 name: Deploy STAGING (v2)
 
+run-name: ${{ fromJSON('{"dev":"🧪","play":"🔮"}')[inputs.environment] || '🧩' }} Deploy to ${{ fromJSON('{"dev":"DEV","play":"PLAY"}')[inputs.environment] || inputs.environment }} by @${{ github.actor }}
+
 on:
   workflow_dispatch:
     inputs:

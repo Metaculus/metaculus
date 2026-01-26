@@ -43,3 +43,14 @@ def test_filter_within_question_period(
         Forecast.objects.filter(id=f1.id).filter_within_question_period().exists()
         == include
     )
+
+
+def test_initialize_multiple_choice_question():
+    question = create_question(
+        question_type=Question.QuestionType.MULTIPLE_CHOICE,
+        options=["a", "b", "other"],
+    )
+    question.save()
+    assert (
+        question.options_history and question.options_history[0][1] == question.options
+    )
