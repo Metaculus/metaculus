@@ -236,7 +236,7 @@ jobs:
           fi
 
           # Define app URLs (used for secrets and outputs)
-          APP_DOMAIN="${APP_NAME}.fly.dev"
+          APP_DOMAIN="${APP_NAME}-preview.mtcl.cc" 
           PUBLIC_APP_URL="https://${APP_DOMAIN}"
 
           # Set all secrets and environment variables for the app
