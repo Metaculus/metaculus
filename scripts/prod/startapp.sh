@@ -104,14 +104,22 @@ grep -E "^\s*listen" /etc/nginx/http.d/app_nginx.conf || echo "No listen directi
 nginx -t 2>&1 || { echo "Nginx config test failed!"; exit 1; }
 
 echo "All upstreams are ready. Starting Nginx..."
-nginx &
+nginx 2>&1 &
+NGINX_PID=$!
+echo "Nginx started with PID $NGINX_PID"
 
 # Wait for nginx to actually bind
-sleep 1
-if ! timeout 1 bash -c ">/dev/tcp/localhost/$PORT" 2>/dev/null; then
-  echo "WARNING: Nginx not listening on port $PORT after 1s"
-  # Check if nginx process is running
-  ps aux | grep nginx || echo "No nginx process found!"
+sleep 2
+if timeout 1 bash -c ">/dev/tcp/localhost/$PORT" 2>/dev/null; then
+  echo "Nginx is listening on port $PORT"
+else
+  echo "ERROR: Nginx not listening on port $PORT"
+  echo "Checking nginx process..."
+  ps aux | grep -E "[n]ginx" || echo "No nginx process found!"
+  echo "Checking what's listening..."
+  cat /proc/net/tcp 2>/dev/null | head -5 || ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || echo "Cannot check ports"
+  echo "Nginx error log:"
+  cat /var/log/nginx/error.log 2>/dev/null | tail -20 || echo "No error log"
 fi
 NGINX_PID=$!
 
