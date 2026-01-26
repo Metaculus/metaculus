@@ -1,6 +1,6 @@
 FROM python:3.12.3-slim-bookworm AS base
 
-# Install system dependencies + Node.js
+# Install system dependencies + Node.js (zstd cache rebuild)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
