@@ -26,7 +26,6 @@ htmlcov
 tests/
 
 # Documentation
-docs/
 *.md
 !README.md
 
