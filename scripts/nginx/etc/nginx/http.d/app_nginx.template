@@ -10,8 +10,8 @@ map $http_x_forwarded_proto $proxy_x_forwarded_proto {
 }
 
 server {
-    listen 8000;
-    listen ${PORT};
+    listen 0.0.0.0:8000;
+    listen 0.0.0.0:${PORT};
     listen [::]:${PORT};
     server_name ~^(.+)$;
 

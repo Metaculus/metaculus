@@ -87,8 +87,10 @@ fi
 echo "All upstreams are ready. Starting Nginx..."
 
 # 4) Render Nginx config & launch
-PORT="${PORT:-8080}" \
-APP_DOMAIN="${APP_DOMAIN:-}" \
+export PORT="${PORT:-8080}"
+export APP_DOMAIN="${APP_DOMAIN:-}"
+echo "Configuring Nginx to listen on port $PORT..."
+
 envsubst '${PORT},${APP_DOMAIN}' \
   < /etc/nginx/http.d/app_nginx.template \
   > /etc/nginx/http.d/app_nginx.conf
