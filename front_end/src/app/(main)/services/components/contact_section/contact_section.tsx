@@ -22,11 +22,14 @@ const ContactSection: React.FC<Props> = ({
   return (
     <section
       id={id}
-      className={cn("bg-gray-0 py-20 dark:bg-gray-0-dark", className)}
+      className={cn(
+        "bg-gray-0 px-4 py-4 dark:bg-gray-0-dark sm:py-20",
+        className
+      )}
     >
       <div
         className={cn(
-          "mx-auto box-content flex w-full max-w-[1028px] gap-20",
+          "mx-auto box-content flex w-full max-w-[1028px] flex-col gap-2 sm:gap-12 md:flex-row lg:gap-20",
           containerClassName
         )}
       >

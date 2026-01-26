@@ -142,10 +142,10 @@ const ContactForm: React.FC<ContactFormProps> = ({
 
   return (
     <div className={cn("flex min-w-0 flex-1", className)} id={id}>
-      <div className="w-full rounded-lg border border-gray-300 bg-gray-100 p-8 dark:border-gray-300-dark dark:bg-gray-100-dark">
+      <div className="w-full rounded-lg border border-gray-300 bg-gray-100 p-4 dark:border-gray-300-dark dark:bg-gray-100-dark sm:p-8">
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-col gap-8 antialiased"
+          className="flex flex-col gap-6 antialiased sm:gap-8"
         >
           <FormField label={`${t("fullName")} *`} error={errors.name?.message}>
             <Input
