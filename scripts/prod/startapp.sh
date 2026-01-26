@@ -11,8 +11,8 @@ set -euo pipefail
 # are listening before Nginx binds and begins accepting requests.
 # -----------------------------------------------------------------------------
 
-# If this script gets SIGINT/TERM/EXIT, kill all its children too
-trap 'pkill -P $$; exit' INT TERM EXIT
+# If this script gets SIGINT/TERM/EXIT, kill all processes in our process group
+trap 'kill 0' INT TERM EXIT
 
 cd /app
 source venv/bin/activate
@@ -84,8 +84,6 @@ if ! wait $WAIT_NJ_PID; then
   exit 1
 fi
 
-echo "All upstreams are ready. Starting Nginx..."
-
 # 4) Render Nginx config & launch
 export PORT="${PORT:-8080}"
 export APP_DOMAIN="${APP_DOMAIN:-}"
@@ -95,9 +93,17 @@ envsubst '${PORT},${APP_DOMAIN}' \
   < /etc/nginx/http.d/app_nginx.template \
   > /etc/nginx/http.d/app_nginx.conf
 
+# Debug: show listen directives
+echo "Nginx listen config:"
+grep -E "^\s*listen" /etc/nginx/http.d/app_nginx.conf || echo "No listen directives found!"
+
+# Test nginx config
+nginx -t 2>&1 || { echo "Nginx config test failed!"; exit 1; }
+
 # Cleanup default nginx configuration
 rm -f /etc/nginx/http.d/default.conf
 
+echo "All upstreams are ready. Starting Nginx..."
 nginx &
 NGINX_PID=$!
 
