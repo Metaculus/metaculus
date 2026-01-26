@@ -1,15 +1,15 @@
-import Image, { type ImageProps } from "next/image";
+import Image, { type StaticImageData } from "next/image";
 import type { CSSProperties } from "react";
 
 import cn from "@/utils/core/cn";
 
 type Props = {
-  src: ImageProps["src"];
+  src: StaticImageData | string;
   alt?: string;
   className?: string;
   perspective?: number;
   origin?: "left" | "right";
-  layerSrcs?: [ImageProps["src"], ImageProps["src"], ImageProps["src"]];
+  layerSrcs?: [StaticImageData, StaticImageData, StaticImageData];
 };
 
 const ease = "ease-[cubic-bezier(0.16,1,0.3,1)]";
@@ -67,6 +67,7 @@ export default function StackedPreviewImage({
           src={backSrc}
           alt=""
           height={200}
+          width={200}
           className={cn(
             sizeClass,
             "rounded object-cover opacity-70 brightness-[0.98]"
@@ -89,6 +90,7 @@ export default function StackedPreviewImage({
           src={midSrc}
           alt=""
           height={200}
+          width={200}
           className={cn(sizeClass, "rounded object-cover opacity-85")}
           unoptimized
         />
@@ -107,6 +109,7 @@ export default function StackedPreviewImage({
           src={frontSrc}
           alt={alt ?? "Preview"}
           height={200}
+          width={200}
           className={cn(sizeClass, "rounded object-cover")}
           unoptimized
         />

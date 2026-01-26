@@ -4,7 +4,7 @@ import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -92,6 +92,16 @@ const ContactForm: React.FC<ContactFormProps> = ({
     (Error & { digest?: string }) | undefined
   >();
 
+  const resolvedService = useMemo(() => {
+    if (
+      preselectedService &&
+      serviceOptions.some((opt) => opt.value === preselectedService)
+    ) {
+      return preselectedService;
+    }
+    return serviceOptions[0]?.value ?? ServiceType.GENERAL_INQUIRY;
+  }, [preselectedService, serviceOptions]);
+
   const {
     formState: { errors },
     register,
@@ -103,7 +113,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
   } = useForm<ContactFormSchema>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
-      service: preselectedService ?? ServiceType.GENERAL_INQUIRY,
+      service: resolvedService,
     },
   });
 
@@ -135,10 +145,10 @@ const ContactForm: React.FC<ContactFormProps> = ({
     [pageLabel, reset]
   );
 
-  const selectOptions = [
-    { value: "" as unknown as ServiceTypeValue, label: "Select..." },
-    ...serviceOptions.map((o) => ({ value: o.value, label: t(o.labelKey) })),
-  ];
+  const selectOptions = serviceOptions.map((o) => ({
+    value: o.value,
+    label: t(o.labelKey),
+  }));
 
   return (
     <div className={cn("flex min-w-0 flex-1", className)} id={id}>
