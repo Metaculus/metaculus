@@ -90,15 +90,15 @@ export APP_DOMAIN="${APP_DOMAIN:-}"
 echo "Configuring Nginx to listen on port $PORT..."
 
 envsubst '${PORT},${APP_DOMAIN}' \
-  < /etc/nginx/http.d/app_nginx.template \
-  > /etc/nginx/http.d/app_nginx.conf
+  < /etc/nginx/conf.d/app_nginx.template \
+  > /etc/nginx/conf.d/app_nginx.conf
 
 # Cleanup default nginx configuration (before test)
-rm -f /etc/nginx/http.d/default.conf
+rm -f /etc/nginx/conf.d/default.conf
 
 # Debug: show listen directives
 echo "Nginx listen config:"
-grep -E "^\s*listen" /etc/nginx/http.d/app_nginx.conf || echo "No listen directives found!"
+grep -E "^\s*listen" /etc/nginx/conf.d/app_nginx.conf || echo "No listen directives found!"
 
 # Test nginx config
 nginx -t 2>&1 || { echo "Nginx config test failed!"; exit 1; }
