@@ -129,7 +129,9 @@ def get_site_stats(request):
     now_year = datetime.now().year
     public_questions = Question.objects.filter_public()
     stats = {
-        "predictions": Forecast.objects.filter(question__in=public_questions).count(),
+        "predictions": Forecast.objects.filter(question__in=public_questions)
+        .exclude(source=Forecast.SourceChoices.AUTOMATIC)
+        .count(),
         "questions": public_questions.count(),
         "resolved_questions": public_questions.filter(actual_resolve_time__isnull=False)
         .exclude(resolution__in=UnsuccessfulResolutionType)

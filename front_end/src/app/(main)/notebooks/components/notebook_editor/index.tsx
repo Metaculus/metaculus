@@ -5,9 +5,11 @@ import { useLocale } from "next-intl";
 import React, { useEffect, useRef, useState } from "react";
 
 import MarkdownEditor from "@/components/markdown_editor";
-import PostDefaultProject from "@/components/post_default_project";
+import Chip from "@/components/ui/chip";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import { NotebookPost } from "@/types/post";
+import { TaxonomyProjectType } from "@/types/projects";
+import { getProjectLink } from "@/utils/navigation";
 
 interface NotebookEditorProps {
   postData: NotebookPost;
@@ -80,11 +82,42 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
   }, [markdown]);
 
   const defaultProject = postData.projects.default_project;
+  const otherProjects = [
+    ...(postData.projects.index ?? []),
+    ...(postData.projects.tournament ?? []),
+    ...(postData.projects.question_series ?? []),
+    ...(postData.projects.community ?? []),
+    ...(postData.projects.category ?? []),
+    ...(postData.projects.leaderboard_tag ?? []),
+  ].filter((p) => p.id !== defaultProject.id);
+
+  const allProjects = [defaultProject, ...otherProjects];
+
+  const getChipText = (name: string, type?: string) =>
+    type === "leaderboard_tag" ? `🏆 ${name}` : name;
+
   return (
     <div>
-      <div className="flex">
-        <PostDefaultProject defaultProject={defaultProject} />
-      </div>
+      {allProjects.length > 0 && (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {allProjects.map((element) => (
+            <Chip
+              size="xs"
+              color={
+                Object.values(TaxonomyProjectType).includes(
+                  element.type as TaxonomyProjectType
+                )
+                  ? "olive"
+                  : "orange"
+              }
+              key={element.id}
+              href={getProjectLink(element)}
+            >
+              {getChipText(element.name, element.type)}
+            </Chip>
+          ))}
+        </div>
+      )}
       <div id={contentId} ref={contentRef}>
         <MarkdownEditor mode="read" markdown={markdown} withTwitterPreview />
       </div>

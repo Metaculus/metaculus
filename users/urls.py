@@ -59,4 +59,9 @@ urlpatterns = [
         views.bot_token_api_view,
         name="reveal-bot-token",
     ),
+    path(
+        "users/me/bots/<int:pk>/jwt/",
+        views.bot_jwt_api_view,
+        name="reveal-bot-jwt",
+    ),
 ]

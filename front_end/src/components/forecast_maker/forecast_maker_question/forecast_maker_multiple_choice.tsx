@@ -3,7 +3,15 @@ import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil, round } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, ReactNode, useCallback, useMemo, useState } from "react";
+import {
+  FC,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   createForecasts,
@@ -12,9 +20,11 @@ import {
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import Tooltip from "@/components/ui/tooltip";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
+import useAppTheme from "@/hooks/use_app_theme";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts } from "@/types/post";
@@ -30,13 +40,20 @@ import {
   isForecastActive,
   isOpenQuestionPredicted,
 } from "@/utils/forecasts/helpers";
+import {
+  getAllOptionsHistory,
+  getUpcomingOptions,
+} from "@/utils/questions/helpers";
 
 import {
   BINARY_FORECAST_PRECISION,
   BINARY_MAX_VALUE,
   BINARY_MIN_VALUE,
 } from "../binary_slider";
-import ForecastChoiceOption from "../forecast_choice_option";
+import ForecastChoiceOption, {
+  ANIMATION_DURATION_MS,
+} from "../forecast_choice_option";
+import useGracePeriodCountdown from "./use_grace_period_countdown";
 import {
   buildDefaultForecastExpiration,
   ForecastExpirationModal,
@@ -49,9 +66,86 @@ import WithdrawButton from "../withdraw/withdraw_button";
 
 type ChoiceOption = {
   name: string;
+  label?: string;
   communityForecast: number | null;
   forecast: number | null;
   color: ThemeColor;
+};
+
+type NewOptionCalloutProps = {
+  newOptions: Array<{ name: string; color: ThemeColor }>;
+  mounted: boolean;
+  getThemeColor: (color: ThemeColor) => string;
+  gracePeriodEnd: Date | null;
+  onShowNewOptions: () => void;
+  onDismiss: () => void;
+};
+
+const NewOptionCallout: FC<NewOptionCalloutProps> = ({
+  newOptions,
+  mounted,
+  getThemeColor,
+  gracePeriodEnd,
+  onShowNewOptions,
+  onDismiss,
+}) => {
+  const t = useTranslations();
+  const isPlural = newOptions.length > 1;
+  const timeRemaining = useGracePeriodCountdown(gracePeriodEnd);
+
+  return (
+    <div className="mb-3 w-full rounded-lg bg-blue-900 p-4 shadow-lg dark:bg-blue-900-dark">
+      <div className="mb-0 flex flex-col-reverse items-start justify-between gap-2 sm:flex-row sm:gap-2">
+        <p className="mt-0 flex-1 text-sm text-gray-0 dark:text-gray-0-dark">
+          {isPlural ? t("newOptionsAddedPlural") : t("newOptionsAddedSingular")}
+        </p>
+        {timeRemaining && timeRemaining !== "expired" && (
+          <Tooltip
+            tooltipContent={t("gracePeriodTooltip")}
+            placement="bottom"
+            showDelayMs={200}
+          >
+            <div className="flex cursor-help items-center gap-1.5 rounded border border-blue-700 bg-blue-800 px-2.5 py-1 hover:border-blue-600 hover:bg-blue-700 dark:bg-blue-800-dark dark:hover:bg-blue-700-dark">
+              <span className="text-xs font-medium text-blue-400 dark:text-blue-900">
+                {t("timeRemaining")}:
+              </span>
+              <span className="text-sm font-bold text-blue-200 dark:text-blue-900">
+                {timeRemaining}
+              </span>
+            </div>
+          </Tooltip>
+        )}
+      </div>
+      {isPlural && newOptions.length > 0 && mounted && (
+        <div className="mb-3 flex flex-wrap gap-4">
+          {newOptions.map((option) => (
+            <div key={option.name} className="flex items-center gap-1.5">
+              <div
+                className="h-3 w-3 shrink-0 rounded-sm"
+                style={{ backgroundColor: getThemeColor(option.color) }}
+              />
+              <span className="text-xs text-gray-0 dark:text-gray-0-dark">
+                {option.name}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <Button variant="secondary" size="sm" onClick={onShowNewOptions}>
+          {isPlural ? t("showNewOptions") : t("showNewOption")}
+        </Button>
+        <Button
+          variant="text"
+          size="sm"
+          className="text-gray-0 hover:text-gray-100 dark:text-gray-0-dark dark:hover:text-gray-100-dark"
+          onClick={onDismiss}
+        >
+          {t("dismiss")}
+        </Button>
+      </div>
+    </div>
+  );
 };
 
 type Props = {
@@ -72,6 +166,12 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const { hideCP } = useHideCP();
+  const { getThemeColor } = useAppTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const activeUserForecast =
     question.my_forecasts?.latest &&
@@ -112,7 +212,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   }, [question, user?.prediction_expiration_percent]);
 
   // Set default expiration if not already set
-  React.useEffect(() => {
+  useEffect(() => {
     if (!modalSavedState.forecastExpiration) {
       setModalSavedState((prev) => ({
         ...prev,
@@ -127,11 +227,17 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
   const [isDirty, setIsDirty] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [dismissedOverlay, setDismissedOverlay] = useState(false);
+  const [interactedOptions, setInteractedOptions] = useState<Set<string>>(
+    new Set()
+  );
+  const [isAnimatingHighlight, setIsAnimatingHighlight] = useState(false);
   const [choicesForecasts, setChoicesForecasts] = useState<ChoiceOption[]>(
     generateChoiceOptions(
       question,
       question.aggregations[question.default_aggregation_method],
-      userLastForecast
+      userLastForecast,
+      t
     )
   );
 
@@ -144,24 +250,116 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     [choicesForecasts]
   );
   const forecastsSum = useMemo(
-    () => (forecastHasValues ? sumForecasts(choicesForecasts) : null),
-    [choicesForecasts, forecastHasValues]
+    () =>
+      forecastHasValues
+        ? sumForecasts(
+            choicesForecasts.filter((choice) =>
+              question.options.includes(choice.name)
+            )
+          )
+        : null,
+    [question.options, choicesForecasts, forecastHasValues]
   );
   const remainingSum = forecastsSum ? 100 - forecastsSum : null;
   const isForecastValid = forecastHasValues && forecastsSum === 100;
 
   const [submitError, setSubmitError] = useState<ErrorResponse>();
 
+  const showUserMustForecast =
+    !!activeUserForecast &&
+    activeUserForecast.forecast_values.filter((value) => value !== null)
+      .length < question.options.length;
+
+  const forecastValueByOption = useMemo(() => {
+    if (!activeUserForecast) return new Map<string, number | null>();
+
+    const allOptions = getAllOptionsHistory(question);
+    return new Map(
+      allOptions.map((option, index) => [
+        option,
+        activeUserForecast.forecast_values[index] ?? null,
+      ])
+    );
+  }, [activeUserForecast, question]);
+
+  const latestForecastValueByOption = useMemo(() => {
+    const latestForecast = question.my_forecasts?.latest;
+    if (!latestForecast) return new Map<string, number | null>();
+
+    const allOptions = getAllOptionsHistory(question);
+    return new Map(
+      allOptions.map((option, index) => [
+        option,
+        latestForecast.forecast_values[index] ?? null,
+      ])
+    );
+  }, [question]);
+
+  const newOptions = useMemo(() => {
+    if (!activeUserForecast) return [];
+
+    return choicesForecasts
+      .filter((choice) => {
+        const isCurrentOption = question.options.includes(choice.name);
+        const forecastValue = forecastValueByOption.get(choice.name);
+        const hasForecast =
+          typeof forecastValue !== "undefined" && forecastValue !== null;
+        return isCurrentOption && !hasForecast;
+      })
+      .map((c) => ({ name: c.name, color: c.color }));
+  }, [
+    activeUserForecast,
+    choicesForecasts,
+    forecastValueByOption,
+    question.options,
+  ]);
+
+  const newOptionNames = useMemo(
+    () => new Set(newOptions.map((option) => option.name)),
+    [newOptions]
+  );
+  const firstNewOptionName = newOptions[0]?.name;
+
+  const showOverlay =
+    showUserMustForecast && !dismissedOverlay && newOptions.length > 0;
+
+  // Calculate grace period end time
+  const gracePeriodEnd = useMemo(() => {
+    if (!question.options_history || question.options_history.length === 0) {
+      return null;
+    }
+    const lastTimestep = new Date(question.options_history.at(-1)?.[0] || 0);
+    if (new Date().getTime() < lastTimestep.getTime()) {
+      return null;
+    }
+    return lastTimestep;
+  }, [question.options_history]);
+
+  const firstNewOptionRef = useRef<HTMLTableRowElement | null>(null);
+
+  const scrollToNewOptions = () => {
+    if (firstNewOptionRef.current) {
+      // Trigger animation immediately
+      setIsAnimatingHighlight(true);
+
+      firstNewOptionRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      // Reset animation after duration
+      setTimeout(() => {
+        setIsAnimatingHighlight(false);
+      }, ANIMATION_DURATION_MS);
+    }
+  };
+
   const resetForecasts = useCallback(() => {
     setIsDirty(false);
     setChoicesForecasts((prev) =>
-      question.options.map((_, index) => {
-        // okay to do no-non-null-assertion, as choicesForecasts is mapped based on question.options
-        // so there won't be a case where arrays are not of the same length
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const choiceOption = prev[index]!;
+      prev.map((choiceOption) => {
         const userForecast =
-          question.my_forecasts?.latest?.forecast_values[index] ?? null;
+          latestForecastValueByOption.get(choiceOption.name) ?? null;
 
         return {
           ...choiceOption,
@@ -171,7 +369,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         };
       })
     );
-  }, [question.options, question.my_forecasts?.latest?.forecast_values]);
+  }, [latestForecastValueByOption]);
 
   const handleForecastChange = useCallback(
     (choice: string, value: number) => {
@@ -184,7 +382,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
           const isInitialChange = prev.some((el) => el.forecast === null);
 
-          if (isInitialChange) {
+          if (isInitialChange && prevChoice.forecast === null) {
             // User is predicting for the first time. Show default non-null values
             // for remaining options after first interaction with the inputs.
             return { ...prevChoice, forecast: equalizedForecast };
@@ -207,6 +405,9 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     const newForecasts = choicesForecasts.map((choice, index) => {
       if (isNil(choice.forecast) || isNil(forecastsSum)) {
         return null;
+      }
+      if (!question.options.includes(choice.name)) {
+        return 0.0;
       }
 
       const value = round(
@@ -249,6 +450,9 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
       const forecastValue: Record<string, number> = {};
       choicesForecasts.forEach((el) => {
+        if (!question.options.includes(el.name)) {
+          return; // only submit forecasts for current options
+        }
         const forecast = el.forecast;
         if (!isNil(forecast)) {
           forecastValue[el.name] = round(
@@ -329,6 +533,16 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         isSubmissionDisabled={!isForecastValid}
         onSubmit={submit}
       />
+      {showOverlay && (
+        <NewOptionCallout
+          newOptions={newOptions}
+          mounted={mounted}
+          getThemeColor={getThemeColor}
+          gracePeriodEnd={gracePeriodEnd}
+          onShowNewOptions={scrollToNewOptions}
+          onDismiss={() => setDismissedOverlay(true)}
+        />
+      )}
       <table className="border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
         <thead>
           <tr>
@@ -354,28 +568,47 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
           </tr>
         </thead>
         <tbody>
-          {choicesForecasts.map((choice) => (
-            <ForecastChoiceOption
-              key={choice.name}
-              id={choice.name}
-              forecastValue={choice.forecast}
-              defaultSliderValue={equalizedForecast}
-              choiceName={choice.name}
-              choiceColor={choice.color}
-              communityForecast={
-                !user || !hideCP ? choice.communityForecast : null
-              }
-              inputMin={BINARY_MIN_VALUE}
-              inputMax={BINARY_MAX_VALUE}
-              onChange={handleForecastChange}
-              isDirty={isDirty}
-              disabled={!canPredict}
-              optionResolution={{
-                type: "question",
-                resolution: question.resolution,
-              }}
-            />
-          ))}
+          {choicesForecasts.map((choice) => {
+            if (question.options.includes(choice.name)) {
+              const isFirstNewOption = choice.name === firstNewOptionName;
+              const isNewOption = newOptionNames.has(choice.name);
+              return (
+                <ForecastChoiceOption
+                  key={choice.name}
+                  id={choice.name}
+                  forecastValue={choice.forecast}
+                  defaultSliderValue={equalizedForecast}
+                  choiceName={choice.label ?? choice.name}
+                  choiceColor={choice.color}
+                  communityForecast={
+                    !user || !hideCP ? choice.communityForecast : null
+                  }
+                  inputMin={BINARY_MIN_VALUE}
+                  inputMax={BINARY_MAX_VALUE}
+                  onChange={handleForecastChange}
+                  isDirty={isDirty}
+                  disabled={!canPredict}
+                  optionResolution={{
+                    type: "question",
+                    resolution: question.resolution,
+                  }}
+                  isNewOption={isNewOption}
+                  showHighlight={
+                    isNewOption && !interactedOptions.has(choice.name)
+                  }
+                  isAnimating={isAnimatingHighlight}
+                  onInteraction={() => {
+                    isNewOption
+                      ? setInteractedOptions((prev) =>
+                          new Set(prev).add(choice.name)
+                        )
+                      : undefined;
+                  }}
+                  rowRef={isFirstNewOption ? firstNewOptionRef : undefined}
+                />
+              );
+            }
+          })}
         </tbody>
       </table>
       {predictionMessage && (
@@ -482,16 +715,26 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 function generateChoiceOptions(
   question: QuestionWithMultipleChoiceForecasts,
   aggregate: MultipleChoiceAggregateForecastHistory,
-  userLastForecast: MultipleChoiceUserForecast | undefined
+  userLastForecast: MultipleChoiceUserForecast | undefined,
+  t: ReturnType<typeof useTranslations>
 ): ChoiceOption[] {
   const latest = aggregate.latest;
+  const allOptions = getAllOptionsHistory(question);
+  const upcomingOptions = getUpcomingOptions(question);
 
-  const choiceItems = question.options.map((option, index) => {
+  const choiceItems = allOptions.map((option, index) => {
+    const isDeleted = !question.options.includes(option);
+    const isUpcoming = upcomingOptions.includes(option);
     const communityForecastValue = latest?.forecast_values[index];
     const userForecastValue = userLastForecast?.forecast_values[index];
 
     return {
       name: option,
+      label: isDeleted
+        ? option + " (" + t("deleted") + ")"
+        : isUpcoming
+          ? option + " (" + t("Upcoming") + ")"
+          : option,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       communityForecast:
         latest && !isNil(communityForecastValue)
@@ -502,8 +745,8 @@ function generateChoiceOptions(
         : null,
     };
   });
-  const resolutionIndex = question.options.findIndex(
-    (_, index) => question.options[index] === question.resolution
+  const resolutionIndex = allOptions.findIndex(
+    (_, index) => allOptions[index] === question.resolution
   );
   if (resolutionIndex !== -1) {
     const [resolutionItem] = choiceItems.splice(resolutionIndex, 1);
