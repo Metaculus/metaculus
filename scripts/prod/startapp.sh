@@ -73,7 +73,7 @@ WAIT_GU_PID=$!
 wait_for_nextjs &
 WAIT_NJ_PID=$!
 
-# Check service results
+# Check results
 if ! wait $WAIT_GU_PID; then
   echo "Gunicorn socket never appeared; aborting."
   exit 1
