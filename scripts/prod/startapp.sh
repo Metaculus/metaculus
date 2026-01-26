@@ -119,9 +119,8 @@ else
   echo "Checking what's listening..."
   cat /proc/net/tcp 2>/dev/null | head -5 || ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || echo "Cannot check ports"
   echo "Nginx error log:"
-  cat /var/log/nginx/error.log 2>/dev/null | tail -20 || echo "No error log"
+  tail -20 /var/log/nginx/error.log 2>/dev/null || echo "No error log"
 fi
-NGINX_PID=$!
 
 # 5) Monitor services and report which one exits
 echo "[Supervisor]: All services started (Gunicorn=$GUNICORN_PID, Next.js=$NEXTJS_PID, Nginx=$NGINX_PID)"
