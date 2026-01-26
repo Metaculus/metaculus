@@ -201,7 +201,7 @@ jobs:
           cache-from: |
             type=registry,ref=${{ steps.vars.outputs.image_name }}:buildcache-main
             type=registry,ref=${{ steps.vars.outputs.image_name }}:buildcache-${{ steps.cache.outputs.cache_scope }}
-          cache-to: type=registry,ref=${{ steps.vars.outputs.image_name }}:${{ steps.cache.outputs.cache_write_tag }},mode=max
+          cache-to: type=registry,ref=${{ steps.vars.outputs.image_name }}:${{ steps.cache.outputs.cache_write_tag }},mode=max,compression=zstd
 
       - name: Build and push Heroku targets
         if: inputs.heroku_app != ''
