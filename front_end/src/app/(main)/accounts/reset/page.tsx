@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import PasswordReset from "@/app/(main)/accounts/reset/components/password_reset";
 import { GlobalErrorContainer } from "@/components/global_error_boundary";
 import ServerAuthApi from "@/services/api/auth/auth.server";
-import { getServerSession } from "@/services/session";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 import { ApiError, logError } from "@/utils/core/errors";
 
 export default async function ResetPassword(props: {
@@ -13,8 +13,8 @@ export default async function ResetPassword(props: {
 
   const { user_id, token } = searchParams;
 
-  const serverSession = await getServerSession();
-  if (serverSession) {
+  const authManager = await getAuthCookieManager();
+  if (authManager.hasAuthSession()) {
     return redirect("/");
   }
 

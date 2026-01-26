@@ -15,7 +15,6 @@ const QuestionView: React.FC<Props> = ({
 }) => {
   return (
     <QuestionVariantComposer
-      postData={postData}
       consumer={<ConsumerQuestionView postData={postData} />}
       forecaster={
         <ForecasterQuestionView
