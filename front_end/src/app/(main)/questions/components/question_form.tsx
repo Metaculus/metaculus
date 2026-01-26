@@ -309,6 +309,7 @@ const QuestionForm: FC<Props> = ({
   const router = useRouter();
   const t = useTranslations();
   const { isDone, hasForecasts } = getQuestionStatus(post);
+  const optionsLocked = hasForecasts && mode !== "create";
   const [isLoading, setIsLoading] = useState<boolean>();
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
@@ -782,7 +783,10 @@ const QuestionForm: FC<Props> = ({
               />
             </InputContainer>
             <div className="flex-col">
-              <InputContainer labelText={t("choices")} />
+              <InputContainer
+                labelText={t("choices")}
+                explanation={optionsLocked ? t("choicesLockedHelp") : undefined}
+              />
               {optionsList && (
                 <div className="flex flex-col">
                   {optionsList.map((option, opt_index) => (
@@ -790,11 +794,14 @@ const QuestionForm: FC<Props> = ({
                       <div className="w-full">
                         <Input
                           {...form.register(`options.${opt_index}`)}
-                          readOnly={hasForecasts && mode !== "create"}
+                          readOnly={optionsLocked}
                           className="my-2 w-full min-w-32 rounded border  border-gray-500 p-2 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                           value={option}
                           placeholder={`Option ${opt_index + 1}`}
                           onChange={(e) => {
+                            if (optionsLocked) {
+                              return;
+                            }
                             setOptionsList(
                               optionsList.map((opt, index) => {
                                 if (index === opt_index) {
@@ -810,7 +817,7 @@ const QuestionForm: FC<Props> = ({
                           }
                         />
                       </div>
-                      {opt_index >= MIN_OPTIONS_AMOUNT && !hasForecasts && (
+                      {opt_index >= MIN_OPTIONS_AMOUNT && !optionsLocked && (
                         <Button
                           className="my-2 h-[42px] w-max self-start capitalize"
                           variant="text"
@@ -833,6 +840,7 @@ const QuestionForm: FC<Props> = ({
               )}
               <Button
                 className="w-max capitalize"
+                disabled={optionsLocked}
                 onClick={() => setOptionsList([...optionsList, ""])}
               >
                 + {t("addOption")}
