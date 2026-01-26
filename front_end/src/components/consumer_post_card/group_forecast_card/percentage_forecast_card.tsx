@@ -37,7 +37,7 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
     );
 
   const allChoices = useMemo(() => {
-    const raw = generateChoiceItems(post, visibleChoicesCount, locale);
+    const raw = generateChoiceItems(post, visibleChoicesCount, locale, t);
     return raw.map((choice) => {
       const valueStr = getPredictionDisplayValue(
         choice.aggregationValues.at(-1),
@@ -108,10 +108,11 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
 function generateChoiceItems(
   post: PostWithForecasts,
   visibleChoicesCount: number,
-  locale: string
+  locale: string,
+  t: ReturnType<typeof useTranslations>
 ) {
   if (isMultipleChoicePost(post)) {
-    return generateChoiceItemsFromMultipleChoiceForecast(post.question, {
+    return generateChoiceItemsFromMultipleChoiceForecast(post.question, t, {
       activeCount: visibleChoicesCount,
       showNoResolutions: false,
     });
