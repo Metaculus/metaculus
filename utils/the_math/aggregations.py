@@ -489,6 +489,7 @@ class MedianAggregatorMixin:
                 forecasts_values, weights, [25.0, 50.0, 75.0]
             )
             centers_array = np.array(centers)
+            centers_array[np.equal(centers_array, 0.0)] = 1.0  # avoid divide by zero
             normalized_centers = np.array(aggregation_forecast_values)
             normalized_lowers = np.array(lowers)
             normalized_lowers[non_nones] = (
@@ -498,7 +499,7 @@ class MedianAggregatorMixin:
             )
             normalized_uppers = np.array(uppers)
             normalized_uppers[non_nones] = (
-                normalized_lowers[non_nones]
+                normalized_uppers[non_nones]
                 * normalized_centers[non_nones]
                 / centers_array[non_nones]
             )
@@ -594,7 +595,7 @@ class Aggregation(AggregatorMixin):
         ]
 
     def get_weights(self, forecast_set: ForecastSet) -> Weights | int:
-        """returns 0 as a sentinal for uniform 0 weights"""
+        """returns 0 as a sentinel for uniform 0 weights"""
         weights = None
         for weighting in self.weightings:
             new_weights = weighting.calculate_weights(forecast_set)
@@ -641,9 +642,18 @@ class Aggregation(AggregatorMixin):
                 Question.QuestionType.BINARY,
                 Question.QuestionType.MULTIPLE_CHOICE,
             ]:
-                aggregation.means = np.average(
-                    forecast_set.forecasts_values, weights=weights, axis=0
-                ).tolist()
+                forecasts_values = np.array(forecast_set.forecasts_values)
+                nones = (
+                    np.equal(forecasts_values[0], None)
+                    if forecasts_values.size
+                    else np.array([])
+                )
+                forecasts_values[:, nones] = np.nan
+                means = np.average(forecasts_values, weights=weights, axis=0).astype(
+                    object
+                )
+                means[np.isnan(means.astype(float))] = None
+                aggregation.means = means.tolist()
 
         if histogram and self.question.type in [
             Question.QuestionType.BINARY,
@@ -809,7 +819,7 @@ def minimize_history(
     The front end graphs have zoomed views on 1 day, 1 week, 2 months, and all time
     so this makes sure that the history contains sufficiently high resolution data
     for each interval.
-    max_size dictates the maximum numer of returned datetimes.
+    max_size dictates the maximum number of returned datetimes.
     """
     if len(history) <= max_size:
         return history
@@ -992,7 +1002,7 @@ def get_aggregation_history(
     forecaster_ids = set(forecast.author_id for forecast in forecasts)
     for method in aggregation_methods:
         if method == AggregationMethod.METACULUS_PREDICTION:
-            # saved in the database - not reproducable or updateable
+            # saved in the database - not reproducible or updateable
             full_summary[method] = list(
                 AggregateForecast.objects.filter(
                     question_id=question.id, method=method

@@ -1,64 +1,16 @@
-import { google } from "googleapis";
 import Link from "next/link";
 
 import GlobalHeader from "@/app/(main)/components/headers/global_header";
 import ServerProfileApi from "@/services/api/profile/profile.server";
+import { getAllSheetsData } from "@/services/google_spreadsheets";
 
-import LeaderboardTabs from "./leaderboard-tabs";
-
-async function getSheetData() {
-  try {
-    const credentials = JSON.parse(
-      Buffer.from(
-        process.env.BW_LEADERBOARDS_GOOGLE_CREDENTIALS_B64 || "",
-        "base64"
-      ).toString()
-    );
-
-    const auth = new google.auth.GoogleAuth({
-      credentials,
-      scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
-    });
-
-    const sheets = google.sheets({ version: "v4", auth });
-    const spreadsheetId = process.env.BW_LEADERBOARDS_GOOGLE_SHEET_ID;
-
-    // First, get all sheet names
-    const spreadsheet = await sheets.spreadsheets.get({
-      spreadsheetId,
-    });
-
-    const sheetNames = spreadsheet.data.sheets?.map(
-      (sheet) => sheet.properties?.title || ""
-    );
-
-    if (!sheetNames || sheetNames.length === 0) {
-      return [];
-    }
-
-    // Then get data for all sheets
-    const allSheetsData = await Promise.all(
-      sheetNames.map(async (sheetName) => {
-        const response = await sheets.spreadsheets.values.get({
-          spreadsheetId,
-          range: `${sheetName}!A1:Z`,
-        });
-        return {
-          name: sheetName,
-          data: response.data.values || [],
-        };
-      })
-    );
-
-    return allSheetsData;
-  } catch (error) {
-    console.error("Error fetching sheet data:", error);
-    return [];
-  }
-}
+import LeaderboardTabs from "../../components/leaderboard-tabs";
 
 export default async function Page() {
-  const allSheets = await getSheetData();
+  const allSheets = await getAllSheetsData(
+    process.env.BW_LEADERBOARDS_GOOGLE_SHEET_ID || "",
+    process.env.BW_LEADERBOARDS_GOOGLE_CREDENTIALS_B64 || ""
+  );
   const currentUser = await ServerProfileApi.getMyProfile();
   const highlightedUser = currentUser?.username;
 

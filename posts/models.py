@@ -524,7 +524,9 @@ class Notebook(TranslatedModel):
 
     markdown = models.TextField()
     image_url = models.ImageField(null=True, blank=True, upload_to="user_uploaded")
-    markdown_summary = models.TextField(blank=True, default="")
+    feed_tile_summary = models.TextField(
+        blank=True, default="", help_text="Summary text displayed on feed tiles"
+    )
 
     # Indicates whether we triggered "handle_post_open" event
     # And guarantees idempotency of "on post open" evens
@@ -838,7 +840,11 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         Update forecasts count cache
         """
 
-        self.forecasts_count = self.forecasts.filter_within_question_period().count()
+        self.forecasts_count = (
+            self.forecasts.filter_within_question_period()
+            .exclude(source=Forecast.SourceChoices.AUTOMATIC)
+            .count()
+        )
         self.save(update_fields=["forecasts_count"])
 
     def update_forecasters_count(self):

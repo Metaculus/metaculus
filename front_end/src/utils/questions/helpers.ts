@@ -199,3 +199,34 @@ export function inferEffectiveQuestionTypeFromPost(
 
   return null;
 }
+
+export function getAllOptionsHistory(question: Question): string[] {
+  const allOptions: string[] = [];
+  (question.options_history ?? []).map((entry) => {
+    entry[1].slice(0, -1).forEach((option) => {
+      if (!allOptions.includes(option)) {
+        allOptions.push(option);
+      }
+    });
+  });
+  const other = (question.options ?? []).at(-1);
+  if (other) {
+    allOptions.push(other);
+  }
+  return allOptions;
+}
+
+export function getUpcomingOptions(question: Question): string[] {
+  const optionsHistory = question.options_history;
+  if (!optionsHistory || optionsHistory.length < 2) {
+    return [];
+  }
+  const lastEntry = optionsHistory.at(-1);
+  if (!lastEntry || new Date().getTime() > new Date(lastEntry[0]).getTime()) {
+    return [];
+  }
+  const secondLastOptions = optionsHistory.at(-2)?.[1];
+  return lastEntry[1].filter(
+    (option) => !(secondLastOptions && secondLastOptions.includes(option))
+  );
+}

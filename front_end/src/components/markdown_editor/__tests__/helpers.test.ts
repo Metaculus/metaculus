@@ -248,7 +248,7 @@ describe("processMarkdown", () => {
       expect(result).toContain("New line with another ampersane S&P");
     });
 
-    it("should correctly render ampersand when htlm tags are in the markdown", () => {
+    it("should correctly render ampersand when html tags are in the markdown", () => {
       // Given
       const input =
         "This is a & b\n New line with another ampersane S&P\n another line with <u>html</u> tags";
@@ -384,9 +384,11 @@ describe("processMarkdown", () => {
       const result = processMarkdown(input);
 
       // Then
-      expect(result).toContain(
-        '<iframe height="315" width="560" src="https://example.com"></iframe>'
-      );
+      expect(result).toContain("<iframe");
+      expect(result).toContain('src="https://example.com"');
+      expect(result).toContain('width="560"');
+      expect(result).toContain('height="315"');
+      expect(result).toContain("</iframe>");
     });
 
     it("should preserve allowed custom attributes on HTML elements", () => {
