@@ -23,6 +23,12 @@ __pycache__
 .coverage
 htmlcov
 .mypy_cache
+tests/
+
+# Documentation
+docs/
+*.md
+!README.md
 
 # Local data
 *.sql
@@ -30,3 +36,15 @@ htmlcov
 .env
 tmp
 staticfiles
+
+# Dev/debug files
+*.log
+
+# CI/CD (not needed in image)
+.github/
+.dockerignore
+Dockerfile
+docker-compose*.yaml
+fly.*.toml
+heroku.yml
+Procfile
