@@ -109,10 +109,10 @@ curl https://pyenv.run | bash
 
 Or `brew install pyenv` on Mac.
 
-Then, install python 3.12.3:
+Then, install python 3.12:
 ```bash
-pyenv install 3.12.3
-pyenv global 3.12.3
+pyenv install 3.12
+pyenv global 3.12
 ```
 Install poetry:
 ```bash
