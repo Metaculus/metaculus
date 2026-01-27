@@ -110,16 +110,16 @@ EXPOSE 8080
 # FINAL TARGETS
 # ============================================================
 FROM final_env AS release
-CMD ["sh", "-c", "scripts/prod/release.sh"]
+CMD ["scripts/prod/release.sh"]
 
 FROM final_env AS web
-CMD ["sh", "-c", "scripts/prod/startapp.sh"]
+CMD ["scripts/prod/startapp.sh"]
 
 FROM final_env AS django_cron
-CMD ["sh", "-c", "scripts/prod/django_cron.sh"]
+CMD ["scripts/prod/django_cron.sh"]
 
 FROM final_env AS dramatiq_worker
-CMD ["sh", "-c", "scripts/prod/run_dramatiq.sh"]
+CMD ["scripts/prod/run_dramatiq.sh"]
 
 FROM final_env AS all_runners
-CMD ["sh", "-c", "scripts/prod/run_all.sh"]
+CMD ["scripts/prod/run_all.sh"]
