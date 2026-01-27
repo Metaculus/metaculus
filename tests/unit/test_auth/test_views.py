@@ -150,6 +150,7 @@ class TestLogout:
         session_id = token.get("session_id")
 
         # Verify session is not revoked before logout
+        assert session_id
         assert get_session_enforce_at(session_id) is None
 
         # Perform logout with explicit Authorization header
