@@ -48,16 +48,17 @@ const KeyFactorsConsumerCarousel: React.FC<Props> = ({
         item.kind === "keyFactor" ? (
           <button
             className="text-left no-underline"
+            type="button"
             onClick={(e) => {
               e.preventDefault();
               if (onKeyFactorClick) {
                 onKeyFactorClick(item.keyFactor);
+                sendAnalyticsEvent("KeyFactorClick", {
+                  event_label: "fromTopList",
+                });
               } else {
                 openKeyFactorsElement(`[id="key-factor-${item.keyFactor.id}"]`);
               }
-              sendAnalyticsEvent("KeyFactorClick", {
-                event_label: "fromTopList",
-              });
             }}
           >
             <KeyFactorItem
