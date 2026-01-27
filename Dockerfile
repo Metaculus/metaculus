@@ -77,6 +77,9 @@ RUN rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default /e
     && chown -R 1001:0 /var/cache/nginx /var/log/nginx /var/lib/nginx /run/nginx.pid /etc/nginx \
     && chmod -R 755 /var/lib/nginx /var/log/nginx
 
+# Install pm2 globally
+RUN npm install -g pm2
+
 # Copy ALL source code (backend + frontend source, but .next is overwritten)
 COPY . /app/
 
@@ -86,9 +89,6 @@ COPY --from=frontend_deps /app/front_end/node_modules /app/front_end/node_module
 
 # Copy pre-built frontend (overwrites the source-only front_end/.next)
 COPY --from=frontend_build /app/front_end/.next /app/front_end/.next
-
-# Install pm2 globally
-RUN npm install -g pm2
 
 # Collect Django static files
 RUN . venv/bin/activate && ./manage.py collectstatic --noinput
