@@ -1,14 +1,19 @@
-FROM python:3.12.3-slim-bookworm AS base
+FROM node:24-bookworm-slim AS node
 
-# Install system dependencies + Node.js
+FROM python:3.12-slim-bookworm AS base
+
+# Copy Node.js from official image (same Debian base, glibc compatible)
+COPY --from=node /usr/local/bin/node /usr/local/bin/
+COPY --from=node /usr/local/bin/corepack /usr/local/bin/
+COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
     gettext \
-    git \
     libpq5 \
     nginx \
-    && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -78,7 +83,7 @@ RUN rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default /e
     && chmod -R 755 /var/lib/nginx /var/log/nginx
 
 # Install pm2 globally
-RUN npm install -g pm2
+RUN npm install -g pm2@6
 
 # Copy ALL source code (backend + frontend source, but .next is overwritten)
 COPY . /app/
