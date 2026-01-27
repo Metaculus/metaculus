@@ -1,13 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Debug: show nginx config state
-echo "[DEBUG] sites-enabled contents:"
-ls -la /etc/nginx/sites-enabled/ 2>&1 || echo "directory missing"
-echo "[DEBUG] sites-available contents:"
-ls -la /etc/nginx/sites-available/ 2>&1 || echo "directory missing"
-echo "[DEBUG] conf.d contents:"
-ls -la /etc/nginx/conf.d/ 2>&1 || echo "directory missing"
+# Remove nginx defaults at runtime (Heroku's container runtime ignores Docker whiteout files)
+rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default /etc/nginx/conf.d/default.conf 2>/dev/null || true
 
 # -----------------------------------------------------------------------------
 # Wait for upstream services before starting Nginx
