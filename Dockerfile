@@ -99,11 +99,12 @@ COPY --from=frontend_build /app/front_end/.next /app/front_end/.next
 RUN . venv/bin/activate && ./manage.py collectstatic --noinput
 
 # Set ownership and switch to non-root user
-RUN chown -R 1001:0 /app
+RUN mkdir -p /home/app && chown -R 1001:0 /app /home/app
 USER 1001
 
 # Runtime configuration
-ENV PORT=8080 \
+ENV HOME=/home/app \
+    PORT=8080 \
     GUNICORN_WORKERS=4 \
     NODE_INSTANCES=1 \
     NODE_HEAP_SIZE=1024
