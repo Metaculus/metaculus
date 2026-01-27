@@ -111,9 +111,6 @@ ENV HOME=/home/app \
 
 EXPOSE 8080
 
-# Cache test
-RUN echo "cache-bust-v1" > /tmp/.cache-test
-
 # ============================================================
 # FINAL TARGETS
 # ============================================================
