@@ -71,7 +71,7 @@ WORKDIR /app
 
 # Configure nginx
 COPY ./scripts/nginx/ /
-RUN rm -f /etc/nginx/sites-enabled/default /etc/nginx/conf.d/default.conf \
+RUN rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default.conf /etc/nginx/conf.d/default.conf \
     && mkdir -p /var/cache/nginx /var/log/nginx /var/lib/nginx \
     && touch /run/nginx.pid \
     && chown -R 1001:0 /var/cache/nginx /var/log/nginx /var/lib/nginx /run/nginx.pid /etc/nginx \
