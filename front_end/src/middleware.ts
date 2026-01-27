@@ -12,48 +12,44 @@ import { getAlphaTokenSession } from "@/services/session";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
-async function verifyToken(responseAuth: AuthCookieManager): Promise<void> {
-  try {
-    await ServerAuthApi.verifyToken();
-  } catch {
-    // Token is invalid (user banned, token revoked, etc.) - clear all auth cookies
-    console.error("Token verification failed, clearing auth cookies");
-    responseAuth.clearAuthTokens();
-  }
-}
-
 /**
- * Refresh tokens and apply new cookies to response.
+ * Refresh tokens using refresh token.
  * Returns true if tokens were refreshed.
  */
-async function refreshTokensIfNeeded(
+async function refreshTokens(
   requestAuth: AuthCookieReader,
   responseAuth: AuthCookieManager
 ): Promise<boolean> {
   const refreshToken = requestAuth.getRefreshToken();
-
-  // No refresh token = can't refresh
   if (!refreshToken) return false;
 
-  // Access token still valid = no refresh needed
-  if (!requestAuth.isAccessTokenExpired()) return false;
-
-  let tokens;
   try {
-    tokens = await ServerAuthApi.refreshTokens(refreshToken);
+    const tokens = await ServerAuthApi.refreshTokens(refreshToken);
+    responseAuth.setAuthTokens(tokens);
+    return true;
   } catch (error) {
     console.error("Middleware token refresh failed:", error);
     return false;
   }
+}
 
-  responseAuth.setAuthTokens(tokens);
-  return true;
+/**
+ * Verify access token is valid.
+ * Returns true if valid.
+ */
+async function verifyToken(): Promise<boolean> {
+  try {
+    await ServerAuthApi.verifyToken();
+    return true;
+  } catch {
+    console.error("Token verification failed");
+    return false;
+  }
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const requestAuth = new AuthCookieReader(request.cookies);
-  let hasSession = requestAuth.hasAuthSession();
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-url", request.url);
@@ -61,16 +57,35 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   const responseAuth = new AuthCookieManager(response.cookies);
 
-  // DEPRECATED: Legacy token migration - remove after 30-day grace period
-  // Must run before auth checks so users with legacy tokens aren't rejected
-  const wasMigrated = await handleLegacyTokenMigration(
-    request,
-    response,
-    requestAuth,
-    responseAuth
-  );
-  if (wasMigrated) {
-    hasSession = true;
+  let hasSession = false;
+  const accessToken = requestAuth.getAccessToken();
+  const refreshToken = requestAuth.getRefreshToken();
+
+  // 1. Verify non-expired access token
+  if (accessToken && !requestAuth.isAccessTokenExpired()) {
+    hasSession = await verifyToken();
+  }
+
+  // 2. Try refresh if no valid session yet
+  if (!hasSession && refreshToken) {
+    hasSession = await refreshTokens(requestAuth, responseAuth);
+  }
+
+  // 3. Clear invalid JWT tokens
+  if (!hasSession && (accessToken || refreshToken)) {
+    responseAuth.clearAuthTokens();
+    // Clear legacy auth token
+    response.cookies.delete("auth_token");
+  }
+
+  // 4. No JWT tokens - try legacy migration
+  // DEPRECATED: Remove after 30-day migration period
+  if (!hasSession && !accessToken && !refreshToken) {
+    hasSession = await handleLegacyTokenMigration(
+      request,
+      response,
+      responseAuth
+    );
   }
 
   const { PUBLIC_AUTHENTICATION_REQUIRED } = getPublicSettings();
@@ -99,24 +114,6 @@ export async function middleware(request: NextRequest) {
         !pathname.startsWith(alphaAuthUrl)
       ) {
         return NextResponse.redirect(new URL(alphaAuthUrl, request.url));
-      }
-    }
-  }
-
-  // Proactive token refresh (MUST happen in middleware to persist cookies)
-  if (hasSession) {
-    const tokensRefreshed = await refreshTokensIfNeeded(
-      requestAuth,
-      responseAuth
-    );
-    // Skip verification if tokens were just refreshed (they're valid by definition)
-    // Only verify existing tokens to catch banned users or revoked tokens
-    if (!tokensRefreshed) {
-      if (requestAuth.getAccessToken()) {
-        await verifyToken(responseAuth);
-      } else {
-        // No access token and refresh failed - clear the invalid refresh token
-        responseAuth.clearAuthTokens();
       }
     }
   }
