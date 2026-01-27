@@ -3,10 +3,10 @@ FROM python:3.12.3-slim-bookworm AS base
 # Install system dependencies + Node.js
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
-    git \
-    nginx \
-    libpq5 \
     gettext \
+    git \
+    libpq5 \
+    nginx \
     && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
     && apt-get clean \
