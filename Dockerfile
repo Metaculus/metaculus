@@ -111,8 +111,8 @@ ENV HOME=/home/app \
 
 EXPOSE 8080
 
-# Cache test: 2026-01-27-v1
-LABEL cache.test="v1"
+# Cache test
+RUN echo "cache-bust-v1" > /tmp/.cache-test
 
 # ============================================================
 # FINAL TARGETS
