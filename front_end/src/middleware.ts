@@ -10,11 +10,21 @@ import {
 } from "@/services/language_service";
 import { getAlphaTokenSession } from "@/services/session";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
+import { ApiError } from "@/utils/core/errors";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 /**
+ * Returns true on 4xx (definitive client error), false otherwise.
+ * Used to determine if we should clear tokens or preserve them on transient errors.
+ */
+function isClientError(error: unknown): boolean {
+  return ApiError.isApiError(error) && error.response.status < 500;
+}
+
+/**
  * Refresh tokens using refresh token.
- * Returns true if tokens were refreshed.
+ * Returns true if refreshed, false on 4xx.
+ * Throws on transient errors (5xx, network).
  */
 async function refreshTokens(
   requestAuth: AuthCookieReader,
@@ -28,22 +38,29 @@ async function refreshTokens(
     responseAuth.setAuthTokens(tokens);
     return true;
   } catch (error) {
-    console.error("Middleware token refresh failed:", error);
-    return false;
+    if (isClientError(error)) {
+      console.error("Middleware token refresh failed", error);
+      return false;
+    }
+    throw error;
   }
 }
 
 /**
  * Verify access token is valid.
- * Returns true if valid.
+ * Returns true if valid, false on 4xx.
+ * Throws on transient errors (5xx, network).
  */
 async function verifyToken(): Promise<boolean> {
   try {
     await ServerAuthApi.verifyToken();
     return true;
-  } catch {
-    console.error("Token verification failed");
-    return false;
+  } catch (error) {
+    if (isClientError(error)) {
+      console.error("Token verification failed", error);
+      return false;
+    }
+    throw error;
   }
 }
 
@@ -61,21 +78,24 @@ export async function middleware(request: NextRequest) {
   const accessToken = requestAuth.getAccessToken();
   const refreshToken = requestAuth.getRefreshToken();
 
-  // 1. Verify non-expired access token
-  if (accessToken && !requestAuth.isAccessTokenExpired()) {
-    hasSession = await verifyToken();
-  }
+  try {
+    // 1. Verify non-expired access token
+    if (accessToken && !requestAuth.isAccessTokenExpired()) {
+      hasSession = await verifyToken();
+    }
 
-  // 2. Try refresh if no valid session yet
-  if (!hasSession && refreshToken) {
-    hasSession = await refreshTokens(requestAuth, responseAuth);
-  }
+    // 2. Try refresh if no valid session yet
+    if (!hasSession && refreshToken) {
+      hasSession = await refreshTokens(requestAuth, responseAuth);
+    }
 
-  // 3. Clear invalid JWT tokens
-  if (!hasSession && (accessToken || refreshToken)) {
-    responseAuth.clearAuthTokens();
-    // Clear legacy auth token
-    response.cookies.delete("auth_token");
+    // 3. Clear invalid JWT tokens (only on definitive 4xx, not transient errors)
+    if (!hasSession && (accessToken || refreshToken)) {
+      responseAuth.clearAuthTokens();
+    }
+  } catch (error) {
+    // Transient error (5xx, network) - don't clear tokens
+    console.error("Auth service error, preserving tokens:", error);
   }
 
   // 4. No JWT tokens - try legacy migration
