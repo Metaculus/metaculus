@@ -1,6 +1,9 @@
 # Essential - .git is huge
 .git
 
+# Separate applications with their own Dockerfiles
+screenshot/
+
 # Build artifacts (might exist locally)
 node_modules
 front_end/node_modules
