@@ -119,7 +119,7 @@ Install poetry:
 curl -sSL https://install.python-poetry.org | python3 -
 ```
 And follow any install directions it gives you. (You may need to reload your shell afterwards.) If all is installed properly, you should be able to run `poetry --version`.
-It is also useful to know that you can run `poetry env use 3.12.3` to switch to a specific python version. And to use `poetry shell` to enter a poetry shell so you won't have to prefix all of the python commands with `poetry run`.
+It is also useful to know that you can run `poetry env use 3.12` to switch to a specific python version. And to use `poetry shell` to enter a poetry shell so you won't have to prefix all of the python commands with `poetry run`.
 
 With that, you should be good to start installing the python dependencies.
 ```bash
