@@ -92,6 +92,8 @@ export async function middleware(request: NextRequest) {
     // 3. Clear invalid JWT tokens (only on definitive 4xx, not transient errors)
     if (!hasSession && (accessToken || refreshToken)) {
       responseAuth.clearAuthTokens();
+      // Clear legacy auth token
+      response.cookies.delete("auth_token");
     }
   } catch (error) {
     // Transient error (5xx, network) - don't clear tokens
