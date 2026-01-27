@@ -98,6 +98,10 @@ COPY --from=frontend_build /app/front_end/.next /app/front_end/.next
 # Collect Django static files
 RUN . venv/bin/activate && ./manage.py collectstatic --noinput
 
+# Set ownership and switch to non-root user
+RUN chown -R 1001:0 /app
+USER 1001
+
 # Runtime configuration
 ENV PORT=8080 \
     GUNICORN_WORKERS=4 \
