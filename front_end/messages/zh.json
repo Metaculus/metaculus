@@ -1904,5 +1904,15 @@
   "tellUsAboutYourNeeds": "告诉我们您的需求...",
   "yourOrganization": "您的组织",
   "yourMessageForm": "您的信息",
+  "discoverServicesTitle": "发现服务",
+  "discoverServicesSubtitle": "选择您的组织类型以开始",
+  "discoverServicesEnterpriseTitle": "企业",
+  "discoverServicesEnterpriseDescription": "适用于管理市场风险、供应链和战略的公司。",
+  "discoverServicesGovernmentTitle": "政府",
+  "discoverServicesGovernmentDescription": "适用于在人工智能、防务、健康和劳动力市场中导航政策变化的决策者。",
+  "discoverServicesNonProfitTitle": "非营利组织",
+  "discoverServicesNonProfitDescription": "适用于推动社会影响的基金会、非政府组织和智库。",
+  "discoverServicesAcademiaTitle": "学术机构",
+  "discoverServicesAcademiaDescription": "适用于推动科学发现的大学和机构。",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }

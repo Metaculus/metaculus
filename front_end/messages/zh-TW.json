@@ -1899,5 +1899,15 @@
   "tellUsAboutYourNeeds": "告訴我們您的需求...",
   "yourOrganization": "您的組織",
   "yourMessageForm": "您的訊息",
+  "discoverServicesTitle": "發現服務",
+  "discoverServicesSubtitle": "選擇您的組織類型以開始",
+  "discoverServicesEnterpriseTitle": "企業",
+  "discoverServicesEnterpriseDescription": "適用於管理市場風險、供應鏈和戰略的公司。",
+  "discoverServicesGovernmentTitle": "政府",
+  "discoverServicesGovernmentDescription": "適用於應對人工智慧、防禦、健康和勞動市場轉變的政策制定者。",
+  "discoverServicesNonProfitTitle": "非營利組織",
+  "discoverServicesNonProfitDescription": "適用於推動社會影響的基金會、非政府組織和智庫。",
+  "discoverServicesAcademiaTitle": "學術界",
+  "discoverServicesAcademiaDescription": "適用於促進科學發現的大學和研究機構。",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }
