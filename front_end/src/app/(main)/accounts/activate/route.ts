@@ -22,11 +22,14 @@ export async function GET(request: Request) {
     logError(err);
   }
 
+  let safeRedirectUrl = "/?event=emailConfirmed";
   if (redirect_url) {
     try {
-      return redirect(ensureRelativeRedirect(decodeURIComponent(redirect_url)));
+      safeRedirectUrl = ensureRelativeRedirect(
+        decodeURIComponent(redirect_url)
+      );
     } catch {}
   }
 
-  return redirect("/?event=emailConfirmed");
+  return redirect(safeRedirectUrl);
 }
