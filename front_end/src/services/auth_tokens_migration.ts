@@ -7,7 +7,7 @@ import "server-only";
 
 import { NextRequest, NextResponse } from "next/server";
 
-import { AuthCookieManager, AuthCookieReader } from "@/services/auth_tokens";
+import { AuthCookieManager } from "@/services/auth_tokens";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 const LEGACY_COOKIE_NAME = "auth_token";
@@ -20,11 +20,8 @@ const LEGACY_COOKIE_NAME = "auth_token";
 export async function handleLegacyTokenMigration(
   request: NextRequest,
   response: NextResponse,
-  requestAuth: AuthCookieReader,
   responseAuth: AuthCookieManager
 ): Promise<boolean> {
-  if (requestAuth.hasAuthSession()) return false;
-
   const legacyToken = request.cookies.get(LEGACY_COOKIE_NAME)?.value;
   if (!legacyToken) return false;
 
