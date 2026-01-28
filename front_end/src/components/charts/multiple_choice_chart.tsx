@@ -36,7 +36,7 @@ import {
 } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import { ForecastAvailability, QuestionType, Scaling } from "@/types/question";
-import { ThemeColor } from "@/types/theme";
+import { AppTheme, ThemeColor } from "@/types/theme";
 import {
   generateNumericXDomain,
   generateScale,
@@ -454,7 +454,7 @@ const MultipleChoiceChart: FC<Props> = ({
                         data={line}
                         style={{
                           data: {
-                            strokeWidth: 2,
+                            strokeWidth: 1,
                             stroke: getThemeColor(METAC_COLORS.gray["0"]),
                             fill: isNil(resolutionPoint)
                               ? getThemeColor(color)
@@ -874,16 +874,26 @@ const ResolutionChip: FC<{
   };
 }> = (props) => {
   const TEXT_PADDING = 4;
-  const RESOLUTION_TEXT_LIMIT = 12;
+  const RESOLUTION_TEXT_LIMIT = 24;
   const CHIP_HEIGHT = 16;
   const CHIP_FONT_SIZE = 12;
   const CHIP_LINE_WIDTH = 8;
 
-  const { getThemeColor } = useAppTheme();
   const { x, y, compact, datum, chartHeight, text, color, scale } = props;
   const adjustedText = compact
     ? truncateLabel(text, RESOLUTION_TEXT_LIMIT)
     : text;
+
+  const { theme } = useAppTheme();
+  const isDarkTheme = theme === AppTheme.Dark;
+
+  const chipStrokeColor = isDarkTheme
+    ? METAC_COLORS.purple["800"].dark
+    : METAC_COLORS.gray["0"].DEFAULT;
+
+  const chipTextColor = isDarkTheme
+    ? METAC_COLORS.purple["800"].dark
+    : METAC_COLORS.gray["0"].DEFAULT;
   const [textWidth, setTextWidth] = useState(0);
   const textRef = useRef<SVGTextElement>(null);
 
@@ -915,7 +925,7 @@ const ResolutionChip: FC<{
         width={textWidth}
         height={CHIP_HEIGHT}
         fill={color}
-        stroke={getThemeColor(METAC_COLORS.gray["0"])}
+        stroke={chipStrokeColor}
         strokeWidth={1}
         rx={2}
         ry={2}
@@ -926,7 +936,7 @@ const ResolutionChip: FC<{
         y={adjustedTextY}
         textAnchor="middle"
         dominantBaseline="middle"
-        fill={getThemeColor(METAC_COLORS.gray["0"])}
+        fill={chipTextColor}
         fontWeight="medium"
         fontSize={CHIP_FONT_SIZE}
       >
