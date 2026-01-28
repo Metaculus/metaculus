@@ -10,7 +10,6 @@ import SidebarQuestionProjects from "./sidebar_question_projects";
 import QuestionEmbedButton from "../question_embed_button";
 import SidebarContainer from "./sidebar_container";
 
-const NewsMatch = dynamic(() => import("./news_match"));
 const SimilarQuestions = dynamic(() => import("./similar_questions"));
 
 type Props = {
@@ -33,15 +32,9 @@ const Sidebar: FC<Props> = ({
         <SidebarQuestionProjects projects={postData.projects} />
 
         {postData.curation_status === PostStatus.APPROVED && (
-          <>
-            <Suspense fallback={null}>
-              <NewsMatch questionId={postData.id} />
-            </Suspense>
-
-            <Suspense fallback={null}>
-              <SimilarQuestions post_id={postData.id} />
-            </Suspense>
-          </>
+          <Suspense fallback={null}>
+            <SimilarQuestions post_id={postData.id} />
+          </Suspense>
         )}
       </section>
     );
@@ -74,15 +67,9 @@ const Sidebar: FC<Props> = ({
       <SidebarQuestionProjects projects={postData.projects} />
 
       {postData.curation_status === PostStatus.APPROVED && (
-        <>
-          <Suspense fallback={null}>
-            <NewsMatch questionId={postData.id} />
-          </Suspense>
-
-          <Suspense fallback={null}>
-            <SimilarQuestions post_id={postData.id} />
-          </Suspense>
-        </>
+        <Suspense fallback={null}>
+          <SimilarQuestions post_id={postData.id} />
+        </Suspense>
       )}
     </section>
   );
