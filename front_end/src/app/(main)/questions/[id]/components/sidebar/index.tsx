@@ -32,16 +32,9 @@ const Sidebar: FC<Props> = ({
         <SidebarQuestionProjects projects={postData.projects} />
 
         {postData.curation_status === PostStatus.APPROVED && (
-          <>
-            {/* NewsMatch disabled - using News type Key Factors instead */}
-            {/* <Suspense fallback={null}>
-              <NewsMatch questionId={postData.id} />
-            </Suspense> */}
-
-            <Suspense fallback={null}>
-              <SimilarQuestions post_id={postData.id} />
-            </Suspense>
-          </>
+          <Suspense fallback={null}>
+            <SimilarQuestions post_id={postData.id} />
+          </Suspense>
         )}
       </section>
     );
@@ -74,16 +67,9 @@ const Sidebar: FC<Props> = ({
       <SidebarQuestionProjects projects={postData.projects} />
 
       {postData.curation_status === PostStatus.APPROVED && (
-        <>
-          {/* NewsMatch disabled - using News type Key Factors instead */}
-          {/* <Suspense fallback={null}>
-            <NewsMatch questionId={postData.id} />
-          </Suspense> */}
-
-          <Suspense fallback={null}>
-            <SimilarQuestions post_id={postData.id} />
-          </Suspense>
-        </>
+        <Suspense fallback={null}>
+          <SimilarQuestions post_id={postData.id} />
+        </Suspense>
       )}
     </section>
   );
