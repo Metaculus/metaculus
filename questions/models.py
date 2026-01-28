@@ -263,6 +263,12 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         default=False, db_index=True, editable=False
     )
 
+    # Indicates whether we triggered "handle_cp_revealed" event
+    # And guarantees idempotency of "on cp revealed" events
+    cp_reveal_time_triggered = models.BooleanField(
+        default=False, db_index=True, editable=False
+    )
+
     # Jeffrey's Divergence
     movement = models.FloatField(null=True, blank=True)
 
