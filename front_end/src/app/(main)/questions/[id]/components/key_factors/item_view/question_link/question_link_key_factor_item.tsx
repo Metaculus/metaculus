@@ -33,6 +33,7 @@ type Props = {
   id?: string;
   mode?: "forecaster" | "consumer";
   linkToComment?: boolean;
+  className?: string;
 };
 
 const otherQuestionCache = new Map<number, QuestionWithForecasts>();
@@ -44,6 +45,7 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
   id,
   mode = "forecaster",
   linkToComment = true,
+  className,
 }) => {
   const t = useTranslations();
   const isConsumer = mode === "consumer";
@@ -162,7 +164,8 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
       className={cn(
         "shadow-sm",
         (compact || mode === "consumer") && "max-w-[240px]",
-        isCompactConsumer && "max-w-[186px]"
+        isCompactConsumer && "max-w-[186px]",
+        className
       )}
     >
       {!isConsumer && (
