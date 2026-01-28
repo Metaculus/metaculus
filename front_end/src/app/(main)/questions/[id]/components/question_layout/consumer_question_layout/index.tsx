@@ -46,10 +46,6 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
               {hasTimeline && (
                 <TabsTab value="timeline">{t("timeline")}</TabsTab>
               )}
-              {/* NewsMatch disabled - using News type Key Factors instead */}
-              {/* <NewsPresence questionId={postData.id}>
-                <TabsTab value="news">{t("inNews")}</TabsTab>
-              </NewsPresence> */}
               {showScores && <TabsTab value="scores">{t("scores")}</TabsTab>}
               <TabsTab value="key-factors">{t("keyFactors")}</TabsTab>
               <TabsTab value="info">{t("info")}</TabsTab>
@@ -78,14 +74,6 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
                 />
               </TabsSection>
             )}
-            {/* NewsMatch disabled - using News type Key Factors instead */}
-            {/* <NewsPresence questionId={postData.id}>
-              <TabsSection value="news">
-                <Suspense fallback={null}>
-                  <NewsMatch questionId={postData.id} withoutToggle />
-                </Suspense>
-              </TabsSection>
-            </NewsPresence> */}
             {showScores && (
               <TabsSection value="scores">
                 <PostScoreData
