@@ -40,7 +40,7 @@ export function entryLabel(
   }
   const kind = aggregateKind(entry);
   if (kind === "community") return t("communityPrediction");
-  if (kind === "pros") return "Pros aggregate";
+  if (kind === "pros") return t("aibLegendPros");
   return entry.aggregation_method ?? "Aggregate";
 }
 
