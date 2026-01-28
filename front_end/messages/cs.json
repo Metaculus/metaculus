@@ -1902,5 +1902,15 @@
   "tellUsAboutYourNeeds": "Řekněte nám o vašich potřebách...",
   "yourOrganization": "Vaše organizace",
   "yourMessageForm": "Vaše zpráva",
+  "discoverServicesTitle": "Objevte služby",
+  "discoverServicesSubtitle": "Vyberte typ své organizace a začněte",
+  "discoverServicesEnterpriseTitle": "Podnikání",
+  "discoverServicesEnterpriseDescription": "Pro korporace, které spravují tržní rizika, dodavatelské řetězce a strategii.",
+  "discoverServicesGovernmentTitle": "Vláda",
+  "discoverServicesGovernmentDescription": "Pro tvůrce politik navigující změny v AI, obraně, zdravotnictví a pracovních trzích.",
+  "discoverServicesNonProfitTitle": "Nezisková organizace",
+  "discoverServicesNonProfitDescription": "Pro nadace, nevládní organizace a think tanky usilující o společenský dopad.",
+  "discoverServicesAcademiaTitle": "Akademická sféra",
+  "discoverServicesAcademiaDescription": "Pro univerzity a instituce podporující vědecký pokrok.",
   "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }

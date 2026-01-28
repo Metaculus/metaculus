@@ -1902,5 +1902,15 @@
   "tellUsAboutYourNeeds": "Cuéntanos sobre tus necesidades...",
   "yourOrganization": "Tu organización",
   "yourMessageForm": "Tu mensaje",
+  "discoverServicesTitle": "Descubrir Servicios",
+  "discoverServicesSubtitle": "Seleccione su tipo de organización para comenzar",
+  "discoverServicesEnterpriseTitle": "Empresas",
+  "discoverServicesEnterpriseDescription": "Para corporaciones que gestionan riesgos de mercado, cadenas de suministro y estrategia.",
+  "discoverServicesGovernmentTitle": "Gobierno",
+  "discoverServicesGovernmentDescription": "Para responsables políticos que navegan por cambios en IA, defensa, salud y mercados laborales.",
+  "discoverServicesNonProfitTitle": "Sin Fines de Lucro",
+  "discoverServicesNonProfitDescription": "Para fundaciones, ONG y think tanks impulsando impacto social.",
+  "discoverServicesAcademiaTitle": "Academia",
+  "discoverServicesAcademiaDescription": "Para universidades e instituciones que avanzan en el descubrimiento científico.",
   "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
 }

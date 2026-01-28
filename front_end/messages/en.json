@@ -1895,5 +1895,15 @@
   "tellUsAboutYourNeeds": "Tell us about your needs...",
   "yourOrganization": "Your organization",
   "yourMessageForm": "Your message",
+  "discoverServicesTitle": "Discover Services",
+  "discoverServicesSubtitle": "Select your organization type to start",
+  "discoverServicesEnterpriseTitle": "Enterprise",
+  "discoverServicesEnterpriseDescription": "For corporations managing market risk, supply chains, and strategy.",
+  "discoverServicesGovernmentTitle": "Government",
+  "discoverServicesGovernmentDescription": "For policymakers navigating shifts in AI, defense, health, and labor markets.",
+  "discoverServicesNonProfitTitle": "Non-Profit",
+  "discoverServicesNonProfitDescription": "For foundations, NGOs, and think tanks driving social impact.",
+  "discoverServicesAcademiaTitle": "Academia",
+  "discoverServicesAcademiaDescription": "For universities and institutions advancing scientific discovery.",
   "feedTileSummaryPlaceholder": "Optional: Enter a custom summary text to display on feed tiles (if not provided, a summary will be auto-generated from the notebook content)"
 }
