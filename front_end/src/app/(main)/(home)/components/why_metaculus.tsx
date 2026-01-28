@@ -99,7 +99,7 @@ const WhyMetaculus: FC<{ className?: string }> = ({ className }) => {
     >
       {/* Left Column: Description & Stats */}
       <div className="flex min-w-0 flex-1 flex-col gap-3 md:max-w-[400px]">
-        <p className="m-0 text-balance text-sm leading-5 text-blue-600 dark:text-blue-600-dark  md:max-w-[400px]">
+        <p className="m-0 text-balance text-base leading-6 text-blue-600 dark:text-blue-600-dark  md:max-w-[400px]">
           <span className="font-bold text-blue-800 dark:text-blue-800-dark">
             Metaculus
           </span>{" "}
@@ -114,14 +114,14 @@ const WhyMetaculus: FC<{ className?: string }> = ({ className }) => {
           .
         </p>
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-          <Stat
-            number={`${abbreviatedNumber(siteStats.questions)}+`}
-            label={t("openQuestions")}
-          />
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-base">
           <Stat
             number={`${abbreviatedNumber(siteStats.predictions)}+`}
-            label={t("forecastsSubmitted")}
+            label={t("predictions")}
+          />
+          <Stat
+            number={`${abbreviatedNumber(siteStats.questions)}+`}
+            label={t("forecastingQuestions")}
           />
           <Stat
             number={String(siteStats.years_of_predictions)}
@@ -132,10 +132,10 @@ const WhyMetaculus: FC<{ className?: string }> = ({ className }) => {
 
       {/* Right Column: Featured In */}
       <div className="flex shrink-0 flex-col gap-2 px-0 sm:px-8 md:max-w-[700px] md:px-16">
-        <span className="text-center text-sm text-blue-600 dark:text-blue-600-dark">
+        <span className="text-center text-base text-blue-600 dark:text-blue-600-dark">
           {t("featuredIn")}
         </span>
-        <div className="grid grid-cols-3 items-center gap-x-8 gap-y-4 xl:flex xl:gap-6">
+        <div className="grid grid-cols-3 items-center gap-x-4 gap-y-4 min-[400px]:flex min-[400px]:justify-between md:grid md:grid-cols-3 md:gap-x-8 lg:flex">
           {FEATURED_IN.map((item) => (
             <a
               key={item.href}
@@ -143,7 +143,7 @@ const WhyMetaculus: FC<{ className?: string }> = ({ className }) => {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={item.label}
-              className="flex items-center justify-center transition-opacity hover:opacity-80"
+              className="flex min-w-0 shrink items-center justify-center transition-opacity hover:opacity-80"
             >
               {item.component}
             </a>
@@ -155,7 +155,7 @@ const WhyMetaculus: FC<{ className?: string }> = ({ className }) => {
 };
 
 const Stat: FC<{ number: string; label: string }> = ({ number, label }) => (
-  <div className="flex items-center gap-1 text-blue-600 dark:text-blue-600-dark">
+  <div className="flex items-center gap-1 text-base text-blue-600 dark:text-blue-600-dark">
     <span className="font-bold text-blue-800 dark:text-blue-800-dark">
       {number}
     </span>

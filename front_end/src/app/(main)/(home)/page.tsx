@@ -43,21 +43,16 @@ export default async function Home() {
     .filter(({ section }) => section === "hot_topics")
     .map((item) => convertSidebarItem(item));
 
-  const contentWidthClassNames =
-    "2xl:max-w-[1352px] w-full md:max-2xl:px-20 mx-auto px-4";
+  const contentWidthClassNames = "2xl:max-w-[1352px] w-full mx-auto px-4";
 
   return (
     <main className=" min-h-screen  bg-gray-0 dark:bg-gray-0-dark ">
       <OnboardingCheck />
       <EmailConfirmation />
       <StaffPicks items={hotTopics} />
-      <HeroCTAs
-        className={
-          "mx-auto w-full px-0 md:max-2xl:px-20 2xl:max-w-[1352px] 2xl:px-4"
-        }
-      />
+      <HeroCTAs className={"mx-auto w-full px-0 md:px-4 2xl:max-w-[1352px]"} />
       <div className={contentWidthClassNames}>
-        <WhyMetaculus className="mt-2 md:mt-4" />
+        <WhyMetaculus className="mt-3 md:mt-4" />
       </div>
       <div className="w-full bg-gradient-to-b from-gray-0 to-blue-200/50 dark:from-gray-0-dark dark:to-blue-200-dark">
         <div className={contentWidthClassNames}>
