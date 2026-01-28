@@ -1,9 +1,13 @@
-import { StaticImageData } from "next/image";
+import type { StaticImageData } from "next/image";
+
+import { IconLike } from "@/app/(main)/aib/components/aib/light-dark-icon";
 
 export type CaseStudyPartnerLogo = {
-  src: string;
   alt: string;
   href?: string;
+  lightSrc?: IconLike;
+  darkSrc?: IconLike;
+  src?: string | StaticImageData;
 };
 
 export type CaseStudyReportCard = {

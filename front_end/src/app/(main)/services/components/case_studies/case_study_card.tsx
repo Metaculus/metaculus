@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 
+import { LightDarkIcon } from "@/app/(main)/aib/components/aib/light-dark-icon";
 import Button from "@/components/ui/button";
 import StackedPreviewImage from "@/components/ui/stacked-preview-image";
 import cn from "@/utils/core/cn";
@@ -20,16 +21,16 @@ const CaseStudyCard: React.FC<Props> = ({ card, className }) => {
   return (
     <div
       className={cn(
-        "flex flex-col gap-6 rounded-2xl border border-purple-400 bg-gray-0 p-4 text-gray-800 antialiased dark:border-purple-400-dark dark:bg-gray-0-dark dark:text-gray-800-dark sm:flex-row sm:gap-8 sm:p-8",
+        "flex flex-col gap-6 rounded-2xl bg-gray-0 p-4 text-gray-800 antialiased dark:bg-gray-0-dark dark:text-gray-800-dark sm:flex-row sm:gap-8 sm:p-8",
         className
       )}
     >
       <div>
-        <h6 className="my-0 text-[18px] font-bold leading-[28px] sm:text-xl">
+        <h6 className="my-0 text-[18px] font-bold leading-[28px] text-blue-800 dark:text-blue-800-dark sm:text-xl">
           {card.title}
         </h6>
 
-        <div className="mt-2 text-sm font-medium">
+        <div className="mt-2 text-sm font-medium text-blue-800 dark:text-blue-800-dark">
           <div
             className={cn(
               "overflow-hidden",
@@ -54,7 +55,9 @@ const CaseStudyCard: React.FC<Props> = ({ card, className }) => {
             <h6 className="my-0 text-sm font-medium text-gray-600 dark:text-gray-600-dark">
               {t("aboutInitiative")}
             </h6>
-            <p className="my-0 mt-2">{card.aboutInitiative}</p>
+            <p className="my-0 mt-2 text-blue-800 dark:text-blue-800-dark">
+              {card.aboutInitiative}
+            </p>
           </div>
         )}
 
@@ -66,17 +69,39 @@ const CaseStudyCard: React.FC<Props> = ({ card, className }) => {
               {card.partners.label ?? t("inPartnershipWith")}
             </p>
 
-            <div className="mt-2 flex items-center gap-2 gap-x-6 gap-y-3">
-              {card.partners.logos.map((logo, idx) => (
-                <Image
-                  key={logo.src + idx}
-                  src={logo.src}
-                  alt={logo.alt}
-                  height={14}
-                  className="h-[14px] w-auto"
-                  unoptimized
-                />
-              ))}
+            <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
+              {card.partners.logos.map((logo, idx) => {
+                const light = logo.lightSrc ?? logo.src;
+                const dark = logo.darkSrc ?? logo.src;
+
+                const content = (
+                  <LightDarkIcon
+                    alt={logo.alt}
+                    light={light}
+                    dark={dark}
+                    sizePx={14}
+                    variant="logo"
+                    className="shrink-0"
+                  />
+                );
+
+                return logo.href ? (
+                  <a
+                    key={`${logo.alt}-${idx}`}
+                    href={logo.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex"
+                    aria-label={logo.alt}
+                  >
+                    {content}
+                  </a>
+                ) : (
+                  <span key={`${logo.alt}-${idx}`} className="inline-flex">
+                    {content}
+                  </span>
+                );
+              })}
             </div>
           </div>
         )}
@@ -86,9 +111,9 @@ const CaseStudyCard: React.FC<Props> = ({ card, className }) => {
         {!!card.report && (
           <div
             className={cn(
-              "group/preview flex flex-row items-center gap-3 rounded-lg bg-gray-200 p-3 sm:flex-col sm:gap-5 sm:px-[27px] sm:py-6",
+              "group/preview flex flex-row items-center gap-3 rounded-lg bg-blue-200 p-3 sm:flex-col sm:gap-5 sm:px-[27px] sm:py-6",
               "transition-colors duration-500 ease-out",
-              "dark:bg-gray-200-dark"
+              "dark:bg-blue-200-dark"
             )}
           >
             <StackedPreviewImage
@@ -133,7 +158,7 @@ const CaseStudyCard: React.FC<Props> = ({ card, className }) => {
 
         <Button
           href={card.cta.href}
-          className="mt-3 w-full rounded-full border border-gray-400 bg-gray-200 py-[15px] text-sm text-gray-700 hover:bg-gray-300 active:bg-gray-400 dark:border-gray-400-dark dark:bg-gray-200-dark dark:text-gray-700-dark dark:hover:bg-gray-300-dark dark:active:bg-gray-400-dark"
+          className="mt-3 w-full rounded-full bg-blue-800 py-[15px] text-sm text-gray-0 hover:bg-blue-900 active:bg-blue-800  dark:bg-blue-800-dark dark:text-gray-0-dark dark:hover:bg-blue-900-dark dark:active:bg-blue-800-dark"
         >
           {card.cta.label ?? t("readTheReport")}
         </Button>

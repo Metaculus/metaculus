@@ -232,10 +232,10 @@ const ServicesPageTemplate: React.FC<Props> = async ({
                   </div>
 
                   <Button
-                    href={workshop.href ?? `${base}/workshops`}
+                    href="#contact-us"
                     className="order-2 mt-0 w-fit uppercase lg:order-1 lg:mt-[38px]"
                   >
-                    {t("learnMore")}
+                    {t("contactUs")}
                   </Button>
                 </div>
               </div>
