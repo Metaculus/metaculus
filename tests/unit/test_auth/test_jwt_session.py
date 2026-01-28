@@ -1,5 +1,6 @@
 import pytest
 from django.core.cache import cache
+from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
@@ -8,6 +9,7 @@ from authentication.jwt_session import (
     is_token_revoked,
     refresh_tokens_with_grace_period,
     revoke_session,
+    revoke_all_user_tokens,
     get_session_enforce_at,
     _get_whitelist_key,
     _get_grace_key,
@@ -222,3 +224,79 @@ class TestTokenRefreshFlow:
 
         with pytest.raises(InvalidToken, match="session_id"):
             refresh_tokens_with_grace_period(str(plain_refresh))
+
+
+class TestUserLevelRevocation:
+    """Tests for user-level token revocation (auth_revoked_at)."""
+
+    def test_revoke_all_user_tokens_sets_auth_revoked_at(self):
+        """revoke_all_user_tokens sets auth_revoked_at to now."""
+        user = factory_user()
+        assert user.auth_revoked_at is None
+
+        revoke_all_user_tokens(user)
+        user.refresh_from_db()
+
+        assert user.auth_revoked_at is not None
+        # Should be recent (within last minute)
+        assert (timezone.now() - user.auth_revoked_at).total_seconds() < 60
+
+    def test_old_tokens_rejected_after_user_revocation(self):
+        """Tokens issued before auth_revoked_at are rejected on refresh."""
+        user = factory_user()
+
+        # Get tokens before revocation
+        with freeze_time("2024-01-01 12:00:00"):
+            tokens = get_tokens_for_user(user)
+            refresh_str = tokens["refresh"]
+
+        # Revoke all tokens
+        with freeze_time("2024-01-01 12:00:10"):
+            revoke_all_user_tokens(user)
+
+        # Old token should be rejected
+        with freeze_time("2024-01-01 12:00:20"):
+            with pytest.raises(InvalidToken, match="invalidated"):
+                refresh_tokens_with_grace_period(refresh_str)
+
+    def test_new_tokens_work_after_user_revocation(self):
+        """Tokens issued after auth_revoked_at work normally."""
+        user = factory_user()
+
+        # Revoke all tokens
+        with freeze_time("2024-01-01 12:00:00"):
+            revoke_all_user_tokens(user)
+
+        # Get new tokens after revocation
+        with freeze_time("2024-01-01 12:00:10"):
+            tokens = get_tokens_for_user(user)
+            refresh_str = tokens["refresh"]
+
+        # New tokens should work
+        with freeze_time("2024-01-01 12:00:20"):
+            result = refresh_tokens_with_grace_period(refresh_str)
+            assert "access" in result
+            assert "refresh" in result
+
+    def test_user_revocation_affects_all_sessions(self):
+        """auth_revoked_at revokes tokens from ALL sessions."""
+        user = factory_user()
+
+        # Create multiple sessions
+        with freeze_time("2024-01-01 12:00:00"):
+            session1 = get_tokens_for_user(user)
+            session2 = get_tokens_for_user(user)
+            session3 = get_tokens_for_user(user)
+
+        # Revoke all
+        with freeze_time("2024-01-01 12:00:10"):
+            revoke_all_user_tokens(user)
+
+        # All sessions should be rejected
+        with freeze_time("2024-01-01 12:00:20"):
+            with pytest.raises(InvalidToken, match="invalidated"):
+                refresh_tokens_with_grace_period(session1["refresh"])
+            with pytest.raises(InvalidToken, match="invalidated"):
+                refresh_tokens_with_grace_period(session2["refresh"])
+            with pytest.raises(InvalidToken, match="invalidated"):
+                refresh_tokens_with_grace_period(session3["refresh"])
