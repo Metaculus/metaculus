@@ -34,9 +34,10 @@ const Sidebar: FC<Props> = ({
 
         {postData.curation_status === PostStatus.APPROVED && (
           <>
-            <Suspense fallback={null}>
+            {/* NewsMatch disabled - using News type Key Factors instead */}
+            {/* <Suspense fallback={null}>
               <NewsMatch questionId={postData.id} />
-            </Suspense>
+            </Suspense> */}
 
             <Suspense fallback={null}>
               <SimilarQuestions post_id={postData.id} />
@@ -75,9 +76,10 @@ const Sidebar: FC<Props> = ({
 
       {postData.curation_status === PostStatus.APPROVED && (
         <>
-          <Suspense fallback={null}>
+          {/* NewsMatch disabled - using News type Key Factors instead */}
+          {/* <Suspense fallback={null}>
             <NewsMatch questionId={postData.id} />
-          </Suspense>
+          </Suspense> */}
 
           <Suspense fallback={null}>
             <SimilarQuestions post_id={postData.id} />
