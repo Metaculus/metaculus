@@ -1,7 +1,9 @@
 import { TCaseStudyCard } from "./types";
 import AEILogo from "../../assets/aei.svg?url";
-import CoefficientGivingLogo from "../../assets/coefficient-giving.svg?url";
-import ForbesLogo from "../../assets/forbes.svg?url";
+import CoefficientGivingLogoDark from "../../assets/coefficient-giving-light.svg?url";
+import CoefficientGivingLogoLight from "../../assets/coefficient-giving.svg?url";
+import ForbesDarkLogo from "../../assets/forbes-light.svg?url";
+import ForbesLightLogo from "../../assets/forbes.svg?url";
 import NihNsfPreview from "../../assets/nih-nsf-report-preview.png";
 
 export const CASE_STUDIES: TCaseStudyCard[] = [
@@ -17,7 +19,13 @@ export const CASE_STUDIES: TCaseStudyCard[] = [
     },
     partners: {
       label: "In partnership with",
-      logos: [{ src: CoefficientGivingLogo, alt: "Coefficient Giving" }],
+      logos: [
+        {
+          alt: "Coefficient Giving",
+          lightSrc: CoefficientGivingLogoLight,
+          darkSrc: CoefficientGivingLogoDark,
+        },
+      ],
     },
     aboutInitiative:
       "A short paragraph about the initiative explaining what it was all about and why this report was created in the first place.",
@@ -47,8 +55,12 @@ export const CASE_STUDIES: TCaseStudyCard[] = [
       label: "In partnership with",
       logos: [
         { src: AEILogo, alt: "AEI" },
-        { src: CoefficientGivingLogo, alt: "Coefficient Giving" },
-        { src: ForbesLogo, alt: "Forbes" },
+        {
+          alt: "Coefficient Giving",
+          lightSrc: CoefficientGivingLogoLight,
+          darkSrc: CoefficientGivingLogoDark,
+        },
+        { lightSrc: ForbesLightLogo, darkSrc: ForbesDarkLogo, alt: "Forbes" },
       ],
     },
     aboutInitiative:
