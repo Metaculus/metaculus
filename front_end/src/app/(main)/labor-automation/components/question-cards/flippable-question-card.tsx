@@ -125,7 +125,7 @@ export function FlippableQuestionCard({
   return (
     <QuestionCard {...questionCardProps}>
       {/* Toggle selector aligned to the right */}
-      <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
+      <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 [visibility:var(--ss-hidden,visible)]">
         <ToggleSelector
           selected={currentSide}
           onSelect={handleSideChange}

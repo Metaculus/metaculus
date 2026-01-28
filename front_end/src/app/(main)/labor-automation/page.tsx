@@ -3,7 +3,6 @@ import { Metadata } from "next";
 import SectionToggle from "@/components/ui/section_toggle";
 import { InvertedThemeContainer } from "@/contexts/inverted_theme_context";
 
-import DownloadAllDataButton from "./components/download-all-data-button";
 import LaborHubNavigation from "./components/labor-hub-navigation";
 import { QuestionLoader } from "./components/question-cards/question";
 import {
@@ -74,14 +73,6 @@ export default function LaborAutomationHubPage() {
             sector and skill level.
           </ContentParagraph>
         </SectionToggle>
-
-        <div className="flex justify-end">
-          <DownloadAllDataButton
-            postIds={FEATURED_POST_IDS}
-            title="labor_automation_hub_data"
-          />
-        </div>
-
         <OverviewSection id="overview" />
         <ActivityMonitorSection id="activity" className="" />
         <JobsMonitorSection id="jobs" className="" />

@@ -9,100 +9,216 @@ import {
   faCopy,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ComponentProps, useState } from "react";
+import { toPng } from "html-to-image";
+import { ComponentProps, useCallback, useMemo, useRef, useState } from "react";
+import toast from "react-hot-toast";
 
+import { MetaculusTextLogo } from "@/app/(main)/components/MetaculusTextLogo";
 import DataRequestModal from "@/app/(main)/questions/[id]/components/download_question_data_modal";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import cn from "@/utils/core/cn";
 
+function formatCurrentDate(): string {
+  return new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 const dropdownItemClassName =
   "flex w-full items-center justify-end gap-2 whitespace-nowrap border-b border-blue-400 px-4 py-1.5 text-sm text-blue-800 hover:bg-blue-100 last:border-b-0 dark:border-blue-400-dark dark:text-blue-800-dark dark:hover:bg-blue-100-dark";
 
-function MoreButton({
-  postId,
-  postTitle,
+const iconClassName = "w-4 text-blue-700/50 dark:text-blue-700-dark/50";
+
+// Custom menu item component that renders name with icon
+function MenuItemWithIcon({
+  label,
+  icon,
+  onClick,
 }: {
-  postId?: number;
+  label: string;
+  icon: typeof faXTwitter;
+  onClick?: () => void;
+}) {
+  return (
+    <button className={dropdownItemClassName} onClick={onClick}>
+      <span>{label}</span>
+      <FontAwesomeIcon icon={icon} className={iconClassName} />
+    </button>
+  );
+}
+
+// Custom link menu item component
+function MenuLinkWithIcon({
+  label,
+  icon,
+  href,
+  openNewTab,
+}: {
+  label: string;
+  icon: typeof faXTwitter;
+  href: string;
+  openNewTab?: boolean;
+}) {
+  return (
+    <a
+      href={href}
+      target={openNewTab ? "_blank" : undefined}
+      rel="noreferrer"
+      className={cn(dropdownItemClassName, "no-underline")}
+    >
+      <span>{label}</span>
+      <FontAwesomeIcon icon={icon} className={iconClassName} />
+    </a>
+  );
+}
+
+function MoreButton({
+  postIds,
+  postTitle,
+  onExportPng,
+}: {
+  postIds: number[];
   postTitle?: string;
+  onExportPng?: () => void;
 }) {
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
 
+  const hasMultiplePosts = postIds.length > 1;
+  const singlePostId = postIds.length === 1 ? postIds[0] : undefined;
+
+  // Generate question URL (only for single post)
+  const questionUrl = useMemo(() => {
+    if (typeof window !== "undefined" && singlePostId) {
+      return `${window.location.origin}/questions/${singlePostId}`;
+    }
+    return null;
+  }, [singlePostId]);
+
+  // View questions link - single post or multiple posts with ids param
+  const viewQuestionsHref = useMemo(() => {
+    if (hasMultiplePosts) {
+      return `/questions?ids=${postIds.join(",")}`;
+    }
+    if (singlePostId) {
+      return `/questions/${singlePostId}`;
+    }
+    return null;
+  }, [hasMultiplePosts, postIds, singlePostId]);
+
+  // Twitter share link for this specific question (only for single post)
+  const shareOnTwitterLink = useMemo(() => {
+    if (questionUrl && postTitle) {
+      const message = `${postTitle} #metaculus`;
+      return `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+        message
+      )}&url=${encodeURIComponent(questionUrl)}`;
+    }
+    return null;
+  }, [questionUrl, postTitle]);
+
+  // Copy question URL to clipboard (only for single post)
+  const copyQuestionUrl = useCallback(() => {
+    if (questionUrl) {
+      navigator.clipboard
+        .writeText(questionUrl)
+        .then(() => {
+          toast("URL is now copied to your clipboard", {
+            className: "dark:bg-blue-700-dark dark:text-gray-0-dark",
+          });
+        })
+        .catch((err) => console.error("Error copying link: ", err));
+    }
+  }, [questionUrl]);
+
   const moreMenuItems: MenuItemProps[] = [
-    {
-      id: "view-question",
-      name: "View Question",
-      element: (
-        <button className={dropdownItemClassName}>
-          <span>View Question</span>
-          <FontAwesomeIcon
-            icon={faArrowUpRightFromSquare}
-            className="w-4 text-blue-700/50 dark:text-blue-700-dark/50"
-          />
-        </button>
-      ),
-      link: postId ? `/questions/${postId}` : undefined,
-    },
-    {
-      id: "export-png",
-      name: "Export PNG",
-      element: (
-        <button className={dropdownItemClassName}>
-          <span>Export PNG</span>
-          <FontAwesomeIcon
-            icon={faFileImage}
-            className="w-4 text-blue-700/50 dark:text-blue-700-dark/50"
-          />
-        </button>
-      ),
-    },
-    ...(postId
+    ...(viewQuestionsHref
+      ? [
+          {
+            id: "view-question",
+            name: hasMultiplePosts ? "View Questions" : "View Question",
+            element: (
+              <MenuLinkWithIcon
+                label={hasMultiplePosts ? "View Questions" : "View Question"}
+                icon={faArrowUpRightFromSquare}
+                href={viewQuestionsHref}
+              />
+            ),
+          },
+        ]
+      : []),
+    // Export PNG using html-to-image
+    ...(onExportPng
+      ? [
+          {
+            id: "export-png",
+            name: "Export PNG",
+            element: (
+              <MenuItemWithIcon
+                label="Export PNG"
+                icon={faFileImage}
+                onClick={onExportPng}
+              />
+            ),
+          },
+        ]
+      : []),
+    // Export CSV supports single or multiple posts
+    ...(postIds.length > 0
       ? [
           {
             id: "export-csv",
             name: "Export CSV",
             element: (
-              <button
-                className={dropdownItemClassName}
+              <MenuItemWithIcon
+                label="Export CSV"
+                icon={faFileCsv}
                 onClick={() => setIsDownloadModalOpen(true)}
-              >
-                <span>Export CSV</span>
-                <FontAwesomeIcon
-                  icon={faFileCsv}
-                  className="w-4 text-blue-700/50 dark:text-blue-700-dark/50"
-                />
-              </button>
+              />
             ),
           },
         ]
       : []),
-    {
-      id: "share-twitter",
-      name: "Share on",
-      element: (
-        <button className={dropdownItemClassName}>
-          <span>Share on</span>
-          <FontAwesomeIcon
-            icon={faXTwitter}
-            className="w-4 text-blue-700/50 dark:text-blue-700-dark/50"
-          />
-        </button>
-      ),
-    },
-    {
-      id: "copy-link",
-      name: "Copy Link",
-      element: (
-        <button className={dropdownItemClassName}>
-          <span>Copy Link</span>
-          <FontAwesomeIcon
-            icon={faCopy}
-            className="w-4 text-blue-700/50 dark:text-blue-700-dark/50"
-          />
-        </button>
-      ),
-    },
+    // Share on X only for single post
+    ...(shareOnTwitterLink
+      ? [
+          {
+            id: "share-twitter",
+            name: "Share on X",
+            element: (
+              <MenuLinkWithIcon
+                label="Share on X"
+                icon={faXTwitter}
+                href={shareOnTwitterLink}
+                openNewTab
+              />
+            ),
+          },
+        ]
+      : []),
+    // Copy link only for single post
+    ...(questionUrl
+      ? [
+          {
+            id: "copy-link",
+            name: "Copy Link",
+            element: (
+              <MenuItemWithIcon
+                label="Copy Link"
+                icon={faCopy}
+                onClick={copyQuestionUrl}
+              />
+            ),
+          },
+        ]
+      : []),
   ];
+
+  if (postIds.length === 0) {
+    return null;
+  }
 
   return (
     <>
@@ -120,14 +236,12 @@ function MoreButton({
           <FontAwesomeIcon icon={faEllipsis} />
         </Button>
       </DropdownMenu>
-      {postId && (
-        <DataRequestModal
-          isOpen={isDownloadModalOpen}
-          onClose={() => setIsDownloadModalOpen(false)}
-          postId={postId}
-          title={postTitle}
-        />
-      )}
+      <DataRequestModal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setIsDownloadModalOpen(false)}
+        postId={postIds.length === 1 ? (postIds[0] as number) : postIds}
+        title={postTitle}
+      />
     </>
   );
 }
@@ -179,17 +293,57 @@ export function QuestionCard({
   subtitle,
   variant = "secondary",
   showMoreButton = true,
-  postId,
+  postIds = [],
   ...props
 }: ComponentProps<"div"> & {
   title?: string;
   subtitle?: string;
   variant?: "secondary" | "primary";
   showMoreButton?: boolean;
-  postId?: number;
+  /** Post IDs for actions (view, export, share) */
+  postIds?: number[];
 }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPng = useCallback(() => {
+    if (!cardRef.current) return;
+
+    const node = cardRef.current;
+
+    // Set CSS variables on the node before toPng clones it
+    node.style.setProperty("--ss-visible", "visible");
+    node.style.setProperty("--ss-hidden", "hidden");
+
+    toPng(node, {
+      pixelRatio: 2,
+      style: {
+        margin: "0px",
+        borderRadius: "0px",
+      },
+    })
+      .then((dataUrl) => {
+        const link = document.createElement("a");
+        link.download = `${title ? title.slice(0, 50).replace(/[^a-zA-Z0-9]/g, "-") : "question-card"}.png`;
+        link.href = dataUrl;
+        link.click();
+        toast("Image downloaded successfully", {
+          className: "dark:bg-blue-700-dark dark:text-gray-0-dark",
+        });
+      })
+      .catch((err) => {
+        console.error("Error exporting image:", err);
+        toast.error("Failed to export image");
+      })
+      .finally(() => {
+        // Clean up CSS variables after toPng completes
+        node.style.removeProperty("--ss-visible");
+        node.style.removeProperty("--ss-hidden");
+      });
+  }, [title]);
+
   return (
     <div
+      ref={cardRef}
       className={cn(
         "group relative",
         variant === "primary" &&
@@ -200,9 +354,13 @@ export function QuestionCard({
       )}
       {...props}
     >
-      {showMoreButton && (
-        <div className="absolute right-4 top-4 z-10 lg:right-5 lg:top-5">
-          <MoreButton postId={postId} postTitle={title} />
+      {showMoreButton && postIds.length > 0 && (
+        <div className="absolute right-4 top-4 z-10 [visibility:var(--ss-hidden,visible)] lg:right-5 lg:top-5">
+          <MoreButton
+            postIds={postIds}
+            postTitle={title}
+            onExportPng={handleExportPng}
+          />
         </div>
       )}
       {title && (
@@ -232,6 +390,13 @@ export function QuestionCard({
         </p>
       )}
       <div className="mt-4 w-full">{children}</div>
+
+      {/* Footer with Metaculus attribution */}
+      <div className="-mb-4 mt-2 flex items-center justify-center gap-1.5 text-xs text-gray-500 [visibility:var(--ss-visible,hidden)] dark:text-gray-500-dark">
+        <span>Data from</span>
+        <MetaculusTextLogo className="h-3 w-auto" />
+        <span>on {formatCurrentDate()}</span>
+      </div>
     </div>
   );
 }

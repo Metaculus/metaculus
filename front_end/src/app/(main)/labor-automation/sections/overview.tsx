@@ -19,6 +19,7 @@ export function OverviewSection({
           title="Risk Monitor"
           subtitle="Predicted employment change in the next decade"
           variant="primary"
+          postIds={[4701, 40866, 14732, 37738, 35297]}
         >
           <RiskChart />
         </QuestionCard>
@@ -57,6 +58,7 @@ export function OverviewSection({
       <QuestionCard
         title="Predicted employment change in the next decade"
         variant="primary"
+        postIds={[4701, 40866, 14732, 37738, 35297]}
       >
         <MultiLineRiskChart />
       </QuestionCard>
