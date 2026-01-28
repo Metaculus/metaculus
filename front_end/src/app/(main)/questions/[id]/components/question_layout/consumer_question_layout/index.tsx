@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import { PropsWithChildren, Suspense } from "react";
+import { PropsWithChildren } from "react";
 
 import KeyFactorsFeed from "@/app/(main)/questions/[id]/components/key_factors/key_factors_feed";
 import PostScoreData from "@/app/(main)/questions/[id]/components/post_score_data";
@@ -13,8 +13,6 @@ import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
 import QuestionTimeline, {
   hasTimeline as hasTimelineFn,
 } from "../../question_view/consumer_question_view/timeline";
-import NewsMatch from "../../sidebar/news_match";
-import NewsPresence from "../../sidebar/news_match/news_presence";
 import QuestionInfo from "../question_info";
 import QuestionSection from "../question_section";
 import ResponsiveCommentFeed from "./responsive_comment_feed";
