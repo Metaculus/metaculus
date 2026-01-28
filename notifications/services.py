@@ -19,7 +19,6 @@ from posts.models import Post
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Question, UserForecastNotification
-from questions.utils import get_question_group_title
 from users.models import User
 from utils.dtypes import dataclass_from_dict
 from utils.email import send_email_with_template
@@ -201,10 +200,6 @@ class CPChangeData:
 
     def format_cp_median(self):
         return self.format_value(self.cp_median)
-
-    def format_question_title(self):
-        # TODO: deprecate get_question_group_title after the first release of this change
-        return self.question.label or get_question_group_title(self.question.title)
 
 
 class NotificationTypeBase:
