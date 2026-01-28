@@ -74,8 +74,8 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
               className={cn(
                 "m-0 max-w-xl text-center",
                 isNotebook
-                  ? "text-sm font-medium text-purple-900 dark:text-purple-900-dark md:text-base" // Add your notebook title styles here
-                  : "text-base font-medium md:text-lg" // Add your regular title styles here
+                  ? "text-sm font-medium text-purple-900 dark:text-purple-900-dark md:text-base"
+                  : "text-base font-medium md:text-lg"
               )}
             >
               {title}

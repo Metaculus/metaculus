@@ -17,7 +17,7 @@ type Props = {
 const StaffPicks: FC<Props> = ({ items }) => {
   const t = useTranslations();
   return (
-    <div className="mb-6  flex min-w-0 flex-1 items-center gap-2 overflow-hidden overflow-x-auto border-b border-gray-300 bg-gray-200 px-4 py-2.5 [-ms-overflow-style:none] [scrollbar-width:none] dark:border-gray-200-dark dark:bg-gray-200-dark lg:px-20 [&::-webkit-scrollbar]:hidden">
+    <div className="mb-4 flex  min-w-0 flex-1 items-center gap-2 overflow-hidden overflow-x-auto border-b border-gray-300 bg-gray-200 px-4 py-2.5 [-ms-overflow-style:none] [scrollbar-width:none] dark:border-gray-200-dark dark:bg-gray-200-dark md:mb-6 lg:px-20 [&::-webkit-scrollbar]:hidden">
       <h2 className="m-0 shrink-0 pr-4 text-xs font-medium uppercase leading-3 text-gray-700 dark:text-gray-700-dark">
         {t("staffPicks")}
       </h2>

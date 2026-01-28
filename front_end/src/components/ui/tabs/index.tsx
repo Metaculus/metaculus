@@ -80,17 +80,24 @@ export const Tabs = ({
 export const TabsList = ({
   children,
   className,
+  contained = false,
 }: {
   children: ReactNode;
   className?: string;
+  contained?: boolean;
 }) => {
   const ctx = useTabsContext();
 
   return (
     <div
       className={cn(
-        "scrollbar-none z-10 -mx-3 flex overflow-x-auto bg-blue-200 px-3 py-3 dark:bg-blue-200-dark sm:-mx-4 sm:px-4",
-        ctx.variant === "separated" ? "sticky top-12 gap-2" : "gap-2", // non-sticky for "group" to keep both behaviours valid
+        "scrollbar-none z-10 flex",
+        contained
+          ? "" // no negative margins, overflow, or background for contained variant
+          : "-mx-3 overflow-x-auto bg-blue-200 px-3 py-3 dark:bg-blue-200-dark sm:-mx-4 sm:px-4",
+        ctx.variant === "separated" && !contained
+          ? "sticky top-12 gap-2"
+          : "gap-2",
         className
       )}
     >
