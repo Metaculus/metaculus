@@ -174,7 +174,6 @@ def get_links_for_questions(request):
     all_relevant_question_ids = set(question_ids)
     for link in links:
         all_relevant_question_ids.add(link.question1_id)
-        all_relevant_question_ids.add(link.question2_id)
     questions = Question.objects.filter(id__in=all_relevant_question_ids)
 
     serialized_links = CoherenceLinkSerializer(links, many=True).data
