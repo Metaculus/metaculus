@@ -151,6 +151,13 @@ export const useKeyFactors = ({
     const comment = comments.find((c) => c.id === commentId);
     if (!comment) return;
 
+    // Track automatic generation attempt (before user clicks button)
+    if (!fetchedOnceRef.current.has(commentId)) {
+      sendAnalyticsEvent("keyFactorLLMGenerationAttempted", {
+        event_category: "automatic",
+      });
+    }
+
     const ids = extractQuestionNumbersFromText(comment.text || "");
     if (!ids.length) {
       questionLinksCheckedRef.current.add(commentId);
