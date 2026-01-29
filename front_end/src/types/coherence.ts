@@ -38,6 +38,7 @@ export type FetchedCoherenceLinks = {
 export const ALLOWED_COHERENCE_LINK_QUESTION_TYPES = [
   QuestionType.Binary,
   QuestionType.Numeric,
+  QuestionType.Discrete,
   QuestionType.Date,
 ];
 
