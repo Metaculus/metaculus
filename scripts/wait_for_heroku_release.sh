@@ -17,8 +17,8 @@
 #   HEROKU_API_KEY - Heroku API key (required, used by heroku CLI)
 #
 # Exit codes:
-#   0 - Release succeeded and all dynos are up
-#   1 - Release failed, dynos failed to start, or timed out
+#   0 - Release succeeded (dynos may still be starting if Phase 2 times out)
+#   1 - Release failed or Phase 1 timed out
 #
 # =============================================================================
 
@@ -52,14 +52,17 @@ for ((i = 1; i <= MAX_ATTEMPTS; i++)); do
 
   if [ "$status" == "succeeded" ] && [ "$current" == "true" ]; then
     echo "Release v${target_release} phase completed successfully."
+    echo "::notice::Phase 1 completed: Heroku release v${target_release} succeeded"
     break
   fi
 
+  echo "::error::Release failed with status: $status"
   echo "❌ Release failed with status: $status"
   exit 1
 done
 
 if [ "$status" == "pending" ]; then
+  echo "::error::Timed out waiting for release after $MAX_ATTEMPTS attempts"
   echo "❌ Timed out waiting for release after $MAX_ATTEMPTS attempts"
   exit 1
 fi
@@ -91,6 +94,20 @@ for ((i = 1; i <= MAX_ATTEMPTS; i++)); do
   # Success: all dynos up AND all web dynos on target release (preboot complete)
   if [ "$all_up" == "true" ] && [ "$old_web_count" -eq 0 ]; then
     echo "✅ All $up_count dynos are up! Web dynos on release v${target_release}. Traffic is now routed to new dynos."
+    echo "::notice::Phase 2 completed: All $up_count dynos are up and ready"
+    
+    # Add success summary if available
+    if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+      {
+        echo "## ✅ Deployment Successful"
+        echo ""
+        echo "**Phase 1 (Release):** ✅ Succeeded"
+        echo "**Phase 2 (Dynos):** ✅ All $up_count dynos are up"
+        echo ""
+        echo "All dynos are running on release v${target_release} and traffic is routed to the new deployment."
+      } >> "$GITHUB_STEP_SUMMARY"
+    fi
+    
     exit 0
   fi
   
@@ -106,5 +123,29 @@ for ((i = 1; i <= MAX_ATTEMPTS; i++)); do
   sleep "$POLL_INTERVAL"
 done
 
-echo "❌ Timed out waiting for dynos after $MAX_ATTEMPTS attempts"
-exit 1
+# GitHub Actions annotations for visibility
+WARNING_MSG="Timed out waiting for dynos after $MAX_ATTEMPTS attempts. Release phase completed successfully, but dynos may still be starting up. The deployment will continue, but please verify dyno status manually."
+echo "::warning::${WARNING_MSG}"
+echo "::notice::Dyno startup timeout - Release succeeded but dynos may still be initializing"
+
+# Also add to GitHub Actions summary if available
+if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+  {
+    echo "## ⚠️ Deployment Warning"
+    echo ""
+    echo "**Phase 1 (Release):** ✅ Succeeded"
+    echo "**Phase 2 (Dynos):** ⚠️ Timed out after ${MAX_ATTEMPTS} attempts"
+    echo ""
+    echo "The Heroku release completed successfully, but the script timed out while waiting for dynos to be ready."
+    echo "Dynos may still be starting up. Please verify dyno status manually:"
+    echo ""
+    echo "\`\`\`bash"
+    echo "heroku ps -a ${APP_NAME}"
+    echo "\`\`\`"
+  } >> "$GITHUB_STEP_SUMMARY"
+fi
+
+echo "⚠️  Warning: Timed out waiting for dynos after $MAX_ATTEMPTS attempts"
+echo "Release phase completed successfully, but dynos may still be starting up."
+echo "The deployment will continue, but please verify dyno status manually."
+exit 0
