@@ -60,8 +60,13 @@ const serverAppFetch = async <T>(
     forceLocale,
   } = config ?? {};
 
-  // Prevent token leaks when using cache
-  if (options.next?.revalidate !== undefined) {
+  const { PUBLIC_AUTHENTICATION_REQUIRED } = getPublicSettings();
+
+  // Prevent token leaks when using cache (unless auth is required for all users)
+  if (
+    options.next?.revalidate !== undefined &&
+    !PUBLIC_AUTHENTICATION_REQUIRED
+  ) {
     passAuthHeader = false;
   }
 
