@@ -177,7 +177,7 @@ const useNavbarLinks = ({
       LINKS.leaderboards,
       LINKS.trackRecord,
       LINKS.aggregationExplorer,
-      LINKS.aiBenchmark,
+      ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.aiBenchmark]),
     ];
 
     // create question link is moved from navbar to desktop menu
@@ -239,7 +239,7 @@ const useNavbarLinks = ({
             LINKS.trackRecord,
             LINKS.journal,
             LINKS.aggregationExplorer,
-            LINKS.aiBenchmark,
+            ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.aiBenchmark]),
           ]),
     ];
 
@@ -311,6 +311,7 @@ const useNavbarLinks = ({
     LINKS.tournaments,
     PUBLIC_ALLOW_SIGNUP,
     PUBLIC_ALLOW_TUTORIAL,
+    PUBLIC_MINIMAL_UI,
     user,
     isLoggedIn,
     setCurrentModal,
