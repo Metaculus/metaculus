@@ -147,11 +147,12 @@ export async function middleware(request: NextRequest) {
     LanguageService.setLocaleCookieInResponse(response, locale_in_url);
   }
 
-  // Generate CSRF token if not present (session cookie - no maxAge)
+  // Generate CSRF token if not present (session cookie - no maxAge/expires)
   if (!request.cookies.get(CSRF_COOKIE_NAME)?.value) {
     response.cookies.set(CSRF_COOKIE_NAME, crypto.randomUUID(), {
       path: "/",
       sameSite: "lax",
+      httpOnly: true,
     });
   }
 
