@@ -10,6 +10,7 @@ import { getSocialProviders } from "@/app/(main)/actions";
 import { Google } from "@/components/icons/google";
 import Button from "@/components/ui/button";
 import LoadingSpinner from "@/components/ui/loading_spiner";
+import { useAuth } from "@/contexts/auth_context";
 import { SocialProvider } from "@/types/auth";
 import { addUrlParams } from "@/utils/navigation";
 
@@ -21,6 +22,7 @@ const SocialButtons: FC<SocialButtonsType> = ({ type }) => {
   const t = useTranslations();
   const [socialProviders, setSocialProviders] = useState<SocialProvider[]>();
   const pathname = usePathname();
+  const { csrfToken } = useAuth();
 
   useEffect(() => {
     getSocialProviders()
@@ -28,13 +30,14 @@ const SocialButtons: FC<SocialButtonsType> = ({ type }) => {
       .catch(() => setSocialProviders([]));
   }, []);
 
-  const constructSocialUrl = (originalUrl: string) =>
-    addUrlParams(originalUrl, [
+  const handleSocialLogin = (authUrl: string) => {
+    window.location.href = addUrlParams(authUrl, [
       {
         paramName: "state",
-        paramValue: JSON.stringify({ redirect: pathname }),
+        paramValue: JSON.stringify({ redirect: pathname, nonce: csrfToken }),
       },
     ]);
+  };
 
   return (
     <>
@@ -46,7 +49,7 @@ const SocialButtons: FC<SocialButtonsType> = ({ type }) => {
               return (
                 <Button
                   key={provider.name}
-                  href={constructSocialUrl(provider.auth_url)}
+                  onClick={() => handleSocialLogin(provider.auth_url)}
                   variant="tertiary"
                   size="sm"
                   className="w-full"
@@ -63,7 +66,7 @@ const SocialButtons: FC<SocialButtonsType> = ({ type }) => {
               return (
                 <Button
                   key={provider.name}
-                  href={constructSocialUrl(provider.auth_url)}
+                  onClick={() => handleSocialLogin(provider.auth_url)}
                   variant="tertiary"
                   size="sm"
                   className="w-full"

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { CSRF_COOKIE_NAME } from "@/constants/csrf";
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import { AuthCookieManager, AuthCookieReader } from "@/services/auth_tokens";
 // DEPRECATED: Remove after 30-day migration period
@@ -144,6 +145,14 @@ export async function middleware(request: NextRequest) {
   const locale_in_cookie = request.cookies.get(LOCALE_COOKIE_NAME)?.value;
   if (locale_in_url && locale_in_url !== locale_in_cookie) {
     LanguageService.setLocaleCookieInResponse(response, locale_in_url);
+  }
+
+  // Generate CSRF token if not present (session cookie - no maxAge)
+  if (!request.cookies.get(CSRF_COOKIE_NAME)?.value) {
+    response.cookies.set(CSRF_COOKIE_NAME, crypto.randomUUID(), {
+      path: "/",
+      sameSite: "lax",
+    });
   }
 
   return response;

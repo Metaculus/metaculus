@@ -3,6 +3,7 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import "./globals.css";
+import { cookies } from "next/headers";
 import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
@@ -14,6 +15,7 @@ import PublicSettingsScript from "@/components/public_settings_script";
 import SimplifiedSignupModal from "@/components/simplified_signup_modal";
 import AppThemeProvider from "@/components/theme_provider";
 import { METAC_COLORS } from "@/constants/colors";
+import { CSRF_COOKIE_NAME } from "@/constants/csrf";
 import AuthProvider from "@/contexts/auth_context";
 import { GlobalSearchProvider } from "@/contexts/global_search_context";
 import ModalProvider from "@/contexts/modal_context";
@@ -81,6 +83,9 @@ export default async function RootLayout({
   await LanguageService.syncUserLanguagePreference(user, locale);
   const publicSettings = getPublicSettings();
 
+  const cookieStore = await cookies();
+  const csrfToken = cookieStore.get(CSRF_COOKIE_NAME)?.value || null;
+
   return (
     <html
       lang={locale}
@@ -108,7 +113,7 @@ export default async function RootLayout({
       <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
         <PolyfillProvider>
           <CSPostHogProvider locale={locale}>
-            <AuthProvider user={user} locale={locale}>
+            <AuthProvider user={user} locale={locale} csrfToken={csrfToken}>
               <AppThemeProvider>
                 <NextIntlClientProvider messages={messages}>
                   <PublicSettingsProvider settings={publicSettings}>

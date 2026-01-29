@@ -1,14 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState, use } from "react";
+import { use, useEffect } from "react";
+import { useErrorBoundary } from "react-error-boundary";
 
 import { exchangeSocialOauthCode } from "@/app/(main)/accounts/social/[provider]/actions";
-import GlobalErrorBoundary from "@/components/global_error_boundary";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import { useAuth } from "@/contexts/auth_context";
 import { SocialProviderType } from "@/types/auth";
 import { SearchParams } from "@/types/navigation";
-import { logError } from "@/utils/core/errors";
 import { ensureRelativeRedirect } from "@/utils/navigation";
 
 export default function SocialAuth(props: {
@@ -16,33 +16,44 @@ export default function SocialAuth(props: {
   searchParams: Promise<SearchParams>;
 }) {
   const searchParams = use(props.searchParams);
-  const params = use(props.params);
+  const { provider } = use(props.params);
 
-  const { provider } = params;
-
-  const [error, setError] = useState();
   const router = useRouter();
+  const { csrfToken } = useAuth();
+  const { showBoundary } = useErrorBoundary();
 
   useEffect(() => {
-    let redirectUrl = "/";
-
-    if (searchParams.state) {
-      try {
-        const stateData = JSON.parse(searchParams.state as string);
-        redirectUrl = ensureRelativeRedirect(stateData.redirect);
-      } catch (e) {
-        logError(e);
-      }
+    if (!searchParams.state) {
+      showBoundary(new Error("Missing OAuth state parameter"));
+      return;
     }
+
+    let stateData;
+    try {
+      stateData = JSON.parse(searchParams.state as string);
+    } catch {
+      showBoundary(new Error("Invalid OAuth state format"));
+      return;
+    }
+
+    if (!csrfToken || stateData.nonce !== csrfToken) {
+      showBoundary(new Error("Invalid OAuth CSRF state"));
+      return;
+    }
+
+    const redirectUrl = ensureRelativeRedirect(stateData.redirect);
 
     exchangeSocialOauthCode(provider, searchParams.code as string)
       .then(() => router.push(redirectUrl))
-      .catch(setError);
-  }, [provider, searchParams.code, searchParams.state, router]);
-
-  if (error) {
-    return <GlobalErrorBoundary error={error} reset={() => router.push("/")} />;
-  }
+      .catch(showBoundary);
+  }, [
+    provider,
+    searchParams.code,
+    searchParams.state,
+    router,
+    csrfToken,
+    showBoundary,
+  ]);
 
   return (
     <main className="mx-auto my-12 flex min-h-min w-full max-w-5xl flex-col gap-4 px-3 lg:px-0">
