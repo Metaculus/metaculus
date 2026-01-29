@@ -64,6 +64,14 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
     return () => mediaQuery.removeEventListener("change", handler);
   }, []);
 
+  // Clear mobile expanded state when hover becomes available
+  // Prevents orbit from staying paused with leftover mobileExpandedItem
+  useEffect(() => {
+    if (hasHover) {
+      setMobileExpandedItem(null);
+    }
+  }, [hasHover]);
+
   // Pause animation when an item is expanded
   const isPaused = expandedItem !== null || mobileExpandedItem !== null;
 

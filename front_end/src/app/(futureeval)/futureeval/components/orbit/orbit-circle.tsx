@@ -124,6 +124,7 @@ const OrbitCircle: React.FC<OrbitCircleProps> = ({
     >
       {/* The circle itself - fills container */}
       <button
+        type="button"
         onClick={onClick}
         tabIndex={showExpanded ? -1 : 0}
         aria-hidden={showExpanded}
