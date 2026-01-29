@@ -25,9 +25,7 @@ const SocialAuthClient: FC<Props> = ({ provider, code, redirectUrl }) => {
   }, [provider, code, redirectUrl, router, showBoundary]);
 
   return (
-    <main className="mx-auto my-12 flex min-h-min w-full max-w-5xl flex-col gap-4 px-3 lg:px-0">
-      <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
-    </main>
+    <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
   );
 };
 

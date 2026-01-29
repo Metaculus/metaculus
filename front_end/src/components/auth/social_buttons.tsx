@@ -4,15 +4,13 @@ import { faFacebook } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import React, { FC, useEffect, useState } from "react";
+import React, { FC } from "react";
 
-import { getSocialProviders } from "@/app/(main)/actions";
 import { Google } from "@/components/icons/google";
 import Button from "@/components/ui/button";
 import LoadingSpinner from "@/components/ui/loading_spiner";
-import { useAuth } from "@/contexts/auth_context";
+import useSocialAuth from "@/hooks/use_social_auth";
 import { SocialProvider } from "@/types/auth";
-import { addUrlParams } from "@/utils/navigation";
 
 type SocialButtonsType = {
   type: "signin" | "signup";
@@ -20,23 +18,14 @@ type SocialButtonsType = {
 
 const SocialButtons: FC<SocialButtonsType> = ({ type }) => {
   const t = useTranslations();
-  const [socialProviders, setSocialProviders] = useState<SocialProvider[]>();
   const pathname = usePathname();
-  const { csrfToken } = useAuth();
+  const { socialProviders, getOAuthUrl } = useSocialAuth();
 
-  useEffect(() => {
-    getSocialProviders()
-      .then(setSocialProviders)
-      .catch(() => setSocialProviders([]));
-  }, []);
-
-  const handleSocialLogin = (authUrl: string) => {
-    window.location.href = addUrlParams(authUrl, [
-      {
-        paramName: "state",
-        paramValue: JSON.stringify({ redirect: pathname, nonce: csrfToken }),
-      },
-    ]);
+  const handleSocialLogin = (providerName: SocialProvider["name"]) => {
+    const url = getOAuthUrl(providerName, pathname);
+    if (url) {
+      window.location.href = url;
+    }
   };
 
   return (
@@ -49,7 +38,7 @@ const SocialButtons: FC<SocialButtonsType> = ({ type }) => {
               return (
                 <Button
                   key={provider.name}
-                  onClick={() => handleSocialLogin(provider.auth_url)}
+                  onClick={() => handleSocialLogin(provider.name)}
                   variant="tertiary"
                   size="sm"
                   className="w-full"
@@ -66,7 +55,7 @@ const SocialButtons: FC<SocialButtonsType> = ({ type }) => {
               return (
                 <Button
                   key={provider.name}
-                  onClick={() => handleSocialLogin(provider.auth_url)}
+                  onClick={() => handleSocialLogin(provider.name)}
                   variant="tertiary"
                   size="sm"
                   className="w-full"
