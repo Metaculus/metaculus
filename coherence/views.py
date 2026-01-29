@@ -256,17 +256,16 @@ def post_coherence_bot_forecast(request):
 
     create_forecast_bulk(user=coherence_bot, forecasts=[forecast_data])
 
-    if bot_created:
-        # add coherence_bot to coherence Leaderboard
-        project: Project = question.post.default_project
-        coherence_leaderboard, _ = Leaderboard.objects.get_or_create(
-            project=project,
-            name="Coherence Leaderboard",
-            score_type="peer_tournament",
-            bot_status=Project.BotLeaderboardStatus.BOTS_ONLY,
-        )
-        coherence_leaderboard.user_list.add(coherence_bot)
-        coherence_leaderboard.user_list.add(request.user)
+    # add coherence_bot to coherence Leaderboard
+    project: Project = question.post.default_project
+    coherence_leaderboard, _ = Leaderboard.objects.get_or_create(
+        project=project,
+        name=f"Coherence Leaderboard for {project.name}",
+        score_type="peer_tournament",
+        bot_status=Project.BotLeaderboardStatus.BOTS_ONLY,
+    )
+    coherence_leaderboard.user_list.add(coherence_bot)
+    coherence_leaderboard.user_list.add(request.user)
 
     return Response({"status": "success"}, status=200)
 
