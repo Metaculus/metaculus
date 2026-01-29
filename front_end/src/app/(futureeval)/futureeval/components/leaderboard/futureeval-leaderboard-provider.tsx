@@ -29,4 +29,3 @@ export function useFutureEvalLeaderboard() {
     );
   return ctx;
 }
-
