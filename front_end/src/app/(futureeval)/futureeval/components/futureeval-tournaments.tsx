@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 
-import AIBInfoTournamentCard from "@/app/(main)/aib/components/aib/tabs/info/aib-info-tournament-card";
 import ReusableGradientCarousel from "@/components/gradient-carousel";
 import cn from "@/utils/core/cn";
 
+import FutureEvalInfoTournamentCard from "./futureeval-info-tournament-card";
 import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
 
 /**
@@ -60,7 +60,7 @@ const FutureEvalTournaments: React.FC = () => {
 
       <ReusableGradientCarousel<(typeof CARDS_DATA)[number]>
         items={CARDS_DATA}
-        renderItem={(card) => <AIBInfoTournamentCard {...card} />}
+        renderItem={(card) => <FutureEvalInfoTournamentCard {...card} />}
         listClassName="-ml-2"
         gradientFromClass={FE_COLORS.gradientFrom}
       />

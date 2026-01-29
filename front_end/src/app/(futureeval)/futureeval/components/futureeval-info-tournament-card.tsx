@@ -12,7 +12,7 @@ type Props = {
   isLive?: boolean;
 };
 
-const AIBInfoTournamentCard: React.FC<Props> = ({
+const FutureEvalInfoTournamentCard: React.FC<Props> = ({
   title,
   href,
   imgUrl,
@@ -77,4 +77,4 @@ const AIBInfoTournamentCard: React.FC<Props> = ({
   );
 };
 
-export default AIBInfoTournamentCard;
+export default FutureEvalInfoTournamentCard;

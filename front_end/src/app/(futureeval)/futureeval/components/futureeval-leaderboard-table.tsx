@@ -3,14 +3,15 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
 
+import type { LeaderboardDetails } from "@/types/scoring";
+import cn from "@/utils/core/cn";
+
 import {
   entryIconPair,
   entryLabel,
   shouldDisplayEntry,
-} from "@/app/(main)/aib/components/aib/leaderboard/utils";
-import { LightDarkIcon } from "@/app/(main)/aib/components/aib/light-dark-icon";
-import type { LeaderboardDetails } from "@/types/scoring";
-import cn from "@/utils/core/cn";
+} from "./leaderboard/utils";
+import { LightDarkIcon } from "./light-dark-icon";
 
 // Mock translation function for entryLabel - returns hardcoded English values
 const mockTranslate = ((key: string) => {

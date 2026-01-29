@@ -7,10 +7,10 @@ import { StaticImageData } from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { LightDarkIcon } from "@/app/(main)/aib/components/aib/light-dark-icon";
 import cn from "@/utils/core/cn";
 
 import { FE_COLORS } from "../../theme";
+import { LightDarkIcon } from "../light-dark-icon";
 
 type Props = {
   heightPct: number;

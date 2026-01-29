@@ -18,7 +18,7 @@ type Props = {
   rightTitle?: string;
 };
 
-const AIBDiffTooltip: FC<Props> = ({
+const FutureEvalDiffTooltip: FC<Props> = ({
   quarter,
   rows,
   rightTitle = "Avg Scores",
@@ -54,4 +54,4 @@ const AIBDiffTooltip: FC<Props> = ({
   );
 };
 
-export default AIBDiffTooltip;
+export default FutureEvalDiffTooltip;

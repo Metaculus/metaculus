@@ -27,8 +27,8 @@ import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import { ThemeColor } from "@/types/theme";
 
-import AIBDiffTooltip from "./aib-diff-tooltip";
 import { DiffDatum } from "./config";
+import FutureEvalDiffTooltip from "./futureeval-diff-tooltip";
 
 export type ProsVsBotsDiffSeries = {
   label: string;
@@ -661,7 +661,7 @@ const AIBProsVsBotsDiffChart: FC<{
                 style={{ ...floatingStyles, pointerEvents: "none" }}
                 className="z-[100]"
               >
-                <AIBDiffTooltip
+                <FutureEvalDiffTooltip
                   quarter={activeCat}
                   rows={tooltipRows}
                   rightTitle="Avg Scores"

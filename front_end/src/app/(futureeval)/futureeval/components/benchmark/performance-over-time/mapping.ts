@@ -2,8 +2,8 @@ import { useTranslations } from "next-intl";
 
 import type { LeaderboardDetails } from "@/types/scoring";
 
-import { getBotMeta } from "../../../leaderboard/bot_meta";
-import { entryLabel, shouldDisplayEntry } from "../../../leaderboard/utils";
+import { getBotMeta } from "../../leaderboard/bot_meta";
+import { entryLabel, shouldDisplayEntry } from "../../leaderboard/utils";
 
 export type AggregateKind = "community" | "pros" | "other";
 

@@ -4,11 +4,11 @@ import { useTranslations } from "next-intl";
 
 import AIBBenchmarkPerformanceChart from "./aib-benchmark-performance-chart";
 import { mapLeaderboardToModelPoints } from "./mapping";
-import { useAIBLeaderboard } from "../../../leaderboard/aib-leaderboard-provider";
+import { useFutureEvalLeaderboard } from "../../leaderboard/futureeval-leaderboard-provider";
 
-const AIBBenchmarkForecastingPerformance: React.FC = () => {
+const FutureEvalBenchmarkForecastingPerformance: React.FC = () => {
   const t = useTranslations();
-  const { leaderboard } = useAIBLeaderboard();
+  const { leaderboard } = useFutureEvalLeaderboard();
   const models = mapLeaderboardToModelPoints(leaderboard, t);
   const firstIdxByGroup = new Map<string, number>();
   const normalizeGroup = (name: string) => {
@@ -37,4 +37,4 @@ const AIBBenchmarkForecastingPerformance: React.FC = () => {
   );
 };
 
-export default AIBBenchmarkForecastingPerformance;
+export default FutureEvalBenchmarkForecastingPerformance;

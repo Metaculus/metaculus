@@ -1,12 +1,12 @@
 import { METAC_COLORS } from "@/constants/colors";
 
-import AIBProsVsBotsDiffChart from "./aib-pros-vs-bots-chart";
+import FutureEvalProsVsBotsDiffChart from "./aib-pros-vs-bots-chart";
 import { ALL_TYPES, BINARY_ONLY_EXAMPLE } from "./config";
 
-export const AIBProsVsBotsDiffExample: React.FC = () => {
+export const FutureEvalProsVsBotsDiffExample: React.FC = () => {
   return (
     <div className="mt-4">
-      <AIBProsVsBotsDiffChart
+      <FutureEvalProsVsBotsDiffChart
         series={[
           {
             label: "Binary questions only",

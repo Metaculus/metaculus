@@ -3,19 +3,19 @@
 import Link from "next/link";
 import React, { useMemo } from "react";
 
-import { useAIBLeaderboard } from "@/app/(main)/aib/components/aib/leaderboard/aib-leaderboard-provider";
+import ReusableGradientCarousel from "@/components/gradient-carousel";
+
+import { FE_COLORS, FE_TYPOGRAPHY } from "../../theme";
+import FutureEvalInfoPopover from "../futureeval-info-popover";
+import FutureEvalModelBar from "./futureeval-model-bar";
+import { useFutureEvalLeaderboard } from "../leaderboard/futureeval-leaderboard-provider";
 import {
   aggregateKind,
   entryIconPair,
   entryLabel,
   isAggregate,
   shouldDisplayEntry,
-} from "@/app/(main)/aib/components/aib/leaderboard/utils";
-import ReusableGradientCarousel from "@/components/gradient-carousel";
-
-import { FE_COLORS, FE_TYPOGRAPHY } from "../../theme";
-import FutureEvalInfoPopover from "../futureeval-info-popover";
-import FutureEvalModelBar from "./futureeval-model-bar";
+} from "../leaderboard/utils";
 
 // Mock translation function for entryLabel - returns hardcoded English values
 const mockTranslate = ((key: string) => {
@@ -31,7 +31,7 @@ const MIN_HEIGHT_PCT = 20;
 const MAX_HEIGHT_PCT = 100;
 
 const FutureEvalModelBenchmark: React.FC = () => {
-  const { leaderboard } = useAIBLeaderboard();
+  const { leaderboard } = useFutureEvalLeaderboard();
 
   const entries = useMemo(() => {
     const allEntries = leaderboard.entries ?? [];
