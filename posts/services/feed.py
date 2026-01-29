@@ -312,6 +312,11 @@ def get_posts_feed(
             Q(actual_close_time__isnull=True)
             | Q(actual_close_time__gte=timezone.now() - timedelta(days=7))
         )
+    if order_type == PostFilterSerializer.Order.CP_REVEAL_TIME:
+        # cp_reveal_time is on Question model, need to use relationship
+        order_type = "question__cp_reveal_time"
+        # Only show posts where CP has been revealed
+        qs = qs.filter(question__cp_reveal_time__lt=now)
 
     qs = qs.order_by(build_order_by(order_type, order_desc))
 

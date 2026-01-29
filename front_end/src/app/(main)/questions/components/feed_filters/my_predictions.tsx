@@ -49,8 +49,8 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
         label: t("movers"),
       },
       {
-        value: QuestionOrder.DivergenceDesc,
-        label: t("divergence"),
+        value: QuestionOrder.UserNextWithdrawTimeAsc,
+        label: t("withdrawingSoon"),
       },
       {
         value: QuestionOrder.UnreadCommentCountDesc,
@@ -67,10 +67,11 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
         label: t("recentPredictions"),
       },
       {
-        value: QuestionOrder.UserNextWithdrawTimeAsc,
-        label: t("withdrawingSoon"),
+        value: QuestionOrder.DivergenceDesc,
+        label: t("divergence"),
       },
       { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
+      { value: QuestionOrder.CpRevealTimeDesc, label: t("recentlyRevealed") },
       { value: QuestionOrder.ScoreDesc, label: t("bestScores") },
       { value: QuestionOrder.ScoreAsc, label: t("worstScores") },
       { value: QuestionOrder.LastPredictionTimeAsc, label: t("stale") },
