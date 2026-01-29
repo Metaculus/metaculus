@@ -15,6 +15,7 @@ import type { KeyFactorDraft } from "@/types/key_factors";
 import type { PostWithForecasts } from "@/types/post";
 import { Question } from "@/types/question";
 import type { User } from "@/types/users";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import { createEmptyBaseRateDraft } from "./item_creation/base_rate/utils";
 
@@ -226,6 +227,13 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
         ),
       loadSuggestions: (force?: boolean) => {
         if (isLoadingSuggestedKeyFactors) return;
+
+        // Track when user clicks "Ask an LLM" button
+        sendAnalyticsEvent("keyFactorGenerateClicked", {
+          event_category: commentId ? "fromComment" : "fromList",
+          force: !!force,
+        });
+
         if (force) reloadSuggestions();
         else if (!shouldLoadSuggestions) setShouldLoadSuggestions(true);
       },
@@ -248,6 +256,7 @@ const KeyFactorsProviderEnabled: React.FC<EnabledProps> = ({
       submitImpl,
       reloadSuggestions,
       addSingleSuggestedKeyFactor,
+      commentId,
     ]
   );
 
