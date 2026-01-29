@@ -30,6 +30,3 @@ export function useFutureEvalLeaderboard() {
   return ctx;
 }
 
-// Keep the old names for backward compatibility during migration
-export const AIBLeaderboardProvider = FutureEvalLeaderboardProvider;
-export const useAIBLeaderboard = useFutureEvalLeaderboard;

@@ -3,8 +3,8 @@ import {
   FutureEvalProsVsBotsSectionHeader,
 } from "./futureeval-benchmark-headers";
 import FutureEvalModelBenchmark from "./futureeval-model-benchmark";
-import FutureEvalBenchmarkForecastingPerformance from "./performance-over-time/aib-benchmark-forecasting-performance";
-import { FutureEvalProsVsBotsDiffExample } from "./pros-vs-bots/aib-pros-vs-bots-comparison";
+import FutureEvalBenchmarkForecastingPerformance from "./performance-over-time/futureeval-benchmark-forecasting-performance";
+import { FutureEvalProsVsBotsDiffExample } from "./pros-vs-bots/futureeval-pros-vs-bots-comparison";
 
 const FutureEvalBenchmarkTab: React.FC = () => {
   return (

@@ -57,7 +57,7 @@ const clamp = (v: number, lo: number, hi: number) =>
 
 type VirtualElement = { getBoundingClientRect: () => DOMRect; _rect?: DOMRect };
 
-const AIBProsVsBotsDiffChart: FC<{
+const FutureEvalProsVsBotsDiffChart: FC<{
   series: ProsVsBotsDiffSeries[];
   className?: string;
 }> = ({ series, className }) => {
@@ -724,4 +724,4 @@ const FullHeightCell: React.FC<FullCellProps> = (props) => {
   );
 };
 
-export default AIBProsVsBotsDiffChart;
+export default FutureEvalProsVsBotsDiffChart;

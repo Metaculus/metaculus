@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
-import AIBBenchmarkPerformanceChart from "./aib-benchmark-performance-chart";
+import FutureEvalBenchmarkPerformanceChart from "./futureeval-benchmark-performance-chart";
 import { mapLeaderboardToModelPoints } from "./mapping";
 import { useFutureEvalLeaderboard } from "../../leaderboard/futureeval-leaderboard-provider";
 
@@ -32,7 +32,7 @@ const FutureEvalBenchmarkForecastingPerformance: React.FC = () => {
 
   return (
     <div className="mt-4">
-      <AIBBenchmarkPerformanceChart data={models} legend={legend} />
+      <FutureEvalBenchmarkPerformanceChart data={models} legend={legend} />
     </div>
   );
 };

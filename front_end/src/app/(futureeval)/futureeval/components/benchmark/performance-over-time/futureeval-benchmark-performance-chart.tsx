@@ -40,7 +40,7 @@ type Props = { data: ModelPoint[]; className?: string; legend?: LegendItem[] };
 const isValidDate = (d: Date) => !Number.isNaN(+d);
 const toDate = (v: Date | string) => (v instanceof Date ? v : new Date(v));
 
-const AIBBenchmarkPerformanceChart: FC<Props> = ({
+const FutureEvalBenchmarkPerformanceChart: FC<Props> = ({
   data,
   legend,
   className,
@@ -894,4 +894,4 @@ function buildTimeTicks(min: Date, max: Date, target: number): Date[] {
   return ticks;
 }
 
-export default AIBBenchmarkPerformanceChart;
+export default FutureEvalBenchmarkPerformanceChart;
