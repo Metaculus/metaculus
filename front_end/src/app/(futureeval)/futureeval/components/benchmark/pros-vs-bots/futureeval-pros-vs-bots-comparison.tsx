@@ -1,7 +1,7 @@
 import { METAC_COLORS } from "@/constants/colors";
 
-import FutureEvalProsVsBotsDiffChart from "./futureeval-pros-vs-bots-chart";
 import { ALL_TYPES, BINARY_ONLY_EXAMPLE } from "./config";
+import FutureEvalProsVsBotsDiffChart from "./futureeval-pros-vs-bots-chart";
 
 export const FutureEvalProsVsBotsDiffExample: React.FC = () => {
   return (
