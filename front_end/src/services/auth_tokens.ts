@@ -3,6 +3,7 @@ import "server-only";
 import { cookies } from "next/headers";
 
 import { AuthTokens } from "@/types/auth";
+import { CookieStorage, ReadonlyCookieStorage } from "@/types/cookies";
 
 // Re-export for convenience
 export type { AuthTokens } from "@/types/auth";
@@ -56,23 +57,6 @@ export function isTokenExpired(
   const bufferMs = bufferSeconds * 1000;
 
   return now >= expiresAt - bufferMs;
-}
-
-type CookieOptions = {
-  httpOnly?: boolean;
-  secure?: boolean;
-  sameSite?: "lax" | "strict" | "none";
-  path?: string;
-  maxAge?: number;
-};
-
-export interface ReadonlyCookieStorage {
-  get(name: string): { value: string } | undefined;
-}
-
-export interface CookieStorage extends ReadonlyCookieStorage {
-  set(name: string, value: string, options?: CookieOptions): void;
-  delete(name: string): void;
 }
 
 /**

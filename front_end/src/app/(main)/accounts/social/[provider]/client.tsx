@@ -11,18 +11,24 @@ import { SocialProviderType } from "@/types/auth";
 type Props = {
   provider: SocialProviderType;
   code: string;
+  nonce: string;
   redirectUrl: string;
 };
 
-const SocialAuthClient: FC<Props> = ({ provider, code, redirectUrl }) => {
+const SocialAuthClient: FC<Props> = ({
+  provider,
+  code,
+  nonce,
+  redirectUrl,
+}) => {
   const router = useRouter();
   const { showBoundary } = useErrorBoundary();
 
   useEffect(() => {
-    exchangeSocialOauthCode(provider, code)
+    exchangeSocialOauthCode(provider, code, nonce)
       .then(() => router.push(redirectUrl))
       .catch(showBoundary);
-  }, [provider, code, redirectUrl, router, showBoundary]);
+  }, [provider, code, nonce, redirectUrl, router, showBoundary]);
 
   return (
     <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
