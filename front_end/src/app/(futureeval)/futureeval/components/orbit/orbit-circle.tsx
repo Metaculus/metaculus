@@ -135,13 +135,24 @@ const OrbitCircle: React.FC<OrbitCircleProps> = ({
           // Hide circle when expanded and remove from interaction
           showExpanded && "pointer-events-none opacity-0"
         )}
-        style={{ borderWidth: strokeWidth, ...defaultShadowStyle }}
+        style={{
+          borderWidth: strokeWidth,
+          ...defaultShadowStyle,
+          // GPU optimization to prevent text flicker during rotation
+          backfaceVisibility: "hidden",
+          willChange: "transform",
+        }}
       >
         <span
           className={cn(
             "whitespace-pre-line px-1 text-center font-newsreader text-base font-normal leading-tight md:text-sm lg:text-lg",
             FE_COLORS.textPrimary
           )}
+          style={{
+            // Force GPU layer for text to stabilize anti-aliasing during counter-rotation
+            transform: "translateZ(0)",
+            backfaceVisibility: "hidden",
+          }}
         >
           {item.label}
         </span>

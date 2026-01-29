@@ -37,6 +37,8 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
   // Use hover capability detection instead of touch detection
   // This properly handles laptops with touchscreens using a mouse
   const [hasHover, setHasHover] = useState(true);
+  // Reduced motion preference for accessibility
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   // Refs
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -47,6 +49,17 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
     setHasHover(mediaQuery.matches);
 
     const handler = (e: MediaQueryListEvent) => setHasHover(e.matches);
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
+  }, []);
+
+  // Detect reduced motion preference for accessibility
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(mediaQuery.matches);
+
+    const handler = (e: MediaQueryListEvent) =>
+      setPrefersReducedMotion(e.matches);
     mediaQuery.addEventListener("change", handler);
     return () => mediaQuery.removeEventListener("change", handler);
   }, []);
@@ -165,12 +178,12 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
         className="absolute inset-0"
         style={{
           animation:
-            ORBIT_ANIMATION_DURATION > 0
+            ORBIT_ANIMATION_DURATION > 0 && !prefersReducedMotion
               ? `orbit-rotate ${ORBIT_ANIMATION_DURATION}s linear infinite`
               : "none",
           animationPlayState: isPaused ? "paused" : "running",
           transformOrigin: "50% 50%",
-          willChange: "transform",
+          willChange: prefersReducedMotion ? "auto" : "transform",
         }}
       >
         {ORBIT_ITEMS.map((item, index) => {
@@ -199,11 +212,14 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
                 className="h-full w-full"
                 style={{
                   animation:
-                    ORBIT_ANIMATION_DURATION > 0
+                    ORBIT_ANIMATION_DURATION > 0 && !prefersReducedMotion
                       ? `orbit-counter-rotate ${ORBIT_ANIMATION_DURATION}s linear infinite`
                       : "none",
                   animationPlayState: isPaused ? "paused" : "running",
-                  willChange: "transform",
+                  willChange: prefersReducedMotion ? "auto" : "transform",
+                  // 3D context + backface hidden for smoother text rendering during counter-rotation
+                  transformStyle: "preserve-3d",
+                  backfaceVisibility: "hidden",
                 }}
               >
                 <OrbitCircle
