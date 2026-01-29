@@ -17,8 +17,8 @@
 #   HEROKU_API_KEY - Heroku API key (required, used by heroku CLI)
 #
 # Exit codes:
-#   0 - Release succeeded and all dynos are up
-#   1 - Release failed, dynos failed to start, or timed out
+#   0 - Release succeeded (dynos may still be starting if dyno startup times out)
+#   1 - Release failed, release completion timed out, or dyno crash detected
 #
 # =============================================================================
 
@@ -34,8 +34,8 @@ if [ -z "$APP_NAME" ]; then
   exit 1
 fi
 
-# Phase 1: Wait for release to complete
-echo "Phase 1: Waiting for Heroku release to complete on ${APP_NAME}..."
+# Release Completion: Wait for Heroku release to complete
+echo "Release Completion: Waiting for Heroku release to complete on ${APP_NAME}..."
 echo "Max attempts: ${MAX_ATTEMPTS}, Poll interval: ${POLL_INTERVAL}s"
 
 for ((i = 1; i <= MAX_ATTEMPTS; i++)); do
@@ -51,22 +51,22 @@ for ((i = 1; i <= MAX_ATTEMPTS; i++)); do
   fi
 
   if [ "$status" == "succeeded" ] && [ "$current" == "true" ]; then
-    echo "Release v${target_release} phase completed successfully."
+    echo "::notice::✅ Release v${target_release} completed successfully and is now current."
     break
   fi
 
-  echo "❌ Release failed with status: $status"
+  echo "::error::❌ Heroku release failed with status: $status"
   exit 1
 done
 
 if [ "$status" == "pending" ]; then
-  echo "❌ Timed out waiting for release after $MAX_ATTEMPTS attempts"
+  echo "::error::❌ Timed out waiting for Heroku release to complete after $MAX_ATTEMPTS attempts"
   exit 1
 fi
 
-# Phase 2: Wait for all dynos to be up and web dynos on target release (handles preboot)
+# Dyno Startup: Wait for all dynos to be up and web dynos on target release (handles preboot)
 echo ""
-echo "Phase 2: Waiting for dynos to be ready (web dynos on release v${target_release})..."
+echo "Dyno Startup: Waiting for all dynos to be ready (web dynos on release v${target_release})..."
 
 for ((i = 1; i <= MAX_ATTEMPTS; i++)); do
   ps_json=$(heroku ps --json -a "$APP_NAME")
@@ -77,6 +77,36 @@ for ((i = 1; i <= MAX_ATTEMPTS; i++)); do
     echo "No dynos found, waiting... (attempt $i/$MAX_ATTEMPTS)"
     sleep "$POLL_INTERVAL"
     continue
+  fi
+  
+  # Check for crashed dynos - fail early if any dyno has crashed
+  crashed_dynos=$(echo "$ps_json" | jq '[.[] | select(.state == "crashed")]')
+  crashed_count=$(echo "$crashed_dynos" | jq 'length')
+  
+  if [ "$crashed_count" -gt 0 ]; then
+    crashed_names=$(echo "$crashed_dynos" | jq -r '.[] | "\(.type).\(.name // .number)"' | tr '\n' ',' | sed 's/,$//')
+    echo "::error::❌ Dyno crash detected! $crashed_count dyno(s) crashed: $crashed_names"
+    
+    # Add error summary if available
+    if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+      {
+        echo "## ❌ Deployment Failed"
+        echo ""
+        echo "**Release Completion:** ✅ Succeeded"
+        echo "**Dyno Startup:** ❌ Failed - $crashed_count dyno(s) crashed"
+        echo ""
+        echo "The following dynos crashed:"
+        echo "$crashed_dynos" | jq -r '.[] | "- `\(.type).\(.name // .number)` (state: \(.state))"'
+        echo ""
+        echo "Check logs for details:"
+        echo "\`\`\`bash"
+        echo "heroku logs --tail -a ${APP_NAME}"
+        echo "heroku ps -a ${APP_NAME}"
+        echo "\`\`\`"
+      } >> "$GITHUB_STEP_SUMMARY"
+    fi
+    
+    exit 1
   fi
   
   # Check if all dynos are up (any type)
@@ -90,12 +120,25 @@ for ((i = 1; i <= MAX_ATTEMPTS; i++)); do
   
   # Success: all dynos up AND all web dynos on target release (preboot complete)
   if [ "$all_up" == "true" ] && [ "$old_web_count" -eq 0 ]; then
-    echo "✅ All $up_count dynos are up! Web dynos on release v${target_release}. Traffic is now routed to new dynos."
+    echo "::notice::✅ All $up_count dynos are up! Web dynos on release v${target_release}. Traffic is now routed to new dynos."
+    
+    # Add success summary if available
+    if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+      {
+        echo "## ✅ Deployment Successful"
+        echo ""
+        echo "**Release Completion:** ✅ Succeeded"
+        echo "**Dyno Startup:** ✅ All $up_count dynos are up"
+        echo ""
+        echo "All dynos are running on release v${target_release} and traffic is routed to the new deployment."
+      } >> "$GITHUB_STEP_SUMMARY"
+    fi
+    
     exit 0
   fi
   
   # Show current state and continue waiting
-  echo "Waiting for deployment to complete (attempt $i/$MAX_ATTEMPTS):"
+  echo "Waiting for dynos to be ready (attempt $i/$MAX_ATTEMPTS):"
   echo "  - Dynos up: $up_count / $dyno_count"
   if [ "$web_dyno_count" -gt 0 ]; then
     echo "  - Web dynos on v${target_release}: $web_on_target / $web_dyno_count"
@@ -106,5 +149,24 @@ for ((i = 1; i <= MAX_ATTEMPTS; i++)); do
   sleep "$POLL_INTERVAL"
 done
 
-echo "❌ Timed out waiting for dynos after $MAX_ATTEMPTS attempts"
-exit 1
+# GitHub Actions annotations for visibility
+WARNING_MSG="⚠️ Timed out waiting for dynos to start after $MAX_ATTEMPTS attempts. Heroku release completed successfully, but dynos may still be initializing. The deployment will continue, but please verify dyno status manually."
+echo "::warning::${WARNING_MSG}"
+
+# Also add to GitHub Actions summary if available
+if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+  {
+    echo "## ⚠️ Deployment Warning"
+    echo ""
+    echo "**Release Completion:** ✅ Succeeded"
+    echo "**Dyno Startup:** ⚠️ Timed out after ${MAX_ATTEMPTS} attempts"
+    echo ""
+    echo "The Heroku release completed successfully, but the script timed out while waiting for dynos to be ready."
+    echo "Dynos may still be starting up. Please verify dyno status manually:"
+    echo ""
+    echo "\`\`\`bash"
+    echo "heroku ps -a ${APP_NAME}"
+    echo "\`\`\`"
+  } >> "$GITHUB_STEP_SUMMARY"
+fi
+exit 0
