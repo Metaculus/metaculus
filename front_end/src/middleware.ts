@@ -153,6 +153,7 @@ export async function middleware(request: NextRequest) {
       path: "/",
       sameSite: "lax",
       httpOnly: true,
+      secure: true,
     });
   }
 
