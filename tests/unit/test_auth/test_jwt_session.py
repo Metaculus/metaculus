@@ -1,12 +1,4 @@
-import time
-
 import pytest
-from django.core.cache import cache
-from django.utils import timezone
-from freezegun import freeze_time
-from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-from rest_framework.test import APIClient
-
 from authentication.jwt_session import (
     SessionRefreshToken,
     is_token_revoked,
@@ -16,9 +8,13 @@ from authentication.jwt_session import (
     get_session_enforce_at,
     _get_whitelist_key,
     _get_grace_key,
-is_user_global_token_revoked, SessionAccessToken
 )
 from authentication.services import get_tokens_for_user
+from django.core.cache import cache
+from django.utils import timezone
+from freezegun import freeze_time
+from rest_framework.test import APIClient
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from tests.unit.test_users.factories import factory_user
 
 
