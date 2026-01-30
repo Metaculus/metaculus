@@ -17,8 +17,8 @@ type Props = {
 const StaffPicks: FC<Props> = ({ items }) => {
   const t = useTranslations();
   return (
-    <div className="mb-6  flex min-w-0 flex-1 items-center gap-2 overflow-hidden overflow-x-auto border-b border-gray-300 bg-gray-200 px-4 py-2.5 [-ms-overflow-style:none] [scrollbar-width:none] dark:border-gray-200-dark dark:bg-gray-200-dark lg:px-20 [&::-webkit-scrollbar]:hidden">
-      <h2 className="m-0 shrink-0 pr-4 text-xs font-medium uppercase leading-3 text-gray-700 dark:text-gray-700-dark">
+    <div className="mb-4 flex  min-w-0 flex-1 items-center gap-2 overflow-hidden overflow-x-auto border-b border-blue-400/50 bg-blue-200 px-4 py-2.5 [-ms-overflow-style:none] [scrollbar-width:none] dark:border-blue-400-dark/50 dark:bg-blue-200-dark md:mb-6 lg:px-20 [&::-webkit-scrollbar]:hidden">
+      <h2 className="m-0 shrink-0 pr-4 text-xs font-medium uppercase leading-3 text-blue-700 dark:text-blue-700-dark">
         {t("staffPicks")}
       </h2>
       {items.map((item, idx) => (
@@ -26,7 +26,7 @@ const StaffPicks: FC<Props> = ({ items }) => {
           key={`staff-pick-${idx}`}
           href={item.url}
           className={cn(
-            "flex shrink-0 items-center gap-1 rounded-full border-0 bg-gray-300 py-2 pl-3 pr-4 text-xs font-medium leading-3 text-gray-700 no-underline transition-colors hover:bg-gray-400 dark:bg-gray-300-dark dark:text-gray-700-dark dark:hover:bg-gray-400-dark"
+            "flex shrink-0 items-center gap-1 rounded-full border-0 bg-blue-400 py-2 pl-3 pr-4 text-xs font-medium leading-3 text-blue-700 no-underline transition-colors hover:bg-blue-500 dark:bg-blue-400-dark dark:text-blue-700-dark dark:hover:bg-blue-500-dark"
           )}
         >
           <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center">
@@ -36,7 +36,7 @@ const StaffPicks: FC<Props> = ({ items }) => {
               item.emoji
             )}
           </span>
-          <span className="whitespace-nowrap text-gray-800 dark:text-gray-800-dark">
+          <span className="whitespace-nowrap text-blue-800 dark:text-blue-800-dark">
             {item.name}
           </span>
         </Link>
