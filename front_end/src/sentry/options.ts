@@ -4,8 +4,10 @@ import type {
   VercelEdgeOptions,
 } from "@sentry/nextjs";
 
+import { getPublicSetting } from "@/components/public_settings_script";
 import {
   beforeSentryAlertSend,
+  SENTRY_DENY_URLS,
   SENTRY_IGNORE_ERRORS,
 } from "@/utils/core/errors";
 
@@ -13,7 +15,8 @@ export function buildSentryOptions<
   T extends BrowserOptions | NodeOptions | VercelEdgeOptions,
 >(dsn?: string): T {
   return {
-    environment: process.env.METACULUS_ENV,
+    environment:
+      process.env.METACULUS_ENV || getPublicSetting("PUBLIC_METACULUS_ENV"),
     dsn,
     tracesSampler: (ctx) => {
       const name = ctx.name;
@@ -27,7 +30,8 @@ export function buildSentryOptions<
 
       return 0.1;
     },
-    ignoreErrors: SENTRY_IGNORE_ERRORS as (string | RegExp)[],
+    ignoreErrors: SENTRY_IGNORE_ERRORS,
+    denyUrls: SENTRY_DENY_URLS,
     beforeSend: beforeSentryAlertSend,
   } as T;
 }

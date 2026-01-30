@@ -5,6 +5,7 @@ import numpy as np
 
 from questions.constants import UnsuccessfulResolutionType
 from questions.models import Question
+from questions.services.multiple_choice_handlers import get_all_options_from_history
 from utils.typing import ForecastValues
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,8 @@ def string_location_to_scaled_location(
     if question.type == Question.QuestionType.BINARY:
         return 1.0 if string_location == "yes" else 0.0
     if question.type == Question.QuestionType.MULTIPLE_CHOICE:
-        return float(question.options.index(string_location))
+        list_of_all_options = get_all_options_from_history(question.options_history)
+        return float(list_of_all_options.index(string_location))
     # continuous
     if string_location == "below_lower_bound":
         return question.range_min - 1.0
@@ -51,7 +53,8 @@ def scaled_location_to_string_location(
     if question.type == Question.QuestionType.BINARY:
         return "yes" if scaled_location > 0.5 else "no"
     if question.type == Question.QuestionType.MULTIPLE_CHOICE:
-        return question.options[int(scaled_location)]
+        list_of_all_options = get_all_options_from_history(question.options_history)
+        return list_of_all_options[int(scaled_location)]
     # continuous
     if scaled_location < question.range_min:
         return "below_lower_bound"

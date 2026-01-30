@@ -1,23 +1,24 @@
 import requests
-
 from django.conf import settings
+from django.contrib.auth.password_validation import validate_password
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
+from django.db import IntegrityError
 from django.db.models import Q, Case, When, IntegerField
 from django.utils.crypto import get_random_string
 from rest_framework.exceptions import ValidationError
-from django.db import IntegrityError
 
+from authentication.jwt_session import revoke_all_user_tokens
 from notifications.constants import MailingTags
 from posts.services.subscriptions import (
     disable_global_cp_reminders,
     enable_global_cp_reminders,
 )
-from users.models import User, UserCampaignRegistration
-from utils.email import send_email_with_template
-from utils.frontend import build_frontend_email_change_url
 from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
+from users.models import User, UserCampaignRegistration
 from users.serializers import UserPrivateSerializer
+from utils.email import send_email_with_template
+from utils.frontend import build_frontend_email_change_url
 
 
 def get_users(
@@ -62,6 +63,18 @@ def get_users_by_usernames(usernames: list[str]) -> list[User]:
             raise ValidationError(f"User {username} does not exist")
 
     return users
+
+
+def change_user_password(user: User, new_password: str) -> None:
+    """
+    Change user's password and revoke all existing tokens.
+    """
+    validate_password(new_password, user=user)
+
+    user.set_password(new_password)
+    user.save()
+
+    revoke_all_user_tokens(user)
 
 
 def user_unsubscribe_tags(user: User, tags: list[str]) -> None:
@@ -111,7 +124,7 @@ def change_email_from_token(user: User, token: str):
         raise ValidationError("Invalid token")
 
     if user.id != user_id:
-        raise ValidationError("User missmatch")
+        raise ValidationError("User mismatch")
 
     if User.objects.filter(email__iexact=new_email).exists():
         raise ValidationError("The email is already in use")
@@ -119,6 +132,8 @@ def change_email_from_token(user: User, token: str):
     user = User.objects.get(id=user_id)
     user.email = new_email
     user.save()
+
+    revoke_all_user_tokens(user)
 
 
 def send_email_change_confirmation_email(user: User, new_email: str):
@@ -141,7 +156,6 @@ def send_email_change_confirmation_email(user: User, new_email: str):
 def register_user_to_campaign(
     user: User, campaign_key: str, campaign_data: dict, project: Project
 ):
-
     try:
         UserCampaignRegistration.objects.create(
             user=user, key=campaign_key, details=campaign_data

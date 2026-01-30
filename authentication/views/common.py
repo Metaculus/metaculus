@@ -2,18 +2,24 @@ import logging
 
 from django.conf import settings
 from django.contrib.auth import authenticate
-from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import status, serializers
-from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 from authentication.backends import AuthLoginBackend
+from authentication.jwt_session import (
+    refresh_tokens_with_grace_period,
+    revoke_session,
+    SessionAccessToken,
+)
+from authentication.models import ApiKey
 from authentication.serializers import (
     SignupSerializer,
     ConfirmationTokenSerializer,
@@ -25,12 +31,13 @@ from authentication.services import (
     send_password_reset_email,
     check_password_reset,
     SignupInviteService,
+    get_tokens_for_user,
 )
 from projects.models import ProjectUserPermission
 from projects.permissions import ObjectPermission
 from users.models import User
 from users.serializers import UserPrivateSerializer, validate_username
-from users.services.common import register_user_to_campaign
+from users.services.common import register_user_to_campaign, change_user_password
 from utils.cloudflare import validate_turnstile_from_request
 
 logger = logging.getLogger(__name__)
@@ -49,7 +56,12 @@ def login_api_view(request):
     # their account, and also to re-send their activation email
     user = AuthLoginBackend.find_user(login)
 
-    if user and not user.is_active and user.check_password(password):
+    if (
+        user
+        and not user.is_active
+        and not user.last_login
+        and user.check_password(password)
+    ):
         send_activation_email(user, None)
         raise ValidationError({"user_state": "inactive"})
 
@@ -57,9 +69,9 @@ def login_api_view(request):
     if not user:
         raise ValidationError({"password": ["incorrect login / password"]})
 
-    token, _ = Token.objects.get_or_create(user=user)
+    tokens = get_tokens_for_user(user)
 
-    return Response({"token": token.key, "user": UserPrivateSerializer(user).data})
+    return Response({"tokens": tokens, "user": UserPrivateSerializer(user).data})
 
 
 @api_view(["POST"])
@@ -115,13 +127,12 @@ def signup_api_view(request):
             )
 
         is_active = user.is_active
-        token = None
+        tokens = None
 
         if is_active:
             # We need to treat this as login action, so we should call `authenticate` service as well
             user = authenticate(login=email, password=password)
-            token_obj, _ = Token.objects.get_or_create(user=user)
-            token = token_obj.key
+            tokens = get_tokens_for_user(user)
 
     if not is_active:
         send_activation_email(user, redirect_url)
@@ -132,8 +143,8 @@ def signup_api_view(request):
     return Response(
         {
             "is_active": is_active,
-            "token": token,
             "user": UserPrivateSerializer(user).data,
+            "tokens": tokens,
         },
         status=status.HTTP_201_CREATED,
     )
@@ -164,14 +175,13 @@ def signup_simplified_api_view(request):
         last_login=timezone.now(),
     )
 
-    token_obj, _ = Token.objects.get_or_create(user=user)
-    token = token_obj.key
+    tokens = get_tokens_for_user(user)
 
     return Response(
         {
             "is_active": user.is_active,
-            "token": token,
             "user": UserPrivateSerializer(user).data,
+            "tokens": tokens,
         },
         status=status.HTTP_201_CREATED,
     )
@@ -205,9 +215,9 @@ def signup_activate_api_view(request):
     token = serializer.validated_data["token"]
 
     user = check_and_activate_user(user_id, token)
-    token, _ = Token.objects.get_or_create(user=user)
+    tokens = get_tokens_for_user(user)
 
-    return Response({"token": token.key, "user": UserPrivateSerializer(user).data})
+    return Response({"tokens": tokens, "user": UserPrivateSerializer(user).data})
 
 
 @api_view(["GET"])
@@ -243,14 +253,11 @@ def password_reset_confirm_api_view(request):
 
     if request.method == "POST":
         password = serializers.CharField().run_validation(request.data.get("password"))
-        validate_password(password=password)
+        change_user_password(user, password)
 
-        user.set_password(password)
-        user.save()
+        tokens = get_tokens_for_user(user)
 
-        token, _ = Token.objects.get_or_create(user=user)
-
-        return Response({"token": token.key, "user": UserPrivateSerializer(user).data})
+        return Response({"tokens": tokens, "user": UserPrivateSerializer(user).data})
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -264,5 +271,92 @@ def invite_user_api_view(request):
 
     for email in emails:
         SignupInviteService().send_email(request.user, email)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["GET"])
+def api_key_api_view(request):
+    """Get the API key for the authenticated user if it exists."""
+    try:
+        api_key = ApiKey.objects.get(user=request.user)
+        return Response({"key": api_key.key})
+    except ApiKey.DoesNotExist:
+        return Response({"key": None})
+
+
+@api_view(["POST"])
+def api_key_rotate_api_view(request):
+    """Create or rotate the API key for the authenticated user."""
+    ApiKey.objects.filter(user=request.user).delete()
+    api_key = ApiKey.objects.create(user=request.user)
+
+    return Response({"key": api_key.key}, status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def exchange_legacy_token_api_view(request):
+    """
+    Exchange a legacy DRF auth token for new JWT tokens.
+
+    DEPRECATED: This endpoint exists only for backward compatibility during
+    the migration period. It should be removed after the grace period (30 days).
+    """
+    token = serializers.CharField().run_validation(request.data.get("token"))
+
+    try:
+        token_obj = ApiKey.objects.get(key=token)
+    except ApiKey.DoesNotExist:
+        raise ValidationError({"token": ["Invalid token"]})
+
+    user = token_obj.user
+    if not user.is_active:
+        raise ValidationError({"token": ["User account is inactive"]})
+
+    tokens = get_tokens_for_user(user)
+
+    return Response({"tokens": tokens})
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def token_refresh_api_view(request):
+    """
+    Custom token refresh endpoint with:
+    1. Grace period deduplication for concurrent requests
+    2. Timestamp-based token invalidation
+    """
+
+    refresh_token = request.data.get("refresh")
+    if not refresh_token:
+        raise ValidationError({"refresh": ["This field is required."]})
+
+    try:
+        tokens = refresh_tokens_with_grace_period(refresh_token)
+    except TokenError as e:
+        raise InvalidToken(e.args[0]) from e
+
+    return Response(tokens)
+
+
+@api_view(["POST"])
+def logout_api_view(request):
+    """
+    Logout endpoint that revokes the current session.
+    Accepts the access token in Authorization header to extract session_id.
+    """
+
+    jwt_auth = JWTAuthentication()
+    header = jwt_auth.get_header(request)
+
+    if header:
+        raw_token = jwt_auth.get_raw_token(header)
+
+        if raw_token:
+            token = SessionAccessToken(raw_token)
+            session_id = token.get("session_id")
+            if session_id:
+                revoke_session(session_id)
 
     return Response(status=status.HTTP_204_NO_CONTENT)

@@ -9,7 +9,7 @@ from django_better_admin_arrayfield.models.fields import ArrayField
 from sql_util.aggregates import SubqueryAggregate
 
 from questions.constants import QuestionStatus
-from questions.types import AggregationMethod
+from questions.types import AggregationMethod, OptionsHistoryType
 from scoring.constants import ScoreTypes
 from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel
@@ -21,6 +21,27 @@ if TYPE_CHECKING:
 DEFAULT_INBOUND_OUTCOME_COUNT = 200
 
 
+def validate_options_history(value):
+    # Expect: [ (float, [str, ...]), ... ] or equivalent
+    if not isinstance(value, list):
+        raise ValidationError("Must be a list.")
+    for i, item in enumerate(value):
+        if (
+            not isinstance(item, (list, tuple))
+            or len(item) != 2
+            or not isinstance(item[0], str)
+            or not isinstance(item[1], list)
+            or not all(isinstance(s, str) for s in item[1])
+        ):
+            raise ValidationError(f"Bad item at index {i}: {item!r}")
+        try:
+            datetime.fromisoformat(item[0])
+        except ValueError:
+            raise ValidationError(
+                f"Bad datetime format at index {i}: {item[0]!r}, must be isoformat string"
+            )
+
+
 class QuestionQuerySet(QuerySet):
     def annotate_forecasts_count(self):
         return self.annotate(
@@ -28,12 +49,7 @@ class QuestionQuerySet(QuerySet):
         )
 
     def filter_public(self):
-        return self.filter(
-            related_posts__post__default_project__default_permission__isnull=False
-        )
-
-    def prefetch_related_post(self):
-        return self.prefetch_related("related_posts__post")
+        return self.filter(post__default_project__default_permission__isnull=False)
 
 
 class QuestionManager(models.Manager.from_queryset(QuestionQuerySet)):
@@ -49,6 +65,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     archived_scores: QuerySet["ArchivedScore"]
     id: int
     group_id: int | None
+    post_id: int | None
 
     # Annotated fields
     forecasts_count: int = 0
@@ -176,7 +193,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         null=True,
         blank=True,
         help_text="""For Continuous only. NOT for Discrete.
-        If logaritmically scaled, the value of the zero point.""",
+        If logarithmically scaled, the value of the zero point.""",
     )
     open_upper_bound = models.BooleanField(
         null=True,
@@ -198,11 +215,35 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     )
     unit = models.CharField(max_length=25, blank=True)
 
-    # list of multiple choice option labels
-    options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
+    # multiple choice fields
+    options: list[str] | None = ArrayField(
+        models.CharField(max_length=200), blank=True, null=True
+    )
+    options_history: OptionsHistoryType | None = models.JSONField(
+        null=True,
+        blank=True,
+        validators=[validate_options_history],
+        help_text="""For Multiple Choice only.
+        <br>list of tuples: (isoformat_datetime, options_list). (json stores them as lists)
+        <br>Records the history of options over time.
+        <br>Initialized with (datetime.min.isoformat(), self.options) upon question creation.
+        <br>Updated whenever options are changed.""",
+    )
 
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
+
+    # Post relation (canonical ownership - every question belongs to exactly one post)
+    post = models.ForeignKey(
+        "posts.Post",
+        null=True,  # Temporarily nullable for migration; should always be set
+        # TODO: check if it's still possible to create a question
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="questions",
+        editable=False,
+        help_text="The post this question belongs to. Set automatically.",
+    )
 
     # Group
     group_variable = models.CharField(blank=True, null=False)
@@ -271,24 +312,16 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
             self.zero_point = None
         if self.type != self.QuestionType.MULTIPLE_CHOICE:
             self.options = None
+        if self.type == self.QuestionType.MULTIPLE_CHOICE and not self.options_history:
+            # initialize options history on first save
+            self.options_history = [(datetime.min.isoformat(), self.options or [])]
 
         return super().save(**kwargs)
 
-    def _get_post_rel(self):
-        rels = self.related_posts.all()
-
-        if len(rels) == 0:
-            return None
-        if len(rels) == 1:
-            return rels[0]
-        if len(rels) > 1:
-            raise ValueError(f"Question {self.id} has more than one post: {rels}")
-
     def get_post(self) -> "Post | None":
-        return getattr(self._get_post_rel(), "post", None)
-
-    def get_post_id(self):
-        return getattr(self._get_post_rel(), "post_id", None)
+        """Get the post this question belongs to."""
+        if self.post_id:
+            return self.post
 
     @property
     def status(self) -> QuestionStatus:
@@ -387,6 +420,32 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
                 ).filter_within_question_period()
             )
         )
+
+    class Meta:
+        indexes = [
+            # Partial indexes for question-level status filtering in feed queries
+            # Used by Exists() subqueries in get_posts_feed()
+            models.Index(
+                fields=["post"],
+                name="idx_question_post_unresolved",
+                condition=Q(resolution__isnull=True),
+            ),
+            models.Index(
+                fields=["post"],
+                name="idx_question_post_resolved",
+                condition=Q(resolution__isnull=False),
+            ),
+            models.Index(
+                fields=["post", "scheduled_close_time"],
+                name="idx_question_post_close_time",
+                condition=Q(resolution__isnull=True),
+            ),
+            models.Index(
+                fields=["post", "scheduled_resolve_time"],
+                name="idx_question_post_resolve_time",
+                condition=Q(resolution__isnull=True),
+            ),
+        ]
 
 
 QUESTION_CONTINUOUS_TYPES = [
@@ -525,7 +584,7 @@ class Forecast(models.Model):
 
     # times
     start_time = models.DateTimeField(
-        help_text="Begining time when this prediction is active",
+        help_text="Beginning time when this prediction is active",
         db_index=True,
     )
     end_time = models.DateTimeField(
@@ -570,8 +629,11 @@ class Forecast(models.Model):
     )
 
     class SourceChoices(models.TextChoices):
-        API = "api"
-        UI = "ui"
+        API = "api"  # made via the api
+        UI = "ui"  # made using the api
+        # an automatically assigned forecast
+        # usually this means a regular forecast was split
+        AUTOMATIC = "automatic"
 
     # logging the source of the forecast for data purposes
     source = models.CharField(
@@ -580,6 +642,7 @@ class Forecast(models.Model):
         null=True,
         choices=SourceChoices.choices,
         default="",
+        db_index=True,
     )
 
     distribution_input = models.JSONField(
@@ -621,15 +684,17 @@ class Forecast(models.Model):
             return self.probability_yes_per_category
         return self.continuous_cdf
 
-    def get_pmf(self) -> list[float]:
+    def get_pmf(self, replace_none: bool = False) -> list[float]:
         """
-        gets the PMF for this forecast, replacing None values with 0.0
-        Not for serialization use (keep None values in that case)
+        gets the PMF for this forecast
+        replaces None values with 0.0 if replace_none is True
         """
         # TODO: return a numpy array with NaNs instead of 0.0s
         if self.probability_yes:
             return [1 - self.probability_yes, self.probability_yes]
         if self.probability_yes_per_category:
+            if not replace_none:
+                return self.probability_yes_per_category
             return [
                 v or 0.0 for v in self.probability_yes_per_category
             ]  # replace None with 0.0
@@ -704,19 +769,21 @@ class AggregateForecast(models.Model):
             return self.forecast_values
         return None
 
-    def get_pmf(self) -> list[float]:
+    def get_pmf(self, replace_none: bool = False) -> list[float | None]:
         """
-        gets the PMF for this forecast, replacing None values with 0.0
-        Not for serialization use (keep None values in that case)
+        gets the PMF for this forecast
+        replacing None values with 0.0 if replace_none is True
         """
         # TODO: return a numpy array with NaNs instead of 0.0s
         # grab annotation if it exists for efficiency
         question_type = getattr(self, "question_type", self.question.type)
-        forecast_values = [
-            v or 0.0 for v in self.forecast_values
-        ]  # replace None with 0.0
+        forecast_values = self.forecast_values
+        if question_type == Question.QuestionType.MULTIPLE_CHOICE:
+            if not replace_none:
+                return forecast_values
+            return [v or 0.0 for v in forecast_values]  # replace None with 0.0
         if question_type in QUESTION_CONTINUOUS_TYPES:
-            cdf: list[float] = forecast_values
+            cdf: list[float] = forecast_values  # type: ignore
             pmf = [cdf[0]]
             for i in range(1, len(cdf)):
                 pmf.append(cdf[i] - cdf[i - 1])
@@ -726,23 +793,6 @@ class AggregateForecast(models.Model):
 
     def get_prediction_values(self) -> list[float | None]:
         return self.forecast_values
-
-
-class QuestionPost(models.Model):
-    """
-    Postgres View of Post<>Question relations
-    """
-
-    post = models.ForeignKey(
-        "posts.Post", related_name="related_questions", on_delete=models.DO_NOTHING
-    )
-    question = models.ForeignKey(
-        Question, related_name="related_posts", on_delete=models.DO_NOTHING
-    )
-
-    class Meta:
-        managed = False
-        db_table = "questions_question_post"
 
 
 class UserForecastNotification(models.Model):

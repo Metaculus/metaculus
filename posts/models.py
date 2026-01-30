@@ -92,12 +92,6 @@ class PostQuerySet(models.QuerySet):
             "conditional__question_no",
         )
 
-    def prefetch_condition_post(self):
-        return self.prefetch_related(
-            "conditional__condition__related_posts__post",
-            "conditional__condition_child__related_posts__post",
-        )
-
     def prefetch_questions_scores(self):
         question_relations = [
             "question",
@@ -163,6 +157,36 @@ class PostQuerySet(models.QuerySet):
         return self.annotate(
             user_last_forecasts_date=Coalesce(
                 Subquery(last_forecast_date_subquery), Value(None)
+            )
+        )
+
+    def filter_user_has_not_forecasted(self, author_id: int):
+        """
+        Filter to posts where user has NOT forecasted.
+        Uses NOT EXISTS which is more efficient than annotate + filter IS NULL.
+        """
+        return self.filter(
+            ~Exists(
+                PostUserSnapshot.objects.filter(
+                    user_id=author_id,
+                    post_id=OuterRef("pk"),
+                    last_forecast_date__isnull=False,
+                )
+            )
+        )
+
+    def filter_user_has_forecasted(self, author_id: int):
+        """
+        Filter to posts where user HAS forecasted.
+        Uses EXISTS which is more efficient than annotate + filter IS NOT NULL.
+        """
+        return self.filter(
+            Exists(
+                PostUserSnapshot.objects.filter(
+                    user_id=author_id,
+                    post_id=OuterRef("pk"),
+                    last_forecast_date__isnull=False,
+                )
             )
         )
 
@@ -500,7 +524,9 @@ class Notebook(TranslatedModel):
 
     markdown = models.TextField()
     image_url = models.ImageField(null=True, blank=True, upload_to="user_uploaded")
-    markdown_summary = models.TextField(blank=True, default="")
+    feed_tile_summary = models.TextField(
+        blank=True, default="", help_text="Summary text displayed on feed tiles"
+    )
 
     # Indicates whether we triggered "handle_post_open" event
     # And guarantees idempotency of "on post open" evens
@@ -773,8 +799,9 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
 
     # Relations
     # TODO: add db constraint to have only one not-null value of these fields
+    # Note: related_name="+" disables reverse accessor since Question.post FK is now canonical
     question = models.OneToOneField(
-        Question, models.CASCADE, related_name="post", null=True, blank=True
+        Question, models.CASCADE, related_name="+", null=True, blank=True
     )
     conditional = models.OneToOneField(
         Conditional, models.CASCADE, related_name="post", null=True, blank=True
@@ -813,7 +840,11 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         Update forecasts count cache
         """
 
-        self.forecasts_count = self.forecasts.filter_within_question_period().count()
+        self.forecasts_count = (
+            self.forecasts.filter_within_question_period()
+            .exclude(source=Forecast.SourceChoices.AUTOMATIC)
+            .count()
+        )
         self.save(update_fields=["forecasts_count"])
 
     def update_forecasters_count(self):
@@ -840,6 +871,26 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        # Sync the Question.post FK only when creating a new post
+        if is_new:
+            self.sync_question_post_fk()
+
+    def sync_question_post_fk(self):
+        """Ensure all questions associated with this post have their post FK set."""
+        questions_to_update = []
+
+        for q in self.get_questions():
+            if q.post_id != self.pk:
+                q.post_id = self.pk
+                questions_to_update.append(q)
+
+        if questions_to_update:
+            Question.objects.bulk_update(questions_to_update, ["post_id"])
 
     def update_curation_status(self, status: CurationStatus):
         self.curation_status = status

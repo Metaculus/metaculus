@@ -9,9 +9,7 @@ import { useTranslations } from "next-intl";
 import { FC, ReactNode } from "react";
 
 import NavUserButton from "@/components/auth";
-import LanguageMenu from "@/components/language_menu";
 import NavLink from "@/components/nav_link";
-import ThemeToggle from "@/components/theme_toggle";
 import { useAuth } from "@/contexts/auth_context";
 import cn from "@/utils/core/cn";
 import { isPathEqual } from "@/utils/navigation";
@@ -33,28 +31,26 @@ const Header: FC = () => {
   return (
     <>
       <header className="fixed left-0 top-0 z-[200] flex h-header w-full flex-auto items-stretch justify-between bg-blue-900 text-gray-0">
-        <NavbarLogo />
+        <div className="flex items-stretch justify-between">
+          <NavbarLogo className="mr-1 lg:mr-5" />
 
-        {/* Global Search */}
-        <GlobalSearch />
+          {/* Regular links */}
+          <NavbarLinks links={lgLinks} className="hidden lg:flex" />
+          <NavbarLinks
+            links={smLinks}
+            className="hidden justify-start min-[512px]:max-lg:flex md:justify-end"
+          />
+          <NavbarLinks
+            links={xsLinks}
+            className="hidden justify-start min-[375px]:max-[511px]:flex"
+          />
+          <NavbarLinks
+            links={xxsLinks}
+            className="hidden justify-start max-[374px]:flex"
+          />
 
-        {/* Regular links */}
-        <NavbarLinks links={lgLinks} className="hidden lg:flex" />
-        <NavbarLinks
-          links={smLinks}
-          className="hidden justify-start min-[512px]:max-lg:flex md:justify-end"
-        />
-        <NavbarLinks
-          links={xsLinks}
-          className="hidden justify-start min-[375px]:max-[511px]:flex"
-        />
-        <NavbarLinks
-          links={xxsLinks}
-          className="hidden justify-start max-[374px]:flex"
-        />
-
-        <ul className="relative hidden list-none items-center justify-end text-sm font-medium md:flex">
-          <li className="h-full">
+          {/* The More menu */}
+          <div className="hidden h-full justify-start text-sm font-medium md:block">
             <Menu>
               <MenuButton
                 className={cn(
@@ -83,35 +79,38 @@ const Header: FC = () => {
                 ))}
               </MenuItems>
             </Menu>
-          </li>
-          {!!user && (
-            <li className="hidden h-full lg:block">
-              <NavLink
-                href={LINKS.createQuestion.href}
-                className="group relative flex h-full items-center p-3 no-underline hover:bg-blue-700"
-              >
-                {LINKS.createQuestion.label}
-              </NavLink>
-            </li>
-          )}
-          <li className="z-10 flex h-full items-center justify-center">
-            <NavUserButton />
-          </li>
-          <li className="z-10 flex h-full items-center p-2 hover:bg-blue-700">
-            <LanguageMenu />
-          </li>
-          <li className="z-10 flex items-center p-4">
-            <ThemeToggle />
-          </li>
-        </ul>
-
-        {!user && (
-          <div className="text-sm md:hidden">
-            <NavUserButton />
           </div>
-        )}
+        </div>
 
-        <MobileMenu />
+        {/* Right-side items wrapper */}
+        <div className="ml-auto flex items-stretch">
+          {/* Global Search */}
+          <GlobalSearch />
+
+          <ul className="relative hidden list-none items-center justify-end text-sm font-medium md:flex">
+            {!!user && (
+              <li className="hidden h-full lg:block">
+                <NavLink
+                  href={LINKS.createQuestion.href}
+                  className="group relative flex h-full items-center p-3 no-underline hover:bg-blue-700"
+                >
+                  {LINKS.createQuestion.label}
+                </NavLink>
+              </li>
+            )}
+            <li className="z-10 flex h-full items-center justify-center">
+              <NavUserButton />
+            </li>
+          </ul>
+
+          {!user && (
+            <div className="text-sm md:hidden">
+              <NavUserButton />
+            </div>
+          )}
+
+          <MobileMenu />
+        </div>
       </header>
       <ContentTranslatedBanner />
     </>

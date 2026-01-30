@@ -177,7 +177,7 @@ const useNavbarLinks = ({
       LINKS.leaderboards,
       LINKS.trackRecord,
       LINKS.aggregationExplorer,
-      LINKS.aiBenchmark,
+      ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.aiBenchmark]),
     ];
 
     // create question link is moved from navbar to desktop menu
@@ -214,7 +214,7 @@ const useNavbarLinks = ({
   ]);
 
   const mobileMenuLinks = useMemo(() => {
-    const links: MobileMenuItemDefinition[] = [
+    const mainLinks: MobileMenuItemDefinition[] = [
       ...(!isNil(community)
         ? [
             { href: null, label: t("community"), isTitle: true },
@@ -239,25 +239,14 @@ const useNavbarLinks = ({
             LINKS.trackRecord,
             LINKS.journal,
             LINKS.aggregationExplorer,
-            LINKS.aiBenchmark,
+            ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.aiBenchmark]),
           ]),
     ];
 
+    let accountLinks: MobileMenuItemDefinition[] = [];
+
     if (isLoggedIn) {
-      const accountLinks: MobileMenuItemDefinition[] = [
-        !isNil(community)
-          ? {
-              href: `/questions/create/?community_id=${community.id}`,
-              label: (
-                <>
-                  <FontAwesomeIcon size="1x" className="mr-1" icon={faPlus} />
-                  {t("createQuestion")}
-                </>
-              ),
-              className:
-                "mx-auto flex !w-[max-content] items-center rounded-full bg-blue-300-dark !px-2.5 !py-1 text-sm capitalize no-underline hover:bg-blue-200-dark",
-            }
-          : LINKS.createQuestion,
+      accountLinks = [
         { href: null, label: t("account"), isTitle: true },
         { href: `/accounts/profile/${user.id}`, label: t("profile") },
         { href: "/accounts/settings/", label: t("settings") },
@@ -288,10 +277,9 @@ const useNavbarLinks = ({
           : []),
         { href: null, label: t("logout"), onClick: () => void LogOut() },
       ];
-
-      links.push(...accountLinks);
     } else {
-      links.push(
+      // For logged out users, add account links to main links (they're conditionally hidden)
+      mainLinks.push(
         {
           href: null,
           label: t("account"),
@@ -307,7 +295,7 @@ const useNavbarLinks = ({
       );
     }
 
-    return links;
+    return { mainLinks, accountLinks };
   }, [
     LINKS.about,
     LINKS.services,
@@ -323,13 +311,14 @@ const useNavbarLinks = ({
     LINKS.tournaments,
     PUBLIC_ALLOW_SIGNUP,
     PUBLIC_ALLOW_TUTORIAL,
+    PUBLIC_MINIMAL_UI,
     user,
     isLoggedIn,
     setCurrentModal,
     t,
     community,
   ]);
-  return { navbarLinks, menuLinks, LINKS, mobileMenuLinks };
+  return { navbarLinks, menuLinks, LINKS, mobileMenuLinks, isLoggedIn };
 };
 
 export default useNavbarLinks;

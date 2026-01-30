@@ -40,6 +40,7 @@ class CommentAdmin(CustomTranslationAdmin):
     autocomplete_fields = [
         "author",
         "on_post",
+        "on_project",
     ]
     readonly_fields = ["included_forecast"]
     fields = [

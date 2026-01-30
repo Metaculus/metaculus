@@ -73,10 +73,10 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
   };
 
   const visibilityClass = isMobile
-    ? "flex xl:hidden"
+    ? "flex md:hidden"
     : isHidden
       ? "hidden"
-      : "hidden xl:flex";
+      : "hidden md:flex";
 
   return (
     <div
@@ -93,7 +93,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
         onSubmit={handleSearchSubmit}
         placeholder={t("questionSearchPlaceholder")}
         size="base"
-        className="w-full min-w-[290px]"
+        className="w-full min-w-[220px]"
         inputClassName={cn(
           "text-white",
           "bg-blue-800 dark:bg-blue-800 hover:bg-blue-600 dark:hover:bg-blue-600 focus:bg-blue-900 dark:focus:bg-blue-900",

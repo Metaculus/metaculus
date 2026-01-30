@@ -8,7 +8,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
 from django.db.models import QuerySet
 from django.utils import timezone
-from rest_framework.authtoken.models import Token
+from authentication.models import ApiKey
 from social_django.models import UserSocialAuth
 
 from utils.models import TimeStampedModel
@@ -142,6 +142,13 @@ class User(TimeStampedModel, AbstractUser):
         help_text="The human owner of the bot. This property can only be changed for bot users.",
     )
 
+    # Token revocation - all tokens issued before this timestamp are invalid
+    auth_revoked_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="All JWT tokens issued before this timestamp are invalid. Set on password change or 'log out everywhere'.",
+    )
+
     objects: models.Manager["User"] = UserManager()
 
     class Meta:
@@ -248,7 +255,7 @@ class User(TimeStampedModel, AbstractUser):
         # don't touch public comments
 
         # Token
-        Token.objects.filter(user=self).delete()
+        ApiKey.objects.filter(user=self).delete()
 
         # Social Auth login credentials
         UserSocialAuth.objects.filter(user=self).delete()

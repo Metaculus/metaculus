@@ -1,0 +1,146 @@
+# NEW WORKFLOW - Testing phase
+# This replaces deploy_prod.yml with improved features:
+# - Migration detection for smart preboot toggle
+# - Shared Docker build workflow for better caching and consistency
+#
+# TODO: Once validated, deprecate and delete deploy_prod.yml
+
+name: Deploy PRODUCTION (v2)
+
+run-name: 🚀 Deploy to PRODUCTION by @${{ github.actor }}
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  deployments: write
+
+jobs:
+  # Check for migrations to determine preboot setting
+  check-migrations:
+    runs-on: ubuntu-24.04
+    outputs:
+      has_migrations: ${{ steps.check.outputs.has_migrations }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Check for migrations since last deployment
+        id: check
+        run: |
+          ./scripts/check_migrations_since_deploy.sh \
+            "${{ github.repository_owner }}" \
+            "${{ github.event.repository.name }}" \
+            "prod_env" \
+            "${{ github.sha }}" \
+            "${{ github.ref_name }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Build Docker image using shared workflow
+  build:
+    uses: ./.github/workflows/docker_build.yml
+    with:
+      # Production gets latest tag (SHA tag is always included)
+      include_latest_tag: true
+      heroku_app: metaculus-web
+    secrets: inherit
+
+  # Deploy to Heroku
+  deploy:
+    needs: [check-migrations, build]
+    runs-on: ubuntu-24.04
+    environment: prod_env
+    env:
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      HEROKU_APP: metaculus-web
+
+    steps:
+      - name: Install Heroku CLI
+        run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
+
+      - name: Configure preboot based on migration status
+        run: |
+          CURRENT_PREBOOT=$(heroku features:info preboot -a ${{ env.HEROKU_APP }} --json | jq -r '.enabled') || CURRENT_PREBOOT="unknown"
+          
+          if [ "${{ needs.check-migrations.outputs.has_migrations }}" == "true" ]; then
+            echo "🗄️ Migrations detected - disabling preboot to ensure migrations run before new code"
+            if [ "$CURRENT_PREBOOT" == "false" ]; then
+              echo "Preboot already disabled, skipping"
+            else
+              heroku features:disable preboot -a ${{ env.HEROKU_APP }}
+            fi
+          else
+            echo "✅ No migrations - enabling preboot for zero-downtime deployment"
+            if [ "$CURRENT_PREBOOT" == "true" ]; then
+              echo "Preboot already enabled, skipping"
+            else
+              heroku features:enable preboot -a ${{ env.HEROKU_APP }}
+            fi
+          fi
+
+      - name: Checkout scripts
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: scripts
+          sparse-checkout-cone-mode: false
+
+      - name: Deploy to Heroku
+        run: |
+          heroku container:release ${{ needs.build.outputs.heroku_targets }} -a ${{ env.HEROKU_APP }}
+
+      - name: Wait for release to complete
+        run: ./scripts/wait_for_heroku_release.sh "${{ env.HEROKU_APP }}" 90
+
+      - name: "Cloudflare: Purge cache"
+        run: |
+          RESPONSE=$(curl -s -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}')
+
+          if [ "$(echo "$RESPONSE" | jq -r '.success')" != "true" ]; then
+            echo "::warning::Cloudflare cache purge failed: $RESPONSE"
+            exit 0  # Don't fail the workflow
+          fi
+
+          echo "✅ Cloudflare cache purged successfully"
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Sentry: Upload sourcemaps"
+        run: |
+          docker run \
+            -w /app/front_end \
+            -e SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} \
+            ${{ needs.build.outputs.image_url }} \
+            npx sentry-cli sourcemaps upload /app/front_end/.next/ \
+              --project metaculus-frontend \
+              --org metaculus
+
+      - name: Disable preboot (reset to safe default)
+        if: always()
+        run: |
+          echo "Disabling preboot to ensure safe state for legacy deployment scripts"
+          CURRENT_PREBOOT=$(heroku features:info preboot -a ${{ env.HEROKU_APP }} --json | jq -r '.enabled') || CURRENT_PREBOOT="unknown"
+          if [ "$CURRENT_PREBOOT" == "false" ]; then
+            echo "Preboot already disabled, skipping"
+          else
+            heroku features:disable preboot -a ${{ env.HEROKU_APP }} || true
+          fi
+
+  # Deploy storybook to Cloudflare Pages
+  deploy-storybook:
+    needs: [deploy]
+    permissions:
+      contents: read
+    uses: ./.github/workflows/storybook.yml
+    secrets: inherit

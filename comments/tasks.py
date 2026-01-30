@@ -92,7 +92,7 @@ def update_current_top_comments_of_week():
 
     # Update the weekly top comments list for the current week and the one before.
     # We update the week before because the top comments scores are based on
-    # commment votes, key factor votes, and change my mind data collected a week
+    # comment votes, key factor votes, and change my mind data collected a week
     # after the comment was created (which is still ongoing)
     today = timezone.now().date()
     week_start_date = _get_week_start_for_date(today)

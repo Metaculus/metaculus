@@ -17,6 +17,7 @@ from questions.models import (
     Forecast,
     QUESTION_CONTINUOUS_TYPES,
 )
+from questions.services.multiple_choice_handlers import get_all_options_from_history
 from questions.types import AggregationMethod
 from scoring.models import Score, ArchivedScore
 from users.models import User
@@ -87,7 +88,7 @@ def export_all_data_for_questions(
         comments = Comment.objects.filter(
             is_private=False,
             is_soft_deleted=False,
-            on_post__in=questions.values_list("related_posts__post", flat=True),
+            on_post__in=questions.values_list("post", flat=True),
         ).order_by("created_at")
     else:
         comments = None
@@ -199,7 +200,7 @@ def export_data_for_questions(
         comments = Comment.objects.filter(
             is_private=False,
             is_soft_deleted=False,
-            on_post__in=questions.values_list("related_posts__post", flat=True),
+            on_post__in=questions.values_list("post", flat=True),
         ).order_by("created_at")
     else:
         comments = None
@@ -235,7 +236,7 @@ def export_data_for_questions(
         key_factors = (
             KeyFactor.objects.filter_active()
             .filter(
-                comment__on_post__related_questions__question_id__in=question_ids,
+                comment__on_post__questions__id__in=question_ids,
                 comment__is_soft_deleted=False,
             )
             .select_related(
@@ -250,7 +251,7 @@ def export_data_for_questions(
         )
         aggregate_question_links = AggregateCoherenceLink.objects.filter(
             Q(question1_id__in=question_ids) | Q(question2_id__in=question_ids)
-        ).prefetch_related("question1__related_posts", "question2__related_posts")
+        ).select_related("question1__post", "question2__post")
     else:
         key_factors = None
         aggregate_question_links = None
@@ -271,9 +272,7 @@ def export_data_for_user(user=User):
     forecasts = Forecast.objects.filter(author=user).select_related("question")
     questions = Question.objects.filter(user_forecasts__in=forecasts).distinct()
     authored_posts = Post.objects.filter(Q(author=user) | Q(coauthors=user)).distinct()
-    authored_questions = Question.objects.filter(
-        related_posts__post__in=authored_posts
-    ).distinct()
+    authored_questions = Question.objects.filter(post__in=authored_posts).distinct()
     comments = Comment.objects.filter(author=user)
     scores = Score.objects.filter(user=user)
 
@@ -311,9 +310,7 @@ def generate_data(
     #     README.md - Always
     username_dict = dict(User.objects.values_list("id", "username"))
     is_bot_dict = dict(User.objects.values_list("id", "is_bot"))
-    questions = questions.prefetch_related(
-        "related_posts__post", "related_posts__post__default_project"
-    )
+    questions = questions.select_related("post", "post__default_project")
     question_ids = questions.values_list("id", flat=True)
     if not question_ids:
         return
@@ -368,7 +365,9 @@ def generate_data(
         + "**`Default Project ID`** - the id of the default project for the Post.\n"
         + "**`Label`** - for a group question, this is the sub-question object.\n"
         + "**`Question Type`** - the type of the question. Binary, Multiple Choice, Numeric, Discrete, or Date.\n"
-        + "**`MC Options`** - the options for a multiple choice question, if applicable.\n"
+        + "**`MC Options (Current)`** - the current options for a multiple choice question, if applicable.\n"
+        + "**`MC Options (All)`** - the options for a multiple choice question across all time, if applicable.\n"
+        + "**`MC Options History`** - the history of options over time. Each entry is a isoformat time and a record of what the options were at that time.\n"
         + "**`Lower Bound`** - the lower bound of the forecasting range for a continuous question.\n"
         + "**`Open Lower Bound`** - whether the lower bound is open.\n"
         + "**`Upper Bound`** - the upper bound of the forecasting range for a continuous question.\n"
@@ -397,7 +396,9 @@ def generate_data(
             "Default Project ID",
             "Label",
             "Question Type",
-            "MC Options",
+            "MC Options (Current)",
+            "MC Options (All)",
+            "MC Options History",
             "Lower Bound",
             "Open Lower Bound",
             "Upper Bound",
@@ -414,7 +415,7 @@ def generate_data(
         ]
     )
     for question in questions:
-        post = question.related_posts.first().post
+        post = question.post
 
         def format_value(val):
             if val is None or question.type != Question.QuestionType.DATE:
@@ -446,7 +447,13 @@ def generate_data(
                 post.default_project_id,
                 question.label,
                 question.type,
-                question.options or None,
+                question.options,
+                (
+                    get_all_options_from_history(question.options_history)
+                    if question.options_history
+                    else None
+                ),
+                question.options_history or None,
                 format_value(question.range_min),
                 question.open_lower_bound,
                 format_value(question.range_max),
@@ -486,7 +493,7 @@ def generate_data(
         + "**`End Time`** - the time when the forecast ends. If not populated, the forecast is still active. Note that this can be set in the future indicating an expiring forecast.\n"
         + "**`Forecaster Count`** - if this is an aggregate forecast, how many forecasts contribute to it.\n"
         + "**`Probability Yes`** - the probability of the binary question resolving to 'Yes'\n"
-        + "**`Probability Yes Per Category`** - a list of probabilities corresponding to each option for a multiple choice question. Cross-reference 'MC Options' in `question_data.csv`.\n"
+        + "**`Probability Yes Per Category`** - a list of probabilities corresponding to each option for a multiple choice question. Cross-reference 'MC Options (All)' in `question_data.csv`. Note that a Multiple Choice forecast will have None in places where the corresponding option wasn't available for forecast at the time.\n"
         + "**`Continuous CDF`** - the value of the CDF (cumulative distribution function) at each of the locations in the continuous range for a continuous question. Cross-reference 'Continuous Range' in `question_data.csv`.\n"
         + "**`Probability Below Lower Bound`** - the probability of the question resolving below the lower bound for a continuous question.\n"
         + "**`Probability Above Upper Bound`** - the probability of the question resolving above the upper bound for a continuous question.\n"
@@ -953,8 +960,8 @@ def generate_data(
         ]
     )
     for link in aggregate_question_links or []:
-        q1_post_id = link.question1.get_post_id()
-        q2_post_id = link.question2.get_post_id()
+        q1_post_id = link.question1.post_id
+        q2_post_id = link.question2.post_id
         question_link_writer.writerow(
             [
                 link.id,

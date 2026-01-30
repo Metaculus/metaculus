@@ -2,6 +2,7 @@ import { CSSProperties } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 export type EmbedTheme = {
+  container: CSSProperties;
   card: CSSProperties;
   predictionChip: CSSProperties;
   chart: VictoryThemeDefinition;
@@ -10,6 +11,9 @@ export type EmbedTheme = {
 
 export const EMBED_THEME: Record<string, EmbedTheme> = {
   "verity-light": {
+    container: {
+      backgroundColor: "#F0F0F0",
+    },
     chart: {
       line: { style: { data: { stroke: "#89BFD1" } } },
       area: { style: { data: { fill: "#89BFD1" } } },
@@ -23,6 +27,9 @@ export const EMBED_THEME: Record<string, EmbedTheme> = {
     },
   },
   "verity-dark": {
+    container: {
+      backgroundColor: "#19191C",
+    },
     chart: {
       line: { style: { data: { stroke: "#89BFD1" } } },
       area: { style: { data: { fill: "#89BFD1" } } },

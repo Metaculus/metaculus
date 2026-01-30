@@ -74,6 +74,10 @@ def update_global_leaderboard_tags(post: Post):
         for p in post.get_related_projects()
         if p.visibility == Project.Visibility.NORMAL
     ):
+        # Remove any existing global leaderboard tags before returning
+        post.projects.set(
+            post.projects.exclude(type=Project.ProjectTypes.LEADERBOARD_TAG)
+        )
         return
 
     # Get all global leaderboard dates and create/get corresponding tags
@@ -293,6 +297,7 @@ def update_post(
 
         update_notebook(post.notebook, **notebook)
 
+    post.sync_question_post_fk()
     post.update_pseudo_materialized_fields()
 
     # Compare the text content before and after the post update for embedding generation

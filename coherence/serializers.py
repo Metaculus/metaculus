@@ -22,6 +22,8 @@ from .utils import (
 
 
 class CoherenceLinkSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+    user_id = serializers.IntegerField(required=False)
     question1_id = serializers.IntegerField(required=True)
     question2_id = serializers.IntegerField(required=True)
     direction = serializers.IntegerField(required=True)
@@ -30,6 +32,8 @@ class CoherenceLinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoherenceLink
         fields = [
+            "id",
+            "user_id",
             "question1_id",
             "question2_id",
             "direction",
@@ -53,8 +57,10 @@ class AggregateCoherenceLinkSerializer(serializers.ModelSerializer):
 
 
 class NeedsUpdateQuerySerializer(serializers.Serializer):
-    datetime = serializers.DateTimeField()
-    user_id_for_links = serializers.IntegerField(required=False, allow_null=True)
+    question_ids = serializers.ListField(
+        child=serializers.IntegerField(), required=True
+    )
+    retrieve_all_data = serializers.BooleanField(required=False, default=False)
 
 
 def serialize_coherence_link(
@@ -73,8 +79,8 @@ def serialize_coherence_link_many(
     links: Iterable[CoherenceLink], serialize_questions: bool = True
 ):
     ids = [link.pk for link in links]
-    qs = CoherenceLink.objects.filter(pk__in=[c.pk for c in links]).prefetch_related(
-        "question1__related_posts", "question2__related_posts"
+    qs = CoherenceLink.objects.filter(pk__in=[c.pk for c in links]).select_related(
+        "question1__post", "question2__post"
     )
 
     objects = list(qs.all())
@@ -137,7 +143,7 @@ def serialize_aggregate_coherence_link_many(
     ids = [link.pk for link in links]
     qs = AggregateCoherenceLink.objects.filter(
         pk__in=[c.pk for c in links]
-    ).prefetch_related("question1__related_posts", "question2__related_posts")
+    ).select_related("question1__post", "question2__post")
 
     if current_user:
         qs = qs.annotate_user_vote(current_user)

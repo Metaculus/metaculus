@@ -82,12 +82,16 @@ const QuestionTile: FC<Props> = ({
           forecastAvailability={forecastAvailability}
           canPredict={canPredict}
           showChart={showChart}
+          minimalistic={minimalistic}
         />
       );
     case QuestionType.MultipleChoice: {
       const visibleChoicesCount = 3;
 
-      const choices = generateChoiceItemsFromMultipleChoiceForecast(question);
+      const choices = generateChoiceItemsFromMultipleChoiceForecast(
+        question,
+        t
+      );
       const userForecasts = generateUserForecastsForMultipleQuestion(question);
       const actualCloseTime = getPostDrivenTime(question.actual_close_time);
       const openTime = getPostDrivenTime(question.open_time);

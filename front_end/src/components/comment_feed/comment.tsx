@@ -285,7 +285,6 @@ const Comment: FC<CommentProps> = ({
 
   const canIncludeForecastInReply = useMemo(() => {
     if (!postData?.question) return false;
-    if (postData.question.type === QuestionType.MultipleChoice) return false;
     const latest = postData.question.my_forecasts?.latest;
     return !!latest && isForecastActive(latest);
   }, [postData]);
@@ -399,10 +398,16 @@ const Comment: FC<CommentProps> = ({
   const isTextEmpty = !commentMarkdown.trim();
   const { setComments } = useCommentsFeed();
   useEffect(() => {
-    if (isTextEmpty && commentKeyFactors.length === 0) {
+    if (isTextEmpty && commentKeyFactors.length === 0 && !isEditing) {
       setComments((prev) => prev.filter((c) => c.id !== comment.id));
     }
-  }, [isTextEmpty, commentKeyFactors.length, comment.id, setComments]);
+  }, [
+    isTextEmpty,
+    commentKeyFactors.length,
+    comment.id,
+    setComments,
+    isEditing,
+  ]);
 
   const canListKeyFactors = !postData?.notebook;
   const questionNotClosed = ![
@@ -1042,6 +1047,7 @@ const Comment: FC<CommentProps> = ({
           }}
           isReplying={isReplying}
           shouldIncludeForecast={canIncludeForecastInReply}
+          userPermission={postData?.user_permission}
         />
       )}
       {isKeyfactorsFormOpen && postData && (

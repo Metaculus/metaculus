@@ -63,7 +63,7 @@ class NotebookSerializer(serializers.ModelSerializer):
             "image_url",
             "created_at",
             "edited_at",
-            "markdown_summary",
+            "feed_tile_summary",
         )
 
 
@@ -118,6 +118,7 @@ class NotebookWriteSerializer(serializers.ModelSerializer):
         model = Notebook
         fields = (
             "markdown",
+            "feed_tile_summary",
             "image_url",
         )
 
@@ -484,8 +485,13 @@ def serialize_post_many(
     qs = (
         qs.annotate_user_permission(user=current_user)
         .prefetch_questions()
-        .prefetch_condition_post()
-        .select_related("default_project__primary_leaderboard", "author", "notebook")
+        .select_related(
+            "conditional__condition__post",
+            "conditional__condition_child__post",
+            "default_project__primary_leaderboard",
+            "author",
+            "notebook",
+        )
         .prefetch_related("coauthors")
     )
 

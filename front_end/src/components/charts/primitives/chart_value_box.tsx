@@ -1,12 +1,12 @@
-"use client";
 import { isNil } from "lodash";
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
 
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import { Resolution } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
+import { resolveToCssColor } from "@/utils/resolve_color";
 
 const TEXT_PADDING = 6;
 const PLACEMENT_OFFSET_VERTICAL = 4;
@@ -168,7 +168,7 @@ const ChartValueBox: FC<{
   isCursorActive: boolean;
   chartWidth: number;
   rightPadding: number;
-  colorOverride?: ThemeColor;
+  colorOverride?: ThemeColor | string;
   getCursorValue?: (value: number) => string;
   resolution?: Resolution | null;
   isDistributionChip?: boolean;
@@ -192,6 +192,13 @@ const ChartValueBox: FC<{
   } = props;
   const CHIP_OFFSET = !isNil(resolution) ? 8 : 0;
 
+  const displayText = useMemo(() => {
+    if (!!resolution && !isCursorActive) return String(resolution);
+    const v = datum?.y;
+    if (typeof v !== "number") return "";
+    return getCursorValue ? getCursorValue(v) : v.toFixed(1);
+  }, [resolution, isCursorActive, datum?.y, getCursorValue]);
+
   const [textWidth, setTextWidth] = useState(0);
   const textRef = useRef<SVGTextElement>(null);
   const placement = datum?.placement ?? "in";
@@ -199,11 +206,9 @@ const ChartValueBox: FC<{
     if (textRef.current) {
       setTextWidth(textRef.current.getBBox().width + TEXT_PADDING);
     }
-  }, [datum?.y]);
+  }, [displayText]);
 
-  if (isNil(x) || isNil(y)) {
-    return null;
-  }
+  if (isNil(x) || isNil(y)) return null;
 
   const adjustedX =
     isCursorActive || isDistributionChip
@@ -211,9 +216,12 @@ const ChartValueBox: FC<{
       : chartWidth - rightPadding + textWidth / 2 + CHIP_OFFSET;
   const hasResolution = !!resolution && !isCursorActive;
 
+  const chipFill =
+    resolveToCssColor(getThemeColor, colorOverride) ??
+    getThemeColor(METAC_COLORS.olive["600"]);
+
   return (
     <g>
-      {/* "RESOLVED" label above the chip for resolution values */}
       {hasResolution && questionType !== QuestionType.Binary && (
         <text
           x={getResolvedX(placement, adjustedX, textAlignToSide)}
@@ -236,11 +244,7 @@ const ChartValueBox: FC<{
         y={getRectY(placement, y, isDistributionChip, textAlignToSide)}
         width={textWidth}
         height={CHIP_HEIGHT}
-        fill={
-          isNil(colorOverride)
-            ? getThemeColor(METAC_COLORS.olive["600"])
-            : getThemeColor(colorOverride)
-        }
+        fill={chipFill}
         stroke="transparent"
         rx={2}
         ry={2}
@@ -258,11 +262,7 @@ const ChartValueBox: FC<{
         letterSpacing="0.02em"
         fontSize={CHIP_FONT_SIZE}
       >
-        {!!resolution && !isCursorActive
-          ? resolution
-          : getCursorValue
-            ? getCursorValue(datum?.y as number)
-            : datum?.y.toFixed(1)}
+        {displayText}
       </text>
     </g>
   );

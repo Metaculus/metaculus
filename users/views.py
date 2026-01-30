@@ -1,10 +1,10 @@
 import logging
 from datetime import timedelta
 
-from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 from rest_framework import serializers, status
-from rest_framework.authtoken.models import Token
+
+from authentication.models import ApiKey
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
@@ -12,6 +12,7 @@ from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from authentication.services import get_tokens_for_user
 from users.models import User, UserSpamActivity
 from users.serializers import (
     UserPrivateSerializer,
@@ -31,6 +32,7 @@ from users.services.common import (
     send_email_change_confirmation_email,
     change_email_from_token,
     register_user_to_campaign,
+    change_user_password,
 )
 from utils.paginator import LimitOffsetPagination
 from utils.tasks import email_user_their_data_task
@@ -165,12 +167,10 @@ def password_change_api_view(request):
     if not user.check_password(password):
         raise ValidationError({"password": "Current password is incorrect"})
 
-    validate_password(new_password, user=user)
+    change_user_password(user, new_password)
 
-    user.set_password(new_password)
-    user.save()
-
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    tokens = get_tokens_for_user(user)
+    return Response(tokens)
 
 
 @api_view(["POST"])
@@ -203,7 +203,8 @@ def email_change_confirm_api_view(request):
     token = serializers.CharField().run_validation(request.data.get("token"))
     change_email_from_token(request.user, token)
 
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    tokens = get_tokens_for_user(request.user)
+    return Response(tokens)
 
 
 @api_view(["POST"])
@@ -234,7 +235,7 @@ def create_bot_api_view(request: Request):
     username = validate_username(username)
 
     bot = create_bot(bot_owner=user, username=username)
-    token, _ = Token.objects.get_or_create(user=bot)
+    token, _ = ApiKey.objects.get_or_create(user=bot)
 
     return Response({"token": token.key, "user": UserPrivateSerializer(bot).data})
 
@@ -284,6 +285,19 @@ def my_bots_api_view(request: Request):
 @api_view(["GET"])
 def bot_token_api_view(request: Request, pk: int):
     bot = get_object_or_404(get_user_bots(request.user), pk=pk)
-    token, _ = Token.objects.get_or_create(user=bot)
+    token, _ = ApiKey.objects.get_or_create(user=bot)
 
     return Response({"token": token.key})
+
+
+@api_view(["POST"])
+def bot_jwt_api_view(request: Request, pk: int):
+    """
+    Get JWT tokens to impersonate a bot account.
+    Returns access and refresh tokens for the bot.
+    """
+
+    bot = get_object_or_404(get_user_bots(request.user), pk=pk)
+    tokens = get_tokens_for_user(bot)
+
+    return Response(tokens)

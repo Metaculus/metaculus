@@ -17,6 +17,7 @@ import { useCommentDraft } from "@/hooks/use_comment_draft";
 import useSearchParams from "@/hooks/use_search_params";
 import { CommentType } from "@/types/comment";
 import { ErrorResponse } from "@/types/fetch";
+import { ProjectPermissions } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { parseComment } from "@/utils/comments";
 
@@ -31,6 +32,7 @@ interface CommentEditorProps {
   isReplying?: boolean;
   replyUsername?: string;
   isPrivateFeed?: boolean;
+  userPermission?: ProjectPermissions;
 }
 
 const CommentEditor: FC<CommentEditorProps> = ({
@@ -42,6 +44,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   isReplying = false,
   replyUsername,
   isPrivateFeed = false,
+  userPermission,
 }) => {
   const t = useTranslations();
 
@@ -223,6 +226,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
             onChange={handleMarkdownChange}
             withUgcLinks
             withUserMentions
+            userPermission={userPermission}
             initialMention={!initialMarkdown.trim() ? replyUsername : undefined} // only populate with mention if there is no draft
             withCodeBlocks
             contentEditableClassName="text-base sm:text-inherit"
