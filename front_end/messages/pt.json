@@ -1887,5 +1887,18 @@
   "choicesLockedHelp": "As opções só podem ser alteradas através do painel de administração uma vez iniciado o processo de previsão.",
   "feedTileSummary": "Resumo do Bloco de Feed",
   "feedTileSummaryPlaceholder": "Opcional: Insira um texto de resumo personalizado para exibir nos blocos de feed (se não for fornecido, um resumo será gerado automaticamente a partir do conteúdo do caderno)",
+  "caseStudiesTitle": "Estudos de caso",
+  "caseStudiesDescription": "Exemplos de como os parceiros usam o Metaculus para responder a perguntas difíceis.",
+  "aboutInitiative": "Sobre esta iniciativa",
+  "inPartnershipWith": "Em parceria com",
+  "readTheReport": "Leia o relatório",
+  "reportPreviewAlt": "Pré-visualização do relatório",
+  "pagesWithCount": "{count, plural, one {# página} other {# páginas}}",
+  "publishedWithLabel": "Publicado {label}",
+  "hostWorkshop": "Organizar um workshop",
+  "hostWorkshopDescription": "Reúna especialistas e partes interessadas para alinharem-se em problemas complexos em sessões focadas e em tempo real. Nossa equipe gerencia o processo de ponta a ponta, usando métodos de previsão comprovados para rapidamente revelar incertezas críticas, insights chave e áreas de desacordo.",
+  "tellUsAboutYourNeeds": "Conte-nos sobre suas necessidades...",
+  "yourOrganization": "Sua organização",
+  "yourMessageForm": "Sua mensagem",
   "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
 }
