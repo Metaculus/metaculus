@@ -4,32 +4,44 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useState, useTransition } from "react";
+import { FC, useRef, useState, useTransition } from "react";
 
+import Button from "@/components/ui/button";
 import { Tabs, TabsList, TabsTab } from "@/components/ui/tabs";
 import { useBreakpoint } from "@/hooks/tailwind";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
+import { isConditionalPost, isNotebookPost } from "@/utils/questions/helpers";
 
 import { FILTERS, TABS, TabId } from "./homepage_filters";
 import HomepagePostCard from "./homepage_post_card";
+
+const MOBILE_POSTS_INCREMENT = 3;
 
 type Props = {
   initialPosts: PostWithForecasts[];
   className?: string;
 };
 
+const filterValidPosts = (posts: PostWithForecasts[]): PostWithForecasts[] =>
+  posts.filter((post) => !isConditionalPost(post) && !isNotebookPost(post));
+
 const HomePageForecasts: FC<Props> = ({ initialPosts, className }) => {
   const t = useTranslations();
   const [activeTab, setActiveTab] = useState<TabId>("news");
-  const [posts, setPosts] = useState<PostWithForecasts[]>(initialPosts);
+  const activeTabRef = useRef<TabId>(activeTab);
+  const filteredInitialPosts = filterValidPosts(initialPosts);
+  const [posts, setPosts] = useState<PostWithForecasts[]>(filteredInitialPosts);
   const [isPending, startTransition] = useTransition();
   const [cachedPosts, setCachedPosts] = useState<
     Partial<Record<TabId, PostWithForecasts[]>>
   >({
-    news: initialPosts,
+    news: filteredInitialPosts,
   });
+  const [mobileVisibleCount, setMobileVisibleCount] = useState(
+    MOBILE_POSTS_INCREMENT
+  );
 
   const tabLabels: Record<TabId, string> = {
     news: t("inTheNews"),
@@ -42,6 +54,8 @@ const HomePageForecasts: FC<Props> = ({ initialPosts, className }) => {
     if (id === activeTab) return;
 
     setActiveTab(id);
+    activeTabRef.current = id;
+    setMobileVisibleCount(MOBILE_POSTS_INCREMENT);
 
     if (cachedPosts[id]) {
       setPosts(cachedPosts[id] ?? []);
@@ -52,14 +66,26 @@ const HomePageForecasts: FC<Props> = ({ initialPosts, className }) => {
       const response = await ClientPostsApi.getPostsWithCPForHomepage(
         FILTERS[id]
       );
-      const newPosts = response.results;
+      const newPosts = filterValidPosts(response.results);
+
+      if (activeTabRef.current !== id) {
+        return;
+      }
+
       setCachedPosts((prev) => ({ ...prev, [id]: newPosts }));
       setPosts(newPosts);
     });
   };
 
   const isSmallScreen = !useBreakpoint("md");
-  const visiblePosts = isSmallScreen ? posts.slice(0, 3) : posts;
+  const visiblePosts = isSmallScreen
+    ? posts.slice(0, mobileVisibleCount)
+    : posts;
+  const hasMorePosts = isSmallScreen && mobileVisibleCount < posts.length;
+
+  const handleLoadMore = () => {
+    setMobileVisibleCount((prev) => prev + MOBILE_POSTS_INCREMENT);
+  };
 
   return (
     <section className={cn("flex flex-col gap-3", className)}>
@@ -89,7 +115,7 @@ const HomePageForecasts: FC<Props> = ({ initialPosts, className }) => {
           </div>
           <Link
             href="/questions/"
-            className="flex items-center gap-2 whitespace-nowrap rounded-full bg-gray-0 px-2 py-1 text-sm text-gray-800 no-underline transition-colors hover:bg-blue-400 dark:bg-gray-0-dark dark:text-gray-800-dark dark:hover:bg-blue-400-dark sm:px-5 sm:py-1.5 sm:text-lg sm:leading-[26px]"
+            className="flex items-center gap-2 whitespace-nowrap rounded-full bg-gray-0 px-2 py-1 text-sm text-blue-800 no-underline transition-colors hover:bg-blue-400 dark:bg-gray-0-dark dark:text-blue-800-dark dark:hover:bg-blue-400-dark lg:px-5 lg:py-1.5 lg:text-lg lg:leading-[26px]"
           >
             <span className="sm:hidden">{t("feed")}</span>
             <span className="hidden sm:inline">{t("questionFeed")}</span>
@@ -111,6 +137,14 @@ const HomePageForecasts: FC<Props> = ({ initialPosts, className }) => {
           <HomepagePostCard key={post.id} post={post} className="mb-4" />
         ))}
       </div>
+
+      {hasMorePosts && (
+        <div className="mt-4 flex justify-center md:hidden">
+          <Button variant="tertiary" onClick={handleLoadMore}>
+            {t("loadMore")}
+          </Button>
+        </div>
+      )}
     </section>
   );
 };

@@ -141,7 +141,7 @@ const HeroCTAs: FC<Props> = ({
                   <p className="m-0 text-xs font-bold leading-4 text-blue-800 dark:text-blue-800-dark md:text-sm">
                     {t("cashPrizesForAccuracy")}
                   </p>
-                  <p className="m-0 text-xs font-medium leading-4 text-blue-700 dark:text-blue-700-dark md:text-sm">
+                  <p className="m-0 text-xs font-medium leading-4 text-blue-700 dark:text-blue-700-dark">
                     {t("cashPrizesForAccuracyDescription")}
                   </p>
                 </div>
