@@ -1,8 +1,10 @@
 import json
 import uuid
+from datetime import timedelta
 
 from django.conf import settings
 from django.core.cache import cache
+from django.utils import timezone
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.settings import api_settings
@@ -96,6 +98,18 @@ def is_token_revoked(token) -> bool:
     return True
 
 
+def is_user_global_token_revoked(user: User, token_iat: int) -> bool:
+    """
+    Check if a token is revoked at the user level (auth_revoked_at).
+    Returns True if token was issued before user's auth_revoked_at timestamp.
+    """
+    if not user.auth_revoked_at:
+        return False
+    revoked_at_ts = int(user.auth_revoked_at.timestamp())
+
+    return token_iat < revoked_at_ts
+
+
 class SessionAccessToken(AccessToken):
     """
     AccessToken with session-based revocation check.
@@ -151,6 +165,19 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
     old_token_iat = refresh.get("iat")
     grace_key = _get_grace_key(session_id)
 
+    # Check user is still active and tokens not globally revoked
+    user_id = refresh.get(api_settings.USER_ID_CLAIM)
+
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        raise AuthenticationFailed("User was deleted")
+
+    if not api_settings.USER_AUTHENTICATION_RULE(user):
+        raise AuthenticationFailed("No active account found for the given token.")
+    if is_user_global_token_revoked(user, old_token_iat):
+        raise InvalidToken("Token has been invalidated")
+
     # Check grace period cache - only reached if token is valid
     cached = cache.get(grace_key)
     if cached:
@@ -165,19 +192,6 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
         cached = cache.get(grace_key)
         if cached:
             return json.loads(cached)
-
-        # Check user is still active
-        user_id = refresh.get(api_settings.USER_ID_CLAIM)
-        if user_id:
-            try:
-                user = User.objects.get(pk=user_id)
-            except User.DoesNotExist:
-                raise AuthenticationFailed("User was deleted")
-
-            if not api_settings.USER_AUTHENTICATION_RULE(user):
-                raise AuthenticationFailed(
-                    "No active account found for the given token."
-                )
 
         data = {"access": str(refresh.access_token)}
 
@@ -206,3 +220,17 @@ def revoke_session(session_id: str) -> None:
     Call this on logout.
     """
     set_session_enforce_at(session_id, 0)
+
+
+def revoke_all_user_tokens(user: User) -> None:
+    """
+    Revoke all tokens for a user by setting auth_revoked_at to now.
+    Use this for:
+    - Password change
+    - "Log out everywhere" action
+    - Security incident response
+    - Admin security action
+    """
+
+    user.auth_revoked_at = timezone.now() - timedelta(seconds=1)
+    user.save(update_fields=["auth_revoked_at"])

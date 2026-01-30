@@ -150,7 +150,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
         # Primary auth mechanism for web users
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "authentication.auth.SessionJWTAuthentication",
         # Auth Token: should be used for bots only!
         "authentication.auth.FallbackTokenAuthentication",
     ],
@@ -195,7 +195,6 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
     "ROTATE_REFRESH_TOKENS": True,
-    "CHECK_REVOKE_TOKEN": True,
     "REVOKE_TOKEN_CLAIM": "hash",
     "AUTH_TOKEN_CLASSES": ("authentication.jwt_session.SessionAccessToken",),
     **get_jwt_encryption_config(),

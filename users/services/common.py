@@ -1,11 +1,13 @@
 import requests
 from django.conf import settings
+from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
 from django.db import IntegrityError
 from django.db.models import Q, Case, When, IntegerField
 from rest_framework.exceptions import ValidationError
 
+from authentication.jwt_session import revoke_all_user_tokens
 from notifications.constants import MailingTags
 from posts.services.subscriptions import (
     disable_global_cp_reminders,
@@ -61,6 +63,18 @@ def get_users_by_usernames(usernames: list[str]) -> list[User]:
             raise ValidationError(f"User {username} does not exist")
 
     return users
+
+
+def change_user_password(user: User, new_password: str) -> None:
+    """
+    Change user's password and revoke all existing tokens.
+    """
+    validate_password(new_password, user=user)
+
+    user.set_password(new_password)
+    user.save()
+
+    revoke_all_user_tokens(user)
 
 
 def user_unsubscribe_tags(user: User, tags: list[str]) -> None:
@@ -137,6 +151,8 @@ def change_email_from_token(user: User, token: str):
 
     user.email = new_email
     user.save()
+
+    revoke_all_user_tokens(user)
 
 
 def send_email_change_confirmation_email(user: User, new_email: str):

@@ -4,6 +4,7 @@ import type {
   VercelEdgeOptions,
 } from "@sentry/nextjs";
 
+import { getPublicSetting } from "@/components/public_settings_script";
 import {
   beforeSentryAlertSend,
   SENTRY_DENY_URLS,
@@ -14,7 +15,8 @@ export function buildSentryOptions<
   T extends BrowserOptions | NodeOptions | VercelEdgeOptions,
 >(dsn?: string): T {
   return {
-    environment: process.env.METACULUS_ENV,
+    environment:
+      process.env.METACULUS_ENV || getPublicSetting("PUBLIC_METACULUS_ENV"),
     dsn,
     tracesSampler: (ctx) => {
       const name = ctx.name;
