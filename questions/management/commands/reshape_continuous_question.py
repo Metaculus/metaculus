@@ -671,3 +671,66 @@ class Command(BaseCommand):
                 self.stdout.write(
                     self.style.SUCCESS(f"Stored Post ID: {stored_post.id}")
                 )
+
+
+conversions = [
+    # post id, nom min, nom max, discrete, rescore, step
+    (40525, 0, 1.3, True, True, 0.01),
+    (40023, -0.5, 1, True, True, 0.1),
+    (40787, 3, 7, True, True, 0.1),
+    (39483, 3, 8, True, True, 0.1),
+    (40940, 36, 45, True, True, 0.1),
+    (40781, 36, 45, True, True, 0.1),
+    (39456, 31, 37, True, True, 0.1),
+    (40526, 95, 100, True, True, 0.1),
+    (39768, 10.4, 10.9, True, True, 0.01),
+    (39766, 9.55, 10, True, True, 0.01),
+]
+
+with transaction.atomic():
+    for (
+        post_id,
+        nominal_range_min,
+        nominal_range_max,
+        discrete,
+        rescore,
+        step,
+    ) in conversions:
+        question = Question.objects.get(post_id=post_id)
+        make_copy = True
+        appove_copy_post = True
+        alter_copy = False
+
+        stored_question: Question | None = None
+        if make_copy:
+            stored_question = make_copy_of_question(question, appove_copy_post)
+            if alter_copy:
+                question_to_change = stored_question
+                basis_question = question
+            else:
+                question_to_change = question
+                basis_question = stored_question
+        else:
+            question_to_change = question
+            basis_question = Question.objects.get(id=question.id)
+
+        # execute reshape
+        try:
+            reshape_question(
+                question_to_change=question_to_change,
+                basis_question=basis_question,
+                new_nominal_range_min=nominal_range_min,
+                new_nominal_range_max=nominal_range_max,
+                new_scheduled_close_time=None,
+                discrete=discrete,
+                step=step,
+            )
+        except Exception as e:
+            breakpoint()
+
+        # print out result
+        if stored_question:
+            stored_post = stored_question.get_post()
+            print(f"Stored Post ID: {stored_post.id}")
+
+        breakpoint()
