@@ -34,25 +34,32 @@ const ChangeEmailModal: FC<Props> = ({ isOpen, onClose }) => {
     formState: { errors },
     register,
     handleSubmit,
+    reset,
   } = useForm<ContactUsSchema>({
     resolver: zodResolver(contactUsSchema),
   });
 
+  const handleClose = useCallback(
+    (isOpen: boolean) => {
+      reset();
+      setSubmitErrors(undefined);
+      onClose(isOpen);
+    },
+    [onClose, reset]
+  );
+
   const onSubmit = useCallback(
     async ({ email, password }: ContactUsSchema) => {
       setSubmitErrors(undefined);
-      try {
-        const response = await changeEmail(email, password);
-        if (response && "errors" in response && !!response.errors) {
-          setSubmitErrors(response.errors);
-        } else {
-          onClose(true);
-          toast(t("settingsChangeEmailAddressSuccess"));
-        }
-      } finally {
+      const response = await changeEmail(email, password);
+      if (response && "errors" in response && !!response.errors) {
+        setSubmitErrors(response.errors);
+      } else {
+        handleClose(true);
+        toast(t("settingsChangeEmailAddressSuccess"));
       }
     },
-    [onClose, t]
+    [handleClose, t]
   );
   const [submit, isPending] = useServerAction(onSubmit);
   return (
@@ -61,7 +68,7 @@ const ChangeEmailModal: FC<Props> = ({ isOpen, onClose }) => {
         className="max-w-lg !overflow-y-auto"
         label={t("settingsChangeEmailAddress")}
         isOpen={isOpen}
-        onClose={onClose}
+        onClose={handleClose}
       >
         <div className="max-h-full w-full">
           <p className="my-6 text-base leading-tight">
