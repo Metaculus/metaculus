@@ -397,7 +397,12 @@ class MyForecastSerializer(serializers.ModelSerializer):
         return forecast.end_time.timestamp() if forecast.end_time else None
 
     def get_forecast_values(self, forecast: Forecast) -> list[float] | None:
-        return forecast.get_prediction_values()
+        if forecast.probability_yes is not None:
+            return [1 - forecast.probability_yes, forecast.probability_yes]
+        if forecast.probability_yes_per_category:
+            return forecast.probability_yes_per_category
+        else:
+            return forecast.continuous_cdf
 
     def get_interval_lower_bounds(self, forecast: Forecast) -> list[float] | None:
         if forecast.continuous_cdf is not None:
