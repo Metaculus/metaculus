@@ -24,6 +24,7 @@ import {
 import { KeyFactorDraft } from "@/types/key_factors";
 import { PostWithForecasts } from "@/types/post";
 import { Question } from "@/types/question";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import {
   isBaseRateDraft,
@@ -217,6 +218,16 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
     idx: number,
     opts?: { showErrors?: boolean }
   ) => {
+    // Track edit action
+    const keyFactorType = isDriverDraft(kf)
+      ? "driver"
+      : isBaseRateDraft(kf)
+        ? "base_rate"
+        : "news";
+    sendAnalyticsEvent("keyFactorLLMSuggestionEdited", {
+      event_category: keyFactorType,
+    });
+
     const id = editingIdRef.current++;
     setEditingSessions((prev) => [
       ...prev,
@@ -708,6 +719,16 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
                       <KeyFactorActionButton
                         kind="accept"
                         onClick={async () => {
+                          // Track accept action
+                          const keyFactorType = isDriverDraft(kf)
+                            ? "driver"
+                            : isBaseRateDraft(kf)
+                              ? "base_rate"
+                              : "news";
+                          sendAnalyticsEvent("keyFactorLLMSuggestionAccepted", {
+                            event_category: keyFactorType,
+                          });
+
                           const res = await addSingleSuggestedKeyFactor(kf);
                           if (!res || ("errors" in res && res.errors)) {
                             handleEdit(kf, keyFactorIndex, {
@@ -725,7 +746,19 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
                     />
                     <KeyFactorActionButton
                       kind="reject"
-                      onClick={() => removeKeyFactorAt(keyFactorIndex)}
+                      onClick={() => {
+                        // Track reject action
+                        const keyFactorType = isDriverDraft(kf)
+                          ? "driver"
+                          : isBaseRateDraft(kf)
+                            ? "base_rate"
+                            : "news";
+                        sendAnalyticsEvent("keyFactorLLMSuggestionRejected", {
+                          event_category: keyFactorType,
+                        });
+
+                        removeKeyFactorAt(keyFactorIndex);
+                      }}
                     />
                   </div>
                 </div>
