@@ -100,7 +100,7 @@ const FutureEvalModelBenchmark: React.FC = () => {
     <div id="model-leaderboard" className="flex scroll-mt-24 flex-col">
       {/* Header */}
       <div className="mb-0 flex items-start justify-between gap-4 sm:mb-1">
-        <div className="text-left">
+        <div className="w-full text-left">
           {/* Title with info popover inline on desktop */}
           <div className="flex items-center gap-3">
             <h3 className={`m-0 ${FE_TYPOGRAPHY.h2} ${FE_COLORS.textHeading}`}>
@@ -117,15 +117,18 @@ const FutureEvalModelBenchmark: React.FC = () => {
             Updated every day based on our standardized forecasting performance
             measurement methodology.
           </p>
-          <div className="mt-3">
-            <FutureEvalComingSoonBanner />
+          <div className="flex w-full flex-col justify-between gap-3 sm:flex-row">
+            <Link
+              href="/futureeval/leaderboard"
+              className={`mt-3 inline-block ${FE_TYPOGRAPHY.link} ${FE_COLORS.textAccent}`}
+            >
+              View full leaderboard
+            </Link>
+
+            <div className="mt-1 md:mt-3">
+              <FutureEvalComingSoonBanner />
+            </div>
           </div>
-          <Link
-            href="/futureeval/leaderboard"
-            className={`mt-3 inline-block ${FE_TYPOGRAPHY.link} ${FE_COLORS.textAccent}`}
-          >
-            View full leaderboard
-          </Link>
         </div>
         {/* Info popover - right aligned on mobile only */}
         <div className="block sm:hidden">

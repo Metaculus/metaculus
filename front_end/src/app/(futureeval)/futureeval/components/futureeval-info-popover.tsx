@@ -109,7 +109,7 @@ const FutureEvalInfoPopover: React.FC<Props> = ({ defaultOpen = false }) => {
               >
                 <Link
                   className="no-underline hover:underline"
-                  href="/notebooks/38928/futureeval-resources-page/#what-is-the-model-leaderboard"
+                  href="/futureeval/methodology#model-leaderboard"
                 >
                   Learn more here.
                 </Link>

@@ -376,7 +376,7 @@ const FutureEvalMethodologySections: React.FC = () => {
       </section>
 
       {/* Section 2: What is the Model Leaderboard? */}
-      <section className="space-y-6">
+      <section id="model-leaderboard" className="scroll-mt-24 space-y-6">
         <SectionHeader>
           What is the{" "}
           <span className={FE_COLORS.textAccent}>Model Leaderboard?</span>

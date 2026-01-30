@@ -1,3 +1,4 @@
+import FutureEvalBiggestBotWins from "./futureeval-biggest-bot-wins";
 import {
   FutureEvalForecastingPerformanceHeader,
   FutureEvalProsVsBotsSectionHeader,
@@ -23,6 +24,11 @@ const FutureEvalBenchmarkTab: React.FC = () => {
       <div>
         <FutureEvalProsVsBotsSectionHeader />
         <FutureEvalProsVsBotsDiffExample />
+      </div>
+
+      {/* Biggest Bot Wins */}
+      <div>
+        <FutureEvalBiggestBotWins />
       </div>
     </>
   );

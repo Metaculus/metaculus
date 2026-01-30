@@ -6,6 +6,8 @@ import CookiesBanner from "@/app/(main)/components/cookies_banner";
 import VersionChecker from "@/app/(main)/components/version_checker";
 import { defaultDescription } from "@/constants/metadata";
 
+import FutureEvalFooter from "./components/futureeval-footer";
+
 config.autoAddCss = false;
 
 export const metadata: Metadata = {
@@ -27,6 +29,7 @@ export default function FutureEvalLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <div className="flex-grow">{children}</div>
+      <FutureEvalFooter />
       <CookiesBanner />
       <VersionChecker />
     </div>
