@@ -6,6 +6,7 @@ import React, { useMemo } from "react";
 import ReusableGradientCarousel from "@/components/gradient-carousel";
 
 import { FE_COLORS, FE_TYPOGRAPHY } from "../../theme";
+import FutureEvalComingSoonBanner from "../futureeval-coming-soon-banner";
 import FutureEvalInfoPopover from "../futureeval-info-popover";
 import FutureEvalModelBar from "./futureeval-model-bar";
 import { useFutureEvalLeaderboard } from "../leaderboard/futureeval-leaderboard-provider";
@@ -116,9 +117,12 @@ const FutureEvalModelBenchmark: React.FC = () => {
             Updated every day based on our standardized forecasting performance
             measurement methodology.
           </p>
+          <div className="mt-3">
+            <FutureEvalComingSoonBanner />
+          </div>
           <Link
             href="/futureeval/leaderboard"
-            className={`mt-2 inline-block ${FE_TYPOGRAPHY.link} ${FE_COLORS.textAccent}`}
+            className={`mt-3 inline-block ${FE_TYPOGRAPHY.link} ${FE_COLORS.textAccent}`}
           >
             View full leaderboard
           </Link>

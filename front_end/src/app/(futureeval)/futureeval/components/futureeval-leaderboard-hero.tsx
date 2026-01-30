@@ -7,6 +7,7 @@ import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
 
 import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
+import FutureEvalComingSoonBanner from "./futureeval-coming-soon-banner";
 
 const FutureEvalLeaderboardHero: React.FC = () => {
   return (
@@ -51,6 +52,9 @@ const FutureEvalLeaderboardHero: React.FC = () => {
         Updated every day based on our standardized forecasting performance
         measurement methodology.
       </p>
+      <div className="mt-4 flex justify-center sm:justify-start">
+        <FutureEvalComingSoonBanner />
+      </div>
     </div>
   );
 };

@@ -10,10 +10,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
 
 import videoThumbnail from "@/app/(main)/aib/assets/video-thumbnail.png";
+import { SignupForm } from "@/components/auth/signup";
+import BaseModal from "@/components/base_modal";
 import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
 import cn from "@/utils/core/cn";
 
 import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
@@ -35,28 +38,30 @@ const FutureEvalParticipateTab: React.FC = () => {
  * Submit steps section with video
  */
 const FutureEvalSubmitSteps: React.FC = () => {
-  const { setCurrentModal } = useModal();
   const { user } = useAuth();
   const router = useRouter();
+  const t = useTranslations();
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const handleCreateBot = () => {
+    if (user) {
+      router.push("/accounts/settings/bots/#create");
+    } else {
+      setModalOpen(true);
+    }
+  };
 
   const submitSteps = [
     <>
-      Create a new bot account{" "}
       <button
         type="button"
         className="underline"
-        aria-label="Create a new bot account"
-        onClick={() => {
-          if (user) {
-            router.push("/accounts/settings/bots/#create");
-          } else {
-            setCurrentModal({ type: "signup" });
-          }
-        }}
+        aria-label="Create a bot"
+        onClick={handleCreateBot}
       >
-        here
-      </button>
-      .
+        Create a bot
+      </button>{" "}
+      and copy your Access Token.
     </>,
     <>
       Build your bot using our premade template in the{" "}
@@ -129,6 +134,35 @@ const FutureEvalSubmitSteps: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* Signup modal for bot creation */}
+      <BaseModal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
+        <div className="flex max-h-full max-w-xl flex-col items-center">
+          <h1 className="mx-auto mt-2 text-center text-blue-800 dark:text-blue-800-dark">
+            {t("registrationHeadingSite")}
+          </h1>
+          <p className="mx-auto whitespace-pre-wrap text-center leading-normal opacity-75">
+            {t("FABCreatePopupDescription")}
+          </p>
+          <div className="sm:w-80 sm:pr-4">
+            <SignupForm redirectLocation="/accounts/settings/bots/#create" />
+          </div>
+          <div className="mt-6 text-balance px-4 text-center leading-normal text-gray-700 opacity-75 dark:text-gray-700-dark">
+            {t.rich("registrationTerms", {
+              terms: (chunks) => (
+                <Link target="_blank" href={"/terms-of-use/"}>
+                  {chunks}
+                </Link>
+              ),
+              privacy: (chunks) => (
+                <Link target="_blank" href={"/privacy-policy/"}>
+                  {chunks}
+                </Link>
+              ),
+            })}
+          </div>
+        </div>
+      </BaseModal>
     </div>
   );
 };

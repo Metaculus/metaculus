@@ -101,16 +101,6 @@ const FutureEvalInfoPopover: React.FC<Props> = ({ defaultOpen = false }) => {
                 other.
               </p>
 
-              <p
-                className={cn(
-                  "mb-0 mt-2.5 text-sm",
-                  FE_COLORS.tooltipTextSecondary
-                )}
-              >
-                Since we measure against real world events, it takes time for
-                new models to populate the leaderboard.
-              </p>
-
               <div
                 className={cn(
                   "mt-3 flex flex-wrap gap-2.5 text-xs font-medium",
