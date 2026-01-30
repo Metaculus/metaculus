@@ -7,7 +7,6 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from django.db import transaction
 
 from coherence.models import (
     CoherenceLink,
@@ -39,7 +38,7 @@ from questions.serializers.common import (
 )
 from scoring.models import Leaderboard
 from users.models import User
-from comments.serializers.common import CommentWriteSerializer, serialize_comment_many
+from comments.serializers.common import CommentWriteSerializer
 from comments.services.common import create_comment
 
 
