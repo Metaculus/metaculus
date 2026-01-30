@@ -222,3 +222,23 @@ a {
     min-height: -webkit-fill-available;
   }
 }
+
+/* FutureEval Orbit Animation Keyframes */
+/* Using pure CSS animations for perfectly synchronized, GPU-accelerated rotation */
+@keyframes orbit-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orbit-counter-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}

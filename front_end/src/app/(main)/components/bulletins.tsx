@@ -17,6 +17,7 @@ const HIDE_PREFIXES = [
   "/press",
   "/privacy-policy",
   "/terms-of-use",
+  "/futureeval",
 ] as const;
 
 const Bulletins: FC = () => {
