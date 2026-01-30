@@ -41,19 +41,20 @@ export async function generateMetadata(): Promise<Metadata> {
     description: "Metaculus",
     openGraph: {
       images: {
-        width: 720,
-        height: 720,
-        url: "/images/default_preview.png",
+        width: 1200,
+        height: 630,
+        url: "/images/metaculus-og-image.jpg",
         alt: "Metaculus",
       },
     },
     twitter: {
       images: {
-        width: 720,
-        height: 720,
-        url: "/images/default_preview.png",
+        width: 1200,
+        height: 630,
+        url: "/images/metaculus-og-image.jpg",
         alt: "Metaculus",
       },
+      card: "summary_large_image",
     },
     metadataBase: new URL(publicSettings.PUBLIC_APP_URL),
     robots: publicSettings.PUBLIC_DISALLOW_ALL_BOTS
