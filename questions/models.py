@@ -678,11 +678,17 @@ class Forecast(models.Model):
         )
 
     def get_prediction_values(self) -> list[float]:
+        """
+        gets prediction values for this forecast:
+            pmf for binary and multiple choice
+            cdf for continuous
+        replaces "None"s with "nan"s
+        """
         if self.probability_yes:
             return [1 - self.probability_yes, self.probability_yes]
         if self.probability_yes_per_category:
             return [
-                v if v is not None else float("nan")
+                float("nan") if v is None else v
                 for v in self.probability_yes_per_category
             ]  # replace None with float("nan")
         return self.continuous_cdf
@@ -690,13 +696,13 @@ class Forecast(models.Model):
     def get_pmf(self) -> list[float]:
         """
         gets the PMF for this forecast
-        replaces None values with float("nan") if replace_nones is True
+        replaces "None"s with "nan"s
         """
         if self.probability_yes:
             return [1 - self.probability_yes, self.probability_yes]
         if self.probability_yes_per_category:
             return [
-                v if v is not None else float("nan")
+                float("nan") if v is None else v
                 for v in self.probability_yes_per_category
             ]  # replace None with float("nan")
         cdf = self.continuous_cdf
@@ -766,14 +772,14 @@ class AggregateForecast(models.Model):
     def get_pmf(self) -> list[float]:
         """
         gets the PMF for this forecast
-        replacing None values with 0.0 if replace_nones is True
+        replaces "None"s with "nan"s
         """
         # grab annotation if it exists for efficiency
         question_type = getattr(self, "question_type", self.question.type)
         forecast_values = self.forecast_values
         if question_type == Question.QuestionType.MULTIPLE_CHOICE:
             return [
-                v if v is not None else float("nan") for v in forecast_values
+                float("nan") if v is None else v for v in forecast_values
             ]  # replace None with float("nan")
         if question_type in QUESTION_CONTINUOUS_TYPES:
             cdf: list[float] = forecast_values  # type: ignore
@@ -785,7 +791,13 @@ class AggregateForecast(models.Model):
         return forecast_values
 
     def get_prediction_values(self) -> list[float]:
-        return [v if v is not None else float("nan") for v in self.forecast_values]
+        """
+        gets prediction values for this forecast:
+            pmf for binary and multiple choice
+            cdf for continuous
+        replaces "None"s with "nan"s
+        """
+        return [float("nan") if v is None else v for v in self.forecast_values]
 
 
 class UserForecastNotification(models.Model):
