@@ -1,4 +1,6 @@
 {
+  "oauthErrorMessage": "Falha na autenticação",
+  "tryAgain": "Tentar novamente",
   "withdrawingSoon": "Retirada em breve",
   "createArticle": "+ Criar artigo",
   "newsletterFormHeading": "Inscreva-se na Nossa Newsletter",

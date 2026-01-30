@@ -1,4 +1,6 @@
 {
+  "oauthErrorMessage": "认证失败",
+  "tryAgain": "重试",
   "withdrawingSoon": "即将提取",
   "createArticle": "+ 创建文章",
   "newsletterFormHeading": "加入我們的新聞信",

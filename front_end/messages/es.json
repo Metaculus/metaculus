@@ -1,4 +1,6 @@
 {
+  "oauthErrorMessage": "Error de autenticación",
+  "tryAgain": "Intentar de nuevo",
   "withdrawingSoon": "Retiro pronto",
   "createArticle": "+ Crear artículo",
   "newsletterFormHeading": "Únete a Nuestro Boletín",

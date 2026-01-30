@@ -1,4 +1,6 @@
 {
+  "oauthErrorMessage": "驗證失敗",
+  "tryAgain": "重試",
   "withdrawingSoon": "即將提領",
   "createArticle": "+ 建立文章",
   "newsletterFormHeading": "加入我們的電子報",

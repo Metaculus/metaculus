@@ -1,4 +1,6 @@
 {
+  "oauthErrorMessage": "Failed to authenticate",
+  "tryAgain": "Try again",
   "exploreNTournaments": "Explore {count} tournaments",
   "popular": "Popular",
   "exploreAll": "Explore all",
