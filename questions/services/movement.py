@@ -49,8 +49,8 @@ def compute_question_movement(question: Question) -> float | None:
         return
 
     return prediction_difference_for_sorting(
-        cp_now.get_prediction_values(replace_nones=True),
-        cp_previous.get_prediction_values(replace_nones=True),
+        cp_now.get_prediction_values(),
+        cp_previous.get_prediction_values(),
         question.type,
     )
 
