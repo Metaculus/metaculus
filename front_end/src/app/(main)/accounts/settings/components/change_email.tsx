@@ -55,7 +55,7 @@ const ChangeEmailModal: FC<Props> = ({ isOpen, onClose }) => {
       if (response && "errors" in response && !!response.errors) {
         setSubmitErrors(response.errors);
       } else {
-        handleClose(true);
+        handleClose(false);
         toast(t("settingsChangeEmailAddressSuccess"));
       }
     },
