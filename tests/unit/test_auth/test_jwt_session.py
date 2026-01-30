@@ -1,8 +1,11 @@
+import time
+
 import pytest
 from django.core.cache import cache
 from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework.test import APIClient
 
 from authentication.jwt_session import (
     SessionRefreshToken,
@@ -13,6 +16,7 @@ from authentication.jwt_session import (
     get_session_enforce_at,
     _get_whitelist_key,
     _get_grace_key,
+is_user_global_token_revoked, SessionAccessToken
 )
 from authentication.services import get_tokens_for_user
 from tests.unit.test_users.factories import factory_user
@@ -300,3 +304,30 @@ class TestUserLevelRevocation:
                 refresh_tokens_with_grace_period(session2["refresh"])
             with pytest.raises(InvalidToken, match="invalidated"):
                 refresh_tokens_with_grace_period(session3["refresh"])
+
+    @freeze_time("2024-01-01 12:00:05")
+    def test_revoked_access_token_rejected_by_api_endpoint(self):
+        """Access token is rejected by API endpoint after user-level revocation."""
+        user = factory_user(is_active=True)
+
+        # Get tokens
+        with freeze_time("2024-01-01 12:00:03"):
+            tokens = get_tokens_for_user(user)
+
+        access_token = tokens["access"]
+
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {access_token}")
+
+        # Request should succeed before revocation
+        response = client.get("/api/users/me/")
+        assert response.status_code == 200
+        assert response.data["id"] == user.id
+
+        # Revoke all user tokens
+        revoke_all_user_tokens(user)
+
+        # Same access token should now be rejected (401 or 403 depending on DRF config)
+        response = client.get("/api/users/me/")
+        assert response.status_code == 403
+        assert "invalidated" in str(response.data).lower()
