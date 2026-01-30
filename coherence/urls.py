@@ -25,14 +25,9 @@ urlpatterns = [
         name="needs-update",
     ),
     path(
-        "coherence/bot-forecast/",
-        views.post_coherence_bot_forecast,
-        name="post-coherence-bot-forecast",
-    ),
-    path(
-        "coherence/bot-comment/",
-        views.post_coherence_bot_comment,
-        name="post-coherence-bot-comment",
+        "coherence/bot-forecasts-comments/",
+        views.post_coherence_bot_forecasts_and_comments,
+        name="post-coherence-bot-forecasts-comments",
     ),
     # Question-level links
     path(
