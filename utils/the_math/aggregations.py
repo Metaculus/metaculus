@@ -445,8 +445,6 @@ class MedianAggregatorMixin:
         # and weighted average for continuous
         forecasts_values = np.array(forecast_set.forecasts_values)
         if self.question.type == Question.QuestionType.BINARY:
-            if np.any(np.equal(forecasts_values, None)):
-                raise ValueError("Forecast values contain None values")
             return np.array(
                 compute_discrete_forecast_values(forecasts_values, weights, 50.0)[0]
             )
@@ -454,15 +452,13 @@ class MedianAggregatorMixin:
             arr = np.array(
                 compute_discrete_forecast_values(forecasts_values, weights, 50.0)[0]
             )
-            non_nones = np.logical_not(np.equal(arr, None))
-            arr[non_nones] -= 0.001  # remove minimum forecastable value
-            arr[non_nones] = arr[non_nones] / sum(arr[non_nones])  # renormalize
+            non_nans = ~np.isnan(arr) if arr.size else []
+            arr[non_nans] -= 0.001  # remove minimum forecastable value
+            arr[non_nans] = arr[non_nans] / sum(arr[non_nans])  # renormalize
             # squeeze into forecastable value range
-            arr[non_nones] = arr[non_nones] * (1 - len(arr[non_nones]) * 0.001) + 0.001
+            arr[non_nans] = arr[non_nans] * (1 - len(arr[non_nans]) * 0.001) + 0.001
             return arr
         else:  # continuous
-            if np.any(np.equal(forecasts_values, None)):
-                raise ValueError("Forecast values contain None values")
             return np.average(forecasts_values, axis=0, weights=weights)
 
     def get_range_values(
@@ -473,18 +469,12 @@ class MedianAggregatorMixin:
     ) -> tuple[list[float | None], list[float | None], list[float | None]]:
         if self.question.type == Question.QuestionType.BINARY:
             forecasts_values = np.array(forecast_set.forecasts_values)
-            if np.any(np.equal(forecasts_values, None)):
-                raise ValueError("Forecast values contain None values")
             lowers, centers, uppers = compute_discrete_forecast_values(
                 forecasts_values, weights, [25.0, 50.0, 75.0]
             )
         elif self.question.type == Question.QuestionType.MULTIPLE_CHOICE:
             forecasts_values = np.array(forecast_set.forecasts_values)
-            non_nones = (
-                np.logical_not(np.equal(forecasts_values[0], None))
-                if forecasts_values.size
-                else []
-            )
+            non_nans = ~np.isnan(forecasts_values[0]) if forecasts_values.size else []
             lowers, centers, uppers = compute_discrete_forecast_values(
                 forecasts_values, weights, [25.0, 50.0, 75.0]
             )
@@ -492,23 +482,21 @@ class MedianAggregatorMixin:
             centers_array[np.equal(centers_array, 0.0)] = 1.0  # avoid divide by zero
             normalized_centers = np.array(aggregation_forecast_values)
             normalized_lowers = np.array(lowers)
-            normalized_lowers[non_nones] = (
-                normalized_lowers[non_nones]
-                * normalized_centers[non_nones]
-                / centers_array[non_nones]
+            normalized_lowers[non_nans] = (
+                normalized_lowers[non_nans]
+                * normalized_centers[non_nans]
+                / centers_array[non_nans]
             )
             normalized_uppers = np.array(uppers)
-            normalized_uppers[non_nones] = (
-                normalized_uppers[non_nones]
-                * normalized_centers[non_nones]
-                / centers_array[non_nones]
+            normalized_uppers[non_nans] = (
+                normalized_uppers[non_nans]
+                * normalized_centers[non_nans]
+                / centers_array[non_nans]
             )
             centers = normalized_centers.tolist()
             lowers = normalized_lowers.tolist()
             uppers = normalized_uppers.tolist()
         else:  # continuous
-            if np.any(np.equal(aggregation_forecast_values, None)):
-                raise ValueError("Forecast values contain None values")
             lowers, centers, uppers = percent_point_function(
                 aggregation_forecast_values, [25.0, 50.0, 75.0]
             )
@@ -617,14 +605,18 @@ class Aggregation(AggregatorMixin):
         include_stats: bool = False,
         histogram: bool = False,
     ) -> AggregateForecast | None:
+        # forecast_set can have nans in its forecasts_values, so we handle those by
+        # converting nans to None when setting values on the aggregation object
+        # to get nan's back from object, user get_prediction_values or get_pmf
         weights = self.get_weights(forecast_set)
         if isinstance(weights, int):
             assert weights == 0, "0 is only supported int return of get_weights"
             return None
         aggregation = AggregateForecast(question=self.question, method=self.method)
-        aggregation.forecast_values = self.calculate_forecast_values(
-            forecast_set, weights
-        ).tolist()
+        forecast_values = self.calculate_forecast_values(forecast_set, weights)
+        aggregation.forecast_values = [
+            None if np.isnan(v) else v for v in forecast_values
+        ]
 
         aggregation.start_time = forecast_set.timestep
         if weights is not None:
@@ -633,27 +625,22 @@ class Aggregation(AggregatorMixin):
             aggregation.forecaster_count = len(forecast_set.forecasts_values)
         if include_stats:
             lowers, centers, uppers = self.get_range_values(
-                forecast_set, aggregation.forecast_values, weights
+                forecast_set, forecast_values, weights
             )
-            aggregation.interval_lower_bounds = lowers
-            aggregation.centers = centers
-            aggregation.interval_upper_bounds = uppers
+            aggregation.interval_lower_bounds = [
+                None if np.isnan(v) else v for v in lowers
+            ]
+            aggregation.centers = [None if np.isnan(v) else v for v in centers]
+            aggregation.interval_upper_bounds = [
+                None if np.isnan(v) else v for v in uppers
+            ]
             if self.question.type in [
                 Question.QuestionType.BINARY,
                 Question.QuestionType.MULTIPLE_CHOICE,
             ]:
                 forecasts_values = np.array(forecast_set.forecasts_values)
-                nones = (
-                    np.equal(forecasts_values[0], None)
-                    if forecasts_values.size
-                    else np.array([])
-                )
-                forecasts_values[:, nones] = np.nan
-                means = np.average(forecasts_values, weights=weights, axis=0).astype(
-                    object
-                )
-                means[np.isnan(means.astype(float))] = None
-                aggregation.means = means.tolist()
+                means = np.average(forecasts_values, weights=weights, axis=0)
+                aggregation.means = [None if np.isnan(v) else v for v in means]
 
         if histogram and self.question.type in [
             Question.QuestionType.BINARY,
@@ -754,12 +741,7 @@ def get_aggregations_at_time(
     if len(forecasts) == 0:
         return dict()
     forecast_set = ForecastSet(
-        forecasts_values=[
-            [
-                v or 0.0 for v in forecast.get_prediction_values()
-            ]  # replace Nones with 0.0 for calculation purposes
-            for forecast in forecasts
-        ],
+        forecasts_values=[forecast.get_prediction_values() for forecast in forecasts],
         timestep=time,
         forecaster_ids=[forecast.author_id for forecast in forecasts],
         timesteps=[forecast.start_time for forecast in forecasts],
