@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import status, serializers
@@ -253,34 +254,35 @@ def post_coherence_bot_forecasts_and_comments(request):
     else:
         user = request.user
 
-    for forecast in forecasts_data:
-        question_id = forecast.pop("question")
-        question = Question.objects.get(id=question_id)
-        create_forecast(
-            question=question,
-            user=user,
-            **forecast,
-        )
+    with transaction.atomic():
+        for forecast in forecasts_data:
+            question_id = forecast.pop("question")
+            question = Question.objects.get(id=question_id)
+            create_forecast(
+                question=question,
+                user=user,
+                **forecast,
+            )
 
-    for comment in comments_data:
-        post = comment["on_post"]
-        comment.pop("included_forecast")
-        forecast = (
-            post.question.user_forecasts.filter(author_id=user.id)
-            .order_by("-start_time")
-            .first()
-        )
-        create_comment(**comment, included_forecast=forecast, user=user)
+        for comment in comments_data:
+            post = comment["on_post"]
+            comment.pop("included_forecast")
+            forecast = (
+                post.question.user_forecasts.filter(author_id=user.id)
+                .order_by("-start_time")
+                .first()
+            )
+            create_comment(**comment, included_forecast=forecast, user=user)
 
-    # add coherence_bot to coherence Leaderboard
-    # assumes all questions are from the same project
-    project: Project = question.post.default_project
-    coherence_leaderboard, _ = Leaderboard.objects.get_or_create(
-        project=project,
-        name=f"Coherence Leaderboard for {project.name}",
-        score_type="peer_tournament",
-        bot_status=Project.BotLeaderboardStatus.BOTS_ONLY,
-    )
-    coherence_leaderboard.user_list.add(user)
+        # add coherence_bot to coherence Leaderboard
+        # assumes all questions are from the same project
+        project: Project = question.post.default_project
+        coherence_leaderboard, _ = Leaderboard.objects.get_or_create(
+            project=project,
+            name=f"Coherence Leaderboard for {project.name}",
+            score_type="peer_tournament",
+            bot_status=Project.BotLeaderboardStatus.BOTS_ONLY,
+        )
+        coherence_leaderboard.user_list.add(user)
 
     return Response({"status": "success"}, status=200)
