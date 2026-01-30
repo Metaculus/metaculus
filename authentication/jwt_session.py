@@ -167,7 +167,12 @@ def refresh_tokens_with_grace_period(refresh_token_str: str) -> dict:
 
     # Check user is still active and tokens not globally revoked
     user_id = refresh.get(api_settings.USER_ID_CLAIM)
-    user = User.objects.get(pk=user_id)
+
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        raise AuthenticationFailed("User was deleted")
+
     if not api_settings.USER_AUTHENTICATION_RULE(user):
         raise AuthenticationFailed("No active account found for the given token.")
     if is_user_global_token_revoked(user, old_token_iat):
