@@ -5,7 +5,11 @@ import { FC } from "react";
 
 import { useAuth } from "@/contexts/auth_context";
 import { useBreakpoint } from "@/hooks/tailwind";
-import { CategoryKey, LeaderboardDetails } from "@/types/scoring";
+import {
+  CategoryKey,
+  ExclusionStatuses,
+  LeaderboardDetails,
+} from "@/types/scoring";
 
 import LeaderboardRow, { UserLeaderboardRow } from "./table_row";
 import { RANKING_CATEGORIES } from "../../../ranking_categories";
@@ -48,7 +52,7 @@ const LeaderboardTable: FC<Props> = ({
   }
 
   return (
-    <div className="h-min w-full min-w-[280px] max-w-3xl rounded border border-gray-300 bg-gray-0 text-gray-800 @container dark:border-gray-300-dark dark:bg-gray-0-dark dark:text-gray-800-dark">
+    <div className="@container h-min w-full min-w-[280px] max-w-3xl rounded border border-gray-300 bg-gray-0 text-gray-800 dark:border-gray-300-dark dark:bg-gray-0-dark dark:text-gray-800-dark">
       {cardSized && (
         <Link
           href={categoryUrl}
@@ -73,11 +77,11 @@ const LeaderboardTable: FC<Props> = ({
           <tr className="border-b border-blue-400 bg-blue-100 text-sm font-bold text-gray-500 dark:border-blue-400-dark dark:bg-blue-100-dark dark:text-gray-500-dark">
             <th className="w-16" />
             <th className="px-4 py-2.5 text-left">{t("user")}</th>
-            <th className="hidden w-24 px-4 py-2.5 text-right @md:!table-cell">
+            <th className="@md:!table-cell hidden w-24 px-4 py-2.5 text-right">
               {category === "comments" ? t("comments") : t("questions")}
             </th>
             {leaderboardDetails.score_type === "peer_global" && (
-              <th className="hidden w-24 px-4 py-2.5 text-right @md:!table-cell">
+              <th className="@md:!table-cell hidden w-24 px-4 py-2.5 text-right">
                 {t("totalCoverage")}
               </th>
             )}
@@ -85,11 +89,15 @@ const LeaderboardTable: FC<Props> = ({
           </tr>
           {!!entriesToDisplay.length ? (
             entriesToDisplay.map((entry) => {
-              // only show entries that are not excluded or if advanced mode is on
-              // or if the current user is staff
-              if (
-                entry.excluded &&
-                !(currentUser?.is_staff || entry.show_when_excluded)
+              // only show entries that are not excluded
+              // or if current user is staff and exclusion status allows showing in advanced mode
+              const exclusionStatus = entry.exclusion_status;
+              if (exclusionStatus == ExclusionStatuses.EXCLUDE) {
+                return null;
+              } else if (
+                exclusionStatus ==
+                  ExclusionStatuses.EXCLUDE_AND_SHOW_IN_ADVANCED &&
+                !currentUser?.is_staff
               ) {
                 return null;
               }
@@ -148,7 +156,7 @@ const LeaderboardTable: FC<Props> = ({
                     {t("viewMore")}
                   </Link>
                 </td>
-                <td className="hidden p-0 @md:!table-cell">
+                <td className="@md:!table-cell hidden p-0">
                   <Link href={categoryUrl} />
                 </td>
               </tr>

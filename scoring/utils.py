@@ -40,6 +40,7 @@ from questions.types import AggregationMethod
 from scoring.constants import ScoreTypes, LeaderboardScoreTypes
 from scoring.models import (
     ArchivedScore,
+    ExclusionStatuses,
     Score,
     LeaderboardEntry,
     Leaderboard,
@@ -50,6 +51,7 @@ from scoring.score_math import evaluate_question
 from users.models import User
 from utils.dtypes import generate_map_from_list
 from utils.the_math.measures import decimal_h_index
+
 
 logger = logging.getLogger(__name__)
 
@@ -463,33 +465,34 @@ def assign_ranks(
         id__in=[x.user_id for x in entries if x.user_id], is_active=True
     ).only("id", "is_bot")
 
-    # dictionary of {excluded user id : show anyway status}
-    shown_exclusions_dict: dict[None | int, bool] = {
-        None: True
-    }  # aggregations always excluded but shown
+    exclusion_statuses: dict[None | int, ExclusionStatuses] = defaultdict(
+        lambda: ExclusionStatuses.INCLUDE
+    )
+    # aggregations always excluded but shown
+    exclusion_statuses[None] = ExclusionStatuses.EXCLUDE_AND_SHOW
     for exclusion in exclusion_records:
-        if exclusion.show_anyway is False:
-            # exclusions that don't show anyway override ones that do show
-            shown_exclusions_dict[exclusion.user_id] = False
-        elif exclusion.user_id not in shown_exclusions_dict:
-            shown_exclusions_dict[exclusion.user_id] = True
+        # exclusions with higher exclusion levels override lower ones
+        exclusion_statuses[exclusion.user_id] = max(
+            exclusion_statuses[exclusion.user_id], exclusion.exclusion_status
+        )
     if bot_status == Project.BotLeaderboardStatus.BOTS_ONLY:
         # don't display humans
         for user in candidates.filter(is_bot=False):
-            shown_exclusions_dict[user.id] = False
+            exclusion_statuses[user.id] = ExclusionStatuses.EXCLUDE
     if bot_status == Project.BotLeaderboardStatus.EXCLUDE_AND_SHOW:
         # show all non-excluded bots
         for user in candidates.filter(is_bot=True):
-            # don't override existing exclusions
-            if user.id not in shown_exclusions_dict:
-                shown_exclusions_dict[user.id] = True
+            exclusion_statuses[user.id] = max(
+                exclusion_statuses[user.id],
+                ExclusionStatuses.EXCLUDE_AND_SHOW,
+            )
     if bot_status == Project.BotLeaderboardStatus.INCLUDE:
         # bots and humans are included, no action needed
         pass
     if bot_status == Project.BotLeaderboardStatus.EXCLUDE_AND_HIDE:
         # don't show ANY bots
         for user in candidates.filter(is_bot=True):
-            shown_exclusions_dict[user.id] = False
+            exclusion_statuses[user.id] = ExclusionStatuses.EXCLUDE
 
     # set ranks
     rank = 1
@@ -503,10 +506,8 @@ def assign_ranks(
             if prev_entry and np.isclose(entry.score, prev_entry.score):
                 entry.rank = prev_entry.rank
         prev_entry = entry
-        if entry.user_id in shown_exclusions_dict:
-            entry.excluded = True
-            entry.show_when_excluded = shown_exclusions_dict[entry.user_id]
-        else:
+        entry.exclusion_status = exclusion_statuses[entry.user_id]
+        if entry.exclusion_status <= ExclusionStatuses.EXCLUDE_PRIZE_AND_SHOW:
             rank += 1
 
     return entries
@@ -517,10 +518,13 @@ def assign_prize_percentages(
 ) -> list[LeaderboardEntry]:
     # Distribute prize % according to take
     # anyone who takes less than the minimum gets redistributed up iteratively
-    scoring_take = sum((e.take or 0) * int(not e.excluded) for e in entries)
+    scoring_take = sum(
+        (e.take or 0) * int(e.exclusion_status == ExclusionStatuses.INCLUDE)
+        for e in entries
+    )
     for entry in entries[::-1]:  # start in reverse
         entry.percent_prize = 0
-        if entry.excluded or not entry.take:
+        if entry.exclusion_status != ExclusionStatuses.INCLUDE or not entry.take:
             continue
         percent_prize = entry.take / (scoring_take or 1)
         if percent_prize < minimum_prize_percent:
@@ -538,12 +542,14 @@ def assign_medals(
     entries: list[LeaderboardEntry],
 ) -> list[LeaderboardEntry]:
     entries.sort(key=lambda entry: entry.rank)
-    entry_count = len([e for e in entries if not e.excluded])
+    entry_count = len(
+        [e for e in entries if e.exclusion_status == ExclusionStatuses.INCLUDE]
+    )
     gold_rank = max(np.ceil(0.01 * entry_count), 1)
     silver_rank = max(np.ceil(0.02 * entry_count), 2)
     bronze_rank = max(np.ceil(0.05 * entry_count), 3)
     for entry in entries:
-        if entry.excluded:
+        if entry.exclusion_status != ExclusionStatuses.INCLUDE:
             continue
         elif entry.rank <= gold_rank:
             entry.medal = LeaderboardEntry.Medals.GOLD
@@ -732,7 +738,7 @@ def update_medal_points_and_ranks(at_time=None):
 def assign_prizes(
     entries: list[LeaderboardEntry], prize_pool: Decimal
 ) -> list[LeaderboardEntry]:
-    included = [e for e in entries if not e.excluded]
+    included = [e for e in entries if e.exclusion_status == ExclusionStatuses.INCLUDE]
     for entry in included:
         entry.prize = float(prize_pool) * entry.percent_prize
     return entries
@@ -851,7 +857,7 @@ def update_leaderboard_from_csv_data(
         score = row.get("score")
         take = row.get("take")
         rank = row.get("rank")
-        excluded = row.get("excluded")
+        exclusion_status = row.get("exclusion_status")
         medal = row.get("medal")
         percent_prize = row.get("percent_prize")
         prize = row.get("prize")
@@ -865,7 +871,7 @@ def update_leaderboard_from_csv_data(
             score=score,
             take=take,
             rank=rank,
-            excluded=excluded,
+            exclusion_status=exclusion_status,
             medal=medal,
             percent_prize=percent_prize,
             prize=prize,

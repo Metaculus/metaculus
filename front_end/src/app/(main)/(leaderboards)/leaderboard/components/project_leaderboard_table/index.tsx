@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
 import Button from "@/components/ui/button";
-import { LeaderboardDetails } from "@/types/scoring";
+import { ExclusionStatuses, LeaderboardDetails } from "@/types/scoring";
 
 import TableHeader from "./table_header";
 import TableRow from "./table_row";
@@ -104,10 +104,12 @@ const ProjectLeaderboardTable: FC<Props> = ({
             />
           )}
           {leaderboardEntries.map((entry) => {
-            // show non-excluded entries
-            // or if they should show even when excluded
-            // or if we are in the advanced view
-            if (!entry.excluded || entry.show_when_excluded || isAdvanced) {
+            if (
+              entry.exclusion_status <= ExclusionStatuses.EXCLUDE_AND_SHOW ||
+              (isAdvanced &&
+                entry.exclusion_status ==
+                  ExclusionStatuses.EXCLUDE_AND_SHOW_IN_ADVANCED)
+            ) {
               return (
                 <TableRow
                   key={entry.user?.id ?? entry.aggregation_method}

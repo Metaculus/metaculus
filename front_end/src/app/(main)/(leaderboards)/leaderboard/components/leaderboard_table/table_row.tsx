@@ -5,6 +5,7 @@ import { FC } from "react";
 import { Href } from "@/types/navigation";
 import {
   CategoryKey,
+  ExclusionStatuses,
   LeaderboardEntry,
   LeaderboardType,
 } from "@/types/scoring";
@@ -52,7 +53,7 @@ const LeaderboardRow: FC<Props> = ({
     contribution_count,
     score,
     medal,
-    excluded,
+    exclusion_status,
   } = rowEntry;
 
   const t = useTranslations();
@@ -67,7 +68,7 @@ const LeaderboardRow: FC<Props> = ({
         },
         {
           "bg-purple-200 hover:bg-purple-300 dark:bg-purple-200-dark hover:dark:bg-purple-300-dark":
-            !isUserRow && excluded,
+            !isUserRow && exclusion_status != ExclusionStatuses.INCLUDE,
         }
       )}
     >
@@ -85,7 +86,7 @@ const LeaderboardRow: FC<Props> = ({
             <>
               {!!medal && <MedalIcon type={medal} className="size-5" />}
               <span className="flex-1 text-center">
-                {excluded ? (
+                {exclusion_status != ExclusionStatuses.INCLUDE ? (
                   <>
                     <ExcludedEntryTooltip />
                   </>
@@ -119,7 +120,7 @@ const LeaderboardRow: FC<Props> = ({
           </span>
         </Link>
       </td>
-      <td className="hidden w-24 p-0 text-base font-[425] tabular-nums leading-4 @md:!table-cell">
+      <td className="@md:!table-cell hidden w-24 p-0 text-base font-[425] tabular-nums leading-4">
         <Link
           href={href}
           className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
@@ -132,7 +133,7 @@ const LeaderboardRow: FC<Props> = ({
         </Link>
       </td>
       {scoreType == "peer_global" && (
-        <td className="hidden w-24 p-0 text-base font-[425] tabular-nums leading-4 @md:!table-cell">
+        <td className="@md:!table-cell hidden w-24 p-0 text-base font-[425] tabular-nums leading-4">
           <Link
             href={href}
             className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"

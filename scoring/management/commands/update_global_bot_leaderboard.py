@@ -16,7 +16,7 @@ from questions.constants import UnsuccessfulResolutionType
 from questions.models import AggregateForecast, Forecast, Question
 from questions.types import AggregationMethod
 from scoring.constants import ScoreTypes, LeaderboardScoreTypes
-from scoring.models import Leaderboard, LeaderboardEntry, Score
+from scoring.models import Leaderboard, LeaderboardEntry, Score, ExclusionStatuses
 from scoring.score_math import (
     evaluate_forecasts_peer_accuracy,
     evaluate_forecasts_peer_spot_forecast,
@@ -763,8 +763,9 @@ class Command(BaseCommand):
             entry.leaderboard = leaderboard
             entry.score = skill
             entry.rank = rank
-            entry.excluded = excluded
-            entry.show_when_excluded = False
+            entry.exclusion_status = (
+                ExclusionStatuses.EXCLUDE if excluded else ExclusionStatuses.INCLUDE
+            )
             entry.contribution_count = contribution_count
             entry.coverage = contribution_count / question_count
             entry.calculated_on = timezone.now()
