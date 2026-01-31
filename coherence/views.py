@@ -243,9 +243,13 @@ def post_coherence_bot_forecasts_and_comments(request):
         user = User.objects.filter(
             metadata__coherence_bot_for_user_id=coherence_user_id
         ).first()
+        if user:
+            # update username in case coherence_user's username changed
+            user.username = f"{coherence_user.username}-metac-bot"
+            user.save(update_fields=["username"])
         if not user:
             user = User.objects.create(
-                username=f"{coherence_user.username}-coherence-bot",
+                username=f"{coherence_user.username}-metac-bot",
                 is_bot=True,
                 check_for_spam=False,
                 bot_owner=request.user,
