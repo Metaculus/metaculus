@@ -319,10 +319,11 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         elif self.id and not self.user_forecasts.exists():
             # we're still before forecasts, make
             # sure that the options matches current options
-            self.options_history[-1][1] = self.options
+            last_entry = self.options_history[-1]
+            self.options_history[-1] = (last_entry[0], self.options or [])
             update_fields = kwargs.get("update_fields", None)
             if update_fields is not None:
-                update_fields.append("options_history")
+                kwargs["update_fields"] = list(update_fields) + ["options_history"]
 
         return super().save(**kwargs)
 
