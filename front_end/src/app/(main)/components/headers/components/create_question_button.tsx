@@ -11,11 +11,8 @@ import cn from "@/utils/core/cn";
 const CreateQuestionButton: FC = () => {
   const t = useTranslations();
 
-  const variant = useFeatureFlagVariantKey("create_question_button_type");
-
-  if (!variant) {
-    return null;
-  }
+  const variant =
+    useFeatureFlagVariantKey("create_question_button_type") || "experiment_B";
 
   let text: string;
   let hasEmphasis: boolean;
