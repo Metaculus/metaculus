@@ -52,7 +52,7 @@ const LeaderboardTable: FC<Props> = ({
   }
 
   return (
-    <div className="@container h-min w-full min-w-[280px] max-w-3xl rounded border border-gray-300 bg-gray-0 text-gray-800 dark:border-gray-300-dark dark:bg-gray-0-dark dark:text-gray-800-dark">
+    <div className="h-min w-full min-w-[280px] max-w-3xl rounded border border-gray-300 bg-gray-0 text-gray-800 @container dark:border-gray-300-dark dark:bg-gray-0-dark dark:text-gray-800-dark">
       {cardSized && (
         <Link
           href={categoryUrl}
@@ -77,11 +77,11 @@ const LeaderboardTable: FC<Props> = ({
           <tr className="border-b border-blue-400 bg-blue-100 text-sm font-bold text-gray-500 dark:border-blue-400-dark dark:bg-blue-100-dark dark:text-gray-500-dark">
             <th className="w-16" />
             <th className="px-4 py-2.5 text-left">{t("user")}</th>
-            <th className="@md:!table-cell hidden w-24 px-4 py-2.5 text-right">
+            <th className="hidden w-24 px-4 py-2.5 text-right @md:!table-cell">
               {category === "comments" ? t("comments") : t("questions")}
             </th>
             {leaderboardDetails.score_type === "peer_global" && (
-              <th className="@md:!table-cell hidden w-24 px-4 py-2.5 text-right">
+              <th className="hidden w-24 px-4 py-2.5 text-right @md:!table-cell">
                 {t("totalCoverage")}
               </th>
             )}
@@ -156,7 +156,7 @@ const LeaderboardTable: FC<Props> = ({
                     {t("viewMore")}
                   </Link>
                 </td>
-                <td className="@md:!table-cell hidden p-0">
+                <td className="hidden p-0 @md:!table-cell">
                   <Link href={categoryUrl} />
                 </td>
               </tr>

@@ -120,7 +120,7 @@ const LeaderboardRow: FC<Props> = ({
           </span>
         </Link>
       </td>
-      <td className="@md:!table-cell hidden w-24 p-0 text-base font-[425] tabular-nums leading-4">
+      <td className="hidden w-24 p-0 text-base font-[425] tabular-nums leading-4 @md:!table-cell">
         <Link
           href={href}
           className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
@@ -133,7 +133,7 @@ const LeaderboardRow: FC<Props> = ({
         </Link>
       </td>
       {scoreType == "peer_global" && (
-        <td className="@md:!table-cell hidden w-24 p-0 text-base font-[425] tabular-nums leading-4">
+        <td className="hidden w-24 p-0 text-base font-[425] tabular-nums leading-4 @md:!table-cell">
           <Link
             href={href}
             className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
