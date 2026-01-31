@@ -312,9 +312,13 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
             self.zero_point = None
         if self.type != self.QuestionType.MULTIPLE_CHOICE:
             self.options = None
-        if self.type == self.QuestionType.MULTIPLE_CHOICE and not self.options_history:
+        elif self.options_history:
             # initialize options history on first save
             self.options_history = [(datetime.min.isoformat(), self.options or [])]
+        elif not self.user_forecasts.exists():
+            # we're still before forecasts, if the history is only initialized, make
+            # sure that the options matches current options
+            self.options_history[-1][1] = self.options
 
         return super().save(**kwargs)
 
