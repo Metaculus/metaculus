@@ -49,6 +49,14 @@ export type BotDetails = {
   display_in_leaderboard: boolean;
 };
 
+export enum ExclusionStatuses {
+  INCLUDE = 0,
+  EXCLUDE_PRIZE_AND_SHOW = 1,
+  EXCLUDE_AND_SHOW = 2,
+  EXCLUDE_AND_SHOW_IN_ADVANCED = 3,
+  EXCLUDE = 4,
+}
+
 export type LeaderboardEntry = {
   user: (User & { metadata?: { bot_details: BotDetails } }) | null;
   aggregation_method: string | null;
@@ -56,8 +64,7 @@ export type LeaderboardEntry = {
   rank: number | null;
   ci_lower?: number;
   ci_upper?: number;
-  excluded: boolean;
-  show_when_excluded: boolean;
+  exclusion_status: number;
   medal: MedalType | null;
   prize: number | null;
   coverage: number;
