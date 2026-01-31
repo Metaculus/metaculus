@@ -941,8 +941,8 @@ def serialize_question_movement(
     threshold: float = 0.0,
 ) -> dict | None:
     divergence = prediction_difference_for_sorting(
-        f1.forecast_values,
-        f2.forecast_values,
+        f1.get_prediction_values(),
+        f2.get_prediction_values(),
         question.type,
     )
 
