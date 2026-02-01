@@ -1889,5 +1889,7 @@
   "choicesLockedHelp": "As opções só podem ser alteradas através do painel de administração uma vez iniciado o processo de previsão.",
   "feedTileSummary": "Resumo do Bloco de Feed",
   "feedTileSummaryPlaceholder": "Opcional: Insira um texto de resumo personalizado para exibir nos blocos de feed (se não for fornecido, um resumo será gerado automaticamente a partir do conteúdo do caderno)",
+  "includeBotsInAggregatesLabel": "Incluir Bots nos Agregados",
+  "includeBotsInAggregatesExplanation": "Quando ativado, previsões de bots serão incluídas nos cálculos agregados para esta pergunta e afetarão a pontuação. Caso contrário, elas não afetarão.",
   "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
 }

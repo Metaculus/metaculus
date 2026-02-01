@@ -956,13 +956,13 @@ const QuestionForm: FC<Props> = ({
             )}
 
           <InputContainer
-            labelText="Include Bots in Aggregates"
-            explanation="When enabled, bot forecasts will be included in aggregate calculations for this question."
+            labelText={t("includeBotsInAggregatesLabel")}
+            explanation={t("includeBotsInAggregatesExplanation")}
             isNativeFormControl={false}
             className="mb-6"
           >
             <Checkbox
-              label="Include Bots in Aggregates"
+              label={t("includeBotsInAggregatesLabel")}
               checked={form.watch("include_bots_in_aggregates") ?? true}
               onChange={(checked) => {
                 form.setValue("include_bots_in_aggregates", checked, {
