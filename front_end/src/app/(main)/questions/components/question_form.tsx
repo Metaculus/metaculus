@@ -19,6 +19,7 @@ import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import Button from "@/components/ui/button";
+import Checkbox from "@/components/ui/checkbox";
 import {
   DateInput,
   FormError,
@@ -466,6 +467,7 @@ const QuestionForm: FC<Props> = ({
       open_time: post?.question?.open_time,
       published_at: post?.published_at,
       cp_reveal_time: post?.question?.cp_reveal_time,
+      include_bots_in_aggregates: post?.question?.include_bots_in_aggregates ?? false,
     },
   });
   if (
@@ -946,6 +948,21 @@ const QuestionForm: FC<Props> = ({
                 }}
               />
             )}
+
+          <InputContainer
+            labelText="Include Bots in Aggregates"
+            explanation="When enabled, bot forecasts will be included in aggregate calculations for this question."
+            isNativeFormControl={false}
+            className="mb-6"
+          >
+            <Checkbox
+              label="Include Bots in Aggregates"
+              defaultChecked={post?.question?.include_bots_in_aggregates ?? false}
+              onChange={(checked) => {
+                form.setValue("include_bots_in_aggregates", checked);
+              }}
+            />
+          </InputContainer>
         </SectionToggle>
 
         <div className="flex-col">
