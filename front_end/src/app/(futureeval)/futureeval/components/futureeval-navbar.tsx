@@ -32,7 +32,7 @@ const FutureEvalNavbar: React.FC = () => {
       </Button>
 
       {/* Right side: Dark mode toggle */}
-      <ThemeToggle />
+      <ThemeToggle className="border-gray-400 dark:border-white [&>span]:border-gray-400 [&>span]:dark:border-white" />
     </header>
   );
 };
