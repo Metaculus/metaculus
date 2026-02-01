@@ -526,7 +526,7 @@ def bootstrap_skills(
     return ci_lower, ci_upper
 
 
-def run_update_coherence_spring_2026_cup() -> None:
+def run_update_coherence_spring_2026_cup(cache: bool = False) -> None:
     baseline_player: int | str = 283585  # coherence links bot
     project = Project.objects.get(id=32921)  # metaculus spring cup 2026
     bootstrap_iterations = 30
@@ -561,7 +561,7 @@ def run_update_coherence_spring_2026_cup() -> None:
 
     # Gather head to head scores
     user1_ids, user2_ids, question_ids, scores, weights, timestamps = gather_data(
-        users, questions
+        users, questions, cache=cache
     )
 
     # TODO: set up support for yearly updates for all non-metac bots
@@ -749,9 +749,7 @@ def run_update_coherence_spring_2026_cup() -> None:
         x.append(skills.get(uid, 0))
         y.append(avg_scores.get(uid, 0))
     correlation = np.corrcoef(x, y)
-    logger.info(
-        "Correlation between skill and avg_score: %s", correlation[0][1]
-    )
+    logger.info("Correlation between skill and avg_score: %s", correlation[0][1])
 
     # 2. Shapiro-Wilk test (good for small to medium samples)
     if len(skills_array) >= 3:
@@ -768,9 +766,7 @@ def run_update_coherence_spring_2026_cup() -> None:
 
     # 3. Anderson-Darling test (more sensitive to tails)
     anderson_result = stats.anderson(skills_array, dist="norm")
-    logger.info(
-        "Anderson-Darling test: statistic=%.4f", anderson_result.statistic
-    )
+    logger.info("Anderson-Darling test: statistic=%.4f", anderson_result.statistic)
     # Check at 5% significance level
     critical_5pct = anderson_result.critical_values[2]  # Index 2 is 5% level
     logger.info("Critical value at 5%%: %.4f", critical_5pct)
