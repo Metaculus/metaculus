@@ -799,7 +799,7 @@ def run_update_coherence_spring_2026_cup(cache: bool = False) -> None:
 
 class Command(BaseCommand):
     help = """
-    Update the global bots leaderboard
+    Update the coherence leaderboard for the Metaculus Spring Cup 2026
     """
 
     def handle(self, *args, **options) -> None:
