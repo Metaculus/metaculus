@@ -39,6 +39,8 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
   const [hasHover, setHasHover] = useState(true);
   // Reduced motion preference for accessibility
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  // Compact layout for smaller viewports to avoid overflow
+  const [isCompact, setIsCompact] = useState(false);
 
   // Refs
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -60,6 +62,16 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
 
     const handler = (e: MediaQueryListEvent) =>
       setPrefersReducedMotion(e.matches);
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
+  }, []);
+
+  // Detect compact layout for smaller viewports (mobile)
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 639px)");
+    setIsCompact(mediaQuery.matches);
+
+    const handler = (e: MediaQueryListEvent) => setIsCompact(e.matches);
     mediaQuery.addEventListener("change", handler);
     return () => mediaQuery.removeEventListener("change", handler);
   }, []);
@@ -111,15 +123,24 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
 
   // Calculate circle position as percentage offsets from center (static positions)
   // The actual rotation animation is handled by CSS for maximum smoothness
-  const getCirclePosition = useCallback((index: number) => {
-    const angle = ORBIT_CONFIG.startAngle + index * ORBIT_CONFIG.angleIncrement;
-    const angleInRad = (angle * Math.PI) / 180;
-    // Position is percentage of container, orbit radius is half of orbit diameter
-    const radius = ORBIT_CONFIG.orbitDiameter / 2;
-    const x = Math.cos(angleInRad) * radius;
-    const y = Math.sin(angleInRad) * radius;
-    return { x, y };
-  }, []);
+  const orbitDiameter = ORBIT_CONFIG.orbitDiameter * (isCompact ? 0.9 : 1);
+  const circleSize = ORBIT_CONFIG.circleSize * (isCompact ? 0.95 : 1);
+  const shadowBlur = ORBIT_CONFIG.shadow.blur * (isCompact ? 0.8 : 1);
+  const shadowSpread = ORBIT_CONFIG.shadow.spread * (isCompact ? 0.6 : 1);
+
+  const getCirclePosition = useCallback(
+    (index: number) => {
+      const angle =
+        ORBIT_CONFIG.startAngle + index * ORBIT_CONFIG.angleIncrement;
+      const angleInRad = (angle * Math.PI) / 180;
+      // Position is percentage of container, orbit radius is half of orbit diameter
+      const radius = orbitDiameter / 2;
+      const x = Math.cos(angleInRad) * radius;
+      const y = Math.sin(angleInRad) * radius;
+      return { x, y };
+    },
+    [orbitDiameter]
+  );
 
   // Handle click on container background (mobile: close expanded item)
   const handleContainerClick = useCallback(
@@ -136,7 +157,7 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
     <div
       ref={containerRef}
       className={cn(
-        "relative aspect-square w-full",
+        "relative aspect-square w-full overflow-hidden sm:overflow-visible",
         // CSS variable for theme-aware shadow color (using Tailwind arbitrary properties)
         "[--orbit-shadow:#FBFFFC] dark:[--orbit-shadow:#030C07]",
         className
@@ -170,8 +191,8 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
           "border-futureeval-primary-light dark:border-futureeval-primary-dark"
         )}
         style={{
-          width: `${ORBIT_CONFIG.orbitDiameter}%`,
-          height: `${ORBIT_CONFIG.orbitDiameter}%`,
+          width: `${orbitDiameter}%`,
+          height: `${orbitDiameter}%`,
           borderWidth: ORBIT_CONFIG.strokeWidth,
         }}
       />
@@ -211,8 +232,8 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
                 // Expanded items get higher z-index (above backdrop z-45)
                 zIndex: isItemExpanded ? 50 : 10,
                 // Circle size as percentage of container
-                width: `${ORBIT_CONFIG.circleSize}%`,
-                height: `${ORBIT_CONFIG.circleSize}%`,
+                width: `${circleSize}%`,
+                height: `${circleSize}%`,
               }}
             >
               {/* Counter-rotation wrapper - CSS animation perfectly synced with parent */}
@@ -241,8 +262,8 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
                       : () => handleMobileTap(item)
                   }
                   strokeWidth={ORBIT_CONFIG.strokeWidth}
-                  shadowBlur={ORBIT_CONFIG.shadow.blur}
-                  shadowSpread={ORBIT_CONFIG.shadow.spread}
+                  shadowBlur={shadowBlur}
+                  shadowSpread={shadowSpread}
                   mobileSpreadRatio={ORBIT_CONFIG.shadow.mobileSpreadRatio}
                   expandedSpreadRatio={ORBIT_CONFIG.shadow.expandedSpreadRatio}
                   isMobile={!hasHover}

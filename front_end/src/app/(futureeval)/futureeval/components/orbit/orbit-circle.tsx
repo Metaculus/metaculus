@@ -146,7 +146,7 @@ const OrbitCircle: React.FC<OrbitCircleProps> = ({
       >
         <span
           className={cn(
-            "whitespace-pre-line px-1 text-center font-newsreader text-base font-normal leading-tight md:text-sm lg:text-lg",
+            "whitespace-pre-line px-1 text-center font-newsreader text-sm font-normal leading-tight lg:text-lg",
             FE_COLORS.textPrimary
           )}
           style={{
