@@ -330,7 +330,7 @@ def estimate_variances_from_head_to_head(
         )
         logger.info("σ_true (skill variance): %.4f", skill_variance)
         logger.info("alpha = (σ_error / σ_true)² = %.4f", alpha)
-    return 2
+    return alpha
 
 
 def compute_skills(
@@ -506,7 +506,7 @@ def bootstrap_skills(
         boot_skills = get_skills(
             user1_ids=boot_user1_ids,
             user2_ids=boot_user2_ids,
-            question_ids=question_ids,
+            question_ids=boot_question_ids,
             scores=boot_scores,
             weights=boot_weights,
             baseline_player=baseline_player,
