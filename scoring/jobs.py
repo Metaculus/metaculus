@@ -8,6 +8,7 @@ from scoring.constants import LeaderboardScoreTypes
 from scoring.models import Leaderboard
 from scoring.utils import update_project_leaderboard
 from scoring.tasks import update_custom_leaderboard
+from scoring.tasks import update_coherence_spring_2026_cup
 
 from scoring.management.commands.update_global_bot_leaderboard import (
     run_update_global_bot_leaderboard,
@@ -67,7 +68,7 @@ def update_custom_leaderboards():
     ).first()
     if project:
         try:
-            update_custom_leaderboard(
+            update_custom_leaderboard.send(
                 project_id=project.id,
                 minimum_time=datetime(2025, 12, 12, tzinfo=dt_timezone.utc),
                 spot_times=None,
@@ -87,3 +88,11 @@ def update_custom_leaderboards():
         # don't warn or error because this project doesn't necessarily exist
         # in all environments
         logger.info("Index 'us-democracy-threat' not found.")
+
+    # Coherence Links Tournament Metaculus Cup Spring 2026
+    try:
+        update_coherence_spring_2026_cup.send()
+    except Exception as e:
+        logger.error(
+            f"Error updating Coherence Links Tournament Metaculus Cup Spring 2026: {e}"
+        )

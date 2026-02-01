@@ -284,7 +284,7 @@ def post_coherence_bot_forecasts_and_comments(request):
         coherence_leaderboard, _ = Leaderboard.objects.get_or_create(
             project=project,
             name=f"Coherence Leaderboard for {project.name}",
-            score_type="peer_tournament",
+            score_type="manual",
             bot_status=Project.BotLeaderboardStatus.BOTS_ONLY,
         )
         coherence_leaderboard.user_list.add(user)
