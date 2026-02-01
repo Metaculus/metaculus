@@ -1,5 +1,6 @@
 import random
 from collections import defaultdict
+import csv
 from pathlib import Path
 
 from datetime import datetime, timedelta, timezone as dt_timezone
@@ -116,33 +117,18 @@ def gather_data(
     timestamps: list[float] = []
     if cache:
         csv_path = Path("HtH_score_data.csv")
-        if csv_path.exists():
-            userset = set([str(u.id) for u in users]) | {
-                "Pro Aggregate",
-                "Community Aggregate",
-            }
-            import csv
-
-            def _deserialize_user(value: str) -> int | str:
-                value = value.strip()
-                if not value:
-                    return value
-                try:
-                    return int(value)
-                except ValueError:
-                    return value
-
-            with csv_path.open() as input_file:
-                reader = csv.DictReader(input_file)
-                for row in reader:
-                    if (row["user1"] in userset) and (row["user2"] in userset):
-                        user1_ids.append(_deserialize_user(row["user1"]))
-                        user2_ids.append(_deserialize_user(row["user2"]))
-                        question_ids.append(int(row["questionid"]))
-                        scores.append(float(row["score"]))
-                        coverages.append(float(row["coverage"]))
-                        timestamps.append(float(row["timestamp"]))
+        if not csv_path.exists():
+            with csv_path.open("w") as output_file:
+                writer = csv.writer(output_file)
+                writer.writerow(
+                    ["user1", "user2", "questionid", "score", "coverage", "timestamp"]
+                )
+        with csv_path.open("r") as input_file:
+            reader = csv.DictReader(input_file)
+            for row in reader:
+                question_ids.append(int(row["questionid"]))
     cached_question_ids = set(question_ids)
+    question_ids = []
 
     # TODO: make authoritative mapping
     print("creating AIB <> Pro AIB question mapping...", end="\r")
@@ -184,12 +170,13 @@ def gather_data(
     print("creating AIB <> Pro AIB question mapping...DONE\n")
     #
     user_ids = users.values_list("id", flat=True)
-    user_id_map = {user.id: user for user in users}
-    print("Processing Pairwise Scoring:")
-    print("|   Question  |  ID   |   Pairing   |    Duration    | Est. Duration  |")
     t0 = datetime.now()
     question_count = len(questions)
-    for question_number, question in enumerate(questions.iterator(chunk_size=10), 1):
+    questions = list(questions)
+    cache_interval = 100
+    print("Processing Pairwise Scoring:")
+    print("|   Question  |  ID   |   Pairing   |    Duration    | Est. Duration  |")
+    for question_number, question in enumerate(questions, 1):
         # TODO: cache results every ~100 questions, clearing lists of values
         question_print_str = (
             f"\033[K"
@@ -202,7 +189,7 @@ def gather_data(
             est_duration = duration / question_number * question_count
             print(
                 f"{question_print_str}"
-                f"| {"N":>5}/{"A":<5} "
+                f"| {'N':>5}/{'A':<5} "
                 f"| {duration} "
                 f"| {est_duration} "
                 "|",
@@ -306,23 +293,56 @@ def gather_data(
                     scores.append(u1s)
                     coverages.append(cov)
                     timestamps.append(question.actual_resolve_time.timestamp())
+        if cache and question_number % cache_interval == 0:
+            print(f"\nCaching {len(user1_ids)} matches...")
+            with csv_path.open("a") as output_file:
+                writer = csv.writer(output_file)
+                for row in zip(
+                    user1_ids, user2_ids, question_ids, scores, coverages, timestamps
+                ):
+                    writer.writerow(row)
+            user1_ids = []
+            user2_ids = []
+            question_ids = []
+            scores = []
+            coverages = []
+            timestamps = []
     print("\n")
-    weights = coverages
 
     if cache:
-        import csv
-
-        with open("HtH_score_data.csv", "w") as output_file:
+        with csv_path.open("a") as output_file:
             writer = csv.writer(output_file)
-            writer.writerow(
-                ["user1", "user2", "questionid", "score", "coverage", "timestamp"]
-            )
             for row in zip(
-                user1_ids, user2_ids, question_ids, scores, weights, timestamps
+                user1_ids, user2_ids, question_ids, scores, coverages, timestamps
             ):
                 writer.writerow(row)
+        user1_ids = []
+        user2_ids = []
+        question_ids = []
+        scores = []
+        coverages = []
+        timestamps = []
 
-    return (user1_ids, user2_ids, question_ids, scores, weights, timestamps)
+        def _deserialize_user(value: str) -> int | str:
+            value = value.strip()
+            if not value:
+                return value
+            try:
+                return int(value)
+            except ValueError:
+                return value
+
+        with csv_path.open("r") as input_file:
+            reader = csv.DictReader(input_file)
+            for row in reader:
+                user1_ids.append(_deserialize_user(row["user1"]))
+                user2_ids.append(_deserialize_user(row["user2"]))
+                question_ids.append(int(row["questionid"]))
+                scores.append(float(row["score"]))
+                coverages.append(float(row["coverage"]))
+                timestamps.append(float(row["timestamp"]))
+
+    return (user1_ids, user2_ids, question_ids, scores, coverages, timestamps)
 
 
 def get_avg_scores(
@@ -434,7 +454,7 @@ def estimate_variances_from_head_to_head(
         )
         print(f"σ_true (skill variance): {skill_variance:.4f}")
         print(f"alpha = (σ_error / σ_true)² = {alpha:.4f}")
-    return 2
+    return alpha
 
 
 def compute_skills(
@@ -610,7 +630,7 @@ def bootstrap_skills(
         boot_skills = get_skills(
             user1_ids=boot_user1_ids,
             user2_ids=boot_user2_ids,
-            question_ids=question_ids,
+            question_ids=boot_question_ids,
             scores=boot_scores,
             weights=boot_weights,
             baseline_player=baseline_player,
@@ -705,7 +725,79 @@ def run_update_global_bot_leaderboard() -> None:
         users, questions
     )
 
-    # TODO: set up support for yearly updates for all non-metac bots
+    # for pro aggregation, community aggregate, and any non-metac bot,
+    # duplicate rows indicating year-specific achievements
+    user_map = {user.id: user for user in users}
+    user_map["Pro Aggregate"] = "Pro Aggregate"
+    user_map["Community Aggregate"] = "Community Aggregate"
+    new_rows = []
+    for user1_id, user2_id, question_id, score, weight, timestamp in zip(
+        user1_ids, user2_ids, question_ids, scores, weights, timestamps
+    ):
+        user1 = user_map[user1_id]
+        if isinstance(user1, User):
+            if (
+                not (user1.metadata or dict())
+                .get("bot_details", dict())
+                .get("metac_bot")
+            ):
+                # non-metac bot
+                time = datetime.fromtimestamp(timestamp, dt_timezone.utc)
+                new_rows.append(
+                    (
+                        f"{user1.username} {time.year}",
+                        user2_id,
+                        question_id,
+                        score,
+                        weight,
+                        timestamp,
+                    )
+                )
+        else:
+            # aggregation methods
+            time = datetime.fromtimestamp(timestamp, dt_timezone.utc)
+            new_rows.append(
+                (
+                    f"{user1} {time.year}",
+                    user2_id,
+                    question_id,
+                    score,
+                    weight,
+                    timestamp,
+                )
+            )
+        user2 = user_map[user2_id]
+        if isinstance(user2, User):
+            if not (
+                not (user2.metadata or dict())
+                .get("bot_details", dict())
+                .get("metac_bot")
+            ):
+                # non-metac bot
+                time = datetime.fromtimestamp(timestamp, dt_timezone.utc)
+                new_rows.append(
+                    (
+                        user1_id,
+                        f"{user2.username} {time.year}",
+                        question_id,
+                        -score,
+                        weight,
+                        timestamp,
+                    )
+                )
+        else:
+            # aggregation methods
+            time = datetime.fromtimestamp(timestamp, dt_timezone.utc)
+            new_rows.append(
+                (
+                    user1_id,
+                    f"{user2} {time.year}",
+                    question_id,
+                    -score,
+                    weight,
+                    timestamp,
+                )
+            )
 
     # choose baseline player if not already chosen
     if not baseline_player:
