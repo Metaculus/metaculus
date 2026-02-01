@@ -222,6 +222,7 @@ const createQuestionSchemas = (
         }
       ),
     default_project: z.nullable(z.union([z.number(), z.string()])),
+    include_bots_in_aggregates: z.boolean().default(true),
   });
 
   const binaryQuestionSchema = baseQuestionSchema;
@@ -467,9 +468,13 @@ const QuestionForm: FC<Props> = ({
       open_time: post?.question?.open_time,
       published_at: post?.published_at,
       cp_reveal_time: post?.question?.cp_reveal_time,
-      include_bots_in_aggregates: post?.question?.include_bots_in_aggregates ?? false,
+      include_bots_in_aggregates:
+        post?.question?.include_bots_in_aggregates ?? true,
     },
   });
+  useEffect(() => {
+    form.register("include_bots_in_aggregates");
+  }, [form]);
   if (
     questionType === QuestionType.Binary ||
     questionType === QuestionType.MultipleChoice ||
@@ -521,6 +526,7 @@ const QuestionForm: FC<Props> = ({
       scheduled_resolve_time: draft.scheduled_resolve_time,
       cp_reveal_time: draft.cp_reveal_time,
       default_project: draft.default_project,
+      include_bots_in_aggregates: draft.include_bots_in_aggregates ?? true,
     };
 
     // Depending on the question type, add specific properties
@@ -957,9 +963,13 @@ const QuestionForm: FC<Props> = ({
           >
             <Checkbox
               label="Include Bots in Aggregates"
-              defaultChecked={post?.question?.include_bots_in_aggregates ?? false}
+              checked={form.watch("include_bots_in_aggregates") ?? true}
               onChange={(checked) => {
-                form.setValue("include_bots_in_aggregates", checked);
+                form.setValue("include_bots_in_aggregates", checked, {
+                  shouldDirty: true,
+                  shouldTouch: true,
+                  shouldValidate: true,
+                });
               }}
             />
           </InputContainer>
