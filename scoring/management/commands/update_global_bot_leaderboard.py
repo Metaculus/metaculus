@@ -105,12 +105,15 @@ def gather_data(
     users: QuerySet[User],
     questions: QuerySet[Question],
     cache: bool = True,
-) -> tuple[list[int | str], list[int | str], list[int], list[float], list[float]]:
+) -> tuple[
+    list[int | str], list[int | str], list[int], list[float], list[float], list[float]
+]:
     user1_ids: list[int | str] = []
     user2_ids: list[int | str] = []
     question_ids: list[int] = []
     scores: list[float] = []
     coverages: list[float] = []
+    timestamps: list[float] = []
     if cache:
         csv_path = Path("HtH_score_data.csv")
         if csv_path.exists():
@@ -138,6 +141,7 @@ def gather_data(
                         question_ids.append(int(row["questionid"]))
                         scores.append(float(row["score"]))
                         coverages.append(float(row["coverage"]))
+                        timestamps.append(float(row["timestamp"]))
     cached_question_ids = set(question_ids)
 
     # TODO: make authoritative mapping
@@ -186,37 +190,56 @@ def gather_data(
     t0 = datetime.now()
     question_count = len(questions)
     for question_number, question in enumerate(questions.iterator(chunk_size=10), 1):
-        if question.id in cached_question_ids:
-            # Skip questions that are already cached
-            continue
-        # if question_number % 50 != 0:
-        #     continue
+        # TODO: cache results every ~100 questions, clearing lists of values
         question_print_str = (
             f"\033[K"
             f"| {question_number:>5}/{question_count:<5} "
             f"| {question.id:<5} "
         )
+        if question.id in cached_question_ids:
+            # Skip questions that are already cached
+            duration = datetime.now() - t0
+            est_duration = duration / question_number * question_count
+            print(
+                f"{question_print_str}"
+                f"| {"N":>5}/{"A":<5} "
+                f"| {duration} "
+                f"| {est_duration} "
+                "|",
+                end="\r",
+            )
+            continue
         # Get forecasts
         forecast_dict: dict[int | str, list[Forecast | AggregateForecast]] = (
             defaultdict(list)
         )
-        # bot forecasts - simple
-        bot_forecasts = question.user_forecasts.filter(author_id__in=user_ids).order_by(
-            "start_time"
-        )
-        for f in bot_forecasts:
-            # don't include forecasts made 1 year or more after model release
-            user = user_id_map[f.author_id]
-            primary_base_model = user.metadata["bot_details"]["base_models"][0]
+        # bot forecasts
+        old_bot_ids: set[int] = set()
+        for user in users:
+            base_models = (
+                (user.metadata or dict())
+                .get("bot_details", dict())
+                .get("base_models", [])
+            )
+            # don't include bots on question that resolved 1 year or more
+            # after model release
+            primary_base_model = None if not base_models else base_models[0]
+            if not primary_base_model:
+                continue
             if release_date := primary_base_model.get("model_release_date"):
                 if len(release_date) == 7:
                     release_date += "-01"
                 release = datetime.fromisoformat(release_date).replace(
                     tzinfo=dt_timezone.utc
                 )
-                if f.start_time > release + timedelta(days=365):
-                    continue
-
+                if question.resolution_set_time > release + timedelta(days=365):
+                    old_bot_ids.add(user.id)
+        bot_forecasts = (
+            question.user_forecasts.filter(author_id__in=user_ids)
+            .exclude(author_id__in=old_bot_ids)
+            .order_by("start_time")
+        )
+        for f in bot_forecasts:
             forecast_dict[f.author_id].append(f)
         # human aggregate forecasts - conditional on a bunch of stuff
         human_question: Question | None = aib_question_map.get(question, question)
@@ -230,10 +253,13 @@ def gather_data(
                 if question.default_score_type == ScoreTypes.SPOT_PEER
                 else AggregationMethod.RECENCY_WEIGHTED
             )
+            # aggregate_forecasts = human_question.aggregate_forecasts.filter(
+            #     method=aggregation_method
+            # ).order_by("start_time")
             aggregate_forecasts = get_aggregation_history(
                 human_question,
                 [aggregation_method],
-                minimize=False,
+                minimize=True,
                 include_stats=False,
                 include_bots=False,
                 include_future=False,
@@ -279,6 +305,7 @@ def gather_data(
                     question_ids.append(q)
                     scores.append(u1s)
                     coverages.append(cov)
+                    timestamps.append(question.actual_resolve_time.timestamp())
     print("\n")
     weights = coverages
 
@@ -287,11 +314,15 @@ def gather_data(
 
         with open("HtH_score_data.csv", "w") as output_file:
             writer = csv.writer(output_file)
-            writer.writerow(["user1", "user2", "questionid", "score", "coverage"])
-            for row in zip(user1_ids, user2_ids, question_ids, scores, weights):
+            writer.writerow(
+                ["user1", "user2", "questionid", "score", "coverage", "timestamp"]
+            )
+            for row in zip(
+                user1_ids, user2_ids, question_ids, scores, weights, timestamps
+            ):
                 writer.writerow(row)
 
-    return (user1_ids, user2_ids, question_ids, scores, weights)
+    return (user1_ids, user2_ids, question_ids, scores, weights, timestamps)
 
 
 def get_avg_scores(
@@ -607,9 +638,10 @@ def run_update_global_bot_leaderboard() -> None:
     # SETUP: users to evaluate & questions
     print("Initializing...")
     users: QuerySet[User] = User.objects.filter(
-        metadata__bot_details__metac_bot=True,
-        metadata__bot_details__include_in_calculations=True,
-        metadata__bot_details__display_in_leaderboard=True,
+        is_bot=True,
+        # metadata__bot_details__metac_bot=True,
+        # metadata__bot_details__include_in_calculations=True,
+        # metadata__bot_details__display_in_leaderboard=True,
         is_active=True,
     ).order_by("id")
     user_forecast_exists = Forecast.objects.filter(
@@ -617,14 +649,9 @@ def run_update_global_bot_leaderboard() -> None:
     )
     questions: QuerySet[Question] = (
         Question.objects.filter(
-            Q(
-                related_posts__post__default_project__default_permission__in=[
-                    "viewer",
-                    "forecaster",
-                ]
-            )
+            Q(post__default_project__default_permission__in=["viewer", "forecaster"])
             | Q(
-                related_posts__post__default_project_id__in=[
+                post__default_project_id__in=[
                     3349,  # aib q3 2024
                     32506,  # aib q4 2024
                     32627,  # aib q1 2025
@@ -632,11 +659,11 @@ def run_update_global_bot_leaderboard() -> None:
                     32813,  # aib fall 2025
                 ]
             ),
-            related_posts__post__curation_status=Post.CurationStatus.APPROVED,
+            post__curation_status=Post.CurationStatus.APPROVED,
             resolution__isnull=False,
             scheduled_close_time__lte=timezone.now(),
         )
-        .exclude(related_posts__post__default_project__slug__startswith="minibench")
+        .exclude(post__default_project__slug__startswith="minibench")
         .exclude(resolution__in=UnsuccessfulResolutionType)
         .filter(Exists(user_forecast_exists))
         .prefetch_related(  # only prefetch forecasts from those users
@@ -659,17 +686,26 @@ def run_update_global_bot_leaderboard() -> None:
         i += 1
         print(i, "/", c, end="\r")
         scored_question_counts[user.id] = (
-            Score.objects.filter(user=user, question__in=question_list)
+            Score.objects.filter(
+                user=user,
+                score_type="peer",
+                question__in=question_list,
+            )
             .distinct("question_id")
             .count()
         )
     excluded_ids = [uid for uid, count in scored_question_counts.items() if count < 100]
     users = users.exclude(id__in=excluded_ids)
     ###############
+    print(f"Filtered {c} users down to {users.count()}.")
     print("Initializing... DONE")
 
     # Gather head to head scores
-    user1_ids, user2_ids, question_ids, scores, weights = gather_data(users, questions)
+    user1_ids, user2_ids, question_ids, scores, weights, timestamps = gather_data(
+        users, questions
+    )
+
+    # TODO: set up support for yearly updates for all non-metac bots
 
     # choose baseline player if not already chosen
     if not baseline_player:
