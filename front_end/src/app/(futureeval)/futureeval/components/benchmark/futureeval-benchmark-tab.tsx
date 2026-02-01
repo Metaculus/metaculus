@@ -1,8 +1,8 @@
-import FutureEvalBiggestBotWins from "./futureeval-biggest-bot-wins";
 import {
   FutureEvalForecastingPerformanceHeader,
   FutureEvalProsVsBotsSectionHeader,
 } from "./futureeval-benchmark-headers";
+import FutureEvalBiggestBotWins from "./futureeval-biggest-bot-wins";
 import FutureEvalModelBenchmark from "./futureeval-model-benchmark";
 import FutureEvalBenchmarkForecastingPerformance from "./performance-over-time/futureeval-benchmark-forecasting-performance";
 import { FutureEvalProsVsBotsDiffExample } from "./pros-vs-bots/futureeval-pros-vs-bots-comparison";
