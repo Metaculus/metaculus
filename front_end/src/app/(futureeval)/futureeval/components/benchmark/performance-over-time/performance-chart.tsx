@@ -16,7 +16,6 @@ import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import { useBreakpoint } from "@/hooks/tailwind";
 import useAppTheme from "@/hooks/use_app_theme";
-import type { ThemeColor } from "@/types/theme";
 
 import { ModelPoint } from "./mapping";
 
@@ -66,29 +65,6 @@ const PADDING_SMALL_SCREEN = { top: 30, bottom: 80, left: 35, right: 0 };
 const normalizeToCompany = (name: string) => {
   const first = String(name).split(" ")[0] ?? name;
   return /^gpt/i.test(first) ? "OpenAI" : first;
-};
-
-// Provider-specific color mapping - matching colors from design
-// Colors are theme-aware with light (DEFAULT) and dark variants
-const PROVIDER_COLORS: Record<string, ThemeColor> = {
-  // OpenAI: Dark grey from design
-  OpenAI: { DEFAULT: "#333333", dark: "#E4E7E9" },
-  // Claude/Anthropic: Orange from design
-  Claude: { DEFAULT: "#d97757", dark: "#F59E7A" },
-  // DeepSeek: Vibrant blue from design
-  DeepSeek: { DEFAULT: "#3E5EED", dark: "#5B7AF5" },
-  // Qwen: Using similar blue (not in design, keeping distinctive)
-  Qwen: { DEFAULT: "#06B6D4", dark: "#22D3EE" },
-  // Gemini/Google: Medium green from design
-  Gemini: { DEFAULT: "#54AC53", dark: "#6BC96A" },
-  // Grok/xAI: Purple from design
-  Grok: { DEFAULT: "#6A55BB", dark: "#8B75D4" },
-  // LLaMA/Meta: Cyan/sky blue from design
-  LLaMA: { DEFAULT: "#0099E5", dark: "#33B3F0" },
-  // Kimi: Amber/orange from design
-  Kimi: { DEFAULT: "#f59e0b", dark: "#FBBF24" },
-  // Z.AI: Pink/magenta from design
-  "Z.AI": { DEFAULT: "#ec4899", dark: "#F472B6" },
 };
 
 const LABEL_FONT_SIZE = 9;
@@ -253,17 +229,12 @@ export function BenchmarkChart({
   const colorForName = useCallback(
     (name: string) => {
       const group = normalizeToCompany(name);
-      // Check if provider has a specific color mapping
-      if (PROVIDER_COLORS[group]) {
-        return getThemeColor(PROVIDER_COLORS[group]);
-      }
-      // Otherwise, use theme-based colors
       const idx = groupIndexByLabel.get(group);
       return colorFor(
         typeof idx === "number" ? { index: idx } : { index: 0 }
       ) as string;
     },
-    [groupIndexByLabel, colorFor, getThemeColor]
+    [groupIndexByLabel, colorFor]
   );
 
   // Process data
@@ -439,14 +410,6 @@ export function BenchmarkChart({
     });
     return Array.from(companySet).map(
       (provider): { label: string; color: string } => {
-        // Use provider-specific color if available, otherwise use theme-based color
-        const providerColor = PROVIDER_COLORS[provider];
-        if (providerColor) {
-          return {
-            label: provider,
-            color: getThemeColor(providerColor),
-          };
-        }
         const idx = groupIndexByLabel.get(provider) ?? 0;
         return {
           label: provider,
@@ -454,7 +417,7 @@ export function BenchmarkChart({
         };
       }
     );
-  }, [chartData, groupIndexByLabel, colorFor, getThemeColor]);
+  }, [chartData, groupIndexByLabel, colorFor]);
 
   return (
     <div className={className ?? ""}>
@@ -701,7 +664,7 @@ export function BenchmarkChart({
               }}
             />
 
-            {/* Dots - colored by provider, stars for SOTA models */}
+            {/* Dots - colored by option palette, stars for SOTA models */}
             <VictoryScatter
               data={dataWithLabels}
               size={(args: CallbackArgs) => {
