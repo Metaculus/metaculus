@@ -22,7 +22,7 @@ const DiscoverServicesBlock: React.FC = () => {
         {DISCOVER_SERIES_CARDS.map((card) => (
           <Link
             key={card.type}
-            href="#"
+            href={`/services/quiz?category=${encodeURIComponent(card.type)}`}
             className={cn(
               "rounded-lg bg-blue-100 p-4 no-underline dark:bg-blue-100-dark",
               "focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-400-dark",
