@@ -29,7 +29,7 @@ export function aggregateKind(
 
 export function entryLabel(
   entry: LeaderboardEntry,
-  t: ReturnType<typeof useTranslations>
+  t?: ReturnType<typeof useTranslations>
 ): string {
   if (entry.user?.metadata?.bot_details?.base_models?.[0]?.name) {
     return entry.user.metadata.bot_details.base_models[0].name;
@@ -39,8 +39,9 @@ export function entryLabel(
     return meta?.label ?? entry.user.username;
   }
   const kind = aggregateKind(entry);
-  if (kind === "community") return t("communityPrediction");
-  if (kind === "pros") return t("aibLegendPros");
+  if (kind === "community")
+    return t ? t("communityPrediction") : "Community Prediction";
+  if (kind === "pros") return t ? t("aibLegendPros") : "Pro Forecasters";
   return entry.aggregation_method ?? "Aggregate";
 }
 

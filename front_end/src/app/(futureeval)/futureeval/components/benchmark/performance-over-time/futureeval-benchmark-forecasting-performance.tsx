@@ -1,15 +1,12 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-
 import { mapLeaderboardToModelPoints } from "./mapping";
 import BenchmarkChart from "./performance-chart";
 import { useFutureEvalLeaderboard } from "../../leaderboard/futureeval-leaderboard-provider";
 
 const FutureEvalBenchmarkForecastingPerformance: React.FC = () => {
-  const t = useTranslations();
   const { leaderboard } = useFutureEvalLeaderboard();
-  const models = mapLeaderboardToModelPoints(leaderboard, t);
+  const models = mapLeaderboardToModelPoints(leaderboard);
   const firstIdxByGroup = new Map<string, number>();
   const normalizeGroup = (name: string) => {
     const first = String(name).split(" ")[0] ?? name;
@@ -27,7 +24,7 @@ const FutureEvalBenchmarkForecastingPerformance: React.FC = () => {
       label,
       pointIndex,
     })),
-    { label: t("aibSOTALinearTrend"), trend: true as const },
+    { label: "SOTA Linear Trend", trend: true as const },
   ];
 
   return (

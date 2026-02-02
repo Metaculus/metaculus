@@ -1,5 +1,3 @@
-import { useTranslations } from "next-intl";
-
 import type { LeaderboardDetails } from "@/types/scoring";
 
 import { getBotMeta } from "../../leaderboard/bot_meta";
@@ -18,15 +16,14 @@ export type ModelPoint = {
 type MaybeAgg = { aggregation_method?: string | null };
 
 export function mapLeaderboardToModelPoints(
-  leaderboard: LeaderboardDetails,
-  t: ReturnType<typeof useTranslations>
+  leaderboard: LeaderboardDetails
 ): ModelPoint[] {
   const entries: ModelPoint[] = [];
 
   for (const e of leaderboard.entries) {
     const username = e.user?.username ?? null;
     const meta = username ? getBotMeta(username) : undefined;
-    const name = entryLabel(e, t);
+    const name = entryLabel(e);
     const isAggregate = !e.user;
 
     const amRaw = (e as MaybeAgg).aggregation_method ?? "";
