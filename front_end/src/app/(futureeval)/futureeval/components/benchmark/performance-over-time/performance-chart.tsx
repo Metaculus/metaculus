@@ -67,7 +67,8 @@ const normalizeToCompany = (name: string) => {
   return /^gpt/i.test(first) ? "OpenAI" : first;
 };
 
-const LABEL_FONT_SIZE = 9;
+const LABEL_FONT_SIZE_DESKTOP = 12;
+const LABEL_FONT_SIZE_MOBILE = 10;
 const LABEL_FONT_FAMILY = "system-ui, sans-serif";
 const LABEL_FONT_WEIGHT = 500;
 const LABEL_STROKE_WIDTH = 2.5;
@@ -78,11 +79,12 @@ const labelMeasureCanvas =
   typeof document !== "undefined" ? document.createElement("canvas") : null;
 
 // Estimate text width using the actual label font.
-function estimateTextWidth(text: string): number {
-  if (!labelMeasureCanvas) return text.length * 5.5;
+function estimateTextWidth(text: string, fontSize: number): number {
+  const avgCharWidth = fontSize * 0.6;
+  if (!labelMeasureCanvas) return Math.ceil(text.length * avgCharWidth);
   const ctx = labelMeasureCanvas.getContext("2d");
-  if (!ctx) return text.length * 5.5;
-  ctx.font = `${LABEL_FONT_WEIGHT} ${LABEL_FONT_SIZE}px ${LABEL_FONT_FAMILY}`;
+  if (!ctx) return Math.ceil(text.length * avgCharWidth);
+  ctx.font = `${LABEL_FONT_WEIGHT} ${fontSize}px ${LABEL_FONT_FAMILY}`;
   return Math.ceil(ctx.measureText(text).width);
 }
 
@@ -191,6 +193,9 @@ export function BenchmarkChart({
   const isSmallScreen = !smUp;
   const PADDING = isSmallScreen ? PADDING_SMALL_SCREEN : PADDING_DESKTOP;
   const domainPadding = { x: isSmallScreen ? 10 : 25, y: 20 };
+  const labelFontSize = isSmallScreen
+    ? LABEL_FONT_SIZE_MOBILE
+    : LABEL_FONT_SIZE_DESKTOP;
 
   // Get container width for responsive chart
   const { containerRef, width: containerWidth } = useContainerWidth();
@@ -734,6 +739,7 @@ export function BenchmarkChart({
               chartWidth={chartWidth}
               chartHeight={chartHeight}
               domainPadding={domainPadding}
+              labelFontSize={labelFontSize}
             />
           </VictoryChart>
         )}
@@ -760,6 +766,7 @@ function CollisionAwareLabels(props: {
   chartWidth: number;
   chartHeight: number;
   domainPadding: { x: number; y: number };
+  labelFontSize: number;
 }) {
   const {
     data,
@@ -771,6 +778,7 @@ function CollisionAwareLabels(props: {
     chartWidth,
     chartHeight,
     domainPadding,
+    labelFontSize,
   } = props;
   if (!data || data.length === 0) return null;
   const defaultPosition = POSITIONS[0];
@@ -893,8 +901,8 @@ function CollisionAwareLabels(props: {
   };
 
   for (const p of sortedPoints) {
-    const textWidth = estimateTextWidth(p.datum.name);
-    const textHeight = LABEL_FONT_SIZE + 2;
+    const textWidth = estimateTextWidth(p.datum.name, labelFontSize);
+    const textHeight = labelFontSize + 2;
     const color = colorForName(p.datum.name);
 
     let bestPos = defaultPosition;
@@ -1017,7 +1025,7 @@ function CollisionAwareLabels(props: {
               fill={getThemeColor(METAC_COLORS.gray[0])}
               stroke={getThemeColor(METAC_COLORS.gray[0])}
               strokeWidth={LABEL_STROKE_WIDTH}
-              fontSize={LABEL_FONT_SIZE}
+              fontSize={labelFontSize}
               fontFamily={LABEL_FONT_FAMILY}
               fontWeight={LABEL_FONT_WEIGHT}
             >
@@ -1030,7 +1038,7 @@ function CollisionAwareLabels(props: {
               textAnchor={label.anchor}
               dominantBaseline="middle"
               fill={label.color}
-              fontSize={LABEL_FONT_SIZE}
+              fontSize={labelFontSize}
               fontFamily={LABEL_FONT_FAMILY}
               fontWeight={LABEL_FONT_WEIGHT}
             >
