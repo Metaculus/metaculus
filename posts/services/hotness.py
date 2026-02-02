@@ -97,7 +97,6 @@ def _compute_hotness_relevant_news(post: Post) -> float:
     if post.notebook_id:
         return 0.0
 
-    # Use prefetched postarticle_set if available, otherwise query
     post_articles = post.postarticle_set.all()
 
     return sum(
