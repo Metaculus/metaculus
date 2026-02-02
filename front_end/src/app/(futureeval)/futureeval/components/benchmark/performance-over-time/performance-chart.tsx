@@ -6,9 +6,9 @@ import {
   VictoryChart,
   VictoryScatter,
   VictoryAxis,
-  VictoryTooltip,
   VictoryLine,
   VictoryLabel,
+  VictoryVoronoiContainer,
 } from "victory";
 import type { CallbackArgs } from "victory-core";
 
@@ -187,6 +187,7 @@ export function BenchmarkChart({
     new Set()
   );
   const [hoveredProvider, setHoveredProvider] = useState<string | null>(null);
+  const [hoveredPointKey, setHoveredPointKey] = useState<string | null>(null);
 
   // On small screens (< sm breakpoint), use smaller padding and font sizes
   const smUp = useBreakpoint("sm");
@@ -291,6 +292,7 @@ export function BenchmarkChart({
       name: item.name,
       label: `${item.name}\nScore: ${item.y.toFixed(2)}`,
       provider: normalizeToCompany(item.name),
+      pointKey: `${item.name}-${+item.x}-${item.y}`,
     }));
   }, [filteredPlotPoints]);
 
@@ -377,11 +379,13 @@ export function BenchmarkChart({
     });
   };
 
-  // Check if a provider is highlighted (selected or none selected = all highlighted)
-  // When hovering, only the hovered provider is highlighted
+  // Check if a provider is highlighted (full opacity dots)
+  // When hovering, the hovered provider AND any selected providers stay highlighted
   const isHighlighted = (provider: string) => {
     if (hoveredProvider) {
-      return provider === hoveredProvider;
+      // Hovered provider is always highlighted
+      // Selected providers also stay highlighted when hovering
+      return provider === hoveredProvider || selectedProviders.has(provider);
     }
     return selectedProviders.size === 0 || selectedProviders.has(provider);
   };
@@ -389,21 +393,28 @@ export function BenchmarkChart({
   // Prepare data with showLabel flag, opacity, and isSota flag
   // Show labels when:
   // 1. showAllLabels is true (show all), OR
-  // 2. It's a SOTA model, OR
-  // 3. The provider is specifically selected in the legend, OR
-  // 4. The provider is hovered in the legend
+  // 2. It's a SOTA model (only when not hovering a different provider), OR
+  // 3. The provider is specifically selected in the legend (only when not hovering a different provider), OR
+  // 4. The provider is hovered in the legend, OR
+  // 5. The specific point is hovered
   const dataWithLabels = chartData.map((d) => {
     const providerIsSelected = selectedProviders.has(d.provider);
     const providerIsHovered = hoveredProvider === d.provider;
+    const isHoveredPoint = hoveredPointKey === d.pointKey;
+    // When hovering a provider, only show labels for that provider (and hovered points)
+    // Hide labels from selected/SOTA providers while hovering a different provider
+    const showLabelWhenHovering = providerIsHovered || isHoveredPoint;
+    const showLabelNormally =
+      showAllLabels ||
+      sotaModelNames.has(d.name) ||
+      providerIsSelected ||
+      isHoveredPoint;
     return {
       ...d,
-      showLabel:
-        showAllLabels ||
-        sotaModelNames.has(d.name) ||
-        providerIsSelected ||
-        providerIsHovered,
+      showLabel: hoveredProvider ? showLabelWhenHovering : showLabelNormally,
       isHighlighted: isHighlighted(d.provider),
       isSota: sotaModelNames.has(d.name),
+      isHoveredPoint,
     };
   });
 
@@ -527,6 +538,7 @@ export function BenchmarkChart({
         ref={containerRef}
         className="relative w-full"
         style={{ minHeight: chartHeight }}
+        onMouseLeave={() => setHoveredPointKey(null)}
       >
         {containerWidth === 0 ? (
           <div className="h-[460px] w-full animate-pulse rounded-md bg-gray-200 dark:bg-gray-800 sm:h-[600px]" />
@@ -541,6 +553,19 @@ export function BenchmarkChart({
               x: [minX, maxX],
               y: [minY, maxY],
             }}
+            containerComponent={
+              <VictoryVoronoiContainer
+                voronoiBlacklist={[/^refLine-/, /^refLabel-/, "sotaTrend"]}
+                radius={30}
+                activateData
+                onActivated={(points: { pointKey?: string }[]) => {
+                  const point = points[0];
+                  if (point?.pointKey) {
+                    setHoveredPointKey(point.pointKey);
+                  }
+                }}
+              />
+            }
           >
             {/* X Axis - Date - positioned at bottom */}
             <VictoryAxis
@@ -623,9 +648,10 @@ export function BenchmarkChart({
             />
 
             {/* Reference benchmark horizontal dotted lines */}
-            {referenceLines.map((item) => (
+            {referenceLines.map((item, idx) => (
               <VictoryLine
                 key={item.label}
+                name={`refLine-${idx}`}
                 data={[
                   { x: minX, y: item.y },
                   { x: maxX, y: item.y },
@@ -642,9 +668,10 @@ export function BenchmarkChart({
             ))}
 
             {/* Reference benchmark labels - positioned at end of lines */}
-            {referenceLines.map((item) => (
+            {referenceLines.map((item, idx) => (
               <VictoryScatter
                 key={`label-${item.label}`}
+                name={`refLabel-${idx}`}
                 data={[{ x: maxX, y: item.y }]}
                 size={0}
                 style={{ data: { opacity: 0 } }}
@@ -667,6 +694,7 @@ export function BenchmarkChart({
 
             {/* SOTA Trend Line */}
             <VictoryLine
+              name="sotaTrend"
               data={trendLineData}
               style={{
                 data: {
@@ -679,6 +707,7 @@ export function BenchmarkChart({
 
             {/* Dots - colored by option palette, stars for SOTA models */}
             <VictoryScatter
+              name="points"
               data={dataWithLabels}
               size={(args: CallbackArgs) => {
                 const datum = (args.datum ?? {}) as { isSota?: boolean };
@@ -702,37 +731,27 @@ export function BenchmarkChart({
                   fillOpacity: (args: CallbackArgs) => {
                     const datum = (args.datum ?? {}) as {
                       isHighlighted?: boolean;
+                      isHoveredPoint?: boolean;
                     };
-                    return datum.isHighlighted ? 1 : 0.15;
+                    return datum.isHighlighted || datum.isHoveredPoint
+                      ? 1
+                      : 0.25;
                   },
                   strokeOpacity: (args: CallbackArgs) => {
                     const datum = (args.datum ?? {}) as {
                       isHighlighted?: boolean;
+                      isHoveredPoint?: boolean;
                     };
-                    return datum.isHighlighted ? 1 : 0.15;
+                    return datum.isHighlighted || datum.isHoveredPoint
+                      ? 1
+                      : 0.25;
                   },
                   cursor: "pointer",
                 },
               }}
-              labels={({ datum }) => datum.label}
+              labels={() => ""}
               labelComponent={
-                <VictoryTooltip
-                  flyoutStyle={{
-                    stroke: getThemeColor(METAC_COLORS.gray[400]),
-                    strokeWidth: 1,
-                    fill: getThemeColor(METAC_COLORS.gray[0]),
-                    filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
-                  }}
-                  style={{
-                    fontSize: 11,
-                    fill: getThemeColor(METAC_COLORS.gray[800]),
-                    fontFamily: "system-ui, sans-serif",
-                    fontWeight: 500,
-                  }}
-                  cornerRadius={6}
-                  pointerLength={8}
-                  flyoutPadding={{ top: 8, bottom: 8, left: 12, right: 12 }}
-                />
+                <VictoryLabel style={{ opacity: 0, pointerEvents: "none" }} />
               }
             />
 
@@ -765,6 +784,7 @@ function CollisionAwareLabels(props: {
     provider: string;
     isHighlighted: boolean;
     showLabel: boolean;
+    isHoveredPoint: boolean;
   }>;
   xDomain: [number, number];
   yDomain: [number, number];
@@ -835,7 +855,7 @@ function CollisionAwareLabels(props: {
 
   // Add all highlighted dots as obstacles first
   for (const p of points) {
-    if (p.datum.isHighlighted) {
+    if (p.datum.isHighlighted || p.datum.isHoveredPoint) {
       placedRects.push({
         x: p.x - DOT_RADIUS - 2,
         y: p.y - DOT_RADIUS - 2,
@@ -858,7 +878,10 @@ function CollisionAwareLabels(props: {
 
   // Sort by y pixel (lower y = higher on screen = higher score = priority)
   const sortedPoints = [...points]
-    .filter((p) => p.datum.showLabel && p.datum.isHighlighted)
+    .filter(
+      (p) =>
+        p.datum.showLabel && (p.datum.isHighlighted || p.datum.isHoveredPoint)
+    )
     .sort((a, b) => a.y - b.y);
 
   const clampLabelPosition = (
