@@ -431,8 +431,20 @@ export function BenchmarkChart({
         {legendItems.map((item) => {
           const isSelected = selectedProviders.has(item.label);
           const isHovered = hoveredProvider === item.label;
-          const isActive =
-            selectedProviders.size === 0 || isSelected || isHovered;
+          const isInactive =
+            selectedProviders.size > 0 && !isSelected && !isHovered;
+          const isDimmed = hoveredProvider !== null && !isHovered;
+          const borderClasses = isSelected
+            ? "border-2 border-blue-600 dark:border-blue-400"
+            : isHovered
+              ? "border-2 border-blue-400 dark:border-blue-600"
+              : "border-2 border-transparent";
+          const backgroundClasses = isInactive ? "bg-muted/50" : "bg-card";
+          const opacityClass = isDimmed
+            ? "opacity-35"
+            : isInactive
+              ? "opacity-50"
+              : "";
           return (
             <button
               key={item.label}
@@ -447,11 +459,7 @@ export function BenchmarkChart({
                   setHoveredProvider(null);
                 }
               }}
-              className={`flex items-center gap-2 rounded-full border px-3 py-1.5 transition-all ${
-                isActive
-                  ? "border-border bg-card shadow-sm"
-                  : "bg-muted/50 border-transparent opacity-50"
-              } hover:border-border hover:opacity-100`}
+              className={`flex items-center gap-2 rounded-full px-3 py-1.5 transition-all duration-150 ${borderClasses} ${backgroundClasses} ${opacityClass}`}
             >
               <span
                 className="h-3 w-3 rounded-full"
