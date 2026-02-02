@@ -142,6 +142,13 @@ class User(TimeStampedModel, AbstractUser):
         help_text="The human owner of the bot. This property can only be changed for bot users.",
     )
 
+    # Token revocation - all tokens issued before this timestamp are invalid
+    auth_revoked_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="All JWT tokens issued before this timestamp are invalid. Set on password change or 'log out everywhere'.",
+    )
+
     objects: models.Manager["User"] = UserManager()
 
     class Meta:

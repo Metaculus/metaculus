@@ -50,13 +50,19 @@ type PostCreationData = {
   };
 };
 
+type ConditionalFormValues = {
+  condition_id: string;
+  condition_child_id: string;
+  default_project?: number;
+};
+
 const createConditionalQuestionSchema = (
   t: ReturnType<typeof useTranslations>
 ) => {
   return z.object({
     condition_id: z.string().min(1, { message: t("errorRequired") }),
     condition_child_id: z.string().min(1, { message: t("errorRequired") }),
-    default_project: z.number(),
+    default_project: z.number().optional(),
   });
 };
 
@@ -85,7 +91,7 @@ const ConditionalForm: React.FC<{
   const t = useTranslations();
   const draftKey = `conditional`;
   const { isLive, isDone } = getQuestionStatus(post);
-  const [isLoading, setIsLoading] = useState<boolean>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
   >();
@@ -111,13 +117,17 @@ const ConditionalForm: React.FC<{
     useState<QuestionWithForecasts | null>(conditionChildInit);
 
   const conditionalQuestionSchema = createConditionalQuestionSchema(t);
-  const control = useForm({
+  const control = useForm<ConditionalFormValues>({
     mode: "all",
     resolver: zodResolver(conditionalQuestionSchema),
     defaultValues: {
-      condition_id: conditionParentInit?.id.toString(),
-      condition_child_id: conditionChild?.id.toString(),
-      default_project: tournament_id,
+      condition_id: conditionParentInit?.id
+        ? conditionParentInit.id.toString()
+        : "",
+      condition_child_id: conditionChildInit?.id
+        ? conditionChildInit.id.toString()
+        : "",
+      default_project: tournament_id ?? undefined,
     },
   });
 
@@ -244,6 +254,7 @@ const ConditionalForm: React.FC<{
             siteMain={siteMain}
             currentProject={currentProject}
             onChange={(project) => {
+              if (!project) return;
               control.setValue("default_project", project.id);
             }}
           />
@@ -337,11 +348,7 @@ function setConditionQuestion({
   t,
 }: {
   question: QuestionWithForecasts | null;
-  control: UseFormReturn<{
-    condition_id: string | undefined;
-    condition_child_id: string | undefined;
-    default_project: number | null;
-  }>;
+  control: UseFormReturn<ConditionalFormValues>;
   setQuestionState: (
     value: SetStateAction<QuestionWithForecasts | null>
   ) => void;

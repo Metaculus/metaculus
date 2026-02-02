@@ -575,7 +575,11 @@ def generate_data(
             row.append(None)
         else:
             pmf = forecast.get_pmf()
-            forecast_at_resolution = pmf[resolution_index]
+            forecast_at_resolution = (
+                pmf[resolution_index]
+                if not np.isnan(pmf[resolution_index])
+                else pmf[-1]
+            )
             row.append(forecast_at_resolution)
             if forecast.question.type in QUESTION_CONTINUOUS_TYPES:
                 # Also append PDF value
@@ -640,7 +644,11 @@ def generate_data(
             row.append(None)
         else:
             pmf = aggregate_forecast.get_pmf()
-            forecast_at_resolution = pmf[resolution_index]
+            forecast_at_resolution = (
+                pmf[resolution_index]
+                if not np.isnan(pmf[resolution_index])
+                else pmf[-1]
+            )
             row.append(forecast_at_resolution)
             if aggregate_forecast.question.type in QUESTION_CONTINUOUS_TYPES:
                 # Also append PDF value
