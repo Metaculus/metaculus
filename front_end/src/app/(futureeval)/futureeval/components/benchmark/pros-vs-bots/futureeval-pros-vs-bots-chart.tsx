@@ -330,7 +330,7 @@ const FutureEvalProsVsBotsDiffChart: FC<{
                 className="inline-block h-[14px] w-[14px] rounded-[2px]"
                 style={{ background: getThemeColor(s1.colorToken) }}
               />
-              <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-base sm:text-lg">
+              <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-base">
                 {s1.label}
               </span>
             </span>
@@ -342,12 +342,12 @@ const FutureEvalProsVsBotsDiffChart: FC<{
                 className="inline-block h-[14px] w-[14px] rounded-[2px]"
                 style={{ background: getThemeColor(s2.colorToken) }}
               />
-              <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-base sm:text-lg">
+              <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-base">
                 {s2.label}
               </span>
             </span>
           )}
-          <span className="inline-flex items-center gap-2 text-xs text-gray-700 dark:text-gray-700-dark sm:text-base sm:text-lg">
+          <span className="inline-flex items-center gap-2 text-xs text-gray-700 dark:text-gray-700-dark sm:text-base">
             <svg
               width="13"
               height="16"

@@ -2,8 +2,8 @@
 
 import { useTranslations } from "next-intl";
 
-import FutureEvalBenchmarkPerformanceChart from "./futureeval-benchmark-performance-chart";
 import { mapLeaderboardToModelPoints } from "./mapping";
+import BenchmarkChart from "./performance-chart";
 import { useFutureEvalLeaderboard } from "../../leaderboard/futureeval-leaderboard-provider";
 
 const FutureEvalBenchmarkForecastingPerformance: React.FC = () => {
@@ -32,7 +32,7 @@ const FutureEvalBenchmarkForecastingPerformance: React.FC = () => {
 
   return (
     <div className="mt-4">
-      <FutureEvalBenchmarkPerformanceChart data={models} legend={legend} />
+      <BenchmarkChart data={models} legend={legend} hideGpt35={true} />
     </div>
   );
 };
