@@ -1,11 +1,13 @@
 from datetime import datetime
 
-from django.db.models import Q
 from django.conf import settings
 from django.core.mail import EmailMessage
+from django.db.models import Q
 from django.http import JsonResponse
-from django.views.decorators.cache import cache_page
 from django.utils import timezone
+from django.views.decorators.cache import cache_page
+from questions.constants import UnsuccessfulResolutionType
+from questions.models import Question, Forecast
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied
@@ -14,8 +16,6 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from questions.constants import UnsuccessfulResolutionType
-from questions.models import Question, Forecast
 from .models import Bulletin, BulletinViewedBy, ITNArticle, SidebarItem
 from .serializers import (
     ContactSerializer,
@@ -170,9 +170,10 @@ def get_whitelist_status_api_view(request: Request):
     data = request.query_params
     post_id = data.get("post_id")
     project_id = data.get("project_id")
+    user = request.user if request.user.is_authenticated else None
 
     is_whitelisted, view_deanonymized_data = get_whitelist_status(
-        request.user, post_id, project_id
+        user, post_id, project_id
     )
 
     return Response(
