@@ -285,9 +285,27 @@ const MobileExpandedCard: React.FC<MobileExpandedCardProps> = ({
 
   // Calculate 90% of container width
   React.useEffect(() => {
-    if (!containerRef?.current) return;
-    const containerRect = containerRef.current.getBoundingClientRect();
-    setWidth(containerRect.width * 0.9);
+    const container = containerRef?.current;
+    if (!container) return;
+
+    const updateWidth = () => {
+      setWidth(container.getBoundingClientRect().width * 0.9);
+    };
+
+    updateWidth();
+
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(() => {
+        updateWidth();
+      });
+      observer.observe(container);
+      return () => observer.disconnect();
+    }
+
+    window.addEventListener("resize", updateWidth);
+    return () => {
+      window.removeEventListener("resize", updateWidth);
+    };
   }, [containerRef]);
 
   const carouselChips = getCarouselChips(item.id);
