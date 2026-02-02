@@ -97,13 +97,12 @@ def _compute_hotness_relevant_news(post: Post) -> float:
     if post.notebook_id:
         return 0.0
 
-    qs = PostArticle.objects.filter(post=post)
+    # Use prefetched postarticle_set if available, otherwise query
+    post_articles = post.postarticle_set.all()
 
     return sum(
-        [
-            decay(max(0, 0.5 - related_article.distance), related_article.created_at)
-            for related_article in qs
-        ]
+        decay(max(0, 0.5 - related_article.distance), related_article.created_at)
+        for related_article in post_articles
     )
 
 
@@ -179,14 +178,26 @@ def compute_feed_hotness():
         Prefetch(
             "votes",
             queryset=Vote.objects.filter(created_at__gte=min_creation_date).only(
-                "id", "direction", "created_at"
+                "id", "direction", "created_at", "post_id"
             ),
         ),
         Prefetch(
             "comments",
             queryset=Comment.objects.filter(
                 created_at__gte=min_creation_date, is_private=False
-            ).only("id", "created_at", "is_private"),
+            ).only("id", "created_at", "is_private", "on_post_id"),
+        ),
+        Prefetch(
+            "activity_boosts",
+            queryset=PostActivityBoost.objects.filter(
+                created_at__gte=min_creation_date
+            ).only("id", "score", "created_at", "post_id"),
+        ),
+        Prefetch(
+            "postarticle_set",
+            queryset=PostArticle.objects.filter(
+                created_at__gte=min_creation_date
+            ).only("id", "distance", "created_at", "post_id"),
         ),
     )
     total = qs.count()
