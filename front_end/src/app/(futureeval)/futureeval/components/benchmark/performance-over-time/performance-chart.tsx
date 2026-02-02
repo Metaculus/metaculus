@@ -374,13 +374,19 @@ export function BenchmarkChart({
   const sumY = yVals.reduce((a, b) => a + b, 0);
   const sumXY = xVals.reduce((total, x, i) => total + x * (yVals[i] ?? 0), 0);
   const sumX2 = xVals.reduce((total, x) => total + x * x, 0);
-  const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-  const intercept = (sumY - slope * sumX) / n;
+  const denominator = n * sumX2 - sumX * sumX;
+  let slope = 0;
+  let intercept = 0;
+  let trendLineData: { x: number; y: number }[] = [];
 
-  const trendLineData = [
-    { x: minX, y: slope * minX + intercept },
-    { x: maxX, y: slope * maxX + intercept },
-  ];
+  if (n !== 0 && denominator !== 0) {
+    slope = (n * sumXY - sumX * sumY) / denominator;
+    intercept = (sumY - slope * sumX) / n;
+    trendLineData = [
+      { x: minX, y: slope * minX + intercept },
+      { x: maxX, y: slope * maxX + intercept },
+    ];
+  }
 
   // Toggle provider selection
   const toggleProvider = (provider: string) => {
