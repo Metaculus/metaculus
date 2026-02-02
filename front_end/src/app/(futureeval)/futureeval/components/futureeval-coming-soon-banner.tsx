@@ -30,9 +30,15 @@ const FutureEvalComingSoonBanner: React.FC = () => {
           tooltipClassName="!bg-futureeval-bg-dark/90 dark:!bg-futureeval-bg-light/90 !text-futureeval-bg-light/80 dark:!text-futureeval-bg-dark/80 !border-0"
           placement="top"
         >
-          <span className={cn("cursor-help underline", FE_COLORS.textAccent)}>
+          <button
+            type="button"
+            className={cn(
+              "cursor-help border-0 bg-transparent p-0 underline",
+              FE_COLORS.textAccent
+            )}
+          >
             coming soon
-          </span>
+          </button>
         </Tooltip>
       </span>
     </div>
