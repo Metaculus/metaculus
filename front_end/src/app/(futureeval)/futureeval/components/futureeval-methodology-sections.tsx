@@ -172,6 +172,7 @@ const FutureEvalDisclosure: React.FC<PropsWithChildren<{ title: string }>> = ({
             <span className={FE_COLORS.textHeading}>{title}</span>
           </DisclosureButton>
           <Transition
+            show={open}
             enter="transition-all duration-300 ease-in-out"
             enterFrom="max-h-0 opacity-0 overflow-hidden"
             enterTo="max-h-[4000px] opacity-100 overflow-hidden"
@@ -180,6 +181,7 @@ const FutureEvalDisclosure: React.FC<PropsWithChildren<{ title: string }>> = ({
             leaveTo="max-h-0 opacity-0 overflow-hidden"
           >
             <DisclosurePanel
+              static
               className={cn(
                 "rounded-b-md border-x border-b px-4 py-4",
                 "border-futureeval-primary-light/20 dark:border-futureeval-primary-dark/20"
