@@ -1,13 +1,11 @@
 from datetime import datetime
 
+from django.db.models import Q
 from django.conf import settings
 from django.core.mail import EmailMessage
-from django.db.models import Q
 from django.http import JsonResponse
-from django.utils import timezone
 from django.views.decorators.cache import cache_page
-from questions.constants import UnsuccessfulResolutionType
-from questions.models import Question, Forecast
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied
@@ -16,6 +14,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from questions.constants import UnsuccessfulResolutionType
+from questions.models import Question, Forecast
 from .models import Bulletin, BulletinViewedBy, ITNArticle, SidebarItem
 from .serializers import (
     ContactSerializer,
