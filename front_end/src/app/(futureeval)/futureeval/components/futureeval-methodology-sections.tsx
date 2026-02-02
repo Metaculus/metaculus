@@ -307,7 +307,7 @@ const FutureEvalMethodologySections: React.FC = () => {
                     decisions by assessing how good it is at predicting future
                     events. Skill in FutureEval correlates with skill in
                     long-term planning, decision-making, failure mode analysis,
-                    casual analysis, understanding of human motivation, etc.
+                    causal analysis, understanding of human motivation, etc.
                   </span>,
                 ]}
               />
