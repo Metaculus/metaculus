@@ -88,7 +88,7 @@ class Command(BaseCommand):
         #
         scheduler.add_job(
             close_old_connections(job_compute_movement.send),
-            trigger=CronTrigger.from_crontab("0 * * * *"),  # Every Hour
+            trigger=CronTrigger.from_crontab("*/5 * * * *"),  # Every 5 minutes
             id="posts_job_compute_movement",
             max_instances=1,
             replace_existing=True,
