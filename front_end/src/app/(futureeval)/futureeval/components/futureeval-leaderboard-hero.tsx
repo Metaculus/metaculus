@@ -41,19 +41,19 @@ const FutureEvalLeaderboardHero: React.FC = () => {
         Model Leaderboard
       </h1>
 
-      {/* Subtitle - left aligned on desktop, centered on mobile */}
-      <p
-        className={cn(
-          "m-0 mt-3 text-center sm:text-left",
-          FE_TYPOGRAPHY.body,
-          FE_COLORS.textSubheading
-        )}
-      >
-        Updated every day based on our standardized forecasting performance
-        measurement methodology.
-      </p>
-      <div className="mt-4 flex justify-center sm:justify-start">
-        <FutureEvalComingSoonBanner />
+      {/* Subtitle row - two column layout */}
+      <div className="mt-3 grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
+        <div className="text-center sm:text-left">
+          <p
+            className={cn("m-0", FE_TYPOGRAPHY.body, FE_COLORS.textSubheading)}
+          >
+            Updated every day based on our standardized forecasting performance
+            measurement methodology.
+          </p>
+        </div>
+        <div className="flex justify-center sm:justify-end">
+          <FutureEvalComingSoonBanner />
+        </div>
       </div>
     </div>
   );

@@ -111,21 +111,23 @@ const FutureEvalModelBenchmark: React.FC = () => {
               <FutureEvalInfoPopover />
             </div>
           </div>
-          <p
-            className={`m-0 mt-3 ${FE_TYPOGRAPHY.body} ${FE_COLORS.textSubheading}`}
-          >
-            Updated every day based on our standardized forecasting performance
-            measurement methodology.
-          </p>
-          <div className="flex w-full flex-col justify-between gap-3 sm:flex-row">
-            <Link
-              href="/futureeval/leaderboard"
-              className={`mt-3 inline-block ${FE_TYPOGRAPHY.link} ${FE_COLORS.textAccent}`}
-            >
-              View full leaderboard
-            </Link>
-
-            <div className="mt-1 md:mt-3">
+          {/* Subtitle row - two column layout */}
+          <div className="mt-3 grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
+            <div>
+              <p
+                className={`m-0 ${FE_TYPOGRAPHY.body} ${FE_COLORS.textSubheading}`}
+              >
+                Updated every day based on our standardized forecasting
+                performance measurement methodology.
+              </p>
+              <Link
+                href="/futureeval/leaderboard"
+                className={`mt-2 inline-block ${FE_TYPOGRAPHY.link} ${FE_COLORS.textAccent}`}
+              >
+                View full leaderboard
+              </Link>
+            </div>
+            <div className="flex justify-center sm:justify-end">
               <FutureEvalComingSoonBanner />
             </div>
           </div>
