@@ -14,6 +14,7 @@ import {
   aggregateKind,
   entryIconPair,
   entryLabel,
+  getUpcomingModels,
   isAggregate,
   shouldDisplayEntry,
 } from "../leaderboard/utils";
@@ -56,6 +57,12 @@ const FutureEvalModelBenchmark: React.FC = () => {
 
     return combined;
   }, [leaderboard.entries]);
+
+  // Get top 3 upcoming models (closest to qualifying)
+  const upcomingModels = useMemo(
+    () => getUpcomingModels(leaderboard.entries ?? []),
+    [leaderboard.entries]
+  );
 
   // Scale heights relative to min/max scores
   const scaleHeight = useMemo(() => {
@@ -128,7 +135,7 @@ const FutureEvalModelBenchmark: React.FC = () => {
               </Link>
             </div>
             <div className="flex justify-center sm:justify-end">
-              <FutureEvalComingSoonBanner />
+              <FutureEvalComingSoonBanner models={upcomingModels} />
             </div>
           </div>
         </div>

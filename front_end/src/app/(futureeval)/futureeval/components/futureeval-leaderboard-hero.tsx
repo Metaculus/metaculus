@@ -9,7 +9,11 @@ import cn from "@/utils/core/cn";
 import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
 import FutureEvalComingSoonBanner from "./futureeval-coming-soon-banner";
 
-const FutureEvalLeaderboardHero: React.FC = () => {
+type Props = {
+  upcomingModels: string[];
+};
+
+const FutureEvalLeaderboardHero: React.FC<Props> = ({ upcomingModels }) => {
   return (
     <div className="mb-6 flex flex-col antialiased sm:mb-10">
       {/* Back button - FutureEval branded */}
@@ -52,7 +56,7 @@ const FutureEvalLeaderboardHero: React.FC = () => {
           </p>
         </div>
         <div className="flex justify-center sm:justify-end">
-          <FutureEvalComingSoonBanner />
+          <FutureEvalComingSoonBanner models={upcomingModels} />
         </div>
       </div>
     </div>

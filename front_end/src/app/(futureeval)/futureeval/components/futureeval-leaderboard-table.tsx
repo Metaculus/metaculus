@@ -31,7 +31,7 @@ const FutureEvalLeaderboardTable: React.FC<Props> = ({ details }) => {
   const highlightedRowRef = useRef<HTMLTableRowElement>(null);
 
   const rows = useMemo(() => {
-    const entries = (details.entries ?? [])
+    return (details.entries ?? [])
       .filter((e) => shouldDisplayEntry(e))
       .map((entry, i) => {
         const label = entryLabel(entry, mockTranslate);
@@ -52,8 +52,6 @@ const FutureEvalLeaderboardTable: React.FC<Props> = ({ details }) => {
           isAggregate: !entry.user?.username,
         };
       });
-
-    return entries;
   }, [details.entries]);
 
   // Scroll to and flash highlighted row - depends on rows so it runs after entries are populated

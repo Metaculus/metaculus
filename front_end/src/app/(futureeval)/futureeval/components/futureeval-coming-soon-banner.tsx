@@ -7,32 +7,27 @@ import cn from "@/utils/core/cn";
 
 import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
 
-// Models coming soon to the leaderboard
-// TODO: Update this list with actual coming soon models list
-const COMING_SOON_MODELS = [
-  "GPT-5.2",
-  "Claude Opus 4.5",
-  "Gemini 3 Pro",
-  "Grok 4.1",
-];
+type Props = {
+  models: string[];
+};
 
 /**
  * Coming soon banner component for displaying upcoming models
  */
-const FutureEvalComingSoonBanner: React.FC = () => {
+const FutureEvalComingSoonBanner: React.FC<Props> = ({ models }) => {
   const formatModelList = () => {
-    if (COMING_SOON_MODELS.length === 0) return null;
-    if (COMING_SOON_MODELS.length === 1) {
+    if (models.length === 0) return null;
+    if (models.length === 1) {
       return (
         <span className="whitespace-nowrap text-futureeval-bg-dark dark:text-futureeval-bg-light">
-          {COMING_SOON_MODELS[0]}
+          {models[0]}
         </span>
       );
     }
 
-    return COMING_SOON_MODELS.map((model, index) => {
-      const isLast = index === COMING_SOON_MODELS.length - 1;
-      const isSecondToLast = index === COMING_SOON_MODELS.length - 2;
+    return models.map((model, index) => {
+      const isLast = index === models.length - 1;
+      const isSecondToLast = index === models.length - 2;
 
       return (
         <React.Fragment key={model}>
@@ -46,7 +41,7 @@ const FutureEvalComingSoonBanner: React.FC = () => {
     });
   };
 
-  if (COMING_SOON_MODELS.length === 0) return null;
+  if (models.length === 0) return null;
 
   return (
     <div

@@ -6,6 +6,7 @@ import FutureEvalContainer from "../components/futureeval-container";
 import FutureEvalLeaderboardHero from "../components/futureeval-leaderboard-hero";
 import FutureEvalLeaderboardTable from "../components/futureeval-leaderboard-table";
 import FutureEvalNavbar from "../components/futureeval-navbar";
+import { getUpcomingModels } from "../components/leaderboard/utils.shared";
 
 export const metadata = {
   title: "Top Model Leaderboards | Metaculus",
@@ -26,11 +27,13 @@ export default async function FutureEvalLeaderboardsPage() {
     console.error("Failed to fetch leaderboard data:", error);
   }
 
+  const upcomingModels = getUpcomingModels(data?.entries ?? []);
+
   return (
     <div className="font-sans">
       <FutureEvalNavbar />
       <FutureEvalContainer className="pb-[148px] min-[376px]:pb-[58px]">
-        <FutureEvalLeaderboardHero />
+        <FutureEvalLeaderboardHero upcomingModels={upcomingModels} />
 
         {data?.entries?.length ? (
           <Suspense fallback={<div className="h-96" />}>

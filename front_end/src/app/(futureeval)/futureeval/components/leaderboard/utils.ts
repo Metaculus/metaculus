@@ -8,6 +8,16 @@ import type { LeaderboardEntry } from "@/types/scoring";
 
 import { getBotMeta } from "./bot_meta";
 
+// Re-export shared utilities for client components
+export {
+  MIN_RESOLVED_FORECASTS,
+  getBaseModelName,
+  getResolvedCount,
+  getUpcomingModels,
+  isAggregateEntry,
+  shouldDisplayEntry,
+} from "./utils.shared";
+
 export type IconPair = {
   light?: string | StaticImageData;
   dark?: string | StaticImageData;
@@ -28,7 +38,7 @@ export function aggregateKind(
 }
 
 export function entryLabel(
-  entry: LeaderboardEntry,
+  entry: Partial<LeaderboardEntry>,
   t?: ReturnType<typeof useTranslations>
 ): string {
   if (entry.user?.metadata?.bot_details?.base_models?.[0]?.name) {
@@ -38,7 +48,7 @@ export function entryLabel(
     const meta = getBotMeta(entry.user.username);
     return meta?.label ?? entry.user.username;
   }
-  const kind = aggregateKind(entry);
+  const kind = aggregateKind(entry as LeaderboardEntry);
   if (kind === "community")
     return t ? t("communityPrediction") : "Community Prediction";
   if (kind === "pros") return t ? t("aibLegendPros") : "Pro Forecasters";
@@ -58,26 +68,4 @@ export function entryIconPair(entry: LeaderboardEntry): IconPair {
 
 export function entryForecasts(entry: LeaderboardEntry) {
   return entry.coverage ?? entry.contribution_count ?? 0;
-}
-
-export const MIN_RESOLVED_FORECASTS = 190;
-
-export function getResolvedCount(entry: Partial<LeaderboardEntry>): number {
-  return entry?.contribution_count ?? 0;
-}
-
-export function isAggregateEntry(entry: Partial<LeaderboardEntry>): boolean {
-  return !entry?.user?.username;
-}
-
-export function shouldDisplayEntry(
-  entry: Partial<LeaderboardEntry>,
-  minResolved = MIN_RESOLVED_FORECASTS
-): boolean {
-  const resolved = getResolvedCount(entry);
-  const moreResolved = resolved >= minResolved;
-  if (isAggregateEntry(entry) && moreResolved) return true;
-  const showFlag = entry?.user?.metadata?.bot_details?.display_in_leaderboard;
-  if (!showFlag) return false;
-  return moreResolved;
 }
