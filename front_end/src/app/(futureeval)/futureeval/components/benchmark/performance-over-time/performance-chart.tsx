@@ -1,7 +1,14 @@
 "use client";
 
-import * as d3 from "d3";
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { range as d3Range } from "d3-array";
+import {
+  memo,
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   VictoryChart,
   VictoryScatter,
@@ -223,10 +230,18 @@ export function BenchmarkChart({
     (idxOrArgs: number | CallbackArgs) => {
       const idx =
         typeof idxOrArgs === "number" ? idxOrArgs : safeIndex(idxOrArgs.index);
-      const chosen =
-        Object.values(METAC_COLORS["mc-option"])[
-          idx % Object.values(METAC_COLORS["mc-option"]).length
-        ] ?? METAC_COLORS["mc-option"][1];
+      const colorArray = Object.values(METAC_COLORS["mc-option"]);
+      const colorKeys = Object.keys(METAC_COLORS["mc-option"]);
+
+      const skippedIndexes = new Set([2]);
+      const availableIndexes = colorKeys
+        .map((_, i) => i)
+        .filter((i) => !skippedIndexes.has(i));
+
+      const availableIndexesLength = availableIndexes.length;
+      const mappedIndex = idx % availableIndexesLength;
+      const finalIndex = availableIndexes[mappedIndex] ?? 0;
+      const chosen = colorArray[finalIndex] ?? METAC_COLORS["mc-option"][1];
       return getThemeColor(chosen);
     },
     [getThemeColor]
@@ -236,9 +251,8 @@ export function BenchmarkChart({
     (name: string) => {
       const group = normalizeToCompany(name);
       const idx = groupIndexByLabel.get(group);
-      return colorFor(
-        typeof idx === "number" ? { index: idx } : { index: 0 }
-      ) as string;
+      const finalIdx = typeof idx === "number" ? idx : 0;
+      return colorFor({ index: finalIdx }) as string;
     },
     [groupIndexByLabel, colorFor]
   );
@@ -317,57 +331,64 @@ export function BenchmarkChart({
     [sotaModels]
   );
 
-  // Calculate domain
-  const xValues = chartData.map((d) => d.x);
-  const yValues = chartData.map((d) => d.y);
-  const refScores = referenceLines.map((r) => r.y);
-  const minX = Math.min(...xValues);
-  const maxX = Math.max(...xValues);
-  const minY = Math.min(...yValues);
-  const maxY = Math.max(...yValues, ...refScores);
+  // Calculate domain - memoized to avoid recalculation on every render
+  const { minX, maxX, minY, maxY } = useMemo(() => {
+    const xValues = chartData.map((d) => d.x);
+    const yValues = chartData.map((d) => d.y);
+    const refScores = referenceLines.map((r) => r.y);
+    return {
+      minX: Math.min(...xValues),
+      maxX: Math.max(...xValues),
+      minY: Math.min(...yValues),
+      maxY: Math.max(...yValues, ...refScores),
+    };
+  }, [chartData, referenceLines]);
+
   const yTicks = useMemo(() => {
     const step = 10;
     const start = Math.floor(minY / step) * step;
     const end = Math.ceil(maxY / step) * step;
-    return d3.range(start, end + step, step);
+    return d3Range(start, end + step, step);
   }, [minY, maxY]);
 
-  // Calculate SOTA trend line (linear regression on max scores over time)
-  const sortedByDate = [...chartData].sort((a, b) => a.x - b.x);
-  const sotaPoints: { x: number; y: number }[] = [];
-  let maxScore = -Infinity;
+  // Calculate SOTA trend line (linear regression on max scores over time) - memoized
+  const trendLineData = useMemo(() => {
+    const sortedByDate = [...chartData].sort((a, b) => a.x - b.x);
+    const sotaPoints: { x: number; y: number }[] = [];
+    let maxScore = -Infinity;
 
-  for (const point of sortedByDate) {
-    if (point.y > maxScore) {
-      maxScore = point.y;
-      sotaPoints.push({ x: point.x, y: point.y });
+    for (const point of sortedByDate) {
+      if (point.y > maxScore) {
+        maxScore = point.y;
+        sotaPoints.push({ x: point.x, y: point.y });
+      }
     }
-  }
 
-  // Linear regression on SOTA points
-  const xVals = sotaPoints.map((d) => d.x);
-  const yVals = sotaPoints.map((d) => d.y);
-  const n = xVals.length;
-  const sumX = xVals.reduce((a, b) => a + b, 0);
-  const sumY = yVals.reduce((a, b) => a + b, 0);
-  const sumXY = xVals.reduce((total, x, i) => total + x * (yVals[i] ?? 0), 0);
-  const sumX2 = xVals.reduce((total, x) => total + x * x, 0);
-  const denominator = n * sumX2 - sumX * sumX;
-  let slope = 0;
-  let intercept = 0;
-  let trendLineData: { x: number; y: number }[] = [];
+    const xVals = sotaPoints.map((d) => d.x);
+    const yVals = sotaPoints.map((d) => d.y);
+    const n = xVals.length;
 
-  if (n !== 0 && denominator !== 0) {
-    slope = (n * sumXY - sumX * sumY) / denominator;
-    intercept = (sumY - slope * sumX) / n;
-    trendLineData = [
+    if (n === 0) return [];
+
+    const sumX = xVals.reduce((a, b) => a + b, 0);
+    const sumY = yVals.reduce((a, b) => a + b, 0);
+    const sumXY = xVals.reduce((total, x, i) => total + x * (yVals[i] ?? 0), 0);
+    const sumX2 = xVals.reduce((total, x) => total + x * x, 0);
+    const denominator = n * sumX2 - sumX * sumX;
+
+    if (denominator === 0) return [];
+
+    const slope = (n * sumXY - sumX * sumY) / denominator;
+    const intercept = (sumY - slope * sumX) / n;
+
+    return [
       { x: minX, y: slope * minX + intercept },
       { x: maxX, y: slope * maxX + intercept },
     ];
-  }
+  }, [chartData, minX, maxX]);
 
-  // Toggle provider selection
-  const toggleProvider = (provider: string) => {
+  // Toggle provider selection - memoized to maintain stable reference
+  const toggleProvider = useCallback((provider: string) => {
     setSelectedProviders((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(provider)) {
@@ -377,46 +398,57 @@ export function BenchmarkChart({
       }
       return newSet;
     });
-  };
+  }, []);
 
-  // Check if a provider is highlighted (full opacity dots)
+  // Check if a provider is highlighted (full opacity dots) - memoized
   // When hovering, the hovered provider AND any selected providers stay highlighted
-  const isHighlighted = (provider: string) => {
-    if (hoveredProvider) {
-      // Hovered provider is always highlighted
-      // Selected providers also stay highlighted when hovering
-      return provider === hoveredProvider || selectedProviders.has(provider);
-    }
-    return selectedProviders.size === 0 || selectedProviders.has(provider);
-  };
+  const isHighlighted = useCallback(
+    (provider: string) => {
+      if (hoveredProvider) {
+        return provider === hoveredProvider || selectedProviders.has(provider);
+      }
+      return selectedProviders.size === 0 || selectedProviders.has(provider);
+    },
+    [hoveredProvider, selectedProviders]
+  );
 
-  // Prepare data with showLabel flag, opacity, and isSota flag
+  // Prepare data with showLabel flag, opacity, and isSota flag - memoized
   // Show labels when:
   // 1. showAllLabels is true (show all), OR
   // 2. It's a SOTA model (only when not hovering a different provider), OR
   // 3. The provider is specifically selected in the legend (only when not hovering a different provider), OR
   // 4. The provider is hovered in the legend, OR
   // 5. The specific point is hovered
-  const dataWithLabels = chartData.map((d) => {
-    const providerIsSelected = selectedProviders.has(d.provider);
-    const providerIsHovered = hoveredProvider === d.provider;
-    const isHoveredPoint = hoveredPointKey === d.pointKey;
-    // When hovering a provider, only show labels for that provider (and hovered points)
-    // Hide labels from selected/SOTA providers while hovering a different provider
-    const showLabelWhenHovering = providerIsHovered || isHoveredPoint;
-    const showLabelNormally =
-      showAllLabels ||
-      sotaModelNames.has(d.name) ||
-      providerIsSelected ||
-      isHoveredPoint;
-    return {
-      ...d,
-      showLabel: hoveredProvider ? showLabelWhenHovering : showLabelNormally,
-      isHighlighted: isHighlighted(d.provider),
-      isSota: sotaModelNames.has(d.name),
-      isHoveredPoint,
-    };
-  });
+  const dataWithLabels = useMemo(() => {
+    return chartData.map((d) => {
+      const providerIsSelected = selectedProviders.has(d.provider);
+      const providerIsHovered = hoveredProvider === d.provider;
+      const isHoveredPointFlag = hoveredPointKey === d.pointKey;
+      // When hovering a provider, only show labels for that provider (and hovered points)
+      // Hide labels from selected/SOTA providers while hovering a different provider
+      const showLabelWhenHovering = providerIsHovered || isHoveredPointFlag;
+      const showLabelNormally =
+        showAllLabels ||
+        sotaModelNames.has(d.name) ||
+        providerIsSelected ||
+        isHoveredPointFlag;
+      return {
+        ...d,
+        showLabel: hoveredProvider ? showLabelWhenHovering : showLabelNormally,
+        isHighlighted: isHighlighted(d.provider),
+        isSota: sotaModelNames.has(d.name),
+        isHoveredPoint: isHoveredPointFlag,
+      };
+    });
+  }, [
+    chartData,
+    selectedProviders,
+    hoveredProvider,
+    hoveredPointKey,
+    showAllLabels,
+    sotaModelNames,
+    isHighlighted,
+  ]);
 
   // Build legend items from data
   const legendItems = useMemo(() => {
@@ -424,7 +456,8 @@ export function BenchmarkChart({
     chartData.forEach((d) => {
       companySet.add(d.provider);
     });
-    return Array.from(companySet).map(
+    const providers = Array.from(companySet);
+    const items = providers.map(
       (provider): { label: string; color: string } => {
         const idx = groupIndexByLabel.get(provider) ?? 0;
         return {
@@ -433,6 +466,8 @@ export function BenchmarkChart({
         };
       }
     );
+
+    return items;
   }, [chartData, groupIndexByLabel, colorFor]);
 
   return (
@@ -775,8 +810,7 @@ export function BenchmarkChart({
   );
 }
 
-// Collision-aware labels component - renders as a Victory child to get access to scale
-function CollisionAwareLabels(props: {
+type CollisionAwareLabelsProps = {
   data: Array<{
     x: number;
     y: number;
@@ -795,7 +829,13 @@ function CollisionAwareLabels(props: {
   chartHeight: number;
   domainPadding: { x: number; y: number };
   labelFontSize: number;
-}) {
+};
+
+// Collision-aware labels component - renders as a Victory child to get access to scale
+// Memoized to prevent expensive collision detection on every parent render
+const CollisionAwareLabels = memo(function CollisionAwareLabels(
+  props: CollisionAwareLabelsProps
+) {
   const {
     data,
     xDomain,
@@ -1080,6 +1120,6 @@ function CollisionAwareLabels(props: {
       })}
     </g>
   );
-}
+});
 
 export default BenchmarkChart;
