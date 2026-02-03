@@ -27,12 +27,12 @@ export default async function Home() {
     return redirect(PUBLIC_LANDING_PAGE_URL);
   }
 
-  const [sidebarItems, homepagePosts, categories, initialPopularPosts] =
+  const [sidebarItems, homepagePosts, categories, initialNewsPosts] =
     await Promise.all([
       serverMiscApi.getSidebarItems(),
       ServerPostsApi.getPostsForHomepage(),
       ServerProjectsApi.getHomepageCategories(),
-      ServerPostsApi.getPostsWithCP(FILTERS.popular),
+      ServerPostsApi.getPostsWithCP(FILTERS.news),
     ]);
 
   const postNotebooks = homepagePosts.filter(
@@ -43,28 +43,27 @@ export default async function Home() {
     .filter(({ section }) => section === "hot_topics")
     .map((item) => convertSidebarItem(item));
 
-  const contentWidthClassNames =
-    "2xl:max-w-[1352px] w-full md:max-2xl:px-20 mx-auto px-4";
+  const contentWidthClassNames = "2xl:max-w-[1352px] w-full mx-auto px-4";
 
   return (
     <main className=" min-h-screen  bg-gray-0 dark:bg-gray-0-dark ">
       <OnboardingCheck />
       <EmailConfirmation />
       <StaffPicks items={hotTopics} />
-      <HeroCTAs
-        className={
-          "mx-auto w-full px-0 md:max-2xl:px-20 2xl:max-w-[1352px] 2xl:px-4"
-        }
-      />
+      <HeroCTAs className={"mx-auto w-full px-0 md:px-4 2xl:max-w-[1352px]"} />
       <div className={contentWidthClassNames}>
-        <WhyMetaculus className="mt-4 md:mt-8" />
-        <HomePageForecasts
-          initialPopularPosts={initialPopularPosts.results}
-          className="mt-16 md:mt-8 lg:mt-16"
-        />
+        <WhyMetaculus className="mt-3 md:mt-4" />
+      </div>
+      <div className="w-full bg-gradient-to-b from-gray-0 to-blue-200/50 dark:from-gray-0-dark dark:to-blue-200-dark">
+        <div className={contentWidthClassNames}>
+          <HomePageForecasts
+            initialPosts={initialNewsPosts.results}
+            className="mt-6 pb-16 md:mt-8 md:pb-16 lg:mt-16"
+          />
+        </div>
       </div>
       <Suspense fallback={<LoadingIndicator className="mx-auto my-8 w-24" />}>
-        <div className="mt-8 w-full border-y border-gray-300  bg-gray-100 py-20 dark:border-gray-300-dark dark:bg-gray-100-dark md:mt-16 ">
+        <div className="w-full border-y border-gray-300 bg-gray-100 py-20 dark:border-gray-300-dark dark:bg-gray-100-dark">
           <TournamentsSection className={contentWidthClassNames} />
         </div>
       </Suspense>
