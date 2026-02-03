@@ -47,7 +47,7 @@ const FutureEvalComingSoonBanner: React.FC<Props> = ({ models }) => {
     <div
       className={cn(
         "inline-flex items-center gap-1 rounded-md px-4 py-2",
-        "max-w-xs",
+        "w-full sm:w-auto sm:max-w-xs",
         "bg-futureeval-primary-light/15 dark:bg-futureeval-primary-dark/15"
       )}
     >
@@ -55,7 +55,7 @@ const FutureEvalComingSoonBanner: React.FC<Props> = ({ models }) => {
         className={cn(
           FE_TYPOGRAPHY.bodySmall,
           FE_COLORS.textSubheading,
-          "text-center"
+          "text-left sm:text-center"
         )}
       >
         {formatModelList()}{" "}
