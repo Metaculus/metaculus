@@ -11,6 +11,15 @@ run-name: 🚀 Deploy to PRODUCTION by @${{ github.actor }}
 
 on:
   workflow_dispatch:
+    inputs:
+      preboot_override:
+        description: 'Preboot'
+        required: false
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - disabled
 
 permissions:
   contents: read
@@ -64,8 +73,16 @@ jobs:
       - name: Configure preboot based on migration status
         run: |
           CURRENT_PREBOOT=$(heroku features:info preboot -a ${{ env.HEROKU_APP }} --json | jq -r '.enabled') || CURRENT_PREBOOT="unknown"
+          PREBOOT_OVERRIDE="${{ inputs.preboot_override }}"
           
-          if [ "${{ needs.check-migrations.outputs.has_migrations }}" == "true" ]; then
+          if [ "$PREBOOT_OVERRIDE" == "disabled" ]; then
+            echo "⚙️ Manual override: disabling preboot"
+            if [ "$CURRENT_PREBOOT" == "false" ]; then
+              echo "Preboot already disabled, skipping"
+            else
+              heroku features:disable preboot -a ${{ env.HEROKU_APP }}
+            fi
+          elif [ "${{ needs.check-migrations.outputs.has_migrations }}" == "true" ]; then
             echo "🗄️ Migrations detected - disabling preboot to ensure migrations run before new code"
             if [ "$CURRENT_PREBOOT" == "false" ]; then
               echo "Preboot already disabled, skipping"
