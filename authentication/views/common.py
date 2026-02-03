@@ -2,7 +2,6 @@ import logging
 
 from django.conf import settings
 from django.contrib.auth import authenticate
-from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
@@ -38,7 +37,7 @@ from projects.models import ProjectUserPermission
 from projects.permissions import ObjectPermission
 from users.models import User
 from users.serializers import UserPrivateSerializer, validate_username
-from users.services.common import register_user_to_campaign
+from users.services.common import register_user_to_campaign, change_user_password
 from utils.cloudflare import validate_turnstile_from_request
 
 logger = logging.getLogger(__name__)
@@ -254,10 +253,7 @@ def password_reset_confirm_api_view(request):
 
     if request.method == "POST":
         password = serializers.CharField().run_validation(request.data.get("password"))
-        validate_password(password=password)
-
-        user.set_password(password)
-        user.save()
+        change_user_password(user, password)
 
         tokens = get_tokens_for_user(user)
 
