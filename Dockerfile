@@ -111,8 +111,7 @@ ENV HOME=/home/app \
     NODE_INSTANCES=1 \
     NODE_HEAP_SIZE=1024 \
     LD_PRELOAD=/usr/lib/libjemalloc.so.2 \
-    MALLOC_CONF=background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:1000,tcache:false \
-    PYTHONMALLOC=malloc
+    MALLOC_CONF=background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:1000,tcache:false
 
 EXPOSE 8080
 
