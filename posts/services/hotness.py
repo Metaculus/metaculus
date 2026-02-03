@@ -194,9 +194,9 @@ def compute_feed_hotness():
         ),
         Prefetch(
             "postarticle_set",
-            queryset=PostArticle.objects.filter(
-                created_at__gte=min_creation_date
-            ).only("id", "distance", "created_at", "post_id"),
+            queryset=PostArticle.objects.filter(created_at__gte=min_creation_date).only(
+                "id", "distance", "created_at", "post_id"
+            ),
         ),
     )
     total = qs.count()
