@@ -16,7 +16,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx \
     libjemalloc2 \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -s /usr/lib/*/libjemalloc.so.2 /usr/lib/libjemalloc.so.2
 
 # ============================================================
 # FRONTEND DEPENDENCIES
@@ -109,7 +110,7 @@ ENV HOME=/home/app \
     GUNICORN_WORKERS=4 \
     NODE_INSTANCES=1 \
     NODE_HEAP_SIZE=1024 \
-    LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2 \
+    LD_PRELOAD=/usr/lib/libjemalloc.so.2 \
     MALLOC_CONF=background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:1000
 
 EXPOSE 8080
