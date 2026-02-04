@@ -52,8 +52,16 @@ def _compute_question_hotness_movement(question: Question) -> float:
 
 def _compute_question_hotness_open_time(question: Question) -> float:
     return (
-        decay(20, question.open_time)
+        decay(10, question.open_time)
         if question.open_time and timezone.now() > question.open_time
+        else 0
+    )
+
+
+def _compute_question_hotness_cp_reveal_time(question: Question) -> float:
+    return (
+        decay(20, question.cp_reveal_time)
+        if question.cp_reveal_time and timezone.now() > question.cp_reveal_time
         else 0
     )
 
@@ -72,6 +80,7 @@ def _compute_question_hotness_resolution_time(question: Question) -> float:
 QUESTION_HOTNESS_COMPONENTS = [
     ("Movement Score", _compute_question_hotness_movement),
     ("Open Time Score", _compute_question_hotness_open_time),
+    ("CP Reveal Time Score", _compute_question_hotness_cp_reveal_time),
     ("Resolution Time Score", _compute_question_hotness_resolution_time),
 ]
 
@@ -83,15 +92,6 @@ def compute_question_hotness(question: Question) -> float:
 #
 # Post hotness calculations
 #
-def _compute_hotness_approval_score(post: Post) -> float:
-    now = timezone.now()
-    return (
-        decay(20, post.published_at)
-        if post.published_at and now > post.published_at
-        else 0
-    )
-
-
 def _compute_hotness_relevant_news(post: Post) -> float:
     # Notebooks should not have news hotness score
     if post.notebook_id:
@@ -147,7 +147,6 @@ def compute_hotness_total_boosts(post: Post) -> float:
 
 
 POST_HOTNESS_COMPONENTS = [
-    ("Approval score", _compute_hotness_approval_score),
     ("Relevant ITN news", _compute_hotness_relevant_news),
     ("Net post votes score", _compute_hotness_post_votes),
     ("Posted comments score", _compute_hotness_comments),
