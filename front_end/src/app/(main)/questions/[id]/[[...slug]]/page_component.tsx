@@ -37,12 +37,12 @@ const IndividualQuestionPage: FC<{
   searchParams: SearchParams;
 }> = async ({ params, searchParams }) => {
   const postData = await cachedGetPost(params.id);
-  const defaultProject = postData.projects.default_project;
+  const defaultProject = postData.projects?.default_project;
   if (postData.notebook) {
     return <NotebookRedirect id={postData.id} slug={params.slug} />;
   }
 
-  const isCommunityQuestion = defaultProject.type === TournamentType.Community;
+  const isCommunityQuestion = defaultProject?.type === TournamentType.Community;
   let currentCommunity = null;
   if (isCommunityQuestion) {
     currentCommunity = await ServerProjectsApi.getCommunity(
@@ -80,10 +80,10 @@ const IndividualQuestionPage: FC<{
               >
                 <div className="flex gap-4">
                   <div className="relative w-full">
-                    {isCommunityQuestion && (
+                    {isCommunityQuestion && defaultProject && (
                       <div className="absolute z-0 -mt-[34px] hidden w-full sm:block">
                         <CommunityDisclaimer
-                          project={postData.projects.default_project}
+                          project={defaultProject}
                           variant="inline"
                         />
                       </div>
@@ -92,9 +92,9 @@ const IndividualQuestionPage: FC<{
                       postData={postData}
                       preselectedGroupQuestionId={preselectedGroupQuestionId}
                     >
-                      {isCommunityQuestion && (
+                      {isCommunityQuestion && defaultProject && (
                         <CommunityDisclaimer
-                          project={postData.projects.default_project}
+                          project={defaultProject}
                           variant="standalone"
                           className="block sm:hidden"
                         />
