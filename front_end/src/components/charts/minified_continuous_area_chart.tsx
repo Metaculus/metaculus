@@ -304,7 +304,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                                 ]
                               );
                             case "green":
-                              return getThemeColor(METAC_COLORS.olive["600"]);
+                              return getThemeColor(METAC_COLORS.olive["500"]);
                             case "gray":
                               return getThemeColor(METAC_COLORS.gray["500"]);
                             default:
@@ -366,11 +366,11 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                         case "orange":
                           return getThemeColor(METAC_COLORS.orange["600"]);
                         case "green":
-                          return getThemeColor(METAC_COLORS.olive["600"]);
+                          return getThemeColor(METAC_COLORS.olive["700"]);
                         case "gray":
                           return getThemeColor(METAC_COLORS.gray["600"]);
                         default:
-                          return getThemeColor(METAC_COLORS.olive["600"]);
+                          return getThemeColor(METAC_COLORS.olive["700"]);
                       }
                     })(),
                     strokeWidth: 1,
