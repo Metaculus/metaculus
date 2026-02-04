@@ -3,7 +3,6 @@
 import { faCircleQuestion } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { useFeatureFlagEnabled } from "posthog-js/react";
 import React, { FC, useCallback, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
@@ -22,10 +21,6 @@ export type Props = {
 const EmailNotifications: FC<Props> = ({ user }) => {
   const t = useTranslations();
   const [loadingIndex, setLoadingIndex] = useState<number | null>(null);
-
-  const isWeeklyTopCommentsEnabled = useFeatureFlagEnabled(
-    "weekly_top_comments"
-  );
 
   const handleEmailSubscriptionChange = useCallback(
     async (subscriptionType: SubscriptionEmailType, checked: boolean) => {
@@ -86,14 +81,10 @@ const EmailNotifications: FC<Props> = ({ user }) => {
       type: SubscriptionEmailType.before_prediction_auto_withdrawal,
       label: t("beforeAutoWithdrawal"),
     },
-    ...(isWeeklyTopCommentsEnabled
-      ? [
-          {
-            type: SubscriptionEmailType.weekly_top_comments,
-            label: t("weeklyTopComments"),
-          },
-        ]
-      : []),
+    {
+      type: SubscriptionEmailType.weekly_top_comments,
+      label: t("weeklyTopComments"),
+    },
   ];
 
   return (

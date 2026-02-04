@@ -17,3 +17,20 @@ export function getValidString(
 ): string | undefined {
   return str && str.trim() !== "" ? str : undefined;
 }
+
+/**
+ * Safely strips HTML tags from a string by repeatedly applying regex replacement
+ * until no tags remain. This prevents incomplete multi-character sanitization
+ * vulnerabilities where nested or malformed tags could leave dangerous content.
+ */
+export function stripHtmlTags(html: string): string {
+  let previous = "";
+  let current = html;
+
+  while (previous !== current) {
+    previous = current;
+    current = current.replace(/<[^>]*>/g, "");
+  }
+
+  return current;
+}
