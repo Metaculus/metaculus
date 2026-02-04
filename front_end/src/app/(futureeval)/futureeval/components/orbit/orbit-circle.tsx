@@ -146,7 +146,7 @@ const OrbitCircle: React.FC<OrbitCircleProps> = ({
       >
         <span
           className={cn(
-            "whitespace-pre-line px-1 text-center font-newsreader text-sm font-normal leading-tight lg:text-lg",
+            "whitespace-pre-line px-3 text-center font-newsreader text-sm font-normal leading-tight lg:text-lg",
             FE_COLORS.textPrimary
           )}
           style={{
@@ -191,7 +191,7 @@ const ExpandedCard: React.FC<ExpandedCardProps> = ({
   // Handle link click for scroll actions
   const handleLinkClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (item.action.type === "scroll") {
+    if (item.action?.type === "scroll") {
       e.preventDefault();
       onClick();
     }
@@ -321,7 +321,7 @@ const MobileExpandedCard: React.FC<MobileExpandedCardProps> = ({
   // Handle link click for scroll actions
   const handleLinkClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (item.action.type === "scroll") {
+    if (item.action?.type === "scroll") {
       e.preventDefault();
       onClick();
     }

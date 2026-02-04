@@ -52,9 +52,9 @@ const FutureEvalHeroBanner: React.FC<Props> = ({ tabs, activeTab }) => {
                 )}
               >
                 FutureEval measures AI&apos;s ability to predict future
-                outcomes, which is essential in many real-world tasks. Models
-                that score high in our benchmark will be better at planning,
-                risk assessment, and decision-making.
+                outcomes, in Science, Technology, Health, Geopolitics, AI
+                itself, and more. Forecasting is a key skill in many real-world
+                tasks, enabling planning, risk assessment, and decision-making.
               </p>
               <Link
                 href="/futureeval/methodology"

@@ -25,6 +25,9 @@ export function getCarouselChips(itemId: string): CarouselChip[] {
 export function getLinkInfo(
   item: OrbitItem
 ): { text: string; href: string } | null {
+  if (!item.action) {
+    return null;
+  }
   switch (item.id) {
     case "model-benchmark":
       return { text: "View Leaderboard →", href: `#${item.action.target}` };
@@ -33,8 +36,6 @@ export function getLinkInfo(
         text: "View Tournaments →",
         href: `${item.action.tabHref}#${item.action.target}`,
       };
-    case "minibench":
-      return { text: "Visit MiniBench →", href: item.action.target };
     default:
       return null;
   }

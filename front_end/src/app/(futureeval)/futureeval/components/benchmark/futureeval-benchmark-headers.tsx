@@ -57,7 +57,18 @@ export const FutureEvalForecastingPerformanceHeader: React.FC = () => {
   return (
     <FutureEvalSubsectionHeader
       title="Forecasting Performance Over Time"
-      subtitle="Model scores from the model leaderboard by release date."
+      subtitle={
+        <>
+          Model forecasting score vs. release date.{" "}
+          <Link
+            className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+            href="/futureeval/methodology#model-leaderboard"
+          >
+            Learn more
+          </Link>
+          .
+        </>
+      }
     />
   );
 };

@@ -2,6 +2,7 @@
 
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
 
 import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
@@ -49,10 +50,15 @@ const FutureEvalLeaderboardHero: React.FC<Props> = ({ upcomingModels }) => {
       <div className="mt-3 grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
         <div className="text-center sm:text-left">
           <p
-            className={cn("m-0", FE_TYPOGRAPHY.body, FE_COLORS.textSubheading)}
+            className={`m-0 ${FE_TYPOGRAPHY.body} ${FE_COLORS.textSubheading}`}
           >
-            Updated every day based on our standardized forecasting performance
-            measurement methodology.
+            Uses our unified forecasting score. Updates daily.{" "}
+            <Link
+              href="/futureeval/methodology#model-leaderboard"
+              className={`${FE_COLORS.textAccent} whitespace-nowrap`}
+            >
+              Learn More
+            </Link>
           </p>
         </div>
         <div className="flex justify-center sm:justify-end">

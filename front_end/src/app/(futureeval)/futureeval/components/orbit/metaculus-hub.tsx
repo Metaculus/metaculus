@@ -55,19 +55,17 @@ const MetaculusHub: React.FC = () => {
             FE_COLORS.textSecondary
           )}
         >
-          3.2M+ predictions in <span className="font-semibold">12 years</span>
+          3.2M+ predictions, <span className="font-semibold">12 years</span>
         </span>
       </div>
 
-      {/* Subtext link */}
       <span
         className={cn(
           "mt-0.5 font-sans text-[10px] lg:text-xs",
-          FE_COLORS.textAccent,
-          "cursor-default"
+          FE_COLORS.textAccent
         )}
       >
-        with the best human forecasters
+        55 Pro Forecasters
       </span>
     </div>
   );

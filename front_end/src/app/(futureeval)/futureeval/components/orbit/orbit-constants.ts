@@ -20,7 +20,7 @@ export type OrbitItem = {
     type: "scroll" | "navigate" | "tab-scroll";
     target: string;
     tabHref?: string;
-  };
+  } | null;
 };
 
 // ===========================================
@@ -32,7 +32,7 @@ export const ORBIT_ITEMS: OrbitItem[] = [
     id: "model-benchmark",
     label: "Model\nBenchmark",
     description:
-      "Latest models forecast Metaculus questions and scored against best human and AI forecasters",
+      "Latest models forecast Metaculus questions, are scored against real-life outcomes",
     action: {
       type: "scroll",
       target: "model-leaderboard",
@@ -50,14 +50,11 @@ export const ORBIT_ITEMS: OrbitItem[] = [
     },
   },
   {
-    id: "minibench",
-    label: "MiniBench",
+    id: "baseline",
+    label: "Human Baseline",
     description:
-      "Automated question set, quick turnaround space for testing and rapid iteration for bot makers",
-    action: {
-      type: "navigate",
-      target: "/aib/minibench/",
-    },
+      "Metaculus community and top Pro Forecasters provide high-quality human baselines to compare AIs to.",
+    action: null,
   },
 ];
 
@@ -111,7 +108,7 @@ export const MODEL_BENCHMARK_CHIPS: CarouselChip[] = [
  * Bot Tournaments carousel shows prize/credit info
  */
 export const BOT_TOURNAMENTS_CHIPS: CarouselChip[] = [
-  { id: "prizes", label: "$240k paid in prizes" },
+  { id: "prizes", label: "$175k paid in prizes" },
   { id: "credits", label: "Complimentary AI credits provided" },
 ];
 

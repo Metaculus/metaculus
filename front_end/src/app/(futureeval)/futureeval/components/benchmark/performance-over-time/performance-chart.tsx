@@ -430,7 +430,7 @@ export function BenchmarkChart({
             style={{ color: getThemeColor(METAC_COLORS.purple[700]) }}
             className="font-medium"
           >
-            Reference Benchmarks
+            Human Baselines
           </span>
         </div>
       </div>
@@ -532,7 +532,7 @@ export function BenchmarkChart({
                 },
               }}
               tickValues={yTicks}
-              label="Score"
+              label="Forecasting score"
               axisLabelComponent={
                 <VictoryLabel
                   angle={-90}

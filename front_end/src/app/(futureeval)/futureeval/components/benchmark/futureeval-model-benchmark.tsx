@@ -4,10 +4,11 @@ import Link from "next/link";
 import React, { useMemo } from "react";
 
 import ReusableGradientCarousel from "@/components/gradient-carousel";
+import Button from "@/components/ui/button";
+import cn from "@/utils/core/cn";
 
 import { FE_COLORS, FE_TYPOGRAPHY } from "../../theme";
 import FutureEvalComingSoonBanner from "../futureeval-coming-soon-banner";
-import FutureEvalInfoPopover from "../futureeval-info-popover";
 import FutureEvalModelBar from "./futureeval-model-bar";
 import { useFutureEvalLeaderboard } from "../leaderboard/futureeval-leaderboard-provider";
 import {
@@ -108,15 +109,11 @@ const FutureEvalModelBenchmark: React.FC = () => {
       {/* Header */}
       <div className="mb-0 flex items-start justify-between gap-4 sm:mb-1">
         <div className="w-full text-left">
-          {/* Title with info popover inline on desktop */}
+          {/* Title */}
           <div className="flex items-center gap-3">
             <h3 className={`m-0 ${FE_TYPOGRAPHY.h2} ${FE_COLORS.textHeading}`}>
               Model Leaderboard
             </h3>
-            {/* Info popover - inline on desktop (sm+) */}
-            <div className="hidden sm:block">
-              <FutureEvalInfoPopover />
-            </div>
           </div>
           {/* Subtitle row - two column layout */}
           <div className="mt-3 grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
@@ -124,24 +121,19 @@ const FutureEvalModelBenchmark: React.FC = () => {
               <p
                 className={`m-0 ${FE_TYPOGRAPHY.body} ${FE_COLORS.textSubheading}`}
               >
-                Updated every day based on our standardized forecasting
-                performance measurement methodology.
+                Uses our unified forecasting score. Updates daily.{" "}
+                <Link
+                  href="/futureeval/methodology#model-leaderboard"
+                  className={`${FE_COLORS.textAccent} whitespace-nowrap`}
+                >
+                  Learn More
+                </Link>
               </p>
-              <Link
-                href="/futureeval/leaderboard"
-                className={`mt-2 inline-block ${FE_TYPOGRAPHY.link} ${FE_COLORS.textAccent}`}
-              >
-                View full leaderboard
-              </Link>
             </div>
             <div className="flex justify-center sm:justify-end">
               <FutureEvalComingSoonBanner models={upcomingModels} />
             </div>
           </div>
-        </div>
-        {/* Info popover - right aligned on mobile only */}
-        <div className="block sm:hidden">
-          <FutureEvalInfoPopover />
         </div>
       </div>
 
@@ -175,6 +167,19 @@ const FutureEvalModelBenchmark: React.FC = () => {
           viewportClassName="h-full overflow-y-hidden"
           listClassName="h-full items-stretch -ml-2"
         />
+      </div>
+      <div className="mx-auto mt-8">
+        <Button
+          href="/futureeval/leaderboard"
+          className={cn(
+            "border",
+            FE_COLORS.borderPrimary,
+            FE_COLORS.textAccent,
+            "hover:opacity-80"
+          )}
+        >
+          View the Full Leaderboard
+        </Button>
       </div>
     </div>
   );
