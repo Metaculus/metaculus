@@ -36,7 +36,7 @@ export type ProsVsBotsDiffSeries = {
   data: DiffDatum[];
 };
 
-const SINGLE_WIDTH = 102;
+const SINGLE_WIDTH = 57.5;
 const GROUP_WIDTH = 57.5;
 const GROUP_OFFSET = 0.16;
 const MOBILE_BAR_W = 27.6;

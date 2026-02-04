@@ -90,6 +90,9 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
   // Handle item click actions
   const handleItemClick = useCallback(
     (item: OrbitItem) => {
+      if (!item.action) {
+        return;
+      }
       switch (item.action.type) {
         case "scroll": {
           const element = document.getElementById(item.action.target);

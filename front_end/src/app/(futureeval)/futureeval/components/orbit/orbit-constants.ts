@@ -44,9 +44,8 @@ export const ORBIT_ITEMS: OrbitItem[] = [
     description:
       "Seasonal forecasting tournaments where the best bot makers compete",
     action: {
-      type: "tab-scroll",
+      type: "scroll",
       target: "tournaments",
-      tabHref: "/futureeval/methodology",
     },
   },
   {

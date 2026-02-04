@@ -82,14 +82,15 @@ export const FutureEvalProsVsBotsSectionHeader: React.FC = () => {
       title="How much Pros beat Bots"
       subtitle={
         <>
-          Metaculus Pro Forecasters have beaten Bots every quarter of our{" "}
+          Metaculus Pro Forecasters have beaten Bots every season of our AI
+          Benchmarking Tournaments so far.{" "}
           <Link
             className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
-            href="/notebooks/38928/futureeval-resources-page/#what-is-the-pro-vs-bots-graph"
+            href="/futureeval/methodology#human-baseline"
           >
-            AI Benchmarking Tournaments
-          </Link>{" "}
-          so far.
+            Learn more
+          </Link>
+          .
         </>
       }
     />

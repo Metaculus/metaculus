@@ -442,7 +442,7 @@ const FutureEvalMethodologySections: React.FC = () => {
       </section>
 
       {/* Section 3: What is the Pro vs Bots Graph? */}
-      <section className="space-y-6">
+      <section id="human-baseline" className="scroll-mt-24 space-y-6">
         <SectionHeader>
           What is the{" "}
           <span className={FE_COLORS.textAccent}>Pro vs Bots Graph?</span>

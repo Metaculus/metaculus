@@ -1,3 +1,4 @@
+import FutureEvalTournaments from "../futureeval-tournaments";
 import {
   FutureEvalForecastingPerformanceHeader,
   FutureEvalProsVsBotsSectionHeader,
@@ -29,6 +30,11 @@ const FutureEvalBenchmarkTab: React.FC = () => {
       {/* Biggest Bot Wins */}
       <div>
         <FutureEvalBiggestBotWins />
+      </div>
+
+      {/* Bot Tournaments */}
+      <div>
+        <FutureEvalTournaments />
       </div>
     </>
   );

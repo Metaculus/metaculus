@@ -34,7 +34,7 @@ export function getLinkInfo(
     case "bot-tournaments":
       return {
         text: "View Tournaments →",
-        href: `${item.action.tabHref}#${item.action.target}`,
+        href: `#${item.action.target}`,
       };
     default:
       return null;
