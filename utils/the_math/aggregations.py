@@ -907,7 +907,7 @@ def minimize_history(
 
 def get_user_forecast_history(
     forecasts: Sequence[Forecast],
-    minimize: bool = False,
+    minimize: bool | int = False,
     cutoff: datetime | None = None,
 ) -> list[ForecastSet]:
     timestep_set: set[datetime] = set()
@@ -919,7 +919,10 @@ def get_user_forecast_history(
             timestep_set.add(forecast.end_time)
     timesteps = sorted(timestep_set)
     if minimize:
-        timesteps = minimize_history(timesteps)
+        if isinstance(minimize, int):
+            timesteps = minimize_history(timesteps, minimize)
+        else:
+            timesteps = minimize_history(timesteps)
     forecast_sets: dict[datetime, ForecastSet] = {
         timestep: ForecastSet(
             forecasts_values=[],
@@ -951,7 +954,7 @@ def get_aggregation_history(
     aggregation_methods: list[AggregationMethod],
     forecasts: QuerySet[Forecast] | None = None,
     only_include_user_ids: list[int] | set[int] | None = None,
-    minimize: bool = True,
+    minimize: bool | int = True,
     include_stats: bool = True,
     include_bots: bool = False,
     histogram: bool | None = None,

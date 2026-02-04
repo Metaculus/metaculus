@@ -246,7 +246,7 @@ def gather_data(
             aggregate_forecasts = get_aggregation_history(
                 human_question,
                 [aggregation_method],
-                minimize=True,
+                minimize=100,
                 include_stats=False,
                 include_bots=False,
                 include_future=False,
@@ -293,7 +293,7 @@ def gather_data(
                     question_ids.append(q)
                     scores.append(u1s)
                     coverages.append(cov)
-                    timestamps.append(question.actual_resolve_time.timestamp())
+                    timestamps.append(question.actual_close_time.timestamp())
         if cache and question_number % cache_interval == 0:
             print(f"\nCaching {len(user1_ids)} matches...")
             with csv_path.open("a") as output_file:
@@ -695,30 +695,30 @@ def run_update_global_bot_leaderboard() -> None:
         .order_by("?")
         .distinct("id")
     )
-    ###############
-    # make sure they have at least 100 resolved questions
-    print("initialize list")
-    question_list = list(questions)
-    print("Filtering users.")
-    scored_question_counts: dict[int, int] = defaultdict(int)
-    c = users.count()
-    i = 0
-    for user in users:
-        i += 1
-        print(i, "/", c, end="\r")
-        scored_question_counts[user.id] = (
-            Score.objects.filter(
-                user=user,
-                score_type="peer",
-                question__in=question_list,
-            )
-            .distinct("question_id")
-            .count()
-        )
-    excluded_ids = [uid for uid, count in scored_question_counts.items() if count < 100]
-    users = users.exclude(id__in=excluded_ids)
-    ###############
-    print(f"Filtered {c} users down to {users.count()}.")
+    # ###############
+    # # make sure they have at least 100 resolved questions
+    # print("initialize list")
+    # question_list = list(questions)
+    # print("Filtering users.")
+    # scored_question_counts: dict[int, int] = defaultdict(int)
+    # c = users.count()
+    # i = 0
+    # for user in users:
+    #     i += 1
+    #     print(i, "/", c, end="\r")
+    #     scored_question_counts[user.id] = (
+    #         Score.objects.filter(
+    #             user=user,
+    #             score_type="peer",
+    #             question__in=question_list,
+    #         )
+    #         .distinct("question_id")
+    #         .count()
+    #     )
+    # excluded_ids = [uid for uid, count in scored_question_counts.items() if count < 100]
+    # users = users.exclude(id__in=excluded_ids)
+    # print(f"Filtered {c} users down to {users.count()}.")
+    # ###############
     print("Initializing... DONE")
 
     # Gather head to head scores
@@ -726,86 +726,86 @@ def run_update_global_bot_leaderboard() -> None:
         users, questions
     )
 
-    # for pro aggregation, community aggregate, and any non-metac bot,
-    # duplicate rows indicating year-specific achievements
-    user_map = {user.id: user for user in users}
-    user_map["Pro Aggregate"] = "Pro Aggregate"
-    user_map["Community Aggregate"] = "Community Aggregate"
-    new_rows = []
-    for user1_id, user2_id, question_id, score, coverage, timestamp in zip(
-        user1_ids, user2_ids, question_ids, scores, coverages, timestamps
-    ):
-        user1 = user_map[user1_id]
-        if isinstance(user1, User):
-            if (
-                not (user1.metadata or dict())
-                .get("bot_details", dict())
-                .get("metac_bot")
-            ):
-                # non-metac bot
-                time = datetime.fromtimestamp(timestamp, dt_timezone.utc)
-                new_rows.append(
-                    (
-                        f"{user1.username} {time.year}",
-                        user2_id,
-                        question_id,
-                        score,
-                        coverage,
-                        timestamp,
-                    )
-                )
-        else:
-            # aggregation methods
-            time = datetime.fromtimestamp(timestamp, dt_timezone.utc)
-            new_rows.append(
-                (
-                    f"{user1} {time.year}",
-                    user2_id,
-                    question_id,
-                    score,
-                    coverage,
-                    timestamp,
-                )
-            )
-        user2 = user_map[user2_id]
-        if isinstance(user2, User):
-            if (
-                not (user2.metadata or dict())
-                .get("bot_details", dict())
-                .get("metac_bot")
-            ):
-                # non-metac bot
-                time = datetime.fromtimestamp(timestamp, dt_timezone.utc)
-                new_rows.append(
-                    (
-                        user1_id,
-                        f"{user2.username} {time.year}",
-                        question_id,
-                        -score,
-                        coverage,
-                        timestamp,
-                    )
-                )
-        else:
-            # aggregation methods
-            time = datetime.fromtimestamp(timestamp, dt_timezone.utc)
-            new_rows.append(
-                (
-                    user1_id,
-                    f"{user2} {time.year}",
-                    question_id,
-                    -score,
-                    coverage,
-                    timestamp,
-                )
-            )
-    for user1_id, user2_id, question_id, score, coverage, timestamp in new_rows:
-        user1_ids.append(user1_id)
-        user2_ids.append(user2_id)
-        question_ids.append(question_id)
-        scores.append(score)
-        coverages.append(coverage)
-        timestamps.append(timestamp)
+    # # for pro aggregation, community aggregate, and any non-metac bot,
+    # # duplicate rows indicating year-specific achievements
+    # user_map = {user.id: user for user in users}
+    # user_map["Pro Aggregate"] = "Pro Aggregate"
+    # user_map["Community Aggregate"] = "Community Aggregate"
+    # new_rows = []
+    # for user1_id, user2_id, question_id, score, coverage, timestamp in zip(
+    #     user1_ids, user2_ids, question_ids, scores, coverages, timestamps
+    # ):
+    #     user1 = user_map[user1_id]
+    #     if isinstance(user1, User):
+    #         if (
+    #             not (user1.metadata or dict())
+    #             .get("bot_details", dict())
+    #             .get("metac_bot")
+    #         ):
+    #             # non-metac bot
+    #             time = datetime.fromtimestamp(timestamp, dt_timezone.utc)
+    #             new_rows.append(
+    #                 (
+    #                     f"{user1.username} {time.year}",
+    #                     user2_id,
+    #                     question_id,
+    #                     score,
+    #                     coverage,
+    #                     timestamp,
+    #                 )
+    #             )
+    #     else:
+    #         # aggregation methods
+    #         time = datetime.fromtimestamp(timestamp, dt_timezone.utc)
+    #         new_rows.append(
+    #             (
+    #                 f"{user1} {time.year}",
+    #                 user2_id,
+    #                 question_id,
+    #                 score,
+    #                 coverage,
+    #                 timestamp,
+    #             )
+    #         )
+    #     user2 = user_map[user2_id]
+    #     if isinstance(user2, User):
+    #         if (
+    #             not (user2.metadata or dict())
+    #             .get("bot_details", dict())
+    #             .get("metac_bot")
+    #         ):
+    #             # non-metac bot
+    #             time = datetime.fromtimestamp(timestamp, dt_timezone.utc)
+    #             new_rows.append(
+    #                 (
+    #                     user1_id,
+    #                     f"{user2.username} {time.year}",
+    #                     question_id,
+    #                     -score,
+    #                     coverage,
+    #                     timestamp,
+    #                 )
+    #             )
+    #     else:
+    #         # aggregation methods
+    #         time = datetime.fromtimestamp(timestamp, dt_timezone.utc)
+    #         new_rows.append(
+    #             (
+    #                 user1_id,
+    #                 f"{user2} {time.year}",
+    #                 question_id,
+    #                 -score,
+    #                 coverage,
+    #                 timestamp,
+    #             )
+    #         )
+    # for user1_id, user2_id, question_id, score, coverage, timestamp in new_rows:
+    #     user1_ids.append(user1_id)
+    #     user2_ids.append(user2_id)
+    #     question_ids.append(question_id)
+    #     scores.append(score)
+    #     coverages.append(coverage)
+    #     timestamps.append(timestamp)
 
     # choose baseline player if not already chosen
     if not baseline_player:
