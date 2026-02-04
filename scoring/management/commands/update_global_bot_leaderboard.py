@@ -255,6 +255,7 @@ def gather_data(
                 pass
             elif question in aib_question_map:
                 # set the last aggregate to be the one that gets scored
+                # TODO: instead grab the aggregate that was live at spot scoring time
                 forecast = aggregate_forecasts[-1]
                 forecast.start_time = question.get_spot_scoring_time() - timedelta(
                     seconds=1
@@ -691,7 +692,7 @@ def run_update_global_bot_leaderboard() -> None:
                 "user_forecasts", queryset=Forecast.objects.filter(author__in=users)
             )
         )
-        .order_by("id")
+        .order_by("?")
         .distinct("id")
     )
     ###############
@@ -721,7 +722,7 @@ def run_update_global_bot_leaderboard() -> None:
     print("Initializing... DONE")
 
     # Gather head to head scores
-    user1_ids, user2_ids, question_ids, scores, weights, timestamps = gather_data(
+    user1_ids, user2_ids, question_ids, scores, coverages, timestamps = gather_data(
         users, questions
     )
 
@@ -731,8 +732,8 @@ def run_update_global_bot_leaderboard() -> None:
     user_map["Pro Aggregate"] = "Pro Aggregate"
     user_map["Community Aggregate"] = "Community Aggregate"
     new_rows = []
-    for user1_id, user2_id, question_id, score, weight, timestamp in zip(
-        user1_ids, user2_ids, question_ids, scores, weights, timestamps
+    for user1_id, user2_id, question_id, score, coverage, timestamp in zip(
+        user1_ids, user2_ids, question_ids, scores, coverages, timestamps
     ):
         user1 = user_map[user1_id]
         if isinstance(user1, User):
@@ -749,7 +750,7 @@ def run_update_global_bot_leaderboard() -> None:
                         user2_id,
                         question_id,
                         score,
-                        weight,
+                        coverage,
                         timestamp,
                     )
                 )
@@ -762,13 +763,13 @@ def run_update_global_bot_leaderboard() -> None:
                     user2_id,
                     question_id,
                     score,
-                    weight,
+                    coverage,
                     timestamp,
                 )
             )
         user2 = user_map[user2_id]
         if isinstance(user2, User):
-            if not (
+            if (
                 not (user2.metadata or dict())
                 .get("bot_details", dict())
                 .get("metac_bot")
@@ -781,7 +782,7 @@ def run_update_global_bot_leaderboard() -> None:
                         f"{user2.username} {time.year}",
                         question_id,
                         -score,
-                        weight,
+                        coverage,
                         timestamp,
                     )
                 )
@@ -794,10 +795,17 @@ def run_update_global_bot_leaderboard() -> None:
                     f"{user2} {time.year}",
                     question_id,
                     -score,
-                    weight,
+                    coverage,
                     timestamp,
                 )
             )
+    for user1_id, user2_id, question_id, score, coverage, timestamp in new_rows:
+        user1_ids.append(user1_id)
+        user2_ids.append(user2_id)
+        question_ids.append(question_id)
+        scores.append(score)
+        coverages.append(coverage)
+        timestamps.append(timestamp)
 
     # choose baseline player if not already chosen
     if not baseline_player:
@@ -805,7 +813,7 @@ def run_update_global_bot_leaderboard() -> None:
             set(user1_ids) | set(user2_ids), key=(user1_ids + user2_ids).count
         )
     # get variance of average scores (used in rescaling)
-    avg_scores = get_avg_scores(user1_ids, user2_ids, scores, weights)
+    avg_scores = get_avg_scores(user1_ids, user2_ids, scores, coverages)
     var_avg_scores = (
         np.var(np.array(list(avg_scores.values()))) if len(avg_scores) > 1 else 0
     )
@@ -816,7 +824,7 @@ def run_update_global_bot_leaderboard() -> None:
         user2_ids=user2_ids,
         question_ids=question_ids,
         scores=scores,
-        weights=weights,
+        weights=coverages,
         baseline_player=baseline_player,
         var_avg_scores=var_avg_scores,
         verbose=False,
@@ -828,7 +836,7 @@ def run_update_global_bot_leaderboard() -> None:
         user2_ids,
         question_ids,
         scores,
-        weights,
+        coverages,
         var_avg_scores,
         baseline_player=baseline_player,
         bootstrap_iterations=bootstrap_iterations,
@@ -870,8 +878,8 @@ def run_update_global_bot_leaderboard() -> None:
         excluded = False
         if isinstance(uid, int):
             user = User.objects.get(id=uid)
-            bot_details = user.metadata["bot_details"]
-            if not bot_details.get("display_in_leaderboard"):
+            bot_details = (user.metadata or dict()).get("bot_details")
+            if bot_details and not bot_details.get("display_in_leaderboard"):
                 excluded = True
 
         entry: LeaderboardEntry = entry_dict.pop(uid, LeaderboardEntry())
