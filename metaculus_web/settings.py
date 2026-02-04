@@ -504,16 +504,23 @@ def traces_sampler(sampling_context):
             if url.startswith(starts_with):
                 return 0
 
-        if (
-            re.match(r"^/api/posts/\d+/similar-posts/?$", url)
-            or url == "/api/medals/"
-            or re.match(r"^/api/posts/\d+/read/?$", url)
-        ):
-            return 0.1
+        # Reduced sampling for high-volume endpoints
+        if url == "/api/users/me/":
+            return 0.05
 
-    # Sample all POSTs at 100%
-    if method in ("POST", "PATCH", "PUT", "DELETE"):
-        return 1.0
+        if method in ("POST", "PATCH", "PUT", "DELETE"):
+            # High-volume write endpoints - use reduced rates
+            if url == "/api/questions/forecast/":
+                return 0.5
+            if (
+                url == "/api/auth/refresh/"
+                or re.match(r"^/api/posts/\d+/read/?$", url)
+                or url == "/api/auth/login/token/"
+                or re.match(r"^/api/cancel-bulletin/\d+/?$", url)
+            ):
+                return SENTRY_SAMPLE_RATE
+
+            return 1.0
 
     return SENTRY_SAMPLE_RATE
 
