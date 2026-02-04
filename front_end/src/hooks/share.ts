@@ -1,11 +1,17 @@
+"use client";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 export const useCopyUrl = () => {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   return useCallback(() => {
     if (typeof window !== "undefined") {
+      const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
       navigator.clipboard
-        .writeText(window.location.href)
+        .writeText(url)
         .then(() => {
           toast("URL is now copied to your clipboard", {
             className: "dark:bg-blue-700-dark dark:text-gray-0-dark",
@@ -14,7 +20,7 @@ export const useCopyUrl = () => {
         })
         .catch((err) => console.error("Error copying link: ", err));
     }
-  }, []);
+  }, [pathname, searchParams]);
 };
 
 export const useMetaImageUrl = (tagName: string) => {
@@ -31,21 +37,31 @@ export const useMetaImageUrl = (tagName: string) => {
 };
 
 export const useShareOnTwitterLink = (message = "") => {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   return useMemo(() => {
-    if (typeof window !== "undefined") {
-      return `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-        message
-      )}&url=${encodeURIComponent(window.location.href)}`;
+    if (typeof window === "undefined") {
+      return "";
     }
-  }, [message]);
+    const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+    return `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+      message
+    )}&url=${encodeURIComponent(url)}`;
+  }, [message, pathname, searchParams]);
 };
 
 export const useShareOnFacebookLink = () => {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   return useMemo(() => {
-    if (typeof window !== "undefined") {
-      return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`;
+    if (typeof window === "undefined") {
+      return "";
     }
-  }, []);
+    const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+    return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+  }, [pathname, searchParams]);
 };
 
 export const useEmbedUrl = (path: string) => {
