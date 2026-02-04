@@ -105,7 +105,7 @@ def get_score_pair(
 def gather_data(
     users: QuerySet[User],
     questions: QuerySet[Question],
-    cache: bool = True,
+    cache_use: str | None = "partial",
 ) -> tuple[
     list[int | str], list[int | str], list[int], list[float], list[float], list[float]
 ]:
@@ -115,7 +115,31 @@ def gather_data(
     scores: list[float] = []
     coverages: list[float] = []
     timestamps: list[float] = []
-    if cache:
+    if cache_use == "full":
+        # load all from cache, don't calculate more
+        def _deserialize_user(value: str) -> int | str:
+            value = value.strip()
+            if not value:
+                return value
+            try:
+                return int(value)
+            except ValueError:
+                return value
+
+        csv_path = Path("HtH_score_data.csv")
+        with csv_path.open("r") as input_file:
+            reader = csv.DictReader(input_file)
+            for row in reader:
+                user1_ids.append(_deserialize_user(row["user1"]))
+                user2_ids.append(_deserialize_user(row["user2"]))
+                question_ids.append(int(row["questionid"]))
+                scores.append(float(row["score"]))
+                coverages.append(float(row["coverage"]))
+                timestamps.append(float(row["timestamp"]))
+
+        return (user1_ids, user2_ids, question_ids, scores, coverages, timestamps)
+
+    if cache_use == "partial":
         csv_path = Path("HtH_score_data.csv")
         if not csv_path.exists():
             with csv_path.open("w") as output_file:
@@ -171,7 +195,7 @@ def gather_data(
     #
     user_ids = users.values_list("id", flat=True)
     t0 = datetime.now()
-    question_count = len(questions)
+    question_count = questions.count()
     questions = list(questions)
     cache_interval = 100
     print("Processing Pairwise Scoring:")
@@ -294,7 +318,7 @@ def gather_data(
                     scores.append(u1s)
                     coverages.append(cov)
                     timestamps.append(question.actual_close_time.timestamp())
-        if cache and question_number % cache_interval == 0:
+        if cache_use and question_number % cache_interval == 0:
             print(f"\nCaching {len(user1_ids)} matches...")
             with csv_path.open("a") as output_file:
                 writer = csv.writer(output_file)
@@ -310,7 +334,7 @@ def gather_data(
             timestamps = []
     print("\n")
 
-    if cache:
+    if cache_use:
         with csv_path.open("a") as output_file:
             writer = csv.writer(output_file)
             for row in zip(
@@ -652,7 +676,9 @@ def bootstrap_skills(
     return ci_lower, ci_upper
 
 
-def run_update_global_bot_leaderboard() -> None:
+def run_update_global_bot_leaderboard(
+    cache_use: str = "partial",
+) -> None:
     baseline_player: int | str = 236038  # metac-gpt-4o+asknews
     bootstrap_iterations = 30
 
@@ -692,8 +718,8 @@ def run_update_global_bot_leaderboard() -> None:
                 "user_forecasts", queryset=Forecast.objects.filter(author__in=users)
             )
         )
-        .order_by("?")
         .distinct("id")
+        # .order_by("?")
     )
     # ###############
     # # make sure they have at least 100 resolved questions
@@ -723,7 +749,7 @@ def run_update_global_bot_leaderboard() -> None:
 
     # Gather head to head scores
     user1_ids, user2_ids, question_ids, scores, coverages, timestamps = gather_data(
-        users, questions
+        users, questions, cache_use=cache_use
     )
 
     # # for pro aggregation, community aggregate, and any non-metac bot,
@@ -806,6 +832,45 @@ def run_update_global_bot_leaderboard() -> None:
     #     scores.append(score)
     #     coverages.append(coverage)
     #     timestamps.append(timestamp)
+
+    # ###############
+    # Filter out entries we don't care about
+    print(f"Filtering {len(timestamps)} matches down to only relevant identities ...")
+    relevant_identities = set(
+        User.objects.filter(
+            metadata__bot_details__metac_bot=True,
+            metadata__bot_details__include_in_calculations=True,
+            metadata__bot_details__display_in_leaderboard=True,
+            is_active=True,
+        ).values_list("id", flat=True)
+    ) | {
+        "Pro Aggregate",
+        "Community Aggregate",
+    }
+    filtered_user1_ids = []
+    filtered_user2_ids = []
+    filtered_question_ids = []
+    filtered_scores = []
+    filtered_coverages = []
+    filtered_timestamps = []
+    for u1id, u2id, qid, score, coverage, timestamp in zip(
+        user1_ids, user2_ids, question_ids, scores, coverages, timestamps
+    ):
+        if u1id in relevant_identities and u2id in relevant_identities:
+            filtered_user1_ids.append(u1id)
+            filtered_user2_ids.append(u2id)
+            filtered_question_ids.append(qid)
+            filtered_scores.append(score)
+            filtered_coverages.append(coverage)
+            filtered_timestamps.append(timestamp)
+    user1_ids = filtered_user1_ids
+    user2_ids = filtered_user2_ids
+    question_ids = filtered_question_ids
+    scores = filtered_scores
+    coverages = filtered_coverages
+    timestamps = filtered_timestamps
+    print(f"Filtered down to {len(timestamps)} matches.\n")
+    # ###############
 
     # choose baseline player if not already chosen
     if not baseline_player:
@@ -1034,4 +1099,4 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options) -> None:
-        run_update_global_bot_leaderboard()
+        run_update_global_bot_leaderboard(cache_use="full")
