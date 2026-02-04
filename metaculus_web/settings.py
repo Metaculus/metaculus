@@ -504,12 +504,12 @@ def traces_sampler(sampling_context):
             if url.startswith(starts_with):
                 return 0
 
-    if (
-        re.match(r"^/api/posts/\d+/similar-posts/?$", url)
-        or url == "/api/medals/"
-        or re.match(r"^/api/posts/\d+/read/?$", url)
-    ):
-        return 0.1
+        if (
+            re.match(r"^/api/posts/\d+/similar-posts/?$", url)
+            or url == "/api/medals/"
+            or re.match(r"^/api/posts/\d+/read/?$", url)
+        ):
+            return 0.1
 
     # Sample all POSTs at 100%
     if method in ("POST", "PATCH", "PUT", "DELETE"):
