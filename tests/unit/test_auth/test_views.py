@@ -129,3 +129,34 @@ class TestVerifyEmail:
         assert response.status_code == 201
         user = User.objects.get(username="new_user")
         assert user.language == expected_language
+
+
+class TestLogout:
+    url = "/api/auth/logout/"
+
+    def test_logout_with_token_revokes_session(self, anon_client, user1):
+        from authentication.services import get_tokens_for_user
+        from authentication.jwt_session import (
+            SessionAccessToken,
+            get_session_enforce_at,
+        )
+
+        # Get tokens for the user
+        tokens = get_tokens_for_user(user1)
+        access_token = tokens["access"]
+
+        # Extract session_id from access token
+        token = SessionAccessToken(access_token, verify=False)
+        session_id = token.get("session_id")
+
+        # Verify session is not revoked before logout
+        assert session_id
+        assert get_session_enforce_at(session_id) is None
+
+        # Perform logout with explicit Authorization header
+        anon_client.credentials(HTTP_AUTHORIZATION=f"Bearer {access_token}")
+        response = anon_client.post(self.url)
+        assert response.status_code == 204
+
+        # Verify session is now revoked (enforce_at = 0)
+        assert get_session_enforce_at(session_id) == 0

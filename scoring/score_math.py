@@ -20,7 +20,7 @@ from utils.the_math.formulas import string_location_to_bucket_index
 
 @dataclass
 class AggregationEntry:
-    pmf: np.ndarray | list[float | None]
+    pmf: np.ndarray | list[float]
     num_forecasters: int
     timestamp: float
 
@@ -36,7 +36,7 @@ def get_geometric_means(
             timesteps.add(forecast.end_time.timestamp())
     for timestep in sorted(timesteps):
         prediction_values = [
-            f.get_pmf(replace_none=True)
+            f.get_pmf()
             for f in forecasts
             if f.start_time.timestamp() <= timestep
             and (f.end_time is None or f.end_time.timestamp() > timestep)
@@ -86,9 +86,14 @@ def evaluate_forecasts_baseline_accuracy(
         if question_type in ["binary", "multiple_choice"]:
             # forecasts always have `None` assigned to MC options that aren't
             # available at the time. Detecting these allows us to avoid trying to
-            # follow the question's options_history.
-            options_at_time = len([p for p in pmf if p is not None])
-            p = pmf[resolution_bucket] or pmf[-1]  # if None, read from Other
+            # follow the question's options_history. With get_pmf(), these None
+            # values are represented as float("nan")
+            options_at_time = sum(~np.isnan(pmf))
+            p = (
+                pmf[resolution_bucket]
+                if not np.isnan(pmf[resolution_bucket])
+                else pmf[-1]
+            )  # if nan, read from Other
             forecast_score = 100 * np.log(p * options_at_time) / np.log(options_at_time)
         else:
             if resolution_bucket in [0, len(pmf) - 1]:
@@ -121,9 +126,14 @@ def evaluate_forecasts_baseline_spot_forecast(
             if question_type in ["binary", "multiple_choice"]:
                 # forecasts always have `None` assigned to MC options that aren't
                 # available at the time. Detecting these allows us to avoid trying to
-                # follow the question's options_history.
-                options_at_time = len([p for p in pmf if p is not None])
-                p = pmf[resolution_bucket] or pmf[-1]  # if None, read from Other
+                # follow the question's options_history. With get_pmf(), these None
+                # values are represented as float("nan")
+                options_at_time = sum(~np.isnan(pmf))
+                p = (
+                    pmf[resolution_bucket]
+                    if not np.isnan(pmf[resolution_bucket])
+                    else pmf[-1]
+                )  # if nan, read from Other
                 forecast_score = (
                     100 * np.log(p * options_at_time) / np.log(options_at_time)
                 )
@@ -167,13 +177,16 @@ def evaluate_forecasts_peer_accuracy(
             continue
 
         pmf = forecast.get_pmf()
-        p = pmf[resolution_bucket] or pmf[-1]  # if None, read from Other
+        # if nan, read from Other
+        p = pmf[resolution_bucket] if not np.isnan(pmf[resolution_bucket]) else pmf[-1]
         interval_scores: list[float | None] = []
         for gm in geometric_mean_forecasts:
             if forecast_start <= gm.timestamp < forecast_end:
                 gmp = (
-                    gm.pmf[resolution_bucket] or gm.pmf[-1]
-                )  # if None, read from Other
+                    gm.pmf[resolution_bucket]
+                    if not np.isnan(gm.pmf[resolution_bucket])
+                    else gm.pmf[-1]
+                )  # if nan, read from Other
                 interval_score = (
                     100
                     * (gm.num_forecasters / (gm.num_forecasters - 1))
@@ -230,8 +243,16 @@ def evaluate_forecasts_peer_spot_forecast(
         )
         if start <= spot_forecast_timestamp < end:
             pmf = forecast.get_pmf()
-            p = pmf[resolution_bucket] or pmf[-1]  # if None, read from Other
-            gmp = gm.pmf[resolution_bucket] or gm.pmf[-1]  # if None, read from Other
+            p = (
+                pmf[resolution_bucket]
+                if not np.isnan(pmf[resolution_bucket])
+                else pmf[-1]
+            )  # if nan, read from Other
+            gmp = (
+                gm.pmf[resolution_bucket]
+                if not np.isnan(gm.pmf[resolution_bucket])
+                else gm.pmf[-1]
+            )  # if nan, read from Other
             forecast_score = (
                 100 * (gm.num_forecasters / (gm.num_forecasters - 1)) * np.log(p / gmp)
             )
@@ -272,13 +293,16 @@ def evaluate_forecasts_legacy_relative(
             continue
 
         pmf = forecast.get_pmf()
-        p = pmf[resolution_bucket] or pmf[-1]  # if None, read from Other
+        # if nan, read from Other
+        p = pmf[resolution_bucket] if not np.isnan(pmf[resolution_bucket]) else pmf[-1]
         interval_scores: list[float | None] = []
         for bf in baseline_forecasts:
             if forecast_start <= bf.timestamp < forecast_end:
                 bfp = (
-                    bf.pmf[resolution_bucket] or bf.pmf[-1]
-                )  # if None, read from Other
+                    bf.pmf[resolution_bucket]
+                    if not np.isnan(bf.pmf[resolution_bucket])
+                    else bf.pmf[-1]
+                )  # if nan, read from Other
                 interval_score = np.log2(p / bfp)
                 interval_scores.append(interval_score)
             else:

@@ -173,11 +173,11 @@ const useNavbarLinks = ({
   const menuLinks = useMemo(() => {
     // common links that are always shown
     const links: NavbarLinkDefinition[] = [
-      LINKS.communities,
+      ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.communities]),
       LINKS.leaderboards,
       LINKS.trackRecord,
       LINKS.aggregationExplorer,
-      LINKS.aiBenchmark,
+      ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.aiBenchmark]),
     ];
 
     // create question link is moved from navbar to desktop menu
@@ -230,7 +230,7 @@ const useNavbarLinks = ({
             },
             LINKS.services,
             LINKS.news,
-            LINKS.communities,
+            ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.communities]),
             { href: null, label: t("more"), isTitle: true },
             LINKS.leaderboards,
             LINKS.about,
@@ -239,7 +239,7 @@ const useNavbarLinks = ({
             LINKS.trackRecord,
             LINKS.journal,
             LINKS.aggregationExplorer,
-            LINKS.aiBenchmark,
+            ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.aiBenchmark]),
           ]),
     ];
 
@@ -311,6 +311,7 @@ const useNavbarLinks = ({
     LINKS.tournaments,
     PUBLIC_ALLOW_SIGNUP,
     PUBLIC_ALLOW_TUTORIAL,
+    PUBLIC_MINIMAL_UI,
     user,
     isLoggedIn,
     setCurrentModal,

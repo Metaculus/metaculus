@@ -142,6 +142,8 @@ def project_leaderboard_view(
     ).data
     entries = leaderboard.entries.order_by("rank", "-score").select_related("user")
     user = request.user
+    if not user.is_staff:
+        entries = entries.filter(Q(excluded=False) | Q(show_when_excluded=True))
 
     # manual annotations will be lost
     leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
