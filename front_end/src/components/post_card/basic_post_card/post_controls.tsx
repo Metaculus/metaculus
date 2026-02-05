@@ -22,7 +22,7 @@ const BasicPostControls: FC<PropsWithChildren<Props>> = ({
   minimalistic = false,
 }) => {
   const resolutionData = extractPostResolution(post);
-  const defaultProject = post.projects.default_project;
+  const defaultProject = post.projects?.default_project;
 
   // Edge case: if default_project is longer than 15 characters and there are unread messages
   const hasUnreadMessages = (post.unread_comment_count ?? 0) > 0;
@@ -81,7 +81,7 @@ const BasicPostControls: FC<PropsWithChildren<Props>> = ({
         />
       </div>
       <div className="hidden overflow-hidden lg:inline-flex">
-        {!minimalistic && (
+        {!minimalistic && defaultProject && (
           <PostDefaultProject defaultProject={defaultProject} />
         )}
       </div>
