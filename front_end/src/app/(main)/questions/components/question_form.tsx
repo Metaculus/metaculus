@@ -19,6 +19,7 @@ import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import Button from "@/components/ui/button";
+import Checkbox from "@/components/ui/checkbox";
 import {
   DateInput,
   FormError,
@@ -69,6 +70,7 @@ interface ExtendedQuestionDraft extends QuestionDraft {
   scheduled_close_time?: string;
   scheduled_resolve_time?: string;
   cp_reveal_time?: string;
+  include_bots_in_aggregates?: boolean;
 }
 
 const MIN_OPTIONS_AMOUNT = 2;
@@ -221,6 +223,7 @@ const createQuestionSchemas = (
         }
       ),
     default_project: z.nullable(z.union([z.number(), z.string()])),
+    include_bots_in_aggregates: z.boolean().default(false),
   });
 
   const binaryQuestionSchema = baseQuestionSchema;
@@ -465,8 +468,13 @@ const QuestionForm: FC<Props> = ({
       open_time: post?.question?.open_time,
       published_at: post?.published_at,
       cp_reveal_time: post?.question?.cp_reveal_time,
+      include_bots_in_aggregates:
+        post?.question?.include_bots_in_aggregates ?? false,
     },
   });
+  useEffect(() => {
+    form.register("include_bots_in_aggregates");
+  }, [form]);
   if (
     questionType === QuestionType.Binary ||
     questionType === QuestionType.MultipleChoice ||
@@ -518,6 +526,7 @@ const QuestionForm: FC<Props> = ({
       scheduled_resolve_time: draft.scheduled_resolve_time,
       cp_reveal_time: draft.cp_reveal_time,
       default_project: draft.default_project,
+      include_bots_in_aggregates: draft.include_bots_in_aggregates ?? false,
     };
 
     // Depending on the question type, add specific properties
@@ -945,6 +954,25 @@ const QuestionForm: FC<Props> = ({
                 }}
               />
             )}
+
+          <InputContainer
+            labelText={t("includeBotsInAggregatesLabel")}
+            explanation={t("includeBotsInAggregatesExplanation")}
+            isNativeFormControl={false}
+            className="mb-6"
+          >
+            <Checkbox
+              label={t("includeBotsInAggregatesLabel")}
+              checked={form.watch("include_bots_in_aggregates") ?? false}
+              onChange={(checked) => {
+                form.setValue("include_bots_in_aggregates", checked, {
+                  shouldDirty: true,
+                  shouldTouch: true,
+                  shouldValidate: true,
+                });
+              }}
+            />
+          </InputContainer>
         </SectionToggle>
 
         <div className="flex-col">
