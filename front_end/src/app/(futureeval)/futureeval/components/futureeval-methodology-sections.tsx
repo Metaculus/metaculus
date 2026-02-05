@@ -10,6 +10,7 @@ import {
 } from "@headlessui/react";
 import Link from "next/link";
 import React, { PropsWithChildren, ReactNode } from "react";
+import toast from "react-hot-toast";
 
 import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
@@ -222,9 +223,16 @@ const SectionHeader: React.FC<{ children: ReactNode; id?: string }> = ({
   id,
 }) => {
   const handleCopyLink = () => {
-    if (id) {
+    if (id && typeof window !== "undefined" && navigator.clipboard) {
       const url = `${globalThis.location.origin}${globalThis.location.pathname}#${id}`;
-      navigator.clipboard.writeText(url);
+      navigator.clipboard
+        .writeText(url)
+        .then(() => {
+          toast("Link copied to clipboard", {
+            className: "dark:bg-blue-700-dark dark:text-gray-0-dark",
+          });
+        })
+        .catch((err) => console.error("Error copying link: ", err));
     }
   };
 
@@ -241,6 +249,7 @@ const SectionHeader: React.FC<{ children: ReactNode; id?: string }> = ({
       {children}
       {id && (
         <button
+          type="button"
           onClick={handleCopyLink}
           className={cn(
             "ml-2 inline-flex cursor-pointer items-center border-none bg-transparent p-1 align-middle opacity-0 transition-opacity",
@@ -360,7 +369,7 @@ const FutureEvalMethodologySections: React.FC = () => {
                     FutureEval has attracted the largest community of bot
                     makers, who have spent significant time customising their
                     bots. This lets us probe the frontier of AI forecasting. Our
-                    tournament competitors includes startups, non-profits,
+                    tournament competitors include startups, non-profits,
                     independent researchers, and students.
                   </span>,
                   <span key="numeric">
