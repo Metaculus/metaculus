@@ -77,8 +77,8 @@ class TestScoreMath:
             ([F(v=0.7), F(v=0.8), F(v=0.9)], [A(p=[0.18171206, 0.79581144], n=3)]),
             # multiple choice forecasts with placeholder 0s
             (
-                [F(q=QT.MULTIPLE_CHOICE, v=[0.6, 0.15, None, 0.25])] * 2,
-                [A(n=2, p=[0.6, 0.15, 0.0, 0.25])],
+                [F(q=QT.MULTIPLE_CHOICE, v=[0.6, 0.15, float("nan"), 0.25])] * 2,
+                [A(n=2, p=[0.6, 0.15, float("nan"), 0.25])],
             ),
             # start times
             ([F(), F(s=1)], [A(), A(t=1, n=2)]),
@@ -108,10 +108,7 @@ class TestScoreMath:
         result = get_geometric_means(forecasts)
         assert len(result) == len(expected)
         for ra, ea in zip(result, expected):
-            assert all(
-                ((r == e) or (round(r, 8) == round(e, 8)))
-                for r, e in zip(ra.pmf, ea.pmf)
-            )
+            assert np.allclose(ra.pmf, ea.pmf, equal_nan=True)
             assert ra.num_forecasters == ea.num_forecasters
             assert ra.timestamp == ea.timestamp
 

@@ -50,11 +50,25 @@ const PredictButton: FC<Props> = ({
     }
 
     if (hasUserForecast) {
+      // If isUserForecastActive is provided, use it to determine if forecast is active
+      // If not provided, fall back to old behavior (assume active if hasUserForecast is true)
+      if (isUserForecastActive !== undefined) {
+        // Disable only if forecast is not active AND there are no dirty changes
+        return !isUserForecastActive && !isDirty;
+      }
+      // Fallback: if isUserForecastActive is not provided, use old behavior
       return false;
     }
 
     return !isDirty;
-  }, [hasUserForecast, isDirty, isDisabled, isPending, user]);
+  }, [
+    hasUserForecast,
+    isDirty,
+    isDisabled,
+    isPending,
+    user,
+    isUserForecastActive,
+  ]);
   const buttonLabel = useMemo(() => {
     if (!user) {
       return t("signUpToPredict");
@@ -96,6 +110,7 @@ const PredictButton: FC<Props> = ({
         <Button
           variant="secondary"
           onClick={() => onPredictionExpirationClick?.()}
+          disabled={disabled}
           className="gap-1 rounded-l-none px-1.5"
         >
           <FontAwesomeIcon icon={faHourglassStart} />

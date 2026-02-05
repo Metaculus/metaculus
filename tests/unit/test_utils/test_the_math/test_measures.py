@@ -66,14 +66,14 @@ from utils.the_math.measures import (
         ),
         (
             [
-                [0.33, 0.33, None, 0.34],
-                [0.01, 0.49, None, 0.5],
-                [0.4, 0.2, None, 0.4],
-                [0.2, 0.6, None, 0.2],
+                [0.33, 0.33, float("nan"), 0.34],
+                [0.01, 0.49, float("nan"), 0.5],
+                [0.4, 0.2, float("nan"), 0.4],
+                [0.2, 0.6, float("nan"), 0.2],
             ],
             [0.1, 0.2, 0.3, 0.4],
             [50.0],
-            [[0.2, 0.49, None, 0.37]],
+            [[0.2, 0.49, float("nan"), 0.37]],
         ),
         # multiple choice options with placeholder values
     ],
@@ -85,10 +85,6 @@ def test_weighted_percentile_2d(values, weights, percentiles, expected_result):
     result = weighted_percentile_2d(
         values=values, weights=weights, percentiles=percentiles
     )
-    result = np.where(np.equal(result, None), np.nan, result).astype(float)
-    expected_result = np.where(
-        np.equal(expected_result, None), np.nan, expected_result
-    ).astype(float)
     np.testing.assert_allclose(result, expected_result, equal_nan=True)
     if weights is None and [percentiles] == [50.0]:  # should behave like np.median
         numpy_medians = np.median(values, axis=0)
@@ -169,19 +165,19 @@ def test_percent_point_function(cdf, percentiles, expected_result):
             ),  # 0.0847996
         ),
         (
-            [0.2, 0.3, None, 0.5],
-            [0.2, 0.3, None, 0.5],
+            [0.2, 0.3, float("nan"), 0.5],
+            [0.2, 0.3, float("nan"), 0.5],
             Question(type="multiple_choice"),
             0.0,
-        ),  # deal with Nones happily
+        ),  # deal with float("nan")s happily
         (
-            [0.2, 0.3, None, 0.5],
+            [0.2, 0.3, float("nan"), 0.5],
             [0.2, 0.3, 0.1, 0.4],
             Question(type="multiple_choice"),
             0.0,
         ),  # no difference across adding an option
         (
-            [0.2, 0.3, None, 0.5],
+            [0.2, 0.3, float("nan"), 0.5],
             [0.2, 0.2, 0.1, 0.5],
             Question(type="multiple_choice"),
             sum(
@@ -193,8 +189,8 @@ def test_percent_point_function(cdf, percentiles, expected_result):
             ),  # 0.0847996
         ),  # difference across adding an option
         (
-            [0.2, 0.3, None, 0.5],
-            [0.1, None, 0.7, 0.2],
+            [0.2, 0.3, float("nan"), 0.5],
+            [0.1, float("nan"), 0.7, 0.2],
             Question(type="multiple_choice"),
             sum(
                 [
@@ -349,8 +345,8 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
             ],
         ),
         (
-            [0.2, 0.3, None, 0.5],
-            [0.2, 0.3, None, 0.5],
+            [0.2, 0.3, float("nan"), 0.5],
+            [0.2, 0.3, float("nan"), 0.5],
             Question(type="multiple_choice"),
             [
                 (0.0, (2 / 8) / (2 / 8)),
@@ -360,7 +356,7 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
             ],
         ),  # deal with 0.0s happily
         (
-            [0.2, 0.3, None, 0.5],
+            [0.2, 0.3, float("nan"), 0.5],
             [0.2, 0.3, 0.1, 0.4],
             Question(type="multiple_choice"),
             [
@@ -371,7 +367,7 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
             ],
         ),  # no difference across adding an option
         (
-            [0.2, 0.3, None, 0.5],
+            [0.2, 0.3, float("nan"), 0.5],
             [0.2, 0.2, 0.1, 0.5],
             Question(type="multiple_choice"),
             [
@@ -382,8 +378,8 @@ def test_prediction_difference_for_sorting(p1, p2, question, expected_result):
             ],
         ),  # difference across adding an option
         (
-            [0.2, 0.3, None, 0.5],
-            [0.1, None, 0.7, 0.2],
+            [0.2, 0.3, float("nan"), 0.5],
+            [0.1, float("nan"), 0.7, 0.2],
             Question(type="multiple_choice"),
             [
                 (-0.1, (1 / 9) / (2 / 8)),

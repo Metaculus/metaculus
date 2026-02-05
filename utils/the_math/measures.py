@@ -18,8 +18,6 @@ def weighted_percentile_2d(
 ) -> Percentiles:
     values = np.array(values)
     sorted_values = values.copy()  # avoid side effects
-    # replace None with np.nan for calculations (return to None at the end)
-    sorted_values[np.equal(sorted_values, None)] = np.nan
 
     if weights is None:
         ordered_weights = np.ones_like(values)
@@ -53,11 +51,7 @@ def weighted_percentile_2d(
                 + sorted_values[right_indexes, column_indices]
             )
         )
-    # replace np.nan back to None
     weighted_percentiles = np.array(weighted_percentiles)
-    weighted_percentiles = np.where(
-        np.isnan(weighted_percentiles.astype(float)), None, weighted_percentiles
-    )
     return weighted_percentiles.tolist()
 
 
@@ -74,8 +68,6 @@ def percent_point_function(
     if return_float := isinstance(percentiles, float | int):
         percentiles = np.array([percentiles])
     ppf_values = []
-    if any(v is None for v in cdf):
-        raise ValueError("cdf contains None values")
     for percent in percentiles:
         # percent is a float between 0 and 100
         if percent < cdf[0] * 100:
@@ -108,13 +100,13 @@ def prediction_difference_for_sorting(
     # Uses Jeffrey's Divergence
     if question_type == Question.QuestionType.MULTIPLE_CHOICE:
         # cover for Nones
-        p1_nones = np.equal(p1, None)
-        p2_nones = np.equal(p2, None)
-        never_nones = np.logical_not(p1_nones | p2_nones)
-        p1_new = p1[never_nones]
-        p2_new = p2[never_nones]
-        p1_new[-1] += sum(p1[~p1_nones & p2_nones])
-        p2_new[-1] += sum(p2[~p2_nones & p1_nones])
+        p1_nans = np.isnan(p1)
+        p2_nans = np.isnan(p2)
+        never_nans = np.logical_not(p1_nans | p2_nans)
+        p1_new = p1[never_nans]
+        p2_new = p2[never_nans]
+        p1_new[-1] += sum(p1[~p1_nans & p2_nans])
+        p2_new[-1] += sum(p2[~p2_nans & p1_nans])
         p1 = p1_new
         p2 = p2_new
     if question_type in [
@@ -142,12 +134,12 @@ def prediction_difference_for_display(
     elif question.type == "multiple_choice":
         # list of (pred diff, ratio of odds)
         for p, q in zip(p1[:-1], p2[:-1]):
-            if p is None or q is None:
-                p1[-1] = (p1[-1] or 0.0) + (p or 0.0)
-                p2[-1] = (p2[-1] or 0.0) + (q or 0.0)
+            if np.isnan(p) or np.isnan(q):
+                p1[-1] += p if not np.isnan(p) else 0.0
+                p2[-1] += q if not np.isnan(q) else 0.0
         arr = []
         for p, q in zip(p1, p2):
-            if p is None or q is None:
+            if np.isnan(p) or np.isnan(q):
                 arr.append((0.0, 1.0))
             else:
                 arr.append((q - p, (q / (1 - q)) / (p / (1 - p))))

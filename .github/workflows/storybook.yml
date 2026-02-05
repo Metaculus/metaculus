@@ -7,7 +7,7 @@ on:
 jobs:
   deploy-to-prod:
     runs-on: ubuntu-24.04
-    environment: prod_env
+    environment: Storybook
     defaults:
       run:
         working-directory: front_end

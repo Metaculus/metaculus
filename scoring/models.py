@@ -109,6 +109,23 @@ class Leaderboard(TimeStampedModel):
         on_delete=models.CASCADE,
         related_name="leaderboards",
     )
+    display_config = models.JSONField(
+        null=True,
+        blank=True,
+        help_text=(
+            "Optional JSON configuration for displaying this leaderboard."
+            "<br>If not set, default display settings will be used."
+            "<br>Example display_config:"
+            "<pre>{\n"
+            '    "display_name": "My Custom Leaderboard",\n'
+            '    "column_renames": {\n'
+            '        "Questions": "Question Links"\n'
+            "    },\n"
+            '    "display_order": 1,\n'
+            '    "display_on_project": true\n'
+            "}</pre>"
+        ),
+    )
 
     score_type = models.CharField(
         max_length=200,

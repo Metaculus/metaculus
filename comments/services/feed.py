@@ -18,6 +18,10 @@ def get_comments_feed(
     sort = sort or "-created_at"
     order_by_args = []
 
+    # Require at least one filter
+    if not post and not author and not (is_private and user):
+        return qs.none()
+
     if parent_isnull is not None:
         qs = qs.filter(parent=None)
 
