@@ -60,7 +60,7 @@ const CategoryCard: FC<CategoryCardProps> = ({ category }) => {
         className="flex flex-row items-center gap-2 no-underline"
       >
         <span className="text-xl">{category.emoji}</span>
-        <span className="text-base font-bold leading-5 text-gray-800 dark:text-gray-800-dark">
+        <span className="text-base font-bold leading-5 text-blue-800 no-underline underline-offset-2 hover:underline hover:decoration-blue-400/80 dark:text-blue-800-dark hover:dark:decoration-blue-400-dark/80">
           {category.name}
         </span>
       </Link>
@@ -69,19 +69,19 @@ const CategoryCard: FC<CategoryCardProps> = ({ category }) => {
         <div className="hidden flex-col gap-2.5 md:flex">
           {category.posts.slice(0, 3).map(({ title, slug, id }, index) => (
             <div key={index}>
-              <div className="flex text-sm font-medium leading-5 text-gray-800 dark:text-gray-800-dark">
+              <div className="flex text-xs font-medium leading-5 text-blue-800 dark:text-blue-800-dark">
                 <span className="mr-1 shrink-0 text-gray-500 dark:text-gray-500-dark">
                   {index + 1}.
                 </span>
                 <Link
                   href={`/questions/${id}/${slug}`}
-                  className="no-underline hover:underline"
+                  className="no-underline underline-offset-2 hover:underline hover:decoration-blue-400/80 hover:dark:decoration-blue-400-dark/80"
                 >
                   {title}
                 </Link>
               </div>
               {index < Math.min(category.posts.length, 3) - 1 && (
-                <hr className="my-2.5 border-t border-gray-300 dark:border-gray-300-dark" />
+                <hr className="mb-0 ml-3.5 mt-2 border-t border-blue-400/40 dark:border-blue-400-dark/40" />
               )}
             </div>
           ))}
