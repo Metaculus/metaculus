@@ -44,7 +44,6 @@ def get_score_pair(
     geometric_means = get_geometric_means(forecasts)
 
     if question.default_score_type == ScoreTypes.PEER:
-        breakpoint()
         # Coverage
         coverage = 0.0
         cvs = []
@@ -80,8 +79,7 @@ def get_score_pair(
             if gm.timestamp <= spot_forecast_timestamp <= current_timestamp:
                 if gm.num_forecasters == 2:
                     # both have a forecast at spot scoring time
-                    coverage = 1.0
-                    # coverage = 1 / 3  # downweight spot score questions
+                    coverage = 1 / 3  # downweight spot score questions
                 break
             current_timestamp = gm.timestamp
         if coverage == 0:
@@ -699,32 +697,7 @@ def run_update_global_bot_leaderboard(
             )
         )
         .distinct("id")
-        # .order_by("?")
     )
-    # ###############
-    # # make sure they have at least 100 resolved questions
-    # print("initialize list")
-    # question_list = list(questions)
-    # print("Filtering users.")
-    # scored_question_counts: dict[int, int] = defaultdict(int)
-    # c = users.count()
-    # i = 0
-    # for user in users:
-    #     i += 1
-    #     print(i, "/", c, end="\r")
-    #     scored_question_counts[user.id] = (
-    #         Score.objects.filter(
-    #             user=user,
-    #             score_type="peer",
-    #             question__in=question_list,
-    #         )
-    #         .distinct("question_id")
-    #         .count()
-    #     )
-    # excluded_ids = [uid for uid, count in scored_question_counts.items() if count < 100]
-    # users = users.exclude(id__in=excluded_ids)
-    # print(f"Filtered {c} users down to {users.count()}.")
-    # ###############
     print("Initializing... DONE")
 
     # Gather head to head scores
@@ -815,14 +788,48 @@ def run_update_global_bot_leaderboard(
 
     # ###############
     # Filter out entries we don't care about
+    # and map some users to other users
+    userid_mapping = {
+        189585: 236038,  # mf-bot-1 -> metac-gpt-4o+asknews
+        189588: 236041,  # mf-bot-3 -> metac-claude-3-5-sonnet-20240620+asknews
+        208405: 240416,  # mf-bot-4 -> metac-o1-preview
+        221727: 236040,  # mf-bot-5 -> metac-claude-3-5-sonnet-latest+asknews
+    }
     print(f"Filtering {len(timestamps)} matches down to only relevant identities ...")
-    metac_bots = User.objects.filter(
+    relevant_users = User.objects.filter(
         metadata__bot_details__metac_bot=True,
         # metadata__bot_details__include_in_calculations=True, # TODO: this should be
         # but we don't have that data correct at the moment
     )
-    user_map = {user.id: user for user in metac_bots}
-    relevant_identities = set(metac_bots.values_list("id", flat=True)) | {
+    ###############
+    # make sure they have at least 'minimum_resolved_questions' resolved questions
+    print("Filtering users.")
+    minimum_resolved_questions = 100
+    scored_question_counts: dict[int, int] = defaultdict(int)
+    c = relevant_users.count()
+    i = 0
+    for user in relevant_users:
+        i += 1
+        print(i, "/", c, end="\r")
+        scored_question_counts[user.id] = (
+            Score.objects.filter(
+                user=user,
+                score_type="peer",
+                question__in=questions,
+            )
+            .distinct("question_id")
+            .count()
+        )
+    excluded_ids = [
+        uid
+        for uid, count in scored_question_counts.items()
+        if count < minimum_resolved_questions
+    ]
+    relevant_users = relevant_users.exclude(id__in=excluded_ids)
+    print(f"Filtered {c} users down to {relevant_users.count()}.")
+    ###############
+    user_map = {user.id: user for user in relevant_users}
+    relevant_identities = set(relevant_users.values_list("id", flat=True)) | {
         "Pro Aggregate",
         "Community Aggregate",
     }
@@ -835,8 +842,13 @@ def run_update_global_bot_leaderboard(
     for u1id, u2id, qid, score, coverage, timestamp in zip(
         user1_ids, user2_ids, question_ids, scores, coverages, timestamps
     ):
-        # skip if either user is either not in relevant identities or if their model
-        # is more than a year old at time of question actual close time
+        # replace userIds according to the mapping
+        u1id = userid_mapping.get(u1id, u1id)
+        u2id = userid_mapping.get(u2id, u2id)
+        # skip if either user is not in relevant identities
+        if (u1id not in relevant_identities) or (u2id not in relevant_identities):
+            continue
+        # skip if either user model is more than a year old at time of 'timestamp'
         match_users = [user_map[u] for u in (u1id, u2id) if (u in user_map)]
         skip = False
         for user in match_users:
@@ -860,13 +872,14 @@ def run_update_global_bot_leaderboard(
         if skip:
             breakpoint()
             continue
-        if u1id in relevant_identities and u2id in relevant_identities:
-            filtered_user1_ids.append(u1id)
-            filtered_user2_ids.append(u2id)
-            filtered_question_ids.append(qid)
-            filtered_scores.append(score)
-            filtered_coverages.append(coverage)
-            filtered_timestamps.append(timestamp)
+
+        # done
+        filtered_user1_ids.append(u1id)
+        filtered_user2_ids.append(u2id)
+        filtered_question_ids.append(qid)
+        filtered_scores.append(score)
+        filtered_coverages.append(coverage)
+        filtered_timestamps.append(timestamp)
     user1_ids = filtered_user1_ids
     user2_ids = filtered_user2_ids
     question_ids = filtered_question_ids
@@ -1107,4 +1120,4 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options) -> None:
-        run_update_global_bot_leaderboard(cache_use="full")
+        run_update_global_bot_leaderboard(cache_use="partial")
