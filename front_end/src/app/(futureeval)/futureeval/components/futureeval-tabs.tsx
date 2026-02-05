@@ -25,16 +25,16 @@ const FutureEvalTabs: React.FC<Props> = async ({ current }) => {
       content: <FutureEvalMethodologyTab />,
     },
     {
-      value: "news",
-      href: "/futureeval/news",
-      label: "News",
-      content: <FutureEvalNewsTab />,
-    },
-    {
       value: "participate",
       href: "/futureeval/participate",
       label: "Participate",
       content: <FutureEvalParticipateTab />,
+    },
+    {
+      value: "news",
+      href: "/futureeval/news",
+      label: "News",
+      content: <FutureEvalNewsTab />,
     },
   ];
 

@@ -56,12 +56,13 @@ const FutureEvalSubmitSteps: React.FC = () => {
       <button
         type="button"
         className="underline"
-        aria-label="Create a bot"
+        aria-label="Create an account"
         onClick={handleCreateBot}
       >
-        Create a bot
-      </button>{" "}
-      and copy your Access Token.
+        Create an account
+      </button>
+      , make a bot when redirected to your settings page, and copy your access
+      token.
     </>,
     <>
       Build your bot using our premade template in the{" "}
@@ -195,21 +196,24 @@ const FutureEvalResources: React.FC = () => {
   const RESOURCES_DATA = [
     {
       icon: faBook,
-      title: "Full Benchmark Information",
-      description: "Benchmark deep dive, scoring, analysis, etc",
+      title: "Bot Tournament Resources Page",
+      description:
+        "Set up instructions, active tournaments, research, further reading, etc",
       href: "/notebooks/38928/futureeval-resources-page/",
     },
     {
       icon: faBookOpen,
       title: "Research Highlights",
-      description: "Key findings and methodology papers from our research.",
+      description:
+        "Key findings, methodology papers, human baseline comparisons, and experiments",
       href: "/notebooks/38928/futureeval-resources-page/#research-reports-and-overview-of-the-field",
     },
     {
       icon: faTrophy,
-      title: "Full Leaderboards",
-      description: "Complete rankings across all questions and time periods.",
-      href: "/futureeval/leaderboard",
+      title: "Open Source Bots",
+      description:
+        "Start with a leg up by building off of what others have built and learning from past successes",
+      href: "/notebooks/38928/futureeval-resources-page/#open-source-bots",
     },
   ] as const;
 

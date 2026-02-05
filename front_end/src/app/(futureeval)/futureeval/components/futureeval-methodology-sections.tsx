@@ -266,11 +266,11 @@ const BulletList: React.FC<{ items: ReactNode[] }> = ({ items }) => {
 const FutureEvalMethodologySections: React.FC = () => {
   return (
     <div className="space-y-[60px] sm:space-y-[80px] lg:space-y-[120px]">
-      {/* Section 1: What is Unique About FutureEval? */}
+      {/* Section 1: What Makes FutureEval Unique */}
       <section className="space-y-6">
         <SectionHeader>
-          What is Unique About{" "}
-          <span className={FE_COLORS.textAccent}>FutureEval?</span>
+          What Makes{" "}
+          <span className={FE_COLORS.textAccent}>FutureEval Unique</span>
         </SectionHeader>
         <SectionBody>
           <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
@@ -281,35 +281,37 @@ const FutureEvalMethodologySections: React.FC = () => {
               </p>
               <BulletList
                 items={[
-                  <span key="diverse">
-                    <strong>Diverse interdisciplinary topics:</strong> Our
-                    diverse question topics range from economics, politics,
-                    tech, sports, war, elections, society, and more. Many
-                    questions require knowledge and reasoning from multiple
-                    fields. Questions force models to generalize beyond
-                    memorization for actively evolving domains relevant to the
-                    real world.
-                  </span>,
-                  <span key="contamination">
-                    <strong>No contamination:</strong> Pre-training on our
-                    question sets is impossible, since by nature the answers to
-                    questions about the future are not known in advance.
-                  </span>,
-                  <span key="saturation">
-                    <strong>No Saturation:</strong> Some AI reasoning benchmarks
-                    have already become saturated as AI reaches 100% accuracy on
-                    them. However, the future is inherently unpredictable, which
-                    gets worse as questions ask about events further and further
-                    into the future. Thus, benchmark saturation will never be
-                    reached.
-                  </span>,
                   <span key="decision">
                     <strong>Decision-making applications:</strong> FutureEval
-                    helps determine how much we can trust AI in big, uncertain
-                    decisions by assessing how good it is at predicting future
-                    events. Skill in FutureEval correlates with skill in
-                    long-term planning, decision-making, failure mode analysis,
-                    causal analysis, understanding of human motivation, etc.
+                    measures how good AIs are at forecasting future events.
+                    FutureEval tells us how much we can trust AIs when they say
+                    that an event is likely, or that a risk is improbable enough
+                    to ignore safely. Forecasting is involved with long-term
+                    planning, decision-making, failure mode analysis, causal
+                    analysis, understanding human motivations, and more.
+                  </span>,
+                  <span key="contamination">
+                    <strong>No Contamination:</strong> The ground-truth answers
+                    to our questions are not known when the AIs make forecasts,
+                    so it&apos;s impossible to train on the test set.
+                  </span>,
+                  <span key="saturation">
+                    <strong>No Saturation:</strong> Some AI reasoning
+                    benchmarks have already become saturated as AI reaches 100%
+                    accuracy on them. But tomorrow is unpredictable, and next
+                    year even more so. We can make forecasting questions almost
+                    arbitrarily more challenging by making them more niche and
+                    precise, and longer term. FutureEval will only become
+                    saturated when AIs are perfect oracles.
+                  </span>,
+                  <span key="interdisciplinary">
+                    <strong>Interdisciplinary Reasoning:</strong> Our diverse
+                    question topics range from economics, politics, tech, war,
+                    elections, society, climate, science, and more. Many
+                    questions require knowledge and reasoning from multiple
+                    fields. Forecasting forces models to generalize beyond
+                    memorization for actively evolving domains relevant to the
+                    real world.
                   </span>,
                 ]}
               />
@@ -323,52 +325,48 @@ const FutureEvalMethodologySections: React.FC = () => {
               <BulletList
                 items={[
                   <span key="community">
-                    <strong>Largest community of custom bots:</strong> Almost
-                    every forecasting benchmark runs the same bot on many
-                    different models. FutureEval has collected the largest
-                    community of bot makers who have spent significant time
-                    making custom bots. This gives useful data on how far we can
-                    push bots beyond simple base templates. Our community
-                    includes startups, non-profits, hobbyists, and students.
+                    <strong>Largest community of custom bots:</strong>{" "}
+                    FutureEval has attracted the largest community of bot
+                    makers, who have spent significant time customising their
+                    bots. This lets us probe the frontier of AI forecasting. Our
+                    tournament competitors includes startups, non-profits,
+                    independent researchers, and students.
                   </span>,
                   <span key="numeric">
-                    <strong>Numeric and Multiple Choice Questions:</strong> Most
-                    benchmarks only run binary questions. FutureEval also runs
-                    questions that ask bots to submit probability distributions
-                    (for numeric questions) along with probabilities of multiple
-                    options (for multiple choice questions).
+                    <strong>Numeric and Multiple Choice Questions:</strong> Many
+                    benchmarks only ask binary (Yes/No) questions. FutureEval
+                    also asks numeric questions (bots submit a probability
+                    distribution) and multiple choice questions (bots submit a
+                    list of probabilities). As of 4th February 2026, no other
+                    benchmark evaluates high-precision probability distributions
+                    for numeric predictions.
                   </span>,
-                  <span key="prizes">
-                    <strong>Prize Money:</strong> Metaculus rewards good
-                    forecasting with monetary prizes.
+                  <span key="competition">
+                    <strong>Competition:</strong> Metaculus incentivises
+                    building the best forecasting bots with $50,000 in prizes
+                    per season.
                   </span>,
                   <span key="quality">
-                    <strong>High quality diverse questions:</strong> Questions
-                    on Metaculus are some of the highest quality of any
-                    forecasting platform. Every question is created by
-                    experienced question creators who have experience
-                    identifying common flaws in questions (preventing ambiguous
-                    resolutions, making questions impactful, etc.). Questions
-                    are pulled from important news issues and the needs of the
-                    community, and don&apos;t include as many lower-importance
-                    questions that other platforms like to focus on (like
-                    sports). Questions are also diverse, as stated above (Note:
-                    Due to automation, questions in the MiniBench series
-                    don&apos;t have the same level of quality as the main
-                    tournament).
+                    <strong>High quality diverse questions:</strong> Our own
+                    writers have years of experience developing decision-relevant
+                    and high quality questions for the Metaculus platform and
+                    our clients, and use it to write and curate the FutureEval
+                    questions. They largely avoid entertainment questions that
+                    make the bulk of content on prediction markets, to focus on
+                    global events of importance.
                   </span>,
                   <span key="probabilistic">
-                    <strong>Probabilistic forecasts:</strong> A few forecasting
-                    benchmarks collect &quot;yes&quot; or &quot;no&quot;
-                    responses from bots or only measure accuracy. Metaculus
-                    collects probabilistic forecasts and scores them using{" "}
+                    <strong>Probabilistic forecasts:</strong> FutureEval
+                    collects quantitative forecasts (not binary &quot;yes&quot;
+                    or &quot;no&quot; answers) and scores them using{" "}
                     <Link
                       href="https://www.metaculus.com/help/scores-faq/#proper-scoring"
                       className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
                     >
                       proper scoring rules
                     </Link>
-                    .
+                    , allowing us to measure accuracy, calibration and
+                    discrimination.
                   </span>,
                 ]}
               />
