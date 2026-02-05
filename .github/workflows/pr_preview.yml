@@ -131,8 +131,8 @@ jobs:
           BRANCH_REF: ${{ github.head_ref || github.ref_name }}
           PR_NUMBER: ${{ github.event.number }}
         run: |
-          # Slugify branch name: lowercase, replace invalid chars, truncate
-          BRANCH_SLUG="$(printf '%s' "$BRANCH_REF" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-30)"
+          # Slugify branch name: lowercase, replace invalid chars, truncate, then cleanup again
+          BRANCH_SLUG="$(printf '%s' "$BRANCH_REF" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9_-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-30 | sed 's/^-//' | sed 's/-$//')"
 
           # Base preview identifier: pr-{number}-{branch_slug}
           PREVIEW_ID="pr-${PR_NUMBER}-${BRANCH_SLUG}"

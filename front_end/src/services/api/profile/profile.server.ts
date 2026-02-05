@@ -66,7 +66,7 @@ class ServerProfileApiClass extends ProfileApi {
   }
 
   async changePassword(password: string, new_password: string) {
-    return this.post("/users/me/password/", {
+    return this.post<AuthTokens>("/users/me/password/", {
       password,
       new_password,
     });
@@ -84,7 +84,7 @@ class ServerProfileApiClass extends ProfileApi {
   }
 
   async changeEmailConfirm(token: string) {
-    return this.post("/users/me/email/confirm/", {
+    return this.post<AuthTokens>("/users/me/email/confirm/", {
       token,
     });
   }

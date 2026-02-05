@@ -7,6 +7,9 @@ import dramatiq
 
 from posts.models import Post
 from scoring.constants import LeaderboardScoreTypes, ScoreTypes
+from scoring.management.commands.update_coherence_tournament_leaderboard import (
+    Command as UpdateCoherenceTournamentLeaderboardCommand,
+)
 from scoring.models import Leaderboard, Score
 from scoring.score_math import evaluate_question
 from projects.models import Project
@@ -168,3 +171,8 @@ def update_custom_leaderboard(
 
     logger.info(f"Updated leaderboard: {leaderboard.name} with id {leaderboard.id}")
     return
+
+
+@dramatiq.actor
+def update_coherence_spring_2026_cup() -> None:
+    UpdateCoherenceTournamentLeaderboardCommand().handle()

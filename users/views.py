@@ -1,9 +1,9 @@
 import logging
 from datetime import timedelta
 
-from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 from rest_framework import serializers, status
+
 from authentication.models import ApiKey
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
@@ -32,6 +32,7 @@ from users.services.common import (
     send_email_change_confirmation_email,
     change_email_from_token,
     register_user_to_campaign,
+    change_user_password,
 )
 from utils.paginator import LimitOffsetPagination
 from utils.tasks import email_user_their_data_task
@@ -166,12 +167,10 @@ def password_change_api_view(request):
     if not user.check_password(password):
         raise ValidationError({"password": "Current password is incorrect"})
 
-    validate_password(new_password, user=user)
+    change_user_password(user, new_password)
 
-    user.set_password(new_password)
-    user.save()
-
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    tokens = get_tokens_for_user(user)
+    return Response(tokens)
 
 
 @api_view(["POST"])
@@ -204,7 +203,8 @@ def email_change_confirm_api_view(request):
     token = serializers.CharField().run_validation(request.data.get("token"))
     change_email_from_token(request.user, token)
 
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    tokens = get_tokens_for_user(request.user)
+    return Response(tokens)
 
 
 @api_view(["POST"])
