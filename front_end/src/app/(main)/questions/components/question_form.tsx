@@ -70,6 +70,7 @@ interface ExtendedQuestionDraft extends QuestionDraft {
   scheduled_close_time?: string;
   scheduled_resolve_time?: string;
   cp_reveal_time?: string;
+  include_bots_in_aggregates?: boolean;
 }
 
 const MIN_OPTIONS_AMOUNT = 2;
@@ -222,7 +223,7 @@ const createQuestionSchemas = (
         }
       ),
     default_project: z.nullable(z.union([z.number(), z.string()])),
-    include_bots_in_aggregates: z.boolean().default(true),
+    include_bots_in_aggregates: z.boolean().default(false),
   });
 
   const binaryQuestionSchema = baseQuestionSchema;
@@ -468,7 +469,7 @@ const QuestionForm: FC<Props> = ({
       published_at: post?.published_at,
       cp_reveal_time: post?.question?.cp_reveal_time,
       include_bots_in_aggregates:
-        post?.question?.include_bots_in_aggregates ?? true,
+        post?.question?.include_bots_in_aggregates ?? false,
     },
   });
   useEffect(() => {
@@ -525,7 +526,7 @@ const QuestionForm: FC<Props> = ({
       scheduled_resolve_time: draft.scheduled_resolve_time,
       cp_reveal_time: draft.cp_reveal_time,
       default_project: draft.default_project,
-      include_bots_in_aggregates: draft.include_bots_in_aggregates ?? true,
+      include_bots_in_aggregates: draft.include_bots_in_aggregates ?? false,
     };
 
     // Depending on the question type, add specific properties
@@ -962,7 +963,7 @@ const QuestionForm: FC<Props> = ({
           >
             <Checkbox
               label={t("includeBotsInAggregatesLabel")}
-              checked={form.watch("include_bots_in_aggregates") ?? true}
+              checked={form.watch("include_bots_in_aggregates") ?? false}
               onChange={(checked) => {
                 form.setValue("include_bots_in_aggregates", checked, {
                   shouldDirty: true,
