@@ -154,6 +154,32 @@ export function BenchmarkChart({
     return d3Range(start, end + step, step);
   }, [minY, maxY]);
 
+  const xTicks = useMemo(() => {
+    const startDate = new Date(minX);
+    const endDate = new Date(maxX);
+
+    // Start from the first day of the month containing minX
+    const startMonth = new Date(
+      startDate.getFullYear(),
+      startDate.getMonth(),
+      1
+    );
+
+    // End at the first day of the month after maxX
+    const endMonth = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 1);
+
+    const ticks: number[] = [];
+    const current = new Date(startMonth);
+
+    while (current <= endMonth) {
+      ticks.push(+current);
+      // Move to next 2 months
+      current.setMonth(current.getMonth() + 2);
+    }
+
+    return ticks;
+  }, [minX, maxX]);
+
   // Calculate SOTA trend line (linear regression on max scores over time) - memoized
   const trendLineData = useMemo(() => {
     const sortedByDate = [...chartData].sort((a, b) => a.x - b.x);
@@ -282,7 +308,7 @@ export function BenchmarkChart({
               const date = new Date(t);
               return `${date.toLocaleString("default", { month: "short" })} '${String(date.getFullYear()).slice(2)}`;
             }}
-            tickCount={10}
+            tickValues={xTicks}
             style={{
               axis: {
                 stroke: "transparent",

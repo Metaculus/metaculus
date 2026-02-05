@@ -77,7 +77,7 @@ export function getBaseModelName(modelName: string): string {
 /**
  * Gets the label for an entry (server-compatible version without translations).
  */
-export function entryLabelSimple(entry: Partial<LeaderboardEntry>): string {
+export function entryLabel(entry: Partial<LeaderboardEntry>): string {
   if (entry.user?.metadata?.bot_details?.base_models?.[0]?.name) {
     return entry.user.metadata.bot_details.base_models[0].name;
   }
@@ -87,8 +87,8 @@ export function entryLabelSimple(entry: Partial<LeaderboardEntry>): string {
   }
   const am = (entry.aggregation_method ?? "").toLowerCase();
   if (am.includes("recency") || am.includes("community"))
-    return "Community Prediction";
-  if (am.includes("pro")) return "Pro Forecasters";
+    return "Metaculus Community";
+  if (am.includes("pro")) return "Metaculus Pro Forecasters";
   return entry.aggregation_method ?? "Aggregate";
 }
 
@@ -109,7 +109,7 @@ export function getUpcomingModels(
   entries
     .filter((e) => shouldDisplayEntry(e))
     .forEach((e) => {
-      const baseModel = getBaseModelName(entryLabelSimple(e));
+      const baseModel = getBaseModelName(entryLabel(e));
       if (baseModel) displayedBaseModels.add(baseModel);
     });
 
@@ -120,7 +120,7 @@ export function getUpcomingModels(
   const excluded = entries
     .filter((e) => !shouldDisplayEntry(e))
     .map((e) => ({
-      baseModel: getBaseModelName(entryLabelSimple(e)),
+      baseModel: getBaseModelName(entryLabel(e)),
       needed: MIN_RESOLVED_FORECASTS - (e.contribution_count ?? 0),
       score: e.score ?? 0,
     }))

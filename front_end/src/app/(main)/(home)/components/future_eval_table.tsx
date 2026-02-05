@@ -43,7 +43,7 @@ const FutureEvalTable: React.FC<Props> = ({ details, className }) => {
     const entries = (details.entries ?? [])
       .filter((e) => shouldDisplayEntry(e))
       .map((entry, i) => {
-        const label = entryLabel(entry, t);
+        const label = entryLabel(entry);
         const icons = entryIconPair(entry);
         const userId = entry.user?.id;
         return {

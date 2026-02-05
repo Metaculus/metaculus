@@ -66,7 +66,6 @@ export const FutureEvalForecastingPerformanceHeader: React.FC = () => {
           >
             Learn more
           </Link>
-          .
         </>
       }
     />
@@ -86,11 +85,10 @@ export const FutureEvalProsVsBotsSectionHeader: React.FC = () => {
           Benchmarking Tournaments so far.{" "}
           <Link
             className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
-            href="/futureeval/methodology#human-baseline"
+            href="/futureeval/methodology#human-baselines"
           >
             Learn more
           </Link>
-          .
         </>
       }
     />

@@ -32,7 +32,7 @@ export const ORBIT_ITEMS: OrbitItem[] = [
     id: "model-benchmark",
     label: "Model\nBenchmark",
     description:
-      "Latest models forecast Metaculus questions, are scored against real-life outcomes",
+      "Latest AI models forecast Metaculus questions and are scored against real-life outcomes",
     action: {
       type: "scroll",
       target: "model-leaderboard",
