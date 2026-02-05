@@ -20,15 +20,6 @@ import {
   shouldDisplayEntry,
 } from "../leaderboard/utils";
 
-// Mock translation function for entryLabel - returns hardcoded English values
-const mockTranslate = ((key: string) => {
-  const translations: Record<string, string> = {
-    communityPrediction: "Community Prediction",
-    aibLegendPros: "Pro Forecasters",
-  };
-  return translations[key] ?? key;
-}) as ReturnType<typeof import("next-intl").useTranslations>;
-
 const MAX_VISIBLE_BOTS = 18; // 18 bots + up to 2 aggregates = ~20 total
 const MIN_HEIGHT_PCT = 20;
 const MAX_HEIGHT_PCT = 100;
@@ -43,7 +34,7 @@ const FutureEvalModelBenchmark: React.FC = () => {
     const aggregates = allEntries.filter((e) => {
       if (!isAggregate(e)) return false;
       const kind = aggregateKind(e);
-      return kind === "community";
+      return ["community", "pros"].includes(kind ?? "");
     });
 
     // Get bot entries that should be displayed, sorted by score (highest first)
@@ -83,7 +74,7 @@ const FutureEvalModelBenchmark: React.FC = () => {
 
   const items = useMemo(() => {
     return entries.map((entry) => {
-      const name = entryLabel(entry, mockTranslate);
+      const name = entryLabel(entry);
       const { light, dark } = entryIconPair(entry);
       const aggregate = isAggregate(entry);
 

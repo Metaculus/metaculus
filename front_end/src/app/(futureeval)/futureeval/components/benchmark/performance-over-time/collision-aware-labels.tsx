@@ -64,17 +64,20 @@ type Padding = { top: number; bottom: number; left: number; right: number };
 
 type CollisionAwareLabelsProps = {
   data: Array<{
+    showLabel: boolean;
+    isHighlighted: boolean;
+    isSota: boolean;
+    isHoveredPoint: boolean;
     x: number;
     y: number;
     name: string;
-    provider: string;
-    isHighlighted: boolean;
-    showLabel: boolean;
-    isHoveredPoint: boolean;
+    label: string;
+    family: string | undefined;
+    pointKey: string;
   }>;
   xDomain: [number, number];
   yDomain: [number, number];
-  colorForName: (name: string) => string;
+  colorForFamily: (family: string) => string;
   getThemeColor: (color: { DEFAULT: string; dark: string }) => string;
   padding: Padding;
   chartWidth: number;
@@ -92,7 +95,7 @@ export const CollisionAwareLabels = memo(function CollisionAwareLabels(
     data,
     xDomain,
     yDomain,
-    colorForName,
+    colorForFamily,
     getThemeColor,
     padding,
     chartWidth,
@@ -226,7 +229,7 @@ export const CollisionAwareLabels = memo(function CollisionAwareLabels(
   for (const p of sortedPoints) {
     const textWidth = estimateTextWidth(p.datum.name, labelFontSize);
     const textHeight = labelFontSize + 2;
-    const color = colorForName(p.datum.name);
+    const color = colorForFamily(p.datum.family ?? "");
 
     let bestPos = defaultPosition;
     let finalLabelX = 0;

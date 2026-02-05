@@ -1,6 +1,6 @@
 import type { LeaderboardEntry } from "@/types/scoring";
 
-import { getBotMeta } from "./bot_meta";
+import { getModelDetailsFromScoreEntry } from "./bot_meta";
 
 export const MIN_RESOLVED_FORECASTS = 190;
 
@@ -51,7 +51,7 @@ export function getBaseModelName(modelName: string): string {
     /\s+max\b/gi,
     /\s+ultra\b/gi,
     /\s+premium\b/gi,
-    /\s+pro\b/gi, // Only if not part of model name (e.g., "GPT-4 Pro" should keep "Pro")
+    /\s+pro\b/gi,
 
     // Combined patterns like "high-16k"
     /\s*-?\s*high\s*-?\s*\d+k\b/gi,
@@ -82,7 +82,7 @@ export function entryLabelSimple(entry: Partial<LeaderboardEntry>): string {
     return entry.user.metadata.bot_details.base_models[0].name;
   }
   if (entry.user) {
-    const meta = getBotMeta(entry.user.username);
+    const meta = getModelDetailsFromScoreEntry(entry);
     return meta?.label ?? entry.user.username;
   }
   const am = (entry.aggregation_method ?? "").toLowerCase();

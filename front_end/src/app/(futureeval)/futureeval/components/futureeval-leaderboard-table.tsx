@@ -13,15 +13,6 @@ import {
 } from "./leaderboard/utils";
 import { LightDarkIcon } from "./light-dark-icon";
 
-// Mock translation function for entryLabel - returns hardcoded English values
-const mockTranslate = ((key: string) => {
-  const translations: Record<string, string> = {
-    communityPrediction: "Community Prediction",
-    aibLegendPros: "Pro Forecasters",
-  };
-  return translations[key] ?? key;
-}) as ReturnType<typeof import("next-intl").useTranslations>;
-
 type Props = { details: LeaderboardDetails };
 
 const FutureEvalLeaderboardTable: React.FC<Props> = ({ details }) => {
@@ -34,7 +25,7 @@ const FutureEvalLeaderboardTable: React.FC<Props> = ({ details }) => {
     return (details.entries ?? [])
       .filter((e) => shouldDisplayEntry(e))
       .map((entry, i) => {
-        const label = entryLabel(entry, mockTranslate);
+        const label = entryLabel(entry);
         const icons = entryIconPair(entry);
         const userId = entry.user?.id;
         const id = String(userId ?? label);

@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import metacLogo from "@/app/(main)/aib/assets/ai-models/metaculus_logo.png";
 import type { LeaderboardEntry } from "@/types/scoring";
 
-import { getBotMeta } from "./bot_meta";
+import { getModelDetailsFromScoreEntry } from "./bot_meta";
 
 // Re-export shared utilities for client components
 export {
@@ -45,7 +45,7 @@ export function entryLabel(
     return entry.user.metadata.bot_details.base_models[0].name;
   }
   if (entry.user) {
-    const meta = getBotMeta(entry.user.username);
+    const meta = getModelDetailsFromScoreEntry(entry);
     return meta?.label ?? entry.user.username;
   }
   const kind = aggregateKind(entry as LeaderboardEntry);
@@ -61,9 +61,8 @@ export function entryIconPair(entry: LeaderboardEntry): IconPair {
     if (kind === "community" || kind === "pros")
       return { light: metacLogo, dark: metacLogo };
   }
-  const username = entry.user?.username ?? "";
-  const meta = username ? getBotMeta(username) : null;
-  return { light: meta?.iconLight, dark: meta?.iconDark ?? meta?.iconLight };
+  const meta = getModelDetailsFromScoreEntry(entry);
+  return { light: meta?.iconLight, dark: meta?.iconDark };
 }
 
 export function entryForecasts(entry: LeaderboardEntry) {
