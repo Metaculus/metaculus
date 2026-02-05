@@ -1,6 +1,6 @@
 "use client";
 
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faLink } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Disclosure,
@@ -215,13 +215,44 @@ const CodeBlock: React.FC<{ code: string }> = ({ code }) => {
 
 /**
  * Section header component matching the main methodology heading style
+ * Optionally accepts an id to enable copy-link functionality
  */
-const SectionHeader: React.FC<{ children: ReactNode }> = ({ children }) => {
+const SectionHeader: React.FC<{ children: ReactNode; id?: string }> = ({
+  children,
+  id,
+}) => {
+  const handleCopyLink = () => {
+    if (id) {
+      const url = `${globalThis.location.origin}${globalThis.location.pathname}#${id}`;
+      navigator.clipboard.writeText(url);
+    }
+  };
+
   return (
     <h2
-      className={cn("m-0 max-w-3xl", FE_TYPOGRAPHY.h1, FE_COLORS.textHeading)}
+      id={id}
+      className={cn(
+        "group m-0 max-w-3xl",
+        id && "scroll-mt-24",
+        FE_TYPOGRAPHY.h1,
+        FE_COLORS.textHeading
+      )}
     >
       {children}
+      {id && (
+        <button
+          onClick={handleCopyLink}
+          className={cn(
+            "ml-2 inline-flex cursor-pointer items-center border-none bg-transparent p-1 align-middle opacity-0 transition-opacity",
+            "group-hover:opacity-50 hover:!opacity-100",
+            FE_COLORS.textAccent
+          )}
+          title="Copy link to section"
+          aria-label="Copy link to section"
+        >
+          <FontAwesomeIcon icon={faLink} className="text-sm" />
+        </button>
+      )}
     </h2>
   );
 };
@@ -268,7 +299,7 @@ const FutureEvalMethodologySections: React.FC = () => {
     <div className="space-y-[60px] sm:space-y-[80px] lg:space-y-[120px]">
       {/* Section 1: What Makes FutureEval Unique */}
       <section className="space-y-6">
-        <SectionHeader>
+        <SectionHeader id="what-makes-futureeval-unique">
           What Makes{" "}
           <span className={FE_COLORS.textAccent}>FutureEval Unique</span>
         </SectionHeader>
@@ -276,7 +307,7 @@ const FutureEvalMethodologySections: React.FC = () => {
           <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
             {/* Left column: Compared to reasoning benchmarks */}
             <div className="space-y-4">
-              <p className="m-0 text-sm font-semibold md:text-base">
+              <p className="m-0 text-base font-semibold md:text-lg">
                 Compared to reasoning benchmarks:
               </p>
               <BulletList
@@ -375,47 +406,73 @@ const FutureEvalMethodologySections: React.FC = () => {
         </SectionBody>
       </section>
 
-      {/* Section 2: What is the Model Leaderboard? */}
-      <section id="model-leaderboard" className="scroll-mt-24 space-y-6">
-        <SectionHeader>
-          What is the{" "}
-          <span className={FE_COLORS.textAccent}>Model Leaderboard?</span>
+      {/* Section 2: The Model Leaderboard */}
+      <section className="space-y-6">
+        <SectionHeader id="model-leaderboard">
+          The <span className={FE_COLORS.textAccent}>Model Leaderboard</span>
         </SectionHeader>
         <SectionBody>
-          <p className="m-0 font-semibold">Model Ranking Table:</p>
+          {/* Sub-section: Model Ranking Table */}
+          <h3
+            id="model-ranking-table"
+            className="m-0 scroll-mt-24 text-base font-semibold md:text-lg"
+          >
+            Model Ranking Table
+          </h3>
           <p className="m-0">
-            Metaculus has put together a leaderboard ranking AI models based on
-            forecasting ability. We run all major AI models with a simple prompt
-            on most open Metaculus forecasting questions, and collect their
-            forecasts. As questions resolve, we score the models&apos; forecasts
-            and continuously update our leaderboard to rank them against each
-            other.
+            We run all major models with a simple, fixed prompt on most
+            Metaculus forecasting questions. Those are implemented as
+            &quot;Metac Bots&quot; with username{" "}
+            <code className="rounded bg-futureeval-bg-dark/10 px-1 py-0.5 dark:bg-futureeval-bg-light/10">
+              metac-*+asknews
+            </code>
+            . You can spot these in various tournaments on the Metaculus
+            platform.{" "}
+            <Link
+              href="#how-bots-run"
+              className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+            >
+              Learn more here
+            </Link>
+            .
           </p>
           <p className="m-0">
-            Scores use a variation of{" "}
+            As questions resolve, we score the models&apos; forecasts and
+            continuously update our leaderboard. In our rankings, we only
+            evaluate forecasts made within 1 year of the model&apos;s first
+            forecast, since model performance tends to worsen as their training
+            data becomes more out of date.
+          </p>
+          <p className="m-0">
+            We use head-to-head{" "}
             <Link
               href="https://www.metaculus.com/help/scores-faq/#peer-score"
               className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
             >
-              peer scoring
+              Peer Scores
             </Link>{" "}
-            that uses ridge regressions to compare models across time in a fair
-            manner. The resulting score can be interpreted like a peer score.
-          </p>
-          <p className="m-0">
-            Each entry corresponds to one of the &quot;Metac Bots&quot; we are
-            running on the site that uses the specified model. You can find
-            information about how these are configured in the{" "}
+            (essentially differences in{" "}
             <Link
-              href="https://www.metaculus.com/notebooks/38928/aib-resource-page/#what-are-the-metac-bots"
+              href="https://www.metaculus.com/help/scores-faq/#log-score"
               className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
             >
-              Metac Bot
-            </Link>{" "}
-            section on the resources page.
+              log scores
+            </Link>
+            ) to determine a forecasting skill score that fairly compares models
+            across diverse questions. The skill score is roughly comparable to
+            the Peer Scores we use in regular tournaments, and is arbitrarily
+            set to 0 for GPT-4o (which is our most prolific bot as of February
+            2025).{" "}
+            <Link
+              href="#how-bots-run"
+              className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+            >
+              Learn more here
+            </Link>
+            .
           </p>
 
-          {/* CTA to leaderboard - placed after Model Ranking Table section */}
+          {/* CTA to leaderboard */}
           <div className="mt-2">
             <Button
               href="/futureeval/leaderboard"
@@ -430,18 +487,39 @@ const FutureEvalMethodologySections: React.FC = () => {
             </Button>
           </div>
 
-          <p className="m-0 mt-4 font-semibold">Performance Over Time Graph:</p>
+          {/* Sub-section: Forecasting Performance Over Time */}
+          <h3
+            id="forecasting-performance-over-time"
+            className={cn(
+              "m-0 !mt-16 scroll-mt-24 text-base font-semibold md:text-lg",
+              FE_COLORS.textHeading
+            )}
+          >
+            Forecasting Performance Over Time
+          </h3>
           <p className="m-0">
-            We also plot trends in model release date and scores over time. This
-            provides an indication of how model performance has improved over
-            time, and can be used to extrapolate when bots will reach pro level.
+            The Forecasting Performance Over Time graph is another way to
+            visualize the data from the Model Leaderboard. 
+            In this graph we plot the models&apos; forecasting
+            score vs. their release date. We fit a trend to the SOTA models (the
+            models that push the frontier of forecasting performance), which
+            lets us estimate when the best models will reach top human
+            performance. The pro and community performance baselines are
+            calculated using all questions where both humans and bots made
+            forecasts — from the first forecast of our first AI model to today.
+            These lines may move as new data is added to this running average.
+          </p>
+          <p className="m-0">
+            We estimate that bots will start beating the Metaculus Community
+            performance in {"{month year}"} and Pro Forecaster performance in{" "}
+            {"{month year}"}.
           </p>
         </SectionBody>
       </section>
 
       {/* Section 3: What is the Pro vs Bots Graph? */}
-      <section id="human-baseline" className="scroll-mt-24 space-y-6">
-        <SectionHeader>
+      <section className="space-y-6">
+        <SectionHeader id="human-baseline">
           What is the{" "}
           <span className={FE_COLORS.textAccent}>Pro vs Bots Graph?</span>
         </SectionHeader>
@@ -480,7 +558,7 @@ const FutureEvalMethodologySections: React.FC = () => {
 
       {/* Section 4: How do you run your bots? */}
       <section className="space-y-6">
-        <SectionHeader>
+        <SectionHeader id="how-bots-run">
           How do you run{" "}
           <span className={FE_COLORS.textAccent}>your bots?</span>
         </SectionHeader>
