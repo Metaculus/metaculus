@@ -44,6 +44,7 @@ def get_score_pair(
     geometric_means = get_geometric_means(forecasts)
 
     if question.default_score_type == ScoreTypes.PEER:
+        breakpoint()
         # Coverage
         coverage = 0.0
         cvs = []
@@ -79,10 +80,12 @@ def get_score_pair(
             if gm.timestamp <= spot_forecast_timestamp <= current_timestamp:
                 if gm.num_forecasters == 2:
                     # both have a forecast at spot scoring time
-                    coverage = 1 / 3  # downweight spot score questions
+                    coverage = 1.0
+                    # coverage = 1 / 3  # downweight spot score questions
                 break
             current_timestamp = gm.timestamp
         if coverage == 0:
+            breakpoint()
             return None
         user1_scores = evaluate_forecasts_peer_spot_forecast(
             forecasts=user1_forecasts,  # only evaluate user1 (user2 is opposite)
@@ -225,30 +228,8 @@ def gather_data(
             defaultdict(list)
         )
         # bot forecasts
-        old_bot_ids: set[int] = set()
-        for user in users:
-            base_models = (
-                (user.metadata or dict())
-                .get("bot_details", dict())
-                .get("base_models", [])
-            )
-            # don't include bots on question that resolved 1 year or more
-            # after model release
-            primary_base_model = None if not base_models else base_models[0]
-            if not primary_base_model:
-                continue
-            if release_date := primary_base_model.get("model_release_date"):
-                if len(release_date) == 7:
-                    release_date += "-01"
-                release = datetime.fromisoformat(release_date).replace(
-                    tzinfo=dt_timezone.utc
-                )
-                if question.resolution_set_time > release + timedelta(days=365):
-                    old_bot_ids.add(user.id)
-        bot_forecasts = (
-            question.user_forecasts.filter(author_id__in=user_ids)
-            .exclude(author_id__in=old_bot_ids)
-            .order_by("start_time")
+        bot_forecasts = question.user_forecasts.filter(author_id__in=user_ids).order_by(
+            "start_time"
         )
         for f in bot_forecasts:
             forecast_dict[f.author_id].append(f)
@@ -689,7 +670,6 @@ def run_update_global_bot_leaderboard(
         # metadata__bot_details__metac_bot=True,
         # metadata__bot_details__include_in_calculations=True,
         # metadata__bot_details__display_in_leaderboard=True,
-        is_active=True,
     ).order_by("id")
     user_forecast_exists = Forecast.objects.filter(
         question_id=OuterRef("pk"), author__in=users
@@ -836,14 +816,13 @@ def run_update_global_bot_leaderboard(
     # ###############
     # Filter out entries we don't care about
     print(f"Filtering {len(timestamps)} matches down to only relevant identities ...")
-    relevant_identities = set(
-        User.objects.filter(
-            metadata__bot_details__metac_bot=True,
-            metadata__bot_details__include_in_calculations=True,
-            metadata__bot_details__display_in_leaderboard=True,
-            is_active=True,
-        ).values_list("id", flat=True)
-    ) | {
+    metac_bots = User.objects.filter(
+        metadata__bot_details__metac_bot=True,
+        # metadata__bot_details__include_in_calculations=True, # TODO: this should be
+        # but we don't have that data correct at the moment
+    )
+    user_map = {user.id: user for user in metac_bots}
+    relevant_identities = set(metac_bots.values_list("id", flat=True)) | {
         "Pro Aggregate",
         "Community Aggregate",
     }
@@ -856,6 +835,31 @@ def run_update_global_bot_leaderboard(
     for u1id, u2id, qid, score, coverage, timestamp in zip(
         user1_ids, user2_ids, question_ids, scores, coverages, timestamps
     ):
+        # skip if either user is either not in relevant identities or if their model
+        # is more than a year old at time of question actual close time
+        match_users = [user_map[u] for u in (u1id, u2id) if (u in user_map)]
+        skip = False
+        for user in match_users:
+            base_models = (
+                (user.metadata or dict())
+                .get("bot_details", dict())
+                .get("base_models", [])
+            )
+            if release_date := (
+                base_models[0].get("model_release_date") if base_models else None
+            ):
+                if len(release_date) == 7:
+                    release_date += "-01"
+                release = (
+                    datetime.fromisoformat(release_date)
+                    .replace(tzinfo=dt_timezone.utc)
+                    .timestamp()
+                )
+                if timestamp > release + timedelta(days=365).total_seconds():
+                    skip = True
+        if skip:
+            breakpoint()
+            continue
         if u1id in relevant_identities and u2id in relevant_identities:
             filtered_user1_ids.append(u1id)
             filtered_user2_ids.append(u2id)
@@ -911,8 +915,12 @@ def run_update_global_bot_leaderboard(
     ordered_skills = sorted(
         [(user, skill) for user, skill in skills.items()], key=lambda x: -x[1]
     )
-    player_stats: dict[int | str, list] = defaultdict(lambda: [0, set()])
+    player_stats: dict[int | str, list] = dict()
     for u1id, u2id, qid in zip(user1_ids, user2_ids, question_ids):
+        if u1id not in player_stats:
+            player_stats[u1id] = [0, set()]
+        if u2id not in player_stats:
+            player_stats[u2id] = [0, set()]
         player_stats[u1id][0] += 1
         player_stats[u1id][1].add(qid)
         player_stats[u2id][0] += 1
@@ -1020,20 +1028,20 @@ def run_update_global_bot_leaderboard(
             f"| {uid if isinstance(uid, int) else '':>6} "
             f"| {username}"
         )
-    for uid in unevaluated:
-        if isinstance(uid, str):
-            username = uid
-        else:
-            username = User.objects.get(id=uid).username
-        print(
-            "| ------ "
-            "| ------ "
-            "| ------ "
-            "| ------ "
-            "| ------ "
-            f"| {uid if isinstance(uid, int) else '':>5} "
-            f"| {username}"
-        )
+    # for uid in unevaluated:
+    #     if isinstance(uid, str):
+    #         username = uid
+    #     else:
+    #         username = User.objects.get(id=uid).username
+    #     print(
+    #         "| ------ "
+    #         "| ------ "
+    #         "| ------ "
+    #         "| ------ "
+    #         "| ------ "
+    #         f"| {uid if isinstance(uid, int) else '':>5} "
+    #         f"| {username}"
+    #     )
     print()
 
     ##########################################################################
