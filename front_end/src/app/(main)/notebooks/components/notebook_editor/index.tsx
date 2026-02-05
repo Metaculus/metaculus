@@ -81,17 +81,19 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
     }
   }, [markdown]);
 
-  const defaultProject = postData.projects.default_project;
+  const defaultProject = postData.projects?.default_project;
   const otherProjects = [
-    ...(postData.projects.index ?? []),
-    ...(postData.projects.tournament ?? []),
-    ...(postData.projects.question_series ?? []),
-    ...(postData.projects.community ?? []),
-    ...(postData.projects.category ?? []),
-    ...(postData.projects.leaderboard_tag ?? []),
-  ].filter((p) => p.id !== defaultProject.id);
+    ...(postData.projects?.index ?? []),
+    ...(postData.projects?.tournament ?? []),
+    ...(postData.projects?.question_series ?? []),
+    ...(postData.projects?.community ?? []),
+    ...(postData.projects?.category ?? []),
+    ...(postData.projects?.leaderboard_tag ?? []),
+  ].filter((p) => defaultProject && p.id !== defaultProject.id);
 
-  const allProjects = [defaultProject, ...otherProjects];
+  const allProjects = defaultProject
+    ? [defaultProject, ...otherProjects]
+    : otherProjects;
 
   const getChipText = (name: string, type?: string) =>
     type === "leaderboard_tag" ? `🏆 ${name}` : name;

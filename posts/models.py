@@ -572,6 +572,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         OPEN = "open", _("Open")
         CLOSED = "closed", _("Closed")
         RESOLVED = "resolved", _("Resolved")
+        CP_REVEALED = "cp_revealed", _("CP Revealed")
 
     curation_status = models.CharField(
         max_length=20,
