@@ -412,13 +412,6 @@ const FutureEvalMethodologySections: React.FC = () => {
           The <span className={FE_COLORS.textAccent}>Model Leaderboard</span>
         </SectionHeader>
         <SectionBody>
-          {/* Sub-section: Model Ranking Table */}
-          <h3
-            id="model-ranking-table"
-            className="m-0 scroll-mt-24 text-base font-semibold md:text-lg"
-          >
-            Model Ranking Table
-          </h3>
           <p className="m-0">
             We run all major models with a simple, fixed prompt on most
             Metaculus forecasting questions. Those are implemented as
@@ -486,28 +479,33 @@ const FutureEvalMethodologySections: React.FC = () => {
               View the Full Leaderboard
             </Button>
           </div>
+        </SectionBody>
+      </section>
 
-          {/* Sub-section: Forecasting Performance Over Time */}
-          <h3
-            id="forecasting-performance-over-time"
-            className={cn(
-              "m-0 !mt-16 scroll-mt-24 text-base font-semibold md:text-lg",
-              FE_COLORS.textHeading
-            )}
-          >
-            Forecasting Performance Over Time
-          </h3>
+      {/* Section 3: Forecasting Performance Over Time */}
+      <section className="space-y-6">
+        <SectionHeader id="forecasting-performance-over-time">
+             Performance{" "}
+            <span className={FE_COLORS.textAccent}>Over Time</span>
+        </SectionHeader>
+        <SectionBody>
           <p className="m-0">
             The Forecasting Performance Over Time graph is another way to
-            visualize the data from the Model Leaderboard. 
-            In this graph we plot the models&apos; forecasting
-            score vs. their release date. We fit a trend to the SOTA models (the
-            models that push the frontier of forecasting performance), which
-            lets us estimate when the best models will reach top human
-            performance. The pro and community performance baselines are
-            calculated using all questions where both humans and bots made
-            forecasts — from the first forecast of our first AI model to today.
-            These lines may move as new data is added to this running average.
+            visualize the data from the{" "}
+            <Link
+              href="#model-leaderboard"
+              className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+            >
+              Model Leaderboard
+            </Link>
+            . In this graph we plot the models&apos; forecasting score vs. their
+            release date. We fit a trend to the SOTA models (the models that
+            push the frontier of forecasting performance), which lets us
+            estimate when the best models will reach top human performance. The
+            pro and community performance baselines are calculated using all
+            questions where both humans and bots made forecasts — from the first
+            forecast of our first AI model to today. These lines may move as new
+            data is added to this running average.
           </p>
           <p className="m-0">
             We estimate that bots will start beating the Metaculus Community
@@ -517,7 +515,7 @@ const FutureEvalMethodologySections: React.FC = () => {
         </SectionBody>
       </section>
 
-      {/* Section 3: How do you run your bots? */}
+      {/* Section 4: How do you run your bots? */}
       <section className="space-y-6">
         <SectionHeader id="how-bots-run">
           How FutureEval{" "}
@@ -574,7 +572,7 @@ const FutureEvalMethodologySections: React.FC = () => {
         </SectionBody>
       </section>
 
-      {/* Section 4: The Human Baselines */}
+      {/* Section 5: The Human Baselines */}
       <section className="space-y-6">
         <SectionHeader id="human-baselines">
           The <span className={FE_COLORS.textAccent}>Human Baselines</span>
@@ -594,16 +592,23 @@ const FutureEvalMethodologySections: React.FC = () => {
             to provide high-quality predictions and reasoning on a subset of
             questions in our Bot Tournament (around 100 per tournament). This
             gives two high-quality baselines to evaluate the progress of AI
-            forecasting bots.
+            forecasting bots. We use these in our analysis comparing whether{" "}
+            <Link
+              href="#pros-beat-bots"
+              className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+            >
+              pros beat bots
+            </Link>
+            .
           </p>
         </SectionBody>
       </section>
 
-      {/* Section 5: How much Pros beat Bots */}
+      {/* Section 6: How much Pros beat Bots */}
       <section className="space-y-6">
         <SectionHeader id="pros-beat-bots">
-          How much{" "}
-          <span className={FE_COLORS.textAccent}>Pros beat Bots</span>
+          How Much{" "}
+          <span className={FE_COLORS.textAccent}>Pros Beat Bots</span>
         </SectionHeader>
         <SectionBody>
           <p className="m-0">

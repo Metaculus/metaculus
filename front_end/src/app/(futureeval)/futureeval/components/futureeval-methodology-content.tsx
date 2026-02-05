@@ -37,7 +37,7 @@ const FutureEvalMethodologyContent: React.FC = () => {
     },
     {
       icon: faTrophy,
-      title: "Bots Tournament",
+      title: "Bots Tournaments",
       linkHref: "/aib/2026/spring/",
       content: (
         <p>
@@ -51,12 +51,13 @@ const FutureEvalMethodologyContent: React.FC = () => {
     },
     {
       icon: faUsers,
-      title: "Human Baseline",
+      title: "Human Baselines",
       linkHref: "/futureeval/methodology#human-baselines",
       content: (
         <p>
-          Some of the questions in the Bot Tournaments come from Metaculus,
-          where our community competes to make predictions. Our hand-picked{" "}
+          Some questions in the Bot Tournaments come from Metaculus&apos;
+          platform, where our community competes to make predictions. Our
+          hand-picked{" "}
           <a
             href="https://www.metaculus.com/services/pro-forecasters/"
             className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
@@ -65,7 +66,7 @@ const FutureEvalMethodologyContent: React.FC = () => {
           </a>{" "}
           also provide predictions on a set of questions. This gives two
           high-quality baselines each season, allowing us to publish an analysis
-          comparing AI performance to the best human-made forecasts.
+          comparing AI to the best humans.
         </p>
       ),
     },
@@ -75,41 +76,33 @@ const FutureEvalMethodologyContent: React.FC = () => {
     <div className="space-y-8 sm:space-y-[56px] md:space-y-16">
       {/* Hero headline */}
       <h1
-        className={cn("m-0 max-w-3xl", FE_TYPOGRAPHY.h1, FE_COLORS.textHeading)}
+        className={cn(
+          "m-0 mx-auto max-w-3xl text-center",
+          FE_TYPOGRAPHY.h1,
+          FE_COLORS.textHeading
+        )}
       >
         Predicting the future is one of the few ways to evaluate{" "}
         <span className={FE_COLORS.textAccent}>reasoning against reality.</span>
       </h1>
 
-      {/* Description paragraphs */}
-      <div className="max-w-[840px] space-y-4 antialiased">
-        <p
-          className={cn(
-            "m-0 text-balance",
-            FE_TYPOGRAPHY.body,
-            FE_COLORS.textSubheading
-          )}
-        >
-          FutureEval measures AI&apos;s ability to predict future outcomes,
-          which is essential in many real-world tasks. Models that score high in
-          our benchmark will be better at planning, risk assessment, and
-          decision-making. FutureEval is guaranteed leak-proof, since answers
-          are not known yet at test time.
-        </p>
-        <p
-          className={cn(
-            "m-0 text-balance",
-            FE_TYPOGRAPHY.body,
-            FE_COLORS.textSubheading
-          )}
-        >
-          FutureEval has two arms: a fixed-prompt benchmark to compare model
-          performance directly, and a bots vs. humans tournament to probe the
-          frontier of scaffolding.
-        </p>
-      </div>
+      {/* Description paragraph */}
+      <p
+        className={cn(
+          "m-0 mx-auto max-w-[840px] text-balance text-center antialiased",
+          FE_TYPOGRAPHY.body,
+          FE_COLORS.textSubheading
+        )}
+      >
+        Making predictions is key to planning and decision making. It requires
+        context and information retrieval, implicit and explicit world
+        modelling, reasoning under uncertainty, and good judgement. It&apos;s
+        also guaranteed leak-proof, since the ground truth is not yet known when
+        the models are evaluated. FutureEval measures AI forecasting accuracy
+        based on three pillars.
+      </p>
 
-      <div className="flex flex-col gap-14 lg:flex-row">
+      <div className="mx-auto flex max-w-5xl flex-col gap-14 lg:flex-row lg:justify-center">
         {CARDS.map((card) => (
           <FutureEvalIdeaCard
             key={card.title}
@@ -142,19 +135,21 @@ const FutureEvalIdeaCard: React.FC<IdeaCardProps> = ({
 }) => {
   return (
     <div className="flex flex-1 flex-col items-start">
-      <FontAwesomeIcon
-        className={cn("text-[26px]", FE_COLORS.textAccent)}
-        icon={icon}
-      />
-      <h4
-        className={cn(
-          "m-0 mt-5 antialiased",
-          FE_TYPOGRAPHY.h4,
-          FE_COLORS.textHeading
-        )}
-      >
-        {title}
-      </h4>
+      <div className="flex items-center gap-3">
+        <FontAwesomeIcon
+          className={cn("text-xl", FE_COLORS.textAccent)}
+          icon={icon}
+        />
+        <h4
+          className={cn(
+            "m-0 antialiased",
+            FE_TYPOGRAPHY.h4,
+            FE_COLORS.textHeading
+          )}
+        >
+          {title}
+        </h4>
+      </div>
       <div
         className={cn("mt-2.5", FE_TYPOGRAPHY.body, FE_COLORS.textSubheading)}
       >
