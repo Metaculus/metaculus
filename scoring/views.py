@@ -315,35 +315,28 @@ def medal_contributions(
     end_time = serializer.validated_data.get("end_time")
     score_type = serializer.validated_data.get("score_type")
     name = serializer.validated_data.get("name")
-    primary = serializer.validated_data.get("primary", True)
 
-    if primary:
-        # get the primary leaderboard
+    # get the leaderboard through params (may return primary leaderboard)
+    leaderboards = Leaderboard.objects.filter(project=project)
+    if start_time:
+        leaderboards = leaderboards.filter(start_time=start_time)
+    if end_time:
+        leaderboards = leaderboards.filter(end_time=end_time)
+    if score_type:
+        leaderboards = leaderboards.filter(score_type=score_type)
+    if name:
+        leaderboards = leaderboards.filter(name=name)
+
+    # get leaderboard and project
+    leaderboard_count = leaderboards.count()
+    if leaderboard_count == 0:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    if leaderboard_count > 1:
         leaderboard = project.primary_leaderboard
-        if leaderboard is None:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        if not leaderboard:
+            raise NotFound()
     else:
-        # get the leaderboard through params (may return primary leaderboard)
-        leaderboards = Leaderboard.objects.filter(project=project)
-        if start_time:
-            leaderboards = leaderboards.filter(start_time=start_time)
-        if end_time:
-            leaderboards = leaderboards.filter(end_time=end_time)
-        if score_type:
-            leaderboards = leaderboards.filter(score_type=score_type)
-        if name:
-            leaderboards = leaderboards.filter(name=name)
-
-        # get leaderboard and project
-        leaderboard_count = leaderboards.count()
-        if leaderboard_count == 0:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        if leaderboard_count > 1:
-            leaderboard = project.primary_leaderboard
-            if not leaderboard:
-                raise NotFound()
-        else:
-            leaderboard = leaderboards.first()
+        leaderboard = leaderboards.first()
 
     with_live_coverage = leaderboard.score_type in [
         LeaderboardScoreTypes.PEER_TOURNAMENT,
