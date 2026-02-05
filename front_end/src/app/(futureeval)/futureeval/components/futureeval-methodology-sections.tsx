@@ -9,13 +9,38 @@ import {
   Transition,
 } from "@headlessui/react";
 import Link from "next/link";
-import React, { PropsWithChildren, ReactNode } from "react";
+import React, { PropsWithChildren, ReactNode, useMemo } from "react";
 import toast from "react-hot-toast";
 
 import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
 
 import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
+import {
+  getAggregates,
+  getBots,
+} from "./benchmark/performance-over-time/mapping";
+import {
+  calculateSotaCrossingFromBots,
+  type SotaCrossingResult,
+} from "./benchmark/performance-over-time/sota-trend";
+import { useFutureEvalLeaderboard } from "./leaderboard/futureeval-leaderboard-provider";
+
+/**
+ * Format a crossing result date as "MMMM YYYY" (e.g., "March 2026")
+ * Returns null if the crossing hasn't happened or can't be calculated
+ */
+function formatCrossingDate(crossing: SotaCrossingResult): string | null {
+  if (!crossing.crossingDate) return null;
+
+  // Only show future dates (extrapolations)
+  if (!crossing.isFuture) return null;
+
+  return crossing.crossingDate.toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+}
 
 const PROMPTS = {
   binary: `You are a professional forecaster interviewing for a job.
@@ -304,6 +329,38 @@ const BulletList: React.FC<{ items: ReactNode[] }> = ({ items }) => {
  * All additional methodology sections
  */
 const FutureEvalMethodologySections: React.FC = () => {
+  const { leaderboard } = useFutureEvalLeaderboard();
+
+  // Calculate SOTA crossing dates for community and pro aggregations
+  const { communityDate, proDate } = useMemo(() => {
+    const bots = getBots(leaderboard, new Date("2024-01-01"));
+    const aggregates = getAggregates(leaderboard);
+
+    // Find community and pro aggregate scores
+    const communityAggregate = aggregates.find(
+      (a) => a.aggregateKind === "community"
+    );
+    const proAggregate = aggregates.find((a) => a.aggregateKind === "pros");
+
+    let communityDate: string | null = null;
+    let proDate: string | null = null;
+
+    if (communityAggregate && Number.isFinite(communityAggregate.score)) {
+      const crossing = calculateSotaCrossingFromBots(
+        bots,
+        communityAggregate.score
+      );
+      communityDate = formatCrossingDate(crossing);
+    }
+
+    if (proAggregate && Number.isFinite(proAggregate.score)) {
+      const crossing = calculateSotaCrossingFromBots(bots, proAggregate.score);
+      proDate = formatCrossingDate(crossing);
+    }
+
+    return { communityDate, proDate };
+  }, [leaderboard]);
+
   return (
     <div className="space-y-[60px] sm:space-y-[80px] lg:space-y-[120px]">
       {/* Section 1: What Makes FutureEval Unique */}
@@ -515,11 +572,13 @@ const FutureEvalMethodologySections: React.FC = () => {
             forecast of our first AI model to today. These lines may move as new
             data is added to this running average.
           </p>
-          <p className="m-0">
-            We estimate that bots will start beating the Metaculus Community
-            performance in {"{month year}"} and Pro Forecaster performance in{" "}
-            {"{month year}"}.
-          </p>
+          {communityDate && proDate && (
+            <p className="m-0">
+              We estimate that bots will start beating the Metaculus Community
+              performance in <strong>{communityDate}</strong> and Pro Forecaster
+              performance in <strong>{proDate}</strong>.
+            </p>
+          )}
         </SectionBody>
       </section>
 

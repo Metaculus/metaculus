@@ -20,6 +20,11 @@ import useContainerSize from "@/hooks/use_container_size";
 
 import { CollisionAwareLabels } from "./collision-aware-labels";
 import { MappedAggregates, MappedBots } from "./mapping";
+import {
+  computeSotaPoints,
+  generateTrendLineData,
+  type TrendPoint,
+} from "./sota-trend";
 
 type Props = {
   bots: MappedBots;
@@ -113,21 +118,16 @@ export function BenchmarkChart({
     }));
   }, [bots]);
 
+  // Calculate SOTA points using the shared utility
+  const sotaPoints: TrendPoint[] = useMemo(() => {
+    return computeSotaPoints(chartData);
+  }, [chartData]);
+
   // Calculate SOTA models - models that were the best at their release time
   const sotaModels = useMemo(() => {
-    const sorted = [...chartData].sort((a, b) => a.x - b.x);
-    const sota: typeof chartData = [];
-    let best = -Infinity;
-
-    for (const point of sorted) {
-      if (point.y > best) {
-        sota.push(point);
-        best = point.y;
-      }
-    }
-
-    return sota;
-  }, [chartData]);
+    const sotaSet = new Set(sotaPoints.map((p) => `${p.x}-${p.y}`));
+    return chartData.filter((d) => sotaSet.has(`${d.x}-${d.y}`));
+  }, [chartData, sotaPoints]);
 
   const sotaModelNames = useMemo(
     () => new Set(sotaModels.map((m) => m.name)),
@@ -180,41 +180,10 @@ export function BenchmarkChart({
     return ticks;
   }, [minX, maxX]);
 
-  // Calculate SOTA trend line (linear regression on max scores over time) - memoized
+  // Calculate SOTA trend line using the shared utility
   const trendLineData = useMemo(() => {
-    const sortedByDate = [...chartData].sort((a, b) => a.x - b.x);
-    const sotaPoints: { x: number; y: number }[] = [];
-    let maxScore = -Infinity;
-
-    for (const point of sortedByDate) {
-      if (point.y > maxScore) {
-        maxScore = point.y;
-        sotaPoints.push({ x: point.x, y: point.y });
-      }
-    }
-
-    const xVals = sotaPoints.map((d) => d.x);
-    const yVals = sotaPoints.map((d) => d.y);
-    const n = xVals.length;
-
-    if (n === 0) return [];
-
-    const sumX = xVals.reduce((a, b) => a + b, 0);
-    const sumY = yVals.reduce((a, b) => a + b, 0);
-    const sumXY = xVals.reduce((total, x, i) => total + x * (yVals[i] ?? 0), 0);
-    const sumX2 = xVals.reduce((total, x) => total + x * x, 0);
-    const denominator = n * sumX2 - sumX * sumX;
-
-    if (denominator === 0) return [];
-
-    const slope = (n * sumXY - sumX * sumY) / denominator;
-    const intercept = (sumY - slope * sumX) / n;
-
-    return [
-      { x: minX, y: slope * minX + intercept },
-      { x: maxX, y: slope * maxX + intercept },
-    ];
-  }, [chartData, minX, maxX]);
+    return generateTrendLineData(sotaPoints, minX, maxX);
+  }, [sotaPoints, minX, maxX]);
 
   // Check if a family is highlighted (full opacity dots) - memoized
   // When hovering, the hovered family AND any selected families stay highlighted
