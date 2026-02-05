@@ -15,10 +15,10 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone as dt_timezone
 from typing import Sequence
 
+import numpy as np
 import sentry_sdk
 from django.db.models import F, Q, QuerySet
 from django.utils import timezone
-import numpy as np
 
 from projects.permissions import ObjectPermission
 from questions.models import (
@@ -28,8 +28,8 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.types import AggregationMethod
-from scoring.models import Score, LeaderboardEntry
 from scoring.constants import ScoreTypes
+from scoring.models import Score, LeaderboardEntry
 from users.models import User
 from utils.the_math.measures import (
     weighted_percentile_2d,
@@ -325,7 +325,9 @@ class PeerScoreReputationWeighted(ReputationWeighted):
             for score in new_peer_scores:
                 # update the scores by user, then calculate the updated reputation
                 scores_by_user[score.user_id][score.question_id] = score
-                value = self.reputation_value(list(scores_by_user[score.user_id].values()))
+                value = self.reputation_value(
+                    list(scores_by_user[score.user_id].values())
+                )
                 reputations[score.user_id].append(
                     Reputation(score.user_id, value, score.edited_at)
                 )
@@ -1041,8 +1043,9 @@ def get_aggregation_history(
                         ]
                     )
                 else:
-                    include_histogram = question.type == Question.QuestionType.BINARY and (
-                        i >= last_historical_entry_index
+                    include_histogram = (
+                        question.type == Question.QuestionType.BINARY
+                        and (i >= last_historical_entry_index)
                     )
 
                 if forecast_set.forecasts_values:
