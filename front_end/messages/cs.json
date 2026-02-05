@@ -1900,5 +1900,18 @@
   "allCategoriesTopQuestions": "Nejlepší otázky v každé kategorii",
   "feedTileSummary": "Souhrn na dlaždici kanálu",
   "feedTileSummaryPlaceholder": "Volitelně: Zadejte vlastní text souhrnu, který se zobrazí na dlaždicích kanálu (pokud není poskytnut, souhrn bude automaticky vygenerován z obsahu notebooku)",
+  "caseStudiesTitle": "Případové studie",
+  "caseStudiesDescription": "Příklady toho, jak partneři využívají Metaculus k zodpovídání složitých otázek.",
+  "aboutInitiative": "O této iniciativě",
+  "inPartnershipWith": "Ve spolupráci s",
+  "readTheReport": "Přečíst zprávu",
+  "reportPreviewAlt": "Náhled zprávy",
+  "pagesWithCount": "{count, plural, one {# stránka} other {# stránek}}",
+  "publishedWithLabel": "Publikováno {label}",
+  "hostWorkshop": "Pořádat workshop",
+  "hostWorkshopDescription": "Spojte odborníky a zainteresované strany, abyste se zaměřili na složité problémy v cílených, reálných časových blocích. Náš tým spravuje proces od začátku do konce, s použitím osvědčených metod prognózování k rychlému zveřejnění kritických nejistot, klíčových poznatků a oblastí neshod.",
+  "tellUsAboutYourNeeds": "Řekněte nám o vašich potřebách...",
+  "yourOrganization": "Vaše organizace",
+  "yourMessageForm": "Vaše zpráva",
   "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }
