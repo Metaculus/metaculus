@@ -15,10 +15,10 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone as dt_timezone
 from typing import Sequence
 
-
+import numpy as np
+import sentry_sdk
 from django.db.models import F, Q, QuerySet
 from django.utils import timezone
-import numpy as np
 
 from projects.permissions import ObjectPermission
 from questions.models import (
@@ -28,8 +28,8 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.types import AggregationMethod
-from scoring.models import Score, LeaderboardEntry
 from scoring.constants import ScoreTypes
+from scoring.models import Score, LeaderboardEntry
 from users.models import User
 from utils.the_math.measures import (
     weighted_percentile_2d,
@@ -301,23 +301,36 @@ class PeerScoreReputationWeighted(ReputationWeighted):
         old_peer_scores = list(
             peer_scores.filter(edited_at__lte=start).order_by("edited_at")
         )
-        for score in old_peer_scores:
-            scores_by_user[score.user_id][score.question_id] = score
-        for user_id in all_forecaster_ids:
-            value = self.reputation_value(list(scores_by_user[user_id].values()))
-            reputations[user_id].append(Reputation(user_id, value, start))
+
+        with sentry_sdk.start_span(
+            op="compute", name="compute_initial_reputations"
+        ) as span:
+            span.set_data("forecaster_count", len(all_forecaster_ids))
+            span.set_data("old_peer_scores_count", len(old_peer_scores))
+            for score in old_peer_scores:
+                scores_by_user[score.user_id][score.question_id] = score
+            for user_id in all_forecaster_ids:
+                value = self.reputation_value(list(scores_by_user[user_id].values()))
+                reputations[user_id].append(Reputation(user_id, value, start))
 
         # Then, for each new score, add a new reputation record
         new_peer_scores = list(
             peer_scores.filter(edited_at__gt=start).order_by("edited_at")
         )
-        for score in new_peer_scores:
-            # update the scores by user, then calculate the updated reputation
-            scores_by_user[score.user_id][score.question_id] = score
-            value = self.reputation_value(list(scores_by_user[score.user_id].values()))
-            reputations[score.user_id].append(
-                Reputation(score.user_id, value, score.edited_at)
-            )
+
+        with sentry_sdk.start_span(
+            op="compute", name="compute_reputation_updates"
+        ) as span:
+            span.set_data("new_peer_scores_count", len(new_peer_scores))
+            for score in new_peer_scores:
+                # update the scores by user, then calculate the updated reputation
+                scores_by_user[score.user_id][score.question_id] = score
+                value = self.reputation_value(
+                    list(scores_by_user[score.user_id].values())
+                )
+                reputations[score.user_id].append(
+                    Reputation(score.user_id, value, score.edited_at)
+                )
         return reputations
 
     def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
@@ -949,6 +962,7 @@ def get_user_forecast_history(
     return sorted(list(forecast_sets.values()), key=lambda x: x.timestep)
 
 
+@sentry_sdk.trace
 def get_aggregation_history(
     question: Question,
     aggregation_methods: list[AggregationMethod],
@@ -982,7 +996,9 @@ def get_aggregation_history(
         cutoff = question.actual_close_time
     else:
         cutoff = min(timezone.now(), question.actual_close_time or timezone.now())
-    forecast_history = get_user_forecast_history(forecasts, minimize, cutoff=cutoff)
+
+    with sentry_sdk.start_span(op="compute", name="get_user_forecast_history"):
+        forecast_history = get_user_forecast_history(forecasts, minimize, cutoff=cutoff)
 
     forecaster_ids = set(forecast.author_id for forecast in forecasts)
     for method in aggregation_methods:
@@ -996,11 +1012,16 @@ def get_aggregation_history(
             continue
 
         aggregation_history: list[AggregateForecast] = []
-        AggregationGenerator: Aggregation = get_aggregation_by_name(method)(
-            question=question,
-            all_forecaster_ids=forecaster_ids,
-            joined_before=joined_before,
-        )
+        with sentry_sdk.start_span(
+            op="aggregation.init",
+            name=f"init_aggregation_generator:{method}",
+        ) as span:
+            span.set_data("forecaster_count", len(forecaster_ids))
+            AggregationGenerator: Aggregation = get_aggregation_by_name(method)(
+                question=question,
+                all_forecaster_ids=forecaster_ids,
+                joined_before=joined_before,
+            )
 
         last_historical_entry_index = -1
         now = timezone.now()
@@ -1009,34 +1030,41 @@ def get_aggregation_history(
                 last_historical_entry_index += 1
             else:
                 break
-        for i, forecast_set in enumerate(forecast_history):
-            if histogram is not None:
-                include_histogram = histogram and (
-                    question.type
-                    in [
-                        Question.QuestionType.BINARY,
-                        Question.QuestionType.MULTIPLE_CHOICE,
-                    ]
-                )
-            else:
-                include_histogram = question.type == Question.QuestionType.BINARY and (
-                    i >= last_historical_entry_index
-                )
 
-            if forecast_set.forecasts_values:
-                new_entry = AggregationGenerator.calculate_aggregation_entry(
-                    forecast_set,
-                    include_stats=include_stats,
-                    histogram=include_histogram,
-                )
-                if new_entry is None:
-                    continue
-                if aggregation_history and aggregation_history[-1].end_time is None:
-                    aggregation_history[-1].end_time = new_entry.start_time
-                aggregation_history.append(new_entry)
-            else:
-                if aggregation_history:
-                    aggregation_history[-1].end_time = forecast_set.timestep
+        with sentry_sdk.start_span(
+            op="aggregation.compute",
+            name=f"compute_aggregation_entries:{method}",
+        ) as span:
+            span.set_data("forecast_history_count", len(forecast_history))
+            for i, forecast_set in enumerate(forecast_history):
+                if histogram is not None:
+                    include_histogram = histogram and (
+                        question.type
+                        in [
+                            Question.QuestionType.BINARY,
+                            Question.QuestionType.MULTIPLE_CHOICE,
+                        ]
+                    )
+                else:
+                    include_histogram = (
+                        question.type == Question.QuestionType.BINARY
+                        and (i >= last_historical_entry_index)
+                    )
+
+                if forecast_set.forecasts_values:
+                    new_entry = AggregationGenerator.calculate_aggregation_entry(
+                        forecast_set,
+                        include_stats=include_stats,
+                        histogram=include_histogram,
+                    )
+                    if new_entry is None:
+                        continue
+                    if aggregation_history and aggregation_history[-1].end_time is None:
+                        aggregation_history[-1].end_time = new_entry.start_time
+                    aggregation_history.append(new_entry)
+                else:
+                    if aggregation_history:
+                        aggregation_history[-1].end_time = forecast_set.timestep
         full_summary[method] = aggregation_history
 
     return full_summary

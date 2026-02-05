@@ -823,8 +823,8 @@ class GroupOfQuestionsAdmin(CustomTranslationAdmin):
     def save_model(self, request, obj: GroupOfQuestions, form, change):
         super().save_model(request, obj, form, change)
 
-        if obj.post_id:
-            run_post_generate_history_snapshot.send(obj.post_id, request.user.id)
+        if obj.post:
+            run_post_generate_history_snapshot.send(obj.post.id, request.user.id)
 
 
 @admin.register(Forecast)

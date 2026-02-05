@@ -35,7 +35,8 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
     <div>
       {!isNil(forCommunityFeed) &&
         forCommunityFeed !==
-          (post.projects.default_project.type === TournamentType.Community) && (
+          (post.projects?.default_project?.type === TournamentType.Community) &&
+        post.projects?.default_project && (
           <CommunityDisclaimer
             project={post.projects.default_project}
             variant="inline"
