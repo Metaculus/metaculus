@@ -422,7 +422,7 @@ const FutureEvalMethodologySections: React.FC = () => {
           <p className="m-0">
             We run all major models with a simple, fixed prompt on most
             Metaculus forecasting questions. Those are implemented as
-            &quot;Metac Bots&quot; with username{" "}
+            &quot;MetacBots&quot; with username{" "}
             <code className="rounded bg-futureeval-bg-dark/10 px-1 py-0.5 dark:bg-futureeval-bg-light/10">
               metac-*+asknews
             </code>
@@ -517,7 +517,64 @@ const FutureEvalMethodologySections: React.FC = () => {
         </SectionBody>
       </section>
 
-      {/* Section 3: What is the Pro vs Bots Graph? */}
+      {/* Section 3: How do you run your bots? */}
+      <section className="space-y-6">
+        <SectionHeader id="how-bots-run">
+          How do you run{" "}
+          <span className={FE_COLORS.textAccent}>your bots?</span>
+        </SectionHeader>
+        <SectionBody>
+          <p className="m-0">
+            We run a number of simple bots (nicknamed &quot;MetacBots&quot;) on
+            Metaculus to evaluate model performance for the Model Leaderboard
+            and in the Bot Tournaments. They&apos;re all named{" "}
+            <code className="rounded bg-futureeval-bg-dark/10 px-1 py-0.5 dark:bg-futureeval-bg-light/10">
+              metac-*
+            </code>
+            , and are not eligible for prizes in tournaments. They use a
+            standardized prompt and AskNews as a search provider. For example,{" "}
+            <code className="rounded bg-futureeval-bg-dark/10 px-1 py-0.5 dark:bg-futureeval-bg-light/10">
+              metac-gpt-4o+asknews
+            </code>{" "}
+            uses our standardized prompt, AskNews for research and GPT-4o for
+            making the predictions.
+          </p>
+          <p className="m-0">
+            You can find the code for our MetacBots{" "}
+            <Link
+              href="https://github.com/Metaculus/forecasting-tools/blob/main/run_bots.py"
+              className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+            >
+              here
+            </Link>
+            , and the different prompts{" "}
+            <Link
+              href="https://github.com/Metaculus/forecasting-tools/tree/main/forecasting_tools/forecast_bots/official_bots"
+              className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+            >
+              here
+            </Link>{" "}
+            (reproduced below).
+          </p>
+
+          {/* Prompt Accordions */}
+          <div className="mt-6 space-y-3">
+            <FutureEvalDisclosure title="Prompt for Binary Forecasting">
+              <CodeBlock code={PROMPTS.binary} />
+            </FutureEvalDisclosure>
+
+            <FutureEvalDisclosure title="Prompt for Numeric Forecasting">
+              <CodeBlock code={PROMPTS.numeric} />
+            </FutureEvalDisclosure>
+
+            <FutureEvalDisclosure title="Prompt for Multiple Choice Forecasting">
+              <CodeBlock code={PROMPTS.multipleChoice} />
+            </FutureEvalDisclosure>
+          </div>
+        </SectionBody>
+      </section>
+
+      {/* Section 4: What is the Pro vs Bots Graph? */}
       <section className="space-y-6">
         <SectionHeader id="human-baseline">
           What is the{" "}
@@ -556,64 +613,6 @@ const FutureEvalMethodologySections: React.FC = () => {
         </SectionBody>
       </section>
 
-      {/* Section 4: How do you run your bots? */}
-      <section className="space-y-6">
-        <SectionHeader id="how-bots-run">
-          How do you run{" "}
-          <span className={FE_COLORS.textAccent}>your bots?</span>
-        </SectionHeader>
-        <SectionBody>
-          <p className="m-0">
-            Metaculus runs a number of bots (called our &quot;Metac Bots&quot;)
-            on Metaculus in order to get values for the Model Leaderboard. We
-            also run bots as a comparison point in the Bot Tournament and
-            MiniBench. In the tournament leaderboards, these bots will be
-            excluded from final prize calculations, and are prepended with
-            &apos;metac&apos;.
-          </p>
-          <p className="m-0">
-            Unless indicated otherwise, bots use a standardized prompt (a
-            different one per question type) and use AskNews as a search
-            provider. For example, &apos;metac-gpt-4o+asknews&apos; runs our
-            standardized prompt, uses AskNews for research and GPT-4o for
-            prediction. Additionally, &apos;metac-deepseek-r1+sonar-pro&apos;
-            uses a standard prompt, uses Perplexity&apos;s Sonar Pro model for
-            research, and DeepSeekR1 as the prediction model.
-          </p>
-          <p className="m-0">
-            You can find the script that runs our Metac Bots{" "}
-            <Link
-              href="https://github.com/Metaculus/forecasting-tools/blob/main/run_bots.py"
-              className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
-            >
-              here
-            </Link>
-            , and the different prompts of our bots{" "}
-            <Link
-              href="https://github.com/Metaculus/forecasting-tools/tree/main/forecasting_tools/forecast_bots/official_bots"
-              className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
-            >
-              here
-            </Link>
-            .
-          </p>
-
-          {/* Prompt Accordions */}
-          <div className="mt-6 space-y-3">
-            <FutureEvalDisclosure title="Prompt for Binary Forecasting">
-              <CodeBlock code={PROMPTS.binary} />
-            </FutureEvalDisclosure>
-
-            <FutureEvalDisclosure title="Prompt for Numeric Forecasting">
-              <CodeBlock code={PROMPTS.numeric} />
-            </FutureEvalDisclosure>
-
-            <FutureEvalDisclosure title="Prompt for Multiple Choice Forecasting">
-              <CodeBlock code={PROMPTS.multipleChoice} />
-            </FutureEvalDisclosure>
-          </div>
-        </SectionBody>
-      </section>
     </div>
   );
 };
