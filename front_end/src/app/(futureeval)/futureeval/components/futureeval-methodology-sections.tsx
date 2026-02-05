@@ -520,8 +520,8 @@ const FutureEvalMethodologySections: React.FC = () => {
       {/* Section 3: How do you run your bots? */}
       <section className="space-y-6">
         <SectionHeader id="how-bots-run">
-          How do you run{" "}
-          <span className={FE_COLORS.textAccent}>your bots?</span>
+          How FutureEval{" "}
+          <span className={FE_COLORS.textAccent}>Bots Work</span>
         </SectionHeader>
         <SectionBody>
           <p className="m-0">
@@ -574,9 +574,34 @@ const FutureEvalMethodologySections: React.FC = () => {
         </SectionBody>
       </section>
 
-      {/* Section 4: What is the Pro vs Bots Graph? */}
+      {/* Section 4: The Human Baselines */}
       <section className="space-y-6">
-        <SectionHeader id="human-baseline">
+        <SectionHeader id="human-baselines">
+          The <span className={FE_COLORS.textAccent}>Human Baselines</span>
+        </SectionHeader>
+        <SectionBody>
+          <p className="m-0">
+            Some of the questions in the Bot Tournaments come from the Metaculus
+            platform, where our forecasting community competes to make the best
+            predictions. To establish an even higher bar, we also
+            engage our hand-picked{" "}
+            <Link
+              href="https://www.metaculus.com/services/pro-forecasters/"
+              className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+            >
+              Pro Forecasters
+            </Link>{" "}
+            to provide high-quality predictions and reasoning on a subset of
+            questions in our Bot Tournament (around 100 per tournament). This
+            gives two high-quality baselines to evaluate the progress of AI
+            forecasting bots.
+          </p>
+        </SectionBody>
+      </section>
+
+      {/* Section 5: What is the Pro vs Bots Graph? */}
+      <section className="space-y-6">
+        <SectionHeader id="pro-vs-bots-graph">
           What is the{" "}
           <span className={FE_COLORS.textAccent}>Pro vs Bots Graph?</span>
         </SectionHeader>
