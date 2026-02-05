@@ -599,39 +599,41 @@ const FutureEvalMethodologySections: React.FC = () => {
         </SectionBody>
       </section>
 
-      {/* Section 5: What is the Pro vs Bots Graph? */}
+      {/* Section 5: How much Pros beat Bots */}
       <section className="space-y-6">
-        <SectionHeader id="pro-vs-bots-graph">
-          What is the{" "}
-          <span className={FE_COLORS.textAccent}>Pro vs Bots Graph?</span>
+        <SectionHeader id="pros-beat-bots">
+          How much{" "}
+          <span className={FE_COLORS.textAccent}>Pros beat Bots</span>
         </SectionHeader>
         <SectionBody>
           <p className="m-0">
-            On the FutureEval{" "}
+            At the end of each season, we publish an analysis investigating
+            whether the best bots in our Bot Tournament are better or worse than
+            the best humans and by how much.
+          </p>
+          <p className="m-0">
+            The graph on our{" "}
             <Link
               href="/futureeval"
               className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
             >
-              benchmark page
-            </Link>
-            , you can find a graph comparing bots and pros over the 4 quarters
-            of our first year of AI Benchmarking. These data points are pulled
-            directly from the results of each of the quarterly tournaments we
-            ran in Year 1 of the Bot Tournament. Each corresponding data
-            analysis write-up reports a head-to-head spot peer score comparing a
-            bot team and a human pro team.
+              home page
+            </Link>{" "}
+            shows the score difference between a team of the best 10 bots and
+            the Pros in the first four Bot Tournaments.
           </p>
           <p className="m-0">
-            You can find the full details of these reports in our{" "}
+            You can find the full details and methodology of these analyses in
+            the{" "}
             <Link
               href="https://www.metaculus.com/notebooks/38928/ai-benchmark-resources/#futureeval-results-year-1"
               className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
             >
               &quot;FutureEval Results Year 1&quot;
             </Link>{" "}
-            section on our resources page. Note that the graph&apos;s y-axis is
+            section of our resources page. Note that the graph&apos;s y-axis is
             labelled &quot;Average score difference,&quot; which is not
-            technically correct, but communicates the same idea as what is
+            especially precise but communicates the same idea as what is
             actually used (a head-to-head peer score) for readers unfamiliar
             with forecasting scoring rules.
           </p>
