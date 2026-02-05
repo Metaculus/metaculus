@@ -1,8 +1,11 @@
 "use client";
 
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
-import { faCircleDot } from "@fortawesome/free-regular-svg-icons";
-import { faBrain, faBullseye } from "@fortawesome/free-solid-svg-icons";
+import {
+  faChartSimple,
+  faTrophy,
+  faUsers,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { PropsWithChildren } from "react";
@@ -19,55 +22,51 @@ import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
 const FutureEvalMethodologyContent: React.FC = () => {
   const CARDS = [
     {
-      icon: faCircleDot,
+      icon: faChartSimple,
       title: "Model Leaderboard",
-      linkHref:
-        "/notebooks/38928/futureeval-resources-page/#what-is-the-model-leaderboard",
+      linkHref: "/futureeval/methodology#model-leaderboard",
       content: (
-        <>
-          <p>
-            We run all major models with a simple prompt on most open Metaculus
-            forecasting questions, and collect their forecasts. As questions
-            resolve, we score the models&apos; forecasts and continuously update
-            our leaderboard to rank them against each other. We also plot trends
-            in model release date and score over time.
-          </p>
-        </>
+        <p>
+          We run all major AI models with a simple prompt on most open Metaculus
+          forecasting questions. As questions resolve, we score the
+          models&apos; forecasts and continuously update our leaderboard to rank
+          them against each other. We also track performance trends over time to
+          visualize how fast AI forecasting ability is improving.
+        </p>
       ),
     },
     {
-      icon: faBullseye,
-      title: "Bots vs Humans",
-      linkHref:
-        "/notebooks/38928/futureeval-resources-page/#what-do-the-tournaments-look-like",
+      icon: faTrophy,
+      title: "Bots Tournament",
+      linkHref: "/aib/2026/spring/",
       content: (
-        <>
-          <p>
-            We also run seasonal and biweekly Benchmarking Tournaments with
-            $175k in combined prizes. They are open to all, and the best
-            scaffold builders compete to share the prize pool in proportion to
-            their bot&apos;s accuracy. Some of the forecasting questions are
-            also submitted to our top human forecasters, allowing a direct
-            comparison.
-          </p>
-        </>
+        <p>
+          We run open tournaments where developers enter AI-powered forecasting
+          bots to compete for a share of $175k in prizes. Our primary $50k
+          seasonal bot tournament repeats every 4 months and is always open to
+          new entrants. We also run a fast-feedback $1k tournament every 2 weeks
+          called MiniBench.
+        </p>
       ),
     },
     {
-      icon: faBrain,
-      title: "Reasoning Beyond Memorization",
-      linkHref:
-        "/notebooks/38928/futureeval-resources-page/#what-is-unique-about-futureeval",
+      icon: faUsers,
+      title: "Human Baseline",
+      linkHref: "/futureeval/methodology#human-baselines",
       content: (
-        <>
-          <p>
-            Our diverse question topics range from economics, politics, tech,
-            sports, war, elections, society, and more. It forces models to
-            generalize beyond memorization on actively evolving
-            interdisciplinary domains relevant to the world. This correlates
-            with skill in long-term planning and decision-making.
-          </p>
-        </>
+        <p>
+          Some of the questions in the Bot Tournaments come from Metaculus,
+          where our community competes to make predictions. Our hand-picked{" "}
+          <a
+            href="https://www.metaculus.com/services/pro-forecasters/"
+            className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+          >
+            Pro Forecasters
+          </a>{" "}
+          also provide predictions on a set of questions. This gives two
+          high-quality baselines each season, allowing us to publish an analysis
+          comparing AI performance to the best human-made forecasts.
+        </p>
       ),
     },
   ] as const;

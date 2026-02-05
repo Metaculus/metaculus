@@ -632,9 +632,9 @@ const FutureEvalMethodologySections: React.FC = () => {
               &quot;FutureEval Results Year 1&quot;
             </Link>{" "}
             section of our resources page. Note that the graph&apos;s y-axis is
-            labelled &quot;Average score difference,&quot; which is not
-            especially precise but communicates the same idea as what is
-            actually used (a head-to-head peer score) for readers unfamiliar
+            labelled &quot;Score Difference.&quot; Technically, this should be
+            labelled as average head-to-head spot peer score, but &quot;Score
+            Difference&quot; communicates a similar idea for readers unfamiliar
             with forecasting scoring rules.
           </p>
         </SectionBody>
