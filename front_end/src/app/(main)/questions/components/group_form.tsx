@@ -217,13 +217,12 @@ const GroupForm: React.FC<Props> = ({
     (Error & { digest?: string }) | string | undefined
   >();
 
-  const defaultProject = post
-    ? post.projects.default_project
-    : tournament_id
-      ? ([...tournaments, siteMain].filter(
-          (x) => x.id === tournament_id
-        )[0] as Tournament)
-      : siteMain;
+  const defaultProject: Tournament =
+    post?.projects?.default_project ??
+    (tournament_id
+      ? (([...tournaments, siteMain].find((x) => x.id === tournament_id) ??
+          siteMain) as Tournament)
+      : siteMain);
   const [currentProject, setCurrentProject] =
     useState<Tournament>(defaultProject);
 
@@ -404,7 +403,7 @@ const GroupForm: React.FC<Props> = ({
   });
 
   const [categoriesList, setCategoriesList] = useState<Category[]>(
-    post?.projects.category ? post?.projects.category : ([] as Category[])
+    post?.projects?.category ?? ([] as Category[])
   );
   const [collapsedSubQuestions, setCollapsedSubQuestions] = useState<boolean[]>(
     subQuestions.map(() => true)
