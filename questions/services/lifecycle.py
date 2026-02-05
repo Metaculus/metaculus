@@ -35,6 +35,7 @@ def handle_question_open(question: Question):
     notify_project_subscriptions_post_open(post, question=question)
 
 
+@transaction.atomic()
 def handle_cp_revealed(question: Question):
     """
     A specific handler is triggered once the community prediction is revealed

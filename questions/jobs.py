@@ -44,9 +44,8 @@ def job_check_cp_revealed():
     for question in questions_to_reveal:
         try:
             handle_cp_revealed(question)
-        except Exception:
-            logger.exception(f"Failed to handle CP revealed for question {question.id}")
-        finally:
             # Mark as triggered
             question.cp_reveal_time_triggered = True
             question.save(update_fields=["cp_reveal_time_triggered"])
+        except Exception:
+            logger.exception(f"Failed to handle CP revealed for question {question.id}")
