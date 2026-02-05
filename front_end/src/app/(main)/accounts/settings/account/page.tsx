@@ -1,4 +1,4 @@
-import invariant from "ts-invariant";
+import { redirect } from "next/navigation";
 
 import EmailMeMyData from "@/app/(main)/accounts/settings/account/components/email_me_my_data";
 import ServerAuthApi from "@/services/api/auth/auth.server";
@@ -16,7 +16,7 @@ export const metadata = {
 
 export default async function Settings() {
   const currentUser = await ServerProfileApi.getMyProfile();
-  invariant(currentUser);
+  if (!currentUser) return redirect("/");
 
   const { key: apiKey } = await ServerAuthApi.getApiKey();
 
