@@ -282,6 +282,15 @@ class PeerScoreReputationWeighted(ReputationWeighted):
         self, all_forecaster_ids: list[int] | set[int]
     ) -> dict[int, list[Reputation]]:
 
+        """
+        Builds a time-ordered reputation timeline for each forecaster based on their peer scores between the question's open time and close time.
+        
+        Parameters:
+            all_forecaster_ids (list[int] | set[int]): Forecaster IDs to include in the reputation history.
+        
+        Returns:
+            dict[int, list[Reputation]]: Mapping from user ID to a list of Reputation objects. Each list begins with a Reputation at the question's open time and includes subsequent Reputation entries at the edited times of peer scores up to the question's scheduled close time (or now if the close time is unset). Each Reputation.value is computed via the instance's reputation_value method.
+        """
         start = self.question.open_time
         end = self.question.scheduled_close_time
         if end is None:
@@ -335,6 +344,15 @@ class PeerScoreReputationWeighted(ReputationWeighted):
 
     def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
         # Custom overwrite to uniquely combine time weighting with reputation
+        """
+        Compute per-forecast weights by combining recency and per-forecaster reputation for the given ForecastSet.
+        
+        Parameters:
+            forecast_set (ForecastSet): ForecastSet containing forecasts, their timesteps, and forecaster ids.
+        
+        Returns:
+            Weights: 1-D numpy array of non-negative weights aligned with forecast_set.forecaster_ids, or `None` if no nonzero weights are produced.
+        """
         reps = self.get_reputations(forecast_set)
         # TODO: make these learned parameters
         a = 0.5
@@ -923,6 +941,17 @@ def get_user_forecast_history(
     minimize: bool = False,
     cutoff: datetime | None = None,
 ) -> list[ForecastSet]:
+    """
+    Builds a timeline of ForecastSet objects where each ForecastSet contains the predictions active at a given timestep.
+    
+    Parameters:
+        forecasts (Sequence[Forecast]): Sequence of Forecast objects to align into timesteps.
+        minimize (bool): If True, reduce the returned timestep history resolution using minimize_history.
+        cutoff (datetime | None): If provided, ignore forecast end times after this cutoff when constructing timesteps.
+    
+    Returns:
+        list[ForecastSet]: Sorted list of ForecastSet instances; each entry's `timestep` is a distinct timepoint and its `forecasts_values`, `forecaster_ids`, and `timesteps` contain the predictions, author ids, and original start times for forecasts active at that timestep.
+    """
     timestep_set: set[datetime] = set()
     for forecast in forecasts:
         timestep_set.add(forecast.start_time)
@@ -972,6 +1001,26 @@ def get_aggregation_history(
     include_future: bool = True,
     joined_before: datetime | None = None,
 ) -> dict[AggregationMethod, list[AggregateForecast]]:
+    """
+    Compute aggregation histories for the given question using the specified aggregation methods.
+    
+    Generates time-ordered AggregateForecast entries per aggregation method by collecting forecasts (optionally provided), building per-timestep ForecastSet objects, applying aggregation generators, and producing a list of aggregation entries for each requested method.
+    
+    Parameters:
+        question (Question): The question to aggregate forecasts for.
+        aggregation_methods (list[AggregationMethod]): Aggregation methods to compute.
+        forecasts (QuerySet[Forecast] | None): Optional queryset of Forecast objects to use; when omitted, forecasts are queried for the question.
+        only_include_user_ids (list[int] | set[int] | None): If provided, restrict forecasts to these author IDs.
+        minimize (bool): If True, reduce the temporal resolution of the forecast history to limit output size.
+        include_stats (bool): If True, include interval and mean statistics on each AggregateForecast.
+        include_bots (bool): If True, include forecasts authored by bot accounts.
+        histogram (bool | None): If True/False, explicitly enable/disable per-entry histograms; if None, uses default behavior based on question type and history position.
+        include_future (bool): If True, include forecast timesteps after the current time up to the question's actual close time; if False, limit history to now or actual close time, whichever is earlier.
+        joined_before (datetime | None): If provided, pass to aggregation constructors to filter forecasters by join date.
+    
+    Returns:
+        dict[AggregationMethod, list[AggregateForecast]]: A mapping from each requested aggregation method to its list of chronological AggregateForecast entries (may be empty).
+    """
     full_summary: dict[AggregationMethod, list[AggregateForecast]] = dict()
 
     if not forecasts:

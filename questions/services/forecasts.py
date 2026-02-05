@@ -384,8 +384,15 @@ def get_average_coverage_for_questions(
     questions: Iterable[Question],
 ) -> dict[Question, float]:
     """
-    Calculate the average coverage for each question based on scores
-    from non-bot users with the question's default score type.
+    Compute the average forecast coverage for each resolved question in `questions`.
+    
+    Only scores that match each question's `default_score_type` and that are associated with a non-null user are considered. Scores from bot users are excluded unless the question's `include_bots_in_aggregates` flag is true. Questions with no qualifying scores are omitted from the result.
+    
+    Parameters:
+        questions (Iterable[Question]): Iterable of Question objects to evaluate; only questions with status RESOLVED are considered.
+    
+    Returns:
+        dict[Question, float]: Mapping from each resolved Question to the mean of its qualifying `coverage` values.
     """
 
     questions_list = list(q for q in questions if q.status == QuestionStatus.RESOLVED)
@@ -423,8 +430,13 @@ def build_question_forecasts(
     aggregation_method: AggregationMethod | None = None,
 ):
     """
-    Builds the AggregateForecasts for a question
-    Stores them in the database
+    Build and persist aggregate forecasts for a question using the specified aggregation method.
+    
+    Updates the stored AggregateForecast records to match the computed aggregation history, preserving existing records where possible to minimize deletions and creations. The update runs inside a database transaction.
+    
+    Parameters:
+        question (Question): The question whose aggregate forecasts will be built and stored.
+        aggregation_method (AggregationMethod | None): Aggregation method to use; if None, use the question's default.
     """
     aggregation_method = aggregation_method or question.default_aggregation_method
     aggregation_history = get_aggregation_history(
