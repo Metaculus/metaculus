@@ -103,6 +103,7 @@ type BaseLeaderboardDetails = {
   project_id: number;
   project_type: MedalProjectType;
   project_name: string;
+  is_primary_leaderboard: boolean;
   score_type: LeaderboardType;
   name: string | null;
   start_time: string;
@@ -111,6 +112,7 @@ type BaseLeaderboardDetails = {
   finalized: boolean;
   prize_pool: number | null;
   max_coverage?: number;
+  display_config: Record<string, any> | null; // TODO: specify type
 };
 
 export type LeaderboardDetails = BaseLeaderboardDetails & {
