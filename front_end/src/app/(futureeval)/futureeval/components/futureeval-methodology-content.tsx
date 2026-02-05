@@ -28,10 +28,10 @@ const FutureEvalMethodologyContent: React.FC = () => {
       content: (
         <p>
           We run all major AI models with a simple prompt on most open Metaculus
-          forecasting questions. As questions resolve, we score the
-          models&apos; forecasts and continuously update our leaderboard to rank
-          them against each other. We also track performance trends over time to
-          visualize how fast AI forecasting ability is improving.
+          forecasting questions. As questions resolve, we score the models&apos;
+          forecasts and continuously update our leaderboard to rank them against
+          each other. We also track performance trends over time to visualize
+          how fast AI forecasting ability is improving.
         </p>
       ),
     },

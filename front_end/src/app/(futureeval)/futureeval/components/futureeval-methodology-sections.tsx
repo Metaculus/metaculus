@@ -244,7 +244,7 @@ const SectionHeader: React.FC<{ children: ReactNode; id?: string }> = ({
           onClick={handleCopyLink}
           className={cn(
             "ml-2 inline-flex cursor-pointer items-center border-none bg-transparent p-1 align-middle opacity-0 transition-opacity",
-            "group-hover:opacity-50 hover:!opacity-100",
+            "hover:!opacity-100 group-hover:opacity-50",
             FE_COLORS.textAccent
           )}
           title="Copy link to section"
@@ -327,13 +327,13 @@ const FutureEvalMethodologySections: React.FC = () => {
                     so it&apos;s impossible to train on the test set.
                   </span>,
                   <span key="saturation">
-                    <strong>No Saturation:</strong> Some AI reasoning
-                    benchmarks have already become saturated as AI reaches 100%
-                    accuracy on them. But tomorrow is unpredictable, and next
-                    year even more so. We can make forecasting questions almost
-                    arbitrarily more challenging by making them more niche and
-                    precise, and longer term. FutureEval will only become
-                    saturated when AIs are perfect oracles.
+                    <strong>No Saturation:</strong> Some AI reasoning benchmarks
+                    have already become saturated as AI reaches 100% accuracy on
+                    them. But tomorrow is unpredictable, and next year even more
+                    so. We can make forecasting questions almost arbitrarily
+                    more challenging by making them more niche and precise, and
+                    longer term. FutureEval will only become saturated when AIs
+                    are perfect oracles.
                   </span>,
                   <span key="interdisciplinary">
                     <strong>Interdisciplinary Reasoning:</strong> Our diverse
@@ -379,12 +379,12 @@ const FutureEvalMethodologySections: React.FC = () => {
                   </span>,
                   <span key="quality">
                     <strong>High quality diverse questions:</strong> Our own
-                    writers have years of experience developing decision-relevant
-                    and high quality questions for the Metaculus platform and
-                    our clients, and use it to write and curate the FutureEval
-                    questions. They largely avoid entertainment questions that
-                    make the bulk of content on prediction markets, to focus on
-                    global events of importance.
+                    writers have years of experience developing
+                    decision-relevant and high quality questions for the
+                    Metaculus platform and our clients, and use it to write and
+                    curate the FutureEval questions. They largely avoid
+                    entertainment questions that make the bulk of content on
+                    prediction markets, to focus on global events of importance.
                   </span>,
                   <span key="probabilistic">
                     <strong>Probabilistic forecasts:</strong> FutureEval
@@ -485,8 +485,7 @@ const FutureEvalMethodologySections: React.FC = () => {
       {/* Section 3: Forecasting Performance Over Time */}
       <section className="space-y-6">
         <SectionHeader id="forecasting-performance-over-time">
-             Performance{" "}
-            <span className={FE_COLORS.textAccent}>Over Time</span>
+          Performance <span className={FE_COLORS.textAccent}>Over Time</span>
         </SectionHeader>
         <SectionBody>
           <p className="m-0">
@@ -518,8 +517,7 @@ const FutureEvalMethodologySections: React.FC = () => {
       {/* Section 4: How do you run your bots? */}
       <section className="space-y-6">
         <SectionHeader id="how-bots-run">
-          How FutureEval{" "}
-          <span className={FE_COLORS.textAccent}>Bots Work</span>
+          How FutureEval <span className={FE_COLORS.textAccent}>Bots Work</span>
         </SectionHeader>
         <SectionBody>
           <p className="m-0">
@@ -581,8 +579,8 @@ const FutureEvalMethodologySections: React.FC = () => {
           <p className="m-0">
             Some of the questions in the Bot Tournaments come from the Metaculus
             platform, where our forecasting community competes to make the best
-            predictions. To establish an even higher bar, we also
-            engage our hand-picked{" "}
+            predictions. To establish an even higher bar, we also engage our
+            hand-picked{" "}
             <Link
               href="https://www.metaculus.com/services/pro-forecasters/"
               className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
@@ -607,8 +605,7 @@ const FutureEvalMethodologySections: React.FC = () => {
       {/* Section 6: How much Pros beat Bots */}
       <section className="space-y-6">
         <SectionHeader id="pros-beat-bots">
-          How Much{" "}
-          <span className={FE_COLORS.textAccent}>Pros Beat Bots</span>
+          How Much <span className={FE_COLORS.textAccent}>Pros Beat Bots</span>
         </SectionHeader>
         <SectionBody>
           <p className="m-0">
@@ -644,7 +641,6 @@ const FutureEvalMethodologySections: React.FC = () => {
           </p>
         </SectionBody>
       </section>
-
     </div>
   );
 };
