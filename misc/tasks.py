@@ -4,8 +4,6 @@ import dramatiq
 from django.conf import settings
 from django.core.mail import send_mail
 
-from users.models import User
-
 logger = logging.getLogger(__name__)
 
 
@@ -20,6 +18,7 @@ def filter_staff_emails(emails: list[str]) -> list:
     """
     Filters only User.is_staff or *@metaculus.com emails
     """
+    from users.models import User
 
     staff_emails = [
         x.lower()
