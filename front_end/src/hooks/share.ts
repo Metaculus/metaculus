@@ -9,7 +9,7 @@ export const useCopyUrl = () => {
 
   return useCallback(() => {
     if (typeof window !== "undefined") {
-      const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+      const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}${window.location.hash}`;
       navigator.clipboard
         .writeText(url)
         .then(() => {
@@ -44,7 +44,7 @@ export const useShareOnTwitterLink = (message = "") => {
     if (typeof window === "undefined") {
       return "";
     }
-    const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+    const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}${window.location.hash}`;
     return `https://twitter.com/intent/tweet?text=${encodeURIComponent(
       message
     )}&url=${encodeURIComponent(url)}`;
@@ -59,7 +59,7 @@ export const useShareOnFacebookLink = () => {
     if (typeof window === "undefined") {
       return "";
     }
-    const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+    const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}${window.location.hash}`;
     return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
   }, [pathname, searchParams]);
 };
