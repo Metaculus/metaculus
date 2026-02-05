@@ -89,7 +89,7 @@ const FutureEvalBenchmarkForecastingPerformance: React.FC = () => {
       const colorArray = Object.values(METAC_COLORS["mc-option"]);
       const colorKeys = Object.keys(METAC_COLORS["mc-option"]);
 
-      const skippedIndexes = new Set([2]);
+      const skippedIndexes = new Set([2, 15]);
       const availableIndexes = colorKeys
         .map((_, i) => i)
         .filter((i) => !skippedIndexes.has(i));
@@ -97,7 +97,7 @@ const FutureEvalBenchmarkForecastingPerformance: React.FC = () => {
       const availableIndexesLength = availableIndexes.length;
       const mappedIndex = idx % availableIndexesLength;
       const finalIndex = availableIndexes[mappedIndex] ?? 0;
-      const chosen = colorArray[finalIndex] ?? METAC_COLORS["mc-option"][1];
+      const chosen = colorArray[finalIndex] ?? METAC_COLORS["mc-option"][16];
       return getThemeColor(chosen);
     },
     [getThemeColor]

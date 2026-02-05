@@ -41,7 +41,7 @@ type Props = {
 // Chart dimensions
 const CHART_HEIGHT_DESKTOP = 600;
 const CHART_HEIGHT_MOBILE = 460;
-const MIN_CHART_WIDTH = 400;
+const MIN_CHART_WIDTH = 300;
 const PADDING_DESKTOP = { top: 30, bottom: 80, left: 50, right: 30 };
 const PADDING_SMALL_SCREEN = { top: 30, bottom: 80, left: 35, right: 0 };
 
@@ -136,14 +136,25 @@ export function BenchmarkChart({
 
   // Calculate domain - memoized to avoid recalculation on every render
   const { minX, maxX, minY, maxY } = useMemo(() => {
-    const xValues = chartData.map((d) => d.x);
-    const yValues = chartData.map((d) => d.y);
-    const refScores = referenceLines.map((r) => r.y);
+    // Build arrays and filter out non-finite values
+    const xValues = chartData.map((d) => d.x).filter((x) => Number.isFinite(x));
+    const yValues = chartData.map((d) => d.y).filter((y) => Number.isFinite(y));
+    const refScores = referenceLines
+      .map((r) => r.y)
+      .filter((y) => Number.isFinite(y));
+
+    // Combine yValues and refScores for Y domain calculation
+    const allYValues = [...yValues, ...refScores];
+
+    // Use safe fallbacks (0) when arrays are empty to ensure finite results
+    const defaultX = 0;
+    const defaultY = 0;
+
     return {
-      minX: Math.min(...xValues),
-      maxX: Math.max(...xValues),
-      minY: Math.min(...yValues),
-      maxY: Math.max(...yValues, ...refScores),
+      minX: xValues.length > 0 ? Math.min(...xValues) : defaultX,
+      maxX: xValues.length > 0 ? Math.max(...xValues) : defaultX,
+      minY: allYValues.length > 0 ? Math.min(...allYValues) : defaultY,
+      maxY: allYValues.length > 0 ? Math.max(...allYValues) : defaultY,
     };
   }, [chartData, referenceLines]);
 

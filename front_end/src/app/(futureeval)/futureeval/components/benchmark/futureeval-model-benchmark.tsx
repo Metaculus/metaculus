@@ -78,8 +78,16 @@ const FutureEvalModelBenchmark: React.FC = () => {
       const { light, dark } = entryIconPair(entry);
       const aggregate = isAggregate(entry);
 
+      // Generate stable, unique ID using deterministic composite: combine user id (if present), name, and score
+      const parts = [
+        entry.user?.id ? String(entry.user.id) : null,
+        name,
+        String(entry.score),
+      ].filter(Boolean);
+      const id = parts.join("-");
+
       return {
-        id: String(entry.user?.id ?? name),
+        id,
         name,
         score: entry.score,
         contributionCount: entry.contribution_count ?? 0,

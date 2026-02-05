@@ -116,11 +116,21 @@ export const CollisionAwareLabels = memo(function CollisionAwareLabels(
 
   // Calculate manually
   const scaleX = (val: number) => {
-    const ratio = (val - xDomain[0]) / (xDomain[1] - xDomain[0]);
+    const xSpan = xDomain[1] - xDomain[0];
+    if (xSpan === 0) {
+      // Degenerate domain: return center pixel
+      return padding.left + plotWidth / 2;
+    }
+    const ratio = (val - xDomain[0]) / xSpan;
     return padding.left + domainPadX + ratio * (plotWidth - 2 * domainPadX);
   };
   const scaleY = (val: number) => {
-    const ratio = (val - yDomain[0]) / (yDomain[1] - yDomain[0]);
+    const ySpan = yDomain[1] - yDomain[0];
+    if (ySpan === 0) {
+      // Degenerate domain: return center pixel
+      return chartHeight - padding.bottom - plotHeight / 2;
+    }
+    const ratio = (val - yDomain[0]) / ySpan;
     return (
       chartHeight -
       padding.bottom -
