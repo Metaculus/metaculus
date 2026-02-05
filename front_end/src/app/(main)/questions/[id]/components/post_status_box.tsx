@@ -41,8 +41,8 @@ export const PostStatusBox: FC<{
     return null;
   }
 
-  const isCommunity =
-    post.projects.default_project.type === TournamentType.Community;
+  const defaultProject = post.projects?.default_project;
+  const isCommunity = defaultProject?.type === TournamentType.Community;
 
   const canEdit = [
     ProjectPermissions.CURATOR,
@@ -50,7 +50,7 @@ export const PostStatusBox: FC<{
     ProjectPermissions.CREATOR,
   ].includes(post.user_permission);
   const canSendBackToDrafts =
-    post.curation_status === PostStatus.PENDING && canEdit;
+    post.curation_status === PostStatus.PENDING && canEdit && !!defaultProject;
   const canSubmitForReview =
     post.curation_status === PostStatus.DRAFT && canEdit;
   const canApproveOrReject =
@@ -167,10 +167,10 @@ export const PostStatusBox: FC<{
             </Button>
           )}
 
-          {canSendBackToDrafts && (
+          {canSendBackToDrafts && defaultProject && (
             <Button
               onClick={async () => {
-                await draftPost(post.id, post.projects.default_project);
+                await draftPost(post.id, defaultProject);
               }}
             >
               {t("sendBackToDrafts")}

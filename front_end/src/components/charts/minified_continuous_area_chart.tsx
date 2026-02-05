@@ -358,6 +358,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
               <VictoryLine
                 key={`border-${index}`}
                 data={chart.graphLine}
+                interpolation={discrete ? "step" : undefined}
                 style={{
                   data: {
                     stroke: (() => {

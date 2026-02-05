@@ -33,13 +33,13 @@ const IndividualNotebookPage: FC<{
   params: { id: number; slug: string[] };
 }> = async ({ params }) => {
   const postData = await ServerPostsApi.getPost(params.id);
-  const defaultProject = postData.projects.default_project;
+  const defaultProject = postData.projects?.default_project;
 
   if (!isNotebookPost(postData)) {
     return notFound();
   }
 
-  const isCommunityQuestion = defaultProject.type === TournamentType.Community;
+  const isCommunityQuestion = defaultProject?.type === TournamentType.Community;
   let currentCommunity = null;
   if (isCommunityQuestion) {
     currentCommunity = await ServerProjectsApi.getCommunity(
