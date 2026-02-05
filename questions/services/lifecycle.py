@@ -41,10 +41,10 @@ def handle_cp_revealed(question: Question):
     A specific handler is triggered once the community prediction is revealed
     """
 
-    post = question.get_post()
-
     # Handle post subscriptions
-    notify_post_status_change(post, Post.PostStatusChange.CP_REVEALED, question=question)
+    notify_post_status_change(
+        question.post, Post.PostStatusChange.CP_REVEALED, question=question
+    )
 
 
 def close_question(question: Question, actual_close_time: datetime | None = None):

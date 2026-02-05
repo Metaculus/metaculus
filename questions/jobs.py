@@ -39,7 +39,7 @@ def job_check_cp_revealed():
         cp_reveal_time_triggered=False,
         # Only notify for approved posts
         post__curation_status=Post.CurationStatus.APPROVED,
-    ).all()
+    ).select_related("post")
 
     for question in questions_to_reveal:
         try:
