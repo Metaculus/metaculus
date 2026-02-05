@@ -12,6 +12,7 @@ import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { ProjectVisibility } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
+import { stripHtmlTags } from "@/utils/formatters/string";
 
 import CommunityHeader from "../../components/headers/community_header";
 import FeedFilters from "../../questions/components/feed_filters";
@@ -31,9 +32,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   if (!community) {
     return {};
   }
-  const parsedDescription = community.description
-    .replace(/<[^>]*>/g, "")
-    .split("\n")[0];
+  const parsedDescription = stripHtmlTags(community.description).split("\n")[0];
 
   return {
     title: community.name,

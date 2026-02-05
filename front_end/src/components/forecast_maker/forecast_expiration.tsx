@@ -10,7 +10,6 @@ import {
 } from "date-fns";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import posthog from "posthog-js";
 import React, {
   Dispatch,
   FC,
@@ -63,10 +62,6 @@ interface ModalState {
 export const forecastExpirationToDate = (
   expiration: ForecastExpirationValue | undefined
 ): Date | undefined => {
-  if (!posthog.getFeatureFlag("forecast_expiration")) {
-    return undefined;
-  }
-
   if (!expiration) {
     return undefined;
   }
