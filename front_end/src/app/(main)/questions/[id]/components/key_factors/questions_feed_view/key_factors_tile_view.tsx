@@ -29,6 +29,7 @@ import {
   KeyFactorTileQuestionLinkView,
   type Props as KfDisplayProps,
 } from "./key_factor_tile_view";
+import { useShouldHideKeyFactors } from "../use_should_hide_key_factors";
 import { isDisplayableQuestionLink } from "../utils";
 
 type Props = {
@@ -65,6 +66,7 @@ const KeyFactorsTileView: React.FC<Props> = ({
   className,
 }) => {
   const t = useTranslations();
+  const shouldHideKeyFactors = useShouldHideKeyFactors();
   const [expandedIds, setExpandedIds] = useState<Array<KeyFactor["id"]>>([]);
   const [isQuestionLinkExpanded, setIsQuestionLinkExpanded] = useState(false);
 
@@ -209,6 +211,8 @@ const KeyFactorsTileView: React.FC<Props> = ({
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   }, []);
+
+  if (shouldHideKeyFactors) return null;
 
   if (items.length === 0 && !questionLinkDisplay) return null;
 
