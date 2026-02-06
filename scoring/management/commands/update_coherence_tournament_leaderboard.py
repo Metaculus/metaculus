@@ -208,7 +208,7 @@ def run_update_coherence_spring_2026_cup() -> None:
         for entry in list(leaderboard.entries.all())
     }
     rank = 1
-    question_count = len(set(question_ids))
+    question_count = len(set(question_ids)) or 1
     seen = set()
     for uid, score, weight in ordered_scores:
         forecasted_questions = competitor_ids.count(uid)
