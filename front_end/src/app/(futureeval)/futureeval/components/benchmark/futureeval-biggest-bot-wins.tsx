@@ -19,12 +19,18 @@ const formatPercent = (value: number): string => {
   return `${(value * 100).toFixed(1)}%`;
 };
 
+type ArcResult = {
+  path: string;
+  endPoint: { x: number; y: number };
+  startPoint: { x: number; y: number };
+};
+
 function describeArc(
   percentage: number,
   arcAngle: number,
   center: { x: number; y: number },
   radius: number
-): string {
+): ArcResult {
   const startAngle = Math.PI - (arcAngle - Math.PI) / 2;
   const endAngle = startAngle + (percentage / 100) * arcAngle;
   const isLargerFlag = percentage > 50 ? 1 : 0;
@@ -32,7 +38,11 @@ function describeArc(
   const startY = center.y + radius * Math.sin(startAngle);
   const endX = center.x + radius * Math.cos(endAngle);
   const endY = center.y + radius * Math.sin(endAngle);
-  return `M ${startX} ${startY} A ${radius} ${radius} 0 ${isLargerFlag} 1 ${endX} ${endY}`;
+  return {
+    path: `M ${startX} ${startY} A ${radius} ${radius} 0 ${isLargerFlag} 1 ${endX} ${endY}`,
+    startPoint: { x: startX, y: startY },
+    endPoint: { x: endX, y: endY },
+  };
 }
 
 /**
@@ -53,8 +63,8 @@ const ForecastDial: React.FC<{
   const arcAngle = Math.PI * 1.05;
   const center = { x: width / 2, y: height - strokeWidth / 2 };
   const percent = value * 100;
-  const backgroundPath = describeArc(100, arcAngle, center, radius);
-  const progressPath =
+  const backgroundArc = describeArc(100, arcAngle, center, radius);
+  const progressArc =
     percent > 0 ? describeArc(percent, arcAngle, center, radius) : null;
 
   return (
@@ -80,7 +90,7 @@ const ForecastDial: React.FC<{
           aria-hidden
         >
           <path
-            d={backgroundPath}
+            d={backgroundArc.path}
             fill="none"
             stroke="currentColor"
             strokeOpacity={0.2}
@@ -88,9 +98,9 @@ const ForecastDial: React.FC<{
             strokeLinecap="round"
             className="stroke-futureeval-primary-light dark:stroke-futureeval-primary-dark"
           />
-          {progressPath && (
+          {progressArc && (
             <path
-              d={progressPath}
+              d={progressArc.path}
               fill="none"
               stroke="currentColor"
               strokeWidth={strokeWidth}
@@ -101,7 +111,8 @@ const ForecastDial: React.FC<{
         </svg>
         <div
           className={cn(
-            "absolute inset-0 flex items-end justify-center pb-2 text-center text-gray-800 dark:text-gray-800-dark"
+            "absolute inset-0 flex items-end justify-center pb-2 text-center",
+            FE_COLORS.textHeading
           )}
         >
           <span className="text-sm font-bold tabular-nums leading-none underline underline-offset-2">
@@ -112,6 +123,43 @@ const ForecastDial: React.FC<{
     </Link>
   );
 };
+
+/**
+ * Colored pill badge showing Yes/No resolution outcome.
+ */
+const ResolutionBadge: React.FC<{ resolved: boolean }> = ({ resolved }) => (
+  <span
+    className={cn(
+      "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold",
+      resolved
+        ? "bg-green-500/15 text-green-500 dark:bg-green-400/15 dark:text-green-400"
+        : "bg-red-500/15 text-red-500 dark:bg-red-400/15 dark:text-red-400"
+    )}
+  >
+    {resolved ? (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+        <path
+          d="M3 7.5L5.5 10L11 4"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ) : (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+        <path
+          d="M4 4L10 10M10 4L4 10"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    )}
+    {resolved ? "Yes" : "No"}
+  </span>
+);
 
 /**
  * Quarter tab selector
@@ -218,17 +266,8 @@ const DesktopTable: React.FC<{ questions: BotWinQuestion[] }> = ({
               <Td className="text-center align-middle">
                 <ForecastDial value={q.botsForecast} url={q.botsUrl} />
               </Td>
-              <Td className="text-center">
-                <span
-                  className={cn(
-                    "font-medium",
-                    q.didItHappen
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-red-600 dark:text-red-400"
-                  )}
-                >
-                  {q.didItHappen ? "Yes" : "No"}
-                </span>
+              <Td className="text-center align-middle">
+                <ResolutionBadge resolved={q.didItHappen} />
               </Td>
               <Td>
                 <div className="text-xs text-gray-700 dark:text-gray-300">
@@ -294,20 +333,11 @@ const MobileCards: React.FC<{ questions: BotWinQuestion[] }> = ({
           </div>
 
           {/* Outcome Row */}
-          <div className="mb-3">
+          <div className="mb-3 flex flex-col items-center">
             <div className="mb-1 text-xs text-gray-500 dark:text-gray-500-dark">
               Did it happen?
             </div>
-            <span
-              className={cn(
-                "text-base font-medium",
-                q.didItHappen
-                  ? "text-green-600 dark:text-green-400"
-                  : "text-red-600 dark:text-red-400"
-              )}
-            >
-              {q.didItHappen ? "Yes" : "No"}
-            </span>
+            <ResolutionBadge resolved={q.didItHappen} />
           </div>
 
           {/* What happened */}
