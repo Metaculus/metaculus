@@ -657,8 +657,8 @@ const FutureEvalMethodologySections: React.FC = () => {
             >
               graph on our benchmark page
             </Link>{" "}
-            shows the score difference between a team of the best 10 bots and
-            the Pros in the first four Bot Tournaments.
+            shows how much better pros did than bots when comparing a team of 10 pros 
+            and the best 10 bots in the first four Bot Tournaments.
           </p>
           <p className="m-0">
             You can find the full details and methodology of these analyses in
@@ -670,10 +670,11 @@ const FutureEvalMethodologySections: React.FC = () => {
               &quot;FutureEval Results Year 1&quot;
             </Link>{" "}
             section of our resources page. Note that the graph&apos;s y-axis is
-            labelled &quot;Score Difference.&quot; Technically, this should be
-            labelled as average head-to-head spot peer score, but &quot;Score
-            Difference&quot; communicates a similar idea for readers unfamiliar
-            with forecasting scoring rules.
+            labelled &quot;Pro Lead Over Bots.&quot; Technically, this should be
+            labelled as &quot;average head-to-head spot peer score for Pros&quot;, but 
+            &quot;Pro Lead Over Bots&quot; communicates a similar idea for readers unfamiliar
+            with forecasting scoring rules. A score of 0 would mean that Pros and Bots 
+            performed equally well.
           </p>
         </SectionBody>
       </section>

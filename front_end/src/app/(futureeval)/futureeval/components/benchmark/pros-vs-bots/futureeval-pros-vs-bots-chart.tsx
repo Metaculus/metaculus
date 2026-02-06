@@ -408,7 +408,7 @@ const FutureEvalProsVsBotsDiffChart: FC<{
                     <VictoryLabel angle={-90} dx={-16} dy={smUp ? -10 : -5} />
                   }
                   tickValues={yTicksNoZero}
-                  label="Score Difference"
+                  label="Pro Lead Over Bots"
                   style={{
                     grid: {
                       stroke: gridStroke,
