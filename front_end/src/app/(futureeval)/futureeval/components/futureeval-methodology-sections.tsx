@@ -511,7 +511,7 @@ const FutureEvalMethodologySections: React.FC = () => {
               Model Leaderboard
             </Link>
             . In this graph we plot the models&apos; forecasting score vs. their
-            release date. We fit a trend to the SOTA models (the models that
+            release date. We fit a trend to the Frontier Models (the models that
             push the frontier of forecasting performance), which lets us
             estimate when the best models will reach top human performance. The
             pro and community performance baselines are calculated using all
