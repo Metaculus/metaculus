@@ -185,7 +185,9 @@ def run_update_coherence_spring_2026_cup() -> None:
         scores.append(
             (
                 uid,
-                np.average(competitor_score_record[uid]),
+                # double the score to normalize it such that the baseline is given
+                # a score of 0
+                np.sum(competitor_score_record[uid]) * 2.0,
                 np.sum(competitor_weight_record[uid]),
             )
         )
