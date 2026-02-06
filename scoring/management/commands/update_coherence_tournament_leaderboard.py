@@ -145,7 +145,7 @@ def gather_data(
 
 
 def run_update_coherence_spring_2026_cup() -> None:
-    baseline_player: int | str = User.objects.get(id=283585)  # coherence links bot
+    baseline_player: User = User.objects.get(id=283585)  # coherence links bot
     project = Project.objects.get(id=32921)  # metaculus spring cup 2026
 
     # SETUP: users to evaluate & questions
@@ -182,7 +182,7 @@ def run_update_coherence_spring_2026_cup() -> None:
     for uid, score, weight in zip(competitor_ids, scores, weights):
         competitor_score_record[uid].append(score)
         competitor_weight_record[uid].append(weight)
-    scores = []
+    scores = [(baseline_player.id, 0.0, max(weights or [0.0]))]
     for uid in competitor_score_record.keys():
         scores.append(
             (
@@ -221,8 +221,8 @@ def run_update_coherence_spring_2026_cup() -> None:
         entry.leaderboard = leaderboard
         entry.score = score
         entry.rank = rank
-        entry.excluded = False
-        entry.show_when_excluded = False
+        entry.excluded = uid == baseline_player.id  # exclude the baseline player
+        entry.show_when_excluded = True
         entry.contribution_count = forecasted_questions
         entry.coverage = weight / question_count
         entry.calculated_on = timezone.now()
