@@ -49,14 +49,12 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         botQuote: {
           text: "It appears likely that China's youth unemployment rate will remain above 18.0%.",
           author: "mf-bot-2",
-          commentUrl:
-            "/questions/27935/#comment-187873",
+          commentUrl: "/questions/27935/#comment-187873",
         },
         proQuote: {
           text: "I agree with other forecasters that the median outcome is a decrease.",
           author: "datscilly",
-          commentUrl:
-            "/questions/27943/#comment-187676",
+          commentUrl: "/questions/27943/#comment-187676",
         },
       },
       {
@@ -71,14 +69,12 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         botQuote: {
           text: "No current public report indicating that Elon Musk plans to attend the Super Bowl.",
           author: "metac-grok-2-1212",
-          commentUrl:
-            "/questions/34686/#comment-264426",
+          commentUrl: "/questions/34686/#comment-264426",
         },
         proQuote: {
           text: "Musk has attended many events that Trump has attended since the election.",
           author: "Jgalt",
-          commentUrl:
-            "/questions/34738/#comment-262660",
+          commentUrl: "/questions/34738/#comment-262660",
         },
       },
       {
@@ -94,14 +90,12 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         botQuote: {
           text: "We were unable to find specific historical rankings... trends indicate that AI models have been competitive",
           author: "metac-exa",
-          commentUrl:
-            "/questions/35181/#comment-275483",
+          commentUrl: "/questions/35181/#comment-275483",
         },
         proQuote: {
           text: "metac-GPT4o is at rank #277, metac-o1 at #299... I think they'll continue to be there.",
           author: "Zaldath",
-          commentUrl:
-            "/questions/35237/#comment-273905",
+          commentUrl: "/questions/35237/#comment-273905",
         },
       },
     ],
@@ -123,14 +117,12 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         botQuote: {
           text: "Recent events involving over 300,000 protesters... the necessary scale seems readily achievable.",
           author: "jlbot",
-          commentUrl:
-            "/questions/37460/#comment-324463",
+          commentUrl: "/questions/37460/#comment-324463",
         },
         proQuote: {
           text: "It does not show the massive protests that followed the arrest of Turkey's main opposition figure",
           author: "RMD",
-          commentUrl:
-            "/questions/37506/#comment-323226",
+          commentUrl: "/questions/37506/#comment-323226",
         },
       },
       {
@@ -146,14 +138,12 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         botQuote: {
           text: "Speculation about Intel's removal from the Dow has intensified.",
           author: "bestworldbot",
-          commentUrl:
-            "/questions/28024/#comment-189113",
+          commentUrl: "/questions/28024/#comment-189113",
         },
         proQuote: {
           text: "10 companies in 12 years. About half that time since the last change. We have 21 days left in Sep.",
           author: "MaciekK",
-          commentUrl:
-            "/questions/28026/#comment-189047",
+          commentUrl: "/questions/28026/#comment-189047",
         },
       },
       {
@@ -169,14 +159,12 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         botQuote: {
           text: "There's a good chance we'll see 0–3 appointments in this period.",
           author: "mf-bot-5",
-          commentUrl:
-            "/questions/29784/#comment-220577",
+          commentUrl: "/questions/29784/#comment-220577",
         },
         proQuote: {
           text: "Profoundly unlikely — it would suggest fundamental cluelessness about how they intend to govern.",
           author: "Jgalt",
-          commentUrl:
-            "/questions/29656/#comment-219643",
+          commentUrl: "/questions/29656/#comment-219643",
         },
       },
       {
@@ -192,14 +180,12 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         botQuote: {
           text: "Consistent record-breaking patterns... strong advance bookings... good chance of exceeding 19M passengers",
           author: "mf-bot-5",
-          commentUrl:
-            "/questions/31034/#comment-239820",
+          commentUrl: "/questions/31034/#comment-239820",
         },
         proQuote: {
           text: "Numbers were only 3.5% higher than 2023, which would imply... 17.9M.",
           author: "skmmcj",
-          commentUrl:
-            "/questions/30995/#comment-239488",
+          commentUrl: "/questions/30995/#comment-239488",
         },
       },
       {
@@ -207,7 +193,7 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
           "Before October 1, 2024, will there be an armed forces death in a conflict opposing China to Taiwan, the US, the Philippines, or Japan?",
         botsUrl: "/questions/25955/",
         prosUrl: "/questions/25972/",
-        botsForecast: 0.30,
+        botsForecast: 0.3,
         prosForecast: 0.01,
         didItHappen: false,
         whatHappened:
@@ -215,14 +201,12 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         botQuote: {
           text: "Recent escalations and heightened military activities around Taiwan increase the risk.",
           author: "MWG",
-          commentUrl:
-            "/questions/25955/#comment-162653",
+          commentUrl: "/questions/25955/#comment-162653",
         },
         proQuote: {
           text: "This is a rather short time frame... No larger scale conflict involving these parties in decades.",
           author: "MaciekK",
-          commentUrl:
-            "/questions/25972/#comment-161335",
+          commentUrl: "/questions/25972/#comment-161335",
         },
       },
     ],

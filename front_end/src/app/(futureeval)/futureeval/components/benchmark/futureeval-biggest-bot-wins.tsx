@@ -357,21 +357,13 @@ const MobileCards: React.FC<{ questions: BotWinQuestion[] }> = ({
               <div className="mb-1 text-xs text-gray-500 dark:text-gray-500-dark">
                 Pros forecast
               </div>
-              <ForecastDial
-                value={q.prosForecast}
-                url={q.prosUrl}
-                size="sm"
-              />
+              <ForecastDial value={q.prosForecast} url={q.prosUrl} size="sm" />
             </div>
             <div className="flex flex-1 flex-col items-center">
               <div className="mb-1 text-xs text-gray-500 dark:text-gray-500-dark">
                 Bots forecast
               </div>
-              <ForecastDial
-                value={q.botsForecast}
-                url={q.botsUrl}
-                size="sm"
-              />
+              <ForecastDial value={q.botsForecast} url={q.botsUrl} size="sm" />
             </div>
           </div>
 
@@ -425,9 +417,7 @@ const FutureEvalBiggestBotWins: React.FC = () => {
     BIGGEST_BOT_WINS_DATA[0]?.id ?? ""
   );
 
-  const activeData = BIGGEST_BOT_WINS_DATA.find(
-    (c) => c.id === activeCategory
-  );
+  const activeData = BIGGEST_BOT_WINS_DATA.find((c) => c.id === activeCategory);
   const questions = activeData?.questions ?? [];
 
   return (

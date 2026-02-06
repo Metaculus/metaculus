@@ -596,7 +596,8 @@ const FutureEvalMethodologySections: React.FC = () => {
               metac-*
             </code>
             , and are not eligible for prizes in tournaments. They use a
-            standardized prompt and usually use AskNews as a search provider. For example,{" "}
+            standardized prompt and usually use AskNews as a search provider.
+            For example,{" "}
             <code className="rounded bg-futureeval-bg-dark/10 px-1 py-0.5 dark:bg-futureeval-bg-light/10">
               metac-gpt-4o+asknews
             </code>{" "}
