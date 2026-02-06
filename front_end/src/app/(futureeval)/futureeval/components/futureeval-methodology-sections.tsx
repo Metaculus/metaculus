@@ -438,7 +438,7 @@ const FutureEvalMethodologySections: React.FC = () => {
               href="#how-bots-run"
               className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
             >
-              Learn more here
+              See how bots run
             </Link>
             .
           </p>
@@ -484,10 +484,10 @@ const FutureEvalMethodologySections: React.FC = () => {
             set to 0 for GPT-4o (which is our most prolific bot as of February
             2025).{" "}
             <Link
-              href="#how-bots-run"
+              href="https://www.metaculus.com/notebooks/42076/the-futureeval-model-leaderboard/"
               className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
             >
-              Learn more here
+              Read more about skill scores
             </Link>
             .
           </p>
