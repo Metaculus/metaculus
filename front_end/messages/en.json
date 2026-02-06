@@ -541,6 +541,8 @@
   "questionWeightTooltip": "This question has a weight of <bold>{weight}%</bold>, providing {count, plural, =1 {<bold>{weightDiff}% fewer points</bold>} other {a <bold>{weightDiff}% point boost</bold>}} compared to regular Metaculus questions.",
   "includeBots": "Include Bots",
   "includeBotsTooltip": "For this question, bot forecasts contribute to the Community Prediction. <link>Learn more about AI Benchmarking</link>",
+  "includeBotsInAggregatesLabel": "Include Bots in Aggregates",
+  "includeBotsInAggregatesExplanation": "When enabled, bot forecasts will be included in aggregate calculations for this question and will affect scoring. Otherwise, they will affect neither.",
   "authored": "Authored",
   "upvoted": "Upvoted",
   "moderating": "Moderating",

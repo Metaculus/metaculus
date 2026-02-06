@@ -35,6 +35,18 @@ def handle_question_open(question: Question):
     notify_project_subscriptions_post_open(post, question=question)
 
 
+@transaction.atomic()
+def handle_cp_revealed(question: Question):
+    """
+    A specific handler is triggered once the community prediction is revealed
+    """
+
+    # Handle post subscriptions
+    notify_post_status_change(
+        question.post, Post.PostStatusChange.CP_REVEALED, question=question
+    )
+
+
 def close_question(question: Question, actual_close_time: datetime | None = None):
     now = timezone.now()
     question.actual_close_time = min(
