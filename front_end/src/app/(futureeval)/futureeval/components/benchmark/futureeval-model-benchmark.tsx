@@ -11,50 +11,24 @@ import { FE_COLORS, FE_TYPOGRAPHY } from "../../theme";
 import FutureEvalComingSoonBanner from "../futureeval-coming-soon-banner";
 import FutureEvalModelBar from "./futureeval-model-bar";
 import { useFutureEvalLeaderboard } from "../leaderboard/futureeval-leaderboard-provider";
-import {
-  aggregateKind,
-  entryIconPair,
-  entryLabel,
-  getUpcomingModels,
-  isAggregate,
-  shouldDisplayEntry,
-} from "../leaderboard/utils";
+import { entryIconPair, entryLabel, isAggregate } from "../leaderboard/utils";
 
 const MAX_VISIBLE_BOTS = 18; // 18 bots + up to 2 aggregates = ~20 total
 const MIN_HEIGHT_PCT = 20;
 const MAX_HEIGHT_PCT = 100;
 
 const FutureEvalModelBenchmark: React.FC = () => {
-  const { leaderboard } = useFutureEvalLeaderboard();
+  const { aggregates, bots, upcomingModels } = useFutureEvalLeaderboard();
 
   const entries = useMemo(() => {
-    const allEntries = leaderboard.entries ?? [];
-
-    // Get aggregate entries (Community Prediction and Pros)
-    const aggregates = allEntries.filter((e) => {
-      if (!isAggregate(e)) return false;
-      const kind = aggregateKind(e);
-      return ["community", "pros"].includes(kind ?? "");
-    });
-
-    // Get bot entries that should be displayed, sorted by score (highest first)
-    const bots = allEntries
-      .filter((e) => !isAggregate(e) && shouldDisplayEntry(e, 300))
+    const cappedBots = [...bots]
       .sort((a, b) => b.score - a.score)
       .slice(0, MAX_VISIBLE_BOTS);
 
-    // Combine and sort by score (highest first)
-    const combined = [...aggregates, ...bots];
+    const combined = [...aggregates, ...cappedBots];
     combined.sort((a, b) => b.score - a.score);
-
     return combined;
-  }, [leaderboard.entries]);
-
-  // Get top 3 upcoming models (closest to qualifying)
-  const upcomingModels = useMemo(
-    () => getUpcomingModels(leaderboard.entries ?? []),
-    [leaderboard.entries]
-  );
+  }, [aggregates, bots]);
 
   // Scale heights relative to min/max scores
   const scaleHeight = useMemo(() => {

@@ -103,7 +103,7 @@ export function BenchmarkChartLegend({
             style={{ color: getThemeColor(METAC_COLORS["mc-option"][3]) }}
             className="font-medium"
           >
-            SOTA Trend
+            Frontier Model Trend
           </span>
         </div>
         <div className="flex items-center gap-2">

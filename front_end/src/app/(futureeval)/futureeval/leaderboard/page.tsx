@@ -6,7 +6,7 @@ import FutureEvalContainer from "../components/futureeval-container";
 import FutureEvalLeaderboardHero from "../components/futureeval-leaderboard-hero";
 import FutureEvalLeaderboardTable from "../components/futureeval-leaderboard-table";
 import FutureEvalNavbar from "../components/futureeval-navbar";
-import { getUpcomingModels } from "../components/leaderboard/utils.shared";
+import { getUpcomingModels } from "../components/leaderboard/utils";
 
 export const metadata = {
   title: "Top Model Leaderboards | Metaculus",

@@ -1,42 +1,34 @@
-import type { LeaderboardDetails } from "@/types/scoring";
+import type { LeaderboardEntry } from "@/types/scoring";
 
 import { getModelDetailsFromScoreEntry } from "../../leaderboard/bot_meta";
-import { entryLabel, shouldDisplayEntry } from "../../leaderboard/utils";
+import { aggregateKind, entryLabel } from "../../leaderboard/utils";
 
-export function getAggregates(leaderboard: LeaderboardDetails) {
-  return leaderboard.entries
-    .filter((e) => !e.user && shouldDisplayEntry(e))
-    .map((e) => {
-      const name = entryLabel(e);
-      const aggregationMethod = String(
-        e.aggregation_method ?? ""
-      ).toLowerCase();
-      const aggregateKind =
-        aggregationMethod.includes("recency") ||
-        aggregationMethod.includes("community")
-          ? "community"
-          : aggregationMethod.includes("pro")
-            ? "pros"
-            : "other";
-
-      return {
-        name,
-        aggregateKind,
-        score: e.score,
-      };
-    });
+/**
+ * Map pre-filtered aggregate entries to chart-ready format.
+ */
+export function mapAggregates(entries: LeaderboardEntry[]) {
+  return entries.map((e) => ({
+    name: entryLabel(e),
+    aggregateKind: aggregateKind(e) ?? "other",
+    score: e.score,
+  }));
 }
-export type MappedAggregates = ReturnType<typeof getAggregates>;
+export type MappedAggregates = ReturnType<typeof mapAggregates>;
 
-export function getBots(leaderboard: LeaderboardDetails, cutoffDate?: Date) {
-  const entries = leaderboard.entries
-    .filter((e) => e.user && shouldDisplayEntry(e))
+/**
+ * Map pre-filtered bot entries to chart-ready format with release dates.
+ * Drops bots without a known release date. Optionally filters by cutoff date.
+ */
+export function mapBots(entries: LeaderboardEntry[], cutoffDate?: Date) {
+  const mapped = entries
     .map((e) => {
       const meta = getModelDetailsFromScoreEntry(e);
       if (!meta?.releasedAt) return null;
+      const releaseDate = new Date(meta.releasedAt);
+      if (isNaN(releaseDate.getTime())) return null;
       return {
         name: meta.label,
-        releaseDate: new Date(meta.releasedAt),
+        releaseDate,
         score: e.score,
         family: meta.family,
         familyLabel: meta.familyLabel,
@@ -46,7 +38,7 @@ export function getBots(leaderboard: LeaderboardDetails, cutoffDate?: Date) {
     .sort((a, b) => a.releaseDate.getTime() - b.releaseDate.getTime());
 
   return cutoffDate
-    ? entries.filter((entry) => entry.releaseDate >= cutoffDate)
-    : entries;
+    ? mapped.filter((entry) => entry.releaseDate >= cutoffDate)
+    : mapped;
 }
-export type MappedBots = ReturnType<typeof getBots>;
+export type MappedBots = ReturnType<typeof mapBots>;

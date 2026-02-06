@@ -1,6 +1,51 @@
-import type { LeaderboardDetails } from "@/types/scoring";
+import type { MappedAggregates, MappedBots } from "./mapping";
 
-import { getBots, type MappedBots } from "./mapping";
+/**
+ * Format a crossing result date as "MMMM YYYY" (e.g., "March 2026").
+ * Returns null if the crossing hasn't happened or can't be calculated.
+ */
+export function formatCrossingDate(
+  crossing: SotaCrossingResult
+): string | null {
+  if (!crossing.crossingDate) return null;
+  if (!crossing.isFuture) return null;
+
+  return crossing.crossingDate.toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
+/**
+ * Compute estimated dates when SOTA bots will surpass community and pro
+ * aggregate scores. Returns formatted date strings or null.
+ */
+export function computeSotaCrossingDates(
+  mappedAggregates: MappedAggregates,
+  mappedBots: MappedBots
+): { communityDate: string | null; proDate: string | null } {
+  const communityAggregate = mappedAggregates.find(
+    (a) => a.aggregateKind === "community"
+  );
+  const proAggregate = mappedAggregates.find((a) => a.aggregateKind === "pros");
+
+  let communityDate: string | null = null;
+  let proDate: string | null = null;
+
+  if (communityAggregate && Number.isFinite(communityAggregate.score)) {
+    communityDate = formatCrossingDate(
+      calculateSotaCrossingFromBots(mappedBots, communityAggregate.score)
+    );
+  }
+
+  if (proAggregate && Number.isFinite(proAggregate.score)) {
+    proDate = formatCrossingDate(
+      calculateSotaCrossingFromBots(mappedBots, proAggregate.score)
+    );
+  }
+
+  return { communityDate, proDate };
+}
 
 /**
  * A point with timestamp (x) and score (y)
@@ -67,21 +112,6 @@ export function computeSotaPointsFromBots(bots: MappedBots): TrendPoint[] {
     y: bot.score,
   }));
   return computeSotaPoints(data);
-}
-
-/**
- * Compute SOTA points directly from leaderboard data.
- *
- * @param leaderboard - Raw leaderboard details
- * @param cutoffDate - Optional cutoff date for filtering bots
- * @returns Array of SOTA points sorted by release date
- */
-export function computeSotaPointsFromLeaderboard(
-  leaderboard: LeaderboardDetails,
-  cutoffDate?: Date
-): TrendPoint[] {
-  const bots = getBots(leaderboard, cutoffDate);
-  return computeSotaPointsFromBots(bots);
 }
 
 /**
@@ -214,24 +244,6 @@ export function calculateSotaCrossingFromBots(
   const maxX =
     bots.length > 0 ? Math.max(...bots.map((b) => +b.releaseDate)) : undefined;
   return calculateSotaCrossing(sotaPoints, targetScore, maxX);
-}
-
-/**
- * Calculate when the SOTA trend line crosses a given score threshold.
- * Works directly with leaderboard data.
- *
- * @param leaderboard - Raw leaderboard details
- * @param targetScore - The score threshold to find crossing for
- * @param cutoffDate - Optional cutoff date for filtering bots
- * @returns SotaCrossingResult with crossing details
- */
-export function calculateSotaCrossingFromLeaderboard(
-  leaderboard: LeaderboardDetails,
-  targetScore: number,
-  cutoffDate?: Date
-): SotaCrossingResult {
-  const bots = getBots(leaderboard, cutoffDate);
-  return calculateSotaCrossingFromBots(bots, targetScore);
 }
 
 /**
