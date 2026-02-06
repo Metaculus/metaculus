@@ -41,8 +41,8 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
           "Will China's youth unemployment rate be greater than 18.0 for August 2024?",
         botsUrl: "/questions/27935/",
         prosUrl: "/questions/27943/",
-        botsForecast: 0.438,
-        prosForecast: 0.007,
+        botsForecast: 0.62,
+        prosForecast: 0.06,
         didItHappen: true,
         whatHappened:
           "Bots correctly anticipated that the dramatic July spike might continue rather than following the historical seasonal decline pattern that the pros relied upon.",
@@ -67,7 +67,7 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         prosForecast: 0.78,
         didItHappen: false,
         whatHappened:
-          "Bots weighted the status quo outcome more heavily despite Musk's recent Super Bowl attendance pattern, while humans over-anchored on his 2023–2024 attendance and his association with Trump.",
+          "Bots weighted the status quo outcome more heavily despite Musk's recent Super Bowl attendance pattern, while Pros over-anchored on his 2023–2024 attendance and his association with Trump.",
         botQuote: {
           text: "No current public report indicating that Elon Musk plans to attend the Super Bowl.",
           author: "metac-grok-2-1212",
@@ -119,7 +119,7 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         prosForecast: 0.044,
         didItHappen: false,
         whatHappened:
-          "Humans correctly identified that the resolution source had already classified the March 2025 protests as a continuation of earlier protests, making new qualifying entries extremely unlikely, while bots treated them as new events.",
+          "Pros correctly identified that the resolution source had already classified the March 2025 protests as a continuation of earlier protests, making new qualifying entries extremely unlikely, while bots treated them as new events.",
         botQuote: {
           text: "A broad coalition already mobilized... the necessary scale seems readily achievable.",
           author: "jlbot",
@@ -138,11 +138,11 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
           "Will Intel get dropped from the Dow Jones Industrial Average before October 1, 2024?",
         botsUrl: "/questions/28024/",
         prosUrl: "/questions/28026/",
-        botsForecast: 0.713,
-        prosForecast: 0.059,
+        botsForecast: 0.7,
+        prosForecast: 0.17,
         didItHappen: false,
         whatHappened:
-          "Humans correctly recognized that despite Intel's poor performance, the short timeframe and historical patterns of infrequent DJIA changes made removal before October 1 unlikely. Bots overweighted analyst speculation.",
+          "Pros correctly recognized that despite Intel's poor performance, the short timeframe and historical patterns of infrequent DJIA changes made removal before October 1 unlikely. Bots overweighted analyst speculation.",
         botQuote: {
           text: "Speculation about Intel's removal from the Dow has intensified.",
           author: "bestworldbot",
@@ -165,7 +165,7 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         prosForecast: 0.005,
         didItHappen: false,
         whatHappened:
-          "Humans correctly recognized that Trump's second-term experience and historical precedent made it extremely unlikely he would announce only 0–3 cabinet positions. Bots were significantly more uncertain.",
+          "Pros correctly recognized that Trump's second-term experience and historical precedent made it extremely unlikely he would announce only 0–3 cabinet positions. Bots were significantly more uncertain.",
         botQuote: {
           text: "There's a good chance we'll see 0–3 appointments in this period.",
           author: "mf-bot-5",
@@ -185,10 +185,10 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         botsUrl: "/questions/31034/",
         prosUrl: "/questions/30995/",
         botsForecast: 0.75,
-        prosForecast: 0.09,
+        prosForecast: 0.12,
         didItHappen: false,
         whatHappened:
-          "Humans correctly recognized that historical growth patterns and recent December data pointed to a total below 19 million, while bots overestimated by focusing on record-breaking individual days and optimistic industry projections.",
+          "Pros correctly recognized that historical growth patterns and recent December data pointed to a total below 19 million, while bots overestimated by focusing on record-breaking individual days and optimistic industry projections.",
         botQuote: {
           text: "Consistent record-breaking patterns and strong advance bookings make exceeding 19 million likely.",
           author: "mf-bot-5",
@@ -207,11 +207,11 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
           "Before October 1, 2024, will there be an armed forces death in a conflict opposing China to Taiwan, the US, the Philippines, or Japan?",
         botsUrl: "/questions/25955/",
         prosUrl: "/questions/25972/",
-        botsForecast: 0.331,
-        prosForecast: 0.001,
+        botsForecast: 0.30,
+        prosForecast: 0.01,
         didItHappen: false,
         whatHappened:
-          "Humans correctly assessed that the extremely short timeframe and decades-long historical precedent of avoiding lethal force made armed forces deaths highly unlikely. Bots overestimated the risk by focusing on recent tensions.",
+          "Pros correctly assessed that the extremely short timeframe and decades-long historical precedent of avoiding lethal force made armed forces deaths highly unlikely. Bots overestimated the risk by focusing on recent tensions.",
         botQuote: {
           text: "Recent escalations and heightened military activities around Taiwan increase the risk.",
           author: "MWG",
