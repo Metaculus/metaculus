@@ -11,7 +11,7 @@ from projects.models import Project
 from questions.constants import UnsuccessfulResolutionType
 from questions.models import AggregateForecast, Forecast, Question
 from scoring.constants import ScoreTypes
-from scoring.models import Leaderboard, LeaderboardEntry
+from scoring.models import Leaderboard, LeaderboardEntry, MedalExclusionRecord
 from scoring.score_math import (
     evaluate_forecasts_peer_accuracy,
     evaluate_forecasts_peer_spot_forecast,
@@ -215,20 +215,28 @@ def run_update_coherence_spring_2026_cup() -> None:
     for uid, score, weight in ordered_scores:
         forecasted_questions = competitor_ids.count(uid)
 
+        excluded = False
+        if (
+            uid == baseline_player.id
+            or MedalExclusionRecord.objects.filter(user_id=uid or 0).exists()
+        ):
+            excluded = True
+
         entry: LeaderboardEntry = entry_dict.pop(uid, LeaderboardEntry())
         entry.user_id = uid if isinstance(uid, int) else None
         entry.aggregation_method = None
         entry.leaderboard = leaderboard
         entry.score = score
         entry.rank = rank
-        entry.excluded = uid == baseline_player.id  # exclude the baseline player
+        entry.excluded = excluded
         entry.show_when_excluded = True
         entry.contribution_count = forecasted_questions
         entry.coverage = weight / question_count
         entry.calculated_on = timezone.now()
         entry.save()
         seen.add(entry.id)
-        rank += 1
+        if not excluded:
+            rank += 1
     logger.info("Updating leaderboard... DONE")
     # delete unseen entries
     leaderboard.entries.exclude(id__in=seen).delete()
