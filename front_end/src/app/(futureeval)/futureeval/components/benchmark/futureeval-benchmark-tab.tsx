@@ -16,24 +16,24 @@ const FutureEvalBenchmarkTab: React.FC = () => {
       </div>
 
       {/* Forecasting Performance Over Time */}
-      <div>
+      <div id="performance-over-time-graph" className="scroll-mt-24">
         <FutureEvalForecastingPerformanceHeader />
         <FutureEvalBenchmarkForecastingPerformance />
       </div>
 
       {/* Pros vs Bots */}
-      <div>
+      <div id="pros-vs-bots-graph" className="scroll-mt-24">
         <FutureEvalProsVsBotsSectionHeader />
         <FutureEvalProsVsBotsDiffExample />
       </div>
 
       {/* Biggest Bot Wins */}
-      <div>
+      <div id="biggest-bot-wins-graph" className="scroll-mt-24">
         <FutureEvalBiggestBotWins />
       </div>
 
       {/* Bot Tournaments */}
-      <div>
+      <div id="bot-tournaments-graph" className="scroll-mt-24">
         <FutureEvalTournaments />
       </div>
     </>

@@ -444,7 +444,14 @@ const FutureEvalMethodologySections: React.FC = () => {
           </p>
           <p className="m-0">
             As questions resolve, we score the models&apos; forecasts and
-            continuously update our leaderboard. In our rankings, we only
+            continuously update our{" "}
+            <Link
+              href="/futureeval#model-leaderboard"
+              className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+            >
+              leaderboard
+            </Link>
+            . In our rankings, we only
             evaluate forecasts made within 1 year of the model&apos;s first
             forecast, since model performance tends to worsen as their training
             data becomes more out of date (see e.g.{" "}
@@ -509,8 +516,14 @@ const FutureEvalMethodologySections: React.FC = () => {
         </SectionHeader>
         <SectionBody>
           <p className="m-0">
-            The Forecasting Performance Over Time graph is another way to
-            visualize the data from the{" "}
+            The{" "}
+            <Link
+              href="/futureeval#performance-over-time-graph"
+              className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+            >
+              Forecasting Performance Over Time
+            </Link>{" "}
+            graph is another way to visualize the data from the{" "}
             <Link
               href="#model-leaderboard"
               className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
@@ -628,7 +641,7 @@ const FutureEvalMethodologySections: React.FC = () => {
       {/* Section 6: How much Pros beat Bots */}
       <section className="space-y-6">
         <SectionHeader id="pros-beat-bots">
-          How Much <span className={FE_COLORS.textAccent}>Pros Beat Bots</span>
+          Pros vs. <span className={FE_COLORS.textAccent}>Bots</span>
         </SectionHeader>
         <SectionBody>
           <p className="m-0">
@@ -637,12 +650,12 @@ const FutureEvalMethodologySections: React.FC = () => {
             the best humans and by how much.
           </p>
           <p className="m-0">
-            The graph on our{" "}
+            The{" "}
             <Link
-              href="/futureeval"
+              href="/futureeval#pros-vs-bots-graph"
               className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
             >
-              home page
+              graph on our benchmark page
             </Link>{" "}
             shows the score difference between a team of the best 10 bots and
             the Pros in the first four Bot Tournaments.
