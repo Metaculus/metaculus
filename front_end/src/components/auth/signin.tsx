@@ -52,7 +52,7 @@ const SignInModal: FC<SignInModalType> = ({
       const state = await loginAction(data.login, data.password);
 
       if (state?.errors) {
-        setSubmitErrors(state.errors as ErrorResponse);
+        setSubmitErrors(state.errors);
         resetField("password");
 
         const isInactive =
