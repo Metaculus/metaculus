@@ -1,3 +1,4 @@
+import { SearchParams } from "@/types/navigation";
 import { Notebook, Post, PostGroupOfQuestions } from "@/types/post";
 import {
   Project,
@@ -12,6 +13,20 @@ import {
   isGroupOfQuestionsPost,
   isNotebookPost,
 } from "@/utils/questions/helpers";
+
+/**
+ * Converts URLSearchParams to a plain object, preserving multi-value params as arrays.
+ * Unlike Object.fromEntries(), this doesn't discard duplicate keys.
+ */
+export function urlSearchParamsToRecord(params: URLSearchParams): SearchParams {
+  const result: SearchParams = {};
+  params.forEach((_, key) => {
+    if (key in result) return;
+    const values = params.getAll(key);
+    result[key] = values.length > 1 ? values : values[0];
+  });
+  return result;
+}
 
 type EncodableValue = string | number | boolean;
 
