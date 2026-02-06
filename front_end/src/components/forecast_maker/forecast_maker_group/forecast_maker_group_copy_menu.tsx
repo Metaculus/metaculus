@@ -14,6 +14,7 @@ import { ContinuousGroupOption } from "../continuous_group_accordion/group_forec
 type Props = {
   option: ContinuousGroupOption;
   options: ContinuousGroupOption[];
+  copyFromOptions?: ContinuousGroupOption[];
   post?: Post;
   handleCopy: (fromOptionId: number, toOptionId: number) => void;
   setForcedOpenId: (optionId: number) => void;
@@ -22,6 +23,7 @@ type Props = {
 const ForecastMakerGroupCopyMenu: FC<Props> = ({
   option,
   options,
+  copyFromOptions,
   handleCopy,
   setForcedOpenId,
 }) => {
@@ -121,7 +123,7 @@ const ForecastMakerGroupCopyMenu: FC<Props> = ({
           ),
         }));
     } else if (menuMode === "copyFrom") {
-      return options
+      return (copyFromOptions ?? options)
         .filter((o) => o.id !== option.id)
         .map((targetOption) => ({
           id: `copyFrom${targetOption.id}`,
@@ -149,6 +151,7 @@ const ForecastMakerGroupCopyMenu: FC<Props> = ({
     t,
     handleCopyToAll,
     options,
+    copyFromOptions,
     option.id,
     handleCopyTo,
     handleCopyFrom,
