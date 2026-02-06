@@ -564,6 +564,10 @@ def run_update_coherence_spring_2026_cup(cache: bool = False) -> None:
         users, questions, cache=cache
     )
 
+    if not timestamps:
+        logger.info("No head-to-head data found. Exiting.")
+        return
+
     # TODO: set up support for yearly updates for all non-metac bots
 
     # choose baseline player if not already chosen
