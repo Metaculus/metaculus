@@ -6,6 +6,7 @@ import {
   faBook,
   faBookOpen,
   faChartLine,
+  faMicrochip,
   faTrophy,
   faUsers,
 } from "@fortawesome/free-solid-svg-icons";
@@ -294,6 +295,29 @@ const FutureEvalTournamentOverview: React.FC = () => {
         ))}
       </div>
 
+      <div
+        className={cn(
+          "flex flex-col items-center rounded-[10px] px-4 py-5",
+          FE_COLORS.bgSecondary
+        )}
+      >
+        <FontAwesomeIcon
+          icon={faMicrochip}
+          className={cn("mb-2 text-lg", FE_COLORS.textAccent)}
+          aria-hidden
+        />
+        <p
+          className={cn(
+            "m-0 max-w-xl text-center",
+            FE_TYPOGRAPHY.body,
+            FE_COLORS.textSubheading
+          )}
+        >
+          LLM inference costs are covered if participating in the Seasonal
+          Tournament, courtesy of OpenAI, Anthropic, and Google.
+        </p>
+      </div>
+
       <p
         className={cn(
           "m-0 text-center",
@@ -321,7 +345,7 @@ const FutureEvalResources: React.FC = () => {
   const RESOURCES_DATA = [
     {
       icon: faBook,
-      title: "Bot Tournament Resources Page",
+      title: "Resources Page",
       description:
         "Everything you need to know about our bot tournaments including competition rules and set up instructions",
       href: "/notebooks/38928/futureeval-resources-page/",
