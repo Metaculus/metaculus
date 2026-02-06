@@ -83,7 +83,7 @@ const FutureEvalTournaments: React.FC = () => {
           >
             MiniBench
           </Link>
-          , our shorter-term experimental Bot Tournament!
+          , our bot tournament series for fast feedback loops!
         </p>
       </div>
     </div>

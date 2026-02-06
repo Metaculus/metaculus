@@ -13,27 +13,104 @@ import {
 import { FE_COLORS, FE_TYPOGRAPHY } from "../../theme";
 
 /**
- * Get background color intensity based on margin of victory
- * Higher margin = more intense color
- */
-const getMarginColor = (margin: number): string => {
-  if (margin >= 0.6) {
-    return "bg-futureeval-primary-light/60 dark:bg-futureeval-primary-dark/60";
-  }
-  if (margin >= 0.35) {
-    return "bg-futureeval-primary-light/45 dark:bg-futureeval-primary-dark/45";
-  }
-  if (margin >= 0.25) {
-    return "bg-futureeval-primary-light/30 dark:bg-futureeval-primary-dark/30";
-  }
-  return "bg-futureeval-primary-light/20 dark:bg-futureeval-primary-dark/20";
-};
-
-/**
  * Format percentage for display
  */
 const formatPercent = (value: number): string => {
   return `${(value * 100).toFixed(1)}%`;
+};
+
+function describeArc(
+  percentage: number,
+  arcAngle: number,
+  center: { x: number; y: number },
+  radius: number
+): string {
+  const startAngle = Math.PI - (arcAngle - Math.PI) / 2;
+  const endAngle = startAngle + (percentage / 100) * arcAngle;
+  const isLargerFlag = percentage > 50 ? 1 : 0;
+  const startX = center.x + radius * Math.cos(startAngle);
+  const startY = center.y + radius * Math.sin(startAngle);
+  const endX = center.x + radius * Math.cos(endAngle);
+  const endY = center.y + radius * Math.sin(endAngle);
+  return `M ${startX} ${startY} A ${radius} ${radius} 0 ${isLargerFlag} 1 ${endX} ${endY}`;
+}
+
+/**
+ * Compact semi-circular forecast dial. Matches FutureEval aesthetic.
+ * Use inside Td for table or in a flex container for cards.
+ */
+const ForecastDial: React.FC<{
+  value: number;
+  url: string;
+  className?: string;
+  size?: "sm" | "md";
+}> = ({ value, url, className, size = "md" }) => {
+  const scale = size === "sm" ? 0.85 : 1;
+  const width = 88;
+  const height = 54;
+  const strokeWidth = 7;
+  const radius = (width - strokeWidth) / 2;
+  const arcAngle = Math.PI * 1.05;
+  const center = { x: width / 2, y: height - strokeWidth / 2 };
+  const percent = value * 100;
+  const backgroundPath = describeArc(100, arcAngle, center, radius);
+  const progressPath =
+    percent > 0 ? describeArc(percent, arcAngle, center, radius) : null;
+
+  return (
+    <Link
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cn(
+        "inline-flex cursor-pointer flex-col items-center rounded-md transition-opacity hover:opacity-90",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-futureeval-primary-light focus-visible:ring-offset-2 dark:focus-visible:ring-futureeval-primary-dark dark:focus-visible:ring-offset-futureeval-bg-dark",
+        "text-futureeval-primary-light dark:text-futureeval-primary-dark",
+        className
+      )}
+    >
+      <div
+        className="relative flex origin-top items-center justify-center"
+        style={{ transform: `scale(${scale})` }}
+      >
+        <svg
+          width={width}
+          height={height}
+          className="overflow-visible"
+          aria-hidden
+        >
+          <path
+            d={backgroundPath}
+            fill="none"
+            stroke="currentColor"
+            strokeOpacity={0.2}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            className="stroke-futureeval-primary-light dark:stroke-futureeval-primary-dark"
+          />
+          {progressPath && (
+            <path
+              d={progressPath}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={strokeWidth}
+              strokeLinecap="round"
+              className="stroke-futureeval-primary-light dark:stroke-futureeval-primary-dark"
+            />
+          )}
+        </svg>
+        <div
+          className={cn(
+            "absolute inset-0 flex items-end justify-center pb-2 text-center text-gray-800 dark:text-gray-800-dark"
+          )}
+        >
+          <span className="text-sm font-bold tabular-nums leading-none underline underline-offset-2">
+            {formatPercent(value)}
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
 };
 
 /**
@@ -73,7 +150,7 @@ const Th: React.FC<React.HTMLAttributes<HTMLTableCellElement>> = ({
 }) => (
   <th
     className={cn(
-      "px-2 py-3 text-left text-xs font-bold leading-tight text-gray-500 antialiased dark:text-gray-500-dark lg:px-3 lg:text-sm",
+      "px-2 py-4 text-left text-xs font-bold leading-tight text-gray-500 antialiased dark:text-gray-500-dark lg:px-3 lg:text-sm",
       className
     )}
   >
@@ -90,7 +167,7 @@ const Td: React.FC<React.HTMLAttributes<HTMLTableCellElement>> = ({
 }) => (
   <td
     className={cn(
-      "px-2 py-3 text-sm leading-[20px] text-gray-800 dark:text-gray-800-dark lg:px-3",
+      "px-2 py-4 text-sm leading-[20px] text-gray-800 dark:text-gray-800-dark lg:px-3",
       className
     )}
   >
@@ -98,28 +175,6 @@ const Td: React.FC<React.HTMLAttributes<HTMLTableCellElement>> = ({
   </td>
 );
 
-/**
- * Forecast cell with embedded link
- */
-const ForecastCell: React.FC<{
-  value: number;
-  url: string;
-  className?: string;
-}> = ({ value, url, className }) => (
-  <Td className={cn("text-center tabular-nums", className)}>
-    <Link
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={cn(
-        "underline underline-offset-2 transition-opacity hover:opacity-70",
-        FE_COLORS.textHeading
-      )}
-    >
-      {formatPercent(value)}
-    </Link>
-  </Td>
-);
 
 /**
  * Desktop table view
@@ -135,8 +190,7 @@ const DesktopTable: React.FC<{ questions: BotWinQuestion[] }> = ({
           <col className="w-[10%] min-w-[75px]" />
           <col className="w-[10%] min-w-[75px]" />
           <col className="w-[10%] min-w-[80px]" />
-          <col className="w-[12%] min-w-[90px]" />
-          <col className="w-[23%] min-w-[140px]" />
+          <col className="w-[35%] min-w-[140px]" />
         </colgroup>
         <thead>
           <tr className="border-b border-gray-300 bg-futureeval-bg-light dark:border-gray-300-dark dark:bg-futureeval-bg-dark">
@@ -144,7 +198,6 @@ const DesktopTable: React.FC<{ questions: BotWinQuestion[] }> = ({
             <Th className="text-center">Pros Forecast</Th>
             <Th className="text-center">Bots Forecast</Th>
             <Th className="text-center">Did it happen?</Th>
-            <Th className="text-center">Bots won by</Th>
             <Th>What happened</Th>
           </tr>
         </thead>
@@ -159,8 +212,12 @@ const DesktopTable: React.FC<{ questions: BotWinQuestion[] }> = ({
                   {q.questionTitle}
                 </div>
               </Td>
-              <ForecastCell value={q.prosForecast} url={q.prosUrl} />
-              <ForecastCell value={q.botsForecast} url={q.botsUrl} />
+              <Td className="text-center align-middle">
+                <ForecastDial value={q.prosForecast} url={q.prosUrl} />
+              </Td>
+              <Td className="text-center align-middle">
+                <ForecastDial value={q.botsForecast} url={q.botsUrl} />
+              </Td>
               <Td className="text-center">
                 <span
                   className={cn(
@@ -171,16 +228,6 @@ const DesktopTable: React.FC<{ questions: BotWinQuestion[] }> = ({
                   )}
                 >
                   {q.didItHappen ? "Yes" : "No"}
-                </span>
-              </Td>
-              <Td className="text-center">
-                <span
-                  className={cn(
-                    "inline-block rounded px-2 py-1 font-medium tabular-nums",
-                    getMarginColor(q.botsWonBy)
-                  )}
-                >
-                  {formatPercent(q.botsWonBy)}
                 </span>
               </Td>
               <Td>
@@ -224,70 +271,43 @@ const MobileCards: React.FC<{ questions: BotWinQuestion[] }> = ({
 
           {/* Forecasts Row */}
           <div className="mb-3 flex gap-4">
-            <div className="flex-1">
+            <div className="flex flex-1 flex-col items-center">
               <div className="mb-1 text-xs text-gray-500 dark:text-gray-500-dark">
                 Pros forecast
               </div>
-              <Link
-                href={q.prosUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(
-                  "text-base font-medium underline underline-offset-2 transition-opacity hover:opacity-70",
-                  FE_COLORS.textHeading
-                )}
-              >
-                {formatPercent(q.prosForecast)}
-              </Link>
+              <ForecastDial
+                value={q.prosForecast}
+                url={q.prosUrl}
+                size="sm"
+              />
             </div>
-            <div className="flex-1">
+            <div className="flex flex-1 flex-col items-center">
               <div className="mb-1 text-xs text-gray-500 dark:text-gray-500-dark">
                 Bots forecast
               </div>
-              <Link
-                href={q.botsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(
-                  "text-base font-medium underline underline-offset-2 transition-opacity hover:opacity-70",
-                  FE_COLORS.textHeading
-                )}
-              >
-                {formatPercent(q.botsForecast)}
-              </Link>
+              <ForecastDial
+                value={q.botsForecast}
+                url={q.botsUrl}
+                size="sm"
+              />
             </div>
           </div>
 
           {/* Outcome Row */}
-          <div className="mb-3 flex gap-4">
-            <div className="flex-1">
-              <div className="mb-1 text-xs text-gray-500 dark:text-gray-500-dark">
-                Did it happen?
-              </div>
-              <span
-                className={cn(
-                  "text-base font-medium",
-                  q.didItHappen
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-red-600 dark:text-red-400"
-                )}
-              >
-                {q.didItHappen ? "Yes" : "No"}
-              </span>
+          <div className="mb-3">
+            <div className="mb-1 text-xs text-gray-500 dark:text-gray-500-dark">
+              Did it happen?
             </div>
-            <div className="flex-1">
-              <div className="mb-1 text-xs text-gray-500 dark:text-gray-500-dark">
-                Bots won by
-              </div>
-              <span
-                className={cn(
-                  "inline-block rounded px-2 py-0.5 text-base font-medium tabular-nums",
-                  getMarginColor(q.botsWonBy)
-                )}
-              >
-                {formatPercent(q.botsWonBy)}
-              </span>
-            </div>
+            <span
+              className={cn(
+                "text-base font-medium",
+                q.didItHappen
+                  ? "text-green-600 dark:text-green-400"
+                  : "text-red-600 dark:text-red-400"
+              )}
+            >
+              {q.didItHappen ? "Yes" : "No"}
+            </span>
           </div>
 
           {/* What happened */}
