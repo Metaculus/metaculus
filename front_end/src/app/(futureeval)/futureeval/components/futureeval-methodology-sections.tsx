@@ -447,7 +447,14 @@ const FutureEvalMethodologySections: React.FC = () => {
             continuously update our leaderboard. In our rankings, we only
             evaluate forecasts made within 1 year of the model&apos;s first
             forecast, since model performance tends to worsen as their training
-            data becomes more out of date.
+            data becomes more out of date (see e.g.{" "}
+            <Link
+              href="https://arxiv.org/abs/2411.08324v2"
+              className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+            >
+              here
+            </Link>
+            ).
           </p>
           <p className="m-0">
             We use head-to-head{" "}
