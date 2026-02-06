@@ -17,16 +17,15 @@ def weighted_percentile_2d(
     percentiles: Percentiles = None,
 ) -> Percentiles:
     values = np.array(values)
+    sorted_values = values.copy()  # avoid side effects
+
     if weights is None:
         ordered_weights = np.ones_like(values)
     else:
         weights = np.array(weights)
-        ordered_weights = weights[values.argsort(axis=0)]
+        ordered_weights = weights[sorted_values.argsort(axis=0)]
     percentiles = np.array(percentiles or [50.0])
 
-    sorted_values = values.copy()  # avoid side effects
-    # replace None with -1.0 for calculations (return to None at the end)
-    sorted_values[np.equal(sorted_values, None)] = -1.0
     sorted_values.sort(axis=0)
 
     # get the normalized cumulative weights
@@ -52,11 +51,7 @@ def weighted_percentile_2d(
                 + sorted_values[right_indexes, column_indices]
             )
         )
-    # replace -1.0 back to None
     weighted_percentiles = np.array(weighted_percentiles)
-    weighted_percentiles = np.where(
-        weighted_percentiles == -1.0, None, weighted_percentiles
-    )
     return weighted_percentiles.tolist()
 
 
@@ -73,8 +68,6 @@ def percent_point_function(
     if return_float := isinstance(percentiles, float | int):
         percentiles = np.array([percentiles])
     ppf_values = []
-    if any(v is None for v in cdf):
-        raise ValueError("cdf contains None values")
     for percent in percentiles:
         # percent is a float between 0 and 100
         if percent < cdf[0] * 100:
@@ -104,10 +97,22 @@ def prediction_difference_for_sorting(
     """for binary and multiple choice, takes pmfs
     for continuous takes cdfs"""
     p1, p2 = np.array(p1), np.array(p2)
-    p1[np.equal(p1, None)] = -1.0  # replace None with -1.0 for calculations
-    p2[np.equal(p2, None)] = -1.0  # replace None with -1.0 for calculations
     # Uses Jeffrey's Divergence
-    if question_type in ["binary", "multiple_choice"]:
+    if question_type == Question.QuestionType.MULTIPLE_CHOICE:
+        # cover for Nones
+        p1_nans = np.isnan(p1)
+        p2_nans = np.isnan(p2)
+        never_nans = np.logical_not(p1_nans | p2_nans)
+        p1_new = p1[never_nans]
+        p2_new = p2[never_nans]
+        p1_new[-1] += sum(p1[~p1_nans & p2_nans])
+        p2_new[-1] += sum(p2[~p2_nans & p1_nans])
+        p1 = p1_new
+        p2 = p2_new
+    if question_type in [
+        Question.QuestionType.BINARY,
+        Question.QuestionType.MULTIPLE_CHOICE,
+    ]:
         return sum([(p - q) * np.log2(p / q) for p, q in zip(p1, p2)])
     cdf1 = np.array([1 - np.array(p1), p1])
     cdf2 = np.array([1 - np.array(p2), p2])
@@ -123,14 +128,22 @@ def prediction_difference_for_display(
     """for binary and multiple choice, takes pmfs
     for continuous takes cdfs"""
     p1, p2 = np.array(p1), np.array(p2)
-    p1[np.equal(p1, None)] = -1.0  # replace None with -1.0 for calculations
-    p2[np.equal(p2, None)] = -1.0  # replace None with -1.0 for calculations
     if question.type == "binary":
         # single-item list of (pred diff, ratio of odds)
         return [(p2[1] - p1[1], (p2[1] / (1 - p2[1])) / (p1[1] / (1 - p1[1])))]
     elif question.type == "multiple_choice":
         # list of (pred diff, ratio of odds)
-        return [(q - p, (q / (1 - q)) / (p / (1 - p))) for p, q in zip(p1, p2)]
+        for p, q in zip(p1[:-1], p2[:-1]):
+            if np.isnan(p) or np.isnan(q):
+                p1[-1] += p if not np.isnan(p) else 0.0
+                p2[-1] += q if not np.isnan(q) else 0.0
+        arr = []
+        for p, q in zip(p1, p2):
+            if np.isnan(p) or np.isnan(q):
+                arr.append((0.0, 1.0))
+            else:
+                arr.append((q - p, (q / (1 - q)) / (p / (1 - p))))
+        return arr
     # total earth mover's distance, asymmetric earth mover's distance
     x_locations = unscaled_location_to_scaled_location(
         np.linspace(0, 1, len(p1)), question

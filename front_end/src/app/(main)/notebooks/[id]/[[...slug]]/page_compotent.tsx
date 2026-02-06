@@ -20,7 +20,6 @@ import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions";
 import PostVoter from "@/components/post_card/basic_post_card/post_voter";
 import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import CircleDivider from "@/components/ui/circle_divider";
-import { POST_CATEGORIES_FILTER } from "@/constants/posts_feed";
 import { PostSubscriptionProvider } from "@/contexts/post_subscription_context";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
@@ -34,13 +33,13 @@ const IndividualNotebookPage: FC<{
   params: { id: number; slug: string[] };
 }> = async ({ params }) => {
   const postData = await ServerPostsApi.getPost(params.id);
-  const defaultProject = postData.projects.default_project;
+  const defaultProject = postData.projects?.default_project;
 
   if (!isNotebookPost(postData)) {
     return notFound();
   }
 
-  const isCommunityQuestion = defaultProject.type === TournamentType.Community;
+  const isCommunityQuestion = defaultProject?.type === TournamentType.Community;
   let currentCommunity = null;
   if (isCommunityQuestion) {
     currentCommunity = await ServerProjectsApi.getCommunity(
@@ -166,27 +165,6 @@ const IndividualNotebookPage: FC<{
               postData={postData}
               contentId={NOTEBOOK_CONTENT_SECTION}
             />
-            <div className="flex flex-col gap-2">
-              {!!postData.projects.category?.length && (
-                <div>
-                  <span className="font-medium">{t("Categories") + ":"}</span>
-                  {postData.projects.category?.map((category, index) => (
-                    <span key={category.id}>
-                      {" "}
-                      <Link
-                        className="text-gray-800 no-underline hover:underline dark:text-gray-800-dark"
-                        href={`/questions?${POST_CATEGORIES_FILTER}=${category.slug}`}
-                      >
-                        {category.name}
-                      </Link>
-                      {index < (postData.projects.category?.length ?? 0) - 1
-                        ? ","
-                        : "."}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
             <CommentsFeedProvider
               postData={postData}
               rootCommentStructure={true}

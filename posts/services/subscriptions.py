@@ -216,13 +216,13 @@ def notify_post_cp_change(post: Post):
                     break
             if entry is None:
                 continue
-            old_forecast_values = entry.forecast_values
+            old_forecast_values = entry.get_prediction_values()
             current_entry = get_last_forecast_in_the_past(forecast_summary)
 
             if not current_entry:
                 continue
 
-            current_forecast_values = current_entry.forecast_values
+            current_forecast_values = current_entry.get_prediction_values()
             difference = prediction_difference_for_sorting(
                 old_forecast_values,
                 current_forecast_values,

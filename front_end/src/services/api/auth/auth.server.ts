@@ -1,9 +1,9 @@
 import "server-only";
 
 import { ApiService } from "@/services/api/api_service";
-import { AuthTokens } from "@/types/auth";
 import {
   AuthResponse,
+  AuthTokens,
   SignUpResponse,
   SocialAuthResponse,
   SocialProvider,
@@ -160,6 +160,10 @@ class ServerAuthApiClass extends ApiService {
 
   async rotateApiKey(): Promise<{ key: string }> {
     return this.post<{ key: string }>("/auth/api-key/rotate/", {});
+  }
+
+  async logout(): Promise<void> {
+    await this.post("/auth/logout/", {});
   }
 }
 

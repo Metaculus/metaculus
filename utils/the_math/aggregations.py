@@ -15,10 +15,10 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone as dt_timezone
 from typing import Sequence
 
-
+import numpy as np
+import sentry_sdk
 from django.db.models import F, Q, QuerySet
 from django.utils import timezone
-import numpy as np
 
 from projects.permissions import ObjectPermission
 from questions.models import (
@@ -28,8 +28,8 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.types import AggregationMethod
-from scoring.models import Score, LeaderboardEntry
 from scoring.constants import ScoreTypes
+from scoring.models import Score, LeaderboardEntry
 from users.models import User
 from utils.the_math.measures import (
     weighted_percentile_2d,
@@ -301,23 +301,36 @@ class PeerScoreReputationWeighted(ReputationWeighted):
         old_peer_scores = list(
             peer_scores.filter(edited_at__lte=start).order_by("edited_at")
         )
-        for score in old_peer_scores:
-            scores_by_user[score.user_id][score.question_id] = score
-        for user_id in all_forecaster_ids:
-            value = self.reputation_value(list(scores_by_user[user_id].values()))
-            reputations[user_id].append(Reputation(user_id, value, start))
+
+        with sentry_sdk.start_span(
+            op="compute", name="compute_initial_reputations"
+        ) as span:
+            span.set_data("forecaster_count", len(all_forecaster_ids))
+            span.set_data("old_peer_scores_count", len(old_peer_scores))
+            for score in old_peer_scores:
+                scores_by_user[score.user_id][score.question_id] = score
+            for user_id in all_forecaster_ids:
+                value = self.reputation_value(list(scores_by_user[user_id].values()))
+                reputations[user_id].append(Reputation(user_id, value, start))
 
         # Then, for each new score, add a new reputation record
         new_peer_scores = list(
             peer_scores.filter(edited_at__gt=start).order_by("edited_at")
         )
-        for score in new_peer_scores:
-            # update the scores by user, then calculate the updated reputation
-            scores_by_user[score.user_id][score.question_id] = score
-            value = self.reputation_value(list(scores_by_user[score.user_id].values()))
-            reputations[score.user_id].append(
-                Reputation(score.user_id, value, score.edited_at)
-            )
+
+        with sentry_sdk.start_span(
+            op="compute", name="compute_reputation_updates"
+        ) as span:
+            span.set_data("new_peer_scores_count", len(new_peer_scores))
+            for score in new_peer_scores:
+                # update the scores by user, then calculate the updated reputation
+                scores_by_user[score.user_id][score.question_id] = score
+                value = self.reputation_value(
+                    list(scores_by_user[score.user_id].values())
+                )
+                reputations[score.user_id].append(
+                    Reputation(score.user_id, value, score.edited_at)
+                )
         return reputations
 
     def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
@@ -445,8 +458,6 @@ class MedianAggregatorMixin:
         # and weighted average for continuous
         forecasts_values = np.array(forecast_set.forecasts_values)
         if self.question.type == Question.QuestionType.BINARY:
-            if np.any(np.equal(forecasts_values, None)):
-                raise ValueError("Forecast values contain None values")
             return np.array(
                 compute_discrete_forecast_values(forecasts_values, weights, 50.0)[0]
             )
@@ -454,15 +465,13 @@ class MedianAggregatorMixin:
             arr = np.array(
                 compute_discrete_forecast_values(forecasts_values, weights, 50.0)[0]
             )
-            non_nones = np.logical_not(np.equal(arr, None))
-            arr[non_nones] -= 0.001  # remove minimum forecastable value
-            arr[non_nones] = arr[non_nones] / sum(arr[non_nones])  # renormalize
+            non_nans = ~np.isnan(arr) if arr.size else []
+            arr[non_nans] -= 0.001  # remove minimum forecastable value
+            arr[non_nans] = arr[non_nans] / sum(arr[non_nans])  # renormalize
             # squeeze into forecastable value range
-            arr[non_nones] = arr[non_nones] * (1 - len(arr[non_nones]) * 0.001) + 0.001
+            arr[non_nans] = arr[non_nans] * (1 - len(arr[non_nans]) * 0.001) + 0.001
             return arr
         else:  # continuous
-            if np.any(np.equal(forecasts_values, None)):
-                raise ValueError("Forecast values contain None values")
             return np.average(forecasts_values, axis=0, weights=weights)
 
     def get_range_values(
@@ -473,41 +482,34 @@ class MedianAggregatorMixin:
     ) -> tuple[list[float | None], list[float | None], list[float | None]]:
         if self.question.type == Question.QuestionType.BINARY:
             forecasts_values = np.array(forecast_set.forecasts_values)
-            if np.any(np.equal(forecasts_values, None)):
-                raise ValueError("Forecast values contain None values")
             lowers, centers, uppers = compute_discrete_forecast_values(
                 forecasts_values, weights, [25.0, 50.0, 75.0]
             )
         elif self.question.type == Question.QuestionType.MULTIPLE_CHOICE:
             forecasts_values = np.array(forecast_set.forecasts_values)
-            non_nones = (
-                np.logical_not(np.equal(forecasts_values[0], None))
-                if forecasts_values.size
-                else []
-            )
+            non_nans = ~np.isnan(forecasts_values[0]) if forecasts_values.size else []
             lowers, centers, uppers = compute_discrete_forecast_values(
                 forecasts_values, weights, [25.0, 50.0, 75.0]
             )
             centers_array = np.array(centers)
+            centers_array[np.equal(centers_array, 0.0)] = 1.0  # avoid divide by zero
             normalized_centers = np.array(aggregation_forecast_values)
             normalized_lowers = np.array(lowers)
-            normalized_lowers[non_nones] = (
-                normalized_lowers[non_nones]
-                * normalized_centers[non_nones]
-                / centers_array[non_nones]
+            normalized_lowers[non_nans] = (
+                normalized_lowers[non_nans]
+                * normalized_centers[non_nans]
+                / centers_array[non_nans]
             )
             normalized_uppers = np.array(uppers)
-            normalized_uppers[non_nones] = (
-                normalized_lowers[non_nones]
-                * normalized_centers[non_nones]
-                / centers_array[non_nones]
+            normalized_uppers[non_nans] = (
+                normalized_uppers[non_nans]
+                * normalized_centers[non_nans]
+                / centers_array[non_nans]
             )
             centers = normalized_centers.tolist()
             lowers = normalized_lowers.tolist()
             uppers = normalized_uppers.tolist()
         else:  # continuous
-            if np.any(np.equal(aggregation_forecast_values, None)):
-                raise ValueError("Forecast values contain None values")
             lowers, centers, uppers = percent_point_function(
                 aggregation_forecast_values, [25.0, 50.0, 75.0]
             )
@@ -616,14 +618,18 @@ class Aggregation(AggregatorMixin):
         include_stats: bool = False,
         histogram: bool = False,
     ) -> AggregateForecast | None:
+        # forecast_set can have nans in its forecasts_values, so we handle those by
+        # converting nans to None when setting values on the aggregation object
+        # to get nan's back from object, user get_prediction_values or get_pmf
         weights = self.get_weights(forecast_set)
         if isinstance(weights, int):
             assert weights == 0, "0 is only supported int return of get_weights"
             return None
         aggregation = AggregateForecast(question=self.question, method=self.method)
-        aggregation.forecast_values = self.calculate_forecast_values(
-            forecast_set, weights
-        ).tolist()
+        forecast_values = self.calculate_forecast_values(forecast_set, weights)
+        aggregation.forecast_values = [
+            None if np.isnan(v) else v for v in forecast_values
+        ]
 
         aggregation.start_time = forecast_set.timestep
         if weights is not None:
@@ -632,18 +638,22 @@ class Aggregation(AggregatorMixin):
             aggregation.forecaster_count = len(forecast_set.forecasts_values)
         if include_stats:
             lowers, centers, uppers = self.get_range_values(
-                forecast_set, aggregation.forecast_values, weights
+                forecast_set, forecast_values, weights
             )
-            aggregation.interval_lower_bounds = lowers
-            aggregation.centers = centers
-            aggregation.interval_upper_bounds = uppers
+            aggregation.interval_lower_bounds = [
+                None if np.isnan(v) else v for v in lowers
+            ]
+            aggregation.centers = [None if np.isnan(v) else v for v in centers]
+            aggregation.interval_upper_bounds = [
+                None if np.isnan(v) else v for v in uppers
+            ]
             if self.question.type in [
                 Question.QuestionType.BINARY,
                 Question.QuestionType.MULTIPLE_CHOICE,
             ]:
-                aggregation.means = np.average(
-                    forecast_set.forecasts_values, weights=weights, axis=0
-                ).tolist()
+                forecasts_values = np.array(forecast_set.forecasts_values)
+                means = np.average(forecasts_values, weights=weights, axis=0)
+                aggregation.means = [None if np.isnan(v) else v for v in means]
 
         if histogram and self.question.type in [
             Question.QuestionType.BINARY,
@@ -744,12 +754,7 @@ def get_aggregations_at_time(
     if len(forecasts) == 0:
         return dict()
     forecast_set = ForecastSet(
-        forecasts_values=[
-            [
-                v or 0.0 for v in forecast.get_prediction_values()
-            ]  # replace Nones with 0.0 for calculation purposes
-            for forecast in forecasts
-        ],
+        forecasts_values=[forecast.get_prediction_values() for forecast in forecasts],
         timestep=time,
         forecaster_ids=[forecast.author_id for forecast in forecasts],
         timesteps=[forecast.start_time for forecast in forecasts],
@@ -954,6 +959,7 @@ def get_user_forecast_history(
     return sorted(list(forecast_sets.values()), key=lambda x: x.timestep)
 
 
+@sentry_sdk.trace
 def get_aggregation_history(
     question: Question,
     aggregation_methods: list[AggregationMethod],
@@ -987,7 +993,9 @@ def get_aggregation_history(
         cutoff = question.actual_close_time
     else:
         cutoff = min(timezone.now(), question.actual_close_time or timezone.now())
-    forecast_history = get_user_forecast_history(forecasts, minimize, cutoff=cutoff)
+
+    with sentry_sdk.start_span(op="compute", name="get_user_forecast_history"):
+        forecast_history = get_user_forecast_history(forecasts, minimize, cutoff=cutoff)
 
     forecaster_ids = set(forecast.author_id for forecast in forecasts)
     for method in aggregation_methods:
@@ -1001,11 +1009,16 @@ def get_aggregation_history(
             continue
 
         aggregation_history: list[AggregateForecast] = []
-        AggregationGenerator: Aggregation = get_aggregation_by_name(method)(
-            question=question,
-            all_forecaster_ids=forecaster_ids,
-            joined_before=joined_before,
-        )
+        with sentry_sdk.start_span(
+            op="aggregation.init",
+            name=f"init_aggregation_generator:{method}",
+        ) as span:
+            span.set_data("forecaster_count", len(forecaster_ids))
+            AggregationGenerator: Aggregation = get_aggregation_by_name(method)(
+                question=question,
+                all_forecaster_ids=forecaster_ids,
+                joined_before=joined_before,
+            )
 
         last_historical_entry_index = -1
         now = timezone.now()
@@ -1014,34 +1027,41 @@ def get_aggregation_history(
                 last_historical_entry_index += 1
             else:
                 break
-        for i, forecast_set in enumerate(forecast_history):
-            if histogram is not None:
-                include_histogram = histogram and (
-                    question.type
-                    in [
-                        Question.QuestionType.BINARY,
-                        Question.QuestionType.MULTIPLE_CHOICE,
-                    ]
-                )
-            else:
-                include_histogram = question.type == Question.QuestionType.BINARY and (
-                    i >= last_historical_entry_index
-                )
 
-            if forecast_set.forecasts_values:
-                new_entry = AggregationGenerator.calculate_aggregation_entry(
-                    forecast_set,
-                    include_stats=include_stats,
-                    histogram=include_histogram,
-                )
-                if new_entry is None:
-                    continue
-                if aggregation_history and aggregation_history[-1].end_time is None:
-                    aggregation_history[-1].end_time = new_entry.start_time
-                aggregation_history.append(new_entry)
-            else:
-                if aggregation_history:
-                    aggregation_history[-1].end_time = forecast_set.timestep
+        with sentry_sdk.start_span(
+            op="aggregation.compute",
+            name=f"compute_aggregation_entries:{method}",
+        ) as span:
+            span.set_data("forecast_history_count", len(forecast_history))
+            for i, forecast_set in enumerate(forecast_history):
+                if histogram is not None:
+                    include_histogram = histogram and (
+                        question.type
+                        in [
+                            Question.QuestionType.BINARY,
+                            Question.QuestionType.MULTIPLE_CHOICE,
+                        ]
+                    )
+                else:
+                    include_histogram = (
+                        question.type == Question.QuestionType.BINARY
+                        and (i >= last_historical_entry_index)
+                    )
+
+                if forecast_set.forecasts_values:
+                    new_entry = AggregationGenerator.calculate_aggregation_entry(
+                        forecast_set,
+                        include_stats=include_stats,
+                        histogram=include_histogram,
+                    )
+                    if new_entry is None:
+                        continue
+                    if aggregation_history and aggregation_history[-1].end_time is None:
+                        aggregation_history[-1].end_time = new_entry.start_time
+                    aggregation_history.append(new_entry)
+                else:
+                    if aggregation_history:
+                        aggregation_history[-1].end_time = forecast_set.timestep
         full_summary[method] = aggregation_history
 
     return full_summary

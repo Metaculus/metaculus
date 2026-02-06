@@ -41,9 +41,11 @@ const ActiveTournamentTimeline: FC<Props> = async ({
     tournament.start_date,
     totalTime
   );
+  const currentYear = getYear(new Date());
+  const startYear = getYear(new Date(tournament.start_date));
+  const closeYear = getYear(new Date(latestScheduledCloseTimestamp));
   const formatString =
-    getYear(new Date(latestScheduledCloseTimestamp)) ===
-    getYear(new Date(tournament.start_date))
+    startYear === currentYear && closeYear === currentYear
       ? "MMM dd"
       : "MMM dd yyyy";
   return (

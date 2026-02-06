@@ -10,7 +10,12 @@ import { ApiError } from "@/utils/core/errors";
 
 export async function changePassword(password: string, new_password: string) {
   try {
-    await ServerProfileApi.changePassword(password, new_password);
+    const tokens = await ServerProfileApi.changePassword(
+      password,
+      new_password
+    );
+    const authManager = await getAuthCookieManager();
+    authManager.setAuthTokens(tokens);
 
     return {};
   } catch (err) {

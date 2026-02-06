@@ -572,6 +572,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         OPEN = "open", _("Open")
         CLOSED = "closed", _("Closed")
         RESOLVED = "resolved", _("Resolved")
+        CP_REVEALED = "cp_revealed", _("CP Revealed")
 
     curation_status = models.CharField(
         max_length=20,
@@ -840,7 +841,11 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         Update forecasts count cache
         """
 
-        self.forecasts_count = self.forecasts.filter_within_question_period().count()
+        self.forecasts_count = (
+            self.forecasts.filter_within_question_period()
+            .exclude(source=Forecast.SourceChoices.AUTOMATIC)
+            .count()
+        )
         self.save(update_fields=["forecasts_count"])
 
     def update_forecasters_count(self):

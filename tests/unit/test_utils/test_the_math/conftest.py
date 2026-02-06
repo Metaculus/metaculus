@@ -1,1 +1,4 @@
-from tests.unit.test_questions.conftest import question_binary  # noqa
+from tests.unit.test_questions.conftest import (  # noqa
+    question_binary,
+    question_multiple_choice,
+)

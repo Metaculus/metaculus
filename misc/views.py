@@ -129,7 +129,9 @@ def get_site_stats(request):
     now_year = datetime.now().year
     public_questions = Question.objects.filter_public()
     stats = {
-        "predictions": Forecast.objects.filter(question__in=public_questions).count(),
+        "predictions": Forecast.objects.filter(question__in=public_questions)
+        .exclude(source=Forecast.SourceChoices.AUTOMATIC)
+        .count(),
         "questions": public_questions.count(),
         "resolved_questions": public_questions.filter(actual_resolve_time__isnull=False)
         .exclude(resolution__in=UnsuccessfulResolutionType)
@@ -168,9 +170,10 @@ def get_whitelist_status_api_view(request: Request):
     data = request.query_params
     post_id = data.get("post_id")
     project_id = data.get("project_id")
+    user = request.user if request.user.is_authenticated else None
 
     is_whitelisted, view_deanonymized_data = get_whitelist_status(
-        request.user, post_id, project_id
+        user, post_id, project_id
     )
 
     return Response(
