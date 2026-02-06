@@ -24,9 +24,11 @@ export function mapBots(entries: LeaderboardEntry[], cutoffDate?: Date) {
     .map((e) => {
       const meta = getModelDetailsFromScoreEntry(e);
       if (!meta?.releasedAt) return null;
+      const releaseDate = new Date(meta.releasedAt);
+      if (isNaN(releaseDate.getTime())) return null;
       return {
         name: meta.label,
-        releaseDate: new Date(meta.releasedAt),
+        releaseDate,
         score: e.score,
         family: meta.family,
         familyLabel: meta.familyLabel,
