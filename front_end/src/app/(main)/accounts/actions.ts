@@ -39,26 +39,13 @@ export type LoginActionState = {
 } | null;
 
 export default async function loginAction(
-  prevState: LoginActionState,
-  formData: FormData
+  login: string,
+  password: string
 ): Promise<LoginActionState> {
-  const validatedFields = signInSchema.safeParse(
-    Object.fromEntries(formData.entries())
-  );
-
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
-  }
-
   let response: AuthResponse;
 
   try {
-    response = await ServerAuthApi.signIn(
-      validatedFields.data.login,
-      validatedFields.data.password
-    );
+    response = await ServerAuthApi.signIn(login, password);
   } catch (err: unknown) {
     return {
       errors: ApiError.isApiError(err)
