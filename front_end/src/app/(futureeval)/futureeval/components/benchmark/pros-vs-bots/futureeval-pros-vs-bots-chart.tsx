@@ -18,6 +18,7 @@ import {
   VictoryErrorBar,
   VictoryLabel,
   VictoryNumberCallback,
+  VictoryScatter,
 } from "victory";
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
@@ -27,7 +28,13 @@ import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import { ThemeColor } from "@/types/theme";
 
-import { DiffDatum } from "./config";
+import {
+  DiffDatum,
+  getSignificanceStatus,
+  SIGNIFICANCE_FILL,
+  SIGNIFICANCE_LABELS,
+  SignificanceStatus,
+} from "./config";
 import FutureEvalDiffTooltip from "./futureeval-diff-tooltip";
 
 export type ProsVsBotsDiffSeries = {
@@ -221,11 +228,47 @@ const FutureEvalProsVsBotsDiffChart: FC<{
   const tickLabelColor = getThemeColor(METAC_COLORS.gray[500]);
   const show = categories.length > 0 && (hasS1 || hasS2);
 
+  const iconRadius = smUp ? 11 : 9;
+  const tickLabelDy = 24;
+  const labelBottomPx = tickLabelDy + (smUp ? 28 : 24);
+  const iconDrop = labelBottomPx + 6 + iconRadius;
+
   const paddingLeft = smUp ? 64 : 50;
   const paddingRight = 0;
   const paddingTop = 16;
-  const paddingBottom = 44;
-  const chartH = smUp ? 360 : 216; // Mobile: 60% of desktop height
+  const paddingBottom = iconDrop + iconRadius + 6;
+  const chartH = (smUp ? 308 : 156) + paddingTop + paddingBottom;
+
+  const iconData: {
+    _x: number;
+    y: number;
+    significance: SignificanceStatus;
+    iconColor: string;
+    iconRadius: number;
+    iconDrop: number;
+  }[] = [];
+  for (const d of s1Data) {
+    const sig = getSignificanceStatus(d);
+    iconData.push({
+      _x: (posByX.get(d.x) ?? 0) + s1OffsetFor(d.x),
+      y: 0,
+      significance: sig,
+      iconColor: getThemeColor(SIGNIFICANCE_FILL[sig]),
+      iconRadius,
+      iconDrop,
+    });
+  }
+  for (const d of s2Data) {
+    const sig = getSignificanceStatus(d);
+    iconData.push({
+      _x: (posByX.get(d.x) ?? 0) + s2OffsetFor(d.x),
+      y: 0,
+      significance: sig,
+      iconColor: getThemeColor(SIGNIFICANCE_FILL[sig]),
+      iconRadius,
+      iconDrop,
+    });
+  }
 
   const plotW = Math.max(0, width - paddingLeft - paddingRight);
   const domainSpan = xDomain[1] - xDomain[0];
@@ -322,32 +365,67 @@ const FutureEvalProsVsBotsDiffChart: FC<{
   return (
     <div ref={ref} className={className ?? "relative w-full"}>
       {show && (
-        <div className="mb-6 flex flex-wrap items-center justify-start gap-x-6 gap-y-3 antialiased sm:gap-x-10">
+        <div className="mb-5 flex flex-wrap items-center justify-start gap-x-4 gap-y-2.5 antialiased sm:gap-x-6">
+          {/* Series color swatches */}
           {s1 && (
-            <span className="inline-flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5">
               <span
                 aria-hidden
-                className="inline-block h-[14px] w-[14px] rounded-[2px]"
+                className="inline-block h-[12px] w-[12px] rounded-[2px]"
                 style={{ background: getThemeColor(s1.colorToken) }}
               />
-              <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-base">
+              <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-sm">
                 {s1.label}
               </span>
             </span>
           )}
           {s2 && (
-            <span className="inline-flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5">
               <span
                 aria-hidden
-                className="inline-block h-[14px] w-[14px] rounded-[2px]"
+                className="inline-block h-[12px] w-[12px] rounded-[2px]"
                 style={{ background: getThemeColor(s2.colorToken) }}
               />
-              <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-base">
+              <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-sm">
                 {s2.label}
               </span>
             </span>
           )}
-          <span className="inline-flex items-center gap-2 text-xs text-gray-700 dark:text-gray-700-dark sm:text-base">
+
+          {/* Divider */}
+          <span
+            aria-hidden
+            className="hidden h-4 w-px bg-gray-300 dark:bg-gray-300-dark sm:inline-block"
+          />
+
+          {/* Significance icon indicators */}
+          <span className="inline-flex items-center gap-1">
+            <SignificanceLegendIcon type="significant_win" />
+            <span className="text-xs text-gray-700 dark:text-gray-700-dark sm:text-sm">
+              {SIGNIFICANCE_LABELS.significant_win}
+            </span>
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <SignificanceLegendIcon type="non_significant_win" />
+            <span className="text-xs text-gray-700 dark:text-gray-700-dark sm:text-sm">
+              {SIGNIFICANCE_LABELS.non_significant_win}
+            </span>
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <SignificanceLegendIcon type="loss" />
+            <span className="text-xs text-gray-700 dark:text-gray-700-dark sm:text-sm">
+              {SIGNIFICANCE_LABELS.loss}
+            </span>
+          </span>
+
+          {/* Divider */}
+          <span
+            aria-hidden
+            className="hidden h-4 w-px bg-gray-300 dark:bg-gray-300-dark sm:inline-block"
+          />
+
+          {/* 95% CI whisker */}
+          <span className="inline-flex items-center gap-1.5 text-xs text-gray-700 dark:text-gray-700-dark sm:text-sm">
             <svg
               width="13"
               height="16"
@@ -562,6 +640,17 @@ const FutureEvalProsVsBotsDiffChart: FC<{
                   />
                 )}
 
+                {iconData.length > 0 && (
+                  <VictoryScatter
+                    data={iconData}
+                    x="_x"
+                    y="y"
+                    name="significanceIcons"
+                    dataComponent={<SignificanceIconPoint />}
+                    style={{ data: { pointerEvents: "none" } }}
+                  />
+                )}
+
                 <VictoryBar
                   name="hitStrips"
                   data={categories.map((c, i) => ({ _x: i, cat: c, y: 1 }))}
@@ -695,6 +784,172 @@ const NonInteractiveErrorBar: React.FC<ErrorBarProps> = (props) => (
     <CapWidthErrorBar {...props} />
   </g>
 );
+
+type IconPointDatum = {
+  _x: number;
+  y: number;
+  significance: SignificanceStatus;
+  iconColor: string;
+  iconRadius: number;
+  iconDrop: number;
+};
+
+const SignificanceIconPoint: React.FC<{
+  x?: number;
+  y?: number;
+  datum?: IconPointDatum;
+}> = ({ x, y, datum }) => {
+  if (x == null || y == null || !datum) return null;
+
+  const r = datum.iconRadius ?? 11;
+  const color = datum.iconColor;
+  const cx = x;
+  const cy = y + (datum.iconDrop ?? 30);
+  const ih = r * 0.42;
+  const sw = 2;
+
+  const circle = (
+    <circle
+      cx={cx}
+      cy={cy}
+      r={r}
+      fill={color}
+      fillOpacity={0.12}
+      stroke={color}
+      strokeWidth={1.5}
+    />
+  );
+
+  switch (datum.significance) {
+    case "significant_win":
+      return (
+        <g pointerEvents="none">
+          {circle}
+          <line
+            x1={cx}
+            y1={cy - ih}
+            x2={cx}
+            y2={cy + ih}
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          <line
+            x1={cx - ih}
+            y1={cy}
+            x2={cx + ih}
+            y2={cy}
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </g>
+      );
+    case "non_significant_win":
+      return (
+        <g pointerEvents="none">
+          {circle}
+          <path
+            d={`M${cx - ih} ${cy + ih * 0.1}L${cx - ih * 0.15} ${cy + ih * 0.75}L${cx + ih} ${cy - ih * 0.7}`}
+            fill="none"
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
+      );
+    case "loss":
+      return (
+        <g pointerEvents="none">
+          {circle}
+          <line
+            x1={cx - ih * 0.85}
+            y1={cy - ih * 0.85}
+            x2={cx + ih * 0.85}
+            y2={cy + ih * 0.85}
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          <line
+            x1={cx + ih * 0.85}
+            y1={cy - ih * 0.85}
+            x2={cx - ih * 0.85}
+            y2={cy + ih * 0.85}
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+        </g>
+      );
+    default:
+      return null;
+  }
+};
+
+const LEGEND_ICON_COLORS: Record<SignificanceStatus, string> = {
+  significant_win: "#16a34a",
+  non_significant_win: "#ca8a04",
+  loss: "#dc2626",
+};
+
+const SignificanceLegendIcon: React.FC<{ type: SignificanceStatus }> = ({
+  type,
+}) => {
+  const color = LEGEND_ICON_COLORS[type];
+  const s = 18;
+  const mid = s / 2;
+  const r = s / 2 - 0.75;
+  const ih = r * 0.42;
+  const sw = 1.8;
+
+  const circleEl = (
+    <circle
+      cx={mid}
+      cy={mid}
+      r={r}
+      fill={color}
+      fillOpacity={0.12}
+      stroke={color}
+      strokeWidth={1.5}
+    />
+  );
+
+  switch (type) {
+    case "significant_win":
+      return (
+        <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} fill="none" aria-hidden>
+          {circleEl}
+          <line x1={mid} y1={mid - ih} x2={mid} y2={mid + ih} stroke={color} strokeWidth={sw} strokeLinecap="round" />
+          <line x1={mid - ih} y1={mid} x2={mid + ih} y2={mid} stroke={color} strokeWidth={sw} strokeLinecap="round" />
+        </svg>
+      );
+    case "non_significant_win":
+      return (
+        <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} fill="none" aria-hidden>
+          {circleEl}
+          <path
+            d={`M${mid - ih} ${mid + ih * 0.1}L${mid - ih * 0.15} ${mid + ih * 0.75}L${mid + ih} ${mid - ih * 0.7}`}
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      );
+    case "loss":
+      return (
+        <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} fill="none" aria-hidden>
+          {circleEl}
+          <line x1={mid - ih * 0.85} y1={mid - ih * 0.85} x2={mid + ih * 0.85} y2={mid + ih * 0.85} stroke={color} strokeWidth={sw} strokeLinecap="round" />
+          <line x1={mid + ih * 0.85} y1={mid - ih * 0.85} x2={mid - ih * 0.85} y2={mid + ih * 0.85} stroke={color} strokeWidth={sw} strokeLinecap="round" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+};
 
 type FullCellProps = InjectedByVictory & {
   plotTop: number;

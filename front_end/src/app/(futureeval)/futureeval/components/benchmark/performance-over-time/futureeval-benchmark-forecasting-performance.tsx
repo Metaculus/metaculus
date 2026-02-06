@@ -101,11 +101,11 @@ const FutureEvalBenchmarkForecastingPerformance: React.FC = () => {
 
       {communityDate && proDate && (
         <p
-          className={`mt-4 text-balance text-center ${FE_TYPOGRAPHY.bodySmall} ${FE_COLORS.textMuted}`}
+          className={`mt-4 w-full rounded ${FE_COLORS.bgSecondary} px-4 py-2.5 text-balance text-center ${FE_TYPOGRAPHY.bodySmall} ${FE_COLORS.textSecondary}`}
         >
-          We estimate that bots will start beating the Metaculus Community
-          performance in <strong>{communityDate}</strong> and Pro Forecaster
-          performance in <strong>{proDate}</strong>.
+          The trend line indicates that bots will start beating the Metaculus
+          community performance in <strong>{communityDate}</strong> and Pro
+          Forecaster performance in <strong>{proDate}</strong>.
         </p>
       )}
     </div>

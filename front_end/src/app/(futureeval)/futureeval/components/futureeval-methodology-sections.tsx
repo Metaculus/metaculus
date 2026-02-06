@@ -541,9 +541,10 @@ const FutureEvalMethodologySections: React.FC = () => {
           </p>
           {communityDate && proDate && (
             <p className="m-0">
-              We estimate that bots will start beating the Metaculus Community
-              performance in <strong>{communityDate}</strong> and Pro Forecaster
-              performance in <strong>{proDate}</strong>.
+              The trend line indicates that bots will start beating the
+              Metaculus community performance in{" "}
+              <strong>{communityDate}</strong> and Pro Forecaster performance in{" "}
+              <strong>{proDate}</strong>.
             </p>
           )}
         </SectionBody>
@@ -658,7 +659,11 @@ const FutureEvalMethodologySections: React.FC = () => {
               graph on our benchmark page
             </Link>{" "}
             shows how much better pros did than bots when comparing a team of 10 pros 
-            and the best 10 bots in the first four Bot Tournaments.
+            and the best 10 bots in the first four Bot Tournaments. 
+            Note that Q3 and Q4 2024 included only binary questions, while Q1
+            and Q2 2025 also included numeric and multiple choice questions. The
+            pro lead tends to be larger on non-binary question types, which may
+            partly explain the increase in later quarters.
           </p>
           <p className="m-0">
             You can find the full details and methodology of these analyses in
