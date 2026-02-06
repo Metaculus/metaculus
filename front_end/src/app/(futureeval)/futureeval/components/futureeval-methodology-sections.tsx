@@ -434,9 +434,9 @@ const FutureEvalMethodologySections: React.FC = () => {
                     benchmarks only ask binary (Yes/No) questions. FutureEval
                     also asks numeric questions (bots submit a probability
                     distribution) and multiple choice questions (bots submit a
-                    list of probabilities). To our knowledge, no other
-                    benchmark evaluates high-precision probability distributions
-                    for numeric predictions.
+                    list of probabilities). To our knowledge, no other benchmark
+                    evaluates high-precision probability distributions for
+                    numeric predictions.
                   </span>,
                   <span key="competition">
                     <strong>Competition:</strong> Metaculus incentivises
