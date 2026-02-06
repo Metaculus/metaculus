@@ -58,8 +58,7 @@ def login_api_view(request):
 
     if (
         user
-        and not user.is_active
-        and not user.last_login
+        and user.check_can_activate()
         and user.check_password(password)
     ):
         send_activation_email(user, None)
