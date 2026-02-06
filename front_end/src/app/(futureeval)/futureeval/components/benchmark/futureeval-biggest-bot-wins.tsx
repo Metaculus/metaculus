@@ -33,7 +33,8 @@ function describeArc(
 ): ArcResult {
   const startAngle = Math.PI - (arcAngle - Math.PI) / 2;
   const endAngle = startAngle + (percentage / 100) * arcAngle;
-  const isLargerFlag = percentage > 50 ? 1 : 0;
+  const sweptAngle = (percentage / 100) * arcAngle;
+  const isLargerFlag = sweptAngle > Math.PI ? 1 : 0;
   const startX = center.x + radius * Math.cos(startAngle);
   const startY = center.y + radius * Math.sin(startAngle);
   const endX = center.x + radius * Math.cos(endAngle);

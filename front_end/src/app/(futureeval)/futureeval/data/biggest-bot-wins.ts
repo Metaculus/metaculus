@@ -59,7 +59,6 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
             "/questions/27943/#comment-187676",
         },
       },
-
       {
         questionTitle: "Will Elon Musk attend the Super Bowl in 2025?",
         botsUrl: "/questions/34686/",
