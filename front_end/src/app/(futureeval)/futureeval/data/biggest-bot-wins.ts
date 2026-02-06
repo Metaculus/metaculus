@@ -119,15 +119,15 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         prosForecast: 0.044,
         didItHappen: false,
         whatHappened:
-          "Pros correctly identified that the resolution source had already classified the March 2025 protests as a continuation of earlier protests, making new qualifying entries extremely unlikely, while bots treated them as new events.",
+          "Pros identified the nuances of the resolution source, while bots did not.",
         botQuote: {
-          text: "A broad coalition already mobilized... the necessary scale seems readily achievable.",
+          text: "Recent events involving over 300,000 protesters... the necessary scale seems readily achievable.",
           author: "jlbot",
           commentUrl:
             "/questions/37460/#comment-324463",
         },
         proQuote: {
-          text: "If these were already included then a flare up won't count towards resolution.",
+          text: "It does not show the massive protests that followed the arrest of Turkey's main opposition figure",
           author: "RMD",
           commentUrl:
             "/questions/37506/#comment-323226",
@@ -142,7 +142,7 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         prosForecast: 0.17,
         didItHappen: false,
         whatHappened:
-          "Pros correctly recognized that despite Intel's poor performance, the short timeframe and historical patterns of infrequent DJIA changes made removal before October 1 unlikely. Bots overweighted analyst speculation.",
+          "Pros recognized that despite Intel's poor performance, the short timeframe and patterns of infrequent DJIA changes made removal before October 1 unlikely. Bots overweighted analyst speculation.",
         botQuote: {
           text: "Speculation about Intel's removal from the Dow has intensified.",
           author: "bestworldbot",
@@ -165,7 +165,7 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         prosForecast: 0.005,
         didItHappen: false,
         whatHappened:
-          "Pros correctly recognized that Trump's second-term experience and historical precedent made it extremely unlikely he would announce only 0–3 cabinet positions. Bots were significantly more uncertain.",
+          "Pros reasoned that Trump's build up to his second-term means he has had time to plan nominations in advance. Bots were significantly more uncertain.",
         botQuote: {
           text: "There's a good chance we'll see 0–3 appointments in this period.",
           author: "mf-bot-5",
@@ -188,15 +188,15 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         prosForecast: 0.12,
         didItHappen: false,
         whatHappened:
-          "Pros correctly recognized that historical growth patterns and recent December data pointed to a total below 19 million, while bots overestimated by focusing on record-breaking individual days and optimistic industry projections.",
+          "Pros noticed historical growth patterns and recent December data pointed to a total below 19 million, while bots overestimated by focusing on record-breaking individual days and optimistic industry projections.",
         botQuote: {
-          text: "Consistent record-breaking patterns and strong advance bookings make exceeding 19 million likely.",
+          text: "Consistent record-breaking patterns... strong advance bookings... good chance of exceeding 19M passengers",
           author: "mf-bot-5",
           commentUrl:
             "/questions/31034/#comment-239820",
         },
         proQuote: {
-          text: "Numbers were only 3.5% higher than 2023, implying about 17.9M — well short of 19M.",
+          text: "Numbers were only 3.5% higher than 2023, which would imply... 17.9M.",
           author: "skmmcj",
           commentUrl:
             "/questions/30995/#comment-239488",
@@ -211,7 +211,7 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         prosForecast: 0.01,
         didItHappen: false,
         whatHappened:
-          "Pros correctly assessed that the extremely short timeframe and decades-long historical precedent of avoiding lethal force made armed forces deaths highly unlikely. Bots overestimated the risk by focusing on recent tensions.",
+          "Pros assessed that the extremely short timeframe and decades-long historical precedent of avoiding lethal force made armed forces deaths highly unlikely. Bots overestimated the risk by focusing on recent tensions.",
         botQuote: {
           text: "Recent escalations and heightened military activities around Taiwan increase the risk.",
           author: "MWG",
@@ -219,7 +219,7 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
             "/questions/25955/#comment-162653",
         },
         proQuote: {
-          text: "Less than 1/4 of a year. No larger scale conflict involving these parties in decades.",
+          text: "This is a rather short time frame... No larger scale conflict involving these parties in decades.",
           author: "MaciekK",
           commentUrl:
             "/questions/25972/#comment-161335",
