@@ -37,7 +37,7 @@ const FutureEvalMethodologyContent: React.FC = () => {
     },
     {
       icon: faTrophy,
-      title: "Bots Tournaments",
+      title: "Bot Tournaments",
       linkHref: "/aib/2026/spring/",
       content: (
         <p>

@@ -51,7 +51,7 @@ const FutureEvalHeroBanner: React.FC<Props> = ({ tabs, activeTab }) => {
                   FE_COLORS.textSubheading
                 )}
               >
-                FutureEval measures AI&apos;s ability to predict future
+                FutureEval measures the ability of AI agents to predict future
                 outcomes, in Science, Technology, Health, Geopolitics, AI
                 itself, and more. Forecasting is a key skill in many real-world
                 tasks, enabling planning, risk assessment, and decision-making.
