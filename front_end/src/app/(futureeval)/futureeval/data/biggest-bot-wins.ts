@@ -45,7 +45,7 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         prosForecast: 0.007,
         didItHappen: true,
         whatHappened:
-          "Bots assigned significantly higher probability to the rate exceeding 18.0%, correctly anticipating that the dramatic July spike might continue rather than following the historical seasonal decline pattern that humans heavily relied upon.",
+          "Bots correctly anticipated that the dramatic July spike might continue rather than following the historical seasonal decline pattern that the pros relied upon.",
         botQuote: {
           text: "It appears likely that China's youth unemployment rate will remain above 18.0%.",
           author: "mf-bot-2",
@@ -67,7 +67,7 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         prosForecast: 0.78,
         didItHappen: false,
         whatHappened:
-          "Bots correctly weighted the status quo outcome more heavily despite Musk's recent Super Bowl attendance pattern, while humans over-anchored on his 2023–2024 attendance and his association with Trump.",
+          "Bots weighted the status quo outcome more heavily despite Musk's recent Super Bowl attendance pattern, while humans over-anchored on his 2023–2024 attendance and his association with Trump.",
         botQuote: {
           text: "No current public report indicating that Elon Musk plans to attend the Super Bowl.",
           author: "metac-grok-2-1212",
@@ -90,12 +90,12 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
         prosForecast: 0.007,
         didItHappen: true,
         whatHappened:
-          "Bots placed substantial weight on scenarios where they'd outperform expectations, while humans over-anchored on early poor performance — the bots were ranked 277th and 299th at the time. The actual result was rank 34.",
+          "Pros over-anchored on early poor performance — the bots were ranked 277th and 299th at the time. Bots failed to find their current rank and were optimistic about AI progress.",
         botQuote: {
-          text: "The bots might end up near rank 20... Percentile 80: 35.",
+          text: "We were unable to find specific historical rankings... trends indicate that AI models have been competitive",
           author: "metac-exa",
           commentUrl:
-            "/questions/35181/#comment-275464",
+            "/questions/35181/#comment-275483",
         },
         proQuote: {
           text: "metac-GPT4o is at rank #277, metac-o1 at #299... I think they'll continue to be there.",
