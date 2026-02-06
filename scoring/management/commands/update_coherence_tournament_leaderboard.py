@@ -101,9 +101,7 @@ def gather_data(
     baseline_user: User,
     competitors: QuerySet[User],
     questions: QuerySet[Question],
-) -> tuple[
-    list[int | str], list[int | str], list[int], list[float], list[float], list[float]
-]:
+) -> tuple[list[int], list[int], list[float], list[float]]:
     competitor_ids: list[int | str] = []
     question_ids: list[int] = []
     scores: list[float] = []
@@ -188,7 +186,7 @@ def run_update_coherence_spring_2026_cup() -> None:
             (
                 uid,
                 np.average(competitor_score_record[uid]),
-                np.average(competitor_weight_record[uid]),
+                np.sum(competitor_weight_record[uid]),
             )
         )
     ordered_scores = sorted(scores, key=lambda x: x[1], reverse=True)
