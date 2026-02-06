@@ -11,7 +11,7 @@ type Props = DetailedHTMLProps<
   active: boolean;
   value: number;
   showValue?: boolean;
-  onClickIn?: () => void;
+  onClickIn?: (shiftKey: boolean) => void;
   onArrowClickIn?: () => void;
   onArrowClickOut?: (direction: -1 | 1) => void;
   className?: string;
@@ -48,11 +48,11 @@ const SliderThumb: FC<Props> = ({
     <div
       onMouseDown={(e) => {
         e.preventDefault();
-        onClickIn?.();
+        onClickIn?.(e.shiftKey);
       }}
       onTouchStart={(e) => {
         e.preventDefault();
-        onClickIn?.();
+        onClickIn?.(e.shiftKey);
       }}
       className={cn(
         "flex items-center border-2 border-gray-600 bg-blue-100 text-center font-medium dark:border-gray-600-dark dark:bg-blue-100-dark",
