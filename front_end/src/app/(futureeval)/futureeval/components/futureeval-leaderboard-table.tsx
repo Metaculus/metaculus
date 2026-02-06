@@ -9,6 +9,7 @@ import cn from "@/utils/core/cn";
 import {
   entryIconPair,
   entryLabel,
+  isAggregate,
   shouldDisplayEntry,
 } from "./leaderboard/utils";
 import { LightDarkIcon } from "./light-dark-icon";
@@ -40,7 +41,7 @@ const FutureEvalLeaderboardTable: React.FC<Props> = ({ details }) => {
           ciLower: entry.ci_lower,
           ciUpper: entry.ci_upper,
           profileHref: userId ? `/accounts/profile/${userId}/` : null,
-          isAggregate: !entry.user?.username,
+          isAggregate: isAggregate(entry),
         };
       });
   }, [details.entries]);
