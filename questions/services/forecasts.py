@@ -417,6 +417,7 @@ def get_average_coverage_for_questions(
     return avg_coverage_map
 
 
+@sentry_sdk.trace
 def build_question_forecasts(
     question: Question,
     aggregation_method: AggregationMethod | None = None,

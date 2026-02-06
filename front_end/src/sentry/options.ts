@@ -21,14 +21,17 @@ export function buildSentryOptions<
     tracesSampler: (ctx) => {
       const name = ctx.name;
 
-      // We want to limit app-version and middleware traces
-      // since they’re not informative, don’t involve complex logic,
-      // and currently account for up to 50% of all frontend transactions
-      if (name.startsWith("middleware ") || name.includes("/app-version")) {
-        return 0.01;
+      // Completely exclude app-version health checks
+      if (name.includes("/app-version")) {
+        return 0;
       }
 
-      return 0.1;
+      // Heavily reduce middleware traces - low informational value
+      if (name.startsWith("middleware ")) {
+        return 0.005;
+      }
+
+      return 0.075;
     },
     ignoreErrors: SENTRY_IGNORE_ERRORS,
     denyUrls: SENTRY_DENY_URLS,

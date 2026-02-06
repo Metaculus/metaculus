@@ -170,9 +170,10 @@ def get_whitelist_status_api_view(request: Request):
     data = request.query_params
     post_id = data.get("post_id")
     project_id = data.get("project_id")
+    user = request.user if request.user.is_authenticated else None
 
     is_whitelisted, view_deanonymized_data = get_whitelist_status(
-        request.user, post_id, project_id
+        user, post_id, project_id
     )
 
     return Response(

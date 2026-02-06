@@ -6,6 +6,7 @@ import { FC } from "react";
 import { useKeyFactorDelete } from "@/app/(main)/questions/[id]/components/key_factors/hooks";
 import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/item_view";
 import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
+import { useShouldHideKeyFactors } from "@/app/(main)/questions/[id]/components/key_factors/use_should_hide_key_factors";
 import { openKeyFactorsSectionAndScrollTo } from "@/app/(main)/questions/[id]/components/key_factors/utils";
 import { useQuestionLayoutSafe } from "@/app/(main)/questions/[id]/components/question_layout/question_layout_context";
 import { useAuth } from "@/contexts/auth_context";
@@ -32,14 +33,15 @@ const KeyFactorsCommentSection: FC<Props> = ({
   const { user } = useAuth();
   const questionLayout = useQuestionLayoutSafe();
   const { openDeleteModal } = useKeyFactorDelete();
+  const shouldHideKeyFactors = useShouldHideKeyFactors();
 
   const canEdit =
     user?.id === authorId || permission === ProjectPermissions.ADMIN;
 
   const kfPostUrl = `${getPostLink(post)}#key-factors`;
 
-  // Don't render if there are no key factors for this comment
-  if (keyFactors.length === 0) {
+  // Don't render if there are no key factors for this comment or if hidden by A/B test
+  if (keyFactors.length === 0 || shouldHideKeyFactors) {
     return null;
   }
 
