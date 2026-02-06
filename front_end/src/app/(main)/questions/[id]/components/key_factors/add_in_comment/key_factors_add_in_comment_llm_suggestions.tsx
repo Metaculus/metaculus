@@ -84,6 +84,14 @@ type CombinedSuggestionItem =
       keyFactorIndex: number;
     };
 
+/**
+ * Helper to determine the type of a key factor draft
+ */
+const getKeyFactorType = (
+  kf: KeyFactorDraft
+): "driver" | "base_rate" | "news" =>
+  isDriverDraft(kf) ? "driver" : isBaseRateDraft(kf) ? "base_rate" : "news";
+
 const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
   onBack,
   postData,
@@ -219,11 +227,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
     opts?: { showErrors?: boolean }
   ) => {
     // Track edit action
-    const keyFactorType = isDriverDraft(kf)
-      ? "driver"
-      : isBaseRateDraft(kf)
-        ? "base_rate"
-        : "news";
+    const keyFactorType = getKeyFactorType(kf);
     sendAnalyticsEvent("keyFactorLLMSuggestionEdited", {
       event_category: keyFactorType,
     });
@@ -720,11 +724,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
                         kind="accept"
                         onClick={async () => {
                           // Track accept action
-                          const keyFactorType = isDriverDraft(kf)
-                            ? "driver"
-                            : isBaseRateDraft(kf)
-                              ? "base_rate"
-                              : "news";
+                          const keyFactorType = getKeyFactorType(kf);
                           sendAnalyticsEvent("keyFactorLLMSuggestionAccepted", {
                             event_category: keyFactorType,
                           });
@@ -748,11 +748,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
                       kind="reject"
                       onClick={() => {
                         // Track reject action
-                        const keyFactorType = isDriverDraft(kf)
-                          ? "driver"
-                          : isBaseRateDraft(kf)
-                            ? "base_rate"
-                            : "news";
+                        const keyFactorType = getKeyFactorType(kf);
                         sendAnalyticsEvent("keyFactorLLMSuggestionRejected", {
                           event_category: keyFactorType,
                         });

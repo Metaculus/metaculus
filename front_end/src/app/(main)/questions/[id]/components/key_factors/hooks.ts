@@ -308,14 +308,26 @@ export const useKeyFactors = ({
         });
 
     // Determine if this is a manual creation or from LLM suggestions
-    const hasManualDrafts = submittedDrafts.length > 0;
-    const hasSuggestedDrafts = suggested.length > 0;
+    // Count based on filtered arrays to exclude empty drafts
+    const manualCount =
+      (submitType === "driver"
+        ? driverDrafts.filter((d) => d.driver.text.trim() !== "").length
+        : 0) +
+      (submitType === "base_rate" ? baseRateDrafts.length : 0) +
+      (submitType === "news" ? newsDrafts.length : 0);
+    const suggestedCount =
+      (submitType === "driver"
+        ? suggestedDriverDrafts.filter((d) => d.driver.text.trim() !== "")
+            .length
+        : 0) +
+      (submitType === "base_rate" ? suggestedBaseRateDrafts.length : 0) +
+      (submitType === "news" ? suggestedNewsDrafts.length : 0);
 
     // Track the creation source
     let source = "manual";
-    if (hasSuggestedDrafts && !hasManualDrafts) {
+    if (suggestedCount > 0 && manualCount === 0) {
       source = "llm_suggestion";
-    } else if (hasSuggestedDrafts && hasManualDrafts) {
+    } else if (suggestedCount > 0 && manualCount > 0) {
       source = "mixed";
     }
 
