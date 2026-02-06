@@ -1912,5 +1912,7 @@
   "choicesLockedHelp": "选项一旦预测开始，只能通过管理面板进行更改。",
   "feedTileSummary": "动态提要摘要",
   "feedTileSummaryPlaceholder": "可选：输入自定义摘要文本以显示在动态提要上（如果未提供，将根据笔记本内容自动生成摘要）",
+  "includeBotsInAggregatesLabel": "在汇总中包含机器人",
+  "includeBotsInAggregatesExplanation": "启用时，机器人预测将包含在此问题的汇总计算中，并将影响评分。否则，它们不会产生影响。",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }
