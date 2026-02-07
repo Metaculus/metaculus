@@ -58,6 +58,7 @@ class TestPagination:
         )
 
         return {
+            "post": post,
             "c1": c1,
             "c2": c2,
             "c3": c3,
@@ -72,7 +73,8 @@ class TestPagination:
 
     def test_root_pagination(self, user2, user1_client, comments):
         response = user1_client.get(
-            "/api/comments/?limit=3&sort=created_at&use_root_comments_pagination=true"
+            f"/api/comments/?limit=3&sort=created_at&use_root_comments_pagination=true"
+            f"&post={comments['post'].pk}"
         )
 
         # Check pagination
@@ -104,7 +106,7 @@ class TestPagination:
     def test_focus_on_comment__child(self, user2, user1_client, comments):
         response = user1_client.get(
             f"/api/comments/?limit=2&sort=created_at&use_root_comments_pagination=true"
-            f"&focus_comment_id={comments['c4_1'].pk}"
+            f"&focus_comment_id={comments['c4_1'].pk}&post={comments['post'].pk}"
         )
 
         # Pagination stays the same
@@ -138,7 +140,7 @@ class TestPagination:
     def test_focus_on_comment__root(self, user2, user1_client, comments):
         response = user1_client.get(
             f"/api/comments/?limit=2&sort=created_at&use_root_comments_pagination=true"
-            f"&focus_comment_id={comments['c3'].pk}"
+            f"&focus_comment_id={comments['c3'].pk}&post={comments['post'].pk}"
         )
 
         assert [x["id"] for x in response.data["results"]] == [
@@ -154,21 +156,7 @@ class TestPagination:
         c2.is_pinned = True
         c2.save()
 
-        # Should not show pinned comments if post filter is not defined
-        response = user1_client.get(
-            f"/api/comments/?limit=3&sort=-created_at&use_root_comments_pagination=true"
-            f"&focus_comment_id={comments['c3'].pk}"
-        )
-
-        assert [x["id"] for x in response.data["results"]] == [
-            comments["c3"].pk,
-            comments["c4_1_1"].pk,
-            comments["c4_1"].pk,
-            comments["c5"].pk,
-            comments["c4"].pk,
-        ]
-
-        # Now should show pinned comments
+        # Pinned comments should appear first when post filter is defined
         response = user1_client.get(
             f"/api/comments/?limit=3&sort=-created_at&use_root_comments_pagination=true"
             f"&focus_comment_id={comments['c3'].pk}"
@@ -201,16 +189,31 @@ def test_get_comments_feed_permissions(user1, user2):
 
     factory_comment(author=user2, on_post=post, is_soft_deleted=True)
 
-    assert {c.pk for c in get_comments_feed(Comment.objects.all())} == {
+    # Without filter, should return empty
+    assert set(get_comments_feed(Comment.objects.all())) == set()
+
+    # Filter by post
+    assert {c.pk for c in get_comments_feed(Comment.objects.all(), post=post)} == {
         c3.pk,
     }
-    assert {c.pk for c in get_comments_feed(Comment.objects.all(), user=user1)} == {
+    assert {
+        c.pk for c in get_comments_feed(Comment.objects.all(), user=user1, post=post)
+    } == {
         c3.pk,
     }
-    assert {c.pk for c in get_comments_feed(Comment.objects.all(), user=user2)} == {
+    assert {
+        c.pk for c in get_comments_feed(Comment.objects.all(), user=user2, post=post)
+    } == {
+        c3.pk,
+    }
+    # Private post accessible by author
+    assert {
+        c.pk
+        for c in get_comments_feed(Comment.objects.all(), user=user2, post=private_post)
+    } == {
         c1.pk,
-        c3.pk,
     }
+    # Private comments for user
     assert {
         c.pk
         for c in get_comments_feed(Comment.objects.all(), user=user2, is_private=True)

@@ -1,8 +1,37 @@
 from django.utils import timezone
 from rest_framework.authentication import TokenAuthentication, get_authorization_header
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.exceptions import (
+    AuthenticationFailed as JWTAuthenticationFailed,
+)
 
-from authentication.models import ApiKey
+from .models import ApiKey
+
+
+class SessionJWTAuthentication(JWTAuthentication):
+    """
+    Custom JWT authentication that:
+    1. Uses SessionAccessToken for session-based revocation
+    2. Checks user.auth_revoked_at for user-level token invalidation
+    """
+
+    def get_user(self, validated_token):
+        """
+        Override to check auth_revoked_at after loading user.
+        """
+        from .jwt_session import is_user_global_token_revoked
+
+        user = super().get_user(validated_token)
+
+        # Check user-level token revocation
+        if is_user_global_token_revoked(user, validated_token.get("iat", 0)):
+            raise JWTAuthenticationFailed(
+                "Token has been invalidated. Please log in again.",
+                code="token_invalidated",
+            )
+
+        return user
 
 
 class FallbackTokenAuthentication(TokenAuthentication):

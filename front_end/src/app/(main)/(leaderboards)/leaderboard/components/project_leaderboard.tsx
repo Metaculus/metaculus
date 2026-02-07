@@ -20,10 +20,14 @@ const ProjectLeaderboard: FC<Props> = async ({
   isQuestionSeries,
   userId,
 }) => {
-  const leaderboardDetails = await ServerLeaderboardApi.getProjectLeaderboard(
-    projectId,
-    leaderboardType
-  );
+  const leaderboardDetails = (
+    await ServerLeaderboardApi.getProjectLeaderboard(
+      projectId,
+      leaderboardType
+        ? new URLSearchParams({ score_type: leaderboardType })
+        : null
+    )
+  )?.[0]; // This grabs only the first serialized leaderboard, requires work!
 
   if (!leaderboardDetails || !leaderboardDetails.entries.length) {
     return null;

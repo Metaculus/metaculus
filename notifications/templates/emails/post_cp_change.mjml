@@ -107,7 +107,7 @@
                                             {% if item.question.type == "multiple_choice" %}
                                                 {{ item.label }}
                                             {% else %}
-                                                {{ item.format_question_title }}
+                                                {{ item.question.label }}
                                             {% endif %}
                                         </td>
                                         <td style="padding: 8px 4px; text-align: center; font-size: 13px; font-weight: 600; color: #161C22;">
