@@ -1,17 +1,11 @@
 import logging
-import random
 from collections import defaultdict
-from pathlib import Path
 
-from datetime import datetime
 from django.core.management.base import BaseCommand
-from django.db.models import Exists, OuterRef, Prefetch, QuerySet, Q
+from django.db.models import Exists, OuterRef, QuerySet
 from django.utils import timezone
 import numpy as np
-from scipy import sparse, stats
-from sklearn.linear_model import Ridge
 
-from coherence.models import CoherenceLink
 from posts.models import Post
 from projects.models import Project
 from questions.constants import UnsuccessfulResolutionType
@@ -104,437 +98,58 @@ def get_score_pair(
 
 
 def gather_data(
-    users: QuerySet[User],
+    baseline_user: User,
+    competitors: QuerySet[User],
     questions: QuerySet[Question],
-    cache: bool = True,
-) -> tuple[
-    list[int | str], list[int | str], list[int], list[float], list[float], list[float]
-]:
-    user1_ids: list[int | str] = []
-    user2_ids: list[int | str] = []
+) -> tuple[list[int], list[int], list[float], list[float]]:
+    competitor_ids: list[int | str] = []
     question_ids: list[int] = []
     scores: list[float] = []
     coverages: list[float] = []
-    timestamps: list[float] = []
-    if cache:
-        csv_path = Path("coherence_spring_2026_cup_HtH_score_data.csv")
-        if csv_path.exists():
-            userset = set([str(u.id) for u in users])
-            import csv
 
-            def _deserialize_user(value: str) -> int | str:
-                value = value.strip()
-                if not value:
-                    return value
-                try:
-                    return int(value)
-                except ValueError:
-                    return value
-
-            with csv_path.open() as input_file:
-                reader = csv.DictReader(input_file)
-                for row in reader:
-                    if (row["user1"] in userset) and (row["user2"] in userset):
-                        user1_ids.append(_deserialize_user(row["user1"]))
-                        user2_ids.append(_deserialize_user(row["user2"]))
-                        question_ids.append(int(row["questionid"]))
-                        scores.append(float(row["score"]))
-                        coverages.append(float(row["coverage"]))
-                        timestamps.append(float(row["timestamp"]))
-    cached_question_ids = set(question_ids)
-
-    user_ids = users.values_list("id", flat=True)
+    user_ids = competitors.values_list("id", flat=True)
     logger.info("Processing pairwise scoring.")
-    t0 = datetime.now()
-    question_count = len(questions)
-    for question_number, question in enumerate(questions.iterator(chunk_size=10), 1):
-        # TODO: cache results every ~100 questions, clearing lists of values
-        if question.id in cached_question_ids:
-            # Skip questions that are already cached
-            duration = datetime.now() - t0
-            est_duration = duration / question_number * question_count
-            logger.info(
-                "Skipping cached question %s (%s/%s). duration=%s est=%s",
-                question.id,
-                question_number,
-                question_count,
-                duration,
-                est_duration,
-            )
-            continue
+    for question in questions:
         # Get forecasts
+        baseline_forecasts = list(
+            question.user_forecasts.filter(author_id=baseline_user.id).order_by(
+                "start_time"
+            )
+        )
         forecast_dict: dict[int | str, list[Forecast | AggregateForecast]] = (
             defaultdict(list)
         )
-        # bot forecasts
-        bot_forecasts = question.user_forecasts.filter(author_id__in=user_ids).order_by(
+        for f in question.user_forecasts.filter(author_id__in=user_ids).order_by(
             "start_time"
-        )
-        for f in bot_forecasts:
+        ):
             forecast_dict[f.author_id].append(f)
 
         forecaster_ids = sorted(list(forecast_dict.keys()), key=str, reverse=True)
-        pairing_index = 0
-        pairing_count = int(len(forecaster_ids) * (len(forecaster_ids) - 1) / 2)
-        for i, user1_id in enumerate(forecaster_ids):
-            for user2_id in forecaster_ids[i + 1 :]:
-                pairing_index += 1
-                result = get_score_pair(
-                    forecast_dict[user1_id],
-                    forecast_dict[user2_id],
-                    question,
-                )
-                if result:
-                    q, u1s, cov = result
-                    user1_ids.append(user1_id)
-                    user2_ids.append(user2_id)
-                    question_ids.append(q)
-                    scores.append(u1s)
-                    coverages.append(cov)
-                    timestamps.append(question.actual_resolve_time.timestamp())
-        duration = datetime.now() - t0
-        est_duration = duration / question_number * question_count
-        logger.info(
-            "Processed question %s (%s/%s). pairings=%s duration=%s est=%s",
-            question.id,
-            question_number,
-            question_count,
-            pairing_count,
-            duration,
-            est_duration,
-        )
+        for user_id in forecaster_ids:
+            result = get_score_pair(
+                forecast_dict[user_id],
+                baseline_forecasts,
+                question,
+            )
+            if result:
+                q, u1s, cov = result
+                competitor_ids.append(user_id)
+                question_ids.append(q)
+                scores.append(u1s)
+                coverages.append(cov)
     weights = coverages
 
-    if cache:
-        import csv
-
-        with open("coherence_spring_2026_cup_HtH_score_data.csv", "w") as output_file:
-            writer = csv.writer(output_file)
-            writer.writerow(
-                ["user1", "user2", "questionid", "score", "coverage", "timestamp"]
-            )
-            for row in zip(
-                user1_ids, user2_ids, question_ids, scores, weights, timestamps
-            ):
-                writer.writerow(row)
-
-    return (user1_ids, user2_ids, question_ids, scores, weights, timestamps)
+    return (competitor_ids, question_ids, scores, weights)
 
 
-def get_avg_scores(
-    user1_ids: list[int | str],
-    user2_ids: list[int | str],
-    scores: list[float],
-    coverages: list[float],
-) -> dict[int | str, float]:
-    # get per-player coverage-weighted average score
-    scores_by_player: dict[int | str, list[float]] = defaultdict(lambda: [0.0, 0.0])
-    for u1id, u2id, score, coverage in zip(user1_ids, user2_ids, scores, coverages):
-        u1 = scores_by_player[u1id]
-        u1[0] += score * coverage
-        u1[1] += coverage
-        u2 = scores_by_player[u2id]
-        u2[0] -= score * coverage
-        u2[1] += coverage
-    avg_scores = dict()
-    for uid, (coverage_weighted_score_sum, coverage_sum) in scores_by_player.items():
-        avg_scores[uid] = coverage_weighted_score_sum / coverage_sum
-    return avg_scores
-
-
-def estimate_variances_from_head_to_head(
-    user1_ids: list[int | str],
-    user2_ids: list[int | str],
-    question_ids: list[int],
-    scores: list[float],
-    weights: list[float],
-    min_questions_for_true=100,
-    min_paired_matches=100,
-    verbose: bool | None = None,
-) -> float:
-    """
-    Helper function: Estimate σ_error and σ_true from head-to-head data.
-
-    Returns:
-        alpha: estimated standard deviations and regularization parameter
-    """
-    verbose = False if verbose is None else verbose
-    # Estimate σ_error from paired matches
-    matchups: dict[tuple[int | str, int | str], dict[str, list[float]]] = defaultdict(
-        lambda: {"scores": [], "weights": []}
-    )
-    for user1_id, user2_id, score, weight in zip(user1_ids, user2_ids, scores, weights):
-        pair = (user1_id, user2_id)
-        matchups[pair]["scores"].append(score)
-        matchups[pair]["weights"].append(weight)
-    # Calculate weighted variance within each matchup
-    rematch_variances = []
-    for pair, data in matchups.items():
-        pair_scores = np.array(data["scores"])
-        pair_weights = np.array(data["weights"])
-        if len(pair_scores) >= min_paired_matches:
-            weighted_mean = np.average(pair_scores, weights=pair_weights)
-            weighted_var = np.average(
-                (pair_scores - weighted_mean) ** 2, weights=pair_weights
-            )
-            rematch_variances.append(weighted_var)
-    error = np.sqrt(np.mean(rematch_variances)) if rematch_variances else 1
-    error = 1 if np.isnan(error) else error
-
-    # Estimating σ_true
-    # Quick ridge regression to estimate skills
-    players = set(user1_ids) | set(user2_ids)
-    player_to_idx = {p: i for i, p in enumerate(players)}
-    n_players = len(players)
-    # Use small λ for initial fit
-    lambda_init = error**2 / 1.0  # Assume unit variance initially
-    # Build normal equations: (X^T W X + λI)β = X^T W y
-    XTX = np.zeros((n_players, n_players))
-    XTy = np.zeros(n_players)
-    for user1_id, user2_id, score, coverage in zip(
-        user1_ids, user2_ids, scores, weights
-    ):
-        i = player_to_idx[user1_id]
-        j = player_to_idx[user2_id]
-        XTX[i, i] += coverage
-        XTX[j, j] += coverage
-        XTX[i, j] -= coverage
-        XTX[j, i] -= coverage
-        XTy[i] += coverage * score
-        XTy[j] -= coverage * score
-    # Add ridge penalty and solve
-    XTX += lambda_init * np.eye(n_players)
-    skills = np.linalg.solve(XTX, XTy)
-    # Get variance of skills only for high-participation players
-    questions_participated: dict[int | str, set[int]] = defaultdict(set)
-    for user1_id, user2_id, question_id in zip(user1_ids, user2_ids, question_ids):
-        questions_participated[user1_id].add(question_id)
-        questions_participated[user2_id].add(question_id)
-    high_match_skills = []
-    for player in players:
-        if len(questions_participated[player]) >= min_questions_for_true:
-            high_match_skills.append([skills[player_to_idx[player]]])
-    skill_variance = (
-        np.var(high_match_skills, ddof=1) if len(high_match_skills) > 1 else 1
-    )
-    skill_variance = 1 if np.isnan(skill_variance) else skill_variance
-
-    alpha = (error / skill_variance) ** 2
-    if verbose:
-        logger.info(
-            f"Found {len(rematch_variances)} matchups with >={min_paired_matches} rematches"
-        )
-        logger.info("σ_error (match noise): %.4f", error)
-        logger.info(
-            f"Found {len(high_match_skills)} players with >={min_questions_for_true} questions"
-        )
-        logger.info("σ_true (skill variance): %.4f", skill_variance)
-        logger.info("alpha = (σ_error / σ_true)² = %.4f", alpha)
-    return alpha
-
-
-def compute_skills(
-    user1_ids: list[int | str],
-    user2_ids: list[int | str],
-    scores: list[float],
-    weights: list[float],  # normalized coverages
-    alpha: float,
-) -> SkillType:
-    """
-    Compute player skills using weighted ridge regression with fixed baseline.
-
-    The model: For each match i, we model the score as:
-        score_i = skill[player_a_i] - skill[player_b_i] + error_i
-
-    Ridge regression solves:
-        minimize: sum(weight_i * (score_i - predicted_i)^2) + alpha * sum(skill_j^2)
-
-    The regularization term (alpha * sum(skill_j^2)) shrinks skills toward zero,
-    which is especially important for players with few matches. Higher alpha means
-    more shrinkage, preventing overfitting.
-    """
-    match_count = len(scores)
-    user_ids = set(user1_ids) | set(user2_ids)
-    player_to_idx = {p: i for i, p in enumerate(user_ids)}
-
-    X = sparse.lil_matrix((match_count, len(user_ids)))
-    y = np.zeros(match_count)
-    for i, u1id, u2id, score in zip(range(match_count), user1_ids, user2_ids, scores):
-        y[i] = score
-        X[i, player_to_idx[u1id]] = 1
-        X[i, player_to_idx[u2id]] = -1
-    X = X.tocsr()
-
-    # Fit with intercept=True so sklearn centers the solution
-    # This effectively enforces sum-to-zero constraint
-    model = Ridge(alpha=alpha, fit_intercept=False, solver="lsqr")
-    model.fit(X, y, sample_weight=weights)
-    # Extract estimated skills
-    skills = {p: model.coef_[i] for i, p in enumerate(user_ids)}
-
-    return skills
-
-
-def rescale_skills_(
-    skills: SkillType,
-    baseline_player: int | str,
-    var_avg_scores: float,
-) -> SkillType:
-    """
-    rescaled to have skills in same range as peer scores
-    NOTE: changes skills in place
-    """
-    # shift so baseline player has skill == 0
-    baseline_shift = skills[baseline_player]
-    for player in skills.keys():
-        skills[player] -= baseline_shift
-    # apply variance scaling
-    var_skills = np.var(np.array(list(skills.values()))) if len(skills) > 1 else 0
-    scale_factor = np.sqrt(var_avg_scores / var_skills)
-    for uid in skills:
-        skills[uid] *= scale_factor
-    return skills
-
-
-def get_skills(
-    user1_ids: list[int | str],
-    user2_ids: list[int | str],
-    question_ids: list[int],
-    scores: list[float],
-    weights: list[float],
-    baseline_player: int | str,
-    var_avg_scores: float,
-    verbose: bool | None = None,
-) -> SkillType:
-    alpha = estimate_variances_from_head_to_head(
-        user1_ids=user1_ids,
-        user2_ids=user2_ids,
-        question_ids=question_ids,
-        scores=scores,
-        weights=weights,
-        verbose=verbose,
-    )
-    skills = compute_skills(
-        user1_ids=user1_ids,
-        user2_ids=user2_ids,
-        scores=scores,
-        weights=weights,
-        alpha=alpha,
-    )
-    # Apply baseline and variance rescaling
-    skills = rescale_skills_(
-        skills=skills,
-        baseline_player=baseline_player,
-        var_avg_scores=var_avg_scores,
-    )
-    return skills
-
-
-def bootstrap_skills(
-    user1_ids: list[int | str],
-    user2_ids: list[int | str],
-    question_ids: list[int],
-    scores: list[float],
-    weights: list[float],
-    var_avg_scores: float,
-    baseline_player: int | str = 269196,
-    bootstrap_iterations: int = 30,
-) -> tuple[SkillType, SkillType]:
-    """
-    get Confidence Intervals around the skills using Bootstrapping
-    Compute bootstrap confidence intervals for skills.
-
-    Bootstrap is more robust than analytical CIs because:
-    - Doesn't assume normality of errors
-    - Captures the full uncertainty including from regularization parameter
-    - Handles the complex correlations between player estimates
-    - Accounts for the variance scaling transformation
-
-    Each bootstrap sample:
-    1. Resamples matches with replacement
-    2. Recomputes alpha (regularization) from the resampled data
-    3. Estimates skills with the new alpha
-    4. Applies variance scaling specific to that sample
-
-    Uses the 2.5 and 97.5 percentiles of bootstrap distribution for 95% CIs.
-    """
-    # setup
-    bootstrap_results: dict[int | str, list[float]] = defaultdict(list)
-    question_ids_set = list(set(question_ids))
-    data_by_question: dict[
-        int, tuple[list[int | str], list[int | str], list[float], list[float]]
-    ] = defaultdict(lambda: ([], [], [], []))
-    for user1_id, user2_id, question_id, score, weight in zip(
-        user1_ids, user2_ids, question_ids, scores, weights
-    ):
-        data = data_by_question[question_id]
-        data[0].append(user1_id)
-        data[1].append(user2_id)
-        data[2].append(score)
-        data[3].append(weight)
-
-    logger.info("Bootstrapping (method - question).")
-    t0 = datetime.now()
-    log_every = max(1, bootstrap_iterations // 10)
-    for i in range(bootstrap_iterations):
-        if i == 0 or (i + 1) % log_every == 0 or i + 1 == bootstrap_iterations:
-            duration = datetime.now() - t0
-            est_duration = duration / (i + 1) * bootstrap_iterations
-            logger.info(
-                "Bootstrap %s/%s. duration=%s est=%s",
-                i + 1,
-                bootstrap_iterations,
-                duration,
-                est_duration,
-            )
-
-        boot_user1_ids: list[int | str] = []
-        boot_user2_ids: list[int | str] = []
-        boot_question_ids: list[int] = []
-        boot_scores: list[float] = []
-        boot_weights: list[float] = []
-        # resample questions with replacement
-        for question_id in random.choices(question_ids_set, k=len(question_ids_set)):
-            data = data_by_question[question_id]
-            boot_user1_ids.extend(data[0])
-            boot_user2_ids.extend(data[1])
-            boot_question_ids.extend([question_id] * len(data[2]))
-            boot_scores.extend(data[2])
-            boot_weights.extend(data[3])
-
-        # Recompute skills with bootstrap-specific alpha
-        boot_skills = get_skills(
-            user1_ids=boot_user1_ids,
-            user2_ids=boot_user2_ids,
-            question_ids=boot_question_ids,
-            scores=boot_scores,
-            weights=boot_weights,
-            baseline_player=baseline_player,
-            var_avg_scores=var_avg_scores,
-            verbose=False,
-        )
-
-        for player, boot_skill in boot_skills.items():
-            bootstrap_results[player].append(boot_skill)
-
-    ci_lower: SkillType = {}
-    ci_upper: SkillType = {}
-    user_ids = set(user1_ids) | set(user2_ids)
-    for uid in user_ids:
-        ci_lower[uid] = float(np.percentile(bootstrap_results.get(uid, [0]), 2.5))
-        ci_upper[uid] = float(np.percentile(bootstrap_results.get(uid, [0]), 97.5))
-    return ci_lower, ci_upper
-
-
-def run_update_coherence_spring_2026_cup(cache: bool = False) -> None:
-    baseline_player: int | str = 283585  # coherence links bot
+def run_update_coherence_spring_2026_cup() -> None:
+    baseline_player: User = User.objects.get(id=283585)  # coherence links bot
     project = Project.objects.get(id=32921)  # metaculus spring cup 2026
-    bootstrap_iterations = 30
 
     # SETUP: users to evaluate & questions
     logger.info("Initializing...")
     users: QuerySet[User] = User.objects.filter(
-        Q(metadata__coherence_bot_for_user_id__isnull=False) | Q(id=baseline_player),
+        metadata__coherence_bot_for_user_id__isnull=False,
         is_active=True,
     ).order_by("id")
     user_forecast_exists = Forecast.objects.filter(
@@ -549,72 +164,34 @@ def run_update_coherence_spring_2026_cup(cache: bool = False) -> None:
         )
         .exclude(resolution__in=UnsuccessfulResolutionType)
         .filter(Exists(user_forecast_exists))
-        .prefetch_related(  # only prefetch forecasts from those users
-            Prefetch(
-                "user_forecasts", queryset=Forecast.objects.filter(author__in=users)
-            )
-        )
         .order_by("id")
         .distinct("id")
     )
     logger.info("Initializing... DONE")
 
     # Gather head to head scores
-    user1_ids, user2_ids, question_ids, scores, weights, timestamps = gather_data(
-        users, questions, cache=cache
+    competitor_ids, question_ids, scores, weights = gather_data(
+        baseline_player, users, questions
     )
 
-    if not timestamps:
-        logger.info("No head-to-head data found. Exiting.")
-        return
-
-    # TODO: set up support for yearly updates for all non-metac bots
-
-    # choose baseline player if not already chosen
-    if not baseline_player:
-        baseline_player = max(
-            set(user1_ids) | set(user2_ids), key=(user1_ids + user2_ids).count
+    # Scores
+    competitor_score_record = defaultdict(list)
+    competitor_weight_record = defaultdict(list)
+    for uid, score, weight in zip(competitor_ids, scores, weights):
+        competitor_score_record[uid].append(score)
+        competitor_weight_record[uid].append(weight)
+    scores = [(baseline_player.id, 0.0, max(weights or [0.0]))]
+    for uid in competitor_score_record.keys():
+        scores.append(
+            (
+                uid,
+                # double the score to normalize it such that the baseline is given
+                # a score of 0
+                np.sum(competitor_score_record[uid]) * 2.0,
+                np.sum(competitor_weight_record[uid]),
+            )
         )
-    # get variance of average scores (used in rescaling)
-    avg_scores = get_avg_scores(user1_ids, user2_ids, scores, weights)
-    var_avg_scores = (
-        np.var(np.array(list(avg_scores.values()))) if len(avg_scores) > 1 else 0
-    )
-
-    # compute skills initially
-    skills = get_skills(
-        user1_ids=user1_ids,
-        user2_ids=user2_ids,
-        question_ids=question_ids,
-        scores=scores,
-        weights=weights,
-        baseline_player=baseline_player,
-        var_avg_scores=var_avg_scores,
-        verbose=False,
-    )
-
-    # Compute bootstrap confidence intervals
-    ci_lower, ci_upper = bootstrap_skills(
-        user1_ids,
-        user2_ids,
-        question_ids,
-        scores,
-        weights,
-        var_avg_scores,
-        baseline_player=baseline_player,
-        bootstrap_iterations=bootstrap_iterations,
-    )
-    logger.info("Bootstrap complete.")
-
-    ordered_skills = sorted(
-        [(user, skill) for user, skill in skills.items()], key=lambda x: -x[1]
-    )
-    player_stats: dict[int | str, list] = defaultdict(lambda: [0, set()])
-    for u1id, u2id, qid in zip(user1_ids, user2_ids, question_ids):
-        player_stats[u1id][0] += 1
-        player_stats[u1id][1].add(qid)
-        player_stats[u2id][0] += 1
-        player_stats[u2id][1].add(qid)
+    ordered_scores = sorted(scores, key=lambda x: x[1], reverse=True)
 
     ##########################################################################
     ##########################################################################
@@ -633,39 +210,29 @@ def run_update_coherence_spring_2026_cup(cache: bool = False) -> None:
         for entry in list(leaderboard.entries.all())
     }
     rank = 1
-    question_count = len(set(question_ids))
+    question_count = len(set(question_ids)) or 1
     seen = set()
-    for uid, skill in ordered_skills:
-        coherence_links_count = (
-            CoherenceLink.objects.filter(
-                Q(question1_id__in=potential_questions)
-                | Q(question2_id__in=potential_questions),
-                user_id=uid,
-            )
-            .distinct("id")
-            .count()
-        )
-        forecasted_questions = len(player_stats[uid][1])
+    for uid, score, weight in ordered_scores:
+        forecasted_questions = competitor_ids.count(uid)
 
         excluded = False
-        if MedalExclusionRecord.objects.filter(user_id=uid or 0).exists():
+        if (
+            uid == baseline_player.id
+            or MedalExclusionRecord.objects.filter(user_id=uid or 0).exists()
+        ):
             excluded = True
 
         entry: LeaderboardEntry = entry_dict.pop(uid, LeaderboardEntry())
         entry.user_id = uid if isinstance(uid, int) else None
-        entry.aggregation_method = uid if isinstance(uid, str) else None
+        entry.aggregation_method = None
         entry.leaderboard = leaderboard
-        entry.score = skill
+        entry.score = score
         entry.rank = rank
         entry.excluded = excluded
-        entry.show_when_excluded = False
-        entry.contribution_count = coherence_links_count
-        entry.coverage = forecasted_questions / question_count
+        entry.show_when_excluded = True
+        entry.contribution_count = forecasted_questions
+        entry.coverage = weight / question_count
         entry.calculated_on = timezone.now()
-        entry.ci_lower = ci_lower.get(uid, None)
-        entry.ci_upper = ci_upper.get(uid, None)
-        # TODO: support for more efficient saving once this is implemented
-        # for leaderboards with more than 100 entries
         entry.save()
         seen.add(entry.id)
         if not excluded:
@@ -674,131 +241,6 @@ def run_update_coherence_spring_2026_cup(cache: bool = False) -> None:
     # delete unseen entries
     leaderboard.entries.exclude(id__in=seen).delete()
     logger.info("Pruned unseen leaderboard entries.")
-
-    ##########################################################################
-    ##########################################################################
-    ##########################################################################
-    ##########################################################################
-    # DISPLAY
-    logger.info("Results:")
-    logger.info(
-        "|  2.5%  "
-        "| Skill  "
-        "| 97.5%  "
-        "| Match  "
-        "| Quest. "
-        "|   ID   "
-        "| Username "
-    )
-    logger.info(
-        "| Match  "
-        "|        "
-        "| Match  "
-        "| Count  "
-        "| Count  "
-        "|        "
-        "|          "
-    )
-    logger.info(
-        "=========================================="
-        "=========================================="
-    )
-    unevaluated = (
-        set(user1_ids) | set(user2_ids) | set(users.values_list("id", flat=True))
-    )
-    for uid, skill in ordered_skills:
-        if isinstance(uid, str):
-            username = uid
-        else:
-            username = User.objects.get(id=uid).username
-        unevaluated.remove(uid)
-        lower = ci_lower.get(uid, 0)
-        upper = ci_upper.get(uid, 0)
-        logger.info(
-            f"| {round(lower, 2):>6} "
-            f"| {round(skill, 2):>6} "
-            f"| {round(upper, 2):>6} "
-            f"| {player_stats[uid][0]:>6} "
-            f"| {len(player_stats[uid][1]):>6} "
-            f"| {uid if isinstance(uid, int) else '':>6} "
-            f"| {username}"
-        )
-    for uid in unevaluated:
-        if isinstance(uid, str):
-            username = uid
-        else:
-            username = User.objects.get(id=uid).username
-        logger.info(
-            "| ------ "
-            "| ------ "
-            "| ------ "
-            "| ------ "
-            "| ------ "
-            f"| {uid if isinstance(uid, int) else '':>5} "
-            f"| {username}"
-        )
-    logger.info("Results complete.")
-
-    ##########################################################################
-    ##########################################################################
-    ##########################################################################
-    ##########################################################################
-    # TESTS
-    skills_array = np.array(list(skills.values()))
-
-    # 1. Correllation between skill and avg_score (DO NOT HAVE YET - need avg_score)
-    x = []
-    y = []
-    for uid in user1_ids:
-        x.append(skills.get(uid, 0))
-        y.append(avg_scores.get(uid, 0))
-    correlation = np.corrcoef(x, y)
-    logger.info("Correlation between skill and avg_score: %s", correlation[0][1])
-
-    # 2. Shapiro-Wilk test (good for small to medium samples)
-    if len(skills_array) >= 3:
-        shapiro_stat, shapiro_p = stats.shapiro(skills_array)
-        logger.info(
-            "Shapiro-Wilk test: statistic=%.4f, p-value=%.4f",
-            shapiro_stat,
-            shapiro_p,
-        )
-        if shapiro_p > 0.05:
-            logger.info("Skills appear normally distributed (p > 0.05)")
-        else:
-            logger.info("Skills may not be normally distributed (p ≤ 0.05)")
-
-    # 3. Anderson-Darling test (more sensitive to tails)
-    anderson_result = stats.anderson(skills_array, dist="norm")
-    logger.info("Anderson-Darling test: statistic=%.4f", anderson_result.statistic)
-    # Check at 5% significance level
-    critical_5pct = anderson_result.critical_values[2]  # Index 2 is 5% level
-    logger.info("Critical value at 5%%: %.4f", critical_5pct)
-    if anderson_result.statistic < critical_5pct:
-        logger.info("Skills appear normally distributed (stat < critical)")
-    else:
-        logger.info("Skills may not be normally distributed (stat ≥ critical)")
-
-    # 4. Kolmogorov-Smirnov test (compare to normal distribution)
-    ks_stat, ks_p = stats.kstest(
-        skills_array, "norm", args=(skills_array.mean(), skills_array.std())
-    )
-    logger.info(
-        "Kolmogorov-Smirnov test: statistic=%.4f, p-value=%.4f",
-        ks_stat,
-        ks_p,
-    )
-    if ks_p > 0.05:
-        logger.info("Skills appear normally distributed (p > 0.05)")
-    else:
-        logger.info("Skills may not be normally distributed (p ≤ 0.05)")
-
-    # 5. Summary statistics
-    logger.info("Skill distribution summary:")
-    logger.info("Mean: %.2f", skills_array.mean())
-    logger.info("Std: %.2f", skills_array.std())
-    logger.info("Skewness: %.4f", stats.skew(skills_array))
-    logger.info("Kurtosis: %.4f", stats.kurtosis(skills_array))
 
 
 class Command(BaseCommand):
