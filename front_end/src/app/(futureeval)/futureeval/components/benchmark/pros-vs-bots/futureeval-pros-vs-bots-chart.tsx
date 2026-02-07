@@ -44,8 +44,8 @@ export type ProsVsBotsDiffSeries = {
 
 const SINGLE_WIDTH = 57.5;
 const GROUP_WIDTH = 57.5;
-const GROUP_OFFSET = 0.16;
-const MOBILE_BAR_W = 27.6;
+const GROUP_OFFSET = 0.18;
+const MOBILE_BAR_W = 22;
 const ERR_CAP = 21;
 const ERR_CAP_DOUBLE = 13.8;
 
@@ -115,6 +115,45 @@ const FutureEvalProsVsBotsDiffChart: FC<{
   const s1 = series?.[0];
   const s2 = series?.[1];
 
+  const s1Color = s1 ? getThemeColor(s1.colorToken) : "";
+  const s2Color = s2 ? getThemeColor(s2.colorToken) : "";
+
+  useLayoutEffect(() => {
+    if (!chartRef.current || !s1Color || !s2Color) return;
+    const svg = chartRef.current.querySelector("svg");
+    if (!svg) return;
+
+    const existing = svg.querySelector("#binary-stripe-defs");
+    if (existing) existing.remove();
+
+    const ns = "http://www.w3.org/2000/svg";
+    const defs = document.createElementNS(ns, "defs");
+    defs.id = "binary-stripe-defs";
+
+    const pattern = document.createElementNS(ns, "pattern");
+    pattern.setAttribute("id", "binary-stripe");
+    pattern.setAttribute("width", "8");
+    pattern.setAttribute("height", "8");
+    pattern.setAttribute("patternUnits", "userSpaceOnUse");
+    pattern.setAttribute("patternTransform", "rotate(45)");
+
+    const r1 = document.createElementNS(ns, "rect");
+    r1.setAttribute("width", "4");
+    r1.setAttribute("height", "8");
+    r1.setAttribute("fill", s1Color);
+
+    const r2 = document.createElementNS(ns, "rect");
+    r2.setAttribute("x", "4");
+    r2.setAttribute("width", "4");
+    r2.setAttribute("height", "8");
+    r2.setAttribute("fill", s2Color);
+
+    pattern.appendChild(r1);
+    pattern.appendChild(r2);
+    defs.appendChild(pattern);
+    svg.insertBefore(defs, svg.firstChild);
+  }, [s1Color, s2Color, width]);
+
   const factor1 = mdUp ? (lgUp ? 1 : 0.8) : 0.55;
   const factor2 = mdUp ? (lgUp ? 1 : 0.6) : 0.4;
 
@@ -173,9 +212,9 @@ const FutureEvalProsVsBotsDiffChart: FC<{
   );
 
   const s1OffsetFor = (x: string) =>
-    s2X.has(x) ? -(smUp ? GROUP_OFFSET : GROUP_OFFSET * 1.5) : 0;
+    s2X.has(x) ? (smUp ? GROUP_OFFSET : GROUP_OFFSET * 1.5) : 0;
   const s2OffsetFor = (x: string) =>
-    s1X.has(x) ? (smUp ? GROUP_OFFSET : GROUP_OFFSET * 1.5) : 0;
+    s1X.has(x) ? -(smUp ? GROUP_OFFSET : GROUP_OFFSET * 1.5) : 0;
 
   const s1Bars = s1Data.map((d) => ({
     cat: d.x,
@@ -398,28 +437,29 @@ const FutureEvalProsVsBotsDiffChart: FC<{
   return (
     <div className={className ?? "relative w-full"}>
       {show && (
-        <div className="flex flex-col lg:flex-row lg:items-stretch">
-          {/* Left: transposed summary table */}
-          <div className="mb-6 flex shrink-0 items-center lg:mb-0 lg:w-[26%]">
-            <QuarterSummaryTable
-              categories={categories}
-              s1Data={s1Data}
-              s2Data={s2Data}
+        <div className="overflow-hidden rounded-lg border border-gray-300 dark:border-gray-300-dark">
+          <div className="flex flex-col lg:flex-row lg:items-stretch">
+            {/* Left: transposed summary table */}
+            <div className="flex shrink-0 items-center p-5 lg:w-[20%] lg:p-6">
+              <QuarterSummaryTable
+                categories={categories}
+                s1Data={s1Data}
+                s2Data={s2Data}
+              />
+            </div>
+
+            {/* Vertical divider (desktop) / horizontal divider (mobile) */}
+            <div
+              aria-hidden
+              className="border-b border-gray-300 dark:border-gray-300-dark lg:border-b-0 lg:border-l"
             />
-          </div>
 
-          {/* Vertical divider (desktop) / horizontal divider (mobile) */}
-          <div
-            aria-hidden
-            className="mb-6 border-b border-gray-300 dark:border-gray-300-dark lg:mb-0 lg:mx-5 lg:border-b-0 lg:border-l"
-          />
+            {/* Right: legend + chart */}
+            <div ref={ref} className="min-w-0 flex-1 p-5 lg:p-6">
+              {legendEl}
 
-          {/* Right: legend + chart */}
-          <div ref={ref} className="min-w-0 flex-1">
-            {legendEl}
-
-            {width === 0 && <div style={{ height: chartH }} />}
-            <div ref={chartRef}>
+              {width === 0 && <div style={{ height: chartH }} />}
+              <div ref={chartRef}>
             {width > 0 && (
               <VictoryChart
                 theme={chartTheme}
@@ -510,7 +550,10 @@ const FutureEvalProsVsBotsDiffChart: FC<{
                     alignment="middle"
                     style={{
                       data: {
-                        fill: getThemeColor(s1.colorToken),
+                        fill: ({ datum }) =>
+                          !s2X.has((datum as HitDatum).cat)
+                            ? "url(#binary-stripe)"
+                            : getThemeColor(s1.colorToken),
                         fillOpacity: ({ datum }) =>
                           (datum as HitDatum).cat === activeCat ? 0.5 : 0.3,
                         stroke: "none",
@@ -711,6 +754,7 @@ const FutureEvalProsVsBotsDiffChart: FC<{
                 binary questions only.
               </p>
             )}
+          </div>
           </div>
         </div>
       )}
