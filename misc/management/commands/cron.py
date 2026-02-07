@@ -21,7 +21,7 @@ from posts.jobs import (
     job_check_post_open_event,
 )
 from posts.services.hotness import compute_feed_hotness
-from questions.jobs import job_close_question
+from questions.jobs import job_close_question, job_check_cp_revealed
 from questions.tasks import check_and_schedule_forecast_widrawal_due_notifications
 from scoring.jobs import (
     finalize_leaderboards,
@@ -130,6 +130,13 @@ class Command(BaseCommand):
             close_old_connections(job_close_question.send),
             trigger=CronTrigger.from_crontab("* * * * *"),  # Every Minute
             id="questions_job_close_question",
+            max_instances=1,
+            replace_existing=True,
+        )
+        scheduler.add_job(
+            close_old_connections(job_check_cp_revealed.send),
+            trigger=CronTrigger.from_crontab("* * * * *"),  # Every Minute
+            id="questions_job_check_cp_revealed",
             max_instances=1,
             replace_existing=True,
         )

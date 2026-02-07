@@ -45,8 +45,10 @@ export type MedalCategory = {
 
 export type BotDetails = {
   metac_bot: boolean;
-  base_models?: { name: string }[];
+  base_models?: { name: string; releaseDate?: string }[];
+  display_name?: string;
   display_in_leaderboard: boolean;
+  include_in_calculations?: boolean;
 };
 
 export type LeaderboardEntry = {
@@ -112,7 +114,7 @@ type BaseLeaderboardDetails = {
   finalized: boolean;
   prize_pool: number | null;
   max_coverage?: number;
-  display_config: Record<string, any> | null; // TODO: specify type
+  display_config: Record<string, unknown> | null;
 };
 
 export type LeaderboardDetails = BaseLeaderboardDetails & {

@@ -6,6 +6,7 @@ import ServerProfileApi from "@/services/api/profile/profile.server";
 
 import ApiAccess from "./components/api_access";
 import ChangePassword from "./components/change_password";
+import EmailChangeToast from "./components/email_change_toast";
 import EmailEdit from "./components/email_edit";
 import PreferencesSection from "../components/preferences_section";
 
@@ -21,6 +22,7 @@ export default async function Settings() {
 
   return (
     <PreferencesSection className="gap-0">
+      <EmailChangeToast />
       <EmailEdit user={currentUser} />
       <ChangePassword />
       <ApiAccess apiKey={apiKey} />
