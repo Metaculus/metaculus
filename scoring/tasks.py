@@ -107,8 +107,8 @@ def update_custom_leaderboard(
         return
 
     minimum_time = (
-        datetime.fromtimestamp(minimum_time, tz=dt_timezone.utc)
-        if minimum_timestamps
+        datetime.fromtimestamp(minimum_timestamp, tz=dt_timezone.utc)
+        if minimum_timestamp
         else None
     )
     spot_times = (
