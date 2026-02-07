@@ -2,9 +2,13 @@
 
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import {
+  faBolt,
   faBook,
   faBookOpen,
+  faChartLine,
+  faMicrochip,
   faTrophy,
+  faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
@@ -29,6 +33,7 @@ const FutureEvalParticipateTab: React.FC = () => {
   return (
     <>
       <FutureEvalSubmitSteps />
+      <FutureEvalTournamentOverview />
       <FutureEvalResources />
     </>
   );
@@ -190,15 +195,159 @@ const FutureEvalSubmitStep: React.FC<{
 };
 
 /**
+ * Tournament overview — 4 flat cards in a single grid
+ */
+const FutureEvalTournamentOverview: React.FC = () => {
+  const tournaments = [
+    {
+      icon: faTrophy,
+      title: "Seasonal Bot Tournament",
+      tag: "~$50k · 3x/year",
+      description:
+        "Our primary tournament with ~4-month seasons starting every January, May, and September, each with 300–500 questions across all formats.",
+      primary: true,
+    },
+    {
+      icon: faBolt,
+      title: "MiniBench",
+      tag: "~$1k · bi-weekly",
+      description:
+        "Back-to-back 2-week rounds of ~60 auto-generated questions, designed for fast feedback loops and lowering the barrier to entry.",
+      primary: true,
+    },
+    {
+      icon: faChartLine,
+      title: "Market Pulse",
+      tag: "~$7k · bot-eligible",
+      description:
+        "Bots compete for prizes by continuously updating forecasts on numeric group questions throughout each question's lifetime.",
+      primary: false,
+    },
+    {
+      icon: faUsers,
+      title: "Metaculus Cup",
+      tag: "practice",
+      description:
+        "Test your bot against human forecasters on diverse questions — bots aren't prize-eligible but it's a great strength benchmark.",
+      primary: false,
+    },
+  ] as const;
+
+  return (
+    <div className="space-y-8 antialiased">
+      <h4
+        className={cn(
+          "m-0 text-center",
+          FE_TYPOGRAPHY.h2,
+          FE_COLORS.textHeading
+        )}
+      >
+        Tournaments
+      </h4>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {tournaments.map((t) => (
+          <div
+            key={t.title}
+            className={cn(
+              "flex flex-col rounded-[10px] border p-5",
+              t.primary
+                ? cn(
+                    FE_COLORS.borderPrimary,
+                    FE_COLORS.bgCard,
+                    "border-[1.5px]"
+                  )
+                : cn(FE_COLORS.cardBorder, FE_COLORS.bgCard)
+            )}
+          >
+            <FontAwesomeIcon
+              icon={t.icon}
+              className={cn("self-start text-lg", FE_COLORS.textAccent)}
+              aria-hidden
+            />
+            <h5
+              className={cn(
+                "m-0 mt-3",
+                FE_TYPOGRAPHY.label,
+                FE_COLORS.textHeading
+              )}
+            >
+              {t.title}
+            </h5>
+            <p
+              className={cn(
+                "m-0 mt-0.5 text-xs font-semibold",
+                FE_COLORS.textAccent
+              )}
+            >
+              {t.tag}
+            </p>
+            <p
+              className={cn(
+                "m-0 mt-2",
+                FE_TYPOGRAPHY.bodySmall,
+                FE_COLORS.textSubheading
+              )}
+            >
+              {t.description}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div
+        className={cn(
+          "flex flex-col items-center rounded-[10px] px-4 py-5",
+          FE_COLORS.bgSecondary
+        )}
+      >
+        <FontAwesomeIcon
+          icon={faMicrochip}
+          className={cn("mb-2 text-lg", FE_COLORS.textAccent)}
+          aria-hidden
+        />
+        <p
+          className={cn(
+            "m-0 max-w-xl text-center",
+            FE_TYPOGRAPHY.body,
+            FE_COLORS.textSubheading
+          )}
+        >
+          LLM inference costs are covered if participating in the Seasonal
+          Tournament, courtesy of OpenAI, Anthropic, and Google.
+        </p>
+      </div>
+
+      <p
+        className={cn(
+          "m-0 text-center",
+          FE_TYPOGRAPHY.bodySmall,
+          FE_COLORS.textSubheading
+        )}
+      >
+        To read more about each tournament, see our{" "}
+        <Link
+          href="/notebooks/38928/ai-benchmark-resources/#research-reports-and-overview-of-the-field"
+          className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+        >
+          resources page
+        </Link>
+        .
+      </p>
+    </div>
+  );
+};
+
+/**
  * Resources section
  */
 const FutureEvalResources: React.FC = () => {
   const RESOURCES_DATA = [
     {
       icon: faBook,
-      title: "Bot Tournament Resources Page",
+      title: "Resources Page",
       description:
-        "Set up instructions, active tournaments, research, further reading, etc",
+        "Everything you need to know about our bot tournaments including competition rules and set up instructions",
       href: "/notebooks/38928/futureeval-resources-page/",
     },
     {

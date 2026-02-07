@@ -114,7 +114,7 @@ type BaseLeaderboardDetails = {
   finalized: boolean;
   prize_pool: number | null;
   max_coverage?: number;
-  display_config: Record<string, any> | null; // TODO: specify type
+  display_config: Record<string, unknown> | null;
 };
 
 export type LeaderboardDetails = BaseLeaderboardDetails & {

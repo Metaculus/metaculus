@@ -8,7 +8,7 @@ import FutureEvalNavbar from "./futureeval-navbar";
 import { FE_COLORS } from "../theme";
 
 export type Section = {
-  value: "benchmark" | "methodology" | "participate" | "news";
+  value: "benchmark" | "methodology" | "participate" | "partner" | "news";
   href: string;
   label: string;
   content: React.ReactNode;
