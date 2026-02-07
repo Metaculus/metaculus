@@ -57,6 +57,8 @@ def get_score_pair(
                 cvs.append(max(0, (end - start)) / total_duration)
             current_timestamp = gm.timestamp
         if coverage == 0:
+            # investigate!
+            breakpoint()
             return None
         user1_scores = evaluate_forecasts_peer_accuracy(
             forecasts=user1_forecasts,  # only evaluate user1 (user2 is opposite)
@@ -83,7 +85,6 @@ def get_score_pair(
                 break
             current_timestamp = gm.timestamp
         if coverage == 0:
-            breakpoint()
             return None
         user1_scores = evaluate_forecasts_peer_spot_forecast(
             forecasts=user1_forecasts,  # only evaluate user1 (user2 is opposite)
@@ -164,6 +165,7 @@ def gather_data(
             32627,  # Q1 2025
             32721,  # Q2 2025
             32813,  # fall 2025
+            32916,  # Q1 2026
         ]
     )
     aib_to_pro_version = {
@@ -172,6 +174,7 @@ def gather_data(
         32627: 32631,
         32721: 32761,
         32813: None,
+        32916: 32930,
     }
     aib_question_map: dict[Question, Question | None] = dict()
     for aib in aib_projects:
