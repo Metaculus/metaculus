@@ -62,7 +62,9 @@ def update_custom_leaderboards():
             # update_custom_leaderboard(
             #     project_id=project.id,
             #     minimum_timestamp=None,
-            #     spot_timestamps=[datetime(2026, 1, 1, tzinfo=dt_timezone.utc)],
+            #     spot_timestamps=[
+            #         datetime(2026, 1, 1, tzinfo=dt_timezone.utc).timestamp()
+            #     ],
             # )
         except Exception as e:
             logger.error(
