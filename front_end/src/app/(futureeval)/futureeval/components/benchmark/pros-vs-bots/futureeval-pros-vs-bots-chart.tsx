@@ -416,11 +416,7 @@ const FutureEvalProsVsBotsDiffChart: FC<{
             stroke="#91999E"
             strokeWidth="2"
           />
-          <path
-            d="M6.5 15.0391L6.5 2.03906"
-            stroke="#91999E"
-            strokeWidth="2"
-          />
+          <path d="M6.5 15.0391L6.5 2.03906" stroke="#91999E" strokeWidth="2" />
           <line
             y1="14.959"
             x2="13"
@@ -460,301 +456,312 @@ const FutureEvalProsVsBotsDiffChart: FC<{
 
               {width === 0 && <div style={{ height: chartH }} />}
               <div ref={chartRef}>
-            {width > 0 && (
-              <VictoryChart
-                theme={chartTheme}
-                width={width}
-                height={chartH}
-                domain={{ x: xDomain, y: [0, yTop] }}
-                domainPadding={{ x: smUp ? 24 : 0 }}
-                padding={{
-                  top: paddingTop,
-                  bottom: paddingBottom,
-                  left: paddingLeft,
-                  right: paddingRight,
-                }}
-              >
-                <VictoryAxis
-                  dependentAxis
-                  orientation="left"
-                  offsetX={smUp ? 60 : 45}
-                  axisLabelComponent={
-                    <VictoryLabel angle={-90} dx={-16} dy={smUp ? -10 : -5} />
-                  }
-                  tickValues={yTicksNoZero}
-                  label="Pro Lead Over Bots"
-                  style={{
-                    grid: {
-                      stroke: gridStroke,
-                      strokeWidth: 1,
-                      opacity: 0.15,
-                    },
-                    axis: { stroke: "transparent" },
-                    ticks: { stroke: "transparent" },
-                    tickLabels: {
-                      fill: tickLabelColor,
-                      fontSize: smUp ? 12 : 10,
-                      fontWeight: 400,
-                      fontFeatureSettings: '"tnum"',
-                    },
-                    axisLabel: {
-                      fill: axisLabelColor,
-                      fontSize: smUp ? 14 : 10,
-                      fontWeight: 400,
-                    },
-                  }}
-                />
-                <VictoryAxis
-                  dependentAxis
-                  orientation="left"
-                  offsetX={smUp ? 60 : 45}
-                  tickValues={[0]}
-                  style={{
-                    grid: { stroke: gridStroke, strokeWidth: 1, opacity: 0.15 },
-                    axis: { stroke: "transparent" },
-                    ticks: { stroke: "transparent" },
-                    tickLabels: {
-                      fill: tickLabelColor,
-                      fontSize: smUp ? 12 : 10,
-                      fontWeight: 400,
-                      fontFeatureSettings: '"tnum"',
-                    },
-                  }}
-                />
-                <VictoryAxis
-                  tickValues={categories.map((_, i) => i)}
-                  tickFormat={(i: number) => categories[i] ?? ""}
-                  tickLabelComponent={
-                    <VictoryLabel dy={24} textAnchor="middle" />
-                  }
-                  style={{
-                    grid: { stroke: "transparent" },
-                    axis: { stroke: "transparent" },
-                    ticks: { stroke: "transparent" },
-                    tickLabels: {
-                      fill: tickLabelColor,
-                      fontSize: smUp ? 12 : 10,
-                      fontWeight: 400,
-                    },
-                  }}
-                />
-
-                {s1Bars.length > 0 && s1?.colorToken && (
-                  <VictoryBar
-                    data={s1Bars}
-                    name="s1Bars"
-                    x="_x"
-                    y="y"
-                    y0={0}
-                    barWidth={widthFor(s2X)}
-                    alignment="middle"
-                    style={{
-                      data: {
-                        fill: ({ datum }) =>
-                          !s2X.has((datum as HitDatum).cat)
-                            ? "url(#binary-stripe)"
-                            : getThemeColor(s1.colorToken),
-                        fillOpacity: ({ datum }) =>
-                          (datum as HitDatum).cat === activeCat ? 0.5 : 0.3,
-                        stroke: "none",
-                        pointerEvents: "none",
-                      },
+                {width > 0 && (
+                  <VictoryChart
+                    theme={chartTheme}
+                    width={width}
+                    height={chartH}
+                    domain={{ x: xDomain, y: [0, yTop] }}
+                    domainPadding={{ x: smUp ? 24 : 0 }}
+                    padding={{
+                      top: paddingTop,
+                      bottom: paddingBottom,
+                      left: paddingLeft,
+                      right: paddingRight,
                     }}
-                  />
-                )}
-
-                {s1Bars.length > 0 && s1?.colorToken && (
-                  <VictoryErrorBar
-                    data={s1Errs}
-                    x="_x"
-                    y="y"
-                    name="s1Errs"
-                    errorY={(d: { errorY: [number, number] }) => d.errorY}
-                    errorX={0}
-                    groupComponent={<g pointerEvents="none" />}
-                    dataComponent={
-                      <NonInteractiveErrorBar
-                        style={{
-                          stroke: getThemeColor(s1.colorToken),
-                          strokeWidth: 2,
-                          pointerEvents: "none",
-                        }}
-                      />
-                    }
-                    style={{
-                      data: {
-                        stroke: getThemeColor(s1.colorToken),
-                        strokeWidth: 2,
-                      },
-                    }}
-                  />
-                )}
-
-                {s2Bars.length > 0 && s2?.colorToken && (
-                  <VictoryBar
-                    data={s2Bars}
-                    x="_x"
-                    y="y"
-                    y0={0}
-                    name="s2Bars"
-                    barWidth={widthFor(s1X)}
-                    alignment="middle"
-                    style={{
-                      data: {
-                        fill: getThemeColor(s2.colorToken),
-                        fillOpacity: ({ datum }) =>
-                          (datum as HitDatum).cat === activeCat ? 0.5 : 0.3,
-                        stroke: "none",
-                        pointerEvents: "none",
-                      },
-                    }}
-                  />
-                )}
-
-                {s2Bars.length > 0 && s2?.colorToken && (
-                  <VictoryErrorBar
-                    data={s2Errs}
-                    x="_x"
-                    y="y"
-                    name="s2Errs"
-                    groupComponent={<g pointerEvents="none" />}
-                    dataComponent={
-                      <NonInteractiveErrorBar
-                        style={{
-                          stroke: getThemeColor(s2.colorToken),
-                          strokeWidth: 2,
-                          pointerEvents: "none",
-                        }}
-                      />
-                    }
-                    style={{
-                      data: {
-                        stroke: getThemeColor(s2.colorToken),
-                        strokeWidth: 2,
-                        pointerEvents: "none",
-                      },
-                    }}
-                    errorY={(d: { errorY: [number, number] }) => d.errorY}
-                    errorX={0}
-                  />
-                )}
-
-                <VictoryBar
-                  name="hitStrips"
-                  data={categories.map((c, i) => ({ _x: i, cat: c, y: 1 }))}
-                  x="_x"
-                  y="y"
-                  dataComponent={
-                    <FullHeightCell
-                      plotTop={paddingTop}
-                      plotBottom={chartH - paddingBottom}
-                      getWidth={(cat: string) => hitWidthPxFor(cat)}
+                  >
+                    <VictoryAxis
+                      dependentAxis
+                      orientation="left"
+                      offsetX={smUp ? 60 : 45}
+                      axisLabelComponent={
+                        <VictoryLabel
+                          angle={-90}
+                          dx={-16}
+                          dy={smUp ? -10 : -5}
+                        />
+                      }
+                      tickValues={yTicksNoZero}
+                      label="Pro Lead Over Bots"
+                      style={{
+                        grid: {
+                          stroke: gridStroke,
+                          strokeWidth: 1,
+                          opacity: 0.15,
+                        },
+                        axis: { stroke: "transparent" },
+                        ticks: { stroke: "transparent" },
+                        tickLabels: {
+                          fill: tickLabelColor,
+                          fontSize: smUp ? 12 : 10,
+                          fontWeight: 400,
+                          fontFeatureSettings: '"tnum"',
+                        },
+                        axisLabel: {
+                          fill: axisLabelColor,
+                          fontSize: smUp ? 14 : 10,
+                          fontWeight: 400,
+                        },
+                      }}
                     />
-                  }
-                  style={{ data: { pointerEvents: "all" } }}
-                  events={[
-                    {
-                      target: "data",
-                      eventHandlers: {
-                        onMouseMove: (evt, props) => {
-                          const d = (props as { datum?: HitDatum }).datum;
-                          if (!d) return undefined;
-
-                          const svg = chartRef.current?.querySelector("svg");
-                          if (!svg) return undefined;
-
-                          const rect = svg.getBoundingClientRect();
-                          const clientY = getPointerClientY(evt);
-                          if (clientY == null) return undefined;
-
-                          const y = clamp(
-                            clientY - rect.top,
-                            paddingTop,
-                            chartH - paddingBottom
-                          );
-                          setActiveCat(d.cat);
-                          setAnchor({ x: catCenterX(d._x), y });
-                          return undefined;
+                    <VictoryAxis
+                      dependentAxis
+                      orientation="left"
+                      offsetX={smUp ? 60 : 45}
+                      tickValues={[0]}
+                      style={{
+                        grid: {
+                          stroke: gridStroke,
+                          strokeWidth: 1,
+                          opacity: 0.15,
                         },
-                        onMouseLeave: () => {
-                          setActiveCat(null);
-                          setAnchor(null);
-                          return undefined;
+                        axis: { stroke: "transparent" },
+                        ticks: { stroke: "transparent" },
+                        tickLabels: {
+                          fill: tickLabelColor,
+                          fontSize: smUp ? 12 : 10,
+                          fontWeight: 400,
+                          fontFeatureSettings: '"tnum"',
                         },
-                        onTouchStart: (evt, props) => {
-                          const d = (props as { datum?: HitDatum }).datum;
-                          if (!d) return undefined;
-
-                          const svg = chartRef.current?.querySelector("svg");
-                          if (!svg) return undefined;
-
-                          const rect = svg.getBoundingClientRect();
-                          const clientY = getPointerClientY(evt);
-                          const y = clamp(
-                            (clientY ?? rect.top) - rect.top,
-                            paddingTop,
-                            chartH - paddingBottom
-                          );
-                          setActiveCat(d.cat);
-                          setAnchor({ x: catCenterX(d._x), y });
-                          return undefined;
+                      }}
+                    />
+                    <VictoryAxis
+                      tickValues={categories.map((_, i) => i)}
+                      tickFormat={(i: number) => categories[i] ?? ""}
+                      tickLabelComponent={
+                        <VictoryLabel dy={24} textAnchor="middle" />
+                      }
+                      style={{
+                        grid: { stroke: "transparent" },
+                        axis: { stroke: "transparent" },
+                        ticks: { stroke: "transparent" },
+                        tickLabels: {
+                          fill: tickLabelColor,
+                          fontSize: smUp ? 12 : 10,
+                          fontWeight: 400,
                         },
-                        onTouchMove: (evt, props) => {
-                          const d = (props as { datum?: HitDatum }).datum;
-                          if (!d) return undefined;
+                      }}
+                    />
 
-                          const svg = chartRef.current?.querySelector("svg");
-                          if (!svg) return undefined;
+                    {s1Bars.length > 0 && s1?.colorToken && (
+                      <VictoryBar
+                        data={s1Bars}
+                        name="s1Bars"
+                        x="_x"
+                        y="y"
+                        y0={0}
+                        barWidth={widthFor(s2X)}
+                        alignment="middle"
+                        style={{
+                          data: {
+                            fill: ({ datum }) =>
+                              !s2X.has((datum as HitDatum).cat)
+                                ? "url(#binary-stripe)"
+                                : getThemeColor(s1.colorToken),
+                            fillOpacity: ({ datum }) =>
+                              (datum as HitDatum).cat === activeCat ? 0.5 : 0.3,
+                            stroke: "none",
+                            pointerEvents: "none",
+                          },
+                        }}
+                      />
+                    )}
 
-                          const rect = svg.getBoundingClientRect();
-                          const clientY = getPointerClientY(evt);
-                          if (clientY == null) return undefined;
+                    {s1Bars.length > 0 && s1?.colorToken && (
+                      <VictoryErrorBar
+                        data={s1Errs}
+                        x="_x"
+                        y="y"
+                        name="s1Errs"
+                        errorY={(d: { errorY: [number, number] }) => d.errorY}
+                        errorX={0}
+                        groupComponent={<g pointerEvents="none" />}
+                        dataComponent={
+                          <NonInteractiveErrorBar
+                            style={{
+                              stroke: getThemeColor(s1.colorToken),
+                              strokeWidth: 2,
+                              pointerEvents: "none",
+                            }}
+                          />
+                        }
+                        style={{
+                          data: {
+                            stroke: getThemeColor(s1.colorToken),
+                            strokeWidth: 2,
+                          },
+                        }}
+                      />
+                    )}
 
-                          const y = clamp(
-                            clientY - rect.top,
-                            paddingTop,
-                            chartH - paddingBottom
-                          );
-                          setAnchor({ x: catCenterX(d._x), y });
-                          return undefined;
+                    {s2Bars.length > 0 && s2?.colorToken && (
+                      <VictoryBar
+                        data={s2Bars}
+                        x="_x"
+                        y="y"
+                        y0={0}
+                        name="s2Bars"
+                        barWidth={widthFor(s1X)}
+                        alignment="middle"
+                        style={{
+                          data: {
+                            fill: getThemeColor(s2.colorToken),
+                            fillOpacity: ({ datum }) =>
+                              (datum as HitDatum).cat === activeCat ? 0.5 : 0.3,
+                            stroke: "none",
+                            pointerEvents: "none",
+                          },
+                        }}
+                      />
+                    )}
+
+                    {s2Bars.length > 0 && s2?.colorToken && (
+                      <VictoryErrorBar
+                        data={s2Errs}
+                        x="_x"
+                        y="y"
+                        name="s2Errs"
+                        groupComponent={<g pointerEvents="none" />}
+                        dataComponent={
+                          <NonInteractiveErrorBar
+                            style={{
+                              stroke: getThemeColor(s2.colorToken),
+                              strokeWidth: 2,
+                              pointerEvents: "none",
+                            }}
+                          />
+                        }
+                        style={{
+                          data: {
+                            stroke: getThemeColor(s2.colorToken),
+                            strokeWidth: 2,
+                            pointerEvents: "none",
+                          },
+                        }}
+                        errorY={(d: { errorY: [number, number] }) => d.errorY}
+                        errorX={0}
+                      />
+                    )}
+
+                    <VictoryBar
+                      name="hitStrips"
+                      data={categories.map((c, i) => ({ _x: i, cat: c, y: 1 }))}
+                      x="_x"
+                      y="y"
+                      dataComponent={
+                        <FullHeightCell
+                          plotTop={paddingTop}
+                          plotBottom={chartH - paddingBottom}
+                          getWidth={(cat: string) => hitWidthPxFor(cat)}
+                        />
+                      }
+                      style={{ data: { pointerEvents: "all" } }}
+                      events={[
+                        {
+                          target: "data",
+                          eventHandlers: {
+                            onMouseMove: (evt, props) => {
+                              const d = (props as { datum?: HitDatum }).datum;
+                              if (!d) return undefined;
+
+                              const svg =
+                                chartRef.current?.querySelector("svg");
+                              if (!svg) return undefined;
+
+                              const rect = svg.getBoundingClientRect();
+                              const clientY = getPointerClientY(evt);
+                              if (clientY == null) return undefined;
+
+                              const y = clamp(
+                                clientY - rect.top,
+                                paddingTop,
+                                chartH - paddingBottom
+                              );
+                              setActiveCat(d.cat);
+                              setAnchor({ x: catCenterX(d._x), y });
+                              return undefined;
+                            },
+                            onMouseLeave: () => {
+                              setActiveCat(null);
+                              setAnchor(null);
+                              return undefined;
+                            },
+                            onTouchStart: (evt, props) => {
+                              const d = (props as { datum?: HitDatum }).datum;
+                              if (!d) return undefined;
+
+                              const svg =
+                                chartRef.current?.querySelector("svg");
+                              if (!svg) return undefined;
+
+                              const rect = svg.getBoundingClientRect();
+                              const clientY = getPointerClientY(evt);
+                              const y = clamp(
+                                (clientY ?? rect.top) - rect.top,
+                                paddingTop,
+                                chartH - paddingBottom
+                              );
+                              setActiveCat(d.cat);
+                              setAnchor({ x: catCenterX(d._x), y });
+                              return undefined;
+                            },
+                            onTouchMove: (evt, props) => {
+                              const d = (props as { datum?: HitDatum }).datum;
+                              if (!d) return undefined;
+
+                              const svg =
+                                chartRef.current?.querySelector("svg");
+                              if (!svg) return undefined;
+
+                              const rect = svg.getBoundingClientRect();
+                              const clientY = getPointerClientY(evt);
+                              if (clientY == null) return undefined;
+
+                              const y = clamp(
+                                clientY - rect.top,
+                                paddingTop,
+                                chartH - paddingBottom
+                              );
+                              setAnchor({ x: catCenterX(d._x), y });
+                              return undefined;
+                            },
+                            onTouchEnd: () => {
+                              setActiveCat(null);
+                              setAnchor(null);
+                              return undefined;
+                            },
+                          },
                         },
-                        onTouchEnd: () => {
-                          setActiveCat(null);
-                          setAnchor(null);
-                          return undefined;
-                        },
-                      },
-                    },
-                  ]}
-                />
-              </VictoryChart>
-            )}
-          </div>
-
-          {activeCat && anchor && tooltipRows.length > 0 && (
-            <FloatingPortal>
-              <div
-                ref={refs.setFloating}
-                style={{ ...floatingStyles, pointerEvents: "none" }}
-                className="z-[100]"
-              >
-                <FutureEvalDiffTooltip
-                  quarter={activeCat}
-                  rows={tooltipRows}
-                  rightTitle="Avg Scores"
-                />
+                      ]}
+                    />
+                  </VictoryChart>
+                )}
               </div>
-            </FloatingPortal>
-          )}
 
-            {binaryOnlySeasons.length > 0 && (
-              <p className="mt-1 text-center text-[11px] italic text-gray-400 dark:text-gray-400-dark sm:text-xs">
-                {binaryOnlySeasons.join(" & ")}{" "}
-                {binaryOnlySeasons.length === 1 ? "includes" : "include"}{" "}
-                binary questions only.
-              </p>
-            )}
-          </div>
+              {activeCat && anchor && tooltipRows.length > 0 && (
+                <FloatingPortal>
+                  <div
+                    ref={refs.setFloating}
+                    style={{ ...floatingStyles, pointerEvents: "none" }}
+                    className="z-[100]"
+                  >
+                    <FutureEvalDiffTooltip
+                      quarter={activeCat}
+                      rows={tooltipRows}
+                      rightTitle="Avg Scores"
+                    />
+                  </div>
+                </FloatingPortal>
+              )}
+
+              {binaryOnlySeasons.length > 0 && (
+                <p className="mt-1 text-center text-[11px] italic text-gray-400 dark:text-gray-400-dark sm:text-xs">
+                  {binaryOnlySeasons.join(" & ")}{" "}
+                  {binaryOnlySeasons.length === 1 ? "includes" : "include"}{" "}
+                  binary questions only.
+                </p>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -816,15 +823,43 @@ const SignificanceLegendIcon: React.FC<{ type: SignificanceStatus }> = ({
   switch (type) {
     case "significant_win":
       return (
-        <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} fill="none" aria-hidden>
+        <svg
+          width={s}
+          height={s}
+          viewBox={`0 0 ${s} ${s}`}
+          fill="none"
+          aria-hidden
+        >
           {circleEl}
-          <line x1={mid} y1={mid - ih} x2={mid} y2={mid + ih} stroke={color} strokeWidth={sw} strokeLinecap="round" />
-          <line x1={mid - ih} y1={mid} x2={mid + ih} y2={mid} stroke={color} strokeWidth={sw} strokeLinecap="round" />
+          <line
+            x1={mid}
+            y1={mid - ih}
+            x2={mid}
+            y2={mid + ih}
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          <line
+            x1={mid - ih}
+            y1={mid}
+            x2={mid + ih}
+            y2={mid}
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
         </svg>
       );
     case "non_significant_win":
       return (
-        <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} fill="none" aria-hidden>
+        <svg
+          width={s}
+          height={s}
+          viewBox={`0 0 ${s} ${s}`}
+          fill="none"
+          aria-hidden
+        >
           {circleEl}
           <path
             d={`M${mid - ih} ${mid + ih * 0.1}L${mid - ih * 0.15} ${mid + ih * 0.75}L${mid + ih} ${mid - ih * 0.7}`}
@@ -837,10 +872,32 @@ const SignificanceLegendIcon: React.FC<{ type: SignificanceStatus }> = ({
       );
     case "loss":
       return (
-        <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} fill="none" aria-hidden>
+        <svg
+          width={s}
+          height={s}
+          viewBox={`0 0 ${s} ${s}`}
+          fill="none"
+          aria-hidden
+        >
           {circleEl}
-          <line x1={mid - ih * 0.85} y1={mid - ih * 0.85} x2={mid + ih * 0.85} y2={mid + ih * 0.85} stroke={color} strokeWidth={sw} strokeLinecap="round" />
-          <line x1={mid + ih * 0.85} y1={mid - ih * 0.85} x2={mid - ih * 0.85} y2={mid + ih * 0.85} stroke={color} strokeWidth={sw} strokeLinecap="round" />
+          <line
+            x1={mid - ih * 0.85}
+            y1={mid - ih * 0.85}
+            x2={mid + ih * 0.85}
+            y2={mid + ih * 0.85}
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
+          <line
+            x1={mid + ih * 0.85}
+            y1={mid - ih * 0.85}
+            x2={mid - ih * 0.85}
+            y2={mid + ih * 0.85}
+            stroke={color}
+            strokeWidth={sw}
+            strokeLinecap="round"
+          />
         </svg>
       );
     default:

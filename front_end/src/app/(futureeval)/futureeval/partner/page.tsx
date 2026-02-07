@@ -26,7 +26,5 @@ export default async function FutureEvalPartnerPage() {
   const safeLeaderboard =
     leaderboard ?? ({ entries: [] } as unknown as LeaderboardDetails);
 
-  return (
-    <FutureEvalScreen leaderboard={safeLeaderboard} current="partner" />
-  );
+  return <FutureEvalScreen leaderboard={safeLeaderboard} current="partner" />;
 }

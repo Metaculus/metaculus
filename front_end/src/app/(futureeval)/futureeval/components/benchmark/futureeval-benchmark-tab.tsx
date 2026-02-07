@@ -26,13 +26,11 @@ const FutureEvalBenchmarkTab: React.FC = () => {
         <FutureEvalBiggestBotWins />
       </div>
 
-
       {/* Pros vs Bots */}
       <div id="pros-vs-bots-graph" className="scroll-mt-24">
         <FutureEvalProsVsBotsSectionHeader />
         <FutureEvalProsVsBotsDiffExample />
       </div>
-
 
       {/* Bot Tournaments */}
       <div id="bot-tournaments-graph" className="scroll-mt-24">

@@ -451,10 +451,9 @@ const FutureEvalMethodologySections: React.FC = () => {
             >
               leaderboard
             </Link>
-            . In our rankings, we only
-            evaluate forecasts made within 1 year of the model&apos;s first
-            forecast, since model performance tends to worsen as their training
-            data becomes more out of date (see e.g.{" "}
+            . In our rankings, we only evaluate forecasts made within 1 year of
+            the model&apos;s first forecast, since model performance tends to
+            worsen as their training data becomes more out of date (see e.g.{" "}
             <Link
               href="https://arxiv.org/abs/2411.08324v2"
               className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
@@ -658,11 +657,11 @@ const FutureEvalMethodologySections: React.FC = () => {
             >
               graph on our benchmark page
             </Link>{" "}
-            shows how much better pros did than bots when comparing a team of 10 pros 
-            and the best 10 bots in the first four Bot Tournaments. 
-            Note that Q3 and Q4 2024 included only binary questions, while Q1
-            and Q2 2025 also included numeric and multiple choice questions. The
-            pro lead tends to be larger on non-binary question types, which may
+            shows how much better pros did than bots when comparing a team of 10
+            pros and the best 10 bots in the first four Bot Tournaments. Note
+            that Q3 and Q4 2024 included only binary questions, while Q1 and Q2
+            2025 also included numeric and multiple choice questions. The pro
+            lead tends to be larger on non-binary question types, which may
             partly explain the increase in later quarters.
           </p>
           <p className="m-0">
@@ -676,10 +675,10 @@ const FutureEvalMethodologySections: React.FC = () => {
             </Link>{" "}
             section of our resources page. Note that the graph&apos;s y-axis is
             labelled &quot;Pro Lead Over Bots.&quot; Technically, this should be
-            labelled as &quot;average head-to-head spot peer score for Pros&quot;, but 
-            &quot;Pro Lead Over Bots&quot; communicates a similar idea for readers unfamiliar
-            with forecasting scoring rules. A score of 0 would mean that Pros and Bots 
-            performed equally well.
+            labelled as &quot;average head-to-head spot peer score for
+            Pros&quot;, but &quot;Pro Lead Over Bots&quot; communicates a
+            similar idea for readers unfamiliar with forecasting scoring rules.
+            A score of 0 would mean that Pros and Bots performed equally well.
           </p>
         </SectionBody>
       </section>

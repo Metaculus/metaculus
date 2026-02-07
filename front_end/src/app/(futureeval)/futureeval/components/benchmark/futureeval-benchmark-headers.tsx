@@ -81,7 +81,8 @@ export const FutureEvalProsVsBotsSectionHeader: React.FC = () => {
       title="Pros vs. Bots"
       subtitle={
         <>
-          When comparing Pros and the best custom bots, Metaculus Pro Forecasters won every season so far.{" "}
+          When comparing Pros and the best custom bots, Metaculus Pro
+          Forecasters won every season so far.{" "}
           <Link
             className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
             href="/futureeval/methodology#human-baselines"

@@ -231,7 +231,6 @@ export const BIGGEST_BOT_WINS_DATA: CategoryData[] = [
           commentUrl: "/questions/30995/#comment-239488",
         },
       },
-
     ],
   },
 ];

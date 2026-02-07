@@ -101,7 +101,7 @@ const FutureEvalBenchmarkForecastingPerformance: React.FC = () => {
 
       {communityDate && proDate && (
         <p
-          className={`mt-4 w-full rounded ${FE_COLORS.bgSecondary} px-4 py-2.5 text-balance text-center ${FE_TYPOGRAPHY.bodySmall} ${FE_COLORS.textSecondary}`}
+          className={`mt-4 w-full rounded ${FE_COLORS.bgSecondary} text-balance px-4 py-2.5 text-center ${FE_TYPOGRAPHY.bodySmall} ${FE_COLORS.textSecondary}`}
         >
           The trend line indicates that bots will start beating the Metaculus
           community performance in <strong>{communityDate}</strong> and Pro
