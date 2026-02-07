@@ -53,14 +53,16 @@ def update_custom_leaderboards():
         try:
             update_custom_leaderboard.send(
                 project_id=project.id,
-                minimum_time=datetime(2025, 12, 12, tzinfo=dt_timezone.utc),
-                spot_times=None,
+                minimum_timestamp=datetime(
+                    2025, 12, 12, tzinfo=dt_timezone.utc
+                ).timestamp(),
+                spot_timestamps=None,
             )
             # TODO: add spot times as they become determined
             # update_custom_leaderboard(
             #     project_id=project.id,
-            #     minimum_time=None,
-            #     spot_times=[datetime(2026, 1, 1, tzinfo=dt_timezone.utc)],
+            #     minimum_timestamp=None,
+            #     spot_timestamps=[datetime(2026, 1, 1, tzinfo=dt_timezone.utc)],
             # )
         except Exception as e:
             logger.error(
