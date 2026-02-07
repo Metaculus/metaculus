@@ -2,8 +2,8 @@ import React from "react";
 
 import FutureEvalBenchmarkTab from "./benchmark/futureeval-benchmark-tab";
 import FutureEvalMethodologyTab from "./futureeval-methodology-tab";
-import FutureEvalPartnerTab from "./futureeval-partner-tab";
 import FutureEvalParticipateTab from "./futureeval-participate-tab";
+import FutureEvalPartnerTab from "./futureeval-partner-tab";
 import FutureEvalTabsShell, { Section } from "./futureeval-tabs-shell";
 import FutureEvalNewsTab from "./news/futureeval-news-tab";
 

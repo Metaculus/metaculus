@@ -59,7 +59,7 @@ const FutureEvalTable: React.FC<Props> = ({ details, className }) => {
       });
 
     return entries;
-  }, [details.entries, t]);
+  }, [details.entries]);
 
   const visibleRows = rows.slice(0, INITIAL_ROWS);
 
