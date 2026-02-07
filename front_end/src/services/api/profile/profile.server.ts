@@ -79,6 +79,10 @@ class ServerProfileApiClass extends ProfileApi {
     });
   }
 
+  async sendSetPasswordEmail() {
+    return this.post("/users/me/request-set-password/", {});
+  }
+
   async emailMeMyData() {
     return this.post("/users/me/email_me_my_data/", {});
   }

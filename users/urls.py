@@ -22,6 +22,11 @@ urlpatterns = [
         views.password_change_api_view,
         name="user-change-password",
     ),
+    path(
+        "users/me/request-set-password/",
+        views.send_set_password_email_api_view,
+        name="user-request-set-password",
+    ),
     path("users/me/email/", views.email_change_api_view, name="user-change-email"),
     path(
         "users/me/email_me_my_data/",

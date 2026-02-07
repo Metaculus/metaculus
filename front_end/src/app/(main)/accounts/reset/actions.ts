@@ -1,5 +1,7 @@
 "use server";
 
+import { redirect } from "next/navigation";
+
 import {
   passwordResetConfirmSchema,
   passwordResetRequestSchema,
@@ -68,13 +70,11 @@ export async function passwordResetConfirmAction(
 
     const authManager = await getAuthCookieManager();
     authManager.setAuthTokens(response.tokens);
-
-    return {
-      data: response,
-    };
   } catch (err) {
     return {
       errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
+
+  redirect("/accounts/settings/account/");
 }

@@ -88,6 +88,7 @@ class UserPrivateSerializer(UserPublicSerializer):
     metadata = serializers.JSONField(read_only=True)
     registered_campaigns = serializers.SerializerMethodField()
     should_suggest_keyfactors = serializers.SerializerMethodField()
+    has_password = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -106,6 +107,7 @@ class UserPrivateSerializer(UserPublicSerializer):
             "language",
             "api_access_tier",
             "is_primary_bot",
+            "has_password",
         )
 
     def get_registered_campaigns(self, user: User):
@@ -127,6 +129,9 @@ class UserPrivateSerializer(UserPublicSerializer):
             KeyFactor.objects.filter(comment__author=user).exists()
             or LeaderboardEntry.objects.filter(user=user, medal__isnull=False).exists()
         )
+
+    def get_has_password(self, user: User) -> bool:
+        return user.has_usable_password()
 
 
 class UserUpdateProfileSerializer(serializers.ModelSerializer):
