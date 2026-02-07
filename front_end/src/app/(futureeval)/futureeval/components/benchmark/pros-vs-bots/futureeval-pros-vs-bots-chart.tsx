@@ -330,90 +330,96 @@ const FutureEvalProsVsBotsDiffChart: FC<{
     return rows;
   }, [activeCat, s1, s2, s1Data, s2Data, getThemeColor]);
 
-  return (
-    <div ref={ref} className={className ?? "relative w-full"}>
-      {show && (
-        <QuarterSummaryTable
-          categories={categories}
-          s1Data={s1Data}
-          s2Data={s2Data}
-        />
-      )}
-
-      {show && (
-        <div className="mb-5 flex flex-wrap items-center justify-start gap-x-4 gap-y-2.5 antialiased sm:gap-x-6">
-          {/* Series color swatches */}
-          {s1 && (
-            <span className="inline-flex items-center gap-1.5">
-              <span
-                aria-hidden
-                className="inline-block h-[12px] w-[12px] rounded-[2px]"
-                style={{ background: getThemeColor(s1.colorToken) }}
-              />
-              <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-sm">
-                {s1.label}
-              </span>
-            </span>
-          )}
-          {s2 && (
-            <span className="inline-flex items-center gap-1.5">
-              <span
-                aria-hidden
-                className="inline-block h-[12px] w-[12px] rounded-[2px]"
-                style={{ background: getThemeColor(s2.colorToken) }}
-              />
-              <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-sm">
-                {s2.label}
-              </span>
-            </span>
-          )}
-
-          {/* Divider */}
+  const legendEl = show && (
+    <div className="mb-5 flex flex-wrap items-center justify-start gap-x-4 gap-y-2.5 antialiased sm:gap-x-6">
+      {s1 && (
+        <span className="inline-flex items-center gap-1.5">
           <span
             aria-hidden
-            className="hidden h-4 w-px bg-gray-300 dark:bg-gray-300-dark sm:inline-block"
+            className="inline-block h-[12px] w-[12px] rounded-[2px]"
+            style={{ background: getThemeColor(s1.colorToken) }}
           />
-
-          {/* 95% CI whisker */}
-          <span className="inline-flex items-center gap-1.5 text-xs text-gray-700 dark:text-gray-700-dark sm:text-sm">
-            <svg
-              width="13"
-              height="16"
-              viewBox="0 0 13 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <line
-                y1="1.83398"
-                x2="13"
-                y2="1.83398"
-                stroke="#91999E"
-                strokeWidth="2"
-              />
-              <path
-                d="M6.5 15.0391L6.5 2.03906"
-                stroke="#91999E"
-                strokeWidth="2"
-              />
-              <line
-                y1="14.959"
-                x2="13"
-                y2="14.959"
-                stroke="#91999E"
-                strokeWidth="2"
-              />
-            </svg>
-            95% CI
+          <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-sm">
+            {s1.label}
           </span>
-        </div>
+        </span>
+      )}
+      {s2 && (
+        <span className="inline-flex items-center gap-1.5">
+          <span
+            aria-hidden
+            className="inline-block h-[12px] w-[12px] rounded-[2px]"
+            style={{ background: getThemeColor(s2.colorToken) }}
+          />
+          <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-sm">
+            {s2.label}
+          </span>
+        </span>
       )}
 
-      {!show && <div style={{ height: chartH }} />}
+      <span
+        aria-hidden
+        className="hidden h-4 w-px bg-gray-300 dark:bg-gray-300-dark sm:inline-block"
+      />
 
+      <span className="inline-flex items-center gap-1.5 text-xs text-gray-700 dark:text-gray-700-dark sm:text-sm">
+        <svg
+          width="13"
+          height="16"
+          viewBox="0 0 13 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <line
+            y1="1.83398"
+            x2="13"
+            y2="1.83398"
+            stroke="#91999E"
+            strokeWidth="2"
+          />
+          <path
+            d="M6.5 15.0391L6.5 2.03906"
+            stroke="#91999E"
+            strokeWidth="2"
+          />
+          <line
+            y1="14.959"
+            x2="13"
+            y2="14.959"
+            stroke="#91999E"
+            strokeWidth="2"
+          />
+        </svg>
+        95% CI
+      </span>
+    </div>
+  );
+
+  return (
+    <div className={className ?? "relative w-full"}>
       {show && (
-        <>
-          {width === 0 && <div style={{ height: chartH }} />}
-          <div ref={chartRef}>
+        <div className="flex flex-col lg:flex-row lg:items-stretch">
+          {/* Left: transposed summary table */}
+          <div className="mb-6 flex shrink-0 items-center lg:mb-0 lg:w-[26%]">
+            <QuarterSummaryTable
+              categories={categories}
+              s1Data={s1Data}
+              s2Data={s2Data}
+            />
+          </div>
+
+          {/* Vertical divider (desktop) / horizontal divider (mobile) */}
+          <div
+            aria-hidden
+            className="mb-6 border-b border-gray-300 dark:border-gray-300-dark lg:mb-0 lg:mx-5 lg:border-b-0 lg:border-l"
+          />
+
+          {/* Right: legend + chart */}
+          <div ref={ref} className="min-w-0 flex-1">
+            {legendEl}
+
+            {width === 0 && <div style={{ height: chartH }} />}
+            <div ref={chartRef}>
             {width > 0 && (
               <VictoryChart
                 theme={chartTheme}
@@ -697,16 +703,19 @@ const FutureEvalProsVsBotsDiffChart: FC<{
               </div>
             </FloatingPortal>
           )}
-        </>
+
+            {binaryOnlySeasons.length > 0 && (
+              <p className="mt-1 text-center text-[11px] italic text-gray-400 dark:text-gray-400-dark sm:text-xs">
+                {binaryOnlySeasons.join(" & ")}{" "}
+                {binaryOnlySeasons.length === 1 ? "includes" : "include"}{" "}
+                binary questions only.
+              </p>
+            )}
+          </div>
+        </div>
       )}
 
-      {show && binaryOnlySeasons.length > 0 && (
-        <p className="mt-1 text-center text-[11px] italic text-gray-400 dark:text-gray-400-dark sm:text-xs">
-          {binaryOnlySeasons.join(" & ")}{" "}
-          {binaryOnlySeasons.length === 1 ? "includes" : "include"} binary
-          questions only.
-        </p>
-      )}
+      {!show && <div style={{ height: chartH }} />}
     </div>
   );
 };
@@ -829,46 +838,38 @@ const QuarterSummaryTable: FC<{
   if (cols.length === 0) return null;
 
   return (
-    <div className="mb-6">
-      <div className="flex justify-center overflow-x-auto">
-        <table className="w-auto border-collapse text-xs sm:text-sm">
-          <tbody>
-            <tr className="border-b border-gray-200 dark:border-gray-200-dark">
-              <td className="py-2 pr-5 font-semibold text-gray-500 dark:text-gray-500-dark sm:pr-7">
-                Season
-              </td>
-              {cols.map((col) => (
-                <td
-                  key={col.cat}
-                  className="py-2 px-3 text-center font-medium text-gray-900 dark:text-gray-900-dark sm:px-5"
-                >
-                  {col.cat}
-                </td>
-              ))}
-            </tr>
-            <tr>
-              <td className="py-2 pr-5 font-semibold text-gray-500 dark:text-gray-500-dark sm:pr-7">
-                Result
-              </td>
-              {cols.map((col) => (
-                <td key={col.cat} className="py-2 px-3 text-center sm:px-5">
-                  <span className="inline-flex items-center justify-center gap-1.5">
-                    <SignificanceLegendIcon type={col.status} />
-                    <span
-                      className="font-medium"
-                      style={{ color: col.color }}
-                    >
-                      {SIGNIFICANCE_LABELS[col.status]}
-                    </span>
-                  </span>
-                </td>
-              ))}
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <hr className="mt-4 border-t border-gray-400 dark:border-gray-400-dark" />
-    </div>
+    <table className="w-full border-collapse text-xs sm:text-sm">
+      <thead>
+        <tr className="border-b border-gray-200 dark:border-gray-200-dark">
+          <th className="pb-2 pr-4 text-left font-semibold text-gray-500 dark:text-gray-500-dark">
+            Season
+          </th>
+          <th className="pb-2 text-left font-semibold text-gray-500 dark:text-gray-500-dark">
+            Result
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {cols.map((col) => (
+          <tr
+            key={col.cat}
+            className="border-b border-gray-100 last:border-b-0 dark:border-gray-100-dark"
+          >
+            <td className="py-2.5 pr-4 font-medium text-gray-900 dark:text-gray-900-dark">
+              {col.cat}
+            </td>
+            <td className="py-2.5">
+              <span className="inline-flex items-center gap-1.5">
+                <SignificanceLegendIcon type={col.status} />
+                <span className="font-medium" style={{ color: col.color }}>
+                  {SIGNIFICANCE_LABELS[col.status]}
+                </span>
+              </span>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 };
 
