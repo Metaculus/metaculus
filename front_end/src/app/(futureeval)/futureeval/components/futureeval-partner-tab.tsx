@@ -42,13 +42,12 @@ const FutureEvalPartnerTab: React.FC = () => {
 const FutureEvalPartnerIntro: React.FC = () => {
   return (
     <div className="space-y-6 text-center antialiased">
-      <h3 className={cn("m-0", FE_TYPOGRAPHY.h2, FE_COLORS.textHeading)}>
+      <h3 className={cn("m-0", FE_TYPOGRAPHY.h1, FE_COLORS.textHeading)}>
         Work With Us
       </h3>
       <p
         className={cn(
-          "m-0 mx-auto max-w-2xl",
-          FE_TYPOGRAPHY.body,
+          "m-0 mx-auto max-w-2xl font-sans text-base leading-[1.6] sm:text-lg",
           FE_COLORS.textSubheading
         )}
       >

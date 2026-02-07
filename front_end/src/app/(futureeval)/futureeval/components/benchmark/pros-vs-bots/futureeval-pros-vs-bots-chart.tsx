@@ -18,7 +18,6 @@ import {
   VictoryErrorBar,
   VictoryLabel,
   VictoryNumberCallback,
-  VictoryScatter,
 } from "victory";
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
@@ -168,6 +167,11 @@ const FutureEvalProsVsBotsDiffChart: FC<{
   const s1X = useMemo(() => new Set(s1Data.map((d) => d.x)), [s1Data]);
   const s2X = useMemo(() => new Set(s2Data.map((d) => d.x)), [s2Data]);
 
+  const binaryOnlySeasons = useMemo(
+    () => categories.filter((cat) => s1X.has(cat) && !s2X.has(cat)),
+    [categories, s1X, s2X]
+  );
+
   const s1OffsetFor = (x: string) =>
     s2X.has(x) ? -(smUp ? GROUP_OFFSET : GROUP_OFFSET * 1.5) : 0;
   const s2OffsetFor = (x: string) =>
@@ -228,47 +232,11 @@ const FutureEvalProsVsBotsDiffChart: FC<{
   const tickLabelColor = getThemeColor(METAC_COLORS.gray[500]);
   const show = categories.length > 0 && (hasS1 || hasS2);
 
-  const iconRadius = smUp ? 11 : 9;
-  const tickLabelDy = 24;
-  const labelBottomPx = tickLabelDy + (smUp ? 28 : 24);
-  const iconDrop = labelBottomPx + 6 + iconRadius;
-
   const paddingLeft = smUp ? 64 : 50;
   const paddingRight = 0;
   const paddingTop = 16;
-  const paddingBottom = iconDrop + iconRadius + 6;
+  const paddingBottom = smUp ? 56 : 48;
   const chartH = (smUp ? 308 : 156) + paddingTop + paddingBottom;
-
-  const iconData: {
-    _x: number;
-    y: number;
-    significance: SignificanceStatus;
-    iconColor: string;
-    iconRadius: number;
-    iconDrop: number;
-  }[] = [];
-  for (const d of s1Data) {
-    const sig = getSignificanceStatus(d);
-    iconData.push({
-      _x: (posByX.get(d.x) ?? 0) + s1OffsetFor(d.x),
-      y: 0,
-      significance: sig,
-      iconColor: getThemeColor(SIGNIFICANCE_FILL[sig]),
-      iconRadius,
-      iconDrop,
-    });
-  }
-  for (const d of s2Data) {
-    const sig = getSignificanceStatus(d);
-    iconData.push({
-      _x: (posByX.get(d.x) ?? 0) + s2OffsetFor(d.x),
-      y: 0,
-      significance: sig,
-      iconColor: getThemeColor(SIGNIFICANCE_FILL[sig]),
-      iconRadius,
-      iconDrop,
-    });
-  }
 
   const plotW = Math.max(0, width - paddingLeft - paddingRight);
   const domainSpan = xDomain[1] - xDomain[0];
@@ -365,6 +333,14 @@ const FutureEvalProsVsBotsDiffChart: FC<{
   return (
     <div ref={ref} className={className ?? "relative w-full"}>
       {show && (
+        <QuarterSummaryTable
+          categories={categories}
+          s1Data={s1Data}
+          s2Data={s2Data}
+        />
+      )}
+
+      {show && (
         <div className="mb-5 flex flex-wrap items-center justify-start gap-x-4 gap-y-2.5 antialiased sm:gap-x-6">
           {/* Series color swatches */}
           {s1 && (
@@ -391,32 +367,6 @@ const FutureEvalProsVsBotsDiffChart: FC<{
               </span>
             </span>
           )}
-
-          {/* Divider */}
-          <span
-            aria-hidden
-            className="hidden h-4 w-px bg-gray-300 dark:bg-gray-300-dark sm:inline-block"
-          />
-
-          {/* Significance icon indicators */}
-          <span className="inline-flex items-center gap-1">
-            <SignificanceLegendIcon type="significant_win" />
-            <span className="text-xs text-gray-700 dark:text-gray-700-dark sm:text-sm">
-              {SIGNIFICANCE_LABELS.significant_win}
-            </span>
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <SignificanceLegendIcon type="non_significant_win" />
-            <span className="text-xs text-gray-700 dark:text-gray-700-dark sm:text-sm">
-              {SIGNIFICANCE_LABELS.non_significant_win}
-            </span>
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <SignificanceLegendIcon type="loss" />
-            <span className="text-xs text-gray-700 dark:text-gray-700-dark sm:text-sm">
-              {SIGNIFICANCE_LABELS.loss}
-            </span>
-          </span>
 
           {/* Divider */}
           <span
@@ -640,17 +590,6 @@ const FutureEvalProsVsBotsDiffChart: FC<{
                   />
                 )}
 
-                {iconData.length > 0 && (
-                  <VictoryScatter
-                    data={iconData}
-                    x="_x"
-                    y="y"
-                    name="significanceIcons"
-                    dataComponent={<SignificanceIconPoint />}
-                    style={{ data: { pointerEvents: "none" } }}
-                  />
-                )}
-
                 <VictoryBar
                   name="hitStrips"
                   data={categories.map((c, i) => ({ _x: i, cat: c, y: 1 }))}
@@ -760,6 +699,14 @@ const FutureEvalProsVsBotsDiffChart: FC<{
           )}
         </>
       )}
+
+      {show && binaryOnlySeasons.length > 0 && (
+        <p className="mt-1 text-center text-[11px] italic text-gray-400 dark:text-gray-400-dark sm:text-xs">
+          {binaryOnlySeasons.join(" & ")}{" "}
+          {binaryOnlySeasons.length === 1 ? "includes" : "include"} binary
+          questions only.
+        </p>
+      )}
     </div>
   );
 };
@@ -784,109 +731,6 @@ const NonInteractiveErrorBar: React.FC<ErrorBarProps> = (props) => (
     <CapWidthErrorBar {...props} />
   </g>
 );
-
-type IconPointDatum = {
-  _x: number;
-  y: number;
-  significance: SignificanceStatus;
-  iconColor: string;
-  iconRadius: number;
-  iconDrop: number;
-};
-
-const SignificanceIconPoint: React.FC<{
-  x?: number;
-  y?: number;
-  datum?: IconPointDatum;
-}> = ({ x, y, datum }) => {
-  if (x == null || y == null || !datum) return null;
-
-  const r = datum.iconRadius ?? 11;
-  const color = datum.iconColor;
-  const cx = x;
-  const cy = y + (datum.iconDrop ?? 30);
-  const ih = r * 0.42;
-  const sw = 2;
-
-  const circle = (
-    <circle
-      cx={cx}
-      cy={cy}
-      r={r}
-      fill={color}
-      fillOpacity={0.12}
-      stroke={color}
-      strokeWidth={1.5}
-    />
-  );
-
-  switch (datum.significance) {
-    case "significant_win":
-      return (
-        <g pointerEvents="none">
-          {circle}
-          <line
-            x1={cx}
-            y1={cy - ih}
-            x2={cx}
-            y2={cy + ih}
-            stroke={color}
-            strokeWidth={sw}
-            strokeLinecap="round"
-          />
-          <line
-            x1={cx - ih}
-            y1={cy}
-            x2={cx + ih}
-            y2={cy}
-            stroke={color}
-            strokeWidth={sw}
-            strokeLinecap="round"
-          />
-        </g>
-      );
-    case "non_significant_win":
-      return (
-        <g pointerEvents="none">
-          {circle}
-          <path
-            d={`M${cx - ih} ${cy + ih * 0.1}L${cx - ih * 0.15} ${cy + ih * 0.75}L${cx + ih} ${cy - ih * 0.7}`}
-            fill="none"
-            stroke={color}
-            strokeWidth={sw}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </g>
-      );
-    case "loss":
-      return (
-        <g pointerEvents="none">
-          {circle}
-          <line
-            x1={cx - ih * 0.85}
-            y1={cy - ih * 0.85}
-            x2={cx + ih * 0.85}
-            y2={cy + ih * 0.85}
-            stroke={color}
-            strokeWidth={sw}
-            strokeLinecap="round"
-          />
-          <line
-            x1={cx + ih * 0.85}
-            y1={cy - ih * 0.85}
-            x2={cx - ih * 0.85}
-            y2={cy + ih * 0.85}
-            stroke={color}
-            strokeWidth={sw}
-            strokeLinecap="round"
-          />
-        </g>
-      );
-    default:
-      return null;
-  }
-};
 
 const LEGEND_ICON_COLORS: Record<SignificanceStatus, string> = {
   significant_win: "#16a34a",
@@ -949,6 +793,83 @@ const SignificanceLegendIcon: React.FC<{ type: SignificanceStatus }> = ({
     default:
       return null;
   }
+};
+
+const QuarterSummaryTable: FC<{
+  categories: string[];
+  s1Data: DiffDatum[];
+  s2Data: DiffDatum[];
+}> = ({ categories, s1Data, s2Data }) => {
+  const { getThemeColor } = useAppTheme();
+
+  const getStatus = (cat: string): SignificanceStatus | null => {
+    const s2Datum = s2Data.find((d) => d.x === cat);
+    if (s2Datum) return getSignificanceStatus(s2Datum);
+    const s1Datum = s1Data.find((d) => d.x === cat);
+    if (s1Datum) return getSignificanceStatus(s1Datum);
+    return null;
+  };
+
+  const cols = categories
+    .map((cat) => {
+      const status = getStatus(cat);
+      if (!status) return null;
+      return {
+        cat,
+        status,
+        color: getThemeColor(SIGNIFICANCE_FILL[status]),
+      };
+    })
+    .filter(Boolean) as {
+    cat: string;
+    status: SignificanceStatus;
+    color: string;
+  }[];
+
+  if (cols.length === 0) return null;
+
+  return (
+    <div className="mb-6">
+      <div className="flex justify-center overflow-x-auto">
+        <table className="w-auto border-collapse text-xs sm:text-sm">
+          <tbody>
+            <tr className="border-b border-gray-200 dark:border-gray-200-dark">
+              <td className="py-2 pr-5 font-semibold text-gray-500 dark:text-gray-500-dark sm:pr-7">
+                Season
+              </td>
+              {cols.map((col) => (
+                <td
+                  key={col.cat}
+                  className="py-2 px-3 text-center font-medium text-gray-900 dark:text-gray-900-dark sm:px-5"
+                >
+                  {col.cat}
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <td className="py-2 pr-5 font-semibold text-gray-500 dark:text-gray-500-dark sm:pr-7">
+                Result
+              </td>
+              {cols.map((col) => (
+                <td key={col.cat} className="py-2 px-3 text-center sm:px-5">
+                  <span className="inline-flex items-center justify-center gap-1.5">
+                    <SignificanceLegendIcon type={col.status} />
+                    <span
+                      className="font-medium"
+                      style={{ color: col.color }}
+                    >
+                      {SIGNIFICANCE_LABELS[col.status]}
+                    </span>
+                  </span>
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <hr className="mt-4 border-t border-gray-400 dark:border-gray-400-dark" />
+    </div>
+  );
 };
 
 type FullCellProps = InjectedByVictory & {
