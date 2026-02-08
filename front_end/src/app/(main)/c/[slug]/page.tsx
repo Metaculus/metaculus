@@ -74,7 +74,16 @@ export default async function IndividualCommunity(props: Props) {
             isQuestionSeries
           />
           {currentUser && (
-            <ProjectContributions project={community} userId={currentUser.id} />
+            <Suspense
+              fallback={
+                <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
+              }
+            >
+              <ProjectContributions
+                project={community}
+                userId={currentUser.id}
+              />
+            </Suspense>
           )}
         </div>
 
