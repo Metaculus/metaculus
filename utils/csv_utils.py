@@ -363,6 +363,8 @@ def generate_data(
         + "**`Post Published Time`** - the time the Post was published.\n"
         + "**`Default Project`** - the name of the default project (usually a tournament or community) for the Post.\n"
         + "**`Default Project ID`** - the id of the default project for the Post.\n"
+        + "**`Categories`** - a list of category names that this question belongs to.\n"
+        + "**`Leaderboard Tags`** - a list of leaderboard tag names associated with this question.\n"
         + "**`Label`** - for a group question, this is the sub-question object.\n"
         + "**`Question Type`** - the type of the question. Binary, Multiple Choice, Numeric, Discrete, or Date.\n"
         + "**`MC Options (Current)`** - the current options for a multiple choice question, if applicable.\n"
@@ -381,8 +383,6 @@ def generate_data(
         + "**`Resolution Known Time`** - the time when the resolution became known.\n"
         + "**`Include Bots in Aggregates`** - whether bots are included in the aggregations by default.\n"
         + "**`Question Weight`** - the weight of the question in the leaderboard.\n"
-        + "**`Categories`** - a list of category names that this question belongs to.\n"
-        + "**`Leaderboard Tags`** - a list of leaderboard tag names associated with this question.\n"
     )
     question_output = io.StringIO()
     question_writer = csv.writer(question_output)
@@ -396,6 +396,8 @@ def generate_data(
             "Post Published Time",
             "Default Project",
             "Default Project ID",
+            "Categories",
+            "Leaderboard Tags",
             "Label",
             "Question Type",
             "MC Options (Current)",
@@ -414,8 +416,6 @@ def generate_data(
             "Resolution Known Time",
             "Include Bots in Aggregates",
             "Question Weight",
-            "Categories",
-            "Leaderboard Tags",
         ]
     )
     for question in questions:
@@ -458,6 +458,8 @@ def generate_data(
                 post.published_at,
                 post.default_project.name,
                 post.default_project_id,
+                categories,
+                leaderboard_tags,
                 question.label,
                 question.type,
                 question.options,
@@ -480,8 +482,6 @@ def generate_data(
                 question.actual_resolve_time,
                 question.include_bots_in_aggregates,
                 question.question_weight,
-                categories,
-                leaderboard_tags,
             ]
         )
     # forecast_data csv file
