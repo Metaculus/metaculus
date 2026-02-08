@@ -45,7 +45,7 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
           questionType: QuestionType.Binary,
           scaling: choice.scaling,
           actual_resolve_time: choice.actual_resolve_time ?? null,
-          emptyLabel: t("Upcoming"),
+          emptyLabel: t("hidden"),
         }
       );
       const percent =
