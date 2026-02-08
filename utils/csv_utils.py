@@ -381,6 +381,8 @@ def generate_data(
         + "**`Resolution Known Time`** - the time when the resolution became known.\n"
         + "**`Include Bots in Aggregates`** - whether bots are included in the aggregations by default.\n"
         + "**`Question Weight`** - the weight of the question in the leaderboard.\n"
+        + "**`Categories`** - a list of category names that this question belongs to.\n"
+        + "**`Leaderboard Tags`** - a list of leaderboard tag names associated with this question.\n"
     )
     question_output = io.StringIO()
     question_writer = csv.writer(question_output)
@@ -412,6 +414,8 @@ def generate_data(
             "Resolution Known Time",
             "Include Bots in Aggregates",
             "Question Weight",
+            "Categories",
+            "Leaderboard Tags",
         ]
     )
     for question in questions:
@@ -431,6 +435,15 @@ def generate_data(
             for x in np.linspace(0, 1, 201):
                 val = unscaled_location_to_scaled_location(x, question)
                 continuous_range.append(format_value(val))
+
+        # Get categories and leaderboard tags
+        categories = list(
+            post.projects.filter(type="category").values_list("name", flat=True)
+        )
+        leaderboard_tags = list(
+            post.projects.filter(type="leaderboard_tag").values_list("name", flat=True)
+        )
+
         question_writer.writerow(
             [
                 question.id,
@@ -467,6 +480,8 @@ def generate_data(
                 question.actual_resolve_time,
                 question.include_bots_in_aggregates,
                 question.question_weight,
+                categories,
+                leaderboard_tags,
             ]
         )
     # forecast_data csv file
