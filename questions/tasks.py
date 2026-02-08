@@ -280,7 +280,7 @@ def multiple_choice_delete_option_notifications(
     comment_author = User.objects.get(id=comment_author_id)
     default_text = (
         "Options {removed_options} were removed on {timestep}. "
-        'Their probability was folded into the "{catch_all_option}" option.'
+        'Your predictions on those options were moved to the "{catch_all_option}" option.'
     )
     template = comment_text or default_text
     removed_options_text = ", ".join(f'"{option}"' for option in removed_options)
