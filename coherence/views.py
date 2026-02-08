@@ -176,7 +176,7 @@ def get_links_for_questions(request):
         all_relevant_question_ids.add(link.question1_id)
     questions = Question.objects.filter(id__in=all_relevant_question_ids)
 
-    serialized_links = CoherenceLinkSerializer(links, many=True).data
+    serialized_links = serialize_coherence_link_many(links, serialize_questions=False)
     serialized_questions = [
         serialize_question(q, include_descriptions=True) for q in questions
     ]
