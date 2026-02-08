@@ -2,7 +2,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
-import { LeaderboardEntry } from "@/types/scoring";
+import { ExclusionStatuses, LeaderboardEntry } from "@/types/scoring";
 import cn from "@/utils/core/cn";
 import { formatUsername } from "@/utils/formatters/users";
 
@@ -31,7 +31,7 @@ const TableRow: FC<Props> = ({
     medal,
     rank,
     score,
-    excluded,
+    exclusion_status,
     coverage,
     contribution_count,
     take,
@@ -39,7 +39,8 @@ const TableRow: FC<Props> = ({
     prize,
   } = rowEntry;
   const t = useTranslations();
-  const highlight = user?.id === userId || excluded;
+  const highlight =
+    user?.id === userId || exclusion_status !== ExclusionStatuses.INCLUDE;
   const coveragePercent = coverage
     ? maxCoverage
       ? ((coverage / maxCoverage) * 100).toFixed(1) + "%"
@@ -70,7 +71,7 @@ const TableRow: FC<Props> = ({
             )}
 
             <span className="flex-1 text-center">
-              {excluded ? (
+              {exclusion_status !== ExclusionStatuses.INCLUDE ? (
                 <>
                   <ExcludedEntryTooltip />
                 </>
