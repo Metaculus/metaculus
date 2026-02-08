@@ -35,6 +35,11 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
     post.group_of_questions?.questions?.every(
       (q) => q.type === QuestionType.Binary
     );
+  const cpRevealTime = post.question?.cp_reveal_time;
+  const emptyLabel =
+    cpRevealTime && new Date(cpRevealTime).getTime() > Date.now()
+      ? t("hidden")
+      : t("Upcoming");
 
   const allChoices = useMemo(() => {
     const raw = generateChoiceItems(post, visibleChoicesCount, locale, t);
@@ -45,7 +50,7 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
           questionType: QuestionType.Binary,
           scaling: choice.scaling,
           actual_resolve_time: choice.actual_resolve_time ?? null,
-          emptyLabel: t("hidden"),
+          emptyLabel,
         }
       );
       const percent =
@@ -64,7 +69,7 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
         isChoiceClosed,
       };
     });
-  }, [post, locale, t]);
+  }, [post, locale, t, emptyLabel]);
 
   if (!isMC && !isGroupOfQuestionsPost(post)) return null;
 
