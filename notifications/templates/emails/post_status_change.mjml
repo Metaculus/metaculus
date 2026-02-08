@@ -49,7 +49,7 @@
                                         </div>
                                         {% if notification.post.post_type != 'notebook' %}
                                         <div style="font-size: 13px; font-weight: 600; color: #758EA9;">
-                                            is now {{ notification.event }}
+                                            is now {{ notification.event|post_status_label }}
                                         </div>
                                         {% endif %}
                                     </div>
@@ -91,7 +91,7 @@
                                     {{ item.question.title|default:item.post.post_title }}
                                 </div>
                                 <div style="font-size: 13px; font-weight: 600; color: #758EA9;">
-                                    is now {{ item.event }}
+                                    is now {{ item.event|post_status_label }}
                                 </div>
                             </div>
                         </a>
