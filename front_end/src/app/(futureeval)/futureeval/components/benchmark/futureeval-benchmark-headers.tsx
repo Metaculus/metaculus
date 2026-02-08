@@ -78,11 +78,11 @@ export const FutureEvalForecastingPerformanceHeader: React.FC = () => {
 export const FutureEvalProsVsBotsSectionHeader: React.FC = () => {
   return (
     <FutureEvalSubsectionHeader
-      title="How much Pros beat Bots"
+      title="Pros vs. Bots"
       subtitle={
         <>
-          Metaculus Pro Forecasters have beaten Bots every season of our AI
-          Benchmarking Tournaments so far.{" "}
+          When comparing Pros and the best custom bots, Metaculus Pro
+          Forecasters won every season so far.{" "}
           <Link
             className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
             href="/futureeval/methodology#human-baselines"
