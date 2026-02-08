@@ -14,6 +14,7 @@ import GlobalModals from "@/components/global_modals";
 import PublicSettingsScript from "@/components/public_settings_script";
 import SimplifiedSignupModal from "@/components/simplified_signup_modal";
 import AppThemeProvider from "@/components/theme_provider";
+import { TailwindIndicator } from "@/components/ui/tailwind-indicator";
 import { METAC_COLORS } from "@/constants/colors";
 import AuthProvider from "@/contexts/auth_context";
 import { GlobalSearchProvider } from "@/contexts/global_search_context";
@@ -142,6 +143,7 @@ export default async function RootLayout({
             <AllBWPixelTagsForRegisteredUsers />
           </CSPostHogProvider>
         </PolyfillProvider>
+        <TailwindIndicator />
       </body>
       {!!publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID && (
         <GoogleAnalytics gaId={publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID} />
