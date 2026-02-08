@@ -323,14 +323,16 @@ def multiple_choice_delete_option_notifications(
     # send out an immediate email
     send_email_with_template(
         to=[forecaster.email for forecaster in forecasters],
-        subject=f"Multiple choice option removed for {post.title}",
+        subject=f"Multiple choice option{'s' if len(removed_options) > 1 else ''} "
+        f"removed for {post.title}",
         template_name="emails/multiple_choice_option_deletion.html",
         context={
-            "email_subject_display": "Multiple choice option removed",
-            "similar_posts": [],
+            "email_subject_display": "Multiple choice "
+            f"option{'s' if len(removed_options) > 1 else ''} removed",
             "params": {
                 "post": NotificationPostParams.from_post(post),
                 "removed_options": removed_options,
+                "number_options": len(removed_options),
                 "timestep": timestep,
                 "catch_all_option": catch_all_option,
             },
@@ -419,14 +421,16 @@ def multiple_choice_add_option_notifications(
     # send out an immediate email
     send_email_with_template(
         to=[forecaster.email for forecaster in forecasters],
-        subject=f"Multiple choice options added for {post.title}",
+        subject=f"Multiple choice option{'s' if len(added_options) > 1 else ''} "
+        f"added for {post.title}",
         template_name="emails/multiple_choice_option_addition.html",
         context={
-            "email_subject_display": "Multiple choice options added",
-            "similar_posts": [],
+            "email_subject_display": "Multiple choice option"
+            f"{'s' if len(added_options) > 1 else ''} added",
             "params": {
                 "post": NotificationPostParams.from_post(post),
                 "added_options": added_options,
+                "number_options": len(added_options),
                 "grace_period_end": grace_period_end,
                 "timestep": timestep,
             },
