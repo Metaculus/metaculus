@@ -1915,5 +1915,6 @@
   "feedTileSummaryPlaceholder": "Volitelně: Zadejte vlastní text souhrnu, který se zobrazí na dlaždicích kanálu (pokud není poskytnut, souhrn bude automaticky vygenerován z obsahu notebooku)",
   "includeBotsInAggregatesLabel": "Zahrnout boty do agregátů",
   "includeBotsInAggregatesExplanation": "Pokud je povoleno, předpovědi botů budou zahrnuty do agregovaných výpočtů pro tuto otázku a ovlivní skórování. Jinak nebudou mít žádný vliv.",
+  "hidden": "Skryté",
   "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }
