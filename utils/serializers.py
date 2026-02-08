@@ -84,6 +84,7 @@ class DataGetRequestSerializer(serializers.Serializer):
     anonymized = serializers.BooleanField(required=False)
     joined_before_date = serializers.DateTimeField(required=False)
     include_key_factors = serializers.BooleanField(required=False, default=False)
+    include_geometric_means = serializers.BooleanField(required=False, default=False)
 
     def validate_aggregation_methods(self, value: str | None):
         valid_aggregation_methods = [
@@ -138,6 +139,7 @@ class DataGetRequestSerializer(serializers.Serializer):
             "anonymized",
             "joined_before_date",
             "include_key_factors",
+            "include_geometric_means",
         }
         input_fields = set(self.initial_data.keys())
         unexpected_fields = input_fields - allowed_fields
