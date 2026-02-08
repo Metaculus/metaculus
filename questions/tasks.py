@@ -269,7 +269,7 @@ def multiple_choice_delete_option_notifications(
 ):
     timestep = datetime.fromtimestamp(timestamp, tz=dt_timezone.utc)
     question = Question.objects.get(id=question_id)
-    post = question.post
+    post: Post = question.post
     options_history = question.options_history
     previous_options = options_history[-2][1]
     current_options = options_history[-1][1]
@@ -323,7 +323,7 @@ def multiple_choice_delete_option_notifications(
     # send out an immediate email
     send_email_with_template(
         to=[forecaster.email for forecaster in forecasters],
-        subject="Multiple choice option removed",
+        subject=f"Multiple choice option removed for {post.title}",
         template_name="emails/multiple_choice_option_deletion.html",
         context={
             "email_subject_display": "Multiple choice option removed",
@@ -353,7 +353,7 @@ def multiple_choice_add_option_notifications(
         grace_period_end_timestamp, tz=dt_timezone.utc
     )
     question = Question.objects.get(id=question_id)
-    post = question.post
+    post: Post = question.post
     options_history = question.options_history
     previous_options = options_history[-2][1]
     current_options = options_history[-1][1]
@@ -419,7 +419,7 @@ def multiple_choice_add_option_notifications(
     # send out an immediate email
     send_email_with_template(
         to=[forecaster.email for forecaster in forecasters],
-        subject="Multiple choice options added",
+        subject=f"Multiple choice options added for {post.title}",
         template_name="emails/multiple_choice_option_addition.html",
         context={
             "email_subject_display": "Multiple choice options added",
