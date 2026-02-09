@@ -409,7 +409,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       setIsSubmitting(false);
       return response;
     },
-    [postId, questionsToSubmit, onPredictionSubmit]
+    [postId, onPredictionSubmit, groupOptions]
   );
 
   const handlePredictSubmit = useCallback(async () => {

@@ -200,6 +200,7 @@ const useNavbarLinks = ({
     LINKS.about,
     LINKS.aggregationExplorer,
     LINKS.aiBenchmark,
+    LINKS.communities,
     LINKS.createQuestion,
     LINKS.faq,
     LINKS.journal,
@@ -298,10 +299,10 @@ const useNavbarLinks = ({
     return { mainLinks, accountLinks };
   }, [
     LINKS.about,
+    LINKS.communities,
     LINKS.services,
     LINKS.aggregationExplorer,
     LINKS.aiBenchmark,
-    LINKS.createQuestion,
     LINKS.faq,
     LINKS.journal,
     LINKS.leaderboards,

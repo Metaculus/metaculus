@@ -52,10 +52,9 @@ function describeArc(
  */
 const ForecastDial: React.FC<{
   value: number;
-  url: string;
   className?: string;
   size?: "sm" | "md";
-}> = ({ value, url, className, size = "md" }) => {
+}> = ({ value, className, size = "md" }) => {
   const scale = size === "sm" ? 0.85 : 1;
   const width = 88;
   const height = 54;
@@ -69,13 +68,9 @@ const ForecastDial: React.FC<{
     percent > 0 ? describeArc(percent, arcAngle, center, radius) : null;
 
   return (
-    <Link
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
+    <div
       className={cn(
-        "inline-flex cursor-pointer flex-col items-center rounded-md transition-opacity hover:opacity-90",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-futureeval-primary-light focus-visible:ring-offset-2 dark:focus-visible:ring-futureeval-primary-dark dark:focus-visible:ring-offset-futureeval-bg-dark",
+        "inline-flex flex-col items-center rounded-md",
         "text-futureeval-primary-light dark:text-futureeval-primary-dark",
         className
       )}
@@ -116,12 +111,12 @@ const ForecastDial: React.FC<{
             FE_COLORS.textHeading
           )}
         >
-          <span className="text-sm font-bold tabular-nums leading-none underline underline-offset-2">
+          <span className="text-sm font-bold tabular-nums leading-none">
             {formatPercent(value)}
           </span>
         </div>
       </div>
-    </Link>
+    </div>
   );
 };
 
@@ -231,23 +226,17 @@ const QuoteBlock: React.FC<{
   label: string;
   text: string;
   author: string;
-  commentUrl: string;
-}> = ({ label, text, author, commentUrl }) => (
+}> = ({ label, text, author }) => (
   <div className="mb-1.5 last:mb-0">
     <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-500-dark">
       {label}
     </span>
-    <Link
-      href={commentUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="mt-0.5 block text-xs italic text-gray-600 underline decoration-gray-400/40 underline-offset-2 transition-colors hover:text-futureeval-primary-light hover:decoration-futureeval-primary-light dark:text-gray-400 dark:decoration-gray-600/40 dark:hover:text-futureeval-primary-dark dark:hover:decoration-futureeval-primary-dark"
-    >
+    <div className="mt-0.5 text-xs italic text-gray-600 dark:text-gray-400">
       &ldquo;{text}&rdquo;
       <span className="ml-1 not-italic text-gray-500 dark:text-gray-500-dark">
         — {author}
       </span>
-    </Link>
+    </div>
   </div>
 );
 
@@ -285,15 +274,20 @@ const DesktopTable: React.FC<{ questions: BotWinQuestion[] }> = ({
               className="border-b border-gray-300 last:border-0 dark:border-gray-300-dark"
             >
               <Td className="max-w-0">
-                <div className="line-clamp-3 text-balance font-medium">
+                <Link
+                  href={q.botsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="line-clamp-5 text-balance font-medium underline decoration-gray-400/40 underline-offset-2 transition-colors hover:text-futureeval-primary-light hover:decoration-futureeval-primary-light dark:hover:text-futureeval-primary-dark dark:hover:decoration-futureeval-primary-dark"
+                >
                   {q.questionTitle}
-                </div>
+                </Link>
               </Td>
               <Td className="text-center align-middle">
-                <ForecastDial value={q.prosForecast} url={q.prosUrl} />
+                <ForecastDial value={q.prosForecast} />
               </Td>
               <Td className="text-center align-middle">
-                <ForecastDial value={q.botsForecast} url={q.botsUrl} />
+                <ForecastDial value={q.botsForecast} />
               </Td>
               <Td className="text-center align-middle">
                 <ResolutionBadge resolved={q.didItHappen} />
@@ -308,13 +302,11 @@ const DesktopTable: React.FC<{ questions: BotWinQuestion[] }> = ({
                   label="Bot"
                   text={q.botQuote.text}
                   author={q.botQuote.author}
-                  commentUrl={q.botQuote.commentUrl}
                 />
                 <QuoteBlock
                   label="Pro"
                   text={q.proQuote.text}
                   author={q.proQuote.author}
-                  commentUrl={q.proQuote.commentUrl}
                 />
               </Td>
             </tr>
@@ -342,14 +334,17 @@ const MobileCards: React.FC<{ questions: BotWinQuestion[] }> = ({
           )}
         >
           {/* Question Title */}
-          <p
+          <Link
+            href={q.botsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
             className={cn(
-              "m-0 mb-4 text-balance text-sm font-medium leading-snug",
+              "m-0 mb-4 block text-balance text-sm font-medium leading-snug underline decoration-gray-400/40 underline-offset-2 transition-colors hover:text-futureeval-primary-light hover:decoration-futureeval-primary-light dark:hover:text-futureeval-primary-dark dark:hover:decoration-futureeval-primary-dark",
               FE_COLORS.textHeading
             )}
           >
             {q.questionTitle}
-          </p>
+          </Link>
 
           {/* Forecasts Row */}
           <div className="mb-3 flex gap-4">
@@ -357,13 +352,13 @@ const MobileCards: React.FC<{ questions: BotWinQuestion[] }> = ({
               <div className="mb-1 text-xs text-gray-500 dark:text-gray-500-dark">
                 Pros forecast
               </div>
-              <ForecastDial value={q.prosForecast} url={q.prosUrl} size="sm" />
+              <ForecastDial value={q.prosForecast} size="sm" />
             </div>
             <div className="flex flex-1 flex-col items-center">
               <div className="mb-1 text-xs text-gray-500 dark:text-gray-500-dark">
                 Bots forecast
               </div>
-              <ForecastDial value={q.botsForecast} url={q.botsUrl} size="sm" />
+              <ForecastDial value={q.botsForecast} size="sm" />
             </div>
           </div>
 
@@ -394,13 +389,11 @@ const MobileCards: React.FC<{ questions: BotWinQuestion[] }> = ({
               label="Bot"
               text={q.botQuote.text}
               author={q.botQuote.author}
-              commentUrl={q.botQuote.commentUrl}
             />
             <QuoteBlock
               label="Pro"
               text={q.proQuote.text}
               author={q.proQuote.author}
-              commentUrl={q.proQuote.commentUrl}
             />
           </div>
         </div>
