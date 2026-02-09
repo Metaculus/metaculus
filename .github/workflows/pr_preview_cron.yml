@@ -1,0 +1,130 @@
+# =============================================================================
+# PR Preview Weekly Cron
+# =============================================================================
+#
+# Runs weekly to:
+# 1. For previews whose PR has the "Stale" label: trigger pr_preview.yml
+#    cleanup (delete env, edit comment).
+# 2. For other active previews: delete Neon branch and trigger pr_preview.yml
+#    deploy (recreates branch, deploys with migrations).
+#
+# Assumes an external stale workflow adds the "Stale" label to inactive PRs.
+# No PR comments are created by this workflow; pr_preview.yml edits existing
+# comments, which does not bump updated_at.
+#
+# =============================================================================
+
+name: PR Preview Weekly Cron
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: write
+
+env:
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  list-previews:
+    name: List Preview Apps
+    runs-on: ubuntu-latest
+    outputs:
+      previews: ${{ steps.matrix.outputs.previews }}
+    steps:
+      - name: Setup Fly.io CLI
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: List preview apps and PR info
+        id: matrix
+        run: |
+          APPS_JSON=$(flyctl apps list --json 2>/dev/null || echo "[]")
+          PREVIEW_APPS=$(echo "$APPS_JSON" | jq -r '.[].Name | select(startswith("metaculus-pr-"))' 2>/dev/null || true)
+
+          if [ -z "$PREVIEW_APPS" ]; then
+            echo "previews=[]" >> $GITHUB_OUTPUT
+            echo "No preview apps found"
+            exit 0
+          fi
+
+          OUT='[]'
+          while IFS= read -r APP_NAME; do
+            [ -z "$APP_NAME" ] && continue
+            PREVIEW_ID="${APP_NAME#metaculus-}"
+            PR_NUM=$(echo "$PREVIEW_ID" | sed -n 's/^pr-\([0-9]*\)-.*/\1/p')
+            [ -z "$PR_NUM" ] && continue
+
+            PR_JSON=$(gh pr view "$PR_NUM" --json headRefName,labels 2>/dev/null || echo '{}')
+            HEAD_REF=$(echo "$PR_JSON" | jq -r '.headRefName // ""')
+            [ -z "$HEAD_REF" ] && continue
+            LABELS=$(echo "$PR_JSON" | jq -r '[.labels[].name] | join(" ") // ""')
+            IS_STALE="false"
+            if echo "$LABELS" | grep -qw "Stale"; then
+              IS_STALE="true"
+            fi
+
+            ENTRY=$(jq -n \
+              --arg app "$APP_NAME" \
+              --arg pr "$PR_NUM" \
+              --arg preview_id "$PREVIEW_ID" \
+              --arg head_ref "$HEAD_REF" \
+              --argjson is_stale "$IS_STALE" \
+              '{app: $app, pr_number: $pr, preview_id: $preview_id, head_ref: $head_ref, is_stale: $is_stale}')
+            OUT=$(echo "$OUT" | jq --argjson e "$ENTRY" '. + [$e]')
+          done <<< "$PREVIEW_APPS"
+
+          echo "previews<<EOF" >> $GITHUB_OUTPUT
+          echo "$OUT" | jq -c '.' >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "Found $(echo "$OUT" | jq length) preview(s)"
+
+  cleanup-stale:
+    name: Cleanup Stale Preview
+    needs: list-previews
+    if: needs.list-previews.outputs.previews != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.list-previews.outputs.previews) }}
+    steps:
+      - name: Trigger cleanup for stale PR
+        if: matrix.is_stale == true
+        run: |
+          gh workflow run "PR Preview Environment" \
+            --ref "${{ matrix.head_ref }}" \
+            -f pr_number=${{ matrix.pr_number }} \
+            -f action=cleanup \
+            -f cleanup_reason=Stale
+          echo "Triggered cleanup for PR #${{ matrix.pr_number }} (${{ matrix.app }})"
+
+  reset-db:
+    name: Reset Preview DB
+    needs: list-previews
+    if: needs.list-previews.outputs.previews != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.list-previews.outputs.previews) }}
+    steps:
+      - name: Delete Neon branch
+        if: matrix.is_stale != true
+        uses: neondatabase/delete-branch-action@v3
+        with:
+          project_id: ${{ secrets.NEON_PROJECT_ID }}
+          branch: preview/${{ matrix.preview_id }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+
+      - name: Trigger deploy
+        if: matrix.is_stale != true
+        run: |
+          gh workflow run "PR Preview Environment" \
+            --ref "${{ matrix.head_ref }}" \
+            -f pr_number=${{ matrix.pr_number }}
+          echo "Triggered deploy for PR #${{ matrix.pr_number }} (${{ matrix.app }})"
