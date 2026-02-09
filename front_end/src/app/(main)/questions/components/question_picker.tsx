@@ -77,15 +77,22 @@ const QuestionPicker: FC<Props> = ({
     try {
       if (!!filters.search) {
         setIsLoading(true);
+        const allowedQuestionTypes = new Set(filters.forecast_type ?? []);
+        const isAllowedQuestionType = (questionType?: QuestionType) =>
+          !!questionType && allowedQuestionTypes.has(questionType);
         const parsedInput = parseQuestionId(filters.search);
         if (parsedInput.questionId) {
           const question = await ClientPostsApi.getQuestion(
             parsedInput.questionId
           );
-          setPosts([question]);
+          setPosts(isAllowedQuestionType(question.type) ? [question] : []);
         } else if (parsedInput.postId) {
           const post = await ClientPostsApi.getPost(parsedInput.postId);
-          setPosts([post]);
+          setPosts(
+            "question" in post && isAllowedQuestionType(post.question?.type)
+              ? [post]
+              : []
+          );
         }
         if (!parsedInput.questionId && !parsedInput.postId) {
           const { results: posts } = await ClientPostsApi.getPostsWithCP({

@@ -438,16 +438,29 @@ const FutureEvalMethodologySections: React.FC = () => {
               href="#how-bots-run"
               className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
             >
-              Learn more here
+              See how bots run
             </Link>
             .
           </p>
           <p className="m-0">
             As questions resolve, we score the models&apos; forecasts and
-            continuously update our leaderboard. In our rankings, we only
-            evaluate forecasts made within 1 year of the model&apos;s first
-            forecast, since model performance tends to worsen as their training
-            data becomes more out of date.
+            continuously update our{" "}
+            <Link
+              href="/futureeval#model-leaderboard"
+              className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+            >
+              leaderboard
+            </Link>
+            . In our rankings, we only evaluate forecasts made within 1 year of
+            the model&apos;s first forecast, since model performance tends to
+            worsen as their training data becomes more out of date (see e.g.{" "}
+            <Link
+              href="https://arxiv.org/abs/2411.08324v2"
+              className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+            >
+              here
+            </Link>
+            ).
           </p>
           <p className="m-0">
             We use head-to-head{" "}
@@ -470,10 +483,10 @@ const FutureEvalMethodologySections: React.FC = () => {
             set to 0 for GPT-4o (which is our most prolific bot as of February
             2025).{" "}
             <Link
-              href="#how-bots-run"
+              href="https://www.metaculus.com/notebooks/42076/the-futureeval-model-leaderboard/"
               className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
             >
-              Learn more here
+              Read more about skill scores
             </Link>
             .
           </p>
@@ -502,8 +515,14 @@ const FutureEvalMethodologySections: React.FC = () => {
         </SectionHeader>
         <SectionBody>
           <p className="m-0">
-            The Forecasting Performance Over Time graph is another way to
-            visualize the data from the{" "}
+            The{" "}
+            <Link
+              href="/futureeval#performance-over-time-graph"
+              className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+            >
+              Forecasting Performance Over Time
+            </Link>{" "}
+            graph is another way to visualize the data from the{" "}
             <Link
               href="#model-leaderboard"
               className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
@@ -521,9 +540,10 @@ const FutureEvalMethodologySections: React.FC = () => {
           </p>
           {communityDate && proDate && (
             <p className="m-0">
-              We estimate that bots will start beating the Metaculus Community
-              performance in <strong>{communityDate}</strong> and Pro Forecaster
-              performance in <strong>{proDate}</strong>.
+              The trend line indicates that bots will start beating the
+              Metaculus community performance in{" "}
+              <strong>{communityDate}</strong> and Pro Forecaster performance in{" "}
+              <strong>{proDate}</strong>.
             </p>
           )}
         </SectionBody>
@@ -621,7 +641,7 @@ const FutureEvalMethodologySections: React.FC = () => {
       {/* Section 6: How much Pros beat Bots */}
       <section className="space-y-6">
         <SectionHeader id="pros-beat-bots">
-          How Much <span className={FE_COLORS.textAccent}>Pros Beat Bots</span>
+          Pros vs. <span className={FE_COLORS.textAccent}>Bots</span>
         </SectionHeader>
         <SectionBody>
           <p className="m-0">
@@ -630,15 +650,19 @@ const FutureEvalMethodologySections: React.FC = () => {
             the best humans and by how much.
           </p>
           <p className="m-0">
-            The graph on our{" "}
+            The{" "}
             <Link
-              href="/futureeval"
+              href="/futureeval#pros-vs-bots-graph"
               className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
             >
-              home page
+              graph on our benchmark page
             </Link>{" "}
-            shows the score difference between a team of the best 10 bots and
-            the Pros in the first four Bot Tournaments.
+            shows how much better pros did than bots when comparing a team of 10
+            pros and the best 10 bots in the first four Bot Tournaments. Note
+            that Q3 and Q4 2024 included only binary questions, while Q1 and Q2
+            2025 also included numeric and multiple choice questions. The pro
+            lead tends to be larger on non-binary question types, which may
+            partly explain the increase in later quarters.
           </p>
           <p className="m-0">
             You can find the full details and methodology of these analyses in
@@ -650,10 +674,11 @@ const FutureEvalMethodologySections: React.FC = () => {
               &quot;FutureEval Results Year 1&quot;
             </Link>{" "}
             section of our resources page. Note that the graph&apos;s y-axis is
-            labelled &quot;Score Difference.&quot; Technically, this should be
-            labelled as average head-to-head spot peer score, but &quot;Score
-            Difference&quot; communicates a similar idea for readers unfamiliar
-            with forecasting scoring rules.
+            labelled &quot;Pro Lead Over Bots.&quot; Technically, this should be
+            labelled as &quot;average head-to-head spot peer score for
+            Pros&quot;, but &quot;Pro Lead Over Bots&quot; communicates a
+            similar idea for readers unfamiliar with forecasting scoring rules.
+            A score of 0 would mean that Pros and Bots performed equally well.
           </p>
         </SectionBody>
       </section>

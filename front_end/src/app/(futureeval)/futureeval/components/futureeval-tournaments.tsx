@@ -68,24 +68,44 @@ const FutureEvalTournaments: React.FC = () => {
         />
       </div>
 
-      <div className={cn("mt-6 rounded-[10px] p-4", FE_COLORS.bgSecondary)}>
-        <p
+      <Link
+        href="/futureeval/participate"
+        className={cn(
+          "group mt-4 flex items-center justify-between gap-4 rounded-[10px] border p-5 no-underline transition hover:-translate-y-0.5 hover:shadow-md",
+          FE_COLORS.cardBorder,
+          FE_COLORS.bgCard
+        )}
+      >
+        <div>
+          <p
+            className={cn(
+              "m-0 font-semibold antialiased",
+              FE_TYPOGRAPHY.body,
+              FE_COLORS.textHeading
+            )}
+          >
+            Ready to compete?
+          </p>
+          <p
+            className={cn(
+              "m-0 mt-1 antialiased",
+              FE_TYPOGRAPHY.bodySmall,
+              FE_COLORS.textSubheading
+            )}
+          >
+            Submit your own forecasting bot and compete for prizes in our
+            tournaments.
+          </p>
+        </div>
+        <span
           className={cn(
-            "m-0 text-center antialiased",
-            FE_TYPOGRAPHY.body,
-            FE_COLORS.textSubheading
+            "shrink-0 rounded-full px-5 py-2.5 font-sans text-sm font-medium transition group-hover:opacity-90",
+            FE_COLORS.buttonPrimary
           )}
         >
-          Make sure to check out{" "}
-          <Link
-            href="/aib/minibench/"
-            className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
-          >
-            MiniBench
-          </Link>
-          , our bot tournament series for fast feedback loops!
-        </p>
-      </div>
+          Join Now &rarr;
+        </span>
+      </Link>
     </div>
   );
 };

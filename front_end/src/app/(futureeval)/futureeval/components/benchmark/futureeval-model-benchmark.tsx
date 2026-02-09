@@ -88,22 +88,20 @@ const FutureEvalModelBenchmark: React.FC = () => {
               Model Leaderboard
             </h3>
           </div>
-          {/* Subtitle row - two column layout */}
-          <div className="mt-3 grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
-            <div>
-              <p
-                className={`m-0 ${FE_TYPOGRAPHY.body} ${FE_COLORS.textSubheading}`}
+          {/* Subtitle row */}
+          <div className="mt-3 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p
+              className={`m-0 ${FE_TYPOGRAPHY.body} ${FE_COLORS.textSubheading}`}
+            >
+              Uses our unified forecasting score. Updates daily.{" "}
+              <Link
+                href="/futureeval/methodology#model-leaderboard"
+                className={`${FE_COLORS.textAccent} whitespace-nowrap`}
               >
-                Uses our unified forecasting score. Updates daily.{" "}
-                <Link
-                  href="/futureeval/methodology#model-leaderboard"
-                  className={`${FE_COLORS.textAccent} whitespace-nowrap`}
-                >
-                  Learn More
-                </Link>
-              </p>
-            </div>
-            <div className="flex justify-center sm:justify-end">
+                Learn More
+              </Link>
+            </p>
+            <div className="flex shrink-0 justify-center sm:justify-end">
               <FutureEvalComingSoonBanner models={upcomingModels} />
             </div>
           </div>
