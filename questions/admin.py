@@ -127,7 +127,7 @@ class MultipleChoiceOptionsAdminForm(forms.Form):
         )
         default_delete_comment = (
             "Options {removed_options} were removed on {timestep}. "
-            'Their probability was folded into the "{catch_all_option}" option.'
+            'Your predictions on those options were moved to the "{catch_all_option}" option.'
         )
         default_add_comment = (
             "Options {added_options} were added on {timestep}. "
