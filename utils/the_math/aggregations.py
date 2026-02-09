@@ -751,9 +751,7 @@ def get_aggregations_at_time(
         forecasts = forecasts.filter(author_id__in=only_include_user_ids)
     else:
         # only include forecasts by non-primary bots if user ids explicitly specified
-        forecasts = forecasts.filter(
-            Q(author__is_bot=False) | Q(author__is_primary_bot=True),
-        )
+        forecasts = forecasts.exclude_non_primary_bots()
     if not include_bots:
         forecasts = forecasts.exclude(author__is_bot=True)
     if len(forecasts) == 0:
@@ -993,9 +991,7 @@ def get_aggregation_history(
             forecasts = forecasts.filter(author_id__in=only_include_user_ids)
         else:
             # only include forecasts by non-primary bots if user ids explicitly specified
-            forecasts = forecasts.filter(
-                Q(author__is_bot=False) | Q(author__is_primary_bot=True),
-            )
+            forecasts = forecasts.exclude_non_primary_bots()
         if not include_bots:
             forecasts = forecasts.exclude(author__is_bot=True)
 
