@@ -461,7 +461,7 @@ def assign_ranks(
 
     candidates: QuerySet[User] = User.objects.filter(
         id__in=[x.user_id for x in entries if x.user_id], is_active=True
-    ).only("id", "is_bot")
+    ).only("id", "is_bot", "is_primary_bot")
 
     # dictionary of {excluded user id : show anyway status}
     shown_exclusions_dict: dict[None | int, bool] = {
@@ -490,6 +490,9 @@ def assign_ranks(
         # don't show ANY bots
         for user in candidates.filter(is_bot=True):
             shown_exclusions_dict[user.id] = False
+    # all non-primary bots are unconditionally excluded
+    for user in candidates.filter(is_bot=True, is_primary_bot=False):
+        shown_exclusions_dict[user.id] = False
 
     # set ranks
     rank = 1
