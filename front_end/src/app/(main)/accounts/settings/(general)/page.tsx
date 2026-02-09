@@ -1,4 +1,4 @@
-import invariant from "ts-invariant";
+import { redirect } from "next/navigation";
 
 import ServerProfileApi from "@/services/api/profile/profile.server";
 
@@ -11,7 +11,7 @@ export const metadata = {
 
 export default async function Settings() {
   const currentUser = await ServerProfileApi.getMyProfile();
-  invariant(currentUser);
+  if (!currentUser) return redirect("/");
 
   return (
     <div className="flex flex-col gap-6">
