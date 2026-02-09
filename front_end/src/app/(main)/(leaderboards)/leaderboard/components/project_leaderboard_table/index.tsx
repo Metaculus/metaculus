@@ -3,6 +3,7 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useMemo, useState } from "react";
 
+import enMessages from "@/../../messages/en.json";
 import Button from "@/components/ui/button";
 import { LeaderboardDetails, LeaderboardDisplayConfig } from "@/types/scoring";
 
@@ -32,11 +33,17 @@ const ProjectLeaderboardTable: FC<Props> = ({
       translationKey: Parameters<typeof t>[0],
       columnRenames?: LeaderboardDisplayConfig["column_renames"]
     ): string => {
-      const defaultName = t(translationKey);
+      const localizedName = t(translationKey);
       if (!columnRenames) {
-        return defaultName;
+        return localizedName;
       }
-      return columnRenames[defaultName] ?? defaultName;
+      const englishName = (enMessages as Record<string, unknown>)[
+        String(translationKey)
+      ];
+      if (typeof englishName === "string" && columnRenames[englishName]) {
+        return columnRenames[englishName];
+      }
+      return localizedName;
     },
     [t]
   );
