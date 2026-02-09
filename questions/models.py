@@ -86,7 +86,7 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
 
     type = models.CharField(max_length=20, choices=QuestionType.choices)
     resolution = models.TextField(null=True, blank=True)
-    include_bots_in_aggregates = models.BooleanField(default=False)
+    include_bots_in_aggregates = models.BooleanField(default=True)
     question_weight = models.FloatField(default=1.0)
     default_score_type = models.CharField(
         max_length=20,
