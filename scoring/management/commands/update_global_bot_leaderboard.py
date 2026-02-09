@@ -524,6 +524,7 @@ def rescale_skills_(
     scale_factor = np.sqrt(var_avg_scores / var_skills)
     for uid in skills:
         skills[uid] *= scale_factor
+    print("Scale factor", scale_factor)
     return skills
 
 
@@ -708,88 +709,52 @@ def run_update_global_bot_leaderboard(
         users, questions, cache_use=cache_use
     )
 
-    # # for pro aggregation, community aggregate, and any non-metac bot,
-    # # duplicate rows indicating year-specific achievements
-    # user_map = {user.id: user for user in users}
-    # user_map["Pro Aggregate"] = "Pro Aggregate"
-    # user_map["Community Aggregate"] = "Community Aggregate"
-    # new_rows = []
-    # for user1_id, user2_id, question_id, score, coverage, timestamp in zip(
-    #     user1_ids, user2_ids, question_ids, scores, coverages, timestamps
-    # ):
-    #     user1 = user_map[user1_id]
-    #     if isinstance(user1, User):
-    #         if (
-    #             not (user1.metadata or dict())
-    #             .get("bot_details", dict())
-    #             .get("metac_bot")
-    #         ):
-    #             # non-metac bot
-    #             time = datetime.fromtimestamp(timestamp, dt_timezone.utc)
-    #             new_rows.append(
-    #                 (
-    #                     f"{user1.username} {time.year}",
-    #                     user2_id,
-    #                     question_id,
-    #                     score,
-    #                     coverage,
-    #                     timestamp,
-    #                 )
-    #             )
-    #     else:
-    #         # aggregation methods
-    #         time = datetime.fromtimestamp(timestamp, dt_timezone.utc)
-    #         new_rows.append(
-    #             (
-    #                 f"{user1} {time.year}",
-    #                 user2_id,
-    #                 question_id,
-    #                 score,
-    #                 coverage,
-    #                 timestamp,
-    #             )
-    #         )
-    #     user2 = user_map[user2_id]
-    #     if isinstance(user2, User):
-    #         if (
-    #             not (user2.metadata or dict())
-    #             .get("bot_details", dict())
-    #             .get("metac_bot")
-    #         ):
-    #             # non-metac bot
-    #             time = datetime.fromtimestamp(timestamp, dt_timezone.utc)
-    #             new_rows.append(
-    #                 (
-    #                     user1_id,
-    #                     f"{user2.username} {time.year}",
-    #                     question_id,
-    #                     -score,
-    #                     coverage,
-    #                     timestamp,
-    #                 )
-    #             )
-    #     else:
-    #         # aggregation methods
-    #         time = datetime.fromtimestamp(timestamp, dt_timezone.utc)
-    #         new_rows.append(
-    #             (
-    #                 user1_id,
-    #                 f"{user2} {time.year}",
-    #                 question_id,
-    #                 -score,
-    #                 coverage,
-    #                 timestamp,
-    #             )
-    #         )
-    # for user1_id, user2_id, question_id, score, coverage, timestamp in new_rows:
-    #     user1_ids.append(user1_id)
-    #     user2_ids.append(user2_id)
-    #     question_ids.append(question_id)
-    #     scores.append(score)
-    #     coverages.append(coverage)
-    #     timestamps.append(timestamp)
+    # for pro aggregation, community aggregate, and any non-metac bot,
+    # duplicate rows indicating year-specific achievements
+    new_user1_ids = []
+    new_user2_ids = []
+    new_question_ids = []
+    new_scores = []
+    new_coverages = []
+    new_timestamps = []
+    for user1_id, user2_id, question_id, score, coverage, timestamp in zip(
+        user1_ids, user2_ids, question_ids, scores, coverages, timestamps
+    ):
+        if user1_id == "Community Aggregate":
+            new_user1_ids.append(
+                f"Community Aggregate ({datetime.fromtimestamp(timestamp).year})"
+            )
+            new_user2_ids.append(user2_id)
+            new_question_ids.append(question_id)
+            new_scores.append(score)
+            new_coverages.append(coverage)
+            new_timestamps.append(timestamp)
+        elif user2_id == "Community Aggregate":
+            new_user1_ids.append(user1_id)
+            new_user2_ids.append(
+                f"Community Aggregate ({datetime.fromtimestamp(timestamp).year})"
+            )
+            new_question_ids.append(question_id)
+            new_scores.append(score)
+            new_coverages.append(coverage)
+            new_timestamps.append(timestamp)
+        else:
+            new_user1_ids.append(user1_id)
+            new_user2_ids.append(user2_id)
+            new_question_ids.append(question_id)
+            new_scores.append(score)
+            new_coverages.append(coverage)
+            new_timestamps.append(timestamp)
+    user1_ids = new_user1_ids
+    user2_ids = new_user2_ids
+    question_ids = new_question_ids
+    scores = new_scores
+    coverages = new_coverages
+    timestamps = new_timestamps
 
-    # ###############
+    ###############
+    ###############
+    ###############
     # Filter out entries we don't care about
     # and map some users to other users
     userid_mapping = {
@@ -804,7 +769,6 @@ def run_update_global_bot_leaderboard(
         # metadata__bot_details__include_in_calculations=True, # TODO: this should be
         # but we don't have that data correct at the moment
     )
-    ###############
     # make sure they have at least 'minimum_resolved_questions' resolved questions
     print("Filtering users.")
     minimum_resolved_questions = 100
@@ -831,10 +795,16 @@ def run_update_global_bot_leaderboard(
     relevant_users = relevant_users.exclude(id__in=excluded_ids)
     print(f"Filtered {c} users down to {relevant_users.count()}.")
     ###############
+    ###############
+    ###############
+
     user_map = {user.id: user for user in relevant_users}
     relevant_identities = set(relevant_users.values_list("id", flat=True)) | {
         "Pro Aggregate",
         "Community Aggregate",
+        # "Community Aggregate (2024)",
+        "Community Aggregate (2025)",
+        "Community Aggregate (2026)",
     }
     filtered_user1_ids = []
     filtered_user2_ids = []
@@ -912,7 +882,7 @@ def run_update_global_bot_leaderboard(
         weights=coverages,
         baseline_player=baseline_player,
         var_avg_scores=var_avg_scores,
-        verbose=False,
+        verbose=True,
     )
 
     # Compute bootstrap confidence intervals
@@ -1123,4 +1093,4 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options) -> None:
-        run_update_global_bot_leaderboard(cache_use="partial")
+        run_update_global_bot_leaderboard(cache_use="full")
