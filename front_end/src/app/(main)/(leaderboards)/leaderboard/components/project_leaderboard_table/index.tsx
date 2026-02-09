@@ -1,10 +1,11 @@
 "use client";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useMemo, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 
+import enMessages from "@/../../messages/en.json";
 import Button from "@/components/ui/button";
-import { LeaderboardDetails } from "@/types/scoring";
+import { LeaderboardDetails, LeaderboardDisplayConfig } from "@/types/scoring";
 
 import TableHeader from "./table_header";
 import TableRow from "./table_row";
@@ -24,6 +25,28 @@ const ProjectLeaderboardTable: FC<Props> = ({
   isAdvanced,
 }) => {
   const t = useTranslations();
+
+  const columnRenames = leaderboardDetails.display_config?.column_renames;
+
+  const getColumnName = useCallback(
+    (
+      translationKey: Parameters<typeof t>[0],
+      columnRenames?: LeaderboardDisplayConfig["column_renames"]
+    ): string => {
+      const localizedName = t(translationKey);
+      if (!columnRenames) {
+        return localizedName;
+      }
+      const englishName = (enMessages as Record<string, unknown>)[
+        String(translationKey)
+      ];
+      if (typeof englishName === "string" && columnRenames[englishName]) {
+        return columnRenames[englishName];
+      }
+      return localizedName;
+    },
+    [t]
+  );
 
   const [step, setStep] = useState(paginationStep);
   const leaderboardEntries = useMemo(() => {
@@ -50,19 +73,21 @@ const ProjectLeaderboardTable: FC<Props> = ({
         <thead>
           <tr>
             <TableHeader className="sticky left-0 text-left">
-              {t("rank")}
+              {getColumnName("rank", columnRenames)}
             </TableHeader>
             <TableHeader className="sticky left-0 w-0 max-w-[16rem] text-left">
-              {t("forecaster")}
+              {getColumnName("forecaster", columnRenames)}
             </TableHeader>
-            <TableHeader className="text-right">{t("totalScore")}</TableHeader>
+            <TableHeader className="text-right">
+              {getColumnName("totalScore", columnRenames)}
+            </TableHeader>
             {isAdvanced && (
               <>
                 <TableHeader className=" text-right">
-                  {t("questions")}
+                  {getColumnName("questions", columnRenames)}
                 </TableHeader>
                 <TableHeader className="text-right">
-                  {t("coverage")}
+                  {getColumnName("coverage", columnRenames)}
                 </TableHeader>
               </>
             )}
@@ -71,16 +96,16 @@ const ProjectLeaderboardTable: FC<Props> = ({
                 {isAdvanced && (
                   <>
                     <TableHeader className="text-right">
-                      {t("take")}
+                      {getColumnName("take", columnRenames)}
                     </TableHeader>
                     <TableHeader className="text-right">
-                      {t("percentPrize")}
+                      {getColumnName("percentPrize", columnRenames)}
                     </TableHeader>
                   </>
                 )}
                 <TableHeader className=" text-right">
                   {leaderboardDetails.finalized ? (
-                    t("prize")
+                    getColumnName("prize", columnRenames)
                   ) : (
                     <UnfinalizedPrizeTooltip />
                   )}
