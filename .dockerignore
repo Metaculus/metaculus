@@ -1,0 +1,52 @@
+# Essential - .git is huge
+.git
+
+# Separate applications with their own Dockerfiles
+screenshot/
+
+# Build artifacts (might exist locally)
+node_modules
+front_end/node_modules
+front_end/.next
+venv
+.venv
+__pycache__
+*.pyc
+*.pyo
+
+# Development files
+.idea
+.vscode
+*.swp
+*.swo
+.DS_Store
+
+# Test/coverage
+.pytest_cache
+.coverage
+htmlcov
+.mypy_cache
+tests/
+
+# Documentation
+*.md
+!README.md
+
+# Local data
+*.sql
+*.dump
+.env
+tmp
+staticfiles
+
+# Dev/debug files
+*.log
+
+# CI/CD (not needed in image)
+.github/
+.dockerignore
+Dockerfile
+docker-compose*.yaml
+fly.*.toml
+heroku.yml
+Procfile

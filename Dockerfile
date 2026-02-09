@@ -1,113 +1,134 @@
-FROM alpine:latest AS base
+FROM node:24-bookworm-slim AS node
 
-RUN apk add --no-cache --update python3 py3-pip bash curl git \
-    build-base \
-    openssl-dev \
-    zlib-dev \
-    bzip2-dev \
-    readline-dev \
-    sqlite-dev \
-    postgresql-dev \
-    wget \
-    curl \
-    llvm \
-    ncurses-dev \
-    xz \
-    tk-dev \
-    libffi-dev \
-    xz-dev \
-    python3-dev \
-    py3-openssl \
-    vim \
+FROM python:3.12-slim-bookworm AS base
+
+# Copy Node.js from official image (same Debian base, glibc compatible)
+COPY --from=node /usr/local/bin/node /usr/local/bin/
+COPY --from=node /usr/local/bin/corepack /usr/local/bin/
+COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gettext \
-    nginx
+    libpq5 \
+    nginx \
+    libjemalloc2 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -s /usr/lib/*/libjemalloc.so.2 /usr/lib/libjemalloc.so.2
 
-RUN curl https://pyenv.run | bash && \
-    chmod -R 777 "/root/.pyenv/bin"
-
-ENV PATH="/root/.pyenv/bin/:/root/.local/bin/:/root/.pyenv/shims/:${PATH}"
-
-ADD .python-version /tmp/.python-version
-
-RUN pyenv install -v $(cat /tmp/.python-version) && pyenv global $(cat /tmp/.python-version)
-
-RUN curl -sSL https://install.python-poetry.org | python - && \
-    chmod -R 777 "/root/.local/bin"
-
-ADD front_end/.nvmrc /tmp/.nvmrc
-# Install Nodejs
-# Inspired from: https://github.com/nodejs/docker-node/blob/main/Dockerfile-alpine.template
-ENV ARCH=x64
-RUN export NODE_VERSION=$(cat /tmp/.nvmrc) && cd /tmp/ && curl -fsSLO --compressed "https://unofficial-builds.nodejs.org/download/release/v$NODE_VERSION/node-v$NODE_VERSION-linux-$ARCH-musl.tar.xz" \
-  && tar -xJf "node-v$NODE_VERSION-linux-$ARCH-musl.tar.xz" -C /usr/local --strip-components=1 --no-same-owner \
-  && ln -s /usr/local/bin/node /usr/local/bin/nodejs
-
-FROM base AS backend_deps
-WORKDIR /app
-
-ADD poetry.lock poetry.lock
-ADD pyproject.toml pyproject.toml
-# Needed so the env created by poetry is saved after the build phase. Don't know of another way
-RUN poetry config virtualenvs.create false \
-    && python -m venv venv \
-    && . venv/bin/activate \
-    && poetry install --without dev
-
-
+# ============================================================
+# FRONTEND DEPENDENCIES
+# ============================================================
 FROM base AS frontend_deps
-WORKDIR /app/front_end/
+WORKDIR /app/front_end
 
-ADD front_end/package*.json .
+COPY front_end/package*.json ./
 ENV NODE_ENV=production
 RUN npm ci
 
+# ============================================================
+# BACKEND DEPENDENCIES
+# ============================================================
+FROM base AS backend_deps
+WORKDIR /app
 
+# Install build dependencies for any packages that need compilation
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY poetry.lock pyproject.toml ./
+
+RUN pip install --no-cache-dir poetry \
+    && poetry config virtualenvs.create false \
+    && python -m venv venv \
+    && . venv/bin/activate \
+    && poetry install --without dev --no-interaction --no-ansi
+
+# ============================================================
+# FRONTEND BUILD
+# ============================================================
+FROM base AS frontend_build
+WORKDIR /app
+
+# Copy only frontend source files
+COPY front_end/ /app/front_end/
+
+# Copy node_modules from deps stage
+COPY --from=frontend_deps /app/front_end/node_modules /app/front_end/node_modules
+
+# Build frontend
+ENV NODE_ENV=production
+RUN cd front_end \
+    && NODE_OPTIONS=--max-old-space-size=4096 npm run build \
+    && rm -rf .next/cache
+
+# Inject Sentry sourcemaps
+RUN cd front_end && npx sentry-cli sourcemaps inject .next
+
+# ============================================================
+# FINAL ENVIRONMENT
+# ============================================================
 FROM base AS final_env
 WORKDIR /app
 
-# Install nginx
+# Configure nginx
 COPY ./scripts/nginx/ /
-RUN echo "daemon off;" >> /etc/nginx/nginx.conf
-# Changing ownership and user rights to run as non-root user
-RUN mkdir -p /var/cache/nginx && chown -R 1001:0 /var/cache/nginx && \
-    mkdir -p /var/log/nginx  && chown -R 1001:0 /var/log/nginx && \
-    mkdir -p /var/lib/nginx  && chown -R 1001:0 /var/lib/nginx && \
-    touch /run/nginx.pid && chown -R 1001:0 /run/nginx.pid && \
-    chown -R 1001:0 /etc/nginx && \
-    chmod -R 755 /var/lib/nginx /var/log/nginx && \
-    rm /etc/nginx/http.d/default.conf
+RUN rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default /etc/nginx/conf.d/default.conf \
+    && mkdir -p /var/cache/nginx /var/log/nginx /var/lib/nginx \
+    && touch /run/nginx.pid \
+    && chown -R 1001:0 /var/cache/nginx /var/log/nginx /var/lib/nginx /run/nginx.pid /etc/nginx \
+    && chmod -R 755 /var/lib/nginx /var/log/nginx
 
-# This is done to copy only the source code from HEAD into the image to avoid a COPY . and managing a long .dockerignore
-RUN --mount=type=bind,source=.git/,target=/tmp/app/.git/ \
-git clone /tmp/app/.git/ /app/
+# Install pm2 globally
+RUN npm install -g pm2@6
 
-# Copy the backkend and frontend deps
+# Copy ALL source code (backend + frontend source, but .next is overwritten)
+COPY . /app/
+
+# Copy dependencies from build stages
 COPY --from=backend_deps /app/venv /app/venv
 COPY --from=frontend_deps /app/front_end/node_modules /app/front_end/node_modules
 
-ENV NODE_ENV=production
-RUN cd front_end && NODE_OPTIONS=--max-old-space-size=4096 npm run build && npm install pm2 -g
-RUN cd front_end && npx sentry-cli sourcemaps inject .next
+# Copy pre-built frontend (overwrites the source-only front_end/.next)
+COPY --from=frontend_build /app/front_end/.next /app/front_end/.next
 
-RUN source venv/bin/activate && ./manage.py collectstatic --noinput
+# Collect Django static files
+RUN . venv/bin/activate && ./manage.py collectstatic --noinput
 
-ENV PORT=8080
-ENV GUNICORN_WORKERS=4
-ENV NODE_INSTANCES=1
-ENV NODE_HEAP_SIZE=1024
+# Set ownership and switch to non-root user
+RUN mkdir -p /home/app && chown -R 1001:0 /app /home/app
+USER 1001
+
+# Runtime configuration
+ENV HOME=/home/app \
+    PORT=8080 \
+    GUNICORN_WORKERS=4 \
+    NODE_INSTANCES=1 \
+    NODE_HEAP_SIZE=1024 \
+    LD_PRELOAD=/usr/lib/libjemalloc.so.2 \
+    MALLOC_CONF=background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:1000
+
 EXPOSE 8080
 
+# ============================================================
+# FINAL TARGETS
+# ============================================================
 FROM final_env AS release
-CMD ["sh", "-c", "scripts/prod/release.sh"]
+CMD ["scripts/prod/release.sh"]
 
 FROM final_env AS web
-CMD ["sh", "-c", "scripts/prod/startapp.sh"]
+CMD ["scripts/prod/startapp.sh"]
 
 FROM final_env AS django_cron
-CMD ["sh", "-c", "scripts/prod/django_cron.sh"]
+CMD ["scripts/prod/django_cron.sh"]
 
 FROM final_env AS dramatiq_worker
-CMD ["sh", "-c", "scripts/prod/run_dramatiq.sh"]
+CMD ["scripts/prod/run_dramatiq.sh"]
 
 FROM final_env AS all_runners
-CMD ["sh", "-c", "scripts/prod/run_all.sh"]
+CMD ["scripts/prod/run_all.sh"]

@@ -1,23 +1,24 @@
 import requests
-
 from django.conf import settings
+from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
-from django.db.models import Q, Case, When, IntegerField
-from django.utils.crypto import get_random_string
-from rest_framework.exceptions import ValidationError
 from django.db import IntegrityError
+from django.db.models import Q, Case, When, IntegerField
+from rest_framework.exceptions import ValidationError
 
+from authentication.jwt_session import revoke_all_user_tokens
 from notifications.constants import MailingTags
 from posts.services.subscriptions import (
     disable_global_cp_reminders,
     enable_global_cp_reminders,
 )
-from users.models import User, UserCampaignRegistration
-from utils.email import send_email_with_template
-from utils.frontend import build_frontend_email_change_url
 from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
+from users.models import User, UserCampaignRegistration
 from users.serializers import UserPrivateSerializer
+from utils.email import send_email_with_template
+from utils.frontend import build_frontend_email_change_url
 
 
 def get_users(
@@ -64,6 +65,18 @@ def get_users_by_usernames(usernames: list[str]) -> list[User]:
     return users
 
 
+def change_user_password(user: User, new_password: str) -> None:
+    """
+    Change user's password and revoke all existing tokens.
+    """
+    validate_password(new_password, user=user)
+
+    user.set_password(new_password)
+    user.save()
+
+    revoke_all_user_tokens(user)
+
+
 def user_unsubscribe_tags(user: User, tags: list[str]) -> None:
     # Newly excluded tags
     to_disable = set(tags) - set(user.unsubscribed_mailing_tags)
@@ -79,46 +92,67 @@ def user_unsubscribe_tags(user: User, tags: list[str]) -> None:
     user.unsubscribed_mailing_tags = tags
 
 
-class EmailChangeTokenGenerator:
+class EmailChangeTokenGenerator(PasswordResetTokenGenerator):
+    """
+    Token generator for email change that:
+    1. Stores the new email in the token (Django's generator can't do this)
+    2. Inherits invalidation behavior from PasswordResetTokenGenerator
+       (invalidates on password change, email change, login)
+    """
+
+    key_salt = "users.services.common.EmailChangeTokenGenerator"
+
     def __init__(self):
+        super().__init__()
         self.signer = TimestampSigner()
 
-    def generate_token(self, user: User, new_email):
-        # Create a unique token with the user ID and new email
-        token = f"{user.id}:{new_email}:{get_random_string(20)}"
-        signed_token = self.signer.sign(token)
+    def make_token(self, user: User, new_email: str) -> str:
+        """Generate a token that includes the new email."""
+        # Use Django's token as the validation component
+        validation_token = super().make_token(user)
+        # Combine with new_email in a signed payload
+        payload = f"{user.id}:{new_email}:{validation_token}"
+        return self.signer.sign(payload)
 
-        return signed_token
+    def check_token(self, user: User, token: str, max_age: int = 3600) -> str | None:
+        """
+        Validate token and return new_email if valid, None otherwise.
+        """
+        try:
+            payload = self.signer.unsign(token, max_age=max_age)
+            user_id, new_email, validation_token = payload.split(":", 2)
 
-    def validate_token(self, token, max_age=3600):
-        token = self.signer.unsign(token, max_age=max_age)
+            if int(user_id) != user.pk:
+                return None
 
-        user_id, new_email, _ = token.split(":")
-        return int(user_id), new_email
+            # Use Django's validation (checks password, last_login, email)
+            if not super().check_token(user, validation_token):
+                return None
+
+            return new_email
+        except (BadSignature, SignatureExpired, ValueError):
+            return None
 
 
 def generate_email_change_token(user: User, new_email: str):
     if User.objects.filter(email__iexact=new_email).exists():
         raise ValidationError("The email is already in use")
 
-    return EmailChangeTokenGenerator().generate_token(user, new_email)
+    return EmailChangeTokenGenerator().make_token(user, new_email)
 
 
 def change_email_from_token(user: User, token: str):
-    try:
-        user_id, new_email = EmailChangeTokenGenerator().validate_token(token)
-    except (BadSignature, SignatureExpired):
-        raise ValidationError("Invalid token")
-
-    if user.id != user_id:
-        raise ValidationError("User mismatch")
+    new_email = EmailChangeTokenGenerator().check_token(user, token)
+    if new_email is None:
+        raise ValidationError("Invalid or expired token")
 
     if User.objects.filter(email__iexact=new_email).exists():
         raise ValidationError("The email is already in use")
 
-    user = User.objects.get(id=user_id)
     user.email = new_email
     user.save()
+
+    revoke_all_user_tokens(user)
 
 
 def send_email_change_confirmation_email(user: User, new_email: str):
@@ -141,7 +175,6 @@ def send_email_change_confirmation_email(user: User, new_email: str):
 def register_user_to_campaign(
     user: User, campaign_key: str, campaign_data: dict, project: Project
 ):
-
     try:
         UserCampaignRegistration.objects.create(
             user=user, key=campaign_key, details=campaign_data

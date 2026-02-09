@@ -363,6 +363,8 @@ def generate_data(
         + "**`Post Published Time`** - the time the Post was published.\n"
         + "**`Default Project`** - the name of the default project (usually a tournament or community) for the Post.\n"
         + "**`Default Project ID`** - the id of the default project for the Post.\n"
+        + "**`Categories`** - a list of category names that this question belongs to.\n"
+        + "**`Leaderboard Tags`** - a list of leaderboard tag names associated with this question.\n"
         + "**`Label`** - for a group question, this is the sub-question object.\n"
         + "**`Question Type`** - the type of the question. Binary, Multiple Choice, Numeric, Discrete, or Date.\n"
         + "**`MC Options (Current)`** - the current options for a multiple choice question, if applicable.\n"
@@ -394,6 +396,8 @@ def generate_data(
             "Post Published Time",
             "Default Project",
             "Default Project ID",
+            "Categories",
+            "Leaderboard Tags",
             "Label",
             "Question Type",
             "MC Options (Current)",
@@ -431,6 +435,15 @@ def generate_data(
             for x in np.linspace(0, 1, 201):
                 val = unscaled_location_to_scaled_location(x, question)
                 continuous_range.append(format_value(val))
+
+        # Get categories and leaderboard tags
+        categories = list(
+            post.projects.filter(type="category").values_list("name", flat=True)
+        )
+        leaderboard_tags = list(
+            post.projects.filter(type="leaderboard_tag").values_list("name", flat=True)
+        )
+
         question_writer.writerow(
             [
                 question.id,
@@ -445,6 +458,8 @@ def generate_data(
                 post.published_at,
                 post.default_project.name,
                 post.default_project_id,
+                categories,
+                leaderboard_tags,
                 question.label,
                 question.type,
                 question.options,
@@ -575,7 +590,11 @@ def generate_data(
             row.append(None)
         else:
             pmf = forecast.get_pmf()
-            forecast_at_resolution = pmf[resolution_index]
+            forecast_at_resolution = (
+                pmf[resolution_index]
+                if not np.isnan(pmf[resolution_index])
+                else pmf[-1]
+            )
             row.append(forecast_at_resolution)
             if forecast.question.type in QUESTION_CONTINUOUS_TYPES:
                 # Also append PDF value
@@ -640,7 +659,11 @@ def generate_data(
             row.append(None)
         else:
             pmf = aggregate_forecast.get_pmf()
-            forecast_at_resolution = pmf[resolution_index]
+            forecast_at_resolution = (
+                pmf[resolution_index]
+                if not np.isnan(pmf[resolution_index])
+                else pmf[-1]
+            )
             row.append(forecast_at_resolution)
             if aggregate_forecast.question.type in QUESTION_CONTINUOUS_TYPES:
                 # Also append PDF value

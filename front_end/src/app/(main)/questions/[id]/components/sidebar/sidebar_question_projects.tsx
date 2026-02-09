@@ -13,6 +13,10 @@ type Props = {
 };
 
 const SidebarQuestionProjects: FC<Props> = ({ projects: projectsData }) => {
+  if (!projectsData) {
+    return null;
+  }
+
   const {
     category: _category,
     tournament: _tournament,

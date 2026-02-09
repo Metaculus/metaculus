@@ -4,6 +4,7 @@ import invariant from "ts-invariant";
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import { getAuthCookieManager } from "@/services/auth_tokens";
 import { logError } from "@/utils/core/errors";
+import { ensureRelativeRedirect } from "@/utils/navigation";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -21,9 +22,14 @@ export async function GET(request: Request) {
     logError(err);
   }
 
+  let safeRedirectUrl = "/?event=emailConfirmed";
   if (redirect_url) {
-    return redirect(decodeURIComponent(redirect_url));
+    try {
+      safeRedirectUrl = ensureRelativeRedirect(
+        decodeURIComponent(redirect_url)
+      );
+    } catch {}
   }
 
-  return redirect("/?event=emailConfirmed");
+  return redirect(safeRedirectUrl);
 }

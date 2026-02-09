@@ -15,6 +15,7 @@ import {
 } from "@/app/(main)/accounts/schemas";
 import Button from "@/components/ui/button";
 import { FormError, Input } from "@/components/ui/form_field";
+import LoadingSpinner from "@/components/ui/loading_spiner";
 
 export type PasswordResetProps = {
   user_id: number;
@@ -26,81 +27,47 @@ const PasswordReset: FC<PasswordResetProps> = ({ user_id, token }) => {
   const { register } = useForm<PasswordResetConfirmSchema>({
     resolver: zodResolver(passwordResetConfirmSchema),
   });
-  const [state, formAction] = useActionState<
+  const [state, formAction, isPending] = useActionState<
     PasswordResetConfirmActionState,
     FormData
   >(passwordResetConfirmAction, null);
 
   return (
-    <>
-      <hr className="my-0" />
-      <div className="flex items-center justify-between">
-        <h2 className="my-4 text-2xl font-bold">{t("passwordResetHeading")}</h2>
-      </div>
-      <div>
-        <form
-          className="flex w-full flex-col gap-2 pb-4 text-sm"
-          action={formAction}
-        >
-          <input
-            type="hidden"
-            defaultValue={user_id}
-            {...register("user_id")}
+    <div className="mt-6 grid md:grid-cols-2">
+      <form className="flex flex-col gap-4" action={formAction}>
+        <input type="hidden" defaultValue={user_id} {...register("user_id")} />
+        <input type="hidden" defaultValue={token} {...register("token")} />
+        <div>
+          <Input
+            className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+            placeholder={t("newPasswordPlaceholder")}
+            type="password"
+            {...register("password")}
           />
-          <input type="hidden" defaultValue={token} {...register("token")} />
-          <div>
-            <div className="flex w-full items-center">
-              <span className="w-[45%] pr-6 text-right">
-                {t("newPasswordLabel")}
-              </span>
-              <div className="w-full max-w-44 justify-start">
-                <Input
-                  type="password"
-                  className="w-full rounded border border-gray-500 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                  {...register("password")}
-                />
-              </div>
-            </div>
-            <div className="ml-[45%] w-full">
-              <FormError errors={state?.errors} name="password" />
-            </div>
-          </div>
-          <div>
-            <div className="flex w-full items-center">
-              <span className="w-[45%] pr-6 text-right">
-                {t("verifyPasswordLabel")}
-              </span>
-              <div className="w-full max-w-44 justify-start">
-                <Input
-                  type="password"
-                  className="w-full rounded border border-gray-500 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                  {...register("passwordAgain")}
-                />
-              </div>
-            </div>
-            <div className="ml-[45%] w-full">
-              <FormError errors={state?.errors} name="passwordAgain" />
-              {/* Global errors container */}
-              <FormError
-                errors={state?.errors}
-                name="non_field_errors"
-                className="text-red-500-dark"
-              />
-            </div>
-          </div>
-          <div className="mt-4">
-            <Button
-              variant="secondary"
-              type="submit"
-              value="Submit"
-              className="ml-[45%] w-full max-w-44"
-            >
-              {t("changePasswordButton")}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </>
+          <FormError errors={state?.errors} name="password" />
+        </div>
+        <div>
+          <Input
+            className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+            placeholder={t("verifyPasswordPlaceholder")}
+            type="password"
+            {...register("passwordAgain")}
+          />
+          <FormError errors={state?.errors} name="passwordAgain" />
+          <FormError
+            errors={state?.errors}
+            name="non_field_errors"
+            className="text-red-500-dark"
+          />
+        </div>
+        <div className="flex items-center">
+          <Button variant="secondary" type="submit" disabled={isPending}>
+            {t("changePasswordButton")}
+          </Button>
+          {isPending && <LoadingSpinner className="ml-2" size="1x" />}
+        </div>
+      </form>
+    </div>
   );
 };
 

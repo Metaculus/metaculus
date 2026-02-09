@@ -66,8 +66,8 @@ const ServicesPageTemplate: React.FC<Props> = async ({
           value: `${abbreviatedNumber(siteStats.resolved_questions)}+`,
         },
         {
-          label: `${siteStats.years_of_predictions} ${t("years")} ${t("ofPredictions")}`,
-          value: "",
+          label: `${t("years")} ${t("ofPredictions")}`,
+          value: `${siteStats.years_of_predictions}`,
         },
       ];
     } catch {

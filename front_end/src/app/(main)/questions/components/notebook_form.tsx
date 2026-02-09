@@ -104,7 +104,7 @@ const NotebookForm: React.FC<Props> = ({
 
   // TODO: consider refactoring this field to be part of zod schema
   const [categoriesList, setCategoriesList] = useState<Category[]>(
-    post?.projects.category ? post?.projects.category : ([] as Category[])
+    post?.projects?.category ?? ([] as Category[])
   );
 
   const defaultProjectId =
@@ -115,13 +115,12 @@ const NotebookForm: React.FC<Props> = ({
     siteMain.id;
 
   // Only works for Tournaments & question series
-  const defaultProject = post
-    ? post.projects.default_project
-    : tournament_id
-      ? ([...tournaments, siteMain].find(
-          (x) => x.id === tournament_id
-        ) as Tournament)
-      : siteMain;
+  const defaultProject: Tournament =
+    post?.projects?.default_project ??
+    (tournament_id
+      ? (([...tournaments, siteMain].find((x) => x.id === tournament_id) ??
+          siteMain) as Tournament)
+      : siteMain);
   const [currentProject, setCurrentProject] =
     useState<Tournament>(defaultProject);
 
