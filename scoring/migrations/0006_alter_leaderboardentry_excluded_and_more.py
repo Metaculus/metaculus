@@ -13,7 +13,18 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="leaderboardentry",
             name="excluded",
-            field=models.BooleanField(db_index=True, default=False),
+            field=models.BooleanField(
+                db_index=True,
+                default=False,
+                help_text=(
+                    "Marking an entry as excluded does NOT automatically recalculate the "
+                    "leaderboard or reassign ranks/prizes. Recalculating the leaderboard "
+                    "will re-include excluded entries. To properly exclude a user from "
+                    "leaderboard rankings and prizes, create a MedalExclusionRecord for "
+                    "the user and attach it to the appropriate Project or Leaderboard, "
+                    "then recalculate the leaderboard."
+                ),
+            ),
         ),
         migrations.AlterField(
             model_name="score",

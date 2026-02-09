@@ -338,7 +338,18 @@ class LeaderboardEntry(TimeStampedModel):
     )
     take = models.FloatField(null=True, blank=True)
     rank = models.IntegerField(null=True, blank=True)
-    excluded = models.BooleanField(default=False, db_index=True)
+    excluded = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text=(
+            "Marking an entry as excluded does NOT automatically recalculate the "
+            "leaderboard or reassign ranks/prizes. Recalculating the leaderboard "
+            "will re-include excluded entries. To properly exclude a user from "
+            "leaderboard rankings and prizes, create a MedalExclusionRecord for "
+            "the user and attach it to the appropriate Project or Leaderboard, "
+            "then recalculate the leaderboard."
+        ),
+    )
     show_when_excluded = models.BooleanField(
         default=False,
         help_text="""If true, this entry will still be shown in the leaderboard even if
