@@ -92,21 +92,6 @@ def serialize_question_aggregations(
                     "movement": None,
                 }
 
-        # Debug method for building aggregation history from scratch
-        # Will be replaced in favour of aggregation explorer
-        if not minimize:
-            aggregate_forecasts_by_method = get_aggregation_history(
-                question,
-                aggregation_methods=[
-                    AggregationMethod.RECENCY_WEIGHTED,
-                    AggregationMethod.UNWEIGHTED,
-                ],
-                minimize=False,
-                include_stats=True,
-                include_bots=question.include_bots_in_aggregates,
-                histogram=True,
-            )
-
         if question.is_cp_hidden:
             # don't show any forecasts
             aggregate_forecasts_by_method = {}
