@@ -8,13 +8,21 @@ import {
   shift,
   useFloating,
 } from "@floating-ui/react";
-import { FC, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  FC,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ErrorBar,
   ErrorBarProps,
   VictoryAxis,
   VictoryBar,
   VictoryChart,
+  VictoryContainer,
   VictoryErrorBar,
   VictoryLabel,
   VictoryNumberCallback,
@@ -69,6 +77,9 @@ const FutureEvalProsVsBotsDiffChart: FC<{
 }> = ({ series, className }) => {
   const { ref, width } = useContainerSize<HTMLDivElement>();
   const chartRef = useRef<HTMLDivElement>(null);
+  // Timestamp of the last touch — used to ignore synthetic mouseleave events
+  // the browser fires after a tap so the tooltip doesn't immediately vanish.
+  const lastTouchTimeRef = useRef(0);
   const { theme, getThemeColor } = useAppTheme();
   const smUp = useBreakpoint("sm");
   const mdUp = useBreakpoint("md");
@@ -369,6 +380,30 @@ const FutureEvalProsVsBotsDiffChart: FC<{
     return rows;
   }, [activeCat, s1, s2, s1Data, s2Data, getThemeColor]);
 
+  // Dismiss the tooltip when the user scrolls or touches outside the chart
+  useEffect(() => {
+    if (!activeCat) return;
+
+    const dismiss = () => {
+      setActiveCat(null);
+      setAnchor(null);
+    };
+
+    const onTouchOutside = (e: TouchEvent) => {
+      if (chartRef.current && !chartRef.current.contains(e.target as Node)) {
+        dismiss();
+      }
+    };
+
+    window.addEventListener("scroll", dismiss, { passive: true });
+    document.addEventListener("touchstart", onTouchOutside, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", dismiss);
+      document.removeEventListener("touchstart", onTouchOutside);
+    };
+  }, [activeCat]);
+
   const legendEl = show && (
     <div className="mb-5 flex flex-wrap items-center justify-start gap-x-4 gap-y-2.5 antialiased sm:gap-x-6">
       {s1 && (
@@ -455,9 +490,19 @@ const FutureEvalProsVsBotsDiffChart: FC<{
               {legendEl}
 
               {width === 0 && <div style={{ height: chartH }} />}
-              <div ref={chartRef}>
+              <div
+                ref={chartRef}
+                onTouchStart={() => {
+                  lastTouchTimeRef.current = Date.now();
+                  setActiveCat(null);
+                  setAnchor(null);
+                }}
+              >
                 {width > 0 && (
                   <VictoryChart
+                    containerComponent={
+                      <VictoryContainer style={{ touchAction: "pan-y" }} />
+                    }
                     theme={chartTheme}
                     width={width}
                     height={chartH}
@@ -682,11 +727,13 @@ const FutureEvalProsVsBotsDiffChart: FC<{
                               return undefined;
                             },
                             onMouseLeave: () => {
+                              if (Date.now() - lastTouchTimeRef.current < 500)
+                                return undefined;
                               setActiveCat(null);
                               setAnchor(null);
                               return undefined;
                             },
-                            onTouchStart: (evt, props) => {
+                            onClick: (evt, props) => {
                               const d = (props as { datum?: HitDatum }).datum;
                               if (!d) return undefined;
 
@@ -703,31 +750,6 @@ const FutureEvalProsVsBotsDiffChart: FC<{
                               );
                               setActiveCat(d.cat);
                               setAnchor({ x: catCenterX(d._x), y });
-                              return undefined;
-                            },
-                            onTouchMove: (evt, props) => {
-                              const d = (props as { datum?: HitDatum }).datum;
-                              if (!d) return undefined;
-
-                              const svg =
-                                chartRef.current?.querySelector("svg");
-                              if (!svg) return undefined;
-
-                              const rect = svg.getBoundingClientRect();
-                              const clientY = getPointerClientY(evt);
-                              if (clientY == null) return undefined;
-
-                              const y = clamp(
-                                clientY - rect.top,
-                                paddingTop,
-                                chartH - paddingBottom
-                              );
-                              setAnchor({ x: catCenterX(d._x), y });
-                              return undefined;
-                            },
-                            onTouchEnd: () => {
-                              setActiveCat(null);
-                              setAnchor(null);
                               return undefined;
                             },
                           },
