@@ -4,9 +4,8 @@ import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
-import { z } from "zod";
 
-import { signInSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
+import { SignUpSchema } from "@/app/(main)/accounts/schemas";
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 import { getAuthCookieManager } from "@/services/auth_tokens";
@@ -15,9 +14,6 @@ import { AuthResponse, SignUpResponse } from "@/types/auth";
 import { CurrentUser } from "@/types/users";
 import { ApiError } from "@/utils/core/errors";
 import { getPublicSettings } from "@/utils/public_settings.server";
-
-type FieldErrorsFrom<TSchema extends z.ZodTypeAny> =
-  z.inferFlattenedErrors<TSchema>["fieldErrors"];
 
 export type ApiErrorPayload = {
   message?: string;
@@ -33,7 +29,7 @@ export type PostLoginAction = {
 };
 
 export type LoginActionState = {
-  errors?: FieldErrorsFrom<typeof signInSchema> | ApiErrorPayload;
+  errors?: ApiErrorPayload;
   user?: CurrentUser;
   postLoginAction?: PostLoginAction;
 } | null;
@@ -50,7 +46,7 @@ export default async function loginAction(
     return {
       errors: ApiError.isApiError(err)
         ? (err.data as ApiErrorPayload)
-        : undefined,
+        : { detail: "Something went wrong. Please try again." },
     };
   }
 
