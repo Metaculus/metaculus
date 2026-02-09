@@ -334,7 +334,7 @@ class LeaderboardEntry(TimeStampedModel):
         null=True, blank=True, help_text="Confidence Interval lower bound"
     )
     ci_upper = models.FloatField(
-        null=True, blank=True, help_text="Confidence Interval lower bound"
+        null=True, blank=True, help_text="Confidence Interval upper bound"
     )
     take = models.FloatField(null=True, blank=True)
     rank = models.IntegerField(null=True, blank=True)
