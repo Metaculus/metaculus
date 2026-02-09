@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 help_text=(
                     "Marking an entry as excluded does NOT automatically recalculate the "
                     "leaderboard or reassign ranks/prizes. Recalculating the leaderboard "
-                    "will re-include excluded entries. To properly exclude a user from "
+                    "will re-include manually-excluded entries. To properly exclude a user from "
                     "leaderboard rankings and prizes, create a MedalExclusionRecord for "
                     "the user and attach it to the appropriate Project or Leaderboard, "
                     "then recalculate the leaderboard."
