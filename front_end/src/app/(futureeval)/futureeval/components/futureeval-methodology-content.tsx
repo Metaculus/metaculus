@@ -38,7 +38,7 @@ const FutureEvalMethodologyContent: React.FC = () => {
     {
       icon: faTrophy,
       title: "Bot Tournaments",
-      linkHref: "/aib/2026/spring/",
+      linkHref: "/futureeval/participate",
       content: (
         <p>
           We run open tournaments where developers enter AI-powered forecasting

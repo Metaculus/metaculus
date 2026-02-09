@@ -1921,5 +1921,6 @@
   "feedTileSummaryPlaceholder": "Opcional: Ingrese un texto de resumen personalizado para mostrar en los mosaicos de noticias (si no se proporciona, se generará automáticamente un resumen a partir del contenido del cuaderno)",
   "includeBotsInAggregatesLabel": "Incluir Bots en los Agregados",
   "includeBotsInAggregatesExplanation": "Cuando está habilitado, las previsiones de bots se incluirán en los cálculos agregados para esta pregunta y afectarán la puntuación. De lo contrario, no afectarán en absoluto.",
+  "hidden": "Oculto",
   "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
 }

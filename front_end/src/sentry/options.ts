@@ -31,6 +31,11 @@ export function buildSentryOptions<
         return 0.005;
       }
 
+      // Reduce api-proxy pass-through traces
+      if (name.includes("/api-proxy/")) {
+        return 0.05;
+      }
+
       return 0.075;
     },
     ignoreErrors: SENTRY_IGNORE_ERRORS,
