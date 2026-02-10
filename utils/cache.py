@@ -62,7 +62,6 @@ def cached_singleton(
             cache.delete(cache_key)
 
         def refresh_cache() -> T:
-            cache.delete(cache_key)
             result = fn()
             cache.set(cache_key, result, timeout)
             return result
