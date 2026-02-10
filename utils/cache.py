@@ -25,14 +25,14 @@ class CachedFunction(Protocol[T]):
     def refresh_cache(self) -> T: ...
 
 
-def cache_function(
+def cached_singleton(
     timeout: int | None = None,
 ) -> Callable[[Callable[[], T]], CachedFunction[T]]:
     """
     Decorator for caching the result of a zero-argument function.
 
     Usage:
-        @cache_function(timeout=3600)
+        @cached_singleton(timeout=3600)
         def get_expensive_data() -> list[int]:
             return compute()
 
@@ -43,10 +43,15 @@ def cache_function(
     """
 
     def decorator(fn: Callable[[], T]) -> CachedFunction[T]:
-        cache_key = f"cache_function:{fn.__module__}.{fn.__qualname__}"
+        cache_key = f"cached_singleton:{fn.__module__}.{fn.__qualname__}"
 
         @functools.wraps(fn)
-        def wrapper() -> T:
+        def wrapper(*args, **kwargs) -> T:
+            if args or kwargs:
+                raise TypeError(
+                    f"{fn.__qualname__}() is a cached zero-argument function "
+                    f"and does not accept arguments"
+                )
             result = cache.get(cache_key, _SENTINEL)
             if result is _SENTINEL:
                 result = fn()

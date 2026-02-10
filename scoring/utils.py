@@ -55,7 +55,7 @@ from users.services.profile_stats import (
     get_score_histogram_data,
     get_score_scatter_plot_data,
 )
-from utils.cache import cache_function
+from utils.cache import cached_singleton
 from utils.dtypes import generate_map_from_list
 from utils.the_math.measures import decimal_h_index
 
@@ -1210,6 +1210,6 @@ def _compute_metaculus_stats() -> dict:
     return data
 
 
-@cache_function(timeout=60 * 60 * 24)
+@cached_singleton(timeout=60 * 60 * 24)
 def get_cached_metaculus_stats() -> dict:
     return _compute_metaculus_stats()
