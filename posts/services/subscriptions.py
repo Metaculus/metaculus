@@ -72,7 +72,6 @@ def _get_question_data_for_cp_change_notification(
                 data.forecast_date = user_forecast.start_time.isoformat()
 
             question_data.append(data)
-            # TODO: forecast date
     else:  # continuous
         data = CPChangeData(question=NotificationQuestionParams.from_question(question))
         median = current_entry.centers[0] if current_entry.centers else None
