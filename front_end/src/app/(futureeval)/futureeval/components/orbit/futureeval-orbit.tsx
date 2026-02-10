@@ -206,8 +206,9 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
       </div>
 
       {/* Rotating orbit group - CSS animation for smooth GPU-accelerated rotation */}
+      {/* pointer-events-none so clicks pass through to the hub; re-enabled on each circle */}
       <div
-        className="absolute inset-0"
+        className="pointer-events-none absolute inset-0"
         style={{
           animation:
             ORBIT_ANIMATION_DURATION > 0 && !prefersReducedMotion
@@ -225,7 +226,7 @@ const FutureEvalOrbit: React.FC<FutureEvalOrbitProps> = ({ className }) => {
           return (
             <div
               key={item.id}
-              className="absolute"
+              className="pointer-events-auto absolute"
               style={{
                 // Position using left/top (percentages relative to container)
                 left: `calc(50% + ${pos.x}%)`,

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React from "react";
 
 import cn from "@/utils/core/cn";
@@ -13,7 +14,7 @@ const MetaculusHub: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center text-center">
       {/* Logo and Title - side by side */}
-      <div className="flex items-center gap-2">
+      <Link href="/" className="flex items-center gap-2 no-underline">
         {/* M Logo Icon */}
         <div
           className={cn(
@@ -45,7 +46,7 @@ const MetaculusHub: React.FC = () => {
           <br />
           Platform
         </span>
-      </div>
+      </Link>
 
       {/* Stats */}
       <div className="mt-2">
