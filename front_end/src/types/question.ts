@@ -331,6 +331,7 @@ export type EditableQuestionFields = Pick<
   | "title"
   | "description"
   | "options"
+  | "options_order"
   | "group_variable"
   | "group_rank"
   | "scaling"

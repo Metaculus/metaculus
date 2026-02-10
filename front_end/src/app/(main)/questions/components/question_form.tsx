@@ -541,6 +541,7 @@ const QuestionForm: FC<Props> = ({
           ...baseValues,
           group_variable: draft.group_variable || "",
           options: draft.options || [],
+          options_order: draft.options_order,
         } as MultipleChoiceQuestionType;
       case QuestionType.Numeric:
         return {
