@@ -8,6 +8,7 @@ export type CaseStudyPartnerLogo = {
   lightSrc?: IconLike;
   darkSrc?: IconLike;
   src?: string | StaticImageData;
+  sizePx?: number;
 };
 
 export type CaseStudyReportCard = {

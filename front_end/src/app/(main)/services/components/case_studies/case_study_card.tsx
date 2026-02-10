@@ -61,7 +61,9 @@ const CaseStudyCard: React.FC<Props> = ({ card, className }) => {
           </div>
         )}
 
-        <hr className="my-3 h-[2px] bg-gray-200 opacity-20 dark:bg-gray-200-dark dark:opacity-20 sm:my-6" />
+        {!!card.partners?.logos?.length && (
+          <hr className="my-3 h-[2px] bg-gray-200 opacity-20 dark:bg-gray-200-dark dark:opacity-20 sm:my-6" />
+        )}
 
         {!!card.partners?.logos?.length && (
           <div>
@@ -79,7 +81,7 @@ const CaseStudyCard: React.FC<Props> = ({ card, className }) => {
                     alt={logo.alt}
                     light={light}
                     dark={dark}
-                    sizePx={14}
+                    sizePx={logo.sizePx ?? 14}
                     variant="logo"
                     className="shrink-0"
                   />

@@ -37,7 +37,7 @@ const ContactIntro: React.FC = () => {
       </ul>
 
       <p className="m-0 mt-6 text-base leading-5 text-blue-700 dark:text-blue-700-dark sm:mt-12">
-        Leading companies partner with Metaculus
+        Leading organizations partner with Metaculus
       </p>
 
       <div className="mt-4 grid w-max grid-cols-3 items-center gap-2.5">
