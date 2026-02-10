@@ -66,10 +66,13 @@ def _get_question_data_for_cp_change_notification(
             direction, magnitude = difference_display[i]
             data.cp_change_label = direction
             data.cp_change_value = magnitude
-            data.user_forecast = (
-                user_forecast.probability_yes_per_category[i] if user_forecast else None
-            )
+
+            if user_forecast:
+                data.user_forecast = user_forecast.probability_yes_per_category[i]
+                data.forecast_date = user_forecast.start_time.isoformat()
+
             question_data.append(data)
+            # TODO: forecast date
     else:  # continuous
         data = CPChangeData(question=NotificationQuestionParams.from_question(question))
         median = current_entry.centers[0] if current_entry.centers else None
@@ -101,14 +104,16 @@ def _get_question_data_for_cp_change_notification(
         direction, magnitude = difference_display[0]
         data.cp_change_label = direction
         data.cp_change_value = magnitude
-        user_q1, user_median, user_q3 = None, None, None
         if user_forecast:
             user_q1, user_median, user_q3 = get_scaled_quartiles_from_cdf(
                 user_forecast.continuous_cdf, question
             )
-        data.user_q1 = user_q1
-        data.user_median = user_median
-        data.user_q3 = user_q3
+
+            data.user_q1 = user_q1
+            data.user_median = user_median
+            data.user_q3 = user_q3
+            data.forecast_date = user_forecast.start_time.isoformat()
+
         question_data.append(data)
     return question_data
 
