@@ -72,6 +72,7 @@ import { createQuestionPost, updatePost } from "../actions";
 
 type SubQuestionDraftBase = {
   id?: number;
+  clientId: string;
   label: string;
   scheduled_close_time?: string | undefined;
   scheduled_resolve_time?: string | undefined;
@@ -381,6 +382,7 @@ const GroupForm: React.FC<Props> = ({
     return initialSubQuestions.map((x, idx) => {
       return {
         id: x.id,
+        clientId: crypto.randomUUID(),
         scheduled_close_time: x.scheduled_close_time,
         scheduled_resolve_time: x.scheduled_resolve_time,
         open_time: x.open_time,
@@ -508,7 +510,14 @@ const GroupForm: React.FC<Props> = ({
               )[0] as Tournament)
             : defaultProject
         );
-        setSubQuestions(draft.subQuestions ?? []);
+        setSubQuestions(
+          (draft.subQuestions ?? []).map(
+            (sq: QuestionWithForecasts & { clientId?: string }) => ({
+              ...sq,
+              clientId: sq.clientId || crypto.randomUUID(),
+            })
+          )
+        );
         setCollapsedSubQuestions(
           [...(draft.subQuestions ?? [])].map(() => true)
         );
@@ -761,7 +770,7 @@ const GroupForm: React.FC<Props> = ({
           {subQuestions.map((subQuestion, index) => {
             return (
               <div
-                key={index}
+                key={subQuestion.clientId}
                 className="flex w-full flex-col gap-4 rounded border bg-gray-0 p-4 dark:bg-gray-0-dark"
               >
                 <InputContainer
@@ -1098,6 +1107,7 @@ const GroupForm: React.FC<Props> = ({
                   const last = subQuestions[subQuestions.length - 1];
                   const clone: SubQuestionDraft = {
                     ...last,
+                    clientId: crypto.randomUUID(),
                     has_forecasts: false,
                     id: undefined,
                     label: "",
@@ -1150,6 +1160,7 @@ const GroupForm: React.FC<Props> = ({
                       ...subQuestions,
                       {
                         type: QuestionType.Numeric,
+                        clientId: crypto.randomUUID(),
                         label: "",
                         scheduled_close_time:
                           form.getValues().scheduled_close_time,
@@ -1169,6 +1180,7 @@ const GroupForm: React.FC<Props> = ({
                       ...subQuestions,
                       {
                         type: QuestionType.Discrete,
+                        clientId: crypto.randomUUID(),
                         label: "",
                         scheduled_close_time:
                           form.getValues().scheduled_close_time,
@@ -1189,6 +1201,7 @@ const GroupForm: React.FC<Props> = ({
                       ...subQuestions,
                       {
                         type: QuestionType.Date,
+                        clientId: crypto.randomUUID(),
                         label: "",
                         scheduled_close_time:
                           form.getValues().scheduled_close_time,
@@ -1208,6 +1221,7 @@ const GroupForm: React.FC<Props> = ({
                       ...subQuestions,
                       {
                         type: QuestionType.Binary,
+                        clientId: crypto.randomUUID(),
                         label: "",
                         scheduled_close_time:
                           form.getValues().scheduled_close_time,
