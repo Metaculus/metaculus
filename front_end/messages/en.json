@@ -1335,7 +1335,6 @@
   "anonymize": "Anonymize",
   "scoreData": "Score data",
   "keyFactorData": "Key factor data",
-  "includeGeometricMeans": "Include geometric means",
   "includeUserData": "Include user data",
   "aggregationMethods": "Aggregation methods",
   "configuration": "Configuration",

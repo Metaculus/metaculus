@@ -20,7 +20,6 @@ from questions.models import (
 from questions.services.multiple_choice_handlers import get_all_options_from_history
 from questions.types import AggregationMethod
 from scoring.models import Score, ArchivedScore
-from scoring.score_math import get_geometric_means
 from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import (
@@ -132,7 +131,6 @@ def export_data_for_questions(
     only_include_user_ids: list[int] | None,
     include_bots: bool | None,
     anonymized: bool,
-    include_geometric_means: bool = False,
     include_future: bool = False,
     **kwargs,
 ) -> bytes:
@@ -257,58 +255,6 @@ def export_data_for_questions(
     else:
         key_factors = None
         aggregate_question_links = None
-
-    # Add geometric means if requested
-    if include_geometric_means:
-        for question in questions_with_revealed_cp:
-            # Get all forecasts for this question
-            question_forecasts = Forecast.objects.filter(question=question).order_by(
-                "start_time"
-            )
-            if only_include_user_ids:
-                question_forecasts = question_forecasts.filter(
-                    author_id__in=only_include_user_ids
-                )
-            if not include_future:
-                question_forecasts = question_forecasts.filter(
-                    start_time__lte=timezone.now()
-                )
-
-            # Get geometric means
-            geometric_mean_entries = get_geometric_means(list(question_forecasts))
-
-            # Convert AggregationEntry objects to AggregateForecast-like objects
-            # Get a reference aggregate forecast to copy timing details from
-            reference_aggregates = [
-                af for af in aggregate_forecasts if af.question_id == question.id
-            ]
-
-            for entry in geometric_mean_entries:
-                # Create a pseudo-AggregateForecast object
-                geometric_aggregate = AggregateForecast(
-                    question=question,
-                    method="geometric_mean",
-                    start_time=datetime.datetime.fromtimestamp(
-                        entry.timestamp, datetime.timezone.utc
-                    ),
-                    end_time=None,  # Will be set based on next entry or reference
-                    forecast_values=list(entry.pmf),
-                    forecaster_count=entry.num_forecasters,
-                )
-
-                # Find matching reference aggregate to copy end_time from
-                matching_ref = next(
-                    (
-                        af
-                        for af in reference_aggregates
-                        if af.start_time == geometric_aggregate.start_time
-                    ),
-                    None,
-                )
-                if matching_ref:
-                    geometric_aggregate.end_time = matching_ref.end_time
-
-                aggregate_forecasts.append(geometric_aggregate)
 
     return generate_data(
         questions=questions,
@@ -562,7 +508,7 @@ def generate_data(
         + "**`End Time`** - the time when the forecast ends. If not populated, the forecast is still active. Note that this can be set in the future indicating an expiring forecast.\n"
         + "**`Forecaster Count`** - if this is an aggregate forecast, how many forecasts contribute to it.\n"
         + "**`Probability Yes`** - the probability of the binary question resolving to 'Yes'\n"
-        + "**`Probability Yes Per Category`** - a list of probabilities corresponding to each option for a multiple choice question. Cross-reference 'MC Options (All)' in `question_data.csv`. Note that a Multiple Choice forecast will have None in places where the corresponding option wasn't available for forecast at the time.\n"
+        + "**`Probability Yes Per Category`** - a list of probabilities corresponding to each option for a multiple choice question. Cross-reference 'MC Options (All)' in `question_data.csv`. Note that a Multiple Choice forecast will have None in places where the corresponding option wasn't available for forecast at the time. Note: for binary questions, aggregations will store their values here additionally as [p(no), p(yes)]. \n"
         + "**`Continuous CDF`** - the value of the CDF (cumulative distribution function) at each of the locations in the continuous range for a continuous question. Cross-reference 'Continuous Range' in `question_data.csv`.\n"
         + "**`Probability Below Lower Bound`** - the probability of the question resolving below the lower bound for a continuous question.\n"
         + "**`Probability Above Upper Bound`** - the probability of the question resolving above the upper bound for a continuous question.\n"
@@ -661,7 +607,7 @@ def generate_data(
         match aggregate_forecast.question.type:
             case Question.QuestionType.BINARY:
                 probability_yes = aggregate_forecast.forecast_values[1]
-                probability_yes_per_category = None
+                probability_yes_per_category = aggregate_forecast.forecast_values
                 continuous_cdf = None
             case Question.QuestionType.MULTIPLE_CHOICE:
                 probability_yes = None

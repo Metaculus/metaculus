@@ -33,7 +33,6 @@ const schema = z.object({
   include_scores: z.boolean(),
   include_user_data: z.boolean(),
   include_key_factors: z.boolean(),
-  include_geometric_means: z.boolean(),
   include_bots: z.enum(["default", "true", "false"]).optional(),
   anonymized: z.boolean(),
 });
@@ -93,16 +92,13 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
       include_scores: false,
       include_user_data: true,
       include_key_factors: false,
-      include_geometric_means: false,
       include_bots: undefined,
       anonymized: !whitelistStatus.view_deanonymized_data,
     },
   });
 
-  const { minimize, include_bots, include_user_data, include_geometric_means } =
-    watch();
-  const isDownloadDisabled =
-    !minimize || !isNil(include_bots) || include_geometric_means;
+  const { minimize, include_bots, include_user_data } = watch();
+  const isDownloadDisabled = !minimize || !isNil(include_bots);
 
   useEffect(() => {
     if (whitelistStatus.isLoaded) {
@@ -212,13 +208,6 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
             name="include_key_factors"
             label={t("keyFactorData")}
             errors={errors.include_key_factors}
-            disabled={isLoggedOut}
-          />
-          <CheckboxField
-            control={control}
-            name="include_geometric_means"
-            label={t("includeGeometricMeans")}
-            errors={errors.include_geometric_means}
             disabled={isLoggedOut}
           />
           <CheckboxField
