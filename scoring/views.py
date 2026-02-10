@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from django.db.models import Q, Count
+from django.db.models import Count, F, Q
 from django.views.decorators.cache import cache_page
 import numpy as np
 from rest_framework import status, serializers
@@ -52,6 +52,11 @@ def global_leaderboard_view(
         leaderboards = leaderboards.filter(end_time=end_time)
     if score_type:
         leaderboards = leaderboards.filter(score_type=score_type)
+    if not any([start_time, end_time, score_type, name]):
+        leaderboards = leaderboards.filter(
+            Q(display_config__isnull=True, project__primary_leaderboard_id=F("id"))
+            | Q(display_config__display_on_project=True),  # explicitly display
+        )
     leaderboard_count = leaderboards.count()
     if leaderboard_count == 0:
         return Response(status=status.HTTP_404_NOT_FOUND)
@@ -123,16 +128,16 @@ def project_leaderboard_view(
         leaderboards = [leaderboard]
     else:
         # get the leaderboard through params (may return primary leaderboard)
-        leaderboards = Leaderboard.objects.filter(
-            Q(display_config__isnull=True)  # default config
-            | Q(display_config__display_on_project=True),  # explicitly display
-            project=project,
-        )
+        leaderboards = Leaderboard.objects.filter(project=project)
         if name:
             leaderboards = leaderboards.filter(name=name)
         if score_type:
             leaderboards = leaderboards.filter(score_type=score_type)
-
+        if not any([score_type, name]):
+            leaderboards = leaderboards.filter(
+                Q(display_config__isnull=True, project__primary_leaderboard_id=F("id"))
+                | Q(display_config__display_on_project=True),  # explicitly display
+            )
         if not leaderboards:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -293,7 +298,7 @@ def user_medals(
 @cache_page(60 * 30)
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def medal_contributions(
+def leaderboard_contributions(
     request: Request,
 ):
     serializer = GetLeaderboardSerializer(data=request.GET)
@@ -326,6 +331,11 @@ def medal_contributions(
         leaderboards = leaderboards.filter(score_type=score_type)
     if name:
         leaderboards = leaderboards.filter(name=name)
+    if not any([start_time, end_time, score_type, name]):
+        leaderboards = leaderboards.filter(
+            Q(display_config__isnull=True, project__primary_leaderboard_id=F("id"))
+            | Q(display_config__display_on_project=True),  # explicitly display
+        )
 
     # get leaderboard and project
     leaderboard_count = leaderboards.count()

@@ -3,12 +3,13 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useMemo, useState } from "react";
 
-import enMessages from "@/../../messages/en.json";
+// import enMessages from "@/../../messages/en.json";
 import Button from "@/components/ui/button";
 import { LeaderboardDetails, LeaderboardDisplayConfig } from "@/types/scoring";
 
 import TableHeader from "./table_header";
 import TableRow from "./table_row";
+import enMessages from "../../../../../../../messages/en.json";
 import UnfinalizedPrizeTooltip from "../prize_unfinalized_tooltip";
 
 type Props = {
