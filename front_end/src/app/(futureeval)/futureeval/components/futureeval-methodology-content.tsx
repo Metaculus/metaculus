@@ -42,10 +42,10 @@ const FutureEvalMethodologyContent: React.FC = () => {
       content: (
         <p>
           We run open tournaments where developers enter AI-powered forecasting
-          bots to compete for a share of $175k in prizes yearly. Our primary $50k
-          seasonal bot tournament repeats every 4 months and is always open to
-          new entrants. We also run a fast-feedback $1k tournament every 2 weeks
-          called MiniBench.
+          bots to compete for a share of $175k in prizes yearly. Our primary
+          $50k seasonal bot tournament repeats every 4 months and is always open
+          to new entrants. We also run a fast-feedback $1k tournament every 2
+          weeks called MiniBench.
         </p>
       ),
     },
