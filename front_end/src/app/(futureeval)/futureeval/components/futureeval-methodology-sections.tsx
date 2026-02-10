@@ -430,7 +430,7 @@ const FutureEvalMethodologySections: React.FC = () => {
             Metaculus forecasting questions. Those are implemented as
             &quot;MetacBots&quot; with username{" "}
             <code className="rounded bg-futureeval-bg-dark/10 px-1 py-0.5 dark:bg-futureeval-bg-light/10">
-              metac-[model-name]+[search-provider]
+              metac-[model-name]+asknews
             </code>
             . You can spot these in various tournaments on the Metaculus
             platform.{" "}
@@ -560,7 +560,7 @@ const FutureEvalMethodologySections: React.FC = () => {
             Metaculus to evaluate model performance for the Model Leaderboard
             and in the Bot Tournaments. They&apos;re all named{" "}
             <code className="rounded bg-futureeval-bg-dark/10 px-1 py-0.5 dark:bg-futureeval-bg-light/10">
-              metac-*
+              metac-[model-name]+[search-provider]
             </code>
             , and are not eligible for prizes in tournaments. They use a
             standardized prompt and usually use AskNews as a search provider.
