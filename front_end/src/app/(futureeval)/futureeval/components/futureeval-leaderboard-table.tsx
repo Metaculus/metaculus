@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
 
+import { LightDarkIcon } from "@/components/ui/light-dark-icon";
 import type { LeaderboardDetails } from "@/types/scoring";
 import cn from "@/utils/core/cn";
 
@@ -12,7 +13,6 @@ import {
   isAggregate,
   shouldDisplayEntry,
 } from "./leaderboard/utils";
-import { LightDarkIcon } from "./light-dark-icon";
 
 type Props = { details: LeaderboardDetails };
 

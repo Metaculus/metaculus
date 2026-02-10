@@ -3,8 +3,8 @@
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 
-import { LightDarkIcon } from "@/app/(main)/aib/components/aib/light-dark-icon";
 import Button from "@/components/ui/button";
+import { LightDarkIcon } from "@/components/ui/light-dark-icon";
 import StackedPreviewImage from "@/components/ui/stacked-preview-image";
 import cn from "@/utils/core/cn";
 

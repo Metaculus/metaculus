@@ -1,6 +1,6 @@
 import type { StaticImageData } from "next/image";
 
-import { IconLike } from "@/app/(main)/aib/components/aib/light-dark-icon";
+import { IconLike } from "@/components/ui/light-dark-icon";
 
 export type CaseStudyPartnerLogo = {
   alt: string;
