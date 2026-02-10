@@ -74,7 +74,7 @@ class LeaderboardEntryInline(admin.TabularInline):
                 )
             )
             .filter(row_number__lte=50)  # Limit to top 50 entries
-        )
+        ).order_by("rank", "id")
 
 
 @admin.register(Leaderboard)
