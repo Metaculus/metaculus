@@ -345,8 +345,8 @@ const FutureEvalMethodologySections: React.FC = () => {
                     them. But tomorrow is unpredictable, and next year even more
                     so. We can make forecasting questions almost arbitrarily
                     more challenging by making them more niche and precise, and
-                    longer term. FutureEval will only become saturated when AIs
-                    are perfect oracles.
+                    longer term. FutureEval can scale in difficulty as AI
+                    capabilities increase.
                   </span>,
                   <span key="interdisciplinary">
                     <strong>Interdisciplinary Reasoning:</strong> Our diverse
@@ -401,8 +401,8 @@ const FutureEvalMethodologySections: React.FC = () => {
                   </span>,
                   <span key="probabilistic">
                     <strong>Probabilistic forecasts:</strong> FutureEval
-                    collects quantitative forecasts (not binary &quot;yes&quot;
-                    or &quot;no&quot; answers) and scores them using{" "}
+                    collects quantitative forecasts (not just a &quot;yes&quot;
+                    or &quot;no&quot; answer) and scores them using{" "}
                     <Link
                       href="https://www.metaculus.com/help/scores-faq/#proper-scoring"
                       className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
@@ -430,7 +430,7 @@ const FutureEvalMethodologySections: React.FC = () => {
             Metaculus forecasting questions. Those are implemented as
             &quot;MetacBots&quot; with username{" "}
             <code className="rounded bg-futureeval-bg-dark/10 px-1 py-0.5 dark:bg-futureeval-bg-light/10">
-              metac-*+asknews
+              metac-[model-name]+[search-provider]
             </code>
             . You can spot these in various tournaments on the Metaculus
             platform.{" "}
