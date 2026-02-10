@@ -4,6 +4,7 @@ import csv
 from pathlib import Path
 
 from datetime import datetime, timedelta, timezone as dt_timezone
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db.models import Exists, OuterRef, Prefetch, QuerySet, Q
 from django.utils import timezone
@@ -57,8 +58,6 @@ def get_score_pair(
                 cvs.append(max(0, (end - start)) / total_duration)
             current_timestamp = gm.timestamp
         if coverage == 0:
-            # investigate!
-            breakpoint()
             return None
         user1_scores = evaluate_forecasts_peer_accuracy(
             forecasts=user1_forecasts,  # only evaluate user1 (user2 is opposite)
@@ -300,7 +299,7 @@ def gather_data(
                     scores.append(u1s)
                     coverages.append(cov)
                     timestamps.append(question.actual_close_time.timestamp())
-        if cache_use and question_number % cache_interval == 0:
+        if cache_use == "partial" and question_number % cache_interval == 0:
             print(f"\nCaching {len(user1_ids)} matches...")
             with csv_path.open("a") as output_file:
                 writer = csv.writer(output_file)
@@ -1093,4 +1092,8 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options) -> None:
-        run_update_global_bot_leaderboard(cache_use="full")
+        if not settings.DEBUG:
+            cache_use = ""
+        else:
+            cache_use = "partial"
+        run_update_global_bot_leaderboard(cache_use=cache_use)

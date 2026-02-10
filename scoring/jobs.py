@@ -17,7 +17,7 @@ from scoring.management.commands.update_global_bot_leaderboard import (
 logger = logging.getLogger(__name__)
 
 
-def update_gobal_bot_leaderboard():
+def update_global_bot_leaderboard():
     global_bot_leaderboard = Leaderboard.objects.filter(
         name="Global Bot Leaderboard",
     ).first()
