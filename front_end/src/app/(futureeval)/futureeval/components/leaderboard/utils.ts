@@ -91,7 +91,15 @@ export function entryLabel(entry: Partial<LeaderboardEntry>): string {
   return entry.aggregation_method ?? "Aggregate";
 }
 
-const INVALID_MODEL_NAMES = new Set(["n/a", "na", "none", "tbd", "unknown", "test", ""]);
+const INVALID_MODEL_NAMES = new Set([
+  "n/a",
+  "na",
+  "none",
+  "tbd",
+  "unknown",
+  "test",
+  "",
+]);
 const UPCOMING_MODEL_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000; // 3 months
 
 function isValidModelName(name: string): boolean {
@@ -101,8 +109,7 @@ function isValidModelName(name: string): boolean {
 export function getEntryReleaseDate(
   entry: Partial<LeaderboardEntry>
 ): Date | undefined {
-  const raw =
-    entry.user?.metadata?.bot_details?.base_models?.[0]?.releaseDate;
+  const raw = entry.user?.metadata?.bot_details?.base_models?.[0]?.releaseDate;
   if (!raw) return undefined;
   const parsed = new Date(raw);
   return Number.isNaN(parsed.getTime()) ? undefined : parsed;

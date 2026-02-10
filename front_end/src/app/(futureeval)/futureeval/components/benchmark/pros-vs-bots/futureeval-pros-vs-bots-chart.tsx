@@ -454,11 +454,7 @@ const FutureEvalProsVsBotsDiffChart: FC<{
                   orientation="left"
                   offsetX={smUp ? 60 : 45}
                   axisLabelComponent={
-                    <VictoryLabel
-                      angle={-90}
-                      dx={-16}
-                      dy={smUp ? -10 : -5}
-                    />
+                    <VictoryLabel angle={-90} dx={-16} dy={smUp ? -10 : -5} />
                   }
                   tickValues={yTicksNoZero}
                   label="Pro Lead Over Bots"
@@ -640,8 +636,7 @@ const FutureEvalProsVsBotsDiffChart: FC<{
                           const d = (props as { datum?: HitDatum }).datum;
                           if (!d) return undefined;
 
-                          const svg =
-                            chartRef.current?.querySelector("svg");
+                          const svg = chartRef.current?.querySelector("svg");
                           if (!svg) return undefined;
 
                           const rect = svg.getBoundingClientRect();
@@ -668,8 +663,7 @@ const FutureEvalProsVsBotsDiffChart: FC<{
                           const d = (props as { datum?: HitDatum }).datum;
                           if (!d) return undefined;
 
-                          const svg =
-                            chartRef.current?.querySelector("svg");
+                          const svg = chartRef.current?.querySelector("svg");
                           if (!svg) return undefined;
 
                           const rect = svg.getBoundingClientRect();
