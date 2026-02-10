@@ -48,6 +48,14 @@ from scoring.models import (
 )
 from scoring.score_math import evaluate_question
 from users.models import User
+from users.services.profile_stats import (
+    generate_question_scores,
+    get_calibration_curve_data,
+    get_forecasting_stats_data,
+    get_score_histogram_data,
+    get_score_scatter_plot_data,
+)
+from utils.cache import cached_singleton
 from utils.dtypes import generate_map_from_list
 from utils.the_math.measures import decimal_h_index
 
@@ -1168,3 +1176,40 @@ def get_contributions(
     )
 
     return contributions
+
+
+def _compute_metaculus_stats() -> dict:
+    aggregation_method = AggregationMethod.RECENCY_WEIGHTED
+
+    # TODO: support archived scores
+    score_qs = Score.objects.filter(
+        question__post__default_project__default_permission__isnull=False,
+        score_type=ScoreTypes.BASELINE,
+    )
+    score_qs = score_qs.filter(aggregation_method=aggregation_method)
+
+    scores = generate_question_scores(score_qs)
+    data = {}
+    data.update(
+        get_score_scatter_plot_data(
+            scores=scores, aggregation_method=aggregation_method
+        )
+    )
+    data.update(
+        get_score_histogram_data(scores=scores, aggregation_method=aggregation_method)
+    )
+    data.update(
+        get_calibration_curve_data(
+            aggregation_method=aggregation_method, chunk_size=10_000
+        )
+    )
+    data.update(
+        get_forecasting_stats_data(scores=scores, aggregation_method=aggregation_method)
+    )
+
+    return data
+
+
+@cached_singleton(timeout=60 * 60 * 24)
+def get_cached_metaculus_stats() -> dict:
+    return _compute_metaculus_stats()

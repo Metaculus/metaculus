@@ -25,7 +25,7 @@ from scoring.serializers import (
 )
 from scoring.utils import get_contributions, update_project_leaderboard
 from users.models import User
-from users.services.profile_stats import serialize_metaculus_stats
+from scoring.utils import get_cached_metaculus_stats
 
 
 @api_view(["GET"])
@@ -366,4 +366,4 @@ def medal_contributions(
 def metaculus_track_record(
     request: Request,
 ):
-    return Response(serialize_metaculus_stats())
+    return Response(get_cached_metaculus_stats())
