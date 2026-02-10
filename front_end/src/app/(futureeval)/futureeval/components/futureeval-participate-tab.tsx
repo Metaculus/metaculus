@@ -313,8 +313,9 @@ const FutureEvalTournamentOverview: React.FC = () => {
             FE_COLORS.textSubheading
           )}
         >
-          LLM inference costs are covered if participating in the Seasonal
-          Tournament, courtesy of OpenAI, Anthropic, and Google.
+          If participating in the Seasonal Bot Tournament, LLM inference costs
+          are covered free-of-charge, courtesy of OpenAI, Anthropic, and
+          Google.
         </p>
       </div>
 
@@ -327,7 +328,7 @@ const FutureEvalTournamentOverview: React.FC = () => {
       >
         To read more about each tournament, see our{" "}
         <Link
-          href="/notebooks/38928/ai-benchmark-resources/#research-reports-and-overview-of-the-field"
+          href="/notebooks/38928/ai-benchmark-resources/"
           className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
         >
           resources page

@@ -640,14 +640,21 @@ const FutureEvalMethodologySections: React.FC = () => {
 
       {/* Section 6: How much Pros beat Bots */}
       <section className="space-y-6">
-        <SectionHeader id="pros-beat-bots">
+        <SectionHeader id="pros-vs-bots">
           Pros vs. <span className={FE_COLORS.textAccent}>Bots</span>
         </SectionHeader>
         <SectionBody>
           <p className="m-0">
             At the end of each season, we publish an analysis investigating
             whether the best bots in our Bot Tournament are better or worse than
-            the best humans and by how much.
+            the{" "}
+            <Link
+              href="#human-baselines"
+              className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+            >
+              best humans
+            </Link>{" "}
+            and by how much.
           </p>
           <p className="m-0">
             The{" "}

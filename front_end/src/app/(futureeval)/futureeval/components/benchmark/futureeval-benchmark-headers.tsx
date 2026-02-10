@@ -62,7 +62,7 @@ export const FutureEvalForecastingPerformanceHeader: React.FC = () => {
           Model forecasting score vs. release date.{" "}
           <Link
             className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
-            href="/futureeval/methodology#model-leaderboard"
+            href="/futureeval/methodology#forecasting-performance-over-time"
           >
             Learn more
           </Link>
@@ -85,7 +85,7 @@ export const FutureEvalProsVsBotsSectionHeader: React.FC = () => {
           Forecasters won every season so far.{" "}
           <Link
             className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
-            href="/futureeval/methodology#human-baselines"
+            href="/futureeval/methodology#pros-vs-bots"
           >
             Learn more
           </Link>
