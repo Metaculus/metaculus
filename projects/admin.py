@@ -75,6 +75,56 @@ class ProjectDefaultPermissionFilter(admin.SimpleListFilter):
         return queryset
 
 
+class LeaderboardInline(admin.TabularInline):
+    model = Leaderboard
+    extra = 0
+    fields = (
+        "leaderboard_link",
+        "score_type",
+        "start_time",
+        "end_time",
+        "finalize_time",
+        "finalized",
+        "prize_pool",
+        "is_primary",
+    )
+    readonly_fields = (
+        "leaderboard_link",
+        "is_primary",
+    )
+    can_delete = False
+    verbose_name = "Leaderboard"
+    verbose_name_plural = "Leaderboards"
+    show_change_link = True
+
+    def leaderboard_link(self, obj):
+        if not obj.pk:
+            return "-"
+        url = reverse("admin:scoring_leaderboard_change", args=[obj.pk])
+        label = obj.name or f"Leaderboard #{obj.pk} ({obj.score_type})"
+        return format_html('<a href="{}">{}</a>', url, label)
+
+    leaderboard_link.short_description = "Leaderboard"
+
+    def is_primary(self, obj):
+        if not obj.pk:
+            return False
+        return obj.primary_project.exists()
+
+    is_primary.short_description = "Is Primary"
+    is_primary.boolean = True
+
+    def get_queryset(self, request):
+        project_id = request.resolver_match.kwargs.get("object_id")
+        qs = super().get_queryset(request)
+        if project_id is None:
+            return qs.none()
+        return qs.filter(project_id=project_id)
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
 class ProjectUserPermissionInline(admin.TabularInline):
     model = ProjectUserPermission
     extra = 1
@@ -358,6 +408,7 @@ class ProjectAdmin(CustomTranslationAdmin):
     autocomplete_fields = ["created_by", "primary_leaderboard"]
     ordering = ["-created_at"]
     inlines = [
+        LeaderboardInline,
         ProjectUserPermissionInline,
         PostDefaultProjectInline,
         PostProjectInline,
