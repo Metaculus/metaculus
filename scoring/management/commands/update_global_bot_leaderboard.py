@@ -842,7 +842,6 @@ def run_update_global_bot_leaderboard(
                 if timestamp > release + timedelta(days=365).total_seconds():
                     skip = True
         if skip:
-            breakpoint()
             continue
 
         # done

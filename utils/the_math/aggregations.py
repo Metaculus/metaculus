@@ -934,11 +934,10 @@ def get_user_forecast_history(
                 continue
             timestep_set.add(forecast.end_time)
     timesteps = sorted(timestep_set)
-    if minimize:
-        if isinstance(minimize, int):
-            timesteps = minimize_history(timesteps, minimize)
-        else:
-            timesteps = minimize_history(timesteps)
+    if minimize > 1:
+        timesteps = minimize_history(timesteps, minimize)
+    elif minimize:
+        timesteps = minimize_history(timesteps)
     forecast_sets: dict[datetime, ForecastSet] = {
         timestep: ForecastSet(
             forecasts_values=[],
