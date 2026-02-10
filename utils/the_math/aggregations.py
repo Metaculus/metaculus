@@ -1008,25 +1008,18 @@ def get_aggregation_history(
     forecaster_ids = set(forecast.author_id for forecast in forecasts)
     for method in aggregation_methods:
         if method == "geometric_mean":
+            # if minimize:
+            #     continue  # gomean is useless minimized
             from scoring.score_math import get_geometric_means
 
             geometric_means = get_geometric_means(forecasts)
             full_summary[method] = []
             previous_forecast = None
             for gm in geometric_means:
-                pmf = gm.pmf
-                if question.type in [
-                    Question.QuestionType.NUMERIC,
-                    Question.QuestionType.DISCRETE,
-                    Question.QuestionType.DATE,
-                ]:
-                    forecast_values = np.cumsum(pmf)[:-1].tolist()
-                else:
-                    forecast_values = pmf.tolist()
                 aggregate_forecast = AggregateForecast(
                     question=question,
                     method=method,
-                    forecast_values=forecast_values,
+                    forecast_values=gm.pmf.tolist(),
                     start_time=datetime.fromtimestamp(gm.timestamp, tz=dt_timezone.utc),
                     end_time=None,
                     forecaster_count=gm.num_forecasters,

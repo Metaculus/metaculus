@@ -508,7 +508,7 @@ def generate_data(
         + "**`End Time`** - the time when the forecast ends. If not populated, the forecast is still active. Note that this can be set in the future indicating an expiring forecast.\n"
         + "**`Forecaster Count`** - if this is an aggregate forecast, how many forecasts contribute to it.\n"
         + "**`Probability Yes`** - the probability of the binary question resolving to 'Yes'\n"
-        + "**`Probability Yes Per Category`** - a list of probabilities corresponding to each option for a multiple choice question. Cross-reference 'MC Options (All)' in `question_data.csv`. Note that a Multiple Choice forecast will have None in places where the corresponding option wasn't available for forecast at the time. Note: for binary questions, aggregations will store their values here additionally as [p(no), p(yes)]. \n"
+        + "**`Probability Yes Per Category`** - a list of probabilities corresponding to each option for a multiple choice question. Cross-reference 'MC Options (All)' in `question_data.csv`. Note that a Multiple Choice forecast will have None in places where the corresponding option wasn't available for forecast at the time. Note: geometric_means always display values here in pmf form.\n"
         + "**`Continuous CDF`** - the value of the CDF (cumulative distribution function) at each of the locations in the continuous range for a continuous question. Cross-reference 'Continuous Range' in `question_data.csv`.\n"
         + "**`Probability Below Lower Bound`** - the probability of the question resolving below the lower bound for a continuous question.\n"
         + "**`Probability Above Upper Bound`** - the probability of the question resolving above the upper bound for a continuous question.\n"
@@ -604,19 +604,22 @@ def generate_data(
 
         forecast_writer.writerow(row)
     for aggregate_forecast in aggregate_forecasts or []:
-        match aggregate_forecast.question.type:
-            case Question.QuestionType.BINARY:
-                probability_yes = aggregate_forecast.forecast_values[1]
-                probability_yes_per_category = aggregate_forecast.forecast_values
-                continuous_cdf = None
-            case Question.QuestionType.MULTIPLE_CHOICE:
-                probability_yes = None
-                probability_yes_per_category = aggregate_forecast.forecast_values
-                continuous_cdf = None
-            case _:  # continuous
-                probability_yes = None
-                probability_yes_per_category = None
-                continuous_cdf = aggregate_forecast.forecast_values
+        if aggregate_forecast.method == "geometric_mean":
+            probability_yes = None
+            probability_yes_per_category = aggregate_forecast.forecast_values
+            continuous_cdf = None
+        elif aggregate_forecast.question.type == Question.QuestionType.BINARY:
+            probability_yes = aggregate_forecast.forecast_values[1]
+            probability_yes_per_category = None
+            continuous_cdf = None
+        elif aggregate_forecast.question.type == Question.QuestionType.MULTIPLE_CHOICE:
+            probability_yes = None
+            probability_yes_per_category = aggregate_forecast.forecast_values
+            continuous_cdf = None
+        else:  # continuous
+            probability_yes = None
+            probability_yes_per_category = None
+            continuous_cdf = aggregate_forecast.forecast_values
         row = [aggregate_forecast.question_id]
         if anonymized:
             row.append(aggregate_forecast.method)
@@ -633,7 +636,7 @@ def generate_data(
                 continuous_cdf,
             ]
         )
-        if aggregate_forecast.question.type not in QUESTION_CONTINUOUS_TYPES:
+        if not continuous_cdf:
             row.extend([None] * 7)
         else:
             cdf = continuous_cdf
