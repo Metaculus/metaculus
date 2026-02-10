@@ -345,8 +345,8 @@ const FutureEvalMethodologySections: React.FC = () => {
                     them. But tomorrow is unpredictable, and next year even more
                     so. We can make forecasting questions almost arbitrarily
                     more challenging by making them more niche and precise, and
-                    longer term. FutureEval will only become saturated when AIs
-                    are perfect oracles.
+                    longer term. FutureEval can scale in difficulty as AI
+                    capabilities increase.
                   </span>,
                   <span key="interdisciplinary">
                     <strong>Interdisciplinary Reasoning:</strong> Our diverse
@@ -401,8 +401,8 @@ const FutureEvalMethodologySections: React.FC = () => {
                   </span>,
                   <span key="probabilistic">
                     <strong>Probabilistic forecasts:</strong> FutureEval
-                    collects quantitative forecasts (not binary &quot;yes&quot;
-                    or &quot;no&quot; answers) and scores them using{" "}
+                    collects quantitative forecasts (not just a &quot;yes&quot;
+                    or &quot;no&quot; answer) and scores them using{" "}
                     <Link
                       href="https://www.metaculus.com/help/scores-faq/#proper-scoring"
                       className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
@@ -430,7 +430,7 @@ const FutureEvalMethodologySections: React.FC = () => {
             Metaculus forecasting questions. Those are implemented as
             &quot;MetacBots&quot; with username{" "}
             <code className="rounded bg-futureeval-bg-dark/10 px-1 py-0.5 dark:bg-futureeval-bg-light/10">
-              metac-*+asknews
+              metac-[model-name]+asknews
             </code>
             . You can spot these in various tournaments on the Metaculus
             platform.{" "}
@@ -560,7 +560,7 @@ const FutureEvalMethodologySections: React.FC = () => {
             Metaculus to evaluate model performance for the Model Leaderboard
             and in the Bot Tournaments. They&apos;re all named{" "}
             <code className="rounded bg-futureeval-bg-dark/10 px-1 py-0.5 dark:bg-futureeval-bg-light/10">
-              metac-*
+              metac-[model-name]+[search-provider]
             </code>
             , and are not eligible for prizes in tournaments. They use a
             standardized prompt and usually use AskNews as a search provider.
@@ -628,7 +628,7 @@ const FutureEvalMethodologySections: React.FC = () => {
             gives two high-quality baselines to evaluate the progress of AI
             forecasting bots. We use these in our analysis comparing whether{" "}
             <Link
-              href="#pros-beat-bots"
+              href="#pros-vs-bots"
               className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
             >
               pros beat bots
@@ -640,14 +640,21 @@ const FutureEvalMethodologySections: React.FC = () => {
 
       {/* Section 6: How much Pros beat Bots */}
       <section className="space-y-6">
-        <SectionHeader id="pros-beat-bots">
+        <SectionHeader id="pros-vs-bots">
           Pros vs. <span className={FE_COLORS.textAccent}>Bots</span>
         </SectionHeader>
         <SectionBody>
           <p className="m-0">
             At the end of each season, we publish an analysis investigating
             whether the best bots in our Bot Tournament are better or worse than
-            the best humans and by how much.
+            the{" "}
+            <Link
+              href="#human-baselines"
+              className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
+            >
+              best humans
+            </Link>{" "}
+            and by how much.
           </p>
           <p className="m-0">
             The{" "}
@@ -660,7 +667,7 @@ const FutureEvalMethodologySections: React.FC = () => {
             shows how much better pros did than bots when comparing a team of 10
             pros and the best 10 bots in the first four Bot Tournaments. Note
             that Q3 and Q4 2024 included only binary questions, while Q1 and Q2
-            2025 also included numeric and multiple choice questions. The pro
+            2025 also included numeric and multiple choice questions. The Pro
             lead tends to be larger on non-binary question types, which may
             partly explain the increase in later quarters.
           </p>

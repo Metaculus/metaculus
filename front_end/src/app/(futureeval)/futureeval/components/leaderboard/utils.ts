@@ -91,8 +91,51 @@ export function entryLabel(entry: Partial<LeaderboardEntry>): string {
   return entry.aggregation_method ?? "Aggregate";
 }
 
+const INVALID_MODEL_NAMES = new Set([
+  "n/a",
+  "na",
+  "none",
+  "tbd",
+  "unknown",
+  "test",
+  "",
+]);
+const UPCOMING_MODEL_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000; // 3 months
+
+function isValidModelName(name: string): boolean {
+  return !INVALID_MODEL_NAMES.has(name.trim().toLowerCase());
+}
+
+export function getEntryReleaseDate(
+  entry: Partial<LeaderboardEntry>
+): Date | undefined {
+  const raw = entry.user?.metadata?.bot_details?.base_models?.[0]?.releaseDate;
+  if (!raw) return undefined;
+  const parsed = new Date(raw);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
+function isUpcomingCandidate(entry: Partial<LeaderboardEntry>): boolean {
+  if (isAggregate(entry)) return false;
+  if (shouldDisplayEntry(entry)) return false;
+  if (!entry.user?.metadata?.bot_details?.display_in_leaderboard) return false;
+
+  const releaseDate = getEntryReleaseDate(entry);
+  if (!releaseDate) return false;
+  if (Date.now() - releaseDate.getTime() > UPCOMING_MODEL_MAX_AGE_MS)
+    return false;
+
+  const name = entryLabel(entry);
+  return isValidModelName(name) && isValidModelName(getBaseModelName(name));
+}
+
 /**
- * Gets top N unique base model names from entries that don't meet display criteria.
+ * Gets top N unique base model names from entries that are recently released
+ * but haven't yet met the display threshold.
+ *
+ * Candidates must have display_in_leaderboard=true, a release date within the
+ * last 3 months, and a valid (non-placeholder) name.
+ *
  * Excludes base models that already appear in the displayed entries.
  * Sorted by: needed forecasts (ascending), then score (descending).
  */
@@ -109,12 +152,8 @@ export function getUpcomingModels(
       if (baseModel) displayedBaseModels.add(baseModel);
     });
 
-  const seen = new Set<string>();
-  const result: string[] = [];
-
-  // Filter excluded entries, compute needed forecasts, and sort
-  const excluded = entries
-    .filter((e) => !shouldDisplayEntry(e))
+  const candidates = entries
+    .filter(isUpcomingCandidate)
     .map((e) => ({
       baseModel: getBaseModelName(entryLabel(e)),
       needed: MIN_RESOLVED_FORECASTS - (e.contribution_count ?? 0),
@@ -123,7 +162,9 @@ export function getUpcomingModels(
     .sort((a, b) => a.needed - b.needed || b.score - a.score);
 
   // Extract unique base models preserving sort order, excluding already displayed ones
-  for (const { baseModel } of excluded) {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const { baseModel } of candidates) {
     if (
       baseModel &&
       !seen.has(baseModel) &&

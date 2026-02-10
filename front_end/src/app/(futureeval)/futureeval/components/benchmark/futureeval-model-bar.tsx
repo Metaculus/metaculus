@@ -27,7 +27,7 @@ type Props = {
 
 const FutureEvalModelBar: React.FC<Props> = ({ heightPct, model }) => {
   const router = useRouter();
-  const score = Math.round(model.score * 100) / 100;
+  const score = (Math.round(model.score * 100) / 100).toFixed(2);
   const [isHovered, setIsHovered] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 

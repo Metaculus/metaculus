@@ -742,39 +742,6 @@ const QuestionForm: FC<Props> = ({
           />
         </InputContainer>
 
-        {ContinuousQuestionTypes.some((type) => type === questionType) && (
-          <NumericQuestionInput
-            draftKey={shouldUseDraftValue ? questionType : undefined}
-            questionType={questionType as ContinuousQuestionType}
-            defaultMin={post?.question?.scaling.range_min ?? undefined}
-            defaultMax={post?.question?.scaling.range_max ?? undefined}
-            defaultZeroPoint={post?.question?.scaling.zero_point}
-            defaultOpenLowerBound={post?.question?.open_lower_bound}
-            defaultOpenUpperBound={post?.question?.open_upper_bound}
-            defaultInboundOutcomeCount={post?.question?.inbound_outcome_count}
-            hasForecasts={hasForecasts && mode !== "create"}
-            unit={post?.question?.unit}
-            control={form as unknown as UseFormReturn<FieldValues>}
-            onChange={({
-              range_min,
-              range_max,
-              zero_point,
-              open_upper_bound,
-              open_lower_bound,
-              inbound_outcome_count,
-            }) => {
-              form.setValue("scaling", {
-                range_min,
-                range_max,
-                zero_point,
-              });
-              form.setValue("open_lower_bound", open_lower_bound);
-              form.setValue("open_upper_bound", open_upper_bound);
-              form.setValue("inbound_outcome_count", inbound_outcome_count);
-            }}
-          />
-        )}
-
         {questionType === QuestionType.MultipleChoice && (
           <>
             <InputContainer
@@ -856,6 +823,40 @@ const QuestionForm: FC<Props> = ({
             </div>
           </>
         )}
+
+        {ContinuousQuestionTypes.some((type) => type === questionType) && (
+          <NumericQuestionInput
+            draftKey={shouldUseDraftValue ? questionType : undefined}
+            questionType={questionType as ContinuousQuestionType}
+            defaultMin={post?.question?.scaling.range_min ?? undefined}
+            defaultMax={post?.question?.scaling.range_max ?? undefined}
+            defaultZeroPoint={post?.question?.scaling.zero_point}
+            defaultOpenLowerBound={post?.question?.open_lower_bound}
+            defaultOpenUpperBound={post?.question?.open_upper_bound}
+            defaultInboundOutcomeCount={post?.question?.inbound_outcome_count}
+            hasForecasts={hasForecasts && mode !== "create"}
+            unit={post?.question?.unit}
+            control={form as unknown as UseFormReturn<FieldValues>}
+            onChange={({
+              range_min,
+              range_max,
+              zero_point,
+              open_upper_bound,
+              open_lower_bound,
+              inbound_outcome_count,
+            }) => {
+              form.setValue("scaling", {
+                range_min,
+                range_max,
+                zero_point,
+              });
+              form.setValue("open_lower_bound", open_lower_bound);
+              form.setValue("open_upper_bound", open_upper_bound);
+              form.setValue("inbound_outcome_count", inbound_outcome_count);
+            }}
+          />
+        )}
+
         <div className="flex w-full flex-col gap-4 md:flex-row">
           <InputContainer
             labelText={"Closing Time"}
@@ -884,6 +885,36 @@ const QuestionForm: FC<Props> = ({
             />
           </InputContainer>
         </div>
+
+        <div className="flex w-full flex-col gap-4 md:flex-row">
+          <InputContainer
+            labelText={t("openTime")}
+            explanation={"When this question will be open for predictions."}
+            className="w-full gap-2"
+          >
+            <DateInput
+              control={form.control as unknown as Control<FieldValues>}
+              name="open_time"
+              defaultValue={post?.question?.open_time}
+              errors={form.formState.errors.open_time}
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+            />
+          </InputContainer>
+          <InputContainer
+            labelText={t("cpRevealTime")}
+            explanation={t("cpRevealTimeDescription")}
+            className="w-full gap-2"
+          >
+            <DateInput
+              control={form.control as unknown as Control<FieldValues>}
+              name="cp_reveal_time"
+              defaultValue={post?.question?.cp_reveal_time}
+              errors={form.formState.errors.cp_reveal_time}
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+            />
+          </InputContainer>
+        </div>
+
         <InputContainer labelText={t("categories")}>
           <CategoryPicker
             allCategories={allCategories}
@@ -901,19 +932,6 @@ const QuestionForm: FC<Props> = ({
 
           <div className="mb-6 flex w-full flex-col gap-4 md:flex-row">
             <InputContainer
-              labelText={t("openTime")}
-              explanation={"When this question will be open for predictions."}
-              className="w-full gap-2"
-            >
-              <DateInput
-                control={form.control as unknown as Control<FieldValues>}
-                name="open_time"
-                defaultValue={post?.question?.open_time}
-                errors={form.formState.errors.open_time}
-                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              />
-            </InputContainer>
-            <InputContainer
               labelText={"Publish Time"}
               explanation={t("publishTimeDescription")}
               className="w-full gap-2"
@@ -928,21 +946,6 @@ const QuestionForm: FC<Props> = ({
             </InputContainer>
           </div>
 
-          <div className="mb-6 flex w-full flex-col gap-4 md:flex-row">
-            <InputContainer
-              labelText={t("cpRevealTime")}
-              explanation={t("cpRevealTimeDescription")}
-              className="w-full gap-2"
-            >
-              <DateInput
-                control={form.control as unknown as Control<FieldValues>}
-                name="cp_reveal_time"
-                defaultValue={post?.question?.cp_reveal_time}
-                errors={form.formState.errors.cp_reveal_time}
-                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              />
-            </InputContainer>
-          </div>
           {!community_id &&
             defaultProject.type !== TournamentType.Community && (
               <ProjectPickerInput

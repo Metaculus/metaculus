@@ -107,8 +107,6 @@ export function getModelDetailsFromScoreEntry(
     label: model ?? username,
     family,
     familyLabel: familyMeta.label,
-    releasedAt:
-      entry.user?.metadata?.bot_details?.base_models?.[0]?.releaseDate,
     iconLight: familyMeta.iconLight,
     iconDark: familyMeta.iconDark ?? familyMeta.iconLight,
   } as const;
