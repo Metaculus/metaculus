@@ -311,7 +311,11 @@ def get_feed_project_tiles() -> list[dict]:
     )
 
     question_qs = Question.objects.only(
-        "id", "post_id", "open_time", "actual_resolve_time", "resolution",
+        "id",
+        "post_id",
+        "open_time",
+        "actual_resolve_time",
+        "resolution",
         "resolution_set_time",
     )
     questions_by_project = get_questions_by_project(
@@ -348,9 +352,10 @@ def get_feed_project_tiles() -> list[dict]:
         elif (
             all_resolved
             and last_resolve_time
-            # TODO: should we use project.close_date or forecasting_end_date?
-            and max(last_resolve_time, project.close_date or last_resolve_time)
-            >= now - timedelta(days=10)
+            and abs(
+                now - max(last_resolve_time, project.close_date or last_resolve_time)
+            )
+            <= timedelta(days=10)
         ):
             rule = FeedTileRule.ALL_QUESTIONS_RESOLVED
 
