@@ -310,6 +310,9 @@ def get_feed_project_tiles() -> list[dict]:
         .select_related("primary_leaderboard")
     )
 
+    if not projects:
+        return []
+
     question_qs = Question.objects.only(
         "id",
         "post_id",
@@ -375,10 +378,15 @@ def get_feed_project_tiles() -> list[dict]:
         key=lambda r: (rule_priority.index(r["rule"]), r["project"].order or 0)
     )
 
-    # Fallback: if no rules matched, return the highest-ordered project
+    # Fallback: if no rules matched, pick best ongoing project
     if not results:
-        # TODO: adjust fallback sorting!
-        best = min(projects, key=lambda p: p.order or 0)
+        best = min(
+            projects,
+            key=lambda p: (
+                not p.is_ongoing,
+                p.order if p.order is not None else float("inf"),
+            ),
+        )
         results = [
             {
                 "project": best,
