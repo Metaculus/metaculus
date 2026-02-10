@@ -628,7 +628,7 @@ const FutureEvalMethodologySections: React.FC = () => {
             gives two high-quality baselines to evaluate the progress of AI
             forecasting bots. We use these in our analysis comparing whether{" "}
             <Link
-              href="#pros-beat-bots"
+              href="#pros-vs-bots"
               className={cn(FE_TYPOGRAPHY.link, FE_COLORS.textAccent)}
             >
               pros beat bots

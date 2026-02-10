@@ -314,8 +314,7 @@ const FutureEvalTournamentOverview: React.FC = () => {
           )}
         >
           If participating in the Seasonal Bot Tournament, LLM inference costs
-          are covered free-of-charge, courtesy of OpenAI, Anthropic, and
-          Google.
+          are covered free-of-charge, courtesy of OpenAI, Anthropic, and Google.
         </p>
       </div>
 
