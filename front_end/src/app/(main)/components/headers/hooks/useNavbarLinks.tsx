@@ -88,8 +88,8 @@ const useNavbarLinks = ({
           href: "/aggregation-explorer",
         },
         aiBenchmark: {
-          label: t("aiBenchmark"),
-          href: "/aib",
+          label: "FutureEval" + " " + t("aiBenchmark"),
+          href: "/futureeval",
         },
         createQuestion: {
           label: <CreateQuestionButton />,

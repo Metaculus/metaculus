@@ -45,6 +45,22 @@ export async function changeEmail(email: string, password: string) {
   }
 }
 
+export async function sendSetPasswordEmail() {
+  try {
+    await ServerProfileApi.sendSetPasswordEmail();
+
+    return {};
+  } catch (err) {
+    if (!ApiError.isApiError(err)) {
+      throw err;
+    }
+
+    return {
+      errors: err.data,
+    };
+  }
+}
+
 export async function emailMeMyData() {
   try {
     return await ServerProfileApi.emailMeMyData();

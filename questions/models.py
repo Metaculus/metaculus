@@ -553,6 +553,11 @@ class ForecastQuerySet(QuerySet):
             Q(end_time__gt=timestamp) | Q(end_time__isnull=True)
         )
 
+    def exclude_non_primary_bots(self):
+        return self.filter(
+            Q(author__is_bot=False) | Q(author__is_primary_bot=True),
+        )
+
     def active(self):
         """
         Returns active forecasts.

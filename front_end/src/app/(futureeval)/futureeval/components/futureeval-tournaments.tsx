@@ -93,8 +93,8 @@ const FutureEvalTournaments: React.FC = () => {
               FE_COLORS.textSubheading
             )}
           >
-            Submit your own forecasting bot and compete for prizes in our
-            tournaments.
+            We evaluate custom bot architectures. Submit your own forecasting
+            bot and compete for prizes in our tournaments.
           </p>
         </div>
         <span

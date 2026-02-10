@@ -31,7 +31,8 @@ const FutureEvalHeader: React.FC<Props> = ({ tabs, activeTab }) => {
   return (
     <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
       {/* Logo - sizes controlled by FE_LOGO_SCALE in theme.ts */}
-      <div
+      <Link
+        href="/futureeval"
         className="flex flex-col items-center lg:items-start"
         style={logoStyle}
       >
@@ -51,7 +52,7 @@ const FutureEvalHeader: React.FC<Props> = ({ tabs, activeTab }) => {
           className="hidden h-auto w-[var(--logo-mobile)] dark:block sm:w-[var(--logo-desktop)]"
           priority
         />
-      </div>
+      </Link>
 
       {/* Tab navigation */}
       <nav className="flex justify-center lg:justify-end">

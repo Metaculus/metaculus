@@ -362,8 +362,11 @@ def evaluate_question(
     if only_include_user_ids:
         user_forecasts = user_forecasts.filter(author__id__in=only_include_user_ids)
     base_forecasts = user_forecasts
-    if not only_include_user_ids and not question.include_bots_in_aggregates:
-        base_forecasts = base_forecasts.exclude(author__is_bot=True)
+    if not only_include_user_ids:
+        # only include forecasts by non-primary bots if user ids explicitly specified
+        base_forecasts = base_forecasts.exclude_non_primary_bots()
+        if not question.include_bots_in_aggregates:
+            base_forecasts = base_forecasts.exclude(author__is_bot=True)
     aggregations = get_aggregation_history(
         question,
         minimize=False,

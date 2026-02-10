@@ -749,6 +749,9 @@ def get_aggregations_at_time(
     )
     if only_include_user_ids:
         forecasts = forecasts.filter(author_id__in=only_include_user_ids)
+    else:
+        # only include forecasts by non-primary bots if user ids explicitly specified
+        forecasts = forecasts.exclude_non_primary_bots()
     if not include_bots:
         forecasts = forecasts.exclude(author__is_bot=True)
     if len(forecasts) == 0:
@@ -920,7 +923,7 @@ def minimize_history(
 
 def get_user_forecast_history(
     forecasts: Sequence[Forecast],
-    minimize: bool = False,
+    minimize: bool | int = False,
     cutoff: datetime | None = None,
 ) -> list[ForecastSet]:
     timestep_set: set[datetime] = set()
@@ -931,7 +934,9 @@ def get_user_forecast_history(
                 continue
             timestep_set.add(forecast.end_time)
     timesteps = sorted(timestep_set)
-    if minimize:
+    if minimize > 1:
+        timesteps = minimize_history(timesteps, minimize)
+    elif minimize:
         timesteps = minimize_history(timesteps)
     forecast_sets: dict[datetime, ForecastSet] = {
         timestep: ForecastSet(
@@ -965,7 +970,7 @@ def get_aggregation_history(
     aggregation_methods: list[AggregationMethod],
     forecasts: QuerySet[Forecast] | None = None,
     only_include_user_ids: list[int] | set[int] | None = None,
-    minimize: bool = True,
+    minimize: bool | int = True,
     include_stats: bool = True,
     include_bots: bool = False,
     histogram: bool | None = None,
@@ -986,6 +991,9 @@ def get_aggregation_history(
 
         if only_include_user_ids:
             forecasts = forecasts.filter(author_id__in=only_include_user_ids)
+        else:
+            # only include forecasts by non-primary bots if user ids explicitly specified
+            forecasts = forecasts.exclude_non_primary_bots()
         if not include_bots:
             forecasts = forecasts.exclude(author__is_bot=True)
 
