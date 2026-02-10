@@ -660,7 +660,7 @@ const FutureEvalMethodologySections: React.FC = () => {
             shows how much better pros did than bots when comparing a team of 10
             pros and the best 10 bots in the first four Bot Tournaments. Note
             that Q3 and Q4 2024 included only binary questions, while Q1 and Q2
-            2025 also included numeric and multiple choice questions. The pro
+            2025 also included numeric and multiple choice questions. The Pro
             lead tends to be larger on non-binary question types, which may
             partly explain the increase in later quarters.
           </p>
