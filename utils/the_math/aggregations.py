@@ -1008,8 +1008,8 @@ def get_aggregation_history(
     forecaster_ids = set(forecast.author_id for forecast in forecasts)
     for method in aggregation_methods:
         if method == "geometric_mean":
-            # if minimize:
-            #     continue  # gomean is useless minimized
+            if minimize:
+                continue  # gomean is useless minimized
             from scoring.score_math import get_geometric_means
 
             geometric_means = get_geometric_means(forecasts)
