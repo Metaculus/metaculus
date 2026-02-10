@@ -246,8 +246,11 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     [choicesForecasts.length]
   );
   const forecastHasValues = useMemo(
-    () => choicesForecasts.every((el) => el.forecast !== null),
-    [choicesForecasts]
+    () =>
+      choicesForecasts.every(
+        (el) => !question.options.includes(el.name) || el.forecast !== null
+      ),
+    [choicesForecasts, question.options]
   );
   const forecastsSum = useMemo(
     () =>

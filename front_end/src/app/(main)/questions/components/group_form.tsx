@@ -646,17 +646,6 @@ const GroupForm: React.FC<Props> = ({
           />
         </InputContainer>
         <InputContainer
-          labelText={t("groupVariable")}
-          explanation={t("groupVariableDescription")}
-        >
-          <Input
-            {...form.register("group_variable")}
-            errors={form.formState.errors.group_variable}
-            defaultValue={post?.group_of_questions?.group_variable}
-            className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-          />
-        </InputContainer>
-        <InputContainer
           labelText={t("resolutionCriteria")}
           isNativeFormControl={false}
           explanation={t.rich("resolutionCriteriaExplanation", {
@@ -694,6 +683,17 @@ const GroupForm: React.FC<Props> = ({
             onChange={(categories) => {
               setCategoriesList(categories);
             }}
+          />
+        </InputContainer>
+        <InputContainer
+          labelText={t("groupVariable")}
+          explanation={t("groupVariableDescription")}
+        >
+          <Input
+            {...form.register("group_variable")}
+            errors={form.formState.errors.group_variable}
+            defaultValue={post?.group_of_questions?.group_variable}
+            className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
         </InputContainer>
         <div className="flex flex-col gap-4 rounded border bg-gray-200 p-4 dark:bg-gray-200-dark">

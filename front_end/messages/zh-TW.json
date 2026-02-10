@@ -285,6 +285,7 @@
   "forgotPasswordLink": "忘記密碼？",
   "passwordResetHeading": "重設密碼",
   "passwordResetDescription": "輸入您的用戶名，我們將向您發送電子郵件以重設密碼。",
+  "passwordResetPageDescription": "此操作將結束您所有的活躍工作階段。已發行的 API 金鑰在您輪換之前仍然有效。",
   "resetPasswordButton": "重設密碼",
   "resetPasswordEmailSentHeading": "重設密碼郵件已發送",
   "resetPasswordEmailSent1": "您的重設密碼請求已成功處理。",
@@ -777,6 +778,11 @@
   "settingsChangeEmailAddressSuccess": "確認信已發送到您的新地址。請循信內的鏈接以激活。",
   "emailChangeErrorMessage": "更改電子郵件失敗",
   "emailChangeSuccessMessage": "您的電子郵件地址已成功更改",
+  "socialAccountNoPasswordBanner": "您的帳號尚未設定密碼。請在下方設定密碼，以便更改電子郵件或使用電子郵件和密碼登入。",
+  "noPasswordYet": "您尚未設定密碼。",
+  "sendSetPasswordEmail": "設定密碼",
+  "sendSetPasswordEmailSuccess": "密碼設定連結已傳送到您的電子郵件。",
+  "setPasswordRequiredForEmailChange": "請先設定密碼，然後再更改電子郵件。",
   "backToSettings": "返回設定",
   "settingsMentionsInComments": "評論中的提及",
   "settingsQuestionResolution": "已解析的問題",
@@ -1912,5 +1918,6 @@
   "feedTileSummaryPlaceholder": "選擇性：輸入自訂摘要文字以顯示在Feed磁貼上（如果未提供，將從筆記本內容自動生成摘要）",
   "includeBotsInAggregatesLabel": "在總體中包括機器人",
   "includeBotsInAggregatesExplanation": "啟用後，機器人預測將包含在此問題的總體計算中，並影響評分。否則，則不會影響。",
+  "hidden": "隱藏",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }

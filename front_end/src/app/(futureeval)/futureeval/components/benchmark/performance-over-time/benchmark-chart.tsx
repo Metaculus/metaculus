@@ -1,7 +1,7 @@
 "use client";
 
 import { range as d3Range } from "d3-array";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import {
   VictoryChart,
   VictoryScatter,
@@ -208,6 +208,14 @@ export function BenchmarkChart({
     [hoveredFamily, selectedFamilies]
   );
 
+  // Track active touch gestures so we can suppress voronoi activation during
+  // scrolling and only respond to taps (via the synthetic mousemove the browser
+  // fires after touchend).
+  const touchActiveRef = useRef(false);
+  // Timestamp of the last touchend — used to ignore the synthetic mouseleave
+  // the browser fires shortly after a tap.
+  const lastTouchTimeRef = useRef(0);
+
   // Prepare data with showLabel flag, opacity, and isSota flag - memoized
   // Show labels when:
   // 1. showAllLabels is true (show all), OR
@@ -251,7 +259,20 @@ export function BenchmarkChart({
       ref={containerRef}
       className={`relative w-full ${className ?? ""}`}
       style={{ minHeight: chartHeight }}
-      onMouseLeave={() => onHoveredPointKeyChange(null)}
+      onMouseLeave={() => {
+        // After a touch, the browser fires a synthetic mouseleave. Ignore it
+        // so the label activated by the tap doesn't immediately vanish.
+        if (Date.now() - lastTouchTimeRef.current < 500) return;
+        onHoveredPointKeyChange(null);
+      }}
+      onTouchStart={() => {
+        touchActiveRef.current = true;
+        onHoveredPointKeyChange(null);
+      }}
+      onTouchEnd={() => {
+        touchActiveRef.current = false;
+        lastTouchTimeRef.current = Date.now();
+      }}
     >
       {containerWidth === 0 ? (
         <div className="h-[460px] w-full animate-pulse rounded-md bg-gray-200 dark:bg-gray-800 sm:h-[600px]" />
@@ -271,7 +292,13 @@ export function BenchmarkChart({
               voronoiBlacklist={[/^refLine-/, /^refLabel-/, "sotaTrend"]}
               radius={30}
               activateData
+              style={{ touchAction: "pan-y" }}
               onActivated={(points: { pointKey?: string }[]) => {
+                // During an active touch gesture (scroll), suppress voronoi
+                // activation so labels don't flicker. After the touch ends the
+                // browser fires a synthetic mousemove for taps, which reaches
+                // here with touchActiveRef already cleared.
+                if (touchActiveRef.current) return;
                 const point = points[0];
                 if (point?.pointKey) {
                   onHoveredPointKeyChange(point.pointKey);
