@@ -13,7 +13,7 @@ from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
 from questions.models import Question
 from users.models import User
-from utils.cache import cache_per_object
+from utils.cache import cache_per_object, cached_singleton
 from utils.dtypes import generate_map_from_list
 
 
@@ -300,6 +300,7 @@ class FeedTileRule(TextChoices):
     ALL_QUESTIONS_RESOLVED = "ALL_QUESTIONS_RESOLVED"
 
 
+@cached_singleton(timeout=60 * 20)
 def get_feed_project_tiles() -> list[dict]:
     now = timezone.now()
 
