@@ -1198,7 +1198,11 @@ def _compute_metaculus_stats() -> dict:
     data.update(
         get_score_histogram_data(scores=scores, aggregation_method=aggregation_method)
     )
-    data.update(get_calibration_curve_data(aggregation_method=aggregation_method))
+    data.update(
+        get_calibration_curve_data(
+            aggregation_method=aggregation_method, chunk_size=10_000
+        )
+    )
     data.update(
         get_forecasting_stats_data(scores=scores, aggregation_method=aggregation_method)
     )
