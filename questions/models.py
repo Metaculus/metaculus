@@ -230,6 +230,19 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         <br>Updated whenever options are changed.""",
     )
 
+    class MultipleChoiceOptionsOrder(models.TextChoices):
+        DEFAULT = "DEFAULT"
+        CP_DESC = "CP_DESC"
+
+    options_order = models.CharField(
+        max_length=12,
+        choices=MultipleChoiceOptionsOrder.choices,
+        default=MultipleChoiceOptionsOrder.DEFAULT,
+        help_text="""For Multiple Choice only.
+        DEFAULT: current default behavior (display views sort by CP, forecast maker preserves creation order).
+        CP_DESC: all views sort options by descending community prediction.""",
+    )
+
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
 
