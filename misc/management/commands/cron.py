@@ -29,6 +29,7 @@ from scoring.jobs import (
     update_custom_leaderboards,
 )
 from scoring.utils import update_medal_points_and_ranks
+from scoring.tasks import warm_cache_metaculus_stats
 
 
 logger = logging.getLogger(__name__)
@@ -227,6 +228,17 @@ class Command(BaseCommand):
                 max_instances=1,
                 replace_existing=True,
             )
+
+        #
+        # Cache warm-up jobs
+        #
+        scheduler.add_job(
+            close_old_connections(warm_cache_metaculus_stats.send),
+            trigger=CronTrigger.from_crontab("0 */12 * * *"),  # Every 12 hours
+            id="warm_cache_metaculus_stats",
+            max_instances=1,
+            replace_existing=True,
+        )
 
         try:
             logger.info("Starting scheduler...")
