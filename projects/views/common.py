@@ -179,18 +179,26 @@ def tournaments_list_api_view(request: Request):
     return Response(data)
 
 
-# @cache_page(60 * 10)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def feed_project_tiles_api_view(request: Request):
     tiles = get_feed_project_tiles()
 
+    # Fresh query for live project data
+    projects_map = {
+        p.id: p
+        for p in Project.objects.filter(
+            id__in=[t["project_id"] for t in tiles]
+        ).select_related("primary_leaderboard")
+    }
+
     data = [
         {
-            "project": TournamentShortSerializer(tile.pop("project")).data,
+            "project": TournamentShortSerializer(projects_map[tile["project_id"]]).data,
             **tile,
         }
         for tile in tiles
+        if tile["project_id"] in projects_map
     ]
 
     return Response(data)

@@ -307,7 +307,6 @@ def get_feed_project_tiles() -> list[dict]:
         Project.objects.filter_tournament()
         .exclude(visibility=Project.Visibility.UNLISTED)
         .filter(default_permission__isnull=False)
-        .select_related("primary_leaderboard")
     )
 
     if not projects:
@@ -365,7 +364,7 @@ def get_feed_project_tiles() -> list[dict]:
         if rule:
             results.append(
                 {
-                    "project": project,
+                    "project_id": project.id,
                     "recently_opened_questions": recently_opened,
                     "recently_resolved_questions": recently_resolved,
                     "all_questions_resolved": all_resolved,
@@ -374,9 +373,7 @@ def get_feed_project_tiles() -> list[dict]:
             )
 
     rule_priority = list(FeedTileRule)
-    results.sort(
-        key=lambda r: (rule_priority.index(r["rule"]), r["project"].order or 0)
-    )
+    results.sort(key=lambda r: rule_priority.index(r["rule"]))
 
     # Fallback: if no rules matched, pick best ongoing project
     if not results:
@@ -389,7 +386,7 @@ def get_feed_project_tiles() -> list[dict]:
         )
         results = [
             {
-                "project": best,
+                "project_id": best.id,
                 "recently_opened_questions": 0,
                 "recently_resolved_questions": 0,
                 "all_questions_resolved": False,
