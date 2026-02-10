@@ -356,18 +356,6 @@ const FutureEvalProsVsBotsDiffChart: FC<{
 
   const legendEl = show && (
     <div className="mb-5 flex flex-wrap items-center justify-start gap-x-4 gap-y-2.5 antialiased sm:gap-x-6">
-      {s1 && (
-        <span className="inline-flex items-center gap-1.5">
-          <span
-            aria-hidden
-            className="inline-block h-[12px] w-[12px] rounded-[2px]"
-            style={{ background: getThemeColor(s1.colorToken) }}
-          />
-          <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-sm">
-            {s1.label}
-          </span>
-        </span>
-      )}
       {s2 && (
         <span className="inline-flex items-center gap-1.5">
           <span
@@ -377,6 +365,18 @@ const FutureEvalProsVsBotsDiffChart: FC<{
           />
           <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-sm">
             {s2.label}
+          </span>
+        </span>
+      )}
+      {s1 && (
+        <span className="inline-flex items-center gap-1.5">
+          <span
+            aria-hidden
+            className="inline-block h-[12px] w-[12px] rounded-[2px]"
+            style={{ background: getThemeColor(s1.colorToken) }}
+          />
+          <span className="text-xs text-gray-900 dark:text-gray-900-dark sm:text-sm">
+            {s1.label}
           </span>
         </span>
       )}
@@ -461,7 +461,7 @@ const FutureEvalProsVsBotsDiffChart: FC<{
                     />
                   }
                   tickValues={yTicksNoZero}
-                  label="Score Difference"
+                  label="Pro Lead Over Bots"
                   style={{
                     grid: {
                       stroke: gridStroke,
