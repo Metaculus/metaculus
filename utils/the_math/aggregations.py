@@ -1007,6 +1007,29 @@ def get_aggregation_history(
 
     forecaster_ids = set(forecast.author_id for forecast in forecasts)
     for method in aggregation_methods:
+        if method == "geometric_mean":
+            if minimize:
+                continue  # gomean is useless minimized
+            from scoring.score_math import get_geometric_means
+
+            geometric_means = get_geometric_means(forecasts)
+            full_summary[method] = []
+            previous_forecast = None
+            for gm in geometric_means:
+                aggregate_forecast = AggregateForecast(
+                    question=question,
+                    method=method,
+                    forecast_values=gm.pmf.tolist(),
+                    start_time=datetime.fromtimestamp(gm.timestamp, tz=dt_timezone.utc),
+                    end_time=None,
+                    forecaster_count=gm.num_forecasters,
+                )
+                if previous_forecast:
+                    previous_forecast.end_time = aggregate_forecast.start_time
+                previous_forecast = aggregate_forecast
+                full_summary[method].append(aggregate_forecast)
+            continue
+
         if method == AggregationMethod.METACULUS_PREDICTION:
             # saved in the database - not reproducible or updateable
             full_summary[method] = list(
