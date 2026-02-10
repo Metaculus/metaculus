@@ -16,6 +16,7 @@ from projects.serializers.common import (
     TopicSerializer,
     CategorySerializer,
     TournamentSerializer,
+    TournamentShortSerializer,
     ProjectUserSerializer,
     NewsCategorySerialize,
     LeaderboardTagSerializer,
@@ -31,6 +32,7 @@ from projects.services.common import (
     invite_user_to_project,
     get_site_main_project,
     get_project_timeline_data,
+    get_feed_project_tiles,
 )
 from projects.services.subscriptions import subscribe_project, unsubscribe_project
 from questions.models import Question
@@ -173,6 +175,23 @@ def tournaments_list_api_view(request: Request):
     data = serialize_tournaments_with_counts(
         projects, sort_key=lambda r: r["questions_count"], with_timeline=True
     )
+
+    return Response(data)
+
+
+# @cache_page(60 * 10)
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def feed_project_tiles_api_view(request: Request):
+    tiles = get_feed_project_tiles()
+
+    data = [
+        {
+            "project": TournamentShortSerializer(tile.pop("project")).data,
+            **tile,
+        }
+        for tile in tiles
+    ]
 
     return Response(data)
 

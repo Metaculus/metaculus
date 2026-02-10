@@ -1,9 +1,10 @@
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 from itertools import chain
 from typing import Iterable
 
 from django.db import IntegrityError
+from django.db.models import QuerySet, TextChoices
 from django.utils import timezone
 from django.utils.timezone import make_aware
 
@@ -14,6 +15,9 @@ from questions.models import Question
 from users.models import User
 from utils.cache import cache_per_object
 from utils.dtypes import generate_map_from_list
+
+
+# TODO: add caching override!
 
 
 def get_projects_qs(
@@ -155,6 +159,53 @@ def move_project_forecasting_end_date(project: Project, post: Post):
     project.save(update_fields=["forecasting_end_date"])
 
 
+def get_questions_by_project(
+    project_ids: Iterable[int],
+    question_qs: QuerySet[Question] | None = None,
+    post_qs: QuerySet[Post] | None = None,
+) -> dict[int, list[Question]]:
+    """
+    Returns {project_id: [questions]} for the given project IDs.
+    Collects questions via both default_project FK and M2M posts relationship.
+    """
+
+    if post_qs is None:
+        post_qs = Post.objects.filter(curation_status=Post.CurationStatus.APPROVED)
+    if question_qs is None:
+        question_qs = Question.objects.all()
+
+    project_ids = list(project_ids)
+
+    # Map project -> post IDs via both relationships
+    project_posts = defaultdict(set)
+
+    for post_id, proj_id in post_qs.filter(
+        default_project_id__in=project_ids
+    ).values_list("id", "default_project_id"):
+        project_posts[proj_id].add(post_id)
+
+    for post_id, proj_id in Post.projects.through.objects.filter(
+        project_id__in=project_ids,
+        post__in=post_qs,
+    ).values_list("post_id", "project_id"):
+        project_posts[proj_id].add(post_id)
+
+    # Bulk fetch questions
+    questions_by_post = defaultdict(list)
+    all_post_ids = set().union(*project_posts.values()) if project_posts else set()
+    for q in question_qs.filter(post_id__in=all_post_ids):
+        questions_by_post[q.post_id].append(q)
+
+    return {
+        pid: list(
+            chain.from_iterable(
+                questions_by_post[post_id] for post_id in project_posts.get(pid, [])
+            )
+        )
+        for pid in project_ids
+    }
+
+
 def _calculate_timeline_data(project: Project, questions: Iterable[Question]) -> dict:
     all_questions_resolved = True
     all_questions_closed = True
@@ -222,28 +273,7 @@ def get_project_timeline_data(project: Project):
 def get_timeline_data_for_projects(project_ids: list[int]) -> dict[int, dict]:
     projects = Project.objects.in_bulk(project_ids)
 
-    # 1. Map Project -> Post IDs
-    project_posts = defaultdict(set)
-
-    # Default projects
-    qs_default = Post.objects.filter(
-        default_project_id__in=project_ids,
-        curation_status=Post.CurationStatus.APPROVED,
-    ).values_list("id", "default_project_id")
-
-    # M2M projects
-    qs_m2m = Post.projects.through.objects.filter(
-        project_id__in=project_ids,
-        post__curation_status=Post.CurationStatus.APPROVED,
-    ).values_list("post_id", "project_id")
-
-    for post_id, project_id in chain(qs_default, qs_m2m):
-        project_posts[project_id].add(post_id)
-
-    # 2. Fetch Questions
-    all_post_ids = set().union(*project_posts.values())
-
-    questions = Question.objects.filter(post_id__in=all_post_ids).only(
+    question_qs = Question.objects.only(
         "id",
         "post_id",
         "cp_reveal_time",
@@ -252,22 +282,109 @@ def get_timeline_data_for_projects(project_ids: list[int]) -> dict[int, dict]:
         "actual_close_time",
         "scheduled_close_time",
     )
+    questions_by_project = get_questions_by_project(
+        project_ids, question_qs=question_qs
+    )
 
-    # Group by post
-    questions_by_post = defaultdict(list)
-    for q in questions:
-        questions_by_post[q.post_id].append(q)
-
-    # 3. Aggregate
     return {
-        pid: _calculate_timeline_data(
-            project,
-            chain.from_iterable(
-                questions_by_post[post_id] for post_id in project_posts.get(pid, [])
-            ),
-        )
+        pid: _calculate_timeline_data(project, questions_by_project.get(pid, []))
         for pid, project in projects.items()
     }
+
+
+class FeedTileRule(TextChoices):
+    # Declaration order defines priority (first = highest)
+    NEW_TOURNAMENT = "NEW_TOURNAMENT"
+    NEW_QUESTIONS = "NEW_QUESTIONS"
+    RESOLVED_QUESTIONS = "RESOLVED_QUESTIONS"
+    ALL_QUESTIONS_RESOLVED = "ALL_QUESTIONS_RESOLVED"
+
+
+def get_feed_project_tiles() -> list[dict]:
+    now = timezone.now()
+
+    projects = list(
+        Project.objects.filter_tournament()
+        .exclude(visibility=Project.Visibility.UNLISTED)
+        .filter(default_permission__isnull=False)
+        .select_related("primary_leaderboard")
+    )
+
+    question_qs = Question.objects.only(
+        "id", "post_id", "open_time", "actual_resolve_time", "resolution",
+        "resolution_set_time",
+    )
+    questions_by_project = get_questions_by_project(
+        [p.id for p in projects], question_qs=question_qs
+    )
+
+    three_days_ago = now - timedelta(days=3)
+    results = []
+
+    for project in projects:
+        questions = questions_by_project.get(project.id, [])
+        recently_opened = sum(
+            1 for q in questions if q.open_time and three_days_ago <= q.open_time <= now
+        )
+        recently_resolved = sum(
+            1
+            for q in questions
+            if q.resolution_set_time and q.resolution_set_time >= three_days_ago
+        )
+        all_resolved = len(questions) > 0 and all(q.resolution for q in questions)
+        last_resolve_time = max(
+            (q.resolution_set_time for q in questions if q.resolution_set_time),
+            default=None,
+        )
+
+        rule: FeedTileRule | None = None
+
+        if project.start_date and abs((project.start_date - now).days) <= 10:
+            rule = FeedTileRule.NEW_TOURNAMENT
+        elif recently_opened >= 3:
+            rule = FeedTileRule.NEW_QUESTIONS
+        elif recently_resolved >= 3:
+            rule = FeedTileRule.RESOLVED_QUESTIONS
+        elif (
+            all_resolved
+            and last_resolve_time
+            # TODO: should we use project.close_date or forecasting_end_date?
+            and max(last_resolve_time, project.close_date or last_resolve_time)
+            >= now - timedelta(days=10)
+        ):
+            rule = FeedTileRule.ALL_QUESTIONS_RESOLVED
+
+        if rule:
+            results.append(
+                {
+                    "project": project,
+                    "recently_opened_questions": recently_opened,
+                    "recently_resolved_questions": recently_resolved,
+                    "all_questions_resolved": all_resolved,
+                    "rule": rule,
+                }
+            )
+
+    rule_priority = list(FeedTileRule)
+    results.sort(
+        key=lambda r: (rule_priority.index(r["rule"]), r["project"].order or 0)
+    )
+
+    # Fallback: if no rules matched, return the highest-ordered project
+    if not results:
+        # TODO: adjust fallback sorting!
+        best = min(projects, key=lambda p: p.order or 0)
+        results = [
+            {
+                "project": best,
+                "recently_opened_questions": 0,
+                "recently_resolved_questions": 0,
+                "all_questions_resolved": False,
+                "rule": None,
+            }
+        ]
+
+    return results
 
 
 def get_questions_count_for_projects(project_ids: list[int]) -> dict[int, int]:
