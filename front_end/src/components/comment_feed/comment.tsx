@@ -65,7 +65,8 @@ import { validateComment } from "./validate_comment";
 import { FormErrorMessage } from "../ui/form_field";
 import LoadingSpinner from "../ui/loading_spiner";
 
-import { SortOption, sortComments } from ".";
+import { sortComments, SortOption } from ".";
+
 type CommentChildrenTreeProps = {
   commentChildren: CommentType[];
   expandedChildren?: boolean;
@@ -567,7 +568,7 @@ const Comment: FC<CommentProps> = ({
 
   const menuItems: MenuItemProps[] = [
     {
-      hidden: !(user?.id === comment.author.id),
+      hidden: !(user?.id === comment.author.id) || !!user?.is_bot,
       id: "edit",
       name: t("edit"),
       onClick: openEdit,
