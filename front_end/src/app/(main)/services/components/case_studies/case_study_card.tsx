@@ -162,7 +162,7 @@ const CaseStudyCard: React.FC<Props> = ({ card, className }) => {
           href={card.cta.href}
           className="mt-3 w-full rounded-full bg-blue-800 py-[15px] text-sm text-gray-0 hover:bg-blue-900 active:bg-blue-800  dark:bg-blue-800-dark dark:text-gray-0-dark dark:hover:bg-blue-900-dark dark:active:bg-blue-800-dark"
         >
-          {card.cta.label ?? t("readTheReport")}
+          {t((card.cta.labelKey || "readTheReport") as "readTheReport")}
         </Button>
       </div>
     </div>

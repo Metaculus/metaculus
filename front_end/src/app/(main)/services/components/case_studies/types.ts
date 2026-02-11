@@ -33,7 +33,7 @@ export type TCaseStudyCard = {
   };
   report?: CaseStudyReportCard;
   cta: {
-    label?: string;
+    labelKey?: string;
     href: string;
     analyticsId?: string;
   };

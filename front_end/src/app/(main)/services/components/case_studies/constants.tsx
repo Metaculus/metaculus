@@ -69,7 +69,7 @@ export const CASE_STUDIES: TCaseStudyCard[] = [
       publishedAtLabel: "Sep 16, 2025",
     },
     cta: {
-      label: "Read full report",
+      labelKey: "readFullReport",
       href: "/notebooks/39977/report-pro-forecasters-expect-steady-nih-and-nsf-funding/",
     },
   },
@@ -104,7 +104,7 @@ export const CASE_STUDIES: TCaseStudyCard[] = [
       publishedAtLabel: "Feb 20, 2025",
     },
     cta: {
-      label: "Read full report",
+      labelKey: "readFullReport",
       href: "/files/forecasting-owid-report.pdf",
     },
   },

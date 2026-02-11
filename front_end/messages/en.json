@@ -1928,5 +1928,6 @@
   "tellUsAboutYourNeeds": "Tell us about your needs...",
   "yourOrganization": "Your organization",
   "yourMessageForm": "Your message",
+  "readFullReport": "Read full report",
   "feedTileSummaryPlaceholder": "Optional: Enter a custom summary text to display on feed tiles (if not provided, a summary will be auto-generated from the notebook content)"
 }
