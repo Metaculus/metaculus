@@ -9,8 +9,8 @@ import {
   entryLabel,
   shouldDisplayEntry,
 } from "@/app/(futureeval)/futureeval/components/leaderboard/utils";
-import { LightDarkIcon } from "@/app/(futureeval)/futureeval/components/light-dark-icon";
 import MedalIcon from "@/app/(main)/(leaderboards)/components/medal_icon";
+import { LightDarkIcon } from "@/components/ui/light-dark-icon";
 import type { LeaderboardDetails, MedalType } from "@/types/scoring";
 import cn from "@/utils/core/cn";
 

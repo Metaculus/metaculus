@@ -75,6 +75,11 @@ const nextConfig = {
         source: "/index/:slug",
         destination: "/tournament/:slug",
       },
+      {
+        source: "/files/forecasting-owid-report.pdf",
+        destination:
+          "https://metaculus-public.s3.us-west-2.amazonaws.com/OWID%2Breport.pdf",
+      },
     ];
   },
   eslint: {
