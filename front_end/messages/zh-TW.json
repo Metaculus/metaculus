@@ -1919,5 +1919,15 @@
   "includeBotsInAggregatesLabel": "在總體中包括機器人",
   "includeBotsInAggregatesExplanation": "啟用後，機器人預測將包含在此問題的總體計算中，並影響評分。否則，則不會影響。",
   "hidden": "隱藏",
-  "thousandsOfOpenQuestions": "20,000+ 開放問題"
+  "thousandsOfOpenQuestions": "20,000+ 開放問題",
+  "feedTileNewTournament": "New Tournament",
+  "feedTileForecastNewQuestions": "Forecast {count, plural, one {# new question} other {# new questions}}",
+  "feedTileQuestionsResolved": "{count, plural, one {# question resolved} other {# questions resolved}}",
+  "feedTileCheckLeaderboards": "Check out the final leaderboards",
+  "feedTilePopularTournament": "Popular Tournament",
+  "feedTileClosesIn": "Closes in {when}",
+  "feedTileClosedAgo": "Closed {when} ago",
+  "feedTileStartedAgo": "Started {when} ago",
+  "feedTileResolvedAgo": "Resolved {when} ago",
+  "feedTileForecasters": "{count, plural, one {# forecaster} other {# forecasters}}"
 }

@@ -1920,5 +1920,15 @@
   "includeBotsInAggregatesLabel": "Incluir Bots nos Agregados",
   "includeBotsInAggregatesExplanation": "Quando ativado, previsões de bots serão incluídas nos cálculos agregados para esta pergunta e afetarão a pontuação. Caso contrário, elas não afetarão.",
   "hidden": "Oculto",
-  "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
+  "thousandsOfOpenQuestions": "20.000+ perguntas abertas",
+  "feedTileNewTournament": "New Tournament",
+  "feedTileForecastNewQuestions": "Forecast {count, plural, one {# new question} other {# new questions}}",
+  "feedTileQuestionsResolved": "{count, plural, one {# question resolved} other {# questions resolved}}",
+  "feedTileCheckLeaderboards": "Check out the final leaderboards",
+  "feedTilePopularTournament": "Popular Tournament",
+  "feedTileClosesIn": "Closes in {when}",
+  "feedTileClosedAgo": "Closed {when} ago",
+  "feedTileStartedAgo": "Started {when} ago",
+  "feedTileResolvedAgo": "Resolved {when} ago",
+  "feedTileForecasters": "{count, plural, one {# forecaster} other {# forecasters}}"
 }

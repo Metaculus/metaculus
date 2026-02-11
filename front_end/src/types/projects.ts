@@ -174,3 +174,19 @@ export type MultiYearIndexData = IndexBase & {
 };
 
 export type IndexData = DefaultIndexData | MultiYearIndexData;
+
+export enum FeedTileRule {
+  NEW_TOURNAMENT = "NEW_TOURNAMENT",
+  NEW_QUESTIONS = "NEW_QUESTIONS",
+  RESOLVED_QUESTIONS = "RESOLVED_QUESTIONS",
+  ALL_QUESTIONS_RESOLVED = "ALL_QUESTIONS_RESOLVED",
+}
+
+export type FeedProjectTile = {
+  project: TournamentPreview;
+  project_id: number;
+  recently_opened_questions: number;
+  recently_resolved_questions: number;
+  all_questions_resolved: boolean;
+  rule: FeedTileRule | null;
+};

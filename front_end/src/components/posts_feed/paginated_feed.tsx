@@ -15,13 +15,17 @@ import { useContentTranslatedBannerContext } from "@/contexts/translations_banne
 import useSearchParams from "@/hooks/use_search_params";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { PostsParams } from "@/services/api/posts/posts.shared";
+import ClientProjectsApi from "@/services/api/projects/projects.client";
 import { PostWithForecasts } from "@/types/post";
+import { FeedProjectTile } from "@/types/projects";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { logError } from "@/utils/core/errors";
 import { isNotebookPost } from "@/utils/questions/helpers";
 
+import { buildFeedItems } from "./build_feed_items";
 import EmptyCommunityFeed from "./empty_community_feed";
 import PostsFeedScrollRestoration from "./feed_scroll_restoration";
+import FeedTournamentTile from "./feed_tournament_tile";
 import InReviewBox from "./in_review_box";
 import { FormErrorMessage } from "../ui/form_field";
 
@@ -75,6 +79,12 @@ const PaginatedPostsFeed: FC<Props> = ({
 
   const { setBannerIsVisible } = useContentTranslatedBannerContext();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
+
+  const [feedTiles, setFeedTiles] = useState<FeedProjectTile[]>([]);
+  useEffect(() => {
+    if (PUBLIC_MINIMAL_UI || isCommunity) return;
+    ClientProjectsApi.getFeedTiles().then(setFeedTiles).catch(logError);
+  }, [PUBLIC_MINIMAL_UI, isCommunity]);
 
   useEffect(() => {
     if (
@@ -131,6 +141,11 @@ const PaginatedPostsFeed: FC<Props> = ({
     }
   };
 
+  const feedItems = useMemo(
+    () => buildFeedItems(paginatedPosts, feedTiles),
+    [paginatedPosts, feedTiles]
+  );
+
   const renderPost = (post: PostWithForecasts) => {
     const indexWeight = weightByPostId.get(post.id);
     if (isNotebookPost(post) && type === "news") {
@@ -175,9 +190,16 @@ const PaginatedPostsFeed: FC<Props> = ({
             )}
           </>
         )}
-        {paginatedPosts.map((p) => (
-          <Fragment key={p.id}>{renderPost(p)}</Fragment>
-        ))}
+        {feedItems.map((item) =>
+          item.type === "project" ? (
+            <FeedTournamentTile
+              key={`tile-${item.tile.project_id}`}
+              tile={item.tile}
+            />
+          ) : (
+            <Fragment key={item.post.id}>{renderPost(item.post)}</Fragment>
+          )
+        )}
         <PostsFeedScrollRestoration
           serverPage={filters.page ?? null}
           pageNumber={clientPageNumber}
