@@ -189,7 +189,7 @@ const ContinuousTable: FC<Props> = ({
                 <Td></Td>
                 {question.open_lower_bound && (
                   <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20 ">
-                    {getDisplayValue(0)}
+                    {getDisplayValue(-0.1)}
                   </Td>
                 )}
                 <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20">
@@ -203,7 +203,7 @@ const ContinuousTable: FC<Props> = ({
                 </Td>
                 {question.open_upper_bound && (
                   <Td className="rounded bg-blue-400/60 p-1 dark:bg-blue-600/20">
-                    {getDisplayValue(1)}
+                    {getDisplayValue(1.1)}
                   </Td>
                 )}
               </>
