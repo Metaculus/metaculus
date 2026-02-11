@@ -1284,7 +1284,7 @@
   "zeroPointError0": "不支持離散問題的零點",
   "zeroPointError1": "零點 ({zeroPoint}) 不應位於最小值 ({min}) 和最大值 ({max}) 之間",
   "stepError0": "步驟不能超過範圍的一半: ({halfRange})",
-  "stepError1": "步驟至少必須是範圍的1/200: ({rangePortion})",
+  "stepError1": "離散問題最多限制為{maxOptions}個選項。請增大步驟或改用連續問題。",
   "minMaxError0": "提供正確的最小值和最大值",
   "minMaxError1": "最小值應小於最大值",
   "rangeWarning0": "警告：步驟無法均等地劃分範圍。最大值減至 {newMax}",

@@ -1287,7 +1287,7 @@
   "zeroPointError0": "El punto cero no está permitido para preguntas discretas",
   "zeroPointError1": "El punto cero ({zeroPoint}) no debe estar entre min ({min}) y max ({max})",
   "stepError0": "El paso no puede ser mayor que la mitad del rango: ({halfRange})",
-  "stepError1": "El paso debe ser al menos 1/200 del rango: ({rangePortion})",
+  "stepError1": "Las preguntas discretas están limitadas a {maxOptions} opciones. Aumente el tamaño del paso o use una pregunta continua.",
   "minMaxError0": "Proporcione valores correctos de mínimo y máximo",
   "minMaxError1": "El valor mínimo debe ser menor que el valor máximo",
   "rangeWarning0": "Advertencia: El paso no divide el rango de manera uniforme. Max reducido a {newMax}",

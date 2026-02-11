@@ -13,6 +13,7 @@ import { FormError, Input } from "@/components/ui/form_field";
 import {
   AggregationMethod,
   DefaultInboundOutcomeCount,
+  MaxDiscreteOptionCount,
   QuestionDraft,
   QuestionWithNumericForecasts,
 } from "@/types/question";
@@ -137,7 +138,7 @@ const NumericQuestionInput: React.FC<{
     inbound_outcome_count: isNil(defaultInboundOutcomeCount)
       ? questionType !== QuestionType.Discrete || isNil(min) || isNil(max)
         ? DefaultInboundOutcomeCount
-        : Math.max(3, Math.min(200, Math.round((max - min) / step) + 1))
+        : Math.max(3, Math.min(MaxDiscreteOptionCount, Math.round((max - min) / step) + 1))
       : defaultInboundOutcomeCount,
     aggregations: {
       recency_weighted: { history: [], latest: undefined },
@@ -194,9 +195,9 @@ const NumericQuestionInput: React.FC<{
             t.rich("stepError0", { halfRange: (max - min) / 2 })
           );
         }
-        if (step != 0 && step < (max - min) / 200) {
+        if (step != 0 && step < (max - min) / MaxDiscreteOptionCount) {
           current_errors.push(
-            t.rich("stepError1", { rangePortion: (max - min) / 2 })
+            t.rich("stepError1", { maxOptions: MaxDiscreteOptionCount })
           );
         }
       }
@@ -230,7 +231,7 @@ const NumericQuestionInput: React.FC<{
     if (questionType === QuestionType.Discrete) {
       inboundOutcomeCount = Math.max(
         3,
-        Math.min(200, Math.round((mx - mn) / step))
+        Math.min(MaxDiscreteOptionCount, Math.round((mx - mn) / step))
       );
     } else {
       inboundOutcomeCount = DefaultInboundOutcomeCount;

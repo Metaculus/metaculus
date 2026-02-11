@@ -1290,7 +1290,7 @@
   "zeroPointError0": "不支持离散问题的零点",
   "zeroPointError1": "零点 ({zeroPoint}) 不应在最小值 ({min}) 和最大值 ({max}) 之间",
   "stepError0": "步长不能超过范围的一半: ({halfRange})",
-  "stepError1": "步长必须至少是范围的1/200: ({rangePortion})",
+  "stepError1": "离散问题最多限制为{maxOptions}个选项。请增大步长或改用连续问题。",
   "minMaxError0": "请提供正确的最小值和最大值",
   "minMaxError1": "最小值应小于最大值",
   "rangeWarning0": "警告: 步长不能平均划分范围。最大值减少到 {newMax}",
