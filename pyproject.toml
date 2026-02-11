@@ -54,7 +54,7 @@ pytz = "^2025.2"
 psycopg2 = "^2.9.10"
 scikit-learn = "^1.7.2"
 djangorestframework-simplejwt = "^5.5.1"
-cryptography = "^46.0.3"
+cryptography = "^46.0.5"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.1"
