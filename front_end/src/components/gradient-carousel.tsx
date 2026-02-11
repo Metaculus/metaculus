@@ -21,6 +21,8 @@ type Props<T> = {
   gradientFromClass?: string;
   showArrows?: Resolver<boolean>;
   arrowClassName?: string;
+  arrowLeftPosition?: string;
+  arrowRightPosition?: string;
   prevLabel?: string;
   nextLabel?: string;
   className?: string;
@@ -42,6 +44,8 @@ function ReusableGradientCarousel<T>({
   gradientFromClass = "from-blue-200 dark:from-blue-200-dark",
   showArrows = true,
   arrowClassName = "w-10 h-10 md:w-[44px] md:h-[44px] text-blue-700 dark:text-blue-700-dark bg-gray-0 dark:bg-gray-0-dark mt-3 md:text-gray-200 md:dark:text-gray-200-dark rounded-full md:bg-blue-900 md:dark:bg-blue-900-dark",
+  arrowLeftPosition = "left-[18px]",
+  arrowRightPosition = "right-[18px]",
   prevLabel = "Previous",
   nextLabel = "Next",
   className,
@@ -235,10 +239,10 @@ function ReusableGradientCarousel<T>({
         ref={viewportRef}
         className={cn(
           "overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none]",
-          "touch-pan-x snap-x snap-mandatory",
+          "touch-manipulation snap-x snap-mandatory",
           "[-webkit-overflow-scrolling:touch]",
           dragScroll && (isGrabbing ? "cursor-grabbing" : "cursor-grab"),
-          dragScroll && "select-none",
+          dragScroll && "select-none [-webkit-user-select:none]",
           viewportClassName
         )}
       >
@@ -294,7 +298,8 @@ function ReusableGradientCarousel<T>({
             disabled={!canPrev && !loop}
             tabIndex={canPrev || loop ? 0 : -1}
             className={cn(
-              "absolute left-[18px] top-1/2 -translate-y-1/2",
+              "absolute top-1/2 -translate-y-1/2",
+              arrowLeftPosition,
               arrowClassName,
               fadeCls,
               arrowsActive && canPrev
@@ -313,7 +318,8 @@ function ReusableGradientCarousel<T>({
             disabled={!canNext && !loop}
             tabIndex={canNext || loop ? 0 : -1}
             className={cn(
-              "absolute right-[18px] top-1/2 -translate-y-1/2",
+              "absolute top-1/2 -translate-y-1/2",
+              arrowRightPosition,
               arrowClassName,
               fadeCls,
               arrowsActive && canNext

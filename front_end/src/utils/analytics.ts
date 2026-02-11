@@ -21,8 +21,8 @@ export function sendConditionalPredictEvent(
   alreadyPredicted: boolean,
   hideCP: boolean
 ) {
-  const projectId = projects.default_project.id;
-  const tournamentIds = projects.tournament?.map((t) => t.id);
+  const projectId = projects?.default_project?.id;
+  const tournamentIds = projects?.tournament?.map((t) => t.id);
 
   bwTrackPredictionIfConsent();
 
@@ -30,7 +30,7 @@ export function sendConditionalPredictEvent(
     posthog.capture("predict", {
       event_category: "conditional",
       event_label: [
-        !!projects.tournament || !!projects.question_series
+        !!projects?.tournament || !!projects?.question_series
           ? "tournamentPrediction"
           : null,
         hideCP ? "CPhidden" : null,
@@ -41,7 +41,7 @@ export function sendConditionalPredictEvent(
     sendGAEvent("event", "predict", {
       event_category: "conditional",
       event_label: [
-        !!projects.tournament || !!projects.question_series
+        !!projects?.tournament || !!projects?.question_series
           ? "tournamentPrediction"
           : null,
         hideCP ? "CPhidden" : null,
@@ -65,8 +65,8 @@ export function sendPredictEvent(
   hideCP: boolean
 ) {
   const alreadyPredicted = question.my_forecasts?.latest;
-  const projectId = post.projects.default_project.id;
-  const tournamentIds = post.projects.tournament?.map((t) => t.id);
+  const projectId = post.projects?.default_project?.id;
+  const tournamentIds = post.projects?.tournament?.map((t) => t.id);
 
   bwTrackPredictionIfConsent();
 
@@ -74,7 +74,7 @@ export function sendPredictEvent(
     posthog.capture("predict", {
       event_category: question.type,
       event_label: [
-        !!post.projects.tournament || !!post.projects.question_series
+        !!post.projects?.tournament || !!post.projects?.question_series
           ? "tournamentPrediction"
           : null,
         hideCP ? "CPhidden" : null,
@@ -85,7 +85,7 @@ export function sendPredictEvent(
     sendGAEvent("event", "predict", {
       event_category: question.type,
       event_label: [
-        !!post.projects.tournament || !!post.projects.question_series
+        !!post.projects?.tournament || !!post.projects?.question_series
           ? "tournamentPrediction"
           : null,
         hideCP ? "CPhidden" : null,

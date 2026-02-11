@@ -10,8 +10,6 @@ import {
 } from "date-fns";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import posthog from "posthog-js";
-import { useFeatureFlagEnabled } from "posthog-js/react";
 import React, {
   Dispatch,
   FC,
@@ -64,10 +62,6 @@ interface ModalState {
 export const forecastExpirationToDate = (
   expiration: ForecastExpirationValue | undefined
 ): Date | undefined => {
-  if (!posthog.getFeatureFlag("forecast_expiration")) {
-    return undefined;
-  }
-
   if (!expiration) {
     return undefined;
   }
@@ -280,10 +274,6 @@ export const useExpirationModalState = (
   const [modalSavedState, setModalSavedState] =
     useState<ModalState>(initialState);
 
-  const isForecastExpirationEnabled = useFeatureFlagEnabled(
-    "forecast_expiration"
-  );
-
   useEffect(() => {
     // When the user last forecast changes (user withdraws), we need to update the chip to duration closed to the last user forecast
     setModalSavedState(
@@ -350,11 +340,6 @@ export const useExpirationModalState = (
       isExpired: previousForecastIsExpired,
       expiresSoon: previousForecastIsExpired || timeToExpireDays < 2,
     };
-  }
-
-  if (!isForecastExpirationEnabled) {
-    expirationShortChip = undefined;
-    previousForecastExpiration = undefined;
   }
 
   return {
