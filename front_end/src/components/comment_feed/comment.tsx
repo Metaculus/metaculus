@@ -65,7 +65,8 @@ import { validateComment } from "./validate_comment";
 import { FormErrorMessage } from "../ui/form_field";
 import LoadingSpinner from "../ui/loading_spiner";
 
-import { SortOption, sortComments } from ".";
+import { sortComments, SortOption } from ".";
+
 type CommentChildrenTreeProps = {
   commentChildren: CommentType[];
   expandedChildren?: boolean;
@@ -248,7 +249,7 @@ const Comment: FC<CommentProps> = ({
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
   const { user } = useAuth();
   const scrollTo = useScrollTo();
-  const userCanPredict = postData && canPredictQuestion(postData);
+  const userCanPredict = postData && canPredictQuestion(postData, user);
   const userForecast =
     postData?.question?.my_forecasts?.latest?.forecast_values[1] ?? 0.5;
   const isCommentAuthor = comment.author.id === user?.id;
@@ -567,7 +568,7 @@ const Comment: FC<CommentProps> = ({
 
   const menuItems: MenuItemProps[] = [
     {
-      hidden: !(user?.id === comment.author.id),
+      hidden: !(user?.id === comment.author.id) || !!user?.is_bot,
       id: "edit",
       name: t("edit"),
       onClick: openEdit,
@@ -986,6 +987,7 @@ const Comment: FC<CommentProps> = ({
                       )}
 
                       {!onProfile &&
+                        !user?.is_bot &&
                         (isReplying ? (
                           <Button
                             size="xxs"

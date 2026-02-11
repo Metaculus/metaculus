@@ -41,6 +41,10 @@ const PredictButton: FC<Props> = ({
       return false;
     }
 
+    if (user.is_bot) {
+      return true;
+    }
+
     if (isDisabled) {
       return true;
     }
