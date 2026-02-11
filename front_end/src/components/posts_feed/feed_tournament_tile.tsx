@@ -7,9 +7,9 @@ import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
 import PostStatusIcon from "@/components/post_status/status_icon";
+import RichText from "@/components/rich_text";
 import { PostStatus } from "@/types/post";
 import { FeedProjectTile, FeedTileRule } from "@/types/projects";
-import cn from "@/utils/core/cn";
 import { bucketRelativeMs } from "@/utils/formatters/date";
 import { getProjectLink } from "@/utils/navigation";
 
@@ -54,13 +54,12 @@ const FeedTournamentTile: FC<Props> = ({ tile }) => {
 
       <div className="relative flex flex-wrap items-center gap-3 text-xs">
         {prize && (
-          <div
-            className={cn(
-              "rounded px-1 py-0.5 text-xs font-semibold",
-              "bg-olive-300 text-olive-900"
-            )}
-          >
-            {prize}
+          <div className="rounded-xl border border-olive-400 bg-olive-400 px-2.5 py-1.5 text-olive-900">
+            <RichText>
+              {(tags) =>
+                t.rich("feedTilePrizePool", { ...tags, amount: prize })
+              }
+            </RichText>
           </div>
         )}
         <div className="rounded-xl border border-gray-300 px-2.5 py-1.5 text-gray-0">

@@ -1932,5 +1932,6 @@
   "feedTileClosedAgo": "Closed {when} ago",
   "feedTileStartedAgo": "Started {when} ago",
   "feedTileResolvedAgo": "Resolved {when} ago",
-  "feedTileForecasters": "{count, plural, one {# forecaster} other {# forecasters}}"
+  "feedTileForecasters": "{count, plural, one {# forecaster} other {# forecasters}}",
+  "feedTilePrizePool": "<strong>{amount}</strong> prize pool"
 }
