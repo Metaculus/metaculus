@@ -32,7 +32,7 @@ const FeedTournamentTile: FC<Props> = ({ tile }) => {
   return (
     <Link
       href={href}
-      className="relative flex flex-col gap-3 overflow-hidden rounded px-6 py-5 text-gray-0 no-underline dark:text-gray-0-dark"
+      className="relative flex flex-col gap-3 overflow-hidden rounded px-6 py-5 text-gray-0 no-underline"
       style={
         project.header_image
           ? {
@@ -45,10 +45,10 @@ const FeedTournamentTile: FC<Props> = ({ tile }) => {
     >
       {project.header_image && <div className="absolute inset-0 bg-black/65" />}
       {!project.header_image && (
-        <div className="absolute inset-0 bg-blue-100 dark:bg-blue-100-dark" />
+        <div className="absolute inset-0 bg-blue-100" />
       )}
 
-      <h4 className="relative my-0 text-base font-medium text-gray-0 dark:text-gray-0-dark">
+      <h4 className="relative my-0 text-base font-medium text-gray-0">
         {project.name}
       </h4>
 
@@ -57,13 +57,13 @@ const FeedTournamentTile: FC<Props> = ({ tile }) => {
           <div
             className={cn(
               "rounded px-1 py-0.5 text-xs font-semibold",
-              "bg-olive-300 text-olive-900 dark:bg-olive-300-dark dark:text-olive-900-dark"
+              "bg-olive-300 text-olive-900"
             )}
           >
             {prize}
           </div>
         )}
-        <div className="rounded-xl border border-gray-300 px-2.5 py-1.5 text-gray-0 dark:border-gray-300-dark dark:text-gray-0-dark">
+        <div className="rounded-xl border border-gray-300 px-2.5 py-1.5 text-gray-0">
           {ruleLabel}
         </div>
       </div>
@@ -86,7 +86,7 @@ const FeedTournamentTile: FC<Props> = ({ tile }) => {
         <span className="flex items-center gap-2">
           <FontAwesomeIcon
             icon={faUsers}
-            className="text-[12px] text-gray-400 dark:text-gray-400-dark"
+            className="text-[12px] text-gray-400"
           />
           {t("feedTileForecasters", {
             count: project.forecasters_count ?? 0,

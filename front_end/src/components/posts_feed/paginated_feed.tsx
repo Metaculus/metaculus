@@ -15,7 +15,6 @@ import { useContentTranslatedBannerContext } from "@/contexts/translations_banne
 import useSearchParams from "@/hooks/use_search_params";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { PostsParams } from "@/services/api/posts/posts.shared";
-import ClientProjectsApi from "@/services/api/projects/projects.client";
 import { PostWithForecasts } from "@/types/post";
 import { FeedProjectTile } from "@/types/projects";
 import { sendAnalyticsEvent } from "@/utils/analytics";
@@ -33,6 +32,7 @@ export type PostsFeedType = "posts" | "news";
 
 type Props = {
   initialQuestions: PostWithForecasts[];
+  initialProjectTiles?: FeedProjectTile[];
   filters: PostsParams;
   type?: PostsFeedType;
   isCommunity?: boolean;
@@ -41,6 +41,7 @@ type Props = {
 
 const PaginatedPostsFeed: FC<Props> = ({
   initialQuestions,
+  initialProjectTiles = [],
   filters,
   type = "posts",
   isCommunity,
@@ -79,12 +80,6 @@ const PaginatedPostsFeed: FC<Props> = ({
 
   const { setBannerIsVisible } = useContentTranslatedBannerContext();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
-
-  const [feedTiles, setFeedTiles] = useState<FeedProjectTile[]>([]);
-  useEffect(() => {
-    if (PUBLIC_MINIMAL_UI || isCommunity) return;
-    ClientProjectsApi.getFeedTiles().then(setFeedTiles).catch(logError);
-  }, [PUBLIC_MINIMAL_UI, isCommunity]);
 
   useEffect(() => {
     if (
@@ -142,8 +137,8 @@ const PaginatedPostsFeed: FC<Props> = ({
   };
 
   const feedItems = useMemo(
-    () => buildFeedItems(paginatedPosts, feedTiles),
-    [paginatedPosts, feedTiles]
+    () => buildFeedItems(paginatedPosts, initialProjectTiles),
+    [paginatedPosts, initialProjectTiles]
   );
 
   const renderPost = (post: PostWithForecasts) => {
