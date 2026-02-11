@@ -6,7 +6,7 @@ permissions:
 
 on:
   schedule:
-    - cron: '0 6 * * *' # Daily at 6am UTC
+    - cron: '0 0 * * *' # Daily at midnight UTC
   workflow_dispatch:
 
 jobs:
@@ -26,10 +26,10 @@ jobs:
           stale-issue-label: 'Stale'
           stale-pr-label: 'Stale'
           days-before-issue-stale: 60
-          days-before-pr-stale: 15
+          days-before-pr-stale: 30
           days-before-close: -1
           exempt-issue-labels: 'Awaiting QA,High Priority'
           exempt-pr-labels: 'Awaiting QA,High Priority,Do not merge yet'
           exempt-all-milestones: true
           exempt-draft-pr: false
-          operations-per-run: 100
+          operations-per-run: 120
