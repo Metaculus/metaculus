@@ -218,6 +218,9 @@ const GroupForm: React.FC<Props> = ({
     (Error & { digest?: string }) | string | undefined
   >();
 
+  const getSubQuestionType = (sq: SubQuestionDraft): SimpleQuestionType =>
+    (sq.type as SimpleQuestionType) ?? subtype;
+
   const defaultProject: Tournament =
     post?.projects?.default_project ??
     (tournament_id
@@ -250,9 +253,10 @@ const GroupForm: React.FC<Props> = ({
     let break_out = false;
     const groupData = subQuestions
       .map((x, idx) => {
+        const sqType = getSubQuestionType(x);
         const subquestionData = {
           id: x.id,
-          type: subtype,
+          type: sqType,
           title: `${data["title"]} (${x.label})`,
           label: x.label,
           scheduled_close_time: x.scheduled_close_time,
@@ -267,9 +271,9 @@ const GroupForm: React.FC<Props> = ({
           break_out = true;
           return;
         }
-        if (subtype === QuestionType.Binary) {
+        if (sqType === QuestionType.Binary) {
           return subquestionData;
-        } else if (subtype === QuestionType.Numeric) {
+        } else if (sqType === QuestionType.Numeric) {
           if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
             setError(
               "Please enter a range_max and range_min value for numeric questions"
@@ -284,7 +288,7 @@ const GroupForm: React.FC<Props> = ({
             open_lower_bound: x.open_lower_bound,
             open_upper_bound: x.open_upper_bound,
           };
-        } else if (subtype === QuestionType.Discrete) {
+        } else if (sqType === QuestionType.Discrete) {
           if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
             setError(
               "Please enter a range_max and range_min value for discrete questions"
@@ -300,7 +304,7 @@ const GroupForm: React.FC<Props> = ({
             open_upper_bound: x.open_upper_bound,
             inbound_outcome_count: x.inbound_outcome_count,
           };
-        } else if (subtype === QuestionType.Date) {
+        } else if (sqType === QuestionType.Date) {
           if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
             setError(
               "Please enter a range_max and range_min value for date questions"
@@ -382,6 +386,7 @@ const GroupForm: React.FC<Props> = ({
     return initialSubQuestions.map((x, idx) => {
       return {
         id: x.id,
+        type: x.type as QuestionType,
         clientId: crypto.randomUUID(),
         scheduled_close_time: x.scheduled_close_time,
         scheduled_resolve_time: x.scheduled_resolve_time,
@@ -802,8 +807,10 @@ const GroupForm: React.FC<Props> = ({
                 </InputContainer>
                 {collapsedSubQuestions[index] && (
                   <div className="flex w-full flex-col gap-4">
-                    {(subtype === QuestionType.Numeric ||
-                      subtype === QuestionType.Discrete) && (
+                    {(getSubQuestionType(subQuestion) ===
+                      QuestionType.Numeric ||
+                      getSubQuestionType(subQuestion) ===
+                        QuestionType.Discrete) && (
                       <InputContainer
                         labelText={t("subquestionUnit")}
                         explanation={t("questionUnitDescription")}
@@ -944,12 +951,14 @@ const GroupForm: React.FC<Props> = ({
                       </InputContainer>
                     </div>
                     {ContinuousQuestionTypes.some(
-                      (type) => type === subtype
+                      (type) => type === getSubQuestionType(subQuestion)
                     ) && (
                       <NumericQuestionInput
                         draftKey={shouldUseDraftValue ? draftKey : undefined}
                         questionType={
-                          subtype as (typeof ContinuousQuestionTypes)[number]
+                          getSubQuestionType(
+                            subQuestion
+                          ) as (typeof ContinuousQuestionTypes)[number]
                         }
                         defaultMin={subQuestion.scaling?.range_min ?? undefined}
                         defaultMax={subQuestion.scaling?.range_max ?? undefined}
@@ -1116,7 +1125,7 @@ const GroupForm: React.FC<Props> = ({
                   };
 
                   if (
-                    subtype === QuestionType.Discrete &&
+                    getSubQuestionType(clone) === QuestionType.Discrete &&
                     clone.scaling &&
                     clone.inbound_outcome_count &&
                     typeof clone.scaling.range_min === "number" &&
