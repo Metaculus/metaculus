@@ -7,7 +7,8 @@ export async function queryMentions(
   _trigger: string,
   query: string | null | undefined,
   defaultUserMentions?: MentionItem[],
-  userPermission?: ProjectPermissions
+  userPermission?: ProjectPermissions,
+  postId?: number
 ): Promise<MentionItem[]> {
   const usersGroupMentions = [
     { value: "moderators" },
@@ -34,14 +35,15 @@ export async function queryMentions(
   }
 
   try {
-    const users = await ClientProfileApi.searchUsers(query);
-    return sortUsernames(query, [
-      ...users.results.map((user) => ({
-        value: user.username,
-        userId: user.id,
-      })),
-      ...usersGroupMentions,
-    ]);
+    const users = await ClientProfileApi.searchUsers(query, postId);
+    const userMentions = users.results.map((user) => ({
+      value: user.username,
+      userId: user.id,
+    }));
+    const combined = [...userMentions, ...usersGroupMentions];
+    // When post_id is provided, the backend already sorts by relevance;
+    // skip frontend re-sorting to preserve that order.
+    return postId ? combined : sortUsernames(query, combined);
   } catch {
     return clientSearch(query, fallbackMentions);
   }

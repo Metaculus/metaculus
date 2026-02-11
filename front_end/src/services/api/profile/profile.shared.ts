@@ -7,9 +7,14 @@ class ProfileApi extends ApiService {
     return await this.get<UserProfile>(`/users/${id}/`);
   }
 
-  async searchUsers(query: string) {
+  async searchUsers(query: string, postId?: number) {
+    const params = new URLSearchParams();
+    params.set("search", query);
+    if (postId) {
+      params.set("post_id", String(postId));
+    }
     return await this.get<PaginatedPayload<UserProfile>>(
-      `/users/?search=${query}`
+      `/users/?${params.toString()}`
     );
   }
 
