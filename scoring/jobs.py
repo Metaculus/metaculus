@@ -94,9 +94,11 @@ def update_custom_leaderboards():
         logger.info("Index 'us-democracy-threat' not found.")
 
     # Coherence Links Tournament Metaculus Cup Spring 2026
-    try:
-        update_coherence_spring_2026_cup.send()
-    except Exception as e:
-        logger.error(
-            f"Error updating Coherence Links Tournament Metaculus Cup Spring 2026: {e}"
-        )
+    project = Project.objects.filter(slug="metaculus-cup-spring-2026").first()
+    if project:
+        try:
+            update_coherence_spring_2026_cup.send()
+        except Exception as e:
+            logger.error(
+                f"Error updating Coherence Links Tournament Metaculus Cup Spring 2026: {e}"
+            )
