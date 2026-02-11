@@ -230,6 +230,19 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         <br>Updated whenever options are changed.""",
     )
 
+    class MultipleChoiceOptionsOrder(models.TextChoices):
+        DEFAULT = "DEFAULT"
+        CP_DESC = "CP_DESC"
+
+    options_order = models.CharField(
+        max_length=12,
+        choices=MultipleChoiceOptionsOrder.choices,
+        default=MultipleChoiceOptionsOrder.DEFAULT,
+        help_text="""For Multiple Choice only.
+        DEFAULT: current default behavior (display views sort by CP, forecast maker preserves creation order).
+        CP_DESC: all views sort options by descending community prediction.""",
+    )
+
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
 
@@ -551,6 +564,11 @@ class ForecastQuerySet(QuerySet):
     def filter_active_at(self, timestamp: datetime):
         return self.filter(start_time__lte=timestamp).filter(
             Q(end_time__gt=timestamp) | Q(end_time__isnull=True)
+        )
+
+    def exclude_non_primary_bots(self):
+        return self.filter(
+            Q(author__is_bot=False) | Q(author__is_primary_bot=True),
         )
 
     def active(self):

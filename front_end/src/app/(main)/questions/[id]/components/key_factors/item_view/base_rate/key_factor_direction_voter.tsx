@@ -92,6 +92,7 @@ const KeyFactorDirectionVoter: React.FC<Props> = ({
       setCurrentModal({ type: "signin" });
       return;
     }
+    if (user.is_bot) return;
     if (submitting) return;
     setSubmitting(true);
 

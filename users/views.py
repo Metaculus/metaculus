@@ -3,8 +3,6 @@ from datetime import timedelta
 
 from django.utils import timezone
 from rest_framework import serializers, status
-
-from authentication.models import ApiKey
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
@@ -12,7 +10,8 @@ from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from authentication.services import get_tokens_for_user
+from authentication.models import ApiKey
+from authentication.services import get_tokens_for_user, send_password_reset_email
 from users.models import User, UserSpamActivity
 from users.serializers import (
     UserPrivateSerializer,
@@ -171,6 +170,18 @@ def password_change_api_view(request):
 
     tokens = get_tokens_for_user(user)
     return Response(tokens)
+
+
+@api_view(["POST"])
+def send_set_password_email_api_view(request):
+    user = request.user
+
+    if user.has_usable_password():
+        raise ValidationError({"message": "User already has a password set"})
+
+    send_password_reset_email(user)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(["POST"])
