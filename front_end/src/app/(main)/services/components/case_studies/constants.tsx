@@ -70,7 +70,7 @@ export const CASE_STUDIES: TCaseStudyCard[] = [
     },
     cta: {
       labelKey: "readFullReport",
-      href: "/notebooks/39977/report-pro-forecasters-expect-steady-nih-and-nsf-funding/",
+      href: "https://www.metaculus.com/files/research-agencies-report",
     },
   },
   {
