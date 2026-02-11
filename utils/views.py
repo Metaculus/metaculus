@@ -70,7 +70,7 @@ def aggregation_explorer_api_view(request) -> Response:
     )
     serializer.is_valid(raise_exception=True)
     params = serializer.validated_data
-    aggregation_methods = params.get("aggregation_methods")
+    aggregation_methods = params.get("aggregation_methods", [])
     only_include_user_ids = params.get("user_ids")
     include_bots = params.get("include_bots")
     minimize = params.get("minimize", True)

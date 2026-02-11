@@ -92,11 +92,10 @@ const useAggregationMethodOptions =
         value: DownloadAggregationMethod.unweighted,
         label: t("unweighted"),
       },
-      // TODO: implement geo mean on back end
-      // {
-      //   value: DownloadAggregationMethod.geometric_mean,
-      //   label: t("geometricMean"),
-      // },
+      {
+        value: DownloadAggregationMethod.geometric_mean,
+        label: t("geometricMean"),
+      },
     ];
 
     if (user?.is_staff) {
