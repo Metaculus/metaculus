@@ -181,10 +181,16 @@ export default async function TournamentSlug(props: Props) {
                 isQuestionSeries={isQuestionSeries}
               />
               {currentUser && (
-                <ProjectContributions
-                  project={tournament}
-                  userId={currentUser.id}
-                />
+                <Suspense
+                  fallback={
+                    <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
+                  }
+                >
+                  <ProjectContributions
+                    project={tournament}
+                    userId={currentUser.id}
+                  />
+                </Suspense>
               )}
             </div>
           )}

@@ -127,7 +127,7 @@ class MultipleChoiceOptionsAdminForm(forms.Form):
         )
         default_delete_comment = (
             "Options {removed_options} were removed on {timestep}. "
-            'Their probability was folded into the "{catch_all_option}" option.'
+            'Your predictions on those options were moved to the "{catch_all_option}" option.'
         )
         default_add_comment = (
             "Options {added_options} were added on {timestep}. "
@@ -829,8 +829,18 @@ class GroupOfQuestionsAdmin(CustomTranslationAdmin):
 
 @admin.register(Forecast)
 class ForecastAdmin(admin.ModelAdmin):
-    list_display = ["__str__", "author", "question", "start_time", "end_time"]
+    list_display = ["__str__", "author", "question_id", "start_time", "end_time"]
     autocomplete_fields = ["author", "question"]
+    search_fields = [
+        "author__username",
+        "author__id",
+        "question__title",
+    ]
+    list_filter = [
+        AutocompleteFilterFactory("Question", "question"),
+        AutocompleteFilterFactory("Author", "author"),
+        AutocompleteFilterFactory("Post", "question__post"),
+    ]
 
     def get_actions(self, request):
         actions = super().get_actions(request)

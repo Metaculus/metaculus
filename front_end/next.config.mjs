@@ -62,6 +62,11 @@ const nextConfig = {
         destination: "/bridgewater",
         permanent: true,
       },
+      {
+        source: "/aib",
+        destination: "/futureeval",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {
@@ -69,10 +74,6 @@ const nextConfig = {
       {
         source: "/index/:slug",
         destination: "/tournament/:slug",
-      },
-      {
-        source: "/aib",
-        destination: "/aib/2026/spring/",
       },
     ];
   },
