@@ -987,6 +987,7 @@ const Comment: FC<CommentProps> = ({
                       )}
 
                       {!onProfile &&
+                        !user?.is_bot &&
                         (isReplying ? (
                           <Button
                             size="xxs"

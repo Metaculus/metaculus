@@ -60,6 +60,8 @@ export const AddKeyFactorsButton: FC<AddKeyFactorsButtonProps> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
+
+  if (user?.is_bot) return null;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { setCurrentModal } = useModal();
   const layout = useQuestionLayoutSafe();
