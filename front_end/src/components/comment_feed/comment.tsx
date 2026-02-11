@@ -248,7 +248,7 @@ const Comment: FC<CommentProps> = ({
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
   const { user } = useAuth();
   const scrollTo = useScrollTo();
-  const userCanPredict = postData && canPredictQuestion(postData);
+  const userCanPredict = postData && canPredictQuestion(postData, user);
   const userForecast =
     postData?.question?.my_forecasts?.latest?.forecast_values[1] ?? 0.5;
   const isCommentAuthor = comment.author.id === user?.id;

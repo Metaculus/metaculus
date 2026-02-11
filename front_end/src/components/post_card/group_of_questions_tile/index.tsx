@@ -54,7 +54,7 @@ const GroupOfQuestionsTile: FC<Props> = ({
     return <div>{t("forecastDataIsEmpty")}</div>;
   }
 
-  const canPredict = canPredictQuestion(post);
+  const canPredict = canPredictQuestion(post, user);
 
   const choices = generateChoiceItemsFromGroupQuestions(
     post.group_of_questions,

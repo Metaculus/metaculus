@@ -1,3 +1,6 @@
+"use client";
+
+import { useAuth } from "@/contexts/auth_context";
 import { PostWithForecasts } from "@/types/post";
 import {
   isGroupOfQuestionsPost,
@@ -14,10 +17,12 @@ type Props = {
 };
 
 const ConsumerQuestionPrediction: React.FC<Props> = ({ postData }) => {
+  const { user } = useAuth();
+
   if (isQuestionPost(postData) && !isMultipleChoicePost(postData)) {
     return (
       <SingleQuestionPrediction
-        canPredict={canPredictQuestion(postData)}
+        canPredict={canPredictQuestion(postData, user)}
         question={postData.question}
       />
     );

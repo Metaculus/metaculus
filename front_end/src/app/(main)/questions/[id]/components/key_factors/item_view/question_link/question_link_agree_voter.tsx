@@ -93,6 +93,7 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
       setCurrentModal({ type: "signin" });
       return;
     }
+    if (user.is_bot) return;
 
     const vote: AggregateLinkVoteValue =
       next === "agree" ? 1 : next === "disagree" ? -1 : null;
