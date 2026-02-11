@@ -43,8 +43,9 @@ const NewsCard: FC<Props> = ({ post }) => {
         <div className="flex flex-1 flex-col p-6 text-base">
           <span className="mb-3 font-serif font-semibold capitalize text-blue-700 dark:text-blue-700-dark">
             {(
-              post.projects.news_category?.[0]?.name ||
-              post.projects.default_project.name
+              post.projects?.news_category?.[0]?.name ||
+              post.projects?.default_project?.name ||
+              ""
             ).replace(/\snews$/i, "")}
           </span>
           <h2 className="mt-0 line-clamp-2 font-serif text-2xl font-bold text-blue-900 dark:text-blue-900-dark">
@@ -55,7 +56,7 @@ const NewsCard: FC<Props> = ({ post }) => {
               <MarkdownEditor
                 mode="read"
                 markdown={
-                  post.notebook.markdown_summary ||
+                  post.notebook.feed_tile_summary ||
                   getMarkdownSummary({
                     markdown: post.notebook.markdown,
                     width,

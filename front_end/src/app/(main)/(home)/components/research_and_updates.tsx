@@ -1,99 +1,163 @@
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+"use server";
 import { intlFormat } from "date-fns";
 import Image from "next/image";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { FC } from "react";
 
-import imagePlaceholder from "@/app/assets/images/logo_placeholder.png";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
+import Button from "@/components/ui/button";
 import { NotebookPost } from "@/types/post";
-import { getMarkdownSummary } from "@/utils/markdown";
+import cn from "@/utils/core/cn";
+import { estimateReadingTime, getMarkdownSummary } from "@/utils/markdown";
 import { getPostLink } from "@/utils/navigation";
+
+const CARD_GRADIENTS = [
+  "radial-gradient(ellipse at center, #ede28f 0%, #c5b3c2 50%, #9d83f5 100%)",
+  "radial-gradient(ellipse at center, #b5ed8f 0%, #d5b889 50%, #f58383 100%)",
+  "radial-gradient(ellipse at center, #ed8fd9 0%, #b8c2c7 50%, #83f5b4 100%)",
+  "radial-gradient(ellipse at center, #ed8f8f 0%, #f1bf89 50%, #f5ef83 100%)",
+];
 
 type Props = {
   posts: NotebookPost[];
+  className?: string;
 };
 
-const ResearchAndUpdatesBlock: FC<Props> = async ({ posts }) => {
+const ResearchAndUpdates: FC<Props> = async ({ posts, className }) => {
   const t = await getTranslations();
   const locale = await getLocale();
 
   return (
-    <div className="my-6 flex flex-col md:my-12 lg:my-16">
-      <h2 className="mb-5 mt-0 w-full text-4xl font-bold text-blue-800 dark:text-blue-800-dark md:text-5xl">
-        {t("research")} &{" "}
-        <span className="text-blue-600 dark:text-blue-600-dark">
-          {t("updates")}
-        </span>
-      </h2>
-      <p className="m-0 text-xl text-blue-700 dark:text-blue-700-dark">
-        {t("partnersUseForecasts")}
-      </p>
-      <div className="mt-6 flex flex-col gap-8 xl:flex-row">
-        {posts.map(({ title, created_at, id, notebook, slug }) => (
-          <Link
-            key={id}
-            className="flex-1 rounded-b-2xl bg-gray-0 no-underline hover:shadow-lg active:shadow-md dark:bg-gray-0-dark"
-            href={getPostLink({ id, slug, notebook })}
-          >
-            {notebook.image_url ? (
-              <Image
-                src={notebook.image_url}
-                alt=""
-                width={265}
-                height={160}
-                quality={100}
-                sizes="(max-width: 768px) 200vw, 100vw"
-                className="h-56 w-full object-cover object-center"
-              />
-            ) : (
-              <Image
-                src={imagePlaceholder}
-                alt=""
-                className="h-56 w-full object-cover object-center"
-                quality={100}
-                sizes="(max-width: 768px) 200vw, 100vw"
-              />
-            )}
+    <section className={className}>
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col gap-1 text-gray-1000 dark:text-gray-1000-dark">
+          <h2 className="m-0 text-xl font-bold leading-7">
+            {t("researchAndUpdates")}
+          </h2>
+          <p className="m-0 max-w-[420px] text-base font-normal leading-6 text-gray-1000 dark:text-gray-1000-dark">
+            {t("partnersUseForecasts")}
+          </p>
+        </div>
+        <Button
+          href="/news/"
+          variant="secondary"
+          size="md"
+          className="w-fit whitespace-nowrap font-normal"
+        >
+          {t("seeMore")} →
+        </Button>
+      </div>
 
-            <div className="px-5 py-6">
-              <span className="rounded-full bg-blue-400 px-1.5 py-0.5 text-sm font-medium text-blue-900 dark:bg-blue-400-dark dark:text-blue-900-dark">
-                {intlFormat(
-                  new Date(created_at),
-                  {
-                    year: "numeric",
-                    month: "short",
-                  },
-                  { locale }
-                )}
-              </span>
-              <h3 className="mb-2 mt-3 text-2xl">{title}</h3>
-              <p className="m-0 text-base text-blue-700 dark:text-blue-700-dark">
-                {notebook.markdown_summary ||
-                  getMarkdownSummary({
-                    markdown: notebook.markdown,
-                    width: 200,
-                    height: 80,
-                    withLinks: false,
-                  })}
-              </p>
-            </div>
-          </Link>
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {posts.slice(0, 4).map((post, index) => (
+          <NotebookCard
+            key={post.id}
+            post={post}
+            index={index}
+            locale={locale}
+          />
         ))}
       </div>
-      <a
-        href="https://metaculus.com/news/?news_type=research"
-        className="mt-8 inline-flex items-center self-end text-right text-base font-bold text-blue-800 no-underline dark:text-blue-800-dark"
-        target="_blank"
-        rel="noreferrer"
-      >
-        {t("seeMorePosts")}
-        <FontAwesomeIcon icon={faArrowRight} className="ml-1.5 mr-1" />
-      </a>
-    </div>
+    </section>
   );
 };
 
-export default WithServerComponentErrorBoundary(ResearchAndUpdatesBlock);
+type PostCardProps = {
+  post: NotebookPost;
+  index: number;
+  locale: string;
+};
+
+const NotebookCard: FC<PostCardProps> = async ({ post, index, locale }) => {
+  const t = await getTranslations();
+  const {
+    title,
+    created_at,
+    id,
+    notebook,
+    slug,
+    author_username,
+    comment_count = 0,
+  } = post;
+
+  const readingTime = estimateReadingTime(notebook.markdown);
+  const summary =
+    notebook.feed_tile_summary ||
+    getMarkdownSummary({
+      markdown: notebook.markdown,
+      width: 280,
+      height: 60,
+      withLinks: false,
+    });
+
+  const gradient = CARD_GRADIENTS[index % CARD_GRADIENTS.length];
+
+  return (
+    <Link
+      href={getPostLink({ id, slug, notebook })}
+      className={cn(
+        "flex flex-col overflow-hidden rounded-lg border border-blue-400 bg-gray-0 no-underline transition-shadow hover:shadow-lg",
+        "dark:border-blue-400-dark dark:bg-gray-0-dark"
+      )}
+    >
+      <div className="p-3 pb-0">
+        {notebook.image_url ? (
+          <Image
+            src={notebook.image_url}
+            alt=""
+            width={320}
+            height={180}
+            quality={100}
+            sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
+            className="aspect-video w-full rounded object-cover object-center"
+          />
+        ) : (
+          <div
+            className="aspect-video w-full rounded"
+            style={{ background: gradient }}
+          />
+        )}
+      </div>
+
+      <div className="flex flex-1 flex-col justify-between gap-8 p-4">
+        <div className="flex flex-col gap-2">
+          <span className="text-xs font-medium leading-3 text-gray-500 dark:text-gray-500-dark">
+            {intlFormat(
+              new Date(created_at),
+              {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              },
+              { locale }
+            )}
+          </span>
+          <h3 className="m-0 line-clamp-2 text-base font-bold leading-5 text-gray-900 dark:text-gray-900-dark">
+            {title}
+          </h3>
+          <p className="m-0 line-clamp-4 text-sm font-medium leading-5 text-gray-700 dark:text-gray-700-dark">
+            {summary}
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <span className="text-sm font-normal leading-5 text-gray-900 dark:text-gray-900-dark">
+            {author_username}
+          </span>
+          <div className="flex items-center gap-1 text-sm font-normal leading-5">
+            <span className="text-gray-500 dark:text-gray-500-dark">
+              {comment_count} {t("commentsWithCount", { count: comment_count })}
+            </span>
+            <span className="text-gray-400 dark:text-gray-400-dark">•</span>
+            <span className="text-gray-500 dark:text-gray-500-dark">
+              {t("estimatedReadingTime", { minutes: readingTime })}
+            </span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+export default WithServerComponentErrorBoundary(ResearchAndUpdates);

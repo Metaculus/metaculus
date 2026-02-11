@@ -9,7 +9,7 @@ import ContinuousCPBar from "@/components/post_card/question_tile/continuous_cp_
 import { useHideCP } from "@/contexts/cp_context";
 import { QuestionStatus } from "@/types/post";
 import { QuestionWithNumericForecasts, UserForecast } from "@/types/question";
-import { isForecastActive } from "@/utils/forecasts/helpers";
+import cn from "@/utils/core/cn";
 import { formatResolution } from "@/utils/formatters/resolution";
 import { isSuccessfullyResolved } from "@/utils/questions/resolution";
 
@@ -18,6 +18,7 @@ type Props = {
   onReaffirm?: (userForecast: UserForecast) => void;
   canPredict?: boolean;
   showMyPrediction?: boolean;
+  className?: string;
 };
 
 const PredictionContinuousInfo: FC<Props> = ({
@@ -25,6 +26,7 @@ const PredictionContinuousInfo: FC<Props> = ({
   onReaffirm,
   canPredict,
   showMyPrediction,
+  className,
 }) => {
   const locale = useLocale();
   const { hideCP } = useHideCP();
@@ -59,7 +61,12 @@ const PredictionContinuousInfo: FC<Props> = ({
   }
 
   return (
-    <div className="flex w-full flex-row gap-1.5 md:flex-col md:gap-0.5">
+    <div
+      className={cn(
+        "flex w-full flex-row gap-1.5 md:flex-col md:gap-0.5",
+        className
+      )}
+    >
       <div className="flex w-full flex-col gap-1 md:gap-1.5">
         {!hideCP && (
           <>
@@ -82,19 +89,17 @@ const PredictionContinuousInfo: FC<Props> = ({
           />
         )}
       </div>
-      {showMyPrediction &&
-        question.my_forecasts?.latest &&
-        isForecastActive(question.my_forecasts.latest) && (
-          <div className="mt-0 flex w-full w-full  border-0 border-dashed border-gray-300 pt-0 dark:border-gray-300-dark md:mt-1 md:border-t-[0.5px] md:pt-2">
-            <MyPredictionChip
-              question={question}
-              showUserForecast
-              onReaffirm={onReaffirm}
-              canPredict={canPredict}
-              variant="continuous"
-            />
-          </div>
-        )}
+      {showMyPrediction && question.my_forecasts?.latest && (
+        <div className="mt-0 flex w-full border-0 border-dashed border-gray-300 pt-0 dark:border-gray-300-dark md:mt-1 md:border-t-[0.5px] md:pt-2">
+          <MyPredictionChip
+            question={question}
+            showUserForecast
+            onReaffirm={onReaffirm}
+            canPredict={canPredict}
+            variant="continuous"
+          />
+        </div>
+      )}
     </div>
   );
 };

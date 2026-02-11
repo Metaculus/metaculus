@@ -15,7 +15,7 @@ from django.db.models import (
 )
 from django.db.models.functions import Coalesce, Abs
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, PermissionDenied
 
 from comments.models import (
     ChangedMyMindEntry,
@@ -90,6 +90,9 @@ def create_comment(
     if root:
         is_private = root.is_private
 
+    if not is_private and user.is_bot and not user.is_primary_bot:
+        raise PermissionDenied("Only your primary bot can post public comments.")
+
     with transaction.atomic():
         obj = Comment(
             author=user,
@@ -127,7 +130,9 @@ def create_comment(
     return obj
 
 
-def update_comment(comment: Comment, text: str = None):
+def update_comment(
+    comment: Comment, text: str = None, included_forecast: Forecast = None
+):
     differ = difflib.Differ()
 
     diff = list(differ.compare(comment.text.splitlines(), text.splitlines()))
@@ -145,10 +150,19 @@ def update_comment(comment: Comment, text: str = None):
         comment.text = text
         comment.text_edited_at = timezone.now()
 
+        if included_forecast:
+            comment.included_forecast = included_forecast
+
         should_soft_delete = check_and_handle_comment_spam(comment.author, comment)
 
         comment.save(
-            update_fields=["text", "edit_history", "text_edited_at", "is_soft_deleted"]
+            update_fields=[
+                "text",
+                "edit_history",
+                "text_edited_at",
+                "is_soft_deleted",
+                "included_forecast",
+            ]
         )
 
         if should_soft_delete:
@@ -268,6 +282,8 @@ def update_top_comments_of_week(week_start_date: datetime.date):
     weeks_comments = Comment.objects.filter(
         created_at__gte=week_start_datetime,
         created_at__lt=week_end_datetime,
+        on_post__isnull=False,
+        on_post__default_project__visibility=Project.Visibility.NORMAL,
     ).exclude(author__is_staff=True)
 
     comments_of_week = weeks_comments.annotate(
@@ -347,11 +363,13 @@ def update_top_comments_of_week(week_start_date: datetime.date):
     maximum_key_factor_score = stats["max_key_factor_votes_score"]
 
     top_comments_of_week: list[CommentsOfTheWeekEntry] = []
-    for comment in comments_of_week:
+    for row in comments_of_week.values(
+        "id", "vote_score", "changed_my_mind_count", "key_factor_votes_score"
+    ):
         comment_score = compute_comment_score(
-            comment_votes=max(0, comment.vote_score),
-            change_my_minds=comment.changed_my_mind_count,
-            key_factor_votes_score=comment.key_factor_votes_score,
+            comment_votes=max(0, row["vote_score"]),
+            change_my_minds=row["changed_my_mind_count"],
+            key_factor_votes_score=row["key_factor_votes_score"],
             maximum_comment_votes=maximum_comment_votes,
             maximum_cmms=maximum_cmms,
             maximum_key_factor_score=maximum_key_factor_score,
@@ -359,31 +377,29 @@ def update_top_comments_of_week(week_start_date: datetime.date):
 
         top_comments_of_week.append(
             CommentsOfTheWeekEntry(
-                comment=comment,
+                comment_id=row["id"],
                 score=comment_score,
                 created_at=timezone.now(),
                 week_start_date=week_start_date,
                 # Store snapshot of comment counters
                 # for the moment of week entry creation
-                votes_score=comment.vote_score,
-                changed_my_mind_count=comment.changed_my_mind_count,
-                key_factor_votes_score=comment.key_factor_votes_score,
+                votes_score=row["vote_score"],
+                changed_my_mind_count=row["changed_my_mind_count"],
+                key_factor_votes_score=row["key_factor_votes_score"],
             )
         )
 
-    sorted_comments_of_week = sorted(
-        top_comments_of_week, key=lambda x: x.score, reverse=True
-    )
+    top_comments_of_week.sort(key=lambda x: x.score, reverse=True)
 
     # we need at most 18, out of which admins can exclude some if they want.
     # the non-admin users will always get the top 6 which are not excluded.
-    top_18 = sorted_comments_of_week[:18]
+    top_18 = top_comments_of_week[:18]
 
     # Bulk create or update entries
     created_entries = CommentsOfTheWeekEntry.objects.bulk_create(
         top_18,
         update_conflicts=True,
-        unique_fields=["comment"],
+        unique_fields=["comment_id"],
         update_fields=[
             "score",
             "created_at",

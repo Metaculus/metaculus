@@ -14,27 +14,29 @@ import PostVoter from "./post_voter";
 
 type Props = {
   post: Post;
-  withVoter?: boolean;
+  minimalistic?: boolean;
 };
 
 const BasicPostControls: FC<PropsWithChildren<Props>> = ({
   post,
-  withVoter = true,
+  minimalistic = false,
 }) => {
   const resolutionData = extractPostResolution(post);
-  const defaultProject = post.projects.default_project;
+  const defaultProject = post.projects?.default_project;
 
   // Edge case: if default_project is longer than 15 characters and there are unread messages
   const hasUnreadMessages = (post.unread_comment_count ?? 0) > 0;
   const projectNameLength = defaultProject?.name.length ?? 0;
 
   const shouldUseCompactPostStatus =
-    projectNameLength >= 30 || (hasUnreadMessages && projectNameLength > 15);
+    projectNameLength >= 30 ||
+    (hasUnreadMessages && projectNameLength > 15) ||
+    minimalistic;
 
   return (
     <div className="mt-3 flex items-center justify-between rounded-ee rounded-es dark:border-blue-400-dark max-lg:flex-1">
       <div className="flex items-center gap-1.5 md:gap-2">
-        {withVoter && <PostVoter post={post} />}
+        {!minimalistic && <PostVoter post={post} />}
 
         {/* CommentStatus - compact on small screens, full on large screens */}
         <CommentStatus
@@ -74,12 +76,14 @@ const BasicPostControls: FC<PropsWithChildren<Props>> = ({
         />
         <ForecastersCounter
           forecasters={post.nr_forecasters}
-          compact={false}
+          compact={minimalistic}
           className="hidden md:flex"
         />
       </div>
       <div className="hidden overflow-hidden lg:inline-flex">
-        <PostDefaultProject defaultProject={defaultProject} />
+        {!minimalistic && defaultProject && (
+          <PostDefaultProject defaultProject={defaultProject} />
+        )}
       </div>
     </div>
   );

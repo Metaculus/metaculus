@@ -1,9 +1,7 @@
 import logging
 from datetime import timedelta
 
-from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
-from django.views.decorators.cache import cache_page
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
@@ -12,7 +10,9 @@ from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from users.models import User
+from authentication.models import ApiKey
+from authentication.services import get_tokens_for_user, send_password_reset_email
+from users.models import User, UserSpamActivity
 from users.serializers import (
     UserPrivateSerializer,
     UserPublicSerializer,
@@ -22,6 +22,8 @@ from users.serializers import (
     PasswordChangeSerializer,
     EmailChangeSerializer,
     UserCampaignRegistrationSerializer,
+    BotUpdateProfileSerializer,
+    validate_username_change,
 )
 from users.services.common import (
     get_users,
@@ -29,10 +31,12 @@ from users.services.common import (
     send_email_change_confirmation_email,
     change_email_from_token,
     register_user_to_campaign,
+    change_user_password,
 )
 from utils.paginator import LimitOffsetPagination
 from utils.tasks import email_user_their_data_task
-from .services.profile_stats import serialize_profile
+from .services.bots_management import get_user_bots, create_bot
+from .services.profile_stats import serialize_user_stats
 from .services.spam_detection import (
     check_profile_update_for_spam,
     send_deactivation_email,
@@ -59,16 +63,29 @@ def current_user_api_view(request):
     return Response(UserPrivateSerializer(request.user).data)
 
 
-@cache_page(60 * 60)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def user_profile_api_view(request, pk: int):
+    current_user = request.user
+
     qs = User.objects.all()
-    if not request.user.is_staff:
+    if not current_user.is_staff:
         qs = qs.filter(is_active=True, is_spam=False)
+
     user = get_object_or_404(qs, pk=pk)
 
-    return Response(serialize_profile(user, current_user=request.user))
+    # Basic profile data
+    profile = UserPublicSerializer(user).data
+
+    if current_user and current_user.is_staff:
+        profile.update(
+            {"spam_count": UserSpamActivity.objects.filter(user=user).count()}
+        )
+
+    # Performing slow but cached profile request
+    profile.update(serialize_user_stats(user))
+
+    return Response(profile)
 
 
 @api_view(["GET"])
@@ -149,10 +166,20 @@ def password_change_api_view(request):
     if not user.check_password(password):
         raise ValidationError({"password": "Current password is incorrect"})
 
-    validate_password(new_password, user=user)
+    change_user_password(user, new_password)
 
-    user.set_password(new_password)
-    user.save()
+    tokens = get_tokens_for_user(user)
+    return Response(tokens)
+
+
+@api_view(["POST"])
+def send_set_password_email_api_view(request):
+    user = request.user
+
+    if user.has_usable_password():
+        raise ValidationError({"message": "User already has a password set"})
+
+    send_password_reset_email(user)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -187,7 +214,8 @@ def email_change_confirm_api_view(request):
     token = serializers.CharField().run_validation(request.data.get("token"))
     change_email_from_token(request.user, token)
 
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    tokens = get_tokens_for_user(request.user)
+    return Response(tokens)
 
 
 @api_view(["POST"])
@@ -205,3 +233,82 @@ def register_campaign(request):
     )
 
     return Response(status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+def create_bot_api_view(request: Request):
+    user: User = request.user
+
+    if user.is_bot:
+        raise ValidationError("Sorry, we’re not ready yet for bots to create bots")
+
+    username = serializers.CharField().run_validation(request.data.get("username"))
+    username = validate_username(username)
+
+    bot = create_bot(bot_owner=user, username=username)
+    token, _ = ApiKey.objects.get_or_create(user=bot)
+
+    return Response({"token": token.key, "user": UserPrivateSerializer(bot).data})
+
+
+@api_view(["PATCH"])
+def update_bot_profile_api_view(request: Request, pk: int):
+    user: User = request.user
+    # Check user bot permissions
+    bot = get_object_or_404(get_user_bots(user), pk=pk)
+
+    serializer = BotUpdateProfileSerializer(bot, data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+
+    is_spam, _ = check_profile_update_for_spam(bot, serializer)
+
+    if is_spam:
+        user.mark_as_spam()
+        send_deactivation_email(user.email)
+
+        return Response(
+            data={
+                "message": "This bio seems to be spam. Please contact "
+                "support@metaculus.com if you believe this was a mistake.",
+                "error_code": "SPAM_DETECTED",
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    username = serializer.validated_data.pop("username", None)
+
+    if username and username != bot.username:
+        username = validate_username_change(bot, username)
+        bot.update_username(username)
+        bot.save()
+
+    serializer.save()
+    return Response(UserPrivateSerializer(bot).data)
+
+
+@api_view(["GET"])
+def my_bots_api_view(request: Request):
+    bots = get_user_bots(request.user)
+
+    return Response(UserPrivateSerializer(bots, many=True).data)
+
+
+@api_view(["GET"])
+def bot_token_api_view(request: Request, pk: int):
+    bot = get_object_or_404(get_user_bots(request.user), pk=pk)
+    token, _ = ApiKey.objects.get_or_create(user=bot)
+
+    return Response({"token": token.key})
+
+
+@api_view(["POST"])
+def bot_jwt_api_view(request: Request, pk: int):
+    """
+    Get JWT tokens to impersonate a bot account.
+    Returns access and refresh tokens for the bot.
+    """
+
+    bot = get_object_or_404(get_user_bots(request.user), pk=pk)
+    tokens = get_tokens_for_user(bot)
+
+    return Response(tokens)

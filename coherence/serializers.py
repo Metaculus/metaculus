@@ -1,7 +1,8 @@
-from collections import Counter
+from collections import Counter, defaultdict
 from typing import Iterable
 
 import numpy as np
+from django.db.models import Q
 from multidict import MultiDict
 from rest_framework import serializers
 
@@ -21,6 +22,9 @@ from .utils import (
 
 
 class CoherenceLinkSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+    user_id = serializers.IntegerField(required=False)
+    username = serializers.SerializerMethodField(required=False)
     question1_id = serializers.IntegerField(required=True)
     question2_id = serializers.IntegerField(required=True)
     direction = serializers.IntegerField(required=True)
@@ -29,12 +33,19 @@ class CoherenceLinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoherenceLink
         fields = [
+            "id",
+            "user_id",
+            "username",
             "question1_id",
             "question2_id",
             "direction",
             "strength",
             "type",
         ]
+        read_only_fields = ["username"]
+
+    def get_username(self, obj):
+        return obj.user.username if obj.user else None
 
 
 class AggregateCoherenceLinkSerializer(serializers.ModelSerializer):
@@ -52,8 +63,10 @@ class AggregateCoherenceLinkSerializer(serializers.ModelSerializer):
 
 
 class NeedsUpdateQuerySerializer(serializers.Serializer):
-    datetime = serializers.DateTimeField()
-    user_id_for_links = serializers.IntegerField(required=False, allow_null=True)
+    question_ids = serializers.ListField(
+        child=serializers.IntegerField(), required=True
+    )
+    retrieve_all_data = serializers.BooleanField(required=False, default=False)
 
 
 def serialize_coherence_link(
@@ -73,7 +86,7 @@ def serialize_coherence_link_many(
 ):
     ids = [link.pk for link in links]
     qs = CoherenceLink.objects.filter(pk__in=[c.pk for c in links]).select_related(
-        "question1", "question2"
+        "question1__post", "question2__post", "user"
     )
 
     objects = list(qs.all())
@@ -136,7 +149,7 @@ def serialize_aggregate_coherence_link_many(
     ids = [link.pk for link in links]
     qs = AggregateCoherenceLink.objects.filter(
         pk__in=[c.pk for c in links]
-    ).select_related("question1", "question2")
+    ).select_related("question1__post", "question2__post")
 
     if current_user:
         qs = qs.annotate_user_vote(current_user)
@@ -170,6 +183,50 @@ def serialize_aggregate_coherence_link_many(
         )
         for link in aggregate_links
     ]
+
+
+def serialize_aggregate_coherence_links_questions_map(
+    questions: Iterable[Question], current_user: User = None
+) -> dict[int, list[dict]]:
+    qs = AggregateCoherenceLink.objects.filter(
+        Q(question1__in=questions) | Q(question2__in=questions)
+    )
+    questions_map = {q.id: q for q in questions}
+
+    serialized_data = serialize_aggregate_coherence_link_many(
+        qs, current_user=current_user
+    )
+    links_map = defaultdict(list)
+
+    for link in serialized_data:
+        for alias in ("question1_id", "question2_id"):
+            question = questions_map.get(link[alias])
+
+            if question:
+                links_map[question].append(link)
+
+    return links_map
+
+
+def serialize_coherence_links_questions_map(
+    questions: Iterable[Question], current_user: User
+) -> dict[int, list[dict]]:
+    qs = CoherenceLink.objects.filter(
+        Q(question1__in=questions) | Q(question2__in=questions), user=current_user
+    )
+    questions_map = {q.id: q for q in questions}
+
+    serialized_data = serialize_coherence_link_many(qs)
+    links_map = defaultdict(list)
+
+    for link in serialized_data:
+        for alias in ("question1_id", "question2_id"):
+            question = questions_map.get(link[alias])
+
+            if question:
+                links_map[question].append(link)
+
+    return links_map
 
 
 def serialize_aggregate_coherence_link_vote(

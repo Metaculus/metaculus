@@ -6,7 +6,7 @@ import useMounted from "@/hooks/use_mounted";
 import { AppTheme } from "@/types/theme";
 import cn from "@/utils/core/cn";
 
-const ThemeToggle: FC = () => {
+const ThemeToggle: FC<{ className?: string }> = ({ className }) => {
   const mounted = useMounted();
 
   const { theme, isSyncing, setTheme } = useAppTheme();
@@ -26,7 +26,10 @@ const ThemeToggle: FC = () => {
 
   return (
     <button
-      className="group/theme relative inline-block h-[15px] w-[35px] min-w-[2rem] rounded-full border border-white focus:outline-none"
+      className={cn(
+        "group/theme relative inline-block h-[15px] w-[35px] min-w-[2rem] rounded-full border border-white focus:outline-none",
+        className
+      )}
       onClick={switchTheme}
       // Optimistic update
       // But don't allow to click until values is synced with backend

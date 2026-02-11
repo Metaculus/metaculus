@@ -54,20 +54,12 @@ class LeaderboardApi extends ApiService {
 
   async getProjectLeaderboard(
     projectId: number,
-    leaderboardType: string | null = null,
-    leaderboardName: string | null = null
-  ): Promise<LeaderboardDetails | null> {
+    params?: URLSearchParams | null
+  ): Promise<LeaderboardDetails[] | null> {
     // TODO: make paginated
-    const params = new URLSearchParams();
-    if (leaderboardType) {
-      params.append("score_type", leaderboardType);
-    }
-    if (leaderboardName) {
-      params.append("name", leaderboardName);
-    }
-
-    const url = `/leaderboards/project/${projectId}/${params.toString() ? `?${params.toString()}` : ""}`;
-    return await this.get<LeaderboardDetails>(url);
+    const searchParams = params ?? new URLSearchParams();
+    const url = `/leaderboards/project/${projectId}/${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+    return await this.get<LeaderboardDetails[]>(url);
   }
 
   async getUserMedals(userId: number) {

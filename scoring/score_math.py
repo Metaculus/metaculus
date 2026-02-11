@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-
 from datetime import datetime
+from typing import Sequence
+
 import numpy as np
 from scipy.stats.mstats import gmean
 
@@ -25,7 +26,7 @@ class AggregationEntry:
 
 
 def get_geometric_means(
-    forecasts: list[Forecast | AggregateForecast],
+    forecasts: Sequence[Forecast | AggregateForecast],
 ) -> list[AggregationEntry]:
     geometric_means = []
     timesteps: set[float] = set()
@@ -52,32 +53,6 @@ def get_geometric_means(
     return geometric_means
 
 
-def get_medians(
-    forecasts: list[Forecast | AggregateForecast],
-) -> list[AggregationEntry]:
-    medians = []
-    timesteps: set[float] = set()
-    for forecast in forecasts:
-        timesteps.add(forecast.start_time.timestamp())
-        if forecast.end_time:
-            timesteps.add(forecast.end_time.timestamp())
-    for timestep in sorted(timesteps):
-        prediction_values = [
-            f.get_pmf()
-            for f in forecasts
-            if f.start_time.timestamp() <= timestep
-            and (f.end_time is None or f.end_time.timestamp() > timestep)
-        ]
-        if not prediction_values:
-            continue  # TODO: doesn't account for going from 1 active forecast to 0
-        median = np.median(prediction_values, axis=0)
-        predictors = len(prediction_values)
-        medians.append(
-            AggregationEntry(median, predictors if predictors > 1 else 0, timestep)
-        )
-    return medians
-
-
 @dataclass
 class ForecastScore:
     score: float
@@ -85,7 +60,7 @@ class ForecastScore:
 
 
 def evaluate_forecasts_baseline_accuracy(
-    forecasts: list[Forecast | AggregateForecast],
+    forecasts: Sequence[Forecast | AggregateForecast],
     resolution_bucket: int,
     forecast_horizon_start: float,
     actual_close_time: float,
@@ -109,9 +84,17 @@ def evaluate_forecasts_baseline_accuracy(
         forecast_coverage = forecast_duration / total_duration
         pmf = forecast.get_pmf()
         if question_type in ["binary", "multiple_choice"]:
-            forecast_score = (
-                100 * np.log(pmf[resolution_bucket] * len(pmf)) / np.log(len(pmf))
-            )
+            # forecasts always have `None` assigned to MC options that aren't
+            # available at the time. Detecting these allows us to avoid trying to
+            # follow the question's options_history. With get_pmf(), these None
+            # values are represented as float("nan")
+            options_at_time = sum(~np.isnan(pmf))
+            p = (
+                pmf[resolution_bucket]
+                if not np.isnan(pmf[resolution_bucket])
+                else pmf[-1]
+            )  # if nan, read from Other
+            forecast_score = 100 * np.log(p * options_at_time) / np.log(options_at_time)
         else:
             if resolution_bucket in [0, len(pmf) - 1]:
                 baseline = 0.05
@@ -126,7 +109,7 @@ def evaluate_forecasts_baseline_accuracy(
 
 
 def evaluate_forecasts_baseline_spot_forecast(
-    forecasts: list[Forecast | AggregateForecast],
+    forecasts: Sequence[Forecast | AggregateForecast],
     resolution_bucket: int,
     spot_forecast_timestamp: float,
     question_type: str,
@@ -141,8 +124,18 @@ def evaluate_forecasts_baseline_spot_forecast(
         if start <= spot_forecast_timestamp < end:
             pmf = forecast.get_pmf()
             if question_type in ["binary", "multiple_choice"]:
+                # forecasts always have `None` assigned to MC options that aren't
+                # available at the time. Detecting these allows us to avoid trying to
+                # follow the question's options_history. With get_pmf(), these None
+                # values are represented as float("nan")
+                options_at_time = sum(~np.isnan(pmf))
+                p = (
+                    pmf[resolution_bucket]
+                    if not np.isnan(pmf[resolution_bucket])
+                    else pmf[-1]
+                )  # if nan, read from Other
                 forecast_score = (
-                    100 * np.log(pmf[resolution_bucket] * len(pmf)) / np.log(len(pmf))
+                    100 * np.log(p * options_at_time) / np.log(options_at_time)
                 )
             else:
                 if resolution_bucket in [0, len(pmf) - 1]:
@@ -157,7 +150,7 @@ def evaluate_forecasts_baseline_spot_forecast(
 
 
 def evaluate_forecasts_peer_accuracy(
-    forecasts: list[Forecast | AggregateForecast],
+    forecasts: Sequence[Forecast | AggregateForecast],
     base_forecasts: list[Forecast | AggregateForecast] | None,
     resolution_bucket: int,
     forecast_horizon_start: float,
@@ -184,17 +177,24 @@ def evaluate_forecasts_peer_accuracy(
             continue
 
         pmf = forecast.get_pmf()
+        # if nan, read from Other
+        p = pmf[resolution_bucket] if not np.isnan(pmf[resolution_bucket]) else pmf[-1]
         interval_scores: list[float | None] = []
         for gm in geometric_mean_forecasts:
             if forecast_start <= gm.timestamp < forecast_end:
-                score = (
+                gmp = (
+                    gm.pmf[resolution_bucket]
+                    if not np.isnan(gm.pmf[resolution_bucket])
+                    else gm.pmf[-1]
+                )  # if nan, read from Other
+                interval_score = (
                     100
                     * (gm.num_forecasters / (gm.num_forecasters - 1))
-                    * np.log(pmf[resolution_bucket] / gm.pmf[resolution_bucket])
+                    * np.log(p / gmp)
                 )
                 if question_type in QUESTION_CONTINUOUS_TYPES:
-                    score /= 2
-                interval_scores.append(score)
+                    interval_score /= 2
+                interval_scores.append(interval_score)
             else:
                 interval_scores.append(None)
 
@@ -206,10 +206,11 @@ def evaluate_forecasts_peer_accuracy(
             if gm.timestamp < actual_close_time
         ] + [actual_close_time]
         for i in range(len(times) - 1):
-            if interval_scores[i] is None:
+            interval_score = interval_scores[i]
+            if interval_score is None:
                 continue
             interval_duration = times[i + 1] - times[i]
-            forecast_score += interval_scores[i] * interval_duration / total_duration
+            forecast_score += interval_score * interval_duration / total_duration
             forecast_coverage += interval_duration / total_duration
         forecast_scores.append(ForecastScore(forecast_score, forecast_coverage))
 
@@ -217,7 +218,7 @@ def evaluate_forecasts_peer_accuracy(
 
 
 def evaluate_forecasts_peer_spot_forecast(
-    forecasts: list[Forecast | AggregateForecast],
+    forecasts: Sequence[Forecast | AggregateForecast],
     base_forecasts: list[Forecast | AggregateForecast] | None,
     resolution_bucket: int,
     spot_forecast_timestamp: float,
@@ -242,10 +243,18 @@ def evaluate_forecasts_peer_spot_forecast(
         )
         if start <= spot_forecast_timestamp < end:
             pmf = forecast.get_pmf()
+            p = (
+                pmf[resolution_bucket]
+                if not np.isnan(pmf[resolution_bucket])
+                else pmf[-1]
+            )  # if nan, read from Other
+            gmp = (
+                gm.pmf[resolution_bucket]
+                if not np.isnan(gm.pmf[resolution_bucket])
+                else gm.pmf[-1]
+            )  # if nan, read from Other
             forecast_score = (
-                100
-                * (gm.num_forecasters / (gm.num_forecasters - 1))
-                * np.log(pmf[resolution_bucket] / gm.pmf[resolution_bucket])
+                100 * (gm.num_forecasters / (gm.num_forecasters - 1)) * np.log(p / gmp)
             )
             if question_type in QUESTION_CONTINUOUS_TYPES:
                 forecast_score /= 2
@@ -256,8 +265,8 @@ def evaluate_forecasts_peer_spot_forecast(
 
 
 def evaluate_forecasts_legacy_relative(
-    forecasts: list[Forecast | AggregateForecast],
-    base_forecasts: list[Forecast | AggregateForecast],
+    forecasts: Sequence[Forecast | AggregateForecast],
+    base_forecasts: Sequence[Forecast | AggregateForecast],
     resolution_bucket: int,
     forecast_horizon_start: float,
     actual_close_time: float,
@@ -284,11 +293,18 @@ def evaluate_forecasts_legacy_relative(
             continue
 
         pmf = forecast.get_pmf()
+        # if nan, read from Other
+        p = pmf[resolution_bucket] if not np.isnan(pmf[resolution_bucket]) else pmf[-1]
         interval_scores: list[float | None] = []
         for bf in baseline_forecasts:
             if forecast_start <= bf.timestamp < forecast_end:
-                score = np.log2(pmf[resolution_bucket] / bf.pmf[resolution_bucket])
-                interval_scores.append(score)
+                bfp = (
+                    bf.pmf[resolution_bucket]
+                    if not np.isnan(bf.pmf[resolution_bucket])
+                    else bf.pmf[-1]
+                )  # if nan, read from Other
+                interval_score = np.log2(p / bfp)
+                interval_scores.append(interval_score)
             else:
                 interval_scores.append(None)
 
@@ -300,10 +316,11 @@ def evaluate_forecasts_legacy_relative(
             if bf.timestamp < actual_close_time
         ] + [actual_close_time]
         for i in range(len(times) - 1):
-            if interval_scores[i] is None:
+            interval_score = interval_scores[i]
+            if interval_score is None:
                 continue
             interval_duration = times[i + 1] - times[i]
-            forecast_score += interval_scores[i] * interval_duration / total_duration
+            forecast_score += interval_score * interval_duration / total_duration
             forecast_coverage += interval_duration / total_duration
         forecast_scores.append(ForecastScore(forecast_score, forecast_coverage))
 
@@ -339,14 +356,17 @@ def evaluate_question(
     if spot_forecast_time:
         spot_forecast_timestamp = min(spot_forecast_time.timestamp(), actual_close_time)
 
-    # We need all user forecasts to calculated GeoMean even
+    # We need all user forecasts to calculate GeoMean even
     # if we're only scoring some or none of the users
     user_forecasts = question.user_forecasts.all()
     if only_include_user_ids:
         user_forecasts = user_forecasts.filter(author__id__in=only_include_user_ids)
     base_forecasts = user_forecasts
-    if not only_include_user_ids and not question.include_bots_in_aggregates:
-        base_forecasts = base_forecasts.exclude(author__is_bot=True)
+    if not only_include_user_ids:
+        # only include forecasts by non-primary bots if user ids explicitly specified
+        base_forecasts = base_forecasts.exclude_non_primary_bots()
+        if not question.include_bots_in_aggregates:
+            base_forecasts = base_forecasts.exclude(author__is_bot=True)
     aggregations = get_aggregation_history(
         question,
         minimize=False,

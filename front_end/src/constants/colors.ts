@@ -189,6 +189,13 @@ export const METAC_COLORS = {
 
   bell: { DEFAULT: "#b79d00", dark: "#dac024" },
   twitter: { DEFAULT: "#1da1f2" },
+  // FutureEval brand colors
+  futureeval: {
+    "primary-light": "#00A99E",
+    "primary-dark": "#23FBE3",
+    "bg-light": "#FBFFFC",
+    "bg-dark": "#030C07",
+  },
 } as const;
 
 export const MULTIPLE_CHOICE_COLOR_SCALE = Object.values(

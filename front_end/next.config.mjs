@@ -62,6 +62,11 @@ const nextConfig = {
         destination: "/bridgewater",
         permanent: true,
       },
+      {
+        source: "/aib",
+        destination: "/futureeval",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {
@@ -69,6 +74,11 @@ const nextConfig = {
       {
         source: "/index/:slug",
         destination: "/tournament/:slug",
+      },
+      {
+        source: "/files/forecasting-owid-report.pdf",
+        destination:
+          "https://metaculus-public.s3.us-west-2.amazonaws.com/OWID%2Breport.pdf",
       },
     ];
   },

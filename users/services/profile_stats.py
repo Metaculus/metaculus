@@ -12,8 +12,8 @@ from questions.models import AggregateForecast, Forecast, Question
 from questions.types import AggregationMethod
 from scoring.constants import ScoreTypes
 from scoring.models import Score
-from users.models import User, UserSpamActivity
-from users.serializers import UserPublicSerializer
+from users.models import User
+from utils.cache import cache_get_or_set
 
 
 @dataclass(frozen=True)
@@ -36,7 +36,7 @@ def generate_question_scores(qs: QuerySet[Score]):
     scores_qs = qs.annotate(
         question_title=F("question__title"),
         question_resolution=F("question__resolution"),
-        post_id=F("question__related_posts__post_id"),
+        post_id=F("question__post_id"),
     ).values(
         "score",
         "edited_at",
@@ -161,6 +161,7 @@ def get_score_histogram_data(
 def get_calibration_curve_data(
     user: User | None = None,
     aggregation_method: AggregationMethod | None = None,
+    chunk_size: int | None = None,
 ) -> dict:
     if (user is None and aggregation_method is None) or (
         user is not None and aggregation_method is not None
@@ -191,6 +192,12 @@ def get_calibration_curve_data(
             question__scheduled_resolve_time__lt=timezone.now(),
             question__include_bots_in_aggregates=False,
             method=aggregation_method,
+        ).defer(
+            "histogram",
+            "interval_lower_bounds",
+            "centers",
+            "interval_upper_bounds",
+            "means",
         )
 
     # Annotate questions instead of separate fetch
@@ -199,6 +206,9 @@ def get_calibration_curve_data(
         question_actual_close_time=F("question__actual_close_time"),
         question_resolution=F("question__resolution"),
     )
+
+    if chunk_size is not None:
+        forecasts = forecasts.iterator(chunk_size=chunk_size)
 
     values = []
     weights = []
@@ -376,57 +386,29 @@ def get_authoring_stats_data(
     }
 
 
-def get_user_profile_data(
-    user: User,
-) -> dict:
-    return UserPublicSerializer(user).data
-
-
-def serialize_profile(
-    user: User | None = None,
-    aggregation_method: AggregationMethod | None = None,
-    score_type: ScoreTypes | None = None,
-    current_user: User | None = None,
-) -> dict:
-    if (user is None and aggregation_method is None) or (
-        user is not None and aggregation_method is not None
-    ):
-        raise ValueError("Either user or aggregation_method must be provided only")
-    if user is not None and score_type is None:
-        score_type = ScoreTypes.PEER
-    if aggregation_method is not None and score_type is None:
-        score_type = ScoreTypes.BASELINE
-    # TODO: support archived scores
+def _serialize_user_stats(user: User):
     score_qs = Score.objects.filter(
-        question__related_posts__post__default_project__default_permission__isnull=False,
-        score_type=score_type,
+        question__post__default_project__default_permission__isnull=False,
+        score_type=ScoreTypes.PEER,
     )
-    if user is not None:
-        score_qs = score_qs.filter(user=user)
-    else:
-        score_qs = score_qs.filter(aggregation_method=aggregation_method)
+    score_qs = score_qs.filter(user=user)
 
     scores = generate_question_scores(score_qs)
     data = {}
-    data.update(
-        get_score_scatter_plot_data(
-            scores=scores, user=user, aggregation_method=aggregation_method
-        )
-    )
-    data.update(
-        get_score_histogram_data(
-            scores=scores, user=user, aggregation_method=aggregation_method
-        )
-    )
-    data.update(get_calibration_curve_data(user, aggregation_method))
-    data.update(
-        get_forecasting_stats_data(
-            scores=scores, user=user, aggregation_method=aggregation_method
-        )
-    )
-    if user is not None:
-        data.update(get_user_profile_data(user))
-        data.update(get_authoring_stats_data(user))
-    if current_user is not None and current_user.is_staff:
-        data.update({"spam_count": UserSpamActivity.objects.filter(user=user).count()})
+
+    data.update(get_score_scatter_plot_data(scores=scores, user=user))
+    data.update(get_score_histogram_data(scores=scores, user=user))
+    data.update(get_calibration_curve_data(user=user))
+    data.update(get_forecasting_stats_data(scores=scores, user=user))
+    data.update(get_authoring_stats_data(user))
+
     return data
+
+
+def serialize_user_stats(user: User):
+    return cache_get_or_set(
+        f"serialize_user_stats:{user.id}",
+        lambda: _serialize_user_stats(user),
+        # 1h
+        timeout=3600,
+    )

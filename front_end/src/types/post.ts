@@ -112,7 +112,7 @@ export type Notebook = {
   edited_at: string;
   markdown: string;
   image_url: string;
-  markdown_summary: string;
+  feed_tile_summary: string;
 };
 
 export type PostPrivateNote = {
@@ -122,10 +122,10 @@ export type PostPrivateNote = {
 
 type BasePost = {
   id: number;
-  projects: {
+  projects?: {
     category?: Category[];
     topic: Topic[];
-    default_project: Tournament;
+    default_project?: Tournament | null;
     tournament?: Tournament[];
     question_series?: Tournament[];
     leaderboard_tag?: LeaderboardTag[];

@@ -70,7 +70,7 @@ def email_all_data_for_questions_task(
     except Exception as e:
         email = EmailMessage(
             subject="Error generating Metaculus data",
-            body="Error generating Metaculus data. Please contact an adminstrator "
+            body="Error generating Metaculus data. Please contact an administrator "
             f"for assistance.\nError: {e}",
             from_email=settings.EMAIL_SENDER_NO_REPLY,
             to=[email_address],
@@ -91,6 +91,7 @@ def email_data_task(
     include_scores: bool,
     include_user_data: bool,
     include_comments: bool,
+    include_key_factors: bool,
     only_include_user_ids: list[int] | None,
     include_bots: bool | None,
     anonymized: bool,
@@ -109,6 +110,7 @@ def email_data_task(
             include_scores=include_scores,
             include_user_data=include_user_data,
             include_comments=include_comments,
+            include_key_factors=include_key_factors,
             only_include_user_ids=only_include_user_ids,
             include_bots=include_bots,
             anonymized=anonymized,
@@ -129,7 +131,7 @@ def email_data_task(
     except Exception as e:
         email = EmailMessage(
             subject="Error generating Metaculus data",
-            body="Error generating Metaculus data. Please contact an adminstrator "
+            body="Error generating Metaculus data. Please contact an administrator "
             f"for assistance.\nError: {e}",
             from_email=settings.EMAIL_SENDER_NO_REPLY,
             to=[user_email],
@@ -164,7 +166,7 @@ def email_user_their_data_task(user_id: int):
     except Exception as e:
         email = EmailMessage(
             subject="Error generating Metaculus data",
-            body="Error generating Metaculus data. Please contact an adminstrator "
+            body="Error generating Metaculus data. Please contact an administrator "
             f"for assistance.\nError: {e}",
             from_email=settings.EMAIL_SENDER_NO_REPLY,
             to=[user_email],

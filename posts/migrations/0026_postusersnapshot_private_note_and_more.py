@@ -108,6 +108,7 @@ def migrate_private_comments(apps, schema_editor):
 class Migration(migrations.Migration):
     dependencies = [
         ("posts", "0025_post_actual_resolve_time"),
+        ("comments", "0022_keyfactor_news"),
     ]
 
     operations = [

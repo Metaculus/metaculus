@@ -40,25 +40,11 @@ const people: Person[] = [
     ],
   },
   {
-    name: "Alex Costea",
-    position: "Research Engineer",
-    imgSrc: "https://cdn.metaculus.com/alex-costea-modified.webp",
-    introduction:
-      "Alex Costea is a Research Engineer at Metaculus, developing the PRISM-CC project. His passion lies in bridging the gap between technology and societal systems. Prior to Metaculus, he worked as a Software Engineer for SAP, developing e-commerce solutions for large multi-national corporations. He received a Bachelor's degree in Sociology from the University of Amsterdam. In his free time, he enjoys learning new things and creating various projects, software and otherwise.",
-  },
-  {
     name: "Jordan Rubin",
     position: "Quantitative Finance Executive",
     imgSrc: "https://cdn.metaculus.com/jordan-rubin-modified.webp",
     introduction:
       "Jordan is on garden leave after building the systematic buy-side alpha capture business at Two Sigma Investments. He currently blogs at FUTURE TOKENS on Substack. Jordan received a BS/BA degree in Economics from Wharton School at University of Pennsylvania. As advisor to Metaculus, he focuses on commercialization and monetization.",
-  },
-  {
-    name: "Abhimanyu Pallavi Sudhir",
-    position: "Research Fellow",
-    imgSrc: "https://cdn.metaculus.com/abhimanyu-pallavi-sudhir-modified.webp",
-    introduction:
-      "Abhimanyu focuses on three primary research areas: (1) exploring analogies between economics and AI systems, particularly examining market dynamics and bounded rationality frameworks, (2) developing information markets and scalable oversight mechanisms to enhance epistemic processes and advance AI alignment, and (3) investigating applications of thermodynamics to these domains.",
   },
   {
     userId: 126463,
@@ -153,14 +139,6 @@ const people: Person[] = [
       "Juan is a Presidential Management Fellow in the Division of Biosafety, Biosecurity, and Emerging Biotechnology Policy at the National Institutes of Health. Juan received his Masters of Public Health in epidemiology/biostatistics from Columbia University. He is currently a PhD student in Health Security at Johns Hopkins University. Juan was the top-ranked forecaster in IARPA’s COVID-19 FOCUS Forecasting Tournament and is a Superforecaster with Good Judgment Open, where he was ranked #1 on COVID-19 forecast questions.",
   },
   {
-    userId: 109639,
-    name: "Nikos Bosse",
-    position: "Research Coordinator",
-    imgSrc: "https://cdn.metaculus.com/about/nikos_bosse.webp",
-    introduction:
-      "Nikos advances Metaculus’ research agenda, focusing on forecast aggregation and forecast evaluation. He received his master’s in applied statistics from the University of Göttingen and is working toward his PhD in infectious disease forecasting and forecast evaluation at the London School of Hygiene and Tropical Medicine.",
-  },
-  {
     userId: 127582,
     name: "Leonard Barrett",
     position: "Chief Operating Officer",
@@ -203,6 +181,19 @@ const people: Person[] = [
     imgSrc: "https://cdn.metaculus.com/about/luke_sabor.webp",
     introduction:
       "Passionate about AI safety and fueled by a love for math and logic games, Luke previously worked as a personal assistant to Max Tegmark and conducted research at UPenn's superforecasting team under Philip Tetlock. His diverse experience, spanning AI safety research to collaborating with quantum physicists, led him to work on development for Metaculus. Beyond technology, Luke enjoys exploring nature through climbing, running, biking, and birdwatching.",
+  },
+  {
+    name: "Cemre Inanc",
+    position: "Software Developer",
+    imgSrc: "https://cdn.metaculus.com/about/cemre_inanc.webp",
+    introduction:
+      "Cemre is a Software Developer with a degree in Visual Communication Design and over a decade of experience building interactive platforms, virtual event systems, and digital archives. Through his studio Kraftend, he has delivered projects for brands like Nike, Beko, Samsung, Netflix, and Red Bull. At Metaculus, he focuses on platform development and delivering seamless user experiences.",
+    socials: [
+      {
+        link: "https://www.linkedin.com/in/cemreinanc/",
+        platform: "LinkedIn",
+      },
+    ],
   },
 
   {
@@ -287,20 +278,6 @@ const people: Person[] = [
     ],
   },
   {
-    userId: 104761,
-    name: "Tamay Besiroglu",
-    position: "Co-founder & CEO, Mechanize",
-    imgSrc: "https://cdn.metaculus.com/about/tamay_besiroglu.webp",
-    introduction:
-      "Tamay is a research scientist at the Computer Science and AI Lab at MIT, an associate director at Epoch, and was previously the strategy and operations lead at Metaculus. Tamay has also contributed to the Future of Humanity Institute at Oxford University and to Bloomberg LP in London. He studied philosophy, politics, and economics at University of Warwick and received his Master of Philosophy in economics from the University of Cambridge.",
-    socials: [
-      {
-        link: "https://www.linkedin.com/in/tamay-besiroglu/",
-        platform: "LinkedIn",
-      },
-    ],
-  },
-  {
     name: "Welton Chang",
     position: "Co-founder & CEO, Pyrra Technologies",
     imgSrc: "https://cdn.metaculus.com/about/welton_chang.webp",
@@ -346,28 +323,42 @@ const people: Person[] = [
     introduction:
       "Seth Killian was a graduate fellow at the UIUC Center for Advanced Study teaching philosophy when he was recruited by Capcom into game development. As a designer and founder, he helped revive the Street Fighter series with Street Fighter IV, co-founded the first team acquired by Riot Games, served as lead designer on Fortnite, and as Head of Game Design for Netflix. As a player and organizer, he played on the first US National Street Fighter team, hosted the first fighting game broadcast on ESPN, and co-founded the Evo Championship Series, which has grown to become the largest live gaming competition in the world.",
   },
+  {
+    name: "Kelley Edelmann",
+    position: "Head of Consulting Services",
+    imgSrc: "https://cdn.metaculus.com/Kelley.webp",
+    introduction:
+      "Kelley leads Consulting Services at Metaculus, partnering with organizations to translate complex forecasting data into actionable insights that inform high-stakes decisions. She brings nearly two decades of consulting experience in the market research industry, most recently as a strategist at Ipsos. Kelley has led global engagements for Fortune 100 companies across technology, healthcare, and consumer packaged goods sectors, delivering insight that shapes C-suite strategy. Her experience spans B2B and B2C contexts worldwide, applying mixed methodologies with analytical rigor and human empathy to drive meaningful impact.",
+  },
+  {
+    name: "Grace McLain",
+    position: "Project Delivery Associate",
+    imgSrc: "https://cdn.metaculus.com/Grace.webp",
+    introduction:
+      "Grace is a researcher and evaluator with over a decade of experience in global health. She brings to Metaculus her experience in decision making under uncertainty, mixed methods research, and project delivery. She holds a Master of Science in Public Health from Johns Hopkins. In her spare time, she enjoys crafting/drawing, video/board games, and hiking in beautiful places.",
+  },
 ];
 
 const groups: Groups = {
   team: [
     "Deger Turan",
-    "Alex Costea",
     "Atakan Seçkin",
     "Molly Hickman",
     "Leonard Barrett",
     "Christian Williams",
     "Ryan Beck",
     "Sylvain Chevalier",
-    "Nikos Bosse",
     "Elis Popescu",
     "Hlib Kononenko",
     "Ben Wilson",
     "Nikita Oleinykof",
     "Luke Sabor",
     "Nikitas Angeletos Chrysaitis",
-    "Abhimanyu Pallavi Sudhir",
     "John Bash",
     "Felipe Oliveira",
+    "Cemre Inanc",
+    "Kelley Edelmann",
+    "Grace McLain",
   ],
   board: [
     "Anthony Aguirre",
@@ -378,7 +369,6 @@ const groups: Groups = {
   ],
   advisors: [
     "Juan Cambeiro",
-    "Tamay Besiroglu",
     "Welton Chang",
     "Burak Nehbit",
     "Jordan Rubin",

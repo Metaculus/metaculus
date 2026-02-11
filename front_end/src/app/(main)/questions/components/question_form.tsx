@@ -19,6 +19,7 @@ import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import Button from "@/components/ui/button";
+import Checkbox from "@/components/ui/checkbox";
 import {
   DateInput,
   FormError,
@@ -30,6 +31,7 @@ import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import SectionToggle from "@/components/ui/section_toggle";
+import Select from "@/components/ui/select";
 import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { ErrorResponse } from "@/types/fetch";
@@ -43,6 +45,7 @@ import {
 import {
   ContinuousQuestionType,
   DefaultInboundOutcomeCount,
+  MultipleChoiceOptionsOrder,
   QuestionDraft,
   QuestionType,
 } from "@/types/question";
@@ -69,6 +72,7 @@ interface ExtendedQuestionDraft extends QuestionDraft {
   scheduled_close_time?: string;
   scheduled_resolve_time?: string;
   cp_reveal_time?: string;
+  include_bots_in_aggregates?: boolean;
 }
 
 const MIN_OPTIONS_AMOUNT = 2;
@@ -221,6 +225,7 @@ const createQuestionSchemas = (
         }
       ),
     default_project: z.nullable(z.union([z.number(), z.string()])),
+    include_bots_in_aggregates: z.boolean().default(false),
   });
 
   const binaryQuestionSchema = baseQuestionSchema;
@@ -269,6 +274,7 @@ const createQuestionSchemas = (
             message: t("emptyOptionError"),
           })
       ),
+      options_order: z.nativeEnum(MultipleChoiceOptionsOrder).optional(),
     })
   );
 
@@ -309,18 +315,18 @@ const QuestionForm: FC<Props> = ({
   const router = useRouter();
   const t = useTranslations();
   const { isDone, hasForecasts } = getQuestionStatus(post);
+  const optionsLocked = hasForecasts && mode !== "create";
   const [isLoading, setIsLoading] = useState<boolean>();
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
   >();
   const isDraftMounted = useRef(false);
-  const defaultProject = post
-    ? post.projects.default_project
-    : tournament_id
-      ? ([...tournaments, siteMain].filter(
-          (x) => x.id === tournament_id
-        )[0] as Tournament)
-      : siteMain;
+  const defaultProject: Tournament =
+    post?.projects?.default_project ??
+    (tournament_id
+      ? (([...tournaments, siteMain].find((x) => x.id === tournament_id) ??
+          siteMain) as Tournament)
+      : siteMain);
   const [currentProject, setCurrentProject] =
     useState<Tournament>(defaultProject);
   if (isDone) {
@@ -419,7 +425,7 @@ const QuestionForm: FC<Props> = ({
   );
 
   const [categoriesList, setCategoriesList] = useState<Category[]>(
-    post?.projects.category ? post?.projects.category : ([] as Category[])
+    post?.projects?.category ?? ([] as Category[])
   );
 
   type BinaryQuestionType = z.infer<typeof schemas.binaryQuestionSchema>;
@@ -465,8 +471,15 @@ const QuestionForm: FC<Props> = ({
       open_time: post?.question?.open_time,
       published_at: post?.published_at,
       cp_reveal_time: post?.question?.cp_reveal_time,
+      include_bots_in_aggregates:
+        post?.question?.include_bots_in_aggregates ?? false,
+      options_order:
+        post?.question?.options_order ?? MultipleChoiceOptionsOrder.DEFAULT,
     },
   });
+  useEffect(() => {
+    form.register("include_bots_in_aggregates");
+  }, [form]);
   if (
     questionType === QuestionType.Binary ||
     questionType === QuestionType.MultipleChoice ||
@@ -518,6 +531,7 @@ const QuestionForm: FC<Props> = ({
       scheduled_resolve_time: draft.scheduled_resolve_time,
       cp_reveal_time: draft.cp_reveal_time,
       default_project: draft.default_project,
+      include_bots_in_aggregates: draft.include_bots_in_aggregates ?? false,
     };
 
     // Depending on the question type, add specific properties
@@ -527,6 +541,7 @@ const QuestionForm: FC<Props> = ({
           ...baseValues,
           group_variable: draft.group_variable || "",
           options: draft.options || [],
+          options_order: draft.options_order,
         } as MultipleChoiceQuestionType;
       case QuestionType.Numeric:
         return {
@@ -733,6 +748,88 @@ const QuestionForm: FC<Props> = ({
           />
         </InputContainer>
 
+        {questionType === QuestionType.MultipleChoice && (
+          <>
+            <InputContainer
+              labelText={t("groupVariable")}
+              explanation={t("groupVariableDescription")}
+            >
+              <Input
+                {...form.register("group_variable")}
+                errors={
+                  (form.formState.errors as GroupVarFieldErrors).group_variable
+                }
+                defaultValue={post?.question?.group_variable}
+                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+              />
+            </InputContainer>
+            <div className="flex-col">
+              <InputContainer
+                labelText={t("choices")}
+                explanation={optionsLocked ? t("choicesLockedHelp") : undefined}
+              />
+              {optionsList && (
+                <div className="flex flex-col">
+                  {optionsList.map((option, opt_index) => (
+                    <div key={opt_index} className="flex">
+                      <div className="w-full">
+                        <Input
+                          {...form.register(`options.${opt_index}`)}
+                          readOnly={optionsLocked}
+                          className="my-2 w-full min-w-32 rounded border  border-gray-500 p-2 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                          value={option}
+                          placeholder={`Option ${opt_index + 1}`}
+                          onChange={(e) => {
+                            if (optionsLocked) {
+                              return;
+                            }
+                            setOptionsList(
+                              optionsList.map((opt, index) => {
+                                if (index === opt_index) {
+                                  return e.target.value;
+                                }
+                                return opt;
+                              })
+                            );
+                          }}
+                          errors={
+                            (form.formState.errors as OptionsFieldErrors)
+                              .options?.[opt_index] as ErrorResponse | undefined
+                          }
+                        />
+                      </div>
+                      {opt_index >= MIN_OPTIONS_AMOUNT && !optionsLocked && (
+                        <Button
+                          className="my-2 h-[42px] w-max self-start capitalize"
+                          variant="text"
+                          onClick={() => {
+                            setOptionsList((prev) => {
+                              const newOptionsArray = [...prev].filter(
+                                (_, index) => index !== opt_index
+                              );
+                              form.setValue("options", newOptionsArray);
+                              return newOptionsArray;
+                            });
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faXmark} />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <Button
+                className="w-max capitalize"
+                disabled={optionsLocked}
+                onClick={() => setOptionsList([...optionsList, ""])}
+              >
+                + {t("addOption")}
+              </Button>
+            </div>
+          </>
+        )}
+
         {ContinuousQuestionTypes.some((type) => type === questionType) && (
           <NumericQuestionInput
             draftKey={shouldUseDraftValue ? questionType : undefined}
@@ -766,80 +863,6 @@ const QuestionForm: FC<Props> = ({
           />
         )}
 
-        {questionType === QuestionType.MultipleChoice && (
-          <>
-            <InputContainer
-              labelText={t("groupVariable")}
-              explanation={t("groupVariableDescription")}
-            >
-              <Input
-                {...form.register("group_variable")}
-                errors={
-                  (form.formState.errors as GroupVarFieldErrors).group_variable
-                }
-                defaultValue={post?.question?.group_variable}
-                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              />
-            </InputContainer>
-            <div className="flex-col">
-              <InputContainer labelText={t("choices")} />
-              {optionsList && (
-                <div className="flex flex-col">
-                  {optionsList.map((option, opt_index) => (
-                    <div key={opt_index} className="flex">
-                      <div className="w-full">
-                        <Input
-                          {...form.register(`options.${opt_index}`)}
-                          readOnly={hasForecasts && mode !== "create"}
-                          className="my-2 w-full min-w-32 rounded border  border-gray-500 p-2 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                          value={option}
-                          placeholder={`Option ${opt_index + 1}`}
-                          onChange={(e) => {
-                            setOptionsList(
-                              optionsList.map((opt, index) => {
-                                if (index === opt_index) {
-                                  return e.target.value;
-                                }
-                                return opt;
-                              })
-                            );
-                          }}
-                          errors={
-                            (form.formState.errors as OptionsFieldErrors)
-                              .options?.[opt_index] as ErrorResponse | undefined
-                          }
-                        />
-                      </div>
-                      {opt_index >= MIN_OPTIONS_AMOUNT && !hasForecasts && (
-                        <Button
-                          className="my-2 h-[42px] w-max self-start capitalize"
-                          variant="text"
-                          onClick={() => {
-                            setOptionsList((prev) => {
-                              const newOptionsArray = [...prev].filter(
-                                (_, index) => index !== opt_index
-                              );
-                              form.setValue("options", newOptionsArray);
-                              return newOptionsArray;
-                            });
-                          }}
-                        >
-                          <FontAwesomeIcon icon={faXmark} />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-              <Button
-                className="w-max capitalize"
-                onClick={() => setOptionsList([...optionsList, ""])}
-              >
-                + {t("addOption")}
-              </Button>
-            </div>
-          </>
-        )}
         <div className="flex w-full flex-col gap-4 md:flex-row">
           <InputContainer
             labelText={"Closing Time"}
@@ -868,6 +891,36 @@ const QuestionForm: FC<Props> = ({
             />
           </InputContainer>
         </div>
+
+        <div className="flex w-full flex-col gap-4 md:flex-row">
+          <InputContainer
+            labelText={t("openTime")}
+            explanation={"When this question will be open for predictions."}
+            className="w-full gap-2"
+          >
+            <DateInput
+              control={form.control as unknown as Control<FieldValues>}
+              name="open_time"
+              defaultValue={post?.question?.open_time}
+              errors={form.formState.errors.open_time}
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+            />
+          </InputContainer>
+          <InputContainer
+            labelText={t("cpRevealTime")}
+            explanation={t("cpRevealTimeDescription")}
+            className="w-full gap-2"
+          >
+            <DateInput
+              control={form.control as unknown as Control<FieldValues>}
+              name="cp_reveal_time"
+              defaultValue={post?.question?.cp_reveal_time}
+              errors={form.formState.errors.cp_reveal_time}
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+            />
+          </InputContainer>
+        </div>
+
         <InputContainer labelText={t("categories")}>
           <CategoryPicker
             allCategories={allCategories}
@@ -883,20 +936,34 @@ const QuestionForm: FC<Props> = ({
             {t("advancedOptionsDescription")}
           </div>
 
-          <div className="mb-6 flex w-full flex-col gap-4 md:flex-row">
+          {questionType === QuestionType.MultipleChoice && (
             <InputContainer
-              labelText={t("openTime")}
-              explanation={"When this question will be open for predictions."}
-              className="w-full gap-2"
+              labelText={t("optionsOrderLabel")}
+              explanation={t("optionsOrderDescription")}
+              className="mb-6"
             >
-              <DateInput
-                control={form.control as unknown as Control<FieldValues>}
-                name="open_time"
-                defaultValue={post?.question?.open_time}
-                errors={form.formState.errors.open_time}
+              <Select
                 className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                options={[
+                  {
+                    value: MultipleChoiceOptionsOrder.DEFAULT,
+                    label: t("defaultOptionsOrder"),
+                  },
+                  {
+                    value: MultipleChoiceOptionsOrder.CP_DESC,
+                    label: t("cpDescendingOptionsOrder"),
+                  },
+                ]}
+                {...form.register("options_order")}
+                defaultValue={
+                  post?.question?.options_order ??
+                  MultipleChoiceOptionsOrder.DEFAULT
+                }
               />
             </InputContainer>
+          )}
+
+          <div className="mb-6 flex w-full flex-col gap-4 md:flex-row">
             <InputContainer
               labelText={"Publish Time"}
               explanation={t("publishTimeDescription")}
@@ -912,21 +979,6 @@ const QuestionForm: FC<Props> = ({
             </InputContainer>
           </div>
 
-          <div className="mb-6 flex w-full flex-col gap-4 md:flex-row">
-            <InputContainer
-              labelText={t("cpRevealTime")}
-              explanation={t("cpRevealTimeDescription")}
-              className="w-full gap-2"
-            >
-              <DateInput
-                control={form.control as unknown as Control<FieldValues>}
-                name="cp_reveal_time"
-                defaultValue={post?.question?.cp_reveal_time}
-                errors={form.formState.errors.cp_reveal_time}
-                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              />
-            </InputContainer>
-          </div>
           {!community_id &&
             defaultProject.type !== TournamentType.Community && (
               <ProjectPickerInput
@@ -938,6 +990,25 @@ const QuestionForm: FC<Props> = ({
                 }}
               />
             )}
+
+          <InputContainer
+            labelText={t("includeBotsInAggregatesLabel")}
+            explanation={t("includeBotsInAggregatesExplanation")}
+            isNativeFormControl={false}
+            className="mb-6"
+          >
+            <Checkbox
+              label={t("includeBotsInAggregatesLabel")}
+              checked={form.watch("include_bots_in_aggregates") ?? false}
+              onChange={(checked) => {
+                form.setValue("include_bots_in_aggregates", checked, {
+                  shouldDirty: true,
+                  shouldTouch: true,
+                  shouldValidate: true,
+                });
+              }}
+            />
+          </InputContainer>
         </SectionToggle>
 
         <div className="flex-col">

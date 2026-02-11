@@ -7,7 +7,7 @@ on:
 jobs:
   deploy-to-prod:
     runs-on: ubuntu-24.04
-    environment: prod_env
+    environment: Storybook
     defaults:
       run:
         working-directory: front_end
@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: front_end/.nvmrc
           cache: npm
           cache-dependency-path: front_end/package-lock.json
       - run: npm ci

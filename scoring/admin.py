@@ -1,5 +1,7 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin, messages
+from django.db.models import Count, F, Window
+from django.db.models.functions import RowNumber
 
 from projects.models import Project
 from scoring.models import (
@@ -63,11 +65,16 @@ class LeaderboardEntryInline(admin.TabularInline):
         leaderboard_id = request.resolver_match.kwargs.get("object_id")
         if leaderboard_id is None:
             return qs.none()
-        qs = qs.filter(leaderboard_id=leaderboard_id, rank__lte=50)
-        if qs.count() > 100:
-            # can happen if large number of high ranking excluded users
-            return qs.none()
-        return qs.order_by("rank")
+        return (
+            qs.filter(leaderboard_id=leaderboard_id)
+            .annotate(
+                row_number=Window(
+                    expression=RowNumber(),
+                    order_by=[F("rank").asc(nulls_last=True), F("id").asc()],
+                )
+            )
+            .filter(row_number__lte=50)  # Limit to top 50 entries
+        ).order_by("rank", "id")
 
 
 @admin.register(Leaderboard)
@@ -79,7 +86,13 @@ class LeaderboardAdmin(admin.ModelAdmin):
         "project__slug",
         "project__name_original",
     ]
-    list_display = ["__str__", "id", "project", "score_type", "finalized"]
+    list_display = [
+        "__str__",
+        "project",
+        "score_type",
+        "finalized",
+        "entries_count",
+    ]
     autocomplete_fields = ["project", "user_list"]
     list_filter = [
         AutocompleteFilterFactory("Project", "project"),
@@ -91,8 +104,18 @@ class LeaderboardAdmin(admin.ModelAdmin):
         "make_primary_leaderboard",
         "update_leaderboards",
         "force_update_leaderboards",
-        "force_finalize_and_asign_medals_leaderboards",
+        "force_finalize_and_assign_medals_leaderboards",
     ]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(entries_count=Count("entries"))
+
+    def entries_count(self, obj):
+        return obj.entries_count
+
+    entries_count.admin_order_field = "entries_count"
+    entries_count.short_description = "Entries"
 
     def make_primary_leaderboard(self, request, queryset):
         for leaderboard in queryset:
@@ -129,7 +152,7 @@ class LeaderboardAdmin(admin.ModelAdmin):
 
     force_update_leaderboards.short_description = "Force Update Leaderboards"
 
-    def force_finalize_and_asign_medals_leaderboards(self, request, queryset):
+    def force_finalize_and_assign_medals_leaderboards(self, request, queryset):
         leaderboard: Leaderboard
         for leaderboard in queryset:
             update_project_leaderboard(
@@ -139,7 +162,7 @@ class LeaderboardAdmin(admin.ModelAdmin):
                 force_finalize=True,
             )
 
-    force_finalize_and_asign_medals_leaderboards.short_description = (
+    force_finalize_and_assign_medals_leaderboards.short_description = (
         "Force Update, Finalize, and Assign Medals/Prizes"
     )
 
