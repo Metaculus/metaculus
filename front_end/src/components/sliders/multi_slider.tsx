@@ -118,19 +118,17 @@ const MultiSlider: FC<Props> = ({
         if (active === 0) {
           // Moving left thumb with Shift: mirror the movement on the right thumb
           const leftDelta = incoming[0] - persistedPositionOrigin.current[0];
-          newValue = [
-            incoming[0],
-            centerValue,
-            persistedPositionOrigin.current[2] - leftDelta,
-          ];
+          const mirroredRight = persistedPositionOrigin.current[2] - leftDelta;
+          const safeLeft = Math.min(incoming[0], centerValue - clampStep);
+          const safeRight = Math.max(mirroredRight, centerValue + clampStep);
+          newValue = [safeLeft, centerValue, safeRight];
         } else {
           // Moving right thumb with Shift: mirror the movement on the left thumb
           const rightDelta = incoming[2] - persistedPositionOrigin.current[2];
-          newValue = [
-            persistedPositionOrigin.current[0] - rightDelta,
-            centerValue,
-            incoming[2],
-          ];
+          const mirroredLeft = persistedPositionOrigin.current[0] - rightDelta;
+          const safeLeft = Math.min(mirroredLeft, centerValue - clampStep);
+          const safeRight = Math.max(incoming[2], centerValue + clampStep);
+          newValue = [safeLeft, centerValue, safeRight];
         }
       } else {
         // Original center thumb movement logic
