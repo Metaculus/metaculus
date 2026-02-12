@@ -90,12 +90,17 @@ class LeaderboardInline(admin.TabularInline):
     )
     readonly_fields = (
         "leaderboard_link",
+        "score_type",
+        "start_time",
+        "end_time",
+        "finalize_time",
+        "finalized",
+        "prize_pool",
         "is_primary",
     )
     can_delete = False
     verbose_name = "Leaderboard"
     verbose_name_plural = "Leaderboards"
-    show_change_link = True
 
     def leaderboard_link(self, obj):
         if not obj.pk:
@@ -408,10 +413,10 @@ class ProjectAdmin(CustomTranslationAdmin):
     autocomplete_fields = ["created_by", "primary_leaderboard"]
     ordering = ["-created_at"]
     inlines = [
-        LeaderboardInline,
         ProjectUserPermissionInline,
         PostDefaultProjectInline,
         PostProjectInline,
+        LeaderboardInline,
     ]
     actions = [
         "update_leaderboards",
