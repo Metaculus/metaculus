@@ -190,6 +190,7 @@ const PaginatedPostsFeed: FC<Props> = ({
             <FeedTournamentTile
               key={`tile-${item.tile.project_id}`}
               tile={item.tile}
+              feedPage={clientPageNumber}
             />
           ) : (
             <Fragment key={item.post.id}>{renderPost(item.post)}</Fragment>

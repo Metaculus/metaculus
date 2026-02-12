@@ -1,5 +1,3 @@
-"use client";
-
 import { faUsers } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
@@ -10,6 +8,7 @@ import PostStatusIcon from "@/components/post_status/status_icon";
 import RichText from "@/components/rich_text";
 import { PostStatus } from "@/types/post";
 import { FeedProjectTile, FeedTileRule } from "@/types/projects";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import { safeTs } from "@/utils/formatters/date";
 import { formatMoneyUSD } from "@/utils/formatters/number";
 import { getProjectLink } from "@/utils/navigation";
@@ -17,9 +16,10 @@ import { formatTournamentRelativeDelta } from "@/utils/projects/helpers";
 
 type Props = {
   tile: FeedProjectTile;
+  feedPage: number;
 };
 
-const FeedTournamentTile: FC<Props> = ({ tile }) => {
+const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
   const t = useTranslations();
   const { project } = tile;
   const href = useMemo(() => {
@@ -39,6 +39,14 @@ const FeedTournamentTile: FC<Props> = ({ tile }) => {
   return (
     <Link
       href={href}
+      onClick={() =>
+        sendAnalyticsEvent("feedProjectTileClick", {
+          project_id: project.id,
+          project_name: project.name,
+          rule: tile.rule,
+          feed_page: feedPage,
+        })
+      }
       className="relative flex flex-col gap-3 overflow-hidden rounded px-6 py-5 text-gray-0 no-underline"
       style={
         project.header_image
