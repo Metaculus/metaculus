@@ -25,6 +25,9 @@ const FutureEvalBenchmarkForecastingPerformance: React.FC = () => {
   );
   const [hoveredFamily, setHoveredFamily] = useState<string | null>(null);
   const [hoveredPointKey, setHoveredPointKey] = useState<string | null>(null);
+  const [showProjection, setShowProjection] = useState(false);
+
+  const projectionAvailable = !!(communityDate || proDate);
 
   // Collect unique normalized family names in order of first appearance (matching legend order)
   const families = useMemo(() => {
@@ -87,6 +90,12 @@ const FutureEvalBenchmarkForecastingPerformance: React.FC = () => {
         onToggleFamily={toggleFamily}
         onHoverFamily={setHoveredFamily}
         onClearSelection={() => setSelectedFamilies(new Set())}
+        showProjection={showProjection}
+        onToggleProjection={
+          projectionAvailable
+            ? () => setShowProjection((prev) => !prev)
+            : undefined
+        }
       />
 
       <BenchmarkChart
@@ -97,6 +106,7 @@ const FutureEvalBenchmarkForecastingPerformance: React.FC = () => {
         hoveredFamily={hoveredFamily}
         hoveredPointKey={hoveredPointKey}
         onHoveredPointKeyChange={setHoveredPointKey}
+        showProjection={showProjection}
       />
 
       {communityDate && proDate && (
