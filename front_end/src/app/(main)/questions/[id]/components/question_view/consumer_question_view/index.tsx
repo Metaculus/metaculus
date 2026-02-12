@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import KeyFactorsQuestionConsumerSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_question_consumer_section";
+import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_status_box";
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import {
@@ -63,6 +64,7 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
 
   return (
     <div className="flex flex-col">
+      <PostStatusBox post={postData} className="mb-5 rounded lg:mb-6" />
       <div className="mb-6 flex items-center justify-center gap-[6px]">
         <CommentStatus
           totalCount={postData.comment_count ?? 0}
