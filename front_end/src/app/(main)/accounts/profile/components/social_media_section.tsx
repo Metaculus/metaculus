@@ -2,7 +2,7 @@ import {
   faFacebook,
   faGithub,
   faLinkedin,
-  faTwitter,
+  faXTwitter,
 } from "@fortawesome/free-brands-svg-icons";
 import {
   faChartLine,
@@ -15,32 +15,74 @@ import { FC } from "react";
 
 import { UserProfile } from "@/types/users";
 
-export const getSocialMediaArray = (
-  user: UserProfile
-): [IconDefinition, string | undefined, string][] => [
-  [faEarth, user.website, "website"],
-  [faTwitter, user.twitter, "Twitter/X"],
-  [faLinkedin, user.linkedin, "LinkedIn"],
-  [faFacebook, user.facebook, "Facebook"],
-  [faGithub, user.github, "GitHub"],
-  [faChartLine, user.good_judgement_open, "Good Judgment Open"],
-  [faChartLine, user.kalshi, "Kalshi"],
-  [faChartLine, user.manifold, "Manifold"],
-  [faChartLine, user.infer, "RFI"],
-  [faChartLine, user.hypermind, "Hypermind"],
+export type SocialMediaFieldName =
+  | "website"
+  | "twitter"
+  | "linkedin"
+  | "facebook"
+  | "github"
+  | "good_judgement_open"
+  | "kalshi"
+  | "manifold"
+  | "infer"
+  | "hypermind";
+
+export type SocialMediaEntry = {
+  icon: IconDefinition;
+  link: string | undefined;
+  name: SocialMediaFieldName;
+  label: string;
+};
+
+export const getSocialMediaArray = (user: UserProfile): SocialMediaEntry[] => [
+  { icon: faEarth, link: user.website, name: "website", label: "Website" },
+  { icon: faXTwitter, link: user.twitter, name: "twitter", label: "Twitter/X" },
+  {
+    icon: faLinkedin,
+    link: user.linkedin,
+    name: "linkedin",
+    label: "LinkedIn",
+  },
+  {
+    icon: faFacebook,
+    link: user.facebook,
+    name: "facebook",
+    label: "Facebook",
+  },
+  { icon: faGithub, link: user.github, name: "github", label: "GitHub" },
+  {
+    icon: faChartLine,
+    link: user.good_judgement_open,
+    name: "good_judgement_open",
+    label: "Good Judgment Open",
+  },
+  { icon: faChartLine, link: user.kalshi, name: "kalshi", label: "Kalshi" },
+  {
+    icon: faChartLine,
+    link: user.manifold,
+    name: "manifold",
+    label: "Manifold",
+  },
+  { icon: faChartLine, link: user.infer, name: "infer", label: "RFI" },
+  {
+    icon: faChartLine,
+    link: user.hypermind,
+    name: "hypermind",
+    label: "Hypermind",
+  },
 ];
 
 export const hasUserSocialMediaLink = (user: UserProfile) => {
-  return getSocialMediaArray(user).filter(([, link]) => !!link).length > 0;
+  return getSocialMediaArray(user).filter(({ link }) => !!link).length > 0;
 };
 
 const SocialMediaFragment: FC<{
   user: UserProfile;
 }> = ({ user }) => {
-  const socialMedia = getSocialMediaArray(user).filter(([, url]) => !!url);
+  const socialMedia = getSocialMediaArray(user).filter(({ link }) => !!link);
   return (
     <>
-      {socialMedia.map(([icon, link, label]) => {
+      {socialMedia.map(({ icon, link, label }) => {
         return (
           <div key={label} className="flex flex-col">
             {link && (
