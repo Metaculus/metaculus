@@ -17,9 +17,6 @@ from utils.cache import cache_per_object, cached_singleton
 from utils.dtypes import generate_map_from_list
 
 
-# TODO: add caching override!
-
-
 def get_projects_qs(
     user: User = None,
     permission: ObjectPermission = None,
