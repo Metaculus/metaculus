@@ -3,7 +3,7 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useMemo, useState } from "react";
 
-import enMessages from "@/../../messages/en.json";
+import enMessages from "@/../messages/en.json";
 import Button from "@/components/ui/button";
 import { LeaderboardDetails, LeaderboardDisplayConfig } from "@/types/scoring";
 
@@ -49,15 +49,18 @@ const ProjectLeaderboardTable: FC<Props> = ({
   );
 
   const [step, setStep] = useState(paginationStep);
-  const leaderboardEntries = useMemo(() => {
-    return isNil(step)
-      ? leaderboardDetails.entries
-      : leaderboardDetails.entries.slice(0, step);
-  }, [leaderboardDetails.entries, step]);
 
-  const hasMore = !isNil(step)
-    ? leaderboardDetails.entries.length > step
-    : false;
+  const filteredEntries = useMemo(() => {
+    return leaderboardDetails.entries.filter(
+      (entry) => !entry.excluded || entry.show_when_excluded || isAdvanced
+    );
+  }, [leaderboardDetails.entries, isAdvanced]);
+
+  const leaderboardEntries = useMemo(() => {
+    return isNil(step) ? filteredEntries : filteredEntries.slice(0, step);
+  }, [filteredEntries, step]);
+
+  const hasMore = !isNil(step) ? filteredEntries.length > step : false;
   const handleLoadMoreClick = () => {
     setStep((prev) => (isNil(prev) ? prev : prev * 10));
   };
@@ -128,24 +131,27 @@ const ProjectLeaderboardTable: FC<Props> = ({
               isAdvanced={isAdvanced}
             />
           )}
-          {leaderboardEntries.map((entry) => {
-            // show non-excluded entries
-            // or if they should show even when excluded
-            // or if we are in the advanced view
-            if (!entry.excluded || entry.show_when_excluded || isAdvanced) {
-              return (
-                <TableRow
-                  key={entry.user?.id ?? entry.aggregation_method}
-                  rowEntry={entry}
-                  userId={userId}
-                  maxCoverage={maxCoverage}
-                  withPrizePool={!!leaderboardDetails.prize_pool}
-                  isAdvanced={isAdvanced}
-                />
-              );
-            }
-            return null;
-          })}
+          {leaderboardEntries.length > 0 ? (
+            leaderboardEntries.map((entry) => (
+              <TableRow
+                key={entry.user?.id ?? entry.aggregation_method}
+                rowEntry={entry}
+                userId={userId}
+                maxCoverage={maxCoverage}
+                withPrizePool={!!leaderboardDetails.prize_pool}
+                isAdvanced={isAdvanced}
+              />
+            ))
+          ) : (
+            <tr className="border-b border-gray-300 dark:border-gray-300-dark">
+              <td
+                colSpan={isAdvanced ? 7 : 3}
+                className="max-w-full p-4 text-center text-base italic text-gray-700 dark:text-gray-700-dark"
+              >
+                {t("noQuestionsResolved")}
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
       {hasMore && (
