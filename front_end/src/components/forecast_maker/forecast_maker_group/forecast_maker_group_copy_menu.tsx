@@ -75,8 +75,7 @@ const ForecastMakerGroupCopyMenu: FC<Props> = ({
     "main"
   );
 
-  const canCopyFrom =
-    option.hasUserForecast || option.wasWithdrawn;
+  const canCopyFrom = option.hasUserForecast || option.wasWithdrawn;
 
   const menuItems: MenuItemProps[] = useMemo(() => {
     if (menuMode === "main") {
