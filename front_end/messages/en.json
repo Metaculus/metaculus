@@ -1915,7 +1915,6 @@
   "explore": "Explore",
   "feedTileSummary": "Feed Tile Summary",
   "hidden": "Hidden",
-  "feedTileSummaryPlaceholder": "Optional: Enter a custom summary text to display on feed tiles (if not provided, a summary will be auto-generated from the notebook content)",
   "feedTileNewTournament": "New Tournament",
   "feedTileForecastNewQuestions": "Forecast {count, plural, one {# new question} other {# new questions}}",
   "feedTileQuestionsResolved": "{count, plural, one {# question resolved} other {# questions resolved}}",
@@ -1926,5 +1925,6 @@
   "feedTileStartedAgo": "Started <strong>{when} ago</strong>",
   "feedTileResolvedAgo": "Resolved <strong>{when} ago</strong>",
   "feedTileForecasters": "{count, plural, one {# forecaster} other {# forecasters}}",
-  "feedTilePrizePool": "<strong>{amount}</strong> prize pool"
+  "feedTilePrizePool": "<strong>{amount}</strong> prize pool",
+  "feedTileSummaryPlaceholder": "Optional: Enter a custom summary text to display on feed tiles (if not provided, a summary will be auto-generated from the notebook content)"
 }

@@ -1922,7 +1922,6 @@
   "includeBotsInAggregatesLabel": "Zahrnout boty do agregátů",
   "includeBotsInAggregatesExplanation": "Pokud je povoleno, předpovědi botů budou zahrnuty do agregovaných výpočtů pro tuto otázku a ovlivní skórování. Jinak nebudou mít žádný vliv.",
   "hidden": "Skryté",
-  "thousandsOfOpenQuestions": "20 000+ otevřených otázek",
   "feedTileNewTournament": "New Tournament",
   "feedTileForecastNewQuestions": "Forecast {count, plural, one {# new question} other {# new questions}}",
   "feedTileQuestionsResolved": "{count, plural, one {# question resolved} other {# questions resolved}}",
@@ -1933,5 +1932,6 @@
   "feedTileStartedAgo": "Started <strong>{when} ago</strong>",
   "feedTileResolvedAgo": "Resolved <strong>{when} ago</strong>",
   "feedTileForecasters": "{count, plural, one {# forecaster} other {# forecasters}}",
-  "feedTilePrizePool": "<strong>{amount}</strong> prize pool"
+  "feedTilePrizePool": "<strong>{amount}</strong> prize pool",
+  "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }
