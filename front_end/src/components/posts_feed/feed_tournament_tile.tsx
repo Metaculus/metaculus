@@ -81,7 +81,7 @@ const FeedTournamentTile: FC<Props> = ({ tile }) => {
                 resolution={null}
               />
             </span>
-            {statusLabel}
+            <span>{statusLabel}</span>
           </span>
         )}
         <span className="flex items-center gap-2">
