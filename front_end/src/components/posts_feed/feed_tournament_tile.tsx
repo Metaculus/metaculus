@@ -22,7 +22,12 @@ type Props = {
 const FeedTournamentTile: FC<Props> = ({ tile }) => {
   const t = useTranslations();
   const { project } = tile;
-  const href = useMemo(() => getProjectLink(project), [project]);
+  const href = useMemo(() => {
+    const base = getProjectLink(project);
+    return tile.rule === FeedTileRule.ALL_QUESTIONS_RESOLVED
+      ? `${base}#leaderboard`
+      : base;
+  }, [project, tile.rule]);
   const prize = useMemo(
     () => formatMoneyUSD(project.prize_pool),
     [project.prize_pool]
