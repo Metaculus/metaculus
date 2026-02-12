@@ -294,12 +294,24 @@ jobs:
             --stage
 
           # Deploy using the pre-built image (immutable SHA tag for reproducibility)
-          flyctl deploy \
+          # Retry once because Fly deploy can occasionally fail transiently.
+          MAX_ATTEMPTS=3
+          ATTEMPT=1
+
+          until flyctl deploy \
             --app "${APP_NAME}" \
             --config fly.preview.toml \
             --image ${{ needs.build-image.outputs.image_url }} \
             --ha=false \
-            --now
+            --now; do
+            if [ "${ATTEMPT}" -ge "${MAX_ATTEMPTS}" ]; then
+              echo "❌ Deploy failed after ${MAX_ATTEMPTS} attempts"
+              exit 1
+            fi
+            ATTEMPT=$((ATTEMPT + 1))
+            echo "⚠️ Deploy failed, retrying (${ATTEMPT}/${MAX_ATTEMPTS}) in 10s..."
+            sleep 10
+          done
 
           # Start machines after deployment (continue on failure)
           echo "Starting machines for ${APP_NAME}..."
