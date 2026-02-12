@@ -318,6 +318,7 @@ def get_feed_project_tiles() -> list[dict]:
         "post_id",
         "open_time",
         "actual_resolve_time",
+        "scheduled_resolve_time",
         "resolution",
         "resolution_set_time",
     )
@@ -338,9 +339,19 @@ def get_feed_project_tiles() -> list[dict]:
             for q in questions
             if q.resolution_set_time and q.resolution_set_time >= three_days_ago
         )
-        all_resolved = len(questions) > 0 and all(q.resolution for q in questions)
+        project_close_date = project.close_date or make_aware(datetime.max)
+        all_resolved = len(questions) > 0 and all(
+            q.actual_resolve_time
+            # Or treat as resolved if scheduled resolution is in the future
+            or (q.scheduled_resolve_time and q.scheduled_resolve_time > project_close_date)
+            for q in questions
+        )
         last_resolve_time = max(
-            (q.resolution_set_time for q in questions if q.resolution_set_time),
+            (
+                q.resolution_set_time
+                for q in questions
+                if q.resolution_set_time and q.actual_resolve_time <= project_close_date
+            ),
             default=None,
         )
 
