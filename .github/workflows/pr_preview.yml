@@ -146,11 +146,36 @@ jobs:
       fly_app: ${{ steps.names.outputs.fly_app }}
       neon_branch: ${{ steps.names.outputs.neon_branch }}
       redis_name: ${{ steps.names.outputs.redis_name }}
+      pr_head_ref: ${{ steps.pr_head_ref.outputs.pr_head_ref }}
     steps:
+      - name: Resolve PR head ref
+        id: pr_head_ref
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const inputPrNumber = `${{ inputs.pr_number || '' }}`.trim();
+
+            if (context.payload.pull_request?.head?.ref) {
+              core.setOutput('pr_head_ref', context.payload.pull_request.head.ref);
+              return;
+            }
+
+            if (inputPrNumber) {
+              const pr = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: Number(inputPrNumber),
+              });
+              core.setOutput('pr_head_ref', pr.data.head.ref);
+              return;
+            }
+
+            core.setOutput('pr_head_ref', context.ref.replace('refs/heads/', ''));
+
       - name: Generate resource names
         id: names
         env:
-          BRANCH_REF: ${{ github.head_ref || github.ref_name }}
+          BRANCH_REF: ${{ steps.pr_head_ref.outputs.pr_head_ref || github.head_ref }}
           PR_NUMBER: ${{ github.event.number || inputs.pr_number }}
         run: |
           # Slugify branch name: lowercase, replace invalid chars, truncate, then cleanup again
@@ -368,7 +393,7 @@ jobs:
 
             ### Details
             - **Commit:** `${{ github.sha }}`
-            - **Branch:** `${{ github.head_ref || github.ref_name }}`
+            - **Branch:** `${{ needs.setup.outputs.pr_head_ref || github.head_ref }}`
             - **Fly App:** `${{ needs.deploy-preview.outputs.app_name }}`
 
             ---
@@ -441,7 +466,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           environment: Preview
           onlyRemoveDeployments: true
-          ref: ${{ github.head_ref || github.ref_name }}
+          ref: ${{ needs.setup.outputs.pr_head_ref || github.head_ref }}
 
       - name: Find existing comment
         uses: peter-evans/find-comment@v3
@@ -482,7 +507,7 @@ jobs:
 
             ---
             *Cleanup triggered by PR close at ${closedAt}*`;
-            } else if (cleanupReason.includes('Stale')) {
+            } else if (cleanupReason.toLowerCase().includes('stale')) {
               body = `## Cleanup: Preview Environment Removed (Stale)
 
             This preview environment has been deleted because the PR was marked as **Stale** (no activity detected).
