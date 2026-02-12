@@ -1914,6 +1914,7 @@
   "allCategoriesTopQuestions": "Top questions in every category",
   "explore": "Explore",
   "feedTileSummary": "Feed Tile Summary",
+  "hidden": "Hidden",
   "feedTileSummaryPlaceholder": "Optional: Enter a custom summary text to display on feed tiles (if not provided, a summary will be auto-generated from the notebook content)",
   "feedTileNewTournament": "New Tournament",
   "feedTileForecastNewQuestions": "Forecast {count, plural, one {# new question} other {# new questions}}",
@@ -1925,6 +1926,5 @@
   "feedTileStartedAgo": "Started <strong>{when} ago</strong>",
   "feedTileResolvedAgo": "Resolved <strong>{when} ago</strong>",
   "feedTileForecasters": "{count, plural, one {# forecaster} other {# forecasters}}",
-  "feedTilePrizePool": "<strong>{amount}</strong> prize pool",
-  "hidden": "Hidden"
+  "feedTilePrizePool": "<strong>{amount}</strong> prize pool"
 }

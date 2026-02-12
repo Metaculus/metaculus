@@ -1921,6 +1921,7 @@
   "feedTileSummaryPlaceholder": "Volitelně: Zadejte vlastní text souhrnu, který se zobrazí na dlaždicích kanálu (pokud není poskytnut, souhrn bude automaticky vygenerován z obsahu notebooku)",
   "includeBotsInAggregatesLabel": "Zahrnout boty do agregátů",
   "includeBotsInAggregatesExplanation": "Pokud je povoleno, předpovědi botů budou zahrnuty do agregovaných výpočtů pro tuto otázku a ovlivní skórování. Jinak nebudou mít žádný vliv.",
+  "hidden": "Skryté",
   "thousandsOfOpenQuestions": "20 000+ otevřených otázek",
   "feedTileNewTournament": "New Tournament",
   "feedTileForecastNewQuestions": "Forecast {count, plural, one {# new question} other {# new questions}}",
@@ -1932,6 +1933,5 @@
   "feedTileStartedAgo": "Started <strong>{when} ago</strong>",
   "feedTileResolvedAgo": "Resolved <strong>{when} ago</strong>",
   "feedTileForecasters": "{count, plural, one {# forecaster} other {# forecasters}}",
-  "feedTilePrizePool": "<strong>{amount}</strong> prize pool",
-  "hidden": "Skryté"
+  "feedTilePrizePool": "<strong>{amount}</strong> prize pool"
 }

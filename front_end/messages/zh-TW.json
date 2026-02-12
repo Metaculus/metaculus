@@ -1918,6 +1918,7 @@
   "feedTileSummaryPlaceholder": "選擇性：輸入自訂摘要文字以顯示在Feed磁貼上（如果未提供，將從筆記本內容自動生成摘要）",
   "includeBotsInAggregatesLabel": "在總體中包括機器人",
   "includeBotsInAggregatesExplanation": "啟用後，機器人預測將包含在此問題的總體計算中，並影響評分。否則，則不會影響。",
+  "hidden": "隱藏",
   "thousandsOfOpenQuestions": "20,000+ 開放問題",
   "feedTileNewTournament": "New Tournament",
   "feedTileForecastNewQuestions": "Forecast {count, plural, one {# new question} other {# new questions}}",
@@ -1929,6 +1930,5 @@
   "feedTileStartedAgo": "Started <strong>{when} ago</strong>",
   "feedTileResolvedAgo": "Resolved <strong>{when} ago</strong>",
   "feedTileForecasters": "{count, plural, one {# forecaster} other {# forecasters}}",
-  "feedTilePrizePool": "<strong>{amount}</strong> prize pool",
-  "hidden": "隱藏"
+  "feedTilePrizePool": "<strong>{amount}</strong> prize pool"
 }

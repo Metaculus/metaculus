@@ -1923,6 +1923,7 @@
   "feedTileSummaryPlaceholder": "可选：输入自定义摘要文本以显示在动态提要上（如果未提供，将根据笔记本内容自动生成摘要）",
   "includeBotsInAggregatesLabel": "在汇总中包含机器人",
   "includeBotsInAggregatesExplanation": "启用时，机器人预测将包含在此问题的汇总计算中，并将影响评分。否则，它们不会产生影响。",
+  "hidden": "隐藏",
   "thousandsOfOpenQuestions": "20,000+ 开放问题",
   "feedTileNewTournament": "New Tournament",
   "feedTileForecastNewQuestions": "Forecast {count, plural, one {# new question} other {# new questions}}",
@@ -1934,6 +1935,5 @@
   "feedTileStartedAgo": "Started <strong>{when} ago</strong>",
   "feedTileResolvedAgo": "Resolved <strong>{when} ago</strong>",
   "feedTileForecasters": "{count, plural, one {# forecaster} other {# forecasters}}",
-  "feedTilePrizePool": "<strong>{amount}</strong> prize pool",
-  "hidden": "隐藏"
+  "feedTilePrizePool": "<strong>{amount}</strong> prize pool"
 }
