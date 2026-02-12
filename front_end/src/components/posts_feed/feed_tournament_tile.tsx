@@ -4,7 +4,7 @@ import { faUsers } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useMemo } from "react";
+import { FC, ReactNode, useMemo } from "react";
 
 import PostStatusIcon from "@/components/post_status/status_icon";
 import RichText from "@/components/rich_text";
@@ -53,7 +53,7 @@ const FeedTournamentTile: FC<Props> = ({ tile }) => {
       </h4>
 
       <div className="relative flex flex-wrap items-center gap-3 text-xs">
-        {prize && (
+        {(!tile.rule || tile.rule === FeedTileRule.NEW_TOURNAMENT) && prize && (
           <div className="rounded-xl border border-olive-400 bg-olive-400 px-2.5 py-1.5 text-olive-900">
             <RichText>
               {(tags) =>
@@ -121,7 +121,7 @@ function getRuleLabel(
 function getStatusLabel(
   t: ReturnType<typeof useTranslations>,
   project: FeedProjectTile["project"]
-): string | null {
+): ReactNode | null {
   const now = Date.now();
   const startTs = safeTs(project.start_date);
   const closeTs = safeTs(project.close_date);
@@ -129,26 +129,32 @@ function getStatusLabel(
     project.timeline?.latest_actual_resolve_time ?? null
   );
 
+  const strong = (chunks: ReactNode) => <strong>{chunks}</strong>;
+
   if (project.timeline?.all_questions_resolved && resolveTs) {
-    return t("feedTileResolvedAgo", {
+    return t.rich("feedTileResolvedAgo", {
+      strong,
       when: formatRelativeDelta(t, now - resolveTs),
     });
   }
 
   if (closeTs && now > closeTs) {
-    return t("feedTileClosedAgo", {
+    return t.rich("feedTileClosedAgo", {
+      strong,
       when: formatRelativeDelta(t, now - closeTs),
     });
   }
 
   if (closeTs && now < closeTs) {
-    return t("feedTileClosesIn", {
+    return t.rich("feedTileClosesIn", {
+      strong,
       when: formatRelativeDelta(t, closeTs - now),
     });
   }
 
   if (startTs && now - startTs < 14 * 86_400_000) {
-    return t("feedTileStartedAgo", {
+    return t.rich("feedTileStartedAgo", {
+      strong,
       when: formatRelativeDelta(t, now - startTs),
     });
   }

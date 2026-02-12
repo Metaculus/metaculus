@@ -1925,10 +1925,10 @@
   "feedTileQuestionsResolved": "{count, plural, one {# question resolved} other {# questions resolved}}",
   "feedTileCheckLeaderboards": "Check out the final leaderboards",
   "feedTilePopularTournament": "Popular Tournament",
-  "feedTileClosesIn": "Closes in {when}",
-  "feedTileClosedAgo": "Closed {when} ago",
-  "feedTileStartedAgo": "Started {when} ago",
-  "feedTileResolvedAgo": "Resolved {when} ago",
+  "feedTileClosesIn": "Closes in <strong>{when}</strong>",
+  "feedTileClosedAgo": "Closed <strong>{when} ago</strong>",
+  "feedTileStartedAgo": "Started <strong>{when} ago</strong>",
+  "feedTileResolvedAgo": "Resolved <strong>{when} ago</strong>",
   "feedTileForecasters": "{count, plural, one {# forecaster} other {# forecasters}}",
   "feedTilePrizePool": "<strong>{amount}</strong> prize pool"
 }
