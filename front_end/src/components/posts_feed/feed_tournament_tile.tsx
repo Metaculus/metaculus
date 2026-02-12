@@ -10,8 +10,10 @@ import PostStatusIcon from "@/components/post_status/status_icon";
 import RichText from "@/components/rich_text";
 import { PostStatus } from "@/types/post";
 import { FeedProjectTile, FeedTileRule } from "@/types/projects";
-import { bucketRelativeMs } from "@/utils/formatters/date";
+import { safeTs } from "@/utils/formatters/date";
+import { formatMoneyUSD } from "@/utils/formatters/number";
 import { getProjectLink } from "@/utils/navigation";
+import { formatTournamentRelativeDelta } from "@/utils/projects/helpers";
 
 type Props = {
   tile: FeedProjectTile;
@@ -134,60 +136,32 @@ function getStatusLabel(
   if (project.timeline?.all_questions_resolved && resolveTs) {
     return t.rich("feedTileResolvedAgo", {
       strong,
-      when: formatRelativeDelta(t, now - resolveTs),
+      when: formatTournamentRelativeDelta(t, now - resolveTs),
     });
   }
 
   if (closeTs && now > closeTs) {
     return t.rich("feedTileClosedAgo", {
       strong,
-      when: formatRelativeDelta(t, now - closeTs),
+      when: formatTournamentRelativeDelta(t, now - closeTs),
     });
   }
 
   if (closeTs && now < closeTs) {
     return t.rich("feedTileClosesIn", {
       strong,
-      when: formatRelativeDelta(t, closeTs - now),
+      when: formatTournamentRelativeDelta(t, closeTs - now),
     });
   }
 
   if (startTs && now - startTs < 14 * 86_400_000) {
     return t.rich("feedTileStartedAgo", {
       strong,
-      when: formatRelativeDelta(t, now - startTs),
+      when: formatTournamentRelativeDelta(t, now - startTs),
     });
   }
 
   return null;
-}
-
-function formatRelativeDelta(
-  t: ReturnType<typeof useTranslations>,
-  deltaMs: number
-): string {
-  const r = bucketRelativeMs(Math.abs(deltaMs));
-  if (r.kind === "soon") return t("tournamentRelativeSoon");
-  if (r.kind === "farFuture") return t("tournamentRelativeFarFuture");
-  if (r.kind === "underMinute") return t("tournamentRelativeUnderMinute");
-  const { n, unit } = r.value;
-  const unitLabel =
-    n === 1
-      ? t("tournamentUnit", { unit })
-      : t("tournamentUnitPlural", { unit });
-  return `${n} ${unitLabel}`;
-}
-
-function formatMoneyUSD(amount: string | null | undefined) {
-  if (!amount) return null;
-  const n = Number(amount);
-  if (!Number.isFinite(n) || n <= 0) return null;
-  return n.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    currencyDisplay: "narrowSymbol",
-    maximumFractionDigits: 0,
-  });
 }
 
 function getTournamentPostStatus(
@@ -197,12 +171,6 @@ function getTournamentPostStatus(
   const closeTs = safeTs(project.close_date);
   if (closeTs && Date.now() > closeTs) return PostStatus.CLOSED;
   return PostStatus.OPEN;
-}
-
-function safeTs(iso?: string | null): number | null {
-  if (!iso) return null;
-  const t = new Date(iso).getTime();
-  return Number.isFinite(t) ? t : null;
 }
 
 export default FeedTournamentTile;
