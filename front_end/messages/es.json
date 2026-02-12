@@ -1921,7 +1921,6 @@
   "feedTileSummaryPlaceholder": "Opcional: Ingrese un texto de resumen personalizado para mostrar en los mosaicos de noticias (si no se proporciona, se generará automáticamente un resumen a partir del contenido del cuaderno)",
   "includeBotsInAggregatesLabel": "Incluir Bots en los Agregados",
   "includeBotsInAggregatesExplanation": "Cuando está habilitado, las previsiones de bots se incluirán en los cálculos agregados para esta pregunta y afectarán la puntuación. De lo contrario, no afectarán en absoluto.",
-  "hidden": "Oculto",
   "thousandsOfOpenQuestions": "20,000+ preguntas abiertas",
   "feedTileNewTournament": "New Tournament",
   "feedTileForecastNewQuestions": "Forecast {count, plural, one {# new question} other {# new questions}}",
@@ -1933,5 +1932,6 @@
   "feedTileStartedAgo": "Started <strong>{when} ago</strong>",
   "feedTileResolvedAgo": "Resolved <strong>{when} ago</strong>",
   "feedTileForecasters": "{count, plural, one {# forecaster} other {# forecasters}}",
-  "feedTilePrizePool": "<strong>{amount}</strong> prize pool"
+  "feedTilePrizePool": "<strong>{amount}</strong> prize pool",
+  "hidden": "Oculto"
 }
