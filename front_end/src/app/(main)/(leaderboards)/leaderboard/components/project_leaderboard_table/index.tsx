@@ -70,6 +70,15 @@ const ProjectLeaderboardTable: FC<Props> = ({
       ? undefined
       : leaderboardDetails.max_coverage;
 
+  const getColumnCount = () => {
+    let count = 3;
+    if (isAdvanced) count += 2;
+    if (!!leaderboardDetails.prize_pool) {
+      count += isAdvanced ? 3 : 1;
+    }
+    return count;
+  };
+
   return (
     <div className="overflow-y-hidden rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
       <table className="mb-0 w-full border-separate whitespace-nowrap">
@@ -131,27 +140,27 @@ const ProjectLeaderboardTable: FC<Props> = ({
               isAdvanced={isAdvanced}
             />
           )}
-          {leaderboardEntries.length > 0 ? (
-            leaderboardEntries.map((entry) => (
-              <TableRow
-                key={entry.user?.id ?? entry.aggregation_method}
-                rowEntry={entry}
-                userId={userId}
-                maxCoverage={maxCoverage}
-                withPrizePool={!!leaderboardDetails.prize_pool}
-                isAdvanced={isAdvanced}
-              />
-            ))
-          ) : (
-            <tr className="border-b border-gray-300 dark:border-gray-300-dark">
-              <td
-                colSpan={isAdvanced ? 7 : 3}
-                className="max-w-full p-4 text-center text-base italic text-gray-700 dark:text-gray-700-dark"
-              >
-                {t("noQuestionsResolved")}
-              </td>
-            </tr>
-          )}
+          {leaderboardEntries.length > 0
+            ? leaderboardEntries.map((entry) => (
+                <TableRow
+                  key={entry.user?.id ?? entry.aggregation_method}
+                  rowEntry={entry}
+                  userId={userId}
+                  maxCoverage={maxCoverage}
+                  withPrizePool={!!leaderboardDetails.prize_pool}
+                  isAdvanced={isAdvanced}
+                />
+              ))
+            : !leaderboardDetails.userEntry && (
+                <tr className="border-b border-gray-300 dark:border-gray-300-dark">
+                  <td
+                    colSpan={getColumnCount()}
+                    className="max-w-full p-4 text-center text-base italic text-gray-700 dark:text-gray-700-dark"
+                  >
+                    {t("noQuestionsResolved")}
+                  </td>
+                </tr>
+              )}
         </tbody>
       </table>
       {hasMore && (
