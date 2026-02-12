@@ -31,6 +31,7 @@ import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import SectionToggle from "@/components/ui/section_toggle";
+import Select from "@/components/ui/select";
 import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { ErrorResponse } from "@/types/fetch";
@@ -44,6 +45,7 @@ import {
 import {
   ContinuousQuestionType,
   DefaultInboundOutcomeCount,
+  MultipleChoiceOptionsOrder,
   QuestionDraft,
   QuestionType,
 } from "@/types/question";
@@ -272,6 +274,7 @@ const createQuestionSchemas = (
             message: t("emptyOptionError"),
           })
       ),
+      options_order: z.nativeEnum(MultipleChoiceOptionsOrder).optional(),
     })
   );
 
@@ -470,6 +473,8 @@ const QuestionForm: FC<Props> = ({
       cp_reveal_time: post?.question?.cp_reveal_time,
       include_bots_in_aggregates:
         post?.question?.include_bots_in_aggregates ?? false,
+      options_order:
+        post?.question?.options_order ?? MultipleChoiceOptionsOrder.DEFAULT,
     },
   });
   useEffect(() => {
@@ -536,6 +541,7 @@ const QuestionForm: FC<Props> = ({
           ...baseValues,
           group_variable: draft.group_variable || "",
           options: draft.options || [],
+          options_order: draft.options_order,
         } as MultipleChoiceQuestionType;
       case QuestionType.Numeric:
         return {
@@ -929,6 +935,33 @@ const QuestionForm: FC<Props> = ({
           <div className="mb-4 text-sm text-gray-700 dark:text-gray-700-dark md:mt-1 md:text-base">
             {t("advancedOptionsDescription")}
           </div>
+
+          {questionType === QuestionType.MultipleChoice && (
+            <InputContainer
+              labelText={t("optionsOrderLabel")}
+              explanation={t("optionsOrderDescription")}
+              className="mb-6"
+            >
+              <Select
+                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                options={[
+                  {
+                    value: MultipleChoiceOptionsOrder.DEFAULT,
+                    label: t("defaultOptionsOrder"),
+                  },
+                  {
+                    value: MultipleChoiceOptionsOrder.CP_DESC,
+                    label: t("cpDescendingOptionsOrder"),
+                  },
+                ]}
+                {...form.register("options_order")}
+                defaultValue={
+                  post?.question?.options_order ??
+                  MultipleChoiceOptionsOrder.DEFAULT
+                }
+              />
+            </InputContainer>
+          )}
 
           <div className="mb-6 flex w-full flex-col gap-4 md:flex-row">
             <InputContainer

@@ -50,9 +50,28 @@ on:
       - reopened
       - synchronize
       - closed
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to deploy/redeploy preview for"
+        required: true
+        type: number
+      action:
+        description: "Action to perform"
+        required: false
+        type: choice
+        options:
+          - deploy
+          - cleanup
+        default: deploy
+      cleanup_reason:
+        description: "Reason for cleanup (shown in PR comment)"
+        required: false
+        type: string
+        default: ""
 
 concurrency:
-  group: pr-preview-${{ github.event.number }}
+  group: pr-preview-${{ github.event.number || inputs.pr_number }}
   cancel-in-progress: true
 
 permissions:
@@ -78,7 +97,10 @@ jobs:
       - name: Check if PR is from a fork
         id: check
         run: |
-          if [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]; then
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "is_fork=false" >> $GITHUB_OUTPUT
+            echo "✅ Triggered via workflow_dispatch (always internal)"
+          elif [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]; then
             echo "is_fork=true" >> $GITHUB_OUTPUT
             echo "⚠️ This PR is from a fork - preview deployments are not available"
           else
@@ -124,12 +146,37 @@ jobs:
       fly_app: ${{ steps.names.outputs.fly_app }}
       neon_branch: ${{ steps.names.outputs.neon_branch }}
       redis_name: ${{ steps.names.outputs.redis_name }}
+      pr_head_ref: ${{ steps.pr_head_ref.outputs.pr_head_ref }}
     steps:
+      - name: Resolve PR head ref
+        id: pr_head_ref
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const inputPrNumber = `${{ inputs.pr_number || '' }}`.trim();
+
+            if (context.payload.pull_request?.head?.ref) {
+              core.setOutput('pr_head_ref', context.payload.pull_request.head.ref);
+              return;
+            }
+
+            if (inputPrNumber) {
+              const pr = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: Number(inputPrNumber),
+              });
+              core.setOutput('pr_head_ref', pr.data.head.ref);
+              return;
+            }
+
+            core.setOutput('pr_head_ref', context.ref.replace('refs/heads/', ''));
+
       - name: Generate resource names
         id: names
         env:
-          BRANCH_REF: ${{ github.head_ref || github.ref_name }}
-          PR_NUMBER: ${{ github.event.number }}
+          BRANCH_REF: ${{ steps.pr_head_ref.outputs.pr_head_ref || github.head_ref }}
+          PR_NUMBER: ${{ github.event.number || inputs.pr_number }}
         run: |
           # Slugify branch name: lowercase, replace invalid chars, truncate, then cleanup again
           BRANCH_SLUG="$(printf '%s' "$BRANCH_REF" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9_-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-30 | sed 's/^-//' | sed 's/-$//')"
@@ -152,6 +199,7 @@ jobs:
     needs: [fork-check, setup]
     if: |
       github.event.action != 'closed' &&
+      inputs.action != 'cleanup' &&
       needs.fork-check.outputs.is_fork != 'true'
     uses: ./.github/workflows/docker_build.yml
     secrets: inherit
@@ -164,6 +212,7 @@ jobs:
     needs: [fork-check, setup, build-image]
     if: |
       github.event.action != 'closed' &&
+      inputs.action != 'cleanup' &&
       needs.fork-check.outputs.is_fork != 'true'
     runs-on: ubuntu-latest
     environment:
@@ -178,6 +227,8 @@ jobs:
 
       - name: Setup Fly.io CLI
         uses: superfly/flyctl-actions/setup-flyctl@master
+        with:
+          version: 0.4.9
 
       - name: Create NeonDB Branch
         id: neon
@@ -268,12 +319,24 @@ jobs:
             --stage
 
           # Deploy using the pre-built image (immutable SHA tag for reproducibility)
-          flyctl deploy \
+          # Retry couple of times because Fly deploy can occasionally fail transiently.
+          MAX_ATTEMPTS=3
+          ATTEMPT=1
+
+          until flyctl deploy \
             --app "${APP_NAME}" \
             --config fly.preview.toml \
             --image ${{ needs.build-image.outputs.image_url }} \
             --ha=false \
-            --now
+            --now; do
+            if [ "${ATTEMPT}" -ge "${MAX_ATTEMPTS}" ]; then
+              echo "❌ Deploy failed after ${MAX_ATTEMPTS} attempts"
+              exit 1
+            fi
+            ATTEMPT=$((ATTEMPT + 1))
+            echo "⚠️ Deploy failed, retrying (${ATTEMPT}/${MAX_ATTEMPTS}) in 10s..."
+            sleep 10
+          done
 
           # Start machines after deployment (continue on failure)
           echo "Starting machines for ${APP_NAME}..."
@@ -298,6 +361,7 @@ jobs:
     needs: [fork-check, setup, build-image, deploy-preview]
     if: |
       github.event.action != 'closed' &&
+      inputs.action != 'cleanup' &&
       needs.fork-check.outputs.is_fork != 'true'
     runs-on: ubuntu-latest
     steps:
@@ -305,7 +369,7 @@ jobs:
         uses: peter-evans/find-comment@v3
         id: find_comment
         with:
-          issue-number: ${{ github.event.number }}
+          issue-number: ${{ github.event.number || inputs.pr_number }}
           comment-author: "github-actions[bot]"
           body-includes: "Preview Environment"
 
@@ -313,7 +377,7 @@ jobs:
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ steps.find_comment.outputs.comment-id }}
-          issue-number: ${{ github.event.number }}
+          issue-number: ${{ github.event.number || inputs.pr_number }}
           edit-mode: replace
           body: |
             ## 🚀 Preview Environment
@@ -329,7 +393,7 @@ jobs:
 
             ### Details
             - **Commit:** `${{ github.sha }}`
-            - **Branch:** `${{ github.head_ref }}`
+            - **Branch:** `${{ needs.setup.outputs.pr_head_ref || github.head_ref }}`
             - **Fly App:** `${{ needs.deploy-preview.outputs.app_name }}`
 
             ---
@@ -358,12 +422,14 @@ jobs:
     needs: [fork-check, setup]
     # Only cleanup for internal PRs (forks never had resources created)
     if: |
-      github.event.action == 'closed' &&
+      (github.event.action == 'closed' || inputs.action == 'cleanup') &&
       needs.fork-check.outputs.is_fork != 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Setup Fly.io CLI
         uses: superfly/flyctl-actions/setup-flyctl@master
+        with:
+          version: 0.4.9
 
       - name: Delete Fly app
         continue-on-error: true
@@ -400,34 +466,72 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           environment: Preview
           onlyRemoveDeployments: true
-          ref: ${{ github.head_ref }}
+          ref: ${{ needs.setup.outputs.pr_head_ref || github.head_ref }}
 
       - name: Find existing comment
         uses: peter-evans/find-comment@v3
         id: find_comment
         with:
-          issue-number: ${{ github.event.number }}
+          issue-number: ${{ github.event.number || inputs.pr_number }}
           comment-author: "github-actions[bot]"
           body-includes: "Preview Environment"
 
       - name: Update comment to show cleanup
         if: steps.find_comment.outputs.comment-id != ''
-        uses: peter-evans/create-or-update-comment@v4
+        uses: actions/github-script@v7
         with:
-          comment-id: ${{ steps.find_comment.outputs.comment-id }}
-          edit-mode: replace
-          body: |
-            ## 🧹 Preview Environment Cleaned Up
+          script: |
+            const commentId = ${{ steps.find_comment.outputs.comment-id }};
+            const isClosed = ${{ github.event.action == 'closed' }};
+            const cleanupReason = ${{ toJSON(inputs.cleanup_reason || '') }};
+            const closedAt = ${{ toJSON(github.event.pull_request.closed_at || '') }};
+            const actor = ${{ toJSON(github.actor) }};
+
+            const table = [
+              '| Resource | Status |',
+              '|----------|--------|',
+              '| 🌐 Preview App | Deleted |',
+              '| 🗄️ PostgreSQL Branch | Deleted |',
+              '| ⚡ Redis Database | Deleted |',
+              '| 🔧 GitHub Deployments | Removed |',
+              '| 📦 Docker Image | Retained (auto-cleanup via GHCR policies) |'
+            ].join('\n');
+
+            let body;
+            if (isClosed) {
+              body = `## Cleanup: Preview Environment Removed
 
             The preview environment for this PR has been destroyed.
 
-            | Resource | Status |
-            |----------|--------|
-            | 🌐 Preview App | ✅ Deleted |
-            | 🗄️ PostgreSQL Branch | ✅ Deleted |
-            | ⚡ Redis Database | ✅ Deleted |
-            | 🔧 GitHub Deployments | ✅ Removed |
-            | 📦 Docker Image | ⚠️ Retained (auto-cleanup via GHCR policies) |
+            ${table}
 
             ---
-            *Cleanup triggered by PR close at ${{ github.event.pull_request.closed_at || 'N/A' }}*
+            *Cleanup triggered by PR close at ${closedAt}*`;
+            } else if (cleanupReason.toLowerCase().includes('stale')) {
+              body = `## Cleanup: Preview Environment Removed (Stale)
+
+            This preview environment has been deleted because the PR was marked as **Stale** (no activity detected).
+
+            ${table}
+
+            Push a new commit to this PR to recreate the preview environment.
+
+            ---
+            *Automated cleanup by weekly maintenance*`;
+            } else {
+              body = `## Cleanup: Preview Environment Removed
+
+            The preview environment has been manually destroyed.
+
+            ${table}
+
+            ---
+            *Manual cleanup triggered by @${actor}*`;
+            }
+
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: commentId,
+              body
+            });
