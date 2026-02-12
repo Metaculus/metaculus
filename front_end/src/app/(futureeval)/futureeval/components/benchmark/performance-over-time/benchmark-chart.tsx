@@ -22,6 +22,8 @@ import { CollisionAwareLabels } from "./collision-aware-labels";
 import { MappedAggregates, MappedBots } from "./mapping";
 import {
   computeSotaPoints,
+  calculateLinearRegression,
+  calculateCrossingX,
   generateTrendLineData,
   type TrendPoint,
 } from "./sota-trend";
@@ -35,6 +37,7 @@ type Props = {
   hoveredPointKey: string | null;
   onHoveredPointKeyChange: (key: string | null) => void;
   showAllLabels?: boolean;
+  showProjection?: boolean;
   className?: string;
 };
 
@@ -58,6 +61,7 @@ export function BenchmarkChart({
   hoveredPointKey,
   onHoveredPointKeyChange,
   showAllLabels = false,
+  showProjection = false,
   className,
 }: Props) {
   const { theme, getThemeColor } = useAppTheme();
@@ -134,7 +138,7 @@ export function BenchmarkChart({
     [sotaModels]
   );
 
-  // Calculate domain - memoized to avoid recalculation on every render
+  // Calculate domain - optionally extended so the trendline visibly crosses the reference lines
   const { minX, maxX, minY, maxY } = useMemo(() => {
     // Build arrays and filter out non-finite values
     const xValues = chartData.map((d) => d.x).filter((x) => Number.isFinite(x));
@@ -150,13 +154,31 @@ export function BenchmarkChart({
     const defaultX = 0;
     const defaultY = 0;
 
+    const rawMinX = xValues.length > 0 ? Math.min(...xValues) : defaultX;
+    const rawMaxX = xValues.length > 0 ? Math.max(...xValues) : defaultX;
+    const rawMinY = allYValues.length > 0 ? Math.min(...allYValues) : defaultY;
+    const rawMaxY = allYValues.length > 0 ? Math.max(...allYValues) : defaultY;
+
+    let extendedMaxX = rawMaxX;
+    if (showProjection && sotaPoints.length >= 2 && refScores.length > 0) {
+      const regression = calculateLinearRegression(sotaPoints);
+      if (regression && regression.slope > 0) {
+        const highestRef = Math.max(...refScores);
+        const crossingX = calculateCrossingX(regression, highestRef);
+        if (crossingX !== null && crossingX > rawMaxX) {
+          const padding = (crossingX - rawMinX) * 0.05;
+          extendedMaxX = crossingX + padding;
+        }
+      }
+    }
+
     return {
-      minX: xValues.length > 0 ? Math.min(...xValues) : defaultX,
-      maxX: xValues.length > 0 ? Math.max(...xValues) : defaultX,
-      minY: allYValues.length > 0 ? Math.min(...allYValues) : defaultY,
-      maxY: allYValues.length > 0 ? Math.max(...allYValues) : defaultY,
+      minX: rawMinX,
+      maxX: extendedMaxX,
+      minY: rawMinY,
+      maxY: rawMaxY,
     };
-  }, [chartData, referenceLines]);
+  }, [chartData, referenceLines, sotaPoints, showProjection]);
 
   const yTicks = useMemo(() => {
     const step = 10;
