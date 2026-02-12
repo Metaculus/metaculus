@@ -29,22 +29,21 @@ export function buildFeedItems(
   const insertAfter: number[] = [];
   let tileIdx = 0;
 
-  // First tile: after post at index 1..4 (between tiles 2-5)
+  // First tile: after post at index 1..4 (positions 2-5)
   const firstSlot = 1 + Math.floor(rand() * 4);
-  if (tileIdx < tiles.length && firstSlot < posts.length - 1) {
-    insertAfter.push(firstSlot);
+  if (tileIdx < tiles.length) {
+    insertAfter.push(Math.min(firstSlot, posts.length - 1));
     tileIdx++;
   }
 
-  // Subsequent tiles: every ~10 posts with ±2 jitter, at least 2 posts apart
+  // Subsequent tiles: every ~10 posts with ±2 jitter, at least 1 post apart
   while (tileIdx < tiles.length) {
     const lastSlot = insertAfter[insertAfter.length - 1] ?? 0;
     const base = lastSlot + POSTS_PER_PAGE;
     const jitter = Math.floor(rand() * 5) - 2;
-    const slot = Math.max(base + jitter, lastSlot + 2);
+    const slot = Math.max(base + jitter, lastSlot + 1);
 
-    // Don't place after the very last post
-    if (slot >= posts.length - 1) break;
+    if (slot >= posts.length) break;
 
     insertAfter.push(slot);
     tileIdx++;
