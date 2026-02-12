@@ -10,6 +10,7 @@ import FanChart from "@/components/charts/fan_chart";
 import { MultipleChoiceTile } from "@/components/post_card/multiple_choice_tile";
 import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useHideCP } from "@/contexts/cp_context";
+import { TimelineChartZoomOption } from "@/types/charts";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import {
   GroupOfQuestionsGraphType,
@@ -42,6 +43,7 @@ type Props = {
   embedChartHeight?: number;
   onLegendHeightChange?: (height: number) => void;
   chartTheme?: VictoryThemeDefinition;
+  defaultZoom?: TimelineChartZoomOption;
 };
 
 const DetailedGroupCard: FC<Props> = ({
@@ -53,6 +55,7 @@ const DetailedGroupCard: FC<Props> = ({
   embedChartHeight,
   onLegendHeightChange,
   chartTheme,
+  defaultZoom,
 }) => {
   const {
     open_time,
@@ -165,6 +168,7 @@ const DetailedGroupCard: FC<Props> = ({
               chartTheme={chartTheme}
               yLabel={commonUnit ?? undefined}
               onCursorChange={handleCursorChange}
+              defaultChartZoom={defaultZoom}
             />
             {hideCP && <RevealCPButton />}
           </>
@@ -185,6 +189,7 @@ const DetailedGroupCard: FC<Props> = ({
             embedMode={isEmbed}
             chartHeight={embedChartHeight}
             chartTheme={chartTheme}
+            defaultZoom={defaultZoom}
           />
           {hideCP && <RevealCPButton />}
         </>
