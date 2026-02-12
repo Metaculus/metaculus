@@ -73,27 +73,27 @@ export const getSocialMediaArray = (user: UserProfile): SocialMediaEntry[] => [
 ];
 
 export const hasUserSocialMediaLink = (user: UserProfile) => {
-  return getSocialMediaArray(user).filter(({ link }) => !!link).length > 0;
+  return getSocialMediaArray(user).some(({ link }) => !!link);
 };
 
 const SocialMediaFragment: FC<{
   user: UserProfile;
 }> = ({ user }) => {
-  const socialMedia = getSocialMediaArray(user).filter(({ link }) => !!link);
+  const socialMedia = getSocialMediaArray(user).filter(
+    ({ link }) => !!link
+  ) as (SocialMediaEntry & { link: string })[];
   return (
     <>
-      {socialMedia.map(({ icon, link, label }) => {
+      {socialMedia.map(({ icon, link, name }) => {
         return (
-          <div key={label} className="flex flex-col">
-            {link && (
-              <Link href={link} target="_blank" rel="ugc">
-                <FontAwesomeIcon
-                  icon={icon}
-                  size="lg"
-                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
-                ></FontAwesomeIcon>
-              </Link>
-            )}
+          <div key={name} className="flex flex-col">
+            <Link href={link} target="_blank" rel="ugc">
+              <FontAwesomeIcon
+                icon={icon}
+                size="lg"
+                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
+              ></FontAwesomeIcon>
+            </Link>
           </div>
         );
       })}
