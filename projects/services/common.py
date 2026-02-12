@@ -340,14 +340,19 @@ def get_feed_project_tiles() -> list[dict]:
         all_resolved = len(questions) > 0 and all(
             q.actual_resolve_time
             # Or treat as resolved if scheduled resolution is in the future
-            or (q.scheduled_resolve_time and q.scheduled_resolve_time > project_close_date)
+            or (
+                q.scheduled_resolve_time
+                and q.scheduled_resolve_time > project_close_date
+            )
             for q in questions
         )
         last_resolve_time = max(
             (
                 q.resolution_set_time
                 for q in questions
-                if q.resolution_set_time and q.actual_resolve_time <= project_close_date
+                if q.actual_resolve_time
+                and q.resolution_set_time
+                and q.actual_resolve_time <= project_close_date
             ),
             default=None,
         )
