@@ -294,7 +294,7 @@ jobs:
             --stage
 
           # Deploy using the pre-built image (immutable SHA tag for reproducibility)
-          # Retry once because Fly deploy can occasionally fail transiently.
+          # Retry couple of times because Fly deploy can occasionally fail transiently.
           MAX_ATTEMPTS=3
           ATTEMPT=1
 
