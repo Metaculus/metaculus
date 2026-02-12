@@ -15,11 +15,17 @@ type Props = {
   filters: PostsParams;
   type?: PostsFeedType;
   isCommunity?: boolean;
+  showProjectTiles?: boolean;
 };
 
-const AwaitedPostsFeed: FC<Props> = async ({ filters, type, isCommunity }) => {
+const AwaitedPostsFeed: FC<Props> = async ({
+  filters,
+  type,
+  isCommunity,
+  showProjectTiles,
+}) => {
   const { PUBLIC_MINIMAL_UI } = getPublicSettings();
-  const skipTiles = isCommunity || PUBLIC_MINIMAL_UI;
+  const skipTiles = !showProjectTiles || isCommunity || PUBLIC_MINIMAL_UI;
 
   const [{ results: questions }, projectTiles] = await Promise.all([
     ServerPostsApi.getPostsWithCP({
