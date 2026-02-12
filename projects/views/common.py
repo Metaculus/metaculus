@@ -16,7 +16,6 @@ from projects.serializers.common import (
     TopicSerializer,
     CategorySerializer,
     TournamentSerializer,
-    TournamentShortSerializer,
     ProjectUserSerializer,
     NewsCategorySerialize,
     LeaderboardTagSerializer,
@@ -185,20 +184,22 @@ def feed_project_tiles_api_view(request: Request):
     tiles = get_feed_project_tiles()
 
     # Fresh query for live project data
-    projects_map = {
-        p.id: p
-        for p in Project.objects.filter(
-            id__in=[t["project_id"] for t in tiles]
-        ).select_related("primary_leaderboard")
-    }
+    serialized_projects = serialize_tournaments_with_counts(
+        Project.objects.filter(id__in=[t["project_id"] for t in tiles]).select_related(
+            "primary_leaderboard"
+        )
+    )
+
+    # Fresh query for live project data
+    serialized_projects_map = {p["id"]: p for p in serialized_projects}
 
     data = [
         {
-            "project": TournamentShortSerializer(projects_map[tile["project_id"]]).data,
+            "project": serialized_projects_map[tile["project_id"]],
             **tile,
         }
         for tile in tiles
-        if tile["project_id"] in projects_map
+        if tile["project_id"] in serialized_projects_map
     ]
 
     return Response(data)
