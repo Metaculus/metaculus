@@ -277,7 +277,7 @@ export default function QuestionChecklist() {
             Discrete questions are designed for outcomes with a small number of
             distinct values (e.g. number of goals in a match, number of seats
             won). If your question would have more than 50 possible outcomes,
-            use a continuous (numeric) question instead. Having too many
+            increase the step size or tighten the bounds. Having too many
             discrete options makes the probability mass function chart difficult
             to read and undermines the forecasting experience.
           </li>

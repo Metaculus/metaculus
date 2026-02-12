@@ -1288,7 +1288,7 @@
   "zeroPointError0": "Nulový bod není podporován pro diskrétní otázky",
   "zeroPointError1": "Nulový bod ({zeroPoint}) by neměl být mezi min ({min}) a max ({max})",
   "stepError0": "Krok nemůže být větší než polovina rozsahu: ({halfRange})",
-  "stepError1": "Diskrétní otázky jsou omezeny na {maxOptions} možností. Zvětšete velikost kroku nebo použijte spojitou otázku.",
+  "stepError1": "Diskrétní otázky jsou omezeny na {maxOptions} možností. Zvětšete velikost kroku nebo zúžte rozsah.",
   "minMaxError0": "Zadejte správné hodnoty min a max",
   "minMaxError1": "Minimální hodnota by měla být menší než maximální hodnota",
   "rangeWarning0": "Upozornění: Krok nedělí rozsah rovnoměrně. Max snížen na {newMax}",

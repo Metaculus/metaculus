@@ -226,7 +226,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             ):
                 errors.append(
                     f"Discrete questions are limited to {MAX_DISCRETE_OPTION_COUNT} options. "
-                    "Please increase the step size or use a continuous question instead."
+                    "Please increase the step size or tighten the bounds."
                 )
 
         if errors:
