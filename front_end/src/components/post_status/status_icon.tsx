@@ -11,12 +11,15 @@ import {
 
 const CLOCK_RADIUS = 10;
 
+const DEFAULT_STROKE_CLASS = "stroke-blue-700 dark:stroke-blue-700-dark";
+
 type Props = {
   status: PostStatus;
   published_at: string;
   open_time?: string | null;
   scheduled_close_time: string;
   resolution: Resolution | null;
+  strokeClassName?: string;
 };
 
 const PostStatusIcon: FC<Props> = ({
@@ -25,6 +28,7 @@ const PostStatusIcon: FC<Props> = ({
   open_time,
   published_at,
   resolution,
+  strokeClassName = DEFAULT_STROKE_CLASS,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -74,11 +78,7 @@ const PostStatusIcon: FC<Props> = ({
       return (
         <>
           <path d="" className="fill-olive-500 dark:fill-olive-500-dark" />
-          <circle
-            r="10"
-            strokeWidth="1"
-            className="stroke-blue-700 dark:stroke-blue-700-dark"
-          />
+          <circle r="10" strokeWidth="1" className={strokeClassName} />
           <text
             x="0"
             y="4"
@@ -98,19 +98,12 @@ const PostStatusIcon: FC<Props> = ({
         <>
           <path d="" className="fill-olive-500 dark:fill-olive-500-dark" />
           <circle
-            className={cn(
-              "stroke-blue-700 stroke-1 dark:stroke-blue-700-dark",
-              {
-                "fill-gray-300 opacity-75 dark:fill-gray-300-dark":
-                  status === PostStatus.CLOSED,
-              }
-            )}
+            className={cn(strokeClassName, "stroke-1", {
+              "fill-gray-300 opacity-75 dark:fill-gray-300-dark":
+                status === PostStatus.CLOSED,
+            })}
           />
-          <line
-            x1="0"
-            y1="0"
-            className="stroke-blue-700 stroke-1 dark:stroke-blue-700-dark"
-          />
+          <line x1="0" y1="0" className={cn(strokeClassName, "stroke-1")} />
           <circle
             cx="0"
             cy="0"
@@ -124,11 +117,7 @@ const PostStatusIcon: FC<Props> = ({
     if (resolvedWell) {
       return (
         <>
-          <circle
-            r="10"
-            strokeWidth="1"
-            className="stroke-blue-700 dark:stroke-blue-700-dark"
-          />
+          <circle r="10" strokeWidth="1" className={strokeClassName} />
           <path
             d="M 0 -5 L 5 0 L 0 5 L -5 0 Z"
             fill="none"
@@ -142,11 +131,7 @@ const PostStatusIcon: FC<Props> = ({
     if (resolvedBadly) {
       return (
         <>
-          <circle
-            r="10"
-            strokeWidth="1"
-            className="stroke-blue-700 dark:stroke-blue-700-dark"
-          />
+          <circle r="10" strokeWidth="1" className={strokeClassName} />
           <line
             x1="-4"
             y1="-4"

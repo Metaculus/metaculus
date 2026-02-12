@@ -58,7 +58,7 @@ const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
           : undefined
       }
     >
-      {project.header_image && <div className="absolute inset-0 bg-black/65" />}
+      {project.header_image && <div className="absolute inset-0 bg-black/50" />}
       {!project.header_image && (
         <div className="absolute inset-0 bg-blue-100" />
       )}
@@ -92,6 +92,7 @@ const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
                 open_time={project.start_date}
                 scheduled_close_time={project.close_date ?? project.start_date}
                 resolution={null}
+                strokeClassName="stroke-gray-0"
               />
             </span>
             <span>{statusLabel}</span>
