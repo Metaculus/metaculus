@@ -77,10 +77,10 @@ class ProjectDefaultPermissionFilter(admin.SimpleListFilter):
 
 class LeaderboardInline(admin.TabularInline):
     model = Leaderboard
+    template = "admin/scoring/leaderboard_readonly_inline.html"
     extra = 0
     fields = (
         "leaderboard_link",
-        "score_type",
         "start_time",
         "end_time",
         "finalize_time",
@@ -90,7 +90,6 @@ class LeaderboardInline(admin.TabularInline):
     )
     readonly_fields = (
         "leaderboard_link",
-        "score_type",
         "start_time",
         "end_time",
         "finalize_time",
@@ -106,7 +105,8 @@ class LeaderboardInline(admin.TabularInline):
         if not obj.pk:
             return "-"
         url = reverse("admin:scoring_leaderboard_change", args=[obj.pk])
-        label = obj.name or f"Leaderboard #{obj.pk} ({obj.score_type})"
+        score_type = obj.get_score_type_display()
+        label = obj.name or f"#{obj.pk} ({score_type})"
         return format_html('<a href="{}">{}</a>', url, label)
 
     leaderboard_link.short_description = "Leaderboard"
