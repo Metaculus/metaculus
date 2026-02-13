@@ -1415,6 +1415,7 @@
   "predictionsWithdrawnText": "{count, plural, =1 {# 个预测已} other {# 个预测已}} 被撤回",
   "customize": "自定义",
   "beforeAutoWithdrawal": "在我的预测被自动撤回之前",
+  "settingsNewTournamentsAndPlatformUpdates": "新锦标赛和平台更新",
   "pageNotFound": "页面未找到",
   "thinkSupposedPageNote": "如果您认为此处应该有一个页面，<link>请发送便笺给我们</link>，我们会努力修复。",
   "returnToHomePage": "返回主页",
