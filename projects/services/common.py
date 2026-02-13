@@ -1,3 +1,4 @@
+import random
 from collections import defaultdict
 from datetime import datetime, timedelta
 from itertools import chain
@@ -397,24 +398,28 @@ def get_feed_project_tiles() -> list[dict]:
     rule_priority = list(FeedTileRule)
     results.sort(key=lambda r: rule_priority.index(r["rule"]))
 
-    # Fallback: if no rules matched, pick best ongoing project
+    # Fallback: pick one random tournament with >50% time remaining
     if not results:
-        best = min(
-            projects,
-            key=lambda p: (
-                not p.is_ongoing,
-                p.order if p.order is not None else float("inf"),
-            ),
-        )
-        results = [
-            {
-                "project_id": best.id,
-                "recently_opened_questions": 0,
-                "recently_resolved_questions": 0,
-                "all_questions_resolved": False,
-                "rule": None,
-            }
+        candidates = [
+            p
+            for p in projects
+            if p.start_date
+            and p.close_date
+            and (total := (p.close_date - p.start_date).total_seconds()) > 0
+            and (p.close_date - now).total_seconds() / total > 0.5
         ]
+        if candidates:
+            pick = random.choice(candidates)
+            results = [
+                {
+                    "project_id": pick.id,
+                    "recently_opened_questions": 0,
+                    "recently_resolved_questions": 0,
+                    "all_questions_resolved": False,
+                    "project_resolution_date": None,
+                    "rule": None,
+                }
+            ]
 
     return results
 
