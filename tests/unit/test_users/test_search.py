@@ -1,4 +1,3 @@
-import pytest
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -9,14 +8,15 @@ from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_users.factories import factory_user
-from users.models import User
 
 
 class TestUserSearchWithPostId:
     url = reverse("users-list")
 
     def _make_recently_active(self, user):
-        """Give the user a recent non-deleted comment so they pass the activity filter."""
+        """
+        Give the user a recent non-deleted comment so they pass the activity filter.
+        """
         other_post = factory_post(author=factory_user())
         factory_comment(author=user, on_post=other_post)
 
@@ -75,7 +75,7 @@ class TestUserSearchWithPostId:
         project = factory_project(
             override_permissions={
                 permitted_user: ObjectPermission.FORECASTER,
-            }
+            },
         )
         post = factory_post(author=post_author, default_project=project)
 
@@ -178,7 +178,7 @@ class TestUserSearchWithPostId:
         project = factory_project(
             override_permissions={
                 permitted: ObjectPermission.FORECASTER,
-            }
+            },
         )
         post = factory_post(author=author, default_project=project)
         factory_comment(author=commenter, on_post=post)
@@ -211,7 +211,7 @@ class TestUserSearchWithPostId:
         """Users without recent comments should not appear in non-priority results."""
         post_author = factory_user(username="filterauthor")
         active_user = factory_user(username="filteractive")
-        inactive_user = factory_user(username="filterinactive")
+        factory_user(username="filterinactive")
 
         # Give active_user a recent comment
         self._make_recently_active(active_user)

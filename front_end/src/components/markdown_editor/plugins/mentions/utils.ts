@@ -10,10 +10,7 @@ export async function queryMentions(
   userPermission?: ProjectPermissions,
   postId?: number
 ): Promise<MentionItem[]> {
-  const usersGroupMentions = [
-    { value: "moderators" },
-    { value: "admins" },
-  ];
+  const usersGroupMentions = [{ value: "moderators" }, { value: "admins" }];
   if (
     userPermission &&
     [ProjectPermissions.CURATOR, ProjectPermissions.ADMIN].includes(

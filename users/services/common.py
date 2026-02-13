@@ -77,9 +77,7 @@ def get_users(
 
             # Collect post author and coauthor IDs
             author_ids = [post.author_id]
-            author_ids.extend(
-                post.coauthors.values_list("id", flat=True)
-            )
+            author_ids.extend(post.coauthors.values_list("id", flat=True))
 
             # Collect user IDs with explicit project permissions
             permission_user_ids = ProjectUserPermission.objects.filter(
