@@ -1940,5 +1940,9 @@
   "yourOrganization": "Vaše organizace",
   "yourMessageForm": "Vaše zpráva",
   "readFullReport": "Přečíst celou zprávu",
+  "weeklyTopCommentsSubscribeCta": "Dostávejte ty nejlepší komentáře Metaculus každý týden do své schránky!",
+  "weeklyTopCommentsSubscribeSuccess": "Nyní jste přihlášeni k odběru Nejlepších komentářů. Odběr můžete kdykoli zrušit ve svém účtu <settings>nastavení</settings>.",
+  "weeklyTopCommentsSubscribeSuccessInline": "Nyní jste přihlášeni k odběru Nejlepších komentářů.",
+  "weeklyTopCommentsSubscribeError": "Něco se pokazilo. Zkuste to prosím znovu.",
   "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }
