@@ -22,7 +22,9 @@ export function buildFeedItems(
     return posts.map((post) => ({ type: "post", post }));
   }
 
-  const seed = posts[0]?.id ?? 0;
+  const seed =
+    posts.slice(0, 10).reduce((acc, p) => acc + p.id, 0) +
+    Math.floor(Date.now() / 86_400_000);
   const rand = seededRandom(seed);
 
   // Compute insertion positions (post indices AFTER which a tile appears)
