@@ -546,6 +546,7 @@
   "includeBotsInAggregatesExplanation": "When enabled, bot forecasts will be included in aggregate calculations for this question and will affect scoring. Otherwise, they will affect neither.",
   "authored": "Authored",
   "upvoted": "Upvoted",
+  "commented": "Commented",
   "moderating": "Moderating",
   "moderatedBy": "Moderated by",
   "visibility": "Visibility",
