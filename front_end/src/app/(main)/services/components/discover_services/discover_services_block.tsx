@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 
 import cn from "@/utils/core/cn";
 
-import { DISCOVER_SERIES_CARDS } from "./constants";
+import { DISCOVER_SERVICES_CARDS } from "./constants";
 import SectionHeading from "../section_heading";
 
 const DiscoverServicesBlock: React.FC = () => {
@@ -19,7 +19,7 @@ const DiscoverServicesBlock: React.FC = () => {
       />
 
       <div className="mb-12 mt-8 grid gap-4 antialiased sm:grid-cols-2 sm:gap-6 lg:mb-32 lg:grid-cols-4">
-        {DISCOVER_SERIES_CARDS.map((card) => (
+        {DISCOVER_SERVICES_CARDS.map((card) => (
           <Link
             key={card.type}
             href={`/services/quiz?category=${encodeURIComponent(card.type)}`}

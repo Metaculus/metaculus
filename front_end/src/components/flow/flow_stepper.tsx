@@ -132,6 +132,7 @@ export const FlowStepperSegment: FC<SegmentProps> = ({ stepId, index }) => {
         }
       )}
       onClick={() => onSelectStep(stepId)}
+      aria-label={`Step ${index + 1}`}
     />
   );
 };

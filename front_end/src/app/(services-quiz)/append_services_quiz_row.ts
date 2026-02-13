@@ -3,6 +3,7 @@
 import {
   appendSheetRow,
   getSheetFirstRow,
+  setSheetRow,
 } from "@/services/google_spreadsheets";
 
 import type { ServicesQuizSubmitPayload } from "./helpers";
@@ -52,9 +53,10 @@ async function ensureHeaderRow(
 
   if (!isEmpty) return;
 
-  await appendSheetRow(spreadsheetId, credentialsBase64, {
+  await setSheetRow(spreadsheetId, credentialsBase64, {
     sheetName,
     row: [...HEADER_ROW],
+    rowIndex: 1,
     valueInputOption: "RAW",
   });
 }
@@ -90,22 +92,31 @@ export async function appendServicesQuizRow(
 
   const zapierWebhookUrl = process.env.SERVICES_QUIZ_ZAPIER_WEBHOOK_URL;
   if (zapierWebhookUrl) {
-    await fetch(zapierWebhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        created_at: row[0],
-        category: payload.category,
-        challenges: payload.challenges.join(" | "),
-        notes: payload.notes,
-        timing: payload.timing,
-        who_forecasts: normalizeWhoForecasts(payload.whoForecasts),
-        privacy: payload.privacy,
-        contact_name: payload.contact.name,
-        contact_email: payload.contact.email,
-        contact_organization: payload.contact.organization,
-        contact_comments: payload.contact.comments,
-      }),
-    });
+    try {
+      const response = await fetch(zapierWebhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          created_at: row[0],
+          category: payload.category,
+          challenges: payload.challenges.join(" | "),
+          notes: payload.notes,
+          timing: payload.timing,
+          who_forecasts: normalizeWhoForecasts(payload.whoForecasts),
+          privacy: payload.privacy,
+          contact_name: payload.contact.name,
+          contact_email: payload.contact.email,
+          contact_organization: payload.contact.organization,
+          contact_comments: payload.contact.comments,
+        }),
+      });
+      if (!response.ok) {
+        console.error(
+          `Zapier webhook failed: ${response.status} ${response.statusText}`
+        );
+      }
+    } catch (error) {
+      console.error("Zapier webhook error:", error);
+    }
   }
 }

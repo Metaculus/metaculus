@@ -49,7 +49,8 @@ const STEP_COMPONENTS: Record<ServicesQuizStepId, FC> = {
 
 const ServicesQuizScreenInner: FC = () => {
   const { step } = useServicesQuizFlow();
-  const ActiveStep = STEP_COMPONENTS[step as ServicesQuizStepId];
+  const ActiveStep =
+    STEP_COMPONENTS[step as ServicesQuizStepId] ?? STEP_COMPONENTS[1];
 
   return (
     <>

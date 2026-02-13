@@ -15,7 +15,7 @@ type ValidationKey = "fieldRequired" | "invalidEmail";
 
 const ServicesQuizStep5: React.FC = () => {
   const t = useTranslations();
-  const { goNext, isSubmitting } = useServicesQuizFlow();
+  const { goNext, isSubmitting, submitError } = useServicesQuizFlow();
   const {
     state,
     setContactName,
@@ -48,8 +48,6 @@ const ServicesQuizStep5: React.FC = () => {
       contactEmail: f.contactEmail?._errors?.[0],
     };
   }, [validation]);
-
-  const canSubmit = validation.success;
 
   const commentsRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -160,7 +158,7 @@ const ServicesQuizStep5: React.FC = () => {
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={!canSubmit || isSubmitting}
+          disabled={isSubmitting}
           className={cn(
             "w-full rounded-full px-5 py-2 text-base font-medium leading-7 sm:mt-2",
             "bg-blue-900 text-gray-0 hover:bg-blue-900/80 dark:bg-blue-900-dark dark:text-gray-0-dark dark:hover:bg-blue-900-dark/80",
@@ -169,6 +167,8 @@ const ServicesQuizStep5: React.FC = () => {
         >
           {isSubmitting ? t("submitting") : t("submit")}
         </button>
+
+        {submitError && <FormErrorMessage errors={t("errorSubmittingQuiz")} />}
       </div>
     </ServicesQuizStepShell>
   );

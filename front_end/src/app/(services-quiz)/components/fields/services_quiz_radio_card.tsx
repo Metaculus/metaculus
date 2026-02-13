@@ -29,8 +29,8 @@ const ServicesQuizRadioCard: FC<Props> = ({
   const handleClick = () => {
     if (disabled) return;
 
-    if (isSelected && onDeselect) {
-      onDeselect();
+    if (isSelected) {
+      onDeselect?.();
       return;
     }
 

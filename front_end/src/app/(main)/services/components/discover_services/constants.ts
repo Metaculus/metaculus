@@ -5,7 +5,7 @@ import {
   faPeopleGroup,
 } from "@fortawesome/free-solid-svg-icons";
 
-export const DISCOVER_SERIES_CARDS = [
+export const DISCOVER_SERVICES_CARDS = [
   {
     type: "enterprise",
     titleKey: "discoverServicesEnterpriseTitle",

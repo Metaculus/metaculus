@@ -34,6 +34,7 @@ type FlowApi = {
   nextDisabled: boolean;
 
   isSubmitting: boolean;
+  submitError: Error | null;
 
   goPrev: () => void;
   goNext: () => Promise<void>;
@@ -60,6 +61,7 @@ export const ServicesQuizFlowProvider: FC<
 
   const [step, setStep] = useState<ServicesQuizStepId>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<Error | null>(null);
 
   const steps = useMemo<FlowStep[]>(
     () =>
@@ -84,12 +86,16 @@ export const ServicesQuizFlowProvider: FC<
     if (!canGoNext || nextDisabled || isSubmitting) return;
 
     if (step === 5) {
-      const payload = aggregateServicesQuizAnswers(state);
-
       setIsSubmitting(true);
       try {
+        const payload = aggregateServicesQuizAnswers(state);
         await onSubmit?.(payload);
+        setSubmitError(null);
         setStep(6);
+      } catch (error) {
+        setSubmitError(
+          error instanceof Error ? error : new Error("Submission failed")
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -119,6 +125,7 @@ export const ServicesQuizFlowProvider: FC<
       canGoNext,
       nextDisabled,
       isSubmitting,
+      submitError,
       goPrev,
       goNext,
       selectStep,
@@ -131,6 +138,7 @@ export const ServicesQuizFlowProvider: FC<
       canGoNext,
       nextDisabled,
       isSubmitting,
+      submitError,
       goPrev,
       goNext,
       selectStep,
