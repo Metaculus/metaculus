@@ -103,6 +103,8 @@ const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
                 scheduled_close_time={scheduled_close_time}
                 resolution={null}
                 strokeClassName="stroke-gray-0"
+                dotFillClassName="fill-gray-0"
+                clockFillClass="fill-mint-400/50"
               />
             </span>
             <span>{statusLabel}</span>
