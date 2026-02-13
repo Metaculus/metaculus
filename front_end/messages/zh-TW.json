@@ -1994,12 +1994,13 @@
   "submitYourAnswersTitle": "提交您的答案，我們將與您聯繫",
   "yourNamePlaceholder": "約翰·多伊",
   "emailAddressPlaceholder": "john.doe@company.com",
-  "organizationPlaceholder": "附加備註",
+  "organizationPlaceholder": "組織名稱",
   "anyAdditionalComments": "有任何其他評論？",
   "fieldRequired": "這是必填欄位。",
   "invalidEmail": "請輸入有效的電子郵件地址。",
   "submitting": "提交中...",
   "ourTeamWillBeInContactSoon": "我們的團隊將很快與您聯繫。",
   "automaticRedirectInSeconds": "{count} 秒後自動重定向",
+  "errorSubmittingQuiz": "出了點問題，請重試。",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }

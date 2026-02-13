@@ -1995,12 +1995,13 @@
   "submitYourAnswersTitle": "Envie suas respostas e entraremos em contato",
   "yourNamePlaceholder": "João Silva",
   "emailAddressPlaceholder": "joao.silva@empresa.com",
-  "organizationPlaceholder": "Notas adicionais",
+  "organizationPlaceholder": "Nome da organização",
   "anyAdditionalComments": "Algum comentário adicional?",
   "fieldRequired": "Este campo é obrigatório.",
   "invalidEmail": "Por favor, insira um endereço de e-mail válido.",
   "submitting": "Enviando...",
   "ourTeamWillBeInContactSoon": "Nossa equipe entrará em contato em breve.",
-  "automaticRedirectInSeconds": "Redirecionamento automático em {count} seg",
+  "automaticRedirectInSeconds": "Redirecionamento automático em {count, plural, one {# segundo} other {# segundos}}",
+  "errorSubmittingQuiz": "Algo deu errado. Por favor, tente novamente.",
   "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
 }

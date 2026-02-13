@@ -115,6 +115,36 @@ export async function appendSheetRows(
   });
 }
 
+type SetRowOptions = {
+  sheetName: string;
+  row: Array<string | number | boolean | null>;
+  rowIndex: number;
+  valueInputOption?: "RAW" | "USER_ENTERED";
+};
+
+export async function setSheetRow(
+  spreadsheetId: string,
+  credentialsBase64: string,
+  opts: SetRowOptions
+) {
+  const { sheetName, row, rowIndex, valueInputOption = "USER_ENTERED" } = opts;
+
+  if (rowIndex < 1) {
+    throw new Error(`rowIndex must be >= 1, got ${rowIndex}`);
+  }
+
+  const sheets = await getSheetsClient(credentialsBase64, "readwrite");
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `${sheetName}!A${rowIndex}`,
+    valueInputOption,
+    requestBody: {
+      values: [row.map((v) => (v === null ? "" : v))],
+    },
+  });
+}
+
 export async function getSheetFirstRow(
   spreadsheetId: string,
   credentialsBase64: string,

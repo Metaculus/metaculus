@@ -47,6 +47,7 @@ const ServicesQuizHeader: FC = () => {
           className="mr-2 border-none bg-transparent text-gray-0 dark:bg-transparent dark:text-gray-0 dark:hover:bg-blue-800 dark:active:bg-gray-800 sm:hidden"
           onClick={requestExit}
           variant="primary"
+          aria-label={t("exit")}
         >
           <FontAwesomeIcon icon={faRightFromBracket} className="h-5 w-5" />
         </Button>

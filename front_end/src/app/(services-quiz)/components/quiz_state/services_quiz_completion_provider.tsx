@@ -29,8 +29,12 @@ export const useServicesQuizCompletion = () => {
 };
 
 export const contactSchema = z.object({
-  contactName: z.string().trim().min(1),
-  contactEmail: z.string().trim().email(),
+  contactName: z.string().trim().min(1, { message: "fieldRequired" }),
+  contactEmail: z
+    .string()
+    .trim()
+    .min(1, { message: "fieldRequired" })
+    .email({ message: "invalidEmail" }),
   contactOrg: z.string().trim(),
   contactComments: z.string().trim(),
 });

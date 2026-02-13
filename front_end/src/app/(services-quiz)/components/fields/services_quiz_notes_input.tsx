@@ -2,6 +2,7 @@
 
 import { faPen, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useLayoutEffect, useRef } from "react";
 
 import cn from "@/utils/core/cn";
@@ -25,6 +26,7 @@ const ServicesQuizNotesInput: FC<Props> = ({
   minHeightClassName = "min-h-[56px]",
   maxHeightPx,
 }) => {
+  const t = useTranslations();
   const hasValue = value.trim().length > 0;
   const ref = useRef<HTMLTextAreaElement | null>(null);
 
@@ -71,7 +73,7 @@ const ServicesQuizNotesInput: FC<Props> = ({
             type="button"
             disabled={disabled}
             onClick={() => onChange("")}
-            aria-label="Clear"
+            aria-label={t("clear")}
             className={cn(
               "-mt-0.5 rounded p-1 outline-none transition-opacity",
               "focus-visible:ring-2 focus-visible:ring-blue-400 dark:focus-visible:ring-blue-400-dark",

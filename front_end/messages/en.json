@@ -1991,11 +1991,12 @@
   "fullConfidentialityDescription": "Both organization and questions hidden",
   "yourNamePlaceholder": "John Doe",
   "emailAddressPlaceholder": "john.doe@company.com",
-  "organizationPlaceholder": "Additional notes",
+  "organizationPlaceholder": "Your organization",
   "anyAdditionalComments": "Any additional comments?",
   "fieldRequired": "This field is required.",
   "invalidEmail": "Please enter a valid email address.",
   "submitting": "Submitting...",
-  "automaticRedirectInSeconds": "Automatic redirect in {count} sec",
+  "automaticRedirectInSeconds": "Automatic redirect in {count, plural, one {# second} other {# seconds}}",
+  "errorSubmittingQuiz": "Something went wrong. Please try again.",
   "feedTileSummaryPlaceholder": "Optional: Enter a custom summary text to display on feed tiles (if not provided, a summary will be auto-generated from the notebook content)"
 }

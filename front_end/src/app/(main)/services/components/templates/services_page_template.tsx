@@ -16,7 +16,7 @@ import Button from "../button";
 import CaseStudyCard from "../case_studies/case_study_card";
 import { TCaseStudyCard } from "../case_studies/types";
 import ContactSection from "../contact_section/contact_section";
-import DiscoverServicesBlock from "../discover_series/discover_series_block";
+import DiscoverServicesBlock from "../discover_services/discover_services_block";
 import HeadingBlock from "../heading_block";
 import PartnersCarousel from "../partners_carousel";
 import SectionHeading from "../section_heading";

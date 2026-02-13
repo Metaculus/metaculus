@@ -1999,12 +1999,13 @@
   "submitYourAnswersTitle": "提交您的答案，我们将与您联系",
   "yourNamePlaceholder": "约翰·多伊",
   "emailAddressPlaceholder": "john.doe@company.com",
-  "organizationPlaceholder": "附加备注",
+  "organizationPlaceholder": "组织名称",
   "anyAdditionalComments": "还有其他任何评论吗？",
   "fieldRequired": "此字段是必填项。",
   "invalidEmail": "请输入有效的电子邮件地址。",
   "submitting": "正在提交...",
   "ourTeamWillBeInContactSoon": "我们的团队将尽快与您联系。",
   "automaticRedirectInSeconds": "{count}秒后自动重定向",
+  "errorSubmittingQuiz": "出了点问题，请重试。",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }

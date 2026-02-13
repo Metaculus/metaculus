@@ -5,6 +5,13 @@ export type ServicesQuizSubmitPayload = ReturnType<
 >;
 
 export function aggregateServicesQuizAnswers(state: ServicesQuizAnswersState) {
+  const name = state.contactName.trim();
+  const email = state.contactEmail.trim();
+
+  if (!name || !email) {
+    throw new Error("Contact name and email are required");
+  }
+
   return {
     category: state.category,
     challenges: state.selectedChallenges,
@@ -13,8 +20,8 @@ export function aggregateServicesQuizAnswers(state: ServicesQuizAnswersState) {
     whoForecasts: state.whoForecasts,
     privacy: state.privacy,
     contact: {
-      name: state.contactName.trim() || null,
-      email: state.contactEmail.trim() || null,
+      name,
+      email,
       organization: state.contactOrg.trim() || null,
       comments: state.contactComments.trim() || null,
     },
