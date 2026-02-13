@@ -361,6 +361,11 @@ def get_feed_project_tiles() -> list[dict]:
             ),
             default=None,
         )
+        project_resolution_date = (
+            max(last_resolve_time, project.close_date or last_resolve_time)
+            if last_resolve_time
+            else None
+        )
 
         rule: FeedTileRule | None = None
 
@@ -373,10 +378,7 @@ def get_feed_project_tiles() -> list[dict]:
         elif (
             all_resolved
             and last_resolve_time
-            and abs(
-                now - max(last_resolve_time, project.close_date or last_resolve_time)
-            )
-            <= timedelta(days=10)
+            and abs(now - project_resolution_date) <= timedelta(days=10)
         ):
             rule = FeedTileRule.ALL_QUESTIONS_RESOLVED
 
@@ -387,7 +389,7 @@ def get_feed_project_tiles() -> list[dict]:
                     "recently_opened_questions": recently_opened,
                     "recently_resolved_questions": recently_resolved,
                     "all_questions_resolved": all_resolved,
-                    "last_resolution_set_time": last_resolve_time,
+                    "project_resolution_date": project_resolution_date,
                     "rule": rule,
                 }
             )
