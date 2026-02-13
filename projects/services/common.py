@@ -302,7 +302,12 @@ def get_feed_project_tiles() -> list[dict]:
     now = timezone.now()
 
     projects = list(
-        Project.objects.filter_tournament()
+        Project.objects.filter(
+            type__in=(
+                Project.ProjectTypes.TOURNAMENT,
+                Project.ProjectTypes.INDEX,
+            )
+        )
         .exclude(visibility=Project.Visibility.UNLISTED)
         .filter(default_permission__isnull=False)
     )
