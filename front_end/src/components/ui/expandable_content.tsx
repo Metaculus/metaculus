@@ -1,5 +1,8 @@
 "use client";
-import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
+import {
+  faChevronDown,
+  faChevronRight,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import dynamic from "next/dynamic";
@@ -91,10 +94,11 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
               }}
               className="pointer-events-auto"
             >
-              <FontAwesomeIcon
-                icon={isExpanded ? faChevronUp : faChevronDown}
-                className="ml-0.5 mr-1.5"
-              />
+              <span className="inline-flex w-4 items-center justify-center">
+                <FontAwesomeIcon
+                  icon={isExpanded ? faChevronDown : faChevronRight}
+                />
+              </span>
 
               {isExpanded ? collapseLabel : expandLabel}
             </Button>
