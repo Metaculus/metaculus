@@ -271,9 +271,7 @@ export default function QuestionChecklist() {
             wider.
           </li>
           <li>
-            <strong>
-              Limit discrete questions to at most 50 options.
-            </strong>{" "}
+            <strong>Limit discrete questions to at most 50 options.</strong>{" "}
             Discrete questions are designed for outcomes with a small number of
             distinct values (e.g. number of goals in a match, number of seats
             won). If your question would have more than 50 possible outcomes,

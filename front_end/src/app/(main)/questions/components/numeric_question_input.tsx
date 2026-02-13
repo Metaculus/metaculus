@@ -138,7 +138,10 @@ const NumericQuestionInput: React.FC<{
     inbound_outcome_count: isNil(defaultInboundOutcomeCount)
       ? questionType !== QuestionType.Discrete || isNil(min) || isNil(max)
         ? DefaultInboundOutcomeCount
-        : Math.max(3, Math.min(MaxDiscreteOptionCount, Math.round((max - min) / step) + 1))
+        : Math.max(
+            3,
+            Math.min(MaxDiscreteOptionCount, Math.round((max - min) / step) + 1)
+          )
       : defaultInboundOutcomeCount,
     aggregations: {
       recency_weighted: { history: [], latest: undefined },
