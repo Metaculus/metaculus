@@ -350,6 +350,13 @@ export function getFilterSectionParticipation({
         active: !!params.get(POST_UPVOTED_BY_FILTER),
         isPersisted: true,
       },
+      {
+        id: POST_COMMENTED_BY_FILTER,
+        label: t("commented"),
+        value: user.id.toString(),
+        active: !!params.get(POST_COMMENTED_BY_FILTER),
+        isPersisted: true,
+      },
     ],
   };
 }
