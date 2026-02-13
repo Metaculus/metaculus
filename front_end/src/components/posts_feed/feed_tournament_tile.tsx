@@ -86,9 +86,11 @@ const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
             </RichText>
           </div>
         )}
-        <div className="rounded-xl border border-gray-300 px-2.5 py-1.5 text-gray-0">
-          {ruleLabel}
-        </div>
+        {ruleLabel && (
+          <div className="rounded-xl border border-gray-300 px-2.5 py-1.5 text-gray-0">
+            {ruleLabel}
+          </div>
+        )}
       </div>
 
       <div className="relative flex flex-wrap items-center gap-5 px-1.5 py-1 text-xs">
@@ -127,7 +129,7 @@ const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
 function getRuleLabel(
   t: ReturnType<typeof useTranslations>,
   tile: FeedProjectTile
-): string {
+): string | undefined {
   switch (tile.rule) {
     case FeedTileRule.NEW_TOURNAMENT:
       return t("feedTileNewTournament");
@@ -141,8 +143,6 @@ function getRuleLabel(
       });
     case FeedTileRule.ALL_QUESTIONS_RESOLVED:
       return t("feedTileCheckLeaderboards");
-    default:
-      return t("feedTilePopularTournament");
   }
 }
 
