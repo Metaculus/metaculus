@@ -35,12 +35,15 @@ const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
 
   const ruleLabel = getRuleLabel(t, tile);
   const statusLabel = getStatusLabel(t, tile);
-  const scheduled_close_time =
+  const rawCloseTime =
     rule === FeedTileRule.ALL_QUESTIONS_RESOLVED && project_resolution_date
       ? project_resolution_date
       : project.close_date ??
         project.forecasting_end_date ??
         project.start_date;
+  const scheduled_close_time = new Date(
+    Math.max(new Date(rawCloseTime).getTime(), Date.now() + 1000)
+  ).toISOString();
 
   return (
     <Link
