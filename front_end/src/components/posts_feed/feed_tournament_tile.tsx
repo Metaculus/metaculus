@@ -158,7 +158,8 @@ function getStatusLabel(
   const strong = (chunks: ReactNode) => <strong>{chunks}</strong>;
 
   if (all_questions_resolved && resolveTs) {
-    return t.rich("feedTileResolvedAgo", {
+    const key = now > resolveTs ? "feedTileResolvedAgo" : "feedTileResolvesIn";
+    return t.rich(key, {
       strong,
       when: formatTournamentRelativeDelta(t, now - resolveTs),
     });
@@ -178,10 +179,11 @@ function getStatusLabel(
     });
   }
 
-  if (startTs && now - startTs < 14 * 86_400_000) {
-    return t.rich("feedTileStartedAgo", {
+  if (startTs && Math.abs(now - startTs) < 14 * 86_400_000) {
+    const key = now > startTs ? "feedTileStartedAgo" : "feedTileStartsIn";
+    return t.rich(key, {
       strong,
-      when: formatTournamentRelativeDelta(t, now - startTs),
+      when: formatTournamentRelativeDelta(t, Math.abs(now - startTs)),
     });
   }
 
