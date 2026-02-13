@@ -1937,5 +1937,18 @@
   "yourOrganization": "您的組織",
   "yourMessageForm": "您的訊息",
   "readFullReport": "閱讀完整報告",
+  "feedTileNewTournament": "New Tournament",
+  "feedTileForecastNewQuestions": "Forecast {count, plural, one {# new question} other {# new questions}}",
+  "feedTileQuestionsResolved": "{count, plural, one {# question resolved} other {# questions resolved}}",
+  "feedTileCheckLeaderboards": "Check out the final leaderboards",
+  "feedTilePopularTournament": "Popular Tournament",
+  "feedTileClosesIn": "Closes in <strong>{when}</strong>",
+  "feedTileClosedAgo": "Closed <strong>{when} ago</strong>",
+  "feedTileStartsIn": "Starts in <strong>{when}</strong>",
+  "feedTileStartedAgo": "Started <strong>{when} ago</strong>",
+  "feedTileResolvesIn": "Resolves in <strong>{when}</strong>",
+  "feedTileResolvedAgo": "Resolved <strong>{when} ago</strong>",
+  "feedTileForecasters": "{count, plural, one {# forecaster} other {# forecasters}}",
+  "feedTilePrizePool": "<strong>{amount}</strong> prize pool",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }

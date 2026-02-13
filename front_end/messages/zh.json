@@ -1942,5 +1942,18 @@
   "yourOrganization": "您的组织",
   "yourMessageForm": "您的信息",
   "readFullReport": "阅读完整报告",
+  "feedTileNewTournament": "New Tournament",
+  "feedTileForecastNewQuestions": "Forecast {count, plural, one {# new question} other {# new questions}}",
+  "feedTileQuestionsResolved": "{count, plural, one {# question resolved} other {# questions resolved}}",
+  "feedTileCheckLeaderboards": "Check out the final leaderboards",
+  "feedTilePopularTournament": "Popular Tournament",
+  "feedTileClosesIn": "Closes in <strong>{when}</strong>",
+  "feedTileClosedAgo": "Closed <strong>{when} ago</strong>",
+  "feedTileStartsIn": "Starts in <strong>{when}</strong>",
+  "feedTileStartedAgo": "Started <strong>{when} ago</strong>",
+  "feedTileResolvesIn": "Resolves in <strong>{when}</strong>",
+  "feedTileResolvedAgo": "Resolved <strong>{when} ago</strong>",
+  "feedTileForecasters": "{count, plural, one {# forecaster} other {# forecasters}}",
+  "feedTilePrizePool": "<strong>{amount}</strong> prize pool",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }

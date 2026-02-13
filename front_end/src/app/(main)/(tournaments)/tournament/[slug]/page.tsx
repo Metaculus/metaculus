@@ -174,7 +174,10 @@ export default async function TournamentSlug(props: Props) {
           <HtmlContent content={tournament.description} allowStyleTag />
 
           {tournament.score_type && (
-            <div className="mt-3 flex flex-col gap-3">
+            <div
+              id="leaderboard"
+              className="mt-3 flex scroll-mt-nav flex-col gap-3"
+            >
               <ProjectLeaderboard
                 projectId={tournament.id}
                 userId={currentUser?.id}
