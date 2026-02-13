@@ -18,6 +18,11 @@ export function useTopCommentsCtaDismissed() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    setReady(false);
+    setDismissed(true);
+  }, [key]);
+
+  useEffect(() => {
     setDismissed(safeLocalStorage.getItem(key) === "1");
     setReady(true);
   }, [key]);

@@ -120,10 +120,15 @@ export const SignupForm: FC<{
           data: { email: watch("email"), username: watch("username") },
         });
       }
-      if (response?.is_active && response.user) {
-        await onSuccess?.(response.user);
+      try {
+        if (response?.is_active && response.user) {
+          await onSuccess?.(response.user);
+        }
+      } catch (error) {
+        console.error("Signup onSuccess callback failed", error);
+      } finally {
+        handlePostLoginAction(response?.postLoginAction);
       }
-      handlePostLoginAction(response?.postLoginAction);
     }
 
     return response;
