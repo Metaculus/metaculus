@@ -21,7 +21,7 @@ type Props = {
 
 const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
   const t = useTranslations();
-  const { project } = tile;
+  const { project, rule, project_resolution_date } = tile;
   const href = useMemo(() => {
     const base = getProjectLink(project);
     return tile.rule === FeedTileRule.ALL_QUESTIONS_RESOLVED
@@ -34,7 +34,13 @@ const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
   );
 
   const ruleLabel = getRuleLabel(t, tile);
-  const statusLabel = getStatusLabel(t, project);
+  const statusLabel = getStatusLabel(t, tile);
+  const scheduled_close_time =
+    rule === FeedTileRule.ALL_QUESTIONS_RESOLVED && project_resolution_date
+      ? project_resolution_date
+      : project.close_date ??
+        project.forecasting_end_date ??
+        project.start_date;
 
   return (
     <Link
@@ -87,10 +93,11 @@ const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
           <span className="flex items-center gap-2">
             <span className="inline-flex h-4 w-4 items-center justify-center">
               <PostStatusIcon
-                status={getTournamentPostStatus(project)}
+                // We always show active clock here
+                status={PostStatus.OPEN}
                 published_at={project.start_date}
                 open_time={project.start_date}
-                scheduled_close_time={project.close_date ?? project.start_date}
+                scheduled_close_time={scheduled_close_time}
                 resolution={null}
                 strokeClassName="stroke-gray-0"
               />
@@ -136,18 +143,16 @@ function getRuleLabel(
 
 function getStatusLabel(
   t: ReturnType<typeof useTranslations>,
-  project: FeedProjectTile["project"]
+  { project, all_questions_resolved, project_resolution_date }: FeedProjectTile
 ): ReactNode | null {
   const now = Date.now();
   const startTs = safeTs(project.start_date);
   const closeTs = safeTs(project.close_date);
-  const resolveTs = safeTs(
-    project.timeline?.latest_actual_resolve_time ?? null
-  );
+  const resolveTs = safeTs(project_resolution_date);
 
   const strong = (chunks: ReactNode) => <strong>{chunks}</strong>;
 
-  if (project.timeline?.all_questions_resolved && resolveTs) {
+  if (all_questions_resolved && resolveTs) {
     return t.rich("feedTileResolvedAgo", {
       strong,
       when: formatTournamentRelativeDelta(t, now - resolveTs),
@@ -176,15 +181,6 @@ function getStatusLabel(
   }
 
   return null;
-}
-
-function getTournamentPostStatus(
-  project: FeedProjectTile["project"]
-): PostStatus {
-  if (project.timeline?.all_questions_resolved) return PostStatus.RESOLVED;
-  const closeTs = safeTs(project.close_date);
-  if (closeTs && Date.now() > closeTs) return PostStatus.CLOSED;
-  return PostStatus.OPEN;
 }
 
 export default FeedTournamentTile;

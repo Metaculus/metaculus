@@ -188,5 +188,6 @@ export type FeedProjectTile = {
   recently_opened_questions: number;
   recently_resolved_questions: number;
   all_questions_resolved: boolean;
+  project_resolution_date: string | null;
   rule: FeedTileRule | null;
 };
