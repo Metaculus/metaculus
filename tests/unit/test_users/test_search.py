@@ -31,9 +31,7 @@ class TestUserSearchWithPostId:
         post = factory_post(author=post_author)
         factory_comment(author=commenter, on_post=post)
 
-        response = anon_client.get(
-            f"{self.url}?search=commenter&post_id={post.pk}"
-        )
+        response = anon_client.get(f"{self.url}?search=commenter&post_id={post.pk}")
 
         assert response.status_code == status.HTTP_200_OK
         results = response.data["results"]
@@ -53,9 +51,7 @@ class TestUserSearchWithPostId:
         project = factory_project()
         post = factory_post(author=author, default_project=project)
 
-        response = anon_client.get(
-            f"{self.url}?search=author&post_id={post.pk}"
-        )
+        response = anon_client.get(f"{self.url}?search=author&post_id={post.pk}")
 
         assert response.status_code == status.HTTP_200_OK
         results = response.data["results"]
@@ -79,9 +75,7 @@ class TestUserSearchWithPostId:
         )
         post = factory_post(author=post_author, default_project=project)
 
-        response = anon_client.get(
-            f"{self.url}?search=searchuser&post_id={post.pk}"
-        )
+        response = anon_client.get(f"{self.url}?search=searchuser&post_id={post.pk}")
 
         assert response.status_code == status.HTTP_200_OK
         results = response.data["results"]
@@ -91,9 +85,7 @@ class TestUserSearchWithPostId:
         # User with project permission should appear before non-permitted user
         assert usernames.index("searchuser1") < usernames.index("searchuser2")
 
-    def test_post_id_only_returns_relevant_users(
-        self, anon_client: APIClient
-    ) -> None:
+    def test_post_id_only_returns_relevant_users(self, anon_client: APIClient) -> None:
         post_author = factory_user(username="relevauthor")
         commenter = factory_user(username="relevcommenter")
         factory_user(username="irrelevantuser")
@@ -128,14 +120,10 @@ class TestUserSearchWithPostId:
         results = response.data["results"]
         assert any(r["username"] == "normalsearch" for r in results)
 
-    def test_post_id_with_nonexistent_post(
-        self, anon_client: APIClient
-    ) -> None:
+    def test_post_id_with_nonexistent_post(self, anon_client: APIClient) -> None:
         user = factory_user(username="someuser123")
         self._make_recently_active(user)
-        response = anon_client.get(
-            f"{self.url}?search=someuser&post_id=999999"
-        )
+        response = anon_client.get(f"{self.url}?search=someuser&post_id=999999")
 
         # Should still work, just without relevance prioritization
         assert response.status_code == status.HTTP_200_OK
@@ -151,9 +139,7 @@ class TestUserSearchWithPostId:
         post = factory_post(author=author)
         post.coauthors.add(coauthor)
 
-        response = anon_client.get(
-            f"{self.url}?search=coauthor&post_id={post.pk}"
-        )
+        response = anon_client.get(f"{self.url}?search=coauthor&post_id={post.pk}")
 
         assert response.status_code == status.HTTP_200_OK
         results = response.data["results"]
@@ -161,13 +147,9 @@ class TestUserSearchWithPostId:
         assert "coauthortest" in usernames
         assert "coauthorfake" in usernames
         # Coauthor should appear before non-coauthor
-        assert usernames.index("coauthortest") < usernames.index(
-            "coauthorfake"
-        )
+        assert usernames.index("coauthortest") < usernames.index("coauthorfake")
 
-    def test_combined_relevance_ordering(
-        self, anon_client: APIClient
-    ) -> None:
+    def test_combined_relevance_ordering(self, anon_client: APIClient) -> None:
         """Commenters should rank highest, then authors, then permission holders."""
         author = factory_user(username="testrank_author")
         commenter = factory_user(username="testrank_commenter")
@@ -183,9 +165,7 @@ class TestUserSearchWithPostId:
         post = factory_post(author=author, default_project=project)
         factory_comment(author=commenter, on_post=post)
 
-        response = anon_client.get(
-            f"{self.url}?search=testrank&post_id={post.pk}"
-        )
+        response = anon_client.get(f"{self.url}?search=testrank&post_id={post.pk}")
 
         assert response.status_code == status.HTTP_200_OK
         results = response.data["results"]
@@ -198,16 +178,12 @@ class TestUserSearchWithPostId:
         assert usernames.index("testrank_commenter") < usernames.index(
             "testrank_nobody"
         )
-        assert usernames.index("testrank_author") < usernames.index(
-            "testrank_nobody"
-        )
+        assert usernames.index("testrank_author") < usernames.index("testrank_nobody")
         assert usernames.index("testrank_permitted") < usernames.index(
             "testrank_nobody"
         )
 
-    def test_inactive_users_excluded_from_search(
-        self, anon_client: APIClient
-    ) -> None:
+    def test_inactive_users_excluded_from_search(self, anon_client: APIClient) -> None:
         """Users without recent comments should not appear in non-priority results."""
         post_author = factory_user(username="filterauthor")
         active_user = factory_user(username="filteractive")
@@ -220,9 +196,7 @@ class TestUserSearchWithPostId:
 
         post = factory_post(author=post_author)
 
-        response = anon_client.get(
-            f"{self.url}?search=filter&post_id={post.pk}"
-        )
+        response = anon_client.get(f"{self.url}?search=filter&post_id={post.pk}")
 
         assert response.status_code == status.HTTP_200_OK
         results = response.data["results"]
@@ -234,9 +208,7 @@ class TestUserSearchWithPostId:
         # Inactive user excluded (no recent comment, not a priority user)
         assert "filterinactive" not in usernames
 
-    def test_old_comments_dont_count_as_recent(
-        self, anon_client: APIClient
-    ) -> None:
+    def test_old_comments_dont_count_as_recent(self, anon_client: APIClient) -> None:
         """Users whose only comments are older than a year should be excluded."""
         old_user = factory_user(username="oldcommentor")
         other_post = factory_post(author=factory_user())
