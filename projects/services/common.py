@@ -387,6 +387,7 @@ def get_feed_project_tiles() -> list[dict]:
                     "recently_opened_questions": recently_opened,
                     "recently_resolved_questions": recently_resolved,
                     "all_questions_resolved": all_resolved,
+                    "last_resolution_set_time": last_resolve_time,
                     "rule": rule,
                 }
             )
