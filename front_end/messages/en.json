@@ -1590,6 +1590,7 @@
   "predictionsSoonToBeWidthdrawnText": "{count, plural, =1 {# prediction} other {# predictions}} will be withdrawn soon",
   "predictionsWithdrawnText": "{count, plural, =1 {# prediction has} other {# predictions have}} been withdrawn",
   "beforeAutoWithdrawal": "Before my predictions are auto-withdrawn",
+  "settingsNewTournamentsAndPlatformUpdates": "New Tournaments and Platform Updates",
   "pageNotFound": "Page not found",
   "thinkSupposedPageNote": "If you think there's supposed to be a page here, <link>send a note to us</link> and we'll try to get it fixed.",
   "unfinalizedPrizeTooltip": "This tournament is ongoing. Scores and prizes will change as more questions resolve.",

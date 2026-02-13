@@ -1413,6 +1413,7 @@
   "customize": "Personalizar",
   "CPMovementChangeLabel": "{value} este {period}",
   "beforeAutoWithdrawal": "Antes de que mis predicciones se retiren automáticamente",
+  "settingsNewTournamentsAndPlatformUpdates": "Nuevos Torneos y Actualizaciones de la Plataforma",
   "pageNotFound": "Página no encontrada",
   "thinkSupposedPageNote": "Si crees que debería haber una página aquí, <link>envíanos una nota</link> e intentaremos arreglarlo.",
   "returnToHomePage": "Volver a la página de inicio",
