@@ -5,6 +5,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
 from django.db import IntegrityError
 from django.db.models import Case, IntegerField, Q, When
+from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from authentication.jwt_session import revoke_all_user_tokens
@@ -32,9 +33,24 @@ def get_users(
     - Users who have commented on the post
     - The post author and coauthors
     - Users with explicit permissions on the post's default project
+
+    Non-priority users are filtered to only those who are active and have
+    posted a non-deleted comment in the last year.
     """
     from comments.models import Comment
     from posts.models import Post
+
+    one_year_ago = timezone.now() - timezone.timedelta(days=365)
+
+    # User IDs with at least one non-deleted comment in the last year
+    recently_active_user_ids = (
+        Comment.objects.filter(
+            is_soft_deleted=False,
+            created_at__gte=one_year_ago,
+        )
+        .values_list("author_id", flat=True)
+        .distinct()
+    )
 
     qs = User.objects.filter(is_active=True)
 
@@ -89,6 +105,13 @@ def get_users(
             )
 
             if search:
+                # Keep priority users + recently active users only
+                qs = qs.filter(
+                    Q(id__in=commenter_ids)
+                    | Q(id__in=author_ids)
+                    | Q(id__in=permission_user_ids)
+                    | Q(id__in=recently_active_user_ids)
+                )
                 qs = qs.order_by(
                     "-is_commenter",
                     "-is_author",
@@ -112,6 +135,8 @@ def get_users(
             return qs
 
     if search:
+        # Without post_id, only return recently active users
+        qs = qs.filter(id__in=recently_active_user_ids)
         qs = qs.order_by("-full_match", "username")
 
     return qs

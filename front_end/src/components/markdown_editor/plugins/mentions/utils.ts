@@ -13,7 +13,6 @@ export async function queryMentions(
   const usersGroupMentions = [
     { value: "moderators" },
     { value: "admins" },
-    { value: "members" },
   ];
   if (
     userPermission &&

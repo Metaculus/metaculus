@@ -1,4 +1,5 @@
 import pytest
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
@@ -14,12 +15,18 @@ from users.models import User
 class TestUserSearchWithPostId:
     url = reverse("users-list")
 
+    def _make_recently_active(self, user):
+        """Give the user a recent non-deleted comment so they pass the activity filter."""
+        other_post = factory_post(author=factory_user())
+        factory_comment(author=user, on_post=other_post)
+
     def test_search_with_post_id_prioritizes_commenters(
         self, anon_client: APIClient
     ) -> None:
         post_author = factory_user(username="postauthor")
         commenter = factory_user(username="commenterabc")
         non_commenter = factory_user(username="commenterdef")
+        self._make_recently_active(non_commenter)
 
         post = factory_post(author=post_author)
         factory_comment(author=commenter, on_post=post)
@@ -41,6 +48,7 @@ class TestUserSearchWithPostId:
     ) -> None:
         author = factory_user(username="authorxyz")
         other_user = factory_user(username="authorabc")
+        self._make_recently_active(other_user)
 
         project = factory_project()
         post = factory_post(author=author, default_project=project)
@@ -62,6 +70,7 @@ class TestUserSearchWithPostId:
         post_author = factory_user(username="theauthor")
         permitted_user = factory_user(username="searchuser1")
         non_permitted_user = factory_user(username="searchuser2")
+        self._make_recently_active(non_permitted_user)
 
         project = factory_project(
             override_permissions={
@@ -111,7 +120,8 @@ class TestUserSearchWithPostId:
     def test_search_without_post_id_works_normally(
         self, anon_client: APIClient
     ) -> None:
-        factory_user(username="normalsearch")
+        user = factory_user(username="normalsearch")
+        self._make_recently_active(user)
         response = anon_client.get(f"{self.url}?search=normalsearch")
 
         assert response.status_code == status.HTTP_200_OK
@@ -121,7 +131,8 @@ class TestUserSearchWithPostId:
     def test_post_id_with_nonexistent_post(
         self, anon_client: APIClient
     ) -> None:
-        factory_user(username="someuser123")
+        user = factory_user(username="someuser123")
+        self._make_recently_active(user)
         response = anon_client.get(
             f"{self.url}?search=someuser&post_id=999999"
         )
@@ -135,6 +146,7 @@ class TestUserSearchWithPostId:
         author = factory_user(username="mainauthor")
         coauthor = factory_user(username="coauthortest")
         other_user = factory_user(username="coauthorfake")
+        self._make_recently_active(other_user)
 
         post = factory_post(author=author)
         post.coauthors.add(coauthor)
@@ -161,6 +173,7 @@ class TestUserSearchWithPostId:
         commenter = factory_user(username="testrank_commenter")
         permitted = factory_user(username="testrank_permitted")
         nobody = factory_user(username="testrank_nobody")
+        self._make_recently_active(nobody)
 
         project = factory_project(
             override_permissions={
@@ -191,3 +204,70 @@ class TestUserSearchWithPostId:
         assert usernames.index("testrank_permitted") < usernames.index(
             "testrank_nobody"
         )
+
+    def test_inactive_users_excluded_from_search(
+        self, anon_client: APIClient
+    ) -> None:
+        """Users without recent comments should not appear in non-priority results."""
+        post_author = factory_user(username="filterauthor")
+        active_user = factory_user(username="filteractive")
+        inactive_user = factory_user(username="filterinactive")
+
+        # Give active_user a recent comment
+        self._make_recently_active(active_user)
+
+        # inactive_user has no comments at all
+
+        post = factory_post(author=post_author)
+
+        response = anon_client.get(
+            f"{self.url}?search=filter&post_id={post.pk}"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        results = response.data["results"]
+        usernames = [r["username"] for r in results]
+        # Post author appears (priority user)
+        assert "filterauthor" in usernames
+        # Active user appears (has recent comment)
+        assert "filteractive" in usernames
+        # Inactive user excluded (no recent comment, not a priority user)
+        assert "filterinactive" not in usernames
+
+    def test_old_comments_dont_count_as_recent(
+        self, anon_client: APIClient
+    ) -> None:
+        """Users whose only comments are older than a year should be excluded."""
+        old_user = factory_user(username="oldcommentor")
+        other_post = factory_post(author=factory_user())
+        factory_comment(
+            author=old_user,
+            on_post=other_post,
+            created_at=timezone.now() - timezone.timedelta(days=400),
+        )
+
+        response = anon_client.get(f"{self.url}?search=oldcommentor")
+
+        assert response.status_code == status.HTTP_200_OK
+        results = response.data["results"]
+        usernames = [r["username"] for r in results]
+        assert "oldcommentor" not in usernames
+
+    def test_deleted_comments_dont_count_as_recent(
+        self, anon_client: APIClient
+    ) -> None:
+        """Users whose only recent comments are soft-deleted should be excluded."""
+        deleted_user = factory_user(username="deletedcommentor")
+        other_post = factory_post(author=factory_user())
+        factory_comment(
+            author=deleted_user,
+            on_post=other_post,
+            is_soft_deleted=True,
+        )
+
+        response = anon_client.get(f"{self.url}?search=deletedcommentor")
+
+        assert response.status_code == status.HTTP_200_OK
+        results = response.data["results"]
+        usernames = [r["username"] for r in results]
+        assert "deletedcommentor" not in usernames
