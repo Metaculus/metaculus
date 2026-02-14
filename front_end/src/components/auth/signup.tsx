@@ -26,6 +26,7 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import { useServerAction } from "@/hooks/use_server_action";
 import { AppTheme } from "@/types/theme";
+import { CurrentUser } from "@/types/users";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import usePostLoginActionHandler from "./hooks/usePostLoginActionHandler";
@@ -34,6 +35,7 @@ type SignInModalType = {
   isOpen: boolean;
   onClose: (isOpen: boolean) => void;
   className?: string;
+  onSuccess?: (authenticatedUser: CurrentUser) => void | Promise<void>;
 };
 
 export const SignupForm: FC<{
@@ -42,12 +44,14 @@ export const SignupForm: FC<{
   inviteToken?: string;
   withNewsletterOptin?: boolean;
   redirectLocation?: string;
+  onSuccess?: (authenticatedUser: CurrentUser) => void | Promise<void>;
 }> = ({
   addToProject,
   email,
   inviteToken,
   withNewsletterOptin,
   redirectLocation,
+  onSuccess,
 }) => {
   const t = useTranslations();
   const { themeChoice } = useAppTheme();
@@ -116,7 +120,15 @@ export const SignupForm: FC<{
           data: { email: watch("email"), username: watch("username") },
         });
       }
-      handlePostLoginAction(response?.postLoginAction);
+      try {
+        if (response?.is_active && response.user) {
+          await onSuccess?.(response.user);
+        }
+      } catch (error) {
+        console.error("Signup onSuccess callback failed", error);
+      } finally {
+        handlePostLoginAction(response?.postLoginAction);
+      }
     }
 
     return response;
@@ -230,7 +242,11 @@ export const AccountInactive: FC<AccountInactiveModalProps> = ({
   );
 };
 
-export const SignUpModal: FC<SignInModalType> = ({ isOpen, onClose }) => {
+export const SignUpModal: FC<SignInModalType> = ({
+  isOpen,
+  onClose,
+  onSuccess,
+}) => {
   const t = useTranslations();
   const { setCurrentModal } = useModal();
 
@@ -246,14 +262,16 @@ export const SignUpModal: FC<SignInModalType> = ({ isOpen, onClose }) => {
         <Button
           variant="link"
           size="md"
-          onClick={() => setCurrentModal({ type: "signin" })}
+          onClick={() =>
+            setCurrentModal({ type: "signin", data: { onSuccess } })
+          }
         >
           {t("logIn")}
         </Button>
       </div>
       <div className="flex flex-col text-gray-900 dark:text-gray-900-dark sm:flex-row">
         <div className="border-gray-300 dark:border-gray-300-dark sm:w-80 sm:border-r sm:pr-4">
-          <SignupForm withNewsletterOptin={true} />
+          <SignupForm withNewsletterOptin={true} onSuccess={onSuccess} />
         </div>
         <div className="flex flex-col gap-2 sm:w-80 sm:pl-4">
           <ul className="hidden leading-tight sm:block">
