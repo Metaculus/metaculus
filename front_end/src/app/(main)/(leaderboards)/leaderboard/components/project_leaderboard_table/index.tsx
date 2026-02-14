@@ -149,18 +149,16 @@ const ProjectLeaderboardTable: FC<Props> = ({
             />
           )}
           {leaderboardEntries.length > 0
-            ? leaderboardEntries.map((entry) => {
-                return (
-                  <TableRow
-                    key={entry.user?.id ?? entry.aggregation_method}
-                    rowEntry={entry}
-                    userId={userId}
-                    maxCoverage={maxCoverage}
-                    withPrizePool={!!leaderboardDetails.prize_pool}
-                    isAdvanced={isAdvanced}
-                  />
-                );
-              })
+            ? leaderboardEntries.map((entry) => (
+                <TableRow
+                  key={entry.user?.id ?? entry.aggregation_method}
+                  rowEntry={entry}
+                  userId={userId}
+                  maxCoverage={maxCoverage}
+                  withPrizePool={!!leaderboardDetails.prize_pool}
+                  isAdvanced={isAdvanced}
+                />
+              ))
             : !leaderboardDetails.userEntry && (
                 <tr className="border-b border-gray-300 dark:border-gray-300-dark">
                   <td
