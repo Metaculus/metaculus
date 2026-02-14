@@ -207,7 +207,7 @@ class Leaderboard(TimeStampedModel):
         Any remaining money is redistributed. Tournaments that close before June 2025 will have a value of 0.00.
         """,
     )
-    # TODO: depricate this field in favor of bot_exclusion_status and
+    # TODO: deprecate this field in favor of bot_exclusion_status and
     # human_exclusion_status which use the ExclusionStatuses enum instead
     # also remove bot_status from Project - keep it on leaderboard only to avoid
     # duplicate logic

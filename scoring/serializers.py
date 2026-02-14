@@ -12,7 +12,7 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
     ci_lower = serializers.FloatField()
     ci_upper = serializers.FloatField()
     rank = serializers.IntegerField()
-    # depricate in favor of exclusion_status
+    # deprecate in favor of exclusion_status
     excluded = serializers.BooleanField()
     show_when_excluded = serializers.BooleanField()
     exclusion_status = serializers.IntegerField()
@@ -33,7 +33,7 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
             "ci_lower",
             "ci_upper",
             "rank",
-            # depricate in favor of exclusion_status
+            # deprecate in favor of exclusion_status
             "excluded",
             "show_when_excluded",
             "exclusion_status",
