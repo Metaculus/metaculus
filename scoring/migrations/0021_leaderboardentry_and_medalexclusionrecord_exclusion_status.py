@@ -54,7 +54,7 @@ def reverse_migrate(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("scoring", "0019_score_score_edited_at_idx"),
+        ("scoring", "0020_leaderboard_display_config"),
     ]
 
     operations = [
@@ -76,7 +76,6 @@ class Migration(migrations.Migration):
         </br>- (2) Exclude and Show: shows entry, but excludes from rank and prizes
         </br>- (3) Exclude and Show in Advanced: only shows entry in advanced views, excludes from rank and prizes
         </br>- (4) Exclude: excludes entry from showing, rank, and prizes""",
-                max_length=200,
             ),
         ),
         migrations.AddField(
@@ -97,7 +96,6 @@ class Migration(migrations.Migration):
         </br>- (2) Exclude and Show: shows entry, but excludes from rank and prizes
         </br>- (3) Exclude and Show in Advanced: only shows entry in advanced views, excludes from rank and prizes
         </br>- (4) Exclude: excludes entry from showing, rank, and prizes""",
-                max_length=200,
             ),
         ),
         migrations.RunPython(migrate, reverse_code=reverse_migrate),

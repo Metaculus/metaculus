@@ -368,8 +368,7 @@ class LeaderboardEntry(TimeStampedModel):
         excluded.""",
     )
 
-    exclusion_status: ExclusionStatuses = models.IntegerField(
-        max_length=200,
+    exclusion_status = models.IntegerField(
         choices=ExclusionStatuses.choices,
         default=ExclusionStatuses.INCLUDE,
         help_text="""This sets the exclusion status of this entry.
@@ -473,8 +472,7 @@ class MedalExclusionRecord(models.Model):
         help_text="""If true, users excluded by this record will still appear in leaderboards.
         <br>They will still be excluded from taking ranks and prizes.""",
     )
-    exclusion_status: ExclusionStatuses = models.IntegerField(
-        max_length=200,
+    exclusion_status = models.IntegerField(
         choices=ExclusionStatuses.choices,
         default=ExclusionStatuses.EXCLUDE,
         help_text="""This sets the exclusion status of this entry.
