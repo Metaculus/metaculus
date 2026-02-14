@@ -13,6 +13,10 @@ export async function cancelBulletin(bulletinId: number) {
   return await serverMiscApi.cancelBulletin(bulletinId);
 }
 
+export async function subscribeToNewsletter(email: string) {
+  return await serverMiscApi.subscribeToNewsletter(email);
+}
+
 export async function getSocialProviders() {
   const { PUBLIC_APP_URL } = getPublicSettings();
   return await ServerAuthApi.getSocialProviders(

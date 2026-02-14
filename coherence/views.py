@@ -176,7 +176,7 @@ def get_links_for_questions(request):
         all_relevant_question_ids.add(link.question1_id)
     questions = Question.objects.filter(id__in=all_relevant_question_ids)
 
-    serialized_links = CoherenceLinkSerializer(links, many=True).data
+    serialized_links = serialize_coherence_link_many(links, serialize_questions=False)
     serialized_questions = [
         serialize_question(q, include_descriptions=True) for q in questions
     ]
@@ -243,9 +243,13 @@ def post_coherence_bot_forecasts_and_comments(request):
         user = User.objects.filter(
             metadata__coherence_bot_for_user_id=coherence_user_id
         ).first()
+        if user:
+            # update username in case coherence_user's username changed
+            user.username = f"{coherence_user.username}-metac-bot"
+            user.save(update_fields=["username"])
         if not user:
             user = User.objects.create(
-                username=f"{coherence_user.username}-coherence-bot",
+                username=f"{coherence_user.username}-metac-bot",
                 is_bot=True,
                 check_for_spam=False,
                 bot_owner=request.user,
@@ -280,7 +284,7 @@ def post_coherence_bot_forecasts_and_comments(request):
         coherence_leaderboard, _ = Leaderboard.objects.get_or_create(
             project=project,
             name=f"Coherence Leaderboard for {project.name}",
-            score_type="peer_tournament",
+            score_type="manual",
             bot_status=Project.BotLeaderboardStatus.BOTS_ONLY,
         )
         coherence_leaderboard.user_list.add(user)

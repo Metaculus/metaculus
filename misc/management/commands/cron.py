@@ -21,7 +21,7 @@ from posts.jobs import (
     job_check_post_open_event,
 )
 from posts.services.hotness import compute_feed_hotness
-from questions.jobs import job_close_question
+from questions.jobs import job_close_question, job_check_cp_revealed
 from questions.tasks import check_and_schedule_forecast_widrawal_due_notifications
 from scoring.jobs import (
     finalize_leaderboards,
@@ -29,6 +29,7 @@ from scoring.jobs import (
     update_custom_leaderboards,
 )
 from scoring.utils import update_medal_points_and_ranks
+from scoring.tasks import warm_cache_metaculus_stats
 
 
 logger = logging.getLogger(__name__)
@@ -132,6 +133,13 @@ class Command(BaseCommand):
             max_instances=1,
             replace_existing=True,
         )
+        scheduler.add_job(
+            close_old_connections(job_check_cp_revealed.send),
+            trigger=CronTrigger.from_crontab("* * * * *"),  # Every Minute
+            id="questions_job_check_cp_revealed",
+            max_instances=1,
+            replace_existing=True,
+        )
 
         #
         # Notification jobs
@@ -220,6 +228,17 @@ class Command(BaseCommand):
                 max_instances=1,
                 replace_existing=True,
             )
+
+        #
+        # Cache warm-up jobs
+        #
+        scheduler.add_job(
+            close_old_connections(warm_cache_metaculus_stats.send),
+            trigger=CronTrigger.from_crontab("0 */12 * * *"),  # Every 12 hours
+            id="warm_cache_metaculus_stats",
+            max_instances=1,
+            replace_existing=True,
+        )
 
         try:
             logger.info("Starting scheduler...")

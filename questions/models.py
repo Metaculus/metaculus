@@ -230,6 +230,19 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         <br>Updated whenever options are changed.""",
     )
 
+    class MultipleChoiceOptionsOrder(models.TextChoices):
+        DEFAULT = "DEFAULT"
+        CP_DESC = "CP_DESC"
+
+    options_order = models.CharField(
+        max_length=12,
+        choices=MultipleChoiceOptionsOrder.choices,
+        default=MultipleChoiceOptionsOrder.DEFAULT,
+        help_text="""For Multiple Choice only.
+        DEFAULT: current default behavior (display views sort by CP, forecast maker preserves creation order).
+        CP_DESC: all views sort options by descending community prediction.""",
+    )
+
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
 
@@ -260,6 +273,12 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     # Indicates whether we triggered "handle_post_open" event
     # And guarantees idempotency of "on post open" evens
     open_time_triggered = models.BooleanField(
+        default=False, db_index=True, editable=False
+    )
+
+    # Indicates whether we triggered "handle_cp_revealed" event
+    # And guarantees idempotency of "on cp revealed" events
+    cp_reveal_time_triggered = models.BooleanField(
         default=False, db_index=True, editable=False
     )
 
@@ -310,11 +329,20 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
             self.QuestionType.NUMERIC,
         ]:
             self.zero_point = None
+        # handle options and options history
         if self.type != self.QuestionType.MULTIPLE_CHOICE:
             self.options = None
-        if self.type == self.QuestionType.MULTIPLE_CHOICE and not self.options_history:
+        elif not self.options_history:
             # initialize options history on first save
             self.options_history = [(datetime.min.isoformat(), self.options or [])]
+        elif self.id and not self.user_forecasts.exists():
+            # we're still before forecasts, make
+            # sure that the options matches current options
+            last_entry = self.options_history[-1]
+            self.options_history[-1] = (last_entry[0], self.options or [])
+            update_fields = kwargs.get("update_fields", None)
+            if update_fields is not None:
+                kwargs["update_fields"] = list(update_fields) + ["options_history"]
 
         return super().save(**kwargs)
 
@@ -536,6 +564,11 @@ class ForecastQuerySet(QuerySet):
     def filter_active_at(self, timestamp: datetime):
         return self.filter(start_time__lte=timestamp).filter(
             Q(end_time__gt=timestamp) | Q(end_time__isnull=True)
+        )
+
+    def exclude_non_primary_bots(self):
+        return self.filter(
+            Q(author__is_bot=False) | Q(author__is_primary_bot=True),
         )
 
     def active(self):

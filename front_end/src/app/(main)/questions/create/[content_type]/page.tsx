@@ -67,7 +67,9 @@ export default async function QuestionCreator(props: Props) {
     ? communitiesResponse.results[0]
     : undefined;
 
-  const shouldUseDraftValue = mode === "create" && isNil(post);
+  // When mode is "create", always use draft values to persist edits
+  // This handles both new posts and duplicated posts
+  const shouldUseDraftValue = mode === "create";
 
   const componentProps = {
     post,

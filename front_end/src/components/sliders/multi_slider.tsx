@@ -41,6 +41,7 @@ const MultiSlider: FC<Props> = ({
   const [allowCross, setAllowCross] = useState(true);
 
   const activeIndexRef = useRef<number | null>(null);
+  const isShiftHeldRef = useRef<boolean>(false);
 
   // controls the slide change behaviour
   // undefined - block any changes (e.g. clicking the track)
@@ -49,10 +50,14 @@ const MultiSlider: FC<Props> = ({
   const persistedPositionOrigin = useRef<ControlledValue | null | undefined>(
     undefined
   );
-  const handlePressIn = (index: number) => {
+  const handlePressIn = (index: number, shiftKey: boolean = false) => {
     activeIndexRef.current = index;
+    isShiftHeldRef.current = shiftKey;
 
     if (index === 1) {
+      persistedPositionOrigin.current = controlledValue;
+    } else if (shiftKey && (index === 0 || index === 2)) {
+      // When shift is held and dragging left or right thumb, enable symmetric movement
       persistedPositionOrigin.current = controlledValue;
     } else {
       persistedPositionOrigin.current = null;
@@ -103,26 +108,51 @@ const MultiSlider: FC<Props> = ({
     let newValue: ControlledValue;
     if (persistedPositionOrigin.current !== null) {
       setAllowCross(true);
-      const firstItemDelta = calculateCenterMovementDiff(
-        {
-          origin: persistedPositionOrigin.current[1],
-          value: persistedPositionOrigin.current[0],
-        },
-        { origin: incoming[1], value: incoming[0] }
-      );
-      const lastItemDelta = calculateCenterMovementDiff(
-        {
-          origin: persistedPositionOrigin.current[1],
-          value: persistedPositionOrigin.current[2],
-        },
-        { origin: incoming[1], value: incoming[2] }
-      );
 
-      newValue = [
-        incoming[0] + firstItemDelta,
-        incoming[1],
-        incoming[2] + lastItemDelta,
-      ];
+      // Check if we're doing symmetric movement with Shift key on boundary thumbs
+      if (isShiftHeldRef.current && active !== 1) {
+        // Symmetric movement: when left/right thumb moves, move the opposite thumb symmetrically
+        // while keeping the center fixed
+        const centerValue = incoming[1];
+
+        if (active === 0) {
+          // Moving left thumb with Shift: mirror the movement on the right thumb
+          const leftDelta = incoming[0] - persistedPositionOrigin.current[0];
+          const mirroredRight = persistedPositionOrigin.current[2] - leftDelta;
+          const safeLeft = Math.min(incoming[0], centerValue - clampStep);
+          const safeRight = Math.max(mirroredRight, centerValue + clampStep);
+          newValue = [safeLeft, centerValue, safeRight];
+        } else {
+          // Moving right thumb with Shift: mirror the movement on the left thumb
+          const rightDelta = incoming[2] - persistedPositionOrigin.current[2];
+          const mirroredLeft = persistedPositionOrigin.current[0] - rightDelta;
+          const safeLeft = Math.min(mirroredLeft, centerValue - clampStep);
+          const safeRight = Math.max(incoming[2], centerValue + clampStep);
+          newValue = [safeLeft, centerValue, safeRight];
+        }
+      } else {
+        // Original center thumb movement logic
+        const firstItemDelta = calculateCenterMovementDiff(
+          {
+            origin: persistedPositionOrigin.current[1],
+            value: persistedPositionOrigin.current[0],
+          },
+          { origin: incoming[1], value: incoming[0] }
+        );
+        const lastItemDelta = calculateCenterMovementDiff(
+          {
+            origin: persistedPositionOrigin.current[1],
+            value: persistedPositionOrigin.current[2],
+          },
+          { origin: incoming[1], value: incoming[2] }
+        );
+
+        newValue = [
+          incoming[0] + firstItemDelta,
+          incoming[1],
+          incoming[2] + lastItemDelta,
+        ];
+      }
     } else {
       setAllowCross(false);
       newValue = [
@@ -163,12 +193,12 @@ const MultiSlider: FC<Props> = ({
             {...origin.props}
             value={getThumbValue(uiValue, props.index)}
             active={props.index === 1}
-            onClickIn={() => {
-              handlePressIn(props.index);
+            onClickIn={(shiftKey) => {
+              handlePressIn(props.index, shiftKey);
             }}
             onTouchStartCapture={(e) => {
               e.preventDefault();
-              handlePressIn(props.index);
+              handlePressIn(props.index, e.shiftKey);
             }}
           />
         );

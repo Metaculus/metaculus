@@ -1,18 +1,25 @@
 import logging
-from datetime import datetime
 from collections import defaultdict
+from datetime import datetime, timezone as dt_timezone
 
-from django.db.models import QuerySet
 import dramatiq
+from django.db.models import QuerySet
 
 from posts.models import Post
+from projects.models import Project
+from questions.constants import UnsuccessfulResolutionType
+from questions.models import Question
 from scoring.constants import LeaderboardScoreTypes, ScoreTypes
+from scoring.management.commands.update_coherence_tournament_leaderboard import (
+    Command as UpdateCoherenceTournamentLeaderboardCommand,
+)
 from scoring.models import Leaderboard, Score
 from scoring.score_math import evaluate_question
-from projects.models import Project
-from questions.models import Question
-from questions.constants import UnsuccessfulResolutionType
-from scoring.utils import generate_entries_from_scores, process_entries_for_leaderboard
+from scoring.utils import (
+    generate_entries_from_scores,
+    process_entries_for_leaderboard,
+    get_cached_metaculus_stats,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +29,6 @@ def calculate_minimum_time_scores(
     minimum_time: datetime,
     score_type: ScoreTypes = ScoreTypes.PEER,
 ) -> list[Score]:
-
     scores: list[Score] = []
 
     c = questions.count()
@@ -50,7 +56,6 @@ def calculate_spot_times_scores(
     spot_times: list[datetime],
     score_type: ScoreTypes = ScoreTypes.SPOT_PEER,
 ) -> list[Score]:
-
     scores: list[Score] = []
 
     c = questions.count()
@@ -91,18 +96,28 @@ def calculate_spot_times_scores(
 @dramatiq.actor
 def update_custom_leaderboard(
     project_id: int,
-    minimum_time: datetime | None = None,
-    spot_times: list[datetime] | None = None,
+    minimum_timestamp: float | None = None,
+    spot_timestamps: list[float] | None = None,
     score_type: ScoreTypes = ScoreTypes.PEER,
 ) -> None:
     project = Project.objects.filter(id=project_id).first()
     if not project:
         logger.error(f"Project with id {project_id} does not exist.")
         return
-    if bool(minimum_time) == bool(spot_times):
+    if bool(minimum_timestamp) == bool(spot_timestamps):
         logger.error("minimum_time or spot_times must be provided, but not both.")
         return
 
+    minimum_time = (
+        datetime.fromtimestamp(minimum_timestamp, tz=dt_timezone.utc)
+        if minimum_timestamp
+        else None
+    )
+    spot_times = (
+        [datetime.fromtimestamp(t, tz=dt_timezone.utc) for t in spot_timestamps]
+        if spot_timestamps
+        else None
+    )
     # setup
     name = (
         f"Set open_time for {project.name} at {minimum_time}"
@@ -168,3 +183,13 @@ def update_custom_leaderboard(
 
     logger.info(f"Updated leaderboard: {leaderboard.name} with id {leaderboard.id}")
     return
+
+
+@dramatiq.actor
+def update_coherence_spring_2026_cup() -> None:
+    UpdateCoherenceTournamentLeaderboardCommand().handle()
+
+
+@dramatiq.actor
+def warm_cache_metaculus_stats() -> None:
+    get_cached_metaculus_stats.refresh_cache()

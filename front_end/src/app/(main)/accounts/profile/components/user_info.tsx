@@ -290,17 +290,17 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
 
         {/* Social media links */}
         <div className="grid basis-[492px] grid-cols-2 gap-3 ">
-          {socialMedia.map(([, link, label]) => {
+          {socialMedia.map(({ link, name, label }) => {
             return (
-              <div className="flex flex-col gap-1.5" key={label}>
+              <div className="flex flex-col gap-1.5" key={name}>
                 <span className={inputLabelClassNames}>{label}</span>
                 <Input
                   className={inputClassNames}
                   placeholder="http://www.example.com"
                   defaultValue={link ? link : ""}
-                  {...register(label as keyof UpdateProfileSchema)}
+                  {...register(name)}
                 />
-                <FormError errors={state?.errors} name={label} />
+                <FormError errors={state?.errors} name={name} />
               </div>
             );
           })}
