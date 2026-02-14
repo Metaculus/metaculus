@@ -10,6 +10,7 @@ import { ContinuousForecastInputType } from "./charts";
 import { ScoreType } from "./scoring";
 
 export const DefaultInboundOutcomeCount = 200;
+export const MaxDiscreteOptionCount = 50;
 
 export enum QuestionType {
   Binary = "binary",
