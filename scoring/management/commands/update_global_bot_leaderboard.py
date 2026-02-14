@@ -245,9 +245,6 @@ def gather_data(
                 if question.default_score_type == ScoreTypes.SPOT_PEER
                 else AggregationMethod.RECENCY_WEIGHTED
             )
-            # aggregate_forecasts = human_question.aggregate_forecasts.filter(
-            #     method=aggregation_method
-            # ).order_by("start_time")
             aggregate_forecasts = get_aggregation_history(
                 human_question,
                 [aggregation_method],
@@ -569,7 +566,7 @@ def bootstrap_skills(
     weights: list[float],
     var_avg_scores: float,
     baseline_player: int | str = 269196,
-    bootstrap_iterations: int = 30,
+    bootstrap_count: int = 30,
 ) -> tuple[SkillType, SkillType]:
     """
     get Confidence Intervals around the skills using Bootstrapping
@@ -589,6 +586,9 @@ def bootstrap_skills(
 
     Uses the 2.5 and 97.5 percentiles of bootstrap distribution for 95% CIs.
     """
+    if not bootstrap_count:
+        return {}, {}
+
     # setup
     bootstrap_results: dict[int | str, list[float]] = defaultdict(list)
     question_ids_set = list(set(question_ids))
@@ -607,12 +607,12 @@ def bootstrap_skills(
     print("Bootstrapping (method - question):")
     print("| Bootstrap |    Duration    | Est. Duration  |")
     t0 = datetime.now()
-    for i in range(bootstrap_iterations):
+    for i in range(bootstrap_count):
         duration = datetime.now() - t0
-        est_duration = duration / (i + 1) * bootstrap_iterations
+        est_duration = duration / (i + 1) * bootstrap_count
         print(
             f"\033[K"
-            f"| {i + 1:>4}/{bootstrap_iterations:<4} "
+            f"| {i + 1:>4}/{bootstrap_count:<4} "
             f"| {duration} "
             f"| {est_duration} "
             "|",
@@ -659,19 +659,25 @@ def bootstrap_skills(
 
 
 def run_update_global_bot_leaderboard(
+    # run settings
+    baseline_player: int | str = 236038,  # metac-gpt-4o+asknews
+    bootstrap_count: int = 30,
+    min_participation_count: int = 100,
+    metac_bot_age: int = 365,  # don't include metac bots after this many days since creation
+    include_minibench: bool = False,
+    cp_by_years: bool = False,
+    pro_by_years: bool = False,
+    include_non_metac_bots: bool = False,
+    non_metac_bots_by_year: bool = False,
+    bot_recency: int = 3 * 30,  # 3 months, 0 means no filter
+    bot_recent_scores: int = 400,  # 400 most recent scores, 0 means no filter
+    # performance/logging
     cache_use: str = "partial",
+    store_results_csv: bool = False,
 ) -> None:
-    baseline_player: int | str = 236038  # metac-gpt-4o+asknews
-    bootstrap_iterations = 30
-
     # SETUP: users to evaluate & questions
     print("Initializing...")
-    users: QuerySet[User] = User.objects.filter(
-        is_bot=True,
-        # metadata__bot_details__metac_bot=True,
-        # metadata__bot_details__include_in_calculations=True,
-        # metadata__bot_details__display_in_leaderboard=True,
-    ).order_by("id")
+    users: QuerySet[User] = User.objects.filter(is_bot=True).order_by("id")
     user_forecast_exists = Forecast.objects.filter(
         question_id=OuterRef("pk"), author__in=users
     )
@@ -685,13 +691,13 @@ def run_update_global_bot_leaderboard(
                     32627,  # aib q1 2025
                     32721,  # aib q2 2025
                     32813,  # aib fall 2025
+                    32916,  # aib Q1 2026
                 ]
             ),
             post__curation_status=Post.CurationStatus.APPROVED,
             resolution__isnull=False,
             scheduled_close_time__lte=timezone.now(),
         )
-        .exclude(post__default_project__slug__startswith="minibench")
         .exclude(resolution__in=UnsuccessfulResolutionType)
         .filter(Exists(user_forecast_exists))
         .prefetch_related(  # only prefetch forecasts from those users
@@ -701,15 +707,86 @@ def run_update_global_bot_leaderboard(
         )
         .distinct("id")
     )
+    if not include_minibench:
+        questions = questions.exclude(
+            post__default_project__slug__startswith="minibench"
+        )
     print("Initializing... DONE")
 
     # Gather head to head scores
     user1_ids, user2_ids, question_ids, scores, coverages, timestamps = gather_data(
         users, questions, cache_use=cache_use
     )
+    # sort by most recent!
+    sorted_indices = sorted(
+        range(len(timestamps)), key=lambda i: timestamps[i], reverse=True
+    )
+    user1_ids = [user1_ids[i] for i in sorted_indices]
+    user2_ids = [user2_ids[i] for i in sorted_indices]
+    question_ids = [question_ids[i] for i in sorted_indices]
+    scores = [scores[i] for i in sorted_indices]
+    coverages = [coverages[i] for i in sorted_indices]
+    timestamps = [timestamps[i] for i in sorted_indices]
 
-    # for pro aggregation, community aggregate, and any non-metac bot,
-    # duplicate rows indicating year-specific achievements
+    ######################################################################
+    # Augmenting and filtering data
+
+    # map some users to other users
+    userid_mapping = {
+        189585: 236038,  # mf-bot-1 -> metac-gpt-4o+asknews
+        189588: 236041,  # mf-bot-3 -> metac-claude-3-5-sonnet-20240620+asknews
+        208405: 240416,  # mf-bot-4 -> metac-o1-preview
+        221727: 236040,  # mf-bot-5 -> metac-claude-3-5-sonnet-latest+asknews
+    }
+    temp_uer1_ids = []
+    temp_user2_ids = []
+    for user1_id, user2_id, timestamp in zip(user1_ids, user2_ids, timestamps):
+        user1_id = userid_mapping.get(user1_id, user1_id)
+        user2_id = userid_mapping.get(user2_id, user2_id)
+        if cp_by_years:
+            if user1_id == "Community Aggregate":
+                user1_id = (
+                    f"Community Aggregate ({datetime.fromtimestamp(timestamp).year})"
+                )
+            if user2_id == "Community Aggregate":
+                user2_id = (
+                    f"Community Aggregate ({datetime.fromtimestamp(timestamp).year})"
+                )
+        if pro_by_years:
+            if user1_id == "Pro Aggregate":
+                user1_id = f"Pro Aggregate ({datetime.fromtimestamp(timestamp).year})"
+            if user2_id == "Pro Aggregate":
+                user2_id = f"Pro Aggregate ({datetime.fromtimestamp(timestamp).year})"
+        if non_metac_bots_by_year:
+            raise NotImplementedError("non_metac_bots_by_year not implemented yet")
+        temp_uer1_ids.append(user1_id)
+        temp_user2_ids.append(user2_id)
+    user1_ids = temp_uer1_ids
+    user2_ids = temp_user2_ids
+
+    # set up some user id sets & relevant exclusions
+    excluded_ids: set[int | str] = set()
+    metac_bots = User.objects.filter(is_bot=True, metadata__bot_details__metac_bot=True)
+    metac_bot_releases: dict[int, datetime] = {}
+    for bot in metac_bots:
+        release_iso = bot.metadata["bot_details"]["base_models"][0]["releaseDate"]
+        if not release_iso or release_iso == "N/A":
+            excluded_ids.add(bot.id)
+            continue
+        if len(release_iso) == 7:
+            release_iso += "-01"
+        metac_bot_releases[bot.id] = datetime.fromisoformat(release_iso)
+    non_metac_bot_ids: set[int] = set(
+        User.objects.filter(is_bot=True)
+        .exclude(metadata__bot_details__metac_bot=True)
+        .values_list("id", flat=True)
+    )
+    if not include_non_metac_bots:
+        excluded_ids = excluded_ids.union(non_metac_bot_ids)
+
+    # initialize loop
+    print("Starting matches:", len(timestamps))
+    q_by_u: dict[int | str, set[int]] = defaultdict(set)  # ongoing set for filtering
     new_user1_ids = []
     new_user2_ids = []
     new_question_ids = []
@@ -719,152 +796,90 @@ def run_update_global_bot_leaderboard(
     for user1_id, user2_id, question_id, score, coverage, timestamp in zip(
         user1_ids, user2_ids, question_ids, scores, coverages, timestamps
     ):
-        if user1_id == "Community Aggregate":
-            new_user1_ids.append(
-                f"Community Aggregate ({datetime.fromtimestamp(timestamp).year})"
-            )
-            new_user2_ids.append(user2_id)
-            new_question_ids.append(question_id)
-            new_scores.append(score)
-            new_coverages.append(coverage)
-            new_timestamps.append(timestamp)
-        elif user2_id == "Community Aggregate":
-            new_user1_ids.append(user1_id)
-            new_user2_ids.append(
-                f"Community Aggregate ({datetime.fromtimestamp(timestamp).year})"
-            )
-            new_question_ids.append(question_id)
-            new_scores.append(score)
-            new_coverages.append(coverage)
-            new_timestamps.append(timestamp)
-        else:
-            new_user1_ids.append(user1_id)
-            new_user2_ids.append(user2_id)
-            new_question_ids.append(question_id)
-            new_scores.append(score)
-            new_coverages.append(coverage)
-            new_timestamps.append(timestamp)
-    user1_ids = new_user1_ids
-    user2_ids = new_user2_ids
-    question_ids = new_question_ids
-    scores = new_scores
-    coverages = new_coverages
-    timestamps = new_timestamps
+        # filter out old matches for non-metac bots
+        if bot_recency and bot_recent_scores:
+            # for non-metac bots, only keep this match if it's either within the last
+            # X days or within their most recent Y scores (whichever is more)
+            # NOTE: assumes data is sorted by most recent matches first
+            oldest_ts = (timezone.now() - timedelta(days=bot_recency)).timestamp()
+            if user1_id in non_metac_bot_ids:
+                q_by_u[user1_id].add(question_id)
+                if (len(q_by_u[user1_id]) > bot_recent_scores) and (
+                    timestamp < oldest_ts
+                ):
+                    continue
+            if user2_id in non_metac_bot_ids:
+                q_by_u[user2_id].add(question_id)
+                if (len(q_by_u[user2_id]) > bot_recent_scores) and (
+                    timestamp < oldest_ts
+                ):
+                    continue
 
-    ###############
-    ###############
-    ###############
-    # Filter out entries we don't care about
-    # and map some users to other users
-    userid_mapping = {
-        189585: 236038,  # mf-bot-1 -> metac-gpt-4o+asknews
-        189588: 236041,  # mf-bot-3 -> metac-claude-3-5-sonnet-20240620+asknews
-        208405: 240416,  # mf-bot-4 -> metac-o1-preview
-        221727: 236040,  # mf-bot-5 -> metac-claude-3-5-sonnet-latest+asknews
-    }
-    print(f"Filtering {len(timestamps)} matches down to only relevant identities ...")
-    relevant_users = User.objects.filter(
-        metadata__bot_details__metac_bot=True,
-        # metadata__bot_details__include_in_calculations=True, # TODO: this should be
-        # but we don't have that data correct at the moment
-    )
-    # make sure they have at least 'minimum_resolved_questions' resolved questions
-    print("Filtering users.")
-    minimum_resolved_questions = 100
-    scored_question_counts: dict[int, int] = defaultdict(int)
-    c = relevant_users.count()
-    i = 0
-    for user in relevant_users:
-        i += 1
-        print(i, "/", c, end="\r")
-        scored_question_counts[user.id] = (
-            Score.objects.filter(
-                user=user,
-                score_type="peer",
-                question__in=questions,
-            )
-            .distinct("question_id")
-            .count()
-        )
-    excluded_ids = [
-        uid
-        for uid, count in scored_question_counts.items()
-        if count < minimum_resolved_questions
-    ]
-    relevant_users = relevant_users.exclude(id__in=excluded_ids)
-    print(f"Filtered {c} users down to {relevant_users.count()}.")
-    ###############
-    ###############
-    ###############
+        # filter out new matches for metac bots
+        if metac_bot_age:
+            max_age = timedelta(days=metac_bot_age)
+            if user1_id in metac_bot_releases:
+                if timestamp > (metac_bot_releases[user1_id] + max_age).timestamp():
+                    continue
+            if user2_id in metac_bot_releases:
+                if timestamp > (metac_bot_releases[user2_id] + max_age).timestamp():
+                    continue
 
-    user_map = {user.id: user for user in relevant_users}
-    relevant_identities = set(relevant_users.values_list("id", flat=True)) | {
-        "Pro Aggregate",
-        "Community Aggregate",
-        # "Community Aggregate (2024)",
-        "Community Aggregate (2025)",
-        "Community Aggregate (2026)",
-    }
-    filtered_user1_ids = []
-    filtered_user2_ids = []
-    filtered_question_ids = []
-    filtered_scores = []
-    filtered_coverages = []
-    filtered_timestamps = []
+        new_user1_ids.append(user1_id)
+        new_user2_ids.append(user2_id)
+        new_question_ids.append(question_id)
+        new_scores.append(score)
+        new_coverages.append(coverage)
+        new_timestamps.append(timestamp)
+
+    # loop multiple times to exclude low-participation users
+    prev_exclusions = -1
+    while len(excluded_ids) != prev_exclusions:
+        print("Exclusions: ", len(excluded_ids))
+        prev_exclusions = len(excluded_ids)
+        # count total questions per user for min participation filtering
+        questions_forecasted: dict[int | str, set[int]] = defaultdict(set)
+        for u1id, u2id, qid in zip(new_user1_ids, new_user2_ids, new_question_ids):
+            if u1id in excluded_ids or u2id in excluded_ids:
+                continue
+            questions_forecasted[u1id].add(qid)
+            questions_forecasted[u2id].add(qid)
+        c_by_u = {
+            uid: len(qs) for uid, qs in questions_forecasted.items()
+        }  # total counts
+        for uid, count in c_by_u.items():
+            if count < min_participation_count:
+                excluded_ids.add(uid)
+
+    user1_ids = []
+    user2_ids = []
+    question_ids = []
+    scores = []
+    coverages = []
+    timestamps = []
     for u1id, u2id, qid, score, coverage, timestamp in zip(
-        user1_ids, user2_ids, question_ids, scores, coverages, timestamps
+        new_user1_ids,
+        new_user2_ids,
+        new_question_ids,
+        new_scores,
+        new_coverages,
+        new_timestamps,
     ):
-        # replace userIds according to the mapping
-        u1id = userid_mapping.get(u1id, u1id)
-        u2id = userid_mapping.get(u2id, u2id)
-        # skip if either user is not in relevant identities
-        if (u1id not in relevant_identities) or (u2id not in relevant_identities):
+        if (u1id in excluded_ids) or (u2id in excluded_ids):
             continue
-        # skip if either user model is more than a year old at time of 'timestamp'
-        match_users = [user_map[u] for u in (u1id, u2id) if (u in user_map)]
-        skip = False
-        for user in match_users:
-            base_models = (
-                (user.metadata or dict())
-                .get("bot_details", dict())
-                .get("base_models", [])
-            )
-            if release_date := (
-                base_models[0].get("model_release_date") if base_models else None
-            ):
-                if len(release_date) == 7:
-                    release_date += "-01"
-                release = (
-                    datetime.fromisoformat(release_date)
-                    .replace(tzinfo=dt_timezone.utc)
-                    .timestamp()
-                )
-                if timestamp > release + timedelta(days=365).total_seconds():
-                    skip = True
-        if skip:
-            continue
+        user1_ids.append(u1id)
+        user2_ids.append(u2id)
+        question_ids.append(qid)
+        scores.append(score)
+        coverages.append(coverage)
+        timestamps.append(timestamp)
+    print("Final matches:", len(timestamps))
 
-        # done
-        filtered_user1_ids.append(u1id)
-        filtered_user2_ids.append(u2id)
-        filtered_question_ids.append(qid)
-        filtered_scores.append(score)
-        filtered_coverages.append(coverage)
-        filtered_timestamps.append(timestamp)
-    user1_ids = filtered_user1_ids
-    user2_ids = filtered_user2_ids
-    question_ids = filtered_question_ids
-    scores = filtered_scores
-    coverages = filtered_coverages
-    timestamps = filtered_timestamps
-    print(f"Filtered down to {len(timestamps)} matches.\n")
-    # ###############
+    ######################################################################
+    ######################################################################
+    ######################################################################
+    # analysis!
 
-    # choose baseline player if not already chosen
-    if not baseline_player:
-        baseline_player = max(
-            set(user1_ids) | set(user2_ids), key=(user1_ids + user2_ids).count
-        )
     # get variance of average scores (used in rescaling)
     avg_scores = get_avg_scores(user1_ids, user2_ids, scores, coverages)
     var_avg_scores = (
@@ -892,7 +907,7 @@ def run_update_global_bot_leaderboard(
         coverages,
         var_avg_scores,
         baseline_player=baseline_player,
-        bootstrap_iterations=bootstrap_iterations,
+        bootstrap_count=bootstrap_count,
     )
     print()
 
@@ -995,6 +1010,7 @@ def run_update_global_bot_leaderboard(
     unevaluated = (
         set(user1_ids) | set(user2_ids) | set(users.values_list("id", flat=True))
     )
+    csv_rows = []
     for uid, skill in ordered_skills:
         if isinstance(uid, str):
             username = uid
@@ -1012,21 +1028,53 @@ def run_update_global_bot_leaderboard(
             f"| {uid if isinstance(uid, int) else '':>6} "
             f"| {username}"
         )
-    # for uid in unevaluated:
-    #     if isinstance(uid, str):
-    #         username = uid
-    #     else:
-    #         username = User.objects.get(id=uid).username
-    #     print(
-    #         "| ------ "
-    #         "| ------ "
-    #         "| ------ "
-    #         "| ------ "
-    #         "| ------ "
-    #         f"| {uid if isinstance(uid, int) else '':>5} "
-    #         f"| {username}"
-    #     )
+        csv_rows.append(
+            [
+                round(lower, 2),
+                round(skill, 2),
+                round(upper, 2),
+                player_stats[uid][0],
+                len(player_stats[uid][1]),
+                uid if isinstance(uid, int) else "",
+                username,
+            ]
+        )
     print()
+
+    if store_results_csv:
+        filename = "global_bot_leaderboard"
+
+        suffix = ""
+        suffix += f"_BS{bootstrap_count}"
+        if min_participation_count:
+            suffix += f"_MinQ{min_participation_count}"
+        if metac_bot_age:
+            suffix += f"_MBotAge{metac_bot_age}"
+        if include_minibench:
+            suffix += "_MiniB"
+        if cp_by_years:
+            suffix += "_CPY"
+        if pro_by_years:
+            suffix += "_PROY"
+        if include_non_metac_bots:
+            suffix += "_NonMB"
+        if non_metac_bots_by_year:
+            suffix += "_NonMBY"
+        if include_non_metac_bots and bot_recency:
+            suffix += f"_NonMBRec{bot_recency}"
+        if include_non_metac_bots and bot_recent_scores:
+            suffix += f"_NonMBRS{bot_recent_scores}"
+        if suffix:
+            suffix = "_" + suffix
+
+        csv_path = Path(f"{filename}{suffix}.csv")
+        with csv_path.open("w", newline="") as output_file:
+            writer = csv.writer(output_file)
+            writer.writerow(
+                ["2.5%", "Skill", "97.5%", "Match", "Quest.", "ID", "Username"]
+            )
+            writer.writerows(csv_rows)
+        print(f"Wrote CSV results to {csv_path}")
 
     ##########################################################################
     ##########################################################################
@@ -1095,4 +1143,56 @@ class Command(BaseCommand):
             cache_use = ""
         else:
             cache_use = "partial"
-        run_update_global_bot_leaderboard(cache_use=cache_use)
+
+        include_minibench = True
+        pro_by_years = True
+        cp_by_years = True
+        metac_bot_age = 365
+        bootstrap_count = 0
+        min_participation_count = 100
+        include_non_metac_bots = True
+        non_metac_bots_by_year = False
+        bot_recency = 3 * 30
+        bot_recent_scores = 400
+
+        cache_use = "full"
+        store_results_csv = True
+
+        for include_minibench in [False, True]:
+            for pro_by_years in [False, True]:
+                for include_non_metac_bots in [False, True]:
+                    run_update_global_bot_leaderboard(
+                        # settings
+                        baseline_player=236038,  # metac-gpt-4o+asknews
+                        include_minibench=include_minibench,
+                        cp_by_years=cp_by_years,
+                        pro_by_years=pro_by_years,
+                        metac_bot_age=metac_bot_age,
+                        bootstrap_count=bootstrap_count,
+                        min_participation_count=min_participation_count,
+                        include_non_metac_bots=include_non_metac_bots,
+                        non_metac_bots_by_year=non_metac_bots_by_year,
+                        bot_recency=bot_recency,
+                        bot_recent_scores=bot_recent_scores,
+                        # performance/logging
+                        cache_use=cache_use,
+                        store_results_csv=store_results_csv,
+                    )
+
+        run_update_global_bot_leaderboard(
+            # settings
+            baseline_player=236038,  # metac-gpt-4o+asknews
+            include_minibench=include_minibench,
+            cp_by_years=cp_by_years,
+            pro_by_years=pro_by_years,
+            metac_bot_age=metac_bot_age,
+            bootstrap_count=bootstrap_count,
+            min_participation_count=min_participation_count,
+            include_non_metac_bots=include_non_metac_bots,
+            non_metac_bots_by_year=non_metac_bots_by_year,
+            bot_recency=bot_recency,
+            bot_recent_scores=bot_recent_scores,
+            # performance/logging
+            cache_use=cache_use,
+            store_results_csv=store_results_csv,
+        )
