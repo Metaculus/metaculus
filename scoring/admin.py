@@ -192,6 +192,7 @@ class MedalExclusionRecordAdmin(admin.ModelAdmin):
         "start_time",
         "end_time",
         "exclusion_type",
+        "exclusion_status",
         "project",
         "leaderboard",
     ]

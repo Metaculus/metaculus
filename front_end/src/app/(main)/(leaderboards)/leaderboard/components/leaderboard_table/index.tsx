@@ -92,12 +92,11 @@ const LeaderboardTable: FC<Props> = ({
               // only show entries that are not excluded
               // or if current user is staff and exclusion status allows showing in advanced mode
               const exclusionStatus = entry.exclusion_status;
-              if (exclusionStatus == ExclusionStatuses.EXCLUDE) {
-                return null;
-              } else if (
-                exclusionStatus ==
+              if (
+                exclusionStatus == ExclusionStatuses.EXCLUDE ||
+                (exclusionStatus ==
                   ExclusionStatuses.EXCLUDE_AND_SHOW_IN_ADVANCED &&
-                !currentUser?.is_staff
+                  !currentUser?.is_staff)
               ) {
                 return null;
               }
