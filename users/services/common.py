@@ -4,7 +4,8 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
 from django.db import IntegrityError
-from django.db.models import Q, Case, When, IntegerField
+from django.db.models import Case, IntegerField, Q, When
+from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from authentication.jwt_session import revoke_all_user_tokens
@@ -23,26 +24,118 @@ from utils.frontend import build_frontend_email_change_url
 
 def get_users(
     search: str = None,
+    post_id: int = None,
 ) -> User.objects:
     """
-    Applies filtering on the User QuerySet
+    Applies filtering on the User QuerySet.
+
+    When post_id is provided, users relevant to that post are prioritized:
+    - Users who have commented on the post
+    - The post author and coauthors
+    - Users with explicit permissions on the post's default project
+
+    Non-priority users are filtered to only those who are active and have
+    posted a non-deleted comment in the last year.
     """
+    from comments.models import Comment
+    from posts.models import Post
+
+    one_year_ago = timezone.now() - timezone.timedelta(days=365)
+
+    # User IDs with at least one non-deleted comment in the last year
+    recently_active_user_ids = (
+        Comment.objects.filter(
+            is_soft_deleted=False,
+            created_at__gte=one_year_ago,
+        )
+        .values_list("author_id", flat=True)
+        .distinct()
+    )
 
     qs = User.objects.filter(is_active=True)
 
     # Search
     if search:
-        qs = (
-            qs.annotate(
-                full_match=Case(
-                    When(username__iexact=search, then=1),
+        qs = qs.annotate(
+            full_match=Case(
+                When(username__iexact=search, then=1),
+                default=0,
+                output_field=IntegerField(),
+            )
+        ).filter(username__icontains=search)
+
+    # Annotate relevance when post_id is provided
+    if post_id:
+        post = Post.objects.filter(pk=post_id).first()
+        if post:
+            # Collect user IDs of commenters on this post
+            commenter_ids = (
+                Comment.objects.filter(on_post_id=post_id)
+                .values_list("author_id", flat=True)
+                .distinct()
+            )
+
+            # Collect post author and coauthor IDs
+            author_ids = [post.author_id]
+            author_ids.extend(post.coauthors.values_list("id", flat=True))
+
+            # Collect user IDs with explicit project permissions
+            permission_user_ids = ProjectUserPermission.objects.filter(
+                project_id=post.default_project_id
+            ).values_list("user_id", flat=True)
+
+            qs = qs.annotate(
+                is_commenter=Case(
+                    When(id__in=commenter_ids, then=1),
                     default=0,
                     output_field=IntegerField(),
-                )
+                ),
+                is_author=Case(
+                    When(id__in=author_ids, then=1),
+                    default=0,
+                    output_field=IntegerField(),
+                ),
+                has_permission=Case(
+                    When(id__in=permission_user_ids, then=1),
+                    default=0,
+                    output_field=IntegerField(),
+                ),
             )
-            .filter(username__icontains=search)
-            .order_by("-full_match", "username")
-        )
+
+            if search:
+                # Keep priority users + recently active users only
+                qs = qs.filter(
+                    Q(id__in=commenter_ids)
+                    | Q(id__in=author_ids)
+                    | Q(id__in=permission_user_ids)
+                    | Q(id__in=recently_active_user_ids)
+                )
+                qs = qs.order_by(
+                    "-is_commenter",
+                    "-is_author",
+                    "-has_permission",
+                    "-full_match",
+                    "username",
+                )
+            else:
+                # No search query: return only relevant users
+                qs = qs.filter(
+                    Q(id__in=commenter_ids)
+                    | Q(id__in=author_ids)
+                    | Q(id__in=permission_user_ids)
+                ).order_by(
+                    "-is_commenter",
+                    "-is_author",
+                    "-has_permission",
+                    "username",
+                )
+
+            return qs
+
+    if search:
+        # Without post_id, only return recently active users
+        qs = qs.filter(id__in=recently_active_user_ids)
+        qs = qs.order_by("-full_match", "username")
 
     return qs
 

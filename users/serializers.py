@@ -203,7 +203,15 @@ def validate_username_change(user: User, username: str):
 
 
 class UserFilterSerializer(serializers.Serializer):
-    search = serializers.CharField(required=True, min_length=3)
+    search = serializers.CharField(required=False, min_length=3)
+    post_id = serializers.IntegerField(required=False)
+
+    def validate(self, attrs):
+        if not attrs.get("search") and not attrs.get("post_id"):
+            raise serializers.ValidationError(
+                "At least one of 'search' or 'post_id' is required."
+            )
+        return attrs
 
 
 class PasswordChangeSerializer(serializers.Serializer):
