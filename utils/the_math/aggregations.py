@@ -34,6 +34,7 @@ from users.models import User
 from utils.the_math.measures import (
     weighted_percentile_2d,
     percent_point_function,
+    prediction_difference_for_sorting,
 )
 from utils.typing import (
     ForecastValues,
@@ -172,6 +173,31 @@ class RecencyWeighted(Weighted):
         return np.exp(
             np.sqrt(np.arange(number_of_forecasts) + 1) - np.sqrt(number_of_forecasts)
         )
+
+
+class NoOutliers(Weighted):
+    """Removes the most extreme 20% of forecasts measured by Jeffreys Divergence"""
+
+    def __init__(self, question: Question, **kwargs):
+        self.question = question
+        super().__init__(question=question, **kwargs)
+
+    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
+        forecasts_values = forecast_set.forecasts_values
+        if len(forecasts_values) <= 2:
+            return None
+        average_forecast = np.average(forecasts_values, axis=0)
+        distances = []
+        for forecast in forecasts_values:
+            distances.append(
+                prediction_difference_for_sorting(
+                    np.array(forecast),
+                    average_forecast,
+                    self.question.type,
+                )
+            )
+        mask: np.ndarray = distances <= np.percentile(distances, 80, axis=0)
+        return mask
 
 
 # FilterWeightings ##########################################
@@ -419,6 +445,60 @@ class GoldMedalistsReputationWeighted(MedalistsReputationWeighted):
     medal_filter = Q(medal=LeaderboardEntry.Medals.GOLD)
 
 
+class Experienced25ResolvedReputationWeighted(ReputationWeighted):
+    """Filters out Forecasters with fewer than 25 resolved questions"""
+
+    def get_reputation_history(
+        self, all_forecaster_ids: list[int] | set[int]
+    ) -> dict[int, list[Reputation]]:
+        start = self.question.open_time
+        end = self.question.scheduled_close_time
+        if end is None:
+            end = timezone.now()
+        peer_scores = (
+            Score.objects.filter(
+                user_id__in=all_forecaster_ids,
+                score_type=Score.ScoreTypes.PEER,
+                question__in=Question.objects.filter_public(),
+            )
+            .annotate(set_time=F("question__actual_resolve_time"))
+            .order_by("set_time")
+            .filter(set_time__lte=end)
+            .distinct()
+        )
+
+        # setup
+        resolved_per_user: dict[int, int] = defaultdict(int)
+        reputations: dict[int, list[Reputation]] = defaultdict(list)
+
+        # Establish reputations at the start of the interval.
+        old_peer_scores = list(
+            peer_scores.filter(set_time__lte=start).order_by("set_time")
+        )
+        for score in old_peer_scores:
+            resolved_per_user[score.user_id] += 1
+        for user_id in all_forecaster_ids:
+            reputations[user_id].append(
+                Reputation(user_id, 1 if resolved_per_user[user_id] >= 25 else 0, start)
+            )
+
+        # Then, for each new score, add a new reputation record
+        new_peer_scores = list(
+            peer_scores.filter(set_time__gt=start).order_by("set_time")
+        )
+        for score in new_peer_scores:
+            # update the scores by user, then calculate the updated reputation
+            resolved_per_user[score.user_id] += 1
+            reputations[score.user_id].append(
+                Reputation(
+                    score.user_id,
+                    1 if resolved_per_user[score.user_id] >= 25 else 0,
+                    score.set_time,
+                )
+            )
+        return reputations
+
+
 # Aggregators ##########################################
 
 
@@ -442,6 +522,39 @@ class AggregatorMixin:
         weights: np.ndarray | None = None,
     ) -> RangeValuesType:
         raise NotImplementedError("Implementation required in Mixin")
+
+
+class IgnorantAggregatorMixin:
+    """Always returns the ignorance prior, ignoring weights."""
+
+    question: Question
+
+    def calculate_forecast_values(
+        self, forecast_set: ForecastSet, weights: np.ndarray | None = None
+    ) -> np.ndarray:
+        values_count = len(forecast_set.forecasts_values[0])
+        if self.question.type in QUESTION_CONTINUOUS_TYPES:
+            # prediction is a CDF
+            return np.linspace(0.05, 0.95, values_count)
+        else:
+            return np.ones_like(forecast_set.forecasts_values[0]) / values_count
+
+    def get_range_values(
+        self,
+        forecast_set: ForecastSet,
+        aggregation_forecast_values: ForecastValues,
+        weights: np.ndarray | None = None,
+    ) -> RangeValuesType:
+        if self.question.type in QUESTION_CONTINUOUS_TYPES:
+            lowers, centers, uppers = percent_point_function(
+                aggregation_forecast_values, [25.0, 50.0, 75.0]
+            )
+            lowers = [lowers]
+            centers = [centers]
+            uppers = [uppers]
+        else:
+            lowers = centers = uppers = aggregation_forecast_values
+        return lowers, centers, uppers
 
 
 class MedianAggregatorMixin:
@@ -564,6 +677,51 @@ class MeanAggregatorMixin:
             centers = centers.tolist()
             uppers = uppers.tolist()
         return lowers, centers, uppers
+
+
+class LogOddsMeanAggregatorMixin(MeanAggregatorMixin):
+    """Takes the mean of the natural log of odds of forecast values"""
+
+    def calculate_forecast_values(
+        self, forecast_set: ForecastSet, weights: np.ndarray | None = None
+    ) -> np.ndarray:
+        log_odds = np.log(
+            np.array(forecast_set.forecasts_values)
+            / (1 - np.array(forecast_set.forecasts_values))
+        )
+        average_log_odds = np.average(log_odds, axis=0, weights=weights)
+        average_odds = np.exp(average_log_odds)
+        average = average_odds / (1 + average_odds)
+        # First and last cdf value of continuous questions with closed bounds get
+        # screwed up by the logodds transformation, just replace them with
+        # set values 0 and 1
+        if np.isnan(average[0]):
+            average[0] = 0
+        if np.isnan(average[-1]):
+            average[-1] = 1
+        return average
+
+
+class LogOddsMedianAggregatorMixin(MedianAggregatorMixin):
+    """Takes the median of the natural log of odds of forecast values"""
+
+    def calculate_forecast_values(
+        self, forecast_set: ForecastSet, weights: np.ndarray | None = None
+    ) -> np.ndarray:
+        if self.question.type != Question.QuestionType.BINARY:
+            raise NotImplementedError(
+                "LogOddsMedian only implemented for binary at this time"
+            )
+        log_odds = np.log(
+            np.array(forecast_set.forecasts_values)
+            / (1 - np.array(forecast_set.forecasts_values))
+        )
+        median_log_odds = np.array(
+            compute_discrete_forecast_values(log_odds, weights, 50.0)[0]
+        )
+        median_odds = np.exp(median_log_odds)
+        median = median_odds / (1 + median_odds)
+        return median
 
 
 # Aggregations ##########################################
@@ -714,6 +872,21 @@ class JoinedBeforeDateAggregation(MedianAggregatorMixin, Aggregation):
     weighting_classes = [RecencyWeighted, JoinedBeforeFiltered]
 
 
+class MeanAggregation(MeanAggregatorMixin, Aggregation):
+    method = "mean"
+    weighting_classes = [RecencyWeighted]
+
+
+class LogOddsMeanAggregation(LogOddsMeanAggregatorMixin, Aggregation):
+    method = "log_odds_mean"
+    weighting_classes = [RecencyWeighted]
+
+
+class LogOddsMedianAggregation(LogOddsMedianAggregatorMixin, Aggregation):
+    method = "log_odds_median"
+    weighting_classes = [RecencyWeighted]
+
+
 AGGREGATIONS: list[type[Aggregation]] = [
     UnweightedAggregation,
     RecencyWeightedAggregation,
@@ -723,11 +896,46 @@ AGGREGATIONS: list[type[Aggregation]] = [
     GoldMedalistsAggregation,
     ProAggregation,
     JoinedBeforeDateAggregation,
+    MeanAggregation,
+    LogOddsMeanAggregation,
+    LogOddsMedianAggregation,
 ]
 
 
 def get_aggregation_by_name(method: str) -> type[Aggregation]:
-    return next(agg for agg in AGGREGATIONS if agg.method == method)
+    for agg in AGGREGATIONS:
+        if agg.method == method:
+            return agg
+    # we make a custom aggregation!
+    classnames = method.split("_")
+
+    Mixin: type | None = None
+    weighting_classes: list[type[Weighted]] = []
+
+    for classname in classnames:
+        if not classname:
+            continue
+        candidate = globals().get(classname)
+        if candidate is None or not isinstance(candidate, type):
+            raise ValueError(f"Unknown aggregation component '{classname}'")
+        if issubclass(candidate, Aggregation):
+            return candidate
+        if issubclass(candidate, Weighted):
+            weighting_classes.append(candidate)
+            continue
+        if classname.endswith("Mixin") and Mixin is None:
+            Mixin = candidate
+
+    if Mixin is None:
+        raise ValueError("mixin is required")
+
+    class CustomAggregation(Mixin, Aggregation):  # noqa
+        pass
+
+    CustomAggregation.method = method
+    CustomAggregation.weighting_classes = weighting_classes
+
+    return CustomAggregation
 
 
 def get_aggregations_at_time(
