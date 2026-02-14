@@ -395,6 +395,7 @@
   "includeBots": "包括機器人",
   "includeBotsTooltip": "對於這個問題，機器人預測有助於社群預測。<link>了解更多有關 AI 基準測試的資訊</link>",
   "upvoted": "點贊",
+  "commented": "已評論",
   "moderating": "管理中",
   "visibility": "可見性",
   "public": "公開",

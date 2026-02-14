@@ -451,6 +451,7 @@
   "includeBotsTooltip": "對於此問題，機器人預測構成社區預測的一部分。<link>瞭解更多關於 AI 基準測試</link>",
   "authored": "著作",
   "upvoted": "點贊",
+  "commented": "已評論",
   "moderating": "管理中",
   "moderatedBy": "由...管理",
   "visibility": "可見性",
