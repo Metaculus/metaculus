@@ -14,6 +14,14 @@ GLOBAL_LEADERBOARD_STRING = "Leaderboard"
 GLOBAL_LEADERBOARD_SLUG = "leaderboard"
 
 
+class ExclusionStatuses(models.IntegerChoices):
+    INCLUDE = 0
+    EXCLUDE_PRIZE_AND_SHOW = 1
+    EXCLUDE_AND_SHOW = 2
+    EXCLUDE_AND_SHOW_IN_ADVANCED = 3
+    EXCLUDE = 4
+
+
 class Score(TimeStampedModel):
     # typing
     question_id: int
@@ -199,6 +207,10 @@ class Leaderboard(TimeStampedModel):
         Any remaining money is redistributed. Tournaments that close before June 2025 will have a value of 0.00.
         """,
     )
+    # TODO: deprecate this field in favor of bot_exclusion_status and
+    # human_exclusion_status which use the ExclusionStatuses enum instead
+    # also remove bot_status from Project - keep it on leaderboard only to avoid
+    # duplicate logic
     bot_status = models.CharField(
         max_length=32,
         choices=Project.BotLeaderboardStatus.choices,
@@ -338,6 +350,8 @@ class LeaderboardEntry(TimeStampedModel):
     )
     take = models.FloatField(null=True, blank=True)
     rank = models.IntegerField(null=True, blank=True)
+
+    # TO BE DEPRECATED IN FAVOR OF exclusion_status
     excluded = models.BooleanField(
         default=False,
         db_index=True,
@@ -354,6 +368,17 @@ class LeaderboardEntry(TimeStampedModel):
         default=False,
         help_text="""If true, this entry will still be shown in the leaderboard even if
         excluded.""",
+    )
+
+    exclusion_status = models.IntegerField(
+        choices=ExclusionStatuses.choices,
+        default=ExclusionStatuses.INCLUDE,
+        help_text="""This sets the exclusion status of this entry.
+        </br>- (0) Include: shows entry & takes rank and prize.
+        </br>- (1) Exclude Prize and Show: shows entry, takes rank, but excludes from prizes
+        </br>- (2) Exclude and Show: shows entry, but excludes from rank and prizes
+        </br>- (3) Exclude and Show in Advanced: only shows entry in advanced views, excludes from rank and prizes
+        </br>- (4) Exclude: excludes entry from showing, rank, and prizes""",
     )
 
     class Medals(models.TextChoices):
@@ -443,11 +468,23 @@ class MedalExclusionRecord(models.Model):
         choices=ExclusionTypes.choices,
         help_text="""Records the type of exclusion. Use Other for custom exclusions.""",
     )
+    # TO BE DEPRECATED IN FAVOR OF exclusion_status
     show_anyway = models.BooleanField(
         default=False,
         help_text="""If true, users excluded by this record will still appear in leaderboards.
         <br>They will still be excluded from taking ranks and prizes.""",
     )
+    exclusion_status = models.IntegerField(
+        choices=ExclusionStatuses.choices,
+        default=ExclusionStatuses.EXCLUDE,
+        help_text="""This sets the minimum exclusion status for this user.
+        </br>- (0) Include: shows entry & takes rank and prize.
+        </br>- (1) Exclude Prize and Show: shows entry, takes rank, but excludes from prizes
+        </br>- (2) Exclude and Show: shows entry, but excludes from rank and prizes
+        </br>- (3) Exclude and Show in Advanced: only shows entry in advanced views, excludes from rank and prizes
+        </br>- (4) Exclude: excludes entry from showing, rank, and prizes""",
+    )
+
     notes = models.TextField(
         null=True,
         blank=True,
