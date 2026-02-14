@@ -350,6 +350,8 @@ class LeaderboardEntry(TimeStampedModel):
     )
     take = models.FloatField(null=True, blank=True)
     rank = models.IntegerField(null=True, blank=True)
+
+    # TO BE DEPRECATED IN FAVOR OF exclusion_status
     excluded = models.BooleanField(
         default=False,
         db_index=True,
@@ -475,7 +477,7 @@ class MedalExclusionRecord(models.Model):
     exclusion_status = models.IntegerField(
         choices=ExclusionStatuses.choices,
         default=ExclusionStatuses.EXCLUDE,
-        help_text="""This sets the exclusion status of this entry.
+        help_text="""This sets the minimum exclusion status for this user.
         </br>- (0) Include: shows entry & takes rank and prize.
         </br>- (1) Exclude Prize and Show: shows entry, takes rank, but excludes from prizes
         </br>- (2) Exclude and Show: shows entry, but excludes from rank and prizes

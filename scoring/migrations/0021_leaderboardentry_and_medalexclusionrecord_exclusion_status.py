@@ -90,7 +90,7 @@ class Migration(migrations.Migration):
                     (4, "Exclude"),
                 ],
                 default=4,
-                help_text="""This sets the exclusion status of this entry.
+                help_text="""This sets the minimum exclusion status for this user.
         </br>- (0) Include: shows entry & takes rank and prize.
         </br>- (1) Exclude Prize and Show: shows entry, takes rank, but excludes from prizes
         </br>- (2) Exclude and Show: shows entry, but excludes from rank and prizes
