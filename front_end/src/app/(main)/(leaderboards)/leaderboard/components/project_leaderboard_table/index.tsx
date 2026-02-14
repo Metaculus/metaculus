@@ -150,24 +150,16 @@ const ProjectLeaderboardTable: FC<Props> = ({
           )}
           {leaderboardEntries.length > 0
             ? leaderboardEntries.map((entry) => {
-                if (
-                  entry.exclusion_status <=
-                    ExclusionStatuses.EXCLUDE_AND_SHOW ||
-                  (isAdvanced &&
-                    entry.exclusion_status ==
-                      ExclusionStatuses.EXCLUDE_AND_SHOW_IN_ADVANCED)
-                ) {
-                  return (
-                    <TableRow
-                      key={entry.user?.id ?? entry.aggregation_method}
-                      rowEntry={entry}
-                      userId={userId}
-                      maxCoverage={maxCoverage}
-                      withPrizePool={!!leaderboardDetails.prize_pool}
-                      isAdvanced={isAdvanced}
-                    />
-                  );
-                }
+                return (
+                  <TableRow
+                    key={entry.user?.id ?? entry.aggregation_method}
+                    rowEntry={entry}
+                    userId={userId}
+                    maxCoverage={maxCoverage}
+                    withPrizePool={!!leaderboardDetails.prize_pool}
+                    isAdvanced={isAdvanced}
+                  />
+                );
               })
             : !leaderboardDetails.userEntry && (
                 <tr className="border-b border-gray-300 dark:border-gray-300-dark">
