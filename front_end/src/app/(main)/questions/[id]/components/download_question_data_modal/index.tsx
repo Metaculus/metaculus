@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { saveAs } from "file-saver";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, PropsWithChildren, useEffect, useState } from "react";
+import { FC, PropsWithChildren, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
@@ -15,7 +15,6 @@ import { CheckboxField } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { useAuth } from "@/contexts/auth_context";
 import ClientPostsApi from "@/services/api/posts/posts.client";
-import { Post } from "@/types/post";
 import { DownloadAggregationMethod } from "@/types/question";
 import { DataParams } from "@/types/utils";
 import { base64ToBlob } from "@/utils/files";
@@ -41,15 +40,22 @@ type FormValues = z.infer<typeof schema>;
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  post: Post;
+  postId: number | number[];
+  title?: string;
 };
 
-// TODO: make this modal more generic so it
-// isn't married to post-level requests.
-const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
+const DataRequestModal: FC<Props> = ({ isOpen, onClose, postId, title }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const isLoggedOut = !user;
+
+  const postIds = useMemo(
+    () => (Array.isArray(postId) ? postId : [postId]),
+    [postId]
+  );
+  const isMultiplePosts = postIds.length > 1;
+  // Use first post ID for whitelist status check
+  const primaryPostId = postIds[0];
 
   const [whitelistStatus, setWhitelistStatus] = useState({
     is_whitelisted: false,
@@ -58,13 +64,23 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
   });
 
   useEffect(() => {
+    // Skip whitelist status for multiple posts - not supported
+    if (isMultiplePosts) {
+      setWhitelistStatus({
+        is_whitelisted: false,
+        view_deanonymized_data: false,
+        isLoaded: true,
+      });
+      return;
+    }
+
     if (!isOpen || whitelistStatus.isLoaded) {
       return;
     }
     const fetchWhitelistStatus = async () => {
       try {
         const status = await ClientPostsApi.getWhitelistStatus({
-          post_id: post.id,
+          post_id: primaryPostId,
         });
         setWhitelistStatus({ ...status, isLoaded: true });
       } catch (error) {
@@ -74,7 +90,7 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
       }
     };
     fetchWhitelistStatus();
-  }, [isOpen, whitelistStatus.isLoaded, post.id]);
+  }, [isOpen, whitelistStatus.isLoaded, primaryPostId, isMultiplePosts]);
 
   const {
     control,
@@ -133,8 +149,9 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
           : data.include_bots === "true",
     };
 
+    // Use post_ids for multiple posts, post_id for single post
     const params: DataParams = {
-      post_id: post.id,
+      ...(isMultiplePosts ? { post_ids: postIds } : { post_id: primaryPostId }),
       ...transformedData,
     };
     if (type === "email") {
@@ -151,8 +168,10 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
       try {
         const base64 = await getPostZipData(params);
         const blob = base64ToBlob(base64);
-        const title = post.short_title || post.title || "data";
-        const filename = `${title.replaceAll(" ", "_")}.zip`;
+        const defaultTitle = isMultiplePosts
+          ? `metaculus_data_${postIds.length}_posts`
+          : "data";
+        const filename = `${(title || defaultTitle).replaceAll(" ", "_")}.zip`;
         saveAs(blob, filename);
       } catch (error) {
         toast.error(t("downloadQuestionDataError") + error);
