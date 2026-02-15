@@ -10,8 +10,4 @@ export enum SubscriptionEmailType {
   tournament_new_questions = "tournament_new_questions",
   cp_change = "cp_change",
   before_prediction_auto_withdrawal = "before_prediction_auto_withdrawal",
-  automtic_follow_on_predict = "automatic_follow_on_predict",
-
-  // Default Follow Notifications
-  // TBD
 }

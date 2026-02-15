@@ -81,16 +81,40 @@ const KeepingUp: FC<Props> = ({ user }) => {
       type: SubscriptionEmailType.before_prediction_auto_withdrawal,
       label: t("beforeAutoWithdrawal"),
     },
+  ];
+  const additionalOptions = [
     {
-      type: SubscriptionEmailType.automtic_follow_on_predict,
-      label: t("automaticFollowOnPredict"),
+      type: "follow_automatically_on_prediction",
+      label: t("followAutomaticallyOnPrediction"),
     },
   ];
 
   return (
     <PreferencesSection title={t("keepingUp")}>
       <div className="flex flex-col gap-3">
+        {t("receiveEmailNotificationsWhen")}
         {options.map(({ type, ...opts }, index) => (
+          <div className="flex items-center" key={`subscriptions-${type}`}>
+            <Checkbox
+              checked={!user.unsubscribed_mailing_tags.includes(type)}
+              onChange={(checked) => {
+                updateProfile(type, checked);
+              }}
+              onClick={() => setLoadingIndex(index)}
+              className="p-1"
+              readOnly={isPending}
+              inputClassName="text-gray-900 dark:text-gray-900-dark"
+              {...opts}
+            />
+            {loadingIndex === index && isPending && (
+              <LoadingSpinner size="1x" />
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="flex flex-col gap-3">
+        {t("autoFollow")}
+        {additionalOptions.map(({ type, ...opts }, index) => (
           <div className="flex items-center" key={`subscriptions-${type}`}>
             <Checkbox
               checked={!user.unsubscribed_mailing_tags.includes(type)}
