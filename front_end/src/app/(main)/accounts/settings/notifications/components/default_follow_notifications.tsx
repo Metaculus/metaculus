@@ -18,7 +18,7 @@ export type Props = {
   user: CurrentUser;
 };
 
-const EmailNotifications: FC<Props> = ({ user }) => {
+const DefaultFollowNotifications: FC<Props> = ({ user }) => {
   const t = useTranslations();
   const [loadingIndex, setLoadingIndex] = useState<number | null>(null);
 
@@ -113,4 +113,4 @@ const EmailNotifications: FC<Props> = ({ user }) => {
   );
 };
 
-export default EmailNotifications;
+export default DefaultFollowNotifications;
