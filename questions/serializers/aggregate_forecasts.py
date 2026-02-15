@@ -138,4 +138,4 @@ def serialize_question_aggregations(
                 else None
             )
 
-    return serialized_data
+    return dict(serialized_data)  # convert defaultdict to dict
