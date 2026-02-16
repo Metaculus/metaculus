@@ -1145,7 +1145,7 @@ class Command(BaseCommand):
             cache_use = "partial"
 
         include_minibench = True
-        cache_use = "partial"
+        cache_use = "full"
 
         bootstrap_count = 30
         min_participation_count = 100
