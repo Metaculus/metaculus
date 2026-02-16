@@ -89,6 +89,7 @@ class UserPrivateSerializer(UserPublicSerializer):
     registered_campaigns = serializers.SerializerMethodField()
     should_suggest_keyfactors = serializers.SerializerMethodField()
     has_password = serializers.SerializerMethodField()
+    metaculus_news_subscription = serializers.SerializerMethodField()
 
     class Meta:
         model = User
