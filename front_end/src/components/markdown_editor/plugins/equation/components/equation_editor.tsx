@@ -16,7 +16,12 @@ function EquationEditor(
   const onChange = (event: ChangeEvent) => {
     let value = (event.target as HTMLInputElement).value;
     // escape dollar signs if they are not already escaped
-    value = value.replace(/(?<!\\)\$/g, "\\$");
+    value = value.replace(/\$/g, (match, offset, input) => {
+      if (offset > 0 && input[offset - 1] === "\\") {
+        return match;
+      }
+      return "\\$";
+    });
 
     setEquation(value);
   };

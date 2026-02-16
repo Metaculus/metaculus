@@ -10,6 +10,7 @@ import {
 
 import { QuestionLinkDirection, QuestionLinkStrength } from "@/types/coherence";
 import { CommentType } from "@/types/comment";
+import { CurrentUser } from "@/types/users";
 
 export type ModalType =
   | "signin"
@@ -25,8 +26,12 @@ export type ModalType =
   | "copyQuestionLink";
 
 type ModalDataByType = {
-  signin: Record<string, never>;
-  signup: Record<string, never>;
+  signin: {
+    onSuccess?: (authenticatedUser: CurrentUser) => void | Promise<void>;
+  };
+  signup: {
+    onSuccess?: (authenticatedUser: CurrentUser) => void | Promise<void>;
+  };
   signupSuccess: { username: string; email: string };
   resetPassword: Record<string, never>;
   resetPasswordConfirm: Record<string, never>;

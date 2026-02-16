@@ -1,8 +1,8 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin, messages
 from django.db.models import QuerySet
-from django.shortcuts import redirect
 from django.http import HttpResponse
+from django.shortcuts import redirect
 from django.urls import reverse, path
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
@@ -11,6 +11,8 @@ from posts.models import Post, Notebook
 from posts.services.common import soft_delete_post, trigger_update_post_translations
 from posts.services.hotness import explain_post_hotness
 from posts.tasks import run_post_generate_history_snapshot
+from projects.models import Project
+from projects.services.subscriptions import notify_post_added_to_project
 from questions.models import Question
 from questions.services.forecasts import build_question_forecasts
 from utils.csv_utils import export_all_data_for_questions
@@ -212,10 +214,34 @@ class PostAdmin(CustomTranslationAdmin):
         fields = ["view_questions", "update_pseudo_materialized_fields_button"] + fields
         return fields
 
-    def save_model(self, request, obj, form, change):
+    def save_model(self, request, obj: Post, form, change):
+        old_default_project_id = None
+        if change and "default_project" in form.changed_data:
+            old_default_project_id = form.initial.get("default_project")
+
         super().save_model(request, obj, form, change)
 
+        if (
+            old_default_project_id is not None
+            and obj.default_project_id != old_default_project_id
+        ):
+            notify_post_added_to_project(obj, obj.default_project)
+
         run_post_generate_history_snapshot.send(obj.id, request.user.id)
+
+    def save_related(self, request, form, formsets, change):
+        old_project_ids = set()
+        if change:
+            old_project_ids = set(form.instance.projects.values_list("id", flat=True))
+
+        super().save_related(request, form, formsets, change)
+
+        if change:
+            new_project_ids = set(form.instance.projects.values_list("id", flat=True))
+            added_ids = new_project_ids - old_project_ids
+            if added_ids:
+                for project in Project.objects.filter(id__in=added_ids):
+                    notify_post_added_to_project(form.instance, project)
 
 
 @admin.register(Notebook)

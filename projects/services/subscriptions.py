@@ -12,6 +12,7 @@ from notifications.services import (
 from posts.models import Post, Notebook
 from projects.models import Project, ProjectSubscription
 from projects.permissions import ObjectPermission
+from questions.constants import QuestionStatus
 from questions.models import Question
 from users.models import User
 
@@ -42,13 +43,20 @@ def unsubscribe_project(project: Project, user: User):
 
 
 def notify_project_subscriptions_post_open(
-    post: Post, question: Question = None, notebook: Notebook = None
+    post: Post,
+    question: Question = None,
+    notebook: Notebook = None,
+    project: Project = None,
 ):
-    subscriptions = (
-        ProjectSubscription.objects.filter(
+    if project:
+        subscriptions = ProjectSubscription.objects.filter(project=project)
+    else:
+        subscriptions = ProjectSubscription.objects.filter(
             Q(project__posts=post) | Q(project__default_posts=post)
         )
-        .filter(
+
+    subscriptions = (
+        subscriptions.filter(
             # Ensure notify users that have access to the question
             user__in=post.default_project.get_users_for_permission(
                 ObjectPermission.VIEWER
@@ -94,3 +102,21 @@ def notify_project_subscriptions_post_open(
                 ),
                 mailing_tag=MailingTags.TOURNAMENT_NEW_QUESTIONS,
             )
+
+
+def notify_post_added_to_project(post: Post, project: Project):
+    if post.curation_status != Post.CurationStatus.APPROVED:
+        return
+
+    for question in post.questions.all():
+        # Don’t send a notification if `open_time_triggered` is False
+        # it will be handled automatically by `handle_question_open`
+        if question.open_time_triggered and question.status == QuestionStatus.OPEN:
+            notify_project_subscriptions_post_open(
+                post, question=question, project=project
+            )
+
+    if post.notebook_id and post.notebook.open_time_triggered:
+        notify_project_subscriptions_post_open(
+            post, notebook=post.notebook, project=project
+        )

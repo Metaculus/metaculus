@@ -68,14 +68,15 @@ def serialize_question_aggregations(
     Please note: aggregate_forecasts need to be in "start_time" ascending order!
     """
 
-    serialized_data: dict[str, dict] = {
-        question.default_aggregation_method: {
+    serialized_data: dict[str, dict] = defaultdict(
+        lambda: {
             "history": [],
             "latest": None,
             "score_data": {},
             "movement": None,
         }
-    }
+    )
+    serialized_data[question.default_aggregation_method]  # ensure default method exists
 
     if aggregate_forecasts is not None:
         aggregate_forecasts_by_method: dict[
@@ -84,13 +85,6 @@ def serialize_question_aggregations(
 
         for aggregate in aggregate_forecasts:
             aggregate_forecasts_by_method[aggregate.method].append(aggregate)
-            if aggregate.method not in serialized_data:
-                serialized_data[aggregate.method] = {
-                    "history": [],
-                    "latest": None,
-                    "score_data": {},
-                    "movement": None,
-                }
 
         # Debug method for building aggregation history from scratch
         # Will be replaced in favour of aggregation explorer
@@ -145,4 +139,4 @@ def serialize_question_aggregations(
                 else None
             )
 
-    return serialized_data
+    return dict(serialized_data)  # convert defaultdict to dict

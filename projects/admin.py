@@ -11,6 +11,7 @@ from django.utils.html import format_html, format_html_join
 from django_select2.forms import ModelSelect2MultipleWidget
 
 from posts.models import Post
+from projects.services.subscriptions import notify_post_added_to_project
 from projects.models import (
     Project,
     ProjectUserPermission,
@@ -661,6 +662,7 @@ class ProjectAdmin(CustomTranslationAdmin):
                 for post in posts:
                     post.default_project = project
                     post.save()
+                    notify_post_added_to_project(post, project)
                 self.message_user(
                     request,
                     f"Added {posts.count()} posts to project '{project.name}' as default project.",
@@ -686,6 +688,7 @@ class ProjectAdmin(CustomTranslationAdmin):
                 posts = form.cleaned_data["posts"]
                 for post in posts:
                     post.projects.add(project)
+                    notify_post_added_to_project(post, project)
                 self.message_user(
                     request,
                     f"Added {posts.count()} posts to project '{project.name}' as default project.",

@@ -17,6 +17,7 @@ import cn from "@/utils/core/cn";
 import { formatDate } from "@/utils/formatters/date";
 
 import HighlightedCommentCard from "./highlighted_comment_card";
+import SubscribeTopCommentsCta from "./subscribe_top_comments_cta";
 import WeekSelector from "./week_selector";
 
 type Props = {
@@ -151,7 +152,7 @@ const CommentsOfWeekContent: FC<Props> = ({
           onWeekChange={onWeekChange}
         />
       </div>
-
+      <SubscribeTopCommentsCta />
       <div className="relative mb-8">
         <p className="mb-5 text-sm leading-relaxed text-gray-700 dark:text-gray-700-dark">
           {t("topCommentsDescription")}
