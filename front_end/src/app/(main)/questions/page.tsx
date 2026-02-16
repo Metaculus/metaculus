@@ -83,6 +83,7 @@ export default async function Questions(props: {
                   <AwaitedPostsFeed
                     filters={filters}
                     isCommunity={false}
+                    // Show tiles only when no filters are applied
                     showProjectTiles={Object.keys(searchParams).every(
                       (key) => key === POST_PAGE_FILTER
                     )}

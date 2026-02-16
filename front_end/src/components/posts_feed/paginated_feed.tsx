@@ -188,12 +188,14 @@ const PaginatedPostsFeed: FC<Props> = ({
         {feedItems.map((item) =>
           item.type === "project" ? (
             <FeedTournamentTile
-              key={`tile-${item.tile.project_id}`}
+              key={`project-${item.tile.project_id}`}
               tile={item.tile}
               feedPage={clientPageNumber}
             />
           ) : (
-            <Fragment key={item.post.id}>{renderPost(item.post)}</Fragment>
+            <Fragment key={`post-${item.post.id}`}>
+              {renderPost(item.post)}
+            </Fragment>
           )
         )}
         <PostsFeedScrollRestoration

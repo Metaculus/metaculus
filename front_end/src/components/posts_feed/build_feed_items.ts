@@ -38,7 +38,7 @@ export function buildFeedItems(
     tileIdx++;
   }
 
-  // Subsequent tiles: every ~10 posts with ±2 jitter, at least 1 post apart
+  // Subsequent tiles: every ~10 posts with +-2 jitter, at least 1 post apart
   while (tileIdx < tiles.length) {
     const lastSlot = insertAfter[insertAfter.length - 1] ?? 0;
     const base = lastSlot + POSTS_PER_PAGE;
