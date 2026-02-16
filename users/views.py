@@ -12,6 +12,7 @@ from rest_framework.response import Response
 
 from authentication.models import ApiKey
 from authentication.services import get_tokens_for_user, send_password_reset_email
+from projects.models import Project
 from users.models import User, UserSpamActivity
 from users.serializers import (
     UserPrivateSerializer,
@@ -144,6 +145,19 @@ def update_profile_api_view(request: Request) -> Response:
             },
             status=status.HTTP_403_FORBIDDEN,
         )
+
+    subscribe_to_metaculus_news: bool | None = serializer.validated_data.pop(
+        "subscribe_to_metaculus_news"
+    )
+    if subscribe_to_metaculus_news is not None:
+        news_project = Project.objects.filter(slug="platform").first()
+        if news_project:
+            if subscribe_to_metaculus_news:
+                user.project_subscriptions.get_or_create(project=news_project)
+            else:
+                user.project_subscriptions.filter(project=news_project).delete()
+
+    # TODO: where is the newsletter subscription handled?
     unsubscribe_tags: list[str] | None = serializer.validated_data.get(
         "unsubscribed_mailing_tags"
     )

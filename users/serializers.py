@@ -108,6 +108,8 @@ class UserPrivateSerializer(UserPublicSerializer):
             "api_access_tier",
             "is_primary_bot",
             "has_password",
+            "newsletter_optin",
+            "subscribe_to_metaculus_news",
             "automatically_follow_on_predict",
             "follow_notify_cp_change_threshold",
             "follow_notify_comments_frequency",
@@ -137,6 +139,9 @@ class UserPrivateSerializer(UserPublicSerializer):
 
     def get_has_password(self, user: User) -> bool:
         return user.has_usable_password()
+
+    def get_subscribe_to_metaculus_news(self, user: User) -> bool:
+        return user.project_subscriptions.filter(project__slug="platform").exists()
 
 
 class UserUpdateProfileSerializer(serializers.ModelSerializer):
@@ -172,6 +177,8 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
             "follow_notify_comments_frequency",
             "follow_notify_milestone_step",
             "follow_notify_on_status_change",
+            "newsletter_optin",
+            "subscribe_to_metaculus_news",
         )
 
 
