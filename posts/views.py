@@ -475,7 +475,6 @@ def post_subscriptions_create(request, pk):
     """
     Create bulk subscriptions for the post
     """
-
     post = get_object_or_404(Post, pk=pk)
 
     # Check permissions

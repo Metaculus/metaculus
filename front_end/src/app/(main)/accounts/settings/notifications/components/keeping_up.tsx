@@ -18,7 +18,7 @@ export type Props = {
   user: CurrentUser;
 };
 
-const EmailNotifications: FC<Props> = ({ user }) => {
+const KeepingUp: FC<Props> = ({ user }) => {
   const t = useTranslations();
   const [loadingIndex, setLoadingIndex] = useState<number | null>(null);
 
@@ -81,16 +81,40 @@ const EmailNotifications: FC<Props> = ({ user }) => {
       type: SubscriptionEmailType.before_prediction_auto_withdrawal,
       label: t("beforeAutoWithdrawal"),
     },
+  ];
+  const additionalOptions = [
     {
-      type: SubscriptionEmailType.weekly_top_comments,
-      label: t("weeklyTopComments"),
+      type: "follow_automatically_on_prediction",
+      label: t("followAutomaticallyOnPrediction"),
     },
   ];
 
   return (
-    <PreferencesSection title={t("settingsEmailNotifications")}>
+    <PreferencesSection title={t("keepingUp")}>
       <div className="flex flex-col gap-3">
+        {t("receiveEmailNotificationsWhen")}
         {options.map(({ type, ...opts }, index) => (
+          <div className="flex items-center" key={`subscriptions-${type}`}>
+            <Checkbox
+              checked={!user.unsubscribed_mailing_tags.includes(type)}
+              onChange={(checked) => {
+                updateProfile(type, checked);
+              }}
+              onClick={() => setLoadingIndex(index)}
+              className="p-1"
+              readOnly={isPending}
+              inputClassName="text-gray-900 dark:text-gray-900-dark"
+              {...opts}
+            />
+            {loadingIndex === index && isPending && (
+              <LoadingSpinner size="1x" />
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="flex flex-col gap-3">
+        {t("autoFollow")}
+        {additionalOptions.map(({ type, ...opts }, index) => (
           <div className="flex items-center" key={`subscriptions-${type}`}>
             <Checkbox
               checked={!user.unsubscribed_mailing_tags.includes(type)}
@@ -113,4 +137,4 @@ const EmailNotifications: FC<Props> = ({ user }) => {
   );
 };
 
-export default EmailNotifications;
+export default KeepingUp;
