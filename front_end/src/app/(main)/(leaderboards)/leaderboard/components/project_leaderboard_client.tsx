@@ -8,6 +8,7 @@ import InfoToggle from "@/components/ui/info_toggle";
 import SectionToggle from "@/components/ui/section_toggle";
 import Switch from "@/components/ui/switch";
 import TabBar from "@/components/ui/tab_bar";
+import useHash from "@/hooks/use_hash";
 import { LeaderboardDetails } from "@/types/scoring";
 
 import ProjectLeaderboardTable from "./project_leaderboard_table";
@@ -35,6 +36,8 @@ const ProjectLeaderboardClient = ({
   userId,
 }: Props) => {
   const t = useTranslations();
+  const hash = useHash();
+  const isLinked = hash === "leaderboard";
 
   const [isAdvanced, setIsAdvanced] = useState(false);
   const [activeLeaderboardId, setActiveLeaderboardId] = useState<number>(
@@ -75,8 +78,11 @@ const ProjectLeaderboardClient = ({
 
   return (
     <SectionToggle
+      id="leaderboard"
+      key={isLinked ? "linked" : undefined}
       title={leaderboardTitle}
       variant={isQuestionSeries ? "primary" : "gold"}
+      defaultOpen={isLinked}
       detailElement={(isOpen) => {
         if (!isOpen) return null;
         return advancedToggleElement;

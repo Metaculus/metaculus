@@ -1,13 +1,12 @@
 import { differenceInMilliseconds } from "date-fns";
 
 import { TournamentPreview, TournamentsSortBy } from "@/types/projects";
+import { safeTs } from "@/utils/formatters/date";
 
 import {
   TOURNAMENTS_SEARCH,
   TOURNAMENTS_SORT,
 } from "../constants/query_params";
-
-import { safeTs } from ".";
 
 type ParamsLike = Pick<URLSearchParams, "get">;
 

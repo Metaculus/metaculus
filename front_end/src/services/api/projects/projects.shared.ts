@@ -4,6 +4,7 @@ import { Post, ProjectPermissions } from "@/types/post";
 import {
   Category,
   Community,
+  FeedProjectTile,
   NewsCategory,
   ProjectVisibility,
   Tournament,
@@ -78,6 +79,10 @@ class ProjectsApi extends ApiService {
 
   async getMembers(projectId: number): Promise<TournamentMember[]> {
     return this.get(`/projects/${projectId}/members/`);
+  }
+
+  async getFeedTiles(): Promise<FeedProjectTile[]> {
+    return await this.get<FeedProjectTile[]>("/projects/feed-tiles/");
   }
 
   async getCommunities(

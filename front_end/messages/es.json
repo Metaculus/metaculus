@@ -1945,5 +1945,18 @@
   "weeklyTopCommentsSubscribeSuccess": "Ahora estás suscrito a los Mejores Comentarios. Cancela tu suscripción en cualquier momento en la <settings>configuración</settings> de tu cuenta.",
   "weeklyTopCommentsSubscribeSuccessInline": "Ahora estás suscrito a los Mejores Comentarios.",
   "weeklyTopCommentsSubscribeError": "Algo salió mal. Por favor, inténtalo de nuevo.",
+  "feedTileNewTournament": "Nuevo torneo",
+  "feedTileForecastNewQuestions": "Pronosticar {count, plural, one {# nueva pregunta} other {# nuevas preguntas}}",
+  "feedTileQuestionsResolved": "{count, plural, one {# pregunta resuelta} other {# preguntas resueltas}}",
+  "feedTileCheckLeaderboards": "Consulta las clasificaciones finales",
+  "feedTilePopularTournament": "Torneo popular",
+  "feedTileClosesIn": "Cierra en <strong>{when}</strong>",
+  "feedTileClosedAgo": "Cerrado hace <strong>{when}</strong>",
+  "feedTileStartsIn": "Comienza en <strong>{when}</strong>",
+  "feedTileStartedAgo": "Comenzó hace <strong>{when}</strong>",
+  "feedTileResolvesIn": "Se resuelve en <strong>{when}</strong>",
+  "feedTileResolvedAgo": "Resuelto hace <strong>{when}</strong>",
+  "feedTileForecasters": "{count, plural, one {# pronosticador} other {# pronosticadores}}",
+  "feedTilePrizePool": "<strong>{amount}</strong> en premios",
   "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
 }

@@ -1938,5 +1938,18 @@
   "yourOrganization": "Your organization",
   "yourMessageForm": "Your message",
   "readFullReport": "Read full report",
+  "feedTileNewTournament": "New Tournament",
+  "feedTileForecastNewQuestions": "Forecast {count, plural, one {# new question} other {# new questions}}",
+  "feedTileQuestionsResolved": "{count, plural, one {# question resolved} other {# questions resolved}}",
+  "feedTileCheckLeaderboards": "Check out the final leaderboards",
+  "feedTilePopularTournament": "Popular Tournament",
+  "feedTileClosesIn": "Closes in <strong>{when}</strong>",
+  "feedTileClosedAgo": "Closed <strong>{when} ago</strong>",
+  "feedTileStartsIn": "Starts in <strong>{when}</strong>",
+  "feedTileStartedAgo": "Started <strong>{when} ago</strong>",
+  "feedTileResolvesIn": "Resolves in <strong>{when}</strong>",
+  "feedTileResolvedAgo": "Resolved <strong>{when} ago</strong>",
+  "feedTileForecasters": "{count, plural, one {# forecaster} other {# forecasters}}",
+  "feedTilePrizePool": "<strong>{amount}</strong> prize pool",
   "feedTileSummaryPlaceholder": "Optional: Enter a custom summary text to display on feed tiles (if not provided, a summary will be auto-generated from the notebook content)"
 }

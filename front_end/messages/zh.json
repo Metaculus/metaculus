@@ -1947,5 +1947,18 @@
   "weeklyTopCommentsSubscribeSuccess": "你已订阅顶级评论。随时在你的账户<settings>设置</settings>中取消订阅。",
   "weeklyTopCommentsSubscribeSuccessInline": "你已订阅顶级评论。",
   "weeklyTopCommentsSubscribeError": "出现问题。请再试一次。",
+  "feedTileNewTournament": "新锦标赛",
+  "feedTileForecastNewQuestions": "预测 {count, plural, other {# 个新问题}}",
+  "feedTileQuestionsResolved": "{count, plural, other {# 个问题已解决}}",
+  "feedTileCheckLeaderboards": "查看最终排行榜",
+  "feedTilePopularTournament": "热门锦标赛",
+  "feedTileClosesIn": "<strong>{when}</strong>后关闭",
+  "feedTileClosedAgo": "已于<strong>{when}</strong>前关闭",
+  "feedTileStartsIn": "<strong>{when}</strong>后开始",
+  "feedTileStartedAgo": "已于<strong>{when}</strong>前开始",
+  "feedTileResolvesIn": "<strong>{when}</strong>后解决",
+  "feedTileResolvedAgo": "已于<strong>{when}</strong>前解决",
+  "feedTileForecasters": "{count, plural, other {# 位预测者}}",
+  "feedTilePrizePool": "<strong>{amount}</strong> 奖金池",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }

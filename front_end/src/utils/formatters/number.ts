@@ -121,6 +121,20 @@ export function formatNumberWithUnit(
   return `${formattedNumber} ${unit}`;
 }
 
+export function formatMoneyUSD(
+  amount: string | null | undefined
+): string | null {
+  if (!amount) return null;
+  const n = Number(amount);
+  if (!Number.isFinite(n)) return null;
+  return n.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    currencyDisplay: "narrowSymbol",
+    maximumFractionDigits: 0,
+  });
+}
+
 /**
  * Format a number using BIPM-style thousands separation with narrow non-breaking spaces (U+202F)
  * and a dot as the decimal separator.

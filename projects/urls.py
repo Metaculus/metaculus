@@ -8,6 +8,7 @@ urlpatterns = [
     path("projects/categories/", views.categories_list_api_view),
     path("projects/homepage_categories/", views.homepage_categories_list_api_view),
     path("projects/leaderboard-tags/", views.leaderboard_tags_list_api_view),
+    path("projects/feed-tiles/", views.feed_project_tiles_api_view),
     path("projects/tournaments/", views.tournaments_list_api_view),
     path("projects/minibenches/", views.minibench_tournaments_api_view),
     path("projects/site_main/", views.site_main_view),
