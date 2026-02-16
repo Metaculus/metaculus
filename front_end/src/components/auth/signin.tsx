@@ -76,8 +76,13 @@ const SignInModal: FC<SignInModalType> = ({
         sendAnalyticsEvent("login");
         setUser(state.user);
         setCurrentModal(null);
-        await onSuccess?.(state.user);
-        handlePostLoginAction(state.postLoginAction);
+        try {
+          await onSuccess?.(state.user);
+        } catch (error) {
+          console.error("SignIn onSuccess callback failed", error);
+        } finally {
+          handlePostLoginAction(state.postLoginAction);
+        }
       }
     },
     [setCurrentModal, setUser, handlePostLoginAction, onSuccess, resetField]
