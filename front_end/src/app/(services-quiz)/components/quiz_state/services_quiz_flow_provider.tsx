@@ -23,6 +23,7 @@ import {
 } from "../../helpers";
 
 const TOTAL_STEPS: ServicesQuizStepId[] = [1, 2, 3, 4, 5, 6];
+const VISIBLE_STEPS: ServicesQuizStepId[] = [1, 2, 3, 4, 5];
 
 type FlowApi = {
   step: ServicesQuizStepId;
@@ -65,14 +66,14 @@ export const ServicesQuizFlowProvider: FC<
 
   const steps = useMemo<FlowStep[]>(
     () =>
-      TOTAL_STEPS.map((id) => ({
+      VISIBLE_STEPS.map((id) => ({
         id,
-        isDone: isStepDone(id) || (id === 6 && step === 6),
+        isDone: isStepDone(id) || step === 6,
       })),
     [isStepDone, step]
   );
 
-  const stepsLeft = Math.max(0, TOTAL_STEPS.length - step);
+  const stepsLeft = step >= 6 ? 0 : Math.max(0, VISIBLE_STEPS.length - step);
   const canGoPrev = step > 1;
   const canGoNext = step < 6;
   const nextDisabled = isNextDisabled(step);

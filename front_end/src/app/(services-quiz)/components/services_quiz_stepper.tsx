@@ -82,8 +82,9 @@ const ServicesQuizStepper: FC<{
               disabled={!canGoNext || nextDisabled}
               onClick={goNext}
               className={cn(
-                stepDone &&
-                  "border-blue-900 bg-blue-900 px-6 text-gray-200 hover:border-transparent hover:bg-blue-900/80 active:bg-blue-900 dark:border-blue-900-dark dark:bg-blue-900-dark dark:text-gray-200-dark dark:hover:bg-blue-900-dark/80 dark:active:bg-blue-900-dark"
+                stepDone
+                  ? "border-blue-900 bg-blue-900 px-6 text-gray-200 shadow-md shadow-blue-900/30 hover:border-transparent hover:bg-blue-900/80 active:bg-blue-900 dark:border-blue-900-dark dark:bg-blue-900-dark dark:text-gray-200-dark dark:shadow-blue-900-dark/30 dark:hover:bg-blue-900-dark/80 dark:active:bg-blue-900-dark"
+                  : "border-blue-700 text-blue-700 dark:border-blue-700-dark dark:text-blue-700-dark"
               )}
             >
               {nextLabel}

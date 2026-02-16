@@ -7,7 +7,7 @@ export type ServicesQuizCategory =
 export const SERVICES_QUIZ_CHALLENGES: Record<ServicesQuizCategory, string[]> =
   {
     enterprise: [
-      "Product or feature bets",
+      "Product and feature strategy",
       "AI and automation impact",
       "Technology timing",
       "Competitive landscape",
@@ -23,17 +23,17 @@ export const SERVICES_QUIZ_CHALLENGES: Record<ServicesQuizCategory, string[]> =
       "National and cyber threats",
     ],
     "non-profit": [
-      "Intervention effectiveness",
-      "AI for monitoring, delivery, and evaluation",
+      "Assessing program impact",
+      "AI for monitoring, evaluation, and learning",
       "Cause and region prioritization",
-      "Evolving community needs",
-      "Policy and agenda influence",
+      "Understanding evolving community needs",
+      "Policy and advocacy",
       "Donor and partner dynamics",
     ],
     academia: [
-      "Academic labor markets and career paths",
-      "AI tools and methods in research",
-      "AI in teaching and student learning",
+      "Academic workforce systems",
+      "Using AI for research",
+      "Using AI for teaching and learning",
       "Funding priorities",
       "Replication and robustness",
       "Regulatory risks and opportunities",

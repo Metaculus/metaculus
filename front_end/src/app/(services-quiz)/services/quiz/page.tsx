@@ -1,7 +1,13 @@
+import { Metadata } from "next";
+
 import { SearchParams } from "@/types/navigation";
 
 import ServicesQuizScreen from "../../components/services_quiz_screen";
 import { isServicesQuizCategory } from "../../constants";
+
+export const metadata: Metadata = {
+  title: "Metaculus | Discover Services",
+};
 
 type Props = {
   searchParams: Promise<SearchParams>;

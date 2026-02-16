@@ -121,7 +121,9 @@ const ServicesPageTemplate: React.FC<Props> = async ({
         />
         <PartnersCarousel className="my-10 sm:my-12 lg:my-32" />
 
-        <DiscoverServicesBlock />
+        {!!process.env.SERVICES_QUIZ_GOOGLE_SHEETS_SPREADSHEET_ID && (
+          <DiscoverServicesBlock />
+        )}
 
         <SectionHeading
           title={solutions.title}

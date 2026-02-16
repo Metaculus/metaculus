@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, useState } from "react";
 
 import ServicesQuizStepShell from "./services_quiz_step_shell";
 import ServicesQuizRadioCard from "../fields/services_quiz_radio_card";
@@ -21,6 +21,7 @@ const MULTI_OPTIONS = [
 
 const ServicesQuizStep3: FC = () => {
   const t = useTranslations();
+  const [showProInfo, setShowProInfo] = useState(false);
   const {
     state,
     toggleWhoForecastsSelection,
@@ -52,6 +53,21 @@ const ServicesQuizStep3: FC = () => {
           onSelect={setWhoForecastsNotSure}
           onDeselect={clearWhoForecasts}
         />
+      </div>
+
+      <div className="mt-3 text-center">
+        <button
+          type="button"
+          onClick={() => setShowProInfo((v) => !v)}
+          className="text-sm font-medium text-blue-700 underline hover:text-blue-900 dark:text-blue-700-dark dark:hover:text-blue-900-dark"
+        >
+          {t("learnAboutMetaculusPros")}
+        </button>
+        {showProInfo && (
+          <p className="mx-auto mt-2 max-w-[480px] text-sm text-gray-700 dark:text-gray-700-dark">
+            {t("metaculusProsDescription")}
+          </p>
+        )}
       </div>
     </ServicesQuizStepShell>
   );

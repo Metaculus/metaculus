@@ -7,7 +7,7 @@ import ServicesQuizStepShell from "./services_quiz_step_shell";
 import ServicesQuizRadioCard from "../fields/services_quiz_radio_card";
 import { useServicesQuizAnswers } from "../quiz_state/services_quiz_answers_provider";
 
-type PrivacyOption = "semi" | "full" | "flexible";
+type PrivacyOption = "none" | "semi" | "full" | "flexible";
 
 const ServicesQuizStep4: React.FC = () => {
   const t = useTranslations();
@@ -17,8 +17,12 @@ const ServicesQuizStep4: React.FC = () => {
     id: PrivacyOption;
     title: string;
     description?: string;
-    colSpan?: string;
   }> = [
+    {
+      id: "none",
+      title: t("noConfidentiality"),
+      description: t("noConfidentialityDescription"),
+    },
     {
       id: "semi",
       title: t("semiConfidentiality"),
@@ -37,7 +41,7 @@ const ServicesQuizStep4: React.FC = () => {
 
   return (
     <ServicesQuizStepShell title={t("privacyQuestionTitle")}>
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         {options.map((opt) => (
           <ServicesQuizRadioCard
             key={opt.id}
