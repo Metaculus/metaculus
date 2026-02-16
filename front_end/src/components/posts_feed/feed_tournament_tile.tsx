@@ -1,5 +1,6 @@
 import { faUsers } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useMemo } from "react";
@@ -57,19 +58,21 @@ const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
         })
       }
       className="relative flex flex-col gap-3 overflow-hidden rounded px-6 py-5 text-gray-0 no-underline"
-      style={
-        project.header_image
-          ? {
-              backgroundImage: `url(${project.header_image})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }
-          : undefined
-      }
     >
-      {project.header_image && <div className="absolute inset-0 bg-black/50" />}
-      {!project.header_image && (
-        <div className="absolute inset-0 bg-blue-100" />
+      {project.header_image ? (
+        <>
+          <div className="absolute inset-0 bg-black" />
+          <Image
+            src={project.header_image}
+            alt=""
+            fill
+            className="size-full object-cover object-center"
+            unoptimized
+          />
+          <div className="absolute inset-0 bg-black/50" />
+        </>
+      ) : (
+        <div className="absolute inset-0 bg-black" />
       )}
 
       <h4 className="relative my-0 text-base font-medium text-gray-0">
