@@ -1414,6 +1414,7 @@
   "customize": "Přizpůsobit",
   "CPMovementChangeLabel": "{value} toto {period}",
   "beforeAutoWithdrawal": "Před automatickým stažením mých předpovědí",
+  "settingsNewTournamentsAndPlatformUpdates": "Nové turnaje a aktualizace platformy",
   "pageNotFound": "Stránka nebyla nalezena",
   "thinkSupposedPageNote": "Pokud si myslíte, že by zde měla být stránka, <link>pošlete nám poznámku</link> a pokusíme se to opravit.",
   "returnToHomePage": "Vrátit se na hlavní stránku",
@@ -1940,5 +1941,9 @@
   "yourOrganization": "Vaše organizace",
   "yourMessageForm": "Vaše zpráva",
   "readFullReport": "Přečíst celou zprávu",
+  "weeklyTopCommentsSubscribeCta": "Dostávejte ty nejlepší komentáře Metaculus každý týden do své schránky!",
+  "weeklyTopCommentsSubscribeSuccess": "Nyní jste přihlášeni k odběru Nejlepších komentářů. Odběr můžete kdykoli zrušit ve svém účtu <settings>nastavení</settings>.",
+  "weeklyTopCommentsSubscribeSuccessInline": "Nyní jste přihlášeni k odběru Nejlepších komentářů.",
+  "weeklyTopCommentsSubscribeError": "Něco se pokazilo. Zkuste to prosím znovu.",
   "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }
