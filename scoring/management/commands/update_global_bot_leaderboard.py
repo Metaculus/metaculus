@@ -1145,39 +1145,19 @@ class Command(BaseCommand):
             cache_use = "partial"
 
         include_minibench = True
-        pro_by_years = True
-        cp_by_years = True
-        metac_bot_age = 365
-        bootstrap_count = 0
+        cache_use = "partial"
+
+        bootstrap_count = 30
         min_participation_count = 100
+        metac_bot_age = 365
+        cp_by_years = True
+        pro_by_years = True
         include_non_metac_bots = True
-        non_metac_bots_by_year = False
         bot_recency = 3 * 30
         bot_recent_scores = 400
 
-        cache_use = "full"
+        non_metac_bots_by_year = False
         store_results_csv = True
-
-        for include_minibench in [False, True]:
-            for pro_by_years in [False, True]:
-                for include_non_metac_bots in [False, True]:
-                    run_update_global_bot_leaderboard(
-                        # settings
-                        baseline_player=236038,  # metac-gpt-4o+asknews
-                        include_minibench=include_minibench,
-                        cp_by_years=cp_by_years,
-                        pro_by_years=pro_by_years,
-                        metac_bot_age=metac_bot_age,
-                        bootstrap_count=bootstrap_count,
-                        min_participation_count=min_participation_count,
-                        include_non_metac_bots=include_non_metac_bots,
-                        non_metac_bots_by_year=non_metac_bots_by_year,
-                        bot_recency=bot_recency,
-                        bot_recent_scores=bot_recent_scores,
-                        # performance/logging
-                        cache_use=cache_use,
-                        store_results_csv=store_results_csv,
-                    )
 
         run_update_global_bot_leaderboard(
             # settings
