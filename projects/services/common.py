@@ -299,7 +299,7 @@ class FeedTileRule(TextChoices):
     ALL_QUESTIONS_RESOLVED = "ALL_QUESTIONS_RESOLVED"
 
 
-#@cached_singleton(timeout=60 * 20)
+@cached_singleton(timeout=60 * 20)
 def get_feed_project_tiles() -> list[dict]:
     now = timezone.now()
 
