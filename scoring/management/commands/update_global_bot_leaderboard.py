@@ -110,6 +110,8 @@ def gather_data(
 ) -> tuple[
     list[int | str], list[int | str], list[int], list[float], list[float], list[float]
 ]:
+    requested_question_ids = set(questions.values_list("id", flat=True))
+
     user1_ids: list[int | str] = []
     user2_ids: list[int | str] = []
     question_ids: list[int] = []
@@ -131,9 +133,12 @@ def gather_data(
         with csv_path.open("r") as input_file:
             reader = csv.DictReader(input_file)
             for row in reader:
+                question_id = int(row["questionid"])
+                if question_id not in requested_question_ids:
+                    continue
                 user1_ids.append(_deserialize_user(row["user1"]))
                 user2_ids.append(_deserialize_user(row["user2"]))
-                question_ids.append(int(row["questionid"]))
+                question_ids.append(question_id)
                 scores.append(float(row["score"]))
                 coverages.append(float(row["coverage"]))
                 timestamps.append(float(row["timestamp"]))
@@ -338,9 +343,12 @@ def gather_data(
         with csv_path.open("r") as input_file:
             reader = csv.DictReader(input_file)
             for row in reader:
+                question_id = int(row["questionid"])
+                if question_id not in requested_question_ids:
+                    continue
                 user1_ids.append(_deserialize_user(row["user1"]))
                 user2_ids.append(_deserialize_user(row["user2"]))
-                question_ids.append(int(row["questionid"]))
+                question_ids.append(question_id)
                 scores.append(float(row["score"]))
                 coverages.append(float(row["coverage"]))
                 timestamps.append(float(row["timestamp"]))
@@ -506,6 +514,7 @@ def rescale_skills_(
     skills: SkillType,
     baseline_player: int | str,
     var_avg_scores: float,
+    verbose: bool | None = None,
 ) -> SkillType:
     """
     rescaled to have skills in same range as peer scores
@@ -520,7 +529,8 @@ def rescale_skills_(
     scale_factor = np.sqrt(var_avg_scores / var_skills)
     for uid in skills:
         skills[uid] *= scale_factor
-    print("Scale factor", scale_factor)
+    if verbose:
+        print("Scale factor", scale_factor)
     return skills
 
 
@@ -554,6 +564,7 @@ def get_skills(
         skills=skills,
         baseline_player=baseline_player,
         var_avg_scores=var_avg_scores,
+        verbose=verbose,
     )
     return skills
 
@@ -566,6 +577,7 @@ def bootstrap_skills(
     weights: list[float],
     var_avg_scores: float,
     baseline_player: int | str = 269196,
+    verbose: bool | None = None,
     bootstrap_count: int = 30,
 ) -> tuple[SkillType, SkillType]:
     """
@@ -608,17 +620,6 @@ def bootstrap_skills(
     print("| Bootstrap |    Duration    | Est. Duration  |")
     t0 = datetime.now()
     for i in range(bootstrap_count):
-        duration = datetime.now() - t0
-        est_duration = duration / (i + 1) * bootstrap_count
-        print(
-            f"\033[K"
-            f"| {i + 1:>4}/{bootstrap_count:<4} "
-            f"| {duration} "
-            f"| {est_duration} "
-            "|",
-            end="\r",
-        )
-
         boot_user1_ids: list[int | str] = []
         boot_user2_ids: list[int | str] = []
         boot_question_ids: list[int] = []
@@ -642,11 +643,22 @@ def bootstrap_skills(
             weights=boot_weights,
             baseline_player=baseline_player,
             var_avg_scores=var_avg_scores,
-            verbose=False,
+            verbose=verbose,
         )
 
         for player, boot_skill in boot_skills.items():
             bootstrap_results[player].append(boot_skill)
+
+        duration = datetime.now() - t0
+        est_duration = duration / (i + 1) * bootstrap_count
+        print(
+            f"\033[K"
+            f"| {i + 1:>4}/{bootstrap_count:<4} "
+            f"| {duration} "
+            f"| {est_duration} "
+            "|",
+            end="\r",
+        )
 
     ci_lower: SkillType = {}
     ci_upper: SkillType = {}
