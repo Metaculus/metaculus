@@ -1,5 +1,5 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone as dt_timezone
 
 from django import forms
 from django.contrib import admin, messages
@@ -36,6 +36,50 @@ from questions.services.multiple_choice_handlers import (
 )
 from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
+
+
+class UnixTimestampDateTimeField(forms.SplitDateTimeField):
+    """Form field that displays a Unix timestamp float as a datetime input.
+
+    Converts between float (Unix timestamp) stored in the model and
+    datetime shown in the admin form.
+    """
+
+    def prepare_value(self, value):
+        if isinstance(value, (int, float)):
+            value = datetime.fromtimestamp(value, tz=dt_timezone.utc)
+        return super().prepare_value(value)
+
+    def compress(self, data_list):
+        dt = super().compress(data_list)
+        if dt is None:
+            return None
+        if timezone.is_naive(dt):
+            dt = timezone.make_aware(dt, dt_timezone.utc)
+        return dt.timestamp()
+
+
+class QuestionAdminForm(forms.ModelForm):
+    class Meta:
+        model = Question
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.type == Question.QuestionType.DATE:
+            for field_name in ("range_min", "range_max", "zero_point"):
+                if field_name in self.fields:
+                    original = self.fields[field_name]
+                    self.fields[field_name] = UnixTimestampDateTimeField(
+                        required=original.required,
+                        help_text=(original.help_text or "")
+                        + " (Displayed as datetime for date questions;"
+                        " stored as Unix timestamp.)",
+                        widget=forms.SplitDateTimeWidget(
+                            date_attrs={"type": "date"},
+                            time_attrs={"type": "time"},
+                        ),
+                    )
 
 
 def get_latest_options_history_datetime(options_history):
@@ -424,6 +468,7 @@ class MultipleChoiceOptionsAdminForm(forms.Form):
 
 @admin.register(Question)
 class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
+    form = QuestionAdminForm
     list_display = [
         "title",
         "type",
