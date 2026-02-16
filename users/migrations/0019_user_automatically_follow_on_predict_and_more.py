@@ -39,10 +39,10 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="user",
             name="follow_notify_milestone_step",
-            field=models.IntegerField(
+            field=models.FloatField(
                 blank=True,
-                default=20,
-                help_text="Percent of question lifetime to trigger notifications",
+                default=0.20,
+                help_text="Proportion of question lifetime to trigger notifications",
                 null=True,
             ),
         ),

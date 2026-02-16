@@ -92,11 +92,11 @@ class User(TimeStampedModel, AbstractUser):
         blank=True,
         default=10,
     )
-    follow_notify_milestone_step = models.IntegerField(
+    follow_notify_milestone_step = models.FloatField(
         null=True,
         blank=True,
-        default=20,
-        help_text="Percent of question lifetime to trigger notifications",
+        default=0.20,
+        help_text="Proportion of question lifetime to trigger notifications",
     )
     follow_notify_on_status_change = models.BooleanField(default=True)
 

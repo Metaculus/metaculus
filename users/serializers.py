@@ -146,6 +146,7 @@ class UserPrivateSerializer(UserPublicSerializer):
 
 class UserUpdateProfileSerializer(serializers.ModelSerializer):
     website = serializers.URLField(allow_blank=True, max_length=100)
+    metaculus_news_subscription = serializers.BooleanField(required=False)
 
     class Meta:
         model = User
