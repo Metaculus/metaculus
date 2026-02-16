@@ -1957,6 +1957,6 @@
   "feedTileResolvesIn": "Vyřeší se za <strong>{when}</strong>",
   "feedTileResolvedAgo": "Vyřešeno před <strong>{when}</strong>",
   "feedTileForecasters": "{count, plural, one {# prognostik} few {# prognostici} other {# prognostiků}}",
-  "feedTilePrizePool": "<strong>{amount}</strong> prize pool",
+  "feedTilePrizePool": "<strong>{amount}</strong> výherní fond",
   "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }
