@@ -12,6 +12,7 @@ from django.utils.timezone import make_aware
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
+from questions.constants import QuestionStatus
 from questions.models import Question
 from users.models import User
 from utils.cache import cache_per_object, cached_singleton
@@ -298,7 +299,7 @@ class FeedTileRule(TextChoices):
     ALL_QUESTIONS_RESOLVED = "ALL_QUESTIONS_RESOLVED"
 
 
-@cached_singleton(timeout=60 * 20)
+#@cached_singleton(timeout=60 * 20)
 def get_feed_project_tiles() -> list[dict]:
     now = timezone.now()
 
@@ -320,6 +321,8 @@ def get_feed_project_tiles() -> list[dict]:
         "id",
         "post_id",
         "open_time",
+        "actual_close_time",
+        "scheduled_close_time",
         "actual_resolve_time",
         "scheduled_resolve_time",
         "resolution",
@@ -335,7 +338,11 @@ def get_feed_project_tiles() -> list[dict]:
     for project in projects:
         questions = questions_by_project.get(project.id, [])
         recently_opened = sum(
-            1 for q in questions if q.open_time and three_days_ago <= q.open_time <= now
+            1
+            for q in questions
+            if q.open_time
+            and three_days_ago <= q.open_time <= now
+            and q.status == QuestionStatus.OPEN
         )
         recently_resolved = sum(
             1
