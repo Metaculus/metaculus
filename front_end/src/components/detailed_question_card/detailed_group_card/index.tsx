@@ -10,8 +10,8 @@ import FanChart from "@/components/charts/fan_chart";
 import { MultipleChoiceTile } from "@/components/post_card/multiple_choice_tile";
 import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useHideCP } from "@/contexts/cp_context";
-import { TimelineChartZoomOption } from "@/types/charts";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
+import { TimelineChartZoomOption } from "@/types/charts";
 import {
   GroupOfQuestionsGraphType,
   GroupOfQuestionsPost,
