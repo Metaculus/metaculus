@@ -770,7 +770,7 @@ export function generateScale({
     );
   }
 
-  // if (!true && displayType === "numeric" && direction === "horizontal") {
+  // if (displayType === "numeric" && direction === "horizontal") {
   //   // Debugging - do not remove
   //   console.log(
   //     "\n displayType",
