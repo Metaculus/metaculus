@@ -1939,5 +1939,9 @@
   "yourOrganization": "Sua organização",
   "yourMessageForm": "Sua mensagem",
   "readFullReport": "Leia o relatório completo",
+  "weeklyTopCommentsSubscribeCta": "Receba os melhores comentários do Metaculus na sua caixa de entrada toda semana!",
+  "weeklyTopCommentsSubscribeSuccess": "Você está agora inscrito nos Comentários Principais. Cancele a inscrição a qualquer momento nas <settings>configurações</settings> da sua conta.",
+  "weeklyTopCommentsSubscribeSuccessInline": "Você está agora inscrito nos Comentários Principais.",
+  "weeklyTopCommentsSubscribeError": "Algo deu errado. Por favor, tente novamente.",
   "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
 }

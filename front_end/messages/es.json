@@ -1941,5 +1941,9 @@
   "yourOrganization": "Tu organización",
   "yourMessageForm": "Tu mensaje",
   "readFullReport": "Leer el informe completo",
+  "weeklyTopCommentsSubscribeCta": "¡Recibe los mejores comentarios de Metaculus en tu bandeja de entrada cada semana!",
+  "weeklyTopCommentsSubscribeSuccess": "Ahora estás suscrito a los Mejores Comentarios. Cancela tu suscripción en cualquier momento en la <settings>configuración</settings> de tu cuenta.",
+  "weeklyTopCommentsSubscribeSuccessInline": "Ahora estás suscrito a los Mejores Comentarios.",
+  "weeklyTopCommentsSubscribeError": "Algo salió mal. Por favor, inténtalo de nuevo.",
   "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
 }

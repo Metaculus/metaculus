@@ -16,6 +16,7 @@ import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
+import { CurrentUser } from "@/types/users";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import usePostLoginActionHandler from "./hooks/usePostLoginActionHandler";
@@ -23,11 +24,13 @@ import usePostLoginActionHandler from "./hooks/usePostLoginActionHandler";
 type SignInModalType = {
   isOpen: boolean;
   onClose: (isOpen: boolean) => void;
+  onSuccess?: (authenticatedUser: CurrentUser) => void | Promise<void>;
 };
 
 const SignInModal: FC<SignInModalType> = ({
   isOpen,
   onClose,
+  onSuccess,
 }: SignInModalType) => {
   const { PUBLIC_ALLOW_SIGNUP } = usePublicSettings();
 
@@ -73,10 +76,16 @@ const SignInModal: FC<SignInModalType> = ({
         sendAnalyticsEvent("login");
         setUser(state.user);
         setCurrentModal(null);
-        handlePostLoginAction(state.postLoginAction);
+        try {
+          await onSuccess?.(state.user);
+        } catch (error) {
+          console.error("SignIn onSuccess callback failed", error);
+        } finally {
+          handlePostLoginAction(state.postLoginAction);
+        }
       }
     },
-    [setCurrentModal, setUser, handlePostLoginAction, resetField]
+    [setCurrentModal, setUser, handlePostLoginAction, onSuccess, resetField]
   );
   const [submit, isPending] = useServerAction(onSubmit);
 
@@ -95,7 +104,9 @@ const SignInModal: FC<SignInModalType> = ({
           <Button
             variant="link"
             size="md"
-            onClick={() => setCurrentModal({ type: "signup" })}
+            onClick={() =>
+              setCurrentModal({ type: "signup", data: { onSuccess } })
+            }
           >
             {t("createAnAccount")}
           </Button>
