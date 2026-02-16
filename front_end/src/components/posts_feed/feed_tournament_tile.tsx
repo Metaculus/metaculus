@@ -42,8 +42,9 @@ const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
       : project.close_date ??
         project.forecasting_end_date ??
         project.start_date;
+  const rawCloseTs = safeTs(rawCloseTime) ?? Date.now() + 1000;
   const scheduled_close_time = new Date(
-    Math.max(new Date(rawCloseTime).getTime(), Date.now() + 1000)
+    Math.max(rawCloseTs, Date.now() + 1000)
   ).toISOString();
 
   return (
