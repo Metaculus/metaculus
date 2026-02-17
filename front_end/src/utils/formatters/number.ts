@@ -83,11 +83,12 @@ export function abbreviatedNumber(
     leadingNumbers = pow + 1;
   }
   if (!isNil(scaling?.range_min) && !isNil(scaling?.range_max)) {
-    // check if sufficiently close to zero just to round
+    // if sufficiently close to zero relative to the size of the range,
+    // assume it should be zero
     if (
       scaling.range_min < val &&
       val < scaling.range_max &&
-      scaling.range_max - scaling.range_min > 200 * Math.abs(val)
+      scaling.range_max - scaling.range_min > 1000 * Math.abs(val)
     ) {
       return "0" + suffix;
     }
