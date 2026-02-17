@@ -1,11 +1,4 @@
-# NEW WORKFLOW - Testing phase
-# This replaces deploy_prod.yml with improved features:
-# - Migration detection for smart preboot toggle
-# - Shared Docker build workflow for better caching and consistency
-#
-# TODO: Once validated, deprecate and delete deploy_prod.yml
-
-name: Deploy PRODUCTION (v2)
+name: Deploy PRODUCTION
 
 run-name: 🚀 Deploy to PRODUCTION by @${{ github.actor }}
 
@@ -146,18 +139,10 @@ jobs:
       - name: Disable preboot (reset to safe default)
         if: always()
         run: |
-          echo "Disabling preboot to ensure safe state for legacy deployment scripts"
+          echo "Disabling preboot to ensure safe default state"
           CURRENT_PREBOOT=$(heroku features:info preboot -a ${{ env.HEROKU_APP }} --json | jq -r '.enabled') || CURRENT_PREBOOT="unknown"
           if [ "$CURRENT_PREBOOT" == "false" ]; then
             echo "Preboot already disabled, skipping"
           else
             heroku features:disable preboot -a ${{ env.HEROKU_APP }} || true
           fi
-
-  # Deploy storybook to Cloudflare Pages
-  deploy-storybook:
-    needs: [deploy]
-    permissions:
-      contents: read
-    uses: ./.github/workflows/storybook.yml
-    secrets: inherit
