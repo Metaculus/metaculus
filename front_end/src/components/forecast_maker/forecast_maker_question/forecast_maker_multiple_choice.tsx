@@ -30,8 +30,9 @@ import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts } from "@/types/post";
 import {
   MultipleChoiceAggregateForecastHistory,
-  QuestionWithMultipleChoiceForecasts,
+  MultipleChoiceOptionsOrder,
   MultipleChoiceUserForecast,
+  QuestionWithMultipleChoiceForecasts,
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { sendPredictEvent } from "@/utils/analytics";
@@ -748,8 +749,13 @@ function generateChoiceOptions(
         : null,
     };
   });
-  const resolutionIndex = allOptions.findIndex(
-    (_, index) => allOptions[index] === question.resolution
+  if (question.options_order === MultipleChoiceOptionsOrder.CP_DESC) {
+    choiceItems.sort(
+      (a, b) => (b.communityForecast ?? 0) - (a.communityForecast ?? 0)
+    );
+  }
+  const resolutionIndex = choiceItems.findIndex(
+    (item) => item.name === question.resolution
   );
   if (resolutionIndex !== -1) {
     const [resolutionItem] = choiceItems.splice(resolutionIndex, 1);

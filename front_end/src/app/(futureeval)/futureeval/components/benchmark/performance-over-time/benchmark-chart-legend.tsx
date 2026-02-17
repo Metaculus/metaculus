@@ -2,6 +2,7 @@
 
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
+import cn from "@/utils/core/cn";
 
 type LegendItem = {
   id: string;
@@ -16,6 +17,8 @@ type Props = {
   onToggleFamily: (family: string) => void;
   onHoverFamily: (family: string | null) => void;
   onClearSelection: () => void;
+  showProjection?: boolean;
+  onToggleProjection?: () => void;
 };
 
 export function BenchmarkChartLegend({
@@ -25,6 +28,8 @@ export function BenchmarkChartLegend({
   onToggleFamily,
   onHoverFamily,
   onClearSelection,
+  showProjection,
+  onToggleProjection,
 }: Props) {
   const { getThemeColor } = useAppTheme();
 
@@ -85,8 +90,8 @@ export function BenchmarkChartLegend({
         )}
       </div>
 
-      {/* Reference benchmarks and SOTA legend */}
-      <div className="mb-4 flex items-center gap-6 text-sm">
+      {/* Reference benchmarks, SOTA legend, and projection toggle */}
+      <div className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
         <div className="flex items-center gap-2">
           <svg width="32" height="2" className="shrink-0">
             <line
@@ -125,6 +130,49 @@ export function BenchmarkChartLegend({
             Human Baselines
           </span>
         </div>
+
+        {onToggleProjection && (
+          <>
+            <div className="hidden h-4 w-px bg-gray-300 dark:bg-gray-600 sm:block" />
+            <button
+              onClick={onToggleProjection}
+              className={cn(
+                "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-all duration-200",
+                showProjection
+                  ? "bg-futureeval-primary-light/15 text-futureeval-primary-light dark:bg-futureeval-primary-dark/15 dark:text-futureeval-primary-dark"
+                  : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              )}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="shrink-0"
+              >
+                {showProjection ? (
+                  <>
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    <line x1="8" y1="11" x2="14" y2="11" />
+                  </>
+                ) : (
+                  <>
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    <line x1="11" y1="8" x2="11" y2="14" />
+                    <line x1="8" y1="11" x2="14" y2="11" />
+                  </>
+                )}
+              </svg>
+              {showProjection ? "Hide Projection" : "Show Projection"}
+            </button>
+          </>
+        )}
       </div>
     </>
   );

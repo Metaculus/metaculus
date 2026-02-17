@@ -182,15 +182,12 @@ const DetailedContinuousChartCard: FC<Props> = ({
 
   const isEmbed = useIsEmbedMode();
 
-  const tooltipIsConsumerView = isConsumerView && !isEmbed;
-
   const cursorTooltip = useMemo(() => {
     return (
       <QuestionPredictionTooltip
         communityPrediction={cpCursorElement}
         userPrediction={userCursorElement}
         totalForecasters={cursorData.forecasterCount}
-        isConsumerView={tooltipIsConsumerView}
         questionStatus={question.status}
       />
     );
@@ -198,7 +195,6 @@ const DetailedContinuousChartCard: FC<Props> = ({
     cpCursorElement,
     userCursorElement,
     cursorData.forecasterCount,
-    tooltipIsConsumerView,
     question.status,
   ]);
 
@@ -236,16 +232,10 @@ const DetailedContinuousChartCard: FC<Props> = ({
       openTime={getPostDrivenTime(question.open_time)}
       unit={question.unit}
       inboundOutcomeCount={question.inbound_outcome_count}
-      simplifiedCursor={
-        question.type !== QuestionType.Binary || (!user && !isEmbed)
-      }
+      simplifiedCursor={false}
       title={timelineTitle}
       forecastAvailability={forecastAvailability}
-      cursorTooltip={
-        question.type === QuestionType.Binary && !user && !isEmbed
-          ? undefined
-          : cursorTooltip
-      }
+      cursorTooltip={cursorTooltip}
       isConsumerView={isConsumerView}
       isEmbedded={isEmbed}
       height={chartHeight}
