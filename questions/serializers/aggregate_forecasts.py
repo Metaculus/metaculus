@@ -76,6 +76,7 @@ def serialize_question_aggregations(
             "movement": None,
         }
     )
+    serialized_data[question.default_aggregation_method]  # ensure default method exists
 
     if aggregate_forecasts is not None:
         aggregate_forecasts_by_method: dict[
@@ -138,4 +139,4 @@ def serialize_question_aggregations(
                 else None
             )
 
-    return serialized_data
+    return dict(serialized_data)  # convert defaultdict to dict

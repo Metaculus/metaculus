@@ -1,11 +1,4 @@
-# NEW WORKFLOW - Testing phase
-# This replaces deploy_dev.yml and deploy_play.yml with a unified staging workflow
-# - Single workflow for both dev and play environments
-# - Shared Docker build workflow for better caching and consistency
-#
-# TODO: Once validated, deprecate and delete deploy_dev.yml and deploy_play.yml
-
-name: Deploy STAGING (v2)
+name: Deploy STAGING
 
 run-name: ${{ fromJSON('{"dev":"🧪","play":"🔮"}')[inputs.environment] || '🧩' }} Deploy to ${{ fromJSON('{"dev":"DEV","play":"PLAY"}')[inputs.environment] || inputs.environment }} by @${{ github.actor }}
 
