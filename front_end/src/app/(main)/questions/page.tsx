@@ -9,6 +9,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import AwaitedWeeklyTopCommentsFeed from "@/components/weekly_top_comments_feed";
 import {
   POST_COMMUNITIES_FILTER,
+  POST_PAGE_FILTER,
   POST_WEEKLY_TOP_COMMENTS_FILTER,
 } from "@/constants/posts_feed";
 import serverMiscApi from "@/services/api/misc/misc.server";
@@ -79,7 +80,14 @@ export default async function Questions(props: {
                     <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
                   }
                 >
-                  <AwaitedPostsFeed filters={filters} isCommunity={false} />
+                  <AwaitedPostsFeed
+                    filters={filters}
+                    isCommunity={false}
+                    // Show tiles only when no filters are applied
+                    showProjectTiles={Object.keys(searchParams).every(
+                      (key) => key === POST_PAGE_FILTER
+                    )}
+                  />
                 </Suspense>
               </>
             )}
