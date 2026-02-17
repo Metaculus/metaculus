@@ -16,8 +16,12 @@ def check_and_handle_comment_spam(author: User, comment: Comment) -> bool:
         f"/admin/comments/comment/{comment.id}/change/"
     )
 
+    base_url = "questions"
+    if comment.on_post.notebook_id is not None:
+        base_url = "notebooks"
+
     content_frontend_url = build_frontend_url(
-        f"/questions/{comment.on_post.id}/#comment-{comment.id}"
+        f"/{base_url}/{comment.on_post.id}/#comment-{comment.id}"
     )
 
     return check_and_handle_content_spam(
