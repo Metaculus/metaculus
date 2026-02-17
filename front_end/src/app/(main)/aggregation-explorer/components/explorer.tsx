@@ -83,6 +83,16 @@ const Explorer: FC<Props> = ({ searchParams }) => {
       ? searchParams.joined_before_date[0]
       : searchParams.joined_before_date) || ""
   );
+  const selectedSubQuestionFromParams = parseSubQuestionOption(
+    question_id,
+    option
+  );
+  const isQuestionSelected = shouldRenderAggregation(
+    data,
+    selectedSubQuestionFromParams
+  );
+  const showQuestionSelector =
+    !post_id || !!error || (!loading && !isQuestionSelected);
 
   // clear subquestion options when post id input changes
   useEffect(() => {
@@ -193,10 +203,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
       return <p className="text-center text-red-600">{error}</p>;
     }
 
-    if (
-      data &&
-      shouldRenderAggregation(data, parseSubQuestionOption(question_id, option))
-    ) {
+    if (data && isQuestionSelected) {
       return (
         <>
           <hr className="mb-6 border-gray-400 dark:border-gray-400-dark" />
@@ -248,117 +255,114 @@ const Explorer: FC<Props> = ({ searchParams }) => {
         return;
       }
       setSelectedSubQuestionOption(value);
-      if (
-        shouldRenderAggregation(
-          data,
-          parseSubQuestionOption(question_id, option)
-        )
-      ) {
+      if (shouldRenderAggregation(data, selectedSubQuestionFromParams)) {
         deleteParam("question_id", false);
         setParam("option", value.replaceAll(" ", "_"), false);
         shallowNavigateToSearchParams();
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [data, question_id, option]
+    [data, selectedSubQuestionFromParams]
   );
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="flex flex-col">
-        <p className="text-center text-xl"> Enter questions ID or URL </p>
-        <p className="mt-2 text-center text-sm">
-          If selecting a subquestion, firstly enter post id or url and then
-          select subquestion ID
-        </p>
-        <div className="m-auto w-full max-w-[500px]">
-          <div className="relative m-auto flex w-full rounded-full text-sm text-gray-900 dark:text-gray-900-dark">
-            <Input
-              name="search"
-              type="search"
-              value={postInputText}
-              onChange={(e) => {
-                setPostInputText(e.target.value);
-                setSubQuestionOptions([]);
-                setSelectedSubQuestionOption(null);
-              }}
-              className="w-full cursor-default overflow-hidden rounded border border-gray-500 bg-white p-3 pr-10 text-left text-sm leading-5 text-gray-900 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 dark:bg-blue-950 dark:text-gray-200 sm:text-sm"
+      {showQuestionSelector ? (
+        <form onSubmit={handleSubmit} className="flex flex-col">
+          <p className="text-center text-xl"> Enter questions ID or URL </p>
+          <p className="mt-2 text-center text-sm">
+            If selecting a subquestion, firstly enter post id or url and then
+            select subquestion ID
+          </p>
+          <div className="m-auto w-full max-w-[500px]">
+            <div className="relative m-auto flex w-full rounded-full text-sm text-gray-900 dark:text-gray-900-dark">
+              <Input
+                name="search"
+                type="search"
+                value={postInputText}
+                onChange={(e) => {
+                  setPostInputText(e.target.value);
+                  setSubQuestionOptions([]);
+                  setSelectedSubQuestionOption(null);
+                }}
+                className="w-full cursor-default overflow-hidden rounded border border-gray-500 bg-white p-3 pr-10 text-left text-sm leading-5 text-gray-900 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 dark:bg-blue-950 dark:text-gray-200 sm:text-sm"
+              />
+              <span className="absolute inset-y-0 right-0 inline-flex h-full justify-center">
+                {!!postInputText && (
+                  <Button
+                    variant="text"
+                    onClick={() => setPostInputText("")}
+                    type="button"
+                    className="-mr-1.5"
+                    aria-label="Clear"
+                  >
+                    <FontAwesomeIcon icon={faXmark} />
+                  </Button>
+                )}
+              </span>
+            </div>
+            <div>{!!postInputText && data?.title}</div>
+            <SubQuestionSelect
+              options={subQuestionOptions}
+              value={selectedSubQuestionOption}
+              onChange={handleSubQuestionSelectChange}
             />
-            <span className="absolute inset-y-0 right-0 inline-flex h-full justify-center">
-              {!!postInputText && (
-                <Button
-                  variant="text"
-                  onClick={() => setPostInputText("")}
-                  type="button"
-                  className="-mr-1.5"
-                  aria-label="Clear"
+            {
+              // TODO: move "include bots" to here instead of in each tab
+              // user ids should only be avilable to staff or whitelisted users
+              // copy logic and parameters from the download data modal
+              <div className="mt-3">
+                <SectionToggle
+                  title="Advanced options"
+                  variant="light"
+                  defaultOpen={!!userIdsText || !!joinedBeforeDate}
                 >
-                  <FontAwesomeIcon icon={faXmark} />
-                </Button>
-              )}
-            </span>
-          </div>
-          <div>{!!postInputText && data?.title}</div>
-          <SubQuestionSelect
-            options={subQuestionOptions}
-            value={selectedSubQuestionOption}
-            onChange={handleSubQuestionSelectChange}
-          />
-          {
-            // TODO: move "include bots" to here instead of in each tab
-            // user ids should only be avilable to staff or whitelisted users
-            // copy logic and parameters from the download data modal
-            <div className="mt-3">
-              <SectionToggle
-                title="Advanced options"
-                variant="light"
-                defaultOpen={!!userIdsText || !!joinedBeforeDate}
-              >
-                <div className="space-y-3">
-                  {user?.is_staff && (
+                  <div className="space-y-3">
+                    {user?.is_staff && (
+                      <div>
+                        <label className="mb-1 block text-sm">
+                          User Ids (comma-separated integers). Will act as if
+                          these are the only participants.
+                        </label>
+                        <Input
+                          name="user_ids"
+                          type="text"
+                          value={userIdsText}
+                          onChange={(e) => setUserIdsText(e.target.value)}
+                          className="w-full cursor-default overflow-hidden rounded border border-gray-500 bg-white p-2 text-left text-sm leading-5 text-gray-900 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 dark:bg-blue-950 dark:text-gray-200 sm:text-sm"
+                        />
+                      </div>
+                    )}
+
                     <div>
                       <label className="mb-1 block text-sm">
-                        User Ids (comma-separated integers). Will act as if
-                        these are the only participants.
+                        Filter for users who joined before date. Only effects
+                        Joined Before aggregation.
                       </label>
                       <Input
-                        name="user_ids"
-                        type="text"
-                        value={userIdsText}
-                        onChange={(e) => setUserIdsText(e.target.value)}
+                        name="joined_before_date"
+                        type="date"
+                        value={joinedBeforeDate}
+                        onChange={(e) => setJoinedBeforeDate(e.target.value)}
                         className="w-full cursor-default overflow-hidden rounded border border-gray-500 bg-white p-2 text-left text-sm leading-5 text-gray-900 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 dark:bg-blue-950 dark:text-gray-200 sm:text-sm"
                       />
                     </div>
-                  )}
-
-                  <div>
-                    <label className="mb-1 block text-sm">
-                      Filter for users who joined before date. Only effects
-                      Joined Before aggregation.
-                    </label>
-                    <Input
-                      name="joined_before_date"
-                      type="date"
-                      value={joinedBeforeDate}
-                      onChange={(e) => setJoinedBeforeDate(e.target.value)}
-                      className="w-full cursor-default overflow-hidden rounded border border-gray-500 bg-white p-2 text-left text-sm leading-5 text-gray-900 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 dark:bg-blue-950 dark:text-gray-200 sm:text-sm"
-                    />
                   </div>
-                </div>
-              </SectionToggle>
-            </div>
-          }
-          <Button
-            variant="primary"
-            type="submit"
-            aria-label="Search"
-            className="m-auto mt-4 w-full rounded border-gray-500 bg-blue-200 text-black hover:bg-blue-700 hover:text-white dark:border-gray-500-dark dark:bg-blue-200-dark dark:text-white dark:hover:bg-blue-300-dark"
-          >
-            {t("search")}
-            <FontAwesomeIcon icon={faMagnifyingGlass} />
-          </Button>
-        </div>
-      </form>
+                </SectionToggle>
+              </div>
+            }
+            <Button
+              variant="primary"
+              type="submit"
+              aria-label="Search"
+              className="m-auto mt-4 w-full rounded border-gray-500 bg-blue-200 text-black hover:bg-blue-700 hover:text-white dark:border-gray-500-dark dark:bg-blue-200-dark dark:text-white dark:hover:bg-blue-300-dark"
+            >
+              {t("search")}
+              <FontAwesomeIcon icon={faMagnifyingGlass} />
+            </Button>
+          </div>
+        </form>
+      ) : null}
 
       {renderContent()}
     </>
@@ -447,7 +451,7 @@ function parseSubQuestionOption(
 ) {
   return !isNaN(Number(question_id?.toString()))
     ? Number(question_id?.toString())
-    : option?.toString().replaceAll("_", " ") ?? null;
+    : (option?.toString().replaceAll("_", " ") ?? null);
 }
 
 function shouldRenderAggregation(
