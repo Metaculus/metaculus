@@ -1,7 +1,10 @@
+from typing import cast
+
 from comments.models import Comment
+from posts.models import Post
 from users.models import User, UserSpamActivity
 from users.services.spam_detection import check_and_handle_content_spam
-from utils.frontend import build_frontend_url
+from utils.frontend import build_frontend_url, build_post_url
 
 
 def check_and_handle_comment_spam(author: User, comment: Comment) -> bool:
@@ -16,8 +19,8 @@ def check_and_handle_comment_spam(author: User, comment: Comment) -> bool:
         f"/admin/comments/comment/{comment.id}/change/"
     )
 
-    content_frontend_url = build_frontend_url(
-        f"/questions/{comment.on_post.id}/#comment-{comment.id}"
+    content_frontend_url = (
+        f"{build_post_url(cast(Post, comment.on_post))}#comment-{comment.id}"
     )
 
     return check_and_handle_content_spam(
