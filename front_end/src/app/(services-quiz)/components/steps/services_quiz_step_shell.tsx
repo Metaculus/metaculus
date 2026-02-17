@@ -14,7 +14,7 @@ const ServicesQuizStepShell: React.FC<Props> = ({
 }) => {
   return (
     <div className="flex flex-1 flex-col sm:justify-center">
-      <div className="mx-4 mt-4 sm:-mt-[170px] md:mx-0">
+      <div className="mx-4 mt-4 md:mx-0 [@media(min-width:640px)_and_(min-height:900px)]:-mt-[170px]">
         <h2
           className={cn(
             "m-0 mb-4 text-[20px] font-bold leading-[25px] text-blue-700 dark:text-blue-700-dark sm:mb-9 sm:text-center sm:text-[28px] sm:leading-[34px]",
