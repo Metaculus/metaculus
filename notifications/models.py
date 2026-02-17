@@ -3,6 +3,11 @@ from django.db import models
 from utils.models import TimeStampedModel
 
 
+class NotificationQuerySet(models.QuerySet):
+    def filter_pending_email(self):
+        return self.filter(email_sent=False, read_at__isnull=True)
+
+
 class Notification(TimeStampedModel):
     """
     Platform notifications.
@@ -20,6 +25,8 @@ class Notification(TimeStampedModel):
     read_at = models.DateTimeField(null=True, db_index=True)
 
     email_sent = models.BooleanField(default=False, db_index=True)
+
+    objects = NotificationQuerySet.as_manager()
 
     def mark_as_sent(self):
         self.email_sent = True

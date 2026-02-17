@@ -44,9 +44,10 @@
 #
 # =============================================================================
 
-name: Docker Build (Reusable)
+name: Docker Build
 
 on:
+  workflow_dispatch:
   workflow_call:
     inputs:
       # Include latest tag (for production deployments)

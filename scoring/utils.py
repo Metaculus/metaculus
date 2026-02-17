@@ -2,7 +2,7 @@ import csv
 import logging
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from io import StringIO
 
@@ -266,6 +266,7 @@ def generate_comment_insight_leaderboard_entries(
 
     comments = (
         Comment.objects.filter(
+            created_at__lte=leaderboard.end_time or make_aware(datetime.max),
             on_post__in=posts,
         )
         .annotate(
@@ -275,8 +276,11 @@ def generate_comment_insight_leaderboard_entries(
                     filter=Q(
                         created_at__gte=leaderboard.start_time
                         or make_aware(datetime.min),
-                        created_at__lte=leaderboard.end_time
-                        or make_aware(datetime.max),
+                        created_at__lte=(
+                            leaderboard.end_time + timedelta(days=100)
+                            if leaderboard.end_time
+                            else make_aware(datetime.max)
+                        ),
                     ),
                     aggregate=Sum,
                 ),
@@ -936,7 +940,11 @@ def get_contribution_comment_insight(user: User, leaderboard: Leaderboard):
                 "comment_votes__direction",
                 filter=Q(
                     created_at__gte=leaderboard.start_time or make_aware(datetime.min),
-                    created_at__lte=leaderboard.end_time or make_aware(datetime.max),
+                    created_at__lte=(
+                        leaderboard.end_time + timedelta(days=100)
+                        if leaderboard.end_time
+                        else make_aware(datetime.max)
+                    ),
                 ),
                 aggregate=Sum,
             )
