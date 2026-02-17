@@ -936,6 +936,7 @@
   "ifCandidateElected": "si {candidate} es elegido",
   "electoralConsequences": "Consecuencias Electorales",
   "trackRecordShowStatistics": "Un Historial de Desempeño muestra algunas estadísticas sobre el rendimiento del predictor.",
+  "openInAggregationExplorer": "Abrir en el Explorador de Agregación",
   "downloadQuestionData": "Descargar datos de la Pregunta",
   "downloadQuestionDataError": "Error al descargar los datos de la Pregunta",
   "learnMoreAboutQuestionWriting": "Aprender más sobre la redacción de preguntas",

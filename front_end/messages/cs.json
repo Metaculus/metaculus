@@ -925,6 +925,7 @@
   "metaculusTrackRecord": "Metaculus Záznam výkonu",
   "trackRecordOutdatedMessage": "Tento záznam výkonu ještě nepoužívá nové základní a kolegové skóre <link>uvedené v listopadu 2023</link>. Aktualizace této stránky je jednou z našich dalších priorit.",
   "trackRecordShowStatistics": "Záznam výkonu ukazuje několik statistik o výkonu předpověditele.",
+  "openInAggregationExplorer": "Otevřít v průzkumníku agregací",
   "downloadQuestionData": "Stáhnout data otázky",
   "downloadQuestionDataError": "Chyba při stahování dat otázky",
   "learnMoreAboutQuestionWriting": "Zjistit více o psaní otázek",

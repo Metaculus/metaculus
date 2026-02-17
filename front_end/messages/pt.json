@@ -1003,6 +1003,7 @@
   "Categories": "Categorias",
   "markUserAsSpamButton": "Marcar Usuário como Spam",
   "markUserAsSpam?": "Você tem certeza de que deseja marcar este usuário como spam?",
+  "openInAggregationExplorer": "Abrir no Explorador de Agregação",
   "downloadQuestionData": "Baixar dados da Pergunta",
   "downloadQuestionDataError": "Erro ao baixar dados da Pergunta",
   "details": "Detalhes",

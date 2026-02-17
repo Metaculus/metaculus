@@ -55,8 +55,8 @@ export default function AggregationExplorerV2Page() {
   };
 
   return (
-    <main className="mx-auto flex min-h-[calc(90vh-120px)] w-full items-center px-4 sm:px-6">
-      <section className="w-full p-6 sm:p-10">
+    <main className="mx-auto flex min-h-[calc(90vh-120px)] w-full items-center px-4 lg:px-20">
+      <section className="mx-auto w-full max-w-[1352px] p-6 sm:p-10">
         <div className="mx-auto max-w-2xl text-center">
           <h1 className="text-balance text-3xl font-semibold text-blue-900 dark:text-blue-900-dark sm:text-4xl">
             Aggregation Explorer
@@ -68,7 +68,7 @@ export default function AggregationExplorerV2Page() {
           <SearchForm
             value={queryInput}
             error={error}
-            disabled={isPostDataPending}
+            disabled={postId !== null && isPostDataPending}
             onSubmit={handleExplore}
             onChange={(value) => {
               setQueryInput(value);

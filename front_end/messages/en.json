@@ -739,6 +739,7 @@
   "boost": "Boost",
   "bury": "Bury",
   "duplicate": "Duplicate",
+  "openInAggregationExplorer": "Open in Aggregation Explorer",
   "downloadQuestionData": "Download Question data",
   "partnersUseForecasts": "Our partners use Metaculus forecasts to gain insight into complex challenges and decisions.",
   "learnHowYouCanPartner": "Learn how you can partner with Metaculus to host a forecasting tournament, collaborate on forecasting research, hire our <link>Pro Forecasters</link> for custom projects, or set up a private forecasting space for your organization.",

@@ -922,6 +922,7 @@
   "metaculusTrackRecord": "Metaculus跟踪记录",
   "trackRecordOutdatedMessage": "这个跟踪记录尚未使用2023年11月引入的新基线和同伴分数。更新此页面是我们的下一个优先事项之一。",
   "trackRecordShowStatistics": "跟踪记录显示有关预测者表现的统计数据。",
+  "openInAggregationExplorer": "在聚合探索器中打开",
   "downloadQuestionData": "下载问题数据",
   "downloadQuestionDataError": "下载问题数据时出错",
   "learnMoreAboutQuestionWriting": "了解更多关于问题书写的信息",

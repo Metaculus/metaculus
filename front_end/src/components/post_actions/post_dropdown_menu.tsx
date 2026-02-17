@@ -231,6 +231,15 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
     // Include if post does not have a notebook
     ...(!post.notebook
       ? [
+          ...(isQuestionPost(post)
+            ? [
+                {
+                  id: "openInAggregationExplorer",
+                  name: t("openInAggregationExplorer"),
+                  link: `/aggregation-explorer-v2?post_id=${post.id}`,
+                },
+              ]
+            : []),
           {
             id: "downloadQuestionData",
             name: t("downloadQuestionData"),
