@@ -38,6 +38,15 @@ from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
 
 
+class UnixTimestampSplitDateTimeWidget(forms.SplitDateTimeWidget):
+    """Widget that handles float (Unix timestamp) values in decompress."""
+
+    def decompress(self, value):
+        if isinstance(value, (int, float)):
+            value = datetime.fromtimestamp(value, tz=dt_timezone.utc)
+        return super().decompress(value)
+
+
 class UnixTimestampDateTimeField(forms.SplitDateTimeField):
     """Form field that displays a Unix timestamp float as a datetime input.
 
@@ -49,6 +58,11 @@ class UnixTimestampDateTimeField(forms.SplitDateTimeField):
         if isinstance(value, (int, float)):
             value = datetime.fromtimestamp(value, tz=dt_timezone.utc)
         return super().prepare_value(value)
+
+    def has_changed(self, initial, data):
+        if isinstance(initial, (int, float)):
+            initial = datetime.fromtimestamp(initial, tz=dt_timezone.utc)
+        return super().has_changed(initial, data)
 
     def compress(self, data_list):
         dt = super().compress(data_list)
@@ -75,7 +89,7 @@ class QuestionAdminForm(forms.ModelForm):
                         help_text=(original.help_text or "")
                         + " (Displayed as datetime for date questions;"
                         " stored as Unix timestamp.)",
-                        widget=forms.SplitDateTimeWidget(
+                        widget=UnixTimestampSplitDateTimeWidget(
                             date_attrs={"type": "date"},
                             time_attrs={"type": "time"},
                         ),
