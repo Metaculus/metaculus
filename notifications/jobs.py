@@ -73,6 +73,7 @@ def _send_grouped_notifications(qs):
             notification
         )
 
+    # Running notifications scheduling
     for recipient, groups in grouped_notifications.items():
         for notification_type, notifications in groups.items():
             handler_cls = get_notification_handler_by_type(notification_type)
