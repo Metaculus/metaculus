@@ -39,7 +39,7 @@ def create_binary_question_with_forecasts(
 def test_preopen_binary_single_user_score_parity():
     """
     Tests that a forecast with a start_time before the question's open_time doesn't
-    effect scores compared to a forecast with a start_time at the question's open_time.
+    affect scores compared to a forecast with a start_time at the question's open_time.
     """
     open_time = datetime_aware(2025, 1, 1)
     actual_close_time = datetime_aware(2026, 1, 1)
@@ -91,7 +91,7 @@ def test_preopen_binary_single_user_score_parity():
 def test_preopen_binary_multiple_user_score_parity():
     """
     Tests that a forecast with a start_time before the question's open_time doesn't
-    effect scores compared to a forecast with a start_time at the question's open_time.
+    affect scores compared to a forecast with a start_time at the question's open_time.
     """
     open_time = datetime_aware(2025, 1, 1)
     actual_close_time = datetime_aware(2026, 1, 1)
