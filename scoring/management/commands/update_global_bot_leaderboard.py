@@ -1,8 +1,10 @@
 import random
 from collections import defaultdict
+import csv
 from pathlib import Path
 
 from datetime import datetime, timedelta, timezone as dt_timezone
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db.models import Exists, OuterRef, Prefetch, QuerySet, Q
 from django.utils import timezone
@@ -51,7 +53,7 @@ def get_score_pair(
         for gm in geometric_means[::-1]:
             end = max(min(current_timestamp, actual_close_time), forecast_horizon_start)
             start = max(min(gm.timestamp, actual_close_time), forecast_horizon_start)
-            if gm.num_forecasters == 2:  # converage only when both have a forecast
+            if gm.num_forecasters == 2:  # coverage only when both have a forecast
                 coverage += max(0, (end - start)) / total_duration
                 cvs.append(max(0, (end - start)) / total_duration)
             current_timestamp = gm.timestamp
@@ -104,41 +106,54 @@ def get_score_pair(
 def gather_data(
     users: QuerySet[User],
     questions: QuerySet[Question],
-    cache: bool = False,
-) -> tuple[list[int | str], list[int | str], list[int], list[float], list[float]]:
-    if cache:
+    cache_use: str | None = "partial",
+) -> tuple[
+    list[int | str], list[int | str], list[int], list[float], list[float], list[float]
+]:
+    user1_ids: list[int | str] = []
+    user2_ids: list[int | str] = []
+    question_ids: list[int] = []
+    scores: list[float] = []
+    coverages: list[float] = []
+    timestamps: list[float] = []
+    if cache_use == "full":
+        # load all from cache, don't calculate more
+        def _deserialize_user(value: str) -> int | str:
+            value = value.strip()
+            if not value:
+                return value
+            try:
+                return int(value)
+            except ValueError:
+                return value
+
         csv_path = Path("HtH_score_data.csv")
-        if csv_path.exists():
-            userset = set([str(u.id) for u in users]) | {
-                "Pro Aggregate",
-                "Community Aggregate",
-            }
-            import csv
+        with csv_path.open("r") as input_file:
+            reader = csv.DictReader(input_file)
+            for row in reader:
+                user1_ids.append(_deserialize_user(row["user1"]))
+                user2_ids.append(_deserialize_user(row["user2"]))
+                question_ids.append(int(row["questionid"]))
+                scores.append(float(row["score"]))
+                coverages.append(float(row["coverage"]))
+                timestamps.append(float(row["timestamp"]))
 
-            def _deserialize_user(value: str) -> int | str:
-                value = value.strip()
-                if not value:
-                    return value
-                try:
-                    return int(value)
-                except ValueError:
-                    return value
+        return (user1_ids, user2_ids, question_ids, scores, coverages, timestamps)
 
-            user1_ids: list[int | str] = []
-            user2_ids: list[int | str] = []
-            question_ids: list[int] = []
-            scores: list[float] = []
-            coverages: list[float] = []
-            with csv_path.open() as input_file:
-                reader = csv.DictReader(input_file)
-                for row in reader:
-                    if (row["user1"] in userset) and (row["user2"] in userset):
-                        user1_ids.append(_deserialize_user(row["user1"]))
-                        user2_ids.append(_deserialize_user(row["user2"]))
-                        question_ids.append(int(row["questionid"]))
-                        scores.append(float(row["score"]))
-                        coverages.append(float(row["coverage"]))
-            return (user1_ids, user2_ids, question_ids, scores, coverages)
+    if cache_use == "partial":
+        csv_path = Path("HtH_score_data.csv")
+        if not csv_path.exists():
+            with csv_path.open("w") as output_file:
+                writer = csv.writer(output_file)
+                writer.writerow(
+                    ["user1", "user2", "questionid", "score", "coverage", "timestamp"]
+                )
+        with csv_path.open("r") as input_file:
+            reader = csv.DictReader(input_file)
+            for row in reader:
+                question_ids.append(int(row["questionid"]))
+    cached_question_ids = set(question_ids)
+    question_ids = []
 
     # TODO: make authoritative mapping
     print("creating AIB <> Pro AIB question mapping...", end="\r")
@@ -149,6 +164,7 @@ def gather_data(
             32627,  # Q1 2025
             32721,  # Q2 2025
             32813,  # fall 2025
+            32916,  # Q1 2026
         ]
     )
     aib_to_pro_version = {
@@ -157,20 +173,19 @@ def gather_data(
         32627: 32631,
         32721: 32761,
         32813: None,
+        32916: 32930,
     }
     aib_question_map: dict[Question, Question | None] = dict()
     for aib in aib_projects:
         pro_id = aib_to_pro_version[aib.id]
-        aib_questions = Question.objects.filter(
-            related_posts__post__default_project=aib
-        )
+        aib_questions = Question.objects.filter(post__default_project=aib)
         pro_questions_by_title: dict[str, Question] = {
             q.title: q
             for q in (
                 []
                 if not pro_id
                 else Question.objects.filter(
-                    related_posts__post__default_project=pro_id,
+                    post__default_project=pro_id,
                     resolution__isnull=False,
                 ).exclude(resolution__in=UnsuccessfulResolutionType)
             )
@@ -182,45 +197,41 @@ def gather_data(
     print("creating AIB <> Pro AIB question mapping...DONE\n")
     #
     user_ids = users.values_list("id", flat=True)
-    user_id_map = {user.id: user for user in users}
+    t0 = datetime.now()
+    question_count = questions.count()
+    questions = list(questions)
+    cache_interval = 100
     print("Processing Pairwise Scoring:")
     print("|   Question  |  ID   |   Pairing   |    Duration    | Est. Duration  |")
-    t0 = datetime.now()
-    question_count = len(questions)
-    user1_ids: list[int | str] = []
-    user2_ids: list[int | str] = []
-    question_ids: list[int] = []
-    scores: list[float] = []
-    coverages: list[float] = []
-    for question_number, question in enumerate(questions.iterator(chunk_size=10), 1):
-        # if question_number % 50 != 0:
-        #     continue
+    for question_number, question in enumerate(questions, 1):
+        # TODO: cache results every ~100 questions, clearing lists of values
         question_print_str = (
             f"\033[K"
             f"| {question_number:>5}/{question_count:<5} "
             f"| {question.id:<5} "
         )
+        if question.id in cached_question_ids:
+            # Skip questions that are already cached
+            duration = datetime.now() - t0
+            est_duration = duration / question_number * question_count
+            print(
+                f"{question_print_str}"
+                f"| {'N':>5}/{'A':<5} "
+                f"| {duration} "
+                f"| {est_duration} "
+                "|",
+                end="\r",
+            )
+            continue
         # Get forecasts
         forecast_dict: dict[int | str, list[Forecast | AggregateForecast]] = (
             defaultdict(list)
         )
-        # bot forecasts - simple
+        # bot forecasts
         bot_forecasts = question.user_forecasts.filter(author_id__in=user_ids).order_by(
             "start_time"
         )
         for f in bot_forecasts:
-            # don't include forecasts made 1 year or more after model release
-            user = user_id_map[f.author_id]
-            primary_base_model = user.metadata["bot_details"]["base_models"][0]
-            if release_date := primary_base_model.get("model_release_date"):
-                if len(release_date) == 7:
-                    release_date += "-01"
-                release = datetime.fromisoformat(release_date).replace(
-                    tzinfo=dt_timezone.utc
-                )
-                if f.start_time > release + timedelta(days=365):
-                    continue
-
             forecast_dict[f.author_id].append(f)
         # human aggregate forecasts - conditional on a bunch of stuff
         human_question: Question | None = aib_question_map.get(question, question)
@@ -234,10 +245,13 @@ def gather_data(
                 if question.default_score_type == ScoreTypes.SPOT_PEER
                 else AggregationMethod.RECENCY_WEIGHTED
             )
+            # aggregate_forecasts = human_question.aggregate_forecasts.filter(
+            #     method=aggregation_method
+            # ).order_by("start_time")
             aggregate_forecasts = get_aggregation_history(
                 human_question,
                 [aggregation_method],
-                minimize=False,
+                minimize=100,
                 include_stats=False,
                 include_bots=False,
                 include_future=False,
@@ -246,6 +260,7 @@ def gather_data(
                 pass
             elif question in aib_question_map:
                 # set the last aggregate to be the one that gets scored
+                # TODO: instead grab the aggregate that was live at spot scoring time
                 forecast = aggregate_forecasts[-1]
                 forecast.start_time = question.get_spot_scoring_time() - timedelta(
                     seconds=1
@@ -283,19 +298,57 @@ def gather_data(
                     question_ids.append(q)
                     scores.append(u1s)
                     coverages.append(cov)
+                    timestamps.append(question.actual_close_time.timestamp())
+        if cache_use == "partial" and question_number % cache_interval == 0:
+            print(f"\nCaching {len(user1_ids)} matches...")
+            with csv_path.open("a") as output_file:
+                writer = csv.writer(output_file)
+                for row in zip(
+                    user1_ids, user2_ids, question_ids, scores, coverages, timestamps
+                ):
+                    writer.writerow(row)
+            user1_ids = []
+            user2_ids = []
+            question_ids = []
+            scores = []
+            coverages = []
+            timestamps = []
     print("\n")
-    weights = coverages
 
-    if cache:
-        import csv
-
-        with open("HtH_score_data.csv", "w") as output_file:
+    if cache_use:
+        with csv_path.open("a") as output_file:
             writer = csv.writer(output_file)
-            writer.writerow(["user1", "user2", "questionid", "score", "coverage"])
-            for row in zip(user1_ids, user2_ids, question_ids, scores, weights):
+            for row in zip(
+                user1_ids, user2_ids, question_ids, scores, coverages, timestamps
+            ):
                 writer.writerow(row)
+        user1_ids = []
+        user2_ids = []
+        question_ids = []
+        scores = []
+        coverages = []
+        timestamps = []
 
-    return (user1_ids, user2_ids, question_ids, scores, weights)
+        def _deserialize_user(value: str) -> int | str:
+            value = value.strip()
+            if not value:
+                return value
+            try:
+                return int(value)
+            except ValueError:
+                return value
+
+        with csv_path.open("r") as input_file:
+            reader = csv.DictReader(input_file)
+            for row in reader:
+                user1_ids.append(_deserialize_user(row["user1"]))
+                user2_ids.append(_deserialize_user(row["user2"]))
+                question_ids.append(int(row["questionid"]))
+                scores.append(float(row["score"]))
+                coverages.append(float(row["coverage"]))
+                timestamps.append(float(row["timestamp"]))
+
+    return (user1_ids, user2_ids, question_ids, scores, coverages, timestamps)
 
 
 def get_avg_scores(
@@ -407,7 +460,7 @@ def estimate_variances_from_head_to_head(
         )
         print(f"σ_true (skill variance): {skill_variance:.4f}")
         print(f"alpha = (σ_error / σ_true)² = {alpha:.4f}")
-    return 2
+    return alpha
 
 
 def compute_skills(
@@ -470,6 +523,7 @@ def rescale_skills_(
     scale_factor = np.sqrt(var_avg_scores / var_skills)
     for uid in skills:
         skills[uid] *= scale_factor
+    print("Scale factor", scale_factor)
     return skills
 
 
@@ -570,7 +624,7 @@ def bootstrap_skills(
         boot_question_ids: list[int] = []
         boot_scores: list[float] = []
         boot_weights: list[float] = []
-        # resample questions with repalcement
+        # resample questions with replacement
         for question_id in random.choices(question_ids_set, k=len(question_ids_set)):
             data = data_by_question[question_id]
             boot_user1_ids.extend(data[0])
@@ -583,7 +637,7 @@ def bootstrap_skills(
         boot_skills = get_skills(
             user1_ids=boot_user1_ids,
             user2_ids=boot_user2_ids,
-            question_ids=question_ids,
+            question_ids=boot_question_ids,
             scores=boot_scores,
             weights=boot_weights,
             baseline_player=baseline_player,
@@ -604,302 +658,441 @@ def bootstrap_skills(
     return ci_lower, ci_upper
 
 
+def run_update_global_bot_leaderboard(
+    cache_use: str = "partial",
+) -> None:
+    baseline_player: int | str = 236038  # metac-gpt-4o+asknews
+    bootstrap_iterations = 30
+
+    # SETUP: users to evaluate & questions
+    print("Initializing...")
+    users: QuerySet[User] = User.objects.filter(
+        is_bot=True,
+        # metadata__bot_details__metac_bot=True,
+        # metadata__bot_details__include_in_calculations=True,
+        # metadata__bot_details__display_in_leaderboard=True,
+    ).order_by("id")
+    user_forecast_exists = Forecast.objects.filter(
+        question_id=OuterRef("pk"), author__in=users
+    )
+    questions: QuerySet[Question] = (
+        Question.objects.filter(
+            Q(post__default_project__default_permission__in=["viewer", "forecaster"])
+            | Q(
+                post__default_project_id__in=[
+                    3349,  # aib q3 2024
+                    32506,  # aib q4 2024
+                    32627,  # aib q1 2025
+                    32721,  # aib q2 2025
+                    32813,  # aib fall 2025
+                ]
+            ),
+            post__curation_status=Post.CurationStatus.APPROVED,
+            resolution__isnull=False,
+            scheduled_close_time__lte=timezone.now(),
+        )
+        .exclude(post__default_project__slug__startswith="minibench")
+        .exclude(resolution__in=UnsuccessfulResolutionType)
+        .filter(Exists(user_forecast_exists))
+        .prefetch_related(  # only prefetch forecasts from those users
+            Prefetch(
+                "user_forecasts", queryset=Forecast.objects.filter(author__in=users)
+            )
+        )
+        .distinct("id")
+    )
+    print("Initializing... DONE")
+
+    # Gather head to head scores
+    user1_ids, user2_ids, question_ids, scores, coverages, timestamps = gather_data(
+        users, questions, cache_use=cache_use
+    )
+
+    # for pro aggregation, community aggregate, and any non-metac bot,
+    # duplicate rows indicating year-specific achievements
+    new_user1_ids = []
+    new_user2_ids = []
+    new_question_ids = []
+    new_scores = []
+    new_coverages = []
+    new_timestamps = []
+    for user1_id, user2_id, question_id, score, coverage, timestamp in zip(
+        user1_ids, user2_ids, question_ids, scores, coverages, timestamps
+    ):
+        if user1_id == "Community Aggregate":
+            new_user1_ids.append(
+                f"Community Aggregate ({datetime.fromtimestamp(timestamp).year})"
+            )
+            new_user2_ids.append(user2_id)
+            new_question_ids.append(question_id)
+            new_scores.append(score)
+            new_coverages.append(coverage)
+            new_timestamps.append(timestamp)
+        elif user2_id == "Community Aggregate":
+            new_user1_ids.append(user1_id)
+            new_user2_ids.append(
+                f"Community Aggregate ({datetime.fromtimestamp(timestamp).year})"
+            )
+            new_question_ids.append(question_id)
+            new_scores.append(score)
+            new_coverages.append(coverage)
+            new_timestamps.append(timestamp)
+        else:
+            new_user1_ids.append(user1_id)
+            new_user2_ids.append(user2_id)
+            new_question_ids.append(question_id)
+            new_scores.append(score)
+            new_coverages.append(coverage)
+            new_timestamps.append(timestamp)
+    user1_ids = new_user1_ids
+    user2_ids = new_user2_ids
+    question_ids = new_question_ids
+    scores = new_scores
+    coverages = new_coverages
+    timestamps = new_timestamps
+
+    ###############
+    ###############
+    ###############
+    # Filter out entries we don't care about
+    # and map some users to other users
+    userid_mapping = {
+        189585: 236038,  # mf-bot-1 -> metac-gpt-4o+asknews
+        189588: 236041,  # mf-bot-3 -> metac-claude-3-5-sonnet-20240620+asknews
+        208405: 240416,  # mf-bot-4 -> metac-o1-preview
+        221727: 236040,  # mf-bot-5 -> metac-claude-3-5-sonnet-latest+asknews
+    }
+    print(f"Filtering {len(timestamps)} matches down to only relevant identities ...")
+    relevant_users = User.objects.filter(
+        metadata__bot_details__metac_bot=True,
+        # metadata__bot_details__include_in_calculations=True, # TODO: this should be
+        # but we don't have that data correct at the moment
+    )
+    # make sure they have at least 'minimum_resolved_questions' resolved questions
+    print("Filtering users.")
+    minimum_resolved_questions = 100
+    scored_question_counts: dict[int, int] = defaultdict(int)
+    c = relevant_users.count()
+    i = 0
+    for user in relevant_users:
+        i += 1
+        print(i, "/", c, end="\r")
+        scored_question_counts[user.id] = (
+            Score.objects.filter(
+                user=user,
+                score_type="peer",
+                question__in=questions,
+            )
+            .distinct("question_id")
+            .count()
+        )
+    excluded_ids = [
+        uid
+        for uid, count in scored_question_counts.items()
+        if count < minimum_resolved_questions
+    ]
+    relevant_users = relevant_users.exclude(id__in=excluded_ids)
+    print(f"Filtered {c} users down to {relevant_users.count()}.")
+    ###############
+    ###############
+    ###############
+
+    user_map = {user.id: user for user in relevant_users}
+    relevant_identities = set(relevant_users.values_list("id", flat=True)) | {
+        "Pro Aggregate",
+        "Community Aggregate",
+        # "Community Aggregate (2024)",
+        "Community Aggregate (2025)",
+        "Community Aggregate (2026)",
+    }
+    filtered_user1_ids = []
+    filtered_user2_ids = []
+    filtered_question_ids = []
+    filtered_scores = []
+    filtered_coverages = []
+    filtered_timestamps = []
+    for u1id, u2id, qid, score, coverage, timestamp in zip(
+        user1_ids, user2_ids, question_ids, scores, coverages, timestamps
+    ):
+        # replace userIds according to the mapping
+        u1id = userid_mapping.get(u1id, u1id)
+        u2id = userid_mapping.get(u2id, u2id)
+        # skip if either user is not in relevant identities
+        if (u1id not in relevant_identities) or (u2id not in relevant_identities):
+            continue
+        # skip if either user model is more than a year old at time of 'timestamp'
+        match_users = [user_map[u] for u in (u1id, u2id) if (u in user_map)]
+        skip = False
+        for user in match_users:
+            base_models = (
+                (user.metadata or dict())
+                .get("bot_details", dict())
+                .get("base_models", [])
+            )
+            if release_date := (
+                base_models[0].get("model_release_date") if base_models else None
+            ):
+                if len(release_date) == 7:
+                    release_date += "-01"
+                release = (
+                    datetime.fromisoformat(release_date)
+                    .replace(tzinfo=dt_timezone.utc)
+                    .timestamp()
+                )
+                if timestamp > release + timedelta(days=365).total_seconds():
+                    skip = True
+        if skip:
+            continue
+
+        # done
+        filtered_user1_ids.append(u1id)
+        filtered_user2_ids.append(u2id)
+        filtered_question_ids.append(qid)
+        filtered_scores.append(score)
+        filtered_coverages.append(coverage)
+        filtered_timestamps.append(timestamp)
+    user1_ids = filtered_user1_ids
+    user2_ids = filtered_user2_ids
+    question_ids = filtered_question_ids
+    scores = filtered_scores
+    coverages = filtered_coverages
+    timestamps = filtered_timestamps
+    print(f"Filtered down to {len(timestamps)} matches.\n")
+    # ###############
+
+    # choose baseline player if not already chosen
+    if not baseline_player:
+        baseline_player = max(
+            set(user1_ids) | set(user2_ids), key=(user1_ids + user2_ids).count
+        )
+    # get variance of average scores (used in rescaling)
+    avg_scores = get_avg_scores(user1_ids, user2_ids, scores, coverages)
+    var_avg_scores = (
+        np.var(np.array(list(avg_scores.values()))) if len(avg_scores) > 1 else 0
+    )
+
+    # compute skills initially
+    skills = get_skills(
+        user1_ids=user1_ids,
+        user2_ids=user2_ids,
+        question_ids=question_ids,
+        scores=scores,
+        weights=coverages,
+        baseline_player=baseline_player,
+        var_avg_scores=var_avg_scores,
+        verbose=True,
+    )
+
+    # Compute bootstrap confidence intervals
+    ci_lower, ci_upper = bootstrap_skills(
+        user1_ids,
+        user2_ids,
+        question_ids,
+        scores,
+        coverages,
+        var_avg_scores,
+        baseline_player=baseline_player,
+        bootstrap_iterations=bootstrap_iterations,
+    )
+    print()
+
+    ordered_skills = sorted(
+        [(user, skill) for user, skill in skills.items()], key=lambda x: -x[1]
+    )
+    player_stats: dict[int | str, list] = dict()
+    for u1id, u2id, qid in zip(user1_ids, user2_ids, question_ids):
+        if u1id not in player_stats:
+            player_stats[u1id] = [0, set()]
+        if u2id not in player_stats:
+            player_stats[u2id] = [0, set()]
+        player_stats[u1id][0] += 1
+        player_stats[u1id][1].add(qid)
+        player_stats[u2id][0] += 1
+        player_stats[u2id][1].add(qid)
+
+    ##########################################################################
+    ##########################################################################
+    ##########################################################################
+    ##########################################################################
+    # UPDATE Leaderboard
+    print("Updating leaderboard...", end="\r")
+    leaderboard, _ = Leaderboard.objects.get_or_create(
+        name="Global Bot Leaderboard",
+        project=Project.objects.get(type=Project.ProjectTypes.SITE_MAIN),
+        score_type=LeaderboardScoreTypes.MANUAL,
+        bot_status=Project.BotLeaderboardStatus.BOTS_ONLY,
+    )
+    entry_dict = {
+        entry.user_id or entry.aggregation_method: entry
+        for entry in list(leaderboard.entries.all())
+    }
+    rank = 1
+    question_count = len(set(question_ids))
+    seen = set()
+    for uid, skill in ordered_skills:
+        contribution_count = len(player_stats[uid][1])
+
+        excluded = False
+        if isinstance(uid, int):
+            user = User.objects.get(id=uid)
+            bot_details = (user.metadata or dict()).get("bot_details")
+            if bot_details and not bot_details.get("display_in_leaderboard"):
+                excluded = True
+
+        entry: LeaderboardEntry = entry_dict.pop(uid, LeaderboardEntry())
+        entry.user_id = uid if isinstance(uid, int) else None
+        entry.aggregation_method = uid if isinstance(uid, str) else None
+        entry.leaderboard = leaderboard
+        entry.score = skill
+        entry.rank = rank
+        entry.excluded = excluded
+        entry.show_when_excluded = False
+        entry.contribution_count = contribution_count
+        entry.coverage = contribution_count / question_count
+        entry.calculated_on = timezone.now()
+        entry.ci_lower = ci_lower.get(uid, None)
+        entry.ci_upper = ci_upper.get(uid, None)
+        # TODO: support for more efficient saving once this is implemented
+        # for leaderboards with more than 100 entries
+        entry.save()
+        seen.add(entry.id)
+
+        if not excluded:
+            rank += 1
+    print("Updating leaderboard... DONE")
+    # delete unseen entries
+    leaderboard.entries.exclude(id__in=seen).delete()
+    print()
+
+    ##########################################################################
+    ##########################################################################
+    ##########################################################################
+    ##########################################################################
+    # DISPLAY
+    print("Results:")
+    print(
+        "|  2.5%  "
+        "| Skill  "
+        "| 97.5%  "
+        "| Match  "
+        "| Quest. "
+        "|   ID   "
+        "| Username "
+    )
+    print(
+        "| Match  "
+        "|        "
+        "| Match  "
+        "| Count  "
+        "| Count  "
+        "|        "
+        "|          "
+    )
+    print(
+        "=========================================="
+        "=========================================="
+    )
+    unevaluated = (
+        set(user1_ids) | set(user2_ids) | set(users.values_list("id", flat=True))
+    )
+    for uid, skill in ordered_skills:
+        if isinstance(uid, str):
+            username = uid
+        else:
+            username = User.objects.get(id=uid).username
+        unevaluated.remove(uid)
+        lower = ci_lower.get(uid, 0)
+        upper = ci_upper.get(uid, 0)
+        print(
+            f"| {round(lower, 2):>6} "
+            f"| {round(skill, 2):>6} "
+            f"| {round(upper, 2):>6} "
+            f"| {player_stats[uid][0]:>6} "
+            f"| {len(player_stats[uid][1]):>6} "
+            f"| {uid if isinstance(uid, int) else '':>6} "
+            f"| {username}"
+        )
+    # for uid in unevaluated:
+    #     if isinstance(uid, str):
+    #         username = uid
+    #     else:
+    #         username = User.objects.get(id=uid).username
+    #     print(
+    #         "| ------ "
+    #         "| ------ "
+    #         "| ------ "
+    #         "| ------ "
+    #         "| ------ "
+    #         f"| {uid if isinstance(uid, int) else '':>5} "
+    #         f"| {username}"
+    #     )
+    print()
+
+    ##########################################################################
+    ##########################################################################
+    ##########################################################################
+    ##########################################################################
+    # TESTS
+    skills_array = np.array(list(skills.values()))
+
+    # 1. Correllation between skill and avg_score (DO NOT HAVE YET - need avg_score)
+    x = []
+    y = []
+    for uid in user1_ids:
+        x.append(skills.get(uid, 0))
+        y.append(avg_scores.get(uid, 0))
+    correlation = np.corrcoef(x, y)
+    print(f"\nCorrelation between skill and avg_score: {correlation[0][1]}")
+
+    # 2. Shapiro-Wilk test (good for small to medium samples)
+    if len(skills_array) >= 3:
+        shapiro_stat, shapiro_p = stats.shapiro(skills_array)
+        print(
+            f"  Shapiro-Wilk test: statistic={shapiro_stat:.4f}, p-value={shapiro_p:.4f}"
+        )
+        if shapiro_p > 0.05:
+            print("    → Skills appear normally distributed (p > 0.05)")
+        else:
+            print("    → Skills may not be normally distributed (p ≤ 0.05)")
+
+    # 3. Anderson-Darling test (more sensitive to tails)
+    anderson_result = stats.anderson(skills_array, dist="norm")
+    print(f"  Anderson-Darling test: statistic={anderson_result.statistic:.4f}")
+    # Check at 5% significance level
+    critical_5pct = anderson_result.critical_values[2]  # Index 2 is 5% level
+    print(f"    Critical value at 5%: {critical_5pct:.4f}")
+    if anderson_result.statistic < critical_5pct:
+        print("    → Skills appear normally distributed (stat < critical)")
+    else:
+        print("    → Skills may not be normally distributed (stat ≥ critical)")
+
+    # 4. Kolmogorov-Smirnov test (compare to normal distribution)
+    ks_stat, ks_p = stats.kstest(
+        skills_array, "norm", args=(skills_array.mean(), skills_array.std())
+    )
+    print(f"  Kolmogorov-Smirnov test: statistic={ks_stat:.4f}, p-value={ks_p:.4f}")
+    if ks_p > 0.05:
+        print("    → Skills appear normally distributed (p > 0.05)")
+    else:
+        print("    → Skills may not be normally distributed (p ≤ 0.05)")
+
+    # 5. Summary statistics
+    print("\nSkill distribution summary:")
+    print(f"  Mean: {skills_array.mean():.2f}")
+    print(f"  Std: {skills_array.std():.2f}")
+    print(f"  Skewness: {stats.skew(skills_array):.4f}")
+    print(f"  Kurtosis: {stats.kurtosis(skills_array):.4f}")
+    print()
+
+
 class Command(BaseCommand):
     help = """
     Update the global bots leaderboard
     """
 
     def handle(self, *args, **options) -> None:
-        baseline_player: int | str = 236038  # metac-gpt-4o+asknews
-        bootstrap_iterations = 30
-
-        # SETUP: users to evaluate & questions
-        print("Initializing...")
-        users: QuerySet[User] = User.objects.filter(
-            metadata__bot_details__metac_bot=True,
-            metadata__bot_details__include_in_calculations=True,
-            metadata__bot_details__display_in_leaderboard=True,
-            is_active=True,
-        ).order_by("id")
-        user_forecast_exists = Forecast.objects.filter(
-            question_id=OuterRef("pk"), author__in=users
-        )
-        questions: QuerySet[Question] = (
-            Question.objects.filter(
-                Q(
-                    related_posts__post__default_project__default_permission__in=[
-                        "viewer",
-                        "forecaster",
-                    ]
-                )
-                | Q(
-                    related_posts__post__default_project_id__in=[
-                        3349,  # aib q3 2024
-                        32506,  # aib q4 2024
-                        32627,  # aib q1 2025
-                        32721,  # aib q2 2025
-                        32813,  # aib fall 2025
-                    ]
-                ),
-                related_posts__post__curation_status=Post.CurationStatus.APPROVED,
-                resolution__isnull=False,
-                scheduled_close_time__lte=timezone.now(),
-            )
-            .exclude(related_posts__post__default_project__slug__startswith="minibench")
-            .exclude(resolution__in=UnsuccessfulResolutionType)
-            .filter(Exists(user_forecast_exists))
-            .prefetch_related(  # only prefetch forecasts from those users
-                Prefetch(
-                    "user_forecasts", queryset=Forecast.objects.filter(author__in=users)
-                )
-            )
-            .order_by("id")
-            .distinct("id")
-        )
-        ###############
-        # make sure they have at least 100 resolved questions
-        print("initialize list")
-        question_list = list(questions)
-        print("Filtering users.")
-        scored_question_counts: dict[int, int] = defaultdict(int)
-        c = users.count()
-        i = 0
-        for user in users:
-            i += 1
-            print(i, "/", c, end="\r")
-            scored_question_counts[user.id] = (
-                Score.objects.filter(user=user, question__in=question_list)
-                .distinct("question_id")
-                .count()
-            )
-        excluded_ids = [
-            uid for uid, count in scored_question_counts.items() if count < 100
-        ]
-        users = users.exclude(id__in=excluded_ids)
-        ###############
-        print("Initializing... DONE")
-
-        # Gather head to head scores
-        user1_ids, user2_ids, question_ids, scores, weights = gather_data(
-            users, questions
-        )
-
-        # choose baseline player if not already chosen
-        if not baseline_player:
-            baseline_player = max(
-                set(user1_ids) | set(user2_ids), key=(user1_ids + user2_ids).count
-            )
-        # get variance of average scores (used in rescaling)
-        avg_scores = get_avg_scores(user1_ids, user2_ids, scores, weights)
-        var_avg_scores = (
-            np.var(np.array(list(avg_scores.values()))) if len(avg_scores) > 1 else 0
-        )
-
-        # compute skills initially
-        skills = get_skills(
-            user1_ids=user1_ids,
-            user2_ids=user2_ids,
-            question_ids=question_ids,
-            scores=scores,
-            weights=weights,
-            baseline_player=baseline_player,
-            var_avg_scores=var_avg_scores,
-            verbose=False,
-        )
-
-        # Compute bootstrap confidence intervals
-        ci_lower, ci_upper = bootstrap_skills(
-            user1_ids,
-            user2_ids,
-            question_ids,
-            scores,
-            weights,
-            var_avg_scores,
-            baseline_player=baseline_player,
-            bootstrap_iterations=bootstrap_iterations,
-        )
-        print()
-
-        ordered_skills = sorted(
-            [(user, skill) for user, skill in skills.items()], key=lambda x: -x[1]
-        )
-        player_stats: dict[int | str, list] = defaultdict(lambda: [0, set()])
-        for u1id, u2id, qid in zip(user1_ids, user2_ids, question_ids):
-            player_stats[u1id][0] += 1
-            player_stats[u1id][1].add(qid)
-            player_stats[u2id][0] += 1
-            player_stats[u2id][1].add(qid)
-
-        ##########################################################################
-        ##########################################################################
-        ##########################################################################
-        ##########################################################################
-        # UPDATE Leaderboard
-        print("Updating leaderboard...", end="\r")
-        leaderboard, _ = Leaderboard.objects.get_or_create(
-            name="Global Bot Leaderboard",
-            project=Project.objects.get(type=Project.ProjectTypes.SITE_MAIN),
-            score_type=LeaderboardScoreTypes.MANUAL,
-            bot_status=Project.BotLeaderboardStatus.BOTS_ONLY,
-        )
-        entry_dict = {
-            entry.user_id or entry.aggregation_method: entry
-            for entry in list(leaderboard.entries.all())
-        }
-        rank = 1
-        question_count = len(set(question_ids))
-        seen = set()
-        for uid, skill in ordered_skills:
-            contribution_count = len(player_stats[uid][1])
-
-            excluded = False
-            if isinstance(uid, int):
-                user = User.objects.get(id=uid)
-                bot_details = user.metadata["bot_details"]
-                if not bot_details.get("display_in_leaderboard"):
-                    excluded = True
-
-            entry: LeaderboardEntry = entry_dict.pop(uid, LeaderboardEntry())
-            entry.user_id = uid if isinstance(uid, int) else None
-            entry.aggregation_method = uid if isinstance(uid, str) else None
-            entry.leaderboard = leaderboard
-            entry.score = skill
-            entry.rank = rank
-            entry.excluded = excluded
-            entry.show_when_excluded = False
-            entry.contribution_count = contribution_count
-            entry.coverage = contribution_count / question_count
-            entry.calculated_on = timezone.now()
-            entry.ci_lower = ci_lower.get(uid, None)
-            entry.ci_upper = ci_upper.get(uid, None)
-            # TODO: support for more efficient saving once this is implemented
-            # for leaderboards with more than 100 entries
-            entry.save()
-            seen.add(entry.id)
-
-            if not excluded:
-                rank += 1
-        print("Updating leaderboard... DONE")
-        # delete unseen entries
-        leaderboard.entries.exclude(id__in=seen).delete()
-        print()
-
-        ##########################################################################
-        ##########################################################################
-        ##########################################################################
-        ##########################################################################
-        # DISPLAY
-        print("Results:")
-        print(
-            "|  2.5%  "
-            "| Skill  "
-            "| 97.5%  "
-            "| Match  "
-            "| Quest. "
-            "|   ID   "
-            "| Username "
-        )
-        print(
-            "| Match  "
-            "|        "
-            "| Match  "
-            "| Count  "
-            "| Count  "
-            "|        "
-            "|          "
-        )
-        print(
-            "=========================================="
-            "=========================================="
-        )
-        unevaluated = (
-            set(user1_ids) | set(user2_ids) | set(users.values_list("id", flat=True))
-        )
-        for uid, skill in ordered_skills:
-            if isinstance(uid, str):
-                username = uid
-            else:
-                username = User.objects.get(id=uid).username
-            unevaluated.remove(uid)
-            lower = ci_lower.get(uid, 0)
-            upper = ci_upper.get(uid, 0)
-            print(
-                f"| {round(lower, 2):>6} "
-                f"| {round(skill, 2):>6} "
-                f"| {round(upper, 2):>6} "
-                f"| {player_stats[uid][0]:>6} "
-                f"| {len(player_stats[uid][1]):>6} "
-                f"| {uid if isinstance(uid, int) else '':>6} "
-                f"| {username}"
-            )
-        for uid in unevaluated:
-            if isinstance(uid, str):
-                username = uid
-            else:
-                username = User.objects.get(id=uid).username
-            print(
-                "| ------ "
-                "| ------ "
-                "| ------ "
-                "| ------ "
-                "| ------ "
-                f"| {uid if isinstance(uid, int) else '':>5} "
-                f"| {username}"
-            )
-        print()
-
-        ##########################################################################
-        ##########################################################################
-        ##########################################################################
-        ##########################################################################
-        # TESTS
-        skills_array = np.array(list(skills.values()))
-
-        # 1. Correllation between skill and avg_score (DO NOT HAVE YET - need avg_score)
-        x = []
-        y = []
-        for uid in user1_ids:
-            x.append(skills.get(uid, 0))
-            y.append(avg_scores.get(uid, 0))
-        correlation = np.corrcoef(x, y)
-        print(f"\nCorrelation between skill and avg_score: {correlation[0][1]}")
-
-        # 2. Shapiro-Wilk test (good for small to medium samples)
-        if len(skills_array) >= 3:
-            shapiro_stat, shapiro_p = stats.shapiro(skills_array)
-            print(
-                f"  Shapiro-Wilk test: statistic={shapiro_stat:.4f}, p-value={shapiro_p:.4f}"
-            )
-            if shapiro_p > 0.05:
-                print("    → Skills appear normally distributed (p > 0.05)")
-            else:
-                print("    → Skills may not be normally distributed (p ≤ 0.05)")
-
-        # 3. Anderson-Darling test (more sensitive to tails)
-        anderson_result = stats.anderson(skills_array, dist="norm")
-        print(f"  Anderson-Darling test: statistic={anderson_result.statistic:.4f}")
-        # Check at 5% significance level
-        critical_5pct = anderson_result.critical_values[2]  # Index 2 is 5% level
-        print(f"    Critical value at 5%: {critical_5pct:.4f}")
-        if anderson_result.statistic < critical_5pct:
-            print("    → Skills appear normally distributed (stat < critical)")
+        if not settings.DEBUG:
+            cache_use = ""
         else:
-            print("    → Skills may not be normally distributed (stat ≥ critical)")
-
-        # 4. Kolmogorov-Smirnov test (compare to normal distribution)
-        ks_stat, ks_p = stats.kstest(
-            skills_array, "norm", args=(skills_array.mean(), skills_array.std())
-        )
-        print(f"  Kolmogorov-Smirnov test: statistic={ks_stat:.4f}, p-value={ks_p:.4f}")
-        if ks_p > 0.05:
-            print("    → Skills appear normally distributed (p > 0.05)")
-        else:
-            print("    → Skills may not be normally distributed (p ≤ 0.05)")
-
-        # 5. Summary statistics
-        print("\nSkill distribution summary:")
-        print(f"  Mean: {skills_array.mean():.2f}")
-        print(f"  Std: {skills_array.std():.2f}")
-        print(f"  Skewness: {stats.skew(skills_array):.4f}")
-        print(f"  Kurtosis: {stats.kurtosis(skills_array):.4f}")
-        print()
+            cache_use = "partial"
+        run_update_global_bot_leaderboard(cache_use=cache_use)

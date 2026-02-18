@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import { PropsWithChildren, Suspense } from "react";
+import { PropsWithChildren } from "react";
 
 import KeyFactorsFeed from "@/app/(main)/questions/[id]/components/key_factors/key_factors_feed";
 import PostScoreData from "@/app/(main)/questions/[id]/components/post_score_data";
@@ -13,8 +13,6 @@ import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
 import QuestionTimeline, {
   hasTimeline as hasTimelineFn,
 } from "../../question_view/consumer_question_view/timeline";
-import NewsMatch from "../../sidebar/news_match";
-import NewsPresence from "../../sidebar/news_match/news_presence";
 import QuestionInfo from "../question_info";
 import QuestionSection from "../question_section";
 import ResponsiveCommentFeed from "./responsive_comment_feed";
@@ -39,7 +37,7 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
 
   return (
     <div className="relative z-10 flex w-full flex-col gap-4">
-      <QuestionSection compact>
+      <QuestionSection>
         {children}
         <div className="sm:hidden">
           <ConsumerTabs>
@@ -48,9 +46,6 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
               {hasTimeline && (
                 <TabsTab value="timeline">{t("timeline")}</TabsTab>
               )}
-              <NewsPresence questionId={postData.id}>
-                <TabsTab value="news">{t("inNews")}</TabsTab>
-              </NewsPresence>
               {showScores && <TabsTab value="scores">{t("scores")}</TabsTab>}
               <TabsTab value="key-factors">{t("keyFactors")}</TabsTab>
               <TabsTab value="info">{t("info")}</TabsTab>
@@ -79,13 +74,6 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
                 />
               </TabsSection>
             )}
-            <NewsPresence questionId={postData.id}>
-              <TabsSection value="news">
-                <Suspense fallback={null}>
-                  <NewsMatch questionId={postData.id} withoutToggle />
-                </Suspense>
-              </TabsSection>
-            </NewsPresence>
             {showScores && (
               <TabsSection value="scores">
                 <PostScoreData

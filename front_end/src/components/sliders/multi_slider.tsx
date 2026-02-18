@@ -1,6 +1,6 @@
 "use client";
 import Slider from "rc-slider";
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useRef, useState, useMemo } from "react";
 
 import "./slider.css";
 
@@ -23,6 +23,8 @@ type Props = {
   disabled?: boolean;
 };
 
+const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
+
 const MultiSlider: FC<Props> = ({
   value,
   step,
@@ -37,6 +39,10 @@ const MultiSlider: FC<Props> = ({
     value.right,
   ]);
   const [allowCross, setAllowCross] = useState(true);
+
+  const activeIndexRef = useRef<number | null>(null);
+  const isShiftHeldRef = useRef<boolean>(false);
+
   // controls the slide change behaviour
   // undefined - block any changes (e.g. clicking the track)
   // null - regular slide change (a.k.a. dragging a single thumb)
@@ -44,8 +50,14 @@ const MultiSlider: FC<Props> = ({
   const persistedPositionOrigin = useRef<ControlledValue | null | undefined>(
     undefined
   );
-  const handlePressIn = (index: number) => {
+  const handlePressIn = (index: number, shiftKey: boolean = false) => {
+    activeIndexRef.current = index;
+    isShiftHeldRef.current = shiftKey;
+
     if (index === 1) {
+      persistedPositionOrigin.current = controlledValue;
+    } else if (shiftKey && (index === 0 || index === 2)) {
+      // When shift is held and dragging left or right thumb, enable symmetric movement
       persistedPositionOrigin.current = controlledValue;
     } else {
       persistedPositionOrigin.current = null;
@@ -67,43 +79,86 @@ const MultiSlider: FC<Props> = ({
           right,
         });
       }
+    } else {
+      setControlledValue([value.left, value.center, value.right]);
     }
   }, [value, shouldSyncWithDefault, onChange, clampStep]);
 
-  const handleValueChange = (value: ControlledValue) => {
+  const uiValue = useMemo<ControlledValue>(() => {
+    return [
+      clamp01(controlledValue[0]),
+      clamp01(controlledValue[1]),
+      clamp01(controlledValue[2]),
+    ];
+  }, [controlledValue]);
+
+  const handleValueChange = (nextUi: ControlledValue) => {
     if (persistedPositionOrigin.current === undefined) {
       return;
     }
 
+    const active = activeIndexRef.current;
+
+    const incoming: ControlledValue = [
+      active === 0 ? nextUi[0] : controlledValue[0],
+      active === 1 ? nextUi[1] : controlledValue[1],
+      active === 2 ? nextUi[2] : controlledValue[2],
+    ];
+
     let newValue: ControlledValue;
     if (persistedPositionOrigin.current !== null) {
       setAllowCross(true);
-      const firstItemDelta = calculateCenterMovementDiff(
-        {
-          origin: persistedPositionOrigin.current[1],
-          value: persistedPositionOrigin.current[0],
-        },
-        { origin: value[1], value: value[0] }
-      );
-      const lastItemDelta = calculateCenterMovementDiff(
-        {
-          origin: persistedPositionOrigin.current[1],
-          value: persistedPositionOrigin.current[2],
-        },
-        { origin: value[1], value: value[2] }
-      );
 
-      newValue = [
-        value[0] + firstItemDelta,
-        value[1],
-        value[2] + lastItemDelta,
-      ];
+      // Check if we're doing symmetric movement with Shift key on boundary thumbs
+      if (isShiftHeldRef.current && active !== 1) {
+        // Symmetric movement: when left/right thumb moves, move the opposite thumb symmetrically
+        // while keeping the center fixed
+        const centerValue = incoming[1];
+
+        if (active === 0) {
+          // Moving left thumb with Shift: mirror the movement on the right thumb
+          const leftDelta = incoming[0] - persistedPositionOrigin.current[0];
+          const mirroredRight = persistedPositionOrigin.current[2] - leftDelta;
+          const safeLeft = Math.min(incoming[0], centerValue - clampStep);
+          const safeRight = Math.max(mirroredRight, centerValue + clampStep);
+          newValue = [safeLeft, centerValue, safeRight];
+        } else {
+          // Moving right thumb with Shift: mirror the movement on the left thumb
+          const rightDelta = incoming[2] - persistedPositionOrigin.current[2];
+          const mirroredLeft = persistedPositionOrigin.current[0] - rightDelta;
+          const safeLeft = Math.min(mirroredLeft, centerValue - clampStep);
+          const safeRight = Math.max(incoming[2], centerValue + clampStep);
+          newValue = [safeLeft, centerValue, safeRight];
+        }
+      } else {
+        // Original center thumb movement logic
+        const firstItemDelta = calculateCenterMovementDiff(
+          {
+            origin: persistedPositionOrigin.current[1],
+            value: persistedPositionOrigin.current[0],
+          },
+          { origin: incoming[1], value: incoming[0] }
+        );
+        const lastItemDelta = calculateCenterMovementDiff(
+          {
+            origin: persistedPositionOrigin.current[1],
+            value: persistedPositionOrigin.current[2],
+          },
+          { origin: incoming[1], value: incoming[2] }
+        );
+
+        newValue = [
+          incoming[0] + firstItemDelta,
+          incoming[1],
+          incoming[2] + lastItemDelta,
+        ];
+      }
     } else {
       setAllowCross(false);
       newValue = [
-        Math.min(value[0], value[1] - clampStep),
-        value[1],
-        Math.max(value[2], value[1] + clampStep),
+        Math.min(incoming[0], incoming[1] - clampStep),
+        incoming[1],
+        Math.max(incoming[2], incoming[1] + clampStep),
       ];
     }
 
@@ -120,12 +175,13 @@ const MultiSlider: FC<Props> = ({
       min={0}
       max={1}
       step={step}
-      value={controlledValue}
+      value={uiValue}
       range
       disabled={disabled}
-      onChange={(value) => handleValueChange(value as ControlledValue)}
+      onChange={(v) => handleValueChange(v as ControlledValue)}
       onChangeComplete={() => {
         persistedPositionOrigin.current = undefined;
+        activeIndexRef.current = null;
       }}
       pushable={true}
       allowCross={allowCross}
@@ -135,18 +191,14 @@ const MultiSlider: FC<Props> = ({
         return (
           <SliderThumb
             {...origin.props}
-            value={
-              // Pass the correct value
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              controlledValue[props.index]!
-            }
+            value={getThumbValue(uiValue, props.index)}
             active={props.index === 1}
-            onClickIn={() => {
-              handlePressIn(props.index);
+            onClickIn={(shiftKey) => {
+              handlePressIn(props.index, shiftKey);
             }}
             onTouchStartCapture={(e) => {
               e.preventDefault();
-              handlePressIn(props.index);
+              handlePressIn(props.index, e.shiftKey);
             }}
           />
         );
@@ -164,5 +216,12 @@ function calculateCenterMovementDiff(
   const valueDiff = value.value - value.origin;
   return persistedValueDiff - valueDiff;
 }
+
+const getThumbValue = (values: ControlledValue, index: number): number => {
+  if (index === 0) return values[0];
+  if (index === 1) return values[1];
+  if (index === 2) return values[2];
+  return values[1];
+};
 
 export default MultiSlider;

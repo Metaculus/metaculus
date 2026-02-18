@@ -187,7 +187,7 @@ const Creator: React.FC<{ searchParams: Promise<SearchParams> }> = async (
         <QuestionTypePicker
           url={createHref("/questions/create/notebook")}
           questionType={t("notebook")}
-          questionExample={`"${t("notebookExample")}"`}
+          questionExample={t("notebookExample")}
         />
       </div>
     </>

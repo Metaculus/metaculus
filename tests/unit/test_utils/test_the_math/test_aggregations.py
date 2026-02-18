@@ -23,11 +23,17 @@ from utils.the_math.aggregations import (
     GoldMedalistsAggregation,
     JoinedBeforeDateAggregation,
     SingleAggregation,
+    compute_weighted_semi_standard_deviations,
+)
+from utils.typing import (
+    ForecastValues,
+    ForecastsValues,
+    Weights,
 )
 
 
 @pytest.mark.parametrize(
-    "array, max_size, expceted_array",
+    "array, max_size, expected_array",
     [
         ([], 10, []),
         (range(10), 10, range(10)),
@@ -37,14 +43,72 @@ from utils.the_math.aggregations import (
         (range(10), 5, [0, 3, 5, 7, 9]),
     ],
 )
-def test_summarize_array(array, max_size, expceted_array):
+def test_summarize_array(array, max_size, expected_array):
     summarized = summarize_array(array, max_size)
 
     # Check that the summarized list has the correct length
-    assert np.allclose(summarized, expceted_array)
+    assert np.allclose(summarized, expected_array)
 
 
 class TestAggregations:
+
+    @pytest.mark.parametrize(
+        "forecasts_values, weights, expected",
+        [
+            (
+                [[0.5, 0.5]],
+                None,
+                ([0.0, 0.0], [0.0, 0.0]),
+            ),  # Trivial
+            (
+                [
+                    [0.5, 0.5],
+                    [0.5, 0.5],
+                    [0.5, 0.5],
+                ],
+                None,
+                ([0.0, 0.0], [0.0, 0.0]),
+            ),  # 3 unwavaring forecasts
+            (
+                [
+                    [0.2, 0.8],
+                    [0.5, 0.5],
+                    [0.8, 0.2],
+                ],
+                None,
+                ([0.3, 0.3], [0.3, 0.3]),
+            ),  # 3 unwavaring forecasts
+            (
+                [
+                    [0.6, 0.15, None, 0.25],
+                    [0.6, 0.15, None, 0.25],
+                ],
+                None,
+                ([0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]),
+            ),  # identical forecasts with placeholders
+            (
+                [
+                    [0.4, 0.25, None, 0.35],
+                    [0.6, 0.15, None, 0.25],
+                ],
+                None,
+                ([0.1, 0.05, 0.0, 0.05], [0.1, 0.05, 0.0, 0.05]),
+            ),  # minorly different forecasts with placeholders
+        ],
+    )
+    def test_compute_weighted_semi_standard_deviations(
+        self,
+        forecasts_values: ForecastsValues,
+        weights: Weights | None,
+        expected: tuple[ForecastValues, ForecastValues],
+    ):
+        result = compute_weighted_semi_standard_deviations(forecasts_values, weights)
+        rl, ru = result
+        el, eu = expected
+        for v, e in zip(rl, el):
+            np.testing.assert_approx_equal(v, e)
+        for v, e in zip(ru, eu):
+            np.testing.assert_approx_equal(v, e)
 
     @pytest.mark.parametrize("aggregation_name", [Agg.method for Agg in AGGREGATIONS])
     def test_aggregations_initialize(
@@ -241,46 +305,125 @@ class TestAggregations:
                     histogram=None,
                 ),
             ),
+            # Multiple choice with placeholders
+            (
+                {},
+                ForecastSet(
+                    forecasts_values=[
+                        [0.6, 0.15, float("nan"), 0.25],
+                        [0.6, 0.25, float("nan"), 0.15],
+                    ],
+                    timestep=datetime(2024, 1, 1, tzinfo=dt_timezone.utc),
+                    forecaster_ids=[1, 2],
+                    timesteps=[
+                        datetime(2022, 1, 1, tzinfo=dt_timezone.utc),
+                        datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
+                    ],
+                ),
+                True,
+                False,
+                AggregateForecast(
+                    start_time=datetime(2024, 1, 1, tzinfo=dt_timezone.utc),
+                    method=AggregationMethod.UNWEIGHTED,
+                    forecast_values=[0.6, 0.20, None, 0.20],
+                    interval_lower_bounds=[0.6, 0.15, None, 0.15],
+                    centers=[0.6, 0.20, None, 0.20],
+                    interval_upper_bounds=[0.6, 0.25, None, 0.25],
+                    means=[0.6, 0.20, None, 0.20],
+                    forecaster_count=2,
+                ),
+            ),
+            (
+                {},
+                ForecastSet(
+                    forecasts_values=[
+                        [0.6, 0.15, float("nan"), 0.25],
+                        [0.6, 0.25, float("nan"), 0.15],
+                        [0.4, 0.35, float("nan"), 0.25],
+                    ],
+                    timestep=datetime(2024, 1, 1, tzinfo=dt_timezone.utc),
+                    forecaster_ids=[1, 2, 3],
+                    timesteps=[
+                        datetime(2022, 1, 1, tzinfo=dt_timezone.utc),
+                        datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
+                        datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
+                    ],
+                ),
+                True,
+                False,
+                AggregateForecast(
+                    start_time=datetime(2024, 1, 1, tzinfo=dt_timezone.utc),
+                    method=AggregationMethod.UNWEIGHTED,
+                    forecast_values=[
+                        0.5453965360072925,
+                        0.22730173199635367,
+                        None,
+                        0.22730173199635367,
+                    ],
+                    interval_lower_bounds=[
+                        0.3635976906715284,
+                        0.1363810391978122,
+                        None,
+                        0.1363810391978122,
+                    ],
+                    centers=[
+                        0.5453965360072925,
+                        0.22730173199635367,
+                        None,
+                        0.22730173199635367,
+                    ],
+                    interval_upper_bounds=[
+                        0.5453965360072925,
+                        0.3182224247948951,
+                        None,
+                        0.22730173199635367,
+                    ],
+                    means=[
+                        0.5333333333333333,
+                        0.25,
+                        None,
+                        0.21666666666666667,
+                    ],
+                    forecaster_count=3,
+                ),
+            ),
         ],
     )
     def test_UnweightedAggregation(
         self,
         question_binary: Question,
+        question_multiple_choice: Question,
         init_params: dict,
         forecast_set: ForecastSet,
         include_stats: bool,
         histogram: bool,
         expected: AggregateForecast,
     ):
-        aggregation = UnweightedAggregation(question=question_binary, **init_params)
-        new_aggregation = aggregation.calculate_aggregation_entry(
+        if len(forecast_set.forecasts_values[0]) == 2:
+            question = question_binary
+        else:
+            question = question_multiple_choice
+
+        aggregation = UnweightedAggregation(question=question, **init_params)
+        new_aggregation: AggregateForecast = aggregation.calculate_aggregation_entry(
             forecast_set, include_stats, histogram
         )
-
-        assert new_aggregation.start_time == expected.start_time
-        assert (
-            new_aggregation.forecast_values == expected.forecast_values
-        ) or np.allclose(new_aggregation.forecast_values, expected.forecast_values)
-        assert new_aggregation.forecaster_count == expected.forecaster_count
-        assert (
-            new_aggregation.interval_lower_bounds == expected.interval_lower_bounds
-        ) or np.allclose(
-            new_aggregation.interval_lower_bounds, expected.interval_lower_bounds
-        )
-        assert (new_aggregation.centers == expected.centers) or np.allclose(
-            new_aggregation.centers, expected.centers
-        )
-        assert (
-            new_aggregation.interval_upper_bounds == expected.interval_upper_bounds
-        ) or np.allclose(
-            new_aggregation.interval_upper_bounds, expected.interval_upper_bounds
-        )
-        assert (new_aggregation.means == expected.means) or np.allclose(
-            new_aggregation.means, expected.means
-        )
-        assert (new_aggregation.histogram == expected.histogram) or np.allclose(
-            new_aggregation.histogram, expected.histogram
-        )
+        for key in [
+            "start_time",
+            "forecaster_count",
+            "forecast_values",
+            "interval_lower_bounds",
+            "centers",
+            "interval_upper_bounds",
+            "means",
+            "histogram",
+        ]:
+            new_value = getattr(new_aggregation, key)
+            expected_value = getattr(expected, key)
+            if new_value == expected_value:
+                continue
+            for n, e in zip(new_value, expected_value):
+                assert n == e or np.isclose(n, e)
 
     @pytest.mark.parametrize(
         "init_params, forecast_set, include_stats, histogram, expected",
@@ -468,48 +611,71 @@ class TestAggregations:
                     histogram=None,
                 ),
             ),
+            # Multiple choice with placeholders
+            (
+                {},
+                ForecastSet(
+                    forecasts_values=[
+                        [0.6, 0.15, float("nan"), 0.25],
+                        [0.6, 0.25, float("nan"), 0.15],
+                    ],
+                    timestep=datetime(2024, 1, 1, tzinfo=dt_timezone.utc),
+                    forecaster_ids=[1, 2],
+                    timesteps=[
+                        datetime(2022, 1, 1, tzinfo=dt_timezone.utc),
+                        datetime(2023, 1, 1, tzinfo=dt_timezone.utc),
+                    ],
+                ),
+                True,
+                False,
+                AggregateForecast(
+                    start_time=datetime(2024, 1, 1, tzinfo=dt_timezone.utc),
+                    method=AggregationMethod.RECENCY_WEIGHTED,
+                    forecast_values=[0.6, 0.20, None, 0.20],
+                    interval_lower_bounds=[0.6, 0.15, None, 0.15],
+                    centers=[0.6, 0.20, None, 0.20],
+                    interval_upper_bounds=[0.6, 0.25, None, 0.25],
+                    means=[0.6, 0.20, None, 0.20],
+                    forecaster_count=2,
+                ),
+            ),
         ],
     )
     def test_RecencyWeightedAggregation(
         self,
         question_binary: Question,
+        question_multiple_choice: Question,
         init_params: dict,
         forecast_set: ForecastSet,
         include_stats: bool,
         histogram: bool,
         expected: AggregateForecast,
     ):
-        aggregation = RecencyWeightedAggregation(
-            question=question_binary, **init_params
-        )
+        if len(forecast_set.forecasts_values[0]) == 2:
+            question = question_binary
+        else:
+            question = question_multiple_choice
+
+        aggregation = RecencyWeightedAggregation(question=question, **init_params)
         new_aggregation = aggregation.calculate_aggregation_entry(
             forecast_set, include_stats, histogram
         )
-
-        assert new_aggregation.start_time == expected.start_time
-        assert (
-            new_aggregation.forecast_values == expected.forecast_values
-        ) or np.allclose(new_aggregation.forecast_values, expected.forecast_values)
-        assert new_aggregation.forecaster_count == expected.forecaster_count
-        assert (
-            new_aggregation.interval_lower_bounds == expected.interval_lower_bounds
-        ) or np.allclose(
-            new_aggregation.interval_lower_bounds, expected.interval_lower_bounds
-        )
-        assert (new_aggregation.centers == expected.centers) or np.allclose(
-            new_aggregation.centers, expected.centers
-        )
-        assert (
-            new_aggregation.interval_upper_bounds == expected.interval_upper_bounds
-        ) or np.allclose(
-            new_aggregation.interval_upper_bounds, expected.interval_upper_bounds
-        )
-        assert (new_aggregation.means == expected.means) or np.allclose(
-            new_aggregation.means, expected.means
-        )
-        assert (new_aggregation.histogram == expected.histogram) or np.allclose(
-            new_aggregation.histogram, expected.histogram
-        )
+        for key in [
+            "start_time",
+            "forecaster_count",
+            "forecast_values",
+            "interval_lower_bounds",
+            "centers",
+            "interval_upper_bounds",
+            "means",
+            "histogram",
+        ]:
+            new_value = getattr(new_aggregation, key)
+            expected_value = getattr(expected, key)
+            if new_value == expected_value:
+                continue
+            for n, e in zip(new_value, expected_value):
+                assert n == e or np.isclose(n, e)
 
     def test_SingleAggregation(self, question_binary: Question):
         high_rep_user = User.objects.create(username="high_rep_user")

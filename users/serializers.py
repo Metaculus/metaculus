@@ -1,4 +1,8 @@
+from datetime import timedelta
+
+from django.utils import timezone
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from comments.models import KeyFactor
 from projects.models import Project
@@ -84,6 +88,7 @@ class UserPrivateSerializer(UserPublicSerializer):
     metadata = serializers.JSONField(read_only=True)
     registered_campaigns = serializers.SerializerMethodField()
     should_suggest_keyfactors = serializers.SerializerMethodField()
+    has_password = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -100,6 +105,9 @@ class UserPrivateSerializer(UserPublicSerializer):
             "app_theme",
             "interface_type",
             "language",
+            "api_access_tier",
+            "is_primary_bot",
+            "has_password",
         )
 
     def get_registered_campaigns(self, user: User):
@@ -121,6 +129,9 @@ class UserPrivateSerializer(UserPublicSerializer):
             KeyFactor.objects.filter(comment__author=user).exists()
             or LeaderboardEntry.objects.filter(user=user, medal__isnull=False).exists()
         )
+
+    def get_has_password(self, user: User) -> bool:
+        return user.has_usable_password()
 
 
 class UserUpdateProfileSerializer(serializers.ModelSerializer):
@@ -154,6 +165,11 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
         )
 
 
+class BotUpdateProfileSerializer(UserUpdateProfileSerializer):
+    class Meta(UserUpdateProfileSerializer.Meta):
+        fields = UserUpdateProfileSerializer.Meta.fields + ("username",)
+
+
 def validate_username(value: str):
     value = serializers.RegexField(
         r"^\w([\w.@+-]*\w)?$",
@@ -172,6 +188,18 @@ def validate_username(value: str):
         raise serializers.ValidationError("The username is already taken")
 
     return value
+
+
+def validate_username_change(user: User, username: str):
+    username = validate_username(username)
+
+    if old_usernames := user.get_old_usernames():
+        _, change_date = old_usernames[0]
+
+        if (timezone.now() - change_date) < timedelta(days=180):
+            raise ValidationError("can only change username once every 180 days")
+
+    return username
 
 
 class UserFilterSerializer(serializers.Serializer):

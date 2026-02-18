@@ -3,11 +3,14 @@
 import { faCircleQuestion } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { useFeatureFlagEnabled } from "posthog-js/react";
 import React, { FC, useCallback, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import PreferencesSection from "@/app/(main)/accounts/settings/components/preferences_section";
+import {
+  subscribeToNewsletter,
+  unsubscribeFromNewsletter,
+} from "@/app/(main)/actions";
 import Checkbox from "@/components/ui/checkbox";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import Tooltip from "@/components/ui/tooltip";
@@ -17,14 +20,30 @@ import { CurrentUser } from "@/types/users";
 
 export type Props = {
   user: CurrentUser;
+  isNewsletterSubscribed: boolean;
 };
 
-const EmailNotifications: FC<Props> = ({ user }) => {
+const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
   const t = useTranslations();
   const [loadingIndex, setLoadingIndex] = useState<number | null>(null);
+  const [newsletterSubscribed, setNewsletterSubscribed] = useState(
+    isNewsletterSubscribed
+  );
 
-  const isWeeklyTopCommentsEnabled = useFeatureFlagEnabled(
-    "weekly_top_comments"
+  const handleNewsletterChange = useCallback(
+    async (checked: boolean) => {
+      if (checked) {
+        await subscribeToNewsletter(user.email);
+      } else {
+        // The unsubscribeFromNewsletter action does not need the email parameter as we require the user to be authenticated
+        await unsubscribeFromNewsletter();
+      }
+      setNewsletterSubscribed(checked);
+    },
+    [user.email]
+  );
+  const [updateNewsletter, isNewsletterPending] = useServerAction(
+    handleNewsletterChange
   );
 
   const handleEmailSubscriptionChange = useCallback(
@@ -86,19 +105,26 @@ const EmailNotifications: FC<Props> = ({ user }) => {
       type: SubscriptionEmailType.before_prediction_auto_withdrawal,
       label: t("beforeAutoWithdrawal"),
     },
-    ...(isWeeklyTopCommentsEnabled
-      ? [
-          {
-            type: SubscriptionEmailType.weekly_top_comments,
-            label: t("weeklyTopComments"),
-          },
-        ]
-      : []),
+    {
+      type: SubscriptionEmailType.weekly_top_comments,
+      label: t("weeklyTopComments"),
+    },
   ];
 
   return (
     <PreferencesSection title={t("settingsEmailNotifications")}>
       <div className="flex flex-col gap-3">
+        <div className="flex items-center">
+          <Checkbox
+            checked={newsletterSubscribed}
+            onChange={updateNewsletter}
+            className="p-1"
+            readOnly={isNewsletterPending}
+            inputClassName="text-gray-900 dark:text-gray-900-dark"
+            label={t("settingsNewTournamentsAndPlatformUpdates")}
+          />
+          {isNewsletterPending && <LoadingSpinner size="1x" />}
+        </div>
         {options.map(({ type, ...opts }, index) => (
           <div className="flex items-center" key={`subscriptions-${type}`}>
             <Checkbox

@@ -18,8 +18,7 @@ from notifications.utils import (
 from posts.models import Post
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from questions.models import Question
-from questions.utils import get_question_group_title
+from questions.models import Question, UserForecastNotification
 from users.models import User
 from utils.dtypes import dataclass_from_dict
 from utils.email import send_email_with_template
@@ -86,7 +85,7 @@ class NotificationQuestionParams:
             type=question.type,
             label=question.label,
             unit=question.unit,
-            post_id=question.get_post_id(),
+            post_id=question.post_id,
             post_title=question.get_post().title,
         )
 
@@ -201,10 +200,6 @@ class CPChangeData:
 
     def format_cp_median(self):
         return self.format_value(self.cp_median)
-
-    def format_question_title(self):
-        # TODO: deprecate get_question_group_title after the first release of this change
-        return self.question.label or get_question_group_title(self.question.title)
 
 
 class NotificationTypeBase:
@@ -903,7 +898,7 @@ def send_news_category_notebook_publish_notification(user: User, post: Post):
 def delete_scheduled_question_resolution_notifications(question: Question):
     """
     Sometimes a question can be resolved and then later unresolved,
-    so we don’t want users to receive the initial resolution notification that’s no longer valid.
+    so we don't want users to receive the initial resolution notification that's no longer valid.
     This service handles cleanup of unsent messages in such cases.
     """
 
@@ -919,3 +914,39 @@ def delete_scheduled_question_resolution_notifications(question: Question):
     )
 
     qs.delete()
+
+
+def delete_scheduled_post_notifications(post: Post):
+    """
+    When a post is deleted, we want to remove any unsent notifications
+    related to that post to prevent sending notifications about deleted content.
+
+    Note: This does NOT affect comment mention notifications, as those are sent
+    immediately via send_comment_mention_notification() and are not scheduled.
+    """
+
+    qs = Notification.objects.filter(
+        email_sent=False,
+        params__post__post_id=post.id,
+    )
+
+    count = qs.count()
+    logger.info(f"Deleting {count} scheduled post notifications for post id {post.id}")
+    qs.delete()
+
+    # Also delete UserForecastNotification entries for auto-withdrawal emails
+    # Get all questions associated with this post
+    questions = post.get_questions()
+    if questions:
+        forecast_notifications = UserForecastNotification.objects.filter(
+            email_sent=False,
+            question__in=questions,
+        )
+
+        forecast_count = forecast_notifications.count()
+        if forecast_count > 0:
+            logger.info(
+                f"Deleting {forecast_count} scheduled forecast auto-withdrawal notifications "
+                f"for post id {post.id}"
+            )
+            forecast_notifications.delete()

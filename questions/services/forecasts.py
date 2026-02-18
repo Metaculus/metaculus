@@ -1,7 +1,7 @@
 import logging
 from collections import defaultdict
-from datetime import timedelta
-from typing import cast, Iterable
+from datetime import datetime, timedelta, timezone as dt_timezone
+from typing import cast, Iterable, Literal
 
 import sentry_sdk
 from django.db import transaction
@@ -13,6 +13,7 @@ from notifications.constants import MailingTags
 from posts.models import PostUserSnapshot, PostSubscription
 from posts.services.subscriptions import create_subscription_cp_change
 from posts.tasks import run_on_post_forecast
+from questions.services.multiple_choice_handlers import get_all_options_from_history
 from scoring.models import Score
 from users.models import User
 from utils.cache import cache_per_object
@@ -34,21 +35,67 @@ logger = logging.getLogger(__name__)
 
 def create_forecast(
     *,
-    question: Question = None,
-    user: User = None,
-    continuous_cdf: list[float] = None,
-    probability_yes: float = None,
-    probability_yes_per_category: list[float] = None,
-    distribution_input=None,
+    question: Question,
+    user: User,
+    continuous_cdf: list[float] | None = None,
+    probability_yes: float | None = None,
+    probability_yes_per_category: list[float | None] | None = None,
+    distribution_input: dict | None = None,
+    end_time: datetime | None = None,
+    source: Forecast.SourceChoices | Literal[""] | None = None,
     **kwargs,
 ):
     now = timezone.now()
     post = question.get_post()
+    source = source or ""
+
+    # delete all future-dated predictions, as this one will override them
+    Forecast.objects.filter(question=question, author=user, start_time__gt=now).delete()
+
+    # if the forecast to be created is for a multiple choice question during a grace
+    # period, we need to agument the forecast accordingly (possibly preregister)
+    if question.type == Question.QuestionType.MULTIPLE_CHOICE:
+        if not probability_yes_per_category:
+            raise ValueError("probability_yes_per_category required for MC questions")
+        options_history = question.options_history
+        if options_history and len(options_history) > 1:
+            period_end = datetime.fromisoformat(options_history[-1][0]).replace(
+                tzinfo=dt_timezone.utc
+            )
+            if period_end > now:
+                all_options = get_all_options_from_history(question.options_history)
+                prior_options = options_history[-2][1]
+                if end_time is None or end_time > period_end:
+                    # create a pre-registration for the given forecast
+                    Forecast.objects.create(
+                        question=question,
+                        author=user,
+                        start_time=period_end,
+                        end_time=end_time,
+                        probability_yes_per_category=probability_yes_per_category,
+                        post=post,
+                        source=Forecast.SourceChoices.AUTOMATIC,
+                        **kwargs,
+                    )
+                    end_time = period_end
+
+                prior_pmf: list[float | None] = [None] * len(all_options)
+                for i, (option, value) in enumerate(
+                    zip(all_options, probability_yes_per_category)
+                ):
+                    if value is None:
+                        continue
+                    if option in prior_options:
+                        prior_pmf[i] = (prior_pmf[i] or 0.0) + value
+                    else:
+                        prior_pmf[-1] = (prior_pmf[-1] or 0.0) + value
+                probability_yes_per_category = prior_pmf
 
     forecast = Forecast.objects.create(
         question=question,
         author=user,
         start_time=now,
+        end_time=end_time,
         continuous_cdf=continuous_cdf,
         probability_yes=probability_yes,
         probability_yes_per_category=probability_yes_per_category,
@@ -56,6 +103,7 @@ def create_forecast(
             distribution_input if question.type in QUESTION_CONTINUOUS_TYPES else None
         ),
         post=post,
+        source=source,
         **kwargs,
     )
     # tidy up all forecasts
@@ -369,6 +417,7 @@ def get_average_coverage_for_questions(
     return avg_coverage_map
 
 
+@sentry_sdk.trace
 def build_question_forecasts(
     question: Question,
     aggregation_method: AggregationMethod | None = None,

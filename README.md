@@ -68,7 +68,7 @@ The last step in getting your database ready is adding the [pgvector](https://gi
 sudo apt install postgresql-16-pgvector
 ```
 
-If on a Mac and using a [supported postgres version](https://github.com/pgvector/pgvector#homebrew), you can use `brew install pgvector`. Oherwise:
+If on a Mac and using a [supported postgres version](https://github.com/pgvector/pgvector#homebrew), you can use `brew install pgvector`. Otherwise:
 
 >1. `git clone https://github.com/pgvector/pgvector.git`
 >2. `cd pgvector`
@@ -109,17 +109,17 @@ curl https://pyenv.run | bash
 
 Or `brew install pyenv` on Mac.
 
-Then, install python 3.12.3:
+Then, install python 3.12:
 ```bash
-pyenv install 3.12.3
-pyenv global 3.12.3
+pyenv install 3.12
+pyenv global 3.12
 ```
 Install poetry:
 ```bash
 curl -sSL https://install.python-poetry.org | python3 -
 ```
 And follow any install directions it gives you. (You may need to reload your shell afterwards.) If all is installed properly, you should be able to run `poetry --version`.
-It is also useful to know that you can run `poetry env use 3.12.3` to switch to a specific python version. And to use `poetry shell` to enter a poetry shell so you won't have to prefix all of the python commands with `poetry run`.
+It is also useful to know that you can run `poetry env use 3.12` to switch to a specific python version. And to use `poetry shell` to enter a poetry shell so you won't have to prefix all of the python commands with `poetry run`.
 
 With that, you should be good to start installing the python dependencies.
 ```bash
@@ -127,22 +127,24 @@ poetry install
 ```
 
 ## Nvm/Node & Frontend
-You'll need node to build the frontend. We use nvm for managing node versions.
+You'll need node to build the frontend. We use nvm for managing node versions. 
 Install nvm with:
 ```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 ```
-Then, install node 18.18.0:
-```bash
-nvm install 18.18.0
-nvm use 18.18.0
-```
-To install the frontend dependencies, run:
+For more detailed installation instructions, see the [nvm installation guide](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating).
+Then, install and use the node version specified in `.nvmrc`:
 ```bash
 cd front_end
+nvm install
+nvm use
+```
+This will automatically use the version specified in `front_end/.nvmrc` (currently 24.12.0).
+To install the frontend dependencies, run in the `front_end` directory:
+```bash
 npm install
 ```
-Note: you have to switch to the front_end directory to run the npm commands as they are all nested there.
+Note: you always have to switch to the `front_end` directory to run the npm commands as they are all nested there.
 
 ## Running the server
 The first time you're booting up the server, make sure postgres is running (`sudo service postgresql start`), then you'll need to run the migrations and collect static files. Start by navigating to the root directory.
@@ -163,6 +165,7 @@ poetry run python manage.py runserver
 Running the front end is pretty easy. Note that you'll have to navigate to the `front_end` directory first.
 ```bash
 cd front_end
+nvm use # Uses the version specified in .nvmrc
 npm run dev
 ```
 
@@ -197,19 +200,22 @@ ensure the HTML updates automatically after changes:
 ## Setup a test database
 If you want to populate your database with some example data, you can load our testing database dump (available as a [release](https://github.com/Metaculus/metaculus/releases/latest) artifact).
 ```
-wget https://github.com/Metaculus/metaculus/releases/tag/v0.0.1-alpha/test_metaculus.sql.zip
+wget https://github.com/Metaculus/metaculus/releases/download/v0.0.1-alpha/test_metaculus.sql.zip
 unzip test_metaculus.sql.zip
 pg_restore -d metaculus test_metaculus.sql
 ```
 If on Mac, you can replace the wget command with 
 ```
-curl -O https://github.com/Metaculus/metaculus/releases/tag/v0.0.1-alpha/test_metaculus.sql.zip
+curl -LO https://github.com/Metaculus/metaculus/releases/download/v0.0.1-alpha/test_metaculus.sql.zip
 ```
 
 Then run migrations to make sure the database is up to date:
 ```bash
 poetry run python manage.py migrate
 ```
+
+**Caveat:** The test dump is a minimal subset of production data. It contains relatively few open questions and tournaments with open questions, which can make it hard to test certain features. In particular, many posts in the dump have matching Post IDs and Question IDs, which can mask bugs where one is used in place of the other — be aware that these are distinct concepts (a Post is the top-level content wrapper; a Question is the forecasting object it contains).
+Test users have a username with the format `username_<number>` and the password `Test1234`.
 
 ## Testing
 To run the backend tests, you can run:

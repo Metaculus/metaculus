@@ -1,11 +1,13 @@
 "use server";
 
+import { redirect } from "next/navigation";
+
 import {
   passwordResetConfirmSchema,
   passwordResetRequestSchema,
 } from "@/app/(main)/accounts/schemas";
 import ServerAuthApi from "@/services/api/auth/auth.server";
-import { setServerSession } from "@/services/session";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 import { AuthResponse } from "@/types/auth";
 import { ApiError } from "@/utils/core/errors";
 
@@ -66,14 +68,13 @@ export async function passwordResetConfirmAction(
       validatedFields.data.password
     );
 
-    await setServerSession(response.token);
-
-    return {
-      data: response,
-    };
+    const authManager = await getAuthCookieManager();
+    authManager.setAuthTokens(response.tokens);
   } catch (err) {
     return {
       errors: ApiError.isApiError(err) ? err.data : undefined,
     };
   }
+
+  redirect("/accounts/settings/account/");
 }

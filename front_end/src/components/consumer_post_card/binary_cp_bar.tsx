@@ -1,7 +1,10 @@
+"use client";
+
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, useId } from "react";
 
+import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { QuestionStatus } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
@@ -10,13 +13,21 @@ import cn from "@/utils/core/cn";
 
 type Props = {
   question: QuestionWithNumericForecasts;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   className?: string;
+  colorOverride?: string;
 };
 
-const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
+const BinaryCPBar: FC<Props> = ({
+  question,
+  size = "md",
+  className,
+  colorOverride,
+}) => {
   const t = useTranslations();
   const { hideCP } = useHideCP();
+  const gradientId = useId();
+  const isEmbed = useIsEmbedMode();
 
   const questionCP =
     question.aggregations[question.default_aggregation_method]?.latest
@@ -33,10 +44,10 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
       ? Math.round((questionCP as number) * 1000) / 10
       : null;
 
-  const width = 112;
-  const height = 66;
-  const strokeWidth = 12;
-  const strokeCursorWidth = 17;
+  const width = isEmbed ? 85 : 112;
+  const height = isEmbed ? 50 : 66;
+  const strokeWidth = isEmbed ? 8 : 12;
+  const strokeCursorWidth = isEmbed ? 12 : 17;
   const radius = (width - strokeWidth) / 2;
   const arcAngle = Math.PI * 1.1;
   const center = { x: width / 2, y: height - strokeWidth };
@@ -60,10 +71,16 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
         })
       : null;
 
-  const { textClass, strokeClass, hex } = getBinaryGaugeColors(
+  const {
+    textClass,
+    strokeClass,
+    hex: defaultHex,
+  } = getBinaryGaugeColors(
     cpPercentage ?? 0,
     isClosed || isNil(questionCP) || hideCP
   );
+
+  const hex = colorOverride ?? defaultHex;
 
   const startAngle = Math.PI - (arcAngle - Math.PI) / 2;
   const endAngle = startAngle + ((cpPercentage ?? 0) / 100) * arcAngle;
@@ -77,17 +94,19 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
       className={cn(
         "relative flex origin-top items-center justify-center",
         {
+          "scale-[0.5]": size === "xs",
           "scale-[0.85]": size === "sm",
           "scale-100": size === "md",
           "mb-4 scale-[1.25]": size === "lg",
         },
+        isEmbed && "scale-100",
         className
       )}
     >
       <svg width={width} height={height} className="overflow-visible">
         <defs>
           <linearGradient
-            id={`progressGradient-${question.id}-${size}`}
+            id={gradientId}
             x1={gradientStartX}
             y1={gradientStartY}
             x2={gradientEndX}
@@ -110,7 +129,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
           stroke={hex}
           strokeOpacity={0.15}
           strokeWidth={strokeWidth}
-          className={strokeClass}
+          className={!colorOverride ? strokeClass : undefined}
         />
 
         {/* Progress arc */}
@@ -118,7 +137,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
           <path
             d={progressArc.path}
             fill="none"
-            stroke={`url(#progressGradient-${question.id}-${size})`}
+            stroke={`url(#${gradientId})`}
             strokeWidth={strokeWidth}
           />
         )}
@@ -143,7 +162,7 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
               2 * Math.sin(progressArc.angle + Math.PI / 2)
             }
             stroke={hex}
-            className={strokeClass}
+            className={!colorOverride ? strokeClass : undefined}
             strokeWidth={strokeCursorWidth}
           />
         )}
@@ -151,13 +170,33 @@ const BinaryCPBar: FC<Props> = ({ question, size = "md", className }) => {
       <div
         className={cn(
           "absolute bottom-0 flex w-[60px] flex-col items-center justify-center text-center text-sm",
-          textClass
+          !colorOverride && textClass,
+          size === "xs" && "bottom-[10px] scale-[200%]"
         )}
+        style={{ color: colorOverride }}
       >
-        <span className="text-xl font-bold leading-8">
+        <span
+          className={cn(
+            "font-bold",
+            isEmbed
+              ? "text-[18px] leading-[24px]"
+              : size === "xs"
+                ? "text-[12px] leading-4"
+                : "text-xl leading-8"
+          )}
+        >
           {cpPercentage != null ? `${cpPercentage}%` : "%"}
         </span>
-        <span className="text-xs font-normal uppercase leading-none">
+        <span
+          className={cn(
+            "font-normal uppercase leading-none",
+            isEmbed
+              ? "text-[9px] leading-[9px]"
+              : size === "xs"
+                ? "text-[6px] leading-[6px]"
+                : "text-xs"
+          )}
+        >
           {t("chance")}
         </span>
       </div>

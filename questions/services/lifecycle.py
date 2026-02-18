@@ -4,6 +4,7 @@ from datetime import datetime
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
 from notifications.services import delete_scheduled_question_resolution_notifications
 from posts.models import Post
@@ -32,6 +33,18 @@ def handle_question_open(question: Question):
 
     # Handle question on followed projects subscriptions
     notify_project_subscriptions_post_open(post, question=question)
+
+
+@transaction.atomic()
+def handle_cp_revealed(question: Question):
+    """
+    A specific handler is triggered once the community prediction is revealed
+    """
+
+    # Handle post subscriptions
+    notify_post_status_change(
+        question.post, Post.PostStatusChange.CP_REVEALED, question=question
+    )
 
 
 def close_question(question: Question, actual_close_time: datetime | None = None):
@@ -67,6 +80,9 @@ def resolve_question(
     resolution: str,
     actual_resolve_time: datetime,
 ):
+    if question.open_time and question.open_time > actual_resolve_time:
+        raise ValidationError("Can't resolve a question before its open date")
+
     question.resolution = resolution
     question.resolution_set_time = timezone.now()
     question.actual_resolve_time = actual_resolve_time

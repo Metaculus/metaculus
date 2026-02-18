@@ -3,10 +3,15 @@ from typing import Union, Iterable
 
 from django.db import models
 from django.db.models import QuerySet
+from django.template.defaultfilters import slugify
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from coherence.serializers import (
+    serialize_coherence_links_questions_map,
+    serialize_aggregate_coherence_links_questions_map,
+)
 from comments.models import KeyFactor
 from comments.serializers.key_factors import serialize_key_factors_many
 from misc.models import ITNArticle
@@ -43,7 +48,7 @@ from questions.services.movement import (
 from users.models import User
 from utils.dtypes import flatten, generate_map_from_list
 from utils.serializers import SerializerKeyLookupMixin
-from .models import Notebook, Post, PostSubscription
+from .models import Notebook, Post, PostSubscription, PostUserSnapshot
 from .utils import get_post_slug
 
 logger = logging.getLogger(__name__)
@@ -58,7 +63,7 @@ class NotebookSerializer(serializers.ModelSerializer):
             "image_url",
             "created_at",
             "edited_at",
-            "markdown_summary",
+            "feed_tile_summary",
         )
 
 
@@ -113,6 +118,7 @@ class NotebookWriteSerializer(serializers.ModelSerializer):
         model = Notebook
         fields = (
             "markdown",
+            "feed_tile_summary",
             "image_url",
         )
 
@@ -340,6 +346,8 @@ def serialize_post(
     include_descriptions: bool = False,
     question_movements: dict[Question, QuestionMovement | None] = None,
     question_average_coverages: dict[Question, float] = None,
+    coherence_links: dict[Question, list[dict]] = None,
+    coherence_link_aggregations: dict[Question, list[dict]] = None,
 ) -> dict:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -347,6 +355,8 @@ def serialize_post(
     serialized_data = PostReadSerializer(post).data
     question_movements = question_movements or {}
     question_average_coverages = question_average_coverages or {}
+    coherence_links = coherence_links or {}
+    coherence_link_aggregations = coherence_link_aggregations or {}
 
     # Appending projects
     projects = projects or []
@@ -366,6 +376,8 @@ def serialize_post(
             include_descriptions=include_descriptions,
             question_movement=question_movements.get(post.question),
             question_average_coverage=question_average_coverages.get(post.question),
+            coherence_links=coherence_links.get(post.question),
+            coherence_link_aggregations=coherence_link_aggregations.get(post.question),
         )
 
     if post.conditional:
@@ -426,6 +438,15 @@ def serialize_post(
             {
                 "unread_comment_count": unread_comment_count,
                 "last_viewed_at": snapshot.viewed_at,
+                # User private notes
+                "private_note": (
+                    {
+                        "text": snapshot.private_note,
+                        "updated_at": snapshot.private_note_updated_at,
+                    }
+                    if snapshot.private_note
+                    else None
+                ),
             }
         )
 
@@ -464,8 +485,13 @@ def serialize_post_many(
     qs = (
         qs.annotate_user_permission(user=current_user)
         .prefetch_questions()
-        .prefetch_condition_post()
-        .select_related("default_project__primary_leaderboard", "author", "notebook")
+        .select_related(
+            "conditional__condition__post",
+            "conditional__condition_child__post",
+            "default_project__primary_leaderboard",
+            "author",
+            "notebook",
+        )
         .prefetch_related("coauthors")
     )
 
@@ -506,6 +532,8 @@ def serialize_post_many(
         )
 
     comment_key_factors_map = {}
+    coherence_links_map = {}
+    coherence_link_aggs_map = {}
 
     if with_key_factors:
         comment_key_factors_map = generate_map_from_list(
@@ -516,6 +544,15 @@ def serialize_post_many(
                 current_user=current_user,
             ),
             key=lambda x: x["post"]["id"],
+        )
+
+        if current_user:
+            coherence_links_map = serialize_coherence_links_questions_map(
+                questions, current_user
+            )
+
+        coherence_link_aggs_map = serialize_aggregate_coherence_links_questions_map(
+            questions
         )
 
     question_movements = {}
@@ -549,6 +586,8 @@ def serialize_post_many(
             include_descriptions=include_descriptions,
             question_movements=question_movements,
             question_average_coverages=question_average_coverages,
+            coherence_links=coherence_links_map,
+            coherence_link_aggregations=coherence_link_aggs_map,
         )
         for post in posts
     ]
@@ -696,4 +735,27 @@ def serialize_posts_many_forecast_flow(
             ),
         }
         for post in posts
+    ]
+
+
+def serialize_private_notes_many(entries: Iterable[PostUserSnapshot]):
+    # Get original ordering of the comments
+    ids = [p.pk for p in entries]
+    qs = PostUserSnapshot.objects.filter(pk__in=ids).select_related("post")
+
+    # Restore the original ordering
+    objects = list(qs.all())
+    objects.sort(key=lambda obj: ids.index(obj.id))
+
+    return [
+        {
+            "post": {
+                "id": obj.post_id,
+                "title": obj.post.title,
+                "slug": slugify(obj.post.get_short_title()),
+            },
+            "text": obj.private_note,
+            "updated_at": obj.private_note_updated_at,
+        }
+        for obj in objects
     ]

@@ -1,6 +1,5 @@
 "use client";
 import { isNil } from "lodash";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, Fragment, useEffect, useMemo, useState } from "react";
 
@@ -17,14 +16,15 @@ import useSearchParams from "@/hooks/use_search_params";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { PostsParams } from "@/services/api/posts/posts.shared";
 import { PostWithForecasts } from "@/types/post";
+import { FeedProjectTile } from "@/types/projects";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { logError } from "@/utils/core/errors";
-import { safeSessionStorage } from "@/utils/core/storage";
 import { isNotebookPost } from "@/utils/questions/helpers";
 
-import { SCROLL_CACHE_KEY } from "./constants";
+import { buildFeedItems } from "./build_feed_items";
 import EmptyCommunityFeed from "./empty_community_feed";
 import PostsFeedScrollRestoration from "./feed_scroll_restoration";
+import FeedTournamentTile from "./feed_tournament_tile";
 import InReviewBox from "./in_review_box";
 import { FormErrorMessage } from "../ui/form_field";
 
@@ -32,6 +32,7 @@ export type PostsFeedType = "posts" | "news";
 
 type Props = {
   initialQuestions: PostWithForecasts[];
+  initialProjectTiles?: FeedProjectTile[];
   filters: PostsParams;
   type?: PostsFeedType;
   isCommunity?: boolean;
@@ -40,18 +41,19 @@ type Props = {
 
 const PaginatedPostsFeed: FC<Props> = ({
   initialQuestions,
+  initialProjectTiles = [],
   filters,
   type = "posts",
   isCommunity,
   indexWeights = {},
 }) => {
   const t = useTranslations();
-  const pathname = usePathname();
-  const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
+  const { params, setParam, replaceUrlWithoutNavigation } = useSearchParams();
   const pageNumberParam = params.get(POST_PAGE_FILTER);
   const pageNumber = !isNil(pageNumberParam)
     ? Number(params.get(POST_PAGE_FILTER))
     : 1;
+  const [clientPageNumber, setClientPageNumber] = useState(pageNumber);
   const [paginatedPosts, setPaginatedPosts] =
     useState<PostWithForecasts[]>(initialQuestions);
   const [offset, setOffset] = useState(
@@ -86,6 +88,9 @@ const PaginatedPostsFeed: FC<Props> = ({
       setBannerIsVisible(true);
     }
   }, [initialQuestions, setBannerIsVisible]);
+  useEffect(() => {
+    setClientPageNumber(pageNumber);
+  }, [pageNumber]);
 
   useEffect(() => {
     // capture search event from AwaitedPostsFeed
@@ -94,55 +99,47 @@ const PaginatedPostsFeed: FC<Props> = ({
     });
   }, [filters]);
   const loadMorePosts = async () => {
-    if (hasMoreData) {
-      setIsLoading(true);
-      setError(undefined);
-      try {
-        sendAnalyticsEvent("feedSearch", {
-          event_category: JSON.stringify(filters),
-        });
-        const response = await ClientPostsApi.getPostsWithCP({
-          ...filters,
-          offset,
-          limit: POSTS_PER_PAGE,
-        });
-        const newPosts = response.results;
-        const hasNextPage =
-          !!response.next && response.results.length >= POSTS_PER_PAGE;
+    if (!hasMoreData) return;
 
-        if (
-          newPosts.filter((q) => q.is_current_content_translated).length > 0
-        ) {
-          setBannerIsVisible(true);
-        }
+    setIsLoading(true);
+    setError(undefined);
+    try {
+      sendAnalyticsEvent("feedSearch", {
+        event_category: JSON.stringify(filters),
+      });
+      const response = await ClientPostsApi.getPostsWithCP({
+        ...filters,
+        offset,
+        limit: POSTS_PER_PAGE,
+      });
+      const newPosts = response.results;
+      const hasNextPage = !!response.next && newPosts.length >= POSTS_PER_PAGE;
 
-        if (!hasNextPage) setHasMoreData(false);
-        if (!!newPosts.length) {
-          setPaginatedPosts((prevPosts) => [...prevPosts, ...newPosts]);
-          setParam(POST_PAGE_FILTER, `${offset / POSTS_PER_PAGE + 1}`, false);
-          setOffset((prevOffset) => prevOffset + POSTS_PER_PAGE);
-          shallowNavigateToSearchParams();
-        }
-      } catch (err) {
-        logError(err);
-        const error = err as Error & { digest?: string };
-        setError(error);
-      } finally {
-        const fullPathname = `${pathname}${params.toString() ? `?${params.toString()}` : ""}`;
-        const currentScroll = window.scrollY;
-        if (currentScroll >= 0) {
-          safeSessionStorage.setItem(
-            SCROLL_CACHE_KEY,
-            JSON.stringify({
-              scrollPathName: fullPathname,
-              scrollPosition: currentScroll.toString(),
-            })
-          );
-        }
-        setIsLoading(false);
+      if (newPosts.some((q) => q.is_current_content_translated)) {
+        setBannerIsVisible(true);
       }
+
+      if (!hasNextPage) setHasMoreData(false);
+      if (newPosts.length) {
+        setPaginatedPosts((prev) => [...prev, ...newPosts]);
+        const nextPage = offset / POSTS_PER_PAGE + 1;
+        setParam(POST_PAGE_FILTER, String(nextPage), false);
+        replaceUrlWithoutNavigation();
+        setClientPageNumber(nextPage);
+        setOffset((prevOffset) => prevOffset + POSTS_PER_PAGE);
+      }
+    } catch (err) {
+      logError(err);
+      setError(err as Error & { digest?: string });
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const feedItems = useMemo(
+    () => buildFeedItems(paginatedPosts, initialProjectTiles),
+    [paginatedPosts, initialProjectTiles]
+  );
 
   const renderPost = (post: PostWithForecasts) => {
     const indexWeight = weightByPostId.get(post.id);
@@ -152,7 +149,6 @@ const PaginatedPostsFeed: FC<Props> = ({
 
     return (
       <QuestionVariantComposer
-        postData={post}
         consumer={
           <ConsumerPostCard
             post={post}
@@ -189,13 +185,23 @@ const PaginatedPostsFeed: FC<Props> = ({
             )}
           </>
         )}
-        {paginatedPosts.map((p) => (
-          <Fragment key={p.id}>{renderPost(p)}</Fragment>
-        ))}
+        {feedItems.map((item) =>
+          item.type === "project" ? (
+            <FeedTournamentTile
+              key={`project-${item.tile.project_id}`}
+              tile={item.tile}
+              feedPage={clientPageNumber}
+            />
+          ) : (
+            <Fragment key={`post-${item.post.id}`}>
+              {renderPost(item.post)}
+            </Fragment>
+          )
+        )}
         <PostsFeedScrollRestoration
           serverPage={filters.page ?? null}
-          pageNumber={pageNumber}
-          initialQuestions={initialQuestions}
+          pageNumber={clientPageNumber}
+          loadedCount={paginatedPosts.length}
         />
       </div>
 

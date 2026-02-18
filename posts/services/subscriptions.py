@@ -66,9 +66,11 @@ def _get_question_data_for_cp_change_notification(
             direction, magnitude = difference_display[i]
             data.cp_change_label = direction
             data.cp_change_value = magnitude
-            data.user_forecast = (
-                user_forecast.probability_yes_per_category[i] if user_forecast else None
-            )
+
+            if user_forecast:
+                data.user_forecast = user_forecast.probability_yes_per_category[i]
+                data.forecast_date = user_forecast.start_time.isoformat()
+
             question_data.append(data)
     else:  # continuous
         data = CPChangeData(question=NotificationQuestionParams.from_question(question))
@@ -101,14 +103,16 @@ def _get_question_data_for_cp_change_notification(
         direction, magnitude = difference_display[0]
         data.cp_change_label = direction
         data.cp_change_value = magnitude
-        user_q1, user_median, user_q3 = None, None, None
         if user_forecast:
             user_q1, user_median, user_q3 = get_scaled_quartiles_from_cdf(
                 user_forecast.continuous_cdf, question
             )
-        data.user_q1 = user_q1
-        data.user_median = user_median
-        data.user_q3 = user_q3
+
+            data.user_q1 = user_q1
+            data.user_median = user_median
+            data.user_q3 = user_q3
+            data.forecast_date = user_forecast.start_time.isoformat()
+
         question_data.append(data)
     return question_data
 
@@ -135,6 +139,25 @@ def get_last_user_forecasts_for_questions(
         forecasts_map[forecast.question_id][forecast.author_id] = forecast
 
     return forecasts_map
+
+
+def get_users_with_active_forecasts_for_questions(
+    question_ids: Iterable[int],
+) -> set[int]:
+    """
+    Returns set of user IDs who have at least one active forecast
+    on any of the given questions.
+
+    An active forecast has end_time IS NULL or end_time > now().
+    """
+    return set(
+        Forecast.objects.filter(
+            question_id__in=question_ids,
+        )
+        .filter(Q(end_time__isnull=True) | Q(end_time__gt=timezone.now()))
+        .values_list("author_id", flat=True)
+        .distinct()
+    )
 
 
 def notify_post_cp_change(post: Post):
@@ -167,7 +190,16 @@ def notify_post_cp_change(post: Post):
         [q.pk for q in questions]
     )
 
+    # Get users who still have active forecasts on any question
+    users_with_active_forecasts = get_users_with_active_forecasts_for_questions(
+        [q.pk for q in questions]
+    )
+
     for subscription in subscriptions:
+        # Skip users who have withdrawn from all questions in the post
+        if subscription.user_id not in users_with_active_forecasts:
+            continue
+
         last_sent = subscription.last_sent_at
         max_sorting_diff = None
         question_data: list[CPChangeData] = []
@@ -188,13 +220,13 @@ def notify_post_cp_change(post: Post):
                     break
             if entry is None:
                 continue
-            old_forecast_values = entry.forecast_values
+            old_forecast_values = entry.get_prediction_values()
             current_entry = get_last_forecast_in_the_past(forecast_summary)
 
             if not current_entry:
                 continue
 
-            current_forecast_values = current_entry.forecast_values
+            current_forecast_values = current_entry.get_prediction_values()
             difference = prediction_difference_for_sorting(
                 old_forecast_values,
                 current_forecast_values,

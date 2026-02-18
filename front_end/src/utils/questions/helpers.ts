@@ -135,15 +135,11 @@ export function getContinuousGroupScaling(
     range_min: rangeMinPoints.length > 0 ? Math.min(...rangeMinPoints) : null,
     // set zero_point to null if any are linearly scaled
     zero_point:
-      zeroPoints.length > 0 && !zeroPoints.some((p) => p !== null)
-        ? Math.min(...zeroPoints)
-        : null,
+      zeroPoints.length === questions.length ? Math.min(...zeroPoints) : null,
   };
-  // we can have mixes of log and linear scaled options
-  // which leads to a derived zero point inside the range which is invalid
-  // so just ignore the log scaling in this case
+  // if zero_point ends up lying within the range, remove the scaling
   if (
-    scaling.zero_point !== null &&
+    !isNil(scaling.zero_point) &&
     !isNil(scaling.range_min) &&
     !isNil(scaling.range_max) &&
     scaling.range_min <= scaling.zero_point &&
@@ -202,4 +198,35 @@ export function inferEffectiveQuestionTypeFromPost(
   if (isConditionalPost(post)) return post.conditional.condition_child.type;
 
   return null;
+}
+
+export function getAllOptionsHistory(question: Question): string[] {
+  const allOptions: string[] = [];
+  (question.options_history ?? []).map((entry) => {
+    entry[1].slice(0, -1).forEach((option) => {
+      if (!allOptions.includes(option)) {
+        allOptions.push(option);
+      }
+    });
+  });
+  const other = (question.options ?? []).at(-1);
+  if (other) {
+    allOptions.push(other);
+  }
+  return allOptions;
+}
+
+export function getUpcomingOptions(question: Question): string[] {
+  const optionsHistory = question.options_history;
+  if (!optionsHistory || optionsHistory.length < 2) {
+    return [];
+  }
+  const lastEntry = optionsHistory.at(-1);
+  if (!lastEntry || new Date().getTime() > new Date(lastEntry[0]).getTime()) {
+    return [];
+  }
+  const secondLastOptions = optionsHistory.at(-2)?.[1];
+  return lastEntry[1].filter(
+    (option) => !(secondLastOptions && secondLastOptions.includes(option))
+  );
 }

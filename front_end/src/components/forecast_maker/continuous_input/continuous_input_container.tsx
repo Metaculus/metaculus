@@ -10,7 +10,7 @@ import {
   ContinuousAreaGraphType,
   ContinuousForecastInputType,
 } from "@/types/charts";
-import { QuestionType, UserForecast } from "@/types/question";
+import { QuestionType, NumericUserForecast } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 
@@ -21,7 +21,7 @@ export type ContinuousInputContainerProps = {
   onInputModeChange: (mode: ContinuousForecastInputType) => void;
   overlayPreviousForecast: boolean;
   onOverlayPreviousForecastChange: (value: boolean) => void;
-  previousForecast?: UserForecast;
+  previousForecast?: NumericUserForecast;
   menu?: ReactNode;
   copyMenu?: ReactNode;
   children?: (

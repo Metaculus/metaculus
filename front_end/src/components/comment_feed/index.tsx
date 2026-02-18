@@ -28,7 +28,6 @@ import ClientCommentsApi from "@/services/api/comments/comments.client";
 import { getCommentsParams } from "@/services/api/comments/comments.shared";
 import { CommentType } from "@/types/comment";
 import { PostStatus, PostWithForecasts } from "@/types/post";
-import { QuestionType } from "@/types/question";
 import { getCommentIdToFocusOn } from "@/utils/comments";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
@@ -79,11 +78,8 @@ function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
     return false;
   }
 
-  // we can link forecast only for date, binary and numeric questions
+  // we can link forecast for all question types
   if (postData.question) {
-    if (postData.question.type === QuestionType.MultipleChoice) {
-      return false;
-    }
     const latest = postData.question.my_forecasts?.latest;
     return !!latest && isForecastActive(latest);
   }
@@ -389,20 +385,20 @@ const CommentFeed: FC<Props> = ({
                   {t("comments")}
                 </h2>
               )}
-              {!profileId &&
-                user &&
-                (!showWelcomeMessage || getIsMessagePreviouslyClosed()) && (
-                  <ButtonGroup
-                    value={feedFilters.is_private ? "private" : "public"}
-                    buttons={feedOptions}
-                    onChange={(section) => {
-                      handleFilterChange("is_private", section === "private");
-                    }}
-                    variant="tertiary"
-                  />
-                )}
+              {!profileId && user?.is_bot && (
+                // Private comments were deprecated in favor of Private Notes
+                // Leaving for bots for backward compatibility
+                <ButtonGroup
+                  value={feedFilters.is_private ? "private" : "public"}
+                  buttons={feedOptions}
+                  onChange={(section) => {
+                    handleFilterChange("is_private", section === "private");
+                  }}
+                  variant="tertiary"
+                />
+              )}
             </div>
-            {postId && showWelcomeMessage && (
+            {postId && showWelcomeMessage && !user?.is_bot && (
               <CommentWelcomeMessage
                 onClick={() => {
                   setUserCommentsAmount(NEW_USER_COMMENT_LIMIT);
@@ -411,7 +407,7 @@ const CommentFeed: FC<Props> = ({
             )}
           </div>
         )}
-        {!compactVersion && postId && (
+        {!compactVersion && postId && !user?.is_bot && (
           <>
             {showWelcomeMessage && !getIsMessagePreviouslyClosed() ? null : (
               <CommentEditor
@@ -424,6 +420,7 @@ const CommentFeed: FC<Props> = ({
                   }
                 }
                 isPrivateFeed={feedFilters.is_private}
+                userPermission={postData?.user_permission}
               />
             )}
           </>

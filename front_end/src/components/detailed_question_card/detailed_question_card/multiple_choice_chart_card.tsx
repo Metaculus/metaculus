@@ -1,11 +1,12 @@
 "use client";
 import { uniq } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import MultiChoicesChartView from "@/app/(main)/questions/[id]/components/multiple_choices_chart_view";
 import CPRevealTime from "@/components/cp_reveal_time";
+import { MultipleChoiceTile } from "@/components/post_card/multiple_choice_tile";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
@@ -18,12 +19,10 @@ import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/questions/choices";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
 
-const MAX_VISIBLE_CHECKBOXES = 3;
-
-const generateList = (question: QuestionWithMultipleChoiceForecasts) =>
-  generateChoiceItemsFromMultipleChoiceForecast(question, {
-    activeCount: MAX_VISIBLE_CHECKBOXES,
-  });
+import {
+  buildEmbedChoicesWithOthers,
+  getMaxVisibleCheckboxes,
+} from "../embeds";
 
 type Props = {
   question: QuestionWithMultipleChoiceForecasts;
@@ -33,6 +32,7 @@ type Props = {
   chartTheme?: VictoryThemeDefinition;
   hideCP?: boolean;
   forecastAvailability?: ForecastAvailability;
+  onLegendHeightChange?: (height: number) => void;
 };
 
 const DetailedMultipleChoiceChartCard: FC<Props> = ({
@@ -43,12 +43,27 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
   chartTheme,
   hideCP,
   forecastAvailability,
+  onLegendHeightChange,
 }) => {
   const t = useTranslations();
+  const [isChartHovered, setIsChartHovered] = useState(false);
 
   const actualCloseTime = getPostDrivenTime(question.actual_close_time);
   const openTime = getPostDrivenTime(question.open_time);
   const isClosed = actualCloseTime ? actualCloseTime < Date.now() : false;
+
+  const maxVisibleCheckboxes = useMemo(
+    () => getMaxVisibleCheckboxes(embedMode),
+    [embedMode]
+  );
+
+  const generateList = useCallback(
+    (q: QuestionWithMultipleChoiceForecasts) =>
+      generateChoiceItemsFromMultipleChoiceForecast(q, t, {
+        activeCount: maxVisibleCheckboxes,
+      }),
+    [t, maxVisibleCheckboxes]
+  );
 
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
     generateList(question)
@@ -56,7 +71,7 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
 
   useEffect(() => {
     setChoiceItems(generateList(question));
-  }, [question]);
+  }, [question, generateList]);
 
   const timestamps = useMemo(() => {
     if (!forecastAvailability?.cpRevealsOn) {
@@ -68,6 +83,7 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
 
     return choiceItems[0]?.userTimestamps ?? [];
   }, [choiceItems, forecastAvailability]);
+
   const userTimestamps = useMemo(
     () => choiceItems[0]?.userTimestamps ?? [],
     [choiceItems]
@@ -76,11 +92,29 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
   const [cursorTimestamp, _tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);
 
+  const liveOptions = useMemo(() => {
+    if (!question.options_history?.length || cursorTimestamp === null) {
+      return question.options ?? [];
+    }
+
+    const sortedHistory = [...question.options_history].sort(
+      (a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime()
+    );
+    let optionsAtTime = sortedHistory[0]?.[1] ?? question.options ?? [];
+    sortedHistory.forEach(([timestamp, options]) => {
+      if (new Date(timestamp).getTime() / 1000 <= cursorTimestamp) {
+        optionsAtTime = options;
+      }
+    });
+    return optionsAtTime;
+  }, [cursorTimestamp, question.options, question.options_history]);
+
   const aggregationCursorIndex = useMemo(() => {
     return timestamps.indexOf(
       findPreviousTimestamp(timestamps, cursorTimestamp)
     );
   }, [timestamps, cursorTimestamp]);
+
   const userCursorIndex = useMemo(() => {
     return userTimestamps.indexOf(
       findPreviousTimestamp(userTimestamps, cursorTimestamp)
@@ -130,27 +164,28 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
   const tooltipChoices = useMemo<ChoiceTooltipItem[]>(
     () =>
       choiceItems
-        .filter(({ active }) => active)
-        .map(({ choice, aggregationValues, color }) => {
+        .filter(({ active, choice }) => active && liveOptions.includes(choice))
+        .map(({ label, choice, aggregationValues, color }) => {
           const adjustedCursorIndex =
             aggregationCursorIndex >= aggregationValues.length
               ? aggregationValues.length - 1
               : aggregationCursorIndex;
           const aggregatedValue = aggregationValues.at(adjustedCursorIndex);
-
           return {
-            choiceLabel: choice,
+            choiceLabel: label || choice,
             color,
             valueElement: getOptionTooltipValue(aggregatedValue),
           };
         }),
-    [choiceItems, aggregationCursorIndex, getOptionTooltipValue]
+
+    [choiceItems, aggregationCursorIndex, getOptionTooltipValue, liveOptions]
   );
+
   const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(() => {
     return choiceItems
-      .filter(({ active }) => active)
-      .map(({ choice, userValues, color }) => ({
-        choiceLabel: choice,
+      .filter(({ active, choice }) => active && liveOptions.includes(choice))
+      .map(({ label, choice, userValues, color }) => ({
+        choiceLabel: label || choice,
         color,
         valueElement: getPredictionDisplayValue(userValues[userCursorIndex], {
           questionType: question.type,
@@ -164,7 +199,44 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
     question.scaling,
     question.type,
     userCursorIndex,
+    liveOptions,
   ]);
+
+  const embedChoiceItems = useMemo(() => {
+    if (!embedMode) return choiceItems;
+    const othersLabel = "Others";
+
+    return buildEmbedChoicesWithOthers(
+      choiceItems,
+      maxVisibleCheckboxes,
+      othersLabel
+    );
+  }, [choiceItems, embedMode, maxVisibleCheckboxes]);
+
+  if (embedMode) {
+    return (
+      <MultipleChoiceTile
+        timestamps={timestamps}
+        choices={embedChoiceItems}
+        visibleChoicesCount={embedChoiceItems.length}
+        question={question}
+        hideCP={hideCP}
+        actualCloseTime={actualCloseTime}
+        openTime={openTime}
+        forecastAvailability={forecastAvailability}
+        canPredict={false}
+        showChart
+        chartHeight={chartHeight}
+        onLegendHeightChange={onLegendHeightChange}
+        onCursorChange={handleCursorChange}
+        withHoverTooltip={false}
+        showCursorLabel={false}
+        legendCursorTimestamp={isChartHovered ? cursorTimestamp : null}
+        onCursorActiveChange={setIsChartHovered}
+        defaultChartZoom={defaultZoom}
+      />
+    );
+  }
 
   return (
     <MultiChoicesChartView

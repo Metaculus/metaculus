@@ -21,7 +21,7 @@ import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
 import { ProjectVisibility, TournamentType } from "@/types/projects";
-import { getValidString } from "@/utils/formatters/string";
+import { getValidString, stripHtmlTags } from "@/utils/formatters/string";
 import { getProjectLink } from "@/utils/navigation";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
@@ -45,7 +45,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
   const raw = tournament.subtitle || tournament.description || "";
   const parsedDescription =
-    raw.replace(/<[^>]*>/g, "").split("\n")[0] || defaultDescription;
+    stripHtmlTags(raw).split("\n")[0] || defaultDescription;
 
   const { PUBLIC_APP_URL } = getPublicSettings();
 
@@ -171,20 +171,29 @@ export default async function TournamentSlug(props: Props) {
       {/* Description block */}
       <div className="mx-4 mt-4 rounded-md bg-gray-0 p-4 dark:bg-gray-0-dark sm:p-8 lg:mx-0">
         <div>
-          <HtmlContent content={tournament.description} />
+          <HtmlContent content={tournament.description} allowStyleTag />
 
           {tournament.score_type && (
-            <div className="mt-3 flex flex-col gap-3">
+            <div
+              id="leaderboard"
+              className="mt-3 flex scroll-mt-nav flex-col gap-3"
+            >
               <ProjectLeaderboard
                 projectId={tournament.id}
                 userId={currentUser?.id}
                 isQuestionSeries={isQuestionSeries}
               />
               {currentUser && (
-                <ProjectContributions
-                  project={tournament}
-                  userId={currentUser.id}
-                />
+                <Suspense
+                  fallback={
+                    <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
+                  }
+                >
+                  <ProjectContributions
+                    project={tournament}
+                    userId={currentUser.id}
+                  />
+                </Suspense>
               )}
             </div>
           )}

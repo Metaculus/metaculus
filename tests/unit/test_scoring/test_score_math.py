@@ -47,7 +47,7 @@ def F(q=None, v=None, s=None, e=None):
     return forecast
 
 
-def A(p: list[float] | None = None, n: int = 0, t: int | None = None):
+def A(p: list[float | None] | None = None, n: int = 0, t: int | None = None):
     # Create an AggregationEntry object with basic values
     # p: pmf
     # n: number of forecasters
@@ -75,6 +75,11 @@ class TestScoreMath:
             ([F()] * 100, [A(n=100)]),
             # maths
             ([F(v=0.7), F(v=0.8), F(v=0.9)], [A(p=[0.18171206, 0.79581144], n=3)]),
+            # multiple choice forecasts with placeholder 0s
+            (
+                [F(q=QT.MULTIPLE_CHOICE, v=[0.6, 0.15, float("nan"), 0.25])] * 2,
+                [A(n=2, p=[0.6, 0.15, float("nan"), 0.25])],
+            ),
             # start times
             ([F(), F(s=1)], [A(), A(t=1, n=2)]),
             ([F(), F(s=1), F(s=2)], [A(), A(t=1, n=2), A(t=2, n=3)]),
@@ -85,7 +90,7 @@ class TestScoreMath:
             # numeric
             (
                 [F(q=QT.NUMERIC), F(q=QT.NUMERIC)],
-                [A(p=[0] + [1 / 200] * 200 + [0], n=2)],
+                [A(p=[0.0] + [1 / 200] * 200 + [0.0], n=2)],
             ),
             (
                 [
@@ -103,7 +108,7 @@ class TestScoreMath:
         result = get_geometric_means(forecasts)
         assert len(result) == len(expected)
         for ra, ea in zip(result, expected):
-            assert all(round(r, 8) == round(e, 8) for r, e in zip(ra.pmf, ea.pmf))
+            assert np.allclose(ra.pmf, ea.pmf, equal_nan=True)
             assert ra.num_forecasters == ea.num_forecasters
             assert ra.timestamp == ea.timestamp
 
@@ -131,6 +136,37 @@ class TestScoreMath:
             ([F(v=0.9, s=5)], {}, [S(v=84.79969066 / 2, c=0.5)]),  # half coverage
             ([F(v=2 ** (-1 / 2))], {}, [S(v=50)]),
             ([F(v=2 ** (-3 / 2))], {}, [S(v=-50)]),
+            # multiple choice w/ placeholder at index 2
+            (
+                [
+                    F(
+                        q=QT.MULTIPLE_CHOICE,
+                        v=[1 / 3, 1 - 3 ** (-0.5) - 1 / 3, None, 3 ** (-0.5)],
+                    )
+                ],
+                {"resolution_bucket": 0, "question_type": QT.MULTIPLE_CHOICE},
+                [S(v=0.0)],
+            ),  # chosen to have a score of 0 for simplicity
+            (
+                [
+                    F(
+                        q=QT.MULTIPLE_CHOICE,
+                        v=[1 / 3, 1 - 3 ** (-0.5) - 1 / 3, None, 3 ** (-0.5)],
+                    )
+                ],
+                {"resolution_bucket": 2, "question_type": QT.MULTIPLE_CHOICE},
+                [S(v=50)],
+            ),  # same score as index == 3 since None should read from "Other"
+            (
+                [
+                    F(
+                        q=QT.MULTIPLE_CHOICE,
+                        v=[1 / 3, 1 - 3 ** (-0.5) - 1 / 3, None, 3 ** (-0.5)],
+                    )
+                ],
+                {"resolution_bucket": 3, "question_type": QT.MULTIPLE_CHOICE},
+                [S(v=50)],
+            ),  # chosen to have a score of 50 for simplicity
             # numeric
             (
                 [F(q=QT.NUMERIC)],
@@ -199,6 +235,37 @@ class TestScoreMath:
             ([F(v=0.9, s=5)], {}, [S(v=84.79969066, c=1)]),
             ([F(v=2 ** (-1 / 2))], {}, [S(v=50)]),
             ([F(v=2 ** (-3 / 2))], {}, [S(v=-50)]),
+            # multiple choice w/ placeholder at index 2
+            (
+                [
+                    F(
+                        q=QT.MULTIPLE_CHOICE,
+                        v=[1 / 3, 1 - 3 ** (-0.5) - 1 / 3, None, 3 ** (-0.5)],
+                    )
+                ],
+                {"resolution_bucket": 0, "question_type": QT.MULTIPLE_CHOICE},
+                [S(v=0.0)],
+            ),  # chosen to have a score of 0 for simplicity
+            (
+                [
+                    F(
+                        q=QT.MULTIPLE_CHOICE,
+                        v=[1 / 3, 1 - 3 ** (-0.5) - 1 / 3, None, 3 ** (-0.5)],
+                    )
+                ],
+                {"resolution_bucket": 2, "question_type": QT.MULTIPLE_CHOICE},
+                [S(v=50)],
+            ),  # same score as index == 3 since None should read from "Other"
+            (
+                [
+                    F(
+                        q=QT.MULTIPLE_CHOICE,
+                        v=[1 / 3, 1 - 3 ** (-0.5) - 1 / 3, None, 3 ** (-0.5)],
+                    )
+                ],
+                {"resolution_bucket": 3, "question_type": QT.MULTIPLE_CHOICE},
+                [S(v=50)],
+            ),  # chosen to have a score of 50 for simplicity
             # numeric
             (
                 [F(q=QT.NUMERIC)],
@@ -319,6 +386,64 @@ class TestScoreMath:
                     S(v=100 * (0.5 * 0 + 0.5 * np.log(0.9 / gmean([0.1, 0.5]))), c=0.5),
                 ],
             ),
+            # multiple choice w/ placeholder at index 2
+            (
+                [
+                    F(
+                        q=QT.MULTIPLE_CHOICE,
+                        v=[
+                            1 / 3,
+                            1 - (np.e ** (0.25) / 3) - 1 / 3,
+                            None,
+                            np.e ** (0.25) / 3,
+                        ],
+                    ),
+                    F(
+                        q=QT.MULTIPLE_CHOICE,
+                        v=[1 / 3, 1 / 3, None, 1 / 3],
+                    ),
+                ],
+                {"resolution_bucket": 0, "question_type": QT.MULTIPLE_CHOICE},
+                [S(v=0), S(v=0)],
+            ),  # chosen to have a score of 0 for simplicity
+            (
+                [
+                    F(
+                        q=QT.MULTIPLE_CHOICE,
+                        v=[
+                            1 / 3,
+                            1 - (np.e ** (0.25) / 3) - 1 / 3,
+                            None,
+                            np.e ** (0.25) / 3,
+                        ],
+                    ),
+                    F(
+                        q=QT.MULTIPLE_CHOICE,
+                        v=[1 / 3, 1 / 3, None, 1 / 3],
+                    ),
+                ],
+                {"resolution_bucket": 2, "question_type": QT.MULTIPLE_CHOICE},
+                [S(v=25), S(v=-25)],
+            ),  # same score as index == 3 since 0.0 should read from "Other"
+            (
+                [
+                    F(
+                        q=QT.MULTIPLE_CHOICE,
+                        v=[
+                            1 / 3,
+                            1 - (np.e ** (0.25) / 3) - 1 / 3,
+                            None,
+                            np.e ** (0.25) / 3,
+                        ],
+                    ),
+                    F(
+                        q=QT.MULTIPLE_CHOICE,
+                        v=[1 / 3, 1 / 3, None, 1 / 3],
+                    ),
+                ],
+                {"resolution_bucket": 3, "question_type": QT.MULTIPLE_CHOICE},
+                [S(v=25), S(v=-25)],
+            ),  # chosen to have a score of 25 for simplicity
             # TODO: add tests with base forecasts different from forecasts
         ],
     )
@@ -403,6 +528,64 @@ class TestScoreMath:
                 {},
                 [S(v=100 * np.log(0.1 / 0.5)), S(v=100 * np.log(0.5 / 0.1)), S(c=0)],
             ),
+            # multiple choice w/ placeholder at index 2
+            (
+                [
+                    F(
+                        q=QT.MULTIPLE_CHOICE,
+                        v=[
+                            1 / 3,
+                            1 - (np.e ** (0.25) / 3) - 1 / 3,
+                            None,
+                            np.e ** (0.25) / 3,
+                        ],
+                    ),
+                    F(
+                        q=QT.MULTIPLE_CHOICE,
+                        v=[1 / 3, 1 / 3, None, 1 / 3],
+                    ),
+                ],
+                {"resolution_bucket": 0, "question_type": QT.MULTIPLE_CHOICE},
+                [S(v=0), S(v=0)],
+            ),  # chosen to have a score of 0 for simplicity
+            (
+                [
+                    F(
+                        q=QT.MULTIPLE_CHOICE,
+                        v=[
+                            1 / 3,
+                            1 - (np.e ** (0.25) / 3) - 1 / 3,
+                            None,
+                            np.e ** (0.25) / 3,
+                        ],
+                    ),
+                    F(
+                        q=QT.MULTIPLE_CHOICE,
+                        v=[1 / 3, 1 / 3, None, 1 / 3],
+                    ),
+                ],
+                {"resolution_bucket": 2, "question_type": QT.MULTIPLE_CHOICE},
+                [S(v=25), S(v=-25)],
+            ),  # same score as index == 3 since None should read from "Other"
+            (
+                [
+                    F(
+                        q=QT.MULTIPLE_CHOICE,
+                        v=[
+                            1 / 3,
+                            1 - (np.e ** (0.25) / 3) - 1 / 3,
+                            None,
+                            np.e ** (0.25) / 3,
+                        ],
+                    ),
+                    F(
+                        q=QT.MULTIPLE_CHOICE,
+                        v=[1 / 3, 1 / 3, None, 1 / 3],
+                    ),
+                ],
+                {"resolution_bucket": 3, "question_type": QT.MULTIPLE_CHOICE},
+                [S(v=25), S(v=-25)],
+            ),  # chosen to have a score of 25 for simplicity
             # TODO: add tests with base forecasts different from forecasts
         ],
     )

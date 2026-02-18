@@ -10,8 +10,6 @@ import {
 } from "date-fns";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import posthog from "posthog-js";
-import { useFeatureFlagEnabled } from "posthog-js/react";
 import React, {
   Dispatch,
   FC,
@@ -64,10 +62,6 @@ interface ModalState {
 export const forecastExpirationToDate = (
   expiration: ForecastExpirationValue | undefined
 ): Date | undefined => {
-  if (!posthog.getFeatureFlag("forecast_expiration")) {
-    return undefined;
-  }
-
   if (!expiration) {
     return undefined;
   }
@@ -81,6 +75,8 @@ export const forecastExpirationToDate = (
   }
   return expiration.value;
 };
+
+const MIN_DEFAULT_EXPIRATION_DURATION_SEC = 30 * 24 * 60 * 60; // 30 days in seconds
 
 const durationPresets: DurationPreset[] = [
   { id: "1d", duration: { days: 1 } },
@@ -145,7 +141,10 @@ export const buildDefaultForecastExpiration = (
     new Date(question.open_time ?? question.created_at).getTime();
 
   const userDefaultExpirationDurationSec = userPredictionExpirationPercent
-    ? ((userPredictionExpirationPercent / 100) * questionDuration) / 1000
+    ? Math.max(
+        ((userPredictionExpirationPercent / 100) * questionDuration) / 1000,
+        MIN_DEFAULT_EXPIRATION_DURATION_SEC
+      )
     : null;
 
   const defaultState = buildDefaultState(
@@ -261,7 +260,10 @@ export const useExpirationModalState = (
   const { user } = useAuth();
   const userExpirationPercent = user?.prediction_expiration_percent ?? null;
   const userDefaultExpirationDurationSec = userExpirationPercent
-    ? ((userExpirationPercent / 100) * questionDuration) / 1000
+    ? Math.max(
+        ((userExpirationPercent / 100) * questionDuration) / 1000,
+        MIN_DEFAULT_EXPIRATION_DURATION_SEC
+      )
     : null;
 
   const initialState = buildDefaultState(
@@ -271,10 +273,6 @@ export const useExpirationModalState = (
 
   const [modalSavedState, setModalSavedState] =
     useState<ModalState>(initialState);
-
-  const isForecastExpirationEnabled = useFeatureFlagEnabled(
-    "forecast_expiration"
-  );
 
   useEffect(() => {
     // When the user last forecast changes (user withdraws), we need to update the chip to duration closed to the last user forecast
@@ -344,11 +342,6 @@ export const useExpirationModalState = (
     };
   }
 
-  if (!isForecastExpirationEnabled) {
-    expirationShortChip = undefined;
-    previousForecastExpiration = undefined;
-  }
-
   return {
     modalSavedState,
     setModalSavedState,
@@ -379,7 +372,10 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   const { user } = useAuth();
   const userExpirationPercent = user?.prediction_expiration_percent ?? null;
   const userDefaultExpirationDurationSec = userExpirationPercent
-    ? ((userExpirationPercent / 100) * questionDuration) / 1000
+    ? Math.max(
+        ((userExpirationPercent / 100) * questionDuration) / 1000,
+        MIN_DEFAULT_EXPIRATION_DURATION_SEC
+      )
     : null;
 
   const datePickerDate = savedState.datePickerDate;

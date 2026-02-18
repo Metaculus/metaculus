@@ -1,10 +1,14 @@
 "use client";
-import React, { FC, useEffect } from "react";
+import { FC, useEffect } from "react";
+import { VictoryThemeDefinition } from "victory";
 
+import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { useHideCP } from "@/contexts/cp_context";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionPost } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import { ThemeColor } from "@/types/theme";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 
@@ -16,17 +20,29 @@ type Props = {
   post: QuestionPost<QuestionWithForecasts>;
   hideTitle?: boolean;
   isConsumerView?: boolean;
+  embedChartHeight?: number;
+  onLegendHeightChange?: (height: number) => void;
+  chartTheme?: VictoryThemeDefinition;
+  colorOverride?: ThemeColor | string;
+  defaultZoom?: TimelineChartZoomOption;
 };
 
 const DetailedQuestionCard: FC<Props> = ({
   post,
   hideTitle,
   isConsumerView,
+  embedChartHeight,
+  onLegendHeightChange,
+  chartTheme,
+  colorOverride,
+  defaultZoom,
 }) => {
   const { question, status, nr_forecasters } = post;
   const forecastAvailability = getQuestionForecastAvailability(question);
 
   const { hideCP } = useHideCP();
+
+  const isEmbed = useIsEmbedMode();
 
   useEffect(() => {
     if (!!question.my_forecasts?.history.length) {
@@ -54,6 +70,10 @@ const DetailedQuestionCard: FC<Props> = ({
             nrForecasters={nr_forecasters}
             hideTitle={hideTitle}
             isConsumerView={isConsumerView}
+            embedChartHeight={embedChartHeight}
+            extraTheme={chartTheme}
+            colorOverride={colorOverride}
+            defaultZoom={defaultZoom}
           />
           {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>
@@ -65,6 +85,11 @@ const DetailedQuestionCard: FC<Props> = ({
             question={question}
             hideCP={hideCP}
             forecastAvailability={forecastAvailability}
+            embedMode={isEmbed}
+            chartHeight={embedChartHeight}
+            onLegendHeightChange={onLegendHeightChange}
+            chartTheme={chartTheme}
+            defaultZoom={defaultZoom}
           />
           {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>

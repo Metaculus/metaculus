@@ -1,10 +1,11 @@
 from datetime import datetime
 
-import django
+from django.db.models import Q
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.http import JsonResponse
 from django.views.decorators.cache import cache_page
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied
@@ -85,11 +86,26 @@ def remove_article_api_view(request, pk):
 @permission_classes([AllowAny])
 def get_bulletins(request):
     user = request.user
+    data = request.query_params
+    post_id = data.get("post_id")
+    project_slug = data.get("project_slug")  # maybe needs to be slug for simplicity
 
     bulletins = Bulletin.objects.filter(
-        bulletin_start__lte=django.utils.timezone.now(),
-        bulletin_end__gte=django.utils.timezone.now(),
+        bulletin_start__lte=timezone.now(),
+        bulletin_end__gte=timezone.now(),
     )
+
+    if post_id:
+        bulletins = bulletins.filter(Q(post_id__isnull=True) | Q(post_id=post_id))
+    else:
+        bulletins = bulletins.filter(post_id__isnull=True)
+
+    if project_slug:
+        bulletins = bulletins.filter(
+            Q(project_id__isnull=True) | Q(project__slug=project_slug)
+        )
+    else:
+        bulletins = bulletins.filter(project_id__isnull=True)
 
     bulletins_viewed_by_user = []
     if user and user.is_authenticated:
@@ -113,7 +129,9 @@ def get_site_stats(request):
     now_year = datetime.now().year
     public_questions = Question.objects.filter_public()
     stats = {
-        "predictions": Forecast.objects.filter(question__in=public_questions).count(),
+        "predictions": Forecast.objects.filter(question__in=public_questions)
+        .exclude(source=Forecast.SourceChoices.AUTOMATIC)
+        .count(),
         "questions": public_questions.count(),
         "resolved_questions": public_questions.filter(actual_resolve_time__isnull=False)
         .exclude(resolution__in=UnsuccessfulResolutionType)
@@ -152,9 +170,10 @@ def get_whitelist_status_api_view(request: Request):
     data = request.query_params
     post_id = data.get("post_id")
     project_id = data.get("project_id")
+    user = request.user if request.user.is_authenticated else None
 
     is_whitelisted, view_deanonymized_data = get_whitelist_status(
-        request.user, post_id, project_id
+        user, post_id, project_id
     )
 
     return Response(

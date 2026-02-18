@@ -14,17 +14,14 @@ import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
-import { CommentForm } from "@/app/(main)/questions/[id]/components/comment_form";
-import { AddKeyFactorsForm } from "@/app/(main)/questions/[id]/components/key_factors/add_modal";
-import { useKeyFactors } from "@/app/(main)/questions/[id]/components/key_factors/hooks";
+import KeyFactorsAddInComment from "@/app/(main)/questions/[id]/components/key_factors/add_in_comment/key_factors_add_in_comment";
 import KeyFactorsCommentSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_comment_section";
-import { driverTextSchema } from "@/app/(main)/questions/[id]/components/key_factors/schemas";
+import { useKeyFactorsCtx } from "@/app/(main)/questions/[id]/components/key_factors/key_factors_context";
 import {
   createForecasts,
   editComment,
   softDeleteComment,
 } from "@/app/(main)/questions/actions";
-import { CoherenceLinksForm } from "@/app/(main)/questions/components/coherence_links/coherence_links_form";
 import { CommentDate } from "@/components/comment_feed/comment_date";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import CommentReportModal from "@/components/comment_feed/comment_report_modal";
@@ -32,7 +29,9 @@ import CommentVoter from "@/components/comment_feed/comment_voter";
 import { Admin } from "@/components/icons/admin";
 import { Moderator } from "@/components/icons/moderator";
 import MarkdownEditor from "@/components/markdown_editor";
+import RichText from "@/components/rich_text";
 import Button from "@/components/ui/button";
+import Checkbox from "@/components/ui/checkbox";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
@@ -40,9 +39,8 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useCommentDraft } from "@/hooks/use_comment_draft";
 import useContainerSize from "@/hooks/use_container_size";
 import useScrollTo from "@/hooks/use_scroll_to";
-import { CommentType, KeyFactor } from "@/types/comment";
+import { CommentType } from "@/types/comment";
 import { ErrorResponse } from "@/types/fetch";
-import type { KeyFactorDraft } from "@/types/key_factors";
 import {
   PostStatus,
   PostWithForecasts,
@@ -53,17 +51,22 @@ import { sendAnalyticsEvent } from "@/utils/analytics";
 import { parseUserMentions } from "@/utils/comments";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
+import { isForecastActive } from "@/utils/forecasts/helpers";
 import { formatUsername } from "@/utils/formatters/users";
 import { getMarkdownSummary } from "@/utils/markdown";
 import { canPredictQuestion } from "@/utils/questions/predictions";
 
 import { CmmOverlay, CmmToggleButton, useCmmContext } from "./comment_cmm";
-import IncludedForecast from "./included_forecast";
+import IncludedForecast, {
+  formatForecastValueText,
+  userForecastToForecastType,
+} from "./included_forecast";
 import { validateComment } from "./validate_comment";
-import { FormError, FormErrorMessage } from "../ui/form_field";
+import { FormErrorMessage } from "../ui/form_field";
 import LoadingSpinner from "../ui/loading_spiner";
 
-import { SortOption, sortComments } from ".";
+import { sortComments, SortOption } from ".";
+
 type CommentChildrenTreeProps = {
   commentChildren: CommentType[];
   expandedChildren?: boolean;
@@ -228,44 +231,71 @@ const Comment: FC<CommentProps> = ({
 }) => {
   const t = useTranslations();
   const commentRef = useRef<HTMLDivElement>(null);
-  const keyFactorFormRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editorKey, setEditorKey] = useState<number>(0);
   const originalTextRef = useRef<string>(comment.text);
   const [isDeleted, setIsDeleted] = useState(comment.is_soft_deleted);
   const [isLoading, setIsLoading] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
-  const [drafts, setDrafts] = useState<KeyFactorDraft[]>([
-    {
-      driver: { text: "", impact_direction: null, certainty: null },
-    },
-  ]);
   const [errorMessage, setErrorMessage] = useState<string | ErrorResponse>();
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
   const [tempCommentMarkdown, setTempCommentMarkdown] = useState("");
+  const [includeEditForecast, setIncludeEditForecast] = useState(false);
+  const [includedForecast, setIncludedForecast] = useState(
+    comment.included_forecast
+  );
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const { ref, width } = useContainerSize<HTMLDivElement>();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
   const scrollTo = useScrollTo();
-  const userCanPredict = postData && canPredictQuestion(postData);
+  const userCanPredict = postData && canPredictQuestion(postData, user);
   const userForecast =
     postData?.question?.my_forecasts?.latest?.forecast_values[1] ?? 0.5;
+  const isCommentAuthor = comment.author.id === user?.id;
+
+  // Check if user had a forecast active at comment creation time
+  const commentCreatedAt = new Date(comment.created_at).getTime() / 1000;
+  const hadForecastAtCommentCreation = useMemo(() => {
+    if (comment.author.id !== user?.id) {
+      return false;
+    }
+
+    const forecasts = postData?.question?.my_forecasts?.history || [];
+
+    return forecasts.find((forecast) => {
+      const startTime = forecast.start_time;
+      const endTime = forecast.end_time;
+      return (
+        startTime <= commentCreatedAt &&
+        (endTime === null || endTime > commentCreatedAt)
+      );
+    });
+  }, [
+    comment.author.id,
+    user?.id,
+    postData?.question?.my_forecasts?.history,
+    commentCreatedAt,
+  ]);
+
   const isCmmButtonVisible =
-    user?.id !== comment.author.id &&
-    (!!postData?.question ||
-      !!postData?.group_of_questions ||
-      !!postData?.conditional);
-  const isCmmButtonDisabled = !user || !userCanPredict;
-  // TODO: find a better way to dedect whether on mobile or not. For now we need to know in JS
-  // too and can't use tw classes
-  const isMobileScreen = window.innerWidth < 640;
+    !!postData?.question ||
+    !!postData?.group_of_questions ||
+    !!postData?.conditional;
+  const isCmmButtonDisabled = !user || !userCanPredict || isCommentAuthor;
+
+  const canIncludeForecastInReply = useMemo(() => {
+    if (!postData?.question) return false;
+    const latest = postData.question.my_forecasts?.latest;
+    return !!latest && isForecastActive(latest);
+  }, [postData]);
 
   const {
     draftReady: editDraftReady,
     initialMarkdown: editInitialMarkdown,
     saveDraftDebounced: saveEditDraftDebounced,
     deleteDraft: deleteEditDraft,
+    setInitialMarkdown: setEditInitialMarkdown,
   } = useCommentDraft({
     text: comment.text,
     userId: user?.id,
@@ -286,50 +316,99 @@ const Comment: FC<CommentProps> = ({
   );
 
   const [isKeyfactorsFormOpen, setIsKeyfactorsFormOpen] = useState(false);
-  const [suggestKeyFactorsFirstRender, setSuggestKeyFactorsFirstRender] =
-    useState(isCommentJustCreated);
+  const [hasExhaustedSuggestions, setHasExhaustedSuggestions] = useState(false);
+  const hasAutoOpenedKeyFactorsRef = useRef(false);
 
-  const [loadKeyFactors, setLoadKeyFactors] = useState(
-    isCommentJustCreated && shouldSuggestKeyFactors
-  );
-
-  const onKeyFactorsLoaded = (keyFactorsLoaded: boolean) => {
-    setIsKeyfactorsFormOpen(keyFactorsLoaded || !suggestKeyFactorsFirstRender);
-    setSuggestKeyFactorsFirstRender(false);
-    setLoadKeyFactors(false);
-    if (keyFactorsLoaded) {
-      setTimeout(() => {
-        if (keyFactorFormRef.current) {
-          scrollTo(keyFactorFormRef.current.getBoundingClientRect().top);
-        }
-      }, 200);
-    }
-  };
-
-  const { comments, setComments, combinedKeyFactors } = useCommentsFeed();
+  const { combinedKeyFactors } = useCommentsFeed();
   const {
-    errors: keyFactorsErrors,
-    setErrors: setKeyFactorsErrors,
     suggestedKeyFactors,
-    setSuggestedKeyFactors,
     isLoadingSuggestedKeyFactors,
-    limitError,
     factorsLimit,
-    submit,
-    isPending,
-    clearState,
-  } = useKeyFactors({
-    suggestKeyFactors: loadKeyFactors,
-    user_id: user?.id,
-    commentId: comment.id,
-    postId: comment.on_post_data?.id,
-    onKeyFactorsLoaded,
-  });
+    isDetectingQuestionLinks,
+    questionLinkCandidates,
+    resetAll,
+  } = useKeyFactorsCtx();
+  const [showInitialSuggestionsLoader, setShowInitialSuggestionsLoader] =
+    useState(false);
+  const hasShownInitialSuggestionsLoaderRef = useRef(false);
+
+  useEffect(() => {
+    const isLoading = isLoadingSuggestedKeyFactors || isDetectingQuestionLinks;
+
+    if (
+      isLoading &&
+      !hasShownInitialSuggestionsLoaderRef.current &&
+      isCommentJustCreated
+    ) {
+      setShowInitialSuggestionsLoader(true);
+    }
+
+    if (
+      !isLoading &&
+      showInitialSuggestionsLoader &&
+      !hasShownInitialSuggestionsLoaderRef.current
+    ) {
+      setShowInitialSuggestionsLoader(false);
+      hasShownInitialSuggestionsLoaderRef.current = true;
+    }
+  }, [
+    isLoadingSuggestedKeyFactors,
+    isDetectingQuestionLinks,
+    showInitialSuggestionsLoader,
+    isCommentJustCreated,
+  ]);
+
+  const isCommentEmpty = !commentMarkdown.trim();
+
+  useEffect(() => {
+    if (!shouldSuggestKeyFactors) return;
+    if (!isCommentJustCreated) return;
+    if (isCommentEmpty) return;
+
+    if (hasAutoOpenedKeyFactorsRef.current) return;
+
+    const isLoading = isLoadingSuggestedKeyFactors || isDetectingQuestionLinks;
+
+    if (isLoading || isKeyfactorsFormOpen) {
+      return;
+    }
+
+    const hasQuestionLinks = questionLinkCandidates?.length > 0;
+    const hasSuggestions = suggestedKeyFactors.length > 0;
+
+    if (hasQuestionLinks || hasSuggestions) {
+      setIsKeyfactorsFormOpen(true);
+      hasAutoOpenedKeyFactorsRef.current = true;
+    }
+  }, [
+    shouldSuggestKeyFactors,
+    isCommentJustCreated,
+    isCommentEmpty,
+    isLoadingSuggestedKeyFactors,
+    isDetectingQuestionLinks,
+    suggestedKeyFactors.length,
+    questionLinkCandidates?.length,
+    isKeyfactorsFormOpen,
+  ]);
 
   const commentKeyFactors = useMemo(
     () => combinedKeyFactors.filter((kf) => kf.comment_id === comment.id),
     [combinedKeyFactors, comment.id]
   );
+
+  const isTextEmpty = !commentMarkdown.trim();
+  const { setComments } = useCommentsFeed();
+  useEffect(() => {
+    if (isTextEmpty && commentKeyFactors.length === 0 && !isEditing) {
+      setComments((prev) => prev.filter((c) => c.id !== comment.id));
+    }
+  }, [
+    isTextEmpty,
+    commentKeyFactors.length,
+    comment.id,
+    setComments,
+    isEditing,
+  ]);
 
   const canListKeyFactors = !postData?.notebook;
   const questionNotClosed = ![
@@ -339,82 +418,36 @@ const Comment: FC<CommentProps> = ({
   ].includes(postData?.status ?? PostStatus.CLOSED);
 
   const limitNotReached = factorsLimit > 0;
-  const isCommentAuthor = comment.author.id === user?.id;
+  const canShowAddKeyFactorsButton =
+    isCommentAuthor && questionNotClosed && canListKeyFactors;
 
-  const canAddKeyFactors =
-    isCommentAuthor &&
-    questionNotClosed &&
-    limitNotReached &&
-    canListKeyFactors;
+  const isAddKeyFactorsDisabled = !limitNotReached || hasExhaustedSuggestions;
 
   const onAddKeyFactorClick = () => {
+    if (isAddKeyFactorsDisabled) return;
     sendAnalyticsEvent("addKeyFactor", { event_label: "fromComment" });
-    clearState();
-    setDrafts([
-      {
-        driver: { text: "", impact_direction: null, certainty: null },
-      },
-    ]);
-    if (isKeyfactorsFormOpen) {
-      setIsKeyfactorsFormOpen(false);
-    } else if (shouldSuggestKeyFactors) {
-      setLoadKeyFactors(true);
-    } else {
-      setIsKeyfactorsFormOpen(true);
-    }
+
+    resetAll();
+    setIsKeyfactorsFormOpen((prev) => !prev);
+  };
+
+  const handleSuggestionsCompleted = () => {
+    setHasExhaustedSuggestions(true);
+    setIsKeyfactorsFormOpen(false);
   };
 
   const openEdit = useCallback(() => {
+    const scrollY = window.scrollY;
     setTempCommentMarkdown(originalTextRef.current);
     setIsEditing(true);
     setEditorKey((k) => k + 1);
     setCommentMarkdown(
       editDraftReady ? editInitialMarkdown : originalTextRef.current
     );
+    requestAnimationFrame(() => {
+      window.scrollTo(0, scrollY);
+    });
   }, [editDraftReady, editInitialMarkdown]);
-
-  const handleSubmit = async () => {
-    const result = await submit(drafts, suggestedKeyFactors);
-    if (result && "errors" in result) {
-      setKeyFactorsErrors(result.errors);
-      return;
-    }
-    if (result?.comment) {
-      const newComment = result.comment;
-
-      if (user && !user.should_suggest_keyfactors) {
-        // Update the user state so now the user can get suggested key factors
-        setUser({ ...user, should_suggest_keyfactors: true });
-      }
-
-      const updatedComments = comments.map((comment) =>
-        updateCommentKeyFactors(
-          comment,
-          newComment.id,
-          newComment.key_factors ?? []
-        )
-      );
-
-      clearState();
-      setComments(updatedComments);
-      setTimeout(() => {
-        if (commentRef.current) {
-          scrollTo(commentRef.current.getBoundingClientRect().top);
-        }
-      }, 500);
-    }
-    setIsKeyfactorsFormOpen(false);
-  };
-
-  const onCancel = () => {
-    setIsKeyfactorsFormOpen(false);
-    clearState();
-    setDrafts([
-      {
-        driver: { text: "", impact_direction: null, certainty: null },
-      },
-    ]);
-  };
 
   const updateForecast = async (value: number) => {
     const response = await createForecasts(comment.on_post, [
@@ -466,12 +499,31 @@ const Comment: FC<CommentProps> = ({
         id: comment.id,
         text: parsedMarkdown,
         author: user.id,
+        include_forecast: includeEditForecast,
       });
       if (response && "errors" in response) {
         setErrorMessage(response.errors as ErrorResponse);
       } else {
         setCommentMarkdown(parsedMarkdown);
+        setComments((prev) =>
+          updateCommentTextInTree(prev, comment.id, parsedMarkdown)
+        );
+
+        originalTextRef.current = parsedMarkdown;
+        setTempCommentMarkdown(parsedMarkdown);
+        setEditInitialMarkdown(parsedMarkdown);
         setIsEditing(false);
+        setIncludeEditForecast(false);
+        if (
+          response &&
+          "included_forecast" in response &&
+          response.included_forecast
+        ) {
+          setIncludedForecast({
+            ...response.included_forecast,
+            start_time: new Date(response.included_forecast.start_time),
+          });
+        }
         deleteEditDraft();
       }
     } finally {
@@ -485,8 +537,11 @@ const Comment: FC<CommentProps> = ({
     PUBLIC_MINIMAL_UI,
     t,
     setCommentMarkdown,
+    setComments,
+    setEditInitialMarkdown,
     setIsEditing,
     deleteEditDraft,
+    includeEditForecast,
   ]);
   // scroll to comment from URL hash
   useEffect(() => {
@@ -513,23 +568,7 @@ const Comment: FC<CommentProps> = ({
 
   const menuItems: MenuItemProps[] = [
     {
-      hidden: !isMobileScreen || !isCmmButtonVisible,
-      id: "cmm",
-      element: (
-        <div>
-          <CmmToggleButton
-            cmmContext={cmmContext}
-            comment_id={comment.id}
-            disabled={isCmmButtonDisabled}
-          />
-        </div>
-      ),
-      onClick: () => {
-        return null; // handled by the button element
-      },
-    },
-    {
-      hidden: !(user?.id === comment.author.id),
+      hidden: !(user?.id === comment.author.id) || !!user?.is_bot,
       id: "edit",
       name: t("edit"),
       onClick: openEdit,
@@ -764,10 +803,10 @@ const Comment: FC<CommentProps> = ({
         </span>
         */}
           {/* comment indexing is broken, since the comment feed loading happens async for the client*/}
-          {comment.included_forecast && !isCollapsed && (
+          {includedForecast && !isCollapsed && !isEditing && (
             <IncludedForecast
               author={formatUsername(comment.author)}
-              forecast={comment.included_forecast}
+              forecast={includedForecast}
             />
           )}
         </div>
@@ -786,167 +825,216 @@ const Comment: FC<CommentProps> = ({
           <>
             <div className="break-anywhere">
               {isEditing && (
-                <MarkdownEditor
-                  key={`edit-${comment.id}-${editorKey}`}
-                  markdown={commentMarkdown}
-                  mode="write"
-                  onChange={(val) => {
-                    setCommentMarkdown(val);
-                    saveEditDraftDebounced(val);
-                  }}
-                  withUgcLinks
-                  withCodeBlocks
-                />
-              )}{" "}
-              {!isEditing && (
-                <MarkdownEditor
-                  markdown={parseUserMentions(
-                    commentMarkdown,
-                    comment.mentioned_users
-                  )}
-                  mode={"read"}
-                  withUgcLinks
-                  withTwitterPreview
-                  withCodeBlocks
-                />
-              )}
-            </div>
-            {!!errorMessage && isEditing && (
-              <FormErrorMessage
-                errors={errorMessage}
-                containerClassName="text-balance text-center text-red-500 dark:text-red-500-dark"
-              />
-            )}
-            {isEditing && (
-              <>
-                <Button
-                  onClick={handleSaveComment}
-                  disabled={isLoading}
-                  className={cn(isLoading && "h-8")}
-                >
-                  {isLoading ? (
-                    <LoadingSpinner className="mx-2.5 size-3" />
-                  ) : (
-                    t("save")
-                  )}
-                </Button>
-                <Button
-                  className="ml-2"
-                  onClick={() => {
-                    setCommentMarkdown(tempCommentMarkdown);
-                    setIsEditing(false);
-                  }}
-                  disabled={isLoading}
-                >
-                  {t("cancel")}
-                </Button>
-              </>
-            )}
-
-            {commentKeyFactors.length > 0 && canListKeyFactors && postData && (
-              <KeyFactorsCommentSection
-                post={postData}
-                keyFactors={commentKeyFactors}
-                permission={postData.user_permission}
-                authorId={comment.author.id}
-              />
-            )}
-
-            <div className="mb-2 mt-1 h-7 overflow-visible">
-              <div className="flex items-center justify-between text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
-                <div className="inline-flex items-center gap-2.5">
-                  <CommentVoter
-                    voteData={{
-                      commentAuthorId: comment.author.id,
-                      commentId: comment.id,
-                      voteScore: comment.vote_score,
-                      userVote: comment.user_vote ?? null,
-                    }}
-                  />
-
-                  {canAddKeyFactors && (
-                    <Button
-                      size="xxs"
-                      variant="tertiary"
-                      onClick={onAddKeyFactorClick}
-                      className="relative flex items-center justify-center"
-                    >
-                      <>
-                        <div
-                          className={cn(
-                            "absolute inset-0 flex items-center justify-center",
-                            isLoadingSuggestedKeyFactors && "visible",
-                            !isLoadingSuggestedKeyFactors && "invisible"
-                          )}
-                        >
-                          <LoadingSpinner className="size-4" />
-                        </div>
-                        <div
-                          className={cn(
-                            "flex items-center",
-                            isLoadingSuggestedKeyFactors && "invisible",
-                            !isLoadingSuggestedKeyFactors && "visible"
-                          )}
-                        >
-                          <FontAwesomeIcon
-                            icon={isKeyfactorsFormOpen ? faXmark : faPlus}
-                            className="size-4 p-1"
-                          />
-                          {t("addKeyFactor")}
-                        </div>
-                      </>
-                    </Button>
-                  )}
-
-                  {isCmmButtonVisible && !isMobileScreen && (
-                    <CmmToggleButton
-                      cmmContext={cmmContext}
-                      comment_id={comment.id}
-                      disabled={isCmmButtonDisabled}
-                      ref={cmmContext.setAnchorRef}
+                <div className="flex flex-col gap-3 pb-1 pt-3">
+                  <div>
+                    <MarkdownEditor
+                      key={`edit-${comment.id}-${editorKey}`}
+                      className="rounded border border-gray-500 dark:border-gray-500-dark"
+                      markdown={commentMarkdown}
+                      mode="write"
+                      onChange={(val) => {
+                        setCommentMarkdown(val);
+                        saveEditDraftDebounced(val);
+                      }}
+                      withUgcLinks
+                      withCodeBlocks
+                    />
+                    {hadForecastAtCommentCreation && postData?.question && (
+                      <RichText>
+                        {(tags) => (
+                          <Checkbox
+                            checked={!!includedForecast || includeEditForecast}
+                            onChange={(checked) =>
+                              setIncludeEditForecast(checked)
+                            }
+                            label="includeMyForecastAtTheTime"
+                            className="ml-auto mt-2 w-fit text-sm"
+                            disabled={!!includedForecast}
+                          >
+                            <span
+                              className={cn({
+                                "opacity-35": !!includedForecast,
+                              })}
+                            >
+                              {t.rich("includeMyForecastAtTheTime", {
+                                ...tags,
+                                forecast: formatForecastValueText(
+                                  userForecastToForecastType(
+                                    hadForecastAtCommentCreation,
+                                    postData.question
+                                  )
+                                ),
+                              })}
+                            </span>
+                          </Checkbox>
+                        )}
+                      </RichText>
+                    )}
+                  </div>
+                  {!!errorMessage && (
+                    <FormErrorMessage
+                      errors={errorMessage}
+                      containerClassName="text-balance text-center text-red-500 dark:text-red-500-dark"
                     />
                   )}
-
-                  {!onProfile &&
-                    (isReplying ? (
-                      <Button
-                        size="xxs"
-                        variant="tertiary"
-                        onClick={() => {
-                          setIsReplying(false);
-                        }}
-                      >
-                        <FontAwesomeIcon
-                          icon={faXmark}
-                          className="size-4 p-1"
-                        />
-                        {t("cancel")}
-                      </Button>
-                    ) : (
-                      <Button
-                        size="xxs"
-                        onClick={() => setIsReplying(true)}
-                        variant="tertiary"
-                        className="gap-0.5"
-                      >
-                        <FontAwesomeIcon
-                          icon={faReply}
-                          className="size-4 p-1"
-                          size="xs"
-                        />
-                        {t("reply")}
-                      </Button>
-                    ))}
+                  <div className="ml-auto mt-1">
+                    <Button
+                      onClick={handleSaveComment}
+                      disabled={isLoading}
+                      className={cn(isLoading && "h-8")}
+                      variant="primary"
+                    >
+                      {isLoading ? (
+                        <LoadingSpinner className="mx-2.5 size-3" />
+                      ) : (
+                        t("save")
+                      )}
+                    </Button>
+                    <Button
+                      className="ml-2"
+                      onClick={() => {
+                        setCommentMarkdown(tempCommentMarkdown);
+                        setIncludeEditForecast(false);
+                        setIsEditing(false);
+                      }}
+                      disabled={isLoading}
+                    >
+                      {t("cancel")}
+                    </Button>
+                  </div>
                 </div>
-
-                <div
-                  ref={isMobileScreen ? cmmContext.setAnchorRef : null}
-                  className={cn(treeDepth > 0 && "pr-1.5 md:pr-2")}
-                >
-                  <DropdownMenu items={menuItems} />
-                </div>
-              </div>
+              )}
             </div>
+
+            {!isEditing && (
+              <>
+                {!(isTextEmpty && commentKeyFactors.length > 0) && (
+                  <MarkdownEditor
+                    markdown={parseUserMentions(
+                      commentMarkdown,
+                      comment.mentioned_users
+                    )}
+                    mode="read"
+                    withUgcLinks
+                    withTwitterPreview
+                    withCodeBlocks
+                  />
+                )}
+                {commentKeyFactors.length > 0 &&
+                  canListKeyFactors &&
+                  postData && (
+                    <KeyFactorsCommentSection
+                      post={postData}
+                      keyFactors={commentKeyFactors}
+                      permission={postData.user_permission}
+                      authorId={comment.author.id}
+                    />
+                  )}
+                <div className="mb-2 mt-1 h-7 overflow-visible">
+                  <div className="flex items-center justify-between text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
+                    <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                      <CommentVoter
+                        voteData={{
+                          commentAuthorId: comment.author.id,
+                          commentId: comment.id,
+                          voteScore: comment.vote_score,
+                          userVote: comment.user_vote ?? null,
+                        }}
+                      />
+
+                      {canShowAddKeyFactorsButton && (
+                        <Button
+                          size="xxs"
+                          variant="tertiary"
+                          onClick={onAddKeyFactorClick}
+                          disabled={isAddKeyFactorsDisabled}
+                          className={cn(
+                            "relative flex items-center justify-center",
+                            isKeyfactorsFormOpen &&
+                              "bg-blue-800 text-gray-0 hover:bg-blue-700 dark:bg-blue-800-dark dark:text-gray-0-dark dark:hover:bg-blue-700-dark",
+                            isAddKeyFactorsDisabled &&
+                              "cursor-default opacity-60"
+                          )}
+                        >
+                          <>
+                            <div
+                              className={cn(
+                                "absolute inset-0 flex items-center justify-center",
+                                showInitialSuggestionsLoader && "visible",
+                                !showInitialSuggestionsLoader && "invisible"
+                              )}
+                            >
+                              <LoadingSpinner className="size-4" />
+                            </div>
+                            <div
+                              className={cn(
+                                "flex items-center",
+                                showInitialSuggestionsLoader && "invisible",
+                                !showInitialSuggestionsLoader && "visible"
+                              )}
+                            >
+                              <FontAwesomeIcon
+                                icon={isKeyfactorsFormOpen ? faXmark : faPlus}
+                                className="size-4 p-1"
+                              />
+                              <span className="hidden sm:inline">
+                                {t("addKeyFactor")}
+                              </span>
+                              <span className="sm:hidden">{t("add")}</span>
+                            </div>
+                          </>
+                        </Button>
+                      )}
+
+                      {!onProfile &&
+                        !user?.is_bot &&
+                        (isReplying ? (
+                          <Button
+                            size="xxs"
+                            variant="tertiary"
+                            onClick={() => {
+                              setIsReplying(false);
+                            }}
+                          >
+                            <FontAwesomeIcon
+                              icon={faXmark}
+                              className="size-4 p-1"
+                            />
+                            {t("cancel")}
+                          </Button>
+                        ) : (
+                          <Button
+                            size="xxs"
+                            onClick={() => setIsReplying(true)}
+                            variant="tertiary"
+                            className="gap-0.5"
+                          >
+                            <FontAwesomeIcon
+                              icon={faReply}
+                              className="size-4 p-1"
+                              size="xs"
+                            />
+                            {t("reply")}
+                          </Button>
+                        ))}
+
+                      {isCmmButtonVisible && (
+                        <CmmToggleButton
+                          cmmContext={cmmContext}
+                          comment_id={comment.id}
+                          disabled={isCmmButtonDisabled}
+                          ref={cmmContext.setAnchorRef}
+                        />
+                      )}
+                    </div>
+
+                    <div className={cn(treeDepth > 0 && "pr-1.5 md:pr-2")}>
+                      <DropdownMenu items={menuItems} />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </>
         )}
       </div>
@@ -960,46 +1048,23 @@ const Comment: FC<CommentProps> = ({
             setIsReplying(false);
           }}
           isReplying={isReplying}
+          shouldIncludeForecast={canIncludeForecastInReply}
+          userPermission={postData?.user_permission}
         />
       )}
       {isKeyfactorsFormOpen && postData && (
-        <CommentForm
-          onSubmit={handleSubmit}
-          onCancel={onCancel}
-          cancelDisabled={isPending}
-          submitDisabled={
-            isPending ||
-            (!drafts.some((k) => k.driver.text.trim() !== "") &&
-              suggestedKeyFactors.length === 0) ||
-            drafts.some(
-              (obj) => !driverTextSchema.safeParse(obj.driver.text).success
-            ) ||
-            drafts.some(
-              (d) =>
-                d.driver.text.trim() !== "" &&
-                d.driver.impact_direction === null &&
-                d.driver.certainty !== -1
-            )
-          }
-        >
-          <AddKeyFactorsForm
-            drafts={drafts}
-            setDrafts={setDrafts}
-            factorsLimit={factorsLimit}
-            limitError={limitError}
-            suggestedKeyFactors={suggestedKeyFactors}
-            setSuggestedKeyFactors={setSuggestedKeyFactors}
-            post={postData}
-          />
-          <p className="m-0">{t("addDriverCommentDisclaimer")}</p>
-          <FormError errors={keyFactorsErrors} />
-        </CommentForm>
-      )}
-      {isCommentJustCreated && postData && (
-        <CoherenceLinksForm
-          post={postData}
-          comment={comment}
-        ></CoherenceLinksForm>
+        <KeyFactorsAddInComment
+          postData={postData}
+          onAfterCommentSubmit={() => {
+            setTimeout(() => {
+              if (commentRef.current) {
+                scrollTo(commentRef.current.getBoundingClientRect().top);
+              }
+            }, 500);
+          }}
+          closeKeyFactorsForm={() => setIsKeyfactorsFormOpen(false)}
+          onSuggestionsCompleted={handleSuggestionsCompleted}
+        />
       )}
       {comment.children?.length > 0 && !isCollapsed && (
         <CommentChildrenTree
@@ -1033,28 +1098,16 @@ function addNewChildrenComment(comment: CommentType, newComment: CommentType) {
   });
 }
 
-function updateCommentKeyFactors(
-  comment: CommentType,
-  targetId: number,
-  newKeyFactors: KeyFactor[]
-): CommentType {
-  if (comment.id === targetId) {
-    return {
-      ...comment,
-      key_factors: newKeyFactors,
-    };
-  }
-
-  if (comment.children && comment.children.length > 0) {
-    return {
-      ...comment,
-      children: comment.children.map((child) =>
-        updateCommentKeyFactors(child, targetId, newKeyFactors)
-      ),
-    };
-  }
-
-  return comment;
+function updateCommentTextInTree(
+  list: CommentType[],
+  id: number,
+  text: string
+): CommentType[] {
+  return list.map((c) => {
+    if (c.id === id) return { ...c, text };
+    if (!c.children?.length) return c;
+    return { ...c, children: updateCommentTextInTree(c.children, id, text) };
+  });
 }
 
 export default Comment;

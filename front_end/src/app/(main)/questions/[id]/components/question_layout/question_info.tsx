@@ -5,6 +5,7 @@ import { CoherenceLinks } from "@/app/(main)/questions/components/coherence_link
 import ConditionalTimeline from "@/components/conditional_timeline";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import BackgroundInfo from "@/components/question/background_info";
+import PrivateNote from "@/components/question/private_note";
 import ResolutionCriteria from "@/components/question/resolution_criteria";
 import SectionToggle from "@/components/ui/section_toggle";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
@@ -45,7 +46,6 @@ const QuestionInfo: React.FC<Props> = ({
       )}
 
       <QuestionVariantComposer
-        postData={postData}
         forecaster={<PostScoreData post={postData} />}
         consumer={
           <div className="hidden sm:block">
@@ -64,7 +64,6 @@ const QuestionInfo: React.FC<Props> = ({
       <BackgroundInfo post={postData} />
 
       <QuestionVariantComposer
-        postData={postData}
         consumer={
           isGroupOfQuestionsPost(postData) &&
           postData.group_of_questions.graph_type ===
@@ -109,6 +108,8 @@ const QuestionInfo: React.FC<Props> = ({
         }
       />
       <HistogramDrawer post={postData} />
+
+      <PrivateNote post={postData} />
     </div>
   );
 };

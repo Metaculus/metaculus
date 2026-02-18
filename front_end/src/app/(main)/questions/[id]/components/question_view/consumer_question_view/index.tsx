@@ -1,6 +1,10 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 
+import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import KeyFactorsQuestionConsumerSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_question_consumer_section";
+import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_status_box";
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import {
@@ -20,6 +24,7 @@ import {
 
 import QuestionActionButton from "./action_buttons";
 import ConsumerQuestionPrediction from "./prediction";
+import { isDisplayableQuestionLink } from "../../key_factors/utils";
 import QuestionTitle from "../shared/question_title";
 
 type Props = {
@@ -28,6 +33,7 @@ type Props = {
 
 const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
   const t = useTranslations();
+  const { aggregateCoherenceLinks } = useCoherenceLinksContext();
 
   const isFanGraph =
     postData.group_of_questions?.graph_type ===
@@ -48,8 +54,17 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
   const showClosedMessageFanGraph =
     isFanGraph && postData.status === PostStatus.CLOSED;
 
+  const questionLinkAggregates =
+    aggregateCoherenceLinks?.data.filter(isDisplayableQuestionLink) ?? [];
+
+  const hasKeyFactors = (postData.key_factors?.length ?? 0) > 0;
+  const hasQuestionLinks = questionLinkAggregates.length > 0;
+
+  const shouldShowKeyFactorsSection = hasKeyFactors || hasQuestionLinks;
+
   return (
     <div className="flex flex-col">
+      <PostStatusBox post={postData} className="mb-5 rounded lg:mb-6" />
       <div className="mb-6 flex items-center justify-center gap-[6px]">
         <CommentStatus
           totalCount={postData.comment_count ?? 0}
@@ -62,7 +77,9 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
           compact={false}
         />
       </div>
+
       <QuestionTitle className="text-center">{postData.title}</QuestionTitle>
+
       <div className="mt-6 sm:mt-8">
         {showClosedMessageMultipleChoice && (
           <p className="m-0 mb-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
@@ -84,9 +101,10 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
           <QuestionActionButton postData={postData} />
         </div>
 
-        {postData.key_factors && postData.key_factors.length > 0 && (
+        {shouldShowKeyFactorsSection && (
           <KeyFactorsQuestionConsumerSection
-            keyFactors={postData.key_factors}
+            keyFactors={postData.key_factors ?? []}
+            post={postData}
           />
         )}
       </div>

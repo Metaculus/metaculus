@@ -153,6 +153,30 @@ describe("processMarkdown", () => {
       // Then
       expect(result).toContain("Prices: \\$5, \\$10, and \\$15");
     });
+
+    it("should not double-escape already escaped dollar signs", () => {
+      // Given
+      const input = "Already escaped: \\$10";
+
+      // When
+      const result = processMarkdown(input);
+
+      // Then
+      expect(result).toContain("Already escaped: \\$10");
+      expect(result).not.toContain("\\\\$10");
+    });
+
+    it("should keep escaped block delimiters as plain text", () => {
+      // Given
+      const input = "Escaped block: \\$$x$$ and real block: $$\ny\n$$";
+
+      // When
+      const result = processMarkdown(input);
+
+      // Then
+      expect(result).toContain("Escaped block: \\$$x");
+      expect(result).toMatch(/real block:\s*\$\$\ny\n\$\$/);
+    });
   });
 
   describe("plain text symbols escaping", () => {
@@ -248,7 +272,7 @@ describe("processMarkdown", () => {
       expect(result).toContain("New line with another ampersane S&P");
     });
 
-    it("should correctly render ampersand when htlm tags are in the markdown", () => {
+    it("should correctly render ampersand when html tags are in the markdown", () => {
       // Given
       const input =
         "This is a & b\n New line with another ampersane S&P\n another line with <u>html</u> tags";
@@ -384,9 +408,11 @@ describe("processMarkdown", () => {
       const result = processMarkdown(input);
 
       // Then
-      expect(result).toContain(
-        '<iframe height="315" width="560" src="https://example.com"></iframe>'
-      );
+      expect(result).toContain("<iframe");
+      expect(result).toContain('src="https://example.com"');
+      expect(result).toContain('width="560"');
+      expect(result).toContain('height="315"');
+      expect(result).toContain("</iframe>");
     });
 
     it("should preserve allowed custom attributes on HTML elements", () => {

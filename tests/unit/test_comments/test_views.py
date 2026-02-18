@@ -1,6 +1,10 @@
+from datetime import timedelta
+
 import pytest  # noqa
 from django.urls import reverse
+from django.utils import timezone
 from django_dynamic_fixture import G
+from freezegun import freeze_time
 
 from comments.models import (
     Comment,
@@ -10,6 +14,7 @@ from comments.models import (
     KeyFactorNews,
 )
 from comments.services.feed import get_comments_feed
+from questions.models import Forecast
 from questions.services.forecasts import create_forecast
 from tests.unit.test_comments.factories import factory_comment, factory_key_factor
 from tests.unit.test_misc.factories import factory_itn_article
@@ -53,6 +58,7 @@ class TestPagination:
         )
 
         return {
+            "post": post,
             "c1": c1,
             "c2": c2,
             "c3": c3,
@@ -67,7 +73,8 @@ class TestPagination:
 
     def test_root_pagination(self, user2, user1_client, comments):
         response = user1_client.get(
-            "/api/comments/?limit=3&sort=created_at&use_root_comments_pagination=true"
+            f"/api/comments/?limit=3&sort=created_at&use_root_comments_pagination=true"
+            f"&post={comments['post'].pk}"
         )
 
         # Check pagination
@@ -99,7 +106,7 @@ class TestPagination:
     def test_focus_on_comment__child(self, user2, user1_client, comments):
         response = user1_client.get(
             f"/api/comments/?limit=2&sort=created_at&use_root_comments_pagination=true"
-            f"&focus_comment_id={comments['c4_1'].pk}"
+            f"&focus_comment_id={comments['c4_1'].pk}&post={comments['post'].pk}"
         )
 
         # Pagination stays the same
@@ -133,7 +140,7 @@ class TestPagination:
     def test_focus_on_comment__root(self, user2, user1_client, comments):
         response = user1_client.get(
             f"/api/comments/?limit=2&sort=created_at&use_root_comments_pagination=true"
-            f"&focus_comment_id={comments['c3'].pk}"
+            f"&focus_comment_id={comments['c3'].pk}&post={comments['post'].pk}"
         )
 
         assert [x["id"] for x in response.data["results"]] == [
@@ -149,21 +156,7 @@ class TestPagination:
         c2.is_pinned = True
         c2.save()
 
-        # Should not show pinned comments if post filter is not defined
-        response = user1_client.get(
-            f"/api/comments/?limit=3&sort=-created_at&use_root_comments_pagination=true"
-            f"&focus_comment_id={comments['c3'].pk}"
-        )
-
-        assert [x["id"] for x in response.data["results"]] == [
-            comments["c3"].pk,
-            comments["c4_1_1"].pk,
-            comments["c4_1"].pk,
-            comments["c5"].pk,
-            comments["c4"].pk,
-        ]
-
-        # Now should show pinned comments
+        # Pinned comments should appear first when post filter is defined
         response = user1_client.get(
             f"/api/comments/?limit=3&sort=-created_at&use_root_comments_pagination=true"
             f"&focus_comment_id={comments['c3'].pk}"
@@ -196,16 +189,31 @@ def test_get_comments_feed_permissions(user1, user2):
 
     factory_comment(author=user2, on_post=post, is_soft_deleted=True)
 
-    assert {c.pk for c in get_comments_feed(Comment.objects.all())} == {
+    # Without filter, should return empty
+    assert set(get_comments_feed(Comment.objects.all())) == set()
+
+    # Filter by post
+    assert {c.pk for c in get_comments_feed(Comment.objects.all(), post=post)} == {
         c3.pk,
     }
-    assert {c.pk for c in get_comments_feed(Comment.objects.all(), user=user1)} == {
+    assert {
+        c.pk for c in get_comments_feed(Comment.objects.all(), user=user1, post=post)
+    } == {
         c3.pk,
     }
-    assert {c.pk for c in get_comments_feed(Comment.objects.all(), user=user2)} == {
+    assert {
+        c.pk for c in get_comments_feed(Comment.objects.all(), user=user2, post=post)
+    } == {
+        c3.pk,
+    }
+    # Private post accessible by author
+    assert {
+        c.pk
+        for c in get_comments_feed(Comment.objects.all(), user=user2, post=private_post)
+    } == {
         c1.pk,
-        c3.pk,
     }
+    # Private comments for user
     assert {
         c.pk
         for c in get_comments_feed(Comment.objects.all(), user=user2, is_private=True)
@@ -674,3 +682,163 @@ class TestKeyFactorDeletion:
         assert not KeyFactor.objects.filter(pk=kf2.pk).exists()
         # Last KF deleted - drop comment
         assert not Comment.objects.filter(pk=comment.pk).exists()
+
+
+class TestCommentEdit:
+    def test_comment_edit_include_forecast(self, user1, user1_client, question_binary):
+        post = factory_post(author=user1, question=question_binary)
+        question = post.question
+        now = timezone.now()
+
+        # 0. Forecast created and closed before comment creation
+        t_forecast_expired_start = now - timedelta(hours=4)
+        t_forecast_expired_end = now - timedelta(hours=3)
+        Forecast.objects.create(
+            question=question,
+            author=user1,
+            probability_yes=0.2,
+            start_time=t_forecast_expired_start,
+            end_time=t_forecast_expired_end,
+        )
+
+        # 1. Forecast active at comment creation
+        t_forecast_1 = now - timedelta(hours=2)
+        forecast_1 = Forecast.objects.create(
+            question=question,
+            author=user1,
+            probability_yes=0.5,
+            start_time=t_forecast_1,
+            end_time=None,
+        )
+
+        # 2. Comment created later.
+        t_comment = now - timedelta(hours=1)
+
+        with freeze_time(t_comment):
+            comment = factory_comment(author=user1, on_post=post)
+
+        # Ensure timestamps are correct
+        assert forecast_1.start_time == t_forecast_1
+        assert comment.created_at == t_comment
+        assert forecast_1.start_time < comment.created_at
+
+        # 3. New forecast created after comment
+        t_forecast_2 = now - timedelta(minutes=30)
+        forecast_2 = Forecast.objects.create(
+            question=question,
+            author=user1,
+            probability_yes=0.8,
+            start_time=t_forecast_2,
+            end_time=None,
+        )
+        forecast_1.end_time = forecast_2.start_time
+        forecast_1.save()
+
+        # 4. Edit comment to include forecast
+        url = reverse("comment-edit", kwargs={"pk": comment.pk})
+        response = user1_client.post(
+            url, {"text": "Updated text", "include_forecast": True}
+        )
+
+        assert response.status_code == 200
+        comment.refresh_from_db()
+
+        # Should attach forecast_1 (active at creation), not forecast_2 (created later)
+        assert comment.included_forecast == forecast_1
+
+        # 5. Prevent overwrite if already set
+        forecast_3 = Forecast.objects.create(
+            question=question,
+            author=user1,
+            probability_yes=0.9,
+            start_time=now,
+        )
+        forecast_2.end_time = forecast_3.start_time
+        forecast_2.save()
+
+        # Even if we pass include_forecast=True again, it shouldn't change
+        response = user1_client.post(
+            url, {"text": "Updated text 2", "include_forecast": True}
+        )
+        assert response.status_code == 200
+        comment.refresh_from_db()
+        assert comment.included_forecast == forecast_1
+
+        # 6. Test include_forecast=False (should do nothing if already set)
+        response = user1_client.post(
+            url, {"text": "Updated text 3", "include_forecast": False}
+        )
+        assert response.status_code == 200
+        comment.refresh_from_db()
+        assert comment.included_forecast == forecast_1
+
+        # 7. If we manually remove it, include_forecast=False should leave it removed.
+        comment.included_forecast = None
+        comment.save()
+
+        response = user1_client.post(
+            url, {"text": "Updated text 4", "include_forecast": False}
+        )
+        assert response.status_code == 200
+        comment.refresh_from_db()
+        assert comment.included_forecast is None
+
+        # 8. Test attaching when multiple forecasts exist before creation
+        t_forecast_0 = now - timedelta(hours=3)
+        Forecast.objects.create(
+            question=question,
+            author=user1,
+            probability_yes=0.1,
+            start_time=t_forecast_0,
+            end_time=forecast_1.start_time,
+        )
+
+        # So at t_comment, forecast_0 is closed. Forecast_1 is open.
+        response = user1_client.post(
+            url, {"text": "Updated text 5", "include_forecast": True}
+        )
+        assert response.status_code == 200
+        comment.refresh_from_db()
+        assert comment.included_forecast == forecast_1
+
+    def test_comment_edit_include_forecast_closed_question(
+        self, user1, user1_client, question_binary
+    ):
+        """When question is closed, forecast should be taken from closure time, not comment creation time."""
+        post = factory_post(author=user1, question=question_binary)
+        question = post.question
+        now = timezone.now()
+
+        # Timeline:
+        t_forecast = now - timedelta(hours=3)
+        t_close = now - timedelta(hours=2)
+
+        # Create forecast before question closure
+        with freeze_time(t_forecast):
+            forecast = create_forecast(
+                question=question,
+                user=user1,
+                probability_yes=0.6,
+            )
+
+        # Forecast end_time is after closure (still active at closure)
+        forecast.end_time = now - timedelta(hours=1)
+        forecast.save()
+
+        # Close the question
+        question.actual_close_time = t_close
+        question.save()
+
+        # Create comment after closure
+        comment = factory_comment(author=user1, on_post=post)
+
+        # Edit comment to include forecast
+        url = reverse("comment-edit", kwargs={"pk": comment.pk})
+        response = user1_client.post(
+            url, {"text": "Comment with forecast", "include_forecast": True}
+        )
+
+        assert response.status_code == 200
+        comment.refresh_from_db()
+        # Should attach forecast active at closure time
+        assert comment.included_forecast == forecast

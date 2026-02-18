@@ -1,27 +1,60 @@
 import json
+import logging
 import textwrap
-from typing import List, Optional
+from typing import Literal, Optional, Union
 
 from django.conf import settings
+from django.core.validators import URLValidator
 from pydantic import (
+    field_validator,
+    ValidationInfo,
+    ValidationError as PydanticValidationError,
     BaseModel,
     Field,
     model_validator,
-    ValidationError as PydanticValidationError,
 )
 from rest_framework.exceptions import ValidationError
 
-from comments.models import KeyFactor, KeyFactorDriver
+from comments.models import KeyFactor, KeyFactorDriver, KeyFactorNews, KeyFactorBaseRate
 from posts.models import Post
 from questions.models import Question
 from utils.openai import pydantic_to_openai_json_schema, get_openai_client
 
-# Central constraints
 MAX_LENGTH = 50
 
+logger = logging.getLogger(__name__)
 
-# TODO: unit tests!
-class KeyFactorResponse(BaseModel):
+
+def _normalize_impact_fields(data: dict) -> dict:
+    """
+    Normalize impact_direction and certainty fields.
+    - Coerces values to allowed sets {1, -1} for impact_direction and {-1} for certainty
+    - Enforces XOR: certainty (-1) overrides impact_direction
+    """
+    if not isinstance(data, dict):
+        return data
+
+    def coerce(value, allowed):
+        try:
+            v = int(value)
+            return v if v in allowed else None
+        except (TypeError, ValueError):
+            return None
+
+    impact_direction = coerce(data.get("impact_direction"), {1, -1})
+    certainty = coerce(data.get("certainty"), {-1})
+
+    # Enforce XOR preference: certainty (-1) overrides impact_direction
+    if certainty == -1:
+        impact_direction = None
+
+    data.update(impact_direction=impact_direction, certainty=certainty)
+
+    return data
+
+
+class DriverResponse(BaseModel):
+    type: str = Field("driver", description="Type identifier")
     text: str = Field(
         ..., description="Concise single-sentence key factor (<= 50 chars)"
     )
@@ -41,44 +74,102 @@ class KeyFactorResponse(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def normalize_fields(cls, data):
-        if not isinstance(data, dict):
-            return data
+        return _normalize_impact_fields(data)
 
-        def coerce(value, allowed):
-            try:
-                v = int(value)
-                return v if v in allowed else None
-            except (TypeError, ValueError):
-                return None
 
-        impact_direction = coerce(data.get("impact_direction"), {1, -1})
-        certainty = coerce(data.get("certainty"), {-1})
+class NewsResponse(BaseModel):
+    url: str = Field(
+        None,
+        description="URL of the news article extracted from the comment",
+    )
+    impact_direction: Optional[int] = Field(
+        None,
+        description="Set to 1 or -1 to indicate direction; omit if certainty is set",
+    )
+    certainty: Optional[int] = Field(
+        None,
+        description="Set to -1 only if the article increases uncertainty; else omit",
+    )
 
-        # Enforce XOR preference: certainty (-1) overrides impact_direction
-        if certainty == -1:
-            impact_direction = None
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_fields(cls, data):
+        return _normalize_impact_fields(data)
 
-        data.update(impact_direction=impact_direction, certainty=certainty)
 
-        return data
+class BaseRateResponse(BaseModel):
+    type: str = Field("base_rate", description="Type identifier")
+    base_rate_type: str = Field(
+        ..., description="'frequency' or 'trend' - must be one of these two types"
+    )
+    reference_class: str = Field(
+        ..., description="Reference class for the base rate (required)"
+    )
+    unit: str = Field(..., description="Unit of measurement (required)")
+    source_url: str = Field(
+        ..., description="URL of the base rate data source (required)"
+    )
+
+    # Frequency-specific fields
+    rate_numerator: Optional[int] = Field(
+        None, description="Numerator for frequency type (required for frequency)"
+    )
+    rate_denominator: Optional[int] = Field(
+        None, description="Denominator for frequency type (required for frequency)"
+    )
+    # Trend-specific fields
+    projected_value: Optional[float] = Field(
+        None, description="Projected value for trend type (required for trend)"
+    )
+    projected_by_year: Optional[int] = Field(
+        None, description="Year for trend projection (required for trend)"
+    )
+    extrapolation: Optional[Literal["linear", "exponential", "other"]] = Field(
+        None,
+        description=(
+            "Extrapolation method for trend type (required for trend); "
+            "must be one of: linear, exponential, other"
+        ),
+    )
+    based_on: Optional[str] = Field(
+        None, description="What the trend is based on (optional)"
+    )
+
+    @field_validator("source_url")
+    @classmethod
+    def validate_source_url(cls, value: str, info: ValidationInfo) -> str:
+        # Validate URL
+        URLValidator()(value)
+
+        if not info.context:
+            return value
+
+        comment = info.context.get("comment")
+
+        if not comment:
+            return value
+
+        if value.lower().strip("/") in comment.lower():
+            return value
+
+        raise ValueError("URL must be present in the comment")
+
+
+KeyFactorResponseType = Union[DriverResponse, NewsResponse, BaseRateResponse]
 
 
 class KeyFactorsResponse(BaseModel):
-    key_factors: List[KeyFactorResponse]
+    key_factors: list[KeyFactorResponseType]
 
 
-def _convert_llm_response_to_key_factor(
-    post: Post, response: KeyFactorResponse
-) -> KeyFactor:
-    """
-    Generating and normalizing KeyFactor object (but not saving, just for the structure) from LLM payload
-    """
-
-    option = response.option.lower() if response.option else None
+def _create_driver_key_factor(post: Post, response: DriverResponse) -> KeyFactor:
+    """Create a KeyFactor with a Driver type from LLM response."""
     question_id = None
     question_option = None
 
-    if option:
+    # Resolve option field to question_id and question_option
+    if response.option:
+        option = response.option.lower()
         if (
             post.question
             and post.question.type == Question.QuestionType.MULTIPLE_CHOICE
@@ -91,18 +182,67 @@ def _convert_llm_response_to_key_factor(
 
         if post.group_of_questions:
             question_id = next(
-                (q.id for q in post.get_questions() if q.label.lower() == option), None
+                (q.id for q in post.get_questions() if q.label.lower() == option),
+                None,
             )
 
-    return KeyFactor(
-        question_id=question_id,
-        question_option=question_option,
-        driver=KeyFactorDriver(
-            text=response.text,
-            certainty=response.certainty,
-            impact_direction=response.impact_direction,
-        ),
+    kf = KeyFactor(question_id=question_id, question_option=question_option)
+    kf.driver = KeyFactorDriver(
+        text=response.text,
+        certainty=response.certainty,
+        impact_direction=response.impact_direction,
     )
+
+    return kf
+
+
+def _create_news_key_factor(response: NewsResponse) -> KeyFactor:
+    """
+    Create a KeyFactor with a News type from LLM response.
+    """
+    kf = KeyFactor()
+    kf.news = KeyFactorNews(
+        url=response.url,
+        # Other fields will be extracted on the frontend side
+        # by fetching link-preview endpoint
+        certainty=response.certainty,
+        impact_direction=response.impact_direction,
+    )
+
+    return kf
+
+
+def _create_base_rate_key_factor(response: BaseRateResponse) -> KeyFactor:
+    """Create a KeyFactor with a BaseRate type from LLM response."""
+    kf = KeyFactor()
+    kf.base_rate = KeyFactorBaseRate(
+        type=response.base_rate_type,
+        reference_class=response.reference_class,
+        rate_numerator=response.rate_numerator,
+        rate_denominator=response.rate_denominator,
+        projected_value=response.projected_value,
+        projected_by_year=response.projected_by_year,
+        unit=response.unit,
+        extrapolation=response.extrapolation,
+        based_on=response.based_on or "",
+        source=response.source_url,
+    )
+    return kf
+
+
+def _convert_llm_response_to_key_factor(
+    post: Post, response: KeyFactorResponseType
+) -> KeyFactor:
+    """
+    Convert LLM response to KeyFactor object (but not saving, just for the structure).
+    Dispatches to appropriate type-specific converter.
+    """
+    if isinstance(response, DriverResponse):
+        return _create_driver_key_factor(post, response)
+    elif isinstance(response, NewsResponse):
+        return _create_news_key_factor(response)
+    elif isinstance(response, BaseRateResponse):
+        return _create_base_rate_key_factor(response)
 
 
 def build_post_question_summary(post: Post) -> tuple[str, Question.QuestionType]:
@@ -177,7 +317,7 @@ def generate_keyfactors(
     comment: str,
     existing_key_factors: list[dict],
     type_instructions: str,
-) -> list[KeyFactorResponse]:
+) -> list[KeyFactorResponseType]:
     """
     Generate key factors based on question type and comment.
     """
@@ -198,21 +338,33 @@ def generate_keyfactors(
         key factors should only be relate to that.
         The key factors should be the most important things that the user is trying to say
         in the comment and how it might influence the predictions on the question.
-        The key factors text should be single sentences, not longer than {MAX_LENGTH} characters
-        and they should only contain the key factor, no other text (e.g.: do not reference the user).
 
-        Each key factor should describe something that could influence the forecast for the question.
-        Also specify the direction of impact as described below.
+        You can generate three types of key factors:
+        1. Driver: A factor that drives the outcome (e.g., "X policy change increases likelihood")
+            - Text should be single sentences under {MAX_LENGTH} characters.
+            - Should only contain the key factor, no other text (e.g.: do not reference the user).
+            - Specify impact_direction (1/-1) or certainty (-1)
+        2. News: A relevant news article found in the comment.
+            - url: REQUIRED. Must be extracted from the comment body. If no URL, skip this factor.
+            - Specify impact_direction (1/-1) or certainty (-1) for how this article affects the forecast
+        3. BaseRate: A historical base rate or reference frequency/trend.
+            - source_url: REQUIRED. Must be a real URL extracted verbatim from <user_comment>.
+            - CRITICAL: Do not use URLs from <question_summary> or hallucinate URLs.
+            - If no valid URL is found in the comment, skip this factor entirely.
+
+        The key factors should represent the most important things influencing the forecast.
 
         {type_instructions}
 
         Output rules:
         - Return valid JSON only, matching the schema.
-        - Each key factor is under {MAX_LENGTH} characters.
-        - Do not include any key factors that are already in the existing key factors list. Read that carefully and make sure you don't have any duplicates.
-        - Be conservative and only include clearly relevant factors.
+        - Include a "type" field for each factor: "driver", "news", or "base_rate"
+        - For base_rate: source_url must come from <user_comment> only, never from <question_summary>
+        - Do not duplicate existing key factors - check the list carefully
+        - Ensure suggested key factors do not duplicate each other
+        - Be conservative and only include clearly relevant factors
         - Do not include any formatting like quotes, numbering or other punctuation
-        - If the comment provides no meaningful forecasting insight, return the literal string "None".
+        - If the comment provides no meaningful forecasting insight, return empty list e.g {{"key_factors":[]}}.
 
         The question details are:
         <question_summary>
@@ -255,16 +407,37 @@ def generate_keyfactors(
 
     content = response.choices[0].message.content
 
-    if content is None or content.lower() == "none":
-        return []
-
     try:
         data = json.loads(content)
-        # TODO: replace KeyFactorsResponse with plain list
-        parsed = KeyFactorsResponse(**data)
-        return parsed.key_factors
-    except (json.JSONDecodeError, PydanticValidationError):
+    except json.JSONDecodeError:
         return []
+
+    # Validate each key factor individually
+    type_map = {
+        "driver": DriverResponse,
+        "news": NewsResponse,
+        "base_rate": BaseRateResponse,
+    }
+
+    validated_key_factors = []
+    for item in data.get("key_factors", []):
+        # Failsafe for LLM hallucination
+        if not isinstance(item, dict):
+            logger.debug(f"Suggested Key Factors item is not a dict: {item}")
+
+        try:
+            kf_type = item.get("type")
+            model_class = type_map.get(kf_type)
+
+            if model_class:
+                model_instance = model_class.model_validate(
+                    item, context={"comment": comment}
+                )
+                validated_key_factors.append(model_instance)
+        except PydanticValidationError as e:
+            logger.debug(f"Validation error for key factor at index: {e}")
+
+    return validated_key_factors
 
 
 def _serialize_key_factor(kf: KeyFactor):
@@ -272,10 +445,29 @@ def _serialize_key_factor(kf: KeyFactor):
 
     if kf.driver_id:
         return {
+            "type": "driver",
             "text": kf.driver.text,
             "impact_direction": kf.driver.impact_direction,
             "certainty": kf.driver.certainty,
             "option": option or None,
+        }
+    elif kf.news_id:
+        return {
+            "type": "news",
+            "title": kf.news.title,
+            "url": kf.news.url,
+        }
+    elif kf.base_rate_id:
+        return {
+            "type": "base_rate",
+            "base_rate_type": kf.base_rate.type,
+            "reference_class": kf.base_rate.reference_class,
+            "rate_numerator": kf.base_rate.rate_numerator,
+            "rate_denominator": kf.base_rate.rate_denominator,
+            "projected_value": kf.base_rate.projected_value,
+            "projected_by_year": kf.base_rate.projected_by_year,
+            "unit": kf.base_rate.unit,
+            "extrapolation": kf.base_rate.extrapolation,
         }
 
 

@@ -1,9 +1,12 @@
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.signing import TimestampSigner
+from django.utils import timezone
 from django.utils.crypto import get_random_string
 from rest_framework.exceptions import ValidationError
+from rest_framework_simplejwt.exceptions import AuthenticationFailed
 
+from authentication.jwt_session import SessionRefreshToken
 from users.models import User
 from utils.email import send_email_with_template
 from utils.frontend import (
@@ -61,15 +64,18 @@ def check_and_activate_user(user_id: int, token: str):
     if not user:
         raise ValidationError({"token": ["Invalid user"]})
 
+    if not default_token_generator.check_token(user, token):
+        raise ValidationError({"token": ["Activation Token is expired or invalid"]})
+
     # Skip if user is already active
     if user.is_active:
         return user
 
-    if not default_token_generator.check_token(user, token):
-        raise ValidationError({"token": ["Activation Token is expired or invalid"]})
-
     if user.is_spam:
         raise ValidationError({"user": ["User is marked as spam"]})
+
+    if not user.check_can_activate():
+        raise ValidationError({"user": ["User can't be activated"]})
 
     user.is_active = True
     user.save()
@@ -123,3 +129,18 @@ class SignupInviteService:
             },
             from_email=settings.EMAIL_HOST_USER,
         )
+
+
+def get_tokens_for_user(user):
+    if not user.is_active:
+        raise AuthenticationFailed("User is not active")
+
+    user.last_login = timezone.now()
+    user.save(update_fields=["last_login"])
+
+    refresh = SessionRefreshToken.for_user(user)
+
+    return {
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+    }

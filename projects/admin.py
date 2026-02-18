@@ -6,13 +6,12 @@ from django.contrib import admin
 from django.db.models import QuerySet, Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import path
-from django.urls import reverse
+from django.urls import path, reverse
 from django.utils.html import format_html, format_html_join
 from django_select2.forms import ModelSelect2MultipleWidget
-from rest_framework.authtoken.models import Token
 
 from posts.models import Post
+from projects.services.subscriptions import notify_post_added_to_project
 from projects.models import (
     Project,
     ProjectUserPermission,
@@ -75,6 +74,61 @@ class ProjectDefaultPermissionFilter(admin.SimpleListFilter):
         if self.value() == "public":
             return queryset.filter(default_permission__isnull=False)
         return queryset
+
+
+class LeaderboardInline(admin.TabularInline):
+    model = Leaderboard
+    template = "admin/scoring/leaderboard_readonly_inline.html"
+    extra = 0
+    fields = (
+        "leaderboard_link",
+        "start_time",
+        "end_time",
+        "finalize_time",
+        "finalized",
+        "prize_pool",
+        "is_primary",
+    )
+    readonly_fields = (
+        "leaderboard_link",
+        "start_time",
+        "end_time",
+        "finalize_time",
+        "finalized",
+        "prize_pool",
+        "is_primary",
+    )
+    can_delete = False
+    verbose_name = "Leaderboard"
+    verbose_name_plural = "Leaderboards"
+
+    def leaderboard_link(self, obj):
+        if not obj.pk:
+            return "-"
+        url = reverse("admin:scoring_leaderboard_change", args=[obj.pk])
+        score_type = obj.get_score_type_display()
+        label = obj.name or f"#{obj.pk} ({score_type})"
+        return format_html('<a href="{}">{}</a>', url, label)
+
+    leaderboard_link.short_description = "Leaderboard"
+
+    def is_primary(self, obj):
+        if not obj.pk:
+            return False
+        return obj.primary_project.exists()
+
+    is_primary.short_description = "Is Primary"
+    is_primary.boolean = True
+
+    def get_queryset(self, request):
+        project_id = request.resolver_match.kwargs.get("object_id")
+        qs = super().get_queryset(request)
+        if project_id is None:
+            return qs.none()
+        return qs.filter(project_id=project_id)
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 class ProjectUserPermissionInline(admin.TabularInline):
@@ -363,6 +417,7 @@ class ProjectAdmin(CustomTranslationAdmin):
         ProjectUserPermissionInline,
         PostDefaultProjectInline,
         PostProjectInline,
+        LeaderboardInline,
     ]
     actions = [
         "update_leaderboards",
@@ -430,8 +485,7 @@ class ProjectAdmin(CustomTranslationAdmin):
         # and comment_data
 
         questions = Question.objects.filter(
-            Q(related_posts__post__default_project__in=queryset)
-            | Q(related_posts__post__projects__in=queryset)
+            Q(post__default_project__in=queryset) | Q(post__projects__in=queryset)
         ).distinct()
 
         data = export_all_data_for_questions(
@@ -484,8 +538,7 @@ class ProjectAdmin(CustomTranslationAdmin):
     ):
         question_ids = list(
             Question.objects.filter(
-                Q(related_posts__post__default_project__in=queryset)
-                | Q(related_posts__post__projects__in=queryset)
+                Q(post__default_project__in=queryset) | Q(post__projects__in=queryset)
             )
             .distinct()
             .values_list("id", flat=True)
@@ -563,7 +616,6 @@ class ProjectAdmin(CustomTranslationAdmin):
             )
             user.set_password(username)
             user.save()
-            Token.objects.create(user=user)
             data += f"{user.username}\n"
             for project in queryset:
                 ProjectUserPermission.objects.create(
@@ -621,7 +673,6 @@ class ProjectAdmin(CustomTranslationAdmin):
             )
             user.set_password(password)
             user.save()
-            Token.objects.create(user=user)
             data += f"{user.username},{password}\n"
             for project in queryset:
                 ProjectUserPermission.objects.create(
@@ -667,6 +718,7 @@ class ProjectAdmin(CustomTranslationAdmin):
                 for post in posts:
                     post.default_project = project
                     post.save()
+                    notify_post_added_to_project(post, project)
                 self.message_user(
                     request,
                     f"Added {posts.count()} posts to project '{project.name}' as default project.",
@@ -692,6 +744,7 @@ class ProjectAdmin(CustomTranslationAdmin):
                 posts = form.cleaned_data["posts"]
                 for post in posts:
                     post.projects.add(project)
+                    notify_post_added_to_project(post, project)
                 self.message_user(
                     request,
                     f"Added {posts.count()} posts to project '{project.name}' as default project.",
@@ -837,8 +890,7 @@ class ProjectAdmin(CustomTranslationAdmin):
         if obj.type == Project.ProjectTypes.SITE_MAIN:
             return None
         questions = Question.objects.filter(
-            Q(related_posts__post__projects=obj)
-            | Q(related_posts__post__default_project=obj),
+            Q(post__projects=obj) | Q(post__default_project=obj),
         ).distinct()
         latest_resolving_time = None
         for question in questions:

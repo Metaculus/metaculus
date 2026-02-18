@@ -8,7 +8,9 @@ import {
   useState,
 } from "react";
 
+import { QuestionLinkDirection, QuestionLinkStrength } from "@/types/coherence";
 import { CommentType } from "@/types/comment";
+import { CurrentUser } from "@/types/users";
 
 export type ModalType =
   | "signin"
@@ -20,12 +22,15 @@ export type ModalType =
   | "onboarding"
   | "confirm"
   | "accountInactive"
-  | "disputeKeyFactor";
+  | "disputeKeyFactor"
+  | "copyQuestionLink";
 
 type ModalDataByType = {
-  signin: Record<string, never>;
+  signin: {
+    onSuccess?: (authenticatedUser: CurrentUser) => void | Promise<void>;
+  };
   signup: {
-    forceIsBot?: boolean;
+    onSuccess?: (authenticatedUser: CurrentUser) => void | Promise<void>;
   };
   signupSuccess: { username: string; email: string };
   resetPassword: Record<string, never>;
@@ -47,6 +52,18 @@ type ModalDataByType = {
     onOptimisticAdd: (text: string) => number | Promise<number>;
     onFinalize: (tempId: number, real: CommentType) => void;
     onRemove: (tempId: number) => void;
+  };
+  copyQuestionLink: {
+    fromQuestionTitle: string;
+    toQuestionTitle: string;
+    defaultDirection?: QuestionLinkDirection;
+    defaultStrength?: QuestionLinkStrength;
+    targetElementId?: string;
+    onCreate?: (payload: {
+      direction: QuestionLinkDirection;
+      strength: QuestionLinkStrength;
+      swapped: boolean;
+    }) => void;
   };
 };
 

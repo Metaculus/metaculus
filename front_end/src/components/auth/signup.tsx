@@ -26,6 +26,7 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import { useServerAction } from "@/hooks/use_server_action";
 import { AppTheme } from "@/types/theme";
+import { CurrentUser } from "@/types/users";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import usePostLoginActionHandler from "./hooks/usePostLoginActionHandler";
@@ -34,20 +35,23 @@ type SignInModalType = {
   isOpen: boolean;
   onClose: (isOpen: boolean) => void;
   className?: string;
+  onSuccess?: (authenticatedUser: CurrentUser) => void | Promise<void>;
 };
 
 export const SignupForm: FC<{
-  forceIsBot?: boolean;
   addToProject?: number;
   email?: string;
   inviteToken?: string;
   withNewsletterOptin?: boolean;
+  redirectLocation?: string;
+  onSuccess?: (authenticatedUser: CurrentUser) => void | Promise<void>;
 }> = ({
-  forceIsBot,
   addToProject,
   email,
   inviteToken,
   withNewsletterOptin,
+  redirectLocation,
+  onSuccess,
 }) => {
   const t = useTranslations();
   const { themeChoice } = useAppTheme();
@@ -62,7 +66,6 @@ export const SignupForm: FC<{
     resolver: zodResolver(generateSignUpSchema(PUBLIC_TURNSTILE_SITE_KEY)),
     defaultValues: {
       email,
-      isBot: forceIsBot ?? false,
       addToProject,
       inviteToken,
       // We use undefined when the form doesn't have the newsletter optin checkbox - means the user is not making a choice here.
@@ -72,6 +75,10 @@ export const SignupForm: FC<{
 
   const currentLocation = usePathname();
 
+  if (!redirectLocation) {
+    redirectLocation = currentLocation;
+  }
+
   const { watch, setValue, formState, handleSubmit, setError, clearErrors } =
     methods;
 
@@ -80,7 +87,7 @@ export const SignupForm: FC<{
   const onSubmit = async (data: SignUpSchema) => {
     const response = await signUpAction({
       ...data,
-      redirectUrl: currentLocation,
+      redirectUrl: redirectLocation,
       newsletterOptin: watch("newsletterOptin"),
       appTheme: (Object.values(AppTheme) as string[]).includes(
         themeChoice ?? ""
@@ -103,7 +110,7 @@ export const SignupForm: FC<{
     } else {
       sendAnalyticsEvent("register", {
         event_category: new URLSearchParams(window.location.search).toString(),
-        signupPath: currentLocation,
+        signupPath: redirectLocation,
       });
       if (response?.is_active) {
         setCurrentModal(null);
@@ -113,7 +120,15 @@ export const SignupForm: FC<{
           data: { email: watch("email"), username: watch("username") },
         });
       }
-      handlePostLoginAction(response?.postLoginAction);
+      try {
+        if (response?.is_active && response.user) {
+          await onSuccess?.(response.user);
+        }
+      } catch (error) {
+        console.error("Signup onSuccess callback failed", error);
+      } finally {
+        handlePostLoginAction(response?.postLoginAction);
+      }
     }
 
     return response;
@@ -133,7 +148,6 @@ export const SignupForm: FC<{
       <form onSubmit={handleSubmit(submit)} className="flex flex-col gap-4">
         <SignUpFormFragment
           errors={errors}
-          forceIsBot={forceIsBot}
           disableEmail={!!email}
           withNewsletterOptin={withNewsletterOptin}
         />
@@ -228,10 +242,10 @@ export const AccountInactive: FC<AccountInactiveModalProps> = ({
   );
 };
 
-export const SignUpModal: FC<SignInModalType & { forceIsBot?: boolean }> = ({
+export const SignUpModal: FC<SignInModalType> = ({
   isOpen,
   onClose,
-  forceIsBot,
+  onSuccess,
 }) => {
   const t = useTranslations();
   const { setCurrentModal } = useModal();
@@ -248,14 +262,16 @@ export const SignUpModal: FC<SignInModalType & { forceIsBot?: boolean }> = ({
         <Button
           variant="link"
           size="md"
-          onClick={() => setCurrentModal({ type: "signin" })}
+          onClick={() =>
+            setCurrentModal({ type: "signin", data: { onSuccess } })
+          }
         >
           {t("logIn")}
         </Button>
       </div>
       <div className="flex flex-col text-gray-900 dark:text-gray-900-dark sm:flex-row">
         <div className="border-gray-300 dark:border-gray-300-dark sm:w-80 sm:border-r sm:pr-4">
-          <SignupForm withNewsletterOptin={true} forceIsBot={forceIsBot} />
+          <SignupForm withNewsletterOptin={true} onSuccess={onSuccess} />
         </div>
         <div className="flex flex-col gap-2 sm:w-80 sm:pl-4">
           <ul className="hidden leading-tight sm:block">
@@ -325,16 +341,10 @@ export const SignUpModal: FC<SignInModalType & { forceIsBot?: boolean }> = ({
 };
 
 const SignUpFormFragment: FC<{
-  forceIsBot?: boolean;
   errors: NonNullable<SignUpActionState>["errors"];
   disableEmail?: boolean;
   withNewsletterOptin?: boolean;
-}> = ({
-  forceIsBot = undefined,
-  errors,
-  disableEmail = false,
-  withNewsletterOptin = false,
-}) => {
+}> = ({ errors, disableEmail = false, withNewsletterOptin = false }) => {
   const { register, setValue, watch } = useFormContext();
   const t = useTranslations();
   return (
@@ -350,14 +360,14 @@ const SignUpFormFragment: FC<{
       <div>
         <Input
           autoComplete="new-password"
-          className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 text-base dark:border-gray-700-dark"
+          className="block w-full !rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 text-base dark:border-gray-700-dark"
           placeholder={t("passwordPlaceholder")}
           type="password"
           {...register("password")}
         />
         <Input
           autoComplete="new-password"
-          className="block w-full rounded-b rounded-t-none border-x border-b border-t-0 border-gray-700 bg-inherit px-3 py-2 text-base dark:border-gray-700-dark"
+          className="block w-full !rounded-t-none rounded-b border-x border-b border-t-0 border-gray-700 bg-inherit px-3 py-2 text-base dark:border-gray-700-dark"
           placeholder={t("registrationVerifyPasswordPlaceholder")}
           type="password"
           {...register("passwordAgain")}
@@ -372,18 +382,6 @@ const SignUpFormFragment: FC<{
         disabled={disableEmail}
         {...register("email")}
       />
-      {forceIsBot === null && (
-        <Checkbox
-          checked={watch("isBot")}
-          onChange={(is_bot) => {
-            setValue("isBot", is_bot);
-          }}
-          label={t("signUpAsBot")}
-          className="p-1.5"
-        />
-      )}
-      <FormError errors={errors} name="isBot" />
-      <input type="hidden" {...register("isBot")} />
       {withNewsletterOptin && (
         <Checkbox
           checked={watch("newsletterOptin")}

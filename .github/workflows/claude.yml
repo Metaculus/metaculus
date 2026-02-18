@@ -33,17 +33,24 @@ jobs:
       - name: "Install Node"
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: front_end/.nvmrc
           cache: "npm"
           cache-dependency-path: front_end/package-lock.json
-      - name: "Install node_modules and build the frontend"
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: front_end/node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('front_end/package-lock.json') }}
+      - name: "Install node_modules"
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: cd front_end && npm ci
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-
+          branch_name_template: '{{prefix}}{{entityType}}-{{entityNumber}}-{{description}}'
           # This is an optional setting that allows Claude to read CI results on PRs
           additional_permissions: |
             actions: read
@@ -54,4 +61,6 @@ jobs:
           # Optional: Add claude_args to customize behavior and configuration
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://docs.claude.com/en/docs/claude-code/cli-reference for available options
-          claude_args: '--allowed-tools Bash(npm run)'
+          claude_args: |
+            --model claude-opus-4-6
+            --allowedTools "Bash(npm ci:*),Bash(npm run:*),Bash(npm install:*),Bash(cd:*)"

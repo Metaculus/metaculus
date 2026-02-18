@@ -1,0 +1,53 @@
+name: Deploy STAGING
+
+run-name: ${{ fromJSON('{"dev":"🧪","play":"🔮"}')[inputs.environment] || '🧩' }} Deploy to ${{ fromJSON('{"dev":"DEV","play":"PLAY"}')[inputs.environment] || inputs.environment }} by @${{ github.actor }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment"
+        required: true
+        type: choice
+        options:
+          - dev
+          - play
+
+permissions:
+  contents: read
+  packages: write
+  deployments: write
+
+jobs:
+  # Build Docker image using shared workflow
+  build:
+    uses: ./.github/workflows/docker_build.yml
+    with:
+      heroku_app: ${{ inputs.environment }}-metaculus-web
+    secrets: inherit
+
+  # Deploy to Heroku
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.environment }}_env
+    env:
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      HEROKU_APP: ${{ inputs.environment }}-metaculus-web
+
+    steps:
+      - name: Install Heroku CLI
+        run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
+
+      - name: Checkout scripts
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: scripts
+          sparse-checkout-cone-mode: false
+
+      - name: Deploy to Heroku
+        run: |
+          heroku container:release ${{ needs.build.outputs.heroku_targets }} -a ${{ env.HEROKU_APP }}
+
+      - name: Wait for release to complete
+        run: ./scripts/wait_for_heroku_release.sh "${{ env.HEROKU_APP }}" 60

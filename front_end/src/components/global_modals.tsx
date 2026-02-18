@@ -64,6 +64,11 @@ const ConfirmModal = dynamic(() => import("@/components/confirm_modal"), {
   ssr: false,
 });
 
+const CopyQuestionLinkModal = dynamic(
+  () => import("@/components/copy_question_link_modal"),
+  { ssr: false }
+);
+
 const DisputeKeyFactorModal = dynamic(
   () => import("@/components/dispute_key_factor_modal"),
   { ssr: false }
@@ -85,13 +90,17 @@ const GlobalModals: FC = () => {
   return (
     <>
       {isModal(currentModal, "signin") && (
-        <SignInModal isOpen onClose={onClose} />
+        <SignInModal
+          isOpen
+          onClose={onClose}
+          onSuccess={currentModal.data?.onSuccess}
+        />
       )}
       {isModal(currentModal, "signup") && (
         <SignUpModal
           isOpen
           onClose={onClose}
-          forceIsBot={currentModal.data?.forceIsBot}
+          onSuccess={currentModal.data?.onSuccess}
         />
       )}
       {isModal(currentModal, "signupSuccess") && (
@@ -141,6 +150,18 @@ const GlobalModals: FC = () => {
           onOptimisticAdd={currentModal.data.onOptimisticAdd}
           onFinalize={currentModal.data.onFinalize}
           onRemove={currentModal.data.onRemove}
+        />
+      )}
+      {isModal(currentModal, "copyQuestionLink") && currentModal.data && (
+        <CopyQuestionLinkModal
+          isOpen
+          onClose={onClose}
+          targetElementId={currentModal.data.targetElementId}
+          fromQuestionTitle={currentModal.data.fromQuestionTitle}
+          toQuestionTitle={currentModal.data.toQuestionTitle}
+          defaultDirection={currentModal.data.defaultDirection}
+          defaultStrength={currentModal.data.defaultStrength}
+          onCreate={currentModal.data.onCreate}
         />
       )}
     </>

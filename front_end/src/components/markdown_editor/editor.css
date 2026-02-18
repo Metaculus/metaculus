@@ -11,15 +11,16 @@
     --tweet-container-margin: 0 !important;
   }
   .tweets-wrapper {
-    @apply grid auto-cols-fr grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-2.5;
+    @apply grid gap-2.5;
+    grid-template-columns: 1fr;
+
     & > p {
       @apply m-0;
+      min-width: 0;
     }
+
     .react-tweet-theme {
       @apply !max-w-full;
-    }
-    & > *:last-child:nth-child(2n + 1) {
-      @apply col-span-full;
     }
   }
 }
@@ -59,7 +60,8 @@
 }
 
 .mdxeditor-toolbar {
-  @apply sticky top-12 flex-wrap @container;
+  @apply sticky top-12 flex-wrap;
+  container-type: inline-size;
   & [class*="toolbarTitleMode"] {
     display: none; /* We render our custom source mode title instead */
   }
@@ -128,4 +130,55 @@
 
 div:has(.prism-code) + p:has(> br:only-child) {
   display: none;
+}
+@media (min-width: 1024px) {
+  .markdown-editor.markdown-editor-read .tweets-wrapper {
+    display: block;
+    column-count: 2;
+    column-gap: 0.625rem;
+  }
+
+  .markdown-editor.markdown-editor-read .tweets-wrapper > p {
+    display: inline-block;
+    width: 100%;
+    break-inside: avoid;
+    margin: 0 0 0.625rem 0;
+  }
+
+  .markdown-editor.markdown-editor-read
+    .tweets-wrapper:has(> p:nth-child(2)):not(:has(> p:nth-child(3))) {
+    display: grid !important;
+    column-count: initial !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.625rem;
+    align-items: start;
+  }
+
+  .markdown-editor.markdown-editor-read
+    .tweets-wrapper:has(> p:nth-child(2)):not(:has(> p:nth-child(3)))
+    > p {
+    display: block;
+    width: auto;
+    margin: 0;
+    min-width: 0;
+  }
+}
+
+.tweets-wrapper > p > br {
+  display: none !important;
+}
+
+.tweets-wrapper > p {
+  container-type: inline-size;
+  container-name: tweetItem;
+}
+
+.tweets-wrapper > p .tweet-embed-scroll {
+  max-height: calc(150cqw);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.tweets-wrapper > p .tweet-embed {
+  max-height: calc(150cqw);
 }

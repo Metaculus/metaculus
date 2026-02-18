@@ -13,11 +13,14 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 import re
 import sys
+from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
 import django.conf.locale
 import sentry_sdk
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from django.core.exceptions import DisallowedHost
 from dramatiq.errors import RateLimitExceeded
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -62,7 +65,6 @@ INSTALLED_APPS = [
     # third-party:
     "django_extensions",
     "rest_framework",
-    "rest_framework.authtoken",
     "social_django",
     "rest_social_auth",
     "corsheaders",
@@ -99,6 +101,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "utils.middlewares.middleware_alpha_access_check",
     "utils.middlewares.AuthenticationRequiredMiddleware",
+    "utils.middlewares.IsStaffQueryParamRequiredMiddleware",
 ]
 
 if DEBUG:
@@ -147,15 +150,59 @@ DATABASES = {
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
+        # Primary auth mechanism for web users
+        "authentication.auth.SessionJWTAuthentication",
+        # Auth Token: should be used for bots only!
         "authentication.auth.FallbackTokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+        *(["rest_framework.renderers.BrowsableAPIRenderer"] if DEBUG else []),
+    ],
     "EXCEPTION_HANDLER": "utils.exceptions.custom_exception_handler",
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 20,
     "MAX_LIMIT": 100,
+}
+
+
+# Simple JWT
+# https://django-rest-framework-simplejwt.readthedocs.io/
+# Generate key with: openssl genrsa -out jwt_private.pem 2048
+# Falls back to HS256 with SECRET_KEY if JWT_PRIVATE_KEY is not set
+def get_jwt_encryption_config():
+    private_key_pem = os.environ.get("JWT_PRIVATE_KEY", "").replace("\\n", "\n")
+
+    if not private_key_pem:
+        # Fallback to HS256 with SECRET_KEY
+        return {"ALGORITHM": "HS256", "SIGNING_KEY": SECRET_KEY, "VERIFYING_KEY": None}
+
+    private_key = load_pem_private_key(private_key_pem.encode(), password=None)
+    public_key_pem = (
+        private_key.public_key()
+        .public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        .decode()
+    )
+    return {
+        "ALGORITHM": "RS256",
+        "SIGNING_KEY": private_key_pem,
+        "VERIFYING_KEY": public_key_pem,
+    }
+
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+    "ROTATE_REFRESH_TOKENS": True,
+    "REVOKE_TOKEN_CLAIM": "hash",
+    "AUTH_TOKEN_CLASSES": ("authentication.jwt_session.SessionAccessToken",),
+    **get_jwt_encryption_config(),
 }
 
 # Password validation
@@ -287,6 +334,9 @@ SEND_ALL_MAIL_TO = os.environ.get("SEND_ALL_MAIL_TO", None)
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
 # Extra redis config query
 REDIS_URL_CONFIG = os.environ.get("REDIS_URL_CONFIG", "")
+# Optional override URLs for cache and message queue (used directly without db number or config)
+REDIS_CACHE_URL = os.environ.get("REDIS_CACHE_URL")
+REDIS_MQ_URL = os.environ.get("REDIS_MQ_URL")
 
 SCREENSHOT_SERVICE_API_KEY = os.environ.get("SCREENSHOT_SERVICE_API_KEY", "")
 
@@ -295,8 +345,9 @@ SCREENSHOT_SERVICE_API_KEY = os.environ.get("SCREENSHOT_SERVICE_API_KEY", "")
 DRAMATIQ_BROKER = {
     "BROKER": "dramatiq.brokers.redis.RedisBroker",
     "OPTIONS": {
-        # Setting redis db to 1 for the MQ storage
-        "url": f"{REDIS_URL}/1?{REDIS_URL_CONFIG}",
+        # Setting redis db to 1 for the MQ storage (unless REDIS_MQ_URL is defined)
+        "url": REDIS_MQ_URL
+        or f"{REDIS_URL}/1?{REDIS_URL_CONFIG}",
     },
     "MIDDLEWARE": [
         "dramatiq.middleware.AgeLimit",
@@ -307,7 +358,6 @@ DRAMATIQ_BROKER = {
         "django_dramatiq.middleware.DbConnectionsMiddleware",
     ],
 }
-
 
 # Setting StubBroker broker for unit tests environment
 # Integration tests should run as the real env
@@ -321,7 +371,8 @@ DRAMATIQ_AUTODISCOVER_MODULES = ["tasks", "jobs"]
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"{REDIS_URL}/0?{REDIS_URL_CONFIG}",
+        # Using redis db 0 for cache (unless REDIS_CACHE_URL is defined)
+        "LOCATION": REDIS_CACHE_URL or f"{REDIS_URL}/0?{REDIS_URL_CONFIG}",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
@@ -394,6 +445,11 @@ ALLOWED_HOSTS = [
     "dev-metaculus-web-023b332df454.herokuapp.com/",  # remove after we have a DNS entry for dev environment
 ]
 
+# Add APP_DOMAIN to allowed hosts if set (used for preview deployments on fly.dev)
+APP_DOMAIN = os.environ.get("APP_DOMAIN")
+if APP_DOMAIN:
+    ALLOWED_HOSTS.append(APP_DOMAIN)
+
 CSRF_TRUSTED_ORIGINS = [PUBLIC_APP_URL]
 INTERNAL_IPS = ["127.0.0.1"]
 
@@ -453,16 +509,23 @@ def traces_sampler(sampling_context):
             if url.startswith(starts_with):
                 return 0
 
-    if (
-        re.match(r"^/api/posts/\d+/similar-posts/?$", url)
-        or url == "/api/medals/"
-        or re.match(r"^/api/posts/\d+/read/?$", url)
-    ):
-        return 0.1
+        # Reduced sampling for high-volume endpoints
+        if url == "/api/users/me/":
+            return 0.05
 
-    # Sample all POSTs at 100%
-    if method in ("POST", "PATCH", "PUT", "DELETE"):
-        return 1.0
+        if method in ("POST", "PATCH", "PUT", "DELETE"):
+            # High-volume write endpoints - use reduced rates
+            if url == "/api/questions/forecast/":
+                return 0.5
+            if (
+                url == "/api/auth/refresh/"
+                or re.match(r"^/api/posts/\d+/read/?$", url)
+                or url == "/api/auth/login/token/"
+                or re.match(r"^/api/cancel-bulletin/\d+/?$", url)
+            ):
+                return SENTRY_SAMPLE_RATE
+
+            return 1.0
 
     return SENTRY_SAMPLE_RATE
 

@@ -18,7 +18,7 @@ export async function GET(
   const theme = request.nextUrl.searchParams.get("theme") ?? "dark";
   const { PUBLIC_APP_URL } = getPublicSettings();
 
-  const imageUrl = `${PUBLIC_APP_URL}/questions/embed/${id}/?${ENFORCED_THEME_PARAM}=${theme}&${HIDE_ZOOM_PICKER}=true&non-interactive=true`;
+  const imageUrl = `${PUBLIC_APP_URL}/questions/embed/${id}/?${ENFORCED_THEME_PARAM}=${theme}&${HIDE_ZOOM_PICKER}=true&non-interactive=true&og=1`;
 
   const payload = {
     url: imageUrl,

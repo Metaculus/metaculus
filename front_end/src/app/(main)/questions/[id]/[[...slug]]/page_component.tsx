@@ -10,9 +10,13 @@ import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import { PostSubscriptionProvider } from "@/contexts/post_subscription_context";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
+import { GroupOfQuestionsGraphType } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import cn from "@/utils/core/cn";
-import { getPostTitle } from "@/utils/questions/helpers";
+import {
+  getPostTitle,
+  isGroupOfQuestionsPost,
+} from "@/utils/questions/helpers";
 
 import NotebookRedirect from "../components/notebook_redirect";
 import QuestionEmbedModal from "../components/question_embed_modal";
@@ -21,6 +25,8 @@ import QuestionView from "../components/question_view";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
 import { cachedGetPost } from "./utils/get_post";
+
+import "../components/key_factors/key-factors.css";
 
 const CommunityDisclaimer = dynamic(
   () => import("@/components/post_card/community_disclaimer")
@@ -31,12 +37,12 @@ const IndividualQuestionPage: FC<{
   searchParams: SearchParams;
 }> = async ({ params, searchParams }) => {
   const postData = await cachedGetPost(params.id);
-  const defaultProject = postData.projects.default_project;
+  const defaultProject = postData.projects?.default_project;
   if (postData.notebook) {
     return <NotebookRedirect id={postData.id} slug={params.slug} />;
   }
 
-  const isCommunityQuestion = defaultProject.type === TournamentType.Community;
+  const isCommunityQuestion = defaultProject?.type === TournamentType.Community;
   let currentCommunity = null;
   if (isCommunityQuestion) {
     currentCommunity = await ServerProjectsApi.getCommunity(
@@ -48,6 +54,10 @@ const IndividualQuestionPage: FC<{
     extractPreselectedGroupQuestionId(searchParams);
 
   const questionTitle = getPostTitle(postData);
+  const isFanChart =
+    isGroupOfQuestionsPost(postData) &&
+    postData.group_of_questions?.graph_type ===
+      GroupOfQuestionsGraphType.FanGraph;
 
   return (
     <EmbedModalContextProvider>
@@ -70,10 +80,10 @@ const IndividualQuestionPage: FC<{
               >
                 <div className="flex gap-4">
                   <div className="relative w-full">
-                    {isCommunityQuestion && (
+                    {isCommunityQuestion && defaultProject && (
                       <div className="absolute z-0 -mt-[34px] hidden w-full sm:block">
                         <CommunityDisclaimer
-                          project={postData.projects.default_project}
+                          project={defaultProject}
                           variant="inline"
                         />
                       </div>
@@ -82,9 +92,9 @@ const IndividualQuestionPage: FC<{
                       postData={postData}
                       preselectedGroupQuestionId={preselectedGroupQuestionId}
                     >
-                      {isCommunityQuestion && (
+                      {isCommunityQuestion && defaultProject && (
                         <CommunityDisclaimer
-                          project={postData.projects.default_project}
+                          project={defaultProject}
                           variant="standalone"
                           className="block sm:hidden"
                         />
@@ -103,6 +113,7 @@ const IndividualQuestionPage: FC<{
                 postId={postData.id}
                 postTitle={postData.title}
                 questionType={postData.question?.type}
+                isFanChart={isFanChart}
               />
             </PostSubscriptionProvider>
           </HideCPProvider>

@@ -584,7 +584,7 @@ export function generateScale({
     displayType === QuestionType.Discrete &&
     direction === "vertical"
   ) {
-    // expect to have a foreced tick count, and never include
+    // expect to have a forced tick count, and never include
     // out of bounds values
     const tickCount = forceTickCount
       ? Math.min(forceTickCount, inbound_outcome_count)
@@ -770,7 +770,7 @@ export function generateScale({
     );
   }
 
-  // if (!true && displayType === "numeric" && direction === "horizontal") {
+  // if (displayType === "numeric" && direction === "horizontal") {
   //   // Debugging - do not remove
   //   console.log(
   //     "\n displayType",

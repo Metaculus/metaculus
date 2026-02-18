@@ -1,15 +1,18 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db.models import QuerySet
 from django.http import HttpResponse
-from django.urls import reverse
+from django.shortcuts import redirect
+from django.urls import reverse, path
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 from posts.models import Post, Notebook
-from posts.services.common import trigger_update_post_translations
+from posts.services.common import soft_delete_post, trigger_update_post_translations
 from posts.services.hotness import explain_post_hotness
 from posts.tasks import run_post_generate_history_snapshot
+from projects.models import Project
+from projects.services.subscriptions import notify_post_added_to_project
 from questions.models import Question
 from questions.services.forecasts import build_question_forecasts
 from utils.csv_utils import export_all_data_for_questions
@@ -45,7 +48,12 @@ class PostAdmin(CustomTranslationAdmin):
         "coauthors",
     ]
     search_fields = ["id", "title_original"]
-    readonly_fields = ["notebook", "hotness_explanation", "view_questions"]
+    readonly_fields = [
+        "notebook",
+        "hotness_explanation",
+        "view_questions",
+        "update_pseudo_materialized_fields_button",
+    ]
     actions = [
         "export_selected_posts_data",
         "export_selected_posts_data_anonymized",
@@ -91,11 +99,24 @@ class PostAdmin(CustomTranslationAdmin):
     hotness_explanation.short_description = "Hotness Explanation"
 
     def view_questions(self, obj):
-        url = (
-            reverse("admin:questions_question_changelist")
-            + f"?related_posts__post={obj.id}"
-        )
+        url = reverse("admin:questions_question_changelist") + f"?post={obj.id}"
         return format_html('<a href="{}">View Questions</a>', url)
+
+    def update_pseudo_materialized_fields_button(self, obj):
+        if not obj:
+            return ""
+        url = reverse(
+            "admin:posts_post_update_pseudo_materialized_fields", args=[obj.pk]
+        )
+        return format_html(
+            '<a class="button" href="{}">{}</a>',
+            url,
+            "Update Materialized Fields (e.g. open time)",
+        )
+
+    update_pseudo_materialized_fields_button.short_description = (
+        "Update Marterialized Fields"
+    )
 
     def other_project_count(self, obj):
         return obj.projects.count()
@@ -122,7 +143,7 @@ class PostAdmin(CustomTranslationAdmin):
         # generate a zip file with three csv files: question_data, forecast_data,
         # and comment_data
 
-        questions = Question.objects.filter(related_posts__post__in=queryset).distinct()
+        questions = Question.objects.filter(post__in=queryset)
 
         data = export_all_data_for_questions(
             questions,
@@ -155,25 +176,72 @@ class PostAdmin(CustomTranslationAdmin):
     def mark_as_deleted(self, request, queryset: QuerySet[Post]):
         updated = 0
         for post in queryset:
-            post.curation_status = Post.CurationStatus.DELETED
-            post.save()
+            soft_delete_post(post)
             updated += 1
         self.message_user(request, f"Marked {updated} post(s) as DELETED.")
 
     mark_as_deleted.short_description = "Mark as DELETED"
 
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "<int:post_id>/update-pseudo-materialized-fields/",
+                self.admin_site.admin_view(
+                    self.process_update_pseudo_materialized_fields_request
+                ),
+                name="posts_post_update_pseudo_materialized_fields",
+            ),
+        ]
+        return custom_urls + urls
+
+    def process_update_pseudo_materialized_fields_request(
+        self, request, post_id, *args, **kwargs
+    ):
+        post = self.get_object(request, post_id)
+        if not post:
+            messages.error(request, "Post not found.")
+            return redirect("admin:posts_post_changelist")
+        post.update_pseudo_materialized_fields()
+        messages.success(request, "Updated Materialized Fields")
+        return redirect(reverse("admin:posts_post_change", args=[post.pk]))
+
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)
-        for field in ["view_questions"]:
+        for field in ["view_questions", "update_pseudo_materialized_fields_button"]:
             if field in fields:
                 fields.remove(field)
-            fields.insert(0, field)
+        fields = ["view_questions", "update_pseudo_materialized_fields_button"] + fields
         return fields
 
-    def save_model(self, request, obj, form, change):
+    def save_model(self, request, obj: Post, form, change):
+        old_default_project_id = None
+        if change and "default_project" in form.changed_data:
+            old_default_project_id = form.initial.get("default_project")
+
         super().save_model(request, obj, form, change)
 
+        if (
+            old_default_project_id is not None
+            and obj.default_project_id != old_default_project_id
+        ):
+            notify_post_added_to_project(obj, obj.default_project)
+
         run_post_generate_history_snapshot.send(obj.id, request.user.id)
+
+    def save_related(self, request, form, formsets, change):
+        old_project_ids = set()
+        if change:
+            old_project_ids = set(form.instance.projects.values_list("id", flat=True))
+
+        super().save_related(request, form, formsets, change)
+
+        if change:
+            new_project_ids = set(form.instance.projects.values_list("id", flat=True))
+            added_ids = new_project_ids - old_project_ids
+            if added_ids:
+                for project in Project.objects.filter(id__in=added_ids):
+                    notify_post_added_to_project(form.instance, project)
 
 
 @admin.register(Notebook)
@@ -186,7 +254,7 @@ class NotebookAdmin(CustomTranslationAdmin):
         "comments",
         "votes",
         "post_link",
-        "markdown_summary",
+        "feed_tile_summary",
     ]
     readonly_fields = ["post_link"]
     search_fields = ["post__title_original"]
