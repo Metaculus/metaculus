@@ -17,6 +17,10 @@ class TestUserSearchWithPostId:
     @pytest.fixture(autouse=True)
     def setup(self):
         self.url = reverse("users-list")
+        # Clear cached recently-active set so each test sees fresh data
+        from users.services.common import get_recently_active_user_ids
+
+        get_recently_active_user_ids.clear_cache()
 
     def _make_recently_active(self, user):
         """
