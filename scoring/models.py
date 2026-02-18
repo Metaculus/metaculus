@@ -109,6 +109,23 @@ class Leaderboard(TimeStampedModel):
         on_delete=models.CASCADE,
         related_name="leaderboards",
     )
+    display_config = models.JSONField(
+        null=True,
+        blank=True,
+        help_text=(
+            "Optional JSON configuration for displaying this leaderboard."
+            "<br>If not set, default display settings will be used."
+            "<br>Example display_config:"
+            "<pre>{\n"
+            '    "display_name": "My Custom Leaderboard",\n'
+            '    "column_renames": {\n'
+            '        "Questions": "Question Links"\n'
+            "    },\n"
+            '    "display_order": 1,\n'
+            '    "display_on_project": true\n'
+            "}</pre>"
+        ),
+    )
 
     score_type = models.CharField(
         max_length=200,
@@ -317,11 +334,22 @@ class LeaderboardEntry(TimeStampedModel):
         null=True, blank=True, help_text="Confidence Interval lower bound"
     )
     ci_upper = models.FloatField(
-        null=True, blank=True, help_text="Confidence Interval lower bound"
+        null=True, blank=True, help_text="Confidence Interval upper bound"
     )
     take = models.FloatField(null=True, blank=True)
     rank = models.IntegerField(null=True, blank=True)
-    excluded = models.BooleanField(default=False, db_index=True)
+    excluded = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text=(
+            "Marking an entry as excluded does NOT automatically recalculate the "
+            "leaderboard or reassign ranks/prizes. Recalculating the leaderboard "
+            "will re-include manually-excluded entries. To properly exclude a user from "
+            "leaderboard rankings and prizes, create a MedalExclusionRecord for "
+            "the user and attach it to the appropriate Project or Leaderboard, "
+            "then recalculate the leaderboard."
+        ),
+    )
     show_when_excluded = models.BooleanField(
         default=False,
         help_text="""If true, this entry will still be shown in the leaderboard even if

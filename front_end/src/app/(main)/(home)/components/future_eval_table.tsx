@@ -4,13 +4,13 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
-import MedalIcon from "@/app/(main)/(leaderboards)/components/medal_icon";
 import {
   entryIconPair,
   entryLabel,
   shouldDisplayEntry,
-} from "@/app/(main)/aib/components/aib/leaderboard/utils";
-import { LightDarkIcon } from "@/app/(main)/aib/components/aib/light-dark-icon";
+} from "@/app/(futureeval)/futureeval/components/leaderboard/utils";
+import MedalIcon from "@/app/(main)/(leaderboards)/components/medal_icon";
+import { LightDarkIcon } from "@/components/ui/light-dark-icon";
 import type { LeaderboardDetails, MedalType } from "@/types/scoring";
 import cn from "@/utils/core/cn";
 
@@ -43,7 +43,7 @@ const FutureEvalTable: React.FC<Props> = ({ details, className }) => {
     const entries = (details.entries ?? [])
       .filter((e) => shouldDisplayEntry(e))
       .map((entry, i) => {
-        const label = entryLabel(entry, t);
+        const label = entryLabel(entry);
         const icons = entryIconPair(entry);
         const userId = entry.user?.id;
         return {
@@ -59,7 +59,7 @@ const FutureEvalTable: React.FC<Props> = ({ details, className }) => {
       });
 
     return entries;
-  }, [details.entries, t]);
+  }, [details.entries]);
 
   const visibleRows = rows.slice(0, INITIAL_ROWS);
 

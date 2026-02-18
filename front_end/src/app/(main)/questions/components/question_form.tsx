@@ -19,6 +19,7 @@ import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import Button from "@/components/ui/button";
+import Checkbox from "@/components/ui/checkbox";
 import {
   DateInput,
   FormError,
@@ -30,6 +31,7 @@ import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import SectionToggle from "@/components/ui/section_toggle";
+import Select from "@/components/ui/select";
 import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { ErrorResponse } from "@/types/fetch";
@@ -43,6 +45,7 @@ import {
 import {
   ContinuousQuestionType,
   DefaultInboundOutcomeCount,
+  MultipleChoiceOptionsOrder,
   QuestionDraft,
   QuestionType,
 } from "@/types/question";
@@ -69,6 +72,7 @@ interface ExtendedQuestionDraft extends QuestionDraft {
   scheduled_close_time?: string;
   scheduled_resolve_time?: string;
   cp_reveal_time?: string;
+  include_bots_in_aggregates?: boolean;
 }
 
 const MIN_OPTIONS_AMOUNT = 2;
@@ -221,6 +225,7 @@ const createQuestionSchemas = (
         }
       ),
     default_project: z.nullable(z.union([z.number(), z.string()])),
+    include_bots_in_aggregates: z.boolean().default(false),
   });
 
   const binaryQuestionSchema = baseQuestionSchema;
@@ -269,6 +274,7 @@ const createQuestionSchemas = (
             message: t("emptyOptionError"),
           })
       ),
+      options_order: z.nativeEnum(MultipleChoiceOptionsOrder).optional(),
     })
   );
 
@@ -315,13 +321,12 @@ const QuestionForm: FC<Props> = ({
     (Error & { digest?: string }) | undefined
   >();
   const isDraftMounted = useRef(false);
-  const defaultProject = post
-    ? post.projects.default_project
-    : tournament_id
-      ? ([...tournaments, siteMain].filter(
-          (x) => x.id === tournament_id
-        )[0] as Tournament)
-      : siteMain;
+  const defaultProject: Tournament =
+    post?.projects?.default_project ??
+    (tournament_id
+      ? (([...tournaments, siteMain].find((x) => x.id === tournament_id) ??
+          siteMain) as Tournament)
+      : siteMain);
   const [currentProject, setCurrentProject] =
     useState<Tournament>(defaultProject);
   if (isDone) {
@@ -420,7 +425,7 @@ const QuestionForm: FC<Props> = ({
   );
 
   const [categoriesList, setCategoriesList] = useState<Category[]>(
-    post?.projects.category ? post?.projects.category : ([] as Category[])
+    post?.projects?.category ?? ([] as Category[])
   );
 
   type BinaryQuestionType = z.infer<typeof schemas.binaryQuestionSchema>;
@@ -466,8 +471,15 @@ const QuestionForm: FC<Props> = ({
       open_time: post?.question?.open_time,
       published_at: post?.published_at,
       cp_reveal_time: post?.question?.cp_reveal_time,
+      include_bots_in_aggregates:
+        post?.question?.include_bots_in_aggregates ?? false,
+      options_order:
+        post?.question?.options_order ?? MultipleChoiceOptionsOrder.DEFAULT,
     },
   });
+  useEffect(() => {
+    form.register("include_bots_in_aggregates");
+  }, [form]);
   if (
     questionType === QuestionType.Binary ||
     questionType === QuestionType.MultipleChoice ||
@@ -519,6 +531,7 @@ const QuestionForm: FC<Props> = ({
       scheduled_resolve_time: draft.scheduled_resolve_time,
       cp_reveal_time: draft.cp_reveal_time,
       default_project: draft.default_project,
+      include_bots_in_aggregates: draft.include_bots_in_aggregates ?? false,
     };
 
     // Depending on the question type, add specific properties
@@ -528,6 +541,7 @@ const QuestionForm: FC<Props> = ({
           ...baseValues,
           group_variable: draft.group_variable || "",
           options: draft.options || [],
+          options_order: draft.options_order,
         } as MultipleChoiceQuestionType;
       case QuestionType.Numeric:
         return {
@@ -734,39 +748,6 @@ const QuestionForm: FC<Props> = ({
           />
         </InputContainer>
 
-        {ContinuousQuestionTypes.some((type) => type === questionType) && (
-          <NumericQuestionInput
-            draftKey={shouldUseDraftValue ? questionType : undefined}
-            questionType={questionType as ContinuousQuestionType}
-            defaultMin={post?.question?.scaling.range_min ?? undefined}
-            defaultMax={post?.question?.scaling.range_max ?? undefined}
-            defaultZeroPoint={post?.question?.scaling.zero_point}
-            defaultOpenLowerBound={post?.question?.open_lower_bound}
-            defaultOpenUpperBound={post?.question?.open_upper_bound}
-            defaultInboundOutcomeCount={post?.question?.inbound_outcome_count}
-            hasForecasts={hasForecasts && mode !== "create"}
-            unit={post?.question?.unit}
-            control={form as unknown as UseFormReturn<FieldValues>}
-            onChange={({
-              range_min,
-              range_max,
-              zero_point,
-              open_upper_bound,
-              open_lower_bound,
-              inbound_outcome_count,
-            }) => {
-              form.setValue("scaling", {
-                range_min,
-                range_max,
-                zero_point,
-              });
-              form.setValue("open_lower_bound", open_lower_bound);
-              form.setValue("open_upper_bound", open_upper_bound);
-              form.setValue("inbound_outcome_count", inbound_outcome_count);
-            }}
-          />
-        )}
-
         {questionType === QuestionType.MultipleChoice && (
           <>
             <InputContainer
@@ -848,6 +829,40 @@ const QuestionForm: FC<Props> = ({
             </div>
           </>
         )}
+
+        {ContinuousQuestionTypes.some((type) => type === questionType) && (
+          <NumericQuestionInput
+            draftKey={shouldUseDraftValue ? questionType : undefined}
+            questionType={questionType as ContinuousQuestionType}
+            defaultMin={post?.question?.scaling.range_min ?? undefined}
+            defaultMax={post?.question?.scaling.range_max ?? undefined}
+            defaultZeroPoint={post?.question?.scaling.zero_point}
+            defaultOpenLowerBound={post?.question?.open_lower_bound}
+            defaultOpenUpperBound={post?.question?.open_upper_bound}
+            defaultInboundOutcomeCount={post?.question?.inbound_outcome_count}
+            hasForecasts={hasForecasts && mode !== "create"}
+            unit={post?.question?.unit}
+            control={form as unknown as UseFormReturn<FieldValues>}
+            onChange={({
+              range_min,
+              range_max,
+              zero_point,
+              open_upper_bound,
+              open_lower_bound,
+              inbound_outcome_count,
+            }) => {
+              form.setValue("scaling", {
+                range_min,
+                range_max,
+                zero_point,
+              });
+              form.setValue("open_lower_bound", open_lower_bound);
+              form.setValue("open_upper_bound", open_upper_bound);
+              form.setValue("inbound_outcome_count", inbound_outcome_count);
+            }}
+          />
+        )}
+
         <div className="flex w-full flex-col gap-4 md:flex-row">
           <InputContainer
             labelText={"Closing Time"}
@@ -876,6 +891,36 @@ const QuestionForm: FC<Props> = ({
             />
           </InputContainer>
         </div>
+
+        <div className="flex w-full flex-col gap-4 md:flex-row">
+          <InputContainer
+            labelText={t("openTime")}
+            explanation={"When this question will be open for predictions."}
+            className="w-full gap-2"
+          >
+            <DateInput
+              control={form.control as unknown as Control<FieldValues>}
+              name="open_time"
+              defaultValue={post?.question?.open_time}
+              errors={form.formState.errors.open_time}
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+            />
+          </InputContainer>
+          <InputContainer
+            labelText={t("cpRevealTime")}
+            explanation={t("cpRevealTimeDescription")}
+            className="w-full gap-2"
+          >
+            <DateInput
+              control={form.control as unknown as Control<FieldValues>}
+              name="cp_reveal_time"
+              defaultValue={post?.question?.cp_reveal_time}
+              errors={form.formState.errors.cp_reveal_time}
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+            />
+          </InputContainer>
+        </div>
+
         <InputContainer labelText={t("categories")}>
           <CategoryPicker
             allCategories={allCategories}
@@ -891,20 +936,34 @@ const QuestionForm: FC<Props> = ({
             {t("advancedOptionsDescription")}
           </div>
 
-          <div className="mb-6 flex w-full flex-col gap-4 md:flex-row">
+          {questionType === QuestionType.MultipleChoice && (
             <InputContainer
-              labelText={t("openTime")}
-              explanation={"When this question will be open for predictions."}
-              className="w-full gap-2"
+              labelText={t("optionsOrderLabel")}
+              explanation={t("optionsOrderDescription")}
+              className="mb-6"
             >
-              <DateInput
-                control={form.control as unknown as Control<FieldValues>}
-                name="open_time"
-                defaultValue={post?.question?.open_time}
-                errors={form.formState.errors.open_time}
+              <Select
                 className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                options={[
+                  {
+                    value: MultipleChoiceOptionsOrder.DEFAULT,
+                    label: t("defaultOptionsOrder"),
+                  },
+                  {
+                    value: MultipleChoiceOptionsOrder.CP_DESC,
+                    label: t("cpDescendingOptionsOrder"),
+                  },
+                ]}
+                {...form.register("options_order")}
+                defaultValue={
+                  post?.question?.options_order ??
+                  MultipleChoiceOptionsOrder.DEFAULT
+                }
               />
             </InputContainer>
+          )}
+
+          <div className="mb-6 flex w-full flex-col gap-4 md:flex-row">
             <InputContainer
               labelText={"Publish Time"}
               explanation={t("publishTimeDescription")}
@@ -920,21 +979,6 @@ const QuestionForm: FC<Props> = ({
             </InputContainer>
           </div>
 
-          <div className="mb-6 flex w-full flex-col gap-4 md:flex-row">
-            <InputContainer
-              labelText={t("cpRevealTime")}
-              explanation={t("cpRevealTimeDescription")}
-              className="w-full gap-2"
-            >
-              <DateInput
-                control={form.control as unknown as Control<FieldValues>}
-                name="cp_reveal_time"
-                defaultValue={post?.question?.cp_reveal_time}
-                errors={form.formState.errors.cp_reveal_time}
-                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              />
-            </InputContainer>
-          </div>
           {!community_id &&
             defaultProject.type !== TournamentType.Community && (
               <ProjectPickerInput
@@ -946,6 +990,25 @@ const QuestionForm: FC<Props> = ({
                 }}
               />
             )}
+
+          <InputContainer
+            labelText={t("includeBotsInAggregatesLabel")}
+            explanation={t("includeBotsInAggregatesExplanation")}
+            isNativeFormControl={false}
+            className="mb-6"
+          >
+            <Checkbox
+              label={t("includeBotsInAggregatesLabel")}
+              checked={form.watch("include_bots_in_aggregates") ?? false}
+              onChange={(checked) => {
+                form.setValue("include_bots_in_aggregates", checked, {
+                  shouldDirty: true,
+                  shouldTouch: true,
+                  shouldValidate: true,
+                });
+              }}
+            />
+          </InputContainer>
         </SectionToggle>
 
         <div className="flex-col">

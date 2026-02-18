@@ -23,7 +23,10 @@ def compute_question_movement(question: Question) -> float | None:
     now = timezone.now()
 
     cp_now = get_aggregations_at_time(
-        question, now, [question.default_aggregation_method]
+        question,
+        now,
+        [question.default_aggregation_method],
+        include_bots=question.include_bots_in_aggregates,
     ).get(question.default_aggregation_method)
 
     if not cp_now:
@@ -39,6 +42,7 @@ def compute_question_movement(question: Question) -> float | None:
         question,
         now - get_question_movement_period(question),
         [question.default_aggregation_method],
+        include_bots=question.include_bots_in_aggregates,
     ).get(question.default_aggregation_method)
 
     if not cp_previous:

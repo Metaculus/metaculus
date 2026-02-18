@@ -52,6 +52,7 @@ export function getForecastNumericDisplayValue(
   params?: {
     precision?: number;
     unit?: string;
+    scaling?: Scaling;
     discreteValueOptions?: number[];
   }
 ) {
@@ -60,6 +61,11 @@ export function getForecastNumericDisplayValue(
   if (discreteValueOptions) {
     closestValue = discreteValueOptions.reduce((prev, curr) =>
       Math.abs(curr - +value) < Math.abs(prev - +value) ? curr : prev
+    );
+  } else if (params?.scaling) {
+    return formatValueUnit(
+      abbreviatedNumber(closestValue, precision, false, params.scaling),
+      unit
     );
   }
   return formatValueUnit(abbreviatedNumber(closestValue, precision), unit);
@@ -140,6 +146,7 @@ function formatPredictionDisplayValue(
     return getForecastNumericDisplayValue(value, {
       precision,
       unit,
+      scaling,
       discreteValueOptions,
     });
   } else {

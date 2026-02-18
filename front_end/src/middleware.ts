@@ -2,58 +2,72 @@ import { NextRequest, NextResponse } from "next/server";
 
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import { AuthCookieManager, AuthCookieReader } from "@/services/auth_tokens";
-// DEPRECATED: Remove after 30-day migration period
 import { handleLegacyTokenMigration } from "@/services/auth_tokens_migration";
+import { CsrfManager } from "@/services/csrf";
+// DEPRECATED: Remove after 30-day migration period
 import {
   LanguageService,
   LOCALE_COOKIE_NAME,
 } from "@/services/language_service";
 import { getAlphaTokenSession } from "@/services/session";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
+import { ApiError } from "@/utils/core/errors";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
-async function verifyToken(responseAuth: AuthCookieManager): Promise<void> {
-  try {
-    await ServerAuthApi.verifyToken();
-  } catch {
-    // Token is invalid (user banned, token revoked, etc.) - clear all auth cookies
-    console.error("Token verification failed, clearing auth cookies");
-    responseAuth.clearAuthTokens();
-  }
+/**
+ * Returns true on 4xx (definitive client error), false otherwise.
+ * Used to determine if we should clear tokens or preserve them on transient errors.
+ */
+function isClientError(error: unknown): boolean {
+  return ApiError.isApiError(error) && error.response.status < 500;
 }
 
 /**
- * Refresh tokens and apply new cookies to response.
- * Returns true if tokens were refreshed.
+ * Refresh tokens using refresh token.
+ * Returns true if refreshed, false on 4xx.
+ * Throws on transient errors (5xx, network).
  */
-async function refreshTokensIfNeeded(
+async function refreshTokens(
   requestAuth: AuthCookieReader,
   responseAuth: AuthCookieManager
 ): Promise<boolean> {
   const refreshToken = requestAuth.getRefreshToken();
-
-  // No refresh token = can't refresh
   if (!refreshToken) return false;
 
-  // Access token still valid = no refresh needed
-  if (!requestAuth.isAccessTokenExpired()) return false;
-
-  let tokens;
   try {
-    tokens = await ServerAuthApi.refreshTokens(refreshToken);
+    const tokens = await ServerAuthApi.refreshTokens(refreshToken);
+    responseAuth.setAuthTokens(tokens);
+    return true;
   } catch (error) {
-    console.error("Middleware token refresh failed:", error);
-    return false;
+    if (isClientError(error)) {
+      console.error("Middleware token refresh failed", error);
+      return false;
+    }
+    throw error;
   }
+}
 
-  responseAuth.setAuthTokens(tokens);
-  return true;
+/**
+ * Verify access token is valid.
+ * Returns true if valid, false on 4xx.
+ * Throws on transient errors (5xx, network).
+ */
+async function verifyToken(): Promise<boolean> {
+  try {
+    await ServerAuthApi.verifyToken();
+    return true;
+  } catch (error) {
+    if (isClientError(error)) {
+      console.error("Token verification failed", error);
+      return false;
+    }
+    throw error;
+  }
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const requestAuth = new AuthCookieReader(request.cookies);
-  let hasSession = requestAuth.hasAuthSession();
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-url", request.url);
@@ -61,16 +75,40 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   const responseAuth = new AuthCookieManager(response.cookies);
 
-  // DEPRECATED: Legacy token migration - remove after 30-day grace period
-  // Must run before auth checks so users with legacy tokens aren't rejected
-  const wasMigrated = await handleLegacyTokenMigration(
-    request,
-    response,
-    requestAuth,
-    responseAuth
-  );
-  if (wasMigrated) {
-    hasSession = true;
+  let hasSession = false;
+  const accessToken = requestAuth.getAccessToken();
+  const refreshToken = requestAuth.getRefreshToken();
+
+  try {
+    // 1. Verify non-expired access token
+    if (accessToken && !requestAuth.isAccessTokenExpired()) {
+      hasSession = await verifyToken();
+    }
+
+    // 2. Try refresh if no valid session yet
+    if (!hasSession && refreshToken) {
+      hasSession = await refreshTokens(requestAuth, responseAuth);
+    }
+
+    // 3. Clear invalid JWT tokens (only on definitive 4xx, not transient errors)
+    if (!hasSession && (accessToken || refreshToken)) {
+      responseAuth.clearAuthTokens();
+      // Clear legacy auth token
+      response.cookies.delete("auth_token");
+    }
+  } catch (error) {
+    // Transient error (5xx, network) - don't clear tokens
+    console.error("Auth service error, preserving tokens:", error);
+  }
+
+  // 4. No JWT tokens - try legacy migration
+  // DEPRECATED: Remove after 30-day migration period
+  if (!hasSession && !accessToken && !refreshToken) {
+    hasSession = await handleLegacyTokenMigration(
+      request,
+      response,
+      responseAuth
+    );
   }
 
   const { PUBLIC_AUTHENTICATION_REQUIRED } = getPublicSettings();
@@ -103,29 +141,15 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Proactive token refresh (MUST happen in middleware to persist cookies)
-  if (hasSession) {
-    const tokensRefreshed = await refreshTokensIfNeeded(
-      requestAuth,
-      responseAuth
-    );
-    // Skip verification if tokens were just refreshed (they're valid by definition)
-    // Only verify existing tokens to catch banned users or revoked tokens
-    if (!tokensRefreshed) {
-      if (requestAuth.getAccessToken()) {
-        await verifyToken(responseAuth);
-      } else {
-        // No access token and refresh failed - clear the invalid refresh token
-        responseAuth.clearAuthTokens();
-      }
-    }
-  }
-
   const locale_in_url = request.nextUrl.searchParams.get("locale");
   const locale_in_cookie = request.cookies.get(LOCALE_COOKIE_NAME)?.value;
   if (locale_in_url && locale_in_url !== locale_in_cookie) {
     LanguageService.setLocaleCookieInResponse(response, locale_in_url);
   }
+
+  // Generate CSRF token if not present
+  const csrfManager = new CsrfManager(response.cookies);
+  csrfManager.generate(request.cookies);
 
   return response;
 }

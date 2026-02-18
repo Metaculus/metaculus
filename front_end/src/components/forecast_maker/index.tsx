@@ -1,6 +1,9 @@
+"use client";
+
 import { FC } from "react";
 
 import PredictionStatusMessage from "@/components/forecast_maker/prediction_status_message";
+import { useAuth } from "@/contexts/auth_context";
 import { PostWithForecasts } from "@/types/post";
 import { canPredictQuestion } from "@/utils/questions/predictions";
 
@@ -14,8 +17,9 @@ type Props = {
 };
 
 const ForecastMaker: FC<Props> = ({ post, onPredictionSubmit }) => {
+  const { user } = useAuth();
   const { group_of_questions: groupOfQuestions, conditional, question } = post;
-  const canPredict = canPredictQuestion(post);
+  const canPredict = canPredictQuestion(post, user);
 
   const predictionMessage = <PredictionStatusMessage post={post} />;
 

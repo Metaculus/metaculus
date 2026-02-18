@@ -52,8 +52,16 @@ def _compute_question_hotness_movement(question: Question) -> float:
 
 def _compute_question_hotness_open_time(question: Question) -> float:
     return (
-        decay(20, question.open_time)
+        decay(10, question.open_time)
         if question.open_time and timezone.now() > question.open_time
+        else 0
+    )
+
+
+def _compute_question_hotness_cp_reveal_time(question: Question) -> float:
+    return (
+        decay(20, question.cp_reveal_time)
+        if question.cp_reveal_time and timezone.now() > question.cp_reveal_time
         else 0
     )
 
@@ -72,6 +80,7 @@ def _compute_question_hotness_resolution_time(question: Question) -> float:
 QUESTION_HOTNESS_COMPONENTS = [
     ("Movement Score", _compute_question_hotness_movement),
     ("Open Time Score", _compute_question_hotness_open_time),
+    ("CP Reveal Time Score", _compute_question_hotness_cp_reveal_time),
     ("Resolution Time Score", _compute_question_hotness_resolution_time),
 ]
 
@@ -83,27 +92,16 @@ def compute_question_hotness(question: Question) -> float:
 #
 # Post hotness calculations
 #
-def _compute_hotness_approval_score(post: Post) -> float:
-    now = timezone.now()
-    return (
-        decay(20, post.published_at)
-        if post.published_at and now > post.published_at
-        else 0
-    )
-
-
 def _compute_hotness_relevant_news(post: Post) -> float:
     # Notebooks should not have news hotness score
     if post.notebook_id:
         return 0.0
 
-    qs = PostArticle.objects.filter(post=post)
+    post_articles = post.postarticle_set.all()
 
     return sum(
-        [
-            decay(max(0, 0.5 - related_article.distance), related_article.created_at)
-            for related_article in qs
-        ]
+        decay(max(0, 0.5 - related_article.distance), related_article.created_at)
+        for related_article in post_articles
     )
 
 
@@ -149,7 +147,6 @@ def compute_hotness_total_boosts(post: Post) -> float:
 
 
 POST_HOTNESS_COMPONENTS = [
-    ("Approval score", _compute_hotness_approval_score),
     ("Relevant ITN news", _compute_hotness_relevant_news),
     ("Net post votes score", _compute_hotness_post_votes),
     ("Posted comments score", _compute_hotness_comments),
@@ -179,14 +176,26 @@ def compute_feed_hotness():
         Prefetch(
             "votes",
             queryset=Vote.objects.filter(created_at__gte=min_creation_date).only(
-                "id", "direction", "created_at"
+                "id", "direction", "created_at", "post_id"
             ),
         ),
         Prefetch(
             "comments",
             queryset=Comment.objects.filter(
                 created_at__gte=min_creation_date, is_private=False
-            ).only("id", "created_at", "is_private"),
+            ).only("id", "created_at", "is_private", "on_post_id"),
+        ),
+        Prefetch(
+            "activity_boosts",
+            queryset=PostActivityBoost.objects.filter(
+                created_at__gte=min_creation_date
+            ).only("id", "score", "created_at", "post_id"),
+        ),
+        Prefetch(
+            "postarticle_set",
+            queryset=PostArticle.objects.filter(created_at__gte=min_creation_date).only(
+                "id", "distance", "created_at", "post_id"
+            ),
         ),
     )
     total = qs.count()

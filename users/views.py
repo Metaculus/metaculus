@@ -1,10 +1,8 @@
 import logging
 from datetime import timedelta
 
-from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 from rest_framework import serializers, status
-from authentication.models import ApiKey
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
@@ -12,7 +10,8 @@ from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from authentication.services import get_tokens_for_user
+from authentication.models import ApiKey
+from authentication.services import get_tokens_for_user, send_password_reset_email
 from users.models import User, UserSpamActivity
 from users.serializers import (
     UserPrivateSerializer,
@@ -32,6 +31,7 @@ from users.services.common import (
     send_email_change_confirmation_email,
     change_email_from_token,
     register_user_to_campaign,
+    change_user_password,
 )
 from utils.paginator import LimitOffsetPagination
 from utils.tasks import email_user_their_data_task
@@ -166,10 +166,20 @@ def password_change_api_view(request):
     if not user.check_password(password):
         raise ValidationError({"password": "Current password is incorrect"})
 
-    validate_password(new_password, user=user)
+    change_user_password(user, new_password)
 
-    user.set_password(new_password)
-    user.save()
+    tokens = get_tokens_for_user(user)
+    return Response(tokens)
+
+
+@api_view(["POST"])
+def send_set_password_email_api_view(request):
+    user = request.user
+
+    if user.has_usable_password():
+        raise ValidationError({"message": "User already has a password set"})
+
+    send_password_reset_email(user)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -204,7 +214,8 @@ def email_change_confirm_api_view(request):
     token = serializers.CharField().run_validation(request.data.get("token"))
     change_email_from_token(request.user, token)
 
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    tokens = get_tokens_for_user(request.user)
+    return Response(tokens)
 
 
 @api_view(["POST"])

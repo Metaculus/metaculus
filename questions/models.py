@@ -230,6 +230,19 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         <br>Updated whenever options are changed.""",
     )
 
+    class MultipleChoiceOptionsOrder(models.TextChoices):
+        DEFAULT = "DEFAULT"
+        CP_DESC = "CP_DESC"
+
+    options_order = models.CharField(
+        max_length=12,
+        choices=MultipleChoiceOptionsOrder.choices,
+        default=MultipleChoiceOptionsOrder.DEFAULT,
+        help_text="""For Multiple Choice only.
+        DEFAULT: current default behavior (display views sort by CP, forecast maker preserves creation order).
+        CP_DESC: all views sort options by descending community prediction.""",
+    )
+
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
 
@@ -260,6 +273,12 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     # Indicates whether we triggered "handle_post_open" event
     # And guarantees idempotency of "on post open" evens
     open_time_triggered = models.BooleanField(
+        default=False, db_index=True, editable=False
+    )
+
+    # Indicates whether we triggered "handle_cp_revealed" event
+    # And guarantees idempotency of "on cp revealed" events
+    cp_reveal_time_triggered = models.BooleanField(
         default=False, db_index=True, editable=False
     )
 
@@ -310,11 +329,20 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
             self.QuestionType.NUMERIC,
         ]:
             self.zero_point = None
+        # handle options and options history
         if self.type != self.QuestionType.MULTIPLE_CHOICE:
             self.options = None
-        if self.type == self.QuestionType.MULTIPLE_CHOICE and not self.options_history:
+        elif not self.options_history:
             # initialize options history on first save
             self.options_history = [(datetime.min.isoformat(), self.options or [])]
+        elif self.id and not self.user_forecasts.exists():
+            # we're still before forecasts, make
+            # sure that the options matches current options
+            last_entry = self.options_history[-1]
+            self.options_history[-1] = (last_entry[0], self.options or [])
+            update_fields = kwargs.get("update_fields", None)
+            if update_fields is not None:
+                kwargs["update_fields"] = list(update_fields) + ["options_history"]
 
         return super().save(**kwargs)
 
@@ -538,6 +566,11 @@ class ForecastQuerySet(QuerySet):
             Q(end_time__gt=timestamp) | Q(end_time__isnull=True)
         )
 
+    def exclude_non_primary_bots(self):
+        return self.filter(
+            Q(author__is_bot=False) | Q(author__is_primary_bot=True),
+        )
+
     def active(self):
         """
         Returns active forecasts.
@@ -677,27 +710,34 @@ class Forecast(models.Model):
             f"by {self.author.username} on {self.question.id}: {pvs}"
         )
 
-    def get_prediction_values(self) -> list[float | None]:
+    def get_prediction_values(self) -> list[float]:
+        """
+        gets prediction values for this forecast:
+            pmf for binary and multiple choice
+            cdf for continuous
+        replaces "None"s with "nan"s
+        """
         if self.probability_yes:
             return [1 - self.probability_yes, self.probability_yes]
         if self.probability_yes_per_category:
-            return self.probability_yes_per_category
+            return [
+                float("nan") if v is None else v
+                for v in self.probability_yes_per_category
+            ]  # replace None with float("nan")
         return self.continuous_cdf
 
-    def get_pmf(self, replace_none: bool = False) -> list[float]:
+    def get_pmf(self) -> list[float]:
         """
         gets the PMF for this forecast
-        replaces None values with 0.0 if replace_none is True
+        replaces "None"s with "nan"s
         """
-        # TODO: return a numpy array with NaNs instead of 0.0s
         if self.probability_yes:
             return [1 - self.probability_yes, self.probability_yes]
         if self.probability_yes_per_category:
-            if not replace_none:
-                return self.probability_yes_per_category
             return [
-                v or 0.0 for v in self.probability_yes_per_category
-            ]  # replace None with 0.0
+                float("nan") if v is None else v
+                for v in self.probability_yes_per_category
+            ]  # replace None with float("nan")
         cdf = self.continuous_cdf
         pmf = [cdf[0]]
         for i in range(1, len(cdf)):
@@ -762,26 +802,18 @@ class AggregateForecast(models.Model):
             f"by {self.method} on {self.question_id}: {pvs}>"
         )
 
-    def get_cdf(self) -> list[float | None] | None:
-        # grab annotation if it exists for efficiency
-        question_type = getattr(self, "question_type", self.question.type)
-        if question_type in QUESTION_CONTINUOUS_TYPES:
-            return self.forecast_values
-        return None
-
-    def get_pmf(self, replace_none: bool = False) -> list[float | None]:
+    def get_pmf(self) -> list[float]:
         """
         gets the PMF for this forecast
-        replacing None values with 0.0 if replace_none is True
+        replaces "None"s with "nan"s
         """
-        # TODO: return a numpy array with NaNs instead of 0.0s
         # grab annotation if it exists for efficiency
         question_type = getattr(self, "question_type", self.question.type)
         forecast_values = self.forecast_values
         if question_type == Question.QuestionType.MULTIPLE_CHOICE:
-            if not replace_none:
-                return forecast_values
-            return [v or 0.0 for v in forecast_values]  # replace None with 0.0
+            return [
+                float("nan") if v is None else v for v in forecast_values
+            ]  # replace None with float("nan")
         if question_type in QUESTION_CONTINUOUS_TYPES:
             cdf: list[float] = forecast_values  # type: ignore
             pmf = [cdf[0]]
@@ -791,8 +823,14 @@ class AggregateForecast(models.Model):
             return pmf
         return forecast_values
 
-    def get_prediction_values(self) -> list[float | None]:
-        return self.forecast_values
+    def get_prediction_values(self) -> list[float]:
+        """
+        gets prediction values for this forecast:
+            pmf for binary and multiple choice
+            cdf for continuous
+        replaces "None"s with "nan"s
+        """
+        return [float("nan") if v is None else v for v in self.forecast_values]
 
 
 class UserForecastNotification(models.Model):

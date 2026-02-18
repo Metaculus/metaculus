@@ -60,6 +60,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "options",
             "all_options_ever",
             "options_history",
+            "options_order",
             "group_variable",
             # Used for Group Of Questions to determine
             # whether question is eligible for forecasting
@@ -165,6 +166,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "open_lower_bound",
             "inbound_outcome_count",
             "options",
+            "options_order",
             "group_variable",
             "label",
             "resolution_criteria",
@@ -397,7 +399,12 @@ class MyForecastSerializer(serializers.ModelSerializer):
         return forecast.end_time.timestamp() if forecast.end_time else None
 
     def get_forecast_values(self, forecast: Forecast) -> list[float] | None:
-        return forecast.get_prediction_values()
+        if forecast.probability_yes is not None:
+            return [1 - forecast.probability_yes, forecast.probability_yes]
+        if forecast.probability_yes_per_category:
+            return forecast.probability_yes_per_category
+        else:
+            return forecast.continuous_cdf
 
     def get_interval_lower_bounds(self, forecast: Forecast) -> list[float] | None:
         if forecast.continuous_cdf is not None:
@@ -936,8 +943,8 @@ def serialize_question_movement(
     threshold: float = 0.0,
 ) -> dict | None:
     divergence = prediction_difference_for_sorting(
-        f1.forecast_values,
-        f2.forecast_values,
+        f1.get_prediction_values(),
+        f2.get_prediction_values(),
         question.type,
     )
 

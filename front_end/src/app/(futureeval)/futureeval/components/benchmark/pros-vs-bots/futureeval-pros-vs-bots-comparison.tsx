@@ -1,0 +1,25 @@
+import { METAC_COLORS } from "@/constants/colors";
+
+import { ALL_TYPES, BINARY_ONLY_EXAMPLE } from "./config";
+import FutureEvalProsVsBotsDiffChart from "./futureeval-pros-vs-bots-chart";
+
+export const FutureEvalProsVsBotsDiffExample: React.FC = () => {
+  return (
+    <div className="mt-4">
+      <FutureEvalProsVsBotsDiffChart
+        series={[
+          {
+            label: "Binary questions only",
+            colorToken: METAC_COLORS["mc-option"][1],
+            data: BINARY_ONLY_EXAMPLE,
+          },
+          {
+            label: "All question types",
+            colorToken: METAC_COLORS["mc-option"][2],
+            data: ALL_TYPES,
+          },
+        ]}
+      />
+    </div>
+  );
+};

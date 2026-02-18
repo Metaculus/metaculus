@@ -8,9 +8,9 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
 from django.db.models import QuerySet
 from django.utils import timezone
-from authentication.models import ApiKey
 from social_django.models import UserSocialAuth
 
+from authentication.models import ApiKey
 from utils.models import TimeStampedModel
 
 if TYPE_CHECKING:
@@ -142,6 +142,13 @@ class User(TimeStampedModel, AbstractUser):
         help_text="The human owner of the bot. This property can only be changed for bot users.",
     )
 
+    # Token revocation - all tokens issued before this timestamp are invalid
+    auth_revoked_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="All JWT tokens issued before this timestamp are invalid. Set on password change or 'log out everywhere'.",
+    )
+
     objects: models.Manager["User"] = UserManager()
 
     class Meta:
@@ -170,6 +177,13 @@ class User(TimeStampedModel, AbstractUser):
                 violation_error_message="Bot owner could have only one primary bot",
             ),
         ]
+
+    def check_can_activate(self):
+        """
+        Check if we can activate this user
+        """
+
+        return not self.is_active and not self.last_login and not self.is_spam
 
     def get_old_usernames(self) -> list[tuple[str, datetime]]:
         return [

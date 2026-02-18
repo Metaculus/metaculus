@@ -101,6 +101,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "utils.middlewares.middleware_alpha_access_check",
     "utils.middlewares.AuthenticationRequiredMiddleware",
+    "utils.middlewares.IsStaffQueryParamRequiredMiddleware",
 ]
 
 if DEBUG:
@@ -150,12 +151,16 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
         # Primary auth mechanism for web users
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "authentication.auth.SessionJWTAuthentication",
         # Auth Token: should be used for bots only!
         "authentication.auth.FallbackTokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+        *(["rest_framework.renderers.BrowsableAPIRenderer"] if DEBUG else []),
     ],
     "EXCEPTION_HANDLER": "utils.exceptions.custom_exception_handler",
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
@@ -195,8 +200,8 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
     "ROTATE_REFRESH_TOKENS": True,
-    "CHECK_REVOKE_TOKEN": True,
     "REVOKE_TOKEN_CLAIM": "hash",
+    "AUTH_TOKEN_CLASSES": ("authentication.jwt_session.SessionAccessToken",),
     **get_jwt_encryption_config(),
 }
 
@@ -504,16 +509,23 @@ def traces_sampler(sampling_context):
             if url.startswith(starts_with):
                 return 0
 
-    if (
-        re.match(r"^/api/posts/\d+/similar-posts/?$", url)
-        or url == "/api/medals/"
-        or re.match(r"^/api/posts/\d+/read/?$", url)
-    ):
-        return 0.1
+        # Reduced sampling for high-volume endpoints
+        if url == "/api/users/me/":
+            return 0.05
 
-    # Sample all POSTs at 100%
-    if method in ("POST", "PATCH", "PUT", "DELETE"):
-        return 1.0
+        if method in ("POST", "PATCH", "PUT", "DELETE"):
+            # High-volume write endpoints - use reduced rates
+            if url == "/api/questions/forecast/":
+                return 0.5
+            if (
+                url == "/api/auth/refresh/"
+                or re.match(r"^/api/posts/\d+/read/?$", url)
+                or url == "/api/auth/login/token/"
+                or re.match(r"^/api/cancel-bulletin/\d+/?$", url)
+            ):
+                return SENTRY_SAMPLE_RATE
+
+            return 1.0
 
     return SENTRY_SAMPLE_RATE
 

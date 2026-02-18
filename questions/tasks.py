@@ -269,7 +269,7 @@ def multiple_choice_delete_option_notifications(
 ):
     timestep = datetime.fromtimestamp(timestamp, tz=dt_timezone.utc)
     question = Question.objects.get(id=question_id)
-    post = question.post
+    post: Post = question.post
     options_history = question.options_history
     previous_options = options_history[-2][1]
     current_options = options_history[-1][1]
@@ -280,7 +280,7 @@ def multiple_choice_delete_option_notifications(
     comment_author = User.objects.get(id=comment_author_id)
     default_text = (
         "Options {removed_options} were removed on {timestep}. "
-        'Their probability was folded into the "{catch_all_option}" option.'
+        'Your predictions on those options were moved to the "{catch_all_option}" option.'
     )
     template = comment_text or default_text
     removed_options_text = ", ".join(f'"{option}"' for option in removed_options)
@@ -323,14 +323,16 @@ def multiple_choice_delete_option_notifications(
     # send out an immediate email
     send_email_with_template(
         to=[forecaster.email for forecaster in forecasters],
-        subject="Multiple choice option removed",
+        subject=f"Multiple choice option{'s' if len(removed_options) > 1 else ''} "
+        f"removed for {post.title}",
         template_name="emails/multiple_choice_option_deletion.html",
         context={
-            "email_subject_display": "Multiple choice option removed",
-            "similar_posts": [],
+            "email_subject_display": "Multiple choice "
+            f"option{'s' if len(removed_options) > 1 else ''} removed",
             "params": {
                 "post": NotificationPostParams.from_post(post),
                 "removed_options": removed_options,
+                "number_options": len(removed_options),
                 "timestep": timestep,
                 "catch_all_option": catch_all_option,
             },
@@ -353,7 +355,7 @@ def multiple_choice_add_option_notifications(
         grace_period_end_timestamp, tz=dt_timezone.utc
     )
     question = Question.objects.get(id=question_id)
-    post = question.post
+    post: Post = question.post
     options_history = question.options_history
     previous_options = options_history[-2][1]
     current_options = options_history[-1][1]
@@ -419,14 +421,16 @@ def multiple_choice_add_option_notifications(
     # send out an immediate email
     send_email_with_template(
         to=[forecaster.email for forecaster in forecasters],
-        subject="Multiple choice options added",
+        subject=f"Multiple choice option{'s' if len(added_options) > 1 else ''} "
+        f"added for {post.title}",
         template_name="emails/multiple_choice_option_addition.html",
         context={
-            "email_subject_display": "Multiple choice options added",
-            "similar_posts": [],
+            "email_subject_display": "Multiple choice option"
+            f"{'s' if len(added_options) > 1 else ''} added",
             "params": {
                 "post": NotificationPostParams.from_post(post),
                 "added_options": added_options,
+                "number_options": len(added_options),
                 "grace_period_end": grace_period_end,
                 "timestep": timestep,
             },

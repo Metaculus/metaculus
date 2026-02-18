@@ -28,6 +28,11 @@ export enum MultipleChoiceQuestionType {
   MultipleChoice = "multiple_choice",
 }
 
+export enum MultipleChoiceOptionsOrder {
+  DEFAULT = "DEFAULT",
+  CP_DESC = "CP_DESC",
+}
+
 export type ContinuousQuestionType = (typeof ContinuousQuestionTypes)[number];
 export type SimpleQuestionType = Exclude<
   QuestionType,
@@ -282,6 +287,7 @@ export type Question = {
   // Multiple-choice only
   options?: string[];
   options_history?: [string, string[]][];
+  options_order?: MultipleChoiceOptionsOrder;
   group_variable?: string;
   group_rank?: number;
   // Continuous only
@@ -326,6 +332,7 @@ export type EditableQuestionFields = Pick<
   | "title"
   | "description"
   | "options"
+  | "options_order"
   | "group_variable"
   | "group_rank"
   | "scaling"

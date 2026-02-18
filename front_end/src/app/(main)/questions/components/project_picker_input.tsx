@@ -21,12 +21,12 @@ import { Tournament, TournamentPreview } from "@/types/projects";
 const ProjectPickerInput: React.FC<{
   tournaments: TournamentPreview[];
   siteMain: Tournament;
-  currentProject?: TournamentPreview;
+  currentProject?: TournamentPreview | null;
   onChange: (project: TournamentPreview) => void;
 }> = ({ tournaments, siteMain, currentProject, onChange }) => {
   const t = useTranslations();
   const [query, setQuery] = useState<string>("");
-  const initialProject = currentProject ? currentProject : siteMain;
+  const initialProject = currentProject ?? siteMain;
 
   const initialProjects = useMemo(() => {
     return [
@@ -62,14 +62,16 @@ const ProjectPickerInput: React.FC<{
   // Show selector only if user has at least 2 projects
   // With admin/curator permissions
   if (initialProjects.length < 2) {
-    return;
+    return null;
   }
 
   return (
     <InputContainer labelText={t("projects")}>
       <Combobox
         immediate
-        onChange={(project: TournamentPreview) => {
+        value={selectedProject}
+        onChange={(project: TournamentPreview | null) => {
+          if (!project) return;
           onChange(project);
           setSelectedProject(project);
         }}
