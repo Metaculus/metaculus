@@ -7,6 +7,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
 from django.db import IntegrityError
 from django.db.models import Case, IntegerField, Q, QuerySet, When
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
@@ -80,9 +81,7 @@ def get_users(
 
     # Annotate relevance when post_id is provided
     if post_id:
-        post = Post.objects.filter(pk=post_id).first()
-        if not post:
-            return User.objects.none()
+        post = get_object_or_404(Post, pk=post_id)
 
         # Verify the requesting user has permission to view this post
         permission = get_post_permission_for_user(post, user=user)

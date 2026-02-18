@@ -129,13 +129,12 @@ class TestUserSearchWithPostId:
         results = response.data
         assert any(r["username"] == "normalsearch" for r in results)
 
-    def test_post_id_with_nonexistent_post_returns_empty(
+    def test_post_id_with_nonexistent_post_returns_404(
         self, anon_client: APIClient
     ) -> None:
         response = anon_client.get(f"{self.url}?search=someuser&post_id=999999")
 
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data == []
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_search_with_post_id_prioritizes_coauthors(
         self, anon_client: APIClient
