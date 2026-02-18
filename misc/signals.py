@@ -5,6 +5,8 @@ from anymail.signals import pre_send
 from django.conf import settings
 from django.dispatch import receiver
 
+from users.models import User
+
 logger = logging.getLogger(__name__)
 
 
@@ -29,8 +31,6 @@ def handle_pre_send(sender, message, **kwargs):
 
     # Filter recipients to staff-only when not allowed to send to all users
     if not settings.EMAIL_ALLOW_SEND_TO_ALL_USERS:
-        from users.models import User
-
         staff_emails = set(
             email.lower()
             for email in User.objects.filter(is_staff=True).values_list(
@@ -44,6 +44,7 @@ def handle_pre_send(sender, message, **kwargs):
 
         # Cancel sending if no recipients remain
         if not message.to and not message.cc and not message.bcc:
+            logger.debug(f"Cancelling email '{message.subject}': no staff recipients")
             raise AnymailCancelSend("No staff recipients")
 
 
