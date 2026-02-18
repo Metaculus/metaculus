@@ -34,6 +34,7 @@ const ContinuousCPBar: FC<Props> = ({
   const isEmbed = useIsEmbedMode();
   const w = useEmbedContainerWidth();
   const isEmbedBelow376 = isEmbed && (w ?? 0) > 0 && (w ?? 0) < 376;
+  const isEmbedWide = isEmbed && (w ?? 0) >= 500;
 
   if (!latest) {
     return null;
@@ -53,7 +54,7 @@ const ContinuousCPBar: FC<Props> = ({
               latest?.interval_upper_bounds?.[0] as number,
             ]
           : [],
-      unit: isEmbedBelow376 ? question.unit : isEmbed ? "" : question.unit,
+      unit: question.unit,
       actual_resolve_time: question.actual_resolve_time ?? null,
       discreteValueOptions,
     },
@@ -99,7 +100,8 @@ const ContinuousCPBar: FC<Props> = ({
           style={accentStyle}
           className={cn("text-[10px] font-normal tabular-nums md:text-xs", {
             "text-sm": size === "lg",
-            "mb-0 text-sm md:text-sm": isEmbed,
+            "mb-0 text-xs md:text-xs": isEmbed && !isEmbedWide,
+            "mb-0 text-sm md:text-sm": isEmbedWide,
             "whitespace-normal break-words": isEmbed && isDate,
             truncate: isEmbed && !isDate,
           })}

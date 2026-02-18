@@ -321,13 +321,25 @@ const OverlayableTimeline: FC<OverlayableTimelineProps> = ({
   if (!enabled) return <>{timeline}</>;
 
   return (
-    <div className="group relative">
-      <div className="opacity-10 transition-opacity duration-200 group-focus-within:opacity-100 group-hover:opacity-100 @[23.5rem]:opacity-100">
-        {timeline}
-      </div>
-
-      <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center opacity-100 transition-opacity duration-200 group-focus-within:opacity-0 group-hover:opacity-0 @[23.5rem]:hidden">
+    <div className="group relative flex @[23.5rem]:items-center @[23.5rem]:gap-3">
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-0 z-10 flex items-center justify-center",
+          "opacity-100 transition-opacity duration-200 group-focus-within:opacity-0 group-hover:opacity-0",
+          "@[23.5rem]:pointer-events-auto @[23.5rem]:static @[23.5rem]:inset-auto @[23.5rem]:z-auto",
+          "@[23.5rem]:shrink-0 @[23.5rem]:opacity-100 @[23.5rem]:transition-none",
+          "@[23.5rem]:group-focus-within:opacity-100 @[23.5rem]:group-hover:opacity-100"
+        )}
+      >
         {overlay}
+      </div>
+      <div
+        className={cn(
+          "opacity-10 transition-opacity duration-200 group-focus-within:opacity-100 group-hover:opacity-100",
+          "@[23.5rem]:min-w-0 @[23.5rem]:flex-1 @[23.5rem]:opacity-100 @[23.5rem]:transition-none"
+        )}
+      >
+        {timeline}
       </div>
     </div>
   );
