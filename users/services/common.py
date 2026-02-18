@@ -89,7 +89,7 @@ def get_users(
 
         # Collect user IDs of commenters on this post
         commenter_ids = (
-            Comment.objects.filter(on_post_id=post_id)
+            Comment.objects.filter(on_post_id=post_id, is_soft_deleted=False)
             .values_list("author_id", flat=True)
             .distinct()
         )
