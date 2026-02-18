@@ -9,6 +9,7 @@
 # Code style
 - Check the existing code style and follow it
 - Destructure imports when possible (eg. import { foo } from 'bar')
+- Do not use inline imports where possible. Prefer top-level imports.
 - Do not add excesive comments. Add comments only to document what would be surprising to a senior engineer.
 
 # Workflow
