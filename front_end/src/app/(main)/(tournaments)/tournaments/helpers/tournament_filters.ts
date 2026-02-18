@@ -94,11 +94,13 @@ export function filterTournaments(
 }
 
 const statusRank = (t: TournamentPreview, nowTs: number): number => {
-  if (t.timeline?.all_questions_resolved) return 2;
+  const hasQuestions = t.questions_count > 0;
+
+  if (hasQuestions && t.timeline?.all_questions_resolved) return 2;
 
   const endTs = safeTs(t.close_date ?? t.forecasting_end_date);
   const closedByDate = endTs != null ? nowTs >= endTs : false;
-  const closedByTimeline = !!t.timeline?.all_questions_closed;
+  const closedByTimeline = hasQuestions && !!t.timeline?.all_questions_closed;
 
   const isOpen = !(closedByDate || closedByTimeline);
   return isOpen ? 0 : 1;
