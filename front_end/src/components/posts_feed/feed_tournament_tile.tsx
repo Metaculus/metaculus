@@ -116,7 +116,7 @@ const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
             <span>{statusLabel}</span>
           </span>
         )}
-        {project.forecasters_count && (
+        {project.forecasters_count > 0 && (
           <span className="flex items-center gap-2">
             <FontAwesomeIcon
               icon={faUsers}
