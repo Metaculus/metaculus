@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Iterable
 
-from django.db.models import Q, QuerySet, Exists, OuterRef
+from django.db.models import Q, QuerySet, Exists, Max, OuterRef
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError, PermissionDenied
 
@@ -313,10 +313,18 @@ def get_posts_feed(
             | Q(actual_close_time__gte=timezone.now() - timedelta(days=7))
         )
     if order_type == PostFilterSerializer.Order.CP_REVEAL_TIME:
-        # cp_reveal_time is on Question model, need to use relationship
-        order_type = "question__cp_reveal_time"
-        # Only show posts where CP has been revealed
-        qs = qs.filter(question__cp_reveal_time__lt=now)
+        qs = qs.annotate(
+            latest_cp_reveal_time=Max(
+                "questions__cp_reveal_time",
+                filter=Q(questions__cp_reveal_time__lt=now),
+            )
+        ).filter(latest_cp_reveal_time__isnull=False)
+
+        return (
+            qs.order_by(build_order_by("latest_cp_reveal_time", order_desc))
+            .distinct()
+            .only("pk")
+        )
 
     qs = qs.order_by(build_order_by(order_type, order_desc))
 
