@@ -1,11 +1,12 @@
+from datetime import timedelta
+
 import requests
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.core.cache import cache
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
 from django.db import IntegrityError
-from django.db.models import Case, IntegerField, Q, When
+from django.db.models import Case, IntegerField, Q, QuerySet, When
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
@@ -13,6 +14,7 @@ from authentication.jwt_session import revoke_all_user_tokens
 from comments.models import Comment
 from notifications.constants import MailingTags
 from posts.models import Post
+from posts.services.common import get_post_permission_for_user
 from posts.services.subscriptions import (
     disable_global_cp_reminders,
     enable_global_cp_reminders,
@@ -21,24 +23,19 @@ from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
 from users.models import User, UserCampaignRegistration
 from users.serializers import UserPrivateSerializer
+from utils.cache import cached_singleton
 from utils.email import send_email_with_template
 from utils.frontend import build_frontend_email_change_url
 
-RECENTLY_ACTIVE_USERS_CACHE_KEY = "recently_active_user_ids"
-RECENTLY_ACTIVE_USERS_CACHE_TIMEOUT = 60 * 60  # 1 hour
 
-
+@cached_singleton(timeout=60 * 60)
 def get_recently_active_user_ids() -> set[int]:
     """
     Returns the set of user IDs with at least one non-deleted comment
     in the last year. Cached for 1 hour.
     """
-    cached = cache.get(RECENTLY_ACTIVE_USERS_CACHE_KEY)
-    if cached is not None:
-        return cached
-
-    one_year_ago = timezone.now() - timezone.timedelta(days=365)
-    user_ids = set(
+    one_year_ago = timezone.now() - timedelta(days=365)
+    return set(
         Comment.objects.filter(
             is_soft_deleted=False,
             created_at__gte=one_year_ago,
@@ -46,21 +43,15 @@ def get_recently_active_user_ids() -> set[int]:
         .values_list("author_id", flat=True)
         .distinct()
     )
-    cache.set(
-        RECENTLY_ACTIVE_USERS_CACHE_KEY,
-        user_ids,
-        RECENTLY_ACTIVE_USERS_CACHE_TIMEOUT,
-    )
-    return user_ids
 
 
 def get_users(
-    search: str = None,
-    post_id: int = None,
-    user: User = None,
-) -> list[User]:
+    search: str | None = None,
+    post_id: int | None = None,
+    user: User | None = None,
+) -> QuerySet[User]:
     """
-    Applies filtering on the User QuerySet and returns up to 20 results.
+    Applies filtering on the User QuerySet.
 
     When post_id is provided, users relevant to that post are prioritized:
     - Users who have commented on the post
@@ -89,81 +80,81 @@ def get_users(
 
     # Annotate relevance when post_id is provided
     if post_id:
+        post = Post.objects.filter(pk=post_id).first()
+        if not post:
+            return User.objects.none()
+
         # Verify the requesting user has permission to view this post
-        post_qs = Post.objects.annotate_user_permission(user)
-        post = post_qs.filter(pk=post_id).first()
-        if post:
-            # Collect user IDs of commenters on this post
-            commenter_ids = (
-                Comment.objects.filter(on_post_id=post_id)
-                .values_list("author_id", flat=True)
-                .distinct()
+        permission = get_post_permission_for_user(post, user=user)
+        ObjectPermission.can_view(permission, raise_exception=True)
+
+        # Collect user IDs of commenters on this post
+        commenter_ids = (
+            Comment.objects.filter(on_post_id=post_id)
+            .values_list("author_id", flat=True)
+            .distinct()
+        )
+
+        # Collect post author and coauthor IDs
+        author_ids = [post.author_id]
+        author_ids.extend(post.coauthors.values_list("id", flat=True))
+
+        permission_user_ids = ProjectUserPermission.objects.filter(
+            project_id=post.default_project_id
+        ).values_list("user_id", flat=True)
+
+        qs = qs.annotate(
+            is_commenter=Case(
+                When(id__in=commenter_ids, then=1),
+                default=0,
+                output_field=IntegerField(),
+            ),
+            is_author=Case(
+                When(id__in=author_ids, then=1),
+                default=0,
+                output_field=IntegerField(),
+            ),
+            has_permission=Case(
+                When(id__in=permission_user_ids, then=1),
+                default=0,
+                output_field=IntegerField(),
+            ),
+        )
+
+        if search:
+            # Keep priority users + recently active users only
+            qs = qs.filter(
+                Q(id__in=commenter_ids)
+                | Q(id__in=author_ids)
+                | Q(id__in=permission_user_ids)
+                | Q(id__in=recently_active_user_ids)
             )
-
-            # Collect post author and coauthor IDs
-            author_ids = [post.author_id]
-            author_ids.extend(post.coauthors.values_list("id", flat=True))
-
-            # Only include project permission holders if the user can view
-            # the post (user_permission is not None after annotation)
-            permission_user_ids = ProjectUserPermission.objects.filter(
-                project_id=post.default_project_id
-            ).values_list("user_id", flat=True)
-
-            qs = qs.annotate(
-                is_commenter=Case(
-                    When(id__in=commenter_ids, then=1),
-                    default=0,
-                    output_field=IntegerField(),
-                ),
-                is_author=Case(
-                    When(id__in=author_ids, then=1),
-                    default=0,
-                    output_field=IntegerField(),
-                ),
-                has_permission=Case(
-                    When(id__in=permission_user_ids, then=1),
-                    default=0,
-                    output_field=IntegerField(),
-                ),
+            return qs.order_by(
+                "-is_commenter",
+                "-is_author",
+                "-has_permission",
+                "-full_match",
+                "username",
             )
-
-            if search:
-                # Keep priority users + recently active users only
-                qs = qs.filter(
-                    Q(id__in=commenter_ids)
-                    | Q(id__in=author_ids)
-                    | Q(id__in=permission_user_ids)
-                    | Q(id__in=recently_active_user_ids)
-                )
-                qs = qs.order_by(
-                    "-is_commenter",
-                    "-is_author",
-                    "-has_permission",
-                    "-full_match",
-                    "username",
-                )
-            else:
-                # No search query: return only relevant users
-                qs = qs.filter(
-                    Q(id__in=commenter_ids)
-                    | Q(id__in=author_ids)
-                    | Q(id__in=permission_user_ids)
-                ).order_by(
-                    "-is_commenter",
-                    "-is_author",
-                    "-has_permission",
-                    "username",
-                )
-
-            return list(qs[:20])
+        else:
+            # No search query: return only relevant users
+            return qs.filter(
+                Q(id__in=commenter_ids)
+                | Q(id__in=author_ids)
+                | Q(id__in=permission_user_ids)
+            ).order_by(
+                "-is_commenter",
+                "-is_author",
+                "-has_permission",
+                "username",
+            )
 
     if search:
         # Without post_id, only return recently active users
         qs = qs.filter(id__in=recently_active_user_ids)
-        qs = qs.order_by("-full_match", "username")
+        return qs.order_by("-full_match", "username")
 
-    return list(qs[:20])
+    return qs
 
 
 def get_users_by_usernames(usernames: list[str]) -> list[User]:

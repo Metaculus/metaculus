@@ -1,3 +1,6 @@
+from datetime import timedelta
+
+import pytest
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -11,7 +14,9 @@ from tests.unit.test_users.factories import factory_user
 
 
 class TestUserSearchWithPostId:
-    url = reverse("users-list")
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        self.url = reverse("users-list")
 
     def _make_recently_active(self, user):
         """
@@ -120,13 +125,13 @@ class TestUserSearchWithPostId:
         results = response.data
         assert any(r["username"] == "normalsearch" for r in results)
 
-    def test_post_id_with_nonexistent_post(self, anon_client: APIClient) -> None:
-        user = factory_user(username="someuser123")
-        self._make_recently_active(user)
+    def test_post_id_with_nonexistent_post_returns_empty(
+        self, anon_client: APIClient
+    ) -> None:
         response = anon_client.get(f"{self.url}?search=someuser&post_id=999999")
 
-        # Should still work, just without relevance prioritization
         assert response.status_code == status.HTTP_200_OK
+        assert response.data == []
 
     def test_search_with_post_id_prioritizes_coauthors(
         self, anon_client: APIClient
@@ -150,7 +155,10 @@ class TestUserSearchWithPostId:
         assert usernames.index("coauthortest") < usernames.index("coauthorfake")
 
     def test_combined_relevance_ordering(self, anon_client: APIClient) -> None:
-        """Commenters should rank highest, then authors, then permission holders."""
+        """
+        Commenters should rank highest, then authors, then permission holders,
+        then other users.
+        """
         author = factory_user(username="testrank_author")
         commenter = factory_user(username="testrank_commenter")
         permitted = factory_user(username="testrank_permitted")
@@ -171,14 +179,13 @@ class TestUserSearchWithPostId:
         results = response.data
         usernames = [r["username"] for r in results]
 
-        # All users should appear
-        assert len(usernames) == 4
-
-        # Commenter first, then author, then permitted, then nobody
+        # Enforce full ordering: commenter > author > permitted > nobody
         assert usernames.index("testrank_commenter") < usernames.index(
-            "testrank_nobody"
+            "testrank_author"
         )
-        assert usernames.index("testrank_author") < usernames.index("testrank_nobody")
+        assert usernames.index("testrank_author") < usernames.index(
+            "testrank_permitted"
+        )
         assert usernames.index("testrank_permitted") < usernames.index(
             "testrank_nobody"
         )
@@ -215,7 +222,7 @@ class TestUserSearchWithPostId:
         factory_comment(
             author=old_user,
             on_post=other_post,
-            created_at=timezone.now() - timezone.timedelta(days=400),
+            created_at=timezone.now() - timedelta(days=400),
         )
 
         response = anon_client.get(f"{self.url}?search=oldcommentor")
