@@ -2,6 +2,7 @@ import requests
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.core.cache import cache
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
 from django.db import IntegrityError
 from django.db.models import Case, IntegerField, Q, When
@@ -9,7 +10,9 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from authentication.jwt_session import revoke_all_user_tokens
+from comments.models import Comment
 from notifications.constants import MailingTags
+from posts.models import Post
 from posts.services.subscriptions import (
     disable_global_cp_reminders,
     enable_global_cp_reminders,
@@ -21,13 +24,43 @@ from users.serializers import UserPrivateSerializer
 from utils.email import send_email_with_template
 from utils.frontend import build_frontend_email_change_url
 
+RECENTLY_ACTIVE_USERS_CACHE_KEY = "recently_active_user_ids"
+RECENTLY_ACTIVE_USERS_CACHE_TIMEOUT = 60 * 60  # 1 hour
+
+
+def get_recently_active_user_ids() -> set[int]:
+    """
+    Returns the set of user IDs with at least one non-deleted comment
+    in the last year. Cached for 1 hour.
+    """
+    cached = cache.get(RECENTLY_ACTIVE_USERS_CACHE_KEY)
+    if cached is not None:
+        return cached
+
+    one_year_ago = timezone.now() - timezone.timedelta(days=365)
+    user_ids = set(
+        Comment.objects.filter(
+            is_soft_deleted=False,
+            created_at__gte=one_year_ago,
+        )
+        .values_list("author_id", flat=True)
+        .distinct()
+    )
+    cache.set(
+        RECENTLY_ACTIVE_USERS_CACHE_KEY,
+        user_ids,
+        RECENTLY_ACTIVE_USERS_CACHE_TIMEOUT,
+    )
+    return user_ids
+
 
 def get_users(
     search: str = None,
     post_id: int = None,
-) -> User.objects:
+    user: User = None,
+) -> list[User]:
     """
-    Applies filtering on the User QuerySet.
+    Applies filtering on the User QuerySet and returns up to 20 results.
 
     When post_id is provided, users relevant to that post are prioritized:
     - Users who have commented on the post
@@ -36,21 +69,11 @@ def get_users(
 
     Non-priority users are filtered to only those who are active and have
     posted a non-deleted comment in the last year.
+
+    The requesting user is passed to verify they have permission to view
+    the post before exposing its project members.
     """
-    from comments.models import Comment
-    from posts.models import Post
-
-    one_year_ago = timezone.now() - timezone.timedelta(days=365)
-
-    # User IDs with at least one non-deleted comment in the last year
-    recently_active_user_ids = (
-        Comment.objects.filter(
-            is_soft_deleted=False,
-            created_at__gte=one_year_ago,
-        )
-        .values_list("author_id", flat=True)
-        .distinct()
-    )
+    recently_active_user_ids = get_recently_active_user_ids()
 
     qs = User.objects.filter(is_active=True)
 
@@ -66,7 +89,9 @@ def get_users(
 
     # Annotate relevance when post_id is provided
     if post_id:
-        post = Post.objects.filter(pk=post_id).first()
+        # Verify the requesting user has permission to view this post
+        post_qs = Post.objects.annotate_user_permission(user)
+        post = post_qs.filter(pk=post_id).first()
         if post:
             # Collect user IDs of commenters on this post
             commenter_ids = (
@@ -79,7 +104,8 @@ def get_users(
             author_ids = [post.author_id]
             author_ids.extend(post.coauthors.values_list("id", flat=True))
 
-            # Collect user IDs with explicit project permissions
+            # Only include project permission holders if the user can view
+            # the post (user_permission is not None after annotation)
             permission_user_ids = ProjectUserPermission.objects.filter(
                 project_id=post.default_project_id
             ).values_list("user_id", flat=True)
@@ -130,14 +156,14 @@ def get_users(
                     "username",
                 )
 
-            return qs
+            return list(qs[:20])
 
     if search:
         # Without post_id, only return recently active users
         qs = qs.filter(id__in=recently_active_user_ids)
         qs = qs.order_by("-full_match", "username")
 
-    return qs
+    return list(qs[:20])
 
 
 def get_users_by_usernames(usernames: list[str]) -> list[User]:

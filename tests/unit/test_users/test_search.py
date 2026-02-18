@@ -34,7 +34,7 @@ class TestUserSearchWithPostId:
         response = anon_client.get(f"{self.url}?search=commenter&post_id={post.pk}")
 
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"]
+        results = response.data
         usernames = [r["username"] for r in results]
         assert "commenterabc" in usernames
         assert "commenterdef" in usernames
@@ -54,7 +54,7 @@ class TestUserSearchWithPostId:
         response = anon_client.get(f"{self.url}?search=author&post_id={post.pk}")
 
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"]
+        results = response.data
         usernames = [r["username"] for r in results]
         assert "authorxyz" in usernames
         # Post author should appear first
@@ -78,7 +78,7 @@ class TestUserSearchWithPostId:
         response = anon_client.get(f"{self.url}?search=searchuser&post_id={post.pk}")
 
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"]
+        results = response.data
         usernames = [r["username"] for r in results]
         assert "searchuser1" in usernames
         assert "searchuser2" in usernames
@@ -97,7 +97,7 @@ class TestUserSearchWithPostId:
         response = anon_client.get(f"{self.url}?post_id={post.pk}")
 
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"]
+        results = response.data
         usernames = [r["username"] for r in results]
         assert "relevauthor" in usernames
         assert "relevcommenter" in usernames
@@ -117,7 +117,7 @@ class TestUserSearchWithPostId:
         response = anon_client.get(f"{self.url}?search=normalsearch")
 
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"]
+        results = response.data
         assert any(r["username"] == "normalsearch" for r in results)
 
     def test_post_id_with_nonexistent_post(self, anon_client: APIClient) -> None:
@@ -142,7 +142,7 @@ class TestUserSearchWithPostId:
         response = anon_client.get(f"{self.url}?search=coauthor&post_id={post.pk}")
 
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"]
+        results = response.data
         usernames = [r["username"] for r in results]
         assert "coauthortest" in usernames
         assert "coauthorfake" in usernames
@@ -168,7 +168,7 @@ class TestUserSearchWithPostId:
         response = anon_client.get(f"{self.url}?search=testrank&post_id={post.pk}")
 
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"]
+        results = response.data
         usernames = [r["username"] for r in results]
 
         # All users should appear
@@ -199,7 +199,7 @@ class TestUserSearchWithPostId:
         response = anon_client.get(f"{self.url}?search=filter&post_id={post.pk}")
 
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"]
+        results = response.data
         usernames = [r["username"] for r in results]
         # Post author appears (priority user)
         assert "filterauthor" in usernames
@@ -221,7 +221,7 @@ class TestUserSearchWithPostId:
         response = anon_client.get(f"{self.url}?search=oldcommentor")
 
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"]
+        results = response.data
         usernames = [r["username"] for r in results]
         assert "oldcommentor" not in usernames
 
@@ -240,6 +240,6 @@ class TestUserSearchWithPostId:
         response = anon_client.get(f"{self.url}?search=deletedcommentor")
 
         assert response.status_code == status.HTTP_200_OK
-        results = response.data["results"]
+        results = response.data
         usernames = [r["username"] for r in results]
         assert "deletedcommentor" not in usernames

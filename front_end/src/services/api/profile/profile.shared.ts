@@ -1,6 +1,6 @@
 import { ApiService } from "@/services/api/api_service";
-import { PaginatedPayload } from "@/types/fetch";
 import { CurrentBot, UserProfile } from "@/types/users";
+import { encodeQueryParams } from "@/utils/navigation";
 
 class ProfileApi extends ApiService {
   async getProfileById(id: number): Promise<UserProfile> {
@@ -8,13 +8,12 @@ class ProfileApi extends ApiService {
   }
 
   async searchUsers(query: string, postId?: number) {
-    const params = new URLSearchParams();
-    params.set("search", query);
+    const params: Record<string, string | number> = { search: query };
     if (postId) {
-      params.set("post_id", String(postId));
+      params.post_id = postId;
     }
-    return await this.get<PaginatedPayload<UserProfile>>(
-      `/users/?${params.toString()}`
+    return await this.get<UserProfile[]>(
+      `/users/${encodeQueryParams(params)}`
     );
   }
 

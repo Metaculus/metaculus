@@ -32,7 +32,7 @@ export async function queryMentions(
 
   try {
     const users = await ClientProfileApi.searchUsers(query, postId);
-    const userMentions = users.results.map((user) => ({
+    const userMentions = users.map((user) => ({
       value: user.username,
       userId: user.id,
     }));
