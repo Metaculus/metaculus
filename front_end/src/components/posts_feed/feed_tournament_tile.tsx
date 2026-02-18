@@ -116,15 +116,17 @@ const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
             <span>{statusLabel}</span>
           </span>
         )}
-        <span className="flex items-center gap-2">
-          <FontAwesomeIcon
-            icon={faUsers}
-            className="text-[12px] text-gray-400"
-          />
-          {t("feedTileForecasters", {
-            count: project.forecasters_count ?? 0,
-          })}
-        </span>
+        {project.forecasters_count && (
+          <span className="flex items-center gap-2">
+            <FontAwesomeIcon
+              icon={faUsers}
+              className="text-[12px] text-gray-400"
+            />
+            {t("feedTileForecasters", {
+              count: project.forecasters_count ?? 0,
+            })}
+          </span>
+        )}
       </div>
     </Link>
   );
