@@ -12,9 +12,7 @@ class ProfileApi extends ApiService {
     if (postId) {
       params.post_id = postId;
     }
-    return await this.get<UserProfile[]>(
-      `/users/${encodeQueryParams(params)}`
-    );
+    return await this.get<UserProfile[]>(`/users/${encodeQueryParams(params)}`);
   }
 
   async getMyBots() {
