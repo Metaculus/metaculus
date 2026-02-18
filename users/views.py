@@ -88,7 +88,6 @@ def user_profile_api_view(request, pk: int):
 
 
 @api_view(["GET"])
-@permission_classes([AllowAny])
 def users_list_api_view(request):
     # Apply filtering
     filters_serializer = UserFilterSerializer(data=request.query_params)
