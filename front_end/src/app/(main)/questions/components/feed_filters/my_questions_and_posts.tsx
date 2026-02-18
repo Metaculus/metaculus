@@ -91,6 +91,7 @@ const MyQuestionsAndPostsFilters: FC<Props> = ({ panelClassname }) => {
         value: QuestionOrder.OpenTimeDesc,
         label: t("newest"),
       },
+      { value: QuestionOrder.CpRevealTimeDesc, label: t("recentlyRevealed") },
       { value: QuestionOrder.NewsHotness, label: t("inTheNews") },
     ],
     [t]
