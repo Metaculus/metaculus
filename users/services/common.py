@@ -65,8 +65,6 @@ def get_users(
     The requesting user is passed to verify they have permission to view
     the post before exposing its project members.
     """
-    recently_active_user_ids = get_recently_active_user_ids()
-
     qs = User.objects.filter(is_active=True)
 
     # Search
@@ -122,6 +120,7 @@ def get_users(
 
         if search:
             # Keep priority users + recently active users only
+            recently_active_user_ids = get_recently_active_user_ids()
             qs = qs.filter(
                 Q(id__in=commenter_ids)
                 | Q(id__in=author_ids)
@@ -150,6 +149,7 @@ def get_users(
 
     if search:
         # Without post_id, only return recently active users
+        recently_active_user_ids = get_recently_active_user_ids()
         qs = qs.filter(id__in=recently_active_user_ids)
         return qs.order_by("-full_match", "username")
 

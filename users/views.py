@@ -93,8 +93,7 @@ def users_list_api_view(request):
     filters_serializer = UserFilterSerializer(data=request.query_params)
     filters_serializer.is_valid(raise_exception=True)
 
-    user = request.user if request.user.is_authenticated else None
-    users = get_users(**filters_serializer.validated_data, user=user)[:20]
+    users = get_users(**filters_serializer.validated_data, user=request.user)[:20]
 
     return Response(UserPublicSerializer(users, many=True).data)
 
