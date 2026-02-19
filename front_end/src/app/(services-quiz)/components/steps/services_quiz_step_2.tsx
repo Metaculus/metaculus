@@ -12,7 +12,9 @@ const ServicesQuizStep2: React.FC = () => {
   const { state, setTiming } = useServicesQuizAnswers();
 
   const subtitle = useMemo(() => {
-    const challenges = state.selectedChallenges;
+    const challenges = state.selectedChallenges.map((ch) =>
+      ch.replace(/\.+$/, "")
+    );
     if (challenges.length === 0) {
       return t("timingStepSubtitleGeneric");
     }

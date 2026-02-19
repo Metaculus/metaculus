@@ -25,10 +25,13 @@ const ServicesQuizFinal: React.FC = () => {
     const parts: string[] = [];
 
     if (state.selectedChallenges.length > 0) {
+      const cleaned = state.selectedChallenges.map((ch) =>
+        ch.replace(/\.+$/, "")
+      );
       const challengeList =
-        state.selectedChallenges.length <= 2
-          ? state.selectedChallenges.join(` ${t("and")} `)
-          : `${state.selectedChallenges.slice(0, 2).join(", ")} ${t("and")} ${t("more").toLowerCase()}`;
+        cleaned.length <= 2
+          ? cleaned.join(` ${t("and")} `)
+          : `${cleaned.slice(0, 2).join(", ")} ${t("and")} ${t("more").toLowerCase()}`;
       parts.push(t("summaryServiceDescription", { challenges: challengeList }));
     }
 
@@ -48,6 +51,10 @@ const ServicesQuizFinal: React.FC = () => {
 
     if (state.whoForecasts) {
       if (state.whoForecasts.mode === "not_sure") {
+        const lastPart = parts[parts.length - 1];
+        if (lastPart && !/[.!?]$/.test(lastPart)) {
+          parts[parts.length - 1] = lastPart + ".";
+        }
         parts.push(t("summaryForecastersNotSure"));
       } else if (state.whoForecasts.selections.length > 0) {
         const forecasterList = state.whoForecasts.selections
