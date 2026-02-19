@@ -37,15 +37,28 @@ const ServicesQuizStep3: FC = () => {
 
   return (
     <ServicesQuizStepShell title={t("whoShouldMakeTheForecasts")}>
-      <div className="mx-auto grid max-w-[530px] gap-3 sm:grid-cols-2">
-        {MULTI_OPTIONS.map((opt) => (
-          <ServicesQuizToggleChip
-            key={opt.id}
-            label={t(opt.labelKey)}
-            isSelected={selected.includes(opt.id)}
-            onToggle={() => toggleWhoForecastsSelection(opt.id)}
-          />
-        ))}
+      <div className="mx-auto max-w-[530px]">
+        <p className="m-0 mb-3 text-sm text-gray-700 dark:text-gray-700-dark sm:text-center">
+          {t("selectOneOrMore")}
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {MULTI_OPTIONS.map((opt) => (
+            <ServicesQuizToggleChip
+              key={opt.id}
+              label={t(opt.labelKey)}
+              isSelected={selected.includes(opt.id)}
+              onToggle={() => toggleWhoForecastsSelection(opt.id)}
+            />
+          ))}
+        </div>
+
+        <div className="my-4 flex items-center gap-3">
+          <div className="h-px flex-1 bg-gray-300 dark:bg-gray-300-dark" />
+          <span className="text-sm font-medium text-gray-600 dark:text-gray-600-dark">
+            {t("or")}
+          </span>
+          <div className="h-px flex-1 bg-gray-300 dark:bg-gray-300-dark" />
+        </div>
 
         <ServicesQuizRadioCard
           title={t("notSure")}

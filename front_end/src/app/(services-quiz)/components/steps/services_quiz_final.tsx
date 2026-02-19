@@ -3,11 +3,12 @@
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
 
+import { useServicesQuizAnswers } from "../quiz_state/services_quiz_answers_provider";
 import { useServicesQuizExitGuard } from "../quiz_state/services_quiz_exit_guard_provider";
 
 const AUTO_REDIRECT_SECONDS = 5;
@@ -15,9 +16,59 @@ const AUTO_REDIRECT_SECONDS = 5;
 const ServicesQuizFinal: React.FC = () => {
   const t = useTranslations();
   const { exitNow } = useServicesQuizExitGuard();
+  const { state } = useServicesQuizAnswers();
 
   const [secondsLeft, setSecondsLeft] = useState(AUTO_REDIRECT_SECONDS);
   const didExitRef = useRef(false);
+
+  const summaryText = useMemo(() => {
+    const parts: string[] = [];
+
+    if (state.selectedChallenges.length > 0) {
+      const challengeList =
+        state.selectedChallenges.length <= 2
+          ? state.selectedChallenges.join(` ${t("and")} `)
+          : `${state.selectedChallenges.slice(0, 2).join(", ")} ${t("and")} ${t("more").toLowerCase()}`;
+      parts.push(t("summaryServiceDescription", { challenges: challengeList }));
+    }
+
+    if (state.timing) {
+      const timingLabel =
+        state.timing === "soon"
+          ? t("withinThreeMonths")
+          : state.timing === "later"
+            ? t("afterThreeMonths")
+            : state.timing === "flexible"
+              ? t("onAFlexibleTimeline")
+              : null;
+      if (timingLabel) {
+        parts.push(t("summaryTimingDescription", { timing: timingLabel }));
+      }
+    }
+
+    if (state.whoForecasts) {
+      if (state.whoForecasts.mode === "not_sure") {
+        parts.push(t("summaryForecastersNotSure"));
+      } else if (state.whoForecasts.selections.length > 0) {
+        const forecasterList = state.whoForecasts.selections
+          .map((s) =>
+            s === "pros"
+              ? t("metaculusPros")
+              : s === "public"
+                ? t("publicForecasters")
+                : s === "experts"
+                  ? t("yourInternalExperts")
+                  : s
+          )
+          .join(` ${t("and")} `);
+        parts.push(
+          t("summaryForecastersDescription", { forecasters: forecasterList })
+        );
+      }
+    }
+
+    return parts.length > 0 ? parts.join(" ") : null;
+  }, [state, t]);
 
   useEffect(() => {
     setSecondsLeft(AUTO_REDIRECT_SECONDS);
@@ -44,7 +95,7 @@ const ServicesQuizFinal: React.FC = () => {
     <div className="flex min-h-[calc(100vh-48px)] items-center justify-center px-6">
       <div
         className={cn(
-          "flex w-full max-w-[420px] flex-col items-center text-center",
+          "flex w-full max-w-[480px] flex-col items-center text-center",
           "gap-4"
         )}
       >
@@ -57,6 +108,12 @@ const ServicesQuizFinal: React.FC = () => {
           <h2 className="m-0 text-[28px] font-bold leading-[34px] text-blue-800 dark:text-blue-800-dark">
             {t("weHaveReceivedYourRequest")}
           </h2>
+
+          {summaryText && (
+            <p className="m-0 text-base leading-6 text-gray-700 dark:text-gray-700-dark">
+              {summaryText}
+            </p>
+          )}
 
           <p className="m-0 text-base leading-5 text-gray-800 dark:text-gray-800-dark">
             {t("ourTeamWillBeInContactSoon")}
