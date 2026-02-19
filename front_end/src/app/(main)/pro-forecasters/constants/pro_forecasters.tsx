@@ -36,7 +36,7 @@ export const PRO_FORECASTERS: ProForecaster[] = [
     description: (
       <>
         Isabel previously worked as a Research Fellow at{" "}
-        <ProForecasterLink href="https://www.coefficientgiving.com/">
+        <ProForecasterLink href="https://coefficientgiving.org">
           Coefficient Giving
         </ProForecasterLink>
         , serving on the Cause Prioritization Team within the{" "}
