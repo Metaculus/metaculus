@@ -1,24 +1,16 @@
 # =============================================================================
-# PR Preview Weekly Cron
+# PR Preview Stale Cleanup
 # =============================================================================
 #
-# Runs weekly to:
-# 1. For previews whose PR has the "Stale" label: trigger pr_preview.yml
-#    cleanup (delete env, edit comment).
-# 2. For other active previews: delete Neon branch and trigger pr_preview.yml
-#    deploy (recreates branch, deploys with migrations).
-#
-# Assumes an external stale workflow adds the "Stale" label to inactive PRs.
-# No PR comments are created by this workflow; pr_preview.yml edits existing
-# comments, which does not bump updated_at.
+# Runs weekly to cleanup stale previews.
 #
 # =============================================================================
 
-name: PR Preview Weekly Cron
+name: PR Preview Stale Cleanup
 
 on:
   schedule:
-    - cron: "0 3 * * 1"
+    - cron: "0 0 * * 0" # Sundays at 00:00 UTC
   workflow_dispatch:
 
 permissions:
@@ -59,12 +51,13 @@ jobs:
             PR_NUM=$(echo "$PREVIEW_ID" | sed -n 's/^pr-\([0-9]*\)-.*/\1/p')
             [ -z "$PR_NUM" ] && continue
 
-            PR_JSON=$(gh pr view "$PR_NUM" --json headRefName,labels 2>/dev/null || echo '{}')
+            PR_JSON=$(gh pr view "$PR_NUM" --json headRefName,labels,state 2>/dev/null || echo '{}')
             HEAD_REF=$(echo "$PR_JSON" | jq -r '.headRefName // ""')
             [ -z "$HEAD_REF" ] && continue
+            PR_STATE=$(echo "$PR_JSON" | jq -r '.state // ""')
             LABELS=$(echo "$PR_JSON" | jq -r '[.labels[].name] | join(" ") // ""')
             IS_STALE="false"
-            if echo "$LABELS" | grep -qw "Stale"; then
+            if [ "$PR_STATE" != "OPEN" ] || echo "$LABELS" | grep -qw "Stale"; then
               IS_STALE="true"
             fi
 
@@ -84,7 +77,7 @@ jobs:
           echo "Found $(echo "$OUT" | jq length) preview(s)"
 
   cleanup-stale:
-    name: Cleanup Stale Preview
+    name: Cleanup Stale Previews
     needs: list-previews
     if: needs.list-previews.outputs.previews != '[]'
     runs-on: ubuntu-latest
@@ -102,29 +95,3 @@ jobs:
             -f action=cleanup \
             -f cleanup_reason=Stale
           echo "Triggered cleanup for PR #${{ matrix.pr_number }} (${{ matrix.app }})"
-
-  reset-db:
-    name: Reset Preview DB
-    needs: list-previews
-    if: needs.list-previews.outputs.previews != '[]'
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJson(needs.list-previews.outputs.previews) }}
-    steps:
-      - name: Delete Neon branch
-        if: matrix.is_stale != true
-        uses: neondatabase/delete-branch-action@v3
-        with:
-          project_id: ${{ secrets.NEON_PROJECT_ID }}
-          branch: preview/${{ matrix.preview_id }}
-          api_key: ${{ secrets.NEON_API_KEY }}
-
-      - name: Trigger deploy
-        if: matrix.is_stale != true
-        run: |
-          gh workflow run "PR Preview Environment" \
-            --ref "${{ matrix.head_ref }}" \
-            -f pr_number=${{ matrix.pr_number }}
-          echo "Triggered deploy for PR #${{ matrix.pr_number }} (${{ matrix.app }})"
