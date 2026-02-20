@@ -87,7 +87,7 @@ class QuestionAdminForm(forms.ModelForm):
                     self.fields[field_name] = UnixTimestampDateTimeField(
                         required=original.required,
                         help_text=(original.help_text or "")
-                        + " (Displayed as datetime for date questions;"
+                        + " (Displayed as UTC datetime for date questions;"
                         " stored as Unix timestamp.)",
                         widget=UnixTimestampSplitDateTimeWidget(
                             date_attrs={"type": "date"},
