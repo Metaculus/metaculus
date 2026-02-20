@@ -1,7 +1,5 @@
-from collections.abc import Iterable
-
 from django.db import models
-from django.db.models import Q, Subquery, OuterRef
+from django.db.models import Subquery, OuterRef
 from django.db.models.functions import Least, Greatest
 
 from questions.models import Question
