@@ -451,7 +451,7 @@ function parseSubQuestionOption(
 ) {
   return !isNaN(Number(question_id?.toString()))
     ? Number(question_id?.toString())
-    : (option?.toString().replaceAll("_", " ") ?? null);
+    : option?.toString().replaceAll("_", " ") ?? null;
 }
 
 function shouldRenderAggregation(

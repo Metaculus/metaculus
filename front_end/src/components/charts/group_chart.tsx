@@ -319,6 +319,7 @@ const GroupChart: FC<Props> = ({
             width={chartWidth}
             height={height}
             theme={actualTheme}
+            domainPadding={{ y: 3 }}
             padding={{
               left: 0,
               top: 10,

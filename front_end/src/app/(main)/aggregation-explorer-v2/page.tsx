@@ -10,7 +10,8 @@ import { usePostData } from "./hooks/post-data";
 import { useAggregationExplorerQueryState } from "./hooks/query-state";
 
 export default function AggregationExplorerV2Page() {
-  const { postId, setSelection } = useAggregationExplorerQueryState();
+  const { postId, setSelection, querySource } =
+    useAggregationExplorerQueryState();
   const [queryInput, setQueryInput] = useState(postId?.toString() ?? "");
   const [error, setError] = useState<string | null>(null);
   const {
@@ -51,8 +52,10 @@ export default function AggregationExplorerV2Page() {
     }
 
     setError(null);
-    void setSelection(postId, questionId);
+    void setSelection(postId, questionId, { fromForm: true });
   };
+
+  const fromUrl = querySource === "url";
 
   return (
     <main className="mx-auto flex min-h-[calc(90vh-120px)] w-full items-center px-4 lg:px-20">
@@ -61,22 +64,26 @@ export default function AggregationExplorerV2Page() {
           <h1 className="text-balance text-3xl font-semibold text-blue-900 dark:text-blue-900-dark sm:text-4xl">
             Aggregation Explorer
           </h1>
-          <p className="mx-auto mt-3 max-w-xl text-sm text-gray-700 dark:text-gray-700-dark sm:text-base">
-            Paste a Metaculus question URL or enter an ID to begin.
-          </p>
+          {!fromUrl && (
+            <>
+              <p className="mx-auto mt-3 max-w-xl text-sm text-gray-700 dark:text-gray-700-dark sm:text-base">
+                Paste a Metaculus question URL or enter an ID to begin.
+              </p>
 
-          <SearchForm
-            value={queryInput}
-            error={error}
-            disabled={postId !== null && isPostDataPending}
-            onSubmit={handleExplore}
-            onChange={(value) => {
-              setQueryInput(value);
-              if (error) {
-                setError(null);
-              }
-            }}
-          />
+              <SearchForm
+                value={queryInput}
+                error={error}
+                disabled={postId !== null && isPostDataPending}
+                onSubmit={handleExplore}
+                onChange={(value) => {
+                  setQueryInput(value);
+                  if (error) {
+                    setError(null);
+                  }
+                }}
+              />
+            </>
+          )}
           <div className="mt-4 min-h-6">
             {postId !== null && isPostDataPending && (
               <p className="text-sm text-gray-700 dark:text-gray-700-dark">
