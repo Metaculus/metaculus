@@ -117,9 +117,7 @@ class PostAdmin(CustomTranslationAdmin):
             ),
         )
 
-    update_pseudo_materialized_fields_button.short_description = (
-        "Update Cached Fields"
-    )
+    update_pseudo_materialized_fields_button.short_description = "Update Cached Fields"
 
     def other_project_count(self, obj):
         return obj.projects.count()
