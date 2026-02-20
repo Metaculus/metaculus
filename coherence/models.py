@@ -1,5 +1,7 @@
+from collections.abc import Iterable
+
 from django.db import models
-from django.db.models import Subquery, OuterRef
+from django.db.models import Q, Subquery, OuterRef
 from django.db.models.functions import Least, Greatest
 
 from questions.models import Question
@@ -39,7 +41,7 @@ class CoherenceLink(TimeStampedModel):
         ]
 
 
-class AggregateCoherenceLinkQuerySet(models.QuerySet):
+class AggregateCoherenceLinkManager(models.QuerySet):
     def annotate_user_vote(self, user: User):
         """
         Annotates queryset with the user's vote option
@@ -51,6 +53,22 @@ class AggregateCoherenceLinkQuerySet(models.QuerySet):
                     user=user, aggregation=OuterRef("pk")
                 ).values("score")[:1]
             ),
+        )
+
+    def filter_permission(self, user: User = None):
+        """
+        Filters links where both linked questions are visible to the given user.
+        """
+
+        from posts.models import Post
+
+        if not user or not user.is_authenticated:
+            user = None
+
+        visible_posts = Post.objects.filter_permission(user=user).values("id")
+        return self.filter(
+            question1__post_id__in=visible_posts,
+            question2__post_id__in=visible_posts,
         )
 
 
@@ -66,7 +84,7 @@ class AggregateCoherenceLink(TimeStampedModel):
     # Annotated fields
     user_vote: int = None
 
-    objects = models.Manager.from_queryset(AggregateCoherenceLinkQuerySet)()
+    objects = AggregateCoherenceLinkManager.as_manager()
 
     class Meta:
         constraints = [
