@@ -92,16 +92,38 @@ def get_links_for_question_api_view(request, pk):
 @permission_classes([AllowAny])
 def get_aggregate_links_for_question_api_view(request: Request, pk: int):
     question = get_object_or_404(Question, pk=pk)
+    question_permission = get_post_permission_for_user(question.post, user=request.user)
+    ObjectPermission.can_view(question_permission, raise_exception=True)
     links = AggregateCoherenceLink.objects.filter(
         Q(question1=question) | Q(question2=question)
     )
+
+    viewable_links = []
+    can_view_question_ids = set()
+    for link in links:
+        q1_id = link.question1_id
+        q2_id = link.question2_id
+        if q1_id not in can_view_question_ids:
+            q1_permission = get_post_permission_for_user(
+                link.question1.post, user=request.user
+            )
+            if ObjectPermission.can_view(q1_permission):
+                can_view_question_ids.add(q1_id)
+        if q2_id not in can_view_question_ids:
+            q2_permission = get_post_permission_for_user(
+                link.question2.post, user=request.user
+            )
+            if ObjectPermission.can_view(q2_permission):
+                can_view_question_ids.add(q2_id)
+        if q1_id in can_view_question_ids and q2_id in can_view_question_ids:
+            viewable_links.append(link)
 
     links_to_data = serialize_aggregate_coherence_link_many(
         links,
         current_user=request.user if request.user.is_authenticated else None,
         current_question=question,
     )
-
+    breakpoint()
     return Response({"data": links_to_data})
 
 

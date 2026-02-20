@@ -75,6 +75,8 @@ export const CoherenceLinksProvider: FC<
           post.question
         ),
       ]);
+      console.log("links", links);
+      console.log("aggregate", aggregate);
 
       setCoherenceLinks(links);
       setAggregateCoherenceLinks(aggregate);

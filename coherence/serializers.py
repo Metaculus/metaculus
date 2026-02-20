@@ -6,6 +6,8 @@ from django.db.models import Q
 from multidict import MultiDict
 from rest_framework import serializers
 
+from projects.permissions import ObjectPermission
+from posts.services.common import get_post_permission_for_user
 from questions.models import Question
 from questions.serializers.common import serialize_question
 from users.models import User
@@ -188,13 +190,42 @@ def serialize_aggregate_coherence_link_many(
 def serialize_aggregate_coherence_links_questions_map(
     questions: Iterable[Question], current_user: User = None
 ) -> dict[int, list[dict]]:
-    qs = AggregateCoherenceLink.objects.filter(
-        Q(question1__in=questions) | Q(question2__in=questions)
+
+    viewable_questions = []
+    for question in questions:
+        question_permission = get_post_permission_for_user(
+            question.post, user=current_user
+        )
+        if ObjectPermission.can_view(question_permission):
+            viewable_questions.append(question)
+
+    links = AggregateCoherenceLink.objects.filter(
+        Q(question1__in=viewable_questions) | Q(question2__in=viewable_questions)
     )
+    viewable_links = []
+    can_view_question_ids = set()
+    for link in links:
+        q1_id = link.question1_id
+        q2_id = link.question2_id
+        if q1_id not in can_view_question_ids:
+            q1_permission = get_post_permission_for_user(
+                link.question1.post, user=current_user
+            )
+            if ObjectPermission.can_view(q1_permission):
+                can_view_question_ids.add(q1_id)
+        if q2_id not in can_view_question_ids:
+            q2_permission = get_post_permission_for_user(
+                link.question2.post, user=current_user
+            )
+            if ObjectPermission.can_view(q2_permission):
+                can_view_question_ids.add(q2_id)
+        if q1_id in can_view_question_ids and q2_id in can_view_question_ids:
+            viewable_links.append(link)
+
     questions_map = {q.id: q for q in questions}
 
     serialized_data = serialize_aggregate_coherence_link_many(
-        qs, current_user=current_user
+        viewable_links, current_user=current_user
     )
     links_map = defaultdict(list)
 
