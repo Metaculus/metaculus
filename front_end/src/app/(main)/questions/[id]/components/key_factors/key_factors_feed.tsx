@@ -41,8 +41,7 @@ const KeyFactorsFeed: FC<Props> = ({ post, keyFactorItemClassName }) => {
     aggregateCoherenceLinks?.data.filter(
       (it) => it.links_nr > 1 && it.strength !== null && it.direction !== null
     ) ?? [];
-  console.log("questionLinkAggregates", questionLinkAggregates);
-  console.log("aggregateCoherenceLinks", aggregateCoherenceLinks);
+
   useEffect(() => {
     if (!combinedKeyFactors.length) return;
 

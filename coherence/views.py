@@ -123,7 +123,7 @@ def get_aggregate_links_for_question_api_view(request: Request, pk: int):
         current_user=request.user if request.user.is_authenticated else None,
         current_question=question,
     )
-    breakpoint()
+
     return Response({"data": links_to_data})
 
 
