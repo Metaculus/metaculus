@@ -2010,5 +2010,17 @@
   "ourTeamWillBeInContactSoon": "Nuestro equipo se pondrá en contacto pronto.",
   "automaticRedirectInSeconds": "Redirección automática en {count, plural, one {# segundo} other {# segundos}}",
   "errorSubmittingQuiz": "Algo salió mal. Por favor, inténtalo de nuevo.",
+  "timingStepSubtitle": "Podemos usar nuestro enfoque de pronóstico para ayudarte a navegar la incertidumbre en torno a {challenges}. ¿Qué tan pronto necesitas resultados?",
+  "timingStepSubtitleGeneric": "Podemos usar nuestro enfoque de pronóstico para ayudarte a navegar estos desafíos. ¿Qué tan pronto necesitas resultados?",
+  "selectOneOrMore": "Selecciona uno o más",
+  "summaryServiceDescription": "Podemos ayudarte con {challenges}",
+  "summaryTimingDescription": "y obtener resultados {timing}",
+  "summaryForecastersDescription": "con pronósticos de {forecasters} para ayudar a tu organización a tomar mejores decisiones.",
+  "summaryForecastersNotSure": "Nuestro equipo te ayudará a determinar el mejor enfoque de pronóstico para ayudar a tu organización a tomar mejores decisiones.",
+  "withinThreeMonths": "en tres meses",
+  "afterThreeMonths": "después de tres meses",
+  "onAFlexibleTimeline": "en un plazo flexible",
+  "publicForecasters": "pronosticadores públicos",
+  "yourInternalExperts": "tus expertos internos",
   "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
 }

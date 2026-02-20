@@ -4,12 +4,14 @@ import cn from "@/utils/core/cn";
 
 type Props = PropsWithChildren<{
   title: string;
+  subtitle?: string;
   className?: string;
 }>;
 
 const ServicesQuizStepShell: React.FC<Props> = ({
   children,
   title,
+  subtitle,
   className,
 }) => {
   return (
@@ -18,11 +20,18 @@ const ServicesQuizStepShell: React.FC<Props> = ({
         <h2
           className={cn(
             "m-0 mb-4 text-[20px] font-bold leading-[25px] text-blue-700 dark:text-blue-700-dark sm:mb-9 sm:text-center sm:text-[28px] sm:leading-[34px]",
+            subtitle && "sm:mb-3",
             className
           )}
         >
           {title}
         </h2>
+
+        {subtitle && (
+          <p className="m-0 mb-4 text-sm leading-5 text-gray-700 dark:text-gray-700-dark sm:mb-9 sm:text-center sm:text-base">
+            {subtitle}
+          </p>
+        )}
 
         {children}
       </div>

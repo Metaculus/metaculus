@@ -2012,5 +2012,17 @@
   "ourTeamWillBeInContactSoon": "我们的团队将尽快与您联系。",
   "automaticRedirectInSeconds": "{count}秒后自动重定向",
   "errorSubmittingQuiz": "出了点问题，请重试。",
+  "timingStepSubtitle": "我们可以利用预测方法帮助您应对{challenges}方面的不确定性。您多快需要结果？",
+  "timingStepSubtitleGeneric": "我们可以利用预测方法帮助您应对这些挑战。您多快需要结果？",
+  "selectOneOrMore": "选择一个或多个",
+  "summaryServiceDescription": "我们可以帮助您解决{challenges}",
+  "summaryTimingDescription": "并在{timing}为您提供结果",
+  "summaryForecastersDescription": "通过{forecasters}的预测来帮助您的组织做出更好的决策。",
+  "summaryForecastersNotSure": "我们的团队将帮助您确定最佳预测方法，以帮助您的组织做出更好的决策。",
+  "withinThreeMonths": "三个月内",
+  "afterThreeMonths": "三个月后",
+  "onAFlexibleTimeline": "灵活的时间安排",
+  "publicForecasters": "公共预测者",
+  "yourInternalExperts": "您的内部专家",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }
