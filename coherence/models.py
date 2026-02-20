@@ -41,7 +41,7 @@ class CoherenceLink(TimeStampedModel):
         ]
 
 
-class AggregateCoherenceLinkManager(models.QuerySet):
+class AggregateCoherenceLinkQuerySet(models.QuerySet):
     def annotate_user_vote(self, user: User):
         """
         Annotates queryset with the user's vote option
@@ -84,7 +84,7 @@ class AggregateCoherenceLink(TimeStampedModel):
     # Annotated fields
     user_vote: int = None
 
-    objects = AggregateCoherenceLinkManager.as_manager()
+    objects = AggregateCoherenceLinkQuerySet.as_manager()
 
     class Meta:
         constraints = [

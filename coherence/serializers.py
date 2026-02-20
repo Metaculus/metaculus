@@ -188,14 +188,14 @@ def serialize_aggregate_coherence_link_many(
 def serialize_aggregate_coherence_links_questions_map(
     questions: Iterable[Question], current_user: User = None
 ) -> dict[int, list[dict]]:
-    links = AggregateCoherenceLink.objects.filter(
+    qs = AggregateCoherenceLink.objects.filter(
         Q(question1__in=questions) | Q(question2__in=questions)
     ).filter_permission(user=current_user)
 
     questions_map = {q.id: q for q in questions}
 
     serialized_data = serialize_aggregate_coherence_link_many(
-        links, current_user=current_user
+        qs, current_user=current_user
     )
     links_map = defaultdict(list)
 
