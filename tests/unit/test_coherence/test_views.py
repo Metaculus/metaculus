@@ -2,12 +2,17 @@ import pytest
 from django.urls import reverse
 
 from tests.unit.test_questions.conftest import *  # noqa
+from tests.unit.test_posts.factories import factory_post
 from .factories import factory_aggregate_coherence_link, factory_coherence_link
 
 
 def test_aggregate_question_link_vote(
     user1, user2_client, user1_client, question_binary, question_numeric
 ):
+    question_binary.post = factory_post()
+    question_binary.save()
+    question_numeric.post = factory_post()
+    question_numeric.save()
     aggregation = factory_aggregate_coherence_link(
         question1=question_binary, question2=question_numeric
     )
