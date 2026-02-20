@@ -31,6 +31,7 @@ from projects.services.common import (
     invite_user_to_project,
     get_site_main_project,
     get_project_timeline_data,
+    get_feed_project_tiles,
 )
 from projects.services.subscriptions import subscribe_project, unsubscribe_project
 from questions.models import Question
@@ -173,6 +174,33 @@ def tournaments_list_api_view(request: Request):
     data = serialize_tournaments_with_counts(
         projects, sort_key=lambda r: r["questions_count"], with_timeline=True
     )
+
+    return Response(data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def feed_project_tiles_api_view(request: Request):
+    tiles = get_feed_project_tiles()
+
+    # Fresh query for live project data
+    serialized_projects = serialize_tournaments_with_counts(
+        Project.objects.filter(id__in=[t["project_id"] for t in tiles]).select_related(
+            "primary_leaderboard"
+        )
+    )
+
+    # Fresh query for live project data
+    serialized_projects_map = {p["id"]: p for p in serialized_projects}
+
+    data = [
+        {
+            "project": serialized_projects_map[tile["project_id"]],
+            **tile,
+        }
+        for tile in tiles
+        if tile["project_id"] in serialized_projects_map
+    ]
 
     return Response(data)
 

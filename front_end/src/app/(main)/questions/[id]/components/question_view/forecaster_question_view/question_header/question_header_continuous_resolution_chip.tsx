@@ -1,7 +1,10 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
+import {
+  useEmbedContainerWidth,
+  useIsEmbedMode,
+} from "@/app/(embed)/questions/components/question_view_mode_context";
 import { getContinuousAreaChartData } from "@/components/charts/continuous_area_chart";
 import MinifiedContinuousAreaChart from "@/components/charts/minified_continuous_area_chart";
 import { QuestionStatus } from "@/types/post";
@@ -28,6 +31,8 @@ const QuestionHeaderContinuousResolutionChip: FC<Props> = ({
   });
 
   const isEmbed = useIsEmbedMode();
+  const w = useEmbedContainerWidth();
+  const isEmbedBelow376 = isEmbed && (w ?? 0) > 0 && (w ?? 0) < 376;
 
   return (
     <div
@@ -38,6 +43,7 @@ const QuestionHeaderContinuousResolutionChip: FC<Props> = ({
           "w-[200px]": size === "lg",
           "max-w-[130px]": size === "md",
           "gap-1 px-5 py-3": size === "lg",
+          "max-w-none border-[0.5px] p-3 md:p-3": isEmbed && !isEmbedBelow376,
         }
       )}
     >
@@ -69,7 +75,7 @@ const QuestionHeaderContinuousResolutionChip: FC<Props> = ({
       <MinifiedContinuousAreaChart
         question={question}
         data={continuousAreaChartData}
-        height={size === "lg" ? 120 : 50}
+        height={size === "lg" ? 120 : isEmbed && !isEmbedBelow376 ? 90 : 50}
         forceTickCount={2}
         hideLabels={size === "md"}
       />
