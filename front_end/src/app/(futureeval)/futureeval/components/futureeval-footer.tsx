@@ -7,51 +7,7 @@ import { useModal } from "@/contexts/modal_context";
 import cn from "@/utils/core/cn";
 
 import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
-
-/**
- * FutureEval logo symbol (just the F mark, no text)
- * Extracted directly from the full FE-logo SVG
- */
-const FutureEvalSymbol: React.FC<{ className?: string }> = ({ className }) => (
-  <svg
-    width="30"
-    height="35"
-    viewBox="0 0 30 35"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <path
-      d="M23 11H4V21H23V25H4V35H0V7H23V11Z"
-      fill="currentColor"
-      className="text-futureeval-bg-dark dark:text-futureeval-bg-light"
-    />
-    <rect
-      x="7"
-      y="18"
-      width="4"
-      height="23"
-      transform="rotate(-90 7 18)"
-      className="fill-futureeval-primary-light dark:fill-futureeval-primary-dark"
-    />
-    <rect
-      x="7"
-      y="4"
-      width="4"
-      height="23"
-      transform="rotate(-90 7 4)"
-      className="fill-futureeval-primary-light dark:fill-futureeval-primary-dark"
-    />
-    <rect
-      x="7"
-      y="32"
-      width="4"
-      height="23"
-      transform="rotate(-90 7 32)"
-      className="fill-futureeval-primary-light dark:fill-futureeval-primary-dark"
-    />
-  </svg>
-);
+import FutureEvalSymbol from "./futureeval-symbol";
 
 /**
  * Simple FutureEval footer

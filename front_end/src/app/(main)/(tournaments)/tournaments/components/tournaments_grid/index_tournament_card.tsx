@@ -8,6 +8,7 @@ import React, { useMemo } from "react";
 import { TournamentPreview } from "@/types/projects";
 import cn from "@/utils/core/cn";
 
+import PrivateBadge from "./private_badge";
 import TournamentCardShell from "./tournament_card_shell";
 
 type Props = {
@@ -49,6 +50,7 @@ const IndexTournamentCard: React.FC<Props> = ({ item }) => {
                 />
               </div>
             )}
+            {!item.default_permission && <PrivateBadge />}
           </div>
 
           <div className="min-w-0 flex-1">
@@ -92,6 +94,7 @@ const IndexTournamentCard: React.FC<Props> = ({ item }) => {
               />
             </div>
           )}
+          {!item.default_permission && <PrivateBadge />}
         </div>
 
         <div className="px-3 pb-4 pt-4 lg:px-4 lg:pb-6">

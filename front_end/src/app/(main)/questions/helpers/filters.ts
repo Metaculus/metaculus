@@ -245,7 +245,7 @@ export function getFilterSectionUsername({
 
       try {
         const response = await ClientProfileApi.searchUsers(query);
-        return response.results.map((obj) => ({
+        return response.map((obj) => ({
           label: obj.username,
           value: obj.username,
           active: params.getAll(POST_USERNAMES_FILTER).includes(obj.username),

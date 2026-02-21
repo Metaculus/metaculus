@@ -33,7 +33,6 @@ from users.services.common import (
     register_user_to_campaign,
     change_user_password,
 )
-from utils.paginator import LimitOffsetPagination
 from utils.tasks import email_user_their_data_task
 from .services.bots_management import get_user_bots, create_bot
 from .services.profile_stats import serialize_user_stats
@@ -89,20 +88,14 @@ def user_profile_api_view(request, pk: int):
 
 
 @api_view(["GET"])
-@permission_classes([AllowAny])
 def users_list_api_view(request):
-    paginator = LimitOffsetPagination()
-
     # Apply filtering
     filters_serializer = UserFilterSerializer(data=request.query_params)
     filters_serializer.is_valid(raise_exception=True)
 
-    qs = get_users(**filters_serializer.validated_data)
+    users = get_users(**filters_serializer.validated_data, user=request.user)[:20]
 
-    # Paginating queryset
-    qs = paginator.paginate_queryset(qs, request)
-
-    return paginator.get_paginated_response(UserPublicSerializer(qs, many=True).data)
+    return Response(UserPublicSerializer(users, many=True).data)
 
 
 @api_view(["POST"])

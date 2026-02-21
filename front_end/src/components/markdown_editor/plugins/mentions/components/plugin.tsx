@@ -16,7 +16,7 @@ type Props = {
 };
 
 const MentionsPlugin: FC<Props> = ({ initialMention, userPermission }) => {
-  const { defaultUserMentions } = useUserMentionsContext();
+  const { defaultUserMentions, postId } = useUserMentionsContext();
   const { insertMention } = useBeautifulMentions();
 
   const insertedReplyMention = useRef(false);
@@ -32,7 +32,13 @@ const MentionsPlugin: FC<Props> = ({ initialMention, userPermission }) => {
     <BeautifulMentionsPlugin
       triggers={["@"]}
       onSearch={(trigger, queryString) =>
-        queryMentions(trigger, queryString, defaultUserMentions, userPermission)
+        queryMentions(
+          trigger,
+          queryString,
+          defaultUserMentions,
+          userPermission,
+          postId
+        )
       }
       menuComponent={Menu}
       menuItemComponent={MenuItem}

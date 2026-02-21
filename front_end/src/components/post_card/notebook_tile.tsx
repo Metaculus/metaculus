@@ -39,7 +39,7 @@ const NotebookTile: FC<Props> = ({ post }) => {
           alt=""
           width={300}
           height={300}
-          quality={100}
+          unoptimized
           className="h-24 min-w-44 max-w-44 rounded object-cover"
         />
       )}

@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import { AuthCookieManager, AuthCookieReader } from "@/services/auth_tokens";
-import { handleLegacyTokenMigration } from "@/services/auth_tokens_migration";
 import { CsrfManager } from "@/services/csrf";
-// DEPRECATED: Remove after 30-day migration period
 import {
   LanguageService,
   LOCALE_COOKIE_NAME,
@@ -93,22 +91,10 @@ export async function middleware(request: NextRequest) {
     // 3. Clear invalid JWT tokens (only on definitive 4xx, not transient errors)
     if (!hasSession && (accessToken || refreshToken)) {
       responseAuth.clearAuthTokens();
-      // Clear legacy auth token
-      response.cookies.delete("auth_token");
     }
   } catch (error) {
     // Transient error (5xx, network) - don't clear tokens
     console.error("Auth service error, preserving tokens:", error);
-  }
-
-  // 4. No JWT tokens - try legacy migration
-  // DEPRECATED: Remove after 30-day migration period
-  if (!hasSession && !accessToken && !refreshToken) {
-    hasSession = await handleLegacyTokenMigration(
-      request,
-      response,
-      responseAuth
-    );
   }
 
   const { PUBLIC_AUTHENTICATION_REQUIRED } = getPublicSettings();

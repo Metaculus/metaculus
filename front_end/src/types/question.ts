@@ -55,6 +55,7 @@ export enum QuestionOrder {
   PredictionCountDesc = "-forecasts_count",
   ForecastersCountDesc = "-forecasters_count",
   CloseTimeAsc = "scheduled_close_time",
+  CpRevealTimeDesc = "-cp_reveal_time",
   ScoreDesc = "-score",
   ScoreAsc = "score",
   ResolveTimeAsc = "scheduled_resolve_time",
