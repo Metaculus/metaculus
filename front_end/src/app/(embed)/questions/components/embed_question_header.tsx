@@ -126,7 +126,7 @@ const EmbedQuestionHeader: React.FC<Props> = ({
           {titleOverride ?? post.title}
         </TruncatableQuestionTitle>
       </Link>
-      {isQuestionPost(post) && (
+      {isQuestionPost(post) && !isContinuousQuestion(post.question) && (
         <div className="[@container(max-width:375px)]:hidden">
           <QuestionHeaderCPStatus
             question={post.question as QuestionWithForecasts}
