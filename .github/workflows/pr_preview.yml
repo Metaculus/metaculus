@@ -228,7 +228,7 @@ jobs:
       - name: Setup Fly.io CLI
         uses: superfly/flyctl-actions/setup-flyctl@master
         with:
-          version: 0.4.9
+          version: 0.4.14
 
       - name: Create NeonDB Branch
         id: neon
@@ -256,6 +256,8 @@ jobs:
               --region "${REDIS_REGION}" \
               --no-replicas \
               --enable-eviction \
+              --enable-auto-upgrade=false \
+              --enable-prodpack=false \
               --org "${FLY_ORG}"
             echo "✅ Created new Redis database: ${REDIS_NAME}"
           fi
@@ -429,7 +431,7 @@ jobs:
       - name: Setup Fly.io CLI
         uses: superfly/flyctl-actions/setup-flyctl@master
         with:
-          version: 0.4.9
+          version: 0.4.14
 
       - name: Delete Fly app
         continue-on-error: true
