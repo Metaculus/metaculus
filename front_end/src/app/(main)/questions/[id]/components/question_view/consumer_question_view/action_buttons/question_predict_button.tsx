@@ -30,6 +30,9 @@ const QuestionPredictButton: React.FC<Props> = ({ post }) => {
       setCurrentModal({ type: "signin" });
       return;
     }
+    if (user.is_bot) {
+      return;
+    }
     setIsOpen(true);
   };
 

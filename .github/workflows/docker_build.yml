@@ -44,9 +44,10 @@
 #
 # =============================================================================
 
-name: Docker Build (Reusable)
+name: Docker Build
 
 on:
+  workflow_dispatch:
   workflow_call:
     inputs:
       # Include latest tag (for production deployments)
@@ -116,6 +117,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          # Use PR branch HEAD (not merge commit) for consistent caching
+          # Falls back to github.sha for non-PR events (push, workflow_dispatch)
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -139,6 +144,8 @@ jobs:
         id: vars
         env:
           BRANCH_REF: ${{ github.head_ref || github.ref_name }}
+          # Use PR branch HEAD for PRs, otherwise default SHA
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           # Image name must be lowercase for ghcr.io
           IMAGE_NAME="ghcr.io/${{ github.repository }}"
@@ -153,6 +160,11 @@ jobs:
           echo "branch_slug=${BRANCH_SLUG}" >> $GITHUB_OUTPUT
           echo "Branch slug: ${BRANCH_SLUG}"
 
+          # Short SHA for tags (7 chars, matching git's default)
+          SHORT_SHA="${COMMIT_SHA:0:7}"
+          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "commit_sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+
       # Use docker/metadata-action for tag generation and OCI labels
       # See: https://github.com/docker/metadata-action
       - name: Generate Docker metadata
@@ -164,13 +176,16 @@ jobs:
           flavor: |
             latest=false
           tags: |
-            # SHA tag: {branch}-sha-{sha} (immutable, used for deployments/rollbacks)
-            # Highest priority - used as primary tag via 'version' output
-            type=sha,prefix=${{ steps.vars.outputs.branch_slug }}-,priority=1000
+            # SHA tag: {branch}-{short_sha} (immutable, used for deployments/rollbacks)
+            # Uses actual checkout SHA (PR branch HEAD), not merge commit
+            type=raw,value=${{ steps.vars.outputs.branch_slug }}-${{ steps.vars.outputs.short_sha }},priority=1000
             # Mutable tag: {branch} (always points to latest build for this branch)
             type=raw,value=${{ steps.vars.outputs.branch_slug }},priority=600
             # Latest tag (only for production builds)
             type=raw,value=latest,enable=${{ inputs.include_latest_tag }},priority=200
+          labels: |
+            # Override revision to match actual checkout (PR branch HEAD, not merge commit)
+            org.opencontainers.image.revision=${{ steps.vars.outputs.commit_sha }}
 
       - name: Compute cache scope
         id: cache
@@ -201,7 +216,7 @@ jobs:
           cache-from: |
             type=registry,ref=${{ steps.vars.outputs.image_name }}:buildcache-main
             type=registry,ref=${{ steps.vars.outputs.image_name }}:buildcache-${{ steps.cache.outputs.cache_scope }}
-          cache-to: type=registry,ref=${{ steps.vars.outputs.image_name }}:${{ steps.cache.outputs.cache_write_tag }},mode=max
+          cache-to: type=registry,ref=${{ steps.vars.outputs.image_name }}:${{ steps.cache.outputs.cache_write_tag }},mode=max,compression=zstd
 
       - name: Build and push Heroku targets
         if: inputs.heroku_app != ''

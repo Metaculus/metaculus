@@ -310,8 +310,8 @@ class TestAggregations:
                 {},
                 ForecastSet(
                     forecasts_values=[
-                        [0.6, 0.15, None, 0.25],
-                        [0.6, 0.25, None, 0.15],
+                        [0.6, 0.15, float("nan"), 0.25],
+                        [0.6, 0.25, float("nan"), 0.15],
                     ],
                     timestep=datetime(2024, 1, 1, tzinfo=dt_timezone.utc),
                     forecaster_ids=[1, 2],
@@ -337,9 +337,9 @@ class TestAggregations:
                 {},
                 ForecastSet(
                     forecasts_values=[
-                        [0.6, 0.15, None, 0.25],
-                        [0.6, 0.25, None, 0.15],
-                        [0.4, 0.35, None, 0.25],
+                        [0.6, 0.15, float("nan"), 0.25],
+                        [0.6, 0.25, float("nan"), 0.15],
+                        [0.4, 0.35, float("nan"), 0.25],
                     ],
                     timestep=datetime(2024, 1, 1, tzinfo=dt_timezone.utc),
                     forecaster_ids=[1, 2, 3],
@@ -408,18 +408,22 @@ class TestAggregations:
         new_aggregation: AggregateForecast = aggregation.calculate_aggregation_entry(
             forecast_set, include_stats, histogram
         )
-
-        for r, e in [
-            (new_aggregation.forecast_values, expected.forecast_values),
-            (new_aggregation.interval_lower_bounds, expected.interval_lower_bounds),
-            (new_aggregation.centers, expected.centers),
-            (new_aggregation.interval_upper_bounds, expected.interval_upper_bounds),
-            (new_aggregation.means, expected.means),
-            (new_aggregation.histogram, expected.histogram),
+        for key in [
+            "start_time",
+            "forecaster_count",
+            "forecast_values",
+            "interval_lower_bounds",
+            "centers",
+            "interval_upper_bounds",
+            "means",
+            "histogram",
         ]:
-            r = np.where(np.equal(r, None), np.nan, r).astype(float)
-            e = np.where(np.equal(e, None), np.nan, e).astype(float)
-            np.testing.assert_allclose(r, e, equal_nan=True)
+            new_value = getattr(new_aggregation, key)
+            expected_value = getattr(expected, key)
+            if new_value == expected_value:
+                continue
+            for n, e in zip(new_value, expected_value):
+                assert n == e or np.isclose(n, e)
 
     @pytest.mark.parametrize(
         "init_params, forecast_set, include_stats, histogram, expected",
@@ -612,8 +616,8 @@ class TestAggregations:
                 {},
                 ForecastSet(
                     forecasts_values=[
-                        [0.6, 0.15, None, 0.25],
-                        [0.6, 0.25, None, 0.15],
+                        [0.6, 0.15, float("nan"), 0.25],
+                        [0.6, 0.25, float("nan"), 0.15],
                     ],
                     timestep=datetime(2024, 1, 1, tzinfo=dt_timezone.utc),
                     forecaster_ids=[1, 2],
@@ -656,31 +660,22 @@ class TestAggregations:
         new_aggregation = aggregation.calculate_aggregation_entry(
             forecast_set, include_stats, histogram
         )
-
-        assert new_aggregation.start_time == expected.start_time
-        assert (
-            new_aggregation.forecast_values == expected.forecast_values
-        ) or np.allclose(new_aggregation.forecast_values, expected.forecast_values)
-        assert new_aggregation.forecaster_count == expected.forecaster_count
-        assert (
-            new_aggregation.interval_lower_bounds == expected.interval_lower_bounds
-        ) or np.allclose(
-            new_aggregation.interval_lower_bounds, expected.interval_lower_bounds
-        )
-        assert (new_aggregation.centers == expected.centers) or np.allclose(
-            new_aggregation.centers, expected.centers
-        )
-        assert (
-            new_aggregation.interval_upper_bounds == expected.interval_upper_bounds
-        ) or np.allclose(
-            new_aggregation.interval_upper_bounds, expected.interval_upper_bounds
-        )
-        assert (new_aggregation.means == expected.means) or np.allclose(
-            new_aggregation.means, expected.means
-        )
-        assert (new_aggregation.histogram == expected.histogram) or np.allclose(
-            new_aggregation.histogram, expected.histogram
-        )
+        for key in [
+            "start_time",
+            "forecaster_count",
+            "forecast_values",
+            "interval_lower_bounds",
+            "centers",
+            "interval_upper_bounds",
+            "means",
+            "histogram",
+        ]:
+            new_value = getattr(new_aggregation, key)
+            expected_value = getattr(expected, key)
+            if new_value == expected_value:
+                continue
+            for n, e in zip(new_value, expected_value):
+                assert n == e or np.isclose(n, e)
 
     def test_SingleAggregation(self, question_binary: Question):
         high_rep_user = User.objects.create(username="high_rep_user")

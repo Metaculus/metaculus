@@ -17,6 +17,7 @@ import {
   POST_STATUS_FILTER,
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useBreakpoint } from "@/hooks/tailwind";
 import useSearchParams from "@/hooks/use_search_params";
 import ClientProjectsApi from "@/services/api/projects/projects.client";
@@ -38,6 +39,7 @@ const MainFeedFilters: FC<Props> = ({
   const { params } = useSearchParams();
   const t = useTranslations();
   const { user } = useAuth();
+  const { PUBLIC_MINIMAL_UI } = usePublicSettings();
 
   const isLargeScreen = useBreakpoint("md");
 
@@ -88,7 +90,8 @@ const MainFeedFilters: FC<Props> = ({
     return filters;
   }, [params, t, user, projectFilters]);
 
-  const mainSortNewsVisible = isLargeScreen || isNil(user);
+  const mainSortNewsVisible =
+    !PUBLIC_MINIMAL_UI && (isLargeScreen || isNil(user));
   const mainSortNewVisible = isLargeScreen || !isNil(user);
 
   const mainSortOptions: GroupButton<QuestionOrder>[] = useMemo(
@@ -140,14 +143,15 @@ const MainFeedFilters: FC<Props> = ({
       },
       { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
       { value: QuestionOrder.ResolveTimeAsc, label: t("resolvingSoon") },
+      { value: QuestionOrder.CpRevealTimeDesc, label: t("recentlyRevealed") },
       ...(!mainSortNewVisible
         ? [{ value: QuestionOrder.OpenTimeDesc, label: t("new") }]
         : []),
-      ...(!mainSortNewsVisible
+      ...(!mainSortNewsVisible && !PUBLIC_MINIMAL_UI
         ? [{ value: QuestionOrder.NewsHotness, label: t("inTheNews") }]
         : []),
     ],
-    [mainSortNewVisible, mainSortNewsVisible, t]
+    [mainSortNewVisible, mainSortNewsVisible, PUBLIC_MINIMAL_UI, t]
   );
 
   const onOrderChange = (

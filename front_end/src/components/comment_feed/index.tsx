@@ -351,6 +351,7 @@ const CommentFeed: FC<Props> = ({
   return (
     <DefaultUserMentionsContextProvider
       defaultUserMentions={commentAuthorMentionItems}
+      postId={postId}
     >
       <section
         id={id}
@@ -385,23 +386,20 @@ const CommentFeed: FC<Props> = ({
                   {t("comments")}
                 </h2>
               )}
-              {!profileId &&
-                user &&
+              {!profileId && user?.is_bot && (
                 // Private comments were deprecated in favor of Private Notes
                 // Leaving for bots for backward compatibility
-                user.is_bot &&
-                (!showWelcomeMessage || getIsMessagePreviouslyClosed()) && (
-                  <ButtonGroup
-                    value={feedFilters.is_private ? "private" : "public"}
-                    buttons={feedOptions}
-                    onChange={(section) => {
-                      handleFilterChange("is_private", section === "private");
-                    }}
-                    variant="tertiary"
-                  />
-                )}
+                <ButtonGroup
+                  value={feedFilters.is_private ? "private" : "public"}
+                  buttons={feedOptions}
+                  onChange={(section) => {
+                    handleFilterChange("is_private", section === "private");
+                  }}
+                  variant="tertiary"
+                />
+              )}
             </div>
-            {postId && showWelcomeMessage && (
+            {postId && showWelcomeMessage && !user?.is_bot && (
               <CommentWelcomeMessage
                 onClick={() => {
                   setUserCommentsAmount(NEW_USER_COMMENT_LIMIT);
@@ -410,7 +408,7 @@ const CommentFeed: FC<Props> = ({
             )}
           </div>
         )}
-        {!compactVersion && postId && (
+        {!compactVersion && postId && !user?.is_bot && (
           <>
             {showWelcomeMessage && !getIsMessagePreviouslyClosed() ? null : (
               <CommentEditor

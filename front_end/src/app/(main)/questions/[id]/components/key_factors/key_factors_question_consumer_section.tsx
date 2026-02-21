@@ -9,6 +9,7 @@ import { PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import KeyFactorsConsumerCarousel from "./key_factors_consumer_carousel";
+import { useShouldHideKeyFactors } from "./use_should_hide_key_factors";
 import { useQuestionLayout } from "../question_layout/question_layout_context";
 import {
   MAX_TOP_KEY_FACTORS,
@@ -23,11 +24,14 @@ type Props = {
 const KeyFactorsQuestionConsumerSection: FC<Props> = ({ keyFactors, post }) => {
   const t = useTranslations();
   const { requestKeyFactorsExpand } = useQuestionLayout();
+  const shouldHideKeyFactors = useShouldHideKeyFactors();
 
   const { items: topItems, totalCount } = useTopKeyFactorsCarouselItems({
     keyFactors,
     limit: MAX_TOP_KEY_FACTORS,
   });
+
+  if (shouldHideKeyFactors) return null;
 
   const openKeyFactorsElement = (selector: string) => {
     requestKeyFactorsExpand?.();

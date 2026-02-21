@@ -122,10 +122,10 @@ export type PostPrivateNote = {
 
 type BasePost = {
   id: number;
-  projects: {
+  projects?: {
     category?: Category[];
     topic: Topic[];
-    default_project: Tournament;
+    default_project?: Tournament | null;
     tournament?: Tournament[];
     question_series?: Tournament[];
     leaderboard_tag?: LeaderboardTag[];

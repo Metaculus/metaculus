@@ -88,8 +88,8 @@ const useNavbarLinks = ({
           href: "/aggregation-explorer",
         },
         aiBenchmark: {
-          label: t("aiBenchmark"),
-          href: "/aib",
+          label: "FutureEval" + " " + t("aiBenchmark"),
+          href: "/futureeval",
         },
         createQuestion: {
           label: <CreateQuestionButton />,
@@ -173,7 +173,7 @@ const useNavbarLinks = ({
   const menuLinks = useMemo(() => {
     // common links that are always shown
     const links: NavbarLinkDefinition[] = [
-      LINKS.communities,
+      ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.communities]),
       LINKS.leaderboards,
       LINKS.trackRecord,
       LINKS.aggregationExplorer,
@@ -200,6 +200,7 @@ const useNavbarLinks = ({
     LINKS.about,
     LINKS.aggregationExplorer,
     LINKS.aiBenchmark,
+    LINKS.communities,
     LINKS.createQuestion,
     LINKS.faq,
     LINKS.journal,
@@ -230,7 +231,7 @@ const useNavbarLinks = ({
             },
             LINKS.services,
             LINKS.news,
-            LINKS.communities,
+            ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.communities]),
             { href: null, label: t("more"), isTitle: true },
             LINKS.leaderboards,
             LINKS.about,
@@ -298,10 +299,10 @@ const useNavbarLinks = ({
     return { mainLinks, accountLinks };
   }, [
     LINKS.about,
+    LINKS.communities,
     LINKS.services,
     LINKS.aggregationExplorer,
     LINKS.aiBenchmark,
-    LINKS.createQuestion,
     LINKS.faq,
     LINKS.journal,
     LINKS.leaderboards,

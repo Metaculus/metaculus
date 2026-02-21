@@ -18,11 +18,13 @@ const TournamentTimeline: FC<Props> = async ({ tournament }) => {
   const t = await getTranslations();
   const locale = await getLocale();
 
-  let leaderboardDetails: LeaderboardDetails | null = null;
+  let leaderboardDetails: LeaderboardDetails | undefined = undefined;
   try {
-    leaderboardDetails = await ServerLeaderboardApi.getProjectLeaderboard(
-      tournament.id
+    const leaderboards = await ServerLeaderboardApi.getProjectLeaderboard(
+      tournament.id,
+      new URLSearchParams({ primary_only: "true", with_entries: "false" })
     );
+    leaderboardDetails = leaderboards?.[0];
   } catch (error) {
     logError(error);
   }

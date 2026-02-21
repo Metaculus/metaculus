@@ -182,15 +182,12 @@ const DetailedContinuousChartCard: FC<Props> = ({
 
   const isEmbed = useIsEmbedMode();
 
-  const tooltipIsConsumerView = isConsumerView && !isEmbed;
-
   const cursorTooltip = useMemo(() => {
     return (
       <QuestionPredictionTooltip
         communityPrediction={cpCursorElement}
         userPrediction={userCursorElement}
         totalForecasters={cursorData.forecasterCount}
-        isConsumerView={tooltipIsConsumerView}
         questionStatus={question.status}
       />
     );
@@ -198,7 +195,6 @@ const DetailedContinuousChartCard: FC<Props> = ({
     cpCursorElement,
     userCursorElement,
     cursorData.forecasterCount,
-    tooltipIsConsumerView,
     question.status,
   ]);
 
@@ -208,6 +204,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
     !forecastAvailability?.isEmpty &&
     !forecastAvailability?.cpRevealsOn &&
     (question.type === QuestionType.Binary || isContinuousQuestion(question));
+
+  const isBinary = question.type === QuestionType.Binary;
 
   const timelineTitle =
     !isEmbed && !hideTitle ? t("forecastTimelineHeading") : undefined;
@@ -236,16 +234,10 @@ const DetailedContinuousChartCard: FC<Props> = ({
       openTime={getPostDrivenTime(question.open_time)}
       unit={question.unit}
       inboundOutcomeCount={question.inbound_outcome_count}
-      simplifiedCursor={
-        question.type !== QuestionType.Binary || (!user && !isEmbed)
-      }
+      simplifiedCursor={false}
       title={timelineTitle}
       forecastAvailability={forecastAvailability}
-      cursorTooltip={
-        question.type === QuestionType.Binary && !user && !isEmbed
-          ? undefined
-          : cursorTooltip
-      }
+      cursorTooltip={cursorTooltip}
       isConsumerView={isConsumerView}
       isEmbedded={isEmbed}
       height={chartHeight}
@@ -289,6 +281,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
             <div className="relative flex-1">
               <OverlayableTimeline
                 enabled={shouldOverlayCp}
+                alwaysOverlay={isBinary}
                 timeline={renderTimeline()}
                 overlay={overlayNode}
               />
@@ -299,6 +292,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
           <div className="relative md:hidden">
             <OverlayableTimeline
               enabled={shouldOverlayCp}
+              alwaysOverlay={isBinary}
               timeline={renderTimeline()}
               overlay={overlayNode}
             />
@@ -308,6 +302,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
         <div className="relative">
           <OverlayableTimeline
             enabled={shouldOverlayCp}
+            alwaysOverlay={isBinary}
             timeline={renderTimeline()}
             overlay={overlayNode}
           />
@@ -319,25 +314,48 @@ const DetailedContinuousChartCard: FC<Props> = ({
 
 type OverlayableTimelineProps = {
   enabled: boolean;
+  alwaysOverlay?: boolean;
   timeline: ReactNode;
   overlay: ReactNode;
 };
 
 const OverlayableTimeline: FC<OverlayableTimelineProps> = ({
   enabled,
+  alwaysOverlay,
   timeline,
   overlay,
 }) => {
   if (!enabled) return <>{timeline}</>;
 
   return (
-    <div className="group relative">
-      <div className="opacity-10 transition-opacity duration-200 group-focus-within:opacity-100 group-hover:opacity-100 @[23.5rem]:opacity-100">
-        {timeline}
-      </div>
-
-      <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center opacity-100 transition-opacity duration-200 group-focus-within:opacity-0 group-hover:opacity-0 @[23.5rem]:hidden">
+    <div
+      className={cn(
+        "group relative flex",
+        !alwaysOverlay && "@[23.5rem]:items-center @[23.5rem]:gap-3"
+      )}
+    >
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-0 z-10 flex items-center justify-center",
+          "opacity-100 transition-opacity duration-200 group-focus-within:opacity-0 group-hover:opacity-0",
+          alwaysOverlay
+            ? "@[23.5rem]:hidden"
+            : cn(
+                "@[23.5rem]:pointer-events-auto @[23.5rem]:static @[23.5rem]:inset-auto @[23.5rem]:z-auto",
+                "@[23.5rem]:shrink-0 @[23.5rem]:opacity-100 @[23.5rem]:transition-none",
+                "@[23.5rem]:group-focus-within:opacity-100 @[23.5rem]:group-hover:opacity-100"
+              )
+        )}
+      >
         {overlay}
+      </div>
+      <div
+        className={cn(
+          "opacity-10 transition-opacity duration-200 group-focus-within:opacity-100 group-hover:opacity-100",
+          "@[23.5rem]:min-w-0 @[23.5rem]:flex-1 @[23.5rem]:opacity-100 @[23.5rem]:transition-none"
+        )}
+      >
+        {timeline}
       </div>
     </div>
   );

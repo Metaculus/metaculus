@@ -18,6 +18,7 @@ import { sendAnalyticsEvent } from "@/utils/analytics";
 import { getKeyFactorsLimits } from "./hooks";
 import { useTopKeyFactorsCarouselItems } from "./hooks/use_top_key_factors_carousel_items";
 import KeyFactorsConsumerCarousel from "./key_factors_consumer_carousel";
+import { useShouldHideKeyFactors } from "./use_should_hide_key_factors";
 
 type KeyFactorsQuestionSectionProps = {
   post: PostWithForecasts;
@@ -41,7 +42,7 @@ const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
   const { user } = useAuth();
   const { keyFactorsExpanded } = useQuestionLayout();
   const { combinedKeyFactors } = useCommentsFeed();
-
+  const shouldHideKeyFactors = useShouldHideKeyFactors();
   const { aggregateCoherenceLinks } = useCoherenceLinksContext();
 
   const questionLinkAggregates = useMemo(
@@ -73,6 +74,8 @@ const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
       sendAnalyticsEvent("KeyFactorPageview");
     }
   }, [combinedKeyFactors]);
+
+  if (shouldHideKeyFactors) return null;
 
   if (
     CLOSED_STATUSES.includes(postStatus) &&

@@ -179,7 +179,9 @@ class DataPostRequestSerializer(DataGetRequestSerializer):
             return
         user: User = self.context.get("user")
         invalid_methods = [
-            method for method in methods if method not in AggregationMethod.values
+            method
+            for method in methods
+            if method not in AggregationMethod.values + ["geometric_mean"]
         ]
         if invalid_methods:
             raise serializers.ValidationError(

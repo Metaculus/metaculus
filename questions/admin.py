@@ -1,5 +1,5 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone as dt_timezone
 
 from django import forms
 from django.contrib import admin, messages
@@ -36,6 +36,64 @@ from questions.services.multiple_choice_handlers import (
 )
 from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
+
+
+class UnixTimestampSplitDateTimeWidget(forms.SplitDateTimeWidget):
+    """Widget that handles float (Unix timestamp) values in decompress."""
+
+    def decompress(self, value):
+        if isinstance(value, (int, float)):
+            value = datetime.fromtimestamp(value, tz=dt_timezone.utc)
+        return super().decompress(value)
+
+
+class UnixTimestampDateTimeField(forms.SplitDateTimeField):
+    """Form field that displays a Unix timestamp float as a datetime input.
+
+    Converts between float (Unix timestamp) stored in the model and
+    datetime shown in the admin form.
+    """
+
+    def prepare_value(self, value):
+        if isinstance(value, (int, float)):
+            value = datetime.fromtimestamp(value, tz=dt_timezone.utc)
+        return super().prepare_value(value)
+
+    def has_changed(self, initial, data):
+        if isinstance(initial, (int, float)):
+            initial = datetime.fromtimestamp(initial, tz=dt_timezone.utc)
+        return super().has_changed(initial, data)
+
+    def compress(self, data_list):
+        dt = super().compress(data_list)
+        if dt is None:
+            return None
+        if timezone.is_naive(dt):
+            dt = timezone.make_aware(dt, dt_timezone.utc)
+        return dt.timestamp()
+
+
+class QuestionAdminForm(forms.ModelForm):
+    class Meta:
+        model = Question
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.type == Question.QuestionType.DATE:
+            for field_name in ("range_min", "range_max", "zero_point"):
+                if field_name in self.fields:
+                    original = self.fields[field_name]
+                    self.fields[field_name] = UnixTimestampDateTimeField(
+                        required=original.required,
+                        help_text=(original.help_text or "")
+                        + " (Displayed as UTC datetime for date questions;"
+                        " stored as Unix timestamp.)",
+                        widget=UnixTimestampSplitDateTimeWidget(
+                            date_attrs={"type": "date"},
+                            time_attrs={"type": "time"},
+                        ),
+                    )
 
 
 def get_latest_options_history_datetime(options_history):
@@ -127,7 +185,7 @@ class MultipleChoiceOptionsAdminForm(forms.Form):
         )
         default_delete_comment = (
             "Options {removed_options} were removed on {timestep}. "
-            'Their probability was folded into the "{catch_all_option}" option.'
+            'Your predictions on those options were moved to the "{catch_all_option}" option.'
         )
         default_add_comment = (
             "Options {added_options} were added on {timestep}. "
@@ -424,6 +482,7 @@ class MultipleChoiceOptionsAdminForm(forms.Form):
 
 @admin.register(Question)
 class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
+    form = QuestionAdminForm
     list_display = [
         "title",
         "type",
@@ -823,14 +882,24 @@ class GroupOfQuestionsAdmin(CustomTranslationAdmin):
     def save_model(self, request, obj: GroupOfQuestions, form, change):
         super().save_model(request, obj, form, change)
 
-        if obj.post_id:
-            run_post_generate_history_snapshot.send(obj.post_id, request.user.id)
+        if obj.post:
+            run_post_generate_history_snapshot.send(obj.post.id, request.user.id)
 
 
 @admin.register(Forecast)
 class ForecastAdmin(admin.ModelAdmin):
-    list_display = ["__str__", "author", "question", "start_time", "end_time"]
+    list_display = ["__str__", "author", "question_id", "start_time", "end_time"]
     autocomplete_fields = ["author", "question"]
+    search_fields = [
+        "author__username",
+        "author__id",
+        "question__title",
+    ]
+    list_filter = [
+        AutocompleteFilterFactory("Question", "question"),
+        AutocompleteFilterFactory("Author", "author"),
+        AutocompleteFilterFactory("Post", "question__post"),
+    ]
 
     def get_actions(self, request):
         actions = super().get_actions(request)

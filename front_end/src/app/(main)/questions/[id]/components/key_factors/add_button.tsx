@@ -64,6 +64,8 @@ export const AddKeyFactorsButton: FC<AddKeyFactorsButtonProps> = ({
   const { setCurrentModal } = useModal();
   const layout = useQuestionLayoutSafe();
 
+  if (user?.is_bot) return null;
+
   const scrollToNewKeyFactors = (comment: BECommentType) => {
     if (typeof window === "undefined") return;
     if (window.innerWidth >= 640) return;
