@@ -675,6 +675,7 @@
   "dateRangeDescription": "日期問題詢問在特定時間窗口內某事何時會發生。",
   "numericRangeDescription": "數值問題詢問將在未來某個日期已知的數量或數字。",
   "viewInDjangoAdmin": "在django管理界面查看",
+  "viewQuestion": "查看问题",
   "finePrintDescription": "可選：使用細則來說明任何不需要突出顯示的法律細節。",
   "createQuestion": "創建問題",
   "editQuestion": "編輯問題",

@@ -684,6 +684,7 @@
   "dateRangeDescription": "Otázka na datum se ptá, kdy se něco stane, v daném časovém okně.",
   "numericRangeDescription": "Číselná otázka se ptá na množství nebo číslo, které bude známo v budoucnosti.",
   "viewInDjangoAdmin": "Zobrazit v django administraci",
+  "viewQuestion": "Zobrazit otázku",
   "finePrintDescription": "Volitelné: Použijte drobný tisk pro jakýkoli právní detail, který nemusí být výrazně zobrazen.",
   "createQuestion": "vytvořit otázku",
   "editQuestion": "upravit otázku",

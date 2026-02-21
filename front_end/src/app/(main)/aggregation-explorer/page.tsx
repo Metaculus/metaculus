@@ -12,8 +12,7 @@ import { useAggregationExplorerQueryState } from "./hooks/query-state";
 
 export default function AggregationExplorerV2Page() {
   const t = useTranslations();
-  const { postId, setSelection, querySource } =
-    useAggregationExplorerQueryState();
+  const { postId, setSelection } = useAggregationExplorerQueryState();
   const [queryInput, setQueryInput] = useState(postId?.toString() ?? "");
   const [error, setError] = useState<string | null>(null);
   const {
@@ -40,7 +39,7 @@ export default function AggregationExplorerV2Page() {
     let postId: number | null = null;
     let questionId: number | null = null;
 
-    if (!isNaN(numericValue)) {
+    if (Number.isInteger(numericValue) && numericValue > 0) {
       postId = numericValue;
     } else {
       const parsed = parseQuestionId(input);
@@ -54,10 +53,8 @@ export default function AggregationExplorerV2Page() {
     }
 
     setError(null);
-    void setSelection(postId, questionId, { fromForm: true });
+    void setSelection(postId, questionId);
   };
-
-  const fromUrl = querySource === "url";
 
   return (
     <main className="mx-auto flex min-h-[calc(90vh-120px)] w-full items-center px-4 lg:px-20">
@@ -66,26 +63,22 @@ export default function AggregationExplorerV2Page() {
           <h1 className="text-balance text-3xl font-semibold text-blue-900 dark:text-blue-900-dark sm:text-4xl">
             {t("aggregationExplorer")}
           </h1>
-          {!fromUrl && (
-            <>
-              <p className="mx-auto mt-3 max-w-xl text-sm text-gray-700 dark:text-gray-700-dark sm:text-base">
-                {t("aggregationExplorerDescription")}
-              </p>
+          <p className="mx-auto mt-3 max-w-xl text-sm text-gray-700 dark:text-gray-700-dark sm:text-base">
+            {t("aggregationExplorerDescription")}
+          </p>
 
-              <SearchForm
-                value={queryInput}
-                error={error}
-                disabled={postId !== null && isPostDataPending}
-                onSubmit={handleExplore}
-                onChange={(value) => {
-                  setQueryInput(value);
-                  if (error) {
-                    setError(null);
-                  }
-                }}
-              />
-            </>
-          )}
+          <SearchForm
+            value={queryInput}
+            error={error}
+            disabled={postId !== null && isPostDataPending}
+            onSubmit={handleExplore}
+            onChange={(value) => {
+              setQueryInput(value);
+              if (error) {
+                setError(null);
+              }
+            }}
+          />
           <div className="mt-4 min-h-6">
             {postId !== null && isPostDataPending && (
               <p className="text-sm text-gray-700 dark:text-gray-700-dark">

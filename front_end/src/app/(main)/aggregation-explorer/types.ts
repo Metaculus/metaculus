@@ -63,7 +63,7 @@ export type AggregationOption = {
 
 export type AggregationTooltip = {
   aggregationMethod: string;
-  choice: AggregationMethod;
+  choice: string;
   label: string;
   includeBots: boolean;
   color: ThemeColor;

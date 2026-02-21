@@ -7,14 +7,11 @@ import {
   useQueryState,
   useQueryStates,
 } from "nuqs";
-import { useRef } from "react";
 
 import { ContinuousAreaGraphType } from "@/types/charts";
 
 import { AggregationMethod } from "../types";
 import { SelectedAggregationConfig, buildConfigId } from "./aggregation-data";
-
-export type QuerySource = "url" | "form" | null;
 
 export function useAggregationExplorerQueryState() {
   const [searchParams, setSearchParams] = useQueryStates({
@@ -22,16 +19,7 @@ export function useAggregationExplorerQueryState() {
     question_id: parseAsInteger,
   });
 
-  const formHasSetSelectionRef = useRef(false);
-
-  const setSelection = (
-    postId: number,
-    questionId: number | null,
-    options?: { fromForm?: boolean }
-  ) => {
-    if (options?.fromForm) {
-      formHasSetSelectionRef.current = true;
-    }
+  const setSelection = (postId: number, questionId: number | null) => {
     return setSearchParams(
       {
         post_id: postId,
@@ -41,16 +29,10 @@ export function useAggregationExplorerQueryState() {
     );
   };
 
-  const postId = searchParams.post_id;
-  const questionSource: QuerySource =
-    postId == null ? null : formHasSetSelectionRef.current ? "form" : "url";
-
   return {
-    postId,
+    postId: searchParams.post_id,
     questionId: searchParams.question_id,
     setSelection,
-    /** Whether current querystring came from page load (direct URL) or in-page form submit. */
-    querySource: questionSource,
   };
 }
 
@@ -61,14 +43,18 @@ export function useAggregationExplorerQueryState() {
 // Example: recency_weighted|~unweighted:bots|joined_before_date:2024-01-01
 // ---------------------------------------------------------------------------
 
+const VALID_AGGREGATION_METHODS = new Set<string>(
+  Object.values(AggregationMethod)
+);
+
 function parseConfigSpec(spec: string): SelectedAggregationConfig | null {
   const disabled = spec.startsWith("~");
   const id = disabled ? spec.slice(1) : spec;
   if (!id) return null;
 
   const parts = id.split(":");
-  const optionId = parts[0] as AggregationMethod;
-  if (!optionId) return null;
+  const optionId = parts[0];
+  if (!optionId || !VALID_AGGREGATION_METHODS.has(optionId)) return null;
 
   const includeBots = parts.includes("bots");
   const joinedBeforeDate = parts.find((p) => /^\d{4}-\d{2}-\d{2}$/.test(p));
@@ -83,7 +69,7 @@ function parseConfigSpec(spec: string): SelectedAggregationConfig | null {
 
   return {
     id,
-    optionId,
+    optionId: optionId as AggregationMethod,
     includeBots: includeBots || undefined,
     joinedBeforeDate,
     userIds: userIds?.length ? userIds : undefined,

@@ -79,12 +79,10 @@ export function deriveQuestion(
     }
     if ("conditional" in postData && postData.conditional) {
       if (postData.conditional.question_yes.id === selectedOption) {
-        return postData.conditional
-          .question_yes as unknown as QuestionWithForecasts;
+        return postData.conditional.question_yes;
       }
       if (postData.conditional.question_no.id === selectedOption) {
-        return postData.conditional
-          .question_no as unknown as QuestionWithForecasts;
+        return postData.conditional.question_no;
       }
     }
   }

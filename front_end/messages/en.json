@@ -1006,6 +1006,7 @@
   "numericRangeDescription": "A numeric question asks about a quantity or number which will be known at a future date.",
   "discreteDescription": "A discrete question asks about an outcome from an distinct and ordered set of values.",
   "viewInDjangoAdmin": "View in django admin",
+  "viewQuestion": "View question",
   "tournamentStats": "Tournament Stats",
   "lastQuestionClosed": "Last Question Closed",
   "lastQuestionCloses": "Last Question Closes",

@@ -829,6 +829,7 @@
   "dateRangeDescription": "日期問題詢問的是某事何時會發生，給定一個特定的時間範圍。",
   "numericRangeDescription": "數值問題詢問的是某個在將來將知道的數量或數字。",
   "viewInDjangoAdmin": "在Django管理中查看",
+  "viewQuestion": "查看問題",
   "pinComment": "置頂",
   "pinned": "已置頂",
   "commentPinned": "評論已置頂",

@@ -8,9 +8,17 @@ import { FC } from "react";
 
 import PostStatusBadge from "@/components/post_status";
 import { PostStatus, PostWithForecasts } from "@/types/post";
-import { QuestionWithForecasts } from "@/types/question";
+import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { formatResolution } from "@/utils/formatters/resolution";
 import { isSuccessfullyResolved } from "@/utils/questions/resolution";
+
+const QUESTION_TYPE_LABEL: Record<QuestionType, string> = {
+  [QuestionType.Binary]: "binary",
+  [QuestionType.MultipleChoice]: "multipleChoice",
+  [QuestionType.Numeric]: "numeric",
+  [QuestionType.Discrete]: "discrete",
+  [QuestionType.Date]: "date",
+} as const;
 
 type Props = {
   postData: PostWithForecasts;
@@ -39,7 +47,7 @@ const QuestionMetadata: FC<Props> = ({ postData, question }) => {
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
       {question && (
         <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-500 dark:bg-blue-900/30 dark:text-gray-400">
-          {question.type}
+          {t(QUESTION_TYPE_LABEL[question.type])}
         </span>
       )}
 

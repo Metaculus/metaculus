@@ -56,6 +56,7 @@ export default function AggregationExplorerLoadedView({ postData }: Props) {
           <Link
             href={`/questions/${postData.id}`}
             className="ml-2 inline-flex align-baseline text-gray-400 hover:text-blue-600 dark:text-gray-500 dark:hover:text-blue-400"
+            aria-label={t("viewQuestion")}
           >
             <FontAwesomeIcon
               icon={faArrowUpRightFromSquare}

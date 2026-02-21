@@ -20,11 +20,7 @@ import EmptyGraphState from "./empty_graph_state";
 import { generateChoiceItemsFromAggregations } from "../helpers";
 import { AggregationQueryResult } from "../hooks/aggregation-data";
 import { useGraphTypeState } from "../hooks/query-state";
-import {
-  AggregationMethod,
-  AggregationExtraQuestion,
-  AggregationTooltip,
-} from "../types";
+import { AggregationExtraQuestion, AggregationTooltip } from "../types";
 
 type Props = {
   methods: AggregationQueryResult[];
@@ -106,7 +102,7 @@ export default function AggregationGraphPanel({
 
   const tooltips: AggregationTooltip[] = methods.map((method) => ({
     aggregationMethod: method.method,
-    choice: method.id as unknown as AggregationMethod,
+    choice: method.id,
     label: method.label,
     includeBots: method.includeBots,
     color: colorById.get(method.id) ?? METAC_COLORS.gray["400"],
@@ -120,13 +116,11 @@ export default function AggregationGraphPanel({
     ...item,
     resolution: null,
     displayedResolution: null,
-    highlighted:
-      hoveredId !== null &&
-      item.choice === (hoveredId as unknown as AggregationMethod),
+    highlighted: hoveredId !== null && item.choice === hoveredId,
   }));
 
   const choiceColorById = new Map(
-    choiceItems.map((item) => [item.choice as unknown as string, item.color])
+    choiceItems.map((item) => [item.choice, item.color])
   );
 
   const actualCloseTime = getPostDrivenTime(mergedData.actual_close_time);

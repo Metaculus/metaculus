@@ -686,6 +686,7 @@
   "dateRangeDescription": "Una pregunta de fecha pregunta cuándo sucederá algo, dado un intervalo de tiempo específico.",
   "numericRangeDescription": "Una pregunta numérica pregunta sobre una cantidad o número que se conocerá en una fecha futura.",
   "viewInDjangoAdmin": "Ver en django admin",
+  "viewQuestion": "Ver pregunta",
   "finePrintDescription": "Opcional: Usa la letra pequeña para cualquier tipo de detalles legales que no necesitan mostrarse de manera prominente.",
   "createQuestion": "crear pregunta",
   "editQuestion": "editar pregunta",
