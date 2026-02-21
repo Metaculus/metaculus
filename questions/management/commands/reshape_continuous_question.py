@@ -319,7 +319,7 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             "--rescore",
-            action="store_false",
+            action="store_true",
             help="Whether to rescore the question.",
         )
 
@@ -681,22 +681,16 @@ class Command(BaseCommand):
                 basis_question = Question.objects.get(id=question.id)
 
             # execute reshape
-            try:
-                self.reshape_question(
-                    question_to_change=question_to_change,
-                    basis_question=basis_question,
-                    new_nominal_range_min=nominal_range_min,
-                    new_nominal_range_max=nominal_range_max,
-                    new_scheduled_close_time=new_scheduled_close_time,
-                    new_scheduled_resolve_time=new_scheduled_resolve_time,
-                    discrete=discrete,
-                    step=step,
-                )
-            except Exception as e:
-                self.stdout.write(
-                    self.style.ERROR(f"Failed to reshape question: {str(e)}")
-                )
-                return
+            self.reshape_question(
+                question_to_change=question_to_change,
+                basis_question=basis_question,
+                new_nominal_range_min=nominal_range_min,
+                new_nominal_range_max=nominal_range_max,
+                new_scheduled_close_time=new_scheduled_close_time,
+                new_scheduled_resolve_time=new_scheduled_resolve_time,
+                discrete=discrete,
+                step=step,
+            )
             self.stdout.write(self.style.SUCCESS("Reshaped question successfully!"))
 
             if stored_question:
