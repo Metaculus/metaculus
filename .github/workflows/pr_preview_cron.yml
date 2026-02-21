@@ -10,7 +10,7 @@ name: PR Preview Stale Cleanup
 
 on:
   schedule:
-    - cron: "0 0 * * 0" # Sundays at 00:00 UTC
+    - cron: "30 0 * * *" # Every day at 00:30 UTC
   workflow_dispatch:
 
 permissions:
@@ -90,7 +90,6 @@ jobs:
         if: matrix.is_stale == true
         run: |
           gh workflow run "PR Preview Environment" \
-            --ref "${{ matrix.head_ref }}" \
             -f pr_number=${{ matrix.pr_number }} \
             -f action=cleanup \
             -f cleanup_reason=Stale
