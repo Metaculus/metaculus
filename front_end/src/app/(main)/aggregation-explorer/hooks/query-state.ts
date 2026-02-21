@@ -115,10 +115,11 @@ export { DEFAULT_CONFIGS as DEFAULT_AGGREGATION_CONFIGS };
 const parseAsSubQuestion = createParser<string | number>({
   parse(queryValue) {
     if (!queryValue) return null;
-    const asNum = Number(queryValue);
-    return Number.isFinite(asNum) && String(asNum) === queryValue
-      ? asNum
-      : queryValue;
+    if (/^\d+$/.test(queryValue)) {
+      const asNum = Number(queryValue);
+      return Number.isSafeInteger(asNum) ? asNum : queryValue;
+    }
+    return queryValue;
   },
   serialize(value) {
     return String(value);
