@@ -85,7 +85,7 @@ def global_leaderboard_view(
                     ),
                 )
             )
-            | Q(user_id=user.id)
+            | (Q(user_id=user.id) if user.is_authenticated else Q())
         )
 
     if not user.is_staff:
@@ -156,7 +156,8 @@ def project_leaderboard_view(
         entries = LeaderboardEntry.objects.none()
     user = request.user if request.user.is_authenticated else None
     entries = entries.filter(
-        Q(exclusion_status__lte=ExclusionStatuses.EXCLUDE) | Q(user_id=user.id)
+        Q(exclusion_status__lte=ExclusionStatuses.EXCLUDE)
+        | (Q(user_id=user.id) if user else Q())
     )
 
     entries_map = defaultdict(list)

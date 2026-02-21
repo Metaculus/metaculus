@@ -36,6 +36,14 @@ def migrate(apps, schema_editor):
         )
     )
 
+    MedalExclusionRecord = apps.get_model("scoring", "MedalExclusionRecord")
+    MedalExclusionRecord.objects.all().update(
+        exclusion_status=Case(
+            When(show_anyway=Value(True), then=Value(2)),
+            default=Value(4),
+        )
+    )
+
 
 def reverse_migrate(apps, schema_editor):
     LeaderboardEntry = apps.get_model("scoring", "LeaderboardEntry")
@@ -101,7 +109,7 @@ class Migration(migrations.Migration):
                     (4, "Exclude"),
                 ],
                 default=0,
-                help_text="This sets the minimum exclusion status for this user.\n        </br>- (0) Include: shows entry & takes rank and prize.\n        </br>- (1) Exclude Prize and Show: shows entry, takes rank, but excludes from prizes\n        </br>- (2) Exclude and Show: shows entry, but excludes from rank and prizes\n        </br>- (3) Exclude and Show in Advanced: only shows entry in advanced views, excludes from rank and prizes\n        </br>- (4) Exclude: excludes entry from showing, rank, and prizes",
+                help_text="This sets the minimum exclusion status for this user.\n        </br>- (0) Include: shows entry & takes rank and prize.\n        </br>- (1) Exclude Prize Only: shows entry, takes rank, but excludes from prizes\n        </br>- (2) Exclude and Show: shows entry, but excludes from rank and prizes\n        </br>- (3) Exclude and Show in Advanced: only shows entry in advanced views, excludes from rank and prizes\n        </br>- (4) Exclude: excludes entry from showing, rank, and prizes",
             ),
         ),
         migrations.AddField(
@@ -116,7 +124,7 @@ class Migration(migrations.Migration):
                     (4, "Exclude"),
                 ],
                 default=4,
-                help_text="This sets the minimum exclusion status for this user.\n        </br>- (0) Include: shows entry & takes rank and prize.\n        </br>- (1) Exclude Prize and Show: shows entry, takes rank, but excludes from prizes\n        </br>- (2) Exclude and Show: shows entry, but excludes from rank and prizes\n        </br>- (3) Exclude and Show in Advanced: only shows entry in advanced views, excludes from rank and prizes\n        </br>- (4) Exclude: excludes entry from showing, rank, and prizes",
+                help_text="This sets the minimum exclusion status for this user.\n        </br>- (0) Include: shows entry & takes rank and prize.\n        </br>- (1) Exclude Prize Only: shows entry, takes rank, but excludes from prizes\n        </br>- (2) Exclude and Show: shows entry, but excludes from rank and prizes\n        </br>- (3) Exclude and Show in Advanced: only shows entry in advanced views, excludes from rank and prizes\n        </br>- (4) Exclude: excludes entry from showing, rank, and prizes",
             ),
         ),
         migrations.RunPython(migrate, reverse_code=reverse_migrate),

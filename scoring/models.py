@@ -380,7 +380,7 @@ class LeaderboardEntry(TimeStampedModel):
         default=ExclusionStatuses.INCLUDE,
         help_text="""This sets the minimum exclusion status for this user.
         </br>- (0) Include: shows entry & takes rank and prize.
-        </br>- (1) Exclude Prize and Show: shows entry, takes rank, but excludes from prizes
+        </br>- (1) Exclude Prize Only: shows entry, takes rank, but excludes from prizes
         </br>- (2) Exclude and Show: shows entry, but excludes from rank and prizes
         </br>- (3) Exclude and Show in Advanced: only shows entry in advanced views, excludes from rank and prizes
         </br>- (4) Exclude: excludes entry from showing, rank, and prizes""",
@@ -484,7 +484,7 @@ class MedalExclusionRecord(models.Model):
         default=ExclusionStatuses.EXCLUDE,
         help_text="""This sets the minimum exclusion status for this user.
         </br>- (0) Include: shows entry & takes rank and prize.
-        </br>- (1) Exclude Prize and Show: shows entry, takes rank, but excludes from prizes
+        </br>- (1) Exclude Prize Only: shows entry, takes rank, but excludes from prizes
         </br>- (2) Exclude and Show: shows entry, but excludes from rank and prizes
         </br>- (3) Exclude and Show in Advanced: only shows entry in advanced views, excludes from rank and prizes
         </br>- (4) Exclude: excludes entry from showing, rank, and prizes""",

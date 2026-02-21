@@ -235,7 +235,7 @@ def run_update_coherence_spring_2026_cup() -> None:
         entry.calculated_on = timezone.now()
         entry.save()
         seen.add(entry.id)
-        if not exclusion_status <= ExclusionStatuses.EXCLUDE_PRIZE_ONLY:
+        if exclusion_status <= ExclusionStatuses.EXCLUDE_PRIZE_ONLY:
             rank += 1
     logger.info("Updating leaderboard... DONE")
     # delete unseen entries

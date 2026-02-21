@@ -435,7 +435,7 @@ def generate_project_leaderboard(
 def assign_exclusions_(
     entries: list[LeaderboardEntry],
     leaderboard: Leaderboard,
-) -> list[LeaderboardEntry]:
+):
     # set up exclusions
     exclusion_records = MedalExclusionRecord.objects.filter(
         (Q(project__isnull=True) & Q(leaderboard__isnull=True))
@@ -501,7 +501,7 @@ def assign_exclusions_(
 def assign_ranks_(
     entries: list[LeaderboardEntry],
     leaderboard: Leaderboard,
-) -> list[LeaderboardEntry]:
+):
     RelativeLegacy = LeaderboardScoreTypes.RELATIVE_LEGACY_TOURNAMENT
     if leaderboard.score_type == RelativeLegacy:
         entries.sort(key=lambda entry: entry.take, reverse=True)
@@ -526,7 +526,7 @@ def assign_ranks_(
 
 def assign_prize_percentages_(
     entries: list[LeaderboardEntry], minimum_prize_percent: float
-) -> list[LeaderboardEntry]:
+):
     # Distribute prize % according to take
     # anyone who takes less than the minimum gets redistributed up iteratively
     scoring_take = sum(
@@ -550,7 +550,7 @@ def assign_prize_percentages_(
 
 def assign_medals_(
     entries: list[LeaderboardEntry],
-) -> list[LeaderboardEntry]:
+):
     entries.sort(key=lambda entry: entry.rank)
     entry_count = len(
         [e for e in entries if e.exclusion_status == ExclusionStatuses.INCLUDE]
@@ -673,7 +673,9 @@ def calculate_medals_points_at_time(at_time):
     )
 
     totals = (
-        relevant_entries_qs.filter(excluded=False)
+        relevant_entries_qs.filter(
+            exclusion_status__lte=ExclusionStatuses.EXCLUDE_PRIZE_ONLY
+        )
         .annotate(
             points_type=points_type_expr,
         )
@@ -744,12 +746,10 @@ def update_medal_points_and_ranks(at_time=None):
         )
 
 
-def assign_prizes_(
-    entries: list[LeaderboardEntry], prize_pool: Decimal
-) -> list[LeaderboardEntry]:
+def assign_prizes_(entries: list[LeaderboardEntry], prize_pool: Decimal):
     included = [e for e in entries if e.exclusion_status == ExclusionStatuses.INCLUDE]
     for entry in included:
-        entry.prize = float(prize_pool) * entry.percent_prize
+        entry.prize = float(prize_pool or 0) * entry.percent_prize
 
 
 def process_entries_for_leaderboard_(
@@ -757,7 +757,7 @@ def process_entries_for_leaderboard_(
     project: Project,
     leaderboard: Leaderboard,
     force_finalize: bool = False,
-) -> list[LeaderboardEntry]:
+):
     assign_exclusions_(entries, leaderboard)
     assign_ranks_(entries, leaderboard)
 
