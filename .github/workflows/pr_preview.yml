@@ -69,6 +69,11 @@ on:
         required: false
         type: string
         default: ""
+      reset_db:
+        description: "Reset database branch to parent before deploy (fresh data)"
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: pr-preview-${{ github.event.number || inputs.pr_number }}
@@ -238,6 +243,16 @@ jobs:
           branch_name: ${{ needs.setup.outputs.neon_branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
           username: neondb_owner
+
+      - name: Reset NeonDB Branch to parent
+        if: github.event_name == 'workflow_dispatch' && (inputs.reset_db == true || inputs.reset_db == 'true')
+        id: reset-branch
+        uses: neondatabase/reset-branch-action@v1
+        with:
+          project_id: ${{ secrets.NEON_PROJECT_ID }}
+          branch: ${{ needs.setup.outputs.neon_branch }}
+          parent: true
+          api_key: ${{ secrets.NEON_API_KEY }}
 
       - name: Create or Get Fly Redis Database
         id: redis
