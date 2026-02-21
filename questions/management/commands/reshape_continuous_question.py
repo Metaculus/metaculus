@@ -12,8 +12,10 @@ from utils.the_math.formulas import (
     string_location_to_bucket_index,
 )
 from posts.models import Post
-from questions.models import Forecast, Question
+from questions.models import QUESTION_CONTINUOUS_TYPES, Forecast, Question
 from questions.services.forecasts import build_question_forecasts
+from questions.services.common import clone_question
+from utils.models import ModelBatchCreator, ModelBatchUpdater
 
 Boundary = Literal["natural", "clamped", "not-a-knot"]
 
@@ -286,194 +288,6 @@ def _dense_gauss_solve(A, b):
         b[i] = s
 
 
-@transaction.atomic
-def make_copy_of_question(question: Question, appove_copy_post: bool) -> Question:
-    print("making copy of question", question.id, "...", end="\r")
-    # copy question
-    new_question = Question.objects.get(id=question.id)
-    new_question.id = None
-    new_question.group_id = None
-    new_question.save()
-
-    # copy post
-    post = question.get_post()
-    if post is None:
-        raise ValueError("question has no post to copy")
-    new_post = Post.objects.get(id=post.id)
-    post_dict: dict = {}
-    for k, v in new_post.__dict__.items():
-        if (
-            k.startswith("_")
-            or k == "id"
-            or k == "group_of_questions_id"
-            or k == "conditional_id"
-        ):
-            pass
-        elif k == "question_id":
-            post_dict[k] = new_question.id
-        else:
-            post_dict[k] = v
-    new_post = Post(**post_dict)
-    if not appove_copy_post:
-        new_post.curation_status = Post.CurationStatus.DRAFT
-    new_post.save()
-
-    # copy forecasts
-    original_forecasts = question.user_forecasts.all()
-    new_forecasts: list[Forecast] = []
-    for forecast in original_forecasts.iterator(chunk_size=100):
-        forecast.id = None
-        forecast.pk = None
-        forecast.question = new_question
-        forecast.post = new_post
-        new_forecasts.append(forecast)
-    if new_forecasts:
-        Forecast.objects.bulk_create(new_forecasts, batch_size=500)
-
-    new_question.aggregate_forecasts.all().delete()
-    build_question_forecasts(new_question)
-    print("making copy of question", question.id, "... DONE")
-    print("new post id:", new_post.id)
-    return new_question
-
-
-def reshape_question(
-    question_to_change: Question,
-    basis_question: Question,
-    new_nominal_range_min: float,
-    new_nominal_range_max: float,
-    new_scheduled_close_time: datetime | None,
-    discrete: bool,
-    step: float | None,
-):
-    previous_inbound_outcome_count = question_to_change.inbound_outcome_count
-    if discrete:
-        if step is None:  # keep the same step
-            # since we're using real range (not nominal),
-            # don't subtract 1 from inbound outcome count
-            step = (question_to_change.range_max - question_to_change.range_min) / (
-                question_to_change.inbound_outcome_count
-            )
-        float_inbound_outcome_count = (
-            new_nominal_range_max - new_nominal_range_min
-        ) / step + 1
-        if not round(float_inbound_outcome_count, 10) % 1 == 0:
-            raise ValueError("step must divide range")
-        new_inbound_outcome_count = round(float_inbound_outcome_count)
-        question_to_change.range_min = round(new_nominal_range_min - 0.5 * step, 10)
-        question_to_change.range_max = round(new_nominal_range_max + 0.5 * step, 10)
-        question_to_change.inbound_outcome_count = new_inbound_outcome_count
-        question_to_change.type = Question.QuestionType.DISCRETE
-    else:
-        question_to_change.range_min = new_nominal_range_min
-        question_to_change.range_max = new_nominal_range_max
-    if new_scheduled_close_time:
-        question_to_change.scheduled_close_time = new_scheduled_close_time
-        # TODO: should we also get a separate scheduled_resolve_time?
-        question_to_change.scheduled_resolve_time = new_scheduled_close_time
-    question_to_change.save()
-    post = question_to_change.get_post()
-    assert post
-    post.update_pseudo_materialized_fields()
-
-    new_inbound_outcome_count = question_to_change.get_inbound_outcome_count()
-
-    def transform_cdf(cdf: list[float]):
-
-        x_locs = np.linspace(0, 1, (previous_inbound_outcome_count or 200) + 1).tolist()
-        spline = cubic_spline_c2(x_locs, cdf, bc="not-a-knot")
-
-        def get_cdf_at(unscaled_location: float) -> float:
-            if unscaled_location <= 0:
-                return cdf[0]
-            if unscaled_location >= 1:
-                return cdf[-1]
-            return spline(unscaled_location)
-
-        if not discrete:
-            # evaluate cdf at critical points
-            new_cdf: list[float] = []
-            for x in np.linspace(
-                new_nominal_range_min,
-                new_nominal_range_max,
-                new_inbound_outcome_count + 1,
-            ):
-                location = scaled_location_to_unscaled_location(x, basis_question)
-                new_cdf.append(get_cdf_at(location))
-        else:
-            # evaluate pmf at critical points, ignoring mass assigned between them
-            # no smoothing b/c resolution decreases
-            pmf = [cdf[0]]
-            for i in range(1, len(cdf)):
-                pmf.append(cdf[i] - cdf[i - 1])
-            pmf.append(1 - cdf[-1])
-            inbound_pmf: list[float] = []
-            for x in np.linspace(
-                new_nominal_range_min,
-                new_nominal_range_max,
-                new_inbound_outcome_count,
-            ):
-                index = string_location_to_bucket_index(
-                    str(round(x, 10)), basis_question
-                )
-                assert index is not None
-                inbound_pmf.append(pmf[index])
-
-            prob_below_lower = (
-                get_cdf_at(
-                    scaled_location_to_unscaled_location(
-                        question_to_change.range_min, basis_question
-                    )
-                )
-                if question_to_change.open_lower_bound
-                else 0
-            )
-            prob_above_upper = (
-                1
-                - get_cdf_at(
-                    scaled_location_to_unscaled_location(
-                        question_to_change.range_max, basis_question
-                    )
-                )
-                if question_to_change.open_upper_bound
-                else 0
-            )
-            # renormalize (respecting out of bounds weights)
-            ip_array = np.array(inbound_pmf)
-            ip_array = (
-                (1 - prob_below_lower - prob_above_upper) * ip_array / np.sum(ip_array)
-            )
-            new_pmf = [prob_below_lower] + ip_array.tolist() + [prob_above_upper]
-            new_cdf = np.cumsum(new_pmf).tolist()[:-1]
-        return new_cdf
-
-    print("rescaling forecasts...")
-    forecasts = question_to_change.user_forecasts.all()
-    c = forecasts.count()
-    updated_forecasts: list[Forecast] = []
-    for i, forecast in enumerate(forecasts.iterator(chunk_size=100), 1):
-        print(i, "/", c, end="\r")
-        forecast.continuous_cdf = transform_cdf(forecast.continuous_cdf)
-        forecast.distribution_input = None
-        updated_forecasts.append(forecast)
-    print()
-    print("Done")
-    if updated_forecasts:
-        print("Saving forecasts...", end="\r")
-        with transaction.atomic():
-            Forecast.objects.bulk_update(
-                updated_forecasts,
-                fields=["continuous_cdf", "distribution_input"],
-                batch_size=500,
-            )
-        print("Saving forecasts... DONE")
-    print("Rebuilding aggregations...", end="\r")
-    build_question_forecasts(question_to_change)
-    print("Rebuilding aggregations... DONE")
-
-    return question_to_change
-
-
 class Command(BaseCommand):
     help = "Reshapes the range for a continuous question. Can also convert to discrete."
 
@@ -538,6 +352,192 @@ class Command(BaseCommand):
             help="New scheduled close time in YYYY-MM-DD HH:MM:SS format."
             " If not provided, keeps current scheduled close time.",
         )
+
+    def clone_post(self, post: Post, new_question: Question) -> Post:
+        post_dict: dict = {}
+        for k, v in post.__dict__.items():
+            if k.startswith("_") or k == "id" or k == "group_of_questions_id":
+                pass
+            elif k == "question_id":
+                post_dict[k] = new_question.id
+            else:
+                post_dict[k] = v
+        new_post = Post(**post_dict)
+        new_post.save()
+        return new_post
+
+    @transaction.atomic
+    def make_copy_of_question(
+        self, question: Question, appove_copy_post: bool
+    ) -> Question:
+        self.stdout.write(self.style.WARNING(f"Making copy of question {question.id}..."))
+        # copy question
+        new_question = clone_question(question)
+
+        # copy post
+        post = question.get_post()
+        if post is None:
+            raise ValueError("question has no post to copy")
+        new_post = clone_post(post, new_question)
+        if not appove_copy_post:
+            new_post.curation_status = Post.CurationStatus.DRAFT
+        new_post.save()
+
+        with ModelBatchCreator(model_class=Forecast, batch_size=100) as creator:
+            for idx, forecast in enumerate(
+                question.user_forecasts.iterator(chunk_size=100), 1
+            ):
+                forecast.id = None
+                forecast.pk = None
+                forecast.question = new_question
+                forecast.post = new_post
+                creator.append(forecast)
+
+                if idx % 100 == 0:
+                    self.stdout.write(self.style.WARNING(f"Copied {idx} forecasts..."))
+            self.stdout.write(self.style.SUCCESS(f"Copied {idx} forecasts... DONE"))
+
+        new_question.aggregate_forecasts.all().delete()
+        build_question_forecasts(new_question)
+        self.stdout.write(
+            self.style.SUCCESS(f"Making copy of question {question.id}... DONE")
+        )
+        self.stdout.write(self.style.SUCCESS(f"New post id: {new_post.id}"))
+        return new_question
+
+    def reshape_question(
+        self,
+        question_to_change: Question,
+        basis_question: Question,
+        new_nominal_range_min: float,
+        new_nominal_range_max: float,
+        new_scheduled_close_time: datetime | None,
+        discrete: bool,
+        step: float | None,
+    ):
+        previous_inbound_outcome_count = question_to_change.inbound_outcome_count
+        if discrete:
+            if step is None:  # keep the same step
+                # since we're using real range (not nominal),
+                # don't subtract 1 from inbound outcome count
+                step = (question_to_change.range_max - question_to_change.range_min) / (
+                    question_to_change.inbound_outcome_count
+                )
+            float_inbound_outcome_count = (
+                new_nominal_range_max - new_nominal_range_min
+            ) / step + 1
+            if not round(float_inbound_outcome_count, 10) % 1 == 0:
+                raise ValueError("step must divide range")
+            new_inbound_outcome_count = round(float_inbound_outcome_count)
+            question_to_change.range_min = round(new_nominal_range_min - 0.5 * step, 10)
+            question_to_change.range_max = round(new_nominal_range_max + 0.5 * step, 10)
+            question_to_change.inbound_outcome_count = new_inbound_outcome_count
+            question_to_change.type = Question.QuestionType.DISCRETE
+        else:
+            question_to_change.range_min = new_nominal_range_min
+            question_to_change.range_max = new_nominal_range_max
+        if new_scheduled_close_time:
+            question_to_change.scheduled_close_time = new_scheduled_close_time
+            # TODO: should we also get a separate scheduled_resolve_time?
+            question_to_change.scheduled_resolve_time = new_scheduled_close_time
+        question_to_change.save()
+        post: Post = question_to_change.post
+        post.update_pseudo_materialized_fields()
+
+        new_inbound_outcome_count = question_to_change.get_inbound_outcome_count()
+
+        def transform_cdf(cdf: list[float]):
+
+            x_locs = np.linspace(
+                0, 1, (previous_inbound_outcome_count or 200) + 1
+            ).tolist()
+            spline = cubic_spline_c2(x_locs, cdf, bc="not-a-knot")
+
+            def get_cdf_at(unscaled_location: float) -> float:
+                if unscaled_location <= 0:
+                    return cdf[0]
+                if unscaled_location >= 1:
+                    return cdf[-1]
+                return spline(unscaled_location)
+
+            if not discrete:
+                # evaluate cdf at critical points
+                new_cdf: list[float] = []
+                for x in np.linspace(
+                    new_nominal_range_min,
+                    new_nominal_range_max,
+                    new_inbound_outcome_count + 1,
+                ):
+                    location = scaled_location_to_unscaled_location(x, basis_question)
+                    new_cdf.append(get_cdf_at(location))
+            else:
+                # evaluate pmf at critical points, ignoring mass assigned between them
+                # no smoothing b/c resolution decreases
+                pmf = [cdf[0]]
+                for i in range(1, len(cdf)):
+                    pmf.append(cdf[i] - cdf[i - 1])
+                pmf.append(1 - cdf[-1])
+                inbound_pmf: list[float] = []
+                for x in np.linspace(
+                    new_nominal_range_min,
+                    new_nominal_range_max,
+                    new_inbound_outcome_count,
+                ):
+                    index = string_location_to_bucket_index(
+                        str(round(x, 10)), basis_question
+                    )
+                    assert index is not None
+                    inbound_pmf.append(pmf[index])
+
+                prob_below_lower = (
+                    get_cdf_at(
+                        scaled_location_to_unscaled_location(
+                            question_to_change.range_min, basis_question
+                        )
+                    )
+                    if question_to_change.open_lower_bound
+                    else 0
+                )
+                prob_above_upper = (
+                    1
+                    - get_cdf_at(
+                        scaled_location_to_unscaled_location(
+                            question_to_change.range_max, basis_question
+                        )
+                    )
+                    if question_to_change.open_upper_bound
+                    else 0
+                )
+                # renormalize (respecting out of bounds weights)
+                ip_array = np.array(inbound_pmf)
+                ip_array = (
+                    (1 - prob_below_lower - prob_above_upper)
+                    * ip_array
+                    / np.sum(ip_array)
+                )
+                new_pmf = [prob_below_lower] + ip_array.tolist() + [prob_above_upper]
+                new_cdf = np.cumsum(new_pmf).tolist()[:-1]
+            return new_cdf
+
+        forecasts = question_to_change.user_forecasts.all()
+        c = forecasts.count()
+        self.stdout.write(self.style.WARNING(f"Rescaling {c} forecasts..."))
+        with ModelBatchUpdater(model_class=Forecast, batch_size=100) as updater:
+            for idx, forecast in enumerate(forecasts.iterator(chunk_size=100), 1):
+                forecast.continuous_cdf = transform_cdf(forecast.continuous_cdf)
+                forecast.distribution_input = None
+                updater.append(forecast)
+
+                if idx % 100 == 0:
+                    self.stdout.write(
+                        self.style.WARNING(f"Rescaled {idx}/{c} forecasts...")
+                    )
+            self.stdout.write(self.style.SUCCESS(f"Rescaled {idx}/{c} forecasts... DONE"))
+        self.stdout.write(self.style.WARNING("Rebuilding aggregations..."))
+        build_question_forecasts(question_to_change)
+        self.stdout.write(self.style.SUCCESS("Rebuilding aggregations... DONE"))
+
+        return question_to_change
 
     def handle(self, *args, **options) -> None:
         question_id = options["question_id"]
@@ -608,11 +608,7 @@ class Command(BaseCommand):
         )
 
         # validations
-        if question.type not in [
-            Question.QuestionType.NUMERIC,
-            Question.QuestionType.DISCRETE,
-            Question.QuestionType.DATE,
-        ]:
+        if question.type not in QUESTION_CONTINUOUS_TYPES:
             self.stdout.write(
                 self.style.ERROR(
                     "Question type must be numeric, discrete, or date to reshape."
@@ -671,66 +667,3 @@ class Command(BaseCommand):
                 self.stdout.write(
                     self.style.SUCCESS(f"Stored Post ID: {stored_post.id}")
                 )
-
-
-conversions = [
-    # post id, nom min, nom max, discrete, rescore, step
-    (40525, 0, 1.3, True, True, 0.01),
-    (40023, -0.5, 1, True, True, 0.1),
-    (40787, 3, 7, True, True, 0.1),
-    (39483, 3, 8, True, True, 0.1),
-    (40940, 36, 45, True, True, 0.1),
-    (40781, 36, 45, True, True, 0.1),
-    (39456, 31, 37, True, True, 0.1),
-    (40526, 95, 100, True, True, 0.1),
-    (39768, 10.4, 10.9, True, True, 0.01),
-    (39766, 9.55, 10, True, True, 0.01),
-]
-
-with transaction.atomic():
-    for (
-        post_id,
-        nominal_range_min,
-        nominal_range_max,
-        discrete,
-        rescore,
-        step,
-    ) in conversions:
-        question = Question.objects.get(post_id=post_id)
-        make_copy = True
-        appove_copy_post = True
-        alter_copy = False
-
-        stored_question: Question | None = None
-        if make_copy:
-            stored_question = make_copy_of_question(question, appove_copy_post)
-            if alter_copy:
-                question_to_change = stored_question
-                basis_question = question
-            else:
-                question_to_change = question
-                basis_question = stored_question
-        else:
-            question_to_change = question
-            basis_question = Question.objects.get(id=question.id)
-
-        # execute reshape
-        try:
-            reshape_question(
-                question_to_change=question_to_change,
-                basis_question=basis_question,
-                new_nominal_range_min=nominal_range_min,
-                new_nominal_range_max=nominal_range_max,
-                new_scheduled_close_time=None,
-                discrete=discrete,
-                step=step,
-            )
-        except Exception as e:
-            breakpoint()
-
-        # print out result
-        if stored_question:
-            stored_post = stored_question.get_post()
-            print(f"Stored Post ID: {stored_post.id}")
-
-        breakpoint()
