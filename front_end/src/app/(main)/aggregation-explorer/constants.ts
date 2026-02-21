@@ -54,7 +54,14 @@ export const AGGREGATION_OPTION_BY_ID = new Map<string, AggregationOption>(
     const entries: [string, AggregationOption][] = [[o.id, o]];
     if (o.childSelector) {
       for (const child of o.childSelector.options) {
-        entries.push([child.id, child]);
+        entries.push([
+          child.id,
+          {
+            ...child,
+            supportsBotToggle: o.supportsBotToggle,
+            supportsUserIds: o.supportsUserIds,
+          },
+        ]);
       }
     }
     return entries;

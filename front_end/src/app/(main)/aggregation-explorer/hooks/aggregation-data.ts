@@ -31,7 +31,8 @@ export function buildConfigId(
   const parts = [optionId];
   if (includeBots) parts.push("bots");
   if (joinedBeforeDate) parts.push(joinedBeforeDate);
-  if (userIds?.length) parts.push(`u${userIds.join(",")}`);
+  if (userIds?.length)
+    parts.push(`u${[...userIds].sort((a, b) => a - b).join(",")}`);
   return parts.join(":");
 }
 
