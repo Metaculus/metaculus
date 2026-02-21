@@ -15,6 +15,7 @@ from posts.models import Post
 from questions.models import QUESTION_CONTINUOUS_TYPES, Forecast, Question
 from questions.services.forecasts import build_question_forecasts
 from questions.services.common import clone_question
+from scoring.utils import score_question
 from utils.models import ModelBatchCreator, ModelBatchUpdater
 
 Boundary = Literal["natural", "clamped", "not-a-knot"]
@@ -316,6 +317,11 @@ class Command(BaseCommand):
             action="store_true",
             help="Whether to set the copied post's approval. Default sets it to draft.",
         )
+        parser.add_argument(
+            "--rescore",
+            action="store_false",
+            help="Whether to rescore the question.",
+        )
 
         # range details
         # TODO: add support for changing bound openness
@@ -345,12 +351,18 @@ class Command(BaseCommand):
             " Required if discrete is True.",
         )
 
-        # new scheduled close time
+        # new times
         parser.add_argument(
             "--new_scheduled_close_time",
             type=str,
             help="New scheduled close time in YYYY-MM-DD HH:MM:SS format."
             " If not provided, keeps current scheduled close time.",
+        )
+        parser.add_argument(
+            "--new_scheduled_resolve_time",
+            type=str,
+            help="New scheduled resolve time in YYYY-MM-DD HH:MM:SS format."
+            " If not provided, keeps current scheduled resolve time.",
         )
 
     def clone_post(self, post: Post, new_question: Question) -> Post:
@@ -370,7 +382,9 @@ class Command(BaseCommand):
     def make_copy_of_question(
         self, question: Question, appove_copy_post: bool
     ) -> Question:
-        self.stdout.write(self.style.WARNING(f"Making copy of question {question.id}..."))
+        self.stdout.write(
+            self.style.WARNING(f"Making copy of question {question.id}...")
+        )
         # copy question
         new_question = clone_question(question)
 
@@ -378,7 +392,7 @@ class Command(BaseCommand):
         post = question.get_post()
         if post is None:
             raise ValueError("question has no post to copy")
-        new_post = clone_post(post, new_question)
+        new_post = self.clone_post(post, new_question)
         if not appove_copy_post:
             new_post.curation_status = Post.CurationStatus.DRAFT
         new_post.save()
@@ -412,6 +426,7 @@ class Command(BaseCommand):
         new_nominal_range_min: float,
         new_nominal_range_max: float,
         new_scheduled_close_time: datetime | None,
+        new_scheduled_resolve_time: datetime | None,
         discrete: bool,
         step: float | None,
     ):
@@ -438,8 +453,10 @@ class Command(BaseCommand):
             question_to_change.range_max = new_nominal_range_max
         if new_scheduled_close_time:
             question_to_change.scheduled_close_time = new_scheduled_close_time
-            # TODO: should we also get a separate scheduled_resolve_time?
-            question_to_change.scheduled_resolve_time = new_scheduled_close_time
+        if new_scheduled_resolve_time or new_scheduled_close_time:
+            question_to_change.scheduled_resolve_time = (
+                new_scheduled_resolve_time or new_scheduled_close_time
+            )
         question_to_change.save()
         post: Post = question_to_change.post
         post.update_pseudo_materialized_fields()
@@ -522,7 +539,11 @@ class Command(BaseCommand):
         forecasts = question_to_change.user_forecasts.all()
         c = forecasts.count()
         self.stdout.write(self.style.WARNING(f"Rescaling {c} forecasts..."))
-        with ModelBatchUpdater(model_class=Forecast, batch_size=100) as updater:
+        with ModelBatchUpdater(
+            model_class=Forecast,
+            fields=["continuous_cdf", "distribution_input"],
+            batch_size=100,
+        ) as updater:
             for idx, forecast in enumerate(forecasts.iterator(chunk_size=100), 1):
                 forecast.continuous_cdf = transform_cdf(forecast.continuous_cdf)
                 forecast.distribution_input = None
@@ -532,7 +553,9 @@ class Command(BaseCommand):
                     self.stdout.write(
                         self.style.WARNING(f"Rescaled {idx}/{c} forecasts...")
                     )
-            self.stdout.write(self.style.SUCCESS(f"Rescaled {idx}/{c} forecasts... DONE"))
+            self.stdout.write(
+                self.style.SUCCESS(f"Rescaled {idx}/{c} forecasts... DONE")
+            )
         self.stdout.write(self.style.WARNING("Rebuilding aggregations..."))
         build_question_forecasts(question_to_change)
         self.stdout.write(self.style.SUCCESS("Rebuilding aggregations... DONE"))
@@ -551,6 +574,7 @@ class Command(BaseCommand):
         make_copy = options["make_copy"]
         alter_copy = options["alter_copy"]
         appove_copy_post = options["approve_copy_post"]
+        rescore = options["rescore"]
         # range details
         nominal_range_min = (
             options["nominal_range_min"]
@@ -565,8 +589,9 @@ class Command(BaseCommand):
         # discrete conversion details
         convert_to_discrete = options["convert_to_discrete"]
         step = options["step"]
-        # new scheduled close time
+        # new times
         new_scheduled_close_time = options["new_scheduled_close_time"]
+        new_scheduled_resolve_time = options["new_scheduled_resolve_time"]
 
         # input parsing
         try:
@@ -603,6 +628,19 @@ class Command(BaseCommand):
                 )
             )
             return
+        try:
+            if new_scheduled_resolve_time is not None:
+                new_scheduled_resolve_time = datetime.fromisoformat(
+                    new_scheduled_resolve_time
+                ).replace(tzinfo=dt_timezone.utc)
+        except ValueError:
+            self.stdout.write(
+                self.style.ERROR(
+                    "Invalid format for new_scheduled_resolve_time. "
+                    "Please use YYYY-MM-DD HH:MM:SS format."
+                )
+            )
+            return
         discrete = (
             convert_to_discrete or question.type == Question.QuestionType.DISCRETE
         )
@@ -631,7 +669,7 @@ class Command(BaseCommand):
             # Set up basis vs changing question
             stored_question: Question | None = None
             if make_copy:
-                stored_question = make_copy_of_question(question, appove_copy_post)
+                stored_question = self.make_copy_of_question(question, appove_copy_post)
                 if alter_copy:
                     question_to_change = stored_question
                     basis_question = question
@@ -644,12 +682,13 @@ class Command(BaseCommand):
 
             # execute reshape
             try:
-                reshape_question(
+                self.reshape_question(
                     question_to_change=question_to_change,
                     basis_question=basis_question,
                     new_nominal_range_min=nominal_range_min,
                     new_nominal_range_max=nominal_range_max,
                     new_scheduled_close_time=new_scheduled_close_time,
+                    new_scheduled_resolve_time=new_scheduled_resolve_time,
                     discrete=discrete,
                     step=step,
                 )
@@ -660,10 +699,17 @@ class Command(BaseCommand):
                 return
             self.stdout.write(self.style.SUCCESS("Reshaped question successfully!"))
 
-            # print out restult
             if stored_question:
                 stored_post = stored_question.get_post()
                 assert stored_post
                 self.stdout.write(
                     self.style.SUCCESS(f"Stored Post ID: {stored_post.id}")
                 )
+
+            # rescore
+            if rescore and question.resolution is not None:
+                score_question(
+                    question,
+                    question.resolution,
+                )
+                self.stdout.write(self.style.SUCCESS("Rescored question successfully!"))
