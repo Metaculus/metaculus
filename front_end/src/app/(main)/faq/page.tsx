@@ -2954,8 +2954,8 @@ export default async function FAQ() {
           </h3>
           <p>
             The Metaculus Prediction can only be viewed in the{" "}
-            <Link href="/aggregation-explorer-v2/">Aggregation Explorer</Link>.
-            It is deprecated since November 2024, but shows a record of the
+            <Link href="/aggregation-explorer/">Aggregation Explorer</Link>. It
+            is deprecated since November 2024, but shows a record of the
             Metaculus system&apos;s best estimate of how a question will
             resolve. It&apos;s based on predictions from community members, but
             unlike the Community Prediction, it&apos;s not a simple average or

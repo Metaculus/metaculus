@@ -44,11 +44,7 @@ export default function AggregationExplorerLoadedView({ postData }: Props) {
     <main className="mx-auto min-h-[calc(90vh-120px)] w-full px-4 py-8 lg:px-20">
       <section className="mx-auto w-full max-w-[1352px]">
         <div className="flex flex-wrap items-center gap-x-8 gap-y-1">
-          <Button
-            href="/aggregation-explorer-v2"
-            variant="text"
-            className="px-0"
-          >
+          <Button href="/aggregation-explorer" variant="text" className="px-0">
             {"<- Aggregation Explorer"}
           </Button>
           <QuestionMetadata postData={postData} question={question} />

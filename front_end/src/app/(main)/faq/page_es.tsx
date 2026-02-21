@@ -3176,14 +3176,14 @@ export default function FAQ() {
           </h3>
           <p>
             El pronóstico de Metaculus sólo se puede ver en el
-            <Link href="/aggregation-explorer-v2/">Explorer de Agregación</Link>
-            . Ha estado obsoleto desde noviembre de 2024, pero muestra un
-            registro de la mejor estimación del sistema Metaculus de cómo se
-            resolverá un asunto. Se basa en las predicciones de los miembros de
-            la comunidad, pero contrariamente a la previsión de la comunidad, no
-            es un promedio simple o promedio. En cambio, Metaculus Forecast
-            utiliza un modelo sofisticado para calibrar y pesar a cada usuario,
-            lo idealmente resultando en una mejor predicción que la mejor de la
+            <Link href="/aggregation-explorer/">Explorer de Agregación</Link>.
+            Ha estado obsoleto desde noviembre de 2024, pero muestra un registro
+            de la mejor estimación del sistema Metaculus de cómo se resolverá un
+            asunto. Se basa en las predicciones de los miembros de la comunidad,
+            pero contrariamente a la previsión de la comunidad, no es un
+            promedio simple o promedio. En cambio, Metaculus Forecast utiliza un
+            modelo sofisticado para calibrar y pesar a cada usuario, lo
+            idealmente resultando en una mejor predicción que la mejor de la
             comunidad.
           </p>
           <p>

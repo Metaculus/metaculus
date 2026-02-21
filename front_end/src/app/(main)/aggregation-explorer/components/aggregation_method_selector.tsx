@@ -301,7 +301,7 @@ function AggregationListRow({
 
   return (
     <div
-      className="flex cursor-pointer items-start gap-1.5 bg-white px-2 py-1.5 text-xs transition hover:bg-gray-100 dark:bg-blue-950 dark:text-gray-200 dark:hover:bg-blue-900/40"
+      className="flex cursor-pointer items-center gap-1.5 bg-white py-1 pl-2 pr-0.5 text-xs transition hover:bg-gray-100 dark:bg-blue-950 dark:text-gray-200 dark:hover:bg-blue-900/40"
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onClick={onToggle}
@@ -317,7 +317,7 @@ function AggregationListRow({
       aria-pressed={item.enabled}
     >
       <span
-        className="inline-flex w-4 shrink-0 items-center justify-center self-start pt-0.5"
+        className="inline-flex w-4 shrink-0 items-center justify-center"
         style={showActiveColor ? { color: item.activeColor } : undefined}
       >
         {item.isLoading ? (
@@ -344,14 +344,14 @@ function AggregationListRow({
       />
       <button
         type="button"
-        className="shrink-0 self-start px-1 pt-0.5 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+        className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300"
         onClick={(e) => {
           e.stopPropagation();
           onRemove();
         }}
         aria-label="Remove aggregation"
       >
-        <FontAwesomeIcon icon={faTrash} />
+        <FontAwesomeIcon icon={faTrash} className="text-[10px]" />
       </button>
     </div>
   );

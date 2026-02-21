@@ -1,11 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import GroupChart from "@/components/charts/group_chart";
 import ButtonGroup from "@/components/ui/button_group";
 import { METAC_COLORS } from "@/constants/colors";
+import { useBreakpoint } from "@/hooks/tailwind";
 import {
   ContinuousAreaGraphType,
   TickFormat,
@@ -55,8 +56,21 @@ export default function AggregationGraphPanel({
   optionIndex,
 }: Props) {
   const t = useTranslations();
+  const isDesktop = useBreakpoint("md");
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
   const [graphType, setGraphType] = useGraphTypeState();
+  const [isStuck, setIsStuck] = useState(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const sentinelRef = useCallback((node: HTMLDivElement | null) => {
+    observerRef.current?.disconnect();
+    if (!node) return;
+
+    observerRef.current = new IntersectionObserver(
+      ([entry]) => setIsStuck(entry ? !entry.isIntersecting : false),
+      { threshold: 0, rootMargin: "-48px 0px 0px 0px" }
+    );
+    observerRef.current.observe(node);
+  }, []);
 
   const handleCursorChange = useCallback(
     (value: number, _format: TickFormat) => {
@@ -138,13 +152,16 @@ export default function AggregationGraphPanel({
         Graph
       </h2>
 
-      <div className="rounded-md bg-white p-4 dark:border dark:border-gray-500-dark dark:bg-blue-950">
+      <div ref={sentinelRef} className="-mb-px h-px" />
+      <div
+        className={`sticky top-header z-100 rounded-md bg-white px-4 transition-shadow duration-200 dark:border dark:border-gray-500-dark dark:bg-blue-950 md:static md:z-auto md:py-4 md:shadow-none ${isStuck && !isDesktop ? "py-1 shadow-xl ring-1 ring-black/5 dark:ring-white/10" : "py-4 shadow-sm"}`}
+      >
         <GroupChart
           timestamps={timestamps}
           actualCloseTime={actualCloseTime}
           choiceItems={choiceItems}
           defaultZoom={TimelineChartZoomOption.All}
-          height={300}
+          height={isDesktop ? 300 : isStuck ? 100 : 200}
           aggregation
           withZoomPicker
           questionType={mergedData.type}
@@ -157,6 +174,8 @@ export default function AggregationGraphPanel({
           fadeLinesOnHover={hoveredId !== null}
         />
       </div>
+      {/* Spacer compensates for height reduction when stuck so content below doesn't jump */}
+      <div className="md:hidden" style={{ height: isStuck ? 124 : 0 }} />
 
       <div className="my-4 flex flex-row items-center justify-between gap-2">
         <h2 className="my-0 text-xs font-semibold uppercase leading-none tracking-wide text-gray-700 dark:text-gray-700-dark">
@@ -176,7 +195,7 @@ export default function AggregationGraphPanel({
         ) : null}
       </div>
 
-      <div className="mt-1 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-1 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {methods.map((method) => (
           <DistributionCard
             key={method.id}
@@ -188,6 +207,7 @@ export default function AggregationGraphPanel({
             graphType={graphType}
             isNumericType={isNumericType}
             choiceColor={choiceColorById.get(method.id)?.DEFAULT ?? "#9ca3af"}
+            chartHeight={isDesktop ? 150 : 100}
             onHoverOption={onHoverOption}
           />
         ))}

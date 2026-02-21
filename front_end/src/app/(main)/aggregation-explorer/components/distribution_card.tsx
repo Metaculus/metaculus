@@ -33,6 +33,7 @@ type Props = {
   graphType: ContinuousAreaGraphType;
   isNumericType: boolean;
   choiceColor: string;
+  chartHeight?: number;
   onHoverOption?: (id: string | null) => void;
 };
 
@@ -45,6 +46,7 @@ export default function DistributionCard({
   graphType,
   isNumericType,
   choiceColor,
+  chartHeight,
   onHoverOption,
 }: Props) {
   const aggregation = (
@@ -91,7 +93,7 @@ export default function DistributionCard({
       onMouseEnter={() => onHoverOption?.(method.id)}
       onMouseLeave={() => onHoverOption?.(null)}
     >
-      <div className="flex items-start justify-between gap-2 text-xs text-gray-800 dark:text-gray-200">
+      <div className="flex min-h-[2.5rem] items-start justify-between gap-2 text-xs text-gray-800 dark:text-gray-200">
         <AggregationLabel
           label={method.baseLabel}
           chips={method.chips}
@@ -125,6 +127,7 @@ export default function DistributionCard({
             selectedTimestamp={effectiveChartTimestamp}
             questionData={mergedData as NumericAggregationExtraQuestion}
             graphType={graphType}
+            chartHeight={chartHeight}
           />
         ) : (
           <HistogramDrawer

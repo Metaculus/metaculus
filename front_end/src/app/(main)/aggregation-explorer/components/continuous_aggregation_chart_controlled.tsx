@@ -29,6 +29,7 @@ type Props = {
   activeAggregation: NumericAggregateForecastHistory;
   selectedTimestamp: number | null;
   graphType: ContinuousAreaGraphType;
+  chartHeight?: number;
 };
 
 const ContinuousAggregationChartControlled: FC<Props> = ({
@@ -36,6 +37,7 @@ const ContinuousAggregationChartControlled: FC<Props> = ({
   activeAggregation,
   selectedTimestamp,
   graphType,
+  chartHeight = 150,
 }) => {
   const t = useTranslations();
   const { scaling, type: qType } = questionData;
@@ -118,7 +120,7 @@ const ContinuousAggregationChartControlled: FC<Props> = ({
   return (
     <div>
       <ContinuousAreaChart
-        height={150}
+        height={chartHeight}
         question={
           {
             ...questionData,

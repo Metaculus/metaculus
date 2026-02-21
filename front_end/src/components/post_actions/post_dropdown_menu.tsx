@@ -236,7 +236,7 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
                 {
                   id: "openInAggregationExplorer",
                   name: t("openInAggregationExplorer"),
-                  link: `/aggregation-explorer-v2?post_id=${post.id}`,
+                  link: `/aggregation-explorer?post_id=${post.id}`,
                 },
               ]
             : []),
