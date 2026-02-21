@@ -12,13 +12,13 @@ import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { formatResolution } from "@/utils/formatters/resolution";
 import { isSuccessfullyResolved } from "@/utils/questions/resolution";
 
-const QUESTION_TYPE_LABEL: Record<QuestionType, string> = {
+const QUESTION_TYPE_LABEL: Record<QuestionType, keyof IntlMessages> = {
   [QuestionType.Binary]: "binary",
   [QuestionType.MultipleChoice]: "multipleChoice",
   [QuestionType.Numeric]: "numeric",
   [QuestionType.Discrete]: "discrete",
   [QuestionType.Date]: "date",
-} as const;
+};
 
 type Props = {
   postData: PostWithForecasts;
