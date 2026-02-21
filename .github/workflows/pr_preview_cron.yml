@@ -91,7 +91,7 @@ jobs:
       - name: Trigger cleanup for stale PR
         if: matrix.is_stale == true
         run: |
-          gh workflow run "PR Preview Environment" \
+          gh workflow run pr_preview.yml \
             -f pr_number=${{ matrix.pr_number }} \
             -f action=cleanup \
             -f cleanup_reason=Stale
