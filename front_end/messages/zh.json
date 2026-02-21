@@ -2062,6 +2062,6 @@
   "beforeDate": "{date}之前",
   "failedToLoadAggregation": "无法加载聚合",
   "questionFallbackLabel": "问题 {id}",
-  "openInAggregationExplorer": "在聚合浏览器中打开",
+  "openInAggregationExplorer": "在聚合探索器中打开",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }
