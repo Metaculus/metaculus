@@ -3,6 +3,7 @@
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import Button from "@/components/ui/button";
 import { PostWithForecasts } from "@/types/post";
@@ -18,6 +19,7 @@ type Props = {
 };
 
 export default function AggregationExplorerLoadedView({ postData }: Props) {
+  const t = useTranslations();
   const {
     subQuestionOptions,
     needsSubSelection,
@@ -45,7 +47,7 @@ export default function AggregationExplorerLoadedView({ postData }: Props) {
       <section className="mx-auto w-full max-w-[1352px]">
         <div className="flex flex-wrap items-center gap-x-8 gap-y-1">
           <Button href="/aggregation-explorer" variant="text" className="px-0">
-            {"<- Aggregation Explorer"}
+            {`← ${t("aggregationExplorer")}`}
           </Button>
           <QuestionMetadata postData={postData} question={question} />
         </div>
@@ -101,8 +103,8 @@ export default function AggregationExplorerLoadedView({ postData }: Props) {
         ) : (
           <p className="mt-6 text-sm text-gray-600 dark:text-gray-600-dark">
             {isMultipleChoice
-              ? "Select a choice above to view aggregations."
-              : "Select a subquestion above to view aggregations."}
+              ? t("selectChoiceToViewAggregations")
+              : t("selectSubquestionToViewAggregations")}
           </p>
         )}
       </section>

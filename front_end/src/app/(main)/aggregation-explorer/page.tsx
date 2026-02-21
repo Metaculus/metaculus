@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { FormEvent, useState } from "react";
 
 import { parseQuestionId } from "@/utils/questions/helpers";
@@ -10,6 +11,7 @@ import { usePostData } from "./hooks/post-data";
 import { useAggregationExplorerQueryState } from "./hooks/query-state";
 
 export default function AggregationExplorerV2Page() {
+  const t = useTranslations();
   const { postId, setSelection, querySource } =
     useAggregationExplorerQueryState();
   const [queryInput, setQueryInput] = useState(postId?.toString() ?? "");
@@ -30,7 +32,7 @@ export default function AggregationExplorerV2Page() {
     const input = queryInput.trim();
 
     if (!input) {
-      setError("Please enter a question URL or ID.");
+      setError(t("enterQuestionUrlOrId"));
       return;
     }
 
@@ -47,7 +49,7 @@ export default function AggregationExplorerV2Page() {
     }
 
     if (postId === null) {
-      setError("Could not parse a valid question from the input.");
+      setError(t("couldNotParseQuestion"));
       return;
     }
 
@@ -62,12 +64,12 @@ export default function AggregationExplorerV2Page() {
       <section className="mx-auto w-full max-w-[1352px] p-6 sm:p-10">
         <div className="mx-auto max-w-2xl text-center">
           <h1 className="text-balance text-3xl font-semibold text-blue-900 dark:text-blue-900-dark sm:text-4xl">
-            Aggregation Explorer
+            {t("aggregationExplorer")}
           </h1>
           {!fromUrl && (
             <>
               <p className="mx-auto mt-3 max-w-xl text-sm text-gray-700 dark:text-gray-700-dark sm:text-base">
-                Paste a Metaculus question URL or enter an ID to begin.
+                {t("aggregationExplorerDescription")}
               </p>
 
               <SearchForm
@@ -87,12 +89,14 @@ export default function AggregationExplorerV2Page() {
           <div className="mt-4 min-h-6">
             {postId !== null && isPostDataPending && (
               <p className="text-sm text-gray-700 dark:text-gray-700-dark">
-                Loading question data...
+                {t("loadingQuestionData")}
               </p>
             )}
             {postId !== null && isPostDataError && (
               <p className="text-sm text-red-600 dark:text-red-400">
-                Failed to load question data: {postDataError.message}
+                {t("failedToLoadQuestionData", {
+                  error: postDataError.message,
+                })}
               </p>
             )}
           </div>

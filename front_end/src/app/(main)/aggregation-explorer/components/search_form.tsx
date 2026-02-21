@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { FormEventHandler } from "react";
 
 import Button from "@/components/ui/button";
@@ -19,6 +20,8 @@ export default function SearchForm({
   onSubmit,
   onChange,
 }: Props) {
+  const t = useTranslations();
+
   return (
     <>
       <form
@@ -27,8 +30,8 @@ export default function SearchForm({
       >
         <input
           type="text"
-          placeholder="Question URL or ID"
-          aria-label="Question URL or ID"
+          placeholder={t("questionUrlOrId")}
+          aria-label={t("questionUrlOrId")}
           value={value}
           disabled={disabled}
           onChange={(e) => onChange(e.target.value)}
@@ -40,7 +43,7 @@ export default function SearchForm({
           disabled={disabled}
           type="submit"
         >
-          Explore
+          {t("explore")}
         </Button>
       </form>
       {error && (

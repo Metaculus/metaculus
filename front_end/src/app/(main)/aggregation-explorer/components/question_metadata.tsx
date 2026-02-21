@@ -3,7 +3,7 @@
 import { faUser, faUsers } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
 import PostStatusBadge from "@/components/post_status";
@@ -18,6 +18,7 @@ type Props = {
 };
 
 const QuestionMetadata: FC<Props> = ({ postData, question }) => {
+  const t = useTranslations();
   const locale = useLocale();
 
   const isResolved = postData.status === PostStatus.RESOLVED;
@@ -68,7 +69,7 @@ const QuestionMetadata: FC<Props> = ({ postData, question }) => {
           <span className="font-medium tabular-nums">
             {postData.nr_forecasters}
           </span>{" "}
-          forecasters
+          {t("forecasters")}
         </span>
       )}
 

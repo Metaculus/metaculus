@@ -1,6 +1,10 @@
+import { useTranslations } from "next-intl";
+
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { getAllOptionsHistory } from "@/utils/questions/helpers";
+
+type TranslateFunction = ReturnType<typeof useTranslations>;
 
 export type SubQuestionOption = {
   value: string | number;
@@ -8,19 +12,20 @@ export type SubQuestionOption = {
 };
 
 export function parseSubQuestionOptions(
+  t: TranslateFunction,
   postData: PostWithForecasts
 ): SubQuestionOption[] {
   if ("group_of_questions" in postData && postData.group_of_questions) {
     return postData.group_of_questions.questions.map((question) => ({
       value: question.id,
-      label: question.label ?? `Question ${question.id}`,
+      label: question.label ?? t("questionFallbackLabel", { id: question.id }),
     }));
   }
 
   if ("conditional" in postData && postData.conditional) {
     return [
-      { value: postData.conditional.question_yes.id, label: "if yes" },
-      { value: postData.conditional.question_no.id, label: "if no" },
+      { value: postData.conditional.question_yes.id, label: t("ifYes") },
+      { value: postData.conditional.question_no.id, label: t("ifNo") },
     ];
   }
 

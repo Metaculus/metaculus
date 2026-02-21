@@ -34,35 +34,36 @@ export type AggregationExtraQuestion =
   | NumericAggregationExtraQuestion
   | MultipleChoiceAggregationExtraQuestion;
 
-export enum AggregationExtraMethod {
+// All aggregation methods the aggregation explorer API accepts.
+// Each value is sent directly as the `aggregation_methods` query param.
+export enum AggregationMethod {
   recency_weighted = "recency_weighted",
-  recency_weighted_bot = "recency_weighted_bot",
   unweighted = "unweighted",
-  unweighted_bot = "unweighted_bot",
   single_aggregation = "single_aggregation",
-  single_aggregation_bot = "single_aggregation_bot",
   metaculus_prediction = "metaculus_prediction",
-  metaculus_prediction_bot = "metaculus_prediction_bot",
   metaculus_pros = "metaculus_pros",
   medalists = "medalists",
   silver_medalists = "silver_medalists",
   gold_medalists = "gold_medalists",
   joined_before_date = "joined_before_date",
-  joined_before_date_bot = "joined_before_date_bot",
 }
 
 export type AggregationOption = {
-  id: AggregationExtraMethod;
-  value: string;
-  label: string;
+  id: string;
+  labelKey: string;
   isStaffOnly?: boolean;
-  supportsBotToggle?: boolean; // user can opt-in bots via SelectedAggregationConfig.includeBots
-  supportsUserIds?: boolean; // user_ids pre-filter applicable
+  supportsBotToggle?: boolean;
+  supportsUserIds?: boolean;
+  requiresDate?: boolean;
+  childSelector?: {
+    labelKey: string;
+    options: AggregationOption[];
+  };
 };
 
 export type AggregationTooltip = {
   aggregationMethod: string;
-  choice: AggregationExtraMethod;
+  choice: AggregationMethod;
   label: string;
   includeBots: boolean;
   color: ThemeColor;

@@ -1,60 +1,72 @@
-import { AggregationMethod } from "@/types/question";
-
-import { AggregationExtraMethod, AggregationOption } from "./types";
+import { AggregationMethod, AggregationOption } from "./types";
 
 export const AGGREGATION_EXPLORER_OPTIONS: readonly AggregationOption[] = [
   {
-    id: AggregationExtraMethod.recency_weighted,
-    value: AggregationMethod.recency_weighted,
-    label: "Recency-weighted median",
+    id: AggregationMethod.recency_weighted,
+    labelKey: "recencyWeighted",
     supportsBotToggle: true,
     supportsUserIds: true,
   },
   {
-    id: AggregationExtraMethod.joined_before_date,
-    value: AggregationExtraMethod.joined_before_date,
-    label: "Recency weighted (joined before date)",
+    id: AggregationMethod.joined_before_date,
+    labelKey: "cohortJoinedBeforeDate",
+    requiresDate: true,
     supportsBotToggle: true,
     supportsUserIds: true,
   },
   {
-    id: AggregationExtraMethod.unweighted,
-    value: AggregationMethod.unweighted,
-    label: "Unweighted median",
+    id: AggregationMethod.unweighted,
+    labelKey: "unweighted",
     supportsBotToggle: true,
     supportsUserIds: true,
   },
   {
-    id: AggregationExtraMethod.single_aggregation,
-    value: AggregationMethod.single_aggregation,
-    label: "Single aggregation",
+    id: AggregationMethod.single_aggregation,
+    labelKey: "singleAggregationLabel",
     isStaffOnly: true,
     supportsBotToggle: true,
     supportsUserIds: true,
   },
   {
-    id: AggregationExtraMethod.metaculus_prediction,
-    value: AggregationMethod.metaculus_prediction,
-    label: "Metaculus prediction",
+    id: AggregationMethod.metaculus_prediction,
+    labelKey: "metaculusPredictionLabel",
   },
   {
-    id: AggregationExtraMethod.metaculus_pros,
-    value: AggregationExtraMethod.metaculus_pros,
-    label: "Metaculus Pros",
+    id: AggregationMethod.metaculus_pros,
+    labelKey: "metaculusProsLabel",
   },
   {
-    id: AggregationExtraMethod.medalists,
-    value: AggregationExtraMethod.medalists,
-    label: "Medalists (all medals)",
-  },
-  {
-    id: AggregationExtraMethod.silver_medalists,
-    value: AggregationExtraMethod.silver_medalists,
-    label: "Medalists (silver and gold)",
-  },
-  {
-    id: AggregationExtraMethod.gold_medalists,
-    value: AggregationExtraMethod.gold_medalists,
-    label: "Medalists (gold only)",
+    id: "medalists_parent",
+    labelKey: "medalists",
+    childSelector: {
+      labelKey: "medalTier",
+      options: [
+        { id: AggregationMethod.medalists, labelKey: "allMedals" },
+        { id: AggregationMethod.silver_medalists, labelKey: "silverAndGold" },
+        { id: AggregationMethod.gold_medalists, labelKey: "goldOnly" },
+      ],
+    },
   },
 ];
+
+export const AGGREGATION_OPTION_BY_ID = new Map<string, AggregationOption>(
+  AGGREGATION_EXPLORER_OPTIONS.flatMap((o) => {
+    const entries: [string, AggregationOption][] = [[o.id, o]];
+    if (o.childSelector) {
+      for (const child of o.childSelector.options) {
+        entries.push([child.id, child]);
+      }
+    }
+    return entries;
+  })
+);
+
+export const PARENT_OPTION_BY_CHILD_ID = new Map<string, AggregationOption>(
+  AGGREGATION_EXPLORER_OPTIONS.flatMap(
+    (o) =>
+      o.childSelector?.options.map((child): [string, AggregationOption] => [
+        child.id,
+        o,
+      ]) ?? []
+  )
+);

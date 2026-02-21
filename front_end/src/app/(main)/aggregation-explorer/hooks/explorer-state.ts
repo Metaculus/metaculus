@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
@@ -13,20 +14,19 @@ import {
   useAggregationData,
 } from "./aggregation-data";
 import { useSelectedConfigsState, useSubQuestionState } from "./query-state";
-import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
-import { AggregationExtraMethod } from "../types";
+import { AGGREGATION_OPTION_BY_ID } from "../constants";
+import { AggregationMethod } from "../types";
 import {
   deriveQuestion,
   deriveQuestionId,
   parseSubQuestionOptions,
 } from "../utils/sub-questions";
 
-const optionById = new Map(AGGREGATION_EXPLORER_OPTIONS.map((o) => [o.id, o]));
-
 export function useExplorerState(postData: PostWithForecasts) {
+  const t = useTranslations();
   const subQuestionOptions = useMemo(
-    () => parseSubQuestionOptions(postData),
-    [postData]
+    () => parseSubQuestionOptions(t, postData),
+    [t, postData]
   );
   const needsSubSelection = subQuestionOptions.length > 0;
   const isMultipleChoice =
@@ -57,13 +57,13 @@ export function useExplorerState(postData: PostWithForecasts) {
     if (!question) {
       return [
         {
-          id: buildConfigId(AggregationExtraMethod.recency_weighted, false),
-          optionId: AggregationExtraMethod.recency_weighted,
+          id: buildConfigId(AggregationMethod.recency_weighted, false),
+          optionId: AggregationMethod.recency_weighted,
         },
       ];
     }
     const methodId =
-      question.default_aggregation_method as unknown as AggregationExtraMethod;
+      question.default_aggregation_method as unknown as AggregationMethod;
     const includeBots = question.include_bots_in_aggregates;
     return [
       {
@@ -107,14 +107,14 @@ export function useExplorerState(postData: PostWithForecasts) {
   const listItems = useMemo(
     () =>
       selectedConfigs.flatMap((config) => {
-        const option = optionById.get(config.optionId);
+        const option = AGGREGATION_OPTION_BY_ID.get(config.optionId);
         if (!option) return [];
 
         const method = methods.find((m) => m.id === config.id);
         return {
           id: config.id,
-          label: buildBaseLabel(option),
-          chips: buildChips(config),
+          label: buildBaseLabel(t, option),
+          chips: buildChips(t, config),
           enabled: config.enabled !== false,
           activeColor: activeColorById.get(config.id)?.DEFAULT,
           isLoading: method?.isPending ?? false,
@@ -122,7 +122,8 @@ export function useExplorerState(postData: PostWithForecasts) {
           isNoData: method?.isNoData ?? false,
         };
       }),
-    [selectedConfigs, activeColorById, methods]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedConfigs, activeColorById, methods, t]
   );
 
   const handleToggle = (id: string) => {
@@ -136,7 +137,7 @@ export function useExplorerState(postData: PostWithForecasts) {
   };
 
   const handleAddConfigured = (payload: {
-    optionId: AggregationExtraMethod;
+    optionId: AggregationMethod;
     joinedBeforeDate?: string;
     userIds?: number[];
     includeBots?: boolean;

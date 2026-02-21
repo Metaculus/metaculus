@@ -11,7 +11,7 @@ import { useRef } from "react";
 
 import { ContinuousAreaGraphType } from "@/types/charts";
 
-import { AggregationExtraMethod } from "../types";
+import { AggregationMethod } from "../types";
 import { SelectedAggregationConfig, buildConfigId } from "./aggregation-data";
 
 export type QuerySource = "url" | "form" | null;
@@ -67,7 +67,7 @@ function parseConfigSpec(spec: string): SelectedAggregationConfig | null {
   if (!id) return null;
 
   const parts = id.split(":");
-  const optionId = parts[0] as AggregationExtraMethod;
+  const optionId = parts[0] as AggregationMethod;
   if (!optionId) return null;
 
   const includeBots = parts.includes("bots");
@@ -109,12 +109,12 @@ const parseAsConfigs = createParser<SelectedAggregationConfig[]>({
 
 const DEFAULT_CONFIGS: SelectedAggregationConfig[] = [
   {
-    id: buildConfigId(AggregationExtraMethod.recency_weighted, false),
-    optionId: AggregationExtraMethod.recency_weighted,
+    id: buildConfigId(AggregationMethod.recency_weighted, false),
+    optionId: AggregationMethod.recency_weighted,
   },
   {
-    id: buildConfigId(AggregationExtraMethod.unweighted, false),
-    optionId: AggregationExtraMethod.unweighted,
+    id: buildConfigId(AggregationMethod.unweighted, false),
+    optionId: AggregationMethod.unweighted,
   },
 ];
 

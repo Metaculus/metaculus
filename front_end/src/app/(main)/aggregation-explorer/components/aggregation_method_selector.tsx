@@ -5,6 +5,7 @@ import {
   faTriangleExclamation,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useTranslations } from "next-intl";
 import { ComponentProps, useState } from "react";
 
 import Button from "@/components/ui/button";
@@ -13,18 +14,11 @@ import Switch from "@/components/ui/switch";
 import { useAuth } from "@/contexts/auth_context";
 
 import AggregationLabel from "./aggregation_label";
-import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
-import { V2AggregationOptionId } from "../hooks/aggregation-data";
-import { AggregationExtraMethod } from "../types";
-
-type AggregationFormMode =
-  | "recency_weighted"
-  | "cohort"
-  | "unweighted"
-  | "single_aggregation"
-  | "metaculus_prediction"
-  | "metaculus_pros"
-  | "medalists";
+import {
+  AGGREGATION_EXPLORER_OPTIONS,
+  AGGREGATION_OPTION_BY_ID,
+} from "../constants";
+import { AggregationMethod } from "../types";
 
 const CHEVRON_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z'/%3E%3C/svg%3E")`;
 const SELECT_CLASS_NAME =
@@ -41,21 +35,7 @@ function StyledSelect(props: ComponentProps<"select">) {
   );
 }
 
-const MODE_TO_OPTION_ID: Record<AggregationFormMode, AggregationExtraMethod> = {
-  recency_weighted: AggregationExtraMethod.recency_weighted,
-  cohort: AggregationExtraMethod.joined_before_date,
-  unweighted: AggregationExtraMethod.unweighted,
-  single_aggregation: AggregationExtraMethod.single_aggregation,
-  metaculus_prediction: AggregationExtraMethod.metaculus_prediction,
-  metaculus_pros: AggregationExtraMethod.metaculus_pros,
-  medalists: AggregationExtraMethod.medalists,
-};
-
-const MEDALIST_TIER_TO_OPTION_ID: Record<string, AggregationExtraMethod> = {
-  gold: AggregationExtraMethod.gold_medalists,
-  silver: AggregationExtraMethod.silver_medalists,
-  all: AggregationExtraMethod.medalists,
-};
+const TOP_LEVEL_OPTIONS = AGGREGATION_EXPLORER_OPTIONS;
 
 export type AggregationListItem = {
   id: string;
@@ -74,7 +54,7 @@ type Props = {
   onRemoveSelected: (id: string) => void;
   onHoverOption?: (id: string | null) => void;
   onAddConfigured: (payload: {
-    optionId: V2AggregationOptionId;
+    optionId: AggregationMethod;
     joinedBeforeDate?: string;
     userIds?: number[];
     includeBots?: boolean;
@@ -90,38 +70,38 @@ export default function AggregationMethodSelector({
   onAddConfigured,
   defaultIncludeBots = false,
 }: Props) {
+  const t = useTranslations();
+  const tLabel = (key: string) => t(key as Parameters<typeof t>[0]);
   const { user } = useAuth();
   const isStaff = !!user?.is_staff;
 
-  const [selectedMode, setSelectedMode] =
-    useState<AggregationFormMode>("recency_weighted");
-  const [includeBots, setIncludeBots] = useState(defaultIncludeBots);
-  const [medalistTier, setMedalistTier] = useState<"all" | "silver" | "gold">(
-    "all"
+  const [selectedTopLevelId, setSelectedTopLevelId] = useState<string>(
+    AggregationMethod.recency_weighted
   );
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  const [includeBots, setIncludeBots] = useState(defaultIncludeBots);
   const [joinedBeforeDate, setJoinedBeforeDate] = useState("");
   const [userFilterEnabled, setUserFilterEnabled] = useState(false);
   const [userIdsText, setUserIdsText] = useState("");
 
-  const resolvedOptionId: V2AggregationOptionId =
-    selectedMode === "medalists"
-      ? MEDALIST_TIER_TO_OPTION_ID[medalistTier] ??
-        AggregationExtraMethod.medalists
-      : MODE_TO_OPTION_ID[selectedMode];
-
-  const selectedOption = AGGREGATION_EXPLORER_OPTIONS.find(
-    (o) => o.id === resolvedOptionId
+  const visibleTopLevelOptions = TOP_LEVEL_OPTIONS.filter(
+    (o) => !o.isStaffOnly || isStaff
   );
+  const topLevelOption = AGGREGATION_OPTION_BY_ID.get(selectedTopLevelId);
+  const children = topLevelOption?.childSelector;
+  const resolvedOptionId =
+    selectedChildId ?? children?.options[0]?.id ?? selectedTopLevelId;
+  const selectedOption = AGGREGATION_OPTION_BY_ID.get(resolvedOptionId);
+
   const showBotToggle = !!selectedOption?.supportsBotToggle;
   const showUserIds = !!selectedOption?.supportsUserIds;
+  const needsDate = !!topLevelOption?.requiresDate;
+  const canAdd = !needsDate || !!joinedBeforeDate.trim();
 
   const parsedUserIds = userIdsText
     .split(",")
     .map((value) => Number(value.trim()))
     .filter((value) => Number.isInteger(value) && value > 0);
-
-  const needsJoinedBeforeDate = selectedMode === "cohort";
-  const canAddConfigured = !needsJoinedBeforeDate || !!joinedBeforeDate.trim();
 
   return (
     <div className="space-y-6">
@@ -134,31 +114,28 @@ export default function AggregationMethodSelector({
 
       <div>
         <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-700-dark">
-          Add aggregation
+          {t("addAggregation")}
         </h2>
 
         <div className="rounded-md border border-gray-300 bg-gray-0 p-3 dark:border-gray-500-dark dark:bg-gray-0-dark">
           <StyledSelect
-            value={selectedMode}
-            onChange={(e) =>
-              setSelectedMode(e.target.value as AggregationFormMode)
-            }
+            value={selectedTopLevelId}
+            onChange={(e) => {
+              setSelectedTopLevelId(e.target.value);
+              setSelectedChildId(null);
+            }}
           >
-            <option value="recency_weighted">Recency weighted</option>
-            <option value="cohort">Cohort (joined before date)</option>
-            <option value="unweighted">Unweighted</option>
-            <option value="metaculus_prediction">Metaculus prediction</option>
-            {isStaff ? (
-              <option value="single_aggregation">Single aggregation</option>
-            ) : null}
-            <option value="metaculus_pros">Metaculus Pros</option>
-            <option value="medalists">Medalists</option>
+            {visibleTopLevelOptions.map((option) => (
+              <option key={option.id} value={option.id}>
+                {tLabel(option.labelKey)}
+              </option>
+            ))}
           </StyledSelect>
 
-          {needsJoinedBeforeDate ? (
+          {needsDate ? (
             <>
               <label className="mt-3 block text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
-                Joined before date
+                {t("joinedBeforeDate")}
               </label>
               <input
                 type="date"
@@ -169,20 +146,20 @@ export default function AggregationMethodSelector({
             </>
           ) : null}
 
-          {selectedMode === "medalists" ? (
+          {children ? (
             <>
               <label className="mt-3 block text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
-                Medal tier
+                {tLabel(children.labelKey)}
               </label>
               <StyledSelect
-                value={medalistTier}
-                onChange={(e) =>
-                  setMedalistTier(e.target.value as "all" | "silver" | "gold")
-                }
+                value={resolvedOptionId}
+                onChange={(e) => setSelectedChildId(e.target.value)}
               >
-                <option value="all">All medals</option>
-                <option value="silver">Silver and gold</option>
-                <option value="gold">Gold only</option>
+                {children.options.map((child) => (
+                  <option key={child.id} value={child.id}>
+                    {tLabel(child.labelKey)}
+                  </option>
+                ))}
               </StyledSelect>
             </>
           ) : null}
@@ -190,7 +167,7 @@ export default function AggregationMethodSelector({
           {showBotToggle ? (
             <div className="mt-3 flex items-center justify-between">
               <label className="text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
-                Include bots
+                {t("includeBots")}
               </label>
               <Switch checked={includeBots} onChange={setIncludeBots} />
             </div>
@@ -200,7 +177,7 @@ export default function AggregationMethodSelector({
             <div className="mt-3">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
-                  Filter by users
+                  {t("filterByUsers")}
                 </label>
                 <Switch
                   checked={userFilterEnabled}
@@ -212,7 +189,7 @@ export default function AggregationMethodSelector({
                   type="text"
                   value={userIdsText}
                   onChange={(e) => setUserIdsText(e.target.value)}
-                  placeholder="User IDs (comma separated)"
+                  placeholder={t("userIdsCommaSeparated")}
                   className="mt-1.5 w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-sm dark:border-gray-600 dark:bg-blue-950 dark:text-gray-200"
                 />
               ) : null}
@@ -221,13 +198,11 @@ export default function AggregationMethodSelector({
 
           <Button
             className="mt-3 w-full"
-            disabled={!canAddConfigured}
+            disabled={!canAdd}
             onClick={() => {
               onAddConfigured({
-                optionId: resolvedOptionId,
-                joinedBeforeDate: needsJoinedBeforeDate
-                  ? joinedBeforeDate
-                  : undefined,
+                optionId: resolvedOptionId as AggregationMethod,
+                joinedBeforeDate: needsDate ? joinedBeforeDate : undefined,
                 userIds:
                   showUserIds &&
                   isStaff &&
@@ -239,7 +214,7 @@ export default function AggregationMethodSelector({
               });
             }}
           >
-            Add aggregation
+            {t("addAggregation")}
           </Button>
         </div>
       </div>
@@ -256,10 +231,12 @@ function ActiveAggregationsList({
   Props,
   "listItems" | "onToggleEnabled" | "onRemoveSelected" | "onHoverOption"
 >) {
+  const t = useTranslations();
+
   return (
     <div>
       <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-700-dark">
-        Aggregations
+        {t("aggregations")}
       </h2>
       {listItems.length > 0 ? (
         <div className="mt-2 divide-y divide-gray-200 overflow-hidden rounded-md border border-gray-300 dark:divide-gray-600 dark:border-gray-600">
@@ -276,7 +253,7 @@ function ActiveAggregationsList({
         </div>
       ) : (
         <p className="mt-2 text-xs text-gray-600 dark:text-gray-600-dark">
-          No aggregations selected yet.
+          {t("noAggregationsSelected")}
         </p>
       )}
     </div>
@@ -296,6 +273,7 @@ function AggregationListRow({
   onMouseEnter: () => void;
   onMouseLeave: () => void;
 }) {
+  const t = useTranslations();
   const showActiveColor =
     item.enabled && item.activeColor && !item.isError && !item.isNoData;
 
@@ -313,7 +291,7 @@ function AggregationListRow({
       }}
       role="button"
       tabIndex={0}
-      aria-label={item.enabled ? "Hide aggregation" : "Show aggregation"}
+      aria-label={item.enabled ? t("hideAggregation") : t("showAggregation")}
       aria-pressed={item.enabled}
     >
       <span
@@ -349,7 +327,7 @@ function AggregationListRow({
           e.stopPropagation();
           onRemove();
         }}
-        aria-label="Remove aggregation"
+        aria-label={t("removeAggregation")}
       >
         <FontAwesomeIcon icon={faTrash} className="text-[10px]" />
       </button>

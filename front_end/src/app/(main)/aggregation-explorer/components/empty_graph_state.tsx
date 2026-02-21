@@ -1,3 +1,5 @@
+import { useTranslations } from "next-intl";
+
 type Variant = "empty" | "loading" | "error";
 
 const VARIANT_STYLES: Record<Variant, { border: string; text: string }> = {
@@ -21,12 +23,13 @@ type Props = {
 };
 
 export default function EmptyGraphState({ variant, message }: Props) {
+  const t = useTranslations();
   const { border, text } = VARIANT_STYLES[variant];
 
   return (
     <div>
       <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-700-dark">
-        Timeline
+        {t("timeline")}
       </h2>
       <div className={`mt-1 rounded-xl border p-8 text-sm ${border} ${text}`}>
         {message}

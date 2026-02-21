@@ -21,7 +21,7 @@ import { generateChoiceItemsFromAggregations } from "../helpers";
 import { AggregationQueryResult } from "../hooks/aggregation-data";
 import { useGraphTypeState } from "../hooks/query-state";
 import {
-  AggregationExtraMethod,
+  AggregationMethod,
   AggregationExtraQuestion,
   AggregationTooltip,
 } from "../types";
@@ -84,7 +84,7 @@ export default function AggregationGraphPanel({
       return (
         <EmptyGraphState
           variant="empty"
-          message="Select at least one aggregation from the side panel."
+          message={t("selectAggregationFromSidePanel")}
         />
       );
     }
@@ -92,21 +92,21 @@ export default function AggregationGraphPanel({
       return (
         <EmptyGraphState
           variant="loading"
-          message="Loading selected aggregation data..."
+          message={t("loadingAggregationData")}
         />
       );
     }
     return (
       <EmptyGraphState
         variant="error"
-        message="Failed to load aggregation data for selected methods."
+        message={t("failedToLoadAggregationData")}
       />
     );
   }
 
   const tooltips: AggregationTooltip[] = methods.map((method) => ({
     aggregationMethod: method.method,
-    choice: method.id as unknown as AggregationExtraMethod,
+    choice: method.id as unknown as AggregationMethod,
     label: method.label,
     includeBots: method.includeBots,
     color: colorById.get(method.id) ?? METAC_COLORS.gray["400"],
@@ -122,7 +122,7 @@ export default function AggregationGraphPanel({
     displayedResolution: null,
     highlighted:
       hoveredId !== null &&
-      item.choice === (hoveredId as unknown as AggregationExtraMethod),
+      item.choice === (hoveredId as unknown as AggregationMethod),
   }));
 
   const choiceColorById = new Map(
@@ -149,7 +149,7 @@ export default function AggregationGraphPanel({
   return (
     <div>
       <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-700-dark">
-        Graph
+        {t("graph")}
       </h2>
 
       <div ref={sentinelRef} className="-mb-px h-px" />
@@ -179,7 +179,7 @@ export default function AggregationGraphPanel({
 
       <div className="my-4 flex flex-row items-center justify-between gap-2">
         <h2 className="my-0 text-xs font-semibold uppercase leading-none tracking-wide text-gray-700 dark:text-gray-700-dark">
-          {isNumericType ? "Distribution Views" : "Histogram Views"}
+          {isNumericType ? t("distributionViews") : t("histogramViews")}
         </h2>
         {isNumericType ? (
           <ButtonGroup<ContinuousAreaGraphType>
@@ -215,8 +215,9 @@ export default function AggregationGraphPanel({
 
       {hasAnyError && errorMethods.length > 0 ? (
         <div className="rounded-md border border-red-300 p-3 text-sm text-red-600 dark:border-red-500/40 dark:text-red-400">
-          Some methods failed:{" "}
-          {errorMethods.map((method) => method.label).join(", ")}.
+          {t("someMethodsFailed", {
+            methods: errorMethods.map((method) => method.label).join(", "),
+          })}
         </div>
       ) : null}
     </div>
