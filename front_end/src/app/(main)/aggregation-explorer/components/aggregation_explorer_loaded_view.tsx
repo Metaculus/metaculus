@@ -74,7 +74,7 @@ export default function AggregationExplorerLoadedView({ postData }: Props) {
 
         {shouldFetchData ? (
           <div className="mt-6 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-            <aside>
+            <aside className="sticky top-header self-start">
               <AggregationMethodSelector
                 listItems={listItems}
                 onToggleEnabled={handleToggle}

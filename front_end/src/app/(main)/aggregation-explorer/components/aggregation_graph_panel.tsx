@@ -149,19 +149,19 @@ export default function AggregationGraphPanel({
   return (
     <div>
       <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-700-dark">
-        {t("graph")}
+        {t("timeline")}
       </h2>
 
       <div ref={sentinelRef} className="-mb-px h-px" />
       <div
-        className={`sticky top-header z-100 rounded-md bg-white px-4 transition-shadow duration-200 dark:border dark:border-gray-500-dark dark:bg-blue-950 md:static md:z-auto md:py-4 md:shadow-none ${isStuck && !isDesktop ? "py-1 shadow-xl ring-1 ring-black/5 dark:ring-white/10" : "py-4 shadow-sm"}`}
+        className={`sticky top-header z-100 bg-white px-4 transition-shadow duration-200 dark:border dark:border-gray-500-dark dark:bg-blue-950 ${isStuck ? "rounded-b-md py-1 shadow-xl ring-1 ring-black/5 dark:ring-white/10" : "rounded-md py-4 shadow-sm"}`}
       >
         <GroupChart
           timestamps={timestamps}
           actualCloseTime={actualCloseTime}
           choiceItems={choiceItems}
           defaultZoom={TimelineChartZoomOption.All}
-          height={isDesktop ? 300 : isStuck ? 100 : 200}
+          height={isStuck ? (isDesktop ? 150 : 100) : isDesktop ? 300 : 200}
           aggregation
           withZoomPicker
           questionType={mergedData.type}
@@ -175,7 +175,7 @@ export default function AggregationGraphPanel({
         />
       </div>
       {/* Spacer compensates for height reduction when stuck so content below doesn't jump */}
-      <div className="md:hidden" style={{ height: isStuck ? 124 : 0 }} />
+      <div style={{ height: isStuck ? (isDesktop ? 174 : 124) : 0 }} />
 
       <div className="my-4 flex flex-row items-center justify-between gap-2">
         <h2 className="my-0 text-xs font-semibold uppercase leading-none tracking-wide text-gray-700 dark:text-gray-700-dark">
