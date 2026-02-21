@@ -50,11 +50,13 @@ const QuestionHeaderCPStatus: FC<Props> = ({
     : getContinuousAreaChartData({
         question,
         isClosed: question.status === QuestionStatus.CLOSED,
+        isResolved: question.status === QuestionStatus.RESOLVED,
       });
 
   const isEmbed = useIsEmbedMode();
   const w = useEmbedContainerWidth();
   const isEmbedBelow376 = isEmbed && (w ?? 0) > 0 && (w ?? 0) < 376;
+  const isEmbedWide = isEmbed && (w ?? 0) >= 500;
 
   if (question.status === QuestionStatus.RESOLVED && question.resolution) {
     // Resolved/Annulled/Ambiguous
@@ -95,6 +97,13 @@ const QuestionHeaderCPStatus: FC<Props> = ({
     ? { borderColor: `${colorOverride}33` }
     : undefined;
 
+  const embedBorderClass =
+    question.status === QuestionStatus.RESOLVED
+      ? "border-[0.5px] border-purple-500 p-3 dark:border-purple-500-dark md:p-3"
+      : question.status === QuestionStatus.CLOSED
+        ? "border-[0.5px] border-gray-500 p-3 dark:border-gray-500-dark md:p-3"
+        : "border-[0.5px] border-olive-500 p-3 dark:border-olive-500-dark md:p-3";
+
   if (isContinuous) {
     return (
       !forecastAvailability.isEmpty && (
@@ -105,12 +114,13 @@ const QuestionHeaderCPStatus: FC<Props> = ({
             {
               "min-h-full w-[200px]": size === "lg" && hideLabel,
               "w-max max-w-[200px]": size === "lg" && !hideLabel,
-              "max-w-[130px]": size === "md",
+              "max-w-[130px]":
+                size === "md" || (isEmbed && !isEmbedBelow376 && !isEmbedWide),
               "gap-1": !hideLabel && size === "lg",
               "gap-0": size === "md", // Remove gap for mobile (both hideLabel true/false)
               "-gap-2": size === "md" && hideLabel, // More negative gap for mobile continuous questions,
-              "border-[0.5px] border-olive-500 p-3 dark:border-olive-500-dark md:p-3":
-                isEmbed,
+              [embedBorderClass]: isEmbed,
+              "max-w-[195px]": isEmbedWide,
               "min-w-[200px] border-none p-0": isEmbedBelow376,
             }
           )}
@@ -158,7 +168,9 @@ const QuestionHeaderCPStatus: FC<Props> = ({
                     : isEmbed
                       ? isEmbedBelow376
                         ? 32
-                        : 24
+                        : isEmbedWide
+                          ? 90
+                          : 50
                       : 50
                 }
                 forceTickCount={2}
