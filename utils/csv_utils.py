@@ -130,7 +130,8 @@ def export_data_for_questions(
     include_key_factors: bool,
     only_include_user_ids: list[int] | None,
     include_bots: bool | None,
-    anonymized: bool,
+    joined_before_date: datetime.datetime | None = None,
+    anonymized: bool = False,
     include_future: bool = False,
     **kwargs,
 ) -> bytes:
@@ -192,6 +193,7 @@ def export_data_for_questions(
                 ),
                 histogram=True,
                 include_future=include_future,
+                joined_before=joined_before_date,
             )
             for values in aggregation_dict.values():
                 aggregate_forecasts.extend(values)

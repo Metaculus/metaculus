@@ -143,6 +143,28 @@ function parseAggregationData({
       );
     });
 
+    // Filter out timestamps where the center value is null
+    // (e.g. legacy metaculus_prediction data without centers populated)
+    const validIndices = aggregationValues.reduce<number[]>((acc, v, i) => {
+      if (v !== null) acc.push(i);
+      return acc;
+    }, []);
+    const filteredTimestamps = validIndices.map(
+      (i) => sortedAggregationTimestamps[i] ?? 0
+    );
+    const filteredValues = validIndices.map(
+      (i) => aggregationValues[i] ?? null
+    );
+    const filteredMinValues = validIndices.map(
+      (i) => aggregationMinValues[i] ?? null
+    );
+    const filteredMaxValues = validIndices.map(
+      (i) => aggregationMaxValues[i] ?? null
+    );
+    const filteredForecasterCounts = validIndices.map(
+      (i) => aggregationForecasterCounts[i] ?? 0
+    );
+
     choiceItems.push({
       id: question.id,
       choice: tooltip?.choice ?? "",
@@ -170,11 +192,11 @@ function parseAggregationData({
       rangeMin: question.scaling.range_min ?? 0,
       rangeMax: question.scaling.range_min ?? 1,
       scaling: question.scaling,
-      aggregationTimestamps: sortedAggregationTimestamps,
-      aggregationValues: aggregationValues,
-      aggregationMinValues: aggregationMinValues,
-      aggregationMaxValues: aggregationMaxValues,
-      aggregationForecasterCounts: aggregationForecasterCounts,
+      aggregationTimestamps: filteredTimestamps,
+      aggregationValues: filteredValues,
+      aggregationMinValues: filteredMinValues,
+      aggregationMaxValues: filteredMaxValues,
+      aggregationForecasterCounts: filteredForecasterCounts,
       userTimestamps: [],
       userValues: userValues,
       userMinValues:

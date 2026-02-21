@@ -3,11 +3,17 @@
 import {
   faArrowsLeftRight,
   faBullseye,
+  faFileArrowDown,
   faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { saveAs } from "file-saver";
 import { isNil } from "lodash";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import toast from "react-hot-toast";
 
+import ClientPostsApi from "@/services/api/posts/posts.client";
 import { ContinuousAreaGraphType } from "@/types/charts";
 import {
   AggregateForecastHistory,
@@ -25,6 +31,9 @@ import {
 } from "../types";
 
 type Props = {
+  postId: number;
+  questionTitle: string;
+  selectedSubQuestionOption: string | number | null;
   method: AggregationQueryResult;
   mergedData: AggregationExtraQuestion;
   cursorTimestamp: number | null;
@@ -38,6 +47,9 @@ type Props = {
 };
 
 export default function DistributionCard({
+  postId,
+  questionTitle,
+  selectedSubQuestionOption,
   method,
   mergedData,
   cursorTimestamp,
@@ -49,6 +61,9 @@ export default function DistributionCard({
   chartHeight,
   onHoverOption,
 }: Props) {
+  const t = useTranslations();
+  const [isDownloading, setIsDownloading] = useState(false);
+
   const aggregation = (
     mergedData.aggregations as Record<
       string,
@@ -87,6 +102,28 @@ export default function DistributionCard({
         : null,
   });
 
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
+      const blob = await ClientPostsApi.getAggregationsPostZipData(
+        postId,
+        typeof selectedSubQuestionOption === "number"
+          ? selectedSubQuestionOption
+          : undefined,
+        method.method,
+        method.includeBots,
+        method.userIds,
+        method.joinedBeforeDate
+      );
+      const filename = `${questionTitle.replaceAll(" ", "_")}-${method.id.replaceAll(":", "-").replaceAll(",", "_")}.zip`;
+      saveAs(blob, filename);
+    } catch (error) {
+      toast.error(t("downloadQuestionDataError") + error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <div
       className="rounded-md bg-white p-3 dark:border dark:border-gray-600 dark:bg-blue-950"
@@ -99,12 +136,21 @@ export default function DistributionCard({
           chips={method.chips}
           color={choiceColor}
         />
-        <span className="flex shrink-0 items-center gap-1 text-gray-700 dark:text-gray-400">
+        <span className="flex shrink-0 items-center gap-1.5 text-gray-700 dark:text-gray-400">
           <FontAwesomeIcon
             icon={faUsers}
             className="text-gray-400 dark:text-gray-400-dark"
           />
           <span className="font-medium tabular-nums">{forecasterCount}</span>
+          <button
+            onClick={handleDownload}
+            disabled={isDownloading}
+            className="text-gray-400 transition-colors hover:text-blue-600 disabled:opacity-50 dark:text-gray-400-dark dark:hover:text-blue-400"
+            aria-label={t("downloadQuestionData")}
+            title={t("downloadQuestionData")}
+          >
+            <FontAwesomeIcon icon={faFileArrowDown} />
+          </button>
         </span>
       </div>
 

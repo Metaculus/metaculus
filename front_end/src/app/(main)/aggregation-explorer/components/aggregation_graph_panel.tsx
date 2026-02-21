@@ -23,6 +23,8 @@ import { useGraphTypeState } from "../hooks/query-state";
 import { AggregationExtraQuestion, AggregationTooltip } from "../types";
 
 type Props = {
+  postId: number;
+  questionTitle: string;
   methods: AggregationQueryResult[];
   mergedData: AggregationExtraQuestion | null;
   isAnyPending: boolean;
@@ -41,6 +43,8 @@ const NUMERIC_TYPES = new Set([
 ]);
 
 export default function AggregationGraphPanel({
+  postId,
+  questionTitle,
   methods,
   mergedData,
   isAnyPending,
@@ -209,6 +213,9 @@ export default function AggregationGraphPanel({
         {methods.map((method) => (
           <DistributionCard
             key={method.id}
+            postId={postId}
+            questionTitle={questionTitle}
+            selectedSubQuestionOption={selectedSubQuestionOption}
             method={method}
             mergedData={mergedData}
             cursorTimestamp={cursorTimestamp}

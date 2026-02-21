@@ -53,6 +53,7 @@ export type AggregationQueryResult = {
   method: string; // option.id, used for API response lookup
   includeBots: boolean;
   joinedBeforeDate?: string;
+  userIds?: number[];
   isPending: boolean;
   isError: boolean;
   isNoData: boolean; // loaded successfully but returned empty aggregation history
@@ -203,6 +204,7 @@ export function useAggregationData({
           method: option.id,
           includeBots: !!config.includeBots,
           joinedBeforeDate: config.joinedBeforeDate,
+          userIds: config.userIds,
           isPending: query.isPending,
           isError: query.isError,
           isNoData,

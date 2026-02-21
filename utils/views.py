@@ -184,6 +184,7 @@ def validate_data_request(request: Request, **kwargs):
     # TODO: change url param name to only_include_user_ids (requires front end changes)
     only_include_user_ids = params.get("user_ids")
     include_bots = params.get("include_bots")
+    joined_before_date = params.get("joined_before_date")
     if is_staff:
         anonymized = params.get("anonymized", False)
     elif is_whitelisted:
@@ -235,6 +236,7 @@ def validate_data_request(request: Request, **kwargs):
         "include_key_factors": include_key_factors,
         "only_include_user_ids": only_include_user_ids,
         "include_bots": include_bots,
+        "joined_before_date": joined_before_date,
         "anonymized": anonymized,
         "include_future": include_future,
     }

@@ -89,6 +89,8 @@ export default function AggregationExplorerLoadedView({ postData }: Props) {
             </aside>
             <section>
               <AggregationGraphPanel
+                postId={postData.id}
+                questionTitle={postData.title}
                 methods={methods}
                 mergedData={mergedData}
                 isAnyPending={isAnyPending}
