@@ -168,13 +168,13 @@ function parseAggregationData({
       });
 
       aggregationValues.push(
-        aggregationForecast?.centers?.[optionIndex] || null
+        aggregationForecast?.centers?.[optionIndex] ?? null
       );
       aggregationMinValues.push(
-        aggregationForecast?.interval_lower_bounds?.[optionIndex] || null
+        aggregationForecast?.interval_lower_bounds?.[optionIndex] ?? null
       );
       aggregationMaxValues.push(
-        aggregationForecast?.interval_upper_bounds?.[optionIndex] || null
+        aggregationForecast?.interval_upper_bounds?.[optionIndex] ?? null
       );
       aggregationForecasterCounts.push(
         aggregationForecast?.forecaster_count || 0

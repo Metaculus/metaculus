@@ -3,10 +3,13 @@
 import {
   createParser,
   parseAsInteger,
+  parseAsStringLiteral,
   useQueryState,
   useQueryStates,
 } from "nuqs";
 import { useRef } from "react";
+
+import { ContinuousAreaGraphType } from "@/types/charts";
 
 import { AggregationExtraMethod } from "../types";
 import { SelectedAggregationConfig, buildConfigId } from "./aggregation-data";
@@ -116,6 +119,38 @@ const DEFAULT_CONFIGS: SelectedAggregationConfig[] = [
 ];
 
 export { DEFAULT_CONFIGS as DEFAULT_AGGREGATION_CONFIGS };
+
+// ---------------------------------------------------------------------------
+// Sub-question / MC option selection
+// Values can be numeric (group/conditional question ID) or string (MC option).
+// We store as a raw string and parse back on read.
+// ---------------------------------------------------------------------------
+
+const parseAsSubQuestion = createParser<string | number>({
+  parse(queryValue) {
+    if (!queryValue) return null;
+    const asNum = Number(queryValue);
+    return Number.isFinite(asNum) && String(asNum) === queryValue
+      ? asNum
+      : queryValue;
+  },
+  serialize(value) {
+    return String(value);
+  },
+});
+
+export function useSubQuestionState() {
+  return useQueryState("sub", parseAsSubQuestion);
+}
+
+const GRAPH_TYPE_VALUES: ContinuousAreaGraphType[] = ["pmf", "cdf"];
+
+export function useGraphTypeState() {
+  return useQueryState(
+    "dist",
+    parseAsStringLiteral(GRAPH_TYPE_VALUES).withDefault("pmf")
+  );
+}
 
 export function useSelectedConfigsState(
   defaultConfigs: SelectedAggregationConfig[] = DEFAULT_CONFIGS

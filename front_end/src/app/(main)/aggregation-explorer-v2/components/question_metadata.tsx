@@ -8,18 +8,17 @@ import { FC } from "react";
 
 import PostStatusBadge from "@/components/post_status";
 import { PostStatus, PostWithForecasts } from "@/types/post";
+import { QuestionWithForecasts } from "@/types/question";
 import { formatResolution } from "@/utils/formatters/resolution";
 import { isSuccessfullyResolved } from "@/utils/questions/resolution";
 
 type Props = {
   postData: PostWithForecasts;
+  question: QuestionWithForecasts | null;
 };
 
-const QuestionMetadata: FC<Props> = ({ postData }) => {
+const QuestionMetadata: FC<Props> = ({ postData, question }) => {
   const locale = useLocale();
-
-  const question =
-    "question" in postData && postData.question ? postData.question : null;
 
   const isResolved = postData.status === PostStatus.RESOLVED;
 
@@ -36,7 +35,7 @@ const QuestionMetadata: FC<Props> = ({ postData }) => {
       : null;
 
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
       {question && (
         <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-500 dark:bg-blue-900/30 dark:text-gray-400">
           {question.type}

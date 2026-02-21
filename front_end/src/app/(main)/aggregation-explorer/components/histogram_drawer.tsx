@@ -28,16 +28,17 @@ const HistogramDrawer: FC<Props> = ({
     const timestampIndex = activeAggregation.history.findLastIndex(
       (item) => item.start_time <= selectedTimestamp
     );
-    const histogram = activeAggregation.history[timestampIndex]?.histogram?.at(
-      aggregationIndex || 0
-    );
+    const idx = aggregationIndex ?? 0;
+    const histogram =
+      activeAggregation.history[timestampIndex]?.histogram?.at(idx);
     const histogramData = histogram?.map((value, index) => ({
       x: index,
       y: value,
     }));
 
-    const median = activeAggregation.history?.[timestampIndex]?.centers?.[0];
-    const mean = activeAggregation.history?.[timestampIndex]?.means?.[0];
+    const median =
+      activeAggregation.history?.[timestampIndex]?.centers?.[idx];
+    const mean = activeAggregation.history?.[timestampIndex]?.means?.[idx];
 
     return (
       histogramData && (

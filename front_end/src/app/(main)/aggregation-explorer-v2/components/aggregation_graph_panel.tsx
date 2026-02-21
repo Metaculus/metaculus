@@ -11,7 +11,7 @@ import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
 
 import GroupChart from "@/components/charts/group_chart";
-import InlineSelect from "@/components/ui/inline_select";
+import ButtonGroup from "@/components/ui/button_group";
 import { METAC_COLORS } from "@/constants/colors";
 import {
   ContinuousAreaGraphType,
@@ -32,6 +32,7 @@ import HistogramDrawer from "../../aggregation-explorer/components/histogram_dra
 import { generateChoiceItemsFromAggregations } from "../../aggregation-explorer/helpers";
 import type { AggregationTooltip as V1AggregationTooltip } from "../../aggregation-explorer/types";
 import { AggregationQueryResult } from "../hooks/aggregation-data";
+import { useGraphTypeState } from "../hooks/query-state";
 import {
   AggregationExtraMethod,
   AggregationExtraQuestion,
@@ -46,6 +47,8 @@ type Props = {
   hasAnyError: boolean;
   hoveredId: string | null;
   colorById: Map<string, AggregationTooltip["color"]>;
+  selectedSubQuestionOption: string | number | null;
+  optionIndex: number;
 };
 
 const NUMERIC_TYPES = [
@@ -61,10 +64,12 @@ export default function AggregationGraphPanel({
   hasAnyError,
   hoveredId,
   colorById,
+  selectedSubQuestionOption,
+  optionIndex,
 }: Props) {
   const t = useTranslations();
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
-  const [graphType, setGraphType] = useState<ContinuousAreaGraphType>("pmf");
+  const [graphType, setGraphType] = useGraphTypeState();
 
   const handleCursorChange = useCallback(
     (value: number, _format: TickFormat) => {
@@ -73,26 +78,33 @@ export default function AggregationGraphPanel({
     []
   );
 
-  if (!methods.length) {
+  if (!methods.length || !mergedData) {
+    let message: string;
+    let borderClass: string;
+    let textClass: string;
+    if (!methods.length) {
+      message = "Select at least one aggregation from the side panel.";
+      borderClass = "border-dashed border-gray-300 dark:border-gray-500-dark";
+      textClass = "text-gray-600 dark:text-gray-600-dark";
+    } else if (isAnyPending) {
+      message = "Loading selected aggregation data...";
+      borderClass = "border-gray-300 dark:border-gray-500-dark";
+      textClass = "text-gray-700 dark:text-gray-700-dark";
+    } else {
+      message = "Failed to load aggregation data for selected methods.";
+      borderClass = "border-red-300 dark:border-red-500/40";
+      textClass = "text-red-600 dark:text-red-400";
+    }
     return (
-      <div className="rounded-xl border border-dashed border-gray-300 p-8 text-sm text-gray-600 dark:border-gray-500-dark dark:text-gray-600-dark">
-        Select at least one aggregation from the side panel.
-      </div>
-    );
-  }
-
-  if (!mergedData && isAnyPending) {
-    return (
-      <div className="rounded-xl border border-gray-300 p-8 text-sm text-gray-700 dark:border-gray-500-dark dark:text-gray-700-dark">
-        Loading selected aggregation data...
-      </div>
-    );
-  }
-
-  if (!mergedData) {
-    return (
-      <div className="rounded-xl border border-red-300 p-8 text-sm text-red-600 dark:border-red-500/40 dark:text-red-400">
-        Failed to load aggregation data for selected methods.
+      <div>
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-700-dark">
+          Graph
+        </h2>
+        <div
+          className={`mt-1 rounded-xl border p-8 text-sm ${borderClass} ${textClass}`}
+        >
+          {message}
+        </div>
       </div>
     );
   }
@@ -107,7 +119,7 @@ export default function AggregationGraphPanel({
 
   const choiceItems = generateChoiceItemsFromAggregations({
     question: mergedData,
-    selectedSubQuestionOption: null,
+    selectedSubQuestionOption,
     tooltips: tooltips as unknown as V1AggregationTooltip[],
   }).map((item) => ({
     ...item,
@@ -161,25 +173,25 @@ export default function AggregationGraphPanel({
         />
       </div>
 
-      {isNumericType && (
-        <div className="mt-3 flex items-center gap-2 text-xs text-gray-600 dark:text-gray-600-dark">
-          <span>Distribution view:</span>
-          <InlineSelect<ContinuousAreaGraphType>
-            options={[
+      <div className="mt-4 flex flex-row items-start justify-between gap-2">
+        <h2 className="my-0 text-xs font-semibold uppercase leading-none tracking-wide text-gray-700 dark:text-gray-700-dark">
+          {isNumericType ? "Distribution Views" : "Histogram Views"}
+        </h2>
+        {isNumericType && (
+          <ButtonGroup<ContinuousAreaGraphType>
+            value={graphType}
+            buttons={[
               { label: t("pdfLabel"), value: "pmf" },
               { label: t("cdfLabel"), value: "cdf" },
             ]}
-            defaultValue={graphType}
-            className="appearance-none border-none !p-0 text-xs"
-            onChange={(e) =>
-              setGraphType(e.target.value as ContinuousAreaGraphType)
-            }
+            onChange={(value) => void setGraphType(value)}
+            className="!px-2 !py-0.5 !text-xs"
+            activeClassName="!px-2 !py-0.5 !text-xs"
           />
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Per-method stats grid */}
-      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-1 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {methods.map((method) => {
           const choiceItem = choiceItems.find(
             (item) =>
@@ -210,9 +222,11 @@ export default function AggregationGraphPanel({
             ? aggregation.history.at(-1)?.forecaster_count ?? 0
             : forecast.forecaster_count ?? 0;
           const center =
-            forecast.centers?.[0] ?? forecast.forecast_values?.[1] ?? 0;
-          const intervalLower = forecast.interval_lower_bounds?.[0];
-          const intervalUpper = forecast.interval_upper_bounds?.[0];
+            forecast.centers?.[optionIndex] ??
+            forecast.forecast_values?.[1] ??
+            0;
+          const intervalLower = forecast.interval_lower_bounds?.[optionIndex];
+          const intervalUpper = forecast.interval_upper_bounds?.[optionIndex];
 
           const predictionLabel = getPredictionDisplayValue(center, {
             questionType: mergedData.type,
@@ -276,6 +290,7 @@ export default function AggregationGraphPanel({
                     activeAggregation={aggregation}
                     selectedTimestamp={effectiveChartTimestamp}
                     questionData={mergedData}
+                    aggregationIndex={optionIndex}
                   />
                 )}
               </div>
