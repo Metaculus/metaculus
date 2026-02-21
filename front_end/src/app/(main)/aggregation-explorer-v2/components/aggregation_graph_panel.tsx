@@ -46,6 +46,7 @@ type Props = {
   isAnyPending: boolean;
   hasAnyError: boolean;
   hoveredId: string | null;
+  onHoverOption?: (id: string | null) => void;
   colorById: Map<string, AggregationTooltip["color"]>;
   selectedSubQuestionOption: string | number | null;
   optionIndex: number;
@@ -63,6 +64,7 @@ export default function AggregationGraphPanel({
   isAnyPending,
   hasAnyError,
   hoveredId,
+  onHoverOption,
   colorById,
   selectedSubQuestionOption,
   optionIndex,
@@ -98,7 +100,7 @@ export default function AggregationGraphPanel({
     return (
       <div>
         <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-700-dark">
-          Graph
+          Timeline
         </h2>
         <div
           className={`mt-1 rounded-xl border p-8 text-sm ${borderClass} ${textClass}`}
@@ -153,7 +155,7 @@ export default function AggregationGraphPanel({
         Graph
       </h2>
 
-      <div className="rounded-md border border-gray-300 bg-white p-4 dark:border-gray-500-dark dark:bg-blue-950">
+      <div className="rounded-md bg-white p-4 dark:border dark:border-gray-500-dark dark:bg-blue-950">
         <GroupChart
           timestamps={timestamps}
           actualCloseTime={actualCloseTime}
@@ -173,7 +175,7 @@ export default function AggregationGraphPanel({
         />
       </div>
 
-      <div className="mt-4 flex flex-row items-start justify-between gap-2">
+      <div className="my-4 flex flex-row items-center justify-between gap-2">
         <h2 className="my-0 text-xs font-semibold uppercase leading-none tracking-wide text-gray-700 dark:text-gray-700-dark">
           {isNumericType ? "Distribution Views" : "Histogram Views"}
         </h2>
@@ -244,7 +246,9 @@ export default function AggregationGraphPanel({
           return (
             <div
               key={method.id}
-              className="rounded-md border border-gray-200 bg-white p-3 dark:border-gray-600 dark:bg-blue-950"
+              className="rounded-md bg-white p-3 dark:border dark:border-gray-600 dark:bg-blue-950"
+              onMouseEnter={() => onHoverOption?.(method.id)}
+              onMouseLeave={() => onHoverOption?.(null)}
             >
               <div className="flex items-start justify-between gap-2 text-xs text-gray-800 dark:text-gray-200">
                 <AggregationLabel

@@ -242,6 +242,7 @@ export default function AggregationExplorerLoadedView({ postData }: Props) {
                 isAnyPending={isAnyPending}
                 hasAnyError={hasAnyError}
                 hoveredId={hoveredId}
+                onHoverOption={setHoveredId}
                 colorById={activeColorById}
                 selectedSubQuestionOption={selectedSubQuestionOption}
                 optionIndex={optionIndex}

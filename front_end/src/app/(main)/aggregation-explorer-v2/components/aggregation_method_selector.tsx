@@ -7,7 +7,10 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 
+import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import Switch from "@/components/ui/switch";
+import { useAuth } from "@/contexts/auth_context";
 
 import AggregationLabel from "./aggregation_label";
 import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
@@ -16,6 +19,7 @@ import { AggregationExtraMethod } from "../types";
 
 type AggregationFormMode =
   | "recency_weighted"
+  | "cohort"
   | "unweighted"
   | "single_aggregation"
   | "metaculus_prediction"
@@ -53,24 +57,25 @@ export default function AggregationMethodSelector({
   onAddConfigured,
   defaultIncludeBots = false,
 }: Props) {
+  const { user } = useAuth();
+  const isStaff = !!user?.is_staff;
+
   const [selectedMode, setSelectedMode] =
     useState<AggregationFormMode>("recency_weighted");
   const [includeBots, setIncludeBots] = useState(defaultIncludeBots);
   const [medalistTier, setMedalistTier] = useState<"all" | "silver" | "gold">(
     "all"
   );
-  const [cohortFilter, setCohortFilter] = useState<"none" | "joined_before">(
-    "none"
-  );
   const [joinedBeforeDate, setJoinedBeforeDate] = useState("");
+  const [userFilterEnabled, setUserFilterEnabled] = useState(false);
   const [userIdsText, setUserIdsText] = useState("");
 
   const resolvedOptionId: V2AggregationOptionId = (() => {
     switch (selectedMode) {
       case "recency_weighted":
-        return cohortFilter === "joined_before" && joinedBeforeDate.trim()
-          ? AggregationExtraMethod.joined_before_date
-          : AggregationExtraMethod.recency_weighted;
+        return AggregationExtraMethod.recency_weighted;
+      case "cohort":
+        return AggregationExtraMethod.joined_before_date;
       case "unweighted":
         return AggregationExtraMethod.unweighted;
       case "single_aggregation":
@@ -101,8 +106,7 @@ export default function AggregationMethodSelector({
     .map((value) => Number(value.trim()))
     .filter((value) => Number.isInteger(value) && value > 0);
 
-  const needsJoinedBeforeDate =
-    selectedMode === "recency_weighted" && cohortFilter === "joined_before";
+  const needsJoinedBeforeDate = selectedMode === "cohort";
   const canAddConfigured = !needsJoinedBeforeDate || !!joinedBeforeDate.trim();
 
   return (
@@ -197,43 +201,26 @@ export default function AggregationMethodSelector({
         </h2>
 
         <div className="rounded-md border border-gray-300 bg-gray-0 p-3 dark:border-gray-500-dark dark:bg-gray-0-dark">
-          <label className="block text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
-            Aggregation mode
-          </label>
           <select
-            className="mt-1 w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-sm dark:border-gray-600 dark:bg-blue-950 dark:text-gray-200"
+            className="mt-1 w-full cursor-pointer appearance-none rounded-md border border-gray-300 bg-gray-0 bg-[length:16px] bg-[right_8px_center] bg-no-repeat px-3 py-2 pr-8 text-sm text-gray-900 shadow-sm transition-colors hover:border-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-0-dark dark:text-gray-200 dark:hover:border-gray-500 dark:focus:border-blue-400 dark:focus:ring-blue-400"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z'/%3E%3C/svg%3E")`,
+            }}
             value={selectedMode}
             onChange={(e) =>
               setSelectedMode(e.target.value as AggregationFormMode)
             }
-            onFocus={() => onHoverOption?.(resolvedOptionId)}
-            onBlur={() => onHoverOption?.(null)}
           >
             <option value="recency_weighted">Recency weighted</option>
+            <option value="cohort">Cohort (joined before date)</option>
             <option value="unweighted">Unweighted</option>
             <option value="metaculus_prediction">Metaculus prediction</option>
-            <option value="single_aggregation">Single aggregation</option>
+            {isStaff && (
+              <option value="single_aggregation">Single aggregation</option>
+            )}
             <option value="metaculus_pros">Metaculus Pros</option>
             <option value="medalists">Medalists</option>
           </select>
-
-          {selectedMode === "recency_weighted" && (
-            <>
-              <label className="mt-3 block text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
-                Cohort filter
-              </label>
-              <select
-                className="mt-1 w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-sm dark:border-gray-600 dark:bg-blue-950 dark:text-gray-200"
-                value={cohortFilter}
-                onChange={(e) =>
-                  setCohortFilter(e.target.value as "none" | "joined_before")
-                }
-              >
-                <option value="none">None</option>
-                <option value="joined_before">Joined before date</option>
-              </select>
-            </>
-          )}
 
           {needsJoinedBeforeDate && (
             <>
@@ -255,7 +242,10 @@ export default function AggregationMethodSelector({
                 Medal tier
               </label>
               <select
-                className="mt-1 w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-sm dark:border-gray-600 dark:bg-blue-950 dark:text-gray-200"
+                className="mt-1 w-full cursor-pointer appearance-none rounded-md border border-gray-300 bg-gray-0 bg-[length:16px] bg-[right_8px_center] bg-no-repeat px-3 py-2 pr-8 text-sm text-gray-900 shadow-sm transition-colors hover:border-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-0-dark dark:text-gray-200 dark:hover:border-gray-500 dark:focus:border-blue-400 dark:focus:ring-blue-400"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z'/%3E%3C/svg%3E")`,
+                }}
                 value={medalistTier}
                 onChange={(e) =>
                   setMedalistTier(e.target.value as "all" | "silver" | "gold")
@@ -269,39 +259,39 @@ export default function AggregationMethodSelector({
           )}
 
           {showBotToggle && (
-            <>
-              <label className="mt-3 block text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
-                Bots
+            <div className="mt-3 flex items-center justify-between">
+              <label className="text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
+                Include bots
               </label>
-              <select
-                className="mt-1 w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-sm dark:border-gray-600 dark:bg-blue-950 dark:text-gray-200"
-                value={includeBots ? "include" : "exclude"}
-                onChange={(e) => setIncludeBots(e.target.value === "include")}
-              >
-                <option value="exclude">Exclude bots</option>
-                <option value="include">Include bots</option>
-              </select>
-            </>
+              <Switch checked={includeBots} onChange={setIncludeBots} />
+            </div>
           )}
 
-          {showUserIds && (
-            <>
-              <label className="mt-3 block text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
-                User IDs (comma separated)
-              </label>
-              <input
-                type="text"
-                value={userIdsText}
-                onChange={(e) => setUserIdsText(e.target.value)}
-                placeholder="123, 456, 789"
-                className="mt-1 w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-sm dark:border-gray-600 dark:bg-blue-950 dark:text-gray-200"
-              />
-            </>
+          {showUserIds && isStaff && (
+            <div className="mt-3">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
+                  Filter by users
+                </label>
+                <Switch
+                  checked={userFilterEnabled}
+                  onChange={setUserFilterEnabled}
+                />
+              </div>
+              {userFilterEnabled && (
+                <input
+                  type="text"
+                  value={userIdsText}
+                  onChange={(e) => setUserIdsText(e.target.value)}
+                  placeholder="User IDs (comma separated)"
+                  className="mt-1.5 w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-sm dark:border-gray-600 dark:bg-blue-950 dark:text-gray-200"
+                />
+              )}
+            </div>
           )}
 
-          <button
-            type="button"
-            className="mt-3 w-full rounded-md border border-blue-600 bg-blue-100 px-3 py-2 text-sm font-medium text-blue-900 transition hover:bg-blue-200 disabled:cursor-not-allowed disabled:opacity-50 dark:border-blue-400 dark:bg-blue-900/20 dark:text-blue-200"
+          <Button
+            className="mt-3 w-full"
             disabled={!canAddConfigured}
             onClick={() => {
               onAddConfigured({
@@ -310,7 +300,10 @@ export default function AggregationMethodSelector({
                   ? joinedBeforeDate
                   : undefined,
                 userIds:
-                  showUserIds && parsedUserIds.length
+                  showUserIds &&
+                  isStaff &&
+                  userFilterEnabled &&
+                  parsedUserIds.length
                     ? parsedUserIds
                     : undefined,
                 includeBots: showBotToggle ? includeBots : undefined,
@@ -318,7 +311,7 @@ export default function AggregationMethodSelector({
             }}
           >
             Add aggregation
-          </button>
+          </Button>
         </div>
       </div>
     </div>
