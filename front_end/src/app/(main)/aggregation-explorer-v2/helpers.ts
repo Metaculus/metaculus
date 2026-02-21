@@ -1,51 +1,15 @@
 import { uniq } from "lodash";
 
-import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
+import { METAC_COLORS } from "@/constants/colors";
 import { ChoiceItem } from "@/types/choices";
 import { QuestionType } from "@/types/question";
-import { CurrentUser } from "@/types/users";
 import { formatResolution } from "@/utils/formatters/resolution";
 
-import { AGGREGATION_EXPLORER_OPTIONS } from "./constants";
 import {
-  AggregationExtraMethod,
   AggregationExtraQuestion,
   AggregationsExtra,
   AggregationTooltip,
 } from "./types";
-
-export function generateAggregationTooltips(
-  user: CurrentUser | null,
-  joinedBeforeDate?: string
-): AggregationTooltip[] {
-  return AGGREGATION_EXPLORER_OPTIONS.filter((option) => {
-    if (option.isStaffOnly && (!user || !user.is_staff)) {
-      return false;
-    }
-    if (
-      option.id === AggregationExtraMethod.joined_before_date &&
-      !joinedBeforeDate
-    ) {
-      return false;
-    }
-    return true;
-  }).map((AggregationOption, index) => {
-    const baseLabel = AggregationOption.label;
-    const label =
-      AggregationOption.id === AggregationExtraMethod.joined_before_date &&
-      joinedBeforeDate
-        ? `Only Users who joined before ${joinedBeforeDate}`
-        : baseLabel;
-
-    return {
-      aggregationMethod: AggregationOption.value,
-      choice: AggregationOption.id,
-      label,
-      includeBots: AggregationOption.includeBots,
-      color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-    };
-  });
-}
 
 export function generateChoiceItemsFromAggregations({
   question,
@@ -59,9 +23,8 @@ export function generateChoiceItemsFromAggregations({
   locale?: string;
 }): ChoiceItem[] {
   const choiceItems: ChoiceItem[] = [];
-  const aggregations = question.aggregations;
   parseAggregationData({
-    aggregations,
+    aggregations: question.aggregations,
     choiceItems,
     question,
     locale,
@@ -83,13 +46,12 @@ function parseAggregationData({
   choiceItems: ChoiceItem[];
   question: AggregationExtraQuestion;
   locale?: string;
-  isBot?: boolean;
   tooltips: AggregationTooltip[];
   selectedSubQuestionOption: number | string | null;
 }) {
   for (const [key, aggregation] of Object.entries(aggregations)) {
     if (!aggregation) continue;
-    const tooltip = tooltips.find((tooltip) => tooltip.choice == key);
+    const tooltip = tooltips.find((t) => t.choice == key);
 
     if (!aggregation?.history) {
       continue;
@@ -216,9 +178,9 @@ function parseAggregationData({
       userTimestamps: [],
       userValues: userValues,
       userMinValues:
-        question.type === QuestionType.Binary ? undefined : userMinValues, // used in continuous group questions
+        question.type === QuestionType.Binary ? undefined : userMinValues,
       userMaxValues:
-        question.type === QuestionType.Binary ? undefined : userMaxValues, // used in continuous group questions
+        question.type === QuestionType.Binary ? undefined : userMaxValues,
     });
   }
 }

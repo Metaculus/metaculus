@@ -5,7 +5,7 @@ import {
   faTriangleExclamation,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useState } from "react";
+import { ComponentProps, useState } from "react";
 
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
@@ -26,17 +26,50 @@ type AggregationFormMode =
   | "metaculus_pros"
   | "medalists";
 
+const CHEVRON_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z'/%3E%3C/svg%3E")`;
+const SELECT_CLASS_NAME =
+  "mt-1 w-full cursor-pointer appearance-none rounded-md border border-gray-300 bg-gray-0 bg-[length:16px] bg-[right_8px_center] bg-no-repeat px-3 py-2 pr-8 text-sm text-gray-900 shadow-sm transition-colors hover:border-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-0-dark dark:text-gray-200 dark:hover:border-gray-500 dark:focus:border-blue-400 dark:focus:ring-blue-400";
+const SELECT_STYLE = { backgroundImage: CHEVRON_SVG } as const;
+
+function StyledSelect(props: ComponentProps<"select">) {
+  return (
+    <select
+      {...props}
+      className={`${SELECT_CLASS_NAME} ${props.className ?? ""}`}
+      style={{ ...SELECT_STYLE, ...props.style }}
+    />
+  );
+}
+
+const MODE_TO_OPTION_ID: Record<AggregationFormMode, AggregationExtraMethod> = {
+  recency_weighted: AggregationExtraMethod.recency_weighted,
+  cohort: AggregationExtraMethod.joined_before_date,
+  unweighted: AggregationExtraMethod.unweighted,
+  single_aggregation: AggregationExtraMethod.single_aggregation,
+  metaculus_prediction: AggregationExtraMethod.metaculus_prediction,
+  metaculus_pros: AggregationExtraMethod.metaculus_pros,
+  medalists: AggregationExtraMethod.medalists,
+};
+
+const MEDALIST_TIER_TO_OPTION_ID: Record<string, AggregationExtraMethod> = {
+  gold: AggregationExtraMethod.gold_medalists,
+  silver: AggregationExtraMethod.silver_medalists,
+  all: AggregationExtraMethod.medalists,
+};
+
+export type AggregationListItem = {
+  id: string;
+  label: string;
+  chips: string[];
+  enabled: boolean;
+  activeColor?: string;
+  isLoading?: boolean;
+  isError?: boolean;
+  isNoData?: boolean;
+};
+
 type Props = {
-  listItems: {
-    id: string;
-    label: string;
-    chips: string[];
-    enabled: boolean;
-    activeColor?: string;
-    isLoading?: boolean;
-    isError?: boolean;
-    isNoData?: boolean;
-  }[];
+  listItems: AggregationListItem[];
   onToggleEnabled: (id: string) => void;
   onRemoveSelected: (id: string) => void;
   onHoverOption?: (id: string | null) => void;
@@ -70,30 +103,11 @@ export default function AggregationMethodSelector({
   const [userFilterEnabled, setUserFilterEnabled] = useState(false);
   const [userIdsText, setUserIdsText] = useState("");
 
-  const resolvedOptionId: V2AggregationOptionId = (() => {
-    switch (selectedMode) {
-      case "recency_weighted":
-        return AggregationExtraMethod.recency_weighted;
-      case "cohort":
-        return AggregationExtraMethod.joined_before_date;
-      case "unweighted":
-        return AggregationExtraMethod.unweighted;
-      case "single_aggregation":
-        return AggregationExtraMethod.single_aggregation;
-      case "metaculus_prediction":
-        return AggregationExtraMethod.metaculus_prediction;
-      case "metaculus_pros":
-        return AggregationExtraMethod.metaculus_pros;
-      case "medalists":
-        if (medalistTier === "gold") {
-          return AggregationExtraMethod.gold_medalists;
-        }
-        if (medalistTier === "silver") {
-          return AggregationExtraMethod.silver_medalists;
-        }
-        return AggregationExtraMethod.medalists;
-    }
-  })();
+  const resolvedOptionId: V2AggregationOptionId =
+    selectedMode === "medalists"
+      ? MEDALIST_TIER_TO_OPTION_ID[medalistTier] ??
+        AggregationExtraMethod.medalists
+      : MODE_TO_OPTION_ID[selectedMode];
 
   const selectedOption = AGGREGATION_EXPLORER_OPTIONS.find(
     (o) => o.id === resolvedOptionId
@@ -111,101 +125,20 @@ export default function AggregationMethodSelector({
 
   return (
     <div className="space-y-6">
-      {/* Active aggregations card */}
-      <div className="">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-700-dark">
-          Aggregations
-        </h2>
-        {listItems.length ? (
-          <div className="mt-2 divide-y divide-gray-200 overflow-hidden rounded-md border border-gray-300 dark:divide-gray-600 dark:border-gray-600">
-            {listItems.map((item) => (
-              <div
-                key={item.id}
-                className="flex cursor-pointer items-start gap-1.5 bg-white px-2 py-1.5 text-xs transition hover:bg-gray-100 dark:bg-blue-950 dark:text-gray-200 dark:hover:bg-blue-900/40"
-                onMouseEnter={() => onHoverOption?.(item.id)}
-                onMouseLeave={() => onHoverOption?.(null)}
-                onClick={() => onToggleEnabled(item.id)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    onToggleEnabled(item.id);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
-                aria-label={
-                  item.enabled ? "Hide aggregation" : "Show aggregation"
-                }
-                aria-pressed={item.enabled}
-              >
-                <span
-                  className="inline-flex w-4 shrink-0 items-center justify-center self-start pt-0.5"
-                  style={
-                    item.enabled &&
-                    item.activeColor &&
-                    !item.isError &&
-                    !item.isNoData
-                      ? { color: item.activeColor }
-                      : undefined
-                  }
-                >
-                  {item.isLoading ? (
-                    <LoadingIndicator className="h-3 w-3" />
-                  ) : item.isError || item.isNoData ? (
-                    <FontAwesomeIcon
-                      icon={faTriangleExclamation}
-                      className="text-orange-500 dark:text-orange-400"
-                    />
-                  ) : (
-                    <FontAwesomeIcon
-                      icon={item.enabled ? faEye : faEyeSlash}
-                      className={
-                        !item.enabled
-                          ? "text-gray-400 dark:text-gray-500"
-                          : undefined
-                      }
-                    />
-                  )}
-                </span>
-                <AggregationLabel
-                  label={item.label}
-                  chips={item.chips}
-                  strikethrough={!item.enabled}
-                  warning={item.isError || item.isNoData}
-                />
-                <button
-                  type="button"
-                  className="shrink-0 self-start px-1 pt-0.5 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemoveSelected(item.id);
-                  }}
-                  aria-label="Remove aggregation"
-                >
-                  <FontAwesomeIcon icon={faTrash} />
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="mt-2 text-xs text-gray-600 dark:text-gray-600-dark">
-            No aggregations selected yet.
-          </p>
-        )}
-      </div>
+      <ActiveAggregationsList
+        listItems={listItems}
+        onToggleEnabled={onToggleEnabled}
+        onRemoveSelected={onRemoveSelected}
+        onHoverOption={onHoverOption}
+      />
 
-      {/* Add aggregation card */}
-      <div className="">
+      <div>
         <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-700-dark">
           Add aggregation
         </h2>
 
         <div className="rounded-md border border-gray-300 bg-gray-0 p-3 dark:border-gray-500-dark dark:bg-gray-0-dark">
-          <select
-            className="mt-1 w-full cursor-pointer appearance-none rounded-md border border-gray-300 bg-gray-0 bg-[length:16px] bg-[right_8px_center] bg-no-repeat px-3 py-2 pr-8 text-sm text-gray-900 shadow-sm transition-colors hover:border-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-0-dark dark:text-gray-200 dark:hover:border-gray-500 dark:focus:border-blue-400 dark:focus:ring-blue-400"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z'/%3E%3C/svg%3E")`,
-            }}
+          <StyledSelect
             value={selectedMode}
             onChange={(e) =>
               setSelectedMode(e.target.value as AggregationFormMode)
@@ -215,14 +148,14 @@ export default function AggregationMethodSelector({
             <option value="cohort">Cohort (joined before date)</option>
             <option value="unweighted">Unweighted</option>
             <option value="metaculus_prediction">Metaculus prediction</option>
-            {isStaff && (
+            {isStaff ? (
               <option value="single_aggregation">Single aggregation</option>
-            )}
+            ) : null}
             <option value="metaculus_pros">Metaculus Pros</option>
             <option value="medalists">Medalists</option>
-          </select>
+          </StyledSelect>
 
-          {needsJoinedBeforeDate && (
+          {needsJoinedBeforeDate ? (
             <>
               <label className="mt-3 block text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
                 Joined before date
@@ -234,18 +167,14 @@ export default function AggregationMethodSelector({
                 className="mt-1 w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-sm dark:border-gray-600 dark:bg-blue-950 dark:text-gray-200"
               />
             </>
-          )}
+          ) : null}
 
-          {selectedMode === "medalists" && (
+          {selectedMode === "medalists" ? (
             <>
               <label className="mt-3 block text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
                 Medal tier
               </label>
-              <select
-                className="mt-1 w-full cursor-pointer appearance-none rounded-md border border-gray-300 bg-gray-0 bg-[length:16px] bg-[right_8px_center] bg-no-repeat px-3 py-2 pr-8 text-sm text-gray-900 shadow-sm transition-colors hover:border-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-0-dark dark:text-gray-200 dark:hover:border-gray-500 dark:focus:border-blue-400 dark:focus:ring-blue-400"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z'/%3E%3C/svg%3E")`,
-                }}
+              <StyledSelect
                 value={medalistTier}
                 onChange={(e) =>
                   setMedalistTier(e.target.value as "all" | "silver" | "gold")
@@ -254,20 +183,20 @@ export default function AggregationMethodSelector({
                 <option value="all">All medals</option>
                 <option value="silver">Silver and gold</option>
                 <option value="gold">Gold only</option>
-              </select>
+              </StyledSelect>
             </>
-          )}
+          ) : null}
 
-          {showBotToggle && (
+          {showBotToggle ? (
             <div className="mt-3 flex items-center justify-between">
               <label className="text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
                 Include bots
               </label>
               <Switch checked={includeBots} onChange={setIncludeBots} />
             </div>
-          )}
+          ) : null}
 
-          {showUserIds && isStaff && (
+          {showUserIds && isStaff ? (
             <div className="mt-3">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
@@ -278,7 +207,7 @@ export default function AggregationMethodSelector({
                   onChange={setUserFilterEnabled}
                 />
               </div>
-              {userFilterEnabled && (
+              {userFilterEnabled ? (
                 <input
                   type="text"
                   value={userIdsText}
@@ -286,9 +215,9 @@ export default function AggregationMethodSelector({
                   placeholder="User IDs (comma separated)"
                   className="mt-1.5 w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-sm dark:border-gray-600 dark:bg-blue-950 dark:text-gray-200"
                 />
-              )}
+              ) : null}
             </div>
-          )}
+          ) : null}
 
           <Button
             className="mt-3 w-full"
@@ -314,6 +243,116 @@ export default function AggregationMethodSelector({
           </Button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ActiveAggregationsList({
+  listItems,
+  onToggleEnabled,
+  onRemoveSelected,
+  onHoverOption,
+}: Pick<
+  Props,
+  "listItems" | "onToggleEnabled" | "onRemoveSelected" | "onHoverOption"
+>) {
+  return (
+    <div>
+      <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-700-dark">
+        Aggregations
+      </h2>
+      {listItems.length > 0 ? (
+        <div className="mt-2 divide-y divide-gray-200 overflow-hidden rounded-md border border-gray-300 dark:divide-gray-600 dark:border-gray-600">
+          {listItems.map((item) => (
+            <AggregationListRow
+              key={item.id}
+              item={item}
+              onToggle={() => onToggleEnabled(item.id)}
+              onRemove={() => onRemoveSelected(item.id)}
+              onMouseEnter={() => onHoverOption?.(item.id)}
+              onMouseLeave={() => onHoverOption?.(null)}
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="mt-2 text-xs text-gray-600 dark:text-gray-600-dark">
+          No aggregations selected yet.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function AggregationListRow({
+  item,
+  onToggle,
+  onRemove,
+  onMouseEnter,
+  onMouseLeave,
+}: {
+  item: AggregationListItem;
+  onToggle: () => void;
+  onRemove: () => void;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+}) {
+  const showActiveColor =
+    item.enabled && item.activeColor && !item.isError && !item.isNoData;
+
+  return (
+    <div
+      className="flex cursor-pointer items-start gap-1.5 bg-white px-2 py-1.5 text-xs transition hover:bg-gray-100 dark:bg-blue-950 dark:text-gray-200 dark:hover:bg-blue-900/40"
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onClick={onToggle}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onToggle();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={item.enabled ? "Hide aggregation" : "Show aggregation"}
+      aria-pressed={item.enabled}
+    >
+      <span
+        className="inline-flex w-4 shrink-0 items-center justify-center self-start pt-0.5"
+        style={showActiveColor ? { color: item.activeColor } : undefined}
+      >
+        {item.isLoading ? (
+          <LoadingIndicator className="h-3 w-3" />
+        ) : item.isError || item.isNoData ? (
+          <FontAwesomeIcon
+            icon={faTriangleExclamation}
+            className="text-orange-500 dark:text-orange-400"
+          />
+        ) : (
+          <FontAwesomeIcon
+            icon={item.enabled ? faEye : faEyeSlash}
+            className={
+              !item.enabled ? "text-gray-400 dark:text-gray-500" : undefined
+            }
+          />
+        )}
+      </span>
+      <AggregationLabel
+        label={item.label}
+        chips={item.chips}
+        strikethrough={!item.enabled}
+        warning={item.isError || item.isNoData}
+      />
+      <button
+        type="button"
+        className="shrink-0 self-start px-1 pt-0.5 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
+        aria-label="Remove aggregation"
+      >
+        <FontAwesomeIcon icon={faTrash} />
+      </button>
     </div>
   );
 }

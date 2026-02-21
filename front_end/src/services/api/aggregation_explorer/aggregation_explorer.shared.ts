@@ -1,4 +1,4 @@
-import { AggregationExtraQuestion } from "@/app/(main)/aggregation-explorer/types";
+import { AggregationExtraQuestion } from "@/app/(main)/aggregation-explorer-v2/types";
 import { ApiService } from "@/services/api/api_service";
 import { encodeQueryParams } from "@/utils/navigation";
 

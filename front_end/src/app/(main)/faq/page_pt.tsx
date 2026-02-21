@@ -3223,8 +3223,10 @@ M834 80h400000v40h-400000z"
           </h3>
           <p>
             A previsão do Metaculus só pode ser visualizada no{""}
-            <Link href="/aggregation-explorer/">Explorador de Agregação</Link>.
-            Está obsocada desde novembro de 2024, mas mostra um registro da
+            <Link href="/aggregation-explorer-v2/">
+              Explorador de Agregação
+            </Link>
+            . Está obsocada desde novembro de 2024, mas mostra um registro da
             melhor estimativa do sistema Metaculus sobre como uma questão será
             resolvida. É baseado em previsões de membros da comunidade, mas ao
             contrário da previsão da comunidade, não é uma média simples ou

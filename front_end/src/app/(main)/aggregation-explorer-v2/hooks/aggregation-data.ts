@@ -8,10 +8,12 @@ import ClientAggregationExplorerApi from "@/services/api/aggregation_explorer/ag
 import { AGGREGATION_EXPLORER_OPTIONS } from "../constants";
 import { AggregationExtraMethod, AggregationExtraQuestion } from "../types";
 
-export const V2_AGGREGATION_OPTIONS = AGGREGATION_EXPLORER_OPTIONS;
-
-export type V2AggregationOption = (typeof V2_AGGREGATION_OPTIONS)[number];
+export type V2AggregationOption = (typeof AGGREGATION_EXPLORER_OPTIONS)[number];
 export type V2AggregationOptionId = V2AggregationOption["id"];
+
+const OPTION_BY_ID = new Map(
+  AGGREGATION_EXPLORER_OPTIONS.map((o) => [o.id, o])
+);
 
 /**
  * Builds a stable unique key for a config from all its differentiating params.
@@ -77,9 +79,8 @@ function mergeAggregationPayloads(
     return null;
   }
 
-  // Merge one aggregation per response, keyed by config id (the chart series key).
   const mergedAggregations: Record<string, unknown> = {};
-  methodsWithData.forEach((method) => {
+  for (const method of methodsWithData) {
     const fetchedAggregation =
       method.data.aggregations?.[
         method.method as keyof typeof method.data.aggregations
@@ -87,7 +88,7 @@ function mergeAggregationPayloads(
     if (fetchedAggregation !== undefined && fetchedAggregation !== null) {
       mergedAggregations[method.id] = fetchedAggregation;
     }
-  });
+  }
 
   return {
     ...firstMethod.data,
@@ -146,12 +147,8 @@ export function useAggregationData({
   const selectedOptions = useMemo(
     () =>
       selectedConfigs.flatMap((config) => {
-        const option = V2_AGGREGATION_OPTIONS.find(
-          (item) => item.id === config.optionId
-        );
-        if (!option) {
-          return [];
-        }
+        const option = OPTION_BY_ID.get(config.optionId);
+        if (!option) return [];
         return { option, config };
       }),
     [selectedConfigs]
@@ -173,44 +170,44 @@ export function useAggregationData({
     })),
   });
 
-  const methods: AggregationQueryResult[] = selectedOptions.flatMap(
-    ({ option, config }, index) => {
-      const query = queries[index];
-      // Always run the query (keeps cache warm), but exclude disabled configs from output.
-      if (!query || config.enabled === false) {
-        return [];
-      }
+  const methods: AggregationQueryResult[] = useMemo(
+    () =>
+      selectedOptions.flatMap(({ option, config }, index) => {
+        const query = queries[index];
+        if (!query || config.enabled === false) return [];
 
-      const aggData = query.data?.aggregations?.[
-        option.value as keyof typeof query.data.aggregations
-      ] as { history?: unknown[] } | undefined;
-      const isNoData = query.isSuccess && !aggData?.history?.length;
+        const aggData = query.data?.aggregations?.[
+          option.value as keyof typeof query.data.aggregations
+        ] as { history?: unknown[] } | undefined;
+        const isNoData = query.isSuccess && !aggData?.history?.length;
 
-      return {
-        id: config.id,
-        label: buildDisplayLabel(option, config),
-        baseLabel: buildBaseLabel(option),
-        chips: buildChips(config),
-        method: option.value,
-        includeBots: !!config.includeBots,
-        joinedBeforeDate: config.joinedBeforeDate,
-        isPending: query.isPending,
-        isError: query.isError,
-        isNoData,
-        errorMessage:
-          query.error instanceof Error
-            ? query.error.message
-            : query.isError
-              ? "Failed to load aggregation"
-              : null,
-        data: query.data,
-      };
-    }
+        return {
+          id: config.id,
+          label: buildDisplayLabel(option, config),
+          baseLabel: buildBaseLabel(option),
+          chips: buildChips(config),
+          method: option.value,
+          includeBots: !!config.includeBots,
+          joinedBeforeDate: config.joinedBeforeDate,
+          isPending: query.isPending,
+          isError: query.isError,
+          isNoData,
+          errorMessage:
+            query.error instanceof Error
+              ? query.error.message
+              : query.isError
+                ? "Failed to load aggregation"
+                : null,
+          data: query.data,
+        };
+      }),
+    [selectedOptions, queries]
   );
 
-  const mergedData = useMemo(() => {
-    return mergeAggregationPayloads(methods);
-  }, [methods]);
+  const mergedData = useMemo(
+    () => mergeAggregationPayloads(methods),
+    [methods]
+  );
 
   return {
     methods,

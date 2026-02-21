@@ -85,7 +85,7 @@ const useNavbarLinks = ({
         },
         aggregationExplorer: {
           label: t("aggregationExplorer"),
-          href: "/aggregation-explorer",
+          href: "/aggregation-explorer-v2",
         },
         aiBenchmark: {
           label: "FutureEval" + " " + t("aiBenchmark"),

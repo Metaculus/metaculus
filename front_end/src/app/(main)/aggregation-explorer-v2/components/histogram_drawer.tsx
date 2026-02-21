@@ -36,8 +36,7 @@ const HistogramDrawer: FC<Props> = ({
       y: value,
     }));
 
-    const median =
-      activeAggregation.history?.[timestampIndex]?.centers?.[idx];
+    const median = activeAggregation.history?.[timestampIndex]?.centers?.[idx];
     const mean = activeAggregation.history?.[timestampIndex]?.means?.[idx];
 
     return (
