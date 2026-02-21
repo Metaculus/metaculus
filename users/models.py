@@ -73,6 +73,32 @@ class User(TimeStampedModel, AbstractUser):
     prediction_expiration_percent = models.IntegerField(
         default=10, null=True, blank=True
     )
+    automatically_follow_on_predict = models.BooleanField(default=True)
+    # default follow notification settings - these follow values in PostSubscription
+    follow_notify_cp_change_threshold = models.FloatField(
+        null=True,
+        blank=True,
+        default=0.25,
+        help_text=(
+            "Jeffrey's divergence threshold for notifying user of forecasted CP changes."
+            "<br>Null means no default."
+            "<br>0.05 = small change"
+            "<br>0.25 = medium change"
+            "<br>0.6 = large change"
+        ),
+    )
+    follow_notify_comments_frequency = models.IntegerField(
+        null=True,
+        blank=True,
+        default=10,
+    )
+    follow_notify_milestone_step = models.FloatField(
+        null=True,
+        blank=True,
+        default=0.20,
+        help_text="Proportion of question lifetime to trigger notifications",
+    )
+    follow_notify_on_status_change = models.BooleanField(default=True)
 
     # Onboarding
     is_onboarding_complete = models.BooleanField(default=False)
