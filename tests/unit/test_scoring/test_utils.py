@@ -1,9 +1,9 @@
 import pytest  # noqa
 
 from projects.models import Project
-from scoring.constants import LeaderboardScoreTypes
+from scoring.constants import LeaderboardScoreTypes, ExclusionStatuses
 from scoring.models import Leaderboard, LeaderboardEntry, MedalExclusionRecord
-from scoring.utils import assign_prize_percentages, assign_ranks
+from scoring.utils import assign_prize_percentages_, assign_ranks_, assign_exclusions_
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_users.factories import factory_user
 
@@ -25,13 +25,13 @@ class TestScoringUtilsHelpers:
     )
     def test_prize_percentages(self, entry_takes, minimum_prize_percent, expected):
         entries = [LeaderboardEntry(take=take) for take in entry_takes]
-        assign_prize_percentages(entries, minimum_prize_percent)
+        assign_prize_percentages_(entries, minimum_prize_percent)
         for entry, expected_percent in zip(entries, expected):
             assert pytest.approx(entry.percent_prize, 1e-7) == expected_percent
 
     @pytest.mark.django_db
     @pytest.mark.parametrize(
-        "scores, user_props, exclusion_details, bot_status, expected",
+        "scores, user_props, exclusion_details, human_status, bot_status, expected",
         [
             (
                 [100, 90, 80, 70, 60],
@@ -43,39 +43,42 @@ class TestScoringUtilsHelpers:
                     {"is_bot": False},
                 ],
                 [
-                    {"user_index": 1, "show_anyway": True},
-                    {"user_index": 1, "show_anyway": False, "scope": "project"},
+                    {
+                        "user_index": 1,
+                        "exclusion_status": ExclusionStatuses.EXCLUDE_AND_SHOW,
+                    },
+                    {
+                        "user_index": 1,
+                        "exclusion_status": ExclusionStatuses.EXCLUDE,
+                        "scope": "project",
+                    },
                 ],
-                Project.BotLeaderboardStatus.EXCLUDE_AND_SHOW,
+                ExclusionStatuses.INCLUDE,
+                ExclusionStatuses.EXCLUDE_AND_SHOW,
                 [
                     {
                         "user_index": 0,
-                        "excluded": False,
-                        "show_when_excluded": False,
+                        "exclusion_status": ExclusionStatuses.INCLUDE,
                         "rank": 1,
                     },
                     {
                         "user_index": 1,
-                        "excluded": True,
-                        "show_when_excluded": False,
+                        "exclusion_status": ExclusionStatuses.EXCLUDE,
                         "rank": 2,
                     },
                     {
                         "user_index": 2,
-                        "excluded": True,
-                        "show_when_excluded": True,
+                        "exclusion_status": ExclusionStatuses.EXCLUDE_AND_SHOW,
                         "rank": 2,
                     },
                     {
                         "user_index": 3,
-                        "excluded": True,
-                        "show_when_excluded": False,
+                        "exclusion_status": ExclusionStatuses.EXCLUDE,
                         "rank": 2,
                     },
                     {
                         "user_index": 4,
-                        "excluded": False,
-                        "show_when_excluded": False,
+                        "exclusion_status": ExclusionStatuses.INCLUDE,
                         "rank": 2,
                     },
                 ],
@@ -89,45 +92,48 @@ class TestScoringUtilsHelpers:
                     {"is_bot": False},
                 ],
                 [
-                    {"user_index": 0, "show_anyway": True, "scope": "leaderboard"},
+                    {
+                        "user_index": 0,
+                        "exclusion_status": ExclusionStatuses.EXCLUDE_AND_SHOW,
+                        "scope": "leaderboard",
+                    },
                 ],
-                Project.BotLeaderboardStatus.BOTS_ONLY,
+                ExclusionStatuses.EXCLUDE,
+                ExclusionStatuses.INCLUDE,
                 [
                     {
                         "user_index": 0,
-                        "excluded": True,
-                        "show_when_excluded": False,
+                        "exclusion_status": ExclusionStatuses.EXCLUDE,
                         "rank": 1,
                     },
                     {
                         "user_index": 1,
-                        "excluded": False,
-                        "show_when_excluded": False,
+                        "exclusion_status": ExclusionStatuses.INCLUDE,
                         "rank": 1,
                     },
                     {
                         "user_index": 2,
-                        "excluded": True,
-                        "show_when_excluded": False,
+                        "exclusion_status": ExclusionStatuses.EXCLUDE,
                         "rank": 2,
                     },
                     {
                         "user_index": 3,
-                        "excluded": True,
-                        "show_when_excluded": False,
+                        "exclusion_status": ExclusionStatuses.EXCLUDE,
                         "rank": 2,
                     },
                 ],
             ),
         ],
     )
-    def test_assign_ranks_exclusions(
-        self, scores, user_props, exclusion_details, bot_status, expected
+    def test_assign_ranks__exclusions(
+        self, scores, user_props, exclusion_details, human_status, bot_status, expected
     ):
         project = factory_project(type=Project.ProjectTypes.TOURNAMENT)
         leaderboard = Leaderboard.objects.create(
             project=project,
             score_type=LeaderboardScoreTypes.PEER_TOURNAMENT,
+            human_exclusion_status=human_status,
+            bot_exclusion_status=bot_status,
         )
         users = [factory_user(**props) for props in user_props]
 
@@ -136,7 +142,9 @@ class TestScoringUtilsHelpers:
             MedalExclusionRecord.objects.create(
                 user=users[detail["user_index"]],
                 exclusion_type=MedalExclusionRecord.ExclusionTypes.OTHER,
-                show_anyway=detail.get("show_anyway", False),
+                exclusion_status=detail.get(
+                    "exclusion_status", ExclusionStatuses.EXCLUDE
+                ),
                 project=leaderboard.project if scope == "project" else None,
                 leaderboard=leaderboard if scope == "leaderboard" else None,
             )
@@ -145,12 +153,12 @@ class TestScoringUtilsHelpers:
             LeaderboardEntry(user=users[index], score=score)
             for index, score in enumerate(scores)
         ]
-        assign_ranks(entries, leaderboard, bot_status)
+        assign_exclusions_(entries, leaderboard)
+        assign_ranks_(entries, leaderboard)
 
         entries_by_user_id = {entry.user_id: entry for entry in entries}
         for expectation in expected:
             user = users[expectation["user_index"]]
             entry = entries_by_user_id[user.id]
-            assert entry.excluded is expectation["excluded"]
-            assert entry.show_when_excluded is expectation["show_when_excluded"]
+            assert entry.exclusion_status == expectation["exclusion_status"]
             assert entry.rank == expectation["rank"]

@@ -53,7 +53,7 @@ export type BotDetails = {
 
 export enum ExclusionStatuses {
   INCLUDE = 0,
-  EXCLUDE_PRIZE_AND_SHOW = 1,
+  EXCLUDE_PRIZE_ONLY = 1,
   EXCLUDE_AND_SHOW = 2,
   EXCLUDE_AND_SHOW_IN_ADVANCED = 3,
   EXCLUDE = 4,

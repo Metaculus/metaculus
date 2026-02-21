@@ -432,17 +432,10 @@ def generate_project_leaderboard(
     return generate_scoring_leaderboard_entries(questions, leaderboard)
 
 
-def assign_ranks(
+def assign_exclusions_(
     entries: list[LeaderboardEntry],
     leaderboard: Leaderboard,
-    bot_status: Project.BotLeaderboardStatus,
 ) -> list[LeaderboardEntry]:
-    RelativeLegacy = LeaderboardScoreTypes.RELATIVE_LEGACY_TOURNAMENT
-    if leaderboard.score_type == RelativeLegacy:
-        entries.sort(key=lambda entry: entry.take, reverse=True)
-    else:
-        entries.sort(key=lambda entry: entry.score, reverse=True)
-
     # set up exclusions
     exclusion_records = MedalExclusionRecord.objects.filter(
         (Q(project__isnull=True) & Q(leaderboard__isnull=True))
@@ -487,27 +480,33 @@ def assign_ranks(
         exclusion_statuses[exclusion.user_id] = max(
             exclusion_statuses[exclusion.user_id], exclusion.exclusion_status
         )
-    if bot_status == Project.BotLeaderboardStatus.BOTS_ONLY:
-        # don't display humans
-        for user in candidates.filter(is_bot=False):
-            exclusion_statuses[user.id] = ExclusionStatuses.EXCLUDE
-    if bot_status == Project.BotLeaderboardStatus.EXCLUDE_AND_SHOW:
-        # show all non-excluded bots
-        for user in candidates.filter(is_bot=True):
-            exclusion_statuses[user.id] = max(
-                exclusion_statuses[user.id],
-                ExclusionStatuses.EXCLUDE_AND_SHOW,
-            )
-    if bot_status == Project.BotLeaderboardStatus.INCLUDE:
-        # bots and humans are included, no action needed
-        pass
-    if bot_status == Project.BotLeaderboardStatus.EXCLUDE_AND_HIDE:
-        # don't show ANY bots
-        for user in candidates.filter(is_bot=True):
-            exclusion_statuses[user.id] = ExclusionStatuses.EXCLUDE
+    for human in candidates.filter(is_bot=False):
+        exclusion_statuses[human.id] = max(
+            exclusion_statuses[human.id],
+            leaderboard.human_exclusion_status,
+        )
+    for bot in candidates.filter(is_bot=True):
+        exclusion_statuses[bot.id] = max(
+            exclusion_statuses[bot.id],
+            leaderboard.bot_exclusion_status,
+        )
     # all non-primary bots are unconditionally excluded
     for user in candidates.filter(is_bot=True, is_primary_bot=False):
         exclusion_statuses[user.id] = ExclusionStatuses.EXCLUDE
+
+    for entry in entries:
+        entry.exclusion_status = exclusion_statuses[entry.user_id]
+
+
+def assign_ranks_(
+    entries: list[LeaderboardEntry],
+    leaderboard: Leaderboard,
+) -> list[LeaderboardEntry]:
+    RelativeLegacy = LeaderboardScoreTypes.RELATIVE_LEGACY_TOURNAMENT
+    if leaderboard.score_type == RelativeLegacy:
+        entries.sort(key=lambda entry: entry.take, reverse=True)
+    else:
+        entries.sort(key=lambda entry: entry.score, reverse=True)
 
     # set ranks
     rank = 1
@@ -521,14 +520,11 @@ def assign_ranks(
             if prev_entry and np.isclose(entry.score, prev_entry.score):
                 entry.rank = prev_entry.rank
         prev_entry = entry
-        entry.exclusion_status = exclusion_statuses[entry.user_id]
-        if entry.exclusion_status <= ExclusionStatuses.EXCLUDE_PRIZE_AND_SHOW:
+        if entry.exclusion_status <= ExclusionStatuses.EXCLUDE_PRIZE_ONLY:
             rank += 1
 
-    return entries
 
-
-def assign_prize_percentages(
+def assign_prize_percentages_(
     entries: list[LeaderboardEntry], minimum_prize_percent: float
 ) -> list[LeaderboardEntry]:
     # Distribute prize % according to take
@@ -550,10 +546,9 @@ def assign_prize_percentages(
     percent_prize_sum = sum(entry.percent_prize for entry in entries) or 1
     for entry in entries:
         entry.percent_prize /= percent_prize_sum
-    return entries
 
 
-def assign_medals(
+def assign_medals_(
     entries: list[LeaderboardEntry],
 ) -> list[LeaderboardEntry]:
     entries.sort(key=lambda entry: entry.rank)
@@ -574,7 +569,6 @@ def assign_medals(
             entry.medal = LeaderboardEntry.Medals.BRONZE
         else:
             break
-    return entries
 
 
 def calculate_medals_points_at_time(at_time):
@@ -750,28 +744,24 @@ def update_medal_points_and_ranks(at_time=None):
         )
 
 
-def assign_prizes(
+def assign_prizes_(
     entries: list[LeaderboardEntry], prize_pool: Decimal
 ) -> list[LeaderboardEntry]:
     included = [e for e in entries if e.exclusion_status == ExclusionStatuses.INCLUDE]
     for entry in included:
         entry.prize = float(prize_pool) * entry.percent_prize
-    return entries
 
 
-def process_entries_for_leaderboard(
+def process_entries_for_leaderboard_(
     entries: list[LeaderboardEntry],
     project: Project,
     leaderboard: Leaderboard,
     force_finalize: bool = False,
 ) -> list[LeaderboardEntry]:
+    # assign exclusions
+    assign_exclusions_(entries, leaderboard)
     # assign ranks - also applies exclusions
-    bot_status = leaderboard.bot_status or project.bot_leaderboard_status
-    entries = assign_ranks(
-        entries,
-        leaderboard,
-        bot_status=bot_status,
-    )
+    assign_ranks_(entries, leaderboard)
 
     # assign prize percentages
     prize_pool = (
@@ -782,10 +772,9 @@ def process_entries_for_leaderboard(
     minimum_prize_percent = (
         float(leaderboard.minimum_prize_amount) / float(prize_pool) if prize_pool else 0
     )
-    entries = assign_prize_percentages(entries, minimum_prize_percent)
+    assign_prize_percentages_(entries, minimum_prize_percent)
 
-    if prize_pool:  # always assign prizes
-        entries = assign_prizes(entries, prize_pool)
+    assign_prizes_(entries, prize_pool)
     # check if we're ready to finalize and assign medals/prizes if applicable
     finalize_time = leaderboard.finalize_time or (
         project.close_date if project else None
@@ -801,7 +790,7 @@ def process_entries_for_leaderboard(
             and project.default_permission == ObjectPermission.FORECASTER
             and project.visibility == Project.Visibility.NORMAL
         ):
-            entries = assign_medals(entries)
+            assign_medals_(entries)
         # always set finalize
         Leaderboard.objects.filter(pk=leaderboard.pk).update(finalized=True)
 
@@ -818,8 +807,6 @@ def process_entries_for_leaderboard(
     with transaction.atomic():
         leaderboard.entries.all().delete()
         LeaderboardEntry.objects.bulk_create(entries, batch_size=500)
-
-    return entries
 
 
 def update_project_leaderboard(
@@ -848,10 +835,10 @@ def update_project_leaderboard(
     new_entries = generate_project_leaderboard(project, leaderboard)
 
     # process entries
-    processed_entries = process_entries_for_leaderboard(
+    process_entries_for_leaderboard_(
         new_entries, project, leaderboard, force_finalize=force_finalize
     )
-    return processed_entries
+    return new_entries
 
 
 def update_leaderboard_from_csv_data(

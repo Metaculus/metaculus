@@ -69,7 +69,7 @@ const LeaderboardRow: FC<Props> = ({
         {
           "bg-purple-200 hover:bg-purple-300 dark:bg-purple-200-dark hover:dark:bg-purple-300-dark":
             !isUserRow &&
-            exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_AND_SHOW,
+            exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_ONLY,
         }
       )}
     >
@@ -87,7 +87,7 @@ const LeaderboardRow: FC<Props> = ({
             <>
               {!!medal && <MedalIcon type={medal} className="size-5" />}
               <span className="flex-1 text-center">
-                {exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_AND_SHOW ? (
+                {exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_ONLY ? (
                   <>
                     <ExcludedEntryTooltip />
                   </>

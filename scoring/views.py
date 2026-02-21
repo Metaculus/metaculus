@@ -154,15 +154,16 @@ def project_leaderboard_view(
         )
     else:
         entries = LeaderboardEntry.objects.none()
-    user = request.user
-    if not user.is_staff:
-        entries = entries.filter(Q(excluded=False) | Q(show_when_excluded=True))
+    user = request.user if request.user.is_authenticated else None
+    entries = entries.filter(
+        Q(exclusion_status__lte=ExclusionStatuses.EXCLUDE) | Q(user_id=user.id)
+    )
 
     entries_map = defaultdict(list)
     user_entry_map = dict()
     for entry in entries:
         entries_map[entry.leaderboard_id].append(entry)
-        if user.is_authenticated and entry.user == user:
+        if user and entry.user == user:
             user_entry_map[entry.leaderboard_id] = entry
     for lb_data in leaderboard_data:
         lb_id = lb_data["id"]

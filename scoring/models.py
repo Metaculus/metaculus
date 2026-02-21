@@ -6,20 +6,17 @@ from django.db.models.query import QuerySet, Q
 from projects.models import Project
 from questions.models import Question
 from questions.types import AggregationMethod
-from scoring.constants import ScoreTypes, ArchivedScoreTypes, LeaderboardScoreTypes
+from scoring.constants import (
+    ScoreTypes,
+    ArchivedScoreTypes,
+    LeaderboardScoreTypes,
+    ExclusionStatuses,
+)
 from users.models import User
 from utils.models import TimeStampedModel
 
 GLOBAL_LEADERBOARD_STRING = "Leaderboard"
 GLOBAL_LEADERBOARD_SLUG = "leaderboard"
-
-
-class ExclusionStatuses(models.IntegerChoices):
-    INCLUDE = 0
-    EXCLUDE_PRIZE_AND_SHOW = 1
-    EXCLUDE_AND_SHOW = 2
-    EXCLUDE_AND_SHOW_IN_ADVANCED = 3
-    EXCLUDE = 4
 
 
 class Score(TimeStampedModel):
@@ -207,10 +204,8 @@ class Leaderboard(TimeStampedModel):
         Any remaining money is redistributed. Tournaments that close before June 2025 will have a value of 0.00.
         """,
     )
-    # TODO: deprecate this field in favor of bot_exclusion_status and
-    # human_exclusion_status which use the ExclusionStatuses enum instead
-    # also remove bot_status from Project - keep it on leaderboard only to avoid
-    # duplicate logic
+
+    # TO BE DEPRECATED IN FAVOR OF bot_exclusion_status
     bot_status = models.CharField(
         max_length=32,
         choices=Project.BotLeaderboardStatus.choices,
@@ -218,6 +213,16 @@ class Leaderboard(TimeStampedModel):
         blank=True,
         help_text="""Optional. If not set, the Project's bot_leaderboard_status will be
         used instead. See Project for more details.""",
+    )
+    bot_exclusion_status = models.IntegerField(
+        choices=ExclusionStatuses.choices,
+        default=ExclusionStatuses.EXCLUDE_AND_SHOW,
+        help_text="This sets the default exclusion status for bots on this leaderboard.",
+    )
+    human_exclusion_status = models.IntegerField(
+        choices=ExclusionStatuses.choices,
+        default=ExclusionStatuses.INCLUDE,
+        help_text="This sets the default exclusion status for humans on this leaderboard.",
     )
     user_list = models.ManyToManyField(
         User,
@@ -373,7 +378,7 @@ class LeaderboardEntry(TimeStampedModel):
     exclusion_status = models.IntegerField(
         choices=ExclusionStatuses.choices,
         default=ExclusionStatuses.INCLUDE,
-        help_text="""This sets the exclusion status of this entry.
+        help_text="""This sets the minimum exclusion status for this user.
         </br>- (0) Include: shows entry & takes rank and prize.
         </br>- (1) Exclude Prize and Show: shows entry, takes rank, but excludes from prizes
         </br>- (2) Exclude and Show: shows entry, but excludes from rank and prizes

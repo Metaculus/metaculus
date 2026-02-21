@@ -41,7 +41,7 @@ const TableRow: FC<Props> = ({
   const t = useTranslations();
   const highlight =
     user?.id === userId ||
-    exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_AND_SHOW;
+    exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_ONLY;
   const coveragePercent = coverage
     ? maxCoverage
       ? ((coverage / maxCoverage) * 100).toFixed(1) + "%"
@@ -72,7 +72,7 @@ const TableRow: FC<Props> = ({
             )}
 
             <span className="flex-1 text-center">
-              {exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_AND_SHOW ? (
+              {exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_ONLY ? (
                 <>
                   <ExcludedEntryTooltip />
                 </>
