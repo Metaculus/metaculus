@@ -63,8 +63,8 @@ export const ParticipationSummary: React.FC<Props> = ({
     ? !isNil(userScores?.spot_peer_score)
       ? 1
       : 0
-    : (userScores?.coverage ?? 0);
-  const averageCoverage = isSpot ? 1 : (question.average_coverage ?? 0);
+    : userScores?.coverage ?? 0;
+  const averageCoverage = isSpot ? 1 : question.average_coverage ?? 0;
   const peerScoreKey = isSpot ? "spot_peer_score" : "peer_score";
   const baselineScoreKey = isSpot ? "spot_baseline_score" : "baseline_score";
 
