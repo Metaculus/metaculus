@@ -2,7 +2,7 @@
 # PR Preview Stale Cleanup
 # =============================================================================
 #
-# Runs weekly to cleanup stale previews.
+# Runs daily to cleanup stale previews.
 #
 # =============================================================================
 
