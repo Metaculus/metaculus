@@ -758,9 +758,7 @@ def process_entries_for_leaderboard_(
     leaderboard: Leaderboard,
     force_finalize: bool = False,
 ) -> list[LeaderboardEntry]:
-    # assign exclusions
     assign_exclusions_(entries, leaderboard)
-    # assign ranks - also applies exclusions
     assign_ranks_(entries, leaderboard)
 
     # assign prize percentages
