@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import GroupChart from "@/components/charts/group_chart";
 import ButtonGroup from "@/components/ui/button_group";
@@ -75,6 +75,47 @@ export default function AggregationGraphPanel({
     []
   );
 
+  const tooltips = useMemo<AggregationTooltip[]>(
+    () =>
+      methods.map((method) => ({
+        aggregationMethod: method.method,
+        choice: method.id,
+        label: method.label,
+        includeBots: method.includeBots,
+        color: colorById.get(method.id) ?? METAC_COLORS.gray["400"],
+      })),
+    [methods, colorById]
+  );
+
+  const baseChoiceItems = useMemo(() => {
+    if (!mergedData) return [];
+    return generateChoiceItemsFromAggregations({
+      question: mergedData,
+      selectedSubQuestionOption,
+      tooltips,
+    }).map((item) => ({
+      ...item,
+      resolution: null,
+      displayedResolution: null,
+    }));
+  }, [mergedData, selectedSubQuestionOption, tooltips]);
+
+  const timestamps = useMemo(() => {
+    if (!mergedData) return [];
+    const actualCloseTime = getPostDrivenTime(mergedData.actual_close_time);
+    const timestampSet = new Set<number>(
+      baseChoiceItems.flatMap((item) => item.aggregationTimestamps ?? [])
+    );
+    if (actualCloseTime) {
+      timestampSet.add(
+        Math.min(actualCloseTime / 1000, new Date().getTime() / 1000)
+      );
+    } else {
+      timestampSet.add(new Date().getTime() / 1000);
+    }
+    return [...timestampSet].sort((a, b) => a - b);
+  }, [mergedData, baseChoiceItems]);
+
   if (!methods.length || !mergedData) {
     if (!methods.length) {
       return (
@@ -100,22 +141,8 @@ export default function AggregationGraphPanel({
     );
   }
 
-  const tooltips: AggregationTooltip[] = methods.map((method) => ({
-    aggregationMethod: method.method,
-    choice: method.id,
-    label: method.label,
-    includeBots: method.includeBots,
-    color: colorById.get(method.id) ?? METAC_COLORS.gray["400"],
-  }));
-
-  const choiceItems = generateChoiceItemsFromAggregations({
-    question: mergedData,
-    selectedSubQuestionOption,
-    tooltips,
-  }).map((item) => ({
+  const choiceItems = baseChoiceItems.map((item) => ({
     ...item,
-    resolution: null,
-    displayedResolution: null,
     highlighted: hoveredId !== null && item.choice === hoveredId,
   }));
 
@@ -124,17 +151,6 @@ export default function AggregationGraphPanel({
   );
 
   const actualCloseTime = getPostDrivenTime(mergedData.actual_close_time);
-  const timestampSet = new Set<number>(
-    choiceItems.flatMap((item) => item.aggregationTimestamps ?? [])
-  );
-  if (actualCloseTime) {
-    timestampSet.add(
-      Math.min(actualCloseTime / 1000, new Date().getTime() / 1000)
-    );
-  } else {
-    timestampSet.add(new Date().getTime() / 1000);
-  }
-  const timestamps = [...timestampSet].sort((a, b) => a - b);
   const effectiveChartTimestamp = cursorTimestamp ?? timestamps.at(-1) ?? null;
 
   const isNumericType = NUMERIC_TYPES.has(mergedData.type);
