@@ -5,7 +5,11 @@ import { FC } from "react";
 
 import { useAuth } from "@/contexts/auth_context";
 import { useBreakpoint } from "@/hooks/tailwind";
-import { CategoryKey, LeaderboardDetails } from "@/types/scoring";
+import {
+  CategoryKey,
+  ExclusionStatuses,
+  LeaderboardDetails,
+} from "@/types/scoring";
 
 import LeaderboardRow, { UserLeaderboardRow } from "./table_row";
 import { RANKING_CATEGORIES } from "../../../ranking_categories";
@@ -85,11 +89,14 @@ const LeaderboardTable: FC<Props> = ({
           </tr>
           {!!entriesToDisplay.length ? (
             entriesToDisplay.map((entry) => {
-              // only show entries that are not excluded or if advanced mode is on
-              // or if the current user is staff
+              // only show entries that are not excluded
+              // or if current user is staff and exclusion status allows showing in advanced mode
+              const exclusionStatus = entry.exclusion_status;
               if (
-                entry.excluded &&
-                !(currentUser?.is_staff || entry.show_when_excluded)
+                exclusionStatus == ExclusionStatuses.EXCLUDE ||
+                (exclusionStatus ==
+                  ExclusionStatuses.EXCLUDE_AND_SHOW_IN_ADVANCED &&
+                  !currentUser?.is_staff)
               ) {
                 return null;
               }

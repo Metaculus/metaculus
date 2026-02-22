@@ -245,6 +245,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         blank=True,
     )
 
+    # TO BE DEPRECATED in favor of Leaderboard field
     class BotLeaderboardStatus(models.TextChoices):
         EXCLUDE_AND_HIDE = "exclude_and_hide"
         EXCLUDE_AND_SHOW = "exclude_and_show"
@@ -284,6 +285,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     )
 
     # Tournament-specific fields
+    # TO BE DEPRECATED in favor of Leaderboard field
     prize_pool = models.DecimalField(
         default=None, decimal_places=2, max_digits=15, null=True, blank=True
     )

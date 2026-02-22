@@ -16,7 +16,12 @@ from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
 from projects.views import get_projects_qs, get_project_permission_for_user
 from scoring.constants import LeaderboardScoreTypes
-from scoring.models import Leaderboard, LeaderboardEntry, LeaderboardsRanksEntry
+from scoring.models import (
+    Leaderboard,
+    LeaderboardEntry,
+    LeaderboardsRanksEntry,
+    ExclusionStatuses,
+)
 from scoring.serializers import (
     LeaderboardSerializer,
     LeaderboardEntrySerializer,
@@ -70,27 +75,23 @@ def global_leaderboard_view(
         entries = entries.filter(
             Q(medal__isnull=False)
             | Q(
-                rank__lte=max(3, np.ceil(entries.exclude(excluded=True).count() * 0.05))
+                rank__lte=max(
+                    3,
+                    np.ceil(
+                        entries.filter(
+                            exclusion_status=ExclusionStatuses.INCLUDE
+                        ).count()
+                        * 0.05
+                    ),
+                )
             )
-            | Q(user_id=user.id)
+            | (Q(user_id=user.id) if user.is_authenticated else Q())
         )
 
     if not user.is_staff:
-        bot_status: Project.BotLeaderboardStatus = leaderboard.bot_status or (
-            leaderboard.project.bot_leaderboard_status
-            if leaderboard.project
-            else Project.BotLeaderboardStatus.EXCLUDE_AND_SHOW
+        entries = entries.filter(
+            exclusion_status__lte=ExclusionStatuses.EXCLUDE_AND_SHOW_IN_ADVANCED
         )
-        if bot_status == Project.BotLeaderboardStatus.EXCLUDE_AND_SHOW:
-            entries = entries.filter(
-                Q(excluded=False)
-                | Q(aggregation_method__isnull=False)
-                | Q(user__is_bot=True)
-            )
-        else:
-            entries = entries.filter(
-                Q(excluded=False) | Q(aggregation_method__isnull=False)
-            )
 
     leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
     # add user entry
@@ -153,15 +154,17 @@ def project_leaderboard_view(
         )
     else:
         entries = LeaderboardEntry.objects.none()
-    user = request.user
-    if not user.is_staff:
-        entries = entries.filter(Q(excluded=False) | Q(show_when_excluded=True))
+    user = request.user if request.user.is_authenticated else None
+    entries = entries.filter(
+        Q(exclusion_status__lte=ExclusionStatuses.EXCLUDE)
+        | (Q(user_id=user.id) if user else Q())
+    )
 
     entries_map = defaultdict(list)
     user_entry_map = dict()
     for entry in entries:
         entries_map[entry.leaderboard_id].append(entry)
-        if user.is_authenticated and entry.user == user:
+        if user and entry.user == user:
             user_entry_map[entry.leaderboard_id] = entry
     for lb_data in leaderboard_data:
         lb_id = lb_data["id"]
@@ -272,7 +275,7 @@ def user_medals(
                 leaderboard_id__in=[
                     entry.leaderboard_id for entry in entries_with_medals
                 ],
-                excluded=False,
+                exclusion_status__lte=ExclusionStatuses.EXCLUDE_AND_SHOW_IN_ADVANCED,
             )
             .values("leaderboard_id")
             .annotate(total_entries=Count("id"))
