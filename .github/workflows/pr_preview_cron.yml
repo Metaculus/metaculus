@@ -1,16 +1,18 @@
 # =============================================================================
-# PR Preview Stale Cleanup
+# PR Preview Maintenance
 # =============================================================================
 #
-# Runs daily to cleanup stale previews.
+# Runs weekly to:
+# - Cleanup stale previews (closed PRs or PRs labeled "Stale")
+# - Redeploy active previews with a fresh database reset
 #
 # =============================================================================
 
-name: PR Preview Stale Cleanup
+name: PR Preview Maintenance
 
 on:
   schedule:
-    - cron: "30 0 * * *" # Every day at 00:30 UTC
+    - cron: "0 7 * * 0" # Every Sunday at 07:00 UTC
   workflow_dispatch:
 
 permissions:
@@ -19,6 +21,7 @@ permissions:
   actions: write
 
 env:
+  FLY_ORG: ${{ vars.FLY_ORG || 'personal' }}
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -37,8 +40,11 @@ jobs:
       - name: List preview apps and PR info
         id: matrix
         run: |
-          APPS_JSON=$(flyctl apps list --json 2>/dev/null || echo "[]")
-          PREVIEW_APPS=$(echo "$APPS_JSON" | jq -r '.[].Name | select(startswith("metaculus-pr-"))' 2>/dev/null || true)
+          echo "Listing Fly apps for org: ${FLY_ORG}"
+          APPS_JSON=$(flyctl apps list --json --org "${FLY_ORG}")
+          echo "Raw app count: $(echo "$APPS_JSON" | jq length)"
+
+          PREVIEW_APPS=$(echo "$APPS_JSON" | jq -r '.[].Name | select(startswith("metaculus-pr-"))')
 
           if [ -z "$PREVIEW_APPS" ]; then
             echo "previews=[]" >> $GITHUB_OUTPUT
@@ -53,7 +59,7 @@ jobs:
             PR_NUM=$(echo "$PREVIEW_ID" | sed -n 's/^pr-\([0-9]*\)-.*/\1/p')
             [ -z "$PR_NUM" ] && continue
 
-            PR_JSON=$(gh pr view "$PR_NUM" --json headRefName,labels,state 2>/dev/null || echo '{}')
+            PR_JSON=$(gh pr view "$PR_NUM" --repo "${{ github.repository }}" --json headRefName,labels,state 2>/dev/null || echo '{}')
             HEAD_REF=$(echo "$PR_JSON" | jq -r '.headRefName // ""')
             [ -z "$HEAD_REF" ] && continue
             PR_STATE=$(echo "$PR_JSON" | jq -r '.state // ""')
@@ -92,7 +98,29 @@ jobs:
         if: matrix.is_stale == true
         run: |
           gh workflow run pr_preview.yml \
+            --repo "${{ github.repository }}" \
             -f pr_number=${{ matrix.pr_number }} \
             -f action=cleanup \
             -f cleanup_reason=Stale
           echo "Triggered cleanup for PR #${{ matrix.pr_number }} (${{ matrix.app }})"
+
+  redeploy-active:
+    name: Redeploy Active Previews
+    needs: list-previews
+    if: needs.list-previews.outputs.previews != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.list-previews.outputs.previews) }}
+    steps:
+      - name: Trigger redeploy for active PR
+        if: matrix.is_stale == false
+        run: |
+          gh workflow run pr_preview.yml \
+            --repo "${{ github.repository }}" \
+            --ref "${{ matrix.head_ref }}" \
+            -f pr_number=${{ matrix.pr_number }} \
+            -f action=deploy \
+            -f reset_db=true
+          echo "Triggered redeploy with DB reset for PR #${{ matrix.pr_number }} (${{ matrix.app }})"
