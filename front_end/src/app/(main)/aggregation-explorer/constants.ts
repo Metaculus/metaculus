@@ -1,83 +1,79 @@
-import { AggregationMethod } from "@/types/question";
+import { AggregationMethod, AggregationOption } from "./types";
 
-import { AggregationExtraMethod, AggregationOption } from "./types";
-
-export const AGGREGATION_EXPLORER_OPTIONS: readonly [
-  AggregationOption,
-  ...AggregationOption[],
-] = [
+export const AGGREGATION_EXPLORER_OPTIONS: readonly AggregationOption[] = [
   {
-    id: AggregationExtraMethod.recency_weighted,
-    value: AggregationMethod.recency_weighted,
-    label: "Recency-weighted median (no bots)",
-    includeBots: false,
+    id: AggregationMethod.recency_weighted,
+    labelKey: "recencyWeighted",
+    supportsBotToggle: true,
+    supportsUserIds: true,
   },
   {
-    id: AggregationExtraMethod.unweighted,
-    value: AggregationMethod.unweighted,
-    label: "Unweighted median (no bots)",
-    includeBots: false,
+    id: AggregationMethod.joined_before_date,
+    labelKey: "cohortJoinedBeforeDate",
+    requiresDate: true,
+    supportsBotToggle: true,
+    supportsUserIds: true,
   },
   {
-    id: AggregationExtraMethod.single_aggregation,
-    value: AggregationMethod.single_aggregation,
-    label: "Single aggregation (no bots)",
-    includeBots: false,
+    id: AggregationMethod.unweighted,
+    labelKey: "unweighted",
+    supportsBotToggle: true,
+    supportsUserIds: true,
+  },
+  {
+    id: AggregationMethod.single_aggregation,
+    labelKey: "singleAggregationLabel",
     isStaffOnly: true,
+    supportsBotToggle: true,
+    supportsUserIds: true,
   },
   {
-    id: AggregationExtraMethod.metaculus_prediction,
-    value: AggregationMethod.metaculus_prediction,
-    label: "Metaculus prediction",
-    includeBots: false,
+    id: AggregationMethod.metaculus_prediction,
+    labelKey: "metaculusPredictionLabel",
   },
   {
-    id: AggregationExtraMethod.recency_weighted_bot,
-    value: AggregationMethod.recency_weighted,
-    label: "Recency-weighted median (with bots)",
-    includeBots: true,
+    id: AggregationMethod.metaculus_pros,
+    labelKey: "metaculusProsLabel",
   },
   {
-    id: AggregationExtraMethod.unweighted_bot,
-    value: AggregationMethod.unweighted,
-    label: "Unweighted median (with bots)",
-    includeBots: true,
-  },
-  {
-    id: AggregationExtraMethod.single_aggregation_bot,
-    value: AggregationMethod.single_aggregation,
-    label: "Single aggregation (with bots)",
-    includeBots: true,
-    isStaffOnly: true,
-  },
-  {
-    id: AggregationExtraMethod.metaculus_pros,
-    value: AggregationExtraMethod.metaculus_pros,
-    label: "Metaculus Pros",
-    includeBots: true,
-  },
-  {
-    id: AggregationExtraMethod.medalists,
-    value: AggregationExtraMethod.medalists,
-    label: "Medalists (all)",
-    includeBots: true,
-  },
-  {
-    id: AggregationExtraMethod.silver_medalists,
-    value: AggregationExtraMethod.silver_medalists,
-    label: "Medalists (silver or gold)",
-    includeBots: true,
-  },
-  {
-    id: AggregationExtraMethod.gold_medalists,
-    value: AggregationExtraMethod.gold_medalists,
-    label: "Medalists (gold)",
-    includeBots: true,
-  },
-  {
-    id: AggregationExtraMethod.joined_before_date,
-    value: AggregationExtraMethod.joined_before_date,
-    label: "Only Users Who Joined Before Date (set in Advanced options)",
-    includeBots: true,
+    id: "medalists_parent",
+    labelKey: "medalists",
+    childSelector: {
+      labelKey: "medalTier",
+      options: [
+        { id: AggregationMethod.medalists, labelKey: "allMedals" },
+        { id: AggregationMethod.silver_medalists, labelKey: "silverAndGold" },
+        { id: AggregationMethod.gold_medalists, labelKey: "goldOnly" },
+      ],
+    },
   },
 ];
+
+export const AGGREGATION_OPTION_BY_ID = new Map<string, AggregationOption>(
+  AGGREGATION_EXPLORER_OPTIONS.flatMap((o) => {
+    const entries: [string, AggregationOption][] = [[o.id, o]];
+    if (o.childSelector) {
+      for (const child of o.childSelector.options) {
+        entries.push([
+          child.id,
+          {
+            ...child,
+            supportsBotToggle: o.supportsBotToggle,
+            supportsUserIds: o.supportsUserIds,
+          },
+        ]);
+      }
+    }
+    return entries;
+  })
+);
+
+export const PARENT_OPTION_BY_CHILD_ID = new Map<string, AggregationOption>(
+  AGGREGATION_EXPLORER_OPTIONS.flatMap(
+    (o) =>
+      o.childSelector?.options.map((child): [string, AggregationOption] => [
+        child.id,
+        o,
+      ]) ?? []
+  )
+);

@@ -130,7 +130,8 @@ def export_data_for_questions(
     include_key_factors: bool,
     only_include_user_ids: list[int] | None,
     include_bots: bool | None,
-    anonymized: bool,
+    joined_before_date: datetime.datetime | None = None,
+    anonymized: bool = False,
     include_future: bool = False,
     **kwargs,
 ) -> bytes:
@@ -155,11 +156,15 @@ def export_data_for_questions(
             | Q(cp_reveal_time__isnull=True)
             | Q(cp_reveal_time__lte=timezone.now())
         )
-    if not only_include_user_ids and (
-        not aggregation_methods
-        or (
-            aggregation_methods == [AggregationMethod.RECENCY_WEIGHTED]
-            and minimize is True
+    if (
+        not only_include_user_ids
+        and not joined_before_date
+        and (
+            not aggregation_methods
+            or (
+                aggregation_methods == [AggregationMethod.RECENCY_WEIGHTED]
+                and minimize is True
+            )
         )
     ):
         aggregate_forecasts: list[AggregateForecast] = list(
@@ -192,6 +197,7 @@ def export_data_for_questions(
                 ),
                 histogram=True,
                 include_future=include_future,
+                joined_before=joined_before_date,
             )
             for values in aggregation_dict.values():
                 aggregate_forecasts.extend(values)

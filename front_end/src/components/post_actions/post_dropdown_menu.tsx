@@ -232,6 +232,11 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
     ...(!post.notebook
       ? [
           {
+            id: "openInAggregationExplorer",
+            name: t("openInAggregationExplorer"),
+            link: `/aggregation-explorer?post_id=${post.id}`,
+          },
+          {
             id: "downloadQuestionData",
             name: t("downloadQuestionData"),
             onClick: openDownloadModal,

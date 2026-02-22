@@ -319,6 +319,8 @@ const GroupChart: FC<Props> = ({
             width={chartWidth}
             height={height}
             theme={actualTheme}
+            domainPadding={{ y: 3 }}
+            singleQuadrantDomainPadding={{ y: false }}
             padding={{
               left: 0,
               top: 10,
@@ -801,19 +803,23 @@ function buildChartData({
           // build line and area (CP data)
           if (
             !line.length ||
-            aggregationValue ||
+            !isNil(aggregationValue) ||
             isNil(line[line.length - 1]?.y)
           ) {
             // we are either starting or have a real value or previous value is null
             line.push({
               x: timestamp,
-              y: aggregationValue ? rescale(aggregationValue) : null,
+              y: !isNil(aggregationValue) ? rescale(aggregationValue) : null,
             });
 
             area.push({
               x: timestamp,
-              y: aggregationMaxValue ? rescale(aggregationMaxValue) : null,
-              y0: aggregationMinValue ? rescale(aggregationMinValue) : null,
+              y: !isNil(aggregationMaxValue)
+                ? rescale(aggregationMaxValue)
+                : null,
+              y0: !isNil(aggregationMinValue)
+                ? rescale(aggregationMinValue)
+                : null,
             });
           } else {
             // we have a null vlalue while previous was real

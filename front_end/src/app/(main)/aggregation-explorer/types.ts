@@ -34,15 +34,13 @@ export type AggregationExtraQuestion =
   | NumericAggregationExtraQuestion
   | MultipleChoiceAggregationExtraQuestion;
 
-export enum AggregationExtraMethod {
+// All aggregation methods the aggregation explorer API accepts.
+// Each value is sent directly as the `aggregation_methods` query param.
+export enum AggregationMethod {
   recency_weighted = "recency_weighted",
-  recency_weighted_bot = "recency_weighted_bot",
   unweighted = "unweighted",
-  unweighted_bot = "unweighted_bot",
   single_aggregation = "single_aggregation",
-  single_aggregation_bot = "single_aggregation_bot",
   metaculus_prediction = "metaculus_prediction",
-  metaculus_prediction_bot = "metaculus_prediction_bot",
   metaculus_pros = "metaculus_pros",
   medalists = "medalists",
   silver_medalists = "silver_medalists",
@@ -51,16 +49,21 @@ export enum AggregationExtraMethod {
 }
 
 export type AggregationOption = {
-  id: AggregationExtraMethod;
-  value: string;
-  label: string;
-  includeBots: boolean;
+  id: string;
+  labelKey: string;
   isStaffOnly?: boolean;
+  supportsBotToggle?: boolean;
+  supportsUserIds?: boolean;
+  requiresDate?: boolean;
+  childSelector?: {
+    labelKey: string;
+    options: AggregationOption[];
+  };
 };
 
 export type AggregationTooltip = {
   aggregationMethod: string;
-  choice: AggregationExtraMethod;
+  choice: string;
   label: string;
   includeBots: boolean;
   color: ThemeColor;
