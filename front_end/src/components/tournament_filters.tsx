@@ -86,6 +86,7 @@ const TournamentFilters: FC = () => {
       },
       { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
       { value: QuestionOrder.ResolveTimeAsc, label: t("resolvingSoon") },
+      { value: QuestionOrder.CpRevealTimeDesc, label: t("recentlyRevealed") },
       ...(!!user
         ? [
             {
