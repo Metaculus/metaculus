@@ -44,6 +44,7 @@ type Props = {
   choiceColor: string;
   chartHeight?: number;
   onHoverOption?: (id: string | null) => void;
+  isDefault?: boolean;
 };
 
 export default function DistributionCard({
@@ -60,6 +61,7 @@ export default function DistributionCard({
   choiceColor,
   chartHeight,
   onHoverOption,
+  isDefault,
 }: Props) {
   const t = useTranslations();
   const [isDownloading, setIsDownloading] = useState(false);
@@ -138,6 +140,7 @@ export default function DistributionCard({
           label={method.baseLabel}
           chips={method.chips}
           color={choiceColor}
+          isDefault={isDefault}
         />
         <span className="flex shrink-0 items-center gap-1.5 text-gray-700 dark:text-gray-400">
           <FontAwesomeIcon

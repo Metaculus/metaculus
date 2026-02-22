@@ -37,6 +37,7 @@ export default function AggregationExplorerLoadedView({ postData }: Props) {
     setHoveredId,
     activeColorById,
     listItems,
+    defaultConfigId,
     handleToggle,
     handleAddConfigured,
     handleRemoveSelected,
@@ -100,6 +101,7 @@ export default function AggregationExplorerLoadedView({ postData }: Props) {
                 colorById={activeColorById}
                 selectedSubQuestionOption={selectedSubQuestionOption}
                 optionIndex={optionIndex}
+                defaultConfigId={defaultConfigId}
               />
             </section>
           </div>

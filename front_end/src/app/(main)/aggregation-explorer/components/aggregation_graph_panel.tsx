@@ -34,6 +34,7 @@ type Props = {
   colorById: Map<string, AggregationTooltip["color"]>;
   selectedSubQuestionOption: string | number | null;
   optionIndex: number;
+  defaultConfigId: string | null;
 };
 
 const NUMERIC_TYPES = new Set([
@@ -54,6 +55,7 @@ export default function AggregationGraphPanel({
   colorById,
   selectedSubQuestionOption,
   optionIndex,
+  defaultConfigId,
 }: Props) {
   const t = useTranslations();
   const isDesktop = useBreakpoint("md");
@@ -226,6 +228,7 @@ export default function AggregationGraphPanel({
             choiceColor={choiceColorById.get(method.id)?.DEFAULT ?? "#9ca3af"}
             chartHeight={isDesktop ? 150 : 100}
             onHoverOption={onHoverOption}
+            isDefault={method.id === defaultConfigId}
           />
         ))}
       </div>

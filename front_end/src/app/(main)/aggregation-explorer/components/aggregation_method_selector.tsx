@@ -46,6 +46,7 @@ export type AggregationListItem = {
   isLoading?: boolean;
   isError?: boolean;
   isNoData?: boolean;
+  isDefault?: boolean;
 };
 
 type Props = {
@@ -319,6 +320,7 @@ function AggregationListRow({
         chips={item.chips}
         strikethrough={!item.enabled}
         warning={item.isError || item.isNoData}
+        isDefault={item.isDefault}
       />
       <button
         type="button"

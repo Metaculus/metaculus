@@ -1,9 +1,12 @@
+import { useTranslations } from "next-intl";
+
 type Props = {
   label: string;
   chips: string[];
   color?: string;
   strikethrough?: boolean;
   warning?: boolean;
+  isDefault?: boolean;
 };
 
 export default function AggregationLabel({
@@ -12,7 +15,9 @@ export default function AggregationLabel({
   color,
   strikethrough,
   warning,
+  isDefault,
 }: Props) {
+  const t = useTranslations();
   const labelClassName = warning
     ? "block truncate font-semibold text-orange-500 dark:text-orange-400"
     : strikethrough
@@ -29,6 +34,11 @@ export default function AggregationLabel({
           />
         )}
         <span className={labelClassName}>{label}</span>
+        {isDefault && (
+          <span className="shrink-0 rounded bg-blue-200 px-1 py-0.5 text-[10px] font-medium leading-none text-blue-700 dark:bg-blue-800 dark:text-blue-200">
+            {t("default")}
+          </span>
+        )}
       </span>
       {chips.length > 0 && (
         <span className={`mt-0.5 flex flex-wrap gap-1 ${color ? "pl-4" : ""}`}>

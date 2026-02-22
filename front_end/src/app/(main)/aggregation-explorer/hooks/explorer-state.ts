@@ -75,6 +75,8 @@ export function useExplorerState(postData: PostWithForecasts) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [question?.id]);
 
+  const defaultConfigId = defaultConfigs[0]?.id ?? null;
+
   const [selectedConfigs, setSelectedConfigs] =
     useSelectedConfigsState(defaultConfigs);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
@@ -120,10 +122,11 @@ export function useExplorerState(postData: PostWithForecasts) {
           isLoading: method?.isPending ?? false,
           isError: method?.isError ?? false,
           isNoData: method?.isNoData ?? false,
+          isDefault: config.id === defaultConfigId,
         };
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedConfigs, activeColorById, methods, t]
+    [selectedConfigs, activeColorById, methods, t, defaultConfigId]
   );
 
   const handleToggle = (id: string) => {
@@ -187,6 +190,7 @@ export function useExplorerState(postData: PostWithForecasts) {
     setHoveredId,
     activeColorById,
     listItems,
+    defaultConfigId,
     handleToggle,
     handleAddConfigured,
     handleRemoveSelected,
