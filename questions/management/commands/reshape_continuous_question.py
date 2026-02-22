@@ -380,7 +380,7 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def make_copy_of_question(
-        self, question: Question, appove_copy_post: bool
+        self, question: Question, approve_copy_post: bool
     ) -> Question:
         self.stdout.write(
             self.style.WARNING(f"Making copy of question {question.id}...")
@@ -393,7 +393,7 @@ class Command(BaseCommand):
         if post is None:
             raise ValueError("question has no post to copy")
         new_post = self.clone_post(post, new_question)
-        if not appove_copy_post:
+        if not approve_copy_post:
             new_post.curation_status = Post.CurationStatus.DRAFT
         new_post.save()
 
@@ -573,7 +573,7 @@ class Command(BaseCommand):
             return
         make_copy = options["make_copy"]
         alter_copy = options["alter_copy"]
-        appove_copy_post = options["approve_copy_post"]
+        approve_copy_post = options["approve_copy_post"]
         rescore = options["rescore"]
         # range details
         nominal_range_min = (
@@ -598,15 +598,19 @@ class Command(BaseCommand):
             try:
                 nominal_range_min = float(nominal_range_min)
             except ValueError:
-                nominal_range_min = datetime.fromisoformat(
-                    nominal_range_min
-                ).timestamp()
+                nominal_range_min = (
+                    datetime.fromisoformat(nominal_range_min)
+                    .replace(tzinfo=dt_timezone.utc)
+                    .timestamp()
+                )
             try:
                 nominal_range_max = float(nominal_range_max)
             except ValueError:
-                nominal_range_max = datetime.fromisoformat(
-                    nominal_range_max
-                ).timestamp()
+                nominal_range_max = (
+                    datetime.fromisoformat(nominal_range_max)
+                    .replace(tzinfo=dt_timezone.utc)
+                    .timestamp()
+                )
         except ValueError:
             self.stdout.write(
                 self.style.ERROR(
@@ -669,7 +673,9 @@ class Command(BaseCommand):
             # Set up basis vs changing question
             stored_question: Question | None = None
             if make_copy:
-                stored_question = self.make_copy_of_question(question, appove_copy_post)
+                stored_question = self.make_copy_of_question(
+                    question, approve_copy_post
+                )
                 if alter_copy:
                     question_to_change = stored_question
                     basis_question = question
