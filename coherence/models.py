@@ -53,6 +53,22 @@ class AggregateCoherenceLinkQuerySet(models.QuerySet):
             ),
         )
 
+    def filter_permission(self, user: User = None):
+        """
+        Filters links where both linked questions are visible to the given user.
+        """
+
+        from posts.models import Post
+
+        if not user or not user.is_authenticated:
+            user = None
+
+        visible_posts = Post.objects.filter_permission(user=user).values("id")
+        return self.filter(
+            question1__post_id__in=visible_posts,
+            question2__post_id__in=visible_posts,
+        )
+
 
 class AggregateCoherenceLink(TimeStampedModel):
     question1 = models.ForeignKey(
@@ -66,7 +82,7 @@ class AggregateCoherenceLink(TimeStampedModel):
     # Annotated fields
     user_vote: int = None
 
-    objects = models.Manager.from_queryset(AggregateCoherenceLinkQuerySet)()
+    objects = AggregateCoherenceLinkQuerySet.as_manager()
 
     class Meta:
         constraints = [
