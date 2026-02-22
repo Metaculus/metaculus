@@ -227,6 +227,7 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     not_forecaster_id = serializers.IntegerField(required=False, allow_null=True)
     similar_to_post_id = serializers.IntegerField(required=False, allow_null=True)
     upvoted_by = serializers.IntegerField(required=False, allow_null=True)
+    commented_by = serializers.IntegerField(required=False, allow_null=True)
 
     search = serializers.CharField(required=False, allow_null=True)
     for_main_feed = serializers.BooleanField(required=False, allow_null=True)
