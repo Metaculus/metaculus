@@ -156,11 +156,15 @@ def export_data_for_questions(
             | Q(cp_reveal_time__isnull=True)
             | Q(cp_reveal_time__lte=timezone.now())
         )
-    if not only_include_user_ids and not joined_before_date and (
-        not aggregation_methods
-        or (
-            aggregation_methods == [AggregationMethod.RECENCY_WEIGHTED]
-            and minimize is True
+    if (
+        not only_include_user_ids
+        and not joined_before_date
+        and (
+            not aggregation_methods
+            or (
+                aggregation_methods == [AggregationMethod.RECENCY_WEIGHTED]
+                and minimize is True
+            )
         )
     ):
         aggregate_forecasts: list[AggregateForecast] = list(
