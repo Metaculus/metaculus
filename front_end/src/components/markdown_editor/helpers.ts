@@ -5,9 +5,23 @@ import { EMBEDDED_TWITTER_COMPONENT_NAME } from "./embedded_twitter";
 import { transformTwitterLinks } from "./embedded_twitter/helpers";
 
 // match block math: $$...$$
-const BLOCK_MATH_REGEX = /(?<!\\)\$\$(?:[^$]|\\\$)*?\$\$/g;
-// match valid inline math: $...$ that starts and ends with a non-word character
-const INLINE_MATH_REGEX = /(?<!\\)(?<!\w|\d)\$([^\$]+?)\$(?!\w|\d)/gs;
+const BLOCK_MATH_REGEX = /\$\$(?:[^$]|\\\$)*?\$\$/g;
+// match valid inline math: $...$ with a non-word/non-backslash boundary before it
+const INLINE_MATH_REGEX = /(^|[^\w\\])(\$([^\$]+?)\$(?!\w))/gs;
+
+const isEscapedAt = (input: string, index: number): boolean => {
+  let backslashCount = 0;
+
+  for (
+    let cursor = index - 1;
+    cursor >= 0 && input[cursor] === "\\";
+    cursor--
+  ) {
+    backslashCount += 1;
+  }
+
+  return backslashCount % 2 === 1;
+};
 
 const preProcessMarkdownContent = (
   markdown: string,
@@ -45,22 +59,31 @@ function escapePlainTextSymbols(str: string) {
   tempStr = processedTagsMarkdown;
 
   // pre-process math expressions
-  const {
-    markdown: processedBlockMathMarkdown,
-    placeholders: blockMathExpressions,
-  } = preProcessMarkdownContent(tempStr, {
-    search: BLOCK_MATH_REGEX,
-    placeholderName: "MATH_BLOCK",
+  const blockMathExpressions: { placeholder: string; original: string }[] = [];
+  let blockMathId = 0;
+  tempStr = tempStr.replace(BLOCK_MATH_REGEX, (match, offset, input) => {
+    if (isEscapedAt(input, offset)) {
+      return match;
+    }
+    const placeholder = `___MATH_BLOCK_${blockMathId++}___`;
+    blockMathExpressions.push({ placeholder, original: match });
+    return placeholder;
   });
-  tempStr = processedBlockMathMarkdown;
-  const {
-    markdown: processedInlineMathMarkdown,
-    placeholders: inlineMathExpressions,
-  } = preProcessMarkdownContent(tempStr, {
-    search: INLINE_MATH_REGEX,
-    placeholderName: "MATH_INLINE",
-  });
-  tempStr = processedInlineMathMarkdown;
+
+  const inlineMathExpressions: { placeholder: string; original: string }[] = [];
+  let inlineMathId = 0;
+  tempStr = tempStr.replace(
+    INLINE_MATH_REGEX,
+    (match, prefix, inlineMath, _content, offset, input) => {
+      const inlineMathStart = offset + prefix.length;
+      if (isEscapedAt(input, inlineMathStart)) {
+        return match;
+      }
+      const placeholder = `___MATH_INLINE_${inlineMathId++}___`;
+      inlineMathExpressions.push({ placeholder, original: inlineMath });
+      return `${prefix}${placeholder}`;
+    }
+  );
 
   // escape < that is not correctly used
   tempStr = tempStr.replace(/([^\\])</g, "$1\\<").replace(/^</g, "\\<");
@@ -157,23 +180,44 @@ const escapeRawDollarSigns = (markdown: string): string => {
   let placeholderIndex = 0;
 
   // replace block math with placeholders and ensure newlines are added
-  let processedMarkdown = markdown.replace(BLOCK_MATH_REGEX, (blockMath) => {
-    const trimmedMath = blockMath.trim();
-    const formattedMath = `\n${trimmedMath}\n`;
-    const placeholder = `{{MATH_BLOCK_${placeholderIndex++}}}`;
-    placeholders.set(placeholder, formattedMath);
-    return placeholder;
-  });
+  let processedMarkdown = markdown.replace(
+    BLOCK_MATH_REGEX,
+    (blockMath, offset, input) => {
+      if (isEscapedAt(input, offset)) {
+        return blockMath;
+      }
+      const trimmedMath = blockMath.trim();
+      const formattedMath = `\n${trimmedMath}\n`;
+      const placeholder = `{{MATH_BLOCK_${placeholderIndex++}}}`;
+      placeholders.set(placeholder, formattedMath);
+      return placeholder;
+    }
+  );
 
   // replace valid inline math with placeholders
-  processedMarkdown = processedMarkdown.replace(INLINE_MATH_REGEX, (match) => {
-    const placeholder = `{{MATH_INLINE_${placeholderIndex++}}}`;
-    placeholders.set(placeholder, match); // Save the valid inline math as is
-    return placeholder;
-  });
+  processedMarkdown = processedMarkdown.replace(
+    INLINE_MATH_REGEX,
+    (match, prefix, inlineMath, _content, offset, input) => {
+      const inlineMathStart = offset + prefix.length;
+      if (isEscapedAt(input, inlineMathStart)) {
+        return match;
+      }
+      const placeholder = `{{MATH_INLINE_${placeholderIndex++}}}`;
+      placeholders.set(placeholder, inlineMath); // Save the valid inline math as is
+      return `${prefix}${placeholder}`;
+    }
+  );
 
   // escape remaining dollar signs that are not part of valid math
-  processedMarkdown = processedMarkdown.replace(/(?<!\\)\$/g, "\\$");
+  processedMarkdown = processedMarkdown.replace(
+    /\$/g,
+    (match, offset, input) => {
+      if (isEscapedAt(input, offset)) {
+        return match;
+      }
+      return "\\$";
+    }
+  );
 
   // restore all placeholders (block math and inline math)
   return processedMarkdown.replace(

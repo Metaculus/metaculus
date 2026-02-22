@@ -45,8 +45,10 @@ export type MedalCategory = {
 
 export type BotDetails = {
   metac_bot: boolean;
-  base_models?: { name: string }[];
+  base_models?: { name: string; releaseDate?: string }[];
+  display_name?: string;
   display_in_leaderboard: boolean;
+  include_in_calculations?: boolean;
 };
 
 export type LeaderboardEntry = {
@@ -99,7 +101,15 @@ export type MedalRanksEntry = {
     | "questions_global";
 };
 
+export type LeaderboardDisplayConfig = {
+  display_name?: string;
+  column_renames?: Record<string, string>;
+  display_order?: number;
+  display_on_project?: boolean;
+};
+
 type BaseLeaderboardDetails = {
+  id: number;
   project_id: number;
   project_type: MedalProjectType;
   project_name: string;
@@ -112,7 +122,7 @@ type BaseLeaderboardDetails = {
   finalized: boolean;
   prize_pool: number | null;
   max_coverage?: number;
-  display_config: Record<string, any> | null; // TODO: specify type
+  display_config: LeaderboardDisplayConfig | null;
 };
 
 export type LeaderboardDetails = BaseLeaderboardDetails & {

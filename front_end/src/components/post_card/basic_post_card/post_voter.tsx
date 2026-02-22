@@ -29,6 +29,9 @@ const PostVoter: FC<Props> = ({ className, post, questionPage }) => {
       setCurrentModal({ type: "signin" });
       return;
     }
+    if (user.is_bot) {
+      return;
+    }
 
     try {
       const newDirection = vote.user_vote === direction ? null : direction;

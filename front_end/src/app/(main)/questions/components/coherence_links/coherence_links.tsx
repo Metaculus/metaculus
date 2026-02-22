@@ -94,9 +94,11 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
                 </div>
               )}
 
-            <AddButton onClick={addLink} className="mx-auto self-start">
-              {t("linkQuestion")}
-            </AddButton>
+            {!user?.is_bot && (
+              <AddButton onClick={addLink} className="mx-auto self-start">
+                {t("linkQuestion")}
+              </AddButton>
+            )}
           </div>
         </div>
       </ExpandableContent>

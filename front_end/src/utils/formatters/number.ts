@@ -61,6 +61,18 @@ export function abbreviatedNumber(
     return toScientificNotation(val, 2, 1, false);
   }
 
+  if (!isNil(scaling?.range_min) && !isNil(scaling?.range_max)) {
+    // if sufficiently close to zero relative to the size of the range,
+    // assume it should be zero
+    if (
+      scaling.range_min < val &&
+      val < scaling.range_max &&
+      scaling.range_max - scaling.range_min > 1000 * Math.abs(val)
+    ) {
+      return "0";
+    }
+  }
+
   let suffix = "";
   let leadingNumbers = 1;
   if (pow >= 12) {
@@ -82,16 +94,7 @@ export function abbreviatedNumber(
   } else if (pow >= -3) {
     leadingNumbers = pow + 1;
   }
-  if (!isNil(scaling?.range_min) && !isNil(scaling?.range_max)) {
-    // check if sufficiently close to zero just to round
-    if (
-      scaling.range_min < val &&
-      val < scaling.range_max &&
-      scaling.range_max - scaling.range_min > 200 * Math.abs(val)
-    ) {
-      return "0" + suffix;
-    }
-  }
+
   return (
     toScientificNotation(val, sigfigs, leadingNumbers, trailingZeros) + suffix
   );
@@ -119,6 +122,20 @@ export function formatNumberWithUnit(
     return `${formattedNumber} ${unit}`;
   }
   return `${formattedNumber} ${unit}`;
+}
+
+export function formatMoneyUSD(
+  amount: string | null | undefined
+): string | null {
+  if (!amount) return null;
+  const n = Number(amount);
+  if (!Number.isFinite(n)) return null;
+  return n.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    currencyDisplay: "narrowSymbol",
+    maximumFractionDigits: 0,
+  });
 }
 
 /**

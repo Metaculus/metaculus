@@ -16,6 +16,7 @@ import { Tournament } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { logError } from "@/utils/core/errors";
+import { urlSearchParamsToRecord } from "@/utils/navigation";
 
 type Props = {
   tournament: Tournament | null;
@@ -24,7 +25,7 @@ type Props = {
 const TournamentFeed: FC<Props> = ({ tournament }) => {
   const searchParams = useSearchParams();
   const questionFilters = generateFiltersFromSearchParams(
-    Object.fromEntries(searchParams),
+    urlSearchParamsToRecord(searchParams),
     {
       withoutPageParam: true,
       defaultOrderBy: QuestionOrder.HotDesc,
@@ -51,7 +52,7 @@ const TournamentFeed: FC<Props> = ({ tournament }) => {
       setBannerIsVisible(true);
     }
   }, [questions, setBannerIsVisible, tournament]);
-  const relevantParams = Object.fromEntries(searchParams);
+  const relevantParams = urlSearchParamsToRecord(searchParams);
   const { page, ...otherParams } = relevantParams;
   useEffect(() => {
     const fetchData = async () => {

@@ -76,6 +76,7 @@ const VoterControls: FC<{
       setCurrentModal({ type: "signin" });
       return;
     }
+    if (user.is_bot) return;
 
     if (isSubmitting) return;
     setIsSubmitting(true);

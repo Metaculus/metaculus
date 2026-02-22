@@ -56,12 +56,7 @@ def login_api_view(request):
     # their account, and also to re-send their activation email
     user = AuthLoginBackend.find_user(login)
 
-    if (
-        user
-        and not user.is_active
-        and not user.last_login
-        and user.check_password(password)
-    ):
+    if user and user.check_can_activate() and user.check_password(password):
         send_activation_email(user, None)
         raise ValidationError({"user_state": "inactive"})
 
@@ -292,31 +287,6 @@ def api_key_rotate_api_view(request):
     api_key = ApiKey.objects.create(user=request.user)
 
     return Response({"key": api_key.key}, status=status.HTTP_201_CREATED)
-
-
-@api_view(["POST"])
-@permission_classes([AllowAny])
-def exchange_legacy_token_api_view(request):
-    """
-    Exchange a legacy DRF auth token for new JWT tokens.
-
-    DEPRECATED: This endpoint exists only for backward compatibility during
-    the migration period. It should be removed after the grace period (30 days).
-    """
-    token = serializers.CharField().run_validation(request.data.get("token"))
-
-    try:
-        token_obj = ApiKey.objects.get(key=token)
-    except ApiKey.DoesNotExist:
-        raise ValidationError({"token": ["Invalid token"]})
-
-    user = token_obj.user
-    if not user.is_active:
-        raise ValidationError({"token": ["User account is inactive"]})
-
-    tokens = get_tokens_for_user(user)
-
-    return Response({"tokens": tokens})
 
 
 @api_view(["POST"])

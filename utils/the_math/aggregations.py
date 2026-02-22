@@ -749,6 +749,9 @@ def get_aggregations_at_time(
     )
     if only_include_user_ids:
         forecasts = forecasts.filter(author_id__in=only_include_user_ids)
+    else:
+        # only include forecasts by non-primary bots if user ids explicitly specified
+        forecasts = forecasts.exclude_non_primary_bots()
     if not include_bots:
         forecasts = forecasts.exclude(author__is_bot=True)
     if len(forecasts) == 0:
@@ -920,7 +923,7 @@ def minimize_history(
 
 def get_user_forecast_history(
     forecasts: Sequence[Forecast],
-    minimize: bool = False,
+    minimize: bool | int = False,
     cutoff: datetime | None = None,
 ) -> list[ForecastSet]:
     timestep_set: set[datetime] = set()
@@ -931,7 +934,9 @@ def get_user_forecast_history(
                 continue
             timestep_set.add(forecast.end_time)
     timesteps = sorted(timestep_set)
-    if minimize:
+    if minimize > 1:
+        timesteps = minimize_history(timesteps, minimize)
+    elif minimize:
         timesteps = minimize_history(timesteps)
     forecast_sets: dict[datetime, ForecastSet] = {
         timestep: ForecastSet(
@@ -965,7 +970,7 @@ def get_aggregation_history(
     aggregation_methods: list[AggregationMethod],
     forecasts: QuerySet[Forecast] | None = None,
     only_include_user_ids: list[int] | set[int] | None = None,
-    minimize: bool = True,
+    minimize: bool | int = True,
     include_stats: bool = True,
     include_bots: bool = False,
     histogram: bool | None = None,
@@ -986,6 +991,9 @@ def get_aggregation_history(
 
         if only_include_user_ids:
             forecasts = forecasts.filter(author_id__in=only_include_user_ids)
+        else:
+            # only include forecasts by non-primary bots if user ids explicitly specified
+            forecasts = forecasts.exclude_non_primary_bots()
         if not include_bots:
             forecasts = forecasts.exclude(author__is_bot=True)
 
@@ -999,6 +1007,29 @@ def get_aggregation_history(
 
     forecaster_ids = set(forecast.author_id for forecast in forecasts)
     for method in aggregation_methods:
+        if method == "geometric_mean":
+            if minimize:
+                continue  # gomean is useless minimized
+            from scoring.score_math import get_geometric_means
+
+            geometric_means = get_geometric_means(forecasts)
+            full_summary[method] = []
+            previous_forecast = None
+            for gm in geometric_means:
+                aggregate_forecast = AggregateForecast(
+                    question=question,
+                    method=method,
+                    forecast_values=gm.pmf.tolist(),
+                    start_time=datetime.fromtimestamp(gm.timestamp, tz=dt_timezone.utc),
+                    end_time=None,
+                    forecaster_count=gm.num_forecasters,
+                )
+                if previous_forecast:
+                    previous_forecast.end_time = aggregate_forecast.start_time
+                previous_forecast = aggregate_forecast
+                full_summary[method].append(aggregate_forecast)
+            continue
+
         if method == AggregationMethod.METACULUS_PREDICTION:
             # saved in the database - not reproducible or updateable
             full_summary[method] = list(

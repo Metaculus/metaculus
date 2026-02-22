@@ -122,7 +122,6 @@ const NumericChart: FC<Props> = ({
   questionStatus,
   resolution,
   cursorTooltip,
-  isConsumerView,
   questionType,
 }) => {
   const { theme, getThemeColor } = useAppTheme();
@@ -164,7 +163,7 @@ const NumericChart: FC<Props> = ({
     isNil(tickFontSize) || !isNil(extraTheme)
       ? getTickLabelFontSize(actualTheme)
       : tickFontSize;
-  const hasExternalTheme = !!extraTheme;
+  const hasExternalTheme = !!extraTheme && Object.keys(extraTheme).length > 0;
 
   const highlightedLine = useMemo(() => {
     const lastIndex = findLastIndexBefore(line, cursorValue);
@@ -700,10 +699,8 @@ const NumericChart: FC<Props> = ({
                       {useSimplifiedCursor ? (
                         <CursorChip
                           shouldRender={
-                            isConsumerView
-                              ? false
-                              : (isCursorActive && !isNil(resolution)) ||
-                                isNil(resolution)
+                            (isCursorActive && !isNil(resolution)) ||
+                            isNil(resolution)
                           }
                           colorOverride={colorOverride ?? colorPalette.chip}
                           isEmbedded={isEmbedded}

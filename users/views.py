@@ -3,8 +3,6 @@ from datetime import timedelta
 
 from django.utils import timezone
 from rest_framework import serializers, status
-
-from authentication.models import ApiKey
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
@@ -12,7 +10,8 @@ from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from authentication.services import get_tokens_for_user
+from authentication.models import ApiKey
+from authentication.services import get_tokens_for_user, send_password_reset_email
 from users.models import User, UserSpamActivity
 from users.serializers import (
     UserPrivateSerializer,
@@ -34,7 +33,6 @@ from users.services.common import (
     register_user_to_campaign,
     change_user_password,
 )
-from utils.paginator import LimitOffsetPagination
 from utils.tasks import email_user_their_data_task
 from .services.bots_management import get_user_bots, create_bot
 from .services.profile_stats import serialize_user_stats
@@ -90,20 +88,14 @@ def user_profile_api_view(request, pk: int):
 
 
 @api_view(["GET"])
-@permission_classes([AllowAny])
 def users_list_api_view(request):
-    paginator = LimitOffsetPagination()
-
     # Apply filtering
     filters_serializer = UserFilterSerializer(data=request.query_params)
     filters_serializer.is_valid(raise_exception=True)
 
-    qs = get_users(**filters_serializer.validated_data)
+    users = get_users(**filters_serializer.validated_data, user=request.user)[:20]
 
-    # Paginating queryset
-    qs = paginator.paginate_queryset(qs, request)
-
-    return paginator.get_paginated_response(UserPublicSerializer(qs, many=True).data)
+    return Response(UserPublicSerializer(users, many=True).data)
 
 
 @api_view(["POST"])
@@ -171,6 +163,18 @@ def password_change_api_view(request):
 
     tokens = get_tokens_for_user(user)
     return Response(tokens)
+
+
+@api_view(["POST"])
+def send_set_password_email_api_view(request):
+    user = request.user
+
+    if user.has_usable_password():
+        raise ValidationError({"message": "User already has a password set"})
+
+    send_password_reset_email(user)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(["POST"])

@@ -88,8 +88,8 @@ const useNavbarLinks = ({
           href: "/aggregation-explorer",
         },
         aiBenchmark: {
-          label: t("aiBenchmark"),
-          href: "/aib",
+          label: "FutureEval" + " " + t("aiBenchmark"),
+          href: "/futureeval",
         },
         createQuestion: {
           label: <CreateQuestionButton />,
@@ -200,6 +200,7 @@ const useNavbarLinks = ({
     LINKS.about,
     LINKS.aggregationExplorer,
     LINKS.aiBenchmark,
+    LINKS.communities,
     LINKS.createQuestion,
     LINKS.faq,
     LINKS.journal,
@@ -298,10 +299,10 @@ const useNavbarLinks = ({
     return { mainLinks, accountLinks };
   }, [
     LINKS.about,
+    LINKS.communities,
     LINKS.services,
     LINKS.aggregationExplorer,
     LINKS.aiBenchmark,
-    LINKS.createQuestion,
     LINKS.faq,
     LINKS.journal,
     LINKS.leaderboards,
