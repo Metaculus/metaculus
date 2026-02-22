@@ -1,6 +1,6 @@
 "use client";
 
-import { faUser, faUsers } from "@fortawesome/free-solid-svg-icons";
+import { faRobot, faUser, faUsers } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
@@ -11,6 +11,9 @@ import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { formatResolution } from "@/utils/formatters/resolution";
 import { isSuccessfullyResolved } from "@/utils/questions/resolution";
+
+import { AGGREGATION_OPTION_BY_ID } from "../constants";
+import { buildBaseLabel } from "../hooks/aggregation-data";
 
 const QUESTION_TYPE_LABEL: Record<QuestionType, keyof IntlMessages> = {
   [QuestionType.Binary]: "binary",
@@ -50,6 +53,32 @@ const QuestionMetadata: FC<Props> = ({ postData, question }) => {
           {t(QUESTION_TYPE_LABEL[question.type])}
         </span>
       )}
+
+      {question &&
+        (() => {
+          const option = AGGREGATION_OPTION_BY_ID.get(
+            question.default_aggregation_method
+          );
+          if (!option) return null;
+          return (
+            <span className="flex items-center gap-1 rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+              <span className="text-blue-500 dark:text-blue-400">CP:</span>
+              {buildBaseLabel(t, option)}
+              {question.include_bots_in_aggregates && (
+                <>
+                  <span className="text-blue-500 dark:text-blue-500-dark">
+                    ·
+                  </span>
+                  <FontAwesomeIcon
+                    icon={faRobot}
+                    className="text-blue-600 dark:text-blue-300"
+                  />
+                  <span>{t("withBots")}</span>
+                </>
+              )}
+            </span>
+          );
+        })()}
 
       <PostStatusBadge
         post={postData}
