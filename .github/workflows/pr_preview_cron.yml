@@ -98,7 +98,7 @@ jobs:
         if: matrix.is_stale == true
         run: |
           gh workflow run pr_preview.yml \
-            --repo ${{ github.repository }} \
+            --repo "${{ github.repository }}" \
             -f pr_number=${{ matrix.pr_number }} \
             -f action=cleanup \
             -f cleanup_reason=Stale
@@ -118,7 +118,7 @@ jobs:
         if: matrix.is_stale == false
         run: |
           gh workflow run pr_preview.yml \
-            --repo ${{ github.repository }} \
+            --repo "${{ github.repository }}" \
             --ref "${{ matrix.head_ref }}" \
             -f pr_number=${{ matrix.pr_number }} \
             -f action=deploy \
