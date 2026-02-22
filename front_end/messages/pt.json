@@ -956,6 +956,8 @@
   "onboardingStep5ForecastAnother": "Prever Outra",
   "onboardingStep5Question": "Pergunta",
   "onboardingStep5ViewQuestionFeed": "Ver Feed de Perguntas",
+  "onboardingNoQuestionsAvailable": "Não há perguntas de integração disponíveis agora. Volte mais tarde!",
+  "onboardingExploreMoreQuestions": "Explorar Mais Perguntas",
   "communityName": "Nome da Comunidade",
   "communityNameDescription": "É assim que sua comunidade aparece para os outros.",
   "communitySlug": "Slug da Comunidade",

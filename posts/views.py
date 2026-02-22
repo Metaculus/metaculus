@@ -41,6 +41,7 @@ from posts.services.common import (
     vote_post,
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
+from posts.services.onboarding import get_onboarding_feed
 from posts.services.hotness import handle_post_boost, compute_hotness_total_boosts
 from posts.services.notes import update_private_note, get_private_notes_feed
 from posts.services.spam_detection import check_and_handle_post_spam
@@ -633,6 +634,19 @@ def random_post_id(request):
         .first()
     )
     return Response({"id": post.id, "post_slug": get_post_slug(post)})
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def onboarding_feed_api_view(request):
+    result = get_onboarding_feed()
+    if not result["post_ids"]:
+        return Response({"topics": [], "posts": []})
+
+    posts = serialize_post_many(
+        result["post_ids"], with_cp=True, with_key_factors=True
+    )
+    return Response({"topics": result["topics"], "posts": posts})
 
 
 @api_view(["POST"])

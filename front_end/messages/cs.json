@@ -826,6 +826,8 @@
   "onboardingStep5ForecastAnother": "Předpovědět další",
   "onboardingStep5Question": "Otázku",
   "onboardingStep5ViewQuestionFeed": "Zobrazit feed otázek",
+  "onboardingNoQuestionsAvailable": "Momentálně nejsou k dispozici žádné úvodní otázky. Zkuste to později!",
+  "onboardingExploreMoreQuestions": "Prozkoumat další otázky",
   "youArePostingAPrivateComment": "Píšete soukromý komentář",
   "unread": "nepřečtené",
   "discard": "Zrušit",

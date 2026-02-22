@@ -10,7 +10,6 @@ export type OnboardingStoredState = {
 export type OnboardingTopic = {
   name: string;
   questions: number[];
-  factors: string[];
   emoji: string;
 };
 
@@ -19,6 +18,7 @@ export type OnboardingStep = {
   onPrev: () => void;
   onComplete: () => void;
   topic: OnboardingTopic | null;
+  topics: OnboardingTopic[];
   setTopic: (id: number) => void;
   handleComplete: () => void;
   handlePostpone: () => void;

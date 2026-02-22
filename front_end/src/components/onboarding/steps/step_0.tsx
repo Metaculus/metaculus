@@ -5,9 +5,8 @@ import { OnboardingStep } from "@/types/onboarding";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import Step from "./step";
-import { ONBOARDING_TOPICS } from "../utils";
 
-const Step0: React.FC<OnboardingStep> = ({ setTopic }) => {
+const Step0: React.FC<OnboardingStep> = ({ setTopic, topics }) => {
   const t = useTranslations();
 
   useEffect(() => {
@@ -15,6 +14,14 @@ const Step0: React.FC<OnboardingStep> = ({ setTopic }) => {
       event_category: "onboarding",
     });
   }, []);
+
+  if (topics.length === 0) {
+    return (
+      <Step>
+        <Step.Paragraph>{t("onboardingNoQuestionsAvailable")}</Step.Paragraph>
+      </Step>
+    );
+  }
 
   return (
     <Step>
@@ -40,7 +47,7 @@ const Step0: React.FC<OnboardingStep> = ({ setTopic }) => {
         <Step.Paragraph>{t("onboardingStep1Paragraph3")}</Step.Paragraph>
       </div>
       <div className="mt-1 flex w-full flex-col gap-2 md:mt-5 md:flex-row md:gap-4">
-        {ONBOARDING_TOPICS.map((topic, index) => (
+        {topics.map((topic, index) => (
           <button
             key={index}
             onClick={() => {

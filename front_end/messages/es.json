@@ -839,6 +839,8 @@
   "onboardingStep5ForecastAnother": "Pronosticar otra",
   "onboardingStep5Question": "Pregunta",
   "onboardingStep5ViewQuestionFeed": "Ver feed de preguntas",
+  "onboardingNoQuestionsAvailable": "No hay preguntas de incorporación disponibles en este momento. ¡Vuelve más tarde!",
+  "onboardingExploreMoreQuestions": "Explorar más preguntas",
   "youArePostingAPrivateComment": "Estás publicando un comentario privado",
   "unread": "sin leer",
   "discard": "Descartar",

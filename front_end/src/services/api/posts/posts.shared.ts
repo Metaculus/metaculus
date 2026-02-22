@@ -5,6 +5,7 @@ import {
   PaginationParams,
 } from "@/types/fetch";
 import { NewsArticle } from "@/types/news";
+import { OnboardingTopic } from "@/types/onboarding";
 import {
   NotebookPost,
   Post,
@@ -255,6 +256,16 @@ class PostsApi extends ApiService {
     return await this.get<PaginatedPayload<PrivateNoteWithPost>>(
       `/posts/private-notes/${queryParams}`
     );
+  }
+
+  async getOnboardingFeed(): Promise<{
+    topics: OnboardingTopic[];
+    posts: PostWithForecasts[];
+  }> {
+    return await this.get<{
+      topics: OnboardingTopic[];
+      posts: PostWithForecasts[];
+    }>(`/posts/onboarding-feed/`);
   }
 }
 

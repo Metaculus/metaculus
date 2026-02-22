@@ -1,10 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import BaseModal from "@/components/base_modal";
 import OnboardingLoading from "@/components/onboarding/onboarding_loading";
 import StepsRouter from "@/components/onboarding/steps";
-import { ONBOARDING_TOPICS } from "@/components/onboarding/utils";
 import { useAuth } from "@/contexts/auth_context";
 import useStoredState from "@/hooks/use_stored_state";
 import ClientPostsApi from "@/services/api/posts/posts.client";
@@ -33,6 +32,10 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
   onClose,
 }) => {
   const modalContentRef = useRef<HTMLDivElement>(null);
+  const [topics, setTopics] = useState<OnboardingTopic[]>([]);
+  const [postMap, setPostMap] = useState<Map<number, PostWithForecasts>>(
+    new Map()
+  );
   const [posts, setPosts] = useState<PostWithForecasts[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [topic, setTopic] = useState<OnboardingTopic | null>(null);
@@ -54,38 +57,62 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
     }
   };
 
-  // Topic change handler
+  // TODO: Replace this useEffect fetch with TanStack Query (useQuery) once that integration is merged
+  useEffect(() => {
+    if (!isOpen || topics.length > 0) return;
+
+    const fetchQuestions = async () => {
+      setIsLoading(true);
+      try {
+        const { topics: newTopics, posts: feedPosts } =
+          await ClientPostsApi.getOnboardingFeed();
+
+        const newPostMap = new Map<number, PostWithForecasts>();
+        for (const post of feedPosts) {
+          newPostMap.set(post.id, post);
+        }
+
+        setTopics(newTopics);
+        setPostMap(newPostMap);
+
+        // If no qualifying topics, auto-complete onboarding
+        if (newTopics.length === 0) {
+          handleCompleteTutorial();
+        }
+      } catch (error) {
+        logError(error);
+        handleCompleteTutorial();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void fetchQuestions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  // Topic selection handler
   useEffect(() => {
     if (isOpen && selectedTopicId !== null && !posts.length) {
-      const topicObject = ONBOARDING_TOPICS[selectedTopicId];
+      const topicObject = topics[selectedTopicId];
       if (!topicObject) return;
 
-      setIsLoading(true);
       setTopic(topicObject);
 
-      const updatePosts = async () => {
-        try {
-          const postIds = topicObject.questions.slice(0, 2);
-          const { results: posts } = await ClientPostsApi.getPostsWithCP({
-            ids: postIds,
-            offset: 0,
-            limit: postIds.length,
-          });
-          setPosts(posts);
-          // Go to next page
-          if (currentStep === 0) {
-            onNext();
-          }
-        } finally {
-          setIsLoading(false);
-        }
-      };
+      // Look up posts from postMap (no additional API call needed)
+      const topicPosts = topicObject.questions
+        .map((id) => postMap.get(id))
+        .filter((p): p is PostWithForecasts => p != null);
 
-      // Load posts
-      void updatePosts();
+      setPosts(topicPosts);
+
+      // Go to next page
+      if (currentStep === 0) {
+        onNext();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, selectedTopicId, posts.length]);
+  }, [isOpen, selectedTopicId, posts.length, topics.length]);
 
   // Hide tutorial for 24h
   const handlePostponeTutorial = () => {
@@ -97,11 +124,14 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
     onClose();
   };
 
-  const resetState = () => {
+  const resetState = useCallback(() => {
     setTopic(null);
     setPosts([]);
+    setTopics([]);
+    setPostMap(new Map());
     deleteOnboardingState();
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deleteOnboardingState]);
 
   // Mark tutorial as completed
   const handleCompleteTutorial = () => {
@@ -152,6 +182,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
       ) : (
         <StepsRouter
           topic={topic}
+          topics={topics}
           onNext={onNext}
           onPrev={onPrev}
           onComplete={handleCompleteTutorial}
