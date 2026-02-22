@@ -246,6 +246,11 @@ def validate_data_request(request: Request, **kwargs):
 @permission_classes([IsAuthenticated])
 def email_data_view(request: Request):
     validated_task_params = validate_data_request(request)
+    # Dramatiq uses JSON serialization, so convert datetime to ISO string
+    if validated_task_params.get("joined_before_date") is not None:
+        validated_task_params["joined_before_date"] = validated_task_params[
+            "joined_before_date"
+        ].isoformat()
     email_data_task.send(**validated_task_params)
     return Response({"message": "Email scheduled to be sent"}, status=200)
 

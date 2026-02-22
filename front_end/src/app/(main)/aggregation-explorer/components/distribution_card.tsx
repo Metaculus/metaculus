@@ -81,9 +81,7 @@ export default function DistributionCard({
       : aggregation.history[historyIndex];
   if (!forecast) return null;
 
-  const forecasterCount = isNil(cursorTimestamp)
-    ? aggregation.history.at(-1)?.forecaster_count ?? 0
-    : forecast.forecaster_count ?? 0;
+  const forecasterCount = forecast.forecaster_count ?? 0;
   const center =
     forecast.centers?.[optionIndex] ?? forecast.forecast_values?.[1] ?? 0;
   const intervalLower = forecast.interval_lower_bounds?.[optionIndex];
@@ -115,10 +113,15 @@ export default function DistributionCard({
         method.userIds,
         method.joinedBeforeDate
       );
-      const filename = `${questionTitle.replaceAll(" ", "_")}-${method.id.replaceAll(":", "-").replaceAll(",", "_")}.zip`;
-      saveAs(blob, filename);
+      const safeName = `${questionTitle}-${method.id}`
+        .replace(/[^A-Za-z0-9_.\-]/g, "_")
+        .replace(/_+/g, "_");
+      saveAs(blob, `${safeName}.zip`);
     } catch (error) {
-      toast.error(t("downloadQuestionDataError") + error);
+      toast.error(
+        t("downloadQuestionDataError") +
+          (error instanceof Error ? error.message : String(error))
+      );
     } finally {
       setIsDownloading(false);
     }
