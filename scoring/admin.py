@@ -320,11 +320,11 @@ class LeaderboardAdmin(admin.ModelAdmin):
             .annotate(
                 row_number=Window(
                     expression=RowNumber(),
-                    order_by=[F("rank").asc(nulls_last=True), F("id").asc()],
+                    order_by=[F("score").desc(nulls_last=True), F("id").asc()],
                 )
             )
             .filter(row_number__lte=100)
-            .order_by("rank", "id")
+            .order_by("-score", "id")
         )
         if not entries:
             return "No entries."

@@ -205,7 +205,7 @@ class Leaderboard(TimeStampedModel):
         """,
     )
 
-    # TO BE DEPRECATED IN FAVOR OF bot_exclusion_status
+    # TO BE DEPRECATED IN FAVOR OF bot/human_exclusion_status
     bot_status = models.CharField(
         max_length=32,
         choices=Project.BotLeaderboardStatus.choices,
