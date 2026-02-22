@@ -10,6 +10,7 @@ from posts.models import Post
 from questions.constants import UnsuccessfulResolutionType
 from questions.models import (
     DEFAULT_INBOUND_OUTCOME_COUNT,
+    MAX_DISCRETE_OPTION_COUNT,
     QUESTION_CONTINUOUS_TYPES,
     Question,
     Conditional,
@@ -217,6 +218,16 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
                 errors.append("Range Max is required for continuous questions")
             if data.get("range_min") is None:
                 errors.append("Range Min is required for continuous questions")
+        if question_type == Question.QuestionType.DISCRETE:
+            inbound_outcome_count = data.get("inbound_outcome_count")
+            if (
+                inbound_outcome_count is not None
+                and inbound_outcome_count > MAX_DISCRETE_OPTION_COUNT
+            ):
+                errors.append(
+                    f"Discrete questions are limited to {MAX_DISCRETE_OPTION_COUNT} options. "
+                    "Please increase the step size or tighten the bounds."
+                )
 
         if errors:
             raise serializers.ValidationError(errors)

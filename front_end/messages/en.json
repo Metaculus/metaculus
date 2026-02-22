@@ -1464,7 +1464,7 @@
   "zeroPointError0": "Zero point is not supported for discrete questions",
   "zeroPointError1": "Zero point ({zeroPoint}) should not be between min ({min}) and max ({max})",
   "stepError0": "Step cannot be more than half the range: ({halfRange})",
-  "stepError1": "Step must be at least 1/200 of the range: ({rangePortion})",
+  "stepError1": "Discrete questions are limited to {maxOptions} options. Please increase the step size or tighten the bounds.",
   "minMaxError0": "Provide correct min and max values",
   "minMaxError1": "Minimum value should be less than maximum value",
   "rangeWarning0": "Warning: Step does not divide the range evenly. Max reduced to {newMax}",

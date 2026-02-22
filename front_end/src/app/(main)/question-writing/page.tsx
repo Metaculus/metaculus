@@ -271,6 +271,15 @@ export default function QuestionChecklist() {
             wider.
           </li>
           <li>
+            <strong>Limit discrete questions to at most 50 options.</strong>{" "}
+            Discrete questions are designed for outcomes with a small number of
+            distinct values (e.g. number of goals in a match, number of seats
+            won). If your question would have more than 50 possible outcomes,
+            increase the step size or tighten the bounds. Having too many
+            discrete options makes the probability mass function chart difficult
+            to read and undermines the forecasting experience.
+          </li>
+          <li>
             <strong>Double check.</strong> Proof-read your submission,
             double-check your resolution conditions and ranges, and make sure
             the formulation of your question is consistent throughout.

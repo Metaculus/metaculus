@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from scoring.models import Score, ArchivedScore
 
 DEFAULT_INBOUND_OUTCOME_COUNT = 200
+MAX_DISCRETE_OPTION_COUNT = 50
 
 
 def validate_options_history(value):
