@@ -504,8 +504,7 @@ const GroupChart: FC<Props> = ({
                   (!forceShowLinePoints &&
                     (isHighlightActive ||
                       !isCursorActive ||
-                      (!isNil(cursorTimestamp) &&
-                        point.x < cursorTimestamp)))
+                      (!isNil(cursorTimestamp) && point.x < cursorTimestamp)))
                 ) {
                   return null;
                 }
