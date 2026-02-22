@@ -138,7 +138,7 @@ const GroupChart: FC<Props> = ({
   const defaultCursor = useMemo(
     () =>
       isClosed
-        ? actualCloseTime
+        ? !isNil(actualCloseTime)
           ? actualCloseTime / 1000
           : timestamps[timestamps.length - 1]
         : Date.now() / 1000,
@@ -195,7 +195,7 @@ const GroupChart: FC<Props> = ({
   const filteredLines = useMemo(() => {
     return graphs.map(({ line, active }) => {
       const lastLineX = line.at(-1)?.x;
-      if (!active || !lastLineX) return null;
+      if (!active || isNil(lastLineX)) return null;
 
       if (isNil(effectiveCursorTimestamp)) return line;
 
@@ -504,7 +504,8 @@ const GroupChart: FC<Props> = ({
                   (!forceShowLinePoints &&
                     (isHighlightActive ||
                       !isCursorActive ||
-                      (cursorTimestamp && point.x < cursorTimestamp)))
+                      (!isNil(cursorTimestamp) &&
+                        point.x < cursorTimestamp)))
                 ) {
                   return null;
                 }
@@ -707,8 +708,8 @@ function buildChartData({
 }): ChartData {
   const closeTimes = choiceItems
     .map(({ closeTime }) => closeTime)
-    .filter((t) => t !== undefined);
-  const latestTimestamp = actualCloseTime
+    .filter((t): t is number => !isNil(t));
+  const latestTimestamp = !isNil(actualCloseTime)
     ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
     : !!closeTimes.length && closeTimes.length === choiceItems.length
       ? Math.min(
@@ -751,24 +752,24 @@ function buildChartData({
 
       userTimestamps.forEach((timestamp, timestampIndex) => {
         const userValue = userValues[timestampIndex];
-        const userMaxValue = userMaxValues
+        const userMaxValue = !isNil(userMaxValues)
           ? userMaxValues[timestampIndex]
           : null;
-        const userMinValue = userMinValues
+        const userMinValue = !isNil(userMinValues)
           ? userMinValues[timestampIndex]
           : null;
         // build user scatter points
         if (
           !scatter.length ||
-          userValue ||
+          !isNil(userValue) ||
           isNil(scatter[scatter.length - 1]?.y)
         ) {
           // we are either starting or have a real value or previous value is null
           scatter.push({
             x: timestamp,
-            y: userValue ? rescale(userValue) : null,
-            y1: userMinValue ? rescale(userMinValue) : null,
-            y2: userMaxValue ? rescale(userMaxValue) : null,
+            y: !isNil(userValue) ? rescale(userValue) : null,
+            y1: !isNil(userMinValue) ? rescale(userMinValue) : null,
+            y2: !isNil(userMaxValue) ? rescale(userMaxValue) : null,
             symbol: "circle",
           });
         } else {
@@ -801,19 +802,23 @@ function buildChartData({
           // build line and area (CP data)
           if (
             !line.length ||
-            aggregationValue ||
+            !isNil(aggregationValue) ||
             isNil(line[line.length - 1]?.y)
           ) {
             // we are either starting or have a real value or previous value is null
             line.push({
               x: timestamp,
-              y: aggregationValue ? rescale(aggregationValue) : null,
+              y: !isNil(aggregationValue) ? rescale(aggregationValue) : null,
             });
 
             area.push({
               x: timestamp,
-              y: aggregationMaxValue ? rescale(aggregationMaxValue) : null,
-              y0: aggregationMinValue ? rescale(aggregationMinValue) : null,
+              y: !isNil(aggregationMaxValue)
+                ? rescale(aggregationMaxValue)
+                : null,
+              y0: !isNil(aggregationMinValue)
+                ? rescale(aggregationMinValue)
+                : null,
             });
           } else {
             // we have a null vlalue while previous was real
@@ -854,22 +859,24 @@ function buildChartData({
         scatter: scatter,
         active,
         highlighted,
-        isClosed: closeTime ? new Date(closeTime) < new Date() : false,
+        isClosed: !isNil(closeTime) ? new Date(closeTime) < new Date() : false,
       };
       if (item.line.length > 0) {
         item.line.push({
-          x: closeTime ? closeTime / 1000 : latestTimestamp,
+          x: !isNil(closeTime) ? closeTime / 1000 : latestTimestamp,
           y: item.line.at(-1)?.y ?? null,
         });
         item.area?.push({
-          x: closeTime ? closeTime / 1000 : latestTimestamp,
+          x: !isNil(closeTime) ? closeTime / 1000 : latestTimestamp,
           y: item?.area?.at(-1)?.y ?? null,
           y0: item?.area?.at(-1)?.y0 ?? null,
         });
       }
       if (!isNil(resolution)) {
         const lastLineItem = item.line.at(-1);
-        const resolveTime = closeTime ? closeTime / 1000 : latestTimestamp;
+        const resolveTime = !isNil(closeTime)
+          ? closeTime / 1000
+          : latestTimestamp;
         if (
           ["yes", "no", "below_lower_bound", "above_upper_bound"].includes(
             resolution as string
@@ -944,7 +951,7 @@ function buildChartData({
   );
 
   const domainTimestamps =
-    isAggregationsEmpty && !!openTime
+    isAggregationsEmpty && !isNil(openTime)
       ? [openTime / 1000, latestTimestamp]
       : aggregation
         ? timestamps
