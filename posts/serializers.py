@@ -553,7 +553,7 @@ def serialize_post_many(
             )
 
         coherence_link_aggs_map = serialize_aggregate_coherence_links_questions_map(
-            questions
+            questions, current_user
         )
 
     question_movements = {}

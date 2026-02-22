@@ -92,9 +92,11 @@ def get_links_for_question_api_view(request, pk):
 @permission_classes([AllowAny])
 def get_aggregate_links_for_question_api_view(request: Request, pk: int):
     question = get_object_or_404(Question, pk=pk)
+    question_permission = get_post_permission_for_user(question.post, user=request.user)
+    ObjectPermission.can_view(question_permission, raise_exception=True)
     links = AggregateCoherenceLink.objects.filter(
         Q(question1=question) | Q(question2=question)
-    )
+    ).filter_permission(user=request.user)
 
     links_to_data = serialize_aggregate_coherence_link_many(
         links,
