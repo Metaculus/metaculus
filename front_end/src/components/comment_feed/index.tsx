@@ -351,6 +351,7 @@ const CommentFeed: FC<Props> = ({
   return (
     <DefaultUserMentionsContextProvider
       defaultUserMentions={commentAuthorMentionItems}
+      postId={postId}
     >
       <section
         id={id}

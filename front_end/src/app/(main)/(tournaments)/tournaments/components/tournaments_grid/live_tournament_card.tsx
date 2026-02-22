@@ -11,6 +11,7 @@ import { safeTs } from "@/utils/formatters/date";
 import { formatMoneyUSD } from "@/utils/formatters/number";
 import { formatTournamentRelativeDelta } from "@/utils/projects/helpers";
 
+import PrivateBadge from "./private_badge";
 import TournamentCardShell from "./tournament_card_shell";
 import GradientProgressLine from "../../../tournament/components/gradient_progress_line";
 
@@ -51,6 +52,7 @@ const LiveTournamentCard: React.FC<Props> = ({
             />
           </div>
         )}
+        {!item.default_permission && <PrivateBadge />}
       </div>
 
       <div className="flex items-center justify-center gap-2 px-3 pb-0 pt-3 text-xs lg:justify-between lg:px-4 lg:pb-[5px]">
