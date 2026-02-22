@@ -83,7 +83,7 @@ export default function DistributionCard({
 
   const forecasterCount = forecast.forecaster_count ?? 0;
   const center =
-    forecast.centers?.[optionIndex] ?? forecast.forecast_values?.[1] ?? 0;
+    forecast.centers?.[optionIndex] ?? forecast.forecast_values?.[1] ?? null;
   const intervalLower = forecast.interval_lower_bounds?.[optionIndex];
   const intervalUpper = forecast.interval_upper_bounds?.[optionIndex];
 

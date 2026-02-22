@@ -1,3 +1,5 @@
+import datetime
+
 import dramatiq
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -99,8 +101,6 @@ def email_data_task(
     joined_before_date: str | None = None,
 ):
     try:
-        import datetime
-
         from utils.csv_utils import export_data_for_questions
 
         parsed_joined_before = (
