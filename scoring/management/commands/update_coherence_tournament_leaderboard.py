@@ -2,10 +2,11 @@ import logging
 from collections import defaultdict
 
 from django.core.management.base import BaseCommand
-from django.db.models import Exists, OuterRef, QuerySet
+from django.db.models import Exists, OuterRef, QuerySet, Q
 from django.utils import timezone
 import numpy as np
 
+from coherence.models import CoherenceLink
 from posts.models import Post
 from projects.models import Project
 from questions.constants import UnsuccessfulResolutionType
@@ -210,10 +211,17 @@ def run_update_coherence_spring_2026_cup() -> None:
         for entry in list(leaderboard.entries.all())
     }
     rank = 1
-    question_count = len(set(question_ids)) or 1
+    question_ids_set = set(question_ids)
+    question_count = len(question_ids_set) or 1
     seen = set()
     for uid, score, weight in ordered_scores:
-        forecasted_questions = competitor_ids.count(uid)
+        huid = (User.objects.get(id=uid).metadata or {}).get(
+            "coherence_bot_for_user_id"
+        )
+        relevant_links = CoherenceLink.objects.filter(
+            Q(question1_id__in=question_ids_set) | Q(question2_id__in=question_ids_set),
+            user_id=huid or 0,
+        )
 
         excluded = False
         if (
@@ -230,7 +238,7 @@ def run_update_coherence_spring_2026_cup() -> None:
         entry.rank = rank
         entry.excluded = excluded
         entry.show_when_excluded = True
-        entry.contribution_count = forecasted_questions
+        entry.contribution_count = relevant_links.count()
         entry.coverage = weight / question_count
         entry.calculated_on = timezone.now()
         entry.save()
