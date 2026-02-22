@@ -111,12 +111,13 @@ class PostAdmin(CustomTranslationAdmin):
         return format_html(
             '<a class="button" href="{}">{}</a>',
             url,
-            "Update Materialized Fields (e.g. open time)",
+            (
+                "Update Cached Fields (e.g. open time, scheduled close time, "
+                "forecasters_count, etc.)"
+            ),
         )
 
-    update_pseudo_materialized_fields_button.short_description = (
-        "Update Marterialized Fields"
-    )
+    update_pseudo_materialized_fields_button.short_description = "Update Cached Fields"
 
     def other_project_count(self, obj):
         return obj.projects.count()
@@ -203,7 +204,8 @@ class PostAdmin(CustomTranslationAdmin):
             messages.error(request, "Post not found.")
             return redirect("admin:posts_post_changelist")
         post.update_pseudo_materialized_fields()
-        messages.success(request, "Updated Materialized Fields")
+        post.update_cached_fields()
+        messages.success(request, "Updated Cached Fields")
         return redirect(reverse("admin:posts_post_change", args=[post.pk]))
 
     def get_fields(self, request, obj=None):
