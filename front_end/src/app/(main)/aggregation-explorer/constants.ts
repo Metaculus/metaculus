@@ -30,6 +30,7 @@ export const AGGREGATION_EXPLORER_OPTIONS: readonly AggregationOption[] = [
   {
     id: AggregationMethod.metaculus_prediction,
     labelKey: "metaculusPredictionLabel",
+    isDeprecated: true,
   },
   {
     id: AggregationMethod.metaculus_pros,

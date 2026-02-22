@@ -47,6 +47,7 @@ export type AggregationListItem = {
   isError?: boolean;
   isNoData?: boolean;
   isDefault?: boolean;
+  isDeprecated?: boolean;
 };
 
 type Props = {
@@ -129,6 +130,7 @@ export default function AggregationMethodSelector({
             {visibleTopLevelOptions.map((option) => (
               <option key={option.id} value={option.id}>
                 {tLabel(option.labelKey)}
+                {option.isDeprecated ? ` (${t("deprecated")})` : ""}
               </option>
             ))}
           </StyledSelect>
@@ -321,6 +323,7 @@ function AggregationListRow({
         strikethrough={!item.enabled}
         warning={item.isError || item.isNoData}
         isDefault={item.isDefault}
+        isDeprecated={item.isDeprecated}
       />
       <button
         type="button"

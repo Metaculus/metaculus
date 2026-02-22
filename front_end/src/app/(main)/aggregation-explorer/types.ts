@@ -52,6 +52,7 @@ export type AggregationOption = {
   id: string;
   labelKey: string;
   isStaffOnly?: boolean;
+  isDeprecated?: boolean;
   supportsBotToggle?: boolean;
   supportsUserIds?: boolean;
   requiresDate?: boolean;

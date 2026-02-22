@@ -281,6 +281,7 @@
   "brierScore": "Brier Score",
   "yes": "yes",
   "default": "default",
+  "deprecated": "deprecated",
   "Yes": "Yes",
   "no": "no",
   "fanGraphFirstQuartileLabel": "25th percentile",

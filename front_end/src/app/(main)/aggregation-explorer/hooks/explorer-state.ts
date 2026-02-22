@@ -123,6 +123,7 @@ export function useExplorerState(postData: PostWithForecasts) {
           isError: method?.isError ?? false,
           isNoData: method?.isNoData ?? false,
           isDefault: config.id === defaultConfigId,
+          isDeprecated: option.isDeprecated,
         };
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps

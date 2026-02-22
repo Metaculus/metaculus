@@ -1420,6 +1420,7 @@
   "LeaderboardTagDisclaimer": "Veja todas as perguntas que contam para este ranking <link>aqui</link>",
   "activeForecastersLabel": "Previsores Ativos",
   "default": "padrão",
+  "deprecated": "obsoleto",
   "mainGraphType": "Tipo de Gráfico Principal",
   "mainGraphTypeDescription": "Escolha \"Gráfico de Leque\" se as subquestões estiverem ordenadas (como anos) e \"Linhas do Tempo Alternadas\" se não estiverem ordenadas (como partidos políticos).",
   "fanGraph": "Gráfico de Leque",

@@ -1418,6 +1418,7 @@
   "LeaderboardTagDisclaimer": "查看此排行榜中計算在內的所有問題，請點擊<link>這裡</link>",
   "activeForecastersLabel": "活躍預測者",
   "default": "預設",
+  "deprecated": "已棄用",
   "percentagePointsShort": "百分點",
   "CPMovementChangeLabel": "{value} 本{period}",
   "latestEstimate": "最新估計",

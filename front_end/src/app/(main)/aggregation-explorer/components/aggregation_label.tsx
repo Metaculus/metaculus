@@ -7,6 +7,7 @@ type Props = {
   strikethrough?: boolean;
   warning?: boolean;
   isDefault?: boolean;
+  isDeprecated?: boolean;
 };
 
 export default function AggregationLabel({
@@ -16,6 +17,7 @@ export default function AggregationLabel({
   strikethrough,
   warning,
   isDefault,
+  isDeprecated,
 }: Props) {
   const t = useTranslations();
   const labelClassName = warning
@@ -37,6 +39,11 @@ export default function AggregationLabel({
         {isDefault && (
           <span className="shrink-0 rounded bg-blue-200 px-1 py-0.5 text-[10px] font-medium leading-none text-blue-700 dark:bg-blue-800 dark:text-blue-200">
             {t("default")}
+          </span>
+        )}
+        {isDeprecated && (
+          <span className="shrink-0 rounded bg-orange-100 px-1 py-0.5 text-[10px] font-medium leading-none text-orange-700 dark:bg-orange-900/50 dark:text-orange-300">
+            {t("deprecated")}
           </span>
         )}
       </span>
