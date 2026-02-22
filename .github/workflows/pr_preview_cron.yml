@@ -42,7 +42,7 @@ jobs:
           APPS_JSON=$(flyctl apps list --json --org "${FLY_ORG}")
           echo "Raw app count: $(echo "$APPS_JSON" | jq length)"
 
-          PREVIEW_APPS=$(echo "$APPS_JSON" | jq -r '.[].Name | select(startswith("metaculus-pr-"))' 2>/dev/null || true)
+          PREVIEW_APPS=$(echo "$APPS_JSON" | jq -r '.[].Name | select(startswith("metaculus-pr-"))')
 
           if [ -z "$PREVIEW_APPS" ]; then
             echo "previews=[]" >> $GITHUB_OUTPUT
@@ -57,7 +57,7 @@ jobs:
             PR_NUM=$(echo "$PREVIEW_ID" | sed -n 's/^pr-\([0-9]*\)-.*/\1/p')
             [ -z "$PR_NUM" ] && continue
 
-            PR_JSON=$(gh pr view "$PR_NUM" --json headRefName,labels,state 2>/dev/null || echo '{}')
+            PR_JSON=$(gh pr view "$PR_NUM" --repo "${{ github.repository }}" --json headRefName,labels,state 2>/dev/null || echo '{}')
             HEAD_REF=$(echo "$PR_JSON" | jq -r '.headRefName // ""')
             [ -z "$HEAD_REF" ] && continue
             PR_STATE=$(echo "$PR_JSON" | jq -r '.state // ""')
