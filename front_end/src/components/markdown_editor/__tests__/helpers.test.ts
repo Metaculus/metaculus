@@ -153,6 +153,30 @@ describe("processMarkdown", () => {
       // Then
       expect(result).toContain("Prices: \\$5, \\$10, and \\$15");
     });
+
+    it("should not double-escape already escaped dollar signs", () => {
+      // Given
+      const input = "Already escaped: \\$10";
+
+      // When
+      const result = processMarkdown(input);
+
+      // Then
+      expect(result).toContain("Already escaped: \\$10");
+      expect(result).not.toContain("\\\\$10");
+    });
+
+    it("should keep escaped block delimiters as plain text", () => {
+      // Given
+      const input = "Escaped block: \\$$x$$ and real block: $$\ny\n$$";
+
+      // When
+      const result = processMarkdown(input);
+
+      // Then
+      expect(result).toContain("Escaped block: \\$$x");
+      expect(result).toMatch(/real block:\s*\$\$\ny\n\$\$/);
+    });
   });
 
   describe("plain text symbols escaping", () => {

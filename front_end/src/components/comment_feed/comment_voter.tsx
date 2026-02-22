@@ -57,7 +57,7 @@ const CommentVoter: FC<Props> = ({ voteData, className }) => {
       onVoteUp={() => handleVote(1)}
       onVoteDown={() => handleVote(-1)}
       commentArea={true}
-      disabled={user?.id === voteData.commentAuthorId}
+      disabled={user?.is_bot || user?.id === voteData.commentAuthorId}
     />
   );
 };

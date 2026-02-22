@@ -8,6 +8,7 @@ import {
   QuestionStatus,
 } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
+import { CurrentUser } from "@/types/users";
 
 import { isForecastActive } from "../forecasts/helpers";
 
@@ -20,13 +21,20 @@ type CanPredictParams = Pick<
   | "conditional"
 >;
 
-export function canPredictQuestion({
-  user_permission,
-  status,
-  question,
-  group_of_questions,
-  conditional,
-}: CanPredictParams) {
+export function canPredictQuestion(
+  {
+    user_permission,
+    status,
+    question,
+    group_of_questions,
+    conditional,
+  }: CanPredictParams,
+  user?: CurrentUser | null
+) {
+  if (user?.is_bot) {
+    return false;
+  }
+
   // post level checks
   if (
     user_permission === ProjectPermissions.VIEWER ||
