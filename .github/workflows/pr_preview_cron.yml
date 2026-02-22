@@ -1,12 +1,14 @@
 # =============================================================================
-# PR Preview Stale Cleanup
+# PR Preview Maintenance
 # =============================================================================
 #
-# Runs weekly to cleanup stale previews.
+# Runs weekly to:
+# - Cleanup stale previews (closed PRs or PRs labeled "Stale")
+# - Redeploy active previews with a fresh database reset
 #
 # =============================================================================
 
-name: PR Preview Stale Cleanup
+name: PR Preview Maintenance
 
 on:
   schedule:
@@ -101,3 +103,24 @@ jobs:
             -f action=cleanup \
             -f cleanup_reason=Stale
           echo "Triggered cleanup for PR #${{ matrix.pr_number }} (${{ matrix.app }})"
+
+  redeploy-active:
+    name: Redeploy Active Previews
+    needs: list-previews
+    if: needs.list-previews.outputs.previews != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.list-previews.outputs.previews) }}
+    steps:
+      - name: Trigger redeploy for active PR
+        if: matrix.is_stale == false
+        run: |
+          gh workflow run pr_preview.yml \
+            --repo ${{ github.repository }} \
+            --ref "${{ matrix.head_ref }}" \
+            -f pr_number=${{ matrix.pr_number }} \
+            -f action=deploy \
+            -f reset_db=true
+          echo "Triggered redeploy with DB reset for PR #${{ matrix.pr_number }} (${{ matrix.app }})"
