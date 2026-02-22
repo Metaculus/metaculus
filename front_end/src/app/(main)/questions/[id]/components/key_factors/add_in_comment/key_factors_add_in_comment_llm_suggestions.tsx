@@ -24,6 +24,7 @@ import {
 import { KeyFactorDraft } from "@/types/key_factors";
 import { PostWithForecasts } from "@/types/post";
 import { Question } from "@/types/question";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import {
   isBaseRateDraft,
@@ -82,6 +83,14 @@ type CombinedSuggestionItem =
       keyFactor: KeyFactorDraft;
       keyFactorIndex: number;
     };
+
+/**
+ * Helper to determine the type of a key factor draft
+ */
+const getKeyFactorType = (
+  kf: KeyFactorDraft
+): "driver" | "base_rate" | "news" =>
+  isDriverDraft(kf) ? "driver" : isBaseRateDraft(kf) ? "base_rate" : "news";
 
 const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
   onBack,
@@ -217,6 +226,12 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
     idx: number,
     opts?: { showErrors?: boolean }
   ) => {
+    // Track edit action
+    const keyFactorType = getKeyFactorType(kf);
+    sendAnalyticsEvent("keyFactorLLMSuggestionEdited", {
+      event_category: keyFactorType,
+    });
+
     const id = editingIdRef.current++;
     setEditingSessions((prev) => [
       ...prev,
@@ -708,6 +723,12 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
                       <KeyFactorActionButton
                         kind="accept"
                         onClick={async () => {
+                          // Track accept action
+                          const keyFactorType = getKeyFactorType(kf);
+                          sendAnalyticsEvent("keyFactorLLMSuggestionAccepted", {
+                            event_category: keyFactorType,
+                          });
+
                           const res = await addSingleSuggestedKeyFactor(kf);
                           if (!res || ("errors" in res && res.errors)) {
                             handleEdit(kf, keyFactorIndex, {
@@ -725,7 +746,15 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
                     />
                     <KeyFactorActionButton
                       kind="reject"
-                      onClick={() => removeKeyFactorAt(keyFactorIndex)}
+                      onClick={() => {
+                        // Track reject action
+                        const keyFactorType = getKeyFactorType(kf);
+                        sendAnalyticsEvent("keyFactorLLMSuggestionRejected", {
+                          event_category: keyFactorType,
+                        });
+
+                        removeKeyFactorAt(keyFactorIndex);
+                      }}
                     />
                   </div>
                 </div>

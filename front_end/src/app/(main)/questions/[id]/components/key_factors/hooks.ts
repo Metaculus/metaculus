@@ -127,6 +127,17 @@ export const useKeyFactors = ({
 
       setSuggestedKeyFactors(filtered);
       fetchedOnceRef.current.add(cid);
+
+      // Track when key factors are successfully generated
+      if (filtered.length > 0) {
+        sendAnalyticsEvent("keyFactorLLMGenerated", {
+          event_category: "success",
+          count: filtered.length,
+          driver_count: filtered.filter(isDriverDraft).length,
+          base_rate_count: filtered.filter(isBaseRateDraft).length,
+          news_count: filtered.filter(isNewsDraft).length,
+        });
+      }
     } finally {
       setIsLoadingSuggestedKeyFactors(false);
       delete inFlightRef.current[cid];
@@ -139,6 +150,13 @@ export const useKeyFactors = ({
 
     const comment = comments.find((c) => c.id === commentId);
     if (!comment) return;
+
+    // Track automatic generation attempt (before user clicks button)
+    if (!fetchedOnceRef.current.has(commentId)) {
+      sendAnalyticsEvent("keyFactorLLMGenerationAttempted", {
+        event_category: "automatic",
+      });
+    }
 
     const ids = extractQuestionNumbersFromText(comment.text || "");
     if (!ids.length) {
@@ -289,9 +307,35 @@ export const useKeyFactors = ({
           is_private: false,
         });
 
+    // Determine if this is a manual creation or from LLM suggestions
+    // Count based on filtered arrays to exclude empty drafts
+    const manualCount =
+      (submitType === "driver"
+        ? driverDrafts.filter((d) => d.driver.text.trim() !== "").length
+        : 0) +
+      (submitType === "base_rate" ? baseRateDrafts.length : 0) +
+      (submitType === "news" ? newsDrafts.length : 0);
+    const suggestedCount =
+      (submitType === "driver"
+        ? suggestedDriverDrafts.filter((d) => d.driver.text.trim() !== "")
+            .length
+        : 0) +
+      (submitType === "base_rate" ? suggestedBaseRateDrafts.length : 0) +
+      (submitType === "news" ? suggestedNewsDrafts.length : 0);
+
+    // Track the creation source
+    let source = "manual";
+    if (suggestedCount > 0 && manualCount === 0) {
+      source = "llm_suggestion";
+    } else if (suggestedCount > 0 && manualCount > 0) {
+      source = "mixed";
+    }
+
     sendAnalyticsEvent("addKeyFactor", {
       event_label: isNil(commentId) ? "fromList" : "fromComment",
-      event_category: "submit",
+      event_category: submitType,
+      source,
+      count: writePayloads.length,
     });
 
     if ("errors" in comment) {
