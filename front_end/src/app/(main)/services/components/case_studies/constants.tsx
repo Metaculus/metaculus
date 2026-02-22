@@ -95,7 +95,7 @@ export const CASE_STUDIES: TCaseStudyCard[] = [
       ],
     },
     aboutInitiative:
-      "Developed in collaboration with Our World in Data (OWID), this project deployed Metaculus Pro Forecasters to predict key measures of human progress over various time horizons. Thirty OWID-tracked time-series metrics were selected to collectively illuminate what the future might hold according to Metaculus\u2019s most accurate forecasters.",
+      "Developed in collaboration with Our World in Data (OWID), this project deployed Metaculus Pro Forecasters to predict key measures of human progress over various time horizons. Thirty OWID-tracked time-series metrics were selected to collectively illuminate what the future might hold according to Metaculus's most accurate forecasters.",
     report: {
       previewImageSrc: OwidPreview,
       previewImageAlt: "OWID report preview",

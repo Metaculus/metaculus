@@ -13,7 +13,10 @@ from comments.tasks import (
     job_finalize_and_send_weekly_top_comments,
 )
 from misc.jobs import sync_itn_articles
-from notifications.jobs import job_send_notification_groups
+from notifications.jobs import (
+    job_send_notification_groups,
+    job_send_open_status_notifications,
+)
 from posts.jobs import (
     job_compute_movement,
     job_subscription_notify_date,
@@ -29,6 +32,7 @@ from scoring.jobs import (
     update_custom_leaderboards,
 )
 from scoring.utils import update_medal_points_and_ranks
+from projects.tasks import warm_cache_feed_project_tiles
 from scoring.tasks import warm_cache_metaculus_stats
 
 
@@ -151,6 +155,13 @@ class Command(BaseCommand):
             max_instances=1,
             replace_existing=True,
         )
+        scheduler.add_job(
+            close_old_connections(job_send_open_status_notifications.send),
+            trigger=CronTrigger.from_crontab("*/30 * * * *"),  # Every 30 minutes
+            id="notifications_job_send_open_status_notifications",
+            max_instances=1,
+            replace_existing=True,
+        )
 
         #
         # ITN Sync Job
@@ -232,6 +243,13 @@ class Command(BaseCommand):
         #
         # Cache warm-up jobs
         #
+        scheduler.add_job(
+            close_old_connections(warm_cache_feed_project_tiles.send),
+            trigger=CronTrigger.from_crontab("*/15 * * * *"),  # Every 15 minutes
+            id="warm_cache_feed_project_tiles",
+            max_instances=1,
+            replace_existing=True,
+        )
         scheduler.add_job(
             close_old_connections(warm_cache_metaculus_stats.send),
             trigger=CronTrigger.from_crontab("0 */12 * * *"),  # Every 12 hours

@@ -65,6 +65,29 @@ class AuthenticationRequiredMiddleware(MiddlewareMixin):
         return None
 
 
+class IsStaffQueryParamRequiredMiddleware(MiddlewareMixin):
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        if request.GET.get("is_staff", "").lower() != "true":
+            return None
+
+        user, _ = authenticate_request(request)
+
+        if not user:
+            return JsonResponse(
+                {"detail": "Authentication credentials were not provided."}, status=401
+            )
+
+        if not user.is_staff:
+            return JsonResponse(
+                {
+                    "detail": "You do not have permission to perform this action. Remove the is_staff query param and try again."
+                },
+                status=403,
+            )
+
+        return None
+
+
 def middleware_alpha_access_check(get_response):
     # One-time configuration and initialization.
 
