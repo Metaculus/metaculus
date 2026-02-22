@@ -2,7 +2,7 @@
 # PR Preview Stale Cleanup
 # =============================================================================
 #
-# Runs daily to cleanup stale previews.
+# Runs weekly to cleanup stale previews.
 #
 # =============================================================================
 
@@ -10,7 +10,7 @@ name: PR Preview Stale Cleanup
 
 on:
   schedule:
-    - cron: "30 0 * * *" # Every day at 00:30 UTC
+    - cron: "0 7 * * 0" # Every Sunday at 07:00 UTC
   workflow_dispatch:
 
 permissions:
@@ -19,6 +19,7 @@ permissions:
   actions: write
 
 env:
+  FLY_ORG: ${{ vars.FLY_ORG || 'personal' }}
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -37,7 +38,10 @@ jobs:
       - name: List preview apps and PR info
         id: matrix
         run: |
-          APPS_JSON=$(flyctl apps list --json 2>/dev/null || echo "[]")
+          echo "Listing Fly apps for org: ${FLY_ORG}"
+          APPS_JSON=$(flyctl apps list --json --org "${FLY_ORG}")
+          echo "Raw app count: $(echo "$APPS_JSON" | jq length)"
+
           PREVIEW_APPS=$(echo "$APPS_JSON" | jq -r '.[].Name | select(startswith("metaculus-pr-"))' 2>/dev/null || true)
 
           if [ -z "$PREVIEW_APPS" ]; then
@@ -92,6 +96,7 @@ jobs:
         if: matrix.is_stale == true
         run: |
           gh workflow run pr_preview.yml \
+            --repo ${{ github.repository }} \
             -f pr_number=${{ matrix.pr_number }} \
             -f action=cleanup \
             -f cleanup_reason=Stale

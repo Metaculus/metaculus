@@ -86,7 +86,6 @@ permissions:
   deployments: write
 
 env:
-  # Note: IMAGE_NAME is computed in setup job to ensure lowercase (required by Docker)
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
 jobs:
