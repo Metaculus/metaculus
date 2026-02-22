@@ -88,17 +88,7 @@ jobs:
         if: steps.cache-playwright.outputs.cache-hit != 'true'
         run: poetry run python -m playwright install chromium --with-deps
       - name: Restore the min DB for testing
-        run: |
-          wget https://github.com/Metaculus/metaculus/releases/download/v0.0.1-alpha/test_metaculus.sql.zip
-          unzip test_metaculus.sql.zip
-          psql $DATABASE_URL -c "CREATE EXTENSION vector;"
-          pg_restore --dbname=$DATABASE_URL \
-            --clean \
-            --no-privileges \
-            --no-owner \
-            --if-exists \
-            --schema=public \
-            test_metaculus.sql
+        run: scripts/tests/setup_test_db.sh "$DATABASE_URL"
       - name: "Install Node"
         uses: actions/setup-node@v4
         with:
@@ -118,7 +108,6 @@ jobs:
         run: cd front_end && npm run build
       - name: Run the integration tests
         run: |
-          poetry run ./manage.py migrate
           PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH} scripts/tests/run_integration_tests.sh
       - name: Create trace.zip
         if: ${{ !cancelled() }}
