@@ -335,7 +335,10 @@ const ForecastChoiceOption = <T = string,>({
           )}
           colSpan={4}
         >
-          {SliderElement}
+          <div className="flex items-center">
+            <div className="w-full">{SliderElement}</div>
+            {menu && <div>{menu}</div>}
+          </div>
         </td>
       </tr>
     </>
