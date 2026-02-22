@@ -7,10 +7,10 @@ import { StaticImageData } from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { LightDarkIcon } from "@/components/ui/light-dark-icon";
 import cn from "@/utils/core/cn";
 
 import { FE_COLORS } from "../../theme";
-import { LightDarkIcon } from "../light-dark-icon";
 
 type Props = {
   heightPct: number;
@@ -27,7 +27,7 @@ type Props = {
 
 const FutureEvalModelBar: React.FC<Props> = ({ heightPct, model }) => {
   const router = useRouter();
-  const score = Math.round(model.score * 100) / 100;
+  const score = (Math.round(model.score * 100) / 100).toFixed(2);
   const [isHovered, setIsHovered] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 

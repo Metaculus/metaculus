@@ -4,6 +4,7 @@ import serverMiscApi from "@/services/api/misc/misc.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { abbreviatedNumber } from "@/utils/formatters/number";
 
+import { CASE_STUDIES } from "./components/case_studies/constants";
 import ServicesPageTemplate from "./components/templates/services_page_template";
 import { sortServiceTournaments } from "./helpers";
 import ServiceConfig from "./serviceConfig";
@@ -17,18 +18,22 @@ export const metadata = {
 export default async function ServicesPage() {
   const t = await getTranslations();
   const { mainPageTournamentsList } = ServiceConfig;
+
   const [tournaments, siteStats] = await Promise.all([
     ServerProjectsApi.getTournaments({
       show_on_services_page: true,
     }),
     serverMiscApi.getSiteStats(),
   ]);
+
   const mainPageTournaments = tournaments.filter((tournament) =>
     mainPageTournamentsList.find(
       ({ id }) => String(id) === tournament.slug || id === tournament.id
     )
   );
+
   const sortedTournaments = sortServiceTournaments(mainPageTournaments);
+
   const statsList = [
     {
       label: t("predictions"),
@@ -71,6 +76,16 @@ export default async function ServicesPage() {
         title: t("proForecasters"),
         firstPart: t("engageProForecasters"),
         secondPart: t("ourMostAccurateForecasters"),
+      }}
+      workshop={{
+        title: t("hostWorkshop"),
+        description: t("hostWorkshopDescription"),
+        href: "/services/workshops",
+      }}
+      caseStudies={{
+        title: t("caseStudiesTitle"),
+        description: t("caseStudiesDescription"),
+        cards: CASE_STUDIES,
       }}
     />
   );

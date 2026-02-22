@@ -88,6 +88,7 @@ class UserPrivateSerializer(UserPublicSerializer):
     metadata = serializers.JSONField(read_only=True)
     registered_campaigns = serializers.SerializerMethodField()
     should_suggest_keyfactors = serializers.SerializerMethodField()
+    has_password = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -106,6 +107,7 @@ class UserPrivateSerializer(UserPublicSerializer):
             "language",
             "api_access_tier",
             "is_primary_bot",
+            "has_password",
         )
 
     def get_registered_campaigns(self, user: User):
@@ -127,6 +129,9 @@ class UserPrivateSerializer(UserPublicSerializer):
             KeyFactor.objects.filter(comment__author=user).exists()
             or LeaderboardEntry.objects.filter(user=user, medal__isnull=False).exists()
         )
+
+    def get_has_password(self, user: User) -> bool:
+        return user.has_usable_password()
 
 
 class UserUpdateProfileSerializer(serializers.ModelSerializer):
@@ -198,7 +203,15 @@ def validate_username_change(user: User, username: str):
 
 
 class UserFilterSerializer(serializers.Serializer):
-    search = serializers.CharField(required=True, min_length=3)
+    search = serializers.CharField(required=False, min_length=3)
+    post_id = serializers.IntegerField(required=False)
+
+    def validate(self, attrs):
+        if not attrs.get("search") and not attrs.get("post_id"):
+            raise serializers.ValidationError(
+                "At least one of 'search' or 'post_id' is required."
+            )
+        return attrs
 
 
 class PasswordChangeSerializer(serializers.Serializer):

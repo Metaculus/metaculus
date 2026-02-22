@@ -72,6 +72,7 @@ import { createQuestionPost, updatePost } from "../actions";
 
 type SubQuestionDraftBase = {
   id?: number;
+  clientId: string;
   label: string;
   scheduled_close_time?: string | undefined;
   scheduled_resolve_time?: string | undefined;
@@ -217,6 +218,9 @@ const GroupForm: React.FC<Props> = ({
     (Error & { digest?: string }) | string | undefined
   >();
 
+  const getSubQuestionType = (sq: SubQuestionDraft): SimpleQuestionType =>
+    (sq.type as SimpleQuestionType) ?? subtype;
+
   const defaultProject: Tournament =
     post?.projects?.default_project ??
     (tournament_id
@@ -249,9 +253,10 @@ const GroupForm: React.FC<Props> = ({
     let break_out = false;
     const groupData = subQuestions
       .map((x, idx) => {
+        const sqType = getSubQuestionType(x);
         const subquestionData = {
           id: x.id,
-          type: subtype,
+          type: sqType,
           title: `${data["title"]} (${x.label})`,
           label: x.label,
           scheduled_close_time: x.scheduled_close_time,
@@ -266,9 +271,9 @@ const GroupForm: React.FC<Props> = ({
           break_out = true;
           return;
         }
-        if (subtype === QuestionType.Binary) {
+        if (sqType === QuestionType.Binary) {
           return subquestionData;
-        } else if (subtype === QuestionType.Numeric) {
+        } else if (sqType === QuestionType.Numeric) {
           if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
             setError(
               "Please enter a range_max and range_min value for numeric questions"
@@ -283,7 +288,7 @@ const GroupForm: React.FC<Props> = ({
             open_lower_bound: x.open_lower_bound,
             open_upper_bound: x.open_upper_bound,
           };
-        } else if (subtype === QuestionType.Discrete) {
+        } else if (sqType === QuestionType.Discrete) {
           if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
             setError(
               "Please enter a range_max and range_min value for discrete questions"
@@ -299,7 +304,7 @@ const GroupForm: React.FC<Props> = ({
             open_upper_bound: x.open_upper_bound,
             inbound_outcome_count: x.inbound_outcome_count,
           };
-        } else if (subtype === QuestionType.Date) {
+        } else if (sqType === QuestionType.Date) {
           if (isNil(x.scaling?.range_max) || isNil(x.scaling?.range_min)) {
             setError(
               "Please enter a range_max and range_min value for date questions"
@@ -381,6 +386,8 @@ const GroupForm: React.FC<Props> = ({
     return initialSubQuestions.map((x, idx) => {
       return {
         id: x.id,
+        type: x.type as QuestionType,
+        clientId: crypto.randomUUID(),
         scheduled_close_time: x.scheduled_close_time,
         scheduled_resolve_time: x.scheduled_resolve_time,
         open_time: x.open_time,
@@ -508,7 +515,14 @@ const GroupForm: React.FC<Props> = ({
               )[0] as Tournament)
             : defaultProject
         );
-        setSubQuestions(draft.subQuestions ?? []);
+        setSubQuestions(
+          (draft.subQuestions ?? []).map(
+            (sq: QuestionWithForecasts & { clientId?: string }) => ({
+              ...sq,
+              clientId: sq.clientId || crypto.randomUUID(),
+            })
+          )
+        );
         setCollapsedSubQuestions(
           [...(draft.subQuestions ?? [])].map(() => true)
         );
@@ -646,17 +660,6 @@ const GroupForm: React.FC<Props> = ({
           />
         </InputContainer>
         <InputContainer
-          labelText={t("groupVariable")}
-          explanation={t("groupVariableDescription")}
-        >
-          <Input
-            {...form.register("group_variable")}
-            errors={form.formState.errors.group_variable}
-            defaultValue={post?.group_of_questions?.group_variable}
-            className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-          />
-        </InputContainer>
-        <InputContainer
           labelText={t("resolutionCriteria")}
           isNativeFormControl={false}
           explanation={t.rich("resolutionCriteriaExplanation", {
@@ -694,6 +697,17 @@ const GroupForm: React.FC<Props> = ({
             onChange={(categories) => {
               setCategoriesList(categories);
             }}
+          />
+        </InputContainer>
+        <InputContainer
+          labelText={t("groupVariable")}
+          explanation={t("groupVariableDescription")}
+        >
+          <Input
+            {...form.register("group_variable")}
+            errors={form.formState.errors.group_variable}
+            defaultValue={post?.group_of_questions?.group_variable}
+            className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
         </InputContainer>
         <div className="flex flex-col gap-4 rounded border bg-gray-200 p-4 dark:bg-gray-200-dark">
@@ -761,7 +775,7 @@ const GroupForm: React.FC<Props> = ({
           {subQuestions.map((subQuestion, index) => {
             return (
               <div
-                key={index}
+                key={subQuestion.clientId}
                 className="flex w-full flex-col gap-4 rounded border bg-gray-0 p-4 dark:bg-gray-0-dark"
               >
                 <InputContainer
@@ -793,8 +807,10 @@ const GroupForm: React.FC<Props> = ({
                 </InputContainer>
                 {collapsedSubQuestions[index] && (
                   <div className="flex w-full flex-col gap-4">
-                    {(subtype === QuestionType.Numeric ||
-                      subtype === QuestionType.Discrete) && (
+                    {(getSubQuestionType(subQuestion) ===
+                      QuestionType.Numeric ||
+                      getSubQuestionType(subQuestion) ===
+                        QuestionType.Discrete) && (
                       <InputContainer
                         labelText={t("subquestionUnit")}
                         explanation={t("questionUnitDescription")}
@@ -935,12 +951,14 @@ const GroupForm: React.FC<Props> = ({
                       </InputContainer>
                     </div>
                     {ContinuousQuestionTypes.some(
-                      (type) => type === subtype
+                      (type) => type === getSubQuestionType(subQuestion)
                     ) && (
                       <NumericQuestionInput
                         draftKey={shouldUseDraftValue ? draftKey : undefined}
                         questionType={
-                          subtype as (typeof ContinuousQuestionTypes)[number]
+                          getSubQuestionType(
+                            subQuestion
+                          ) as (typeof ContinuousQuestionTypes)[number]
                         }
                         defaultMin={subQuestion.scaling?.range_min ?? undefined}
                         defaultMax={subQuestion.scaling?.range_max ?? undefined}
@@ -1098,6 +1116,7 @@ const GroupForm: React.FC<Props> = ({
                   const last = subQuestions[subQuestions.length - 1];
                   const clone: SubQuestionDraft = {
                     ...last,
+                    clientId: crypto.randomUUID(),
                     has_forecasts: false,
                     id: undefined,
                     label: "",
@@ -1106,7 +1125,7 @@ const GroupForm: React.FC<Props> = ({
                   };
 
                   if (
-                    subtype === QuestionType.Discrete &&
+                    getSubQuestionType(clone) === QuestionType.Discrete &&
                     clone.scaling &&
                     clone.inbound_outcome_count &&
                     typeof clone.scaling.range_min === "number" &&
@@ -1150,6 +1169,7 @@ const GroupForm: React.FC<Props> = ({
                       ...subQuestions,
                       {
                         type: QuestionType.Numeric,
+                        clientId: crypto.randomUUID(),
                         label: "",
                         scheduled_close_time:
                           form.getValues().scheduled_close_time,
@@ -1169,6 +1189,7 @@ const GroupForm: React.FC<Props> = ({
                       ...subQuestions,
                       {
                         type: QuestionType.Discrete,
+                        clientId: crypto.randomUUID(),
                         label: "",
                         scheduled_close_time:
                           form.getValues().scheduled_close_time,
@@ -1189,6 +1210,7 @@ const GroupForm: React.FC<Props> = ({
                       ...subQuestions,
                       {
                         type: QuestionType.Date,
+                        clientId: crypto.randomUUID(),
                         label: "",
                         scheduled_close_time:
                           form.getValues().scheduled_close_time,
@@ -1208,6 +1230,7 @@ const GroupForm: React.FC<Props> = ({
                       ...subQuestions,
                       {
                         type: QuestionType.Binary,
+                        clientId: crypto.randomUUID(),
                         label: "",
                         scheduled_close_time:
                           form.getValues().scheduled_close_time,

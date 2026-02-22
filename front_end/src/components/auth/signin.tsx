@@ -2,19 +2,21 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useTransition, useActionState } from "react";
+import { FC, useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { LoginActionState } from "@/app/(main)/accounts/actions";
 import loginAction from "@/app/(main)/accounts/actions";
 import { signInSchema, SignInSchema } from "@/app/(main)/accounts/schemas";
 import SocialButtons from "@/components/auth/social_buttons";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
-import { Input } from "@/components/ui/form_field";
+import { FormErrorMessage, Input } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
+import { useServerAction } from "@/hooks/use_server_action";
+import { ErrorResponse } from "@/types/fetch";
+import { CurrentUser } from "@/types/users";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import usePostLoginActionHandler from "./hooks/usePostLoginActionHandler";
@@ -22,54 +24,70 @@ import usePostLoginActionHandler from "./hooks/usePostLoginActionHandler";
 type SignInModalType = {
   isOpen: boolean;
   onClose: (isOpen: boolean) => void;
+  onSuccess?: (authenticatedUser: CurrentUser) => void | Promise<void>;
 };
 
 const SignInModal: FC<SignInModalType> = ({
   isOpen,
   onClose,
+  onSuccess,
 }: SignInModalType) => {
   const { PUBLIC_ALLOW_SIGNUP } = usePublicSettings();
 
   const t = useTranslations();
-  const [isPending, startTransition] = useTransition();
   const { setUser } = useAuth();
   const { setCurrentModal } = useModal();
-  const { register, watch } = useForm<SignInSchema>({
+  const handlePostLoginAction = usePostLoginActionHandler();
+  const [submitErrors, setSubmitErrors] = useState<ErrorResponse>();
+
+  const {
+    formState: { errors },
+    register,
+    handleSubmit,
+    resetField,
+  } = useForm<SignInSchema>({
     resolver: zodResolver(signInSchema),
   });
-  const username = watch("login");
-  const [state, formAction] = useActionState<LoginActionState, FormData>(
-    loginAction,
-    null
+
+  const onSubmit = useCallback(
+    async (data: SignInSchema) => {
+      setSubmitErrors(undefined);
+      const state = await loginAction(data.login, data.password);
+
+      if (state?.errors) {
+        setSubmitErrors(state.errors);
+        resetField("password");
+
+        const isInactive =
+          typeof state.errors === "object" &&
+          "user_state" in state.errors &&
+          (state.errors as { user_state?: string }).user_state === "inactive";
+
+        if (isInactive) {
+          setCurrentModal({
+            type: "accountInactive",
+            data: { login: data.login },
+          });
+        }
+        return;
+      }
+
+      if (state?.user) {
+        sendAnalyticsEvent("login");
+        setUser(state.user);
+        setCurrentModal(null);
+        try {
+          await onSuccess?.(state.user);
+        } catch (error) {
+          console.error("SignIn onSuccess callback failed", error);
+        } finally {
+          handlePostLoginAction(state.postLoginAction);
+        }
+      }
+    },
+    [setCurrentModal, setUser, handlePostLoginAction, onSuccess, resetField]
   );
-  const handlePostLoginAction = usePostLoginActionHandler();
-
-  useEffect(() => {
-    if (!state) {
-      return;
-    }
-
-    if (state.user) {
-      sendAnalyticsEvent("login");
-      setUser(state.user);
-      setCurrentModal(null);
-      handlePostLoginAction(state.postLoginAction);
-    }
-
-    const isInactive =
-      !!state?.errors &&
-      typeof state.errors === "object" &&
-      "user_state" in state.errors &&
-      (state.errors as { user_state?: string }).user_state === "inactive";
-
-    if (state.errors && isInactive) {
-      setCurrentModal(null);
-      setCurrentModal({
-        type: "accountInactive",
-        data: { login: username },
-      });
-    }
-  }, [setCurrentModal, setUser, state, handlePostLoginAction, username]);
+  const [submit, isPending] = useServerAction(onSubmit);
 
   return (
     <BaseModal
@@ -86,27 +104,22 @@ const SignInModal: FC<SignInModalType> = ({
           <Button
             variant="link"
             size="md"
-            onClick={() => setCurrentModal({ type: "signup" })}
+            onClick={() =>
+              setCurrentModal({ type: "signup", data: { onSuccess } })
+            }
           >
             {t("createAnAccount")}
           </Button>
         </div>
       )}
-      <form
-        action={(data) => {
-          startTransition(() => {
-            formAction(data);
-          });
-        }}
-        className="flex flex-col gap-4"
-      >
+      <form onSubmit={handleSubmit(submit)} className="flex flex-col gap-4">
         <Input
           autoComplete="username"
           className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 text-base dark:border-gray-700-dark"
           type="text"
           placeholder={t("loginUsernamePlaceholder")}
           {...register("login")}
-          errors={state?.errors}
+          errors={errors.login}
         />
         <Input
           autoComplete="current-password"
@@ -114,8 +127,9 @@ const SignInModal: FC<SignInModalType> = ({
           type="password"
           placeholder="password"
           {...register("password")}
-          errors={state?.errors}
+          errors={errors.password}
         />
+        <FormErrorMessage errors={submitErrors} />
         <Button
           variant="primary"
           className="w-full"

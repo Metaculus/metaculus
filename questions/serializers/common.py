@@ -60,6 +60,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "options",
             "all_options_ever",
             "options_history",
+            "options_order",
             "group_variable",
             # Used for Group Of Questions to determine
             # whether question is eligible for forecasting
@@ -165,6 +166,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "open_lower_bound",
             "inbound_outcome_count",
             "options",
+            "options_order",
             "group_variable",
             "label",
             "resolution_criteria",

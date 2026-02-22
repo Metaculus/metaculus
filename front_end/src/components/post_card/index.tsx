@@ -40,7 +40,7 @@ const PostCard: FC<Props> = ({
 
   const [internalPost, setInternalPost] = useState<PostWithForecasts>(post);
 
-  const canPredict = canPredictQuestion(internalPost);
+  const canPredict = canPredictQuestion(internalPost, user);
 
   return (
     <CardReaffirmContextProvider

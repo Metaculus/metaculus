@@ -1,12 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
-import { z } from "zod";
 
-import { signInSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
+import { SignUpSchema } from "@/app/(main)/accounts/schemas";
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 import { getAuthCookieManager } from "@/services/auth_tokens";
@@ -15,9 +14,6 @@ import { AuthResponse, SignUpResponse } from "@/types/auth";
 import { CurrentUser } from "@/types/users";
 import { ApiError } from "@/utils/core/errors";
 import { getPublicSettings } from "@/utils/public_settings.server";
-
-type FieldErrorsFrom<TSchema extends z.ZodTypeAny> =
-  z.inferFlattenedErrors<TSchema>["fieldErrors"];
 
 export type ApiErrorPayload = {
   message?: string;
@@ -33,37 +29,24 @@ export type PostLoginAction = {
 };
 
 export type LoginActionState = {
-  errors?: FieldErrorsFrom<typeof signInSchema> | ApiErrorPayload;
+  errors?: ApiErrorPayload;
   user?: CurrentUser;
   postLoginAction?: PostLoginAction;
 } | null;
 
 export default async function loginAction(
-  prevState: LoginActionState,
-  formData: FormData
+  login: string,
+  password: string
 ): Promise<LoginActionState> {
-  const validatedFields = signInSchema.safeParse(
-    Object.fromEntries(formData.entries())
-  );
-
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
-  }
-
   let response: AuthResponse;
 
   try {
-    response = await ServerAuthApi.signIn(
-      validatedFields.data.login,
-      validatedFields.data.password
-    );
+    response = await ServerAuthApi.signIn(login, password);
   } catch (err: unknown) {
     return {
       errors: ApiError.isApiError(err)
         ? (err.data as ApiErrorPayload)
-        : undefined,
+        : { detail: "Something went wrong. Please try again." },
     };
   }
 
@@ -173,8 +156,6 @@ export async function LogOut() {
   authManager.clearAuthTokens();
   authManager.clearImpersonatorRefreshToken();
 
-  // DEPRECATED: Remove after 30-day migration period
-  (await cookies()).delete("auth_token");
   return redirect("/");
 }
 

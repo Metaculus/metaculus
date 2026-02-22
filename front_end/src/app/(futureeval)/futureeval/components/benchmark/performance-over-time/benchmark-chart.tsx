@@ -1,7 +1,7 @@
 "use client";
 
 import { range as d3Range } from "d3-array";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import {
   VictoryChart,
   VictoryScatter,
@@ -22,6 +22,8 @@ import { CollisionAwareLabels } from "./collision-aware-labels";
 import { MappedAggregates, MappedBots } from "./mapping";
 import {
   computeSotaPoints,
+  calculateLinearRegression,
+  calculateCrossingX,
   generateTrendLineData,
   type TrendPoint,
 } from "./sota-trend";
@@ -35,6 +37,7 @@ type Props = {
   hoveredPointKey: string | null;
   onHoveredPointKeyChange: (key: string | null) => void;
   showAllLabels?: boolean;
+  showProjection?: boolean;
   className?: string;
 };
 
@@ -58,6 +61,7 @@ export function BenchmarkChart({
   hoveredPointKey,
   onHoveredPointKeyChange,
   showAllLabels = false,
+  showProjection = false,
   className,
 }: Props) {
   const { theme, getThemeColor } = useAppTheme();
@@ -134,7 +138,7 @@ export function BenchmarkChart({
     [sotaModels]
   );
 
-  // Calculate domain - memoized to avoid recalculation on every render
+  // Calculate domain - optionally extended so the trendline visibly crosses the reference lines
   const { minX, maxX, minY, maxY } = useMemo(() => {
     // Build arrays and filter out non-finite values
     const xValues = chartData.map((d) => d.x).filter((x) => Number.isFinite(x));
@@ -150,13 +154,31 @@ export function BenchmarkChart({
     const defaultX = 0;
     const defaultY = 0;
 
+    const rawMinX = xValues.length > 0 ? Math.min(...xValues) : defaultX;
+    const rawMaxX = xValues.length > 0 ? Math.max(...xValues) : defaultX;
+    const rawMinY = allYValues.length > 0 ? Math.min(...allYValues) : defaultY;
+    const rawMaxY = allYValues.length > 0 ? Math.max(...allYValues) : defaultY;
+
+    let extendedMaxX = rawMaxX;
+    if (showProjection && sotaPoints.length >= 2 && refScores.length > 0) {
+      const regression = calculateLinearRegression(sotaPoints);
+      if (regression && regression.slope > 0) {
+        const highestRef = Math.max(...refScores);
+        const crossingX = calculateCrossingX(regression, highestRef);
+        if (crossingX !== null && crossingX > rawMaxX) {
+          const padding = (crossingX - rawMinX) * 0.05;
+          extendedMaxX = crossingX + padding;
+        }
+      }
+    }
+
     return {
-      minX: xValues.length > 0 ? Math.min(...xValues) : defaultX,
-      maxX: xValues.length > 0 ? Math.max(...xValues) : defaultX,
-      minY: allYValues.length > 0 ? Math.min(...allYValues) : defaultY,
-      maxY: allYValues.length > 0 ? Math.max(...allYValues) : defaultY,
+      minX: rawMinX,
+      maxX: extendedMaxX,
+      minY: rawMinY,
+      maxY: rawMaxY,
     };
-  }, [chartData, referenceLines]);
+  }, [chartData, referenceLines, sotaPoints, showProjection]);
 
   const yTicks = useMemo(() => {
     const step = 10;
@@ -208,6 +230,14 @@ export function BenchmarkChart({
     [hoveredFamily, selectedFamilies]
   );
 
+  // Track active touch gestures so we can suppress voronoi activation during
+  // scrolling and only respond to taps (via the synthetic mousemove the browser
+  // fires after touchend).
+  const touchActiveRef = useRef(false);
+  // Timestamp of the last touchend — used to ignore the synthetic mouseleave
+  // the browser fires shortly after a tap.
+  const lastTouchTimeRef = useRef(0);
+
   // Prepare data with showLabel flag, opacity, and isSota flag - memoized
   // Show labels when:
   // 1. showAllLabels is true (show all), OR
@@ -251,7 +281,20 @@ export function BenchmarkChart({
       ref={containerRef}
       className={`relative w-full ${className ?? ""}`}
       style={{ minHeight: chartHeight }}
-      onMouseLeave={() => onHoveredPointKeyChange(null)}
+      onMouseLeave={() => {
+        // After a touch, the browser fires a synthetic mouseleave. Ignore it
+        // so the label activated by the tap doesn't immediately vanish.
+        if (Date.now() - lastTouchTimeRef.current < 500) return;
+        onHoveredPointKeyChange(null);
+      }}
+      onTouchStart={() => {
+        touchActiveRef.current = true;
+        onHoveredPointKeyChange(null);
+      }}
+      onTouchEnd={() => {
+        touchActiveRef.current = false;
+        lastTouchTimeRef.current = Date.now();
+      }}
     >
       {containerWidth === 0 ? (
         <div className="h-[460px] w-full animate-pulse rounded-md bg-gray-200 dark:bg-gray-800 sm:h-[600px]" />
@@ -271,7 +314,13 @@ export function BenchmarkChart({
               voronoiBlacklist={[/^refLine-/, /^refLabel-/, "sotaTrend"]}
               radius={30}
               activateData
+              style={{ touchAction: "pan-y" }}
               onActivated={(points: { pointKey?: string }[]) => {
+                // During an active touch gesture (scroll), suppress voronoi
+                // activation so labels don't flicker. After the touch ends the
+                // browser fires a synthetic mousemove for taps, which reaches
+                // here with touchActiveRef already cleared.
+                if (touchActiveRef.current) return;
                 const point = points[0];
                 if (point?.pointKey) {
                   onHoveredPointKeyChange(point.pointKey);

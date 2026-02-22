@@ -2,8 +2,9 @@
 name: Bug report
 about: Help us improve
 title: ''
-labels: Bug Report
+labels: medium priority
 assignees: ''
+type: Bug
 
 ---
 

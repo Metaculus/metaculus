@@ -8,8 +8,10 @@
             <mj-column>
                 <mj-text padding="0px">
                     <div style="margin: 0px 24px 8px 24px; font-size: 14px; color: #2F4155;">
-                        {% blocktrans %}
-                        Options were removed from this multiple choice question.
+                        {% blocktrans count number_options=params.number_options %}
+                        An option was removed from this multiple choice question.
+                        {% plural %}
+                        {{ number_options }} options were removed from this multiple choice question.
                         {% endblocktrans %}
                     </div>
                     <div style="margin: 0px 24px 12px 24px;">
@@ -25,7 +27,7 @@
 
                     {% if params.removed_options %}
                     <div style="margin: 0px 24px 8px 24px; font-size: 14px; color: #161C22;">
-                        {% blocktrans with count=params.removed_options|length %}
+                        {% blocktrans with count=params.number_options %}
                         Removed option{{ count|pluralize }}:
                         {% endblocktrans %}
                     </div>
@@ -54,7 +56,6 @@
             </mj-column>
         </mj-section>
 
-        <mj-include path="../../../templates/emails/email_similar_questions.mjml"/>
         <mj-include path="../../../templates/emails/email_unsubscribe.mjml"/>
     </mj-body>
 </mjml>

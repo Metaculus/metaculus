@@ -233,6 +233,7 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
         showCursorLabel={false}
         legendCursorTimestamp={isChartHovered ? cursorTimestamp : null}
         onCursorActiveChange={setIsChartHovered}
+        defaultChartZoom={defaultZoom}
       />
     );
   }

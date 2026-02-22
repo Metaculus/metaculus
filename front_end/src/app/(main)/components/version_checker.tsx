@@ -76,7 +76,7 @@ const ERROR_THRESHOLD = 3;
 
 const fetchServerVersion = async () => {
   try {
-    const response = await fetch("/app-version");
+    const response = await fetch("/app-version/");
 
     if (!response.ok) {
       consecutiveErrors++;

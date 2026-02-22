@@ -24,6 +24,7 @@ from .utils import (
 class CoherenceLinkSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     user_id = serializers.IntegerField(required=False)
+    username = serializers.SerializerMethodField(required=False)
     question1_id = serializers.IntegerField(required=True)
     question2_id = serializers.IntegerField(required=True)
     direction = serializers.IntegerField(required=True)
@@ -34,12 +35,17 @@ class CoherenceLinkSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "user_id",
+            "username",
             "question1_id",
             "question2_id",
             "direction",
             "strength",
             "type",
         ]
+        read_only_fields = ["username"]
+
+    def get_username(self, obj):
+        return obj.user.username if obj.user else None
 
 
 class AggregateCoherenceLinkSerializer(serializers.ModelSerializer):
@@ -80,7 +86,7 @@ def serialize_coherence_link_many(
 ):
     ids = [link.pk for link in links]
     qs = CoherenceLink.objects.filter(pk__in=[c.pk for c in links]).select_related(
-        "question1__post", "question2__post"
+        "question1__post", "question2__post", "user"
     )
 
     objects = list(qs.all())
@@ -184,7 +190,7 @@ def serialize_aggregate_coherence_links_questions_map(
 ) -> dict[int, list[dict]]:
     qs = AggregateCoherenceLink.objects.filter(
         Q(question1__in=questions) | Q(question2__in=questions)
-    )
+    ).filter_permission(user=current_user)
     questions_map = {q.id: q for q in questions}
 
     serialized_data = serialize_aggregate_coherence_link_many(

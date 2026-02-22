@@ -62,6 +62,7 @@ export type CurrentUser = User & {
   registered_campaigns: { key: string; details: object }[];
   should_suggest_keyfactors: boolean;
   prediction_expiration_percent: number | null;
+  has_password: boolean;
   app_theme?: AppTheme | null;
   interface_type: InterfaceType;
   language?: string | null;

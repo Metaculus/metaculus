@@ -1,7 +1,11 @@
 import type { LeaderboardEntry } from "@/types/scoring";
 
 import { getModelDetailsFromScoreEntry } from "../../leaderboard/bot_meta";
-import { aggregateKind, entryLabel } from "../../leaderboard/utils";
+import {
+  aggregateKind,
+  entryLabel,
+  getEntryReleaseDate,
+} from "../../leaderboard/utils";
 
 /**
  * Map pre-filtered aggregate entries to chart-ready format.
@@ -23,9 +27,8 @@ export function mapBots(entries: LeaderboardEntry[], cutoffDate?: Date) {
   const mapped = entries
     .map((e) => {
       const meta = getModelDetailsFromScoreEntry(e);
-      if (!meta?.releasedAt) return null;
-      const releaseDate = new Date(meta.releasedAt);
-      if (isNaN(releaseDate.getTime())) return null;
+      const releaseDate = getEntryReleaseDate(e);
+      if (!meta || !releaseDate) return null;
       return {
         name: meta.label,
         releaseDate,
