@@ -7,11 +7,13 @@ import React, { useMemo } from "react";
 
 import { TournamentPreview, TournamentTimeline } from "@/types/projects";
 import cn from "@/utils/core/cn";
-import { bucketRelativeMs } from "@/utils/formatters/date";
+import { safeTs } from "@/utils/formatters/date";
+import { formatMoneyUSD } from "@/utils/formatters/number";
+import { formatTournamentRelativeDelta } from "@/utils/projects/helpers";
 
+import PrivateBadge from "./private_badge";
 import TournamentCardShell from "./tournament_card_shell";
 import GradientProgressLine from "../../../tournament/components/gradient_progress_line";
-import { safeTs } from "../../helpers";
 
 type Props = {
   item: TournamentPreview;
@@ -50,6 +52,7 @@ const LiveTournamentCard: React.FC<Props> = ({
             />
           </div>
         )}
+        {!item.default_permission && <PrivateBadge />}
       </div>
 
       <div className="flex items-center justify-center gap-2 px-3 pb-0 pt-3 text-xs lg:justify-between lg:px-4 lg:pb-[5px]">
@@ -156,7 +159,9 @@ function ActiveMiniBar({
     label = t("tournamentTimelineOngoing");
   } else if (nowTs < startTs) {
     label = t("tournamentTimelineStarts", {
-      when: formatRelative(t, startTs - nowTs),
+      when: formatTournamentRelativeDelta(t, startTs - nowTs, {
+        fromNow: true,
+      }),
     });
   } else {
     const sinceStart = nowTs - startTs;
@@ -164,7 +169,9 @@ function ActiveMiniBar({
       sinceStart < JUST_STARTED_MS
         ? t("tournamentTimelineJustStarted")
         : t("tournamentTimelineEnds", {
-            when: formatRelative(t, endTs - nowTs),
+            when: formatTournamentRelativeDelta(t, endTs - nowTs, {
+              fromNow: true,
+            }),
           });
 
     const total = Math.max(1, endTs - startTs);
@@ -265,36 +272,6 @@ function ClosedChip({
 
 function clamp01(x: number) {
   return Math.max(0, Math.min(1, x));
-}
-
-function formatRelative(
-  t: ReturnType<typeof useTranslations>,
-  deltaMs: number
-) {
-  const r = bucketRelativeMs(deltaMs);
-  if (r.kind === "soon") return t("tournamentRelativeSoon");
-  if (r.kind === "farFuture") return t("tournamentRelativeFarFuture");
-  if (r.kind === "underMinute") return t("tournamentRelativeUnderMinute");
-  const { n, unit } = r.value;
-
-  const unitLabel =
-    n === 1
-      ? t("tournamentUnit", { unit })
-      : t("tournamentUnitPlural", { unit });
-
-  return t("tournamentRelativeFromNow", { n, unit: unitLabel });
-}
-
-function formatMoneyUSD(amount: string | null | undefined) {
-  if (!amount) return null;
-  const n = Number(amount);
-  if (!Number.isFinite(n)) return null;
-  return n.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    currencyDisplay: "narrowSymbol",
-    maximumFractionDigits: 0,
-  });
 }
 
 function pickResolveTs(nowTs: number, timeline: TournamentTimeline | null) {
