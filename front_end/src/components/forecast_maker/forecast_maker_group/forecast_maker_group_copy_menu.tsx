@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
-import { Post } from "@/types/post";
+import { QuestionStatus } from "@/types/post";
 import cn from "@/utils/core/cn";
 
 import { ContinuousGroupOption } from "../continuous_group_accordion/group_forecast_accordion";
@@ -14,7 +14,7 @@ import { ContinuousGroupOption } from "../continuous_group_accordion/group_forec
 type Props = {
   option: ContinuousGroupOption;
   options: ContinuousGroupOption[];
-  post?: Post;
+  copyFromOptions?: ContinuousGroupOption[];
   handleCopy: (fromOptionId: number, toOptionId: number) => void;
   setForcedOpenId: (optionId: number) => void;
 };
@@ -22,6 +22,7 @@ type Props = {
 const ForecastMakerGroupCopyMenu: FC<Props> = ({
   option,
   options,
+  copyFromOptions,
   handleCopy,
   setForcedOpenId,
 }) => {
@@ -74,21 +75,47 @@ const ForecastMakerGroupCopyMenu: FC<Props> = ({
     "main"
   );
 
+  const canCopyFrom = option.hasUserForecast || option.wasWithdrawn;
+
   const menuItems: MenuItemProps[] = useMemo(() => {
     if (menuMode === "main") {
       return [
         {
           id: "forecastCopyToAll",
           name: t("forecastCopyToAll"),
-          onClick: handleCopyToAll,
+          ...(canCopyFrom
+            ? { onClick: handleCopyToAll }
+            : {
+                element: (
+                  <button
+                    className="w-full cursor-not-allowed self-stretch whitespace-nowrap p-2 text-right opacity-50"
+                    disabled
+                  >
+                    {t("forecastCopyToAll")}
+                  </button>
+                ),
+              }),
         },
         {
           id: "forecastCopyTo",
           name: t("forecastCopyTo"),
-          onClick: (e: React.MouseEvent<HTMLElement>) => {
-            e.preventDefault();
-            setMenuMode("copyTo");
-          },
+          ...(canCopyFrom
+            ? {
+                onClick: (e: React.MouseEvent<HTMLElement>) => {
+                  e.preventDefault();
+                  setMenuMode("copyTo");
+                },
+              }
+            : {
+                element: (
+                  <button
+                    className="w-full cursor-not-allowed self-stretch whitespace-nowrap p-2 text-right opacity-50"
+                    disabled
+                  >
+                    {t("forecastCopyTo")}
+                  </button>
+                ),
+              }),
         },
         {
           id: "forecastCopyFrom",
@@ -121,34 +148,47 @@ const ForecastMakerGroupCopyMenu: FC<Props> = ({
           ),
         }));
     } else if (menuMode === "copyFrom") {
-      return options
+      return (copyFromOptions ?? options)
         .filter((o) => o.id !== option.id)
-        .map((targetOption) => ({
-          id: `copyFrom${targetOption.id}`,
-          element: (
-            <button
-              className={cn(
-                "w-full self-stretch whitespace-nowrap p-2 text-right hover:bg-gray-200 hover:dark:bg-gray-200-dark"
-              )}
-              onClick={() => handleCopyFrom(targetOption)}
-            >
-              {t.rich("forecastCopyFromRich", {
-                label: (element) => (
-                  <span className="opacity-50">{element}</span>
-                ),
-                name: targetOption.name,
-              })}
-            </button>
-          ),
-        }));
+        .map((targetOption) => {
+          const isDisabled =
+            targetOption.question.status === QuestionStatus.CLOSED ||
+            targetOption.question.status === QuestionStatus.RESOLVED;
+          return {
+            id: `copyFrom${targetOption.id}`,
+            element: (
+              <button
+                className={cn(
+                  "w-full self-stretch whitespace-nowrap p-2 text-right",
+                  isDisabled
+                    ? "cursor-not-allowed opacity-50"
+                    : "hover:bg-gray-200 hover:dark:bg-gray-200-dark"
+                )}
+                onClick={
+                  isDisabled ? undefined : () => handleCopyFrom(targetOption)
+                }
+                disabled={isDisabled}
+              >
+                {t.rich("forecastCopyFromRich", {
+                  label: (element) => (
+                    <span className="opacity-50">{element}</span>
+                  ),
+                  name: targetOption.name,
+                })}
+              </button>
+            ),
+          };
+        });
     } else {
       return [];
     }
   }, [
     menuMode,
     t,
+    canCopyFrom,
     handleCopyToAll,
     options,
+    copyFromOptions,
     option.id,
     handleCopyTo,
     handleCopyFrom,
