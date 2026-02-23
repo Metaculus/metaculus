@@ -54,6 +54,7 @@ const KeyFactorsCommentSection: FC<Props> = ({
       <KeyFactorsCarousel
         items={keyFactors}
         className="-mt-3"
+        gapClassName="gap-1"
         renderItem={(kf) => {
           const handleClick = () => {
             questionLayout?.requestKeyFactorsExpand?.();
@@ -79,6 +80,8 @@ const KeyFactorsCommentSection: FC<Props> = ({
                   keyFactor={kf}
                   isCompact={true}
                   mode="consumer"
+                  linkToComment={false}
+                  className="w-[190px]"
                 />
               </div>
 

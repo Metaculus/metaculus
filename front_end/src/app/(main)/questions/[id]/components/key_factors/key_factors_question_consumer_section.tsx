@@ -3,8 +3,8 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { openKeyFactorsSectionAndScrollTo } from "@/app/(main)/questions/[id]/components/key_factors/utils";
-import { KeyFactor } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
@@ -17,11 +17,11 @@ import {
 } from "./hooks/use_top_key_factors_carousel_items";
 
 type Props = {
-  keyFactors: KeyFactor[];
   post: PostWithForecasts;
 };
 
-const KeyFactorsQuestionConsumerSection: FC<Props> = ({ keyFactors, post }) => {
+const KeyFactorsQuestionConsumerSection: FC<Props> = ({ post }) => {
+  const { combinedKeyFactors: keyFactors } = useCommentsFeed();
   const t = useTranslations();
   const { requestKeyFactorsExpand } = useQuestionLayout();
   const shouldHideKeyFactors = useShouldHideKeyFactors();

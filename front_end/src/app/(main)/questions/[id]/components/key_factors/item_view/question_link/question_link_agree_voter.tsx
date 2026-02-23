@@ -24,9 +24,6 @@ import ThumbVoteButtons, { ThumbVoteSelection } from "../thumb_vote_buttons";
 
 type Props = {
   aggregationId?: number;
-  initialAgree?: number;
-  initialDisagree?: number;
-  initialUserVote?: number | null;
   fromQuestion: Question;
   toQuestion: Question;
   defaultDirection: QuestionLinkDirection;
@@ -47,9 +44,6 @@ const mapUserVoteToSelection = (
 
 const QuestionLinkAgreeVoter: FC<Props> = ({
   aggregationId,
-  initialAgree = 0,
-  initialDisagree = 0,
-  initialUserVote = null,
   fromQuestion,
   toQuestion,
   defaultDirection,
@@ -61,13 +55,25 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { setCurrentModal } = useModal();
-  const { coherenceLinks, updateCoherenceLinks } = useCoherenceLinksContext();
+  const { coherenceLinks, aggregateCoherenceLinks, updateCoherenceLinks } =
+    useCoherenceLinksContext();
 
-  const [agree, setAgree] = useState(initialAgree);
-  const [disagree, setDisagree] = useState(initialDisagree);
-  const [selected, setSelected] = useState<ThumbVoteSelection>(
-    mapUserVoteToSelection(initialUserVote)
-  );
+  const [submitting, setSubmitting] = useState(false);
+
+  const contextVotes = useMemo(() => {
+    const agg = aggregateCoherenceLinks.data.find(
+      (it) => it.id === aggregationId
+    );
+    const votes = agg?.votes;
+    return {
+      agree: votes?.aggregated_data?.find((x) => x.score === 1)?.count ?? 0,
+      disagree: votes?.aggregated_data?.find((x) => x.score === -1)?.count ?? 0,
+      selected: mapUserVoteToSelection(votes?.user_vote),
+    };
+  }, [aggregateCoherenceLinks, aggregationId]);
+
+  const { agree, disagree, selected } = contextVotes;
+
   const { user } = useAuth();
   const [showCopyHint, setShowCopyHint] = useState(false);
 
@@ -98,19 +104,12 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
     const vote: AggregateLinkVoteValue =
       next === "agree" ? 1 : next === "disagree" ? -1 : null;
 
+    setSubmitting(true);
     try {
       const res = await voteAggregateCoherenceLink(aggregationId, vote);
       if ("errors" in res) return;
 
       const data = res.data;
-
-      const up = data.aggregated_data?.find((x) => x.score === 1)?.count ?? 0;
-      const down =
-        data.aggregated_data?.find((x) => x.score === -1)?.count ?? 0;
-
-      setAgree(up);
-      setDisagree(down);
-      setSelected(mapUserVoteToSelection(data.user_vote));
 
       if ("strength" in data) {
         onStrengthChange?.(data.strength ?? null);
@@ -119,35 +118,21 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
       await updateCoherenceLinks();
     } catch (e) {
       console.error("Failed to vote aggregate coherence link", e);
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleVote = (value: "agree" | "disagree") => {
-    let next: "agree" | "disagree" | null = value;
-
-    if (selected === "up" && value === "agree") {
-      setAgree((x) => Math.max(0, x - 1));
-      setSelected(null);
-      next = null;
-    } else if (selected === "down" && value === "disagree") {
-      setDisagree((x) => Math.max(0, x - 1));
-      setSelected(null);
-      next = null;
-    } else {
-      if (value === "agree") {
-        setAgree((x) => x + 1);
-        if (selected === "down") setDisagree((x) => Math.max(0, x - 1));
-        setSelected("up");
-      } else {
-        setDisagree((x) => x + 1);
-        if (selected === "up") setAgree((x) => Math.max(0, x - 1));
-        setSelected("down");
-      }
-    }
+    const next: "agree" | "disagree" | null =
+      selected === "up" && value === "agree"
+        ? null
+        : selected === "down" && value === "disagree"
+          ? null
+          : value;
 
     setShowCopyHint(!hasPersonalCopy && next === "agree");
     onChange?.(next);
-
     void pushVote(next);
   };
 
@@ -222,10 +207,8 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
         <ThumbVoteButtons
           upCount={agree}
           downCount={disagree}
-          upLabel={t("agree")}
-          downLabel={t("disagree")}
           selected={selected}
-          disabled={false}
+          disabled={submitting}
           onClickUp={() => handleVote("agree")}
           onClickDown={() => handleVote("disagree")}
         />

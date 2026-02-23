@@ -12,9 +12,6 @@ type Props = {
   upCount: number;
   downCount: number;
 
-  upLabel: string;
-  downLabel: string;
-
   selected: ThumbVoteSelection;
 
   disabled?: boolean;
@@ -27,8 +24,6 @@ type Props = {
 const ThumbVoteButtons: FC<Props> = ({
   upCount,
   downCount,
-  upLabel,
-  downLabel,
   selected,
   disabled,
   onClickUp,
@@ -39,7 +34,7 @@ const ThumbVoteButtons: FC<Props> = ({
   const isDown = selected === "down";
 
   return (
-    <div className={cn("flex items-center gap-1.5", className)}>
+    <div className={cn("flex items-center gap-0.5", className)}>
       <button
         type="button"
         disabled={disabled}
@@ -58,12 +53,10 @@ const ThumbVoteButtons: FC<Props> = ({
             "text-[14px]",
             isUp
               ? "text-gray-0 dark:text-gray-0-dark"
-              : "text-olive-700 dark:text-olive-700-dark"
+              : "text-blue-600 dark:text-blue-600-dark"
           )}
         />
-        <span>
-          {upCount} {upLabel}
-        </span>
+        {upCount}
       </button>
 
       <button
@@ -84,12 +77,10 @@ const ThumbVoteButtons: FC<Props> = ({
             "text-[14px]",
             isDown
               ? "text-gray-0 dark:text-gray-0-dark"
-              : "text-salmon-600 dark:text-salmon-600-dark"
+              : "text-blue-600 dark:text-blue-600-dark"
           )}
         />
-        <span>
-          {downCount} {downLabel}
-        </span>
+        {downCount}
       </button>
     </div>
   );

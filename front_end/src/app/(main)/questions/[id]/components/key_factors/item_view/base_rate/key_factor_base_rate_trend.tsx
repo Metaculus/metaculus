@@ -42,16 +42,18 @@ const KeyFactorBaseRateTrend: React.FC<Props> = ({
         {t("projection")}
       </p>
 
-      <p className="my-0 text-lg font-medium text-gray-500 dark:text-gray-500-dark">
-        <span className="text-purple-800 dark:text-purple-800-dark">
-          {number} {unit}
-        </span>
-        <span className="font-normal lowercase"> {t("by")}</span>
-        <span> {year}</span>
-      </p>
+      <div className="my-0 text-lg leading-7 text-gray-500 dark:text-gray-500-dark">
+        <div>
+          <span className="font-medium text-purple-800 dark:text-purple-800-dark">
+            {number} {unit}
+          </span>{" "}
+          <span className="font-normal lowercase">{t("by")}</span>
+        </div>
+        <div className="font-medium">{year}</div>
+      </div>
 
       {!isCompact && (exLabel || basedOn || source) && (
-        <p className="my-0 mt-1 text-xs text-gray-500 dark:text-gray-500-dark">
+        <div className="mt-1 flex flex-wrap items-baseline gap-1 text-xs text-gray-500 dark:text-gray-500-dark">
           {exLabel && <span>{exLabel} </span>}
 
           {basedOn && (
@@ -75,7 +77,7 @@ const KeyFactorBaseRateTrend: React.FC<Props> = ({
               ({t("source")})
             </a>
           )}
-        </p>
+        </div>
       )}
     </div>
   );
