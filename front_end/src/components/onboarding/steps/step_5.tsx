@@ -77,14 +77,6 @@ const Step5: React.FC<OnboardingStep> = ({
     }
   };
 
-  const handleExploreMoreQuestions = () => {
-    sendAnalyticsEvent("onboardingFinished", {
-      event_category: "onboarding",
-      event_label: "Explore More Questions",
-    });
-    forceNavigate("/questions/");
-  };
-
   const [forecastedPosts, setForecastedPosts] = useState<ForecastedPost[]>(
     () => {
       const postsOrder = topic?.questions ?? [];
@@ -223,13 +215,6 @@ const Step5: React.FC<OnboardingStep> = ({
           className="w-full md:w-fit"
         >
           {t("onboardingStep5ViewYourPredictions")}
-        </Step.Button>
-        <Step.Button
-          onClick={handleExploreMoreQuestions}
-          variant="small"
-          className="w-full md:w-fit"
-        >
-          {t("onboardingExploreMoreQuestions")}
         </Step.Button>
         <Step.Button
           onClick={handleViewQuestionFeed}

@@ -1197,7 +1197,6 @@
   "onboardingStep5Question": "Question",
   "onboardingStep5ViewQuestionFeed": "View Question Feed",
   "onboardingNoQuestionsAvailable": "No onboarding questions are available right now. Check back later!",
-  "onboardingExploreMoreQuestions": "Explore More Questions",
   "onboardingFetchError": "Something went wrong loading onboarding questions. Please try again.",
   "retry": "Retry",
   "communityName": "Community Name",
