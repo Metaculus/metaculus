@@ -217,6 +217,17 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
                 errors.append("Range Max is required for continuous questions")
             if data.get("range_min") is None:
                 errors.append("Range Min is required for continuous questions")
+        if question_type == Question.QuestionType.DISCRETE:
+            inbound_outcome_count = data.get("inbound_outcome_count")
+            if (
+                inbound_outcome_count is not None
+                and inbound_outcome_count > DEFAULT_INBOUND_OUTCOME_COUNT
+            ):
+                errors.append(
+                    f"Discrete questions cannot have more than "
+                    f"{DEFAULT_INBOUND_OUTCOME_COUNT} outcomes. "
+                    f"Consider using a continuous question type instead."
+                )
 
         if errors:
             raise serializers.ValidationError(errors)
