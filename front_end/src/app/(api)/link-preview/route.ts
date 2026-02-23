@@ -2,6 +2,7 @@ import { extract } from "@extractus/article-extractor";
 import { NextRequest, NextResponse } from "next/server";
 
 import ServerProfileApi from "@/services/api/profile/profile.server";
+import { validateExternalUrl } from "@/utils/url_validation";
 
 const EXTRACT_TIMEOUT_MS = 5000;
 
@@ -15,10 +16,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL("/", request.url));
     }
 
-    // Validate URL format
     try {
-      new URL(url);
-    } catch {
+      await validateExternalUrl(url);
+    } catch (validationError) {
+      console.error("URL validation failed:", validationError);
       return NextResponse.json(
         { error: "Invalid URL format" },
         { status: 400 }

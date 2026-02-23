@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { validateExternalUrl } from "@/utils/url_validation";
+
 export const GET = async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
   const url = searchParams.get("url");
@@ -9,6 +11,13 @@ export const GET = async (request: NextRequest) => {
       { error: "URL parameter is required" },
       { status: 400 }
     );
+  }
+
+  try {
+    await validateExternalUrl(url);
+  } catch (error) {
+    console.error("URL validation failed:", error);
+    return NextResponse.json({ error: "Invalid URL format" }, { status: 400 });
   }
 
   try {
