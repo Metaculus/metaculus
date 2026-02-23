@@ -271,6 +271,13 @@ export default function QuestionChecklist() {
             wider.
           </li>
           <li>
+            <strong>
+              Discrete questions should have at most 200 possible outcomes.
+            </strong>{" "}
+            Questions that have more than 200 possible outcomes should use the
+            continuous question type instead.
+          </li>
+          <li>
             <strong>Double check.</strong> Proof-read your submission,
             double-check your resolution conditions and ranges, and make sure
             the formulation of your question is consistent throughout.
