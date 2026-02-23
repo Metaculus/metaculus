@@ -643,9 +643,7 @@ def onboarding_feed_api_view(request):
     if not result["post_ids"]:
         return Response({"topics": [], "posts": []})
 
-    posts = serialize_post_many(
-        result["post_ids"], with_cp=True, with_key_factors=True
-    )
+    posts = serialize_post_many(result["post_ids"], with_cp=True, with_key_factors=True)
     return Response({"topics": result["topics"], "posts": posts})
 
 
