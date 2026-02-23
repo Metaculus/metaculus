@@ -52,79 +52,69 @@ const KeyFactorNewsItem: React.FC<Props> = ({
   };
 
   return (
-    <div
-      className={cn(
-        "flex min-w-[130px] items-start gap-[14px]",
-        isConsumer && "flex-col"
-      )}
-    >
+    <div>
       <a
         {...linkProps}
-        className="flex-shrink-0 no-underline"
+        className="float-right mb-1 ml-2.5 size-10 flex-shrink-0 no-underline"
         aria-label={source ? `Open article on ${source}` : "Open article"}
       >
         {faviconUrl ? (
           <ImageWithFallback
-            className="size-[42px] cursor-pointer rounded"
+            className="size-10 cursor-pointer rounded"
             src={getProxiedFaviconUrl(faviconUrl)}
             alt={`${source} logo`}
           >
-            <span className="flex size-[42px] items-center justify-center rounded bg-gray-200 dark:bg-gray-200-dark">
+            <span className="flex size-10 items-center justify-center rounded bg-gray-200 dark:bg-gray-200-dark">
               <FontAwesomeIcon icon={faNewspaper} size="xl" />
             </span>
           </ImageWithFallback>
         ) : (
-          <span className="flex size-[42px] cursor-pointer items-center justify-center rounded bg-gray-200 dark:bg-gray-200-dark" />
+          <span className="flex size-10 cursor-pointer items-center justify-center rounded bg-gray-200 dark:bg-gray-200-dark" />
         )}
       </a>
 
-      <div className="flex max-w-full flex-1 flex-col gap-1.5">
-        <a
-          {...linkProps}
-          className={cn(
-            "my-0 font-medium text-blue-800 no-underline hover:underline dark:text-blue-800-dark",
-            isCompact ? "text-xs" : "text-sm"
-          )}
-        >
-          {title}
-        </a>
+      <a
+        {...linkProps}
+        className={cn(
+          "my-0 block font-medium text-gray-900 no-underline hover:underline dark:text-gray-900-dark",
+          isCompact ? "text-xs" : "text-base leading-5"
+        )}
+      >
+        {title}
+      </a>
 
-        <a
-          {...linkProps}
-          className={cn(
-            "flex max-w-full items-center gap-1.5 overflow-hidden text-ellipsis whitespace-nowrap font-normal no-underline",
-            isCompact ? "text-[10px]" : "text-xs",
-            isConsumer
-              ? "text-blue-600 dark:text-blue-600-dark"
-              : "text-gray-600 dark:text-gray-600-dark"
-          )}
+      <a
+        {...linkProps}
+        className={cn(
+          "mt-1 flex max-w-full items-center gap-1.5 overflow-hidden text-ellipsis whitespace-nowrap font-medium no-underline",
+          isCompact ? "text-[10px]" : "text-xs",
+          isConsumer
+            ? "text-blue-600 dark:text-blue-600-dark"
+            : "text-gray-900 dark:text-gray-900-dark"
+        )}
+      >
+        <span
+          className={cn("truncate", isCompact ? "max-w-[8ch]" : "max-w-[12ch]")}
         >
-          <span
-            className={cn(
-              "truncate",
-              isCompact ? "max-w-[8ch]" : "max-w-[12ch]"
-            )}
-          >
-            {source}
-          </span>
-          {date && (
-            <>
-              <span
-                className={cn(
-                  isCompact
-                    ? "text-blue-400 dark:text-blue-400-dark"
-                    : "text-gray-400 dark:text-gray-400-dark"
-                )}
-              >
-                •
-              </span>
-              <span suppressHydrationWarning className="text-nowrap">
-                {formatDate(locale, date)}
-              </span>
-            </>
-          )}
-        </a>
-      </div>
+          {source}
+        </span>
+        {date && (
+          <>
+            <span
+              className={cn(
+                isCompact
+                  ? "text-blue-400 dark:text-blue-400-dark"
+                  : "text-gray-500 dark:text-gray-500-dark"
+              )}
+            >
+              •
+            </span>
+            <span suppressHydrationWarning className="text-nowrap">
+              {formatDate(locale, date)}
+            </span>
+          </>
+        )}
+      </a>
     </div>
   );
 };

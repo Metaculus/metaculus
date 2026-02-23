@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import { FC, useEffect, useMemo, useState } from "react";
 
 import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
@@ -11,7 +10,7 @@ import {
   FetchedAggregateCoherenceLink,
   QuestionLinkDirection,
 } from "@/types/coherence";
-import { ImpactDirectionCategory } from "@/types/comment";
+import { ImpactDirection, ImpactDirectionCategory } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import {
   QuestionType,
@@ -23,7 +22,6 @@ import { getPostLink } from "@/utils/navigation";
 
 import { KeyFactorImpactDirectionLabel } from "../../item_creation/driver/impact_direction_label";
 import KeyFactorCardContainer from "../key_factor_card_container";
-import { StrengthScale } from "../key_factor_strength_voter";
 import QuestionLinkAgreeVoter from "./question_link_agree_voter";
 
 type Props = {
@@ -47,7 +45,6 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
   linkToComment = true,
   className,
 }) => {
-  const t = useTranslations();
   const isConsumer = mode === "consumer";
   const isCompactConsumer = isConsumer && compact;
 
@@ -57,6 +54,13 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
 
   const [localStrength, setLocalStrength] = useState<number | null>(
     link.strength ?? null
+  );
+  const [userVote, setUserVote] = useState<"agree" | "disagree" | null>(
+    link.votes?.user_vote === 1
+      ? "agree"
+      : link.votes?.user_vote === -1
+        ? "disagree"
+        : null
   );
 
   useEffect(() => {
@@ -121,10 +125,15 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
     };
   }, [isFirstQuestion, link]);
 
-  const votesCount = link.links_nr ?? 0;
-
-  const rawStrength = localStrength ?? 0;
-  const strengthScore = Math.max(0, Math.min(5, rawStrength));
+  const rawStrength = localStrength ?? link.strength ?? 0;
+  const baseStrength =
+    rawStrength > 0
+      ? Math.max(0, Math.min(5, rawStrength))
+      : link.direction
+        ? 2.5
+        : 0;
+  const strengthScore =
+    userVote === "agree" ? Math.max(baseStrength, 2.5) : baseStrength;
 
   const questionType: QuestionType | null =
     (isFirstQuestion ? otherQuestion?.type : post.question?.type) ?? null;
@@ -146,14 +155,11 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
   const defaultDirection: QuestionLinkDirection =
     link.direction && link.direction < 0 ? "negative" : "positive";
 
-  const votesSummary = link.votes;
-
-  const initialAgree =
-    votesSummary?.aggregated_data?.find((x) => x.score === 1)?.count ?? 0;
-  const initialDisagree =
-    votesSummary?.aggregated_data?.find((x) => x.score === -1)?.count ?? 0;
-
-  const initialUserVote = votesSummary?.user_vote ?? null;
+  const impactDirection: ImpactDirection | null = link.direction
+    ? link.direction > 0
+      ? "increase"
+      : "decrease"
+    : null;
 
   return (
     <KeyFactorCardContainer
@@ -161,120 +167,77 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
       linkToComment={linkToComment}
       isCompact={compact}
       mode={mode}
+      impactDirection={impactDirection}
+      impactStrength={strengthScore}
       className={cn(
         "shadow-sm",
-        (compact || mode === "consumer") && "max-w-[240px]",
-        isCompactConsumer && "max-w-[186px]",
+        (compact || mode === "consumer") && "max-w-[280px]",
+        isCompactConsumer && "max-w-[190px]",
         className
       )}
     >
-      {!isConsumer && (
-        <div className="flex justify-between">
-          <div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
-            {t("questionLink")}
-          </div>
-        </div>
-      )}
-
-      <div className="flex items-center gap-3">
-        <Link
-          href={getPostLink({ id: otherQuestion.post_id })}
-          target="_blank"
-          className={cn(
-            "font-medium leading-5 text-gray-800 no-underline hover:underline dark:text-gray-800-dark",
-            {
-              "text-base": !isConsumer,
-              "text-sm": isConsumer && !isCompactConsumer,
-              "text-xs": isCompactConsumer,
-            }
-          )}
-        >
-          {otherQuestion.title}
-        </Link>
-
-        {binaryForecastQuestion && (
-          <div
+      <div className="flex min-w-0 flex-col gap-1">
+        <div className="flex min-w-0 items-start gap-3">
+          <Link
+            href={getPostLink({ id: otherQuestion.post_id })}
+            target="_blank"
             className={cn(
-              "flex flex-col items-center justify-center md:hidden",
-              isConsumer && "w-[53px] md:flex"
+              "min-w-0 flex-1 font-medium leading-5 text-gray-800 no-underline hover:underline dark:text-gray-800-dark",
+              compact ? "text-xs" : "text-sm"
             )}
           >
-            <BinaryCPBar
-              question={
-                binaryForecastQuestion as unknown as QuestionWithNumericForecasts
-              }
-              size={isConsumer ? "xs" : "sm"}
-            />
-            <QuestionCPMovement
-              question={binaryForecastQuestion}
-              unit="%"
-              boldValueUnit
-              size="xs"
-            />
-          </div>
-        )}
-      </div>
+            {otherQuestion.title}
+          </Link>
 
-      <div className="flex flex-row gap-4">
-        {binaryForecastQuestion && (
-          <div
-            className={cn(
-              "hidden flex-col items-center justify-center md:flex",
-              isConsumer && "md:hidden"
-            )}
-          >
-            <BinaryCPBar
-              question={
-                binaryForecastQuestion as unknown as QuestionWithNumericForecasts
-              }
-              size={isCompactConsumer ? "xs" : "sm"}
-            />
-            <QuestionCPMovement
-              question={binaryForecastQuestion}
-              unit="%"
-              boldValueUnit
-              size="xs"
-            />
-          </div>
-        )}
-
-        <div className="flex flex-1 flex-col gap-3">
-          {impactCategory !== null && (
-            <div className="flex flex-col gap-1.5 leading-tight">
-              <div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
-                {t("impact")}
+          {binaryForecastQuestion && (
+            <div className="relative h-[46px] w-14 shrink-0">
+              <div className="absolute inset-0 flex flex-col items-center">
+                <BinaryCPBar
+                  question={
+                    binaryForecastQuestion as unknown as QuestionWithNumericForecasts
+                  }
+                  size="xs"
+                />
+                <div className="-mt-5">
+                  <QuestionCPMovement
+                    question={binaryForecastQuestion}
+                    unit="%"
+                    boldValueUnit
+                    size="xs"
+                  />
+                </div>
               </div>
-              <KeyFactorImpactDirectionLabel
-                className={cn({
-                  "text-[10px]": isCompactConsumer,
-                })}
-                impact={impactCategory}
-                unit={otherQuestion.unit || post.question?.unit || undefined}
-              />
             </div>
           )}
-
-          <StrengthScale score={strengthScore} count={votesCount} mode={mode} />
         </div>
+
+        {impactCategory !== null && (
+          <KeyFactorImpactDirectionLabel
+            className={cn("text-xs", {
+              "text-[10px]": isCompactConsumer,
+            })}
+            impact={impactCategory}
+            unit={otherQuestion.unit || post.question?.unit || undefined}
+            hideIcon
+          />
+        )}
       </div>
 
-      {!isConsumer && (
-        <>
-          <hr className="my-0 bg-gray-500 opacity-20 dark:bg-gray-500-dark" />
-          <QuestionLinkAgreeVoter
-            aggregationId={link.id}
-            initialAgree={initialAgree}
-            initialDisagree={initialDisagree}
-            initialUserVote={initialUserVote}
-            fromQuestion={fromQuestion}
-            toQuestion={toQuestion}
-            defaultDirection={defaultDirection}
-            defaultStrength="medium"
-            targetElementId={id}
-            onStrengthChange={(s) => setLocalStrength(s)}
-          />
-        </>
-      )}
+      <div
+        className="flex items-center justify-between"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <QuestionLinkAgreeVoter
+          aggregationId={link.id}
+          fromQuestion={fromQuestion}
+          toQuestion={toQuestion}
+          defaultDirection={defaultDirection}
+          defaultStrength="medium"
+          targetElementId={id}
+          onChange={(next) => setUserVote(next)}
+          onStrengthChange={(s) => setLocalStrength(s)}
+        />
+      </div>
     </KeyFactorCardContainer>
   );
 };

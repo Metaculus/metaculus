@@ -14,7 +14,6 @@ import {
   useKeyFactorDelete,
   useKeyFactorModeration,
 } from "@/app/(main)/questions/[id]/components/key_factors/hooks";
-import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
 import { KeyFactor } from "@/types/comment";
@@ -118,14 +117,12 @@ const KeyFactorDropdownMenuItems: FC<Props> = ({
       items={menuItems}
       className="border-gray-300 dark:border-gray-300-dark"
     >
-      <Button
+      <button
         aria-label="menu"
-        variant="tertiary"
-        size="sm"
-        presentationType="icon"
+        className="flex items-center justify-center rounded-full p-1.5 text-xs text-gray-1000 hover:bg-blue-200 dark:text-gray-1000-dark dark:hover:bg-blue-200-dark"
       >
         <FontAwesomeIcon icon={faEllipsis} />
-      </Button>
+      </button>
     </DropdownMenu>
   );
 };

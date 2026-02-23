@@ -3,8 +3,9 @@
 import dynamic from "next/dynamic";
 import { FC } from "react";
 
-import { KeyFactor } from "@/types/comment";
+import { ImpactMetadata, KeyFactor } from "@/types/comment";
 import { ProjectPermissions } from "@/types/post";
+import { getImpactDirectionFromMetadata } from "@/utils/key_factors";
 
 import KeyFactorBaseRate from "./base_rate/key_factor_base_rate";
 import KeyFactorDriver from "./driver/key_factor_driver";
@@ -23,6 +24,10 @@ type Props = {
   isSuggested?: boolean;
 };
 
+function getImpactMetadata(keyFactor: KeyFactor): ImpactMetadata | null {
+  return keyFactor.driver ?? keyFactor.news ?? null;
+}
+
 export const KeyFactorItem: FC<Props> = ({
   id,
   keyFactor,
@@ -35,6 +40,11 @@ export const KeyFactorItem: FC<Props> = ({
   isSuggested,
 }) => {
   const isFlagged = keyFactor.flagged_by_me;
+  const hasImpactBar = !keyFactor.base_rate;
+  const impactDirection = hasImpactBar
+    ? getImpactDirectionFromMetadata(getImpactMetadata(keyFactor))
+    : undefined;
+  const impactStrength = keyFactor.vote?.score ?? 0;
 
   return (
     <KeyFactorCardContainer
@@ -45,6 +55,8 @@ export const KeyFactorItem: FC<Props> = ({
       mode={mode}
       onClick={onClick}
       className={className}
+      impactDirection={impactDirection}
+      impactStrength={impactStrength}
     >
       {keyFactor.driver && (
         <KeyFactorDriver

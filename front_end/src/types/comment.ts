@@ -103,6 +103,8 @@ export type ImpactMetadata = {
   certainty: -1 | null;
 };
 
+export type ImpactDirection = "increase" | "decrease" | "uncertainty";
+
 export type Driver = ImpactMetadata & {
   text: string;
 };

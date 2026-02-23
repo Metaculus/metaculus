@@ -1,17 +1,16 @@
-'use client"';
+"use client";
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
-import { KeyFactor } from "@/types/comment";
+import { KeyFactor, KeyFactorVoteTypes } from "@/types/comment";
 import { ProjectPermissions } from "@/types/post";
 import cn from "@/utils/core/cn";
 
-import KeyFactorHeader from "../key_factor_header";
+import KeyFactorStrengthItem from "../key_factor_strength_item";
 import KeyFactorText from "../key_factor_text";
 import KeyFactorBaseRateFrequency from "./key_factor_base_rate_frequency";
 import KeyFactorBaseRateTrend from "./key_factor_base_rate_trend";
-import KeyFactorDirectionVoter from "./key_factor_direction_voter";
 
 type Props = {
   keyFactor: KeyFactor;
@@ -38,20 +37,17 @@ const KeyFactorBaseRate: React.FC<Props> = ({
   const showSourceError = isSuggested && !hasSource;
 
   return (
-    <>
-      {!isConsumer && (
-        <KeyFactorHeader
-          username={keyFactor.author.username}
-          linkAnchor={`#comment-${keyFactor.comment_id}`}
-          label={t("baseRate")}
-        />
-      )}
-
+    <KeyFactorStrengthItem
+      keyFactor={keyFactor}
+      isCompact={isCompact}
+      mode={mode}
+      projectPermission={projectPermission}
+      voteType={KeyFactorVoteTypes.DIRECTION}
+    >
       <KeyFactorText
         text={baseRate.reference_class}
-        className={cn("text-base leading-5", {
-          "text-sm": isConsumer,
-          "text-xs": isCompact,
+        className={cn("text-sm leading-5", {
+          "text-xs": isConsumer && isCompact,
         })}
       />
 
@@ -75,16 +71,6 @@ const KeyFactorBaseRate: React.FC<Props> = ({
         />
       )}
 
-      {!isCompact && !isConsumer && (
-        <>
-          <hr className="my-0 opacity-20" />
-          <KeyFactorDirectionVoter
-            keyFactor={keyFactor}
-            projectPermission={projectPermission}
-          />
-        </>
-      )}
-
       {(isCompact || isConsumer) && (
         <div
           className={cn(
@@ -105,7 +91,7 @@ const KeyFactorBaseRate: React.FC<Props> = ({
           {showSourceError ? t("sourceMissing") : hasSource ? "(source)" : ""}{" "}
         </div>
       )}
-    </>
+    </KeyFactorStrengthItem>
   );
 };
 
