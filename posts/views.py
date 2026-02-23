@@ -638,7 +638,7 @@ def random_post_id(request):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def onboarding_feed_api_view(request):
+def onboarding_feed_api_view(_request):
     result = get_onboarding_feed()
     if not result["post_ids"]:
         return Response({"topics": [], "posts": []})

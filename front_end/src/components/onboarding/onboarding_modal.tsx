@@ -21,7 +21,7 @@ type OnboardingModalProps = {
 };
 
 const INITIAL_STATE = {
-  selectedTopicId: null,
+  selectedTopicName: null,
   currentStep: 0,
   step2Prediction: 50,
 };
@@ -37,12 +37,13 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
   );
   const [posts, setPosts] = useState<PostWithForecasts[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const [topic, setTopic] = useState<OnboardingTopic | null>(null);
   const { user, setUser } = useAuth();
 
   const [onboardingState, setOnboardingState, deleteOnboardingState] =
     useStoredState<OnboardingStoredState>(ONBOARDING_STATE_KEY, INITIAL_STATE);
-  const { selectedTopicId, currentStep } = onboardingState;
+  const { selectedTopicName, currentStep } = onboardingState;
 
   useEffect(() => {
     // Cleanup onboarding state after completion
@@ -56,45 +57,52 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
     }
   };
 
+  const fetchQuestions = useCallback(async () => {
+    setIsLoading(true);
+    setFetchError(false);
+    try {
+      const { topics: newTopics, posts: feedPosts } =
+        await ClientPostsApi.getOnboardingFeed();
+
+      const newPostMap = new Map<number, PostWithForecasts>();
+      for (const post of feedPosts) {
+        newPostMap.set(post.id, post);
+      }
+
+      setTopics(newTopics);
+      setPostMap(newPostMap);
+
+      // If no qualifying topics, auto-complete onboarding
+      if (newTopics.length === 0) {
+        handleCompleteTutorial();
+      }
+    } catch (error) {
+      logError(error);
+      setFetchError(true);
+    } finally {
+      setIsLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // TODO: Replace this useEffect fetch with TanStack Query (useQuery) once that integration is merged
   useEffect(() => {
     if (!isOpen || topics.length > 0) return;
-
-    const fetchQuestions = async () => {
-      setIsLoading(true);
-      try {
-        const { topics: newTopics, posts: feedPosts } =
-          await ClientPostsApi.getOnboardingFeed();
-
-        const newPostMap = new Map<number, PostWithForecasts>();
-        for (const post of feedPosts) {
-          newPostMap.set(post.id, post);
-        }
-
-        setTopics(newTopics);
-        setPostMap(newPostMap);
-
-        // If no qualifying topics, auto-complete onboarding
-        if (newTopics.length === 0) {
-          handleCompleteTutorial();
-        }
-      } catch (error) {
-        logError(error);
-        handleCompleteTutorial();
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     void fetchQuestions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   // Topic selection handler
   useEffect(() => {
-    if (isOpen && selectedTopicId !== null && !posts.length) {
-      const topicObject = topics[selectedTopicId];
-      if (!topicObject) return;
+    if (isOpen && selectedTopicName !== null && !posts.length) {
+      const topicObject = topics.find((t) => t.name === selectedTopicName);
+      if (!topicObject) {
+        // Persisted selection no longer matches any topic; reset
+        setTopic(null);
+        setPosts([]);
+        setOnboardingState(INITIAL_STATE);
+        return;
+      }
 
       setTopic(topicObject);
 
@@ -111,7 +119,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, selectedTopicId, posts.length, topics.length]);
+  }, [isOpen, selectedTopicName, posts.length, topics.length]);
 
   // Hide tutorial for 24h
   const handlePostponeTutorial = () => {
@@ -165,10 +173,10 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
     scrollToTop();
   };
 
-  const setTopicId = (id: number) => {
+  const setTopicByName = (name: string) => {
     setOnboardingState((prev) => ({
       ...prev,
-      selectedTopicId: id,
+      selectedTopicName: name,
     }));
   };
 
@@ -183,10 +191,12 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
         topic={topic}
         topics={topics}
         isLoading={isLoading}
+        fetchError={fetchError}
+        onRetry={fetchQuestions}
         onNext={onNext}
         onPrev={onPrev}
         onComplete={handleCompleteTutorial}
-        setTopic={setTopicId}
+        setTopic={setTopicByName}
         onboardingState={onboardingState}
         setOnboardingState={setOnboardingState}
         posts={posts}

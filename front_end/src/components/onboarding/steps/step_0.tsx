@@ -7,7 +7,13 @@ import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import Step from "./step";
 
-const Step0: React.FC<OnboardingStep> = ({ setTopic, topics, isLoading }) => {
+const Step0: React.FC<OnboardingStep> = ({
+  setTopic,
+  topics,
+  isLoading,
+  fetchError,
+  onRetry,
+}) => {
   const t = useTranslations();
 
   useEffect(() => {
@@ -41,6 +47,18 @@ const Step0: React.FC<OnboardingStep> = ({ setTopic, topics, isLoading }) => {
       </div>
       {isLoading ? (
         <OnboardingLoading />
+      ) : fetchError ? (
+        <div className="flex flex-col items-center gap-2">
+          <Step.Paragraph>{t("onboardingFetchError")}</Step.Paragraph>
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="rounded bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+            >
+              {t("retry")}
+            </button>
+          )}
+        </div>
       ) : topics.length === 0 ? (
         <Step.Paragraph>{t("onboardingNoQuestionsAvailable")}</Step.Paragraph>
       ) : (
@@ -53,7 +71,7 @@ const Step0: React.FC<OnboardingStep> = ({ setTopic, topics, isLoading }) => {
                   event_category: "onboarding",
                   event_label: topic.name,
                 });
-                setTopic(index);
+                setTopic(topic.name);
               }}
               className="flex w-full flex-row items-center justify-start gap-3 rounded bg-blue-400/50 px-4 py-3 text-lg font-semibold text-blue-800 hover:bg-blue-500 dark:bg-blue-700/50 dark:text-blue-200 dark:hover:bg-blue-600 md:flex-col md:justify-center md:px-8 md:py-6 md:text-xl"
             >

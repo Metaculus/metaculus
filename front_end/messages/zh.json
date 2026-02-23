@@ -819,6 +819,8 @@
   "onboardingStep5ViewQuestionFeed": "查看问题流",
   "onboardingNoQuestionsAvailable": "目前没有可用的引导问题。请稍后再来！",
   "onboardingExploreMoreQuestions": "探索更多问题",
+  "onboardingFetchError": "加载引导问题时出错，请重试。",
+  "retry": "重试",
   "youArePostingAPrivateComment": "您正在發布私人評論",
   "unread": "未读",
   "discard": "放弃",

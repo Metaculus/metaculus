@@ -25,6 +25,10 @@ def _base_queryset(now):
         )
         .filter(Q(actual_close_time__isnull=True) | Q(actual_close_time__gte=now))
         .filter(
+            Q(question__cp_reveal_time__isnull=True)
+            | Q(question__cp_reveal_time__lte=now)
+        )
+        .filter(
             Exists(
                 AggregateForecast.objects.filter(
                     question_id=OuterRef("question_id"),

@@ -958,6 +958,8 @@
   "onboardingStep5ViewQuestionFeed": "Ver Feed de Perguntas",
   "onboardingNoQuestionsAvailable": "Não há perguntas de integração disponíveis agora. Volte mais tarde!",
   "onboardingExploreMoreQuestions": "Explorar Mais Perguntas",
+  "onboardingFetchError": "Algo deu errado ao carregar as perguntas de integração. Por favor, tente novamente.",
+  "retry": "Tentar novamente",
   "communityName": "Nome da Comunidade",
   "communityNameDescription": "É assim que sua comunidade aparece para os outros.",
   "communitySlug": "Slug da Comunidade",

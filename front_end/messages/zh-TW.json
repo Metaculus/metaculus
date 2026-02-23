@@ -1031,6 +1031,8 @@
   "onboardingStep5ViewQuestionFeed": "查看問題動態",
   "onboardingNoQuestionsAvailable": "目前沒有可用的引導問題。請稍後再來！",
   "onboardingExploreMoreQuestions": "探索更多問題",
+  "onboardingFetchError": "載入引導問題時發生錯誤，請重試。",
+  "retry": "重試",
   "communityName": "社區名稱",
   "communityNameDescription": "這是您的社區展示給他人的方式。",
   "communitySlug": "社區簡稱",
