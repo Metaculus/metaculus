@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import BaseModal from "@/components/base_modal";
-import OnboardingLoading from "@/components/onboarding/onboarding_loading";
 import StepsRouter from "@/components/onboarding/steps";
 import { useAuth } from "@/contexts/auth_context";
 import useStoredState from "@/hooks/use_stored_state";
@@ -158,7 +157,10 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
     if (nextStep > 0) {
       setOnboardingState((prev) => ({ ...prev, currentStep: nextStep }));
     } else {
-      resetState();
+      // Go back to topic selection without clearing fetched data
+      setTopic(null);
+      setPosts([]);
+      setOnboardingState(INITIAL_STATE);
     }
     scrollToTop();
   };
@@ -177,23 +179,20 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
       isImmersive={true}
       modalContentRef={modalContentRef}
     >
-      {isLoading ? (
-        <OnboardingLoading />
-      ) : (
-        <StepsRouter
-          topic={topic}
-          topics={topics}
-          onNext={onNext}
-          onPrev={onPrev}
-          onComplete={handleCompleteTutorial}
-          setTopic={setTopicId}
-          onboardingState={onboardingState}
-          setOnboardingState={setOnboardingState}
-          posts={posts}
-          handleComplete={handleCompleteTutorial}
-          handlePostpone={handlePostponeTutorial}
-        />
-      )}
+      <StepsRouter
+        topic={topic}
+        topics={topics}
+        isLoading={isLoading}
+        onNext={onNext}
+        onPrev={onPrev}
+        onComplete={handleCompleteTutorial}
+        setTopic={setTopicId}
+        onboardingState={onboardingState}
+        setOnboardingState={setOnboardingState}
+        posts={posts}
+        handleComplete={handleCompleteTutorial}
+        handlePostpone={handlePostponeTutorial}
+      />
     </BaseModal>
   );
 };

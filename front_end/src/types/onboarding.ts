@@ -23,6 +23,7 @@ export type OnboardingStep = {
   handleComplete: () => void;
   handlePostpone: () => void;
   posts: PostWithForecasts[];
+  isLoading?: boolean;
   onboardingState: OnboardingStoredState;
   setOnboardingState: (
     arg:

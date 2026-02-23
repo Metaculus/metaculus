@@ -1,12 +1,13 @@
 import { useTranslations } from "next-intl";
 import React, { useEffect } from "react";
 
+import OnboardingLoading from "@/components/onboarding/onboarding_loading";
 import { OnboardingStep } from "@/types/onboarding";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import Step from "./step";
 
-const Step0: React.FC<OnboardingStep> = ({ setTopic, topics }) => {
+const Step0: React.FC<OnboardingStep> = ({ setTopic, topics, isLoading }) => {
   const t = useTranslations();
 
   useEffect(() => {
@@ -14,14 +15,6 @@ const Step0: React.FC<OnboardingStep> = ({ setTopic, topics }) => {
       event_category: "onboarding",
     });
   }, []);
-
-  if (topics.length === 0) {
-    return (
-      <Step>
-        <Step.Paragraph>{t("onboardingNoQuestionsAvailable")}</Step.Paragraph>
-      </Step>
-    );
-  }
 
   return (
     <Step>
@@ -46,26 +39,32 @@ const Step0: React.FC<OnboardingStep> = ({ setTopic, topics }) => {
         <Step.Paragraph>{t("onboardingStep1Paragraph2")}</Step.Paragraph>
         <Step.Paragraph>{t("onboardingStep1Paragraph3")}</Step.Paragraph>
       </div>
-      <div className="mt-1 flex w-full flex-col gap-2 md:mt-5 md:flex-row md:gap-4">
-        {topics.map((topic, index) => (
-          <button
-            key={index}
-            onClick={() => {
-              sendAnalyticsEvent("onboardingTopicSelected", {
-                event_category: "onboarding",
-                event_label: topic.name,
-              });
-              setTopic(index);
-            }}
-            className="flex w-full flex-row items-center justify-start gap-3 rounded bg-blue-400/50 px-4 py-3 text-lg font-semibold text-blue-800 hover:bg-blue-500 dark:bg-blue-700/50 dark:text-blue-200 dark:hover:bg-blue-600 md:flex-col md:justify-center md:px-8 md:py-6 md:text-xl"
-          >
-            <span className="text-xl md:text-4xl md:leading-none">
-              {topic.emoji}
-            </span>
-            {topic.name}
-          </button>
-        ))}
-      </div>
+      {isLoading ? (
+        <OnboardingLoading />
+      ) : topics.length === 0 ? (
+        <Step.Paragraph>{t("onboardingNoQuestionsAvailable")}</Step.Paragraph>
+      ) : (
+        <div className="mt-1 flex w-full flex-col gap-2 md:mt-5 md:flex-row md:gap-4">
+          {topics.map((topic, index) => (
+            <button
+              key={index}
+              onClick={() => {
+                sendAnalyticsEvent("onboardingTopicSelected", {
+                  event_category: "onboarding",
+                  event_label: topic.name,
+                });
+                setTopic(index);
+              }}
+              className="flex w-full flex-row items-center justify-start gap-3 rounded bg-blue-400/50 px-4 py-3 text-lg font-semibold text-blue-800 hover:bg-blue-500 dark:bg-blue-700/50 dark:text-blue-200 dark:hover:bg-blue-600 md:flex-col md:justify-center md:px-8 md:py-6 md:text-xl"
+            >
+              <span className="text-xl md:text-4xl md:leading-none">
+                {topic.emoji}
+              </span>
+              {topic.name}
+            </button>
+          ))}
+        </div>
+      )}
     </Step>
   );
 };
