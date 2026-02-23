@@ -636,6 +636,7 @@ def random_post_id(request):
     return Response({"id": post.id, "post_slug": get_post_slug(post)})
 
 
+@cache_page(60 * 30)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def onboarding_feed_api_view(_request):
