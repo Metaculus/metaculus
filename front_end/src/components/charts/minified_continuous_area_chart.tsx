@@ -35,10 +35,11 @@ import { getResolutionPoint } from "@/utils/charts/resolution";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 import { cdfToPmf, computeQuartilesFromCDF } from "@/utils/math";
 
-type ContinuousAreaColor = "orange" | "green" | "gray";
+type ContinuousAreaColor = "orange" | "green" | "gray" | "purple";
 const CHART_COLOR_MAP: Record<ContinuousAreaType, ContinuousAreaColor> = {
   community: "green",
   community_closed: "gray",
+  community_resolved: "purple",
   user: "orange",
   user_previous: "orange",
   user_components: "orange",
@@ -307,6 +308,8 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                               return getThemeColor(METAC_COLORS.olive["500"]);
                             case "gray":
                               return getThemeColor(METAC_COLORS.gray["500"]);
+                            case "purple":
+                              return getThemeColor(METAC_COLORS.purple["500"]);
                             default:
                               return undefined;
                           }
@@ -339,6 +342,8 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                             return getThemeColor(METAC_COLORS.olive["500"]);
                           case "gray":
                             return getThemeColor(METAC_COLORS.gray["500"]);
+                          case "purple":
+                            return getThemeColor(METAC_COLORS.purple["500"]);
                           default:
                             return undefined;
                         }
@@ -370,6 +375,8 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                           return getThemeColor(METAC_COLORS.olive["700"]);
                         case "gray":
                           return getThemeColor(METAC_COLORS.gray["600"]);
+                        case "purple":
+                          return getThemeColor(METAC_COLORS.purple["700"]);
                         default:
                           return getThemeColor(METAC_COLORS.olive["700"]);
                       }
@@ -437,6 +444,8 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                         switch (chart.color) {
                           case "gray":
                             return getThemeColor(METAC_COLORS.gray["500"]);
+                          case "purple":
+                            return getThemeColor(METAC_COLORS.purple["700"]);
                           default:
                             return getThemeColor(METAC_COLORS.olive["700"]);
                         }
@@ -462,6 +471,8 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                         switch (chart.color) {
                           case "gray":
                             return getThemeColor(METAC_COLORS.gray["600"]);
+                          case "purple":
+                            return getThemeColor(METAC_COLORS.purple["800"]);
                           default:
                             return getThemeColor(METAC_COLORS.olive["800"]);
                         }
@@ -471,6 +482,8 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                         switch (chart.color) {
                           case "gray":
                             return getThemeColor(METAC_COLORS.gray["600"]);
+                          case "purple":
+                            return getThemeColor(METAC_COLORS.purple["800"]);
                           default:
                             return getThemeColor(METAC_COLORS.olive["800"]);
                         }
@@ -638,9 +651,11 @@ function generateNumericAreaGraph(data: {
 export function getContinuousAreaChartData({
   question,
   isClosed,
+  isResolved,
 }: {
   question: QuestionWithNumericForecasts;
   isClosed?: boolean;
+  isResolved?: boolean;
 }): ContinuousAreaGraphInput {
   const chartData: ContinuousAreaGraphInput = [];
 
@@ -648,10 +663,15 @@ export function getContinuousAreaChartData({
     question.aggregations[question.default_aggregation_method]?.latest;
 
   if (latest && isForecastActive(latest)) {
+    const type: ContinuousAreaType = isResolved
+      ? "community_resolved"
+      : isClosed
+        ? "community_closed"
+        : "community";
     chartData.push({
       pmf: cdfToPmf(latest.forecast_values),
       cdf: latest.forecast_values,
-      type: (isClosed ? "community_closed" : "community") as ContinuousAreaType,
+      type,
     });
   }
 

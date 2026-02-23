@@ -163,7 +163,7 @@ const NumericChart: FC<Props> = ({
     isNil(tickFontSize) || !isNil(extraTheme)
       ? getTickLabelFontSize(actualTheme)
       : tickFontSize;
-  const hasExternalTheme = !!extraTheme;
+  const hasExternalTheme = !!extraTheme && Object.keys(extraTheme).length > 0;
 
   const highlightedLine = useMemo(() => {
     const lastIndex = findLastIndexBefore(line, cursorValue);
