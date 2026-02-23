@@ -16,8 +16,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL("/", request.url));
     }
 
+    let finalUrl: string;
     try {
-      await validateExternalUrl(url);
+      finalUrl = await validateExternalUrl(url);
     } catch (validationError) {
       console.error("URL validation failed:", validationError);
       return NextResponse.json(
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
     );
 
     // Race between extraction and timeout
-    const articleData = await Promise.race([extract(url), timeoutPromise]);
+    const articleData = await Promise.race([extract(finalUrl), timeoutPromise]);
 
     if (!articleData) {
       return NextResponse.json(

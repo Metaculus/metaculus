@@ -13,20 +13,22 @@ export const GET = async (request: NextRequest) => {
     );
   }
 
+  let validatedUrl: string;
   try {
-    await validateExternalUrl(url);
+    validatedUrl = await validateExternalUrl(url);
   } catch (error) {
     console.error("URL validation failed:", error);
     return NextResponse.json({ error: "Invalid URL format" }, { status: 400 });
   }
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(validatedUrl, {
       headers: {
         Cookie: "",
         Accept: "image/*",
       },
       credentials: "omit",
+      redirect: "error",
       cache: "force-cache",
     });
 
