@@ -71,11 +71,6 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
       setTopics(newTopics);
       setPostMap(newPostMap);
-
-      // If no qualifying topics, auto-complete onboarding
-      if (newTopics.length === 0) {
-        handleCompleteTutorial();
-      }
     } catch (error) {
       logError(error);
       setFetchError(true);
