@@ -36,8 +36,6 @@ const Step5: React.FC<OnboardingStep> = ({
   const { user } = useAuth();
   const t = useTranslations();
 
-  const nextQuestionUrl = `/questions/${topic?.questions?.[2]}`;
-
   const forceNavigate = (url: string) => {
     handleComplete();
     router.push(url);
@@ -77,14 +75,6 @@ const Step5: React.FC<OnboardingStep> = ({
     } else {
       forceNavigate("/questions/");
     }
-  };
-
-  const handleViewAnotherQuestion = () => {
-    sendAnalyticsEvent("onboardingFinished", {
-      event_category: "onboarding",
-      event_label: "Viewed Another Question",
-    });
-    forceNavigate(nextQuestionUrl);
   };
 
   const [forecastedPosts, setForecastedPosts] = useState<ForecastedPost[]>(
@@ -225,15 +215,6 @@ const Step5: React.FC<OnboardingStep> = ({
           className="w-full md:w-fit"
         >
           {t("onboardingStep5ViewYourPredictions")}
-        </Step.Button>
-        <Step.Button
-          onClick={handleViewAnotherQuestion}
-          variant="small"
-          className="w-full font-light md:w-fit"
-        >
-          {t("onboardingStep5ForecastAnother")}{" "}
-          <span className="font-bold">{topic?.name}</span>{" "}
-          {t("onboardingStep5Question")}
         </Step.Button>
         <Step.Button
           onClick={handleViewQuestionFeed}

@@ -2,16 +2,18 @@ import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
-import "./globals.css";
 import { cookies } from "next/headers";
 import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import NextTopLoader from "nextjs-toploader";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "react-hot-toast";
+import "./globals.css";
 
 import GlobalModals from "@/components/global_modals";
 import PublicSettingsScript from "@/components/public_settings_script";
+import QueryClientProviderWrapper from "@/components/query_client_provider";
 import SimplifiedSignupModal from "@/components/simplified_signup_modal";
 import AppThemeProvider from "@/components/theme_provider";
 import { METAC_COLORS } from "@/constants/colors";
@@ -112,36 +114,40 @@ export default async function RootLayout({
         </Script>
       </head>
       <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
-        <PolyfillProvider>
-          <CSPostHogProvider locale={locale}>
-            <AuthProvider user={user} locale={locale} csrfToken={csrfToken}>
-              <AppThemeProvider>
-                <NextIntlClientProvider messages={messages}>
-                  <PublicSettingsProvider settings={publicSettings}>
-                    <ModalProvider>
-                      <NavigationProvider>
-                        <GlobalSearchProvider>
-                          <TranslationsBannerProvider>
-                            <NextTopLoader
-                              showSpinner={false}
-                              color={METAC_COLORS.blue["500"].DEFAULT}
-                            />
-                            {children}
-                            <GlobalModals />
-                            <SimplifiedSignupModal />
-                            <Toaster />
-                          </TranslationsBannerProvider>
-                        </GlobalSearchProvider>
-                      </NavigationProvider>
-                    </ModalProvider>
-                  </PublicSettingsProvider>
-                </NextIntlClientProvider>
-              </AppThemeProvider>
-            </AuthProvider>
-            {/* TODO: remove this after the campaign is over */}
-            <AllBWPixelTagsForRegisteredUsers />
-          </CSPostHogProvider>
-        </PolyfillProvider>
+        <NuqsAdapter>
+          <QueryClientProviderWrapper>
+            <PolyfillProvider>
+              <CSPostHogProvider locale={locale}>
+                <AuthProvider user={user} locale={locale} csrfToken={csrfToken}>
+                  <AppThemeProvider>
+                    <NextIntlClientProvider messages={messages}>
+                      <PublicSettingsProvider settings={publicSettings}>
+                        <ModalProvider>
+                          <NavigationProvider>
+                            <GlobalSearchProvider>
+                              <TranslationsBannerProvider>
+                                <NextTopLoader
+                                  showSpinner={false}
+                                  color={METAC_COLORS.blue["500"].DEFAULT}
+                                />
+                                {children}
+                                <GlobalModals />
+                                <SimplifiedSignupModal />
+                                <Toaster />
+                              </TranslationsBannerProvider>
+                            </GlobalSearchProvider>
+                          </NavigationProvider>
+                        </ModalProvider>
+                      </PublicSettingsProvider>
+                    </NextIntlClientProvider>
+                  </AppThemeProvider>
+                </AuthProvider>
+                {/* TODO: remove this after the campaign is over */}
+                <AllBWPixelTagsForRegisteredUsers />
+              </CSPostHogProvider>
+            </PolyfillProvider>
+          </QueryClientProviderWrapper>
+        </NuqsAdapter>
       </body>
       {!!publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID && (
         <GoogleAnalytics gaId={publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID} />

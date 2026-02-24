@@ -28,7 +28,8 @@ const Step2: React.FC<OnboardingStep> = ({
     if (typeof step3Prediction === "undefined") {
       setOnboardingState((prev) => ({
         ...prev,
-        step3Prediction: communityForecast * 100,
+        step3Prediction:
+          extractPrevBinaryForecastValue(communityForecast) ?? 50,
       }));
     }
 
