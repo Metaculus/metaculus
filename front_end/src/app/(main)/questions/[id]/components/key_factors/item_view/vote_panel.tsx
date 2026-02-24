@@ -2,35 +2,38 @@
 
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { capitalize } from "lodash";
-import { useTranslations } from "next-intl";
-import { FC, RefObject, useEffect, useState } from "react";
+import { FC, ReactNode, RefObject, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 import cn from "@/utils/core/cn";
 
-import { ImpactOption } from "./use_vote_impact_panel";
-
-type Props = {
+type Props<T extends string> = {
   ref?: RefObject<HTMLDivElement | null>;
-  selectedOption: ImpactOption | null;
+  options: T[];
+  selectedOption: T | null;
+  title: string;
+  direction?: "row" | "column";
   isCompact?: boolean;
   anchorRef: RefObject<HTMLDivElement | null>;
-  onSelect: (option: ImpactOption) => void;
+  onSelect: (option: T) => void;
   onClose: () => void;
+  renderLabel: (option: T) => ReactNode;
+  footer?: ReactNode;
 };
 
-const IMPACT_OPTIONS: ImpactOption[] = ["low", "medium", "high"];
-
-const VoteImpactPanel: FC<Props> = ({
+function VotePanelInner<T extends string>({
   ref,
+  options,
   selectedOption,
+  title,
+  direction = "row",
   isCompact,
   anchorRef,
   onSelect,
   onClose,
-}) => {
-  const t = useTranslations();
+  renderLabel,
+  footer,
+}: Props<T>) {
   const [style, setStyle] = useState<React.CSSProperties>({
     position: "fixed",
     opacity: 0,
@@ -66,11 +69,17 @@ const VoteImpactPanel: FC<Props> = ({
           isCompact ? "text-[8px]" : "text-[10px]"
         )}
       >
-        {t("voteOnImpact")}
+        {title}
       </span>
 
-      <div className={cn("flex w-full", isCompact ? "gap-1.5" : "gap-2")}>
-        {IMPACT_OPTIONS.map((option) => {
+      <div
+        className={cn(
+          "flex w-full",
+          direction === "column" ? "flex-col" : "",
+          isCompact ? "gap-1.5" : "gap-2"
+        )}
+      >
+        {options.map((option) => {
           const isSelected = selectedOption === option;
           return (
             <button
@@ -78,18 +87,21 @@ const VoteImpactPanel: FC<Props> = ({
               type="button"
               onClick={() => onSelect(option)}
               className={cn(
-                "flex-1 rounded border text-xs font-medium leading-4 transition-colors",
+                "rounded border text-xs font-medium leading-4 transition-colors",
+                direction === "row" && "flex-1",
                 isCompact ? "px-1.5 py-0.5" : "px-2 py-1",
                 isSelected
                   ? "border-blue-600 bg-blue-600 text-gray-0 dark:border-blue-600-dark dark:bg-blue-600-dark dark:text-gray-0-dark"
                   : "border-blue-400 bg-gray-0 text-blue-800 hover:bg-blue-100 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-blue-800-dark dark:hover:bg-blue-100-dark"
               )}
             >
-              {capitalize(t(option))}
+              {renderLabel(option)}
             </button>
           );
         })}
       </div>
+
+      {footer}
 
       <button
         type="button"
@@ -102,6 +114,10 @@ const VoteImpactPanel: FC<Props> = ({
   );
 
   return createPortal(panel, document.body);
-};
+}
 
-export default VoteImpactPanel;
+const VotePanel = VotePanelInner as <T extends string>(
+  props: Props<T>
+) => ReturnType<FC>;
+
+export default VotePanel;

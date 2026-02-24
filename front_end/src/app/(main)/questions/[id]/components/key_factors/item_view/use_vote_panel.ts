@@ -1,35 +1,34 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export type ImpactOption = "low" | "medium" | "high";
+export type DownvoteReason = "wrongDirection" | "noImpact" | "redundant";
 
-export function useVoteImpactPanel() {
-  const [showVotePanel, setShowVotePanel] = useState(false);
-  const [selectedImpact, setSelectedImpact] = useState<ImpactOption | null>(
-    null
-  );
+export function useVotePanel<T extends string>() {
+  const [showPanel, setShowPanel] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<T | null>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const closePanel = useCallback(() => {
-    setShowVotePanel(false);
+    setShowPanel(false);
   }, []);
 
-  const toggleImpact = useCallback((option: ImpactOption) => {
-    setSelectedImpact((prev) => (prev === option ? null : option));
+  const toggleOption = useCallback((option: T) => {
+    setSelectedOption((prev) => (prev === option ? null : option));
   }, []);
 
   useEffect(() => {
-    if (!showVotePanel) return;
+    if (!showPanel) return;
 
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
       if (panelRef.current && !panelRef.current.contains(target)) {
-        setShowVotePanel(false);
+        setShowPanel(false);
       }
     };
 
     const handleScroll = () => {
-      setShowVotePanel(false);
+      setShowPanel(false);
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -38,15 +37,15 @@ export function useVoteImpactPanel() {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("scroll", handleScroll, true);
     };
-  }, [showVotePanel]);
+  }, [showPanel]);
 
   return {
-    showVotePanel,
-    selectedImpact,
+    showPanel,
+    selectedOption,
     anchorRef,
     panelRef,
-    setShowVotePanel,
+    setShowPanel,
     closePanel,
-    toggleImpact,
+    toggleOption,
   };
 }

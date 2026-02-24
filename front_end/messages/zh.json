@@ -2071,5 +2071,8 @@
   "questionFallbackLabel": "问题 {id}",
   "openInAggregationExplorer": "在聚合探索器中打开",
   "voteOnImpact": "影响投票",
-  "thousandsOfOpenQuestions": "20,000+ 开放问题"
+  "why": "WHY?",
+  "wrongDirection": "Wrong direction",
+  "redundant": "Redundant",
+  "thanksForVoting": "Thanks for voting!",  "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }

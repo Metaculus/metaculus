@@ -29,6 +29,7 @@ type Props = PropsWithChildren<{
   impactMetadata?: ImpactMetadata;
   voteType?: KeyFactorVoteTypes;
   onVotePanelToggle?: (open: boolean) => void;
+  onDownvotePanelToggle?: (open: boolean) => void;
 }>;
 
 const KeyFactorStrengthItem: FC<Props> = ({
@@ -40,6 +41,7 @@ const KeyFactorStrengthItem: FC<Props> = ({
   impactMetadata,
   voteType = KeyFactorVoteTypes.STRENGTH,
   onVotePanelToggle,
+  onDownvotePanelToggle,
 }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
@@ -145,6 +147,7 @@ const KeyFactorStrengthItem: FC<Props> = ({
           onClickDown={() => {
             toggle(downScore);
             onVotePanelToggle?.(false);
+            onDownvotePanelToggle?.(selection !== "down");
           }}
         />
         {!isCompact && (

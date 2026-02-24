@@ -2069,5 +2069,8 @@
   "questionFallbackLabel": "Pregunta {id}",
   "openInAggregationExplorer": "Abrir en el Explorador de Agregación",
   "voteOnImpact": "VOTAR SOBRE EL IMPACTO",
-  "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
+  "why": "WHY?",
+  "wrongDirection": "Wrong direction",
+  "redundant": "Redundant",
+  "thanksForVoting": "Thanks for voting!",  "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
 }
