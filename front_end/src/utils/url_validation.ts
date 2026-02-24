@@ -1,3 +1,5 @@
+"use server";
+
 import dns from "dns/promises";
 import { isIP } from "net";
 
@@ -13,7 +15,7 @@ const PRIVATE_IPV4_RANGES = [
 
 const PRIVATE_IPV6_RANGES = [
   /^::1$/, // Loopback
-  /^fe80:/i, // Link-local
+  /^fe[89ab][0-9a-f]:/i, // Link-local (fe80::/10)
   /^fc/i, // Unique local (fc00::/7)
   /^fd/i, // Unique local (fc00::/7)
   /^::$/, // Unspecified
