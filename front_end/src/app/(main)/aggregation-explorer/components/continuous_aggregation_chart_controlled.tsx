@@ -1,3 +1,5 @@
+"use client";
+
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useMemo, useState } from "react";
@@ -5,14 +7,13 @@ import { FC, useCallback, useMemo, useState } from "react";
 import ContinuousAreaChart, {
   ContinuousAreaGraphInput,
 } from "@/components/charts/continuous_area_chart";
-import InlineSelect from "@/components/ui/inline_select";
 import {
   ContinuousAreaGraphType,
   ContinuousAreaHoverState,
 } from "@/types/charts";
 import {
-  NumericAggregateForecastHistory,
   GraphingQuestionProps,
+  NumericAggregateForecastHistory,
 } from "@/types/question";
 import {
   getForecastPctDisplayValue,
@@ -27,16 +28,19 @@ type Props = {
   questionData: NumericAggregationExtraQuestion;
   activeAggregation: NumericAggregateForecastHistory;
   selectedTimestamp: number | null;
+  graphType: ContinuousAreaGraphType;
+  chartHeight?: number;
 };
 
-const ContinuousAggregationChart: FC<Props> = ({
+const ContinuousAggregationChartControlled: FC<Props> = ({
   questionData,
   activeAggregation,
   selectedTimestamp,
+  graphType,
+  chartHeight = 150,
 }) => {
   const t = useTranslations();
   const { scaling, type: qType } = questionData;
-  const [graphType, setGraphType] = useState<ContinuousAreaGraphType>("pmf");
   const [hoverState, setHoverState] = useState<ContinuousAreaHoverState | null>(
     null
   );
@@ -56,7 +60,6 @@ const ContinuousAggregationChart: FC<Props> = ({
     });
     return {
       xLabel,
-      yUserLabel: null,
       yCommunityLabel:
         graphType === "pmf"
           ? ((hoverState.yData.community ?? 0) * 200).toFixed(3)
@@ -79,7 +82,10 @@ const ContinuousAggregationChart: FC<Props> = ({
         : activeAggregation.history.findLastIndex(
             (item) => item.start_time <= selectedTimestamp
           );
-      const historyItem = activeAggregation.history[timestampIndex];
+      const historyItem =
+        timestampIndex === -1
+          ? activeAggregation.history.at(-1)
+          : activeAggregation.history[timestampIndex];
 
       if (historyItem) {
         charts.push({
@@ -102,7 +108,6 @@ const ContinuousAggregationChart: FC<Props> = ({
       probabilityLabel = "= " + xLabel;
     }
   } else {
-    // cdf
     if (xLabel.includes("<")) {
       probabilityLabel = "< " + xLabel.slice(1);
     } else if (xLabel.includes(">")) {
@@ -113,23 +118,15 @@ const ContinuousAggregationChart: FC<Props> = ({
   }
 
   return (
-    <div className="my-5">
-      <div className="flex">
-        <InlineSelect<ContinuousAreaGraphType>
-          options={[
-            { label: t("pdfLabel"), value: "pmf" },
-            { label: t("cdfLabel"), value: "cdf" },
-          ]}
-          defaultValue={graphType}
-          className="appearance-none border-none !p-0 text-sm"
-          onChange={(e) =>
-            setGraphType(e.target.value as ContinuousAreaGraphType)
-          }
-        />
-      </div>
+    <div>
       <ContinuousAreaChart
-        height={150}
-        question={questionData as GraphingQuestionProps}
+        height={chartHeight}
+        question={
+          {
+            ...questionData,
+            resolution: null,
+          } as unknown as GraphingQuestionProps
+        }
         graphType={graphType}
         data={data}
         onCursorChange={handleCursorChange}
@@ -144,16 +141,6 @@ const ContinuousAggregationChart: FC<Props> = ({
               </span>
               {"):"}
             </span>
-            {cursorDisplayData.yUserLabel !== null && (
-              <span>
-                <span className="font-bold text-gray-900 dark:text-gray-900-dark">
-                  {cursorDisplayData.yUserLabel}
-                </span>
-                {" ("}
-                {t("you")}
-                {")"}
-              </span>
-            )}
             <span>
               <span className="font-bold text-gray-900 dark:text-gray-900-dark">
                 {cursorDisplayData.yCommunityLabel}
@@ -169,4 +156,4 @@ const ContinuousAggregationChart: FC<Props> = ({
   );
 };
 
-export default ContinuousAggregationChart;
+export default ContinuousAggregationChartControlled;

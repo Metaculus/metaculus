@@ -139,6 +139,15 @@ const ForecastMakerGroupControls: FC<Props> = ({
               ).then();
             },
           },
+          ...(post
+            ? [
+                {
+                  id: "openInAggregationExplorer",
+                  name: t("openInAggregationExplorer"),
+                  link: `/aggregation-explorer?post_id=${post.id}&sub=${question.id}`,
+                },
+              ]
+            : []),
         ]}
         textAlign="left"
       >

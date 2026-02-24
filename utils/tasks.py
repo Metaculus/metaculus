@@ -1,3 +1,5 @@
+import datetime
+
 import dramatiq
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -96,9 +98,16 @@ def email_data_task(
     include_bots: bool | None,
     anonymized: bool,
     include_future: bool,
+    joined_before_date: str | None = None,
 ):
     try:
         from utils.csv_utils import export_data_for_questions
+
+        parsed_joined_before = (
+            datetime.datetime.fromisoformat(joined_before_date)
+            if joined_before_date
+            else None
+        )
 
         data = export_data_for_questions(
             user_id=user_id,
@@ -113,6 +122,7 @@ def email_data_task(
             include_key_factors=include_key_factors,
             only_include_user_ids=only_include_user_ids,
             include_bots=include_bots,
+            joined_before_date=parsed_joined_before,
             anonymized=anonymized,
             include_future=include_future,
         )
