@@ -21,6 +21,7 @@ import { Question } from "@/types/question";
 import cn from "@/utils/core/cn";
 
 import ThumbVoteButtons, { ThumbVoteSelection } from "../thumb_vote_buttons";
+import { useOptimisticVote } from "../use_optimistic_vote";
 
 type Props = {
   aggregationId?: number;
@@ -70,11 +71,25 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
     return {
       agree: votes?.aggregated_data?.find((x) => x.score === 1)?.count ?? 0,
       disagree: votes?.aggregated_data?.find((x) => x.score === -1)?.count ?? 0,
-      selected: mapUserVoteToSelection(votes?.user_vote),
+      userVote: (votes?.user_vote ?? null) as 1 | -1 | null,
     };
   }, [aggregateCoherenceLinks, aggregationId]);
 
-  const { agree, disagree, selected } = contextVotes;
+  const {
+    vote: currentVote,
+    upCount: agree,
+    downCount: disagree,
+    setOptimistic,
+    clearOptimistic,
+  } = useOptimisticVote<1 | -1 | null>({
+    serverVote: contextVotes.userVote,
+    serverUpCount: contextVotes.agree,
+    serverDownCount: contextVotes.disagree,
+    upValue: 1,
+    downValue: -1,
+  });
+
+  const selected = mapUserVoteToSelection(currentVote);
 
   const { user } = useAuth();
   const [showCopyHint, setShowCopyHint] = useState(false);
@@ -107,6 +122,7 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
       next === "agree" ? 1 : next === "disagree" ? -1 : null;
 
     setSubmitting(true);
+    setOptimistic(vote);
     try {
       const res = await voteAggregateCoherenceLink(aggregationId, vote);
       if ("errors" in res) return;
@@ -121,6 +137,7 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
     } catch (e) {
       console.error("Failed to vote aggregate coherence link", e);
     } finally {
+      clearOptimistic();
       setSubmitting(false);
     }
   };
