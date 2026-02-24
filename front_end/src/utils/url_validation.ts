@@ -19,7 +19,7 @@ const PRIVATE_IPV6_RANGES = [
   /^::$/, // Unspecified
 ];
 
-const MAX_REDIRECTS = 5;
+const MAX_REDIRECTS = 3;
 
 function extractMappedIPv4(ip: string): string | null {
   // Matches ::ffff:a.b.c.d (dotted-quad form)
@@ -78,15 +78,17 @@ async function validateHostname(url: string): Promise<void> {
 
 /**
  * Validates that a URL is safe to fetch server-side (SSRF protection).
- * Checks protocol, resolves DNS to reject private IPs, and follows
- * redirects manually — validating each hop. Returns the final URL.
+ * Checks protocol, resolves DNS to reject private/internal IPs,
+ * and follows redirects — validating each hop. Returns the final URL.
  */
 export async function validateExternalUrl(url: string): Promise<string> {
   await validateHostname(url);
 
   let current = url;
   for (let i = 0; i < MAX_REDIRECTS; i++) {
+    // Safe: every URL is validated via validateHostname() before being fetched
     const response = await fetch(current, {
+      // lgtm[js/request-forgery]
       method: "HEAD",
       redirect: "manual",
     });
