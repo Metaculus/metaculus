@@ -2,10 +2,10 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import BaseModal from "@/components/base_modal";
+import { useOnboardingFeed } from "@/components/onboarding/hooks/use_onboarding_feed";
 import StepsRouter from "@/components/onboarding/steps";
 import { useAuth } from "@/contexts/auth_context";
 import useStoredState from "@/hooks/use_stored_state";
-import ClientPostsApi from "@/services/api/posts/posts.client";
 import { OnboardingStoredState, OnboardingTopic } from "@/types/onboarding";
 import { PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
@@ -31,15 +31,12 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
   onClose,
 }) => {
   const modalContentRef = useRef<HTMLDivElement>(null);
-  const [topics, setTopics] = useState<OnboardingTopic[]>([]);
-  const [postMap, setPostMap] = useState<Map<number, PostWithForecasts>>(
-    new Map()
-  );
   const [posts, setPosts] = useState<PostWithForecasts[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [fetchError, setFetchError] = useState(false);
   const [topic, setTopic] = useState<OnboardingTopic | null>(null);
   const { user, setUser } = useAuth();
+
+  const { topics, postMap, isLoading, fetchError, refetch } =
+    useOnboardingFeed(isOpen);
 
   const [onboardingState, setOnboardingState, deleteOnboardingState] =
     useStoredState<OnboardingStoredState>(ONBOARDING_STATE_KEY, INITIAL_STATE);
@@ -56,36 +53,6 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
       modalContentRef.current.scrollTop = 0;
     }
   };
-
-  const fetchQuestions = useCallback(async () => {
-    setIsLoading(true);
-    setFetchError(false);
-    try {
-      const { topics: newTopics, posts: feedPosts } =
-        await ClientPostsApi.getOnboardingFeed();
-
-      const newPostMap = new Map<number, PostWithForecasts>();
-      for (const post of feedPosts) {
-        newPostMap.set(post.id, post);
-      }
-
-      setTopics(newTopics);
-      setPostMap(newPostMap);
-    } catch (error) {
-      logError(error);
-      setFetchError(true);
-    } finally {
-      setIsLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // TODO: Replace this useEffect fetch with TanStack Query (useQuery) once that integration is merged
-  useEffect(() => {
-    if (!isOpen || topics.length > 0) return;
-    void fetchQuestions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
 
   // Topic selection handler
   useEffect(() => {
@@ -129,8 +96,6 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
   const resetState = useCallback(() => {
     setTopic(null);
     setPosts([]);
-    setTopics([]);
-    setPostMap(new Map());
     deleteOnboardingState();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deleteOnboardingState]);
@@ -187,7 +152,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
         topics={topics}
         isLoading={isLoading}
         fetchError={fetchError}
-        onRetry={fetchQuestions}
+        onRetry={refetch}
         onNext={onNext}
         onPrev={onPrev}
         onComplete={handleCompleteTutorial}
