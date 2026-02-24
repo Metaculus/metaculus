@@ -103,7 +103,11 @@ function ssrfSafeLookup(
 }
 
 const ssrfSafeDispatcher = new Agent({
-  connect: { lookup: ssrfSafeLookup as never },
+  connect: { lookup: ssrfSafeLookup as never, timeout: 10_000 },
+  bodyTimeout: 15_000,
+  headersTimeout: 10_000,
+  keepAliveTimeout: 5_000,
+  keepAliveMaxTimeout: 10_000,
 });
 
 function validateUrl(url: string): URL {

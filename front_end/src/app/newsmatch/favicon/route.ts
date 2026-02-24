@@ -72,6 +72,7 @@ export const GET = async (request: NextRequest) => {
     return new NextResponse(buffer, {
       headers: {
         "Content-Type": contentType,
+        "Content-Security-Policy": "sandbox",
         "X-Content-Type-Options": "nosniff",
         "Cache-Control": "public, max-age=86400",
       },
