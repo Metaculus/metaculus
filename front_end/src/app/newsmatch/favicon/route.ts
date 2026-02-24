@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { validateExternalUrl } from "@/utils/url_validation";
+import { safeFetch, validateExternalUrl } from "@/utils/url_validation";
 
 export const GET = async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
@@ -22,7 +22,7 @@ export const GET = async (request: NextRequest) => {
   }
 
   try {
-    const response = await fetch(validatedUrl, {
+    const response = await safeFetch(validatedUrl, {
       headers: {
         Cookie: "",
         Accept: "image/*",

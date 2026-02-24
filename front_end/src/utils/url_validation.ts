@@ -1,7 +1,6 @@
-"use server";
-
-import dns from "dns/promises";
+import dns from "dns";
 import { isIP } from "net";
+import { Agent, fetch as undiciFetch } from "undici";
 
 const PRIVATE_IPV4_RANGES = [
   /^127\./, // Loopback
@@ -55,7 +54,59 @@ function isPrivateIP(ip: string): boolean {
   return PRIVATE_IPV6_RANGES.some((range) => range.test(ip));
 }
 
-async function validateHostname(url: string): Promise<void> {
+function rejectPrivateIP(address: string): void {
+  if (isPrivateIP(address)) {
+    throw Object.assign(new Error("DNS resolved to a private IP"), {
+      code: "ENOTFOUND",
+    });
+  }
+}
+
+// DNS lookup that rejects private IPs at resolution time — no TOCTOU gap.
+// Handles both single and all-results forms (Node.js agents pass { all: true }).
+function ssrfSafeLookup(
+  hostname: string,
+  options: dns.LookupOptions,
+  callback: (...args: unknown[]) => void
+): void {
+  dns.lookup(
+    hostname,
+    options,
+    (
+      err: NodeJS.ErrnoException | null,
+      addressOrArray: string | dns.LookupAddress[],
+      family?: number
+    ) => {
+      if (err) {
+        return callback(
+          err,
+          options.all ? [] : "",
+          options.all ? undefined : 4
+        );
+      }
+
+      try {
+        if (options.all && Array.isArray(addressOrArray)) {
+          for (const entry of addressOrArray) {
+            rejectPrivateIP(entry.address);
+          }
+          return callback(null, addressOrArray);
+        }
+
+        rejectPrivateIP(addressOrArray as string);
+        callback(null, addressOrArray, family);
+      } catch (e) {
+        callback(e, options.all ? [] : "", options.all ? undefined : 4);
+      }
+    }
+  );
+}
+
+const ssrfSafeDispatcher = new Agent({
+  connect: { lookup: ssrfSafeLookup as never },
+});
+
+function validateUrl(url: string): URL {
   const parsed = new URL(url);
 
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
@@ -66,7 +117,6 @@ async function validateHostname(url: string): Promise<void> {
     throw new Error("URLs with embedded credentials are not allowed");
   }
 
-  // Restrict ports to standard HTTP/HTTPS to avoid hitting unexpected services
   const port = parsed.port
     ? parseInt(parsed.port, 10)
     : parsed.protocol === "https:"
@@ -77,8 +127,6 @@ async function validateHostname(url: string): Promise<void> {
   }
 
   const hostname = parsed.hostname;
-
-  // Disallow localhost-style and obvious internal hostnames before DNS resolution
   const lowerHost = hostname.toLowerCase();
   if (
     lowerHost === "localhost" ||
@@ -96,49 +144,59 @@ async function validateHostname(url: string): Promise<void> {
     throw new Error("URLs pointing to internal hostnames are not allowed");
   }
 
-  // Reject plain hostnames without a dot to avoid search-domain surprises
   if (!lowerHost.includes(".")) {
     throw new Error("URLs must use a fully-qualified domain name");
   }
 
-  if (isIP(hostname)) {
-    if (isPrivateIP(hostname)) {
-      throw new Error("URLs pointing to private IPs are not allowed");
-    }
-    return;
+  if (isIP(hostname) && isPrivateIP(hostname)) {
+    throw new Error("URLs pointing to private IPs are not allowed");
   }
 
-  const results = await dns.lookup(hostname, { all: true });
-  for (const result of results) {
-    if (isPrivateIP(result.address)) {
-      throw new Error("URLs pointing to private IPs are not allowed");
-    }
-  }
+  return parsed;
+}
+
+/**
+ * SSRF-safe fetch. Uses a custom undici dispatcher whose DNS lookup
+ * rejects private IPs atomically during connection — no TOCTOU gap.
+ */
+export function safeFetch(
+  url: string,
+  options: RequestInit = {}
+): Promise<Response> {
+  validateUrl(url);
+
+  return undiciFetch(url, {
+    ...(options as Record<string, unknown>),
+    dispatcher: ssrfSafeDispatcher,
+  }) as unknown as Promise<Response>;
 }
 
 /**
  * Validates that a URL is safe to fetch server-side (SSRF protection).
- * Checks protocol, resolves DNS to reject private/internal IPs,
+ * Checks protocol, hostname blocklist, resolves DNS to reject private IPs,
  * and follows redirects — validating each hop. Returns the final URL.
  */
 export async function validateExternalUrl(url: string): Promise<string> {
-  await validateHostname(url);
+  validateUrl(url);
 
   let current = url;
   for (let i = 0; i < MAX_REDIRECTS; i++) {
-    // Safe: every URL is validated via validateHostname() before being fetched
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), PER_HOP_TIMEOUT_MS);
     let response: Response;
     try {
-      response = await fetch(current, {
-        // lgtm[js/request-forgery]
+      response = await safeFetch(current, {
         method: "HEAD",
         redirect: "manual",
         signal: controller.signal,
       });
-    } catch {
-      throw new Error("Redirect hop timed out or failed");
+    } catch (err) {
+      const cause =
+        err instanceof Error && err.cause instanceof Error
+          ? err.cause.message
+          : "";
+      const message = err instanceof Error ? err.message : "unknown";
+      throw new Error(`Redirect hop failed: ${message} ${cause}`);
     } finally {
       clearTimeout(timer);
     }
@@ -149,7 +207,7 @@ export async function validateExternalUrl(url: string): Promise<string> {
     }
 
     const next = new URL(location, current).toString();
-    await validateHostname(next);
+    validateUrl(next);
     current = next;
   }
   throw new Error("Too many redirects");
