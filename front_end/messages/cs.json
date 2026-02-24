@@ -2068,5 +2068,6 @@
   "failedToLoadAggregation": "Nepodařilo se načíst agregaci",
   "questionFallbackLabel": "Otázka {id}",
   "openInAggregationExplorer": "Otevřít v Průzkumníku agregací",
+  "voteOnImpact": "HLASOVAT O DOPADU",
   "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }

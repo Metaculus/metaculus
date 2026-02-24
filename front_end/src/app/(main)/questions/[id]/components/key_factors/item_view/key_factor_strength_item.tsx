@@ -28,6 +28,7 @@ type Props = PropsWithChildren<{
   projectPermission?: ProjectPermissions;
   impactMetadata?: ImpactMetadata;
   voteType?: KeyFactorVoteTypes;
+  onVotePanelToggle?: (open: boolean) => void;
 }>;
 
 const KeyFactorStrengthItem: FC<Props> = ({
@@ -38,6 +39,7 @@ const KeyFactorStrengthItem: FC<Props> = ({
   children,
   impactMetadata,
   voteType = KeyFactorVoteTypes.STRENGTH,
+  onVotePanelToggle,
 }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
@@ -126,14 +128,24 @@ const KeyFactorStrengthItem: FC<Props> = ({
         )}
       </div>
 
-      <div className="flex items-center justify-between">
+      <div
+        className="flex items-center justify-between"
+        onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+      >
         <ThumbVoteButtons
           upCount={upCount}
           downCount={downCount}
           selected={selection}
           disabled={submitting}
-          onClickUp={() => toggle(upScore)}
-          onClickDown={() => toggle(downScore)}
+          onClickUp={() => {
+            toggle(upScore);
+            onVotePanelToggle?.(selection !== "up");
+          }}
+          onClickDown={() => {
+            toggle(downScore);
+            onVotePanelToggle?.(false);
+          }}
         />
         {!isCompact && (
           <KeyFactorDropdownMenuItems

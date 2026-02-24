@@ -2066,5 +2066,6 @@
   "failedToLoadAggregation": "Falha ao carregar agregação",
   "questionFallbackLabel": "Pergunta {id}",
   "openInAggregationExplorer": "Abrir no Explorador de Agregações",
+  "voteOnImpact": "VOTAR NO IMPACTO",
   "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
 }
