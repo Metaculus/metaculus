@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 import { safeValidatedFetch } from "@/utils/url_validation";
 
+const MAX_HTML_BYTES = 5 * 1024 * 1024; // 5 MB
+
 export async function GET(request: NextRequest) {
   const user = await ServerProfileApi.getMyProfile();
 
@@ -15,8 +17,22 @@ export async function GET(request: NextRequest) {
     }
 
     const response = await safeValidatedFetch(url);
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: `Upstream fetch failed: ${response.statusText}` },
+        { status: response.status }
+      );
+    }
+
     const finalUrl = response.url;
-    const html = await response.text();
+    const buffer = await response.arrayBuffer();
+    if (buffer.byteLength > MAX_HTML_BYTES) {
+      return NextResponse.json(
+        { error: "Response too large" },
+        { status: 413 }
+      );
+    }
+    const html = new TextDecoder().decode(buffer);
     const articleData = await extractFromHtml(html, finalUrl);
 
     if (!articleData) {
