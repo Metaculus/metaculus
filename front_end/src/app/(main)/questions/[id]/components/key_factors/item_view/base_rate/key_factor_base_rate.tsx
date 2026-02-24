@@ -19,6 +19,7 @@ type Props = {
   projectPermission?: ProjectPermissions;
   isSuggested?: boolean;
   onVotePanelToggle?: (open: boolean) => void;
+  onDownvotePanelToggle?: (open: boolean) => void;
 };
 
 const KeyFactorBaseRate: React.FC<Props> = ({
@@ -28,6 +29,7 @@ const KeyFactorBaseRate: React.FC<Props> = ({
   projectPermission,
   isSuggested,
   onVotePanelToggle,
+  onDownvotePanelToggle,
 }) => {
   const router = useRouter();
   const t = useTranslations();
@@ -46,6 +48,7 @@ const KeyFactorBaseRate: React.FC<Props> = ({
       projectPermission={projectPermission}
       voteType={KeyFactorVoteTypes.DIRECTION}
       onVotePanelToggle={onVotePanelToggle}
+      onDownvotePanelToggle={onDownvotePanelToggle}
     >
       <KeyFactorText
         text={baseRate.reference_class}

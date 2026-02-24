@@ -2080,5 +2080,8 @@
   "switchBackToSlidersHint": "volte para os controles deslizantes para um ajuste suave",
   "view": "Visualizar",
   "voteOnImpact": "VOTAR NO IMPACTO",
-  "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
+  "why": "WHY?",
+  "wrongDirection": "Wrong direction",
+  "redundant": "Redundant",
+  "thanksForVoting": "Thanks for voting!",  "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
 }

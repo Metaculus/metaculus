@@ -2084,5 +2084,8 @@
   "switchBackToSlidersHint": "切回滑块以进行更精细的调整",
   "view": "查看",
   "voteOnImpact": "影响投票",
-  "thousandsOfOpenQuestions": "20,000+ 开放问题"
+  "why": "WHY?",
+  "wrongDirection": "Wrong direction",
+  "redundant": "Redundant",
+  "thanksForVoting": "Thanks for voting!",  "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }

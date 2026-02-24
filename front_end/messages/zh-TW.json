@@ -2079,5 +2079,8 @@
   "switchBackToSlidersHint": "切換回滑桿以平滑調整",
   "view": "檢視",
   "voteOnImpact": "影響投票",
-  "thousandsOfOpenQuestions": "20,000+ 開放問題"
+  "why": "WHY?",
+  "wrongDirection": "Wrong direction",
+  "redundant": "Redundant",
+  "thanksForVoting": "Thanks for voting!",  "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }

@@ -2082,5 +2082,8 @@
   "switchBackToSlidersHint": "přepněte zpět na posuvníky pro plynulé přizpůsobení",
   "view": "Zobrazit",
   "voteOnImpact": "HLASOVAT O DOPADU",
-  "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
+  "why": "WHY?",
+  "wrongDirection": "Wrong direction",
+  "redundant": "Redundant",
+  "thanksForVoting": "Thanks for voting!",  "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }
