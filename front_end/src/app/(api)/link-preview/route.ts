@@ -1,10 +1,11 @@
 import { extractFromHtml } from "@extractus/article-extractor";
 import { NextRequest, NextResponse } from "next/server";
 
+import ServerProfileApi from "@/services/api/profile/profile.server";
 import { safeValidatedFetch } from "@/utils/url_validation";
 
 export async function GET(request: NextRequest) {
-  const user = true;
+  const user = await ServerProfileApi.getMyProfile();
 
   try {
     const url = request.nextUrl.searchParams.get("url");
