@@ -1,13 +1,10 @@
-import { extract } from "@extractus/article-extractor";
+import { extractFromHtml } from "@extractus/article-extractor";
 import { NextRequest, NextResponse } from "next/server";
 
-import ServerProfileApi from "@/services/api/profile/profile.server";
-import { validateExternalUrl } from "@/utils/url_validation";
-
-const EXTRACT_TIMEOUT_MS = 5000;
+import { safeValidatedFetch } from "@/utils/url_validation";
 
 export async function GET(request: NextRequest) {
-  const user = await ServerProfileApi.getMyProfile();
+  const user = true;
 
   try {
     const url = request.nextUrl.searchParams.get("url");
@@ -16,27 +13,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL("/", request.url));
     }
 
-    let finalUrl: string;
-    try {
-      finalUrl = await validateExternalUrl(url);
-    } catch (validationError) {
-      console.error("URL validation failed:", validationError);
-      return NextResponse.json(
-        { error: "Invalid URL format" },
-        { status: 400 }
-      );
-    }
-
-    // Create a timeout promise
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(
-        () => reject(new Error("Article extraction timeout")),
-        EXTRACT_TIMEOUT_MS
-      )
-    );
-
-    // Race between extraction and timeout
-    const articleData = await Promise.race([extract(finalUrl), timeoutPromise]);
+    const response = await safeValidatedFetch(url);
+    const finalUrl = response.url;
+    const html = await response.text();
+    const articleData = await extractFromHtml(html, finalUrl);
 
     if (!articleData) {
       return NextResponse.json(

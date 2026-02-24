@@ -22,6 +22,7 @@ const PRIVATE_IPV6_RANGES = [
 
 const MAX_REDIRECTS = 3;
 const PER_HOP_TIMEOUT_MS = 5000;
+const DEFAULT_FETCH_TIMEOUT_MS = 5_000;
 
 function extractMappedIPv4(ip: string): string | null {
   // Matches ::ffff:a.b.c.d (dotted-quad form)
@@ -148,7 +149,7 @@ function validateUrl(url: string): URL {
     throw new Error("URLs pointing to internal hostnames are not allowed");
   }
 
-  if (!lowerHost.includes(".")) {
+  if (!isIP(hostname) && !lowerHost.includes(".")) {
     throw new Error("URLs must use a fully-qualified domain name");
   }
 
@@ -163,13 +164,11 @@ function validateUrl(url: string): URL {
  * SSRF-safe fetch. Uses a custom undici dispatcher whose DNS lookup
  * rejects private IPs atomically during connection — no TOCTOU gap.
  */
-export function safeFetch(
-  url: string,
-  options: RequestInit = {}
-): Promise<Response> {
+function safeFetch(url: string, options: RequestInit = {}): Promise<Response> {
   validateUrl(url);
 
   return undiciFetch(url, {
+    redirect: "error",
     ...(options as Record<string, unknown>),
     dispatcher: ssrfSafeDispatcher,
   }) as unknown as Promise<Response>;
@@ -180,7 +179,7 @@ export function safeFetch(
  * Checks protocol, hostname blocklist, resolves DNS to reject private IPs,
  * and follows redirects — validating each hop. Returns the final URL.
  */
-export async function validateExternalUrl(url: string): Promise<string> {
+async function validateExternalUrl(url: string): Promise<string> {
   validateUrl(url);
 
   let current = url;
@@ -215,4 +214,19 @@ export async function validateExternalUrl(url: string): Promise<string> {
     current = next;
   }
   throw new Error("Too many redirects");
+}
+
+/**
+ * Validates a URL, follows redirects safely, then fetches the final URL.
+ * Combines validateExternalUrl + safeFetch in one call.
+ */
+export async function safeValidatedFetch(
+  url: string,
+  options: RequestInit = {}
+): Promise<Response> {
+  const finalUrl = await validateExternalUrl(url);
+  return safeFetch(finalUrl, {
+    signal: AbortSignal.timeout(DEFAULT_FETCH_TIMEOUT_MS),
+    ...options,
+  });
 }

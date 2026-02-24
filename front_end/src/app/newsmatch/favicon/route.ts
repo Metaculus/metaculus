@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { safeFetch, validateExternalUrl } from "@/utils/url_validation";
+import { safeValidatedFetch } from "@/utils/url_validation";
 
 const MAX_FAVICON_SIZE = 1024 * 1024; // 1 MB
 const ALLOWED_IMAGE_TYPES = new Set([
@@ -24,16 +24,8 @@ export const GET = async (request: NextRequest) => {
     );
   }
 
-  let validatedUrl: string;
   try {
-    validatedUrl = await validateExternalUrl(url);
-  } catch (error) {
-    console.error("URL validation failed:", error);
-    return NextResponse.json({ error: "Invalid URL format" }, { status: 400 });
-  }
-
-  try {
-    const response = await safeFetch(validatedUrl, {
+    const response = await safeValidatedFetch(url, {
       headers: {
         Cookie: "",
         Accept: "image/*",
@@ -55,13 +47,12 @@ export const GET = async (request: NextRequest) => {
       return NextResponse.json({ error: "Favicon too large" }, { status: 413 });
     }
 
-    const rawType =
-      (response.headers.get("content-type") || "image/x-icon")
-        .split(";")[0]
-        ?.trim()
-        .toLowerCase() ?? "image/x-icon";
-    const contentType = ALLOWED_IMAGE_TYPES.has(rawType)
-      ? rawType
+    const [rawType = "image/x-icon"] = (
+      response.headers.get("content-type") || "image/x-icon"
+    ).split(";");
+    const normalizedType = rawType.trim().toLowerCase();
+    const contentType = ALLOWED_IMAGE_TYPES.has(normalizedType)
+      ? normalizedType
       : "application/octet-stream";
 
     const buffer = await response.arrayBuffer();
