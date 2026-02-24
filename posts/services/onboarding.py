@@ -38,9 +38,8 @@ def _base_queryset():
         )
         .annotate(
             has_key_factors=Exists(
-                KeyFactor.objects.filter(
+                KeyFactor.objects.filter_active().filter(
                     comment__on_post_id=OuterRef("pk"),
-                    is_active=True,
                 )
             )
         )
