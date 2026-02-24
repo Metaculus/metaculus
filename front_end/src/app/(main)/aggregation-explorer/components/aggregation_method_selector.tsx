@@ -1,12 +1,14 @@
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import {
   faEye,
   faEyeSlash,
+  faInfoCircle,
   faTrash,
   faTriangleExclamation,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { ComponentProps, useState } from "react";
+import { ComponentProps, ReactNode, useState } from "react";
 
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
@@ -32,6 +34,43 @@ function StyledSelect(props: ComponentProps<"select">) {
       className={`${SELECT_CLASS_NAME} ${props.className ?? ""}`}
       style={{ ...SELECT_STYLE, ...props.style }}
     />
+  );
+}
+
+const METHOD_NOTE_VARIANTS = {
+  info: {
+    icon: faInfoCircle,
+    className: "bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-300",
+    iconClassName: "text-blue-500 dark:text-blue-400",
+  },
+  warning: {
+    icon: faTriangleExclamation,
+    className:
+      "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
+    iconClassName: "text-amber-500 dark:text-amber-400",
+  },
+} as const;
+
+function MethodNote({
+  variant,
+  icon,
+  children,
+}: {
+  variant: keyof typeof METHOD_NOTE_VARIANTS;
+  icon?: IconDefinition;
+  children: ReactNode;
+}) {
+  const v = METHOD_NOTE_VARIANTS[variant];
+  return (
+    <div
+      className={`mt-1.5 flex items-start gap-1.5 rounded px-2 py-2 ${v.className}`}
+    >
+      <FontAwesomeIcon
+        icon={icon ?? v.icon}
+        className={`mt-0.5 text-[10px] ${v.iconClassName}`}
+      />
+      <p className="my-0 text-xs leading-tight">{children}</p>
+    </div>
   );
 }
 
@@ -130,10 +169,27 @@ export default function AggregationMethodSelector({
             {visibleTopLevelOptions.map((option) => (
               <option key={option.id} value={option.id}>
                 {tLabel(option.labelKey)}
-                {option.isDeprecated ? ` (${t("deprecated")})` : ""}
               </option>
             ))}
           </StyledSelect>
+
+          {topLevelOption?.basedOn &&
+            (() => {
+              const baseOption = AGGREGATION_OPTION_BY_ID.get(
+                topLevelOption.basedOn
+              );
+              return baseOption ? (
+                <MethodNote variant="info">
+                  {t("methodBasedOn", {
+                    method: tLabel(baseOption.labelKey),
+                  })}
+                </MethodNote>
+              ) : null;
+            })()}
+
+          {topLevelOption?.isDeprecated && (
+            <MethodNote variant="warning">{t("methodDeprecated")}</MethodNote>
+          )}
 
           {needsDate ? (
             <>

@@ -56,6 +56,7 @@ export type AggregationOption = {
   supportsBotToggle?: boolean;
   supportsUserIds?: boolean;
   requiresDate?: boolean;
+  basedOn?: string;
   childSelector?: {
     labelKey: string;
     options: AggregationOption[];

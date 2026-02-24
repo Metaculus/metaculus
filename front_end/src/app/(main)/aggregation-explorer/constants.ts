@@ -12,7 +12,7 @@ export const AGGREGATION_EXPLORER_OPTIONS: readonly AggregationOption[] = [
     labelKey: "cohortJoinedBeforeDate",
     requiresDate: true,
     supportsBotToggle: true,
-    supportsUserIds: true,
+    basedOn: AggregationMethod.recency_weighted,
   },
   {
     id: AggregationMethod.unweighted,
@@ -35,10 +35,12 @@ export const AGGREGATION_EXPLORER_OPTIONS: readonly AggregationOption[] = [
   {
     id: AggregationMethod.metaculus_pros,
     labelKey: "metaculusProsLabel",
+    basedOn: AggregationMethod.recency_weighted,
   },
   {
     id: "medalists_parent",
     labelKey: "medalists",
+    basedOn: AggregationMethod.recency_weighted,
     childSelector: {
       labelKey: "medalTier",
       options: [
