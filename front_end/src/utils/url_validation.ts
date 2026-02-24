@@ -59,7 +59,40 @@ async function validateHostname(url: string): Promise<void> {
     throw new Error("Only HTTP and HTTPS URLs are allowed");
   }
 
+  // Restrict ports to standard HTTP/HTTPS to avoid hitting unexpected services
+  const port = parsed.port
+    ? parseInt(parsed.port, 10)
+    : parsed.protocol === "https:"
+      ? 443
+      : 80;
+  if (Number.isNaN(port) || (port !== 80 && port !== 443)) {
+    throw new Error("Only standard HTTP/HTTPS ports are allowed");
+  }
+
   const hostname = parsed.hostname;
+
+  // Disallow localhost-style and obvious internal hostnames before DNS resolution
+  const lowerHost = hostname.toLowerCase();
+  if (
+    lowerHost === "localhost" ||
+    lowerHost === "127.0.0.1" ||
+    lowerHost.endsWith(".localhost") ||
+    lowerHost.endsWith(".local") ||
+    lowerHost.endsWith(".internal") ||
+    lowerHost.endsWith(".intranet") ||
+    lowerHost.endsWith(".home") ||
+    lowerHost.endsWith(".corp") ||
+    lowerHost.endsWith(".test") ||
+    lowerHost.endsWith(".example") ||
+    lowerHost.endsWith(".invalid")
+  ) {
+    throw new Error("URLs pointing to internal hostnames are not allowed");
+  }
+
+  // Reject plain hostnames without a dot to avoid search-domain surprises
+  if (!lowerHost.includes(".")) {
+    throw new Error("URLs must use a fully-qualified domain name");
+  }
 
   if (isIP(hostname)) {
     if (isPrivateIP(hostname)) {
