@@ -100,7 +100,7 @@
     "tailwind-merge": "^2.6.0",
     "ts-invariant": "^0.10.3",
     "ts-node": "^10.9.2",
-    "undici": "^6.23.0",
+    "undici": "^7.22.0",
     "victory": "^37.0.2",
     "wait-on": "^9.0.3",
     "whatwg-fetch": "^3.6.20",

@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { safeFetch, validateExternalUrl } from "@/utils/url_validation";
 
+const MAX_FAVICON_SIZE = 1024 * 1024; // 1 MB
+const ALLOWED_IMAGE_TYPES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+  "image/x-icon",
+  "image/vnd.microsoft.icon",
+  "image/svg+xml",
+]);
+
 export const GET = async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
   const url = searchParams.get("url");
@@ -39,13 +50,29 @@ export const GET = async (request: NextRequest) => {
       );
     }
 
-    const contentType = response.headers.get("content-type") || "image/x-icon";
+    const contentLength = response.headers.get("content-length");
+    if (contentLength && parseInt(contentLength, 10) > MAX_FAVICON_SIZE) {
+      return NextResponse.json({ error: "Favicon too large" }, { status: 413 });
+    }
+
+    const rawType =
+      (response.headers.get("content-type") || "image/x-icon")
+        .split(";")[0]
+        ?.trim()
+        .toLowerCase() ?? "image/x-icon";
+    const contentType = ALLOWED_IMAGE_TYPES.has(rawType)
+      ? rawType
+      : "application/octet-stream";
 
     const buffer = await response.arrayBuffer();
+    if (buffer.byteLength > MAX_FAVICON_SIZE) {
+      return NextResponse.json({ error: "Favicon too large" }, { status: 413 });
+    }
 
     return new NextResponse(buffer, {
       headers: {
         "Content-Type": contentType,
+        "X-Content-Type-Options": "nosniff",
         "Cache-Control": "public, max-age=86400",
       },
     });
