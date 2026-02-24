@@ -2074,5 +2074,6 @@
   "publicForecasters": "public forecasters",
   "yourInternalExperts": "your internal experts",
   "view": "View",
+  "voteOnImpact": "VOTE ON IMPACT",
   "feedTileSummaryPlaceholder": "Optional: Enter a custom summary text to display on feed tiles (if not provided, a summary will be auto-generated from the notebook content)"
 }

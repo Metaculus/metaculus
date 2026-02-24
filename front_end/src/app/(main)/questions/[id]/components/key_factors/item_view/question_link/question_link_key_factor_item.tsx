@@ -22,6 +22,8 @@ import { getPostLink } from "@/utils/navigation";
 
 import { KeyFactorImpactDirectionLabel } from "../../item_creation/driver/impact_direction_label";
 import KeyFactorCardContainer from "../key_factor_card_container";
+import { useVoteImpactPanel } from "../use_vote_impact_panel";
+import VoteImpactPanel from "../vote_impact_panel";
 import QuestionLinkAgreeVoter from "./question_link_agree_voter";
 
 type Props = {
@@ -143,6 +145,16 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
     [link.direction, questionType]
   );
 
+  const {
+    showVotePanel,
+    selectedImpact,
+    anchorRef,
+    panelRef,
+    setShowVotePanel,
+    closePanel,
+    toggleImpact,
+  } = useVoteImpactPanel();
+
   if (!otherQuestion || !post.question) return null;
 
   const binaryForecastQuestion =
@@ -162,83 +174,98 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
     : null;
 
   return (
-    <KeyFactorCardContainer
-      id={id}
-      linkToComment={linkToComment}
-      isCompact={compact}
-      mode={mode}
-      impactDirection={impactDirection}
-      impactStrength={strengthScore}
-      className={cn(
-        "shadow-sm",
-        (compact || mode === "consumer") && "max-w-[280px]",
-        isCompactConsumer && "max-w-[190px]",
-        className
-      )}
-    >
-      <div className="flex min-w-0 flex-col gap-1">
-        <div className="flex min-w-0 items-start gap-3">
-          <Link
-            href={getPostLink({ id: otherQuestion.post_id })}
-            target="_blank"
-            className={cn(
-              "min-w-0 flex-1 font-medium leading-5 text-gray-800 no-underline hover:underline dark:text-gray-800-dark",
-              compact ? "text-xs" : "text-sm"
-            )}
-          >
-            {otherQuestion.title}
-          </Link>
+    <div ref={anchorRef}>
+      <KeyFactorCardContainer
+        id={id}
+        linkToComment={linkToComment}
+        isCompact={compact}
+        mode={mode}
+        impactDirection={impactDirection}
+        impactStrength={strengthScore}
+        className={cn(
+          "shadow-sm",
+          (compact || mode === "consumer") && "max-w-[280px]",
+          isCompactConsumer && "max-w-[190px]",
+          className
+        )}
+      >
+        <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex min-w-0 items-start gap-3">
+            <Link
+              href={getPostLink({ id: otherQuestion.post_id })}
+              target="_blank"
+              className={cn(
+                "min-w-0 flex-1 font-medium leading-5 text-gray-800 no-underline hover:underline dark:text-gray-800-dark",
+                compact ? "text-xs" : "text-sm"
+              )}
+            >
+              {otherQuestion.title}
+            </Link>
 
-          {binaryForecastQuestion && (
-            <div className="relative h-[46px] w-14 shrink-0">
-              <div className="absolute inset-0 flex flex-col items-center">
-                <BinaryCPBar
-                  question={
-                    binaryForecastQuestion as unknown as QuestionWithNumericForecasts
-                  }
-                  size="xs"
-                />
-                <div className="-mt-5">
-                  <QuestionCPMovement
-                    question={binaryForecastQuestion}
-                    unit="%"
-                    boldValueUnit
+            {binaryForecastQuestion && (
+              <div className="relative h-[46px] w-14 shrink-0">
+                <div className="absolute inset-0 flex flex-col items-center">
+                  <BinaryCPBar
+                    question={
+                      binaryForecastQuestion as unknown as QuestionWithNumericForecasts
+                    }
                     size="xs"
                   />
+                  <div className="-mt-5">
+                    <QuestionCPMovement
+                      question={binaryForecastQuestion}
+                      unit="%"
+                      boldValueUnit
+                      size="xs"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+          </div>
+
+          {impactCategory !== null && (
+            <KeyFactorImpactDirectionLabel
+              className={cn("text-xs", {
+                "text-[10px]": isCompactConsumer,
+              })}
+              impact={impactCategory}
+              unit={otherQuestion.unit || post.question?.unit || undefined}
+              hideIcon
+            />
           )}
         </div>
 
-        {impactCategory !== null && (
-          <KeyFactorImpactDirectionLabel
-            className={cn("text-xs", {
-              "text-[10px]": isCompactConsumer,
-            })}
-            impact={impactCategory}
-            unit={otherQuestion.unit || post.question?.unit || undefined}
-            hideIcon
+        <div
+          className="flex items-center justify-between"
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <QuestionLinkAgreeVoter
+            aggregationId={link.id}
+            fromQuestion={fromQuestion}
+            toQuestion={toQuestion}
+            defaultDirection={defaultDirection}
+            defaultStrength="medium"
+            targetElementId={id}
+            onChange={(next) => setUserVote(next)}
+            onStrengthChange={(s) => setLocalStrength(s)}
+            onVotePanelToggle={setShowVotePanel}
           />
-        )}
-      </div>
+        </div>
+      </KeyFactorCardContainer>
 
-      <div
-        className="flex items-center justify-between"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <QuestionLinkAgreeVoter
-          aggregationId={link.id}
-          fromQuestion={fromQuestion}
-          toQuestion={toQuestion}
-          defaultDirection={defaultDirection}
-          defaultStrength="medium"
-          targetElementId={id}
-          onChange={(next) => setUserVote(next)}
-          onStrengthChange={(s) => setLocalStrength(s)}
+      {showVotePanel && (
+        <VoteImpactPanel
+          ref={panelRef}
+          selectedOption={selectedImpact}
+          isCompact={compact}
+          anchorRef={anchorRef}
+          onSelect={toggleImpact}
+          onClose={closePanel}
         />
-      </div>
-    </KeyFactorCardContainer>
+      )}
+    </div>
   );
 };
 

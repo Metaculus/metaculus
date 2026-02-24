@@ -30,6 +30,7 @@ type Props = {
   defaultStrength?: QuestionLinkStrength;
   onChange?: (next: "agree" | "disagree" | null) => void;
   onStrengthChange?: (strength: number | null) => void;
+  onVotePanelToggle?: (open: boolean) => void;
   targetElementId?: string;
   className?: string;
 };
@@ -50,6 +51,7 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
   defaultStrength = "medium",
   onChange,
   onStrengthChange,
+  onVotePanelToggle,
   className,
   targetElementId,
 }) => {
@@ -209,8 +211,14 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
           downCount={disagree}
           selected={selected}
           disabled={submitting}
-          onClickUp={() => handleVote("agree")}
-          onClickDown={() => handleVote("disagree")}
+          onClickUp={() => {
+            handleVote("agree");
+            onVotePanelToggle?.(selected !== "up");
+          }}
+          onClickDown={() => {
+            handleVote("disagree");
+            onVotePanelToggle?.(false);
+          }}
         />
 
         {menuItems.length > 0 && (
