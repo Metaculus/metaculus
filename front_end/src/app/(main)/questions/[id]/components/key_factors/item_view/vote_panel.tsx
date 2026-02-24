@@ -2,7 +2,7 @@
 
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC, ReactNode, RefObject, useEffect, useState } from "react";
+import { FC, ReactNode, RefObject, useMemo } from "react";
 import { createPortal } from "react-dom";
 
 import cn from "@/utils/core/cn";
@@ -34,22 +34,18 @@ function VotePanelInner<T extends string>({
   renderLabel,
   footer,
 }: Props<T>) {
-  const [style, setStyle] = useState<React.CSSProperties>({
-    position: "fixed",
-    opacity: 0,
-  });
-
-  useEffect(() => {
-    if (!anchorRef.current) return;
+  const style = useMemo<React.CSSProperties>(() => {
+    if (!anchorRef.current) {
+      return { position: "fixed", opacity: 0 };
+    }
     const rect = anchorRef.current.getBoundingClientRect();
-    setStyle({
+    return {
       position: "fixed",
       top: rect.bottom + 4,
       left: rect.left,
       width: rect.width,
       zIndex: 50,
-      opacity: 1,
-    });
+    };
   }, [anchorRef]);
 
   const panel = (

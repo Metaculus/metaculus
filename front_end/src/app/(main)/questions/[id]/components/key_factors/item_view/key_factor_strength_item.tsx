@@ -20,6 +20,7 @@ import cn from "@/utils/core/cn";
 import { KeyFactorImpactDirectionLabel } from "../item_creation/driver/impact_direction_label";
 import { convertNumericImpactToDirectionCategory } from "../utils";
 import ThumbVoteButtons, { ThumbVoteSelection } from "./thumb_vote_buttons";
+import { useOptimisticVote } from "./use_optimistic_vote";
 
 type Props = PropsWithChildren<{
   keyFactor: KeyFactor;
@@ -70,14 +71,21 @@ const KeyFactorStrengthItem: FC<Props> = ({
 
   const isCompactConsumer = mode === "consumer" && isCompact;
 
-  const userVote = aggregate?.user_vote ?? null;
-  const { upCount, downCount } = useMemo(() => {
-    const arr = aggregate?.aggregated_data ?? [];
-    return {
-      upCount: arr.find((a) => a.score === upScore)?.count ?? 0,
-      downCount: arr.find((a) => a.score === downScore)?.count ?? 0,
-    };
-  }, [aggregate, upScore, downScore]);
+  const aggregatedData = aggregate?.aggregated_data ?? [];
+  const {
+    vote: userVote,
+    upCount,
+    downCount,
+    setOptimistic,
+    clearOptimistic,
+  } = useOptimisticVote({
+    serverVote: aggregate?.user_vote ?? null,
+    serverUpCount: aggregatedData.find((a) => a.score === upScore)?.count ?? 0,
+    serverDownCount:
+      aggregatedData.find((a) => a.score === downScore)?.count ?? 0,
+    upValue: upScore,
+    downValue: downScore,
+  });
 
   const selection: ThumbVoteSelection =
     userVote === upScore ? "up" : userVote === downScore ? "down" : null;
@@ -89,6 +97,7 @@ const KeyFactorStrengthItem: FC<Props> = ({
     }
     if (user.is_bot || submitting) return;
     setSubmitting(true);
+    setOptimistic(next);
 
     try {
       const resp = await voteKeyFactor({
@@ -102,6 +111,7 @@ const KeyFactorStrengthItem: FC<Props> = ({
         setKeyFactorVote(keyFactor.id, updated);
       }
     } finally {
+      clearOptimistic();
       setSubmitting(false);
     }
   };
