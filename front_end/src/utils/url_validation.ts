@@ -59,6 +59,10 @@ async function validateHostname(url: string): Promise<void> {
     throw new Error("Only HTTP and HTTPS URLs are allowed");
   }
 
+  if (parsed.username || parsed.password) {
+    throw new Error("URLs with embedded credentials are not allowed");
+  }
+
   // Restrict ports to standard HTTP/HTTPS to avoid hitting unexpected services
   const port = parsed.port
     ? parseInt(parsed.port, 10)
