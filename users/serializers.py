@@ -89,6 +89,7 @@ class UserPrivateSerializer(UserPublicSerializer):
     registered_campaigns = serializers.SerializerMethodField()
     should_suggest_keyfactors = serializers.SerializerMethodField()
     has_password = serializers.SerializerMethodField()
+    metaculus_news_subscription = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -108,6 +109,12 @@ class UserPrivateSerializer(UserPublicSerializer):
             "api_access_tier",
             "is_primary_bot",
             "has_password",
+            "metaculus_news_subscription",
+            "automatically_follow_on_predict",
+            "follow_notify_cp_change_threshold",
+            "follow_notify_comments_frequency",
+            "follow_notify_milestone_step",
+            "follow_notify_on_status_change",
         )
 
     def get_registered_campaigns(self, user: User):
@@ -133,9 +140,13 @@ class UserPrivateSerializer(UserPublicSerializer):
     def get_has_password(self, user: User) -> bool:
         return user.has_usable_password()
 
+    def get_metaculus_news_subscription(self, user: User) -> bool:
+        return user.project_subscriptions.filter(project__slug="platform").exists()
+
 
 class UserUpdateProfileSerializer(serializers.ModelSerializer):
     website = serializers.URLField(allow_blank=True, max_length=100)
+    metaculus_news_subscription = serializers.BooleanField(required=False)
 
     class Meta:
         model = User
@@ -162,6 +173,12 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
             "app_theme",
             "interface_type",
             "language",
+            "automatically_follow_on_predict",
+            "follow_notify_cp_change_threshold",
+            "follow_notify_comments_frequency",
+            "follow_notify_milestone_step",
+            "follow_notify_on_status_change",
+            "metaculus_news_subscription",
         )
 
 

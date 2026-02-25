@@ -667,15 +667,19 @@ class TestQuestionForecastAutoWithdrawal:
             question_type=Question.QuestionType.BINARY,
             open_time=timezone.now() - timedelta(days=1),
             scheduled_close_time=timezone.now() + timedelta(days=200),
+            scheduled_resolve_time=timezone.now() + timedelta(days=200),
         )
 
         question2 = create_question(
             question_type=Question.QuestionType.BINARY,
             open_time=timezone.now() - timedelta(days=1),
             scheduled_close_time=timezone.now() + timedelta(days=29),
+            scheduled_resolve_time=timezone.now() + timedelta(days=29),
         )
-        factory_post(question=question1)
-        factory_post(question=question2)
+        post1 = factory_post(question=question1)
+        post1.update_pseudo_materialized_fields()
+        post2 = factory_post(question=question2)
+        post2.update_pseudo_materialized_fields()
         base_time = timezone.now()
 
         with freeze_time(base_time):

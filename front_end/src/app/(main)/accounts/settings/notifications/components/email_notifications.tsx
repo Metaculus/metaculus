@@ -69,7 +69,20 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
   const [updateProfile, isPending] = useServerAction(
     handleEmailSubscriptionChange
   );
-  const options = [
+  const siteNewsOptions = [
+    {
+      type: SubscriptionEmailType.weekly_top_comments,
+      label: t("weeklyTopComments"),
+    },
+    // TODO: metaculus_news isn't a mailing tag. It's a ProjectSubscription
+    // and is essentially treated as a flag on the User model. Not sure
+    // how to best handle this here (this current state doesn't work).
+    {
+      type: SubscriptionEmailType.metaculus_news_subscription,
+      label: t("metaculusNewsSubscription"),
+    },
+  ];
+  const keepingUpOptions = [
     {
       type: SubscriptionEmailType.comment_mentions,
       label: t("settingsMentionsInComments"),
@@ -105,46 +118,97 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
       type: SubscriptionEmailType.before_prediction_auto_withdrawal,
       label: t("beforeAutoWithdrawal"),
     },
+  ];
+  const keepingUpAdditionalOptions = [
+    // TODO: follow automatically on prediction isn't a mailing tag either.
+    // It's a flag on the User model. Need to figure out how to handle this.
     {
-      type: SubscriptionEmailType.weekly_top_comments,
-      label: t("weeklyTopComments"),
+      type: "follow_automatically_on_prediction",
+      label: t("followAutomaticallyOnPrediction"),
     },
   ];
 
   return (
-    <PreferencesSection title={t("settingsEmailNotifications")}>
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center">
-          <Checkbox
-            checked={newsletterSubscribed}
-            onChange={updateNewsletter}
-            className="p-1"
-            readOnly={isNewsletterPending}
-            inputClassName="text-gray-900 dark:text-gray-900-dark"
-            label={t("settingsNewTournamentsAndPlatformUpdates")}
-          />
-          {isNewsletterPending && <LoadingSpinner size="1x" />}
-        </div>
-        {options.map(({ type, ...opts }, index) => (
-          <div className="flex items-center" key={`subscriptions-${type}`}>
+    <>
+      <PreferencesSection title={t("siteNews")}>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center">
             <Checkbox
-              checked={!user.unsubscribed_mailing_tags.includes(type)}
-              onChange={(checked) => {
-                updateProfile(type, checked);
-              }}
-              onClick={() => setLoadingIndex(index)}
+              checked={newsletterSubscribed}
+              onChange={updateNewsletter}
               className="p-1"
-              readOnly={isPending}
+              readOnly={isNewsletterPending}
               inputClassName="text-gray-900 dark:text-gray-900-dark"
-              {...opts}
+              label={t("settingsNewTournamentsAndPlatformUpdates")}
             />
-            {loadingIndex === index && isPending && (
-              <LoadingSpinner size="1x" />
-            )}
+            {isNewsletterPending && <LoadingSpinner size="1x" />}
           </div>
-        ))}
-      </div>
-    </PreferencesSection>
+          {siteNewsOptions.map(({ type, ...opts }, index) => (
+            <div className="flex items-center" key={`subscriptions-${type}`}>
+              <Checkbox
+                checked={!user.unsubscribed_mailing_tags.includes(type)}
+                onChange={(checked) => {
+                  updateProfile(type, checked);
+                }}
+                onClick={() => setLoadingIndex(index)}
+                className="p-1"
+                readOnly={isPending}
+                inputClassName="text-gray-900 dark:text-gray-900-dark"
+                {...opts}
+              />
+              {loadingIndex === index && isPending && (
+                <LoadingSpinner size="1x" />
+              )}
+            </div>
+          ))}
+        </div>
+      </PreferencesSection>
+      <PreferencesSection title={t("keepingUp")}>
+        <div className="flex flex-col gap-3">
+          {t("receiveEmailNotificationsWhen")}
+          {keepingUpOptions.map(({ type, ...opts }, index) => (
+            <div className="flex items-center" key={`subscriptions-${type}`}>
+              <Checkbox
+                checked={!user.unsubscribed_mailing_tags.includes(type)}
+                onChange={(checked) => {
+                  updateProfile(type, checked);
+                }}
+                onClick={() => setLoadingIndex(index)}
+                className="p-1"
+                readOnly={isPending}
+                inputClassName="text-gray-900 dark:text-gray-900-dark"
+                {...opts}
+              />
+              {loadingIndex === index && isPending && (
+                <LoadingSpinner size="1x" />
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-col gap-3">
+          {t("autoFollow")}
+          {keepingUpAdditionalOptions.map(({ type, ...opts }, index) => (
+            <div className="flex items-center" key={`subscriptions-${type}`}>
+              <Checkbox
+                checked={!user.unsubscribed_mailing_tags.includes(type)}
+                onChange={(checked) => {
+                  updateProfile(type, checked);
+                }}
+                onClick={() => setLoadingIndex(index)}
+                className="p-1"
+                readOnly={isPending}
+                inputClassName="text-gray-900 dark:text-gray-900-dark"
+                {...opts}
+              />
+              {loadingIndex === index && isPending && (
+                <LoadingSpinner size="1x" />
+              )}
+            </div>
+          ))}
+        </div>
+      </PreferencesSection>
+      {/* TODO: put Default Follow Notifications here probably */}
+    </>
   );
 };
 
