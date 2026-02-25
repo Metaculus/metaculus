@@ -11,6 +11,7 @@ import {
   ContinuousForecastInputType,
 } from "@/types/charts";
 import { QuestionType, NumericUserForecast } from "@/types/question";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 
@@ -63,8 +64,13 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
       } else {
         setTableGraphType(graphType);
       }
+      sendAnalyticsEvent("continuous_input_graph_type_toggled", {
+        graph_type: graphType,
+        input_mode: forecastInputMode,
+        question_type: questionType,
+      });
     },
-    [forecastInputMode]
+    [forecastInputMode, questionType]
   );
 
   return (
