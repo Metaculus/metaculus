@@ -1,5 +1,3 @@
-import { faArrowLeft, faArrowUp } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
@@ -32,18 +30,8 @@ const ContinuousInputModeSwitcher: FC<Props> = ({ mode, onChange }) => {
         </SwitcherBtn>
       </div>
       {mode === ContinuousForecastInputType.Quantile && (
-        <p className="m-0 text-xs text-gray-600 dark:text-gray-600-dark">
-          <FontAwesomeIcon
-            icon={faArrowUp}
-            className="mr-0.5"
-            size="xs"
-          />
-          <FontAwesomeIcon
-            icon={faArrowLeft}
-            className="mr-1"
-            size="xs"
-          />
-          {t("switchBackToSlidersHint")}
+        <p className="m-0 pl-3 text-xs text-gray-600 dark:text-gray-600-dark">
+          ↑ {t("switchBackToSlidersHint")}
         </p>
       )}
     </div>
