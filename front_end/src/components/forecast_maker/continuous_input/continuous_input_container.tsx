@@ -76,7 +76,7 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
             onChange={onInputModeChange}
           />
         )}
-        <div className="flex flex-col items-center gap-2 self-end">
+        <div className="flex flex-col items-center gap-2 self-start">
           <div className="flex w-fit flex-row items-center gap-2 self-end">
             <p
               className={cn(
