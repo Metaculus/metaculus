@@ -9,7 +9,7 @@ import PageWrapper from "../../components/pagewrapper";
 export const metadata = {
   title: "Markdown Syntax | Metaculus",
   description:
-    "Learn how to use Markdown and MathJax on Metaculus. Discover syntax for links, headers, lists, tables, code, and equations to enhance your comments and questions.",
+    "Learn how to use Markdown and LaTeX on Metaculus. Discover syntax for links, headers, lists, tables, code, equations, mentions, and embeds to enhance your comments and questions.",
 };
 
 export default async function Markdown() {
@@ -22,21 +22,22 @@ export default async function Markdown() {
       <h1>Markdown Syntax</h1>
 
       <p>
-        When adding comments or suggesting questions, you can take advantage of{" "}
+        When writing comments or questions, you can use{" "}
         <a href="http://daringfireball.net/projects/markdown/">Markdown</a>{" "}
-        syntax to add links, emphasis, and headers. Additionally, you can add
-        mathematical equations via <a href="https://www.mathjax.org">MathJax</a>
-        , which will convert{" "}
+        syntax to add links, emphasis, and headers. You can also add
+        mathematical equations via{" "}
+        <a href="https://katex.org/">LaTeX</a> (rendered with KaTeX), which will
+        convert{" "}
         <a href="https://en.wikibooks.org/wiki/LaTeX/Mathematics">
           LaTeX syntax
         </a>{" "}
-        into nicely typeset equations. We closely follow the{" "}
+        into nicely typeset equations. We closely follow standard Markdown
+        syntax, so the{" "}
         <a href="http://daringfireball.net/projects/markdown/syntax">
-          official Markdown syntax
-        </a>
-        , so that&apos;s the best place to look for a thorough explanation of
-        how the system works. We provide a brief overview of the most common
-        uses here.
+          official documentation
+        </a>{" "}
+        is the best place to look for a thorough explanation. Below is a brief
+        overview of the most common features.
       </p>
       <div className="table-of-contents">
         <ul className="space-y-1">
@@ -62,6 +63,12 @@ export default async function Markdown() {
             <a href="#tables">Tables</a>
           </li>
           <li>
+            <a href="#horizontal-rules">Horizontal rules</a>
+          </li>
+          <li>
+            <a href="#mentions">Mentions</a>
+          </li>
+          <li>
             <a href="#embeds">Embeds</a>
           </li>
           <li>
@@ -77,9 +84,9 @@ export default async function Markdown() {
         Inline elements
       </h2>
       <p>
-        Links can be produced using a{" "}
+        Links can be produced using{" "}
         <code>[link title](http://and-link-address.com)</code> or by surrounding
-        a link with <code>&lt;</code> and <code>{">"}</code>, like{" "}
+        a URL with <code>&lt;</code> and <code>{">"}</code>, like{" "}
         <code>&lt;http://www.example.com{">"}</code>. There are a number of
         shortcuts to make your life easier if you keep repeating the same link
         (see the{" "}
@@ -88,9 +95,11 @@ export default async function Markdown() {
       </p>
       <p>
         Asterisks (*) and underscores (_) will both <em>_italicize_</em> text,
-        and two asterisks will make the text <strong>**bold**</strong>.
-        Back-ticks denote <code>fixed-width text</code>. If you want small text,
-        you can wrap it in a literal{" "}
+        and two asterisks will make the text <strong>**bold**</strong>. The
+        editor toolbar also supports{" "}
+        <span style={{ textDecoration: "underline" }}>underline</span>{" "}
+        formatting. Back-ticks denote <code>fixed-width text</code>. If you want
+        small text, you can wrap it in a literal{" "}
         <small>
           &lt;small{">"}html tag&lt;/small{">"}
         </small>
@@ -124,11 +133,12 @@ export default async function Markdown() {
         Math
       </h2>
       <p>
-        We supplement Markdown with <a href="https://katex.org/">Latex</a>{" "}
-        equation processing. Mathematical formatting works by placing your
-        equation between <code>$</code> and <code>$</code> (for inline
-        equations) or <code>$$</code> and <code>$$</code> (for displayed
-        equations). More complicated equations can be put in an{" "}
+        We supplement Markdown with <a href="https://katex.org/">LaTeX</a>{" "}
+        equation processing (rendered via KaTeX). Mathematical formatting works
+        by placing your equation between <code>$</code> and <code>$</code> (for
+        inline equations) or <code>$$</code> and <code>$$</code> (for displayed
+        equations). You can also insert equations using the equation button in
+        the editor toolbar. More complicated equations can be put in an{" "}
         <code>align</code> environment, like so
       </p>
       <pre>
@@ -145,6 +155,11 @@ export default async function Markdown() {
     \\end{align}`}
         inline={false}
       />
+      <p>
+        Legacy MathJax syntax (<code>\(...\)</code> for inline and{" "}
+        <code>\[...\]</code> for display math) is still supported for backwards
+        compatibility and will be automatically converted.
+      </p>
 
       <hr />
       <h2 className="scroll-mt-nav" id="headers">
@@ -157,20 +172,32 @@ export default async function Markdown() {
 ##### Fifth-level header`}
       </pre>
 
-      <p>Please use headers in comments sparingly!</p>
+      <p>
+        You can also select heading levels from the block type dropdown in the
+        editor toolbar. Please use headers in comments sparingly!
+      </p>
       <hr />
       <h2 className="scroll-mt-nav" id="code">
         Code
       </h2>
-      <p>Big chunks of code can be wrapped in three back-ticks. For example:</p>
+      <p>
+        Inline code can be wrapped in single back-ticks, like{" "}
+        <code>`code`</code>. Larger blocks of code can be wrapped in three
+        back-ticks, optionally followed by a language name for syntax
+        highlighting. For example:
+      </p>
       <pre>
-        &#96;&#96;&#96;
+        &#96;&#96;&#96;python
         {`
 def hello_world():
     print('hello!')`}
         <br />
         &#96;&#96;&#96;
       </pre>
+      <p>
+        Supported languages for syntax highlighting include: Plain text,
+        TypeScript, TSX, JavaScript, JSX, Bash, Python, JSON, and SQL.
+      </p>
 
       <hr />
       <h2 className="scroll-mt-nav" id="quotes">
@@ -349,13 +376,67 @@ def hello_world():
           </tbody>
         </table>
       </div>
+      <p>
+        You can also insert tables using the table button in the editor toolbar.
+      </p>
+
+      <hr />
+      <h2 className="scroll-mt-nav" id="horizontal-rules">
+        Horizontal rules
+      </h2>
+      <p>
+        You can create a horizontal rule (thematic break) by typing three or
+        more hyphens on a line:
+      </p>
+      <pre>{`---`}</pre>
+      <p>
+        This will render as a horizontal line across the page. You can also
+        insert one using the toolbar button.
+      </p>
+
+      <hr />
+      <h2 className="scroll-mt-nav" id="mentions">
+        Mentions
+      </h2>
+      <p>
+        In comments, you can mention other users by typing <code>@</code>{" "}
+        followed by their username. As you type, an autocomplete menu will
+        appear with matching users. The following group mentions are also
+        available:
+      </p>
+      <ul className="ml-5 list-disc">
+        <li>
+          <code>@moderators</code> — notify the moderation team
+        </li>
+        <li>
+          <code>@admins</code> — notify the admin team
+        </li>
+        <li>
+          <code>@predictors</code> — notify predictors (available to curators
+          and admins)
+        </li>
+      </ul>
 
       <hr />
       <h2 className="scroll-mt-nav" id="embeds">
         Embeds
       </h2>
+      <h3>Embedded questions</h3>
       <p>
-        We allow <code>&lt;iframe{">"}</code> embeds from a limited list of
+        You can embed Metaculus questions directly in your content using the
+        {" "}&quot;+ Question&quot; button in the editor toolbar. This lets you
+        search for and select a question, which will be displayed as an
+        interactive embed.
+      </p>
+      <h3>Twitter / X embeds</h3>
+      <p>
+        Links to tweets are automatically rendered as embedded tweets. Simply
+        paste a tweet URL (from twitter.com or x.com) and it will be displayed
+        as an embed when viewed.
+      </p>
+      <h3>Iframe embeds</h3>
+      <p>
+        We also allow <code>&lt;iframe{">"}</code> embeds from a limited list of
         trusted sites, currently including:
       </p>
       <ul className="ml-5 list-disc">
@@ -366,7 +447,7 @@ def hello_world():
         <li>www.eia.gov</li>
         <li>metaculus.com</li>
       </ul>
-      <p>Note that this means you can embed Metaculus questions:</p>
+      <p>For example, you can embed a Metaculus question via iframe:</p>
       <pre>
         {`<iframe src="https://www.metaculus.com/questions/embed/8/" height="320" width="550"></iframe>`}
       </pre>
@@ -378,17 +459,17 @@ def hello_world():
           width="550"
         ></iframe>
       </div>
-      <p>
-        Note that for now this is only possible in question bodies, not in
-        comments.
-      </p>
 
       <hr />
       <h2 className="scroll-mt-nav" id="images">
         Images
       </h2>
       <p>
-        We also allow <code>&lt;img{">"}</code> images:
+        You can upload images directly using the image button in the editor
+        toolbar. Images up to 3 MB are supported.
+      </p>
+      <p>
+        Alternatively, you can use an <code>&lt;img{">"}</code> HTML tag:
       </p>
       <pre>
         {`<img src="https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg" alt="markdown logo">`}
@@ -408,10 +489,8 @@ def hello_world():
       </h2>
       <p>
         The official Markdown specification lets users input raw HTML, but we
-        limit users to the elements described above. For example, if you try to
-        input an image using <code>![Alt text](/path/to/img.jpg)</code> the
-        output will look like &lt;img alt=&quot;Alt text&quot;
-        src=&quot;/path/to/img.jpg&quot;/{">"}, and something like{" "}
+        limit users to the elements described above. For security reasons,
+        something like{" "}
         <code>
           &lt;script{">"}doSomethingEvil()&lt;/script{">"}
         </code>{" "}
@@ -421,6 +500,11 @@ def hello_world():
           lists
         </a>{" "}
         and bolded text a little easier to manage.
+      </p>
+      <p>
+        The editor provides both a rich-text mode and a source mode. In source
+        mode, you can write raw Markdown directly. A link to this help page is
+        available at the top of the editor when in source mode.
       </p>
     </PageWrapper>
   );
