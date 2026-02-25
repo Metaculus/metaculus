@@ -49,7 +49,7 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
   const [sliderGraphType, setSliderGraphType] =
     useState<ContinuousAreaGraphType>("pmf");
   const [tableGraphType, setTableGraphType] =
-    useState<ContinuousAreaGraphType>("cdf");
+    useState<ContinuousAreaGraphType>("pmf");
   const activeGraphType = useMemo(() => {
     if (forecastInputMode === ContinuousForecastInputType.Slider) {
       return sliderGraphType;

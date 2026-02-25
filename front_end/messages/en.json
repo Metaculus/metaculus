@@ -1310,6 +1310,7 @@
   "closeDateError": "The close date must be after the open date. Change the open date here or edit the question to change the close date.",
   "table": "Table",
   "slider": "Slider",
+  "switchBackToSlidersHint": "switch back to sliders to get a smooth fit",
   "lowerBound": "Lower bound",
   "quartiles": "Quartiles",
   "upperBound": "Upper bound",
