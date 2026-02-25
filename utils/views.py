@@ -184,6 +184,7 @@ def validate_data_request(request: Request, **kwargs):
     # TODO: change url param name to only_include_user_ids (requires front end changes)
     only_include_user_ids = params.get("user_ids")
     include_bots = params.get("include_bots")
+    joined_before_date = params.get("joined_before_date")
     if is_staff:
         anonymized = params.get("anonymized", False)
     elif is_whitelisted:
@@ -235,6 +236,7 @@ def validate_data_request(request: Request, **kwargs):
         "include_key_factors": include_key_factors,
         "only_include_user_ids": only_include_user_ids,
         "include_bots": include_bots,
+        "joined_before_date": joined_before_date,
         "anonymized": anonymized,
         "include_future": include_future,
     }
@@ -244,6 +246,11 @@ def validate_data_request(request: Request, **kwargs):
 @permission_classes([IsAuthenticated])
 def email_data_view(request: Request):
     validated_task_params = validate_data_request(request)
+    # Dramatiq uses JSON serialization, so convert datetime to ISO string
+    if validated_task_params.get("joined_before_date") is not None:
+        validated_task_params["joined_before_date"] = validated_task_params[
+            "joined_before_date"
+        ].isoformat()
     email_data_task.send(**validated_task_params)
     return Response({"message": "Email scheduled to be sent"}, status=200)
 

@@ -5,6 +5,7 @@ import {
   PaginationParams,
 } from "@/types/fetch";
 import { NewsArticle } from "@/types/news";
+import { OnboardingTopic } from "@/types/onboarding";
 import {
   NotebookPost,
   Post,
@@ -222,7 +223,8 @@ class PostsApi extends ApiService {
     subQuestionId?: number,
     aggregationMethods?: string,
     includeBots?: boolean,
-    userIds?: number[]
+    userIds?: number[],
+    joinedBeforeDate?: string
   ): Promise<Blob> {
     const queryParams = encodeQueryParams({
       ...(subQuestionId ? { sub_question: subQuestionId } : {}),
@@ -231,6 +233,7 @@ class PostsApi extends ApiService {
         : { aggregation_methods: "all" }),
       ...(includeBots !== undefined ? { include_bots: includeBots } : {}),
       ...(userIds !== undefined ? { user_ids: userIds } : {}),
+      ...(joinedBeforeDate ? { joined_before_date: joinedBeforeDate } : {}),
     });
 
     return await this.get<Blob>(
@@ -255,6 +258,16 @@ class PostsApi extends ApiService {
     return await this.get<PaginatedPayload<PrivateNoteWithPost>>(
       `/posts/private-notes/${queryParams}`
     );
+  }
+
+  async getOnboardingFeed(): Promise<{
+    topics: OnboardingTopic[];
+    posts: PostWithForecasts[];
+  }> {
+    return await this.get<{
+      topics: OnboardingTopic[];
+      posts: PostWithForecasts[];
+    }>(`/posts/onboarding-feed/`);
   }
 }
 

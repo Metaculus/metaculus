@@ -178,10 +178,11 @@ class DataPostRequestSerializer(DataGetRequestSerializer):
         if methods is None:
             return
         user: User = self.context.get("user")
+        valid_aggregation_methods = [
+            aggregation.method for aggregation in AGGREGATIONS
+        ] + [AggregationMethod.METACULUS_PREDICTION, "geometric_mean"]
         invalid_methods = [
-            method
-            for method in methods
-            if method not in AggregationMethod.values + ["geometric_mean"]
+            method for method in methods if method not in valid_aggregation_methods
         ]
         if invalid_methods:
             raise serializers.ValidationError(
