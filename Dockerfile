@@ -85,6 +85,7 @@ RUN cd front_end && npx sentry-cli sourcemaps inject .next
 # FINAL ENVIRONMENT
 # ============================================================
 FROM base AS final_env
+RUN mkdir -p /app && chown 1001:0 /app
 WORKDIR /app
 
 # Configure nginx
