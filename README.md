@@ -197,11 +197,6 @@ To work with email templates locally:
    poetry run python manage.py mjml_compose
    ```
 
-3. **Check Templates Are Up to Date** (used in CI)
-   ```bash
-   poetry run python manage.py mjml_compose --check
-   ```
-
 ## Setup a test database
 If you want to populate your database with some example data, you can load our testing database dump (available as a [release](https://github.com/Metaculus/metaculus/releases/latest) artifact).
 ```
