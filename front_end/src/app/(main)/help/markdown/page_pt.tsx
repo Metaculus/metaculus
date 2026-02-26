@@ -141,12 +141,6 @@ export default function MedalsFAQ() {
   \\log_2 \\left ( \\frac{p}{0.5} \\right ) &amp;= \\frac{\\log(p) - \\log(0.5)}{\\log(1) - \\log(0.5)}
 \\end{align}`}
         </pre>
-        <p>
-          A sintaxe legada do MathJax (<code>\(...\)</code> para em linha e{" "}
-          <code>\[...\]</code> para exibição) ainda é suportada para
-          compatibilidade e será convertida automaticamente.
-        </p>
-
         <h2 className="scroll-mt-nav" id="headers">
           Cabeçalhos
         </h2>

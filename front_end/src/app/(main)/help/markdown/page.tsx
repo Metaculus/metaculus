@@ -155,12 +155,6 @@ export default async function Markdown() {
     \\end{align}`}
         inline={false}
       />
-      <p>
-        Legacy MathJax syntax (<code>\(...\)</code> for inline and{" "}
-        <code>\[...\]</code> for display math) is still supported for backwards
-        compatibility and will be automatically converted.
-      </p>
-
       <hr />
       <h2 className="scroll-mt-nav" id="headers">
         Headers
