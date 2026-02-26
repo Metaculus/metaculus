@@ -134,7 +134,7 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
               )}
             </div>
           </div>
-          {!!previousForecast && (
+          {!!previousForecast && !disabled && (
             <div className="ml-auto mr-auto mt-1 flex items-center md:-mr-1">
               <Checkbox
                 checked={overlayPreviousForecast}

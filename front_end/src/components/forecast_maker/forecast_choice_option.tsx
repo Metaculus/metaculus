@@ -171,7 +171,7 @@ const ForecastChoiceOption = <T = string,>({
       <Slider
         inputMin={inputMin}
         inputMax={inputMax}
-        defaultValue={disabled ? 0 : forecastValue ?? defaultSliderValue}
+        defaultValue={forecastValue ?? (disabled ? 0 : defaultSliderValue)}
         onChange={handleSliderForecastChange}
         step={1}
         arrowStep={0.1}
@@ -193,7 +193,10 @@ const ForecastChoiceOption = <T = string,>({
         styles={
           disabled
             ? {
-                handle: { display: "none" },
+                handle:
+                  forecastValue != null
+                    ? { cursor: "default", opacity: 0.5 }
+                    : { display: "none" },
                 rail: {
                   height: "1px",
                   opacity: 0.35,
