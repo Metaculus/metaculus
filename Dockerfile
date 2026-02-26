@@ -50,6 +50,22 @@ RUN pip install --no-cache-dir poetry \
     && poetry install --without dev --no-interaction --no-ansi
 
 # ============================================================
+# MJML EMAIL TEMPLATES
+# ============================================================
+FROM base AS mjml_build
+WORKDIR /app
+
+RUN npm install -g mjml@4.18.0 mjml-column@4.18.0
+
+COPY . /app/
+COPY --from=backend_deps /app/venv /app/venv
+
+RUN . venv/bin/activate && python manage.py mjml_compose \
+    && mkdir -p /mjml_output \
+    && cd /app && find . -path '*/templates/emails/*.html' \
+       -exec sh -c 'mkdir -p /mjml_output/$(dirname "$1") && cp "$1" /mjml_output/$1' _ {} \;
+
+# ============================================================
 # DJANGO STATIC FILES (runs in parallel with frontend build)
 # ============================================================
 FROM base AS backend_static
@@ -57,6 +73,7 @@ WORKDIR /app
 
 COPY . /app/
 COPY --from=backend_deps /app/venv /app/venv
+COPY --from=mjml_build /mjml_output/ /app/
 
 RUN . venv/bin/activate && ./manage.py collectstatic --noinput
 
@@ -101,6 +118,9 @@ RUN npm install -g pm2@6
 
 # Copy ALL source code (backend + frontend source, but .next is overwritten)
 COPY --chown=1001:0 . /app/
+
+# Copy MJML-compiled email templates (not committed to git, built in mjml_build stage)
+COPY --chown=1001:0 --from=mjml_build /mjml_output/ /app/
 
 # Copy dependencies from build stages
 COPY --chown=1001:0 --from=backend_deps /app/venv /app/venv

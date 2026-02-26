@@ -70,6 +70,11 @@ jobs:
       - name: Run Flake8 Linter
         if: ${{ !cancelled() }}
         run: poetry run flake8 . --exclude=front_end,.venv
+      - name: Check MJML templates are up to date
+        if: ${{ !cancelled() }}
+        run: |
+          npm install -g mjml@4.18.0 mjml-column@4.18.0
+          poetry run python manage.py mjml_compose --check
       - name: Check migrations
         if: ${{ !cancelled() }}
         run: poetry run python manage.py makemigrations --dry-run --check

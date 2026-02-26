@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import sys
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -36,6 +37,13 @@ def process_mj_includes(mjml_content, base_path):
 class Command(BaseCommand):
     help = "Composes MJML files to HTML"
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--check",
+            action="store_true",
+            help="Check that all MJML-compiled HTML files are up to date.",
+        )
+
     @classmethod
     def get_template_paths(cls):
         template_dirs = []
@@ -49,6 +57,9 @@ class Command(BaseCommand):
         return template_dirs
 
     def handle(self, *args, **options):
+        self.check_mode = options["check"]
+        self.stale_files = []
+
         for templates_path in self.get_template_paths():
             if not os.path.exists(templates_path):
                 continue
@@ -57,6 +68,17 @@ class Command(BaseCommand):
                 for file in files:
                     if file.endswith(".mjml"):
                         self.convert_mjml_to_html(os.path.join(root, file))
+
+        if self.check_mode and self.stale_files:
+            self.stderr.write(
+                "The following MJML-compiled HTML files are out of date:\n"
+            )
+            for path in self.stale_files:
+                self.stderr.write(f"  {path}\n")
+            self.stderr.write(
+                "\nRun 'python manage.py mjml_compose' to rebuild them.\n"
+            )
+            sys.exit(1)
 
     def convert_mjml_to_html(self, mjml_file_path):
         with open(mjml_file_path, "r") as mjml_file:
@@ -71,6 +93,16 @@ class Command(BaseCommand):
 
         if html_content:
             html_file_path = mjml_file_path.replace(".mjml", ".html")
+
+            if self.check_mode:
+                existing = ""
+                if os.path.exists(html_file_path):
+                    with open(html_file_path, "r") as f:
+                        existing = f.read()
+                if existing != html_content:
+                    self.stale_files.append(html_file_path)
+                return
+
             with open(html_file_path, "w") as html_file:
                 html_file.write(html_content)
 
