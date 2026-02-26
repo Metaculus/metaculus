@@ -49,7 +49,7 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
   const [sliderGraphType, setSliderGraphType] =
     useState<ContinuousAreaGraphType>("pmf");
   const [tableGraphType, setTableGraphType] =
-    useState<ContinuousAreaGraphType>("cdf");
+    useState<ContinuousAreaGraphType>("pmf");
   const activeGraphType = useMemo(() => {
     if (forecastInputMode === ContinuousForecastInputType.Slider) {
       return sliderGraphType;
@@ -76,7 +76,7 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
             onChange={onInputModeChange}
           />
         )}
-        <div className="flex flex-col items-center gap-2 self-end">
+        <div className="flex flex-col items-center gap-2 self-start">
           <div className="flex w-fit flex-row items-center gap-2 self-end">
             <p
               className={cn(
