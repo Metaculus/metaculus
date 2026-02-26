@@ -831,41 +831,41 @@ def run_update_global_bot_leaderboard(
         user1_ids, user2_ids, question_ids, scores, coverages, timestamps
     ):
         # filter out old matches for non-metac bots
-        if bot_recency and (bot_recent_scores or bot_recent_coverage):
-            # for non-metac bots, only keep this match if it's either within the last
-            # X days or within their most recent Y scores/coverage (whichever is more)
-            # NOTE: assumes data is sorted by most recent matches first
-            oldest_ts = (timezone.now() - timedelta(days=bot_recency)).timestamp()
-            if user1_id in non_metac_bot_ids:
-                q_by_u[user1_id].add(question_id)
-                current_val = cov_by_q_by_u[user1_id][question_id]
-                if coverage > current_val:
-                    cov_by_q_by_u[user1_id][question_id] = coverage
-                    cov_by_u[user1_id] += coverage - current_val
-                if timestamp < oldest_ts:
-                    if bot_recent_scores and (
-                        len(q_by_u[user1_id]) > bot_recent_scores
-                    ):
-                        continue
-                    if bot_recent_coverage and (
-                        cov_by_u[user1_id] > bot_recent_coverage
-                    ):
-                        continue
-            if user2_id in non_metac_bot_ids:
-                q_by_u[user2_id].add(question_id)
-                current_val = cov_by_q_by_u[user2_id][question_id]
-                if coverage > current_val:
-                    cov_by_q_by_u[user2_id][question_id] = coverage
-                    cov_by_u[user2_id] += coverage - current_val
-                if timestamp < oldest_ts:
-                    if bot_recent_scores and (
-                        len(q_by_u[user2_id]) > bot_recent_scores
-                    ):
-                        continue
-                    if bot_recent_coverage and (
-                        cov_by_u[user2_id] > bot_recent_coverage
-                    ):
-                        continue
+
+        # for non-metac bots, only keep this match if it's either within the last
+        # X days or within their most recent Y scores/coverage (whichever is more)
+        # NOTE: assumes data is sorted by most recent matches first
+        oldest_ts = (timezone.now() - timedelta(days=bot_recency)).timestamp()
+        # user1
+        q_by_u[user1_id].add(question_id)
+        u1_current_coverage = cov_by_q_by_u[user1_id][question_id]
+        if coverage > u1_current_coverage:
+            cov_by_q_by_u[user1_id][question_id] = coverage
+            cov_by_u[user1_id] += coverage - u1_current_coverage
+        if (
+            (bot_recency and (bot_recent_scores or bot_recent_coverage))
+            and (user1_id in non_metac_bot_ids)
+            and (timestamp < oldest_ts)
+        ):
+            if bot_recent_scores and (len(q_by_u[user1_id]) > bot_recent_scores):
+                continue
+            if bot_recent_coverage and (cov_by_u[user1_id] > bot_recent_coverage):
+                continue
+        # user2
+        q_by_u[user2_id].add(question_id)
+        u2_current_coverage = cov_by_q_by_u[user2_id][question_id]
+        if coverage > u2_current_coverage:
+            cov_by_q_by_u[user2_id][question_id] = coverage
+            cov_by_u[user2_id] += coverage - u2_current_coverage
+        if (
+            (bot_recency and (bot_recent_scores or bot_recent_coverage))
+            and (user2_id in non_metac_bot_ids)
+            and (timestamp < oldest_ts)
+        ):
+            if bot_recent_scores and (len(q_by_u[user2_id]) > bot_recent_scores):
+                continue
+            if bot_recent_coverage and (cov_by_u[user2_id] > bot_recent_coverage):
+                continue
 
         # filter out new matches for metac bots
         if metac_bot_age:
@@ -923,18 +923,33 @@ def run_update_global_bot_leaderboard(
         coverages.append(coverage)
         timestamps.append(timestamp)
 
-    # scale match weight by participants
+    p_by_q: dict[int, set[int | str]] = defaultdict(set)
+    for u1id, u2id, qid in zip(user1_ids, user2_ids, question_ids):
+        p_by_q[qid].add(u1id)
+        p_by_q[qid].add(u2id)
+    pc_by_q: dict[int, int] = {
+        qid: len(participants) for qid, participants in p_by_q.items()
+    }
+
+    cov_by_q_by_u: dict[int | str, dict[int, float]] = defaultdict(
+        lambda: defaultdict(float)
+    )
+    cov_by_u: dict[int | str, float] = defaultdict(float)
+    rescaled_coverages = []
+    for u1id, u2id, qid, coverage in zip(user1_ids, user2_ids, question_ids, coverages):
+        if scale_weight_by_participants:
+            coverage = coverage / pc_by_q.get(qid, 1.0)
+        u1_current_coverage = cov_by_q_by_u[u1id][qid]
+        if coverage > u1_current_coverage:
+            cov_by_q_by_u[u1id][qid] = coverage
+            cov_by_u[u1id] += coverage - u1_current_coverage
+        u2_current_coverage = cov_by_q_by_u[u2id][qid]
+        if coverage > u2_current_coverage:
+            cov_by_q_by_u[u2id][qid] = coverage
+            cov_by_u[u2id] += coverage - u2_current_coverage
+        if scale_weight_by_participants:
+            rescaled_coverages.append(coverage)
     if scale_weight_by_participants:
-        p_by_q: dict[int, set[int | str]] = defaultdict(set)
-        for u1id, u2id, qid in zip(user1_ids, user2_ids, question_ids):
-            p_by_q[qid].add(u1id)
-            p_by_q[qid].add(u2id)
-        pc_by_q: dict[int, int] = {
-            qid: len(participants) for qid, participants in p_by_q.items()
-        }
-        rescaled_coverages = []
-        for qid, coverage in zip(question_ids, coverages):
-            rescaled_coverages.append(coverage / pc_by_q.get(qid, 1.0))
         coverages = rescaled_coverages
 
     print("Final matches:", len(timestamps))
@@ -981,13 +996,17 @@ def run_update_global_bot_leaderboard(
     player_stats: dict[int | str, list] = dict()
     for u1id, u2id, qid in zip(user1_ids, user2_ids, question_ids):
         if u1id not in player_stats:
-            player_stats[u1id] = [0, set()]
+            player_stats[u1id] = [0, set(), 0.0]
         if u2id not in player_stats:
-            player_stats[u2id] = [0, set()]
+            player_stats[u2id] = [0, set(), 0.0]
         player_stats[u1id][0] += 1
         player_stats[u1id][1].add(qid)
         player_stats[u2id][0] += 1
         player_stats[u2id][1].add(qid)
+
+    for uid, cov in cov_by_u.items():
+        if uid in player_stats:
+            player_stats[uid][2] = cov
 
     ##########################################################################
     ##########################################################################
@@ -1055,6 +1074,7 @@ def run_update_global_bot_leaderboard(
         "| 97.5%  "
         "| Match  "
         "| Quest. "
+        "|  Cov.  "
         "|   ID   "
         "| Username "
     )
@@ -1064,12 +1084,13 @@ def run_update_global_bot_leaderboard(
         "| Match  "
         "| Count  "
         "| Count  "
+        "| Total  "
         "|        "
         "|          "
     )
     print(
-        "=========================================="
-        "=========================================="
+        "==============================================="
+        "==============================================="
     )
     unevaluated = (
         set(user1_ids) | set(user2_ids) | set(users.values_list("id", flat=True))
@@ -1089,6 +1110,7 @@ def run_update_global_bot_leaderboard(
             f"| {round(upper, 2):>6} "
             f"| {player_stats[uid][0]:>6} "
             f"| {len(player_stats[uid][1]):>6} "
+            f"| {round(player_stats[uid][2], 2):>6} "
             f"| {uid if isinstance(uid, int) else '':>6} "
             f"| {username}"
         )
@@ -1099,6 +1121,7 @@ def run_update_global_bot_leaderboard(
                 round(upper, 2),
                 player_stats[uid][0],
                 len(player_stats[uid][1]),
+                round(player_stats[uid][2], 2),
                 uid if isinstance(uid, int) else "",
                 username,
             ]
@@ -1130,6 +1153,8 @@ def run_update_global_bot_leaderboard(
             suffix += f"_NonMBRS{bot_recent_scores}"
         if include_non_metac_bots and bot_recent_coverage:
             suffix += f"_NonMBRC{bot_recent_coverage}"
+        if scale_weight_by_participants:
+            suffix += "_SWP"
         if suffix:
             suffix = "_" + suffix
 
@@ -1137,7 +1162,7 @@ def run_update_global_bot_leaderboard(
         with csv_path.open("w", newline="") as output_file:
             writer = csv.writer(output_file)
             writer.writerow(
-                ["2.5%", "Skill", "97.5%", "Match", "Quest.", "ID", "Username"]
+                ["2.5%", "Skill", "97.5%", "Match", "Quest.", "Cov.", "ID", "Username"]
             )
             writer.writerows(csv_rows)
         print(f"Wrote CSV results to {csv_path}")
@@ -1231,7 +1256,7 @@ class Command(BaseCommand):
 
         run_update_global_bot_leaderboard(
             # settings
-            baseline_player=236038,  # metac-gpt-4o+asknews
+            baseline_player=baseline_player,  # metac-gpt-4o+asknews
             include_minibench=include_minibench,
             cp_by_years=cp_by_years,
             pro_by_years=pro_by_years,
