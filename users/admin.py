@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 from sql_util.aggregates import SubqueryAggregate
 
+from projects.models import ProjectUserPermission
 from questions.models import Forecast
 from users.models import User, UserCampaignRegistration, UserSpamActivity
 from users.services.spam_detection import (
@@ -164,6 +165,20 @@ class BotFilter(admin.SimpleListFilter):
         return queryset
 
 
+class ProjectUserPermissionInline(admin.TabularInline):
+    model = ProjectUserPermission
+    extra = 0
+    fields = ["project", "permission"]
+    readonly_fields = ["project"]
+    autocomplete_fields = ["project"]
+    show_change_link = True
+    verbose_name = "Project User Permission"
+    verbose_name_plural = "Project User Permissions"
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
 class BotInline(admin.TabularInline):
     model = User
     fk_name = "bot_owner"
@@ -221,11 +236,11 @@ class UserAdmin(admin.ModelAdmin):
     ]
     readonly_fields = ["old_usernames"]
     autocomplete_fields = ["bot_owner"]
-    inlines = [BotInline]
+    inlines = [BotInline, ProjectUserPermissionInline]
 
     def get_inlines(self, request, obj):
         if not obj or obj.is_bot:
-            return []
+            return [ProjectUserPermissionInline]
         return super().get_inlines(request, obj)
 
     def get_actions(self, request):
