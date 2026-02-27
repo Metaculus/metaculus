@@ -101,6 +101,12 @@ def posts_list_api_view(request):
     # Paginating queryset
     posts = paginator.paginate_queryset(qs, request)
 
+    # Extract search rank if present (from semantic search annotation)
+    rank_by_id = {}
+    for post in posts:
+        if hasattr(post, "rank") and post.rank is not None:
+            rank_by_id[post.id] = round(float(post.rank), 4)
+
     data = serialize_post_many(
         posts,
         with_cp=with_cp,
@@ -113,6 +119,11 @@ def posts_list_api_view(request):
         include_conditional_cps=include_conditional_cps,
         include_average_scores=True,
     )
+
+    if rank_by_id:
+        for item in data:
+            if item["id"] in rank_by_id:
+                item["rank"] = rank_by_id[item["id"]]
 
     return paginator.get_paginated_response(data)
 

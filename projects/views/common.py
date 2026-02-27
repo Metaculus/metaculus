@@ -1,4 +1,6 @@
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.http import HttpResponse
+from django.utils import timezone
 from django.views.decorators.cache import cache_page
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
@@ -158,6 +160,7 @@ def tournaments_list_api_view(request: Request):
     show_on_services_page = serializers.BooleanField(allow_null=True).run_validation(
         request.query_params.get("show_on_services_page")
     )
+    search = request.query_params.get("search", "").strip()
 
     qs = (
         get_projects_qs(
@@ -170,10 +173,43 @@ def tournaments_list_api_view(request: Request):
         .filter_tournament()
         .select_related("primary_leaderboard")
     )
+
+    if search:
+        now = timezone.now()
+        feed_tile_ids = {t["project_id"] for t in get_feed_project_tiles()}
+
+        def is_eligible(p):
+            if p.id in feed_tile_ids:
+                return True
+            if not p.start_date or not p.close_date:
+                return False
+            total = (p.close_date - p.start_date).total_seconds()
+            return total > 0 and (p.close_date - now).total_seconds() / total > 0.5
+
+        qs = qs.filter(id__in=[p.id for p in qs if is_eligible(p)])
+
+        search_query = SearchQuery(search, search_type="websearch")
+        search_vector = SearchVector("name", weight="A") + SearchVector(
+            "description", weight="B"
+        )
+        qs = (
+            qs.annotate(rank=SearchRank(search_vector, search_query))
+            .filter(rank__gt=0)
+            .order_by("-rank")
+        )
+
     projects = list(qs)
     data = serialize_tournaments_with_counts(
-        projects, sort_key=lambda r: r["questions_count"], with_timeline=True
+        projects,
+        sort_key=None if search else lambda r: r["questions_count"],
+        with_timeline=True,
     )
+
+    if search:
+        rank_by_id = {p.id: float(p.rank) for p in projects if hasattr(p, "rank")}
+        for item in data:
+            if item["id"] in rank_by_id:
+                item["rank"] = rank_by_id[item["id"]]
 
     return Response(data)
 
