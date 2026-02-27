@@ -171,7 +171,7 @@ const ForecastChoiceOption = <T = string,>({
       <Slider
         inputMin={inputMin}
         inputMax={inputMax}
-        defaultValue={disabled ? 0 : forecastValue ?? defaultSliderValue}
+        defaultValue={forecastValue ?? (disabled ? 0 : defaultSliderValue)}
         onChange={handleSliderForecastChange}
         step={1}
         arrowStep={0.1}
@@ -193,7 +193,10 @@ const ForecastChoiceOption = <T = string,>({
         styles={
           disabled
             ? {
-                handle: { display: "none" },
+                handle:
+                  forecastValue != null
+                    ? { cursor: "default", opacity: 0.5 }
+                    : { display: "none" },
                 rail: {
                   height: "1px",
                   opacity: 0.35,
@@ -335,7 +338,10 @@ const ForecastChoiceOption = <T = string,>({
           )}
           colSpan={4}
         >
-          {SliderElement}
+          <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1">{SliderElement}</div>
+            {menu && <div className="shrink-0">{menu}</div>}
+          </div>
         </td>
       </tr>
     </>
