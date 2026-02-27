@@ -1,8 +1,10 @@
 import { Metadata } from "next";
 
 import { defaultDescription } from "@/constants/metadata";
+import { PostWithForecasts } from "@/types/post";
 import { SearchParams } from "@/types/navigation";
 import { getValidString } from "@/utils/formatters/string";
+import { getPublicSettings } from "@/utils/public_settings.server";
 import { getPostTitle } from "@/utils/questions/helpers";
 
 import IndividualQuestionPage from "./page_component";
@@ -55,9 +57,68 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   };
 }
 
+function buildNewsArticleJsonLd(postData: PostWithForecasts, postId: number) {
+  const { PUBLIC_APP_URL } = getPublicSettings();
+  const questionTitle = getPostTitle(postData);
+  const headline =
+    getValidString(postData.html_metadata_json?.title) ??
+    getValidString(postData.short_title) ??
+    questionTitle;
+  const description =
+    getValidString(postData.html_metadata_json?.description) ??
+    defaultDescription;
+  const imageUrl =
+    postData.html_metadata_json?.image_url ??
+    `${PUBLIC_APP_URL}/questions/${postId}/image-preview/`;
+  const pageUrl = `${PUBLIC_APP_URL}/questions/${postId}/${postData.slug}/`;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline,
+    description,
+    image: imageUrl,
+    datePublished: postData.published_at,
+    dateModified: postData.updated_at,
+    author: {
+      "@type": "Person",
+      name: postData.author_username,
+      url: `${PUBLIC_APP_URL}/accounts/profile/${postData.author_id}/`,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Metaculus",
+      url: PUBLIC_APP_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: `${PUBLIC_APP_URL}/images/metaculus_logo.png`,
+      },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": pageUrl,
+    },
+  };
+}
+
 export default async function IndividualQuestionRoute(props: Props) {
   const searchParams = await props.searchParams;
   const params = await props.params;
+  const postData = await cachedGetPost(params.id);
 
-  return <IndividualQuestionPage params={params} searchParams={searchParams} />;
+  const jsonLd = postData
+    ? buildNewsArticleJsonLd(postData, params.id)
+    : null;
+
+  return (
+    <>
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      <IndividualQuestionPage params={params} searchParams={searchParams} />
+    </>
+  );
 }
