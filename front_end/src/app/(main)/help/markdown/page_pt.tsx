@@ -15,17 +15,16 @@ export default function MedalsFAQ() {
         <h1>Sintaxe de Markdown</h1>
         <p>
           Ao escrever comentários ou perguntas, você pode usar a sintaxe{" "}
-          <a href="http://daringfireball.net/projects/markdown/">Markdown</a>{" "}
+          <a href="https://daringfireball.net/projects/markdown/">Markdown</a>{" "}
           para adicionar links, ênfase e cabeçalhos. Você também pode adicionar
-          equações matemáticas via{" "}
-          <a href="https://katex.org/">LaTeX</a> (renderizado com KaTeX), que
-          converterá a{" "}
+          equações matemáticas via <a href="https://katex.org/">LaTeX</a>{" "}
+          (renderizado com KaTeX), que converterá a{" "}
           <a href="https://en.wikibooks.org/wiki/LaTeX/Mathematics">
             sintaxe LaTeX
           </a>{" "}
           em equações formatadas. Seguimos de perto a sintaxe padrão do
           Markdown, então a{" "}
-          <a href="http://daringfireball.net/projects/markdown/syntax">
+          <a href="https://daringfireball.net/projects/markdown/syntax">
             documentação oficial
           </a>{" "}
           é o melhor lugar para uma explicação completa. Abaixo está uma breve
@@ -81,7 +80,7 @@ export default function MedalsFAQ() {
           colocando uma URL entre <code>&lt;</code> e <code>&gt;</code>, como{" "}
           <code>&lt;http://www.example.com&gt;</code>. Há vários atalhos para
           facilitar sua vida se você repetir o mesmo link (veja a{" "}
-          <a href="http://daringfireball.net/projects/markdown/syntax">
+          <a href="https://daringfireball.net/projects/markdown/syntax">
             documentação
           </a>
           ), mas esses cobrirão 90% dos casos de uso.
@@ -93,27 +92,24 @@ export default function MedalsFAQ() {
           <span style={{ textDecoration: "underline" }}>sublinhado</span>.
           Crases denotam <code>texto de largura fixa</code>. Se você quiser
           texto pequeno, pode envolvê-lo em uma tag HTML literal{" "}
-          <small>
-            &lt;small&gt;tag html&lt;/small&gt;
-          </small>
-          . Caracteres especiais (<code>*_{}#+-.!\</code>) podem ser escapados
-          usando uma barra invertida, como <code>\*</code>, se de outra forma
-          seriam convertidos em um elemento markdown.
+          <small>&lt;small&gt;tag html&lt;/small&gt;</small>. Caracteres
+          especiais (<code>*_{}#+-.!\</code>) podem ser escapados usando uma
+          barra invertida, como <code>\*</code>, se de outra forma seriam
+          convertidos em um elemento markdown.
         </p>
         <p>
           Também permitimos um subconjunto limitado de tags HTML, que você pode
-          misturar com a sintaxe markdown. Estes incluem:{" "}
-          <code>&lt;a&gt;</code>, <code>&lt;p&gt;</code>,{" "}
-          <code>&lt;em&gt;</code>, <code>&lt;strong&gt;</code>,{" "}
-          <code>&lt;small&gt;</code>, <code>&lt;ol&gt;</code>,{" "}
-          <code>&lt;ul&gt;</code>, <code>&lt;li&gt;</code>,{" "}
-          <code>&lt;br&gt;</code>, <code>&lt;code&gt;</code>,{" "}
-          <code>&lt;pre&gt;</code>, <code>&lt;blockquote&gt;</code>,{" "}
-          <code>&lt;aside&gt;</code>, <code>&lt;div&gt;</code>,{" "}
-          <code>&lt;h1&gt;</code>, <code>&lt;h2&gt;</code>,{" "}
-          <code>&lt;h3&gt;</code>, <code>&lt;h4&gt;</code>,{" "}
-          <code>&lt;h5&gt;</code>, <code>&lt;h6&gt;</code>,{" "}
-          <code>&lt;math-inline&gt;</code>,{" "}
+          misturar com a sintaxe markdown. Estes incluem: <code>&lt;a&gt;</code>
+          , <code>&lt;p&gt;</code>, <code>&lt;em&gt;</code>,{" "}
+          <code>&lt;strong&gt;</code>, <code>&lt;small&gt;</code>,{" "}
+          <code>&lt;ol&gt;</code>, <code>&lt;ul&gt;</code>,{" "}
+          <code>&lt;li&gt;</code>, <code>&lt;br&gt;</code>,{" "}
+          <code>&lt;code&gt;</code>, <code>&lt;pre&gt;</code>,{" "}
+          <code>&lt;blockquote&gt;</code>, <code>&lt;aside&gt;</code>,{" "}
+          <code>&lt;div&gt;</code>, <code>&lt;h1&gt;</code>,{" "}
+          <code>&lt;h2&gt;</code>, <code>&lt;h3&gt;</code>,{" "}
+          <code>&lt;h4&gt;</code>, <code>&lt;h5&gt;</code>,{" "}
+          <code>&lt;h6&gt;</code>, <code>&lt;math-inline&gt;</code>,{" "}
           <code>&lt;math-display&gt;</code>, <code>&lt;hr&gt;</code>,{" "}
           <code>&lt;table&gt;</code>, <code>&lt;thead&gt;</code>,{" "}
           <code>&lt;tbody&gt;</code>, <code>&lt;tr&gt;</code>,{" "}
@@ -402,9 +398,9 @@ def hello_world():
         </h2>
         <h3>Perguntas incorporadas</h3>
         <p>
-          Você pode incorporar perguntas do Metaculus diretamente em seu conteúdo
-          usando o botão &quot;+ Question&quot; na barra de ferramentas do
-          editor. Isso permite pesquisar e selecionar uma pergunta, que será
+          Você pode incorporar perguntas do Metaculus diretamente em seu
+          conteúdo usando o botão &quot;+ Question&quot; na barra de ferramentas
+          do editor. Isso permite pesquisar e selecionar uma pergunta, que será
           exibida como uma incorporação interativa.
         </p>
         <h3>Incorporações do Twitter / X</h3>
@@ -436,6 +432,7 @@ def hello_world():
         <p>será renderizado como:</p>
         <div className="w-full overflow-x-auto">
           <iframe
+            title="Incorporação da pergunta #8 do Metaculus"
             src="https://www.metaculus.com/questions/embed/8/"
             height="320"
             width="550"
@@ -450,8 +447,8 @@ def hello_world():
           na barra de ferramentas do editor. Imagens de até 3 MB são suportadas.
         </p>
         <p>
-          Alternativamente, você pode usar uma tag HTML{" "}
-          <code>&lt;img&gt;</code>:
+          Alternativamente, você pode usar uma tag HTML <code>&lt;img&gt;</code>
+          :
         </p>
         <pre>
           {`<img src="https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg" alt="markdown logo">`}
@@ -472,10 +469,9 @@ def hello_world():
           A especificação oficial do Markdown permite aos usuários inserir HTML
           bruto, mas limitamos os usuários aos elementos descritos acima. Por
           razões de segurança, algo como{" "}
-          <code>&lt;script&gt;doSomethingEvil()&lt;/script&gt;</code>{" "}
-          certamente não funcionará. Também empregamos algumas extensões de
-          markdown que lidam com blocos de código cercados (descritos acima) e
-          tornam{" "}
+          <code>&lt;script&gt;doSomethingEvil()&lt;/script&gt;</code> certamente
+          não funcionará. Também empregamos algumas extensões de markdown que
+          lidam com blocos de código cercados (descritos acima) e tornam{" "}
           <a href="https://python-markdown.github.io/extensions/sane_lists/">
             listas
           </a>{" "}
@@ -484,7 +480,8 @@ def hello_world():
         <p>
           O editor oferece tanto o modo rich-text quanto o modo fonte. No modo
           fonte, você pode escrever Markdown diretamente. Um link para esta
-          página de ajuda está disponível no topo do editor quando no modo fonte.
+          página de ajuda está disponível no topo do editor quando no modo
+          fonte.
         </p>
       </div>
     </PageWrapper>

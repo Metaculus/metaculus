@@ -23,17 +23,16 @@ export default async function Markdown() {
 
       <p>
         When writing comments or questions, you can use{" "}
-        <a href="http://daringfireball.net/projects/markdown/">Markdown</a>{" "}
+        <a href="https://daringfireball.net/projects/markdown/">Markdown</a>{" "}
         syntax to add links, emphasis, and headers. You can also add
-        mathematical equations via{" "}
-        <a href="https://katex.org/">LaTeX</a> (rendered with KaTeX), which will
-        convert{" "}
+        mathematical equations via <a href="https://katex.org/">LaTeX</a>{" "}
+        (rendered with KaTeX), which will convert{" "}
         <a href="https://en.wikibooks.org/wiki/LaTeX/Mathematics">
           LaTeX syntax
         </a>{" "}
         into nicely typeset equations. We closely follow standard Markdown
         syntax, so the{" "}
-        <a href="http://daringfireball.net/projects/markdown/syntax">
+        <a href="https://daringfireball.net/projects/markdown/syntax">
           official documentation
         </a>{" "}
         is the best place to look for a thorough explanation. Below is a brief
@@ -90,7 +89,7 @@ export default async function Markdown() {
         <code>&lt;http://www.example.com{">"}</code>. There are a number of
         shortcuts to make your life easier if you keep repeating the same link
         (see the{" "}
-        <a href="http://daringfireball.net/projects/markdown/syntax">docs</a>),
+        <a href="https://daringfireball.net/projects/markdown/syntax">docs</a>),
         but these will cover 90% of the use cases.
       </p>
       <p>
@@ -417,8 +416,8 @@ def hello_world():
       </h2>
       <h3>Embedded questions</h3>
       <p>
-        You can embed Metaculus questions directly in your content using the
-        {" "}&quot;+ Question&quot; button in the editor toolbar. This lets you
+        You can embed Metaculus questions directly in your content using the{" "}
+        &quot;+ Question&quot; button in the editor toolbar. This lets you
         search for and select a question, which will be displayed as an
         interactive embed.
       </p>
@@ -448,6 +447,7 @@ def hello_world():
       <p>will render as:</p>
       <div className="w-full overflow-x-auto">
         <iframe
+          title="Metaculus question #8 embed"
           src="https://www.metaculus.com/questions/embed/8/"
           height="320"
           width="550"
