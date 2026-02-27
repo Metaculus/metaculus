@@ -1,9 +1,10 @@
 "use client";
+import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { FC, PropsWithChildren, useMemo, useState } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
-import KeyFactorDropdownMenuItems from "@/app/(main)/questions/[id]/components/key_factors/item_view/dropdown_menu_items";
 import { voteKeyFactor } from "@/app/(main)/questions/actions";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
@@ -14,7 +15,6 @@ import {
   KeyFactorVoteTypes,
   StrengthValues,
 } from "@/types/comment";
-import { ProjectPermissions } from "@/types/post";
 import cn from "@/utils/core/cn";
 
 import { KeyFactorImpactDirectionLabel } from "../item_creation/driver/impact_direction_label";
@@ -26,23 +26,25 @@ type Props = PropsWithChildren<{
   keyFactor: KeyFactor;
   isCompact?: boolean;
   mode?: "forecaster" | "consumer";
-  projectPermission?: ProjectPermissions;
   impactMetadata?: ImpactMetadata;
   voteType?: KeyFactorVoteTypes;
   onVotePanelToggle?: (open: boolean) => void;
   onDownvotePanelToggle?: (open: boolean) => void;
+  onMorePanelToggle?: (open: boolean) => void;
+  isMorePanelOpen?: boolean;
 }>;
 
 const KeyFactorStrengthItem: FC<Props> = ({
   keyFactor,
   isCompact,
   mode = "forecaster",
-  projectPermission,
   children,
   impactMetadata,
   voteType = KeyFactorVoteTypes.STRENGTH,
   onVotePanelToggle,
   onDownvotePanelToggle,
+  onMorePanelToggle,
+  isMorePanelOpen,
 }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
@@ -110,6 +112,8 @@ const KeyFactorStrengthItem: FC<Props> = ({
         const updated = resp as unknown as KeyFactorVoteAggregate;
         setKeyFactorVote(keyFactor.id, updated);
       }
+    } catch (e) {
+      console.error("Failed to vote key factor", e);
     } finally {
       clearOptimistic();
       setSubmitting(false);
@@ -160,11 +164,19 @@ const KeyFactorStrengthItem: FC<Props> = ({
             onDownvotePanelToggle?.(selection !== "down");
           }}
         />
-        {!isCompact && (
-          <KeyFactorDropdownMenuItems
-            keyFactor={{ ...keyFactor, vote: aggregate }}
-            projectPermission={projectPermission}
-          />
+        {!isCompact && onMorePanelToggle && (
+          <button
+            aria-label="menu"
+            className={cn(
+              "flex size-6 items-center justify-center rounded-full text-xs",
+              isMorePanelOpen
+                ? "bg-blue-500 text-gray-0 dark:bg-blue-500-dark dark:text-gray-0-dark"
+                : "text-gray-500 hover:bg-gray-300 dark:text-gray-500-dark dark:hover:bg-gray-300-dark"
+            )}
+            onClick={() => onMorePanelToggle(!isMorePanelOpen)}
+          >
+            <FontAwesomeIcon icon={faEllipsis} />
+          </button>
         )}
       </div>
     </>

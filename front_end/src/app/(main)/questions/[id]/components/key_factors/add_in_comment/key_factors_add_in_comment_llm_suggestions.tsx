@@ -72,6 +72,12 @@ type QuestionLinkEditingSession = {
   swapped: boolean;
 };
 
+const LINK_STRENGTH_MAP: Record<QuestionLinkStrength, StrengthValues> = {
+  low: StrengthValues.LOW,
+  medium: StrengthValues.MEDIUM,
+  high: StrengthValues.HIGH,
+};
+
 type CombinedSuggestionItem =
   | {
       kind: "link";
@@ -405,12 +411,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
 
     const { suggestion, swapped } = session;
     const dirNumber = suggestion.direction === "positive" ? 1 : -1;
-    const strengthMap: Record<QuestionLinkStrength, StrengthValues> = {
-      low: StrengthValues.LOW,
-      medium: StrengthValues.MEDIUM,
-      high: StrengthValues.HIGH,
-    };
-    const strengthNumber = strengthMap[suggestion.strength];
+    const strengthNumber = LINK_STRENGTH_MAP[suggestion.strength];
     const type = "causal";
 
     const [sourceQuestion, targetQuestion] = swapped
@@ -441,12 +442,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
     if (!postData.question) return;
 
     const dirNumber = suggestion.direction === "positive" ? 1 : -1;
-    const strengthMap: Record<QuestionLinkStrength, StrengthValues> = {
-      low: StrengthValues.LOW,
-      medium: StrengthValues.MEDIUM,
-      high: StrengthValues.HIGH,
-    };
-    const strengthNumber = strengthMap[suggestion.strength];
+    const strengthNumber = LINK_STRENGTH_MAP[suggestion.strength];
     const type = "causal";
 
     const error = await createCoherenceLink(
@@ -611,7 +607,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
                       <div className="mt-3 flex gap-6 text-xs text-gray-700 dark:text-gray-700-dark">
                         <div>
                           <div className="text-[10px] font-semibold uppercase text-gray-500 dark:text-gray-500-dark">
-                            Direction
+                            {t("direction")}
                           </div>
                           <div className="capitalize">
                             {t(
@@ -648,8 +644,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
                 );
               }
 
-              const { keyFactor, keyFactorIndex } = item;
-              const kf = keyFactor;
+              const { keyFactor: kf, keyFactorIndex } = item;
 
               const question = postData.group_of_questions?.questions.find(
                 (obj) => obj.id === kf.question_id
@@ -682,6 +677,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
                 news,
                 author: user,
                 comment_id: -1,
+                created_at: new Date().toISOString(),
                 vote: emptyAggregate,
                 question_id: kf.question_id ?? null,
                 question: kf.question_id

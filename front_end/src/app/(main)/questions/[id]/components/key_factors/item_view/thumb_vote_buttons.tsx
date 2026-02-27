@@ -43,7 +43,7 @@ const ThumbVoteButtons: FC<Props> = ({
         className={cn(
           "inline-flex items-center gap-1.5 rounded-[4px] border px-2 py-1 text-xs font-normal transition-colors",
           isUp
-            ? "border-olive-700 bg-olive-700 text-gray-0 dark:border-olive-700-dark dark:bg-olive-700-dark dark:text-gray-0-dark"
+            ? "border-blue-600 bg-blue-600 text-gray-0 dark:border-blue-600-dark dark:bg-blue-600-dark dark:text-gray-0-dark"
             : "hover:dark:bg-gray-50-dark border-blue-400 bg-gray-0 text-blue-800 hover:bg-gray-50 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-blue-800-dark"
         )}
       >
@@ -67,7 +67,7 @@ const ThumbVoteButtons: FC<Props> = ({
         className={cn(
           "inline-flex items-center gap-1.5 rounded-[4px] border px-2 py-1 text-xs font-normal transition-colors",
           isDown
-            ? "border-salmon-600 bg-salmon-600 text-gray-0 dark:border-salmon-600-dark dark:bg-salmon-600-dark dark:text-gray-0-dark"
+            ? "border-blue-600 bg-blue-600 text-gray-0 dark:border-blue-600-dark dark:bg-blue-600-dark dark:text-gray-0-dark"
             : "hover:dark:bg-gray-50-dark border-blue-400 bg-gray-0 text-blue-800 hover:bg-gray-50 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-blue-800-dark"
         )}
       >
