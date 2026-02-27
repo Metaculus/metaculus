@@ -9,7 +9,10 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import AwaitedWeeklyTopCommentsFeed from "@/components/weekly_top_comments_feed";
 import {
   POST_COMMUNITIES_FILTER,
+  POST_FOR_MAIN_FEED,
+  POST_ORDER_BY_FILTER,
   POST_PAGE_FILTER,
+  POST_TEXT_SEARCH_FILTER,
   POST_WEEKLY_TOP_COMMENTS_FILTER,
 } from "@/constants/posts_feed";
 import serverMiscApi from "@/services/api/misc/misc.server";
@@ -33,6 +36,10 @@ export default async function Questions(props: {
   const user = await ServerProfileApi.getMyProfile();
 
   const searchParams = await props.searchParams;
+  const searchText =
+    typeof searchParams[POST_TEXT_SEARCH_FILTER] === "string"
+      ? searchParams[POST_TEXT_SEARCH_FILTER]
+      : "";
   const isCommunityFeed = searchParams[POST_COMMUNITIES_FILTER];
   const isWeeklyTopCommentsFeed = searchParams[POST_WEEKLY_TOP_COMMENTS_FILTER];
   const filters = generateFiltersFromSearchParams(searchParams, {
@@ -83,10 +90,14 @@ export default async function Questions(props: {
                   <AwaitedPostsFeed
                     filters={filters}
                     isCommunity={false}
-                    // Show tiles only when no filters are applied
                     showProjectTiles={Object.keys(searchParams).every(
-                      (key) => key === POST_PAGE_FILTER
+                      (key) =>
+                        key === POST_PAGE_FILTER ||
+                        key === POST_TEXT_SEARCH_FILTER ||
+                        key === POST_ORDER_BY_FILTER ||
+                        key === POST_FOR_MAIN_FEED
                     )}
+                    searchText={searchText || undefined}
                   />
                 </Suspense>
               </>

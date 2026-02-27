@@ -19,6 +19,7 @@ export type TournamentFilterParams = {
   permission?: ProjectPermissions;
   show_on_homepage?: boolean;
   show_on_services_page?: boolean;
+  search?: string;
 };
 
 export type CommunitiesParams = PaginationParams & {

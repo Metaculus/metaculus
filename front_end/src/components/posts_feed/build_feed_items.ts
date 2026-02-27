@@ -14,6 +14,54 @@ function seededRandom(seed: number): () => number {
   };
 }
 
+export type RankedFeedProjectTile = FeedProjectTile & { rank: number };
+
+export function mergeFeedItems(
+  posts: PostWithForecasts[],
+  tiles: RankedFeedProjectTile[]
+): FeedItem[] {
+  if (!tiles.length) {
+    return posts.map((post) => ({ type: "post", post }));
+  }
+  if (!posts.length) {
+    return tiles.map((tile) => ({ type: "project", tile }));
+  }
+
+  // Only include projects whose rank (pre-weighted) beats the last post's rank.
+  // As more posts load (with lower ranks), more projects become eligible.
+  const lastPostRank = posts[posts.length - 1]?.rank ?? 0;
+  const eligibleTiles = tiles.filter((tile) => tile.rank >= lastPostRank);
+
+  if (!eligibleTiles.length) {
+    return posts.map((post) => ({ type: "post", post }));
+  }
+
+  const items: FeedItem[] = [];
+  let pi = 0;
+  let ti = 0;
+  let lastWasProject = false;
+
+  while (pi < posts.length || ti < eligibleTiles.length) {
+    const postRank = pi < posts.length ? (posts[pi]!.rank ?? 0) : -1;
+    const tileRank = ti < eligibleTiles.length ? eligibleTiles[ti]!.rank : -1;
+
+    // Always insert a post between consecutive projects
+    const forcePost = lastWasProject && pi < posts.length;
+
+    if (forcePost || postRank >= tileRank) {
+      items.push({ type: "post", post: posts[pi]! });
+      pi++;
+      lastWasProject = false;
+    } else {
+      items.push({ type: "project", tile: eligibleTiles[ti]! });
+      ti++;
+      lastWasProject = true;
+    }
+  }
+
+  return items;
+}
+
 export function buildFeedItems(
   posts: PostWithForecasts[],
   tiles: FeedProjectTile[]

@@ -21,7 +21,11 @@ import { sendAnalyticsEvent } from "@/utils/analytics";
 import { logError } from "@/utils/core/errors";
 import { isNotebookPost } from "@/utils/questions/helpers";
 
-import { buildFeedItems } from "./build_feed_items";
+import {
+  buildFeedItems,
+  mergeFeedItems,
+  RankedFeedProjectTile,
+} from "./build_feed_items";
 import EmptyCommunityFeed from "./empty_community_feed";
 import PostsFeedScrollRestoration from "./feed_scroll_restoration";
 import FeedTournamentTile from "./feed_tournament_tile";
@@ -37,6 +41,7 @@ type Props = {
   type?: PostsFeedType;
   isCommunity?: boolean;
   indexWeights?: Record<string, number>;
+  isSearchMode?: boolean;
 };
 
 const PaginatedPostsFeed: FC<Props> = ({
@@ -46,6 +51,7 @@ const PaginatedPostsFeed: FC<Props> = ({
   type = "posts",
   isCommunity,
   indexWeights = {},
+  isSearchMode = false,
 }) => {
   const t = useTranslations();
   const { params, setParam, replaceUrlWithoutNavigation } = useSearchParams();
@@ -137,8 +143,14 @@ const PaginatedPostsFeed: FC<Props> = ({
   };
 
   const feedItems = useMemo(
-    () => buildFeedItems(paginatedPosts, initialProjectTiles),
-    [paginatedPosts, initialProjectTiles]
+    () =>
+      isSearchMode
+        ? mergeFeedItems(
+            paginatedPosts,
+            initialProjectTiles as RankedFeedProjectTile[]
+          )
+        : buildFeedItems(paginatedPosts, initialProjectTiles),
+    [paginatedPosts, initialProjectTiles, isSearchMode]
   );
 
   const renderPost = (post: PostWithForecasts) => {
@@ -187,15 +199,26 @@ const PaginatedPostsFeed: FC<Props> = ({
         )}
         {feedItems.map((item) =>
           item.type === "project" ? (
-            <FeedTournamentTile
-              key={`project-${item.tile.project_id}`}
-              tile={item.tile}
-              feedPage={clientPageNumber}
-            />
+            <div key={`project-${item.tile.project_id}`} className="relative">
+              {"rank" in item.tile && (
+                <span className="absolute right-1 top-1 z-10 rounded bg-blue-600 px-1.5 py-0.5 text-xs text-white">
+                  rank: {(item.tile as RankedFeedProjectTile).rank.toFixed(4)}
+                </span>
+              )}
+              <FeedTournamentTile
+                tile={item.tile}
+                feedPage={clientPageNumber}
+              />
+            </div>
           ) : (
-            <Fragment key={`post-${item.post.id}`}>
+            <div key={`post-${item.post.id}`} className="relative">
+              {item.post.rank != null && (
+                <span className="absolute right-1 top-1 z-10 rounded bg-green-600 px-1.5 py-0.5 text-xs text-white">
+                  rank: {item.post.rank.toFixed(4)}
+                </span>
+              )}
               {renderPost(item.post)}
-            </Fragment>
+            </div>
           )
         )}
         <PostsFeedScrollRestoration

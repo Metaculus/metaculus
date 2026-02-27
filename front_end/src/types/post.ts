@@ -167,6 +167,7 @@ type BasePost = {
     description: string;
     image_url: string;
   };
+  rank?: number;
 };
 
 export type QuestionPost<QT = Question> = BasePost & {
