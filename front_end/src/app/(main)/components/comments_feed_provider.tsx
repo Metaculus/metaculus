@@ -137,16 +137,11 @@ const CommentsFeedProvider: FC<
     aggregate: KeyFactorVoteAggregate
   ) => {
     // Update the list of combined key factors with the new vote
-    const newKeyFactors = combinedKeyFactors.map((kf) =>
-      kf.id === keyFactorId
-        ? {
-            ...kf,
-            vote: aggregate,
-          }
-        : { ...kf }
+    setCombinedKeyFactors((prev) =>
+      prev.map((kf) =>
+        kf.id === keyFactorId ? { ...kf, vote: aggregate } : kf
+      )
     );
-
-    setCombinedKeyFactors(newKeyFactors);
 
     //Update the comments state with the new vote for the key factor
     setComments((prevComments) => {

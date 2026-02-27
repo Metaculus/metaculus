@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { KeyFactor, KeyFactorVoteTypes } from "@/types/comment";
-import { ProjectPermissions } from "@/types/post";
 import cn from "@/utils/core/cn";
 
 import KeyFactorStrengthItem from "../key_factor_strength_item";
@@ -16,20 +15,22 @@ type Props = {
   keyFactor: KeyFactor;
   mode?: "forecaster" | "consumer";
   isCompact?: boolean;
-  projectPermission?: ProjectPermissions;
   isSuggested?: boolean;
   onVotePanelToggle?: (open: boolean) => void;
   onDownvotePanelToggle?: (open: boolean) => void;
+  onMorePanelToggle?: (open: boolean) => void;
+  isMorePanelOpen?: boolean;
 };
 
 const KeyFactorBaseRate: React.FC<Props> = ({
   keyFactor,
   isCompact,
   mode,
-  projectPermission,
   isSuggested,
   onVotePanelToggle,
   onDownvotePanelToggle,
+  onMorePanelToggle,
+  isMorePanelOpen,
 }) => {
   const router = useRouter();
   const t = useTranslations();
@@ -45,10 +46,11 @@ const KeyFactorBaseRate: React.FC<Props> = ({
       keyFactor={keyFactor}
       isCompact={isCompact}
       mode={mode}
-      projectPermission={projectPermission}
       voteType={KeyFactorVoteTypes.DIRECTION}
       onVotePanelToggle={onVotePanelToggle}
       onDownvotePanelToggle={onDownvotePanelToggle}
+      onMorePanelToggle={onMorePanelToggle}
+      isMorePanelOpen={isMorePanelOpen}
     >
       <KeyFactorText
         text={baseRate.reference_class}

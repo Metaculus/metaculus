@@ -32,6 +32,7 @@ type Props = {
   onChange?: (next: "agree" | "disagree" | null) => void;
   onStrengthChange?: (strength: number | null) => void;
   onVotePanelToggle?: (open: boolean) => void;
+  onDownvotePanelToggle?: (open: boolean) => void;
   targetElementId?: string;
   className?: string;
 };
@@ -53,6 +54,7 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
   onChange,
   onStrengthChange,
   onVotePanelToggle,
+  onDownvotePanelToggle,
   className,
   targetElementId,
 }) => {
@@ -234,7 +236,7 @@ const QuestionLinkAgreeVoter: FC<Props> = ({
           }}
           onClickDown={() => {
             handleVote("disagree");
-            onVotePanelToggle?.(false);
+            onDownvotePanelToggle?.(selected !== "down");
           }}
         />
 

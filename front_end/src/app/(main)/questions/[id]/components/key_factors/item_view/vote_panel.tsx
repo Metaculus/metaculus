@@ -1,11 +1,10 @@
 "use client";
 
-import { faXmark } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC, ReactNode, RefObject, useMemo } from "react";
-import { createPortal } from "react-dom";
+import { FC, ReactNode, RefObject } from "react";
 
 import cn from "@/utils/core/cn";
+
+import PanelContainer from "./panel_container";
 
 type Props<T extends string> = {
   ref?: RefObject<HTMLDivElement | null>;
@@ -19,6 +18,7 @@ type Props<T extends string> = {
   onClose: () => void;
   renderLabel: (option: T) => ReactNode;
   footer?: ReactNode;
+  buttonClassName?: string;
 };
 
 function VotePanelInner<T extends string>({
@@ -33,31 +33,14 @@ function VotePanelInner<T extends string>({
   onClose,
   renderLabel,
   footer,
+  buttonClassName,
 }: Props<T>) {
-  const style = useMemo<React.CSSProperties>(() => {
-    if (!anchorRef.current) {
-      return { position: "fixed", opacity: 0 };
-    }
-    const rect = anchorRef.current.getBoundingClientRect();
-    return {
-      position: "fixed",
-      top: rect.bottom + 4,
-      left: rect.left,
-      width: rect.width,
-      zIndex: 50,
-    };
-  }, [anchorRef]);
-
-  const panel = (
-    <div
+  return (
+    <PanelContainer
       ref={ref}
-      style={style}
-      className={cn(
-        "flex flex-col items-center rounded-xl bg-blue-200 shadow-lg ring-1 ring-blue-400 dark:bg-blue-200-dark dark:ring-blue-400-dark",
-        isCompact ? "gap-1.5 px-3 py-2" : "gap-2.5 px-5 py-3"
-      )}
-      onClick={(e) => e.stopPropagation()}
-      onPointerDown={(e) => e.stopPropagation()}
+      anchorRef={anchorRef}
+      isCompact={isCompact}
+      onClose={onClose}
     >
       <span
         className={cn(
@@ -86,6 +69,7 @@ function VotePanelInner<T extends string>({
                 "rounded border text-xs font-medium leading-4 transition-colors",
                 direction === "row" && "flex-1",
                 isCompact ? "px-1.5 py-0.5" : "px-2 py-1",
+                buttonClassName,
                 isSelected
                   ? "border-blue-600 bg-blue-600 text-gray-0 dark:border-blue-600-dark dark:bg-blue-600-dark dark:text-gray-0-dark"
                   : "border-blue-400 bg-gray-0 text-blue-800 hover:bg-blue-100 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-blue-800-dark dark:hover:bg-blue-100-dark"
@@ -98,18 +82,8 @@ function VotePanelInner<T extends string>({
       </div>
 
       {footer}
-
-      <button
-        type="button"
-        onClick={onClose}
-        className="absolute right-2.5 top-2.5 flex items-center justify-center text-blue-500 hover:text-blue-700 dark:text-blue-500-dark dark:hover:text-blue-700-dark"
-      >
-        <FontAwesomeIcon icon={faXmark} className="text-xs" />
-      </button>
-    </div>
+    </PanelContainer>
   );
-
-  return createPortal(panel, document.body);
 }
 
 const VotePanel = VotePanelInner as <T extends string>(

@@ -1,8 +1,6 @@
 "use client";
 
-import { capitalize } from "lodash";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import { FC, useEffect, useMemo, useState } from "react";
 
 import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
@@ -24,8 +22,9 @@ import { getPostLink } from "@/utils/navigation";
 
 import { KeyFactorImpactDirectionLabel } from "../../item_creation/driver/impact_direction_label";
 import KeyFactorCardContainer from "../key_factor_card_container";
-import { ImpactOption, useVotePanel } from "../use_vote_panel";
-import VotePanel from "../vote_panel";
+import KeyFactorVotePanels, {
+  useKeyFactorVotePanels,
+} from "../key_factor_vote_panels";
 import QuestionLinkAgreeVoter from "./question_link_agree_voter";
 
 type Props = {
@@ -38,7 +37,6 @@ type Props = {
   className?: string;
 };
 
-const IMPACT_OPTIONS: ImpactOption[] = ["low", "medium", "high"];
 const otherQuestionCache = new Map<number, QuestionWithForecasts>();
 
 const QuestionLinkKeyFactorItem: FC<Props> = ({
@@ -148,8 +146,12 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
     [link.direction, questionType]
   );
 
-  const t = useTranslations();
-  const impactPanel = useVotePanel<ImpactOption>();
+  const {
+    impactPanel,
+    downvotePanel,
+    handleUpvotePanelToggle,
+    handleDownvotePanelToggle,
+  } = useKeyFactorVotePanels();
 
   if (!otherQuestion || !post.question) return null;
 
@@ -246,24 +248,18 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
             targetElementId={id}
             onChange={(next) => setUserVote(next)}
             onStrengthChange={(s) => setLocalStrength(s)}
-            onVotePanelToggle={impactPanel.setShowPanel}
+            onVotePanelToggle={handleUpvotePanelToggle}
+            onDownvotePanelToggle={handleDownvotePanelToggle}
           />
         </div>
       </KeyFactorCardContainer>
 
-      {impactPanel.showPanel && (
-        <VotePanel
-          ref={impactPanel.panelRef}
-          options={IMPACT_OPTIONS}
-          selectedOption={impactPanel.selectedOption}
-          title={t("voteOnImpact")}
-          isCompact={compact}
-          anchorRef={impactPanel.anchorRef}
-          onSelect={impactPanel.toggleOption}
-          onClose={impactPanel.closePanel}
-          renderLabel={(option) => capitalize(t(option))}
-        />
-      )}
+      <KeyFactorVotePanels
+        impactPanel={impactPanel}
+        downvotePanel={downvotePanel}
+        anchorRef={impactPanel.anchorRef}
+        isCompact={compact}
+      />
     </div>
   );
 };
