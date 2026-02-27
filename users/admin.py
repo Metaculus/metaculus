@@ -172,8 +172,8 @@ class ProjectUserPermissionInline(admin.TabularInline):
     readonly_fields = ["project"]
     autocomplete_fields = ["project"]
     show_change_link = True
-    verbose_name = "Project User Permission"
-    verbose_name_plural = "Project User Permissions"
+    verbose_name = "Project Permission"
+    verbose_name_plural = "Project Permissions"
 
     def has_add_permission(self, request, obj=None):
         return False
