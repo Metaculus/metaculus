@@ -92,7 +92,7 @@ const NumericTimeline: FC<Props> = ({
 }) => {
   const locale = useLocale();
   const resolutionPoint = useMemo(() => {
-    if (!resolution || !resolveTime || isNil(actualCloseTime)) {
+    if (isNil(resolution) || isNil(resolveTime) || isNil(actualCloseTime)) {
       return null;
     }
     const lastAggregation = aggregation.latest;
