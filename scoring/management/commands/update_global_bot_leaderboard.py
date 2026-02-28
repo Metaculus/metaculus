@@ -737,6 +737,10 @@ def run_update_global_bot_leaderboard(
         )
         .distinct("id")
     )
+    for question in questions:
+        if question.default_score_type == "spot_peer":
+            break
+    questions = questions.filter(id=question.id)
     if not include_minibench:
         questions = questions.exclude(
             post__default_project__slug__startswith="minibench"
