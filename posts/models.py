@@ -870,6 +870,12 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
 
         return self.comment_count
 
+    def update_cached_fields(self):
+        self.update_forecasts_count()
+        self.update_forecasters_count()
+        self.update_vote_score()
+        self.update_comment_count()
+
     def __str__(self):
         return self.title
 
