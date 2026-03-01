@@ -7,17 +7,18 @@ import { VictoryThemeDefinition } from "victory";
 import GroupChart from "@/components/charts/group_chart";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import MCPredictionsTooltip from "@/components/charts/primitives/mc_predictions_tooltip";
-import { METAC_COLORS } from "@/constants/colors";
+import { DEFAULT_VISIBLE_CHOICES_COUNT } from "@/constants/questions";
 import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
 import { TickFormat, TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
 import { ForecastAvailability, QuestionType, Scaling } from "@/types/question";
 import cn from "@/utils/core/cn";
+import { buildChoicesWithOthers } from "@/utils/questions/choices";
 
 import ChoicesLegend from "./choices_legend";
 
-const MAX_VISIBLE_CHECKBOXES = 3;
+const MAX_VISIBLE_CHECKBOXES = DEFAULT_VISIBLE_CHOICES_COUNT;
 
 type Props = {
   choiceItems: ChoiceItem[];
@@ -210,8 +211,8 @@ const MultiChoicesChartView: FC<Props> = ({
   );
 
   const chartChoiceItems = useMemo(
-    () => (isMC ? buildChartChoiceItems(choiceItems, embedMode) : choiceItems),
-    [isMC, choiceItems, embedMode]
+    () => (isMC ? buildChoicesWithOthers(choiceItems) : choiceItems),
+    [isMC, choiceItems]
   );
 
   const totalActiveCount = useMemo(
@@ -383,63 +384,6 @@ function resolveDefaultZoom(
     explicit ??
     (hasUser ? TimelineChartZoomOption.All : TimelineChartZoomOption.TwoMonths)
   );
-}
-
-function buildChartChoiceItems(
-  all: ChoiceItem[],
-  embedMode: boolean
-): ChoiceItem[] {
-  const maxPrimary = embedMode ? 2 : MAX_VISIBLE_CHECKBOXES;
-  const primary = all.slice(0, maxPrimary);
-  const right = all.slice(maxPrimary);
-  const series: ChoiceItem[] = [];
-  primary.forEach((p) => {
-    if (p.active) series.push(p);
-  });
-  right.forEach((r) => {
-    if (r.active) series.push(r);
-  });
-
-  const pool = [
-    ...primary.filter((p) => !p.active),
-    ...right.filter((r) => !r.active),
-  ];
-  if (pool.length === 0) return series.length ? series : primary;
-
-  const aggTs = pool[0]?.aggregationTimestamps ?? [];
-  const userTs = pool[0]?.userTimestamps ?? [];
-
-  const sumNullable = (vals: Array<number | null | undefined>) => {
-    let sum = 0;
-    let hasAny = false;
-    for (const v of vals) {
-      if (v != null) {
-        sum += v;
-        hasAny = true;
-      }
-    }
-    return hasAny ? Number(sum.toFixed(6)) : null;
-  };
-
-  const aggregationValues = aggTs.map((_, i) =>
-    sumNullable(pool.map((o) => o.aggregationValues[i]))
-  );
-  const userValues = userTs.map((_, i) =>
-    sumNullable(pool.map((o) => o.userValues[i]))
-  );
-
-  const othersItem = {
-    choice: "Others",
-    color: METAC_COLORS.gray["400"],
-    active: true,
-    highlighted: false,
-    aggregationTimestamps: aggTs,
-    aggregationValues,
-    userTimestamps: userTs,
-    userValues,
-  } as unknown as ChoiceItem;
-
-  return [...series, othersItem];
 }
 
 function getSingleActive(all: ChoiceItem[]): ChoiceItem | null {

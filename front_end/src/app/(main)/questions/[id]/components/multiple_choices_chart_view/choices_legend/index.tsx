@@ -10,6 +10,7 @@ import Checkbox from "@/components/ui/checkbox";
 import useAppTheme from "@/hooks/use_app_theme";
 import { ChoiceItem } from "@/types/choices";
 import cn from "@/utils/core/cn";
+import { truncateLabel } from "@/utils/formatters/string";
 
 type Props = {
   choices: ChoiceItem[];
@@ -63,7 +64,7 @@ const ChoicesLegend: FC<Props> = ({
       {legendChoices.map(({ label, choice, color, active }, idx) => (
         <ChoiceCheckbox
           key={`multiple-choice-legend-${choice}-${idx}`}
-          label={label || choice}
+          label={truncateLabel(label || choice, 30)}
           color={color.DEFAULT}
           checked={active}
           onChange={(checked) => onChoiceChange(choice, checked)}

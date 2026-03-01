@@ -5,11 +5,11 @@ import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { ChoiceItem } from "@/types/choices";
 import { PostGroupOfQuestions, QuestionStatus } from "@/types/post";
 import {
+  MultipleChoiceOptionsOrder,
   QuestionType,
   QuestionWithMultipleChoiceForecasts,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { isForecastActive } from "@/utils/forecasts/helpers";
 import {
   formatMultipleChoiceResolution,
   formatResolution,
@@ -21,6 +21,69 @@ import {
 } from "@/utils/questions/helpers";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
+function collectSortedTimestamps(
+  history: Array<{ start_time: number; end_time: number | null }>
+): number[] {
+  const timestamps: number[] = [];
+  history.forEach((forecast) => {
+    timestamps.push(forecast.start_time);
+    if (forecast.end_time && forecast.end_time * 1000 <= Date.now()) {
+      timestamps.push(forecast.end_time);
+    }
+  });
+  return uniq(timestamps).sort((a, b) => a - b);
+}
+
+export function buildChoicesWithOthers(
+  choices: ChoiceItem[],
+  othersLabel: string = "Others"
+): ChoiceItem[] {
+  const active = choices.filter((c) => c.active);
+  const inactive = choices.filter((c) => !c.active);
+  if (inactive.length === 0) return active;
+
+  const aggTs = inactive[0]?.aggregationTimestamps ?? [];
+  const userTs = inactive[0]?.userTimestamps ?? [];
+
+  const sumNullable = (vals: Array<number | null | undefined>) => {
+    let sum = 0;
+    let hasAny = false;
+    for (const v of vals) {
+      if (v != null) {
+        sum += v;
+        hasAny = true;
+      }
+    }
+    return hasAny ? Number(sum.toFixed(6)) : null;
+  };
+
+  const aggregationValues = aggTs.map((_, i) =>
+    sumNullable(inactive.map((o) => o.aggregationValues[i]))
+  );
+  const userValues = userTs.map((_, i) =>
+    sumNullable(inactive.map((o) => o.userValues[i]))
+  );
+
+  const othersItem: ChoiceItem = {
+    choice: othersLabel,
+    color: METAC_COLORS.gray["400"],
+    active: true,
+    highlighted: false,
+    resolution: null,
+    displayedResolution: null,
+    aggregationTimestamps: aggTs,
+    aggregationValues,
+    aggregationMinValues: [],
+    aggregationMaxValues: [],
+    aggregationForecasterCounts: [],
+    userTimestamps: userTs,
+    userValues,
+    actual_resolve_time: null,
+  };
+
+  return [...active, othersItem];
+}
+
 export function generateChoiceItemsFromMultipleChoiceForecast(
   question: QuestionWithMultipleChoiceForecasts,
   t: ReturnType<typeof useTranslations>,
@@ -29,49 +92,33 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
     activeCount?: number;
     preselectedQuestionId?: number;
     locale?: string;
-    preserveOrder?: boolean;
+    hideCP?: boolean;
+    cpRevealsOn?: string | null;
     showNoResolutions?: boolean;
   }
 ): ChoiceItem[] {
-  const { activeCount, preserveOrder, showNoResolutions = true } = config ?? {};
+  const {
+    activeCount,
+    hideCP,
+    cpRevealsOn,
+    showNoResolutions = true,
+  } = config ?? {};
 
   const latest =
     question.aggregations[question.default_aggregation_method].latest;
 
   const allOptions = getAllOptionsHistory(question);
   const upcomingOptions = getUpcomingOptions(question);
-  const choiceOrdering: number[] = allOptions?.map((_, i) => i) ?? [];
-  if (!preserveOrder) {
-    choiceOrdering.sort((a, b) => {
-      const aCenter = latest?.forecast_values[a] ?? 0;
-      const bCenter = latest?.forecast_values[b] ?? 0;
-      return bCenter - aCenter;
-    });
-  }
 
   const aggregationHistory =
     question.aggregations[question.default_aggregation_method].history;
   const userHistory = question.my_forecasts?.history;
 
-  const aggregationTimestamps: number[] = [];
-  aggregationHistory.forEach((forecast) => {
-    aggregationTimestamps.push(forecast.start_time);
-    if (forecast.end_time && !isForecastActive(forecast)) {
-      aggregationTimestamps.push(forecast.end_time);
-    }
-  });
-  const sortedAggregationTimestamps = uniq(aggregationTimestamps).sort(
-    (a, b) => a - b
-  );
-  const userTimestamps: number[] = [];
-  userHistory?.forEach((forecast) => {
-    userTimestamps.push(forecast.start_time);
-    if (forecast.end_time && !isForecastActive(forecast)) {
-      userTimestamps.push(forecast.end_time);
-    }
-  });
-  const sortedUserTimestamps = uniq(userTimestamps).sort((a, b) => a - b);
+  const sortedAggregationTimestamps =
+    collectSortedTimestamps(aggregationHistory);
+  const sortedUserTimestamps = collectSortedTimestamps(userHistory ?? []);
 
+  // Build choice items in definition order (colors assigned by definition index)
   const choiceItems: ChoiceItem[] = allOptions.map((choice, index) => {
     const isDeleted = !question.options.includes(choice);
     const isUpcoming = upcomingOptions.includes(choice);
@@ -149,28 +196,60 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
       actual_resolve_time: question.actual_resolve_time ?? null,
     };
   });
-  // reorder choice items
-  const orderedChoiceItems = choiceOrdering.map((order) => choiceItems[order]);
-  // move resolved choice to the front
-  const resolutionIndex = choiceOrdering.findIndex(
-    (order) => allOptions?.[order] === question.resolution
-  );
-  if (resolutionIndex !== -1) {
-    const [resolutionItem] = orderedChoiceItems.splice(resolutionIndex, 1);
-    if (resolutionItem) {
-      orderedChoiceItems.unshift(resolutionItem);
+
+  const isCPHidden = !!hideCP || !!cpRevealsOn;
+
+  // Determine active set: top N by CP, or first N in definition order when CP is hidden
+  if (activeCount && activeCount < choiceItems.length) {
+    if (isCPHidden) {
+      choiceItems.forEach((item, index) => {
+        item.active = index < activeCount;
+      });
+    } else {
+      const cpSortedIndices = choiceItems
+        .map((_, i) => i)
+        .sort((a, b) => {
+          const aCP = latest?.forecast_values[a] ?? 0;
+          const bCP = latest?.forecast_values[b] ?? 0;
+          return bCP - aCP;
+        });
+      const activeSet = new Set(cpSortedIndices.slice(0, activeCount));
+
+      // Ensure resolved option is always in the active set
+      if (question.resolution) {
+        const resolvedIndex = allOptions.indexOf(String(question.resolution));
+        if (resolvedIndex !== -1 && !activeSet.has(resolvedIndex)) {
+          const lowestActive = cpSortedIndices.slice(0, activeCount).at(-1);
+          if (lowestActive !== undefined) {
+            activeSet.delete(lowestActive);
+          }
+          activeSet.add(resolvedIndex);
+        }
+      }
+
+      choiceItems.forEach((item, index) => {
+        item.active = activeSet.has(index);
+      });
     }
   }
-  // set inactive items
-  if (activeCount) {
-    orderedChoiceItems.forEach((item, index) => {
-      if (!isNil(item)) {
-        item.active = index < activeCount;
-      }
-    });
+  const useCPDescOrder =
+    question.options_order === MultipleChoiceOptionsOrder.CP_DESC &&
+    !isCPHidden;
+
+  if (useCPDescOrder) {
+    const cpOrder = choiceItems
+      .map((item, i) => ({ item, i }))
+      .sort((a, b) => {
+        const aCP = latest?.forecast_values[a.i] ?? 0;
+        const bCP = latest?.forecast_values[b.i] ?? 0;
+        return bCP - aCP;
+      })
+      .map(({ item }) => item);
+    return cpOrder;
   }
 
-  return orderedChoiceItems.filter((el) => !isNil(el)) as ChoiceItem[];
+  // Definition order (already in definition order)
+  return choiceItems;
 }
 
 type QuestionOptionsConfig = {
@@ -238,13 +317,7 @@ export function generateChoiceItemsFromGroupQuestions(
       return forecast.start_time * 1000 < closeTime;
     });
 
-    const aggregationTimestamps: number[] = [];
-    aggregationHistory.forEach((forecast) => {
-      aggregationTimestamps.push(forecast.start_time);
-      if (forecast.end_time && !isForecastActive(forecast)) {
-        aggregationTimestamps.push(forecast.end_time);
-      }
-    });
+    const aggregationTimestamps = collectSortedTimestamps(aggregationHistory);
 
     if (
       question.status === QuestionStatus.RESOLVED ||
@@ -256,14 +329,7 @@ export function generateChoiceItemsFromGroupQuestions(
     const sortedAggregationTimestamps = uniq(aggregationTimestamps).sort(
       (a, b) => a - b
     );
-    const userTimestamps: number[] = [];
-    userHistory?.forEach((forecast) => {
-      userTimestamps.push(forecast.start_time);
-      if (forecast.end_time && !isForecastActive(forecast)) {
-        userTimestamps.push(forecast.end_time);
-      }
-    });
-    const sortedUserTimestamps = uniq(userTimestamps).sort((a, b) => a - b);
+    const sortedUserTimestamps = collectSortedTimestamps(userHistory ?? []);
 
     const userValues: (number | null)[] = [];
     const userMinValues: (number | null)[] = [];

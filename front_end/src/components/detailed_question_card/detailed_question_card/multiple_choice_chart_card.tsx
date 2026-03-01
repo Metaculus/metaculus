@@ -16,13 +16,13 @@ import {
 } from "@/types/question";
 import { findPreviousTimestamp } from "@/utils/charts/cursor";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
-import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/questions/choices";
+import {
+  buildChoicesWithOthers,
+  generateChoiceItemsFromMultipleChoiceForecast,
+} from "@/utils/questions/choices";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
 
-import {
-  buildEmbedChoicesWithOthers,
-  getMaxVisibleCheckboxes,
-} from "../embeds";
+import { getMaxVisibleCheckboxes } from "../embeds";
 
 type Props = {
   question: QuestionWithMultipleChoiceForecasts;
@@ -61,8 +61,10 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
     (q: QuestionWithMultipleChoiceForecasts) =>
       generateChoiceItemsFromMultipleChoiceForecast(q, t, {
         activeCount: maxVisibleCheckboxes,
+        hideCP,
+        cpRevealsOn: forecastAvailability?.cpRevealsOn,
       }),
-    [t, maxVisibleCheckboxes]
+    [t, maxVisibleCheckboxes, hideCP, forecastAvailability?.cpRevealsOn]
   );
 
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
@@ -204,14 +206,9 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
 
   const embedChoiceItems = useMemo(() => {
     if (!embedMode) return choiceItems;
-    const othersLabel = "Others";
 
-    return buildEmbedChoicesWithOthers(
-      choiceItems,
-      maxVisibleCheckboxes,
-      othersLabel
-    );
-  }, [choiceItems, embedMode, maxVisibleCheckboxes]);
+    return buildChoicesWithOthers(choiceItems);
+  }, [choiceItems, embedMode]);
 
   if (embedMode) {
     return (
