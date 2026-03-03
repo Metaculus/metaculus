@@ -7,7 +7,7 @@ import { VictoryThemeDefinition } from "victory";
 import GroupChart from "@/components/charts/group_chart";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import MCPredictionsTooltip from "@/components/charts/primitives/mc_predictions_tooltip";
-import { DEFAULT_VISIBLE_CHOICES_COUNT } from "@/constants/questions";
+import { getEffectiveVisibleCount } from "@/constants/questions";
 import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
 import { TickFormat, TimelineChartZoomOption } from "@/types/charts";
@@ -17,8 +17,6 @@ import cn from "@/utils/core/cn";
 import { buildChoicesWithOthers } from "@/utils/questions/choices";
 
 import ChoicesLegend from "./choices_legend";
-
-const MAX_VISIBLE_CHECKBOXES = DEFAULT_VISIBLE_CHOICES_COUNT;
 
 type Props = {
   choiceItems: ChoiceItem[];
@@ -95,12 +93,13 @@ const MultiChoicesChartView: FC<Props> = ({
     );
   }, [chartHeight]);
 
-  const maxPrimary = embedMode ? 2 : MAX_VISIBLE_CHECKBOXES;
+  const maxPrimary = embedMode
+    ? 2
+    : getEffectiveVisibleCount(choiceItems.length);
   const showOthersToggle = isMC && choiceItems.length > maxPrimary;
 
   const normalizedInitRef = useRef(false);
   useEffect(() => {
-    if (!isMC) return;
     if (normalizedInitRef.current) return;
     if (!choiceItems.length) return;
     const updated = choiceItems.map((it, idx) =>
@@ -112,7 +111,7 @@ const MultiChoicesChartView: FC<Props> = ({
     if (changed) onChoiceItemsUpdate(updated);
     normalizedInitRef.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMC, choiceItems, maxPrimary, onChoiceItemsUpdate]);
+  }, [choiceItems, maxPrimary, onChoiceItemsUpdate]);
   const computeOthersVisible = useCallback(
     (items: ChoiceItem[]) => {
       if (!isMC || items.length <= maxPrimary) return false;
@@ -314,7 +313,7 @@ const MultiChoicesChartView: FC<Props> = ({
             onChoiceChange={handleChoiceChange}
             onChoiceHighlight={handleChoiceHighlight}
             onToggleAll={toggleSelectAll}
-            maxLegendChoices={embedMode ? 2 : MAX_VISIBLE_CHECKBOXES}
+            maxLegendChoices={maxPrimary}
             othersToggle={showOthersToggle ? !timelineMode : undefined}
             onOthersToggle={
               showOthersToggle

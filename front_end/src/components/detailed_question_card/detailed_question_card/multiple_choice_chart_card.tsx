@@ -7,6 +7,7 @@ import { VictoryThemeDefinition } from "victory";
 import MultiChoicesChartView from "@/app/(main)/questions/[id]/components/multiple_choices_chart_view";
 import CPRevealTime from "@/components/cp_reveal_time";
 import { MultipleChoiceTile } from "@/components/post_card/multiple_choice_tile";
+import { getEffectiveVisibleCount } from "@/constants/questions";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
@@ -21,8 +22,6 @@ import {
   generateChoiceItemsFromMultipleChoiceForecast,
 } from "@/utils/questions/choices";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
-
-import { getMaxVisibleCheckboxes } from "../embeds";
 
 type Props = {
   question: QuestionWithMultipleChoiceForecasts;
@@ -53,8 +52,8 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
   const isClosed = actualCloseTime ? actualCloseTime < Date.now() : false;
 
   const maxVisibleCheckboxes = useMemo(
-    () => getMaxVisibleCheckboxes(embedMode),
-    [embedMode]
+    () => getEffectiveVisibleCount(question.options?.length ?? 0),
+    [question.options?.length]
   );
 
   const generateList = useCallback(

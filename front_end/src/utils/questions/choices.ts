@@ -2,6 +2,7 @@ import { isNil, uniq } from "lodash";
 import { useTranslations } from "next-intl";
 
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
+import { getEffectiveVisibleCount } from "@/constants/questions";
 import { ChoiceItem } from "@/types/choices";
 import { PostGroupOfQuestions, QuestionStatus } from "@/types/post";
 import {
@@ -198,57 +199,55 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   });
 
   const isCPHidden = !!hideCP || !!cpRevealsOn;
+  const needsActiveLimit = activeCount && activeCount < choiceItems.length;
+  const effectiveActiveCount = needsActiveLimit
+    ? getEffectiveVisibleCount(allOptions.length, activeCount)
+    : choiceItems.length;
 
-  // Determine active set: top N by CP, or first N in definition order when CP is hidden
-  if (activeCount && activeCount < choiceItems.length) {
-    if (isCPHidden) {
-      choiceItems.forEach((item, index) => {
-        item.active = index < activeCount;
-      });
-    } else {
-      const cpSortedIndices = choiceItems
-        .map((_, i) => i)
-        .sort((a, b) => {
-          const aCP = latest?.forecast_values[a] ?? 0;
-          const bCP = latest?.forecast_values[b] ?? 0;
-          return bCP - aCP;
-        });
-      const activeSet = new Set(cpSortedIndices.slice(0, activeCount));
-
-      // Ensure resolved option is always in the active set
-      if (question.resolution) {
-        const resolvedIndex = allOptions.indexOf(String(question.resolution));
-        if (resolvedIndex !== -1 && !activeSet.has(resolvedIndex)) {
-          const lowestActive = cpSortedIndices.slice(0, activeCount).at(-1);
-          if (lowestActive !== undefined) {
-            activeSet.delete(lowestActive);
-          }
-          activeSet.add(resolvedIndex);
-        }
-      }
-
-      choiceItems.forEach((item, index) => {
-        item.active = activeSet.has(index);
+  // Mode 1: CP hidden → definition order, first N active
+  if (isCPHidden) {
+    if (needsActiveLimit) {
+      choiceItems.forEach((item, idx) => {
+        item.active = idx < effectiveActiveCount;
       });
     }
+    return choiceItems;
   }
-  const useCPDescOrder =
-    question.options_order === MultipleChoiceOptionsOrder.CP_DESC &&
-    !isCPHidden;
 
-  if (useCPDescOrder) {
+  // Mode 2: CP visible + CP_DESC order → sort by CP desc, first N active
+  if (question.options_order === MultipleChoiceOptionsOrder.CP_DESC) {
     const cpOrder = choiceItems
-      .map((item, i) => ({ item, i }))
-      .sort((a, b) => {
-        const aCP = latest?.forecast_values[a.i] ?? 0;
-        const bCP = latest?.forecast_values[b.i] ?? 0;
-        return bCP - aCP;
-      })
+      .map((item, i) => ({ item, defIndex: i }))
+      .sort(
+        (a, b) =>
+          (latest?.forecast_values[b.defIndex] ?? 0) -
+          (latest?.forecast_values[a.defIndex] ?? 0)
+      )
       .map(({ item }) => item);
+    if (needsActiveLimit) {
+      cpOrder.forEach((item, idx) => {
+        item.active = idx < effectiveActiveCount;
+      });
+    }
     return cpOrder;
   }
 
-  // Definition order (already in definition order)
+  // Mode 3: CP visible + default order → top N by CP active, reordered active-first
+  if (needsActiveLimit) {
+    const cpSortedIndices = choiceItems
+      .map((_, i) => i)
+      .sort(
+        (a, b) =>
+          (latest?.forecast_values[b] ?? 0) - (latest?.forecast_values[a] ?? 0)
+      );
+    const activeSet = new Set(cpSortedIndices.slice(0, effectiveActiveCount));
+    choiceItems.forEach((item, idx) => {
+      item.active = activeSet.has(idx);
+    });
+    const active = choiceItems.filter((item) => item.active);
+    const inactive = choiceItems.filter((item) => !item.active);
+    return [...active, ...inactive];
+  }
   return choiceItems;
 }
 
@@ -412,11 +411,15 @@ export function generateChoiceItemsFromGroupQuestions(
     };
   });
   if (activeCount) {
+    const effectiveActiveCount = getEffectiveVisibleCount(
+      questions.length,
+      activeCount
+    );
     choiceItems.forEach((item, index) => {
       if (preselectedQuestionLabel) {
         item.active = preselectedQuestionLabel === item.choice;
       } else {
-        item.active = index < activeCount;
+        item.active = index < effectiveActiveCount;
       }
     });
   }
