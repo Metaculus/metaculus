@@ -68,7 +68,7 @@ const KeyFactorsConsumerCarousel: React.FC<Props> = ({
               mode="consumer"
               isCompact={!isDesktop}
               className={cn(
-                "sm:max-w-[200px]",
+                "max-w-[160px] sm:max-w-[200px]",
                 lightVariant && "bg-gray-0 dark:bg-gray-0-dark"
               )}
             />
@@ -89,7 +89,10 @@ const KeyFactorsConsumerCarousel: React.FC<Props> = ({
               mode="consumer"
               compact={!isDesktop}
               linkToComment={false}
-              className={cn(lightVariant && "bg-gray-0 dark:bg-gray-0-dark")}
+              className={cn(
+                "max-w-[160px] sm:max-w-[200px]",
+                lightVariant && "bg-gray-0 dark:bg-gray-0-dark"
+              )}
             />
           </div>
         )

@@ -21,7 +21,7 @@ const SIZE_CONFIG = {
     lineOverhang: 2,
   },
   narrow: {
-    width: 14,
+    width: 12,
     iconSize: "text-[10px]",
     radius: 2,
     lineOverhang: 2,

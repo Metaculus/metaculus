@@ -180,12 +180,7 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
         mode={mode}
         impactDirection={impactDirection}
         impactStrength={strengthScore}
-        className={cn(
-          "shadow-sm",
-          (compact || mode === "consumer") && "max-w-[280px]",
-          isCompactConsumer && "max-w-[190px]",
-          className
-        )}
+        className={cn("shadow-sm", className)}
       >
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex min-w-0 items-start gap-3">
@@ -193,8 +188,8 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
               href={getPostLink({ id: otherQuestion.post_id })}
               target="_blank"
               className={cn(
-                "min-w-0 flex-1 font-medium leading-5 text-gray-800 no-underline hover:underline dark:text-gray-800-dark",
-                compact ? "text-xs" : "text-sm"
+                "min-w-0 flex-1 font-medium text-gray-800 no-underline hover:underline dark:text-gray-800-dark",
+                compact ? "text-xs leading-4" : "text-sm leading-5"
               )}
             >
               {otherQuestion.title}
@@ -235,7 +230,7 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
         </div>
 
         <div
-          className="flex items-center justify-between"
+          className="flex items-end justify-between"
           onClick={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
         >
