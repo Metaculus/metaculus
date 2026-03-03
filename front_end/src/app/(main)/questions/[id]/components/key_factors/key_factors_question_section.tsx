@@ -94,7 +94,8 @@ const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
   const sectionTitle =
     totalCount > 0 ? `${t("keyFactors")} (${totalCount})` : t("keyFactors");
 
-  const shouldDefaultOpen = !isFlow || totalCount > 0;
+  const isResolved = postStatus === PostStatus.RESOLVED;
+  const shouldDefaultOpen = !isResolved && (!isFlow || totalCount > 0);
 
   return (
     <SectionToggle
