@@ -5,7 +5,7 @@ import { FC } from "react";
 
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { openKeyFactorsSectionAndScrollTo } from "@/app/(main)/questions/[id]/components/key_factors/utils";
-import { PostWithForecasts } from "@/types/post";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import KeyFactorsConsumerCarousel from "./key_factors_consumer_carousel";
@@ -32,6 +32,8 @@ const KeyFactorsQuestionConsumerSection: FC<Props> = ({ post }) => {
   });
 
   if (shouldHideKeyFactors) return null;
+
+  if (post.status === PostStatus.RESOLVED) return null;
 
   const openKeyFactorsElement = (selector: string) => {
     requestKeyFactorsExpand?.();

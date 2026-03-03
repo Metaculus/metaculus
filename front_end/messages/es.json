@@ -1934,10 +1934,6 @@
   "periodSeconds": "{count, plural, one {# segundo} other {# segundos}}",
   "choicesLockedHelp": "Las opciones solo se pueden cambiar a través del panel de administración una vez que haya comenzado la previsión.",
   "feedTileSummary": "Resumen del Mosaico de Noticias",
-  "viewComment": "View comment",
-  "createdTimeAgoBy": "Created {timeAgo} by @{author}",
-  "createdTimeAgo": "Created {timeAgo}",
-  "direction": "Dirección",
   "feedTileSummaryPlaceholder": "Opcional: Ingrese un texto de resumen personalizado para mostrar en los mosaicos de noticias (si no se proporciona, se generará automáticamente un resumen a partir del contenido del cuaderno)",
   "includeBotsInAggregatesLabel": "Incluir Bots en los Agregados",
   "includeBotsInAggregatesExplanation": "Cuando está habilitado, las previsiones de bots se incluirán en los cálculos agregados para esta pregunta y afectarán la puntuación. De lo contrario, no afectarán en absoluto.",
@@ -2085,9 +2081,14 @@
   "tournamentUnfollowModalSubmit": "Dejar de Seguir",
   "switchBackToSlidersHint": "vuelve a los deslizadores para un ajuste suave",
   "view": "Ver",
+  "viewComment": "View comment",
+  "createdTimeAgoBy": "Created {timeAgo} by @{author}",
+  "createdTimeAgo": "Created {timeAgo}",
+  "direction": "Dirección",
   "voteOnImpact": "VOTAR SOBRE EL IMPACTO",
   "why": "WHY?",
   "wrongDirection": "Wrong direction",
   "redundant": "Redundant",
-  "thanksForVoting": "Thanks for voting!",  "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
+  "thanksForVoting": "Thanks for voting!",
+  "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
 }
