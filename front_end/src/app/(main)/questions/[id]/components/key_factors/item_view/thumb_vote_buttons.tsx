@@ -34,7 +34,7 @@ const ThumbVoteButtons: FC<Props> = ({
   const isDown = selected === "down";
 
   return (
-    <div className={cn("flex items-center gap-0.5", className)}>
+    <div className={cn("flex flex-wrap items-center gap-0.5", className)}>
       <button
         type="button"
         disabled={disabled}

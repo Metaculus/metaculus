@@ -54,9 +54,9 @@ const KeyFactorBaseRate: React.FC<Props> = ({
     >
       <KeyFactorText
         text={baseRate.reference_class}
-        className={cn("text-sm leading-5", {
-          "text-xs": isConsumer && isCompact,
-        })}
+        className={
+          isCompact || isConsumer ? "text-xs leading-4" : "text-sm leading-5"
+        }
       />
 
       {baseRate.type === "frequency" && (
@@ -64,6 +64,7 @@ const KeyFactorBaseRate: React.FC<Props> = ({
           numerator={baseRate.rate_numerator ?? 0}
           denominator={baseRate.rate_denominator ?? 0}
           withLightBoxes={(isCompact || isConsumer) && !isSuggested}
+          hideBoxes={isCompact}
         />
       )}
 

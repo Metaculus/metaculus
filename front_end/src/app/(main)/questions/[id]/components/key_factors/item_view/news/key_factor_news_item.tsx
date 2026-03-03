@@ -77,7 +77,7 @@ const KeyFactorNewsItem: React.FC<Props> = ({
         {...linkProps}
         className={cn(
           "my-0 block font-medium text-gray-900 no-underline hover:underline dark:text-gray-900-dark",
-          isCompact ? "text-xs" : "text-base leading-5"
+          isCompact ? "text-xs leading-4" : "text-base leading-5"
         )}
       >
         {title}

@@ -145,7 +145,7 @@ const KeyFactorStrengthItem: FC<Props> = ({
       </div>
 
       <div
-        className="flex items-center justify-between"
+        className="flex items-end justify-between"
         onClick={(e) => e.stopPropagation()}
         onPointerDown={(e) => e.stopPropagation()}
       >
@@ -164,7 +164,7 @@ const KeyFactorStrengthItem: FC<Props> = ({
             onDownvotePanelToggle?.(selection !== "down");
           }}
         />
-        {!isCompact && onMorePanelToggle && (
+        {!isCompactConsumer && onMorePanelToggle && (
           <button
             aria-label="menu"
             className={cn(
