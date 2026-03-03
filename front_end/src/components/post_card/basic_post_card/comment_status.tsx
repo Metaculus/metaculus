@@ -20,6 +20,7 @@ type Props = {
   compact?: boolean;
   variant?: "default" | "gray";
   target?: string;
+  rel?: string;
 };
 
 const CommentStatus: FC<Props> = ({
@@ -30,6 +31,7 @@ const CommentStatus: FC<Props> = ({
   compact = false,
   variant = "default",
   target,
+  rel,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -60,6 +62,7 @@ const CommentStatus: FC<Props> = ({
       )}
       href={url + "#comments"}
       target={target}
+      rel={rel}
     >
       {variant === "gray" ? (
         <FontAwesomeIcon

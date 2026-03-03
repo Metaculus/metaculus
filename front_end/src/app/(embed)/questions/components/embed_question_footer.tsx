@@ -31,6 +31,7 @@ const EmbedQuestionFooter: React.FC<Props> = ({ post, ogReady }) => {
           unreadCount={post.unread_comment_count ?? 0}
           url={questionUrl}
           target="_blank"
+          rel="noopener noreferrer"
         />
       </div>
 
