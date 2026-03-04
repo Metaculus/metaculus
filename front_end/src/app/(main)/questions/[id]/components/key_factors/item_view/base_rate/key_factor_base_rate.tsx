@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { KeyFactor, KeyFactorVoteTypes } from "@/types/comment";
@@ -32,7 +31,6 @@ const KeyFactorBaseRate: React.FC<Props> = ({
   onMorePanelToggle,
   isMorePanelOpen,
 }) => {
-  const router = useRouter();
   const t = useTranslations();
   if (!keyFactor.base_rate) return null;
   const { base_rate: baseRate } = keyFactor;
@@ -84,20 +82,23 @@ const KeyFactorBaseRate: React.FC<Props> = ({
         <div
           className={cn(
             "text-left text-xs",
-            baseRate.type === "trend" && "-mt-2",
-            showSourceError
-              ? "text-salmon-700 dark:text-salmon-700-dark"
-              : "text-blue-600 hover:underline dark:text-blue-600-dark",
-            { "cursor-pointer": !showSourceError && hasSource }
+            baseRate.type === "trend" && "-mt-2"
           )}
-          role={!showSourceError && hasSource ? "link" : undefined}
-          onClick={() => {
-            if (!showSourceError && hasSource && baseRate.source) {
-              router.push(baseRate.source);
-            }
-          }}
         >
-          {showSourceError ? t("sourceMissing") : hasSource ? "(source)" : ""}{" "}
+          {showSourceError ? (
+            <span className="text-salmon-700 dark:text-salmon-700-dark">
+              {t("sourceMissing")}
+            </span>
+          ) : hasSource ? (
+            <a
+              href={baseRate.source}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline dark:text-blue-600-dark"
+            >
+              ({t("source")})
+            </a>
+          ) : null}
         </div>
       )}
     </KeyFactorStrengthItem>

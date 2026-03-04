@@ -47,7 +47,7 @@ const KeyFactorBaseRateTrend: React.FC<Props> = ({
           <span className="font-medium text-purple-800 dark:text-purple-800-dark">
             {number} {unit}
           </span>{" "}
-          <span className="font-normal lowercase">{t("by")}</span>
+          <span className="font-normal">{t("by")}</span>
         </div>
         <div className="font-medium">{year}</div>
       </div>

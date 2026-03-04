@@ -21,14 +21,12 @@ type Props = {
   vote: KeyFactorVoteAggregate;
   className?: string;
   allowVotes?: boolean;
-  mode?: "forecaster" | "consumer";
+  _mode?: "forecaster" | "consumer";
   footerControls?: ReactElement;
 };
 
 export const StrengthScale: FC<{
-  score: number;
   count: number;
-  mode?: "forecaster" | "consumer";
 }> = ({ count }) => {
   const t = useTranslations();
 
@@ -37,7 +35,7 @@ export const StrengthScale: FC<{
       <div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
         {t("strength")}
       </div>
-      <div className="text-[10px] lowercase text-blue-700 dark:text-blue-700-dark">
+      <div className="text-[10px] text-blue-700 dark:text-blue-700-dark">
         {t("votesWithCount", { count })}
       </div>
     </div>
@@ -140,18 +138,14 @@ const KeyFactorStrengthVoter: FC<Props> = ({
   vote,
   className,
   allowVotes,
-  mode = "forecaster",
+  _mode = "forecaster",
   footerControls,
 }) => {
   const [aggregate, setAggregate] = useState<KeyFactorVoteAggregate>(vote);
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
-      <StrengthScale
-        score={aggregate?.score ?? 0}
-        count={aggregate?.count ?? 0}
-        mode={mode}
-      />
+      <StrengthScale count={aggregate?.count ?? 0} />
       {allowVotes && (
         <VoterControls
           keyFactorId={keyFactorId}
