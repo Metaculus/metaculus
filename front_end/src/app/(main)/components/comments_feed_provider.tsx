@@ -127,7 +127,7 @@ const CommentsFeedProvider: FC<
 
   const setAndSortCombinedKeyFactors = (keyFactors: KeyFactor[]) => {
     const sortedKeyFactors = [...keyFactors].sort(
-      (a, b) => (b.vote?.score || 0) - (a.vote?.score || 0)
+      (a, b) => (b.vote?.score || 0) - (a.vote?.score || 0) || b.id - a.id
     );
     setCombinedKeyFactors(sortedKeyFactors);
   };

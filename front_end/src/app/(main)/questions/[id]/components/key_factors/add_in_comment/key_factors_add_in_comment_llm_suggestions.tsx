@@ -106,6 +106,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
+  const fallbackCreatedAt = useMemo(() => new Date().toISOString(), []);
 
   const {
     suggestedKeyFactors,
@@ -677,7 +678,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
                 news,
                 author: user,
                 comment_id: -1,
-                created_at: new Date().toISOString(),
+                created_at: fallbackCreatedAt,
                 vote: emptyAggregate,
                 question_id: kf.question_id ?? null,
                 question: kf.question_id

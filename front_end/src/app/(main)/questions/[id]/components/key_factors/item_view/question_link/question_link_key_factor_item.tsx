@@ -71,6 +71,16 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
   }, [link.strength, link.id]);
 
   useEffect(() => {
+    setUserVote(
+      link.votes?.user_vote === 1
+        ? "agree"
+        : link.votes?.user_vote === -1
+          ? "disagree"
+          : null
+    );
+  }, [link.id, link.votes?.user_vote]);
+
+  useEffect(() => {
     let cancelled = false;
 
     const embedded = isFirstQuestion ? link.question2 : link.question1;
