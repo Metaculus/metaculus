@@ -166,3 +166,6 @@ trace.zip
 # Email preview tools (local development only)
 email_previews/
 .email-tools/
+
+# MJML-compiled email templates
+**/templates/emails/*.html

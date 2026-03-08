@@ -182,17 +182,17 @@ Here are some other useful things to know about
 
 ## MJML Email Templates
 
-We use **MJML** to generate HTML emails. To edit email templates, you'll work with MJML files. Follow these steps to
-ensure the HTML updates automatically after changes:
+We use **MJML** to generate HTML emails. The compiled HTML files are **not committed to git** — they are generated
+during the Docker build and in CI.
 
-1. **Install MJML Dependencies**\
-   Use the following command to globally install MJML and related dependencies:
+To work with email templates locally:
+
+1. **Install MJML Dependencies**
    ```bash
    npm install -g mjml mjml-column
-	```
-2. **Compose MJML Templates**\
-   Run the following command to process and update the MJML templates:
+   ```
 
+2. **Compile MJML Templates**
    ```bash
    poetry run python manage.py mjml_compose
    ```
