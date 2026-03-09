@@ -59,7 +59,7 @@ export const KeyFactorItem: FC<Props> = ({
   } = useKeyFactorVotePanels();
 
   return (
-    <div ref={impactPanel.anchorRef}>
+    <div ref={impactPanel.anchorRef} className="self-start">
       <KeyFactorCardContainer
         id={id}
         isFlagged={isFlagged}
