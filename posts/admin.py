@@ -33,7 +33,6 @@ class PostAdmin(CustomTranslationAdmin):
         "curation_status",
         "resolved",
         AutocompleteFilterFactory("Author", "author"),
-        "show_on_homepage",
         AutocompleteFilterFactory("Default Project", "default_project"),
         AutocompleteFilterFactory("Project", "projects"),
     ]

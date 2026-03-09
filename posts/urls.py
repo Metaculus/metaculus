@@ -4,9 +4,6 @@ from . import views
 
 urlpatterns = [
     path("posts/", views.posts_list_api_view, name="post-list"),
-    path(
-        "posts/homepage/", views.posts_list_homeage_api_view, name="post-list-homepage"
-    ),
     path("posts/upload-image/", views.upload_image_api_view, name="post-upload-image"),
     path(
         "posts/onboarding-feed/",

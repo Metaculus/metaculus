@@ -626,8 +626,6 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
 
     preview_image_generated_at = models.DateTimeField(null=True, blank=True)
 
-    # Whether we should display Post/Notebook on the homepage
-    show_on_homepage = models.BooleanField(default=False, db_index=True)
     html_metadata_json = models.JSONField(
         help_text="Custom JSON for HTML meta tags. Supported fields are: title, description, image_url",
         null=True,

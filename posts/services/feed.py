@@ -45,7 +45,6 @@ def get_posts_feed(
     not_forecaster_id: int = None,
     similar_to_post_id: int = None,
     for_main_feed: bool = None,
-    show_on_homepage: bool = None,
     following: bool = None,
     upvoted_by: int = None,
     **kwargs,
@@ -106,9 +105,6 @@ def get_posts_feed(
 
     if for_main_feed:
         qs = qs.filter_for_main_feed()
-
-    if show_on_homepage:
-        qs = qs.filter(show_on_homepage=True)
 
     if curation_status:
         qs = qs.filter(curation_status=curation_status)
