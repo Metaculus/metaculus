@@ -163,7 +163,22 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
     handleDownvotePanelToggle,
   } = useKeyFactorVotePanels();
 
-  if (!otherQuestion || !post.question) return null;
+  if (!otherQuestion || !post.question) {
+    return (
+      <KeyFactorCardContainer
+        id={id}
+        linkToComment={linkToComment}
+        isCompact={compact}
+        mode={mode}
+        className={cn("animate-pulse shadow-sm", className)}
+      >
+        <div className="flex min-w-0 flex-col gap-2">
+          <div className="h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-200-dark" />
+          <div className="h-3 w-1/2 rounded bg-gray-200 dark:bg-gray-200-dark" />
+        </div>
+      </KeyFactorCardContainer>
+    );
+  }
 
   const binaryForecastQuestion =
     otherQuestion?.type === QuestionType.Binary
@@ -182,7 +197,7 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
     : null;
 
   return (
-    <div ref={impactPanel.anchorRef}>
+    <div ref={impactPanel.anchorRef} className="self-start">
       <KeyFactorCardContainer
         id={id}
         linkToComment={linkToComment}
