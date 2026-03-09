@@ -66,7 +66,10 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
       <div className="relative">
         <div
           ref={ref}
-          className="m-0 flex flex-col overflow-hidden"
+          className={cn(
+            "m-0 flex flex-col overflow-hidden",
+            !isExpanded && isExpandable && "pointer-events-none"
+          )}
           style={{ maxHeight: isExpanded ? "" : maxCollapsedHeight }}
         >
           {children}
