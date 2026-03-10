@@ -8,7 +8,7 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.12,<3.13"
-django = "^5.2.11"
+django = "^5.2.12"
 djangorestframework = "^3.15.1"
 rest-social-auth = "^9.0.0"
 dj-database-url = "^2.1.0"
@@ -36,7 +36,7 @@ pgvector = "^0.3.2"
 tiktoken = "^0.7.0"
 aiohttp = "^3.13.3"
 django-mjml = "^1.2"
-markdown = "^3.6"
+markdown = "^3.8"
 sshtunnel = "^0.4.0"
 python-dotenv = "^1.0.1"
 mysql-connector-python = "^9.0.0"
