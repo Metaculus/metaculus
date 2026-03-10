@@ -70,10 +70,10 @@ const people: Person[] = [
   },
   {
     name: "Nikitas Angeletos Chrysaitis",
-    position: "Forecasting Analyst",
+    position: "Forecasting Program Coordinator",
     imgSrc: "https://cdn.metaculus.com/nikitas-angeletos-chrysaitis.webp",
     introduction:
-      "Nikitas is a Forecasting Analyst at Metaculus, responsible for platform oversight, question development for various initiatives, and Metaculus Pro forecasting. He holds a background in Mathematics and a PhD in Computational Psychiatry from the University of Edinburgh.",
+      "Nikitas is a Forecasting Program Coordinator at Metaculus, responsible for platform oversight, question development for various initiatives, and Metaculus Pro forecasting. He holds a background in Mathematics and a PhD in Computational Psychiatry from the University of Edinburgh.",
   },
   {
     userId: 183695,
@@ -108,10 +108,10 @@ const people: Person[] = [
   {
     userId: 117502,
     name: "Ryan Beck",
-    position: "Forecasting Program Coordinator",
+    position: "Director of Forecasting",
     imgSrc: "https://cdn.metaculus.com/about/ryan_beck.webp",
     introduction:
-      "Ryan is Metaculus’ Forecasting Program Coordinator. He received a Master’s degree in Civil Engineering from Iowa State University, and was previously a bridge engineer for six years. He is an avid forecaster and a pro-forecaster at INFER. Ryan is also the author of a science fiction novel, <cite>SEER</cite>.",
+      "Ryan is Metaculus’ Director of Forecasting. He received a Master’s degree in Civil Engineering from Iowa State University, and was previously a bridge engineer for six years. He is an avid forecaster and a pro-forecaster at INFER. Ryan is also the author of a science fiction novel, <cite>SEER</cite>.",
   },
   {
     userId: 115975,
