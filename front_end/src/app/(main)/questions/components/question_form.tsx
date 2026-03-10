@@ -4,7 +4,6 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isNil } from "lodash";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useRef, useState } from "react";
@@ -706,10 +705,7 @@ const QuestionForm: FC<Props> = ({
         )}
         <InputContainer
           labelText={t("backgroundInformation")}
-          explanation={t.rich("backgroundInfoExplanation", {
-            link: (chunks) => <Link href="/help/markdown">{chunks}</Link>,
-            markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
-          })}
+          explanation={t("backgroundInfoExplanation")}
           isNativeFormControl={false}
         >
           <MarkdownEditorField
