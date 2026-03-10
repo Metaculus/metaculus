@@ -173,40 +173,16 @@ const MultiChoicesChartView: FC<Props> = ({
 
   const toggleSelectAll = useCallback(
     (isAllSelected: boolean) => {
-      if (isMC && choiceItems.length > maxPrimary) {
-        const left = choiceItems.slice(0, maxPrimary);
-        const leftInactive = new Set(
-          left.filter((c) => !c.active).map((c) => c.choice)
-        );
-        const rightChoices = new Set(
-          choiceItems.slice(maxPrimary).map((c) => c.choice)
-        );
-        const dropdownSet = new Set<string>([...leftInactive, ...rightChoices]);
-        const nextActive = !isAllSelected;
-        onChoiceItemsUpdate(
-          choiceItems.map((item) =>
-            dropdownSet.has(item.choice)
-              ? { ...item, active: nextActive, highlighted: false }
-              : item
-          )
-        );
-      } else {
-        if (isAllSelected) {
-          onChoiceItemsUpdate(
-            choiceItems.map((item) => ({
-              ...item,
-              active: false,
-              highlighted: false,
-            }))
-          );
-        } else {
-          onChoiceItemsUpdate(
-            choiceItems.map((item) => ({ ...item, active: true }))
-          );
-        }
-      }
+      const nextActive = !isAllSelected;
+      onChoiceItemsUpdate(
+        choiceItems.map((item) => ({
+          ...item,
+          active: nextActive,
+          highlighted: false,
+        }))
+      );
     },
-    [isMC, choiceItems, maxPrimary, onChoiceItemsUpdate]
+    [choiceItems, onChoiceItemsUpdate]
   );
 
   const chartChoiceItems = useMemo(
@@ -313,7 +289,6 @@ const MultiChoicesChartView: FC<Props> = ({
             onChoiceChange={handleChoiceChange}
             onChoiceHighlight={handleChoiceHighlight}
             onToggleAll={toggleSelectAll}
-            maxLegendChoices={maxPrimary}
             othersToggle={showOthersToggle ? !timelineMode : undefined}
             onOthersToggle={
               showOthersToggle

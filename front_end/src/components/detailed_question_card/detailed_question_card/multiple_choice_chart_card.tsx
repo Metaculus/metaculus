@@ -122,6 +122,16 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
     );
   }, [userTimestamps, cursorTimestamp]);
 
+  const othersItem = useMemo(() => {
+    const inactive = choiceItems.filter((c) => !c.active);
+    if (inactive.length === 0) return null;
+    const withOthers = buildChoicesWithOthers(
+      choiceItems,
+      t("othersCount", { count: inactive.length })
+    );
+    return withOthers[withOthers.length - 1] ?? null;
+  }, [choiceItems, t]);
+
   const forecastersCount = useMemo(() => {
     const aggregationForecasterCounts =
       choiceItems[0]?.aggregationForecasterCounts;
@@ -162,28 +172,47 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
     ]
   );
 
-  const tooltipChoices = useMemo<ChoiceTooltipItem[]>(
-    () =>
-      choiceItems
-        .filter(({ active, choice }) => active && liveOptions.includes(choice))
-        .map(({ label, choice, aggregationValues, color }) => {
-          const adjustedCursorIndex =
-            aggregationCursorIndex >= aggregationValues.length
-              ? aggregationValues.length - 1
-              : aggregationCursorIndex;
-          const aggregatedValue = aggregationValues.at(adjustedCursorIndex);
-          return {
-            choiceLabel: label || choice,
-            color,
-            valueElement: getOptionTooltipValue(aggregatedValue),
-          };
-        }),
+  const tooltipChoices = useMemo<ChoiceTooltipItem[]>(() => {
+    const items = choiceItems
+      .filter(({ active, choice }) => active && liveOptions.includes(choice))
+      .map(({ label, choice, aggregationValues, color }) => {
+        const adjustedCursorIndex =
+          aggregationCursorIndex >= aggregationValues.length
+            ? aggregationValues.length - 1
+            : aggregationCursorIndex;
+        const aggregatedValue = aggregationValues.at(adjustedCursorIndex);
+        return {
+          choiceLabel: label || choice,
+          color,
+          valueElement: getOptionTooltipValue(aggregatedValue),
+        };
+      });
 
-    [choiceItems, aggregationCursorIndex, getOptionTooltipValue, liveOptions]
-  );
+    if (othersItem) {
+      const adjustedCursorIndex =
+        aggregationCursorIndex >= othersItem.aggregationValues.length
+          ? othersItem.aggregationValues.length - 1
+          : aggregationCursorIndex;
+      const aggregatedValue =
+        othersItem.aggregationValues.at(adjustedCursorIndex);
+      items.push({
+        choiceLabel: othersItem.choice,
+        color: othersItem.color,
+        valueElement: getOptionTooltipValue(aggregatedValue),
+      });
+    }
+
+    return items;
+  }, [
+    choiceItems,
+    aggregationCursorIndex,
+    getOptionTooltipValue,
+    liveOptions,
+    othersItem,
+  ]);
 
   const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(() => {
-    return choiceItems
+    const items = choiceItems
       .filter(({ active, choice }) => active && liveOptions.includes(choice))
       .map(({ label, choice, userValues, color }) => ({
         choiceLabel: label || choice,
@@ -194,6 +223,23 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
           actual_resolve_time: question.actual_resolve_time ?? null,
         }),
       }));
+
+    if (othersItem) {
+      items.push({
+        choiceLabel: othersItem.choice,
+        color: othersItem.color,
+        valueElement: getPredictionDisplayValue(
+          othersItem.userValues[userCursorIndex],
+          {
+            questionType: question.type,
+            scaling: question.scaling,
+            actual_resolve_time: question.actual_resolve_time ?? null,
+          }
+        ),
+      });
+    }
+
+    return items;
   }, [
     choiceItems,
     question.actual_resolve_time,
@@ -201,6 +247,7 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
     question.type,
     userCursorIndex,
     liveOptions,
+    othersItem,
   ]);
 
   const embedChoiceItems = useMemo(() => {
