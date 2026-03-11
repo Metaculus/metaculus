@@ -108,7 +108,14 @@ def get_comments_feed(
                     output_field=IntegerField(),
                 )
             )
-            order_by_args.append("-is_focused_comment")
+            # Insert after pinned but before unread prioritization
+            # so focused comment always appears on the first page
+            pinned_idx = (
+                order_by_args.index("-is_pinned_thread") + 1
+                if "-is_pinned_thread" in order_by_args
+                else 0
+            )
+            order_by_args.insert(pinned_idx, "-is_focused_comment")
 
     if sort:
         if "vote_score" in sort:
