@@ -92,7 +92,7 @@ export function formatDate(locale: string, date: Date) {
   return intlFormat(
     new Date(date),
     { year: "numeric", month: "short", day: "numeric" },
-    { locale }
+    { locale: normalizeIntlLocale(locale) }
   );
 }
 
@@ -106,7 +106,7 @@ export function formatDatetime(locale: string, date: Date) {
       hour: "numeric",
       minute: "numeric",
     },
-    { locale }
+    { locale: normalizeIntlLocale(locale) }
   );
 }
 
@@ -133,7 +133,7 @@ export function formatRelativeDate(
   let dateStr: string = "";
   if (Math.abs(delta) < relCutoff) {
     dateStr = intlFormatDistance(date, now, {
-      locale,
+      locale: normalizeIntlLocale(locale),
       numeric: "always",
       style: short ? "short" : "long",
     });
@@ -187,6 +187,15 @@ export function formatDurationToShortStr(duration: Duration): string {
     str += duration.seconds + "s";
   }
   return str;
+}
+
+/**
+ * Normalizes the app locale for use with the browser's Intl API.
+ * The "original" locale (Untranslated mode) is not a valid BCP 47 tag,
+ * so it falls back to the OS language. This maps it to "en" instead.
+ */
+export function normalizeIntlLocale(locale: string): string {
+  return locale === "original" ? "en" : locale;
 }
 
 export const getDateFnsLocale = (locale: string) => {
