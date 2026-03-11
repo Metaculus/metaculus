@@ -85,8 +85,7 @@ def update_custom_leaderboards():
             # )
         except Exception as e:
             logger.error(
-                f"Error updating custom leaderboard for project "
-                f"'{project.name}': {e}"
+                f"Error updating custom leaderboard for project '{project.name}': {e}"
             )
     else:
         # don't warn or error because this project doesn't necessarily exist
