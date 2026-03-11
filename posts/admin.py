@@ -90,7 +90,7 @@ class PostAdmin(CustomTranslationAdmin):
         components_html = render_components(explanation.get("components", []))
 
         full_html = f"""
-            <p><strong>Total Hotness:</strong> {explanation.get('hotness', 0):.2f}</p>
+            <p><strong>Total Hotness:</strong> {explanation.get("hotness", 0):.2f}</p>
             <p><strong>Components:</strong></p>
             {components_html}
         """

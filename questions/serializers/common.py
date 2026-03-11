@@ -727,25 +727,25 @@ def serialize_question(
                 score.score_type + "_score"
             ] = score.score
             if score.score_type == "peer":
-                serialized_data["my_forecasts"]["score_data"][
-                    "coverage"
-                ] = score.coverage
+                serialized_data["my_forecasts"]["score_data"]["coverage"] = (
+                    score.coverage
+                )
             if score.score_type == "relative_legacy":
-                serialized_data["my_forecasts"]["score_data"][
-                    "weighted_coverage"
-                ] = score.coverage
+                serialized_data["my_forecasts"]["score_data"]["weighted_coverage"] = (
+                    score.coverage
+                )
         for score in archived_scores:
             serialized_data["my_forecasts"]["score_data"][
                 score.score_type + "_archived_score"
             ] = score.score
             if score.score_type == "peer":
-                serialized_data["my_forecasts"]["score_data"][
-                    "coverage"
-                ] = score.coverage
+                serialized_data["my_forecasts"]["score_data"]["coverage"] = (
+                    score.coverage
+                )
             if score.score_type == "relative_legacy":
-                serialized_data["my_forecasts"]["score_data"][
-                    "weighted_coverage"
-                ] = score.coverage
+                serialized_data["my_forecasts"]["score_data"]["weighted_coverage"] = (
+                    score.coverage
+                )
 
     return serialized_data
 

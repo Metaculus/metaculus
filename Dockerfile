@@ -41,13 +41,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY poetry.lock pyproject.toml ./
-
-RUN pip install --no-cache-dir poetry \
-    && poetry config virtualenvs.create false \
-    && python -m venv venv \
-    && . venv/bin/activate \
-    && poetry install --without dev --no-interaction --no-ansi
+COPY --from=ghcr.io/astral-sh/uv:0.10 /uv /uvx /usr/local/bin/
+COPY pyproject.toml uv.lock .python-version ./
+ENV UV_PROJECT_ENVIRONMENT=/app/venv
+RUN uv sync --frozen --no-dev
 
 # ============================================================
 # DJANGO STATIC FILES (runs in parallel with frontend build)
