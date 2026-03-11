@@ -10,6 +10,7 @@ import DateForecastCard from "@/components/consumer_post_card/group_forecast_car
 import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
 import PercentageForecastCard from "@/components/consumer_post_card/group_forecast_card/percentage_forecast_card";
 import TimeSeriesChart from "@/components/consumer_post_card/time_series_chart";
+import DetailedMultipleChoiceChartCard from "@/components/detailed_question_card/detailed_question_card/multiple_choice_chart_card";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import {
@@ -36,6 +37,15 @@ export function BasicQuestionContent({
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
 
   if (isMultipleChoicePost(postData) && !subQuestionId) {
+    if (preferTimeline) {
+      return (
+        <DetailedMultipleChoiceChartCard
+          question={postData.question}
+          chartHeight={250}
+          hideTitle
+        />
+      );
+    }
     return <PercentageForecastCard post={postData} forceColorful={false} />;
   }
 

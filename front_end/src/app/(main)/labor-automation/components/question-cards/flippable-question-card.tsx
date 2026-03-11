@@ -141,7 +141,7 @@ export function FlippableQuestionCard({
             "transition-opacity duration-200",
             currentSide === "left"
               ? "opacity-100"
-              : "pointer-events-none absolute inset-0 opacity-0"
+              : "pointer-events-none invisible absolute inset-0 opacity-0"
           )}
         >
           {leftContent}
@@ -151,7 +151,7 @@ export function FlippableQuestionCard({
             "transition-opacity duration-200",
             currentSide === "right"
               ? "opacity-100"
-              : "pointer-events-none absolute inset-0 opacity-0"
+              : "pointer-events-none invisible absolute inset-0 opacity-0"
           )}
         >
           {rightContent}

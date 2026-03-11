@@ -13,7 +13,7 @@ function ContextualBar({ name, percent }: { name: string; percent: number }) {
   const isPositive = percent >= 0;
 
   return (
-    <div className="group relative flex h-6 w-full">
+    <div className="group relative flex h-6 w-full cursor-default">
       <div
         className={cn(
           "absolute inset-0 flex",

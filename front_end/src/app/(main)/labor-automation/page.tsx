@@ -46,7 +46,9 @@ export const metadata: Metadata = {
 };
 
 // TODO: Replace with actual post IDs for featured labor automation questions
-const FEATURED_POST_IDS: number[] = [4701, 40866, 14732, 37738, 35297];
+const FEATURED_POST_IDS: number[] = [
+  4701, 40866, 14732, 37738, 35297, 36248, 40957, 14083,
+];
 
 export default function LaborAutomationHubPage() {
   return (

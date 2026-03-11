@@ -1,10 +1,70 @@
+import {
+  faChartArea,
+  faChartLine,
+  faChartSimple,
+  faChartBar,
+  faGauge,
+  faTable,
+} from "@fortawesome/free-solid-svg-icons";
 import { Suspense } from "react";
 
 import ServerPostsApi from "@/services/api/posts/posts.server";
+import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
+import { QuestionType } from "@/types/question";
+import {
+  isGroupOfQuestionsPost,
+  isMultipleChoicePost,
+  isQuestionPost,
+} from "@/utils/questions/helpers";
 
 import { BasicQuestionContent } from "./basic-question";
 import { FlippableQuestionCard } from "./flippable-question-card";
 import { QuestionCard, QuestionCardSkeleton } from "./question-card";
+
+function getLeftIcon(postData: PostWithForecasts, subQuestionId?: number) {
+  if (isMultipleChoicePost(postData) && !subQuestionId) {
+    return faChartBar;
+  }
+
+  if (isGroupOfQuestionsPost(postData) && !subQuestionId) {
+    const questionType = postData.group_of_questions?.questions[0]?.type;
+    if (questionType === QuestionType.Binary) {
+      return faChartBar;
+    }
+    if (
+      questionType === QuestionType.Numeric &&
+      postData.group_of_questions?.graph_type ===
+        GroupOfQuestionsGraphType.FanGraph
+    ) {
+      return faChartSimple;
+    }
+    return faTable;
+  }
+
+  const question = subQuestionId
+    ? postData.group_of_questions?.questions.find((q) => q.id === subQuestionId)
+    : postData.question;
+
+  if ((isQuestionPost(postData) || subQuestionId) && question) {
+    switch (question.type) {
+      case QuestionType.Binary:
+        return faGauge;
+      case QuestionType.Numeric:
+      case QuestionType.Discrete:
+      case QuestionType.Date:
+        return faChartArea;
+    }
+  }
+
+  return faTable;
+}
+
+function getRightIcon(postData: PostWithForecasts, subQuestionId?: number) {
+  if (isMultipleChoicePost(postData) && !subQuestionId) {
+    return faChartArea;
+  }
+  return faChartLine;
+}
 
 type QuestionLoaderProps = {
   questionId: number;
@@ -53,6 +113,8 @@ async function QuestionContent({
             preferTimeline={true}
           />
         }
+        leftIcon={getLeftIcon(postData, subQuestionId)}
+        rightIcon={getRightIcon(postData, subQuestionId)}
         title={title || subQuestionData?.title || postData.title}
         subtitle={subtitle}
         variant={variant}
