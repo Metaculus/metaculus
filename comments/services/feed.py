@@ -53,17 +53,14 @@ def get_comments_feed(
             )
             unread_root_ids = {
                 root_id or comment_id
-                for root_id, comment_id in unread_comments.values_list(
-                    "root_id", "id"
-                )
+                for root_id, comment_id in unread_comments.values_list("root_id", "id")
             }
 
             if unread_root_ids:
                 qs = qs.annotate(
                     has_unread_thread=Case(
                         When(
-                            Q(pk__in=unread_root_ids)
-                            | Q(root_id__in=unread_root_ids),
+                            Q(pk__in=unread_root_ids) | Q(root_id__in=unread_root_ids),
                             then=Value(1),
                         ),
                         default=Value(0),
