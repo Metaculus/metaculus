@@ -39,6 +39,8 @@ def job_check_cp_revealed():
         cp_reveal_time_triggered=False,
         # Only notify for approved posts
         post__curation_status=Post.CurationStatus.APPROVED,
+        # Don't notify for already resolved questions
+        resolution__isnull=True,
     ).select_related("post")
 
     for question in questions_to_reveal:

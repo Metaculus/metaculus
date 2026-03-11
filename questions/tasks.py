@@ -87,7 +87,8 @@ def resolve_question_and_send_notifications(question_id: int):
             user__unsubscribed_mailing_tags__contains=[
                 MailingTags.FORECASTED_QUESTION_RESOLUTION
             ]
-        ).select_related("user")
+        )
+        .select_related("user")
     )
     user_forecasts_count_map = get_forecasts_per_user(question)
 

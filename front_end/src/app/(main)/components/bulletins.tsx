@@ -60,7 +60,7 @@ const Bulletins: FC = () => {
   }, [shouldHide, fetchBulletins]);
 
   return (
-    <div className="mt-12 flex w-full flex-col items-center justify-center bg-transparent">
+    <div className="flex w-full flex-col items-center justify-center bg-transparent">
       {!shouldHide &&
         bulletins.map((bulletin) => (
           <Bulletin key={bulletin.id} text={bulletin.text} id={bulletin.id} />

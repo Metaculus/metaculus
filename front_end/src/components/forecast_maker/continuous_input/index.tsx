@@ -159,6 +159,7 @@ const ContinuousInput: FC<Props> = ({
             previousCdf={overlayPreviousCdf}
             question={question}
             readOnly={disabled}
+            hasUserForecast={hasUserForecast}
             showCP={!user || !hideCP || !!question.resolution}
             outlineUser={outlineUser}
           />

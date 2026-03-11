@@ -107,7 +107,7 @@ def bulk_create_forecasts_api_view(request):
         question = questions_map.get(forecast["question"])
 
         if not question:
-            raise ValidationError(f"Wrong question id {forecast["question"]}")
+            raise ValidationError(f"Wrong question id {forecast['question']}")
 
         forecast["question"] = question  # used in create_foreacst_bulk
 
@@ -169,7 +169,7 @@ def bulk_withdraw_forecasts_api_view(request):
             )
 
         if not question:
-            raise ValidationError(f"Wrong question id {withdrawal["question"]}")
+            raise ValidationError(f"Wrong question id {withdrawal['question']}")
 
         # Check permissions
         permission = get_post_permission_for_user(

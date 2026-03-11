@@ -98,7 +98,7 @@ def sync_itn_news():
            FROM itaculus.articles a
            JOIN fulltext.articletext t ON a.aid = t.aid
            LEFT JOIN itaculus.media m on m.label = a.medianame
-           WHERE a.timestamp >= %s and a.medianame not in ({','.join(['%s'] * len(BLOCKED_MEDIAS))})
+           WHERE a.timestamp >= %s and a.medianame not in ({",".join(["%s"] * len(BLOCKED_MEDIAS))})
            """,
             [last_fetch_date, *BLOCKED_MEDIAS],
             itersize=itersize,

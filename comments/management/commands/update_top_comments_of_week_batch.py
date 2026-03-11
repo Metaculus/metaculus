@@ -54,8 +54,7 @@ class Command(BaseCommand):
             current_week_start = week_start_date - datetime.timedelta(weeks=i)
 
             self.stdout.write(
-                f"Processing week starting {current_week_start} "
-                f"({i + 1}/{weeks_count})"
+                f"Processing week starting {current_week_start} ({i + 1}/{weeks_count})"
             )
 
             try:

@@ -544,8 +544,7 @@ class ForecastQuerySet(QuerySet):
         return self.filter(
             (
                 # Has no end time or an end time after question open time
-                Q(end_time__isnull=True)
-                | Q(end_time__gt=F("question__open_time"))
+                Q(end_time__isnull=True) | Q(end_time__gt=F("question__open_time"))
             )
             & (
                 # Has a start time earlier than the questions actual close time (if it is set)
@@ -706,7 +705,7 @@ class Forecast(models.Model):
         else:
             pvs = str(pv)
         return (
-            f"Forecast at {str(self.start_time).split(".")[0]} "
+            f"Forecast at {str(self.start_time).split('.')[0]} "
             f"by {self.author.username} on {self.question.id}: {pvs}"
         )
 
@@ -798,7 +797,7 @@ class AggregateForecast(models.Model):
         else:
             pvs = str(pv)
         return (
-            f"<Forecast at {str(self.start_time).split(".")[0]} "
+            f"<Forecast at {str(self.start_time).split('.')[0]} "
             f"by {self.method} on {self.question_id}: {pvs}>"
         )
 

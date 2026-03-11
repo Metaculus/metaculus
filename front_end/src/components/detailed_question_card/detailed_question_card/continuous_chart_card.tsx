@@ -100,10 +100,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
 
     return {
       timestamp: timestamp,
-      forecasterCount:
-        // If there are no mouseover, we should display total forecasters number,
-        // otherwise - only active during that period
-        (cursorTimestamp ? forecast?.forecaster_count : nrForecasters) ?? 0,
+      forecasterCount: forecast?.forecaster_count ?? 0,
       interval_lower_bound: forecast?.interval_lower_bounds?.[0] ?? null,
       center: forecast?.centers?.[0] ?? null,
       interval_upper_bound: forecast?.interval_upper_bounds?.[0] ?? null,
