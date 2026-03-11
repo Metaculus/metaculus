@@ -145,7 +145,6 @@ def compute_weighted_semi_standard_deviations(
 
 
 class Weighted:
-
     def __init__(self, **kwargs):
         pass
 
@@ -269,7 +268,6 @@ class ReputationWeighted(Weighted):
 
 
 class PeerScoreReputationWeighted(ReputationWeighted):
-
     @staticmethod
     def reputation_value(scores: Sequence[Score]) -> float:
         return max(
