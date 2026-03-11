@@ -148,14 +148,17 @@ const Legend: FC<{
         const colors = getSeriesColors(item.color, getThemeColor);
         return (
           <div key={item.id} className="flex items-center gap-1.5">
-            {/* Legend dot */}
-            <span
-              className="inline-block size-4 rounded-full"
-              style={{
-                backgroundColor: item.filled ? colors.fill : bgColor,
-                border: `2px solid ${colors.stroke}`,
-              }}
-            />
+            {/* Legend dot - using SVG to match chart color space in Safari */}
+            <svg width={16} height={16} className="shrink-0">
+              <circle
+                cx={8}
+                cy={8}
+                r={6}
+                fill={item.filled ? colors.fill : bgColor}
+                stroke={colors.stroke}
+                strokeWidth={2}
+              />
+            </svg>
             {/* Legend label */}
             <span className="text-xs font-medium text-gray-700 dark:text-gray-700-dark">
               {item.label}
