@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useMemo } from "react";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
@@ -43,6 +43,10 @@ const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
   const { keyFactorsExpanded } = useQuestionLayout();
   const { combinedKeyFactors } = useCommentsFeed();
   const shouldHideKeyFactors = useShouldHideKeyFactors();
+  const [isFeedExpanded, setIsFeedExpanded] = useState(false);
+  const handleExpandedChange = useCallback((expanded: boolean) => {
+    setIsFeedExpanded(expanded);
+  }, []);
   const { aggregateCoherenceLinks } = useCoherenceLinksContext();
 
   const questionLinkAggregates = useMemo(
@@ -135,8 +139,9 @@ const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
           expandLabel={t("showMore")}
           collapseLabel={t("showLess")}
           forceState={keyFactorsExpanded}
+          onExpandedChange={handleExpandedChange}
         >
-          <KeyFactorsFeed post={post} />
+          <KeyFactorsFeed post={post} isExpanded={isFeedExpanded} />
         </ExpandableContent>
       )}
     </SectionToggle>

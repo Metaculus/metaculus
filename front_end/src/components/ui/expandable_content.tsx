@@ -17,6 +17,7 @@ type Props = {
   className?: string;
   gradientClassName?: string;
   forceState?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
 };
 
 const ExpandableContent: FC<PropsWithChildren<Props>> = ({
@@ -26,6 +27,7 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
   gradientClassName = "from-blue-200 dark:from-blue-200-dark",
   className,
   forceState,
+  onExpandedChange,
   children,
 }) => {
   const t = useTranslations();
@@ -60,6 +62,10 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
       setIsExpanded(forceState);
     }
   }, [forceState]);
+
+  useEffect(() => {
+    onExpandedChange?.(isExpanded);
+  }, [isExpanded, onExpandedChange]);
 
   return (
     <div className={cn(gradientClassName, className)}>

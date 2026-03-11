@@ -58,7 +58,7 @@ const KeyFactorCardContainer: FC<Props> = ({
       id={id}
       onClick={onClick}
       className={cn(
-        "relative flex gap-3 rounded-xl p-5 [&:hover_.target]:visible",
+        "relative flex gap-3 overflow-hidden rounded-xl p-5 [&:hover_.target]:visible",
         linkToComment
           ? "border border-blue-400 bg-gray-0 dark:border-blue-400-dark dark:bg-gray-0-dark"
           : "bg-blue-200 dark:bg-blue-200-dark",

@@ -13,6 +13,7 @@ type Props<T extends string> = {
   title: string;
   direction?: "row" | "column";
   isCompact?: boolean;
+  inline?: boolean;
   anchorRef: RefObject<HTMLDivElement | null>;
   onSelect: (option: T) => void;
   onClose: () => void;
@@ -28,6 +29,7 @@ function VotePanelInner<T extends string>({
   title,
   direction = "row",
   isCompact,
+  inline,
   anchorRef,
   onSelect,
   onClose,
@@ -40,6 +42,7 @@ function VotePanelInner<T extends string>({
       ref={ref}
       anchorRef={anchorRef}
       isCompact={isCompact}
+      inline={inline}
       onClose={onClose}
     >
       <span

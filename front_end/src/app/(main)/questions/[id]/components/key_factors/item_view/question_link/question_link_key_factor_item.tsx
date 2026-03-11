@@ -35,6 +35,7 @@ type Props = {
   mode?: "forecaster" | "consumer";
   linkToComment?: boolean;
   className?: string;
+  onClick?: () => void;
 };
 
 const otherQuestionCache = new Map<number, QuestionWithForecasts>();
@@ -47,6 +48,7 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
   mode = "forecaster",
   linkToComment = true,
   className,
+  onClick,
 }) => {
   const isConsumer = mode === "consumer";
   const isCompactConsumer = isConsumer && compact;
@@ -206,12 +208,14 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
         impactDirection={impactDirection}
         impactStrength={strengthScore}
         className={cn("shadow-sm", className)}
+        onClick={onClick}
       >
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex min-w-0 items-start gap-3">
             <Link
               href={getPostLink({ id: otherQuestion.post_id })}
               target="_blank"
+              onClick={(e) => e.stopPropagation()}
               className={cn(
                 "min-w-0 flex-1 font-medium text-gray-800 no-underline hover:underline dark:text-gray-800-dark",
                 compact ? "text-xs leading-4" : "text-sm leading-5"
@@ -254,23 +258,24 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
           )}
         </div>
 
-        <div
-          className="flex items-end justify-between"
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <QuestionLinkAgreeVoter
-            aggregationId={link.id}
-            fromQuestion={fromQuestion}
-            toQuestion={toQuestion}
-            defaultDirection={defaultDirection}
-            defaultStrength="medium"
-            targetElementId={id}
-            onChange={(next) => setUserVote(next)}
-            onStrengthChange={(s) => setLocalStrength(s)}
-            onVotePanelToggle={handleUpvotePanelToggle}
-            onDownvotePanelToggle={handleDownvotePanelToggle}
-          />
+        <div className="flex items-end justify-between">
+          <div
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <QuestionLinkAgreeVoter
+              aggregationId={link.id}
+              fromQuestion={fromQuestion}
+              toQuestion={toQuestion}
+              defaultDirection={defaultDirection}
+              defaultStrength="medium"
+              targetElementId={id}
+              onChange={(next) => setUserVote(next)}
+              onStrengthChange={(s) => setLocalStrength(s)}
+              onVotePanelToggle={handleUpvotePanelToggle}
+              onDownvotePanelToggle={handleDownvotePanelToggle}
+            />
+          </div>
         </div>
       </KeyFactorCardContainer>
 
