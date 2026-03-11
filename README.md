@@ -16,7 +16,7 @@ Feel free to suggest your own changes and ideas as an issue. We'll discuss it an
 
 # Setup
 
-To run this project locally, you'll need python, poetry, django, postgres, redis, and npm/node. This will be a 
+To run this project locally, you'll need python, uv, django, postgres, redis, and npm/node. This will be a
 quick rundown of the setup process.
 (Note: all commands written for a unix bash shell)
 
@@ -99,31 +99,19 @@ That should be it for redis.
 
 If on Mac, you can instead do `brew install redis` to install redis, and `brew services start redis` to start redis.
 
-## Pyenv, Poetry, and Python & Dependencies
-You'll need to install python version 3.12.3 (or higher), and we use poetry for dependency management.
-We recommend using pyenv to manage python versions.
-Install pyenv:
+## UV and Python & Dependencies
+You'll need Python 3.12.x (>=3.12.3, <3.13), and we use [uv](https://docs.astral.sh/uv/) for dependency and Python version management.
+
+Install uv:
 ```bash
-curl https://pyenv.run | bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-Or `brew install pyenv` on Mac.
+Or `brew install uv` on Mac.
 
-Then, install python 3.12:
+Then install the python dependencies (uv will automatically download the correct Python version if needed):
 ```bash
-pyenv install 3.12
-pyenv global 3.12
-```
-Install poetry:
-```bash
-curl -sSL https://install.python-poetry.org | python3 -
-```
-And follow any install directions it gives you. (You may need to reload your shell afterwards.) If all is installed properly, you should be able to run `poetry --version`.
-It is also useful to know that you can run `poetry env use 3.12` to switch to a specific python version. And to use `poetry shell` to enter a poetry shell so you won't have to prefix all of the python commands with `poetry run`.
-
-With that, you should be good to start installing the python dependencies.
-```bash
-poetry install
+uv sync
 ```
 
 ## Nvm/Node & Frontend
@@ -150,15 +138,15 @@ Note: you always have to switch to the `front_end` directory to run the npm comm
 The first time you're booting up the server, make sure postgres is running (`sudo service postgresql start`), then you'll need to run the migrations and collect static files. Start by navigating to the root directory.
 Running migrations:
 ```bash
-poetry run python manage.py migrate
+uv run python manage.py migrate
 ```
 Collecting static files:
 ```bash
-poetry run python manage.py collectstatic
+uv run python manage.py collectstatic
 ```
 Then you can run the server with:
 ```bash
-poetry run python manage.py runserver
+uv run python manage.py runserver
 ```
 
 ## Running the frontend
@@ -172,7 +160,7 @@ npm run dev
 ## Running the task broker
 We use dramatiq for our task broker. To run it, you'll need to run the following command:
 ```bash
-poetry run python manage.py rundramatiq
+uv run python manage.py rundramatiq
 ```
 This will handle asynchronous tasks such as scoring questions, evaluating metrics like "movement", and processing notifications.
 
@@ -194,7 +182,7 @@ ensure the HTML updates automatically after changes:
    Run the following command to process and update the MJML templates:
 
    ```bash
-   poetry run python manage.py mjml_compose
+   uv run python manage.py mjml_compose
    ```
 
 ## Setup a test database
@@ -211,7 +199,7 @@ curl -LO https://github.com/Metaculus/metaculus/releases/download/v0.0.1-alpha/t
 
 Then run migrations to make sure the database is up to date:
 ```bash
-poetry run python manage.py migrate
+uv run python manage.py migrate
 ```
 
 **Caveat:** The test dump is a minimal subset of production data. It contains relatively few open questions and tournaments with open questions, which can make it hard to test certain features. In particular, many posts in the dump have matching Post IDs and Question IDs, which can mask bugs where one is used in place of the other — be aware that these are distinct concepts (a Post is the top-level content wrapper; a Question is the forecasting object it contains).
@@ -220,9 +208,9 @@ Test users have a username with the format `username_<number>` and the password 
 ## Testing
 To run the backend tests, you can run:
 ```bash
-poetry run pytest
+uv run pytest
 ```
-If you get an error that the playwright executable doesn't exist, run `poetry run python -m playwright install`.
+If you get an error that the playwright executable doesn't exist, run `uv run playwright install`.
 
 
 (TODO: add front end testing)
