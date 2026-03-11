@@ -1,5 +1,5 @@
 "use client";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 import { voteComment } from "@/app/(main)/questions/actions";
 import Voter from "@/components/voter";
@@ -12,6 +12,7 @@ import { logError } from "@/utils/core/errors";
 type Props = {
   voteData: VoteData;
   className?: string;
+  onVoteChange?: (voteScore: number, userVote: VoteDirection | null) => void;
 };
 
 type VoteData = {
@@ -21,12 +22,18 @@ type VoteData = {
   userVote: VoteDirection;
 };
 
-const CommentVoter: FC<Props> = ({ voteData, className }) => {
+const CommentVoter: FC<Props> = ({ voteData, className, onVoteChange }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
 
   const [userVote, setUserVote] = useState(voteData.userVote);
   const [voteScore, setVoteScore] = useState(voteData.voteScore);
+
+  useEffect(() => {
+    setUserVote(voteData.userVote);
+    setVoteScore(voteData.voteScore);
+  }, [voteData.userVote, voteData.voteScore]);
+
   const handleVote = async (direction: VoteDirection) => {
     if (!user) {
       setCurrentModal({ type: "signin" });
@@ -44,6 +51,7 @@ const CommentVoter: FC<Props> = ({ voteData, className }) => {
       if (response && "score" in response) {
         setUserVote(newDirection);
         setVoteScore(response.score as number);
+        onVoteChange?.(response.score as number, newDirection);
       }
     } catch (e) {
       logError(e);

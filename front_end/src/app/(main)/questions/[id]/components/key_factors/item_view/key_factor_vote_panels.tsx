@@ -59,6 +59,7 @@ type KeyFactorVotePanelsProps = {
   morePanel?: ReturnType<typeof useVotePanel<string>>;
   anchorRef: RefObject<HTMLDivElement | null>;
   isCompact?: boolean;
+  inline?: boolean;
   keyFactor?: KeyFactor;
   projectPermission?: ProjectPermissions;
 };
@@ -69,6 +70,7 @@ const KeyFactorVotePanels: FC<KeyFactorVotePanelsProps> = ({
   morePanel,
   anchorRef,
   isCompact,
+  inline,
   keyFactor,
   projectPermission,
 }) => {
@@ -83,6 +85,7 @@ const KeyFactorVotePanels: FC<KeyFactorVotePanelsProps> = ({
           selectedOption={impactPanel.selectedOption}
           title={t("voteOnImpact")}
           isCompact={isCompact}
+          inline={inline}
           anchorRef={anchorRef}
           onSelect={impactPanel.toggleOption}
           onClose={impactPanel.closePanel}
@@ -99,6 +102,7 @@ const KeyFactorVotePanels: FC<KeyFactorVotePanelsProps> = ({
           title={t("why")}
           direction="column"
           isCompact={isCompact}
+          inline={inline}
           anchorRef={anchorRef}
           onSelect={downvotePanel.toggleOption}
           onClose={downvotePanel.closePanel}
@@ -120,6 +124,7 @@ const KeyFactorVotePanels: FC<KeyFactorVotePanelsProps> = ({
           projectPermission={projectPermission}
           anchorRef={anchorRef}
           isCompact={isCompact}
+          inline={inline}
           onClose={morePanel.closePanel}
         />
       )}

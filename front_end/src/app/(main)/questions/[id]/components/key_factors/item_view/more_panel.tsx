@@ -30,6 +30,7 @@ type Props = {
   projectPermission?: ProjectPermissions;
   anchorRef: RefObject<HTMLDivElement | null>;
   isCompact?: boolean;
+  inline?: boolean;
   onClose: () => void;
 };
 
@@ -39,6 +40,7 @@ const MorePanel: FC<Props> = ({
   projectPermission,
   anchorRef,
   isCompact,
+  inline,
   onClose,
 }) => {
   const t = useTranslations();
@@ -104,6 +106,7 @@ const MorePanel: FC<Props> = ({
       ref={ref}
       anchorRef={anchorRef}
       isCompact={isCompact}
+      inline={inline}
       onClose={onClose}
     >
       <span

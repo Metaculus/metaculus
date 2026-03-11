@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { FC } from "react";
 
+import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { ImpactMetadata, KeyFactor } from "@/types/comment";
 import { ProjectPermissions } from "@/types/post";
 import { getImpactDirectionFromMetadata } from "@/utils/key_factors";
@@ -25,6 +26,7 @@ type Props = {
   className?: string;
   projectPermission?: ProjectPermissions;
   isSuggested?: boolean;
+  inlineVotePanels?: boolean;
 };
 
 function getImpactMetadata(keyFactor: KeyFactor): ImpactMetadata | null {
@@ -41,13 +43,18 @@ export const KeyFactorItem: FC<Props> = ({
   className,
   projectPermission,
   isSuggested,
+  inlineVotePanels,
 }) => {
-  const isFlagged = keyFactor.flagged_by_me;
-  const hasImpactBar = !keyFactor.base_rate;
+  const { combinedKeyFactors } = useCommentsFeed();
+  const liveKeyFactor =
+    combinedKeyFactors.find((kf) => kf.id === keyFactor.id) ?? keyFactor;
+
+  const isFlagged = liveKeyFactor.flagged_by_me;
+  const hasImpactBar = !liveKeyFactor.base_rate;
   const impactDirection = hasImpactBar
-    ? getImpactDirectionFromMetadata(getImpactMetadata(keyFactor))
+    ? getImpactDirectionFromMetadata(getImpactMetadata(liveKeyFactor))
     : undefined;
-  const impactStrength = keyFactor.vote?.score ?? 0;
+  const impactStrength = liveKeyFactor.vote?.score ?? 0;
 
   const {
     impactPanel,
@@ -71,9 +78,9 @@ export const KeyFactorItem: FC<Props> = ({
         impactDirection={impactDirection}
         impactStrength={impactStrength}
       >
-        {keyFactor.driver && (
+        {liveKeyFactor.driver && (
           <KeyFactorDriver
-            keyFactor={keyFactor}
+            keyFactor={liveKeyFactor}
             mode={mode}
             isCompact={isCompact}
             onVotePanelToggle={handleUpvotePanelToggle}
@@ -82,9 +89,9 @@ export const KeyFactorItem: FC<Props> = ({
             isMorePanelOpen={morePanel.showPanel}
           />
         )}
-        {keyFactor.base_rate && (
+        {liveKeyFactor.base_rate && (
           <KeyFactorBaseRate
-            keyFactor={keyFactor}
+            keyFactor={liveKeyFactor}
             isCompact={isCompact}
             mode={mode}
             isSuggested={isSuggested}
@@ -94,9 +101,9 @@ export const KeyFactorItem: FC<Props> = ({
             isMorePanelOpen={morePanel.showPanel}
           />
         )}
-        {keyFactor.news && (
+        {liveKeyFactor.news && (
           <KeyFactorNews
-            keyFactor={keyFactor}
+            keyFactor={liveKeyFactor}
             mode={mode}
             isCompact={isCompact}
             onVotePanelToggle={handleUpvotePanelToggle}
@@ -113,7 +120,8 @@ export const KeyFactorItem: FC<Props> = ({
         morePanel={morePanel}
         anchorRef={impactPanel.anchorRef}
         isCompact={isCompact}
-        keyFactor={keyFactor}
+        inline={inlineVotePanels}
+        keyFactor={liveKeyFactor}
         projectPermission={projectPermission}
       />
     </div>

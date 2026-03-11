@@ -144,26 +144,27 @@ const KeyFactorStrengthItem: FC<Props> = ({
         )}
       </div>
 
-      <div
-        className="flex items-end justify-between"
-        onClick={(e) => e.stopPropagation()}
-        onPointerDown={(e) => e.stopPropagation()}
-      >
-        <ThumbVoteButtons
-          upCount={upCount}
-          downCount={downCount}
-          selected={selection}
-          disabled={submitting}
-          onClickUp={() => {
-            toggle(upScore);
-            onVotePanelToggle?.(selection !== "up");
-          }}
-          onClickDown={() => {
-            toggle(downScore);
-            onVotePanelToggle?.(false);
-            onDownvotePanelToggle?.(selection !== "down");
-          }}
-        />
+      <div className="flex items-end justify-between">
+        <div
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <ThumbVoteButtons
+            upCount={upCount}
+            downCount={downCount}
+            selected={selection}
+            disabled={submitting}
+            onClickUp={() => {
+              toggle(upScore);
+              onVotePanelToggle?.(selection !== "up");
+            }}
+            onClickDown={() => {
+              toggle(downScore);
+              onVotePanelToggle?.(false);
+              onDownvotePanelToggle?.(selection !== "down");
+            }}
+          />
+        </div>
         {!isCompactConsumer && onMorePanelToggle && (
           <button
             aria-label="menu"
@@ -173,7 +174,11 @@ const KeyFactorStrengthItem: FC<Props> = ({
                 ? "bg-blue-500 text-gray-0 dark:bg-blue-500-dark dark:text-gray-0-dark"
                 : "text-gray-500 hover:bg-gray-300 dark:text-gray-500-dark dark:hover:bg-gray-300-dark"
             )}
-            onClick={() => onMorePanelToggle(!isMorePanelOpen)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onMorePanelToggle(!isMorePanelOpen);
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
           >
             <FontAwesomeIcon icon={faEllipsis} />
           </button>
