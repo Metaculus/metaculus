@@ -14,6 +14,7 @@ import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
+import cn from "@/utils/core/cn";
 
 type DataPoint = {
   year: number;
@@ -125,8 +126,6 @@ const Legend: FC<{
   order?: string[];
   getThemeColor: (color: { DEFAULT: string; dark: string }) => string;
 }> = ({ series, order, getThemeColor }) => {
-  const bgColor = getThemeColor(METAC_COLORS.gray["0"]);
-
   // Filter to only series with labels, then order if specified
   const legendItems = useMemo(() => {
     const withLabels = series.filter((s) => s.label);
@@ -149,12 +148,19 @@ const Legend: FC<{
         return (
           <div key={item.id} className="flex items-center gap-1.5">
             {/* Legend dot - using SVG to match chart color space in Safari */}
-            <svg width={16} height={16} className="shrink-0">
+            <svg
+              width={16}
+              height={16}
+              className={cn(
+                "shrink-0",
+                !item.filled && "text-gray-0 dark:text-gray-0-dark"
+              )}
+            >
               <circle
                 cx={8}
                 cy={8}
                 r={6}
-                fill={item.filled ? colors.fill : bgColor}
+                fill={item.filled ? colors.fill : "currentColor"}
                 stroke={colors.stroke}
                 strokeWidth={2}
               />
