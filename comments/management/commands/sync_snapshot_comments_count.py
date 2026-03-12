@@ -5,7 +5,6 @@ from django.db.models.functions import Coalesce
 from comments.models import Comment
 from posts.models import PostUserSnapshot
 
-
 BATCH_SIZE = 5000
 
 
@@ -49,9 +48,9 @@ class Command(BaseCommand):
             batch.append(pk)
             if len(batch) >= BATCH_SIZE:
                 if not dry_run:
-                    updated += PostUserSnapshot.objects.filter(
-                        pk__in=batch
-                    ).update(comments_count=correct_count)
+                    updated += PostUserSnapshot.objects.filter(pk__in=batch).update(
+                        comments_count=correct_count
+                    )
                 processed += len(batch)
                 batch = []
                 if processed % 50000 == 0:
