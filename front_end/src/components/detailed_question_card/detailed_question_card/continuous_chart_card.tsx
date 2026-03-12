@@ -8,8 +8,9 @@ import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view
 import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_cp_status";
 import NumericTimeline from "@/components/charts/numeric_timeline";
 import QuestionPredictionTooltip from "@/components/charts/primitives/question_prediction_tooltip";
+import ContinuousPredictionChart from "@/components/forecast_maker/continuous_input/continuous_prediction_chart";
 import { useAuth } from "@/contexts/auth_context";
-import { TimelineChartZoomOption } from "@/types/charts";
+import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
 import {
   ForecastAvailability,
   QuestionType,
@@ -41,6 +42,7 @@ type Props = {
   colorOverride?: ThemeColor | string;
   defaultZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
+  embedChartType?: EmbedChartType;
 };
 
 const DetailedContinuousChartCard: FC<Props> = ({
@@ -55,6 +57,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
   colorOverride,
   defaultZoom,
   withZoomPicker,
+  embedChartType,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -255,6 +258,24 @@ const DetailedContinuousChartCard: FC<Props> = ({
       chartTheme={extraTheme}
     />
   );
+
+  if (embedChartType === EmbedChartType.Current) {
+    return (
+      <div className="flex w-full flex-col">
+        <ContinuousPredictionChart
+          question={question}
+          dataset={{
+            cdf: [],
+            pmf: [],
+          }}
+          chartTheme={extraTheme}
+          graphType={"pmf"}
+          height={chartHeight}
+          readOnly
+        />
+      </div>
+    );
+  }
 
   return (
     <div
