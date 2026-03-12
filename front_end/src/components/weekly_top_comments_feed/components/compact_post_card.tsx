@@ -35,14 +35,17 @@ const CompactPostCard: FC<Props> = ({ post, className }) => {
 
   return (
     <div
-      className={cn("relative flex flex-col gap-4 p-6 no-underline", className)}
+      className={cn(
+        "relative flex min-h-[280px] flex-col gap-4 p-6 no-underline",
+        className
+      )}
     >
       <h4 className="m-0 text-base font-medium text-gray-800 no-underline dark:text-gray-800-dark">
         {post.title}
       </h4>
 
       <HideCPProvider post={post}>
-        <div className="flex flex-col">
+        <div className="my-auto flex flex-col">
           <PostPreview post={post} t={t} locale={locale} />
         </div>
       </HideCPProvider>
