@@ -45,11 +45,6 @@ export const metadata: Metadata = {
     "Real-time forecasts from our global forecasting community on the future of the US workforce as AI advances.",
 };
 
-// TODO: Replace with actual post IDs for featured labor automation questions
-const FEATURED_POST_IDS: number[] = [
-  4701, 40866, 14732, 37738, 35297, 36248, 40957, 14083,
-];
-
 export default function LaborAutomationHubPage() {
   return (
     <main className="relative mb-24 min-h-screen xl:mt-12">
@@ -172,13 +167,66 @@ export default function LaborAutomationHubPage() {
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight>
-            {FEATURED_POST_IDS.map((id, index) => (
-              <QuestionLoader
-                key={id}
-                questionId={id}
-                preferTimeline={index % 2 === 0}
-              />
-            ))}
+            <QuestionLoader
+              questionId={14774}
+              title="What will be the average weekly hours worked per worker in the US in the following years?"
+              note="Hours worked is expected to decrease while productivity increases, as forecasters argue that the economy will become increasingly uncoupled from human labor output."
+            />
+            <TableCompact
+              HeadingSection={
+                <h3 className="mb-4 mt-0 w-full pr-8 text-base font-[450] leading-tight text-gray-800 [text-wrap:pretty] dark:text-gray-800-dark">
+                  What will the level of financial well-being be for the [20th,
+                  50th, 80th] income percentiles in the US in the following
+                  years?
+                </h3>
+              }
+              className=""
+            >
+              <TableCompactHead>
+                <TableCompactRow>
+                  <TableCompactHeaderCell className="w-[40%]">
+                    Income Percentiles
+                  </TableCompactHeaderCell>
+                  <TableCompactHeaderCell className="w-[20%] text-right">
+                    Current
+                  </TableCompactHeaderCell>
+                  <TableCompactHeaderCell className="w-[20%] text-right">
+                    2030
+                  </TableCompactHeaderCell>
+                  <TableCompactHeaderCell className="w-[20%] text-right">
+                    2035
+                  </TableCompactHeaderCell>
+                </TableCompactRow>
+              </TableCompactHead>
+              <TableCompactBody>
+                {[
+                  ["High Income (20th)", 33, 3.4, 6.4],
+                  ["Mid Income (50th)", 24, -1.4, 5.4],
+                  ["Low Income (80th)", 12, -4.4, -7.7],
+                ].map((row, index) => (
+                  <TableCompactRow key={row[0]}>
+                    <TableCompactCell
+                      className={index === 0 ? "font-medium" : ""}
+                    >
+                      {row[0]}
+                    </TableCompactCell>
+                    <TableCompactCell className="text-right">
+                      {row[1]}%
+                    </TableCompactCell>
+                    <TableCompactCell className="text-right">
+                      <PercentageChange value={Number(row[2])} />
+                    </TableCompactCell>
+                    <TableCompactCell className="text-right">
+                      <PercentageChange value={Number(row[3])} />
+                    </TableCompactCell>
+                  </TableCompactRow>
+                ))}
+              </TableCompactBody>
+            </TableCompact>
+            <QuestionLoader
+              questionId={14732}
+              title="What will be the percent of workers in the US who report that they use AI in the following years?"
+            />
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 
@@ -262,9 +310,100 @@ export default function LaborAutomationHubPage() {
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight>
-            {FEATURED_POST_IDS.map((id) => (
-              <QuestionLoader key={id} questionId={id} />
-            ))}
+            <TableCompact
+              HeadingSection={
+                <h3 className="mb-4 mt-0 w-full pr-8 text-base font-[450] leading-tight text-gray-800 [text-wrap:pretty] dark:text-gray-800-dark">
+                  What will the percent change in the number of four-year
+                  degrees awarded by accredited universities be in the following
+                  years?
+                </h3>
+              }
+              className=""
+            >
+              <TableCompactHead>
+                <TableCompactRow>
+                  <TableCompactHeaderCell className="w-[60%]">
+                    Major
+                  </TableCompactHeaderCell>
+                  <TableCompactHeaderCell className="w-[20%] text-right">
+                    2030
+                  </TableCompactHeaderCell>
+                  <TableCompactHeaderCell className="w-[20%] text-right">
+                    2035
+                  </TableCompactHeaderCell>
+                </TableCompactRow>
+              </TableCompactHead>
+              <TableCompactBody>
+                {[
+                  ["Overall", 6.4, 7],
+                  ["STEM", -1.4, -4.3],
+                  ["Humanities", -7.8, -11.8],
+                ].map((row, index) => (
+                  <TableCompactRow key={row[0]}>
+                    <TableCompactCell
+                      className={index === 0 ? "font-medium" : ""}
+                    >
+                      {row[0]}
+                    </TableCompactCell>
+                    <TableCompactCell className="text-right">
+                      <PercentageChange value={Number(row[1])} />
+                    </TableCompactCell>
+                    <TableCompactCell className="text-right">
+                      <PercentageChange value={Number(row[2])} />
+                    </TableCompactCell>
+                  </TableCompactRow>
+                ))}
+              </TableCompactBody>
+            </TableCompact>
+            <TableCompact
+              HeadingSection={
+                <h3 className="mb-4 mt-0 w-full pr-8 text-base font-[450] leading-tight text-gray-800 [text-wrap:pretty] dark:text-gray-800-dark">
+                  What will the percent change in the number of students newly
+                  enrolled in the following years?
+                </h3>
+              }
+              className=""
+            >
+              <TableCompactHead>
+                <TableCompactRow>
+                  <TableCompactHeaderCell className="w-[40%]">
+                    School Type
+                  </TableCompactHeaderCell>
+                  <TableCompactHeaderCell className="w-[20%] text-right">
+                    Current
+                  </TableCompactHeaderCell>
+                  <TableCompactHeaderCell className="w-[20%] text-right">
+                    2030
+                  </TableCompactHeaderCell>
+                  <TableCompactHeaderCell className="w-[20%] text-right">
+                    2035
+                  </TableCompactHeaderCell>
+                </TableCompactRow>
+              </TableCompactHead>
+              <TableCompactBody>
+                {[
+                  ["Trade Schools", 33, 3.4, 6.4],
+                  ["Community Colleges", 24, -1.4, 5.4],
+                ].map((row, index) => (
+                  <TableCompactRow key={row[0]}>
+                    <TableCompactCell
+                      className={index === 0 ? "font-medium" : ""}
+                    >
+                      {row[0]}
+                    </TableCompactCell>
+                    <TableCompactCell className="text-right">
+                      {row[1]}%
+                    </TableCompactCell>
+                    <TableCompactCell className="text-right">
+                      <PercentageChange value={Number(row[2])} />
+                    </TableCompactCell>
+                    <TableCompactCell className="text-right">
+                      <PercentageChange value={Number(row[3])} />
+                    </TableCompactCell>
+                  </TableCompactRow>
+                ))}
+              </TableCompactBody>{" "}
+            </TableCompact>
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 
@@ -272,7 +411,10 @@ export default function LaborAutomationHubPage() {
           <DualPaneSectionLeft>
             <SectionHeader>Changing economy</SectionHeader>
             <InvertedThemeContainer>
-              <QuestionLoader questionId={40866} subQuestionId={40523} />
+              <QuestionLoader
+                questionId={13472}
+                title="What will the overall labor productivity for all workers in the US be in the following years?"
+              />
             </InvertedThemeContainer>
             <ContentParagraph>
               The vulnerability of white collar work to AI advancement is
@@ -292,18 +434,30 @@ export default function LaborAutomationHubPage() {
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight>
-            {FEATURED_POST_IDS.map((id) => (
-              <QuestionLoader key={id} questionId={id} preferTimeline />
-            ))}
+            <InvertedThemeContainer>
+              <QuestionLoader
+                preferTimeline
+                questionId={14774}
+                title="How many of the Fortune 500 companies will have fewer than 5000 employees in the following years?"
+              />
+            </InvertedThemeContainer>
+            <QuestionLoader
+              questionId={14774}
+              title="What will the percent change in the US long-term unemployment rate be in the following years relative to 2025?"
+            />
+            <QuestionLoader
+              questionId={14083}
+              title="What will the labor share of income in the US in the following years?"
+            />
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 
         <ResearchSection id="research" className="scroll-mt-12">
           <InvertedThemeContainer>
             <QuestionLoader
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              questionId={FEATURED_POST_IDS[2]!}
-              preferTimeline={false}
+              questionId={14732}
+              isFlippable={false}
+              title="What will the change in the dissimilarity index be in the following years relative to January 2025?"
             />
           </InvertedThemeContainer>
         </ResearchSection>

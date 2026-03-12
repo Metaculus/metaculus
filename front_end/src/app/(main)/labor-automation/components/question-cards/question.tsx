@@ -6,7 +6,7 @@ import {
   faGauge,
   faTable,
 } from "@fortawesome/free-solid-svg-icons";
-import { Suspense } from "react";
+import { ReactNode, Suspense } from "react";
 
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
@@ -68,6 +68,8 @@ function getRightIcon(postData: PostWithForecasts, subQuestionId?: number) {
 
 type QuestionLoaderProps = {
   questionId: number;
+  note?: ReactNode;
+  isFlippable?: boolean;
   preferTimeline?: boolean;
   subQuestionId?: number;
   variant?: "primary" | "secondary";
@@ -81,7 +83,9 @@ type QuestionLoaderProps = {
  */
 async function QuestionContent({
   questionId,
+  note,
   preferTimeline,
+  isFlippable = true,
   subQuestionId,
   variant,
   title,
@@ -89,7 +93,6 @@ async function QuestionContent({
   className,
 }: QuestionLoaderProps) {
   const postData = await ServerPostsApi.getPost(questionId, true);
-  const isFlippable = preferTimeline === undefined;
   const subQuestionData = subQuestionId
     ? postData.group_of_questions?.questions.find(
         (question) => question.id === subQuestionId
@@ -98,46 +101,61 @@ async function QuestionContent({
 
   if (isFlippable) {
     return (
-      <FlippableQuestionCard
-        leftContent={
-          <BasicQuestionContent
-            postData={postData}
-            subQuestionId={subQuestionId}
-            preferTimeline={false}
-          />
-        }
-        rightContent={
-          <BasicQuestionContent
-            postData={postData}
-            subQuestionId={subQuestionId}
-            preferTimeline={true}
-          />
-        }
-        leftIcon={getLeftIcon(postData, subQuestionId)}
-        rightIcon={getRightIcon(postData, subQuestionId)}
+      <>
+        <FlippableQuestionCard
+          leftContent={
+            <BasicQuestionContent
+              postData={postData}
+              subQuestionId={subQuestionId}
+              preferTimeline={false}
+            />
+          }
+          rightContent={
+            <BasicQuestionContent
+              postData={postData}
+              subQuestionId={subQuestionId}
+              preferTimeline={true}
+            />
+          }
+          leftIcon={getLeftIcon(postData, subQuestionId)}
+          rightIcon={getRightIcon(postData, subQuestionId)}
+          title={title || subQuestionData?.title || postData.title}
+          subtitle={subtitle}
+          variant={variant}
+          className={className}
+          postIds={[postData.id]}
+          defaultSide={preferTimeline ? "right" : "left"}
+        />
+        {note && (
+          <div className="!mt-2 text-sm text-blue-700 dark:text-blue-700-dark">
+            {note}
+          </div>
+        )}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <QuestionCard
         title={title || subQuestionData?.title || postData.title}
         subtitle={subtitle}
         variant={variant}
         className={className}
         postIds={[postData.id]}
-      />
-    );
-  }
-
-  return (
-    <QuestionCard
-      title={title || subQuestionData?.title || postData.title}
-      subtitle={subtitle}
-      variant={variant}
-      className={className}
-      postIds={[postData.id]}
-    >
-      <BasicQuestionContent
-        postData={postData}
-        preferTimeline={preferTimeline}
-        subQuestionId={subQuestionId}
-      />
-    </QuestionCard>
+      >
+        <BasicQuestionContent
+          postData={postData}
+          preferTimeline={preferTimeline}
+          subQuestionId={subQuestionId}
+        />
+      </QuestionCard>
+      {note && (
+        <div className="!mt-2 text-sm text-blue-700 dark:text-blue-700-dark">
+          {note}
+        </div>
+      )}
+    </>
   );
 }
 
@@ -147,6 +165,7 @@ async function QuestionContent({
  */
 export function QuestionLoader({
   questionId,
+  note,
   subQuestionId,
   preferTimeline,
   variant = "secondary",
@@ -167,6 +186,7 @@ export function QuestionLoader({
         variant={variant}
         title={title}
         subtitle={subtitle}
+        note={note}
         className={className}
       />
     </Suspense>
