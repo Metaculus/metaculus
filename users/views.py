@@ -27,6 +27,7 @@ from users.serializers import (
 )
 from users.services.common import (
     get_users,
+    mark_user_as_spam,
     user_unsubscribe_tags,
     send_email_change_confirmation_email,
     change_email_from_token,
@@ -48,7 +49,7 @@ logger = logging.getLogger(__name__)
 @permission_classes([IsAdminUser])
 def mark_as_spam_user_api_view(request, pk):
     user_to_mark_as_spam: User = get_object_or_404(User, pk=pk)
-    user_to_mark_as_spam.mark_as_spam()
+    mark_user_as_spam(user_to_mark_as_spam)
     return Response(status=status.HTTP_200_OK)
 
 
@@ -127,7 +128,7 @@ def update_profile_api_view(request: Request) -> Response:
     is_spam, _ = check_profile_update_for_spam(user, serializer)
 
     if is_spam:
-        user.mark_as_spam()
+        mark_user_as_spam(user)
         send_deactivation_email(user.email)
         return Response(
             data={
@@ -256,7 +257,7 @@ def update_bot_profile_api_view(request: Request, pk: int):
     is_spam, _ = check_profile_update_for_spam(bot, serializer)
 
     if is_spam:
-        user.mark_as_spam()
+        mark_user_as_spam(user)
         send_deactivation_email(user.email)
 
         return Response(
