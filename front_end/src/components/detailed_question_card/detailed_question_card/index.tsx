@@ -5,7 +5,7 @@ import { VictoryThemeDefinition } from "victory";
 import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { useHideCP } from "@/contexts/cp_context";
-import { TimelineChartZoomOption } from "@/types/charts";
+import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, QuestionPost } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
@@ -25,6 +25,7 @@ type Props = {
   chartTheme?: VictoryThemeDefinition;
   colorOverride?: ThemeColor | string;
   defaultZoom?: TimelineChartZoomOption;
+  embedChartType?: EmbedChartType;
 };
 
 const DetailedQuestionCard: FC<Props> = ({
@@ -36,6 +37,7 @@ const DetailedQuestionCard: FC<Props> = ({
   chartTheme,
   colorOverride,
   defaultZoom,
+  embedChartType,
 }) => {
   const { question, status, nr_forecasters } = post;
   const forecastAvailability = getQuestionForecastAvailability(question);
@@ -74,6 +76,7 @@ const DetailedQuestionCard: FC<Props> = ({
             extraTheme={chartTheme}
             colorOverride={colorOverride}
             defaultZoom={defaultZoom}
+            embedChartType={embedChartType}
           />
           {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>
