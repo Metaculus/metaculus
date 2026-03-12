@@ -1,4 +1,4 @@
-import { ComponentProps } from "react";
+import { CSSProperties, ComponentProps } from "react";
 
 import {
   SectionCard,
@@ -14,6 +14,22 @@ import {
   TableCompactCell,
   PercentageChange,
 } from "../components/table-compact";
+
+function getCellBackgroundStyle(
+  value: number,
+  maxAbsValue: number,
+  invertColors = false
+): CSSProperties {
+  if (value === 0) return {};
+  const ratio = Math.min(Math.abs(value) / maxAbsValue, 1);
+  const opacity = 0.05 + ratio * 0.55;
+  const isPositive = value > 0;
+  const useGreen = invertColors ? !isPositive : isPositive;
+  const color = useGreen
+    ? `rgba(102, 165, 102, ${opacity})`
+    : `rgba(213, 139, 128, ${opacity})`;
+  return { backgroundColor: color };
+}
 
 export function ResearchSection({
   children,
@@ -49,7 +65,7 @@ export function ResearchSection({
         quantifying the predicted impact of AI on employment levels.
       </ContentParagraph>
       <TableCompact
-        className="inverted mt-6"
+        className="inverted mt-6 [&_table]:border-separate [&_table]:border-spacing-x-2 [&_table]:border-spacing-y-2 [&_td]:py-0.5 [&_th]:pb-3"
         HeadingSection={
           <div className="mb-4 text-center text-sm font-normal leading-5 text-blue-700 dark:text-blue-400">
             Metaculus Predicted Employment Change
@@ -61,124 +77,63 @@ export function ResearchSection({
             <TableCompactHeaderCell className="w-[40%]">
               Occupation
             </TableCompactHeaderCell>
-            <TableCompactHeaderCell className="w-[20%] text-right">
+            <TableCompactHeaderCell className="w-[20%] text-center">
               2030
             </TableCompactHeaderCell>
-            <TableCompactHeaderCell className="w-[20%] text-right">
+            <TableCompactHeaderCell className="w-[20%] text-center">
               2035
             </TableCompactHeaderCell>
-            <TableCompactHeaderCell className="w-[20%] text-right">
+            <TableCompactHeaderCell className="w-[20%] text-center">
               AI Vulnerability Rating
             </TableCompactHeaderCell>
           </TableCompactRow>
         </TableCompactHead>
         <TableCompactBody>
           {[
-            {
-              occupation: "Construction Workers",
-              change2030: 11.2,
-              change2035: 17.2,
-              vulnerabilityRating: -1.218,
-            },
-            {
-              occupation: "Registered Nurses",
-              change2030: 8.4,
-              change2035: 14.4,
-              vulnerabilityRating: -0.211,
-            },
-            {
-              occupation: "Physicians",
-              change2030: 5.6,
-              change2035: 14.1,
-              vulnerabilityRating: -0.403,
-            },
-            {
-              occupation: "General Managers",
-              change2030: 3.4,
-              change2035: 3.4,
-              vulnerabilityRating: -0.024,
-            },
-            {
-              occupation: "Law Enforcement",
-              change2030: 2.0,
-              change2035: 3.0,
-              vulnerabilityRating: -0.403,
-            },
-            {
-              occupation: "Janitors and Cleaners",
-              change2030: 0.0,
-              change2035: -6.0,
-              vulnerabilityRating: 0.954,
-            },
-            {
-              occupation: "Restaurant Servers",
-              change2030: -1.6,
-              change2035: -6.4,
-              vulnerabilityRating: -0.403,
-            },
-            {
-              occupation: "Warehouse Workers",
-              change2030: -3.3,
-              change2035: -6.6,
-              vulnerabilityRating: 0.654,
-            },
-            {
-              occupation: "Engineers",
-              change2030: -4.2,
-              change2035: -7.6,
-              vulnerabilityRating: 0.488,
-            },
-            {
-              occupation: "Designers",
-              change2030: -5.6,
-              change2035: -8.8,
-              vulnerabilityRating: -0.403,
-            },
-            {
-              occupation: "Services Sales Representatives",
-              change2030: -8.6,
-              change2035: -15.6,
-              vulnerabilityRating: 1.954,
-            },
-            {
-              occupation: "Financial Specialists",
-              change2030: -18.6,
-              change2035: -32.6,
-              vulnerabilityRating: 1.954,
-            },
-            {
-              occupation: "Lawyers",
-              change2030: -28.6,
-              change2035: -38.6,
-              vulnerabilityRating: 0.488,
-            },
-            {
-              occupation: "Software Developers",
-              change2030: -38.6,
-              change2035: -78.6,
-              vulnerabilityRating: 0.954,
-            },
+            ["Construction Workers", 11.2, 17.2, -1.218],
+            ["Registered Nurses", 8.4, 14.4, -0.211],
+            ["Physicians", 5.6, 14.1, -0.403],
+            ["General Managers", 3.4, 3.4, -0.024],
+            ["Law Enforcement", 2.0, 3.0, -0.403],
+            ["Janitors and Cleaners", 0.0, -6.0, 0.954],
+            ["Restaurant Servers", -1.6, -6.4, -0.403],
+            ["Warehouse Workers", -3.3, -6.6, 0.654],
+            ["Engineers", -4.2, -7.6, 0.488],
+            ["Designers", -5.6, -8.8, -0.403],
+            ["Services Sales Representatives", -8.6, -15.6, 1.954],
+            ["Financial Specialists", -18.6, -32.6, 1.954],
+            ["Lawyers", -28.6, -38.6, 0.488],
+            ["Software Developers", -38.6, -78.6, 0.954],
           ].map((row) => (
-            <TableCompactRow key={row.occupation}>
+            <TableCompactRow key={row[0]}>
               <TableCompactCell className="font-medium">
-                {row.occupation}
+                {row[0]}
               </TableCompactCell>
-              <TableCompactCell className="text-right">
-                <PercentageChange value={row.change2030} />
+              <TableCompactCell
+                className="text-center"
+                style={getCellBackgroundStyle(Number(row[1]), 100)}
+              >
+                <PercentageChange value={Number(row[1])} />
               </TableCompactCell>
-              <TableCompactCell className="text-right">
-                <PercentageChange value={row.change2035} />
+              <TableCompactCell
+                className="text-center"
+                style={getCellBackgroundStyle(Number(row[2]), 100)}
+              >
+                <PercentageChange value={Number(row[2])} />
               </TableCompactCell>
-              <TableCompactCell className="text-right">
+              <TableCompactCell
+                className="text-center"
+                style={getCellBackgroundStyle(Number(row[3]), 2, true)}
+              >
                 <span
                   className={
-                    row.vulnerabilityRating >= 0
+                    Number(row[3]) >= 0
                       ? "text-salmon-700 dark:text-salmon-400"
                       : "text-mint-800 dark:text-mint-300"
                   }
                 >
-                  {row.vulnerabilityRating > 0 ? "+" : ""}
-                  {row.vulnerabilityRating}
+                  {Number(row[3]) > 0 ? "+" : ""}
+                  {Number(row[3])}
                 </span>
               </TableCompactCell>
             </TableCompactRow>
