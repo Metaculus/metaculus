@@ -261,7 +261,10 @@ const DetailedContinuousChartCard: FC<Props> = ({
 
   if (embedChartType === EmbedChartType.Current) {
     return (
-      <div className="flex w-full flex-col">
+      <div
+        className="w-full overflow-hidden"
+        style={{ height: chartHeight }}
+      >
         <ContinuousPredictionChart
           question={question}
           dataset={{
