@@ -24,10 +24,9 @@ type Props = {
 
 const CompactPostCard: FC<Props> = ({ post, className }) => {
   return (
-    <Link
-      href={getPostLink(post)}
+    <div
       className={cn(
-        "flex flex-col justify-between gap-3 p-6 no-underline",
+        "relative flex flex-col justify-between gap-3 p-6 no-underline",
         className
       )}
     >
@@ -59,7 +58,11 @@ const CompactPostCard: FC<Props> = ({ post, className }) => {
           className="px-0 md:px-0"
         />
       </div>
-    </Link>
+      <Link
+        href={getPostLink(post)}
+        className="absolute left-0 top-0 z-100 h-full w-full @container"
+      />
+    </div>
   );
 };
 

@@ -87,7 +87,6 @@ const ExpandableCommentContent = ({
       className="relative flex flex-col gap-[10px] overflow-hidden p-3 md:p-4"
       style={{
         height: !isExpanded && needsExpand ? `${COLLAPSED_HEIGHT}px` : "auto",
-        maxHeight: !isExpanded && needsExpand ? "170px" : "auto",
       }}
     >
       {/* Author info */}
