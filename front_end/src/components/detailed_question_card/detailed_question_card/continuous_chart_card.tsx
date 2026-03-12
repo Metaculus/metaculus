@@ -259,12 +259,14 @@ const DetailedContinuousChartCard: FC<Props> = ({
     />
   );
 
-  if (embedChartType === EmbedChartType.Current) {
+  const canRenderCurrentEmbed =
+    embedChartType === EmbedChartType.Current &&
+    !hideCP &&
+    !forecastAvailability?.cpRevealsOn;
+
+  if (canRenderCurrentEmbed) {
     return (
-      <div
-        className="w-full overflow-hidden"
-        style={{ height: chartHeight }}
-      >
+      <div className="w-full overflow-hidden" style={{ height: chartHeight }}>
         <ContinuousPredictionChart
           question={question}
           dataset={{
