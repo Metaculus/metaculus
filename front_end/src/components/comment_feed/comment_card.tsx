@@ -14,7 +14,6 @@ import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
 import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/item_view";
 import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
 import MarkdownEditor from "@/components/markdown_editor";
-import Button from "@/components/ui/button";
 import { BECommentType, KeyFactor } from "@/types/comment";
 import { parseUserMentions } from "@/utils/comments";
 import cn from "@/utils/core/cn";
@@ -39,7 +38,7 @@ const BottomStatContainer: FC<PropsWithChildren<{ className?: string }>> = ({
   return (
     <div
       className={cn(
-        "flex items-center justify-center rounded-sm border border-gray-300 px-2.5 py-1 dark:border-gray-300-dark",
+        "flex items-center justify-center rounded-sm border border-gray-300 px-2.5 py-0.5 dark:border-gray-300-dark",
         className
       )}
     >
@@ -80,7 +79,7 @@ const ExpandableCommentContent = ({
   const locale = useLocale();
 
   // Fixed height for collapsed state - adjust this value as needed
-  const COLLAPSED_HEIGHT = 200; // pixels
+  const COLLAPSED_HEIGHT = 170; // pixels
 
   return (
     <div
@@ -88,18 +87,20 @@ const ExpandableCommentContent = ({
       className="relative flex flex-col gap-[10px] overflow-hidden p-3 md:p-4"
       style={{
         height: !isExpanded && needsExpand ? `${COLLAPSED_HEIGHT}px` : "auto",
+        maxHeight: !isExpanded && needsExpand ? "170px" : "auto",
       }}
     >
       {/* Author info */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5  text-gray-500 dark:text-gray-500-dark">
         <Link
           href={`/accounts/profile/${comment.author.id}/`}
           className="text-base font-bold leading-6 text-gray-800 no-underline hover:underline dark:text-gray-800-dark"
         >
           {formatUsername(comment.author)}
         </Link>
+        ·
         <span
-          className="text-base font-normal leading-6 text-gray-500 dark:text-gray-500-dark"
+          className="text-base font-normal leading-6"
           suppressHydrationWarning
         >
           on {formatDate(locale, new Date(comment.created_at))}
@@ -111,6 +112,7 @@ const ExpandableCommentContent = ({
         <MarkdownEditor
           markdown={parseUserMentions(comment.text, comment.mentioned_users)}
           mode="read"
+          contentEditableClassName="[&>*:first-child]:mt-0"
           withUgcLinks
           withTwitterPreview
           withCodeBlocks
@@ -204,22 +206,6 @@ const CommentCard: FC<Props> = ({
         className
       )}
     >
-      {/* Question context */}
-      {comment.on_post_data && (
-        <div className="flex flex-col gap-1.5 border-b border-gray-300 p-3 dark:border-gray-300-dark md:p-4">
-          <div className="text-xs font-normal uppercase leading-4 text-gray-500 dark:text-gray-500-dark">
-            {t("question")}
-          </div>
-
-          <Link
-            href={`/questions/${comment.on_post_data.id}`}
-            className="text-sm font-normal leading-5 text-blue-700 no-underline hover:underline dark:text-blue-700-dark md:text-base"
-          >
-            {comment.on_post_data.title}
-          </Link>
-        </div>
-      )}
-
       {/* Expandable comment content */}
       <ExpandableCommentContent
         comment={comment}
@@ -238,7 +224,7 @@ const CommentCard: FC<Props> = ({
           </BottomStatContainer>
 
           {changedMyMindCount > 0 && (
-            <BottomStatContainer className="leading-[114%]">
+            <BottomStatContainer>
               <FontAwesomeIcon
                 icon={faCaretUp}
                 className="mr-2 text-gray-500 dark:text-gray-500-dark"
@@ -250,7 +236,7 @@ const CommentCard: FC<Props> = ({
             </BottomStatContainer>
           )}
           {keyFactorVotesScore > 0 && (
-            <BottomStatContainer className="leading-[114%]">
+            <BottomStatContainer>
               <FontAwesomeIcon
                 icon={faDiagramProject}
                 className="mr-2 text-gray-500 dark:text-gray-500-dark"
@@ -268,51 +254,45 @@ const CommentCard: FC<Props> = ({
             <BottomStatContainer
               className={
                 effectiveExpanded
-                  ? "p-1 md:px-2.5 md:py-1"
+                  ? ""
                   : "border-blue-500 dark:border-blue-500-dark"
               }
             >
-              <Button
-                variant="text"
-                size="sm"
+              <button
                 onClick={() =>
                   setLocalExpanded(effectiveExpanded ? false : true)
                 }
-                className="p-0"
+                className="flex items-center gap-1.5 text-sm font-normal text-blue-700 dark:text-blue-700-dark"
               >
                 <FontAwesomeIcon
                   icon={effectiveExpanded ? faChevronUp : faChevronDown}
-                  className="text-blue-600 dark:text-blue-600-dark"
+                  className="text-blue-700 dark:text-blue-700-dark"
                 />
                 {effectiveExpanded ? "Collapse" : "Expand"}
-              </Button>
+              </button>
             </BottomStatContainer>
 
             {effectiveExpanded && (
-              <BottomStatContainer className="p-1 md:px-2.5 md:py-1">
-                <Button
-                  size="sm"
-                  variant="text"
+              <BottomStatContainer>
+                <button
                   onClick={handleGoToComment}
-                  className="p-0"
+                  className="flex items-center gap-1.5 text-sm font-normal text-blue-800 dark:text-blue-800-dark"
                 >
                   <SquareArrowUpRight className="size-[14px] md:size-[11px]" />
                   <span className="hidden md:block">View comment</span>
-                </Button>
+                </button>
               </BottomStatContainer>
             )}
           </div>
         ) : (
-          <BottomStatContainer className="p-1 md:px-2.5 md:py-1">
-            <Button
-              size="sm"
-              variant="text"
+          <BottomStatContainer>
+            <button
               onClick={handleGoToComment}
-              className="p-0"
+              className="flex items-center gap-1.5 text-sm font-normal text-blue-800 dark:text-blue-800-dark"
             >
               <SquareArrowUpRight className="size-[14px] md:size-[11px]" />
               <span className="hidden md:block">View comment</span>
-            </Button>
+            </button>
           </BottomStatContainer>
         )}
       </div>

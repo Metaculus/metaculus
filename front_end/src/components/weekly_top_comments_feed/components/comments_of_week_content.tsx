@@ -11,7 +11,9 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import useSearchParams from "@/hooks/use_search_params";
 import ClientCommentsApi from "@/services/api/comments/comments.client";
+import ClientPostsApi from "@/services/api/posts/posts.client";
 import { CommentOfWeekEntry } from "@/types/comment";
+import { PostWithForecasts } from "@/types/post";
 import { CurrentUser } from "@/types/users";
 import cn from "@/utils/core/cn";
 import { formatDate } from "@/utils/formatters/date";
@@ -56,6 +58,37 @@ const CommentsOfWeekContent: FC<Props> = ({
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [postsMap, setPostsMap] = useState<Map<number, PostWithForecasts>>(
+    new Map()
+  );
+  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+
+  useEffect(() => {
+    const postIds = [
+      ...new Set(
+        commentEntries
+          .map((entry) => entry.comment.on_post_data?.id)
+          .filter((id): id is number => id != null)
+      ),
+    ];
+    if (postIds.length === 0) return;
+
+    setIsLoadingPosts(true);
+    ClientPostsApi.getPostsWithCP({ ids: postIds })
+      .then((response) => {
+        const newMap = new Map<number, PostWithForecasts>();
+        for (const post of response.results) {
+          newMap.set(post.id, post);
+        }
+        setPostsMap(newMap);
+      })
+      .catch((err) => {
+        console.error("Error fetching posts for comments of the week:", err);
+      })
+      .finally(() => {
+        setIsLoadingPosts(false);
+      });
+  }, [commentEntries]);
 
   const startDateParam = params.get("start_date");
   const isFinal = isAfter(new Date(), addWeeks(weekStart, 2));
@@ -141,7 +174,7 @@ const CommentsOfWeekContent: FC<Props> = ({
   }, [commentEntries]);
 
   return (
-    <div className="mx-auto max-w-4xl px-1.5 md:px-0">
+    <div className="mx-auto max-w-5xl px-1.5 md:px-0">
       <div className="mb-6 flex flex-col items-start justify-between gap-2 md:flex-row md:items-center md:gap-4">
         <h1 className="mt-2 text-balance text-2xl font-bold text-blue-800 dark:text-blue-800-dark md:mt-1.5 md:block md:text-3xl">
           {t("weeklyTopComments")}
@@ -206,6 +239,8 @@ const CommentsOfWeekContent: FC<Props> = ({
               currentUser={currentUser}
               onExcludeToggleFinished={onExcludeToggleFinished}
               expandOverride={expandAllMode}
+              post={postsMap.get(commentEntry.comment.on_post_data?.id ?? 0)}
+              isLoadingPosts={isLoadingPosts}
             />
           ))}
         </div>

@@ -7,9 +7,11 @@ import { setExcludedFromWeekTopComments } from "@/app/(main)/questions/actions";
 import CommentCard from "@/components/comment_feed/comment_card";
 import Button from "@/components/ui/button";
 import { CommentOfWeekEntry } from "@/types/comment";
+import { PostWithForecasts } from "@/types/post";
 import { CurrentUser } from "@/types/users";
 import cn from "@/utils/core/cn";
 
+import CommentPostPreview from "./comment_post_preview";
 import Trophy from "./trophy";
 
 type Props = {
@@ -18,6 +20,8 @@ type Props = {
   currentUser: CurrentUser | null;
   onExcludeToggleFinished: (commentId: number, excluded: boolean) => void;
   expandOverride?: "auto" | "expanded" | "collapsed";
+  post?: PostWithForecasts;
+  isLoadingPosts?: boolean;
 };
 
 const getTrophyType = (placement: number) => {
@@ -62,6 +66,8 @@ const HighlightedCommentCard: FC<Props> = ({
   currentUser,
   onExcludeToggleFinished,
   expandOverride = "auto",
+  post,
+  isLoadingPosts = false,
 }) => {
   const [isProcessing, setIsExcluding] = useState(false);
   const t = useTranslations();
@@ -106,26 +112,7 @@ const HighlightedCommentCard: FC<Props> = ({
   };
 
   return (
-    <div
-      className={cn(
-        "relative overflow-hidden rounded border bg-white dark:bg-gray-0-dark",
-        placement && getBorderClass(placement)
-      )}
-    >
-      {/* Blur circle - only for 1st place */}
-      {placement === 1 && (
-        <div className="absolute left-0 top-0 overflow-visible">
-          {/* Gold blur circle */}
-          <div
-            className="absolute size-[400px] rounded-full blur-3xl"
-            style={{
-              top: "-250px",
-              left: "-250px",
-              backgroundColor: getBlurColor(placement),
-            }}
-          ></div>
-        </div>
-      )}
+    <div className="relative overflow-hidden rounded bg-white dark:bg-gray-0-dark">
       {/* Admin exclude button */}
       {isAdmin && (
         <Button
@@ -139,29 +126,74 @@ const HighlightedCommentCard: FC<Props> = ({
         </Button>
       )}
 
-      {/* Placement header */}
-      <div className="flex items-center gap-3 px-3 pb-0 pt-3 md:px-4 md:pt-4">
-        {placement && placement <= 6 && (
-          <Trophy type={getTrophyType(placement)} />
+      <div className="flex flex-col md:flex-row">
+        {/* Left column: Post preview (TODO: hidden on mobile) */}
+        {/* TODO: notebooks? */}
+        {comment.on_post_data && (
+          <div
+            className={cn(
+              "hidden rounded-l border border-blue-500 dark:border-blue-500-dark md:flex md:w-[280px] md:shrink-0",
+              placement === 1
+                ? "border-r-yellow-500 dark:border-r-yellow-500/40"
+                : "border-r-blue-400 dark:border-r-blue-400-dark"
+            )}
+          >
+            <CommentPostPreview
+              post={post}
+              postTitle={comment.on_post_data.title}
+              postId={comment.on_post_data.id}
+              isLoading={isLoadingPosts}
+            />
+          </div>
         )}
-        <span
+
+        {/* Right column: Comment content */}
+        <div
           className={cn(
-            "text-base font-normal leading-6",
-            placement && getPlacementColor(placement)
+            "relative min-w-0 flex-1 overflow-hidden rounded-r border border-l-0",
+            placement && getBorderClass(placement)
           )}
         >
-          {placement ? getPlacementText(placement, t) : "Excluded"}
-        </span>
-      </div>
+          {/* Blur circle - only for 1st place */}
+          {placement === 1 && (
+            <div className="absolute left-0 top-0 overflow-visible">
+              {/* Gold blur circle */}
+              <div
+                className="absolute size-[400px] rounded-full blur-3xl"
+                style={{
+                  top: "-250px",
+                  left: "-250px",
+                  backgroundColor: getBlurColor(placement),
+                }}
+              ></div>
+            </div>
+          )}
 
-      <CommentCard
-        comment={comment}
-        changedMyMindCount={changed_my_mind_count}
-        keyFactorVotesScore={key_factor_votes_score}
-        votesScore={votes_score}
-        className="mt-3 border-t border-gray-300  dark:border-gray-300-dark  md:mt-4"
-        expandOverride={expandOverride}
-      />
+          {/* Placement header */}
+          <div className="flex items-center gap-3 px-3 pb-0 pt-3 md:px-4 md:pt-4">
+            {placement && placement <= 6 && (
+              <Trophy type={getTrophyType(placement)} />
+            )}
+            <span
+              className={cn(
+                "text-base font-normal leading-6",
+                placement && getPlacementColor(placement)
+              )}
+            >
+              {placement ? getPlacementText(placement, t) : "Excluded"}
+            </span>
+          </div>
+
+          <CommentCard
+            comment={comment}
+            changedMyMindCount={changed_my_mind_count}
+            keyFactorVotesScore={key_factor_votes_score}
+            votesScore={votes_score}
+            className="mt-0 border-t border-none dark:border-none md:mt-0"
+            expandOverride={expandOverride}
+          />
+        </div>
+      </div>
     </div>
   );
 };
