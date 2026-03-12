@@ -150,7 +150,7 @@ const HighlightedCommentCard: FC<Props> = ({
         {/* Right column: Comment content */}
         <div
           className={cn(
-            "relative min-w-0 flex-1 overflow-hidden rounded-r border border-l-0",
+            "relative flex w-full min-w-0 flex-col overflow-hidden rounded-r border border-l-0",
             placement && getBorderClass(placement)
           )}
         >

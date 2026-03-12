@@ -201,7 +201,7 @@ const CommentCard: FC<Props> = ({
   return (
     <div
       className={cn(
-        "w-full overflow-hidden bg-white  dark:bg-gray-0-dark",
+        "flex h-full w-full  flex-col overflow-hidden bg-white dark:bg-gray-0-dark",
         className
       )}
     >
@@ -213,7 +213,7 @@ const CommentCard: FC<Props> = ({
         contentRef={contentRef}
       />
 
-      <div className="flex items-center justify-between p-3 md:p-4">
+      <div className="mt-auto flex items-center justify-between p-3 md:p-4">
         {/* Comment votes, change my mind and key factors */}
         <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-500-dark">
           <BottomStatContainer className=" gap-1.5 text-gray-500 dark:text-gray-500-dark">
