@@ -358,7 +358,9 @@ def clean_user_data_delete(user: User) -> None:
     user.hypermind = None
     user.occupation = None
     user.location = None
-    user.profile_picture = None
+    if user.profile_picture:
+        user.profile_picture.delete(save=False)
+    user.metadata = None
     user.unsubscribed_mailing_tags = []
     user.language = None
     user.username = "deleted_user-" + str(user.id)
