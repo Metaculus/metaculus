@@ -231,7 +231,7 @@ function MoreButton({
           aria-label="more options"
           size="md"
           presentationType="icon"
-          className="border-transparent bg-transparent text-blue-700 hover:!bg-blue-400 group-hover:bg-blue-200 data-[open]:!bg-blue-700 data-[open]:!text-gray-0 dark:text-blue-700-dark dark:hover:!bg-blue-400-dark dark:group-hover:bg-blue-200-dark dark:data-[open]:!bg-blue-700-dark dark:data-[open]:!text-gray-0-dark"
+          className="border-transparent bg-transparent text-blue-700 hover:!bg-blue-400 group-hover:bg-blue-200 data-[open]:!bg-blue-700 data-[open]:!text-gray-0 dark:border-transparent dark:text-blue-700-dark dark:hover:!bg-blue-400-dark dark:group-hover:bg-blue-200-dark dark:data-[open]:!bg-blue-700-dark dark:data-[open]:!text-gray-0-dark"
         >
           <FontAwesomeIcon icon={faEllipsis} />
         </Button>
