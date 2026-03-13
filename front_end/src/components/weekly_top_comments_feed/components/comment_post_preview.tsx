@@ -37,15 +37,15 @@ const CommentPostPreview: FC<Props> = ({
     <Link
       href={getPostLink({ id: postId })}
       className={cn(
-        "flex max-h-[280px] min-h-[280px] flex-col justify-between gap-4 p-6 no-underline",
+        "flex max-h-[280px] min-h-[280px] w-full flex-col justify-between gap-4 p-6 no-underline",
         className
       )}
     >
-      <div className="flex h-6 gap-4">
+      <div className="flex h-6 items-center gap-4">
         <div className="h-4 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-200-dark" />
         <div className="h-4 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-200-dark" />
       </div>
-      <h4 className="m-0 text-base font-medium leading-5 text-gray-800 no-underline dark:text-gray-800-dark">
+      <h4 className="m-0 w-full text-base font-medium leading-5 text-gray-800 no-underline dark:text-gray-800-dark">
         {postTitle}
       </h4>
       <div className="my-auto flex flex-col items-center gap-3">
