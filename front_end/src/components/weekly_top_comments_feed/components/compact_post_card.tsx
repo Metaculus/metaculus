@@ -20,6 +20,7 @@ import {
   isContinuousQuestionType,
   isGroupOfQuestionsPost,
   isMultipleChoicePost,
+  isNotebookPost,
   isQuestionPost,
 } from "@/utils/questions/helpers";
 
@@ -125,6 +126,16 @@ const PostPreview: FC<{
         layout="wrap"
         optionLabelClassName="flex-none pr-1.5"
         optionValueClassName="text-gray-600 dark:text-gray-600-dark font-normal"
+      />
+    );
+  }
+
+  if (isNotebookPost(post) && post.notebook.image_url) {
+    return (
+      <img
+        src={post.notebook.image_url}
+        alt=""
+        className="h-[110px] w-full rounded object-cover"
       />
     );
   }
