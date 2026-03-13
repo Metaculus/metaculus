@@ -41,16 +41,6 @@ const CompactPostCard: FC<Props> = ({ post, className }) => {
         className
       )}
     >
-      <h4 className="m-0 text-base font-medium text-gray-800 no-underline dark:text-gray-800-dark">
-        {post.title}
-      </h4>
-
-      <HideCPProvider post={post}>
-        <div className="my-auto flex flex-col">
-          <PostPreview post={post} t={t} locale={locale} />
-        </div>
-      </HideCPProvider>
-
       <div className="flex items-center gap-2">
         <CommentStatus
           totalCount={post.comment_count ?? 0}
@@ -64,6 +54,16 @@ const CompactPostCard: FC<Props> = ({ post, className }) => {
           className="px-0 md:px-0"
         />
       </div>
+
+      <h4 className="m-0 text-base font-medium leading-5 text-gray-800 no-underline dark:text-gray-800-dark">
+        {post.title}
+      </h4>
+
+      <HideCPProvider post={post}>
+        <div className="my-auto flex flex-col">
+          <PostPreview post={post} t={t} locale={locale} />
+        </div>
+      </HideCPProvider>
       <Link
         href={getPostLink(post)}
         className="absolute left-0 top-0 z-100 h-full w-full @container"
