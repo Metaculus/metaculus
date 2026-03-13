@@ -31,16 +31,16 @@ type Props = {
   expandOverride?: "auto" | "expanded" | "collapsed";
 };
 
-const BottomStatContainer: FC<PropsWithChildren<{ className?: string }>> = ({
-  children,
-  className,
-}) => {
+const BottomStatContainer: FC<
+  PropsWithChildren<{ className?: string; title?: string }>
+> = ({ children, className, title }) => {
   return (
     <div
       className={cn(
         "flex items-center justify-center rounded-sm border border-gray-300 px-2.5 py-0.5 dark:border-gray-300-dark",
         className
       )}
+      title={title}
     >
       {children}
     </div>
@@ -157,6 +157,7 @@ const CommentCard: FC<Props> = ({
   keyFactorVotesScore,
   expandOverride = "auto",
 }) => {
+  const t = useTranslations();
   const contentRef = useRef<HTMLDivElement>(null);
   const [needsExpand, setNeedsExpand] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -235,26 +236,26 @@ const CommentCard: FC<Props> = ({
       <div className="mt-auto flex items-center justify-between p-3 md:p-4">
         {/* Comment votes, change my mind and key factors */}
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500-dark">
-          <BottomStatContainer className=" gap-1.5 text-gray-500 dark:text-gray-500-dark">
-            <FontAwesomeIcon icon={faChevronUp} className={cn(``)} />
+          <BottomStatContainer className=" gap-1.5 text-gray-500/35 dark:text-gray-500-dark/35">
+            <FontAwesomeIcon icon={faChevronUp} />
             <span>{votesScore}</span>
-            <FontAwesomeIcon icon={faChevronDown} className={cn(``)} />
+            <FontAwesomeIcon icon={faChevronDown} />
           </BottomStatContainer>
 
           {changedMyMindCount > 0 && (
-            <BottomStatContainer>
+            <BottomStatContainer title={t("mindsChanged")}>
               <FontAwesomeIcon
                 icon={faCaretUp}
-                className="mr-2 text-gray-500 dark:text-gray-500-dark"
+                className="mr-2 text-gray-500/35 dark:text-gray-500-dark/35"
               />
               <span>{changedMyMindCount} </span>
             </BottomStatContainer>
           )}
           {keyFactorVotesScore > 0 && (
-            <BottomStatContainer>
+            <BottomStatContainer title={t("keyFactorImpact")}>
               <FontAwesomeIcon
                 icon={faDiagramProject}
-                className="mr-2 text-gray-500 dark:text-gray-500-dark"
+                className="mr-2 text-gray-500/35 dark:text-gray-500-dark/35"
               />
               <span>{parseFloat(keyFactorVotesScore.toFixed(2))}</span>
             </BottomStatContainer>
