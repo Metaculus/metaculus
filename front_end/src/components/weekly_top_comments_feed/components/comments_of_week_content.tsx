@@ -7,7 +7,6 @@ import { useLocale, useTranslations } from "next-intl";
 import { FC, useState, useCallback, useEffect, useMemo } from "react";
 
 import Button from "@/components/ui/button";
-import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import useSearchParams from "@/hooks/use_search_params";
 import ClientCommentsApi from "@/services/api/comments/comments.client";
@@ -36,7 +35,7 @@ const CommentsOfWeekContent: FC<Props> = ({
   const t = useTranslations();
   const locale = useLocale();
 
-  const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
+  const { params, setParam, replaceUrlWithoutNavigation } = useSearchParams();
   const [commentEntries, setCommentEntries] =
     useState<CommentOfWeekEntry[]>(initialEntries);
   const [weekStart, setWeekStart] = useState<Date>(
@@ -116,10 +115,10 @@ const CommentsOfWeekContent: FC<Props> = ({
     async (newWeekStart: Date) => {
       setParam("weekly_top_comments", "true", false);
       setParam("start_date", format(newWeekStart, "yyyy-MM-dd"), false);
-      shallowNavigateToSearchParams();
+      replaceUrlWithoutNavigation();
       fetchComments(newWeekStart);
     },
-    [fetchComments, setParam, shallowNavigateToSearchParams]
+    [fetchComments, setParam, replaceUrlWithoutNavigation]
   );
 
   // Debounced version of fetchCommentsForWeek to prevent rapid API calls
@@ -220,20 +219,19 @@ const CommentsOfWeekContent: FC<Props> = ({
         {formatDate(locale, addWeeks(weekStart, 2))}.
       </p>
 
-      {isLoading && (
-        <div className="flex justify-center py-8">
-          <LoadingIndicator className="h-8 w-8 text-blue-600 dark:text-blue-600-dark" />
-        </div>
-      )}
-
       {error && (
         <div className="mb-4 rounded-md bg-red-50 p-4 text-red-700 dark:bg-red-900/20 dark:text-red-400">
           {error}
         </div>
       )}
 
-      {!isLoading && !error && (
-        <div className="space-y-4 pb-8">
+      {!error && (
+        <div
+          className={cn(
+            "relative space-y-4 pb-8 transition-opacity",
+            isLoading && "pointer-events-none opacity-40"
+          )}
+        >
           {commentsWithPlacements.map((commentEntry) => (
             <HighlightedCommentCard
               key={commentEntry.comment.id}
