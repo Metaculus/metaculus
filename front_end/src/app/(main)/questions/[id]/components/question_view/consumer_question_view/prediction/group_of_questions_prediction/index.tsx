@@ -2,6 +2,7 @@ import DateForecastCard from "@/components/consumer_post_card/group_forecast_car
 import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
 import PercentageForecastCard from "@/components/consumer_post_card/group_forecast_card/percentage_forecast_card";
 import TimeSeriesChart from "@/components/consumer_post_card/time_series_chart";
+import { useHideCP } from "@/contexts/cp_context";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { getGroupForecastAvailability } from "@/utils/questions/forecastAvailability";
@@ -16,6 +17,7 @@ type Props = {
 };
 
 const GroupOfQuestionsPrediction: React.FC<Props> = ({ postData }) => {
+  const { hideCP } = useHideCP();
   let content: React.ReactNode | null = null;
 
   if (
@@ -35,8 +37,9 @@ const GroupOfQuestionsPrediction: React.FC<Props> = ({ postData }) => {
 
       // Hide chart if no forecasts or CP not yet revealed
       const shouldHideChart =
-        forecastAvailability &&
-        (forecastAvailability.isEmpty || !!forecastAvailability.cpRevealsOn);
+        hideCP ||
+        (forecastAvailability &&
+          (forecastAvailability.isEmpty || !!forecastAvailability.cpRevealsOn));
 
       if (!shouldHideChart) {
         const sortedQuestions = sortGroupPredictionOptions(

@@ -1,5 +1,6 @@
 import { FC } from "react";
 
+import { useHideCP } from "@/contexts/cp_context";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { getGroupForecastAvailability } from "@/utils/questions/forecastAvailability";
@@ -19,6 +20,8 @@ type Props = {
 };
 
 const GroupForecastCard: FC<Props> = ({ post }) => {
+  const { hideCP } = useHideCP();
+
   // Check forecast availability for group posts
   const forecastAvailability = post.group_of_questions
     ? getGroupForecastAvailability(post.group_of_questions.questions)
@@ -26,8 +29,9 @@ const GroupForecastCard: FC<Props> = ({ post }) => {
 
   // Hide chart if no forecasts or CP not yet revealed
   const shouldHideChart =
-    forecastAvailability &&
-    (forecastAvailability.isEmpty || !!forecastAvailability.cpRevealsOn);
+    hideCP ||
+    (forecastAvailability &&
+      (forecastAvailability.isEmpty || !!forecastAvailability.cpRevealsOn));
 
   if (
     post.group_of_questions?.graph_type === GroupOfQuestionsGraphType.FanGraph

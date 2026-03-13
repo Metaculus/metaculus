@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
+import { useHideCP } from "@/contexts/cp_context";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
@@ -27,6 +28,7 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
   const visibleChoicesCount = 3;
   const locale = useLocale();
   const t = useTranslations();
+  const { hideCP } = useHideCP();
   const [expanded, setExpanded] = useState(false);
 
   const isMC = isMultipleChoicePost(post);
@@ -44,19 +46,21 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
   const allChoices = useMemo(() => {
     const raw = generateChoiceItems(post, visibleChoicesCount, locale, t);
     return raw.map((choice) => {
-      const valueStr = getPredictionDisplayValue(
-        choice.aggregationValues.at(-1),
-        {
-          questionType: QuestionType.Binary,
-          scaling: choice.scaling,
-          actual_resolve_time: choice.actual_resolve_time ?? null,
-          emptyLabel,
-        }
-      );
+      const valueStr =
+        hideCP && !choice.resolution
+          ? "—"
+          : getPredictionDisplayValue(choice.aggregationValues.at(-1), {
+              questionType: QuestionType.Binary,
+              scaling: choice.scaling,
+              actual_resolve_time: choice.actual_resolve_time ?? null,
+              emptyLabel,
+            });
       const percent =
-        typeof valueStr === "string"
-          ? Number(valueStr.replace("%", "")) || 0
-          : 0;
+        hideCP && !choice.resolution
+          ? 0
+          : typeof valueStr === "string"
+            ? Number(valueStr.replace("%", "")) || 0
+            : 0;
 
       const isChoiceClosed = choice.closeTime
         ? choice.closeTime < Date.now()
@@ -69,7 +73,7 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
         isChoiceClosed,
       };
     });
-  }, [post, locale, t, emptyLabel]);
+  }, [post, locale, t, emptyLabel, hideCP]);
 
   if (!isMC && !isGroupOfQuestionsPost(post)) return null;
 
