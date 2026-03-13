@@ -112,10 +112,10 @@ const ExpandableCommentContent = ({
         {onViewComment && (
           <button
             onClick={onViewComment}
-            className="flex shrink-0 items-center gap-1.5 rounded-sm border border-gray-300 px-2.5 py-0.5 text-sm font-normal text-blue-800 dark:border-gray-300-dark dark:text-blue-800-dark"
+            className="flex shrink-0 items-center gap-2 rounded-sm border border-blue-500 px-2.5 py-1 text-sm font-normal text-blue-700 dark:border-blue-500-dark dark:text-blue-700-dark"
           >
-            <SquareArrowUpRight className="size-[14px] md:size-[11px]" />
-            <span className="hidden md:block">{t("view")}</span>
+            <SquareArrowUpRight className="size-[14px] text-blue-600 dark:text-blue-600-dark md:size-[11px]" />
+            <span className="hidden leading-4 md:block">{t("view")}</span>
           </button>
         )}
       </div>
