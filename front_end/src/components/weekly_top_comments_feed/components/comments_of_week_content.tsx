@@ -74,7 +74,10 @@ const CommentsOfWeekContent: FC<Props> = ({
     if (postIds.length === 0) return;
 
     setIsLoadingPosts(true);
-    ClientPostsApi.getPostsWithCP({ ids: postIds })
+    ClientPostsApi.getPostsWithCP(
+      { ids: postIds },
+      { include_cp_history: false }
+    )
       .then((response) => {
         const newMap = new Map<number, PostWithForecasts>();
         for (const post of response.results) {
