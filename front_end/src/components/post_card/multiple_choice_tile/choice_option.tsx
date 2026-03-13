@@ -20,6 +20,7 @@ type Props = {
   questionType?: QuestionType;
   scaling?: Scaling;
   labelClassName?: string;
+  valueClassName?: string;
   actual_resolve_time?: string | null;
   withIcon?: boolean;
   cursorTimestamp?: number | null;
@@ -35,6 +36,7 @@ const ChoiceOption: FC<Props> = ({
   questionType,
   scaling,
   labelClassName,
+  valueClassName,
   actual_resolve_time,
   cursorTimestamp = null,
   timestamps = [],
@@ -114,7 +116,8 @@ const ChoiceOption: FC<Props> = ({
             {
               "opacity-30": !hasValue,
             },
-            "leading-0"
+            "leading-0",
+            valueClassName
           )}
         >
           {getPredictionDisplayValue(valueAtCursor, {

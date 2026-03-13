@@ -23,7 +23,7 @@ import {
   isQuestionPost,
 } from "@/utils/questions/helpers";
 
-const VISIBLE_CHOICES_COUNT = 5;
+const VISIBLE_CHOICES_COUNT = 3;
 
 type Props = {
   post: PostWithForecasts;
@@ -101,7 +101,8 @@ const PostPreview: FC<{
         visibleChoicesCount={VISIBLE_CHOICES_COUNT}
         questionType={post.question.type}
         layout="wrap"
-        optionLabelClassName="flex-none pr-0"
+        optionLabelClassName="flex-none pr-1.5 -ml-1"
+        optionValueClassName="text-gray-600 dark:text-gray-600-dark font-normal"
       />
     );
   }
@@ -122,7 +123,8 @@ const PostPreview: FC<{
         visibleChoicesCount={VISIBLE_CHOICES_COUNT}
         questionType={post.group_of_questions.questions.at(0)?.type}
         layout="wrap"
-        optionLabelClassName="flex-none pr-0"
+        optionLabelClassName="flex-none pr-1.5"
+        optionValueClassName="text-gray-600 dark:text-gray-600-dark font-normal"
       />
     );
   }

@@ -16,6 +16,7 @@ type Props = {
   questionType?: QuestionType;
   hideCP?: boolean;
   optionLabelClassName?: string;
+  optionValueClassName?: string;
   onReaffirm?: () => void;
   canPredict?: boolean;
   ref?: RefObject<HTMLDivElement | null>;
@@ -30,6 +31,7 @@ const MultipleChoiceTileLegend: FC<Props> = ({
   hideCP,
   questionType,
   optionLabelClassName,
+  optionValueClassName,
   onReaffirm,
   canPredict = false,
   ref,
@@ -77,6 +79,7 @@ const MultipleChoiceTileLegend: FC<Props> = ({
               questionType={questionType}
               scaling={scaling}
               labelClassName={optionLabelClassName}
+              valueClassName={optionValueClassName}
               actual_resolve_time={actual_resolve_time}
               withIcon={withChoiceIcon}
               cursorTimestamp={cursorTimestamp}
