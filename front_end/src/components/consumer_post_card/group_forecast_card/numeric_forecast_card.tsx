@@ -4,6 +4,7 @@ import { isNil } from "lodash";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
+import { useHideCP } from "@/contexts/cp_context";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
@@ -26,6 +27,7 @@ const NumericForecastCard: FC<Props> = ({ post, forceColorful }) => {
   const visibleChoicesCount = 3;
   const locale = useLocale();
   const t = useTranslations();
+  const { hideCP } = useHideCP();
   const [expanded, setExpanded] = useState(false);
 
   if (!isGroupOfQuestionsPost(post)) {
@@ -104,29 +106,32 @@ const NumericForecastCard: FC<Props> = ({ post, forceColorful }) => {
             range_max: scaling?.range_max ?? 1,
             zero_point: scaling?.zero_point ?? null,
           };
-          const formattedChoiceValue = getPredictionDisplayValue(
-            rawChoiceValue,
-            {
-              questionType: isDateGroup
-                ? QuestionType.Date
-                : QuestionType.Numeric,
-              scaling: normalizedScaling,
-              actual_resolve_time: actual_resolve_time ?? null,
-              emptyLabel: t("Upcoming"),
-            }
-          );
+          const formattedChoiceValue =
+            hideCP && isNil(resolution)
+              ? "—"
+              : getPredictionDisplayValue(rawChoiceValue, {
+                  questionType: isDateGroup
+                    ? QuestionType.Date
+                    : QuestionType.Numeric,
+                  scaling: normalizedScaling,
+                  actual_resolve_time: actual_resolve_time ?? null,
+                  emptyLabel: t("Upcoming"),
+                });
 
           const scaledChoiceValue = !isNil(rawChoiceValue)
             ? scaleInternalLocation(rawChoiceValue, normalizedScaling)
             : NaN;
 
-          const relativeWidth = !isNil(resolution)
-            ? 100
-            : calculateRelativeWidth({
-                scaledChoiceValue,
-                maxScaledValue,
-                minScaledValue,
-              });
+          const relativeWidth =
+            hideCP && isNil(resolution)
+              ? 0
+              : !isNil(resolution)
+                ? 100
+                : calculateRelativeWidth({
+                    scaledChoiceValue,
+                    maxScaledValue,
+                    minScaledValue,
+                  });
 
           return (
             <ForecastChoiceBar

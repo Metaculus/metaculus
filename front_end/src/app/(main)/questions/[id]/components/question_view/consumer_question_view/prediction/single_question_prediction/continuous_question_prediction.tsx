@@ -3,6 +3,7 @@
 import { getContinuousAreaChartData } from "@/components/charts/continuous_area_chart";
 import MinifiedContinuousAreaChart from "@/components/charts/minified_continuous_area_chart";
 import ConsumerContinuousTile from "@/components/consumer_post_card/consumer_question_tile/consumer_continuous_tile";
+import { useHideCP } from "@/contexts/cp_context";
 import { QuestionStatus } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
@@ -12,6 +13,7 @@ type Props = {
 };
 
 const ContinuousQuestionPrediction: React.FC<Props> = ({ question }) => {
+  const { hideCP } = useHideCP();
   const forecastAvailability = getQuestionForecastAvailability(question);
 
   // Hide chart if no forecasts or CP not yet revealed
@@ -40,6 +42,7 @@ const ContinuousQuestionPrediction: React.FC<Props> = ({ question }) => {
                 height={50}
                 forceTickCount={2}
                 variant="question"
+                hideCP={hideCP}
               />
             </div>
           </div>

@@ -2,6 +2,7 @@ import { FC } from "react";
 
 import { getContinuousAreaChartData } from "@/components/charts/continuous_area_chart";
 import MinifiedContinuousAreaChart from "@/components/charts/minified_continuous_area_chart";
+import { useHideCP } from "@/contexts/cp_context";
 import { QuestionStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
@@ -13,11 +14,14 @@ type Props = {
 };
 
 const ConsumerQuestionTile: FC<Props> = ({ question }) => {
+  const { hideCP } = useHideCP();
   const forecastAvailability = getQuestionForecastAvailability(question);
 
   // Hide chart if no forecasts or CP not yet revealed
   const shouldHideChart =
-    forecastAvailability.isEmpty || !!forecastAvailability.cpRevealsOn;
+    hideCP ||
+    forecastAvailability.isEmpty ||
+    !!forecastAvailability.cpRevealsOn;
 
   // Open/Closed - delegate to specific tile components based on question type
   switch (question.type) {
