@@ -182,7 +182,6 @@ const CommentCard: FC<Props> = ({
   useEffect(() => {
     const measureHeight = () => {
       if (contentRef.current) {
-        // Temporarily expand to measure full height
         const originalHeight = contentRef.current.style.height;
         const originalOverflow = contentRef.current.style.overflow;
 
@@ -196,16 +195,25 @@ const CommentCard: FC<Props> = ({
         if (controlledExpanded === undefined) {
           setIsExpanded(!shouldExpand);
         }
-        // Restore original styles
+
         contentRef.current.style.height = originalHeight;
         contentRef.current.style.overflow = originalOverflow;
       }
     };
 
-    // Use setTimeout to ensure content is fully rendered
-    const timeoutId = setTimeout(measureHeight, 100);
+    // Re-measure when the markdown editor finishes loading
+    const node = contentRef.current;
+    if (!node) return;
 
-    return () => clearTimeout(timeoutId);
+    const observer = new MutationObserver(() => {
+      if (node.querySelector(".mdxeditor")) {
+        measureHeight();
+        observer.disconnect();
+      }
+    });
+    observer.observe(node, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
   }, [comment.text, comment.key_factors, comment.id, controlledExpanded]);
 
   const handleGoToComment = () => {
