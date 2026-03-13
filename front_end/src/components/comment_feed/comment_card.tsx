@@ -220,7 +220,7 @@ const CommentCard: FC<Props> = ({
 
       <div className="mt-auto flex items-center justify-between p-3 md:p-4">
         {/* Comment votes, change my mind and key factors */}
-        <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-500-dark">
+        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500-dark">
           <BottomStatContainer className=" gap-1.5 text-gray-500 dark:text-gray-500-dark">
             <FontAwesomeIcon icon={faChevronUp} className={cn(``)} />
             <span>{votesScore}</span>
@@ -234,9 +234,6 @@ const CommentCard: FC<Props> = ({
                 className="mr-2 text-gray-500 dark:text-gray-500-dark"
               />
               <span>{changedMyMindCount} </span>
-              <span className="ml-1 hidden text-nowrap md:block">
-                {t("mindsChanged")}
-              </span>
             </BottomStatContainer>
           )}
           {keyFactorVotesScore > 0 && (
@@ -246,9 +243,6 @@ const CommentCard: FC<Props> = ({
                 className="mr-2 text-gray-500 dark:text-gray-500-dark"
               />
               <span>{parseFloat(keyFactorVotesScore.toFixed(2))}</span>
-              <span className="ml-1 hidden text-nowrap md:block">
-                {t("keyFactorImpact")}
-              </span>
             </BottomStatContainer>
           )}
         </div>
