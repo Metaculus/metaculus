@@ -70,16 +70,19 @@ const ExpandableCommentContent = ({
   isExpanded,
   needsExpand,
   contentRef,
+  onViewComment,
 }: {
   comment: BECommentType;
   isExpanded: boolean;
   needsExpand: boolean;
   contentRef: React.RefObject<HTMLDivElement | null>;
+  onViewComment?: () => void;
 }) => {
   const locale = useLocale();
+  const t = useTranslations();
 
   // Fixed height for collapsed state - adjust this value as needed
-  const COLLAPSED_HEIGHT = 170; // pixels
+  const COLLAPSED_HEIGHT = 174; // pixels
 
   return (
     <div
@@ -90,20 +93,31 @@ const ExpandableCommentContent = ({
       }}
     >
       {/* Author info */}
-      <div className="flex items-center gap-1.5  text-gray-500 dark:text-gray-500-dark">
-        <Link
-          href={`/accounts/profile/${comment.author.id}/`}
-          className="text-base font-bold leading-6 text-gray-800 no-underline hover:underline dark:text-gray-800-dark"
-        >
-          {formatUsername(comment.author)}
-        </Link>
-        ·
-        <span
-          className="text-base font-normal leading-6"
-          suppressHydrationWarning
-        >
-          on {formatDate(locale, new Date(comment.created_at))}
-        </span>
+      <div className="flex items-start justify-between gap-1.5 text-gray-500 dark:text-gray-500-dark">
+        <div className="mt-[1px] flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
+          <Link
+            href={`/accounts/profile/${comment.author.id}/`}
+            className="truncate text-base font-bold leading-6 text-gray-800 no-underline hover:underline dark:text-gray-800-dark"
+          >
+            {formatUsername(comment.author)}
+          </Link>
+          ·
+          <span
+            className="shrink-0 text-base font-normal leading-6"
+            suppressHydrationWarning
+          >
+            on {formatDate(locale, new Date(comment.created_at))}
+          </span>
+        </div>
+        {onViewComment && (
+          <button
+            onClick={onViewComment}
+            className="flex shrink-0 items-center gap-1.5 rounded-sm border border-gray-300 px-2.5 py-0.5 text-sm font-normal text-blue-800 dark:border-gray-300-dark dark:text-blue-800-dark"
+          >
+            <SquareArrowUpRight className="size-[14px] md:size-[11px]" />
+            <span className="hidden md:block">{t("view")}</span>
+          </button>
+        )}
       </div>
 
       {/* Comment text */}
@@ -143,7 +157,6 @@ const CommentCard: FC<Props> = ({
   keyFactorVotesScore,
   expandOverride = "auto",
 }) => {
-  const t = useTranslations();
   const contentRef = useRef<HTMLDivElement>(null);
   const [needsExpand, setNeedsExpand] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -216,6 +229,7 @@ const CommentCard: FC<Props> = ({
         isExpanded={effectiveExpanded}
         needsExpand={needsExpand}
         contentRef={contentRef}
+        onViewComment={comment.on_post_data ? handleGoToComment : undefined}
       />
 
       <div className="mt-auto flex items-center justify-between p-3 md:p-4">
@@ -269,30 +283,8 @@ const CommentCard: FC<Props> = ({
                 {effectiveExpanded ? "Collapse" : "Expand"}
               </button>
             </BottomStatContainer>
-
-            {effectiveExpanded && (
-              <BottomStatContainer>
-                <button
-                  onClick={handleGoToComment}
-                  className="flex items-center gap-1.5 text-sm font-normal text-blue-800 dark:text-blue-800-dark"
-                >
-                  <SquareArrowUpRight className="size-[14px] md:size-[11px]" />
-                  <span className="hidden md:block">View comment</span>
-                </button>
-              </BottomStatContainer>
-            )}
           </div>
-        ) : (
-          <BottomStatContainer>
-            <button
-              onClick={handleGoToComment}
-              className="flex items-center gap-1.5 text-sm font-normal text-blue-800 dark:text-blue-800-dark"
-            >
-              <SquareArrowUpRight className="size-[14px] md:size-[11px]" />
-              <span className="hidden md:block">View comment</span>
-            </button>
-          </BottomStatContainer>
-        )}
+        ) : null}
       </div>
     </div>
   );
