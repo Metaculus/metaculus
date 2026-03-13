@@ -100,7 +100,9 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
   const discrete = question.type === QuestionType.Discrete;
 
   const charts = useMemo(() => {
-    const parsedData = hideCP ? [] : data;
+    const parsedData = hideCP
+      ? [...data].filter((el) => el.type === "user")
+      : data;
 
     const chartData: NumericPredictionGraph[] = [];
     for (const datum of parsedData) {
@@ -235,11 +237,14 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
     // However, if there's a resolution point, we need extra padding to prevent clipping
     const hasResolution =
       !isNil(question.resolution) && question.resolution !== "";
-    const wantsAnyXLabels = !hideCP && (!hideLabels || minMaxLabelsOnly);
+    const hasVisibleData = hideCP
+      ? data.some((el) => el.type === "user")
+      : true;
+    const wantsAnyXLabels = hasVisibleData && (!hideLabels || minMaxLabelsOnly);
     if (wantsAnyXLabels) return BOTTOM_PADDING;
     const baseMinimalPadding = hasResolution ? 8 : 3; // Extra padding for resolution diamond
     return baseMinimalPadding;
-  }, [hideCP, hideLabels, minMaxLabelsOnly, question.resolution]);
+  }, [data, hideCP, hideLabels, minMaxLabelsOnly, question.resolution]);
 
   return (
     <div ref={chartContainerRef} className="h-full w-full" style={{ height }}>
@@ -391,7 +396,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
           <VictoryAxis
             tickValues={xScale.ticks}
             tickFormat={(tick: number, index?: number, ticks?: number[]) => {
-              if (hideCP) return "";
+              if (hideCP && !data.some((el) => el.type === "user")) return "";
 
               if (hideLabels && !minMaxLabelsOnly) return "";
 

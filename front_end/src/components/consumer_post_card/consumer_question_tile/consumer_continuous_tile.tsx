@@ -3,6 +3,7 @@ import { FC } from "react";
 
 import ContinuousCPBar from "@/components/consumer_post_card/consumer_question_tile/continuous_cp_bar";
 import QuestionContinuousResolutionChip from "@/components/consumer_post_card/question_continuous_resolution_chip";
+import { useHideCP } from "@/contexts/cp_context";
 import { QuestionStatus } from "@/types/post";
 import { ForecastAvailability, QuestionWithForecasts } from "@/types/question";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
@@ -19,6 +20,7 @@ const ConsumerContinuousTile: FC<Props> = ({
   forecastAvailability,
   variant = "feed",
 }) => {
+  const { hideCP } = useHideCP();
   const locale = useLocale();
 
   const latest =
@@ -55,7 +57,9 @@ const ConsumerContinuousTile: FC<Props> = ({
   return (
     <div className="flex max-w-[200px] flex-col items-center justify-center gap-3">
       <ContinuousCPBar
-        communityPredictionDisplayValue={communityPredictionDisplayValue}
+        communityPredictionDisplayValue={
+          hideCP ? "-/-" : communityPredictionDisplayValue
+        }
         isClosed={question.status === QuestionStatus.CLOSED}
         forecastAvailability={forecastAvailability}
         variant={variant}
