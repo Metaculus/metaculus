@@ -17,6 +17,7 @@ import {
   generateChoiceItemsFromMultipleChoiceForecast,
 } from "@/utils/questions/choices";
 import {
+  isContinuousQuestionType,
   isGroupOfQuestionsPost,
   isMultipleChoicePost,
   isQuestionPost,
@@ -77,8 +78,13 @@ const PostPreview: FC<{
   locale: string;
 }> = ({ post, t, locale }) => {
   if (isQuestionPost(post) && !isMultipleChoicePost(post)) {
+    const isNumeric = isContinuousQuestionType(post.question.type);
     return (
-      <div className="self-center">
+      <div
+        className="self-center"
+        // A small workaround to avoid jumping of content during posts load
+        style={isNumeric ? { zoom: 0.9 } : undefined}
+      >
         <ConsumerQuestionTile question={post.question} />
       </div>
     );
