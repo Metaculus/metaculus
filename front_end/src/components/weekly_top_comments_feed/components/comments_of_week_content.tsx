@@ -101,6 +101,8 @@ const CommentsOfWeekContent: FC<Props> = ({
     } catch (err) {
       setError("Failed to load comments for this week");
       console.error("Error fetching comments:", err);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -181,8 +183,8 @@ const CommentsOfWeekContent: FC<Props> = ({
         />
       </div>
       <SubscribeTopCommentsCta />
-      <div className="relative mb-8">
-        <p className="mb-5 text-sm leading-relaxed text-gray-700 dark:text-gray-700-dark">
+      <div className="relative mb-3 flex flex-col">
+        <p className="m-0 text-sm leading-relaxed text-gray-700 dark:text-gray-700-dark">
           {t("topCommentsDescription")}
         </p>
 
@@ -192,7 +194,7 @@ const CommentsOfWeekContent: FC<Props> = ({
           onClick={toggleExpandAll}
           aria-pressed={isVisuallyExpanded}
           aria-controls="weekly-top-comments-list"
-          className="absolute -bottom-5 right-3 whitespace-nowrap rounded-sm px-[10px] py-[6px]"
+          className="ml-auto mt-2 whitespace-nowrap rounded-sm px-[10px] py-[6px] md:mt-0"
         >
           <FontAwesomeIcon
             icon={buttonIcon}
