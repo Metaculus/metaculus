@@ -115,7 +115,7 @@ const ExpandableCommentContent = ({
             className="flex shrink-0 items-center gap-2 rounded-sm border border-blue-500 px-2.5 py-1 text-sm font-normal text-blue-700 dark:border-blue-500-dark dark:text-blue-700-dark"
           >
             <SquareArrowUpRight className="size-[14px] text-blue-600 dark:text-blue-600-dark md:size-[11px]" />
-            <span className="hidden leading-4 md:block">{t("view")}</span>
+            <span className="leading-4">{t("view")}</span>
           </button>
         )}
       </div>
@@ -232,6 +232,22 @@ const CommentCard: FC<Props> = ({
         className
       )}
     >
+      {/* Question context for mobile */}
+      {comment.on_post_data && (
+        <div className="mt-3 flex flex-col gap-1.5 border-y border-gray-300 p-3 dark:border-gray-300-dark md:hidden md:p-4">
+          <div className="text-xs font-normal uppercase leading-4 text-gray-500 dark:text-gray-500-dark">
+            {t("question")}
+          </div>
+
+          <Link
+            href={`/questions/${comment.on_post_data.id}`}
+            className="text-sm font-normal leading-5 text-blue-700 no-underline hover:underline dark:text-blue-700-dark md:text-base"
+          >
+            {comment.on_post_data.title}
+          </Link>
+        </div>
+      )}
+
       {/* Expandable comment content */}
       <ExpandableCommentContent
         comment={comment}
