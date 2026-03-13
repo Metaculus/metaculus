@@ -133,6 +133,9 @@ const ExpandableCommentContent = ({
         <div className="comment-skeleton flex flex-col gap-2">
           <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-200-dark" />
           <div className="h-4 w-11/12 animate-pulse rounded bg-gray-200 dark:bg-gray-200-dark" />
+          <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-200-dark" />
+          <div className="h-4 w-10/12 animate-pulse rounded bg-gray-200 dark:bg-gray-200-dark" />
+          <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-200-dark" />
           <div className="h-4 w-4/5 animate-pulse rounded bg-gray-200 dark:bg-gray-200-dark" />
         </div>
 
@@ -159,7 +162,7 @@ const CommentCard: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const contentRef = useRef<HTMLDivElement>(null);
-  const [needsExpand, setNeedsExpand] = useState(false);
+  const [needsExpand, setNeedsExpand] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const [localExpanded, setLocalExpanded] = useState<boolean | null>(null);
 
