@@ -14,7 +14,6 @@ type Props = {
   post?: PostWithForecasts;
   postTitle: string;
   postId: number;
-  isLoading: boolean;
   className?: string;
 };
 
@@ -22,7 +21,6 @@ const CommentPostPreview: FC<Props> = ({
   post,
   postTitle,
   postId,
-  isLoading,
   className,
 }) => {
   if (post) {

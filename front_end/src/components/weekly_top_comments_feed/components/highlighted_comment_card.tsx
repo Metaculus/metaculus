@@ -67,7 +67,6 @@ const HighlightedCommentCard: FC<Props> = ({
   onExcludeToggleFinished,
   expandOverride = "auto",
   post,
-  isLoadingPosts = false,
 }) => {
   const [isProcessing, setIsExcluding] = useState(false);
   const t = useTranslations();
@@ -142,7 +141,6 @@ const HighlightedCommentCard: FC<Props> = ({
               post={post}
               postTitle={comment.on_post_data.title}
               postId={comment.on_post_data.id}
-              isLoading={isLoadingPosts}
             />
           </div>
         )}

@@ -60,7 +60,6 @@ const CommentsOfWeekContent: FC<Props> = ({
   const [postsMap, setPostsMap] = useState<Map<number, PostWithForecasts>>(
     new Map()
   );
-  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
 
   useEffect(() => {
     const postIds = [
@@ -72,7 +71,6 @@ const CommentsOfWeekContent: FC<Props> = ({
     ];
     if (postIds.length === 0) return;
 
-    setIsLoadingPosts(true);
     ClientPostsApi.getPostsWithCP(
       { ids: postIds },
       { include_cp_history: false }
@@ -86,9 +84,6 @@ const CommentsOfWeekContent: FC<Props> = ({
       })
       .catch((err) => {
         console.error("Error fetching posts for comments of the week:", err);
-      })
-      .finally(() => {
-        setIsLoadingPosts(false);
       });
   }, [commentEntries]);
 
@@ -106,8 +101,6 @@ const CommentsOfWeekContent: FC<Props> = ({
     } catch (err) {
       setError("Failed to load comments for this week");
       console.error("Error fetching comments:", err);
-    } finally {
-      setIsLoading(false);
     }
   }, []);
 
@@ -241,7 +234,6 @@ const CommentsOfWeekContent: FC<Props> = ({
               onExcludeToggleFinished={onExcludeToggleFinished}
               expandOverride={expandAllMode}
               post={postsMap.get(commentEntry.comment.on_post_data?.id ?? 0)}
-              isLoadingPosts={isLoadingPosts}
             />
           ))}
         </div>
