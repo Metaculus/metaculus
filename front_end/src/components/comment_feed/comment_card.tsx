@@ -31,6 +31,9 @@ type Props = {
   expandOverride?: "auto" | "expanded" | "collapsed";
 };
 
+// Fixed height for collapsed state - adjust this value as needed
+const COLLAPSED_HEIGHT = 174; // pixels
+
 const BottomStatContainer: FC<
   PropsWithChildren<{ className?: string; title?: string }>
 > = ({ children, className, title }) => {
@@ -80,9 +83,6 @@ const ExpandableCommentContent = ({
 }) => {
   const locale = useLocale();
   const t = useTranslations();
-
-  // Fixed height for collapsed state - adjust this value as needed
-  const COLLAPSED_HEIGHT = 174; // pixels
 
   return (
     <div
@@ -176,9 +176,6 @@ const CommentCard: FC<Props> = ({
 
   const effectiveExpanded = localExpanded ?? controlledExpanded ?? isExpanded;
 
-  // Fixed height threshold - adjust this value as needed
-  const HEIGHT_THRESHOLD = 10; // pixels
-
   useEffect(() => {
     const measureHeight = () => {
       if (contentRef.current) {
@@ -190,7 +187,7 @@ const CommentCard: FC<Props> = ({
         contentRef.current.style.overflow = "visible";
 
         const fullHeight = contentRef.current.scrollHeight;
-        const shouldExpand = fullHeight > HEIGHT_THRESHOLD;
+        const shouldExpand = fullHeight > COLLAPSED_HEIGHT;
 
         setNeedsExpand(shouldExpand);
         if (controlledExpanded === undefined) {
