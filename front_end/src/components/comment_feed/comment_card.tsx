@@ -107,7 +107,7 @@ const ExpandableCommentContent = ({
       </div>
 
       {/* Comment text */}
-      <div className="mb-4 text-base font-normal leading-6 text-gray-700 dark:text-gray-700-dark">
+      <div className="mb-4 text-base font-normal leading-6 text-gray-700 dark:text-gray-700-dark [&:has(.mdxeditor)>.comment-skeleton]:hidden">
         <MarkdownEditor
           markdown={parseUserMentions(comment.text, comment.mentioned_users)}
           mode="read"
@@ -116,6 +116,11 @@ const ExpandableCommentContent = ({
           withTwitterPreview
           withCodeBlocks
         />
+        <div className="comment-skeleton flex flex-col gap-2">
+          <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-200-dark" />
+          <div className="h-4 w-11/12 animate-pulse rounded bg-gray-200 dark:bg-gray-200-dark" />
+          <div className="h-4 w-4/5 animate-pulse rounded bg-gray-200 dark:bg-gray-200-dark" />
+        </div>
 
         {comment.key_factors && comment.key_factors.length > 0 && (
           <KeyFactors keyFactors={comment.key_factors} />
