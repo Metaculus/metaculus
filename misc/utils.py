@@ -3,7 +3,7 @@ from rest_framework.generics import get_object_or_404
 from django.db.models import Q
 
 from posts.models import Post
-from projects.models import ObjectPermission, ProjectUserPermission
+from projects.models import ObjectPermission, ProjectUserPermission, Project
 from users.models import User
 
 
@@ -20,15 +20,16 @@ def get_whitelist_status(
         return True, True
 
     project = None
+    user_whitelists = user.whitelists.filter(view_forecaster_data=True)
     # start with universal whitelistings
-    whitelistings = user.whitelists.filter(project__isnull=True, post__isnull=True)
+    whitelistings = user_whitelists.filter(project__isnull=True, post__isnull=True)
     if post_id:
         post = get_object_or_404(Post, pk=post_id)
         project = post.default_project
-        whitelistings |= user.whitelists.filter(Q(project=project) | Q(post_id=post_id))
+        whitelistings |= user_whitelists.filter(Q(project=project) | Q(post_id=post_id))
     if project_id:
-        project = get_object_or_404(Post, pk=project_id)
-        whitelistings |= user.whitelists.filter(project_id=project_id)
+        project = get_object_or_404(Project, pk=project_id)
+        whitelistings |= user_whitelists.filter(project_id=project_id)
 
     # if user is admin for the project, they have whitelist status
     if (

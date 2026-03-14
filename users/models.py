@@ -14,6 +14,7 @@ from utils.models import TimeStampedModel
 if TYPE_CHECKING:
     from comments.models import Comment
     from posts.models import Post
+    from misc.models import WhitelistUser
 
 
 class User(TimeStampedModel, AbstractUser):
@@ -30,6 +31,7 @@ class User(TimeStampedModel, AbstractUser):
     id: int
     comment_set: QuerySet["Comment"]
     posts: QuerySet["Post"]
+    whitelists: QuerySet["WhitelistUser"]
 
     # Profile data
     bio = models.TextField(default="", blank=True)
