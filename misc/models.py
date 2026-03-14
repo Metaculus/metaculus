@@ -75,7 +75,7 @@ class BulletinViewedBy(TimeStampedModel):
 
 
 class WhitelistUser(TimeStampedModel):
-    """Whitelist for users for permission to download user-level data"""
+    """Whitelist for users for permission to unlock project-specific API access and user-level data"""
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="whitelists")
     project = models.ForeignKey(
@@ -97,6 +97,12 @@ class WhitelistUser(TimeStampedModel):
         help_text="Optional. If provided, this allows the user to download user-level "
         "data for the post. If neither project nor post is set, the user is "
         "whitelisted for all data.",
+    )
+    view_forecaster_data = models.BooleanField(
+        default=True,
+        help_text="If True, allows the user to view forecaster-level data (e.g, "
+        "individual user predictions). If False, this Whitelist is just an "
+        "api-restriction reduction for the relevant projects",
     )
     view_deanonymized_data = models.BooleanField(
         default=False,

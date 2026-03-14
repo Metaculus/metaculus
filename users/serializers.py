@@ -89,6 +89,7 @@ class UserPrivateSerializer(UserPublicSerializer):
     registered_campaigns = serializers.SerializerMethodField()
     should_suggest_keyfactors = serializers.SerializerMethodField()
     has_password = serializers.SerializerMethodField()
+    reduced_api_restriction_projects = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -108,6 +109,7 @@ class UserPrivateSerializer(UserPublicSerializer):
             "api_access_tier",
             "is_primary_bot",
             "has_password",
+            "reduced_api_restriction_projects",
         )
 
     def get_registered_campaigns(self, user: User):
@@ -132,6 +134,13 @@ class UserPrivateSerializer(UserPublicSerializer):
 
     def get_has_password(self, user: User) -> bool:
         return user.has_usable_password()
+
+    def get_reduced_api_restriction_projects(self, user: User):
+        return (
+            user.whitelists.filter(project_id__isnull=False)
+            .values_list("project_id", flat=True)
+            .distinct()
+        )
 
 
 class UserUpdateProfileSerializer(serializers.ModelSerializer):
