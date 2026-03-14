@@ -46,36 +46,26 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.12.3"
-      - name: Install poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          installer-parallel: true
-          virtualenvs-in-project: true
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          version: "0.10.x"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
       - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
-      - name: Check Black formatting
+        run: uv sync --frozen
+      - name: Check Ruff formatting
         if: ${{ !cancelled() }}
-        run: poetry run black --check .
-      - name: Run Flake8 Linter
+        run: uv run ruff format --check .
+      - name: Run Ruff Linter
         if: ${{ !cancelled() }}
-        run: poetry run flake8 . --exclude=front_end,.venv
+        run: uv run ruff check .
       - name: Check migrations
         if: ${{ !cancelled() }}
-        run: poetry run python manage.py makemigrations --dry-run --check
-      - name: "Run he backend unit tests"
+        run: uv run python manage.py makemigrations --dry-run --check
+      - name: "Run the backend unit tests"
         if: ${{ !cancelled() }}
-        run: poetry run pytest ./tests/unit
+        run: uv run pytest ./tests/unit
 
   frontend-unit-tests:
     name: "Frontend Checks"

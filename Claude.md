@@ -5,8 +5,8 @@ This is a Django + Next.js monorepo. Python/Django backend lives in the root dir
 - `npm run -C ./front_end build`: Build the project
 - `npm run -C ./front_end format`: Format the frontend code
 - `npm run -C ./front_end lint`: Run linter AND type checker in parallel (includes both `lint:js` and `lint:types`). Do NOT run `lint` and `lint:types` separately — `lint` already includes type checking.
-- `poetry run black .`: Format Python code
-- `poetry run flake8 . --exclude=front_end,.venv`: Lint Python code
+- `uv run ruff format .`: Format Python code
+- `uv run ruff check .`: Lint Python code
 
 # Code style
 - Check the existing code style and follow it
@@ -18,5 +18,5 @@ This is a Django + Next.js monorepo. Python/Django backend lives in the root dir
 # Workflow
 - When connected to an IDE, check terminal outputs first. If a dev server is already running, do not run a build. Instead, read the dev server terminal output for any latest errors and use those for feedback.
 - When done making code changes, run the relevant linters and formatters based on which files you edited:
-  - Python files: run `poetry run black .` and `poetry run flake8 . --exclude=front_end,.venv`
+  - Python files: run `uv run ruff format .` and `uv run ruff check .`
   - Frontend (JS/TS) files: run `npm run -C ./front_end lint` and `npm run -C ./front_end format`, and try to build with `npm run -C ./front_end build` if there is no running dev server in IDE.

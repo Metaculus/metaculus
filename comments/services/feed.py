@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db.models import Q, Case, When, Value, IntegerField, Exists, OuterRef
 
 from comments.models import Comment
@@ -13,6 +15,7 @@ def get_comments_feed(
     is_private=None,
     focus_comment_id: int = None,
     include_deleted=False,
+    last_viewed_at: datetime = None,
 ):
     user = user if user and user.is_authenticated else None
     sort = sort or "-created_at"
@@ -39,6 +42,32 @@ def get_comments_feed(
             )
 
             order_by_args.append("-is_pinned_thread")
+
+        # Prioritize threads with unread comments for the current user
+        if last_viewed_at:
+            unread_comments = Comment.objects.filter(
+                on_post=post,
+                created_at__gt=last_viewed_at,
+                is_soft_deleted=False,
+                is_private=False,
+            )
+            unread_root_ids = {
+                root_id or comment_id
+                for root_id, comment_id in unread_comments.values_list("root_id", "id")
+            }
+
+            if unread_root_ids:
+                qs = qs.annotate(
+                    has_unread_thread=Case(
+                        When(
+                            Q(pk__in=unread_root_ids) | Q(root_id__in=unread_root_ids),
+                            then=Value(1),
+                        ),
+                        default=Value(0),
+                        output_field=IntegerField(),
+                    ),
+                )
+                order_by_args.append("-has_unread_thread")
 
     if author is not None:
         qs = qs.filter(author_id=author)
@@ -79,7 +108,14 @@ def get_comments_feed(
                     output_field=IntegerField(),
                 )
             )
-            order_by_args.append("-is_focused_comment")
+            # Insert after pinned but before unread prioritization
+            # so focused comment always appears on the first page
+            pinned_idx = (
+                order_by_args.index("-is_pinned_thread") + 1
+                if "-is_pinned_thread" in order_by_args
+                else 0
+            )
+            order_by_args.insert(pinned_idx, "-is_focused_comment")
 
     if sort:
         if "vote_score" in sort:

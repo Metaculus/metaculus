@@ -51,7 +51,6 @@ def test_summarize_array(array, max_size, expected_array):
 
 
 class TestAggregations:
-
     @pytest.mark.parametrize(
         "forecasts_values, weights, expected",
         [
