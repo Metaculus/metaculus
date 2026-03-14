@@ -35,7 +35,7 @@
     "@marsidev/react-turnstile": "^0.7.2",
     "@mdxeditor/editor": "^3.23.2",
     "@next/third-parties": "15.2.4",
-    "@sentry/nextjs": "^9.17.0",
+    "@sentry/nextjs": "^9.47.1",
     "@storybook/addon-themes": "^9.0.14",
     "@storybook/nextjs-vite": "^9.0.13",
     "@svgr/webpack": "^8.1.0",
