@@ -17,6 +17,7 @@ export type getCommentsParams = {
   use_root_comments_pagination?: boolean;
   focus_comment_id?: string;
   is_private?: boolean;
+  last_viewed_at?: string;
 };
 
 export type KeyFactorWritePayload = KeyFactorDraft;

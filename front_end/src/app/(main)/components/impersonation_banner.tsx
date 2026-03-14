@@ -20,7 +20,7 @@ const ImpersonationBanner: FC = () => {
   if (!user?.is_bot) return;
 
   return (
-    <div className="text-md -mb-12 mt-12 flex w-full items-center justify-center gap-4 border-b border-t border-orange-400 bg-orange-50 p-2 text-sm leading-6 text-orange-900 dark:border-orange-400-dark dark:bg-orange-50-dark dark:text-orange-900-dark sm:px-6">
+    <div className="text-md flex w-full items-center justify-center gap-4 border-b border-t border-orange-400 bg-orange-50 p-2 text-sm leading-6 text-orange-900 dark:border-orange-400-dark dark:bg-orange-50-dark dark:text-orange-900-dark sm:px-6">
       <span>{t("impersonationBannerText")}</span>
       <Button
         onClick={handleStop}

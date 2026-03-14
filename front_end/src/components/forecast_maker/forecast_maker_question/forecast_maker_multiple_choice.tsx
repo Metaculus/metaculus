@@ -754,15 +754,6 @@ function generateChoiceOptions(
       (a, b) => (b.communityForecast ?? 0) - (a.communityForecast ?? 0)
     );
   }
-  const resolutionIndex = choiceItems.findIndex(
-    (item) => item.name === question.resolution
-  );
-  if (resolutionIndex !== -1) {
-    const [resolutionItem] = choiceItems.splice(resolutionIndex, 1);
-    if (resolutionItem) {
-      choiceItems.unshift(resolutionItem);
-    }
-  }
   return choiceItems;
 }
 

@@ -32,7 +32,7 @@ export default async function RootLayout({
   const isImpersonating = authManager.isImpersonating();
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col pt-header">
       <GlobalHeader />
 
       {isImpersonating && <ImpersonationBanner />}

@@ -17,5 +17,5 @@ def factory_notification(
             type=notification_type,
             recipient=recipient,
             params=asdict(params) if params else None,
-        )
+        ),
     )

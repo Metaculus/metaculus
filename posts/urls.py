@@ -8,6 +8,11 @@ urlpatterns = [
         "posts/homepage/", views.posts_list_homeage_api_view, name="post-list-homepage"
     ),
     path("posts/upload-image/", views.upload_image_api_view, name="post-upload-image"),
+    path(
+        "posts/onboarding-feed/",
+        views.onboarding_feed_api_view,
+        name="post-onboarding-feed",
+    ),
     path("posts/<int:pk>/", views.post_detail, name="post-detail"),
     path("posts/<int:pk>/boost/", views.activity_boost_api_view, name="post-boost"),
     path("posts/<int:pk>/repost/", views.repost_api_view, name="post-repost"),

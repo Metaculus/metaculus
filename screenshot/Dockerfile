@@ -1,56 +1,41 @@
 # Based on this image:
 # https://github.com/microsoft/playwright-python/blob/main/utils/docker/Dockerfile.focal
 
-FROM ubuntu:focal
+FROM python:3.12-slim-bookworm
 ARG TZ=Etc/GMT
 ARG DEBIAN_FRONTEND=noninteractive
 
+COPY --from=ghcr.io/astral-sh/uv:0.10 /uv /uvx /usr/local/bin/
+
+# Install curl (needed for Heroku CLI) and Heroku CLI in a single layer
 RUN apt-get update && \
-    apt-get install -y curl  make build-essential libssl-dev zlib1g-dev libbz2-dev \
-    libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
-    xz-utils tk-dev libffi-dev liblzma-dev python-openssl git vim
+    apt-get install -y --no-install-recommends curl gnupg && \
+    curl https://cli-assets.heroku.com/install-ubuntu.sh | sh && \
+    apt-get purge -y --auto-remove curl && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN  adduser --disabled-password --gecos "" pwuser
-
-# pyenv is needed to have the precise version of python installed, as that's fixed in the
-# pyproject.toml file.
-RUN curl https://pyenv.run | bash && \
-    chmod -R 777 "/root/.pyenv/bin"
-
-ENV PATH="/root/.pyenv/bin/:/root/.local/bin/:/root/.pyenv/shims/:${PATH}"
-
-RUN pyenv install 3.12.3 && pyenv global 3.12.3
-
-RUN chmod -R 777 "/root/.pyenv/shims"
-
-RUN curl -sSL https://install.python-poetry.org | python - && \
-    chmod -R 777 "/root/.local/bin"
+RUN adduser --disabled-password --gecos "" pwuser
 
 WORKDIR /app
 
-COPY pyproject.toml poetry.lock ./
+COPY pyproject.toml uv.lock ./
 
 ENV PLAYWRIGHT_BROWSERS_PATH=/playwright-browsers/
+ENV UV_PROJECT_ENVIRONMENT=/app/venv
 
-RUN poetry config virtualenvs.create false && \
-    python -m venv venv && \
-    . venv/bin/activate && \
-    poetry install && \
-    poetry run playwright install chromium --with-deps
+RUN uv sync --frozen
+RUN uv run playwright install chromium --with-deps
 
-RUN chmod -R 777 $PLAYWRIGHT_BROWSERS_PATH && \
-    chmod -R 777 /app/venv/bin
+RUN chown -R pwuser:pwuser $PLAYWRIGHT_BROWSERS_PATH /app/venv
 
-# Install Herokuy CLI, as it will be needed to renew the certificates for this service
-#RUN curl https://cli-assets.heroku.com/install.sh | sh
-RUN curl https://cli-assets.heroku.com/install-ubuntu.sh | sh && \
-    rm -rf /var/lib/apt/lists/*
+COPY app.py start.sh ./
+RUN chown -R pwuser:pwuser /app
 
 # This is not respected by Heroku, only used for local testing
 # https://devcenter.heroku.com/articles/container-registry-and-runtime#dockerfile-commands-and-runtime
 ENV PORT=9000
 EXPOSE 9000
 
-COPY app.py start.sh ./
+USER pwuser
 
 CMD ["/app/start.sh"]

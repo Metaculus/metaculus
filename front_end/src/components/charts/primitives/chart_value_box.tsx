@@ -213,7 +213,10 @@ const ChartValueBox: FC<{
   const adjustedX =
     isCursorActive || isDistributionChip
       ? x
-      : chartWidth - rightPadding + textWidth / 2 + CHIP_OFFSET;
+      : Math.min(
+          chartWidth - rightPadding + textWidth / 2 + CHIP_OFFSET,
+          chartWidth - textWidth / 2 - 2
+        );
   const hasResolution = !!resolution && !isCursorActive;
 
   const chipFill =

@@ -37,7 +37,7 @@ def F(q=None, v=None, s=None, e=None):
     # s: start time (days after 2020-01-01)
     # e: end time (days after 2020-01-01)
     forecast = Forecast(start_time=dt(s), end_time=None if e is None else dt(e))
-    match (q or QT.BINARY):
+    match q or QT.BINARY:
         case QT.BINARY:
             forecast.probability_yes = v or 0.5
         case QT.MULTIPLE_CHOICE:
@@ -63,7 +63,6 @@ def S(v=None, c=None):
 
 
 class TestScoreMath:
-
     @pytest.mark.parametrize(
         "forecasts, expected",
         [

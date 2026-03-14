@@ -196,6 +196,7 @@ const CommentsFeedProvider: FC<
       const response = await ClientCommentsApi.getComments({
         post: postData?.id,
         author: profileId,
+        last_viewed_at: postData?.last_viewed_at,
         /* if we're on a post, fetch only parent comments with children annotated.  if this is a profile, fetch only the author's comments, including parents and children */
         limit: COMMENTS_PER_PAGE,
         use_root_comments_pagination: rootCommentStructure,
