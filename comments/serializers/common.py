@@ -25,6 +25,7 @@ class CommentFilterSerializer(serializers.Serializer):
     focus_comment_id = serializers.IntegerField(required=False, allow_null=True)
     is_private = serializers.BooleanField(required=False, allow_null=True)
     include_deleted = serializers.BooleanField(required=False, allow_null=True)
+    last_viewed_at = serializers.DateTimeField(required=False, allow_null=True)
 
     def validate_post(self, value: int):
         try:

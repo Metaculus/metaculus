@@ -110,7 +110,7 @@ const Checkbox: FC<Props> = ({
           }
           onClick?.(e);
         }}
-        className="focus:outline-none"
+        className="flex focus:outline-none"
       >
         {({ checked }) =>
           checked ? (

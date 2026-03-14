@@ -32,6 +32,7 @@ import {
 import { CurrentUser } from "@/types/users";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
+import { buildChoicesWithOthers } from "@/utils/questions/choices";
 
 import MultipleChoiceTileLegend from "./multiple_choice_tile_legend";
 
@@ -156,6 +157,11 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
     onReaffirm(forecast);
   }, [canReaffirm, forecast, onReaffirm]);
 
+  const chartChoices = useMemo(
+    () => (isNil(group) ? buildChoicesWithOthers(choices) : choices),
+    [choices, group]
+  );
+
   return (
     <div
       ref={tileRef}
@@ -216,7 +222,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
               <MultipleChoiceChart
                 timestamps={timestamps}
                 actualCloseTime={actualCloseTime}
-                choiceItems={choices}
+                choiceItems={chartChoices}
                 height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
                 extraTheme={chartTheme}
                 defaultZoom={defaultChartZoom}
@@ -237,7 +243,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
                 questionType={groupType}
                 timestamps={timestamps}
                 actualCloseTime={actualCloseTime}
-                choiceItems={choices}
+                choiceItems={chartChoices}
                 height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
                 extraTheme={chartTheme}
                 defaultZoom={defaultChartZoom}
