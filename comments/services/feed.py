@@ -11,6 +11,7 @@ def get_comments_feed(
     parent_isnull=None,
     post=None,
     author=None,
+    author_is_staff=None,
     sort=None,
     is_private=None,
     focus_comment_id: int = None,
@@ -69,8 +70,13 @@ def get_comments_feed(
                 )
                 order_by_args.append("-has_unread_thread")
 
-    if author is not None:
+    # author and author_is_staff are treated as OR conditions
+    if author is not None and author_is_staff:
+        qs = qs.filter(Q(author_id=author) | Q(author__is_staff=True, parent=None))
+    elif author is not None:
         qs = qs.filter(author_id=author)
+    elif author_is_staff:
+        qs = qs.filter(author__is_staff=True, parent=None)
 
     if is_private and user:
         qs = qs.filter(is_private=is_private, author=user)
