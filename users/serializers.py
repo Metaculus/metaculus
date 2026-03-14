@@ -136,10 +136,11 @@ class UserPrivateSerializer(UserPublicSerializer):
         return user.has_usable_password()
 
     def get_reduced_api_restriction_projects(self, user: User):
-        return [
-            whitelist.project_id
-            for whitelist in user.whitelists.filter(project_id__isnull=False)
-        ]
+        return (
+            user.whitelists.filter(project_id__isnull=False)
+            .values_list("project_id", flat=True)
+            .distinct()
+        )
 
 
 class UserUpdateProfileSerializer(serializers.ModelSerializer):
