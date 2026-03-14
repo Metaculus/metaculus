@@ -253,8 +253,12 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
   const embedChoiceItems = useMemo(() => {
     if (!embedMode) return choiceItems;
 
-    return buildChoicesWithOthers(choiceItems);
-  }, [choiceItems, embedMode]);
+    const inactive = choiceItems.filter((c) => !c.active);
+    return buildChoicesWithOthers(
+      choiceItems,
+      t("othersCount", { count: inactive.length })
+    );
+  }, [choiceItems, embedMode, t]);
 
   if (embedMode) {
     return (

@@ -23,9 +23,10 @@ import {
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 function collectSortedTimestamps(
-  history: Array<{ start_time: number; end_time: number | null }>
+  history: Array<{ start_time: number; end_time: number | null }>,
+  baseTimestamps: number[] = []
 ): number[] {
-  const timestamps: number[] = [];
+  const timestamps: number[] = [...baseTimestamps];
   history.forEach((forecast) => {
     timestamps.push(forecast.start_time);
     if (forecast.end_time && forecast.end_time * 1000 <= Date.now()) {
@@ -316,18 +317,14 @@ export function generateChoiceItemsFromGroupQuestions(
       return forecast.start_time * 1000 < closeTime;
     });
 
-    const aggregationTimestamps = collectSortedTimestamps(aggregationHistory);
-
-    if (
+    const sortedAggregationTimestamps = collectSortedTimestamps(
+      aggregationHistory,
       question.status === QuestionStatus.RESOLVED ||
-      question.status === QuestionStatus.CLOSED
-    ) {
-      aggregationTimestamps.push(closeTime / 1000);
-    }
-
-    const sortedAggregationTimestamps = uniq(aggregationTimestamps).sort(
-      (a, b) => a - b
+        question.status === QuestionStatus.CLOSED
+        ? [closeTime / 1000]
+        : []
     );
+
     const sortedUserTimestamps = collectSortedTimestamps(userHistory ?? []);
 
     const userValues: (number | null)[] = [];
