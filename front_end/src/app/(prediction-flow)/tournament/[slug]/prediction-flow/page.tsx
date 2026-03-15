@@ -67,7 +67,7 @@ export default async function PredictionFlow(props: Props) {
         tournamentName={tournament.name}
         tournamentSlug={tournamentSlug}
       />
-      <main className="mx-auto flex min-h-screen max-w-3xl flex-grow flex-col pt-header">
+      <main className="isolate mx-auto flex min-h-screen max-w-3xl flex-grow flex-col pt-header">
         <ProgressSection />
         <PredictionFlowPost tournamentSlug={tournamentSlug} />
       </main>
