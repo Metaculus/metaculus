@@ -46,11 +46,11 @@ export default async function Questions(props: {
 
   return (
     <>
-      <main className="mx-auto mt-4 min-h-min w-full max-w-5xl flex-auto px-0 sm:px-2 md:px-3">
+      <main className="min-h-[calc(100vh-3rem)] w-full flex-auto">
         <OnboardingCheck />
-        <div className="gap-3 p-0 sm:flex sm:flex-row sm:gap-4">
+        <div className="flex flex-col sm:flex-row">
           <FeedSidebar items={sidebarItems} />
-          <div className="min-h-[calc(100vh-300px)] grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-0 sm:pt-5">
+          <div className="mx-auto min-h-[calc(100vh-300px)] w-full max-w-5xl grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-4 sm:pt-5">
             {isCommunityFeed ? (
               <Suspense
                 key={JSON.stringify(searchParams)}

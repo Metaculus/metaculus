@@ -46,6 +46,7 @@ const FeedSidebar: FC<Props> = ({ items }) => {
   const fullPathname = `${pathname}${params.toString() ? `?${params.toString()}` : ""}`;
 
   const sidebarSections: SidebarSection[] = useMemo(() => {
+    console.log("api result", items);
     const menuItems: SidebarMenuItem[] = [
       {
         name: t("feedHome"),
@@ -140,17 +141,16 @@ const FeedSidebar: FC<Props> = ({ items }) => {
     useContentTranslatedBannerContext();
 
   const topPositionClasses = isTranslationBannerVisible
-    ? "top-24 lg:top-20"
-    : "top-12 lg:top-20";
+    ? "top-24 lg:top-header"
+    : "top-header";
 
   return (
     <div
       className={cn(
-        "sticky z-100 mt-0 self-start sm:top-16 sm:mt-4",
-        topPositionClasses
+        "z-100 border-y border-blue-400 bg-gray-0/50 dark:border-blue-700 dark:bg-blue-50-dark/50 sm:border-y-0 sm:border-r"
       )}
     >
-      <div className="relative w-full border-y border-blue-400 bg-gray-0/75 p-3 backdrop-blur-md no-scrollbar dark:border-blue-700 dark:bg-blue-50-dark/75 sm:max-h-[calc(100vh-76px)] sm:overflow-y-auto sm:border-none sm:bg-blue-200/0 sm:p-2 sm:pt-0 sm:dark:bg-blue-50-dark/0">
+      <div className="sticky top-header w-full p-2 no-scrollbar sm:overflow-y-auto sm:p-3">
         <div
           className={cn(
             "pointer-events-none absolute right-0 top-0 z-20 h-full w-32 bg-gradient-to-r from-transparent to-blue-100 dark:to-blue-50-dark sm:hidden",
