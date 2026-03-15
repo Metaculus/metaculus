@@ -103,6 +103,8 @@ export type ImpactMetadata = {
   certainty: -1 | null;
 };
 
+export type ImpactDirection = "increase" | "decrease" | "uncertainty";
+
 export type Driver = ImpactMetadata & {
   text: string;
 };
@@ -138,6 +140,7 @@ export type KeyFactor = {
   news?: News | null;
   author: AuthorType; // used to set limit per question
   comment_id: number;
+  created_at: string;
   vote: KeyFactorVoteAggregate;
   question_id?: number | null;
   question?: {

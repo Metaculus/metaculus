@@ -119,17 +119,15 @@ const CommentsFeedProvider: FC<
   const [error, setError] = useState<ErrorType | undefined>(undefined);
   const [offset, setOffset] = useState<number>(0);
 
-  const initialKeyFactors = [...(postData?.key_factors ?? [])].sort((a, b) =>
-    b.vote?.score === a.vote?.score
-      ? Math.random() - 0.5
-      : (b.vote?.score || 0) - (a.vote?.score || 0)
+  const initialKeyFactors = [...(postData?.key_factors ?? [])].sort(
+    (a, b) => (b.vote?.score || 0) - (a.vote?.score || 0) || b.id - a.id
   );
   const [combinedKeyFactors, setCombinedKeyFactors] =
     useState<KeyFactor[]>(initialKeyFactors);
 
   const setAndSortCombinedKeyFactors = (keyFactors: KeyFactor[]) => {
     const sortedKeyFactors = [...keyFactors].sort(
-      (a, b) => (b.vote?.score || 0) - (a.vote?.score || 0)
+      (a, b) => (b.vote?.score || 0) - (a.vote?.score || 0) || b.id - a.id
     );
     setCombinedKeyFactors(sortedKeyFactors);
   };
@@ -139,16 +137,11 @@ const CommentsFeedProvider: FC<
     aggregate: KeyFactorVoteAggregate
   ) => {
     // Update the list of combined key factors with the new vote
-    const newKeyFactors = combinedKeyFactors.map((kf) =>
-      kf.id === keyFactorId
-        ? {
-            ...kf,
-            vote: aggregate,
-          }
-        : { ...kf }
+    setCombinedKeyFactors((prev) =>
+      prev.map((kf) =>
+        kf.id === keyFactorId ? { ...kf, vote: aggregate } : kf
+      )
     );
-
-    setCombinedKeyFactors(newKeyFactors);
 
     //Update the comments state with the new vote for the key factor
     setComments((prevComments) => {

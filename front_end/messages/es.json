@@ -2068,5 +2068,14 @@
   "failedToLoadAggregation": "No se pudo cargar la agregación",
   "questionFallbackLabel": "Pregunta {id}",
   "openInAggregationExplorer": "Abrir en el Explorador de Agregación",
+  "viewComment": "Ver comentario",
+  "createdTimeAgoBy": "Creado {timeAgo} por @{author}",
+  "createdTimeAgo": "Creado {timeAgo}",
+  "direction": "Dirección",
+  "voteOnImpact": "VOTAR SOBRE EL IMPACTO",
+  "why": "¿POR QUÉ?",
+  "wrongDirection": "Dirección incorrecta",
+  "redundant": "Redundante",
+  "thanksForVoting": "¡Gracias por votar!",
   "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
 }

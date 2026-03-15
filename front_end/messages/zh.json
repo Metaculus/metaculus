@@ -2070,5 +2070,14 @@
   "failedToLoadAggregation": "无法加载聚合",
   "questionFallbackLabel": "问题 {id}",
   "openInAggregationExplorer": "在聚合探索器中打开",
+  "viewComment": "查看评论",
+  "createdTimeAgoBy": "由 @{author} 创建于 {timeAgo}",
+  "createdTimeAgo": "创建于 {timeAgo}",
+  "direction": "方向",
+  "voteOnImpact": "影响投票",
+  "why": "为什么？",
+  "wrongDirection": "方向错误",
+  "redundant": "重复",
+  "thanksForVoting": "感谢投票！",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }

@@ -46,9 +46,10 @@ const KeyFactorsConsumerCarousel: React.FC<Props> = ({
       items={items}
       renderItem={(item) =>
         item.kind === "keyFactor" ? (
-          <button
-            className="text-left no-underline"
-            type="button"
+          <div
+            className="cursor-pointer text-left no-underline"
+            role="button"
+            tabIndex={0}
             onClick={(e) => {
               e.preventDefault();
               if (onKeyFactorClick) {
@@ -63,17 +64,20 @@ const KeyFactorsConsumerCarousel: React.FC<Props> = ({
           >
             <KeyFactorItem
               keyFactor={item.keyFactor}
+              linkToComment={false}
               mode="consumer"
               isCompact={!isDesktop}
               className={cn(
-                "sm:max-w-[200px]",
+                "max-w-[160px] sm:max-w-[200px]",
                 lightVariant && "bg-gray-0 dark:bg-gray-0-dark"
               )}
             />
-          </button>
+          </div>
         ) : (
-          <button
-            className="text-left no-underline"
+          <div
+            className="cursor-pointer text-left no-underline"
+            role="button"
+            tabIndex={0}
             onClick={(e) => {
               e.preventDefault();
               openKeyFactorsElement(`[id="question-link-kf-${item.link.id}"]`);
@@ -85,9 +89,12 @@ const KeyFactorsConsumerCarousel: React.FC<Props> = ({
               mode="consumer"
               compact={!isDesktop}
               linkToComment={false}
-              className={cn(lightVariant && "bg-gray-0 dark:bg-gray-0-dark")}
+              className={cn(
+                "max-w-[160px] sm:max-w-[200px]",
+                lightVariant && "bg-gray-0 dark:bg-gray-0-dark"
+              )}
             />
-          </button>
+          </div>
         )
       }
     />

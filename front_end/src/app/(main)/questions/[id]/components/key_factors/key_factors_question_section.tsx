@@ -87,15 +87,15 @@ const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
 
   const showCreateButton =
     !isFlow &&
-    (combinedKeyFactors.length > 0 || hasQuestionLinks) &&
     factorsLimit > 0 &&
+    totalCount > 0 &&
     !CLOSED_STATUSES.includes(postStatus);
 
-  const sectionTitle = isFlow
-    ? `${t("keyFactors")} (${totalCount})`
-    : t("keyFactors");
+  const sectionTitle =
+    totalCount > 0 ? `${t("keyFactors")} (${totalCount})` : t("keyFactors");
 
-  const shouldDefaultOpen = !isFlow || totalCount > 0;
+  const isResolved = postStatus === PostStatus.RESOLVED;
+  const shouldDefaultOpen = !isResolved && (!isFlow || totalCount > 0);
 
   return (
     <SectionToggle
@@ -129,7 +129,7 @@ const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
             }
           />
         ) : null
-      ) : combinedKeyFactors.length > 0 ? (
+      ) : (
         <ExpandableContent
           maxCollapsedHeight={340}
           expandLabel={t("showMore")}
@@ -138,8 +138,6 @@ const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
         >
           <KeyFactorsFeed post={post} />
         </ExpandableContent>
-      ) : (
-        <KeyFactorsFeed post={post} />
       )}
     </SectionToggle>
   );

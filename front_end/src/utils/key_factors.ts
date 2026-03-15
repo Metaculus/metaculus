@@ -1,4 +1,4 @@
-import { KeyFactor } from "@/types/comment";
+import { ImpactDirection, ImpactMetadata, KeyFactor } from "@/types/comment";
 import {
   BaseRateDraft,
   DriverDraft,
@@ -19,3 +19,13 @@ export const isBaseRateKF = (kf: KeyFactor) =>
   !!kf.base_rate && !kf.driver && !kf.news;
 export const isNewsKF = (kf: KeyFactor) =>
   !!kf.news && !kf.driver && !kf.base_rate;
+
+export function getImpactDirectionFromMetadata(
+  metadata: ImpactMetadata | null
+): ImpactDirection | null {
+  if (!metadata) return null;
+  if (metadata.certainty === -1) return "uncertainty";
+  if (metadata.impact_direction === 1) return "increase";
+  if (metadata.impact_direction === -1) return "decrease";
+  return null;
+}

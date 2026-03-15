@@ -2065,5 +2065,14 @@
   "failedToLoadAggregation": "載入聚合失敗",
   "questionFallbackLabel": "問題 {id}",
   "openInAggregationExplorer": "在聚合探索器中開啟",
+  "viewComment": "查看評論",
+  "createdTimeAgoBy": "由 @{author} 建立於 {timeAgo}",
+  "createdTimeAgo": "建立於 {timeAgo}",
+  "direction": "方向",
+  "voteOnImpact": "影響投票",
+  "why": "為什麼？",
+  "wrongDirection": "方向錯誤",
+  "redundant": "重複",
+  "thanksForVoting": "感謝投票！",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }

@@ -2062,5 +2062,14 @@
   "onAFlexibleTimeline": "on a flexible timeline",
   "publicForecasters": "public forecasters",
   "yourInternalExperts": "your internal experts",
+  "voteOnImpact": "VOTE ON IMPACT",
+  "why": "WHY?",
+  "wrongDirection": "Wrong direction",
+  "redundant": "Redundant",
+  "thanksForVoting": "Thanks for voting!",
+  "viewComment": "View comment",
+  "createdTimeAgoBy": "Created {timeAgo} by @{author}",
+  "createdTimeAgo": "Created {timeAgo}",
+  "direction": "Direction",
   "feedTileSummaryPlaceholder": "Optional: Enter a custom summary text to display on feed tiles (if not provided, a summary will be auto-generated from the notebook content)"
 }

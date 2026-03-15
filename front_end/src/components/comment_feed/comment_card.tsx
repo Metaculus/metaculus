@@ -58,8 +58,15 @@ const KeyFactors = ({ keyFactors }: { keyFactors: KeyFactor[] }) => {
 
       <KeyFactorsCarousel
         items={keyFactors}
+        gapClassName="gap-1"
         renderItem={(kf) => (
-          <KeyFactorItem keyFactor={kf} isCompact={true} mode={"consumer"} />
+          <KeyFactorItem
+            keyFactor={kf}
+            isCompact={true}
+            mode={"consumer"}
+            linkToComment={false}
+            className="w-[190px]"
+          />
         )}
       />
     </div>

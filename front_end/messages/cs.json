@@ -2068,5 +2068,14 @@
   "failedToLoadAggregation": "Nepodařilo se načíst agregaci",
   "questionFallbackLabel": "Otázka {id}",
   "openInAggregationExplorer": "Otevřít v Průzkumníku agregací",
+  "viewComment": "Zobrazit komentář",
+  "createdTimeAgoBy": "Vytvořeno {timeAgo} uživatelem @{author}",
+  "createdTimeAgo": "Vytvořeno {timeAgo}",
+  "direction": "Směr",
+  "voteOnImpact": "HLASOVAT O DOPADU",
+  "why": "PROČ?",
+  "wrongDirection": "Špatný směr",
+  "redundant": "Nadbytečné",
+  "thanksForVoting": "Děkujeme za hlasování!",
   "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }

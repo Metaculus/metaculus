@@ -5,9 +5,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode } from "react";
 
+import { ImpactDirection } from "@/types/comment";
 import cn from "@/utils/core/cn";
 
-type Mode = "forecaster" | "consumer";
+import VerticalImpactBar from "./vertical_impact_bar";
 
 type Props = {
   id?: string;
@@ -15,9 +16,11 @@ type Props = {
   isFlagged?: boolean;
   linkToComment?: boolean;
   isCompact?: boolean;
-  mode?: Mode;
+  mode?: "forecaster" | "consumer";
   onClick?: () => void;
   className?: string;
+  impactDirection?: ImpactDirection | null;
+  impactStrength?: number;
 };
 
 const KeyFactorCardContainer: FC<Props> = ({
@@ -26,12 +29,13 @@ const KeyFactorCardContainer: FC<Props> = ({
   isFlagged,
   linkToComment = true,
   isCompact,
-  mode,
+  mode: _mode,
   onClick,
   className,
+  impactDirection,
+  impactStrength = 0,
 }) => {
   const t = useTranslations();
-  const isCompactConsumer = mode === "consumer" && isCompact;
 
   if (isFlagged) {
     return (
@@ -47,26 +51,33 @@ const KeyFactorCardContainer: FC<Props> = ({
     );
   }
 
+  const showImpactBar = impactDirection !== undefined;
+
   return (
     <div
       id={id}
       onClick={onClick}
       className={cn(
-        "relative flex flex-col gap-3 rounded border border-transparent bg-blue-200 p-3 dark:bg-blue-200-dark [&:hover_.target]:visible",
+        "relative flex gap-3 rounded-xl p-5 [&:hover_.target]:visible",
+        linkToComment
+          ? "border border-blue-400 bg-gray-0 dark:border-blue-400-dark dark:bg-gray-0-dark"
+          : "bg-blue-200 dark:bg-blue-200-dark",
         {
-          "bg-gray-0 dark:bg-gray-0-dark": linkToComment,
-          "max-w-[280px]": isCompact || mode === "consumer",
-          "max-w-[164px]": isCompactConsumer,
-          "rounded-xl bg-blue-200 p-5 dark:bg-blue-200-dark":
-            mode === "consumer",
-          "p-4": isCompactConsumer,
           "cursor-pointer hover:border-blue-500 dark:hover:border-blue-500-dark":
             !!onClick,
         },
+        isCompact && "p-4",
         className
       )}
     >
-      {children}
+      {showImpactBar && (
+        <VerticalImpactBar
+          direction={impactDirection}
+          strength={impactStrength}
+          size={isCompact ? "narrow" : "default"}
+        />
+      )}
+      <div className="flex min-w-0 flex-1 flex-col gap-3">{children}</div>
     </div>
   );
 };
