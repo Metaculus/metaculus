@@ -2068,5 +2068,7 @@
   "failedToLoadAggregation": "No se pudo cargar la agregación",
   "questionFallbackLabel": "Pregunta {id}",
   "openInAggregationExplorer": "Abrir en el Explorador de Agregación",
+  "switchBackToSlidersHint": "vuelve a los deslizadores para un ajuste suave",
+  "view": "Ver",
   "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
 }

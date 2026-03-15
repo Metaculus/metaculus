@@ -2065,5 +2065,7 @@
   "failedToLoadAggregation": "載入聚合失敗",
   "questionFallbackLabel": "問題 {id}",
   "openInAggregationExplorer": "在聚合探索器中開啟",
+  "switchBackToSlidersHint": "切換回滑桿以平滑調整",
+  "view": "檢視",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }
