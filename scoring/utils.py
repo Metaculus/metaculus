@@ -553,13 +553,17 @@ def assign_medals_(
 ):
     entries.sort(key=lambda entry: entry.rank)
     entry_count = len(
-        [e for e in entries if e.exclusion_status == ExclusionStatuses.INCLUDE]
+        [
+            e
+            for e in entries
+            if e.exclusion_status <= ExclusionStatuses.EXCLUDE_PRIZE_ONLY
+        ]
     )
     gold_rank = max(np.ceil(0.01 * entry_count), 1)
     silver_rank = max(np.ceil(0.02 * entry_count), 2)
     bronze_rank = max(np.ceil(0.05 * entry_count), 3)
     for entry in entries:
-        if entry.exclusion_status != ExclusionStatuses.INCLUDE:
+        if entry.exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_ONLY:
             continue
         elif entry.rank <= gold_rank:
             entry.medal = LeaderboardEntry.Medals.GOLD
