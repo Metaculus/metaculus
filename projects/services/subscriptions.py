@@ -9,7 +9,7 @@ from notifications.services import (
     NotificationQuestionParams,
     send_news_category_notebook_publish_notification,
 )
-from posts.models import Post, Notebook
+from posts.models import Post, PostSubscription, Notebook
 from projects.models import Project, ProjectSubscription
 from projects.permissions import ObjectPermission
 from questions.constants import QuestionStatus
@@ -17,25 +17,125 @@ from questions.models import Question
 from users.models import User
 
 
-@transaction.atomic
-def subscribe_project(project: Project, user: User):
-    obj = ProjectSubscription(
-        project=project,
-        user=user,
+def _create_default_question_subscriptions(user: User, post: Post):
+    """
+    Create default PostSubscription records for a question post.
+    Matches the defaults used in the frontend's getInitialQuestionSubscriptions.
+    """
+
+    from posts.services.subscriptions import (
+        create_subscription_cp_change,
+        create_subscription_milestone,
+        create_subscription_new_comments,
+        create_subscription_status_change,
     )
 
-    try:
-        obj.save()
-    except IntegrityError:
-        # Skip if use has been already subscribed
-        return
+    return [
+        create_subscription_new_comments(user=user, post=post, comments_frequency=1),
+        create_subscription_status_change(user=user, post=post),
+        create_subscription_milestone(user=user, post=post, milestone_step=0.2),
+        create_subscription_cp_change(user=user, post=post, cp_change_threshold=0.25),
+    ]
+
+
+def follow_all_project_questions(project: Project, user: User):
+    """
+    Follow all questions in a project with default subscription settings.
+    Skips posts the user already has non-global subscriptions on.
+    """
+
+    posts = (
+        Post.objects.filter_projects(project)
+        .filter_permission(user=user)
+        .filter_questions()
+    )
+
+    # Find posts user already follows (has non-global subscriptions)
+    already_followed_post_ids = set(
+        PostSubscription.objects.filter(
+            user=user,
+            post__in=posts,
+            is_global=False,
+        )
+        .values_list("post_id", flat=True)
+        .distinct()
+    )
+
+    for post in posts:
+        if post.pk in already_followed_post_ids:
+            continue
+        _create_default_question_subscriptions(user, post)
+
+
+def unfollow_all_project_questions(project: Project, user: User):
+    """
+    Remove all non-global post subscriptions for questions in a project.
+    """
+
+    posts = (
+        Post.objects.filter_projects(project)
+        .filter_permission(user=user)
+        .filter_questions()
+    )
+    PostSubscription.objects.filter(
+        user=user,
+        post__in=posts,
+        is_global=False,
+    ).delete()
+
+
+def follow_new_project_post(post: Post, project: Project):
+    """
+    Auto-follow a newly added post for all project subscribers
+    who have follow_questions enabled.
+    """
+
+    subscriptions = ProjectSubscription.objects.filter(
+        project=project,
+        follow_questions=True,
+    ).select_related("user")
+
+    for subscription in subscriptions:
+        user = subscription.user
+        # Check user has permission to view the post
+        if not Post.objects.filter_permission(user=user).filter(pk=post.pk).exists():
+            continue
+        # Skip if user already has subscriptions on this post
+        if PostSubscription.objects.filter(
+            user=user, post=post, is_global=False
+        ).exists():
+            continue
+        _create_default_question_subscriptions(user, post)
+
+
+@transaction.atomic
+def subscribe_project(project: Project, user: User, follow_questions: bool = False):
+    project_subscription = ProjectSubscription.objects.filter(
+        project=project, user=user
+    ).first()
+    if project_subscription:
+        # Update follow_questions if subscription already exists
+        project_subscription.follow_questions = follow_questions
+        project_subscription.save()
+    else:
+        ProjectSubscription.objects.create(
+            project=project,
+            user=user,
+            follow_questions=follow_questions,
+        )
 
     project.update_followers_count()
     project.save()
 
+    if follow_questions:
+        follow_all_project_questions(project, user)
+
 
 @transaction.atomic
-def unsubscribe_project(project: Project, user: User):
+def unsubscribe_project(project: Project, user: User, unfollow_questions: bool = False):
+    if unfollow_questions:
+        unfollow_all_project_questions(project, user)
+
     ProjectSubscription.objects.filter(project=project, user=user).delete()
 
     project.update_followers_count()
@@ -120,3 +220,7 @@ def notify_post_added_to_project(post: Post, project: Project):
         notify_project_subscriptions_post_open(
             post, notebook=post.notebook, project=project
         )
+
+    # Auto-follow new questions for subscribers with follow_questions enabled
+    if post.question_id or post.conditional_id or post.group_of_questions_id:
+        follow_new_project_post(post, project)
