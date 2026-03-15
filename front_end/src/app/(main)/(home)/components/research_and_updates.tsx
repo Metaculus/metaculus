@@ -5,6 +5,8 @@ import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { FC } from "react";
 
+import { normalizeIntlLocale } from "@/utils/formatters/date";
+
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import Button from "@/components/ui/button";
 import { NotebookPost } from "@/types/post";
@@ -26,7 +28,7 @@ type Props = {
 
 const ResearchAndUpdates: FC<Props> = async ({ posts, className }) => {
   const t = await getTranslations();
-  const locale = await getLocale();
+  const locale = normalizeIntlLocale(await getLocale());
 
   return (
     <section className={className}>

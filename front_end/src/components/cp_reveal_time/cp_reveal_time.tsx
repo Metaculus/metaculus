@@ -3,6 +3,7 @@ import { useLocale, useTranslations } from "next-intl";
 import React, { FC } from "react";
 
 import RelativeTime from "@/components/ui/relative_time";
+import { normalizeIntlLocale } from "@/utils/formatters/date";
 
 type Props = {
   cpRevealTime: string;
@@ -16,7 +17,7 @@ const CPRevealTime: FC<Props> = ({
   className = "",
 }) => {
   const t = useTranslations();
-  const locale = useLocale();
+  const locale = normalizeIntlLocale(useLocale());
 
   if (hiddenUntilView) {
     const revealDate = new Date(cpRevealTime);
