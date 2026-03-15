@@ -2068,5 +2068,16 @@
   "failedToLoadAggregation": "No se pudo cargar la agregación",
   "questionFallbackLabel": "Pregunta {id}",
   "openInAggregationExplorer": "Abrir en el Explorador de Agregación",
+  "tournamentFollowModalTitle": "Seguir Torneo",
+  "tournamentFollowModalDescription": "Recibirás notificaciones sobre nuevas preguntas y clasificaciones finales.",
+  "tournamentFollowModalAlsoFollowQuestions": "Seguir también todas las preguntas",
+  "tournamentFollowModalAlsoFollowQuestionsDescription": "Seguir automáticamente cada pregunta con la configuración de notificación predeterminada. Las preguntas recién añadidas también serán seguidas.",
+  "tournamentFollowModalSubmit": "Seguir",
+  "tournamentUnfollowModalTitle": "Dejar de Seguir Torneo",
+  "tournamentUnfollowModalDescription": "Ya no recibirás notificaciones sobre este torneo.",
+  "tournamentUnfollowModalAlsoUnfollowQuestions": "Dejar de seguir también todas las preguntas",
+  "tournamentUnfollowModalAlsoUnfollowQuestionsDescription": "Elimina tus seguimientos de todas las preguntas en este torneo.",
+  "tournamentUnfollowModalSubmit": "Dejar de Seguir",
+  "switchBackToSlidersHint": "volver a los deslizadores para un ajuste suave",
   "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
 }

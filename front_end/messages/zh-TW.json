@@ -2065,5 +2065,16 @@
   "failedToLoadAggregation": "載入聚合失敗",
   "questionFallbackLabel": "問題 {id}",
   "openInAggregationExplorer": "在聚合探索器中開啟",
+  "tournamentFollowModalTitle": "關注比賽",
+  "tournamentFollowModalDescription": "您將會收到關於新問題和最終排名的通知。",
+  "tournamentFollowModalAlsoFollowQuestions": "亦關注所有問題",
+  "tournamentFollowModalAlsoFollowQuestionsDescription": "自動關注每個問題，並使用默認通知設置。新增的問題也將被關注。",
+  "tournamentFollowModalSubmit": "關注",
+  "tournamentUnfollowModalTitle": "取消關注比賽",
+  "tournamentUnfollowModalDescription": "您將不再收到有關此比賽的通知。",
+  "tournamentUnfollowModalAlsoUnfollowQuestions": "亦取消關注所有問題",
+  "tournamentUnfollowModalAlsoUnfollowQuestionsDescription": "從此比賽中的所有問題中移除您的關注。",
+  "tournamentUnfollowModalSubmit": "取消關注",
+  "switchBackToSlidersHint": "切換回滑桿以獲得平滑的調整",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }

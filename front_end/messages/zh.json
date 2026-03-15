@@ -2070,5 +2070,16 @@
   "failedToLoadAggregation": "无法加载聚合",
   "questionFallbackLabel": "问题 {id}",
   "openInAggregationExplorer": "在聚合探索器中打开",
+  "tournamentFollowModalTitle": "关注比赛",
+  "tournamentFollowModalDescription": "您将收到关于新问题和最终排名的通知。",
+  "tournamentFollowModalAlsoFollowQuestions": "同时关注所有问题",
+  "tournamentFollowModalAlsoFollowQuestionsDescription": "根据默认通知设置自动关注每个问题。新添加的问题也会被关注。",
+  "tournamentFollowModalSubmit": "关注",
+  "tournamentUnfollowModalTitle": "取消关注比赛",
+  "tournamentUnfollowModalDescription": "您将不再收到关于此比赛的通知。",
+  "tournamentUnfollowModalAlsoUnfollowQuestions": "同时取消关注所有问题",
+  "tournamentUnfollowModalAlsoUnfollowQuestionsDescription": "取消您对此比赛中所有问题的关注。",
+  "tournamentUnfollowModalSubmit": "取消关注",
+  "switchBackToSlidersHint": "切换回滑块以获得平滑适配",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }
