@@ -25,7 +25,9 @@ const TournamentSubscribeModal: FC<Props> = ({
   isLoading,
 }) => {
   const t = useTranslations();
-  const [followQuestions, setFollowQuestions] = useState(defaultFollowQuestions);
+  const [followQuestions, setFollowQuestions] = useState(
+    defaultFollowQuestions
+  );
 
   const isFollow = mode === "follow";
 
