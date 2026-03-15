@@ -857,7 +857,7 @@ def update_leaderboard_from_csv_data(
         score = row.get("score")
         take = row.get("take")
         rank = row.get("rank")
-        exclusion_status = row.get("exclusion_status")
+        exclusion_status = row.get("exclusion_status", 0)
         medal = row.get("medal")
         percent_prize = row.get("percent_prize")
         prize = row.get("prize")

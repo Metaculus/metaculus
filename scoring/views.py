@@ -79,7 +79,7 @@ def global_leaderboard_view(
                     3,
                     np.ceil(
                         entries.filter(
-                            exclusion_status=ExclusionStatuses.INCLUDE
+                            exclusion_status__lte=ExclusionStatuses.EXCLUDE_PRIZE_ONLY
                         ).count()
                         * 0.05
                     ),

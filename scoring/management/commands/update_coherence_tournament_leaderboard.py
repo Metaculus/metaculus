@@ -237,12 +237,8 @@ def run_update_coherence_spring_2026_cup() -> None:
         entry.rank = rank
         entry.excluded = exclusion_status != ExclusionStatuses.INCLUDE
         entry.show_when_excluded = True
-<<<<<<< HEAD
         entry.exclusion_status = exclusion_status
-        entry.contribution_count = forecasted_questions
-=======
         entry.contribution_count = relevant_links.count()
->>>>>>> 31f82db8241f7a21fbab5beee1efbf85cf82592a
         entry.coverage = weight / question_count
         entry.calculated_on = timezone.now()
         entry.save()
