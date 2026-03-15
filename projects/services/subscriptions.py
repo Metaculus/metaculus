@@ -1,4 +1,4 @@
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from django.db.models import Q, Case, When, Value, BooleanField
 
 from notifications.constants import MailingTags

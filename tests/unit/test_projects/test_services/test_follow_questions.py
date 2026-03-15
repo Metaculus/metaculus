@@ -1,6 +1,6 @@
 from datetime import datetime, timezone as dt_timezone
 
-from posts.models import Post, PostSubscription
+from posts.models import PostSubscription
 from projects.models import ProjectSubscription
 from projects.permissions import ObjectPermission
 from projects.services.subscriptions import (
