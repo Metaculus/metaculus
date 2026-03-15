@@ -13,6 +13,7 @@ import {
   POST_FOLLOWING_FILTER,
   POST_FOR_MAIN_FEED,
   POST_FORECASTER_ID_FILTER,
+  POST_IDS_FILTER,
   POST_LEADERBOARD_TAGS_FILTER,
   POST_NOT_FORECASTER_ID_FILTER,
   POST_ORDER_BY_FILTER,
@@ -121,6 +122,18 @@ export function generateFiltersFromSearchParams(
   }
   if (searchParams[POST_PROJECT_FILTER]) {
     filters.default_project_id = searchParams[POST_PROJECT_FILTER].toString();
+  }
+  if (searchParams[POST_IDS_FILTER]) {
+    const idsParam = searchParams[POST_IDS_FILTER];
+    if (Array.isArray(idsParam)) {
+      filters.ids = idsParam.map(Number).filter((id) => !isNaN(id));
+    } else if (typeof idsParam === "string") {
+      // Handle comma-separated values or single value
+      filters.ids = idsParam
+        .split(",")
+        .map(Number)
+        .filter((id) => !isNaN(id));
+    }
   }
   if (typeof searchParams[POST_FOR_MAIN_FEED] === "string") {
     filters.for_main_feed = searchParams[POST_FOR_MAIN_FEED];
