@@ -12,7 +12,7 @@ def factory_project(
     # user_id -> permission
     override_permissions: dict[int | User, ObjectPermission] = None,
     subscribers: list[User] = None,
-    **kwargs
+    **kwargs,
 ) -> Project:
     kwargs["default_permission"] = default_permission
     kwargs["type"] = kwargs.get("type", Project.ProjectTypes.CATEGORY)
@@ -23,7 +23,7 @@ def factory_project(
         Project,
         **setdefaults_not_null(
             kwargs,
-        )
+        ),
     )
 
     for user_value, permission in override_permissions.items():

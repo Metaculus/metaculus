@@ -9,7 +9,6 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { forEach, isNil } from "lodash";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -647,10 +646,7 @@ const GroupForm: React.FC<Props> = ({
         <InputContainer
           labelText={t("backgroundInformation")}
           isNativeFormControl={false}
-          explanation={t.rich("backgroundInfoExplanation", {
-            link: (chunks) => <Link href="/help/markdown">{chunks}</Link>,
-            markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
-          })}
+          explanation={t("backgroundInfoExplanation")}
         >
           <MarkdownEditorField
             control={form.control}

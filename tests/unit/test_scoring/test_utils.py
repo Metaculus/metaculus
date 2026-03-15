@@ -9,7 +9,6 @@ from tests.unit.test_users.factories import factory_user
 
 
 class TestScoringUtilsHelpers:
-
     @pytest.mark.parametrize(
         "entry_takes, minimum_prize_percent, expected",
         [

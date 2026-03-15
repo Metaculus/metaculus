@@ -187,9 +187,9 @@ class TestUserProfileUpdate:
         response = user_client.patch(self.url, patch_data, format="json")
 
         user.refresh_from_db()
-        assert user.bio == (
-            patch_data["bio"] if "bio" in patch_data else old_bio
-        ), "The bio should be updated"
+        assert user.bio == (patch_data["bio"] if "bio" in patch_data else old_bio), (
+            "The bio should be updated"
+        )
         assert isinstance(response, Response)
         assert response.status_code == status.HTTP_200_OK
         assert user.is_active, "The user should not be soft deleted"
@@ -203,9 +203,9 @@ class TestUserProfileUpdate:
         assert isinstance(response, Response)
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.data is not None, "There needs to be a response body"
-        assert (
-            response.data["error_code"] == "SPAM_DETECTED"
-        ), "There needs to be an error code"
+        assert response.data["error_code"] == "SPAM_DETECTED", (
+            "There needs to be an error code"
+        )
 
     def assert_user_is_deactivated_and_unchanged(
         self, user: User, original_bio: str, new_bio: str
@@ -219,12 +219,12 @@ class TestUserProfileUpdate:
     ) -> None:
         mock_send_mail.assert_called_once()
         call_kwargs = mock_send_mail.call_args[1]  # Get kwargs from the call
-        assert call_kwargs["recipient_list"] == [
-            recipient_email
-        ], "Email should be sent to the user"
-        assert (
-            "support@metaculus.com" in call_kwargs["message"]
-        ), "Message should mention support email"
+        assert call_kwargs["recipient_list"] == [recipient_email], (
+            "Email should be sent to the user"
+        )
+        assert "support@metaculus.com" in call_kwargs["message"], (
+            "Message should mention support email"
+        )
 
 
 def mock_spam_detection_and_email(
@@ -403,9 +403,9 @@ def test_spam_detection(bio: str, username: str, is_spam: bool) -> None:
         ask_gpt_to_check_profile_for_spam(bio, username)
     )
     try:
-        assert (
-            identified_as_spam == is_spam
-        ), f"Bio: {bio}\nIdentified as spam: {identified_as_spam}, expected: {is_spam}\nGPT response: {gpt_response}"
+        assert identified_as_spam == is_spam, (
+            f"Bio: {bio}\nIdentified as spam: {identified_as_spam}, expected: {is_spam}\nGPT response: {gpt_response}"
+        )
     finally:
         logger.debug(
             f"Bio: {bio}\nIdentified as spam: {identified_as_spam}, expected: {is_spam}\nGPT response: {gpt_response}"

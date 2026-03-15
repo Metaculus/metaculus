@@ -8,8 +8,14 @@ from django.urls import reverse
 from django.utils.html import format_html
 from sql_util.aggregates import SubqueryAggregate
 
+from projects.models import ProjectUserPermission
 from questions.models import Forecast
 from users.models import User, UserCampaignRegistration, UserSpamActivity
+from users.services.common import (
+    clean_user_data_delete,
+    mark_user_as_spam,
+    soft_delete_user,
+)
 from users.services.spam_detection import (
     CONFIDENCE_THRESHOLD,
     check_profile_data_for_spam,
@@ -164,6 +170,20 @@ class BotFilter(admin.SimpleListFilter):
         return queryset
 
 
+class ProjectUserPermissionInline(admin.TabularInline):
+    model = ProjectUserPermission
+    extra = 0
+    fields = ["project", "permission"]
+    readonly_fields = ["project"]
+    autocomplete_fields = ["project"]
+    show_change_link = True
+    verbose_name = "Project Permission"
+    verbose_name_plural = "Project Permissions"
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
 class BotInline(admin.TabularInline):
     model = User
     fk_name = "bot_owner"
@@ -221,11 +241,11 @@ class UserAdmin(admin.ModelAdmin):
     ]
     readonly_fields = ["old_usernames"]
     autocomplete_fields = ["bot_owner"]
-    inlines = [BotInline]
+    inlines = [BotInline, ProjectUserPermissionInline]
 
     def get_inlines(self, request, obj):
         if not obj or obj.is_bot:
-            return []
+            return [ProjectUserPermissionInline]
         return super().get_inlines(request, obj)
 
     def get_actions(self, request):
@@ -291,15 +311,15 @@ class UserAdmin(admin.ModelAdmin):
 
     def mark_selected_as_spam(self, request, queryset: QuerySet[User]):
         for user in queryset:
-            user.mark_as_spam()
+            mark_user_as_spam(user)
 
     def soft_delete_selected(self, request, queryset: QuerySet[User]):
         for user in queryset:
-            user.soft_delete()
+            soft_delete_user(user)
 
     def clean_user_data_deletion(self, request, queryset: QuerySet[User]):
         for user in queryset:
-            user.clean_user_data_delete()
+            clean_user_data_delete(user)
 
     clean_user_data_deletion.short_description = (
         "One click Personal Data deletion (GDPR compliant)"
@@ -314,7 +334,7 @@ class UserAdmin(admin.ModelAdmin):
             )
 
             if is_spam:
-                user.mark_as_spam()
+                mark_user_as_spam(user)
                 send_deactivation_email(user.email)
 
     def get_fields(self, request, obj=None):
