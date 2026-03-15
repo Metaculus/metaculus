@@ -17,7 +17,7 @@ from scoring.models import Leaderboard, Score
 from scoring.score_math import evaluate_question
 from scoring.utils import (
     generate_entries_from_scores,
-    process_entries_for_leaderboard,
+    process_entries_for_leaderboard_,
     get_cached_metaculus_stats,
 )
 
@@ -177,7 +177,7 @@ def update_custom_leaderboard(
     new_entries = generate_entries_from_scores(scores, questions, leaderboard)
     leaderboard.score_type = LeaderboardScoreTypes.MANUAL
 
-    process_entries_for_leaderboard(
+    process_entries_for_leaderboard_(
         new_entries, project, leaderboard, force_finalize=False
     )
 
