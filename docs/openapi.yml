@@ -961,6 +961,9 @@ components:
           type: integer
           description: The ID of the question.
           example: 3
+        Question URL:
+          type: string
+          description: The URL of the question page.
         Question Title:
           type: string
           description: The title of the (sub)question.
@@ -981,41 +984,44 @@ components:
         Default Project ID:
           type: integer
           description: The ID of the default project for the Post.
+        Categories:
+          type: string
+          description: Comma-separated list of category slugs for the post.
+        Leaderboard Tags:
+          type: string
+          description: Comma-separated list of leaderboard tags for the post.
         Label:
           type: string
           description: For sub questions only. The label of the question.
         Question Type:
           type: string
           description: The type of the question.
-          enum: [ binary, multiple_choice, numeric, numeric, date ]
+          enum: [ binary, multiple_choice, numeric, date ]
           example: binary
-        MC Options:
-          type: array
-          items:
-            type: string
-          description: For multiple choice questions only. The options for the question.
-        Scaling:
-          type: object
-          description: For continuous questions only. The scaling of the question.
-          properties:
-            Range Min:
-              type: number
-              format: float
-              description: The minimum value of the considered input range for the question. For date questions, this is a unix timestamp.
-            Range Max:
-              type: number
-              format: float
-              description: The maximum value of the considered input range for the question. For date questions, this is a unix timestamp.
-            Zero Point:
-              type: number
-              format: float
-              description: The zero point of the question. For date questions, this is a unix timestamp.
-            Open Lower Bound:
-              type: boolean
-              description: Whether the lower bound of the range is open or not.
-            Open Upper Bound:
-              type: boolean
-              description: Whether the upper bound of the range is open or not.
+        MC Options (Current):
+          type: string
+          description: For multiple choice questions only. The current set of options.
+        MC Options (All):
+          type: string
+          description: For multiple choice questions only. All options including removed ones.
+        MC Options History:
+          type: string
+          description: For multiple choice questions only. History of option changes.
+        Lower Bound:
+          type: number
+          description: For continuous questions only. The minimum value of the input range. For date questions, formatted as a date string.
+        Open Lower Bound:
+          type: boolean
+          description: Whether the lower bound of the range is open.
+        Upper Bound:
+          type: number
+          description: For continuous questions only. The maximum value of the input range. For date questions, formatted as a date string.
+        Open Upper Bound:
+          type: boolean
+          description: Whether the upper bound of the range is open.
+        Continuous Range:
+          type: string
+          description: For continuous questions only. A human-readable representation of the question range.
         Open Time:
           type: string
           format: date-time
@@ -1042,6 +1048,9 @@ components:
         Include Bots in Aggregates:
           type: boolean
           description: Whether bots are included in the aggregates.
+        Question Weight:
+          type: number
+          description: The weight of the question within its post.
     ForecastDataCSV:
       type: object
       properties:
@@ -1057,14 +1066,17 @@ components:
           type: string
           description: The forecaster's username or aggregation method.
           example: John Doe
+        Is Bot:
+          type: boolean
+          description: Whether the forecaster is a bot account.
         Start Time:
           type: string
           format: date-time
-          description: The start time of the prediction
+          description: The start time of the prediction.
         End Time:
           type: string
           format: date-time
-          description: The end time of the prediction
+          description: The end time of the prediction.
         Forecaster Count:
           type: integer
           description: The number of forecasts that contributed to this Aggregation. null if not an Aggregation.
@@ -1072,22 +1084,47 @@ components:
         Probability Yes:
           type: number
           format: float
-          description: For Binary Questions only. The prediction value in range [0, 1]
+          description: For Binary Questions only. The prediction value in range [0, 1].
           example: 0.5
         Probability Yes Per Category:
-          type: array
-          items:
-            format: number
-            type: float
-          description: For Multiple Choice Questions only. The predictions for the possible outcomes all in range [0, 1]
-          example: [0.2, 0.5, 0.3]
+          type: string
+          description: For Multiple Choice Questions only. The predictions for the possible outcomes, all in range [0, 1].
+          example: "[0.2, 0.5, 0.3]"
         Continuous CDF:
-          type: array
-          items:
-            format: number
-            type: float
-          description: For Continuous Questions only. The CDF of the prediction.
-          example: [0.01, 0.02, 0.03, ..., 0.74, 0.75]
+          type: string
+          description: For Continuous Questions only. The CDF of the prediction as a list of 201 values.
+          example: "[0.01, 0.02, 0.03, ..., 0.74, 0.75]"
+        Probability Below Lower Bound:
+          type: number
+          format: float
+          description: For Continuous Questions only. The probability mass below the lower bound.
+        Probability Above Upper Bound:
+          type: number
+          format: float
+          description: For Continuous Questions only. The probability mass above the upper bound.
+        5th Percentile:
+          type: number
+          description: For Continuous Questions only. The 5th percentile of the forecast distribution.
+        25th Percentile:
+          type: number
+          description: For Continuous Questions only. The 25th percentile of the forecast distribution.
+        Median:
+          type: number
+          description: For Continuous Questions only. The median (50th percentile) of the forecast distribution.
+        75th Percentile:
+          type: number
+          description: For Continuous Questions only. The 75th percentile of the forecast distribution.
+        95th Percentile:
+          type: number
+          description: For Continuous Questions only. The 95th percentile of the forecast distribution.
+        Probability of Resolution:
+          type: number
+          format: float
+          description: The probability assigned to the actual resolution value, if resolved.
+        PDF at Resolution:
+          type: number
+          format: float
+          description: For Continuous Questions only. The PDF value at the resolution point.
     ScoreDataCSV:
       description: "Warning: this data may be out of date, please consult the README included in the zip file for the most up to date information."
       type: object
@@ -1156,7 +1193,7 @@ components:
 
     DataZip:
       type: object
-      description: "Warning: this data may be out of date, please consult the README included in the zip file for the most up to date information. A zip file containing CSVs for Question data, Forecast data, and (optionally) Scoring data and Comment data."
+      description: "Warning: this data may be out of date, please consult the README included in the zip file for the most up to date information. A zip file containing CSVs for Question data, Forecast data, and (optionally) Scoring data, Comment data, and Key Factor data."
       properties:
         question_data.csv:
           $ref: '#/components/schemas/QuestionDataCSV'
@@ -1166,6 +1203,9 @@ components:
           $ref: '#/components/schemas/ScoreDataCSV'
         comment_data.csv:
           $ref: '#/components/schemas/CommentDataCSV'
+        key_factor_data.csv:
+          type: object
+          description: "Optional. Included when include_key_factors is true. Contains key factors (drivers, base rates, news) associated with questions."
 
 tags:
   - name: Feed
@@ -2364,7 +2404,7 @@ paths:
           required: false
           schema:
             type: boolean
-          description: "When set to `true`, returns comments authored by Metaculus staff. Treated as an 'OR' filter with `author`."
+          description: "When set to `true`, returns root-level comments authored by Metaculus staff (staff replies to other comments are not included). Treated as an 'OR' filter with `author`."
         - name: limit
           in: query
           required: false
