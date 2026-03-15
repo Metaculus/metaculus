@@ -3,9 +3,9 @@ info:
   version: 2.0.0
   title: Metaculus API
   description: |
-    <b>Welcome to the official Metaculus API!</b>
+    <h2>Welcome to the official Metaculus API!</h2>
     
-    <b> Authentication Required</b>
+    <h2>Authentication Required</h2>
     <p>
       ⚠️ All API requests require valid authentication credentials. Unauthenticated requests will be rejected with an authentication error. Ensure you include your API token in the <code>Authorization</code> header for all requests.
       </br>See the "How to Authenticate" section below for setup instructions.
@@ -16,7 +16,7 @@ info:
     initial version of the API, and we’d like to keep making it more useful
     to you. Our aim is to support the forecasting community – we’re listening!
     
-    <b>Get Started in 15 Seconds</b>
+    <h2>Get Started in 15 Seconds</h2>
     
     <ol>
     <li>Most of the API is (hopefully) self-explanatory. You’ll find all the documentation below.
@@ -24,7 +24,7 @@ info:
     <li>If you’re building an application that connects to the Metaculus API, you’ll need to authenticate.
     </ol>
     
-    <b>How to Authenticate</b>
+    <h2>How to Authenticate</h2>
     
     You can see your current API token (or generate one) at your <a href="https://www.metaculus.com/accounts/settings/account/#api-access">settings</a> page, under the header "API Access".
     
@@ -38,7 +38,34 @@ info:
     
     Please note that we throttle requests to prevent abuse.
 
-    <b>How to generate a continuous cdf?</b>
+    <h2>API Data Access</h2>
+
+    <p>
+    The following data access restrictions apply to the main Metaculus instance at <a href="https://www.metaculus.com">metaculus.com</a>. If you are running a custom instance, these restrictions do not apply.
+    </p>
+
+    <h4>All Authenticated Accounts</h4>
+    All users, given authentication, have access to the following data via the API:
+    <ul>
+    <li><b>Your own data:</b> Your predictions, scores, comments, and other personal data are always available.</li>
+    <li><b>Question text &amp; resolution values:</b> Open question text is always available. For closed questions, you can access the text and resolution value of any question you have predicted on.</li>
+    <li><b>Staff comments:</b> Comments authored by Metaculus staff are available. To access comments, you must filter by <code>author</code> (your own user ID) or <code>author_is_staff=true</code>.</li>
+    <li><b>Community Prediction (limited):</b> The current value of the Community Prediction is available on a small set of ~50 questions. On all other questions, aggregation data (Community Prediction and other aggregates) is not included in API responses.</li>
+    </ul>
+
+    <h4>Bot Benchmarking Access Tier</h4>
+    <p>
+    An additional access tier is available for bot makers. This tier grants current Community Prediction, question text, and resolution access on a larger set of ~250 open questions and ~250 resolved questions, intended for training and evaluation purposes.
+    To request access, please email <a href="mailto:api-requests@metaculus.com">api-requests@metaculus.com</a>.
+    </p>
+
+    <h4>Non-commercial &amp; Commercial Use</h4>
+    <p>
+    If you want to make non-commercial use of Metaculus data (scientific, hobbyist, etc.), please get in touch &mdash; we generally welcome such projects.
+    For commercial use inquiries, also contact us at <a href="mailto:api-requests@metaculus.com">api-requests@metaculus.com</a>.
+    </p>
+
+    <h2>How to generate a continuous cdf?</h2>
     
     Generating a CDF to predict on a continuous question can be a bit tricky. We only accept predictions in the form of a 201 point
     CDF, represented as a list of floats, so getting scaling right is very important.
@@ -1159,6 +1186,8 @@ tags:
 
   - name: Comments
   - name: Utilities & Data
+    description: |
+      **Tip:** You can also access data downloads through the Metaculus website without using the API directly. On any question page, click the ellipsis menu (⋯) in the top-right corner and select "Download data". A modal will appear with the same options available in the endpoints below.
 paths:
   /api/posts/:
     get:
@@ -1196,14 +1225,14 @@ paths:
             type: boolean
             default: false
             example: true
-          description: "When this flag is enabled, each post with a group of questions will return community predictions for only the top 3 subquestions. To retrieve predictions for all subquestions, please use the post details endpoint."
+          description: "Include Community Prediction data in the response. Note: aggregation data is only available for certain questions depending on your API access tier (see above). When enabled on a group post, only the top 3 subquestions include CP; use the post details endpoint for all subquestions."
         - in: query
           name: include_cp_history
           schema:
             type: boolean
             default: false
             example: true
-          description: "When this flag is enabled, each post question response will include aggregations with the full history for each method. By default, question aggregations contain an empty history."
+          description: "Include full aggregation history in the response."
         - in: query
           name: include_descriptions
           schema:
@@ -1951,111 +1980,174 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Post'
-  /api/posts/{postId}/download-data/:
+  /api/data/download/:
     get:
-      summary: Download data for a Question. Will open a download prompt in the browser. The return is a Zip file of CSVs.
+      summary: Download data as a Zip file of CSVs
+      description: |
+        Downloads question data, forecast data, and optionally comments, scores, and key factors as a Zip file of CSVs.
+        You must provide at least one of `post_id`, `question_id`, or `project_id` to specify the data to download.
+
+        **Note:** This is a restricted endpoint. To request access, please email [api-requests@metaculus.com](mailto:api-requests@metaculus.com). Additionally, the `project_id` parameter is only accepted if your account has been whitelisted for that specific project, to prevent heavy data requests.
+
+        This endpoint may time out for large data exports. If your download fails due to a timeout, use the `/api/data/email/` endpoint instead, which processes the export asynchronously.
       tags:
         - Utilities & Data
       parameters:
-        - name: postId
-          in: path
-          required: true
+        - name: post_id
+          in: query
+          required: false
           schema:
             type: integer
-          description: The ID of the post to retrieve. This is the number after `/questions/` in the URL of a question detail page. 
+          description: The ID of the post to download data for.
+        - name: question_id
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: The ID of the question to download data for.
+        - name: project_id
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: The ID of the project to download data for.
         - name: sub_question
           in: query
           required: false
           schema:
             type: integer
-          description: If this is a group or conditional question, and only a certain sub-question is needed, specify the sub-question ID.
+          description: If the post contains a group or conditional question, specify a sub-question ID to download data for only that sub-question.
         - name: aggregation_methods
           in: query
           required: false
           schema:
-            type: array
-            items:
-              type: string
-              enum: [ recency_weighted, unweighted, metaculus_prediction, single_aggregation ]
-          description: Aggregation methods to include in the CSV, no argument will only include recency_weighted. single_aggregation is 
-            in beta and not available except to site admins. Including this parameter will trigger a recalculation of the aggregations, 
-            which may increase server response time. If the server times out, please consider removing this parameter.
+            type: string
+          description: |
+            Comma-separated list of aggregation methods to include, or `all` to include all available methods.
+            Valid methods: `recency_weighted`, `unweighted`, `metaculus_prediction`, `single_aggregation`.
+            `single_aggregation` is only available to site admins.
+            If not provided, only `recency_weighted` is included. Including this parameter triggers a recalculation of aggregations, which may increase response time.
+        - name: minimize
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          description: If false, includes all data points in recalculated aggregations (requires `aggregation_methods`). May result in very large files or server timeouts for questions with many forecasts.
         - name: include_bots
           in: query
           required: false
           schema:
             type: boolean
-          description: If given, "aggregation_methods" parameter is also required. If not given, will take the value of the 
-            "include_bots_in_aggregations" property on the given Question. If true, will include bot forecasts in the recalculation 
-            of the aggregations, and not if False.
+          description: Whether to include bot forecasts in aggregation recalculations. Requires `aggregation_methods`. If not given, uses the question's `include_bots_in_aggregations` setting.
         - name: user_ids
           in: query
           required: false
           schema:
             type: array
             items:
-              type: string
-          description: A list of user IDs. May only be given if the request user is authenticated, and whitelisted to download user-level 
-            forecast data. If given, "aggregation_methods" parameter is also required. The list of given user ids will recalculate the 
-            aggregations given only those users' forecasts.
-        - name: minimize
-          in: query
-          required: false
-          schema:
-            type: boolean
-          description: Defaults to True. If False, "aggregation_methods" parameter is also required. If False, will include all data
-            points in the recalculated aggregations. For questions with many forecasts, this may result in a very large file, or
-            cause a server timeout. If the server times out, please consider removing this parameter.
+              type: integer
+          description: A list of user IDs to recalculate aggregations for only those users' forecasts. Requires `aggregation_methods`. Only available to staff and whitelisted users.
         - name: include_comments
           in: query
           required: false
           schema:
             type: boolean
-          description: Defaults to False. If True, will include a CSV file containing all public comments.
+            default: false
+          description: If true, includes a CSV file containing all public comments.
         - name: include_scores
           in: query
           required: false
           schema:
             type: boolean
-          description: Defaults to False. If True, will include a CSV file containing all scores.
+            default: true
+          description: If true, includes a CSV file containing all scores.
+        - name: include_key_factors
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: If true, includes key factors data in the download.
       responses:
         '200':
-          description: Zip data for the question. Contains question_data.csv and forecast_data.csv, and optionally comment_data.csv and score_data.csv
+          description: Zip file containing CSVs (question_data.csv, forecast_data.csv, and optionally comment_data.csv, score_data.csv)
           content:
             application/zip:
               schema:
                 $ref: '#/components/schemas/DataZip'
-  /api/projects/{projectId}/download-data/:
-    get:
-      summary: Download data for a whole Project. Will open a download prompt in the browser. The return is a Zip file of CSVs. Only available to site admins and Whitelisted users.
+  /api/data/email/:
+    post:
+      summary: Email data as a Zip file of CSVs
+      description: |
+        Schedules an email to be sent to the authenticated user containing question data, forecast data, and optionally comments, scores, and key factors as a Zip file of CSVs.
+        Useful for large data exports that may time out with a direct download. Accepts the same parameters as `/api/data/download/`.
+        You must provide at least one of `post_id`, `question_id`, or `project_id`.
+
+        **Note:** This is a restricted endpoint. To request access, please email [api-requests@metaculus.com](mailto:api-requests@metaculus.com). Additionally, the `project_id` parameter is only accepted if your account has been whitelisted for that specific project.
+
+        The email attachment has a size limit of 25 MB. If your export exceeds this limit, try removing `include_comments` to reduce the file size.
       tags:
         - Utilities & Data
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: The ID of the Project to retrieve. 
-        - name: include_comments
-          in: query
-          required: false
-          schema:
-            type: boolean
-          description: Defaults to False. If True, will include a CSV file containing all public comments.
-        - name: include_scores
-          in: query
-          required: false
-          schema:
-            type: boolean
-          description: Defaults to False. If True, will include a CSV file containing all scores.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                post_id:
+                  type: integer
+                  description: The ID of the post to export data for.
+                question_id:
+                  type: integer
+                  description: The ID of the question to export data for.
+                project_id:
+                  type: integer
+                  description: The ID of the project to export data for.
+                sub_question:
+                  type: integer
+                  description: If the post contains a group or conditional question, specify a sub-question ID.
+                aggregation_methods:
+                  type: array
+                  items:
+                    type: string
+                  description: "List of aggregation methods to include. Valid methods: `recency_weighted`, `unweighted`, `metaculus_prediction`, `single_aggregation`."
+                minimize:
+                  type: boolean
+                  default: true
+                  description: If false, includes all data points in recalculated aggregations.
+                include_bots:
+                  type: boolean
+                  description: Whether to include bot forecasts in aggregation recalculations.
+                user_ids:
+                  type: array
+                  items:
+                    type: integer
+                  description: A list of user IDs to restrict aggregation recalculations to. Only available to staff and whitelisted users.
+                include_comments:
+                  type: boolean
+                  default: false
+                  description: If true, includes comment data.
+                include_scores:
+                  type: boolean
+                  default: true
+                  description: If true, includes score data.
+                include_key_factors:
+                  type: boolean
+                  default: false
+                  description: If true, includes key factors data.
       responses:
         '200':
-          description: Zip data for the questions in the project. Contains question_data.csv and forecast_data.csv, and optionally comment_data.csv and score_data.csv
+          description: Email scheduled successfully
           content:
-            application/zip:
+            application/json:
               schema:
-                $ref: '#/components/schemas/DataZip'
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Email scheduled to be sent"
                 
   /api/questions/forecast/:
     post:
@@ -2253,7 +2345,8 @@ paths:
   /api/comments/:
     get:
       summary: Retrieve comments
-      description: Fetch comments with optional filters for post, author, pagination, and sorting. Either the `post` or `author` parameter is required.
+      description: |
+        Fetch comments with filters for author and pagination. If API access is restricted, you must include at least one of: `author=<your own user ID>` and/or `author_is_staff=true` - requests without one of these filters will be rejected.
       tags:
         - Comments
       parameters:
@@ -2268,7 +2361,13 @@ paths:
           required: false
           schema:
             type: integer
-          description: ID of the author to filter comments by.
+          description: Filter comments by author user ID. Use your own user ID to retrieve your comments.
+        - name: author_is_staff
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: "When set to `true`, returns comments authored by Metaculus staff. Treated as an 'OR' filter with `author`."
         - name: limit
           in: query
           required: false
