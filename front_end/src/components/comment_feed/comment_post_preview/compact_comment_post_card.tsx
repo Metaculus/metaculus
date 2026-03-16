@@ -8,7 +8,7 @@ import ForecastersCounter from "@/app/(main)/questions/components/forecaster_cou
 import ConsumerQuestionTile from "@/components/consumer_post_card/consumer_question_tile";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import MultipleChoiceTileLegend from "@/components/post_card/multiple_choice_tile/multiple_choice_tile_legend";
-import HideCPProvider from "@/contexts/cp_context";
+import HideCPProvider, { useHideCP } from "@/contexts/cp_context";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 import { getPostLink } from "@/utils/navigation";
@@ -31,7 +31,7 @@ type Props = {
   className?: string;
 };
 
-const CompactPostCard: FC<Props> = ({ post, className }) => {
+const CompactCommentPostCard: FC<Props> = ({ post, className }) => {
   const t = useTranslations();
   const locale = useLocale();
 
@@ -61,9 +61,7 @@ const CompactPostCard: FC<Props> = ({ post, className }) => {
       </h4>
 
       <HideCPProvider post={post}>
-        <div className="my-auto flex flex-col">
-          <PostPreview post={post} t={t} locale={locale} />
-        </div>
+        <PostPreview post={post} t={t} locale={locale} />
       </HideCPProvider>
       <Link
         href={getPostLink(post)}
@@ -78,12 +76,17 @@ const PostPreview: FC<{
   t: ReturnType<typeof useTranslations>;
   locale: string;
 }> = ({ post, t, locale }) => {
+  const { hideCP } = useHideCP();
+
+  if (hideCP) {
+    return null;
+  }
+
   if (isQuestionPost(post) && !isMultipleChoicePost(post)) {
     const isNumeric = isContinuousQuestionType(post.question.type);
     return (
       <div
-        className="self-center"
-        // A small workaround to avoid jumping of content during posts load
+        className="my-auto self-center"
         style={isNumeric ? { zoom: 0.9 } : undefined}
       >
         <ConsumerQuestionTile question={post.question} />
@@ -101,6 +104,7 @@ const PostPreview: FC<{
         choices={choices}
         visibleChoicesCount={VISIBLE_CHOICES_COUNT}
         questionType={post.question.type}
+        hideCP={hideCP}
         layout="wrap"
         optionLabelClassName="flex-none pr-1.5 -ml-1"
         optionValueClassName="text-gray-600 dark:text-gray-600-dark font-normal"
@@ -109,7 +113,6 @@ const PostPreview: FC<{
   }
 
   if (isGroupOfQuestionsPost(post)) {
-    // TODO: same as multiple choice
     const choices = generateChoiceItemsFromGroupQuestions(
       post.group_of_questions,
       {
@@ -123,8 +126,9 @@ const PostPreview: FC<{
         choices={choices}
         visibleChoicesCount={VISIBLE_CHOICES_COUNT}
         questionType={post.group_of_questions.questions.at(0)?.type}
+        hideCP={hideCP}
         layout="wrap"
-        optionLabelClassName="flex-none pr-1.5"
+        optionLabelClassName="flex-none pr-1.5 -ml-1"
         optionValueClassName="text-gray-600 dark:text-gray-600-dark font-normal"
       />
     );
@@ -143,4 +147,4 @@ const PostPreview: FC<{
   return null;
 };
 
-export default CompactPostCard;
+export default CompactCommentPostCard;

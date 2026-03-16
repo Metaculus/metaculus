@@ -1,10 +1,13 @@
 "use client";
 
+import { faPlus, faBan } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
 import { setExcludedFromWeekTopComments } from "@/app/(main)/questions/actions";
 import CommentCard from "@/components/comment_feed/comment_card";
+import CommentPostPreview from "@/components/comment_feed/comment_post_preview";
 import SquareArrowUpRight from "@/components/comment_feed/SquareArrowUpRight";
 import Button from "@/components/ui/button";
 import { CommentOfWeekEntry } from "@/types/comment";
@@ -12,7 +15,6 @@ import { PostWithForecasts } from "@/types/post";
 import { CurrentUser } from "@/types/users";
 import cn from "@/utils/core/cn";
 
-import CommentPostPreview from "./comment_post_preview";
 import Trophy from "./trophy";
 
 type Props = {
@@ -168,14 +170,25 @@ const HighlightedCommentCard: FC<Props> = ({
               {placement && placement <= 6 && (
                 <Trophy type={getTrophyType(placement)} />
               )}
-              <span
-                className={cn(
-                  "text-base font-normal leading-6",
-                  placement && getPlacementColor(placement)
-                )}
-              >
-                {placement ? getPlacementText(placement, t) : "Excluded"}
-              </span>
+              {placement ? (
+                <span
+                  className={cn(
+                    "text-base font-normal leading-6",
+                    placement && getPlacementColor(placement)
+                  )}
+                >
+                  {getPlacementText(placement, t)}
+                </span>
+              ) : (
+                <span
+                  className={cn(
+                    "py-1 text-base font-bold leading-6 text-gray-800 dark:text-gray-800-dark",
+                    placement && getPlacementColor(placement)
+                  )}
+                >
+                  Excluded
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-3">
               <Button
@@ -194,9 +207,19 @@ const HighlightedCommentCard: FC<Props> = ({
                   size="sm"
                   onClick={handleExclude}
                   disabled={isProcessing}
-                  className="rounded-sm px-2.5 py-1"
+                  className="gap-2 rounded-sm px-2.5 py-1"
                 >
-                  {excluded ? t("unexclude") : t("exclude")}
+                  {excluded ? (
+                    <>
+                      <FontAwesomeIcon icon={faPlus} />
+                      <span>{t("unexclude")}</span>
+                    </>
+                  ) : (
+                    <>
+                      <FontAwesomeIcon icon={faBan} />
+                      <span>{t("exclude")}</span>
+                    </>
+                  )}
                 </Button>
               )}
             </div>
