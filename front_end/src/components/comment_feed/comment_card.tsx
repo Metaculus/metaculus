@@ -14,6 +14,7 @@ import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
 import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/item_view";
 import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
 import MarkdownEditor from "@/components/markdown_editor";
+import Button from "@/components/ui/button";
 import { BECommentType, KeyFactor } from "@/types/comment";
 import { parseUserMentions } from "@/utils/comments";
 import cn from "@/utils/core/cn";
@@ -29,6 +30,7 @@ type Props = {
   keyFactorVotesScore: number;
   className?: string;
   expandOverride?: "auto" | "expanded" | "collapsed";
+  onViewComment?: () => void;
 };
 
 // Fixed height for collapsed state - adjust this value as needed
@@ -94,7 +96,7 @@ const ExpandableCommentContent = ({
     >
       {/* Author info */}
       <div className="flex items-start justify-between gap-1.5 text-gray-500 dark:text-gray-500-dark">
-        <div className="mt-[1px] flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
           <Link
             href={`/accounts/profile/${comment.author.id}/`}
             className="truncate text-base font-bold leading-6 text-gray-800 no-underline hover:underline dark:text-gray-800-dark"
@@ -110,13 +112,15 @@ const ExpandableCommentContent = ({
           </span>
         </div>
         {onViewComment && (
-          <button
+          <Button
+            variant="text"
             onClick={onViewComment}
-            className="flex shrink-0 items-center gap-2 rounded-sm border border-blue-500 px-2.5 py-1 text-sm font-normal text-blue-700 dark:border-blue-500-dark dark:text-blue-700-dark"
+            size="sm"
+            className="gap-2 border-none px-2.5 py-1 font-normal text-blue-700  dark:text-blue-700-dark"
           >
             <SquareArrowUpRight className="size-[14px] text-blue-600 dark:text-blue-600-dark md:size-[11px]" />
             <span className="leading-4">{t("view")}</span>
-          </button>
+          </Button>
         )}
       </div>
 
@@ -159,6 +163,7 @@ const CommentCard: FC<Props> = ({
   changedMyMindCount,
   keyFactorVotesScore,
   expandOverride = "auto",
+  onViewComment,
 }) => {
   const t = useTranslations();
   const contentRef = useRef<HTMLDivElement>(null);
@@ -216,15 +221,6 @@ const CommentCard: FC<Props> = ({
     return () => observer.disconnect();
   }, [comment.text, comment.key_factors, comment.id, controlledExpanded]);
 
-  const handleGoToComment = () => {
-    if (comment.on_post_data) {
-      window.open(
-        `/questions/${comment.on_post_data.id}#comment-${comment.id}`,
-        "_blank"
-      );
-    }
-  };
-
   return (
     <div
       className={cn(
@@ -254,16 +250,25 @@ const CommentCard: FC<Props> = ({
         isExpanded={effectiveExpanded}
         needsExpand={needsExpand}
         contentRef={contentRef}
-        onViewComment={comment.on_post_data ? handleGoToComment : undefined}
+        onViewComment={onViewComment}
       />
 
       <div className="mt-auto flex items-center justify-between p-3 md:p-4">
         {/* Comment votes, change my mind and key factors */}
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500-dark">
-          <BottomStatContainer className=" gap-1.5 text-gray-500/35 dark:text-gray-500-dark/35">
-            <FontAwesomeIcon icon={faChevronUp} />
+          <BottomStatContainer
+            className=" gap-1.5"
+            title={t("searchOptionUpvotes")}
+          >
+            <FontAwesomeIcon
+              icon={faChevronUp}
+              className="text-gray-500/35 dark:text-gray-500-dark/35"
+            />
             <span>{votesScore}</span>
-            <FontAwesomeIcon icon={faChevronDown} />
+            <FontAwesomeIcon
+              icon={faChevronDown}
+              className="text-gray-500/35 dark:text-gray-500-dark/35"
+            />
           </BottomStatContainer>
 
           {changedMyMindCount > 0 && (
