@@ -14,6 +14,7 @@ import { CommentOfWeekEntry } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import { CurrentUser } from "@/types/users";
 import cn from "@/utils/core/cn";
+import { getPostLink } from "@/utils/navigation";
 
 import Trophy from "./trophy";
 
@@ -114,11 +115,13 @@ const HighlightedCommentCard: FC<Props> = ({
   };
 
   const handleGoToComment = () => {
-    if (comment.on_post_data) {
-      window.open(
-        `/questions/${comment.on_post_data.id}/#comment-${comment.id}`,
-        "_blank"
-      );
+    const postLink = post
+      ? getPostLink(post)
+      : comment.on_post_data
+        ? `/questions/${comment.on_post_data.id}/`
+        : null;
+    if (postLink) {
+      window.open(`${postLink}#comment-${comment.id}`, "_blank");
     }
   };
 
@@ -186,7 +189,7 @@ const HighlightedCommentCard: FC<Props> = ({
                     placement && getPlacementColor(placement)
                   )}
                 >
-                  Excluded
+                  {t("excluded")}
                 </span>
               )}
             </div>
@@ -232,6 +235,7 @@ const HighlightedCommentCard: FC<Props> = ({
             votesScore={votes_score}
             className="mt-0 border-t border-none dark:border-none md:mt-0"
             expandOverride={expandOverride}
+            onViewComment={handleGoToComment}
           />
         </div>
       </div>

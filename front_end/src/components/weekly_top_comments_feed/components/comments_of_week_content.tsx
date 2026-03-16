@@ -71,11 +71,14 @@ const CommentsOfWeekContent: FC<Props> = ({
     ];
     if (postIds.length === 0) return;
 
+    let cancelled = false;
+
     ClientPostsApi.getPostsWithCP(
       { ids: postIds },
       { include_cp_history: false }
     )
       .then((response) => {
+        if (cancelled) return;
         const newMap = new Map<number, PostWithForecasts>();
         for (const post of response.results) {
           newMap.set(post.id, post);
@@ -83,8 +86,13 @@ const CommentsOfWeekContent: FC<Props> = ({
         setPostsMap(newMap);
       })
       .catch((err) => {
+        if (cancelled) return;
         console.error("Error fetching posts for comments of the week:", err);
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [commentEntries]);
 
   const startDateParam = params.get("start_date");

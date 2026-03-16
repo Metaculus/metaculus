@@ -108,7 +108,9 @@ const ExpandableCommentContent = ({
             className="shrink-0 text-base font-normal leading-6"
             suppressHydrationWarning
           >
-            on {formatDate(locale, new Date(comment.created_at))}
+            {t("onDate", {
+              date: formatDate(locale, new Date(comment.created_at)),
+            })}
           </span>
         </div>
         {onViewComment && (
@@ -210,6 +212,12 @@ const CommentCard: FC<Props> = ({
     const node = contentRef.current;
     if (!node) return;
 
+    // Check if .mdxeditor is already rendered
+    if (node.querySelector(".mdxeditor")) {
+      measureHeight();
+      return;
+    }
+
     const observer = new MutationObserver(() => {
       if (node.querySelector(".mdxeditor")) {
         measureHeight();
@@ -310,7 +318,7 @@ const CommentCard: FC<Props> = ({
                   icon={effectiveExpanded ? faChevronUp : faChevronDown}
                   className="text-blue-700 dark:text-blue-700-dark"
                 />
-                {effectiveExpanded ? "Collapse" : "Expand"}
+                {effectiveExpanded ? t("collapse") : t("expand")}
               </button>
             </BottomStatContainer>
           </div>

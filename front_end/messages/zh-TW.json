@@ -1529,6 +1529,7 @@
   "placementThird": "第 3 名",
   "placementOther": "第 {placement} 名",
   "exclude": "排除",
+  "excluded": "已排除",
   "unexclude": "取消排除",
   "mindsChanged": "改變想法",
   "weeklyTopComments": "本週熱評",

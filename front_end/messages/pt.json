@@ -1493,6 +1493,7 @@
   "placementThird": "3º lugar",
   "placementOther": "{placement}º lugar",
   "exclude": "Excluir",
+  "excluded": "Excluído",
   "unexclude": "Incluir",
   "mindsChanged": "mentes mudadas",
   "weeklyTopComments": "Top Comentários da Semana",
