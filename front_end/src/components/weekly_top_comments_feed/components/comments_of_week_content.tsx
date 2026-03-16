@@ -230,6 +230,7 @@ const CommentsOfWeekContent: FC<Props> = ({
 
       {!error && (
         <div
+          id="weekly-top-comments-list"
           className={cn(
             "relative space-y-4 pb-8 transition-opacity",
             isLoading && "pointer-events-none opacity-40"

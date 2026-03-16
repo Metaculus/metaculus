@@ -301,26 +301,18 @@ const CommentCard: FC<Props> = ({
 
         {needsExpand ? (
           <div className="flex items-center gap-2">
-            <BottomStatContainer
-              className={
-                effectiveExpanded
-                  ? ""
-                  : "border-blue-500 dark:border-blue-500-dark"
-              }
+            <Button
+              variant="tertiary"
+              size="sm"
+              onClick={() => setLocalExpanded(effectiveExpanded ? false : true)}
+              className="flex items-center gap-2 rounded-sm px-2.5 py-0.5 text-sm font-normal text-blue-700 dark:text-blue-700-dark"
             >
-              <button
-                onClick={() =>
-                  setLocalExpanded(effectiveExpanded ? false : true)
-                }
-                className="flex items-center gap-1.5 text-sm font-normal text-blue-700 dark:text-blue-700-dark"
-              >
-                <FontAwesomeIcon
-                  icon={effectiveExpanded ? faChevronUp : faChevronDown}
-                  className="text-blue-700 dark:text-blue-700-dark"
-                />
-                {effectiveExpanded ? t("collapse") : t("expand")}
-              </button>
-            </BottomStatContainer>
+              <FontAwesomeIcon
+                icon={effectiveExpanded ? faChevronUp : faChevronDown}
+                className="text-blue-600 dark:text-blue-600-dark"
+              />
+              {effectiveExpanded ? t("collapse") : t("expand")}
+            </Button>
           </div>
         ) : null}
       </div>
