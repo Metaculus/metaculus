@@ -177,7 +177,7 @@ const HighlightedCommentCard: FC<Props> = ({
                 <span
                   className={cn(
                     "text-base font-normal leading-6",
-                    placement && getPlacementColor(placement)
+                    getPlacementColor(placement)
                   )}
                 >
                   {getPlacementText(placement, t)}
@@ -185,8 +185,7 @@ const HighlightedCommentCard: FC<Props> = ({
               ) : (
                 <span
                   className={cn(
-                    "py-1 text-base font-bold leading-6 text-gray-800 dark:text-gray-800-dark",
-                    placement && getPlacementColor(placement)
+                    "py-1 text-base font-bold leading-6 text-gray-800 dark:text-gray-800-dark"
                   )}
                 >
                   {t("excluded")}
