@@ -234,7 +234,6 @@ const HighlightedCommentCard: FC<Props> = ({
             votesScore={votes_score}
             className="mt-0 border-t border-none dark:border-none md:mt-0"
             expandOverride={expandOverride}
-            onViewComment={handleGoToComment}
           />
         </div>
       </div>
