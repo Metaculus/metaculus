@@ -5,6 +5,7 @@ import { FC, useState } from "react";
 
 import { setExcludedFromWeekTopComments } from "@/app/(main)/questions/actions";
 import CommentCard from "@/components/comment_feed/comment_card";
+import SquareArrowUpRight from "@/components/comment_feed/SquareArrowUpRight";
 import Button from "@/components/ui/button";
 import { CommentOfWeekEntry } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
@@ -89,7 +90,7 @@ const HighlightedCommentCard: FC<Props> = ({
   };
 
   // Get border classes - only gold gets special border, others use default blue
-  const getBorderClass = (placement: number) => {
+  const getBorderClass = (placement: number | null) => {
     if (placement === 1) {
       return "border-yellow-500 dark:border-yellow-500/40";
     }
@@ -110,24 +111,18 @@ const HighlightedCommentCard: FC<Props> = ({
     }
   };
 
+  const handleGoToComment = () => {
+    if (comment.on_post_data) {
+      window.open(
+        `/questions/${comment.on_post_data.id}/#comment-${comment.id}`,
+        "_blank"
+      );
+    }
+  };
+
   return (
     <div className="relative overflow-hidden rounded bg-white dark:bg-gray-0-dark">
-      {/* Admin exclude button */}
-      {isAdmin && (
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={handleExclude}
-          disabled={isProcessing}
-          className="absolute right-4 top-4 z-10 rounded-full border border-gray-800 bg-white px-3 py-2 dark:border-gray-800-dark dark:bg-gray-0-dark"
-        >
-          {excluded ? t("unexclude") : t("exclude")}
-        </Button>
-      )}
-
       <div className="flex flex-col md:flex-row">
-        {/* Left column: Post preview (TODO: hidden on mobile) */}
-        {/* TODO: notebooks? */}
         {comment.on_post_data && (
           <div
             className={cn(
@@ -149,7 +144,7 @@ const HighlightedCommentCard: FC<Props> = ({
         <div
           className={cn(
             "relative flex w-full min-w-0 flex-col overflow-hidden rounded border md:rounded-l-none md:border-l-0",
-            placement && getBorderClass(placement)
+            getBorderClass(placement)
           )}
         >
           {/* Blur circle - only for 1st place */}
@@ -168,18 +163,43 @@ const HighlightedCommentCard: FC<Props> = ({
           )}
 
           {/* Placement header */}
-          <div className="flex items-center gap-3 px-3 pb-0 pt-3 md:px-4 md:pt-4">
-            {placement && placement <= 6 && (
-              <Trophy type={getTrophyType(placement)} />
-            )}
-            <span
-              className={cn(
-                "text-base font-normal leading-6",
-                placement && getPlacementColor(placement)
+          <div className="flex items-center justify-between gap-3 px-3 pb-0 pt-3 md:px-4 md:pt-4">
+            <div className="flex items-center gap-3">
+              {placement && placement <= 6 && (
+                <Trophy type={getTrophyType(placement)} />
               )}
-            >
-              {placement ? getPlacementText(placement, t) : "Excluded"}
-            </span>
+              <span
+                className={cn(
+                  "text-base font-normal leading-6",
+                  placement && getPlacementColor(placement)
+                )}
+              >
+                {placement ? getPlacementText(placement, t) : "Excluded"}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="text"
+                onClick={handleGoToComment}
+                size="sm"
+                className="gap-2 border-none px-2.5 py-1 font-normal text-blue-700  dark:text-blue-700-dark"
+              >
+                <SquareArrowUpRight className="size-[14px] text-blue-600 dark:text-blue-600-dark md:size-[11px]" />
+                <span className="leading-4">{t("view")}</span>
+              </Button>
+              {/* Admin exclude button */}
+              {isAdmin && (
+                <Button
+                  variant="tertiary"
+                  size="sm"
+                  onClick={handleExclude}
+                  disabled={isProcessing}
+                  className="rounded-sm px-2.5 py-1"
+                >
+                  {excluded ? t("unexclude") : t("exclude")}
+                </Button>
+              )}
+            </div>
           </div>
 
           <CommentCard
