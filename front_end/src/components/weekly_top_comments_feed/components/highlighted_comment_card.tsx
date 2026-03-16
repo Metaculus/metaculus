@@ -232,7 +232,7 @@ const HighlightedCommentCard: FC<Props> = ({
             changedMyMindCount={changed_my_mind_count}
             keyFactorVotesScore={key_factor_votes_score}
             votesScore={votes_score}
-            className="mt-0 border-t border-none dark:border-none md:mt-0"
+            className="mt-0 border-none dark:border-none md:mt-0"
             expandOverride={expandOverride}
           />
         </div>
