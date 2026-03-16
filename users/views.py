@@ -60,7 +60,10 @@ def current_user_api_view(request):
     Should contain minimum profile data without heavy calcs
     """
 
-    return Response(UserPrivateSerializer(request.user).data)
+    context = {
+        "with_data_access": request.GET.get("with_data_access") == "true",
+    }
+    return Response(UserPrivateSerializer(request.user, context=context).data)
 
 
 @api_view(["GET"])

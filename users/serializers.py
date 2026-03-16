@@ -7,6 +7,7 @@ from rest_framework.exceptions import ValidationError
 from comments.models import KeyFactor
 from projects.models import Project
 from scoring.models import LeaderboardEntry
+from users.constants import ApiAccessTier
 from users.models import User, UserCampaignRegistration
 
 forbidden_usernames = [
@@ -89,7 +90,7 @@ class UserPrivateSerializer(UserPublicSerializer):
     registered_campaigns = serializers.SerializerMethodField()
     should_suggest_keyfactors = serializers.SerializerMethodField()
     has_password = serializers.SerializerMethodField()
-    reduced_api_restriction_projects = serializers.SerializerMethodField()
+    project_data_access = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -109,7 +110,7 @@ class UserPrivateSerializer(UserPublicSerializer):
             "api_access_tier",
             "is_primary_bot",
             "has_password",
-            "reduced_api_restriction_projects",
+            "project_data_access",
         )
 
     def get_registered_campaigns(self, user: User):
@@ -135,12 +136,16 @@ class UserPrivateSerializer(UserPublicSerializer):
     def get_has_password(self, user: User) -> bool:
         return user.has_usable_password()
 
-    def get_reduced_api_restriction_projects(self, user: User):
-        return (
-            user.whitelists.filter(project_id__isnull=False)
-            .values_list("project_id", flat=True)
+    def get_project_data_access(self, user: User):
+        if not self.context.get("with_data_access"):
+            return None
+        entries = (
+            user.data_accesses.filter(project_id__isnull=False)
+            .exclude(api_access_tier=ApiAccessTier.RESTRICTED)
+            .values("project_id", "api_access_tier")
             .distinct()
         )
+        return list(entries)
 
 
 class UserUpdateProfileSerializer(serializers.ModelSerializer):

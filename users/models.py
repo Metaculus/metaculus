@@ -10,11 +10,12 @@ from django.db.models import QuerySet
 from django.utils import timezone
 
 from utils.models import TimeStampedModel
+from users.constants import ApiAccessTier
 
 if TYPE_CHECKING:
     from comments.models import Comment
     from posts.models import Post
-    from misc.models import WhitelistUser
+    from misc.models import UserDataAccess
 
 
 class User(TimeStampedModel, AbstractUser):
@@ -31,7 +32,7 @@ class User(TimeStampedModel, AbstractUser):
     id: int
     comment_set: QuerySet["Comment"]
     posts: QuerySet["Post"]
-    whitelists: QuerySet["WhitelistUser"]
+    data_accesses: QuerySet["UserDataAccess"]
 
     # Profile data
     bio = models.TextField(default="", blank=True)
@@ -99,11 +100,6 @@ class User(TimeStampedModel, AbstractUser):
         blank=True,
         choices=settings.LANGUAGES,
     )
-
-    class ApiAccessTier(models.TextChoices):
-        RESTRICTED = "restricted", "Restricted"
-        BOT_BENCHMARKING = "bot_benchmarking", "Bot Benchmarking"
-        UNRESTRICTED = "unrestricted", "Unrestricted"
 
     api_access_tier = models.CharField(
         max_length=32,
