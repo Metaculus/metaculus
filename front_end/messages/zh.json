@@ -683,7 +683,7 @@
   "longTitleExplanation": "一個單句概括你想預測的內容。以問號結尾。",
   "shortTitleExplanation": "這應該是長���題的縮短版本，用於顯示空間較小的地方。應以問號結尾。例如：「NASA 2022太空服合約獲勝者？」或「2025年至2035年歐盟GDP？」",
   "backgroundInformation": "背景資訊",
-  "backgroundInfoExplanation": "以客觀和中立的語氣提供問題的背景資訊。應使用<link>markdown語法</link>添加相關和有用資源的連結：<markdown>[連結標題](https://link-url.com)</markdown>。",
+  "backgroundInfoExplanation": "以客觀和中立的語氣提供問題的背景資訊。應添加相關和有用資源的連結。",
   "resolutionCriteriaExplanation": "一個好的問題幾乎總是能夠明確解決。如果你有用於解決問題的數據源，請在此處連結。如果需要進行一些簡單的數學計算來解決這個問題，請用markdown定義方程式：<markdown>\\[ y = ax^2+b \\]</markdown>。",
   "choicesSeparatedBy": "選項（以逗號分隔）",
   "projects": "專案",

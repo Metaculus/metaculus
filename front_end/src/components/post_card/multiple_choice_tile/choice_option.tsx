@@ -103,7 +103,7 @@ const ChoiceOption: FC<Props> = ({
       <div
         className={cn(
           "resize-label min-w-0 flex-1 pr-2.5 text-left text-sm font-normal leading-4",
-          isEmbed ? "truncate" : "line-clamp-2",
+          "truncate",
           labelClassName
         )}
       >
