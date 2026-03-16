@@ -91,4 +91,13 @@ class Migration(migrations.Migration):
                 to="posts.post",
             ),
         ),
+        migrations.AlterField(
+            model_name="userdataaccess",
+            name="notes",
+            field=models.TextField(
+                blank=True,
+                help_text="Optional notes about the data access grant, e.g., reason for access. Please note any specific conditions.",
+                null=True,
+            ),
+        ),
     ]
