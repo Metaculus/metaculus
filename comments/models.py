@@ -1,7 +1,7 @@
 from typing import Iterable
 
 from django.contrib.postgres.indexes import GinIndex
-from django.contrib.postgres.search import SearchVector
+from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.db import models
 from django.db.models import (
     Sum,
@@ -113,9 +113,10 @@ class Comment(TimeStampedModel, TranslatedModel):
     # We need a separate field to track text changes only
     text_edited_at = models.DateTimeField(null=True, blank=True, editable=False)
 
-    # Denormalized fields for sorting in global comments feed
+    # Denormalized fields
     vote_score = models.IntegerField(default=0, db_index=True, editable=False)
     cmm_count = models.IntegerField(default=0, db_index=True, editable=False)
+    text_original_search_vector = SearchVectorField(null=True, editable=False)
 
     # annotated fields
     user_vote: int = 0
@@ -140,8 +141,8 @@ class Comment(TimeStampedModel, TranslatedModel):
                 name="comment_created_at_idx",
             ),
             GinIndex(
-                SearchVector("text_original", config="english"),
-                name="comment_text_search_idx",
+                fields=["text_original_search_vector"],
+                name="comment_text_search_vector_idx",
                 condition=models.Q(is_private=False, is_soft_deleted=False),
             ),
         ]
@@ -153,7 +154,13 @@ class Comment(TimeStampedModel, TranslatedModel):
         if self.parent:
             self.root = self.root or self.parent.root or self.parent
 
-        return super().save(**kwargs)
+        super().save(**kwargs)
+
+        update_fields = kwargs.get("update_fields")
+        if not update_fields or "text_original" in update_fields:
+            Comment.objects.filter(pk=self.pk).update(
+                text_original_search_vector=SearchVector("text_original", config="english")
+            )
 
     def update_vote_score(self):
         score = self.comment_votes.aggregate(total=Coalesce(Sum("direction"), 0))[
