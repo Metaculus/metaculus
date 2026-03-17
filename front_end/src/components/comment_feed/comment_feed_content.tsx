@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -20,7 +20,7 @@ type SortOption = "-created_at" | "-vote_score" | "-cmm_count" | "relevance";
 
 type TimeWindow = "all_time" | "past_week" | "past_month" | "past_year";
 
-const CommentsFeedContent: FC = () => {
+const CommentFeedContent: FC = () => {
   const t = useTranslations();
   const [comments, setComments] = useState<CommentType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -61,6 +61,7 @@ const CommentsFeedContent: FC = () => {
       return map;
     },
     enabled: postIds.length > 0,
+    placeholderData: keepPreviousData,
   });
 
   const handleSearchChange = useCallback((value: string) => {
@@ -203,4 +204,4 @@ const CommentsFeedContent: FC = () => {
   );
 };
 
-export default CommentsFeedContent;
+export default CommentFeedContent;
