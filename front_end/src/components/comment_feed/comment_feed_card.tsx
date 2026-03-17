@@ -22,25 +22,17 @@ const CommentFeedCard: FC<Props> = ({ comment, post }) => {
     >
       <div className="flex flex-col md:flex-row">
         {/* Left column: Post preview (desktop only) */}
-        <CommentPostPreview
-          post={post}
-          postTitle={comment.on_post_data?.title ?? ""}
-          postId={comment.on_post ?? 0}
-          className="hidden border-r border-blue-300 dark:border-blue-300-dark md:flex md:w-[280px] md:min-w-[280px]"
-        />
+        <div className="hidden items-start rounded-l border-r md:flex md:w-[280px] md:shrink-0">
+          <CommentPostPreview
+            post={post}
+            postTitle={comment.on_post_data?.title ?? ""}
+            postId={comment.on_post ?? 0}
+            className="w-full"
+          />
+        </div>
 
         {/* Right column: Comment */}
         <div className="min-w-0 flex-1">
-          {/* Mobile: show post title */}
-          <div className="block border-b border-blue-300 p-3 dark:border-blue-300-dark md:hidden">
-            <a
-              href={`/questions/${comment.on_post}/`}
-              className="text-sm font-medium text-blue-800 hover:underline dark:text-blue-800-dark"
-            >
-              {comment.on_post_data?.title}
-            </a>
-          </div>
-
           <CommentCard
             comment={comment}
             votesScore={comment.vote_score ?? 0}

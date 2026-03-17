@@ -2,6 +2,7 @@
 
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useQuery } from "@tanstack/react-query";
 import { addWeeks, isAfter, format, parse } from "date-fns";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useState, useCallback, useEffect, useMemo } from "react";
@@ -57,43 +58,33 @@ const CommentsOfWeekContent: FC<Props> = ({
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [postsMap, setPostsMap] = useState<Map<number, PostWithForecasts>>(
-    new Map()
+  const postIds = useMemo(
+    () =>
+      [
+        ...new Set(
+          commentEntries
+            .map((entry) => entry.comment.on_post_data?.id)
+            .filter((id): id is number => id != null)
+        ),
+      ].sort(),
+    [commentEntries]
   );
 
-  useEffect(() => {
-    const postIds = [
-      ...new Set(
-        commentEntries
-          .map((entry) => entry.comment.on_post_data?.id)
-          .filter((id): id is number => id != null)
-      ),
-    ];
-    if (postIds.length === 0) return;
-
-    let cancelled = false;
-
-    ClientPostsApi.getPostsWithCP(
-      { ids: postIds },
-      { include_cp_history: false }
-    )
-      .then((response) => {
-        if (cancelled) return;
-        const newMap = new Map<number, PostWithForecasts>();
-        for (const post of response.results) {
-          newMap.set(post.id, post);
-        }
-        setPostsMap(newMap);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        console.error("Error fetching posts for comments of the week:", err);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [commentEntries]);
+  const { data: postsMap = new Map<number, PostWithForecasts>() } = useQuery({
+    queryKey: ["comments-of-week-posts", postIds],
+    queryFn: async () => {
+      const response = await ClientPostsApi.getPostsWithCP(
+        { ids: postIds },
+        { include_cp_history: false }
+      );
+      const map = new Map<number, PostWithForecasts>();
+      for (const post of response.results) {
+        map.set(post.id, post);
+      }
+      return map;
+    },
+    enabled: postIds.length > 0,
+  });
 
   const startDateParam = params.get("start_date");
   const isFinal = isAfter(new Date(), addWeeks(weekStart, 2));
