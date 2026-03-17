@@ -75,10 +75,12 @@ const CommentsFeedContent: FC = () => {
     async (offset: number, reset: boolean = false) => {
       setIsLoading(true);
       try {
+        const effectiveSort =
+          sort === "relevance" && !debouncedSearch ? "-created_at" : sort;
         const params: getCommentsParams = {
           limit: COMMENTS_PER_PAGE,
           offset,
-          sort,
+          sort: effectiveSort,
           ...(timeWindow !== "all_time" && { time_window: timeWindow }),
           ...(debouncedSearch && { search: debouncedSearch }),
         };
