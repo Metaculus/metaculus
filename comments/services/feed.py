@@ -31,6 +31,7 @@ def get_comments_feed(
     last_viewed_at: datetime = None,
     time_window: str = None,
     search: str = None,
+    exclude_bots: bool = False,
 ):
     user = user if user and user.is_authenticated else None
     sort = sort or "-created_at"
@@ -99,6 +100,9 @@ def get_comments_feed(
         qs = qs.filter(is_private=is_private, author=user)
     else:
         qs = qs.filter(is_private=False)
+
+    if exclude_bots:
+        qs = qs.filter(author__is_bot=False)
 
     if include_deleted is None:
         qs = qs.filter(
