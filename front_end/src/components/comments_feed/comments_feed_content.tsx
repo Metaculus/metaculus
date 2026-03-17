@@ -1,7 +1,8 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
@@ -22,9 +23,6 @@ type TimeWindow = "all_time" | "past_week" | "past_month" | "past_year";
 const CommentsFeedContent: FC = () => {
   const t = useTranslations();
   const [comments, setComments] = useState<CommentType[]>([]);
-  const [postsMap, setPostsMap] = useState<Record<number, PostWithForecasts>>(
-    {}
-  );
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [sort, setSort] = useState<SortOption>("-created_at");
@@ -33,11 +31,37 @@ const CommentsFeedContent: FC = () => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const debounceRef = useRef<NodeJS.Timeout>(null);
 
-  // Use refs to avoid stale closures in fetchComments
+  // Use ref to avoid stale closure in fetchComments
   const commentsRef = useRef(comments);
   commentsRef.current = comments;
-  const postsMapRef = useRef(postsMap);
-  postsMapRef.current = postsMap;
+
+  const postIds = useMemo(
+    () =>
+      [
+        ...new Set(
+          comments
+            .map((c) => c.on_post)
+            .filter((id): id is number => id != null)
+        ),
+      ].sort(),
+    [comments]
+  );
+
+  const { data: postsMap = {} } = useQuery({
+    queryKey: ["comments-feed-posts", postIds],
+    queryFn: async () => {
+      const response = await ClientPostsApi.getPostsWithCP(
+        { ids: postIds },
+        { include_cp_history: false }
+      );
+      const map: Record<number, PostWithForecasts> = {};
+      for (const post of response.results) {
+        map[post.id] = post;
+      }
+      return map;
+    },
+    enabled: postIds.length > 0,
+  });
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
@@ -63,29 +87,6 @@ const CommentsFeedContent: FC = () => {
         const newComments = [...prev, ...response.results];
         setComments(newComments);
         setHasMore(!!response.next);
-
-        // Fetch posts for new comments
-        const currentPostsMap = postsMapRef.current;
-        const newPostIds = [
-          ...new Set(
-            response.results
-              .map((c) => c.on_post)
-              .filter(
-                (id): id is number => id != null && !(id in currentPostsMap)
-              )
-          ),
-        ];
-        if (newPostIds.length > 0) {
-          const postsResponse = await ClientPostsApi.getPostsWithCP(
-            { ids: newPostIds },
-            { include_cp_history: false }
-          );
-          const updatedPostsMap = { ...currentPostsMap };
-          for (const post of postsResponse.results) {
-            updatedPostsMap[post.id] = post;
-          }
-          setPostsMap(updatedPostsMap);
-        }
       } finally {
         setIsLoading(false);
       }
