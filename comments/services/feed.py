@@ -8,7 +8,7 @@ from comments.constants import TimeWindow
 from comments.models import Comment
 from posts.models import Post
 
-SEARCH_VECTOR = SearchVector("text", config="english")
+SEARCH_VECTOR = SearchVector("text_original", config="english")
 
 TIME_WINDOW_DELTAS = {
     TimeWindow.PAST_WEEK: timedelta(days=7),
