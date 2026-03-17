@@ -241,7 +241,7 @@ const CommentCard: FC<Props> = ({
     >
       {/* Question context for mobile */}
       {comment.on_post_data && (
-        <div className="mt-3 flex flex-col gap-1.5 border-y border-gray-300 p-3 dark:border-gray-300-dark md:hidden md:p-4">
+        <div className="flex flex-col gap-1.5 border-b border-gray-300 p-3 dark:border-gray-300-dark md:hidden md:p-4">
           <div className="text-xs font-normal uppercase leading-4 text-gray-500 dark:text-gray-500-dark">
             {t("question")}
           </div>

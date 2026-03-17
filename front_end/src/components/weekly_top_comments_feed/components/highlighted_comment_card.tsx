@@ -167,7 +167,7 @@ const HighlightedCommentCard: FC<Props> = ({
           )}
 
           {/* Placement header */}
-          <div className="flex items-center justify-between gap-3 px-3 pb-0 pt-3 md:px-4 md:pt-4">
+          <div className="flex items-center justify-between gap-3 border-b border-gray-300 p-3 px-3 pb-3 pt-3 dark:border-gray-300-dark md:px-4 md:pb-0 md:pt-4">
             <div className="flex items-center gap-3">
               {placement && placement <= 6 && (
                 <Trophy type={getTrophyType(placement)} />
