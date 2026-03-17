@@ -30,17 +30,14 @@ def get_comments_feed(
     time_window: str = None,
     search: str = None,
     exclude_bots: bool = False,
+    post_status: Post.CurationStatus | None = None,
 ):
     user = user if user and user.is_authenticated else None
     sort = sort or "-created_at"
     order_by_args = []
 
-    # Global feed defaults: root-only, non-private, non-deleted
-    if not post and not author and not (is_private and user):
-        parent_isnull = True
-        is_private = False
-        include_deleted = False
-        qs = qs.filter(on_post__curation_status=Post.CurationStatus.APPROVED)
+    if post_status:
+        qs = qs.filter(on_post__curation_status=post_status)
 
     if parent_isnull is not None:
         qs = qs.filter(parent=None)

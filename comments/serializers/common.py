@@ -35,6 +35,11 @@ class CommentFilterSerializer(serializers.Serializer):
     )
     search = serializers.CharField(required=False, allow_null=True, min_length=3)
     exclude_bots = serializers.BooleanField(required=False, default=False)
+    post_status = serializers.ChoiceField(
+        choices=Post.CurationStatus.choices,
+        required=False,
+        allow_null=True,
+    )
 
     def validate_post(self, value: int):
         try:
