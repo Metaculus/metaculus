@@ -57,27 +57,43 @@ const CommentsOfWeekContent: FC<Props> = ({
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const postIds = useMemo(
-    () => [...new Set(
-      commentEntries
-        .map((entry) => entry.comment.on_post_data?.id)
-        .filter((id): id is number => id != null)
-    )],
-    [commentEntries]
+  const [postsMap, setPostsMap] = useState<Map<number, PostWithForecasts>>(
+    new Map()
   );
 
-  const { data: postsMap } = useQuery({
-    queryKey: ["comments-week-posts", postIds],
-    queryFn: async () => {
-      const response = await ClientPostsApi.getPostsWithCP(
-        { ids: postIds },
-        { include_cp_history: false }
-      );
-      return new Map(response.results.map((post) => [post.id, post]));
-    },
-    enabled: postIds.length > 0,
-    initialData: new Map(),
-});
+  useEffect(() => {
+    const postIds = [
+      ...new Set(
+        commentEntries
+          .map((entry) => entry.comment.on_post_data?.id)
+          .filter((id): id is number => id != null)
+      ),
+    ];
+    if (postIds.length === 0) return;
+
+    let cancelled = false;
+
+    ClientPostsApi.getPostsWithCP(
+      { ids: postIds },
+      { include_cp_history: false }
+    )
+      .then((response) => {
+        if (cancelled) return;
+        const newMap = new Map<number, PostWithForecasts>();
+        for (const post of response.results) {
+          newMap.set(post.id, post);
+        }
+        setPostsMap(newMap);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error("Error fetching posts for comments of the week:", err);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [commentEntries]);
 
   const startDateParam = params.get("start_date");
   const isFinal = isAfter(new Date(), addWeeks(weekStart, 2));
