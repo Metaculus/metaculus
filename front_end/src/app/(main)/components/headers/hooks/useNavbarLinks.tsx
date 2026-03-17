@@ -64,7 +64,7 @@ const useNavbarLinks = ({
           href: "/questions/?communities=true",
         },
         commentsFeed: {
-          label: t("commentsFeed"),
+          label: t("commentsFeedTitle"),
           href: "/questions/?comments_feed=true",
         },
         about: {

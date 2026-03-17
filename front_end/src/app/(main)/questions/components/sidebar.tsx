@@ -103,17 +103,6 @@ const FeedSidebar: FC<Props> = ({ items }) => {
               url: getFeedUrl(FeedType.WEEKLY_TOP_COMMENTS),
               isActive: currentFeed == FeedType.WEEKLY_TOP_COMMENTS,
             },
-            {
-              name: t("commentsFeed"),
-              emoji: "🗨️",
-              onClick: () => {
-                sendAnalyticsEvent("sidebarClick", {
-                  event_category: "commentsFeed",
-                });
-              },
-              url: getFeedUrl(FeedType.COMMENTS_FEED),
-              isActive: currentFeed == FeedType.COMMENTS_FEED,
-            },
           ]
         : []),
       ...items.map((obj) => convertSidebarItem(obj, fullPathname)),

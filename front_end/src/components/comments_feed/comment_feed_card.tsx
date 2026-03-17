@@ -26,7 +26,7 @@ const CommentFeedCard: FC<Props> = ({ comment, post }) => {
           post={post}
           postTitle={comment.on_post_data?.title ?? ""}
           postId={comment.on_post ?? 0}
-          className="hidden border-r border-blue-300 dark:border-blue-300-dark md:block md:w-[280px] md:min-w-[280px]"
+          className="hidden border-r border-blue-300 dark:border-blue-300-dark md:flex md:w-[280px] md:min-w-[280px]"
         />
 
         {/* Right column: Comment */}

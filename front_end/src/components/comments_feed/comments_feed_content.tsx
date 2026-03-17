@@ -13,7 +13,7 @@ import { PostWithForecasts } from "@/types/post";
 
 import CommentFeedCard from "./comment_feed_card";
 
-const COMMENTS_PER_PAGE = 20;
+const COMMENTS_PER_PAGE = 10;
 
 type SortOption = "-created_at" | "-vote_score" | "-cmm_count" | "relevance";
 
@@ -137,6 +137,9 @@ const CommentsFeedContent: FC = () => {
 
   return (
     <div className="flex w-full flex-col gap-3">
+      <h1 className="mt-2 text-balance text-2xl font-bold text-blue-800 dark:text-blue-800-dark md:mt-1.5 md:block md:text-3xl">
+        {t("commentsFeedTitle")}
+      </h1>
       {/* Controls bar */}
       <div className="flex flex-wrap items-center gap-3">
         <select
