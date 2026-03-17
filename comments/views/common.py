@@ -222,7 +222,11 @@ def comment_vote_api_view(request: Request, pk: int):
         )
 
     return Response(
-        {"score": Comment.objects.annotate_vote_score().get(pk=comment.pk).vote_score}
+        {
+            "score": Comment.objects.annotate_vote_score()
+            .get(pk=comment.pk)
+            .annotated_vote_score
+        }
     )
 
 
