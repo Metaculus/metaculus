@@ -13,6 +13,7 @@ import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
 
 import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/item_view";
 import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
+import CommentVoter from "@/components/comment_feed/comment_voter";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import { BECommentType, KeyFactor } from "@/types/comment";
@@ -31,6 +32,7 @@ type Props = {
   className?: string;
   expandOverride?: "auto" | "expanded" | "collapsed";
   onViewComment?: () => void;
+  disableVoting?: boolean;
 };
 
 // Fixed height for collapsed state - adjust this value as needed
@@ -166,6 +168,7 @@ const CommentCard: FC<Props> = ({
   keyFactorVotesScore,
   expandOverride = "auto",
   onViewComment,
+  disableVoting = false,
 }) => {
   const t = useTranslations();
   const contentRef = useRef<HTMLDivElement>(null);
@@ -264,20 +267,31 @@ const CommentCard: FC<Props> = ({
       <div className="mt-auto flex items-center justify-between p-3 md:p-4">
         {/* Comment votes, change my mind and key factors */}
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500-dark">
-          <BottomStatContainer
-            className=" gap-1.5"
-            title={t("searchOptionUpvotes")}
-          >
-            <FontAwesomeIcon
-              icon={faChevronUp}
-              className="text-gray-500/35 dark:text-gray-500-dark/35"
+          {disableVoting ? (
+            <BottomStatContainer
+              className=" gap-1.5"
+              title={t("searchOptionUpvotes")}
+            >
+              <FontAwesomeIcon
+                icon={faChevronUp}
+                className="text-gray-500/35 dark:text-gray-500-dark/35"
+              />
+              <span>{votesScore}</span>
+              <FontAwesomeIcon
+                icon={faChevronDown}
+                className="text-gray-500/35 dark:text-gray-500-dark/35"
+              />
+            </BottomStatContainer>
+          ) : (
+            <CommentVoter
+              voteData={{
+                commentAuthorId: comment.author.id,
+                commentId: comment.id,
+                voteScore: votesScore,
+                userVote: comment.user_vote,
+              }}
             />
-            <span>{votesScore}</span>
-            <FontAwesomeIcon
-              icon={faChevronDown}
-              className="text-gray-500/35 dark:text-gray-500-dark/35"
-            />
-          </BottomStatContainer>
+          )}
 
           {changedMyMindCount > 0 && (
             <BottomStatContainer title={t("mindsChanged")}>
