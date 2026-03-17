@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from comments.constants import TimeWindow
 from comments.models import Comment
+from posts.models import Post
 
 SEARCH_VECTOR = SearchVector("text", config="english")
 
@@ -40,6 +41,7 @@ def get_comments_feed(
         parent_isnull = True
         is_private = False
         include_deleted = False
+        qs = qs.filter(on_post__curation_status=Post.CurationStatus.APPROVED)
 
     if parent_isnull is not None:
         qs = qs.filter(parent=None)
