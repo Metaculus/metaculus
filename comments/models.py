@@ -152,7 +152,7 @@ class Comment(TimeStampedModel, TranslatedModel):
             ),
             GinIndex(
                 fields=["text_original_search_vector"],
-                name="comment_text_original_search_vector_idx",
+                name="comment_text_search_vector_idx",
                 condition=models.Q(is_private=False, is_soft_deleted=False),
             ),
         ]
