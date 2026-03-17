@@ -4,35 +4,57 @@ import django.contrib.postgres.indexes
 import django.contrib.postgres.search
 from django.conf import settings
 from django.db import migrations, models
-from django.db import connection
+from django.db.models import Subquery, Sum, Count, OuterRef, Value
+from django.db.models.functions import Coalesce
 
-# TODO: run as async command separately
+BATCH_SIZE = 10_000
+
+
+def chunked_ids(queryset, chunk_size=BATCH_SIZE):
+    id_list = list(queryset.values_list("id", flat=True))
+    total = len(id_list)
+    for i in range(0, total, chunk_size):
+        yield i, total, id_list[i : i + chunk_size]
 
 
 def backfill_vote_score(apps, schema_editor):
-    """Use raw SQL for efficient bulk update with aggregation on 700k+ rows."""
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            UPDATE comments_comment c
-            SET vote_score = COALESCE(
-                (SELECT SUM(cv.direction)
-                 FROM comments_commentvote cv
-                 WHERE cv.comment_id = c.id),
-                0
-            )
-        """)
+    Comment = apps.get_model("comments", "Comment")
+    CommentVote = apps.get_model("comments", "CommentVote")
+
+    vote_subquery = Subquery(
+        CommentVote.objects.filter(comment_id=OuterRef("pk"))
+        .values("comment_id")
+        .annotate(score=Sum("direction"))
+        .values("score")
+    )
+
+    print(f"\nBackfilling vote_score...")
+    for offset, total, chunk in chunked_ids(Comment.objects.all()):
+        updated = Comment.objects.filter(pk__in=chunk).update(
+            vote_score=Coalesce(vote_subquery, Value(0))
+        )
+        print(f"  vote_score: {offset + len(chunk)}/{total} processed, {updated} updated")
+    print("  vote_score: done")
 
 
 def backfill_cmm_count(apps, schema_editor):
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            UPDATE comments_comment c
-            SET cmm_count = (
-                SELECT COUNT(*)
-                FROM comments_changedmymindentry cmm
-                WHERE cmm.comment_id = c.id
-            )
-        """)
+    Comment = apps.get_model("comments", "Comment")
+    ChangedMyMindEntry = apps.get_model("comments", "ChangedMyMindEntry")
+
+    cmm_subquery = Subquery(
+        ChangedMyMindEntry.objects.filter(comment_id=OuterRef("pk"))
+        .values("comment_id")
+        .annotate(cnt=Count("id"))
+        .values("cnt")
+    )
+
+    print(f"\nBackfilling cmm_count...")
+    for offset, total, chunk in chunked_ids(Comment.objects.all()):
+        updated = Comment.objects.filter(pk__in=chunk).update(
+            cmm_count=Coalesce(cmm_subquery, Value(0))
+        )
+        print(f"  cmm_count: {offset + len(chunk)}/{total} processed, {updated} updated")
+    print("  cmm_count: done")
 
 
 class Migration(migrations.Migration):
