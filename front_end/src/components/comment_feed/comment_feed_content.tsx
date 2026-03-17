@@ -4,6 +4,11 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import PopoverFilter from "@/components/popover_filter";
+import {
+  FilterOptionType,
+  FilterSection,
+} from "@/components/popover_filter/types";
 import SearchInput from "@/components/search_input";
 import Button from "@/components/ui/button";
 import Listbox from "@/components/ui/listbox";
@@ -29,6 +34,7 @@ const CommentFeedContent: FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const [sort, setSort] = useState<SortOption>("-created_at");
   const [timeWindow, setTimeWindow] = useState<TimeWindow>("all_time");
+  const [excludeBots, setExcludeBots] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const debounceRef = useRef<NodeJS.Timeout>(null);
@@ -86,6 +92,7 @@ const CommentFeedContent: FC = () => {
           sort: effectiveSort,
           ...(timeWindow !== "all_time" && { time_window: timeWindow }),
           ...(debouncedSearch && { search: debouncedSearch }),
+          exclude_bots: excludeBots,
         };
         const response = await ClientCommentsApi.getComments(params);
         const prev = reset ? [] : commentsRef.current;
@@ -96,7 +103,7 @@ const CommentFeedContent: FC = () => {
         setIsLoading(false);
       }
     },
-    [sort, timeWindow, debouncedSearch]
+    [sort, timeWindow, debouncedSearch, excludeBots]
   );
 
   // Reset and fetch when filters change
@@ -134,12 +141,60 @@ const CommentFeedContent: FC = () => {
       : []),
   ];
 
-  const timeWindowOptions: { value: TimeWindow; label: string }[] = [
-    { value: "all_time", label: t("timeWindowAllTime") },
-    { value: "past_week", label: t("timeWindowPastWeek") },
-    { value: "past_month", label: t("timeWindowPastMonth") },
-    { value: "past_year", label: t("timeWindowPastYear") },
+  const popoverFilters: FilterSection[] = [
+    {
+      id: "time_window",
+      title: t("timeWindow"),
+      type: FilterOptionType.ToggleChip,
+      options: [
+        {
+          label: t("timeWindowAllTime"),
+          value: "all_time",
+          active: timeWindow === "all_time",
+        },
+        {
+          label: t("timeWindowPastWeek"),
+          value: "past_week",
+          active: timeWindow === "past_week",
+        },
+        {
+          label: t("timeWindowPastMonth"),
+          value: "past_month",
+          active: timeWindow === "past_month",
+        },
+        {
+          label: t("timeWindowPastYear"),
+          value: "past_year",
+          active: timeWindow === "past_year",
+        },
+      ],
+    },
+    {
+      id: "exclude_bots",
+      title: t("bots"),
+      type: FilterOptionType.ToggleChip,
+      options: [
+        { label: t("excludeBots"), value: "true", active: excludeBots },
+        { label: t("includeBots"), value: "false", active: !excludeBots },
+      ],
+    },
   ];
+
+  const handlePopoverFilterChange = (
+    filterId: string,
+    optionValue: string | string[] | null
+  ) => {
+    if (filterId === "time_window") {
+      setTimeWindow((optionValue as TimeWindow) ?? "all_time");
+    } else if (filterId === "exclude_bots") {
+      setExcludeBots(optionValue === "true");
+    }
+  };
+
+  const handlePopoverFilterClear = () => {
+    setTimeWindow("all_time");
+    setExcludeBots(true);
+  };
 
   return (
     <div className="flex w-full flex-col gap-3">
@@ -156,18 +211,16 @@ const CommentFeedContent: FC = () => {
           iconPosition="left"
           className="w-full sm:w-auto sm:min-w-[240px] sm:flex-1"
         />
-        <Listbox
-          value={sort}
-          onChange={setSort}
-          options={sortOptions}
-          className="rounded-full border border-blue-500 px-3 py-1 text-sm dark:border-blue-500"
-        />
-        <Listbox
-          value={timeWindow}
-          onChange={setTimeWindow}
-          options={timeWindowOptions}
-          className="rounded-full border border-blue-500 px-3 py-1 text-sm dark:border-blue-500"
-        />
+        <div className="ml-auto flex gap-3 md:ml-0">
+          <Listbox value={sort} onChange={setSort} options={sortOptions} />
+          <PopoverFilter
+            filters={popoverFilters}
+            onChange={handlePopoverFilterChange}
+            onClear={handlePopoverFilterClear}
+            panelClassName="w-[300px]"
+            fullScreenEnabled
+          />
+        </div>
       </div>
 
       {/* Comments list */}

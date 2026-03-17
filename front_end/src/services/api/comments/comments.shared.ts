@@ -20,6 +20,7 @@ export type getCommentsParams = {
   last_viewed_at?: string;
   time_window?: "all_time" | "past_week" | "past_month" | "past_year";
   search?: string;
+  exclude_bots?: boolean;
 };
 
 export type KeyFactorWritePayload = KeyFactorDraft;
