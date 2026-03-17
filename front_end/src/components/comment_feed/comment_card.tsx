@@ -118,7 +118,7 @@ const ExpandableCommentContent = ({
             variant="text"
             onClick={onViewComment}
             size="sm"
-            className="gap-2 border-none px-2.5 py-1 font-normal text-blue-700  dark:text-blue-700-dark"
+            className="gap-2 border-none px-2.5 py-1 font-normal text-blue-700 dark:text-blue-700-dark"
           >
             <SquareArrowUpRight className="size-[14px] text-blue-600 dark:text-blue-600-dark md:size-[11px]" />
             <span className="leading-4">{t("view")}</span>
