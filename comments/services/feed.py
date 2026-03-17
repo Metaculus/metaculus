@@ -1,14 +1,12 @@
 from datetime import datetime, timedelta
 
-from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
-from django.db.models import Q, Case, When, Value, IntegerField, Exists, OuterRef
+from django.contrib.postgres.search import SearchQuery, SearchRank
+from django.db.models import F, Q, Case, When, Value, IntegerField, Exists, OuterRef
 from django.utils import timezone
 
 from comments.constants import TimeWindow
 from comments.models import Comment
 from posts.models import Post
-
-SEARCH_VECTOR = SearchVector("text_original", config="english")
 
 TIME_WINDOW_DELTAS = {
     TimeWindow.PAST_WEEK: timedelta(days=7),
@@ -120,12 +118,14 @@ def get_comments_feed(
         cutoff = timezone.now() - TIME_WINDOW_DELTAS[time_window]
         qs = qs.filter(created_at__gte=cutoff)
 
-    # Full-text search
+    # Full-text search using stored search vector
     if search:
         query = SearchQuery(search, search_type="websearch", config="english")
-        qs = qs.annotate(search=SEARCH_VECTOR).filter(search=query)
+        qs = qs.filter(text_original_search_vector=query)
         if sort == "relevance":
-            qs = qs.annotate(search_rank=SearchRank(SEARCH_VECTOR, query))
+            qs = qs.annotate(
+                search_rank=SearchRank(F("text_original_search_vector"), query)
+            )
 
     # Filter comments located under Posts current user is allowed to see
     qs = qs.filter_by_user_permission(user=user)
