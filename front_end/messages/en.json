@@ -2064,5 +2064,17 @@
   "publicForecasters": "public forecasters",
   "yourInternalExperts": "your internal experts",
   "view": "View",
-  "feedTileSummaryPlaceholder": "Optional: Enter a custom summary text to display on feed tiles (if not provided, a summary will be auto-generated from the notebook content)"
+  "feedTileSummaryPlaceholder": "Optional: Enter a custom summary text to display on feed tiles (if not provided, a summary will be auto-generated from the notebook content)",
+  "commentsFeed": "Comments",
+  "sortRecent": "Recent",
+  "sortMostUpvoted": "Most Upvoted",
+  "sortMostMindsChanged": "Most Minds Changed",
+  "sortRelevance": "Relevance",
+  "timeWindowAllTime": "All Time",
+  "timeWindowPastWeek": "Past Week",
+  "timeWindowPastMonth": "Past Month",
+  "timeWindowPastYear": "Past Year",
+  "searchComments": "Search comments...",
+  "loadMoreComments": "Load More",
+  "noCommentsFound": "No comments found"
 }

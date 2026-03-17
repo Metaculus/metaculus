@@ -2069,5 +2069,17 @@
   "openInAggregationExplorer": "Abrir no Explorador de Agregações",
   "switchBackToSlidersHint": "volte para os controles deslizantes para um ajuste suave",
   "view": "Visualizar",
-  "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
+  "thousandsOfOpenQuestions": "20.000+ perguntas abertas",
+  "commentsFeed": "Comments",
+  "sortRecent": "Recent",
+  "sortMostUpvoted": "Most Upvoted",
+  "sortMostMindsChanged": "Most Minds Changed",
+  "sortRelevance": "Relevance",
+  "timeWindowAllTime": "All Time",
+  "timeWindowPastWeek": "Past Week",
+  "timeWindowPastMonth": "Past Month",
+  "timeWindowPastYear": "Past Year",
+  "searchComments": "Search comments...",
+  "loadMoreComments": "Load More",
+  "noCommentsFound": "No comments found"
 }

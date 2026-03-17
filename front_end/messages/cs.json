@@ -2071,5 +2071,17 @@
   "openInAggregationExplorer": "Otevřít v Průzkumníku agregací",
   "switchBackToSlidersHint": "přepněte zpět na posuvníky pro plynulé přizpůsobení",
   "view": "Zobrazit",
-  "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
+  "thousandsOfOpenQuestions": "20 000+ otevřených otázek",
+  "commentsFeed": "Comments",
+  "sortRecent": "Recent",
+  "sortMostUpvoted": "Most Upvoted",
+  "sortMostMindsChanged": "Most Minds Changed",
+  "sortRelevance": "Relevance",
+  "timeWindowAllTime": "All Time",
+  "timeWindowPastWeek": "Past Week",
+  "timeWindowPastMonth": "Past Month",
+  "timeWindowPastYear": "Past Year",
+  "searchComments": "Search comments...",
+  "loadMoreComments": "Load More",
+  "noCommentsFound": "No comments found"
 }

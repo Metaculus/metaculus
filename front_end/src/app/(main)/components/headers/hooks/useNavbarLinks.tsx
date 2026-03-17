@@ -63,6 +63,10 @@ const useNavbarLinks = ({
           label: t("communities"),
           href: "/questions/?communities=true",
         },
+        commentsFeed: {
+          label: t("commentsFeed"),
+          href: "/questions/?comments_feed=true",
+        },
         about: {
           label: t("aboutMetaculus"),
           href: "/about/",
@@ -173,7 +177,7 @@ const useNavbarLinks = ({
   const menuLinks = useMemo(() => {
     // common links that are always shown
     const links: NavbarLinkDefinition[] = [
-      ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.communities]),
+      ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.communities, LINKS.commentsFeed]),
       LINKS.leaderboards,
       LINKS.trackRecord,
       LINKS.aggregationExplorer,
@@ -201,6 +205,7 @@ const useNavbarLinks = ({
     LINKS.aggregationExplorer,
     LINKS.aiBenchmark,
     LINKS.communities,
+    LINKS.commentsFeed,
     LINKS.createQuestion,
     LINKS.faq,
     LINKS.journal,

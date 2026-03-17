@@ -2073,5 +2073,17 @@
   "openInAggregationExplorer": "在聚合探索器中打开",
   "switchBackToSlidersHint": "切回滑块以进行更精细的调整",
   "view": "查看",
-  "thousandsOfOpenQuestions": "20,000+ 开放问题"
+  "thousandsOfOpenQuestions": "20,000+ 开放问题",
+  "commentsFeed": "Comments",
+  "sortRecent": "Recent",
+  "sortMostUpvoted": "Most Upvoted",
+  "sortMostMindsChanged": "Most Minds Changed",
+  "sortRelevance": "Relevance",
+  "timeWindowAllTime": "All Time",
+  "timeWindowPastWeek": "Past Week",
+  "timeWindowPastMonth": "Past Month",
+  "timeWindowPastYear": "Past Year",
+  "searchComments": "Search comments...",
+  "loadMoreComments": "Load More",
+  "noCommentsFound": "No comments found"
 }
