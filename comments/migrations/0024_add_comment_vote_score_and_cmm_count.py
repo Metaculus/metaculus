@@ -82,12 +82,28 @@ class Migration(migrations.Migration):
             model_name="comment",
             index=models.Index(fields=["created_at"], name="comment_created_at_idx"),
         ),
-        migrations.AddIndex(
-            model_name="comment",
-            index=django.contrib.postgres.indexes.GinIndex(
-                django.contrib.postgres.search.SearchVector("text", config="english"),
-                name="comment_text_search_idx",
-            ),
+        migrations.RunSQL(
+            sql="""
+                CREATE INDEX IF NOT EXISTS comment_text_search_idx
+                ON comments_comment
+                USING gin (to_tsvector('english', COALESCE(text_original, '')))
+                WHERE is_private = FALSE AND is_soft_deleted = FALSE;
+            """,
+            reverse_sql="DROP INDEX IF EXISTS comment_text_search_idx;",
+            state_operations=[
+                migrations.AddIndex(
+                    model_name="comment",
+                    index=django.contrib.postgres.indexes.GinIndex(
+                        django.contrib.postgres.search.SearchVector(
+                            "text_original", config="english"
+                        ),
+                        condition=models.Q(
+                            is_private=False, is_soft_deleted=False
+                        ),
+                        name="comment_text_search_idx",
+                    ),
+                ),
+            ],
         ),
         migrations.RunPython(backfill_vote_score, migrations.RunPython.noop),
         migrations.RunPython(backfill_cmm_count, migrations.RunPython.noop),

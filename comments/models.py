@@ -140,8 +140,9 @@ class Comment(TimeStampedModel, TranslatedModel):
                 name="comment_created_at_idx",
             ),
             GinIndex(
-                SearchVector("text", config="english"),
+                SearchVector("text_original", config="english"),
                 name="comment_text_search_idx",
+                condition=models.Q(is_private=False, is_soft_deleted=False),
             ),
         ]
 
