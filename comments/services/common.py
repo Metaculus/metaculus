@@ -321,7 +321,7 @@ def update_top_comments_of_week(week_start_date: datetime.date):
     ).exclude(author__is_staff=True)
 
     comments_of_week = weeks_comments.annotate(
-        vote_score=Coalesce(
+        annotated_vote_score=Coalesce(
             Subquery(
                 CommentVote.objects.filter(
                     comment=OuterRef("pk"),
@@ -387,7 +387,7 @@ def update_top_comments_of_week(week_start_date: datetime.date):
 
     stats = comments_of_week.aggregate(
         count=Count("id"),
-        max_vote_score=Max("vote_score"),
+        max_vote_score=Max("annotated_vote_score"),
         max_changed_my_mind_count=Max("changed_my_mind_count"),
         max_key_factor_votes_score=Max("key_factor_votes_score"),
     )
@@ -398,10 +398,10 @@ def update_top_comments_of_week(week_start_date: datetime.date):
 
     top_comments_of_week: list[CommentsOfTheWeekEntry] = []
     for row in comments_of_week.values(
-        "id", "vote_score", "changed_my_mind_count", "key_factor_votes_score"
+        "id", "annotated_vote_score", "changed_my_mind_count", "key_factor_votes_score"
     ):
         comment_score = compute_comment_score(
-            comment_votes=max(0, row["vote_score"]),
+            comment_votes=max(0, row["annotated_vote_score"]),
             change_my_minds=row["changed_my_mind_count"],
             key_factor_votes_score=row["key_factor_votes_score"],
             maximum_comment_votes=maximum_comment_votes,
@@ -417,7 +417,7 @@ def update_top_comments_of_week(week_start_date: datetime.date):
                 week_start_date=week_start_date,
                 # Store snapshot of comment counters
                 # for the moment of week entry creation
-                votes_score=row["vote_score"],
+                votes_score=row["annotated_vote_score"],
                 changed_my_mind_count=row["changed_my_mind_count"],
                 key_factor_votes_score=row["key_factor_votes_score"],
             )

@@ -159,7 +159,9 @@ class Comment(TimeStampedModel, TranslatedModel):
         update_fields = kwargs.get("update_fields")
         if not update_fields or "text_original" in update_fields:
             Comment.objects.filter(pk=self.pk).update(
-                text_original_search_vector=SearchVector("text_original", config="english")
+                text_original_search_vector=SearchVector(
+                    "text_original", config="english"
+                )
             )
 
     def update_vote_score(self):
