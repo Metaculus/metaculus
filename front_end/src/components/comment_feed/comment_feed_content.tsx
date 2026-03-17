@@ -4,7 +4,9 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import SearchInput from "@/components/search_input";
 import Button from "@/components/ui/button";
+import Listbox from "@/components/ui/listbox";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import ClientCommentsApi from "@/services/api/comments/comments.client";
 import { getCommentsParams } from "@/services/api/comments/comments.shared";
@@ -146,36 +148,25 @@ const CommentFeedContent: FC = () => {
       </h1>
       {/* Controls bar */}
       <div className="flex flex-wrap items-center gap-3">
-        <select
-          value={sort}
-          onChange={(e) => setSort(e.target.value as SortOption)}
-          className="rounded border border-gray-400 bg-gray-0 px-3 py-1.5 text-sm dark:border-gray-400-dark dark:bg-gray-0-dark"
-        >
-          {sortOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={timeWindow}
-          onChange={(e) => setTimeWindow(e.target.value as TimeWindow)}
-          className="rounded border border-gray-400 bg-gray-0 px-3 py-1.5 text-sm dark:border-gray-400-dark dark:bg-gray-0-dark"
-        >
-          {timeWindowOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-
-        <input
-          type="text"
+        <SearchInput
           value={searchQuery}
           onChange={(e) => handleSearchChange(e.target.value)}
+          onErase={() => handleSearchChange("")}
           placeholder={t("searchComments")}
-          className="min-w-[200px] flex-1 rounded border border-gray-400 bg-gray-0 px-3 py-1.5 text-sm dark:border-gray-400-dark dark:bg-gray-0-dark"
+          iconPosition="left"
+          className="w-full sm:w-auto sm:min-w-[240px] sm:flex-1"
+        />
+        <Listbox
+          value={sort}
+          onChange={setSort}
+          options={sortOptions}
+          className="rounded-full border border-blue-500 px-3 py-1 text-sm dark:border-blue-500"
+        />
+        <Listbox
+          value={timeWindow}
+          onChange={setTimeWindow}
+          options={timeWindowOptions}
+          className="rounded-full border border-blue-500 px-3 py-1 text-sm dark:border-blue-500"
         />
       </div>
 
