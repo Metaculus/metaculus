@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useMemo, useState } from "react";
 
-import { TournamentPreview } from "@/types/projects";
+import { TournamentPreview, TournamentsSortBy } from "@/types/projects";
 
 import { selectTournamentsForSection } from "../helpers";
 import { useTournamentFilters } from "../hooks/use_tournament_filters";
@@ -13,6 +13,7 @@ type TournamentsSectionCtxValue = {
   items: TournamentPreview[];
   count: number;
   nowTs?: number;
+  defaultSort: TournamentsSortBy;
   infoOpen: boolean;
   toggleInfo: () => void;
   closeInfo: () => void;
@@ -31,12 +32,18 @@ export function TournamentsSectionProvider(props: {
   const { tournaments, current, children, nowTs } = props;
   const [infoOpen, setInfoOpen] = useState(true);
 
+  const defaultSort =
+    current === "archived"
+      ? TournamentsSortBy.StartDateDesc
+      : TournamentsSortBy.Featured;
+
   const sectionItems = useMemo(
     () => selectTournamentsForSection(tournaments, current),
     [tournaments, current]
   );
 
-  const { filtered } = useTournamentFilters(sectionItems);
+  const filterOpts = useMemo(() => ({ defaultSort }), [defaultSort]);
+  const { filtered } = useTournamentFilters(sectionItems, filterOpts);
 
   const value = useMemo<TournamentsSectionCtxValue>(
     () => ({
@@ -45,10 +52,11 @@ export function TournamentsSectionProvider(props: {
       count: filtered.length,
       infoOpen,
       nowTs,
+      defaultSort,
       toggleInfo: () => setInfoOpen((v) => !v),
       closeInfo: () => setInfoOpen(false),
     }),
-    [current, filtered, infoOpen, nowTs]
+    [current, filtered, infoOpen, nowTs, defaultSort]
   );
 
   return (

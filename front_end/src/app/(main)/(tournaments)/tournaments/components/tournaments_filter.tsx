@@ -12,11 +12,10 @@ import { TOURNAMENTS_SORT } from "../constants/query_params";
 
 const TournamentsFilter: React.FC = () => {
   const t = useTranslations();
-  const { closeInfo } = useTournamentsSection();
+  const { closeInfo, defaultSort } = useTournamentsSection();
   const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
   const sortBy =
-    (params.get(TOURNAMENTS_SORT) as TournamentsSortBy) ??
-    TournamentsSortBy.Featured;
+    (params.get(TOURNAMENTS_SORT) as TournamentsSortBy) ?? defaultSort;
 
   const sortOptions: SelectOption<TournamentsSortBy>[] = [
     { value: TournamentsSortBy.Featured, label: t("featured") },
