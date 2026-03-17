@@ -189,15 +189,23 @@ const CommentFeedContent: FC = () => {
       ))}
 
       {/* Loading / empty / load more states */}
-      {isLoading && <LoadingIndicator />}
+      {isLoading && comments.length === 0 && (
+        <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
+      )}
       {!isLoading && comments.length === 0 && (
         <p className="py-8 text-center text-gray-500 dark:text-gray-500-dark">
           {t("noCommentsFound")}
         </p>
       )}
-      {!isLoading && hasMore && comments.length > 0 && (
-        <div className="flex justify-center py-4">
-          <Button onClick={handleLoadMore}>{t("loadMoreComments")}</Button>
+      {hasMore && comments.length > 0 && (
+        <div className="flex py-5">
+          {isLoading ? (
+            <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
+          ) : (
+            <Button className="mx-auto" onClick={handleLoadMore}>
+              {t("loadMoreComments")}
+            </Button>
+          )}
         </div>
       )}
     </div>
