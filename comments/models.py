@@ -1,5 +1,7 @@
 from typing import Iterable
 
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVector
 from django.db import models
 from django.db.models import (
     Sum,
@@ -16,7 +18,6 @@ from django.db.models import (
 from django.db.models.functions import Coalesce
 from django.db.models.lookups import Exact
 from django.utils import timezone
-from sql_util.aggregates import SubqueryAggregate
 
 from posts.models import Post
 from projects.models import Project
@@ -26,15 +27,6 @@ from utils.models import TimeStampedModel, TranslatedModel
 
 
 class CommentQuerySet(models.QuerySet):
-    def annotate_vote_score(self):
-        return self.annotate(
-            vote_score=Coalesce(
-                SubqueryAggregate("comment_votes__direction", aggregate=Sum),
-                0,
-                output_field=IntegerField(),
-            )
-        )
-
     def annotate_user_vote(self, user: User):
         """
         Annotates queryset with the user's vote option
@@ -121,8 +113,11 @@ class Comment(TimeStampedModel, TranslatedModel):
     # We need a separate field to track text changes only
     text_edited_at = models.DateTimeField(null=True, blank=True, editable=False)
 
+    # Denormalized fields for sorting in global comments feed
+    vote_score = models.IntegerField(default=0, db_index=True, editable=False)
+    cmm_count = models.IntegerField(default=0, db_index=True, editable=False)
+
     # annotated fields
-    vote_score: int = 0
     user_vote: int = 0
 
     objects = models.Manager.from_queryset(CommentQuerySet)()
@@ -139,7 +134,15 @@ class Comment(TimeStampedModel, TranslatedModel):
             models.Index(
                 fields=["author", "is_private", "on_post"],
                 name="comment_user_private_post_idx",
-            )
+            ),
+            models.Index(
+                fields=["created_at"],
+                name="comment_created_at_idx",
+            ),
+            GinIndex(
+                SearchVector("text", config="english"),
+                name="comment_text_search_idx",
+            ),
         ]
 
     def __str__(self):
@@ -150,6 +153,22 @@ class Comment(TimeStampedModel, TranslatedModel):
             self.root = self.root or self.parent.root or self.parent
 
         return super().save(**kwargs)
+
+    def update_vote_score(self):
+        score = self.comment_votes.aggregate(total=Coalesce(Sum("direction"), 0))[
+            "total"
+        ]
+        self.vote_score = score
+        self.save(update_fields=["vote_score"])
+
+        return score
+
+    def update_cmm_count(self):
+        count = self.changedmymindentry_set.count()
+        self.cmm_count = count
+        self.save(update_fields=["cmm_count"])
+
+        return count
 
 
 class CommentDiff(TimeStampedModel):

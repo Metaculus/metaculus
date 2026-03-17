@@ -1,7 +1,7 @@
 import datetime
 import difflib
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import (
     F,
     Sum,
@@ -265,6 +265,40 @@ def compute_comment_score(
 
     score = 0.5 * add_score + 0.5 * mult_score
     return score
+
+
+def vote_comment(comment: Comment, user: User, direction: int | None) -> int:
+    try:
+        with transaction.atomic():
+            CommentVote.objects.filter(user=user, comment=comment).delete()
+
+            if direction:
+                CommentVote.objects.create(
+                    user=user, comment=comment, direction=direction
+                )
+    except IntegrityError:
+        pass
+
+    return comment.update_vote_score()
+
+
+def toggle_cmm(comment: Comment, user: User, enabled: bool) -> bool | None:
+    """Returns True if created, False if deleted, None if no-op."""
+    try:
+        with transaction.atomic():
+            cmm = ChangedMyMindEntry.objects.filter(user=user, comment=comment)
+
+            if not enabled and cmm.exists():
+                cmm.delete()
+                comment.update_cmm_count()
+                return False
+
+            if enabled and not cmm.exists():
+                ChangedMyMindEntry.objects.create(user=user, comment=comment)
+                comment.update_cmm_count()
+                return True
+    except IntegrityError:
+        pass
 
 
 def set_comment_excluded_from_week_top(comment: Comment, excluded: bool = True):

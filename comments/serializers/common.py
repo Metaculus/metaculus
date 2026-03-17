@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from comments.constants import TimeWindow
 from comments.models import Comment, KeyFactor, CommentsOfTheWeekEntry
 from comments.utils import comments_extract_user_mentions_mapping
 from posts.models import Post
@@ -27,12 +28,26 @@ class CommentFilterSerializer(serializers.Serializer):
     is_private = serializers.BooleanField(required=False, allow_null=True)
     include_deleted = serializers.BooleanField(required=False, allow_null=True)
     last_viewed_at = serializers.DateTimeField(required=False, allow_null=True)
+    time_window = serializers.ChoiceField(
+        choices=TimeWindow.choices,
+        required=False,
+        allow_null=True,
+    )
+    search = serializers.CharField(required=False, allow_null=True, min_length=3)
 
     def validate_post(self, value: int):
         try:
             return Post.objects.get(pk=value)
         except Post.DoesNotExist:
             raise ValidationError("Post Does not exist")
+
+    def validate(self, attrs):
+        sort = attrs.get("sort")
+        search = attrs.get("search")
+        if sort == "relevance" and not search:
+            raise ValidationError({"sort": "Relevance sort requires a search query."})
+
+        return attrs
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -194,8 +209,6 @@ def serialize_comment_many(
     qs = qs.select_related(
         "included_forecast__question", "author", "on_post"
     ).prefetch_related("key_factors")
-    qs = qs.annotate_vote_score()
-
     if current_user:
         qs = qs.annotate_user_vote(current_user)
 
