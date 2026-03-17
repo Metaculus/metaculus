@@ -33,10 +33,10 @@ type Props = {
   expandOverride?: "auto" | "expanded" | "collapsed";
   onViewComment?: () => void;
   disableVoting?: boolean;
+  collapsedHeight?: number;
 };
 
-// Fixed height for collapsed state - adjust this value as needed
-const COLLAPSED_HEIGHT = 174; // pixels
+const DEFAULT_collapsedHeight = 174;
 
 const BottomStatContainer: FC<
   PropsWithChildren<{ className?: string; title?: string }>
@@ -78,12 +78,14 @@ const ExpandableCommentContent = ({
   needsExpand,
   contentRef,
   onViewComment,
+  collapsedHeight,
 }: {
   comment: BECommentType;
   isExpanded: boolean;
   needsExpand: boolean;
   contentRef: React.RefObject<HTMLDivElement | null>;
   onViewComment?: () => void;
+  collapsedHeight: number;
 }) => {
   const locale = useLocale();
   const t = useTranslations();
@@ -93,7 +95,8 @@ const ExpandableCommentContent = ({
       ref={contentRef}
       className="relative flex flex-col gap-[10px] overflow-hidden p-3 md:p-4"
       style={{
-        height: !isExpanded && needsExpand ? `${COLLAPSED_HEIGHT}px` : "auto",
+        height: !isExpanded && needsExpand ? `${collapsedHeight}px` : "auto",
+        //minHeight: `${collapsedHeight}px`,
       }}
     >
       {/* Author info */}
@@ -169,6 +172,7 @@ const CommentCard: FC<Props> = ({
   expandOverride = "auto",
   onViewComment,
   disableVoting = false,
+  collapsedHeight = DEFAULT_collapsedHeight,
 }) => {
   const t = useTranslations();
   const contentRef = useRef<HTMLDivElement>(null);
@@ -199,7 +203,7 @@ const CommentCard: FC<Props> = ({
         contentRef.current.style.overflow = "visible";
 
         const fullHeight = contentRef.current.scrollHeight;
-        const shouldExpand = fullHeight > COLLAPSED_HEIGHT;
+        const shouldExpand = fullHeight > collapsedHeight;
 
         setNeedsExpand(shouldExpand);
         if (controlledExpanded === undefined) {
@@ -230,7 +234,13 @@ const CommentCard: FC<Props> = ({
     observer.observe(node, { childList: true, subtree: true });
 
     return () => observer.disconnect();
-  }, [comment.text, comment.key_factors, comment.id, controlledExpanded]);
+  }, [
+    comment.text,
+    comment.key_factors,
+    comment.id,
+    controlledExpanded,
+    collapsedHeight,
+  ]);
 
   return (
     <div
@@ -262,6 +272,7 @@ const CommentCard: FC<Props> = ({
         needsExpand={needsExpand}
         contentRef={contentRef}
         onViewComment={onViewComment}
+        collapsedHeight={collapsedHeight}
       />
 
       <div className="mt-auto flex items-center justify-between p-3 md:p-4">

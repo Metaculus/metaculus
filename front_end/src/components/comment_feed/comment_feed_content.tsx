@@ -13,11 +13,12 @@ import SearchInput from "@/components/search_input";
 import Button from "@/components/ui/button";
 import Listbox from "@/components/ui/listbox";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import { useDebouncedCallback } from "@/hooks/use_debounce";
 import ClientCommentsApi from "@/services/api/comments/comments.client";
 import { getCommentsParams } from "@/services/api/comments/comments.shared";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { CommentType } from "@/types/comment";
-import { PostWithForecasts } from "@/types/post";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 
 import CommentFeedCard from "./comment_feed_card";
 
@@ -30,14 +31,25 @@ type TimeWindow = "all_time" | "past_week" | "past_month" | "past_year";
 const CommentFeedContent: FC = () => {
   const t = useTranslations();
   const [comments, setComments] = useState<CommentType[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [sort, setSort] = useState<SortOption>("-created_at");
   const [timeWindow, setTimeWindow] = useState<TimeWindow>("all_time");
   const [excludeBots, setExcludeBots] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const debounceRef = useRef<NodeJS.Timeout>(null);
+
+  const updateDebouncedSearch = useDebouncedCallback((value: string) => {
+    setDebouncedSearch(value.length >= 3 ? value : "");
+  }, 500);
+
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setSearchQuery(value);
+      updateDebouncedSearch(value);
+    },
+    [updateDebouncedSearch]
+  );
 
   // Use ref to avoid stale closure in fetchComments
   const commentsRef = useRef(comments);
@@ -72,14 +84,6 @@ const CommentFeedContent: FC = () => {
     placeholderData: keepPreviousData,
   });
 
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchQuery(value);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      setDebouncedSearch(value.length >= 3 ? value : "");
-    }, 300);
-  }, []);
-
   const fetchComments = useCallback(
     async (offset: number, reset: boolean = false) => {
       setIsLoading(true);
@@ -90,6 +94,10 @@ const CommentFeedContent: FC = () => {
           limit: COMMENTS_PER_PAGE,
           offset,
           sort: effectiveSort,
+          parent_isnull: true,
+          is_private: false,
+          include_deleted: false,
+          post_status: PostStatus.APPROVED,
           ...(timeWindow !== "all_time" && { time_window: timeWindow }),
           ...(debouncedSearch && { search: debouncedSearch }),
           exclude_bots: excludeBots,
@@ -110,7 +118,7 @@ const CommentFeedContent: FC = () => {
   useEffect(() => {
     setComments([]);
     setHasMore(true);
-    fetchComments(0, true);
+    void fetchComments(0, true);
   }, [fetchComments]);
 
   // Auto-switch to relevance sort when searching
@@ -124,7 +132,7 @@ const CommentFeedContent: FC = () => {
   }, [debouncedSearch]);
 
   const handleLoadMore = () => {
-    fetchComments(comments.length);
+    void fetchComments(comments.length);
   };
 
   const sortOptions: { value: SortOption; label: string }[] = [

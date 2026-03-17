@@ -40,6 +40,7 @@ const CommentFeedCard: FC<Props> = ({ comment, post }) => {
             keyFactorVotesScore={0}
             className="mt-0 border-none dark:border-none md:mt-0"
             expandOverride="collapsed"
+            collapsedHeight={222}
             onViewComment={() =>
               window.open(
                 `/questions/${comment.on_post}/#comment-${comment.id}`,
