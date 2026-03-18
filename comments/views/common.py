@@ -39,7 +39,7 @@ from notifications.services import send_comment_report_notification_to_staff
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from users.models import User
-from utils.paginator import LimitOffsetPagination
+from utils.paginator import LimitOffsetPagination, CountlessLimitOffsetPagination
 
 
 class RootCommentsPagination(LimitOffsetPagination):
@@ -100,7 +100,7 @@ def comments_list_api_view(request: Request):
     paginator = (
         RootCommentsPagination()
         if use_root_comments_pagination
-        else LimitOffsetPagination()
+        else CountlessLimitOffsetPagination()
     )
     paginated_comments = paginator.paginate_queryset(comments, request)
 
