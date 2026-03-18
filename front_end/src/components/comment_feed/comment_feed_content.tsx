@@ -106,7 +106,7 @@ const CommentFeedContent: FC = () => {
         const prev = reset ? [] : commentsRef.current;
         const newComments = [...prev, ...response.results];
         setComments(newComments);
-        setHasMore(!!response.next);
+        setHasMore(response.results.length >= COMMENTS_PER_PAGE);
       } finally {
         setIsLoading(false);
       }
