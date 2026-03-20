@@ -16,6 +16,7 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 choices=[
                     ("restricted", "Restricted"),
+                    ("bot_benchmarking", "Bot Benchmarking"),
                     ("unrestricted", "Unrestricted"),
                 ],
                 default="restricted",

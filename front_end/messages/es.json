@@ -694,7 +694,7 @@
   "longTitleExplanation": "Una oración que encapsula lo que estás tratando de predecir. Termina con un signo de interrogación.",
   "shortTitleExplanation": "Debe ser una versión más corta del Título Largo, utilizada donde hay menos espacio para mostrar un título. Debe terminar con un signo de interrogación. Ejemplos: \"¿Ganador del contrato de trajes espaciales de la NASA 2022?\" o \"¿PIB de la UE de 2025 a 2035?\"",
   "backgroundInformation": "Información de Fondo",
-  "backgroundInfoExplanation": "Proporciona información de fondo para tu pregunta en un tono objetivo y sin sesgos. Los enlaces deben agregarse a recursos relevantes y útiles utilizando la <link>sintaxis markdown</link>: <markdown>[Título del Enlace](https://link-url.com)</markdown>.",
+  "backgroundInfoExplanation": "Proporciona información de fondo para tu pregunta en un tono objetivo y sin sesgos. Los enlaces deben agregarse a recursos relevantes y útiles.",
   "resolutionCriteriaExplanation": "Una buena pregunta casi siempre se resolverá de manera inequívoca. Si tienes una fuente de datos con la que se resolverá la pregunta, enlázala aquí. Si es necesario realizar algunos cálculos simples para resolver esta pregunta, define la ecuación en markdown: <markdown>\\[ y = ax^2+b \\]</markdown>.",
   "choicesSeparatedBy": "Opciones (separadas por ,)",
   "projects": "proyectos",
@@ -1495,6 +1495,7 @@
   "placementThird": "3er lugar",
   "placementOther": "{placement}º lugar",
   "exclude": "Excluir",
+  "excluded": "Excluido",
   "unexclude": "Incluir",
   "mindsChanged": "mentes cambiadas",
   "weeklyTopComments": "Top Comentarios de la Semana",
@@ -2068,5 +2069,7 @@
   "failedToLoadAggregation": "No se pudo cargar la agregación",
   "questionFallbackLabel": "Pregunta {id}",
   "openInAggregationExplorer": "Abrir en el Explorador de Agregación",
+  "switchBackToSlidersHint": "vuelve a los deslizadores para un ajuste suave",
+  "view": "Ver",
   "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
 }

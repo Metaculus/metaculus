@@ -21,10 +21,12 @@ class CommentFilterSerializer(serializers.Serializer):
     parent_isnull = serializers.BooleanField(required=False, allow_null=True)
     post = serializers.IntegerField(required=False, allow_null=True)
     author = serializers.IntegerField(required=False, allow_null=True)
+    author_is_staff = serializers.BooleanField(required=False, allow_null=True)
     sort = serializers.CharField(required=False, allow_null=True)
     focus_comment_id = serializers.IntegerField(required=False, allow_null=True)
     is_private = serializers.BooleanField(required=False, allow_null=True)
     include_deleted = serializers.BooleanField(required=False, allow_null=True)
+    last_viewed_at = serializers.DateTimeField(required=False, allow_null=True)
 
     def validate_post(self, value: int):
         try:
@@ -164,7 +166,9 @@ def serialize_comment(
     serialized_data["mentioned_users"] = BaseUserSerializer(mentions, many=True).data
 
     # Annotate user's vote
-    serialized_data["vote_score"] = comment.vote_score
+    serialized_data["vote_score"] = getattr(
+        comment, "annotated_vote_score", comment.vote_score
+    )
     serialized_data["user_vote"] = comment.user_vote
     serialized_data["author_staff_permission"] = author_staff_permission
 

@@ -70,10 +70,10 @@ const people: Person[] = [
   },
   {
     name: "Nikitas Angeletos Chrysaitis",
-    position: "Forecasting Analyst",
+    position: "Forecasting Program Coordinator",
     imgSrc: "https://cdn.metaculus.com/nikitas-angeletos-chrysaitis.webp",
     introduction:
-      "Nikitas is a Forecasting Analyst at Metaculus, responsible for platform oversight, question development for various initiatives, and Metaculus Pro forecasting. He holds a background in Mathematics and a PhD in Computational Psychiatry from the University of Edinburgh.",
+      "Nikitas is the Forecasting Program Coordinator at Metaculus, where he leads key program initiatives and oversees the day-to-day functioning of the platform. He brings a strong quantitative foundation to the role, with a degree in Mathematics and a PhD in Computational Psychiatry. Before stepping into this position, Nikitas was a Pro Forecaster at Metaculus, giving him a practitioner's perspective on forecasting that informs all aspects of his work.",
   },
   {
     userId: 183695,
@@ -108,10 +108,10 @@ const people: Person[] = [
   {
     userId: 117502,
     name: "Ryan Beck",
-    position: "Forecasting Program Coordinator",
+    position: "Director of Forecasting",
     imgSrc: "https://cdn.metaculus.com/about/ryan_beck.webp",
     introduction:
-      "Ryan is Metaculus’ Forecasting Program Coordinator. He received a Master’s degree in Civil Engineering from Iowa State University, and was previously a bridge engineer for six years. He is an avid forecaster and a pro-forecaster at INFER. Ryan is also the author of a science fiction novel, <cite>SEER</cite>.",
+      "Ryan is the Director of Forecasting at Metaculus, leading the design and execution of forecasting programs that deliver rigorous, decision-relevant insight for clients, partners, and the broader platform. He joined Metaculus in 2022, following a six-year career as a Bridge Engineer focused on highway bridge design. A graduate of Iowa State University with a master’s in civil engineering, Ryan developed a strong interest in forecasting that later led to work as a Metaculus Pro Forecaster and two years as an INFER Pro Forecaster.",
   },
   {
     userId: 115975,
@@ -337,6 +337,13 @@ const people: Person[] = [
     introduction:
       "Grace is a researcher and evaluator with over a decade of experience in global health. She brings to Metaculus her experience in decision making under uncertainty, mixed methods research, and project delivery. She holds a Master of Science in Public Health from Johns Hopkins. In her spare time, she enjoys crafting/drawing, video/board games, and hiking in beautiful places.",
   },
+  {
+    name: "Jesse Damiani",
+    position: "Communications Strategist",
+    imgSrc: "https://cdn.metaculus.com/jesse.webp",
+    introduction:
+      "Jesse Damiani is a writer, curator, and foresight strategist who founded the Reality Studies newsletter and Urgent Futures podcast. He has taught at NYU, USC, SCI-Arc, and elsewhere, and served as Research Affiliate at Institute for the Future and Director of Emerging Technology & Insight at Southern New Hampshire University. His writing appears in Architectural Design, Flash Art, NBC News, WIRED, and The Yale Review.",
+  },
 ];
 
 const groups: Groups = {
@@ -359,6 +366,7 @@ const groups: Groups = {
     "Cemre Inanc",
     "Kelley Edelmann",
     "Grace McLain",
+    "Jesse Damiani",
   ],
   board: [
     "Anthony Aguirre",

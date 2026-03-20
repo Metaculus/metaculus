@@ -96,7 +96,7 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: cd front_end && npm ci
       - name: Build the frontend
-        run: cd front_end && npm run build
+        run: cd front_end && NODE_OPTIONS=--max-old-space-size=8192 npm run build
       - name: Run the integration tests
         run: |
           uv run ./manage.py migrate
