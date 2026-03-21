@@ -5,6 +5,7 @@ import { FC } from "react";
 import { Href } from "@/types/navigation";
 import {
   CategoryKey,
+  ExclusionStatuses,
   LeaderboardEntry,
   LeaderboardType,
 } from "@/types/scoring";
@@ -52,7 +53,7 @@ const LeaderboardRow: FC<Props> = ({
     contribution_count,
     score,
     medal,
-    excluded,
+    exclusion_status,
   } = rowEntry;
 
   const t = useTranslations();
@@ -67,7 +68,8 @@ const LeaderboardRow: FC<Props> = ({
         },
         {
           "bg-purple-200 hover:bg-purple-300 dark:bg-purple-200-dark hover:dark:bg-purple-300-dark":
-            !isUserRow && excluded,
+            !isUserRow &&
+            exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_ONLY,
         }
       )}
     >
@@ -85,7 +87,7 @@ const LeaderboardRow: FC<Props> = ({
             <>
               {!!medal && <MedalIcon type={medal} className="size-5" />}
               <span className="flex-1 text-center">
-                {excluded ? (
+                {exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_ONLY ? (
                   <>
                     <ExcludedEntryTooltip />
                   </>
