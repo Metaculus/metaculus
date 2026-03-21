@@ -7,7 +7,6 @@ from rest_framework.exceptions import ValidationError
 from comments.models import KeyFactor
 from projects.models import Project
 from scoring.models import LeaderboardEntry
-from users.constants import ApiAccessTier
 from users.models import User, UserCampaignRegistration
 
 forbidden_usernames = [
