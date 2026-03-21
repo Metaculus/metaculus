@@ -46,6 +46,8 @@ def calculate_minimum_time_scores(
             resolution=question.resolution,
             score_types=[score_type],
         )
+        for score in new_scores:
+            score.question = question
         scores.extend(new_scores)
 
     return scores
