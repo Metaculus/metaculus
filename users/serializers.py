@@ -139,6 +139,9 @@ class UserPrivateSerializer(UserPublicSerializer):
 class UserPrivateDataAccessSerializer(UserPrivateSerializer):
     project_data_access = serializers.SerializerMethodField()
 
+    class Meta(UserPrivateSerializer.Meta):
+        fields = UserPrivateSerializer.Meta.fields + ("project_data_access",)
+
     def get_project_data_access(self, user: User):
         entries = (
             user.data_accesses.filter(project_id__isnull=False)
