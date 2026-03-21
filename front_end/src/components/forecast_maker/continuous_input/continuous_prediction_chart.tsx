@@ -35,6 +35,7 @@ type Props = {
   };
   graphType: ContinuousAreaGraphType;
   readOnly?: boolean;
+  hasUserForecast?: boolean;
   height?: number;
   width?: number;
   showCP?: boolean;
@@ -66,6 +67,7 @@ const ContinuousPredictionChart: FC<Props> = ({
   dataset,
   graphType,
   readOnly = false,
+  hasUserForecast = false,
   height = 300,
   width = undefined,
   showCP = true,
@@ -154,7 +156,11 @@ const ContinuousPredictionChart: FC<Props> = ({
       });
     }
 
-    if (!readOnly || !!previousCdf) {
+    if (
+      !readOnly ||
+      (hasUserForecast && dataset.cdf.length > 0) ||
+      !!previousCdf
+    ) {
       charts.push({
         pmf: dataset.pmf,
         cdf: dataset.cdf,
@@ -171,6 +177,7 @@ const ContinuousPredictionChart: FC<Props> = ({
     overlayPreviousForecast,
     previousCdf,
     readOnly,
+    hasUserForecast,
     dataset,
   ]);
 

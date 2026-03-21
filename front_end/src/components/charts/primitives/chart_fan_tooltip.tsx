@@ -191,7 +191,7 @@ const ChartFanTooltip: FC<Props> = ({
               {/* Total Forecasters Row */}
               <tr className="border-t border-gray-300 dark:border-gray-300-dark">
                 <th className="px-3 pb-1.5 pt-2 text-left text-sm font-medium capitalize text-gray-800 dark:text-gray-800-dark">
-                  {t("totalForecastersLabel")}
+                  {t("activeForecastersLabel")}
                 </th>
                 <td
                   className="pb-1 pr-3.5 pt-2 text-right text-sm font-normal tabular-nums text-gray-700 dark:text-gray-700-dark"

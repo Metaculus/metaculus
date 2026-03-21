@@ -41,13 +41,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY poetry.lock pyproject.toml ./
+COPY --from=ghcr.io/astral-sh/uv:0.10 /uv /uvx /usr/local/bin/
+COPY pyproject.toml uv.lock .python-version ./
+ENV UV_PROJECT_ENVIRONMENT=/app/venv
+RUN uv sync --frozen --no-dev
 
-RUN pip install --no-cache-dir poetry \
-    && poetry config virtualenvs.create false \
-    && python -m venv venv \
-    && . venv/bin/activate \
-    && poetry install --without dev --no-interaction --no-ansi
+# ============================================================
+# DJANGO STATIC FILES (runs in parallel with frontend build)
+# ============================================================
+FROM base AS backend_static
+WORKDIR /app
+
+COPY . /app/
+COPY --from=backend_deps /app/venv /app/venv
+
+RUN . venv/bin/activate && ./manage.py collectstatic --noinput
 
 # ============================================================
 # FRONTEND BUILD
@@ -64,7 +72,7 @@ COPY --from=frontend_deps /app/front_end/node_modules /app/front_end/node_module
 # Build frontend
 ENV NODE_ENV=production
 RUN cd front_end \
-    && NODE_OPTIONS=--max-old-space-size=4096 npm run build \
+    && NODE_OPTIONS=--max-old-space-size=8192 npm run build \
     && rm -rf .next/cache
 
 # Inject Sentry sourcemaps
@@ -74,6 +82,7 @@ RUN cd front_end && npx sentry-cli sourcemaps inject .next
 # FINAL ENVIRONMENT
 # ============================================================
 FROM base AS final_env
+RUN mkdir -p /app && chown 1001:0 /app
 WORKDIR /app
 
 # Configure nginx
@@ -88,20 +97,20 @@ RUN rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default /e
 RUN npm install -g pm2@6
 
 # Copy ALL source code (backend + frontend source, but .next is overwritten)
-COPY . /app/
+COPY --chown=1001:0 . /app/
 
 # Copy dependencies from build stages
-COPY --from=backend_deps /app/venv /app/venv
-COPY --from=frontend_deps /app/front_end/node_modules /app/front_end/node_modules
+COPY --chown=1001:0 --from=backend_deps /app/venv /app/venv
+COPY --chown=1001:0 --from=frontend_deps /app/front_end/node_modules /app/front_end/node_modules
 
 # Copy pre-built frontend (overwrites the source-only front_end/.next)
-COPY --from=frontend_build /app/front_end/.next /app/front_end/.next
+COPY --chown=1001:0 --from=frontend_build /app/front_end/.next /app/front_end/.next
 
-# Collect Django static files
-RUN . venv/bin/activate && ./manage.py collectstatic --noinput
+# Copy pre-collected Django static files
+COPY --chown=1001:0 --from=backend_static /app/staticfiles /app/staticfiles
 
-# Set ownership and switch to non-root user
-RUN mkdir -p /home/app && chown -R 1001:0 /app /home/app
+# Switch to non-root user
+RUN mkdir -p /home/app && chown 1001:0 /home/app
 USER 1001
 
 # Runtime configuration

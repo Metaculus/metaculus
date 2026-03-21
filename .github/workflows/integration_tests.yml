@@ -49,44 +49,25 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-      - id: setup-python
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.12.3"
-      - name: Install poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
-      - name: Cache Python virtualenv
-        id: cache-poetry-venv
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-
-      # - name: Load cached venv
-      #   id: cached-poetry-dependencies
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: .venv
-      #     key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          version: "0.10.x"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
       - name: Install dependencies
-        if: steps.cache-poetry-venv.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
+        run: uv sync --frozen
       - name: Cache Playwright browsers
         id: cache-playwright
         uses: actions/cache@v4
         with:
           path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
-          key: playwright-${{ runner.os }}-${{ hashFiles('front_end/package-lock.json') }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('uv.lock') }}
           restore-keys: |
             playwright-${{ runner.os }}
       - name: Install Playwright deps
         if: steps.cache-playwright.outputs.cache-hit != 'true'
-        run: poetry run python -m playwright install chromium --with-deps
+        run: uv run python -m playwright install chromium --with-deps
       - name: Restore the min DB for testing
         run: |
           wget https://github.com/Metaculus/metaculus/releases/download/v0.0.1-alpha/test_metaculus.sql.zip
@@ -115,10 +96,10 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: cd front_end && npm ci
       - name: Build the frontend
-        run: cd front_end && npm run build
+        run: cd front_end && NODE_OPTIONS=--max-old-space-size=8192 npm run build
       - name: Run the integration tests
         run: |
-          poetry run ./manage.py migrate
+          uv run ./manage.py migrate
           PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH} scripts/tests/run_integration_tests.sh
       - name: Create trace.zip
         if: ${{ !cancelled() }}

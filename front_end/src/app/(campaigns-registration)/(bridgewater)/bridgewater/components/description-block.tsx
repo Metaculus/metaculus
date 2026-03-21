@@ -9,6 +9,7 @@ import { BRIDGEWATER_2026 } from "../constants";
 const DescriptionBlock: FC = () => {
   return (
     <div className="rounded-md bg-gray-0 px-6 py-2 dark:bg-gray-0-dark sm:px-8 sm:py-4 lg:mx-0">
+      <p className="mb-3 font-bold sm:mb-4">Registration is closed.</p>
       <div className="prose prose-blue dark:prose-invert max-w-none">
         {BRIDGEWATER_2026.description.split("\n\n").map((paragraph, index) => (
           <p
