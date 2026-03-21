@@ -1495,6 +1495,7 @@
   "placementThird": "3er lugar",
   "placementOther": "{placement}º lugar",
   "exclude": "Excluir",
+  "excluded": "Excluido",
   "unexclude": "Incluir",
   "mindsChanged": "mentes cambiadas",
   "weeklyTopComments": "Top Comentarios de la Semana",
@@ -2068,5 +2069,7 @@
   "failedToLoadAggregation": "No se pudo cargar la agregación",
   "questionFallbackLabel": "Pregunta {id}",
   "openInAggregationExplorer": "Abrir en el Explorador de Agregación",
+  "switchBackToSlidersHint": "vuelve a los deslizadores para un ajuste suave",
+  "view": "Ver",
   "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
 }

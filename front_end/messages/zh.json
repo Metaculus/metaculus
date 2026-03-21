@@ -1497,6 +1497,7 @@
   "placementThird": "第3名",
   "placementOther": "第{placement}名",
   "exclude": "排除",
+  "excluded": "已排除",
   "unexclude": "取消排除",
   "mindsChanged": "改变主意",
   "weeklyTopComments": "本周热评",
@@ -2070,5 +2071,7 @@
   "failedToLoadAggregation": "无法加载聚合",
   "questionFallbackLabel": "问题 {id}",
   "openInAggregationExplorer": "在聚合探索器中打开",
+  "switchBackToSlidersHint": "切回滑块以进行更精细的调整",
+  "view": "查看",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }

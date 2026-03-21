@@ -221,9 +221,9 @@ def comment_vote_api_view(request: Request, pk: int):
             user=request.user, comment=comment, direction=direction
         )
 
-    return Response(
-        {"score": Comment.objects.annotate_vote_score().get(pk=comment.pk).vote_score}
-    )
+    score = comment.update_vote_score()
+
+    return Response({"score": score})
 
 
 @api_view(["POST"])
@@ -237,11 +237,13 @@ def comment_toggle_cmm_view(request, pk=int):
 
     if not enabled and cmm.exists():
         cmm.delete()
+        comment.update_cmm_count()
 
         return Response(status=status.HTTP_200_OK)
 
     if not cmm.exists():
-        cmm = ChangedMyMindEntry.objects.create(user=user, comment=comment)
+        ChangedMyMindEntry.objects.create(user=user, comment=comment)
+        comment.update_cmm_count()
         return Response(status=status.HTTP_200_OK)
 
     return Response(

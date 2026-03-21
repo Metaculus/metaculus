@@ -272,7 +272,7 @@ def generate_comment_insight_leaderboard_entries(
             on_post__in=posts,
         )
         .annotate(
-            vote_score=Coalesce(
+            annotated_vote_score=Coalesce(
                 SubqueryAggregate(
                     "comment_votes__direction",
                     filter=Q(
@@ -290,7 +290,7 @@ def generate_comment_insight_leaderboard_entries(
                 output_field=IntegerField(),
             )
         )
-        .filter(vote_score__gt=0)
+        .filter(annotated_vote_score__gt=0)
         .select_related("author")
     )
 
@@ -300,7 +300,7 @@ def generate_comment_insight_leaderboard_entries(
 
     scores_for_author: dict[User, list[int]] = defaultdict(list)
     for comment in comments:
-        scores_for_author[comment.author].append(comment.vote_score)
+        scores_for_author[comment.author].append(comment.annotated_vote_score)
 
     user_entries: dict[User, LeaderboardEntry] = {}
     for user, scores in scores_for_author.items():
@@ -931,7 +931,7 @@ def get_contribution_comment_insight(user: User, leaderboard: Leaderboard):
             comment_votes__isnull=False,
         )
         .annotate(
-            vote_score=SubqueryAggregate(
+            annotated_vote_score=SubqueryAggregate(
                 "comment_votes__direction",
                 filter=Q(
                     created_at__gte=leaderboard.start_time or make_aware(datetime.min),
@@ -944,7 +944,7 @@ def get_contribution_comment_insight(user: User, leaderboard: Leaderboard):
                 aggregate=Sum,
             )
         )
-        .exclude(vote_score=0)
+        .exclude(annotated_vote_score=0)
         .distinct("pk")
     )
 
@@ -957,7 +957,7 @@ def get_contribution_comment_insight(user: User, leaderboard: Leaderboard):
     }
     contributions = [
         Contribution(
-            score=comment.vote_score,
+            score=comment.annotated_vote_score,
             post=posts_map[comment.on_post_id],
             comment=comment,
         )

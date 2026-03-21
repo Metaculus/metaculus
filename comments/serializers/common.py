@@ -166,7 +166,9 @@ def serialize_comment(
     serialized_data["mentioned_users"] = BaseUserSerializer(mentions, many=True).data
 
     # Annotate user's vote
-    serialized_data["vote_score"] = comment.vote_score
+    serialized_data["vote_score"] = getattr(
+        comment, "annotated_vote_score", comment.vote_score
+    )
     serialized_data["user_vote"] = comment.user_vote
     serialized_data["author_staff_permission"] = author_staff_permission
 
