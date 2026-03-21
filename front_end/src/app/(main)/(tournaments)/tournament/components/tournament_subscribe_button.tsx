@@ -111,9 +111,7 @@ const TournamentSubscribeButton: FC<Props> = ({ user, tournament }) => {
         isOpen={modalMode !== null}
         onClose={handleModalClose}
         mode={modalMode ?? "follow"}
-        defaultFollowQuestions={
-          modalMode === "follow" ? followQuestions : followQuestions
-        }
+        defaultFollowQuestions={followQuestions}
         onSubmit={
           modalMode === "follow" ? handleFollowSubmit : handleUnfollowSubmit
         }

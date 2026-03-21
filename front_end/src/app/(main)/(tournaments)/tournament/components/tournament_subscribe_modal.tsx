@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
@@ -28,6 +28,10 @@ const TournamentSubscribeModal: FC<Props> = ({
   const [followQuestions, setFollowQuestions] = useState(
     defaultFollowQuestions
   );
+
+  useEffect(() => {
+    setFollowQuestions(defaultFollowQuestions);
+  }, [defaultFollowQuestions]);
 
   const isFollow = mode === "follow";
 
