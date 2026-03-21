@@ -89,7 +89,6 @@ class UserPrivateSerializer(UserPublicSerializer):
     registered_campaigns = serializers.SerializerMethodField()
     should_suggest_keyfactors = serializers.SerializerMethodField()
     has_password = serializers.SerializerMethodField()
-    project_data_access = serializers.SerializerMethodField()
 
     class Meta:
         model = User
