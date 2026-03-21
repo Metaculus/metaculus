@@ -46,6 +46,10 @@ export type PostsParams = PaginationParams & {
   default_project_id?: string;
 };
 
+export type PostFetchParams = {
+  include_cp_history?: boolean;
+};
+
 export type ApprovePostParams = {
   published_at: string | undefined;
   open_time: string | undefined;
@@ -101,7 +105,8 @@ class PostsApi extends ApiService {
   }
 
   async getPostsWithCP(
-    params?: PostsParams
+    params?: PostsParams,
+    fetchParams?: PostFetchParams
   ): Promise<PaginatedPayload<PostWithForecasts>> {
     const queryParams = encodeQueryParams({
       ...(params ?? {}),
@@ -109,6 +114,7 @@ class PostsApi extends ApiService {
       include_descriptions: false,
       include_cp_history: true,
       include_movements: true,
+      ...(fetchParams ?? {}),
     });
 
     return await this.get<PaginatedPayload<PostWithForecasts>>(

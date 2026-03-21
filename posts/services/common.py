@@ -458,7 +458,7 @@ def reject_post(post: Post):
 
 def submit_for_review_post(post: Post):
     if post.curation_status != Post.CurationStatus.DRAFT:
-        raise ValueError("Can't submit for review non-draft post")
+        raise ValidationError("Can't submit for review non-draft post")
 
     post.update_curation_status(Post.CurationStatus.PENDING)
     post.save()
@@ -466,7 +466,7 @@ def submit_for_review_post(post: Post):
 
 def post_make_draft(post: Post):
     if post.curation_status != Post.CurationStatus.PENDING:
-        raise ValueError("Can't submit for review non-pending post")
+        raise ValidationError("Can't submit for review non-pending post")
 
     post.update_curation_status(Post.CurationStatus.DRAFT)
     post.save()
@@ -474,7 +474,7 @@ def post_make_draft(post: Post):
 
 def send_back_to_review(post: Post):
     if post.curation_status != Post.CurationStatus.APPROVED:
-        raise ValueError("Can't send back to review non-approved post")
+        raise ValidationError("Can't send back to review non-approved post")
 
     post.curation_status = Post.CurationStatus.PENDING
     post.open_time = None
