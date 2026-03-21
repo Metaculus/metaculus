@@ -1529,6 +1529,7 @@
   "placementThird": "第 3 名",
   "placementOther": "第 {placement} 名",
   "exclude": "排除",
+  "excluded": "已排除",
   "unexclude": "取消排除",
   "mindsChanged": "改變想法",
   "weeklyTopComments": "本週熱評",
@@ -2075,6 +2076,7 @@
   "tournamentUnfollowModalAlsoUnfollowQuestions": "亦取消關注所有問題",
   "tournamentUnfollowModalAlsoUnfollowQuestionsDescription": "從此比賽中的所有問題中移除您的關注。",
   "tournamentUnfollowModalSubmit": "取消關注",
-  "switchBackToSlidersHint": "切換回滑桿以獲得平滑的調整",
+  "switchBackToSlidersHint": "切換回滑桿以平滑調整",
+  "view": "檢視",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }

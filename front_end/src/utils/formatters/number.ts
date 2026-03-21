@@ -61,7 +61,11 @@ export function abbreviatedNumber(
     return toScientificNotation(val, 2, 1, false);
   }
 
-  if (!isNil(scaling?.range_min) && !isNil(scaling?.range_max)) {
+  if (
+    isNil(scaling?.zero_point) &&
+    !isNil(scaling?.range_min) &&
+    !isNil(scaling?.range_max)
+  ) {
     // if sufficiently close to zero relative to the size of the range,
     // assume it should be zero
     if (

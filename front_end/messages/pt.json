@@ -1493,6 +1493,7 @@
   "placementThird": "3º lugar",
   "placementOther": "{placement}º lugar",
   "exclude": "Excluir",
+  "excluded": "Excluído",
   "unexclude": "Incluir",
   "mindsChanged": "mentes mudadas",
   "weeklyTopComments": "Top Comentários da Semana",
@@ -2076,6 +2077,7 @@
   "tournamentUnfollowModalAlsoUnfollowQuestions": "Deixar de seguir todas as perguntas",
   "tournamentUnfollowModalAlsoUnfollowQuestionsDescription": "Remova seus seguimentos de todas as perguntas neste torneio.",
   "tournamentUnfollowModalSubmit": "Deixar de Seguir",
-  "switchBackToSlidersHint": "voltar para os controles deslizantes para um ajuste suave",
+  "switchBackToSlidersHint": "volte para os controles deslizantes para um ajuste suave",
+  "view": "Visualizar",
   "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
 }

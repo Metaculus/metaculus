@@ -337,6 +337,13 @@ const people: Person[] = [
     introduction:
       "Grace is a researcher and evaluator with over a decade of experience in global health. She brings to Metaculus her experience in decision making under uncertainty, mixed methods research, and project delivery. She holds a Master of Science in Public Health from Johns Hopkins. In her spare time, she enjoys crafting/drawing, video/board games, and hiking in beautiful places.",
   },
+  {
+    name: "Jesse Damiani",
+    position: "Communications Strategist",
+    imgSrc: "https://cdn.metaculus.com/jesse.webp",
+    introduction:
+      "Jesse Damiani is a writer, curator, and foresight strategist who founded the Reality Studies newsletter and Urgent Futures podcast. He has taught at NYU, USC, SCI-Arc, and elsewhere, and served as Research Affiliate at Institute for the Future and Director of Emerging Technology & Insight at Southern New Hampshire University. His writing appears in Architectural Design, Flash Art, NBC News, WIRED, and The Yale Review.",
+  },
 ];
 
 const groups: Groups = {
@@ -359,6 +366,7 @@ const groups: Groups = {
     "Cemre Inanc",
     "Kelley Edelmann",
     "Grace McLain",
+    "Jesse Damiani",
   ],
   board: [
     "Anthony Aguirre",

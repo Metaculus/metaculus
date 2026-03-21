@@ -1495,6 +1495,7 @@
   "placementThird": "3. místo",
   "placementOther": "{placement}. místo",
   "exclude": "Vyloučit",
+  "excluded": "Vyloučeno",
   "unexclude": "Znovu zahrnout",
   "mindsChanged": "změny názorů",
   "weeklyTopComments": "Top Komentáře Týdne",
@@ -2078,6 +2079,7 @@
   "tournamentUnfollowModalAlsoUnfollowQuestions": "Zrušit sledování všech otázek",
   "tournamentUnfollowModalAlsoUnfollowQuestionsDescription": "Odstraňte sledování všech otázek v tomto turnaji.",
   "tournamentUnfollowModalSubmit": "Zrušit sledování",
-  "switchBackToSlidersHint": "přepněte se zpět na posuvníky pro hladké přizpůsobení",
+  "switchBackToSlidersHint": "přepněte zpět na posuvníky pro plynulé přizpůsobení",
+  "view": "Zobrazit",
   "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }

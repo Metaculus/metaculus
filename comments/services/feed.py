@@ -126,6 +126,7 @@ def get_comments_feed(
     if sort:
         if "vote_score" in sort:
             qs = qs.annotate_vote_score()
+            sort = sort.replace("vote_score", "annotated_vote_score")
 
         order_by_args.append(sort)
 
