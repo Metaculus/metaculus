@@ -211,9 +211,7 @@ def gather_data(
     for question_number, question in enumerate(questions, 1):
         # TODO: cache results every ~100 questions, clearing lists of values
         question_print_str = (
-            f"\033[K"
-            f"| {question_number:>5}/{question_count:<5} "
-            f"| {question.id:<5} "
+            f"\033[K| {question_number:>5}/{question_count:<5} | {question.id:<5} "
         )
         if question.id in cached_question_ids:
             # Skip questions that are already cached

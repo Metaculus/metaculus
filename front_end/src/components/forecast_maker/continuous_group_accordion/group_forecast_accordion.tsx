@@ -201,6 +201,7 @@ const GroupForecastAccordion: FC<Props> = ({
                   <ForecastMakerGroupCopyMenu
                     option={option}
                     options={openOptions}
+                    copyFromOptions={options}
                     handleCopy={handleCopy}
                     setForcedOpenId={setForcedOpenId}
                   />
@@ -246,6 +247,7 @@ const GroupForecastAccordion: FC<Props> = ({
                   <ForecastMakerGroupCopyMenu
                     option={option}
                     options={openOptions}
+                    copyFromOptions={options}
                     handleCopy={handleCopy}
                     setForcedOpenId={setForcedOpenId}
                   />
@@ -290,6 +292,7 @@ const GroupForecastAccordion: FC<Props> = ({
                   <ForecastMakerGroupCopyMenu
                     option={option}
                     options={openOptions}
+                    copyFromOptions={options}
                     handleCopy={handleCopy}
                     setForcedOpenId={setForcedOpenId}
                   />

@@ -536,7 +536,7 @@
   "api": "API",
   "otherInitiatives": "Outras Iniciativas",
   "forecasting": "Previsão",
-  "forecastingResources": "recursos de previsão",
+  "forecastingResources": "Recursos de Previsão",
   "forjournalists": "Metaculus para Jornalistas",
   "careers": "Carreiras",
   "engageWith": "Interagir com",
@@ -780,7 +780,7 @@
   "longTitleExplanation": "Uma frase única que encapsula o que você está tentando prever. Termina com um ponto de interrogação.",
   "shortTitleExplanation": "Esta deve ser uma versão mais curta do Título Longo, usada onde há menos espaço para exibir um título. Deve terminar com um ponto de interrogação. Exemplos: \"Vencedor do contrato de trajes espaciais da NASA 2022?\" ou \"PIB da UE de 2025 a 2035?\"",
   "backgroundInformation": "Informações de Fundo",
-  "backgroundInfoExplanation": "Forneça informações de fundo para sua pergunta em um tom factual e imparcial. Links devem ser adicionados a recursos relevantes e úteis usando <link>markdown syntax</link>: <markdown>[Título do Link](https://link-url.com)</markdown>.",
+  "backgroundInfoExplanation": "Forneça informações de fundo para sua pergunta em um tom factual e imparcial. Links devem ser adicionados a recursos relevantes e úteis.",
   "resolutionCriteriaExplanation": "Uma boa pergunta quase sempre se resolve de forma inequívoca. Se você tem uma fonte de dados pela qual a pergunta será resolvida, link para ela aqui. Se houver alguma matemática simples que precisará ser feita para resolver esta pergunta, defina a equação em markdown: <markdown>\\[ y = ax^2+b \\]</markdown>.",
   "choices": "Escolhas",
   "choicesSeparatedBy": "Escolhas (separadas por ,)",
@@ -1493,6 +1493,7 @@
   "placementThird": "3º lugar",
   "placementOther": "{placement}º lugar",
   "exclude": "Excluir",
+  "excluded": "Excluído",
   "unexclude": "Incluir",
   "mindsChanged": "mentes mudadas",
   "weeklyTopComments": "Top Comentários da Semana",
@@ -2066,5 +2067,7 @@
   "failedToLoadAggregation": "Falha ao carregar agregação",
   "questionFallbackLabel": "Pergunta {id}",
   "openInAggregationExplorer": "Abrir no Explorador de Agregações",
+  "switchBackToSlidersHint": "volte para os controles deslizantes para um ajuste suave",
+  "view": "Visualizar",
   "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
 }
