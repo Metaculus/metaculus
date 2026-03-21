@@ -110,7 +110,6 @@ class UserPrivateSerializer(UserPublicSerializer):
             "api_access_tier",
             "is_primary_bot",
             "has_password",
-            "project_data_access",
         )
 
     def get_registered_campaigns(self, user: User):
@@ -136,12 +135,13 @@ class UserPrivateSerializer(UserPublicSerializer):
     def get_has_password(self, user: User) -> bool:
         return user.has_usable_password()
 
+
+class UserPrivateDataAccessSerializer(UserPrivateSerializer):
+    project_data_access = serializers.SerializerMethodField()
+
     def get_project_data_access(self, user: User):
-        if not self.context.get("with_data_access"):
-            return None
         entries = (
             user.data_accesses.filter(project_id__isnull=False)
-            .exclude(api_access_tier=ApiAccessTier.RESTRICTED)
             .values("project_id", "api_access_tier")
             .distinct()
         )

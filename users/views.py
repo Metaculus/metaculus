@@ -15,6 +15,7 @@ from authentication.services import get_tokens_for_user, send_password_reset_ema
 from users.models import User, UserSpamActivity
 from users.serializers import (
     UserPrivateSerializer,
+    UserPrivateDataAccessSerializer,
     UserPublicSerializer,
     validate_username,
     UserUpdateProfileSerializer,
@@ -59,11 +60,10 @@ def current_user_api_view(request):
     A lightweight profile data of the current user
     Should contain minimum profile data without heavy calcs
     """
-
-    context = {
-        "with_data_access": request.GET.get("with_data_access") == "true",
-    }
-    return Response(UserPrivateSerializer(request.user, context=context).data)
+    if request.GET.get("with_data_access") == "true":
+        return Response(UserPrivateDataAccessSerializer(request.user).data)
+    else:
+        return Response(UserPrivateSerializer(request.user).data)
 
 
 @api_view(["GET"])
