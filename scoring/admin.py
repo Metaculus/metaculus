@@ -93,15 +93,6 @@ class LeaderboardMedalExclusionRecordInlineFormSet(BaseInlineFormSet):
             scope_filter = Q(leaderboard=self.instance)
             if self.instance.project_id:
                 scope_filter |= Q(project_id=self.instance.project_id)
-            entry_user_ids = LeaderboardEntry.objects.filter(
-                leaderboard_id=self.instance.pk,
-                user_id__isnull=False,
-            ).values("user_id")
-            scope_filter |= Q(
-                leaderboard__isnull=True,
-                project__isnull=True,
-                user_id__in=entry_user_ids,
-            )
             qs = queryset.filter(scope_filter)
         else:
             qs = queryset.none()
@@ -165,7 +156,7 @@ class MedalExclusionRecordInline(admin.TabularInline):
             return "Leaderboard"
         if obj.project_id:
             return "Project"
-        return "Global"
+        return "Leaderboard"
 
     scope.short_description = "Scope"
 
@@ -205,6 +196,7 @@ class LeaderboardAdmin(admin.ModelAdmin):
         "entries_list_link",
         "leaderboard_action_buttons",
         "entries_preview",
+        "global_exclusions_preview",
     ]
     actions = [
         "make_primary_leaderboard",
@@ -387,6 +379,71 @@ class LeaderboardAdmin(admin.ModelAdmin):
         )
 
     entries_preview.short_description = "Leaderboard Entries"
+
+    def global_exclusions_preview(self, obj):
+        if not obj or not obj.pk:
+            return "Save and continue editing to view global exclusions."
+
+        entry_user_ids = LeaderboardEntry.objects.filter(
+            leaderboard_id=obj.pk,
+            user_id__isnull=False,
+        ).values("user_id")
+        records = (
+            MedalExclusionRecord.objects.filter(
+                leaderboard__isnull=True,
+                project__isnull=True,
+                user_id__in=entry_user_ids,
+            )
+            .select_related("user")
+            .order_by("user__username")
+        )
+        if not records:
+            return "No global exclusion records for users on this leaderboard."
+
+        rows = []
+        for record in records:
+            change_url = reverse(
+                "admin:scoring_medalexclusionrecord_change", args=[record.pk]
+            )
+            rows.append(
+                (
+                    record.user.username if record.user else "-",
+                    record.exclusion_type or "-",
+                    (
+                        record.get_exclusion_status_display()
+                        if hasattr(record, "get_exclusion_status_display")
+                        else record.exclusion_status or "-"
+                    ),
+                    str(record.start_time or "-"),
+                    str(record.end_time or "-"),
+                    change_url,
+                )
+            )
+
+        header = (
+            "<thead><tr>"
+            "<th>User</th><th>Exclusion Type</th><th>Exclusion Status</th>"
+            "<th>Start Time</th><th>End Time</th><th>Record</th>"
+            "</tr></thead>"
+        )
+        body = format_html_join(
+            "",
+            (
+                "<tr><td>{}</td><td>{}</td><td>{}</td>"
+                "<td>{}</td><td>{}</td>"
+                "<td><a href='{}'>Open</a></td></tr>"
+            ),
+            rows,
+        )
+        return format_html(
+            "<div><p>Global exclusion records affecting users on this leaderboard"
+            " (read-only — edit via individual record links).</p>"
+            "<table>{}<tbody>{}</tbody></table></div>",
+            format_html(header),
+            body,
+        )
+
+    global_exclusions_preview.short_description = "Global Medal Exclusion Records"
 
     def make_primary_leaderboard(self, request, queryset):
         for leaderboard in queryset:
