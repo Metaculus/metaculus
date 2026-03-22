@@ -12,6 +12,7 @@ import CookiesBanner from "./components/cookies_banner";
 import Footer from "./components/footer";
 import GlobalHeader from "./components/headers/global_header";
 import ImpersonationBanner from "./components/impersonation_banner";
+import LayoutContentWrapper from "./components/layout_content_wrapper";
 import VersionChecker from "./components/version_checker";
 
 config.autoAddCss = false;
@@ -32,7 +33,7 @@ export default async function RootLayout({
   const isImpersonating = authManager.isImpersonating();
 
   return (
-    <div className="flex min-h-screen flex-col pt-header">
+    <LayoutContentWrapper>
       <GlobalHeader />
 
       {isImpersonating && <ImpersonationBanner />}
@@ -47,6 +48,6 @@ export default async function RootLayout({
       )}
       <CookiesBanner />
       <VersionChecker />
-    </div>
+    </LayoutContentWrapper>
   );
 }

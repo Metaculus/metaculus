@@ -35,6 +35,8 @@
     "@marsidev/react-turnstile": "^0.7.2",
     "@mdxeditor/editor": "^3.23.2",
     "@next/third-parties": "15.2.4",
+    "@paper-design/shaders": "^0.0.72",
+    "@paper-design/shaders-react": "^0.0.72",
     "@sentry/nextjs": "^9.47.1",
     "@storybook/addon-themes": "^9.0.14",
     "@storybook/nextjs-vite": "^9.0.13",

@@ -10,7 +10,7 @@ import {
   ListboxOption,
 } from "@headlessui/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { usePostHog } from "posthog-js/react";
 import { FC } from "react";
@@ -267,6 +267,8 @@ const ThemeSelector: FC = () => {
 const Footer: FC = () => {
   const t = useTranslations();
   const { setCurrentModal } = useModal();
+  const pathname = usePathname();
+  const isHomepage = pathname === "/";
 
   const handleContactClick = () => setCurrentModal({ type: "contactUs" });
 
@@ -310,10 +312,12 @@ const Footer: FC = () => {
           </div>
 
           {/* Language and Theme selectors */}
-          <div className="flex gap-4">
-            <LanguageSelector />
-            <ThemeSelector />
-          </div>
+          {!isHomepage && (
+            <div className="flex gap-4">
+              <LanguageSelector />
+              <ThemeSelector />
+            </div>
+          )}
         </div>
 
         {/* Right section - Link columns */}
