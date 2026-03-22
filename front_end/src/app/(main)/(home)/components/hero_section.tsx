@@ -103,9 +103,10 @@ const HeroSection: FC = () => {
                 </span>
                 <span>
                   <strong className="text-blue-900">
-                    {stats.years_of_predictions} {t("years")}
-                  </strong>{" "}
-                  {t("ofPredictions")}
+                    {t("yearsOfPredictions", {
+                      count: stats.years_of_predictions,
+                    })}
+                  </strong>
                 </span>
               </div>
             </Link>

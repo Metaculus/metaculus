@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 
 export default function ForceLightMode() {
-  useEffect(() => {
+  useLayoutEffect(() => {
     const html = document.documentElement;
 
     // Remove dark class immediately

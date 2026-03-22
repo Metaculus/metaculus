@@ -97,23 +97,28 @@ const FeaturedInMarquee: FC<{ className?: string }> = ({ className }) => {
       <div className="relative mx-auto w-full max-w-[1140px] px-0">
         <div className="h-[40px] overflow-hidden md:h-[70px]" ref={emblaRef}>
           <div className="flex h-full w-full">
-            {logos.map((item, index) => (
-              <div
-                key={`${item.label}-${index}`}
-                className="flex h-full flex-none items-center"
-              >
-                <a
-                  href={item.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={item.label}
-                  title={`${item.label}: ${item.articleTitle}`}
-                  className="flex items-center px-4 opacity-35 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0 md:px-8"
+            {logos.map((item, index) => {
+              const isClone = index >= FEATURED_IN.length;
+              return (
+                <div
+                  key={`${item.label}-${index}`}
+                  className="flex h-full flex-none items-center"
                 >
-                  {item.component}
-                </a>
-              </div>
-            ))}
+                  <a
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={item.label}
+                    aria-hidden={isClone}
+                    tabIndex={isClone ? -1 : undefined}
+                    title={`${item.label}: ${item.articleTitle}`}
+                    className="flex items-center px-4 opacity-35 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0 md:px-8"
+                  >
+                    {item.component}
+                  </a>
+                </div>
+              );
+            })}
           </div>
         </div>
         <div className="pointer-events-none absolute left-0 top-0 h-full w-[100px] bg-gradient-to-r from-blue-200 to-transparent" />

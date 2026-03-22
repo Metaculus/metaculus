@@ -2,6 +2,7 @@
 
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useRef, useState } from "react";
 
 import { PostWithForecasts } from "@/types/post";
@@ -19,6 +20,7 @@ const CARD_WIDTH_MOBILE = 220;
 const CARD_GAP = 16;
 
 const ForecastsCarouselSection: FC<Props> = ({ initialPosts, className }) => {
+  const t = useTranslations();
   const posts = initialPosts.filter(
     (post) => !isConditionalPost(post) && !isNotebookPost(post)
   );
@@ -83,7 +85,8 @@ const ForecastsCarouselSection: FC<Props> = ({ initialPosts, className }) => {
       />
       <button
         type="button"
-        aria-label="Scroll left"
+        aria-label={t("scrollLeft")}
+        disabled={!canScrollLeft}
         onClick={() => scroll(-1)}
         className={cn(
           "absolute left-2 top-1/2 size-8 -translate-y-1/2 rounded-full bg-blue-900 text-gray-200 transition-opacity duration-200 md:left-4 md:size-10",
@@ -94,7 +97,8 @@ const ForecastsCarouselSection: FC<Props> = ({ initialPosts, className }) => {
       </button>
       <button
         type="button"
-        aria-label="Scroll right"
+        aria-label={t("scrollRight")}
+        disabled={!canScrollRight}
         onClick={() => scroll(1)}
         className={cn(
           "absolute right-2 top-1/2 size-8 -translate-y-1/2 rounded-full bg-blue-900 text-gray-200 transition-opacity duration-200 md:right-4 md:size-10",
