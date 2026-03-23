@@ -91,7 +91,7 @@ export async function initiateStripeVerification(
     console.error("Stripe create verification error", err);
     if (err instanceof Error) {
       return {
-        error: err.message,
+        error: "Failed to initiate verification",
       };
     }
 
