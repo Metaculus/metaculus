@@ -33,7 +33,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
 }) => {
   useEffect(() => {
     if (isOpen && isImmersive) {
-      document.body.style.overflow = "hidden";
+      document.body.style.overflow = "clip";
     } else {
       document.body.style.overflow = "unset";
     }
@@ -65,7 +65,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
           )}
         />
         <div
-          className={`fixed inset-0 flex min-h-full justify-center ${isImmersive ? "overflow-hidden" : "overflow-y-auto"} sm:p-4`}
+          className={`fixed inset-0 flex min-h-full justify-center ${isImmersive ? "overflow-hidden overscroll-contain" : "overflow-y-auto"} sm:p-4`}
         >
           <DialogPanel
             ref={modalContentRef}
