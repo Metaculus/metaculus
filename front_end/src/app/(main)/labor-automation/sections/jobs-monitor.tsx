@@ -6,7 +6,11 @@ import ButtonGroup from "@/components/ui/button_group";
 import cn from "@/utils/core/cn";
 
 import { SectionCard, SectionHeader } from "../components/section";
-import { JOBS_DATA } from "../data";
+
+export type JobRow = {
+  name: string;
+  values: Record<string, number | null>;
+};
 
 function ContextualBar({ name, percent }: { name: string; percent: number }) {
   const barWidth = `${Math.min(Math.abs(percent), 100)}%`;
@@ -49,7 +53,7 @@ function ContextualBar({ name, percent }: { name: string; percent: number }) {
             })}
           >
             {isPositive ? "+" : "-"}
-            {Math.abs(percent)}%
+            {Math.abs(percent).toFixed(1)}%
           </span>
         </div>
       </div>
@@ -57,8 +61,12 @@ function ContextualBar({ name, percent }: { name: string; percent: number }) {
   );
 }
 
-export function JobsMonitorSection({ ...props }: ComponentProps<"section">) {
-  const [year, setYear] = useState<"2030" | "2035">("2035");
+export function JobsMonitorSection({
+  columns,
+  jobs,
+  ...props
+}: { columns: string[]; jobs: JobRow[] } & ComponentProps<"section">) {
+  const [year, setYear] = useState(columns[columns.length - 1] ?? "");
 
   return (
     <SectionCard {...props}>
@@ -73,10 +81,10 @@ export function JobsMonitorSection({ ...props }: ComponentProps<"section">) {
         <div className="mt-3 flex justify-start md:mt-5 md:justify-center">
           <ButtonGroup
             value={year}
-            buttons={[
-              { value: "2030", label: "by 2030" },
-              { value: "2035", label: "by 2035" },
-            ]}
+            buttons={columns.map((col) => ({
+              value: col,
+              label: `by ${col}`,
+            }))}
             onChange={setYear}
             variant="tertiary"
             activeVariant="primary"
@@ -115,13 +123,14 @@ export function JobsMonitorSection({ ...props }: ComponentProps<"section">) {
               Expected growth
             </div>
             <div className="flex flex-col gap-1 md:col-start-2">
-              {JOBS_DATA.filter((job) => job[year] >= 0)
-                .sort((a, b) => b[year] - a[year])
+              {jobs
+                .filter((job) => (job.values[year] ?? 0) >= 0)
+                .sort((a, b) => (b.values[year] ?? 0) - (a.values[year] ?? 0))
                 .map((job) => (
                   <ContextualBar
                     key={job.name}
                     name={job.name}
-                    percent={job[year]}
+                    percent={job.values[year] ?? 0}
                   />
                 ))}
             </div>
@@ -131,13 +140,14 @@ export function JobsMonitorSection({ ...props }: ComponentProps<"section">) {
               Expected decline
             </div>
             <div className="flex flex-col gap-1">
-              {JOBS_DATA.filter((job) => job[year] < 0)
-                .sort((a, b) => b[year] - a[year])
+              {jobs
+                .filter((job) => (job.values[year] ?? 0) < 0)
+                .sort((a, b) => (b.values[year] ?? 0) - (a.values[year] ?? 0))
                 .map((job) => (
                   <ContextualBar
                     key={job.name}
                     name={job.name}
-                    percent={job[year]}
+                    percent={job.values[year] ?? 0}
                   />
                 ))}
             </div>

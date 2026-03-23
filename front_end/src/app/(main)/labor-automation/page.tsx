@@ -24,7 +24,7 @@ import {
 } from "./components/table-compact";
 import { ActivityMonitorSection } from "./sections/activity-monitor";
 import { HeroSection } from "./sections/hero";
-import { JobsMonitorSection } from "./sections/jobs-monitor";
+import { JobsMonitorServer } from "./sections/jobs-monitor-server";
 import { MethodologySection } from "./sections/methodology";
 import { OverviewSection } from "./sections/overview";
 import { ResearchSection } from "./sections/research";
@@ -72,7 +72,7 @@ export default function LaborAutomationHubPage() {
         </SectionToggle>
         <OverviewSection id="overview" />
         <ActivityMonitorSection id="activity" className="" />
-        <JobsMonitorSection id="jobs" className="" />
+        <JobsMonitorServer id="jobs" className="" />
 
         {/* Wages Section */}
         <DualPaneSectionCard id="wages" className="scroll-mt-12">

@@ -1,0 +1,87 @@
+import { cache } from "react";
+
+import ServerPostsApi from "@/services/api/posts/posts.server";
+import { PostWithForecasts } from "@/types/post";
+import { QuestionWithNumericForecasts } from "@/types/question";
+import { scaleInternalLocation } from "@/utils/math";
+
+import { JOBS_DATA } from "../data";
+
+export type JobWithPost = (typeof JOBS_DATA)[number] & {
+  post: PostWithForecasts | null;
+};
+
+export const fetchJobsData = cache(
+  async (): Promise<{
+    jobs: JobWithPost[];
+    postsByIdMap: Map<number, PostWithForecasts>;
+  }> => {
+    const allPostIds = JOBS_DATA.map((job) => job.post_id);
+    const { results: posts } = await ServerPostsApi.getPostsWithCP({
+      ids: allPostIds,
+      limit: allPostIds.length,
+    });
+
+    const postsByIdMap = new Map(posts.map((post) => [post.id, post]));
+
+    const jobs = JOBS_DATA.map((job) => ({
+      ...job,
+      post: postsByIdMap.get(job.post_id) ?? null,
+    }));
+
+    return { jobs, postsByIdMap };
+  }
+);
+
+function getSubQuestionValue(
+  question: QuestionWithNumericForecasts
+): number | null {
+  const center =
+    question.aggregations[question.default_aggregation_method]?.latest
+      ?.centers?.[0];
+  if (center == null) return null;
+  return scaleInternalLocation(center, question.scaling);
+}
+
+/**
+ * Builds a table from jobs data where each row is:
+ * [job name, value for subQ column 0, value for subQ column 1, ...]
+ *
+ * Sub-questions are grouped by label and sorted alphabetically so that
+ * the same-titled sub-question always occupies the same column position
+ * across all jobs.
+ */
+export async function fetchJobsTableData(): Promise<{
+  columns: string[];
+  rows: (string | number | null)[][];
+}> {
+  const { jobs } = await fetchJobsData();
+
+  // Collect all unique sub-question labels across every post
+  const labelsSet = new Set<string>();
+  for (const job of jobs) {
+    const questions = job.post?.group_of_questions?.questions;
+    if (!questions) continue;
+    for (const q of questions) {
+      if (q.label) labelsSet.add(q.label);
+    }
+  }
+
+  const columns = Array.from(labelsSet).sort();
+
+  const rows = jobs.map((job) => {
+    const questions = job.post?.group_of_questions
+      ?.questions as QuestionWithNumericForecasts[];
+    const questionByLabel = new Map(questions?.map((q) => [q.label, q]) ?? []);
+
+    const values: (number | null)[] = columns.map((label) => {
+      const q = questionByLabel.get(label);
+      if (!q) return null;
+      return getSubQuestionValue(q);
+    });
+
+    return [job.name, ...values];
+  });
+
+  return { columns, rows };
+}
