@@ -47,7 +47,7 @@ const ForecastsCarouselSection: FC<Props> = ({ initialPosts, className }) => {
       el.removeEventListener("scroll", updateScrollState);
       observer.disconnect();
     };
-  }, [updateScrollState]);
+  }, [updateScrollState, posts.length]);
 
   const scroll = useCallback((direction: 1 | -1) => {
     const el = scrollRef.current;

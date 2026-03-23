@@ -24,14 +24,19 @@ export default function ForceLightMode() {
     return () => {
       observer.disconnect();
       // Restore dark mode if the user's saved preference requires it
-      const saved = localStorage.getItem("theme");
-      if (
-        saved === "dark" ||
-        (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches) ||
-        (saved === "system" &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches)
-      ) {
-        html.classList.add("dark");
+      try {
+        const saved = localStorage.getItem("theme");
+        if (
+          saved === "dark" ||
+          (!saved &&
+            window.matchMedia?.("(prefers-color-scheme: dark)").matches) ||
+          (saved === "system" &&
+            window.matchMedia?.("(prefers-color-scheme: dark)").matches)
+        ) {
+          html.classList.add("dark");
+        }
+      } catch {
+        // localStorage may be unavailable (e.g. private browsing)
       }
     };
   }, []);
