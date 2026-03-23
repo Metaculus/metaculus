@@ -82,7 +82,10 @@ const HeroSection: FC = () => {
   return (
     <section className="relative w-full overflow-hidden rounded-b-2xl bg-[#0e1e30] md:rounded-b-3xl">
       <div className="hidden md:block">
-        <HeroGlobeBackground colorFront={globeColor} speed={hoveredCard ? 0.1 : 0.4} />
+        <HeroGlobeBackground
+          colorFront={globeColor}
+          speed={hoveredCard ? 0.1 : 0.4}
+        />
       </div>
 
       <div className="relative z-10 mx-auto flex w-full flex-col gap-4 p-4 md:gap-8 md:px-10 md:pb-10 md:pt-8">
