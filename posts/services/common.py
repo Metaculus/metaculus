@@ -51,6 +51,41 @@ from ..tasks import run_post_indexing, run_post_generate_history_snapshot
 logger = logging.getLogger(__name__)
 
 
+def get_conditional_categories(conditional) -> list[Project]:
+    """Get the union of categories from a conditional's condition and condition_child posts."""
+    category_type = Project.ProjectTypes.CATEGORY
+    categories = set()
+
+    condition_post = conditional.condition.get_post()
+    if condition_post:
+        categories.update(
+            condition_post.projects.filter(type=category_type)
+        )
+
+    condition_child_post = conditional.condition_child.get_post()
+    if condition_child_post:
+        categories.update(
+            condition_child_post.projects.filter(type=category_type)
+        )
+
+    return list(categories)
+
+
+def sync_conditional_categories(post: Post):
+    """Sync the categories of a conditional post with its parent/child question categories."""
+    if not post.conditional_id:
+        return
+
+    conditional_categories = get_conditional_categories(post.conditional)
+    if conditional_categories:
+        existing_categories = set(
+            post.projects.filter(type=Project.ProjectTypes.CATEGORY)
+        )
+        new_categories = set(conditional_categories) - existing_categories
+        if new_categories:
+            post.projects.add(*new_categories)
+
+
 def add_categories(categories: list[int], post: Post):
     existing = [x.pk for x in post.projects.filter(type=Project.ProjectTypes.CATEGORY)]
     categories = [x for x in categories if x not in existing]
@@ -170,6 +205,10 @@ def create_post(
 
         obj.projects.add(*categories)
 
+        # Propagate categories from condition and condition_child posts
+        if obj.conditional_id:
+            sync_conditional_categories(obj)
+
         # Update global leaderboard tags
         update_global_leaderboard_tags(obj)
 
@@ -284,6 +323,8 @@ def update_post(
             raise ValidationError("Original post does is not a conditional")
 
         update_conditional(post.conditional, **conditional)
+        # Re-sync categories after conditional update
+        sync_conditional_categories(post)
 
     if group_of_questions:
         if not post.group_of_questions:
