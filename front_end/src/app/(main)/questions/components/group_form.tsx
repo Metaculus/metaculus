@@ -389,9 +389,7 @@ const GroupForm: React.FC<Props> = ({
         id: x.id,
         type: x.type as QuestionType,
         clientId: crypto.randomUUID(),
-        scheduled_close_time: isDuplicate
-          ? undefined
-          : x.scheduled_close_time,
+        scheduled_close_time: isDuplicate ? undefined : x.scheduled_close_time,
         scheduled_resolve_time: isDuplicate
           ? undefined
           : x.scheduled_resolve_time,

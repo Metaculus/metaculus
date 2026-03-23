@@ -874,7 +874,9 @@ const QuestionForm: FC<Props> = ({
             <DateInput
               control={form.control as unknown as Control<FieldValues>}
               name="scheduled_close_time"
-              defaultValue={isDuplicate ? undefined : post?.question?.scheduled_close_time}
+              defaultValue={
+                isDuplicate ? undefined : post?.question?.scheduled_close_time
+              }
               errors={form.formState.errors.scheduled_close_time}
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
             />
@@ -887,7 +889,9 @@ const QuestionForm: FC<Props> = ({
             <DateInput
               control={form.control as unknown as Control<FieldValues>}
               name="scheduled_resolve_time"
-              defaultValue={isDuplicate ? undefined : post?.question?.scheduled_resolve_time}
+              defaultValue={
+                isDuplicate ? undefined : post?.question?.scheduled_resolve_time
+              }
               errors={form.formState.errors.scheduled_resolve_time}
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
             />
@@ -916,7 +920,9 @@ const QuestionForm: FC<Props> = ({
             <DateInput
               control={form.control as unknown as Control<FieldValues>}
               name="cp_reveal_time"
-              defaultValue={isDuplicate ? undefined : post?.question?.cp_reveal_time}
+              defaultValue={
+                isDuplicate ? undefined : post?.question?.cp_reveal_time
+              }
               errors={form.formState.errors.cp_reveal_time}
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
             />
