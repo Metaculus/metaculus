@@ -66,9 +66,10 @@ const HeroSection: FC = () => {
   });
 
   useEffect(() => {
+    let active = true;
     ClientMiscApi.getSiteStats()
       .then((s) => {
-        if (s) {
+        if (active && s) {
           setStats({
             predictions: s.predictions,
             questions: s.questions,
@@ -77,6 +78,9 @@ const HeroSection: FC = () => {
         }
       })
       .catch(() => {});
+    return () => {
+      active = false;
+    };
   }, []);
 
   return (
