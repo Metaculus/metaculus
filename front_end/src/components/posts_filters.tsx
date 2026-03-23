@@ -13,7 +13,8 @@ import {
   FilterSection,
 } from "@/components/popover_filter/types";
 import SearchInput from "@/components/search_input";
-import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
+import Button from "@/components/ui/button";
+import { GroupButton } from "@/components/ui/button_group";
 import Chip from "@/components/ui/chip";
 import Listbox, { SelectOption } from "@/components/ui/listbox";
 import {
@@ -29,7 +30,6 @@ import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 
 import RandomButton from "./random_button";
-import VisibilityObserver from "./visibility_observer";
 
 type ActiveFilter = {
   id: string;
@@ -65,6 +65,7 @@ type Props = {
   inputConfig?: { mode: "client" | "server"; debounceTime?: number };
   showRandomButton?: boolean;
   panelClassname?: string;
+  className?: string;
 };
 
 const PostsFilters: FC<Props> = ({
@@ -76,6 +77,7 @@ const PostsFilters: FC<Props> = ({
   onOrderChange,
   showRandomButton,
   panelClassname,
+  className,
 }) => {
   const t = useTranslations();
   const {
@@ -88,12 +90,8 @@ const PostsFilters: FC<Props> = ({
   } = useSearchParams();
   defaultOrder = defaultOrder ?? QuestionOrder.ActivityDesc;
 
-  const {
-    globalSearch,
-    updateGlobalSearch,
-    setIsVisible,
-    setModifySearchParams,
-  } = useGlobalSearchContext();
+  const { globalSearch, updateGlobalSearch, setModifySearchParams } =
+    useGlobalSearchContext();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedAnalyticsEvent = useCallback(
@@ -227,70 +225,84 @@ const PostsFilters: FC<Props> = ({
   };
 
   return (
-    <div>
-      <div className="block">
-        <VisibilityObserver
-          onVisibilityChange={(v) => {
-            setIsVisible(v);
-          }}
-        >
-          <div className="flex items-center gap-3">
-            <SearchInput
-              value={globalSearch}
-              onChange={(e) => {
-                debouncedAnalyticsEvent();
-                deleteParam(POST_PAGE_FILTER, true);
-                updateGlobalSearch(e.target.value);
-              }}
-              onErase={eraseSearch}
-              placeholder={t("questionSearchPlaceholder")}
-            />
-            {showRandomButton && <RandomButton />}
-          </div>
-        </VisibilityObserver>
-        <div className="mx-0 my-3 flex flex-wrap items-center justify-between gap-2">
-          <ButtonGroup
-            value={order}
-            buttons={mainSortOptions}
-            onChange={handleOrderChange}
-            variant="tertiary"
-            onClick={(buttonLabel) =>
+    <div className={className}>
+      <div className="flex flex-wrap items-center gap-2">
+        {mainSortOptions.map((button) => (
+          <Button
+            key={button.value}
+            variant={button.value === order ? "primary" : "tertiary"}
+            className="border-transparent"
+            size="md"
+            onClick={() => {
+              handleOrderChange(button.value);
               sendAnalyticsEvent("feedShortcutClick", {
-                event_category: buttonLabel,
-              })
-            }
-          />
-          <div className="flex grow justify-end gap-3">
-            {dropdownSortOptions && (
-              <Listbox
-                className="rounded-full"
-                onChange={handleOrderChange}
-                onClick={(value) =>
-                  sendAnalyticsEvent("feedSortClick", {
-                    event_category: value,
-                  })
-                }
-                options={dropdownSortOptions}
-                value={order || defaultOrder}
-                label="More"
-              />
-            )}
-            <PopoverFilter
-              filters={popoverFilters}
-              onChange={handlePopOverFilterChange}
-              panelClassName={cn("w-[500px]", panelClassname)}
-              onClear={clearPopupFilters}
-              fullScreenEnabled
+                event_category: button.label as string,
+              });
+            }}
+          >
+            {button.label}
+          </Button>
+        ))}
+        <div className="flex grow justify-end gap-3">
+          {dropdownSortOptions && (
+            <Listbox
+              buttonVariant={
+                dropdownSortOptions.some((o) => o.value === order)
+                  ? "secondary"
+                  : "tertiary"
+              }
+              className="rounded-full"
+              onChange={handleOrderChange}
+              onClick={(value) =>
+                sendAnalyticsEvent("feedSortClick", {
+                  event_category: value,
+                })
+              }
+              options={dropdownSortOptions}
+              value={order || defaultOrder}
+              menuPosition="left"
+              label={
+                dropdownSortOptions.find((o) => o.value === order)
+                  ? `${t("sort")}: ${dropdownSortOptions.find((o) => o.value === order)?.label}`
+                  : t("sort")
+              }
             />
-          </div>
+          )}
+          {mainSortOptions.length === 0 ? <div className="flex-1" /> : null}
+          <PopoverFilter
+            filters={popoverFilters}
+            onChange={handlePopOverFilterChange}
+            panelClassName={cn("w-[500px]", panelClassname)}
+            onClear={clearPopupFilters}
+            fullScreenEnabled
+            hasActiveFilters={activeFilters.length > 0}
+          />
+          <SearchInput
+            value={globalSearch}
+            onChange={(e) => {
+              debouncedAnalyticsEvent();
+              deleteParam(POST_PAGE_FILTER, true);
+              updateGlobalSearch(e.target.value);
+            }}
+            onErase={eraseSearch}
+            placeholder={t("questionSearchPlaceholder")}
+            collapsible
+          />
+          {showRandomButton && (
+            <RandomButton
+              variant="tertiary"
+              className="text-purple-700 dark:text-purple-700-dark"
+            />
+          )}
         </div>
       </div>
       {!!activeFilters.length && (
-        <div className="mb-3 flex flex-wrap gap-3">
+        <div className="mt-2 flex flex-wrap gap-3">
           {activeFilters.map(({ id, label, value }) => (
             <Chip
               color={getFilterChipColor(id)}
               variant="outlined"
+              className="rounded-full pl-1"
               key={`filter-chip-${id}-${value}`}
               onClick={() => removeFilter(id, value)}
             >

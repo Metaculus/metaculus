@@ -1,7 +1,14 @@
 import { faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Field, Input } from "@headlessui/react";
-import React, { ChangeEventHandler, FC, FormEvent } from "react";
+import React, {
+  ChangeEventHandler,
+  FC,
+  FormEvent,
+  useCallback,
+  useRef,
+  useState,
+} from "react";
 
 import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
@@ -25,6 +32,7 @@ type Props = {
   rightControlsClassName?: string;
   rightButtonClassName?: string;
   inputRef?: React.Ref<HTMLInputElement>;
+  collapsible?: boolean;
 };
 
 const SearchInput: FC<Props> = ({
@@ -43,9 +51,61 @@ const SearchInput: FC<Props> = ({
   rightControlsClassName,
   rightButtonClassName,
   inputRef,
+  collapsible,
 }) => {
   const isForm = !!onSubmit;
   const isLeft = iconPosition === "left";
+
+  const [isExpanded, setIsExpanded] = useState(!collapsible || !!value);
+  const internalRef = useRef<HTMLInputElement>(null);
+
+  const expand = useCallback(() => {
+    setIsExpanded(true);
+    requestAnimationFrame(() => {
+      if (typeof inputRef === "object" && inputRef?.current) {
+        inputRef.current.focus();
+      } else {
+        internalRef.current?.focus();
+      }
+    });
+  }, [inputRef]);
+
+  const collapse = useCallback(() => {
+    if (collapsible && !value) {
+      setIsExpanded(false);
+    }
+  }, [collapsible, value]);
+
+  const handleErase = useCallback(() => {
+    onErase();
+    if (collapsible) {
+      setIsExpanded(false);
+    }
+  }, [onErase, collapsible]);
+
+  if (collapsible && !isExpanded) {
+    return (
+      <button
+        type="button"
+        aria-label={placeholder}
+        onClick={expand}
+        className={cn(
+          "flex shrink-0 cursor-pointer items-center justify-center rounded-full border border-blue-500 bg-gray-0 dark:border-blue-500 dark:bg-gray-0-dark",
+          { "h-8 w-8": size === "base" },
+          { "h-12 w-12": size === "lg" },
+          className
+        )}
+      >
+        <FontAwesomeIcon
+          icon={faMagnifyingGlass}
+          className={cn(
+            "text-sm text-blue-800 dark:text-blue-200",
+            submitIconClassName
+          )}
+        />
+      </button>
+    );
+  }
 
   return (
     <Field
@@ -59,6 +119,11 @@ const SearchInput: FC<Props> = ({
       onSubmit={(e: FormEvent) => {
         e.preventDefault();
         onSubmit?.(value);
+      }}
+      onBlur={(e: React.FocusEvent) => {
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+          collapse();
+        }
       }}
     >
       {isLeft && (
@@ -74,7 +139,7 @@ const SearchInput: FC<Props> = ({
       )}
 
       <Input
-        ref={inputRef}
+        ref={inputRef ?? internalRef}
         name="search"
         type="search"
         value={value}
@@ -100,7 +165,7 @@ const SearchInput: FC<Props> = ({
         {!!value && (
           <Button
             variant="text"
-            onClick={onErase}
+            onClick={handleErase}
             type="button"
             className={cn(
               !isLeft && "md:-mr-3",

@@ -7,7 +7,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FC, Fragment, useMemo, useState } from "react";
+import { FC, Fragment, useEffect, useRef, useMemo, useState } from "react";
 
 import TopicItem from "@/app/(main)/questions/components/topic_item";
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
@@ -15,7 +15,6 @@ import Button from "@/components/ui/button";
 import { FeedType } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
-import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import useSearchParams from "@/hooks/use_search_params";
 import {
   SidebarItem,
@@ -136,21 +135,37 @@ const FeedSidebar: FC<Props> = ({ items }) => {
   ]);
 
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+  const outerRef = useRef<HTMLDivElement | null>(null);
 
-  const { bannerIsVisible: isTranslationBannerVisible } =
-    useContentTranslatedBannerContext();
+  useEffect(() => {
+    const el = outerRef.current;
+    if (!el) return;
 
-  const topPositionClasses = isTranslationBannerVisible
-    ? "top-24 lg:top-header"
-    : "top-header";
+    const obs = new ResizeObserver(([entry]) => {
+      const h = entry?.borderBoxSize?.[0]?.blockSize ?? el.offsetHeight;
+      document.documentElement.style.setProperty(
+        "--feed-sidebar-mobile-height",
+        `${h}px`
+      );
+    });
+
+    obs.observe(el);
+    return () => {
+      obs.disconnect();
+      document.documentElement.style.removeProperty(
+        "--feed-sidebar-mobile-height"
+      );
+    };
+  }, []);
 
   return (
     <div
+      ref={outerRef}
       className={cn(
-        "z-100 border-y border-blue-400 bg-gray-0/50 dark:border-blue-700 dark:bg-blue-50-dark/50 sm:border-y-0 sm:border-r"
+        "sticky top-header z-100 border-y border-blue-400 bg-gray-0/50 dark:border-blue-700 dark:bg-blue-50-dark/50 sm:static sm:border-y-0 sm:border-r"
       )}
     >
-      <div className="sticky top-header w-full p-2 no-scrollbar sm:overflow-y-auto sm:p-3">
+      <div className="w-full p-2 no-scrollbar sm:sticky sm:top-header sm:overflow-y-auto sm:p-3">
         <div
           className={cn(
             "pointer-events-none absolute right-0 top-0 z-20 h-full w-32 bg-gradient-to-r from-transparent to-blue-100 dark:to-blue-50-dark sm:hidden",

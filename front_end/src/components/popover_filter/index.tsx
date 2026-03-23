@@ -67,6 +67,7 @@ type Props = {
   ) => void;
   onClear: () => void;
   fullScreenEnabled?: boolean;
+  hasActiveFilters?: boolean;
 };
 
 const PopoverFilter: FC<Props> = ({
@@ -76,6 +77,7 @@ const PopoverFilter: FC<Props> = ({
   onChange,
   onClear,
   fullScreenEnabled,
+  hasActiveFilters,
 }) => {
   const t = useTranslations();
 
@@ -83,21 +85,39 @@ const PopoverFilter: FC<Props> = ({
     <Popover className="relative">
       {({ open, close }) => (
         <>
-          <PopoverButton
-            as={Button}
-            className={cn({
-              "bg-gray-300 dark:bg-gray-300-dark": open,
-            })}
-            onClick={() =>
-              sendAnalyticsEvent("feedFilterClick", {
-                event_category: new URLSearchParams(
-                  window.location.search
-                ).toString(),
-              })
-            }
-          >
-            {buttonLabel || t("Filter")}
-          </PopoverButton>
+          <div className="flex items-stretch">
+            <PopoverButton
+              as={Button}
+              variant={hasActiveFilters ? "secondary" : "tertiary"}
+              className={cn(
+                hasActiveFilters && "rounded-r-none border-r-0 pr-1.5",
+                {
+                  "border-blue-600 bg-blue-100 dark:border-blue-600-dark dark:bg-blue-100-dark":
+                    open && !hasActiveFilters,
+                }
+              )}
+              onClick={() =>
+                sendAnalyticsEvent("feedFilterClick", {
+                  event_category: new URLSearchParams(
+                    window.location.search
+                  ).toString(),
+                })
+              }
+            >
+              {buttonLabel || t("Filter")}
+            </PopoverButton>
+            {hasActiveFilters && (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="rounded-l-none border-l-0 pl-1.5 pr-2"
+                aria-label={t("clear")}
+                onClick={onClear}
+              >
+                <FontAwesomeIcon icon={faXmark} className="text-xs" />
+              </Button>
+            )}
+          </div>
           <Panel
             open={open}
             fullScreenEnabled={fullScreenEnabled}

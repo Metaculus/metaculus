@@ -19,6 +19,7 @@ import { QuestionOrder } from "@/types/question";
 import { InterfaceType } from "@/types/users";
 
 import FeedFilters from "./components/feed_filters";
+import StickyFilterBar from "./components/sticky_filter_bar";
 import { generateFiltersFromSearchParams } from "./helpers/filters";
 
 export const metadata = {
@@ -50,8 +51,8 @@ export default async function Questions(props: {
         <OnboardingCheck />
         <div className="flex flex-col sm:flex-row">
           <FeedSidebar items={sidebarItems} />
-          <div className="mx-auto min-h-[calc(100vh-300px)] w-full max-w-5xl grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-4 sm:pt-5">
-            {isCommunityFeed ? (
+          {isCommunityFeed ? (
+            <div className="mx-auto min-h-[calc(100vh-300px)] w-full max-w-5xl grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-4 sm:pt-5">
               <Suspense
                 key={JSON.stringify(searchParams)}
                 fallback={
@@ -60,7 +61,9 @@ export default async function Questions(props: {
               >
                 <AwaitedCommunitiesFeed />
               </Suspense>
-            ) : isWeeklyTopCommentsFeed ? (
+            </div>
+          ) : isWeeklyTopCommentsFeed ? (
+            <div className="mx-auto min-h-[calc(100vh-300px)] w-full max-w-5xl grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-4 sm:pt-5">
               <Suspense
                 key={JSON.stringify(searchParams)}
                 fallback={
@@ -69,11 +72,13 @@ export default async function Questions(props: {
               >
                 <AwaitedWeeklyTopCommentsFeed searchParams={searchParams} />
               </Suspense>
-            ) : (
-              <>
-                <div id="existing-search">
-                  <FeedFilters withProjectFilters />
-                </div>
+            </div>
+          ) : (
+            <div className="min-w-0 grow">
+              <StickyFilterBar>
+                <FeedFilters withProjectFilters />
+              </StickyFilterBar>
+              <div className="isolate mx-auto min-h-[calc(100vh-300px)] w-full max-w-5xl overflow-x-hidden p-2 pb-2 no-scrollbar sm:p-4 sm:pb-4">
                 <Suspense
                   key={JSON.stringify(searchParams)}
                   fallback={
@@ -83,15 +88,14 @@ export default async function Questions(props: {
                   <AwaitedPostsFeed
                     filters={filters}
                     isCommunity={false}
-                    // Show tiles only when no filters are applied
                     showProjectTiles={Object.keys(searchParams).every(
                       (key) => key === POST_PAGE_FILTER
                     )}
                   />
                 </Suspense>
-              </>
-            )}
-          </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </>

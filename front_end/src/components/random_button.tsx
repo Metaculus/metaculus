@@ -1,14 +1,18 @@
 "use client";
 
-import { Button } from "@headlessui/react";
+import { faDice } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useRouter } from "next/navigation";
-import { FC, useState } from "react";
+import { ComponentProps, FC, useState } from "react";
 
+import Button from "@/components/ui/button";
 import ClientPostsApi from "@/services/api/posts/posts.client";
+import cn from "@/utils/core/cn";
 
-import { Die } from "./icons/die";
-
-const RandomButton: FC = () => {
+const RandomButton: FC<ComponentProps<typeof Button>> = ({
+  className,
+  ...props
+}) => {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
@@ -32,9 +36,15 @@ const RandomButton: FC = () => {
       onClick={handleRandomClick}
       disabled={isLoading}
       aria-label="Random Question"
-      className="flex w-[48px] cursor-pointer items-center justify-center rounded-none border-0 bg-transparent text-xl transition-transform hover:animate-spin"
+      size="md"
+      presentationType="icon"
+      className={cn(
+        "shrink-0 transition-transform hover:animate-spin",
+        className
+      )}
+      {...props}
     >
-      <Die className="die" />
+      <FontAwesomeIcon icon={faDice} />
     </Button>
   );
 };

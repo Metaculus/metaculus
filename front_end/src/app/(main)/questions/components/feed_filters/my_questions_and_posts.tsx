@@ -12,6 +12,7 @@ import PostsFilters from "@/components/posts_filters";
 import { GroupButton } from "@/components/ui/button_group";
 import { POST_ACCESS_FILTER } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
+import { useBreakpoint } from "@/hooks/tailwind";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
@@ -22,6 +23,7 @@ const MyQuestionsAndPostsFilters: FC<Props> = ({ panelClassname }) => {
   const { params } = useSearchParams();
   const t = useTranslations();
   const { user } = useAuth();
+  const isMediumScreen = useBreakpoint("lg");
 
   const filters = useMemo(() => {
     const filters = [
@@ -62,25 +64,41 @@ const MyQuestionsAndPostsFilters: FC<Props> = ({ panelClassname }) => {
   }, [params, t, user]);
 
   const mainSortOptions: GroupButton<QuestionOrder>[] = useMemo(
-    () => [
-      {
-        value: QuestionOrder.HotDesc,
-        label: t("hot"),
-      },
-      {
-        value: QuestionOrder.WeeklyMovementDesc,
-        label: t("movers"),
-      },
-      {
-        value: QuestionOrder.PredictionCountDesc,
-        label: t("mostPredictions"),
-      },
-    ],
-    [t]
+    () =>
+      isMediumScreen
+        ? [
+            {
+              value: QuestionOrder.HotDesc,
+              label: t("hot"),
+            },
+            {
+              value: QuestionOrder.WeeklyMovementDesc,
+              label: t("movers"),
+            },
+            {
+              value: QuestionOrder.PredictionCountDesc,
+              label: t("mostPredictions"),
+            },
+          ]
+        : [],
+    [t, isMediumScreen]
   );
 
   const sortOptions = useMemo(
     () => [
+      ...(!isMediumScreen
+        ? [
+            { value: QuestionOrder.HotDesc, label: t("hot") },
+            {
+              value: QuestionOrder.WeeklyMovementDesc,
+              label: t("movers"),
+            },
+            {
+              value: QuestionOrder.PredictionCountDesc,
+              label: t("mostPredictions"),
+            },
+          ]
+        : []),
       {
         value: QuestionOrder.UnreadCommentCountDesc,
         label: t("unreadComments"),
@@ -94,7 +112,7 @@ const MyQuestionsAndPostsFilters: FC<Props> = ({ panelClassname }) => {
       { value: QuestionOrder.CpRevealTimeDesc, label: t("recentlyRevealed") },
       { value: QuestionOrder.NewsHotness, label: t("inTheNews") },
     ],
-    [t]
+    [t, isMediumScreen]
   );
 
   return (
