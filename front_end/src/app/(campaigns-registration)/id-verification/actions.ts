@@ -55,11 +55,6 @@ export async function initiateStripeVerification(
   user: CurrentUser
 ): Promise<StripeVerificationResponse> {
   try {
-    const bw_registration_data = user.registered_campaigns.find(
-      (c) => c.key === "bw_q1_2026"
-    ) as { details: { full_name: string } } | undefined;
-
-    const bw_reg_full_name = bw_registration_data?.details?.full_name;
     const stripeClient = stripe(process.env.STRIPE_SECRET_KEY);
     const verificationSession =
       await stripeClient.identity.verificationSessions.create({
@@ -79,7 +74,6 @@ export async function initiateStripeVerification(
           user_id: `${user.id}`,
           username: `${user.username}`,
           email: `${user.email}`,
-          bw_reg_full_name: `${bw_reg_full_name}`,
         },
         return_url: `${process.env.PUBLIC_APP_URL}/id-verification`,
       });
