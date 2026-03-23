@@ -32,13 +32,17 @@ const DitheringShader = dynamic(
 
 type Props = {
   colorFront?: string;
+  speed?: number;
 };
 
-const HeroGlobeBackground: FC<Props> = ({ colorFront = "#628bb3" }) => {
+const HeroGlobeBackground: FC<Props> = ({
+  colorFront = "#628bb3",
+  speed = 0.4,
+}) => {
   return (
     <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden opacity-60">
       <div className="absolute -top-[20%] h-[130%] w-[130%]">
-        <DitheringShader colorFront={colorFront} speed={0.4} />
+        <DitheringShader colorFront={colorFront} speed={speed} />
       </div>
     </div>
   );

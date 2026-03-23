@@ -82,7 +82,7 @@ const HeroSection: FC = () => {
   return (
     <section className="relative w-full overflow-hidden rounded-b-2xl bg-[#0e1e30] md:rounded-b-3xl">
       <div className="hidden md:block">
-        <HeroGlobeBackground colorFront={globeColor} />
+        <HeroGlobeBackground colorFront={globeColor} speed={hoveredCard ? 0.1 : 0.4} />
       </div>
 
       <div className="relative z-10 mx-auto flex w-full flex-col gap-4 p-4 md:gap-8 md:px-10 md:pb-10 md:pt-8">
@@ -93,7 +93,7 @@ const HeroSection: FC = () => {
             <span className="text-lg font-bold leading-tight tracking-[-0.36px] text-white md:text-xl">
               Metaculus
             </span>
-            <span className="text-xs font-medium text-[#adbfd4] opacity-50 md:text-sm">
+            <span className="text-xs font-medium text-[#adbfd4] opacity-75 md:text-sm">
               {t("clarityInAComplexWorld")}
             </span>
           </div>
@@ -116,13 +116,13 @@ const HeroSection: FC = () => {
               <AccentOverlay accentKey="platform" />
               <div className="absolute -left-[102px] -top-[60px] h-[346px] w-[341px] rounded-full bg-[rgba(41,109,169,0.76)] opacity-40 blur-[51px]" />
               <div className="relative z-10 flex h-full flex-col justify-between gap-2 md:justify-start">
-                <div className="flex items-center justify-between">
+                <div className="flex items-start justify-between md:items-center">
                   <span className="text-sm font-semibold text-blue-900 md:text-2xl">
                     {t("forecastingPlatform")}
                   </span>
                   <FontAwesomeIcon
                     icon={faArrowRight}
-                    className="text-sm text-blue-900/50 transition-transform group-hover:translate-x-1 md:text-xl"
+                    className="mt-0.5 text-sm text-blue-900/50 transition-transform group-hover:translate-x-1 md:mt-0 md:text-xl"
                   />
                 </div>
                 <p className="m-0 text-xs text-blue-800 md:text-base">
@@ -166,13 +166,13 @@ const HeroSection: FC = () => {
               <AccentOverlay accentKey="business" />
               <div className="absolute -left-[62px] -top-[57px] h-[346px] w-[341px] rounded-full bg-[rgba(63,25,49,0.76)] opacity-[0.22] blur-[51px]" />
               <div className="relative z-10 flex h-full flex-col justify-between gap-2 md:justify-start">
-                <div className="flex items-center justify-between">
+                <div className="flex items-start justify-between md:items-center">
                   <span className="text-sm font-semibold text-purple-900 md:text-2xl">
                     {t("businessSolutions")}
                   </span>
                   <FontAwesomeIcon
                     icon={faArrowRight}
-                    className="text-sm text-purple-900/50 transition-transform group-hover:translate-x-1 md:text-xl"
+                    className="mt-0.5 text-sm text-purple-900/50 transition-transform group-hover:translate-x-1 md:mt-0 md:text-xl"
                   />
                 </div>
                 <p className="m-0 text-xs text-purple-900 md:text-base">
@@ -227,7 +227,7 @@ const HeroSection: FC = () => {
 
             {/* Radiant banner */}
             <Link
-              href="/radiant/"
+              href="/notebooks/42293/map-the-future-before-you-build-it/"
               className="group relative flex flex-col gap-3 overflow-hidden rounded-lg bg-[#4c6076] p-4 no-underline backdrop-blur-[1px] transition-colors md:flex-row md:items-center md:gap-4 md:rounded-2xl md:bg-[#4c6076]/80 md:px-6 md:py-4 md:hover:bg-[#4c6076]"
               onMouseEnter={() => setHoveredCard("radiant")}
               onMouseLeave={() => setHoveredCard(null)}
