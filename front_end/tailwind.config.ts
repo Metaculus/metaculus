@@ -9,8 +9,8 @@ const config: Config = {
   darkMode: [
     "variant",
     [
-      // Dark mode: inside .dark, but not the .inverted element or its children
-      "&:is(.dark *):not(:is(.inverted, .inverted *))",
+      // Dark mode: inside .dark, but not the .inverted/.force-light element or its children
+      "&:is(.dark *):not(:is(.inverted, .inverted *, .force-light, .force-light *))",
       // Inverted in light mode: the .inverted element itself OR its children, but not in dark mode
       "&:is(.inverted, .inverted *):not(.dark *)",
     ],
