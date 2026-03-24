@@ -15,6 +15,7 @@ import Button from "@/components/ui/button";
 import { FeedType } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
+import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import useSearchParams from "@/hooks/use_search_params";
 import {
   SidebarItem,
@@ -43,6 +44,8 @@ const FeedSidebar: FC<Props> = ({ items }) => {
   const pathname = usePathname();
   const { params } = useSearchParams();
   const fullPathname = `${pathname}${params.toString() ? `?${params.toString()}` : ""}`;
+  const { bannerIsVisible: isTranslationBannerVisible } =
+    useContentTranslatedBannerContext();
 
   const sidebarSections: SidebarSection[] = useMemo(() => {
     console.log("api result", items);
@@ -162,10 +165,16 @@ const FeedSidebar: FC<Props> = ({ items }) => {
     <div
       ref={outerRef}
       className={cn(
-        "sticky top-header z-100 border-y border-blue-400 bg-gray-0/50 dark:border-blue-700 dark:bg-blue-50-dark/50 sm:static sm:border-y-0 sm:border-r"
+        "sticky z-100 border-y border-blue-400 bg-gray-0/70 backdrop-blur-md dark:border-blue-700 dark:bg-blue-50-dark/70 sm:static sm:min-h-[calc(100vh-3rem)] sm:border-y-0 sm:border-r",
+        isTranslationBannerVisible ? "top-24" : "top-header"
       )}
     >
-      <div className="w-full p-2 no-scrollbar sm:sticky sm:top-header sm:overflow-y-auto sm:p-3">
+      <div
+        className={cn(
+          "w-full p-2 no-scrollbar sm:sticky sm:max-h-[calc(100vh-3rem)] sm:overflow-y-auto sm:p-3",
+          isTranslationBannerVisible ? "sm:top-20" : "sm:top-header"
+        )}
+      >
         <div
           className={cn(
             "pointer-events-none absolute right-0 top-0 z-20 h-full w-32 bg-gradient-to-r from-transparent to-blue-100 dark:to-blue-50-dark sm:hidden",
@@ -175,7 +184,7 @@ const FeedSidebar: FC<Props> = ({ items }) => {
         <div
           className={cn(
             "absolute right-2 z-20 sm:hidden",
-            isMobileExpanded ? "bottom-3.5" : "top-3.5"
+            isMobileExpanded ? "bottom-2" : "top-2.5"
           )}
         >
           <Button
@@ -193,7 +202,7 @@ const FeedSidebar: FC<Props> = ({ items }) => {
 
         <div
           className={cn(
-            "relative z-10 flex snap-x gap-1.5 gap-y-2 overflow-x-auto pr-8 no-scrollbar sm:static sm:w-56 sm:flex-col sm:gap-y-1.5 sm:overflow-hidden sm:p-1 md:w-[210px] md:px-0 min-[812px]:w-64 min-[812px]:px-1",
+            "relative z-10 flex snap-x gap-1.5 gap-y-2 overflow-x-auto pr-8 no-scrollbar sm:static sm:w-56 sm:flex-col sm:gap-y-1.5 sm:overflow-hidden sm:p-1 lg:w-64",
             isMobileExpanded ? "flex-wrap" : "pr-10"
           )}
         >

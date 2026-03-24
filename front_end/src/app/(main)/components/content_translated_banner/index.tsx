@@ -32,7 +32,7 @@ const ContentTranslatedBanner: FC<{ forceVisible?: boolean }> = ({
   return (
     <>
       <div className="mt-10 sm:mt-8" />
-      <div className="fixed top-12 z-40 flex w-screen justify-center gap-8 border-t border-t-blue-500/50 bg-gradient-to-b from-white/65 to-white shadow-md backdrop-blur-sm dark:border-t-blue-700/50 dark:from-blue-900/65 dark:to-blue-900">
+      <div className="fixed top-12 z-[101] flex w-screen justify-center gap-8 border-t border-t-blue-500/50 bg-gradient-to-b from-white/65 to-white shadow-md backdrop-blur-sm dark:border-t-blue-700/50 dark:from-blue-900/65 dark:to-blue-900">
         <div className="flex w-full justify-between p-1 sm:items-center sm:justify-center">
           <p className="m-1 text-xs text-gray-700 dark:text-gray-700-dark">
             {t("contentTranslatedHeaderText")}{" "}
