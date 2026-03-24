@@ -16,6 +16,7 @@ import {
   ContentParagraph,
 } from "./components/section";
 import { ActivityMonitorSection } from "./sections/activity-monitor";
+import { EngagementSection } from "./sections/engagement-section";
 import { HeroSection } from "./sections/hero";
 import { JobsMonitorServer } from "./sections/jobs-monitor-server";
 import { MethodologySection } from "./sections/methodology";
@@ -346,6 +347,7 @@ export default function LaborAutomationHubPage() {
           </InvertedThemeContainer>
         </ResearchSection>
         <MethodologySection id="methodology" className="scroll-mt-12" />
+        <EngagementSection />
       </div>
     </main>
   );

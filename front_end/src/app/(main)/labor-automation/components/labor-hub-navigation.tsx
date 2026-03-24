@@ -46,7 +46,7 @@ export default function LaborHubNavigation({
           className={cn(
             "border border-t-0 backdrop-blur-sm transition-all xl:rounded-b-md",
             isSticky
-              ? "mb-7 border-blue-500 bg-gray-0/90 py-3 dark:border-blue-500-dark dark:bg-gray-0-dark/90 sm:mb-10 md:mb-12 md:py-4"
+              ? "mb-7 border-blue-500 border-x-transparent bg-gray-0/90 py-3 dark:border-blue-500-dark dark:border-x-transparent dark:bg-gray-0-dark/90  sm:mb-10 md:mb-12 md:py-4 xl:border-x-blue-500 dark:xl:border-x-blue-500-dark"
               : "border-gray-0 bg-gray-0 py-5 dark:border-gray-0-dark dark:bg-gray-0-dark sm:py-8 md:py-10"
           )}
         >
