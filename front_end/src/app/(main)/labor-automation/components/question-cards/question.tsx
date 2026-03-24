@@ -19,6 +19,7 @@ import {
 
 import { BasicQuestionContent } from "./basic-question";
 import { FlippableQuestionCard } from "./flippable-question-card";
+import { NoQuestionPlaceholder } from "./placeholder";
 import { QuestionCard, QuestionCardSkeleton } from "./question-card";
 
 function getLeftIcon(postData: PostWithForecasts, subQuestionId?: number) {
@@ -75,6 +76,7 @@ type QuestionLoaderProps = {
   variant?: "primary" | "secondary";
   title?: string;
   subtitle?: string;
+  fallbackTitle?: string;
   className?: string;
 };
 
@@ -90,9 +92,25 @@ async function QuestionContent({
   variant,
   title,
   subtitle,
+  fallbackTitle,
   className,
 }: QuestionLoaderProps) {
-  const postData = await ServerPostsApi.getPost(questionId, true);
+  let postData;
+  try {
+    postData = await ServerPostsApi.getPost(questionId, true);
+  } catch {
+    return (
+      <QuestionCard
+        title={title || fallbackTitle}
+        subtitle={subtitle}
+        variant={variant}
+        className={className}
+        postIds={[questionId]}
+      >
+        <NoQuestionPlaceholder />
+      </QuestionCard>
+    );
+  }
   const subQuestionData = subQuestionId
     ? postData.group_of_questions?.questions.find(
         (question) => question.id === subQuestionId
@@ -171,6 +189,7 @@ export function QuestionLoader({
   variant = "secondary",
   title,
   subtitle,
+  fallbackTitle,
   className,
 }: QuestionLoaderProps) {
   return (
@@ -186,6 +205,7 @@ export function QuestionLoader({
         variant={variant}
         title={title}
         subtitle={subtitle}
+        fallbackTitle={fallbackTitle}
         note={note}
         className={className}
       />

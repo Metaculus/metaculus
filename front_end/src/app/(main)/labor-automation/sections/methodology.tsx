@@ -2,16 +2,9 @@ import { ComponentProps } from "react";
 
 import SectionToggle from "@/components/ui/section_toggle";
 
+import { NoQuestionPlaceholder } from "../components/question-cards/placeholder";
+import { QuestionCard } from "../components/question-cards/question-card";
 import { SectionCard, SectionHeader } from "../components/section";
-import {
-  TableCompact,
-  TableCompactBody,
-  TableCompactCell,
-  TableCompactHead,
-  TableCompactHeaderCell,
-  TableCompactRow,
-  PercentageChange,
-} from "../components/table-compact";
 import { METHODOLOGY_SECTIONS } from "../data";
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
@@ -40,6 +33,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
         individuals typically produce.
       </p>
       <div className="mb-8 grid grid-cols-1 gap-8 md:grid-cols-2">
+        {/** 
         <TableCompact
           HeadingSection={
             <h3 className="mb-4 mt-0 w-full pr-8 text-base font-[450] leading-tight text-gray-800 [text-wrap:pretty] dark:text-gray-800-dark">
@@ -122,6 +116,13 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
             ))}
           </TableCompactBody>
         </TableCompact>
+        */}
+        <QuestionCard title="Conditional on an active recession during the following years, what will overall employment be?">
+          <NoQuestionPlaceholder />
+        </QuestionCard>
+        <QuestionCard title="Conditional on AI stagnation what will employment be in the following years?">
+          <NoQuestionPlaceholder />
+        </QuestionCard>
       </div>
       <div className="space-y-3">
         {METHODOLOGY_SECTIONS.map((section, sectionIndex) => (

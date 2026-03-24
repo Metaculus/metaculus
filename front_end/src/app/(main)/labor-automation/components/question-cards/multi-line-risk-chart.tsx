@@ -35,7 +35,7 @@ type YAxisLabel = {
 };
 
 type Props = {
-  series?: LineSeries[];
+  series: LineSeries[];
   height?: number;
   yAxisLabels?: {
     top: YAxisLabel;
@@ -45,46 +45,6 @@ type Props = {
   showLegend?: boolean;
   legendOrder?: string[]; // Optional: order series by id for legend display
 };
-
-// Default static data matching the design
-const DEFAULT_SERIES: LineSeries[] = [
-  {
-    id: "growth",
-    color: "green",
-    filled: true,
-    label: "Least vulnerable",
-    data: [
-      { year: 2025, value: 0 },
-      { year: 2027, value: 2 },
-      { year: 2030, value: 8 },
-      { year: 2035, value: 18 },
-    ],
-  },
-  {
-    id: "decline",
-    color: "red",
-    filled: true,
-    label: "Most vulnerable",
-    data: [
-      { year: 2025, value: 0 },
-      { year: 2027, value: -8 },
-      { year: 2030, value: -18 },
-      { year: 2035, value: -45 },
-    ],
-  },
-  {
-    id: "baseline",
-    color: "gray",
-    filled: false,
-    label: "Overall employment",
-    data: [
-      { year: 2025, value: 0 },
-      { year: 2027, value: -1.5 },
-      { year: 2030, value: -2.8 },
-      { year: 2035, value: -7.1 },
-    ],
-  },
-];
 
 // Default legend order (by series id)
 const DEFAULT_LEGEND_ORDER = ["growth", "baseline", "decline"];
@@ -278,7 +238,7 @@ const DataPointCircle: FC<{
 };
 
 export const MultiLineRiskChart: FC<Props> = ({
-  series = DEFAULT_SERIES,
+  series,
   height = 350,
   yAxisLabels = DEFAULT_Y_LABELS,
   showLegend = true,

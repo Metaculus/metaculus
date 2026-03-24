@@ -21,17 +21,9 @@ type RiskDataPoint = {
 };
 
 type Props = {
-  data?: RiskDataPoint[];
+  data: RiskDataPoint[];
   height?: number;
 };
-
-// Default static data
-const DEFAULT_DATA: RiskDataPoint[] = [
-  { year: 2025, change: 0 },
-  { year: 2027, change: -1.5 },
-  { year: 2030, change: -2.8 },
-  { year: 2035, change: -7.1 },
-];
 
 // Custom hollow circle point component
 const HollowCirclePoint: FC<{
@@ -75,7 +67,7 @@ const ChangeBadge: FC<{
     ? getThemeColor(METAC_COLORS.salmon["700"])
     : getThemeColor(METAC_COLORS.mint["700"]);
 
-  const text = `${datum.change > 0 ? "+" : ""}${datum.change}%`;
+  const text = `${datum.change > 0 ? "+" : ""}${datum.change.toFixed(1)}%`;
   const badgeWidth = text.length * 8 + 8;
   const badgeHeight = 20;
   // Position badge below the data point
@@ -108,7 +100,7 @@ const ChangeBadge: FC<{
   );
 };
 
-export const RiskChart: FC<Props> = ({ data = DEFAULT_DATA, height = 200 }) => {
+export const RiskChart: FC<Props> = ({ data, height = 200 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
   const { theme, getThemeColor } = useAppTheme();

@@ -4,7 +4,10 @@ import SectionToggle from "@/components/ui/section_toggle";
 import { InvertedThemeContainer } from "@/contexts/inverted_theme_context";
 
 import LaborHubNavigation from "./components/labor-hub-navigation";
+import { MultiQuestionTable } from "./components/question-cards/multi-question-table";
+import { NoQuestionPlaceholder } from "./components/question-cards/placeholder";
 import { QuestionLoader } from "./components/question-cards/question";
+import { QuestionCard } from "./components/question-cards/question-card";
 import {
   DualPaneSectionCard,
   DualPaneSectionLeft,
@@ -12,16 +15,6 @@ import {
   SectionHeader,
   ContentParagraph,
 } from "./components/section";
-import {
-  PercentageChange,
-  TableCompact,
-  TableCompactBody,
-  TableCompactCell,
-  TableCompactHead,
-  TableCompactHeaderCell,
-  TableCompactRow,
-  WageValue,
-} from "./components/table-compact";
 import { ActivityMonitorSection } from "./sections/activity-monitor";
 import { HeroSection } from "./sections/hero";
 import { JobsMonitorServer } from "./sections/jobs-monitor-server";
@@ -81,6 +74,7 @@ export default function LaborAutomationHubPage() {
               Economic Evolution:
               <br /> Hours, Pay, and Broader Impacts
             </SectionHeader>
+            {/**
             <TableCompact className="inverted mt-6">
               <TableCompactHead>
                 <TableCompactRow>
@@ -150,6 +144,13 @@ export default function LaborAutomationHubPage() {
                 ))}
               </TableCompactBody>
             </TableCompact>
+             */}
+            <InvertedThemeContainer>
+              <QuestionLoader
+                questionId={42216}
+                fallbackTitle="What will the percent change of the hourly median wage of US employees be relative to 2025 in the following years?"
+              />
+            </InvertedThemeContainer>
 
             <ContentParagraph>
               Forecasts currently show that{" "}
@@ -168,10 +169,11 @@ export default function LaborAutomationHubPage() {
           </DualPaneSectionLeft>
           <DualPaneSectionRight>
             <QuestionLoader
-              questionId={14774}
-              title="What will be the average weekly hours worked per worker in the US in the following years?"
+              questionId={41574}
+              fallbackTitle="What will be the average weekly hours worked in the United States in the following years?"
               note="Hours worked is expected to decrease while productivity increases, as forecasters argue that the economy will become increasingly uncoupled from human labor output."
             />
+            {/** 
             <TableCompact
               HeadingSection={
                 <h3 className="mb-4 mt-0 w-full pr-8 text-base font-[450] leading-tight text-gray-800 [text-wrap:pretty] dark:text-gray-800-dark">
@@ -223,10 +225,11 @@ export default function LaborAutomationHubPage() {
                 ))}
               </TableCompactBody>
             </TableCompact>
-            <QuestionLoader
-              questionId={14732}
-              title="What will be the percent of workers in the US who report that they use AI in the following years?"
-            />
+            */}
+            <QuestionCard title="Cost of living relative to income for the [20th, 50th, 80th] percentile in [2030, 2035]?">
+              <NoQuestionPlaceholder />
+            </QuestionCard>
+            <QuestionLoader questionId={42215} />
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 
@@ -236,63 +239,23 @@ export default function LaborAutomationHubPage() {
             <SectionHeader>
               How will the next generation of workers be affected?
             </SectionHeader>
-            <TableCompact className="inverted mt-6">
-              <TableCompactHead>
-                <TableCompactRow>
-                  <TableCompactHeaderCell className="w-[40%]">
-                    College Graduates
-                  </TableCompactHeaderCell>
-                  <TableCompactHeaderCell className="w-[15%] text-right">
-                    2025
-                  </TableCompactHeaderCell>
-                  <TableCompactHeaderCell className="w-[15%] text-right">
-                    2027
-                  </TableCompactHeaderCell>
-                  <TableCompactHeaderCell className="w-[15%] text-right">
-                    2030
-                  </TableCompactHeaderCell>
-                  <TableCompactHeaderCell className="w-[15%] text-right">
-                    2035
-                  </TableCompactHeaderCell>
-                </TableCompactRow>
-              </TableCompactHead>
-              <TableCompactBody>
-                {[
+            <InvertedThemeContainer>
+              <MultiQuestionTable
+                firstColumnHeader="College Graduates"
+                valueFormat="percentage"
+                decimals={1}
+                rows={[
                   {
-                    label: "Unemployment Rate",
-                    value2025: 5.5,
-                    value2027: 8.5,
-                    value2030: 12.5,
-                    value2035: 14.5,
+                    questionId: 42212,
+                    title: "Unemployment Rate",
                   },
                   {
-                    label: "Underemployment Rate",
-                    value2025: 4.3,
-                    value2027: 6.3,
-                    value2030: 8.3,
-                    value2035: 9.5,
+                    questionId: 42213,
+                    title: "Underemployment Rate",
                   },
-                ].map((row) => (
-                  <TableCompactRow key={row.label}>
-                    <TableCompactCell className="font-medium">
-                      {row.label}
-                    </TableCompactCell>
-                    <TableCompactCell className="text-right">
-                      {row.value2025}%
-                    </TableCompactCell>
-                    <TableCompactCell className="text-right">
-                      {row.value2027}%
-                    </TableCompactCell>
-                    <TableCompactCell className="text-right">
-                      {row.value2030}%
-                    </TableCompactCell>
-                    <TableCompactCell className="text-right">
-                      {row.value2035}%
-                    </TableCompactCell>
-                  </TableCompactRow>
-                ))}
-              </TableCompactBody>
-            </TableCompact>
+                ]}
+              />
+            </InvertedThemeContainer>
             <ContentParagraph>
               New college graduates are predicted to face difficult prospects in
               2030, as early-career tasks are more easily automated while
@@ -310,100 +273,32 @@ export default function LaborAutomationHubPage() {
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight>
-            <TableCompact
-              HeadingSection={
-                <h3 className="mb-4 mt-0 w-full pr-8 text-base font-[450] leading-tight text-gray-800 [text-wrap:pretty] dark:text-gray-800-dark">
-                  What will the percent change in the number of four-year
+            <MultiQuestionTable
+              title="What will the percent change in the number of Bachelor's
                   degrees awarded by accredited universities be in the following
-                  years?
-                </h3>
-              }
-              className=""
-            >
-              <TableCompactHead>
-                <TableCompactRow>
-                  <TableCompactHeaderCell className="w-[60%]">
-                    Major
-                  </TableCompactHeaderCell>
-                  <TableCompactHeaderCell className="w-[20%] text-right">
-                    2030
-                  </TableCompactHeaderCell>
-                  <TableCompactHeaderCell className="w-[20%] text-right">
-                    2035
-                  </TableCompactHeaderCell>
-                </TableCompactRow>
-              </TableCompactHead>
-              <TableCompactBody>
-                {[
-                  ["Overall", 6.4, 7],
-                  ["STEM", -1.4, -4.3],
-                  ["Humanities", -7.8, -11.8],
-                ].map((row, index) => (
-                  <TableCompactRow key={row[0]}>
-                    <TableCompactCell
-                      className={index === 0 ? "font-medium" : ""}
-                    >
-                      {row[0]}
-                    </TableCompactCell>
-                    <TableCompactCell className="text-right">
-                      <PercentageChange value={Number(row[1])} />
-                    </TableCompactCell>
-                    <TableCompactCell className="text-right">
-                      <PercentageChange value={Number(row[2])} />
-                    </TableCompactCell>
-                  </TableCompactRow>
-                ))}
-              </TableCompactBody>
-            </TableCompact>
-            <TableCompact
-              HeadingSection={
-                <h3 className="mb-4 mt-0 w-full pr-8 text-base font-[450] leading-tight text-gray-800 [text-wrap:pretty] dark:text-gray-800-dark">
-                  What will the percent change in the number of students newly
-                  enrolled in the following years?
-                </h3>
-              }
-              className=""
-            >
-              <TableCompactHead>
-                <TableCompactRow>
-                  <TableCompactHeaderCell className="w-[40%]">
-                    School Type
-                  </TableCompactHeaderCell>
-                  <TableCompactHeaderCell className="w-[20%] text-right">
-                    Current
-                  </TableCompactHeaderCell>
-                  <TableCompactHeaderCell className="w-[20%] text-right">
-                    2030
-                  </TableCompactHeaderCell>
-                  <TableCompactHeaderCell className="w-[20%] text-right">
-                    2035
-                  </TableCompactHeaderCell>
-                </TableCompactRow>
-              </TableCompactHead>
-              <TableCompactBody>
-                {[
-                  ["Trade Schools", 33, 3.4, 6.4],
-                  ["Community Colleges", 24, -1.4, 5.4],
-                ].map((row, index) => (
-                  <TableCompactRow key={row[0]}>
-                    <TableCompactCell
-                      className={index === 0 ? "font-medium" : ""}
-                    >
-                      {row[0]}
-                    </TableCompactCell>
-                    <TableCompactCell className="text-right">
-                      {row[1]}%
-                    </TableCompactCell>
-                    <TableCompactCell className="text-right">
-                      <PercentageChange value={Number(row[2])} />
-                    </TableCompactCell>
-                    <TableCompactCell className="text-right">
-                      <PercentageChange value={Number(row[3])} />
-                    </TableCompactCell>
-                  </TableCompactRow>
-                ))}
-              </TableCompactBody>{" "}
-            </TableCompact>
+                  years?"
+              firstColumnHeader="Major"
+              valueFormat="percentageChange"
+              decimals={1}
+              rows={[
+                {
+                  questionId: 42220,
+                  title: "Overall",
+                },
+                {
+                  questionId: 42852,
+                  title: "STEM",
+                },
+                {
+                  questionId: 42853,
+                  title: "Humanities",
+                },
+              ]}
+            />
+            <QuestionLoader
+              questionId={42856}
+              fallbackTitle="What will the percent change be in the number of sub-Bachelor's degrees that are awarded in the US in the following years relative to 2024-25?"
+            />
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 
@@ -411,10 +306,9 @@ export default function LaborAutomationHubPage() {
           <DualPaneSectionLeft>
             <SectionHeader>Changing economy</SectionHeader>
             <InvertedThemeContainer>
-              <QuestionLoader
-                questionId={13472}
-                title="What will the overall labor productivity for all workers in the US be in the following years?"
-              />
+              <QuestionCard title="What will the overall labor productivity for all workers in the US be in the following years?">
+                <NoQuestionPlaceholder />
+              </QuestionCard>
             </InvertedThemeContainer>
             <ContentParagraph>
               The vulnerability of white collar work to AI advancement is
@@ -435,29 +329,19 @@ export default function LaborAutomationHubPage() {
           </DualPaneSectionLeft>
           <DualPaneSectionRight>
             <InvertedThemeContainer>
-              <QuestionLoader
-                preferTimeline
-                questionId={14774}
-                title="How many of the Fortune 500 companies will have fewer than 5000 employees in the following years?"
-              />
+              <QuestionLoader preferTimeline questionId={41324} />
             </InvertedThemeContainer>
-            <QuestionLoader
-              questionId={14774}
-              title="What will the percent change in the US long-term unemployment rate be in the following years relative to 2025?"
-            />
-            <QuestionLoader
-              questionId={14083}
-              title="What will the labor share of income in the US in the following years?"
-            />
+            <QuestionLoader questionId={41313} />
+            <QuestionLoader questionId={41578} />
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 
         <ResearchSection id="research" className="scroll-mt-12">
           <InvertedThemeContainer>
             <QuestionLoader
-              questionId={14732}
+              questionId={42850}
               isFlippable={false}
-              title="What will the change in the dissimilarity index be in the following years relative to January 2025?"
+              fallbackTitle="What will be the changes in the occupational mix in the following years, relative to November 2022?"
             />
           </InvertedThemeContainer>
         </ResearchSection>

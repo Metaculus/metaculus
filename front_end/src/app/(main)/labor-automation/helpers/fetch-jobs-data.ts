@@ -33,7 +33,36 @@ export const fetchJobsData = cache(
   }
 );
 
-function getSubQuestionValue(
+export type YearValue = { year: number; value: number };
+
+const OVERALL_POST_ID = 41307;
+
+export const fetchOverallData = cache(async (): Promise<YearValue[]> => {
+  const post = await ServerPostsApi.getPost(OVERALL_POST_ID, true);
+  const questions = post.group_of_questions?.questions as
+    | QuestionWithNumericForecasts[]
+    | undefined;
+
+  const points =
+    questions
+      ?.map((q) => {
+        const year = Number(q.label);
+        if (isNaN(year)) return null;
+        const value = getSubQuestionValue(q);
+        if (value == null) return null;
+        return { year, value };
+      })
+      .filter((d): d is YearValue => d !== null)
+      .sort((a, b) => a.year - b.year) ?? [];
+
+  if (points.length && points[0]?.year !== 2025) {
+    points.unshift({ year: 2025, value: 0 });
+  }
+
+  return points;
+});
+
+export function getSubQuestionValue(
   question: QuestionWithNumericForecasts
 ): number | null {
   const center =

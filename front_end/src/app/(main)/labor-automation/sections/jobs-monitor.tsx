@@ -118,54 +118,73 @@ export function JobsMonitorSection({
             <div></div>
             <div></div>
           </div>
-          <div className="grid gap-2 md:grid-cols-2 md:gap-0">
-            <div className="text-xs font-medium text-mc-option-3 dark:text-mc-option-3-dark md:hidden">
-              Expected growth
-            </div>
-            <div className="flex flex-col gap-1 md:col-start-2">
-              {jobs
-                .filter((job) => (job.values[year] ?? 0) >= 0)
-                .sort((a, b) => (b.values[year] ?? 0) - (a.values[year] ?? 0))
-                .map((job) => (
-                  <ContextualBar
-                    key={job.name}
-                    name={job.name}
-                    percent={job.values[year] ?? 0}
-                  />
-                ))}
-            </div>
-          </div>
-          <div className="grid gap-2 md:grid-cols-2 md:gap-0">
-            <div className="text-xs font-medium text-mc-option-2 dark:text-mc-option-2-dark md:hidden">
-              Expected decline
-            </div>
-            <div className="flex flex-col gap-1">
-              {jobs
-                .filter((job) => (job.values[year] ?? 0) < 0)
-                .sort((a, b) => (b.values[year] ?? 0) - (a.values[year] ?? 0))
-                .map((job) => (
-                  <ContextualBar
-                    key={job.name}
-                    name={job.name}
-                    percent={job.values[year] ?? 0}
-                  />
-                ))}
-            </div>
-          </div>
-          <div className="pointer-events-none relative -mr-4 -mt-40 hidden flex-col items-end gap-4 md:flex">
-            <InsightCard context="positive">
-              By {year}, roles in <strong>construction</strong> and{" "}
-              <strong>healthcare</strong> are expected to grow due to
-              infrastructure buildouts and the health needs of an aging
-              population.
-            </InsightCard>
-            <InsightCard context="negative">
-              By {year}, fields like <strong>software</strong>,{" "}
-              <strong>law</strong>, and <strong>finance</strong> face deeper
-              contractions as AI systems take over large portions of analysis,
-              reporting, and coding work.
-            </InsightCard>
-          </div>
+          {(() => {
+            const positiveInsight = (
+              <InsightCard context="positive">
+                [TO BE CHANGED] By {year}, roles in{" "}
+                <strong>construction</strong> and <strong>healthcare</strong>{" "}
+                are expected to grow due to infrastructure buildouts and the
+                health needs of an aging population.
+              </InsightCard>
+            );
+            const negativeInsight = (
+              <InsightCard context="negative">
+                [TO BE CHANGED] By {year}, fields like <strong>software</strong>
+                , <strong>law</strong>, and <strong>finance</strong> face deeper
+                contractions as AI systems take over large portions of analysis,
+                reporting, and coding work.
+              </InsightCard>
+            );
+
+            return (
+              <>
+                <div className="grid gap-2 md:grid-cols-2 md:gap-0">
+                  <div className="text-xs font-medium text-mc-option-3 dark:text-mc-option-3-dark md:hidden">
+                    Expected growth
+                  </div>
+                  <div className="flex flex-col gap-1 md:col-start-2">
+                    {jobs
+                      .filter((job) => (job.values[year] ?? 0) >= 0)
+                      .sort(
+                        (a, b) => (b.values[year] ?? 0) - (a.values[year] ?? 0)
+                      )
+                      .map((job) => (
+                        <ContextualBar
+                          key={job.name}
+                          name={job.name}
+                          percent={job.values[year] ?? 0}
+                        />
+                      ))}
+                  </div>
+                </div>
+                <div className="md:hidden">{positiveInsight}</div>
+                <div className="grid gap-2 md:grid-cols-2 md:gap-0">
+                  <div className="text-xs font-medium text-mc-option-2 dark:text-mc-option-2-dark md:hidden">
+                    Expected decline
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    {jobs
+                      .filter((job) => (job.values[year] ?? 0) < 0)
+                      .sort(
+                        (a, b) => (b.values[year] ?? 0) - (a.values[year] ?? 0)
+                      )
+                      .map((job) => (
+                        <ContextualBar
+                          key={job.name}
+                          name={job.name}
+                          percent={job.values[year] ?? 0}
+                        />
+                      ))}
+                  </div>
+                  <div className="pointer-events-none relative -mr-4 mt-4 hidden flex-col items-end gap-4 md:flex">
+                    {positiveInsight}
+                    {negativeInsight}
+                  </div>
+                </div>
+                <div className="md:hidden">{negativeInsight}</div>
+              </>
+            );
+          })()}
         </div>
       </div>
     </SectionCard>
@@ -180,7 +199,7 @@ export function InsightCard({
     <div className="pointer-events-auto relative bg-gray-0 dark:bg-gray-0-dark">
       <div
         className={cn(
-          "w-72 rounded-md border bg-gray-0 px-4 py-3 text-sm/5 font-normal text-gray-900 dark:bg-gray-0-dark dark:text-gray-900-dark",
+          "w-full rounded-md border bg-gray-0 px-3 py-2 text-xs/4 font-normal text-gray-900 dark:bg-gray-0-dark dark:text-gray-900-dark md:w-72 md:px-4 md:py-3 md:text-sm/5",
           {
             "border-mc-option-3 bg-mc-option-3/10 dark:border-mc-option-3-dark dark:bg-mc-option-3-dark/10 [&_strong]:text-mc-option-3 dark:[&_strong]:text-mc-option-3-dark":
               context === "positive",
