@@ -2,7 +2,7 @@
 import { isNil } from "lodash";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import React, { FC, ReactNode, useEffect, useMemo, useState } from "react";
+import React, { FC, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   createForecasts,
@@ -22,6 +22,7 @@ import {
   DistributionQuantileComponent,
   DistributionSlider,
   DistributionSliderComponent,
+  QuantileValue,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { sendPredictEvent } from "@/utils/analytics";
@@ -451,6 +452,27 @@ const ForecastMakerContinuous: FC<Props> = ({
     );
   }
 
+  const handleClipboardPaste = useCallback(
+    (
+      type: ContinuousForecastInputType,
+      components: DistributionSliderComponent[] | DistributionQuantileComponent
+    ) => {
+      if (type === ContinuousForecastInputType.Slider) {
+        setSliderDistributionComponents(
+          components as DistributionSliderComponent[]
+        );
+      } else {
+        setQuantileDistributionComponents(
+          (components as QuantileValue[]).map((c) => ({ ...c, isDirty: true }))
+        );
+      }
+      setForecastInputMode(type);
+      setIsDirty(true);
+      setShowSuccessBox(false);
+    },
+    []
+  );
+
   return (
     <>
       <ForecastExpirationModal
@@ -504,6 +526,11 @@ const ForecastMakerContinuous: FC<Props> = ({
         submitControls={SubmitControls}
         disabled={!canPredict}
         predictionMessage={predictionMessage}
+        clipboardData={{
+          sliderComponents: sliderDistributionComponents,
+          quantileComponents: quantileDistributionComponents,
+          onPaste: handleClipboardPaste,
+        }}
       />
     </>
   );

@@ -2081,5 +2081,11 @@
   "tournamentUnfollowModalSubmit": "Dejar de Seguir",
   "switchBackToSlidersHint": "vuelve a los deslizadores para un ajuste suave",
   "view": "Ver",
+  "distributionCopied": "Distribución copiada al portapapeles",
+  "distributionCopyFailed": "Error al copiar la distribución",
+  "distributionPasted": "Distribución pegada desde el portapapeles",
+  "distributionPasteInvalid": "No se encontró una distribución válida en el portapapeles",
+  "copyDistribution": "Copiar distribución al portapapeles",
+  "pasteDistribution": "Pegar distribución desde el portapapeles",
   "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
 }

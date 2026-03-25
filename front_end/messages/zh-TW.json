@@ -2078,5 +2078,11 @@
   "tournamentUnfollowModalSubmit": "取消關注",
   "switchBackToSlidersHint": "切換回滑桿以平滑調整",
   "view": "檢視",
+  "distributionCopied": "分配已複製到剪貼簿",
+  "distributionCopyFailed": "複製分配失敗",
+  "distributionPasted": "從剪貼簿貼上了分配",
+  "distributionPasteInvalid": "剪貼簿中未找到有效的分配",
+  "copyDistribution": "將分配複製到剪貼簿",
+  "pasteDistribution": "從剪貼簿貼上分配",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }

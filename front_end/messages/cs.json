@@ -2081,5 +2081,11 @@
   "tournamentUnfollowModalSubmit": "Zrušit sledování",
   "switchBackToSlidersHint": "přepněte zpět na posuvníky pro plynulé přizpůsobení",
   "view": "Zobrazit",
+  "distributionCopied": "Distribuce zkopírována do schránky",
+  "distributionCopyFailed": "Nepodařilo se zkopírovat distribuci",
+  "distributionPasted": "Distribuce vložena ze schránky",
+  "distributionPasteInvalid": "Ve schránce nebyla nalezena platná distribuce",
+  "copyDistribution": "Kopírovat distribuci do schránky",
+  "pasteDistribution": "Vložit distribuci ze schránky",
   "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }

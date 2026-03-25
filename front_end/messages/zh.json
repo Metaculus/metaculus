@@ -2083,5 +2083,11 @@
   "tournamentUnfollowModalSubmit": "取消关注",
   "switchBackToSlidersHint": "切回滑块以进行更精细的调整",
   "view": "查看",
+  "distributionCopied": "分布已复制到剪贴板",
+  "distributionCopyFailed": "复制分布失败",
+  "distributionPasted": "分布已从剪贴板粘贴",
+  "distributionPasteInvalid": "剪贴板中没有找到有效的分布",
+  "copyDistribution": "复制分布到剪贴板",
+  "pasteDistribution": "从剪贴板粘贴分布",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }
