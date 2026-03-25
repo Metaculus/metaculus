@@ -239,12 +239,12 @@ class KeyFactorQuerySet(models.QuerySet):
         Annotates queryset with the user's vote option
         """
 
+        vote_qs = KeyFactorVote.objects.filter(
+            user=user, key_factor=OuterRef("pk")
+        )
         return self.annotate(
-            user_vote=Subquery(
-                KeyFactorVote.objects.filter(
-                    user=user, key_factor=OuterRef("pk")
-                ).values("score")[:1]
-            ),
+            user_vote=Subquery(vote_qs.values("score")[:1]),
+            user_vote_reason=Subquery(vote_qs.values("vote_reason")[:1]),
         )
 
 
@@ -381,6 +381,7 @@ class KeyFactor(TimeStampedModel):
 
     # Annotated fields
     user_vote: int = None
+    user_vote_reason: str = None
 
     class Meta:
         constraints = [

@@ -50,7 +50,10 @@ def key_factor_vote_view(request: Request, pk: int):
 
     return Response(
         serialize_key_factor_votes(
-            key_factor, list(key_factor.votes.all()), user_vote=vote
+            key_factor,
+            list(key_factor.votes.all()),
+            user_vote=vote,
+            user_vote_reason=vote_reason,
         )
     )
 
