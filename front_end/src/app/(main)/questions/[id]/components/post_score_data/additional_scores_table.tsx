@@ -23,7 +23,7 @@ const ScoreTable: FC<{
   rows: ScoreRow[];
   className?: string;
   variant?: Variant;
-}> = ({ rows, className, variant = "auto" }) => (
+}> = ({ rows, className }) => (
   <div
     className={cn(
       "rounded border border-gray-300 bg-white dark:border-gray-300-dark dark:bg-gray-0-dark",
