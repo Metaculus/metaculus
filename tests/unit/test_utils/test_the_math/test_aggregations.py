@@ -955,7 +955,6 @@ class TestAggregations:
 
 
 class TestGetAggregationHistoryCutoff:
-
     @pytest.mark.django_db
     def test_scheduled_close_cutoff_keeps_both_forecasters(
         self, question_binary: Question
