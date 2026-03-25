@@ -952,3 +952,59 @@ class TestAggregations:
         assert np.allclose(new_aggregation.forecast_values, early_forecast)
         assert new_aggregation.forecaster_count == 1
         assert new_aggregation.start_time == timestep
+
+
+class TestGetAggregationHistoryCutoff:
+
+    @pytest.mark.django_db
+    def test_scheduled_close_cutoff_keeps_both_forecasters(
+        self, question_binary: Question
+    ):
+        from unittest.mock import patch
+        from questions.models import Forecast
+        from utils.the_math.aggregations import get_aggregation_history
+
+        open_time = datetime(2025, 1, 1, tzinfo=dt_timezone.utc)
+        scheduled_close = datetime(2025, 6, 1, tzinfo=dt_timezone.utc)
+        forecast_time = datetime(2025, 2, 1, tzinfo=dt_timezone.utc)
+        fake_now = datetime(2025, 8, 1, tzinfo=dt_timezone.utc)
+        forecast_a_end = datetime(2025, 7, 1, tzinfo=dt_timezone.utc)
+
+        question_binary.open_time = open_time
+        question_binary.scheduled_close_time = scheduled_close
+        question_binary.actual_close_time = None
+        question_binary.save()
+
+        user_a = User.objects.create(username="cutoff_user_a")
+        user_b = User.objects.create(username="cutoff_user_b")
+
+        Forecast.objects.create(
+            question=question_binary,
+            author=user_a,
+            probability_yes=0.4,
+            start_time=forecast_time,
+            end_time=forecast_a_end,
+        )
+
+        Forecast.objects.create(
+            question=question_binary,
+            author=user_b,
+            probability_yes=0.6,
+            start_time=forecast_time,
+            end_time=None,
+        )
+
+        with patch("utils.the_math.aggregations.timezone.now", return_value=fake_now):
+            result = get_aggregation_history(
+                question=question_binary,
+                aggregation_methods=["recency_weighted"],
+                include_future=False,
+                minimize=False,
+            )
+
+        aggregations = result["recency_weighted"]
+        # There should be exactly one aggregate forecast with no end time
+        # and both forecasters active
+        assert len(aggregations) == 1
+        assert aggregations[0].end_time is None
+        assert aggregations[0].forecaster_count == 2
