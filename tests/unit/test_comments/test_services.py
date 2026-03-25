@@ -189,7 +189,6 @@ def test_key_factor_vote_reason(user1, user2):
     assert kfv.vote_reason == KeyFactorVote.VoteReason.REDUNDANT
 
 
-
 def test_soft_delete_comment(user1, user2, post):
     factory_comment(author=user2, on_post=post)
     to_be_deleted = factory_comment(author=user2, on_post=post)
