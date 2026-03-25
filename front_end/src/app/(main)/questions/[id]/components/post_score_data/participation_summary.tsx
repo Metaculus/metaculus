@@ -113,33 +113,32 @@ export const ParticipationSummary: React.FC<Props> = ({
 
   // Only peer coverage (non-spot) is affected by early resolution.
   const maxCoverage = isSpot ? null : getMaxCoverage(question);
+  const coverageTooltipContent = t.rich("maxAttainableCoverageExplanation", {
+    link: (chunks) => (
+      <a
+        href="https://www.metaculus.com/help/scores-faq/#score-truncation"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline"
+      >
+        {chunks}
+      </a>
+    ),
+  });
   const richMaxCoverageDisplay = (_chunks: ReactNode) => {
     if (maxCoverage === null) return null;
     return (
-      <span>
-        {" (max. "}
-        {Math.round(maxCoverage * 100)}%
-        <Tooltip
-          tooltipContent={t.rich("maxAttainableCoverageExplanation", {
-            link: (chunks) => (
-              <a
-                href="https://www.metaculus.com/help/scores-faq/#score-truncation"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline"
-              >
-                {chunks}
-              </a>
-            ),
-          })}
-        >
+      <Tooltip tooltipContent={coverageTooltipContent} renderInPortal={false}>
+        <span className="cursor-help">
+          {" (max. "}
+          {Math.round(maxCoverage * 100)}%
           <FontAwesomeIcon
             icon={faCircleInfo}
-            className="ml-0.5 cursor-help text-blue-500 dark:text-blue-500-dark"
+            className="ml-0.5 text-blue-500 dark:text-blue-500-dark"
           />
-        </Tooltip>
-        {")"}
-      </span>
+          {")"}
+        </span>
+      </Tooltip>
     );
   };
 

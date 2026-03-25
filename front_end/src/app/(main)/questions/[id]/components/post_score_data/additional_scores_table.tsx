@@ -26,7 +26,7 @@ const ScoreTable: FC<{
 }> = ({ rows, className, variant = "auto" }) => (
   <div
     className={cn(
-      "overflow-hidden rounded border border-gray-300 bg-white dark:border-gray-300-dark dark:bg-gray-0-dark",
+      "rounded border border-gray-300 bg-white dark:border-gray-300-dark dark:bg-gray-0-dark",
       className
     )}
   >
@@ -35,22 +35,10 @@ const ScoreTable: FC<{
         key={index}
         className="flex items-center border-b border-gray-300 px-4 py-3 last:border-b-0 dark:border-gray-300-dark"
       >
-        <span
-          className={cn(
-            "w-[66%] pr-4 text-sm text-gray-700 dark:text-gray-700-dark",
-            {
-              "sm:w-1/2": variant === "auto",
-            }
-          )}
-        >
+        <span className="w-1/2 pr-4 text-sm text-gray-700 dark:text-gray-700-dark">
           {row.label}
         </span>
-        <span
-          className={cn(
-            "flex w-[34%] items-center justify-center gap-0.5 pl-4 text-center text-base text-gray-800 dark:text-gray-800-dark",
-            { "sm:w-1/2": variant === "auto" }
-          )}
-        >
+        <span className="flex w-1/2 items-center justify-center gap-1 pl-4 text-center text-base text-gray-800 dark:text-gray-800-dark">
           {row.value}
           {row.valueSuffix}
         </span>
@@ -131,33 +119,31 @@ export const AdditionalScoresTable: FC<Props> = ({
   // Peer coverage uses scheduled_close_time as total duration, so early
   // resolution reduces the max attainable coverage.
   const maxCoverage = getMaxCoverage(question);
+  const tooltipContent = t.rich("maxAttainableCoverageExplanation", {
+    link: (chunks) => (
+      <a
+        href="https://www.metaculus.com/help/scores-faq/#score-truncation"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline"
+      >
+        {chunks}
+      </a>
+    ),
+  });
   let maxCoverageValueSuffix: ReactNode;
   if (maxCoverage !== null) {
     maxCoverageValueSuffix = (
-      <span className="text-sm text-gray-600 dark:text-gray-600-dark">
-        {" (max. "}
-        {(maxCoverage * 100).toFixed(1)}%
-        <Tooltip
-          tooltipContent={t.rich("maxAttainableCoverageExplanation", {
-            link: (chunks) => (
-              <a
-                href="https://www.metaculus.com/help/scores-faq/#score-truncation"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline"
-              >
-                {chunks}
-              </a>
-            ),
-          })}
-        >
+      <Tooltip tooltipContent={tooltipContent} renderInPortal={false}>
+        <span className="cursor-help text-sm text-gray-600 dark:text-gray-600-dark">
+          (max. {(maxCoverage * 100).toFixed(1)}%
           <FontAwesomeIcon
             icon={faCircleInfo}
-            className="ml-0.5 cursor-help text-blue-500 dark:text-blue-500-dark"
+            className="ml-0.5 text-blue-500 dark:text-blue-500-dark"
           />
-        </Tooltip>
-        {")"}
-      </span>
+          )
+        </span>
+      </Tooltip>
     );
   }
 
