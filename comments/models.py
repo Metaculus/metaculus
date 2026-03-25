@@ -18,10 +18,11 @@ from django.db.models import (
 from django.db.models.functions import Coalesce
 from django.db.models.lookups import Exact
 from django.utils import timezone
+from sql_util.aggregates import SubqueryAggregate
+
 from posts.models import Post
 from projects.models import Project
 from questions.models import Forecast
-from sql_util.aggregates import SubqueryAggregate
 from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel
 
@@ -239,9 +240,7 @@ class KeyFactorQuerySet(models.QuerySet):
         Annotates queryset with the user's vote option
         """
 
-        vote_qs = KeyFactorVote.objects.filter(
-            user=user, key_factor=OuterRef("pk")
-        )
+        vote_qs = KeyFactorVote.objects.filter(user=user, key_factor=OuterRef("pk"))
         return self.annotate(
             user_vote=Subquery(vote_qs.values("score")[:1]),
             user_vote_reason=Subquery(vote_qs.values("vote_reason")[:1]),
