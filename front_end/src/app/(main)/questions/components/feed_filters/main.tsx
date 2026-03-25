@@ -91,9 +91,8 @@ const MainFeedFilters: FC<Props> = ({
     return filters;
   }, [params, t, user, projectFilters]);
 
-  const mainSortNewsVisible =
-    !PUBLIC_MINIMAL_UI && (isLargeScreen || isNil(user));
-  const mainSortNewVisible = isLargeScreen || !isNil(user);
+  const mainSortNewsVisible = !PUBLIC_MINIMAL_UI && isLargeScreen;
+  const mainSortNewVisible = isLargeScreen;
 
   const mainSortOptions: GroupButton<QuestionOrder>[] = useMemo(
     () =>
