@@ -16,6 +16,7 @@ import SearchInput from "@/components/search_input";
 import Button from "@/components/ui/button";
 import { GroupButton } from "@/components/ui/button_group";
 import Chip from "@/components/ui/chip";
+import LayoutSwitcher, { FeedLayout } from "@/components/ui/layout_switcher";
 import Listbox, { SelectOption } from "@/components/ui/listbox";
 import {
   POST_ORDER_BY_FILTER,
@@ -23,6 +24,7 @@ import {
   POST_STATUS_FILTER,
   POST_WITHDRAWN_FILTER,
 } from "@/constants/posts_feed";
+import { useFeedLayout } from "@/contexts/feed_layout_context";
 import { useGlobalSearchContext } from "@/contexts/global_search_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { QuestionOrder } from "@/types/question";
@@ -66,6 +68,7 @@ type Props = {
   showRandomButton?: boolean;
   panelClassname?: string;
   className?: string;
+  forceLayout?: FeedLayout;
 };
 
 const PostsFilters: FC<Props> = ({
@@ -78,8 +81,10 @@ const PostsFilters: FC<Props> = ({
   showRandomButton,
   panelClassname,
   className,
+  forceLayout,
 }) => {
   const t = useTranslations();
+  const { layout, setLayout } = useFeedLayout();
   const {
     params,
     setParam,
@@ -292,6 +297,13 @@ const PostsFilters: FC<Props> = ({
             <RandomButton
               variant="tertiary"
               className="text-purple-700 dark:text-purple-700-dark"
+            />
+          )}
+          {!forceLayout && (
+            <LayoutSwitcher
+              value={layout}
+              onChange={setLayout}
+              className="hidden lg:flex"
             />
           )}
         </div>

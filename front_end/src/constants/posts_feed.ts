@@ -31,4 +31,7 @@ export const POST_COMMUNITIES_FILTER = "communities";
 export const POST_WEEKLY_TOP_COMMENTS_FILTER = "weekly_top_comments";
 export const POST_PROJECT_FILTER = "default_project_id";
 
+export const FEED_LAYOUT_COOKIE = "feed_layout";
+export const FEED_LAYOUT_DEFAULT: "list" | "grid" = "list";
+
 export const POSTS_PER_PAGE = 10;

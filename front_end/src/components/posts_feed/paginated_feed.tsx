@@ -1,15 +1,18 @@
 "use client";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, Fragment, useEffect, useMemo, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
 import { QuestionVariantComposer } from "@/app/(main)/questions/[id]/components/question_variant_composer";
 import ConsumerPostCard from "@/components/consumer_post_card";
 import NewsCard from "@/components/news_card";
 import PostCard from "@/components/post_card";
 import Button from "@/components/ui/button";
+import { type FeedLayout } from "@/components/ui/layout_switcher";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import { POSTS_PER_PAGE, POST_PAGE_FILTER } from "@/constants/posts_feed";
+import { Masonry } from "@/components/ui/masonry";
+import { POST_PAGE_FILTER, POSTS_PER_PAGE } from "@/constants/posts_feed";
+import { useFeedLayout } from "@/contexts/feed_layout_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import useSearchParams from "@/hooks/use_search_params";
@@ -21,7 +24,7 @@ import { sendAnalyticsEvent } from "@/utils/analytics";
 import { logError } from "@/utils/core/errors";
 import { isNotebookPost } from "@/utils/questions/helpers";
 
-import { buildFeedItems } from "./build_feed_items";
+import { FeedItem, buildFeedItems } from "./build_feed_items";
 import EmptyCommunityFeed from "./empty_community_feed";
 import PostsFeedScrollRestoration from "./feed_scroll_restoration";
 import FeedTournamentTile from "./feed_tournament_tile";
@@ -37,6 +40,7 @@ type Props = {
   type?: PostsFeedType;
   isCommunity?: boolean;
   indexWeights?: Record<string, number>;
+  forceLayout?: FeedLayout;
 };
 
 const PaginatedPostsFeed: FC<Props> = ({
@@ -46,6 +50,7 @@ const PaginatedPostsFeed: FC<Props> = ({
   type = "posts",
   isCommunity,
   indexWeights = {},
+  forceLayout,
 }) => {
   const t = useTranslations();
   const { params, setParam, replaceUrlWithoutNavigation } = useSearchParams();
@@ -141,31 +146,8 @@ const PaginatedPostsFeed: FC<Props> = ({
     [paginatedPosts, initialProjectTiles]
   );
 
-  const renderPost = (post: PostWithForecasts) => {
-    const indexWeight = weightByPostId.get(post.id);
-    if (isNotebookPost(post) && type === "news") {
-      return <NewsCard post={post} />;
-    }
-
-    return (
-      <QuestionVariantComposer
-        consumer={
-          <ConsumerPostCard
-            post={post}
-            forCommunityFeed={isCommunity}
-            indexWeight={indexWeight}
-          />
-        }
-        forecaster={
-          <PostCard
-            post={post}
-            forCommunityFeed={isCommunity}
-            indexWeight={indexWeight}
-          />
-        }
-      />
-    );
-  };
+  const { layout: contextLayout } = useFeedLayout();
+  const layout = forceLayout ?? contextLayout;
 
   return (
     <>
@@ -185,19 +167,14 @@ const PaginatedPostsFeed: FC<Props> = ({
             )}
           </>
         )}
-        {feedItems.map((item) =>
-          item.type === "project" ? (
-            <FeedTournamentTile
-              key={`project-${item.tile.project_id}`}
-              tile={item.tile}
-              feedPage={clientPageNumber}
-            />
-          ) : (
-            <Fragment key={`post-${item.post.id}`}>
-              {renderPost(item.post)}
-            </Fragment>
-          )
-        )}
+        <FeedLayoutView
+          items={feedItems}
+          feedPage={clientPageNumber}
+          type={type}
+          isCommunity={isCommunity}
+          weightByPostId={weightByPostId}
+          layout={layout}
+        />
         <PostsFeedScrollRestoration
           serverPage={filters.page ?? null}
           pageNumber={clientPageNumber}
@@ -222,6 +199,90 @@ const PaginatedPostsFeed: FC<Props> = ({
         <div className="m-8"></div>
       )}
     </>
+  );
+};
+
+const FeedLayoutView: FC<{
+  items: FeedItem[];
+  feedPage: number;
+  type: PostsFeedType;
+  isCommunity?: boolean;
+  weightByPostId: Map<number, number>;
+  layout: FeedLayout;
+}> = ({ items, feedPage, type, isCommunity, weightByPostId, layout }) => {
+  return (
+    <Masonry
+      items={items}
+      config={{
+        columns: layout === "grid" ? [1, 2, 3] : 1,
+        gap: layout === "grid" ? [12, 12, 12] : 12,
+        media: layout === "grid" ? [1024, 1280, 1536] : undefined,
+        useBalancedLayout: layout === "grid",
+      }}
+      render={(item) => (
+        <FeedItemCard
+          key={
+            item.type === "project"
+              ? `project-${item.tile.project_id}`
+              : `post-${item.post.id}`
+          }
+          item={item}
+          feedPage={feedPage}
+          type={type}
+          isCommunity={isCommunity}
+          weightByPostId={weightByPostId}
+          forceConsumer={layout === "grid"}
+        />
+      )}
+    />
+  );
+};
+
+const FeedItemCard: FC<{
+  item: FeedItem;
+  feedPage: number;
+  type: PostsFeedType;
+  isCommunity?: boolean;
+  weightByPostId: Map<number, number>;
+  forceConsumer?: boolean;
+}> = ({ item, feedPage, type, isCommunity, weightByPostId, forceConsumer }) => {
+  if (item.type === "project") {
+    return <FeedTournamentTile tile={item.tile} feedPage={feedPage} />;
+  }
+
+  const { post } = item;
+
+  if (isNotebookPost(post) && type === "news") {
+    return <NewsCard post={post} />;
+  }
+
+  const indexWeight = weightByPostId.get(post.id);
+
+  return (
+    <QuestionVariantComposer
+      consumer={
+        <ConsumerPostCard
+          post={post}
+          forCommunityFeed={isCommunity}
+          indexWeight={indexWeight}
+        />
+      }
+      forecaster={
+        forceConsumer ? (
+          <ConsumerPostCard
+            post={post}
+            forCommunityFeed={isCommunity}
+            indexWeight={indexWeight}
+          />
+        ) : (
+          <PostCard
+            post={post}
+            forCommunityFeed={isCommunity}
+            indexWeight={indexWeight}
+          />
+        )
+      }
+    />
   );
 };
 

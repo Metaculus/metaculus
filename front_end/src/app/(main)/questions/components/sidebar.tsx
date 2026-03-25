@@ -48,7 +48,6 @@ const FeedSidebar: FC<Props> = ({ items }) => {
     useContentTranslatedBannerContext();
 
   const sidebarSections: SidebarSection[] = useMemo(() => {
-    console.log("api result", items);
     const menuItems: SidebarMenuItem[] = [
       {
         name: t("feedHome"),

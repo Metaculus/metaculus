@@ -4,6 +4,7 @@ import PaginatedPostsFeed, {
   PostsFeedType,
 } from "@/components/posts_feed/paginated_feed";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
+import { FeedLayout } from "@/components/ui/layout_switcher";
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import { PostsParams } from "@/services/api/posts/posts.shared";
@@ -16,6 +17,7 @@ type Props = {
   type?: PostsFeedType;
   isCommunity?: boolean;
   showProjectTiles?: boolean;
+  forceLayout?: FeedLayout;
 };
 
 const AwaitedPostsFeed: FC<Props> = async ({
@@ -23,6 +25,7 @@ const AwaitedPostsFeed: FC<Props> = async ({
   type,
   isCommunity,
   showProjectTiles,
+  forceLayout,
 }) => {
   const { PUBLIC_MINIMAL_UI } = getPublicSettings();
   const skipTiles = !showProjectTiles || isCommunity || PUBLIC_MINIMAL_UI;
@@ -49,6 +52,7 @@ const AwaitedPostsFeed: FC<Props> = async ({
       initialProjectTiles={projectTiles}
       type={type}
       isCommunity={isCommunity}
+      forceLayout={forceLayout}
     />
   );
 };

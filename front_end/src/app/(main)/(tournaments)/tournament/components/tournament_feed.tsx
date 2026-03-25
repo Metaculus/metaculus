@@ -93,6 +93,7 @@ const TournamentFeed: FC<Props> = ({ tournament }) => {
       indexWeights={weights}
       filters={pageFilters}
       initialQuestions={questions}
+      forceLayout="list"
     />
   );
 };

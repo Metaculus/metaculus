@@ -16,9 +16,15 @@ import PublicSettingsScript from "@/components/public_settings_script";
 import QueryClientProviderWrapper from "@/components/query_client_provider";
 import SimplifiedSignupModal from "@/components/simplified_signup_modal";
 import AppThemeProvider from "@/components/theme_provider";
+import { FeedLayout } from "@/components/ui/layout_switcher";
 import { TailwindIndicator } from "@/components/ui/tailwind-indicator";
 import { METAC_COLORS } from "@/constants/colors";
+import {
+  FEED_LAYOUT_COOKIE,
+  FEED_LAYOUT_DEFAULT,
+} from "@/constants/posts_feed";
 import AuthProvider from "@/contexts/auth_context";
+import FeedLayoutProvider from "@/contexts/feed_layout_context";
 import { GlobalSearchProvider } from "@/contexts/global_search_context";
 import ModalProvider from "@/contexts/modal_context";
 import NavigationProvider from "@/contexts/navigation_context";
@@ -89,6 +95,8 @@ export default async function RootLayout({
 
   const cookieStore = await cookies();
   const csrfToken = cookieStore.get(CSRF_COOKIE_NAME)?.value || null;
+  const feedLayout = (cookieStore.get(FEED_LAYOUT_COOKIE)?.value ||
+    FEED_LAYOUT_DEFAULT) as FeedLayout;
 
   return (
     <html
@@ -126,16 +134,18 @@ export default async function RootLayout({
                         <ModalProvider>
                           <NavigationProvider>
                             <GlobalSearchProvider>
-                              <TranslationsBannerProvider>
-                                <NextTopLoader
-                                  showSpinner={false}
-                                  color={METAC_COLORS.blue["500"].DEFAULT}
-                                />
-                                {children}
-                                <GlobalModals />
-                                <SimplifiedSignupModal />
-                                <Toaster />
-                              </TranslationsBannerProvider>
+                              <FeedLayoutProvider initialLayout={feedLayout}>
+                                <TranslationsBannerProvider>
+                                  <NextTopLoader
+                                    showSpinner={false}
+                                    color={METAC_COLORS.blue["500"].DEFAULT}
+                                  />
+                                  {children}
+                                  <GlobalModals />
+                                  <SimplifiedSignupModal />
+                                  <Toaster />
+                                </TranslationsBannerProvider>
+                              </FeedLayoutProvider>
                             </GlobalSearchProvider>
                           </NavigationProvider>
                         </ModalProvider>

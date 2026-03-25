@@ -60,7 +60,11 @@ export default async function CommunityManagementSettings(props: Props) {
                   <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
                 }
               >
-                <AwaitedPostsFeed filters={pageFilters} isCommunity />
+                <AwaitedPostsFeed
+                  filters={pageFilters}
+                  isCommunity
+                  forceLayout="list"
+                />
               </Suspense>
             </div>
           </>
