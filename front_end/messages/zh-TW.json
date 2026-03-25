@@ -2078,5 +2078,6 @@
   "tournamentUnfollowModalSubmit": "取消關注",
   "switchBackToSlidersHint": "切換回滑桿以平滑調整",
   "view": "檢視",
+  "maxAttainableCoverageExplanation": "為了保持分數的正確性，早期解決的問題其分數和覆蓋率會被截斷。<link>在這裡了解更多。</link>",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }

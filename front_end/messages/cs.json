@@ -2081,5 +2081,6 @@
   "tournamentUnfollowModalSubmit": "Zrušit sledování",
   "switchBackToSlidersHint": "přepněte zpět na posuvníky pro plynulé přizpůsobení",
   "view": "Zobrazit",
+  "maxAttainableCoverageExplanation": "Otázky, které se vyřeší dříve, mají své skóre a pokrytí upravené, aby se zachovala správnost skóre. <link>Více se dozvíte zde.</link>",
   "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }

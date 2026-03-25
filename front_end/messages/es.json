@@ -2081,5 +2081,6 @@
   "tournamentUnfollowModalSubmit": "Dejar de Seguir",
   "switchBackToSlidersHint": "vuelve a los deslizadores para un ajuste suave",
   "view": "Ver",
+  "maxAttainableCoverageExplanation": "Las preguntas que se resuelven pronto tienen sus puntuaciones y cobertura truncadas para preservar la propiedad adecuada de la puntuación. <link>Aprende más aquí.</link>",
   "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
 }
