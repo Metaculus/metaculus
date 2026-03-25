@@ -18,11 +18,10 @@ from django.db.models import (
 from django.db.models.functions import Coalesce
 from django.db.models.lookups import Exact
 from django.utils import timezone
-from sql_util.aggregates import SubqueryAggregate
-
 from posts.models import Post
 from projects.models import Project
 from questions.models import Forecast
+from sql_util.aggregates import SubqueryAggregate
 from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel
 
@@ -417,6 +416,11 @@ class KeyFactorVote(TimeStampedModel):
         STRENGTH = "strength"
         DIRECTION = "direction"
 
+    class VoteReason(models.TextChoices):
+        WRONG_DIRECTION = "wrong_direction"
+        NO_IMPACT = "no_impact"
+        REDUNDANT = "redundant"
+
     class VoteDirection(models.IntegerChoices):
         UP = 5
         DOWN = -5
@@ -430,9 +434,11 @@ class KeyFactorVote(TimeStampedModel):
     user = models.ForeignKey(User, models.CASCADE, related_name="key_factor_votes")
     key_factor = models.ForeignKey(KeyFactor, models.CASCADE, related_name="votes")
     score = models.SmallIntegerField(db_index=True)
-    # This field will be removed once we decide on the type of vote
     vote_type = models.CharField(
         choices=VoteType.choices, max_length=20, default=VoteType.DIRECTION
+    )
+    vote_reason = models.CharField(
+        choices=VoteReason.choices, max_length=20, blank=True, default=""
     )
 
     class Meta:
