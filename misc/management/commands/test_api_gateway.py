@@ -38,6 +38,7 @@ from users.constants import ApiAccessTier
 from users.models import User
 
 GATEWAY_BASE_URL = "http://localhost:8787"
+GATEWAY_TIMEOUT_SECONDS = 10
 
 
 # ---------------------------------------------------------------------------
@@ -367,7 +368,10 @@ def teardown_aggregations_post(state: dict):
 
 def test_unauthenticated_get_posts(state: dict):
     """Unauthenticated GET /api/posts/ should be rejected by the gateway (403)."""
-    response = requests.get(f"{GATEWAY_BASE_URL}/api/posts/")
+    response = requests.get(
+        f"{GATEWAY_BASE_URL}/api/posts/",
+        timeout=GATEWAY_TIMEOUT_SECONDS,
+    )
     assert_equal("status_code", response.status_code, 403)
 
 
@@ -376,6 +380,7 @@ def test_authenticated_get_posts(state: dict):
     response = requests.get(
         f"{GATEWAY_BASE_URL}/api/posts/",
         headers=auth_headers(state["api_key"]),
+        timeout=GATEWAY_TIMEOUT_SECONDS,
     )
     assert_equal("status_code", response.status_code, 200)
 
@@ -385,6 +390,7 @@ def test_restricted_user_blocked_endpoint(state: dict):
     response = requests.get(
         f"{GATEWAY_BASE_URL}/api/leaderboards/global/",
         headers=auth_headers(state["api_key"]),
+        timeout=GATEWAY_TIMEOUT_SECONDS,
     )
     assert_equal("status_code", response.status_code, 403)
     assert response.text.startswith("Permission Error:"), (
@@ -403,6 +409,7 @@ def test_staff_can_access_blocked_endpoint(state: dict):
         f"{GATEWAY_BASE_URL}/api/leaderboards/global/",
         headers=auth_headers(state["api_key"]),
         params={"name": _STAFF_LEADERBOARD_NAME},
+        timeout=GATEWAY_TIMEOUT_SECONDS,
     )
     assert_equal("status_code", response.status_code, 200)
 
@@ -412,6 +419,7 @@ def _get_first_post_aggregations_latest(api_key: str) -> object:
         f"{GATEWAY_BASE_URL}/api/posts/",
         headers=auth_headers(api_key),
         params={"with_cp": "true"},
+        timeout=GATEWAY_TIMEOUT_SECONDS,
     )
     assert_equal("status_code", response.status_code, 200)
     results = response.json().get("results", [])
