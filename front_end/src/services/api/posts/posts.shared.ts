@@ -13,7 +13,7 @@ import {
   PredictionFlowPost,
 } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
-import { DataParams, Require, WhitelistStatus } from "@/types/utils";
+import { DataAccessStatus, DataParams, Require } from "@/types/utils";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type PostsParams = PaginationParams & {
@@ -247,13 +247,13 @@ class PostsApi extends ApiService {
     );
   }
 
-  async getWhitelistStatus(params: {
+  async getDataAccessStatus(params: {
     post_id?: number;
     project_id?: number;
-  }): Promise<WhitelistStatus> {
+  }): Promise<DataAccessStatus> {
     const queryParams = encodeQueryParams(params);
-    return await this.get<WhitelistStatus>(
-      `/get-whitelist-status/${queryParams}`
+    return await this.get<DataAccessStatus>(
+      `/get-data-access-status/${queryParams}`
     );
   }
 
