@@ -23,7 +23,10 @@ from utils.dtypes import generate_map_from_list
 
 
 def serialize_key_factor_votes(
-    key_factor: KeyFactor, vote_scores: list[KeyFactorVote], user_vote: int = None
+    key_factor: KeyFactor,
+    vote_scores: list[KeyFactorVote],
+    user_vote: int = None,
+    user_vote_reason: str = None,
 ):
     pivot_votes = Counter([v.score for v in vote_scores])
 
@@ -33,6 +36,7 @@ def serialize_key_factor_votes(
             {"score": score, "count": count} for score, count in pivot_votes.items()
         ],
         "user_vote": user_vote,
+        "user_vote_reason": user_vote_reason,
         "count": len(vote_scores),
     }
 
@@ -50,7 +54,10 @@ def serialize_key_factor(
         "author": BaseUserSerializer(key_factor.comment.author).data,
         "comment_id": key_factor.comment_id,
         "vote": serialize_key_factor_votes(
-            key_factor, vote_scores or [], user_vote=key_factor.user_vote
+            key_factor,
+            vote_scores or [],
+            user_vote=key_factor.user_vote,
+            user_vote_reason=key_factor.user_vote_reason,
         ),
         "question_id": key_factor.question_id,
         "question": (

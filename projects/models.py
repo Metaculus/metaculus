@@ -522,6 +522,7 @@ class ProjectSubscription(TimeStampedModel):
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="subscriptions"
     )
+    follow_questions = models.BooleanField(default=False)
 
     class Meta:
         constraints = [
