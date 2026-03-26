@@ -2,6 +2,6 @@ from django.db import models
 
 
 class ApiAccessTier(models.TextChoices):
-    RESTRICTED = "restricted", "Restricted"
-    BENCHMARKING = "benchmarking", "Benchmarking"
-    UNRESTRICTED = "unrestricted", "Unrestricted"
+    RESTRICTED = "restricted"
+    BENCHMARKING = "benchmarking"
+    UNRESTRICTED = "unrestricted"
