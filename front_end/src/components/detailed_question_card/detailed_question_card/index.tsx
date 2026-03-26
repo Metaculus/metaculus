@@ -6,6 +6,7 @@ import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { useHideCP } from "@/contexts/cp_context";
 import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
+import { KeyFactor } from "@/types/comment";
 import { PostStatus, QuestionPost } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
@@ -26,6 +27,7 @@ type Props = {
   colorOverride?: ThemeColor | string;
   defaultZoom?: TimelineChartZoomOption;
   embedChartType?: EmbedChartType;
+  keyFactors?: KeyFactor[];
 };
 
 const DetailedQuestionCard: FC<Props> = ({
@@ -38,6 +40,7 @@ const DetailedQuestionCard: FC<Props> = ({
   colorOverride,
   defaultZoom,
   embedChartType,
+  keyFactors,
 }) => {
   const { question, status, nr_forecasters } = post;
   const forecastAvailability = getQuestionForecastAvailability(question);
@@ -77,6 +80,7 @@ const DetailedQuestionCard: FC<Props> = ({
             colorOverride={colorOverride}
             defaultZoom={defaultZoom}
             embedChartType={embedChartType}
+            keyFactors={keyFactors}
           />
           {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>

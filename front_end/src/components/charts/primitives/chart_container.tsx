@@ -13,12 +13,23 @@ type Props = {
   zoom?: TimelineChartZoomOption;
   onZoomChange?: (zoom: TimelineChartZoomOption) => void;
   chartTitle?: string;
-
   leftLegend?: React.ReactNode;
+  headerExtra?: React.ReactNode;
 };
 
 const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
-  ({ height, zoom, onZoomChange, children, chartTitle, leftLegend }, ref) => {
+  (
+    {
+      height,
+      zoom,
+      onZoomChange,
+      children,
+      chartTitle,
+      leftLegend,
+      headerExtra,
+    },
+    ref
+  ) => {
     const tabOptions = getChartZoomOptions();
     const [selectedIndex, setSelectedIndex] = useState(
       tabOptions.findIndex((option) => option.value === zoom)
@@ -51,38 +62,43 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
                 {chartTitle}
               </div>
             )}
-            {!!zoom && (
-              <TabGroup
-                selectedIndex={selectedIndex}
-                onChange={handleTabChange}
-                manual
-                className="ml-auto self-end"
-              >
-                <TabList className="flex gap-0.5">
-                  {tabOptions.map((option) => (
-                    <Tab as={Fragment} key={option.value}>
-                      {({ selected, hover }) => (
-                        <button
-                          className={cn(
-                            "ChartZoomButton rounded px-1 py-0.5 text-xs font-normal leading-4 text-gray-600 hover:text-blue-800 focus:outline-none dark:text-gray-600-dark hover:dark:text-blue-800-dark md:text-sm",
-                            {
-                              "text-gray-900 dark:text-gray-900-dark": selected,
-                            },
-                            {
-                              "bg-gray-300 dark:bg-gray-300-dark":
-                                hover || selected,
-                            },
-                            isEmbed &&
-                              "uppercase text-gray-600 dark:text-gray-600-dark md:text-xs"
+            {(!!zoom || !!headerExtra) && (
+              <div className="ml-auto flex items-center gap-2 self-end">
+                {!!zoom && (
+                  <TabGroup
+                    selectedIndex={selectedIndex}
+                    onChange={handleTabChange}
+                    manual
+                  >
+                    <TabList className="flex gap-0.5">
+                      {tabOptions.map((option) => (
+                        <Tab as={Fragment} key={option.value}>
+                          {({ selected, hover }) => (
+                            <button
+                              className={cn(
+                                "ChartZoomButton rounded px-1 py-0.5 text-xs font-normal leading-4 text-gray-600 hover:text-blue-800 focus:outline-none dark:text-gray-600-dark hover:dark:text-blue-800-dark md:text-sm",
+                                {
+                                  "text-gray-900 dark:text-gray-900-dark":
+                                    selected,
+                                },
+                                {
+                                  "bg-gray-300 dark:bg-gray-300-dark":
+                                    hover || selected,
+                                },
+                                isEmbed &&
+                                  "uppercase text-gray-600 dark:text-gray-600-dark md:text-xs"
+                              )}
+                            >
+                              {option.label}
+                            </button>
                           )}
-                        >
-                          {option.label}
-                        </button>
-                      )}
-                    </Tab>
-                  ))}
-                </TabList>
-              </TabGroup>
+                        </Tab>
+                      ))}
+                    </TabList>
+                  </TabGroup>
+                )}
+                {headerExtra}
+              </div>
             )}
           </div>
         )}
