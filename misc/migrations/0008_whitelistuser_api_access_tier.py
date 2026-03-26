@@ -103,4 +103,16 @@ class Migration(migrations.Migration):
                 null=True,
             ),
         ),
+        migrations.AlterUniqueTogether(
+            name="userdataaccess",
+            unique_together={("user", "project", "post")},
+        ),
+        migrations.AddConstraint(
+            model_name="userdataaccess",
+            constraint=models.CheckConstraint(
+                condition=models.Q(project__isnull=True)
+                | models.Q(post__isnull=True), 
+                name="userdataaccess_project_or_post_not_both",
+            ),
+        ),
     ]
