@@ -33,12 +33,15 @@ class ServerProjectsApiClass extends ProjectsApi {
     );
   }
 
-  async subscribe(projectId: number) {
-    return this.post(`/projects/${projectId}/subscribe/`, {});
+  async subscribe(projectId: number, params?: { follow_questions?: boolean }) {
+    return this.post(`/projects/${projectId}/subscribe/`, params ?? {});
   }
 
-  async unsubscribe(projectId: number) {
-    return this.post(`/projects/${projectId}/unsubscribe/`, {});
+  async unsubscribe(
+    projectId: number,
+    params?: { unfollow_questions?: boolean }
+  ) {
+    return this.post(`/projects/${projectId}/unsubscribe/`, params ?? {});
   }
 
   async updateCommunity(

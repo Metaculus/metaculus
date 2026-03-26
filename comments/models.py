@@ -240,12 +240,10 @@ class KeyFactorQuerySet(models.QuerySet):
         Annotates queryset with the user's vote option
         """
 
+        vote_qs = KeyFactorVote.objects.filter(user=user, key_factor=OuterRef("pk"))
         return self.annotate(
-            user_vote=Subquery(
-                KeyFactorVote.objects.filter(
-                    user=user, key_factor=OuterRef("pk")
-                ).values("score")[:1]
-            ),
+            user_vote=Subquery(vote_qs.values("score")[:1]),
+            user_vote_reason=Subquery(vote_qs.values("vote_reason")[:1]),
         )
 
 
@@ -382,6 +380,7 @@ class KeyFactor(TimeStampedModel):
 
     # Annotated fields
     user_vote: int = None
+    user_vote_reason: str = None
 
     class Meta:
         constraints = [
@@ -417,6 +416,11 @@ class KeyFactorVote(TimeStampedModel):
         STRENGTH = "strength"
         DIRECTION = "direction"
 
+    class VoteReason(models.TextChoices):
+        WRONG_DIRECTION = "wrong_direction"
+        NO_IMPACT = "no_impact"
+        REDUNDANT = "redundant"
+
     class VoteDirection(models.IntegerChoices):
         UP = 5
         DOWN = -5
@@ -430,9 +434,11 @@ class KeyFactorVote(TimeStampedModel):
     user = models.ForeignKey(User, models.CASCADE, related_name="key_factor_votes")
     key_factor = models.ForeignKey(KeyFactor, models.CASCADE, related_name="votes")
     score = models.SmallIntegerField(db_index=True)
-    # This field will be removed once we decide on the type of vote
     vote_type = models.CharField(
         choices=VoteType.choices, max_length=20, default=VoteType.DIRECTION
+    )
+    vote_reason = models.CharField(
+        choices=VoteReason.choices, max_length=20, blank=True, default=""
     )
 
     class Meta:
