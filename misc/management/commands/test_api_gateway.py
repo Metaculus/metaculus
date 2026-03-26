@@ -17,9 +17,13 @@ Teardown functions run in the order listed; deleting parent objects first
 (or last, depending on cascade direction) is the caller's responsibility.
 """
 
+import sys
+import termios
+import tty
 from datetime import timedelta
 
 import requests
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
@@ -592,10 +596,64 @@ def run_tests():
 # ---------------------------------------------------------------------------
 
 
+def _read_single_keypress() -> str:
+    fd = sys.stdin.fileno()
+    old = termios.tcgetattr(fd)
+    try:
+        tty.setraw(fd)
+        return sys.stdin.read(1)
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old)
+
+
+def _confirm_local_run(stdout, style) -> bool:
+    """Checks DEBUG=True and asks the user to confirm local setup before proceeding.
+    Returns True if confirmed, False if aborted."""
+    if not settings.DEBUG:
+        stdout.write(
+            style.ERROR(
+                "ERROR: settings.DEBUG is not True.\n"
+                "This command must only be run against a local development server.\n"
+                "Aborting."
+            )
+        )
+        return False
+
+    stdout.write(
+        style.WARNING(
+            "\n"
+            "  *** GATEWAY INTEGRATION TEST CONFIRMATION ***\n"
+            "\n"
+            "  Before continuing, please confirm ALL of the following:\n"
+            "\n"
+            f"    1. You are running against a LOCAL development server (not production).\n"
+            f"    2. The API gateway is running locally on port 8787.\n"
+            f"    3. The gateway is pointed at YOUR LOCAL backend server.\n"
+            "\n"
+            "  This command will create and delete objects in your local database.\n"
+            "\n"
+            "  Press ENTER to continue, or ESC to abort: "
+        )
+    )
+    stdout.flush()
+
+    key = _read_single_keypress()
+    stdout.write("\n")
+
+    if key in ("\r", "\n"):
+        return True
+
+    stdout.write(style.WARNING("Aborted.\n"))
+    return False
+
+
 class Command(BaseCommand):
     help = "Run manual integration tests against the local API gateway on port 8787."
 
     def handle(self, *args, **kwargs):
+        if not _confirm_local_run(self.stdout, self.style):
+            raise SystemExit(0)
+
         self.stdout.write(f"Running {len(TESTS)} test(s) against {GATEWAY_BASE_URL}\n")
 
         failures = run_tests()
