@@ -32,7 +32,7 @@ export default async function WhyTrustMetaculusPage() {
           ),
           outperformLink: (chunks) => (
             <a
-              href="http://jasondana.net/docs/2014%20Davis%20Stober%20et%20al.pdf"
+              href="https://jasondana.net/docs/2014%20Davis%20Stober%20et%20al.pdf"
               target="_blank"
               rel="noreferrer"
             >
@@ -49,7 +49,7 @@ export default async function WhyTrustMetaculusPage() {
           ),
           forbesLink: (chunks) => (
             <a
-              href="https://www.forbes.com/sites/calumchace/2023/05/02/gpt-to-ban-or-not-to-ban-that-is-the-question/#:~:text=The%20latest%20median%20forecast%20on%20the%20Metaculus%20prediction%20market%20for%20the%20arrival%20of%20full%20AGI%20is%202032."
+              href="https://www.forbes.com/sites/calumchace/2023/05/02/gpt-to-ban-or-not-to-ban-that-is-the-question/"
               target="_blank"
               rel="noreferrer"
             >
