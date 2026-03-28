@@ -2079,5 +2079,11 @@
   "tournamentUnfollowModalSubmit": "Deixar de Seguir",
   "switchBackToSlidersHint": "volte para os controles deslizantes para um ajuste suave",
   "view": "Visualizar",
+  "distributionCopied": "Distribuição copiada para a área de transferência",
+  "distributionCopyFailed": "Falha ao copiar distribuição",
+  "distributionPasted": "Distribuição colada da área de transferência",
+  "distributionPasteInvalid": "Nenhuma distribuição válida encontrada na área de transferência",
+  "copyDistribution": "Copiar distribuição para a área de transferência",
+  "pasteDistribution": "Colar distribuição da área de transferência",
   "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
 }

@@ -21,6 +21,7 @@ import {
   DistributionQuantileComponent,
   DistributionSlider,
   DistributionSliderComponent,
+  QuantileValue,
 } from "@/types/question";
 import { TranslationKey } from "@/types/translations";
 import cn from "@/utils/core/cn";
@@ -261,6 +262,30 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
     handleForecastExpiration(option.id, modalSavedState.forecastExpiration);
   }, [handleForecastExpiration, option.id, modalSavedState.forecastExpiration]);
 
+  const handleClipboardPaste = useCallback(
+    (
+      type: ContinuousForecastInputType,
+      components: DistributionSliderComponent[] | DistributionQuantileComponent
+    ) => {
+      if (type === ContinuousForecastInputType.Slider) {
+        handleChange(option.id, {
+          type: ContinuousForecastInputType.Slider,
+          components: components as DistributionSliderComponent[],
+        });
+      } else {
+        handleChange(option.id, {
+          type: ContinuousForecastInputType.Quantile,
+          components: (components as QuantileValue[]).map((c) => ({
+            ...c,
+            isDirty: true,
+          })),
+        });
+      }
+      setForecastInputMode(type);
+    },
+    [handleChange, option.id, setForecastInputMode]
+  );
+
   let SubmitControls: ReactNode = null;
 
   const predictButtonIsDirty =
@@ -418,6 +443,11 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           }
           menu={option.menu}
           copyMenu={copyMenu}
+          clipboardData={{
+            sliderComponents: option.userSliderForecast,
+            quantileComponents: option.userQuantileForecast,
+            onPaste: handleClipboardPaste,
+          }}
           userPreviousLabel={showWithdrawnRow ? "(Withdrawn)" : undefined}
           userPreviousRowClassName={showWithdrawnRow ? "text-xs" : undefined}
           hideCurrentUserRow={showWithdrawnRow}
