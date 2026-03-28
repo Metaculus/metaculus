@@ -129,7 +129,9 @@ def project_leaderboard_view(
         leaderboards = [leaderboard]
     else:
         # get the leaderboard through params (may return primary leaderboard)
-        leaderboards = Leaderboard.objects.filter(project=project)
+        leaderboards = Leaderboard.objects.filter(
+            Q(id=project.primary_leaderboard_id) | Q(project=project)
+        )
         if name:
             leaderboards = leaderboards.filter(name=name)
         if score_type:
