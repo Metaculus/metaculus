@@ -1,10 +1,15 @@
 import { faClock } from "@fortawesome/free-regular-svg-icons";
-import { faFire, faRepeat } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCircleInfo,
+  faFire,
+  faRepeat,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { PropsWithChildren, ReactNode } from "react";
 
+import Tooltip from "@/components/ui/tooltip";
 import { QuestionWithForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
 
@@ -32,6 +37,21 @@ type Props = {
   forecastersCount: number;
   className?: string;
   itemClassName?: string;
+};
+
+/**
+ * Returns the max attainable peer coverage (0–1) for a question that resolved
+ * before its scheduled close time, or null if not applicable.
+ */
+const getMaxCoverage = (question: QuestionWithForecasts): number | null => {
+  const { open_time, actual_close_time, scheduled_close_time } = question;
+  if (!open_time || !actual_close_time || !scheduled_close_time) return null;
+  const open = new Date(open_time).getTime();
+  const actualClose = new Date(actual_close_time).getTime();
+  const scheduledClose = new Date(scheduled_close_time).getTime();
+  const totalDuration = scheduledClose - open;
+  if (totalDuration <= 0) return null;
+  return (actualClose - open) / totalDuration;
 };
 
 export const ParticipationSummary: React.FC<Props> = ({
@@ -91,6 +111,37 @@ export const ParticipationSummary: React.FC<Props> = ({
     </span>
   );
 
+  // Only peer coverage (non-spot) is affected by early resolution.
+  const maxCoverage = isSpot ? null : getMaxCoverage(question);
+  const coverageTooltipContent = t.rich("maxAttainableCoverageExplanation", {
+    link: (chunks) => (
+      <a
+        href="https://www.metaculus.com/help/scores-faq/#score-truncation"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline"
+      >
+        {chunks}
+      </a>
+    ),
+  });
+  const richMaxCoverageDisplay = (_chunks: ReactNode) => {
+    if (maxCoverage === null) return null;
+    return (
+      <Tooltip tooltipContent={coverageTooltipContent} renderInPortal={false}>
+        <span className="cursor-help">
+          {" (max. "}
+          {Math.round(maxCoverage * 100)}%
+          <FontAwesomeIcon
+            icon={faCircleInfo}
+            className="ml-0.5 text-blue-500 dark:text-blue-500-dark"
+          />
+          {")"}
+        </span>
+      </Tooltip>
+    );
+  };
+
   return (
     <div className={cn("flex flex-col gap-2", className)}>
       <ParticipationItem
@@ -115,6 +166,7 @@ export const ParticipationSummary: React.FC<Props> = ({
             strong: richStrong,
             userCoverage: Math.round(userCoverage * 100),
             averageCoverage: Math.round(averageCoverage * 100),
+            maxCoverageDisplay: richMaxCoverageDisplay,
           }
         )}
       </ParticipationItem>

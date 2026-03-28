@@ -1684,8 +1684,8 @@
   "resolutionScores": "Skóre výsledků",
   "participationSummary": "Shrnutí účasti",
   "participationSummaryPredictionNrStats": "Udělal(a) jste <strong>{userUpdates} {userUpdates, plural, =0 {aktualizací} =1 {aktualizaci} other {aktualizací} }</strong> vs. průměr komunity <strong>{communityUpdates} {communityUpdates, plural, =0 {aktualizací} =1 {aktualizaci} other {aktualizací} }</strong>.",
-  "participationSummaryCoverageBetterStats": "Vaše pokrytí bylo <strong>{userCoverage}%</strong>, což je lepší než průměrný předpovídač v této otázce (<strong>{averageCoverage}%</strong>).",
-  "participationSummaryCoverageWorseStats": "Vaše pokrytí bylo <strong>{userCoverage}%</strong>, což je horší než průměrný předpovídač v této otázce (<strong>{averageCoverage}%</strong>).",
+  "participationSummaryCoverageBetterStats": "Vaše pokrytí bylo <strong>{userCoverage}%</strong><maxCoverageDisplay></maxCoverageDisplay>, což je lepší než průměrný předpovídač v této otázce (<strong>{averageCoverage}%</strong>).",
+  "participationSummaryCoverageWorseStats": "Vaše pokrytí bylo <strong>{userCoverage}%</strong><maxCoverageDisplay></maxCoverageDisplay>, což je horší než průměrný předpovídač v této otázce (<strong>{averageCoverage}%</strong>).",
   "peer": "Vrstevník",
   "bothPeerAndBaseline": "jak vrstevnické, tak základní",
   "scores": "Skóre",
@@ -2081,5 +2081,6 @@
   "tournamentUnfollowModalSubmit": "Zrušit sledování",
   "switchBackToSlidersHint": "přepněte zpět na posuvníky pro plynulé přizpůsobení",
   "view": "Zobrazit",
+  "maxAttainableCoverageExplanation": "Otázky, které se vyřeší dříve, mají své skóre a pokrytí upravené, aby se zachovala správnost skóre. <link>Více se dozvíte zde.</link>",
   "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }
