@@ -231,7 +231,6 @@ const FeedLayoutView: FC<{
           type={type}
           isCommunity={isCommunity}
           weightByPostId={weightByPostId}
-          forceConsumer={layout === "grid"}
         />
       )}
     />
@@ -244,8 +243,7 @@ const FeedItemCard: FC<{
   type: PostsFeedType;
   isCommunity?: boolean;
   weightByPostId: Map<number, number>;
-  forceConsumer?: boolean;
-}> = ({ item, feedPage, type, isCommunity, weightByPostId, forceConsumer }) => {
+}> = ({ item, feedPage, type, isCommunity, weightByPostId }) => {
   if (item.type === "project") {
     return <FeedTournamentTile tile={item.tile} feedPage={feedPage} />;
   }
@@ -268,19 +266,11 @@ const FeedItemCard: FC<{
         />
       }
       forecaster={
-        forceConsumer ? (
-          <ConsumerPostCard
-            post={post}
-            forCommunityFeed={isCommunity}
-            indexWeight={indexWeight}
-          />
-        ) : (
-          <PostCard
-            post={post}
-            forCommunityFeed={isCommunity}
-            indexWeight={indexWeight}
-          />
-        )
+        <PostCard
+          post={post}
+          forCommunityFeed={isCommunity}
+          indexWeight={indexWeight}
+        />
       }
     />
   );

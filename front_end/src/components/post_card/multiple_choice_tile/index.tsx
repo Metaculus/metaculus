@@ -163,107 +163,111 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   );
 
   return (
-    <div
-      ref={tileRef}
-      className={cn(
-        "MultipleChoiceTile ml-0 w-full items-start",
-        {
-          "flex flex-col": isEmbed && isCompactEmbed,
-          "grid grid-cols-2": isEmbed && !isCompactEmbed,
-          "flex grid-cols-5 flex-col md:grid": !isEmbed && showChart,
-        },
-        {
-          "gap-3": isEmbed && isCompactEmbed && !minimalistic,
-          "gap-5": isEmbed && !isCompactEmbed && !minimalistic,
-          "gap-5 md:gap-8": !isEmbed && !minimalistic,
-        }
-      )}
-    >
+    <div className="w-full @container">
       <div
-        className={cn("resize-container w-full min-w-0", {
-          "col-span-1": isEmbed && !isCompactEmbed,
-          "col-span-2": isEmbed && isCompactEmbed,
-          "md:col-span-2": !isEmbed && (!minimalistic || isResolvedView),
-        })}
-      >
-        {isResolvedView ? (
-          <PredictionChip question={question} status={PostStatus.RESOLVED} />
-        ) : (
-          !minimalistic && (
-            <MultipleChoiceTileLegend
-              ref={ref}
-              choices={choices}
-              visibleChoicesCount={visibleChoicesCount}
-              questionType={groupType}
-              hideCP={hideCP}
-              canPredict={canPredict && canReaffirm}
-              onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
-              layout={isEmbed && isCompactEmbed ? "wrap" : "column"}
-              cursorTimestamp={legendCursorTimestamp}
-            />
-          )
+        ref={tileRef}
+        className={cn(
+          "MultipleChoiceTile ml-0 w-full items-start",
+          {
+            "flex flex-col": isEmbed && isCompactEmbed,
+            "grid grid-cols-2": isEmbed && !isCompactEmbed,
+            "flex grid-cols-5 flex-col @[550px]:grid": !isEmbed && showChart,
+          },
+          {
+            "gap-3": isEmbed && isCompactEmbed && !minimalistic,
+            "gap-5": isEmbed && !isCompactEmbed && !minimalistic,
+            "gap-5 @[550px]:gap-8": !isEmbed && !minimalistic,
+          }
         )}
-      </div>
-      {showChart && !isCompactEmbed && !isResolvedView && (
+      >
         <div
-          className={cn("relative w-full min-w-0", {
+          className={cn("resize-container w-full min-w-0", {
             "col-span-1": isEmbed && !isCompactEmbed,
             "col-span-2": isEmbed && isCompactEmbed,
-            "md:col-span-5": !isEmbed,
-            "md:col-span-3": !isEmbed && (!minimalistic || isResolvedView),
+            "@[550px]:col-span-2":
+              !isEmbed && (!minimalistic || isResolvedView),
           })}
         >
-          <div
-            ref={enableTooltip ? refs.setReference : undefined}
-            {...(enableTooltip ? getReferenceProps() : {})}
-            className="relative"
-          >
-            {isNil(group) ? (
-              <MultipleChoiceChart
-                timestamps={timestamps}
-                actualCloseTime={actualCloseTime}
-                choiceItems={chartChoices}
-                height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
-                extraTheme={chartTheme}
-                defaultZoom={defaultChartZoom}
-                withZoomPicker={withZoomPicker}
-                scaling={scaling}
-                forecastAvailability={forecastAvailability}
-                openTime={openTime}
-                hideCP={hideCP}
-                yLabel={yLabel}
-                isEmbedded={isEmbed}
-                onCursorChange={onCursorChange}
-                attachRef={attachRef}
-                forFeedPage
-                onCursorActiveChange={onCursorActiveChange}
-              />
-            ) : (
-              <GroupChart
+          {isResolvedView ? (
+            <PredictionChip question={question} status={PostStatus.RESOLVED} />
+          ) : (
+            !minimalistic && (
+              <MultipleChoiceTileLegend
+                ref={ref}
+                choices={choices}
+                visibleChoicesCount={visibleChoicesCount}
                 questionType={groupType}
-                timestamps={timestamps}
-                actualCloseTime={actualCloseTime}
-                choiceItems={chartChoices}
-                height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
-                extraTheme={chartTheme}
-                defaultZoom={defaultChartZoom}
-                withZoomPicker={withZoomPicker}
-                scaling={scaling}
-                forecastAvailability={forecastAvailability}
-                openTime={openTime}
                 hideCP={hideCP}
-                yLabel={yLabel}
-                onCursorChange={onCursorChange}
-                showCursorLabel={showCursorLabel}
-                forceShowLinePoints={!isEmbed}
-                attachRef={attachRef}
-                isEmbedded={isEmbed}
-                forFeedPage
+                canPredict={canPredict && canReaffirm}
+                onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
+                layout={isEmbed && isCompactEmbed ? "wrap" : "column"}
+                cursorTimestamp={legendCursorTimestamp}
               />
-            )}
-          </div>
+            )
+          )}
         </div>
-      )}
+        {showChart && !isCompactEmbed && !isResolvedView && (
+          <div
+            className={cn("relative w-full min-w-0", {
+              "col-span-1": isEmbed && !isCompactEmbed,
+              "col-span-2": isEmbed && isCompactEmbed,
+              "@[550px]:col-span-5": !isEmbed,
+              "@[550px]:col-span-3":
+                !isEmbed && (!minimalistic || isResolvedView),
+            })}
+          >
+            <div
+              ref={enableTooltip ? refs.setReference : undefined}
+              {...(enableTooltip ? getReferenceProps() : {})}
+              className="relative"
+            >
+              {isNil(group) ? (
+                <MultipleChoiceChart
+                  timestamps={timestamps}
+                  actualCloseTime={actualCloseTime}
+                  choiceItems={chartChoices}
+                  height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
+                  extraTheme={chartTheme}
+                  defaultZoom={defaultChartZoom}
+                  withZoomPicker={withZoomPicker}
+                  scaling={scaling}
+                  forecastAvailability={forecastAvailability}
+                  openTime={openTime}
+                  hideCP={hideCP}
+                  yLabel={yLabel}
+                  isEmbedded={isEmbed}
+                  onCursorChange={onCursorChange}
+                  attachRef={attachRef}
+                  forFeedPage
+                  onCursorActiveChange={onCursorActiveChange}
+                />
+              ) : (
+                <GroupChart
+                  questionType={groupType}
+                  timestamps={timestamps}
+                  actualCloseTime={actualCloseTime}
+                  choiceItems={chartChoices}
+                  height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
+                  extraTheme={chartTheme}
+                  defaultZoom={defaultChartZoom}
+                  withZoomPicker={withZoomPicker}
+                  scaling={scaling}
+                  forecastAvailability={forecastAvailability}
+                  openTime={openTime}
+                  hideCP={hideCP}
+                  yLabel={yLabel}
+                  onCursorChange={onCursorChange}
+                  showCursorLabel={showCursorLabel}
+                  forceShowLinePoints={!isEmbed}
+                  attachRef={attachRef}
+                  isEmbedded={isEmbed}
+                  forFeedPage
+                />
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -302,50 +306,52 @@ export const FanGraphTile: FC<FanGraphTileProps> = ({
   }, [canReaffirm, forecast, onReaffirm]);
 
   return (
-    <div
-      className={cn(
-        "MultipleChoiceTile ml-0 flex w-full flex-col items-start",
-        {
-          "md:grid md:grid-cols-5": showChart,
-          "gap-8": !minimalistic,
-        }
-      )}
-    >
+    <div className="w-full @container">
       <div
-        className={cn("resize-container w-full", {
-          "md:col-span-2": !minimalistic,
-        })}
-      >
-        {!minimalistic && (
-          <MultipleChoiceTileLegend
-            ref={ref}
-            choices={choices}
-            visibleChoicesCount={visibleChoicesCount}
-            hideCP={hideCP}
-            questionType={groupType}
-            canPredict={canPredict && canReaffirm}
-            onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
-            withChoiceIcon={false}
-          />
+        className={cn(
+          "MultipleChoiceTile ml-0 flex w-full flex-col items-start",
+          {
+            "@[550px]:grid @[550px]:grid-cols-5": showChart,
+            "gap-8": !minimalistic,
+          }
         )}
-      </div>
-      {showChart && (
+      >
         <div
-          className={cn("w-full md:col-span-5", {
-            "md:col-span-3": !minimalistic,
+          className={cn("resize-container w-full", {
+            "@[550px]:col-span-2": !minimalistic,
           })}
         >
-          <FanChart
-            group={group}
-            height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
-            pointSize={9}
-            hideCP={hideCP}
-            withTooltip={false}
-            optionsLimit={optionsLimit}
-            forFeedPage
-          />
+          {!minimalistic && (
+            <MultipleChoiceTileLegend
+              ref={ref}
+              choices={choices}
+              visibleChoicesCount={visibleChoicesCount}
+              hideCP={hideCP}
+              questionType={groupType}
+              canPredict={canPredict && canReaffirm}
+              onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
+              withChoiceIcon={false}
+            />
+          )}
         </div>
-      )}
+        {showChart && (
+          <div
+            className={cn("w-full @[550px]:col-span-5", {
+              "@[550px]:col-span-3": !minimalistic,
+            })}
+          >
+            <FanChart
+              group={group}
+              height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
+              pointSize={9}
+              hideCP={hideCP}
+              withTooltip={false}
+              optionsLimit={optionsLimit}
+              forFeedPage
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -293,17 +293,17 @@ const PostsFilters: FC<Props> = ({
             placeholder={t("questionSearchPlaceholder")}
             collapsible
           />
-          {showRandomButton && (
-            <RandomButton
-              variant="tertiary"
-              className="text-purple-700 dark:text-purple-700-dark"
-            />
-          )}
           {!forceLayout && (
             <LayoutSwitcher
               value={layout}
               onChange={setLayout}
               className="hidden lg:flex"
+            />
+          )}
+          {showRandomButton && (
+            <RandomButton
+              variant="tertiary"
+              className="text-purple-700 dark:text-purple-700-dark"
             />
           )}
         </div>

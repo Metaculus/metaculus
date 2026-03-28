@@ -88,6 +88,7 @@ const PopoverFilter: FC<Props> = ({
           <div className="flex items-stretch">
             <PopoverButton
               as={Button}
+              size="sm"
               variant={hasActiveFilters ? "secondary" : "tertiary"}
               className={cn(
                 hasActiveFilters && "rounded-r-none border-r-0 pr-1.5",

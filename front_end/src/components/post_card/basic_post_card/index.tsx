@@ -54,7 +54,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
         )}
       <div
         className={cn(
-          "flex flex-col overflow-hidden rounded bg-gray-0 px-5 py-4 dark:bg-gray-0-dark",
+          "flex flex-col overflow-hidden rounded bg-gray-0 px-5 py-4 @container dark:bg-gray-0-dark",
           { regular: "border", highlighted: "border border-l-4" }[
             borderVariant
           ],
@@ -66,17 +66,17 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
       >
         <Link href={getPostLink(post)} className="block no-underline">
           {!hideTitle && (
-            <div className="mb-[18px] flex flex-col gap-[10px] sm:mb-0 sm:flex-row sm:gap-3">
+            <div className="mb-[18px] flex flex-col gap-[10px] @[480px]:mb-0 @[480px]:flex-row @[480px]:gap-3">
               <h4
                 className={cn(
-                  "relative mb-0 mt-0 text-base font-semibold text-gray-900 dark:text-gray-900-dark sm:mb-3",
+                  "relative mb-0 mt-0 text-base font-semibold text-gray-900 @[480px]:mb-3 dark:text-gray-900-dark",
                   minimalistic && " line-clamp-2"
                 )}
               >
                 {title}
               </h4>
               {typeof indexWeight === "number" && (
-                <div className="sm:ml-auto">
+                <div className="@[480px]:ml-auto">
                   <WeightBadge value={indexWeight} />
                 </div>
               )}
