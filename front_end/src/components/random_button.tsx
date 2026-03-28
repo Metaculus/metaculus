@@ -3,6 +3,7 @@
 import { faDice } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ComponentProps, FC, useState } from "react";
 
 import Button from "@/components/ui/button";
@@ -13,6 +14,7 @@ const RandomButton: FC<ComponentProps<typeof Button>> = ({
   className,
   ...props
 }) => {
+  const t = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
@@ -35,7 +37,7 @@ const RandomButton: FC<ComponentProps<typeof Button>> = ({
     <Button
       onClick={handleRandomClick}
       disabled={isLoading}
-      aria-label="Random Question"
+      aria-label={t("randomQuestion")}
       size="md"
       presentationType="icon"
       className={cn(

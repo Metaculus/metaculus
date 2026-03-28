@@ -2,6 +2,7 @@
 
 import { faList, faTableCells } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import cn from "@/utils/core/cn";
@@ -15,6 +16,7 @@ type Props = {
 };
 
 const LayoutSwitcher: FC<Props> = ({ value, onChange, className }) => {
+  const t = useTranslations();
   return (
     <div
       className={cn(
@@ -24,7 +26,7 @@ const LayoutSwitcher: FC<Props> = ({ value, onChange, className }) => {
     >
       <button
         type="button"
-        aria-label="List layout"
+        aria-label={t("listLayout")}
         onClick={() => onChange("list")}
         className={cn(
           "flex size-6 items-center justify-center rounded-full text-sm transition-colors",
@@ -37,7 +39,7 @@ const LayoutSwitcher: FC<Props> = ({ value, onChange, className }) => {
       </button>
       <button
         type="button"
-        aria-label="Grid layout"
+        aria-label={t("gridLayout")}
         onClick={() => onChange("grid")}
         className={cn(
           "flex size-6 items-center justify-center rounded-full text-sm transition-colors",

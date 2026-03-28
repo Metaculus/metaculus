@@ -48,8 +48,8 @@ const ContentTranslatedBanner: FC<{ forceVisible?: boolean }> = ({
 
           <div className="static right-2 sm:absolute">
             <div className="item-center flex flex-col justify-center gap-1 sm:flex-row">
-              <span className="whitespace-nowrap text-[10px]   text-gray-700 dark:text-gray-700-dark">
-                translated by
+              <span className="whitespace-nowrap text-[10px] text-gray-700 dark:text-gray-700-dark">
+                {t("translatedBy")}
               </span>
               <GoogleTranslateAttribution />
             </div>

@@ -95,8 +95,11 @@ export default async function RootLayout({
 
   const cookieStore = await cookies();
   const csrfToken = cookieStore.get(CSRF_COOKIE_NAME)?.value || null;
-  const feedLayout = (cookieStore.get(FEED_LAYOUT_COOKIE)?.value ||
-    FEED_LAYOUT_DEFAULT) as FeedLayout;
+  const rawFeedLayout = cookieStore.get(FEED_LAYOUT_COOKIE)?.value;
+  const feedLayout: FeedLayout =
+    rawFeedLayout === "list" || rawFeedLayout === "grid"
+      ? rawFeedLayout
+      : FEED_LAYOUT_DEFAULT;
 
   return (
     <html
