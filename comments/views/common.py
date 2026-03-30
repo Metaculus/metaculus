@@ -11,7 +11,6 @@ from rest_framework.response import Response
 
 from comments.constants import CommentReportType
 from comments.models import (
-    ChangedMyMindEntry,
     Comment,
     CommentVote,
     CommentsOfTheWeekEntry,
@@ -31,6 +30,8 @@ from comments.services.common import (
     unpin_comment,
     soft_delete_comment,
     update_comment,
+    vote_comment,
+    toggle_cmm,
 )
 from comments.services.feed import get_comments_feed
 from comments.services.key_factors.common import create_key_factors
@@ -38,7 +39,7 @@ from notifications.services import send_comment_report_notification_to_staff
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from users.models import User
-from utils.paginator import LimitOffsetPagination
+from utils.paginator import LimitOffsetPagination, CountlessLimitOffsetPagination
 
 
 class RootCommentsPagination(LimitOffsetPagination):
@@ -99,7 +100,7 @@ def comments_list_api_view(request: Request):
     paginator = (
         RootCommentsPagination()
         if use_root_comments_pagination
-        else LimitOffsetPagination()
+        else CountlessLimitOffsetPagination()
     )
     paginated_comments = paginator.paginate_queryset(comments, request)
 
@@ -199,57 +200,40 @@ def comment_edit_api_view(request: Request, pk: int):
 
 
 @api_view(["POST"])
-@transaction.atomic
 def comment_vote_api_view(request: Request, pk: int):
     comment = get_object_or_404(Comment, pk=pk)
+    user: User = request.user
 
-    permission = get_post_permission_for_user(comment.on_post, user=request.user)
+    permission = get_post_permission_for_user(comment.on_post, user=user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
-    if comment.author_id == request.user.pk:
+    if comment.author_id == user.id:
         raise ValidationError("You can not vote your own comment.")
 
     direction = serializers.ChoiceField(
         required=False, allow_null=True, choices=CommentVote.VoteDirection.choices
     ).run_validation(request.data.get("vote"))
 
-    # Deleting existing vote
-    CommentVote.objects.filter(user=request.user, comment=comment).delete()
-
-    if direction:
-        CommentVote.objects.create(
-            user=request.user, comment=comment, direction=direction
-        )
-
-    score = comment.update_vote_score()
+    score = vote_comment(comment, user, direction)
 
     return Response({"score": score})
 
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-@transaction.atomic
 def comment_toggle_cmm_view(request, pk=int):
     enabled = request.data.get("enabled", False)
     comment = get_object_or_404(Comment, pk=pk)
-    user = request.user
-    cmm = ChangedMyMindEntry.objects.filter(user=user, comment=comment)
 
-    if not enabled and cmm.exists():
-        cmm.delete()
-        comment.update_cmm_count()
+    result = toggle_cmm(comment, request.user, enabled)
 
-        return Response(status=status.HTTP_200_OK)
+    if result is None:
+        return Response(
+            {"error": "Already set as changed my mind"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-    if not cmm.exists():
-        ChangedMyMindEntry.objects.create(user=user, comment=comment)
-        comment.update_cmm_count()
-        return Response(status=status.HTTP_200_OK)
-
-    return Response(
-        {"error": "Already set as changed my mind"},
-        status=status.HTTP_400_BAD_REQUEST,
-    )
+    return Response(status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])

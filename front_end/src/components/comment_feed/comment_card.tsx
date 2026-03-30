@@ -14,6 +14,7 @@ import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
 import { useCommentsFeedSafe } from "@/app/(main)/components/comments_feed_provider";
 import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/item_view";
 import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
+import CommentVoter from "@/components/comment_feed/comment_voter";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import { BECommentType, KeyFactor } from "@/types/comment";
@@ -32,10 +33,11 @@ type Props = {
   className?: string;
   expandOverride?: "auto" | "expanded" | "collapsed";
   onViewComment?: () => void;
+  disableVoting?: boolean;
+  collapsedHeight?: number;
 };
 
-// Fixed height for collapsed state - adjust this value as needed
-const COLLAPSED_HEIGHT = 174; // pixels
+const DEFAULT_collapsedHeight = 174;
 
 const BottomStatContainer: FC<
   PropsWithChildren<{ className?: string; title?: string }>
@@ -87,12 +89,14 @@ const ExpandableCommentContent = ({
   needsExpand,
   contentRef,
   onViewComment,
+  collapsedHeight,
 }: {
   comment: BECommentType;
   isExpanded: boolean;
   needsExpand: boolean;
   contentRef: React.RefObject<HTMLDivElement | null>;
   onViewComment?: () => void;
+  collapsedHeight: number;
 }) => {
   const locale = useLocale();
   const t = useTranslations();
@@ -102,7 +106,8 @@ const ExpandableCommentContent = ({
       ref={contentRef}
       className="relative flex flex-col gap-[10px] overflow-hidden p-3 md:p-4"
       style={{
-        height: !isExpanded && needsExpand ? `${COLLAPSED_HEIGHT}px` : "auto",
+        height: !isExpanded && needsExpand ? `${collapsedHeight}px` : "auto",
+        //minHeight: `${collapsedHeight}px`,
       }}
     >
       {/* Author info */}
@@ -177,6 +182,8 @@ const CommentCard: FC<Props> = ({
   keyFactorVotesScore,
   expandOverride = "auto",
   onViewComment,
+  disableVoting = false,
+  collapsedHeight = DEFAULT_collapsedHeight,
 }) => {
   const t = useTranslations();
   const contentRef = useRef<HTMLDivElement>(null);
@@ -207,7 +214,7 @@ const CommentCard: FC<Props> = ({
         contentRef.current.style.overflow = "visible";
 
         const fullHeight = contentRef.current.scrollHeight;
-        const shouldExpand = fullHeight > COLLAPSED_HEIGHT;
+        const shouldExpand = fullHeight > collapsedHeight;
 
         setNeedsExpand(shouldExpand);
         if (controlledExpanded === undefined) {
@@ -238,7 +245,13 @@ const CommentCard: FC<Props> = ({
     observer.observe(node, { childList: true, subtree: true });
 
     return () => observer.disconnect();
-  }, [comment.text, comment.key_factors, comment.id, controlledExpanded]);
+  }, [
+    comment.text,
+    comment.key_factors,
+    comment.id,
+    controlledExpanded,
+    collapsedHeight,
+  ]);
 
   return (
     <div
@@ -249,7 +262,7 @@ const CommentCard: FC<Props> = ({
     >
       {/* Question context for mobile */}
       {comment.on_post_data && (
-        <div className="mt-3 flex flex-col gap-1.5 border-y border-gray-300 p-3 dark:border-gray-300-dark md:hidden md:p-4">
+        <div className="flex flex-col gap-1.5 border-b border-gray-300 p-3 dark:border-gray-300-dark md:hidden md:p-4">
           <div className="text-xs font-normal uppercase leading-4 text-gray-500 dark:text-gray-500-dark">
             {t("question")}
           </div>
@@ -270,25 +283,37 @@ const CommentCard: FC<Props> = ({
         needsExpand={needsExpand}
         contentRef={contentRef}
         onViewComment={onViewComment}
+        collapsedHeight={collapsedHeight}
       />
 
       <div className="mt-auto flex items-center justify-between p-3 md:p-4">
         {/* Comment votes, change my mind and key factors */}
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500-dark">
-          <BottomStatContainer
-            className=" gap-1.5"
-            title={t("searchOptionUpvotes")}
-          >
-            <FontAwesomeIcon
-              icon={faChevronUp}
-              className="text-gray-500/35 dark:text-gray-500-dark/35"
+          {disableVoting ? (
+            <BottomStatContainer
+              className=" gap-1.5"
+              title={t("searchOptionUpvotes")}
+            >
+              <FontAwesomeIcon
+                icon={faChevronUp}
+                className="text-gray-500/35 dark:text-gray-500-dark/35"
+              />
+              <span>{votesScore}</span>
+              <FontAwesomeIcon
+                icon={faChevronDown}
+                className="text-gray-500/35 dark:text-gray-500-dark/35"
+              />
+            </BottomStatContainer>
+          ) : (
+            <CommentVoter
+              voteData={{
+                commentAuthorId: comment.author.id,
+                commentId: comment.id,
+                voteScore: votesScore,
+                userVote: comment.user_vote,
+              }}
             />
-            <span>{votesScore}</span>
-            <FontAwesomeIcon
-              icon={faChevronDown}
-              className="text-gray-500/35 dark:text-gray-500-dark/35"
-            />
-          </BottomStatContainer>
+          )}
 
           {changedMyMindCount > 0 && (
             <BottomStatContainer title={t("mindsChanged")}>

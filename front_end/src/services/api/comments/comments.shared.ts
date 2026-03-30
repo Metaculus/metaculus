@@ -19,6 +19,11 @@ export type getCommentsParams = {
   focus_comment_id?: string;
   is_private?: boolean;
   last_viewed_at?: string;
+  time_window?: "all_time" | "past_week" | "past_month" | "past_year";
+  search?: string;
+  exclude_bots?: boolean;
+  include_deleted?: boolean;
+  post_status?: string;
 };
 
 export type KeyFactorWritePayload = KeyFactorDraft;
