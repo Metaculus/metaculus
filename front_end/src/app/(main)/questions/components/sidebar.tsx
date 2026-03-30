@@ -1,6 +1,7 @@
 "use client";
 import {
   faArrowUp,
+  faChevronUp,
   faEllipsis,
   faHome,
 } from "@fortawesome/free-solid-svg-icons";
@@ -137,6 +138,21 @@ const FeedSidebar: FC<Props> = ({ items }) => {
   ]);
 
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState<
+    Set<SidebarSectionType>
+  >(new Set());
+
+  const toggleSection = (sectionType: SidebarSectionType) => {
+    setCollapsedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(sectionType)) {
+        next.delete(sectionType);
+      } else {
+        next.add(sectionType);
+      }
+      return next;
+    });
+  };
   const outerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -207,28 +223,43 @@ const FeedSidebar: FC<Props> = ({ items }) => {
         >
           {sidebarSections
             .filter(({ items }) => items.length > 0)
-            .map(({ type: sectionType, title, items }) => (
-              <Fragment key={`menu-${sectionType}`}>
-                {title && (
-                  <div className="mt-1 hidden pl-2 text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-500-dark sm:block">
-                    {title}
-                  </div>
-                )}
-                {items.map(({ name, emoji, onClick, url, isActive }, idx) => (
-                  <TopicItem
-                    key={`menu-${sectionType}-${idx}`}
-                    text={name}
-                    emoji={emoji}
-                    href={url}
-                    onClick={() => {
-                      setIsMobileExpanded(false);
-                      onClick && onClick();
-                    }}
-                    isActive={isActive ?? false}
-                  />
-                ))}
-              </Fragment>
-            ))}
+            .map(({ type: sectionType, title, items }) => {
+              const isCollapsed =
+                sectionType !== null && collapsedSections.has(sectionType);
+              return (
+                <Fragment key={`menu-${sectionType}`}>
+                  {title && sectionType !== null && (
+                    <button
+                      onClick={() => toggleSection(sectionType)}
+                      className="mt-1 hidden h-8 w-full items-center justify-between rounded bg-blue-200 px-2.5 text-xs font-bold uppercase leading-4 text-gray-500 dark:bg-blue-200-dark dark:text-gray-500-dark sm:flex"
+                    >
+                      {title}
+                      <FontAwesomeIcon
+                        icon={faChevronUp}
+                        className={cn(
+                          "text-sm transition-transform duration-200",
+                          isCollapsed && "rotate-180"
+                        )}
+                      />
+                    </button>
+                  )}
+                  {items.map(({ name, emoji, onClick, url, isActive }, idx) => (
+                    <TopicItem
+                      key={`menu-${sectionType}-${idx}`}
+                      text={name}
+                      emoji={emoji}
+                      href={url}
+                      onClick={() => {
+                        setIsMobileExpanded(false);
+                        onClick && onClick();
+                      }}
+                      isActive={isActive ?? false}
+                      className={cn(isCollapsed && "sm:hidden")}
+                    />
+                  ))}
+                </Fragment>
+              );
+            })}
 
           <TopicItem
             href="/questions/discovery"
