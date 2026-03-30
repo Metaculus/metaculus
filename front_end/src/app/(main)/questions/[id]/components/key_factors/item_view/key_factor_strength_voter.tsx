@@ -2,7 +2,7 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, ReactElement, useState } from "react";
 
-import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
+import { useCommentsFeedSafe } from "@/app/(main)/components/comments_feed_provider";
 import { voteKeyFactor } from "@/app/(main)/questions/actions";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
@@ -50,7 +50,7 @@ const VoterControls: FC<{
 }> = ({ keyFactorId, setAggregate, aggregate, footerControls }) => {
   const t = useTranslations();
   const { user } = useAuth();
-  const { setKeyFactorVote } = useCommentsFeed();
+  const commentsFeed = useCommentsFeedSafe();
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { setCurrentModal } = useModal();
@@ -83,7 +83,7 @@ const VoterControls: FC<{
       if (response) {
         const returned = response as unknown as KeyFactorVoteAggregate;
         setAggregate(returned);
-        setKeyFactorVote(keyFactorId, returned);
+        commentsFeed?.setKeyFactorVote(keyFactorId, returned);
       }
     } catch (e) {
       logError(e);
