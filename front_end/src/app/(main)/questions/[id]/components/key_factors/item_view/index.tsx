@@ -2,7 +2,7 @@
 
 import { FC, useCallback, useEffect, useRef, useState } from "react";
 
-import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
+import { useCommentsFeedSafe } from "@/app/(main)/components/comments_feed_provider";
 import { voteKeyFactor } from "@/app/(main)/questions/actions";
 import { useAuth } from "@/contexts/auth_context";
 import {
@@ -65,9 +65,10 @@ export const KeyFactorItem: FC<Props> = ({
   disableHover,
 }) => {
   const { user } = useAuth();
-  const { combinedKeyFactors, setKeyFactorVote } = useCommentsFeed();
+  const commentsFeed = useCommentsFeedSafe();
   const liveKeyFactor =
-    combinedKeyFactors.find((kf) => kf.id === keyFactor.id) ?? keyFactor;
+    commentsFeed?.combinedKeyFactors.find((kf) => kf.id === keyFactor.id) ??
+    keyFactor;
 
   const isFlagged = liveKeyFactor.flagged_by_me;
   const hasImpactBar = !liveKeyFactor.base_rate;
@@ -133,13 +134,13 @@ export const KeyFactorItem: FC<Props> = ({
         });
         if (resp) {
           const updated = resp as unknown as KeyFactorVoteAggregate;
-          setKeyFactorVote(liveKeyFactor.id, updated);
+          commentsFeed?.setKeyFactorVote(liveKeyFactor.id, updated);
         }
       } catch (e) {
         console.error("Failed to submit vote reason", e);
       }
     },
-    [user, liveKeyFactor.id, downScore, downVoteType, setKeyFactorVote]
+    [user, liveKeyFactor.id, downScore, downVoteType, commentsFeed]
   );
 
   return (
