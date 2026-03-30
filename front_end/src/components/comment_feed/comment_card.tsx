@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
 
+import { useCommentsFeedSafe } from "@/app/(main)/components/comments_feed_provider";
 import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/item_view";
 import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
 import CommentVoter from "@/components/comment_feed/comment_voter";
@@ -56,6 +57,9 @@ const BottomStatContainer: FC<
 
 const KeyFactors = ({ keyFactors }: { keyFactors: KeyFactor[] }) => {
   const t = useTranslations();
+  const commentsFeed = useCommentsFeedSafe();
+  if (!commentsFeed) return null;
+
   return (
     <div className="flex flex-col gap-[10px]">
       <div className="text-xs font-normal uppercase leading-4 text-gray-600 dark:text-gray-600-dark">

@@ -398,6 +398,10 @@ export const useCommentsFeed = () => {
   return context;
 };
 
+export const useCommentsFeedSafe = () => {
+  return useContext(CommentsFeedContext);
+};
+
 export function findById(list: CommentType[], id: number): CommentType | null {
   for (const c of list) {
     if (c.id === id) return c;
