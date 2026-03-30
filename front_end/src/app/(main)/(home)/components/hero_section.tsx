@@ -4,7 +4,7 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useMemo, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/contexts/auth_context";
 import { SiteStats } from "@/services/api/misc/misc.shared";
@@ -26,6 +26,88 @@ const CARD_ACCENT_COLORS = {
 } as const;
 
 type HoveredCard = keyof typeof CARD_ACCENT_COLORS | null;
+
+const DEFAULT_COLOR = "#628bb3";
+const DEFAULT_SPEED = 0.4;
+const HOVER_SPEED = 0.1;
+const TRANSITION_MS = 300;
+
+function parseHex(hex: string): [number, number, number] {
+  return [
+    parseInt(hex.slice(1, 3), 16),
+    parseInt(hex.slice(3, 5), 16),
+    parseInt(hex.slice(5, 7), 16),
+  ];
+}
+
+function toHex(r: number, g: number, b: number): string {
+  const h = (v: number) => v.toString(16).padStart(2, "0");
+  return `#${h(r)}${h(g)}${h(b)}`;
+}
+
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
+
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+// Smoothly interpolates globe color and speed toward the target,
+// picking up from the current animated position on mid-transition changes
+function useAnimatedGlobe(hoveredCard: HoveredCard) {
+  const targetColor = hoveredCard
+    ? CARD_ACCENT_COLORS[hoveredCard]
+    : DEFAULT_COLOR;
+  const targetSpeed = hoveredCard ? HOVER_SPEED : DEFAULT_SPEED;
+
+  const currentRgb = useRef(parseHex(targetColor));
+  const currentSpd = useRef(targetSpeed);
+
+  const [color, setColor] = useState(targetColor);
+  const [speed, setSpeed] = useState(targetSpeed);
+
+  const animRef = useRef<number>(0);
+  const startTimeRef = useRef(0);
+  const startRgb = useRef(parseHex(targetColor));
+  const startSpd = useRef(targetSpeed);
+  const targetRgb = useRef(parseHex(targetColor));
+  const targetSpd = useRef(targetSpeed);
+
+  useEffect(() => {
+    startRgb.current = [...currentRgb.current] as [number, number, number];
+    startSpd.current = currentSpd.current;
+    targetRgb.current = parseHex(targetColor);
+    targetSpd.current = targetSpeed;
+    startTimeRef.current = performance.now();
+
+    cancelAnimationFrame(animRef.current);
+
+    const animate = (now: number) => {
+      const t = Math.min((now - startTimeRef.current) / TRANSITION_MS, 1);
+      const e = easeOutCubic(t);
+
+      const r = Math.round(lerp(startRgb.current[0], targetRgb.current[0], e));
+      const g = Math.round(lerp(startRgb.current[1], targetRgb.current[1], e));
+      const b = Math.round(lerp(startRgb.current[2], targetRgb.current[2], e));
+
+      currentRgb.current = [r, g, b];
+      currentSpd.current = lerp(startSpd.current, targetSpd.current, e);
+
+      setColor(toHex(r, g, b));
+      setSpeed(currentSpd.current);
+
+      if (t < 1) {
+        animRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    animRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animRef.current);
+  }, [targetColor, targetSpeed]);
+
+  return { color, speed };
+}
 
 type HeroSectionProps = {
   stats: SiteStats;
@@ -58,18 +140,13 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
   const logoHref = user ? "/questions/" : "/";
 
   const [hoveredCard, setHoveredCard] = useState<HoveredCard>(null);
-  const globeColor = useMemo(
-    () => (hoveredCard ? CARD_ACCENT_COLORS[hoveredCard] : "#628bb3"),
-    [hoveredCard]
-  );
+  const { color: globeColor, speed: globeSpeed } =
+    useAnimatedGlobe(hoveredCard);
 
   return (
     <section className="relative w-full overflow-hidden rounded-b-2xl bg-[#0e1e30] md:rounded-b-3xl">
       <div className="hidden md:block">
-        <HeroGlobeBackground
-          colorFront={globeColor}
-          speed={hoveredCard ? 0.1 : 0.4}
-        />
+        <HeroGlobeBackground colorFront={globeColor} speed={globeSpeed} />
       </div>
 
       <div className="relative z-10 mx-auto flex w-full flex-col gap-4 p-4 md:gap-8 md:px-10 md:pb-10 md:pt-8">
