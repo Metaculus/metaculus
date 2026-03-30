@@ -9,10 +9,9 @@ import {
 } from "react";
 
 import { FeedLayout } from "@/components/ui/layout_switcher";
-import {
-  FEED_LAYOUT_COOKIE,
-  FEED_LAYOUT_DEFAULT,
-} from "@/constants/posts_feed";
+import { FEED_LAYOUT_COOKIE } from "@/constants/posts_feed";
+import { useAuth } from "@/contexts/auth_context";
+import { InterfaceType } from "@/types/users";
 
 type FeedLayoutContextType = {
   layout: FeedLayout;
@@ -20,14 +19,28 @@ type FeedLayoutContextType = {
 };
 
 const FeedLayoutContext = createContext<FeedLayoutContextType>({
-  layout: FEED_LAYOUT_DEFAULT,
+  layout: "grid",
   setLayout: () => {},
 });
 
-const FeedLayoutProvider: FC<
-  PropsWithChildren<{ initialLayout: FeedLayout }>
-> = ({ initialLayout, children }) => {
-  const [layout, setLayoutState] = useState<FeedLayout>(initialLayout);
+function getInitialLayout(
+  cookieLayout: string | undefined,
+  interfaceType: InterfaceType | undefined
+): FeedLayout {
+  if (cookieLayout === "list" || cookieLayout === "grid") {
+    return cookieLayout;
+  }
+  return interfaceType === InterfaceType.ForecasterView ? "list" : "grid";
+}
+
+const FeedLayoutProvider: FC<PropsWithChildren<{ cookieLayout?: string }>> = ({
+  cookieLayout,
+  children,
+}) => {
+  const { user } = useAuth();
+  const [layout, setLayoutState] = useState<FeedLayout>(() =>
+    getInitialLayout(cookieLayout, user?.interface_type)
+  );
 
   const setLayout = (newLayout: FeedLayout) => {
     setLayoutState(newLayout);

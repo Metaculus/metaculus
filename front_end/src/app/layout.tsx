@@ -16,13 +16,9 @@ import PublicSettingsScript from "@/components/public_settings_script";
 import QueryClientProviderWrapper from "@/components/query_client_provider";
 import SimplifiedSignupModal from "@/components/simplified_signup_modal";
 import AppThemeProvider from "@/components/theme_provider";
-import { FeedLayout } from "@/components/ui/layout_switcher";
 import { TailwindIndicator } from "@/components/ui/tailwind-indicator";
 import { METAC_COLORS } from "@/constants/colors";
-import {
-  FEED_LAYOUT_COOKIE,
-  FEED_LAYOUT_DEFAULT,
-} from "@/constants/posts_feed";
+import { FEED_LAYOUT_COOKIE } from "@/constants/posts_feed";
 import AuthProvider from "@/contexts/auth_context";
 import FeedLayoutProvider from "@/contexts/feed_layout_context";
 import { GlobalSearchProvider } from "@/contexts/global_search_context";
@@ -95,11 +91,7 @@ export default async function RootLayout({
 
   const cookieStore = await cookies();
   const csrfToken = cookieStore.get(CSRF_COOKIE_NAME)?.value || null;
-  const rawFeedLayout = cookieStore.get(FEED_LAYOUT_COOKIE)?.value;
-  const feedLayout: FeedLayout =
-    rawFeedLayout === "list" || rawFeedLayout === "grid"
-      ? rawFeedLayout
-      : FEED_LAYOUT_DEFAULT;
+  const feedLayoutCookie = cookieStore.get(FEED_LAYOUT_COOKIE)?.value;
 
   return (
     <html
@@ -137,7 +129,9 @@ export default async function RootLayout({
                         <ModalProvider>
                           <NavigationProvider>
                             <GlobalSearchProvider>
-                              <FeedLayoutProvider initialLayout={feedLayout}>
+                              <FeedLayoutProvider
+                                cookieLayout={feedLayoutCookie}
+                              >
                                 <TranslationsBannerProvider>
                                   <NextTopLoader
                                     showSpinner={false}

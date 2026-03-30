@@ -3,7 +3,7 @@
 import { debounce } from "lodash";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useCallback } from "react";
 
 import SearchInput from "@/components/search_input";
 import {
@@ -29,8 +29,6 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
 }) => {
   const t = useTranslations();
   const router = useRouter();
-  const [isHidden, setIsHidden] = useState(true);
-
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedAnalyticsEvent = useCallback(
     debounce(() => {
@@ -41,17 +39,8 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
     []
   );
 
-  const {
-    globalSearch,
-    updateGlobalSearch,
-    isVisible: otherSearchIsVisible,
-    isSearched,
-    setIsSearched,
-  } = useGlobalSearchContext();
-
-  useEffect(() => {
-    setIsHidden(otherSearchIsVisible);
-  }, [otherSearchIsVisible]);
+  const { globalSearch, updateGlobalSearch, isSearched, setIsSearched } =
+    useGlobalSearchContext();
 
   const eraseSearch = () => {
     updateGlobalSearch("");
@@ -71,11 +60,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
     );
   };
 
-  const visibilityClass = isMobile
-    ? "flex md:hidden"
-    : isHidden
-      ? "hidden"
-      : "hidden md:flex";
+  const visibilityClass = isMobile ? "flex md:hidden" : "hidden md:flex";
 
   return (
     <div

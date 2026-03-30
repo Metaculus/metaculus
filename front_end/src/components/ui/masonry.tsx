@@ -23,11 +23,13 @@ export function useMediaValues(
   columns: number[],
   gap: number[]
 ) {
-  const [values, setValues] = useState({ columns: 0, gap: 1 });
+  const [values, setValues] = useState({
+    columns: columns[0] ?? 1,
+    gap: gap[0] ?? 12,
+  });
 
   useEffect(() => {
     if (!medias) {
-      setValues({ columns: columns[0] ?? 0, gap: gap[0] ?? 0 });
       return;
     }
 
@@ -73,7 +75,7 @@ export function asList(data: number | number[]) {
 
 export type MasonryProps<T> = React.ComponentPropsWithoutRef<"div"> & {
   items: T[];
-  render: (item: T, idx: number) => React.ReactNode;
+  render: (item: T) => React.ReactNode;
   config: {
     columns: number | number[];
     gap: number | number[];
@@ -118,7 +120,7 @@ export function Masonry<T>({
       {dataColumns.map((column, columnIdx) => (
         <MasonryRow gap={gap} key={columnIdx}>
           {column.map((item, idx) => (
-            <div key={idx}>{render(item, idx)}</div>
+            <div key={idx}>{render(item)}</div>
           ))}
         </MasonryRow>
       ))}
@@ -136,7 +138,7 @@ function BalancedMasonry<T>({
   ...rest
 }: {
   items: T[];
-  render: (item: T, idx: number) => React.ReactNode;
+  render: (item: T) => React.ReactNode;
   columns: number;
   gap: number;
   styles: React.CSSProperties;
@@ -251,7 +253,7 @@ function BalancedMasonry<T>({
         <MasonryRow gap={gap} key={columnIdx}>
           {column.map((item, idx) => (
             <div key={idx} ref={(node) => placedMeasureRef(node, item)}>
-              {render(item, items.indexOf(item))}
+              {render(item)}
             </div>
           ))}
         </MasonryRow>
@@ -278,7 +280,7 @@ function BalancedMasonry<T>({
               style={{ gridColumn: (idx % columns) + 1 }}
               ref={(node) => pendingMeasureRef(node, item)}
             >
-              {render(item, items.indexOf(item))}
+              {render(item)}
             </div>
           ))}
         </div>
