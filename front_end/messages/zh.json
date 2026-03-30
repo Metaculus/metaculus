@@ -2076,5 +2076,17 @@
   "timeWindow": "时间范围",
   "bots": "机器人",
   "excludeBots": "排除机器人",
+  "commentsFeed": "评论",
+  "commentsFeedTitle": "评论源",
+  "sortRecent": "最新",
+  "sortMostUpvoted": "最多点赞",
+  "sortMostMindsChanged": "最多改变想法",
+  "sortRelevance": "相关性",
+  "timeWindowAllTime": "所有时间",
+  "timeWindowPastWeek": "过去一周",
+  "timeWindowPastMonth": "过去一个月",
+  "timeWindowPastYear": "过去一年",
+  "searchComments": "搜索评论...",
+  "noCommentsFound": "未找到评论",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }
