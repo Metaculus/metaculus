@@ -3,11 +3,12 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { openKeyFactorsSectionAndScrollTo } from "@/app/(main)/questions/[id]/components/key_factors/utils";
-import { KeyFactor } from "@/types/comment";
-import { PostWithForecasts } from "@/types/post";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
+import KeyFactorDetailOverlay from "./key_factor_detail_overlay";
 import KeyFactorsConsumerCarousel from "./key_factors_consumer_carousel";
 import { useShouldHideKeyFactors } from "./use_should_hide_key_factors";
 import { useQuestionLayout } from "../question_layout/question_layout_context";
@@ -17,13 +18,18 @@ import {
 } from "./hooks/use_top_key_factors_carousel_items";
 
 type Props = {
-  keyFactors: KeyFactor[];
   post: PostWithForecasts;
 };
 
-const KeyFactorsQuestionConsumerSection: FC<Props> = ({ keyFactors, post }) => {
+const KeyFactorsQuestionConsumerSection: FC<Props> = ({ post }) => {
+  const { combinedKeyFactors: keyFactors } = useCommentsFeed();
   const t = useTranslations();
-  const { requestKeyFactorsExpand } = useQuestionLayout();
+  const {
+    requestKeyFactorsExpand,
+    keyFactorOverlay,
+    openKeyFactorOverlay,
+    closeKeyFactorOverlay,
+  } = useQuestionLayout();
   const shouldHideKeyFactors = useShouldHideKeyFactors();
 
   const { items: topItems, totalCount } = useTopKeyFactorsCarouselItems({
@@ -32,6 +38,8 @@ const KeyFactorsQuestionConsumerSection: FC<Props> = ({ keyFactors, post }) => {
   });
 
   if (shouldHideKeyFactors) return null;
+
+  if (post.status === PostStatus.RESOLVED) return null;
 
   const openKeyFactorsElement = (selector: string) => {
     requestKeyFactorsExpand?.();
@@ -62,6 +70,24 @@ const KeyFactorsQuestionConsumerSection: FC<Props> = ({ keyFactors, post }) => {
       </div>
 
       <KeyFactorsConsumerCarousel post={post} items={topItems} />
+
+      {keyFactorOverlay?.kind === "keyFactor" && (
+        <KeyFactorDetailOverlay
+          keyFactor={keyFactorOverlay.keyFactor}
+          allKeyFactors={keyFactors}
+          post={post}
+          onClose={closeKeyFactorOverlay}
+          onSelectKeyFactor={(kf) => openKeyFactorOverlay(kf)}
+        />
+      )}
+      {keyFactorOverlay?.kind === "questionLink" && (
+        <KeyFactorDetailOverlay
+          key={keyFactorOverlay.link.id}
+          questionLink={keyFactorOverlay.link}
+          post={post}
+          onClose={closeKeyFactorOverlay}
+        />
+      )}
     </div>
   );
 };
