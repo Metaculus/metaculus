@@ -161,6 +161,7 @@ const CommentFeedContent: FC = () => {
       if (lastPage.results.length < COMMENTS_PER_PAGE) return undefined;
       return allPages.reduce((sum, page) => sum + page.results.length, 0);
     },
+    gcTime: 0,
   });
 
   const comments = useMemo(
