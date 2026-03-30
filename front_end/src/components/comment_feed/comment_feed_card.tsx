@@ -1,6 +1,6 @@
 "use client";
 
-import { FC } from "react";
+import { FC, memo, useCallback } from "react";
 
 import CommentCard from "@/components/comment_feed/comment_card";
 import CommentPostPreview from "@/components/comment_feed/comment_post_preview";
@@ -14,6 +14,13 @@ type Props = {
 };
 
 const CommentFeedCard: FC<Props> = ({ comment, post }) => {
+  const handleViewComment = useCallback(() => {
+    window.open(
+      `/questions/${comment.on_post}/#comment-${comment.id}`,
+      "_blank"
+    );
+  }, [comment.on_post, comment.id]);
+
   return (
     <div
       className={cn(
@@ -41,12 +48,7 @@ const CommentFeedCard: FC<Props> = ({ comment, post }) => {
             className="mt-0 border-none dark:border-none md:mt-0"
             expandOverride="collapsed"
             collapsedHeight={222}
-            onViewComment={() =>
-              window.open(
-                `/questions/${comment.on_post}/#comment-${comment.id}`,
-                "_blank"
-              )
-            }
+            onViewComment={handleViewComment}
           />
         </div>
       </div>
@@ -54,4 +56,4 @@ const CommentFeedCard: FC<Props> = ({ comment, post }) => {
   );
 };
 
-export default CommentFeedCard;
+export default memo(CommentFeedCard);

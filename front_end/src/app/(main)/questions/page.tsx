@@ -1,6 +1,7 @@
 import { isNil } from "lodash";
 import { Suspense } from "react";
 
+import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
 import FeedSidebar from "@/app/(main)/questions/components/sidebar";
 import CommentFeedContent from "@/components/comment_feed/comment_feed_content";
 import AwaitedCommunitiesFeed from "@/components/communities_feed";
@@ -55,7 +56,9 @@ export default async function Questions(props: {
           <FeedSidebar items={sidebarItems} />
           <div className="min-h-[calc(100vh-300px)] grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-0 sm:pt-5">
             {isCommentsFeed ? (
-              <CommentFeedContent />
+              <CommentsFeedProvider rootCommentStructure={true}>
+                <CommentFeedContent />
+              </CommentsFeedProvider>
             ) : isCommunityFeed ? (
               <Suspense
                 key={JSON.stringify(searchParams)}
