@@ -4,9 +4,9 @@ import type { Metadata } from "next";
 
 import { defaultDescription } from "@/constants/metadata";
 
+import StorefrontFooter from "./components/storefront_footer";
 import FeedbackFloat from "../(main)/(home)/components/feedback_float";
 import CookiesBanner from "../(main)/components/cookies_banner";
-import Footer from "../(main)/components/footer";
 import VersionChecker from "../(main)/components/version_checker";
 
 config.autoAddCss = false;
@@ -25,7 +25,7 @@ export default function StorefrontLayout({
     <div className="force-light flex min-h-screen flex-col bg-blue-200">
       <div className="flex-grow">{children}</div>
       <FeedbackFloat />
-      <Footer hideSelectors />
+      <StorefrontFooter />
       <CookiesBanner />
       <VersionChecker />
     </div>
