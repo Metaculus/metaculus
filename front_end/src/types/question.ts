@@ -491,7 +491,7 @@ export type CurveChoiceOption = {
 
 export type ForecastAvailability = {
   isEmpty: boolean;
-  isAggregationsEmpty: boolean;
-  isMyForecastsEmpty: boolean;
+  isAggregationsEmpty?: boolean;
+  isMyForecastsEmpty?: boolean;
   cpRevealsOn: string | null;
 };
