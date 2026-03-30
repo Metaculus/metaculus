@@ -48,7 +48,7 @@ const HomepagePostCard: FC<Props> = ({ post, className }) => {
               className="text-[10px] md:text-xs"
             />
           </div>
-          <div className="flex w-full flex-col items-center gap-5 overflow-hidden no-underline @container">
+          <div className="flex w-full flex-col items-center gap-2 overflow-hidden no-underline @container md:gap-5">
             <h4 className="m-0 max-w-xl text-center text-sm font-medium md:text-base">
               {title}
             </h4>

@@ -1,5 +1,4 @@
 import { PostsParams } from "@/services/api/posts/posts.shared";
-import { PostForecastType } from "@/types/post";
 import { QuestionType } from "@/types/question";
 
 type FilterId = "news" | "popular" | "new";
@@ -10,7 +9,6 @@ const allowedTypes = [
   QuestionType.Numeric,
   QuestionType.Discrete,
   QuestionType.Date,
-  PostForecastType.Group,
 ];
 
 export const FILTERS: Record<FilterId, PostsParams> = {

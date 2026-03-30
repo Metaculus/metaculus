@@ -280,7 +280,7 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
                   className="text-sm text-white/50 transition-transform group-hover:translate-x-1 md:hidden"
                 />
               </div>
-              <p className="relative z-10 m-0 text-xs font-medium text-white opacity-50 md:flex-1 md:text-[15px] md:opacity-100">
+              <p className="relative z-10 m-0 text-xs font-normal text-white opacity-50 group-hover:opacity-80  md:flex-1 md:text-sm md:opacity-60">
                 {t("measuringForecastingAccuracyOfAI")}
               </p>
               <FontAwesomeIcon
@@ -310,7 +310,7 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
                   className="text-sm text-white/50 transition-transform group-hover:translate-x-1 md:hidden"
                 />
               </div>
-              <p className="relative z-10 m-0 text-xs font-medium text-white opacity-50 md:flex-1 md:text-[15px] md:opacity-100">
+              <p className="relative z-10 m-0 text-xs font-normal text-white opacity-50 group-hover:opacity-80  md:flex-1 md:text-sm md:opacity-60">
                 {t("mapTheFutureBeforeYouBuildIt")}
               </p>
               <FontAwesomeIcon
