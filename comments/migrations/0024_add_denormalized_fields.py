@@ -3,49 +3,51 @@
 import django.contrib.postgres.indexes
 import django.contrib.postgres.search
 from django.conf import settings
-from django.db import connection, migrations, models
+from django.db import migrations, models
 
 
 def backfill_vote_score(apps, schema_editor):
-    with connection.cursor() as cursor:
-        cursor.execute("""
+    with schema_editor.connection.cursor() as cursor:
+        cursor.execute(
+            """
             UPDATE comments_comment c
             SET vote_score = COALESCE(sub.score, 0)
-            FROM (
-                SELECT comment_id, SUM(direction) AS score
-                FROM comments_commentvote
-                GROUP BY comment_id
-            ) sub
+            FROM (SELECT comment_id, SUM(direction) AS score
+                  FROM comments_commentvote
+                  GROUP BY comment_id) sub
             WHERE c.id = sub.comment_id
-        """)
+            """
+        )
         print(f"\n  vote_score: {cursor.rowcount} rows updated")
 
 
 def backfill_cmm_count(apps, schema_editor):
-    with connection.cursor() as cursor:
-        cursor.execute("""
+    with schema_editor.connection.cursor() as cursor:
+        cursor.execute(
+            """
             UPDATE comments_comment c
             SET cmm_count = sub.cnt
-            FROM (
-                SELECT comment_id, COUNT(*) AS cnt
-                FROM comments_changedmymindentry
-                GROUP BY comment_id
-            ) sub
+            FROM (SELECT comment_id, COUNT(*) AS cnt
+                  FROM comments_changedmymindentry
+                  GROUP BY comment_id) sub
             WHERE c.id = sub.comment_id
-        """)
+            """
+        )
         print(f"\n  cmm_count: {cursor.rowcount} rows updated")
 
 
 def backfill_text_original_search_vector(apps, schema_editor):
-    with connection.cursor() as cursor:
-        cursor.execute("""
-                       UPDATE comments_comment
-                       SET text_original_search_vector = to_tsvector('english', COALESCE(text_original, ''))
-                       WHERE text_original IS NOT NULL
-                         AND text_original != ''
-                         AND is_private = false
-                         AND is_soft_deleted = false
-                       """)
+    with schema_editor.connection.cursor() as cursor:
+        cursor.execute(
+            """
+            UPDATE comments_comment
+            SET text_original_search_vector = to_tsvector('english', COALESCE(text_original, ''))
+            WHERE text_original IS NOT NULL
+              AND text_original != ''
+              AND is_private = false
+              AND is_soft_deleted = false
+            """
+        )
         print(f"\n  text_original_search_vector: {cursor.rowcount} rows updated")
 
 
