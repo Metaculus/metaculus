@@ -170,7 +170,7 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
             <Link
               href="/questions/"
               className={cn(
-                "group relative flex flex-col justify-between overflow-hidden rounded-lg p-4 no-underline md:rounded-2xl md:p-10",
+                "group relative flex flex-col justify-between overflow-hidden rounded-lg p-4 no-underline md:rounded-xl md:p-10",
                 "h-[140px] md:h-[259px]",
                 "bg-[#c6d8e8] backdrop-blur-[1px] transition-colors md:bg-[#c6d8e8]/80 md:hover:bg-[#c6d8e8]"
               )}
@@ -220,7 +220,7 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
             <Link
               href="/services/"
               className={cn(
-                "group relative flex flex-col justify-between overflow-hidden rounded-lg p-4 no-underline md:rounded-2xl md:p-10",
+                "group relative flex flex-col justify-between overflow-hidden rounded-lg p-4 no-underline md:rounded-xl md:p-10",
                 "h-[140px] md:h-[259px]",
                 "bg-[#d8c6e8] backdrop-blur-[1px] transition-colors md:bg-[#d8c6e8]/80 md:hover:bg-[#d8c6e8]"
               )}
@@ -262,7 +262,7 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
             {/* FutureEval banner */}
             <Link
               href="/futureeval/"
-              className="group relative flex flex-col gap-3 overflow-hidden rounded-lg bg-[#4c6076] p-4 no-underline backdrop-blur-[1px] transition-colors md:flex-row md:items-center md:gap-4 md:rounded-2xl md:bg-[#4c6076]/80 md:px-6 md:py-4 md:hover:bg-[#4c6076]"
+              className="group relative flex flex-col gap-3 overflow-hidden rounded-lg bg-[#4c6076] p-4 no-underline backdrop-blur-[1px] transition-colors md:flex-row md:items-center md:gap-4 md:rounded-xl md:bg-[#4c6076]/80 md:px-6 md:py-4 md:hover:bg-[#4c6076]"
               onMouseEnter={() => setHoveredCard("futureeval")}
               onMouseLeave={() => setHoveredCard(null)}
             >
@@ -292,7 +292,7 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
             {/* Radiant banner */}
             <Link
               href="/notebooks/42293/map-the-future-before-you-build-it/"
-              className="group relative flex flex-col gap-3 overflow-hidden rounded-lg bg-[#4c6076] p-4 no-underline backdrop-blur-[1px] transition-colors md:flex-row md:items-center md:gap-4 md:rounded-2xl md:bg-[#4c6076]/80 md:px-6 md:py-4 md:hover:bg-[#4c6076]"
+              className="group relative flex flex-col gap-3 overflow-hidden rounded-lg bg-[#4c6076] p-4 no-underline backdrop-blur-[1px] transition-colors md:flex-row md:items-center md:gap-4 md:rounded-xl md:bg-[#4c6076]/80 md:px-6 md:py-4 md:hover:bg-[#4c6076]"
               onMouseEnter={() => setHoveredCard("radiant")}
               onMouseLeave={() => setHoveredCard(null)}
             >

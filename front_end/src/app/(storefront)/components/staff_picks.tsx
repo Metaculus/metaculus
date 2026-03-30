@@ -26,7 +26,7 @@ const StaffPicks: FC<Props> = ({ items }) => {
           key={`staff-pick-${idx}`}
           href={item.url}
           className={cn(
-            "flex shrink-0 items-center gap-1 rounded-full border-0 bg-gray-0 py-2 pl-3 pr-4 text-xs font-medium  leading-3 text-blue-700 no-underline transition-colors hover:bg-blue-400 md:text-sm"
+            "flex shrink-0 items-center gap-1.5 rounded-full border-0 bg-gray-0 py-2 pl-3 pr-4 text-xs font-medium  leading-3 text-blue-700 no-underline transition-colors hover:bg-blue-400 md:text-sm"
           )}
         >
           <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center">
