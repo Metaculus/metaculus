@@ -18,7 +18,6 @@ from django.db.models import (
 from django.db.models.functions import Coalesce
 from django.db.models.lookups import Exact
 from django.utils import timezone
-from sql_util.aggregates import SubqueryAggregate
 
 from posts.models import Post
 from projects.models import Project
@@ -28,15 +27,6 @@ from utils.models import TimeStampedModel, TranslatedModel
 
 
 class CommentQuerySet(models.QuerySet):
-    def annotate_vote_score(self):
-        return self.annotate(
-            annotated_vote_score=Coalesce(
-                SubqueryAggregate("comment_votes__direction", aggregate=Sum),
-                0,
-                output_field=IntegerField(),
-            )
-        )
-
     def annotate_user_vote(self, user: User):
         """
         Annotates queryset with the user's vote option
@@ -180,12 +170,14 @@ class Comment(TimeStampedModel, TranslatedModel):
         ]
         self.vote_score = score
         self.save(update_fields=["vote_score"])
+
         return score
 
     def update_cmm_count(self):
         count = self.changedmymindentry_set.count()
         self.cmm_count = count
         self.save(update_fields=["cmm_count"])
+
         return count
 
 

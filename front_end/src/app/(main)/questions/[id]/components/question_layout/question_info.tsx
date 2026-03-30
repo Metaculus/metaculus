@@ -24,6 +24,8 @@ type Props = {
   preselectedGroupQuestionId: number | undefined;
   showKeyFactors?: boolean;
   showTimeline?: boolean;
+  keyFactorsDefaultCollapsed?: boolean;
+  hideKeyFactorOverlay?: boolean;
 };
 
 const QuestionInfo: React.FC<Props> = ({
@@ -31,6 +33,8 @@ const QuestionInfo: React.FC<Props> = ({
   preselectedGroupQuestionId,
   showKeyFactors,
   showTimeline,
+  keyFactorsDefaultCollapsed,
+  hideKeyFactorOverlay,
 }) => {
   const t = useTranslations();
   return (
@@ -57,7 +61,13 @@ const QuestionInfo: React.FC<Props> = ({
       <ResolutionCriteria post={postData} />
       {isConditionalPost(postData) && <ConditionalTimeline post={postData} />}
 
-      {showKeyFactors && <KeyFactorsQuestionSection post={postData} />}
+      {showKeyFactors && (
+        <KeyFactorsQuestionSection
+          post={postData}
+          defaultCollapsed={keyFactorsDefaultCollapsed}
+          hideOverlay={hideKeyFactorOverlay}
+        />
+      )}
 
       <CoherenceLinks post={postData}></CoherenceLinks>
 
