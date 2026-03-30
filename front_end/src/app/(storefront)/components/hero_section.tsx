@@ -19,18 +19,18 @@ import RadiantLogo from "./radiant_logo";
 // Accent colors per card — used for globe tint + card hover overlay
 // Adjust these to fine-tune both effects from one place
 const CARD_ACCENT_COLORS = {
-  platform: "#6daef0", // blue
-  business: "#bb80e5", // purple
-  futureeval: "#2B776F", // teal
-  radiant: "#f5c882", // warm beige
+  platform: "#a1bdd6", // light blue
+  business: "#bf9cd8", // purple
+  futureeval: "#5EA29B", // teal
+  radiant: "#F2C59A", // warm beige
 } as const;
 
 type HoveredCard = keyof typeof CARD_ACCENT_COLORS | null;
 
-const DEFAULT_COLOR = "#6B7885";
-const DEFAULT_SPEED = 0.4;
+const DEFAULT_COLOR = "#7c8b99";
+const DEFAULT_SPEED = 0.8;
 const HOVER_SPEED = 0.1;
-const TRANSITION_MS = 300;
+const TRANSITION_MS = 200;
 
 function parseHex(hex: string): [number, number, number] {
   return [
