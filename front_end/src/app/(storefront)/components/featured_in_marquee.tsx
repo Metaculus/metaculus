@@ -94,7 +94,7 @@ const FeaturedInMarquee: FC<{ className?: string }> = ({ className }) => {
         {t("featuredIn")}
       </span>
 
-      <div className="relative mx-auto w-full max-w-[1140px] px-0">
+      <div className="relative mx-auto w-full max-w-[1000px] px-0">
         <div className="h-[40px] overflow-hidden md:h-[70px]" ref={emblaRef}>
           <div className="flex h-full w-full">
             {logos.map((item, index) => {

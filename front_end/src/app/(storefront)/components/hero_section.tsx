@@ -21,13 +21,13 @@ import RadiantLogo from "./radiant_logo";
 const CARD_ACCENT_COLORS = {
   platform: "#6daef0", // blue
   business: "#bb80e5", // purple
-  futureeval: "#00d4b8", // teal
+  futureeval: "#2B776F", // teal
   radiant: "#f5c882", // warm beige
 } as const;
 
 type HoveredCard = keyof typeof CARD_ACCENT_COLORS | null;
 
-const DEFAULT_COLOR = "#628bb3";
+const DEFAULT_COLOR = "#6B7885";
 const DEFAULT_SPEED = 0.4;
 const HOVER_SPEED = 0.1;
 const TRANSITION_MS = 300;

@@ -6,12 +6,12 @@ import ServerPostsApi from "@/services/api/posts/posts.server";
 import { getPublicSettings } from "@/utils/public_settings.server";
 import { convertSidebarItem } from "@/utils/sidebar";
 
+import FeaturedInMarquee from "./components/featured_in_marquee";
+import ForecastsCarouselSection from "./components/forecasts_carousel_section";
+import HeroSection from "./components/hero_section";
+import { FILTERS } from "./components/homepage_filters";
+import StaffPicks from "./components/staff_picks";
 import EmailConfirmation from "../(main)/(home)/components/email_confirmation";
-import FeaturedInMarquee from "../(main)/(home)/components/featured_in_marquee";
-import ForecastsCarouselSection from "../(main)/(home)/components/forecasts_carousel_section";
-import HeroSection from "../(main)/(home)/components/hero_section";
-import { FILTERS } from "../(main)/(home)/components/homepage_filters";
-import StaffPicks from "../(main)/(home)/components/staff_picks";
 
 export default async function Home() {
   const { PUBLIC_LANDING_PAGE_URL } = getPublicSettings();
