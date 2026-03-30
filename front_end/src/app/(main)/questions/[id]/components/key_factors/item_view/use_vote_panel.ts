@@ -1,9 +1,31 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { RefObject, useCallback, useEffect, useRef, useState } from "react";
+
+import { KeyFactorVoteReason } from "@/types/comment";
 
 export type ImpactOption = "low" | "medium" | "high";
 export type DownvoteReason = "wrongDirection" | "noImpact" | "redundant";
 
-export function useVotePanel<T extends string>() {
+export const DOWNVOTE_REASON_TO_API: Record<
+  DownvoteReason,
+  KeyFactorVoteReason
+> = {
+  wrongDirection: "wrong_direction",
+  noImpact: "no_impact",
+  redundant: "redundant",
+};
+
+export const API_TO_DOWNVOTE_REASON: Record<
+  KeyFactorVoteReason,
+  DownvoteReason
+> = {
+  wrong_direction: "wrongDirection",
+  no_impact: "noImpact",
+  redundant: "redundant",
+};
+
+export function useVotePanel<T extends string>(
+  excludeRef?: RefObject<HTMLDivElement | null>
+) {
   const [showPanel, setShowPanel] = useState(false);
   const [selectedOption, setSelectedOption] = useState<T | null>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -22,7 +44,12 @@ export function useVotePanel<T extends string>() {
 
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
-      if (panelRef.current && !panelRef.current.contains(target)) {
+      if (
+        panelRef.current &&
+        !panelRef.current.contains(target) &&
+        (!anchorRef.current || !anchorRef.current.contains(target)) &&
+        (!excludeRef?.current || !excludeRef.current.contains(target))
+      ) {
         setShowPanel(false);
       }
     };
@@ -37,7 +64,7 @@ export function useVotePanel<T extends string>() {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("scroll", handleScroll, true);
     };
-  }, [showPanel]);
+  }, [showPanel, excludeRef]);
 
   return {
     showPanel,
@@ -45,6 +72,7 @@ export function useVotePanel<T extends string>() {
     anchorRef,
     panelRef,
     setShowPanel,
+    setSelectedOption,
     closePanel,
     toggleOption,
   };

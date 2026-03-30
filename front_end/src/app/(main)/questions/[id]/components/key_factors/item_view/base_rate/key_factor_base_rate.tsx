@@ -5,7 +5,9 @@ import { useTranslations } from "next-intl";
 import { KeyFactor, KeyFactorVoteTypes } from "@/types/comment";
 import cn from "@/utils/core/cn";
 
-import KeyFactorStrengthItem from "../key_factor_strength_item";
+import KeyFactorStrengthItem, {
+  ImpactVoteHandler,
+} from "../key_factor_strength_item";
 import KeyFactorText from "../key_factor_text";
 import KeyFactorBaseRateFrequency from "./key_factor_base_rate_frequency";
 import KeyFactorBaseRateTrend from "./key_factor_base_rate_trend";
@@ -15,10 +17,12 @@ type Props = {
   mode?: "forecaster" | "consumer";
   isCompact?: boolean;
   isSuggested?: boolean;
+  impactVoteRef?: React.MutableRefObject<ImpactVoteHandler | null>;
   onVotePanelToggle?: (open: boolean) => void;
   onDownvotePanelToggle?: (open: boolean) => void;
   onMorePanelToggle?: (open: boolean) => void;
   isMorePanelOpen?: boolean;
+  truncateText?: boolean;
 };
 
 const KeyFactorBaseRate: React.FC<Props> = ({
@@ -26,10 +30,12 @@ const KeyFactorBaseRate: React.FC<Props> = ({
   isCompact,
   mode,
   isSuggested,
+  impactVoteRef,
   onVotePanelToggle,
   onDownvotePanelToggle,
   onMorePanelToggle,
   isMorePanelOpen,
+  truncateText,
 }) => {
   const t = useTranslations();
   if (!keyFactor.base_rate) return null;
@@ -45,6 +51,7 @@ const KeyFactorBaseRate: React.FC<Props> = ({
       isCompact={isCompact}
       mode={mode}
       voteType={KeyFactorVoteTypes.DIRECTION}
+      impactVoteRef={impactVoteRef}
       onVotePanelToggle={onVotePanelToggle}
       onDownvotePanelToggle={onDownvotePanelToggle}
       onMorePanelToggle={onMorePanelToggle}
@@ -55,6 +62,7 @@ const KeyFactorBaseRate: React.FC<Props> = ({
         className={
           isCompact || isConsumer ? "text-xs leading-4" : "text-sm leading-5"
         }
+        truncate={truncateText}
       />
 
       {baseRate.type === "frequency" && (

@@ -13,6 +13,7 @@ type Props<T extends string> = {
   title: string;
   direction?: "row" | "column";
   isCompact?: boolean;
+  inline?: boolean;
   anchorRef: RefObject<HTMLDivElement | null>;
   onSelect: (option: T) => void;
   onClose: () => void;
@@ -28,6 +29,7 @@ function VotePanelInner<T extends string>({
   title,
   direction = "row",
   isCompact,
+  inline,
   anchorRef,
   onSelect,
   onClose,
@@ -40,6 +42,7 @@ function VotePanelInner<T extends string>({
       ref={ref}
       anchorRef={anchorRef}
       isCompact={isCompact}
+      inline={inline}
       onClose={onClose}
     >
       <span
@@ -54,7 +57,7 @@ function VotePanelInner<T extends string>({
       <div
         className={cn(
           "flex w-full",
-          direction === "column" ? "flex-col" : "",
+          direction === "column" ? "flex-col" : "flex-col sm:flex-row",
           isCompact ? "gap-1.5" : "gap-2"
         )}
       >
@@ -67,7 +70,7 @@ function VotePanelInner<T extends string>({
               onClick={() => onSelect(option)}
               className={cn(
                 "rounded border text-xs font-medium leading-4 transition-colors",
-                direction === "row" && "flex-1",
+                direction === "row" && "sm:flex-1",
                 isCompact ? "px-1.5 py-0.5" : "px-2 py-1",
                 buttonClassName,
                 isSelected

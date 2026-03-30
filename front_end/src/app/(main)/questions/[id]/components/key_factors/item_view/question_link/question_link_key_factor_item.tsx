@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { FC, useEffect, useMemo, useState } from "react";
 
 import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
-import QuestionCPMovement from "@/components/cp_movement";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import {
   FetchedAggregateCoherenceLink,
@@ -25,7 +25,9 @@ import KeyFactorCardContainer from "../key_factor_card_container";
 import KeyFactorVotePanels, {
   useKeyFactorVotePanels,
 } from "../key_factor_vote_panels";
+import { ActionItem } from "../more_panel";
 import QuestionLinkAgreeVoter from "./question_link_agree_voter";
+import { useQuestionLinkCopy } from "./use_question_link_copy";
 
 type Props = {
   link: FetchedAggregateCoherenceLink;
@@ -34,7 +36,9 @@ type Props = {
   id?: string;
   mode?: "forecaster" | "consumer";
   linkToComment?: boolean;
+  titleLinksToQuestion?: boolean;
   className?: string;
+  onClick?: () => void;
 };
 
 const otherQuestionCache = new Map<number, QuestionWithForecasts>();
@@ -46,8 +50,11 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
   id,
   mode = "forecaster",
   linkToComment = true,
+  titleLinksToQuestion = true,
   className,
+  onClick,
 }) => {
+  const t = useTranslations();
   const isConsumer = mode === "consumer";
   const isCompactConsumer = isConsumer && compact;
 
@@ -159,9 +166,51 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
   const {
     impactPanel,
     downvotePanel,
+    morePanel,
     handleUpvotePanelToggle,
     handleDownvotePanelToggle,
+    handleMorePanelToggle,
+    closeAllPanels,
   } = useKeyFactorVotePanels();
+
+  const [showDownvoteThanks, setShowDownvoteThanks] = useState(false);
+
+  const wrappedHandleDownvotePanelToggle = (open: boolean) => {
+    if (open) {
+      setShowDownvoteThanks(false);
+    }
+    handleDownvotePanelToggle(open);
+  };
+
+  const isFirstQuestionResolved = isFirstQuestion;
+  const fromQuestionRaw = isFirstQuestionResolved
+    ? post.question
+    : otherQuestion;
+  const toQuestionRaw = isFirstQuestionResolved ? otherQuestion : post.question;
+  const defaultDirection: QuestionLinkDirection =
+    link.direction && link.direction < 0 ? "negative" : "positive";
+
+  const { hasPersonalCopy, openCopyModal } = useQuestionLinkCopy({
+    fromQuestion: fromQuestionRaw ?? null,
+    toQuestion: toQuestionRaw ?? null,
+    defaultDirection,
+    defaultStrength: "medium",
+    targetElementId: id,
+    onCloseAllPanels: closeAllPanels,
+  });
+
+  const moreActions: ActionItem[] = useMemo(() => {
+    if (hasPersonalCopy) return [];
+    return [
+      {
+        label: t("copyToMyAccount"),
+        onClick: () => {
+          morePanel.closePanel();
+          openCopyModal();
+        },
+      },
+    ];
+  }, [hasPersonalCopy, t, morePanel, openCopyModal]);
 
   if (!otherQuestion || !post.question) {
     return (
@@ -172,9 +221,19 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
         mode={mode}
         className={cn("animate-pulse shadow-sm", className)}
       >
-        <div className="flex min-w-0 flex-col gap-2">
-          <div className="h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-200-dark" />
-          <div className="h-3 w-1/2 rounded bg-gray-200 dark:bg-gray-200-dark" />
+        <div className="flex min-w-0 flex-col gap-3">
+          <div className="h-3 w-20 rounded bg-gray-200 dark:bg-gray-200-dark" />
+          <div className="flex flex-col gap-1.5">
+            <div className="h-4 w-full rounded bg-gray-200 dark:bg-gray-200-dark" />
+            <div className="h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-200-dark" />
+          </div>
+          <div className="h-3 w-28 rounded bg-gray-200 dark:bg-gray-200-dark" />
+        </div>
+        <div className="flex items-end">
+          <div className="flex gap-0.5">
+            <div className="h-6 w-12 rounded bg-gray-200 dark:bg-gray-200-dark" />
+            <div className="h-6 w-12 rounded bg-gray-200 dark:bg-gray-200-dark" />
+          </div>
         </div>
       </KeyFactorCardContainer>
     );
@@ -184,11 +243,6 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
     otherQuestion?.type === QuestionType.Binary
       ? (otherQuestion as QuestionWithNumericForecasts & QuestionWithForecasts)
       : null;
-
-  const fromQuestion = isFirstQuestion ? post.question : otherQuestion;
-  const toQuestion = isFirstQuestion ? otherQuestion : post.question;
-  const defaultDirection: QuestionLinkDirection =
-    link.direction && link.direction < 0 ? "negative" : "positive";
 
   const impactDirection: ImpactDirection | null = link.direction
     ? link.direction > 0
@@ -206,41 +260,50 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
         impactDirection={impactDirection}
         impactStrength={strengthScore}
         className={cn("shadow-sm", className)}
+        onClick={onClick}
       >
-        <div className="flex min-w-0 flex-col gap-1">
-          <div className="flex min-w-0 items-start gap-3">
+        <div className="flex min-w-0 flex-col gap-3">
+          <div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
+            {t("questionLink")}
+          </div>
+
+          {titleLinksToQuestion ? (
             <Link
               href={getPostLink({ id: otherQuestion.post_id })}
               target="_blank"
+              onClick={(e) => e.stopPropagation()}
               className={cn(
-                "min-w-0 flex-1 font-medium text-gray-800 no-underline hover:underline dark:text-gray-800-dark",
-                compact ? "text-xs leading-4" : "text-sm leading-5"
+                "min-w-0 font-medium text-gray-800 no-underline hover:underline dark:text-gray-800-dark",
+                compact ? "line-clamp-4 text-xs leading-4" : "text-sm leading-5"
               )}
             >
               {otherQuestion.title}
             </Link>
+          ) : (
+            <span
+              className={cn(
+                "min-w-0 font-medium text-gray-800 dark:text-gray-800-dark",
+                compact
+                  ? "line-clamp-4 text-xs leading-4"
+                  : cn("text-sm leading-5", "line-clamp-5")
+              )}
+            >
+              {otherQuestion.title}
+            </span>
+          )}
 
-            {binaryForecastQuestion && (
-              <div className="relative h-[46px] w-14 shrink-0">
-                <div className="absolute inset-0 flex flex-col items-center">
-                  <BinaryCPBar
-                    question={
-                      binaryForecastQuestion as unknown as QuestionWithNumericForecasts
-                    }
-                    size="xs"
-                  />
-                  <div className="-mt-5">
-                    <QuestionCPMovement
-                      question={binaryForecastQuestion}
-                      unit="%"
-                      boldValueUnit
-                      size="xs"
-                    />
-                  </div>
-                </div>
+          {binaryForecastQuestion && (
+            <div className="relative h-9 w-14">
+              <div className="absolute inset-0 flex flex-col items-center">
+                <BinaryCPBar
+                  question={
+                    binaryForecastQuestion as unknown as QuestionWithNumericForecasts
+                  }
+                  size="xs"
+                />
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {impactCategory !== null && (
             <KeyFactorImpactDirectionLabel
@@ -254,31 +317,45 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
           )}
         </div>
 
-        <div
-          className="flex items-end justify-between"
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <QuestionLinkAgreeVoter
-            aggregationId={link.id}
-            fromQuestion={fromQuestion}
-            toQuestion={toQuestion}
-            defaultDirection={defaultDirection}
-            defaultStrength="medium"
-            targetElementId={id}
-            onChange={(next) => setUserVote(next)}
-            onStrengthChange={(s) => setLocalStrength(s)}
-            onVotePanelToggle={handleUpvotePanelToggle}
-            onDownvotePanelToggle={handleDownvotePanelToggle}
-          />
+        <div className="flex w-full items-end">
+          <div
+            className="w-full"
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <QuestionLinkAgreeVoter
+              aggregationId={link.id}
+              hasPersonalCopy={hasPersonalCopy}
+              onChange={(next) => setUserVote(next)}
+              onStrengthChange={(s) => setLocalStrength(s)}
+              onVotePanelToggle={handleUpvotePanelToggle}
+              onDownvotePanelToggle={wrappedHandleDownvotePanelToggle}
+              onMorePanelToggle={handleMorePanelToggle}
+              isMorePanelOpen={morePanel.showPanel}
+            />
+          </div>
         </div>
       </KeyFactorCardContainer>
 
       <KeyFactorVotePanels
         impactPanel={impactPanel}
         downvotePanel={downvotePanel}
+        morePanel={morePanel}
         anchorRef={impactPanel.anchorRef}
         isCompact={compact}
+        onDownvoteReasonSelect={() => setShowDownvoteThanks(true)}
+        showDownvoteThanks={showDownvoteThanks}
+        moreActions={moreActions}
+        moreHeader={
+          <span
+            className={cn(
+              "self-start font-normal leading-3 text-gray-500 dark:text-gray-500-dark",
+              compact ? "text-[8px]" : "text-[10px]"
+            )}
+          >
+            {t("questionLinkContributors", { count: link.links_nr })}
+          </span>
+        }
       />
     </div>
   );

@@ -21,6 +21,7 @@ type Props = {
   className?: string;
   impactDirection?: ImpactDirection | null;
   impactStrength?: number;
+  disableHover?: boolean;
 };
 
 const KeyFactorCardContainer: FC<Props> = ({
@@ -34,6 +35,7 @@ const KeyFactorCardContainer: FC<Props> = ({
   className,
   impactDirection,
   impactStrength = 0,
+  disableHover,
 }) => {
   const t = useTranslations();
 
@@ -58,13 +60,14 @@ const KeyFactorCardContainer: FC<Props> = ({
       id={id}
       onClick={onClick}
       className={cn(
-        "relative flex gap-3 rounded-xl p-5 [&:hover_.target]:visible",
+        "relative flex gap-3 overflow-hidden rounded-xl border p-4 pr-2 md:p-5 [&:hover_.target]:visible",
+        !disableHover &&
+          "hover:border-blue-500 dark:hover:border-blue-500-dark",
         linkToComment
-          ? "border border-blue-400 bg-gray-0 dark:border-blue-400-dark dark:bg-gray-0-dark"
-          : "bg-blue-200 dark:bg-blue-200-dark",
+          ? "border-blue-400 bg-gray-0 dark:border-blue-400-dark dark:bg-gray-0-dark"
+          : "border-transparent bg-blue-200 dark:bg-blue-200-dark",
         {
-          "cursor-pointer hover:border-blue-500 dark:hover:border-blue-500-dark":
-            !!onClick,
+          "cursor-pointer": !!onClick,
         },
         isCompact && "p-4",
         className

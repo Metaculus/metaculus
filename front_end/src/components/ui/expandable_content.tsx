@@ -17,6 +17,7 @@ type Props = {
   className?: string;
   gradientClassName?: string;
   forceState?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
 };
 
 const ExpandableContent: FC<PropsWithChildren<Props>> = ({
@@ -26,6 +27,7 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
   gradientClassName = "from-blue-200 dark:from-blue-200-dark",
   className,
   forceState,
+  onExpandedChange,
   children,
 }) => {
   const t = useTranslations();
@@ -61,23 +63,28 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
     }
   }, [forceState]);
 
+  useEffect(() => {
+    onExpandedChange?.(isExpanded);
+  }, [isExpanded, onExpandedChange]);
+
   return (
     <div className={cn(gradientClassName, className)}>
       <div className="relative">
         <div
           ref={ref}
-          className={cn(
-            "m-0 flex flex-col overflow-hidden",
-            !isExpanded && isExpandable && "pointer-events-none"
-          )}
+          className={cn("m-0 flex flex-col overflow-hidden")}
           style={{ maxHeight: isExpanded ? "" : maxCollapsedHeight }}
         >
           {children}
           <div
             className={cn(
-              "pointer-events-none absolute bottom-0 block h-1/2 w-full bg-gradient-to-t to-transparent",
+              "absolute bottom-0 block h-1/2 w-full cursor-pointer bg-gradient-to-t to-transparent",
               { hidden: isExpanded }
             )}
+            onClick={() => {
+              userInteractedRef.current = true;
+              setIsExpanded(true);
+            }}
           />
           <div
             className={cn(

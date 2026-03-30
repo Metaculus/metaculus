@@ -15,13 +15,13 @@ type VerticalImpactBarProps = {
 
 const SIZE_CONFIG = {
   default: {
-    width: 20,
-    iconSize: "text-[14px]",
+    widthClass: "w-3 md:w-5",
+    iconSize: "text-[10px] md:text-[14px]",
     radius: 2,
     lineOverhang: 2,
   },
   narrow: {
-    width: 12,
+    widthClass: "w-3",
     iconSize: "text-[10px]",
     radius: 2,
     lineOverhang: 2,
@@ -54,16 +54,24 @@ const HalfBar: FC<{
   const emptyPercent = 100 - fillPercent;
   const isTop = position === "top";
 
+  const outerRadius = isTop
+    ? `${radius}px ${radius}px 0 0`
+    : `0 0 ${radius}px ${radius}px`;
+  const innerRadius = Math.max(0, radius - 1);
+  const innerBorderRadius = isTop
+    ? `${innerRadius}px ${innerRadius}px 0 0`
+    : `0 0 ${innerRadius}px ${innerRadius}px`;
+
   return (
     <div
       className={cn("relative flex-1 overflow-hidden", borderColor)}
-      style={{ borderRadius: radius }}
+      style={{ borderRadius: outerRadius }}
     >
       <div
         className="absolute bg-blue-200 dark:bg-blue-200-dark"
         style={{
           inset: 1,
-          borderRadius: Math.max(0, radius - 1),
+          borderRadius: innerBorderRadius,
         }}
       />
 
@@ -74,7 +82,7 @@ const HalfBar: FC<{
             inset: isTop
               ? `${emptyPercent}% 1px 1px 1px`
               : `1px 1px ${emptyPercent}% 1px`,
-            borderRadius: Math.max(0, radius - 1),
+            borderRadius: innerBorderRadius,
           }}
         />
       )}
@@ -82,17 +90,31 @@ const HalfBar: FC<{
   );
 };
 
-const EmptyHalf: FC<{ radius: number }> = ({ radius }) => (
-  <div
-    className="relative flex-1 bg-blue-500 dark:bg-blue-500-dark"
-    style={{ borderRadius: radius }}
-  >
+const EmptyHalf: FC<{ position: "top" | "bottom"; radius: number }> = ({
+  position,
+  radius,
+}) => {
+  const isTop = position === "top";
+  const outerRadius = isTop
+    ? `${radius}px ${radius}px 0 0`
+    : `0 0 ${radius}px ${radius}px`;
+  const innerRadius = Math.max(0, radius - 1);
+  const innerBorderRadius = isTop
+    ? `${innerRadius}px ${innerRadius}px 0 0`
+    : `0 0 ${innerRadius}px ${innerRadius}px`;
+
+  return (
     <div
-      className="absolute bg-blue-200 dark:bg-blue-200-dark"
-      style={{ inset: 1, borderRadius: Math.max(0, radius - 1) }}
-    />
-  </div>
-);
+      className="relative flex-1 bg-blue-500 dark:bg-blue-500-dark"
+      style={{ borderRadius: outerRadius }}
+    >
+      <div
+        className="absolute bg-blue-200 dark:bg-blue-200-dark"
+        style={{ inset: 1, borderRadius: innerBorderRadius }}
+      />
+    </div>
+  );
+};
 
 /**
  * Computes the clip-path for the white (on-fill) arrow.
@@ -126,14 +148,14 @@ const VerticalImpactBar: FC<VerticalImpactBarProps> = ({
   strength,
   size = "default",
 }) => {
-  const { width, iconSize, radius, lineOverhang } = SIZE_CONFIG[size];
+  const { widthClass, iconSize, radius, lineOverhang } = SIZE_CONFIG[size];
   const fillPercent = (Math.max(0, Math.min(5, strength)) / 5) * 90;
 
   if (!direction) {
     return (
-      <div className="flex shrink-0 flex-col gap-0.5" style={{ width }}>
-        <EmptyHalf radius={radius} />
-        <EmptyHalf radius={radius} />
+      <div className={cn("flex shrink-0 flex-col gap-0.5", widthClass)}>
+        <EmptyHalf position="top" radius={radius} />
+        <EmptyHalf position="bottom" radius={radius} />
       </div>
     );
   }
@@ -145,7 +167,7 @@ const VerticalImpactBar: FC<VerticalImpactBarProps> = ({
   const fillClip = getFillClipPath(direction, fillPercent);
 
   return (
-    <div className="relative shrink-0 self-stretch" style={{ width }}>
+    <div className={cn("relative shrink-0 self-stretch", widthClass)}>
       <div className="flex h-full flex-col gap-0.5">
         <HalfBar
           position="top"

@@ -2,8 +2,11 @@ import KeyFactorStrengthItem from "../key_factor_strength_item";
 import KeyFactorNewsItem from "./key_factor_news_item";
 
 const KeyFactorNews: React.FC<
-  Omit<Parameters<typeof KeyFactorStrengthItem>[0], "impactMetadata">
-> = (props) => {
+  Omit<Parameters<typeof KeyFactorStrengthItem>[0], "impactMetadata"> & {
+    titleLinksToArticle?: boolean;
+    truncateText?: boolean;
+  }
+> = ({ titleLinksToArticle, truncateText, ...props }) => {
   if (!props.keyFactor.news) return null;
   const { news } = props.keyFactor;
   return (
@@ -22,6 +25,8 @@ const KeyFactorNews: React.FC<
         isCompact={props.isCompact}
         isConsumer={props.mode === "consumer"}
         url={news.url}
+        titleLinksToArticle={titleLinksToArticle}
+        truncate={truncateText}
       />
     </KeyFactorStrengthItem>
   );
