@@ -1,6 +1,7 @@
 "use client";
 
 import { faNewspaper } from "@fortawesome/free-regular-svg-icons";
+import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useLocale } from "next-intl";
 import React from "react";
@@ -19,6 +20,8 @@ type Props = {
   url: string;
   isCompact?: boolean;
   isConsumer?: boolean;
+  titleLinksToArticle?: boolean;
+  truncate?: boolean;
 };
 
 const KeyFactorNewsItem: React.FC<Props> = ({
@@ -28,7 +31,8 @@ const KeyFactorNewsItem: React.FC<Props> = ({
   createdAt,
   url,
   isCompact = false,
-  isConsumer = false,
+  titleLinksToArticle = true,
+  truncate = false,
 }) => {
   const locale = useLocale();
 
@@ -52,69 +56,100 @@ const KeyFactorNewsItem: React.FC<Props> = ({
   };
 
   return (
-    <div>
-      <a
-        {...linkProps}
-        className="float-right mb-1 ml-2.5 size-10 flex-shrink-0 no-underline"
-        aria-label={source ? `Open article on ${source}` : "Open article"}
-      >
-        {faviconUrl ? (
-          <ImageWithFallback
-            className="size-10 cursor-pointer rounded"
-            src={getProxiedFaviconUrl(faviconUrl)}
-            alt={`${source} logo`}
+    <div className="flex gap-2.5">
+      <div className="flex min-w-0 flex-1 flex-col">
+        {titleLinksToArticle ? (
+          <a
+            {...linkProps}
+            className={cn(
+              "my-0 block break-words font-medium text-gray-900 no-underline hover:underline dark:text-gray-900-dark",
+              isCompact
+                ? "line-clamp-4 text-xs leading-4"
+                : cn("text-sm leading-5", truncate && "line-clamp-5")
+            )}
           >
-            <span className="flex size-10 items-center justify-center rounded bg-gray-200 dark:bg-gray-200-dark">
-              <FontAwesomeIcon icon={faNewspaper} size="xl" />
-            </span>
-          </ImageWithFallback>
+            {title}
+          </a>
         ) : (
-          <span className="flex size-10 cursor-pointer items-center justify-center rounded bg-gray-200 dark:bg-gray-200-dark" />
+          <span
+            className={cn(
+              "my-0 block break-words font-medium text-gray-900 dark:text-gray-900-dark",
+              isCompact
+                ? "line-clamp-4 text-xs leading-4"
+                : cn("text-sm leading-5", truncate && "line-clamp-5")
+            )}
+          >
+            {title}
+          </span>
         )}
-      </a>
 
-      <a
-        {...linkProps}
-        className={cn(
-          "my-0 block font-medium text-gray-900 no-underline hover:underline dark:text-gray-900-dark",
-          isCompact ? "text-xs leading-4" : "text-base leading-5"
-        )}
-      >
-        {title}
-      </a>
-
-      <a
-        {...linkProps}
-        className={cn(
-          "mt-1 flex max-w-full items-center gap-1.5 overflow-hidden text-ellipsis whitespace-nowrap font-medium no-underline",
-          isCompact ? "text-[10px]" : "text-xs",
-          isConsumer
-            ? "text-blue-600 dark:text-blue-600-dark"
-            : "text-gray-900 dark:text-gray-900-dark"
-        )}
-      >
-        <span
-          className={cn("truncate", isCompact ? "max-w-[8ch]" : "max-w-[12ch]")}
+        <a
+          {...linkProps}
+          className={cn(
+            "mt-1 flex items-center gap-1.5 font-medium no-underline",
+            isCompact ? "text-[10px]" : "text-xs",
+            "text-blue-600 dark:text-blue-600-dark"
+          )}
         >
-          {source}
-        </span>
-        {date && (
-          <>
+          {date ? (
             <span
               className={cn(
-                isCompact
-                  ? "text-blue-400 dark:text-blue-400-dark"
-                  : "text-gray-500 dark:text-gray-500-dark"
+                "flex flex-wrap content-end items-center gap-x-1.5 overflow-hidden",
+                isCompact ? "max-h-[14px]" : "max-h-5"
               )}
             >
-              •
+              <span className="flex-shrink-0 whitespace-nowrap">{source}</span>
+              <span
+                className={cn(
+                  "flex-shrink-0",
+                  isCompact
+                    ? "text-blue-400 dark:text-blue-400-dark"
+                    : "text-gray-500 dark:text-gray-500-dark"
+                )}
+              >
+                •
+              </span>
+              <span
+                suppressHydrationWarning
+                className="flex-shrink-0 text-nowrap"
+              >
+                {formatDate(locale, date)}
+              </span>
             </span>
-            <span suppressHydrationWarning className="text-nowrap">
-              {formatDate(locale, date)}
-            </span>
-          </>
-        )}
-      </a>
+          ) : (
+            <span className="truncate">{source}</span>
+          )}
+        </a>
+      </div>
+
+      <div className="flex flex-shrink-0 flex-col items-center gap-1">
+        <a
+          {...linkProps}
+          className="size-10 no-underline"
+          aria-label={source ? `Open article on ${source}` : "Open article"}
+        >
+          {faviconUrl ? (
+            <ImageWithFallback
+              className="size-10 cursor-pointer rounded"
+              src={getProxiedFaviconUrl(faviconUrl)}
+              alt={`${source} logo`}
+            >
+              <span className="flex size-10 items-center justify-center rounded bg-gray-200 dark:bg-gray-200-dark">
+                <FontAwesomeIcon icon={faNewspaper} size="xl" />
+              </span>
+            </ImageWithFallback>
+          ) : (
+            <span className="flex size-10 cursor-pointer items-center justify-center rounded bg-gray-200 dark:bg-gray-200-dark" />
+          )}
+        </a>
+        <a
+          {...linkProps}
+          className="text-sm text-blue-700 no-underline hover:text-blue-800 dark:text-blue-700-dark dark:hover:text-blue-800-dark"
+          aria-label="Open article in new tab"
+        >
+          <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+        </a>
+      </div>
     </div>
   );
 };

@@ -7,7 +7,6 @@ import { useKeyFactorDelete } from "@/app/(main)/questions/[id]/components/key_f
 import { KeyFactorItem } from "@/app/(main)/questions/[id]/components/key_factors/item_view";
 import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_factors/key_factors_carousel";
 import { useShouldHideKeyFactors } from "@/app/(main)/questions/[id]/components/key_factors/use_should_hide_key_factors";
-import { openKeyFactorsSectionAndScrollTo } from "@/app/(main)/questions/[id]/components/key_factors/utils";
 import { useQuestionLayoutSafe } from "@/app/(main)/questions/[id]/components/question_layout/question_layout_context";
 import { useAuth } from "@/contexts/auth_context";
 import { KeyFactor } from "@/types/comment";
@@ -57,13 +56,7 @@ const KeyFactorsCommentSection: FC<Props> = ({
         gapClassName="gap-1"
         renderItem={(kf) => {
           const handleClick = () => {
-            questionLayout?.requestKeyFactorsExpand?.();
-
-            openKeyFactorsSectionAndScrollTo({
-              selector: `[id="key-factor-${kf.id}"]`,
-              mobileOnly: false,
-            });
-
+            questionLayout?.openKeyFactorOverlay?.(kf);
             sendAnalyticsEvent("KeyFactorClick", {
               event_label: "fromComment",
             });
@@ -86,7 +79,7 @@ const KeyFactorsCommentSection: FC<Props> = ({
               </div>
 
               {canEdit && (
-                <div className="absolute -right-3 -top-3 flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="absolute -right-1.5 -top-2 z-10 flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
                   <button
                     className="pointer-events-auto flex h-6 w-6 rounded-full bg-salmon-300 p-0 text-salmon-600 dark:bg-salmon-300-dark dark:text-salmon-600-dark"
                     onClick={(e) => {

@@ -7,7 +7,7 @@ import { FC, RefObject } from "react";
 import { KeyFactor } from "@/types/comment";
 import { ProjectPermissions } from "@/types/post";
 
-import MorePanel from "./more_panel";
+import MorePanel, { ActionItem, ActionPanel } from "./more_panel";
 import { DownvoteReason, ImpactOption, useVotePanel } from "./use_vote_panel";
 import VotePanel from "./vote_panel";
 
@@ -20,8 +20,8 @@ const DOWNVOTE_REASONS: DownvoteReason[] = [
 
 export function useKeyFactorVotePanels() {
   const impactPanel = useVotePanel<ImpactOption>();
-  const downvotePanel = useVotePanel<DownvoteReason>();
-  const morePanel = useVotePanel<string>();
+  const downvotePanel = useVotePanel<DownvoteReason>(impactPanel.anchorRef);
+  const morePanel = useVotePanel<string>(impactPanel.anchorRef);
 
   const toggleExclusive = (
     target: Pick<ReturnType<typeof useVotePanel>, "setShowPanel">,
@@ -34,14 +34,24 @@ export function useKeyFactorVotePanels() {
     }
   };
 
-  const handleUpvotePanelToggle = (open: boolean) =>
+  const handleUpvotePanelToggle = (open: boolean) => {
     toggleExclusive(impactPanel, [downvotePanel, morePanel], open);
+    if (open) {
+      impactPanel.setSelectedOption("medium" as ImpactOption);
+    }
+  };
 
   const handleDownvotePanelToggle = (open: boolean) =>
     toggleExclusive(downvotePanel, [impactPanel, morePanel], open);
 
   const handleMorePanelToggle = (open: boolean) =>
     toggleExclusive(morePanel, [impactPanel, downvotePanel], open);
+
+  const closeAllPanels = () => {
+    impactPanel.setShowPanel(false);
+    downvotePanel.setShowPanel(false);
+    morePanel.setShowPanel(false);
+  };
 
   return {
     impactPanel,
@@ -50,6 +60,7 @@ export function useKeyFactorVotePanels() {
     handleUpvotePanelToggle,
     handleDownvotePanelToggle,
     handleMorePanelToggle,
+    closeAllPanels,
   };
 }
 
@@ -59,8 +70,14 @@ type KeyFactorVotePanelsProps = {
   morePanel?: ReturnType<typeof useVotePanel<string>>;
   anchorRef: RefObject<HTMLDivElement | null>;
   isCompact?: boolean;
+  inline?: boolean;
   keyFactor?: KeyFactor;
   projectPermission?: ProjectPermissions;
+  onImpactSelect?: (option: ImpactOption) => void;
+  onDownvoteReasonSelect?: (reason: DownvoteReason) => void;
+  showDownvoteThanks?: boolean;
+  moreActions?: ActionItem[];
+  moreHeader?: React.ReactNode;
 };
 
 const KeyFactorVotePanels: FC<KeyFactorVotePanelsProps> = ({
@@ -69,8 +86,14 @@ const KeyFactorVotePanels: FC<KeyFactorVotePanelsProps> = ({
   morePanel,
   anchorRef,
   isCompact,
+  inline,
   keyFactor,
   projectPermission,
+  onImpactSelect,
+  onDownvoteReasonSelect,
+  showDownvoteThanks,
+  moreActions,
+  moreHeader,
 }) => {
   const t = useTranslations();
 
@@ -83,11 +106,15 @@ const KeyFactorVotePanels: FC<KeyFactorVotePanelsProps> = ({
           selectedOption={impactPanel.selectedOption}
           title={t("voteOnImpact")}
           isCompact={isCompact}
+          inline={inline}
           anchorRef={anchorRef}
-          onSelect={impactPanel.toggleOption}
+          onSelect={(option) => {
+            impactPanel.toggleOption(option);
+            onImpactSelect?.(option);
+          }}
           onClose={impactPanel.closePanel}
           renderLabel={(option) => capitalize(t(option))}
-          buttonClassName={!isCompact ? "py-[11px]" : undefined}
+          buttonClassName={!isCompact ? "sm:py-[11px]" : undefined}
         />
       )}
 
@@ -99,12 +126,16 @@ const KeyFactorVotePanels: FC<KeyFactorVotePanelsProps> = ({
           title={t("why")}
           direction="column"
           isCompact={isCompact}
+          inline={inline}
           anchorRef={anchorRef}
-          onSelect={downvotePanel.toggleOption}
+          onSelect={(reason) => {
+            downvotePanel.toggleOption(reason);
+            onDownvoteReasonSelect?.(reason);
+          }}
           onClose={downvotePanel.closePanel}
           renderLabel={(reason) => t(reason)}
           footer={
-            downvotePanel.selectedOption ? (
+            showDownvoteThanks ? (
               <span className="text-xs font-medium leading-4 text-olive-800 dark:text-olive-800-dark">
                 {t("thanksForVoting")}
               </span>
@@ -120,6 +151,19 @@ const KeyFactorVotePanels: FC<KeyFactorVotePanelsProps> = ({
           projectPermission={projectPermission}
           anchorRef={anchorRef}
           isCompact={isCompact}
+          inline={inline}
+          onClose={morePanel.closePanel}
+        />
+      )}
+
+      {morePanel?.showPanel && !keyFactor && moreActions && (
+        <ActionPanel
+          ref={morePanel.panelRef}
+          actions={moreActions}
+          header={moreHeader}
+          anchorRef={anchorRef}
+          isCompact={isCompact}
+          inline={inline}
           onClose={morePanel.closePanel}
         />
       )}

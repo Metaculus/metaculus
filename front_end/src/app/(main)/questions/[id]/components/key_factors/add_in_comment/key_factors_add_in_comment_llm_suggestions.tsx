@@ -654,6 +654,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
               const emptyAggregate: KeyFactorVoteAggregate = {
                 score: 0,
                 user_vote: null,
+                user_vote_reason: null,
                 count: 0,
                 aggregated_data: [],
               };

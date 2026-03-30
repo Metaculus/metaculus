@@ -41,7 +41,7 @@ const ThumbVoteButtons: FC<Props> = ({
         aria-pressed={isUp}
         onClick={onClickUp}
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-[4px] border px-2 py-1 text-xs font-normal transition-colors",
+          "inline-flex items-center gap-1 rounded-[4px] border px-1 py-1 text-xs font-normal transition-colors md:gap-1.5 md:px-2",
           isUp
             ? "border-blue-600 bg-blue-600 text-gray-0 dark:border-blue-600-dark dark:bg-blue-600-dark dark:text-gray-0-dark"
             : "hover:dark:bg-gray-50-dark border-blue-400 bg-gray-0 text-blue-800 hover:bg-gray-50 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-blue-800-dark"
@@ -65,7 +65,7 @@ const ThumbVoteButtons: FC<Props> = ({
         aria-pressed={isDown}
         onClick={onClickDown}
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-[4px] border px-2 py-1 text-xs font-normal transition-colors",
+          "inline-flex items-center gap-1 rounded-[4px] border px-1 py-1 text-xs font-normal transition-colors md:gap-1.5 md:px-2",
           isDown
             ? "border-blue-600 bg-blue-600 text-gray-0 dark:border-blue-600-dark dark:bg-blue-600-dark dark:text-gray-0-dark"
             : "hover:dark:bg-gray-50-dark border-blue-400 bg-gray-0 text-blue-800 hover:bg-gray-50 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-blue-800-dark"

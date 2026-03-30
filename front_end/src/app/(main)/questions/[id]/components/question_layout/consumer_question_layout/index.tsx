@@ -85,7 +85,7 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
             )}
             <TabsSection value="key-factors">
               <div className="-m-4 bg-blue-200 p-4 pt-0 dark:bg-blue-200-dark">
-                <KeyFactorsFeed post={postData} />
+                <KeyFactorsFeed post={postData} hideOverlay />
               </div>
             </TabsSection>
             <TabsSection value="info">
@@ -104,6 +104,8 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
             preselectedGroupQuestionId={preselectedGroupQuestionId}
             showKeyFactors={true}
             showTimeline={!isFanGraph}
+            keyFactorsDefaultCollapsed
+            hideKeyFactorOverlay
           />
         </div>
       </QuestionSection>

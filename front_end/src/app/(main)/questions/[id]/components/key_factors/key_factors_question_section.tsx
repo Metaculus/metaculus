@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useMemo } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
@@ -23,6 +23,8 @@ import { useShouldHideKeyFactors } from "./use_should_hide_key_factors";
 type KeyFactorsQuestionSectionProps = {
   post: PostWithForecasts;
   variant?: "default" | "flow";
+  defaultCollapsed?: boolean;
+  hideOverlay?: boolean;
 };
 
 const CLOSED_STATUSES: PostStatus[] = [
@@ -34,6 +36,8 @@ const CLOSED_STATUSES: PostStatus[] = [
 const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
   post,
   variant = "default",
+  defaultCollapsed,
+  hideOverlay,
 }) => {
   const isFlow = variant === "flow";
 
@@ -43,6 +47,7 @@ const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
   const { keyFactorsExpanded } = useQuestionLayout();
   const { combinedKeyFactors } = useCommentsFeed();
   const shouldHideKeyFactors = useShouldHideKeyFactors();
+  const [isSectionExpanded, setIsSectionExpanded] = useState(false);
   const { aggregateCoherenceLinks } = useCoherenceLinksContext();
 
   const questionLinkAggregates = useMemo(
@@ -95,7 +100,8 @@ const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
     totalCount > 0 ? `${t("keyFactors")} (${totalCount})` : t("keyFactors");
 
   const isResolved = postStatus === PostStatus.RESOLVED;
-  const shouldDefaultOpen = !isResolved && (!isFlow || totalCount > 0);
+  const shouldDefaultOpen =
+    !defaultCollapsed && !isResolved && (!isFlow || totalCount > 0);
 
   return (
     <SectionToggle
@@ -135,8 +141,13 @@ const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
           expandLabel={t("showMore")}
           collapseLabel={t("showLess")}
           forceState={keyFactorsExpanded}
+          onExpandedChange={setIsSectionExpanded}
         >
-          <KeyFactorsFeed post={post} />
+          <KeyFactorsFeed
+            post={post}
+            truncateText={!isSectionExpanded}
+            hideOverlay={hideOverlay}
+          />
         </ExpandableContent>
       )}
     </SectionToggle>

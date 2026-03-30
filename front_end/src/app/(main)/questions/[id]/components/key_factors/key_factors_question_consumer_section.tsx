@@ -8,6 +8,7 @@ import { openKeyFactorsSectionAndScrollTo } from "@/app/(main)/questions/[id]/co
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
+import KeyFactorDetailOverlay from "./key_factor_detail_overlay";
 import KeyFactorsConsumerCarousel from "./key_factors_consumer_carousel";
 import { useShouldHideKeyFactors } from "./use_should_hide_key_factors";
 import { useQuestionLayout } from "../question_layout/question_layout_context";
@@ -23,7 +24,12 @@ type Props = {
 const KeyFactorsQuestionConsumerSection: FC<Props> = ({ post }) => {
   const { combinedKeyFactors: keyFactors } = useCommentsFeed();
   const t = useTranslations();
-  const { requestKeyFactorsExpand } = useQuestionLayout();
+  const {
+    requestKeyFactorsExpand,
+    keyFactorOverlay,
+    openKeyFactorOverlay,
+    closeKeyFactorOverlay,
+  } = useQuestionLayout();
   const shouldHideKeyFactors = useShouldHideKeyFactors();
 
   const { items: topItems, totalCount } = useTopKeyFactorsCarouselItems({
@@ -64,6 +70,24 @@ const KeyFactorsQuestionConsumerSection: FC<Props> = ({ post }) => {
       </div>
 
       <KeyFactorsConsumerCarousel post={post} items={topItems} />
+
+      {keyFactorOverlay?.kind === "keyFactor" && (
+        <KeyFactorDetailOverlay
+          keyFactor={keyFactorOverlay.keyFactor}
+          allKeyFactors={keyFactors}
+          post={post}
+          onClose={closeKeyFactorOverlay}
+          onSelectKeyFactor={(kf) => openKeyFactorOverlay(kf)}
+        />
+      )}
+      {keyFactorOverlay?.kind === "questionLink" && (
+        <KeyFactorDetailOverlay
+          key={keyFactorOverlay.link.id}
+          questionLink={keyFactorOverlay.link}
+          post={post}
+          onClose={closeKeyFactorOverlay}
+        />
+      )}
     </div>
   );
 };

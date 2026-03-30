@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 type OptimisticVoteResult<V extends number | null> = {
   vote: V | null;
@@ -19,12 +19,14 @@ export function useOptimisticVote<V extends number | null>({
   serverDownCount,
   upValue,
   downValue,
+  isUpVote,
 }: {
   serverVote: V | null;
   serverUpCount: number;
   serverDownCount: number;
   upValue: V;
   downValue: V;
+  isUpVote?: (value: V | null) => boolean;
 }): OptimisticVoteResult<V> {
   const [optimistic, setOptimisticRaw] = useState<V | null | undefined>(
     undefined
@@ -32,14 +34,19 @@ export function useOptimisticVote<V extends number | null>({
 
   const vote = optimistic !== undefined ? optimistic : serverVote;
 
+  const matchUp = useCallback(
+    (v: V | null) => (isUpVote ? isUpVote(v) : v === upValue),
+    [isUpVote, upValue]
+  );
+
   const { upCount, downCount } = useMemo(() => {
     let up = serverUpCount;
     let down = serverDownCount;
 
     if (optimistic !== undefined) {
-      const wasUp = serverVote === upValue;
+      const wasUp = matchUp(serverVote);
       const wasDown = serverVote === downValue;
-      const isUp = optimistic === upValue;
+      const isUp = matchUp(optimistic);
       const isDown = optimistic === downValue;
 
       if (wasUp && !isUp) up = Math.max(0, up - 1);
@@ -53,7 +60,7 @@ export function useOptimisticVote<V extends number | null>({
     serverUpCount,
     serverDownCount,
     serverVote,
-    upValue,
+    matchUp,
     downValue,
     optimistic,
   ]);
