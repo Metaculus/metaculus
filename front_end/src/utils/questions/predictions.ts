@@ -31,7 +31,7 @@ export function isPostPrePrediction(
   }
   if (post.group_of_questions) {
     return post.group_of_questions.questions.every(
-      (q) => q.status === QuestionStatus.UPCOMING
+      (q) => !isNil(q.open_time) && parseISO(q.open_time) > now
     );
   }
   if (post.conditional) {
@@ -93,7 +93,7 @@ export function canPredictQuestion(
 
     return (
       !conditionClosedOrResolved &&
-      conditional.condition_child.open_time !== undefined
+      conditional.condition_child.open_time != null
     );
   }
 

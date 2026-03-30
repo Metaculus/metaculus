@@ -13,7 +13,7 @@ const PredictionStatusMessage: FC<Props> = ({ post }) => {
 
   switch (post.status) {
     case PostStatus.UPCOMING: {
-      return <>{t("predictionUpcomingMessage")}</>;
+      return <>{t("prePredictionMessage")}</>;
     }
     case PostStatus.APPROVED: {
       if (Date.parse(post.open_time) > Date.now()) {

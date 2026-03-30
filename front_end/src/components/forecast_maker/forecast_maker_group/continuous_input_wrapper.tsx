@@ -281,7 +281,8 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
 
   if (
     (option.question.status === QuestionStatus.OPEN ||
-      option.question.status === QuestionStatus.UPCOMING) &&
+      (option.question.status === QuestionStatus.UPCOMING &&
+        !!option.question.open_time)) &&
     canPredict
   ) {
     SubmitControls = (
@@ -420,7 +421,10 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           disabled={
             !canPredict ||
             (option.question.status !== QuestionStatus.OPEN &&
-              option.question.status !== QuestionStatus.UPCOMING)
+              !(
+                option.question.status === QuestionStatus.UPCOMING &&
+                !!option.question.open_time
+              ))
           }
           predictionMessage={
             predictionMessage ? t(predictionMessage) : undefined

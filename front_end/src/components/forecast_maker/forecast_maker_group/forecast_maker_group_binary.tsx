@@ -228,7 +228,11 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   const questionsToSubmit = useMemo(() => {
     const byId = new Map(questions.map((q) => [q.id, q]));
     return questionOptions.filter((option) => {
-      if (option.status !== QuestionStatus.OPEN) return false;
+      if (
+        option.status !== QuestionStatus.OPEN &&
+        option.status !== QuestionStatus.UPCOMING
+      )
+        return false;
       if (option.isDirty) return true;
       if (!isPickerDirty && hasSomeActiveUserForecasts) {
         const q = byId.get(option.id);

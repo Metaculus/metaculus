@@ -221,10 +221,12 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         (option) =>
           (option.forecastInputMode === ContinuousForecastInputType.Slider &&
             option.value !== null &&
-            option.question.status === QuestionStatus.OPEN) ||
+            (option.question.status === QuestionStatus.OPEN ||
+              option.question.status === QuestionStatus.UPCOMING)) ||
           (option.forecastInputMode === ContinuousForecastInputType.Quantile &&
             option.quantileValue !== null &&
-            option.question.status === QuestionStatus.OPEN)
+            (option.question.status === QuestionStatus.OPEN ||
+              option.question.status === QuestionStatus.UPCOMING))
       ),
     [questionOptions]
   );
