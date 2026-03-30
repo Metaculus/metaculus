@@ -1,8 +1,12 @@
 "use client";
 
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useQuery,
+} from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FC, useCallback, useState, useMemo } from "react";
 
 import PopoverFilter from "@/components/popover_filter";
 import {
@@ -18,7 +22,6 @@ import useSearchParams from "@/hooks/use_search_params";
 import ClientCommentsApi from "@/services/api/comments/comments.client";
 import { getCommentsParams } from "@/services/api/comments/comments.shared";
 import ClientPostsApi from "@/services/api/posts/posts.client";
-import { CommentType } from "@/types/comment";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 
 import CommentFeedCard from "./comment_feed_card";
@@ -63,9 +66,6 @@ const CommentFeedContent: FC = () => {
   const initialSearch = params.get(SEARCH_PARAM) ?? "";
   const initialExcludeBots = params.get(EXCLUDE_BOTS_PARAM) !== "false";
 
-  const [comments, setComments] = useState<CommentType[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(true);
   const [sort, setSort] = useState<SortOption>(initialSort);
   const [timeWindow, setTimeWindow] = useState<TimeWindow>(initialTimeWindow);
   const [excludeBots, setExcludeBots] = useState(initialExcludeBots);
@@ -124,9 +124,49 @@ const CommentFeedContent: FC = () => {
     [updateDebouncedSearch]
   );
 
-  // Use ref to avoid stale closure in fetchComments
-  const commentsRef = useRef(comments);
-  commentsRef.current = comments;
+  const effectiveSort =
+    sort === "relevance" && !debouncedSearch ? "-created_at" : sort;
+
+  const {
+    data: commentsData,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
+    queryKey: [
+      "comments-feed",
+      effectiveSort,
+      timeWindow,
+      debouncedSearch,
+      excludeBots,
+    ],
+    queryFn: async ({ pageParam = 0 }) => {
+      const params: getCommentsParams = {
+        limit: COMMENTS_PER_PAGE,
+        offset: pageParam,
+        sort: effectiveSort,
+        parent_isnull: true,
+        is_private: false,
+        include_deleted: false,
+        post_status: PostStatus.APPROVED,
+        ...(timeWindow !== "all_time" && { time_window: timeWindow }),
+        ...(debouncedSearch && { search: debouncedSearch }),
+        exclude_bots: excludeBots,
+      };
+      return ClientCommentsApi.getComments(params);
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.results.length < COMMENTS_PER_PAGE) return undefined;
+      return allPages.reduce((sum, page) => sum + page.results.length, 0);
+    },
+  });
+
+  const comments = useMemo(
+    () => commentsData?.pages.flatMap((page) => page.results) ?? [],
+    [commentsData]
+  );
 
   const postIds = useMemo(
     () =>
@@ -156,47 +196,6 @@ const CommentFeedContent: FC = () => {
     enabled: postIds.length > 0,
     placeholderData: keepPreviousData,
   });
-
-  const fetchComments = useCallback(
-    async (offset: number, reset: boolean = false) => {
-      setIsLoading(true);
-      try {
-        const effectiveSort =
-          sort === "relevance" && !debouncedSearch ? "-created_at" : sort;
-        const params: getCommentsParams = {
-          limit: COMMENTS_PER_PAGE,
-          offset,
-          sort: effectiveSort,
-          parent_isnull: true,
-          is_private: false,
-          include_deleted: false,
-          post_status: PostStatus.APPROVED,
-          ...(timeWindow !== "all_time" && { time_window: timeWindow }),
-          ...(debouncedSearch && { search: debouncedSearch }),
-          exclude_bots: excludeBots,
-        };
-        const response = await ClientCommentsApi.getComments(params);
-        const prev = reset ? [] : commentsRef.current;
-        const newComments = [...prev, ...response.results];
-        setComments(newComments);
-        setHasMore(response.results.length >= COMMENTS_PER_PAGE);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [sort, timeWindow, debouncedSearch, excludeBots]
-  );
-
-  // Reset and fetch when filters change
-  useEffect(() => {
-    setComments([]);
-    setHasMore(true);
-    void fetchComments(0, true);
-  }, [fetchComments]);
-
-  const handleLoadMore = () => {
-    void fetchComments(comments.length);
-  };
 
   const sortOptions: { value: SortOption; label: string }[] = [
     { value: "-created_at", label: t("sortRecent") },
@@ -324,12 +323,12 @@ const CommentFeedContent: FC = () => {
           {t("noCommentsFound")}
         </p>
       )}
-      {hasMore && comments.length > 0 && (
+      {hasNextPage && comments.length > 0 && (
         <div className="flex py-5">
-          {isLoading ? (
+          {isFetchingNextPage ? (
             <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
           ) : (
-            <Button className="mx-auto" onClick={handleLoadMore}>
+            <Button className="mx-auto" onClick={() => fetchNextPage()}>
               {t("loadMoreComments")}
             </Button>
           )}
