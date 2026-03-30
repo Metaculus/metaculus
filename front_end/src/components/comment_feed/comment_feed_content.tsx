@@ -14,6 +14,7 @@ import Button from "@/components/ui/button";
 import Listbox from "@/components/ui/listbox";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
+import useSearchParams from "@/hooks/use_search_params";
 import ClientCommentsApi from "@/services/api/comments/comments.client";
 import { getCommentsParams } from "@/services/api/comments/comments.shared";
 import ClientPostsApi from "@/services/api/posts/posts.client";
@@ -24,23 +25,95 @@ import CommentFeedCard from "./comment_feed_card";
 
 const COMMENTS_PER_PAGE = 10;
 
+const SORT_PARAM = "sort";
+const TIME_WINDOW_PARAM = "time";
+const SEARCH_PARAM = "search";
+const EXCLUDE_BOTS_PARAM = "exclude_bots";
+
 type SortOption = "-created_at" | "-vote_score" | "-cmm_count" | "relevance";
 
 type TimeWindow = "all_time" | "past_week" | "past_month" | "past_year";
 
+const VALID_SORTS: SortOption[] = [
+  "-created_at",
+  "-vote_score",
+  "-cmm_count",
+  "relevance",
+];
+const VALID_TIME_WINDOWS: TimeWindow[] = [
+  "all_time",
+  "past_week",
+  "past_month",
+  "past_year",
+];
+
 const CommentFeedContent: FC = () => {
   const t = useTranslations();
+  const { params, setParam, deleteParam, replaceUrlWithoutNavigation } =
+    useSearchParams();
+
+  const initialSort = VALID_SORTS.includes(params.get(SORT_PARAM) as SortOption)
+    ? (params.get(SORT_PARAM) as SortOption)
+    : "-created_at";
+  const initialTimeWindow = VALID_TIME_WINDOWS.includes(
+    params.get(TIME_WINDOW_PARAM) as TimeWindow
+  )
+    ? (params.get(TIME_WINDOW_PARAM) as TimeWindow)
+    : "all_time";
+  const initialSearch = params.get(SEARCH_PARAM) ?? "";
+  const initialExcludeBots = params.get(EXCLUDE_BOTS_PARAM) !== "false";
+
   const [comments, setComments] = useState<CommentType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
-  const [sort, setSort] = useState<SortOption>("-created_at");
-  const [timeWindow, setTimeWindow] = useState<TimeWindow>("all_time");
-  const [excludeBots, setExcludeBots] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [sort, setSort] = useState<SortOption>(initialSort);
+  const [timeWindow, setTimeWindow] = useState<TimeWindow>(initialTimeWindow);
+  const [excludeBots, setExcludeBots] = useState(initialExcludeBots);
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
+
+  const syncUrlParams = useCallback(
+    (
+      newSort: SortOption,
+      newTimeWindow: TimeWindow,
+      newSearch: string,
+      newExcludeBots: boolean
+    ) => {
+      if (newSort !== "-created_at") {
+        setParam(SORT_PARAM, newSort, false);
+      } else {
+        deleteParam(SORT_PARAM, false);
+      }
+      if (newTimeWindow !== "all_time") {
+        setParam(TIME_WINDOW_PARAM, newTimeWindow, false);
+      } else {
+        deleteParam(TIME_WINDOW_PARAM, false);
+      }
+      if (newSearch) {
+        setParam(SEARCH_PARAM, newSearch, false);
+      } else {
+        deleteParam(SEARCH_PARAM, false);
+      }
+      if (!newExcludeBots) {
+        setParam(EXCLUDE_BOTS_PARAM, "false", false);
+      } else {
+        deleteParam(EXCLUDE_BOTS_PARAM, false);
+      }
+      replaceUrlWithoutNavigation();
+    },
+    [setParam, deleteParam, replaceUrlWithoutNavigation]
+  );
 
   const updateDebouncedSearch = useDebouncedCallback((value: string) => {
-    setDebouncedSearch(value.length >= 3 ? value : "");
+    const newSearch = value.length >= 3 ? value : "";
+    setDebouncedSearch(newSearch);
+    if (newSearch) {
+      setSort("relevance");
+      syncUrlParams("relevance", timeWindow, newSearch, excludeBots);
+    } else {
+      setSort("-created_at");
+      syncUrlParams("-created_at", timeWindow, "", excludeBots);
+    }
   }, 500);
 
   const handleSearchChange = useCallback(
@@ -121,16 +194,6 @@ const CommentFeedContent: FC = () => {
     void fetchComments(0, true);
   }, [fetchComments]);
 
-  // Auto-switch to relevance sort when searching
-  useEffect(() => {
-    if (debouncedSearch && sort !== "relevance") {
-      setSort("relevance");
-    } else if (!debouncedSearch && sort === "relevance") {
-      setSort("-created_at");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch]);
-
   const handleLoadMore = () => {
     void fetchComments(comments.length);
   };
@@ -193,15 +256,20 @@ const CommentFeedContent: FC = () => {
     optionValue: string | string[] | null
   ) => {
     if (filterId === "time_window") {
-      setTimeWindow((optionValue as TimeWindow) ?? "all_time");
+      const newTimeWindow = (optionValue as TimeWindow) ?? "all_time";
+      setTimeWindow(newTimeWindow);
+      syncUrlParams(sort, newTimeWindow, debouncedSearch, excludeBots);
     } else if (filterId === "exclude_bots") {
-      setExcludeBots(optionValue === "true");
+      const newExcludeBots = optionValue === "true";
+      setExcludeBots(newExcludeBots);
+      syncUrlParams(sort, timeWindow, debouncedSearch, newExcludeBots);
     }
   };
 
   const handlePopoverFilterClear = () => {
     setTimeWindow("all_time");
     setExcludeBots(true);
+    syncUrlParams(sort, "all_time", debouncedSearch, true);
   };
 
   return (
@@ -220,7 +288,14 @@ const CommentFeedContent: FC = () => {
           className="w-full sm:w-auto sm:min-w-[240px] sm:flex-1"
         />
         <div className="ml-auto flex gap-3 md:ml-0">
-          <Listbox value={sort} onChange={setSort} options={sortOptions} />
+          <Listbox
+            value={sort}
+            onChange={(value: SortOption) => {
+              setSort(value);
+              syncUrlParams(value, timeWindow, debouncedSearch, excludeBots);
+            }}
+            options={sortOptions}
+          />
           <PopoverFilter
             filters={popoverFilters}
             onChange={handlePopoverFilterChange}
