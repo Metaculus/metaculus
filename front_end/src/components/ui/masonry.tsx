@@ -30,6 +30,7 @@ export function useMediaValues(
 
   useEffect(() => {
     if (!medias) {
+      setValues({ columns: columns[0] ?? 1, gap: gap[0] ?? 12 });
       return;
     }
 
