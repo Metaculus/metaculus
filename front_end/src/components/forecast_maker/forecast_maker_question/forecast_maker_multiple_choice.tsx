@@ -153,6 +153,7 @@ type Props = {
   post: PostWithForecasts;
   question: QuestionWithMultipleChoiceForecasts;
   canPredict: boolean;
+  predictLabel: string;
   predictionMessage: ReactNode;
   onPredictionSubmit?: () => void;
 };
@@ -161,6 +162,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   post,
   question,
   canPredict,
+  predictLabel,
   predictionMessage,
   onPredictionSubmit,
 }) => {
@@ -536,6 +538,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         isUserForecastActive={isOpenQuestionPredicted(question)}
         isSubmissionDisabled={!isForecastValid}
         onSubmit={submit}
+        predictLabel={predictLabel}
       />
       {showOverlay && (
         <NewOptionCallout
@@ -674,6 +677,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
                 isUserForecastActive={isOpenQuestionPredicted(question)}
                 isPending={isPending}
                 isDisabled={!isForecastValid}
+                predictLabel={predictLabel}
                 predictionExpirationChip={expirationShortChip}
                 onPredictionExpirationClick={() =>
                   setIsForecastExpirationModalOpen(true)

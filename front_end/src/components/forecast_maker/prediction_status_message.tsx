@@ -17,7 +17,7 @@ const PredictionStatusMessage: FC<Props> = ({ post }) => {
     }
     case PostStatus.APPROVED: {
       if (Date.parse(post.open_time) > Date.now()) {
-        return <>{t("predictionUpcomingMessage")}</>;
+        return <>{t("prePredictionMessage")}</>;
       }
       return null;
     }

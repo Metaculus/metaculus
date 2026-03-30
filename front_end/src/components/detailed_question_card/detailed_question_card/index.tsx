@@ -54,7 +54,13 @@ const DetailedQuestionCard: FC<Props> = ({
     }
   }, [question.my_forecasts?.history.length, question.type]);
 
-  if (forecastAvailability.isEmpty && status !== PostStatus.OPEN) {
+  console.log("forecastAvailability", forecastAvailability);
+  console.log("status", status);
+
+  if (
+    (forecastAvailability.isEmpty && status !== PostStatus.OPEN) ||
+    (forecastAvailability.isAggregationsEmpty && status === PostStatus.APPROVED)
+  ) {
     return null;
   }
 

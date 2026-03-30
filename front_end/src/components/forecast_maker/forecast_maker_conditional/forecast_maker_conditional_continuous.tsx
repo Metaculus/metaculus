@@ -79,6 +79,7 @@ type Props = {
   postTitle: string;
   conditional: PostConditional<QuestionWithNumericForecasts>;
   canPredict: boolean;
+  predictLabel: string;
   predictionMessage: ReactNode;
   projects: Post["projects"];
   onPredictionSubmit?: () => void;
@@ -89,6 +90,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   postTitle,
   conditional,
   canPredict,
+  predictLabel,
   predictionMessage,
   projects,
   onPredictionSubmit,
@@ -786,7 +788,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             isDirty={predictButtonIsDirty}
             hasUserForecast={hasUserForecast}
             isPending={isSubmitting}
-            predictLabel={previousForecast ? undefined : t("predict")}
+            predictLabel={previousForecast ? undefined : predictLabel}
             isDisabled={predictButtonIsDisabled}
             predictionExpirationChip={expirationShortChip}
             onPredictionExpirationClick={() =>
@@ -845,6 +847,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         hasUserForecast={hasUserForecast}
         isSubmissionDisabled={predictButtonIsDisabled}
         questionDuration={questionDuration}
+        predictLabel={predictLabel}
       />
 
       <ConditionalForecastTable

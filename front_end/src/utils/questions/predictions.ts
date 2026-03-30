@@ -21,6 +21,26 @@ type CanPredictParams = Pick<
   | "conditional"
 >;
 
+export function isPostPrePrediction(
+  post: Pick<Post, "question" | "group_of_questions" | "conditional">
+): boolean {
+  const now = new Date();
+  if (post.question) {
+    const { open_time } = post.question;
+    return !isNil(open_time) && parseISO(open_time) > now;
+  }
+  if (post.group_of_questions) {
+    return post.group_of_questions.questions.every(
+      (q) => q.status === QuestionStatus.UPCOMING
+    );
+  }
+  if (post.conditional) {
+    const { open_time } = post.conditional.condition_child;
+    return !isNil(open_time) && parseISO(open_time) > now;
+  }
+  return false;
+}
+
 export function canPredictQuestion(
   {
     user_permission,
@@ -38,7 +58,7 @@ export function canPredictQuestion(
   // post level checks
   if (
     user_permission === ProjectPermissions.VIEWER ||
-    status !== PostStatus.OPEN
+    (status !== PostStatus.OPEN && status !== PostStatus.APPROVED)
   ) {
     return false;
   }
@@ -47,13 +67,15 @@ export function canPredictQuestion(
   if (question) {
     const { open_time } = question;
 
-    return !isNil(open_time) && parseISO(open_time) < new Date();
+    return !isNil(open_time);
   }
 
   // group-specific checks
   if (group_of_questions) {
     return group_of_questions.questions.some(
-      (q) => q.status === QuestionStatus.OPEN
+      (q) =>
+        q.status === QuestionStatus.OPEN ||
+        (q.status === QuestionStatus.UPCOMING && !isNil(q.open_time))
     );
   }
 
@@ -71,8 +93,7 @@ export function canPredictQuestion(
 
     return (
       !conditionClosedOrResolved &&
-      conditional.condition_child.open_time !== undefined &&
-      new Date(conditional.condition_child.open_time) <= new Date()
+      conditional.condition_child.open_time !== undefined
     );
   }
 
@@ -88,7 +109,8 @@ export function canWithdrawForecast(
     latestForecast && !isForecastActive(latestForecast);
 
   return (
-    question.status === QuestionStatus.OPEN &&
+    (question.status === QuestionStatus.OPEN ||
+      question.status === QuestionStatus.UPCOMING) &&
     latestForecast &&
     !latestForecastExpired &&
     permission !== ProjectPermissions.VIEWER

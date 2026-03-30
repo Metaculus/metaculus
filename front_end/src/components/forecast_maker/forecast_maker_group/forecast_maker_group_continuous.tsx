@@ -78,6 +78,7 @@ type Props = {
   questions: QuestionWithNumericForecasts[];
   groupVariable: string;
   canPredict: boolean;
+  predictLabel: string;
   predictionMessage: ReactNode;
   onPredictionSubmit?: () => void;
 };
@@ -86,6 +87,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   post,
   questions,
   canPredict,
+  predictLabel,
   groupVariable,
   predictionMessage,
   onPredictionSubmit,
@@ -621,6 +623,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         options={groupOptions}
         groupVariable={groupVariable}
         canPredict={canPredict}
+        predictLabel={predictLabel}
         isPending={isSubmitting}
         subQuestionId={subQuestionId}
         handleChange={handleChange}

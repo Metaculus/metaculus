@@ -43,6 +43,7 @@ interface ForecastExpirationModalProps {
   hasUserForecast: boolean;
   isUserForecastActive?: boolean;
   isSubmissionDisabled?: boolean;
+  predictLabel?: string;
 }
 
 type Preset = { id: string; duration?: Duration };
@@ -363,6 +364,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   hasUserForecast,
   isUserForecastActive,
   isSubmissionDisabled,
+  predictLabel: predictLabelProp,
 }) => {
   const t = useTranslations();
 
@@ -576,7 +578,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
             hasUserForecast={hasUserForecast}
             isUserForecastActive={isUserForecastActive}
             isPending={false}
-            predictLabel={t("predict")}
+            predictLabel={predictLabelProp ?? t("predict")}
             isDisabled={isSubmissionDisabled}
           />
         </div>

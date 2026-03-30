@@ -83,6 +83,7 @@ type Props = {
   questions: QuestionWithNumericForecasts[];
   groupVariable: string;
   canPredict: boolean;
+  predictLabel: string;
   predictionMessage: ReactNode;
   onPredictionSubmit?: () => void;
 };
@@ -92,6 +93,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   questions,
   groupVariable,
   canPredict,
+  predictLabel,
   predictionMessage,
   onPredictionSubmit,
 }) => {
@@ -336,6 +338,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
         hasUserForecast={hasUserForecast}
         isUserForecastActive={hasSomeActiveUserForecasts}
         isSubmissionDisabled={!questionsToSubmit.length}
+        predictLabel={predictLabel}
       />
       <table className="mt-3 border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
         <thead>
@@ -384,7 +387,9 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               isRowDirty={questionOption.isDirty}
               menu={questionOption.menu}
               disabled={
-                !canPredict || questionOption.status !== QuestionStatus.OPEN
+                !canPredict ||
+                (questionOption.status !== QuestionStatus.OPEN &&
+                  questionOption.status !== QuestionStatus.UPCOMING)
               }
               optionResolution={{
                 resolution: questionOption.resolution,
@@ -438,6 +443,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               isUserForecastActive={hasSomeActiveUserForecasts}
               isPending={isPending || isWithdrawing}
               isDisabled={!questionsToSubmit.length}
+              predictLabel={predictLabel}
               predictionExpirationChip={expirationShortChip}
               onPredictionExpirationClick={() =>
                 setIsForecastExpirationModalOpen(true)

@@ -63,6 +63,7 @@ type Props = {
   post: PostWithForecasts;
   question: QuestionWithNumericForecasts;
   canPredict: boolean;
+  predictLabel: string;
   predictionMessage?: ReactNode;
   onPredictionSubmit?: () => void;
 };
@@ -71,6 +72,7 @@ const ForecastMakerContinuous: FC<Props> = ({
   post,
   question,
   canPredict,
+  predictLabel,
   predictionMessage,
   onPredictionSubmit,
 }) => {
@@ -410,7 +412,7 @@ const ForecastMakerContinuous: FC<Props> = ({
               hasUserForecast={!!previousForecast}
               isUserForecastActive={hasUserActiveForecast}
               isPending={isPending}
-              predictLabel={previousForecast ? undefined : t("predict")}
+              predictLabel={previousForecast ? undefined : predictLabel}
               predictionExpirationChip={expirationShortChip}
               onPredictionExpirationClick={() =>
                 setIsForecastExpirationModalOpen(true)
@@ -466,6 +468,7 @@ const ForecastMakerContinuous: FC<Props> = ({
         onSubmit={submit}
         questionDuration={questionDuration}
         isSubmissionDisabled={predictButtonIsDisabled}
+        predictLabel={predictLabel}
       />
       <ContinuousInput
         question={question}

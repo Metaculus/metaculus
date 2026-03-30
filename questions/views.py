@@ -117,9 +117,11 @@ def bulk_create_forecasts_api_view(request):
         )
         ObjectPermission.can_forecast(permission, raise_exception=True)
 
-        if not question.open_time or question.open_time > now:
+        if not question.open_time:
             return Response(
-                {"error": f"Question {question.id} is not open for forecasting yet !"},
+                {
+                    "error": f"Question {question.id} is not scheduled for forecasting yet !"
+                },
                 status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
 
@@ -194,9 +196,9 @@ def create_binary_forecast_oldapi_view(request, pk: int):
     permission = get_post_permission_for_user(question.get_post(), user=request.user)
     ObjectPermission.can_forecast(permission, raise_exception=True)
 
-    if not question.open_time or question.open_time > now:
+    if not question.open_time:
         return Response(
-            {"error": "You cannot forecast on this question yet !"},
+            {"error": "This question is not scheduled for forecasting yet !"},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 

@@ -52,6 +52,7 @@ import WithdrawButton from "../withdraw/withdraw_button";
 type Props = {
   option: ContinuousGroupOption;
   canPredict: boolean;
+  predictLabel?: string;
   isPending: boolean;
   permission?: ProjectPermissions;
   handleChange: (
@@ -87,6 +88,7 @@ type Props = {
 const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
   option,
   canPredict,
+  predictLabel,
   isPending,
   permission,
   handleChange,
@@ -277,7 +279,11 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           t,
         }).length !== 0 || !isNil(submitError);
 
-  if (option.question.status === QuestionStatus.OPEN && canPredict) {
+  if (
+    (option.question.status === QuestionStatus.OPEN ||
+      option.question.status === QuestionStatus.UPCOMING) &&
+    canPredict
+  ) {
     SubmitControls = (
       <>
         <FormError
@@ -338,7 +344,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
             isUserForecastActive={hasActiveUserForecast}
             isPending={isPending}
             isDisabled={predictButtonIsDisabled}
-            predictLabel={previousForecast ? undefined : t("predict")}
+            predictLabel={previousForecast ? undefined : predictLabel}
             predictionExpirationChip={expirationShortChip}
             onPredictionExpirationClick={() =>
               setIsForecastExpirationModalOpen(true)
@@ -380,6 +386,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           hasUserForecast={hasUserForecast}
           isUserForecastActive={hasActiveUserForecast}
           isSubmissionDisabled={predictButtonIsDisabled}
+          predictLabel={predictLabel}
         />
 
         <ContinuousInput
@@ -411,7 +418,9 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           isDirty={option.isDirty}
           submitControls={SubmitControls}
           disabled={
-            !canPredict || option.question.status !== QuestionStatus.OPEN
+            !canPredict ||
+            (option.question.status !== QuestionStatus.OPEN &&
+              option.question.status !== QuestionStatus.UPCOMING)
           }
           predictionMessage={
             predictionMessage ? t(predictionMessage) : undefined
@@ -456,7 +465,7 @@ function getSubquestionPredictionInputMessage(
     case QuestionStatus.CLOSED:
       return "predictionClosedMessage";
     case QuestionStatus.UPCOMING:
-      return "predictionUpcomingMessage";
+      return "prePredictionMessage";
     default:
       return null;
   }

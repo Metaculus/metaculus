@@ -38,6 +38,7 @@ type Props = {
   question: QuestionWithNumericForecasts;
   prevForecast?: number | null;
   canPredict: boolean;
+  predictLabel: string;
   predictionMessage?: ReactNode;
   onPredictionSubmit?: () => void;
 };
@@ -46,6 +47,7 @@ const ForecastMakerBinary: FC<Props> = ({
   post,
   question,
   canPredict,
+  predictLabel,
   predictionMessage,
   onPredictionSubmit,
 }) => {
@@ -166,6 +168,7 @@ const ForecastMakerBinary: FC<Props> = ({
         isUserForecastActive={!!activeUserForecast}
         isDirty={isForecastDirty}
         questionDuration={questionDuration}
+        predictLabel={predictLabel}
       />
 
       <BinarySlider
@@ -202,7 +205,7 @@ const ForecastMakerBinary: FC<Props> = ({
                   isDirty={isForecastDirty}
                   isPending={isPending}
                   onSubmit={() => submit(modalSavedState.forecastExpiration)}
-                  predictLabel={t("predict")}
+                  predictLabel={predictLabel}
                   predictionExpirationChip={expirationShortChip}
                   onPredictionExpirationClick={() =>
                     setIsForecastExpirationModalOpen(true)
