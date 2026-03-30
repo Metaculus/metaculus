@@ -8,7 +8,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from comments.constants import CommentReportType
-from comments.models import Comment, KeyFactor
+from comments.models import Comment, KeyFactor, KeyFactorVote
 from comments.serializers.common import serialize_comment_many
 from comments.serializers.key_factors import (
     KeyFactorWriteSerializer,
@@ -36,11 +36,24 @@ def key_factor_vote_view(request: Request, pk: int):
         required=False, allow_null=True, choices=vote_choices
     ).run_validation(request.data.get("vote"))
 
-    key_factor_vote(key_factor, user=request.user, vote=vote, vote_type=vote_type)
+    vote_reason = serializers.ChoiceField(
+        required=False, allow_null=True, choices=KeyFactorVote.VoteReason.choices
+    ).run_validation(request.data.get("vote_reason"))
+
+    key_factor_vote(
+        key_factor,
+        user=request.user,
+        vote=vote,
+        vote_type=vote_type,
+        vote_reason=vote_reason,
+    )
 
     return Response(
         serialize_key_factor_votes(
-            key_factor, list(key_factor.votes.all()), user_vote=vote
+            key_factor,
+            list(key_factor.votes.all()),
+            user_vote=vote,
+            user_vote_reason=vote_reason,
         )
     )
 

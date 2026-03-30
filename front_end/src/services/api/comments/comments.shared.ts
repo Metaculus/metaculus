@@ -2,6 +2,7 @@ import { ApiService } from "@/services/api/api_service";
 import {
   CommentOfWeekEntry,
   CommentType,
+  KeyFactorVoteReason,
   KeyFactorVoteType,
 } from "@/types/comment";
 import { KeyFactorDraft } from "@/types/key_factors";
@@ -51,6 +52,7 @@ export type VoteParams = {
 
 export type KeyFactorVoteParams = VoteParams & {
   vote_type: KeyFactorVoteType;
+  vote_reason?: KeyFactorVoteReason | null;
 };
 
 export type ToggleCMMCommentParams = {

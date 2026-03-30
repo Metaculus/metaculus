@@ -4,7 +4,9 @@ import {
   createContext,
   FC,
   PropsWithChildren,
+  useCallback,
   useContext,
+  useRef,
   useState,
 } from "react";
 
@@ -21,6 +23,7 @@ import {
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { VoteDirection } from "@/types/votes";
 import { parseComment } from "@/utils/comments";
+import { logError } from "@/utils/core/errors";
 
 type ErrorType = Error & { digest?: string };
 
@@ -53,6 +56,9 @@ export type CommentsFeedContextType = {
     parentId: number,
     text: string
   ) => Promise<number>;
+  ensureCommentLoaded: (id: number) => Promise<boolean>;
+  refreshComment: (id: number) => Promise<void>;
+  updateComment: (id: number, changes: Partial<CommentType>) => void;
 };
 
 const COMMENTS_PER_PAGE = 10;
@@ -114,22 +120,22 @@ const CommentsFeedProvider: FC<
   const { user } = useAuth();
   const [sort, setSort] = useState<SortOption>("created_at");
   const [comments, setComments] = useState<CommentType[]>([]);
+  const commentsRef = useRef(comments);
+  commentsRef.current = comments;
   const [totalCount, setTotalCount] = useState<number | "?">("?");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<ErrorType | undefined>(undefined);
   const [offset, setOffset] = useState<number>(0);
 
-  const initialKeyFactors = [...(postData?.key_factors ?? [])].sort((a, b) =>
-    b.vote?.score === a.vote?.score
-      ? Math.random() - 0.5
-      : (b.vote?.score || 0) - (a.vote?.score || 0)
+  const initialKeyFactors = [...(postData?.key_factors ?? [])].sort(
+    (a, b) => (b.vote?.score || 0) - (a.vote?.score || 0) || b.id - a.id
   );
   const [combinedKeyFactors, setCombinedKeyFactors] =
     useState<KeyFactor[]>(initialKeyFactors);
 
   const setAndSortCombinedKeyFactors = (keyFactors: KeyFactor[]) => {
     const sortedKeyFactors = [...keyFactors].sort(
-      (a, b) => (b.vote?.score || 0) - (a.vote?.score || 0)
+      (a, b) => (b.vote?.score || 0) - (a.vote?.score || 0) || b.id - a.id
     );
     setCombinedKeyFactors(sortedKeyFactors);
   };
@@ -139,16 +145,11 @@ const CommentsFeedProvider: FC<
     aggregate: KeyFactorVoteAggregate
   ) => {
     // Update the list of combined key factors with the new vote
-    const newKeyFactors = combinedKeyFactors.map((kf) =>
-      kf.id === keyFactorId
-        ? {
-            ...kf,
-            vote: aggregate,
-          }
-        : { ...kf }
+    setCombinedKeyFactors((prev) =>
+      prev.map((kf) =>
+        kf.id === keyFactorId ? { ...kf, vote: aggregate } : kf
+      )
     );
-
-    setCombinedKeyFactors(newKeyFactors);
 
     //Update the comments state with the new vote for the key factor
     setComments((prevComments) => {
@@ -273,34 +274,74 @@ const CommentsFeedProvider: FC<
     setComments((prev) => removeById(prev, tempId));
   };
 
-  const ensureCommentLoaded = async (id: number): Promise<boolean> => {
-    if (findById(comments, id)) {
-      return true;
-    }
+  const ensureCommentLoaded = useCallback(
+    async (id: number): Promise<boolean> => {
+      if (findById(commentsRef.current, id)) {
+        return true;
+      }
+      try {
+        const response = await ClientCommentsApi.getComments({
+          post: postData?.id,
+          author: profileId,
+          limit: COMMENTS_PER_PAGE,
+          use_root_comments_pagination: rootCommentStructure,
+          sort,
+          focus_comment_id: String(id),
+        });
+        const focusedPage = parseCommentsArray(
+          response.results as unknown as BECommentType[],
+          rootCommentStructure
+        );
+        setComments((prev) => {
+          const merged = [...focusedPage, ...prev].sort((a, b) => b.id - a.id);
+          return uniqueById(merged);
+        });
+        if (typeof response.total_count === "number") {
+          setTotalCount(response.total_count);
+        }
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [postData?.id, profileId, rootCommentStructure, sort]
+  );
+
+  const refreshComment = async (id: number): Promise<void> => {
     try {
       const response = await ClientCommentsApi.getComments({
         post: postData?.id,
         author: profileId,
-        limit: COMMENTS_PER_PAGE,
+        limit: 50,
         use_root_comments_pagination: rootCommentStructure,
         sort,
         focus_comment_id: String(id),
       });
-      const focusedPage = parseCommentsArray(
-        response.results as unknown as BECommentType[],
-        rootCommentStructure
-      );
-      setComments((prev) => {
-        const merged = [...focusedPage, ...prev].sort((a, b) => b.id - a.id);
-        return uniqueById(merged);
-      });
-      if (typeof response.total_count === "number") {
-        setTotalCount(response.total_count);
+      const results = response.results as unknown as BECommentType[];
+      const found = results.find((c) => c.id === id);
+      if (found) {
+        const parsed = parseComment(found);
+        setComments((prev) => {
+          if (findById(prev, id)) {
+            return replaceById(prev, id, parsed);
+          }
+          // Not in feed yet — insert the full focused page
+          const focusedPage = parseCommentsArray(results, rootCommentStructure);
+          const merged = [...focusedPage, ...prev].sort((a, b) => b.id - a.id);
+          return uniqueById(merged);
+        });
       }
-      return true;
-    } catch {
-      return false;
+    } catch (e) {
+      logError(e);
     }
+  };
+
+  const updateComment = (id: number, changes: Partial<CommentType>) => {
+    setComments((prev) => {
+      const existing = findById(prev, id);
+      if (!existing) return prev;
+      return replaceById(prev, id, { ...existing, ...changes });
+    });
   };
 
   const optimisticallyAddReplyEnsuringParent = async (
@@ -334,6 +375,9 @@ const CommentsFeedProvider: FC<
         finalizeReply,
         removeTempReply,
         optimisticallyAddReplyEnsuringParent,
+        ensureCommentLoaded,
+        refreshComment,
+        updateComment,
       }}
     >
       {children}
@@ -354,7 +398,7 @@ export const useCommentsFeed = () => {
   return context;
 };
 
-function findById(list: CommentType[], id: number): CommentType | null {
+export function findById(list: CommentType[], id: number): CommentType | null {
   for (const c of list) {
     if (c.id === id) return c;
     const kids = c.children ?? [];

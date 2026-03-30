@@ -114,7 +114,13 @@ async def screenshot(request_data: ScreenshotRequest = Body(...)):
         if width and height:
             await page.set_viewport_size({"width": width, "height": height})
 
-        await page.goto(url, wait_until="load", timeout=PAGE_LOAD_TIMEOUT_MS)
+        response = await page.goto(url, wait_until="load", timeout=PAGE_LOAD_TIMEOUT_MS)
+
+        if response and response.status >= 400:
+            raise HTTPException(
+                status_code=response.status,
+                detail=f"Target page returned HTTP {response.status} for {url}",
+            )
 
         # Wait for a particular element in the page, specified by the request
         if request_data.selector_to_wait:
@@ -129,6 +135,8 @@ async def screenshot(request_data: ScreenshotRequest = Body(...)):
         await screenshot_element.wait_for(state="visible", timeout=DEFAULT_TIMEOUT_MS)
 
         buffer = await screenshot_element.screenshot(timeout=DEFAULT_TIMEOUT_MS)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.exception(f"Screenshot generation failed for {url}")
         raise HTTPException(

@@ -16,42 +16,27 @@ import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 
-import SegmentedProgressBar from "./segmented_progress_bar";
-
 type Props = {
   keyFactorId: number;
   vote: KeyFactorVoteAggregate;
   className?: string;
   allowVotes?: boolean;
-  mode?: "forecaster" | "consumer";
+  _mode?: "forecaster" | "consumer";
   footerControls?: ReactElement;
 };
 
 export const StrengthScale: FC<{
-  score: number;
   count: number;
-  mode?: "forecaster" | "consumer";
-}> = ({ score, count, mode }) => {
+}> = ({ count }) => {
   const t = useTranslations();
 
-  const clamped = Math.max(0, Math.min(5, score ?? 0)) / 5;
   return (
-    <div className="flex w-full flex-col gap-1.5">
-      <div className="flex w-full justify-between gap-2">
-        <div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
-          {t("strength")}
-        </div>
-        <div className="text-[10px] lowercase text-blue-700 dark:text-blue-700-dark">
-          {t("votesWithCount", { count })}
-        </div>
+    <div className="flex w-full items-center justify-between gap-2">
+      <div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
+        {t("strength")}
       </div>
-      <div
-        className={cn("flex w-full gap-[1px]", {
-          "rounded-[2px] border border-gray-0 dark:border-gray-0-dark":
-            mode === "consumer",
-        })}
-      >
-        <SegmentedProgressBar progress={clamped} segments={5} />
+      <div className="text-[10px] text-blue-700 dark:text-blue-700-dark">
+        {t("votesWithCount", { count })}
       </div>
     </div>
   );
@@ -71,7 +56,6 @@ const VoterControls: FC<{
   const { setCurrentModal } = useModal();
 
   const submitVote = async (newValue: StrengthVoteOption | null) => {
-    // Trigger login if not logged in
     if (!user) {
       setCurrentModal({ type: "signin" });
       return;
@@ -81,7 +65,6 @@ const VoterControls: FC<{
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
-      // Optimistic vote update
       setAggregate({ ...aggregate, user_vote: newValue });
 
       const response = await voteKeyFactor({
@@ -155,18 +138,14 @@ const KeyFactorStrengthVoter: FC<Props> = ({
   vote,
   className,
   allowVotes,
-  mode = "forecaster",
+  _mode = "forecaster",
   footerControls,
 }) => {
   const [aggregate, setAggregate] = useState<KeyFactorVoteAggregate>(vote);
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
-      <StrengthScale
-        score={aggregate?.score ?? 0}
-        count={aggregate?.count ?? 0}
-        mode={mode}
-      />
+      <StrengthScale count={aggregate?.count ?? 0} />
       {allowVotes && (
         <VoterControls
           keyFactorId={keyFactorId}
