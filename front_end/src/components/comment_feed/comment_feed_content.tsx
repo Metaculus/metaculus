@@ -146,7 +146,6 @@ const CommentFeedContent: FC = () => {
         limit: COMMENTS_PER_PAGE,
         offset: pageParam,
         sort: effectiveSort,
-        parent_isnull: true,
         is_private: false,
         include_deleted: false,
         post_status: PostStatus.APPROVED,
