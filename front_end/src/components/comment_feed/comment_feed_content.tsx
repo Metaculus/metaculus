@@ -1,12 +1,12 @@
 "use client";
 
 import {
-  keepPreviousData,
   useInfiniteQuery,
   useQuery,
+  useQueryClient,
 } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useState, useMemo } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 
 import PopoverFilter from "@/components/popover_filter";
 import {
@@ -181,21 +181,31 @@ const CommentFeedContent: FC = () => {
     [comments]
   );
 
+  const postsQueryClient = useQueryClient();
+  const postsQueryKey = ["comments-feed-posts"];
   const { data: postsMap = {} } = useQuery({
-    queryKey: ["comments-feed-posts", postIds],
+    queryKey: [...postsQueryKey, postIds],
     queryFn: async () => {
+      const prevData =
+        postsQueryClient.getQueryData<Record<number, PostWithForecasts>>(
+          postsQueryKey
+        ) ?? {};
+      const missingIds = postIds.filter((id) => !(id in prevData));
+      if (missingIds.length === 0) return prevData;
+
       const response = await ClientPostsApi.getPostsWithCP(
-        { ids: postIds },
+        { ids: missingIds },
         { include_cp_history: false }
       );
-      const map: Record<number, PostWithForecasts> = {};
+      const map: Record<number, PostWithForecasts> = { ...prevData };
       for (const post of response.results) {
         map[post.id] = post;
       }
+      postsQueryClient.setQueryData(postsQueryKey, map);
       return map;
     },
     enabled: postIds.length > 0,
-    placeholderData: keepPreviousData,
+    placeholderData: (prev) => prev,
   });
 
   const sortOptions: { value: SortOption; label: string }[] = [
