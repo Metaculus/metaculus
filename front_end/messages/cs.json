@@ -2081,5 +2081,14 @@
   "tournamentUnfollowModalSubmit": "Zrušit sledování",
   "switchBackToSlidersHint": "přepněte zpět na posuvníky pro plynulé přizpůsobení",
   "view": "Zobrazit",
+  "viewComment": "Zobrazit komentář",
+  "createdTimeAgoBy": "Vytvořeno {timeAgo} uživatelem @{author}",
+  "createdTimeAgo": "Vytvořeno {timeAgo}",
+  "direction": "Směr",
+  "voteOnImpact": "HLASOVAT O DOPADU",
+  "why": "PROČ?",
+  "wrongDirection": "Špatný směr",
+  "redundant": "Nadbytečné",
+  "thanksForVoting": "Děkujeme za hlasování!",
   "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }

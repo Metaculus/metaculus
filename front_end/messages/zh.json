@@ -2083,5 +2083,14 @@
   "tournamentUnfollowModalSubmit": "取消关注",
   "switchBackToSlidersHint": "切回滑块以进行更精细的调整",
   "view": "查看",
+  "viewComment": "查看评论",
+  "createdTimeAgoBy": "由 @{author} 创建于 {timeAgo}",
+  "createdTimeAgo": "创建于 {timeAgo}",
+  "direction": "方向",
+  "voteOnImpact": "影响投票",
+  "why": "为什么？",
+  "wrongDirection": "方向错误",
+  "redundant": "重复",
+  "thanksForVoting": "感谢投票！",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }

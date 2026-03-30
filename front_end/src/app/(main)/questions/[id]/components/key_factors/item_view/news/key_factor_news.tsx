@@ -2,14 +2,13 @@ import KeyFactorStrengthItem from "../key_factor_strength_item";
 import KeyFactorNewsItem from "./key_factor_news_item";
 
 const KeyFactorNews: React.FC<
-  Omit<Parameters<typeof KeyFactorStrengthItem>[0], "label" | "impactMetadata">
+  Omit<Parameters<typeof KeyFactorStrengthItem>[0], "impactMetadata">
 > = (props) => {
   if (!props.keyFactor.news) return null;
   const { news } = props.keyFactor;
   return (
     <KeyFactorStrengthItem
       {...props}
-      label="news"
       impactMetadata={{
         impact_direction: news.impact_direction,
         certainty: news.certainty,

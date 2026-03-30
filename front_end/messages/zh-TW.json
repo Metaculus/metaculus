@@ -2078,5 +2078,14 @@
   "tournamentUnfollowModalSubmit": "取消關注",
   "switchBackToSlidersHint": "切換回滑桿以平滑調整",
   "view": "檢視",
+  "viewComment": "查看評論",
+  "createdTimeAgoBy": "由 @{author} 建立於 {timeAgo}",
+  "createdTimeAgo": "建立於 {timeAgo}",
+  "direction": "方向",
+  "voteOnImpact": "影響投票",
+  "why": "為什麼？",
+  "wrongDirection": "方向錯誤",
+  "redundant": "重複",
+  "thanksForVoting": "感謝投票！",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }
