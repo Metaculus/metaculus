@@ -274,6 +274,9 @@ export default async function FAQ() {
                 What is Top Comments of the Week?
               </a>
             </li>
+            <li>
+              <a href="#key-factors">What are Key Factors?</a>
+            </li>
           </ul>
         </div>
         <hr />
@@ -3159,6 +3162,71 @@ export default async function FAQ() {
             (low=2, moderate=3, high=5), summed across all the key factors on
             that comment. If you didn’t add key factors to your comment, this
             metric won’t appear.
+          </p>
+
+          <h3
+            className="scroll-mt-nav text-xl font-semibold"
+            id="key-factors"
+          >
+            What are Key Factors?
+          </h3>
+
+          <p>
+            Key Factors are structured pieces of evidence that you can attach to
+            a comment to highlight the most important considerations behind a
+            forecast. They give other forecasters a quick, scannable summary of
+            the drivers, data, and news shaping a question—without having to
+            read the full comment.
+          </p>
+
+          <p>There are three types of key factor:</p>
+
+          <ul className="ml-5 list-disc space-y-2">
+            <li>
+              <strong>Driver:</strong> A short statement (up to 50 characters)
+              describing something that could influence the outcome, along with
+              a direction—does it increase or decrease the likelihood?
+            </li>
+            <li>
+              <strong>Base Rate:</strong> A historical reference point grounding
+              the forecast in data. This can be a <em>frequency</em> (e.g. "3
+              out of 10 past attempts succeeded") or a <em>trend</em> (e.g. "
+              projected to reach 500 by 2030, extrapolated linearly"). A source
+              URL is required.
+            </li>
+            <li>
+              <strong>News:</strong> A link to a relevant news article, shown
+              with its title, source, and publication date. You can pick an
+              article from the NewsMatch feed or paste a custom URL.
+            </li>
+          </ul>
+
+          <h4 className="scroll-mt-nav text-lg font-semibold">
+            How do I add Key Factors?
+          </h4>
+
+          <p>
+            When writing or editing a comment on a question, click the
+            &quot;Add Key Factors&quot; button. You can add up to 4 key factors
+            per comment and up to 6 per question. The system can also suggest
+            key factors based on your comment text—review the suggestions and
+            accept the ones that fit.
+          </p>
+
+          <h4 className="scroll-mt-nav text-lg font-semibold">
+            How does voting on Key Factors work?
+          </h4>
+
+          <p>
+            Other forecasters can vote on each key factor to signal how useful
+            it is. Drivers and News items use <strong>strength</strong> voting:
+            you rate the factor&apos;s impact as low, moderate, or high (or mark
+            it as no impact). Base Rates use <strong>direction</strong> voting:
+            you indicate whether the data point pushes the forecast up or down.
+            These votes feed into the key factor&apos;s score and also
+            contribute to{" "}
+            <a href="#top-comments-of-the-week">Top Comments of the Week</a>{" "}
+            rankings.
           </p>
         </div>
 
