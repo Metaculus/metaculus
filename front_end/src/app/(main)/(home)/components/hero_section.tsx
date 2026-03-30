@@ -4,10 +4,10 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useMemo, useState } from "react";
 
 import { useAuth } from "@/contexts/auth_context";
-import ClientMiscApi from "@/services/api/misc/misc.client";
+import { SiteStats } from "@/services/api/misc/misc.shared";
 import cn from "@/utils/core/cn";
 import { abbreviatedNumber } from "@/utils/formatters/number";
 
@@ -26,6 +26,10 @@ const CARD_ACCENT_COLORS = {
 } as const;
 
 type HoveredCard = keyof typeof CARD_ACCENT_COLORS | null;
+
+type HeroSectionProps = {
+  stats: SiteStats;
+};
 
 // Hover overlay that tints the card with its accent color (desktop only)
 const ACCENT_OPACITY = 0.4; // adjust this to control hover tint intensity
@@ -48,7 +52,7 @@ const AccentOverlay: FC<{ accentKey: keyof typeof CARD_ACCENT_COLORS }> = ({
   );
 };
 
-const HeroSection: FC = () => {
+const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const logoHref = user ? "/questions/" : "/";
@@ -58,30 +62,6 @@ const HeroSection: FC = () => {
     () => (hoveredCard ? CARD_ACCENT_COLORS[hoveredCard] : "#628bb3"),
     [hoveredCard]
   );
-
-  const [stats, setStats] = useState({
-    predictions: 2133159,
-    questions: 17357,
-    years_of_predictions: 10,
-  });
-
-  useEffect(() => {
-    let active = true;
-    ClientMiscApi.getSiteStats()
-      .then((s) => {
-        if (active && s) {
-          setStats({
-            predictions: s.predictions,
-            questions: s.questions,
-            years_of_predictions: s.years_of_predictions,
-          });
-        }
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, []);
 
   return (
     <section className="relative w-full overflow-hidden rounded-b-2xl bg-[#0e1e30] md:rounded-b-3xl">

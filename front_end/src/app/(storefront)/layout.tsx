@@ -25,7 +25,7 @@ export default function StorefrontLayout({
     <div className="force-light flex min-h-screen flex-col bg-blue-200">
       <div className="flex-grow">{children}</div>
       <FeedbackFloat />
-      <Footer />
+      <Footer hideSelectors />
       <CookiesBanner />
       <VersionChecker />
     </div>

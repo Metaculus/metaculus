@@ -20,9 +20,22 @@ export default async function Home() {
     return redirect(PUBLIC_LANDING_PAGE_URL);
   }
 
+  let siteStats = {
+    predictions: 2133159,
+    questions: 17357,
+    resolved_questions: 6654,
+    years_of_predictions: 10,
+  };
+
   const [sidebarItems, initialNewsPosts] = await Promise.all([
     serverMiscApi.getSidebarItems(),
     ServerPostsApi.getPostsWithCP(FILTERS.news),
+    serverMiscApi
+      .getSiteStats()
+      .then((s) => {
+        siteStats = s;
+      })
+      .catch(() => {}),
   ]);
 
   const hotTopics = sidebarItems
@@ -33,7 +46,7 @@ export default async function Home() {
     <main className="mx-auto min-h-screen max-w-[1180px]">
       <OnboardingCheck />
       <EmailConfirmation />
-      <HeroSection />
+      <HeroSection stats={siteStats} />
       <StaffPicks items={hotTopics} />
       <ForecastsCarouselSection
         initialPosts={initialNewsPosts.results}

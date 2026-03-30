@@ -65,6 +65,9 @@ const ForecastsCarouselSection: FC<Props> = ({ initialPosts, className }) => {
     <section className={cn("relative", className)}>
       <div
         ref={scrollRef}
+        role="region"
+        aria-label={t("forecastsCarousel")}
+        tabIndex={0}
         className="flex snap-x snap-proximity gap-4 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {posts.map((post) => (
