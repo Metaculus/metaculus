@@ -394,7 +394,8 @@ class UserSpamActivityAdmin(admin.ModelAdmin):
         "confidence_value",
         "content_link",
     ]
-    search_fields = ["user__username", "user__email"]
+    search_fields = ["user__username", "user__id", "user__email"]
+    list_filter = ["user"]
 
     def content_link(self, obj):
         match obj.content_type:
