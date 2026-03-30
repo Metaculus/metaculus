@@ -29,7 +29,7 @@ export default async function Home() {
 
   const [sidebarItems, initialNewsPosts] = await Promise.all([
     serverMiscApi.getSidebarItems(),
-    ServerPostsApi.getPostsWithCP(FILTERS.news),
+    ServerPostsApi.getPostsWithCP(FILTERS.popular),
     serverMiscApi
       .getSiteStats()
       .then((s) => {
