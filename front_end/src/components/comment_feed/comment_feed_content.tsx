@@ -181,28 +181,36 @@ const CommentFeedContent: FC = () => {
     [comments]
   );
 
-  const postsQueryClient = useQueryClient();
-  const postsQueryKey = ["comments-feed-posts"];
+  const queryClient = useQueryClient();
+  const postsStableKey = ["comments-feed-posts"];
   const { data: postsMap = {} } = useQuery({
-    queryKey: [...postsQueryKey, postIds],
+    queryKey: [...postsStableKey, postIds],
     queryFn: async () => {
-      const prevData =
-        postsQueryClient.getQueryData<Record<number, PostWithForecasts>>(
-          postsQueryKey
+      const cached =
+        queryClient.getQueryData<Record<number, PostWithForecasts>>(
+          postsStableKey
         ) ?? {};
-      const missingIds = postIds.filter((id) => !(id in prevData));
-      if (missingIds.length === 0) return prevData;
+      const missingIds = postIds.filter((id) => !(id in cached));
+      if (missingIds.length === 0) return cached;
 
       const response = await ClientPostsApi.getPostsWithCP(
         { ids: missingIds },
         { include_cp_history: false }
       );
-      const map: Record<number, PostWithForecasts> = { ...prevData };
+      const fetched: Record<number, PostWithForecasts> = {};
       for (const post of response.results) {
-        map[post.id] = post;
+        fetched[post.id] = post;
       }
-      postsQueryClient.setQueryData(postsQueryKey, map);
-      return map;
+      // Atomic merge against latest cache snapshot
+      queryClient.setQueryData<Record<number, PostWithForecasts>>(
+        postsStableKey,
+        (old) => ({ ...(old ?? {}), ...fetched })
+      );
+      return {
+        ...(queryClient.getQueryData<Record<number, PostWithForecasts>>(
+          postsStableKey
+        ) ?? {}),
+      };
     },
     enabled: postIds.length > 0,
     placeholderData: (prev) => prev,
