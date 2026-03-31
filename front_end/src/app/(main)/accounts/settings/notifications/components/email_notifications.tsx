@@ -1,9 +1,11 @@
 "use client";
 
 import { faCircleQuestion } from "@fortawesome/free-regular-svg-icons";
+import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
-import React, { FC, useCallback, useState } from "react";
+import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import PreferencesSection from "@/app/(main)/accounts/settings/components/preferences_section";
@@ -11,11 +13,13 @@ import {
   subscribeToNewsletter,
   unsubscribeFromNewsletter,
 } from "@/app/(main)/actions";
-import Checkbox from "@/components/ui/checkbox";
+import ButtonGroup, { type GroupButton } from "@/components/ui/button_group";
 import LoadingSpinner from "@/components/ui/loading_spiner";
+import Switch from "@/components/ui/switch";
 import Tooltip from "@/components/ui/tooltip";
 import { useServerAction } from "@/hooks/use_server_action";
 import { SubscriptionEmailType } from "@/types/notifications";
+import { CPChangeThreshold } from "@/types/post";
 import { CurrentUser } from "@/types/users";
 
 export type Props = {
@@ -23,19 +27,53 @@ export type Props = {
   isNewsletterSubscribed: boolean;
 };
 
+type CpKey = "small" | "medium" | "large";
+
+const cpKeyToValue = (k: CpKey): CPChangeThreshold =>
+  k === "small"
+    ? CPChangeThreshold.SMALL
+    : k === "medium"
+      ? CPChangeThreshold.MEDIUM
+      : CPChangeThreshold.LARGE;
+
+const cpValueToKey = (v: number): CpKey =>
+  v === CPChangeThreshold.SMALL
+    ? "small"
+    : v === CPChangeThreshold.MEDIUM
+      ? "medium"
+      : "large";
+
+const CP_BUTTONS: GroupButton<CpKey>[] = [
+  { value: "small", label: "small" },
+  { value: "medium", label: "medium" },
+  { value: "large", label: "large" },
+];
+
+const COMMENTS_BUTTONS: GroupButton<"1" | "3" | "10">[] = [
+  { value: "1", label: "1" },
+  { value: "3", label: "3" },
+  { value: "10", label: "10" },
+];
+
+const MILESTONE_BUTTONS: GroupButton<"1" | "5" | "10" | "20">[] = [
+  { value: "1", label: "1%" },
+  { value: "5", label: "5%" },
+  { value: "10", label: "10%" },
+  { value: "20", label: "20%" },
+];
+
 const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
   const t = useTranslations();
-  const [loadingIndex, setLoadingIndex] = useState<number | null>(null);
+
+  // Newsletter state
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(
     isNewsletterSubscribed
   );
-
   const handleNewsletterChange = useCallback(
     async (checked: boolean) => {
       if (checked) {
         await subscribeToNewsletter(user.email);
       } else {
-        // The unsubscribeFromNewsletter action does not need the email parameter as we require the user to be authenticated
         await unsubscribeFromNewsletter();
       }
       setNewsletterSubscribed(checked);
@@ -46,6 +84,20 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
     handleNewsletterChange
   );
 
+  // Metaculus News state
+  const [newsSubscribed, setNewsSubscribed] = useState(
+    user.metaculus_news_subscription
+  );
+  const handleNewsChange = useCallback(async (checked: boolean) => {
+    setNewsSubscribed(checked);
+    await updateProfileAction({ metaculus_news_subscription: checked });
+  }, []);
+  const [updateNews, isNewsPending] = useServerAction(handleNewsChange);
+
+  // Mailing tag toggles
+  const [loadingTag, setLoadingTag] = useState<SubscriptionEmailType | null>(
+    null
+  );
   const handleEmailSubscriptionChange = useCallback(
     async (subscriptionType: SubscriptionEmailType, checked: boolean) => {
       const subscriptionTypes = checked
@@ -61,46 +113,84 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
           unsubscribed_mailing_tags: subscriptionTypes,
         });
       } finally {
-        setLoadingIndex(null);
+        setLoadingTag(null);
       }
     },
     [user.unsubscribed_mailing_tags]
   );
-  const [updateProfile, isPending] = useServerAction(
+  const [updateMailingTag, isMailingTagPending] = useServerAction(
     handleEmailSubscriptionChange
   );
-  const siteNewsOptions = [
-    {
-      type: SubscriptionEmailType.weekly_top_comments,
-      label: t("weeklyTopComments"),
+
+  // Auto-follow state
+  const [autoFollow, setAutoFollow] = useState(
+    user.automatically_follow_on_predict
+  );
+  const handleAutoFollowChange = useCallback(async (checked: boolean) => {
+    setAutoFollow(checked);
+    await updateProfileAction({ automatically_follow_on_predict: checked });
+  }, []);
+  const [updateAutoFollow, isAutoFollowPending] = useServerAction(
+    handleAutoFollowChange
+  );
+
+  // Default follow notification states
+  const [cpThreshold, setCpThreshold] = useState(
+    user.follow_notify_cp_change_threshold
+  );
+  const [commentsFreq, setCommentsFreq] = useState(
+    user.follow_notify_comments_frequency
+  );
+  const [milestoneStep, setMilestoneStep] = useState(
+    user.follow_notify_milestone_step
+  );
+  const [statusChange, setStatusChange] = useState(
+    user.follow_notify_on_status_change
+  );
+
+  const [savingDefaultField, setSavingDefaultField] = useState<string | null>(
+    null
+  );
+  const handleDefaultFollowUpdate = useCallback(
+    async (updates: Parameters<typeof updateProfileAction>[0]) => {
+      await updateProfileAction(updates);
     },
-    // TODO: metaculus_news isn't a mailing tag. It's a ProjectSubscription
-    // and is essentially treated as a flag on the User model. Not sure
-    // how to best handle this here (this current state doesn't work).
-    {
-      type: SubscriptionEmailType.metaculus_news_subscription,
-      label: t("metaculusNewsSubscription"),
+    []
+  );
+  const [runDefaultFollowUpdate, isDefaultFollowPending] = useServerAction(
+    handleDefaultFollowUpdate
+  );
+  const updateDefaultFollow = useCallback(
+    (field: string, updates: Parameters<typeof updateProfileAction>[0]) => {
+      setSavingDefaultField(field);
+      runDefaultFollowUpdate(updates);
     },
-  ];
-  const keepingUpOptions = [
+    [runDefaultFollowUpdate]
+  );
+
+  const keepingUpOptions: {
+    type: SubscriptionEmailType;
+    label: string;
+    children?: React.ReactNode;
+  }[] = [
     {
       type: SubscriptionEmailType.comment_mentions,
-      label: t("settingsMentionsInComments"),
+      label: t("someoneAtMentionsMeInComment"),
     },
     {
       type: SubscriptionEmailType.question_resolution,
-      label: t("settingsQuestionResolution"),
+      label: t("questionIPredictedResolves"),
     },
     {
       type: SubscriptionEmailType.tournament_new_questions,
-      label: t("settingsNewQuestionsInTournament"),
+      label: t("newQuestionsInTournamentsIFollow"),
     },
     {
       type: SubscriptionEmailType.cp_change,
-      label: t("settingsSignificantMovementOnPredictedQuestions"),
+      label: t("cpChangeOnPredictedQuestions"),
       children: (
         <>
-          {t("settingsSignificantMovementOnPredictedQuestions")}
+          {t("cpChangeOnPredictedQuestions")}
           <Tooltip
             showDelayMs={200}
             placement={"top"}
@@ -116,99 +206,320 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
     },
     {
       type: SubscriptionEmailType.before_prediction_auto_withdrawal,
-      label: t("beforeAutoWithdrawal"),
-    },
-  ];
-  const keepingUpAdditionalOptions = [
-    // TODO: follow automatically on prediction isn't a mailing tag either.
-    // It's a flag on the User model. Need to figure out how to handle this.
-    {
-      type: "follow_automatically_on_prediction",
-      label: t("followAutomaticallyOnPrediction"),
+      label: "",
+      children: t.rich("myPredictionAboutToBeAutoWithdrawn", {
+        link: (chunks) => (
+          <Link
+            href="/faq/#auto-withdrawal"
+            className="text-blue-700 hover:underline dark:text-blue-700-dark"
+          >
+            {chunks}
+          </Link>
+        ),
+      }),
     },
   ];
 
   return (
     <>
+      {/* Site News */}
       <PreferencesSection title={t("siteNews")}>
         <div className="flex flex-col gap-3">
-          <div className="flex items-center">
-            <Checkbox
-              checked={newsletterSubscribed}
-              onChange={updateNewsletter}
-              className="p-1"
-              readOnly={isNewsletterPending}
-              inputClassName="text-gray-900 dark:text-gray-900-dark"
-              label={t("settingsNewTournamentsAndPlatformUpdates")}
-            />
-            {isNewsletterPending && <LoadingSpinner size="1x" />}
-          </div>
-          {siteNewsOptions.map(({ type, ...opts }, index) => (
-            <div className="flex items-center" key={`subscriptions-${type}`}>
-              <Checkbox
-                checked={!user.unsubscribed_mailing_tags.includes(type)}
-                onChange={(checked) => {
-                  updateProfile(type, checked);
-                }}
-                onClick={() => setLoadingIndex(index)}
-                className="p-1"
-                readOnly={isPending}
-                inputClassName="text-gray-900 dark:text-gray-900-dark"
-                {...opts}
-              />
-              {loadingIndex === index && isPending && (
-                <LoadingSpinner size="1x" />
-              )}
-            </div>
-          ))}
+          <SwitchRow
+            checked={newsletterSubscribed}
+            onChange={updateNewsletter}
+            isPending={isNewsletterPending}
+            label={t("getTheMetaculusNewsletter")}
+          />
+          <SwitchRow
+            checked={
+              !user.unsubscribed_mailing_tags.includes(
+                SubscriptionEmailType.weekly_top_comments
+              )
+            }
+            onChange={(checked) => {
+              setLoadingTag(SubscriptionEmailType.weekly_top_comments);
+              updateMailingTag(
+                SubscriptionEmailType.weekly_top_comments,
+                checked
+              );
+            }}
+            isPending={
+              isMailingTagPending &&
+              loadingTag === SubscriptionEmailType.weekly_top_comments
+            }
+            label=""
+          >
+            {t.rich("getWeeklyTopCommentsEmails", {
+              link: (chunks) => (
+                <Link
+                  href="/questions/?weekly_top_comments=true"
+                  className="text-blue-700 hover:underline dark:text-blue-700-dark"
+                >
+                  {chunks}
+                </Link>
+              ),
+            })}
+          </SwitchRow>
+          <SwitchRow
+            checked={newsSubscribed}
+            onChange={updateNews}
+            isPending={isNewsPending}
+            label=""
+          >
+            {t.rich("followMetaculusNewsPosts", {
+              link: (chunks) => (
+                <Link
+                  href="/news/"
+                  className="text-blue-700 hover:underline dark:text-blue-700-dark"
+                >
+                  {chunks}
+                </Link>
+              ),
+            })}
+          </SwitchRow>
         </div>
       </PreferencesSection>
+
+      {/* Keeping Up */}
       <PreferencesSection title={t("keepingUp")}>
         <div className="flex flex-col gap-3">
-          {t("receiveEmailNotificationsWhen")}
-          {keepingUpOptions.map(({ type, ...opts }, index) => (
-            <div className="flex items-center" key={`subscriptions-${type}`}>
-              <Checkbox
-                checked={!user.unsubscribed_mailing_tags.includes(type)}
-                onChange={(checked) => {
-                  updateProfile(type, checked);
-                }}
-                onClick={() => setLoadingIndex(index)}
-                className="p-1"
-                readOnly={isPending}
-                inputClassName="text-gray-900 dark:text-gray-900-dark"
-                {...opts}
-              />
-              {loadingIndex === index && isPending && (
-                <LoadingSpinner size="1x" />
-              )}
-            </div>
+          <span className="text-sm">{t("receiveEmailNotificationsWhen")}</span>
+          {keepingUpOptions.map(({ type, label, children }) => (
+            <SwitchRow
+              key={`keeping-up-${type}`}
+              checked={!user.unsubscribed_mailing_tags.includes(type)}
+              onChange={(checked) => {
+                setLoadingTag(type);
+                updateMailingTag(type, checked);
+              }}
+              isPending={isMailingTagPending && loadingTag === type}
+              label={label}
+            >
+              {children}
+            </SwitchRow>
           ))}
         </div>
-        <div className="flex flex-col gap-3">
-          {t("autoFollow")}
-          {keepingUpAdditionalOptions.map(({ type, ...opts }, index) => (
-            <div className="flex items-center" key={`subscriptions-${type}`}>
-              <Checkbox
-                checked={!user.unsubscribed_mailing_tags.includes(type)}
-                onChange={(checked) => {
-                  updateProfile(type, checked);
-                }}
-                onClick={() => setLoadingIndex(index)}
-                className="p-1"
-                readOnly={isPending}
-                inputClassName="text-gray-900 dark:text-gray-900-dark"
-                {...opts}
-              />
-              {loadingIndex === index && isPending && (
-                <LoadingSpinner size="1x" />
-              )}
-            </div>
-          ))}
+        <div className="mt-4 flex flex-col gap-2">
+          <span className="text-sm font-bold">{t("autoFollow")}</span>
+          <SwitchRow
+            checked={autoFollow}
+            onChange={updateAutoFollow}
+            isPending={isAutoFollowPending}
+            label={t("autoFollowOnPredict")}
+            description={t("autoFollowOnPredictHint")}
+          />
         </div>
       </PreferencesSection>
-      {/* TODO: put Default Follow Notifications here probably */}
+
+      {/* Default Follow Notifications */}
+      <PreferencesSection title={t("defaultFollowNotifications")}>
+        <span className="text-sm">
+          {t("defaultFollowNotificationsDescription")}
+        </span>
+        <div className="flex flex-col gap-3">
+          <SwitchRow
+            checked={cpThreshold !== null}
+            onChange={(checked) => {
+              const value = checked ? CPChangeThreshold.MEDIUM : null;
+              setCpThreshold(value);
+              updateDefaultFollow("cp", {
+                follow_notify_cp_change_threshold: value,
+              });
+            }}
+            isPending={isDefaultFollowPending && savingDefaultField === "cp"}
+            label={t("followModalCommunityPredictionChanges")}
+          />
+          {cpThreshold !== null && (
+            <div className="space-y-1 pl-[60px]">
+              <div className="flex flex-wrap items-center gap-2 text-xs opacity-70">
+                {t.rich("defaultFollowCpChangeSentence", {
+                  options: () => (
+                    <ButtonGroup
+                      value={cpValueToKey(cpThreshold)}
+                      buttons={CP_BUTTONS}
+                      onChange={(k) => {
+                        const value = cpKeyToValue(k);
+                        setCpThreshold(value);
+                        updateDefaultFollow("cp", {
+                          follow_notify_cp_change_threshold: value,
+                        });
+                      }}
+                      variant="secondary"
+                      activeVariant="primary"
+                      className="px-2 py-1 text-xs"
+                      activeClassName="px-2 py-1 text-xs"
+                    />
+                  ),
+                })}
+              </div>
+              <ul className="list-disc pl-[14px] text-xs opacity-70">
+                <li>
+                  {t("followModalSmallChanges")} (45% &rarr; 55% / 90% &rarr;
+                  95%)
+                </li>
+                <li>
+                  {t("followModalMediumChanges")} (40% &rarr; 60% / 90% &rarr;
+                  98%)
+                </li>
+                <li>
+                  {t("followModalLargeChanges")} (35% &rarr; 65% / 90% &rarr;
+                  99.8%)
+                </li>
+              </ul>
+            </div>
+          )}
+          <SwitchRow
+            checked={commentsFreq !== null}
+            onChange={(checked) => {
+              const value = checked ? 10 : null;
+              setCommentsFreq(value);
+              updateDefaultFollow("comments", {
+                follow_notify_comments_frequency: value,
+              });
+            }}
+            isPending={
+              isDefaultFollowPending && savingDefaultField === "comments"
+            }
+            label={t("comments")}
+          />
+          {commentsFreq !== null && (
+            <div className="flex items-center gap-2 pl-[60px] text-xs opacity-70">
+              {t.rich("defaultFollowCommentsSentence", {
+                options: () => (
+                  <ButtonGroup
+                    value={String(commentsFreq) as "1" | "3" | "10"}
+                    buttons={COMMENTS_BUTTONS}
+                    onChange={(v) => {
+                      const value = Number(v);
+                      setCommentsFreq(value);
+                      updateDefaultFollow("comments", {
+                        follow_notify_comments_frequency: value,
+                      });
+                    }}
+                    variant="secondary"
+                    activeVariant="primary"
+                    className="px-2 py-1 text-xs"
+                    activeClassName="px-2 py-1 text-xs"
+                  />
+                ),
+              })}
+            </div>
+          )}
+          <SwitchRow
+            checked={milestoneStep !== null}
+            onChange={(checked) => {
+              const value = checked ? 0.2 : null;
+              setMilestoneStep(value);
+              updateDefaultFollow("milestone", {
+                follow_notify_milestone_step: value,
+              });
+            }}
+            isPending={
+              isDefaultFollowPending && savingDefaultField === "milestone"
+            }
+            label={t("followModalMilestones")}
+          />
+          {milestoneStep !== null && (
+            <div className="flex flex-wrap items-center gap-2 pl-[60px] text-xs opacity-70">
+              {t.rich("defaultFollowMilestoneSentence", {
+                options: () => (
+                  <ButtonGroup
+                    value={
+                      String(milestoneStep * 100) as "1" | "5" | "10" | "20"
+                    }
+                    buttons={MILESTONE_BUTTONS}
+                    onChange={(v) => {
+                      const value = Number(v) / 100;
+                      setMilestoneStep(value);
+                      updateDefaultFollow("milestone", {
+                        follow_notify_milestone_step: value,
+                      });
+                    }}
+                    variant="secondary"
+                    activeVariant="primary"
+                    className="px-2 py-1 text-xs"
+                    activeClassName="px-2 py-1 text-xs"
+                  />
+                ),
+              })}
+            </div>
+          )}
+          <SwitchRow
+            checked={statusChange}
+            onChange={(checked) => {
+              setStatusChange(checked);
+              updateDefaultFollow("status", {
+                follow_notify_on_status_change: checked,
+              });
+            }}
+            isPending={
+              isDefaultFollowPending && savingDefaultField === "status"
+            }
+            label={t("followModalStatusChanges")}
+          />
+        </div>
+      </PreferencesSection>
     </>
+  );
+};
+
+const SwitchRow: FC<{
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  isPending: boolean;
+  label: string;
+  description?: string;
+  children?: React.ReactNode;
+}> = ({ checked, onChange, isPending, label, description, children }) => {
+  const [showSaved, setShowSaved] = useState(false);
+  const wasPending = useRef(false);
+
+  useEffect(() => {
+    if (isPending) {
+      wasPending.current = true;
+    } else if (wasPending.current) {
+      wasPending.current = false;
+      setShowSaved(true);
+      const timer = setTimeout(() => setShowSaved(false), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [isPending]);
+
+  const statusIcon = isPending ? (
+    <LoadingSpinner size="1x" />
+  ) : showSaved ? (
+    <FontAwesomeIcon
+      icon={faCheck}
+      className="text-olive-700 dark:text-olive-700-dark"
+    />
+  ) : null;
+
+  return (
+    <div
+      className={`flex gap-4 ${description ? "items-start" : "items-center"}`}
+    >
+      <Switch
+        checked={checked}
+        onChange={onChange}
+        disabled={isPending}
+        className={`shrink-0 ${description ? "mt-0.5" : ""}`}
+      />
+      {description ? (
+        <div className="flex flex-col">
+          <div className="flex items-center gap-1">
+            <span className="text-sm">{children ?? label}</span>
+            {statusIcon}
+          </div>
+          <span className="text-xs opacity-70">{description}</span>
+        </div>
+      ) : (
+        <>
+          <span className="text-sm">{children ?? label}</span>
+          {statusIcon}
+        </>
+      )}
+    </div>
   );
 };
 
