@@ -2,7 +2,7 @@
 import { isNil } from "lodash";
 import { FC, PropsWithChildren, useCallback, useMemo, useState } from "react";
 
-import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
+import { useCommentsFeedSafe } from "@/app/(main)/components/comments_feed_provider";
 import { voteKeyFactor } from "@/app/(main)/questions/actions";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
@@ -58,15 +58,17 @@ const KeyFactorStrengthItem: FC<Props> = ({
 }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
-  const { combinedKeyFactors, setKeyFactorVote } = useCommentsFeed();
+  const commentsFeed = useCommentsFeedSafe();
   const { question_type: questionType, unit } = keyFactor.post;
 
   const [submitting, setSubmitting] = useState(false);
 
   const aggregate = useMemo(() => {
-    const contextKf = combinedKeyFactors.find((kf) => kf.id === keyFactor.id);
+    const contextKf = commentsFeed?.combinedKeyFactors.find(
+      (kf) => kf.id === keyFactor.id
+    );
     return contextKf?.vote ?? keyFactor.vote;
-  }, [combinedKeyFactors, keyFactor.id, keyFactor.vote]);
+  }, [commentsFeed?.combinedKeyFactors, keyFactor.id, keyFactor.vote]);
 
   const isDirection = voteType === KeyFactorVoteTypes.DIRECTION;
   const upScore = isDirection ? 5 : StrengthValues.MEDIUM;
@@ -82,6 +84,7 @@ const KeyFactorStrengthItem: FC<Props> = ({
     );
 
   const isCompactConsumer = mode === "consumer" && isCompact;
+  const isReadOnly = !commentsFeed;
 
   const aggregatedData = aggregate?.aggregated_data ?? [];
   const serverUpCount = isDirection
@@ -135,7 +138,7 @@ const KeyFactorStrengthItem: FC<Props> = ({
         });
         if (resp) {
           const updated = resp as unknown as KeyFactorVoteAggregate;
-          setKeyFactorVote(keyFactor.id, updated);
+          commentsFeed?.setKeyFactorVote(keyFactor.id, updated);
         }
       } catch (e) {
         console.error("Failed to vote key factor", e);
@@ -150,7 +153,7 @@ const KeyFactorStrengthItem: FC<Props> = ({
       setOptimistic,
       keyFactor.id,
       voteType,
-      setKeyFactorVote,
+      commentsFeed,
       clearOptimistic,
       setCurrentModal,
     ]
@@ -206,42 +209,44 @@ const KeyFactorStrengthItem: FC<Props> = ({
         )}
       </div>
 
-      <div className="flex items-end justify-between">
-        <div
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <ThumbVoteButtons
-            upCount={upCount}
-            downCount={downCount}
-            selected={selection}
-            disabled={submitting}
-            onClickUp={() => {
-              toggle(upScore);
-              if (user) {
-                onVotePanelToggle?.(selection !== "up");
-              }
-            }}
-            onClickDown={() => {
-              toggle(downScore);
-              if (user) {
-                onVotePanelToggle?.(false);
-                onDownvotePanelToggle?.(selection !== "down");
-              }
-            }}
-          />
-        </div>
-        {!isCompactConsumer && onMorePanelToggle && (
-          <MoreActionsButton
-            isActive={isMorePanelOpen}
-            onClick={(e) => {
-              e.stopPropagation();
-              onMorePanelToggle(!isMorePanelOpen);
-            }}
+      {!isReadOnly && (
+        <div className="flex items-end justify-between">
+          <div
+            onClick={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
-          />
-        )}
-      </div>
+          >
+            <ThumbVoteButtons
+              upCount={upCount}
+              downCount={downCount}
+              selected={selection}
+              disabled={submitting}
+              onClickUp={() => {
+                toggle(upScore);
+                if (user) {
+                  onVotePanelToggle?.(selection !== "up");
+                }
+              }}
+              onClickDown={() => {
+                toggle(downScore);
+                if (user) {
+                  onVotePanelToggle?.(false);
+                  onDownvotePanelToggle?.(selection !== "down");
+                }
+              }}
+            />
+          </div>
+          {!isCompactConsumer && onMorePanelToggle && (
+            <MoreActionsButton
+              isActive={isMorePanelOpen}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMorePanelToggle(!isMorePanelOpen);
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+            />
+          )}
+        </div>
+      )}
     </>
   );
 };

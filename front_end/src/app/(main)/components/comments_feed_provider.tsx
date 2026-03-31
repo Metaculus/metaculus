@@ -111,10 +111,15 @@ type ProfileProviderProps = {
   profileId: number;
   postData?: never;
 };
+type StandaloneProviderProps = {
+  postData?: never;
+  profileId?: never;
+};
 
 const CommentsFeedProvider: FC<
   PropsWithChildren<
-    BaseProviderProps & (PostProviderProps | ProfileProviderProps)
+    BaseProviderProps &
+      (PostProviderProps | ProfileProviderProps | StandaloneProviderProps)
   >
 > = ({ children, postData, profileId, rootCommentStructure }) => {
   const { user } = useAuth();
