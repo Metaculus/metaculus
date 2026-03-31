@@ -4,6 +4,7 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { useFeatureFlagVariantKey } from "posthog-js/react";
 import { FC, useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/contexts/auth_context";
@@ -138,6 +139,13 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const logoHref = user ? "/questions/" : "/";
+  const servicesCopyVariant = useFeatureFlagVariantKey("services-copy");
+  const servicesCopyTitle =
+    servicesCopyVariant === "B"
+      ? t("services")
+      : servicesCopyVariant === "C"
+        ? t("partnerWithMetaculus")
+        : t("businessSolutions");
 
   const [hoveredCard, setHoveredCard] = useState<HoveredCard>(null);
   const { color: globeColor, speed: globeSpeed } =
@@ -232,7 +240,7 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
               <div className="relative z-10 flex h-full flex-col justify-between gap-2 md:justify-start">
                 <div className="flex items-start justify-between md:items-center">
                   <span className="text-sm font-semibold text-purple-900 md:text-2xl">
-                    {t("businessSolutions")}
+                    {servicesCopyTitle}
                   </span>
                   <FontAwesomeIcon
                     icon={faArrowRight}
