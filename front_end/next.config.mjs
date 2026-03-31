@@ -1,3 +1,5 @@
+import crypto from "crypto";
+
 import { withSentryConfig } from "@sentry/nextjs";
 import createNextIntlPlugin from "next-intl/plugin";
 
@@ -6,12 +8,15 @@ const withNextIntl = createNextIntlPlugin();
 const AWS_STORAGE_BUCKET_NAME = process.env.AWS_STORAGE_BUCKET_NAME;
 const AWS_S3_CUSTOM_DOMAIN = process.env.AWS_S3_CUSTOM_DOMAIN;
 
+const BUILD_ID = crypto.randomUUID();
+
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   trailingSlash: true,
   productionBrowserSourceMaps: true,
+  generateBuildId: () => BUILD_ID,
   env: {
-    // Do not add anything here. Buildtime environment variables are deprecated
+    BUILD_ID: BUILD_ID,
   },
   experimental: {
     staleTimes: {
@@ -21,6 +26,21 @@ const nextConfig = {
     serverSourceMaps: true,
     serverActions: {
       bodySizeLimit: "3mb", // match GIF size limit on the server
+    },
+  },
+  turbopack: {
+    rules: {
+      "*.svg": [
+        {
+          condition: { query: /\burl\b/ },
+          type: "asset",
+        },
+        {
+          condition: { not: { query: /\burl\b/ } },
+          loaders: ["@svgr/webpack"],
+          as: "*.js",
+        },
+      ],
     },
   },
   images: {
@@ -81,48 +101,6 @@ const nextConfig = {
           "https://metaculus-public.s3.us-west-2.amazonaws.com/OWID%2Breport.pdf",
       },
     ];
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  webpack: (config, { buildId, webpack }) => {
-    // propagate buildId to environment so we could trigger prompt message on outdated version
-    config.plugins.push(
-      new webpack.DefinePlugin({
-        "process.env.BUILD_ID": JSON.stringify(buildId),
-      })
-    );
-
-    config.output.filename = config.output.filename.replace(
-      "[chunkhash]",
-      buildId
-    );
-
-    // Grab the existing rule that handles SVG imports
-    const fileLoaderRule = config.module.rules.find((rule) =>
-      rule.test?.test?.(".svg")
-    );
-
-    config.module.rules.push(
-      // Reapply the existing rule, but only for svg imports ending in ?url
-      {
-        ...fileLoaderRule,
-        test: /\.svg$/i,
-        resourceQuery: /url/, // *.svg?url
-      },
-      // Convert all other *.svg imports to React components
-      {
-        test: /\.svg$/i,
-        issuer: fileLoaderRule.issuer,
-        resourceQuery: { not: [...fileLoaderRule.resourceQuery.not, /url/] }, // exclude if *.svg?url
-        use: ["@svgr/webpack"],
-      }
-    );
-
-    // Modify the file loader rule to ignore *.svg, since we have it handled now.
-    fileLoaderRule.exclude = /\.svg$/i;
-
-    return config;
   },
 };
 

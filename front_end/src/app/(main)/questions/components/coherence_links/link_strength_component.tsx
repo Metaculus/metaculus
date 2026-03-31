@@ -26,7 +26,7 @@ const colorAccent = {
   border-orange-400 dark:border-orange-400-dark`,
 } as const;
 
-const strengthI18nKey: Record<Strengths, keyof IntlMessages> = {
+const strengthI18nKey: Record<Strengths, string> = {
   [Strengths.Low]: "lowStrength",
   [Strengths.Medium]: "mediumStrength",
   [Strengths.High]: "highStrength",

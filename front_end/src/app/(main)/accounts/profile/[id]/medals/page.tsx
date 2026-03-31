@@ -85,7 +85,7 @@ export default async function MedalsPage(props: Props) {
                           <span className="opacity-70">{t("rank")}: </span>
                           <span className="font-bold">#{medal.rank}</span>{" "}
                           <span className="hidden opacity-70 md:inline-block">
-                            {t("outOfRank", { total: medal.totalEntries })}
+                            {t("outOfRank", { total: medal.totalEntries ?? 0 })}
                           </span>
                         </span>
                       </div>

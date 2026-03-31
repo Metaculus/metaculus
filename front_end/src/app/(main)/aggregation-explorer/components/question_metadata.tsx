@@ -15,7 +15,7 @@ import { isSuccessfullyResolved } from "@/utils/questions/resolution";
 import { AGGREGATION_OPTION_BY_ID } from "../constants";
 import { buildBaseLabel } from "../hooks/aggregation-data";
 
-const QUESTION_TYPE_LABEL: Record<QuestionType, keyof IntlMessages> = {
+const QUESTION_TYPE_LABEL: Record<QuestionType, string> = {
   [QuestionType.Binary]: "binary",
   [QuestionType.MultipleChoice]: "multipleChoice",
   [QuestionType.Numeric]: "numeric",
