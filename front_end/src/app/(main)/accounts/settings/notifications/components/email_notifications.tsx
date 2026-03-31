@@ -170,8 +170,7 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
 
   const keepingUpOptions: {
     type: SubscriptionEmailType;
-    label: string;
-    children?: React.ReactNode;
+    label: React.ReactNode;
   }[] = [
     {
       type: SubscriptionEmailType.comment_mentions,
@@ -187,8 +186,7 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
     },
     {
       type: SubscriptionEmailType.cp_change,
-      label: t("cpChangeOnPredictedQuestions"),
-      children: (
+      label: (
         <>
           {t("cpChangeOnPredictedQuestions")}
           <Tooltip
@@ -206,8 +204,7 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
     },
     {
       type: SubscriptionEmailType.before_prediction_auto_withdrawal,
-      label: "",
-      children: t.rich("myPredictionAboutToBeAutoWithdrawn", {
+      label: t.rich("myPredictionAboutToBeAutoWithdrawn", {
         link: (chunks) => (
           <Link
             href="/faq/#auto-withdrawal"
@@ -248,9 +245,7 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
               isMailingTagPending &&
               loadingTag === SubscriptionEmailType.weekly_top_comments
             }
-            label=""
-          >
-            {t.rich("getWeeklyTopCommentsEmails", {
+            label={t.rich("getWeeklyTopCommentsEmails", {
               link: (chunks) => (
                 <Link
                   href="/questions/?weekly_top_comments=true"
@@ -260,14 +255,12 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
                 </Link>
               ),
             })}
-          </SwitchRow>
+          />
           <SwitchRow
             checked={newsSubscribed}
             onChange={updateNews}
             isPending={isNewsPending}
-            label=""
-          >
-            {t.rich("followMetaculusNewsPosts", {
+            label={t.rich("followMetaculusNewsPosts", {
               link: (chunks) => (
                 <Link
                   href="/news/"
@@ -277,7 +270,7 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
                 </Link>
               ),
             })}
-          </SwitchRow>
+          />
         </div>
       </PreferencesSection>
 
@@ -285,7 +278,7 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
       <PreferencesSection title={t("keepingUp")}>
         <div className="flex flex-col gap-3">
           <span className="text-sm">{t("receiveEmailNotificationsWhen")}</span>
-          {keepingUpOptions.map(({ type, label, children }) => (
+          {keepingUpOptions.map(({ type, label }) => (
             <SwitchRow
               key={`keeping-up-${type}`}
               checked={!user.unsubscribed_mailing_tags.includes(type)}
@@ -295,9 +288,7 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
               }}
               isPending={isMailingTagPending && loadingTag === type}
               label={label}
-            >
-              {children}
-            </SwitchRow>
+            />
           ))}
         </div>
         <div className="mt-4 flex flex-col gap-2">
@@ -468,10 +459,9 @@ const SwitchRow: FC<{
   checked: boolean;
   onChange: (checked: boolean) => void;
   isPending: boolean;
-  label: string;
+  label: React.ReactNode;
   description?: string;
-  children?: React.ReactNode;
-}> = ({ checked, onChange, isPending, label, description, children }) => {
+}> = ({ checked, onChange, isPending, label, description }) => {
   const [showSaved, setShowSaved] = useState(false);
   const wasPending = useRef(false);
 
@@ -508,14 +498,14 @@ const SwitchRow: FC<{
       {description ? (
         <div className="flex flex-col">
           <div className="flex items-center gap-1">
-            <span className="text-sm">{children ?? label}</span>
+            <span className="text-sm">{label}</span>
             {statusIcon}
           </div>
           <span className="text-xs opacity-70">{description}</span>
         </div>
       ) : (
         <>
-          <span className="text-sm">{children ?? label}</span>
+          <span className="text-sm">{label}</span>
           {statusIcon}
         </>
       )}
