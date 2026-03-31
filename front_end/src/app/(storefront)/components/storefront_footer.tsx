@@ -27,7 +27,7 @@ const FooterLinkColumn: FC<{
             <button
               key={index}
               type="button"
-              className="whitespace-nowrap text-left font-normal text-blue-700 no-underline hover:text-blue-800 md:font-medium"
+              className="text-left font-normal text-blue-700 no-underline hover:text-blue-800 sm:whitespace-nowrap md:font-medium"
               onClick={onContactClick}
             >
               {t(link.labelKey as Parameters<typeof t>[0])}
@@ -41,7 +41,7 @@ const FooterLinkColumn: FC<{
               href={link.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="whitespace-nowrap font-normal text-blue-700 no-underline hover:text-blue-800 md:font-medium"
+              className="font-normal text-blue-700 no-underline hover:text-blue-800 sm:whitespace-nowrap md:font-medium"
             >
               {t(link.labelKey as Parameters<typeof t>[0])}
             </a>
@@ -51,7 +51,7 @@ const FooterLinkColumn: FC<{
           <Link
             key={index}
             href={link.href}
-            className="whitespace-nowrap font-normal text-blue-700 no-underline hover:text-blue-800 md:font-medium"
+            className="font-normal text-blue-700 no-underline hover:text-blue-800 sm:whitespace-nowrap md:font-medium"
           >
             {t(link.labelKey as Parameters<typeof t>[0])}
           </Link>
