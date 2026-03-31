@@ -168,7 +168,6 @@ export const getProjectSlug = (project: Pick<Project, "id" | "slug">) => {
 };
 
 export const getWithDefaultHeader = (pathname: string): boolean =>
-  pathname !== "/" &&
   !pathname.match(/^\/questions\/(\d+)(\/.*)?$/) &&
   !pathname.match(/^\/notebooks\/(\d+)(\/.*)?$/) &&
   !pathname.startsWith("/c/") &&
