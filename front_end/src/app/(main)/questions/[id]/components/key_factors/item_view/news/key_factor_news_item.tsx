@@ -4,7 +4,7 @@ import { faNewspaper } from "@fortawesome/free-regular-svg-icons";
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useLocale } from "next-intl";
-import React from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 
 import ImageWithFallback from "@/components/ui/image_with_fallback";
 import cn from "@/utils/core/cn";
@@ -86,39 +86,17 @@ const KeyFactorNewsItem: React.FC<Props> = ({
         <a
           {...linkProps}
           className={cn(
-            "mt-1 flex items-center gap-1.5 font-medium no-underline",
+            "relative mt-1 flex items-center gap-1.5 font-medium no-underline",
             isCompact ? "text-[10px]" : "text-xs",
             "text-blue-600 dark:text-blue-600-dark"
           )}
         >
-          {date ? (
-            <span
-              className={cn(
-                "flex flex-wrap content-end items-center gap-x-1.5 overflow-hidden",
-                isCompact ? "max-h-[14px]" : "max-h-5"
-              )}
-            >
-              <span className="flex-shrink-0 whitespace-nowrap">{source}</span>
-              <span
-                className={cn(
-                  "flex-shrink-0",
-                  isCompact
-                    ? "text-blue-400 dark:text-blue-400-dark"
-                    : "text-gray-500 dark:text-gray-500-dark"
-                )}
-              >
-                •
-              </span>
-              <span
-                suppressHydrationWarning
-                className="flex-shrink-0 text-nowrap"
-              >
-                {formatDate(locale, date)}
-              </span>
-            </span>
-          ) : (
-            <span className="truncate">{source}</span>
-          )}
+          <SourceDateLabel
+            source={source}
+            date={date}
+            locale={locale}
+            isCompact={isCompact}
+          />
         </a>
       </div>
 
@@ -151,6 +129,66 @@ const KeyFactorNewsItem: React.FC<Props> = ({
         </a>
       </div>
     </div>
+  );
+};
+
+const SourceDateLabel: React.FC<{
+  source: string;
+  date: Date | null;
+  locale: string;
+  isCompact?: boolean;
+}> = ({ source, date, locale, isCompact }) => {
+  const measureRef = useRef<HTMLSpanElement>(null);
+  const [hideSource, setHideSource] = useState(false);
+
+  useLayoutEffect(() => {
+    const el = measureRef.current;
+    if (!el || !date) return;
+
+    const check = () => {
+      setHideSource(el.scrollWidth > el.clientWidth);
+    };
+    check();
+
+    const observer = new ResizeObserver(check);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [source, date]);
+
+  if (!date) {
+    return <span className="truncate">{source}</span>;
+  }
+
+  const dateStr = formatDate(locale, date);
+
+  return (
+    <>
+      <span
+        ref={measureRef}
+        aria-hidden
+        className="pointer-events-none invisible absolute inset-x-0 flex items-center gap-1.5 overflow-hidden whitespace-nowrap"
+      >
+        {source} • {dateStr}
+      </span>
+      {!hideSource && (
+        <>
+          <span className="flex-shrink-0 whitespace-nowrap">{source}</span>
+          <span
+            className={cn(
+              "flex-shrink-0",
+              isCompact
+                ? "text-blue-400 dark:text-blue-400-dark"
+                : "text-gray-500 dark:text-gray-500-dark"
+            )}
+          >
+            •
+          </span>
+        </>
+      )}
+      <span suppressHydrationWarning className="flex-shrink-0 text-nowrap">
+        {dateStr}
+      </span>
+    </>
   );
 };
 

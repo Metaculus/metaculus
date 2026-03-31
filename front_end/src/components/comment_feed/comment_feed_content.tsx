@@ -1,12 +1,12 @@
 "use client";
 
 import {
-  keepPreviousData,
   useInfiniteQuery,
   useQuery,
+  useQueryClient,
 } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useState, useMemo } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 
 import PopoverFilter from "@/components/popover_filter";
 import {
@@ -146,7 +146,6 @@ const CommentFeedContent: FC = () => {
         limit: COMMENTS_PER_PAGE,
         offset: pageParam,
         sort: effectiveSort,
-        parent_isnull: true,
         is_private: false,
         include_deleted: false,
         post_status: PostStatus.APPROVED,
@@ -181,21 +180,39 @@ const CommentFeedContent: FC = () => {
     [comments]
   );
 
+  const queryClient = useQueryClient();
+  const postsStableKey = ["comments-feed-posts"];
   const { data: postsMap = {} } = useQuery({
-    queryKey: ["comments-feed-posts", postIds],
+    queryKey: [...postsStableKey, postIds],
     queryFn: async () => {
+      const cached =
+        queryClient.getQueryData<Record<number, PostWithForecasts>>(
+          postsStableKey
+        ) ?? {};
+      const missingIds = postIds.filter((id) => !(id in cached));
+      if (missingIds.length === 0) return cached;
+
       const response = await ClientPostsApi.getPostsWithCP(
-        { ids: postIds },
+        { ids: missingIds },
         { include_cp_history: false }
       );
-      const map: Record<number, PostWithForecasts> = {};
+      const fetched: Record<number, PostWithForecasts> = {};
       for (const post of response.results) {
-        map[post.id] = post;
+        fetched[post.id] = post;
       }
-      return map;
+      // Atomic merge against latest cache snapshot
+      queryClient.setQueryData<Record<number, PostWithForecasts>>(
+        postsStableKey,
+        (old) => ({ ...(old ?? {}), ...fetched })
+      );
+      return {
+        ...(queryClient.getQueryData<Record<number, PostWithForecasts>>(
+          postsStableKey
+        ) ?? {}),
+      };
     },
     enabled: postIds.length > 0,
-    placeholderData: keepPreviousData,
+    placeholderData: (prev) => prev,
   });
 
   const sortOptions: { value: SortOption; label: string }[] = [
