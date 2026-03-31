@@ -120,14 +120,10 @@ const ACCENT_OPACITY = 0.4; // adjust this to control hover tint intensity
 const AccentOverlay: FC<{ accentKey: keyof typeof CARD_ACCENT_COLORS }> = ({
   accentKey,
 }) => {
-  const color = CARD_ACCENT_COLORS[accentKey];
-  // Parse hex to rgb for rgba usage
-  const r = parseInt(color.slice(1, 3), 16);
-  const g = parseInt(color.slice(3, 5), 16);
-  const b = parseInt(color.slice(5, 7), 16);
+  const [r, g, b] = parseHex(CARD_ACCENT_COLORS[accentKey]);
   return (
     <div
-      className="pointer-events-none absolute inset-0 hidden opacity-0 transition-opacity md:block md:group-hover:opacity-100"
+      className="pointer-events-none absolute inset-0 hidden opacity-0 transition-opacity md:block md:group-hover:opacity-100 md:group-focus-visible:opacity-100"
       style={{
         backgroundColor: `rgba(${r}, ${g}, ${b}, ${ACCENT_OPACITY})`,
       }}
@@ -184,6 +180,8 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
               )}
               onMouseEnter={() => setHoveredCard("platform")}
               onMouseLeave={() => setHoveredCard(null)}
+              onFocus={() => setHoveredCard("platform")}
+              onBlur={() => setHoveredCard(null)}
             >
               <AccentOverlay accentKey="platform" />
               <div className="absolute -left-[102px] -top-[60px] h-[346px] w-[341px] rounded-full bg-[rgba(41,109,169,0.76)] opacity-40 blur-[51px]" />
@@ -194,7 +192,7 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
                   </span>
                   <FontAwesomeIcon
                     icon={faArrowRight}
-                    className="mt-0.5 text-sm text-blue-900/50 transition-transform group-hover:translate-x-1 md:mt-0 md:text-xl"
+                    className="mt-0.5 text-sm text-blue-900/50 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 md:mt-0 md:text-xl"
                   />
                 </div>
                 <p className="m-0 text-xs text-blue-800 md:text-base">
@@ -234,6 +232,8 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
               )}
               onMouseEnter={() => setHoveredCard("business")}
               onMouseLeave={() => setHoveredCard(null)}
+              onFocus={() => setHoveredCard("business")}
+              onBlur={() => setHoveredCard(null)}
             >
               <AccentOverlay accentKey="business" />
               <div className="absolute -left-[62px] -top-[57px] h-[346px] w-[341px] rounded-full bg-[rgba(63,25,49,0.76)] opacity-[0.22] blur-[51px]" />
@@ -244,7 +244,7 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
                   </span>
                   <FontAwesomeIcon
                     icon={faArrowRight}
-                    className="mt-0.5 text-sm text-purple-900/50 transition-transform group-hover:translate-x-1 md:mt-0 md:text-xl"
+                    className="mt-0.5 text-sm text-purple-900/50 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 md:mt-0 md:text-xl"
                   />
                 </div>
                 <p className="m-0 text-xs text-purple-900 md:text-base">
@@ -273,6 +273,8 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
               className="group relative flex flex-col gap-3 overflow-hidden rounded-lg bg-[#4c6076] p-4 no-underline backdrop-blur-[1px] transition-colors md:flex-row md:items-center md:gap-4 md:rounded-xl md:bg-[#4c6076]/80 md:px-6 md:py-4 md:hover:bg-[#4c6076]"
               onMouseEnter={() => setHoveredCard("futureeval")}
               onMouseLeave={() => setHoveredCard(null)}
+              onFocus={() => setHoveredCard("futureeval")}
+              onBlur={() => setHoveredCard(null)}
             >
               <AccentOverlay accentKey="futureeval" />
               <div className="absolute -left-[33px] -top-[39px] h-[130px] w-[127px] rounded-full bg-[rgba(41,169,156,0.76)] opacity-40 blur-[51px] md:-left-[142px] md:-top-[140px] md:h-[346px] md:w-[341px]" />
@@ -285,15 +287,15 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
                 </div>
                 <FontAwesomeIcon
                   icon={faArrowRight}
-                  className="text-sm text-white/50 transition-transform group-hover:translate-x-1 md:hidden"
+                  className="text-sm text-white/50 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 md:hidden"
                 />
               </div>
-              <p className="relative z-10 m-0 text-xs font-normal text-white opacity-50 group-hover:opacity-80  md:flex-1 md:text-sm md:opacity-60">
+              <p className="relative z-10 m-0 text-xs font-normal text-white opacity-50 group-hover:opacity-80 group-focus-visible:opacity-80  md:flex-1 md:text-sm md:opacity-60">
                 {t("measuringForecastingAccuracyOfAI")}
               </p>
               <FontAwesomeIcon
                 icon={faArrowRight}
-                className="relative z-10 hidden text-white/50 transition-transform group-hover:translate-x-1 md:block md:text-xl"
+                className="relative z-10 hidden text-white/50 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 md:block md:text-xl"
               />
             </Link>
 
@@ -303,6 +305,8 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
               className="group relative flex flex-col gap-3 overflow-hidden rounded-lg bg-[#4c6076] p-4 no-underline backdrop-blur-[1px] transition-colors md:flex-row md:items-center md:gap-4 md:rounded-xl md:bg-[#4c6076]/80 md:px-6 md:py-4 md:hover:bg-[#4c6076]"
               onMouseEnter={() => setHoveredCard("radiant")}
               onMouseLeave={() => setHoveredCard(null)}
+              onFocus={() => setHoveredCard("radiant")}
+              onBlur={() => setHoveredCard(null)}
             >
               <AccentOverlay accentKey="radiant" />
               <div className="absolute -left-[67px] -top-[63px] h-[132px] w-[131px] rounded-full bg-[rgba(255,228,203,0.5)] opacity-40 blur-[39px] md:-left-[166px] md:-top-[156px] md:h-[346px] md:w-[341px] md:blur-[51px]" />
@@ -315,15 +319,15 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
                 </div>
                 <FontAwesomeIcon
                   icon={faArrowRight}
-                  className="text-sm text-white/50 transition-transform group-hover:translate-x-1 md:hidden"
+                  className="text-sm text-white/50 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 md:hidden"
                 />
               </div>
-              <p className="relative z-10 m-0 text-xs font-normal text-white opacity-50 group-hover:opacity-80  md:flex-1 md:text-sm md:opacity-60">
+              <p className="relative z-10 m-0 text-xs font-normal text-white opacity-50 group-hover:opacity-80 group-focus-visible:opacity-80  md:flex-1 md:text-sm md:opacity-60">
                 {t("mapTheFutureBeforeYouBuildIt")}
               </p>
               <FontAwesomeIcon
                 icon={faArrowRight}
-                className="relative z-10 hidden text-white/50 transition-transform group-hover:translate-x-1 md:block md:text-xl"
+                className="relative z-10 hidden text-white/50 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 md:block md:text-xl"
               />
             </Link>
           </div>
