@@ -1,5 +1,10 @@
-import { EMBED_QUESTION_TITLE } from "@/constants/global_search_params";
+import {
+  CHART_TYPE_PARAM,
+  EMBED_QUESTION_TITLE,
+  GRAPH_ZOOM_PARAM,
+} from "@/constants/global_search_params";
 import ServerPostsApi from "@/services/api/posts/posts.server";
+import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
 import { SearchParams } from "@/types/navigation";
 
 import EmbedScreen from "../../components/embed_screen";
@@ -48,6 +53,20 @@ export default async function GenerateQuestionPreview(props: {
     | string
     | undefined;
 
+  const zoomParam = searchParams[GRAPH_ZOOM_PARAM] as string | undefined;
+  const defaultZoom = Object.values(TimelineChartZoomOption).includes(
+    zoomParam as TimelineChartZoomOption
+  )
+    ? (zoomParam as TimelineChartZoomOption)
+    : undefined;
+
+  const chartTypeParam = searchParams[CHART_TYPE_PARAM] as string | undefined;
+  const embedChartType = Object.values(EmbedChartType).includes(
+    chartTypeParam as EmbedChartType
+  )
+    ? (chartTypeParam as EmbedChartType)
+    : undefined;
+
   const isOgCapture = searchParams["og"] === "1";
 
   // Custom dimensions (consumer handles responsive logic)
@@ -69,6 +88,8 @@ export default async function GenerateQuestionPreview(props: {
     titleOverride,
     customWidth: width,
     customHeight: height,
+    defaultZoom,
+    embedChartType,
   };
 
   return isOgCapture ? (

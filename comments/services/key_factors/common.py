@@ -29,12 +29,15 @@ def key_factor_vote(
     user: User,
     vote: int = None,
     vote_type: KeyFactorVote.VoteType = None,
+    vote_reason: KeyFactorVote.VoteReason = None,
 ) -> float:
     # Deleting existing vote for this vote type
     key_factor.votes.filter(user=user, vote_type=vote_type).delete()
 
     if vote is not None:
-        key_factor.votes.create(user=user, score=vote, vote_type=vote_type)
+        key_factor.votes.create(
+            user=user, score=vote, vote_type=vote_type, vote_reason=vote_reason or ""
+        )
 
     # Update counters
     # For now, we generate `strength` for all key factor types.

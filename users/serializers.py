@@ -144,6 +144,21 @@ class UserPrivateSerializer(UserPublicSerializer):
         return user.project_subscriptions.filter(project__slug="platform").exists()
 
 
+class UserPrivateDataAccessSerializer(UserPrivateSerializer):
+    project_data_access = serializers.SerializerMethodField()
+
+    class Meta(UserPrivateSerializer.Meta):
+        fields = UserPrivateSerializer.Meta.fields + ("project_data_access",)
+
+    def get_project_data_access(self, user: User):
+        entries = (
+            user.data_accesses.filter(project_id__isnull=False)
+            .values("project_id", "api_access_tier")
+            .distinct()
+        )
+        return list(entries)
+
+
 class UserUpdateProfileSerializer(serializers.ModelSerializer):
     website = serializers.URLField(allow_blank=True, max_length=100)
     metaculus_news_subscription = serializers.BooleanField(required=False)
@@ -220,7 +235,15 @@ def validate_username_change(user: User, username: str):
 
 
 class UserFilterSerializer(serializers.Serializer):
-    search = serializers.CharField(required=True, min_length=3)
+    search = serializers.CharField(required=False, min_length=3)
+    post_id = serializers.IntegerField(required=False)
+
+    def validate(self, attrs):
+        if not attrs.get("search") and not attrs.get("post_id"):
+            raise serializers.ValidationError(
+                "At least one of 'search' or 'post_id' is required."
+            )
+        return attrs
 
 
 class PasswordChangeSerializer(serializers.Serializer):

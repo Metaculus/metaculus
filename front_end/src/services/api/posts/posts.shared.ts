@@ -5,6 +5,7 @@ import {
   PaginationParams,
 } from "@/types/fetch";
 import { NewsArticle } from "@/types/news";
+import { OnboardingTopic } from "@/types/onboarding";
 import {
   NotebookPost,
   Post,
@@ -12,7 +13,7 @@ import {
   PredictionFlowPost,
 } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
-import { DataParams, Require, WhitelistStatus } from "@/types/utils";
+import { DataAccessStatus, DataParams, Require } from "@/types/utils";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type PostsParams = PaginationParams & {
@@ -43,6 +44,10 @@ export type PostsParams = PaginationParams & {
   curation_status?: string;
   similar_to_post_id?: number;
   default_project_id?: string;
+};
+
+export type PostFetchParams = {
+  include_cp_history?: boolean;
 };
 
 export type ApprovePostParams = {
@@ -100,7 +105,8 @@ class PostsApi extends ApiService {
   }
 
   async getPostsWithCP(
-    params?: PostsParams
+    params?: PostsParams,
+    fetchParams?: PostFetchParams
   ): Promise<PaginatedPayload<PostWithForecasts>> {
     const queryParams = encodeQueryParams({
       ...(params ?? {}),
@@ -108,6 +114,7 @@ class PostsApi extends ApiService {
       include_descriptions: false,
       include_cp_history: true,
       include_movements: true,
+      ...(fetchParams ?? {}),
     });
 
     return await this.get<PaginatedPayload<PostWithForecasts>>(
@@ -222,7 +229,8 @@ class PostsApi extends ApiService {
     subQuestionId?: number,
     aggregationMethods?: string,
     includeBots?: boolean,
-    userIds?: number[]
+    userIds?: number[],
+    joinedBeforeDate?: string
   ): Promise<Blob> {
     const queryParams = encodeQueryParams({
       ...(subQuestionId ? { sub_question: subQuestionId } : {}),
@@ -231,6 +239,7 @@ class PostsApi extends ApiService {
         : { aggregation_methods: "all" }),
       ...(includeBots !== undefined ? { include_bots: includeBots } : {}),
       ...(userIds !== undefined ? { user_ids: userIds } : {}),
+      ...(joinedBeforeDate ? { joined_before_date: joinedBeforeDate } : {}),
     });
 
     return await this.get<Blob>(
@@ -238,13 +247,13 @@ class PostsApi extends ApiService {
     );
   }
 
-  async getWhitelistStatus(params: {
+  async getDataAccessStatus(params: {
     post_id?: number;
     project_id?: number;
-  }): Promise<WhitelistStatus> {
+  }): Promise<DataAccessStatus> {
     const queryParams = encodeQueryParams(params);
-    return await this.get<WhitelistStatus>(
-      `/get-whitelist-status/${queryParams}`
+    return await this.get<DataAccessStatus>(
+      `/get-data-access-status/${queryParams}`
     );
   }
 
@@ -255,6 +264,16 @@ class PostsApi extends ApiService {
     return await this.get<PaginatedPayload<PrivateNoteWithPost>>(
       `/posts/private-notes/${queryParams}`
     );
+  }
+
+  async getOnboardingFeed(): Promise<{
+    topics: OnboardingTopic[];
+    posts: PostWithForecasts[];
+  }> {
+    return await this.get<{
+      topics: OnboardingTopic[];
+      posts: PostWithForecasts[];
+    }>(`/posts/onboarding-feed/`);
   }
 }
 

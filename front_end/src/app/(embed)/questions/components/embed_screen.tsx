@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { ContinuousQuestionTypes } from "@/constants/questions";
+import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
@@ -23,6 +24,8 @@ type Props = {
   titleOverride?: string;
   customWidth?: number;
   customHeight?: number;
+  defaultZoom?: TimelineChartZoomOption;
+  embedChartType?: EmbedChartType;
 };
 
 const MIN_EMBED_WIDTH = 360;
@@ -66,6 +69,8 @@ const EmbedScreen: React.FC<Props> = ({
   titleOverride,
   customWidth,
   customHeight,
+  defaultZoom,
+  embedChartType,
 }) => {
   const frameRef = useRef<HTMLDivElement | null>(null);
 
@@ -220,6 +225,8 @@ const EmbedScreen: React.FC<Props> = ({
             theme={theme}
             titleOverride={titleOverride}
             containerWidth={ogMode ? contentWidth : containerWidth}
+            defaultZoom={defaultZoom}
+            embedChartType={embedChartType}
           />
         </div>
       </div>

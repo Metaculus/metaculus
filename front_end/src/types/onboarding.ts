@@ -1,7 +1,7 @@
 import { PostWithForecasts } from "@/types/post";
 
 export type OnboardingStoredState = {
-  selectedTopicId: number | null;
+  selectedTopicName: string | null;
   currentStep: number;
   step2Prediction: number;
   step3Prediction?: number;
@@ -10,7 +10,6 @@ export type OnboardingStoredState = {
 export type OnboardingTopic = {
   name: string;
   questions: number[];
-  factors: string[];
   emoji: string;
 };
 
@@ -19,10 +18,14 @@ export type OnboardingStep = {
   onPrev: () => void;
   onComplete: () => void;
   topic: OnboardingTopic | null;
-  setTopic: (id: number) => void;
+  topics: OnboardingTopic[];
+  setTopic: (name: string) => void;
   handleComplete: () => void;
   handlePostpone: () => void;
   posts: PostWithForecasts[];
+  isLoading?: boolean;
+  fetchError?: boolean;
+  onRetry?: () => void;
   onboardingState: OnboardingStoredState;
   setOnboardingState: (
     arg:

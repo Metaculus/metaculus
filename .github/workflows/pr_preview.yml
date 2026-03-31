@@ -69,6 +69,11 @@ on:
         required: false
         type: string
         default: ""
+      reset_db:
+        description: "Reset database branch to parent before deploy (fresh data)"
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: pr-preview-${{ github.event.number || inputs.pr_number }}
@@ -81,7 +86,6 @@ permissions:
   deployments: write
 
 env:
-  # Note: IMAGE_NAME is computed in setup job to ensure lowercase (required by Docker)
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
 jobs:
@@ -178,8 +182,7 @@ jobs:
           BRANCH_REF: ${{ steps.pr_head_ref.outputs.pr_head_ref || github.head_ref }}
           PR_NUMBER: ${{ github.event.number || inputs.pr_number }}
         run: |
-          # Slugify branch name: lowercase, replace invalid chars, truncate, then cleanup again
-          BRANCH_SLUG="$(printf '%s' "$BRANCH_REF" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9_-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-30 | sed 's/^-//' | sed 's/-$//')"
+          BRANCH_SLUG="$(printf '%s' "$BRANCH_REF" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--*/-/g' | cut -c1-30 | sed -e 's/^-*//' -e 's/-*$//')"
 
           # Base preview identifier: pr-{number}-{branch_slug}
           PREVIEW_ID="pr-${PR_NUMBER}-${BRANCH_SLUG}"
@@ -228,7 +231,7 @@ jobs:
       - name: Setup Fly.io CLI
         uses: superfly/flyctl-actions/setup-flyctl@master
         with:
-          version: 0.4.9
+          version: 0.4.14
 
       - name: Create NeonDB Branch
         id: neon
@@ -238,6 +241,16 @@ jobs:
           branch_name: ${{ needs.setup.outputs.neon_branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
           username: neondb_owner
+
+      - name: Reset NeonDB Branch to parent
+        if: github.event_name == 'workflow_dispatch' && (inputs.reset_db == true || inputs.reset_db == 'true')
+        id: reset-branch
+        uses: neondatabase/reset-branch-action@v1
+        with:
+          project_id: ${{ secrets.NEON_PROJECT_ID }}
+          branch: ${{ needs.setup.outputs.neon_branch }}
+          parent: true
+          api_key: ${{ secrets.NEON_API_KEY }}
 
       - name: Create or Get Fly Redis Database
         id: redis
@@ -256,6 +269,8 @@ jobs:
               --region "${REDIS_REGION}" \
               --no-replicas \
               --enable-eviction \
+              --enable-auto-upgrade=false \
+              --enable-prodpack=false \
               --org "${FLY_ORG}"
             echo "✅ Created new Redis database: ${REDIS_NAME}"
           fi
@@ -429,7 +444,7 @@ jobs:
       - name: Setup Fly.io CLI
         uses: superfly/flyctl-actions/setup-flyctl@master
         with:
-          version: 0.4.9
+          version: 0.4.14
 
       - name: Delete Fly app
         continue-on-error: true

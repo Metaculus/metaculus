@@ -34,6 +34,7 @@ const ContinuousCPBar: FC<Props> = ({
   const isEmbed = useIsEmbedMode();
   const w = useEmbedContainerWidth();
   const isEmbedBelow376 = isEmbed && (w ?? 0) > 0 && (w ?? 0) < 376;
+  const isEmbedWide = isEmbed && (w ?? 0) >= 500;
 
   if (!latest) {
     return null;
@@ -53,7 +54,7 @@ const ContinuousCPBar: FC<Props> = ({
               latest?.interval_upper_bounds?.[0] as number,
             ]
           : [],
-      unit: isEmbedBelow376 ? question.unit : isEmbed ? "" : question.unit,
+      unit: question.unit,
       actual_resolve_time: question.actual_resolve_time ?? null,
       discreteValueOptions,
     },
@@ -62,8 +63,9 @@ const ContinuousCPBar: FC<Props> = ({
   const displayValueChunks = displayValue.split("\n");
   const [centerLabel, intervalLabel] = displayValueChunks;
   const isClosed = question.status === QuestionStatus.CLOSED;
+  const isResolved = question.status === QuestionStatus.RESOLVED;
   const accentStyle =
-    !isClosed && colorOverride
+    !isClosed && !isResolved && colorOverride
       ? ({ color: colorOverride } as const)
       : undefined;
 
@@ -72,8 +74,10 @@ const ContinuousCPBar: FC<Props> = ({
       className={cn(
         "relative flex flex-col justify-center gap-0 pt-0.5 tabular-nums md:gap-0.5 md:pt-1",
         {
-          "text-olive-900 dark:text-olive-900-dark": !isClosed && !accentStyle,
+          "text-olive-900 dark:text-olive-900-dark":
+            !isClosed && !isResolved && !accentStyle,
           "text-gray-800 dark:text-gray-800-dark": isClosed,
+          "text-purple-800 dark:text-purple-800-dark": isResolved,
           // Feed variant: center on mobile, left on desktop
           "text-center md:text-left": variant === "feed",
           // Question variant: always center
@@ -87,9 +91,16 @@ const ContinuousCPBar: FC<Props> = ({
         className={cn("text-sm font-bold md:text-base", {
           "mb-1 text-base": size === "lg",
           "mb-0 truncate text-sm md:text-sm": isEmbed,
-          "text-olive-800 dark:text-olive-800-dark": isEmbed && !accentStyle,
+          "text-olive-800 dark:text-olive-800-dark":
+            isEmbed && !isClosed && !isResolved && !accentStyle,
+          "text-gray-800 dark:text-gray-800-dark": isEmbed && isClosed,
+          "text-purple-800 dark:text-purple-800-dark": isEmbed && isResolved,
           "text-[18px] font-bold text-olive-900 dark:text-olive-900-dark":
-            isEmbedBelow376,
+            isEmbedBelow376 && !isClosed && !isResolved,
+          "text-[18px] font-bold text-gray-800 dark:text-gray-800-dark":
+            isEmbedBelow376 && isClosed,
+          "text-[18px] font-bold text-purple-800 dark:text-purple-800-dark":
+            isEmbedBelow376 && isResolved,
         })}
       >
         {centerLabel}
@@ -99,7 +110,8 @@ const ContinuousCPBar: FC<Props> = ({
           style={accentStyle}
           className={cn("text-[10px] font-normal tabular-nums md:text-xs", {
             "text-sm": size === "lg",
-            "mb-0 text-sm md:text-sm": isEmbed,
+            "mb-0 text-xs md:text-xs": isEmbed && !isEmbedWide,
+            "mb-0 text-sm md:text-sm": isEmbedWide,
             "whitespace-normal break-words": isEmbed && isDate,
             truncate: isEmbed && !isDate,
           })}

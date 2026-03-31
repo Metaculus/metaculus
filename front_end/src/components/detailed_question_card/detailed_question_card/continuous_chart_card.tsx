@@ -8,8 +8,9 @@ import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view
 import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_cp_status";
 import NumericTimeline from "@/components/charts/numeric_timeline";
 import QuestionPredictionTooltip from "@/components/charts/primitives/question_prediction_tooltip";
+import ContinuousPredictionChart from "@/components/forecast_maker/continuous_input/continuous_prediction_chart";
 import { useAuth } from "@/contexts/auth_context";
-import { TimelineChartZoomOption } from "@/types/charts";
+import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
 import {
   ForecastAvailability,
   QuestionType,
@@ -41,6 +42,7 @@ type Props = {
   colorOverride?: ThemeColor | string;
   defaultZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
+  embedChartType?: EmbedChartType;
 };
 
 const DetailedContinuousChartCard: FC<Props> = ({
@@ -55,6 +57,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
   colorOverride,
   defaultZoom,
   withZoomPicker,
+  embedChartType,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -100,10 +103,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
 
     return {
       timestamp: timestamp,
-      forecasterCount:
-        // If there are no mouseover, we should display total forecasters number,
-        // otherwise - only active during that period
-        (cursorTimestamp ? forecast?.forecaster_count : nrForecasters) ?? 0,
+      forecasterCount: forecast?.forecaster_count ?? 0,
       interval_lower_bound: forecast?.interval_lower_bounds?.[0] ?? null,
       center: forecast?.centers?.[0] ?? null,
       interval_upper_bound: forecast?.interval_upper_bounds?.[0] ?? null,
@@ -205,6 +205,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
     !forecastAvailability?.cpRevealsOn &&
     (question.type === QuestionType.Binary || isContinuousQuestion(question));
 
+  const isBinary = question.type === QuestionType.Binary;
+
   const timelineTitle =
     !isEmbed && !hideTitle ? t("forecastTimelineHeading") : undefined;
 
@@ -257,6 +259,29 @@ const DetailedContinuousChartCard: FC<Props> = ({
     />
   );
 
+  const canRenderCurrentEmbed =
+    embedChartType === EmbedChartType.Current &&
+    !hideCP &&
+    !forecastAvailability?.cpRevealsOn;
+
+  if (canRenderCurrentEmbed) {
+    return (
+      <div className="w-full overflow-hidden" style={{ height: chartHeight }}>
+        <ContinuousPredictionChart
+          question={question}
+          dataset={{
+            cdf: [],
+            pmf: [],
+          }}
+          chartTheme={extraTheme}
+          graphType={"pmf"}
+          height={chartHeight}
+          readOnly
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
@@ -279,6 +304,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
             <div className="relative flex-1">
               <OverlayableTimeline
                 enabled={shouldOverlayCp}
+                alwaysOverlay={isBinary}
                 timeline={renderTimeline()}
                 overlay={overlayNode}
               />
@@ -289,6 +315,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
           <div className="relative md:hidden">
             <OverlayableTimeline
               enabled={shouldOverlayCp}
+              alwaysOverlay={isBinary}
               timeline={renderTimeline()}
               overlay={overlayNode}
             />
@@ -298,6 +325,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
         <div className="relative">
           <OverlayableTimeline
             enabled={shouldOverlayCp}
+            alwaysOverlay={isBinary}
             timeline={renderTimeline()}
             overlay={overlayNode}
           />
@@ -309,25 +337,48 @@ const DetailedContinuousChartCard: FC<Props> = ({
 
 type OverlayableTimelineProps = {
   enabled: boolean;
+  alwaysOverlay?: boolean;
   timeline: ReactNode;
   overlay: ReactNode;
 };
 
 const OverlayableTimeline: FC<OverlayableTimelineProps> = ({
   enabled,
+  alwaysOverlay,
   timeline,
   overlay,
 }) => {
   if (!enabled) return <>{timeline}</>;
 
   return (
-    <div className="group relative">
-      <div className="opacity-10 transition-opacity duration-200 group-focus-within:opacity-100 group-hover:opacity-100 @[23.5rem]:opacity-100">
-        {timeline}
-      </div>
-
-      <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center opacity-100 transition-opacity duration-200 group-focus-within:opacity-0 group-hover:opacity-0 @[23.5rem]:hidden">
+    <div
+      className={cn(
+        "group relative flex",
+        !alwaysOverlay && "@[23.5rem]:items-center @[23.5rem]:gap-3"
+      )}
+    >
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-0 z-10 flex items-center justify-center",
+          "opacity-100 transition-opacity duration-200 group-focus-within:opacity-0 group-hover:opacity-0",
+          alwaysOverlay
+            ? "@[23.5rem]:hidden"
+            : cn(
+                "@[23.5rem]:pointer-events-auto @[23.5rem]:static @[23.5rem]:inset-auto @[23.5rem]:z-auto",
+                "@[23.5rem]:shrink-0 @[23.5rem]:opacity-100 @[23.5rem]:transition-none",
+                "@[23.5rem]:group-focus-within:opacity-100 @[23.5rem]:group-hover:opacity-100"
+              )
+        )}
+      >
         {overlay}
+      </div>
+      <div
+        className={cn(
+          "opacity-10 transition-opacity duration-200 group-focus-within:opacity-100 group-hover:opacity-100",
+          "@[23.5rem]:min-w-0 @[23.5rem]:flex-1 @[23.5rem]:opacity-100 @[23.5rem]:transition-none"
+        )}
+      >
+        {timeline}
       </div>
     </div>
   );

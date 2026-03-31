@@ -80,6 +80,7 @@ export enum TimelineChartZoomOption {
 export type ContinuousAreaType =
   | "community"
   | "community_closed"
+  | "community_resolved"
   | "user"
   | "user_previous"
   | "user_components";

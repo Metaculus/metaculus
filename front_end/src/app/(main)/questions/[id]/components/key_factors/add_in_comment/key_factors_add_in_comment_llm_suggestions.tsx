@@ -24,6 +24,7 @@ import {
 import { KeyFactorDraft } from "@/types/key_factors";
 import { PostWithForecasts } from "@/types/post";
 import { Question } from "@/types/question";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import {
   isBaseRateDraft,
@@ -71,6 +72,12 @@ type QuestionLinkEditingSession = {
   swapped: boolean;
 };
 
+const LINK_STRENGTH_MAP: Record<QuestionLinkStrength, StrengthValues> = {
+  low: StrengthValues.LOW,
+  medium: StrengthValues.MEDIUM,
+  high: StrengthValues.HIGH,
+};
+
 type CombinedSuggestionItem =
   | {
       kind: "link";
@@ -83,6 +90,14 @@ type CombinedSuggestionItem =
       keyFactorIndex: number;
     };
 
+/**
+ * Helper to determine the type of a key factor draft
+ */
+const getKeyFactorType = (
+  kf: KeyFactorDraft
+): "driver" | "base_rate" | "news" =>
+  isDriverDraft(kf) ? "driver" : isBaseRateDraft(kf) ? "base_rate" : "news";
+
 const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
   onBack,
   postData,
@@ -91,6 +106,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
+  const fallbackCreatedAt = useMemo(() => new Date().toISOString(), []);
 
   const {
     suggestedKeyFactors,
@@ -217,6 +233,12 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
     idx: number,
     opts?: { showErrors?: boolean }
   ) => {
+    // Track edit action
+    const keyFactorType = getKeyFactorType(kf);
+    sendAnalyticsEvent("keyFactorLLMSuggestionEdited", {
+      event_category: keyFactorType,
+    });
+
     const id = editingIdRef.current++;
     setEditingSessions((prev) => [
       ...prev,
@@ -390,12 +412,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
 
     const { suggestion, swapped } = session;
     const dirNumber = suggestion.direction === "positive" ? 1 : -1;
-    const strengthMap: Record<QuestionLinkStrength, StrengthValues> = {
-      low: StrengthValues.LOW,
-      medium: StrengthValues.MEDIUM,
-      high: StrengthValues.HIGH,
-    };
-    const strengthNumber = strengthMap[suggestion.strength];
+    const strengthNumber = LINK_STRENGTH_MAP[suggestion.strength];
     const type = "causal";
 
     const [sourceQuestion, targetQuestion] = swapped
@@ -426,12 +443,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
     if (!postData.question) return;
 
     const dirNumber = suggestion.direction === "positive" ? 1 : -1;
-    const strengthMap: Record<QuestionLinkStrength, StrengthValues> = {
-      low: StrengthValues.LOW,
-      medium: StrengthValues.MEDIUM,
-      high: StrengthValues.HIGH,
-    };
-    const strengthNumber = strengthMap[suggestion.strength];
+    const strengthNumber = LINK_STRENGTH_MAP[suggestion.strength];
     const type = "causal";
 
     const error = await createCoherenceLink(
@@ -596,7 +608,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
                       <div className="mt-3 flex gap-6 text-xs text-gray-700 dark:text-gray-700-dark">
                         <div>
                           <div className="text-[10px] font-semibold uppercase text-gray-500 dark:text-gray-500-dark">
-                            Direction
+                            {t("direction")}
                           </div>
                           <div className="capitalize">
                             {t(
@@ -633,8 +645,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
                 );
               }
 
-              const { keyFactor, keyFactorIndex } = item;
-              const kf = keyFactor;
+              const { keyFactor: kf, keyFactorIndex } = item;
 
               const question = postData.group_of_questions?.questions.find(
                 (obj) => obj.id === kf.question_id
@@ -643,6 +654,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
               const emptyAggregate: KeyFactorVoteAggregate = {
                 score: 0,
                 user_vote: null,
+                user_vote_reason: null,
                 count: 0,
                 aggregated_data: [],
               };
@@ -667,6 +679,7 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
                 news,
                 author: user,
                 comment_id: -1,
+                created_at: fallbackCreatedAt,
                 vote: emptyAggregate,
                 question_id: kf.question_id ?? null,
                 question: kf.question_id
@@ -708,6 +721,12 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
                       <KeyFactorActionButton
                         kind="accept"
                         onClick={async () => {
+                          // Track accept action
+                          const keyFactorType = getKeyFactorType(kf);
+                          sendAnalyticsEvent("keyFactorLLMSuggestionAccepted", {
+                            event_category: keyFactorType,
+                          });
+
                           const res = await addSingleSuggestedKeyFactor(kf);
                           if (!res || ("errors" in res && res.errors)) {
                             handleEdit(kf, keyFactorIndex, {
@@ -725,7 +744,15 @@ const KeyFactorsAddInCommentLLMSuggestions: React.FC<Props> = ({
                     />
                     <KeyFactorActionButton
                       kind="reject"
-                      onClick={() => removeKeyFactorAt(keyFactorIndex)}
+                      onClick={() => {
+                        // Track reject action
+                        const keyFactorType = getKeyFactorType(kf);
+                        sendAnalyticsEvent("keyFactorLLMSuggestionRejected", {
+                          event_category: keyFactorType,
+                        });
+
+                        removeKeyFactorAt(keyFactorIndex);
+                      }}
                     />
                   </div>
                 </div>

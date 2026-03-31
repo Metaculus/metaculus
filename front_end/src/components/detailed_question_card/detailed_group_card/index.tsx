@@ -8,9 +8,13 @@ import GroupTimeline from "@/app/(main)/questions/[id]/components/group_timeline
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import FanChart from "@/components/charts/fan_chart";
 import { MultipleChoiceTile } from "@/components/post_card/multiple_choice_tile";
-import { ContinuousQuestionTypes } from "@/constants/questions";
+import {
+  ContinuousQuestionTypes,
+  getEffectiveVisibleCount,
+} from "@/constants/questions";
 import { useHideCP } from "@/contexts/cp_context";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
+import { TimelineChartZoomOption } from "@/types/charts";
 import {
   GroupOfQuestionsGraphType,
   GroupOfQuestionsPost,
@@ -27,8 +31,6 @@ import {
 } from "@/utils/questions/helpers";
 import { getCommonUnit } from "@/utils/questions/units";
 
-import { getMaxVisibleCheckboxes } from "../embeds";
-
 type Props = {
   post: GroupOfQuestionsPost<QuestionWithNumericForecasts>;
   preselectedQuestionId?: number;
@@ -42,6 +44,7 @@ type Props = {
   embedChartHeight?: number;
   onLegendHeightChange?: (height: number) => void;
   chartTheme?: VictoryThemeDefinition;
+  defaultZoom?: TimelineChartZoomOption;
 };
 
 const DetailedGroupCard: FC<Props> = ({
@@ -53,6 +56,7 @@ const DetailedGroupCard: FC<Props> = ({
   embedChartHeight,
   onLegendHeightChange,
   chartTheme,
+  defaultZoom,
 }) => {
   const {
     open_time,
@@ -87,8 +91,8 @@ const DetailedGroupCard: FC<Props> = ({
   const isEmbed = useIsEmbedMode();
 
   const maxVisibleCheckboxes = useMemo(
-    () => getMaxVisibleCheckboxes(isEmbed),
-    [isEmbed]
+    () => getEffectiveVisibleCount(questions.length),
+    [questions.length]
   );
 
   const forecastAvailability = getGroupForecastAvailability(questions);
@@ -165,6 +169,7 @@ const DetailedGroupCard: FC<Props> = ({
               chartTheme={chartTheme}
               yLabel={commonUnit ?? undefined}
               onCursorChange={handleCursorChange}
+              defaultChartZoom={defaultZoom}
             />
             {hideCP && <RevealCPButton />}
           </>
@@ -185,6 +190,7 @@ const DetailedGroupCard: FC<Props> = ({
             embedMode={isEmbed}
             chartHeight={embedChartHeight}
             chartTheme={chartTheme}
+            defaultZoom={defaultZoom}
           />
           {hideCP && <RevealCPButton />}
         </>

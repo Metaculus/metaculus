@@ -13,7 +13,10 @@ from comments.tasks import (
     job_finalize_and_send_weekly_top_comments,
 )
 from misc.jobs import sync_itn_articles
-from notifications.jobs import job_send_notification_groups
+from notifications.jobs import (
+    job_send_notification_groups,
+    job_send_open_status_notifications,
+)
 from posts.jobs import (
     job_compute_movement,
     job_subscription_notify_date,
@@ -149,6 +152,13 @@ class Command(BaseCommand):
             close_old_connections(job_send_notification_groups.send),
             trigger=CronTrigger.from_crontab("0 0 * * *"),  # Every day at 00:00 UTC
             id="notifications_job_send_notification_groups",
+            max_instances=1,
+            replace_existing=True,
+        )
+        scheduler.add_job(
+            close_old_connections(job_send_open_status_notifications.send),
+            trigger=CronTrigger.from_crontab("*/30 * * * *"),  # Every 30 minutes
+            id="notifications_job_send_open_status_notifications",
             max_instances=1,
             replace_existing=True,
         )

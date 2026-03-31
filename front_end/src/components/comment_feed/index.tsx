@@ -241,16 +241,17 @@ const CommentFeed: FC<Props> = ({
 
     if (user?.id && postId) {
       fetchUserComments(user.id);
-      // Send BE request that user has read the post
-      const handler = setTimeout(() => {
-        markPostAsRead(postId).then();
-      }, 200);
-
-      return () => {
-        clearTimeout(handler);
-      };
     }
   }, [postId, user?.id]);
+
+  // Mark post as read after initial comments load completes
+  const hasMarkedAsRead = useRef(false);
+  useEffect(() => {
+    if (!isLoading && postId && user?.id && !hasMarkedAsRead.current) {
+      hasMarkedAsRead.current = true;
+      markPostAsRead(postId);
+    }
+  }, [isLoading, postId, user?.id]);
 
   const feedOptions: GroupButton<FeedOptions>[] = [
     {
@@ -351,6 +352,7 @@ const CommentFeed: FC<Props> = ({
   return (
     <DefaultUserMentionsContextProvider
       defaultUserMentions={commentAuthorMentionItems}
+      postId={postId}
     >
       <section
         id={id}

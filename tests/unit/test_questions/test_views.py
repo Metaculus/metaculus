@@ -432,7 +432,6 @@ class TestQuestionWithdraw:
 
 
 class TestQuestionResolve:
-
     def test_resolve_binary(self, post_binary_public, user_admin_client):
         url = reverse("question-resolve", args=[post_binary_public.question.id])
         payload = {

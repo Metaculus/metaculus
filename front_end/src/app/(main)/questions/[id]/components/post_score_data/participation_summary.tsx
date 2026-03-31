@@ -57,10 +57,14 @@ export const ParticipationSummary: React.FC<Props> = ({
     (forecastsCount - forecastersCount) / forecastersCount;
   const userUpdates = Math.max(userForecasts - 1, 0);
 
-  const userCoverage = userScores?.coverage ?? 0;
-  const averageCoverage = question.average_coverage ?? 0;
-
   const isSpot = question.default_score_type.includes("spot");
+
+  const userCoverage = isSpot
+    ? !isNil(userScores?.spot_peer_score)
+      ? 1
+      : 0
+    : userScores?.coverage ?? 0;
+  const averageCoverage = isSpot ? 1 : question.average_coverage ?? 0;
   const peerScoreKey = isSpot ? "spot_peer_score" : "peer_score";
   const baselineScoreKey = isSpot ? "spot_baseline_score" : "baseline_score";
 

@@ -2,15 +2,16 @@ import logging
 from collections import defaultdict
 
 from django.core.management.base import BaseCommand
-from django.db.models import Exists, OuterRef, QuerySet
+from django.db.models import Exists, OuterRef, QuerySet, Q
 from django.utils import timezone
 import numpy as np
 
+from coherence.models import CoherenceLink
 from posts.models import Post
 from projects.models import Project
 from questions.constants import UnsuccessfulResolutionType
 from questions.models import AggregateForecast, Forecast, Question
-from scoring.constants import ScoreTypes
+from scoring.constants import ScoreTypes, ExclusionStatuses
 from scoring.models import Leaderboard, LeaderboardEntry, MedalExclusionRecord
 from scoring.score_math import (
     evaluate_forecasts_peer_accuracy,
@@ -210,17 +211,23 @@ def run_update_coherence_spring_2026_cup() -> None:
         for entry in list(leaderboard.entries.all())
     }
     rank = 1
-    question_count = len(set(question_ids)) or 1
+    question_ids_set = set(question_ids)
+    question_count = len(question_ids_set) or 1
     seen = set()
     for uid, score, weight in ordered_scores:
-        forecasted_questions = competitor_ids.count(uid)
+        huid = (User.objects.get(id=uid).metadata or {}).get(
+            "coherence_bot_for_user_id"
+        )
+        relevant_links = CoherenceLink.objects.filter(
+            Q(question1_id__in=question_ids_set) | Q(question2_id__in=question_ids_set),
+            user_id=huid or 0,
+        )
 
-        excluded = False
-        if (
-            uid == baseline_player.id
-            or MedalExclusionRecord.objects.filter(user_id=uid or 0).exists()
-        ):
-            excluded = True
+        exclusion_status = ExclusionStatuses.INCLUDE
+        if uid == baseline_player.id:
+            exclusion_status = ExclusionStatuses.EXCLUDE_AND_SHOW
+        for exclusion in MedalExclusionRecord.objects.filter(user_id=uid or 0):
+            exclusion_status = max(exclusion_status, exclusion.exclusion_status)
 
         entry: LeaderboardEntry = entry_dict.pop(uid, LeaderboardEntry())
         entry.user_id = uid if isinstance(uid, int) else None
@@ -228,14 +235,15 @@ def run_update_coherence_spring_2026_cup() -> None:
         entry.leaderboard = leaderboard
         entry.score = score
         entry.rank = rank
-        entry.excluded = excluded
+        entry.excluded = exclusion_status != ExclusionStatuses.INCLUDE
         entry.show_when_excluded = True
-        entry.contribution_count = forecasted_questions
+        entry.exclusion_status = exclusion_status
+        entry.contribution_count = relevant_links.count()
         entry.coverage = weight / question_count
         entry.calculated_on = timezone.now()
         entry.save()
         seen.add(entry.id)
-        if not excluded:
+        if exclusion_status <= ExclusionStatuses.EXCLUDE_PRIZE_ONLY:
             rank += 1
     logger.info("Updating leaderboard... DONE")
     # delete unseen entries

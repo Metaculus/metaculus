@@ -1,3 +1,5 @@
+import datetime
+
 import dramatiq
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -14,7 +16,9 @@ from utils.translation import (
 
 @dramatiq.actor(min_backoff=3_000, max_retries=3)
 @task_concurrent_limit(
-    lambda app_label, model_name, pk: f"mutex:update-translations-{app_label}.{model_name}/{pk}",
+    lambda app_label, model_name, pk: (
+        f"mutex:update-translations-{app_label}.{model_name}/{pk}"
+    ),
     limit=1,
     # This task shouldn't take longer than 1m
     # So it's fine to set mutex lock timeout for this duration
@@ -83,7 +87,7 @@ def email_data_task(
     user_id: int,
     user_email: str,
     is_staff: bool,
-    is_whitelisted: bool,
+    has_data_access: bool,
     filename: str,
     question_ids: list[int],
     aggregation_methods: list[AggregationMethod],
@@ -96,14 +100,21 @@ def email_data_task(
     include_bots: bool | None,
     anonymized: bool,
     include_future: bool,
+    joined_before_date: str | None = None,
 ):
     try:
         from utils.csv_utils import export_data_for_questions
 
+        parsed_joined_before = (
+            datetime.datetime.fromisoformat(joined_before_date)
+            if joined_before_date
+            else None
+        )
+
         data = export_data_for_questions(
             user_id=user_id,
             is_staff=is_staff,
-            is_whitelisted=is_whitelisted,
+            has_data_access=has_data_access,
             question_ids=question_ids,
             aggregation_methods=aggregation_methods,
             minimize=minimize,
@@ -113,6 +124,7 @@ def email_data_task(
             include_key_factors=include_key_factors,
             only_include_user_ids=only_include_user_ids,
             include_bots=include_bots,
+            joined_before_date=parsed_joined_before,
             anonymized=anonymized,
             include_future=include_future,
         )

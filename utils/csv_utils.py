@@ -120,7 +120,7 @@ def export_all_data_for_questions(
 def export_data_for_questions(
     user_id: int | None,
     is_staff: bool,
-    is_whitelisted: bool,
+    has_data_access: bool,
     question_ids: list[int],
     aggregation_methods: list[AggregationMethod] | None,
     minimize: bool,
@@ -130,7 +130,8 @@ def export_data_for_questions(
     include_key_factors: bool,
     only_include_user_ids: list[int] | None,
     include_bots: bool | None,
-    anonymized: bool,
+    joined_before_date: datetime.datetime | None = None,
+    anonymized: bool = False,
     include_future: bool = False,
     **kwargs,
 ) -> bytes:
@@ -144,10 +145,10 @@ def export_data_for_questions(
         )
     if only_include_user_ids:
         user_forecasts = user_forecasts.filter(author_id__in=only_include_user_ids)
-    if not (is_whitelisted or is_staff):
+    if not (has_data_access or is_staff):
         user_forecasts = user_forecasts.filter(author=user)
 
-    if is_whitelisted or is_staff:
+    if has_data_access or is_staff:
         questions_with_revealed_cp = questions
     else:
         questions_with_revealed_cp = questions.filter(
@@ -155,11 +156,15 @@ def export_data_for_questions(
             | Q(cp_reveal_time__isnull=True)
             | Q(cp_reveal_time__lte=timezone.now())
         )
-    if not only_include_user_ids and (
-        not aggregation_methods
-        or (
-            aggregation_methods == [AggregationMethod.RECENCY_WEIGHTED]
-            and minimize is True
+    if (
+        not only_include_user_ids
+        and not joined_before_date
+        and (
+            not aggregation_methods
+            or (
+                aggregation_methods == [AggregationMethod.RECENCY_WEIGHTED]
+                and minimize is True
+            )
         )
     ):
         aggregate_forecasts: list[AggregateForecast] = list(
@@ -192,6 +197,7 @@ def export_data_for_questions(
                 ),
                 histogram=True,
                 include_future=include_future,
+                joined_before=joined_before_date,
             )
             for values in aggregation_dict.values():
                 aggregate_forecasts.extend(values)
@@ -220,7 +226,7 @@ def export_data_for_questions(
             archived_scores = archived_scores.filter(
                 Q(user_id__in=only_include_user_ids) | Q(user__isnull=True)
             )
-        elif not (is_whitelisted or is_staff):
+        elif not (has_data_access or is_staff):
             # only include user-specific scores for the logged-in user
             scores = scores.filter(
                 Q(user__isnull=True) | (Q(user=user) if user else Q())

@@ -2,16 +2,18 @@
 
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useQuery } from "@tanstack/react-query";
 import { addWeeks, isAfter, format, parse } from "date-fns";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useState, useCallback, useEffect, useMemo } from "react";
 
 import Button from "@/components/ui/button";
-import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import useSearchParams from "@/hooks/use_search_params";
 import ClientCommentsApi from "@/services/api/comments/comments.client";
+import ClientPostsApi from "@/services/api/posts/posts.client";
 import { CommentOfWeekEntry } from "@/types/comment";
+import { PostWithForecasts } from "@/types/post";
 import { CurrentUser } from "@/types/users";
 import cn from "@/utils/core/cn";
 import { formatDate } from "@/utils/formatters/date";
@@ -34,7 +36,7 @@ const CommentsOfWeekContent: FC<Props> = ({
   const t = useTranslations();
   const locale = useLocale();
 
-  const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
+  const { params, setParam, replaceUrlWithoutNavigation } = useSearchParams();
   const [commentEntries, setCommentEntries] =
     useState<CommentOfWeekEntry[]>(initialEntries);
   const [weekStart, setWeekStart] = useState<Date>(
@@ -56,6 +58,33 @@ const CommentsOfWeekContent: FC<Props> = ({
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const postIds = useMemo(
+    () =>
+      [
+        ...new Set(
+          commentEntries
+            .map((entry) => entry.comment.on_post_data?.id)
+            .filter((id): id is number => id != null)
+        ),
+      ].sort(),
+    [commentEntries]
+  );
+
+  const { data: postsMap = new Map<number, PostWithForecasts>() } = useQuery({
+    queryKey: ["comments-of-week-posts", postIds],
+    queryFn: async () => {
+      const response = await ClientPostsApi.getPostsWithCP(
+        { ids: postIds },
+        { include_cp_history: false }
+      );
+      const map = new Map<number, PostWithForecasts>();
+      for (const post of response.results) {
+        map.set(post.id, post);
+      }
+      return map;
+    },
+    enabled: postIds.length > 0,
+  });
 
   const startDateParam = params.get("start_date");
   const isFinal = isAfter(new Date(), addWeeks(weekStart, 2));
@@ -80,10 +109,10 @@ const CommentsOfWeekContent: FC<Props> = ({
     async (newWeekStart: Date) => {
       setParam("weekly_top_comments", "true", false);
       setParam("start_date", format(newWeekStart, "yyyy-MM-dd"), false);
-      shallowNavigateToSearchParams();
+      replaceUrlWithoutNavigation();
       fetchComments(newWeekStart);
     },
-    [fetchComments, setParam, shallowNavigateToSearchParams]
+    [fetchComments, setParam, replaceUrlWithoutNavigation]
   );
 
   // Debounced version of fetchCommentsForWeek to prevent rapid API calls
@@ -141,7 +170,7 @@ const CommentsOfWeekContent: FC<Props> = ({
   }, [commentEntries]);
 
   return (
-    <div className="mx-auto max-w-4xl px-1.5 md:px-0">
+    <div className="mx-auto max-w-5xl px-1.5 md:px-0">
       <div className="mb-6 flex flex-col items-start justify-between gap-2 md:flex-row md:items-center md:gap-4">
         <h1 className="mt-2 text-balance text-2xl font-bold text-blue-800 dark:text-blue-800-dark md:mt-1.5 md:block md:text-3xl">
           {t("weeklyTopComments")}
@@ -153,8 +182,8 @@ const CommentsOfWeekContent: FC<Props> = ({
         />
       </div>
       <SubscribeTopCommentsCta />
-      <div className="relative mb-8">
-        <p className="mb-5 text-sm leading-relaxed text-gray-700 dark:text-gray-700-dark">
+      <div className="relative mb-3 flex flex-col">
+        <p className="m-0 text-sm leading-relaxed text-gray-700 dark:text-gray-700-dark">
           {t("topCommentsDescription")}
         </p>
 
@@ -164,7 +193,7 @@ const CommentsOfWeekContent: FC<Props> = ({
           onClick={toggleExpandAll}
           aria-pressed={isVisuallyExpanded}
           aria-controls="weekly-top-comments-list"
-          className="absolute -bottom-5 right-3 whitespace-nowrap rounded-sm px-[10px] py-[6px]"
+          className="ml-auto mt-2 whitespace-nowrap rounded-sm px-[10px] py-[6px] md:mt-0"
         >
           <FontAwesomeIcon
             icon={buttonIcon}
@@ -184,20 +213,20 @@ const CommentsOfWeekContent: FC<Props> = ({
         {formatDate(locale, addWeeks(weekStart, 2))}.
       </p>
 
-      {isLoading && (
-        <div className="flex justify-center py-8">
-          <LoadingIndicator className="h-8 w-8 text-blue-600 dark:text-blue-600-dark" />
-        </div>
-      )}
-
       {error && (
         <div className="mb-4 rounded-md bg-red-50 p-4 text-red-700 dark:bg-red-900/20 dark:text-red-400">
           {error}
         </div>
       )}
 
-      {!isLoading && !error && (
-        <div className="space-y-4 pb-8">
+      {!error && (
+        <div
+          id="weekly-top-comments-list"
+          className={cn(
+            "relative space-y-4 pb-8 transition-opacity",
+            isLoading && "pointer-events-none opacity-40"
+          )}
+        >
           {commentsWithPlacements.map((commentEntry) => (
             <HighlightedCommentCard
               key={commentEntry.comment.id}
@@ -206,6 +235,7 @@ const CommentsOfWeekContent: FC<Props> = ({
               currentUser={currentUser}
               onExcludeToggleFinished={onExcludeToggleFinished}
               expandOverride={expandAllMode}
+              post={postsMap.get(commentEntry.comment.on_post_data?.id ?? 0)}
             />
           ))}
         </div>

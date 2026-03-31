@@ -113,7 +113,7 @@ class DataGetRequestSerializer(serializers.Serializer):
     def validate_user_ids(self, user_ids: list[int]):
         if not user_ids:
             return user_ids
-        if not (self.context.get("is_staff") or self.context.get("is_whitelisted")):
+        if not (self.context.get("is_staff") or self.context.get("has_data_access")):
             raise serializers.ValidationError(
                 "Current user cannot view user-specific data. "
                 "Please remove user_ids parameter."
@@ -178,10 +178,11 @@ class DataPostRequestSerializer(DataGetRequestSerializer):
         if methods is None:
             return
         user: User = self.context.get("user")
+        valid_aggregation_methods = [
+            aggregation.method for aggregation in AGGREGATIONS
+        ] + [AggregationMethod.METACULUS_PREDICTION, "geometric_mean"]
         invalid_methods = [
-            method
-            for method in methods
-            if method not in AggregationMethod.values + ["geometric_mean"]
+            method for method in methods if method not in valid_aggregation_methods
         ]
         if invalid_methods:
             raise serializers.ValidationError(
@@ -198,7 +199,7 @@ class DataPostRequestSerializer(DataGetRequestSerializer):
     def validate_user_ids(self, user_ids: list[int]):
         if not user_ids:
             return user_ids
-        if not (self.context.get("is_staff") or self.context.get("is_whitelisted")):
+        if not (self.context.get("is_staff") or self.context.get("has_data_access")):
             raise serializers.ValidationError(
                 "Current user cannot view user-specific data. "
                 "Please remove user_ids parameter."

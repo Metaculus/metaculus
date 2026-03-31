@@ -4,6 +4,7 @@ import {
   ENFORCED_THEME_PARAM,
   HIDE_ZOOM_PICKER,
 } from "@/constants/global_search_params";
+import ServerPostsApi from "@/services/api/posts/posts.server";
 import { logError } from "@/utils/core/errors";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
@@ -13,6 +14,12 @@ export async function GET(
 ) {
   const params = await props.params;
   const { id } = params;
+
+  const post = await ServerPostsApi.getPostAnonymous(Number(id));
+  if (!post) {
+    return NextResponse.json({ error: "Question not found" }, { status: 404 });
+  }
+
   const width = 1200;
   const height = 630;
   const theme = request.nextUrl.searchParams.get("theme") ?? "dark";

@@ -94,14 +94,17 @@ export function filterTournaments(
 }
 
 const statusRank = (t: TournamentPreview, nowTs: number): number => {
-  if (t.timeline?.all_questions_resolved) return 2;
+  const hasQuestions = t.questions_count > 0;
+  const allClosed = hasQuestions && !!t.timeline?.all_questions_closed;
+  const allResolved = hasQuestions && !!t.timeline?.all_questions_resolved;
+  const forecastEndTs = safeTs(t.forecasting_end_date);
+  const forecastEnded = forecastEndTs != null && nowTs >= forecastEndTs;
+  const forecastOpen = forecastEndTs != null && !forecastEnded;
 
-  const endTs = safeTs(t.close_date ?? t.forecasting_end_date);
-  const closedByDate = endTs != null ? nowTs >= endTs : false;
-  const closedByTimeline = !!t.timeline?.all_questions_closed;
-
-  const isOpen = !(closedByDate || closedByTimeline);
-  return isOpen ? 0 : 1;
+  if (forecastOpen) return 0;
+  if (allResolved) return 2;
+  if (forecastEnded || allClosed) return 1;
+  return 0;
 };
 
 const orderValue = (t: TournamentPreview): number =>
@@ -109,7 +112,7 @@ const orderValue = (t: TournamentPreview): number =>
 
 const durationPctPassed = (t: TournamentPreview, nowTs: number): number => {
   const startTs = safeTs(t.start_date);
-  const endTs = safeTs(t.close_date ?? t.forecasting_end_date);
+  const endTs = safeTs(t.forecasting_end_date ?? t.close_date);
   if (startTs == null || endTs == null || endTs <= startTs) {
     return Number.POSITIVE_INFINITY;
   }

@@ -7,6 +7,7 @@ import React from "react";
 
 import { TournamentPreview } from "@/types/projects";
 
+import PrivateBadge from "./private_badge";
 import TournamentCardShell from "./tournament_card_shell";
 
 type Props = { item: TournamentPreview };
@@ -35,6 +36,7 @@ const QuestionSeriesCard: React.FC<Props> = ({ item }) => {
             />
           </div>
         )}
+        {!item.default_permission && <PrivateBadge />}
       </div>
 
       <div className="px-3 pb-3 pt-3 lg:px-4 lg:pb-5">

@@ -245,6 +245,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         blank=True,
     )
 
+    # TO BE DEPRECATED in favor of Leaderboard field
     class BotLeaderboardStatus(models.TextChoices):
         EXCLUDE_AND_HIDE = "exclude_and_hide"
         EXCLUDE_AND_SHOW = "exclude_and_show"
@@ -284,6 +285,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     )
 
     # Tournament-specific fields
+    # TO BE DEPRECATED in favor of Leaderboard field
     prize_pool = models.DecimalField(
         default=None, decimal_places=2, max_digits=15, null=True, blank=True
     )
@@ -403,11 +405,6 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
 
     def save(self, *args, **kwargs):
         creating = not self.pk
-        # Check if the primary leaderboard is associated with this project
-        if self.primary_leaderboard and self.primary_leaderboard.project != self:
-            raise ValueError(
-                "Primary leaderboard must be associated with this project."
-            )
 
         # Auto-create index object
         if self.type == self.ProjectTypes.INDEX and not self.index_id:
@@ -520,6 +517,7 @@ class ProjectSubscription(TimeStampedModel):
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="subscriptions"
     )
+    follow_questions = models.BooleanField(default=False)
 
     class Meta:
         constraints = [

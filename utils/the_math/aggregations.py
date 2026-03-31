@@ -145,7 +145,6 @@ def compute_weighted_semi_standard_deviations(
 
 
 class Weighted:
-
     def __init__(self, **kwargs):
         pass
 
@@ -269,7 +268,6 @@ class ReputationWeighted(Weighted):
 
 
 class PeerScoreReputationWeighted(ReputationWeighted):
-
     @staticmethod
     def reputation_value(scores: Sequence[Score]) -> float:
         return max(
@@ -1000,7 +998,11 @@ def get_aggregation_history(
     if include_future:
         cutoff = question.actual_close_time
     else:
-        cutoff = min(timezone.now(), question.actual_close_time or timezone.now())
+        cutoff = min(
+            timezone.now(),
+            question.scheduled_close_time or timezone.now(),
+            question.actual_close_time or timezone.now(),
+        )
 
     with sentry_sdk.start_span(op="compute", name="get_user_forecast_history"):
         forecast_history = get_user_forecast_history(forecasts, minimize, cutoff=cutoff)
