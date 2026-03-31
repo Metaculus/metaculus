@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import OnboardingCheck from "@/components/onboarding/onboarding_check";
 import serverMiscApi from "@/services/api/misc/misc.server";
 import ServerPostsApi from "@/services/api/posts/posts.server";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 import { getPublicSettings } from "@/utils/public_settings.server";
 import { convertSidebarItem } from "@/utils/sidebar";
 
@@ -18,6 +19,11 @@ export default async function Home() {
 
   if (PUBLIC_LANDING_PAGE_URL !== "/") {
     return redirect(PUBLIC_LANDING_PAGE_URL);
+  }
+
+  const authManager = await getAuthCookieManager();
+  if (authManager.hasAuthSession()) {
+    return redirect("/questions/");
   }
 
   let siteStats = {
