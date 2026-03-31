@@ -144,7 +144,7 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
     useAnimatedGlobe(hoveredCard);
 
   return (
-    <section className="relative w-full overflow-hidden rounded-b-2xl bg-[#0e1e30] md:rounded-b-3xl">
+    <section className="relative isolate w-full overflow-hidden rounded-b-2xl bg-[#0e1e30] md:rounded-b-3xl">
       <div className="hidden md:block">
         <HeroGlobeBackground colorFront={globeColor} speed={globeSpeed} />
       </div>

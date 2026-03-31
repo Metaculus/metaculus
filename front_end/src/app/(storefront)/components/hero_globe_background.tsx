@@ -50,7 +50,7 @@ const HeroGlobeBackground: FC<Props> = ({
   }, []);
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden opacity-60">
+    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-b-2xl opacity-60 md:rounded-b-3xl">
       <div className="absolute -top-[20%] h-[130%] w-[130%]">
         {reducedMotion ? (
           <div
