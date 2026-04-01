@@ -110,11 +110,6 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Rewrite /home to storefront so logged-in users can view it directly
-  if (pathname === "/home") {
-    return NextResponse.rewrite(new URL("/", request.url));
-  }
-
   // Redirect logged-in users from storefront to question feed
   if (pathname === "/" && hasSession) {
     return NextResponse.redirect(new URL("/questions/", request.url));
