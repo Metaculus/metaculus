@@ -291,6 +291,7 @@ const PostsFilters: FC<Props> = ({
             }}
             onErase={eraseSearch}
             placeholder={t("questionSearchPlaceholder")}
+            className="hidden md:flex"
             collapsible
           />
           {!forceLayout && (
@@ -303,7 +304,7 @@ const PostsFilters: FC<Props> = ({
           {showRandomButton && (
             <RandomButton
               variant="tertiary"
-              className="text-purple-700 dark:text-purple-700-dark"
+              className="hidden text-purple-700 dark:text-purple-700-dark md:flex"
             />
           )}
         </div>

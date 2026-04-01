@@ -39,12 +39,15 @@ const Panel: FC<PropsWithChildren<PanelProps>> = ({
     }
   }, [fullScreenEnabled, isLargeScreen, open]);
 
+  const usePortal = fullScreenEnabled && !isLargeScreen;
+
   return (
     <PopoverPanel
+      portal={usePortal}
       className={cn(
         "absolute right-0 top-10 z-[100] box-border flex flex-col items-start overflow-hidden overflow-y-auto rounded border border-gray-300 bg-gray-0 p-5 shadow-lg shadow-[#0003] dark:border-gray-300-dark dark:bg-gray-0-dark",
         {
-          "max-sm:fixed max-sm:top-0 max-sm:z-[1300] max-sm:h-dvh max-sm:w-screen max-sm:overflow-y-auto max-sm:overscroll-contain max-sm:px-5 max-sm:pb-0 max-sm:pt-5":
+          "max-sm:!fixed max-sm:!inset-0 max-sm:z-[1300] max-sm:h-dvh max-sm:w-screen max-sm:overflow-y-auto max-sm:overscroll-contain max-sm:px-5 max-sm:pb-0 max-sm:pt-5":
             fullScreenEnabled,
         },
         className
