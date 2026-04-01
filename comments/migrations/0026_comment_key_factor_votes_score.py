@@ -9,6 +9,7 @@ def backfill_key_factor_votes_score(apps, schema_editor):
     comments = (
         Comment.objects.filter(key_factors__votes__isnull=False)
         .distinct()
+        .only("key_factors__votes__score", "key_factor_votes_score")
         .prefetch_related("key_factors__votes")
     )
     to_update = []

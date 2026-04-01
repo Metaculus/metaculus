@@ -398,7 +398,10 @@ def update_top_comments_of_week(week_start_date: datetime.date):
 
     top_comments_of_week: list[CommentsOfTheWeekEntry] = []
     for row in comments_of_week.values(
-        "id", "annotated_vote_score", "changed_my_mind_count", "annotated_key_factor_votes_score"
+        "id",
+        "annotated_vote_score",
+        "changed_my_mind_count",
+        "annotated_key_factor_votes_score",
     ):
         comment_score = compute_comment_score(
             comment_votes=max(0, row["annotated_vote_score"]),
