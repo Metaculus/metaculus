@@ -262,6 +262,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         include: Bots are included in ranks/prizes/medals and shown on the leaderboard.<br>
         bots_only: Only Bots are included in ranks/prizes/medals. Non-bots are still shown.<br>
         """,
+        db_index=True
     )
 
     name = models.CharField(max_length=200)
