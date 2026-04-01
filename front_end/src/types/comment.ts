@@ -35,6 +35,7 @@ export type BECommentType = {
   };
   is_current_content_translated?: boolean;
   key_factors?: KeyFactor[];
+  key_factor_votes_score?: number;
   is_pinned: boolean;
 };
 
