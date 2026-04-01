@@ -17,7 +17,7 @@ const NewsAnnotationToggle: FC<Props> = ({ enabled, onToggle }) => {
   return (
     <button
       className={cn(
-        "relative flex size-[18px] items-center justify-center overflow-visible rounded-full border text-[10px] transition-colors",
+        "relative hidden size-[18px] items-center justify-center overflow-visible rounded-full border text-[10px] transition-colors md:flex",
         enabled
           ? "border-blue-700 bg-gray-0 text-blue-700 dark:border-blue-700-dark dark:bg-gray-0-dark dark:text-blue-700-dark"
           : "border-blue-800/30 bg-gray-0 text-blue-800/30 dark:border-blue-800-dark/30 dark:bg-gray-0-dark dark:text-blue-800-dark/30"
