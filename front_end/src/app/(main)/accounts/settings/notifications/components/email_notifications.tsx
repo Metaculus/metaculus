@@ -5,7 +5,14 @@ import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import React, { FC, useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  FC,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import PreferencesSection from "@/app/(main)/accounts/settings/components/preferences_section";
@@ -43,12 +50,6 @@ const cpValueToKey = (v: number): CpKey =>
       ? "medium"
       : "large";
 
-const CP_BUTTONS: GroupButton<CpKey>[] = [
-  { value: "small", label: "small" },
-  { value: "medium", label: "medium" },
-  { value: "large", label: "large" },
-];
-
 const COMMENTS_BUTTONS: GroupButton<"1" | "3" | "10">[] = [
   { value: "1", label: "1" },
   { value: "3", label: "3" },
@@ -64,6 +65,15 @@ const MILESTONE_BUTTONS: GroupButton<"1" | "5" | "10" | "20">[] = [
 
 const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
   const t = useTranslations();
+
+  const cpButtons: GroupButton<CpKey>[] = useMemo(
+    () => [
+      { value: "small", label: t("cpChangeSmall") },
+      { value: "medium", label: t("cpChangeMedium") },
+      { value: "large", label: t("cpChangeLarge") },
+    ],
+    [t]
+  );
 
   // Newsletter state
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(
@@ -328,7 +338,8 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
                   options: () => (
                     <ButtonGroup
                       value={cpValueToKey(cpThreshold)}
-                      buttons={CP_BUTTONS}
+                      buttons={cpButtons}
+                      disabled={isDefaultFollowPending}
                       onChange={(k) => {
                         const value = cpKeyToValue(k);
                         setCpThreshold(value);
@@ -381,6 +392,7 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
                   <ButtonGroup
                     value={String(commentsFreq) as "1" | "3" | "10"}
                     buttons={COMMENTS_BUTTONS}
+                    disabled={isDefaultFollowPending}
                     onChange={(v) => {
                       const value = Number(v);
                       setCommentsFreq(value);
@@ -420,6 +432,7 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
                       String(milestoneStep * 100) as "1" | "5" | "10" | "20"
                     }
                     buttons={MILESTONE_BUTTONS}
+                    disabled={isDefaultFollowPending}
                     onChange={(v) => {
                       const value = Number(v) / 100;
                       setMilestoneStep(value);

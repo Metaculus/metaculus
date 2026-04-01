@@ -30,11 +30,11 @@ const SubscriptionSectionCPChange: FC<
 
   const buttons: GroupButton<CpKey>[] = useMemo(
     () => [
-      { value: "small", label: "small" },
-      { value: "medium", label: "medium" },
-      { value: "large", label: "large" },
+      { value: "small", label: t("cpChangeSmall") },
+      { value: "medium", label: t("cpChangeMedium") },
+      { value: "large", label: t("cpChangeLarge") },
     ],
-    []
+    [t]
   );
 
   return (
