@@ -4,6 +4,7 @@ import { FC } from "react";
 
 import RelativeTime from "@/components/ui/relative_time";
 import cn from "@/utils/core/cn";
+import { normalizeIntlLocale } from "@/utils/formatters/date";
 
 type Props = {
   cpRevealsOn: string;
@@ -12,7 +13,7 @@ type Props = {
 
 const UpcomingCP: FC<Props> = ({ cpRevealsOn, className }) => {
   const t = useTranslations();
-  const locale = useLocale();
+  const locale = normalizeIntlLocale(useLocale());
   return (
     <div className={cn("w-full text-center", className)}>
       <span>{t("cpRevealed")} </span>

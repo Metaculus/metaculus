@@ -9,6 +9,7 @@ import WithServerComponentErrorBoundary from "@/components/server_component_erro
 import Button from "@/components/ui/button";
 import { NotebookPost } from "@/types/post";
 import cn from "@/utils/core/cn";
+import { normalizeIntlLocale } from "@/utils/formatters/date";
 import { estimateReadingTime, getMarkdownSummary } from "@/utils/markdown";
 import { getPostLink } from "@/utils/navigation";
 
@@ -26,7 +27,7 @@ type Props = {
 
 const ResearchAndUpdates: FC<Props> = async ({ posts, className }) => {
   const t = await getTranslations();
-  const locale = await getLocale();
+  const locale = normalizeIntlLocale(await getLocale());
 
   return (
     <section className={className}>
