@@ -9,30 +9,37 @@ import cn from "@/utils/core/cn";
 type Props = {
   count: number;
   isActive?: boolean;
-  onClick: () => void;
+  onHoverStart: () => void;
+  onHoverEnd: () => void;
 };
 
 const NewsAnnotationMarker: FC<Props> = ({
   count,
   isActive = false,
-  onClick,
+  onHoverStart,
+  onHoverEnd,
 }) => {
   return (
-    <button
-      className={cn(
-        "flex size-[18px] items-center justify-center rounded-full border text-[10px] leading-none transition-colors",
-        isActive
-          ? "border-blue-800 bg-blue-800 text-gray-0 dark:border-blue-800-dark dark:bg-blue-800-dark dark:text-gray-0-dark"
-          : "border-blue-700 bg-gray-0 text-blue-700 hover:bg-blue-200 dark:border-blue-700-dark dark:bg-gray-0-dark dark:text-blue-700-dark dark:hover:bg-blue-200-dark"
-      )}
-      onClick={onClick}
+    <div
+      className="flex items-center justify-center rounded-full p-1"
+      onMouseEnter={onHoverStart}
+      onMouseLeave={onHoverEnd}
     >
-      {count > 1 ? (
-        <span className="font-bold">{count}</span>
-      ) : (
-        <FontAwesomeIcon icon={faNewspaper} className="text-[10px]" />
-      )}
-    </button>
+      <div
+        className={cn(
+          "flex size-[18px] items-center justify-center rounded-full border text-[10px] leading-none transition-colors",
+          isActive
+            ? "border-blue-800 bg-blue-800 text-gray-0 dark:border-blue-800-dark dark:bg-blue-800-dark dark:text-gray-0-dark"
+            : "border-blue-700 bg-gray-0 text-blue-700 dark:border-blue-700-dark dark:bg-gray-0-dark dark:text-blue-700-dark"
+        )}
+      >
+        {count > 1 ? (
+          <span className="font-bold">{count}</span>
+        ) : (
+          <FontAwesomeIcon icon={faNewspaper} className="text-[10px]" />
+        )}
+      </div>
+    </div>
   );
 };
 

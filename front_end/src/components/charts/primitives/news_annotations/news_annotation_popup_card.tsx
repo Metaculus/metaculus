@@ -7,13 +7,13 @@ import { FC } from "react";
 
 import { ImpactDirection, ImpactDirectionCategory } from "@/types/comment";
 import { QuestionType } from "@/types/question";
-import cn from "@/utils/core/cn";
 import { formatRelativeDate } from "@/utils/formatters/date";
 
 import { NewsAnnotation } from "./types";
 import { KeyFactorImpactDirectionLabel } from "../../../../app/(main)/questions/[id]/components/key_factors/item_creation/driver/impact_direction_label";
 import VerticalImpactBar from "../../../../app/(main)/questions/[id]/components/key_factors/item_view/vertical_impact_bar";
 import { convertNumericImpactToDirectionCategory } from "../../../../app/(main)/questions/[id]/components/key_factors/utils";
+import { useQuestionLayoutSafe } from "../../../../app/(main)/questions/[id]/components/question_layout/question_layout_context";
 
 type Props = {
   annotation: NewsAnnotation;
@@ -25,12 +25,12 @@ function directionToCategory(
   questionType: QuestionType
 ): ImpactDirectionCategory | null {
   if (!direction) return null;
-  const impactDirection =
+  const impactDirection: 1 | -1 | null =
     direction === "increase" ? 1 : direction === "decrease" ? -1 : null;
-  const certainty = direction === "uncertainty" ? -1 : null;
+  const certainty: -1 | null = direction === "uncertainty" ? -1 : null;
   return convertNumericImpactToDirectionCategory(
-    impactDirection as 1 | -1 | null,
-    certainty as -1 | null,
+    impactDirection,
+    certainty,
     questionType
   );
 }
@@ -40,6 +40,7 @@ const NewsAnnotationPopupCard: FC<Props> = ({
   questionType = QuestionType.Binary,
 }) => {
   const locale = useLocale();
+  const questionLayout = useQuestionLayoutSafe();
   const { title, source, imgUrl, url, direction, strength } = annotation;
 
   const impactCategory = directionToCategory(direction, questionType);
@@ -49,17 +50,12 @@ const NewsAnnotationPopupCard: FC<Props> = ({
     : new Date(annotation.keyFactor.created_at);
 
   const handleClick = () => {
-    if (url) {
-      window.open(url, "_blank", "noopener,noreferrer");
-    }
+    questionLayout?.openKeyFactorOverlay(annotation.keyFactor);
   };
 
   return (
     <div
-      className={cn(
-        "dark flex gap-3 rounded-xl bg-blue-800 p-4 dark:bg-blue-300-dark",
-        url && "cursor-pointer"
-      )}
+      className="dark flex cursor-pointer gap-3 rounded-xl bg-blue-800 p-4 dark:bg-blue-300-dark"
       onClick={handleClick}
     >
       <VerticalImpactBar
@@ -97,10 +93,15 @@ const NewsAnnotationPopupCard: FC<Props> = ({
               />
             )}
             {url && (
-              <FontAwesomeIcon
-                icon={faArrowUpRightFromSquare}
-                className="text-[14px] leading-none text-blue-700-dark"
-              />
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-[14px] leading-none text-blue-700-dark hover:text-blue-600-dark"
+              >
+                <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+              </a>
             )}
           </div>
         </div>

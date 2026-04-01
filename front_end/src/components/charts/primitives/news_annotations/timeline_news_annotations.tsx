@@ -8,7 +8,7 @@ import {
   shift,
   useFloating,
 } from "@floating-ui/react";
-import { FC, useCallback, useMemo, useState } from "react";
+import { FC, useCallback, useMemo, useRef, useState } from "react";
 
 import { QuestionType } from "@/types/question";
 
@@ -19,22 +19,32 @@ import { AnnotationCluster } from "./types";
 type Props = {
   clusters: AnnotationCluster[];
   chartHeight: number;
+  axisBottomOffset: number;
   questionType?: QuestionType;
 };
 
 const TimelineNewsAnnotations: FC<Props> = ({
   clusters,
   chartHeight,
+  axisBottomOffset,
   questionType,
 }) => {
   const [activeClusterId, setActiveClusterId] = useState<number | null>(null);
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleMarkerClick = useCallback((index: number) => {
-    setActiveClusterId((prev) => (prev === index ? null : index));
+  const handleHoverStart = useCallback((index: number) => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setActiveClusterId(index);
   }, []);
 
-  const handleClose = useCallback(() => {
-    setActiveClusterId(null);
+  const handleHoverEnd = useCallback(() => {
+    closeTimeoutRef.current = setTimeout(() => {
+      setActiveClusterId(null);
+      closeTimeoutRef.current = null;
+    }, 150);
   }, []);
 
   return (
@@ -48,9 +58,10 @@ const TimelineNewsAnnotations: FC<Props> = ({
           cluster={cluster}
           index={index}
           isActive={activeClusterId === index}
+          axisBottomOffset={axisBottomOffset}
           questionType={questionType}
-          onClick={handleMarkerClick}
-          onClose={handleClose}
+          onHoverStart={handleHoverStart}
+          onHoverEnd={handleHoverEnd}
         />
       ))}
     </div>
@@ -61,18 +72,20 @@ type MarkerWithPopupProps = {
   cluster: AnnotationCluster;
   index: number;
   isActive: boolean;
+  axisBottomOffset: number;
   questionType?: QuestionType;
-  onClick: (index: number) => void;
-  onClose: () => void;
+  onHoverStart: (index: number) => void;
+  onHoverEnd: () => void;
 };
 
 const AnnotationMarkerWithPopup: FC<MarkerWithPopupProps> = ({
   cluster,
   index,
   isActive,
+  axisBottomOffset,
   questionType,
-  onClick,
-  onClose,
+  onHoverStart,
+  onHoverEnd,
 }) => {
   const { refs, floatingStyles } = useFloating({
     open: isActive,
@@ -85,12 +98,12 @@ const AnnotationMarkerWithPopup: FC<MarkerWithPopupProps> = ({
     () => ({
       position: "absolute" as const,
       left: cluster.xPixel,
-      bottom: 20,
-      transform: "translateX(-50%)",
+      bottom: axisBottomOffset,
+      transform: "translateX(-50%) translateY(50%)",
       pointerEvents: "auto" as const,
       zIndex: isActive ? 20 : 10,
     }),
-    [cluster.xPixel, isActive]
+    [cluster.xPixel, isActive, axisBottomOffset]
   );
 
   return (
@@ -99,7 +112,8 @@ const AnnotationMarkerWithPopup: FC<MarkerWithPopupProps> = ({
         <NewsAnnotationMarker
           count={cluster.annotations.length}
           isActive={isActive}
-          onClick={() => onClick(index)}
+          onHoverStart={() => onHoverStart(index)}
+          onHoverEnd={onHoverEnd}
         />
       </div>
       {isActive && (
@@ -111,11 +125,12 @@ const AnnotationMarkerWithPopup: FC<MarkerWithPopupProps> = ({
               zIndex: 50,
               pointerEvents: "auto",
             }}
+            onMouseEnter={() => onHoverStart(index)}
+            onMouseLeave={onHoverEnd}
           >
             <NewsAnnotationPopup
               cluster={cluster}
               questionType={questionType}
-              onClose={onClose}
             />
           </div>
         </FloatingPortal>

@@ -76,7 +76,7 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
                           {({ selected, hover }) => (
                             <button
                               className={cn(
-                                "ChartZoomButton rounded px-1 py-0.5 text-xs font-normal leading-4 text-gray-600 hover:text-blue-800 focus:outline-none dark:text-gray-600-dark hover:dark:text-blue-800-dark md:text-sm",
+                                "ChartZoomButton rounded px-1 py-0.5 text-xs font-normal uppercase leading-4 text-gray-600 hover:text-blue-800 focus:outline-none dark:text-gray-600-dark hover:dark:text-blue-800-dark md:text-sm",
                                 {
                                   "text-gray-900 dark:text-gray-900-dark":
                                     selected,

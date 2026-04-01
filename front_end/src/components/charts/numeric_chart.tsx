@@ -103,6 +103,7 @@ type Props = {
 };
 
 const BOTTOM_PADDING = 20;
+const NEWS_ANNOTATION_MARKER_SIZE = 18;
 const LABEL_FONT_FAMILY = "Inter";
 
 const NumericChart: FC<Props> = ({
@@ -463,16 +464,34 @@ const NumericChart: FC<Props> = ({
   const yAxisLabel = !isNil(yLabel) ? `(${yLabel})` : undefined;
   const leftPad = 10;
 
+  const hasNewsAnnotations = !!newsAnnotations?.length;
+  const annotationBottomExtra = hasNewsAnnotations
+    ? Math.ceil(NEWS_ANNOTATION_MARKER_SIZE / 2)
+    : 0;
+  const effectiveBottomPadding = BOTTOM_PADDING + annotationBottomExtra;
   const chartPadding = isEmbedded
     ? {
         top: 10,
-        bottom: BOTTOM_PADDING + 15,
+        bottom: effectiveBottomPadding + 15,
         left: leftPad,
         right: rightPad,
       }
-    : { top: 10, bottom: BOTTOM_PADDING, left: 10, right: rightPad };
+    : { top: 10, bottom: effectiveBottomPadding, left: 10, right: rightPad };
 
   const useSimplifiedCursor = simplifiedCursor && !isEmbedded;
+
+  // For discrete charts, the first y-axis tick (representing value "0") is at
+  // halfBucket (0.5/inboundOutcomeCount) rather than domain value 0. Compute
+  // the pixel offset so the annotation marker centers on that gridline.
+  const firstTickYOffset = useMemo(() => {
+    if (!yScaleTicks.length) return 0;
+    const firstTick = yScaleTicks[0] ?? 0;
+    const [dMin, dMax] = yDomain as [number, number];
+    const domainRange = dMax - dMin;
+    if (domainRange <= 0 || firstTick <= dMin) return 0;
+    const plotHeight = height - chartPadding.top - chartPadding.bottom;
+    return ((firstTick - dMin) / domainRange) * plotHeight;
+  }, [yScaleTicks, yDomain, height, chartPadding.top, chartPadding.bottom]);
 
   const positionedClusters = useMemo(() => {
     if (!showNewsAnnotations || !newsAnnotations?.length || !chartWidth) {
@@ -487,7 +506,16 @@ const NumericChart: FC<Props> = ({
       return chartPadding.left + fraction * plotWidth;
     };
 
-    // Clamp annotations outside the domain to the nearest edge
+    const isAllZoom = zoom === TimelineChartZoomOption.All;
+
+    // In "all" mode, clamp out-of-range annotations to the edges.
+    // In zoomed modes, filter them out entirely.
+    const visibleAnnotations = isAllZoom
+      ? newsAnnotations
+      : newsAnnotations.filter(
+          (a) => a.timestamp >= xMin && a.timestamp <= xMax
+        );
+
     const getClampedXPixel = (timestamp: number) => {
       const px = getXPixel(timestamp);
       return Math.max(
@@ -496,7 +524,10 @@ const NumericChart: FC<Props> = ({
       );
     };
 
-    return clusterAnnotations(newsAnnotations, getClampedXPixel);
+    return clusterAnnotations(
+      visibleAnnotations,
+      isAllZoom ? getClampedXPixel : getXPixel
+    );
   }, [
     showNewsAnnotations,
     newsAnnotations,
@@ -504,6 +535,7 @@ const NumericChart: FC<Props> = ({
     adjustedXDomain,
     chartPadding.left,
     chartPadding.right,
+    zoom,
   ]);
 
   return (
@@ -781,6 +813,7 @@ const NumericChart: FC<Props> = ({
               <TimelineNewsAnnotations
                 clusters={positionedClusters}
                 chartHeight={height}
+                axisBottomOffset={effectiveBottomPadding + firstTickYOffset}
                 questionType={questionType}
               />
             )}
