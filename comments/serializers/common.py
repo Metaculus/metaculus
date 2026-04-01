@@ -82,7 +82,7 @@ class CommentSerializer(serializers.ModelSerializer):
             "vote_score",
             "changed_my_mind",
             "is_pinned",
-            "key_factor_votes_score"
+            "key_factor_votes_score",
         )
 
     def get_changed_my_mind(self, comment: Comment) -> dict[str, bool | int]:

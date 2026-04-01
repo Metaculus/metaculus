@@ -1,3 +1,4 @@
+from django.contrib.postgres.expressions import ArraySubquery
 from django.db import models
 from django.db.models import (
     Count,
@@ -12,7 +13,6 @@ from django.db.models import (
 from django.db.models.functions import Coalesce
 from django.utils import timezone as django_timezone
 from sql_util.aggregates import SubqueryAggregate
-from django.contrib.postgres.expressions import ArraySubquery
 
 from projects.permissions import ObjectPermission
 from questions.constants import UnsuccessfulResolutionType
@@ -262,7 +262,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         include: Bots are included in ranks/prizes/medals and shown on the leaderboard.<br>
         bots_only: Only Bots are included in ranks/prizes/medals. Non-bots are still shown.<br>
         """,
-        db_index=True
+        db_index=True,
     )
 
     name = models.CharField(max_length=200)
