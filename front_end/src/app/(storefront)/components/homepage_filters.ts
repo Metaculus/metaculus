@@ -1,14 +1,7 @@
 import { PostsParams } from "@/services/api/posts/posts.shared";
-import { PostForecastType } from "@/types/post";
 import { QuestionType } from "@/types/question";
 
-export type TabId = "news" | "popular" | "new";
-
-export const TABS: { id: TabId; label: string }[] = [
-  { id: "news", label: "In the news" },
-  { id: "popular", label: "Popular" },
-  { id: "new", label: "New" },
-];
+type FilterId = "news" | "popular" | "new";
 
 const allowedTypes = [
   QuestionType.Binary,
@@ -16,10 +9,9 @@ const allowedTypes = [
   QuestionType.Numeric,
   QuestionType.Discrete,
   QuestionType.Date,
-  PostForecastType.Group,
 ];
 
-export const FILTERS: Record<TabId, PostsParams> = {
+export const FILTERS: Record<FilterId, PostsParams> = {
   popular: {
     for_main_feed: "true",
     for_consumer_view: "false",
