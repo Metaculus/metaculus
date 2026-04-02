@@ -559,8 +559,10 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         else:
             if not continuous_cdf[0] == 0.00:
                 errors += (
-                    "continuous_cdf at lower bound must be 0.00"
-                    " due to lower bound being closed.\n"
+                    "continuous_cdf[0] must be 0.0 for questions with a closed lower bound "
+                    "(outcomes strictly below the lower bound are impossible). "
+                    "If you want to assign probability to the outcome equalling the lower bound, "
+                    "place that mass in the first inbound bucket by increasing cdf[1].\n"
                 )
         if question.open_upper_bound:
             if not continuous_cdf[-1] <= 0.999:
