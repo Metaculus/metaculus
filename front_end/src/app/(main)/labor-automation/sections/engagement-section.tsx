@@ -102,7 +102,7 @@ function ShareCard() {
   );
 }
 
-function SubscribeCard() {
+function SubscribeCard({ listKey }: { listKey?: string }) {
   const { user } = useAuth();
   const [email, setEmail] = useState(user?.email ?? "");
   const [isLoading, setIsLoading] = useState(false);
@@ -114,7 +114,7 @@ function SubscribeCard() {
 
     setIsLoading(true);
     try {
-      await subscribeToNewsletter(email);
+      await subscribeToNewsletter(email, listKey);
       setIsSuccess(true);
       setEmail("");
       toast("Subscribed successfully!", {
@@ -175,14 +175,20 @@ function SubscribeCard() {
   );
 }
 
-export function EngagementSection({ className }: { className?: string }) {
+export function EngagementSection({
+  className,
+  newsletterListKey,
+}: {
+  className?: string;
+  newsletterListKey?: string;
+}) {
   return (
     <section
       className={cn("grid gap-4 sm:gap-6 lg:grid-cols-3 lg:gap-8", className)}
     >
       <PartnerCard />
       <ShareCard />
-      <SubscribeCard />
+      <SubscribeCard listKey={newsletterListKey} />
     </section>
   );
 }

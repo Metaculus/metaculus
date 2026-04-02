@@ -347,7 +347,7 @@ export default function LaborAutomationHubPage() {
           </InvertedThemeContainer>
         </ResearchSection>
         <MethodologySection id="methodology" className="scroll-mt-12" />
-        <EngagementSection />
+        <EngagementSection newsletterListKey="labor" />
       </div>
     </main>
   );
