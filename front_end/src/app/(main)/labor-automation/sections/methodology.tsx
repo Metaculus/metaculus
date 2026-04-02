@@ -130,7 +130,6 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
             key={sectionIndex}
             title={section.title}
             variant="primary"
-            defaultOpen={sectionIndex === 0}
           >
             <div className="space-y-5 bg-gray-0 p-5 dark:bg-gray-0-dark">
               {section.faqs.map((faq, faqIndex) => (

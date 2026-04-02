@@ -1,40 +1,16 @@
-import { CSSProperties, ComponentProps, Suspense } from "react";
+import { ComponentProps, Suspense } from "react";
 
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { logError } from "@/utils/core/errors";
 
+import { SortableResearchTable } from "./sortable-research-table";
 import { NoQuestionPlaceholder } from "../components/question-cards/placeholder";
 import {
   SectionCard,
   SectionHeader,
   ContentParagraph,
 } from "../components/section";
-import {
-  TableCompact,
-  TableCompactHead,
-  TableCompactRow,
-  TableCompactHeaderCell,
-  TableCompactBody,
-  TableCompactCell,
-  PercentageChange,
-} from "../components/table-compact";
 import { fetchJobsData, getSubQuestionValue } from "../helpers/fetch-jobs-data";
-
-function getCellBackgroundStyle(
-  value: number,
-  maxAbsValue: number,
-  invertColors = false
-): CSSProperties {
-  if (value === 0) return {};
-  const ratio = Math.min(Math.abs(value) / maxAbsValue, 1);
-  const opacity = 0.05 + ratio * 0.55;
-  const isPositive = value > 0;
-  const useGreen = invertColors ? !isPositive : isPositive;
-  const color = useGreen
-    ? `rgba(102, 165, 102, ${opacity})`
-    : `rgba(213, 139, 128, ${opacity})`;
-  return { backgroundColor: color };
-}
 
 export function ResearchSection({
   children,
@@ -132,67 +108,5 @@ async function ResearchTable() {
       return lastB - lastA;
     });
 
-  return (
-    <TableCompact
-      className="inverted mt-6 [&_table]:border-separate [&_table]:border-spacing-x-2 [&_table]:border-spacing-y-2 [&_td]:py-0.5 [&_th]:pb-3"
-      HeadingSection={
-        <div className="mb-4 text-center text-sm font-normal leading-5 text-blue-700 dark:text-blue-400">
-          Metaculus Predicted Employment Change
-        </div>
-      }
-    >
-      <TableCompactHead>
-        <TableCompactRow>
-          <TableCompactHeaderCell className="w-[40%]">
-            Occupation
-          </TableCompactHeaderCell>
-          {columns.map((col) => (
-            <TableCompactHeaderCell key={col} className="w-[20%] text-center">
-              {col}
-            </TableCompactHeaderCell>
-          ))}
-          <TableCompactHeaderCell className="w-[20%] text-center">
-            AI Vulnerability Rating
-          </TableCompactHeaderCell>
-        </TableCompactRow>
-      </TableCompactHead>
-      <TableCompactBody>
-        {tableRows.map((row) => (
-          <TableCompactRow key={row.name}>
-            <TableCompactCell className="font-medium">
-              {row.name}
-            </TableCompactCell>
-            {row.values.map((value, i) => (
-              <TableCompactCell
-                key={columns[i]}
-                className="text-center"
-                style={getCellBackgroundStyle(value ?? 0, 100)}
-              >
-                {value != null ? (
-                  <PercentageChange value={Number(value.toFixed(1))} />
-                ) : (
-                  <span className="text-gray-400 dark:text-gray-500">—</span>
-                )}
-              </TableCompactCell>
-            ))}
-            <TableCompactCell
-              className="text-center"
-              style={getCellBackgroundStyle(row.rating, 2, true)}
-            >
-              <span
-                className={
-                  row.rating >= 0
-                    ? "text-salmon-700 dark:text-salmon-400"
-                    : "text-mint-800 dark:text-mint-300"
-                }
-              >
-                {row.rating > 0 ? "+" : ""}
-                {row.rating}
-              </span>
-            </TableCompactCell>
-          </TableCompactRow>
-        ))}
-      </TableCompactBody>
-    </TableCompact>
-  );
+  return <SortableResearchTable columns={columns} rows={tableRows} />;
 }

@@ -242,7 +242,7 @@ export default function LaborAutomationHubPage() {
             </SectionHeader>
             <InvertedThemeContainer>
               <MultiQuestionTable
-                firstColumnHeader="College Graduates"
+                firstColumnHeader="Recent College Graduates"
                 valueFormat="percentage"
                 decimals={1}
                 rows={[

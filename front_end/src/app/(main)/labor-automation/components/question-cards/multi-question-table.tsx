@@ -134,7 +134,7 @@ async function MultiQuestionTableContent({
         </TableCompactRow>
       </TableCompactHead>
       <TableCompactBody>
-        {rows.map((row, index) => {
+        {rows.map((row) => {
           const post = postsById.get(row.questionId);
           const questions = post?.group_of_questions?.questions as
             | QuestionWithNumericForecasts[]
@@ -145,9 +145,7 @@ async function MultiQuestionTableContent({
 
           return (
             <TableCompactRow key={row.questionId}>
-              <TableCompactCell className={index === 0 ? "font-medium" : ""}>
-                {row.title}
-              </TableCompactCell>
+              <TableCompactCell>{row.title}</TableCompactCell>
               {hasStaticColumn && (
                 <TableCompactCell className="text-right">
                   {row.staticValue}
