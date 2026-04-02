@@ -76,10 +76,16 @@ info:
     You could also find those values in the api by looking at the `"range_min"` and `"range_max"` properties inside `question["scaling"]`.
     If you want to build a cdf, what does that mean to you? It means that you'll need to generate the heights of the cdf at 201 points
     representing locations between -40 and 110. In this case, the first value of the CDF array we are going to build will be the probability
-    that the temperature is less than (not equal to) -40. The last value will represent the probability that the temperature is less 
+    that the temperature is less than (not equal to) -40. The last value will represent the probability that the temperature is less
     than or equal to 110. We then see that the `"zero_point"` in `question["scaling"]` is None, so we can conclude that the remaining
     values in the CDF array represent the height of the cdf at equally spaced locations between -40 and 110. This is because the `"zero_point"`
     being empty means that the question scaling is linear.<br>
+
+    **Important note on closed bounds:** The asymmetry above — `cdf[0]` is strictly less-than while `cdf[-1]` is less-than-or-equal — has
+    a practical consequence for questions with a closed lower bound. Because outcomes strictly below a closed lower bound are impossible,
+    `cdf[0]` must be exactly `0.0`. This does *not* mean you must assign zero probability to the outcome equalling the lower bound exactly.
+    Instead, the probability of landing on the lower bound belongs in the first inbound bucket, which is `cdf[1] - cdf[0]` = `cdf[1]`.
+    For example, if you believe there is a 70% chance the outcome is exactly the lower bound, set `cdf[1] = 0.7` (and `cdf[0] = 0.0`).<br>
 
     Here's a function that can take in a nominal location and return the corresponding "internal location" x-value. Note that it
     does account for logarithmic scaling.
@@ -151,7 +157,11 @@ info:
           "percentile_99": 990,
         }
         optionally, include `below_lower_bound` and `above_upper_bound`
-        to indicate the amount of probability mass assigned to those locations
+        to indicate the amount of probability mass assigned strictly outside those bounds.
+        Note: `below_lower_bound` is P(outcome < lower_bound), i.e. strictly less than.
+        For questions with a closed lower bound this must be 0.0 (or omitted); any
+        probability you intend for the outcome equalling the lower bound exactly should
+        instead be expressed via a percentile at or just above the lower bound value.
         percentiles = {
           "percentile_25": 500,
           "percentile_50": 650,
@@ -222,7 +232,10 @@ info:
         that threshold is scaled as such: 0.2 * (200 / inbound_outcome_count). This prevents too extreme spikes in the distribution.
     
     3. The cdf must obey bounds. If a boundary is open, at least 0.1% of probability mass must be assigned outside of it; if it
-        is closed, no probability mass may be outside of it.
+        is closed, no probability mass may be outside of it. Concretely: for a closed lower bound `cdf[0]` must be exactly `0.0`,
+        and for a closed upper bound `cdf[-1]` must be exactly `1.0`. Note that a closed lower bound does not prevent you from
+        assigning probability to the outcome equalling the lower bound — that mass goes in the first inbound bucket (`cdf[1]`),
+        not in `cdf[0]`.
 
     Here's a standardization function that ensures your CDF will be accepted. It does add a linear component to the cdf,
     so those with an abundance of precision in their forecasts may want to skip it. The cdfs (and thus their derived pdfs)
