@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
+import { useQuestionLayoutSafe } from "@/app/(main)/questions/[id]/components/question_layout/question_layout_context";
 import {
   addKeyFactorsToComment,
   createComment,
@@ -485,6 +486,7 @@ export const useKeyFactorDelete = () => {
 export const useKeyFactorModeration = () => {
   const t = useTranslations();
   const { setCurrentModal } = useModal();
+  const questionLayout = useQuestionLayoutSafe();
   const { combinedKeyFactors, setCombinedKeyFactors } = useCommentsFeed();
   const [doReportKeyFactor] = useServerAction(reportKeyFactor);
 
@@ -535,11 +537,13 @@ export const useKeyFactorModeration = () => {
             optimisticallyAddReplyEnsuringParent(kf.comment_id, text),
           onFinalize: finalizeReply,
           onRemove: removeTempReply,
+          onSubmitted: () => questionLayout?.closeKeyFactorOverlay(),
         },
       });
     },
     [
       setCurrentModal,
+      questionLayout,
       optimisticallyAddReplyEnsuringParent,
       finalizeReply,
       removeTempReply,

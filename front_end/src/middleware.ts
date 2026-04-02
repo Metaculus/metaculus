@@ -110,6 +110,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Redirect logged-in users from storefront to question feed
+  if (pathname === "/" && hasSession) {
+    return NextResponse.redirect(new URL("/questions/", request.url));
+  }
+
   // Check restricted alpha access
   if (hasSession) {
     const alphaAccessToken = await getAlphaAccessToken();

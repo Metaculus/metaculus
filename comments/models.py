@@ -18,7 +18,6 @@ from django.db.models import (
 from django.db.models.functions import Coalesce
 from django.db.models.lookups import Exact
 from django.utils import timezone
-from sql_util.aggregates import SubqueryAggregate
 
 from posts.models import Post
 from projects.models import Project
@@ -28,15 +27,6 @@ from utils.models import TimeStampedModel, TranslatedModel
 
 
 class CommentQuerySet(models.QuerySet):
-    def annotate_vote_score(self):
-        return self.annotate(
-            annotated_vote_score=Coalesce(
-                SubqueryAggregate("comment_votes__direction", aggregate=Sum),
-                0,
-                output_field=IntegerField(),
-            )
-        )
-
     def annotate_user_vote(self, user: User):
         """
         Annotates queryset with the user's vote option
@@ -180,12 +170,14 @@ class Comment(TimeStampedModel, TranslatedModel):
         ]
         self.vote_score = score
         self.save(update_fields=["vote_score"])
+
         return score
 
     def update_cmm_count(self):
         count = self.changedmymindentry_set.count()
         self.cmm_count = count
         self.save(update_fields=["cmm_count"])
+
         return count
 
 
@@ -240,12 +232,10 @@ class KeyFactorQuerySet(models.QuerySet):
         Annotates queryset with the user's vote option
         """
 
+        vote_qs = KeyFactorVote.objects.filter(user=user, key_factor=OuterRef("pk"))
         return self.annotate(
-            user_vote=Subquery(
-                KeyFactorVote.objects.filter(
-                    user=user, key_factor=OuterRef("pk")
-                ).values("score")[:1]
-            ),
+            user_vote=Subquery(vote_qs.values("score")[:1]),
+            user_vote_reason=Subquery(vote_qs.values("vote_reason")[:1]),
         )
 
 
@@ -382,6 +372,7 @@ class KeyFactor(TimeStampedModel):
 
     # Annotated fields
     user_vote: int = None
+    user_vote_reason: str = None
 
     class Meta:
         constraints = [
@@ -417,6 +408,11 @@ class KeyFactorVote(TimeStampedModel):
         STRENGTH = "strength"
         DIRECTION = "direction"
 
+    class VoteReason(models.TextChoices):
+        WRONG_DIRECTION = "wrong_direction"
+        NO_IMPACT = "no_impact"
+        REDUNDANT = "redundant"
+
     class VoteDirection(models.IntegerChoices):
         UP = 5
         DOWN = -5
@@ -430,9 +426,11 @@ class KeyFactorVote(TimeStampedModel):
     user = models.ForeignKey(User, models.CASCADE, related_name="key_factor_votes")
     key_factor = models.ForeignKey(KeyFactor, models.CASCADE, related_name="votes")
     score = models.SmallIntegerField(db_index=True)
-    # This field will be removed once we decide on the type of vote
     vote_type = models.CharField(
         choices=VoteType.choices, max_length=20, default=VoteType.DIRECTION
+    )
+    vote_reason = models.CharField(
+        choices=VoteReason.choices, max_length=20, blank=True, default=""
     )
 
     class Meta:

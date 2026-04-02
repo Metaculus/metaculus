@@ -103,6 +103,8 @@ export type ImpactMetadata = {
   certainty: -1 | null;
 };
 
+export type ImpactDirection = "increase" | "decrease" | "uncertainty";
+
 export type Driver = ImpactMetadata & {
   text: string;
 };
@@ -138,6 +140,7 @@ export type KeyFactor = {
   news?: News | null;
   author: AuthorType; // used to set limit per question
   comment_id: number;
+  created_at: string;
   vote: KeyFactorVoteAggregate;
   question_id?: number | null;
   question?: {
@@ -155,11 +158,15 @@ export type KeyFactor = {
   flagged_by_me?: boolean;
 };
 
+export type KeyFactorVoteReason = "wrong_direction" | "no_impact" | "redundant";
+
 export type KeyFactorVoteAggregate = {
   // Aggregated strength score
   score: number;
   // Current user's vote
   user_vote: KeyFactorVoteScore;
+  // Current user's downvote reason
+  user_vote_reason: KeyFactorVoteReason | null;
   // Total number of votes
   count: number;
   aggregated_data: { score: number; count: number }[];

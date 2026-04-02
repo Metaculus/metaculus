@@ -6,6 +6,9 @@ import plugin from "tailwindcss/plugin";
 import { METAC_COLORS } from "./src/constants/colors";
 
 const config: Config = {
+  // Note: .force-light only suppresses Tailwind-generated dark: utilities.
+  // Hand-written .dark selectors in CSS files (e.g. KaTeX, markdown styles)
+  // are not affected and will still match the .dark class on <html>.
   darkMode: [
     "variant",
     [

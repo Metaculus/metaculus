@@ -191,8 +191,10 @@ def test_get_comments_feed_permissions(user1, user2):
 
     factory_comment(author=user2, on_post=post, is_soft_deleted=True)
 
-    # Without filter, should return empty
-    assert set(get_comments_feed(Comment.objects.all())) == set()
+    # Without post/author filter, returns non-private non-deleted comments
+    assert {c.pk for c in get_comments_feed(Comment.objects.all())} == {
+        c3.pk,
+    }
 
     # Filter by post
     assert {c.pk for c in get_comments_feed(Comment.objects.all(), post=post)} == {

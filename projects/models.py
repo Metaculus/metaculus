@@ -405,11 +405,6 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
 
     def save(self, *args, **kwargs):
         creating = not self.pk
-        # Check if the primary leaderboard is associated with this project
-        if self.primary_leaderboard and self.primary_leaderboard.project != self:
-            raise ValueError(
-                "Primary leaderboard must be associated with this project."
-            )
 
         # Auto-create index object
         if self.type == self.ProjectTypes.INDEX and not self.index_id:
@@ -522,6 +517,7 @@ class ProjectSubscription(TimeStampedModel):
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="subscriptions"
     )
+    follow_questions = models.BooleanField(default=False)
 
     class Meta:
         constraints = [

@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from misc.models import WhitelistUser
+from misc.models import UserDataAccess
 from posts.models import Post
 from posts.services.common import get_post_permission_for_user
 from projects.models import Project
@@ -51,18 +51,19 @@ def aggregation_explorer_api_view(request) -> Response:
 
     # Context for the serializer
     is_staff = user.is_authenticated and user.is_staff
-    is_whitelisted = user.is_authenticated and (
-        WhitelistUser.objects.filter(
+    has_data_access = user.is_authenticated and (
+        UserDataAccess.objects.filter(
             Q(post=post)
             | Q(project=post.default_project)
             | (Q(post__isnull=True) & Q(project__isnull=True)),
             user=user,
+            view_user_data=True,
         ).exists()
     )
     serializer_context = {
         "user": user if user.is_authenticated else None,
         "is_staff": is_staff,
-        "is_whitelisted": is_whitelisted,
+        "has_data_access": has_data_access,
     }
 
     serializer = DataGetRequestSerializer(
@@ -172,17 +173,18 @@ def validate_data_request(request: Request, **kwargs):
     project_ids = [project.id] if project else []
     for post in posts:
         project_ids.extend(post.projects.values_list("id", flat=True))
-    whitelistings = WhitelistUser.objects.filter(
+    data_access_entries = UserDataAccess.objects.filter(
         (Q(post__in=posts) if posts else Q())
         | (Q(project_id__in=project_ids) if project_ids else Q())
         | Q(project__isnull=True, post__isnull=True),
         user_id=user.id or 0,
+        view_user_data=True,
     )
-    is_whitelisted = user.is_authenticated and whitelistings.exists()
+    has_data_access = user.is_authenticated and data_access_entries.exists()
     serializer_context = {
         "user": user if user.is_authenticated else None,
         "is_staff": is_staff,
-        "is_whitelisted": is_whitelisted,
+        "has_data_access": has_data_access,
     }
 
     serializer = DataPostRequestSerializer(data=data, context=serializer_context)
@@ -202,8 +204,8 @@ def validate_data_request(request: Request, **kwargs):
     joined_before_date = params.get("joined_before_date")
     if is_staff:
         anonymized = params.get("anonymized", False)
-    elif is_whitelisted:
-        if whitelistings.filter(view_deanonymized_data=True).exists():
+    elif has_data_access:
+        if data_access_entries.filter(view_deanonymized_data=True).exists():
             anonymized = params.get("anonymized", False)
         else:
             anonymized = True
@@ -244,7 +246,7 @@ def validate_data_request(request: Request, **kwargs):
         "user_id": user.id if user.is_authenticated else None,
         "user_email": user.email if user.is_authenticated else None,
         "is_staff": is_staff,
-        "is_whitelisted": is_whitelisted,
+        "has_data_access": has_data_access,
         "filename": filename,
         "question_ids": [q.id for q in questions],
         "aggregation_methods": aggregation_methods,
