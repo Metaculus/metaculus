@@ -937,6 +937,46 @@ class QuestionApproveSerializer(serializers.Serializer):
     scheduled_resolve_time = serializers.DateTimeField(required=True)
 
 
+class QuestionsCommunityPredictionsSerializer(serializers.Serializer):
+    question_ids = serializers.ListField(
+        child=serializers.IntegerField(), required=True
+    )
+    # timestamp applies the same datetime to every question_id.
+    # timestamps (parallel list) takes priority when provided.
+    timestamp = serializers.DateTimeField(required=False, default=None)
+    timestamps = serializers.ListField(
+        child=serializers.DateTimeField(), required=False, default=None
+    )
+
+    def validate(self, data):
+        question_ids = data.get("question_ids", [])
+        if not question_ids:
+            raise serializers.ValidationError(
+                "question_ids is required and must be non-empty"
+            )
+        timestamps = data.get("timestamps")
+        timestamp = data.get("timestamp")
+        if timestamps is not None:
+            if len(timestamps) != len(question_ids):
+                raise serializers.ValidationError(
+                    f"timestamps length ({len(timestamps)}) must match "
+                    f"question_ids length ({len(question_ids)})"
+                )
+        elif timestamp is None:
+            raise serializers.ValidationError(
+                "either timestamp or timestamps is required"
+            )
+        return data
+
+    def get_per_question_timestamps(self) -> list[datetime]:
+        timestamps = self.validated_data.get("timestamps")
+        if timestamps is not None:
+            return timestamps
+        return [self.validated_data["timestamp"]] * len(
+            self.validated_data["question_ids"]
+        )
+
+
 def serialize_question_movement(
     question: Question,
     f1: AggregateForecast,
