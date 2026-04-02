@@ -16,7 +16,7 @@ type FlipSide = "left" | "right";
 
 type ToggleSelectorProps = {
   selected: FlipSide;
-  onSelect: (side: FlipSide) => void;
+  onToggle?: () => void;
   leftIcon?: IconDefinition;
   rightIcon?: IconDefinition;
   className?: string;
@@ -24,7 +24,7 @@ type ToggleSelectorProps = {
 
 function ToggleSelector({
   selected,
-  onSelect,
+  onToggle,
   leftIcon = faStar,
   rightIcon = faChartLine,
   className,
@@ -47,7 +47,7 @@ function ToggleSelector({
       {/* Left button */}
       <button
         type="button"
-        onClick={() => onSelect("left")}
+        onClick={() => onToggle?.()}
         className={cn(
           "relative z-10 flex h-5 w-7 items-center justify-center text-sm transition-colors duration-200",
           selected === "left"
@@ -63,7 +63,7 @@ function ToggleSelector({
       {/* Right button */}
       <button
         type="button"
-        onClick={() => onSelect("right")}
+        onClick={() => onToggle?.()}
         className={cn(
           "relative z-10 flex h-5 w-7 items-center justify-center text-sm transition-colors duration-200",
           selected === "right"
@@ -122,15 +122,19 @@ export function FlippableQuestionCard({
     onSideChange?.(side);
   };
 
+  const handleToggle = () => {
+    handleSideChange(currentSide === "left" ? "right" : "left");
+  };
+
   return (
     <QuestionCard {...questionCardProps}>
       {/* Toggle selector aligned to the right */}
       <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 [visibility:var(--ss-hidden,visible)] print:hidden">
         <ToggleSelector
           selected={currentSide}
-          onSelect={handleSideChange}
           leftIcon={leftIcon}
           rightIcon={rightIcon}
+          onToggle={handleToggle}
         />
       </div>
 
