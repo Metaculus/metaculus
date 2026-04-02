@@ -9,8 +9,7 @@ import {
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import { useAuth } from "@/contexts/auth_context";
-import { useForcedLight } from "@/contexts/force_light_context";
-import useInvertedThemeContext from "@/contexts/inverted_theme_context";
+import { useThemeOverride } from "@/contexts/theme_override_context";
 import { AppTheme, ThemeColor } from "@/types/theme";
 import { logError } from "@/utils/core/errors";
 
@@ -21,15 +20,18 @@ const useAppTheme = () => {
     setTheme: setNextTheme,
     forcedTheme,
   } = useTheme();
-  const isInverted = useInvertedThemeContext();
   const [isSyncing, setIsSyncing] = useState<boolean>();
   const { user, setUser } = useAuth();
-  const forcedLight = useForcedLight();
+  const themeOverride = useThemeOverride();
 
   const theme = useMemo(() => {
-    if (forcedLight) return "light" as AppTheme;
-    return (forcedTheme ?? resolvedTheme ?? "light") as AppTheme;
-  }, [forcedLight, forcedTheme, resolvedTheme]);
+    if (themeOverride === "light") return "light" as AppTheme;
+    const base = (forcedTheme ?? resolvedTheme ?? "light") as AppTheme;
+    if (themeOverride === "inverted") {
+      return base === "dark" ? ("light" as AppTheme) : ("dark" as AppTheme);
+    }
+    return base;
+  }, [themeOverride, forcedTheme, resolvedTheme]);
 
   const setTheme = useCallback(
     async (newTheme: AppTheme) => {
@@ -51,13 +53,9 @@ const useAppTheme = () => {
 
   const getThemeColor = useCallback(
     (color: ThemeColor) => {
-      if (theme === "dark") {
-        return isInverted ? color.DEFAULT : color.dark;
-      }
-
-      return isInverted ? color.dark : color.DEFAULT;
+      return theme === "dark" ? color.dark : color.DEFAULT;
     },
-    [theme, isInverted]
+    [theme]
   );
 
   return {

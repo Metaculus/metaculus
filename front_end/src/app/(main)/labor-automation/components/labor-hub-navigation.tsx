@@ -41,7 +41,7 @@ export default function LaborHubNavigation({
   return (
     <>
       <div ref={sentinelRef} className="h-0" />
-      <div className="pointer-events-none sticky top-12 z-[100] mx-auto w-full max-w-7xl pb-4 transition-all sm:pb-8 xl:px-16">
+      <div className="pointer-events-none sticky top-12 z-[100] mx-auto w-full max-w-7xl pb-4 transition-all sm:pb-8 xl:px-16 print:hidden">
         <div
           className={cn(
             "border border-t-0 backdrop-blur-sm transition-all xl:rounded-b-md",

@@ -49,7 +49,7 @@ function getSortValue(row: ResearchTableRow, key: SortKey): number {
 const SortArrow: FC<{ direction: SortDirection }> = ({ direction }) => (
   <FontAwesomeIcon
     icon={faCaretDown}
-    className={cn("ml-1", {
+    className={cn("ml-1 print:hidden", {
       "rotate-180": direction === "asc",
     })}
   />
@@ -130,7 +130,7 @@ export const SortableResearchTable: FC<{
       </TableCompactHead>
       <TableCompactBody>
         {sortedRows.map((row) => (
-          <TableCompactRow key={row.name}>
+          <TableCompactRow key={row.name} className="break-inside-avoid">
             <TableCompactCell className="font-medium">
               {row.name}
             </TableCompactCell>

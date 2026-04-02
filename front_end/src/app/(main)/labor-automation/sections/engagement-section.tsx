@@ -184,7 +184,10 @@ export function EngagementSection({
 }) {
   return (
     <section
-      className={cn("grid gap-4 sm:gap-6 lg:grid-cols-3 lg:gap-8", className)}
+      className={cn(
+        "grid gap-4 sm:gap-6 lg:grid-cols-3 lg:gap-8 print:hidden",
+        className
+      )}
     >
       <PartnerCard />
       <ShareCard />

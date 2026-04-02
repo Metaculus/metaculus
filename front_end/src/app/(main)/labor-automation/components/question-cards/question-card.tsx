@@ -345,7 +345,7 @@ export function QuestionCard({
     <div
       ref={cardRef}
       className={cn(
-        "group relative",
+        "group relative break-inside-avoid print:border print:border-gray-300 print:p-4",
         variant === "primary" &&
           "rounded-md bg-gray-0 p-5 dark:bg-gray-0-dark lg:p-8",
         variant === "secondary" &&
@@ -355,7 +355,7 @@ export function QuestionCard({
       {...props}
     >
       {showMoreButton && postIds.length > 0 && (
-        <div className="absolute right-4 top-4 z-10 [visibility:var(--ss-hidden,visible)] lg:right-5 lg:top-5">
+        <div className="absolute right-4 top-4 z-10 [visibility:var(--ss-hidden,visible)] lg:right-5 lg:top-5 print:hidden">
           <MoreButton
             postIds={postIds}
             postTitle={title}

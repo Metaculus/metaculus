@@ -1,9 +1,10 @@
 import { Metadata } from "next";
 
 import SectionToggle from "@/components/ui/section_toggle";
-import { InvertedThemeContainer } from "@/contexts/inverted_theme_context";
+import { ThemeOverrideContainer } from "@/contexts/theme_override_context";
 
 import LaborHubNavigation from "./components/labor-hub-navigation";
+import { PrintAttribution } from "./components/print-attribution";
 import { MultiQuestionTable } from "./components/question-cards/multi-question-table";
 import { NoQuestionPlaceholder } from "./components/question-cards/placeholder";
 import { QuestionLoader } from "./components/question-cards/question";
@@ -41,13 +42,13 @@ export const metadata: Metadata = {
 
 export default function LaborAutomationHubPage() {
   return (
-    <main className="relative mb-24 min-h-screen xl:mt-12">
-      <div className="mx-auto w-full max-w-7xl xl:px-16">
+    <main className="relative mb-24 min-h-screen xl:mt-12 print:mb-0 print:mt-0">
+      <div className="mx-auto w-full max-w-7xl xl:px-16 print:px-0">
         <HeroSection />
       </div>
       <LaborHubNavigation tabs={TABS} />
 
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 sm:gap-6 sm:px-8 md:gap-8 xl:px-16">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 sm:gap-6 sm:px-8 md:gap-8 xl:px-16 print:gap-4 print:px-0">
         <SectionToggle
           key="tl-dr"
           title="TL;DR: What does the data show?"
@@ -146,12 +147,12 @@ export default function LaborAutomationHubPage() {
               </TableCompactBody>
             </TableCompact>
              */}
-            <InvertedThemeContainer>
+            <ThemeOverrideContainer override="inverted">
               <QuestionLoader
                 questionId={42216}
                 fallbackTitle="What will the percent change of the hourly median wage of US employees be relative to 2025 in the following years?"
               />
-            </InvertedThemeContainer>
+            </ThemeOverrideContainer>
 
             <ContentParagraph>
               Forecasts currently show that{" "}
@@ -240,7 +241,7 @@ export default function LaborAutomationHubPage() {
             <SectionHeader>
               How will the next generation of workers be affected?
             </SectionHeader>
-            <InvertedThemeContainer>
+            <ThemeOverrideContainer override="inverted">
               <MultiQuestionTable
                 firstColumnHeader="Recent College Graduates"
                 valueFormat="percentage"
@@ -256,7 +257,7 @@ export default function LaborAutomationHubPage() {
                   },
                 ]}
               />
-            </InvertedThemeContainer>
+            </ThemeOverrideContainer>
             <ContentParagraph>
               New college graduates are predicted to face difficult prospects in
               2030, as early-career tasks are more easily automated while
@@ -306,11 +307,11 @@ export default function LaborAutomationHubPage() {
         <DualPaneSectionCard id="economy" className="scroll-mt-12">
           <DualPaneSectionLeft>
             <SectionHeader>Changing economy</SectionHeader>
-            <InvertedThemeContainer>
+            <ThemeOverrideContainer override="inverted">
               <QuestionCard title="What will the overall labor productivity for all workers in the US be in the following years?">
                 <NoQuestionPlaceholder />
               </QuestionCard>
-            </InvertedThemeContainer>
+            </ThemeOverrideContainer>
             <ContentParagraph>
               The vulnerability of white collar work to AI advancement is
               expected to depress college graduation levels in 2035 relative to
@@ -329,24 +330,25 @@ export default function LaborAutomationHubPage() {
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight>
-            <InvertedThemeContainer>
+            <ThemeOverrideContainer override="inverted">
               <QuestionLoader preferTimeline questionId={41324} />
-            </InvertedThemeContainer>
+            </ThemeOverrideContainer>
             <QuestionLoader questionId={41313} />
             <QuestionLoader questionId={41578} />
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 
         <ResearchSection id="research" className="scroll-mt-12">
-          <InvertedThemeContainer>
+          <ThemeOverrideContainer override="inverted">
             <QuestionLoader
               questionId={42850}
               isFlippable={false}
               fallbackTitle="What will be the changes in the occupational mix in the following years, relative to November 2022?"
             />
-          </InvertedThemeContainer>
+          </ThemeOverrideContainer>
         </ResearchSection>
         <MethodologySection id="methodology" className="scroll-mt-12" />
+        <PrintAttribution />
         <EngagementSection newsletterListKey="labor" />
       </div>
     </main>

@@ -10,7 +10,7 @@ export function SectionCard({
   return (
     <section
       className={cn(
-        "rounded-md bg-gray-0 p-5 dark:bg-gray-0-dark md:p-10",
+        "rounded-md bg-gray-0 p-5 dark:bg-gray-0-dark md:p-10 print:px-0 print:py-4",
         className
       )}
       {...props}
@@ -28,7 +28,7 @@ export function SectionHeader({
   return (
     <h2
       className={cn(
-        "my-0 text-lg font-medium tracking-tight text-blue-800 dark:text-blue-800-dark md:text-3xl md:font-bold",
+        "my-0 break-after-avoid text-lg font-medium tracking-tight text-blue-800 dark:text-blue-800-dark md:text-3xl md:font-bold print:text-2xl print:font-bold",
         className
       )}
       {...props}
@@ -45,7 +45,7 @@ export function DualPaneSectionCard({
 }: ComponentProps<"section">) {
   return (
     <SectionCard
-      className={cn("grid gap-8 lg:grid-cols-2", className)}
+      className={cn("grid gap-8 lg:grid-cols-2 print:grid-cols-1", className)}
       {...props}
     >
       {children}
@@ -61,7 +61,7 @@ export function DualPaneSectionLeft({
   return (
     <div
       className={cn(
-        "flex flex-col space-y-4 self-start md:space-y-8 lg:sticky lg:top-36",
+        "flex flex-col space-y-4 self-start md:space-y-8 lg:sticky lg:top-36 print:static print:space-y-4",
         className
       )}
       {...props}
@@ -78,7 +78,10 @@ export function DualPaneSectionRight({
 }: ComponentProps<"div">) {
   return (
     <div
-      className={cn("hidden flex-col space-y-6 lg:flex", className)}
+      className={cn(
+        "hidden flex-col space-y-6 lg:flex print:flex print:space-y-4",
+        className
+      )}
       {...props}
     >
       {children}
@@ -94,7 +97,7 @@ export function ContentParagraph({
   return (
     <p
       className={cn(
-        "text-base text-blue-700 dark:text-blue-700-dark md:text-lg",
+        "break-inside-avoid text-base text-blue-700 dark:text-blue-700-dark md:text-lg",
         className
       )}
       {...props}

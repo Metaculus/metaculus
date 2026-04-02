@@ -21,7 +21,7 @@ export const TableCompact: FC<TableCompactProps> = ({
 }) => (
   <div
     className={cn(
-      "overflow-hidden rounded bg-blue-200 p-4 dark:bg-blue-800 md:p-5",
+      "break-inside-avoid overflow-hidden rounded bg-blue-200 p-4 dark:bg-blue-800 md:p-5 print:border print:border-gray-300",
       className
     )}
   >

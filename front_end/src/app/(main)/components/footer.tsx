@@ -244,7 +244,7 @@ const Footer: FC<{ hideSelectors?: boolean }> = ({ hideSelectors }) => {
   const handleContactClick = () => setCurrentModal({ type: "contactUs" });
 
   return (
-    <footer className="flex w-full flex-col gap-16 bg-blue-950 px-4 py-20 text-gray-300 lg:items-center lg:px-20">
+    <footer className="flex w-full flex-col gap-16 bg-blue-950 px-4 py-20 text-gray-300 lg:items-center lg:px-20 print:hidden">
       {/* Main content */}
       <div className="flex w-full max-w-[1352px] flex-col gap-16 lg:flex-row lg:gap-4">
         {/* Left column - Logo, description, socials, selectors */}

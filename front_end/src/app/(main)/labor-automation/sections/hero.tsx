@@ -9,7 +9,7 @@ export function HeroSection({
   return (
     <section
       className={cn(
-        "flex flex-col gap-10 rounded-t-md bg-gray-0 px-5 pt-5 dark:bg-gray-0-dark sm:px-8 sm:pt-8 md:px-10 md:pt-10",
+        "flex flex-col gap-10 rounded-t-md bg-gray-0 px-5 pt-5 dark:bg-gray-0-dark sm:px-8 sm:pt-8 md:px-10 md:pt-10 print:gap-6 print:px-0 print:pt-4",
         className
       )}
       {...props}
