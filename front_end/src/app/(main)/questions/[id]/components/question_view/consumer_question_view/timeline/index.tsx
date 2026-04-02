@@ -1,6 +1,7 @@
 import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
+import { KeyFactor } from "@/types/comment";
 import {
   GroupOfQuestionsGraphType,
   PostWithForecasts,
@@ -18,12 +19,14 @@ type Props = {
   postData: PostWithForecasts;
   className?: string;
   hideTitle?: boolean;
+  keyFactors?: KeyFactor[];
 };
 
 const QuestionTimeline: React.FC<Props> = ({
   postData,
   className,
   hideTitle,
+  keyFactors,
 }) => {
   const isFanGraph =
     postData.group_of_questions?.graph_type ===
@@ -42,6 +45,7 @@ const QuestionTimeline: React.FC<Props> = ({
             post={postData}
             hideTitle={hideTitle}
             isConsumerView={true}
+            keyFactors={keyFactors}
           />
         </div>
       );

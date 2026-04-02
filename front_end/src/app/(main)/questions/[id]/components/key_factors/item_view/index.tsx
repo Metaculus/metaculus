@@ -13,6 +13,7 @@ import {
   StrengthValues,
 } from "@/types/comment";
 import { ProjectPermissions } from "@/types/post";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import { getImpactDirectionFromMetadata } from "@/utils/key_factors";
 
 import KeyFactorBaseRate from "./base_rate/key_factor_base_rate";
@@ -124,6 +125,13 @@ export const KeyFactorItem: FC<Props> = ({
 
       setShowDownvoteThanks(true);
       const apiReason = DOWNVOTE_REASON_TO_API[reason];
+
+      sendAnalyticsEvent("KeyFactorVote", {
+        event_label: downScore.toString(),
+        variant: "downvote_reason",
+        reason: apiReason,
+      });
+
       try {
         const resp = await voteKeyFactor({
           id: liveKeyFactor.id,
