@@ -3,6 +3,8 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
+import { usePublicSettings } from "@/contexts/public_settings_context";
+
 export const useCopyUrl = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -37,31 +39,25 @@ export const useMetaImageUrl = (tagName: string) => {
 };
 
 export const useShareOnTwitterLink = (message = "") => {
+  const { PUBLIC_APP_URL } = usePublicSettings();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   return useMemo(() => {
-    if (typeof window === "undefined") {
-      return "";
-    }
-    const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}${window.location.hash}`;
-    return `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-      message
-    )}&url=${encodeURIComponent(url)}`;
-  }, [message, pathname, searchParams]);
+    const url = `${PUBLIC_APP_URL}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+    return `https://x.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`;
+  }, [PUBLIC_APP_URL, message, pathname, searchParams]);
 };
 
 export const useShareOnFacebookLink = () => {
+  const { PUBLIC_APP_URL } = usePublicSettings();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   return useMemo(() => {
-    if (typeof window === "undefined") {
-      return "";
-    }
-    const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}${window.location.hash}`;
+    const url = `${PUBLIC_APP_URL}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
     return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-  }, [pathname, searchParams]);
+  }, [PUBLIC_APP_URL, pathname, searchParams]);
 };
 
 export const useEmbedUrl = (path: string) => {
