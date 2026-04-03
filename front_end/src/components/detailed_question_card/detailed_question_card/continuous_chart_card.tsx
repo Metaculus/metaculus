@@ -11,6 +11,7 @@ import QuestionPredictionTooltip from "@/components/charts/primitives/question_p
 import ContinuousPredictionChart from "@/components/forecast_maker/continuous_input/continuous_prediction_chart";
 import { useAuth } from "@/contexts/auth_context";
 import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
+import { KeyFactor } from "@/types/comment";
 import {
   ForecastAvailability,
   QuestionType,
@@ -43,6 +44,7 @@ type Props = {
   defaultZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
   embedChartType?: EmbedChartType;
+  keyFactors?: KeyFactor[];
 };
 
 const DetailedContinuousChartCard: FC<Props> = ({
@@ -58,6 +60,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
   defaultZoom,
   withZoomPicker,
   embedChartType,
+  keyFactors,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -74,6 +77,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
   const isCpHidden = !!forecastAvailability?.cpRevealsOn;
 
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
+  const [showNewsAnnotations, setShowNewsAnnotations] = useState(true);
+  const hasNewsKeyFactors = keyFactors?.some((kf) => !!kf.news) ?? false;
 
   const cursorData = useMemo(() => {
     if (isCpHidden) {
@@ -243,6 +248,13 @@ const DetailedContinuousChartCard: FC<Props> = ({
       height={chartHeight}
       extraTheme={extraTheme}
       colorOverride={colorOverride}
+      keyFactors={hasNewsKeyFactors ? keyFactors : undefined}
+      showNewsAnnotations={showNewsAnnotations}
+      onToggleNewsAnnotations={
+        hasNewsKeyFactors
+          ? () => setShowNewsAnnotations((prev) => !prev)
+          : undefined
+      }
     />
   );
 
