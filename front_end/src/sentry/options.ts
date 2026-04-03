@@ -1,8 +1,4 @@
-import type {
-  BrowserOptions,
-  NodeOptions,
-  VercelEdgeOptions,
-} from "@sentry/nextjs";
+import type { BrowserOptions, NodeOptions } from "@sentry/nextjs";
 
 import { getPublicSetting } from "@/components/public_settings_script";
 import {
@@ -11,9 +7,9 @@ import {
   SENTRY_IGNORE_ERRORS,
 } from "@/utils/core/errors";
 
-export function buildSentryOptions<
-  T extends BrowserOptions | NodeOptions | VercelEdgeOptions,
->(dsn?: string): T {
+export function buildSentryOptions<T extends BrowserOptions | NodeOptions>(
+  dsn?: string
+): T {
   return {
     environment:
       process.env.METACULUS_ENV || getPublicSetting("PUBLIC_METACULUS_ENV"),

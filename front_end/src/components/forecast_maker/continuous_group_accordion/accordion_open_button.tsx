@@ -1,3 +1,5 @@
+"use client";
+
 import { DisclosureButton } from "@headlessui/react";
 import { FC, PropsWithChildren } from "react";
 
