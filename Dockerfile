@@ -75,9 +75,9 @@ COPY --from=frontend_deps /app/front_end/node_modules /app/front_end/node_module
 # Build frontend
 ENV NODE_ENV=production
 RUN --mount=type=secret,id=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY \
-    NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=$(cat /run/secrets/NEXT_SERVER_ACTIONS_ENCRYPTION_KEY) \
     cd front_end \
-    && NODE_OPTIONS=--max-old-space-size=8192 npm run build \
+    && NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=$(cat /run/secrets/NEXT_SERVER_ACTIONS_ENCRYPTION_KEY) \
+    NODE_OPTIONS=--max-old-space-size=8192 npm run build \
     && rm -rf .next/cache
 
 # Inject Sentry sourcemaps
