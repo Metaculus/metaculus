@@ -25,7 +25,7 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
         <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
           <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
             {t("authorWithCount", {
-              count: postData.coauthors.length > 0 ? 0 : 1,
+              count: postData.coauthors.length + 1,
             })}
             :
           </span>
