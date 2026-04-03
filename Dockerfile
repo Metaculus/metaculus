@@ -63,6 +63,9 @@ RUN . venv/bin/activate && ./manage.py collectstatic --noinput
 FROM base AS frontend_build
 WORKDIR /app
 
+ARG GIT_SHA
+ENV GIT_SHA=$GIT_SHA
+
 # Copy only frontend source files
 COPY front_end/ /app/front_end/
 
@@ -71,7 +74,9 @@ COPY --from=frontend_deps /app/front_end/node_modules /app/front_end/node_module
 
 # Build frontend
 ENV NODE_ENV=production
-RUN cd front_end \
+RUN --mount=type=secret,id=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY \
+    NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=$(cat /run/secrets/NEXT_SERVER_ACTIONS_ENCRYPTION_KEY) \
+    cd front_end \
     && NODE_OPTIONS=--max-old-space-size=8192 npm run build \
     && rm -rf .next/cache
 
@@ -82,6 +87,8 @@ RUN cd front_end && npx sentry-cli sourcemaps inject .next
 # FINAL ENVIRONMENT
 # ============================================================
 FROM base AS final_env
+ARG GIT_SHA
+ENV GIT_SHA=$GIT_SHA
 RUN mkdir -p /app && chown 1001:0 /app
 WORKDIR /app
 

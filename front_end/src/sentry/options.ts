@@ -17,11 +17,6 @@ export function buildSentryOptions<T extends BrowserOptions | NodeOptions>(
     tracesSampler: (ctx) => {
       const name = ctx.name;
 
-      // Completely exclude app-version health checks
-      if (name.includes("/app-version")) {
-        return 0;
-      }
-
       // Heavily reduce middleware traces - low informational value
       if (name.startsWith("middleware ")) {
         return 0.005;

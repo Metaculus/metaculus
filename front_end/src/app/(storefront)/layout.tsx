@@ -8,7 +8,6 @@ import { ForceLightProvider } from "@/contexts/force_light_context";
 import StorefrontFooter from "./components/storefront_footer";
 import FeedbackFloat from "../(main)/(home)/components/feedback_float";
 import CookiesBanner from "../(main)/components/cookies_banner";
-import VersionChecker from "../(main)/components/version_checker";
 
 config.autoAddCss = false;
 
@@ -29,7 +28,6 @@ export default function StorefrontLayout({
         <FeedbackFloat />
         <StorefrontFooter />
         <CookiesBanner />
-        <VersionChecker />
       </div>
     </ForceLightProvider>
   );
