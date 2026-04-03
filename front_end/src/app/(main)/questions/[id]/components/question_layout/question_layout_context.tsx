@@ -11,11 +11,29 @@ import {
 } from "react";
 
 import useHash from "@/hooks/use_hash";
+import { FetchedAggregateCoherenceLink } from "@/types/coherence";
+import { KeyFactor } from "@/types/comment";
+
+type KeyFactorOverlayState =
+  | { kind: "keyFactor"; keyFactor: KeyFactor }
+  | { kind: "questionLink"; link: FetchedAggregateCoherenceLink }
+  | null;
 
 type QuestionLayoutContextValue = {
   // Key Factors Section UI State
   keyFactorsExpanded?: boolean;
   requestKeyFactorsExpand: () => void;
+
+  // Key Factor Overlay
+  keyFactorOverlay: KeyFactorOverlayState;
+  openKeyFactorOverlay: (kf: KeyFactor) => void;
+  openQuestionLinkOverlay: (link: FetchedAggregateCoherenceLink) => void;
+  closeKeyFactorOverlay: () => void;
+
+  // Comment reply trigger
+  replyToCommentId: number | null;
+  requestReplyToComment: (commentId: number) => void;
+  clearReplyToComment: () => void;
 
   // Mobile tab state
   mobileActiveTab?: string;
@@ -28,6 +46,8 @@ export const QuestionLayoutProvider = ({ children }: PropsWithChildren) => {
   const hash = useHash();
   const [keyFactorsExpanded, setKeyFactorsExpanded] = useState<boolean>();
   const [mobileActiveTab, setMobileActiveTab] = useState<string>();
+  const [keyFactorOverlay, setKeyFactorOverlay] =
+    useState<KeyFactorOverlayState>(null);
 
   // Expand key factors section if URL hash points to it
   useEffect(() => {
@@ -42,14 +62,55 @@ export const QuestionLayoutProvider = ({ children }: PropsWithChildren) => {
     setMobileActiveTab("key-factors");
   }, []);
 
+  const openKeyFactorOverlay = useCallback((kf: KeyFactor) => {
+    setKeyFactorOverlay({ kind: "keyFactor", keyFactor: kf });
+  }, []);
+
+  const openQuestionLinkOverlay = useCallback(
+    (link: FetchedAggregateCoherenceLink) => {
+      setKeyFactorOverlay({ kind: "questionLink", link });
+    },
+    []
+  );
+
+  const closeKeyFactorOverlay = useCallback(() => {
+    setKeyFactorOverlay(null);
+  }, []);
+
+  const [replyToCommentId, setReplyToCommentId] = useState<number | null>(null);
+  const requestReplyToComment = useCallback((commentId: number) => {
+    setReplyToCommentId(commentId);
+  }, []);
+  const clearReplyToComment = useCallback(() => {
+    setReplyToCommentId(null);
+  }, []);
+
   const value = useMemo<QuestionLayoutContextValue>(
     () => ({
       keyFactorsExpanded,
       requestKeyFactorsExpand,
+      keyFactorOverlay,
+      openKeyFactorOverlay,
+      openQuestionLinkOverlay,
+      closeKeyFactorOverlay,
+      replyToCommentId,
+      requestReplyToComment,
+      clearReplyToComment,
       mobileActiveTab,
       setMobileActiveTab,
     }),
-    [keyFactorsExpanded, requestKeyFactorsExpand, mobileActiveTab]
+    [
+      keyFactorsExpanded,
+      requestKeyFactorsExpand,
+      keyFactorOverlay,
+      openKeyFactorOverlay,
+      openQuestionLinkOverlay,
+      closeKeyFactorOverlay,
+      replyToCommentId,
+      requestReplyToComment,
+      clearReplyToComment,
+      mobileActiveTab,
+    ]
   );
 
   return (

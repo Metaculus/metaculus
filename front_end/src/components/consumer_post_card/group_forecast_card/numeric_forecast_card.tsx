@@ -21,9 +21,10 @@ import ForecastChoiceBar from "./forecast_choice_bar";
 type Props = {
   post: PostWithForecasts;
   forceColorful?: boolean;
+  compact?: boolean;
 };
 
-const NumericForecastCard: FC<Props> = ({ post, forceColorful }) => {
+const NumericForecastCard: FC<Props> = ({ post, forceColorful, compact }) => {
   const locale = useLocale();
   const t = useTranslations();
   const [expanded, setExpanded] = useState(false);
@@ -85,6 +86,7 @@ const NumericForecastCard: FC<Props> = ({ post, forceColorful }) => {
       expanded={expanded}
       onExpand={() => setExpanded(true)}
       hideOthersValue
+      compact={compact}
     >
       {visibleChoices.map(
         ({
@@ -143,6 +145,7 @@ const NumericForecastCard: FC<Props> = ({ post, forceColorful }) => {
               color={color}
               unit={unit}
               forceColorful={forceColorful}
+              compact={compact}
             />
           );
         }

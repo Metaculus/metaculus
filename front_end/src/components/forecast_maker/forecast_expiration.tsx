@@ -541,7 +541,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
           </Button>
           <p className="my-0 text-xs text-gray-700 dark:text-gray-700-dark">
             {t.rich("useAccountSettingDescription", {
-              userForecastExpirationPercent: userExpirationPercent,
+              userForecastExpirationPercent: userExpirationPercent ?? 0,
               settingsLink: (chunk) => (
                 <Link
                   href="/accounts/settings/"

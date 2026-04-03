@@ -17,6 +17,7 @@ import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider"
 import KeyFactorsAddInComment from "@/app/(main)/questions/[id]/components/key_factors/add_in_comment/key_factors_add_in_comment";
 import KeyFactorsCommentSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_comment_section";
 import { useKeyFactorsCtx } from "@/app/(main)/questions/[id]/components/key_factors/key_factors_context";
+import { useQuestionLayoutSafe } from "@/app/(main)/questions/[id]/components/question_layout/question_layout_context";
 import {
   createForecasts,
   editComment,
@@ -236,7 +237,22 @@ const Comment: FC<CommentProps> = ({
   const originalTextRef = useRef<string>(comment.text);
   const [isDeleted, setIsDeleted] = useState(comment.is_soft_deleted);
   const [isLoading, setIsLoading] = useState(false);
+  const questionLayout = useQuestionLayoutSafe();
   const [isReplying, setIsReplying] = useState(false);
+  const replyEditorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (questionLayout?.replyToCommentId === comment.id) {
+      setIsReplying(true);
+      questionLayout.clearReplyToComment();
+      requestAnimationFrame(() => {
+        replyEditorRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "end",
+        });
+      });
+    }
+  }, [questionLayout?.replyToCommentId, comment.id, questionLayout]);
   const [errorMessage, setErrorMessage] = useState<string | ErrorResponse>();
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
   const [tempCommentMarkdown, setTempCommentMarkdown] = useState("");
@@ -1039,18 +1055,20 @@ const Comment: FC<CommentProps> = ({
         )}
       </div>
       {isReplying && (
-        <CommentEditor
-          parentId={comment.id}
-          postId={comment.on_post}
-          replyUsername={comment.author.username}
-          onSubmit={(newComment: CommentType) => {
-            addNewChildrenComment(comment, newComment);
-            setIsReplying(false);
-          }}
-          isReplying={isReplying}
-          shouldIncludeForecast={canIncludeForecastInReply}
-          userPermission={postData?.user_permission}
-        />
+        <div ref={replyEditorRef}>
+          <CommentEditor
+            parentId={comment.id}
+            postId={comment.on_post}
+            replyUsername={comment.author.username}
+            onSubmit={(newComment: CommentType) => {
+              addNewChildrenComment(comment, newComment);
+              setIsReplying(false);
+            }}
+            isReplying={isReplying}
+            shouldIncludeForecast={canIncludeForecastInReply}
+            userPermission={postData?.user_permission}
+          />
+        </div>
       )}
       {isKeyfactorsFormOpen && postData && (
         <KeyFactorsAddInComment

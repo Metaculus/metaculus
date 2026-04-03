@@ -62,9 +62,10 @@ export function abbreviatedNumber(
   }
 
   if (
-    isNil(scaling?.zero_point) &&
     !isNil(scaling?.range_min) &&
-    !isNil(scaling?.range_max)
+    !isNil(scaling?.range_max) &&
+    scaling?.range_min < 0 &&
+    0 < scaling?.range_max
   ) {
     // if sufficiently close to zero relative to the size of the range,
     // assume it should be zero

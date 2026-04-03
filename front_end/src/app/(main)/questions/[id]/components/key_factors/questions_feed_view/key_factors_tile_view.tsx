@@ -12,7 +12,7 @@ import { CoherenceLinksContext } from "@/app/(main)/components/coherence_links_p
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import type { FetchedAggregateCoherenceLink } from "@/types/coherence";
 import type { KeyFactor } from "@/types/comment";
-import type { PostWithForecasts } from "@/types/post";
+import { PostStatus, type PostWithForecasts } from "@/types/post";
 import {
   AggregationMethod,
   Question,
@@ -33,7 +33,7 @@ import { useShouldHideKeyFactors } from "../use_should_hide_key_factors";
 import { isDisplayableQuestionLink } from "../utils";
 
 type Props = {
-  post: Pick<PostWithForecasts, "id" | "key_factors">;
+  post: Pick<PostWithForecasts, "id" | "key_factors" | "status">;
   maxItems?: number;
   className?: string;
 };
@@ -213,6 +213,8 @@ const KeyFactorsTileView: React.FC<Props> = ({
   }, []);
 
   if (shouldHideKeyFactors) return null;
+
+  if (post.status === PostStatus.RESOLVED) return null;
 
   if (items.length === 0 && !questionLinkDisplay) return null;
 

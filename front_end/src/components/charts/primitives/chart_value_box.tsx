@@ -39,8 +39,7 @@ function getRectX(
         adjustedX -
         (textAlignToSide
           ? PLACEMENT_OFFSET_HORIZONTAL
-          : PLACEMENT_OFFSET_VERTICAL) +
-        textWidth -
+          : PLACEMENT_OFFSET_VERTICAL) -
         TEXT_PADDING / 2
       );
     case "right":

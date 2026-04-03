@@ -3,6 +3,7 @@ export enum FeedType {
   MY_PREDICTIONS = "my_predictions",
   MY_QUESTIONS_AND_POSTS = "my_questions_and_posts",
   WEEKLY_TOP_COMMENTS = "weekly_top_comments",
+  COMMENTS_FEED = "comments_feed",
   FOLLOWING = "following",
   IN_REVIEW = "in_review",
   COMMUNITIES = "communities",
@@ -29,6 +30,7 @@ export const POST_ORDER_BY_FILTER = "order_by";
 export const POST_NEWS_TYPE_FILTER = "news_type";
 export const POST_COMMUNITIES_FILTER = "communities";
 export const POST_WEEKLY_TOP_COMMENTS_FILTER = "weekly_top_comments";
+export const POST_COMMENTS_FEED_FILTER = "comments_feed";
 export const POST_PROJECT_FILTER = "default_project_id";
 
 export const POSTS_PER_PAGE = 10;

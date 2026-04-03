@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.serializers import DateTimeField
 
@@ -12,10 +12,12 @@ from posts.models import Post
 from posts.services.common import get_post_permission_for_user
 from posts.utils import get_post_slug
 from projects.permissions import ObjectPermission
+from utils.the_math.aggregations import get_aggregations_at_time
 from .constants import QuestionStatus
 from .models import Question
 from .serializers.common import (
     validate_question_resolution,
+    QuestionsCommunityPredictionsSerializer,
     OldForecastWriteSerializer,
     ForecastWriteSerializer,
     ForecastWithdrawSerializer,
@@ -246,3 +248,54 @@ def legacy_question_api_view(request, pk: int):
     return Response(
         {"question_id": pk, "post_id": post.pk, "post_slug": get_post_slug(post)}
     )
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAdminUser])
+def questions_community_predictions(request) -> Response:
+    src = request.data if request.method == "POST" else request.query_params
+    serializer = QuestionsCommunityPredictionsSerializer(data=src)
+    serializer.is_valid(raise_exception=True)
+
+    question_ids: list[int] = serializer.validated_data["question_ids"]
+    per_entry_timestamps = serializer.get_per_question_timestamps()
+
+    # Fetch questions
+    questions_by_id: dict[int, Question] = {
+        q.id: q for q in Question.objects.filter(id__in=question_ids)
+    }
+
+    # Compute aggregations
+    results = []
+    for qid, ts in zip(question_ids, per_entry_timestamps):
+        question = questions_by_id.get(qid)
+        if not question:
+            continue
+
+        method = question.default_aggregation_method
+        aggs = get_aggregations_at_time(
+            question=question,
+            time=ts,
+            aggregation_methods=[method],
+            include_stats=True,
+            include_bots=question.include_bots_in_aggregates,
+        )
+        agg = aggs.get(method)
+
+        if agg:
+            results.append(
+                {
+                    "metaculus_id": qid,
+                    "timestamp": ts.isoformat(),
+                    "method": method,
+                    "pmf": agg.get_pmf(),
+                    "interval_lower_bounds": agg.interval_lower_bounds,
+                    "centers": agg.centers,
+                    "interval_upper_bounds": agg.interval_upper_bounds,
+                    "means": agg.means,
+                    "forecaster_count": agg.forecaster_count,
+                    "error": None,
+                }
+            )
+
+    return Response({"results": results})

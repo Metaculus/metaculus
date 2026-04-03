@@ -2,6 +2,7 @@ import { ApiService } from "@/services/api/api_service";
 import {
   CommentOfWeekEntry,
   CommentType,
+  KeyFactorVoteReason,
   KeyFactorVoteType,
 } from "@/types/comment";
 import { KeyFactorDraft } from "@/types/key_factors";
@@ -18,6 +19,12 @@ export type getCommentsParams = {
   focus_comment_id?: string;
   is_private?: boolean;
   last_viewed_at?: string;
+  time_window?: "all_time" | "past_week" | "past_month" | "past_year";
+  search?: string;
+  exclude_bots?: boolean;
+  exclude_bots_only_project?: boolean;
+  include_deleted?: boolean;
+  post_status?: string;
 };
 
 export type KeyFactorWritePayload = KeyFactorDraft;
@@ -46,6 +53,7 @@ export type VoteParams = {
 
 export type KeyFactorVoteParams = VoteParams & {
   vote_type: KeyFactorVoteType;
+  vote_reason?: KeyFactorVoteReason | null;
 };
 
 export type ToggleCMMCommentParams = {

@@ -51,30 +51,30 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
   const { user } = useAuth();
   const isLoggedOut = !user;
 
-  const [whitelistStatus, setWhitelistStatus] = useState({
-    is_whitelisted: false,
+  const [dataAccessStatus, setDataAccessStatus] = useState({
+    has_data_access: false,
     view_deanonymized_data: false,
     isLoaded: false,
   });
 
   useEffect(() => {
-    if (!isOpen || whitelistStatus.isLoaded) {
+    if (!isOpen || dataAccessStatus.isLoaded) {
       return;
     }
-    const fetchWhitelistStatus = async () => {
+    const fetchDataAccessStatus = async () => {
       try {
-        const status = await ClientPostsApi.getWhitelistStatus({
+        const status = await ClientPostsApi.getDataAccessStatus({
           post_id: post.id,
         });
-        setWhitelistStatus({ ...status, isLoaded: true });
+        setDataAccessStatus({ ...status, isLoaded: true });
       } catch (error) {
-        console.error("Error fetching whitelist status:", error);
+        console.error("Error fetching data access status:", error);
         // Set as loaded even on error to avoid infinite retries
-        setWhitelistStatus((prev) => ({ ...prev, isLoaded: true }));
+        setDataAccessStatus((prev) => ({ ...prev, isLoaded: true }));
       }
     };
-    fetchWhitelistStatus();
-  }, [isOpen, whitelistStatus.isLoaded, post.id]);
+    fetchDataAccessStatus();
+  }, [isOpen, dataAccessStatus.isLoaded, post.id]);
 
   const {
     control,
@@ -93,7 +93,7 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
       include_user_data: true,
       include_key_factors: false,
       include_bots: undefined,
-      anonymized: !whitelistStatus.view_deanonymized_data,
+      anonymized: !dataAccessStatus.view_deanonymized_data,
     },
   });
 
@@ -101,15 +101,15 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
   const isDownloadDisabled = !minimize || !isNil(include_bots);
 
   useEffect(() => {
-    if (whitelistStatus.isLoaded) {
+    if (dataAccessStatus.isLoaded) {
       reset({
         ...watch(),
-        anonymized: !whitelistStatus.view_deanonymized_data,
+        anonymized: !dataAccessStatus.view_deanonymized_data,
       });
     }
   }, [
-    whitelistStatus.isLoaded,
-    whitelistStatus.view_deanonymized_data,
+    dataAccessStatus.isLoaded,
+    dataAccessStatus.view_deanonymized_data,
     watch,
     reset,
   ]);
@@ -225,7 +225,7 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
               disabled={isLoggedOut}
             />
           ) : null}
-          {whitelistStatus.is_whitelisted && (
+          {dataAccessStatus.has_data_access && (
             <>
               {include_user_data ? (
                 <div className="flex flex-col gap-1">
@@ -256,7 +256,7 @@ const DataRequestModal: FC<Props> = ({ isOpen, onClose, post }) => {
                   )}
                 </div>
               ) : null}
-              {whitelistStatus.view_deanonymized_data && include_user_data ? (
+              {dataAccessStatus.view_deanonymized_data && include_user_data ? (
                 <CheckboxField
                   control={control}
                   name="anonymized"

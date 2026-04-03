@@ -26,7 +26,12 @@ const ForecasterQuestionView: React.FC<Props> = ({
   return (
     <Fragment>
       <QuestionHeader post={postData} />
-      {isQuestionPost(postData) && <DetailedQuestionCard post={postData} />}
+      {isQuestionPost(postData) && (
+        <DetailedQuestionCard
+          post={postData}
+          keyFactors={postData.key_factors}
+        />
+      )}
       {isGroup && (
         <DetailedGroupCard
           post={postData}

@@ -572,12 +572,12 @@ export function generateScale({
       tickStart,
       tickEnd + 1e-4,
       1 / (tickCount - openBoundCount)
-    ).map((x) => Math.round(x * 100000) / 100000);
+    ).map((x) => Math.round(x * 1000000) / 1000000);
     const step =
       Math.max(1, Math.ceil((tickCount - openBoundCount) / maxLabelCount)) /
       (tickCount - openBoundCount);
     majorTicks = range(tickStart, tickEnd - 0.6 * step, step).map(
-      (x) => Math.round(x * 100000) / 100000
+      (x) => Math.round(x * 1000000) / 1000000
     );
     majorTicks.push(minorTicks.at(-1) ?? 1);
   } else if (
@@ -600,14 +600,14 @@ export function generateScale({
         Math.round((i / (tickCount - 1)) * (inbound_outcome_count - 1)) /
         (inbound_outcome_count - 1);
       return (
-        Math.round((tickStart + (tickEnd - tickStart) * x) * 100000) / 100000
+        Math.round((tickStart + (tickEnd - tickStart) * x) * 1000000) / 1000000
       );
     });
 
     const step =
       Math.max(1, Math.ceil((tickCount - 2) / maxLabelCount)) / tickCount;
     majorTicks = range(tickStart, tickEnd - 0.6 * step, step).map(
-      (x) => Math.round(x * 100000) / 100000
+      (x) => Math.round(x * 1000000) / 1000000
     );
     majorTicks.push(minorTicks.at(-1) ?? 1);
   } else if (isNil(zeroPoint)) {
@@ -623,8 +623,8 @@ export function generateScale({
         Math.round(
           (zoomedDomainMin +
             (i / (majorTickCount - 1)) * (zoomedDomainMax - zoomedDomainMin)) *
-            100000
-        ) / 100000
+            1000000
+        ) / 1000000
     );
     const minorTicksPerMajor = findOptimalTickCount(
       rangeMin,
@@ -640,8 +640,8 @@ export function generateScale({
         Math.round(
           (zoomedDomainMin +
             (i / (minorTickCount - 1)) * (zoomedDomainMax - zoomedDomainMin)) *
-            100000
-        ) / 100000
+            1000000
+        ) / 1000000
     );
   } else {
     // Logarithmic Scaling
@@ -674,7 +674,7 @@ export function generateScale({
     }
     majorTicks = bestTicks.map(
       (x) =>
-        Math.round(unscaleNominalLocation(x, rangeScaling) * 100000) / 100000
+        Math.round(unscaleNominalLocation(x, rangeScaling) * 1000000) / 1000000
     );
 
     const tickCount = forceTickCount
@@ -711,7 +711,7 @@ export function generateScale({
   function tickFormat(x: number, idx?: number) {
     if (
       alwaysShowTicks ||
-      majorTicks.includes(Math.round(x * 100000) / 100000)
+      majorTicks.includes(Math.round(x * 1000000) / 1000000)
     ) {
       if (displayType === QuestionType.Discrete) {
         return conditionallyShowUnit(

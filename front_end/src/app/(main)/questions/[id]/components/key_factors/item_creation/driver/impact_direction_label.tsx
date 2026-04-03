@@ -20,6 +20,7 @@ type Props = {
   option?: string;
   unit?: string;
   isCompact?: boolean;
+  hideIcon?: boolean;
 };
 
 export const KeyFactorImpactDirectionLabel: FC<Props> = ({
@@ -27,6 +28,7 @@ export const KeyFactorImpactDirectionLabel: FC<Props> = ({
   className,
   option,
   unit,
+  hideIcon,
 }) => {
   const t = useTranslations();
 
@@ -76,14 +78,8 @@ export const KeyFactorImpactDirectionLabel: FC<Props> = ({
   const { icon, textKey, color } = IMPACT_CONFIG[impact];
 
   return (
-    <div
-      className={cn(
-        "flex items-center gap-1.5 text-lg text-xs",
-        color,
-        className
-      )}
-    >
-      {icon}
+    <div className={cn("flex items-center gap-1.5 text-xs", color, className)}>
+      {!hideIcon && icon}
       <span>
         {t(textKey)}
         {impact !== ImpactDirectionCategory.IncreaseUncertainty && unit && (

@@ -16,8 +16,8 @@ urlpatterns = [
     ),
     path("select2/", include("django_select2.urls")),
     path(
-        "get-whitelist-status/",
-        views.get_whitelist_status_api_view,
-        name="get-whitelist-status",
+        "get-data-access-status/",
+        views.get_data_access_status_api_view,
+        name="get-data-access-status",
     ),
 ]

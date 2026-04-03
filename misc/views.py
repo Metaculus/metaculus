@@ -23,7 +23,7 @@ from .serializers import (
     SidebarItemSerializer,
 )
 from .services.itn import remove_article
-from .utils import get_whitelist_status
+from .utils import get_data_access_status
 
 
 @api_view(["POST"])
@@ -166,19 +166,19 @@ def sidebar_api_view(request: Request):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def get_whitelist_status_api_view(request: Request):
+def get_data_access_status_api_view(request: Request):
     data = request.query_params
     post_id = data.get("post_id")
     project_id = data.get("project_id")
     user = request.user if request.user.is_authenticated else None
 
-    is_whitelisted, view_deanonymized_data = get_whitelist_status(
+    has_data_access, view_deanonymized_data = get_data_access_status(
         user, post_id, project_id
     )
 
     return Response(
         {
-            "is_whitelisted": is_whitelisted,
+            "has_data_access": has_data_access,
             "view_deanonymized_data": view_deanonymized_data,
         },
         status=status.HTTP_200_OK,

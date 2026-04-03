@@ -17,7 +17,7 @@ export type DataParams = {
   include_key_factors?: boolean;
   anonymized?: boolean;
 };
-export type WhitelistStatus = {
-  is_whitelisted: boolean;
+export type DataAccessStatus = {
+  has_data_access: boolean;
   view_deanonymized_data: boolean;
 };
