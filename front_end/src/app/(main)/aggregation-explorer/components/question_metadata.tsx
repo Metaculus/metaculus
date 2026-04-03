@@ -9,13 +9,14 @@ import { FC } from "react";
 import PostStatusBadge from "@/components/post_status";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import { TranslationKey } from "@/types/translations";
 import { formatResolution } from "@/utils/formatters/resolution";
 import { isSuccessfullyResolved } from "@/utils/questions/resolution";
 
 import { AGGREGATION_OPTION_BY_ID } from "../constants";
 import { buildBaseLabel } from "../hooks/aggregation-data";
 
-const QUESTION_TYPE_LABEL: Record<QuestionType, string> = {
+const QUESTION_TYPE_LABEL: Record<QuestionType, TranslationKey> = {
   [QuestionType.Binary]: "binary",
   [QuestionType.MultipleChoice]: "multipleChoice",
   [QuestionType.Numeric]: "numeric",

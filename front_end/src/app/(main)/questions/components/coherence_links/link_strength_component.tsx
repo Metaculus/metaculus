@@ -3,6 +3,7 @@ import { FC } from "react";
 
 import Button from "@/components/ui/button";
 import { Strengths } from "@/types/coherence";
+import { TranslationKey } from "@/types/translations";
 import { convertStrengthNumberToLabel } from "@/utils/coherence";
 import cn from "@/utils/core/cn";
 
@@ -26,7 +27,7 @@ const colorAccent = {
   border-orange-400 dark:border-orange-400-dark`,
 } as const;
 
-const strengthI18nKey: Record<Strengths, string> = {
+const strengthI18nKey: Record<Strengths, TranslationKey> = {
   [Strengths.Low]: "lowStrength",
   [Strengths.Medium]: "mediumStrength",
   [Strengths.High]: "highStrength",
