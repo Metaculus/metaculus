@@ -45,6 +45,7 @@ import {
   getAllOptionsHistory,
   getUpcomingOptions,
 } from "@/utils/questions/helpers";
+import { isQuestionPrePrediction } from "@/utils/questions/predictions";
 
 import {
   BINARY_FORECAST_PRECISION,
@@ -60,6 +61,7 @@ import {
   ForecastExpirationModal,
   forecastExpirationToDate,
   ForecastExpirationValue,
+  getExpirationBaseDate,
   useExpirationModalState,
 } from "../forecast_expiration";
 import PredictButton from "../predict_button";
@@ -194,7 +196,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
   const expirationState = useExpirationModalState(
     questionDuration,
-    question.my_forecasts?.latest
+    question.my_forecasts?.latest,
+    isQuestionPrePrediction(question)
   );
 
   const {
@@ -472,7 +475,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         {
           questionId: question.id,
           forecastEndTime: forecastExpirationToDate(
-            forecastExpiration ?? modalSavedState.forecastExpiration
+            forecastExpiration ?? modalSavedState.forecastExpiration,
+            getExpirationBaseDate(question)
           ),
           forecastData: {
             continuousCdf: null,

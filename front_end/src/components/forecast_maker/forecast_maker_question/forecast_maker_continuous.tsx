@@ -43,6 +43,7 @@ import {
 } from "@/utils/forecasts/initial_values";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { computeQuartilesFromCDF } from "@/utils/math";
+import { isQuestionPrePrediction } from "@/utils/questions/predictions";
 
 import PredictionSuccessBox from "./prediction_success_box";
 import ContinuousInput from "../continuous_input";
@@ -50,6 +51,7 @@ import {
   ForecastExpirationModal,
   forecastExpirationToDate,
   ForecastExpirationValue,
+  getExpirationBaseDate,
   useExpirationModalState,
 } from "../forecast_expiration";
 import {
@@ -245,7 +247,11 @@ const ForecastMakerContinuous: FC<Props> = ({
     isForecastExpirationModalOpen,
     setIsForecastExpirationModalOpen,
     previousForecastExpiration,
-  } = useExpirationModalState(questionDuration, question.my_forecasts?.latest);
+  } = useExpirationModalState(
+    questionDuration,
+    question.my_forecasts?.latest,
+    isQuestionPrePrediction(question)
+  );
 
   const handlePredictSubmit = async (
     forecastExpiration: ForecastExpirationValue
@@ -279,7 +285,10 @@ const ForecastMakerContinuous: FC<Props> = ({
           probabilityYes: null,
           probabilityYesPerCategory: null,
         },
-        forecastEndTime: forecastExpirationToDate(forecastExpiration),
+        forecastEndTime: forecastExpirationToDate(
+          forecastExpiration,
+          getExpirationBaseDate(question)
+        ),
         distributionInput: {
           type: forecastInputMode,
           components:

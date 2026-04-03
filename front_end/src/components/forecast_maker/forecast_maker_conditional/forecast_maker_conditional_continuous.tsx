@@ -55,6 +55,7 @@ import {
 } from "@/utils/forecasts/switch_forecast_type";
 import { getTableDisplayValue } from "@/utils/formatters/prediction";
 import { computeQuartilesFromCDF } from "@/utils/math";
+import { isQuestionPrePrediction } from "@/utils/questions/predictions";
 
 import ConditionalForecastTable, {
   ConditionalTableOption,
@@ -65,6 +66,7 @@ import {
   ForecastExpirationModal,
   forecastExpirationToDate,
   ForecastExpirationValue,
+  getExpirationBaseDate,
   useExpirationModalState,
 } from "../forecast_expiration";
 import {
@@ -128,12 +130,14 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
 
   const questionYesExpirationState = useExpirationModalState(
     questionYesDuration,
-    question_yes.my_forecasts?.latest
+    question_yes.my_forecasts?.latest,
+    isQuestionPrePrediction(question_yes)
   );
 
   const questionNoExpirationState = useExpirationModalState(
     questionNoDuration,
-    question_no.my_forecasts?.latest
+    question_no.my_forecasts?.latest,
+    isQuestionPrePrediction(question_no)
   );
 
   const [questionOptions, setQuestionOptions] = useState<
@@ -519,7 +523,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         }) => ({
           questionId: question.id,
           forecastEndTime: forecastExpirationToDate(
-            forecastExpiration ?? questionForecastExpiration
+            forecastExpiration ?? questionForecastExpiration,
+            getExpirationBaseDate(question)
           ),
           forecastData: {
             continuousCdf:

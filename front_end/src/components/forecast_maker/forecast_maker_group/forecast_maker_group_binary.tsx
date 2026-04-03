@@ -43,7 +43,10 @@ import {
   isOpenQuestionPredicted,
 } from "@/utils/forecasts/helpers";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
-import { canWithdrawForecast } from "@/utils/questions/predictions";
+import {
+  canWithdrawForecast,
+  isQuestionPrePrediction,
+} from "@/utils/questions/predictions";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import {
@@ -57,6 +60,7 @@ import {
   ForecastExpirationModal,
   forecastExpirationToDate,
   ForecastExpirationValue,
+  getExpirationBaseDate,
   useExpirationModalState,
 } from "../forecast_expiration";
 import PredictButton from "../predict_button";
@@ -143,9 +147,13 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   const firstOpenQuestion = questions.find(
     (q) => q.status === QuestionStatus.OPEN
   );
+  const allQuestionsUpcoming = questions.every((q) =>
+    isQuestionPrePrediction(q)
+  );
   const expirationState = useExpirationModalState(
     averageQuestionDuration,
-    firstOpenQuestion?.my_forecasts?.latest // Use first open question as reference
+    firstOpenQuestion?.my_forecasts?.latest, // Use first open question as reference
+    allQuestionsUpcoming
   );
 
   const {
@@ -264,6 +272,11 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       })
     );
   }, []);
+  const questionsById = useMemo(
+    () => new Map(questions.map((q) => [q.id, q])),
+    [questions]
+  );
+
   const handlePredictSubmit = useCallback(
     async (forecastExpiration?: ForecastExpirationValue) => {
       setSubmitError(undefined);
@@ -281,11 +294,13 @@ const ForecastMakerGroupBinary: FC<Props> = ({
             q.forecast! / 100,
             BINARY_FORECAST_PRECISION
           );
+          const fullQuestion = questionsById.get(q.id);
 
           return {
             questionId: q.id,
             forecastEndTime: forecastExpirationToDate(
-              forecastExpiration ?? q.forecastExpiration
+              forecastExpiration ?? q.forecastExpiration,
+              fullQuestion ? getExpirationBaseDate(fullQuestion) : undefined
             ),
             forecastData: {
               probabilityYes: forecastValue,
@@ -304,7 +319,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       }
       onPredictionSubmit?.();
     },
-    [postId, questionsToSubmit, onPredictionSubmit]
+    [postId, questionsToSubmit, questionsById, onPredictionSubmit]
   );
   const [submit, isPending] = useServerAction(handlePredictSubmit);
 

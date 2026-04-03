@@ -33,7 +33,10 @@ import {
   isOpenQuestionPredicted,
 } from "@/utils/forecasts/helpers";
 import { formatResolution } from "@/utils/formatters/resolution";
-import { canWithdrawForecast } from "@/utils/questions/predictions";
+import {
+  canWithdrawForecast,
+  isQuestionPrePrediction,
+} from "@/utils/questions/predictions";
 
 import { ContinuousGroupOption } from "../continuous_group_accordion/group_forecast_accordion";
 import ContinuousInput from "../continuous_input";
@@ -256,7 +259,8 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
     previousForecastExpiration,
   } = useExpirationModalState(
     questionDuration,
-    option.question.my_forecasts?.latest
+    option.question.my_forecasts?.latest,
+    isQuestionPrePrediction(option.question)
   );
 
   useEffect(() => {
@@ -281,8 +285,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
 
   if (
     (option.question.status === QuestionStatus.OPEN ||
-      (option.question.status === QuestionStatus.UPCOMING &&
-        !!option.question.open_time)) &&
+      isQuestionPrePrediction(option.question)) &&
     canPredict
   ) {
     SubmitControls = (
@@ -421,10 +424,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           disabled={
             !canPredict ||
             (option.question.status !== QuestionStatus.OPEN &&
-              !(
-                option.question.status === QuestionStatus.UPCOMING &&
-                !!option.question.open_time
-              ))
+              !isQuestionPrePrediction(option.question))
           }
           predictionMessage={
             predictionMessage ? t(predictionMessage) : undefined

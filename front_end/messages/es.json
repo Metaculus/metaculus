@@ -862,6 +862,7 @@
   "withdrawForecast": "Retirar Pronóstico",
   "predictionUpcomingMessage": "Esta pregunta está en la fase de Próximamente y pronto se abrirá para predicciones",
   "prePredictionMessage": "Esta predicción aún no se puntúa. Se activará cuando se abra la pregunta.",
+  "fromOpenShort": "desde apertura",
   "predictionUnapprovedMessage": "Esta pregunta debe ser aprobada por los moderadores antes de que puedas comenzar a predecir",
   "predictionClosedMessage": "Esta pregunta está cerrada para predicciones y está esperando ser resuelta",
   "predictionConditionalPartiallyClosedMessage": "La pregunta \"{closedQuestion}\" se ha cerrado, por lo que estos condicionales están cerrados para previsiones. Se resolverán cuando se resuelva la pregunta \"{activeQuestion}\".",

@@ -840,6 +840,7 @@
   "withdrawForecast": "提取预测",
   "predictionUpcomingMessage": "此问题处于即将开始阶段，很快将开放预测",
   "prePredictionMessage": "此预测尚未计分。它将在问题开放时生效。",
+  "fromOpenShort": "自开放起",
   "predictionUnapprovedMessage": "此问题需经由主持人批准后方可开始预测",
   "predictionClosedMessage": "此问题已关闭预测，正在等待解决",
   "predictionConditionalPartiallyClosedMessage": "问题“{closedQuestion}”已关闭，因此这些条件问题关闭预测。当问题“{activeQuestion}”解决时，它们将被解决。",

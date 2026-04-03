@@ -11,7 +11,10 @@ import {
   isGroupOfQuestionsPost,
   isQuestionPost,
 } from "@/utils/questions/helpers";
-import { isPostPrePrediction } from "@/utils/questions/predictions";
+import {
+  isPostPrePrediction,
+  isQuestionPrePrediction,
+} from "@/utils/questions/predictions";
 
 import QuestionPredictButton from "./question_predict_button";
 
@@ -25,8 +28,7 @@ const QuestionActionButton: React.FC<Props> = ({ postData }) => {
   const isPredictable =
     (isQuestionPost(postData) &&
       (postData.question.status === QuestionStatus.OPEN ||
-        (postData.question.status === QuestionStatus.UPCOMING &&
-          !!postData.question.open_time))) ||
+        isQuestionPrePrediction(postData.question))) ||
     (isGroupOfQuestionsPost(postData) &&
       (postData.status === PostStatus.OPEN ||
         postData.status === PostStatus.APPROVED)) ||

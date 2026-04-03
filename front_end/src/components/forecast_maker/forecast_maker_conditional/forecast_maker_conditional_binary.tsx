@@ -28,6 +28,7 @@ import { sendConditionalPredictEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
+import { isQuestionPrePrediction } from "@/utils/questions/predictions";
 
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import ConditionalForecastTable, {
@@ -37,6 +38,7 @@ import {
   ForecastExpirationModal,
   forecastExpirationToDate,
   ForecastExpirationValue,
+  getExpirationBaseDate,
   useExpirationModalState,
 } from "../forecast_expiration";
 import PredictButton from "../predict_button";
@@ -115,12 +117,14 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
 
   const questionYesExpirationState = useExpirationModalState(
     questionYesDuration,
-    question_yes.my_forecasts?.latest
+    question_yes.my_forecasts?.latest,
+    isQuestionPrePrediction(question_yes)
   );
 
   const questionNoExpirationState = useExpirationModalState(
     questionNoDuration,
-    question_no.my_forecasts?.latest
+    question_no.my_forecasts?.latest,
+    isQuestionPrePrediction(question_no)
   );
 
   const questionDuration =
@@ -324,7 +328,8 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
         return {
           questionId: q.id,
           forecastEndTime: forecastExpirationToDate(
-            forecastExpiration ?? q.forecastExpiration
+            forecastExpiration ?? q.forecastExpiration,
+            getExpirationBaseDate(q.question)
           ),
           forecastData: {
             continuousCdf: null,
