@@ -45,6 +45,7 @@ const QuestionInfo: React.FC<Props> = ({
             postData={postData}
             hideTitle={true}
             className="m-0"
+            keyFactors={postData.key_factors}
           />
         </SectionToggle>
       )}
@@ -97,6 +98,7 @@ const QuestionInfo: React.FC<Props> = ({
               <QuestionTimeline
                 className="bg-gray-0 dark:bg-gray-0-dark"
                 postData={postData}
+                keyFactors={postData.key_factors}
               />
             </SectionToggle>
           ) : null

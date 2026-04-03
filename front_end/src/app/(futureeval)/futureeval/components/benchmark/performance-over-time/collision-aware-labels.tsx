@@ -176,7 +176,7 @@ export const CollisionAwareLabels = memo(function CollisionAwareLabels(
     y: number;
     labelX: number;
     labelY: number;
-    anchor: string;
+    anchor: "start" | "middle" | "end";
     name: string;
     color: string;
   }> = [];
@@ -192,7 +192,7 @@ export const CollisionAwareLabels = memo(function CollisionAwareLabels(
   const clampLabelPosition = (
     labelX: number,
     labelY: number,
-    anchor: string,
+    anchor: "start" | "middle" | "end",
     textWidth: number,
     textHeight: number
   ) => {

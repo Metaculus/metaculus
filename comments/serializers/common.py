@@ -35,6 +35,7 @@ class CommentFilterSerializer(serializers.Serializer):
     )
     search = serializers.CharField(required=False, allow_null=True, min_length=3)
     exclude_bots = serializers.BooleanField(required=False, default=False)
+    exclude_bots_only_project = serializers.BooleanField(required=False, default=False)
     post_status = serializers.ChoiceField(
         choices=Post.CurationStatus.choices,
         required=False,
@@ -81,6 +82,7 @@ class CommentSerializer(serializers.ModelSerializer):
             "vote_score",
             "changed_my_mind",
             "is_pinned",
+            "key_factor_votes_score",
         )
 
     def get_changed_my_mind(self, comment: Comment) -> dict[str, bool | int]:
