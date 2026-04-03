@@ -49,6 +49,8 @@ def key_factor_vote(
     )
     key_factor.save(update_fields=["votes_score"])
 
+    key_factor.comment.update_key_factor_votes_score()
+
     return key_factor.votes_score
 
 
@@ -256,6 +258,7 @@ def calculate_votes_strength(scores: list[int]):
 def delete_key_factor(key_factor: KeyFactor):
     comment = key_factor.comment
     key_factor.delete()
+    comment.update_key_factor_votes_score()
 
     # Delete comment without text if it was the last key factor
     if (
