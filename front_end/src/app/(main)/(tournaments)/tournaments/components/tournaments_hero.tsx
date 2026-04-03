@@ -30,14 +30,25 @@ const HERO_KEYS = {
 const TournamentsHero: React.FC = () => {
   const t = useTranslations();
   const isLg = useBreakpoint("lg");
-  const { current, count } = useTournamentsSection();
+  const { current, count, isSearching } = useTournamentsSection();
+
+  type PlainKey = Parameters<typeof t>[0];
+
+  if (isSearching) {
+    return (
+      <div className="flex-col gap-5 lg:flex">
+        <p className="my-0 text-base text-gray-700 dark:text-gray-700-dark">
+          {t("tournamentsSearchResultsShown" as PlainKey, { count })}
+        </p>
+      </div>
+    );
+  }
 
   const keys = HERO_KEYS[current];
   if (!keys) return null;
   if (!isLg && current === "live") return null;
 
   type RichKey = Parameters<typeof t.rich>[0];
-  type PlainKey = Parameters<typeof t>[0];
 
   return (
     <div className="flex-col gap-5 lg:flex">

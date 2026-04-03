@@ -1,13 +1,12 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React from "react";
 
 import cn from "@/utils/core/cn";
 
 import { useTournamentsSection } from "./tournaments_provider";
-import { TOURNAMENTS_SEARCH } from "../constants/query_params";
+import SearchResultsGrid from "./tournaments_grid/search_results_grid";
 
 type Props = {
   children: React.ReactNode;
@@ -16,16 +15,16 @@ type Props = {
 
 const TournamentsResults: React.FC<Props> = ({ children, className }) => {
   const t = useTranslations();
-  const { count } = useTournamentsSection();
-  const params = useSearchParams();
-
-  const q = (params.get(TOURNAMENTS_SEARCH) ?? "").trim();
-  const isSearching = q.length > 0;
+  const { count, isSearching } = useTournamentsSection();
 
   type PlainKey = Parameters<typeof t>[0];
 
   if (count > 0) {
-    return <div className={className}>{children}</div>;
+    return (
+      <div className={className}>
+        {isSearching ? <SearchResultsGrid /> : children}
+      </div>
+    );
   }
 
   const titleKey = (
