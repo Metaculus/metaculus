@@ -650,11 +650,7 @@ def bootstrap_skills(
         duration = datetime.now() - t0
         est_duration = duration / (i + 1) * bootstrap_count
         print(
-            f"\033[K"
-            f"| {i + 1:>4}/{bootstrap_count:<4} "
-            f"| {duration} "
-            f"| {est_duration} "
-            "|",
+            f"\033[K| {i + 1:>4}/{bootstrap_count:<4} | {duration} | {est_duration} |",
             end="\r",
         )
 
@@ -690,18 +686,18 @@ def run_update_global_bot_leaderboard(
 ) -> None:
     # input validation
     if isinstance(baseline_player, int):
-        assert User.objects.filter(
-            id=baseline_player
-        ).exists(), "baseline_player does not exist"
+        assert User.objects.filter(id=baseline_player).exists(), (
+            "baseline_player does not exist"
+        )
     else:
         ...  # TODO: validate string baseline player
     if bot_recency:
-        assert (
-            bot_recent_scores or bot_recent_coverage
-        ), "bot_recency requires bot_recent_scores or bot_recent_coverage to be set"
-    assert (
-        not bot_recent_coverage or not bot_recent_scores
-    ), "can only set one of bot_recent_coverage or bot_recent_scores"
+        assert bot_recent_scores or bot_recent_coverage, (
+            "bot_recency requires bot_recent_scores or bot_recent_coverage to be set"
+        )
+    assert not bot_recent_coverage or not bot_recent_scores, (
+        "can only set one of bot_recent_coverage or bot_recent_scores"
+    )
 
     # SETUP: users to evaluate & questions
     print("Initializing...")
@@ -738,7 +734,6 @@ def run_update_global_bot_leaderboard(
     for question in questions:
         if question.default_score_type == "spot_peer":
             break
-    questions = questions.filter(id=question.id)
     if not include_minibench:
         questions = questions.exclude(
             post__default_project__slug__startswith="minibench"
@@ -1035,7 +1030,7 @@ def run_update_global_bot_leaderboard(
         excluded = False
         if isinstance(uid, int):
             user = User.objects.get(id=uid)
-            bot_details = user.metadata["bot_details"]
+            bot_details = (user.metadata or {}).get("bot_details", {})
             if not bot_details.get("display_in_leaderboard"):
                 excluded = True
 
@@ -1071,26 +1066,8 @@ def run_update_global_bot_leaderboard(
     ##########################################################################
     # DISPLAY
     print("Results:")
-    print(
-        "|  2.5%  "
-        "| Skill  "
-        "| 97.5%  "
-        "| Match  "
-        "| Quest. "
-        "|  Cov.  "
-        "|   ID   "
-        "| Username "
-    )
-    print(
-        "| Match  "
-        "|        "
-        "| Match  "
-        "| Count  "
-        "| Count  "
-        "| Total  "
-        "|        "
-        "|          "
-    )
+    print("|  2.5%  | Skill  | 97.5%  | Match  | Quest. |  Cov.  |   ID   | Username ")
+    print("| Match  |        | Match  | Count  | Count  | Total  |        |          ")
     print(
         "==============================================="
         "==============================================="
@@ -1240,9 +1217,9 @@ class Command(BaseCommand):
 
         baseline_player = 236038
         include_minibench = True
-        cache_use = "full"
+        cache_use = "partial"
 
-        bootstrap_count = 0
+        bootstrap_count = 30
         min_participation_count = 100
         metac_bot_age = 365
         cp_by_years = True
@@ -1252,7 +1229,7 @@ class Command(BaseCommand):
         bot_recency = 3 * 30
         bot_recent_scores = 0
         bot_recent_coverage = 400
-        scale_weight_by_participants = True
+        scale_weight_by_participants = False
 
         store_results_csv = True
         verbose = False
