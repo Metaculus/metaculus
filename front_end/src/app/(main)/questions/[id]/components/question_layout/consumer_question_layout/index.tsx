@@ -71,6 +71,7 @@ const ConsumerQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
                   className="block"
                   postData={postData}
                   hideTitle
+                  keyFactors={postData.key_factors}
                 />
               </TabsSection>
             )}

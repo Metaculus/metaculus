@@ -1,5 +1,6 @@
 from typing import Iterable
 
+import numpy as np
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.db import models
@@ -116,6 +117,7 @@ class Comment(TimeStampedModel, TranslatedModel):
     # Denormalized fields
     vote_score = models.IntegerField(default=0, db_index=True, editable=False)
     cmm_count = models.IntegerField(default=0, db_index=True, editable=False)
+    key_factor_votes_score = models.FloatField(default=0, db_index=True, editable=False)
     text_original_search_vector = SearchVectorField(null=True, editable=False)
 
     # annotated fields
@@ -179,6 +181,19 @@ class Comment(TimeStampedModel, TranslatedModel):
         self.save(update_fields=["cmm_count"])
 
         return count
+
+    def update_key_factor_votes_score(self):
+        score = 0.0
+
+        for kf in self.key_factors.prefetch_related("votes").all():
+            votes = [abs(v.score) for v in kf.votes.all()]
+            if votes:
+                score += np.mean(votes)
+
+        self.key_factor_votes_score = score
+        self.save(update_fields=["key_factor_votes_score"])
+
+        return score
 
 
 class CommentDiff(TimeStampedModel):

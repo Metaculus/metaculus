@@ -22,9 +22,14 @@ import ForecastChoiceBar from "./forecast_choice_bar";
 type Props = {
   post: PostWithForecasts;
   forceColorful?: boolean;
+  compact?: boolean;
 };
 
-const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
+const PercentageForecastCard: FC<Props> = ({
+  post,
+  forceColorful,
+  compact,
+}) => {
   const locale = useLocale();
   const t = useTranslations();
   const [expanded, setExpanded] = useState(false);
@@ -99,6 +104,7 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
       expanded={expanded}
       onExpand={() => setExpanded(true)}
       hideOthersValue={isGroupBinary}
+      compact={compact}
     >
       {visible.map((choice) => (
         <ForecastChoiceBar
@@ -112,6 +118,7 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
           color={choice.color}
           isBordered={true}
           forceColorful={forceColorful}
+          compact={compact}
         />
       ))}
     </ForecastCardWrapper>

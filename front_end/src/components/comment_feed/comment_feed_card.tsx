@@ -44,7 +44,7 @@ const CommentFeedCard: FC<Props> = ({ comment, post }) => {
             comment={comment}
             votesScore={comment.vote_score ?? 0}
             changedMyMindCount={comment.changed_my_mind?.count ?? 0}
-            keyFactorVotesScore={0}
+            keyFactorVotesScore={comment.key_factor_votes_score ?? 0}
             className="mt-0 border-none dark:border-none md:mt-0"
             expandOverride="collapsed"
             collapsedHeight={222}

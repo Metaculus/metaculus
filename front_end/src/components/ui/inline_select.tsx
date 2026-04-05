@@ -1,3 +1,5 @@
+"use client";
+
 import { Select as HeadlessSelect } from "@headlessui/react";
 import { ComponentPropsWithoutRef, forwardRef, Fragment, Ref } from "react";
 

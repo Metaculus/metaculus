@@ -13,6 +13,7 @@ import {
   KeyFactorVoteTypes,
   StrengthValues,
 } from "@/types/comment";
+import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 
 import { KeyFactorImpactDirectionLabel } from "../item_creation/driver/impact_direction_label";
@@ -120,7 +121,7 @@ const KeyFactorStrengthItem: FC<Props> = ({
         : null;
 
   const submit = useCallback(
-    async (next: number | null) => {
+    async (next: number | null, { skipAnalytics = false } = {}) => {
       if (!user) {
         setCurrentModal({ type: "signin" });
         return;
@@ -136,6 +137,14 @@ const KeyFactorStrengthItem: FC<Props> = ({
           user: user.id,
           vote_type: voteType,
         });
+
+        if (!skipAnalytics) {
+          sendAnalyticsEvent("KeyFactorVote", {
+            event_label: isNil(next) ? "null" : next.toString(),
+            variant: isDirection ? "direction" : "strength",
+          });
+        }
+
         if (resp) {
           const updated = resp as unknown as KeyFactorVoteAggregate;
           commentsFeed?.setKeyFactorVote(keyFactor.id, updated);
@@ -153,6 +162,7 @@ const KeyFactorStrengthItem: FC<Props> = ({
       setOptimistic,
       keyFactor.id,
       voteType,
+      isDirection,
       commentsFeed,
       clearOptimistic,
       setCurrentModal,
@@ -178,7 +188,13 @@ const KeyFactorStrengthItem: FC<Props> = ({
       const newScore = IMPACT_SCORE_MAP[option];
       if (newScore === currentVote) return;
 
-      submit(newScore);
+      sendAnalyticsEvent("KeyFactorVote", {
+        event_label: newScore.toString(),
+        variant: "impact",
+        impact_level: option,
+      });
+
+      submit(newScore, { skipAnalytics: true });
     },
     [user, aggregate?.user_vote, submit]
   );
