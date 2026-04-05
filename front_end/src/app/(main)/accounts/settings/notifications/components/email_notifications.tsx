@@ -1,7 +1,10 @@
 "use client";
 
 import { faCircleQuestion } from "@fortawesome/free-regular-svg-icons";
-import { faCheck } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCheck,
+  faExclamationTriangle,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -28,6 +31,29 @@ import { useServerAction } from "@/hooks/use_server_action";
 import { SubscriptionEmailType } from "@/types/notifications";
 import { CPChangeThreshold } from "@/types/post";
 import { CurrentUser } from "@/types/users";
+
+type ProfileUpdate = Parameters<typeof updateProfileAction>[0];
+
+const useOptimisticProfileToggle = (
+  initialValue: boolean,
+  field: keyof ProfileUpdate
+) => {
+  const [value, setValue] = useState(initialValue);
+  const handler = useCallback(
+    async (checked: boolean) => {
+      setValue(checked);
+      try {
+        await updateProfileAction({ [field]: checked } as ProfileUpdate);
+      } catch (error) {
+        setValue(!checked);
+        throw error;
+      }
+    },
+    [field]
+  );
+  const [update, isPending, hasError] = useServerAction(handler);
+  return [value, update, isPending, hasError] as const;
+};
 
 export type Props = {
   user: CurrentUser;
@@ -90,24 +116,15 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
     },
     [user.email]
   );
-  const [updateNewsletter, isNewsletterPending] = useServerAction(
-    handleNewsletterChange
-  );
+  const [updateNewsletter, isNewsletterPending, newsletterHasError] =
+    useServerAction(handleNewsletterChange);
 
   // Metaculus News state
-  const [newsSubscribed, setNewsSubscribed] = useState(
-    user.metaculus_news_subscription
-  );
-  const handleNewsChange = useCallback(async (checked: boolean) => {
-    setNewsSubscribed(checked);
-    try {
-      await updateProfileAction({ metaculus_news_subscription: checked });
-    } catch (error) {
-      setNewsSubscribed(!checked);
-      throw error;
-    }
-  }, []);
-  const [updateNews, isNewsPending] = useServerAction(handleNewsChange);
+  const [newsSubscribed, updateNews, isNewsPending, newsHasError] =
+    useOptimisticProfileToggle(
+      user.metaculus_news_subscription,
+      "metaculus_news_subscription"
+    );
 
   // Mailing tag toggles
   const [loadingTag, setLoadingTag] = useState<SubscriptionEmailType | null>(
@@ -133,25 +150,18 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
     },
     [user.unsubscribed_mailing_tags]
   );
-  const [updateMailingTag, isMailingTagPending] = useServerAction(
-    handleEmailSubscriptionChange
-  );
+  const [updateMailingTag, isMailingTagPending, mailingTagHasError] =
+    useServerAction(handleEmailSubscriptionChange);
 
   // Auto-follow state
-  const [autoFollow, setAutoFollow] = useState(
-    user.automatically_follow_on_predict
-  );
-  const handleAutoFollowChange = useCallback(async (checked: boolean) => {
-    setAutoFollow(checked);
-    try {
-      await updateProfileAction({ automatically_follow_on_predict: checked });
-    } catch (error) {
-      setAutoFollow(!checked);
-      throw error;
-    }
-  }, []);
-  const [updateAutoFollow, isAutoFollowPending] = useServerAction(
-    handleAutoFollowChange
+  const [
+    autoFollow,
+    updateAutoFollow,
+    isAutoFollowPending,
+    autoFollowHasError,
+  ] = useOptimisticProfileToggle(
+    user.automatically_follow_on_predict,
+    "automatically_follow_on_predict"
   );
 
   // Default follow notification states
@@ -185,9 +195,11 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
     },
     []
   );
-  const [runDefaultFollowUpdate, isDefaultFollowPending] = useServerAction(
-    handleDefaultFollowUpdate
-  );
+  const [
+    runDefaultFollowUpdate,
+    isDefaultFollowPending,
+    defaultFollowHasError,
+  ] = useServerAction(handleDefaultFollowUpdate);
   const updateDefaultFollow = useCallback(
     (
       field: string,
@@ -258,6 +270,7 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
             checked={newsletterSubscribed}
             onChange={updateNewsletter}
             isPending={isNewsletterPending}
+            hasError={newsletterHasError}
             label={t("getTheMetaculusNewsletter")}
           />
           <SwitchRow
@@ -277,6 +290,7 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
               isMailingTagPending &&
               loadingTag === SubscriptionEmailType.weekly_top_comments
             }
+            hasError={mailingTagHasError}
             label={t.rich("getWeeklyTopCommentsEmails", {
               link: (chunks) => (
                 <Link
@@ -292,6 +306,7 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
             checked={newsSubscribed}
             onChange={updateNews}
             isPending={isNewsPending}
+            hasError={newsHasError}
             label={t.rich("followMetaculusNewsPosts", {
               link: (chunks) => (
                 <Link
@@ -319,6 +334,7 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
                 updateMailingTag(type, checked);
               }}
               isPending={isMailingTagPending && loadingTag === type}
+              hasError={mailingTagHasError}
               label={label}
             />
           ))}
@@ -329,6 +345,7 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
             checked={autoFollow}
             onChange={updateAutoFollow}
             isPending={isAutoFollowPending}
+            hasError={autoFollowHasError}
             label={t("autoFollowOnPredict")}
             description={t("autoFollowOnPredictHint")}
           />
@@ -354,6 +371,7 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
               );
             }}
             isPending={isDefaultFollowPending && savingDefaultField === "cp"}
+            hasError={defaultFollowHasError}
             label={t("followModalCommunityPredictionChanges")}
           />
           {cpThreshold !== null && (
@@ -414,6 +432,7 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
             isPending={
               isDefaultFollowPending && savingDefaultField === "comments"
             }
+            hasError={defaultFollowHasError}
             label={t("comments")}
           />
           {commentsFreq !== null && (
@@ -458,6 +477,7 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
             isPending={
               isDefaultFollowPending && savingDefaultField === "milestone"
             }
+            hasError={defaultFollowHasError}
             label={t("followModalMilestones")}
           />
           {milestoneStep !== null && (
@@ -503,6 +523,7 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
             isPending={
               isDefaultFollowPending && savingDefaultField === "status"
             }
+            hasError={defaultFollowHasError}
             label={t("followModalStatusChanges")}
           />
         </div>
@@ -515,10 +536,19 @@ const SwitchRow: FC<{
   checked: boolean;
   onChange: (checked: boolean) => void;
   isPending: boolean;
+  hasError?: boolean;
   label: React.ReactNode;
   description?: string;
-}> = ({ checked, onChange, isPending, label, description }) => {
+}> = ({
+  checked,
+  onChange,
+  isPending,
+  hasError = false,
+  label,
+  description,
+}) => {
   const [showSaved, setShowSaved] = useState(false);
+  const [showError, setShowError] = useState(false);
   const wasPending = useRef(false);
 
   useEffect(() => {
@@ -526,14 +556,25 @@ const SwitchRow: FC<{
       wasPending.current = true;
     } else if (wasPending.current) {
       wasPending.current = false;
-      setShowSaved(true);
-      const timer = setTimeout(() => setShowSaved(false), 1500);
-      return () => clearTimeout(timer);
+      if (hasError) {
+        setShowError(true);
+        const timer = setTimeout(() => setShowError(false), 3000);
+        return () => clearTimeout(timer);
+      } else {
+        setShowSaved(true);
+        const timer = setTimeout(() => setShowSaved(false), 1500);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [isPending]);
+  }, [isPending, hasError]);
 
   const statusIcon = isPending ? (
     <LoadingSpinner size="1x" />
+  ) : showError ? (
+    <FontAwesomeIcon
+      icon={faExclamationTriangle}
+      className="text-salmon-700 dark:text-salmon-700-dark"
+    />
   ) : showSaved ? (
     <FontAwesomeIcon
       icon={faCheck}
