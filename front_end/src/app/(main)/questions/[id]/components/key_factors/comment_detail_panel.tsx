@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
+import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { FC } from "react";
 
 import CommentActionBar from "@/components/comment_feed/comment_action_bar";
@@ -12,6 +13,8 @@ import { parseUserMentions } from "@/utils/comments";
 import { formatDate } from "@/utils/formatters/date";
 
 import { KeyFactorItem } from "./item_view";
+
+import "overlayscrollbars/overlayscrollbars.css";
 
 type Props = {
   keyFactor: KeyFactor;
@@ -64,7 +67,16 @@ const CommentDetailPanel: FC<Props> = ({
           </span>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto text-base leading-6 text-gray-700 dark:text-gray-700-dark">
+        <OverlayScrollbarsComponent
+          options={{
+            scrollbars: {
+              visibility: "visible",
+              autoHide: "never",
+            },
+            overflow: { x: "hidden" },
+          }}
+          className="min-h-0 flex-1 text-base leading-6 text-gray-700 dark:text-gray-700-dark"
+        >
           {isLoading && (
             <div className="animate-pulse space-y-[10px]">
               <div className="h-[1.5em] rounded bg-gray-200 dark:bg-gray-700-dark" />
@@ -85,7 +97,7 @@ const CommentDetailPanel: FC<Props> = ({
               withCodeBlocks
             />
           )}
-        </div>
+        </OverlayScrollbarsComponent>
 
         {relatedKeyFactors.length > 0 && (
           <div className="flex shrink-0 flex-col gap-2">

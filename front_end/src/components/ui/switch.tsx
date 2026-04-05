@@ -1,3 +1,5 @@
+"use client";
+
 import { Switch as HeadlessSwitch, SwitchProps } from "@headlessui/react";
 import React, { FC } from "react";
 

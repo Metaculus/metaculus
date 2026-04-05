@@ -7,6 +7,7 @@ from django.utils import timezone
 from comments.constants import TimeWindow
 from comments.models import Comment
 from posts.models import Post
+from projects.models import Project
 
 TIME_WINDOW_DELTAS = {
     TimeWindow.PAST_WEEK: timedelta(days=7),
@@ -30,6 +31,7 @@ def get_comments_feed(
     time_window: str = None,
     search: str = None,
     exclude_bots: bool = False,
+    exclude_bots_only_project: bool = False,
     post_status: Post.CurationStatus | None = None,
 ):
     user = user if user and user.is_authenticated else None
@@ -98,6 +100,11 @@ def get_comments_feed(
 
     if exclude_bots:
         qs = qs.filter(author__is_bot=False)
+
+    if exclude_bots_only_project:
+        qs = qs.exclude(
+            on_post__default_project__bot_leaderboard_status=Project.BotLeaderboardStatus.BOTS_ONLY
+        )
 
     if include_deleted is None:
         qs = qs.filter(

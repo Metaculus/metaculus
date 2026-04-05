@@ -22,6 +22,7 @@ export type getCommentsParams = {
   time_window?: "all_time" | "past_week" | "past_month" | "past_year";
   search?: string;
   exclude_bots?: boolean;
+  exclude_bots_only_project?: boolean;
   include_deleted?: boolean;
   post_status?: string;
 };

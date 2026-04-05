@@ -63,7 +63,7 @@ async function verifyToken(): Promise<boolean> {
   }
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const requestAuth = new AuthCookieReader(request.cookies);
 
@@ -108,6 +108,11 @@ export async function middleware(request: NextRequest) {
     ) {
       return NextResponse.rewrite(new URL("/not-found/", request.url));
     }
+  }
+
+  // Redirect logged-in users from storefront to question feed
+  if (pathname === "/" && hasSession) {
+    return NextResponse.redirect(new URL("/questions/", request.url));
   }
 
   // Check restricted alpha access
