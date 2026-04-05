@@ -100,7 +100,12 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
   );
   const handleNewsChange = useCallback(async (checked: boolean) => {
     setNewsSubscribed(checked);
-    await updateProfileAction({ metaculus_news_subscription: checked });
+    try {
+      await updateProfileAction({ metaculus_news_subscription: checked });
+    } catch (error) {
+      setNewsSubscribed(!checked);
+      throw error;
+    }
   }, []);
   const [updateNews, isNewsPending] = useServerAction(handleNewsChange);
 
@@ -138,7 +143,12 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
   );
   const handleAutoFollowChange = useCallback(async (checked: boolean) => {
     setAutoFollow(checked);
-    await updateProfileAction({ automatically_follow_on_predict: checked });
+    try {
+      await updateProfileAction({ automatically_follow_on_predict: checked });
+    } catch (error) {
+      setAutoFollow(!checked);
+      throw error;
+    }
   }, []);
   const [updateAutoFollow, isAutoFollowPending] = useServerAction(
     handleAutoFollowChange
@@ -162,8 +172,16 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
     null
   );
   const handleDefaultFollowUpdate = useCallback(
-    async (updates: Parameters<typeof updateProfileAction>[0]) => {
-      await updateProfileAction(updates);
+    async (
+      updates: Parameters<typeof updateProfileAction>[0],
+      rollback: () => void
+    ) => {
+      try {
+        await updateProfileAction(updates);
+      } catch (error) {
+        rollback();
+        throw error;
+      }
     },
     []
   );
@@ -171,9 +189,13 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
     handleDefaultFollowUpdate
   );
   const updateDefaultFollow = useCallback(
-    (field: string, updates: Parameters<typeof updateProfileAction>[0]) => {
+    (
+      field: string,
+      updates: Parameters<typeof updateProfileAction>[0],
+      rollback: () => void
+    ) => {
       setSavingDefaultField(field);
-      runDefaultFollowUpdate(updates);
+      runDefaultFollowUpdate(updates, rollback);
     },
     [runDefaultFollowUpdate]
   );
@@ -323,10 +345,13 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
             checked={cpThreshold !== null}
             onChange={(checked) => {
               const value = checked ? CPChangeThreshold.MEDIUM : null;
+              const prevValue = cpThreshold;
               setCpThreshold(value);
-              updateDefaultFollow("cp", {
-                follow_notify_cp_change_threshold: value,
-              });
+              updateDefaultFollow(
+                "cp",
+                { follow_notify_cp_change_threshold: value },
+                () => setCpThreshold(prevValue)
+              );
             }}
             isPending={isDefaultFollowPending && savingDefaultField === "cp"}
             label={t("followModalCommunityPredictionChanges")}
@@ -342,10 +367,13 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
                       disabled={isDefaultFollowPending}
                       onChange={(k) => {
                         const value = cpKeyToValue(k);
+                        const prevValue = cpThreshold;
                         setCpThreshold(value);
-                        updateDefaultFollow("cp", {
-                          follow_notify_cp_change_threshold: value,
-                        });
+                        updateDefaultFollow(
+                          "cp",
+                          { follow_notify_cp_change_threshold: value },
+                          () => setCpThreshold(prevValue)
+                        );
                       }}
                       variant="secondary"
                       activeVariant="primary"
@@ -375,10 +403,13 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
             checked={commentsFreq !== null}
             onChange={(checked) => {
               const value = checked ? 10 : null;
+              const prevValue = commentsFreq;
               setCommentsFreq(value);
-              updateDefaultFollow("comments", {
-                follow_notify_comments_frequency: value,
-              });
+              updateDefaultFollow(
+                "comments",
+                { follow_notify_comments_frequency: value },
+                () => setCommentsFreq(prevValue)
+              );
             }}
             isPending={
               isDefaultFollowPending && savingDefaultField === "comments"
@@ -395,10 +426,13 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
                     disabled={isDefaultFollowPending}
                     onChange={(v) => {
                       const value = Number(v);
+                      const prevValue = commentsFreq;
                       setCommentsFreq(value);
-                      updateDefaultFollow("comments", {
-                        follow_notify_comments_frequency: value,
-                      });
+                      updateDefaultFollow(
+                        "comments",
+                        { follow_notify_comments_frequency: value },
+                        () => setCommentsFreq(prevValue)
+                      );
                     }}
                     variant="secondary"
                     activeVariant="primary"
@@ -413,10 +447,13 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
             checked={milestoneStep !== null}
             onChange={(checked) => {
               const value = checked ? 0.2 : null;
+              const prevValue = milestoneStep;
               setMilestoneStep(value);
-              updateDefaultFollow("milestone", {
-                follow_notify_milestone_step: value,
-              });
+              updateDefaultFollow(
+                "milestone",
+                { follow_notify_milestone_step: value },
+                () => setMilestoneStep(prevValue)
+              );
             }}
             isPending={
               isDefaultFollowPending && savingDefaultField === "milestone"
@@ -435,10 +472,13 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
                     disabled={isDefaultFollowPending}
                     onChange={(v) => {
                       const value = Number(v) / 100;
+                      const prevValue = milestoneStep;
                       setMilestoneStep(value);
-                      updateDefaultFollow("milestone", {
-                        follow_notify_milestone_step: value,
-                      });
+                      updateDefaultFollow(
+                        "milestone",
+                        { follow_notify_milestone_step: value },
+                        () => setMilestoneStep(prevValue)
+                      );
                     }}
                     variant="secondary"
                     activeVariant="primary"
@@ -452,10 +492,13 @@ const EmailNotifications: FC<Props> = ({ user, isNewsletterSubscribed }) => {
           <SwitchRow
             checked={statusChange}
             onChange={(checked) => {
+              const prevValue = statusChange;
               setStatusChange(checked);
-              updateDefaultFollow("status", {
-                follow_notify_on_status_change: checked,
-              });
+              updateDefaultFollow(
+                "status",
+                { follow_notify_on_status_change: checked },
+                () => setStatusChange(prevValue)
+              );
             }}
             isPending={
               isDefaultFollowPending && savingDefaultField === "status"
