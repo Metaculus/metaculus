@@ -28,8 +28,32 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
         uncertainties about the future impact of artificial intelligence on
         labor and education in the United States. The forecasts themselves are
         produced by aggregating many individual forecasts together to produce a
-        prediction that research has shown to be more accurate on average than
-        individuals typically produce.
+        prediction that{" "}
+        <a
+          href="http://jasondana.net/docs/2014%20Davis%20Stober%20et%20al.pdf"
+          target="_blank"
+          rel="noreferrer"
+        >
+          research
+        </a>{" "}
+        has shown to be{" "}
+        <a
+          href="https://www.metaculus.com/questions/track-record/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          more accurate
+        </a>{" "}
+        on average than individuals typically produce. Metaculus{" "}
+        <a
+          href="https://www.metaculus.com/pro-forecasters/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Pro Forecasters
+        </a>{" "}
+        were also specifically engaged to share forecasts and in-depth
+        reasoning.
       </p>
       <div className="mb-8 grid grid-cols-1 gap-8 md:grid-cols-2">
         {/** 

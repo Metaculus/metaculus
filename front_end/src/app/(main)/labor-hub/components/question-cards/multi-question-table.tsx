@@ -2,9 +2,11 @@ import { ReactNode, Suspense } from "react";
 
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import { QuestionWithNumericForecasts } from "@/types/question";
+import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 
 import { NoQuestionPlaceholder } from "./placeholder";
+import { MoreButton } from "./question-card";
 import {
   PercentageChange,
   TableCompact,
@@ -55,6 +57,8 @@ type MultiQuestionTableProps = {
   valueFormat?: ValueFormat;
   decimals?: number;
   className?: string;
+  note?: ReactNode;
+  showMoreButton?: boolean;
 };
 
 async function MultiQuestionTableContent({
@@ -65,13 +69,16 @@ async function MultiQuestionTableContent({
   valueFormat = "percentage",
   decimals = 1,
   className,
+  note,
+  showMoreButton = true,
 }: MultiQuestionTableProps) {
+  const postIds = rows.map((r) => r.questionId);
+
   let posts;
   try {
-    const allIds = rows.map((r) => r.questionId);
     const { results } = await ServerPostsApi.getPostsWithCP({
-      ids: allIds,
-      limit: allIds.length,
+      ids: postIds,
+      limit: postIds.length,
     });
     posts = results;
   } catch (error) {
@@ -105,76 +112,90 @@ async function MultiQuestionTableContent({
   const hasStaticColumn = rows.some((r) => r.staticValue != null);
 
   return (
-    <TableCompact
-      title={title}
-      className={className}
-      HeadingSection={
-        title ? (
-          <h3 className="mb-4 mt-0 w-full pr-8 text-base font-[450] leading-tight text-gray-800 [text-wrap:pretty] dark:text-gray-800-dark">
-            {title}
-          </h3>
-        ) : undefined
-      }
-    >
-      <TableCompactHead>
-        <TableCompactRow>
-          <TableCompactHeaderCell className="w-[40%]">
-            {firstColumnHeader ?? ""}
-          </TableCompactHeaderCell>
-          {hasStaticColumn && (
-            <TableCompactHeaderCell className="w-[15%] text-right">
-              {staticColumnHeader ?? "Current"}
+    <>
+      <TableCompact
+        title={title}
+        className={cn("group/card relative", className)}
+        HeadingSection={
+          <>
+            {showMoreButton && postIds.length > 0 && (
+              <div className="absolute right-4 top-4 z-10 [visibility:var(--ss-hidden,visible)] print:hidden">
+                <MoreButton postIds={postIds} postTitle={title} />
+              </div>
+            )}
+            {title && (
+              <h3 className="mb-4 mt-0 w-full pr-8 text-base font-[450] leading-tight text-gray-800 [text-wrap:pretty] dark:text-gray-800-dark">
+                {title}
+              </h3>
+            )}
+          </>
+        }
+      >
+        <TableCompactHead>
+          <TableCompactRow>
+            <TableCompactHeaderCell className="w-[40%]">
+              {firstColumnHeader ?? ""}
             </TableCompactHeaderCell>
-          )}
-          {columns.map((col) => (
-            <TableCompactHeaderCell key={col} className="text-right">
-              {col}
-            </TableCompactHeaderCell>
-          ))}
-        </TableCompactRow>
-      </TableCompactHead>
-      <TableCompactBody>
-        {rows.map((row) => {
-          const post = postsById.get(row.questionId);
-          const questions = post?.group_of_questions?.questions as
-            | QuestionWithNumericForecasts[]
-            | undefined;
-          const questionByLabel = new Map(
-            questions?.map((q) => [q.label, q]) ?? []
-          );
+            {hasStaticColumn && (
+              <TableCompactHeaderCell className="w-[15%] text-right">
+                {staticColumnHeader ?? "Current"}
+              </TableCompactHeaderCell>
+            )}
+            {columns.map((col) => (
+              <TableCompactHeaderCell key={col} className="text-right">
+                {col}
+              </TableCompactHeaderCell>
+            ))}
+          </TableCompactRow>
+        </TableCompactHead>
+        <TableCompactBody>
+          {rows.map((row) => {
+            const post = postsById.get(row.questionId);
+            const questions = post?.group_of_questions?.questions as
+              | QuestionWithNumericForecasts[]
+              | undefined;
+            const questionByLabel = new Map(
+              questions?.map((q) => [q.label, q]) ?? []
+            );
 
-          return (
-            <TableCompactRow key={row.questionId}>
-              <TableCompactCell>{row.title}</TableCompactCell>
-              {hasStaticColumn && (
-                <TableCompactCell className="text-right">
-                  {row.staticValue}
-                </TableCompactCell>
-              )}
-              {columns.map((col) => {
-                const q = questionByLabel.get(col);
-                const value = q ? getSubQuestionValue(q) : null;
-                return (
-                  <TableCompactCell key={col} className="text-right">
-                    {value != null ? (
-                      <FormattedValue
-                        value={value}
-                        format={valueFormat}
-                        decimals={decimals}
-                      />
-                    ) : (
-                      <span className="text-gray-400 dark:text-gray-500">
-                        —
-                      </span>
-                    )}
+            return (
+              <TableCompactRow key={row.questionId}>
+                <TableCompactCell>{row.title}</TableCompactCell>
+                {hasStaticColumn && (
+                  <TableCompactCell className="text-right">
+                    {row.staticValue}
                   </TableCompactCell>
-                );
-              })}
-            </TableCompactRow>
-          );
-        })}
-      </TableCompactBody>
-    </TableCompact>
+                )}
+                {columns.map((col) => {
+                  const q = questionByLabel.get(col);
+                  const value = q ? getSubQuestionValue(q) : null;
+                  return (
+                    <TableCompactCell key={col} className="text-right">
+                      {value != null ? (
+                        <FormattedValue
+                          value={value}
+                          format={valueFormat}
+                          decimals={decimals}
+                        />
+                      ) : (
+                        <span className="text-gray-400 dark:text-gray-500">
+                          —
+                        </span>
+                      )}
+                    </TableCompactCell>
+                  );
+                })}
+              </TableCompactRow>
+            );
+          })}
+        </TableCompactBody>
+      </TableCompact>
+      {note && (
+        <div className="!mt-2 text-sm text-blue-700 dark:text-blue-700-dark">
+          {note}
+        </div>
+      )}
+    </>
   );
 }
 

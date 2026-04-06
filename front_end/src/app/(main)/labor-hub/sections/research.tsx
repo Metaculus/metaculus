@@ -2,9 +2,11 @@ import { ComponentProps, Suspense } from "react";
 
 import { ThemeOverrideContainer } from "@/contexts/theme_override_context";
 import { QuestionWithNumericForecasts } from "@/types/question";
+import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 
 import { SortableResearchTable } from "./sortable-research-table";
+import { ActivityCard } from "../components/activity-card";
 import { NoQuestionPlaceholder } from "../components/question-cards/placeholder";
 import { QuestionLoader } from "../components/question-cards/question";
 import {
@@ -14,21 +16,33 @@ import {
 } from "../components/section";
 import { fetchJobsData, getSubQuestionValue } from "../helpers/fetch-jobs-data";
 
-export function ResearchSection({ ...props }: ComponentProps<"section">) {
+export function ResearchSection({
+  className,
+  ...props
+}: ComponentProps<"section">) {
   return (
-    <SectionCard {...props}>
+    <SectionCard className={cn("space-y-4", className)} {...props}>
       <SectionHeader>
         How does this build on or differ from existing research?
       </SectionHeader>
 
-      <ThemeOverrideContainer
-        override="inverted"
-        className="float-right mb-4 mt-8 w-full md:ml-6 md:w-[calc(50%-1.5rem)]"
-      >
-        <QuestionLoader questionId={42850} isFlippable={false} />
-      </ThemeOverrideContainer>
+      <div className="float-right !mb-4 !mt-8 flex w-full flex-col gap-4 md:ml-6 md:w-[calc(50%-1.5rem)]">
+        <ThemeOverrideContainer override="inverted">
+          <QuestionLoader questionId={42850} isFlippable={false} />
+        </ThemeOverrideContainer>
+        <ActivityCard
+          avatar="https://cdn.metaculus.com/labor-hub/haiku_256.jpg"
+          username="Nathan Metzger (Haiku)"
+          subtitle="Pro Forecaster"
+        >
+          Huge numbers of jobs could hinge on the success or failure of some
+          particular strike, or bill, or lawsuit. We should weigh the political
+          power of the workers in each occupation, alongside AI capability
+          considerations.
+        </ActivityCard>
+      </div>
 
-      <ContentParagraph>
+      <ContentParagraph className="!mt-8">
         A number of recent research publications have identified occupations,
         tasks, and industries that are more vulnerable to automation, as well as
         assessing recent trends in employment to understand the impact of AI.
@@ -65,13 +79,13 @@ export function ResearchSection({ ...props }: ComponentProps<"section">) {
           </div>
         }
       >
-        <ResearchTable />
+        <ResearchTable labels={["2030", "2035"]} />
       </Suspense>
     </SectionCard>
   );
 }
 
-async function ResearchTable() {
+async function ResearchTable({ labels }: { labels?: string[] } = {}) {
   let jobs;
   try {
     ({ jobs } = await fetchJobsData());
@@ -89,7 +103,11 @@ async function ResearchTable() {
       if (q.label) labelsSet.add(q.label);
     }
   }
-  const columns = Array.from(labelsSet).sort();
+  let columns = Array.from(labelsSet).sort();
+  if (labels?.length) {
+    const allowed = new Set(labels);
+    columns = columns.filter((col) => allowed.has(col));
+  }
 
   // Build rows: [name, ...yearValues, rating], sorted by last year value descending
   const tableRows = jobs

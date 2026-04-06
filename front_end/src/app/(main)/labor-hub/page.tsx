@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import SectionToggle from "@/components/ui/section_toggle";
 import { ThemeOverrideContainer } from "@/contexts/theme_override_context";
 
+import { ActivityCard } from "./components/activity-card";
 import LaborHubNavigation from "./components/labor-hub-navigation";
 import { PrintAttribution } from "./components/print-attribution";
 import { MultiQuestionTable } from "./components/question-cards/multi-question-table";
@@ -96,7 +97,23 @@ export default function LaborAutomationHubPage() {
           <DualPaneSectionRight>
             <QuestionLoader
               questionId={41574}
-              note="Hours worked is expected to decrease while productivity increases, as forecasters argue that the economy will become increasingly uncoupled from human labor output."
+              note={
+                <>
+                  <p>
+                    As AI automates more routine tasks, the question is whether
+                    the time freed up will translate into genuine leisure for
+                    workers or simply be filled with new demands, making the
+                    average workweek a key barometer of whether AI&apos;s
+                    productivity gains are actually shared with labor.
+                  </p>
+                  <p>
+                    Forecasters note the concept of “dark leisure” may confound
+                    reported hours worked, as people may remain at work but do
+                    something else as they often have no incentive to transfer
+                    the time gains to their company.
+                  </p>
+                </>
+              }
             />
             <MultiQuestionTable
               title="What will the well-being ratio (resources to poverty threshold) be for the [X]-percentile US family in the following years?"
@@ -107,8 +124,31 @@ export default function LaborAutomationHubPage() {
                 { questionId: 43042, title: "50th percentile" },
                 { questionId: 43043, title: "80th percentile" },
               ]}
+              note={
+                <p>
+                  The well-being measure below reflects a family’s available
+                  resources (after taxes, government benefits, medical expenses,
+                  childcare, and more), relative to a poverty threshold to meet
+                  minimum needs such as food, clothing, and shelter. These
+                  predictions show how the 20th, 50th, and 80th percentile
+                  families are expected to fare in the coming decade under the
+                  potential impact of AI.
+                </p>
+              }
             />
-            <QuestionLoader questionId={42215} />
+            <QuestionLoader
+              questionId={42215}
+              note={
+                <p>
+                  With only 12% of workers using AI daily as of late 2025, the
+                  workplace is still in the early innings of an adoption curve
+                  that could fundamentally change how most Americans do their
+                  jobs within a decade. But Forecasters note that some people
+                  may only think about AI as LLM chatbots and not realize how
+                  many tools they use in their daily work involve AI.
+                </p>
+              }
+            />
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 
@@ -120,6 +160,7 @@ export default function LaborAutomationHubPage() {
             </SectionHeader>
             <ThemeOverrideContainer override="inverted">
               <MultiQuestionTable
+                title="What will the unemployment rate and underemployment rate be for recent college graduates in the following years?"
                 firstColumnHeader="Recent College Graduates"
                 valueFormat="percentage"
                 decimals={1}
@@ -152,6 +193,12 @@ export default function LaborAutomationHubPage() {
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight>
+            <ContentParagraph>
+              The rise of AI is threatening to accelerate an already-looming
+              enrollment decline, as fewer high school graduates and shrinking
+              job prospects for degree-holders could combine to reshape the
+              future of higher education.
+            </ContentParagraph>
             <MultiQuestionTable
               title="What will the percent change in the number of Bachelor's
                   degrees awarded by accredited universities be in the following
@@ -174,6 +221,18 @@ export default function LaborAutomationHubPage() {
                 },
               ]}
             />
+            <ActivityCard
+              avatar="https://cdn.metaculus.com/labor-hub/exmateriae_256.jpg"
+              username="Yann Riviere (exmateriae)"
+              subtitle="Pro Forecaster"
+            >
+              One thing that is pretty important is how fast the capabilities
+              takeoff will be. If you&apos;re expecting a very fast takeoff,
+              then many of the 22-27 may find themselves out of any opportunity
+              very soon. If things continue to ramp up like they&apos;re
+              currently doing, young people may be able to pivot to other areas
+              soon enough to increase their chances of finding a job.
+            </ActivityCard>
             <QuestionLoader questionId={42856} />
           </DualPaneSectionRight>
         </DualPaneSectionCard>
@@ -202,10 +261,33 @@ export default function LaborAutomationHubPage() {
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight>
+            <ContentParagraph>
+              AI is enabling companies to generate more revenue with far fewer
+              employees, and if that trend accelerates, a growing share of
+              Fortune 500 giants could operate with workforces once associated
+              with small businesses rather than corporate behemoths.
+            </ContentParagraph>
             <ThemeOverrideContainer override="inverted">
               <QuestionLoader preferTimeline questionId={41324} />
             </ThemeOverrideContainer>
+            <ActivityCard
+              avatar="https://cdn.metaculus.com/labor-hub/draaglom_256.jpg"
+              username="Patrick Molgaard (draaglom)"
+              subtitle="Pro Forecaster"
+            >
+              The AI systems we have right now are already capable enough to be
+              economically transformative in a way that will very likely show up
+              significantly in these employment statistics over the coming
+              decade.
+            </ActivityCard>
             <QuestionLoader questionId={41313} />
+            <ContentParagraph>
+              If AI allows corporations to generate ever-greater output without
+              proportionally growing their workforce, workers could claim a
+              shrinking slice of the economic pie, marking one of the most
+              significant redistributions of income from labor to capital in
+              modern history.
+            </ContentParagraph>
             <QuestionLoader questionId={41578} />
           </DualPaneSectionRight>
         </DualPaneSectionCard>
@@ -241,28 +323,29 @@ export default function LaborAutomationHubPage() {
           </DualPaneSectionLeft>
           <DualPaneSectionRight useMobileCarousel={false}>
             <ContentParagraph className="lg:mt-16">
-              Washington is shown as a focused lens on how national employment
-              shifts play out locally. While the headline forecast provides a
-              broad view, state-level variation reveals where sector dynamics
-              diverge or reinforce the trend.
+              In addition to the changes forecasted for the US, there are areas
+              specific to Washington State that may face particular challenges.
             </ContentParagraph>
             <ContentParagraph>
-              In Washington, projected growth is concentrated in{" "}
+              The{" "}
               <span className="font-bold text-olive-700 dark:text-olive-700-dark">
                 healthcare
-              </span>
-              , while{" "}
-              <span className="font-bold text-salmon-700 dark:text-salmon-700-dark">
-                aerospace
               </span>{" "}
-              and{" "}
+              sector (employing 13% of Washington residents) is forecasted to be
+              less affected by AI than the{" "}
               <span className="font-bold text-salmon-700 dark:text-salmon-700-dark">
                 technology
               </span>{" "}
-              decline over time. This contrast helps contextualize the overall
-              estimate, highlighting whether it is supported by broad-based
-              gains or offset by contraction in key sectors.
+              and{" "}
+              <span className="font-bold text-salmon-700 dark:text-salmon-700-dark">
+                aerospace
+              </span>{" "}
+              sectors (employing 10% and 2%, respectively).
             </ContentParagraph>
+            <ActivityCard username="John Doe" subtitle="Pro Forecaster">
+              Placeholder quote from Pro about Washington specific employment
+              changes
+            </ActivityCard>
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 

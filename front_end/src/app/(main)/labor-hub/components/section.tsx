@@ -111,7 +111,7 @@ export function ContentParagraph({
   return (
     <p
       className={cn(
-        "break-inside-avoid text-base text-blue-700 dark:text-blue-700-dark md:text-lg",
+        "my-0 break-inside-avoid text-base text-blue-700 [text-wrap:pretty] dark:text-blue-700-dark md:text-lg",
         className
       )}
       {...props}

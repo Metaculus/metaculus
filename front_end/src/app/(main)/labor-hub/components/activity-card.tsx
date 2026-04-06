@@ -1,26 +1,72 @@
+import ImageWithFallback from "@/components/ui/image_with_fallback";
 import cn from "@/utils/core/cn";
 
 export function ActivityCard({
+  avatar,
   date,
-  content,
+  username,
+  subtitle,
+  children,
   degradeIndex = 0,
+  variant = "purple",
 }: {
-  date: string;
-  content: React.ReactNode;
-  degradeIndex: number;
+  avatar?: string;
+  date?: string;
+  username?: string;
+  subtitle?: string;
+  children: React.ReactNode;
+  degradeIndex?: number;
+  variant?: "purple" | "mint";
 }) {
   return (
     <div
       style={{ "--degrade-index": degradeIndex } as React.CSSProperties}
       className={cn(
-        "break-inside-avoid rounded-lg border border-purple-400 bg-purple-200 px-3.5 py-3 [--tw-bg-opacity:max(0.2,1-var(--degrade-index)*0.2)] dark:border-purple-400-dark dark:bg-purple-200-dark dark:[--tw-bg-opacity:max(0.2,1-var(--degrade-index)*0.2)]"
+        variant === "purple" && "border-purple-400 bg-purple-200",
+        variant === "mint" && "border-mint-500 bg-mint-200",
+        "break-inside-avoid rounded-lg border px-3.5 py-3 [--tw-bg-opacity:max(0.2,1-var(--degrade-index)*0.2)] dark:[--tw-bg-opacity:max(0.2,1-var(--degrade-index)*0.2)]"
       )}
     >
-      <div className="mb-1 text-xs font-medium text-purple-700 dark:text-purple-700-dark">
-        {date}
-      </div>
-      <div className="text-sm leading-normal text-purple-800 dark:text-purple-800-dark lg:text-base">
-        {content}
+      {(avatar || username || subtitle || date) && (
+        <div className="mb-1 flex items-center gap-3">
+          {avatar && (
+            <div className="mt-0.5 size-10 shrink-0 overflow-hidden rounded-full">
+              <ImageWithFallback
+                src={avatar}
+                alt={username ? `${username} avatar` : ""}
+                width={40}
+                height={40}
+                className="size-full object-cover"
+              />
+            </div>
+          )}
+          {(username || subtitle || date) && (
+            <div
+              className={cn(
+                variant === "purple" && "text-purple-700",
+                variant === "mint" && "text-mint-700",
+                "flex min-w-0 flex-1 items-start justify-between gap-2 text-xs"
+              )}
+            >
+              <div className="min-w-0">
+                {username && <div className="font-bold">{username}</div>}
+                {subtitle && (
+                  <div className="font-medium opacity-80">{subtitle}</div>
+                )}
+              </div>
+              {date && <div className="shrink-0 font-medium">{date}</div>}
+            </div>
+          )}
+        </div>
+      )}
+      <div
+        className={cn(
+          variant === "purple" && "text-purple-800",
+          variant === "mint" && "text-mint-800",
+          "text-sm leading-normal lg:text-base"
+        )}
+      >
+        {children}
       </div>
     </div>
   );
