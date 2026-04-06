@@ -10,9 +10,9 @@ import { TournamentPreview } from "@/types/projects";
 import PrivateBadge from "./private_badge";
 import TournamentCardShell from "./tournament_card_shell";
 
-type Props = { item: TournamentPreview };
+type Props = { item: TournamentPreview; showTypeLabel?: boolean };
 
-const QuestionSeriesCard: React.FC<Props> = ({ item }) => {
+const QuestionSeriesCard: React.FC<Props> = ({ item, showTypeLabel }) => {
   const t = useTranslations();
   const questionsCount = item.questions_count ?? 0;
 
@@ -40,6 +40,11 @@ const QuestionSeriesCard: React.FC<Props> = ({ item }) => {
       </div>
 
       <div className="px-3 pb-3 pt-3 lg:px-4 lg:pb-5">
+        {showTypeLabel && (
+          <span className="mb-2 inline-block rounded bg-gray-300 px-1 py-0.5 text-xs font-medium uppercase text-gray-800 dark:bg-gray-300-dark dark:text-gray-800-dark">
+            {t("tournamentsTypeQuestionSeries")}
+          </span>
+        )}
         <p className="my-0 text-[10px] font-normal uppercase text-blue-600 dark:text-blue-600-dark">
           {t.rich("tournamentQuestionsCount", {
             count: questionsCount,

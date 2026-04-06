@@ -353,7 +353,7 @@ def update_top_comments_of_week(week_start_date: datetime.date):
             0,
             output_field=IntegerField(),
         ),
-        key_factor_votes_score=Coalesce(
+        annotated_key_factor_votes_score=Coalesce(
             Subquery(
                 KeyFactor.objects.filter(comment=OuterRef("pk"))
                 .annotate(
@@ -389,7 +389,7 @@ def update_top_comments_of_week(week_start_date: datetime.date):
         count=Count("id"),
         max_vote_score=Max("annotated_vote_score"),
         max_changed_my_mind_count=Max("changed_my_mind_count"),
-        max_key_factor_votes_score=Max("key_factor_votes_score"),
+        max_key_factor_votes_score=Max("annotated_key_factor_votes_score"),
     )
 
     maximum_comment_votes = stats["max_vote_score"]
@@ -398,12 +398,15 @@ def update_top_comments_of_week(week_start_date: datetime.date):
 
     top_comments_of_week: list[CommentsOfTheWeekEntry] = []
     for row in comments_of_week.values(
-        "id", "annotated_vote_score", "changed_my_mind_count", "key_factor_votes_score"
+        "id",
+        "annotated_vote_score",
+        "changed_my_mind_count",
+        "annotated_key_factor_votes_score",
     ):
         comment_score = compute_comment_score(
             comment_votes=max(0, row["annotated_vote_score"]),
             change_my_minds=row["changed_my_mind_count"],
-            key_factor_votes_score=row["key_factor_votes_score"],
+            key_factor_votes_score=row["annotated_key_factor_votes_score"],
             maximum_comment_votes=maximum_comment_votes,
             maximum_cmms=maximum_cmms,
             maximum_key_factor_score=maximum_key_factor_score,
@@ -419,7 +422,7 @@ def update_top_comments_of_week(week_start_date: datetime.date):
                 # for the moment of week entry creation
                 votes_score=row["annotated_vote_score"],
                 changed_my_mind_count=row["changed_my_mind_count"],
-                key_factor_votes_score=row["key_factor_votes_score"],
+                key_factor_votes_score=row["annotated_key_factor_votes_score"],
             )
         )
 
