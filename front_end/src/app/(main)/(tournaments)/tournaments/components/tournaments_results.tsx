@@ -5,8 +5,8 @@ import React from "react";
 
 import cn from "@/utils/core/cn";
 
-import { useTournamentsSection } from "./tournaments_provider";
 import SearchResultsGrid from "./tournaments_grid/search_results_grid";
+import { useTournamentsSection } from "./tournaments_provider";
 
 type Props = {
   children: React.ReactNode;

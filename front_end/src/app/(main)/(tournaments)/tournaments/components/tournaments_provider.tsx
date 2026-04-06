@@ -48,9 +48,7 @@ export function TournamentsSectionProvider(props: {
 
   const crossTabFiltered = useMemo(
     () =>
-      isSearching
-        ? filterTournaments(tournaments, searchQuery, null)
-        : [],
+      isSearching ? filterTournaments(tournaments, searchQuery, null) : [],
     [tournaments, searchQuery, isSearching]
   );
 
