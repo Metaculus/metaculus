@@ -314,7 +314,7 @@ export function QuestionCard({
     <div
       ref={cardRef}
       className={cn(
-        "group/card relative break-inside-avoid print:border print:border-gray-300 print:p-4",
+        "group/card relative min-w-0 break-inside-avoid print:border print:border-gray-300 print:p-4",
         variant === "primary" &&
           "rounded-md bg-gray-0 p-5 dark:bg-gray-0-dark lg:p-8",
         variant === "secondary" &&

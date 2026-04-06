@@ -2,6 +2,8 @@ import { ComponentProps } from "react";
 
 import cn from "@/utils/core/cn";
 
+import { MobileCarousel } from "./mobile-carousel";
+
 export function SectionCard({
   className,
   children,
@@ -45,7 +47,10 @@ export function DualPaneSectionCard({
 }: ComponentProps<"section">) {
   return (
     <SectionCard
-      className={cn("grid gap-8 lg:grid-cols-2 print:grid-cols-1", className)}
+      className={cn(
+        "grid grid-cols-1 gap-8 lg:grid-cols-2 print:grid-cols-1",
+        className
+      )}
       {...props}
     >
       {children}
@@ -61,7 +66,7 @@ export function DualPaneSectionLeft({
   return (
     <div
       className={cn(
-        "flex flex-col space-y-4 self-start md:space-y-8 lg:sticky lg:top-36 print:static print:space-y-4",
+        "flex min-w-0 flex-col space-y-4 self-start md:space-y-8 lg:sticky lg:top-36 print:static print:space-y-4 [&>*]:min-w-0",
         className
       )}
       {...props}
@@ -74,18 +79,27 @@ export function DualPaneSectionLeft({
 export function DualPaneSectionRight({
   className,
   children,
+  useMobileCarousel = true,
   ...props
-}: ComponentProps<"div">) {
+}: ComponentProps<"div"> & { useMobileCarousel?: boolean }) {
   return (
-    <div
-      className={cn(
-        "hidden flex-col space-y-6 lg:flex print:flex print:space-y-4",
-        className
+    <>
+      <div
+        className={cn(
+          useMobileCarousel ? "hidden lg:flex" : "flex",
+          "min-w-0 flex-col space-y-6 print:flex print:space-y-4 [&>*]:min-w-0",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </div>
+      {useMobileCarousel && (
+        <div className="-mx-5 md:-mx-10 lg:hidden print:hidden">
+          <MobileCarousel>{children}</MobileCarousel>
+        </div>
       )}
-      {...props}
-    >
-      {children}
-    </div>
+    </>
   );
 }
 

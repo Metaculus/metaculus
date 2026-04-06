@@ -54,8 +54,8 @@ export default function LaborAutomationHubPage() {
           defaultOpen={false}
         >
           <ContentParagraph>
-            Forecasts suggest that AI-driven job change is likely, uneven, and
-            gradual rather than sudden.
+            Forecasts suggest that AI-driven job change is likely, but it will
+            be uneven and gradual rather than sudden.
           </ContentParagraph>
           <ContentParagraph>
             Most disruption is expected to come from task-level automation and
@@ -239,8 +239,8 @@ export default function LaborAutomationHubPage() {
               ]}
             />
           </DualPaneSectionLeft>
-          <DualPaneSectionRight>
-            <ContentParagraph className="mt-16">
+          <DualPaneSectionRight useMobileCarousel={false}>
+            <ContentParagraph className="lg:mt-16">
               Washington is shown as a focused lens on how national employment
               shifts play out locally. While the headline forecast provides a
               broad view, state-level variation reveals where sector dynamics
