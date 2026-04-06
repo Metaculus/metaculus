@@ -1,10 +1,12 @@
 "use client";
 
-import React from "react";
+import { useRouter } from "next/navigation";
+import React, { useCallback } from "react";
 
 import { Tabs, TabsList, TabsTab } from "@/components/ui/tabs";
 import cn from "@/utils/core/cn";
 
+import { useTournamentsSection } from "./tournaments_provider";
 import { Section, TournamentsSection } from "../types";
 
 type Props = {
@@ -13,9 +15,27 @@ type Props = {
 };
 
 const TournamentsTabsShell: React.FC<Props> = ({ current, sections }) => {
+  const { isSearching } = useTournamentsSection();
+  const router = useRouter();
+
+  const handleTabClick = useCallback(
+    (e: React.MouseEvent, tab: Section) => {
+      if (isSearching) {
+        e.preventDefault();
+        router.push(tab.href);
+      }
+    },
+    [isSearching, router]
+  );
+
   return (
     <Tabs defaultValue={current} className="bg-transparent dark:bg-transparent">
-      <TabsList className="gap-1 bg-transparent py-0 dark:bg-transparent lg:justify-start lg:gap-3">
+      <TabsList
+        className={cn(
+          "gap-1 bg-transparent py-0 dark:bg-transparent lg:justify-start lg:gap-3",
+          isSearching && "opacity-35 transition-opacity hover:opacity-100"
+        )}
+      >
         {sections.map((tab) => (
           <TabsTab
             className={cn(
@@ -29,6 +49,7 @@ const TournamentsTabsShell: React.FC<Props> = ({ current, sections }) => {
             key={tab.value}
             value={tab.value}
             href={tab.href}
+            onClick={(e) => handleTabClick(e, tab)}
           >
             {tab.label}
           </TabsTab>
