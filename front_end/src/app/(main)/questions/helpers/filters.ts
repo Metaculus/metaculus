@@ -139,7 +139,8 @@ export function generateFiltersFromSearchParams(
     filters.for_main_feed = searchParams[POST_FOR_MAIN_FEED];
   } else if (
     typeof defaultForMainFeed !== "undefined" &&
-    !searchParams[POST_TEXT_SEARCH_FILTER]
+    !searchParams[POST_TEXT_SEARCH_FILTER] &&
+    !filters.ids
   ) {
     filters.for_main_feed = defaultForMainFeed.toString();
   }
@@ -170,7 +171,8 @@ export function generateFiltersFromSearchParams(
   if (
     typeof filterForConsumerView !== "undefined" &&
     !filters.search &&
-    !filters.statuses
+    !filters.statuses &&
+    !filters.ids
   ) {
     filters.for_consumer_view = filterForConsumerView.toString();
   }
@@ -180,7 +182,7 @@ export function generateFiltersFromSearchParams(
   } else if (defaultOrderBy) {
     filters.order_by = defaultOrderBy;
 
-    if (!filters.statuses && !filters.search) {
+    if (!filters.statuses && !filters.search && !filters.ids) {
       filters.statuses = [
         PostStatus.OPEN,
         PostStatus.CLOSED,

@@ -6,6 +6,7 @@ import { NoQuestionPlaceholder } from "../components/question-cards/placeholder"
 import { QuestionCard } from "../components/question-cards/question-card";
 import { SectionCard, SectionHeader } from "../components/section";
 import { METHODOLOGY_SECTIONS } from "../data";
+import { QuestionLoader } from "../components/question-cards/question";
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
   return (
@@ -117,12 +118,8 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
           </TableCompactBody>
         </TableCompact>
         */}
-        <QuestionCard title="Conditional on an active recession during the following years, what will overall employment be?">
-          <NoQuestionPlaceholder />
-        </QuestionCard>
-        <QuestionCard title="Conditional on AI stagnation what will employment be in the following years?">
-          <NoQuestionPlaceholder />
-        </QuestionCard>
+        <QuestionLoader questionId={43025} />
+        <QuestionLoader questionId={43028} />
       </div>
       <div className="space-y-3">
         {METHODOLOGY_SECTIONS.map((section, sectionIndex) => (

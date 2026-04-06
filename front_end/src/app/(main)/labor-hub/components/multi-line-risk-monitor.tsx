@@ -44,8 +44,11 @@ function buildExtremeSeries(
 }
 
 export async function MultiLineRiskMonitor({
+  labels,
   ...props
-}: Omit<ComponentProps<typeof QuestionCard>, "postIds">) {
+}: Omit<ComponentProps<typeof QuestionCard>, "postIds"> & {
+  labels?: string[];
+}) {
   let overallData;
   let jobs;
   try {
@@ -62,7 +65,12 @@ export async function MultiLineRiskMonitor({
     );
   }
 
-  const years = overallData.map((d) => d.year);
+  let filteredData = overallData;
+  if (labels?.length) {
+    const allowed = new Set(labels);
+    filteredData = overallData.filter((d) => allowed.has(String(d.year)));
+  }
+  const years = filteredData.map((d) => d.year);
   const { min, max } = buildExtremeSeries(jobs, years);
 
   // Prepend 2025 baseline if missing
@@ -93,7 +101,7 @@ export async function MultiLineRiskMonitor({
       color: "gray" as const,
       filled: false,
       label: "Overall employment",
-      data: overallData,
+      data: filteredData,
     },
   ];
 

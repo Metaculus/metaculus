@@ -75,7 +75,7 @@ function MenuLinkWithIcon({
   );
 }
 
-function MoreButton({
+export function MoreButton({
   postIds,
   postTitle,
   onExportPng,
@@ -198,22 +198,6 @@ function MoreButton({
           },
         ]
       : []),
-    // Copy link only for single post
-    ...(questionUrl
-      ? [
-          {
-            id: "copy-link",
-            name: "Copy Link",
-            element: (
-              <MenuItemWithIcon
-                label="Copy Link"
-                icon={faCopy}
-                onClick={copyQuestionUrl}
-              />
-            ),
-          },
-        ]
-      : []),
   ];
 
   if (postIds.length === 0) {
@@ -231,7 +215,7 @@ function MoreButton({
           aria-label="more options"
           size="md"
           presentationType="icon"
-          className="border-transparent bg-transparent text-blue-700 hover:!bg-blue-400 group-hover:bg-blue-200 data-[open]:!bg-blue-700 data-[open]:!text-gray-0 dark:border-transparent dark:text-blue-700-dark dark:hover:!bg-blue-400-dark dark:group-hover:bg-blue-200-dark dark:data-[open]:!bg-blue-700-dark dark:data-[open]:!text-gray-0-dark"
+          className="border-transparent bg-transparent text-blue-700 hover:!bg-blue-400 group-hover/card:bg-blue-200 data-[open]:!bg-blue-700 data-[open]:!text-gray-0 dark:border-transparent dark:text-blue-700-dark dark:hover:!bg-blue-400-dark dark:group-hover/card:bg-blue-200-dark dark:data-[open]:!bg-blue-700-dark dark:data-[open]:!text-gray-0-dark"
         >
           <FontAwesomeIcon icon={faEllipsis} />
         </Button>
@@ -298,7 +282,7 @@ export function QuestionCard({
 }: ComponentProps<"div"> & {
   title?: string;
   subtitle?: string;
-  variant?: "secondary" | "primary";
+  variant?: "secondary" | "primary" | "section";
   showMoreButton?: boolean;
   /** Post IDs for actions (view, export, share) */
   postIds?: number[];
@@ -345,17 +329,26 @@ export function QuestionCard({
     <div
       ref={cardRef}
       className={cn(
-        "group relative break-inside-avoid print:border print:border-gray-300 print:p-4",
+        "group/card relative break-inside-avoid print:border print:border-gray-300 print:p-4",
         variant === "primary" &&
           "rounded-md bg-gray-0 p-5 dark:bg-gray-0-dark lg:p-8",
         variant === "secondary" &&
           "rounded bg-blue-200 p-4 dark:bg-blue-800 md:p-5 lg:p-6",
+        variant === "section" &&
+          "rounded-md bg-gray-0 p-5 dark:bg-gray-0-dark md:p-10 print:px-0 print:py-4",
         className
       )}
       {...props}
     >
       {showMoreButton && postIds.length > 0 && (
-        <div className="absolute right-4 top-4 z-10 [visibility:var(--ss-hidden,visible)] lg:right-5 lg:top-5 print:hidden">
+        <div
+          className={cn(
+            "absolute right-4 top-4 z-10 [visibility:var(--ss-hidden,visible)] print:hidden",
+            variant === "section"
+              ? "md:right-8 md:top-8"
+              : "lg:right-5 lg:top-5"
+          )}
+        >
           <MoreButton
             postIds={postIds}
             postTitle={title}
@@ -370,7 +363,9 @@ export function QuestionCard({
             variant === "primary" &&
               "pr-12 text-2xl text-blue-800 dark:text-blue-800-dark",
             variant === "secondary" &&
-              "pr-8 text-base text-gray-800 dark:text-gray-800-dark"
+              "pr-8 text-base text-gray-800 dark:text-gray-800-dark",
+            variant === "section" &&
+              "mb-3 break-after-avoid text-lg font-medium tracking-tight text-blue-800 dark:text-blue-800-dark md:text-center md:text-3xl md:font-bold print:text-2xl print:font-bold"
           )}
         >
           {title}
@@ -383,13 +378,17 @@ export function QuestionCard({
             variant === "primary" &&
               "text-base text-blue-600 dark:text-blue-600-dark",
             variant === "secondary" &&
-              "text-sm text-gray-600 dark:text-gray-600-dark"
+              "text-sm text-gray-600 dark:text-gray-600-dark",
+            variant === "section" &&
+              "text-xs text-blue-600 dark:text-blue-600-dark md:mx-auto md:text-center md:text-base md:text-blue-700 md:dark:text-blue-700-dark"
           )}
         >
           {subtitle}
         </p>
       )}
-      <div className="mt-4 w-full">{children}</div>
+      <div className={cn("w-full", variant !== "section" && "mt-4")}>
+        {children}
+      </div>
 
       {/* Footer with Metaculus attribution */}
       <div className="-mb-4 mt-2 flex items-center justify-center gap-1.5 text-xs text-gray-500 [visibility:var(--ss-visible,hidden)] dark:text-gray-500-dark">

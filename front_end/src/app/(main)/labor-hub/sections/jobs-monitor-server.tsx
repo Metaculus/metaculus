@@ -3,8 +3,11 @@ import { ComponentProps } from "react";
 import { JobRow, JobsMonitorSection } from "./jobs-monitor";
 import { fetchJobsTableData } from "../helpers/fetch-jobs-data";
 
-export async function JobsMonitorServer(props: ComponentProps<"section">) {
-  const { columns, rows } = await fetchJobsTableData();
+export async function JobsMonitorServer({
+  labels,
+  ...props
+}: ComponentProps<"div"> & { labels?: string[] }) {
+  const { columns, rows, postIds } = await fetchJobsTableData({ labels });
 
   const jobs: JobRow[] = rows.map((row) => ({
     name: row[0] as string,
@@ -13,5 +16,12 @@ export async function JobsMonitorServer(props: ComponentProps<"section">) {
     ),
   }));
 
-  return <JobsMonitorSection columns={columns} jobs={jobs} {...props} />;
+  return (
+    <JobsMonitorSection
+      columns={columns}
+      jobs={jobs}
+      postIds={postIds}
+      {...props}
+    />
+  );
 }

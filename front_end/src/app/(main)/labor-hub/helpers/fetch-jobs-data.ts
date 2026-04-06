@@ -80,9 +80,12 @@ export function getSubQuestionValue(
  * the same-titled sub-question always occupies the same column position
  * across all jobs.
  */
-export async function fetchJobsTableData(): Promise<{
+export async function fetchJobsTableData(options?: {
+  labels?: string[];
+}): Promise<{
   columns: string[];
   rows: (string | number | null)[][];
+  postIds: number[];
 }> {
   const { jobs } = await fetchJobsData();
 
@@ -96,7 +99,11 @@ export async function fetchJobsTableData(): Promise<{
     }
   }
 
-  const columns = Array.from(labelsSet).sort();
+  let columns = Array.from(labelsSet).sort();
+  if (options?.labels?.length) {
+    const allowed = new Set(options.labels);
+    columns = columns.filter((col) => allowed.has(col));
+  }
 
   const rows = jobs.map((job) => {
     const questions = job.post?.group_of_questions
@@ -112,5 +119,6 @@ export async function fetchJobsTableData(): Promise<{
     return [job.name, ...values];
   });
 
-  return { columns, rows };
+  const postIds = jobs.map((job) => job.post_id);
+  return { columns, rows, postIds };
 }

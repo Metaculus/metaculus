@@ -5,7 +5,7 @@ import { ComponentProps, useState } from "react";
 import ButtonGroup from "@/components/ui/button_group";
 import cn from "@/utils/core/cn";
 
-import { SectionCard, SectionHeader } from "../components/section";
+import { QuestionCard } from "../components/question-cards/question-card";
 
 export type JobRow = {
   name: string;
@@ -64,32 +64,34 @@ function ContextualBar({ name, percent }: { name: string; percent: number }) {
 export function JobsMonitorSection({
   columns,
   jobs,
+  postIds = [],
   ...props
-}: { columns: string[]; jobs: JobRow[] } & ComponentProps<"section">) {
+}: {
+  columns: string[];
+  jobs: JobRow[];
+  postIds?: number[];
+} & ComponentProps<"div">) {
   const [year, setYear] = useState(columns[columns.length - 1] ?? "");
 
   return (
-    <SectionCard {...props}>
-      <div className="mb-4 md:mb-8">
-        <SectionHeader className="mb-3 mt-0 md:text-center">
-          Jobs Monitor
-        </SectionHeader>
-        <p className="text-xs text-blue-600 dark:text-blue-600-dark md:mx-auto md:text-center md:text-base md:text-blue-700 md:dark:text-blue-700-dark">
-          AI is reshaping the job market, but not all fields are affected
-          equally.
-        </p>
-        <div className="mt-3 flex justify-start md:mt-5 md:justify-center">
-          <ButtonGroup
-            value={year}
-            buttons={columns.map((col) => ({
-              value: col,
-              label: `by ${col}`,
-            }))}
-            onChange={setYear}
-            variant="tertiary"
-            activeVariant="primary"
-          />
-        </div>
+    <QuestionCard
+      variant="section"
+      title="Jobs Monitor"
+      subtitle="AI is reshaping the job market, but not all fields are affected equally."
+      postIds={postIds}
+      {...props}
+    >
+      <div className="mb-4 mt-3 flex justify-start md:mb-8 md:mt-5 md:justify-center">
+        <ButtonGroup
+          value={year}
+          buttons={columns.map((col) => ({
+            value: col,
+            label: `by ${col}`,
+          }))}
+          onChange={setYear}
+          variant="tertiary"
+          activeVariant="primary"
+        />
       </div>
 
       <div className="mx-auto flex w-full max-w-3xl flex-col">
@@ -187,7 +189,7 @@ export function JobsMonitorSection({
           })()}
         </div>
       </div>
-    </SectionCard>
+    </QuestionCard>
   );
 }
 
