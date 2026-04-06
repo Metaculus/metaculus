@@ -2,11 +2,9 @@ import { ComponentProps } from "react";
 
 import SectionToggle from "@/components/ui/section_toggle";
 
-import { NoQuestionPlaceholder } from "../components/question-cards/placeholder";
-import { QuestionCard } from "../components/question-cards/question-card";
+import { QuestionLoader } from "../components/question-cards/question";
 import { SectionCard, SectionHeader } from "../components/section";
 import { METHODOLOGY_SECTIONS } from "../data";
-import { QuestionLoader } from "../components/question-cards/question";
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
   return (

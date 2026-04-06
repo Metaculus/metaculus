@@ -6,7 +6,6 @@ import {
   faArrowUpRightFromSquare,
   faFileImage,
   faFileCsv,
-  faCopy,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { toPng } from "html-to-image";
@@ -118,20 +117,6 @@ export function MoreButton({
     }
     return null;
   }, [questionUrl, postTitle]);
-
-  // Copy question URL to clipboard (only for single post)
-  const copyQuestionUrl = useCallback(() => {
-    if (questionUrl) {
-      navigator.clipboard
-        .writeText(questionUrl)
-        .then(() => {
-          toast("URL is now copied to your clipboard", {
-            className: "dark:bg-blue-700-dark dark:text-gray-0-dark",
-          });
-        })
-        .catch((err) => console.error("Error copying link: ", err));
-    }
-  }, [questionUrl]);
 
   const moreMenuItems: MenuItemProps[] = [
     ...(viewQuestionsHref
