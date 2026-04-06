@@ -210,11 +210,7 @@ export default function LaborAutomationHubPage() {
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 
-        <ResearchSection id="research" className="scroll-mt-12">
-          <ThemeOverrideContainer override="inverted">
-            <QuestionLoader questionId={42850} isFlippable={false} />
-          </ThemeOverrideContainer>
-        </ResearchSection>
+        <ResearchSection id="research" className="scroll-mt-12" />
 
         <DualPaneSectionCard id="state-wa" className="scroll-mt-12">
           <DualPaneSectionLeft>

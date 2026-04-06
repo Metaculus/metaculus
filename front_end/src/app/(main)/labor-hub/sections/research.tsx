@@ -1,10 +1,12 @@
 import { ComponentProps, Suspense } from "react";
 
+import { ThemeOverrideContainer } from "@/contexts/theme_override_context";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { logError } from "@/utils/core/errors";
 
 import { SortableResearchTable } from "./sortable-research-table";
 import { NoQuestionPlaceholder } from "../components/question-cards/placeholder";
+import { QuestionLoader } from "../components/question-cards/question";
 import {
   SectionCard,
   SectionHeader,
@@ -12,17 +14,20 @@ import {
 } from "../components/section";
 import { fetchJobsData, getSubQuestionValue } from "../helpers/fetch-jobs-data";
 
-export function ResearchSection({
-  children,
-  ...props
-}: ComponentProps<"section">) {
+export function ResearchSection({ ...props }: ComponentProps<"section">) {
   return (
     <SectionCard {...props}>
       <SectionHeader>
         How does this build on or differ from existing research?
       </SectionHeader>
 
-      <div className="my-4">{children}</div>
+      <ThemeOverrideContainer
+        override="inverted"
+        className="float-right mb-4 mt-8 w-full md:ml-6 md:w-[calc(50%-1.5rem)]"
+      >
+        <QuestionLoader questionId={42850} isFlippable={false} />
+      </ThemeOverrideContainer>
+
       <ContentParagraph>
         A number of recent research publications have identified occupations,
         tasks, and industries that are more vulnerable to automation, as well as
