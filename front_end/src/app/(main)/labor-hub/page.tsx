@@ -76,7 +76,20 @@ export default function LaborAutomationHubPage() {
               <br /> Hours, Pay, and Broader Impacts
             </SectionHeader>
             <ThemeOverrideContainer override="inverted">
-              <QuestionLoader questionId={42216} />
+              <MultiQuestionTable
+                title="What will the percent change of the real hourly median wage of [occupation] be relative to 2025 in the following years?"
+                valueFormat="percentageChange"
+                firstColumnHeader="Occupation"
+                decimals={1}
+                rows={[
+                  { questionId: 42216, title: "Overall" },
+                  { questionId: 43106, title: "Software Developers" },
+                  { questionId: 43109, title: "Construction Workers" },
+                  { questionId: 43110, title: "General Managers" },
+                  { questionId: 43110, title: "Engineers" },
+                  { questionId: 43107, title: "Financial Specialists" },
+                ]}
+              />
             </ThemeOverrideContainer>
 
             <ContentParagraph>
@@ -268,7 +281,7 @@ export default function LaborAutomationHubPage() {
               with small businesses rather than corporate behemoths.
             </ContentParagraph>
             <ThemeOverrideContainer override="inverted">
-              <QuestionLoader preferTimeline questionId={41324} />
+              <QuestionLoader questionId={41324} />
             </ThemeOverrideContainer>
             <ActivityCard
               avatar="https://cdn.metaculus.com/labor-hub/draaglom_256.jpg"
