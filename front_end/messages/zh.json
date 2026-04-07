@@ -2150,5 +2150,6 @@
   "whyTrustMetaculusMarketsComparisonAlt": "比较 Metaculus 预测与预测市场",
   "whyTrustMetaculusLessNoiseTitle": "少噪音，多真相",
   "whyTrustMetaculusLessNoise": "Metaculus 的众包预测通过以透明证据、可追溯的评分以及十年证明的准确性为基础来削减预测中的噪音。作为一个公共资源，Metaculus 为政策制定者、研究人员、记者和更广泛的公众提供了对世界最重要的不确定性进行量化、清晰的洞察。相同经过验证的方法还可用于贵组织所面临的具体不确定性，提供结构化、以证据为依据的预测来支持更明智的战略决策。访问我们的<servicesLink>服务页面</servicesLink>了解 Metaculus 如何协助您。",
+  "publishTimeLockedDescription": "创建后将无法更改发布时间。",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }

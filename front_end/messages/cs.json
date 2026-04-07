@@ -2148,5 +2148,6 @@
   "whyTrustMetaculusMarketsComparisonAlt": "Srovnání předpovědí Metaculus oproti predikčním trhům",
   "whyTrustMetaculusLessNoiseTitle": "Méně šumu, více pravdy",
   "whyTrustMetaculusLessNoise": "Předpovědi Metaculus, poháněné davem, prořezávají šum tím, že zakládají každou předpověď na transparentních důkazech, odpovědném skóre a desetiletí doložené přesnosti. Jako veřejný zdroj vybavuje Metaculus politiky, výzkumníky, novináře a širokou veřejnost s jasným, kvantifikovatelným vhledem do nejkritičtějších nejistot světa. Stejný prověřený přístup může být také zaměřen na specifické nejistoty, kterým čelí vaše organizace, a poskytovat strukturované, důkazy podložené předpovědi k podpoře přesnějších strategických rozhodnutí. Navštivte naši <servicesLink>stránku služeb</servicesLink>, abyste se dozvěděli, jak vám Metaculus může pomoci.",
+  "publishTimeLockedDescription": "Čas publikace nelze po vytvoření změnit.",
   "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }

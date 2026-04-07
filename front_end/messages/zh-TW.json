@@ -2145,5 +2145,6 @@
   "whyTrustMetaculusMarketsComparisonAlt": "Metaculus 預測與預測市場比較",
   "whyTrustMetaculusLessNoiseTitle": "更少的噪音，更多的真相",
   "whyTrustMetaculusLessNoise": "Metaculus 的群眾驅動預測通過將每一個預測植根於透明的證據、負責的計分和十年的已證準確性，抑制了噪音。作為一種公共資源，Metaculus 為政策制定者、研究人員、記者和廣大公眾提供了對全球最重要不確定性的清晰、可量化的洞察。相同的已證方法也可以應用於您組織面臨的特定不確定性上，提供結構化、基於證據的預測，以支持更精確的戰略決策。訪問我們的服務頁面以了解 Metaculus 如何幫助您。",
+  "publishTimeLockedDescription": "建立後將無法更改發佈時間。",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }
