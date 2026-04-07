@@ -56,7 +56,7 @@ const MenuLink: FC<{
 );
 
 const Divider: FC = () => (
-  <hr className="m-0 w-full border-t border-blue-300" />
+  <hr className="m-0 w-full border-t border-blue-400" />
 );
 
 const StorefrontNavbar: FC = () => {
@@ -84,7 +84,13 @@ const StorefrontNavbar: FC = () => {
   }, []);
 
   const toggleSearch = useCallback(() => {
-    setIsSearchOpen((prev) => !prev);
+    setIsSearchOpen((prev) => {
+      if (!prev) {
+        // setTimeout(0) runs after React re-render but within mobile's user activation window
+        setTimeout(() => searchInputRef.current?.focus(), 0);
+      }
+      return !prev;
+    });
     setIsMenuOpen(false);
   }, []);
 
@@ -102,15 +108,6 @@ const StorefrontNavbar: FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [closeAll]);
 
-  // Auto-focus search input when opened
-  useEffect(() => {
-    if (isSearchOpen) {
-      requestAnimationFrame(() => {
-        searchInputRef.current?.focus();
-      });
-    }
-  }, [isSearchOpen]);
-
   const handleSearchSubmit = (e: FormEvent) => {
     e.preventDefault();
     const trimmed = searchQuery.trim();
@@ -127,7 +124,7 @@ const StorefrontNavbar: FC = () => {
   const searchInput = (
     <form
       onSubmit={handleSearchSubmit}
-      className="flex items-center justify-between rounded-2xl bg-[#eff4f4] px-4 py-2 shadow-2xl"
+      className="flex items-center justify-between rounded-xl bg-blue-200 px-4 py-2 shadow-2xl"
     >
       <div className="flex items-center gap-2.5">
         <FontAwesomeIcon
@@ -140,6 +137,7 @@ const StorefrontNavbar: FC = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={t("questionSearchPlaceholder")}
+          aria-label={t("questionSearchPlaceholder")}
           className="w-full bg-transparent text-base font-medium text-blue-800 placeholder:opacity-50 focus:outline-none"
         />
       </div>
@@ -191,23 +189,31 @@ const StorefrontNavbar: FC = () => {
             type="button"
             onClick={toggleMenu}
             className="flex size-10 items-center justify-center text-xl text-white/70 transition-colors hover:text-white"
-            aria-label="Menu"
+            aria-label={t("menu")}
+            aria-expanded={isMenuOpen}
+            aria-controls="storefront-nav-menu"
           >
             <FontAwesomeIcon icon={isMenuOpen ? faMinus : faBars} />
           </button>
         </div>
       </div>
 
-      {/* Search dropdown (floats below buttons, no layout shift) */}
-      {isSearchOpen && (
-        <div className="absolute right-0 top-full z-[200] mt-2 w-full md:w-[375px]">
-          {searchInput}
-        </div>
-      )}
+      {/* Search dropdown (always mounted for mobile focus, hidden when inactive) */}
+      <div
+        className={cn(
+          "absolute right-0 top-full z-[200] mt-2 w-full md:w-[375px]",
+          !isSearchOpen && "pointer-events-none invisible"
+        )}
+      >
+        {searchInput}
+      </div>
 
       {/* Hamburger dropdown */}
       {isMenuOpen && (
-        <div className="absolute right-0 top-full z-[200] mt-2 w-48 rounded-2xl bg-[#eff4f4] p-4 shadow-2xl">
+        <div
+          id="storefront-nav-menu"
+          className="absolute right-0 top-full z-[200] mt-2 w-48 rounded-xl bg-blue-200 p-4 shadow-2xl"
+        >
           <div className="flex flex-col gap-3">
             {!user && (
               <>
@@ -234,7 +240,7 @@ const StorefrontNavbar: FC = () => {
                       });
                       closeAll();
                     }}
-                    className="flex-1 rounded-full border border-blue-400 px-2 py-1 text-sm font-semibold text-blue-800 transition-colors hover:bg-blue-300/50"
+                    className="flex-1 rounded-full border border-blue-400 px-2 py-1 text-sm font-semibold text-blue-800 transition-colors hover:border-blue-500 hover:bg-blue-400/50"
                   >
                     {t("logIn")}
                   </button>
@@ -273,7 +279,7 @@ const StorefrontNavbar: FC = () => {
                   />
                 ))}
                 <Divider />
-                <p className="text-right text-sm leading-[1.3] text-blue-900">
+                <p className="my-0 text-right text-sm text-blue-900">
                   <span className="font-normal">{t("loggedInAs")}</span>{" "}
                   <span className="font-semibold text-blue-700">
                     {user.username}
@@ -282,7 +288,7 @@ const StorefrontNavbar: FC = () => {
                 <button
                   type="button"
                   onClick={() => void LogOut()}
-                  className="text-right text-sm font-normal text-[#753e3e] transition-colors hover:text-[#753e3e]/50"
+                  className="text-right text-sm font-medium text-[#753e3e] transition-colors hover:text-[#753e3e]/50"
                 >
                   {t("logOut")}
                 </button>
