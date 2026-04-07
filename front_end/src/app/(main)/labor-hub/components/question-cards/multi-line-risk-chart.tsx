@@ -12,6 +12,7 @@ import {
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
+import { usePrintOverride } from "@/contexts/theme_override_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import cn from "@/utils/core/cn";
@@ -477,6 +478,7 @@ export const MultiLineRiskChart: FC<Props> = ({
     useContainerSize<HTMLDivElement>();
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
+  const isPrintMode = usePrintOverride();
 
   const hoverCtx = useLaborHubChartHover();
   const [localHoverYear, setLocalHoverYear] = useState<number | null>(null);
@@ -886,9 +888,13 @@ export const MultiLineRiskChart: FC<Props> = ({
               );
             })}
 
-            {/* Permanent labels: series with `showDataLabels` (unchanged vs pre-hover behavior) */}
+            {/* Permanent labels: `showDataLabels`; on print, also hover-only series (not `false`) */}
             {series
-              .filter((s) => s.showDataLabels)
+              .filter(
+                (s) =>
+                  s.showDataLabels === true ||
+                  (isPrintMode && s.showDataLabels !== false)
+              )
               .map((s) => {
                 const chartData = s.data.map((d) => ({
                   x: d.year,
@@ -926,7 +932,8 @@ export const MultiLineRiskChart: FC<Props> = ({
               })}
 
             {/* Hover-only labels, or all labels on emphasized series (chip hover) */}
-            {(highlightYear != null || emphasisActive) &&
+            {!isPrintMode &&
+              (highlightYear != null || emphasisActive) &&
               series
                 .filter(
                   (s) => s.showDataLabels !== true && s.showDataLabels !== false

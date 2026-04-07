@@ -187,15 +187,14 @@ export async function OverviewSection({
       color: "gray",
       filled: false,
       label: "Overall employment",
-      showDataLabels: false,
       data: overallData,
     },
   ] satisfies LineSeries[];
 
   const vulnerabilityYAxisLabels = [
-    { text: "25% growth", value: 25 },
+    { text: "10% growth", value: 10 },
     { text: "No change", value: 0 },
-    { text: "Fully automated", value: -100 },
+    { text: "40% automated", value: -40 },
   ] as const;
 
   // --- Summary data ---
