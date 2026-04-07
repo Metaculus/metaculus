@@ -3,6 +3,7 @@ import { ComponentProps } from "react";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { logError } from "@/utils/core/errors";
 
+import { LaborHubByJobVulnerabilityCard } from "../components/labor-hub-by-job-vulnerability-card";
 import {
   LaborHubChartHoverProvider,
   LaborHubChartHoverSection,
@@ -29,6 +30,47 @@ function excludeYears(
   if (!years.length) return data;
   const skip = new Set(years);
   return data.filter((d) => !skip.has(d.year));
+}
+
+type JobForecast = { name: string; value: number };
+
+const VULNERABILITY_CHIP_JOB_LIMIT = 3;
+
+/** Up to `limit` jobs at the min/max forecasts for a year (same values as the chart envelope). */
+function getTopExtremeJobsForYear(
+  jobs: Awaited<ReturnType<typeof fetchJobsData>>["jobs"],
+  yearLabel: string,
+  limit: number = VULNERABILITY_CHIP_JOB_LIMIT
+): { mostVulnerable: JobForecast[]; leastVulnerable: JobForecast[] } {
+  const rows: JobForecast[] = [];
+  for (const job of jobs) {
+    const questions = job.post?.group_of_questions?.questions as
+      | QuestionWithNumericForecasts[]
+      | undefined;
+    const q = questions?.find((q) => q.label === yearLabel);
+    if (!q) continue;
+    const v = getSubQuestionValue(q);
+    if (v == null) continue;
+    rows.push({ name: job.name, value: v });
+  }
+
+  if (!rows.length) {
+    return { mostVulnerable: [], leastVulnerable: [] };
+  }
+
+  const sorted = [...rows].sort((a, b) => a.value - b.value);
+  const n = sorted.length;
+  const k = Math.min(limit, n);
+  const mostVulnerable = sorted.slice(0, k);
+  const mostNames = new Set(mostVulnerable.map((j) => j.name));
+  const leastVulnerable: JobForecast[] = [];
+  for (let i = n - 1; i >= 0 && leastVulnerable.length < limit; i--) {
+    const j = sorted[i];
+    if (j == null) continue;
+    if (!mostNames.has(j.name)) leastVulnerable.push(j);
+  }
+
+  return { mostVulnerable, leastVulnerable };
 }
 
 function buildExtremeSeries(
@@ -150,6 +192,12 @@ export async function OverviewSection({
     },
   ] satisfies LineSeries[];
 
+  const vulnerabilityYAxisLabels = [
+    { text: "25% growth", value: 25 },
+    { text: "No change", value: 0 },
+    { text: "Fully automated", value: -100 },
+  ] as const;
+
   // --- Summary data ---
   const byYear = new Map(overallData.map((d) => [d.year, d.value]));
   const change2030 = byYear.get(2030);
@@ -172,19 +220,15 @@ export async function OverviewSection({
     ? Math.max(...allValues2035)
     : null;
 
+  const extremeJobs2035 = getTopExtremeJobsForYear(jobs, "2035");
+
   const formatOverallChange = (value: number) =>
     `${value < 0 ? "fall" : "grow"} ${Math.abs(value).toFixed(0)}%`;
-  const formatOccupationChange = (value: number) =>
-    `${value < 0 ? "shrink" : "grow"} ${Math.abs(value).toFixed(0)}%`;
 
   const overallColor = (value: number) =>
     value < 0
       ? "text-salmon-600 dark:text-salmon-600-dark"
       : "text-mint-600 dark:text-mint-600-dark";
-  const occupationColor = (value: number) =>
-    value < 0
-      ? "text-mc-option-2 dark:text-mc-option-2-dark"
-      : "text-mc-option-3 dark:text-mc-option-3-dark";
 
   const allPostIds = [OVERALL_POST_ID, ...jobs.map((j) => j.post_id)];
 
@@ -244,45 +288,13 @@ export async function OverviewSection({
           variant="primary"
           className="lg:rounded-l-none"
         >
-          <MultiLineRiskChart
+          <LaborHubByJobVulnerabilityCard
             series={vulnerabilitySeries}
-            yAxisLabels={[
-              { text: "25% growth", value: 25 },
-              { text: "No change", value: 0 },
-              { text: "Fully automated", value: -100 },
-            ]}
-            showTickLabels={true}
-            legendOrder={["growth", "decline", "baseline"]}
-            syncHover
+            yAxisLabels={[...vulnerabilityYAxisLabels]}
+            extremeJobs2035={extremeJobs2035}
+            mostVulnerable2035={mostVulnerable2035}
+            leastVulnerable2035={leastVulnerable2035}
           />
-          <div className="text-sm text-blue-700 [text-wrap:pretty] dark:text-blue-700-dark md:text-base">
-            The{" "}
-            <span className="font-bold text-mc-option-2 dark:text-mc-option-2-dark">
-              most vulnerable AI-exposed occupations
-            </span>{" "}
-            are expected to{" "}
-            {mostVulnerable2035 != null && (
-              <span
-                className={`font-bold ${occupationColor(mostVulnerable2035)}`}
-              >
-                {formatOccupationChange(mostVulnerable2035)} by 2035
-              </span>
-            )}
-            {leastVulnerable2035 != null && leastVulnerable2035 > 0 && (
-              <>
-                , while the{" "}
-                {leastVulnerable2035 != null && (
-                  <span
-                    className={`font-bold ${occupationColor(leastVulnerable2035)}`}
-                  >
-                    least vulnerable occupations{" "}
-                    {formatOccupationChange(leastVulnerable2035)}
-                  </span>
-                )}
-              </>
-            )}
-            .
-          </div>
         </QuestionCard>
       </LaborHubChartHoverSection>
     </LaborHubChartHoverProvider>

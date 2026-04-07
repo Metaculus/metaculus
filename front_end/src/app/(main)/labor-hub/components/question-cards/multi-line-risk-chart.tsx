@@ -76,6 +76,10 @@ type Props = {
    * is shared with other labor-hub charts on the page.
    */
   syncHover?: boolean;
+  /**
+   * When set, that series stays full opacity and slightly thicker stroke; others dim (e.g. envelope chip hover).
+   */
+  emphasizedSeriesId?: string | null;
 };
 
 /** Default Y-axis tick labels: whole-number %, explicit + for positives. */
@@ -334,7 +338,17 @@ const DataPointCircle: FC<{
   isFilled?: boolean;
   bgColor?: string;
   radius?: number;
-}> = ({ x, y, strokeColor, fillColor, isFilled, bgColor, radius = 6 }) => {
+  opacity?: number;
+}> = ({
+  x,
+  y,
+  strokeColor,
+  fillColor,
+  isFilled,
+  bgColor,
+  radius = 6,
+  opacity = 1,
+}) => {
   if (x === undefined || y === undefined) return null;
 
   return (
@@ -345,6 +359,7 @@ const DataPointCircle: FC<{
       fill={isFilled ? fillColor : bgColor}
       stroke={strokeColor}
       strokeWidth={2}
+      opacity={opacity}
     />
   );
 };
@@ -456,6 +471,7 @@ export const MultiLineRiskChart: FC<Props> = ({
   yAxisGutter: yAxisGutterProp,
   formatYValue: formatYValueProp,
   syncHover = false,
+  emphasizedSeriesId = null,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -610,6 +626,25 @@ export const MultiLineRiskChart: FC<Props> = ({
 
   const formatYValue = formatYValueProp ?? defaultFormatYValue;
   const formatYTick = formatYValueProp ?? defaultFormatYTick;
+
+  const emphasisActive = emphasizedSeriesId != null;
+  const seriesOpacity = (id: string) =>
+    emphasisActive ? (id === emphasizedSeriesId ? 1 : 0.32) : 1;
+  const seriesStrokeWidth = (s: LineSeries) => {
+    const base = s.dashed ? 1.5 : 2;
+    if (emphasisActive && s.id === emphasizedSeriesId) {
+      return Math.max(base, 5);
+    }
+    return base;
+  };
+
+  const seriesPointRadius = (s: LineSeries) => {
+    const base = s.dotSize ?? (s.filled ? 6 : 7);
+    if (emphasisActive && s.id === emphasizedSeriesId) {
+      return base + 2;
+    }
+    return base;
+  };
 
   /**
    * Grid-axis numeric tick labels: omit at custom label Y (that row uses `yAxisLabels` text). Auto Ys dropped
@@ -793,7 +828,7 @@ export const MultiLineRiskChart: FC<Props> = ({
                     stroke: gridColor,
                     strokeWidth: 1,
                     strokeDasharray: "4 3",
-                    opacity: 0.75,
+                    opacity: emphasisActive ? 0.45 : 0.75,
                   },
                 }}
               />
@@ -815,7 +850,8 @@ export const MultiLineRiskChart: FC<Props> = ({
                   style={{
                     data: {
                       stroke: colors.stroke,
-                      strokeWidth: s.dashed ? 1.5 : 2,
+                      strokeWidth: seriesStrokeWidth(s),
+                      opacity: seriesOpacity(s.id),
                       ...(s.dashed && { strokeDasharray: "6, 4" }),
                     },
                   }}
@@ -842,7 +878,8 @@ export const MultiLineRiskChart: FC<Props> = ({
                       fillColor={colors.fill}
                       isFilled={s.filled}
                       bgColor={bgColor}
-                      radius={s.dotSize ?? (s.filled ? 6 : 7)}
+                      radius={seriesPointRadius(s)}
+                      opacity={seriesOpacity(s.id)}
                     />
                   }
                 />
@@ -859,7 +896,7 @@ export const MultiLineRiskChart: FC<Props> = ({
                   ...d,
                 }));
 
-                const pointR = s.dotSize ?? (s.filled ? 6 : 8);
+                const pointR = seriesPointRadius(s);
                 const lineColors = getSeriesColors(s.color, getThemeColor);
 
                 return (
@@ -874,7 +911,12 @@ export const MultiLineRiskChart: FC<Props> = ({
                         pointRadius={pointR}
                         lineColor={lineColors.stroke}
                         transparent={s.dataLabelTransparent}
-                        groupClassName={s.dataLabelClassName}
+                        groupClassName={cn(
+                          s.dataLabelClassName,
+                          emphasisActive &&
+                            s.id !== emphasizedSeriesId &&
+                            "opacity-[0.32]"
+                        )}
                         rectClassName={s.dataLabelRectClassName}
                         textClassName={s.dataLabelTextClassName}
                       />
@@ -883,20 +925,28 @@ export const MultiLineRiskChart: FC<Props> = ({
                 );
               })}
 
-            {/* Hover-only labels: `showDataLabels` unset only — explicit `false` skips hover too */}
-            {highlightYear != null &&
+            {/* Hover-only labels, or all labels on emphasized series (chip hover) */}
+            {(highlightYear != null || emphasisActive) &&
               series
                 .filter(
                   (s) => s.showDataLabels !== true && s.showDataLabels !== false
                 )
                 .map((s) => {
+                  const isEmphasized =
+                    emphasisActive && s.id === emphasizedSeriesId;
+                  const showAllBadges = isEmphasized;
+                  const showYearBadge =
+                    highlightYear != null && (!emphasisActive || !isEmphasized);
+
+                  if (!showAllBadges && !showYearBadge) return null;
+
                   const chartData = s.data.map((d) => ({
                     x: d.year,
                     y: d.value,
                     ...d,
                   }));
 
-                  const pointR = s.dotSize ?? (s.filled ? 6 : 8);
+                  const pointR = seriesPointRadius(s);
                   const lineColors = getSeriesColors(s.color, getThemeColor);
 
                   return (
@@ -906,12 +956,18 @@ export const MultiLineRiskChart: FC<Props> = ({
                       dataComponent={
                         <ChangeBadge
                           formatValue={formatYValue}
-                          highlightYear={highlightYear}
+                          alwaysVisible={showAllBadges}
+                          highlightYear={showAllBadges ? null : highlightYear}
                           placement={s.dataLabelPlacement}
                           pointRadius={pointR}
                           lineColor={lineColors.stroke}
                           transparent={s.dataLabelTransparent}
-                          groupClassName={s.dataLabelClassName}
+                          groupClassName={cn(
+                            s.dataLabelClassName,
+                            emphasisActive &&
+                              s.id !== emphasizedSeriesId &&
+                              "opacity-[0.32]"
+                          )}
                           rectClassName={s.dataLabelRectClassName}
                           textClassName={s.dataLabelTextClassName}
                         />

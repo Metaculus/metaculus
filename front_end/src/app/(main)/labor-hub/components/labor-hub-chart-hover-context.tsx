@@ -9,9 +9,14 @@ import {
   type ReactNode,
 } from "react";
 
+/** Chip / chip-group hover: emphasize min envelope (“decline”) or max envelope (“growth”) on the chart. */
+export type LaborHubHighlightedEnvelope = "most" | "least";
+
 type LaborHubChartHoverContextValue = {
   hoverYear: number | null;
   setHoverYear: (year: number | null) => void;
+  highlightedEnvelope: LaborHubHighlightedEnvelope | null;
+  setHighlightedEnvelope: (band: LaborHubHighlightedEnvelope | null) => void;
 };
 
 const LaborHubChartHoverContext =
@@ -23,7 +28,17 @@ export function LaborHubChartHoverProvider({
   children: ReactNode;
 }) {
   const [hoverYear, setHoverYear] = useState<number | null>(null);
-  const value = useMemo(() => ({ hoverYear, setHoverYear }), [hoverYear]);
+  const [highlightedEnvelope, setHighlightedEnvelope] =
+    useState<LaborHubHighlightedEnvelope | null>(null);
+  const value = useMemo(
+    () => ({
+      hoverYear,
+      setHoverYear,
+      highlightedEnvelope,
+      setHighlightedEnvelope,
+    }),
+    [hoverYear, highlightedEnvelope]
+  );
   return (
     <LaborHubChartHoverContext.Provider value={value}>
       {children}
@@ -47,6 +62,7 @@ export function LaborHubChartHoverSection({
       onMouseLeave={(e) => {
         onMouseLeave?.(e);
         ctx?.setHoverYear(null);
+        ctx?.setHighlightedEnvelope(null);
       }}
     />
   );
