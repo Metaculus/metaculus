@@ -43,7 +43,10 @@ import {
   isOpenQuestionPredicted,
 } from "@/utils/forecasts/helpers";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
-import { canWithdrawForecast } from "@/utils/questions/predictions";
+import {
+  canWithdrawForecast,
+  isQuestionPrePrediction,
+} from "@/utils/questions/predictions";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import {
@@ -57,6 +60,7 @@ import {
   ForecastExpirationModal,
   forecastExpirationToDate,
   ForecastExpirationValue,
+  getExpirationBaseDate,
   useExpirationModalState,
 } from "../forecast_expiration";
 import PredictButton from "../predict_button";
@@ -83,6 +87,7 @@ type Props = {
   questions: QuestionWithNumericForecasts[];
   groupVariable: string;
   canPredict: boolean;
+  predictLabel: string;
   predictionMessage: ReactNode;
   onPredictionSubmit?: () => void;
 };
@@ -92,6 +97,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   questions,
   groupVariable,
   canPredict,
+  predictLabel,
   predictionMessage,
   onPredictionSubmit,
 }) => {
@@ -141,9 +147,13 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   const firstOpenQuestion = questions.find(
     (q) => q.status === QuestionStatus.OPEN
   );
+  const allQuestionsUpcoming = questions.every((q) =>
+    isQuestionPrePrediction(q)
+  );
   const expirationState = useExpirationModalState(
     averageQuestionDuration,
-    firstOpenQuestion?.my_forecasts?.latest // Use first open question as reference
+    firstOpenQuestion?.my_forecasts?.latest, // Use first open question as reference
+    allQuestionsUpcoming
   );
 
   const {
@@ -226,7 +236,11 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   const questionsToSubmit = useMemo(() => {
     const byId = new Map(questions.map((q) => [q.id, q]));
     return questionOptions.filter((option) => {
-      if (option.status !== QuestionStatus.OPEN) return false;
+      if (
+        option.status !== QuestionStatus.OPEN &&
+        option.status !== QuestionStatus.UPCOMING
+      )
+        return false;
       if (option.isDirty) return true;
       if (!isPickerDirty && hasSomeActiveUserForecasts) {
         const q = byId.get(option.id);
@@ -258,6 +272,11 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       })
     );
   }, []);
+  const questionsById = useMemo(
+    () => new Map(questions.map((q) => [q.id, q])),
+    [questions]
+  );
+
   const handlePredictSubmit = useCallback(
     async (forecastExpiration?: ForecastExpirationValue) => {
       setSubmitError(undefined);
@@ -275,11 +294,13 @@ const ForecastMakerGroupBinary: FC<Props> = ({
             q.forecast! / 100,
             BINARY_FORECAST_PRECISION
           );
+          const fullQuestion = questionsById.get(q.id);
 
           return {
             questionId: q.id,
             forecastEndTime: forecastExpirationToDate(
-              forecastExpiration ?? q.forecastExpiration
+              forecastExpiration ?? q.forecastExpiration,
+              fullQuestion ? getExpirationBaseDate(fullQuestion) : undefined
             ),
             forecastData: {
               probabilityYes: forecastValue,
@@ -298,7 +319,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       }
       onPredictionSubmit?.();
     },
-    [postId, questionsToSubmit, onPredictionSubmit]
+    [postId, questionsToSubmit, questionsById, onPredictionSubmit]
   );
   const [submit, isPending] = useServerAction(handlePredictSubmit);
 
@@ -336,6 +357,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
         hasUserForecast={hasUserForecast}
         isUserForecastActive={hasSomeActiveUserForecasts}
         isSubmissionDisabled={!questionsToSubmit.length}
+        predictLabel={predictLabel}
       />
       <table className="mt-3 border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
         <thead>
@@ -384,7 +406,9 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               isRowDirty={questionOption.isDirty}
               menu={questionOption.menu}
               disabled={
-                !canPredict || questionOption.status !== QuestionStatus.OPEN
+                !canPredict ||
+                (questionOption.status !== QuestionStatus.OPEN &&
+                  questionOption.status !== QuestionStatus.UPCOMING)
               }
               optionResolution={{
                 resolution: questionOption.resolution,
@@ -438,6 +462,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               isUserForecastActive={hasSomeActiveUserForecasts}
               isPending={isPending || isWithdrawing}
               isDisabled={!questionsToSubmit.length}
+              predictLabel={predictLabel}
               predictionExpirationChip={expirationShortChip}
               onPredictionExpirationClick={() =>
                 setIsForecastExpirationModalOpen(true)

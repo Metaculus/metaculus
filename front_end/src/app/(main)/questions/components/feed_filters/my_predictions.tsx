@@ -86,6 +86,7 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
       optionValue: string | string[] | null;
       replaceInfo?: FilterReplaceInfo;
     },
+    order: QuestionOrder,
     deleteParam: (
       name: string,
       withNavigation?: boolean,
@@ -102,10 +103,9 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
       QuestionOrder.WeeklyMovementDesc,
       QuestionOrder.DivergenceDesc,
       QuestionOrder.ScoreDesc,
-      QuestionOrder.ScoreDesc,
       QuestionOrder.LastPredictionTimeAsc,
       QuestionOrder.HotAsc,
-    ].includes(params.get(POST_ORDER_BY_FILTER) as QuestionOrder);
+    ].includes(order);
 
     if (didRemoveUserFilter && isUserSpecificOrder) {
       // clear user specific order if user filter is removed
@@ -153,6 +153,7 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
       onOrderChange={handleOrderChange}
       onPopOverFilterChange={handleFilterChange}
       defaultOrder={QuestionOrder.WeeklyMovementDesc}
+      alwaysKeepOrderInUrl
       panelClassname={panelClassname}
     />
   );

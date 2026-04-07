@@ -28,6 +28,7 @@ import { sendConditionalPredictEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
+import { isQuestionPrePrediction } from "@/utils/questions/predictions";
 
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import ConditionalForecastTable, {
@@ -37,6 +38,7 @@ import {
   ForecastExpirationModal,
   forecastExpirationToDate,
   ForecastExpirationValue,
+  getExpirationBaseDate,
   useExpirationModalState,
 } from "../forecast_expiration";
 import PredictButton from "../predict_button";
@@ -47,6 +49,7 @@ type Props = {
   postTitle: string;
   conditional: PostConditional<QuestionWithNumericForecasts>;
   canPredict: boolean;
+  predictLabel: string;
   predictionMessage: ReactNode;
   projects: Post["projects"];
   onPredictionSubmit?: () => void;
@@ -57,6 +60,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   postTitle,
   conditional,
   canPredict,
+  predictLabel,
   predictionMessage,
   projects,
   onPredictionSubmit,
@@ -113,12 +117,14 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
 
   const questionYesExpirationState = useExpirationModalState(
     questionYesDuration,
-    question_yes.my_forecasts?.latest
+    question_yes.my_forecasts?.latest,
+    isQuestionPrePrediction(question_yes)
   );
 
   const questionNoExpirationState = useExpirationModalState(
     questionNoDuration,
-    question_no.my_forecasts?.latest
+    question_no.my_forecasts?.latest,
+    isQuestionPrePrediction(question_no)
   );
 
   const questionDuration =
@@ -322,7 +328,8 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
         return {
           questionId: q.id,
           forecastEndTime: forecastExpirationToDate(
-            forecastExpiration ?? q.forecastExpiration
+            forecastExpiration ?? q.forecastExpiration,
+            getExpirationBaseDate(q.question)
           ),
           forecastData: {
             continuousCdf: null,
@@ -388,6 +395,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
         hasUserForecast={hasUserForecast}
         isSubmissionDisabled={!questionsToSubmit.length}
         questionDuration={questionDuration}
+        predictLabel={predictLabel}
       />
 
       <ConditionalForecastTable
@@ -471,6 +479,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
               hasUserForecast={hasUserForecast}
               isPending={isSubmitting}
               isDisabled={!questionsToSubmit.length}
+              predictLabel={predictLabel}
               predictionExpirationChip={expirationShortChip}
               onPredictionExpirationClick={() =>
                 setIsForecastExpirationModalOpen(true)
