@@ -13,9 +13,15 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
+import {
+  POST_ORDER_BY_FILTER,
+  POST_TEXT_SEARCH_FILTER,
+} from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import { QuestionOrder } from "@/types/question";
 import cn from "@/utils/core/cn";
+import { encodeQueryParams } from "@/utils/navigation";
 
 import MetaculusStorefrontLogo from "./metaculus_storefront_logo";
 import { LogOut } from "../../(main)/accounts/actions";
@@ -111,7 +117,13 @@ const StorefrontNavbar: FC = () => {
     e.preventDefault();
     const trimmed = searchQuery.trim();
     if (!trimmed) return;
-    router.push(`/questions/?search=${encodeURIComponent(trimmed)}`);
+    router.push(
+      `/questions` +
+        encodeQueryParams({
+          [POST_TEXT_SEARCH_FILTER]: trimmed,
+          [POST_ORDER_BY_FILTER]: QuestionOrder.RankDesc,
+        })
+    );
     closeAll();
     setSearchQuery("");
   };
@@ -137,12 +149,13 @@ const StorefrontNavbar: FC = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={t("questionSearchPlaceholder")}
           aria-label={t("questionSearchPlaceholder")}
+          tabIndex={isSearchOpen ? 0 : -1}
           className="w-full bg-transparent text-base font-medium text-blue-800 placeholder:opacity-50 focus:outline-none"
         />
       </div>
       <button
         type="submit"
-        disabled={!searchQuery.trim()}
+        disabled={!isSearchOpen || !searchQuery.trim()}
         aria-label={t("submit")}
         className={cn(
           "flex size-8 shrink-0 items-center justify-center rounded-md bg-blue-700 transition-opacity",
@@ -206,7 +219,6 @@ const StorefrontNavbar: FC = () => {
           !isSearchOpen && "pointer-events-none opacity-0"
         )}
         aria-hidden={!isSearchOpen}
-        {...(!isSearchOpen && { inert: true })}
       >
         {searchInput}
       </div>
