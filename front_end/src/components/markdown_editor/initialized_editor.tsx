@@ -53,6 +53,7 @@ import {
   normalizeLang,
 } from "./plugins/code/languages";
 import { equationPlugin } from "./plugins/equation";
+import { errorRecoveryPlugin } from "./plugins/error_recovery_plugin";
 import { linkPlugin } from "./plugins/link";
 import { mentionsPlugin } from "./plugins/mentions";
 import { trimTrailingParagraphPlugin } from "./plugins/trim_trailing_plugin";
@@ -306,6 +307,7 @@ const InitializedMarkdownEditor: FC<
     ];
     if (editorToolbarPlugin) list.push(editorToolbarPlugin);
     if (mode === "read") list.push(trimTrailingParagraphPlugin());
+    else list.push(errorRecoveryPlugin());
     if (editorDiffSourcePlugin) list.push(editorDiffSourcePlugin);
     return list;
   }, [

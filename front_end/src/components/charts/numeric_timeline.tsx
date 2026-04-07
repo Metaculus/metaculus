@@ -6,6 +6,7 @@ import { FC, ReactNode, useCallback, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import { TimelineChartZoomOption } from "@/types/charts";
+import { KeyFactor } from "@/types/comment";
 import { QuestionStatus, Resolution } from "@/types/post";
 import {
   AggregateForecastHistory,
@@ -22,6 +23,8 @@ import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 import { buildNumericChartData } from "./helpers";
 import NumericChart from "./numeric_chart";
+import { NewsAnnotation } from "./primitives/news_annotations/types";
+import { buildNewsAnnotations } from "./primitives/news_annotations/utils";
 
 type Props = {
   aggregation: AggregateForecastHistory;
@@ -55,6 +58,9 @@ type Props = {
   isConsumerView?: boolean;
   forFeedPage?: boolean;
   colorOverride?: ThemeColor | string;
+  keyFactors?: KeyFactor[];
+  showNewsAnnotations?: boolean;
+  onToggleNewsAnnotations?: () => void;
 };
 
 const NumericTimeline: FC<Props> = ({
@@ -89,6 +95,9 @@ const NumericTimeline: FC<Props> = ({
   isConsumerView,
   forFeedPage,
   colorOverride,
+  keyFactors,
+  showNewsAnnotations,
+  onToggleNewsAnnotations,
 }) => {
   const locale = useLocale();
   const resolutionPoint = useMemo(() => {
@@ -185,6 +194,12 @@ const NumericTimeline: FC<Props> = ({
     scaling,
     actual_resolve_time: resolveTime ?? null,
   });
+
+  const newsAnnotations = useMemo<NewsAnnotation[]>(
+    () => (keyFactors ? buildNewsAnnotations(keyFactors) : []),
+    [keyFactors]
+  );
+
   return (
     <NumericChart
       buildChartData={buildChartData}
@@ -215,6 +230,9 @@ const NumericTimeline: FC<Props> = ({
       isConsumerView={isConsumerView}
       questionType={questionType}
       colorOverride={colorOverride}
+      newsAnnotations={newsAnnotations}
+      showNewsAnnotations={showNewsAnnotations}
+      onToggleNewsAnnotations={onToggleNewsAnnotations}
     />
   );
 };

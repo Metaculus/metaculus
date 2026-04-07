@@ -52,6 +52,7 @@ type ModalDataByType = {
     onOptimisticAdd: (text: string) => number | Promise<number>;
     onFinalize: (tempId: number, real: CommentType) => void;
     onRemove: (tempId: number) => void;
+    onSubmitted?: () => void;
   };
   copyQuestionLink: {
     fromQuestionTitle: string;

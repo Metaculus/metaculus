@@ -6,12 +6,14 @@ type Props = {
   numerator: number;
   denominator: number;
   withLightBoxes?: boolean;
+  hideBoxes?: boolean;
 };
 
 const KeyFactorBaseRateFrequency: React.FC<Props> = ({
   numerator,
   denominator,
   withLightBoxes,
+  hideBoxes,
 }) => {
   return (
     <div>
@@ -23,11 +25,13 @@ const KeyFactorBaseRateFrequency: React.FC<Props> = ({
         <span className="text-2xl font-normal">{denominator}</span>
       </div>
 
-      <FrequencyBoxes
-        lightBoxes={withLightBoxes}
-        numerator={numerator}
-        denominator={denominator}
-      />
+      {!hideBoxes && (
+        <FrequencyBoxes
+          lightBoxes={withLightBoxes}
+          numerator={numerator}
+          denominator={denominator}
+        />
+      )}
     </div>
   );
 };

@@ -134,6 +134,21 @@ class UserPrivateSerializer(UserPublicSerializer):
         return user.has_usable_password()
 
 
+class UserPrivateDataAccessSerializer(UserPrivateSerializer):
+    project_data_access = serializers.SerializerMethodField()
+
+    class Meta(UserPrivateSerializer.Meta):
+        fields = UserPrivateSerializer.Meta.fields + ("project_data_access",)
+
+    def get_project_data_access(self, user: User):
+        entries = (
+            user.data_accesses.filter(project_id__isnull=False)
+            .values("project_id", "api_access_tier")
+            .distinct()
+        )
+        return list(entries)
+
+
 class UserUpdateProfileSerializer(serializers.ModelSerializer):
     website = serializers.URLField(allow_blank=True, max_length=100)
 
