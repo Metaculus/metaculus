@@ -46,6 +46,7 @@ type Props = {
   options: ContinuousGroupOption[];
   groupVariable: string;
   canPredict: boolean;
+  predictLabel: string;
   isPending: boolean;
   subQuestionId?: number | null;
   permission?: ProjectPermissions;
@@ -85,6 +86,7 @@ const GroupForecastAccordion: FC<Props> = ({
   options,
   groupVariable,
   canPredict,
+  predictLabel,
   isPending,
   subQuestionId,
   permission,
@@ -209,6 +211,7 @@ const GroupForecastAccordion: FC<Props> = ({
               }
               permission={permission}
               canPredict={canPredict}
+              predictLabel={predictLabel}
               isPending={isPending}
               handleChange={handleChange}
               handleAddComponent={handleAddComponent}
