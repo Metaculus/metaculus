@@ -84,16 +84,14 @@ const StorefrontNavbar: FC = () => {
   }, []);
 
   const toggleSearch = useCallback(() => {
-    setIsSearchOpen((prev) => {
-      if (!prev) {
-        // Focus synchronously to preserve mobile user-activation for keyboard
-        // Works because the input is always mounted and hidden with opacity-0 (not visibility:hidden)
-        searchInputRef.current?.focus();
-      }
-      return !prev;
-    });
+    if (!isSearchOpen) {
+      // Focus synchronously to preserve mobile user-activation for keyboard
+      // Works because the input is always mounted and hidden with opacity-0 (not visibility:hidden)
+      searchInputRef.current?.focus();
+    }
+    setIsSearchOpen((prev) => !prev);
     setIsMenuOpen(false);
-  }, []);
+  }, [isSearchOpen]);
 
   // Click outside handler
   useEffect(() => {
@@ -207,6 +205,8 @@ const StorefrontNavbar: FC = () => {
           "absolute right-0 top-full z-[200] mt-2 w-full md:w-[375px]",
           !isSearchOpen && "pointer-events-none opacity-0"
         )}
+        aria-hidden={!isSearchOpen}
+        {...(!isSearchOpen && { inert: true })}
       >
         {searchInput}
       </div>
