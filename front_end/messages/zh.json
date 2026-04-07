@@ -23,6 +23,7 @@
   "logIn": "登入",
   "tutorial": "教程",
   "logOut": "退出",
+  "loggedInAs": "已登录为",
   "tweetPrediction": "推文預測！",
   "postPredictionAsComment": "將預測發佈為評論",
   "resolve": "解決",

@@ -23,6 +23,7 @@
   "logIn": "Iniciar sesión",
   "tutorial": "Tutorial",
   "logOut": "Cerrar sesión",
+  "loggedInAs": "Conectado como",
   "tweetPrediction": "¡Tuitear Predicción!",
   "postPredictionAsComment": "Publicar Predicción como Comentario",
   "resolve": "Resolver",

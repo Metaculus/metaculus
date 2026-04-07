@@ -100,6 +100,7 @@
   "logIn": "Log in",
   "tutorial": "Tutorial",
   "logOut": "Log Out",
+  "loggedInAs": "Logged in as",
   "tweetPrediction": "Tweet Prediction!",
   "postPredictionAsComment": "Post Prediction as Comment",
   "predictionUpcomingMessage": "This question is in the Upcoming stage, and will be open for predictions soon",
