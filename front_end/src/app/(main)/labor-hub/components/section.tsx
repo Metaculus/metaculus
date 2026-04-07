@@ -48,7 +48,7 @@ export function DualPaneSectionCard({
   return (
     <SectionCard
       className={cn(
-        "grid grid-cols-1 gap-8 lg:grid-cols-2 print:grid-cols-1",
+        "grid grid-cols-1 gap-8 lg:grid-cols-2 print:grid-cols-2",
         className
       )}
       {...props}

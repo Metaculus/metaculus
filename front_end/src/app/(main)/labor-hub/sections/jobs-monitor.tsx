@@ -76,6 +76,7 @@ export function JobsMonitorSection({
   return (
     <QuestionCard
       variant="section"
+      titleClassName="md:text-center"
       title="Jobs Monitor"
       subtitle="AI is reshaping the job market, but not all fields are affected equally."
       postIds={postIds}

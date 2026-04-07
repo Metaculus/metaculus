@@ -148,6 +148,7 @@ export async function OverviewSection({
       id: "overall",
       color: "blue",
       filled: false,
+      dataLabelTextClassName: "fill-mc-option-2 dark:fill-mc-option-2-dark",
       label: "Metaculus forecast",
       showDataLabels: true,
       dataLabelTransparent: true,
@@ -226,15 +227,15 @@ export async function OverviewSection({
 
   const overallColor = (value: number) =>
     value < 0
-      ? "text-salmon-600 dark:text-salmon-600-dark"
-      : "text-mint-600 dark:text-mint-600-dark";
+      ? "text-mc-option-2 dark:text-mc-option-2-dark"
+      : "text-mc-option-3 dark:text-mc-option-3-dark";
 
   const allPostIds = [OVERALL_POST_ID, ...jobs.map((j) => j.post_id)];
 
   return (
     <LaborHubChartHoverProvider>
       <LaborHubChartHoverSection
-        className="grid scroll-mt-12 lg:grid-cols-2 print:grid-cols-1 print:gap-4"
+        className="grid scroll-mt-12 lg:grid-cols-2 print:grid-cols-2 print:gap-4"
         {...props}
       >
         <QuestionCard
@@ -285,7 +286,7 @@ export async function OverviewSection({
           postIds={allPostIds}
           title="By Job Vulnerability"
           variant="primary"
-          className="lg:rounded-l-none"
+          className="bg-opacity-80 lg:rounded-l-none"
         >
           <LaborHubByJobVulnerabilityCard
             series={vulnerabilitySeries}

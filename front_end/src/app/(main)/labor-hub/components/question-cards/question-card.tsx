@@ -200,7 +200,7 @@ export function MoreButton({
           aria-label="more options"
           size="md"
           presentationType="icon"
-          className="border-transparent bg-transparent text-blue-700 hover:!bg-blue-400 group-hover/card:bg-blue-200 data-[open]:!bg-blue-700 data-[open]:!text-gray-0 dark:border-transparent dark:text-blue-700-dark dark:hover:!bg-blue-400-dark dark:group-hover/card:bg-blue-200-dark dark:data-[open]:!bg-blue-700-dark dark:data-[open]:!text-gray-0-dark"
+          className="border-transparent bg-transparent text-blue-700 hover:!bg-blue-400 group-hover/card:bg-blue-200 data-[open]:!bg-blue-700 data-[open]:!text-gray-0 dark:border-transparent dark:bg-transparent dark:text-blue-700-dark dark:hover:!bg-blue-400-dark dark:group-hover/card:bg-blue-200-dark dark:data-[open]:!bg-blue-700-dark dark:data-[open]:!text-gray-0-dark"
         >
           <FontAwesomeIcon icon={faEllipsis} />
         </Button>
@@ -240,7 +240,7 @@ export function QuestionCardSkeleton({
       <div
         className={cn(
           "mb-2 rounded",
-          variant === "primary" ? "h-7 w-3/4" : "h-5 w-2/3",
+          variant === "primary" ? "h-5 w-3/4 md:h-7" : "h-5 w-2/3",
           "bg-gray-300 dark:bg-gray-600"
         )}
       />
@@ -261,6 +261,8 @@ export function QuestionCard({
   title,
   subtitle,
   variant = "secondary",
+  titleVariantOverride,
+  titleClassName,
   showMoreButton = true,
   postIds = [],
   ...props
@@ -268,11 +270,14 @@ export function QuestionCard({
   title?: string;
   subtitle?: string;
   variant?: "secondary" | "primary" | "section";
+  titleVariantOverride?: "secondary" | "primary" | "section";
+  titleClassName?: string;
   showMoreButton?: boolean;
   /** Post IDs for actions (view, export, share) */
   postIds?: number[];
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const titleVariant = titleVariantOverride ?? variant;
 
   const handleExportPng = useCallback(() => {
     if (!cardRef.current) return;
@@ -345,12 +350,13 @@ export function QuestionCard({
         <h3
           className={cn(
             "my-0 w-full font-[450] leading-tight [text-wrap:pretty]",
-            variant === "primary" &&
-              "pr-12 text-2xl text-blue-800 dark:text-blue-800-dark",
-            variant === "secondary" &&
+            titleVariant === "primary" &&
+              "pr-12 text-lg text-blue-800 dark:text-blue-800-dark md:text-2xl",
+            titleVariant === "secondary" &&
               "pr-8 text-base text-gray-800 dark:text-gray-800-dark",
-            variant === "section" &&
-              "mb-3 break-after-avoid text-lg font-medium tracking-tight text-blue-800 dark:text-blue-800-dark md:text-center md:text-3xl md:font-bold print:text-2xl print:font-bold"
+            titleVariant === "section" &&
+              "mb-3 break-after-avoid text-lg font-medium tracking-tight text-blue-800 dark:text-blue-800-dark md:text-3xl md:font-bold print:text-2xl print:font-bold",
+            titleClassName
           )}
         >
           {title}

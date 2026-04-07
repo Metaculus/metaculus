@@ -41,7 +41,7 @@ export const metadata: Metadata = {
 
 export default function LaborAutomationHubPage() {
   return (
-    <main className="relative mb-24 min-h-screen xl:mt-12 print:mb-0 print:mt-0">
+    <main className="relative mb-24 min-h-screen xl:mt-12 print:mb-0 print:mt-0 print:[zoom:0.75]">
       <div className="mx-auto w-full max-w-7xl xl:px-16 print:px-0">
         <HeroSection />
       </div>
