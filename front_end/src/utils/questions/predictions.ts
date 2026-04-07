@@ -1,6 +1,3 @@
-import { parseISO } from "date-fns";
-import { isNil } from "lodash";
-
 import {
   Post,
   PostStatus,
@@ -21,6 +18,28 @@ type CanPredictParams = Pick<
   | "conditional"
 >;
 
+export function isQuestionPrePrediction(question: {
+  status?: QuestionStatus | string;
+  open_time?: string | null;
+}): boolean {
+  return question.status === QuestionStatus.UPCOMING && !!question.open_time;
+}
+
+export function isPostPrePrediction(
+  post: Pick<Post, "question" | "group_of_questions" | "conditional">
+): boolean {
+  if (post.question) {
+    return isQuestionPrePrediction(post.question);
+  }
+  if (post.group_of_questions) {
+    return post.group_of_questions.questions.every(isQuestionPrePrediction);
+  }
+  if (post.conditional) {
+    return isQuestionPrePrediction(post.conditional.condition_child);
+  }
+  return false;
+}
+
 export function canPredictQuestion(
   {
     user_permission,
@@ -38,22 +57,23 @@ export function canPredictQuestion(
   // post level checks
   if (
     user_permission === ProjectPermissions.VIEWER ||
-    status !== PostStatus.OPEN
+    (status !== PostStatus.OPEN && status !== PostStatus.APPROVED)
   ) {
     return false;
   }
 
   // question-specific checks
   if (question) {
-    const { open_time } = question;
-
-    return !isNil(open_time) && parseISO(open_time) < new Date();
+    return (
+      question.status === QuestionStatus.OPEN ||
+      isQuestionPrePrediction(question)
+    );
   }
 
   // group-specific checks
   if (group_of_questions) {
     return group_of_questions.questions.some(
-      (q) => q.status === QuestionStatus.OPEN
+      (q) => q.status === QuestionStatus.OPEN || isQuestionPrePrediction(q)
     );
   }
 
@@ -71,8 +91,7 @@ export function canPredictQuestion(
 
     return (
       !conditionClosedOrResolved &&
-      conditional.condition_child.open_time !== undefined &&
-      new Date(conditional.condition_child.open_time) <= new Date()
+      conditional.condition_child.open_time != null
     );
   }
 
@@ -88,7 +107,8 @@ export function canWithdrawForecast(
     latestForecast && !isForecastActive(latestForecast);
 
   return (
-    question.status === QuestionStatus.OPEN &&
+    (question.status === QuestionStatus.OPEN ||
+      question.status === QuestionStatus.UPCOMING) &&
     latestForecast &&
     !latestForecastExpired &&
     permission !== ProjectPermissions.VIEWER
