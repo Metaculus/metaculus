@@ -24,7 +24,7 @@
   "logIn": "Přihlaste se",
   "tutorial": "Návod",
   "logOut": "Odhlásit se",
-  "loggedInAs": "Přihlášen jako",
+  "loggedInAs": "Přihlášen jako {username}",
   "menu": "Menu",
   "tweetPrediction": "Tweetnout predikci!",
   "postPredictionAsComment": "Zveřejnit predikci jako komentář",

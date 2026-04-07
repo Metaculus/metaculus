@@ -101,7 +101,7 @@
   "logIn": "Log in",
   "tutorial": "Tutorial",
   "logOut": "Log Out",
-  "loggedInAs": "Logged in as",
+  "loggedInAs": "Logged in as {username}",
   "menu": "Menu",
   "tweetPrediction": "Tweet Prediction!",
   "postPredictionAsComment": "Post Prediction as Comment",

@@ -124,7 +124,7 @@ const StorefrontNavbar: FC = () => {
   const searchInput = (
     <form
       onSubmit={handleSearchSubmit}
-      className="flex items-center justify-between rounded-xl bg-blue-200 px-4 py-2 shadow-2xl"
+      className="flex items-center justify-between rounded-xl bg-blue-200 px-4 py-2 shadow-2xl focus-within:ring-2 focus-within:ring-blue-500"
     >
       <div className="flex items-center gap-2.5">
         <FontAwesomeIcon
@@ -143,6 +143,8 @@ const StorefrontNavbar: FC = () => {
       </div>
       <button
         type="submit"
+        disabled={!searchQuery.trim()}
+        aria-label={t("submit")}
         className={cn(
           "flex size-8 shrink-0 items-center justify-center rounded-md bg-blue-700 transition-opacity",
           searchQuery.trim() ? "opacity-100" : "pointer-events-none opacity-0"
@@ -280,10 +282,7 @@ const StorefrontNavbar: FC = () => {
                 ))}
                 <Divider />
                 <p className="my-0 text-right text-sm text-blue-900">
-                  <span className="font-normal">{t("loggedInAs")}</span>{" "}
-                  <span className="font-semibold text-blue-700">
-                    {user.username}
-                  </span>
+                  {t("loggedInAs", { username: user.username })}
                 </p>
                 <button
                   type="button"

@@ -24,7 +24,7 @@
   "logIn": "Entrar",
   "tutorial": "Tutorial",
   "logOut": "Sair",
-  "loggedInAs": "Conectado como",
+  "loggedInAs": "Conectado como {username}",
   "menu": "Menu",
   "tweetPrediction": "Tuitar Previsão!",
   "postPredictionAsComment": "Publicar Previsão como Comentário",

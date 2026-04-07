@@ -26,7 +26,7 @@
   "logIn": "登入",
   "tutorial": "教程",
   "logOut": "登出",
-  "loggedInAs": "已登入為",
+  "loggedInAs": "已登入為 {username}",
   "menu": "選單",
   "tweetPrediction": "推文預測！",
   "postPredictionAsComment": "將預測發表為評論",
