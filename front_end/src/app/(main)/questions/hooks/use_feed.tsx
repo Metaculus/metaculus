@@ -11,6 +11,7 @@ import {
   POST_TOPIC_FILTER,
   POST_USERNAMES_FILTER,
   POST_WEEKLY_TOP_COMMENTS_FILTER,
+  POST_COMMENTS_FEED_FILTER,
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
@@ -28,6 +29,7 @@ const useFeed = () => {
   const orderBy = params.get(POST_ORDER_BY_FILTER);
   const communities = params.get(POST_COMMUNITIES_FILTER);
   const weeklyTopComments = params.get(POST_WEEKLY_TOP_COMMENTS_FILTER);
+  const commentsFeed = params.get(POST_COMMENTS_FEED_FILTER);
 
   const currentFeed = useMemo(() => {
     if (selectedTopic) return null;
@@ -47,6 +49,7 @@ const useFeed = () => {
     if (weeklyTopComments) {
       return FeedType.WEEKLY_TOP_COMMENTS;
     }
+    if (commentsFeed) return FeedType.COMMENTS_FEED;
     return FeedType.HOME;
   }, [
     selectedTopic,
@@ -56,6 +59,7 @@ const useFeed = () => {
     communities,
     user,
     weeklyTopComments,
+    commentsFeed,
   ]);
 
   const clearInReview = useCallback(() => {
@@ -84,6 +88,8 @@ const useFeed = () => {
           return { [POST_COMMUNITIES_FILTER]: "true" };
         case FeedType.WEEKLY_TOP_COMMENTS:
           return { [POST_WEEKLY_TOP_COMMENTS_FILTER]: "true" };
+        case FeedType.COMMENTS_FEED:
+          return { [POST_COMMENTS_FEED_FILTER]: "true" };
         case FeedType.FOLLOWING:
           return { [POST_FOLLOWING_FILTER]: "true" };
         case FeedType.HOME:

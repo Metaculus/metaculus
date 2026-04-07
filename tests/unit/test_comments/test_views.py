@@ -1,4 +1,5 @@
 from datetime import timedelta
+from urllib.parse import urlencode
 
 import pytest  # noqa
 from django.urls import reverse
@@ -14,6 +15,7 @@ from comments.models import (
     KeyFactorNews,
 )
 from comments.services.feed import get_comments_feed
+from posts.models import PostUserSnapshot
 from questions.models import Forecast
 from questions.services.forecasts import create_forecast
 from tests.unit.test_comments.factories import factory_comment, factory_key_factor
@@ -189,8 +191,10 @@ def test_get_comments_feed_permissions(user1, user2):
 
     factory_comment(author=user2, on_post=post, is_soft_deleted=True)
 
-    # Without filter, should return empty
-    assert set(get_comments_feed(Comment.objects.all())) == set()
+    # Without post/author filter, returns non-private non-deleted comments
+    assert {c.pk for c in get_comments_feed(Comment.objects.all())} == {
+        c3.pk,
+    }
 
     # Filter by post
     assert {c.pk for c in get_comments_feed(Comment.objects.all(), post=post)} == {
@@ -842,3 +846,116 @@ class TestCommentEdit:
         comment.refresh_from_db()
         # Should attach forecast active at closure time
         assert comment.included_forecast == forecast
+
+
+class TestUnreadThreadPrioritization:
+    """Test that threads with unread comments are prioritized on the first page
+    and that ordering remains consistent across paginated requests even after
+    markPostAsRead updates the snapshot."""
+
+    @pytest.fixture()
+    def setup(self, user1, user2):
+        post = factory_post(author=user1)
+        now = timezone.now()
+        viewed_at = now - timedelta(hours=1)
+
+        # Create 3 old root comments (before viewed_at) — all "read"
+        old_roots = []
+        for i in range(3):
+            with freeze_time(now - timedelta(hours=3, minutes=i)):
+                c = factory_comment(author=user2, on_post=post, text=f"old_root_{i}")
+                old_roots.append(c)
+
+        # Create 2 old root comments that have NEW replies (after viewed_at)
+        roots_with_new_replies = []
+        for i in range(2):
+            with freeze_time(now - timedelta(hours=3, minutes=10 + i)):
+                root = factory_comment(
+                    author=user2, on_post=post, text=f"root_with_reply_{i}"
+                )
+            with freeze_time(now - timedelta(minutes=30 - i)):
+                factory_comment(
+                    author=user2,
+                    on_post=post,
+                    parent=root,
+                    text=f"new_reply_{i}",
+                )
+            roots_with_new_replies.append(root)
+
+        # Create 3 new root comments (after viewed_at) — all "unread"
+        new_roots = []
+        for i in range(3):
+            with freeze_time(now - timedelta(minutes=20 - i)):
+                c = factory_comment(author=user2, on_post=post, text=f"new_root_{i}")
+                new_roots.append(c)
+
+        return {
+            "post": post,
+            "viewed_at": viewed_at,
+            "old_roots": old_roots,
+            "roots_with_new_replies": roots_with_new_replies,
+            "new_roots": new_roots,
+        }
+
+    def test_unread_threads_first_across_pages(self, user1_client, setup, user1):
+        """With 8 root comments (5 unread threads, 3 read), page size 3:
+        - Page 1 should contain 3 unread threads
+        - Page 2 should contain 2 unread + 1 read thread
+        - Page 3 should contain remaining 2 read threads
+        Even after markPostAsRead fires between page 1 and page 2,
+        the ordering should stay consistent because last_viewed_at is
+        passed as a query param."""
+        post = setup["post"]
+        viewed_at = setup["viewed_at"]
+        old_roots = setup["old_roots"]
+        roots_with_new_replies = setup["roots_with_new_replies"]
+        new_roots = setup["new_roots"]
+
+        unread_root_ids = {c.pk for c in new_roots} | {
+            c.pk for c in roots_with_new_replies
+        }
+        read_root_ids = {c.pk for c in old_roots}
+
+        params = urlencode(
+            {
+                "post": post.pk,
+                "limit": 3,
+                "sort": "-created_at",
+                "use_root_comments_pagination": "true",
+                "last_viewed_at": viewed_at.isoformat(),
+            }
+        )
+
+        # Page 1: all 3 root comments should be from unread threads
+        response = user1_client.get(f"/api/comments/?{params}")
+        assert response.status_code == 200
+        page1_root_ids = {
+            r["id"] for r in response.data["results"] if r["parent_id"] is None
+        }
+        assert page1_root_ids.issubset(unread_root_ids)
+        assert len(page1_root_ids) == 3
+
+        # Simulate markPostAsRead (updates snapshot to now)
+        PostUserSnapshot.update_viewed_at(post, user1)
+
+        # Page 2: uses same last_viewed_at, so ordering is stable
+        response = user1_client.get(response.data["next"])
+        assert response.status_code == 200
+        page2_root_ids = {
+            r["id"] for r in response.data["results"] if r["parent_id"] is None
+        }
+        # Should have remaining 2 unread + 1 read
+        assert (page2_root_ids & unread_root_ids) == unread_root_ids - page1_root_ids
+        assert len(page2_root_ids & read_root_ids) >= 1
+
+        # Page 3: remaining read threads
+        response = user1_client.get(response.data["next"])
+        assert response.status_code == 200
+        page3_root_ids = {
+            r["id"] for r in response.data["results"] if r["parent_id"] is None
+        }
+        assert page3_root_ids.issubset(read_root_ids)
+
+        # All roots accounted for, no duplicates
+        all_paged = page1_root_ids | page2_root_ids | page3_root_ids
+        assert all_paged == unread_root_ids | read_root_ids

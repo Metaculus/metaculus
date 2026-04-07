@@ -163,7 +163,11 @@ const NumericQuestionInput: React.FC<{
         if ((min ? min : 0) <= zeroPoint && zeroPoint <= (max ? max : 0)) {
           questionType == QuestionType.Numeric
             ? current_errors.push(
-                t.rich("zeroPointError1", { zeroPoint, min, max })
+                t.rich("zeroPointError1", {
+                  zeroPoint,
+                  min: min ?? 0,
+                  max: max ?? 0,
+                })
               )
             : current_errors.push(
                 t.rich("zeroPointError1", {

@@ -308,7 +308,7 @@ export async function changePostActivityBoost(
 
 export async function removeRelatedArticle(articleId: number) {
   await ServerPostsApi.removeRelatedArticle(articleId);
-  revalidateTag("related-articles");
+  revalidateTag("related-articles", "max");
 }
 
 export async function changePostSubscriptions(

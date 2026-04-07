@@ -9,6 +9,7 @@ import {
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import { useAuth } from "@/contexts/auth_context";
+import { useForcedLight } from "@/contexts/force_light_context";
 import { AppTheme, ThemeColor } from "@/types/theme";
 import { logError } from "@/utils/core/errors";
 
@@ -21,10 +22,12 @@ const useAppTheme = () => {
   } = useTheme();
   const [isSyncing, setIsSyncing] = useState<boolean>();
   const { user, setUser } = useAuth();
+  const forcedLight = useForcedLight();
 
   const theme = useMemo(() => {
+    if (forcedLight) return "light" as AppTheme;
     return (forcedTheme ?? resolvedTheme ?? "light") as AppTheme;
-  }, [forcedTheme, resolvedTheme]);
+  }, [forcedLight, forcedTheme, resolvedTheme]);
 
   const setTheme = useCallback(
     async (newTheme: AppTheme) => {

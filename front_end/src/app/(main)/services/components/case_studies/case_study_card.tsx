@@ -150,7 +150,7 @@ const CaseStudyCard: React.FC<Props> = ({ card, className }) => {
                 </span>
                 <span>
                   {t("publishedWithLabel", {
-                    label: card.report.publishedAtLabel,
+                    label: card.report.publishedAtLabel ?? "",
                   })}
                 </span>
               </div>

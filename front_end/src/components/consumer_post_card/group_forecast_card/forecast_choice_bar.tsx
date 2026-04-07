@@ -24,6 +24,7 @@ type Props = {
   isBordered?: boolean;
   unit?: string;
   forceColorful?: boolean;
+  compact?: boolean;
 };
 
 const WIDTH_ADJUSTMENT = 2;
@@ -39,6 +40,7 @@ const ForecastChoiceBar: FC<Props> = ({
   isBordered = false,
   unit,
   forceColorful = false,
+  compact = false,
 }) => {
   const t = useTranslations();
   const { getThemeColor } = useAppTheme();
@@ -49,7 +51,10 @@ const ForecastChoiceBar: FC<Props> = ({
   return (
     <div
       className={cn(
-        "relative flex h-8 w-full items-center justify-between gap-2 rounded-lg border border-blue-400 bg-transparent px-2.5 py-1 text-base font-medium leading-6 text-gray-800 dark:border-blue-400-dark dark:text-gray-800-dark",
+        "relative flex w-full items-center justify-between gap-2 rounded-lg border border-blue-400 bg-transparent font-medium text-gray-800 dark:border-blue-400-dark dark:text-gray-800-dark",
+        compact
+          ? "h-6 px-2 py-0.5 text-xs leading-4 md:h-8 md:px-2.5 md:py-1 md:text-base md:leading-6"
+          : "h-8 px-2.5 py-1 text-base leading-6",
         {
           "border-transparent": !isBordered,
           "text-purple-800 dark:text-purple-800-dark": isResolutionSuccessful,
@@ -92,9 +97,13 @@ const ForecastChoiceBar: FC<Props> = ({
 
       {isCpRevealed && (
         <div
-          className={cn("absolute -inset-[1px] z-0 h-8 rounded-lg border", {
-            "border-2": resolution,
-          })}
+          className={cn(
+            "absolute -inset-[1px] z-0 rounded-lg border",
+            compact ? "h-6 md:h-8" : "h-8",
+            {
+              "border-2": resolution,
+            }
+          )}
           style={{
             display:
               !isNil(resolution) && !isResolutionSuccessful ? "none" : "block",

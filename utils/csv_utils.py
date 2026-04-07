@@ -120,7 +120,7 @@ def export_all_data_for_questions(
 def export_data_for_questions(
     user_id: int | None,
     is_staff: bool,
-    is_whitelisted: bool,
+    has_data_access: bool,
     question_ids: list[int],
     aggregation_methods: list[AggregationMethod] | None,
     minimize: bool,
@@ -145,10 +145,10 @@ def export_data_for_questions(
         )
     if only_include_user_ids:
         user_forecasts = user_forecasts.filter(author_id__in=only_include_user_ids)
-    if not (is_whitelisted or is_staff):
+    if not (has_data_access or is_staff):
         user_forecasts = user_forecasts.filter(author=user)
 
-    if is_whitelisted or is_staff:
+    if has_data_access or is_staff:
         questions_with_revealed_cp = questions
     else:
         questions_with_revealed_cp = questions.filter(
@@ -226,7 +226,7 @@ def export_data_for_questions(
             archived_scores = archived_scores.filter(
                 Q(user_id__in=only_include_user_ids) | Q(user__isnull=True)
             )
-        elif not (is_whitelisted or is_staff):
+        elif not (has_data_access or is_staff):
             # only include user-specific scores for the logged-in user
             scores = scores.filter(
                 Q(user__isnull=True) | (Q(user=user) if user else Q())

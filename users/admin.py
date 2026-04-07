@@ -11,6 +11,11 @@ from sql_util.aggregates import SubqueryAggregate
 from projects.models import ProjectUserPermission
 from questions.models import Forecast
 from users.models import User, UserCampaignRegistration, UserSpamActivity
+from users.services.common import (
+    clean_user_data_delete,
+    mark_user_as_spam,
+    soft_delete_user,
+)
 from users.services.spam_detection import (
     CONFIDENCE_THRESHOLD,
     check_profile_data_for_spam,
@@ -306,15 +311,15 @@ class UserAdmin(admin.ModelAdmin):
 
     def mark_selected_as_spam(self, request, queryset: QuerySet[User]):
         for user in queryset:
-            user.mark_as_spam()
+            mark_user_as_spam(user)
 
     def soft_delete_selected(self, request, queryset: QuerySet[User]):
         for user in queryset:
-            user.soft_delete()
+            soft_delete_user(user)
 
     def clean_user_data_deletion(self, request, queryset: QuerySet[User]):
         for user in queryset:
-            user.clean_user_data_delete()
+            clean_user_data_delete(user)
 
     clean_user_data_deletion.short_description = (
         "One click Personal Data deletion (GDPR compliant)"
@@ -329,7 +334,7 @@ class UserAdmin(admin.ModelAdmin):
             )
 
             if is_spam:
-                user.mark_as_spam()
+                mark_user_as_spam(user)
                 send_deactivation_email(user.email)
 
     def get_fields(self, request, obj=None):
@@ -389,7 +394,8 @@ class UserSpamActivityAdmin(admin.ModelAdmin):
         "confidence_value",
         "content_link",
     ]
-    search_fields = ["user__username", "user__email"]
+    search_fields = ["user__username", "user__id", "user__email"]
+    list_filter = ["user"]
 
     def content_link(self, obj):
         match obj.content_type:

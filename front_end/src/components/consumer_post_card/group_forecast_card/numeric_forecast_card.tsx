@@ -4,6 +4,7 @@ import { isNil } from "lodash";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
+import { getEffectiveVisibleCount } from "@/constants/questions";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
@@ -20,10 +21,10 @@ import ForecastChoiceBar from "./forecast_choice_bar";
 type Props = {
   post: PostWithForecasts;
   forceColorful?: boolean;
+  compact?: boolean;
 };
 
-const NumericForecastCard: FC<Props> = ({ post, forceColorful }) => {
-  const visibleChoicesCount = 3;
+const NumericForecastCard: FC<Props> = ({ post, forceColorful, compact }) => {
   const locale = useLocale();
   const t = useTranslations();
   const [expanded, setExpanded] = useState(false);
@@ -33,6 +34,9 @@ const NumericForecastCard: FC<Props> = ({ post, forceColorful }) => {
   }
 
   const isDateGroup = checkGroupOfQuestionsPostType(post, QuestionType.Date);
+  const visibleChoicesCount = getEffectiveVisibleCount(
+    post.group_of_questions?.questions?.length ?? 0
+  );
 
   const choices = generateChoiceItemsFromGroupQuestions(
     post.group_of_questions,
@@ -82,6 +86,7 @@ const NumericForecastCard: FC<Props> = ({ post, forceColorful }) => {
       expanded={expanded}
       onExpand={() => setExpanded(true)}
       hideOthersValue
+      compact={compact}
     >
       {visibleChoices.map(
         ({
@@ -140,6 +145,7 @@ const NumericForecastCard: FC<Props> = ({ post, forceColorful }) => {
               color={color}
               unit={unit}
               forceColorful={forceColorful}
+              compact={compact}
             />
           );
         }

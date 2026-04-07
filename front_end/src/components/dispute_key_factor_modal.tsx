@@ -21,6 +21,7 @@ type Props = {
   onOptimisticAdd: (text: string) => number | Promise<number>;
   onFinalize: (tempId: number, real: CommentType) => void;
   onRemove: (tempId: number) => void;
+  onSubmitted?: () => void;
 };
 
 const scrollIntoViewById = (domId: string, opts?: ScrollIntoViewOptions) => {
@@ -36,6 +37,7 @@ const DisputeKeyFactorModal: React.FC<Props> = ({
   onOptimisticAdd,
   onFinalize,
   onRemove,
+  onSubmitted,
 }) => {
   const t = useTranslations();
   const [text, setText] = useState("");
@@ -51,8 +53,9 @@ const DisputeKeyFactorModal: React.FC<Props> = ({
       tempId = await onOptimisticAdd(text);
       const be = await replyToComment(parentCommentId, postId, text);
       const real: CommentType = { ...parseComment(be), children: [] };
-      setTimeout(() => scrollIntoViewById(`comment-${real.id}`), 40);
       onClose();
+      onSubmitted?.();
+      setTimeout(() => scrollIntoViewById(`comment-${real.id}`), 200);
 
       onFinalize(tempId, real);
     } catch {

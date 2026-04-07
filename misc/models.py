@@ -4,6 +4,7 @@ from pgvector.django import VectorField
 from posts.models import Post
 from projects.models import Project
 from users.models import User
+from users.constants import ApiAccessTier
 from utils.models import TimeStampedModel
 
 
@@ -74,29 +75,47 @@ class BulletinViewedBy(TimeStampedModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 
-class WhitelistUser(TimeStampedModel):
-    """Whitelist for users for permission to download user-level data"""
+class UserDataAccess(TimeStampedModel):
+    """Grants users permission to unlock project-specific API access and user-level data"""
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="whitelists")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="data_accesses"
+    )
     project = models.ForeignKey(
         Project,
         null=True,
         blank=True,
         on_delete=models.CASCADE,
-        related_name="whitelists",
-        help_text="Optional. If provided, this allows the user to download user-level "
-        "data for the project. If neither project nor post is set, the user is "
-        "whitelisted for all data.",
+        related_name="data_accesses",
+        help_text="Optional. Scopes this entry to a specific project. "
+        "If neither project nor post is set while `view_user_data` is True, this entry "
+        "will apply globally with respect to viewing user data. "
+        "The API access tier will apply to this project if it exceeds the user's "
+        "base tier. If neither project nor post is set, the api_access_tier will be "
+        "taken from the User's base tier.",
     )
     post = models.ForeignKey(
         Post,
         null=True,
         blank=True,
         on_delete=models.CASCADE,
-        related_name="whitelists",
-        help_text="Optional. If provided, this allows the user to download user-level "
-        "data for the post. If neither project nor post is set, the user is "
-        "whitelisted for all data.",
+        related_name="data_accesses",
+        help_text="Optional. Scopes this entry to a specific post. "
+        "The API access tier will apply to this post if it exceeds the user's "
+        "base tier. If neither project nor post is set, the entry applies globally.",
+    )
+
+    api_access_tier = models.CharField(
+        max_length=32,
+        choices=ApiAccessTier.choices,
+        default=ApiAccessTier.RESTRICTED,
+        help_text="Indicates the API access tier relevant to this data access entry.",
+    )
+    view_user_data = models.BooleanField(
+        default=False,
+        help_text="If True, the user can view user-level data (e.g., download datasets "
+        "with user-level information included). If False, the user can only access "
+        "aggregated data or anonymized user-level data.",
     )
     view_deanonymized_data = models.BooleanField(
         default=False,
@@ -105,9 +124,18 @@ class WhitelistUser(TimeStampedModel):
     notes = models.TextField(
         null=True,
         blank=True,
-        help_text="Optional notes about the whitelisting, e.g., reason for access. "
+        help_text="Optional notes about the data access grant, e.g., reason for access. "
         "Please note any specific conditions.",
     )
+
+    class Meta:
+        unique_together = [("user", "project", "post")]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(project__isnull=True) | models.Q(post__isnull=True),
+                name="userdataaccess_project_or_post_not_both",
+            )
+        ]
 
 
 class SidebarItem(TimeStampedModel):

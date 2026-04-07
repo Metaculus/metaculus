@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
+import { getEffectiveVisibleCount } from "@/constants/questions";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
@@ -21,10 +22,14 @@ import ForecastChoiceBar from "./forecast_choice_bar";
 type Props = {
   post: PostWithForecasts;
   forceColorful?: boolean;
+  compact?: boolean;
 };
 
-const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
-  const visibleChoicesCount = 3;
+const PercentageForecastCard: FC<Props> = ({
+  post,
+  forceColorful,
+  compact,
+}) => {
   const locale = useLocale();
   const t = useTranslations();
   const [expanded, setExpanded] = useState(false);
@@ -40,6 +45,13 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
     cpRevealTime && new Date(cpRevealTime).getTime() > Date.now()
       ? t("hidden")
       : t("Upcoming");
+
+  const totalOptionsCount = isMC
+    ? post.question?.options?.length ?? 0
+    : isGroupOfQuestionsPost(post)
+      ? post.group_of_questions?.questions?.length ?? 0
+      : 0;
+  const visibleChoicesCount = getEffectiveVisibleCount(totalOptionsCount);
 
   const allChoices = useMemo(() => {
     const raw = generateChoiceItems(post, visibleChoicesCount, locale, t);
@@ -69,7 +81,7 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
         isChoiceClosed,
       };
     });
-  }, [post, locale, t, emptyLabel]);
+  }, [post, visibleChoicesCount, locale, t, emptyLabel]);
 
   if (!isMC && !isGroupOfQuestionsPost(post)) return null;
 
@@ -92,6 +104,7 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
       expanded={expanded}
       onExpand={() => setExpanded(true)}
       hideOthersValue={isGroupBinary}
+      compact={compact}
     >
       {visible.map((choice) => (
         <ForecastChoiceBar
@@ -105,6 +118,7 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
           color={choice.color}
           isBordered={true}
           forceColorful={forceColorful}
+          compact={compact}
         />
       ))}
     </ForecastCardWrapper>
@@ -117,9 +131,15 @@ function generateChoiceItems(
   t: ReturnType<typeof useTranslations>
 ) {
   if (isMultipleChoicePost(post)) {
+    const cpRevealTime = post.question?.cp_reveal_time;
+    const cpRevealsOn =
+      cpRevealTime && new Date(cpRevealTime) >= new Date()
+        ? cpRevealTime
+        : null;
     return generateChoiceItemsFromMultipleChoiceForecast(post.question, t, {
       activeCount: visibleChoicesCount,
       showNoResolutions: false,
+      cpRevealsOn,
     });
   }
   if (isGroupOfQuestionsPost(post)) {

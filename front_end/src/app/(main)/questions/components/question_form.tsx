@@ -4,7 +4,6 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isNil } from "lodash";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useRef, useState } from "react";
@@ -706,10 +705,7 @@ const QuestionForm: FC<Props> = ({
         )}
         <InputContainer
           labelText={t("backgroundInformation")}
-          explanation={t.rich("backgroundInfoExplanation", {
-            link: (chunks) => <Link href="/help/markdown">{chunks}</Link>,
-            markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
-          })}
+          explanation={t("backgroundInfoExplanation")}
           isNativeFormControl={false}
         >
           <MarkdownEditorField
@@ -966,7 +962,16 @@ const QuestionForm: FC<Props> = ({
           <div className="mb-6 flex w-full flex-col gap-4 md:flex-row">
             <InputContainer
               labelText={"Publish Time"}
-              explanation={t("publishTimeDescription")}
+              explanation={
+                mode === "edit" ? (
+                  <>
+                    <span>{t("publishTimeDescription")} </span>
+                    <span>{t("publishTimeLockedDescription")}</span>
+                  </>
+                ) : (
+                  t("publishTimeDescription")
+                )
+              }
               className="w-full gap-2"
             >
               <DateInput
@@ -974,6 +979,7 @@ const QuestionForm: FC<Props> = ({
                 name="published_at"
                 defaultValue={post?.published_at}
                 errors={form.formState.errors.published_at}
+                disabled={mode === "edit"}
                 className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
               />
             </InputContainer>

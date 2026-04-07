@@ -3,42 +3,66 @@ info:
   version: 2.0.0
   title: Metaculus API
   description: |
-    <b>Welcome to the official Metaculus API!</b>
+    <h2>Welcome to the official Metaculus API!</h2>
     
-    <b> Authentication Required</b>
+    <h2>API Data Access</h2>
+
     <p>
-      ⚠️ All API requests require valid authentication credentials. Unauthenticated requests will be rejected with an authentication error. Ensure you include your API token in the <code>Authorization</code> header for all requests.
-      </br>See the "How to Authenticate" section below for setup instructions.
+    The following data access restrictions and request throttling apply to the main Metaculus instance at <a href="https://www.metaculus.com">metaculus.com</a>. If you are running a custom instance, these restrictions do not apply.
+    </p>
+
+    <p>
+    ⚠️ All API requests require valid authentication credentials. Unauthenticated requests will be rejected with an authentication error. Ensure you include your API token in the <code>Authorization</code> header for all requests.
+    <br/>See the "How to Authenticate" section below for setup instructions.
+    </p>
+
+    <h4>All Authenticated Accounts</h4>
+    All users, given authentication, have access to the following data via the API:
+    <ul>
+    <li><b>Your own data:</b> Your predictions, scores, comments, and other personal data are always available.</li>
+    <li><b>Question text &amp; resolution values:</b> Open question text is always available. For closed questions, you can access the text and resolution value of any question you have predicted on.</li>
+    <li><b>Staff comments:</b> Comments authored by Metaculus staff are available. To access comments, you must filter by <code>author</code> (your own user ID) or <code>author_is_staff=true</code>.</li>
+    <li><b>Community Prediction (limited):</b> The current value of the Community Prediction is available on a small set of ~50 questions. On all other questions, aggregation data (Community Prediction and other aggregates) is not included in API responses.</li>
+    </ul>
+
+    <h4>Bot Benchmarking Access Tier</h4>
+    <p>
+    An additional access tier is available for bot makers. This tier grants current Community Prediction, question text, and resolution access on a larger set of ~250 open questions and ~250 resolved questions, intended for training and evaluation purposes.
+    To request access, please email <a href="mailto:api-requests@metaculus.com">api-requests@metaculus.com</a>.
+    </p>
+
+    <h4>Non-commercial &amp; Commercial Use</h4>
+    <p>
+    If you want to make non-commercial use of Metaculus data (scientific, hobbyist, etc.), please get in touch &mdash; we generally welcome such projects.
+    For commercial use inquiries, also contact us at <a href="mailto:api-requests@metaculus.com">api-requests@metaculus.com</a>.
     </p>
 
     If you have questions, ideas, or feedback, please contact our team at
     <a href="mailto:api-requests@metaculus.com">api-requests@metaculus.com</a>. We are excited to keep building upon this
     initial version of the API, and we’d like to keep making it more useful
     to you. Our aim is to support the forecasting community – we’re listening!
-    
-    <b>Get Started in 15 Seconds</b>
-    
+
+    <h2>Get Started in 15 Seconds</h2>
+
     <ol>
     <li>Most of the API is (hopefully) self-explanatory. You’ll find all the documentation below.
     <li>If you’re testing the waters or doing a one-off analysis, you can dive right in!
     <li>If you’re building an application that connects to the Metaculus API, you’ll need to authenticate.
     </ol>
-    
-    <b>How to Authenticate</b>
-    
+
+    <h2>How to Authenticate</h2>
+
     You can see your current API token (or generate one) at your <a href="https://www.metaculus.com/accounts/settings/account/#api-access">settings</a> page, under the header "API Access".
-    
+
     You can then add the token to your requests using the <i>Authorization</i> HTTP header. The token should be prefixed by the string literal "Token", with whitespace separating the two strings.
-    
+
     Example:
-    
+
     <blockquote>
     Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b
     </blockquote>
-    
-    Please note that we throttle requests to prevent abuse.
 
-    <b>How to generate a continuous cdf?</b>
+    <h2>How to generate a continuous cdf?</h2>
     
     Generating a CDF to predict on a continuous question can be a bit tricky. We only accept predictions in the form of a 201 point
     CDF, represented as a list of floats, so getting scaling right is very important.
@@ -52,10 +76,16 @@ info:
     You could also find those values in the api by looking at the `"range_min"` and `"range_max"` properties inside `question["scaling"]`.
     If you want to build a cdf, what does that mean to you? It means that you'll need to generate the heights of the cdf at 201 points
     representing locations between -40 and 110. In this case, the first value of the CDF array we are going to build will be the probability
-    that the temperature is less than (not equal to) to -40. The last value will represent the probability that the temperature is less 
+    that the temperature is less than (not equal to) -40. The last value will represent the probability that the temperature is less
     than or equal to 110. We then see that the `"zero_point"` in `question["scaling"]` is None, so we can conclude that the remaining
     values in the CDF array represent the height of the cdf at equally spaced locations between -40 and 110. This is because the `"zero_point"`
     being empty means that the question scaling is linear.<br>
+
+    **Important note on closed bounds:** The asymmetry above — `cdf[0]` is strictly less-than while `cdf[-1]` is less-than-or-equal — has
+    a practical consequence for questions with a closed lower bound. Because outcomes strictly below a closed lower bound are impossible,
+    `cdf[0]` must be exactly `0.0`. This does *not* mean you must assign zero probability to the outcome equalling the lower bound exactly.
+    Instead, the probability of landing on the lower bound belongs in the first inbound bucket, which is `cdf[1] - cdf[0]` = `cdf[1]`.
+    For example, if you believe there is a 70% chance the outcome is exactly the lower bound, set `cdf[1] = 0.7` (and `cdf[0] = 0.0`).<br>
 
     Here's a function that can take in a nominal location and return the corresponding "internal location" x-value. Note that it
     does account for logarithmic scaling.
@@ -127,7 +157,11 @@ info:
           "percentile_99": 990,
         }
         optionally, include `below_lower_bound` and `above_upper_bound`
-        to indicate the amount of probability mass assigned to those locations
+        to indicate the amount of probability mass assigned strictly outside those bounds.
+        Note: `below_lower_bound` is P(outcome < lower_bound), i.e. strictly less than.
+        For questions with a closed lower bound this must be 0.0 (or omitted); any
+        probability you intend for the outcome equalling the lower bound exactly should
+        instead be expressed via a percentile at or just above the lower bound value.
         percentiles = {
           "percentile_25": 500,
           "percentile_50": 650,
@@ -186,7 +220,7 @@ info:
     ```
 
     Phew, that was pretty long, but now we can take a set of nominal percentiles and generate a CDF that is in the format
-    that the Metaculus api will accept. But wait! Just because we have a cdf that represents out beliefs, it doesn't 
+    that the Metaculus api will accept. But wait! Just because we have a cdf that represents our beliefs, it doesn't 
     mean Metaculus will accept it. We'll have to make sure it obeys a few rules, lest it be rejected as invalid.
     
     1. The cdf must be strictly increasing by at least 0.00005 per step (1% / inbound_outcome_count). This is because Metaculus 
@@ -198,10 +232,13 @@ info:
         that threshold is scaled as such: 0.2 * (200 / inbound_outcome_count). This prevents too extreme spikes in the distribution.
     
     3. The cdf must obey bounds. If a boundary is open, at least 0.1% of probability mass must be assigned outside of it; if it
-        is closed, no probability mass may be outside of it.
+        is closed, no probability mass may be outside of it. Concretely: for a closed lower bound `cdf[0]` must be exactly `0.0`,
+        and for a closed upper bound `cdf[-1]` must be exactly `1.0`. Note that a closed lower bound does not prevent you from
+        assigning probability to the outcome equalling the lower bound — that mass goes in the first inbound bucket (`cdf[1]`),
+        not in `cdf[0]`.
 
     Here's a standardization function that ensures your CDF will be accepted. It does add a linear component to the cdf,
-    so those with an abundance of precision in their forecasts way want to skip it. The cdfs (and thus their derived pdfs)
+    so those with an abundance of precision in their forecasts may want to skip it. The cdfs (and thus their derived pdfs)
     you see on the website have been standardized in this way.
     ```python
     def standardize_cdf(cdf, question_data: dict):
@@ -937,6 +974,9 @@ components:
           type: integer
           description: The ID of the question.
           example: 3
+        Question URL:
+          type: string
+          description: The URL of the question page.
         Question Title:
           type: string
           description: The title of the (sub)question.
@@ -957,41 +997,44 @@ components:
         Default Project ID:
           type: integer
           description: The ID of the default project for the Post.
+        Categories:
+          type: string
+          description: Comma-separated list of category slugs for the post.
+        Leaderboard Tags:
+          type: string
+          description: Comma-separated list of leaderboard tags for the post.
         Label:
           type: string
           description: For sub questions only. The label of the question.
         Question Type:
           type: string
           description: The type of the question.
-          enum: [ binary, multiple_choice, numeric, numeric, date ]
+          enum: [ binary, multiple_choice, numeric, date ]
           example: binary
-        MC Options:
-          type: array
-          items:
-            type: string
-          description: For multiple choice questions only. The options for the question.
-        Scaling:
-          type: object
-          description: For continuous questions only. The scaling of the question.
-          properties:
-            Range Min:
-              type: number
-              format: float
-              description: The minimum value of the considered input range for the question. For date questions, this is a unix timestamp.
-            Range Max:
-              type: number
-              format: float
-              description: The maximum value of the considered input range for the question. For date questions, this is a unix timestamp.
-            Zero Point:
-              type: number
-              format: float
-              description: The zero point of the question. For date questions, this is a unix timestamp.
-            Open Lower Bound:
-              type: boolean
-              description: Whether the lower bound of the range is open or not.
-            Open Upper Bound:
-              type: boolean
-              description: Whether the upper bound of the range is open or not.
+        MC Options (Current):
+          type: string
+          description: For multiple choice questions only. The current set of options.
+        MC Options (All):
+          type: string
+          description: For multiple choice questions only. All options including removed ones.
+        MC Options History:
+          type: string
+          description: For multiple choice questions only. History of option changes.
+        Lower Bound:
+          type: number
+          description: For continuous questions only. The minimum value of the input range. For date questions, formatted as a date string.
+        Open Lower Bound:
+          type: boolean
+          description: Whether the lower bound of the range is open.
+        Upper Bound:
+          type: number
+          description: For continuous questions only. The maximum value of the input range. For date questions, formatted as a date string.
+        Open Upper Bound:
+          type: boolean
+          description: Whether the upper bound of the range is open.
+        Continuous Range:
+          type: string
+          description: For continuous questions only. A human-readable representation of the question range.
         Open Time:
           type: string
           format: date-time
@@ -1018,6 +1061,9 @@ components:
         Include Bots in Aggregates:
           type: boolean
           description: Whether bots are included in the aggregates.
+        Question Weight:
+          type: number
+          description: The weight of the question within its post.
     ForecastDataCSV:
       type: object
       properties:
@@ -1033,14 +1079,17 @@ components:
           type: string
           description: The forecaster's username or aggregation method.
           example: John Doe
+        Is Bot:
+          type: boolean
+          description: Whether the forecaster is a bot account.
         Start Time:
           type: string
           format: date-time
-          description: The start time of the prediction
+          description: The start time of the prediction.
         End Time:
           type: string
           format: date-time
-          description: The end time of the prediction
+          description: The end time of the prediction.
         Forecaster Count:
           type: integer
           description: The number of forecasts that contributed to this Aggregation. null if not an Aggregation.
@@ -1048,22 +1097,47 @@ components:
         Probability Yes:
           type: number
           format: float
-          description: For Binary Questions only. The prediction value in range [0, 1]
+          description: For Binary Questions only. The prediction value in range [0, 1].
           example: 0.5
         Probability Yes Per Category:
-          type: array
-          items:
-            format: number
-            type: float
-          description: For Multiple Choice Questions only. The predictions for the possible outcomes all in range [0, 1]
-          example: [0.2, 0.5, 0.3]
+          type: string
+          description: For Multiple Choice Questions only. The predictions for the possible outcomes, all in range [0, 1].
+          example: "[0.2, 0.5, 0.3]"
         Continuous CDF:
-          type: array
-          items:
-            format: number
-            type: float
-          description: For Continuous Questions only. The CDF of the prediction.
-          example: [0.01, 0.02, 0.03, ..., 0.74, 0.75]
+          type: string
+          description: For Continuous Questions only. The CDF of the prediction as a list of 201 values.
+          example: "[0.01, 0.02, 0.03, ..., 0.74, 0.75]"
+        Probability Below Lower Bound:
+          type: number
+          format: float
+          description: For Continuous Questions only. The probability mass below the lower bound.
+        Probability Above Upper Bound:
+          type: number
+          format: float
+          description: For Continuous Questions only. The probability mass above the upper bound.
+        5th Percentile:
+          type: number
+          description: For Continuous Questions only. The 5th percentile of the forecast distribution.
+        25th Percentile:
+          type: number
+          description: For Continuous Questions only. The 25th percentile of the forecast distribution.
+        Median:
+          type: number
+          description: For Continuous Questions only. The median (50th percentile) of the forecast distribution.
+        75th Percentile:
+          type: number
+          description: For Continuous Questions only. The 75th percentile of the forecast distribution.
+        95th Percentile:
+          type: number
+          description: For Continuous Questions only. The 95th percentile of the forecast distribution.
+        Probability of Resolution:
+          type: number
+          format: float
+          description: The probability assigned to the actual resolution value, if resolved.
+        PDF at Resolution:
+          type: number
+          format: float
+          description: For Continuous Questions only. The PDF value at the resolution point.
     ScoreDataCSV:
       description: "Warning: this data may be out of date, please consult the README included in the zip file for the most up to date information."
       type: object
@@ -1132,7 +1206,7 @@ components:
 
     DataZip:
       type: object
-      description: "Warning: this data may be out of date, please consult the README included in the zip file for the most up to date information. A zip file containing CSVs for Question data, Forecast data, and (optionally) Scoring data and Comment data."
+      description: "Warning: this data may be out of date, please consult the README included in the zip file for the most up to date information. A zip file containing CSVs for Question data, Forecast data, and (optionally) Scoring data, Comment data, and Key Factor data."
       properties:
         question_data.csv:
           $ref: '#/components/schemas/QuestionDataCSV'
@@ -1142,6 +1216,9 @@ components:
           $ref: '#/components/schemas/ScoreDataCSV'
         comment_data.csv:
           $ref: '#/components/schemas/CommentDataCSV'
+        key_factor_data.csv:
+          type: object
+          description: "Optional. Included when include_key_factors is true. Contains key factors (drivers, base rates, news) associated with questions."
 
 tags:
   - name: Feed
@@ -1159,6 +1236,8 @@ tags:
 
   - name: Comments
   - name: Utilities & Data
+    description: |
+      **Tip:** You can also access data downloads through the Metaculus website without using the API directly. On any question page, click the ellipsis menu (⋯) in the top-right corner and select "Download data". A modal will appear with the same options available in the endpoints below.
 paths:
   /api/posts/:
     get:
@@ -1196,14 +1275,14 @@ paths:
             type: boolean
             default: false
             example: true
-          description: "When this flag is enabled, each post with a group of questions will return community predictions for only the top 3 subquestions. To retrieve predictions for all subquestions, please use the post details endpoint."
+          description: "Include Community Prediction data in the response. Note: aggregation data is only available for certain questions depending on your API access tier (see above). When enabled on a group post, only the top 3 subquestions include CP; use the post details endpoint for all subquestions."
         - in: query
           name: include_cp_history
           schema:
             type: boolean
             default: false
             example: true
-          description: "When this flag is enabled, each post question response will include aggregations with the full history for each method. By default, question aggregations contain an empty history."
+          description: "Include full aggregation history in the response."
         - in: query
           name: include_descriptions
           schema:
@@ -1951,116 +2030,179 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Post'
-  /api/posts/{postId}/download-data/:
+  /api/data/download/:
     get:
-      summary: Download data for a Question. Will open a download prompt in the browser. The return is a Zip file of CSVs.
+      summary: Download data as a Zip file of CSVs
+      description: |
+        Downloads question data, forecast data, and optionally comments, scores, and key factors as a Zip file of CSVs.
+        You must provide at least one of `post_id`, `question_id`, or `project_id` to specify the data to download.
+
+        **Note:** This is a restricted endpoint. To request access, please email [api-requests@metaculus.com](mailto:api-requests@metaculus.com). Additionally, the `project_id` parameter is only accepted if your account has been whitelisted for that specific project, to prevent heavy data requests.
+
+        This endpoint may time out for large data exports. If your download fails due to a timeout, use the `/api/data/email/` endpoint instead, which processes the export asynchronously.
       tags:
         - Utilities & Data
       parameters:
-        - name: postId
-          in: path
-          required: true
+        - name: post_id
+          in: query
+          required: false
           schema:
             type: integer
-          description: The ID of the post to retrieve. This is the number after `/questions/` in the URL of a question detail page. 
+          description: The ID of the post to download data for.
+        - name: question_id
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: The ID of the question to download data for.
+        - name: project_id
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: The ID of the project to download data for.
         - name: sub_question
           in: query
           required: false
           schema:
             type: integer
-          description: If this is a group or conditional question, and only a certain sub-question is needed, specify the sub-question ID.
+          description: If the post contains a group or conditional question, specify a sub-question ID to download data for only that sub-question.
         - name: aggregation_methods
           in: query
           required: false
           schema:
-            type: array
-            items:
-              type: string
-              enum: [ recency_weighted, unweighted, metaculus_prediction, single_aggregation ]
-          description: Aggregation methods to include in the CSV, no argument will only include recency_weighted. single_aggregation is 
-            in beta and not available except to site admins. Including this parameter will trigger a recalculation of the aggregations, 
-            which may increase server response time. If the server times out, please consider removing this parameter.
+            type: string
+          description: |
+            Comma-separated list of aggregation methods to include, or `all` to include all available methods.
+            Valid methods: `recency_weighted`, `unweighted`, `metaculus_prediction`, `single_aggregation`.
+            `single_aggregation` is only available to site admins.
+            If not provided, only `recency_weighted` is included. Including this parameter triggers a recalculation of aggregations, which may increase response time.
+        - name: minimize
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          description: If false, includes all data points in recalculated aggregations (requires `aggregation_methods`). May result in very large files or server timeouts for questions with many forecasts.
         - name: include_bots
           in: query
           required: false
           schema:
             type: boolean
-          description: If given, "aggregation_methods" parameter is also required. If not given, will take the value of the 
-            "include_bots_in_aggregations" property on the given Question. If true, will include bot forecasts in the recalculation 
-            of the aggregations, and not if False.
+          description: Whether to include bot forecasts in aggregation recalculations. Requires `aggregation_methods`. If not given, uses the question's `include_bots_in_aggregations` setting.
         - name: user_ids
           in: query
           required: false
           schema:
             type: array
             items:
-              type: string
-          description: A list of user IDs. May only be given if the request user is authenticated, and whitelisted to download user-level 
-            forecast data. If given, "aggregation_methods" parameter is also required. The list of given user ids will recalculate the 
-            aggregations given only those users' forecasts.
-        - name: minimize
-          in: query
-          required: false
-          schema:
-            type: boolean
-          description: Defaults to True. If False, "aggregation_methods" parameter is also required. If False, will include all data
-            points in the recalculated aggregations. For questions with many forecasts, this may result in a very large file, or
-            cause a server timeout. If the server times out, please consider removing this parameter.
+              type: integer
+          description: A list of user IDs to recalculate aggregations for only those users' forecasts. Requires `aggregation_methods`. Only available to staff and whitelisted users.
         - name: include_comments
           in: query
           required: false
           schema:
             type: boolean
-          description: Defaults to False. If True, will include a CSV file containing all public comments.
+            default: false
+          description: If true, includes a CSV file containing all public comments.
         - name: include_scores
           in: query
           required: false
           schema:
             type: boolean
-          description: Defaults to False. If True, will include a CSV file containing all scores.
+            default: true
+          description: If true, includes a CSV file containing all scores.
+        - name: include_key_factors
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: If true, includes key factors data in the download.
       responses:
         '200':
-          description: Zip data for the question. Contains question_data.csv and forecast_data.csv, and optionally comment_data.csv and score_data.csv
+          description: Zip file containing CSVs (question_data.csv, forecast_data.csv, and optionally comment_data.csv, score_data.csv)
           content:
             application/zip:
               schema:
                 $ref: '#/components/schemas/DataZip'
-  /api/projects/{projectId}/download-data/:
-    get:
-      summary: Download data for a whole Project. Will open a download prompt in the browser. The return is a Zip file of CSVs. Only available to site admins and Whitelisted users.
+  /api/data/email/:
+    post:
+      summary: Email data as a Zip file of CSVs
+      description: |
+        Schedules an email to be sent to the authenticated user containing question data, forecast data, and optionally comments, scores, and key factors as a Zip file of CSVs.
+        Useful for large data exports that may time out with a direct download. Accepts the same parameters as `/api/data/download/`.
+        You must provide at least one of `post_id`, `question_id`, or `project_id`.
+
+        **Note:** This is a restricted endpoint. To request access, please email [api-requests@metaculus.com](mailto:api-requests@metaculus.com). Additionally, the `project_id` parameter is only accepted if your account has been whitelisted for that specific project.
+
+        The email attachment has a size limit of 25 MB. If your export exceeds this limit, try removing `include_comments` to reduce the file size.
       tags:
         - Utilities & Data
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: The ID of the Project to retrieve. 
-        - name: include_comments
-          in: query
-          required: false
-          schema:
-            type: boolean
-          description: Defaults to False. If True, will include a CSV file containing all public comments.
-        - name: include_scores
-          in: query
-          required: false
-          schema:
-            type: boolean
-          description: Defaults to False. If True, will include a CSV file containing all scores.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                post_id:
+                  type: integer
+                  description: The ID of the post to export data for.
+                question_id:
+                  type: integer
+                  description: The ID of the question to export data for.
+                project_id:
+                  type: integer
+                  description: The ID of the project to export data for.
+                sub_question:
+                  type: integer
+                  description: If the post contains a group or conditional question, specify a sub-question ID.
+                aggregation_methods:
+                  type: array
+                  items:
+                    type: string
+                  description: "List of aggregation methods to include. Valid methods: `recency_weighted`, `unweighted`, `metaculus_prediction`, `single_aggregation`."
+                minimize:
+                  type: boolean
+                  default: true
+                  description: If false, includes all data points in recalculated aggregations.
+                include_bots:
+                  type: boolean
+                  description: Whether to include bot forecasts in aggregation recalculations.
+                user_ids:
+                  type: array
+                  items:
+                    type: integer
+                  description: A list of user IDs to restrict aggregation recalculations to. Only available to staff and whitelisted users.
+                include_comments:
+                  type: boolean
+                  default: false
+                  description: If true, includes comment data.
+                include_scores:
+                  type: boolean
+                  default: true
+                  description: If true, includes score data.
+                include_key_factors:
+                  type: boolean
+                  default: false
+                  description: If true, includes key factors data.
       responses:
         '200':
-          description: Zip data for the questions in the project. Contains question_data.csv and forecast_data.csv, and optionally comment_data.csv and score_data.csv
+          description: Email scheduled successfully
           content:
-            application/zip:
+            application/json:
               schema:
-                $ref: '#/components/schemas/DataZip'
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Email scheduled to be sent"
                 
   /api/questions/forecast/:
     post:
       summary: Submit forecasts for questions
-      description: This endpoint supports multiple simultaneous predictions, so the base object is a list of foreacsts.
+      description: This endpoint supports multiple simultaneous predictions, so the base object is a list of forecasts.
         Pass one forecast object for single questions and multiple forecast objects for group of questions or conditional forecasts.
       tags:
         - Questions & Forecasts
@@ -2253,7 +2395,8 @@ paths:
   /api/comments/:
     get:
       summary: Retrieve comments
-      description: Fetch comments with optional filters for post, author, pagination, and sorting. Either the `post` or `author` parameter is required.
+      description: |
+        Fetch comments with filters for author and pagination. If API access is restricted, you must include at least one of: `author=<your own user ID>` and/or `author_is_staff=true` - requests without one of these filters will be rejected.
       tags:
         - Comments
       parameters:
@@ -2268,7 +2411,13 @@ paths:
           required: false
           schema:
             type: integer
-          description: ID of the author to filter comments by.
+          description: Filter comments by author user ID. Use your own user ID to retrieve your comments.
+        - name: author_is_staff
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: "When set to `true`, returns root-level comments authored by Metaculus staff (staff replies to other comments are not included). Treated as an 'OR' filter with `author`."
         - name: limit
           in: query
           required: false
