@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 
+import cn from "@/utils/core/cn";
+
 import TournamentsFilter from "./tournaments_filter";
 import TournamentsInfo from "./tournaments_popover/tournaments_info";
 import TournamentsInfoButton from "./tournaments_popover/tournaments_info_button";
@@ -10,7 +12,7 @@ import TournamentsSearch from "./tournaments_search";
 import { useTournamentsInfoDismissed } from "../hooks/use_tournaments_info_dismissed";
 
 const TournamentsMobileCtrl: React.FC = () => {
-  const { current } = useTournamentsSection();
+  const { current, isSearching } = useTournamentsSection();
   const { dismissed, dismiss, ready } = useTournamentsInfoDismissed();
   const [isInfoOpen, setIsInfoOpen] = useState(false);
 
@@ -32,7 +34,14 @@ const TournamentsMobileCtrl: React.FC = () => {
         />
       )}
       <div className="flex items-center gap-2">
-        <TournamentsFilter />
+        <div
+          className={cn(
+            current !== "indexes" ? "block" : "hidden",
+            isSearching && "pointer-events-none opacity-35"
+          )}
+        >
+          <TournamentsFilter />
+        </div>
 
         <div className="min-w-0 flex-1">
           <TournamentsSearch />
