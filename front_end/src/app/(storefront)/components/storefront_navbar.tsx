@@ -86,8 +86,9 @@ const StorefrontNavbar: FC = () => {
   const toggleSearch = useCallback(() => {
     setIsSearchOpen((prev) => {
       if (!prev) {
-        // setTimeout(0) runs after React re-render but within mobile's user activation window
-        setTimeout(() => searchInputRef.current?.focus(), 0);
+        // Focus synchronously to preserve mobile user-activation for keyboard
+        // Works because the input is always mounted and hidden with opacity-0 (not visibility:hidden)
+        searchInputRef.current?.focus();
       }
       return !prev;
     });
@@ -204,7 +205,7 @@ const StorefrontNavbar: FC = () => {
       <div
         className={cn(
           "absolute right-0 top-full z-[200] mt-2 w-full md:w-[375px]",
-          !isSearchOpen && "pointer-events-none invisible"
+          !isSearchOpen && "pointer-events-none opacity-0"
         )}
       >
         {searchInput}
