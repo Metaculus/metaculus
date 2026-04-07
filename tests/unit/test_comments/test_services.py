@@ -1,6 +1,6 @@
 import pytest  # noqa
 from freezegun import freeze_time
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, PermissionDenied
 
 from comments.models import KeyFactorVote, KeyFactorDriver, KeyFactorBaseRate
 from comments.services.common import create_comment, soft_delete_comment
@@ -376,3 +376,55 @@ def test_base_rate_freshness_ignores_time_decay(user1, post):
 
     freshness = calculate_freshness_base_rate(kf, votes)
     assert freshness == pytest.approx(1.666, abs=0.001)
+
+
+def test_create_comment__bot_cannot_post_public_comment(post):
+    bot_user = factory_user(is_bot=True, is_primary_bot=False)
+    with pytest.raises(PermissionDenied, match="Bots cannot post public comments"):
+        create_comment(user=bot_user, on_post=post, text="Public bot comment")
+
+
+def test_create_comment__bot_can_post_private_comment(post):
+    bot_user = factory_user(is_bot=True, is_primary_bot=False)
+    comment = create_comment(
+        user=bot_user, on_post=post, text="Private bot comment", is_private=True
+    )
+    assert comment.is_private is True
+    assert comment.text == "Private bot comment"
+
+
+def test_create_comment__primary_bot_can_post_public_comment(post):
+    bot_owner = factory_user()
+    bot_user = factory_user(is_bot=True, is_primary_bot=True, bot_owner=bot_owner)
+    comment = create_comment(
+        user=bot_user, on_post=post, text="Public primary bot comment"
+    )
+    assert comment.is_private is False
+    assert comment.text == "Public primary bot comment"
+
+
+def test_create_comment__bot_reply_to_private_thread_allowed(post):
+    """Bot can reply to a private comment thread even without is_private flag."""
+    regular_user = factory_user()
+    root_comment = create_comment(
+        user=regular_user, on_post=post, text="Private root", is_private=True
+    )
+    bot_user = factory_user(is_bot=True, is_primary_bot=False)
+    # Reply inherits privacy from root, so this should succeed
+    reply = create_comment(
+        user=bot_user, on_post=post, text="Bot reply", parent=root_comment
+    )
+    assert reply.is_private is True
+
+
+def test_create_comment__bot_reply_to_public_thread_blocked(post):
+    """Bot cannot reply to a public comment thread."""
+    regular_user = factory_user()
+    root_comment = create_comment(
+        user=regular_user, on_post=post, text="Public root"
+    )
+    bot_user = factory_user(is_bot=True, is_primary_bot=False)
+    with pytest.raises(PermissionDenied, match="Bots cannot post public comments"):
+        create_comment(
+            user=bot_user, on_post=post, text="Bot reply", parent=root_comment
+        )

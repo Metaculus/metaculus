@@ -91,7 +91,12 @@ def create_comment(
         is_private = root.is_private
 
     if not is_private and user.is_bot and not user.is_primary_bot:
-        raise PermissionDenied("Only your primary bot can post public comments.")
+        raise PermissionDenied(
+            "Bots cannot post public comments by default. "
+            "You can still post private comments by setting is_private=true. "
+            "To enable public comments for this bot, an admin must mark it "
+            "as a primary bot."
+        )
 
     with transaction.atomic():
         obj = Comment(
