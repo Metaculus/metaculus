@@ -4,6 +4,8 @@ import { MDXEditorMethods } from "@mdxeditor/editor";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useRef, useState } from "react";
 
+import toast from "react-hot-toast";
+
 import { createComment } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
@@ -19,7 +21,7 @@ import { CommentType } from "@/types/comment";
 import { ErrorResponse } from "@/types/fetch";
 import { ProjectPermissions } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import { parseComment } from "@/utils/comments";
+import { hasPredictorsMention, parseComment } from "@/utils/comments";
 
 import { validateComment } from "./validate_comment";
 
@@ -165,6 +167,17 @@ const CommentEditor: FC<CommentEditorProps> = ({
       }
 
       stopAndDiscardDraft();
+
+      // Warn non-curators/admins if they used @predictors
+      if (
+        hasPredictorsMention(parsedMarkdown) &&
+        (!userPermission ||
+          ![ProjectPermissions.CURATOR, ProjectPermissions.ADMIN].includes(
+            userPermission
+          ))
+      ) {
+        toast(t("predictorsMentionWarning"));
+      }
 
       setHasIncludedForecast(false);
       markdownRef.current = "";

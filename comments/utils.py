@@ -3,6 +3,7 @@ from collections import defaultdict
 from typing import Iterable
 
 from django.db.models import Q, QuerySet
+from django.utils import timezone
 
 from comments.models import Comment
 from projects.permissions import ObjectPermission
@@ -56,10 +57,16 @@ def comment_extract_user_mentions(
                         ObjectPermission.CURATOR
                     )
                 ):
+                    now = timezone.now()
                     query |= Q(
                         pk__in=User.objects.filter(
-                            forecast__post=comment.on_post
-                        ).distinct("pk")
+                            forecast__post=comment.on_post,
+                        )
+                        .exclude(
+                            forecast__end_time__isnull=False,
+                            forecast__end_time__lte=now,
+                        )
+                        .distinct("pk")
                     )
                 continue
 

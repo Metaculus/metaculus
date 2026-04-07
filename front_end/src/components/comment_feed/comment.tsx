@@ -12,6 +12,8 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import toast from "react-hot-toast";
+
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import KeyFactorsAddInComment from "@/app/(main)/questions/[id]/components/key_factors/add_in_comment/key_factors_add_in_comment";
@@ -49,7 +51,7 @@ import {
 } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import { parseUserMentions } from "@/utils/comments";
+import { hasPredictorsMention, parseUserMentions } from "@/utils/comments";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 import { isForecastActive } from "@/utils/forecasts/helpers";
@@ -520,6 +522,19 @@ const Comment: FC<CommentProps> = ({
       if (response && "errors" in response) {
         setErrorMessage(response.errors as ErrorResponse);
       } else {
+        // Warn non-curators/admins if they used @predictors
+        const userPermission = postData?.user_permission;
+        if (
+          hasPredictorsMention(parsedMarkdown) &&
+          (!userPermission ||
+            ![
+              ProjectPermissions.CURATOR,
+              ProjectPermissions.ADMIN,
+            ].includes(userPermission))
+        ) {
+          toast(t("predictorsMentionWarning"));
+        }
+
         setCommentMarkdown(parsedMarkdown);
         setComments((prev) =>
           updateCommentTextInTree(prev, comment.id, parsedMarkdown)
@@ -853,6 +868,8 @@ const Comment: FC<CommentProps> = ({
                         saveEditDraftDebounced(val);
                       }}
                       withUgcLinks
+                      withUserMentions
+                      userPermission={postData?.user_permission}
                       withCodeBlocks
                     />
                     {hadForecastAtCommentCreation && postData?.question && (
