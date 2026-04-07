@@ -7,15 +7,14 @@ import { useTranslations } from "next-intl";
 import { useFeatureFlagVariantKey } from "posthog-js/react";
 import { FC, useEffect, useRef, useState } from "react";
 
-import { useAuth } from "@/contexts/auth_context";
 import { SiteStats } from "@/services/api/misc/misc.shared";
 import cn from "@/utils/core/cn";
 import { abbreviatedNumber } from "@/utils/formatters/number";
 
 import HeroFutureEvalSymbol from "./hero_futureeval_symbol";
 import HeroGlobeBackground from "./hero_globe_background";
-import MetaculusStorefrontLogo from "./metaculus_storefront_logo";
 import RadiantLogo from "./radiant_logo";
+import StorefrontNavbar from "./storefront_navbar";
 
 // Accent colors per card — used for globe tint + card hover overlay
 // Adjust these to fine-tune both effects from one place
@@ -133,8 +132,6 @@ const AccentOverlay: FC<{ accentKey: keyof typeof CARD_ACCENT_COLORS }> = ({
 
 const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
   const t = useTranslations();
-  const { user } = useAuth();
-  const logoHref = user ? "/questions/" : "/";
   const servicesCopyVariant = useFeatureFlagVariantKey("services-copy");
   const servicesCopyTitle =
     servicesCopyVariant === "B"
@@ -148,192 +145,189 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
     useAnimatedGlobe(hoveredCard);
 
   return (
-    <section className="relative isolate w-full overflow-hidden rounded-b-2xl bg-[#0e1e30] md:rounded-b-3xl">
-      <div className="hidden md:block">
-        <HeroGlobeBackground colorFront={globeColor} speed={globeSpeed} />
+    <div className="relative w-full">
+      {/* Navbar sits outside overflow-hidden so dropdowns aren't clipped */}
+      <div className="absolute inset-x-0 top-0 z-20 mx-auto w-full p-4 md:px-10 md:pt-8">
+        <StorefrontNavbar />
       </div>
 
-      <div className="relative z-10 mx-auto flex w-full flex-col gap-4 p-4 md:gap-8 md:px-10 md:pb-10 md:pt-8">
-        {/* Logo + title */}
-        <Link href={logoHref} className="inline-flex items-center no-underline">
-          <MetaculusStorefrontLogo className="h-[38px] w-auto text-white md:h-[50px]" />
-          <div className="ml-3.5 flex flex-col gap-0.5">
-            <span className="text-lg font-bold leading-tight tracking-[-0.36px] text-white md:text-xl">
-              Metaculus
-            </span>
-            <span className="text-xs font-medium text-[#adbfd4] opacity-75 md:text-sm">
-              {t("clarityInAComplexWorld")}
-            </span>
-          </div>
-        </Link>
+      <section className="relative isolate w-full overflow-hidden rounded-b-2xl bg-[#0e1e30] md:rounded-b-3xl">
+        <div className="hidden md:block">
+          <HeroGlobeBackground colorFront={globeColor} speed={globeSpeed} />
+        </div>
 
-        {/* CTA cards */}
-        <div className="flex flex-col gap-2.5 md:gap-5">
-          <div className="grid grid-cols-2 gap-2.5 md:gap-5">
-            {/* Forecasting Platform */}
-            <Link
-              href="/questions/"
-              className={cn(
-                "group relative flex flex-col justify-between overflow-hidden rounded-lg p-4 no-underline md:rounded-xl md:p-10",
-                "h-[140px] md:h-[259px]",
-                "bg-[#c6d8e8] backdrop-blur-[1px] transition-colors md:bg-[#c6d8e8]/80 md:hover:bg-[#c6d8e8]"
-              )}
-              onMouseEnter={() => setHoveredCard("platform")}
-              onMouseLeave={() => setHoveredCard(null)}
-              onFocus={() => setHoveredCard("platform")}
-              onBlur={() => setHoveredCard(null)}
-            >
-              <AccentOverlay accentKey="platform" />
-              <div className="absolute -left-[102px] -top-[60px] h-[346px] w-[341px] rounded-full bg-[rgba(41,109,169,0.76)] opacity-40 blur-[51px]" />
-              <div className="relative z-10 flex h-full flex-col justify-between gap-2 md:justify-start">
-                <div className="flex items-start justify-between md:items-center">
-                  <span className="text-sm font-semibold text-blue-900 md:text-2xl">
-                    {t("forecastingPlatform")}
+        <div className="relative z-10 mx-auto flex w-full flex-col gap-4 p-4 md:gap-8 md:px-10 md:pb-10 md:pt-8">
+          {/* Spacer matching navbar height */}
+          <div className="h-[38px] md:h-[50px]" />
+
+          {/* CTA cards */}
+          <div className="flex flex-col gap-2.5 md:gap-5">
+            <div className="grid grid-cols-2 gap-2.5 md:gap-5">
+              {/* Forecasting Platform */}
+              <Link
+                href="/questions/"
+                className={cn(
+                  "group relative flex flex-col justify-between overflow-hidden rounded-lg p-4 no-underline md:rounded-xl md:p-10",
+                  "h-[140px] md:h-[259px]",
+                  "bg-[#c6d8e8] backdrop-blur-[1px] transition-colors md:bg-[#c6d8e8]/80 md:hover:bg-[#c6d8e8]"
+                )}
+                onMouseEnter={() => setHoveredCard("platform")}
+                onMouseLeave={() => setHoveredCard(null)}
+                onFocus={() => setHoveredCard("platform")}
+                onBlur={() => setHoveredCard(null)}
+              >
+                <AccentOverlay accentKey="platform" />
+                <div className="absolute -left-[102px] -top-[60px] h-[346px] w-[341px] rounded-full bg-[rgba(41,109,169,0.76)] opacity-40 blur-[51px]" />
+                <div className="relative z-10 flex h-full flex-col justify-between gap-2 md:justify-start">
+                  <div className="flex items-start justify-between md:items-center">
+                    <span className="text-sm font-semibold text-blue-900 md:text-2xl">
+                      {t("forecastingPlatform")}
+                    </span>
+                    <FontAwesomeIcon
+                      icon={faArrowRight}
+                      className="mt-0.5 text-sm text-blue-900/50 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 md:mt-0 md:text-xl"
+                    />
+                  </div>
+                  <p className="m-0 text-xs text-blue-800 md:text-base">
+                    {t("collectiveIntelligenceForPublicGood")}
+                  </p>
+                </div>
+                <div className="relative z-10 hidden flex-wrap gap-x-3.5 gap-y-1 text-base text-blue-800 md:flex">
+                  <span>
+                    <strong className="text-blue-900">
+                      {abbreviatedNumber(stats.predictions)}+
+                    </strong>{" "}
+                    {t("predictions")}
                   </span>
+                  <span>
+                    <strong className="text-blue-900">
+                      {abbreviatedNumber(stats.questions)}+
+                    </strong>{" "}
+                    {t("forecastingQuestions")}
+                  </span>
+                  <span>
+                    <strong className="text-blue-900">
+                      {t("yearsOfPredictions", {
+                        count: stats.years_of_predictions,
+                      })}
+                    </strong>
+                  </span>
+                </div>
+              </Link>
+
+              {/* Business Solutions */}
+              <Link
+                href="/services/"
+                className={cn(
+                  "group relative flex flex-col justify-between overflow-hidden rounded-lg p-4 no-underline md:rounded-xl md:p-10",
+                  "h-[140px] md:h-[259px]",
+                  "bg-[#d8c6e8] backdrop-blur-[1px] transition-colors md:bg-[#d8c6e8]/80 md:hover:bg-[#d8c6e8]"
+                )}
+                onMouseEnter={() => setHoveredCard("business")}
+                onMouseLeave={() => setHoveredCard(null)}
+                onFocus={() => setHoveredCard("business")}
+                onBlur={() => setHoveredCard(null)}
+              >
+                <AccentOverlay accentKey="business" />
+                <div className="absolute -left-[62px] -top-[57px] h-[346px] w-[341px] rounded-full bg-[rgba(63,25,49,0.76)] opacity-[0.22] blur-[51px]" />
+                <div className="relative z-10 flex h-full flex-col justify-between gap-2 md:justify-start">
+                  <div className="flex items-start justify-between md:items-center">
+                    <span className="text-sm font-semibold text-purple-900 md:text-2xl">
+                      {servicesCopyTitle}
+                    </span>
+                    <FontAwesomeIcon
+                      icon={faArrowRight}
+                      className="mt-0.5 text-sm text-purple-900/50 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 md:mt-0 md:text-xl"
+                    />
+                  </div>
+                  <p className="m-0 text-xs text-purple-900 md:text-base">
+                    {t("forInformedDecisionMaking")}
+                  </p>
+                </div>
+                <div className="relative z-10 hidden flex-wrap gap-x-2.5 gap-y-1.5 text-base text-purple-900 md:flex">
+                  <span>
+                    <strong>{t("hire")}</strong> {t("proForecasters")}
+                  </span>
+                  <span>
+                    <strong>{t("run")}</strong> {t("tournaments")}
+                  </span>
+                  <span>
+                    <strong>{t("host")}</strong> {t("privateInstances")}
+                  </span>
+                </div>
+              </Link>
+            </div>
+
+            {/* FutureEval + Radiant banners */}
+            <div className="grid grid-cols-2 gap-2.5 md:grid-cols-1 md:gap-5">
+              {/* FutureEval banner */}
+              <Link
+                href="/futureeval/"
+                className="group relative flex flex-col gap-3 overflow-hidden rounded-lg bg-[#4c6076] p-4 no-underline backdrop-blur-[1px] transition-colors md:flex-row md:items-center md:gap-4 md:rounded-xl md:bg-[#4c6076]/80 md:px-6 md:py-4 md:hover:bg-[#4c6076]"
+                onMouseEnter={() => setHoveredCard("futureeval")}
+                onMouseLeave={() => setHoveredCard(null)}
+                onFocus={() => setHoveredCard("futureeval")}
+                onBlur={() => setHoveredCard(null)}
+              >
+                <AccentOverlay accentKey="futureeval" />
+                <div className="absolute -left-[33px] -top-[39px] h-[130px] w-[127px] rounded-full bg-[rgba(41,169,156,0.76)] opacity-40 blur-[51px] md:-left-[142px] md:-top-[140px] md:h-[346px] md:w-[341px]" />
+                <div className="relative z-10 flex items-center justify-between md:w-[170px] md:shrink-0 md:justify-start">
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <HeroFutureEvalSymbol className="h-4 w-auto shrink-0 md:h-6" />
+                    <span className="text-sm font-semibold text-white md:text-xl">
+                      FutureEval
+                    </span>
+                  </div>
                   <FontAwesomeIcon
                     icon={faArrowRight}
-                    className="mt-0.5 text-sm text-blue-900/50 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 md:mt-0 md:text-xl"
+                    className="text-sm text-white/50 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 md:hidden"
                   />
                 </div>
-                <p className="m-0 text-xs text-blue-800 md:text-base">
-                  {t("collectiveIntelligenceForPublicGood")}
+                <p className="relative z-10 m-0 text-xs font-normal text-white opacity-50 group-hover:opacity-80 group-focus-visible:opacity-80  md:flex-1 md:text-sm md:opacity-60">
+                  {t("measuringForecastingAccuracyOfAI")}
                 </p>
-              </div>
-              <div className="relative z-10 hidden flex-wrap gap-x-3.5 gap-y-1 text-base text-blue-800 md:flex">
-                <span>
-                  <strong className="text-blue-900">
-                    {abbreviatedNumber(stats.predictions)}+
-                  </strong>{" "}
-                  {t("predictions")}
-                </span>
-                <span>
-                  <strong className="text-blue-900">
-                    {abbreviatedNumber(stats.questions)}+
-                  </strong>{" "}
-                  {t("forecastingQuestions")}
-                </span>
-                <span>
-                  <strong className="text-blue-900">
-                    {t("yearsOfPredictions", {
-                      count: stats.years_of_predictions,
-                    })}
-                  </strong>
-                </span>
-              </div>
-            </Link>
+                <FontAwesomeIcon
+                  icon={faArrowRight}
+                  className="relative z-10 hidden text-white/50 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 md:block md:text-xl"
+                />
+              </Link>
 
-            {/* Business Solutions */}
-            <Link
-              href="/services/"
-              className={cn(
-                "group relative flex flex-col justify-between overflow-hidden rounded-lg p-4 no-underline md:rounded-xl md:p-10",
-                "h-[140px] md:h-[259px]",
-                "bg-[#d8c6e8] backdrop-blur-[1px] transition-colors md:bg-[#d8c6e8]/80 md:hover:bg-[#d8c6e8]"
-              )}
-              onMouseEnter={() => setHoveredCard("business")}
-              onMouseLeave={() => setHoveredCard(null)}
-              onFocus={() => setHoveredCard("business")}
-              onBlur={() => setHoveredCard(null)}
-            >
-              <AccentOverlay accentKey="business" />
-              <div className="absolute -left-[62px] -top-[57px] h-[346px] w-[341px] rounded-full bg-[rgba(63,25,49,0.76)] opacity-[0.22] blur-[51px]" />
-              <div className="relative z-10 flex h-full flex-col justify-between gap-2 md:justify-start">
-                <div className="flex items-start justify-between md:items-center">
-                  <span className="text-sm font-semibold text-purple-900 md:text-2xl">
-                    {servicesCopyTitle}
-                  </span>
+              {/* Radiant banner */}
+              <Link
+                href="/notebooks/42293/map-the-future-before-you-build-it/"
+                className="group relative flex flex-col gap-3 overflow-hidden rounded-lg bg-[#4c6076] p-4 no-underline backdrop-blur-[1px] transition-colors md:flex-row md:items-center md:gap-4 md:rounded-xl md:bg-[#4c6076]/80 md:px-6 md:py-4 md:hover:bg-[#4c6076]"
+                onMouseEnter={() => setHoveredCard("radiant")}
+                onMouseLeave={() => setHoveredCard(null)}
+                onFocus={() => setHoveredCard("radiant")}
+                onBlur={() => setHoveredCard(null)}
+              >
+                <AccentOverlay accentKey="radiant" />
+                <div className="absolute -left-[67px] -top-[63px] h-[132px] w-[131px] rounded-full bg-[rgba(255,228,203,0.5)] opacity-40 blur-[39px] md:-left-[166px] md:-top-[156px] md:h-[346px] md:w-[341px] md:blur-[51px]" />
+                <div className="relative z-10 flex items-center justify-between md:w-[170px] md:shrink-0 md:justify-start">
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <RadiantLogo className="size-4 text-white md:size-7" />
+                    <span className="text-sm font-semibold text-white md:text-xl">
+                      {t("radiant")}
+                    </span>
+                  </div>
                   <FontAwesomeIcon
                     icon={faArrowRight}
-                    className="mt-0.5 text-sm text-purple-900/50 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 md:mt-0 md:text-xl"
+                    className="text-sm text-white/50 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 md:hidden"
                   />
                 </div>
-                <p className="m-0 text-xs text-purple-900 md:text-base">
-                  {t("forInformedDecisionMaking")}
+                <p className="relative z-10 m-0 text-xs font-normal text-white opacity-50 group-hover:opacity-80 group-focus-visible:opacity-80  md:flex-1 md:text-sm md:opacity-60">
+                  {t("mapTheFutureBeforeYouBuildIt")}
                 </p>
-              </div>
-              <div className="relative z-10 hidden flex-wrap gap-x-2.5 gap-y-1.5 text-base text-purple-900 md:flex">
-                <span>
-                  <strong>{t("hire")}</strong> {t("proForecasters")}
-                </span>
-                <span>
-                  <strong>{t("run")}</strong> {t("tournaments")}
-                </span>
-                <span>
-                  <strong>{t("host")}</strong> {t("privateInstances")}
-                </span>
-              </div>
-            </Link>
-          </div>
-
-          {/* FutureEval + Radiant banners */}
-          <div className="grid grid-cols-2 gap-2.5 md:grid-cols-1 md:gap-5">
-            {/* FutureEval banner */}
-            <Link
-              href="/futureeval/"
-              className="group relative flex flex-col gap-3 overflow-hidden rounded-lg bg-[#4c6076] p-4 no-underline backdrop-blur-[1px] transition-colors md:flex-row md:items-center md:gap-4 md:rounded-xl md:bg-[#4c6076]/80 md:px-6 md:py-4 md:hover:bg-[#4c6076]"
-              onMouseEnter={() => setHoveredCard("futureeval")}
-              onMouseLeave={() => setHoveredCard(null)}
-              onFocus={() => setHoveredCard("futureeval")}
-              onBlur={() => setHoveredCard(null)}
-            >
-              <AccentOverlay accentKey="futureeval" />
-              <div className="absolute -left-[33px] -top-[39px] h-[130px] w-[127px] rounded-full bg-[rgba(41,169,156,0.76)] opacity-40 blur-[51px] md:-left-[142px] md:-top-[140px] md:h-[346px] md:w-[341px]" />
-              <div className="relative z-10 flex items-center justify-between md:w-[170px] md:shrink-0 md:justify-start">
-                <div className="flex items-center gap-2 md:gap-3">
-                  <HeroFutureEvalSymbol className="h-4 w-auto shrink-0 md:h-6" />
-                  <span className="text-sm font-semibold text-white md:text-xl">
-                    FutureEval
-                  </span>
-                </div>
                 <FontAwesomeIcon
                   icon={faArrowRight}
-                  className="text-sm text-white/50 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 md:hidden"
+                  className="relative z-10 hidden text-white/50 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 md:block md:text-xl"
                 />
-              </div>
-              <p className="relative z-10 m-0 text-xs font-normal text-white opacity-50 group-hover:opacity-80 group-focus-visible:opacity-80  md:flex-1 md:text-sm md:opacity-60">
-                {t("measuringForecastingAccuracyOfAI")}
-              </p>
-              <FontAwesomeIcon
-                icon={faArrowRight}
-                className="relative z-10 hidden text-white/50 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 md:block md:text-xl"
-              />
-            </Link>
-
-            {/* Radiant banner */}
-            <Link
-              href="/notebooks/42293/map-the-future-before-you-build-it/"
-              className="group relative flex flex-col gap-3 overflow-hidden rounded-lg bg-[#4c6076] p-4 no-underline backdrop-blur-[1px] transition-colors md:flex-row md:items-center md:gap-4 md:rounded-xl md:bg-[#4c6076]/80 md:px-6 md:py-4 md:hover:bg-[#4c6076]"
-              onMouseEnter={() => setHoveredCard("radiant")}
-              onMouseLeave={() => setHoveredCard(null)}
-              onFocus={() => setHoveredCard("radiant")}
-              onBlur={() => setHoveredCard(null)}
-            >
-              <AccentOverlay accentKey="radiant" />
-              <div className="absolute -left-[67px] -top-[63px] h-[132px] w-[131px] rounded-full bg-[rgba(255,228,203,0.5)] opacity-40 blur-[39px] md:-left-[166px] md:-top-[156px] md:h-[346px] md:w-[341px] md:blur-[51px]" />
-              <div className="relative z-10 flex items-center justify-between md:w-[170px] md:shrink-0 md:justify-start">
-                <div className="flex items-center gap-2 md:gap-3">
-                  <RadiantLogo className="size-4 text-white md:size-7" />
-                  <span className="text-sm font-semibold text-white md:text-xl">
-                    {t("radiant")}
-                  </span>
-                </div>
-                <FontAwesomeIcon
-                  icon={faArrowRight}
-                  className="text-sm text-white/50 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 md:hidden"
-                />
-              </div>
-              <p className="relative z-10 m-0 text-xs font-normal text-white opacity-50 group-hover:opacity-80 group-focus-visible:opacity-80  md:flex-1 md:text-sm md:opacity-60">
-                {t("mapTheFutureBeforeYouBuildIt")}
-              </p>
-              <FontAwesomeIcon
-                icon={faArrowRight}
-                className="relative z-10 hidden text-white/50 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 md:block md:text-xl"
-              />
-            </Link>
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 };
 

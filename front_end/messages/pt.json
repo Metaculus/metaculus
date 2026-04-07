@@ -24,6 +24,8 @@
   "logIn": "Entrar",
   "tutorial": "Tutorial",
   "logOut": "Sair",
+  "loggedInAs": "Conectado como {username}",
+  "menu": "Menu",
   "tweetPrediction": "Tuitar Previsão!",
   "postPredictionAsComment": "Publicar Previsão como Comentário",
   "predictionUpcomingMessage": "Esta pergunta está na fase de Em Breve e estará aberta para previsões em breve",
