@@ -35,7 +35,7 @@ export const fetchJobsData = cache(
 
 export type YearValue = { year: number; value: number };
 
-const OVERALL_POST_ID = 41307;
+export const OVERALL_POST_ID = 41307;
 
 export const fetchOverallData = cache(async (): Promise<YearValue[]> => {
   const post = await ServerPostsApi.getPost(OVERALL_POST_ID, true);

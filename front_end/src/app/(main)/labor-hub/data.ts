@@ -1,20 +1,9 @@
-export const RISK_DATA = [
-  {
-    name: "overall",
-    2030: -2.8,
-    2035: -7.1,
-  },
-  {
-    name: "most vulnerable",
-    2030: -13.7,
-    2035: -67.3,
-  },
-  {
-    name: "least vulnerable",
-    2030: 8.1,
-    2035: 19.3,
-  },
-];
+export const GOVERNMENT_BASELINES = {
+  "2025": 0,
+  "2027": 0.6,
+  "2030": 1.5,
+  "2035": 3,
+};
 
 export const JOBS_DATA = [
   {
