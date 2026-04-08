@@ -752,9 +752,10 @@ export const MultiLineChart: FC<Props> = ({
             {!isPrintMode &&
               (highlightedX != null || emphasisActive) &&
               seriesEntries
-                .filter(({ series: item }) =>
-                  getHoverLabelMode(item.dataLabels) &&
-                  (item.dataLabelPlacement ?? "inline") === "inline"
+                .filter(
+                  ({ series: item }) =>
+                    getHoverLabelMode(item.dataLabels) &&
+                    (item.dataLabelPlacement ?? "inline") === "inline"
                 )
                 .map(({ series: item, chartData, colors, pointRadius }) => {
                   const isEmphasized =
