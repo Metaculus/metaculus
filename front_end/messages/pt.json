@@ -24,6 +24,8 @@
   "logIn": "Entrar",
   "tutorial": "Tutorial",
   "logOut": "Sair",
+  "loggedInAs": "Conectado como {username}",
+  "menu": "Menu",
   "tweetPrediction": "Tuitar Previsão!",
   "postPredictionAsComment": "Publicar Previsão como Comentário",
   "predictionUpcomingMessage": "Esta pergunta está na fase de Em Breve e estará aberta para previsões em breve",
@@ -2144,5 +2146,6 @@
   "whyTrustMetaculusMarketsComparisonAlt": "Comparação de previsões do Metaculus versus mercados de previsões",
   "whyTrustMetaculusLessNoiseTitle": "Menos ruído, mais verdade",
   "whyTrustMetaculusLessNoise": "As previsões baseadas na multidão do Metaculus cortam o ruído ao basear cada previsão em evidências transparentes, pontuações responsáveis e uma década de precisão demonstrada. Como recurso público, o Metaculus equipa formuladores de políticas, pesquisadores, jornalistas e o público em geral com insights claros e quantificáveis sobre as incertezas mais críticas do mundo. A mesma abordagem comprovada também pode ser direcionada para as incertezas específicas que sua organização enfrenta, fornecendo previsões estruturadas e baseadas em evidências para apoiar decisões estratégicas mais precisas. Visite nossa <servicesLink>página de serviços</servicesLink> para saber como o Metaculus pode ajudá-lo.",
+  "publishTimeLockedDescription": "O horário de publicação não pode ser alterado após a criação.",
   "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
 }
