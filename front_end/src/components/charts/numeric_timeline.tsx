@@ -170,6 +170,7 @@ const NumericTimeline: FC<Props> = ({
         forceYTickCount: forFeedPage ? 3 : 5,
         alwaysShowYTicks: true,
         inboundOutcomeCount,
+        resolutionPoint,
       }),
     [
       questionType,
@@ -184,6 +185,7 @@ const NumericTimeline: FC<Props> = ({
       openTime,
       unit,
       inboundOutcomeCount,
+      resolutionPoint,
       forFeedPage,
     ]
   );
