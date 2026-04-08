@@ -129,7 +129,7 @@ class User(TimeStampedModel, AbstractUser):
             "and appears on leaderboards."
         ),
     )
-    allow_public_comments = models.BooleanField(
+    allow_public_comments_if_bot = models.BooleanField(
         default=False,
         help_text=(
             "Allow this bot to post public comments. "
@@ -182,9 +182,9 @@ class User(TimeStampedModel, AbstractUser):
                 violation_error_message="Bot owner could have only one primary bot",
             ),
             models.CheckConstraint(
-                check=models.Q(is_bot=True) | models.Q(allow_public_comments=False),
-                name="user_allow_public_comments_only_for_bots",
-                violation_error_message="allow_public_comments can only be set for bot accounts",
+                check=models.Q(is_bot=True) | models.Q(allow_public_comments_if_bot=False),
+                name="user_allow_public_comments_if_bot_only_for_bots",
+                violation_error_message="allow_public_comments_if_bot can only be set for bot accounts",
             ),
         ]
 

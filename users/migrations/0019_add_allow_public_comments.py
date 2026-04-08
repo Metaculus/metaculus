@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="user",
-            name="allow_public_comments",
+            name="allow_public_comments_if_bot",
             field=models.BooleanField(
                 default=False,
                 help_text=(
@@ -23,9 +23,9 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="user",
             constraint=models.CheckConstraint(
-                check=models.Q(("is_bot", True), ("allow_public_comments", False), _connector="OR"),
-                name="user_allow_public_comments_only_for_bots",
-                violation_error_message="allow_public_comments can only be set for bot accounts",
+                check=models.Q(("is_bot", True), ("allow_public_comments_if_bot", False), _connector="OR"),
+                name="user_allow_public_comments_if_bot_only_for_bots",
+                violation_error_message="allow_public_comments_if_bot can only be set for bot accounts",
             ),
         ),
     ]
