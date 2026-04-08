@@ -97,6 +97,16 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
   const [childrenExpanded, setChildrenExpanded] = useState(
     (expandedChildren && treeDepth < 5) || forceExpandedChildren
   );
+  const [forceExpandSubtree, setForceExpandSubtree] = useState(
+    forceExpandedChildren
+  );
+
+  useEffect(() => {
+    if (forceExpandedChildren) {
+      setChildrenExpanded(true);
+      setForceExpandSubtree(true);
+    }
+  }, [forceExpandedChildren]);
 
   function getTreeSize(commentChildren: CommentType[]): number {
     let totalChildren = 0;
@@ -128,7 +138,9 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
             }
           )}
           onClick={() => {
-            setChildrenExpanded(!childrenExpanded);
+            const nextExpanded = !childrenExpanded;
+            setChildrenExpanded(nextExpanded);
+            setForceExpandSubtree(nextExpanded);
           }}
         >
           <FontAwesomeIcon
@@ -157,7 +169,9 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
           <div
             className="absolute inset-y-0 -left-2 top-2 hidden w-4 cursor-pointer after:absolute after:inset-y-0 after:left-2 after:block after:w-px after:border-l after:border-blue-400 after:content-[''] after:hover:border-blue-600 after:dark:border-blue-600/80 after:hover:dark:border-blue-400/80 md:block"
             onClick={() => {
-              setChildrenExpanded(!childrenExpanded);
+              const nextExpanded = !childrenExpanded;
+              setChildrenExpanded(nextExpanded);
+              setForceExpandSubtree(nextExpanded);
             }}
           />
         )}{" "}
@@ -193,7 +207,9 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
                   postData={postData}
                   lastViewedAt={lastViewedAt}
                   shouldSuggestKeyFactors={shouldSuggestKeyFactors}
-                  forceExpandedChildren={forceExpandedChildren}
+                  forceExpandedChildren={
+                    forceExpandedChildren || forceExpandSubtree
+                  }
                 />
               </div>
             );
