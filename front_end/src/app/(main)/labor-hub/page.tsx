@@ -165,7 +165,7 @@ export default function LaborAutomationHubPage() {
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 
-        {/* Deep Dive Section */}
+        {/* Education Section */}
         <DualPaneSectionCard id="education" className="scroll-mt-12">
           <DualPaneSectionLeft>
             <SectionHeader>
@@ -250,6 +250,7 @@ export default function LaborAutomationHubPage() {
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 
+        {/* Economy Section */}
         <DualPaneSectionCard id="economy" className="scroll-mt-12">
           <DualPaneSectionLeft>
             <SectionHeader>Changing economy</SectionHeader>
@@ -280,9 +281,7 @@ export default function LaborAutomationHubPage() {
               Fortune 500 giants could operate with workforces once associated
               with small businesses rather than corporate behemoths.
             </ContentParagraph>
-            <ThemeOverrideContainer override="inverted">
-              <QuestionLoader questionId={41324} />
-            </ThemeOverrideContainer>
+            <QuestionLoader questionId={41324} />
             <ActivityCard
               avatar="https://cdn.metaculus.com/labor-hub/draaglom_256.jpg"
               username="Patrick Molgaard (draaglom)"
@@ -310,9 +309,7 @@ export default function LaborAutomationHubPage() {
         <DualPaneSectionCard id="state-wa" className="scroll-mt-12">
           <DualPaneSectionLeft>
             <SectionHeader>State-level Focus (WA)</SectionHeader>
-            <ThemeOverrideContainer override="inverted">
-              <QuestionLoader questionId={43081} />
-            </ThemeOverrideContainer>
+            <QuestionLoader questionId={43081} />
             <MultiQuestionTable
               title="How much have the following sectors changed in WA as a percentage of state employment in the following years relative to 2025?"
               firstColumnHeader="Sector"

@@ -1,10 +1,12 @@
 import { ReactNode, Suspense } from "react";
 
-import ServerPostsApi from "@/services/api/posts/posts.server";
-import { QuestionWithNumericForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 
+import {
+  fetchMultiQuestionDataset,
+  type MultiQuestionRowConfig,
+} from "./multi-question-data";
 import { NoQuestionPlaceholder } from "./placeholder";
 import { MoreButton } from "./question-card";
 import {
@@ -17,7 +19,6 @@ import {
   TableCompactRow,
   WageValue,
 } from "../../components/table-compact";
-import { getSubQuestionValue } from "../../helpers/fetch-jobs-data";
 
 type ValueFormat = "percentage" | "percentageChange" | "wage" | "number";
 
@@ -43,15 +44,9 @@ function FormattedValue({
   }
 }
 
-type TableRowConfig = {
-  questionId: number;
-  title: string;
-  staticValue?: ReactNode;
-};
-
 type MultiQuestionTableProps = {
   title?: string;
-  rows: TableRowConfig[];
+  rows: MultiQuestionRowConfig[];
   staticColumnHeader?: string;
   firstColumnHeader?: string;
   valueFormat?: ValueFormat;
@@ -74,13 +69,9 @@ async function MultiQuestionTableContent({
 }: MultiQuestionTableProps) {
   const postIds = rows.map((r) => r.questionId);
 
-  let posts;
+  let dataset;
   try {
-    const { results } = await ServerPostsApi.getPostsWithCP({
-      ids: postIds,
-      limit: postIds.length,
-    });
-    posts = results;
+    dataset = await fetchMultiQuestionDataset(rows);
   } catch (error) {
     logError(error);
     return (
@@ -96,20 +87,7 @@ async function MultiQuestionTableContent({
     );
   }
 
-  const postsById = new Map(posts.map((p) => [p.id, p]));
-
-  // Collect all unique sub-question labels across posts
-  const labelsSet = new Set<string>();
-  for (const post of posts) {
-    const questions = post.group_of_questions?.questions;
-    if (!questions) continue;
-    for (const q of questions) {
-      if (q.label) labelsSet.add(q.label);
-    }
-  }
-  const columns = Array.from(labelsSet).sort();
-
-  const hasStaticColumn = rows.some((r) => r.staticValue != null);
+  const hasStaticColumn = dataset.rows.some((row) => row.staticValue != null);
 
   return (
     <>
@@ -141,7 +119,7 @@ async function MultiQuestionTableContent({
                 {staticColumnHeader ?? "Current"}
               </TableCompactHeaderCell>
             )}
-            {columns.map((col) => (
+            {dataset.columns.map((col) => (
               <TableCompactHeaderCell key={col} className="text-right">
                 {col}
               </TableCompactHeaderCell>
@@ -149,15 +127,7 @@ async function MultiQuestionTableContent({
           </TableCompactRow>
         </TableCompactHead>
         <TableCompactBody>
-          {rows.map((row) => {
-            const post = postsById.get(row.questionId);
-            const questions = post?.group_of_questions?.questions as
-              | QuestionWithNumericForecasts[]
-              | undefined;
-            const questionByLabel = new Map(
-              questions?.map((q) => [q.label, q]) ?? []
-            );
-
+          {dataset.rows.map((row) => {
             return (
               <TableCompactRow key={row.questionId}>
                 <TableCompactCell>{row.title}</TableCompactCell>
@@ -166,9 +136,8 @@ async function MultiQuestionTableContent({
                     {row.staticValue}
                   </TableCompactCell>
                 )}
-                {columns.map((col) => {
-                  const q = questionByLabel.get(col);
-                  const value = q ? getSubQuestionValue(q) : null;
+                {dataset.columns.map((col) => {
+                  const value = row.values[col] ?? null;
                   return (
                     <TableCompactCell key={col} className="text-right">
                       {value != null ? (

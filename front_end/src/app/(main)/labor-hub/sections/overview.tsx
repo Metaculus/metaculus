@@ -8,10 +8,8 @@ import {
   LaborHubChartHoverProvider,
   LaborHubChartHoverSection,
 } from "../components/labor-hub-chart-hover-context";
-import {
-  MultiLineRiskChart,
-  type LineSeries,
-} from "../components/question-cards/multi-line-risk-chart";
+import { LaborHubMultiLineChart } from "../components/labor-hub-multi-line-chart";
+import { type LineSeries } from "../components/question-cards/multi-line-chart";
 import { NoQuestionPlaceholder } from "../components/question-cards/placeholder";
 import { QuestionCard } from "../components/question-cards/question-card";
 import { GOVERNMENT_BASELINES } from "../data";
@@ -35,6 +33,9 @@ function excludeYears(
 type JobForecast = { name: string; value: number };
 
 const VULNERABILITY_CHIP_JOB_LIMIT = 3;
+
+const toChartPoints = (data: YearValue[]) =>
+  data.map(({ year, value }) => ({ x: year, y: value }));
 
 /** Up to `limit` jobs at the min/max forecasts for a year (same values as the chart envelope). */
 function getTopExtremeJobsForYear(
@@ -127,7 +128,7 @@ export async function OverviewSection({
 
   // --- Overall chart data ---
   const baselineData = Object.entries(GOVERNMENT_BASELINES).map(
-    ([year, value]) => ({ year: Number(year), value })
+    ([year, value]) => ({ x: Number(year), y: value })
   );
 
   const overallSeries = [
@@ -136,7 +137,7 @@ export async function OverviewSection({
       color: "gray",
       filled: true,
       dashed: true,
-      showDataLabels: true,
+      dataLabels: "always",
       dataLabelPlacement: "above",
       dataLabelTransparent: true,
       dotSize: 3,
@@ -150,10 +151,10 @@ export async function OverviewSection({
       filled: false,
       dataLabelTextClassName: "fill-mc-option-2 dark:fill-mc-option-2-dark",
       label: "Metaculus forecast",
-      showDataLabels: true,
+      dataLabels: "always",
       dataLabelTransparent: true,
       dataLabelPlacement: "below",
-      data: overallData,
+      data: toChartPoints(overallData),
     },
   ] satisfies LineSeries[];
 
@@ -174,21 +175,21 @@ export async function OverviewSection({
       color: "green",
       filled: true,
       label: "Least vulnerable",
-      data: excludeYears(max, [2027]),
+      data: toChartPoints(excludeYears(max, [2027])),
     },
     {
       id: "decline",
       color: "red",
       filled: true,
       label: "Most vulnerable",
-      data: excludeYears(min, [2027]),
+      data: toChartPoints(excludeYears(min, [2027])),
     },
     {
       id: "baseline",
-      color: "gray",
+      color: "blue",
       filled: false,
       label: "Overall employment",
-      data: overallData,
+      data: toChartPoints(overallData),
     },
   ] satisfies LineSeries[];
 
@@ -245,11 +246,10 @@ export async function OverviewSection({
           className="lg:rounded-r-none lg:border-r lg:border-gray-200 dark:lg:border-gray-800"
         >
           {/* Overall employment chart */}
-          <MultiLineRiskChart
+          <LaborHubMultiLineChart
             series={overallSeries}
             legendOrder={["overall", "gov-baseline"]}
             showTickLabels={true}
-            syncHover
           />
 
           {/* Summary Text */}

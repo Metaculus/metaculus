@@ -27,9 +27,7 @@ export function ResearchSection({
       </SectionHeader>
 
       <div className="float-right !mb-4 !mt-8 flex w-full flex-col gap-4 md:ml-6 md:w-[calc(50%-1.5rem)]">
-        <ThemeOverrideContainer override="inverted">
-          <QuestionLoader questionId={42850} />
-        </ThemeOverrideContainer>
+        <QuestionLoader questionId={42850} />
         <ActivityCard
           avatar="https://cdn.metaculus.com/labor-hub/haiku_256.jpg"
           username="Nathan Metzger (Haiku)"
