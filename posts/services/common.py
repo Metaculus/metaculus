@@ -58,15 +58,11 @@ def get_conditional_categories(conditional) -> list[Project]:
 
     condition_post = conditional.condition.get_post()
     if condition_post:
-        categories.update(
-            condition_post.projects.filter(type=category_type)
-        )
+        categories.update(condition_post.projects.filter(type=category_type))
 
     condition_child_post = conditional.condition_child.get_post()
     if condition_child_post:
-        categories.update(
-            condition_child_post.projects.filter(type=category_type)
-        )
+        categories.update(condition_child_post.projects.filter(type=category_type))
 
     return list(categories)
 

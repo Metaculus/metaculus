@@ -1,5 +1,3 @@
-import pytest
-
 from posts.services.common import (
     get_conditional_categories,
     sync_conditional_categories,
@@ -25,11 +23,11 @@ class TestConditionalCategoryPropagation:
             question_type=Question.QuestionType.BINARY,
         )
 
-        condition_post = factory_post(
+        factory_post(
             question=condition,
             projects=[cat_a, cat_b],
         )
-        child_post = factory_post(
+        factory_post(
             question=condition_child,
             projects=[cat_b, cat_c],
         )
@@ -65,9 +63,7 @@ class TestConditionalCategoryPropagation:
         post = factory_post(conditional=conditional)
         sync_conditional_categories(post)
 
-        post_categories = set(
-            post.projects.filter(type=Project.ProjectTypes.CATEGORY)
-        )
+        post_categories = set(post.projects.filter(type=Project.ProjectTypes.CATEGORY))
         assert cat_a in post_categories
         assert cat_b in post_categories
         assert cat_c in post_categories
