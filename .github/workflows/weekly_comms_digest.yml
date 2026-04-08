@@ -31,7 +31,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.COMMSDIGEST_SLACK_WEBHOOK_URL }}
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             python scripts/weekly_comms_digest.py --dry-run
