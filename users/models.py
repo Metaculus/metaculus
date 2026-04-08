@@ -182,7 +182,8 @@ class User(TimeStampedModel, AbstractUser):
                 violation_error_message="Bot owner could have only one primary bot",
             ),
             models.CheckConstraint(
-                check=models.Q(is_bot=True) | models.Q(allow_public_comments_if_bot=False),
+                check=models.Q(is_bot=True)
+                | models.Q(allow_public_comments_if_bot=False),
                 name="user_allow_public_comments_if_bot_only_for_bots",
                 violation_error_message="allow_public_comments_if_bot can only be set for bot accounts",
             ),
