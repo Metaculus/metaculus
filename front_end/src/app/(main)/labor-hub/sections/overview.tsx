@@ -1,6 +1,7 @@
 import { ComponentProps } from "react";
 
 import { QuestionWithNumericForecasts } from "@/types/question";
+import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 
 import { LaborHubByJobVulnerabilityCard } from "../components/labor-hub-by-job-vulnerability-card";
@@ -9,6 +10,7 @@ import {
   LaborHubChartHoverSection,
 } from "../components/labor-hub-chart-hover-context";
 import { LaborHubMultiLineChart } from "../components/labor-hub-multi-line-chart";
+import { OverviewMobileCardTabs } from "../components/overview-mobile-card-tabs";
 import { type LineSeries } from "../components/question-cards/multi-line-chart";
 import { NoQuestionPlaceholder } from "../components/question-cards/placeholder";
 import { QuestionCard } from "../components/question-cards/question-card";
@@ -246,70 +248,93 @@ export async function OverviewSection({
       : "text-mc-option-3 dark:text-mc-option-3-dark";
 
   const allPostIds = [OVERALL_POST_ID, ...jobs.map((j) => j.post_id)];
+  const renderOverallCard = (className?: string) => (
+    <QuestionCard
+      postIds={allPostIds}
+      variant="primary"
+      title="Overall Employment"
+      titleClassName="hidden lg:block print:block"
+      className={cn("py-4", className)}
+    >
+      {/* Overall employment chart */}
+      <LaborHubMultiLineChart
+        series={overallSeries}
+        legendOrder={["overall", "gov-baseline"]}
+        showTickLabels={true}
+      />
+
+      {/* Summary Text */}
+      <div className="text-sm text-blue-700 [text-wrap:pretty] dark:text-blue-700-dark md:text-base">
+        Overall employment is projected to{" "}
+        {change2030 != null && (
+          <>
+            <span className={`font-bold ${overallColor(change2030)}`}>
+              {formatOverallChange(change2030)} by 2030
+            </span>{" "}
+            and{" "}
+          </>
+        )}
+        {change2035 != null && (
+          <span className={`font-bold ${overallColor(change2035)}`}>
+            {formatOverallChange(change2035)} by 2035
+          </span>
+        )}{" "}
+        relative to 2025 due to AI-driven displacement.{" "}
+        {change2035 != null && change2035 < 0
+          ? "This sharply contrasts with"
+          : change2035 != null && change2035 < 3
+            ? "This falls short of"
+            : "This is in line with"}{" "}
+        <span className="font-bold">
+          government baselines projecting +3% growth
+        </span>{" "}
+        over the decade from aging-adjusted population trends.
+      </div>
+    </QuestionCard>
+  );
+  const renderVulnerabilityCard = (className?: string) => (
+    <QuestionCard
+      postIds={allPostIds}
+      title="By Job Vulnerability"
+      variant="primary"
+      titleClassName="hidden lg:block print:block"
+      className={cn("py-4", className)}
+    >
+      <LaborHubByJobVulnerabilityCard
+        series={vulnerabilitySeries}
+        yAxisLabels={[...vulnerabilityYAxisLabels]}
+        extremeJobs2035={extremeJobs2035}
+        mostVulnerable2035={mostVulnerable2035}
+        leastVulnerable2035={leastVulnerable2035}
+      />
+    </QuestionCard>
+  );
 
   return (
     <LaborHubChartHoverProvider>
-      <LaborHubChartHoverSection
-        className="grid scroll-mt-12 lg:grid-cols-2 print:grid-cols-2 print:gap-4"
-        {...props}
-      >
-        <QuestionCard
-          postIds={allPostIds}
-          variant="primary"
-          title="Overall Employment"
-          className="lg:rounded-r-none lg:border-r lg:border-gray-200 dark:lg:border-gray-700/30"
-        >
-          {/* Overall employment chart */}
-          <LaborHubMultiLineChart
-            series={overallSeries}
-            legendOrder={["overall", "gov-baseline"]}
-            showTickLabels={true}
-          />
-
-          {/* Summary Text */}
-          <div className="text-sm text-blue-700 [text-wrap:pretty] dark:text-blue-700-dark md:text-base">
-            Overall employment is projected to{" "}
-            {change2030 != null && (
-              <>
-                <span className={`font-bold ${overallColor(change2030)}`}>
-                  {formatOverallChange(change2030)} by 2030
-                </span>{" "}
-                and{" "}
-              </>
-            )}
-            {change2035 != null && (
-              <span className={`font-bold ${overallColor(change2035)}`}>
-                {formatOverallChange(change2035)} by 2035
-              </span>
-            )}{" "}
-            relative to 2025 due to AI-driven displacement.{" "}
-            {change2035 != null && change2035 < 0
-              ? "This sharply contrasts with"
-              : change2035 != null && change2035 < 3
-                ? "This falls short of"
-                : "This is in line with"}{" "}
-            <span className="font-bold">
-              government baselines projecting +3% growth
-            </span>{" "}
-            over the decade from aging-adjusted population trends.
-          </div>
-        </QuestionCard>
-
-        {/* By-job vulnerability chart */}
-        <QuestionCard
-          postIds={allPostIds}
-          title="By Job Vulnerability"
-          variant="primary"
-          className="bg-opacity-80 dark:bg-opacity-70 lg:rounded-l-none"
-        >
-          <LaborHubByJobVulnerabilityCard
-            series={vulnerabilitySeries}
-            yAxisLabels={[...vulnerabilityYAxisLabels]}
-            extremeJobs2035={extremeJobs2035}
-            mostVulnerable2035={mostVulnerable2035}
-            leastVulnerable2035={leastVulnerable2035}
-          />
-        </QuestionCard>
+      <LaborHubChartHoverSection className="scroll-mt-12" {...props}>
+        <OverviewMobileCardTabs
+          tabs={[
+            {
+              id: "overall",
+              label: "Overall Employment",
+              content: renderOverallCard(),
+            },
+            {
+              id: "vulnerability",
+              label: "By Job Vulnerability",
+              content: renderVulnerabilityCard(),
+            },
+          ]}
+        />
+        <div className="hidden lg:grid lg:grid-cols-2 print:grid print:grid-cols-2 print:gap-4">
+          {renderOverallCard(
+            "lg:rounded-r-none lg:border-r lg:border-gray-200 dark:lg:border-gray-700/30"
+          )}
+          {renderVulnerabilityCard(
+            "bg-opacity-80 dark:bg-opacity-70 lg:rounded-l-none"
+          )}
+        </div>
       </LaborHubChartHoverSection>
     </LaborHubChartHoverProvider>
   );
