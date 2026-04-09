@@ -60,9 +60,10 @@ function FormattedValue({
   }
 }
 
-type MultiQuestionTableProps = {
+export type MultiQuestionTableProps = {
   title?: ReactNode;
   rows: MultiQuestionRowConfig[];
+  historicalValueKeys?: string[];
   staticColumnHeader?: string;
   firstColumnHeader?: string;
   valueFormat?: ValueFormat;
@@ -75,6 +76,7 @@ type MultiQuestionTableProps = {
 async function MultiQuestionTableContent({
   title,
   rows,
+  historicalValueKeys,
   staticColumnHeader,
   firstColumnHeader,
   valueFormat = "percentage",
@@ -105,6 +107,16 @@ async function MultiQuestionTableContent({
   }
 
   const hasStaticColumn = dataset.rows.some((row) => row.staticValue != null);
+  const historicalLabelSet = new Set(
+    rows.flatMap((row) => Object.keys(row.historicalValues ?? {}))
+  );
+  const historicalValueKeySet = historicalValueKeys
+    ? new Set(historicalValueKeys)
+    : null;
+  const displayedColumns = dataset.columns.filter((label) => {
+    if (!historicalLabelSet.has(label)) return true;
+    return historicalValueKeySet?.has(label) ?? true;
+  });
 
   return (
     <>
@@ -136,7 +148,7 @@ async function MultiQuestionTableContent({
                 {staticColumnHeader ?? "Current"}
               </TableCompactHeaderCell>
             )}
-            {dataset.columns.map((col) => (
+            {displayedColumns.map((col) => (
               <TableCompactHeaderCell key={col} className="text-right">
                 {col}
               </TableCompactHeaderCell>
@@ -153,7 +165,7 @@ async function MultiQuestionTableContent({
                     {row.staticValue}
                   </TableCompactCell>
                 )}
-                {dataset.columns.map((col) => {
+                {displayedColumns.map((col) => {
                   const value = row.values[col] ?? null;
                   return (
                     <TableCompactCell key={col} className="text-right">

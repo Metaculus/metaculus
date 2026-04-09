@@ -7,6 +7,7 @@ import { ActivityCard } from "./components/activity-card";
 import { DefinitionTooltip } from "./components/definition-tooltip";
 import LaborHubNavigation from "./components/labor-hub-navigation";
 import { PrintAttribution } from "./components/print-attribution";
+import { FlippableMultiQuestionCard } from "./components/question-cards/flippable-multi-question-card";
 import { MultiQuestionTable } from "./components/question-cards/multi-question-table";
 import { QuestionLoader } from "./components/question-cards/question";
 import {
@@ -129,15 +130,59 @@ export default function LaborAutomationHubPage() {
                 </>
               }
             />
-            <MultiQuestionTable
+            <FlippableMultiQuestionCard
               title="What will the well-being ratio (resources to poverty threshold) be for the [X]-percentile US family in the following years?"
-              valueFormat="percentageChange"
-              decimals={1}
+              prefer="timeline"
+              tableHistoricalValueKeys={["2024"]}
               rows={[
-                { questionId: 42944, title: "20th percentile" },
-                { questionId: 43042, title: "50th percentile" },
-                { questionId: 43043, title: "80th percentile" },
+                {
+                  questionId: 42944,
+                  title: "20th percentile",
+                  historicalValues: {
+                    2018: 1.1811,
+                    2019: 1.2262,
+                    2020: 1.3597,
+                    2021: 1.3808,
+                    2022: 1.1899,
+                    2023: 1.1732,
+                    2024: 1.1628,
+                  },
+                },
+                {
+                  questionId: 43042,
+                  title: "50th percentile",
+                  historicalValues: {
+                    2018: 2.3499,
+                    2019: 2.4815,
+                    2020: 2.5793,
+                    2021: 2.5774,
+                    2022: 2.3591,
+                    2023: 2.3555,
+                    2024: 2.3442,
+                  },
+                },
+                {
+                  questionId: 43043,
+                  title: "80th percentile",
+                  historicalValues: {
+                    2018: 4.3322,
+                    2019: 4.5791,
+                    2020: 4.619,
+                    2021: 4.6173,
+                    2022: 4.2673,
+                    2023: 4.3198,
+                    2024: 4.3312,
+                  },
+                },
               ]}
+              tableProps={{
+                valueFormat: "number",
+              }}
+              chartProps={{
+                showTickLabels: true,
+                valueFormat: "number",
+                historicalTickEvery: 2,
+              }}
               note={
                 <p>
                   The well-being measure below reflects a family’s available

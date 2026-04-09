@@ -45,6 +45,7 @@ type Props = {
   yAxisGutter?: number;
   formatYValue?: (value: number) => string;
   xTickValues?: number[];
+  visibleXTickValues?: number[];
   formatXTick?: (value: number) => string;
   highlightedX?: number | null;
   defaultHighlightedX?: number | null;
@@ -81,6 +82,27 @@ export const defaultFormatYTick = (value: number): string => {
 
 const DATA_LABEL_ON_DARK_FILL = METAC_COLORS.gray["0"].DEFAULT;
 const DATA_LABEL_ON_LIGHT_FILL = METAC_COLORS.gray["900"].DEFAULT;
+
+const MC_OPTION_COLOR_MAP = {
+  mc1: METAC_COLORS["mc-option"]["1"],
+  mc2: METAC_COLORS["mc-option"]["2"],
+  mc3: METAC_COLORS["mc-option"]["3"],
+  mc4: METAC_COLORS["mc-option"]["4"],
+  mc5: METAC_COLORS["mc-option"]["5"],
+  mc6: METAC_COLORS["mc-option"]["6"],
+  mc7: METAC_COLORS["mc-option"]["7"],
+  mc8: METAC_COLORS["mc-option"]["8"],
+  mc9: METAC_COLORS["mc-option"]["9"],
+  mc10: METAC_COLORS["mc-option"]["10"],
+  mc11: METAC_COLORS["mc-option"]["11"],
+  mc12: METAC_COLORS["mc-option"]["12"],
+  mc13: METAC_COLORS["mc-option"]["13"],
+  mc14: METAC_COLORS["mc-option"]["14"],
+  mc15: METAC_COLORS["mc-option"]["15"],
+  mc16: METAC_COLORS["mc-option"]["16"],
+  mc17: METAC_COLORS["mc-option"]["17"],
+  mc18: METAC_COLORS["mc-option"]["18"],
+} as const;
 
 const getContrastTextColor = (backgroundColor: string): string => {
   const normalizedColor = backgroundColor.replace("#", "");
@@ -119,6 +141,16 @@ const getSeriesColors = (
   colorType: MultiLineChartColor,
   getThemeColor: (color: { DEFAULT: string; dark: string }) => string
 ) => {
+  if (colorType in MC_OPTION_COLOR_MAP) {
+    const fill = getThemeColor(
+      MC_OPTION_COLOR_MAP[colorType as keyof typeof MC_OPTION_COLOR_MAP]
+    );
+    return {
+      stroke: fill,
+      fill,
+    };
+  }
+
   switch (colorType) {
     case "green": {
       const fill = getThemeColor(METAC_COLORS["mc-option"]["3"]);
@@ -333,17 +365,19 @@ const DataPointCircle: FC<{
 }) => {
   if (x === undefined || y === undefined) return null;
 
+  const resolvedBaseRadius = datum?.dotSize ?? radius;
   const resolvedRadius =
     highlightedX != null && datum?.x === highlightedX
-      ? radius + hoverRadiusDelta
-      : radius;
+      ? resolvedBaseRadius + hoverRadiusDelta
+      : resolvedBaseRadius;
+  const resolvedIsFilled = datum?.filled ?? isFilled;
 
   return (
     <circle
       cx={x}
       cy={y}
       r={resolvedRadius}
-      fill={isFilled ? fillColor : bgColor}
+      fill={resolvedIsFilled ? fillColor : bgColor}
       stroke={strokeColor}
       strokeWidth={2}
       opacity={opacity}
@@ -457,6 +491,7 @@ export const MultiLineChart: FC<Props> = ({
   yAxisGutter,
   formatYValue: formatYValueProp,
   xTickValues,
+  visibleXTickValues,
   formatXTick,
   highlightedX: highlightedXProp,
   defaultHighlightedX = null,
@@ -550,6 +585,7 @@ export const MultiLineChart: FC<Props> = ({
         return {
           series: item,
           chartData: item.data.map((point) => ({
+            ...point,
             x: point.x,
             y: point.y,
           })),
@@ -597,9 +633,38 @@ export const MultiLineChart: FC<Props> = ({
   const formatResolvedXTick = useCallback(
     (tick: string | number) => {
       const numericTick = typeof tick === "number" ? tick : Number(tick);
+      if (visibleXTickValues?.length) {
+        const baseVisibleTickSet = new Set(visibleXTickValues);
+        const isBaseVisible = baseVisibleTickSet.has(numericTick);
+
+        if (highlightedX != null && !baseVisibleTickSet.has(highlightedX)) {
+          const highlightedIndex = resolvedXTickValues.indexOf(highlightedX);
+          const previousTick =
+            highlightedIndex > 0
+              ? resolvedXTickValues[highlightedIndex - 1]
+              : undefined;
+          const nextTick =
+            highlightedIndex >= 0
+              ? resolvedXTickValues[highlightedIndex + 1]
+              : undefined;
+
+          if (numericTick === highlightedX) {
+            return formatXTick ? formatXTick(numericTick) : String(tick);
+          }
+
+          if (numericTick === previousTick || numericTick === nextTick) {
+            return "";
+          }
+        }
+
+        if (!isBaseVisible) {
+          return "";
+        }
+      }
+
       return formatXTick ? formatXTick(numericTick) : String(tick);
     },
-    [formatXTick]
+    [formatXTick, highlightedX, resolvedXTickValues, visibleXTickValues]
   );
 
   return (

@@ -4,7 +4,6 @@ import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 
 import {
-  MultiLineChart,
   type MultiLineChartColor,
   type MultiLineChartProps,
   type MultiLineChartSeries,
@@ -15,15 +14,30 @@ import {
   type MultiQuestionResolvedRow,
   type MultiQuestionRowConfig,
 } from "./multi-question-data";
+import { MultiQuestionLineChartClient } from "./multi-question-line-chart-client";
 import { NoQuestionPlaceholder } from "./placeholder";
 import { MoreButton } from "./question-card";
 
 const DEFAULT_SERIES_COLORS: MultiLineChartColor[] = [
-  "blue",
-  "green",
-  "red",
-  "gray",
+  "mc1",
+  "mc4",
+  "mc5",
+  "mc6",
+  "mc7",
+  "mc8",
+  "mc9",
+  "mc10",
+  "mc11",
+  "mc12",
+  "mc13",
+  "mc14",
+  "mc15",
+  "mc16",
+  "mc17",
+  "mc18",
 ];
+
+type MultiQuestionLineChartValueFormat = "default" | "number";
 
 type SeriesOverride = Partial<
   Omit<MultiLineChartSeries, "id" | "label" | "data" | "color">
@@ -31,12 +45,15 @@ type SeriesOverride = Partial<
   color?: MultiLineChartColor;
 };
 
-type MultiQuestionLineChartProps = {
+export type MultiQuestionLineChartProps = {
   title?: string;
   rows: MultiQuestionRowConfig[];
   className?: string;
   note?: ReactNode;
   showMoreButton?: boolean;
+  valueFormat?: MultiQuestionLineChartValueFormat;
+  decimals?: number;
+  historicalTickEvery?: number;
   getSeriesOptions?: (
     row: MultiQuestionResolvedRow,
     index: number
@@ -46,6 +63,7 @@ type MultiQuestionLineChartProps = {
   | "series"
   | "xTickValues"
   | "formatXTick"
+  | "formatYValue"
   | "highlightedX"
   | "onHighlightedXChange"
 >;
@@ -58,11 +76,17 @@ function buildSeriesFromDatasetRows(
     index: number
   ) => SeriesOverride | undefined
 ) {
-  const { xTickValues, getXForLabel, formatXTick } =
-    createMultiQuestionLineXAxis(columns);
+  const { xTickValues, getXForLabel } = createMultiQuestionLineXAxis(columns);
+  const xTickLabelsByValue = Object.fromEntries(
+    xTickValues.map((xValue, index) => [
+      String(xValue),
+      columns[index] ?? String(xValue),
+    ])
+  );
 
   const series = rows.map<MultiLineChartSeries>((row, index) => {
     const overrides = getSeriesOptions?.(row, index);
+    const historicalValues = row.historicalValues ?? {};
 
     return {
       id: String(row.questionId),
@@ -85,11 +109,17 @@ function buildSeriesFromDatasetRows(
       data: columns.flatMap((label, columnIndex) => {
         const value = row.values[label];
         if (value == null) return [];
+        const isHistoricalPoint = Object.prototype.hasOwnProperty.call(
+          historicalValues,
+          label
+        );
 
         return [
           {
             x: getXForLabel(label, columnIndex),
             y: value,
+            filled: isHistoricalPoint ? true : undefined,
+            dotSize: isHistoricalPoint ? 4 : undefined,
           },
         ];
       }),
@@ -99,7 +129,7 @@ function buildSeriesFromDatasetRows(
   return {
     series,
     xTickValues,
-    formatXTick,
+    xTickLabelsByValue,
   };
 }
 
@@ -109,6 +139,9 @@ async function MultiQuestionLineChartContent({
   className,
   note,
   showMoreButton = true,
+  valueFormat = "default",
+  decimals = 1,
+  historicalTickEvery,
   getSeriesOptions,
   ...chartProps
 }: MultiQuestionLineChartProps) {
@@ -126,11 +159,27 @@ async function MultiQuestionLineChartContent({
     );
   }
 
-  const { series, xTickValues, formatXTick } = buildSeriesFromDatasetRows(
-    dataset.rows,
-    dataset.columns,
-    getSeriesOptions
+  const { series, xTickValues, xTickLabelsByValue } =
+    buildSeriesFromDatasetRows(dataset.rows, dataset.columns, getSeriesOptions);
+  const historicalLabelSet = new Set(
+    rows.flatMap((row) => Object.keys(row.historicalValues ?? {}))
   );
+  const visibleXTickValues =
+    historicalTickEvery && historicalTickEvery > 1
+      ? xTickValues.filter((xTickValue) => {
+          const label = xTickLabelsByValue[String(xTickValue)];
+          if (!label || !historicalLabelSet.has(label)) return true;
+
+          const historicalIndex = dataset.columns
+            .filter((column) => historicalLabelSet.has(column))
+            .indexOf(label);
+
+          return (
+            historicalIndex === -1 ||
+            historicalIndex % historicalTickEvery === 0
+          );
+        })
+      : xTickValues;
 
   return (
     <>
@@ -145,11 +194,14 @@ async function MultiQuestionLineChartContent({
             {title}
           </h3>
         )}
-        <MultiLineChart
+        <MultiQuestionLineChartClient
           {...chartProps}
           series={series}
           xTickValues={xTickValues}
-          formatXTick={formatXTick}
+          visibleXTickValues={visibleXTickValues}
+          xTickLabelsByValue={xTickLabelsByValue}
+          valueFormat={valueFormat}
+          decimals={decimals}
         />
       </div>
       {note && (

@@ -9,6 +9,7 @@ export type MultiQuestionRowConfig = {
   questionId: number;
   title: string;
   staticValue?: ReactNode;
+  historicalValues?: Record<string, number | null>;
 };
 
 export type MultiQuestionResolvedRow = MultiQuestionRowConfig & {
@@ -42,6 +43,12 @@ export async function fetchMultiQuestionDataset(
   const postsById = new Map(posts.map((post) => [post.id, post]));
   const labelsSet = new Set<string>();
 
+  for (const row of rows) {
+    for (const label of Object.keys(row.historicalValues ?? {})) {
+      labelsSet.add(label);
+    }
+  }
+
   for (const post of posts) {
     const questions = post.group_of_questions?.questions;
     if (!questions) continue;
@@ -62,6 +69,15 @@ export async function fetchMultiQuestionDataset(
 
     const values = Object.fromEntries(
       columns.map((label) => {
+        if (
+          Object.prototype.hasOwnProperty.call(
+            row.historicalValues ?? {},
+            label
+          )
+        ) {
+          return [label, row.historicalValues?.[label] ?? null];
+        }
+
         const question = questionByLabel.get(label);
         return [label, question ? getSubQuestionValue(question) : null];
       })
