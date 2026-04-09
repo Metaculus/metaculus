@@ -142,6 +142,20 @@ export async function OverviewSection({
       dataLabelTransparent: true,
       dotSize: 3,
       legendStyle: "line",
+      legendDetail: (
+        <>
+          The US Bureau of Labor Statistics{" "}
+          <a
+            href="https://www.bls.gov/news.release/ecopro.nr0.htm"
+            target="_blank"
+            rel="noreferrer"
+          >
+            projected
+          </a>{" "}
+          3.1% growth from 2024 to 2034, figure shows a linear interpolation for
+          simplicity.
+        </>
+      ),
       label: "Government baseline",
       data: baselineData,
     },
@@ -196,7 +210,7 @@ export async function OverviewSection({
   const vulnerabilityYAxisLabels = [
     { text: "10% growth", value: 10 },
     { text: "No change", value: 0 },
-    { text: "40% automated", value: -40 },
+    { text: "40% decline", value: -40 },
   ] as const;
 
   // --- Summary data ---
@@ -243,7 +257,7 @@ export async function OverviewSection({
           postIds={allPostIds}
           variant="primary"
           title="Risk Monitor"
-          className="lg:rounded-r-none lg:border-r lg:border-gray-200 dark:lg:border-gray-800"
+          className="lg:rounded-r-none lg:border-r lg:border-gray-200 dark:lg:border-gray-700/30"
         >
           {/* Overall employment chart */}
           <LaborHubMultiLineChart
@@ -286,7 +300,7 @@ export async function OverviewSection({
           postIds={allPostIds}
           title="By Job Vulnerability"
           variant="primary"
-          className="bg-opacity-80 lg:rounded-l-none"
+          className="bg-opacity-80 dark:bg-opacity-70 lg:rounded-l-none"
         >
           <LaborHubByJobVulnerabilityCard
             series={vulnerabilitySeries}

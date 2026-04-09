@@ -1,5 +1,7 @@
 "use client";
 
+import { faCircleQuestion } from "@fortawesome/free-regular-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, useCallback, useMemo, useState, type MouseEvent } from "react";
 import {
   LineSegment,
@@ -16,6 +18,7 @@ import { usePrintOverride } from "@/contexts/theme_override_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import cn from "@/utils/core/cn";
+import Tooltip from "@/components/ui/tooltip";
 
 import {
   CHART_PADDING,
@@ -76,7 +79,34 @@ export const defaultFormatYTick = (value: number): string => {
   return `${sign}${value.toFixed(0)}%`;
 };
 
-const DATA_LABEL_ON_SERIES_FILL = "#ffffff";
+const DATA_LABEL_ON_DARK_FILL = METAC_COLORS.gray["0"].DEFAULT;
+const DATA_LABEL_ON_LIGHT_FILL = METAC_COLORS.gray["900"].DEFAULT;
+
+const getContrastTextColor = (backgroundColor: string): string => {
+  const normalizedColor = backgroundColor.replace("#", "");
+  const hex =
+    normalizedColor.length === 3
+      ? normalizedColor
+          .split("")
+          .map((value) => `${value}${value}`)
+          .join("")
+      : normalizedColor;
+
+  if (hex.length !== 6) {
+    return DATA_LABEL_ON_DARK_FILL;
+  }
+
+  const red = Number.parseInt(hex.slice(0, 2), 16);
+  const green = Number.parseInt(hex.slice(2, 4), 16);
+  const blue = Number.parseInt(hex.slice(4, 6), 16);
+
+  if ([red, green, blue].some(Number.isNaN)) {
+    return DATA_LABEL_ON_DARK_FILL;
+  }
+
+  const yiq = (red * 299 + green * 587 + blue * 114) / 1000;
+  return yiq >= 160 ? DATA_LABEL_ON_LIGHT_FILL : DATA_LABEL_ON_DARK_FILL;
+};
 
 /** Default for point badges: one decimal and %. */
 export const defaultFormatYValue = (value: number): string => {
@@ -90,27 +120,35 @@ const getSeriesColors = (
   getThemeColor: (color: { DEFAULT: string; dark: string }) => string
 ) => {
   switch (colorType) {
-    case "green":
+    case "green": {
+      const fill = getThemeColor(METAC_COLORS["mc-option"]["3"]);
       return {
-        stroke: getThemeColor(METAC_COLORS["mc-option"]["3"]),
-        fill: getThemeColor(METAC_COLORS["mc-option"]["3"]),
+        stroke: fill,
+        fill,
       };
-    case "red":
+    }
+    case "red": {
+      const fill = getThemeColor(METAC_COLORS["mc-option"]["2"]);
       return {
-        stroke: getThemeColor(METAC_COLORS["mc-option"]["2"]),
-        fill: getThemeColor(METAC_COLORS["mc-option"]["2"]),
+        stroke: fill,
+        fill,
       };
-    case "blue":
+    }
+    case "blue": {
+      const fill = getThemeColor(METAC_COLORS.blue["800"]);
       return {
-        stroke: getThemeColor(METAC_COLORS.blue["800"]),
-        fill: getThemeColor(METAC_COLORS.blue["800"]),
+        stroke: fill,
+        fill,
       };
+    }
     case "gray":
-    default:
+    default: {
+      const fill = getThemeColor(METAC_COLORS.gray["500"]);
       return {
-        stroke: getThemeColor(METAC_COLORS.gray["500"]),
-        fill: getThemeColor(METAC_COLORS.gray["500"]),
+        stroke: fill,
+        fill,
       };
+    }
   }
 };
 
@@ -173,6 +211,22 @@ const Legend: FC<{
             <span className="text-xs font-medium text-gray-700 dark:text-gray-700-dark">
               {item.label}
             </span>
+            {item.legendDetail && (
+              <Tooltip
+                showDelayMs={150}
+                placement="top"
+                tooltipContent={item.legendDetail}
+                tooltipClassName="max-w-64 border-blue-400 bg-gray-0 text-left text-gray-800 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-gray-800-dark"
+                className="text-[11px] leading-none text-gray-500 dark:text-gray-500-dark"
+              >
+                <span
+                  aria-label={`More information about ${item.label}`}
+                  className="inline-flex size-3.5 items-center justify-center rounded-full"
+                >
+                  <FontAwesomeIcon icon={faCircleQuestion} className="size-3.5" />
+                </span>
+              </Tooltip>
+            )}
           </div>
         );
       })}
@@ -308,6 +362,7 @@ const ChangeBadge: FC<{
   placement?: DataLabelPlacement;
   pointRadius?: number;
   lineColor: string;
+  labelColor?: string;
   transparent?: boolean;
   groupClassName?: string;
   rectClassName?: string;
@@ -322,6 +377,7 @@ const ChangeBadge: FC<{
   placement = "inline",
   pointRadius = 8,
   lineColor,
+  labelColor = DATA_LABEL_ON_DARK_FILL,
   transparent = false,
   groupClassName,
   rectClassName,
@@ -333,7 +389,7 @@ const ChangeBadge: FC<{
   if (datum.y === 0) return null;
 
   const bgColor = transparent ? "transparent" : lineColor;
-  const labelTextColor = transparent ? lineColor : DATA_LABEL_ON_SERIES_FILL;
+  const labelTextColor = transparent ? lineColor : labelColor;
   const text = formatValue(datum.y);
   const badgeWidth = text.length * 7 + 6;
 
@@ -735,6 +791,7 @@ export const MultiLineChart: FC<Props> = ({
                       placement={item.dataLabelPlacement}
                       pointRadius={pointRadius}
                       lineColor={colors.stroke}
+                      labelColor={getContrastTextColor(colors.stroke)}
                       transparent={item.dataLabelTransparent}
                       groupClassName={cn(
                         item.dataLabelClassName,
@@ -778,6 +835,7 @@ export const MultiLineChart: FC<Props> = ({
                           placement={item.dataLabelPlacement}
                           pointRadius={pointRadius}
                           lineColor={colors.stroke}
+                          labelColor={getContrastTextColor(colors.stroke)}
                           transparent={item.dataLabelTransparent}
                           groupClassName={cn(
                             item.dataLabelClassName,

@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 export type DataLabelPlacement = "above" | "below" | "inline";
 
 export type DataLabelMode = "always" | "hover" | "never";
@@ -19,6 +21,7 @@ export type MultiLineChartSeries = {
   dataLabels?: DataLabelMode;
   dotSize?: number;
   legendStyle?: "dot" | "line";
+  legendDetail?: ReactNode;
   dataLabelPlacement?: DataLabelPlacement;
   dataLabelTransparent?: boolean;
   dataLabelClassName?: string;

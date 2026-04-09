@@ -4,6 +4,7 @@ import SectionToggle from "@/components/ui/section_toggle";
 import { ThemeOverrideContainer } from "@/contexts/theme_override_context";
 
 import { ActivityCard } from "./components/activity-card";
+import { DefinitionTooltip } from "./components/definition-tooltip";
 import LaborHubNavigation from "./components/labor-hub-navigation";
 import { PrintAttribution } from "./components/print-attribution";
 import { MultiQuestionTable } from "./components/question-cards/multi-question-table";
@@ -173,7 +174,16 @@ export default function LaborAutomationHubPage() {
             </SectionHeader>
             <ThemeOverrideContainer override="inverted">
               <MultiQuestionTable
-                title="What will the unemployment rate and underemployment rate be for recent college graduates in the following years?"
+                title={
+                  <>
+                    What will the unemployment rate and underemployment rate be
+                    for{" "}
+                    <DefinitionTooltip tooltipContent="Recent college graduates are those who have graduated from college in the last 12 months.">
+                      recent
+                    </DefinitionTooltip>{" "}
+                    college graduates in the following years?
+                  </>
+                }
                 firstColumnHeader="Recent College Graduates"
                 valueFormat="percentage"
                 decimals={1}
@@ -238,6 +248,8 @@ export default function LaborAutomationHubPage() {
               avatar="https://cdn.metaculus.com/labor-hub/exmateriae_256.jpg"
               username="Yann Riviere (exmateriae)"
               subtitle="Pro Forecaster"
+              // TODO: Add link to original comment this can be wrong link for demo
+              link="/questions/42220/change-in-us-bachelors-relative-to-2024-25/#comment-793578"
             >
               One thing that is pretty important is how fast the capabilities
               takeoff will be. If you&apos;re expecting a very fast takeoff,

@@ -76,6 +76,7 @@ function buildSeriesFromDatasetRows(
       dashed: overrides?.dashed,
       dotSize: overrides?.dotSize,
       legendStyle: overrides?.legendStyle,
+      legendDetail: overrides?.legendDetail,
       dataLabelPlacement: overrides?.dataLabelPlacement,
       dataLabelTransparent: overrides?.dataLabelTransparent,
       dataLabelClassName: overrides?.dataLabelClassName,

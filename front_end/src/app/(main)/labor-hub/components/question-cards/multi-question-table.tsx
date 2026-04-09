@@ -1,4 +1,4 @@
-import { ReactNode, Suspense } from "react";
+import { Children, isValidElement, type ReactNode, Suspense } from "react";
 
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
@@ -19,6 +19,22 @@ import {
   TableCompactRow,
   WageValue,
 } from "../../components/table-compact";
+
+export function reactNodeToText(node: ReactNode): string {
+  return Children.toArray(node)
+    .map((child) => {
+      if (typeof child === "string" || typeof child === "number") {
+        return String(child);
+      }
+
+      if (isValidElement<{ children?: ReactNode }>(child)) {
+        return reactNodeToText(child.props.children);
+      }
+
+      return "";
+    })
+    .join("");
+}
 
 type ValueFormat = "percentage" | "percentageChange" | "wage" | "number";
 
@@ -45,7 +61,7 @@ function FormattedValue({
 }
 
 type MultiQuestionTableProps = {
-  title?: string;
+  title?: ReactNode;
   rows: MultiQuestionRowConfig[];
   staticColumnHeader?: string;
   firstColumnHeader?: string;
@@ -68,6 +84,7 @@ async function MultiQuestionTableContent({
   showMoreButton = true,
 }: MultiQuestionTableProps) {
   const postIds = rows.map((r) => r.questionId);
+  const titleText = reactNodeToText(title);
 
   let dataset;
   try {
@@ -75,7 +92,7 @@ async function MultiQuestionTableContent({
   } catch (error) {
     logError(error);
     return (
-      <TableCompact title={title} className={className}>
+      <TableCompact title={titleText} className={className}>
         <TableCompactBody>
           <TableCompactRow>
             <TableCompactCell>
@@ -92,13 +109,13 @@ async function MultiQuestionTableContent({
   return (
     <>
       <TableCompact
-        title={title}
+        title={titleText}
         className={cn("group/card relative", className)}
         HeadingSection={
           <>
             {showMoreButton && postIds.length > 0 && (
               <div className="absolute right-4 top-4 z-10 [visibility:var(--ss-hidden,visible)] print:hidden">
-                <MoreButton postIds={postIds} postTitle={title} />
+                <MoreButton postIds={postIds} postTitle={titleText} />
               </div>
             )}
             {title && (
