@@ -87,7 +87,7 @@ export default function LaborAutomationHubPage() {
                   { questionId: 42216, title: "Overall" },
                   { questionId: 43106, title: "Software Developers" },
                   { questionId: 43109, title: "Construction Workers" },
-                  { questionId: 43110, title: "General Managers" },
+                  { questionId: 43108, title: "General Managers" },
                   { questionId: 43110, title: "Engineers" },
                   { questionId: 43107, title: "Financial Specialists" },
                 ]}
@@ -218,7 +218,7 @@ export default function LaborAutomationHubPage() {
               How will the next generation of workers be affected?
             </SectionHeader>
             <ThemeOverrideContainer override="inverted">
-              <MultiQuestionTable
+              <FlippableMultiQuestionCard
                 title={
                   <>
                     What will the unemployment rate and underemployment rate be
@@ -229,9 +229,6 @@ export default function LaborAutomationHubPage() {
                     college graduates in the following years?
                   </>
                 }
-                firstColumnHeader="Recent College Graduates"
-                valueFormat="percentage"
-                decimals={1}
                 rows={[
                   {
                     questionId: 42212,
@@ -242,6 +239,15 @@ export default function LaborAutomationHubPage() {
                     title: "Underemployment Rate",
                   },
                 ]}
+                tableProps={{
+                  firstColumnHeader: "Recent College Graduates",
+                  valueFormat: "percentage",
+                  decimals: 1,
+                }}
+                chartProps={{
+                  showTickLabels: true,
+                  valueFormat: "percentage",
+                }}
               />
             </ThemeOverrideContainer>
             <ContentParagraph>

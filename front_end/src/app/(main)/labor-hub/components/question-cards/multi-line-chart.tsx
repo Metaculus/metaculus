@@ -43,6 +43,7 @@ type Props = {
   showLegend?: boolean;
   legendOrder?: string[];
   yAxisGutter?: number;
+  formatYTick?: (value: number) => string;
   formatYValue?: (value: number) => string;
   xTickValues?: number[];
   visibleXTickValues?: number[];
@@ -489,6 +490,7 @@ export const MultiLineChart: FC<Props> = ({
   showLegend = true,
   legendOrder,
   yAxisGutter,
+  formatYTick,
   formatYValue: formatYValueProp,
   xTickValues,
   visibleXTickValues,
@@ -524,7 +526,8 @@ export const MultiLineChart: FC<Props> = ({
   );
 
   const formatResolvedYValue = formatYValueProp ?? defaultFormatYValue;
-  const formatResolvedYTick = formatYValueProp ?? defaultFormatYTick;
+  const formatResolvedYTick =
+    formatYTick ?? formatYValueProp ?? defaultFormatYTick;
 
   const {
     xDomain,

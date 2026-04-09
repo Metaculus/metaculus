@@ -15,6 +15,7 @@ import {
   type MultiQuestionRowConfig,
 } from "./multi-question-data";
 import { MultiQuestionLineChartClient } from "./multi-question-line-chart-client";
+import { reactNodeToText } from "./multi-question-table";
 import { NoQuestionPlaceholder } from "./placeholder";
 import { MoreButton } from "./question-card";
 
@@ -37,7 +38,10 @@ const DEFAULT_SERIES_COLORS: MultiLineChartColor[] = [
   "mc18",
 ];
 
-type MultiQuestionLineChartValueFormat = "default" | "number";
+type MultiQuestionLineChartValueFormat =
+  | "percentage"
+  | "percentageChange"
+  | "number";
 
 type SeriesOverride = Partial<
   Omit<MultiLineChartSeries, "id" | "label" | "data" | "color">
@@ -46,7 +50,7 @@ type SeriesOverride = Partial<
 };
 
 export type MultiQuestionLineChartProps = {
-  title?: string;
+  title?: ReactNode;
   rows: MultiQuestionRowConfig[];
   className?: string;
   note?: ReactNode;
@@ -146,6 +150,7 @@ async function MultiQuestionLineChartContent({
   ...chartProps
 }: MultiQuestionLineChartProps) {
   const postIds = rows.map((row) => row.questionId);
+  const titleText = reactNodeToText(title);
 
   let dataset;
   try {
@@ -186,7 +191,7 @@ async function MultiQuestionLineChartContent({
       <div className={cn("group/card relative", className)}>
         {showMoreButton && postIds.length > 0 && (
           <div className="absolute right-4 top-4 z-10 [visibility:var(--ss-hidden,visible)] print:hidden">
-            <MoreButton postIds={postIds} postTitle={title} />
+            <MoreButton postIds={postIds} postTitle={titleText} />
           </div>
         )}
         {title && (

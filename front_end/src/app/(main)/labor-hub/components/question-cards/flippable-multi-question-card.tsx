@@ -17,7 +17,7 @@ const CHART_CARD_CLASSNAME =
   "break-inside-avoid overflow-hidden rounded bg-blue-200 p-4 dark:bg-blue-800 md:p-5 print:border print:border-gray-300";
 
 export type FlippableMultiQuestionCardProps = {
-  title?: string;
+  title?: ReactNode;
   rows: MultiQuestionTableProps["rows"];
   note?: ReactNode;
   className?: string;
