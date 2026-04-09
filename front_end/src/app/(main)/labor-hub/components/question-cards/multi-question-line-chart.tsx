@@ -143,7 +143,7 @@ async function MultiQuestionLineChartContent({
   className,
   note,
   showMoreButton = true,
-  valueFormat = "default",
+  valueFormat = "percentageChange",
   decimals = 1,
   historicalTickEvery,
   getSeriesOptions,
