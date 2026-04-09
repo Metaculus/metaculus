@@ -12,13 +12,13 @@ import {
   VictoryScatter,
 } from "victory";
 
+import Tooltip from "@/components/ui/tooltip";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import { usePrintOverride } from "@/contexts/theme_override_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import cn from "@/utils/core/cn";
-import Tooltip from "@/components/ui/tooltip";
 
 import {
   CHART_PADDING,
@@ -223,7 +223,10 @@ const Legend: FC<{
                   aria-label={`More information about ${item.label}`}
                   className="inline-flex size-3.5 items-center justify-center rounded-full"
                 >
-                  <FontAwesomeIcon icon={faCircleQuestion} className="size-3.5" />
+                  <FontAwesomeIcon
+                    icon={faCircleQuestion}
+                    className="size-3.5"
+                  />
                 </span>
               </Tooltip>
             )}
