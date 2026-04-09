@@ -1,18 +1,80 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  autoUpdate,
+  flip,
+  FloatingFocusManager,
+  FloatingPortal,
+  offset,
+  shift,
+  useClick,
+  useDismiss,
+  useFloating,
+  useInteractions,
+  useRole,
+} from "@floating-ui/react";
+import { faBell } from "@fortawesome/free-regular-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useCallback, useEffect, useRef, useState } from "react";
 
+import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
 
+import { NewsletterSubscribePopover } from "./newsletter-subscribe-popover";
 import { TabGroup } from "./tab-group";
 
 export default function LaborHubNavigation({
   tabs,
+  newsletterListKey,
 }: {
   tabs: { id: string; label: string }[];
+  newsletterListKey?: string;
 }) {
   const [isSticky, setIsSticky] = useState(false);
+  const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const { refs, floatingStyles, context, isPositioned } = useFloating({
+    open: isNewsletterOpen,
+    onOpenChange: setIsNewsletterOpen,
+    placement: "bottom-end",
+    strategy: "fixed",
+    whileElementsMounted: autoUpdate,
+    middleware: [
+      offset(12),
+      flip({ padding: 12 }),
+      shift({
+        padding: {
+          top: 60,
+          left: 12,
+          right: 12,
+          bottom: 12,
+        },
+      }),
+    ],
+  });
+
+  const click = useClick(context);
+  const dismiss = useDismiss(context);
+  const role = useRole(context, { role: "dialog" });
+
+  const { getReferenceProps, getFloatingProps } = useInteractions([
+    click,
+    dismiss,
+    role,
+  ]);
+  const setReference = useCallback(
+    (node: HTMLButtonElement | null) => {
+      refs.setReference(node);
+    },
+    [refs]
+  );
+  const setFloating = useCallback(
+    (node: HTMLDivElement | null) => {
+      refs.setFloating(node);
+    },
+    [refs]
+  );
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -38,6 +100,15 @@ export default function LaborHubNavigation({
     };
   }, []);
 
+  const surfaceClassName = "bg-gray-0 dark:bg-gray-0-dark";
+  const fadeToSurfaceClassName = "to-gray-0 dark:to-gray-0-dark";
+  const tabEndSpacingClassName =
+    "after:w-20 sm:after:w-24 md:after:w-28 xl:after:w-20";
+  const actionRailClassName =
+    "pointer-events-auto absolute inset-y-0 right-0 flex items-center pr-4 sm:pr-6 md:pr-8 xl:pr-5";
+  const actionFadeClassName =
+    "absolute inset-y-0 right-full w-12 bg-gradient-to-r from-transparent sm:w-14 md:w-16 xl:w-12";
+
   return (
     <>
       <div ref={sentinelRef} className="h-0" />
@@ -50,13 +121,65 @@ export default function LaborHubNavigation({
               : "border-gray-0 bg-gray-0 py-5 dark:border-gray-0-dark dark:bg-gray-0-dark sm:py-8 md:py-10"
           )}
         >
-          <div className="pointer-events-auto w-full overflow-x-auto no-scrollbar">
-            <div className="flex w-max before:w-5 before:shrink-0 before:content-[''] after:w-5 after:shrink-0 after:content-[''] sm:before:w-8 sm:after:w-8 md:before:w-10 md:after:w-10">
-              <TabGroup tabs={tabs} />
+          <div className="relative">
+            <div className="pointer-events-auto w-full overflow-x-auto no-scrollbar">
+              <div
+                className={cn(
+                  "flex w-max before:w-5 before:shrink-0 before:content-[''] after:shrink-0 after:content-[''] sm:before:w-8 md:before:w-10",
+                  tabEndSpacingClassName
+                )}
+              >
+                <TabGroup tabs={tabs} />
+              </div>
+            </div>
+
+            <div className={cn(actionRailClassName, surfaceClassName)}>
+              <div
+                aria-hidden
+                className={cn(actionFadeClassName, fadeToSurfaceClassName)}
+              />
+              <Button
+                ref={setReference}
+                type="button"
+                variant="tertiary"
+                size="md"
+                presentationType="icon"
+                aria-label="Subscribe for updates"
+                aria-expanded={isNewsletterOpen}
+                aria-haspopup="dialog"
+                className={cn(
+                  "relative z-10 border-purple-700 bg-transparent text-purple-700 hover:border-purple-700 hover:bg-purple-200/50 active:border-purple-700 active:bg-purple-700 active:text-purple-100 dark:border-purple-700-dark dark:bg-transparent dark:text-purple-700-dark dark:hover:border-purple-700-dark dark:hover:bg-purple-200-dark/50 dark:active:border-purple-700-dark dark:active:bg-purple-700-dark dark:active:text-purple-200-dark",
+                  isNewsletterOpen &&
+                    "bg-purple-700 text-purple-100 hover:bg-purple-700 dark:bg-purple-700-dark dark:text-purple-200-dark dark:hover:bg-purple-700-dark"
+                )}
+                {...getReferenceProps()}
+              >
+                <FontAwesomeIcon icon={faBell} />
+              </Button>
             </div>
           </div>
         </div>
       </div>
+      {isNewsletterOpen ? (
+        <FloatingPortal>
+          <FloatingFocusManager context={context} modal={false}>
+            <div
+              ref={setFloating}
+              {...getFloatingProps()}
+              style={{
+                ...floatingStyles,
+                visibility: isPositioned ? "visible" : "hidden",
+              }}
+              className="z-[120] w-[min(calc(100vw-1.5rem),348px)]"
+            >
+              <NewsletterSubscribePopover
+                listKey={newsletterListKey}
+                onClose={() => setIsNewsletterOpen(false)}
+              />
+            </div>
+          </FloatingFocusManager>
+        </FloatingPortal>
+      ) : null}
     </>
   );
 }

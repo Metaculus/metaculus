@@ -256,7 +256,7 @@ export async function OverviewSection({
         <QuestionCard
           postIds={allPostIds}
           variant="primary"
-          title="Risk Monitor"
+          title="Overall Employment"
           className="lg:rounded-r-none lg:border-r lg:border-gray-200 dark:lg:border-gray-700/30"
         >
           {/* Overall employment chart */}
