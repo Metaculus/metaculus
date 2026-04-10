@@ -25,16 +25,85 @@ export type ResearchTableRow = {
   rating: number;
 };
 
+type PosNegColumnRanges = {
+  /** Most negative value in the column (strongest red anchor). */
+  negMin: number;
+  /** Least negative (closest to 0) among negatives (weakest red anchor). */
+  negMax: number;
+  hasNeg: boolean;
+  /** Smallest positive in the column (weakest green anchor). */
+  posMin: number;
+  /** Largest positive (strongest green anchor). */
+  posMax: number;
+  hasPos: boolean;
+};
+
+const EMPTY_POS_NEG_RANGE: PosNegColumnRanges = {
+  negMin: 0,
+  negMax: 0,
+  hasNeg: false,
+  posMin: 0,
+  posMax: 0,
+  hasPos: false,
+};
+
+function getColumnPosNegRanges(
+  values: (number | null | undefined)[]
+): PosNegColumnRanges {
+  const nums = values.filter(
+    (v): v is number => v != null && Number.isFinite(v)
+  );
+  const negs = nums.filter((v) => v < 0);
+  const pos = nums.filter((v) => v > 0);
+  const hasNeg = negs.length > 0;
+  const hasPos = pos.length > 0;
+  return {
+    negMin: hasNeg ? Math.min(...negs) : 0,
+    negMax: hasNeg ? Math.max(...negs) : 0,
+    hasNeg,
+    posMin: hasPos ? Math.min(...pos) : 0,
+    posMax: hasPos ? Math.max(...pos) : 0,
+    hasPos,
+  };
+}
+
+function clamp01(n: number): number {
+  return Math.min(Math.max(n, 0), 1);
+}
+
+/** Negatives only: column min (most negative) → ratio 1 (most red); column max among negatives → ratio 0. */
+function negativeIntensityRatio(value: number, r: PosNegColumnRanges): number {
+  if (!r.hasNeg || value >= 0) return 0;
+  if (r.negMin === r.negMax) return 1;
+  return clamp01((value - r.negMax) / (r.negMin - r.negMax));
+}
+
+/** Positives only: column min positive → ratio 0 (palest green); column max → ratio 1 (strongest green). */
+function positiveIntensityRatio(value: number, r: PosNegColumnRanges): number {
+  if (!r.hasPos || value <= 0) return 0;
+  if (r.posMin === r.posMax) return 1;
+  return clamp01((value - r.posMin) / (r.posMax - r.posMin));
+}
+
 function getCellBackgroundStyle(
   value: number,
-  maxAbsValue: number,
+  range: PosNegColumnRanges,
   invertColors = false
 ): CSSProperties {
   if (value === 0) return {};
-  const ratio = Math.min(Math.abs(value) / maxAbsValue, 1);
+
+  let ratio: number;
+  let useGreen: boolean;
+
+  if (value < 0) {
+    ratio = range.hasNeg ? negativeIntensityRatio(value, range) : 1;
+    useGreen = invertColors;
+  } else {
+    ratio = range.hasPos ? positiveIntensityRatio(value, range) : 1;
+    useGreen = !invertColors;
+  }
+
   const opacity = 0.05 + ratio * 0.55;
-  const isPositive = value > 0;
-  const useGreen = invertColors ? !isPositive : isPositive;
   const color = useGreen
     ? `rgba(102, 165, 102, ${opacity})`
     : `rgba(213, 139, 128, ${opacity})`;
@@ -91,6 +160,19 @@ export const SortableResearchTable: FC<{
     });
   }, [rows, sortKey, sortDirection]);
 
+  const valueColumnRanges = useMemo(
+    () =>
+      columns.map((_, i) =>
+        getColumnPosNegRanges(rows.map((r) => r.values[i]))
+      ),
+    [columns, rows]
+  );
+
+  const ratingColumnRange = useMemo(
+    () => getColumnPosNegRanges(rows.map((r) => r.rating)),
+    [rows]
+  );
+
   return (
     <TableCompact
       className="inverted mt-6 [&_table]:border-separate [&_table]:border-spacing-x-2 [&_table]:border-spacing-y-2 [&_td]:py-0.5 [&_th]:pb-3"
@@ -138,7 +220,10 @@ export const SortableResearchTable: FC<{
               <TableCompactCell
                 key={columns[i]}
                 className="text-center"
-                style={getCellBackgroundStyle(value ?? 0, 100)}
+                style={getCellBackgroundStyle(
+                  value ?? 0,
+                  valueColumnRanges[i] ?? EMPTY_POS_NEG_RANGE
+                )}
               >
                 {value != null ? (
                   <PercentageChange value={Number(value.toFixed(1))} />
@@ -149,7 +234,11 @@ export const SortableResearchTable: FC<{
             ))}
             <TableCompactCell
               className="text-center"
-              style={getCellBackgroundStyle(row.rating, 2, true)}
+              style={getCellBackgroundStyle(
+                row.rating,
+                ratingColumnRange,
+                true
+              )}
             >
               <span
                 className={
