@@ -32,6 +32,7 @@ const TABS = [
   { id: "education", label: "Education" },
   { id: "economy", label: "Economy" },
   { id: "research", label: "Research" },
+  { id: "state-wa", label: "State" },
   { id: "methodology", label: "Methodology" },
 ];
 
@@ -68,7 +69,11 @@ export default function LaborAutomationHubPage() {
         </SectionToggle>
         <OverviewSection id="overview" />
         <ActivityMonitorSection id="activity" className="" />
-        <JobsMonitorServer id="jobs" labels={["2030", "2035"]} className="" />
+        <JobsMonitorServer
+          id="jobs"
+          labels={["2027", "2030", "2035"]}
+          className=""
+        />
 
         {/* Wages Section */}
         <DualPaneSectionCard id="wages" className="scroll-mt-12">

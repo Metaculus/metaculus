@@ -12,8 +12,10 @@ export type JobRow = {
   values: Record<string, number | null>;
 };
 
+const BAR_SCALE = 40; // as maximum percentage of the bar width
+
 function ContextualBar({ name, percent }: { name: string; percent: number }) {
-  const barWidth = `${Math.min(Math.abs(percent), 100)}%`;
+  const barWidth = `${Math.min(Math.abs(percent) * (100 / BAR_SCALE), 100)}%`;
   const isPositive = percent >= 0;
 
   return (
@@ -72,6 +74,9 @@ export function JobsMonitorSection({
   postIds?: number[];
 } & ComponentProps<"div">) {
   const [year, setYear] = useState(columns[columns.length - 1] ?? "");
+  const jobsWithSelectedYearData = jobs.filter(
+    (job) => job.values[year] != null
+  );
 
   return (
     <QuestionCard
@@ -101,16 +106,16 @@ export function JobsMonitorSection({
         </div>
         <div className="mb-4 hidden grid-cols-5 gap-2 text-sm font-medium md:grid">
           <div className="text-left text-salmon-700 dark:text-salmon-700-dark">
-            Fully automated
+            {BAR_SCALE}% lower
           </div>
           <div className="text-left text-salmon-700 dark:text-salmon-700-dark">
-            50% lower
+            {BAR_SCALE / 2}% lower
           </div>
           <div className="text-center text-blue-800 dark:text-blue-800-dark">
             2025 Baseline
           </div>
           <div className="text-right text-olive-700 dark:text-olive-700-dark">
-            50% higher
+            {BAR_SCALE / 2}% higher
           </div>
           <div className="text-right text-olive-700 dark:text-olive-700-dark"></div>
         </div>
@@ -146,7 +151,7 @@ export function JobsMonitorSection({
                     Expected growth
                   </div>
                   <div className="flex flex-col gap-1 md:col-start-2">
-                    {jobs
+                    {jobsWithSelectedYearData
                       .filter((job) => (job.values[year] ?? 0) >= 0)
                       .sort(
                         (a, b) => (b.values[year] ?? 0) - (a.values[year] ?? 0)
@@ -166,7 +171,7 @@ export function JobsMonitorSection({
                     Expected decline
                   </div>
                   <div className="flex flex-col gap-1">
-                    {jobs
+                    {jobsWithSelectedYearData
                       .filter((job) => (job.values[year] ?? 0) < 0)
                       .sort(
                         (a, b) => (b.values[year] ?? 0) - (a.values[year] ?? 0)
