@@ -251,7 +251,7 @@ export async function OverviewSection({
   const allPostIds = [OVERALL_POST_ID, ...jobs.map((j) => j.post_id)];
   const renderOverallCard = (className?: string) => (
     <QuestionCard
-      postIds={allPostIds}
+      postIds={[OVERALL_POST_ID]}
       variant="primary"
       title="Overall Employment"
       titleClassName="hidden lg:block print:block"

@@ -17,6 +17,8 @@ type LaborHubChartHoverContextValue = {
   setHoverYear: (year: number | null) => void;
   highlightedEnvelope: LaborHubHighlightedEnvelope | null;
   setHighlightedEnvelope: (band: LaborHubHighlightedEnvelope | null) => void;
+  hoveredActivityId: string | null;
+  setHoveredActivityId: (activityId: string | null) => void;
 };
 
 const LaborHubChartHoverContext =
@@ -30,14 +32,19 @@ export function LaborHubChartHoverProvider({
   const [hoverYear, setHoverYear] = useState<number | null>(null);
   const [highlightedEnvelope, setHighlightedEnvelope] =
     useState<LaborHubHighlightedEnvelope | null>(null);
+  const [hoveredActivityId, setHoveredActivityId] = useState<string | null>(
+    null
+  );
   const value = useMemo(
     () => ({
       hoverYear,
       setHoverYear,
       highlightedEnvelope,
       setHighlightedEnvelope,
+      hoveredActivityId,
+      setHoveredActivityId,
     }),
-    [hoverYear, highlightedEnvelope]
+    [hoverYear, highlightedEnvelope, hoveredActivityId]
   );
   return (
     <LaborHubChartHoverContext.Provider value={value}>
@@ -63,6 +70,7 @@ export function LaborHubChartHoverSection({
         onMouseLeave?.(e);
         ctx?.setHoverYear(null);
         ctx?.setHighlightedEnvelope(null);
+        ctx?.setHoveredActivityId(null);
       }}
     />
   );

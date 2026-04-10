@@ -7,6 +7,7 @@ import { VictoryThemeDefinition } from "victory";
 import GroupChart from "@/components/charts/group_chart";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import MCPredictionsTooltip from "@/components/charts/primitives/mc_predictions_tooltip";
+import { GroupTimelineMarker } from "@/components/charts/primitives/timeline_markers/types";
 import { getEffectiveVisibleCount } from "@/constants/questions";
 import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
@@ -44,6 +45,10 @@ type Props = {
   embedMode?: boolean;
   className?: string;
   forecastAvailability?: ForecastAvailability;
+  timelineMarkers?: GroupTimelineMarker[];
+  activeTimelineMarkerId?: string | null;
+  onTimelineMarkerEnter?: (marker: GroupTimelineMarker) => void;
+  onTimelineMarkerLeave?: (marker: GroupTimelineMarker) => void;
 };
 
 const MultiChoicesChartView: FC<Props> = ({
@@ -73,6 +78,10 @@ const MultiChoicesChartView: FC<Props> = ({
   embedMode = false,
   className,
   forecastAvailability,
+  timelineMarkers,
+  activeTimelineMarkerId,
+  onTimelineMarkerEnter,
+  onTimelineMarkerLeave,
 }) => {
   const { user } = useAuth();
   const isInteracted = useRef(false);
@@ -110,7 +119,6 @@ const MultiChoicesChartView: FC<Props> = ({
     );
     if (changed) onChoiceItemsUpdate(updated);
     normalizedInitRef.current = true;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [choiceItems, maxPrimary, onChoiceItemsUpdate]);
   const computeOthersVisible = useCallback(
     (items: ChoiceItem[]) => {
@@ -260,6 +268,10 @@ const MultiChoicesChartView: FC<Props> = ({
               !!forecastAvailability?.cpRevealsOn
             }
             choiceItems={binaryChoiceItems}
+            timelineMarkers={timelineMarkers}
+            activeTimelineMarkerId={activeTimelineMarkerId}
+            onTimelineMarkerEnter={onTimelineMarkerEnter}
+            onTimelineMarkerLeave={onTimelineMarkerLeave}
           />
         ) : isMC ? (
           <MultipleChoiceChart
@@ -278,6 +290,10 @@ const MultiChoicesChartView: FC<Props> = ({
             }
             cursorTimestamp={cursorTimestamp}
             choiceItems={choiceItems}
+            timelineMarkers={timelineMarkers}
+            activeTimelineMarkerId={activeTimelineMarkerId}
+            onTimelineMarkerEnter={onTimelineMarkerEnter}
+            onTimelineMarkerLeave={onTimelineMarkerLeave}
           />
         )}
       </div>

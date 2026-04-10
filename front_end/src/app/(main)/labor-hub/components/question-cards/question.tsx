@@ -8,6 +8,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { ReactNode, Suspense } from "react";
 
+import { GroupTimelineMarker } from "@/components/charts/primitives/timeline_markers/types";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
@@ -78,6 +79,7 @@ type QuestionLoaderProps = {
   subtitle?: string;
   fallbackTitle?: string;
   className?: string;
+  timelineMarkers?: GroupTimelineMarker[];
 };
 
 /**
@@ -94,6 +96,7 @@ async function QuestionContent({
   subtitle,
   fallbackTitle,
   className,
+  timelineMarkers,
 }: QuestionLoaderProps) {
   let postData;
   try {
@@ -126,6 +129,7 @@ async function QuestionContent({
               postData={postData}
               subQuestionId={subQuestionId}
               preferTimeline={false}
+              timelineMarkers={timelineMarkers}
             />
           }
           rightContent={
@@ -133,6 +137,7 @@ async function QuestionContent({
               postData={postData}
               subQuestionId={subQuestionId}
               preferTimeline={true}
+              timelineMarkers={timelineMarkers}
             />
           }
           leftIcon={getLeftIcon(postData, subQuestionId)}
@@ -166,6 +171,7 @@ async function QuestionContent({
           postData={postData}
           preferTimeline={preferTimeline}
           subQuestionId={subQuestionId}
+          timelineMarkers={timelineMarkers}
         />
       </QuestionCard>
       {note && (
@@ -184,6 +190,7 @@ async function QuestionContent({
 export function QuestionLoader({
   questionId,
   note,
+  isFlippable,
   subQuestionId,
   preferTimeline,
   variant = "secondary",
@@ -191,6 +198,7 @@ export function QuestionLoader({
   subtitle,
   fallbackTitle,
   className,
+  timelineMarkers,
 }: QuestionLoaderProps) {
   return (
     <Suspense
@@ -200,6 +208,7 @@ export function QuestionLoader({
     >
       <QuestionContent
         questionId={questionId}
+        isFlippable={isFlippable}
         subQuestionId={subQuestionId}
         preferTimeline={preferTimeline}
         variant={variant}
@@ -208,6 +217,7 @@ export function QuestionLoader({
         fallbackTitle={fallbackTitle}
         note={note}
         className={className}
+        timelineMarkers={timelineMarkers}
       />
     </Suspense>
   );

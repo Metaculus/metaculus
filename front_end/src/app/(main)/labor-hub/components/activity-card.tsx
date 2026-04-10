@@ -1,5 +1,6 @@
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { ComponentProps } from "react";
 
 import ImageWithFallback from "@/components/ui/image_with_fallback";
 import cn from "@/utils/core/cn";
@@ -13,6 +14,10 @@ export function ActivityCard({
   degradeIndex = 0,
   variant = "purple",
   link,
+  highlighted = false,
+  className,
+  onMouseEnter,
+  onMouseLeave,
 }: {
   avatar?: string;
   date?: string;
@@ -22,17 +27,30 @@ export function ActivityCard({
   degradeIndex?: number;
   variant?: "purple" | "mint";
   link?: string;
+  highlighted?: boolean;
+  className?: string;
+  onMouseEnter?: ComponentProps<"div">["onMouseEnter"];
+  onMouseLeave?: ComponentProps<"div">["onMouseLeave"];
 }) {
   return (
     <div
       style={{ "--degrade-index": degradeIndex } as React.CSSProperties}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       className={cn(
         variant === "purple" &&
           "border-purple-400 bg-purple-200 dark:border-purple-200-dark dark:bg-purple-100-dark",
         variant === "mint" &&
           "border-mint-500 bg-mint-200 dark:border-mint-300-dark dark:bg-mint-200-dark",
+        highlighted &&
+          variant === "purple" &&
+          "border-purple-700 ring-2 ring-purple-700 dark:border-purple-700-dark dark:ring-purple-700-dark",
+        highlighted &&
+          variant === "mint" &&
+          "border-mint-700 ring-2 ring-mint-700 dark:border-mint-700-dark dark:ring-mint-700-dark",
         link && "pr-12",
-        "relative break-inside-avoid rounded-lg border px-3.5 py-3 [--tw-bg-opacity:max(0.2,1-var(--degrade-index)*0.2)] dark:[--tw-bg-opacity:max(0.2,1-var(--degrade-index)*0.2)]"
+        className,
+        "relative break-inside-avoid rounded-lg border px-3.5 py-3 transition-[box-shadow,transform,border-color] [--tw-bg-opacity:max(0.2,1-var(--degrade-index)*0.2)] dark:[--tw-bg-opacity:max(0.2,1-var(--degrade-index)*0.2)]"
       )}
     >
       {link && (

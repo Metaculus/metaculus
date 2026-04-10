@@ -6,6 +6,7 @@ import GroupTimeline from "@/app/(main)/questions/[id]/components/group_timeline
 import BinaryQuestionPrediction from "@/app/(main)/questions/[id]/components/question_view/consumer_question_view/prediction/single_question_prediction/binary_question_prediction";
 import ContinuousQuestionPrediction from "@/app/(main)/questions/[id]/components/question_view/consumer_question_view/prediction/single_question_prediction/continuous_question_prediction";
 import NumericTimeline from "@/components/charts/numeric_timeline";
+import { GroupTimelineMarker } from "@/components/charts/primitives/timeline_markers/types";
 import DateForecastCard from "@/components/consumer_post_card/group_forecast_card/date_forecast_card";
 import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
 import PercentageForecastCard from "@/components/consumer_post_card/group_forecast_card/percentage_forecast_card";
@@ -25,16 +26,21 @@ import {
   getPostDrivenTime,
 } from "@/utils/questions/helpers";
 
+import { useLaborHubChartHover } from "../labor-hub-chart-hover-context";
+
 export function BasicQuestionContent({
   postData,
   preferTimeline,
   subQuestionId,
+  timelineMarkers,
 }: {
   postData: PostWithForecasts;
   preferTimeline?: boolean;
   subQuestionId?: number;
+  timelineMarkers?: GroupTimelineMarker[];
 }) {
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
+  const laborHubHover = useLaborHubChartHover();
 
   if (isMultipleChoicePost(postData) && !subQuestionId) {
     if (preferTimeline) {
@@ -51,7 +57,19 @@ export function BasicQuestionContent({
 
   if (isGroupOfQuestionsPost(postData) && !subQuestionId) {
     if (preferTimeline) {
-      return <GroupTimeline group={postData.group_of_questions} />;
+      return (
+        <GroupTimeline
+          group={postData.group_of_questions}
+          timelineMarkers={timelineMarkers}
+          activeTimelineMarkerId={laborHubHover?.hoveredActivityId ?? null}
+          onTimelineMarkerEnter={(marker) =>
+            laborHubHover?.setHoveredActivityId(marker.activityId ?? marker.id)
+          }
+          onTimelineMarkerLeave={() =>
+            laborHubHover?.setHoveredActivityId(null)
+          }
+        />
+      );
     }
     switch (postData.group_of_questions?.questions[0]?.type) {
       case QuestionType.Binary:
