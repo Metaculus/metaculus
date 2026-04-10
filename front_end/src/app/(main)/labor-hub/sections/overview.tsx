@@ -39,6 +39,18 @@ const VULNERABILITY_CHIP_JOB_LIMIT = 3;
 const toChartPoints = (data: YearValue[]) =>
   data.map(({ year, value }) => ({ x: year, y: value }));
 
+function getJobValueForYear(
+  job: Awaited<ReturnType<typeof fetchJobsData>>["jobs"][number],
+  yearLabel: string
+): number | null {
+  const questions = job.post?.group_of_questions?.questions as
+    | QuestionWithNumericForecasts[]
+    | undefined;
+  const question = questions?.find((q) => q.label === yearLabel);
+  if (!question) return null;
+  return getSubQuestionValue(question);
+}
+
 /** Up to `limit` jobs at the min/max forecasts for a year (same values as the chart envelope). */
 function getTopExtremeJobsForYear(
   jobs: Awaited<ReturnType<typeof fetchJobsData>>["jobs"],
@@ -47,12 +59,7 @@ function getTopExtremeJobsForYear(
 ): { mostVulnerable: JobForecast[]; leastVulnerable: JobForecast[] } {
   const rows: JobForecast[] = [];
   for (const job of jobs) {
-    const questions = job.post?.group_of_questions?.questions as
-      | QuestionWithNumericForecasts[]
-      | undefined;
-    const q = questions?.find((q) => q.label === yearLabel);
-    if (!q) continue;
-    const v = getSubQuestionValue(q);
+    const v = getJobValueForYear(job, yearLabel);
     if (v == null) continue;
     rows.push({ name: job.name, value: v });
   }
@@ -76,32 +83,30 @@ function getTopExtremeJobsForYear(
   return { mostVulnerable, leastVulnerable };
 }
 
-function buildExtremeSeries(
+function buildAverageSeriesForJobs(
   jobs: Awaited<ReturnType<typeof fetchJobsData>>["jobs"],
-  years: number[]
-): { min: YearValue[]; max: YearValue[] } {
-  const min: YearValue[] = [];
-  const max: YearValue[] = [];
+  years: number[],
+  jobNames: string[]
+): YearValue[] {
+  const selectedJobNames = new Set(jobNames);
+  const selectedJobs = jobs.filter((job) => selectedJobNames.has(job.name));
+
+  const averages: YearValue[] = [];
 
   for (const year of years) {
-    const values = jobs
-      .map((job) => {
-        const questions = job.post?.group_of_questions?.questions as
-          | QuestionWithNumericForecasts[]
-          | undefined;
-        const q = questions?.find((q) => q.label === String(year));
-        if (!q) return null;
-        return getSubQuestionValue(q);
-      })
+    const values = selectedJobs
+      .map((job) => getJobValueForYear(job, String(year)))
       .filter((v): v is number => v != null);
 
     if (values.length) {
-      min.push({ year, value: Math.min(...values) });
-      max.push({ year, value: Math.max(...values) });
+      averages.push({
+        year,
+        value: values.reduce((sum, value) => sum + value, 0) / values.length,
+      });
     }
   }
 
-  return { min, max };
+  return averages;
 }
 
 export async function OverviewSection({
@@ -176,7 +181,17 @@ export async function OverviewSection({
 
   // --- By-job vulnerability chart data ---
   const years = overallData.map((d) => d.year);
-  const { min, max } = buildExtremeSeries(jobs, years);
+  const extremeJobs2035 = getTopExtremeJobsForYear(jobs, "2035");
+  const min = buildAverageSeriesForJobs(
+    jobs,
+    years,
+    extremeJobs2035.mostVulnerable.map((job) => job.name)
+  );
+  const max = buildAverageSeriesForJobs(
+    jobs,
+    years,
+    extremeJobs2035.leastVulnerable.map((job) => job.name)
+  );
 
   if (min.length && min[0]?.year !== 2025) {
     min.unshift({ year: 2025, value: 0 });
@@ -220,24 +235,10 @@ export async function OverviewSection({
   const change2030 = byYear.get(2030);
   const change2035 = byYear.get(2035);
 
-  const allValues2035 = jobs
-    .map((job) => {
-      const questions = job.post?.group_of_questions?.questions as
-        | QuestionWithNumericForecasts[]
-        | undefined;
-      const q = questions?.find((q) => q.label === "2035");
-      if (!q) return null;
-      return getSubQuestionValue(q);
-    })
-    .filter((v): v is number => v != null);
-  const mostVulnerable2035 = allValues2035.length
-    ? Math.min(...allValues2035)
-    : null;
-  const leastVulnerable2035 = allValues2035.length
-    ? Math.max(...allValues2035)
-    : null;
-
-  const extremeJobs2035 = getTopExtremeJobsForYear(jobs, "2035");
+  const mostVulnerable2035 =
+    min.find((point) => point.year === 2035)?.value ?? null;
+  const leastVulnerable2035 =
+    max.find((point) => point.year === 2035)?.value ?? null;
 
   const formatOverallChange = (value: number) =>
     `${value < 0 ? "fall" : "grow"} ${Math.abs(value).toFixed(0)}%`;
