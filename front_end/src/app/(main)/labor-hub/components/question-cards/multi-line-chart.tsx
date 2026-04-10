@@ -484,7 +484,7 @@ const getHoverLabelMode = (mode: DataLabelMode | undefined) =>
 
 export const MultiLineChart: FC<Props> = ({
   series,
-  height = 350,
+  height = 250,
   yAxisLabels,
   showTickLabels = false,
   showLegend = true,

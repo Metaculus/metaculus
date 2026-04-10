@@ -227,7 +227,7 @@ export async function OverviewSection({
   const vulnerabilityYAxisLabels = [
     { text: "10% growth", value: 10 },
     { text: "No change", value: 0 },
-    { text: "40% decline", value: -40 },
+    { text: "30% decline", value: -30 },
   ] as const;
 
   // --- Summary data ---
