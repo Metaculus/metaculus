@@ -224,6 +224,7 @@ export default function LaborAutomationHubPage() {
             </SectionHeader>
             <ThemeOverrideContainer override="inverted">
               <FlippableMultiQuestionCard
+                prefer="timeline"
                 title={
                   <>
                     What will the unemployment rate and underemployment rate be
