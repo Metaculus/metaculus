@@ -4,94 +4,57 @@ import { GroupTimelineMarker } from "@/components/charts/primitives/timeline_mar
 import cn from "@/utils/core/cn";
 
 import {
+  RAW_ACTIVITY_MONITOR_DATA,
+  RawActivityMonitorEntry,
+} from "../activity-data";
+import {
   ActivityMonitorEntry,
   ActivityMonitorInteractive,
 } from "./activity-monitor-interactive";
 import { QuestionLoader } from "../components/question-cards/question";
 import { SectionHeader } from "../components/section";
 
-function toUnixTimestamp(year: number, monthIndex: number, day: number) {
-  return Math.floor(Date.UTC(year, monthIndex, day, 12) / 1000);
+const activityDateFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+function formatActivityDate(date: string) {
+  return activityDateFormatter.format(new Date(`${date}T00:00:00Z`));
+}
+
+function isoDateToUnixTimestamp(date: string) {
+  return Math.floor(new Date(`${date}T12:00:00Z`).getTime() / 1000);
+}
+
+function getActivityId(
+  activity: Pick<RawActivityMonitorEntry, "date" | "markerLabel">
+) {
+  return `${activity.date}-${activity.markerLabel}`
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 export function ActivityMonitorSection({
   className,
   ...props
 }: ComponentProps<"section">) {
-  const activityData: Array<
-    ActivityMonitorEntry & {
-      markerLabel: string;
-      timestamp: number;
-    }
-  > = [
-    {
-      id: "gpt-5-release",
-      date: "Apr 6, 2026",
-      markerLabel: "GPT-5 released",
-      timestamp: toUnixTimestamp(2026, 3, 6),
-      degradeIndex: 0,
-      content: (
-        <>
-          <strong>📊 Update:</strong> 2030 employment projection declined 1.3
-          percentage points in the week following the{" "}
-          <strong>release of GPT-5</strong>.
-        </>
-      ),
-    },
-    {
-      id: "creative-roles-insight",
-      date: "Apr 2, 2026",
-      markerLabel: "Creative roles insight",
-      timestamp: toUnixTimestamp(2026, 3, 2),
-      degradeIndex: 1,
-      content: (
-        <>
-          <strong>🧠 Forecaster insight:</strong>{" "}
-          <em>
-            &quot;I expect creative and interpersonal roles to remain most
-            resistant to automation, though not immune.&quot;
-          </em>
-        </>
-      ),
-    },
-    {
-      id: "amazon-workforce-cuts",
-      date: "Mar 18, 2026",
-      markerLabel: "Amazon workforce cuts",
-      timestamp: toUnixTimestamp(2026, 2, 18),
-      degradeIndex: 2,
-      content: (
-        <>
-          <strong>📰 News:</strong> Amazon cuts global corporate workforce by
-          14,000, downsizing linked to AI.&quot; -{" "}
-          <a href="#" className="underline hover:no-underline">
-            Reuters
-          </a>
-        </>
-      ),
-    },
-    {
-      id: "developer-projection-falls",
-      date: "Mar 5, 2026",
-      markerLabel: "Developer projection falls",
-      timestamp: toUnixTimestamp(2026, 2, 5),
-      degradeIndex: 3,
-      content: (
-        <>
-          <strong>📊 Update:</strong> Software developer 2035 employment
-          projection falls 7 percentage points as forecasters assess recent
-          coding demonstrations and benchmark progress.
-        </>
-      ),
-    },
-  ];
-  const timelineMarkers: GroupTimelineMarker[] = activityData.map(
+  const activities: ActivityMonitorEntry[] = RAW_ACTIVITY_MONITOR_DATA.map(
+    ({ markerLabel, ...activity }) => ({
+      ...activity,
+      id: getActivityId({ date: activity.date, markerLabel }),
+    })
+  );
+  const timelineMarkers: GroupTimelineMarker[] = RAW_ACTIVITY_MONITOR_DATA.map(
     (activity) => ({
-      id: activity.id,
-      activityId: activity.id,
-      timestamp: activity.timestamp,
+      id: getActivityId(activity),
+      activityId: getActivityId(activity),
+      timestamp: isoDateToUnixTimestamp(activity.date),
       label: activity.markerLabel,
-      dateLabel: activity.date,
+      dateLabel: formatActivityDate(activity.date),
     })
   );
 
@@ -102,7 +65,7 @@ export function ActivityMonitorSection({
       </SectionHeader>
 
       <ActivityMonitorInteractive
-        activities={activityData}
+        activities={activities}
         chart={
           <QuestionLoader
             questionId={41307}
