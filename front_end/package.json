@@ -33,7 +33,7 @@
     "@hookform/resolvers": "^3.4.2",
     "@kodingdotninja/use-tailwind-breakpoint": "^1.0.0",
     "@marsidev/react-turnstile": "^0.7.2",
-    "@mdxeditor/editor": "^3.23.2",
+    "@mdxeditor/editor": "^3.54.0",
     "@next/third-parties": "^16.2.0",
     "@paper-design/shaders": "^0.0.72",
     "@paper-design/shaders-react": "^0.0.72",
