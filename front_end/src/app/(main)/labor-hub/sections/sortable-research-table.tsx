@@ -118,6 +118,7 @@ function getSortValue(row: ResearchTableRow, key: SortKey): number {
 const SortArrow: FC<{ direction: SortDirection }> = ({ direction }) => (
   <FontAwesomeIcon
     icon={faCaretDown}
+    aria-hidden="true"
     className={cn("ml-1 print:hidden", {
       "rotate-180": direction === "asc",
     })}
@@ -151,6 +152,13 @@ export const SortableResearchTable: FC<{
     sortKey.type === key.type &&
     (key.type === "rating" ||
       (sortKey.type === "year" && sortKey.index === key.index));
+
+  const getAriaSort = (key: SortKey): "ascending" | "descending" | "none" =>
+    isSortActive(key)
+      ? sortDirection === "asc"
+        ? "ascending"
+        : "descending"
+      : "none";
 
   const sortedRows = useMemo(() => {
     return [...rows].sort((a, b) => {
@@ -187,27 +195,47 @@ export const SortableResearchTable: FC<{
           <TableCompactHeaderCell className="w-[40%]">
             Occupation
           </TableCompactHeaderCell>
-          {columns.map((col, i) => (
-            <TableCompactHeaderCell
-              key={col}
-              className="w-[20%] cursor-pointer select-none text-center"
-              onClick={() => handleSort({ type: "year", index: i })}
-            >
-              {col}
-              {isSortActive({ type: "year", index: i }) && (
-                <SortArrow direction={sortDirection} />
-              )}
-            </TableCompactHeaderCell>
-          ))}
-          <TableCompactHeaderCell
-            className="w-[20%] cursor-pointer select-none text-center"
-            onClick={() => handleSort({ type: "rating" })}
-          >
-            AI Vulnerability Rating
-            {isSortActive({ type: "rating" }) && (
-              <SortArrow direction={sortDirection} />
-            )}
-          </TableCompactHeaderCell>
+          {columns.map((col, i) => {
+            const yearSortKey: SortKey = { type: "year", index: i };
+            const isActive = isSortActive(yearSortKey);
+
+            return (
+              <TableCompactHeaderCell
+                key={col}
+                className="w-[20%] select-none text-center"
+                aria-sort={getAriaSort(yearSortKey)}
+              >
+                <button
+                  type="button"
+                  className="font-inherit inline-flex w-full appearance-none items-center justify-center bg-transparent p-0 text-center text-inherit"
+                  onClick={() => handleSort(yearSortKey)}
+                >
+                  {col}
+                  {isActive && <SortArrow direction={sortDirection} />}
+                </button>
+              </TableCompactHeaderCell>
+            );
+          })}
+          {(() => {
+            const ratingSortKey: SortKey = { type: "rating" };
+            const isActive = isSortActive(ratingSortKey);
+
+            return (
+              <TableCompactHeaderCell
+                className="w-[20%] select-none text-center"
+                aria-sort={getAriaSort(ratingSortKey)}
+              >
+                <button
+                  type="button"
+                  className="font-inherit inline-flex w-full appearance-none items-center justify-center bg-transparent p-0 text-center text-inherit"
+                  onClick={() => handleSort(ratingSortKey)}
+                >
+                  AI Vulnerability Rating
+                  {isActive && <SortArrow direction={sortDirection} />}
+                </button>
+              </TableCompactHeaderCell>
+            );
+          })()}
         </TableCompactRow>
       </TableCompactHead>
       <TableCompactBody>

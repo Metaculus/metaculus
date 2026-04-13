@@ -83,6 +83,7 @@ export function NewsletterSubscribeCard({
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            aria-label="Email address"
             placeholder="Email address"
             className="min-w-0 flex-1 rounded bg-gray-0 px-3 py-2 text-sm text-purple-900 placeholder:text-purple-600 focus:outline-none dark:bg-gray-0-dark dark:text-purple-900-dark dark:placeholder:text-purple-600-dark"
             required

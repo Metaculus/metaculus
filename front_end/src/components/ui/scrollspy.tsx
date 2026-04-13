@@ -29,7 +29,10 @@ export function Scrollspy({
 }: ScrollspyProps) {
   const selfRef = useRef<HTMLDivElement | null>(null);
   const anchorElementsRef = useRef<Element[] | null>(null);
+  const anchorClickHandlersRef = useRef<Map<Element, EventListener>>(new Map());
   const prevIdTracker = useRef<string | null>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const settleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Sets active nav, hash, prevIdTracker, and calls onUpdate
   const setActiveSection = useCallback(
@@ -183,33 +186,53 @@ export function Scrollspy({
 
   useEffect(() => {
     // Query elements and store them in the ref, avoiding unnecessary re-renders
-    if (selfRef.current) {
-      anchorElementsRef.current = Array.from(
-        selfRef.current.querySelectorAll(`[data-${dataAttribute}-anchor]`)
-      );
-    }
+    const anchorClickHandlers = anchorClickHandlersRef.current;
+    const anchorElements = selfRef.current
+      ? Array.from(
+          selfRef.current.querySelectorAll(`[data-${dataAttribute}-anchor]`)
+        )
+      : [];
+    anchorElementsRef.current = anchorElements;
 
-    anchorElementsRef.current?.forEach((item) => {
-      item.addEventListener("click", scrollTo(item as HTMLElement));
+    anchorElements.forEach((item) => {
+      const clickHandler =
+        anchorClickHandlers.get(item) ?? scrollTo(item as HTMLElement);
+      anchorClickHandlers.set(item, clickHandler);
+      item.addEventListener("click", clickHandler);
     });
 
     // Attach the scroll event to the correct scrollable element
-    window.addEventListener("scroll", handleScroll);
+    const scrollHandler = handleScroll;
+    window.addEventListener("scroll", scrollHandler);
 
     // Check if there's a hash in the URL and scroll to the corresponding section
-    setTimeout(() => {
+    scrollTimeoutRef.current = setTimeout(() => {
+      scrollTimeoutRef.current = null;
       scrollToHashSection();
       // Wait for scroll to settle, then update nav highlighting
-      setTimeout(() => {
-        handleScroll();
+      settleTimeoutRef.current = setTimeout(() => {
+        settleTimeoutRef.current = null;
+        scrollHandler();
       }, 100);
     }, 100); // Adding a slight delay to ensure content is fully rendered
 
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      anchorElementsRef.current?.forEach((item) => {
-        item.removeEventListener("click", scrollTo(item as HTMLElement));
+      window.removeEventListener("scroll", scrollHandler);
+      anchorElements.forEach((item) => {
+        const clickHandler = anchorClickHandlers.get(item);
+        if (clickHandler) {
+          item.removeEventListener("click", clickHandler);
+          anchorClickHandlers.delete(item);
+        }
       });
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+        scrollTimeoutRef.current = null;
+      }
+      if (settleTimeoutRef.current) {
+        clearTimeout(settleTimeoutRef.current);
+        settleTimeoutRef.current = null;
+      }
     };
   }, [selfRef, handleScroll, dataAttribute, scrollTo, scrollToHashSection]);
 

@@ -181,23 +181,15 @@ function ActivityMonitorInteractiveInner({ chart, activities }: Props) {
             </div>
             <div
               aria-hidden="true"
-              className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-14 transition-opacity ${
+              className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-14 bg-gradient-to-b from-gray-0 to-transparent transition-opacity dark:from-gray-0-dark ${
                 modalScrollState.canScrollUp ? "opacity-100" : "opacity-0"
               }`}
-              style={{
-                background:
-                  "linear-gradient(to bottom, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0))",
-              }}
             />
             <div
               aria-hidden="true"
-              className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 h-14 transition-opacity ${
+              className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 h-14 bg-gradient-to-t from-gray-0 to-transparent transition-opacity dark:from-gray-0-dark ${
                 modalScrollState.canScrollDown ? "opacity-100" : "opacity-0"
               }`}
-              style={{
-                background:
-                  "linear-gradient(to top, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0))",
-              }}
             />
           </div>
         </div>
