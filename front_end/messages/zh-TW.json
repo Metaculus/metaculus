@@ -2129,7 +2129,7 @@
   "searchComments": "搜尋評論...",
   "noCommentsFound": "未找到評論",
   "excludeBots": "排除機器人",
-  "whyTrustMetaculusTitle": "為什麼值得信任 Metaculus？",
+  "whyTrustMetaculusTitle": "減少噪音，揭示真相：Metaculus 在複雜世界中做出清晰決策的方法",
   "whyTrustMetaculusIntro1": "世上充滿了對未來毫無根據的猜測。如果你和我們一樣，可能已經對評論員和主持人們過於自信的言論感到厭倦，這些言論更注重吸引關注而非準確性，並沒有專注於現實或事實。這些人很少因其大膽的言論承擔責任，卻不時大肆宣傳並佔據媒體版面。",
   "whyTrustMetaculusIntro2": "但情況不必如此。Metaculus 成立的目的是尋求和獎勵真相。我們提供透明的預測，隨著新證據出現而更新。我們不依賴個人，而是利用群眾智慧的已證明效果，以結合多種視角，抵消個人偏見，並生成比單一個體預測更具一致性的預測。",
   "whyTrustMetaculusIntro3": "Metaculus 的目標是提供有價值的資訊，幫助公眾和政策制定者更好地預測未來在全球最重要的議題中的走向。例如，我們最常被引用的問題之一是詢問人工通用智慧（AGI）何時會到來，對於那些試圖了解不確定的人工智慧未來的人來說，是一個有價值的資源。",
@@ -2144,7 +2144,7 @@
   "whyTrustMetaculusForecasts2": "值得注意的是，Metaculus 並不是一個預測市場。與 Kalshi 或 Polymarket 平台不同，我們的預測者不會購買股份或下注任何資金。取而代之的是，Metaculus 預測者被每年的準確性排行榜、獲勝賽事頒發的現金獎或獎章所激勵，最重要的是，對正確的渴望、更多了解世界、為有價值的公共資源做出貢獻和享受樂趣。就像維基百科的編輯一樣，我們的預測者通常受到為共同知識貢獻和幫助他人獲取有價值資訊的樂趣所驅動。",
   "whyTrustMetaculusMarketsComparisonAlt": "Metaculus 預測與預測市場比較",
   "whyTrustMetaculusLessNoiseTitle": "更少的噪音，更多的真相",
-  "whyTrustMetaculusLessNoise": "Metaculus 的群眾驅動預測通過將每一個預測植根於透明的證據、負責的計分和十年的已證準確性，抑制了噪音。作為一種公共資源，Metaculus 為政策制定者、研究人員、記者和廣大公眾提供了對全球最重要不確定性的清晰、可量化的洞察。相同的已證方法也可以應用於您組織面臨的特定不確定性上，提供結構化、基於證據的預測，以支持更精確的戰略決策。訪問我們的服務頁面以了解 Metaculus 如何幫助您。",
+  "whyTrustMetaculusLessNoise": "Metaculus 的群眾驅動預測通過將每一個預測植根於透明的證據、負責的計分和十年的已證準確性，抑制了噪音。Metaculus 為政策制定者、研究人員、記者和企業組織提供基於證據的預測，為全球最重要的不確定性提供清晰、可量化的洞察。探索我們的 <servicesLink>企業解決方案</servicesLink>，了解 Metaculus 如何改善貴組織的決策。",
   "publishTimeLockedDescription": "建立後將無法更改發佈時間。",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }
