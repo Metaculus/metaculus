@@ -999,10 +999,45 @@ function buildChartData({
     zoom,
     minTimestamp: xDomain[0],
     isChartEmpty: !domainTimestamps.length,
-    minValues: areas.map((a) => ({ timestamp: a.x, y: a.y0 })),
-    maxValues: areas.map((a) => ({ timestamp: a.x, y: a.y })),
+    minValues: [
+      ...areas.map((a) => ({ timestamp: a.x, y: a.y0 })),
+      ...graphs
+        .filter((g) => g.active)
+        .flatMap((g) =>
+          (g.scatter ?? []).map((point) => ({
+            timestamp: point.x,
+            y: point.y1 ?? point.y,
+          }))
+        ),
+      ...graphs
+        .filter((g) => g.active && !isNil(g.resolutionPoint))
+        .map((g) => ({
+          timestamp: g.resolutionPoint?.x ?? latestTimestamp,
+          y: g.resolutionPoint?.y,
+        })),
+    ],
+    maxValues: [
+      ...areas.map((a) => ({ timestamp: a.x, y: a.y })),
+      ...graphs
+        .filter((g) => g.active)
+        .flatMap((g) =>
+          (g.scatter ?? []).map((point) => ({
+            timestamp: point.x,
+            y: point.y2 ?? point.y,
+          }))
+        ),
+      ...graphs
+        .filter((g) => g.active && !isNil(g.resolutionPoint))
+        .map((g) => ({
+          timestamp: g.resolutionPoint?.x ?? latestTimestamp,
+          y: g.resolutionPoint?.y,
+        })),
+    ],
     includeClosestBoundOnZoom: questionType === QuestionType.Binary,
     forceAutoZoom,
+    useFullYDomain:
+      questionType === QuestionType.Numeric ||
+      questionType === QuestionType.Date,
   });
 
   const yScale = generateScale({
