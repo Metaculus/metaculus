@@ -100,6 +100,7 @@ type Props = {
   newsAnnotations?: NewsAnnotation[];
   showNewsAnnotations?: boolean;
   onToggleNewsAnnotations?: () => void;
+  animate?: object;
 };
 
 const BOTTOM_PADDING = 20;
@@ -134,6 +135,7 @@ const NumericChart: FC<Props> = ({
   newsAnnotations,
   showNewsAnnotations,
   onToggleNewsAnnotations,
+  animate,
 }) => {
   const { theme, getThemeColor } = useAppTheme();
   const [isChartReady, setIsChartReady] = useState(false);
@@ -587,6 +589,7 @@ const NumericChart: FC<Props> = ({
                 padding={chartPadding}
                 events={chartEvents}
                 containerComponent={containerComponent}
+                animate={animate}
               >
                 {/* Y axis used for GRIDLINES */}
                 <VictoryAxis

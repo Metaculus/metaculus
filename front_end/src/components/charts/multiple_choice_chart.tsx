@@ -89,6 +89,7 @@ type Props = {
   forecastAvailability?: ForecastAvailability;
   forFeedPage?: boolean;
   chartTitle?: string;
+  animate?: object;
 };
 
 const LABEL_FONT_FAMILY = "Inter";
@@ -118,6 +119,7 @@ const MultipleChoiceChart: FC<Props> = ({
   forecastAvailability,
   forFeedPage,
   chartTitle,
+  animate,
 }) => {
   const questionKey = useMemo(() => v4(), []);
   const t = useTranslations();
@@ -288,6 +290,7 @@ const MultipleChoiceChart: FC<Props> = ({
               right: maxRightPadding,
               bottom: bottomPadding,
             }}
+            animate={animate}
             events={[
               {
                 target: "parent",
