@@ -8,14 +8,16 @@ import {
   faFileCsv,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { saveAs } from "file-saver";
 import { toPng } from "html-to-image";
 import { ComponentProps, useCallback, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 import { MetaculusTextLogo } from "@/app/(main)/components/MetaculusTextLogo";
-import DataRequestModal from "@/app/(main)/questions/[id]/components/download_question_data_modal";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
+import ClientPostsApi from "@/services/api/posts/posts.client";
+import { DownloadAggregationMethod } from "@/types/question";
 import cn from "@/utils/core/cn";
 
 function formatCurrentDate(): string {
@@ -83,7 +85,7 @@ export function MoreButton({
   postTitle?: string;
   onExportPng?: () => void;
 }) {
-  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [isCsvDownloading, setIsCsvDownloading] = useState(false);
 
   const hasMultiplePosts = postIds.length > 1;
   const singlePostId = postIds.length === 1 ? postIds[0] : undefined;
@@ -117,6 +119,44 @@ export function MoreButton({
     }
     return null;
   }, [questionUrl, postTitle]);
+
+  const handleExportCsv = useCallback(async () => {
+    if (isCsvDownloading || postIds.length === 0) {
+      return;
+    }
+
+    setIsCsvDownloading(true);
+    const loadingToastId = toast.loading(
+      "Preparing CSV export. Your download will start shortly."
+    );
+
+    try {
+      const blob = await ClientPostsApi.getPostZipData({
+        ...(postIds.length === 1
+          ? { post_id: postIds[0] }
+          : { post_ids: postIds }),
+        aggregation_methods: [DownloadAggregationMethod.recency_weighted],
+        minimize: true,
+        include_comments: false,
+        include_scores: false,
+        include_user_data: false,
+        include_key_factors: false,
+      });
+      const defaultTitle =
+        postIds.length > 1 ? `metaculus_data_${postIds.length}_posts` : "data";
+      const filename = `${(postTitle || defaultTitle).replaceAll(" ", "_")}.zip`;
+      saveAs(blob, filename);
+      toast.dismiss(loadingToastId);
+      toast.success("CSV download started.");
+    } catch (error) {
+      toast.dismiss(loadingToastId);
+      toast.error(
+        `Failed to export CSV${error instanceof Error ? `: ${error.message}` : ""}`
+      );
+    } finally {
+      setIsCsvDownloading(false);
+    }
+  }, [isCsvDownloading, postIds, postTitle]);
 
   const moreMenuItems: MenuItemProps[] = [
     ...(viewQuestionsHref
@@ -160,7 +200,7 @@ export function MoreButton({
               <MenuItemWithIcon
                 label="Export CSV"
                 icon={faFileCsv}
-                onClick={() => setIsDownloadModalOpen(true)}
+                onClick={handleExportCsv}
               />
             ),
           },
@@ -205,12 +245,6 @@ export function MoreButton({
           <FontAwesomeIcon icon={faEllipsis} />
         </Button>
       </DropdownMenu>
-      <DataRequestModal
-        isOpen={isDownloadModalOpen}
-        onClose={() => setIsDownloadModalOpen(false)}
-        postId={postIds.length === 1 ? (postIds[0] as number) : postIds}
-        title={postTitle}
-      />
     </>
   );
 }
@@ -295,7 +329,7 @@ export function QuestionCard({
         borderRadius: "0px",
       },
     })
-      .then((dataUrl) => {
+      .then((dataUrl: string) => {
         const link = document.createElement("a");
         link.download = `${title ? title.slice(0, 50).replace(/[^a-zA-Z0-9]/g, "-") : "question-card"}.png`;
         link.href = dataUrl;
@@ -304,7 +338,7 @@ export function QuestionCard({
           className: "dark:bg-blue-700-dark dark:text-gray-0-dark",
         });
       })
-      .catch((err) => {
+      .catch((err: any) => {
         console.error("Error exporting image:", err);
         toast.error("Failed to export image");
       })
