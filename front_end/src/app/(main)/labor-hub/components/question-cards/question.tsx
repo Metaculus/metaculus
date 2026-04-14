@@ -20,8 +20,11 @@ import {
 
 import { BasicQuestionContent } from "./basic_question";
 import { FlippableQuestionCard } from "./flippable_question_card";
-import { NoQuestionPlaceholder } from "./placeholder";
-import { QuestionCard, QuestionCardSkeleton } from "./question_card";
+import { NoQuestionPlaceholder } from "../question_cards/placeholder";
+import {
+  QuestionCard,
+  QuestionCardSkeleton,
+} from "../question_cards/question_card";
 
 function getLeftIcon(postData: PostWithForecasts, subQuestionId?: number) {
   if (isMultipleChoicePost(postData) && !subQuestionId) {

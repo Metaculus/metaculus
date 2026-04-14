@@ -33,7 +33,7 @@ import {
   type MultiLineChartPoint,
   type MultiLineChartSeries,
   type MultiLineChartYAxisLabel,
-} from "./multi_line_chart.types";
+} from "../question_cards/multi_line_chart.types";
 
 type Props = {
   series: MultiLineChartSeries[];
@@ -587,7 +587,7 @@ export const MultiLineChart: FC<Props> = ({
 
         return {
           series: item,
-          chartData: item.data.map((point) => ({
+          chartData: item.data.map((point: MultiLineChartPoint) => ({
             ...point,
             x: point.x,
             y: point.y,

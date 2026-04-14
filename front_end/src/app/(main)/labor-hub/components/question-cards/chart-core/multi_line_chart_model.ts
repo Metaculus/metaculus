@@ -1,7 +1,8 @@
 import {
+  type MultiLineChartPoint,
   type MultiLineChartSeries,
   type MultiLineChartYAxisLabel,
-} from "../multi_line_chart.types";
+} from "../../question_cards/multi_line_chart.types";
 
 const CUSTOM_Y_TICK_MAX_CHARS = 10;
 const LABEL_BOUND_TOP_INSET_RATIO = 0.06;
@@ -93,7 +94,9 @@ export function computeMultiLineChartModel({
   xTickValues: xTickValuesProp,
 }: ComputeMultiLineChartModelArgs) {
   const derivedXTickValues = Array.from(
-    new Set(series.flatMap((s) => s.data.map((point) => point.x)))
+    new Set(
+      series.flatMap((s) => s.data.map((point: MultiLineChartPoint) => point.x))
+    )
   ).sort((a, b) => a - b);
   const xTickValues = (
     xTickValuesProp?.length ? xTickValuesProp : derivedXTickValues
@@ -102,8 +105,12 @@ export function computeMultiLineChartModel({
     .sort((a, b) => a - b);
   const xValues = xTickValues.length
     ? xTickValues
-    : series.flatMap((s) => s.data.map((point) => point.x));
-  const dataValues = series.flatMap((s) => s.data.map((point) => point.y));
+    : series.flatMap((s) =>
+        s.data.map((point: MultiLineChartPoint) => point.x)
+      );
+  const dataValues = series.flatMap((s) =>
+    s.data.map((point: MultiLineChartPoint) => point.y)
+  );
 
   const hasDataLabels = series.some((s) => s.dataLabels !== "never");
 

@@ -10,7 +10,7 @@ import { ComponentProps, ReactNode, useState } from "react";
 
 import cn from "@/utils/core/cn";
 
-import { QuestionCard } from "./question_card";
+import { QuestionCard } from "../question_cards/question_card";
 
 type FlipSide = "left" | "right";
 

@@ -7,8 +7,6 @@ import {
   fetchMultiQuestionDataset,
   type MultiQuestionRowConfig,
 } from "./multi_question_data";
-import { NoQuestionPlaceholder } from "./placeholder";
-import { MoreButton } from "./question_card";
 import {
   PercentageChange,
   TableCompact,
@@ -19,6 +17,8 @@ import {
   TableCompactRow,
   WageValue,
 } from "../../components/table_compact";
+import { NoQuestionPlaceholder } from "../question_cards/placeholder";
+import { MoreButton } from "../question_cards/question_card";
 
 export function reactNodeToText(node: ReactNode): string {
   return Children.toArray(node)

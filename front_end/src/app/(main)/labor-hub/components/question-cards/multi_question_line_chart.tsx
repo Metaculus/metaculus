@@ -16,8 +16,8 @@ import {
 } from "./multi_question_data";
 import { MultiQuestionLineChartClient } from "./multi_question_line_chart_client";
 import { reactNodeToText } from "./multi_question_table";
-import { NoQuestionPlaceholder } from "./placeholder";
-import { MoreButton } from "./question_card";
+import { NoQuestionPlaceholder } from "../question_cards/placeholder";
+import { MoreButton } from "../question_cards/question_card";
 
 const DEFAULT_SERIES_COLORS: MultiLineChartColor[] = [
   "mc1",
