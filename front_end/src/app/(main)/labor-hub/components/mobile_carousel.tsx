@@ -1,7 +1,13 @@
 "use client";
 
 import useEmblaCarousel from "embla-carousel-react";
-import React, { ReactNode, useCallback, useEffect, useState } from "react";
+import React, {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import cn from "@/utils/core/cn";
 
@@ -13,11 +19,15 @@ type Props = {
 export function MobileCarousel({ children, className }: Props) {
   const slides = React.Children.toArray(children);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const emblaOptions = useMemo(
+    () => ({
+      align: "center" as const,
+      containScroll: "trimSnaps" as const,
+    }),
+    []
+  );
 
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    align: "center",
-    containScroll: "trimSnaps",
-  });
+  const [emblaRef, emblaApi] = useEmblaCarousel(emblaOptions);
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
