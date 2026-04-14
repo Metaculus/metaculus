@@ -8,6 +8,7 @@ import {
   VictoryAxis,
   VictoryChart,
   VictoryContainer,
+  VictoryLabel,
   VictoryLine,
   VictoryScatter,
 } from "victory";
@@ -53,6 +54,7 @@ type Props = {
   onHighlightedXChange?: (value: number | null) => void;
   clearHighlightOnMouseLeave?: boolean;
   emphasizedSeriesId?: string | null;
+  historicalForecastDividerX?: number | null;
 };
 
 type ResolvedSeriesColors = {
@@ -83,6 +85,7 @@ export const defaultFormatYTick = (value: number): string => {
 
 const DATA_LABEL_ON_DARK_FILL = METAC_COLORS.gray["0"].DEFAULT;
 const DATA_LABEL_ON_LIGHT_FILL = METAC_COLORS.gray["900"].DEFAULT;
+const AREA_SECTION_LABEL_Y = 18;
 
 const MC_OPTION_COLOR_MAP = {
   mc1: METAC_COLORS["mc-option"]["1"],
@@ -500,6 +503,7 @@ export const MultiLineChart: FC<Props> = ({
   onHighlightedXChange,
   clearHighlightOnMouseLeave = true,
   emphasizedSeriesId = null,
+  historicalForecastDividerX = null,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -563,8 +567,32 @@ export const MultiLineChart: FC<Props> = ({
   const gridColor = getThemeColor(METAC_COLORS.gray["400"]);
   const activeXTickColor = getThemeColor(METAC_COLORS.gray["700"]);
   const bgColor = getThemeColor(METAC_COLORS.gray["0"]);
+  const historicalForecastDividerColor = getThemeColor(
+    METAC_COLORS.blue["600"]
+  );
 
   const emphasisActive = emphasizedSeriesId != null;
+  const historicalForecastLayout = useMemo(() => {
+    if (!chartWidth || historicalForecastDividerX == null) return null;
+
+    const plotLeft = leftPadding;
+    const plotRight = chartWidth - CHART_PADDING.right;
+    const plotWidth = plotRight - plotLeft;
+    const [xMin, xMax] = xDomain;
+    if (plotWidth <= 0 || xMax === xMin) return null;
+
+    const dividerSvgX =
+      plotLeft +
+      ((historicalForecastDividerX - xMin) / (xMax - xMin)) * plotWidth;
+
+    if (dividerSvgX <= plotLeft || dividerSvgX >= plotRight) return null;
+
+    return {
+      dividerSvgX,
+      historicalLabelX: (plotLeft + dividerSvgX) / 2,
+      forecastLabelX: (dividerSvgX + plotRight) / 2,
+    };
+  }, [chartWidth, historicalForecastDividerX, leftPadding, xDomain]);
 
   const seriesEntries = useMemo<ResolvedSeriesEntry[]>(
     () =>
@@ -797,6 +825,56 @@ export const MultiLineChart: FC<Props> = ({
                     strokeWidth: 1,
                     strokeDasharray: "4 3",
                     opacity: emphasisActive ? 0.45 : 0.75,
+                  },
+                }}
+              />
+            )}
+
+            {historicalForecastLayout && (
+              <>
+                <VictoryLabel
+                  text="HISTORICAL"
+                  x={historicalForecastLayout.historicalLabelX}
+                  y={AREA_SECTION_LABEL_Y}
+                  textAnchor="middle"
+                  style={{
+                    fill: historicalForecastDividerColor,
+                    fontSize: 10,
+                    fontWeight: 600,
+                    letterSpacing: "0.08em",
+                    fontFamily:
+                      "var(--font-inter-variable), var(--font-inter), sans-serif",
+                  }}
+                />
+                <VictoryLabel
+                  text="FORECAST"
+                  x={historicalForecastLayout.forecastLabelX}
+                  y={AREA_SECTION_LABEL_Y}
+                  textAnchor="middle"
+                  style={{
+                    fill: historicalForecastDividerColor,
+                    fontSize: 10,
+                    fontWeight: 600,
+                    letterSpacing: "0.08em",
+                    fontFamily:
+                      "var(--font-inter-variable), var(--font-inter), sans-serif",
+                  }}
+                />
+              </>
+            )}
+
+            {historicalForecastDividerX != null && (
+              <VictoryLine
+                data={[
+                  { x: historicalForecastDividerX, y: yDomain[0] },
+                  { x: historicalForecastDividerX, y: yDomain[1] },
+                ]}
+                style={{
+                  data: {
+                    stroke: historicalForecastDividerColor,
+                    strokeWidth: 1.5,
+                    strokeDasharray: "6 4",
+                    opacity: emphasisActive ? 0.6 : 0.8,
                   },
                 }}
               />

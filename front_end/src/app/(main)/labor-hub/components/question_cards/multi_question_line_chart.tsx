@@ -137,6 +137,54 @@ function buildSeriesFromDatasetRows(
   };
 }
 
+function getHistoricalForecastDividerX(
+  columns: string[],
+  historicalLabelSet: Set<string>
+) {
+  if (!historicalLabelSet.size) return null;
+
+  const currentYear = new Date().getFullYear();
+  const areAllLabelsNumeric = columns.every(
+    (label) => !Number.isNaN(Number(label))
+  );
+  const { getXForLabel } = createMultiQuestionLineXAxis(columns);
+  const lastHistoricalIndex = columns.reduce<number>(
+    (lastIndex, label, index) =>
+      historicalLabelSet.has(label) ? index : lastIndex,
+    -1
+  );
+
+  if (lastHistoricalIndex < 0 || lastHistoricalIndex >= columns.length - 1) {
+    return null;
+  }
+
+  const nextForecastIndex = columns.findIndex(
+    (label, index) =>
+      index > lastHistoricalIndex && !historicalLabelSet.has(label)
+  );
+
+  if (nextForecastIndex === -1) return null;
+
+  const lastHistoricalX = getXForLabel(
+    columns[lastHistoricalIndex] ?? "",
+    lastHistoricalIndex
+  );
+  const nextForecastX = getXForLabel(
+    columns[nextForecastIndex] ?? "",
+    nextForecastIndex
+  );
+
+  if (
+    areAllLabelsNumeric &&
+    currentYear > lastHistoricalX &&
+    currentYear < nextForecastX
+  ) {
+    return currentYear;
+  }
+
+  return (lastHistoricalX + nextForecastX) / 2;
+}
+
 async function MultiQuestionLineChartContent({
   title,
   rows,
@@ -168,6 +216,10 @@ async function MultiQuestionLineChartContent({
     buildSeriesFromDatasetRows(dataset.rows, dataset.columns, getSeriesOptions);
   const historicalLabelSet = new Set(
     rows.flatMap((row) => Object.keys(row.historicalValues ?? {}))
+  );
+  const historicalForecastDividerX = getHistoricalForecastDividerX(
+    dataset.columns,
+    historicalLabelSet
   );
   const visibleXTickValues =
     historicalTickEvery && historicalTickEvery > 1
@@ -205,6 +257,7 @@ async function MultiQuestionLineChartContent({
           xTickValues={xTickValues}
           visibleXTickValues={visibleXTickValues}
           xTickLabelsByValue={xTickLabelsByValue}
+          historicalForecastDividerX={historicalForecastDividerX}
           valueFormat={valueFormat}
           decimals={decimals}
         />
