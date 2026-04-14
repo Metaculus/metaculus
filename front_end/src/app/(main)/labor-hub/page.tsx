@@ -25,7 +25,7 @@ import { MethodologySection } from "./sections/methodology";
 import { OverviewSection } from "./sections/overview";
 import { ResearchSection } from "./sections/research";
 
-const TABS = [
+const SECTIONS = [
   { id: "overview", label: "Overview" },
   { id: "jobs", label: "Jobs" },
   { id: "wages", label: "Wages" },
@@ -48,7 +48,7 @@ export default function LaborAutomationHubPage() {
       <div className="mx-auto w-full max-w-7xl xl:px-16 print:px-0">
         <HeroSection />
       </div>
-      <LaborHubNavigation tabs={TABS} newsletterListKey="labor" />
+      <LaborHubNavigation sections={SECTIONS} newsletterListKey="labor" />
 
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 sm:gap-6 sm:px-8 md:gap-8 xl:px-16 print:gap-4 print:px-0">
         <SectionToggle

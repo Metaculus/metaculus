@@ -21,13 +21,13 @@ import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
 
 import { NewsletterSubscribePopover } from "./newsletter_subscribe_popover";
-import { TabGroup } from "./tab_group";
+import { ScrollspyButtonGroup } from "./scrollspy_button_group";
 
 export default function LaborHubNavigation({
-  tabs,
+  sections,
   newsletterListKey,
 }: {
-  tabs: { id: string; label: string }[];
+  sections: { id: string; label: string }[];
   newsletterListKey?: string;
 }) {
   const [isSticky, setIsSticky] = useState(false);
@@ -129,7 +129,7 @@ export default function LaborHubNavigation({
                   tabEndSpacingClassName
                 )}
               >
-                <TabGroup tabs={tabs} />
+                <ScrollspyButtonGroup items={sections} />
               </div>
             </div>
 
