@@ -271,6 +271,16 @@ export default function QuestionChecklist() {
             wider.
           </li>
           <li>
+            <strong>
+              Use discrete questions for up to 200 distinct outcomes.
+            </strong>{" "}
+            Discrete questions are designed for outcomes with a distinct and
+            ordered set of values (e.g. number of goals in a match, number of
+            seats won in an election). If your question would have more than 200
+            possible outcomes, use a continuous (numeric) question type instead,
+            which is better suited for a large number of possible values.
+          </li>
+          <li>
             <strong>Double check.</strong> Proof-read your submission,
             double-check your resolution conditions and ranges, and make sure
             the formulation of your question is consistent throughout.

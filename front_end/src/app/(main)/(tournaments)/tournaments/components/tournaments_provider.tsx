@@ -3,8 +3,11 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
 
 import { TournamentPreview, TournamentsSortBy } from "@/types/projects";
+import useSearchParams from "@/hooks/use_search_params";
 
+import { TOURNAMENTS_SEARCH } from "../constants/query_params";
 import { selectTournamentsForSection } from "../helpers";
+import { filterTournaments } from "../helpers/tournament_filters";
 import { useTournamentFilters } from "../hooks/use_tournament_filters";
 import { TournamentsSection } from "../types";
 
@@ -14,6 +17,7 @@ type TournamentsSectionCtxValue = {
   count: number;
   nowTs?: number;
   defaultSort: TournamentsSortBy;
+  isSearching: boolean;
   infoOpen: boolean;
   toggleInfo: () => void;
   closeInfo: () => void;
@@ -31,6 +35,10 @@ export function TournamentsSectionProvider(props: {
 }) {
   const { tournaments, current, children, nowTs } = props;
   const [infoOpen, setInfoOpen] = useState(true);
+  const { params } = useSearchParams();
+
+  const searchQuery = (params.get(TOURNAMENTS_SEARCH) ?? "").trim();
+  const isSearching = searchQuery.length > 0;
 
   const defaultSort =
     current === "archived"
@@ -45,18 +53,27 @@ export function TournamentsSectionProvider(props: {
   const filterOpts = useMemo(() => ({ defaultSort }), [defaultSort]);
   const { filtered } = useTournamentFilters(sectionItems, filterOpts);
 
+  const crossTabFiltered = useMemo(
+    () =>
+      isSearching ? filterTournaments(tournaments, searchQuery, null) : [],
+    [tournaments, searchQuery, isSearching]
+  );
+
+  const items = isSearching ? crossTabFiltered : filtered;
+
   const value = useMemo<TournamentsSectionCtxValue>(
     () => ({
       current,
-      items: filtered,
-      count: filtered.length,
+      items,
+      count: items.length,
+      isSearching,
       infoOpen,
       nowTs,
       defaultSort,
       toggleInfo: () => setInfoOpen((v) => !v),
       closeInfo: () => setInfoOpen(false),
     }),
-    [current, filtered, infoOpen, nowTs, defaultSort]
+    [current, items, isSearching, infoOpen, nowTs, defaultSort]
   );
 
   return (

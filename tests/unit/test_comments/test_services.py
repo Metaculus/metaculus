@@ -170,6 +170,25 @@ def test_key_factor_vote(user1, user2):
     assert_vote(user4, 5, 2.75)
 
 
+def test_key_factor_vote_reason(user1, user2):
+    kf = factory_key_factor(
+        comment=factory_comment(author=user1, on_post=factory_post(author=user1)),
+        driver=KeyFactorDriver.objects.create(text="Key Factor Text"),
+        vote_type=KeyFactorVote.VoteType.STRENGTH,
+    )
+
+    key_factor_vote(
+        kf,
+        user1,
+        vote=5,
+        vote_type=KeyFactorVote.VoteType.STRENGTH,
+        vote_reason=KeyFactorVote.VoteReason.REDUNDANT,
+    )
+
+    kfv = KeyFactorVote.objects.filter(key_factor=kf).first()
+    assert kfv.vote_reason == KeyFactorVote.VoteReason.REDUNDANT
+
+
 def test_soft_delete_comment(user1, user2, post):
     factory_comment(author=user2, on_post=post)
     to_be_deleted = factory_comment(author=user2, on_post=post)

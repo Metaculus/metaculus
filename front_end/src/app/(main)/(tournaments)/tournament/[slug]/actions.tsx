@@ -53,10 +53,16 @@ export async function updateMember(
   }
 }
 
-export async function subscribeProject(projectId: number) {
-  return ServerProjectsApi.subscribe(projectId);
+export async function subscribeProject(
+  projectId: number,
+  params?: { follow_questions?: boolean }
+) {
+  return ServerProjectsApi.subscribe(projectId, params);
 }
 
-export async function unsubscribeProject(projectId: number) {
-  return ServerProjectsApi.unsubscribe(projectId);
+export async function unsubscribeProject(
+  projectId: number,
+  params?: { unfollow_questions?: boolean }
+) {
+  return ServerProjectsApi.unsubscribe(projectId, params);
 }

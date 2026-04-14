@@ -48,6 +48,7 @@ type Props = {
       optionValue: string | string[] | null;
       replaceInfo?: FilterReplaceInfo;
     },
+    order: QuestionOrder,
     deleteParam: (
       name: string,
       withNavigation?: boolean,
@@ -65,6 +66,7 @@ type Props = {
   inputConfig?: { mode: "client" | "server"; debounceTime?: number };
   showRandomButton?: boolean;
   panelClassname?: string;
+  alwaysKeepOrderInUrl?: boolean;
 };
 
 const PostsFilters: FC<Props> = ({
@@ -76,6 +78,7 @@ const PostsFilters: FC<Props> = ({
   onOrderChange,
   showRandomButton,
   panelClassname,
+  alwaysKeepOrderInUrl,
 }) => {
   const t = useTranslations();
   const {
@@ -146,7 +149,7 @@ const PostsFilters: FC<Props> = ({
 
     clearPopupFilters(withNavigation);
 
-    if (order === defaultOrder) {
+    if (order === defaultOrder && !alwaysKeepOrderInUrl) {
       deleteParam(POST_ORDER_BY_FILTER, withNavigation);
     } else {
       setParam(POST_ORDER_BY_FILTER, order, withNavigation);
@@ -165,6 +168,7 @@ const PostsFilters: FC<Props> = ({
   ) => {
     onPopOverFilterChange?.(
       { filterId, optionValue, replaceInfo },
+      order,
       deleteParam
     );
 

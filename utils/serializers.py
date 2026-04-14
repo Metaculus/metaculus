@@ -113,7 +113,7 @@ class DataGetRequestSerializer(serializers.Serializer):
     def validate_user_ids(self, user_ids: list[int]):
         if not user_ids:
             return user_ids
-        if not (self.context.get("is_staff") or self.context.get("is_whitelisted")):
+        if not (self.context.get("is_staff") or self.context.get("has_data_access")):
             raise serializers.ValidationError(
                 "Current user cannot view user-specific data. "
                 "Please remove user_ids parameter."
@@ -199,7 +199,7 @@ class DataPostRequestSerializer(DataGetRequestSerializer):
     def validate_user_ids(self, user_ids: list[int]):
         if not user_ids:
             return user_ids
-        if not (self.context.get("is_staff") or self.context.get("is_whitelisted")):
+        if not (self.context.get("is_staff") or self.context.get("has_data_access")):
             raise serializers.ValidationError(
                 "Current user cannot view user-specific data. "
                 "Please remove user_ids parameter."

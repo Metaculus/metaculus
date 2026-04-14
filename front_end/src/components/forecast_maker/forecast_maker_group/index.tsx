@@ -18,6 +18,7 @@ type Props = {
   post: PostWithForecasts;
   groupVariable: string;
   canPredict: boolean;
+  predictLabel: string;
   predictionMessage: ReactNode;
   onPredictionSubmit?: () => void;
 };
@@ -27,6 +28,7 @@ const ForecastMakerGroup: FC<Props> = ({
   questions,
   groupVariable,
   canPredict,
+  predictLabel,
   predictionMessage,
   onPredictionSubmit,
 }) => {
@@ -49,6 +51,7 @@ const ForecastMakerGroup: FC<Props> = ({
           questions={sortedQuestions}
           groupVariable={groupVariable}
           canPredict={canPredict}
+          predictLabel={predictLabel}
           predictionMessage={predictionMessage}
           onPredictionSubmit={onPredictionSubmit}
         />
@@ -59,6 +62,7 @@ const ForecastMakerGroup: FC<Props> = ({
           questions={sortedQuestions}
           groupVariable={groupVariable}
           canPredict={canPredict}
+          predictLabel={predictLabel}
           predictionMessage={predictionMessage}
           onPredictionSubmit={onPredictionSubmit}
         />

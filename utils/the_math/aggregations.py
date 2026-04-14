@@ -998,7 +998,11 @@ def get_aggregation_history(
     if include_future:
         cutoff = question.actual_close_time
     else:
-        cutoff = min(timezone.now(), question.actual_close_time or timezone.now())
+        cutoff = min(
+            timezone.now(),
+            question.scheduled_close_time or timezone.now(),
+            question.actual_close_time or timezone.now(),
+        )
 
     with sentry_sdk.start_span(op="compute", name="get_user_forecast_history"):
         forecast_history = get_user_forecast_history(forecasts, minimize, cutoff=cutoff)
