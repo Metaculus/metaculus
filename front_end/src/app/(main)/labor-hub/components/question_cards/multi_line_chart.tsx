@@ -24,7 +24,7 @@ import {
   CHART_PADDING,
   closestTickValue,
   computeMultiLineChartModel,
-} from "./chart-core/multi-line-chart-model";
+} from "./chart_core/multi_line_chart_model";
 import {
   type DataLabelMode,
   type DataLabelPlacement,
@@ -33,7 +33,7 @@ import {
   type MultiLineChartPoint,
   type MultiLineChartSeries,
   type MultiLineChartYAxisLabel,
-} from "./multi-line-chart.types";
+} from "./multi_line_chart.types";
 
 type Props = {
   series: MultiLineChartSeries[];

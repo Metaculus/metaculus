@@ -2,7 +2,7 @@ import { ComponentProps } from "react";
 
 import cn from "@/utils/core/cn";
 
-import { MobileCarousel } from "./mobile-carousel";
+import { MobileCarousel } from "./mobile_carousel";
 
 export function SectionCard({
   className,

@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 
-import { MultiLineChart, type MultiLineChartProps } from "./multi-line-chart";
+import { MultiLineChart, type MultiLineChartProps } from "./multi_line_chart";
 
 type Props = Omit<
   MultiLineChartProps,

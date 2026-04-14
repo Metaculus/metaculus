@@ -1,10 +1,10 @@
 "use client";
 
-import { useLaborHubChartHover } from "./labor-hub-chart-hover-context";
+import { useLaborHubChartHover } from "./labor_hub_chart_hover_context";
 import {
   MultiLineChart,
   type MultiLineChartProps,
-} from "./question-cards/multi-line-chart";
+} from "./question_cards/multi_line_chart";
 
 export function LaborHubMultiLineChart(props: MultiLineChartProps) {
   const hoverState = useLaborHubChartHover();

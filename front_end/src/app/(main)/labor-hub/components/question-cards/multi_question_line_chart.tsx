@@ -7,17 +7,17 @@ import {
   type MultiLineChartColor,
   type MultiLineChartProps,
   type MultiLineChartSeries,
-} from "./multi-line-chart";
+} from "./multi_line_chart";
 import {
   createMultiQuestionLineXAxis,
   fetchMultiQuestionDataset,
   type MultiQuestionResolvedRow,
   type MultiQuestionRowConfig,
-} from "./multi-question-data";
-import { MultiQuestionLineChartClient } from "./multi-question-line-chart-client";
-import { reactNodeToText } from "./multi-question-table";
+} from "./multi_question_data";
+import { MultiQuestionLineChartClient } from "./multi_question_line_chart_client";
+import { reactNodeToText } from "./multi_question_table";
 import { NoQuestionPlaceholder } from "./placeholder";
-import { MoreButton } from "./question-card";
+import { MoreButton } from "./question_card";
 
 const DEFAULT_SERIES_COLORS: MultiLineChartColor[] = [
   "mc1",

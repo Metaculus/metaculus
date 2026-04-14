@@ -20,8 +20,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
 
-import { NewsletterSubscribePopover } from "./newsletter-subscribe-popover";
-import { TabGroup } from "./tab-group";
+import { NewsletterSubscribePopover } from "./newsletter_subscribe_popover";
+import { TabGroup } from "./tab_group";
 
 export default function LaborHubNavigation({
   tabs,

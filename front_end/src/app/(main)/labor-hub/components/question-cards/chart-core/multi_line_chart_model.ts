@@ -1,7 +1,7 @@
 import {
   type MultiLineChartSeries,
   type MultiLineChartYAxisLabel,
-} from "../multi-line-chart.types";
+} from "../multi_line_chart.types";
 
 const CUSTOM_Y_TICK_MAX_CHARS = 10;
 const LABEL_BOUND_TOP_INSET_RATIO = 0.06;

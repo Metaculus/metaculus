@@ -3,13 +3,13 @@ import { Metadata } from "next";
 import SectionToggle from "@/components/ui/section_toggle";
 import { ThemeOverrideContainer } from "@/contexts/theme_override_context";
 
-import { ActivityCard } from "./components/activity-card";
-import { DefinitionTooltip } from "./components/definition-tooltip";
-import LaborHubNavigation from "./components/labor-hub-navigation";
-import { PrintAttribution } from "./components/print-attribution";
-import { FlippableMultiQuestionCard } from "./components/question-cards/flippable-multi-question-card";
-import { MultiQuestionTable } from "./components/question-cards/multi-question-table";
-import { QuestionLoader } from "./components/question-cards/question";
+import { ActivityCard } from "./components/activity_card";
+import { DefinitionTooltip } from "./components/definition_tooltip";
+import LaborHubNavigation from "./components/labor_hub_navigation";
+import { PrintAttribution } from "./components/print_attribution";
+import { FlippableMultiQuestionCard } from "./components/question_cards/flippable_multi_question_card";
+import { MultiQuestionTable } from "./components/question_cards/multi_question_table";
+import { QuestionLoader } from "./components/question_cards/question";
 import {
   DualPaneSectionCard,
   DualPaneSectionLeft,
@@ -17,10 +17,10 @@ import {
   SectionHeader,
   ContentParagraph,
 } from "./components/section";
-import { ActivityMonitorSection } from "./sections/activity-monitor";
-import { EngagementSection } from "./sections/engagement-section";
+import { ActivityMonitorSection } from "./sections/activity_monitor";
+import { EngagementSection } from "./sections/engagement_section";
 import { HeroSection } from "./sections/hero";
-import { JobsMonitorServer } from "./sections/jobs-monitor-server";
+import { JobsMonitorServer } from "./sections/jobs_monitor_server";
 import { MethodologySection } from "./sections/methodology";
 import { OverviewSection } from "./sections/overview";
 import { ResearchSection } from "./sections/research";

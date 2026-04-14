@@ -5,7 +5,7 @@ import { type ReactNode, useState } from "react";
 
 import cn from "@/utils/core/cn";
 
-import { ToggleSelector, type FlipSide } from "./flippable-question-card";
+import { ToggleSelector, type FlipSide } from "./flippable_question_card";
 
 type FlippableMultiQuestionCardClientProps = {
   leftContent: ReactNode;

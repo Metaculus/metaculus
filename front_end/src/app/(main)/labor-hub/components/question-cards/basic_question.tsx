@@ -26,7 +26,7 @@ import {
   getPostDrivenTime,
 } from "@/utils/questions/helpers";
 
-import { useLaborHubChartHover } from "../labor-hub-chart-hover-context";
+import { useLaborHubChartHover } from "../labor_hub_chart_hover_context";
 
 export function BasicQuestionContent({
   postData,

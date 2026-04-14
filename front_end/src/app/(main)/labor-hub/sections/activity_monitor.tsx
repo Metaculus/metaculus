@@ -6,12 +6,12 @@ import cn from "@/utils/core/cn";
 import {
   RAW_ACTIVITY_MONITOR_DATA,
   RawActivityMonitorEntry,
-} from "../activity-data";
+} from "../activity_data";
 import {
   ActivityMonitorEntry,
   ActivityMonitorInteractive,
-} from "./activity-monitor-interactive";
-import { QuestionLoader } from "../components/question-cards/question";
+} from "./activity_monitor_interactive";
+import { QuestionLoader } from "../components/question_cards/question";
 import { SectionHeader } from "../components/section";
 
 const activityDateFormatter = new Intl.DateTimeFormat("en-US", {

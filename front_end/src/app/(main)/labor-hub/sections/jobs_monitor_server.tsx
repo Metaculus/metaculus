@@ -1,7 +1,7 @@
 import { ComponentProps } from "react";
 
-import { JobRow, JobsMonitorSection } from "./jobs-monitor";
-import { fetchJobsTableData } from "../helpers/fetch-jobs-data";
+import { JobRow, JobsMonitorSection } from "./jobs_monitor";
+import { fetchJobsTableData } from "../helpers/fetch_jobs_data";
 
 export async function JobsMonitorServer({
   labels,

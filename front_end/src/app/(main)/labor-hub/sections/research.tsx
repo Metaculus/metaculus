@@ -4,16 +4,16 @@ import { QuestionWithNumericForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 
-import { SortableResearchTable } from "./sortable-research-table";
-import { ActivityCard } from "../components/activity-card";
-import { NoQuestionPlaceholder } from "../components/question-cards/placeholder";
-import { QuestionLoader } from "../components/question-cards/question";
+import { SortableResearchTable } from "./sortable_research_table";
+import { ActivityCard } from "../components/activity_card";
+import { NoQuestionPlaceholder } from "../components/question_cards/placeholder";
+import { QuestionLoader } from "../components/question_cards/question";
 import {
   SectionCard,
   SectionHeader,
   ContentParagraph,
 } from "../components/section";
-import { fetchJobsData, getSubQuestionValue } from "../helpers/fetch-jobs-data";
+import { fetchJobsData, getSubQuestionValue } from "../helpers/fetch_jobs_data";
 
 export function ResearchSection({
   className,

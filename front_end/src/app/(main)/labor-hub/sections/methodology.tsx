@@ -2,7 +2,7 @@ import { ComponentProps } from "react";
 
 import SectionToggle from "@/components/ui/section_toggle";
 
-import { QuestionLoader } from "../components/question-cards/question";
+import { QuestionLoader } from "../components/question_cards/question";
 import { SectionCard, SectionHeader } from "../components/section";
 import { METHODOLOGY_SECTIONS } from "../data";
 

@@ -2,16 +2,16 @@ import { type ReactNode } from "react";
 
 import cn from "@/utils/core/cn";
 
-import { FlippableMultiQuestionCardClient } from "./flippable-multi-question-card-client";
-import { type FlipSide } from "./flippable-question-card";
+import { FlippableMultiQuestionCardClient } from "./flippable_multi_question_card_client";
+import { type FlipSide } from "./flippable_question_card";
 import {
   MultiQuestionLineChart,
   type MultiQuestionLineChartProps,
-} from "./multi-question-line-chart";
+} from "./multi_question_line_chart";
 import {
   MultiQuestionTable,
   type MultiQuestionTableProps,
-} from "./multi-question-table";
+} from "./multi_question_table";
 
 const CHART_CARD_CLASSNAME =
   "break-inside-avoid overflow-hidden rounded bg-blue-200 p-4 dark:bg-blue-800 md:p-5 print:border print:border-gray-300";

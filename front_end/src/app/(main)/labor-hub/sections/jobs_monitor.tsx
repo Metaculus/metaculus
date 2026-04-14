@@ -5,7 +5,7 @@ import { ComponentProps, useState } from "react";
 import ButtonGroup from "@/components/ui/button_group";
 import cn from "@/utils/core/cn";
 
-import { QuestionCard } from "../components/question-cards/question-card";
+import { QuestionCard } from "../components/question_cards/question_card";
 
 export type JobRow = {
   name: string;

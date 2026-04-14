@@ -10,7 +10,7 @@ import { useModal } from "@/contexts/modal_context";
 import { useCopyUrl, useShareOnTwitterLink } from "@/hooks/share";
 import cn from "@/utils/core/cn";
 
-import { NewsletterSubscribeCard } from "../components/newsletter-subscribe-card";
+import { NewsletterSubscribeCard } from "../components/newsletter_subscribe_card";
 
 function PartnerCard() {
   const { setCurrentModal } = useModal();

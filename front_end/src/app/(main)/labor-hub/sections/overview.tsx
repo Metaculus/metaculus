@@ -4,16 +4,16 @@ import { QuestionWithNumericForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 
-import { LaborHubByJobVulnerabilityCard } from "../components/labor-hub-by-job-vulnerability-card";
+import { LaborHubByJobVulnerabilityCard } from "../components/labor_hub_by_job_vulnerability_card";
 import {
   LaborHubChartHoverProvider,
   LaborHubChartHoverSection,
-} from "../components/labor-hub-chart-hover-context";
-import { LaborHubMultiLineChart } from "../components/labor-hub-multi-line-chart";
-import { OverviewMobileCardTabs } from "../components/overview-mobile-card-tabs";
-import { type LineSeries } from "../components/question-cards/multi-line-chart";
-import { NoQuestionPlaceholder } from "../components/question-cards/placeholder";
-import { QuestionCard } from "../components/question-cards/question-card";
+} from "../components/labor_hub_chart_hover_context";
+import { LaborHubMultiLineChart } from "../components/labor_hub_multi_line_chart";
+import { OverviewMobileCardTabs } from "../components/overview_mobile_card_tabs";
+import { type LineSeries } from "../components/question_cards/multi_line_chart";
+import { NoQuestionPlaceholder } from "../components/question_cards/placeholder";
+import { QuestionCard } from "../components/question_cards/question_card";
 import { GOVERNMENT_BASELINES } from "../data";
 import {
   fetchJobsData,
@@ -21,7 +21,7 @@ import {
   getSubQuestionValue,
   OVERALL_POST_ID,
   YearValue,
-} from "../helpers/fetch-jobs-data";
+} from "../helpers/fetch_jobs_data";
 
 function excludeYears(
   data: YearValue[],

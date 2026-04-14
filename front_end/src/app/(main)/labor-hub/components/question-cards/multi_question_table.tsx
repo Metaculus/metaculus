@@ -6,9 +6,9 @@ import { logError } from "@/utils/core/errors";
 import {
   fetchMultiQuestionDataset,
   type MultiQuestionRowConfig,
-} from "./multi-question-data";
+} from "./multi_question_data";
 import { NoQuestionPlaceholder } from "./placeholder";
-import { MoreButton } from "./question-card";
+import { MoreButton } from "./question_card";
 import {
   PercentageChange,
   TableCompact,
@@ -18,7 +18,7 @@ import {
   TableCompactHeaderCell,
   TableCompactRow,
   WageValue,
-} from "../../components/table-compact";
+} from "../../components/table_compact";
 
 export function reactNodeToText(node: ReactNode): string {
   return Children.toArray(node)

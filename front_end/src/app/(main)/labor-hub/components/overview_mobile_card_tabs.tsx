@@ -4,7 +4,7 @@ import { ReactNode, useState } from "react";
 
 import ButtonGroup from "@/components/ui/button_group";
 
-import { useLaborHubChartHover } from "./labor-hub-chart-hover-context";
+import { useLaborHubChartHover } from "./labor_hub_chart_hover_context";
 
 type OverviewTab = "overall" | "vulnerability";
 

@@ -3,7 +3,7 @@ import { type ReactNode } from "react";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import { type QuestionWithNumericForecasts } from "@/types/question";
 
-import { getSubQuestionValue } from "../../helpers/fetch-jobs-data";
+import { getSubQuestionValue } from "../../helpers/fetch_jobs_data";
 
 export type MultiQuestionRowConfig = {
   questionId: number;

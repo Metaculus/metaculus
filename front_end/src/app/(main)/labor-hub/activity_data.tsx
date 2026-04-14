@@ -1,4 +1,4 @@
-import { ActivityMonitorEntry } from "./sections/activity-monitor-interactive";
+import { ActivityMonitorEntry } from "./sections/activity_monitor_interactive";
 
 export type RawActivityMonitorEntry = Omit<ActivityMonitorEntry, "id"> & {
   markerLabel: string;

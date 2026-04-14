@@ -4,11 +4,11 @@ import { ReactNode, useEffect, useRef, useState } from "react";
 
 import BaseModal from "@/components/base_modal";
 
-import { ActivityCard } from "../components/activity-card";
+import { ActivityCard } from "../components/activity_card";
 import {
   LaborHubChartHoverProvider,
   useLaborHubChartHover,
-} from "../components/labor-hub-chart-hover-context";
+} from "../components/labor_hub_chart_hover_context";
 
 export type ActivityMonitorEntry = {
   id: string;

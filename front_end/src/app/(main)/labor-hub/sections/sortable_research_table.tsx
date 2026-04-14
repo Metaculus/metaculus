@@ -14,7 +14,7 @@ import {
   TableCompactBody,
   TableCompactCell,
   PercentageChange,
-} from "../components/table-compact";
+} from "../components/table_compact";
 
 type SortKey = { type: "year"; index: number } | { type: "rating" };
 type SortDirection = "asc" | "desc";
