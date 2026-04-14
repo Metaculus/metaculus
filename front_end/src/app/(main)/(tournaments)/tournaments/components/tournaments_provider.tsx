@@ -2,11 +2,14 @@
 
 import React, { createContext, useContext, useMemo, useState } from "react";
 
-import { TournamentPreview, TournamentsSortBy } from "@/types/projects";
 import useSearchParams from "@/hooks/use_search_params";
+import { TournamentPreview, TournamentsSortBy } from "@/types/projects";
 
 import { TOURNAMENTS_SEARCH } from "../constants/query_params";
-import { selectTournamentsForSection } from "../helpers";
+import {
+  getDefaultSortForSection,
+  selectTournamentsForSection,
+} from "../helpers";
 import { filterTournaments } from "../helpers/tournament_filters";
 import { useTournamentFilters } from "../hooks/use_tournament_filters";
 import { TournamentsSection } from "../types";
@@ -40,10 +43,7 @@ export function TournamentsSectionProvider(props: {
   const searchQuery = (params.get(TOURNAMENTS_SEARCH) ?? "").trim();
   const isSearching = searchQuery.length > 0;
 
-  const defaultSort =
-    current === "archived"
-      ? TournamentsSortBy.StartDateDesc
-      : TournamentsSortBy.Featured;
+  const defaultSort = getDefaultSortForSection(current);
 
   const sectionItems = useMemo(
     () => selectTournamentsForSection(tournaments, current),
