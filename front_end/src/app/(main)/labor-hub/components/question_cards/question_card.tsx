@@ -261,6 +261,7 @@ export function QuestionCardSkeleton({
 }) {
   return (
     <div
+      data-loading="true"
       className={cn(
         "animate-pulse",
         variant === "primary" &&

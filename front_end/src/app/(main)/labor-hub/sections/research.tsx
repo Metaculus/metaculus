@@ -70,7 +70,10 @@ export function ResearchSection({
 
       <Suspense
         fallback={
-          <div className="mt-6 animate-pulse overflow-hidden rounded bg-blue-200 p-4 dark:bg-blue-800 md:p-5">
+          <div
+            data-loading="true"
+            className="mt-6 animate-pulse overflow-hidden rounded bg-blue-200 p-4 dark:bg-blue-800 md:p-5"
+          >
             <div className="mb-4 h-4 w-1/2 rounded bg-gray-300 dark:bg-gray-600" />
             <div className="flex flex-col gap-2">
               {Array.from({ length: 6 }).map((_, i) => (

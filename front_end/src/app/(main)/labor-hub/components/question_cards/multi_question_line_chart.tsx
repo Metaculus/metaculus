@@ -274,6 +274,7 @@ async function MultiQuestionLineChartContent({
 function MultiQuestionLineChartSkeleton({ className }: { className?: string }) {
   return (
     <div
+      data-loading="true"
       className={`animate-pulse overflow-hidden rounded bg-blue-200 p-4 dark:bg-blue-800 md:p-5 ${className ?? ""}`}
     >
       <div className="mb-4 h-5 w-2/3 rounded bg-gray-300 dark:bg-gray-600" />

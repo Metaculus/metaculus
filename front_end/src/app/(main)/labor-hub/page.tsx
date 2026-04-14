@@ -45,7 +45,7 @@ export const metadata: Metadata = {
 export default function LaborAutomationHubPage() {
   return (
     <main className="relative mb-24 min-h-screen xl:mt-12 print:mb-0 print:mt-0 print:[zoom:0.75]">
-      <div className="mx-auto w-full max-w-7xl xl:px-16 print:mb-10 print:px-0">
+      <div className="mx-auto w-full max-w-7xl xl:px-16 print:mb-6 print:px-0">
         <HeroSection />
       </div>
       <LaborHubNavigation sections={SECTIONS} newsletterListKey="labor" />
@@ -56,7 +56,7 @@ export default function LaborAutomationHubPage() {
           title="TL;DR: What does the data show?"
           variant="light"
           defaultOpen={false}
-          wrapperClassName="print:mb-10"
+          wrapperClassName="print:mb-6"
         >
           <ContentParagraph>
             Forecasts suggest that AI-driven job change is likely, but it will
