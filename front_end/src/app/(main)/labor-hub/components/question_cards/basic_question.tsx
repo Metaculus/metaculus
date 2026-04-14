@@ -92,16 +92,17 @@ export function BasicQuestionContent({
             (forecastAvailability.isEmpty ||
               !!forecastAvailability.cpRevealsOn);
 
-          if (!shouldHideChart) {
-            const sortedQuestions = sortGroupPredictionOptions(
-              postData.group_of_questions?.questions,
-              postData.group_of_questions
-            );
-            return <TimeSeriesChart questions={sortedQuestions} height={180} />;
+          if (shouldHideChart) {
+            return null;
           }
-        } else {
-          return <NumericForecastCard post={postData} />;
+
+          const sortedQuestions = sortGroupPredictionOptions(
+            postData.group_of_questions?.questions,
+            postData.group_of_questions
+          );
+          return <TimeSeriesChart questions={sortedQuestions} height={180} />;
         }
+        return <NumericForecastCard post={postData} />;
       case QuestionType.Date:
         return (
           <DateForecastCard
