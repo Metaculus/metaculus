@@ -1,3 +1,5 @@
+"use client";
+
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ComponentProps } from "react";
@@ -18,6 +20,7 @@ export function ActivityCard({
   className,
   onMouseEnter,
   onMouseLeave,
+  onClick,
 }: {
   avatar?: string;
   date?: string;
@@ -31,12 +34,28 @@ export function ActivityCard({
   className?: string;
   onMouseEnter?: ComponentProps<"div">["onMouseEnter"];
   onMouseLeave?: ComponentProps<"div">["onMouseLeave"];
+  onClick?: ComponentProps<"div">["onClick"];
 }) {
+  const isClickable = Boolean(onClick);
+
   return (
     <div
       style={{ "--degrade-index": degradeIndex } as React.CSSProperties}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onClick={onClick}
+      onKeyDown={
+        isClickable
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onClick?.(event as unknown as React.MouseEvent<HTMLDivElement>);
+              }
+            }
+          : undefined
+      }
+      role={isClickable ? "button" : undefined}
+      tabIndex={isClickable ? 0 : undefined}
       className={cn(
         variant === "purple" &&
           "border-purple-400 bg-purple-200 dark:border-purple-200-dark dark:bg-purple-100-dark",
@@ -48,6 +67,8 @@ export function ActivityCard({
         highlighted &&
           variant === "mint" &&
           "border-mint-700 ring-2 ring-mint-700 dark:border-mint-700-dark dark:ring-mint-700-dark",
+        isClickable &&
+          "cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
         link && "pr-12",
         className,
         "relative break-inside-avoid rounded-lg border px-3.5 py-3 transition-[box-shadow,transform,border-color] [--tw-bg-opacity:max(0.2,1-var(--degrade-index)*0.2)] dark:[--tw-bg-opacity:max(0.2,1-var(--degrade-index)*0.2)]"
@@ -58,6 +79,7 @@ export function ActivityCard({
           href={link}
           target="_blank"
           rel="noreferrer"
+          onClick={(event) => event.stopPropagation()}
           aria-label="Open external link"
           className={cn(
             variant === "purple" &&

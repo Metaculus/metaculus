@@ -36,9 +36,11 @@ function formatActivityDate(date: string) {
 function ActivityCardsList({
   activities,
   interactive = true,
+  onActivityClick,
 }: {
   activities: ActivityMonitorEntry[];
   interactive?: boolean;
+  onActivityClick?: (activity: ActivityMonitorEntry) => void;
 }) {
   const hoverState = useLaborHubChartHover();
 
@@ -63,6 +65,9 @@ function ActivityCardsList({
               ? () => hoverState?.setHoveredActivityId(null)
               : undefined
           }
+          onClick={
+            onActivityClick ? () => onActivityClick(activity) : undefined
+          }
         >
           {activity.content}
         </ActivityCard>
@@ -80,6 +85,15 @@ function ActivityMonitorInteractiveInner({ chart, activities }: Props) {
   });
   const modalScrollRef = useRef<HTMLDivElement>(null);
   const previewActivities = activities.slice(0, 4);
+
+  const openModal = (activityId?: string) => {
+    setModalScrollState({
+      canScrollUp: false,
+      canScrollDown: true,
+    });
+    setIsModalOpen(true);
+    hoverState?.setHoveredActivityId(activityId ?? null);
+  };
 
   const updateModalScrollState = () => {
     const scrollElement = modalScrollRef.current;
@@ -139,16 +153,13 @@ function ActivityMonitorInteractiveInner({ chart, activities }: Props) {
       >
         {chart}
         <div className="flex flex-col gap-2.5 md:order-1">
-          <ActivityCardsList activities={previewActivities} />
+          <ActivityCardsList
+            activities={previewActivities}
+            onActivityClick={(activity) => openModal(activity.id)}
+          />
           <button
             type="button"
-            onClick={() => {
-              setModalScrollState({
-                canScrollUp: false,
-                canScrollDown: true,
-              });
-              setIsModalOpen(true);
-            }}
+            onClick={() => openModal()}
             className="w-full rounded-md border border-blue-400 bg-blue-100 py-3 text-center text-lg font-medium leading-7 text-blue-800 hover:bg-blue-200 dark:border-blue-400-dark dark:bg-blue-100-dark dark:text-blue-800-dark dark:hover:bg-blue-200-dark print:hidden"
           >
             See all activity
