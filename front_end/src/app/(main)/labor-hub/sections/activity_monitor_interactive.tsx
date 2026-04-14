@@ -144,7 +144,7 @@ function ActivityMonitorInteractiveInner({ chart, activities }: Props) {
   return (
     <>
       <div
-        className="grid gap-5 sm:gap-6 md:grid-cols-2 md:gap-8"
+        className="grid gap-5 sm:gap-6 md:grid-cols-2 md:gap-8 print:grid-cols-2 print:gap-8"
         onMouseLeave={() => {
           hoverState?.setHoverYear(null);
           hoverState?.setHighlightedEnvelope(null);

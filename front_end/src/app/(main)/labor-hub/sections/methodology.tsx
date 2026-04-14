@@ -55,7 +55,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
         were also specifically engaged to share forecasts and in-depth
         reasoning.
       </p>
-      <div className="mb-8 grid grid-cols-1 gap-8 md:grid-cols-2">
+      <div className="mb-8 grid grid-cols-1 gap-8 md:grid-cols-2 print:grid-cols-2">
         {/** 
         <TableCompact
           HeadingSection={

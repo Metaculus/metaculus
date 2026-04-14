@@ -294,6 +294,7 @@ export function QuestionCard({
   children,
   title,
   subtitle,
+  subtitleClassName,
   variant = "secondary",
   titleVariantOverride,
   titleClassName,
@@ -303,6 +304,7 @@ export function QuestionCard({
 }: ComponentProps<"div"> & {
   title?: string;
   subtitle?: string;
+  subtitleClassName?: string;
   variant?: "secondary" | "primary" | "section";
   titleVariantOverride?: "secondary" | "primary" | "section";
   titleClassName?: string;
@@ -405,7 +407,8 @@ export function QuestionCard({
             variant === "secondary" &&
               "text-sm text-gray-600 dark:text-gray-600-dark",
             variant === "section" &&
-              "text-xs text-blue-600 dark:text-blue-600-dark md:mx-auto md:text-center md:text-base md:text-blue-700 md:dark:text-blue-700-dark"
+              "text-xs text-blue-600 dark:text-blue-600-dark md:mx-auto md:text-center md:text-base md:text-blue-700 md:dark:text-blue-700-dark",
+            subtitleClassName
           )}
         >
           {subtitle}

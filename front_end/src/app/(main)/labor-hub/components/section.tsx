@@ -30,7 +30,7 @@ export function SectionHeader({
   return (
     <h2
       className={cn(
-        "my-0 break-after-avoid text-lg font-medium tracking-tight text-blue-800 dark:text-blue-800-dark md:text-3xl md:font-bold print:text-2xl print:font-bold",
+        "my-0 break-after-avoid text-lg font-medium tracking-tight text-blue-800 dark:text-blue-800-dark md:text-3xl md:font-bold print:break-inside-avoid-page print:break-after-avoid-page print:text-2xl print:font-bold",
         className
       )}
       {...props}

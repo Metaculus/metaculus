@@ -81,13 +81,14 @@ export function JobsMonitorSection({
   return (
     <QuestionCard
       variant="section"
-      titleClassName="md:text-center"
+      titleClassName="md:text-center print:text-center"
       title="Jobs Monitor"
       subtitle="AI is reshaping the job market, but not all fields are affected equally."
+      subtitleClassName="print:mx-auto print:text-center"
       postIds={postIds}
       {...props}
     >
-      <div className="mb-4 mt-3 flex justify-start md:mb-8 md:mt-5 md:justify-center">
+      <div className="mb-4 mt-3 flex justify-start print:justify-center md:mb-8 md:mt-5 md:justify-center">
         <ButtonGroup
           value={year}
           buttons={columns.map((col) => ({
@@ -101,7 +102,7 @@ export function JobsMonitorSection({
       </div>
 
       <div className="mx-auto flex w-full max-w-3xl flex-col">
-        <div className="mb-3 text-xs text-gray-500 dark:text-gray-500-dark md:mb-2 md:text-center md:text-sm">
+        <div className="mb-3 text-xs text-gray-500 dark:text-gray-500-dark print:text-center md:mb-2 md:text-center md:text-sm">
           (Percentage change in employment)
         </div>
         <div className="mb-4 hidden grid-cols-5 gap-2 text-sm font-medium md:grid">

@@ -25,42 +25,49 @@ export function ResearchSection({
         How does this build on or differ from existing research?
       </SectionHeader>
 
-      <div className="float-right !mb-4 !mt-8 flex w-full flex-col gap-4 md:ml-6 md:w-[calc(50%-1.5rem)]">
-        <QuestionLoader questionId={42850} />
-        <ActivityCard
-          avatar="https://cdn.metaculus.com/labor-hub/haiku_256.jpg"
-          username="Nathan Metzger (Haiku)"
-          subtitle="Pro Forecaster"
-        >
-          Huge numbers of jobs could hinge on the success or failure of some
-          particular strike, or bill, or lawsuit. We should weigh the political
-          power of the workers in each occupation, alongside AI capability
-          considerations.
-        </ActivityCard>
+      <div className="grid gap-8 lg:grid-cols-2 print:grid-cols-2">
+        <div className="flex min-w-0 flex-col space-y-4 md:space-y-8 print:space-y-4 [&>*]:min-w-0">
+          <ContentParagraph>
+            A number of recent research publications have identified
+            occupations, tasks, and industries that are more vulnerable to
+            automation, as well as assessing recent trends in employment to
+            understand the impact of AI. Recent work from Stanford University
+            has asserted that AI has already had an impact on early career work,
+            while other sources do not yet see strong signals. The forecasts
+            here extend this work out to the future, eliciting predictions on
+            forecasts by industry. In many cases the forecasts agree with
+            classifications from the OECD and other sources of exposure to
+            automation, with some key differences.
+          </ContentParagraph>
+          <ContentParagraph>
+            Teachers have high vulnerability ratings, but are predicted to see
+            growth as forecasters expect human presence will be strongly desired
+            in classrooms by schools and parents, even if schools do
+            increasingly adopt AI-powered educational tools. Conversely,
+            occupations such as janitors and warehouse workers are rated as low
+            exposure due to the high physical nature of the work, but
+            forecasters anticipate that robotic capabilities will begin to
+            displace more of these roles by 2035. These forecasts provide
+            important context to our understanding of workforce prospects by
+            quantifying the predicted impact of AI on employment levels.
+          </ContentParagraph>
+        </div>
+
+        <div className="flex min-w-0 flex-col gap-4 [&>*]:min-w-0">
+          <QuestionLoader questionId={42850} />
+          <ActivityCard
+            avatar="https://cdn.metaculus.com/labor-hub/haiku_256.jpg"
+            username="Nathan Metzger (Haiku)"
+            subtitle="Pro Forecaster"
+          >
+            Huge numbers of jobs could hinge on the success or failure of some
+            particular strike, or bill, or lawsuit. We should weigh the
+            political power of the workers in each occupation, alongside AI
+            capability considerations.
+          </ActivityCard>
+        </div>
       </div>
 
-      <ContentParagraph className="!mt-8">
-        A number of recent research publications have identified occupations,
-        tasks, and industries that are more vulnerable to automation, as well as
-        assessing recent trends in employment to understand the impact of AI.
-        Recent work from Stanford University has asserted that AI has already
-        had an impact on early career work, while other sources do not yet see
-        strong signals. The forecasts here extend this work out to the future,
-        eliciting predictions on forecasts by industry. In many cases the
-        forecasts agree with classifications from the OECD and other sources of
-        exposure to automation, with some key differences.
-      </ContentParagraph>
-      <ContentParagraph>
-        Teachers have high vulnerability ratings, but are predicted to see
-        growth as forecasters expect human presence will be strongly desired in
-        classrooms by schools and parents, even if schools do increasingly adopt
-        AI-powered educational tools. Conversely, occupations such as janitors
-        and warehouse workers are rated as low exposure due to the high physical
-        nature of the work, but forecasters anticipate that robotic capabilities
-        will begin to displace more of these roles by 2035. These forecasts
-        provide important context to our understanding of workforce prospects by
-        quantifying the predicted impact of AI on employment levels.
-      </ContentParagraph>
       <Suspense
         fallback={
           <div className="mt-6 animate-pulse overflow-hidden rounded bg-blue-200 p-4 dark:bg-blue-800 md:p-5">

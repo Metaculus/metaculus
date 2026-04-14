@@ -45,17 +45,18 @@ export const metadata: Metadata = {
 export default function LaborAutomationHubPage() {
   return (
     <main className="relative mb-24 min-h-screen xl:mt-12 print:mb-0 print:mt-0 print:[zoom:0.75]">
-      <div className="mx-auto w-full max-w-7xl xl:px-16 print:px-0">
+      <div className="mx-auto w-full max-w-7xl xl:px-16 print:mb-10 print:px-0">
         <HeroSection />
       </div>
       <LaborHubNavigation sections={SECTIONS} newsletterListKey="labor" />
 
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 sm:gap-6 sm:px-8 md:gap-8 xl:px-16 print:gap-4 print:px-0">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 sm:gap-6 sm:px-8 md:gap-8 xl:px-16 print:gap-8 print:px-0">
         <SectionToggle
           key="tl-dr"
           title="TL;DR: What does the data show?"
           variant="light"
           defaultOpen={false}
+          wrapperClassName="print:mb-10"
         >
           <ContentParagraph>
             Forecasts suggest that AI-driven job change is likely, but it will
@@ -67,7 +68,7 @@ export default function LaborAutomationHubPage() {
             sector and skill level.
           </ContentParagraph>
         </SectionToggle>
-        <OverviewSection id="overview" />
+        <OverviewSection id="overview" className="print:mb-6" />
         <ActivityMonitorSection id="activity" className="" />
         <JobsMonitorServer
           id="jobs"
@@ -114,7 +115,7 @@ export default function LaborAutomationHubPage() {
               larger share of their income through government benefits.
             </ContentParagraph>
           </DualPaneSectionLeft>
-          <DualPaneSectionRight>
+          <DualPaneSectionRight className="lg:mt-24 print:mt-20">
             <QuestionLoader
               questionId={41574}
               note={
@@ -272,7 +273,7 @@ export default function LaborAutomationHubPage() {
               college-graduate pipeline.
             </ContentParagraph>
           </DualPaneSectionLeft>
-          <DualPaneSectionRight>
+          <DualPaneSectionRight className="lg:mt-24 print:mt-20">
             <ContentParagraph>
               The rise of AI is threatening to accelerate an already-looming
               enrollment decline, as fewer high school graduates and shrinking
@@ -343,7 +344,7 @@ export default function LaborAutomationHubPage() {
               declines as AI automates many prospects for those fields.
             </ContentParagraph>
           </DualPaneSectionLeft>
-          <DualPaneSectionRight>
+          <DualPaneSectionRight className="lg:mt-16 print:mt-12">
             <ContentParagraph>
               AI is enabling companies to generate more revenue with far fewer
               employees, and if that trend accelerates, a growing share of
@@ -400,8 +401,11 @@ export default function LaborAutomationHubPage() {
               ]}
             />
           </DualPaneSectionLeft>
-          <DualPaneSectionRight useMobileCarousel={false}>
-            <ContentParagraph className="lg:mt-16">
+          <DualPaneSectionRight
+            useMobileCarousel={false}
+            className="lg:mt-16 print:mt-12"
+          >
+            <ContentParagraph>
               In addition to the changes forecasted for the US, there are areas
               specific to Washington State that may face particular challenges.
             </ContentParagraph>
