@@ -31,11 +31,13 @@ import { useLaborHubChartHover } from "../labor_hub_chart_hover_context";
 export function BasicQuestionContent({
   postData,
   preferTimeline,
+  chartHeight,
   subQuestionId,
   timelineMarkers,
 }: {
   postData: PostWithForecasts;
   preferTimeline?: boolean;
+  chartHeight?: number;
   subQuestionId?: number;
   timelineMarkers?: GroupTimelineMarker[];
 }) {
@@ -47,7 +49,7 @@ export function BasicQuestionContent({
       return (
         <DetailedMultipleChoiceChartCard
           question={postData.question}
-          chartHeight={250}
+          chartHeight={chartHeight ?? 250}
           hideTitle
         />
       );
@@ -60,6 +62,7 @@ export function BasicQuestionContent({
       return (
         <GroupTimeline
           group={postData.group_of_questions}
+          chartHeight={chartHeight}
           timelineMarkers={timelineMarkers}
           activeTimelineMarkerId={laborHubHover?.hoveredActivityId ?? null}
           onTimelineMarkerEnter={(marker) =>
@@ -100,7 +103,12 @@ export function BasicQuestionContent({
             postData.group_of_questions?.questions,
             postData.group_of_questions
           );
-          return <TimeSeriesChart questions={sortedQuestions} height={180} />;
+          return (
+            <TimeSeriesChart
+              questions={sortedQuestions}
+              height={chartHeight ?? 180}
+            />
+          );
         }
         return <NumericForecastCard post={postData} />;
       case QuestionType.Date:
@@ -130,7 +138,7 @@ export function BasicQuestionContent({
           }
           resolution={question.resolution}
           resolveTime={question.actual_resolve_time}
-          height={180}
+          height={chartHeight ?? 180}
           questionType={question.type}
           actualCloseTime={getPostDrivenTime(question.actual_close_time)}
           scaling={question.scaling}
@@ -157,7 +165,12 @@ export function BasicQuestionContent({
       case QuestionType.Numeric:
       case QuestionType.Discrete:
       case QuestionType.Date:
-        return <ContinuousQuestionPrediction question={question} />;
+        return (
+          <ContinuousQuestionPrediction
+            question={question}
+            chartHeight={chartHeight}
+          />
+        );
       default:
         return null;
     }

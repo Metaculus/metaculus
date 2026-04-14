@@ -73,6 +73,7 @@ type QuestionLoaderProps = {
   note?: ReactNode;
   isFlippable?: boolean;
   preferTimeline?: boolean;
+  chartHeight?: number;
   subQuestionId?: number;
   variant?: "primary" | "secondary";
   title?: string;
@@ -90,6 +91,7 @@ async function QuestionContent({
   note,
   preferTimeline,
   isFlippable = true,
+  chartHeight,
   subQuestionId,
   variant,
   title,
@@ -129,6 +131,7 @@ async function QuestionContent({
               postData={postData}
               subQuestionId={subQuestionId}
               preferTimeline={false}
+              chartHeight={chartHeight}
               timelineMarkers={timelineMarkers}
             />
           }
@@ -137,6 +140,7 @@ async function QuestionContent({
               postData={postData}
               subQuestionId={subQuestionId}
               preferTimeline={true}
+              chartHeight={chartHeight}
               timelineMarkers={timelineMarkers}
             />
           }
@@ -170,6 +174,7 @@ async function QuestionContent({
         <BasicQuestionContent
           postData={postData}
           preferTimeline={preferTimeline}
+          chartHeight={chartHeight}
           subQuestionId={subQuestionId}
           timelineMarkers={timelineMarkers}
         />
@@ -193,6 +198,7 @@ export function QuestionLoader({
   isFlippable,
   subQuestionId,
   preferTimeline,
+  chartHeight,
   variant = "secondary",
   title,
   subtitle,
@@ -211,6 +217,7 @@ export function QuestionLoader({
         isFlippable={isFlippable}
         subQuestionId={subQuestionId}
         preferTimeline={preferTimeline}
+        chartHeight={chartHeight}
         variant={variant}
         title={title}
         subtitle={subtitle}

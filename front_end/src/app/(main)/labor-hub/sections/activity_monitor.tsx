@@ -76,6 +76,7 @@ export function ActivityMonitorSection({
             preferTimeline
             isFlippable={false}
             timelineMarkers={timelineMarkers}
+            chartHeight={250}
           />
         }
       />
