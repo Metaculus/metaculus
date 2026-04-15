@@ -110,8 +110,6 @@ class PdfPrintRequest(BaseModel):
 
     url: str
     selector_to_wait: str | None = None
-    width: int | None = MAX_WIDTH
-    height: int | None = MAX_HEIGHT
     print_background: bool = True
     paper_format: str = "Letter"
     landscape: bool = False
@@ -299,8 +297,6 @@ async def screenshot(request_data: ScreenshotRequest = Body(...)):
 @app.post("/api/pdf/", dependencies=[Depends(check_api_key)])
 async def pdf_print(request_data: PdfPrintRequest = Body(...)):
     url = request_data.url
-    width = clamp(request_data.width, MIN_WIDTH, MAX_WIDTH)
-    height = clamp(request_data.height, MIN_HEIGHT, MAX_HEIGHT)
 
     browser = await get_browser_context()
 
@@ -310,8 +306,7 @@ async def pdf_print(request_data: PdfPrintRequest = Body(...)):
     page = await browser.new_page()
 
     try:
-        if width and height:
-            await page.set_viewport_size({"width": width, "height": height})
+        await page.set_viewport_size({"width": MAX_WIDTH, "height": MAX_HEIGHT})
 
         response = await page.goto(url, wait_until="load", timeout=PAGE_LOAD_TIMEOUT_MS)
 
