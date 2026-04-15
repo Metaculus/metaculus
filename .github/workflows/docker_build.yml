@@ -210,6 +210,10 @@ jobs:
           platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            GIT_SHA=${{ steps.vars.outputs.commit_sha }}
+          secrets: |
+            NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
           # Multi-source cache strategy:
           # - Read from: main cache (stable baseline) + branch cache (incremental)
           # - Write to: branch-specific cache (or main if on main branch)
@@ -220,6 +224,8 @@ jobs:
 
       - name: Build and push Heroku targets
         if: inputs.heroku_app != ''
+        env:
+          NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
         run: |
           set -e
           IMAGE_NAME="${{ steps.vars.outputs.image_name }}"
@@ -232,6 +238,8 @@ jobs:
               --platform linux/amd64 \
               --target "$target" \
               --tag "registry.heroku.com/${{ inputs.heroku_app }}/$target" \
+              --build-arg GIT_SHA=${{ steps.vars.outputs.commit_sha }} \
+              --secret id=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY,env=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY \
               --push \
               --cache-from "type=registry,ref=${IMAGE_NAME}:buildcache-main" \
               --cache-from "type=registry,ref=${IMAGE_NAME}:buildcache-${CACHE_SCOPE}" \
