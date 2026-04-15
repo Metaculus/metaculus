@@ -319,7 +319,12 @@ def update_post(
             raise ValidationError("Original post does is not a conditional")
 
         update_conditional(post.conditional, **conditional)
-        # Re-sync categories after conditional update
+
+    # Re-sync inherited categories for conditional posts after any update.
+    # This runs outside the `if conditional:` branch so that category-only
+    # edits (which replace the category set via post.projects.set above)
+    # don't silently drop categories inherited from the parent/child posts.
+    if post.conditional_id:
         sync_conditional_categories(post)
 
     if group_of_questions:
