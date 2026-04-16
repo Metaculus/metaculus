@@ -51,9 +51,10 @@ function PartnerCard() {
 }
 
 function ShareCard() {
-  const copyUrl = useCopyUrl();
+  const copyUrl = useCopyUrl({ includeHash: false });
   const shareOnTwitterLink = useShareOnTwitterLink(
-    "Check out the Labor Automation Forecasting Hub on Metaculus"
+    "Check out the Labor Automation Forecasting Hub on Metaculus",
+    { includeHash: false }
   );
 
   return (

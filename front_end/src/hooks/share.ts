@@ -5,13 +5,48 @@ import toast from "react-hot-toast";
 
 import { usePublicSettings } from "@/contexts/public_settings_context";
 
-export const useCopyUrl = () => {
+type CurrentUrlOptions = {
+  includeHash?: boolean;
+};
+
+const useWindowHash = () => {
+  const [hash, setHash] = useState("");
+
+  useEffect(() => {
+    const updateHash = () => setHash(window.location.hash);
+
+    updateHash();
+    window.addEventListener("hashchange", updateHash);
+
+    return () => window.removeEventListener("hashchange", updateHash);
+  }, []);
+
+  return hash;
+};
+
+const useCurrentUrl = ({ includeHash = true }: CurrentUrlOptions = {}) => {
+  const { PUBLIC_APP_URL } = usePublicSettings();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const hash = useWindowHash();
+
+  return useMemo(() => {
+    const url = new URL(PUBLIC_APP_URL);
+    const search = searchParams.toString();
+
+    url.pathname = pathname;
+    url.search = search;
+    url.hash = includeHash ? hash : "";
+
+    return url.toString();
+  }, [PUBLIC_APP_URL, hash, includeHash, pathname, searchParams]);
+};
+
+export const useCopyUrl = (options: CurrentUrlOptions = {}) => {
+  const url = useCurrentUrl(options);
 
   return useCallback(() => {
-    if (typeof window !== "undefined") {
-      const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}${window.location.hash}`;
+    if (url) {
       navigator.clipboard
         .writeText(url)
         .then(() => {
@@ -22,7 +57,7 @@ export const useCopyUrl = () => {
         })
         .catch((err) => console.error("Error copying link: ", err));
     }
-  }, [pathname, searchParams]);
+  }, [url]);
 };
 
 export const useMetaImageUrl = (tagName: string) => {
@@ -38,26 +73,23 @@ export const useMetaImageUrl = (tagName: string) => {
   return imageUrl;
 };
 
-export const useShareOnTwitterLink = (message = "") => {
-  const { PUBLIC_APP_URL } = usePublicSettings();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+export const useShareOnTwitterLink = (
+  message = "",
+  options: CurrentUrlOptions = {}
+) => {
+  const url = useCurrentUrl(options);
 
   return useMemo(() => {
-    const url = `${PUBLIC_APP_URL}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
     return `https://x.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`;
-  }, [PUBLIC_APP_URL, message, pathname, searchParams]);
+  }, [message, url]);
 };
 
-export const useShareOnFacebookLink = () => {
-  const { PUBLIC_APP_URL } = usePublicSettings();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+export const useShareOnFacebookLink = (options: CurrentUrlOptions = {}) => {
+  const url = useCurrentUrl(options);
 
   return useMemo(() => {
-    const url = `${PUBLIC_APP_URL}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
     return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-  }, [PUBLIC_APP_URL, pathname, searchParams]);
+  }, [url]);
 };
 
 export const useEmbedUrl = (path: string) => {

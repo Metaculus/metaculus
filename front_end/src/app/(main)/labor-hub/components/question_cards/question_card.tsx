@@ -8,8 +8,6 @@ import {
   faFileCsv,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { saveAs } from "file-saver";
-import { toPng } from "html-to-image";
 import { ReactNode } from "react";
 import { ComponentProps, useCallback, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
@@ -134,6 +132,7 @@ export function MoreButton({
     );
 
     try {
+      const { saveAs } = await import("file-saver");
       const blob = await ClientPostsApi.getPostZipData({
         ...(postIds.length === 1
           ? { post_id: postIds[0] }
@@ -321,7 +320,7 @@ export function QuestionCard({
 
   const titleString = useMemo(() => reactNodeToText(title), [title]);
 
-  const handleExportPng = useCallback(() => {
+  const handleExportPng = useCallback(async () => {
     if (!cardRef.current) return;
 
     const node = cardRef.current;
@@ -330,31 +329,35 @@ export function QuestionCard({
     node.style.setProperty("--ss-visible", "visible");
     node.style.setProperty("--ss-hidden", "hidden");
 
-    toPng(node, {
-      pixelRatio: 2,
-      style: {
-        margin: "0px",
-        borderRadius: "0px",
-      },
-    })
-      .then((dataUrl: string) => {
-        const link = document.createElement("a");
-        link.download = `${titleString ? titleString.slice(0, 50).replace(/[^a-zA-Z0-9]/g, "-") : "question-card"}.png`;
-        link.href = dataUrl;
-        link.click();
-        toast("Image downloaded successfully", {
-          className: "dark:bg-blue-700-dark dark:text-gray-0-dark",
-        });
-      })
-      .catch((err: any) => {
-        console.error("Error exporting image:", err);
-        toast.error("Failed to export image");
-      })
-      .finally(() => {
-        // Clean up CSS variables after toPng completes
-        node.style.removeProperty("--ss-visible");
-        node.style.removeProperty("--ss-hidden");
+    try {
+      const { toPng } = await import("html-to-image");
+      const dataUrl = await toPng(node, {
+        pixelRatio: 2,
+        style: {
+          margin: "0px",
+          borderRadius: "0px",
+        },
       });
+
+      const link = document.createElement("a");
+      link.download = `${titleString ? titleString.slice(0, 50).replace(/[^a-zA-Z0-9]/g, "-") : "question-card"}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast("Image downloaded successfully", {
+        className: "dark:bg-blue-700-dark dark:text-gray-0-dark",
+      });
+    } catch (err: unknown) {
+      console.error("Error exporting image:", err);
+      if (err instanceof Error) {
+        toast.error(`Failed to export image: ${err.message}`);
+      } else {
+        toast.error("Failed to export image");
+      }
+    } finally {
+      // Clean up CSS variables after toPng completes
+      node.style.removeProperty("--ss-visible");
+      node.style.removeProperty("--ss-hidden");
+    }
   }, [titleString]);
 
   return (
