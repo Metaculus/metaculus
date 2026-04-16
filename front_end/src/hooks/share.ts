@@ -31,14 +31,38 @@ const useCurrentUrl = ({ includeHash = true }: CurrentUrlOptions = {}) => {
   const hash = useWindowHash();
 
   return useMemo(() => {
-    const url = new URL(PUBLIC_APP_URL);
+    let base: URL | null = null;
+
+    if (PUBLIC_APP_URL) {
+      try {
+        base = new URL(PUBLIC_APP_URL);
+      } catch {
+        // fall through to window.location.origin below
+      }
+    }
+
+    if (!base && typeof window !== "undefined" && window.location?.origin) {
+      try {
+        base = new URL(window.location.origin);
+      } catch {
+        // fall through to the warn + empty return below
+      }
+    }
+
     const search = searchParams.toString();
+    const appliedHash = includeHash ? hash : "";
 
-    url.pathname = pathname;
-    url.search = search;
-    url.hash = includeHash ? hash : "";
+    if (!base) {
+      console.warn(
+        "useCurrentUrl: unable to resolve a base URL — PUBLIC_APP_URL is missing or invalid and window.location is unavailable. Falling back to a relative URL."
+      );
+      return `${pathname}${search ? `?${search}` : ""}${appliedHash}`;
+    }
 
-    return url.toString();
+    base.pathname = pathname;
+    base.search = search;
+    base.hash = appliedHash;
+    return base.toString();
   }, [PUBLIC_APP_URL, hash, includeHash, pathname, searchParams]);
 };
 

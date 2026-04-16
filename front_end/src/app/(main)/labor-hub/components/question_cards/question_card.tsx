@@ -114,7 +114,7 @@ export function MoreButton({
   const shareOnTwitterLink = useMemo(() => {
     if (questionUrl && postTitle) {
       const message = `${postTitle} #metaculus`;
-      return `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+      return `https://x.com/intent/tweet?text=${encodeURIComponent(
         message
       )}&url=${encodeURIComponent(questionUrl)}`;
     }
