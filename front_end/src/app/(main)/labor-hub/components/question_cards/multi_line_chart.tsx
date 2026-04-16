@@ -55,6 +55,8 @@ type Props = {
   clearHighlightOnMouseLeave?: boolean;
   emphasizedSeriesId?: string | null;
   historicalForecastDividerX?: number | null;
+  /** When false, hides the HISTORICAL / FORECAST labels and the vertical divider line. */
+  showHistoricalForecastAnnotation?: boolean;
 };
 
 type ResolvedSeriesColors = {
@@ -504,6 +506,7 @@ export const MultiLineChart: FC<Props> = ({
   clearHighlightOnMouseLeave = true,
   emphasizedSeriesId = null,
   historicalForecastDividerX = null,
+  showHistoricalForecastAnnotation = true,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -573,7 +576,12 @@ export const MultiLineChart: FC<Props> = ({
 
   const emphasisActive = emphasizedSeriesId != null;
   const historicalForecastLayout = useMemo(() => {
-    if (!chartWidth || historicalForecastDividerX == null) return null;
+    if (
+      !showHistoricalForecastAnnotation ||
+      !chartWidth ||
+      historicalForecastDividerX == null
+    )
+      return null;
 
     const plotLeft = leftPadding;
     const plotRight = chartWidth - CHART_PADDING.right;
@@ -592,7 +600,13 @@ export const MultiLineChart: FC<Props> = ({
       historicalLabelX: (plotLeft + dividerSvgX) / 2,
       forecastLabelX: (dividerSvgX + plotRight) / 2,
     };
-  }, [chartWidth, historicalForecastDividerX, leftPadding, xDomain]);
+  }, [
+    showHistoricalForecastAnnotation,
+    chartWidth,
+    historicalForecastDividerX,
+    leftPadding,
+    xDomain,
+  ]);
 
   const seriesEntries = useMemo<ResolvedSeriesEntry[]>(
     () =>
@@ -863,22 +877,23 @@ export const MultiLineChart: FC<Props> = ({
               </>
             )}
 
-            {historicalForecastDividerX != null && (
-              <VictoryLine
-                data={[
-                  { x: historicalForecastDividerX, y: yDomain[0] },
-                  { x: historicalForecastDividerX, y: yDomain[1] },
-                ]}
-                style={{
-                  data: {
-                    stroke: historicalForecastDividerColor,
-                    strokeWidth: 1.5,
-                    strokeDasharray: "6 4",
-                    opacity: emphasisActive ? 0.6 : 0.8,
-                  },
-                }}
-              />
-            )}
+            {showHistoricalForecastAnnotation &&
+              historicalForecastDividerX != null && (
+                <VictoryLine
+                  data={[
+                    { x: historicalForecastDividerX, y: yDomain[0] },
+                    { x: historicalForecastDividerX, y: yDomain[1] },
+                  ]}
+                  style={{
+                    data: {
+                      stroke: historicalForecastDividerColor,
+                      strokeWidth: 1.5,
+                      strokeDasharray: "6 4",
+                      opacity: emphasisActive ? 0.6 : 0.8,
+                    },
+                  }}
+                />
+              )}
 
             {seriesEntries.map(
               ({ series: item, chartData, colors, opacity, strokeWidth }) => (

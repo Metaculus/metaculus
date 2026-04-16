@@ -484,7 +484,8 @@ export default function LaborAutomationHubPage() {
               ]}
             />
             <ActivityCard
-              username="Lubos Saloky (lubossaloky)"
+              avatar="https://cdn.metaculus.com/labor-hub/lubossaloky_256.jpg"
+              username="Ľuboš Saloky (lubossaloky)"
               subtitle="Pro Forecaster"
               link="https://www.metaculus.com/questions/43081/wa-employment-level-change-vs-2025/#comment-821944"
             >

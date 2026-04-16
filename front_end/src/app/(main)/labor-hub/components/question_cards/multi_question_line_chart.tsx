@@ -97,6 +97,7 @@ function buildSeriesFromDatasetRows(
       label: row.title,
       color:
         overrides?.color ??
+        row.color ??
         DEFAULT_SERIES_COLORS[index % DEFAULT_SERIES_COLORS.length] ??
         "blue",
       dataLabels: overrides?.dataLabels,

@@ -3,11 +3,14 @@ import { type ReactNode } from "react";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import { type QuestionWithNumericForecasts } from "@/types/question";
 
+import { type MultiLineChartColor } from "./multi_line_chart.types";
 import { getSubQuestionValue } from "../../helpers/fetch_jobs_data";
 
 export type MultiQuestionRowConfig = {
   questionId: number;
   title: string;
+  /** When set, used for this series in the chart (see also getSeriesOptions on MultiQuestionLineChart). */
+  color?: MultiLineChartColor;
   staticValue?: ReactNode;
   historicalValues?: Record<string, number | null>;
 };
