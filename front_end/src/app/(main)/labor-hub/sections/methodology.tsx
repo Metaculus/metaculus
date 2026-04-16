@@ -27,13 +27,18 @@ function MethodologyToggleBody({
 function FAQItem({
   question,
   children,
+  id,
 }: {
   question: string;
   children: ReactNode;
+  id?: string;
 }) {
   return (
-    <div className="border-b border-gray-300 border-opacity-50 pb-5 last:border-0 last:pb-0 dark:border-gray-300-dark dark:border-opacity-50">
-      <h4 className="mb-2 mt-0 text-base font-medium text-gray-800 dark:text-gray-800-dark md:text-lg">
+    <div
+      id={id}
+      className="border-b border-gray-300 border-opacity-50 pb-5 last:border-0 last:pb-0 dark:border-gray-300-dark dark:border-opacity-50"
+    >
+      <h4 className="mb-2 mt-0 break-after-avoid text-base font-medium text-gray-800 dark:text-gray-800-dark md:text-lg">
         {question}
       </h4>
       <div className="space-y-3 text-sm text-gray-700 dark:text-gray-700-dark md:text-base [&_blockquote]:my-3 [&_blockquote]:border-l-2 [&_blockquote]:border-gray-400 [&_blockquote]:pl-3 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-0 [&_strong]:font-semibold [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul_ul]:mt-1 [&_ul_ul]:list-[circle]">
@@ -47,7 +52,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
   return (
     <SectionCard {...props}>
       <SectionHeader>Methodology</SectionHeader>
-      <ContentParagraph className="mb-8 mt-4">
+      <ContentParagraph className="mb-8 mt-4 break-after-avoid">
         The forecasts presented on this page were designed to address key
         uncertainties about the future impact of artificial intelligence on
         labor in the United States. They are produced by aggregating many
@@ -125,7 +130,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
         </SectionToggle>
 
         <SectionToggle
-          title="Interacting with the hub"
+          title="Interacting with the Hub"
           variant="primary"
           hiddenUntilFound
         >
@@ -134,7 +139,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
               <p>
                 These forecasts are updated in real-time. As AI developments
                 occur and more information comes to light, forecasters update
-                their predictions and the hub tracks how views shift over time.
+                their predictions and the Hub tracks how views shift over time.
                 Each time a forecaster makes a new prediction, the aggregate is
                 recalculated and potential updates are reflected on this page.
                 The narrative descriptions are reviewed and refreshed when
@@ -148,12 +153,23 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
             </FAQItem>
             <FAQItem question="How do I stay up to date with new forecasts?">
               <p>
-                You can click the &ldquo;Follow&rdquo; button at the top to get
+                You can click the &ldquo;Bell&rdquo; icon at the top to get
                 notified when there are substantial updates to the forecasts.
-                This hub aims to provide a resource to track developments over
+                This Hub aims to provide a resource to track developments over
                 time, and provide the latest information each time you return.
                 If you find it useful, please share it with others who could
                 benefit from seeing these forecasts.
+              </p>
+              <p>
+                You can also view and contribute to the forecasts on the{" "}
+                <a
+                  href="https://www.metaculus.com/tournament/labor-hub/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  AI Labor Automation Tournament
+                </a>{" "}
+                page.
               </p>
             </FAQItem>
             <FAQItem question="What if I don’t see a forecast that I think would be important to have, or have other feedback?">
@@ -170,7 +186,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
               <p>
                 Yes, this forecasting approach is flexible and can be applied to
                 many different related or unrelated topics. If you would like to
-                explore ways this hub could be expanded, including by featuring
+                explore ways this Hub could be expanded, including by featuring
                 your work or your thinking, or other areas where forecasts could
                 be valuable, please reach out to us at{" "}
                 <a href="mailto:contact@metaculus.com">contact@metaculus.com</a>
@@ -670,14 +686,17 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
               <p>
                 Finally, we can use more qualitative evidence to confirm our
                 hypothesis. See below for a selection of quotes from the
-                Metaculus Pro Forecasters participating in this project which
-                demonstrate that the core driver of the changes they&rsquo;re
-                forecasting is due to the development of advanced AI:
+                Metaculus{" "}
+                <a href="#what-are-pro-forecasters">Pro Forecasters</a>{" "}
+                participating in this project which demonstrate that the core
+                driver of the changes they&rsquo;re forecasting is due to the
+                development of advanced AI:
               </p>
               <ActivityCard
                 avatar="https://cdn.metaculus.com/labor-hub/haiku_256.jpg"
                 username="Nathan Metzger (Haiku)"
                 subtitle="Pro Forecaster"
+                link="https://www.metaculus.com/accounts/profile/145394/comments/#comment-801550"
               >
                 <p>
                   All else somehow being equal (never mind how), what happens to
@@ -700,6 +719,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
                 username="Ľuboš Saloky (lubossaloky)"
                 subtitle="Pro Forecaster"
                 avatar="https://cdn.metaculus.com/labor-hub/lubossaloky_256.jpg"
+                link="https://www.metaculus.com/accounts/profile/135380/comments/#comment-809433"
               >
                 <p>
                   My forecast for 2027 is based on a &ldquo;mostly normal
@@ -863,6 +883,18 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
                 </a>
                 .
               </p>
+              <p>
+                If you would like to participate in the AI Labor Automation
+                Tournament that feeds into this Hub, you can do so{" "}
+                <a
+                  href="https://www.metaculus.com/tournament/labor-hub/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  here
+                </a>
+                .
+              </p>
             </FAQItem>
           </MethodologyToggleBody>
         </SectionToggle>
@@ -979,7 +1011,10 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
                 </a>
               </p>
             </FAQItem>
-            <FAQItem question="What are Metaculus Pro Forecasters?">
+            <FAQItem
+              question="What are Metaculus Pro Forecasters?"
+              id="what-are-pro-forecasters"
+            >
               <p>
                 Five Metaculus Pro Forecasters have submitted predictions and
                 reasoning on these forecasting questions and some of this

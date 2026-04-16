@@ -10,7 +10,7 @@ import { usePrintOverride } from "@/contexts/theme_override_context";
 import cn from "@/utils/core/cn";
 
 const sectionContainerVariants = cva(
-  "break-inside-avoid rounded print:border print:border-gray-300",
+  "rounded print:border print:border-gray-300",
   {
     variants: {
       variant: {
@@ -33,78 +33,81 @@ const sectionContainerVariants = cva(
   }
 );
 
-const triggerVariants = cva("flex w-full items-center gap-2.5 p-3 text-base", {
-  variants: {
-    variant: {
-      primary: "hover:text-blue-700 hover:dark:text-blue-700-dark",
-      light: "hover:text-blue-700 hover:dark:text-blue-700-dark xs:px-4",
-      gold: "hover:text-gray-800 hover:dark:text-gray-800-dark",
-      orange: "hover:text-orange-900 hover:dark:text-orange-900-dark",
-      transparent: null,
-      dark: "hover:text-blue-900 hover:dark:text-blue-900-dark",
+const triggerVariants = cva(
+  "flex w-full items-center gap-2.5 p-3 text-base break-after-avoid",
+  {
+    variants: {
+      variant: {
+        primary: "hover:text-blue-700 hover:dark:text-blue-700-dark",
+        light: "hover:text-blue-700 hover:dark:text-blue-700-dark xs:px-4",
+        gold: "hover:text-gray-800 hover:dark:text-gray-800-dark",
+        orange: "hover:text-orange-900 hover:dark:text-orange-900-dark",
+        transparent: null,
+        dark: "hover:text-blue-900 hover:dark:text-blue-900-dark",
+      },
+      open: {
+        true: null,
+        false: null,
+      },
     },
-    open: {
-      true: null,
-      false: null,
-    },
-  },
-  compoundVariants: [
-    {
+    compoundVariants: [
+      {
+        variant: "primary",
+        open: true,
+        class: "text-blue-700 dark:text-blue-700-dark",
+      },
+      {
+        variant: "primary",
+        open: false,
+        class: "text-blue-600 dark:text-blue-600-dark",
+      },
+      {
+        variant: "light",
+        open: true,
+        class: "text-blue-700 dark:text-blue-700-dark",
+      },
+      {
+        variant: "light",
+        open: false,
+        class: "text-blue-600 dark:text-blue-600-dark",
+      },
+      {
+        variant: "gold",
+        open: true,
+        class: "text-gray-800 dark:text-gray-800-dark",
+      },
+      {
+        variant: "gold",
+        open: false,
+        class: "text-gray-600 dark:text-gray-600-dark",
+      },
+      {
+        variant: "orange",
+        open: true,
+        class: "text-orange-900 dark:text-orange-900-dark",
+      },
+      {
+        variant: "orange",
+        open: false,
+        class: "text-orange-800 dark:text-orange-800-dark",
+      },
+      {
+        variant: "dark",
+        open: true,
+        class: "text-blue-900 dark:text-blue-900-dark",
+      },
+      {
+        variant: "dark",
+        open: false,
+        class: "text-blue-800 dark:text-blue-800-dark",
+      },
+    ],
+    defaultVariants: {
       variant: "primary",
-      open: true,
-      class: "text-blue-700 dark:text-blue-700-dark",
-    },
-    {
-      variant: "primary",
       open: false,
-      class: "text-blue-600 dark:text-blue-600-dark",
     },
-    {
-      variant: "light",
-      open: true,
-      class: "text-blue-700 dark:text-blue-700-dark",
-    },
-    {
-      variant: "light",
-      open: false,
-      class: "text-blue-600 dark:text-blue-600-dark",
-    },
-    {
-      variant: "gold",
-      open: true,
-      class: "text-gray-800 dark:text-gray-800-dark",
-    },
-    {
-      variant: "gold",
-      open: false,
-      class: "text-gray-600 dark:text-gray-600-dark",
-    },
-    {
-      variant: "orange",
-      open: true,
-      class: "text-orange-900 dark:text-orange-900-dark",
-    },
-    {
-      variant: "orange",
-      open: false,
-      class: "text-orange-800 dark:text-orange-800-dark",
-    },
-    {
-      variant: "dark",
-      open: true,
-      class: "text-blue-900 dark:text-blue-900-dark",
-    },
-    {
-      variant: "dark",
-      open: false,
-      class: "text-blue-800 dark:text-blue-800-dark",
-    },
-  ],
-  defaultVariants: {
-    variant: "primary",
-    open: false,
-  },
-});
+  }
+);
 
 const iconVariants = cva("h-4 duration-75 ease-linear print:hidden", {
   variants: {

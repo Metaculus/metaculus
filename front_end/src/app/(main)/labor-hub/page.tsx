@@ -51,19 +51,15 @@ function KeyInsightItem({
   ...props
 }: ComponentProps<"div">) {
   return (
-    <div className="break-inside-avoid">
-      <h6 className="mb-0.5 mt-0 text-base text-blue-700 [text-wrap:pretty] dark:text-blue-700-dark md:text-lg">
-        {title}:
-      </h6>
-      <p
-        className={cn(
-          "dark:text-blue-700-darktext-sm  my-0 text-blue-700 [text-wrap:pretty] md:text-base",
-          className
-        )}
-        {...props}
-      >
-        {children}
-      </p>
+    <div
+      className={cn(
+        "dark:text-blue-700-darktext-sm my-0 break-inside-avoid p-4 text-blue-700 [text-wrap:pretty] md:text-base print:p-2",
+        className
+      )}
+      {...props}
+    >
+      <strong>{title}: </strong>
+      {children}
     </div>
   );
 }
@@ -77,15 +73,16 @@ export default function LaborAutomationHubPage() {
       <LaborHubNavigation sections={SECTIONS} newsletterListKey="labor" />
 
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 sm:gap-6 sm:px-8 md:gap-8 xl:px-16 print:gap-8 print:px-0">
+        <OverviewSection id="overview" className="print:mb-6" />
         <SectionToggle
           key="key-insights"
           title="Key Insights"
           variant="light"
           defaultOpen={false}
           wrapperClassName="print:mb-6"
-          contentWrapperClassName="grid md:grid-cols-2 gap-4"
+          contentWrapperClassName="grid md:grid-cols-2 md:gap-8 print:grid-cols-2 print:gap-4"
         >
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col">
             <KeyInsightItem title="Overall employment">
               Forecasters expect significant AI-driven job change, with overall
               employment declining around 6% by 2035, while the latest
@@ -103,7 +100,7 @@ export default function LaborAutomationHubPage() {
               week in 2035, down from 38 now.
             </KeyInsightItem>
           </div>
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col">
             <KeyInsightItem title="Financial well-being">
               Well-being (as measured by the ratio of after-tax and transfer
               available resources to the poverty threshold) is expected to grow
@@ -125,7 +122,6 @@ export default function LaborAutomationHubPage() {
             </KeyInsightItem>
           </div>
         </SectionToggle>
-        <OverviewSection id="overview" className="print:mb-6" />
         <ActivityMonitorSection id="activity" className="" />
         <JobsMonitorServer
           id="jobs"
@@ -139,7 +135,7 @@ export default function LaborAutomationHubPage() {
             <SectionHeader>Hours, Pay, and Financial Well-Being</SectionHeader>
             <ThemeOverrideContainer override="inverted">
               <MultiQuestionTable
-                title="Percentage change in the median wage relative to 2025"
+                title="Percentage change in the inflation-adjusted median wage relative to 2025"
                 valueFormat="percentageChange"
                 firstColumnHeader="Occupation"
                 decimals={1}
@@ -171,7 +167,7 @@ export default function LaborAutomationHubPage() {
               needs.
             </ContentParagraph>
           </DualPaneSectionLeft>
-          <DualPaneSectionRight className="lg:mt-16 print:mt-20">
+          <DualPaneSectionRight className="lg:mt-16 print:mt-12">
             <ContentParagraph small>
               As AI automates more routine tasks, the question is whether the
               time freed up will translate into genuine leisure for workers or
@@ -331,7 +327,7 @@ export default function LaborAutomationHubPage() {
               2035.
             </ContentParagraph>
           </DualPaneSectionLeft>
-          <DualPaneSectionRight className="lg:mt-24 print:mt-20">
+          <DualPaneSectionRight className="lg:mt-24 print:mt-12">
             <ContentParagraph small>
               The rise of AI is threatening to accelerate an already-looming
               decline in 4-year college enrollment, as fewer high school

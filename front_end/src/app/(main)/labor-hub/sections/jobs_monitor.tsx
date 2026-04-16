@@ -129,7 +129,7 @@ export function JobsMonitorSection({
             <div></div>
           </div>
 
-          <div className="grid gap-2 md:grid-cols-2 md:gap-0">
+          <div className="grid break-inside-avoid break-after-avoid gap-2 md:grid-cols-2 md:gap-0">
             <div className="text-xs font-medium text-mc-option-3 dark:text-mc-option-3-dark md:hidden">
               Expected growth
             </div>
@@ -151,7 +151,7 @@ export function JobsMonitorSection({
               {JOBS_INSIGHTS[year as keyof typeof JOBS_INSIGHTS]?.positive}
             </InsightCard>
           </div>
-          <div className="grid gap-2 md:grid-cols-2 md:gap-0">
+          <div className="grid break-inside-avoid break-after-avoid gap-2 md:grid-cols-2 md:gap-0">
             <div className="text-xs font-medium text-mc-option-2 dark:text-mc-option-2-dark md:hidden">
               Expected decline
             </div>

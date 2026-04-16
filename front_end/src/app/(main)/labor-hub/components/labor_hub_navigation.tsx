@@ -150,11 +150,11 @@ export default function LaborHubNavigation({
   const surfaceClassName = "bg-gray-0 dark:bg-gray-0-dark";
   const fadeToSurfaceClassName = "to-gray-0 dark:to-gray-0-dark";
   const tabEndSpacingClassName =
-    "after:w-24 sm:after:w-28 md:after:w-32 xl:after:w-24";
+    "after:w-28 sm:after:w-32 md:after:w-36 lg:after:w-40";
   const actionRailClassName =
-    "pointer-events-auto absolute inset-y-0 right-0 flex items-center pr-4 gap-2 sm:pr-6 md:pr-8 xl:pr-5";
+    "pointer-events-auto absolute inset-y-0 right-0 flex items-center pr-4 gap-2 sm:pr-6 md:pr-8";
   const actionFadeClassName =
-    "absolute inset-y-0 right-full w-12 bg-gradient-to-r from-transparent sm:w-14 md:w-16 xl:w-12";
+    "absolute inset-y-0 right-full w-8 bg-gradient-to-r from-transparent sm:w-12";
 
   return (
     <>
@@ -172,7 +172,7 @@ export default function LaborHubNavigation({
             <div className="pointer-events-auto w-full overflow-x-auto no-scrollbar">
               <div
                 className={cn(
-                  "flex w-max before:w-5 before:shrink-0 before:content-[''] after:shrink-0 after:content-[''] sm:before:w-8 md:before:w-10",
+                  "flex w-max before:w-4 before:shrink-0 before:content-[''] after:shrink-0 after:content-[''] sm:before:w-8",
                   tabEndSpacingClassName
                 )}
               >
