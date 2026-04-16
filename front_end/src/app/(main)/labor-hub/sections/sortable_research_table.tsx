@@ -183,11 +183,20 @@ export const SortableResearchTable: FC<{
 
   return (
     <TableCompact
-      className="inverted mt-6 [&_table]:border-separate [&_table]:border-spacing-x-2 [&_table]:border-spacing-y-2 [&_td]:py-0.5 [&_th]:pb-3"
+      className="inverted mt-8 [&_table]:border-separate [&_table]:border-spacing-x-2 [&_table]:border-spacing-y-2 [&_td]:py-0.5 [&_th]:pb-3"
       HeadingSection={
-        <div className="mb-4 text-center text-sm font-normal leading-5 text-blue-700 dark:text-blue-400">
-          Metaculus Predicted Employment Change
-        </div>
+        <>
+          <div className="mb-2 text-center text-base font-normal leading-5 text-gray-800 dark:text-gray-800-dark">
+            Metaculus Forecasts Compared to AI Vulnerability Research
+          </div>
+          <div className="mb-4 text-balance text-center text-sm font-normal leading-5 text-gray-600 dark:text-gray-600-dark">
+            Comparing Metaculus occupational employment forecasts for 2030 and
+            2035 to exposure and vulnerability score research from the
+            literature. Note that exposure and vulnerability scores are not
+            necessarily meant to be predictive of the future, but instead are
+            correlational measures of current AI usage and task patterns.
+          </div>
+        </>
       }
     >
       <TableCompactHead>

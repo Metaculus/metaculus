@@ -3,6 +3,7 @@ import { type ReactNode, Suspense } from "react";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 
+import { reactNodeToText } from "./helpers";
 import {
   type MultiLineChartColor,
   type MultiLineChartProps,
@@ -15,7 +16,6 @@ import {
   type MultiQuestionRowConfig,
 } from "./multi_question_data";
 import { MultiQuestionLineChartClient } from "./multi_question_line_chart_client";
-import { reactNodeToText } from "./multi_question_table";
 import { NoQuestionPlaceholder } from "./placeholder";
 import { MoreButton } from "./question_card";
 

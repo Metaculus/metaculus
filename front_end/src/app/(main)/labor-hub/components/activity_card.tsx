@@ -114,12 +114,14 @@ export function ActivityCard({
                 "flex min-w-0 flex-1 items-start justify-between gap-2 text-xs"
               )}
             >
-              <div className="min-w-0">
-                {username && <div className="font-bold">{username}</div>}
-                {subtitle && (
-                  <div className="font-medium opacity-80">{subtitle}</div>
-                )}
-              </div>
+              {username && subtitle && (
+                <div className="min-w-0">
+                  {username && <div className="font-bold">{username}</div>}
+                  {subtitle && (
+                    <div className="font-medium opacity-80">{subtitle}</div>
+                  )}
+                </div>
+              )}
               {date && <div className="shrink-0 font-medium">{date}</div>}
             </div>
           )}

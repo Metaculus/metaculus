@@ -68,11 +68,6 @@ const nextConfig = {
         destination: "/futureeval",
         permanent: true,
       },
-      { // TODO: Remove this redirect when the labor hub goes live.
-        source: "/labor-automation",
-        destination: "/labor-hub",
-        permanent: false,
-      },
     ];
   },
   async rewrites() {

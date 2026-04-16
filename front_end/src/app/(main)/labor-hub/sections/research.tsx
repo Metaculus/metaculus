@@ -21,25 +21,45 @@ export function ResearchSection({
 }: ComponentProps<"section">) {
   return (
     <SectionCard className={cn("space-y-4", className)} {...props}>
-      <SectionHeader>
-        How does this build on or differ from existing research?
-      </SectionHeader>
+      <SectionHeader>Comparison to Existing Research</SectionHeader>
 
-      <div className="grid gap-8 lg:grid-cols-2 print:grid-cols-2">
-        <div className="flex min-w-0 flex-col space-y-4 md:space-y-8 print:space-y-4 [&>*]:min-w-0">
-          <ContentParagraph>
+      <div className="grid gap-8 pb-4 lg:grid-cols-2 print:grid-cols-2">
+        <div className="flex min-w-0 flex-col space-y-4 [&>*]:min-w-0">
+          <ContentParagraph small>
             A number of recent research publications have identified
-            occupations, tasks, and industries that are more vulnerable to
-            automation, as well as assessing recent trends in employment to
-            understand the impact of AI. Recent work from Stanford University
+            occupations, tasks, and industries that are more exposed or
+            vulnerable to automation, as well as assessed recent trends in
+            employment to understand the impact of AI.{" "}
+            <a
+              href="https://digitaleconomy.stanford.edu/publication/canaries-in-the-coal-mine-six-facts-about-the-recent-employment-effects-of-artificial-intelligence/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Recent work from Stanford University
+            </a>{" "}
             has asserted that AI has already had an impact on early career work,
-            while other sources do not yet see strong signals. The forecasts
-            here extend this work out to the future, eliciting predictions on
-            forecasts by industry. In many cases the forecasts agree with
-            classifications from the OECD and other sources of exposure to
-            automation, with some key differences.
+            while other sources such as{" "}
+            <a
+              href="https://budgetlab.yale.edu/research/evaluating-impact-ai-labor-market-current-state-affairs"
+              target="_blank"
+              rel="noreferrer"
+            >
+              research from the Budget Lab at Yale
+            </a>{" "}
+            do not yet see strong signals. These exposure and vulnerability
+            ratings typically are not intended to be predictive of the future,
+            but instead are correlational measures of current AI usage and task
+            patterns.
           </ContentParagraph>
-          <ContentParagraph>
+          <ContentParagraph small>
+            The forecasts Metaculus is presenting in the Hub fill a gap in our
+            current understanding, directly providing wisdom of the crowd
+            powered predictions on employment outcomes when taking into account
+            the impact of AI. In many cases, the forecasts align with what the
+            exposure and vulnerability literature would indicate, with some key
+            differences.
+          </ContentParagraph>
+          <ContentParagraph small>
             Teachers have high vulnerability ratings, but are predicted to see
             growth as forecasters expect human presence will be strongly desired
             in classrooms by schools and parents, even if schools do
@@ -54,16 +74,22 @@ export function ResearchSection({
         </div>
 
         <div className="flex min-w-0 flex-col gap-4 [&>*]:min-w-0">
-          <QuestionLoader questionId={42850} />
+          <QuestionLoader
+            title="Change in the occupational mix (relative to November 2022 ChatGPT release baseline)"
+            questionId={42850}
+          />
           <ActivityCard
-            avatar="https://cdn.metaculus.com/labor-hub/haiku_256.jpg"
-            username="Nathan Metzger (Haiku)"
+            avatar="https://cdn.metaculus.com/labor-hub/adonis_256.jpg"
+            username="Adonis da Silva (Adonis)"
             subtitle="Pro Forecaster"
+            link="https://www.metaculus.com/questions/41307/us-employment-level-change-vs-2025/#comment-779184"
           >
-            Huge numbers of jobs could hinge on the success or failure of some
-            particular strike, or bill, or lawsuit. We should weigh the
-            political power of the workers in each occupation, alongside AI
-            capability considerations.
+            Even if some professions become completely obsolete, employment
+            levels could continue along the same trend if people shift to other
+            careers. Demand is likely to increase in jobs that rely on human
+            interaction or in which products increase in value if they&apos;re
+            human-made or scarce, or, temporarily, in some that require manual
+            labor.
           </ActivityCard>
         </div>
       </div>

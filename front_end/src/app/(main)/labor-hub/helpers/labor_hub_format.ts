@@ -1,6 +1,6 @@
 /** Occupation % change phrasing for labor-hub copy (client + server). */
 export function formatOccupationChange(value: number): string {
-  return `${value < 0 ? "shrink" : "grow"} ${Math.abs(value).toFixed(0)}%`;
+  return `${value < 0 ? "shrink" : "grow"} ${Math.abs(value).toFixed(1)}%`;
 }
 
 export function occupationForecastClassName(value: number): string {

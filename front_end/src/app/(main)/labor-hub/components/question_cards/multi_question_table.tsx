@@ -1,8 +1,9 @@
-import { Children, isValidElement, type ReactNode, Suspense } from "react";
+import { type ReactNode, Suspense } from "react";
 
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 
+import { reactNodeToText } from "./helpers";
 import {
   fetchMultiQuestionDataset,
   type MultiQuestionRowConfig,
@@ -19,22 +20,6 @@ import {
   TableCompactRow,
   WageValue,
 } from "../../components/table_compact";
-
-export function reactNodeToText(node: ReactNode): string {
-  return Children.toArray(node)
-    .map((child) => {
-      if (typeof child === "string" || typeof child === "number") {
-        return String(child);
-      }
-
-      if (isValidElement<{ children?: ReactNode }>(child)) {
-        return reactNodeToText(child.props.children);
-      }
-
-      return "";
-    })
-    .join("");
-}
 
 type ValueFormat = "percentage" | "percentageChange" | "wage" | "number";
 
@@ -71,6 +56,7 @@ export type MultiQuestionTableProps = {
   className?: string;
   note?: ReactNode;
   showMoreButton?: boolean;
+  hideTitleRow?: boolean;
 };
 
 async function MultiQuestionTableContent({
@@ -84,6 +70,7 @@ async function MultiQuestionTableContent({
   className,
   note,
   showMoreButton = true,
+  hideTitleRow = false,
 }: MultiQuestionTableProps) {
   const postIds = rows.map((r) => r.questionId);
   const titleText = reactNodeToText(title);
@@ -138,23 +125,25 @@ async function MultiQuestionTableContent({
           </>
         }
       >
-        <TableCompactHead>
-          <TableCompactRow>
-            <TableCompactHeaderCell className="w-[40%]">
-              {firstColumnHeader ?? ""}
-            </TableCompactHeaderCell>
-            {hasStaticColumn && (
-              <TableCompactHeaderCell className="w-[15%] text-right">
-                {staticColumnHeader ?? "Current"}
+        {!hideTitleRow && (
+          <TableCompactHead>
+            <TableCompactRow>
+              <TableCompactHeaderCell className="w-[40%]">
+                {firstColumnHeader ?? ""}
               </TableCompactHeaderCell>
-            )}
-            {displayedColumns.map((col) => (
-              <TableCompactHeaderCell key={col} className="text-right">
-                {col}
-              </TableCompactHeaderCell>
-            ))}
-          </TableCompactRow>
-        </TableCompactHead>
+              {hasStaticColumn && (
+                <TableCompactHeaderCell className="w-[15%] text-right">
+                  {staticColumnHeader ?? "Current"}
+                </TableCompactHeaderCell>
+              )}
+              {displayedColumns.map((col) => (
+                <TableCompactHeaderCell key={col} className="text-right">
+                  {col}
+                </TableCompactHeaderCell>
+              ))}
+            </TableCompactRow>
+          </TableCompactHead>
+        )}
         <TableCompactBody>
           {dataset.rows.map((row) => {
             return (

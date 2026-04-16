@@ -155,7 +155,7 @@ function ActivityMonitorInteractiveInner({ chart, activities }: Props) {
         <div className="flex flex-col gap-2.5 md:order-1">
           <ActivityCardsList
             activities={previewActivities}
-            onActivityClick={(activity) => openModal(activity.id)}
+            //onActivityClick={(activity) => openModal(activity.id)}
           />
           <button
             type="button"

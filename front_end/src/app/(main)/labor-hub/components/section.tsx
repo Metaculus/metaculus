@@ -30,7 +30,7 @@ export function SectionHeader({
   return (
     <h2
       className={cn(
-        "my-0 break-after-avoid text-lg font-medium tracking-tight text-blue-800 dark:text-blue-800-dark md:text-3xl md:font-bold print:break-inside-avoid-page print:break-after-avoid-page print:text-2xl print:font-bold",
+        "my-0 break-after-avoid text-lg font-medium tracking-tight text-blue-800 [text-wrap:pretty] dark:text-blue-800-dark md:text-3xl md:font-bold print:break-inside-avoid-page print:break-after-avoid-page print:text-2xl print:font-bold",
         className
       )}
       {...props}
@@ -106,12 +106,14 @@ export function DualPaneSectionRight({
 export function ContentParagraph({
   className,
   children,
+  small = false,
   ...props
-}: ComponentProps<"p">) {
+}: ComponentProps<"p"> & { small?: boolean }) {
   return (
     <p
       className={cn(
-        "my-0 break-inside-avoid text-base text-blue-700 [text-wrap:pretty] dark:text-blue-700-dark md:text-lg",
+        "my-0 break-inside-avoid text-blue-700 [text-wrap:pretty] dark:text-blue-700-dark",
+        small ? "text-sm md:text-base" : "text-base md:text-lg",
         className
       )}
       {...props}

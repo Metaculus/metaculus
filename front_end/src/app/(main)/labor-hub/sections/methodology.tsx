@@ -2,8 +2,11 @@ import { ComponentProps } from "react";
 
 import SectionToggle from "@/components/ui/section_toggle";
 
-import { QuestionLoader } from "../components/question_cards/question";
-import { SectionCard, SectionHeader } from "../components/section";
+import {
+  ContentParagraph,
+  SectionCard,
+  SectionHeader,
+} from "../components/section";
 import { METHODOLOGY_SECTIONS } from "../data";
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
@@ -23,127 +26,81 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
   return (
     <SectionCard {...props}>
       <SectionHeader>Methodology</SectionHeader>
-      <p className="mb-8 text-base text-blue-700 dark:text-blue-700-dark md:text-lg">
+      <ContentParagraph className="mb-8 mt-4">
         The forecasts presented on this page were designed to address key
         uncertainties about the future impact of artificial intelligence on
-        labor and education in the United States. The forecasts themselves are
-        produced by aggregating many individual forecasts together to produce a
-        prediction that{" "}
+        labor in the United States. They are produced by aggregating many
+        individual forecasts into a prediction that{" "}
         <a
-          href="http://jasondana.net/docs/2014%20Davis%20Stober%20et%20al.pdf"
+          href="https://arxiv.org/abs/1406.7563"
           target="_blank"
           rel="noreferrer"
         >
-          research
+          research has shown
         </a>{" "}
-        has shown to be{" "}
-        <a
-          href="https://www.metaculus.com/questions/track-record/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          more accurate
-        </a>{" "}
-        on average than individuals typically produce. Metaculus{" "}
-        <a
-          href="https://www.metaculus.com/pro-forecasters/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Pro Forecasters
-        </a>{" "}
-        were also specifically engaged to share forecasts and in-depth
-        reasoning.
-      </p>
-      <div className="mb-8 grid grid-cols-1 gap-8 md:grid-cols-2 print:grid-cols-2">
-        {/** 
-        <TableCompact
-          HeadingSection={
-            <h3 className="mb-4 mt-0 w-full pr-8 text-base font-[450] leading-tight text-gray-800 [text-wrap:pretty] dark:text-gray-800-dark">
-              Conditional on an active recession during the following years,
-              what will overall employment be?
-            </h3>
-          }
-          className=""
-        >
-          <TableCompactHead>
-            <TableCompactRow>
-              <TableCompactHeaderCell className="w-[40%]">
-                Scenario
-              </TableCompactHeaderCell>
-              <TableCompactHeaderCell className="w-[20%] text-right">
-                2030
-              </TableCompactHeaderCell>
-              <TableCompactHeaderCell className="w-[20%] text-right">
-                2035
-              </TableCompactHeaderCell>
-            </TableCompactRow>
-          </TableCompactHead>
-          <TableCompactBody>
-            {[
-              ["with recession", 3.4, 6.4],
-              ["without recession", -1.4, 5.4],
-            ].map((row, index) => (
-              <TableCompactRow key={row[0]}>
-                <TableCompactCell className={index === 0 ? "font-medium" : ""}>
-                  {row[0]}
-                </TableCompactCell>
-                <TableCompactCell className="text-right">
-                  <PercentageChange value={Number(row[1])} />
-                </TableCompactCell>
-                <TableCompactCell className="text-right">
-                  <PercentageChange value={Number(row[2])} />
-                </TableCompactCell>
-              </TableCompactRow>
-            ))}
-          </TableCompactBody>
-        </TableCompact>
-        <TableCompact
-          HeadingSection={
-            <h3 className="mb-4 mt-0 w-full pr-8 text-base font-[450] leading-tight text-gray-800 [text-wrap:pretty] dark:text-gray-800-dark">
-              Conditional on AI stagnation what will employment be in the
-              following years?
-            </h3>
-          }
-          className=""
-        >
-          <TableCompactHead>
-            <TableCompactRow>
-              <TableCompactHeaderCell className="w-[40%]">
-                Scenario
-              </TableCompactHeaderCell>
-              <TableCompactHeaderCell className="w-[20%] text-right">
-                2030
-              </TableCompactHeaderCell>
-              <TableCompactHeaderCell className="w-[20%] text-right">
-                2035
-              </TableCompactHeaderCell>
-            </TableCompactRow>
-          </TableCompactHead>
-          <TableCompactBody>
-            {[
-              ["with AI stagnation", 3.4, 6.4],
-              ["without AI stagnation", -1.4, 5.4],
-            ].map((row, index) => (
-              <TableCompactRow key={row[0]}>
-                <TableCompactCell className={index === 0 ? "font-medium" : ""}>
-                  {row[0]}
-                </TableCompactCell>
-                <TableCompactCell className="text-right">
-                  <PercentageChange value={Number(row[1])} />
-                </TableCompactCell>
-                <TableCompactCell className="text-right">
-                  <PercentageChange value={Number(row[2])} />
-                </TableCompactCell>
-              </TableCompactRow>
-            ))}
-          </TableCompactBody>
-        </TableCompact>
-        */}
-        <QuestionLoader questionId={43025} />
-        <QuestionLoader questionId={43028} />
-      </div>
+        to be more accurate on average than individuals typically produce. The
+        sections below provide more details about how the information above was
+        produced.
+      </ContentParagraph>
       <div className="space-y-3">
+        <SectionToggle
+          key="ack"
+          title="Acknowledgments"
+          variant="primary"
+          hiddenUntilFound
+        >
+          <div className="px-4 text-gray-800 dark:text-gray-800-dark">
+            <p>
+              We thank the following individuals for their thoughtful input on
+              the Labor Automation Forecasting Hub:{" "}
+            </p>
+            <ul className="list-inside list-disc pl-3 text-sm">
+              <li>Jeremy Avins (Arnold Ventures)</li>
+              <li>
+                Frank Britt (Valor Equity Partners and Schultz Family
+                Foundation)
+              </li>
+              <li>Brennan Brown (Charles Koch Foundation)</li>
+              <li>Bharat Chandar (Stanford Digital Economy Lab)</li>
+              <li>Jared Chung (Career Village)</li>
+              <li>Tom Cunningham (METR)</li>
+              <li>David Daigler (Maine Community College System)</li>
+              <li>
+                Christian Edlagan (Washington Center for Equitable Growth)
+              </li>
+              <li>Stuart Elliott (OECD)</li>
+              <li>John Garcia III (StriveTogether)</li>
+              <li>Andrea Glorioso (European Commission)</li>
+              <li>Dan Goldenberg (Call of Duty Endowment)</li>
+              <li>Steve Lee (SkillUp)</li>
+              <li>Adam Leonard (Data for Prosperity)</li>
+              <li>Chauncy Lennon (Lumina Foundation)</li>
+              <li>Gad Levanon (Burning Glass Institute)</li>
+              <li>
+                Cass Madison (Center for Civic Futures / Renaissance
+                Philanthropy)
+              </li>
+              <li>Sam Manning (GovAI)</li>
+              <li>Kerry McKittrick (The Project on Workforce at Harvard)</li>
+              <li>Michael Meotti (Washington Student Achievement Council)</li>
+              <li>Cheryl Oldham (Bipartisan Policy Center)</li>
+              <li>Brent Orrell (American Enterprise Institute)</li>
+              <li>Sneha Revanur (Encode AI)</li>
+              <li>Philipp Schmitt (Axim Collaborative)</li>
+              <li>Dane Stangler (Bipartisan Policy Center)</li>
+              <li>Shayna Strom (Washington Center for Equitable Growth)</li>
+              <li>Elizabeth Texiera (Britebound)</li>
+              <li>Julia Trujillo (Maine Community College System)</li>
+              <li>Matt Tully (Gates Ventures)</li>
+              <li>Teresa Kroeger (Urban Institute)</li>
+              <li>Matt Zieger (GitLab Foundation)</li>
+            </ul>
+            <p className="italic">
+              This acknowledgement does not imply agreement with or endorsement
+              of the predictions and content presented.
+            </p>
+          </div>
+        </SectionToggle>
         {METHODOLOGY_SECTIONS.map((section, sectionIndex) => (
           <SectionToggle
             key={sectionIndex}

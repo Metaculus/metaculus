@@ -10,6 +10,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { saveAs } from "file-saver";
 import { toPng } from "html-to-image";
+import { ReactNode } from "react";
 import { ComponentProps, useCallback, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -19,6 +20,8 @@ import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { DownloadAggregationMethod } from "@/types/question";
 import cn from "@/utils/core/cn";
+
+import { reactNodeToText } from "./helpers";
 
 function formatCurrentDate(): string {
   return new Date().toLocaleDateString("en-US", {
@@ -302,8 +305,8 @@ export function QuestionCard({
   showMoreButton = true,
   postIds = [],
   ...props
-}: ComponentProps<"div"> & {
-  title?: string;
+}: Omit<ComponentProps<"div">, "title"> & {
+  title?: ReactNode;
   subtitle?: string;
   subtitleClassName?: string;
   variant?: "secondary" | "primary" | "section";
@@ -315,6 +318,8 @@ export function QuestionCard({
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const titleVariant = titleVariantOverride ?? variant;
+
+  const titleString = useMemo(() => reactNodeToText(title), [title]);
 
   const handleExportPng = useCallback(() => {
     if (!cardRef.current) return;
@@ -334,7 +339,7 @@ export function QuestionCard({
     })
       .then((dataUrl: string) => {
         const link = document.createElement("a");
-        link.download = `${title ? title.slice(0, 50).replace(/[^a-zA-Z0-9]/g, "-") : "question-card"}.png`;
+        link.download = `${titleString ? titleString.slice(0, 50).replace(/[^a-zA-Z0-9]/g, "-") : "question-card"}.png`;
         link.href = dataUrl;
         link.click();
         toast("Image downloaded successfully", {
@@ -350,7 +355,7 @@ export function QuestionCard({
         node.style.removeProperty("--ss-visible");
         node.style.removeProperty("--ss-hidden");
       });
-  }, [title]);
+  }, [titleString]);
 
   return (
     <div
@@ -378,7 +383,7 @@ export function QuestionCard({
         >
           <MoreButton
             postIds={postIds}
-            postTitle={title}
+            postTitle={titleString}
             onExportPng={handleExportPng}
           />
         </div>

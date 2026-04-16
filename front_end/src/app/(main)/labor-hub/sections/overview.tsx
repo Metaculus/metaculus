@@ -125,8 +125,8 @@ export async function OverviewSection({
     return (
       <QuestionCard
         postIds={[OVERALL_POST_ID]}
-        title="Risk Monitor"
-        subtitle="Predicted employment change in the next decade"
+        title="Overall Employment"
+        variant="primary"
       >
         <NoQuestionPlaceholder />
       </QuestionCard>
@@ -159,8 +159,8 @@ export async function OverviewSection({
           >
             projected
           </a>{" "}
-          3.1% growth from 2024 to 2034, figure shows a linear interpolation for
-          simplicity.
+          3.1% growth from 2024 to 2034, the figure shows a linear interpolation
+          and baseline adjustment to 2025 for simplicity.
         </>
       ),
       label: "Government baseline",
@@ -207,6 +207,17 @@ export async function OverviewSection({
       filled: true,
       label: "Least vulnerable",
       data: toChartPoints(excludeYears(max, [2027])),
+      legendDetail: (
+        <>
+          The least and most vulnerable occupation forecasts in this figure are
+          defined based on the three occupations from our set of 15 that are
+          forecasted to grow and shrink the most in the forecasts for 2035. Each
+          line represents a simple average of the median forecasts for these
+          occupations. For more detailed forecasts by occupation see the{" "}
+          <a href="#jobs">Jobs Monitor</a> below, and visit the{" "}
+          <a href="#methodology">Methodology</a> section for more information.
+        </>
+      ),
     },
     {
       id: "decline",
@@ -214,6 +225,17 @@ export async function OverviewSection({
       filled: true,
       label: "Most vulnerable",
       data: toChartPoints(excludeYears(min, [2027])),
+      legendDetail: (
+        <>
+          The least and most vulnerable occupation forecasts in this figure are
+          defined based on the three occupations from our set of 15 that are
+          forecasted to grow and shrink the most in the forecasts for 2035. Each
+          line represents a simple average of the median forecasts for these
+          occupations. For more detailed forecasts by occupation see the{" "}
+          <a href="#jobs">Jobs Monitor</a> below, and visit the{" "}
+          <a href="#methodology">Methodology</a> section for more information.
+        </>
+      ),
     },
     {
       id: "baseline",
@@ -241,7 +263,7 @@ export async function OverviewSection({
     max.find((point) => point.year === 2035)?.value ?? null;
 
   const formatOverallChange = (value: number) =>
-    `${value < 0 ? "fall" : "grow"} ${Math.abs(value).toFixed(0)}%`;
+    `${value < 0 ? "fall" : "grow"} ${Math.abs(value).toFixed(1)}%`;
 
   const overallColor = (value: number) =>
     value < 0
@@ -287,9 +309,10 @@ export async function OverviewSection({
             ? "This falls short of"
             : "This is in line with"}{" "}
         <span className="font-bold">
-          government baselines projecting +3% growth
+          government baselines projecting +
+          {GOVERNMENT_BASELINES["2035"].toFixed(1)}% growth
         </span>{" "}
-        over the decade from aging-adjusted population trends.
+        over the decade when accounting for aging-adjusted population trends.
       </div>
     </QuestionCard>
   );

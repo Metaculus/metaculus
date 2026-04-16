@@ -76,7 +76,7 @@ type QuestionLoaderProps = {
   chartHeight?: number;
   subQuestionId?: number;
   variant?: "primary" | "secondary";
-  title?: string;
+  title?: ReactNode;
   subtitle?: string;
   fallbackTitle?: string;
   className?: string;
@@ -180,7 +180,7 @@ async function QuestionContent({
         />
       </QuestionCard>
       {note && (
-        <div className="!mt-2 text-sm text-blue-700 dark:text-blue-700-dark">
+        <div className="!mt-2 text-sm text-blue-700 dark:text-blue-700-dark md:text-base">
           {note}
         </div>
       )}

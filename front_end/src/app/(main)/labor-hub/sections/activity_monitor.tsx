@@ -47,7 +47,8 @@ export function ActivityMonitorSection({
       ...activity,
       id: getActivityId({ date: activity.date, markerLabel }),
     })
-  );
+  ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
   const timelineMarkers: GroupTimelineMarker[] = RAW_ACTIVITY_MONITOR_DATA.map(
     (activity) => ({
       id: getActivityId(activity),

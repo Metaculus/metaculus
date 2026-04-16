@@ -1,8 +1,8 @@
 export const GOVERNMENT_BASELINES = {
   "2025": 0,
-  "2027": 0.93,
-  "2030": 1.86,
-  "2035": 3.41,
+  "2027": 0.62,
+  "2030": 1.55,
+  "2035": 3.09,
 };
 
 export const JOBS_DATA = [

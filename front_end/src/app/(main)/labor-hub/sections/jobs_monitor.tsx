@@ -6,13 +6,14 @@ import ButtonGroup from "@/components/ui/button_group";
 import cn from "@/utils/core/cn";
 
 import { QuestionCard } from "../components/question_cards/question_card";
+import { JOBS_INSIGHTS } from "../jobs_insights";
 
 export type JobRow = {
   name: string;
   values: Record<string, number | null>;
 };
 
-const BAR_SCALE = 40; // as maximum percentage of the bar width
+const BAR_SCALE = 30; // as maximum percentage of the bar width
 
 function ContextualBar({ name, percent }: { name: string; percent: number }) {
   const barWidth = `${Math.min(Math.abs(percent) * (100 / BAR_SCALE), 100)}%`;
@@ -127,74 +128,66 @@ export function JobsMonitorSection({
             <div></div>
             <div></div>
           </div>
-          {(() => {
-            const positiveInsight = (
-              <InsightCard context="positive">
-                [TO BE CHANGED] By {year}, roles in{" "}
-                <strong>construction</strong> and <strong>healthcare</strong>{" "}
-                are expected to grow due to infrastructure buildouts and the
-                health needs of an aging population.
-              </InsightCard>
-            );
-            const negativeInsight = (
-              <InsightCard context="negative">
-                [TO BE CHANGED] By {year}, fields like <strong>software</strong>
-                , <strong>law</strong>, and <strong>finance</strong> face deeper
-                contractions as AI systems take over large portions of analysis,
-                reporting, and coding work.
-              </InsightCard>
-            );
 
-            return (
-              <>
-                <div className="grid gap-2 md:grid-cols-2 md:gap-0">
-                  <div className="text-xs font-medium text-mc-option-3 dark:text-mc-option-3-dark md:hidden">
-                    Expected growth
-                  </div>
-                  <div className="flex flex-col gap-1 md:col-start-2">
-                    {jobsWithSelectedYearData
-                      .filter((job) => (job.values[year] ?? 0) >= 0)
-                      .sort(
-                        (a, b) => (b.values[year] ?? 0) - (a.values[year] ?? 0)
-                      )
-                      .map((job) => (
-                        <ContextualBar
-                          key={job.name}
-                          name={job.name}
-                          percent={job.values[year] ?? 0}
-                        />
-                      ))}
-                  </div>
-                </div>
-                <div className="md:hidden">{positiveInsight}</div>
-                <div className="grid gap-2 md:grid-cols-2 md:gap-0">
-                  <div className="text-xs font-medium text-mc-option-2 dark:text-mc-option-2-dark md:hidden">
-                    Expected decline
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    {jobsWithSelectedYearData
-                      .filter((job) => (job.values[year] ?? 0) < 0)
-                      .sort(
-                        (a, b) => (b.values[year] ?? 0) - (a.values[year] ?? 0)
-                      )
-                      .map((job) => (
-                        <ContextualBar
-                          key={job.name}
-                          name={job.name}
-                          percent={job.values[year] ?? 0}
-                        />
-                      ))}
-                  </div>
-                  <div className="pointer-events-none relative -mr-4 mt-4 hidden flex-col items-end gap-4 md:flex">
-                    {positiveInsight}
-                    {negativeInsight}
-                  </div>
-                </div>
-                <div className="md:hidden">{negativeInsight}</div>
-              </>
-            );
-          })()}
+          <div className="grid gap-2 md:grid-cols-2 md:gap-0">
+            <div className="text-xs font-medium text-mc-option-3 dark:text-mc-option-3-dark md:hidden">
+              Expected growth
+            </div>
+            <div className="flex flex-col gap-1 md:col-start-2">
+              {jobsWithSelectedYearData
+                .filter((job) => (job.values[year] ?? 0) >= 0)
+                .sort((a, b) => (b.values[year] ?? 0) - (a.values[year] ?? 0))
+                .map((job) => (
+                  <ContextualBar
+                    key={job.name}
+                    name={job.name}
+                    percent={job.values[year] ?? 0}
+                  />
+                ))}
+            </div>
+          </div>
+          <div className="md:hidden">
+            <InsightCard context="positive">
+              {JOBS_INSIGHTS[year as keyof typeof JOBS_INSIGHTS]?.positive}
+            </InsightCard>
+          </div>
+          <div className="grid gap-2 md:grid-cols-2 md:gap-0">
+            <div className="text-xs font-medium text-mc-option-2 dark:text-mc-option-2-dark md:hidden">
+              Expected decline
+            </div>
+            <div className="flex flex-col gap-1">
+              {jobsWithSelectedYearData
+                .filter((job) => (job.values[year] ?? 0) < 0)
+                .sort((a, b) => (b.values[year] ?? 0) - (a.values[year] ?? 0))
+                .map((job) => (
+                  <ContextualBar
+                    key={job.name}
+                    name={job.name}
+                    percent={job.values[year] ?? 0}
+                  />
+                ))}
+            </div>
+            <div className="pointer-events-none relative -mr-4 mt-4 hidden flex-col items-end gap-4 md:flex">
+              <InsightCard context="positive">
+                {JOBS_INSIGHTS[year as keyof typeof JOBS_INSIGHTS]?.positive}
+              </InsightCard>
+              <InsightCard context="negative">
+                {JOBS_INSIGHTS[year as keyof typeof JOBS_INSIGHTS]?.negative}
+              </InsightCard>
+            </div>
+          </div>
+          <div className="md:hidden">
+            <InsightCard context="negative">
+              {JOBS_INSIGHTS[year as keyof typeof JOBS_INSIGHTS]?.negative}
+            </InsightCard>
+          </div>
         </div>
+        {year === "2027" && (
+          <div className="mt-3 text-xs text-gray-600 dark:text-gray-600-dark md:mb-2 md:text-center md:text-sm print:text-center">
+            A select set of occupations of interest were forecasted for 2027,
+            based on initial forecasts for 2030 and 2035
+          </div>
+        )}
       </div>
     </QuestionCard>
   );
