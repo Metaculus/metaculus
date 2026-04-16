@@ -10,7 +10,6 @@ type ScrollspyProps = {
   className?: string;
   dataAttribute?: string;
   history?: boolean;
-  throttleTime?: number;
   style?: React.CSSProperties;
   /** Scroll the active anchor into view within its horizontal scroll container */
   scrollActiveIntoView?: boolean;
@@ -33,6 +32,7 @@ export function Scrollspy({
   const prevIdTracker = useRef<string | null>(null);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const settleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rafIdRef = useRef<number | null>(null);
 
   // Sets active nav, hash, prevIdTracker, and calls onUpdate
   const setActiveSection = useCallback(
@@ -201,9 +201,17 @@ export function Scrollspy({
       item.addEventListener("click", clickHandler);
     });
 
-    // Attach the scroll event to the correct scrollable element
-    const scrollHandler = handleScroll;
-    window.addEventListener("scroll", scrollHandler);
+    // Coalesce scroll events to one run per animation frame — every call to
+    // handleScroll iterates every tracked section and reads layout, so raw
+    // scroll-event cadence would thrash on long pages.
+    const onScroll = () => {
+      if (rafIdRef.current !== null) return;
+      rafIdRef.current = window.requestAnimationFrame(() => {
+        rafIdRef.current = null;
+        handleScroll();
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
 
     // Check if there's a hash in the URL and scroll to the corresponding section
     scrollTimeoutRef.current = setTimeout(() => {
@@ -212,19 +220,23 @@ export function Scrollspy({
       // Wait for scroll to settle, then update nav highlighting
       settleTimeoutRef.current = setTimeout(() => {
         settleTimeoutRef.current = null;
-        scrollHandler();
+        handleScroll();
       }, 100);
     }, 100); // Adding a slight delay to ensure content is fully rendered
 
     return () => {
-      window.removeEventListener("scroll", scrollHandler);
+      window.removeEventListener("scroll", onScroll);
+      if (rafIdRef.current !== null) {
+        window.cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
       anchorElements.forEach((item) => {
         const clickHandler = anchorClickHandlers.get(item);
         if (clickHandler) {
           item.removeEventListener("click", clickHandler);
-          anchorClickHandlers.delete(item);
         }
       });
+      anchorClickHandlers.clear();
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
         scrollTimeoutRef.current = null;
