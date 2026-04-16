@@ -34,7 +34,7 @@ const SECTIONS = [
   { id: "graduates", label: "Graduates" },
   { id: "economy", label: "Economy" },
   { id: "research", label: "Research" },
-  { id: "state-wa", label: "State" },
+  { id: "state", label: "State" },
   { id: "methodology", label: "Methodology" },
 ];
 
@@ -53,7 +53,7 @@ function KeyInsightItem({
   return (
     <div
       className={cn(
-        "dark:text-blue-700-darktext-sm my-0 break-inside-avoid p-4 text-blue-700 [text-wrap:pretty] md:text-base print:p-2",
+        "my-0 break-inside-avoid p-4 text-sm text-blue-700 [text-wrap:pretty] dark:text-blue-700-dark md:text-base print:p-2",
         className
       )}
       {...props}
@@ -66,7 +66,7 @@ function KeyInsightItem({
 
 export default function LaborAutomationHubPage() {
   return (
-    <main className="relative mb-24 min-h-screen xl:mt-12 print:mb-0 print:mt-0 print:[zoom:0.75]">
+    <main className="relative mb-24 min-h-screen xl:mt-12 print:mb-0 print:mt-0 print:[zoom:0.75] [&_[id]]:scroll-mt-24">
       <div className="mx-auto w-full max-w-7xl xl:px-16 print:mb-6 print:px-0">
         <HeroSection />
       </div>
@@ -130,7 +130,7 @@ export default function LaborAutomationHubPage() {
         />
 
         {/* Wages Section */}
-        <DualPaneSectionCard id="wages" className="scroll-mt-12">
+        <DualPaneSectionCard id="wages" className="">
           <DualPaneSectionLeft>
             <SectionHeader>Hours, Pay, and Financial Well-Being</SectionHeader>
             <ThemeOverrideContainer override="inverted">
@@ -272,7 +272,7 @@ export default function LaborAutomationHubPage() {
         </DualPaneSectionCard>
 
         {/* Graduates Section */}
-        <DualPaneSectionCard id="graduates" className="scroll-mt-12">
+        <DualPaneSectionCard id="graduates" className="">
           <DualPaneSectionLeft>
             <SectionHeader>
               Impact on the Next Generation of Workers
@@ -377,7 +377,7 @@ export default function LaborAutomationHubPage() {
         </DualPaneSectionCard>
 
         {/* Economy Section */}
-        <DualPaneSectionCard id="economy" className="scroll-mt-12">
+        <DualPaneSectionCard id="economy" className="">
           <DualPaneSectionLeft>
             <SectionHeader>Changing Economy</SectionHeader>
             <ThemeOverrideContainer override="inverted">
@@ -450,9 +450,9 @@ export default function LaborAutomationHubPage() {
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 
-        <ResearchSection id="research" className="scroll-mt-12" />
+        <ResearchSection id="research" className="" />
 
-        <DualPaneSectionCard id="state-wa" className="scroll-mt-12">
+        <DualPaneSectionCard id="state" className="">
           <DualPaneSectionLeft>
             <SectionHeader>State-Level View</SectionHeader>
             <MultiQuestionTable
@@ -520,7 +520,7 @@ export default function LaborAutomationHubPage() {
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 
-        <MethodologySection id="methodology" className="scroll-mt-12" />
+        <MethodologySection id="methodology" className="" />
         <PrintAttribution />
         <EngagementSection newsletterListKey="labor" />
       </div>

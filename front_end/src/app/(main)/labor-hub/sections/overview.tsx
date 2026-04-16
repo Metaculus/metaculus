@@ -336,7 +336,7 @@ export async function OverviewSection({
 
   return (
     <LaborHubChartHoverProvider>
-      <LaborHubChartHoverSection className="scroll-mt-12" {...props}>
+      <LaborHubChartHoverSection className="" {...props}>
         <OverviewMobileCardTabs
           tabs={[
             {
