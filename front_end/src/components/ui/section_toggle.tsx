@@ -34,7 +34,7 @@ const sectionContainerVariants = cva(
 );
 
 const triggerVariants = cva(
-  "flex w-full items-center gap-2.5 p-3 text-base break-after-avoid",
+  "flex w-full items-center gap-2.5 p-3 text-start justify-start text-base break-after-avoid",
   {
     variants: {
       variant: {
