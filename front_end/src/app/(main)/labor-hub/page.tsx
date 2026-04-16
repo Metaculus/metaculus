@@ -3,7 +3,7 @@ import { ComponentProps } from "react";
 
 import SectionToggle from "@/components/ui/section_toggle";
 import { ThemeOverrideContainer } from "@/contexts/theme_override_context";
-import { cn } from "@/lib/utils";
+import cn from "@/utils/core/cn";
 
 import { ActivityCard } from "./components/activity_card";
 import { DefinitionTooltip } from "./components/definition_tooltip";
