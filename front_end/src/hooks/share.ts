@@ -3,13 +3,74 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
-export const useCopyUrl = () => {
+import { usePublicSettings } from "@/contexts/public_settings_context";
+
+type CurrentUrlOptions = {
+  includeHash?: boolean;
+};
+
+const useWindowHash = () => {
+  const [hash, setHash] = useState("");
+
+  useEffect(() => {
+    const updateHash = () => setHash(window.location.hash);
+
+    updateHash();
+    window.addEventListener("hashchange", updateHash);
+
+    return () => window.removeEventListener("hashchange", updateHash);
+  }, []);
+
+  return hash;
+};
+
+const useCurrentUrl = ({ includeHash = true }: CurrentUrlOptions = {}) => {
+  const { PUBLIC_APP_URL } = usePublicSettings();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const hash = useWindowHash();
+
+  return useMemo(() => {
+    let base: URL | null = null;
+
+    if (PUBLIC_APP_URL) {
+      try {
+        base = new URL(PUBLIC_APP_URL);
+      } catch {
+        // fall through to window.location.origin below
+      }
+    }
+
+    if (!base && typeof window !== "undefined" && window.location?.origin) {
+      try {
+        base = new URL(window.location.origin);
+      } catch {
+        // fall through to the warn + empty return below
+      }
+    }
+
+    const search = searchParams.toString();
+    const appliedHash = includeHash ? hash : "";
+
+    if (!base) {
+      console.warn(
+        "useCurrentUrl: unable to resolve a base URL — PUBLIC_APP_URL is missing or invalid and window.location is unavailable. Falling back to a relative URL."
+      );
+      return `${pathname}${search ? `?${search}` : ""}${appliedHash}`;
+    }
+
+    base.pathname = pathname;
+    base.search = search;
+    base.hash = appliedHash;
+    return base.toString();
+  }, [PUBLIC_APP_URL, hash, includeHash, pathname, searchParams]);
+};
+
+export const useCopyUrl = (options: CurrentUrlOptions = {}) => {
+  const url = useCurrentUrl(options);
 
   return useCallback(() => {
-    if (typeof window !== "undefined") {
-      const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}${window.location.hash}`;
+    if (url) {
       navigator.clipboard
         .writeText(url)
         .then(() => {
@@ -20,7 +81,7 @@ export const useCopyUrl = () => {
         })
         .catch((err) => console.error("Error copying link: ", err));
     }
-  }, [pathname, searchParams]);
+  }, [url]);
 };
 
 export const useMetaImageUrl = (tagName: string) => {
@@ -36,32 +97,23 @@ export const useMetaImageUrl = (tagName: string) => {
   return imageUrl;
 };
 
-export const useShareOnTwitterLink = (message = "") => {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+export const useShareOnTwitterLink = (
+  message = "",
+  options: CurrentUrlOptions = {}
+) => {
+  const url = useCurrentUrl(options);
 
   return useMemo(() => {
-    if (typeof window === "undefined") {
-      return "";
-    }
-    const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}${window.location.hash}`;
-    return `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-      message
-    )}&url=${encodeURIComponent(url)}`;
-  }, [message, pathname, searchParams]);
+    return `https://x.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`;
+  }, [message, url]);
 };
 
-export const useShareOnFacebookLink = () => {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+export const useShareOnFacebookLink = (options: CurrentUrlOptions = {}) => {
+  const url = useCurrentUrl(options);
 
   return useMemo(() => {
-    if (typeof window === "undefined") {
-      return "";
-    }
-    const url = `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}${window.location.hash}`;
     return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-  }, [pathname, searchParams]);
+  }, [url]);
 };
 
 export const useEmbedUrl = (path: string) => {
