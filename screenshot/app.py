@@ -17,7 +17,7 @@ SENTRY_ENABLED = config("SENTRY_ENABLED", default=False, cast=bool)
 MAX_OPEN_PAGES = config("MAX_OPEN_PAGES", default=10, cast=int)
 USER_AGENT = config(
     "USER_AGENT",
-    default="MetaculusScreenshotBot",
+    default="MetaculusScreenshotBot/1.0 (+https://www.metaculus.com)",
 )
 
 DEFAULT_WIDTH = 800
