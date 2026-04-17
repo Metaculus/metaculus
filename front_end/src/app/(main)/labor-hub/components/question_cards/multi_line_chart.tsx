@@ -210,7 +210,7 @@ const Legend: FC<{
   }, [series, order]);
 
   return (
-    <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+    <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2 pr-8">
       {legendItems.map((item) => {
         const colors = getSeriesColors(item.color, getThemeColor);
         return (
