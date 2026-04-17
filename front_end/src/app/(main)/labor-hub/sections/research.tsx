@@ -6,8 +6,8 @@ import { logError } from "@/utils/core/errors";
 
 import { SortableResearchTable } from "./sortable_research_table";
 import { ActivityCard } from "../components/activity_card";
+import { FlippableChartTimelineCard } from "../components/question_cards/flippable_chart_timeline_card";
 import { NoQuestionPlaceholder } from "../components/question_cards/placeholder";
-import { QuestionLoader } from "../components/question_cards/question";
 import {
   SectionCard,
   SectionHeader,
@@ -74,9 +74,37 @@ export function ResearchSection({
         </div>
 
         <div className="flex min-w-0 flex-col gap-4 [&>*]:min-w-0">
-          <QuestionLoader
+          <FlippableChartTimelineCard
             title="Change in the occupational mix (relative to November 2022 ChatGPT release baseline)"
             questionId={42850}
+            prefer="chart"
+            historicalValues={{
+              2023: 3.17,
+              2024: 3.92,
+              2025: 5.06,
+            }}
+            seriesTitle="AI (baseline Nov 2022)"
+            extraRows={[
+              {
+                title: "Internet (baseline Jan 1996)",
+                color: "mc5",
+                dashed: true,
+                dotSize: 1,
+                historicalValues: {
+                  2023: 2.61,
+                  2024: 3.2,
+                  2025: 3.97,
+                  2026: 5.02,
+                  2027: 5.57,
+                  2028: 6.63,
+                },
+              },
+            ]}
+            chartProps={{
+              showTickLabels: true,
+              valueFormat: "percentage",
+              decimals: 1,
+            }}
           />
           <ActivityCard
             avatar="https://cdn.metaculus.com/labor-hub/adonis_256.jpg"
@@ -142,7 +170,7 @@ async function ResearchTable({ labels }: { labels?: string[] } = {}) {
     columns = columns.filter((col) => allowed.has(col));
   }
 
-  // Build rows: [name, ...yearValues, rating], sorted by last year value descending
+  // Build rows: [name, ...yearValues, felten, mna, aoe], sorted by last year value descending
   const tableRows = jobs
     .map((job) => {
       const questions = job.post?.group_of_questions?.questions as
@@ -156,7 +184,13 @@ async function ResearchTable({ labels }: { labels?: string[] } = {}) {
         if (!q) return null;
         return getSubQuestionValue(q);
       });
-      return { name: job.name, values, rating: job.rating };
+      return {
+        name: job.name,
+        values,
+        felten: job.felten,
+        mna: job.mna,
+        aoe: job.aoe,
+      };
     })
     .sort((a, b) => {
       const lastA = a.values[a.values.length - 1] ?? 0;

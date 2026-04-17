@@ -2,6 +2,8 @@ import { DetailedHTMLProps, FC, HTMLProps, ReactNode } from "react";
 
 import cn from "@/utils/core/cn";
 
+import { TableScrollWrapper } from "./table_scroll_wrapper";
+
 type TableCompactProps = {
   title?: string;
   HeadingSection?: ReactNode;
@@ -26,9 +28,11 @@ export const TableCompact: FC<TableCompactProps> = ({
     )}
   >
     {HeadingSection}
-    <table className="w-full" {...props}>
-      {children}
-    </table>
+    <TableScrollWrapper>
+      <table className="w-full" {...props}>
+        {children}
+      </table>
+    </TableScrollWrapper>
   </div>
 );
 
@@ -84,21 +88,25 @@ export const WageValue: FC<{ value: number; className?: string }> = ({
 // Helper component for displaying percentage changes with positive/negative styling
 export const PercentageChange: FC<{
   value: number;
+  decimals?: number;
   className?: string;
-}> = ({ value, className }) => {
+  applyColor?: boolean;
+}> = ({ value, decimals, className, applyColor = true }) => {
   const isPositive = value >= 0;
+  const display = decimals != null ? value.toFixed(decimals) : value;
 
   return (
     <span
       className={cn(
-        isPositive
-          ? "text-mint-800 dark:text-mint-300" // Green for positive
-          : "text-salmon-700 dark:text-salmon-400", // Red for negative
+        applyColor &&
+          (isPositive
+            ? "text-mint-800 dark:text-mint-300" // Green for positive
+            : "text-salmon-700 dark:text-salmon-400"), // Red for negative
         className
       )}
     >
       {isPositive ? "+" : ""}
-      {value}%
+      {display}%
     </span>
   );
 };

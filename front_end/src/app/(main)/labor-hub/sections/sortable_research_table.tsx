@@ -16,13 +16,19 @@ import {
   PercentageChange,
 } from "../components/table_compact";
 
-type SortKey = { type: "year"; index: number } | { type: "rating" };
+type LiteratureMetric = "felten" | "mna" | "aoe";
+
+type SortKey =
+  | { type: "year"; index: number }
+  | { type: "literature"; metric: LiteratureMetric };
 type SortDirection = "asc" | "desc";
 
 export type ResearchTableRow = {
   name: string;
   values: (number | null)[];
-  rating: number;
+  felten: number;
+  mna: number;
+  aoe: number;
 };
 
 type PosNegColumnRanges = {
@@ -36,15 +42,6 @@ type PosNegColumnRanges = {
   /** Largest positive (strongest green anchor). */
   posMax: number;
   hasPos: boolean;
-};
-
-const EMPTY_POS_NEG_RANGE: PosNegColumnRanges = {
-  negMin: 0,
-  negMax: 0,
-  hasNeg: false,
-  posMin: 0,
-  posMax: 0,
-  hasPos: false,
 };
 
 function getColumnPosNegRanges(
@@ -69,6 +66,45 @@ function getColumnPosNegRanges(
 
 function clamp01(n: number): number {
   return Math.min(Math.max(n, 0), 1);
+}
+
+type ColumnMinMax = { min: number; max: number; hasValues: boolean };
+
+function getColumnMinMax(values: (number | null | undefined)[]): ColumnMinMax {
+  const nums = values.filter(
+    (v): v is number => v != null && Number.isFinite(v)
+  );
+  if (nums.length === 0) return { min: 0, max: 0, hasValues: false };
+  return { min: Math.min(...nums), max: Math.max(...nums), hasValues: true };
+}
+
+/** Full-range gradient: column midpoint is neutral, min and max anchor opposite ends of the spectrum. */
+function getFullSpectrumStyle(
+  value: number,
+  range: ColumnMinMax,
+  invertColors = false
+): CSSProperties {
+  if (!range.hasValues || range.min === range.max) return {};
+  const mid = (range.min + range.max) / 2;
+  const half = (range.max - range.min) / 2;
+  const ratio = clamp01(Math.abs(value - mid) / half);
+  if (ratio === 0) return {};
+  const isLow = value < mid;
+  const useGreen = isLow === invertColors;
+  const opacity = 0.05 + ratio * 0.55;
+  const color = useGreen
+    ? `rgba(102, 165, 102, ${opacity})`
+    : `rgba(213, 139, 128, ${opacity})`;
+  return { backgroundColor: color };
+}
+
+function getMaxDecimals(values: (number | null | undefined)[]): number {
+  return values.reduce<number>((max, v) => {
+    if (v == null || !Number.isFinite(v)) return max;
+    const s = v.toString();
+    const dot = s.indexOf(".");
+    return dot === -1 ? max : Math.max(max, s.length - dot - 1);
+  }, 0);
 }
 
 /** Negatives only: column min (most negative) → ratio 1 (most red); column max among negatives → ratio 0. */
@@ -111,7 +147,7 @@ function getCellBackgroundStyle(
 }
 
 function getSortValue(row: ResearchTableRow, key: SortKey): number {
-  if (key.type === "rating") return row.rating;
+  if (key.type === "literature") return row[key.metric];
   return row.values[key.index] ?? 0;
 }
 
@@ -138,8 +174,9 @@ export const SortableResearchTable: FC<{
   const handleSort = (key: SortKey) => {
     const isSameKey =
       sortKey.type === key.type &&
-      (key.type === "rating" ||
-        (sortKey.type === "year" && sortKey.index === key.index));
+      (key.type === "literature"
+        ? sortKey.type === "literature" && sortKey.metric === key.metric
+        : sortKey.type === "year" && sortKey.index === key.index);
     if (isSameKey) {
       setSortDirection((d) => (d === "desc" ? "asc" : "desc"));
     } else {
@@ -150,8 +187,9 @@ export const SortableResearchTable: FC<{
 
   const isSortActive = (key: SortKey) =>
     sortKey.type === key.type &&
-    (key.type === "rating" ||
-      (sortKey.type === "year" && sortKey.index === key.index));
+    (key.type === "literature"
+      ? sortKey.type === "literature" && sortKey.metric === key.metric
+      : sortKey.type === "year" && sortKey.index === key.index);
 
   const getAriaSort = (key: SortKey): "ascending" | "descending" | "none" =>
     isSortActive(key)
@@ -168,22 +206,40 @@ export const SortableResearchTable: FC<{
     });
   }, [rows, sortKey, sortDirection]);
 
-  const valueColumnRanges = useMemo(
-    () =>
-      columns.map((_, i) =>
-        getColumnPosNegRanges(rows.map((r) => r.values[i]))
-      ),
-    [columns, rows]
+  const valuesSharedRange = useMemo(
+    () => getColumnPosNegRanges(rows.flatMap((r) => r.values)),
+    [rows]
   );
 
-  const ratingColumnRange = useMemo(
-    () => getColumnPosNegRanges(rows.map((r) => r.rating)),
+  const feltenColumnRange = useMemo(
+    () => getColumnMinMax(rows.map((r) => r.felten)),
+    [rows]
+  );
+  const mnaColumnRange = useMemo(
+    () => getColumnMinMax(rows.map((r) => r.mna)),
+    [rows]
+  );
+  const aoeColumnRange = useMemo(
+    () => getColumnMinMax(rows.map((r) => r.aoe)),
+    [rows]
+  );
+
+  const feltenDecimals = useMemo(
+    () => getMaxDecimals(rows.map((r) => r.felten)),
+    [rows]
+  );
+  const mnaDecimals = useMemo(
+    () => getMaxDecimals(rows.map((r) => r.mna)),
+    [rows]
+  );
+  const aoeDecimals = useMemo(
+    () => getMaxDecimals(rows.map((r) => r.aoe)),
     [rows]
   );
 
   return (
     <TableCompact
-      className="inverted mt-8 [&_table]:border-separate [&_table]:border-spacing-x-2 [&_table]:border-spacing-y-2 [&_td]:py-0.5 [&_th]:pb-3"
+      className="inverted mt-8 [&_td]:p-1 [&_th]:px-1 [&_th]:pb-3"
       HeadingSection={
         <>
           <div className="mb-2 text-center text-base font-normal leading-5 text-gray-800 dark:text-gray-800-dark">
@@ -201,7 +257,26 @@ export const SortableResearchTable: FC<{
     >
       <TableCompactHead>
         <TableCompactRow>
-          <TableCompactHeaderCell className="w-[40%]">
+          <TableCompactHeaderCell
+            aria-hidden="true"
+            className="sticky left-0 z-10 bg-blue-200 after:pointer-events-none after:absolute after:inset-y-0 after:left-full after:w-4 after:bg-gradient-to-r after:from-black/15 after:to-transparent after:opacity-0 after:transition-opacity after:content-[''] group-data-[scrolled-x]/scrollable:after:opacity-100 dark:bg-blue-800 dark:after:from-black/40"
+          />
+          <TableCompactHeaderCell
+            colSpan={columns.length}
+            className="whitespace-nowrap pb-1 text-center"
+          >
+            Metaculus Forecasts
+          </TableCompactHeaderCell>
+          <TableCompactHeaderCell aria-hidden="true" className="w-4" />
+          <TableCompactHeaderCell
+            colSpan={3}
+            className="whitespace-nowrap pb-1 text-center"
+          >
+            Literature
+          </TableCompactHeaderCell>
+        </TableCompactRow>
+        <TableCompactRow>
+          <TableCompactHeaderCell className="sticky left-0 z-10 bg-blue-200 after:pointer-events-none after:absolute after:inset-y-0 after:left-full after:w-4 after:bg-gradient-to-r after:from-black/15 after:to-transparent after:opacity-0 after:transition-opacity after:content-[''] group-data-[scrolled-x]/scrollable:after:opacity-100 dark:bg-blue-800 dark:after:from-black/40">
             Occupation
           </TableCompactHeaderCell>
           {columns.map((col, i) => {
@@ -211,7 +286,7 @@ export const SortableResearchTable: FC<{
             return (
               <TableCompactHeaderCell
                 key={col}
-                className="w-[20%] select-none text-center"
+                className="select-none whitespace-nowrap text-center"
                 aria-sort={getAriaSort(yearSortKey)}
               >
                 <button
@@ -225,68 +300,110 @@ export const SortableResearchTable: FC<{
               </TableCompactHeaderCell>
             );
           })}
-          {(() => {
-            const ratingSortKey: SortKey = { type: "rating" };
-            const isActive = isSortActive(ratingSortKey);
+          <TableCompactHeaderCell aria-hidden="true" className="w-4" />
+          {(
+            [
+              {
+                metric: "felten" as const,
+                label: "Felten",
+                title: "Felten Language AIOE",
+              },
+              {
+                metric: "mna" as const,
+                label: "M&A",
+                title: "M&A calculated vulnerability",
+              },
+              {
+                metric: "aoe" as const,
+                label: "AOE",
+                title: "Anthropic's observed exposure",
+              },
+            ] as const
+          ).map(({ metric, label, title }) => {
+            const literatureSortKey: SortKey = { type: "literature", metric };
+            const isActive = isSortActive(literatureSortKey);
 
             return (
               <TableCompactHeaderCell
-                className="w-[20%] select-none text-center"
-                aria-sort={getAriaSort(ratingSortKey)}
+                key={metric}
+                className="select-none whitespace-nowrap text-center"
+                aria-sort={getAriaSort(literatureSortKey)}
               >
                 <button
                   type="button"
+                  title={title}
                   className="font-inherit inline-flex w-full appearance-none items-center justify-center bg-transparent p-0 text-center text-inherit"
-                  onClick={() => handleSort(ratingSortKey)}
+                  onClick={() => handleSort(literatureSortKey)}
                 >
-                  AI Vulnerability Rating
+                  {label}
                   {isActive && <SortArrow direction={sortDirection} />}
                 </button>
               </TableCompactHeaderCell>
             );
-          })()}
+          })}
         </TableCompactRow>
       </TableCompactHead>
       <TableCompactBody>
         {sortedRows.map((row) => (
-          <TableCompactRow key={row.name} className="break-inside-avoid">
-            <TableCompactCell className="font-medium">
+          <TableCompactRow
+            key={row.name}
+            className="group break-inside-avoid hover:bg-blue-400 dark:hover:bg-blue-700 [&>td:first-child]:rounded-l [&>td:last-child]:rounded-r"
+          >
+            <TableCompactCell className="sticky left-0 z-10 bg-blue-200 px-3 font-medium after:pointer-events-none after:absolute after:inset-y-0 after:left-full after:w-4 after:bg-gradient-to-r after:from-black/15 after:to-transparent after:opacity-0 after:transition-opacity after:content-[''] group-hover:bg-blue-400 group-data-[scrolled-x]/scrollable:after:opacity-100 dark:bg-blue-800 dark:after:from-black/40 dark:group-hover:bg-blue-700">
               {row.name}
             </TableCompactCell>
             {row.values.map((value, i) => (
               <TableCompactCell
                 key={columns[i]}
-                className="text-center"
-                style={getCellBackgroundStyle(
-                  value ?? 0,
-                  valueColumnRanges[i] ?? EMPTY_POS_NEG_RANGE
-                )}
+                className="whitespace-nowrap text-center tabular-nums"
               >
-                {value != null ? (
-                  <PercentageChange value={Number(value.toFixed(1))} />
-                ) : (
-                  <span className="text-gray-400 dark:text-gray-500">—</span>
-                )}
+                <div
+                  className="rounded px-1.5 py-1 md:px-3"
+                  style={getCellBackgroundStyle(value ?? 0, valuesSharedRange)}
+                >
+                  {value != null ? (
+                    <PercentageChange
+                      value={value}
+                      decimals={1}
+                      applyColor={false}
+                    />
+                  ) : (
+                    <span className="text-gray-400 dark:text-gray-500">—</span>
+                  )}
+                </div>
               </TableCompactCell>
             ))}
-            <TableCompactCell
-              className="text-center"
-              style={getCellBackgroundStyle(
-                row.rating,
-                ratingColumnRange,
-                true
-              )}
-            >
-              <span
-                className={
-                  row.rating >= 0
-                    ? "text-salmon-700 dark:text-salmon-400"
-                    : "text-mint-800 dark:text-mint-300"
-                }
+            <TableCompactCell aria-hidden="true" className="w-4" />
+            <TableCompactCell className="whitespace-nowrap text-center tabular-nums">
+              <div
+                className="rounded px-1.5 py-1 md:px-3"
+                style={getFullSpectrumStyle(
+                  row.felten,
+                  feltenColumnRange,
+                  true
+                )}
               >
-                {row.rating > 0 ? "+" : ""}
-                {row.rating}
-              </span>
+                <span>
+                  {row.felten > 0 ? "+" : ""}
+                  {row.felten.toFixed(feltenDecimals)}
+                </span>
+              </div>
+            </TableCompactCell>
+            <TableCompactCell className="whitespace-nowrap text-center tabular-nums">
+              <div
+                className="rounded px-1.5 py-1 md:px-3"
+                style={getFullSpectrumStyle(row.mna, mnaColumnRange, true)}
+              >
+                {row.mna.toFixed(mnaDecimals)}
+              </div>
+            </TableCompactCell>
+            <TableCompactCell className="whitespace-nowrap text-center tabular-nums">
+              <div
+                className="rounded px-1.5 py-1 md:px-3"
+                style={getFullSpectrumStyle(row.aoe, aoeColumnRange, true)}
+              >
+                {row.aoe.toFixed(aoeDecimals)}%
+              </div>
             </TableCompactCell>
           </TableCompactRow>
         ))}

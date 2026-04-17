@@ -54,15 +54,38 @@ function estimateTextLabelYAxisGutter(
   );
 }
 
+const NUMERIC_LABEL_DIGIT_PX = 7.2;
+const NUMERIC_LABEL_CHAR_PX: Record<string, number> = {
+  ".": 2.8,
+  ",": 2.8,
+  " ": 3,
+  "-": 4,
+  "+": 9,
+  "%": 11,
+};
+const NUMERIC_LABEL_FALLBACK_CHAR_PX = 7;
+
+export function estimateNumericLabelWidthPx(label: string): number {
+  let width = 0;
+  for (const char of label) {
+    if (char >= "0" && char <= "9") {
+      width += NUMERIC_LABEL_DIGIT_PX;
+      continue;
+    }
+    width += NUMERIC_LABEL_CHAR_PX[char] ?? NUMERIC_LABEL_FALLBACK_CHAR_PX;
+  }
+  return width;
+}
+
 function estimateNumericYAxisGutter(
   tickValues: number[],
   formatYTick: (value: number) => string
 ): number {
-  if (!tickValues.length) return 44;
-  const maxLen = Math.max(
-    ...tickValues.map((tick) => formatYTick(tick).length)
+  if (!tickValues.length) return 0;
+  const maxWidth = Math.max(
+    ...tickValues.map((tick) => estimateNumericLabelWidthPx(formatYTick(tick)))
   );
-  return Math.min(76, Math.max(36, 12 + maxLen * 8));
+  return Math.ceil(maxWidth) + 4;
 }
 
 export function closestTickValue(
@@ -81,7 +104,6 @@ type ComputeMultiLineChartModelArgs = {
   showTickLabels: boolean;
   formatYTick: (value: number) => string;
   yAxisGutter?: number;
-  xTickValues?: number[];
 };
 
 export function computeMultiLineChartModel({
@@ -90,29 +112,20 @@ export function computeMultiLineChartModel({
   showTickLabels,
   formatYTick,
   yAxisGutter,
-  xTickValues: xTickValuesProp,
 }: ComputeMultiLineChartModelArgs) {
-  const derivedXTickValues = Array.from(
+  const xTickValues = Array.from(
     new Set(series.flatMap((s) => s.data.map((point) => point.x)))
   ).sort((a, b) => a - b);
-  const xTickValues = (
-    xTickValuesProp?.length ? xTickValuesProp : derivedXTickValues
-  )
-    .slice()
-    .sort((a, b) => a - b);
-  const xValues = xTickValues.length
-    ? xTickValues
-    : series.flatMap((s) => s.data.map((point) => point.x));
   const dataValues = series.flatMap((s) => s.data.map((point) => point.y));
 
   const hasDataLabels = series.some((s) => s.dataLabels !== "never");
 
   let xDomain: [number, number];
-  if (!xValues.length) {
+  if (!xTickValues.length) {
     xDomain = [0, 1];
   } else {
-    const minX = Math.min(...xValues);
-    const maxX = Math.max(...xValues);
+    const minX = Math.min(...xTickValues);
+    const maxX = Math.max(...xTickValues);
     const xPadding = minX === maxX ? 1 : (maxX - minX) * 0.1;
     xDomain = [minX - xPadding, maxX + xPadding];
   }

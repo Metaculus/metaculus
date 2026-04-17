@@ -131,7 +131,7 @@ export function ActivityCard({
         className={cn(
           variant === "purple" && "text-purple-800 dark:text-purple-800-dark",
           variant === "mint" && "text-mint-800 dark:text-mint-800-dark",
-          "text-sm leading-normal lg:text-base"
+          "text-xs leading-normal lg:text-sm"
         )}
       >
         {children}

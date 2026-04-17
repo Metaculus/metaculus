@@ -183,28 +183,30 @@ const SectionToggle: FC<PropsWithChildren<Props>> = ({
       id={id}
       open={open}
       onOpenChange={setIsOpen}
-      className={wrapperClassName}
+      className={sectionContainerVariants({
+        variant,
+        open,
+        className: wrapperClassName,
+      })}
     >
-      <div className={sectionContainerVariants({ variant, open })}>
-        <Collapsible.Trigger className="w-full">
-          <div className={cn(triggerVariants({ variant, open }), className)}>
-            <FontAwesomeIcon
-              icon={faChevronDown}
-              className={iconVariants({ variant, open })}
-            />
-            <span>{title}</span>
-            {typeof detailElement === "function"
-              ? detailElement(open)
-              : detailElement}
-          </div>
-        </Collapsible.Trigger>
-        <Collapsible.Panel
-          hiddenUntilFound={hiddenUntilFound}
-          className={cn(panelVariants({ variant }), contentWrapperClassName)}
-        >
-          {children}
-        </Collapsible.Panel>
-      </div>
+      <Collapsible.Trigger
+        className={triggerVariants({ variant, open, className })}
+      >
+        <FontAwesomeIcon
+          icon={faChevronDown}
+          className={iconVariants({ variant, open })}
+        />
+        <span>{title}</span>
+        {typeof detailElement === "function"
+          ? detailElement(open)
+          : detailElement}
+      </Collapsible.Trigger>
+      <Collapsible.Panel
+        hiddenUntilFound={hiddenUntilFound}
+        className={cn(panelVariants({ variant }), contentWrapperClassName)}
+      >
+        {children}
+      </Collapsible.Panel>
     </Collapsible.Root>
   );
 };

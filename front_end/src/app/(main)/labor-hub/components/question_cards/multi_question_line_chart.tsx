@@ -57,7 +57,6 @@ export type MultiQuestionLineChartProps = {
   showMoreButton?: boolean;
   valueFormat?: MultiQuestionLineChartValueFormat;
   decimals?: number;
-  historicalTickEvery?: number;
   getSeriesOptions?: (
     row: MultiQuestionResolvedRow,
     index: number
@@ -65,7 +64,6 @@ export type MultiQuestionLineChartProps = {
 } & Omit<
   MultiLineChartProps,
   | "series"
-  | "xTickValues"
   | "formatXTick"
   | "formatYValue"
   | "highlightedX"
@@ -90,20 +88,21 @@ function buildSeriesFromDatasetRows(
 
   const series = rows.map<MultiLineChartSeries>((row, index) => {
     const overrides = getSeriesOptions?.(row, index);
-    const historicalValues = row.historicalValues ?? {};
+    const isStaticRow = row.questionId == null;
+    const historicalValues = isStaticRow ? {} : row.historicalValues ?? {};
 
     return {
-      id: String(row.questionId),
+      id: row.questionId != null ? String(row.questionId) : `static-${index}`,
       label: row.title,
       color:
         overrides?.color ??
         row.color ??
         DEFAULT_SERIES_COLORS[index % DEFAULT_SERIES_COLORS.length] ??
         "blue",
-      dataLabels: overrides?.dataLabels,
+      dataLabels: overrides?.dataLabels ?? row.dataLabels,
       filled: overrides?.filled ?? false,
-      dashed: overrides?.dashed,
-      dotSize: overrides?.dotSize,
+      dashed: overrides?.dashed ?? row.dashed,
+      dotSize: overrides?.dotSize ?? row.dotSize,
       legendStyle: overrides?.legendStyle,
       legendDetail: overrides?.legendDetail,
       dataLabelPlacement: overrides?.dataLabelPlacement,
@@ -133,7 +132,6 @@ function buildSeriesFromDatasetRows(
 
   return {
     series,
-    xTickValues,
     xTickLabelsByValue,
   };
 }
@@ -194,11 +192,12 @@ async function MultiQuestionLineChartContent({
   showMoreButton = true,
   valueFormat = "percentageChange",
   decimals = 1,
-  historicalTickEvery,
   getSeriesOptions,
   ...chartProps
 }: MultiQuestionLineChartProps) {
-  const postIds = rows.map((row) => row.questionId);
+  const postIds = rows
+    .map((row) => row.questionId)
+    .filter((id): id is number => id != null);
   const titleText = reactNodeToText(title);
 
   let dataset;
@@ -213,31 +212,20 @@ async function MultiQuestionLineChartContent({
     );
   }
 
-  const { series, xTickValues, xTickLabelsByValue } =
-    buildSeriesFromDatasetRows(dataset.rows, dataset.columns, getSeriesOptions);
+  const { series, xTickLabelsByValue } = buildSeriesFromDatasetRows(
+    dataset.rows,
+    dataset.columns,
+    getSeriesOptions
+  );
   const historicalLabelSet = new Set(
-    rows.flatMap((row) => Object.keys(row.historicalValues ?? {}))
+    rows.flatMap((row) =>
+      row.questionId != null ? Object.keys(row.historicalValues ?? {}) : []
+    )
   );
   const historicalForecastDividerX = getHistoricalForecastDividerX(
     dataset.columns,
     historicalLabelSet
   );
-  const visibleXTickValues =
-    historicalTickEvery && historicalTickEvery > 1
-      ? xTickValues.filter((xTickValue) => {
-          const label = xTickLabelsByValue[String(xTickValue)];
-          if (!label || !historicalLabelSet.has(label)) return true;
-
-          const historicalIndex = dataset.columns
-            .filter((column) => historicalLabelSet.has(column))
-            .indexOf(label);
-
-          return (
-            historicalIndex === -1 ||
-            historicalIndex % historicalTickEvery === 0
-          );
-        })
-      : xTickValues;
 
   return (
     <>
@@ -255,8 +243,6 @@ async function MultiQuestionLineChartContent({
         <MultiQuestionLineChartClient
           {...chartProps}
           series={series}
-          xTickValues={xTickValues}
-          visibleXTickValues={visibleXTickValues}
           xTickLabelsByValue={xTickLabelsByValue}
           historicalForecastDividerX={historicalForecastDividerX}
           valueFormat={valueFormat}

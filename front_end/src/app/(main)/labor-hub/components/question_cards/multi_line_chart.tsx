@@ -25,6 +25,7 @@ import {
   CHART_PADDING,
   closestTickValue,
   computeMultiLineChartModel,
+  estimateNumericLabelWidthPx,
 } from "./chart_core/multi_line_chart_model";
 import {
   type DataLabelMode,
@@ -46,8 +47,6 @@ type Props = {
   yAxisGutter?: number;
   formatYTick?: (value: number) => string;
   formatYValue?: (value: number) => string;
-  xTickValues?: number[];
-  visibleXTickValues?: number[];
   formatXTick?: (value: number) => string;
   highlightedX?: number | null;
   defaultHighlightedX?: number | null;
@@ -88,6 +87,37 @@ export const defaultFormatYTick = (value: number): string => {
 const DATA_LABEL_ON_DARK_FILL = METAC_COLORS.gray["0"].DEFAULT;
 const DATA_LABEL_ON_LIGHT_FILL = METAC_COLORS.gray["900"].DEFAULT;
 const AREA_SECTION_LABEL_Y = 18;
+const X_TICK_AVG_CHAR_PX = 6.5;
+const X_TICK_MIN_GAP_PX = 8;
+
+type XTickLabelBox = { left: number; right: number };
+
+type XTickLabelLayoutParams = {
+  plotLeft: number;
+  plotRight: number;
+  xMin: number;
+  xMax: number;
+  formatXTick?: (value: number) => string;
+};
+
+const computeXTickLabelBox = (
+  xValue: number,
+  { plotLeft, plotRight, xMin, xMax, formatXTick }: XTickLabelLayoutParams
+): XTickLabelBox | null => {
+  const plotWidth = plotRight - plotLeft;
+  const domainSpan = xMax - xMin;
+  if (plotWidth <= 0 || domainSpan === 0) return null;
+  const text = formatXTick ? formatXTick(xValue) : String(xValue);
+  const halfWidth = (text.length * X_TICK_AVG_CHAR_PX) / 2;
+  const center = plotLeft + ((xValue - xMin) / domainSpan) * plotWidth;
+  return { left: center - halfWidth, right: center + halfWidth };
+};
+
+const xTickLabelsCollide = (a: XTickLabelBox, b: XTickLabelBox): boolean =>
+  !(
+    a.right + X_TICK_MIN_GAP_PX <= b.left ||
+    b.right + X_TICK_MIN_GAP_PX <= a.left
+  );
 
 const MC_OPTION_COLOR_MAP = {
   mc1: METAC_COLORS["mc-option"]["1"],
@@ -210,7 +240,7 @@ const Legend: FC<{
   }, [series, order]);
 
   return (
-    <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+    <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2 pr-8">
       {legendItems.map((item) => {
         const colors = getSeriesColors(item.color, getThemeColor);
         return (
@@ -394,6 +424,82 @@ const DataPointCircle: FC<{
 const DATA_LABEL_BADGE_HEIGHT = 18;
 const DATA_LABEL_FONT_SIZE = 12;
 const DATA_LABEL_GAP = 4;
+const DATA_LABEL_COLLISION_GAP_PX = 4;
+
+const computeBadgeWidth = (text: string) =>
+  estimateNumericLabelWidthPx(text) + 8;
+
+type DataLabelBox = {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+};
+
+type DataLabelLayoutParams = {
+  plotLeft: number;
+  plotRight: number;
+  plotTop: number;
+  plotBottom: number;
+  xMin: number;
+  xMax: number;
+  yMin: number;
+  yMax: number;
+};
+
+const computeDataLabelBox = (
+  point: { x: number; y: number },
+  labelText: string,
+  placement: DataLabelPlacement,
+  pointRadius: number,
+  layout: DataLabelLayoutParams
+): DataLabelBox | null => {
+  const { plotLeft, plotRight, plotTop, plotBottom, xMin, xMax, yMin, yMax } =
+    layout;
+  const plotWidth = plotRight - plotLeft;
+  const plotHeight = plotBottom - plotTop;
+  const xSpan = xMax - xMin;
+  const ySpan = yMax - yMin;
+  if (plotWidth <= 0 || plotHeight <= 0 || xSpan === 0 || ySpan === 0)
+    return null;
+
+  const badgeWidth = computeBadgeWidth(labelText);
+  const cx = plotLeft + ((point.x - xMin) / xSpan) * plotWidth;
+  const cy = plotBottom - ((point.y - yMin) / ySpan) * plotHeight;
+
+  let badgeTop: number;
+  switch (placement) {
+    case "above":
+      badgeTop = cy - pointRadius - DATA_LABEL_GAP - DATA_LABEL_BADGE_HEIGHT;
+      break;
+    case "inline":
+      badgeTop = cy - DATA_LABEL_BADGE_HEIGHT / 2;
+      break;
+    case "below":
+    default:
+      badgeTop = cy + pointRadius + DATA_LABEL_GAP;
+      break;
+  }
+
+  return {
+    left: cx - badgeWidth / 2,
+    right: cx + badgeWidth / 2,
+    top: badgeTop,
+    bottom: badgeTop + DATA_LABEL_BADGE_HEIGHT,
+  };
+};
+
+const dataLabelBoxesCollide = (a: DataLabelBox, b: DataLabelBox): boolean => {
+  const horizontalOverlap = !(
+    a.right + DATA_LABEL_COLLISION_GAP_PX <= b.left ||
+    b.right + DATA_LABEL_COLLISION_GAP_PX <= a.left
+  );
+  const verticalOverlap = !(
+    a.bottom + DATA_LABEL_COLLISION_GAP_PX <= b.top ||
+    b.bottom + DATA_LABEL_COLLISION_GAP_PX <= a.top
+  );
+  return horizontalOverlap && verticalOverlap;
+};
 
 const ChangeBadge: FC<{
   x?: number;
@@ -434,7 +540,7 @@ const ChangeBadge: FC<{
   const bgColor = transparent ? "transparent" : lineColor;
   const labelTextColor = transparent ? lineColor : labelColor;
   const text = formatValue(datum.y);
-  const badgeWidth = text.length * 7 + 6;
+  const badgeWidth = computeBadgeWidth(text);
 
   let badgeTop: number;
   switch (placement) {
@@ -497,8 +603,6 @@ export const MultiLineChart: FC<Props> = ({
   yAxisGutter,
   formatYTick,
   formatYValue: formatYValueProp,
-  xTickValues,
-  visibleXTickValues,
   formatXTick,
   highlightedX: highlightedXProp,
   defaultHighlightedX = null,
@@ -516,6 +620,7 @@ export const MultiLineChart: FC<Props> = ({
   const [uncontrolledHighlightedX, setUncontrolledHighlightedX] = useState<
     number | null
   >(defaultHighlightedX);
+  const [cursorY, setCursorY] = useState<number | null>(null);
 
   const highlightedX =
     highlightedXProp === undefined
@@ -554,16 +659,8 @@ export const MultiLineChart: FC<Props> = ({
         showTickLabels,
         formatYTick: formatResolvedYTick,
         yAxisGutter,
-        xTickValues,
       }),
-    [
-      series,
-      yAxisLabels,
-      showTickLabels,
-      formatResolvedYTick,
-      yAxisGutter,
-      xTickValues,
-    ]
+    [series, yAxisLabels, showTickLabels, formatResolvedYTick, yAxisGutter]
   );
 
   const shouldDisplayChart = !!chartWidth;
@@ -649,14 +746,18 @@ export const MultiLineChart: FC<Props> = ({
 
       const rect = event.currentTarget.getBoundingClientRect();
       const offsetX = event.clientX - rect.left;
+      const offsetY = event.clientY - rect.top;
       const plotLeft = leftPadding;
       const plotWidth = chartWidth - plotLeft - CHART_PADDING.right;
       if (plotWidth <= 0) return;
 
       if (offsetX < plotLeft || offsetX > chartWidth - CHART_PADDING.right) {
         setHighlightedX(null);
+        setCursorY(null);
         return;
       }
+
+      setCursorY(offsetY);
 
       const progress = (offsetX - plotLeft) / plotWidth;
       const [xMin, xMax] = xDomain;
@@ -673,44 +774,206 @@ export const MultiLineChart: FC<Props> = ({
     if (clearHighlightOnMouseLeave) {
       setHighlightedX(null);
     }
+    setCursorY(null);
   }, [clearHighlightOnMouseLeave, setHighlightedX]);
+
+  const autoVisibleXTickValues = useMemo<number[]>(() => {
+    if (!chartWidth || resolvedXTickValues.length <= 1)
+      return resolvedXTickValues;
+
+    const layoutParams: XTickLabelLayoutParams = {
+      plotLeft: leftPadding,
+      plotRight: chartWidth - CHART_PADDING.right,
+      xMin: xDomain[0],
+      xMax: xDomain[1],
+      formatXTick,
+    };
+
+    const tickBoxes = resolvedXTickValues.map((xValue) => ({
+      xValue,
+      box: computeXTickLabelBox(xValue, layoutParams),
+    }));
+    if (tickBoxes.some((entry) => entry.box === null)) {
+      return resolvedXTickValues;
+    }
+
+    const firstEntry = tickBoxes[0] as { xValue: number; box: XTickLabelBox };
+    const lastEntry = tickBoxes[tickBoxes.length - 1] as {
+      xValue: number;
+      box: XTickLabelBox;
+    };
+
+    if (xTickLabelsCollide(firstEntry.box, lastEntry.box)) {
+      return [lastEntry.xValue];
+    }
+
+    const isForecast = (xValue: number) =>
+      historicalForecastDividerX != null && xValue > historicalForecastDividerX;
+
+    const kept: { xValue: number; box: XTickLabelBox }[] = [firstEntry];
+
+    for (let i = 1; i < tickBoxes.length - 1; i++) {
+      const current = tickBoxes[i] as { xValue: number; box: XTickLabelBox };
+      const lastKept = kept[kept.length - 1];
+      if (!lastKept) break;
+      if (!xTickLabelsCollide(lastKept.box, current.box)) {
+        kept.push(current);
+        continue;
+      }
+      const boundaryHandoff =
+        isForecast(current.xValue) &&
+        !isForecast(lastKept.xValue) &&
+        kept.length > 1;
+      if (boundaryHandoff) {
+        kept.pop();
+        kept.push(current);
+      }
+    }
+
+    while (kept.length > 1) {
+      const tail = kept[kept.length - 1];
+      if (!tail || !xTickLabelsCollide(tail.box, lastEntry.box)) break;
+      kept.pop();
+    }
+    kept.push(lastEntry);
+
+    return kept.map((entry) => entry.xValue);
+  }, [
+    resolvedXTickValues,
+    chartWidth,
+    leftPadding,
+    xDomain,
+    formatXTick,
+    historicalForecastDividerX,
+  ]);
+
+  const renderedXTickSet = useMemo<Set<number>>(() => {
+    const baseSet = new Set(autoVisibleXTickValues);
+    if (highlightedX == null || !chartWidth) return baseSet;
+
+    const layoutParams: XTickLabelLayoutParams = {
+      plotLeft: leftPadding,
+      plotRight: chartWidth - CHART_PADDING.right,
+      xMin: xDomain[0],
+      xMax: xDomain[1],
+      formatXTick,
+    };
+
+    const hoverBox = computeXTickLabelBox(highlightedX, layoutParams);
+    if (!hoverBox) return baseSet;
+
+    const result = new Set<number>([highlightedX]);
+    for (const xValue of autoVisibleXTickValues) {
+      if (xValue === highlightedX) continue;
+      const box = computeXTickLabelBox(xValue, layoutParams);
+      if (!box || !xTickLabelsCollide(hoverBox, box)) {
+        result.add(xValue);
+      }
+    }
+    return result;
+  }, [
+    autoVisibleXTickValues,
+    highlightedX,
+    chartWidth,
+    leftPadding,
+    xDomain,
+    formatXTick,
+  ]);
 
   const formatResolvedXTick = useCallback(
     (tick: string | number) => {
       const numericTick = typeof tick === "number" ? tick : Number(tick);
-      if (visibleXTickValues?.length) {
-        const baseVisibleTickSet = new Set(visibleXTickValues);
-        const isBaseVisible = baseVisibleTickSet.has(numericTick);
-
-        if (highlightedX != null && !baseVisibleTickSet.has(highlightedX)) {
-          const highlightedIndex = resolvedXTickValues.indexOf(highlightedX);
-          const previousTick =
-            highlightedIndex > 0
-              ? resolvedXTickValues[highlightedIndex - 1]
-              : undefined;
-          const nextTick =
-            highlightedIndex >= 0
-              ? resolvedXTickValues[highlightedIndex + 1]
-              : undefined;
-
-          if (numericTick === highlightedX) {
-            return formatXTick ? formatXTick(numericTick) : String(tick);
-          }
-
-          if (numericTick === previousTick || numericTick === nextTick) {
-            return "";
-          }
-        }
-
-        if (!isBaseVisible) {
-          return "";
-        }
-      }
-
+      if (!renderedXTickSet.has(numericTick)) return "";
       return formatXTick ? formatXTick(numericTick) : String(tick);
     },
-    [formatXTick, highlightedX, resolvedXTickValues, visibleXTickValues]
+    [formatXTick, renderedXTickSet]
   );
+
+  const inlineHoverSeriesOrdered = useMemo<ResolvedSeriesEntry[]>(() => {
+    const filtered = seriesEntries.filter(
+      ({ series: item }) =>
+        getHoverLabelMode(item.dataLabels) &&
+        (item.dataLabelPlacement ?? "inline") === "inline"
+    );
+
+    if (
+      highlightedX == null ||
+      cursorY == null ||
+      !chartWidth ||
+      filtered.length <= 1
+    ) {
+      return filtered;
+    }
+
+    const plotTop = CHART_PADDING.top;
+    const plotBottom = height - CHART_PADDING.bottom;
+    const plotHeight = plotBottom - plotTop;
+    const [yMin, yMax] = yDomain;
+    const ySpan = yMax - yMin;
+    if (plotHeight <= 0 || ySpan === 0) return filtered;
+
+    const distanceFor = (entry: ResolvedSeriesEntry): number => {
+      const point = entry.chartData.find((p) => p.x === highlightedX);
+      if (!point || point.y === 0) return Infinity;
+      const pixelY = plotBottom - ((point.y - yMin) / ySpan) * plotHeight;
+      return Math.abs(pixelY - cursorY);
+    };
+
+    return [...filtered].sort((a, b) => distanceFor(b) - distanceFor(a));
+  }, [seriesEntries, highlightedX, cursorY, chartWidth, height, yDomain]);
+
+  const visibleDataLabelXsBySeries = useMemo<Map<string, Set<number>>>(() => {
+    const result = new Map<string, Set<number>>();
+    if (!chartWidth) return result;
+
+    const layout: DataLabelLayoutParams = {
+      plotLeft: leftPadding,
+      plotRight: chartWidth - CHART_PADDING.right,
+      plotTop: CHART_PADDING.top,
+      plotBottom: height - CHART_PADDING.bottom,
+      xMin: xDomain[0],
+      xMax: xDomain[1],
+      yMin: yDomain[0],
+      yMax: yDomain[1],
+    };
+
+    for (const entry of seriesEntries) {
+      const placement = entry.series.dataLabelPlacement ?? "inline";
+      const sortedPoints = [...entry.chartData].sort((a, b) => a.x - b.x);
+      const keptBoxes: DataLabelBox[] = [];
+      const keptXs = new Set<number>();
+
+      for (const point of sortedPoints) {
+        if (point.y === 0) continue;
+        const box = computeDataLabelBox(
+          point,
+          formatResolvedYValue(point.y),
+          placement,
+          entry.pointRadius,
+          layout
+        );
+        if (!box) continue;
+        const collides = keptBoxes.some((existing) =>
+          dataLabelBoxesCollide(existing, box)
+        );
+        if (!collides) {
+          keptBoxes.push(box);
+          keptXs.add(point.x);
+        }
+      }
+      result.set(entry.series.id, keptXs);
+    }
+
+    return result;
+  }, [
+    seriesEntries,
+    chartWidth,
+    leftPadding,
+    height,
+    xDomain,
+    yDomain,
+    formatResolvedYValue,
+  ]);
 
   return (
     <div className="w-full">
@@ -944,41 +1207,42 @@ export const MultiLineChart: FC<Props> = ({
               .filter(({ series: item }) =>
                 getAlwaysVisibleLabelMode(item.dataLabels, isPrintMode)
               )
-              .map(({ series: item, chartData, colors, pointRadius }) => (
-                <VictoryScatter
-                  key={`labels-always-${item.id}`}
-                  data={chartData}
-                  dataComponent={
-                    <ChangeBadge
-                      formatValue={formatResolvedYValue}
-                      alwaysVisible
-                      placement={item.dataLabelPlacement}
-                      pointRadius={pointRadius}
-                      lineColor={colors.stroke}
-                      labelColor={getContrastTextColor(colors.stroke)}
-                      transparent={item.dataLabelTransparent}
-                      groupClassName={cn(
-                        item.dataLabelClassName,
-                        emphasisActive &&
-                          item.id !== emphasizedSeriesId &&
-                          "opacity-[0.32]"
-                      )}
-                      rectClassName={item.dataLabelRectClassName}
-                      textClassName={item.dataLabelTextClassName}
-                    />
-                  }
-                />
-              ))}
+              .map(({ series: item, chartData, colors, pointRadius }) => {
+                const visibleXs = visibleDataLabelXsBySeries.get(item.id);
+                const data = visibleXs
+                  ? chartData.filter((p) => visibleXs.has(p.x))
+                  : chartData;
+                return (
+                  <VictoryScatter
+                    key={`labels-always-${item.id}`}
+                    data={data}
+                    dataComponent={
+                      <ChangeBadge
+                        formatValue={formatResolvedYValue}
+                        alwaysVisible
+                        placement={item.dataLabelPlacement}
+                        pointRadius={pointRadius}
+                        lineColor={colors.stroke}
+                        labelColor={getContrastTextColor(colors.stroke)}
+                        transparent={item.dataLabelTransparent}
+                        groupClassName={cn(
+                          item.dataLabelClassName,
+                          emphasisActive &&
+                            item.id !== emphasizedSeriesId &&
+                            "opacity-[0.32]"
+                        )}
+                        rectClassName={item.dataLabelRectClassName}
+                        textClassName={item.dataLabelTextClassName}
+                      />
+                    }
+                  />
+                );
+              })}
 
             {!isPrintMode &&
               (highlightedX != null || emphasisActive) &&
-              seriesEntries
-                .filter(
-                  ({ series: item }) =>
-                    getHoverLabelMode(item.dataLabels) &&
-                    (item.dataLabelPlacement ?? "inline") === "inline"
-                )
-                .map(({ series: item, chartData, colors, pointRadius }) => {
+              inlineHoverSeriesOrdered.map(
+                ({ series: item, chartData, colors, pointRadius }) => {
                   const isEmphasized =
                     emphasisActive && item.id === emphasizedSeriesId;
                   const showAllBadges = isEmphasized;
@@ -987,10 +1251,17 @@ export const MultiLineChart: FC<Props> = ({
 
                   if (!showAllBadges && !showHighlightedBadge) return null;
 
+                  const visibleXs = showAllBadges
+                    ? visibleDataLabelXsBySeries.get(item.id)
+                    : undefined;
+                  const data = visibleXs
+                    ? chartData.filter((p) => visibleXs.has(p.x))
+                    : chartData;
+
                   return (
                     <VictoryScatter
                       key={`labels-hover-${item.id}`}
-                      data={chartData}
+                      data={data}
                       dataComponent={
                         <ChangeBadge
                           formatValue={formatResolvedYValue}
@@ -1013,7 +1284,8 @@ export const MultiLineChart: FC<Props> = ({
                       }
                     />
                   );
-                })}
+                }
+              )}
           </VictoryChart>
         )}
       </div>

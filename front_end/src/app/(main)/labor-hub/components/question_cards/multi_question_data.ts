@@ -3,14 +3,24 @@ import { type ReactNode } from "react";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import { type QuestionWithNumericForecasts } from "@/types/question";
 
-import { type MultiLineChartColor } from "./multi_line_chart.types";
+import {
+  type DataLabelMode,
+  type MultiLineChartColor,
+} from "./multi_line_chart.types";
 import { getSubQuestionValue } from "../../helpers/fetch_jobs_data";
 
 export type MultiQuestionRowConfig = {
-  questionId: number;
+  /** Omit for a static-only series whose values come entirely from historicalValues. */
+  questionId?: number;
   title: string;
   /** When set, used for this series in the chart (see also getSeriesOptions on MultiQuestionLineChart). */
   color?: MultiLineChartColor;
+  /** Render this series as a dashed line. */
+  dashed?: boolean;
+  /** Per-point dot radius. Set to 0 to hide dots. */
+  dotSize?: number;
+  /** Controls data-label visibility for this series (default: hover). Use "never" to suppress. */
+  dataLabels?: DataLabelMode;
   staticValue?: ReactNode;
   historicalValues?: Record<string, number | null>;
 };
@@ -30,6 +40,18 @@ const labelCollator = new Intl.Collator(undefined, {
   sensitivity: "base",
 });
 
+// Collapses short fiscal-year-style labels like "2024-25" into "2025"
+// (pattern: 4 digits, hyphen, 2 digits -> first 2 digits + trailing 2 digits).
+const YEAR_RANGE_LABEL_PATTERN = /^(\d{2})\d{2}-(\d{2})$/;
+
+export function normalizeMultiQuestionLabel(label: string): string {
+  const match = YEAR_RANGE_LABEL_PATTERN.exec(label);
+  if (match) {
+    return `${match[1]}${match[2]}`;
+  }
+  return label;
+}
+
 export function sortMultiQuestionLabels(labels: string[]): string[] {
   return [...labels].sort((a, b) => labelCollator.compare(a, b));
 }
@@ -37,18 +59,22 @@ export function sortMultiQuestionLabels(labels: string[]): string[] {
 export async function fetchMultiQuestionDataset(
   rows: MultiQuestionRowConfig[]
 ): Promise<MultiQuestionDataset> {
-  const postIds = rows.map((row) => row.questionId);
-  const { results: posts } = await ServerPostsApi.getPostsWithCP({
-    ids: postIds,
-    limit: postIds.length,
-  });
+  const postIds = rows
+    .map((row) => row.questionId)
+    .filter((id): id is number => id != null);
+  const { results: posts } = postIds.length
+    ? await ServerPostsApi.getPostsWithCP({
+        ids: postIds,
+        limit: postIds.length,
+      })
+    : { results: [] };
 
   const postsById = new Map(posts.map((post) => [post.id, post]));
   const labelsSet = new Set<string>();
 
   for (const row of rows) {
     for (const label of Object.keys(row.historicalValues ?? {})) {
-      labelsSet.add(label);
+      labelsSet.add(normalizeMultiQuestionLabel(label));
     }
   }
 
@@ -56,29 +82,36 @@ export async function fetchMultiQuestionDataset(
     const questions = post.group_of_questions?.questions;
     if (!questions) continue;
     for (const question of questions) {
-      if (question.label) labelsSet.add(question.label);
+      if (question.label) {
+        labelsSet.add(normalizeMultiQuestionLabel(question.label));
+      }
     }
   }
 
   const columns = sortMultiQuestionLabels(Array.from(labelsSet));
   const resolvedRows = rows.map((row) => {
-    const post = postsById.get(row.questionId);
+    const post =
+      row.questionId != null ? postsById.get(row.questionId) : undefined;
     const questions = post?.group_of_questions?.questions as
       | QuestionWithNumericForecasts[]
       | undefined;
     const questionByLabel = new Map(
-      questions?.map((question) => [question.label, question]) ?? []
+      questions?.map((question) => [
+        normalizeMultiQuestionLabel(question.label ?? ""),
+        question,
+      ]) ?? []
+    );
+    const historicalByLabel = new Map(
+      Object.entries(row.historicalValues ?? {}).map(([label, value]) => [
+        normalizeMultiQuestionLabel(label),
+        value,
+      ])
     );
 
     const values = Object.fromEntries(
       columns.map((label) => {
-        if (
-          Object.prototype.hasOwnProperty.call(
-            row.historicalValues ?? {},
-            label
-          )
-        ) {
-          return [label, row.historicalValues?.[label] ?? null];
+        if (historicalByLabel.has(label)) {
+          return [label, historicalByLabel.get(label) ?? null];
         }
 
         const question = questionByLabel.get(label);

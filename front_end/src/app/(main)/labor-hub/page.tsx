@@ -9,9 +9,9 @@ import { ActivityCard } from "./components/activity_card";
 import { DefinitionTooltip } from "./components/definition_tooltip";
 import LaborHubNavigation from "./components/labor_hub_navigation";
 import { PrintAttribution } from "./components/print_attribution";
+import { FlippableChartTimelineCard } from "./components/question_cards/flippable_chart_timeline_card";
 import { FlippableMultiQuestionCard } from "./components/question_cards/flippable_multi_question_card";
 import { MultiQuestionTable } from "./components/question_cards/multi_question_table";
-import { QuestionLoader } from "./components/question_cards/question";
 import {
   DualPaneSectionCard,
   DualPaneSectionLeft,
@@ -72,57 +72,59 @@ export default function LaborAutomationHubPage() {
       </div>
       <LaborHubNavigation sections={SECTIONS} newsletterListKey="labor" />
 
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 sm:gap-6 sm:px-8 md:gap-8 xl:px-16 print:gap-8 print:px-0">
-        <OverviewSection id="overview" className="print:mb-6" />
-        <SectionToggle
-          key="key-insights"
-          title="Key Insights"
-          variant="light"
-          defaultOpen={false}
-          wrapperClassName="print:mb-6"
-          contentWrapperClassName="grid md:grid-cols-2 md:gap-8 print:grid-cols-2 print:gap-4"
-        >
-          <div className="flex flex-col">
-            <KeyInsightItem title="Overall employment">
-              Forecasters expect significant AI-driven job change, with overall
-              employment declining around 6% by 2035, while the latest
-              government projections expect approximately 3% growth.
-            </KeyInsightItem>
-            <KeyInsightItem title="Most and least vulnerable occupations">
-              Software developers, lawyers and law clerks, and laborers and
-              material movers are all expected to see the largest decreases in
-              employment rates, while registered nurses, restaurant servers, and
-              law enforcement are projected to grow
-            </KeyInsightItem>
-            <KeyInsightItem title="Wages and hours worked">
-              Wages are expected to see notable growth for workers who remain
-              employed, while hours worked are expected to decline to 32 hours a
-              week in 2035, down from 38 now.
-            </KeyInsightItem>
-          </div>
-          <div className="flex flex-col">
-            <KeyInsightItem title="Financial well-being">
-              Well-being (as measured by the ratio of after-tax and transfer
-              available resources to the poverty threshold) is expected to grow
-              across the board, with the highest income families seeing the most
-              gains.
-            </KeyInsightItem>
-            <KeyInsightItem title="Young workers">
-              The youngest workers are expected to be hit hardest, with
-              unemployment for 4-year college graduates in the 22-27 age range
-              expected to grow from the current 6% to 15% in 2035. Meanwhile,
-              trade school and community college enrollment is expected to grow
-              17% from current levels by 2035.
-            </KeyInsightItem>
-            <KeyInsightItem title="Broader economy">
-              The economy is expected to see a number of significant changes,
-              with the long-term unemployment rate, labor productivity, and the
-              number of Fortune 500 companies with fewer than 5,000 employees
-              all nearly doubling over the next decade.
-            </KeyInsightItem>
-          </div>
-        </SectionToggle>
-        <ActivityMonitorSection id="activity" className="" />
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-1 sm:gap-6 sm:px-8 md:gap-8 xl:px-16 print:gap-8 print:px-0">
+        <div className="flex w-full flex-col gap-5 px-3 sm:gap-6 sm:px-0 md:gap-8 print:gap-8 print:px-0">
+          <OverviewSection id="overview" className="print:mb-6" />
+          <SectionToggle
+            key="key-insights"
+            title="Key Insights"
+            variant="light"
+            defaultOpen={false}
+            wrapperClassName="print:mb-6"
+            contentWrapperClassName="grid md:grid-cols-2 md:gap-8 print:grid-cols-2 print:gap-4"
+          >
+            <div className="flex flex-col">
+              <KeyInsightItem title="Overall employment">
+                Forecasters expect significant AI-driven job change, with
+                overall employment declining around 6% by 2035, while the latest
+                government projections expect approximately 3% growth.
+              </KeyInsightItem>
+              <KeyInsightItem title="Most and least vulnerable occupations">
+                Software developers, lawyers and law clerks, and laborers and
+                material movers are all expected to see the largest decreases in
+                employment rates, while registered nurses, K-12 teachers, and
+                restaurant servers are projected to grow.
+              </KeyInsightItem>
+              <KeyInsightItem title="Wages and hours worked">
+                Wages are expected to see notable growth for workers who remain
+                employed, while hours worked are expected to decline to 34 hours
+                a week in 2035, down from 38 now.
+              </KeyInsightItem>
+            </div>
+            <div className="flex flex-col">
+              <KeyInsightItem title="Financial well-being">
+                Well-being (as measured by the ratio of after-tax and transfer
+                available resources to the poverty threshold) is expected to
+                remain the same or grow across the board, with the highest
+                income families seeing the most gains.
+              </KeyInsightItem>
+              <KeyInsightItem title="Young workers">
+                The youngest workers are expected to be hit hardest, with
+                unemployment for 4-year college graduates in the 22-27 age range
+                expected to grow from the current 6% to 11% in 2035. Meanwhile,
+                trade school and community college certificates are expected to
+                grow 24% from current levels by 2035.
+              </KeyInsightItem>
+              <KeyInsightItem title="Broader economy">
+                The economy is expected to see a number of significant changes,
+                with the long-term unemployment rate, labor productivity, and
+                the number of Fortune 500 companies with fewer than 5,000
+                employees all seeing substantial increases over the next decade.
+              </KeyInsightItem>
+            </div>
+          </SectionToggle>
+          <ActivityMonitorSection id="activity" className="" />
+        </div>
         <JobsMonitorServer
           id="jobs"
           labels={["2027", "2030", "2035"]}
@@ -157,7 +159,7 @@ export default function LaborAutomationHubPage() {
               </span>
               , <strong>median wages are expected to grow.</strong> The workweek
               is also expected to become{" "}
-              <strong>six hours shorter by 2035</strong> among all workers,
+              <strong>four hours shorter by 2035</strong> among all workers,
               while productivity grows.
             </ContentParagraph>
             <ContentParagraph>
@@ -175,9 +177,25 @@ export default function LaborAutomationHubPage() {
               key barometer of whether AI&apos;s productivity gains are actually
               shared with labor.
             </ContentParagraph>
-            <QuestionLoader
+            <FlippableChartTimelineCard
               title="Average weekly hours worked"
               questionId={41574}
+              prefer="chart"
+              historicalValues={{
+                2018: 38.9,
+                2019: 39,
+                2020: 38.3,
+                2021: 38.7,
+                2022: 38.6,
+                2023: 38.5,
+                2024: 38.3,
+                2025: 38.3,
+              }}
+              chartProps={{
+                showTickLabels: true,
+                valueFormat: "number",
+                decimals: 1,
+              }}
             />
             <ContentParagraph small>
               Forecasters note the concept of “
@@ -199,10 +217,40 @@ export default function LaborAutomationHubPage() {
               minimum needs such as food, clothing, and shelter. These
               predictions show how the 20th, 50th, and 80th percentile families
               are expected to fare in the coming decade under the potential
-              impact of AI.
+              impact of AI, with higher numbers indicating better financial
+              well-being.
             </ContentParagraph>
             <FlippableMultiQuestionCard
-              title="How far family resources stretch: well-being ratios (resources to poverty threshold) by percentile"
+              title={
+                <>
+                  How far family resources stretch:{" "}
+                  <DefinitionTooltip
+                    tooltipContent={
+                      <>
+                        We define the well-being ratio as the ratio of available
+                        resources to the poverty threshold. Available resources
+                        include government benefits and housing subsidies, and
+                        deduct expenses like child care, taxes, child support,
+                        and medical expenses. Both the available resources and
+                        the poverty threshold come from the{" "}
+                        <a
+                          href="https://www.census.gov/topics/income-poverty/supplemental-poverty-measure/about.html"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Supplemental Poverty Measure
+                        </a>
+                        , which provides a poverty threshold that takes into
+                        account recent data about spending needs and adjusts
+                        based on family size, geography, and place and type of
+                        residence.
+                      </>
+                    }
+                  >
+                    well-being ratios
+                  </DefinitionTooltip>
+                </>
+              }
               prefer="timeline"
               tableHistoricalValueKeys={["2024"]}
               rows={[
@@ -252,21 +300,31 @@ export default function LaborAutomationHubPage() {
               chartProps={{
                 showTickLabels: true,
                 valueFormat: "number",
-                historicalTickEvery: 2,
               }}
             />
             <ContentParagraph small>
               With only 12% of workers using AI daily as of late 2025, the
               workplace is still in the early stages of an adoption curve that
               could fundamentally change how most Americans do their jobs within
-              a decade. But Forecasters note that some people may only think
+              a decade. But forecasters note that some people may only think
               about AI as LLM chatbots and not realize how many tools they use
               in their daily work involve AI, especially as integrations
               increase across productivity tools.
             </ContentParagraph>
-            <QuestionLoader
+            <FlippableChartTimelineCard
               title="Percent of workers that use AI daily"
               questionId={42215}
+              prefer="chart"
+              historicalValues={{
+                2023: 4,
+                2024: 4,
+                2025: 10,
+              }}
+              chartProps={{
+                showTickLabels: true,
+                valueFormat: "percentage",
+                decimals: 1,
+              }}
             />
           </DualPaneSectionRight>
         </DualPaneSectionCard>
@@ -289,14 +347,35 @@ export default function LaborAutomationHubPage() {
                     college graduates with bachelor’s degrees or higher
                   </>
                 }
+                tableHistoricalValueKeys={["2025"]}
                 rows={[
                   {
                     questionId: 42212,
                     title: "Unemployment Rate",
+                    historicalValues: {
+                      2018: 3.7,
+                      2019: 3.9,
+                      2020: 8.0,
+                      2021: 5.8,
+                      2022: 4.1,
+                      2023: 4.4,
+                      2024: 4.8,
+                      2025: 5.4,
+                    },
                   },
                   {
                     questionId: 42213,
                     title: "Underemployment Rate",
+                    historicalValues: {
+                      2018: 41.6,
+                      2019: 41.5,
+                      2020: 41.0,
+                      2021: 40.9,
+                      2022: 40.3,
+                      2023: 39.7,
+                      2024: 40.3,
+                      2025: 41.4,
+                    },
                   },
                 ]}
                 tableProps={{
@@ -316,8 +395,8 @@ export default function LaborAutomationHubPage() {
               while experience and judgment remain harder to replace.
             </ContentParagraph>
             <ContentParagraph>
-              The unemployment rate for new graduates is expected to be{" "}
-              <strong>nearly three times higher</strong> in 2035 than in 2025.
+              The unemployment rate for new graduates is expected to have{" "}
+              <strong>doubled</strong> in 2035 compared to 2025.
             </ContentParagraph>
             <ContentParagraph>
               The number of degrees awarded overall and for STEM and humanities
@@ -336,25 +415,78 @@ export default function LaborAutomationHubPage() {
               time, enrollment in community colleges and trade schools is
               expected to increase.
             </ContentParagraph>
-            <MultiQuestionTable
+            <FlippableMultiQuestionCard
+              prefer="timeline"
               title="Change in the number of bachelor’s degrees awarded relative to 2025"
-              firstColumnHeader="Major"
-              valueFormat="percentageChange"
-              decimals={1}
+              tableHistoricalValueKeys={["2025"]}
               rows={[
                 {
                   questionId: 42220,
-                  title: "Overall",
+                  title: "Overall 4-year",
+                  historicalValues: {
+                    2018: 1.31,
+                    2019: 2.97,
+                    2020: 4.28,
+                    2021: 5.7,
+                    2022: 3.06,
+                    2023: 0.55,
+                    2024: 0,
+                    2025: 0,
+                  },
                 },
                 {
                   questionId: 42852,
-                  title: "STEM",
+                  title: "STEM 4-year",
+                  historicalValues: {
+                    2018: -8.9,
+                    2019: -4.81,
+                    2020: -0.99,
+                    2021: 0.84,
+                    2022: 0.42,
+                    2023: -0.06,
+                    2024: 0,
+                    2025: 0,
+                  },
                 },
                 {
                   questionId: 42853,
-                  title: "Humanities",
+                  title: "Humanities 4-year",
+                  historicalValues: {
+                    2018: 23.1,
+                    2019: 22.02,
+                    2020: 19.51,
+                    2021: 15.54,
+                    2022: 6.38,
+                    2023: 1.83,
+                    2024: 0,
+                    2025: 0,
+                  },
+                },
+                {
+                  questionId: 42856,
+                  title: "Trade School and Community College",
+                  historicalValues: {
+                    2018: 2.72,
+                    2019: 4.75,
+                    2020: -0.51,
+                    2021: 0.73,
+                    2022: 1.18,
+                    2023: -1.57,
+                    2024: 0,
+                    2025: 0,
+                  },
                 },
               ]}
+              tableProps={{
+                firstColumnHeader: "Major",
+                valueFormat: "percentageChange",
+                decimals: 1,
+              }}
+              chartProps={{
+                showTickLabels: true,
+                valueFormat: "percentageChange",
+                height: 320,
+              }}
             />
             <ActivityCard
               avatar="https://cdn.metaculus.com/labor-hub/exmateriae_256.jpg"
@@ -369,10 +501,6 @@ export default function LaborAutomationHubPage() {
               currently doing, young people may be able to pivot to other areas
               soon enough to increase their chances of finding a job.
             </ActivityCard>
-            <QuestionLoader
-              title="Change in the number of community college and trade school degrees awarded relative to 2025"
-              questionId={42856}
-            />
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 
@@ -381,9 +509,47 @@ export default function LaborAutomationHubPage() {
           <DualPaneSectionLeft>
             <SectionHeader>Changing Economy</SectionHeader>
             <ThemeOverrideContainer override="inverted">
-              <QuestionLoader
+              <FlippableChartTimelineCard
                 title="Percentage change in labor productivity relative to 2025"
                 questionId={43087}
+                prefer="chart"
+                historicalValues={{
+                  2018: -13.93,
+                  2019: -12.1,
+                  2020: -7.43,
+                  2021: -5.52,
+                  2022: -6.91,
+                  2023: -4.96,
+                  2024: -2.2,
+                  2025: 0,
+                }}
+                seriesTitle="Productivity change"
+                extraRows={[
+                  {
+                    title: "30-year trend",
+                    color: "mc4",
+                    dashed: true,
+                    dotSize: 0,
+                    dataLabels: "never",
+                    historicalValues: {
+                      2018: -11.4,
+                      2019: -9.93,
+                      2020: -8.47,
+                      2021: -7.0,
+                      2022: -5.53,
+                      2023: -4.07,
+                      2024: -2.6,
+                      2025: -1.14,
+                      2030: 6.19,
+                      2035: 13.52,
+                    },
+                  },
+                ]}
+                chartProps={{
+                  showTickLabels: true,
+                  valueFormat: "percentageChange",
+                  decimals: 1,
+                }}
               />
             </ThemeOverrideContainer>
             <ContentParagraph>
@@ -409,9 +575,18 @@ export default function LaborAutomationHubPage() {
               Fortune 500 giants could operate with workforces once associated
               with small businesses rather than corporate behemoths.
             </ContentParagraph>
-            <QuestionLoader
+            <FlippableChartTimelineCard
               title="Number of Fortune 500 companies with fewer than 5,000 employees"
               questionId={41324}
+              prefer="chart"
+              historicalValues={{
+                2026: 30,
+              }}
+              chartProps={{
+                showTickLabels: true,
+                valueFormat: "number",
+                decimals: 0,
+              }}
             />
             <ActivityCard
               avatar="https://cdn.metaculus.com/labor-hub/draaglom_256.jpg"
@@ -424,13 +599,29 @@ export default function LaborAutomationHubPage() {
               significantly in these employment statistics over the coming
               decade.
             </ActivityCard>
-            <QuestionLoader
+            <FlippableChartTimelineCard
               title={
                 <DefinitionTooltip tooltipContent="The percentage of the labor force (the population aged 16 and over not institutionalized or on active military duty) that has been unemployed for 27 weeks or more.">
                   Long-term unemployment rate
                 </DefinitionTooltip>
               }
               questionId={41313}
+              prefer="chart"
+              historicalValues={{
+                2018: 0.83,
+                2019: 0.77,
+                2020: 1.24,
+                2021: 2.07,
+                2022: 0.8,
+                2023: 0.7,
+                2024: 0.86,
+                2025: 0.99,
+              }}
+              chartProps={{
+                showTickLabels: true,
+                valueFormat: "percentage",
+                decimals: 2,
+              }}
             />
             <ContentParagraph small>
               If AI allows corporations to generate ever-greater output without
@@ -439,13 +630,28 @@ export default function LaborAutomationHubPage() {
               income from labor to capital. Even a few percentage points marks a
               major shift in the context of historical trends.
             </ContentParagraph>
-            <QuestionLoader
+            <FlippableChartTimelineCard
               title={
                 <DefinitionTooltip tooltipContent="Labor share of national income is the percentage of all income earned from production in the economy, measured net of depreciation, that goes to workers in the form of wages and salaries plus employer-paid supplements such as benefits and payroll contributions.">
                   Labor share of national income
                 </DefinitionTooltip>
               }
               questionId={41578}
+              prefer="chart"
+              historicalValues={{
+                2018: 62.4,
+                2019: 62.6,
+                2020: 65.0,
+                2021: 62.9,
+                2022: 61.4,
+                2023: 61.8,
+                2024: 62.1,
+              }}
+              chartProps={{
+                showTickLabels: true,
+                valueFormat: "percentage",
+                decimals: 1,
+              }}
             />
           </DualPaneSectionRight>
         </DualPaneSectionCard>
@@ -455,6 +661,23 @@ export default function LaborAutomationHubPage() {
         <DualPaneSectionCard id="state" className="">
           <DualPaneSectionLeft>
             <SectionHeader>State-Level View</SectionHeader>
+
+            <ContentParagraph>
+              In addition to the changes forecasted for the US, there are areas
+              specific to Washington State that may face particular challenges.
+            </ContentParagraph>
+            <ContentParagraph>
+              The healthcare sector (employing 13% of Washington residents) is
+              forecasted to grow through 2027, largely unaffected by AI in this
+              timeframe. Technology (employing 10%) is expected to see minor
+              growth in the short-term, largely consistent with historical
+              trends. The aerospace sector (employing 2%) is likely to face a
+              slight decline, though the changes are not anticipated to be
+              directly AI-related. These forecasts are very short-term, so the
+              predicted changes are minimal.
+            </ContentParagraph>
+          </DualPaneSectionLeft>
+          <DualPaneSectionRight className="lg:mt-16 print:mt-12">
             <MultiQuestionTable
               title="Employment change for Washington state for 2027"
               hideTitleRow
@@ -498,25 +721,6 @@ export default function LaborAutomationHubPage() {
               population will generate sustained demand for workers in multiple
               industries, for example retail, healthcare and construction.
             </ActivityCard>
-          </DualPaneSectionLeft>
-          <DualPaneSectionRight
-            useMobileCarousel={false}
-            className="lg:mt-16 print:mt-12"
-          >
-            <ContentParagraph>
-              In addition to the changes forecasted for the US, there are areas
-              specific to Washington State that may face particular challenges.
-            </ContentParagraph>
-            <ContentParagraph>
-              The healthcare sector (employing 13% of Washington residents) is
-              forecasted to grow through 2027, largely unaffected by AI in this
-              timeframe. Technology (employing 10%) is expected to see minor
-              growth in the short-term, largely consistent with historical
-              trends. The aerospace sector (employing 2%) is likely to face a
-              slight decline, though the changes are not anticipated to be
-              directly AI-related. These forecasts are very short-term, so the
-              predicted changes are minimal.
-            </ContentParagraph>
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 
