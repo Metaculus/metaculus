@@ -142,7 +142,7 @@ async function ResearchTable({ labels }: { labels?: string[] } = {}) {
     columns = columns.filter((col) => allowed.has(col));
   }
 
-  // Build rows: [name, ...yearValues, rating], sorted by last year value descending
+  // Build rows: [name, ...yearValues, felten, mna, aoe], sorted by last year value descending
   const tableRows = jobs
     .map((job) => {
       const questions = job.post?.group_of_questions?.questions as
@@ -156,7 +156,13 @@ async function ResearchTable({ labels }: { labels?: string[] } = {}) {
         if (!q) return null;
         return getSubQuestionValue(q);
       });
-      return { name: job.name, values, rating: job.rating };
+      return {
+        name: job.name,
+        values,
+        felten: job.felten,
+        mna: job.mna,
+        aoe: job.aoe,
+      };
     })
     .sort((a, b) => {
       const lastA = a.values[a.values.length - 1] ?? 0;
