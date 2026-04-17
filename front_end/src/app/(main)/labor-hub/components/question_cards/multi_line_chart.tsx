@@ -423,6 +423,80 @@ const DataPointCircle: FC<{
 const DATA_LABEL_BADGE_HEIGHT = 18;
 const DATA_LABEL_FONT_SIZE = 12;
 const DATA_LABEL_GAP = 4;
+const DATA_LABEL_CHAR_PX = 7;
+const DATA_LABEL_COLLISION_GAP_PX = 4;
+
+type DataLabelBox = {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+};
+
+type DataLabelLayoutParams = {
+  plotLeft: number;
+  plotRight: number;
+  plotTop: number;
+  plotBottom: number;
+  xMin: number;
+  xMax: number;
+  yMin: number;
+  yMax: number;
+};
+
+const computeDataLabelBox = (
+  point: { x: number; y: number },
+  labelText: string,
+  placement: DataLabelPlacement,
+  pointRadius: number,
+  layout: DataLabelLayoutParams
+): DataLabelBox | null => {
+  const { plotLeft, plotRight, plotTop, plotBottom, xMin, xMax, yMin, yMax } =
+    layout;
+  const plotWidth = plotRight - plotLeft;
+  const plotHeight = plotBottom - plotTop;
+  const xSpan = xMax - xMin;
+  const ySpan = yMax - yMin;
+  if (plotWidth <= 0 || plotHeight <= 0 || xSpan === 0 || ySpan === 0)
+    return null;
+
+  const badgeWidth = labelText.length * DATA_LABEL_CHAR_PX + 6;
+  const cx = plotLeft + ((point.x - xMin) / xSpan) * plotWidth;
+  const cy = plotBottom - ((point.y - yMin) / ySpan) * plotHeight;
+
+  let badgeTop: number;
+  switch (placement) {
+    case "above":
+      badgeTop = cy - pointRadius - DATA_LABEL_GAP - DATA_LABEL_BADGE_HEIGHT;
+      break;
+    case "inline":
+      badgeTop = cy - DATA_LABEL_BADGE_HEIGHT / 2;
+      break;
+    case "below":
+    default:
+      badgeTop = cy + pointRadius + DATA_LABEL_GAP;
+      break;
+  }
+
+  return {
+    left: cx - badgeWidth / 2,
+    right: cx + badgeWidth / 2,
+    top: badgeTop,
+    bottom: badgeTop + DATA_LABEL_BADGE_HEIGHT,
+  };
+};
+
+const dataLabelBoxesCollide = (a: DataLabelBox, b: DataLabelBox): boolean => {
+  const horizontalOverlap = !(
+    a.right + DATA_LABEL_COLLISION_GAP_PX <= b.left ||
+    b.right + DATA_LABEL_COLLISION_GAP_PX <= a.left
+  );
+  const verticalOverlap = !(
+    a.bottom + DATA_LABEL_COLLISION_GAP_PX <= b.top ||
+    b.bottom + DATA_LABEL_COLLISION_GAP_PX <= a.top
+  );
+  return horizontalOverlap && verticalOverlap;
+};
 
 const ChangeBadge: FC<{
   x?: number;
@@ -806,6 +880,59 @@ export const MultiLineChart: FC<Props> = ({
     [formatXTick, renderedXTickSet]
   );
 
+  const visibleDataLabelXsBySeries = useMemo<Map<string, Set<number>>>(() => {
+    const result = new Map<string, Set<number>>();
+    if (!chartWidth) return result;
+
+    const layout: DataLabelLayoutParams = {
+      plotLeft: leftPadding,
+      plotRight: chartWidth - CHART_PADDING.right,
+      plotTop: CHART_PADDING.top,
+      plotBottom: height - CHART_PADDING.bottom,
+      xMin: xDomain[0],
+      xMax: xDomain[1],
+      yMin: yDomain[0],
+      yMax: yDomain[1],
+    };
+
+    for (const entry of seriesEntries) {
+      const placement = entry.series.dataLabelPlacement ?? "inline";
+      const sortedPoints = [...entry.chartData].sort((a, b) => a.x - b.x);
+      const keptBoxes: DataLabelBox[] = [];
+      const keptXs = new Set<number>();
+
+      for (const point of sortedPoints) {
+        if (point.y === 0) continue;
+        const box = computeDataLabelBox(
+          point,
+          formatResolvedYValue(point.y),
+          placement,
+          entry.pointRadius,
+          layout
+        );
+        if (!box) continue;
+        const collides = keptBoxes.some((existing) =>
+          dataLabelBoxesCollide(existing, box)
+        );
+        if (!collides) {
+          keptBoxes.push(box);
+          keptXs.add(point.x);
+        }
+      }
+      result.set(entry.series.id, keptXs);
+    }
+
+    return result;
+  }, [
+    seriesEntries,
+    chartWidth,
+    leftPadding,
+    height,
+    xDomain,
+    yDomain,
+    formatResolvedYValue,
+  ]);
+
   return (
     <div className="w-full">
       {showLegend && (
@@ -1038,31 +1165,37 @@ export const MultiLineChart: FC<Props> = ({
               .filter(({ series: item }) =>
                 getAlwaysVisibleLabelMode(item.dataLabels, isPrintMode)
               )
-              .map(({ series: item, chartData, colors, pointRadius }) => (
-                <VictoryScatter
-                  key={`labels-always-${item.id}`}
-                  data={chartData}
-                  dataComponent={
-                    <ChangeBadge
-                      formatValue={formatResolvedYValue}
-                      alwaysVisible
-                      placement={item.dataLabelPlacement}
-                      pointRadius={pointRadius}
-                      lineColor={colors.stroke}
-                      labelColor={getContrastTextColor(colors.stroke)}
-                      transparent={item.dataLabelTransparent}
-                      groupClassName={cn(
-                        item.dataLabelClassName,
-                        emphasisActive &&
-                          item.id !== emphasizedSeriesId &&
-                          "opacity-[0.32]"
-                      )}
-                      rectClassName={item.dataLabelRectClassName}
-                      textClassName={item.dataLabelTextClassName}
-                    />
-                  }
-                />
-              ))}
+              .map(({ series: item, chartData, colors, pointRadius }) => {
+                const visibleXs = visibleDataLabelXsBySeries.get(item.id);
+                const data = visibleXs
+                  ? chartData.filter((p) => visibleXs.has(p.x))
+                  : chartData;
+                return (
+                  <VictoryScatter
+                    key={`labels-always-${item.id}`}
+                    data={data}
+                    dataComponent={
+                      <ChangeBadge
+                        formatValue={formatResolvedYValue}
+                        alwaysVisible
+                        placement={item.dataLabelPlacement}
+                        pointRadius={pointRadius}
+                        lineColor={colors.stroke}
+                        labelColor={getContrastTextColor(colors.stroke)}
+                        transparent={item.dataLabelTransparent}
+                        groupClassName={cn(
+                          item.dataLabelClassName,
+                          emphasisActive &&
+                            item.id !== emphasizedSeriesId &&
+                            "opacity-[0.32]"
+                        )}
+                        rectClassName={item.dataLabelRectClassName}
+                        textClassName={item.dataLabelTextClassName}
+                      />
+                    }
+                  />
+                );
+              })}
 
             {!isPrintMode &&
               (highlightedX != null || emphasisActive) &&
@@ -1081,10 +1214,17 @@ export const MultiLineChart: FC<Props> = ({
 
                   if (!showAllBadges && !showHighlightedBadge) return null;
 
+                  const visibleXs = showAllBadges
+                    ? visibleDataLabelXsBySeries.get(item.id)
+                    : undefined;
+                  const data = visibleXs
+                    ? chartData.filter((p) => visibleXs.has(p.x))
+                    : chartData;
+
                   return (
                     <VictoryScatter
                       key={`labels-hover-${item.id}`}
-                      data={chartData}
+                      data={data}
                       dataComponent={
                         <ChangeBadge
                           formatValue={formatResolvedYValue}
