@@ -5,6 +5,7 @@ import { ComponentProps, useState } from "react";
 import ButtonGroup from "@/components/ui/button_group";
 import cn from "@/utils/core/cn";
 
+import { ActivityCard } from "../components/activity_card";
 import { QuestionCard } from "../components/question_cards/question_card";
 import { JOBS_INSIGHTS } from "../jobs_insights";
 
@@ -188,6 +189,71 @@ export function JobsMonitorSection({
             based on initial forecasts for 2030 and 2035
           </div>
         )}
+      </div>
+      <div className="mt-4 grid gap-6 md:grid-cols-2 print:grid-cols-2">
+        <ActivityCard
+          variant="mint"
+          avatar="https://cdn.metaculus.com/labor-hub/bchandar_256.jpg"
+          username="Bharat Chandar"
+          subtitle="Postdoctoral Researcher, Stanford Digital Economy Lab"
+        >
+          <p>
+            Median overall employment forecast:
+            <br />
+            (2027: +1%) (2030: -0.5%) (2035: -4%)
+          </p>
+          <p>
+            In the very short run, I expect lags in employment impacts because
+            of limitations of the technology and slow AI adoption. For this
+            reason my 2027 estimate takes the trend line of employment and
+            slightly undershoots it. However, power users may be as important to
+            monitor as laggards because they may exert competitive pressure on
+            markets that lead to faster adjustment.
+          </p>
+          <p>
+            In the longer run (5-10 years), I am extremely uncertain. I expect
+            the technology will be much more advanced and integrated into
+            peoples&apos; lives. My primary uncertainty is the policy response
+            if AI leads to rapid change. I don&apos;t know how this will resolve
+            itself. There may be scenarios where AI does less than it is capable
+            of because of new regulation. The BLS may also measure activities as
+            work that look more like leisure than what many people do today.
+          </p>
+        </ActivityCard>
+        <ActivityCard
+          variant="purple"
+          avatar="https://cdn.metaculus.com/labor-hub/draaglom_256.jpg"
+          username="Patrick Molgaard (draaglom)"
+          subtitle="Pro Forecaster"
+          link="https://www.metaculus.com/questions/41307/us-employment-level-change-vs-2025/#comment-772700"
+        >
+          <p>
+            The economic changes we see from AI will be faster than almost
+            anything seen before. As a general trend, each technological wave is
+            adopted faster than the previous (e.g. mobile phone penetration vs
+            landlines) and the nature of AI should accelerate its adoption even
+            relative to this trend.
+          </p>
+          <p>
+            Despite this, adoption and job displacement may still be
+            surprisingly slow in some important senses. My stereotype of how
+            this might look is that new AI-first competitor companies have been
+            (or will be) created in many industries and these new entrants will
+            take some time - a period of several years - to displace the old
+            ones. As an intuition, &quot;Photographic Process Workers and
+            Processing Machine Operators&quot; took 5 years between 2010 and
+            2015 to decline 50% - and this is a job whose associated technology
+            was ~obsoleted.
+          </p>
+          <p>
+            Relatedly, I expect many job roles, even some seen as relatively
+            &quot;low education&quot; or &quot;at risk of automation&quot; will
+            have a surprisingly large long tail of tasks that take some time for
+            AI systems to be good at. I&apos;m also quite skeptical that a
+            majority of the job losses attributed to AI so far (e.g. tech
+            layoffs) are truly proximately caused by AI.
+          </p>
+        </ActivityCard>
       </div>
     </QuestionCard>
   );
