@@ -8,6 +8,7 @@ import {
   faFileCsv,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { saveAs } from "file-saver";
 import { ReactNode } from "react";
 import { ComponentProps, useCallback, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
@@ -132,7 +133,6 @@ export function MoreButton({
     );
 
     try {
-      const { saveAs } = await import("file-saver");
       const blob = await ClientPostsApi.getPostZipData({
         ...(postIds.length === 1
           ? { post_id: postIds[0] }

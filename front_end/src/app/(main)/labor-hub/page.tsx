@@ -12,7 +12,6 @@ import { PrintAttribution } from "./components/print_attribution";
 import { FlippableChartTimelineCard } from "./components/question_cards/flippable_chart_timeline_card";
 import { FlippableMultiQuestionCard } from "./components/question_cards/flippable_multi_question_card";
 import { MultiQuestionTable } from "./components/question_cards/multi_question_table";
-import { QuestionLoader } from "./components/question_cards/question";
 import {
   DualPaneSectionCard,
   DualPaneSectionLeft,
@@ -456,7 +455,7 @@ export default function LaborAutomationHubPage() {
               chartProps={{
                 showTickLabels: true,
                 valueFormat: "percentageChange",
-                height: 380,
+                height: 320,
               }}
             />
             <ActivityCard
@@ -601,13 +600,28 @@ export default function LaborAutomationHubPage() {
               income from labor to capital. Even a few percentage points marks a
               major shift in the context of historical trends.
             </ContentParagraph>
-            <QuestionLoader
+            <FlippableChartTimelineCard
               title={
                 <DefinitionTooltip tooltipContent="Labor share of national income is the percentage of all income earned from production in the economy, measured net of depreciation, that goes to workers in the form of wages and salaries plus employer-paid supplements such as benefits and payroll contributions.">
                   Labor share of national income
                 </DefinitionTooltip>
               }
               questionId={41578}
+              prefer="chart"
+              historicalValues={{
+                2018: 62.4,
+                2019: 62.6,
+                2020: 65.0,
+                2021: 62.9,
+                2022: 61.4,
+                2023: 61.8,
+                2024: 62.1,
+              }}
+              chartProps={{
+                showTickLabels: true,
+                valueFormat: "percentage",
+                decimals: 1,
+              }}
             />
           </DualPaneSectionRight>
         </DualPaneSectionCard>
@@ -617,6 +631,23 @@ export default function LaborAutomationHubPage() {
         <DualPaneSectionCard id="state" className="">
           <DualPaneSectionLeft>
             <SectionHeader>State-Level View</SectionHeader>
+
+            <ContentParagraph>
+              In addition to the changes forecasted for the US, there are areas
+              specific to Washington State that may face particular challenges.
+            </ContentParagraph>
+            <ContentParagraph>
+              The healthcare sector (employing 13% of Washington residents) is
+              forecasted to grow through 2027, largely unaffected by AI in this
+              timeframe. Technology (employing 10%) is expected to see minor
+              growth in the short-term, largely consistent with historical
+              trends. The aerospace sector (employing 2%) is likely to face a
+              slight decline, though the changes are not anticipated to be
+              directly AI-related. These forecasts are very short-term, so the
+              predicted changes are minimal.
+            </ContentParagraph>
+          </DualPaneSectionLeft>
+          <DualPaneSectionRight className="lg:mt-16 print:mt-12">
             <MultiQuestionTable
               title="Employment change for Washington state for 2027"
               hideTitleRow
@@ -660,25 +691,6 @@ export default function LaborAutomationHubPage() {
               population will generate sustained demand for workers in multiple
               industries, for example retail, healthcare and construction.
             </ActivityCard>
-          </DualPaneSectionLeft>
-          <DualPaneSectionRight
-            useMobileCarousel={false}
-            className="lg:mt-16 print:mt-12"
-          >
-            <ContentParagraph>
-              In addition to the changes forecasted for the US, there are areas
-              specific to Washington State that may face particular challenges.
-            </ContentParagraph>
-            <ContentParagraph>
-              The healthcare sector (employing 13% of Washington residents) is
-              forecasted to grow through 2027, largely unaffected by AI in this
-              timeframe. Technology (employing 10%) is expected to see minor
-              growth in the short-term, largely consistent with historical
-              trends. The aerospace sector (employing 2%) is likely to face a
-              slight decline, though the changes are not anticipated to be
-              directly AI-related. These forecasts are very short-term, so the
-              predicted changes are minimal.
-            </ContentParagraph>
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 
