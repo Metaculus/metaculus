@@ -81,7 +81,6 @@ type ComputeMultiLineChartModelArgs = {
   showTickLabels: boolean;
   formatYTick: (value: number) => string;
   yAxisGutter?: number;
-  xTickValues?: number[];
 };
 
 export function computeMultiLineChartModel({
@@ -90,29 +89,20 @@ export function computeMultiLineChartModel({
   showTickLabels,
   formatYTick,
   yAxisGutter,
-  xTickValues: xTickValuesProp,
 }: ComputeMultiLineChartModelArgs) {
-  const derivedXTickValues = Array.from(
+  const xTickValues = Array.from(
     new Set(series.flatMap((s) => s.data.map((point) => point.x)))
   ).sort((a, b) => a - b);
-  const xTickValues = (
-    xTickValuesProp?.length ? xTickValuesProp : derivedXTickValues
-  )
-    .slice()
-    .sort((a, b) => a - b);
-  const xValues = xTickValues.length
-    ? xTickValues
-    : series.flatMap((s) => s.data.map((point) => point.x));
   const dataValues = series.flatMap((s) => s.data.map((point) => point.y));
 
   const hasDataLabels = series.some((s) => s.dataLabels !== "never");
 
   let xDomain: [number, number];
-  if (!xValues.length) {
+  if (!xTickValues.length) {
     xDomain = [0, 1];
   } else {
-    const minX = Math.min(...xValues);
-    const maxX = Math.max(...xValues);
+    const minX = Math.min(...xTickValues);
+    const maxX = Math.max(...xTickValues);
     const xPadding = minX === maxX ? 1 : (maxX - minX) * 0.1;
     xDomain = [minX - xPadding, maxX + xPadding];
   }

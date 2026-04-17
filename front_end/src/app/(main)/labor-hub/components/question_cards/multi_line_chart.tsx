@@ -46,8 +46,6 @@ type Props = {
   yAxisGutter?: number;
   formatYTick?: (value: number) => string;
   formatYValue?: (value: number) => string;
-  xTickValues?: number[];
-  visibleXTickValues?: number[];
   formatXTick?: (value: number) => string;
   highlightedX?: number | null;
   defaultHighlightedX?: number | null;
@@ -88,6 +86,37 @@ export const defaultFormatYTick = (value: number): string => {
 const DATA_LABEL_ON_DARK_FILL = METAC_COLORS.gray["0"].DEFAULT;
 const DATA_LABEL_ON_LIGHT_FILL = METAC_COLORS.gray["900"].DEFAULT;
 const AREA_SECTION_LABEL_Y = 18;
+const X_TICK_AVG_CHAR_PX = 6.5;
+const X_TICK_MIN_GAP_PX = 8;
+
+type XTickLabelBox = { left: number; right: number };
+
+type XTickLabelLayoutParams = {
+  plotLeft: number;
+  plotRight: number;
+  xMin: number;
+  xMax: number;
+  formatXTick?: (value: number) => string;
+};
+
+const computeXTickLabelBox = (
+  xValue: number,
+  { plotLeft, plotRight, xMin, xMax, formatXTick }: XTickLabelLayoutParams
+): XTickLabelBox | null => {
+  const plotWidth = plotRight - plotLeft;
+  const domainSpan = xMax - xMin;
+  if (plotWidth <= 0 || domainSpan === 0) return null;
+  const text = formatXTick ? formatXTick(xValue) : String(xValue);
+  const halfWidth = (text.length * X_TICK_AVG_CHAR_PX) / 2;
+  const center = plotLeft + ((xValue - xMin) / domainSpan) * plotWidth;
+  return { left: center - halfWidth, right: center + halfWidth };
+};
+
+const xTickLabelsCollide = (a: XTickLabelBox, b: XTickLabelBox): boolean =>
+  !(
+    a.right + X_TICK_MIN_GAP_PX <= b.left ||
+    b.right + X_TICK_MIN_GAP_PX <= a.left
+  );
 
 const MC_OPTION_COLOR_MAP = {
   mc1: METAC_COLORS["mc-option"]["1"],
@@ -497,8 +526,6 @@ export const MultiLineChart: FC<Props> = ({
   yAxisGutter,
   formatYTick,
   formatYValue: formatYValueProp,
-  xTickValues,
-  visibleXTickValues,
   formatXTick,
   highlightedX: highlightedXProp,
   defaultHighlightedX = null,
@@ -554,16 +581,8 @@ export const MultiLineChart: FC<Props> = ({
         showTickLabels,
         formatYTick: formatResolvedYTick,
         yAxisGutter,
-        xTickValues,
       }),
-    [
-      series,
-      yAxisLabels,
-      showTickLabels,
-      formatResolvedYTick,
-      yAxisGutter,
-      xTickValues,
-    ]
+    [series, yAxisLabels, showTickLabels, formatResolvedYTick, yAxisGutter]
   );
 
   const shouldDisplayChart = !!chartWidth;
@@ -675,41 +694,116 @@ export const MultiLineChart: FC<Props> = ({
     }
   }, [clearHighlightOnMouseLeave, setHighlightedX]);
 
+  const autoVisibleXTickValues = useMemo<number[]>(() => {
+    if (!chartWidth || resolvedXTickValues.length <= 1)
+      return resolvedXTickValues;
+
+    const layoutParams: XTickLabelLayoutParams = {
+      plotLeft: leftPadding,
+      plotRight: chartWidth - CHART_PADDING.right,
+      xMin: xDomain[0],
+      xMax: xDomain[1],
+      formatXTick,
+    };
+
+    const tickBoxes = resolvedXTickValues.map((xValue) => ({
+      xValue,
+      box: computeXTickLabelBox(xValue, layoutParams),
+    }));
+    if (tickBoxes.some((entry) => entry.box === null)) {
+      return resolvedXTickValues;
+    }
+
+    const firstEntry = tickBoxes[0] as { xValue: number; box: XTickLabelBox };
+    const lastEntry = tickBoxes[tickBoxes.length - 1] as {
+      xValue: number;
+      box: XTickLabelBox;
+    };
+
+    if (xTickLabelsCollide(firstEntry.box, lastEntry.box)) {
+      return [lastEntry.xValue];
+    }
+
+    const isForecast = (xValue: number) =>
+      historicalForecastDividerX != null && xValue > historicalForecastDividerX;
+
+    const kept: { xValue: number; box: XTickLabelBox }[] = [firstEntry];
+
+    for (let i = 1; i < tickBoxes.length - 1; i++) {
+      const current = tickBoxes[i] as { xValue: number; box: XTickLabelBox };
+      const lastKept = kept[kept.length - 1];
+      if (!lastKept) break;
+      if (!xTickLabelsCollide(lastKept.box, current.box)) {
+        kept.push(current);
+        continue;
+      }
+      const boundaryHandoff =
+        isForecast(current.xValue) &&
+        !isForecast(lastKept.xValue) &&
+        kept.length > 1;
+      if (boundaryHandoff) {
+        kept.pop();
+        kept.push(current);
+      }
+    }
+
+    while (kept.length > 1) {
+      const tail = kept[kept.length - 1];
+      if (!tail || !xTickLabelsCollide(tail.box, lastEntry.box)) break;
+      kept.pop();
+    }
+    kept.push(lastEntry);
+
+    return kept.map((entry) => entry.xValue);
+  }, [
+    resolvedXTickValues,
+    chartWidth,
+    leftPadding,
+    xDomain,
+    formatXTick,
+    historicalForecastDividerX,
+  ]);
+
+  const renderedXTickSet = useMemo<Set<number>>(() => {
+    const baseSet = new Set(autoVisibleXTickValues);
+    if (highlightedX == null || !chartWidth) return baseSet;
+
+    const layoutParams: XTickLabelLayoutParams = {
+      plotLeft: leftPadding,
+      plotRight: chartWidth - CHART_PADDING.right,
+      xMin: xDomain[0],
+      xMax: xDomain[1],
+      formatXTick,
+    };
+
+    const hoverBox = computeXTickLabelBox(highlightedX, layoutParams);
+    if (!hoverBox) return baseSet;
+
+    const result = new Set<number>([highlightedX]);
+    for (const xValue of autoVisibleXTickValues) {
+      if (xValue === highlightedX) continue;
+      const box = computeXTickLabelBox(xValue, layoutParams);
+      if (!box || !xTickLabelsCollide(hoverBox, box)) {
+        result.add(xValue);
+      }
+    }
+    return result;
+  }, [
+    autoVisibleXTickValues,
+    highlightedX,
+    chartWidth,
+    leftPadding,
+    xDomain,
+    formatXTick,
+  ]);
+
   const formatResolvedXTick = useCallback(
     (tick: string | number) => {
       const numericTick = typeof tick === "number" ? tick : Number(tick);
-      if (visibleXTickValues?.length) {
-        const baseVisibleTickSet = new Set(visibleXTickValues);
-        const isBaseVisible = baseVisibleTickSet.has(numericTick);
-
-        if (highlightedX != null && !baseVisibleTickSet.has(highlightedX)) {
-          const highlightedIndex = resolvedXTickValues.indexOf(highlightedX);
-          const previousTick =
-            highlightedIndex > 0
-              ? resolvedXTickValues[highlightedIndex - 1]
-              : undefined;
-          const nextTick =
-            highlightedIndex >= 0
-              ? resolvedXTickValues[highlightedIndex + 1]
-              : undefined;
-
-          if (numericTick === highlightedX) {
-            return formatXTick ? formatXTick(numericTick) : String(tick);
-          }
-
-          if (numericTick === previousTick || numericTick === nextTick) {
-            return "";
-          }
-        }
-
-        if (!isBaseVisible) {
-          return "";
-        }
-      }
-
+      if (!renderedXTickSet.has(numericTick)) return "";
       return formatXTick ? formatXTick(numericTick) : String(tick);
     },
-    [formatXTick, highlightedX, resolvedXTickValues, visibleXTickValues]
+    [formatXTick, renderedXTickSet]
   );
 
   return (

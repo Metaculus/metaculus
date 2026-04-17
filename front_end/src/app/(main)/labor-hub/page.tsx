@@ -252,7 +252,6 @@ export default function LaborAutomationHubPage() {
               chartProps={{
                 showTickLabels: true,
                 valueFormat: "number",
-                historicalTickEvery: 2,
               }}
             />
             <ContentParagraph small>

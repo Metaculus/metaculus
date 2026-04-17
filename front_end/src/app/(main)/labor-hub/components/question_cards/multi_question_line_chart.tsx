@@ -57,7 +57,6 @@ export type MultiQuestionLineChartProps = {
   showMoreButton?: boolean;
   valueFormat?: MultiQuestionLineChartValueFormat;
   decimals?: number;
-  historicalTickEvery?: number;
   getSeriesOptions?: (
     row: MultiQuestionResolvedRow,
     index: number
@@ -65,7 +64,6 @@ export type MultiQuestionLineChartProps = {
 } & Omit<
   MultiLineChartProps,
   | "series"
-  | "xTickValues"
   | "formatXTick"
   | "formatYValue"
   | "highlightedX"
@@ -133,7 +131,6 @@ function buildSeriesFromDatasetRows(
 
   return {
     series,
-    xTickValues,
     xTickLabelsByValue,
   };
 }
@@ -194,7 +191,6 @@ async function MultiQuestionLineChartContent({
   showMoreButton = true,
   valueFormat = "percentageChange",
   decimals = 1,
-  historicalTickEvery,
   getSeriesOptions,
   ...chartProps
 }: MultiQuestionLineChartProps) {
@@ -213,8 +209,11 @@ async function MultiQuestionLineChartContent({
     );
   }
 
-  const { series, xTickValues, xTickLabelsByValue } =
-    buildSeriesFromDatasetRows(dataset.rows, dataset.columns, getSeriesOptions);
+  const { series, xTickLabelsByValue } = buildSeriesFromDatasetRows(
+    dataset.rows,
+    dataset.columns,
+    getSeriesOptions
+  );
   const historicalLabelSet = new Set(
     rows.flatMap((row) => Object.keys(row.historicalValues ?? {}))
   );
@@ -222,22 +221,6 @@ async function MultiQuestionLineChartContent({
     dataset.columns,
     historicalLabelSet
   );
-  const visibleXTickValues =
-    historicalTickEvery && historicalTickEvery > 1
-      ? xTickValues.filter((xTickValue) => {
-          const label = xTickLabelsByValue[String(xTickValue)];
-          if (!label || !historicalLabelSet.has(label)) return true;
-
-          const historicalIndex = dataset.columns
-            .filter((column) => historicalLabelSet.has(column))
-            .indexOf(label);
-
-          return (
-            historicalIndex === -1 ||
-            historicalIndex % historicalTickEvery === 0
-          );
-        })
-      : xTickValues;
 
   return (
     <>
@@ -255,8 +238,6 @@ async function MultiQuestionLineChartContent({
         <MultiQuestionLineChartClient
           {...chartProps}
           series={series}
-          xTickValues={xTickValues}
-          visibleXTickValues={visibleXTickValues}
           xTickLabelsByValue={xTickLabelsByValue}
           historicalForecastDividerX={historicalForecastDividerX}
           valueFormat={valueFormat}
