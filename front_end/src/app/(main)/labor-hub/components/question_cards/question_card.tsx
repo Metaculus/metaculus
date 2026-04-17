@@ -171,6 +171,7 @@ export function MoreButton({
                 label={hasMultiplePosts ? "View Questions" : "View Question"}
                 icon={faArrowUpRightFromSquare}
                 href={viewQuestionsHref}
+                openNewTab
               />
             ),
           },
