@@ -92,12 +92,12 @@ export default function LaborAutomationHubPage() {
               <KeyInsightItem title="Most and least vulnerable occupations">
                 Software developers, lawyers and law clerks, and laborers and
                 material movers are all expected to see the largest decreases in
-                employment rates, while registered nurses, restaurant servers,
-                and law enforcement are projected to grow
+                employment rates, while registered nurses, K-12 teachers, and
+                restaurant servers are projected to grow.
               </KeyInsightItem>
               <KeyInsightItem title="Wages and hours worked">
                 Wages are expected to see notable growth for workers who remain
-                employed, while hours worked are expected to decline to 32 hours
+                employed, while hours worked are expected to decline to 34 hours
                 a week in 2035, down from 38 now.
               </KeyInsightItem>
             </div>
@@ -105,21 +105,21 @@ export default function LaborAutomationHubPage() {
               <KeyInsightItem title="Financial well-being">
                 Well-being (as measured by the ratio of after-tax and transfer
                 available resources to the poverty threshold) is expected to
-                grow across the board, with the highest income families seeing
-                the most gains.
+                remain the same or grow across the board, with the highest
+                income families seeing the most gains.
               </KeyInsightItem>
               <KeyInsightItem title="Young workers">
                 The youngest workers are expected to be hit hardest, with
                 unemployment for 4-year college graduates in the 22-27 age range
-                expected to grow from the current 6% to 15% in 2035. Meanwhile,
-                trade school and community college enrollment is expected to
-                grow 17% from current levels by 2035.
+                expected to grow from the current 6% to 11% in 2035. Meanwhile,
+                trade school and community college certificates are expected to
+                grow 24% from current levels by 2035.
               </KeyInsightItem>
               <KeyInsightItem title="Broader economy">
                 The economy is expected to see a number of significant changes,
                 with the long-term unemployment rate, labor productivity, and
                 the number of Fortune 500 companies with fewer than 5,000
-                employees all nearly doubling over the next decade.
+                employees all seeing substantial increases over the next decade.
               </KeyInsightItem>
             </div>
           </SectionToggle>
@@ -159,7 +159,7 @@ export default function LaborAutomationHubPage() {
               </span>
               , <strong>median wages are expected to grow.</strong> The workweek
               is also expected to become{" "}
-              <strong>six hours shorter by 2035</strong> among all workers,
+              <strong>four hours shorter by 2035</strong> among all workers,
               while productivity grows.
             </ContentParagraph>
             <ContentParagraph>
@@ -217,13 +217,36 @@ export default function LaborAutomationHubPage() {
               minimum needs such as food, clothing, and shelter. These
               predictions show how the 20th, 50th, and 80th percentile families
               are expected to fare in the coming decade under the potential
-              impact of AI.
+              impact of AI, with higher numbers indicating better financial
+              well-being.
             </ContentParagraph>
             <FlippableMultiQuestionCard
               title={
                 <>
                   How far family resources stretch:{" "}
-                  <DefinitionTooltip tooltipContent="Resources to poverty threshold">
+                  <DefinitionTooltip
+                    tooltipContent={
+                      <>
+                        We define the well-being ratio as the ratio of available
+                        resources to the poverty threshold. Available resources
+                        include government benefits and housing subsidies, and
+                        deduct expenses like child care, taxes, child support,
+                        and medical expenses. Both the available resources and
+                        the poverty threshold come from the{" "}
+                        <a
+                          href="https://www.census.gov/topics/income-poverty/supplemental-poverty-measure/about.html"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Supplemental Poverty Measure
+                        </a>
+                        , which provides a poverty threshold that takes into
+                        account recent data about spending needs and adjusts
+                        based on family size, geography, and place and type of
+                        residence.
+                      </>
+                    }
+                  >
                     well-being ratios
                   </DefinitionTooltip>
                 </>
@@ -283,7 +306,7 @@ export default function LaborAutomationHubPage() {
               With only 12% of workers using AI daily as of late 2025, the
               workplace is still in the early stages of an adoption curve that
               could fundamentally change how most Americans do their jobs within
-              a decade. But Forecasters note that some people may only think
+              a decade. But forecasters note that some people may only think
               about AI as LLM chatbots and not realize how many tools they use
               in their daily work involve AI, especially as integrations
               increase across productivity tools.
@@ -372,8 +395,8 @@ export default function LaborAutomationHubPage() {
               while experience and judgment remain harder to replace.
             </ContentParagraph>
             <ContentParagraph>
-              The unemployment rate for new graduates is expected to be{" "}
-              <strong>nearly three times higher</strong> in 2035 than in 2025.
+              The unemployment rate for new graduates is expected to have{" "}
+              <strong>doubled</strong> in 2035 compared to 2025.
             </ContentParagraph>
             <ContentParagraph>
               The number of degrees awarded overall and for STEM and humanities

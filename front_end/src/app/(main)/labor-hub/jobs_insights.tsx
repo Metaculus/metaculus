@@ -36,7 +36,7 @@ export const JOBS_INSIGHTS = {
       <>
         By 2035, <strong>nurses</strong> and <strong>teachers</strong> are
         expected to see the highest growth, driven by hands-on needs, while{" "}
-        <strong>janitors</strong> and <strong>restaurant servers</strong> see
+        <strong>janitors</strong> and <strong>construction workers</strong> see
         muted growth counteracted by reduced demand for office and commercial
         real estate alongside potential robotics advancements.
       </>
