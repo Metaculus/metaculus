@@ -15,6 +15,10 @@ TRACING_ENABLED = config("TRACING_ENABLED", default=False, cast=bool)
 BASE_URL = config("BASE_URL", default="https://www.metaculus.com")
 SENTRY_ENABLED = config("SENTRY_ENABLED", default=False, cast=bool)
 MAX_OPEN_PAGES = config("MAX_OPEN_PAGES", default=10, cast=int)
+USER_AGENT = config(
+    "USER_AGENT",
+    default="MetaculusScreenshotBot",
+)
 
 DEFAULT_WIDTH = 800
 DEFAULT_HEIGHT = 600
@@ -247,7 +251,8 @@ async def screenshot(request_data: ScreenshotRequest = Body(...)):
     if len(browser.contexts) >= MAX_OPEN_PAGES:
         raise HTTPException(status_code=429, detail="Too many calls")
 
-    page = await browser.new_page()
+    context = await browser.new_context(user_agent=USER_AGENT)
+    page = await context.new_page()
 
     try:
         if width and height:
@@ -283,6 +288,7 @@ async def screenshot(request_data: ScreenshotRequest = Body(...)):
         )
     finally:
         await page.close()
+        await context.close()
 
     filename = "screenshot.png"
     content_type = "image/png"
@@ -303,7 +309,8 @@ async def pdf_print(request_data: PdfPrintRequest = Body(...)):
     if len(browser.contexts) >= MAX_OPEN_PAGES:
         raise HTTPException(status_code=429, detail="Too many calls")
 
-    page = await browser.new_page()
+    context = await browser.new_context(user_agent=USER_AGENT)
+    page = await context.new_page()
 
     try:
         await page.set_viewport_size({"width": MAX_WIDTH, "height": MAX_HEIGHT})
@@ -352,6 +359,7 @@ async def pdf_print(request_data: PdfPrintRequest = Body(...)):
         raise HTTPException(status_code=400, detail=f"PDF generation failed: {e}")
     finally:
         await page.close()
+        await context.close()
 
     filename = "page.pdf"
     return StreamingResponse(
