@@ -73,6 +73,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
           title="Acknowledgements"
           variant="primary"
           hiddenUntilFound
+          wrapperClassName="rounded-none sm:rounded"
         >
           <MethodologyToggleBody>
             <div className="text-gray-800 dark:text-gray-800-dark">
@@ -133,6 +134,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
           title="Interacting with the Hub"
           variant="primary"
           hiddenUntilFound
+          wrapperClassName="rounded-none sm:rounded"
         >
           <MethodologyToggleBody>
             <FAQItem question="How often will these forecasts be updated?">
@@ -211,6 +213,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
           title="Occupation selection and approach"
           variant="primary"
           hiddenUntilFound
+          wrapperClassName="rounded-none sm:rounded"
         >
           <MethodologyToggleBody>
             <FAQItem question="Why did you pick these occupations?">
@@ -560,6 +563,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
           title="How much AI is driving the results"
           variant="primary"
           hiddenUntilFound
+          wrapperClassName="rounded-none sm:rounded"
         >
           <MethodologyToggleBody>
             <div className="space-y-3 border-b border-gray-300 border-opacity-50 pb-5 dark:border-gray-300-dark dark:border-opacity-50">
@@ -762,6 +766,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
           title="Forecast uncertainty, disagreement, and other statistics"
           variant="primary"
           hiddenUntilFound
+          wrapperClassName="rounded-none sm:rounded"
         >
           <MethodologyToggleBody>
             <div className="space-y-4 text-sm text-gray-800 dark:text-gray-800-dark md:text-base">
@@ -792,6 +797,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
           title="Making the forecasts"
           variant="primary"
           hiddenUntilFound
+          wrapperClassName="rounded-none sm:rounded"
         >
           <MethodologyToggleBody id="making-the-forecasts">
             <FAQItem question="Why make predictions with probabilities?">
@@ -903,6 +909,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
           title="About Metaculus"
           variant="primary"
           hiddenUntilFound
+          wrapperClassName="rounded-none sm:rounded"
         >
           <MethodologyToggleBody>
             <FAQItem question="What is Metaculus?">
