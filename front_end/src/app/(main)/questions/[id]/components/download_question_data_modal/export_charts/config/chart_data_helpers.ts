@@ -1,3 +1,5 @@
+import { useTranslations } from "next-intl";
+
 import { ChoiceItem } from "@/types/choices";
 import {
   ConditionalPost,
@@ -10,6 +12,7 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { getGroupQuestionsTimestamps } from "@/utils/charts/timestamps";
+import { formatResolution } from "@/utils/formatters/resolution";
 import {
   generateChoiceItemsFromGroupQuestions,
   generateChoiceItemsFromMultipleChoiceForecast,
@@ -19,10 +22,17 @@ import {
   isGroupOfQuestionsPost,
   isQuestionPost,
 } from "@/utils/questions/helpers";
+import {
+  isResolved,
+  isSuccessfullyResolved,
+} from "@/utils/questions/resolution";
 
 import { ExportableChartType, getExportQuestion } from "./chart_exportables";
 import { generateBarTableSvg } from "../svg_generators/bar_table_svg";
-import { generateRadialGaugeSvg } from "../svg_generators/radial_gauge_svg";
+import {
+  generateRadialGaugeResolvedSvg,
+  generateRadialGaugeSvg,
+} from "../svg_generators/radial_gauge_svg";
 
 export function getAggregationTimestamps(post: PostWithForecasts): number[] {
   if (isGroupOfQuestionsPost(post)) {
@@ -43,25 +53,26 @@ export function getAggregationTimestamps(post: PostWithForecasts): number[] {
 
 export function getChoiceItems(
   post: PostWithForecasts,
+  t: ReturnType<typeof useTranslations>,
   ifYesLabel = "If yes",
-  ifNoLabel = "If no"
+  ifNoLabel = "If no",
+  activeCount?: number
 ): ChoiceItem[] {
   if (isQuestionPost(post)) {
     if (post.question.type === QuestionType.MultipleChoice) {
       const mcQuestion =
         post.question as unknown as QuestionWithMultipleChoiceForecasts;
-      return generateChoiceItemsFromMultipleChoiceForecast(
-        mcQuestion,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ((key: string) => key) as any
-      );
+      return generateChoiceItemsFromMultipleChoiceForecast(mcQuestion, t, {
+        activeCount,
+      });
     }
   }
   if (isGroupOfQuestionsPost(post)) {
     const groupPost =
       post as GroupOfQuestionsPost<QuestionWithNumericForecasts>;
     return generateChoiceItemsFromGroupQuestions(
-      groupPost.group_of_questions.questions
+      groupPost.group_of_questions.questions,
+      { activeCount }
     );
   }
   if (isConditionalPost(post)) {
@@ -81,11 +92,12 @@ export function getChoiceItems(
 
 export function getBarTableRows(
   post: PostWithForecasts,
+  t: ReturnType<typeof useTranslations>,
   compact: boolean,
   ifYesLabel = "If yes",
   ifNoLabel = "If no"
 ): { label: string; value: number; color: string }[] {
-  const choiceItems = getChoiceItems(post, ifYesLabel, ifNoLabel);
+  const choiceItems = getChoiceItems(post, t, ifYesLabel, ifNoLabel);
   if (!choiceItems.length) return [];
 
   const rows = choiceItems
@@ -119,13 +131,33 @@ export function getBarTableRows(
 
 export function tryGenerateProgrammaticSvg(
   post: PostWithForecasts,
+  t: ReturnType<typeof useTranslations>,
   chartType: ExportableChartType,
   ifYesLabel = "If yes",
-  ifNoLabel = "If no"
+  ifNoLabel = "If no",
+  resolvedLabel = "Resolved",
+  locale = "en"
 ): string | null {
   if (chartType === ExportableChartType.RadialForecast) {
     const question = getExportQuestion(post);
     if (!question) return null;
+
+    if (isResolved(question.resolution)) {
+      const formattedResolution = formatResolution({
+        resolution: question.resolution,
+        questionType: question.type,
+        scaling: question.scaling,
+        locale,
+        unit: question.unit,
+        actual_resolve_time: question.actual_resolve_time ?? null,
+      });
+      return generateRadialGaugeResolvedSvg(
+        formattedResolution,
+        isSuccessfullyResolved(question.resolution),
+        resolvedLabel
+      );
+    }
+
     const cp =
       question.aggregations[question.default_aggregation_method]?.latest
         ?.centers?.[0];
@@ -140,7 +172,7 @@ export function tryGenerateProgrammaticSvg(
     chartType === ExportableChartType.FullTable
   ) {
     const compact = chartType === ExportableChartType.TableTop4;
-    const rows = getBarTableRows(post, compact, ifYesLabel, ifNoLabel);
+    const rows = getBarTableRows(post, t, compact, ifYesLabel, ifNoLabel);
     if (!rows.length) return null;
     return generateBarTableSvg(rows);
   }

@@ -1,4 +1,7 @@
+import { METAC_COLORS } from "@/constants/colors";
 import { getBinaryGaugeColors } from "@/utils/colors/binary_gauge_colors";
+
+import { SVG_FONT_FAMILY, escapeXml } from "./svg_utils";
 
 const SCALE = 288 / 112;
 const WIDTH = 288;
@@ -9,7 +12,6 @@ const RADIUS = ((112 - 12) / 2) * SCALE;
 const CENTER_X = WIDTH / 2;
 const CENTER_Y = (66 - 12) * SCALE;
 const ARC_ANGLE = Math.PI * 1.1;
-const FONT_FAMILY = "Inter, system-ui, sans-serif";
 
 const PERCENT_CENTER_Y = 38 * SCALE;
 const CHANCE_CENTER_Y = 60 * SCALE;
@@ -85,7 +87,62 @@ export function generateRadialGaugeSvg(
   <path d="${backgroundArc.path}" fill="none" stroke="${hex}" stroke-opacity="0.15" stroke-width="${STROKE_WIDTH}"/>
   ${progressArc ? `<path d="${progressArc.path}" fill="none" stroke="url(#radialGrad)" stroke-width="${STROKE_WIDTH}"/>` : ""}
   ${tickSvg}
-  <text x="${CENTER_X}" y="${PERCENT_CENTER_Y}" font-family="${FONT_FAMILY}" font-size="${PERCENT_FONT_SIZE}" font-weight="700" fill="${hex}" text-anchor="middle" dominant-baseline="central">${displayValue}</text>
-  <text x="${CENTER_X}" y="${CHANCE_CENTER_Y}" font-family="${FONT_FAMILY}" font-size="${CHANCE_FONT_SIZE}" font-weight="400" fill="${hex}" text-anchor="middle" dominant-baseline="central" letter-spacing="0.05em">CHANCE</text>
+  <text x="${CENTER_X}" y="${PERCENT_CENTER_Y}" font-family="${SVG_FONT_FAMILY}" font-size="${PERCENT_FONT_SIZE}" font-weight="700" fill="${hex}" text-anchor="middle" dominant-baseline="central">${displayValue}</text>
+  <text x="${CENTER_X}" y="${CHANCE_CENTER_Y}" font-family="${SVG_FONT_FAMILY}" font-size="${CHANCE_FONT_SIZE}" font-weight="400" fill="${hex}" text-anchor="middle" dominant-baseline="central" letter-spacing="0.05em">CHANCE</text>
+</svg>`;
+}
+
+const RESOLVED_CARD_MIN_WIDTH = 124;
+const RESOLVED_CARD_HEIGHT = 82;
+const RESOLVED_CARD_PADDING_X = 20;
+const RESOLVED_CARD_PADDING_Y = 12;
+const RESOLVED_CARD_RADIUS = 10;
+const RESOLVED_CARD_BORDER_WIDTH = 1;
+const RESOLVED_LABEL_FONT_SIZE = 16;
+const RESOLVED_VALUE_FONT_SIZE = 24;
+const RESOLVED_LABEL_LINE_HEIGHT = 24;
+const RESOLVED_VALUE_LINE_HEIGHT = 32;
+const RESOLVED_LABEL_CHAR_WIDTH = RESOLVED_LABEL_FONT_SIZE * 0.62;
+const RESOLVED_VALUE_CHAR_WIDTH = RESOLVED_VALUE_FONT_SIZE * 0.62;
+
+export function generateRadialGaugeResolvedSvg(
+  formattedResolution: string,
+  successfullyResolved: boolean,
+  resolvedLabel: string
+): string {
+  const borderColor = successfullyResolved
+    ? METAC_COLORS.purple["500"].DEFAULT
+    : METAC_COLORS.gray["300"].DEFAULT;
+  const labelColor = METAC_COLORS.purple["700"].DEFAULT;
+  const valueColor = successfullyResolved
+    ? METAC_COLORS.purple["800"].DEFAULT
+    : METAC_COLORS.gray["700"].DEFAULT;
+
+  const label = successfullyResolved ? resolvedLabel.toUpperCase() : "";
+  const escapedLabel = escapeXml(label);
+  const escapedValue = escapeXml(formattedResolution);
+
+  const labelWidth = label.length * RESOLVED_LABEL_CHAR_WIDTH;
+  const valueWidth = formattedResolution.length * RESOLVED_VALUE_CHAR_WIDTH;
+  const contentWidth = Math.max(labelWidth, valueWidth);
+  const cardWidth = Math.max(
+    RESOLVED_CARD_MIN_WIDTH,
+    Math.ceil(contentWidth + RESOLVED_CARD_PADDING_X * 2)
+  );
+  const cardHeight = RESOLVED_CARD_HEIGHT;
+
+  const centerX = cardWidth / 2;
+  const labelCenterY = RESOLVED_CARD_PADDING_Y + RESOLVED_LABEL_LINE_HEIGHT / 2;
+  const valueCenterY = successfullyResolved
+    ? RESOLVED_CARD_PADDING_Y +
+      RESOLVED_LABEL_LINE_HEIGHT +
+      RESOLVED_VALUE_LINE_HEIGHT / 2
+    : cardHeight / 2;
+
+  const halfBorder = RESOLVED_CARD_BORDER_WIDTH / 2;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${cardWidth}" height="${cardHeight}" viewBox="0 0 ${cardWidth} ${cardHeight}" fill="none">
+  <rect x="${halfBorder}" y="${halfBorder}" width="${cardWidth - RESOLVED_CARD_BORDER_WIDTH}" height="${cardHeight - RESOLVED_CARD_BORDER_WIDTH}" rx="${RESOLVED_CARD_RADIUS}" ry="${RESOLVED_CARD_RADIUS}" fill="none" stroke="${borderColor}" stroke-width="${RESOLVED_CARD_BORDER_WIDTH}"/>
+  ${successfullyResolved ? `<text x="${centerX}" y="${labelCenterY}" font-family="${SVG_FONT_FAMILY}" font-size="${RESOLVED_LABEL_FONT_SIZE}" font-weight="400" fill="${labelColor}" text-anchor="middle" dominant-baseline="central">${escapedLabel}</text>` : ""}
+  <text x="${centerX}" y="${valueCenterY}" font-family="${SVG_FONT_FAMILY}" font-size="${RESOLVED_VALUE_FONT_SIZE}" font-weight="700" fill="${valueColor}" text-anchor="middle" dominant-baseline="central">${escapedValue}</text>
 </svg>`;
 }

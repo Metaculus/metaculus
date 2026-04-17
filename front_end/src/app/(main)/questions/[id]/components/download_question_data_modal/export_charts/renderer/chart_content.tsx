@@ -8,17 +8,14 @@ import ContinuousAreaChart, {
   getContinuousAreaChartData,
 } from "@/components/charts/continuous_area_chart";
 import GroupChart from "@/components/charts/group_chart";
-import { buildNumericChartData } from "@/components/charts/helpers";
 import Histogram from "@/components/charts/histogram";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
-import NumericChart from "@/components/charts/numeric_chart";
-import { MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
+import NumericTimeline from "@/components/charts/numeric_timeline";
 import { getEffectiveVisibleCount } from "@/constants/questions";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { PostWithForecasts, QuestionStatus } from "@/types/post";
 import { QuestionType } from "@/types/question";
-import { getResolutionPoint } from "@/utils/charts/resolution";
-import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
+import { buildChoicesWithOthers } from "@/utils/questions/choices";
 import { isQuestionPost } from "@/utils/questions/helpers";
 
 import {
@@ -53,6 +50,7 @@ const ChartContent: FC<Props> = ({
     chartType,
     dimensions,
     onChartReady,
+    t,
     t("ifYes"),
     t("ifNo")
   );
@@ -74,6 +72,7 @@ function renderChart(
   chartType: ExportableChartType,
   dimensions: { width: number; height: number },
   onChartReady: () => void,
+  t: ReturnType<typeof useTranslations>,
   ifYesLabel: string,
   ifNoLabel: string
 ) {
@@ -84,74 +83,28 @@ function renderChart(
         question.aggregations[question.default_aggregation_method];
       if (!aggregation?.history?.length) return null;
 
-      const actualCloseTimeMs = question.actual_close_time
-        ? new Date(question.actual_close_time).getTime()
-        : null;
-
-      const resolutionPoint =
-        question.resolution && actualCloseTimeMs
-          ? (() => {
-              const resolveTime = question.actual_resolve_time;
-              if (!resolveTime) return null;
-              const resolveSec = Math.floor(
-                new Date(resolveTime).getTime() / 1000
-              );
-              return getResolutionPoint({
-                lastAggregation: aggregation.latest,
-                questionType: question.type,
-                resolution: question.resolution,
-                resolveTime: Math.min(
-                  resolveSec,
-                  Math.floor(actualCloseTimeMs / 1000)
-                ),
-                scaling: question.scaling,
-                size: 5,
-              });
-            })()
-          : null;
-
       return (
-        <NumericChart
-          resolutionPoint={resolutionPoint ? [resolutionPoint] : undefined}
-          resolution={
-            question.resolution != null
-              ? String(question.resolution)
+        <NumericTimeline
+          aggregation={aggregation}
+          questionType={question.type}
+          actualCloseTime={
+            question.actual_close_time
+              ? new Date(question.actual_close_time).getTime()
+              : null
+          }
+          scaling={question.scaling}
+          resolution={question.resolution}
+          resolveTime={question.actual_resolve_time ?? null}
+          questionStatus={question.status as unknown as QuestionStatus}
+          height={dimensions.height}
+          unit={question.unit}
+          openTime={
+            question.open_time
+              ? new Date(question.open_time).getTime() / 1000
               : undefined
           }
-          buildChartData={(width, zoom) => {
-            const data = buildNumericChartData({
-              questionType: question.type,
-              actualCloseTime: actualCloseTimeMs,
-              scaling: question.scaling,
-              height: dimensions.height,
-              aggregation,
-              aggregationIndex: 0,
-              width,
-              zoom,
-              openTime: question.open_time
-                ? new Date(question.open_time).getTime() / 1000
-                : undefined,
-              unit: question.unit,
-              alwaysShowYTicks: true,
-              forceYTickCount: 5,
-            });
-            return data;
-          }}
-          height={dimensions.height}
-          questionType={question.type}
           nonInteractive
           hideCP={false}
-          questionStatus={question.status as unknown as QuestionStatus}
-          yLabel={question.unit || undefined}
-          getCursorValue={(value) => {
-            const display = getPredictionDisplayValue(value, {
-              questionType: question.type,
-              scaling: question.scaling,
-              unit: question.unit,
-              actual_resolve_time: question.actual_resolve_time ?? null,
-            });
-            return display.split("\n")[0] ?? display;
-          }}
           onChartReady={onChartReady}
         />
       );
@@ -231,20 +184,21 @@ function renderChart(
     }
 
     case ExportableChartType.Timeline: {
-      const allChoiceItems = getChoiceItems(post, ifYesLabel, ifNoLabel);
-      const visibleCount = getEffectiveVisibleCount(allChoiceItems.length);
-      // Sort by latest value descending to pick top options (same as in-app)
-      const sorted = [...allChoiceItems].sort((a, b) => {
-        const aVal = a.aggregationValues.at(-1) ?? 0;
-        const bVal = b.aggregationValues.at(-1) ?? 0;
-        return bVal - aVal;
-      });
-      const choiceItems = sorted.slice(0, visibleCount).map((item, i) => ({
-        ...item,
-        color:
-          MULTIPLE_CHOICE_COLOR_SCALE[i % MULTIPLE_CHOICE_COLOR_SCALE.length] ??
-          item.color,
-      }));
+      const totalCount = getChoiceItems(post, t, ifYesLabel, ifNoLabel).length;
+      const visibleCount = getEffectiveVisibleCount(totalCount);
+      const normalized = getChoiceItems(
+        post,
+        t,
+        ifYesLabel,
+        ifNoLabel,
+        visibleCount
+      );
+      const isMC =
+        isQuestionPost(post) &&
+        post.question.type === QuestionType.MultipleChoice;
+      const choiceItems = isMC
+        ? buildChoicesWithOthers(normalized)
+        : normalized.filter((item) => item.active);
       const timestamps = getAggregationTimestamps(post);
       const effectiveTimestamps =
         timestamps.length > 0
@@ -256,10 +210,7 @@ function renderChart(
         ? new Date(question.actual_close_time).getTime()
         : null;
 
-      if (
-        isQuestionPost(post) &&
-        post.question.type === QuestionType.MultipleChoice
-      ) {
+      if (isMC) {
         return (
           <MultipleChoiceChart
             timestamps={effectiveTimestamps}

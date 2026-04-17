@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useRef } from "react";
 
 import { ThemeOverrideContainer } from "@/contexts/theme_override_context";
@@ -34,6 +34,7 @@ const OffscreenChartRenderer: FC<Props> = ({
   onError,
 }) => {
   const t = useTranslations();
+  const locale = useLocale();
   const containerRef = useRef<HTMLDivElement>(null);
   const dimensions = EXPORT_DIMENSIONS[chartType];
   const hasCalledBack = useRef(false);
@@ -43,16 +44,19 @@ const OffscreenChartRenderer: FC<Props> = ({
 
     const svgString = tryGenerateProgrammaticSvg(
       post,
+      t,
       chartType,
       t("ifYes"),
-      t("ifNo")
+      t("ifNo"),
+      t("resolved"),
+      locale
     );
     if (svgString !== null) {
       onRendered(svgString);
     } else {
       onError(new Error(`No data for ${chartType}`));
     }
-  }, [chartType, post, onRendered, onError, t]);
+  }, [chartType, post, onRendered, onError, t, locale]);
 
   const handleChartReady = useCallback(() => {
     setTimeout(() => {
