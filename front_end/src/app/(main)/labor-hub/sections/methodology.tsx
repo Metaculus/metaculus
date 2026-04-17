@@ -68,7 +68,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
         sections below provide more details about how the information above was
         produced.
       </ContentParagraph>
-      <div className="space-y-3">
+      <div className="-mx-6 -mb-5 sm:mx-0 sm:mb-0 sm:space-y-3">
         <SectionToggle
           title="Acknowledgements"
           variant="primary"

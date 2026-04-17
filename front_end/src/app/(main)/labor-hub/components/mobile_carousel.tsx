@@ -54,7 +54,7 @@ export function MobileCarousel({ children, className }: Props) {
       <div ref={emblaRef} className="-my-4 overflow-hidden px-5 py-4 md:px-10">
         <div className="-ml-3 flex">
           {slides.map((slide, i) => (
-            <div key={i} className="min-w-0 flex-[0_0_85%] pl-3">
+            <div key={i} className="min-w-0 flex-[0_0_92%] pl-3">
               {slide}
             </div>
           ))}

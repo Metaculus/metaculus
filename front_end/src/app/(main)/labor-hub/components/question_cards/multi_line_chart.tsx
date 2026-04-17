@@ -25,6 +25,7 @@ import {
   CHART_PADDING,
   closestTickValue,
   computeMultiLineChartModel,
+  estimateNumericLabelWidthPx,
 } from "./chart_core/multi_line_chart_model";
 import {
   type DataLabelMode,
@@ -423,8 +424,10 @@ const DataPointCircle: FC<{
 const DATA_LABEL_BADGE_HEIGHT = 18;
 const DATA_LABEL_FONT_SIZE = 12;
 const DATA_LABEL_GAP = 4;
-const DATA_LABEL_CHAR_PX = 7;
 const DATA_LABEL_COLLISION_GAP_PX = 4;
+
+const computeBadgeWidth = (text: string) =>
+  estimateNumericLabelWidthPx(text) + 8;
 
 type DataLabelBox = {
   left: number;
@@ -460,7 +463,7 @@ const computeDataLabelBox = (
   if (plotWidth <= 0 || plotHeight <= 0 || xSpan === 0 || ySpan === 0)
     return null;
 
-  const badgeWidth = labelText.length * DATA_LABEL_CHAR_PX + 6;
+  const badgeWidth = computeBadgeWidth(labelText);
   const cx = plotLeft + ((point.x - xMin) / xSpan) * plotWidth;
   const cy = plotBottom - ((point.y - yMin) / ySpan) * plotHeight;
 
@@ -537,7 +540,7 @@ const ChangeBadge: FC<{
   const bgColor = transparent ? "transparent" : lineColor;
   const labelTextColor = transparent ? lineColor : labelColor;
   const text = formatValue(datum.y);
-  const badgeWidth = text.length * 7 + 6;
+  const badgeWidth = computeBadgeWidth(text);
 
   let badgeTop: number;
   switch (placement) {

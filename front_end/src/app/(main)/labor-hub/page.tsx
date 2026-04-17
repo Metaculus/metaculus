@@ -73,57 +73,59 @@ export default function LaborAutomationHubPage() {
       </div>
       <LaborHubNavigation sections={SECTIONS} newsletterListKey="labor" />
 
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 sm:gap-6 sm:px-8 md:gap-8 xl:px-16 print:gap-8 print:px-0">
-        <OverviewSection id="overview" className="print:mb-6" />
-        <SectionToggle
-          key="key-insights"
-          title="Key Insights"
-          variant="light"
-          defaultOpen={false}
-          wrapperClassName="print:mb-6"
-          contentWrapperClassName="grid md:grid-cols-2 md:gap-8 print:grid-cols-2 print:gap-4"
-        >
-          <div className="flex flex-col">
-            <KeyInsightItem title="Overall employment">
-              Forecasters expect significant AI-driven job change, with overall
-              employment declining around 6% by 2035, while the latest
-              government projections expect approximately 3% growth.
-            </KeyInsightItem>
-            <KeyInsightItem title="Most and least vulnerable occupations">
-              Software developers, lawyers and law clerks, and laborers and
-              material movers are all expected to see the largest decreases in
-              employment rates, while registered nurses, restaurant servers, and
-              law enforcement are projected to grow
-            </KeyInsightItem>
-            <KeyInsightItem title="Wages and hours worked">
-              Wages are expected to see notable growth for workers who remain
-              employed, while hours worked are expected to decline to 32 hours a
-              week in 2035, down from 38 now.
-            </KeyInsightItem>
-          </div>
-          <div className="flex flex-col">
-            <KeyInsightItem title="Financial well-being">
-              Well-being (as measured by the ratio of after-tax and transfer
-              available resources to the poverty threshold) is expected to grow
-              across the board, with the highest income families seeing the most
-              gains.
-            </KeyInsightItem>
-            <KeyInsightItem title="Young workers">
-              The youngest workers are expected to be hit hardest, with
-              unemployment for 4-year college graduates in the 22-27 age range
-              expected to grow from the current 6% to 15% in 2035. Meanwhile,
-              trade school and community college enrollment is expected to grow
-              17% from current levels by 2035.
-            </KeyInsightItem>
-            <KeyInsightItem title="Broader economy">
-              The economy is expected to see a number of significant changes,
-              with the long-term unemployment rate, labor productivity, and the
-              number of Fortune 500 companies with fewer than 5,000 employees
-              all nearly doubling over the next decade.
-            </KeyInsightItem>
-          </div>
-        </SectionToggle>
-        <ActivityMonitorSection id="activity" className="" />
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-1 sm:gap-6 sm:px-8 md:gap-8 xl:px-16 print:gap-8 print:px-0">
+        <div className="flex w-full flex-col gap-5 px-3 sm:gap-6 sm:px-0 md:gap-8 print:gap-8 print:px-0">
+          <OverviewSection id="overview" className="print:mb-6" />
+          <SectionToggle
+            key="key-insights"
+            title="Key Insights"
+            variant="light"
+            defaultOpen={false}
+            wrapperClassName="print:mb-6"
+            contentWrapperClassName="grid md:grid-cols-2 md:gap-8 print:grid-cols-2 print:gap-4"
+          >
+            <div className="flex flex-col">
+              <KeyInsightItem title="Overall employment">
+                Forecasters expect significant AI-driven job change, with
+                overall employment declining around 6% by 2035, while the latest
+                government projections expect approximately 3% growth.
+              </KeyInsightItem>
+              <KeyInsightItem title="Most and least vulnerable occupations">
+                Software developers, lawyers and law clerks, and laborers and
+                material movers are all expected to see the largest decreases in
+                employment rates, while registered nurses, restaurant servers,
+                and law enforcement are projected to grow
+              </KeyInsightItem>
+              <KeyInsightItem title="Wages and hours worked">
+                Wages are expected to see notable growth for workers who remain
+                employed, while hours worked are expected to decline to 32 hours
+                a week in 2035, down from 38 now.
+              </KeyInsightItem>
+            </div>
+            <div className="flex flex-col">
+              <KeyInsightItem title="Financial well-being">
+                Well-being (as measured by the ratio of after-tax and transfer
+                available resources to the poverty threshold) is expected to
+                grow across the board, with the highest income families seeing
+                the most gains.
+              </KeyInsightItem>
+              <KeyInsightItem title="Young workers">
+                The youngest workers are expected to be hit hardest, with
+                unemployment for 4-year college graduates in the 22-27 age range
+                expected to grow from the current 6% to 15% in 2035. Meanwhile,
+                trade school and community college enrollment is expected to
+                grow 17% from current levels by 2035.
+              </KeyInsightItem>
+              <KeyInsightItem title="Broader economy">
+                The economy is expected to see a number of significant changes,
+                with the long-term unemployment rate, labor productivity, and
+                the number of Fortune 500 companies with fewer than 5,000
+                employees all nearly doubling over the next decade.
+              </KeyInsightItem>
+            </div>
+          </SectionToggle>
+          <ActivityMonitorSection id="activity" className="" />
+        </div>
         <JobsMonitorServer
           id="jobs"
           labels={["2027", "2030", "2035"]}

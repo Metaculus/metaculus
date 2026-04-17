@@ -355,7 +355,7 @@ export const SortableResearchTable: FC<{
                 className="whitespace-nowrap text-center tabular-nums"
               >
                 <div
-                  className="rounded px-3 py-1"
+                  className="rounded px-1.5 py-1 md:px-3"
                   style={getCellBackgroundStyle(value ?? 0, valuesSharedRange)}
                 >
                   {value != null ? (
@@ -373,7 +373,7 @@ export const SortableResearchTable: FC<{
             <TableCompactCell aria-hidden="true" className="w-4" />
             <TableCompactCell className="whitespace-nowrap text-center tabular-nums">
               <div
-                className="rounded px-3 py-1"
+                className="rounded px-1.5 py-1 md:px-3"
                 style={getFullSpectrumStyle(
                   row.felten,
                   feltenColumnRange,
@@ -388,7 +388,7 @@ export const SortableResearchTable: FC<{
             </TableCompactCell>
             <TableCompactCell className="whitespace-nowrap text-center tabular-nums">
               <div
-                className="rounded px-3 py-1"
+                className="rounded px-1.5 py-1 md:px-3"
                 style={getFullSpectrumStyle(row.mna, mnaColumnRange, true)}
               >
                 {row.mna.toFixed(mnaDecimals)}
@@ -396,7 +396,7 @@ export const SortableResearchTable: FC<{
             </TableCompactCell>
             <TableCompactCell className="whitespace-nowrap text-center tabular-nums">
               <div
-                className="rounded px-3 py-1"
+                className="rounded px-1.5 py-1 md:px-3"
                 style={getFullSpectrumStyle(row.aoe, aoeColumnRange, true)}
               >
                 {row.aoe.toFixed(aoeDecimals)}%
