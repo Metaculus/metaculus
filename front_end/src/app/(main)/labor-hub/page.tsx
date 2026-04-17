@@ -220,7 +220,14 @@ export default function LaborAutomationHubPage() {
               impact of AI.
             </ContentParagraph>
             <FlippableMultiQuestionCard
-              title="How far family resources stretch: well-being ratios (resources to poverty threshold) by percentile"
+              title={
+                <>
+                  How far family resources stretch:{" "}
+                  <DefinitionTooltip tooltipContent="Resources to poverty threshold">
+                    well-being ratios
+                  </DefinitionTooltip>
+                </>
+              }
               prefer="timeline"
               tableHistoricalValueKeys={["2024"]}
               rows={[
