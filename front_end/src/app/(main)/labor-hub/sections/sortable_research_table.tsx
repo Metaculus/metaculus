@@ -257,14 +257,17 @@ export const SortableResearchTable: FC<{
     >
       <TableCompactHead>
         <TableCompactRow>
-          <TableCompactHeaderCell className="sticky left-0 z-10 bg-blue-200 after:pointer-events-none after:absolute after:inset-y-0 after:left-full after:w-4 after:bg-gradient-to-r after:from-black/15 after:to-transparent after:opacity-0 after:transition-opacity after:content-[''] group-data-[scrolled-x]/scrollable:after:opacity-100 dark:bg-blue-800 dark:after:from-black/40" />
+          <TableCompactHeaderCell
+            aria-hidden="true"
+            className="sticky left-0 z-10 bg-blue-200 after:pointer-events-none after:absolute after:inset-y-0 after:left-full after:w-4 after:bg-gradient-to-r after:from-black/15 after:to-transparent after:opacity-0 after:transition-opacity after:content-[''] group-data-[scrolled-x]/scrollable:after:opacity-100 dark:bg-blue-800 dark:after:from-black/40"
+          />
           <TableCompactHeaderCell
             colSpan={columns.length}
             className="whitespace-nowrap pb-1 text-center"
           >
             Metaculus Forecasts
           </TableCompactHeaderCell>
-          <TableCompactHeaderCell className="w-4" />
+          <TableCompactHeaderCell aria-hidden="true" className="w-4" />
           <TableCompactHeaderCell
             colSpan={3}
             className="whitespace-nowrap pb-1 text-center"
@@ -297,7 +300,7 @@ export const SortableResearchTable: FC<{
               </TableCompactHeaderCell>
             );
           })}
-          <TableCompactHeaderCell className="w-4" />
+          <TableCompactHeaderCell aria-hidden="true" className="w-4" />
           {(
             [
               {
