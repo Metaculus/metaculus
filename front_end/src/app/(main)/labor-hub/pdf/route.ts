@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
   const { PUBLIC_APP_URL } = getPublicSettings();
 
-  const pageUrl = `${PUBLIC_APP_URL}/labor-hub`;
+  const pageUrl = `${PUBLIC_APP_URL.replace(/\/$/, "")}/labor-hub/`;
 
   const pdfEndpoint = new URL("/api/pdf/", serviceUrl).toString();
 
