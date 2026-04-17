@@ -617,6 +617,7 @@ export const MultiLineChart: FC<Props> = ({
   const [uncontrolledHighlightedX, setUncontrolledHighlightedX] = useState<
     number | null
   >(defaultHighlightedX);
+  const [cursorY, setCursorY] = useState<number | null>(null);
 
   const highlightedX =
     highlightedXProp === undefined
@@ -742,14 +743,18 @@ export const MultiLineChart: FC<Props> = ({
 
       const rect = event.currentTarget.getBoundingClientRect();
       const offsetX = event.clientX - rect.left;
+      const offsetY = event.clientY - rect.top;
       const plotLeft = leftPadding;
       const plotWidth = chartWidth - plotLeft - CHART_PADDING.right;
       if (plotWidth <= 0) return;
 
       if (offsetX < plotLeft || offsetX > chartWidth - CHART_PADDING.right) {
         setHighlightedX(null);
+        setCursorY(null);
         return;
       }
+
+      setCursorY(offsetY);
 
       const progress = (offsetX - plotLeft) / plotWidth;
       const [xMin, xMax] = xDomain;
@@ -766,6 +771,7 @@ export const MultiLineChart: FC<Props> = ({
     if (clearHighlightOnMouseLeave) {
       setHighlightedX(null);
     }
+    setCursorY(null);
   }, [clearHighlightOnMouseLeave, setHighlightedX]);
 
   const autoVisibleXTickValues = useMemo<number[]>(() => {
@@ -879,6 +885,39 @@ export const MultiLineChart: FC<Props> = ({
     },
     [formatXTick, renderedXTickSet]
   );
+
+  const inlineHoverSeriesOrdered = useMemo<ResolvedSeriesEntry[]>(() => {
+    const filtered = seriesEntries.filter(
+      ({ series: item }) =>
+        getHoverLabelMode(item.dataLabels) &&
+        (item.dataLabelPlacement ?? "inline") === "inline"
+    );
+
+    if (
+      highlightedX == null ||
+      cursorY == null ||
+      !chartWidth ||
+      filtered.length <= 1
+    ) {
+      return filtered;
+    }
+
+    const plotTop = CHART_PADDING.top;
+    const plotBottom = height - CHART_PADDING.bottom;
+    const plotHeight = plotBottom - plotTop;
+    const [yMin, yMax] = yDomain;
+    const ySpan = yMax - yMin;
+    if (plotHeight <= 0 || ySpan === 0) return filtered;
+
+    const distanceFor = (entry: ResolvedSeriesEntry): number => {
+      const point = entry.chartData.find((p) => p.x === highlightedX);
+      if (!point || point.y === 0) return Infinity;
+      const pixelY = plotBottom - ((point.y - yMin) / ySpan) * plotHeight;
+      return Math.abs(pixelY - cursorY);
+    };
+
+    return [...filtered].sort((a, b) => distanceFor(b) - distanceFor(a));
+  }, [seriesEntries, highlightedX, cursorY, chartWidth, height, yDomain]);
 
   const visibleDataLabelXsBySeries = useMemo<Map<string, Set<number>>>(() => {
     const result = new Map<string, Set<number>>();
@@ -1199,13 +1238,8 @@ export const MultiLineChart: FC<Props> = ({
 
             {!isPrintMode &&
               (highlightedX != null || emphasisActive) &&
-              seriesEntries
-                .filter(
-                  ({ series: item }) =>
-                    getHoverLabelMode(item.dataLabels) &&
-                    (item.dataLabelPlacement ?? "inline") === "inline"
-                )
-                .map(({ series: item, chartData, colors, pointRadius }) => {
+              inlineHoverSeriesOrdered.map(
+                ({ series: item, chartData, colors, pointRadius }) => {
                   const isEmphasized =
                     emphasisActive && item.id === emphasizedSeriesId;
                   const showAllBadges = isEmphasized;
@@ -1247,7 +1281,8 @@ export const MultiLineChart: FC<Props> = ({
                       }
                     />
                   );
-                })}
+                }
+              )}
           </VictoryChart>
         )}
       </div>

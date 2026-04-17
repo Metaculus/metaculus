@@ -72,7 +72,9 @@ async function MultiQuestionTableContent({
   showMoreButton = true,
   hideTitleRow = false,
 }: MultiQuestionTableProps) {
-  const postIds = rows.map((r) => r.questionId);
+  const postIds = rows
+    .map((r) => r.questionId)
+    .filter((id): id is number => id != null);
   const titleText = reactNodeToText(title);
 
   let dataset;
@@ -145,9 +147,9 @@ async function MultiQuestionTableContent({
           </TableCompactHead>
         )}
         <TableCompactBody>
-          {dataset.rows.map((row) => {
+          {dataset.rows.map((row, index) => {
             return (
-              <TableCompactRow key={row.questionId}>
+              <TableCompactRow key={row.questionId ?? `static-${index}`}>
                 <TableCompactCell>{row.title}</TableCompactCell>
                 {hasStaticColumn && (
                   <TableCompactCell className="text-right">

@@ -34,12 +34,14 @@ export function BasicQuestionContent({
   chartHeight,
   subQuestionId,
   timelineMarkers,
+  timelineSubtitle,
 }: {
   postData: PostWithForecasts;
   preferTimeline?: boolean;
   chartHeight?: number;
   subQuestionId?: number;
   timelineMarkers?: GroupTimelineMarker[];
+  timelineSubtitle?: string;
 }) {
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
   const laborHubHover = useLaborHubChartHover();
@@ -60,18 +62,27 @@ export function BasicQuestionContent({
   if (isGroupOfQuestionsPost(postData) && !subQuestionId) {
     if (preferTimeline) {
       return (
-        <GroupTimeline
-          group={postData.group_of_questions}
-          chartHeight={chartHeight}
-          timelineMarkers={timelineMarkers}
-          activeTimelineMarkerId={laborHubHover?.hoveredActivityId ?? null}
-          onTimelineMarkerEnter={(marker) =>
-            laborHubHover?.setHoveredActivityId(marker.activityId ?? marker.id)
-          }
-          onTimelineMarkerLeave={() =>
-            laborHubHover?.setHoveredActivityId(null)
-          }
-        />
+        <>
+          {!!timelineSubtitle && (
+            <div className="w-full text-sm font-[450] leading-tight text-gray-600 [text-wrap:pretty] dark:text-gray-600-dark">
+              {timelineSubtitle}
+            </div>
+          )}
+          <GroupTimeline
+            group={postData.group_of_questions}
+            chartHeight={chartHeight}
+            timelineMarkers={timelineMarkers}
+            activeTimelineMarkerId={laborHubHover?.hoveredActivityId ?? null}
+            onTimelineMarkerEnter={(marker) =>
+              laborHubHover?.setHoveredActivityId(
+                marker.activityId ?? marker.id
+              )
+            }
+            onTimelineMarkerLeave={() =>
+              laborHubHover?.setHoveredActivityId(null)
+            }
+          />
+        </>
       );
     }
     switch (postData.group_of_questions?.questions[0]?.type) {

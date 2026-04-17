@@ -88,20 +88,21 @@ function buildSeriesFromDatasetRows(
 
   const series = rows.map<MultiLineChartSeries>((row, index) => {
     const overrides = getSeriesOptions?.(row, index);
-    const historicalValues = row.historicalValues ?? {};
+    const isStaticRow = row.questionId == null;
+    const historicalValues = isStaticRow ? {} : row.historicalValues ?? {};
 
     return {
-      id: String(row.questionId),
+      id: row.questionId != null ? String(row.questionId) : `static-${index}`,
       label: row.title,
       color:
         overrides?.color ??
         row.color ??
         DEFAULT_SERIES_COLORS[index % DEFAULT_SERIES_COLORS.length] ??
         "blue",
-      dataLabels: overrides?.dataLabels,
+      dataLabels: overrides?.dataLabels ?? row.dataLabels,
       filled: overrides?.filled ?? false,
-      dashed: overrides?.dashed,
-      dotSize: overrides?.dotSize,
+      dashed: overrides?.dashed ?? row.dashed,
+      dotSize: overrides?.dotSize ?? row.dotSize,
       legendStyle: overrides?.legendStyle,
       legendDetail: overrides?.legendDetail,
       dataLabelPlacement: overrides?.dataLabelPlacement,
@@ -194,7 +195,9 @@ async function MultiQuestionLineChartContent({
   getSeriesOptions,
   ...chartProps
 }: MultiQuestionLineChartProps) {
-  const postIds = rows.map((row) => row.questionId);
+  const postIds = rows
+    .map((row) => row.questionId)
+    .filter((id): id is number => id != null);
   const titleText = reactNodeToText(title);
 
   let dataset;
@@ -215,7 +218,9 @@ async function MultiQuestionLineChartContent({
     getSeriesOptions
   );
   const historicalLabelSet = new Set(
-    rows.flatMap((row) => Object.keys(row.historicalValues ?? {}))
+    rows.flatMap((row) =>
+      row.questionId != null ? Object.keys(row.historicalValues ?? {}) : []
+    )
   );
   const historicalForecastDividerX = getHistoricalForecastDividerX(
     dataset.columns,

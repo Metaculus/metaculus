@@ -2,7 +2,7 @@
 
 import {
   faStar,
-  faChartLine,
+  faClockRotateLeft,
   IconDefinition,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -26,7 +26,7 @@ function ToggleSelector({
   selected,
   onToggle,
   leftIcon = faStar,
-  rightIcon = faChartLine,
+  rightIcon = faClockRotateLeft,
   className,
 }: ToggleSelectorProps) {
   return (

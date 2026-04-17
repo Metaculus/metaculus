@@ -9,6 +9,7 @@ import { ActivityCard } from "./components/activity_card";
 import { DefinitionTooltip } from "./components/definition_tooltip";
 import LaborHubNavigation from "./components/labor_hub_navigation";
 import { PrintAttribution } from "./components/print_attribution";
+import { FlippableChartTimelineCard } from "./components/question_cards/flippable_chart_timeline_card";
 import { FlippableMultiQuestionCard } from "./components/question_cards/flippable_multi_question_card";
 import { MultiQuestionTable } from "./components/question_cards/multi_question_table";
 import { QuestionLoader } from "./components/question_cards/question";
@@ -175,9 +176,25 @@ export default function LaborAutomationHubPage() {
               key barometer of whether AI&apos;s productivity gains are actually
               shared with labor.
             </ContentParagraph>
-            <QuestionLoader
+            <FlippableChartTimelineCard
               title="Average weekly hours worked"
               questionId={41574}
+              prefer="chart"
+              historicalValues={{
+                2018: 38.9,
+                2019: 39,
+                2020: 38.3,
+                2021: 38.7,
+                2022: 38.6,
+                2023: 38.5,
+                2024: 38.3,
+                2025: 38.3,
+              }}
+              chartProps={{
+                showTickLabels: true,
+                valueFormat: "number",
+                decimals: 1,
+              }}
             />
             <ContentParagraph small>
               Forecasters note the concept of “
@@ -263,9 +280,20 @@ export default function LaborAutomationHubPage() {
               in their daily work involve AI, especially as integrations
               increase across productivity tools.
             </ContentParagraph>
-            <QuestionLoader
+            <FlippableChartTimelineCard
               title="Percent of workers that use AI daily"
               questionId={42215}
+              prefer="chart"
+              historicalValues={{
+                2023: 4,
+                2024: 4,
+                2025: 10,
+              }}
+              chartProps={{
+                showTickLabels: true,
+                valueFormat: "percentage",
+                decimals: 1,
+              }}
             />
           </DualPaneSectionRight>
         </DualPaneSectionCard>
@@ -288,14 +316,35 @@ export default function LaborAutomationHubPage() {
                     college graduates with bachelor’s degrees or higher
                   </>
                 }
+                tableHistoricalValueKeys={["2025"]}
                 rows={[
                   {
                     questionId: 42212,
                     title: "Unemployment Rate",
+                    historicalValues: {
+                      2018: 3.7,
+                      2019: 3.9,
+                      2020: 8.0,
+                      2021: 5.8,
+                      2022: 4.1,
+                      2023: 4.4,
+                      2024: 4.8,
+                      2025: 5.4,
+                    },
                   },
                   {
                     questionId: 42213,
                     title: "Underemployment Rate",
+                    historicalValues: {
+                      2018: 41.6,
+                      2019: 41.5,
+                      2020: 41.0,
+                      2021: 40.9,
+                      2022: 40.3,
+                      2023: 39.7,
+                      2024: 40.3,
+                      2025: 41.4,
+                    },
                   },
                 ]}
                 tableProps={{
@@ -335,25 +384,78 @@ export default function LaborAutomationHubPage() {
               time, enrollment in community colleges and trade schools is
               expected to increase.
             </ContentParagraph>
-            <MultiQuestionTable
+            <FlippableMultiQuestionCard
+              prefer="timeline"
               title="Change in the number of bachelor’s degrees awarded relative to 2025"
-              firstColumnHeader="Major"
-              valueFormat="percentageChange"
-              decimals={1}
+              tableHistoricalValueKeys={["2025"]}
               rows={[
                 {
                   questionId: 42220,
-                  title: "Overall",
+                  title: "Overall 4-year",
+                  historicalValues: {
+                    2018: 1.31,
+                    2019: 2.97,
+                    2020: 4.28,
+                    2021: 5.7,
+                    2022: 3.06,
+                    2023: 0.55,
+                    2024: 0,
+                    2025: 0,
+                  },
                 },
                 {
                   questionId: 42852,
-                  title: "STEM",
+                  title: "STEM 4-year",
+                  historicalValues: {
+                    2018: -8.9,
+                    2019: -4.81,
+                    2020: -0.99,
+                    2021: 0.84,
+                    2022: 0.42,
+                    2023: -0.06,
+                    2024: 0,
+                    2025: 0,
+                  },
                 },
                 {
                   questionId: 42853,
-                  title: "Humanities",
+                  title: "Humanities 4-year",
+                  historicalValues: {
+                    2018: 23.1,
+                    2019: 22.02,
+                    2020: 19.51,
+                    2021: 15.54,
+                    2022: 6.38,
+                    2023: 1.83,
+                    2024: 0,
+                    2025: 0,
+                  },
+                },
+                {
+                  questionId: 42856,
+                  title: "Trade School and Community College",
+                  historicalValues: {
+                    2018: 2.72,
+                    2019: 4.75,
+                    2020: -0.51,
+                    2021: 0.73,
+                    2022: 1.18,
+                    2023: -1.57,
+                    2024: 0,
+                    2025: 0,
+                  },
                 },
               ]}
+              tableProps={{
+                firstColumnHeader: "Major",
+                valueFormat: "percentageChange",
+                decimals: 1,
+              }}
+              chartProps={{
+                showTickLabels: true,
+                valueFormat: "percentageChange",
+                height: 380,
+              }}
             />
             <ActivityCard
               avatar="https://cdn.metaculus.com/labor-hub/exmateriae_256.jpg"
@@ -368,10 +470,6 @@ export default function LaborAutomationHubPage() {
               currently doing, young people may be able to pivot to other areas
               soon enough to increase their chances of finding a job.
             </ActivityCard>
-            <QuestionLoader
-              title="Change in the number of community college and trade school degrees awarded relative to 2025"
-              questionId={42856}
-            />
           </DualPaneSectionRight>
         </DualPaneSectionCard>
 
@@ -380,9 +478,47 @@ export default function LaborAutomationHubPage() {
           <DualPaneSectionLeft>
             <SectionHeader>Changing Economy</SectionHeader>
             <ThemeOverrideContainer override="inverted">
-              <QuestionLoader
+              <FlippableChartTimelineCard
                 title="Percentage change in labor productivity relative to 2025"
                 questionId={43087}
+                prefer="chart"
+                historicalValues={{
+                  2018: -13.93,
+                  2019: -12.1,
+                  2020: -7.43,
+                  2021: -5.52,
+                  2022: -6.91,
+                  2023: -4.96,
+                  2024: -2.2,
+                  2025: 0,
+                }}
+                seriesTitle="Productivity change"
+                extraRows={[
+                  {
+                    title: "30-year trend",
+                    color: "mc4",
+                    dashed: true,
+                    dotSize: 0,
+                    dataLabels: "never",
+                    historicalValues: {
+                      2018: -11.4,
+                      2019: -9.93,
+                      2020: -8.47,
+                      2021: -7.0,
+                      2022: -5.53,
+                      2023: -4.07,
+                      2024: -2.6,
+                      2025: -1.14,
+                      2030: 6.19,
+                      2035: 13.52,
+                    },
+                  },
+                ]}
+                chartProps={{
+                  showTickLabels: true,
+                  valueFormat: "percentageChange",
+                  decimals: 1,
+                }}
               />
             </ThemeOverrideContainer>
             <ContentParagraph>
@@ -408,9 +544,18 @@ export default function LaborAutomationHubPage() {
               Fortune 500 giants could operate with workforces once associated
               with small businesses rather than corporate behemoths.
             </ContentParagraph>
-            <QuestionLoader
+            <FlippableChartTimelineCard
               title="Number of Fortune 500 companies with fewer than 5,000 employees"
               questionId={41324}
+              prefer="chart"
+              historicalValues={{
+                2026: 30,
+              }}
+              chartProps={{
+                showTickLabels: true,
+                valueFormat: "number",
+                decimals: 0,
+              }}
             />
             <ActivityCard
               avatar="https://cdn.metaculus.com/labor-hub/draaglom_256.jpg"
@@ -423,13 +568,29 @@ export default function LaborAutomationHubPage() {
               significantly in these employment statistics over the coming
               decade.
             </ActivityCard>
-            <QuestionLoader
+            <FlippableChartTimelineCard
               title={
                 <DefinitionTooltip tooltipContent="The percentage of the labor force (the population aged 16 and over not institutionalized or on active military duty) that has been unemployed for 27 weeks or more.">
                   Long-term unemployment rate
                 </DefinitionTooltip>
               }
               questionId={41313}
+              prefer="chart"
+              historicalValues={{
+                2018: 0.83,
+                2019: 0.77,
+                2020: 1.24,
+                2021: 2.07,
+                2022: 0.8,
+                2023: 0.7,
+                2024: 0.86,
+                2025: 0.99,
+              }}
+              chartProps={{
+                showTickLabels: true,
+                valueFormat: "percentage",
+                decimals: 2,
+              }}
             />
             <ContentParagraph small>
               If AI allows corporations to generate ever-greater output without

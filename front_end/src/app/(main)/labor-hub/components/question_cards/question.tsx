@@ -1,8 +1,8 @@
 import {
   faChartArea,
-  faChartLine,
   faChartSimple,
   faChartBar,
+  faClockRotateLeft,
   faGauge,
   faTable,
 } from "@fortawesome/free-solid-svg-icons";
@@ -65,7 +65,7 @@ function getRightIcon(postData: PostWithForecasts, subQuestionId?: number) {
   if (isMultipleChoicePost(postData) && !subQuestionId) {
     return faChartArea;
   }
-  return faChartLine;
+  return faClockRotateLeft;
 }
 
 type QuestionLoaderProps = {
