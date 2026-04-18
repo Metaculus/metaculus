@@ -171,8 +171,8 @@ export function ResearchSection({
         <ResearchTable labels={["2030", "2035"]} />
       </Suspense>
       <ResearchTableLegend />
-      <ContentParagraph small>
-        <ol className="list-decimal space-y-2 pl-5 text-xs">
+      <div className="break-inside-avoid text-blue-700 dark:text-blue-700-dark">
+        <ol className="list-decimal space-y-2 pl-5 text-xs [text-wrap:pretty]">
           <li>
             See the underlying data and how we adapted the figures from these
             sources{" "}
@@ -236,7 +236,7 @@ export function ResearchSection({
             .
           </li>
         </ol>
-      </ContentParagraph>
+      </div>
     </SectionCard>
   );
 }

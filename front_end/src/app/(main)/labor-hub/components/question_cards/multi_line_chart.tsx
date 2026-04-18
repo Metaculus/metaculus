@@ -1108,36 +1108,37 @@ export const MultiLineChart: FC<Props> = ({
             )}
 
             {historicalForecastLayout && (
-              <>
-                <VictoryLabel
-                  text="HISTORICAL"
-                  x={historicalForecastLayout.historicalLabelX}
-                  y={AREA_SECTION_LABEL_Y}
-                  textAnchor="middle"
-                  style={{
-                    fill: historicalForecastDividerColor,
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: "0.08em",
-                    fontFamily:
-                      "var(--font-inter-variable), var(--font-inter), sans-serif",
-                  }}
-                />
-                <VictoryLabel
-                  text="FORECAST"
-                  x={historicalForecastLayout.forecastLabelX}
-                  y={AREA_SECTION_LABEL_Y}
-                  textAnchor="middle"
-                  style={{
-                    fill: historicalForecastDividerColor,
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: "0.08em",
-                    fontFamily:
-                      "var(--font-inter-variable), var(--font-inter), sans-serif",
-                  }}
-                />
-              </>
+              <VictoryLabel
+                text="HISTORICAL"
+                x={historicalForecastLayout.historicalLabelX}
+                y={AREA_SECTION_LABEL_Y}
+                textAnchor="middle"
+                style={{
+                  fill: historicalForecastDividerColor,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: "0.08em",
+                  fontFamily:
+                    "var(--font-inter-variable), var(--font-inter), sans-serif",
+                }}
+              />
+            )}
+
+            {historicalForecastLayout && (
+              <VictoryLabel
+                text="FORECAST"
+                x={historicalForecastLayout.forecastLabelX}
+                y={AREA_SECTION_LABEL_Y}
+                textAnchor="middle"
+                style={{
+                  fill: historicalForecastDividerColor,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: "0.08em",
+                  fontFamily:
+                    "var(--font-inter-variable), var(--font-inter), sans-serif",
+                }}
+              />
             )}
 
             {showHistoricalForecastAnnotation &&
