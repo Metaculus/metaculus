@@ -35,6 +35,7 @@ function PartnerCard() {
       <div className="flex gap-2.5 lg:flex-col xl:flex-row">
         <Link
           href="/services"
+          target="_blank"
           className="rounded bg-blue-200 px-3 py-1.5 text-sm text-blue-900 no-underline dark:bg-blue-200-dark dark:text-blue-900-dark"
         >
           View Services

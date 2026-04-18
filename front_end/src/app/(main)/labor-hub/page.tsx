@@ -80,6 +80,7 @@ export default function LaborAutomationHubPage() {
             title="Key Insights"
             variant="light"
             defaultOpen={false}
+            className="rounded bg-gray-0 text-base font-medium dark:bg-gray-0-dark md:text-lg"
             wrapperClassName="print:mb-6"
             contentWrapperClassName="grid md:grid-cols-2 md:gap-8 print:grid-cols-2 print:gap-4"
           >
