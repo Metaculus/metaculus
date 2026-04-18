@@ -6,6 +6,7 @@ import { logError } from "@/utils/core/errors";
 
 import { SortableResearchTable } from "./sortable_research_table";
 import { ActivityCard } from "../components/activity_card";
+import { DefinitionTooltip } from "../components/definition_tooltip";
 import { FlippableChartTimelineCard } from "../components/question_cards/flippable_chart_timeline_card";
 import { NoQuestionPlaceholder } from "../components/question_cards/placeholder";
 import {
@@ -28,8 +29,8 @@ export function ResearchSection({
           <ContentParagraph small>
             A number of recent research publications have identified
             occupations, tasks, and industries that are more exposed or
-            vulnerable to automation, as well as assessed recent trends in
-            employment to understand the impact of AI.{" "}
+            vulnerable to automation, while other work has examined recent
+            employment patterns for signs of AI’s labor market effects.{" "}
             <a
               href="https://digitaleconomy.stanford.edu/publication/canaries-in-the-coal-mine-six-facts-about-the-recent-employment-effects-of-artificial-intelligence/"
               target="_blank"
@@ -37,8 +38,8 @@ export function ResearchSection({
             >
               Recent work from Stanford University
             </a>{" "}
-            has asserted that AI has already had an impact on early career work,
-            while other sources such as{" "}
+            argues that AI has already had an impact on early career work, while
+            other sources such as{" "}
             <a
               href="https://budgetlab.yale.edu/research/evaluating-impact-ai-labor-market-current-state-affairs"
               target="_blank"
@@ -46,9 +47,9 @@ export function ResearchSection({
             >
               research from the Budget Lab at Yale
             </a>{" "}
-            do not yet see strong signals. These exposure and vulnerability
-            ratings typically are not intended to be predictive of the future,
-            but instead are correlational measures of current AI usage and task
+            do not yet see strong signals. Exposure and vulnerability ratings
+            typically are not intended to be predictive of the future, but
+            instead are correlational measures of current AI usage and task
             patterns.
           </ContentParagraph>
           <ContentParagraph small>
@@ -60,22 +61,49 @@ export function ResearchSection({
             differences.
           </ContentParagraph>
           <ContentParagraph small>
-            Teachers have high vulnerability ratings, but are predicted to see
-            growth as forecasters expect human presence will be strongly desired
-            in classrooms by schools and parents, even if schools do
-            increasingly adopt AI-powered educational tools. Conversely,
-            occupations such as janitors and warehouse workers are rated as low
+            In the AI exposure literature and research, teachers stand out as
+            having high exposure ratings, but Metaculus forecasts don’t expect
+            this to result in decreased employment levels as forecasters expect
+            human presence will be strongly desired in classrooms by schools and
+            parents, even if schools do increasingly adopt AI-powered
+            educational tools. Conversely, warehouse workers are rated as low
             exposure due to the high physical nature of the work, but
             forecasters anticipate that robotic capabilities will begin to
-            displace more of these roles by 2035. These forecasts provide
-            important context to our understanding of workforce prospects by
-            quantifying the predicted impact of AI on employment levels.
+            displace more of these roles by 2035. Forecasters do expect that the
+            high exposure and vulnerability of lawyers, sales representatives,
+            financial specialists, and software developers will translate to
+            significant employment reductions in these fields over the next
+            decade. These forecasts provide important context to our
+            understanding of workforce prospects by quantifying the predicted
+            impact of AI on employment levels.
           </ContentParagraph>
         </div>
 
         <div className="flex min-w-0 flex-col gap-4 [&>*]:min-w-0">
           <FlippableChartTimelineCard
-            title="Change in the occupational mix (relative to November 2022 ChatGPT release baseline)"
+            title={
+              <DefinitionTooltip
+                tooltipContent={
+                  <>
+                    Using{" "}
+                    <a
+                      href="https://budgetlab.yale.edu/research/tracking-impact-ai-labor-market"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      data from the Yale Budget Lab
+                    </a>
+                    , this measures how much the occupational mix is changing
+                    from a baseline. Larger numbers indicate greater shares of
+                    people working in different occupations from the baseline
+                    scenario, the speed of which suggests how much occupational
+                    disruption is happening in the economy.
+                  </>
+                }
+              >
+                Change in the occupational mix
+              </DefinitionTooltip>
+            }
             questionId={42850}
             prefer="chart"
             historicalValues={{
@@ -142,7 +170,140 @@ export function ResearchSection({
       >
         <ResearchTable labels={["2030", "2035"]} />
       </Suspense>
+      <ResearchTableLegend />
+      <ContentParagraph small>
+        <ol className="list-decimal space-y-2 pl-5 text-xs">
+          <li>
+            See the underlying data and how we adapted the figures from these
+            sources{" "}
+            <a
+              href="https://docs.google.com/spreadsheets/d/1-VMGsNPDg9QFnBwwMSYvjEmfVfBDqJr9MZgachjE5VQ/edit?usp=sharing"
+              target="_blank"
+              rel="noreferrer"
+            >
+              here
+            </a>
+            .
+          </li>
+          <li>
+            Occupational exposure figures from{" "}
+            <a
+              href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4414065"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Felten et al. (2023)
+            </a>
+            , estimating how much the typical tasks and abilities in each
+            occupation overlap with what generative AI systems are good at. Data
+            was based on 2010 SOC codes, which Metaculus has crosswalked to the
+            2018 SOC. The paper presents both language modeling and imager
+            generation exposure scores, from which only language modeling scores
+            are used here.
+          </li>
+          <li>
+            A vulnerability score calculated from{" "}
+            <a
+              href="https://www.nber.org/papers/w34705"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Manning and Aguirre (2026)
+            </a>
+            from measures of AI exposure and adaptive capacity (a measure of a
+            worker’s ability to navigate job transitions if displaced). These
+            scores were combined into a vulnerability score using the same
+            approach as used in Figure 1 of the paper.
+          </li>
+          <li>
+            Occupational exposure measured by Anthropic using usage data from
+            their AI system, Claude, as reported in the data for the{" "}
+            <a
+              href="https://www.anthropic.com/economic-index"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Anthropic Economic Index
+            </a>
+            . More details about Anthropic’s findings are reported in{" "}
+            <a
+              href="https://www.anthropic.com/research/labor-market-impacts"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Massenkoff and McCrory (2026)
+            </a>
+            .
+          </li>
+        </ol>
+      </ContentParagraph>
     </SectionCard>
+  );
+}
+
+const LEGEND_RED = "rgba(213, 139, 128)";
+const LEGEND_GREEN = "rgba(102, 165, 102)";
+// Matches the min/max opacity used by getCellBackgroundStyle in the table,
+// so the bar fades through the panel background (not yellow) at the center.
+const LEGEND_RED_MAX = "rgba(213, 139, 128, 0.6)";
+const LEGEND_RED_MIN = "rgba(213, 139, 128, 0.05)";
+const LEGEND_GREEN_MIN = "rgba(102, 165, 102, 0.05)";
+const LEGEND_GREEN_MAX = "rgba(102, 165, 102, 0.6)";
+
+function LegendTextRow({
+  label,
+  left,
+  right,
+}: {
+  label: string;
+  left: string;
+  right: string;
+}) {
+  return (
+    <>
+      <div
+        aria-hidden="true"
+        className="text-[0.625rem] font-medium uppercase text-gray-600 dark:text-gray-600-dark md:text-xs"
+      >
+        {label}
+      </div>
+      <div className="flex items-center justify-between gap-4 text-xs">
+        <span style={{ color: LEGEND_RED }}>{left}</span>
+        <span className="text-right" style={{ color: LEGEND_GREEN }}>
+          {right}
+        </span>
+      </div>
+    </>
+  );
+}
+
+function ResearchTableLegend() {
+  return (
+    <div
+      aria-label="Table color legend"
+      className="inverted mt-4 break-inside-avoid rounded bg-blue-200 p-4 dark:bg-blue-800 md:px-6 md:py-5 print:break-inside-avoid-page"
+    >
+      <div className="grid grid-cols-[minmax(0,5rem)_minmax(0,1fr)] items-end gap-x-4 md:grid-cols-[minmax(0,auto)_minmax(0,1fr)] md:gap-x-8">
+        <LegendTextRow
+          label="Metaculus Forecasts"
+          left="Employment decline"
+          right="Employment growth"
+        />
+        <div aria-hidden="true" />
+        <div
+          aria-hidden="true"
+          className="my-2 h-2.5 w-full rounded-full"
+          style={{
+            backgroundImage: `linear-gradient(to right, ${LEGEND_RED_MAX} 0%, ${LEGEND_RED_MIN} 50%, ${LEGEND_GREEN_MIN} 50%, ${LEGEND_GREEN_MAX} 100%)`,
+          }}
+        />
+        <LegendTextRow
+          label="Literature"
+          left="Higher AI exposure"
+          right="Lower AI exposure"
+        />
+      </div>
+    </div>
   );
 }
 

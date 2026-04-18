@@ -417,7 +417,14 @@ export default function LaborAutomationHubPage() {
             </ContentParagraph>
             <FlippableMultiQuestionCard
               prefer="timeline"
-              title="Change in the number of bachelor’s degrees awarded relative to 2025"
+              title={
+                <>
+                  Change in the number of degrees and certificates awarded{" "}
+                  <DefinitionTooltip tooltipContent="Historical data for 2025 has not yet been released, so 2025 figures have been temporarily assumed to be the same as the 2024 figures. The year represents the year graduation occurs, so for example the 2029-2030 school year is represented here as 2030.">
+                    relative to 2025
+                  </DefinitionTooltip>
+                </>
+              }
               tableHistoricalValueKeys={["2025"]}
               rows={[
                 {
@@ -589,15 +596,30 @@ export default function LaborAutomationHubPage() {
               }}
             />
             <ActivityCard
-              avatar="https://cdn.metaculus.com/labor-hub/draaglom_256.jpg"
-              username="Patrick Molgaard (draaglom)"
+              avatar="https://cdn.metaculus.com/labor-hub/lubossaloky_256.jpg"
+              username="Ľuboš Saloky (lubossaloky)"
               subtitle="Pro Forecaster"
-              link="https://www.metaculus.com/questions/41307/us-employment-level-change-vs-2025/#comment-772700"
+              link="https://www.metaculus.com/questions/41313/#comment-819256"
             >
-              The AI systems we have right now are already capable enough to be
-              economically transformative in a way that will very likely show up
-              significantly in these employment statistics over the coming
-              decade.
+              <p>
+                Even during periods when total unemployment rates spike
+                significantly, the rate of long-term unemployment relative to
+                the labor force stays relatively low. People do exit the
+                unemployment statistics without finding employment. When workers
+                become discouraged and stop looking for employment, they leave
+                the labor force. Also when someone transitions from being
+                unemployed to returning to school, retiring early, or focusing
+                on family care, they disappear from unemployment statistics.
+              </p>
+              <p>
+                When discouraged workers fall off the unemployment rolls, the
+                unemployment rate looks artificially lower. I’m forecasting a
+                −2% change in overall employment by 2030 and −11% by 2035.
+              </p>
+              <p>
+                However, I don’t expect these declines to be fully reflected in
+                the long-term unemployment rate.
+              </p>
             </ActivityCard>
             <FlippableChartTimelineCard
               title={
@@ -663,8 +685,12 @@ export default function LaborAutomationHubPage() {
             <SectionHeader>State-Level View</SectionHeader>
 
             <ContentParagraph>
-              In addition to the changes forecasted for the US, there are areas
-              specific to Washington State that may face particular challenges.
+              To complement the national forecasts, we also look at the state of
+              Washington to see whether short-term expectations at the state
+              level track the broader national pattern. Washington is especially
+              useful as a test case because of its concentration in dynamic
+              industries like technology and aerospace, which could potentially
+              see more dynamic short term changes.
             </ContentParagraph>
             <ContentParagraph>
               The healthcare sector (employing 13% of Washington residents) is
@@ -673,13 +699,13 @@ export default function LaborAutomationHubPage() {
               growth in the short-term, largely consistent with historical
               trends. The aerospace sector (employing 2%) is likely to face a
               slight decline, though the changes are not anticipated to be
-              directly AI-related. These forecasts are very short-term, so the
-              predicted changes are minimal.
+              directly AI-related. These forecasts are short-term, leading to
+              minimal predicted change.
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight className="lg:mt-16 print:mt-12">
             <MultiQuestionTable
-              title="Employment change for Washington state for 2027"
+              title="Employment change for the state of Washington for 2027"
               hideTitleRow
               valueFormat="percentageChange"
               decimals={1}
