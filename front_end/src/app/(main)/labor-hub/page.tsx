@@ -1,9 +1,6 @@
 import { Metadata } from "next";
-import { ComponentProps } from "react";
 
-import SectionToggle from "@/components/ui/section_toggle";
 import { ThemeOverrideContainer } from "@/contexts/theme_override_context";
-import cn from "@/utils/core/cn";
 
 import { ActivityCard } from "./components/activity_card";
 import { DefinitionTooltip } from "./components/definition_tooltip";
@@ -23,6 +20,7 @@ import { ActivityMonitorSection } from "./sections/activity_monitor";
 import { EngagementSection } from "./sections/engagement_section";
 import { HeroSection } from "./sections/hero";
 import { JobsMonitorServer } from "./sections/jobs_monitor_server";
+import { KeyInsightsSection } from "./sections/key_insights";
 import { MethodologySection } from "./sections/methodology";
 import { OverviewSection } from "./sections/overview";
 import { ResearchSection } from "./sections/research";
@@ -44,26 +42,6 @@ export const metadata: Metadata = {
     "Real-time forecasts from our global forecasting community on the future of the US workforce as AI advances.",
 };
 
-function KeyInsightItem({
-  className,
-  children,
-  title,
-  ...props
-}: ComponentProps<"div">) {
-  return (
-    <div
-      className={cn(
-        "my-0 break-inside-avoid p-4 text-sm text-blue-700 [text-wrap:pretty] dark:text-blue-700-dark md:text-base print:p-2",
-        className
-      )}
-      {...props}
-    >
-      <strong>{title}: </strong>
-      {children}
-    </div>
-  );
-}
-
 export default function LaborAutomationHubPage() {
   return (
     <main className="relative mb-24 min-h-screen xl:mt-12 print:mb-0 print:mt-0 print:[zoom:0.75] [&_[id]]:scroll-mt-24">
@@ -75,55 +53,7 @@ export default function LaborAutomationHubPage() {
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-1 sm:gap-6 sm:px-8 md:gap-8 xl:px-16 print:gap-8 print:px-0">
         <div className="flex w-full flex-col gap-5 px-3 sm:gap-6 sm:px-0 md:gap-8 print:gap-8 print:px-0">
           <OverviewSection id="overview" className="print:mb-6" />
-          <SectionToggle
-            key="key-insights"
-            title="Key Insights"
-            variant="light"
-            defaultOpen={false}
-            className="rounded bg-gray-0 text-base font-medium dark:bg-gray-0-dark md:text-lg"
-            wrapperClassName="print:mb-6"
-            contentWrapperClassName="grid md:grid-cols-2 md:gap-8 print:grid-cols-2 print:gap-4"
-          >
-            <div className="flex flex-col">
-              <KeyInsightItem title="Overall employment">
-                Forecasters expect significant AI-driven job change, with
-                overall employment declining around 6% by 2035, while the latest
-                government projections expect approximately 3% growth.
-              </KeyInsightItem>
-              <KeyInsightItem title="Most and least vulnerable occupations">
-                Software developers, lawyers and law clerks, and laborers and
-                material movers are all expected to see the largest decreases in
-                employment rates, while registered nurses, K-12 teachers, and
-                restaurant servers are projected to grow.
-              </KeyInsightItem>
-              <KeyInsightItem title="Wages and hours worked">
-                Wages are expected to see notable growth for workers who remain
-                employed, while hours worked are expected to decline to 34 hours
-                a week in 2035, down from 38 now.
-              </KeyInsightItem>
-            </div>
-            <div className="flex flex-col">
-              <KeyInsightItem title="Financial well-being">
-                Well-being (as measured by the ratio of after-tax and transfer
-                available resources to the poverty threshold) is expected to
-                remain the same or grow across the board, with the highest
-                income families seeing the most gains.
-              </KeyInsightItem>
-              <KeyInsightItem title="Young workers">
-                The youngest workers are expected to be hit hardest, with
-                unemployment for 4-year college graduates in the 22-27 age range
-                expected to grow from the current 6% to 11% in 2035. Meanwhile,
-                trade school and community college certificates are expected to
-                grow 24% from current levels by 2035.
-              </KeyInsightItem>
-              <KeyInsightItem title="Broader economy">
-                The economy is expected to see a number of significant changes,
-                with the long-term unemployment rate, labor productivity, and
-                the number of Fortune 500 companies with fewer than 5,000
-                employees all seeing substantial increases over the next decade.
-              </KeyInsightItem>
-            </div>
-          </SectionToggle>
+          <KeyInsightsSection />
           <ActivityMonitorSection id="activity" className="" />
         </div>
 
