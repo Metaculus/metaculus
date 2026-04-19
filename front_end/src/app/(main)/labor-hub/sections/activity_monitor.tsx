@@ -62,6 +62,7 @@ export function ActivityMonitorSection({
       timestamp: isoDateToUnixTimestamp(activity.date),
       label: activity.markerLabel,
       dateLabel: formatActivityDate(activity.date),
+      type: activity.type,
     }));
 
   return (

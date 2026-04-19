@@ -1,32 +1,39 @@
 "use client";
 
+import { faComment, faNewspaper } from "@fortawesome/free-solid-svg-icons";
 import { ReactNode } from "react";
-import { VictoryLine, VictoryPortal, VictoryScatter } from "victory";
+import { VictoryLine, VictoryScatter } from "victory";
 
 import { METAC_COLORS } from "@/constants/colors";
 import { ThemeColor } from "@/types/theme";
 
-import { GroupTimelineMarker } from "./types";
+import { ActivityType, GroupTimelineMarker } from "./types";
 
 type RenderProps = {
   markers: GroupTimelineMarker[];
   yDomain: [number, number];
-  plotTop: number;
   getThemeColor: (color: ThemeColor) => string;
   activeMarkerId?: string | null;
   onMarkerEnter?: (marker: GroupTimelineMarker) => void;
   onMarkerLeave?: (marker: GroupTimelineMarker) => void;
 };
 
-export const GROUP_TIMELINE_MARKER_SIZE = 5;
-const HIT_AREA_WIDTH = 16;
+export const GROUP_TIMELINE_MARKER_SIZE = 9;
+const HIT_AREA_PADDING = 4;
+const MARKER_ICON_DISPLAY_SIZE = 10;
+
+const ACTIVITY_TYPE_ICON = {
+  news: faNewspaper,
+  comment: faComment,
+} as const;
 
 type MarkerPointDatum = {
   x: number;
   y: number;
-  plotTop: number;
   pointFill: string;
   pointStroke: string;
+  iconColor: string;
+  activityType?: ActivityType;
   onEnter: () => void;
   onLeave: () => void;
 };
@@ -45,9 +52,21 @@ function TimelineMarkerPoint({
   size = GROUP_TIMELINE_MARKER_SIZE,
 }: MarkerPointProps) {
   if (!datum || typeof x !== "number" || typeof y !== "number") return null;
-  const { plotTop, pointFill, pointStroke, onEnter, onLeave } = datum;
-  const hitTop = Math.min(plotTop, y);
-  const hitHeight = Math.max(0, y - hitTop) + size + 4;
+  const { pointFill, pointStroke, iconColor, activityType, onEnter, onLeave } =
+    datum;
+  const hitRadius = size + HIT_AREA_PADDING;
+
+  const iconDef = activityType ? ACTIVITY_TYPE_ICON[activityType] : undefined;
+  let iconTransform: string | undefined;
+  let iconPath: string | undefined;
+  if (iconDef) {
+    const [viewW, viewH, , , rawPath] = iconDef.icon;
+    iconPath = Array.isArray(rawPath) ? rawPath[0] : rawPath;
+    const scale = MARKER_ICON_DISPLAY_SIZE / Math.max(viewW, viewH);
+    const offsetX = x - (viewW * scale) / 2;
+    const offsetY = y - (viewH * scale) / 2;
+    iconTransform = `translate(${offsetX}, ${offsetY}) scale(${scale})`;
+  }
 
   return (
     <g
@@ -55,11 +74,10 @@ function TimelineMarkerPoint({
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
     >
-      <rect
-        x={x - HIT_AREA_WIDTH / 2}
-        y={hitTop}
-        width={HIT_AREA_WIDTH}
-        height={hitHeight}
+      <circle
+        cx={x}
+        cy={y}
+        r={hitRadius}
         fill="transparent"
         pointerEvents="all"
       />
@@ -71,6 +89,11 @@ function TimelineMarkerPoint({
         stroke={pointStroke}
         strokeWidth={2}
       />
+      {iconPath && iconTransform && (
+        <g transform={iconTransform} pointerEvents="none">
+          <path d={iconPath} fill={iconColor} />
+        </g>
+      )}
     </g>
   );
 }
@@ -78,7 +101,6 @@ function TimelineMarkerPoint({
 export function renderGroupTimelineMarkers({
   markers,
   yDomain,
-  plotTop,
   getThemeColor,
   activeMarkerId,
   onMarkerEnter,
@@ -98,43 +120,44 @@ export function renderGroupTimelineMarkers({
     const pointFill = isActive
       ? pointStroke
       : getThemeColor(METAC_COLORS.gray["0"]);
+    const iconColor = isActive
+      ? getThemeColor(METAC_COLORS.gray["0"])
+      : pointStroke;
 
     elements.push(
-      <VictoryPortal key={`timeline-marker-line-portal-${marker.id}`}>
-        <VictoryLine
-          data={[
-            { x: marker.timestamp, y: yMin },
-            { x: marker.timestamp, y: yMax },
-          ]}
-          style={{
-            data: {
-              stroke: lineColor,
-              strokeDasharray: "4,3",
-              strokeWidth: 1.5,
-              pointerEvents: "none",
-            },
-          }}
-        />
-      </VictoryPortal>
+      <VictoryLine
+        data={[
+          { x: marker.timestamp, y: yMin },
+          { x: marker.timestamp, y: yMax },
+        ]}
+        style={{
+          data: {
+            stroke: lineColor,
+            strokeDasharray: "4,3",
+            strokeWidth: 1.5,
+            pointerEvents: "none",
+          },
+        }}
+      />
     );
 
     elements.push(
-      <VictoryPortal key={`timeline-marker-point-portal-${marker.id}`}>
-        <VictoryScatter
-          data={[
-            {
-              x: marker.timestamp,
-              y: yMin,
-              plotTop,
-              pointFill,
-              pointStroke,
-              onEnter: () => onMarkerEnter?.(marker),
-              onLeave: () => onMarkerLeave?.(marker),
-            },
-          ]}
-          dataComponent={<TimelineMarkerPoint />}
-        />
-      </VictoryPortal>
+      <VictoryScatter
+        data={[
+          {
+            x: marker.timestamp,
+            y: yMin,
+            pointFill,
+            pointStroke,
+            iconColor,
+            activityType: marker.type,
+            onEnter: () => onMarkerEnter?.(marker),
+            onLeave: () => onMarkerLeave?.(marker),
+            size: GROUP_TIMELINE_MARKER_SIZE,
+          },
+        ]}
+        dataComponent={<TimelineMarkerPoint />}
+      />
     );
   });
 

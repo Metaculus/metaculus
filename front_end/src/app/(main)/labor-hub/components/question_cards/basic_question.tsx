@@ -13,6 +13,7 @@ import PercentageForecastCard from "@/components/consumer_post_card/group_foreca
 import TimeSeriesChart from "@/components/consumer_post_card/time_series_chart";
 import DetailedMultipleChoiceChartCard from "@/components/detailed_question_card/detailed_question_card/multiple_choice_chart_card";
 import { usePrintOverride } from "@/contexts/theme_override_context";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import {
@@ -88,6 +89,7 @@ export function BasicQuestionContent({
             onTimelineMarkerLeave={() =>
               laborHubHover?.setHoveredActivityId(null)
             }
+            defaultZoom={TimelineChartZoomOption.TwoMonths}
           />
         </>
       );

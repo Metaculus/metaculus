@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 
 import BaseModal from "@/components/base_modal";
+import { ActivityType } from "@/components/charts/primitives/timeline_markers/types";
 import { usePrintOverride } from "@/contexts/theme_override_context";
 
 import { ActivityCard } from "../components/activity_card";
@@ -16,6 +17,7 @@ export type ActivityMonitorEntry = {
   date: string;
   content: ReactNode;
   link?: string;
+  type?: ActivityType;
 };
 
 type Props = {
@@ -53,6 +55,7 @@ function ActivityCardsList({
           date={formatActivityDate(activity.date)}
           degradeIndex={index}
           link={activity.link}
+          activityType={activity.type}
           highlighted={
             interactive && hoverState?.hoveredActivityId === activity.id
           }

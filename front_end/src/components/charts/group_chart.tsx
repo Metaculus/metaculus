@@ -655,7 +655,6 @@ const GroupChart: FC<Props> = ({
               ? renderGroupTimelineMarkers({
                   markers: timelineMarkers,
                   yDomain: yDomain as [number, number],
-                  plotTop: chartPadding.top,
                   getThemeColor,
                   activeMarkerId: activeTimelineMarkerId,
                   onMarkerEnter: onTimelineMarkerEnter,
