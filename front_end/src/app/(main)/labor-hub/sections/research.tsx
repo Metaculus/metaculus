@@ -62,18 +62,17 @@ export function ResearchSection({
           </ContentParagraph>
           <ContentParagraph small>
             In the AI exposure literature and research, teachers stand out as
-            having high exposure ratings, but Metaculus forecasts don’t expect
-            this to result in decreased employment levels as forecasters expect
-            human presence will be strongly desired in classrooms by schools and
-            parents, even if schools do increasingly adopt AI-powered
-            educational tools. Conversely, warehouse workers are rated as low
-            exposure due to the high physical nature of the work, but
-            forecasters anticipate that robotic capabilities will begin to
-            displace more of these roles by 2035. Forecasters do expect that the
-            high exposure and vulnerability of lawyers, sales representatives,
-            financial specialists, and software developers will translate to
-            significant employment reductions in these fields over the next
-            decade. These forecasts provide important context to our
+            having high exposure ratings, but are predicted to see growth as
+            forecasters expect human presence will be strongly desired in
+            classrooms by schools and parents, even if schools do increasingly
+            adopt AI-powered educational tools. Conversely, warehouse workers
+            are rated as low exposure due to the high physical nature of the
+            work, but forecasters anticipate that robotic capabilities will
+            begin to displace more of these roles by 2035. Forecasters do expect
+            that the high exposure and vulnerability of lawyers, sales
+            representatives, financial specialists, and software developers will
+            translate to significant employment reductions in these fields over
+            the next decade. These forecasts provide important context to our
             understanding of workforce prospects by quantifying the predicted
             impact of AI on employment levels.
           </ContentParagraph>
@@ -281,8 +280,16 @@ function ResearchTableLegend() {
   return (
     <div
       aria-label="Table color legend"
-      className="inverted mt-4 break-inside-avoid rounded bg-blue-200 p-4 dark:bg-blue-800 md:px-6 md:py-5 print:break-inside-avoid-page"
+      className="mt-4 break-inside-avoid rounded bg-blue-200 p-4 dark:bg-blue-800 md:px-6 md:py-5 print:break-inside-avoid-page"
     >
+      <div className="mb-4 text-xs text-gray-600 dark:text-gray-600-dark">
+        Note: each literature column has its own color range, where the reddest
+        is the lowest AI exposure number in the column and the greenest is the
+        highest AI exposure number in that column. The Metaculus forecast
+        columns for 2030 and 2035 share a color range; the largest predicted
+        decline across 2030 and 2035 is the reddest, while the largest predicted
+        growth across 2030 and 2035 is the greenest.
+      </div>
       <div className="grid grid-cols-[minmax(0,5rem)_minmax(0,1fr)] items-end gap-x-4 md:grid-cols-[minmax(0,auto)_minmax(0,1fr)] md:gap-x-8">
         <LegendTextRow
           label="Metaculus Forecasts"

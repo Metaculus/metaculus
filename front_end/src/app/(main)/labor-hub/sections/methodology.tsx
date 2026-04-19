@@ -326,17 +326,25 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
                   2018 SOC Definitions
                 </a>{" "}
                 documentation. We have renamed some of these occupations for
-                brevity in the Hub, and you can find each occupation listed in
-                the Hub, along with its full formal name and SOC code, and any
-                occupation categories it contains, at the{" "}
+                brevity in the Hub; for each of these you can find its full
+                formal name and SOC code, and any occupation categories it
+                contains, at the{" "}
                 <a
                   href="https://oews-forecasting-tool.vercel.app/"
                   target="_blank"
                   rel="noreferrer"
                 >
                   Metaculus Employment Forecasting Tool
-                </a>
-                . Note that, as shown in the{" "}
+                </a>{" "}
+                (or at{" "}
+                <a
+                  target="_blank"
+                  rel="noreferrer"
+                  href="https://oews-forecasting-tool.vercel.app/metaculus-definitions"
+                >
+                  this direct link to the definitions page
+                </a>{" "}
+                available at the tool). Note that, as shown in the{" "}
                 <a
                   href="https://www.bls.gov/soc/2018/soc_structure_2018.pdf"
                   target="_blank"
@@ -354,12 +362,13 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
                 We&rsquo;ve learned a lot from prior literature and from talking
                 to experts for their feedback while developing this project. We
                 referred to research on occupational exposure to AI when
-                selecting which occupations to focus on, ensuring that we
-                selected occupations rated as highly exposed or vulnerable to AI
-                automation.<sup className="mr-1 text-xs">1, 2, 3, 4, 5, 6</sup>{" "}
-                We made sure that recent college graduates and entry-level
-                workers were a key focus, based in part on research suggesting
-                that group may be one of the first impacted by AI.
+                selecting which occupations to focus on, ensuring that some of
+                the selected occupations are rated as highly exposed or
+                vulnerable to AI automation.
+                <sup className="mr-1 text-xs">1, 2, 3, 4, 5, 6</sup> We made
+                sure that recent college graduates and entry-level workers were
+                a key focus, based in part on research suggesting that group may
+                be one of the first impacted by AI.
                 <sup className="mr-1 text-xs">7</sup> We structured some
                 questions around metrics developed or identified by the
                 literature, such as the change in occupational mix.
