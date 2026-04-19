@@ -205,7 +205,7 @@ export function ResearchSection({
             , estimating how much the typical tasks and abilities in each
             occupation overlap with what generative AI systems are good at. Data
             was based on 2010 SOC codes, which Metaculus has crosswalked to the
-            2018 SOC. The paper presents both language modeling and imager
+            2018 SOC. The paper presents both language modeling and image
             generation exposure scores, from which only language modeling scores
             are used here.
           </li>

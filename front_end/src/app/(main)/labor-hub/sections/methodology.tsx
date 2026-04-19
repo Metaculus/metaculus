@@ -583,7 +583,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
                 published literature. In the literature, these exposure or
                 vulnerability ratings were generally created by judgmental
                 assessments of the automatability of various tasks and mapping
-                those tasks onto occupations classifications.
+                those tasks onto occupational classifications.
               </p>
               <p>
                 In the work presented on this dashboard, the vulnerability

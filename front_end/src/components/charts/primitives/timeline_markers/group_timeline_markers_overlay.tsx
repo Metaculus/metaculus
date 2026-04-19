@@ -126,6 +126,7 @@ export function renderGroupTimelineMarkers({
 
     elements.push(
       <VictoryLine
+        key={`${marker.id}-line`}
         data={[
           { x: marker.timestamp, y: yMin },
           { x: marker.timestamp, y: yMax },
@@ -143,6 +144,7 @@ export function renderGroupTimelineMarkers({
 
     elements.push(
       <VictoryScatter
+        key={`${marker.id}-point`}
         data={[
           {
             x: marker.timestamp,
