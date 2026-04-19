@@ -117,6 +117,15 @@ export function ResearchSection({
                 color: "mc5",
                 dashed: true,
                 dotSize: 1,
+                legendDetail: (
+                  <>
+                    This line shows the change in the occupational mix if we
+                    were to place the beginning of the internet era (January
+                    1996) at the beginning of the AI era (November 2022) to
+                    compare how quickly the occupational mix has changed in each
+                    case.
+                  </>
+                ),
                 historicalValues: {
                   2023: 2.61,
                   2024: 3.2,

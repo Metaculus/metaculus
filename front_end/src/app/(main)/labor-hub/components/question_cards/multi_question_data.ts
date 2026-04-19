@@ -21,6 +21,8 @@ export type MultiQuestionRowConfig = {
   dotSize?: number;
   /** Controls data-label visibility for this series (default: hover). Use "never" to suppress. */
   dataLabels?: DataLabelMode;
+  /** Tooltip content shown when hovering the question-mark icon next to the legend label. */
+  legendDetail?: ReactNode;
   staticValue?: ReactNode;
   historicalValues?: Record<string, number | null>;
 };
