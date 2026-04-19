@@ -55,9 +55,9 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pytest>=8.2.1,<9",
-    "pytest-django>=4.8.0,<5",
-    "pytest-env>=1.1.3,<2",
+    "pytest>=9.0.3,<10",
+    "pytest-django>=4.11.1,<5",
+    "pytest-env>=1.1.5,<2",
     "factory-boy>=3.3.0,<4",
     "django-debug-toolbar>=4.4.2,<5",
     "freezegun>=1.5.1,<2",
