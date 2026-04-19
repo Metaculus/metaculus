@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 
 import BaseModal from "@/components/base_modal";
+import { usePrintOverride } from "@/contexts/theme_override_context";
 
 import { ActivityCard } from "../components/activity_card";
 import {
@@ -84,12 +85,13 @@ function ActivityMonitorInteractiveInner({ chart, activities }: Props) {
     canScrollDown: false,
   });
   const modalScrollRef = useRef<HTMLDivElement>(null);
-  const previewActivities = activities.slice(0, 4);
+  const isPrintMode = usePrintOverride();
+  const previewActivities = activities.slice(0, isPrintMode ? 10 : 4);
 
   const openModal = (activityId?: string) => {
     setModalScrollState({
       canScrollUp: false,
-      canScrollDown: true,
+      canScrollDown: false,
     });
     setIsModalOpen(true);
     hoverState?.setHoveredActivityId(activityId ?? null);
@@ -144,15 +146,17 @@ function ActivityMonitorInteractiveInner({ chart, activities }: Props) {
   return (
     <>
       <div
-        className="grid gap-5 sm:gap-6 md:grid-cols-2 md:gap-8 print:grid-cols-2 print:gap-8"
+        className="grid gap-5 sm:gap-6 md:grid-cols-2 md:items-stretch md:gap-8 print:grid-cols-2 print:items-stretch print:gap-8"
         onMouseLeave={() => {
           hoverState?.setHoverYear(null);
           hoverState?.setHighlightedEnvelope(null);
           hoverState?.setHoveredActivityId(null);
         }}
       >
-        {chart}
-        <div className="flex flex-col gap-2.5 md:order-1">
+        <div className="md:order-2 md:h-full print:order-2 print:h-full">
+          {chart}
+        </div>
+        <div className="flex flex-col gap-2.5 md:order-1 md:h-full print:order-1 print:h-full">
           <ActivityCardsList
             activities={previewActivities}
             //onActivityClick={(activity) => openModal(activity.id)}
@@ -160,7 +164,7 @@ function ActivityMonitorInteractiveInner({ chart, activities }: Props) {
           <button
             type="button"
             onClick={() => openModal()}
-            className="w-full rounded-md border border-blue-400 bg-blue-100 py-3 text-center text-lg font-medium leading-7 text-blue-800 hover:bg-blue-200 dark:border-blue-400-dark dark:bg-blue-100-dark dark:text-blue-800-dark dark:hover:bg-blue-200-dark print:hidden"
+            className="mt-auto w-full rounded-md border border-blue-400 bg-blue-100 py-3 text-center text-lg font-medium leading-7 text-blue-800 hover:bg-blue-200 dark:border-blue-400-dark dark:bg-blue-100-dark dark:text-blue-800-dark dark:hover:bg-blue-200-dark print:hidden"
           >
             See all activity
           </button>

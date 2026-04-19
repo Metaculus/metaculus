@@ -1,145 +1,142 @@
 "use client";
 
-import { FC, useMemo } from "react";
+import { ReactNode } from "react";
+import { VictoryLine, VictoryPortal, VictoryScatter } from "victory";
 
-import Tooltip from "@/components/ui/tooltip";
-import cn from "@/utils/core/cn";
+import { METAC_COLORS } from "@/constants/colors";
+import { ThemeColor } from "@/types/theme";
 
 import { GroupTimelineMarker } from "./types";
 
-type Props = {
+type RenderProps = {
   markers: GroupTimelineMarker[];
-  chartWidth: number;
-  chartHeight: number;
-  xDomain: [number, number];
-  chartPadding: {
-    left: number;
-    right: number;
-    top: number;
-    bottom: number;
-  };
+  yDomain: [number, number];
+  plotTop: number;
+  getThemeColor: (color: ThemeColor) => string;
   activeMarkerId?: string | null;
   onMarkerEnter?: (marker: GroupTimelineMarker) => void;
   onMarkerLeave?: (marker: GroupTimelineMarker) => void;
 };
 
-export const GROUP_TIMELINE_MARKER_SIZE = 12;
+export const GROUP_TIMELINE_MARKER_SIZE = 5;
+const HIT_AREA_WIDTH = 16;
 
-const GroupTimelineMarkersOverlay: FC<Props> = ({
+type MarkerPointDatum = {
+  x: number;
+  y: number;
+  plotTop: number;
+  pointFill: string;
+  pointStroke: string;
+  onEnter: () => void;
+  onLeave: () => void;
+};
+
+type MarkerPointProps = {
+  x?: number;
+  y?: number;
+  datum?: MarkerPointDatum;
+  size?: number;
+};
+
+function TimelineMarkerPoint({
+  x,
+  y,
+  datum,
+  size = GROUP_TIMELINE_MARKER_SIZE,
+}: MarkerPointProps) {
+  if (!datum || typeof x !== "number" || typeof y !== "number") return null;
+  const { plotTop, pointFill, pointStroke, onEnter, onLeave } = datum;
+  const hitTop = Math.min(plotTop, y);
+  const hitHeight = Math.max(0, y - hitTop) + size + 4;
+
+  return (
+    <g
+      style={{ cursor: "pointer" }}
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
+    >
+      <rect
+        x={x - HIT_AREA_WIDTH / 2}
+        y={hitTop}
+        width={HIT_AREA_WIDTH}
+        height={hitHeight}
+        fill="transparent"
+        pointerEvents="all"
+      />
+      <circle
+        cx={x}
+        cy={y}
+        r={size}
+        fill={pointFill}
+        stroke={pointStroke}
+        strokeWidth={2}
+      />
+    </g>
+  );
+}
+
+export function renderGroupTimelineMarkers({
   markers,
-  chartWidth,
-  chartHeight,
-  xDomain,
-  chartPadding,
+  yDomain,
+  plotTop,
+  getThemeColor,
   activeMarkerId,
   onMarkerEnter,
   onMarkerLeave,
-}) => {
-  const positionedMarkers = useMemo(() => {
-    if (!markers.length) return [];
+}: RenderProps): ReactNode[] {
+  if (!markers.length) return [];
 
-    const [xMin, xMax] = xDomain;
-    const plotWidth = chartWidth - chartPadding.left - chartPadding.right;
-    if (plotWidth <= 0 || xMax <= xMin) return [];
+  const [yMin, yMax] = yDomain;
+  const elements: ReactNode[] = [];
 
-    return markers
-      .filter((marker) => marker.timestamp >= xMin && marker.timestamp <= xMax)
-      .map((marker) => ({
-        ...marker,
-        xPixel:
-          chartPadding.left +
-          ((marker.timestamp - xMin) / (xMax - xMin)) * plotWidth,
-      }));
-  }, [markers, chartWidth, chartPadding, xDomain]);
+  markers.forEach((marker) => {
+    const isActive = marker.id === activeMarkerId;
+    const lineColor = getThemeColor(
+      isActive ? METAC_COLORS.purple["700"] : METAC_COLORS.purple["400"]
+    );
+    const pointStroke = getThemeColor(METAC_COLORS.purple["700"]);
+    const pointFill = isActive
+      ? pointStroke
+      : getThemeColor(METAC_COLORS.gray["0"]);
 
-  if (!positionedMarkers.length) {
-    return null;
-  }
+    elements.push(
+      <VictoryPortal key={`timeline-marker-line-portal-${marker.id}`}>
+        <VictoryLine
+          data={[
+            { x: marker.timestamp, y: yMin },
+            { x: marker.timestamp, y: yMax },
+          ]}
+          style={{
+            data: {
+              stroke: lineColor,
+              strokeDasharray: "4,3",
+              strokeWidth: 1.5,
+              pointerEvents: "none",
+            },
+          }}
+        />
+      </VictoryPortal>
+    );
 
-  return (
-    <div className="pointer-events-none absolute inset-0 z-20">
-      {positionedMarkers.map((marker) => {
-        const isActive = marker.id === activeMarkerId;
-        const tooltipContent = marker.label ? (
-          <div className="space-y-0.5">
-            <div className="font-medium">{marker.label}</div>
-            {marker.dateLabel && (
-              <div className="opacity-80">{marker.dateLabel}</div>
-            )}
-          </div>
-        ) : (
-          marker.dateLabel ?? "Activity"
-        );
+    elements.push(
+      <VictoryPortal key={`timeline-marker-point-portal-${marker.id}`}>
+        <VictoryScatter
+          data={[
+            {
+              x: marker.timestamp,
+              y: yMin,
+              plotTop,
+              pointFill,
+              pointStroke,
+              onEnter: () => onMarkerEnter?.(marker),
+              onLeave: () => onMarkerLeave?.(marker),
+            },
+          ]}
+          dataComponent={<TimelineMarkerPoint />}
+        />
+      </VictoryPortal>
+    );
+  });
 
-        return (
-          <div
-            key={marker.id}
-            className="absolute inset-y-0"
-            style={{ left: marker.xPixel, transform: "translateX(-50%)" }}
-          >
-            <div
-              className={cn(
-                "absolute w-0 border-l-2 border-dashed transition-colors",
-                isActive
-                  ? "border-purple-700 dark:border-purple-700-dark"
-                  : "border-purple-400 dark:border-purple-400-dark"
-              )}
-              style={{
-                left: 0,
-                top: chartPadding.top,
-                height: chartHeight - chartPadding.top - chartPadding.bottom,
-                transform: "translateX(-50%)",
-              }}
-            />
-            <div
-              className="pointer-events-auto absolute"
-              style={{
-                bottom: chartPadding.bottom,
-                transform: "translate(-50%, 50%)",
-              }}
-            >
-              <Tooltip
-                showDelayMs={100}
-                placement="top"
-                renderInPortal={false}
-                tooltipContent={tooltipContent}
-                tooltipClassName="border-blue-400 bg-gray-0 text-left text-gray-800 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-gray-800-dark"
-                className="block"
-              >
-                <button
-                  type="button"
-                  aria-label={
-                    marker.label ?? marker.dateLabel ?? "Timeline marker"
-                  }
-                  className={cn(
-                    "group flex items-center justify-center rounded-full p-1 outline-none transition-transform",
-                    isActive && "scale-110"
-                  )}
-                  onMouseEnter={() => onMarkerEnter?.(marker)}
-                  onMouseLeave={() => onMarkerLeave?.(marker)}
-                  onFocus={() => onMarkerEnter?.(marker)}
-                  onBlur={() => onMarkerLeave?.(marker)}
-                >
-                  <span
-                    className={cn(
-                      "block rounded-full border-2 transition-colors",
-                      isActive
-                        ? "border-purple-700 bg-purple-700 dark:border-purple-700-dark dark:bg-purple-700-dark"
-                        : "border-purple-700 bg-gray-0 group-hover:border-purple-700 group-hover:bg-purple-200 dark:border-purple-700-dark dark:bg-gray-0-dark dark:group-hover:border-purple-700-dark dark:group-hover:bg-purple-200-dark"
-                    )}
-                    style={{
-                      width: GROUP_TIMELINE_MARKER_SIZE,
-                      height: GROUP_TIMELINE_MARKER_SIZE,
-                    }}
-                  />
-                </button>
-              </Tooltip>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
-
-export default GroupTimelineMarkersOverlay;
+  return elements;
+}

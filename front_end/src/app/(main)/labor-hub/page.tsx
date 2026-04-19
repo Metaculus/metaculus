@@ -493,6 +493,7 @@ export default function LaborAutomationHubPage() {
                 showTickLabels: true,
                 valueFormat: "percentageChange",
                 height: 320,
+                hideHistoricalLabelsInPrint: true,
               }}
             />
             <ActivityCard

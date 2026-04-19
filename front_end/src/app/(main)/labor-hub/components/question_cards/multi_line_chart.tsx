@@ -56,6 +56,8 @@ type Props = {
   historicalForecastDividerX?: number | null;
   /** When false, hides the HISTORICAL / FORECAST labels and the vertical divider line. */
   showHistoricalForecastAnnotation?: boolean;
+  /** When true, hides data labels for historical points (those marked filled) while printing. */
+  hideHistoricalLabelsInPrint?: boolean;
 };
 
 type ResolvedSeriesColors = {
@@ -516,8 +518,8 @@ const ChangeBadge: FC<{
   groupClassName?: string;
   rectClassName?: string;
   textClassName?: string;
-  /** When set and the badge belongs to the highlighted x, use this as the badge's top y in pixels. */
-  badgeTopOverride?: number;
+  /** Per-x badge top overrides (pixels). When the map contains datum.x, that value replaces the computed badge top. */
+  badgeTopsByX?: Map<number, number>;
 }> = ({
   x,
   y,
@@ -533,7 +535,7 @@ const ChangeBadge: FC<{
   groupClassName,
   rectClassName,
   textClassName,
-  badgeTopOverride,
+  badgeTopsByX,
 }) => {
   if (x === undefined || y === undefined || !datum) return null;
   if (!alwaysVisible && (highlightedX == null || datum.x !== highlightedX))
@@ -545,14 +547,11 @@ const ChangeBadge: FC<{
   const text = formatValue(datum.y);
   const badgeWidth = computeBadgeWidth(text);
 
-  const useOverride =
-    badgeTopOverride != null &&
-    highlightedX != null &&
-    datum.x === highlightedX;
+  const overrideTop = badgeTopsByX?.get(datum.x);
 
   let badgeTop: number;
-  if (useOverride) {
-    badgeTop = badgeTopOverride;
+  if (overrideTop != null) {
+    badgeTop = overrideTop;
   } else {
     switch (placement) {
       case "above":
@@ -623,6 +622,7 @@ export const MultiLineChart: FC<Props> = ({
   emphasizedSeriesId = null,
   historicalForecastDividerX = null,
   showHistoricalForecastAnnotation = true,
+  hideHistoricalLabelsInPrint = false,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -934,70 +934,6 @@ export const MultiLineChart: FC<Props> = ({
     return [...filtered].sort((a, b) => distanceFor(b) - distanceFor(a));
   }, [seriesEntries, highlightedX, cursorY, chartWidth, height, yDomain]);
 
-  const hoverBadgeTopOverrides = useMemo<Map<string, number>>(() => {
-    const overrides = new Map<string, number>();
-    if (highlightedX == null || !chartWidth) return overrides;
-
-    const plotTop = CHART_PADDING.top;
-    const plotBottom = height - CHART_PADDING.bottom;
-    const plotHeight = plotBottom - plotTop;
-    const [yMin, yMax] = yDomain;
-    const ySpan = yMax - yMin;
-    if (plotHeight <= 0 || ySpan === 0) return overrides;
-
-    const candidates: { id: string; naturalTop: number }[] = [];
-    for (const entry of seriesEntries) {
-      const item = entry.series;
-      if (!getHoverLabelMode(item.dataLabels)) continue;
-      if ((item.dataLabelPlacement ?? "inline") !== "inline") continue;
-      const point = entry.chartData.find((p) => p.x === highlightedX);
-      if (!point || point.y === 0) continue;
-      const pixelY = plotBottom - ((point.y - yMin) / ySpan) * plotHeight;
-      candidates.push({
-        id: item.id,
-        naturalTop: pixelY - DATA_LABEL_BADGE_HEIGHT / 2,
-      });
-    }
-
-    if (candidates.length < 2) return overrides;
-
-    const sorted = [...candidates].sort((a, b) => a.naturalTop - b.naturalTop);
-    const stride = DATA_LABEL_BADGE_HEIGHT;
-    const placed = sorted.map((entry) => entry.naturalTop);
-
-    for (let iter = 0; iter < 12; iter += 1) {
-      let maxShift = 0;
-      for (let i = 1; i < sorted.length; i += 1) {
-        const overlap = (placed[i - 1] ?? 0) + stride - (placed[i] ?? 0);
-        if (overlap > 0) {
-          const half = overlap / 2;
-          placed[i - 1] = (placed[i - 1] ?? 0) - half;
-          placed[i] = (placed[i] ?? 0) + half;
-          if (half > maxShift) maxShift = half;
-        }
-      }
-      if (maxShift < 0.5) break;
-    }
-
-    const minTop = plotTop + 2;
-    const maxTop = plotBottom - DATA_LABEL_BADGE_HEIGHT - 2;
-    for (let i = 0; i < placed.length; i += 1) {
-      const value = placed[i] ?? 0;
-      if (value < minTop) placed[i] = minTop;
-      else if (value > maxTop) placed[i] = maxTop;
-    }
-
-    for (let i = 0; i < sorted.length; i += 1) {
-      const entry = sorted[i];
-      const resolvedTop = placed[i];
-      if (!entry || resolvedTop == null) continue;
-      if (Math.abs(resolvedTop - entry.naturalTop) < 0.5) continue;
-      overrides.set(entry.id, resolvedTop);
-    }
-
-    return overrides;
-  }, [seriesEntries, highlightedX, chartWidth, height, yDomain]);
-
   const visibleDataLabelXsBySeries = useMemo<Map<string, Set<number>>>(() => {
     const result = new Map<string, Set<number>>();
     if (!chartWidth) return result;
@@ -1049,6 +985,123 @@ export const MultiLineChart: FC<Props> = ({
     xDomain,
     yDomain,
     formatResolvedYValue,
+  ]);
+
+  const badgeTopOverridesBySeries = useMemo<
+    Map<string, Map<number, number>>
+  >(() => {
+    const result = new Map<string, Map<number, number>>();
+    if (!chartWidth) return result;
+
+    const plotTop = CHART_PADDING.top;
+    const plotBottom = height - CHART_PADDING.bottom;
+    const plotHeight = plotBottom - plotTop;
+    const [yMin, yMax] = yDomain;
+    const ySpan = yMax - yMin;
+    if (plotHeight <= 0 || ySpan === 0) return result;
+
+    type Candidate = { seriesId: string; naturalTop: number };
+    const byX = new Map<number, Candidate[]>();
+
+    for (const entry of seriesEntries) {
+      const item = entry.series;
+      if ((item.dataLabelPlacement ?? "inline") !== "inline") continue;
+
+      const alwaysMode = getAlwaysVisibleLabelMode(
+        item.dataLabels,
+        isPrintMode
+      );
+      const hoverMode = !isPrintMode && getHoverLabelMode(item.dataLabels);
+      if (!alwaysMode && !hoverMode) continue;
+
+      const perSeriesVisible = visibleDataLabelXsBySeries.get(item.id);
+
+      for (const point of entry.chartData) {
+        if (point.y === 0) continue;
+        if (isPrintMode && hideHistoricalLabelsInPrint && point.filled === true)
+          continue;
+
+        let shows = false;
+        if (alwaysMode) {
+          shows = !perSeriesVisible || perSeriesVisible.has(point.x);
+        } else if (
+          hoverMode &&
+          highlightedX != null &&
+          point.x === highlightedX
+        ) {
+          shows = true;
+        }
+        if (!shows) continue;
+
+        const pixelY = plotBottom - ((point.y - yMin) / ySpan) * plotHeight;
+        const naturalTop = pixelY - DATA_LABEL_BADGE_HEIGHT / 2;
+
+        let list = byX.get(point.x);
+        if (!list) {
+          list = [];
+          byX.set(point.x, list);
+        }
+        list.push({ seriesId: item.id, naturalTop });
+      }
+    }
+
+    const minTop = plotTop + 2;
+    const maxTop = plotBottom - DATA_LABEL_BADGE_HEIGHT - 2;
+    const stride = DATA_LABEL_BADGE_HEIGHT;
+
+    for (const [xValue, candidates] of byX) {
+      if (candidates.length < 2) continue;
+
+      const sorted = [...candidates].sort(
+        (a, b) => a.naturalTop - b.naturalTop
+      );
+      const placed = sorted.map((c) => c.naturalTop);
+
+      for (let iter = 0; iter < 12; iter += 1) {
+        let maxShift = 0;
+        for (let i = 1; i < sorted.length; i += 1) {
+          const overlap = (placed[i - 1] ?? 0) + stride - (placed[i] ?? 0);
+          if (overlap > 0) {
+            const half = overlap / 2;
+            placed[i - 1] = (placed[i - 1] ?? 0) - half;
+            placed[i] = (placed[i] ?? 0) + half;
+            if (half > maxShift) maxShift = half;
+          }
+        }
+        if (maxShift < 0.5) break;
+      }
+
+      for (let i = 0; i < placed.length; i += 1) {
+        const value = placed[i] ?? 0;
+        if (value < minTop) placed[i] = minTop;
+        else if (value > maxTop) placed[i] = maxTop;
+      }
+
+      for (let i = 0; i < sorted.length; i += 1) {
+        const candidate = sorted[i];
+        const resolvedTop = placed[i];
+        if (!candidate || resolvedTop == null) continue;
+        if (Math.abs(resolvedTop - candidate.naturalTop) < 0.5) continue;
+
+        let seriesMap = result.get(candidate.seriesId);
+        if (!seriesMap) {
+          seriesMap = new Map<number, number>();
+          result.set(candidate.seriesId, seriesMap);
+        }
+        seriesMap.set(xValue, resolvedTop);
+      }
+    }
+
+    return result;
+  }, [
+    seriesEntries,
+    highlightedX,
+    chartWidth,
+    height,
+    yDomain,
+    visibleDataLabelXsBySeries,
+    isPrintMode,
+    hideHistoricalLabelsInPrint,
   ]);
 
   return (
@@ -1286,9 +1339,13 @@ export const MultiLineChart: FC<Props> = ({
               )
               .map(({ series: item, chartData, colors, pointRadius }) => {
                 const visibleXs = visibleDataLabelXsBySeries.get(item.id);
-                const data = visibleXs
+                const baseData = visibleXs
                   ? chartData.filter((p) => visibleXs.has(p.x))
                   : chartData;
+                const data =
+                  isPrintMode && hideHistoricalLabelsInPrint
+                    ? baseData.filter((p) => p.filled !== true)
+                    : baseData;
                 return (
                   <VictoryScatter
                     key={`labels-always-${item.id}`}
@@ -1310,6 +1367,7 @@ export const MultiLineChart: FC<Props> = ({
                         )}
                         rectClassName={item.dataLabelRectClassName}
                         textClassName={item.dataLabelTextClassName}
+                        badgeTopsByX={badgeTopOverridesBySeries.get(item.id)}
                       />
                     }
                   />
@@ -1357,7 +1415,7 @@ export const MultiLineChart: FC<Props> = ({
                           )}
                           rectClassName={item.dataLabelRectClassName}
                           textClassName={item.dataLabelTextClassName}
-                          badgeTopOverride={hoverBadgeTopOverrides.get(item.id)}
+                          badgeTopsByX={badgeTopOverridesBySeries.get(item.id)}
                         />
                       }
                     />

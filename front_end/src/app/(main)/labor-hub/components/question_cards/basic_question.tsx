@@ -12,6 +12,7 @@ import NumericForecastCard from "@/components/consumer_post_card/group_forecast_
 import PercentageForecastCard from "@/components/consumer_post_card/group_forecast_card/percentage_forecast_card";
 import TimeSeriesChart from "@/components/consumer_post_card/time_series_chart";
 import DetailedMultipleChoiceChartCard from "@/components/detailed_question_card/detailed_question_card/multiple_choice_chart_card";
+import { usePrintOverride } from "@/contexts/theme_override_context";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import {
@@ -45,6 +46,12 @@ export function BasicQuestionContent({
 }) {
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
   const laborHubHover = useLaborHubChartHover();
+  const isPrintMode = usePrintOverride();
+  // On screen, only the preview activity cards render (top 4); expand to 10 when printing the full list.
+  const visibleTimelineMarkers = timelineMarkers?.slice(
+    0,
+    isPrintMode ? 10 : 4
+  );
 
   if (isMultipleChoicePost(postData) && !subQuestionId) {
     if (preferTimeline) {
@@ -71,7 +78,7 @@ export function BasicQuestionContent({
           <GroupTimeline
             group={postData.group_of_questions}
             chartHeight={chartHeight}
-            timelineMarkers={timelineMarkers}
+            timelineMarkers={visibleTimelineMarkers}
             activeTimelineMarkerId={laborHubHover?.hoveredActivityId ?? null}
             onTimelineMarkerEnter={(marker) =>
               laborHubHover?.setHoveredActivityId(
