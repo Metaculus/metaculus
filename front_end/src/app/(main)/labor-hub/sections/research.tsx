@@ -217,7 +217,7 @@ export function ResearchSection({
               rel="noreferrer"
             >
               Manning and Aguirre (2026)
-            </a>
+            </a>{" "}
             from measures of AI exposure and adaptive capacity (a measure of a
             worker’s ability to navigate job transitions if displaced). These
             scores were combined into a vulnerability score using the same
