@@ -293,11 +293,11 @@ function ResearchTableLegend() {
     >
       <div className="mb-4 text-xs text-gray-600 dark:text-gray-600-dark">
         Note: each literature column has its own color range, where the reddest
-        is the lowest AI exposure number in the column and the greenest is the
-        highest AI exposure number in that column. The Metaculus forecast
-        columns for 2030 and 2035 share a color range; the largest predicted
-        decline across 2030 and 2035 is the reddest, while the largest predicted
-        growth across 2030 and 2035 is the greenest.
+        is the highest AI exposure number in the column and the greenest is the
+        lowest AI exposure number in that column. The Metaculus forecast columns
+        for 2030 and 2035 share a color range; the largest predicted decline
+        across 2030 and 2035 is the reddest, while the largest predicted growth
+        across 2030 and 2035 is the greenest.
       </div>
       <div className="grid grid-cols-[minmax(0,5rem)_minmax(0,1fr)] items-end gap-x-4 md:grid-cols-[minmax(0,auto)_minmax(0,1fr)] md:gap-x-8">
         <LegendTextRow
