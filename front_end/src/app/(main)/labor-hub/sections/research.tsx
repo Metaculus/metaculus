@@ -97,6 +97,10 @@ export function ResearchSection({
                     people working in different occupations from the baseline
                     scenario, the speed of which suggests how much occupational
                     disruption is happening in the economy.
+                    <span className="mt-2 block">
+                      The historical and forecasted chart data represent the
+                      values for December of each year.
+                    </span>
                   </>
                 }
               >

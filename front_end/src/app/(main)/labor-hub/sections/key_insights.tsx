@@ -5,7 +5,12 @@ import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 
 import { GOVERNMENT_BASELINES } from "../data";
-import { fetchOverallData } from "../helpers/fetch_jobs_data";
+import {
+  fetchJobsData,
+  fetchOverallData,
+  getTopExtremeJobsForYear,
+  type JobForecast,
+} from "../helpers/fetch_jobs_data";
 import {
   fetchKeyInsightsData,
   type KeyInsightsData,
@@ -43,6 +48,14 @@ function describeTradeSchoolGrowth(value: number | null): string {
   return `${value < 0 ? "decline" : "grow"} ${rounded}%`;
 }
 
+function formatJobList(jobs: JobForecast[]): string | null {
+  const names = jobs.map((j) => j.name);
+  if (names.length === 0) return null;
+  if (names.length === 1) return names[0] ?? null;
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
+}
+
 export async function KeyInsightsSection({
   className,
   ...props
@@ -53,13 +66,19 @@ export async function KeyInsightsSection({
     youthUnemployment2035: null,
     tradeSchoolGrowth2035: null,
   };
+  let mostVulnerable2035: JobForecast[] = [];
+  let leastVulnerable2035: JobForecast[] = [];
   try {
-    const [overallData, fetchedInsights] = await Promise.all([
+    const [overallData, fetchedInsights, { jobs }] = await Promise.all([
       fetchOverallData(),
       fetchKeyInsightsData(),
+      fetchJobsData(),
     ]);
     overall2035 = overallData.find((d) => d.year === 2035)?.value ?? null;
     insightsData = fetchedInsights;
+    const extremes = getTopExtremeJobsForYear(jobs, "2035");
+    mostVulnerable2035 = extremes.mostVulnerable;
+    leastVulnerable2035 = extremes.leastVulnerable;
   } catch (error) {
     logError(error);
   }
@@ -73,6 +92,8 @@ export async function KeyInsightsSection({
     insightsData.youthUnemployment2035 != null
       ? Math.round(insightsData.youthUnemployment2035)
       : null;
+  const mostVulnerableText = formatJobList(mostVulnerable2035);
+  const leastVulnerableText = formatJobList(leastVulnerable2035);
 
   return (
     <SectionToggle
@@ -96,14 +117,24 @@ export async function KeyInsightsSection({
           growth.
         </KeyInsightItem>
         <KeyInsightItem title="Most and least vulnerable occupations">
-          Software developers, lawyers and law clerks, and laborers and material
-          movers are all expected to see the largest decreases in employment
-          rates, while registered nurses, K-12 teachers, and restaurant servers
-          are projected to grow.
+          {mostVulnerableText && leastVulnerableText ? (
+            <>
+              {mostVulnerableText} are all expected to see the largest decreases
+              in employment rates, while {leastVulnerableText} are projected to
+              grow.
+            </>
+          ) : (
+            <>
+              Software developers, lawyers and law clerks, and laborers and
+              material movers are all expected to see the largest decreases in
+              employment rates, while registered nurses, K-12 teachers, and
+              restaurant servers are projected to grow.
+            </>
+          )}
         </KeyInsightItem>
         <KeyInsightItem title="Wages and hours worked">
-          Wages are expected to see notable growth for workers who remain
-          employed, while hours worked are expected to decline
+          Wages are expected to see mild growth for workers who remain employed,
+          while hours worked are expected to decline
           {hoursDisplay != null ? ` to ${hoursDisplay} hours a week` : ""} in
           2035, down from 38 now.
         </KeyInsightItem>

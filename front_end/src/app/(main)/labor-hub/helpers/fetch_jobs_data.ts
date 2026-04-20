@@ -33,6 +33,54 @@ export const fetchJobsData = cache(
   }
 );
 
+export type JobForecast = { name: string; value: number };
+
+export const VULNERABILITY_CHIP_JOB_LIMIT = 3;
+
+export function getJobValueForYear(
+  job: JobWithPost,
+  yearLabel: string
+): number | null {
+  const questions = job.post?.group_of_questions?.questions as
+    | QuestionWithNumericForecasts[]
+    | undefined;
+  const question = questions?.find((q) => q.label === yearLabel);
+  if (!question) return null;
+  return getSubQuestionValue(question);
+}
+
+/** Up to `limit` jobs at the min/max forecasts for a year (same values as the chart envelope). */
+export function getTopExtremeJobsForYear(
+  jobs: JobWithPost[],
+  yearLabel: string,
+  limit: number = VULNERABILITY_CHIP_JOB_LIMIT
+): { mostVulnerable: JobForecast[]; leastVulnerable: JobForecast[] } {
+  const rows: JobForecast[] = [];
+  for (const job of jobs) {
+    const v = getJobValueForYear(job, yearLabel);
+    if (v == null) continue;
+    rows.push({ name: job.name, value: v });
+  }
+
+  if (!rows.length) {
+    return { mostVulnerable: [], leastVulnerable: [] };
+  }
+
+  const sorted = [...rows].sort((a, b) => a.value - b.value);
+  const n = sorted.length;
+  const k = Math.min(limit, n);
+  const mostVulnerable = sorted.slice(0, k);
+  const mostNames = new Set(mostVulnerable.map((j) => j.name));
+  const leastVulnerable: JobForecast[] = [];
+  for (let i = n - 1; i >= 0 && leastVulnerable.length < limit; i--) {
+    const j = sorted[i];
+    if (j == null) continue;
+    if (!mostNames.has(j.name)) leastVulnerable.push(j);
+  }
+
+  return { mostVulnerable, leastVulnerable };
+}
+
 export type YearValue = { year: number; value: number };
 
 export const OVERALL_POST_ID = 41307;

@@ -554,7 +554,7 @@ export default function LaborAutomationHubPage() {
                 extraRows={[
                   {
                     title: "30-year trend",
-                    color: "mc4",
+                    color: "mc3",
                     dashed: true,
                     dotSize: 0,
                     dataLabels: "never",
