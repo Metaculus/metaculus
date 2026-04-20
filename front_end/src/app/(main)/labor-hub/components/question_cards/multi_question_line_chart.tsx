@@ -104,7 +104,7 @@ function buildSeriesFromDatasetRows(
       dashed: overrides?.dashed ?? row.dashed,
       dotSize: overrides?.dotSize ?? row.dotSize,
       legendStyle: overrides?.legendStyle,
-      legendDetail: overrides?.legendDetail,
+      legendDetail: overrides?.legendDetail ?? row.legendDetail,
       dataLabelPlacement: overrides?.dataLabelPlacement,
       dataLabelTransparent: overrides?.dataLabelTransparent,
       dataLabelClassName: overrides?.dataLabelClassName,

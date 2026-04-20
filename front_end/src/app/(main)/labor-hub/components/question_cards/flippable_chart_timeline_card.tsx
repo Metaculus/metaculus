@@ -106,7 +106,7 @@ async function FlippableChartTimelineContent({
             preferTimeline
             chartHeight={chartHeight}
             timelineMarkers={timelineMarkers}
-            timelineSubtitle="How the forecasts have changed over time?"
+            timelineSubtitle="How the forecasts have changed over time"
           />
         }
         leftIcon={faChartLine}

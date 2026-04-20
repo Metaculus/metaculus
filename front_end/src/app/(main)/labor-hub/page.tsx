@@ -1,9 +1,7 @@
 import { Metadata } from "next";
-import { ComponentProps } from "react";
 
-import SectionToggle from "@/components/ui/section_toggle";
 import { ThemeOverrideContainer } from "@/contexts/theme_override_context";
-import cn from "@/utils/core/cn";
+import { getPublicSettings } from "@/utils/public_settings.server";
 
 import { ActivityCard } from "./components/activity_card";
 import { DefinitionTooltip } from "./components/definition_tooltip";
@@ -23,6 +21,7 @@ import { ActivityMonitorSection } from "./sections/activity_monitor";
 import { EngagementSection } from "./sections/engagement_section";
 import { HeroSection } from "./sections/hero";
 import { JobsMonitorServer } from "./sections/jobs_monitor_server";
+import { KeyInsightsSection } from "./sections/key_insights";
 import { MethodologySection } from "./sections/methodology";
 import { OverviewSection } from "./sections/overview";
 import { ResearchSection } from "./sections/research";
@@ -38,30 +37,28 @@ const SECTIONS = [
   { id: "methodology", label: "Methodology" },
 ];
 
-export const metadata: Metadata = {
-  title: "Labor Automation Forecasting Hub | Metaculus",
-  description:
-    "Real-time forecasts from our global forecasting community on the future of the US workforce as AI advances.",
-};
+export function generateMetadata(): Metadata {
+  const { PUBLIC_APP_URL } = getPublicSettings();
+  const title = "Labor Automation Forecasting Hub | Metaculus";
+  const description =
+    "Real-time forecasts from our global forecasting community on the future of the US workforce as AI advances.";
+  const img = `${PUBLIC_APP_URL}/og/labor-hub/route?theme=dark`;
 
-function KeyInsightItem({
-  className,
-  children,
-  title,
-  ...props
-}: ComponentProps<"div">) {
-  return (
-    <div
-      className={cn(
-        "my-0 break-inside-avoid p-4 text-sm text-blue-700 [text-wrap:pretty] dark:text-blue-700-dark md:text-base print:p-2",
-        className
-      )}
-      {...props}
-    >
-      <strong>{title}: </strong>
-      {children}
-    </div>
-  );
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [{ url: img, width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [img],
+    },
+  };
 }
 
 export default function LaborAutomationHubPage() {
@@ -75,61 +72,83 @@ export default function LaborAutomationHubPage() {
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-1 sm:gap-6 sm:px-8 md:gap-8 xl:px-16 print:gap-8 print:px-0">
         <div className="flex w-full flex-col gap-5 px-3 sm:gap-6 sm:px-0 md:gap-8 print:gap-8 print:px-0">
           <OverviewSection id="overview" className="print:mb-6" />
-          <SectionToggle
-            key="key-insights"
-            title="Key Insights"
-            variant="light"
-            defaultOpen={false}
-            wrapperClassName="print:mb-6"
-            contentWrapperClassName="grid md:grid-cols-2 md:gap-8 print:grid-cols-2 print:gap-4"
-          >
-            <div className="flex flex-col">
-              <KeyInsightItem title="Overall employment">
-                Forecasters expect significant AI-driven job change, with
-                overall employment declining around 6% by 2035, while the latest
-                government projections expect approximately 3% growth.
-              </KeyInsightItem>
-              <KeyInsightItem title="Most and least vulnerable occupations">
-                Software developers, lawyers and law clerks, and laborers and
-                material movers are all expected to see the largest decreases in
-                employment rates, while registered nurses, K-12 teachers, and
-                restaurant servers are projected to grow.
-              </KeyInsightItem>
-              <KeyInsightItem title="Wages and hours worked">
-                Wages are expected to see notable growth for workers who remain
-                employed, while hours worked are expected to decline to 34 hours
-                a week in 2035, down from 38 now.
-              </KeyInsightItem>
-            </div>
-            <div className="flex flex-col">
-              <KeyInsightItem title="Financial well-being">
-                Well-being (as measured by the ratio of after-tax and transfer
-                available resources to the poverty threshold) is expected to
-                remain the same or grow across the board, with the highest
-                income families seeing the most gains.
-              </KeyInsightItem>
-              <KeyInsightItem title="Young workers">
-                The youngest workers are expected to be hit hardest, with
-                unemployment for 4-year college graduates in the 22-27 age range
-                expected to grow from the current 6% to 11% in 2035. Meanwhile,
-                trade school and community college certificates are expected to
-                grow 24% from current levels by 2035.
-              </KeyInsightItem>
-              <KeyInsightItem title="Broader economy">
-                The economy is expected to see a number of significant changes,
-                with the long-term unemployment rate, labor productivity, and
-                the number of Fortune 500 companies with fewer than 5,000
-                employees all seeing substantial increases over the next decade.
-              </KeyInsightItem>
-            </div>
-          </SectionToggle>
+          <KeyInsightsSection />
           <ActivityMonitorSection id="activity" className="" />
         </div>
-        <JobsMonitorServer
-          id="jobs"
-          labels={["2027", "2030", "2035"]}
-          className=""
-        />
+
+        <div>
+          <JobsMonitorServer
+            id="jobs"
+            labels={["2027", "2030", "2035"]}
+            className=""
+          />
+          <DualPaneSectionCard className="-mt-1 gap-4 rounded-t-none bg-opacity-50 dark:bg-opacity-50 md:gap-8">
+            <ActivityCard
+              variant="mint"
+              avatar="https://cdn.metaculus.com/labor-hub/bchandar_256.jpg"
+              username="Bharat Chandar"
+              subtitle="Postdoctoral Researcher, Stanford Digital Economy Lab"
+            >
+              <p>
+                Median overall employment forecast:
+                <br />
+                (2027: +1%) (2030: -0.5%) (2035: -4%)
+              </p>
+              <p>
+                In the very short run, I expect lags in employment impacts
+                because of limitations of the technology and slow AI adoption.
+                For this reason my 2027 estimate takes the trend line of
+                employment and slightly undershoots it. However, power users may
+                be as important to monitor as laggards because they may exert
+                competitive pressure on markets that lead to faster adjustment.
+              </p>
+              <p>
+                In the longer run (5-10 years), I am extremely uncertain. I
+                expect the technology will be much more advanced and integrated
+                into peoples&apos; lives. My primary uncertainty is the policy
+                response if AI leads to rapid change. I don&apos;t know how this
+                will resolve itself. There may be scenarios where AI does less
+                than it is capable of because of new regulation. The BLS may
+                also measure activities as work that look more like leisure than
+                what many people do today.
+              </p>
+            </ActivityCard>
+            <ActivityCard
+              variant="purple"
+              avatar="https://cdn.metaculus.com/labor-hub/draaglom_256.jpg"
+              username="Patrick Molgaard (draaglom)"
+              subtitle="Pro Forecaster"
+              link="https://www.metaculus.com/questions/41307/us-employment-level-change-vs-2025/#comment-772700"
+            >
+              <p>
+                The economic changes we see from AI will be faster than almost
+                anything seen before. As a general trend, each technological
+                wave is adopted faster than the previous (e.g. mobile phone
+                penetration vs landlines) and the nature of AI should accelerate
+                its adoption even relative to this trend.
+              </p>
+              <p>
+                Despite this, adoption and job displacement may still be
+                surprisingly slow in some important senses. My stereotype of how
+                this might look is that new AI-first competitor companies have
+                been (or will be) created in many industries and these new
+                entrants will take some time - a period of several years - to
+                displace the old ones. As an intuition, &quot;Photographic
+                Process Workers and Processing Machine Operators&quot; took 5
+                years between 2010 and 2015 to decline 50% - and this is a job
+                whose associated technology was ~obsoleted.
+              </p>
+              <p>
+                Relatedly, I expect many job roles, even some seen as relatively
+                &quot;low education&quot; or &quot;at risk of automation&quot;
+                will have a surprisingly large long tail of tasks that take some
+                time for AI systems to be good at. I&apos;m also quite skeptical
+                that a majority of the job losses attributed to AI so far (e.g.
+                tech layoffs) are truly proximately caused by AI.
+              </p>
+            </ActivityCard>
+          </DualPaneSectionCard>
+        </div>
 
         {/* Wages Section */}
         <DualPaneSectionCard id="wages" className="">
@@ -417,7 +436,14 @@ export default function LaborAutomationHubPage() {
             </ContentParagraph>
             <FlippableMultiQuestionCard
               prefer="timeline"
-              title="Change in the number of bachelor’s degrees awarded relative to 2025"
+              title={
+                <>
+                  Change in the number of degrees and certificates awarded{" "}
+                  <DefinitionTooltip tooltipContent="Historical data for 2025 has not yet been released, so 2025 figures have been temporarily assumed to be the same as the 2024 figures. The year represents the year graduation occurs, so for example the 2029-2030 school year is represented here as 2030.">
+                    relative to 2025
+                  </DefinitionTooltip>
+                </>
+              }
               tableHistoricalValueKeys={["2025"]}
               rows={[
                 {
@@ -486,6 +512,7 @@ export default function LaborAutomationHubPage() {
                 showTickLabels: true,
                 valueFormat: "percentageChange",
                 height: 320,
+                hideHistoricalLabelsInPrint: true,
               }}
             />
             <ActivityCard
@@ -589,15 +616,30 @@ export default function LaborAutomationHubPage() {
               }}
             />
             <ActivityCard
-              avatar="https://cdn.metaculus.com/labor-hub/draaglom_256.jpg"
-              username="Patrick Molgaard (draaglom)"
+              avatar="https://cdn.metaculus.com/labor-hub/lubossaloky_256.jpg"
+              username="Ľuboš Saloky (lubossaloky)"
               subtitle="Pro Forecaster"
-              link="https://www.metaculus.com/questions/41307/us-employment-level-change-vs-2025/#comment-772700"
+              link="https://www.metaculus.com/questions/41313/#comment-819256"
             >
-              The AI systems we have right now are already capable enough to be
-              economically transformative in a way that will very likely show up
-              significantly in these employment statistics over the coming
-              decade.
+              <p>
+                Even during periods when total unemployment rates spike
+                significantly, the rate of long-term unemployment relative to
+                the labor force stays relatively low. People do exit the
+                unemployment statistics without finding employment. When workers
+                become discouraged and stop looking for employment, they leave
+                the labor force. Also when someone transitions from being
+                unemployed to returning to school, retiring early, or focusing
+                on family care, they disappear from unemployment statistics.
+              </p>
+              <p>
+                When discouraged workers fall off the unemployment rolls, the
+                unemployment rate looks artificially lower. I’m forecasting a
+                −2% change in overall employment by 2030 and −11% by 2035.
+              </p>
+              <p>
+                However, I don’t expect these declines to be fully reflected in
+                the long-term unemployment rate.
+              </p>
             </ActivityCard>
             <FlippableChartTimelineCard
               title={
@@ -663,8 +705,12 @@ export default function LaborAutomationHubPage() {
             <SectionHeader>State-Level View</SectionHeader>
 
             <ContentParagraph>
-              In addition to the changes forecasted for the US, there are areas
-              specific to Washington State that may face particular challenges.
+              To complement the national forecasts, we also look at the state of
+              Washington to see whether short-term expectations at the state
+              level track the broader national pattern. Washington is especially
+              useful as a test case because of its concentration in dynamic
+              industries like technology and aerospace, which could potentially
+              see more dynamic short term changes.
             </ContentParagraph>
             <ContentParagraph>
               The healthcare sector (employing 13% of Washington residents) is
@@ -673,13 +719,13 @@ export default function LaborAutomationHubPage() {
               growth in the short-term, largely consistent with historical
               trends. The aerospace sector (employing 2%) is likely to face a
               slight decline, though the changes are not anticipated to be
-              directly AI-related. These forecasts are very short-term, so the
-              predicted changes are minimal.
+              directly AI-related. These forecasts are short-term, leading to
+              minimal predicted change.
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight className="lg:mt-16 print:mt-12">
             <MultiQuestionTable
-              title="Employment change for Washington state for 2027"
+              title="Employment change for the state of Washington for 2027"
               hideTitleRow
               valueFormat="percentageChange"
               decimals={1}

@@ -7,6 +7,7 @@ export type RawActivityMonitorEntry = Omit<ActivityMonitorEntry, "id"> & {
 export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
   {
     date: "2026-03-22",
+    type: "comment",
     content: (
       <>
         <em>
@@ -28,6 +29,7 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
   },
   {
     date: "2026-03-24",
+    type: "news",
     content: (
       <>
         Anthropic’s Economic Index Report shows where and how Claude is being
@@ -44,6 +46,7 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
   },
   {
     date: "2026-03-30",
+    type: "comment",
     content: (
       <>
         <em>
@@ -64,6 +67,7 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
   },
   {
     date: "2026-04-07",
+    type: "news",
     content: (
       <>
         Anthropic published a system card for Claude Mythos, a model so capable
@@ -81,6 +85,7 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
   },
   {
     date: "2026-04-09",
+    type: "news",
     content: (
       <>
         A survey shows that half of employed AI users use AI for work at least

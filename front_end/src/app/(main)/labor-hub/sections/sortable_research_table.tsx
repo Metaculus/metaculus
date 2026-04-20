@@ -243,7 +243,7 @@ export const SortableResearchTable: FC<{
       HeadingSection={
         <>
           <div className="mb-2 text-center text-base font-normal leading-5 text-gray-800 dark:text-gray-800-dark">
-            Metaculus Forecasts Compared to AI Vulnerability Research
+            Metaculus Forecasts Compared to AI Exposure Research
           </div>
           <div className="mb-4 text-balance text-center text-sm font-normal leading-5 text-gray-600 dark:text-gray-600-dark">
             Comparing Metaculus occupational employment forecasts for 2030 and
@@ -272,7 +272,7 @@ export const SortableResearchTable: FC<{
             colSpan={3}
             className="whitespace-nowrap pb-1 text-center"
           >
-            Literature
+            Literature<sup className="text-[0.5rem]">1</sup>
           </TableCompactHeaderCell>
         </TableCompactRow>
         <TableCompactRow>
@@ -305,17 +305,29 @@ export const SortableResearchTable: FC<{
             [
               {
                 metric: "felten" as const,
-                label: "Felten",
+                label: (
+                  <>
+                    Felten<sup className="text-[0.5rem]">2</sup>
+                  </>
+                ),
                 title: "Felten Language AIOE",
               },
               {
                 metric: "mna" as const,
-                label: "M&A",
+                label: (
+                  <>
+                    M&A<sup className="text-[0.5rem]">3</sup>
+                  </>
+                ),
                 title: "M&A calculated vulnerability",
               },
               {
                 metric: "aoe" as const,
-                label: "AOE",
+                label: (
+                  <>
+                    AOE<sup className="text-[0.5rem]">4</sup>
+                  </>
+                ),
                 title: "Anthropic's observed exposure",
               },
             ] as const

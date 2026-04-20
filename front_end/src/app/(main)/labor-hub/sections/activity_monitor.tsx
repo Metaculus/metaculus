@@ -42,22 +42,28 @@ export function ActivityMonitorSection({
   className,
   ...props
 }: ComponentProps<"section">) {
-  const activities: ActivityMonitorEntry[] = RAW_ACTIVITY_MONITOR_DATA.map(
+  const sortedEntries = [...RAW_ACTIVITY_MONITOR_DATA].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+
+  const activities: ActivityMonitorEntry[] = sortedEntries.map(
     ({ markerLabel, ...activity }) => ({
       ...activity,
       id: getActivityId({ date: activity.date, markerLabel }),
     })
-  ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  );
 
-  const timelineMarkers: GroupTimelineMarker[] = RAW_ACTIVITY_MONITOR_DATA.map(
-    (activity) => ({
+  // Pass the full set of candidate markers; the client chart decides how many to show based on print mode.
+  const timelineMarkers: GroupTimelineMarker[] = sortedEntries
+    .slice(0, 10)
+    .map((activity) => ({
       id: getActivityId(activity),
       activityId: getActivityId(activity),
       timestamp: isoDateToUnixTimestamp(activity.date),
       label: activity.markerLabel,
       dateLabel: formatActivityDate(activity.date),
-    })
-  );
+      type: activity.type,
+    }));
 
   return (
     <section className={cn("xl:py-8", className)} {...props}>
