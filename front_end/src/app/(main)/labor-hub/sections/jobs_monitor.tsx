@@ -75,9 +75,6 @@ export function JobsMonitorSection({
   postIds?: number[];
 } & ComponentProps<"div">) {
   const [year, setYear] = useState(columns[columns.length - 1] ?? "");
-  const jobsWithSelectedYearData = jobs.filter(
-    (job) => job.values[year] != null
-  );
 
   return (
     <QuestionCard
@@ -102,71 +99,97 @@ export function JobsMonitorSection({
         />
       </div>
 
-      <div className="mx-auto flex w-full max-w-3xl flex-col">
-        <div className="mb-3 text-xs text-gray-500 dark:text-gray-500-dark md:mb-2 md:text-center md:text-sm print:text-center">
-          (Percentage change in employment)
-        </div>
-        <div className="mb-4 hidden grid-cols-5 gap-2 text-sm font-medium md:grid">
-          <div className="text-left text-salmon-700 dark:text-salmon-700-dark">
-            {BAR_SCALE}% lower
-          </div>
-          <div className="text-left text-salmon-700 dark:text-salmon-700-dark">
-            {BAR_SCALE / 2}% lower
-          </div>
-          <div className="text-center text-blue-800 dark:text-blue-800-dark">
-            2025 Baseline
-          </div>
-          <div className="text-right text-olive-700 dark:text-olive-700-dark">
-            {BAR_SCALE / 2}% higher
-          </div>
-          <div className="text-right text-olive-700 dark:text-olive-700-dark"></div>
-        </div>
-        <div className="relative flex w-full flex-col gap-2.5 py-1 md:gap-1">
-          <div className="absolute inset-0 hidden grid-cols-4 divide-x divide-dashed divide-gray-500 border-x border-t border-dashed border-gray-500 opacity-50 dark:divide-gray-500-dark dark:border-gray-500-dark md:grid">
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-          </div>
+      <JobsMonitorChart year={year} jobs={jobs} />
+    </QuestionCard>
+  );
+}
 
-          <div className="grid break-inside-avoid break-after-avoid gap-2 md:grid-cols-2 md:gap-0">
-            <div className="text-xs font-medium text-mc-option-3 dark:text-mc-option-3-dark md:hidden">
-              Expected growth
-            </div>
-            <div className="flex flex-col gap-1 md:col-start-2">
-              {jobsWithSelectedYearData
-                .filter((job) => (job.values[year] ?? 0) >= 0)
-                .sort((a, b) => (b.values[year] ?? 0) - (a.values[year] ?? 0))
-                .map((job) => (
-                  <ContextualBar
-                    key={job.name}
-                    name={job.name}
-                    percent={job.values[year] ?? 0}
-                  />
-                ))}
-            </div>
+export function JobsMonitorChart({
+  year,
+  jobs,
+  showInsights = true,
+  showFooterNote = true,
+  className,
+}: {
+  year: string;
+  jobs: JobRow[];
+  showInsights?: boolean;
+  showFooterNote?: boolean;
+  className?: string;
+}) {
+  const jobsWithSelectedYearData = jobs.filter(
+    (job) => job.values[year] != null
+  );
+
+  return (
+    <div className={cn("mx-auto flex w-full max-w-3xl flex-col", className)}>
+      <div className="mb-3 text-xs text-gray-500 dark:text-gray-500-dark md:mb-2 md:text-center md:text-sm print:text-center">
+        (Percentage change in employment)
+      </div>
+      <div className="mb-4 hidden grid-cols-5 gap-2 text-sm font-medium md:grid">
+        <div className="text-left text-salmon-700 dark:text-salmon-700-dark">
+          {BAR_SCALE}% lower
+        </div>
+        <div className="text-left text-salmon-700 dark:text-salmon-700-dark">
+          {BAR_SCALE / 2}% lower
+        </div>
+        <div className="text-center text-blue-800 dark:text-blue-800-dark">
+          2025 Baseline
+        </div>
+        <div className="text-right text-olive-700 dark:text-olive-700-dark">
+          {BAR_SCALE / 2}% higher
+        </div>
+        <div className="text-right text-olive-700 dark:text-olive-700-dark"></div>
+      </div>
+      <div className="relative flex w-full flex-col gap-2.5 py-1 md:gap-1">
+        <div className="absolute inset-0 hidden grid-cols-4 divide-x divide-dashed divide-gray-500 border-x border-t border-dashed border-gray-500 opacity-50 dark:divide-gray-500-dark dark:border-gray-500-dark md:grid">
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+
+        <div className="grid break-inside-avoid break-after-avoid gap-2 md:grid-cols-2 md:gap-0">
+          <div className="text-xs font-medium text-mc-option-3 dark:text-mc-option-3-dark md:hidden">
+            Expected growth
           </div>
+          <div className="flex flex-col gap-1 md:col-start-2">
+            {jobsWithSelectedYearData
+              .filter((job) => (job.values[year] ?? 0) >= 0)
+              .sort((a, b) => (b.values[year] ?? 0) - (a.values[year] ?? 0))
+              .map((job) => (
+                <ContextualBar
+                  key={job.name}
+                  name={job.name}
+                  percent={job.values[year] ?? 0}
+                />
+              ))}
+          </div>
+        </div>
+        {showInsights && (
           <div className="md:hidden">
             <InsightCard context="positive">
               {JOBS_INSIGHTS[year as keyof typeof JOBS_INSIGHTS]?.positive}
             </InsightCard>
           </div>
-          <div className="grid break-inside-avoid break-after-avoid gap-2 md:grid-cols-2 md:gap-0">
-            <div className="text-xs font-medium text-mc-option-2 dark:text-mc-option-2-dark md:hidden">
-              Expected decline
-            </div>
-            <div className="flex flex-col gap-1">
-              {jobsWithSelectedYearData
-                .filter((job) => (job.values[year] ?? 0) < 0)
-                .sort((a, b) => (b.values[year] ?? 0) - (a.values[year] ?? 0))
-                .map((job) => (
-                  <ContextualBar
-                    key={job.name}
-                    name={job.name}
-                    percent={job.values[year] ?? 0}
-                  />
-                ))}
-            </div>
+        )}
+        <div className="grid break-inside-avoid break-after-avoid gap-2 md:grid-cols-2 md:gap-0">
+          <div className="text-xs font-medium text-mc-option-2 dark:text-mc-option-2-dark md:hidden">
+            Expected decline
+          </div>
+          <div className="flex flex-col gap-1">
+            {jobsWithSelectedYearData
+              .filter((job) => (job.values[year] ?? 0) < 0)
+              .sort((a, b) => (b.values[year] ?? 0) - (a.values[year] ?? 0))
+              .map((job) => (
+                <ContextualBar
+                  key={job.name}
+                  name={job.name}
+                  percent={job.values[year] ?? 0}
+                />
+              ))}
+          </div>
+          {showInsights && (
             <div className="pointer-events-none relative -mr-4 mt-4 hidden flex-col items-end gap-4 md:flex">
               <InsightCard context="positive">
                 {JOBS_INSIGHTS[year as keyof typeof JOBS_INSIGHTS]?.positive}
@@ -175,21 +198,23 @@ export function JobsMonitorSection({
                 {JOBS_INSIGHTS[year as keyof typeof JOBS_INSIGHTS]?.negative}
               </InsightCard>
             </div>
-          </div>
+          )}
+        </div>
+        {showInsights && (
           <div className="md:hidden">
             <InsightCard context="negative">
               {JOBS_INSIGHTS[year as keyof typeof JOBS_INSIGHTS]?.negative}
             </InsightCard>
           </div>
-        </div>
-        {year === "2027" && (
-          <div className="mt-3 text-xs text-gray-600 dark:text-gray-600-dark md:mb-2 md:text-center md:text-sm print:text-center">
-            A select set of occupations of interest were forecasted for 2027,
-            based on initial forecasts for 2030 and 2035
-          </div>
         )}
       </div>
-    </QuestionCard>
+      {showFooterNote && year === "2027" && (
+        <div className="mt-3 text-xs text-gray-600 dark:text-gray-600-dark md:mb-2 md:text-center md:text-sm print:text-center">
+          A select set of occupations of interest were forecasted for 2027,
+          based on initial forecasts for 2030 and 2035
+        </div>
+      )}
+    </div>
   );
 }
 

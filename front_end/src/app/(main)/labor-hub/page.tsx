@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 
 import { ThemeOverrideContainer } from "@/contexts/theme_override_context";
+import { getPublicSettings } from "@/utils/public_settings.server";
 
 import { ActivityCard } from "./components/activity_card";
 import { DefinitionTooltip } from "./components/definition_tooltip";
@@ -36,11 +37,29 @@ const SECTIONS = [
   { id: "methodology", label: "Methodology" },
 ];
 
-export const metadata: Metadata = {
-  title: "Labor Automation Forecasting Hub | Metaculus",
-  description:
-    "Real-time forecasts from our global forecasting community on the future of the US workforce as AI advances.",
-};
+export function generateMetadata(): Metadata {
+  const { PUBLIC_APP_URL } = getPublicSettings();
+  const title = "Labor Automation Forecasting Hub | Metaculus";
+  const description =
+    "Real-time forecasts from our global forecasting community on the future of the US workforce as AI advances.";
+  const img = `${PUBLIC_APP_URL}/og/labor-hub/route?theme=dark`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [{ url: img, width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [img],
+    },
+  };
+}
 
 export default function LaborAutomationHubPage() {
   return (
