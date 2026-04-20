@@ -131,6 +131,11 @@ const ContinuousAreaChart: FC<Props> = ({
   const discrete = question.type === QuestionType.Discrete;
   const paddingTop = graphType === "cdf" || discrete ? TOP_PADDING : 0;
 
+  const hasUserData = useMemo(
+    () => data.some((d) => d.type === "user"),
+    [data]
+  );
+
   const charts = useMemo(() => {
     const parsedData = hideCP
       ? [...data].filter((el) => el.type === "user")
@@ -732,7 +737,11 @@ const ContinuousAreaChart: FC<Props> = ({
           )}
           <VictoryAxis
             tickValues={xScale.ticks}
-            tickFormat={hideLabels || hideCP ? () => "" : xScale.tickFormat}
+            tickFormat={
+              hideLabels || (hideCP && !hasUserData)
+                ? () => ""
+                : xScale.tickFormat
+            }
             style={{
               ticks: {
                 strokeWidth: 1,
