@@ -96,6 +96,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
                 </li>
                 <li>Stuart Elliott (OECD)</li>
                 <li>John Garcia III (StriveTogether)</li>
+                <li>Daniel Gavin (Benson High School)</li>
                 <li>Andrea Glorioso (European Commission)</li>
                 <li>Dan Goldenberg (Call of Duty Endowment)</li>
                 <li>Steve Lee (SkillUp)</li>
