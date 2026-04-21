@@ -2,7 +2,7 @@
 
 import { faComment, faNewspaper } from "@fortawesome/free-solid-svg-icons";
 import { ReactNode } from "react";
-import { VictoryLine, VictoryScatter } from "victory";
+import { VictoryLine, VictoryPortal, VictoryScatter } from "victory";
 
 import { METAC_COLORS } from "@/constants/colors";
 import { ThemeColor } from "@/types/theme";
@@ -21,6 +21,7 @@ type RenderProps = {
 export const GROUP_TIMELINE_MARKER_SIZE = 9;
 const HIT_AREA_PADDING = 4;
 const MARKER_ICON_DISPLAY_SIZE = 10;
+const HIT_AREA_FILL = "rgba(255, 255, 255, 0.001)";
 
 const ACTIVITY_TYPE_ICON = {
   news: faNewspaper,
@@ -73,12 +74,13 @@ function TimelineMarkerPoint({
       style={{ cursor: "pointer" }}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
+      pointerEvents="all"
     >
       <circle
         cx={x}
         cy={y}
         r={hitRadius}
-        fill="transparent"
+        fill={HIT_AREA_FILL}
         pointerEvents="all"
       />
       <circle
@@ -88,6 +90,7 @@ function TimelineMarkerPoint({
         fill={pointFill}
         stroke={pointStroke}
         strokeWidth={2}
+        pointerEvents="none"
       />
       {iconPath && iconTransform && (
         <g transform={iconTransform} pointerEvents="none">
@@ -143,23 +146,25 @@ export function renderGroupTimelineMarkers({
     );
 
     elements.push(
-      <VictoryScatter
-        key={`${marker.id}-point`}
-        data={[
-          {
-            x: marker.timestamp,
-            y: yMin,
-            pointFill,
-            pointStroke,
-            iconColor,
-            activityType: marker.type,
-            onEnter: () => onMarkerEnter?.(marker),
-            onLeave: () => onMarkerLeave?.(marker),
-            size: GROUP_TIMELINE_MARKER_SIZE,
-          },
-        ]}
-        dataComponent={<TimelineMarkerPoint />}
-      />
+      <VictoryPortal key={`${marker.id}-point-portal`}>
+        <VictoryScatter
+          key={`${marker.id}-point`}
+          data={[
+            {
+              x: marker.timestamp,
+              y: yMin,
+              pointFill,
+              pointStroke,
+              iconColor,
+              activityType: marker.type,
+              onEnter: () => onMarkerEnter?.(marker),
+              onLeave: () => onMarkerLeave?.(marker),
+              size: GROUP_TIMELINE_MARKER_SIZE,
+            },
+          ]}
+          dataComponent={<TimelineMarkerPoint />}
+        />
+      </VictoryPortal>
     );
   });
 

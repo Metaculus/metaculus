@@ -1,9 +1,12 @@
 "use client";
 
 import {
+  useCallback,
   createContext,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   type ComponentProps,
   type ReactNode,
@@ -32,9 +35,36 @@ export function LaborHubChartHoverProvider({
   const [hoverYear, setHoverYear] = useState<number | null>(null);
   const [highlightedEnvelope, setHighlightedEnvelope] =
     useState<LaborHubHighlightedEnvelope | null>(null);
-  const [hoveredActivityId, setHoveredActivityId] = useState<string | null>(
+  const [hoveredActivityId, setHoveredActivityIdState] = useState<string | null>(
     null
   );
+  const hoveredActivityClearTimeoutRef = useRef<number | null>(null);
+  const setHoveredActivityId = useCallback((activityId: string | null) => {
+    if (hoveredActivityClearTimeoutRef.current !== null) {
+      window.clearTimeout(hoveredActivityClearTimeoutRef.current);
+      hoveredActivityClearTimeoutRef.current = null;
+    }
+
+    if (activityId !== null) {
+      setHoveredActivityIdState(activityId);
+      return;
+    }
+
+    // Preserve hover briefly so nearby SVG/card hover targets can hand off cleanly.
+    hoveredActivityClearTimeoutRef.current = window.setTimeout(() => {
+      setHoveredActivityIdState(null);
+      hoveredActivityClearTimeoutRef.current = null;
+    }, 40);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (hoveredActivityClearTimeoutRef.current !== null) {
+        window.clearTimeout(hoveredActivityClearTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const value = useMemo(
     () => ({
       hoverYear,
