@@ -35,6 +35,7 @@ export function LaborHubChartHoverProvider({
   const [hoveredActivityId, setHoveredActivityId] = useState<string | null>(
     null
   );
+
   const value = useMemo(
     () => ({
       hoverYear,

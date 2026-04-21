@@ -148,6 +148,10 @@ const MultipleChoiceChart: FC<Props> = ({
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const [zoom, setZoom] = useState<TimelineChartZoomOption>(defaultZoom);
+  const hasUserForecasts = useMemo(
+    () => choiceItems.some(({ userTimestamps }) => userTimestamps.length > 0),
+    [choiceItems]
+  );
   const { xScale, yScale, graphs, xDomain, yDomain, userScatters } = useMemo(
     () =>
       buildChartData({
@@ -406,7 +410,7 @@ const MultipleChoiceChart: FC<Props> = ({
             <VictoryAxis
               tickValues={xScale.ticks}
               tickFormat={
-                hideCP ||
+                (hideCP && !hasUserForecasts) ||
                 isCursorActive ||
                 !!forecastAvailability?.isEmpty ||
                 !!forecastAvailability?.cpRevealsOn

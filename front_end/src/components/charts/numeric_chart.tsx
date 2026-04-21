@@ -650,7 +650,7 @@ const NumericChart: FC<Props> = ({
                   offsetY={isEmbedded ? BOTTOM_PADDING - 5 : BOTTOM_PADDING}
                   tickValues={xScale.ticks}
                   tickFormat={
-                    hideCP
+                    hideCP && points.length === 0
                       ? () => ""
                       : isCursorActive
                         ? () => ""
