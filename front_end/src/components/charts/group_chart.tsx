@@ -247,6 +247,10 @@ const GroupChart: FC<Props> = ({
     () => Object.values(choiceItems).some(({ highlighted }) => highlighted),
     [choiceItems]
   );
+  const hasUserForecasts = useMemo(
+    () => choiceItems.some(({ userTimestamps }) => userTimestamps.length > 0),
+    [choiceItems]
+  );
 
   const prevWidth = usePrevious(chartWidth);
   const isMarkerHovered = !isNil(activeTimelineMarkerId);
@@ -435,7 +439,9 @@ const GroupChart: FC<Props> = ({
               <VictoryAxis
                 tickValues={xScale.ticks}
                 tickFormat={
-                  hideCP || isCursorActive ? () => "" : xScale.tickFormat
+                  (hideCP && !hasUserForecasts) || isCursorActive
+                    ? () => ""
+                    : xScale.tickFormat
                 }
                 tickLabelComponent={
                   <XTickLabel
