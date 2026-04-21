@@ -331,7 +331,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
                 formal name and SOC code, and any occupation categories it
                 contains, at the{" "}
                 <a
-                  href="https://oews-forecasting-tool.vercel.app/"
+                  href="https://labor-hub-tools.metaculus.com/occupation-forecasting"
                   target="_blank"
                   rel="noreferrer"
                 >
@@ -341,7 +341,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
                 <a
                   target="_blank"
                   rel="noreferrer"
-                  href="https://oews-forecasting-tool.vercel.app/metaculus-definitions"
+                  href="https://labor-hub-tools.metaculus.com/occupation-forecasting/definitions"
                 >
                   this direct link to the definitions page
                 </a>{" "}
@@ -833,7 +833,7 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
                 and uncertainty, as well as other statistics and detailed
                 information,{" "}
                 <a
-                  href="https://labor-hub-question-statistics.vercel.app/"
+                  href="https://labor-hub-tools.metaculus.com/question-statistics"
                   target="_blank"
                   rel="noreferrer"
                 >

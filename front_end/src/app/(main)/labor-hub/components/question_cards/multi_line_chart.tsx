@@ -20,6 +20,7 @@ import { usePrintOverride } from "@/contexts/theme_override_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import cn from "@/utils/core/cn";
+import { pickHighestContrastTextColor } from "@/utils/core/colors";
 
 import {
   CHART_PADDING,
@@ -86,8 +87,6 @@ export const defaultFormatYTick = (value: number): string => {
   return `${sign}${value.toFixed(0)}%`;
 };
 
-const DATA_LABEL_ON_DARK_FILL = METAC_COLORS.gray["0"].DEFAULT;
-const DATA_LABEL_ON_LIGHT_FILL = METAC_COLORS.gray["900"].DEFAULT;
 const AREA_SECTION_LABEL_Y = 18;
 const X_TICK_AVG_CHAR_PX = 6.5;
 const X_TICK_MIN_GAP_PX = 8;
@@ -141,32 +140,6 @@ const MC_OPTION_COLOR_MAP = {
   mc17: METAC_COLORS["mc-option"]["17"],
   mc18: METAC_COLORS["mc-option"]["18"],
 } as const;
-
-const getContrastTextColor = (backgroundColor: string): string => {
-  const normalizedColor = backgroundColor.replace("#", "");
-  const hex =
-    normalizedColor.length === 3
-      ? normalizedColor
-          .split("")
-          .map((value) => `${value}${value}`)
-          .join("")
-      : normalizedColor;
-
-  if (hex.length !== 6) {
-    return DATA_LABEL_ON_DARK_FILL;
-  }
-
-  const red = Number.parseInt(hex.slice(0, 2), 16);
-  const green = Number.parseInt(hex.slice(2, 4), 16);
-  const blue = Number.parseInt(hex.slice(4, 6), 16);
-
-  if ([red, green, blue].some(Number.isNaN)) {
-    return DATA_LABEL_ON_DARK_FILL;
-  }
-
-  const yiq = (red * 299 + green * 587 + blue * 114) / 1000;
-  return yiq >= 160 ? DATA_LABEL_ON_LIGHT_FILL : DATA_LABEL_ON_DARK_FILL;
-};
 
 /** Default for point badges: one decimal and %. */
 export const defaultFormatYValue = (value: number): string => {
@@ -530,7 +503,7 @@ const ChangeBadge: FC<{
   placement = "inline",
   pointRadius = 8,
   lineColor,
-  labelColor = DATA_LABEL_ON_DARK_FILL,
+  labelColor = METAC_COLORS.gray["0"].DEFAULT,
   transparent = false,
   groupClassName,
   rectClassName,
@@ -1357,7 +1330,7 @@ export const MultiLineChart: FC<Props> = ({
                         placement={item.dataLabelPlacement}
                         pointRadius={pointRadius}
                         lineColor={colors.stroke}
-                        labelColor={getContrastTextColor(colors.stroke)}
+                        labelColor={pickHighestContrastTextColor(colors.stroke)}
                         transparent={item.dataLabelTransparent}
                         groupClassName={cn(
                           item.dataLabelClassName,
@@ -1405,7 +1378,9 @@ export const MultiLineChart: FC<Props> = ({
                           placement={item.dataLabelPlacement}
                           pointRadius={pointRadius}
                           lineColor={colors.stroke}
-                          labelColor={getContrastTextColor(colors.stroke)}
+                          labelColor={pickHighestContrastTextColor(
+                            colors.stroke
+                          )}
                           transparent={item.dataLabelTransparent}
                           groupClassName={cn(
                             item.dataLabelClassName,
