@@ -5,18 +5,26 @@ import { SVG_FONT_FAMILY, escapeXml } from "./svg_utils";
 
 const SCALE = 288 / 112;
 const WIDTH = 288;
-const HEIGHT = Math.round(66 * SCALE);
+const VERTICAL_OFFSET = 4;
+const HEIGHT = Math.round((66 + VERTICAL_OFFSET + 4) * SCALE);
 
 const STROKE_WIDTH = 12 * SCALE;
 const RADIUS = ((112 - 12) / 2) * SCALE;
 const CENTER_X = WIDTH / 2;
-const CENTER_Y = (66 - 12) * SCALE;
+const CENTER_Y = (66 - 12 + VERTICAL_OFFSET) * SCALE;
 const ARC_ANGLE = Math.PI * 1.1;
 
-const PERCENT_CENTER_Y = 38 * SCALE;
-const CHANCE_CENTER_Y = 60 * SCALE;
+const PERCENT_CENTER_Y = (38 + VERTICAL_OFFSET) * SCALE;
+const CHANCE_CENTER_Y = (60 + VERTICAL_OFFSET) * SCALE;
 const PERCENT_FONT_SIZE = 24 * SCALE;
 const CHANCE_FONT_SIZE = 12 * SCALE;
+// Offset from geometric center to alphabetic baseline for visual centering,
+// so rendering stays consistent in viewers that ignore dominant-baseline.
+const BASELINE_CENTER_RATIO = 0.35;
+const PERCENT_BASELINE_Y =
+  PERCENT_CENTER_Y + PERCENT_FONT_SIZE * BASELINE_CENTER_RATIO;
+const CHANCE_BASELINE_Y =
+  CHANCE_CENTER_Y + CHANCE_FONT_SIZE * BASELINE_CENTER_RATIO;
 
 function describeArc(
   percentage: number,
@@ -87,8 +95,8 @@ export function generateRadialGaugeSvg(
   <path d="${backgroundArc.path}" fill="none" stroke="${hex}" stroke-opacity="0.15" stroke-width="${STROKE_WIDTH}"/>
   ${progressArc ? `<path d="${progressArc.path}" fill="none" stroke="url(#radialGrad)" stroke-width="${STROKE_WIDTH}"/>` : ""}
   ${tickSvg}
-  <text x="${CENTER_X}" y="${PERCENT_CENTER_Y}" font-family="${SVG_FONT_FAMILY}" font-size="${PERCENT_FONT_SIZE}" font-weight="700" fill="${hex}" text-anchor="middle" dominant-baseline="central">${displayValue}</text>
-  <text x="${CENTER_X}" y="${CHANCE_CENTER_Y}" font-family="${SVG_FONT_FAMILY}" font-size="${CHANCE_FONT_SIZE}" font-weight="400" fill="${hex}" text-anchor="middle" dominant-baseline="central" letter-spacing="0.05em">CHANCE</text>
+  <text x="${CENTER_X}" y="${PERCENT_BASELINE_Y}" font-family="${SVG_FONT_FAMILY}" font-size="${PERCENT_FONT_SIZE}" font-weight="700" fill="${hex}" text-anchor="middle">${displayValue}</text>
+  <text x="${CENTER_X}" y="${CHANCE_BASELINE_Y}" font-family="${SVG_FONT_FAMILY}" font-size="${CHANCE_FONT_SIZE}" font-weight="400" fill="${hex}" text-anchor="middle" letter-spacing="0.05em">CHANCE</text>
 </svg>`;
 }
 
@@ -138,11 +146,13 @@ export function generateRadialGaugeResolvedSvg(
       RESOLVED_LABEL_LINE_HEIGHT +
       RESOLVED_VALUE_LINE_HEIGHT / 2
     : cardHeight / 2;
+  const labelBaselineY = labelCenterY + RESOLVED_LABEL_FONT_SIZE * 0.35;
+  const valueBaselineY = valueCenterY + RESOLVED_VALUE_FONT_SIZE * 0.35;
 
   const halfBorder = RESOLVED_CARD_BORDER_WIDTH / 2;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${cardWidth}" height="${cardHeight}" viewBox="0 0 ${cardWidth} ${cardHeight}" fill="none">
   <rect x="${halfBorder}" y="${halfBorder}" width="${cardWidth - RESOLVED_CARD_BORDER_WIDTH}" height="${cardHeight - RESOLVED_CARD_BORDER_WIDTH}" rx="${RESOLVED_CARD_RADIUS}" ry="${RESOLVED_CARD_RADIUS}" fill="none" stroke="${borderColor}" stroke-width="${RESOLVED_CARD_BORDER_WIDTH}"/>
-  ${successfullyResolved ? `<text x="${centerX}" y="${labelCenterY}" font-family="${SVG_FONT_FAMILY}" font-size="${RESOLVED_LABEL_FONT_SIZE}" font-weight="400" fill="${labelColor}" text-anchor="middle" dominant-baseline="central">${escapedLabel}</text>` : ""}
-  <text x="${centerX}" y="${valueCenterY}" font-family="${SVG_FONT_FAMILY}" font-size="${RESOLVED_VALUE_FONT_SIZE}" font-weight="700" fill="${valueColor}" text-anchor="middle" dominant-baseline="central">${escapedValue}</text>
+  ${successfullyResolved ? `<text x="${centerX}" y="${labelBaselineY}" font-family="${SVG_FONT_FAMILY}" font-size="${RESOLVED_LABEL_FONT_SIZE}" font-weight="400" fill="${labelColor}" text-anchor="middle">${escapedLabel}</text>` : ""}
+  <text x="${centerX}" y="${valueBaselineY}" font-family="${SVG_FONT_FAMILY}" font-size="${RESOLVED_VALUE_FONT_SIZE}" font-weight="700" fill="${valueColor}" text-anchor="middle">${escapedValue}</text>
 </svg>`;
 }

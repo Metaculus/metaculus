@@ -35,6 +35,8 @@ type Props = {
   onNoData: () => void;
 };
 
+const TIMELINE_EXPORT_LEFT_PADDING = 24;
+
 const ChartContent: FC<Props> = ({
   post,
   chartType,
@@ -220,6 +222,7 @@ function renderChart(
             hideCP={false}
             defaultZoom={TimelineChartZoomOption.All}
             onChartReady={onChartReady}
+            leftPadding={TIMELINE_EXPORT_LEFT_PADDING}
           />
         );
       }
@@ -233,6 +236,7 @@ function renderChart(
           hideCP={false}
           defaultZoom={TimelineChartZoomOption.All}
           onChartReady={onChartReady}
+          leftPadding={TIMELINE_EXPORT_LEFT_PADDING}
         />
       );
     }

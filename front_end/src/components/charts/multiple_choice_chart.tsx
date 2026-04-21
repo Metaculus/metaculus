@@ -90,6 +90,7 @@ type Props = {
   forFeedPage?: boolean;
   chartTitle?: string;
   animate?: object;
+  leftPadding?: number;
 };
 
 const LABEL_FONT_FAMILY = "Inter";
@@ -120,6 +121,7 @@ const MultipleChoiceChart: FC<Props> = ({
   forFeedPage,
   chartTitle,
   animate,
+  leftPadding = 0,
 }) => {
   const questionKey = useMemo(() => v4(), []);
   const t = useTranslations();
@@ -285,7 +287,7 @@ const MultipleChoiceChart: FC<Props> = ({
             height={height}
             theme={actualTheme}
             padding={{
-              left: 0,
+              left: leftPadding,
               top: topPadding,
               right: maxRightPadding,
               bottom: bottomPadding,

@@ -89,6 +89,7 @@ type Props = {
   onTimelineMarkerEnter?: (marker: GroupTimelineMarker) => void;
   onTimelineMarkerLeave?: (marker: GroupTimelineMarker) => void;
   animate?: object;
+  leftPadding?: number;
 };
 
 const LABEL_FONT_FAMILY = "Inter";
@@ -131,6 +132,7 @@ const GroupChart: FC<Props> = ({
   onTimelineMarkerEnter,
   onTimelineMarkerLeave,
   animate,
+  leftPadding = 0,
 }) => {
   const t = useTranslations();
   const {
@@ -236,12 +238,12 @@ const GroupChart: FC<Props> = ({
   }, [rightPadding, MIN_RIGHT_PADDING]);
   const chartPadding = useMemo(
     () => ({
-      left: 0,
+      left: leftPadding,
       top: PLOT_TOP,
       right: maxRightPadding,
       bottom: isEmbedded ? BOTTOM_PADDING - 6 : BOTTOM_PADDING,
     }),
-    [isEmbedded, maxRightPadding]
+    [isEmbedded, maxRightPadding, leftPadding]
   );
   const plotBottom = height - chartPadding.bottom;
 
