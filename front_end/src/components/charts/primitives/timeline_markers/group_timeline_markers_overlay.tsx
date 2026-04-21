@@ -146,25 +146,27 @@ export function renderGroupTimelineMarkers({
     );
 
     elements.push(
-      <VictoryPortal key={`${marker.id}-point-portal`}>
-        <VictoryScatter
-          key={`${marker.id}-point`}
-          data={[
-            {
-              x: marker.timestamp,
-              y: yMin,
-              pointFill,
-              pointStroke,
-              iconColor,
-              activityType: marker.type,
-              onEnter: () => onMarkerEnter?.(marker),
-              onLeave: () => onMarkerLeave?.(marker),
-              size: GROUP_TIMELINE_MARKER_SIZE,
-            },
-          ]}
-          dataComponent={<TimelineMarkerPoint />}
-        />
-      </VictoryPortal>
+      <VictoryScatter
+        key={`${marker.id}-point`}
+        data={[
+          {
+            x: marker.timestamp,
+            y: yMin,
+            pointFill,
+            pointStroke,
+            iconColor,
+            activityType: marker.type,
+            onEnter: () => onMarkerEnter?.(marker),
+            onLeave: () => onMarkerLeave?.(marker),
+            size: GROUP_TIMELINE_MARKER_SIZE,
+          },
+        ]}
+        dataComponent={
+          <VictoryPortal>
+            <TimelineMarkerPoint />
+          </VictoryPortal>
+        }
+      />
     );
   });
 
