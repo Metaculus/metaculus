@@ -90,39 +90,6 @@ export function parseHexColor(color: string): RGBColor | null {
   return [red, green, blue];
 }
 
-const getRelativeLuminance = ([red, green, blue]: RGBColor) => {
-  const toLinear = (channel: number) => {
-    const normalized = channel / 255;
-    return normalized <= 0.03928
-      ? normalized / 12.92
-      : ((normalized + 0.055) / 1.055) ** 2.4;
-  };
-
-  return (
-    0.2126 * toLinear(red) + 0.7152 * toLinear(green) + 0.0722 * toLinear(blue)
-  );
-};
-
-/** WCAG 2.1 relative luminance contrast ratio for two `#RRGGBB` colors. */
-export function getContrastRatio(
-  foregroundColor: string,
-  backgroundColor: string
-): number {
-  const foreground = parseHexColor(foregroundColor);
-  const background = parseHexColor(backgroundColor);
-
-  if (!foreground || !background) {
-    return 0;
-  }
-
-  const foregroundLuminance = getRelativeLuminance(foreground);
-  const backgroundLuminance = getRelativeLuminance(background);
-  const lighter = Math.max(foregroundLuminance, backgroundLuminance);
-  const darker = Math.min(foregroundLuminance, backgroundLuminance);
-
-  return (lighter + 0.05) / (darker + 0.05);
-}
-
 const sRGBtoY = (rgb: RGBColor) => {
   const toGammaLinear = (channel: number) =>
     Math.pow(channel / 255, APCA_CONSTANTS.mainTRC);
