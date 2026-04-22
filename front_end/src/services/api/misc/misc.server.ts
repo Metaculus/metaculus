@@ -102,9 +102,10 @@ class ServerMiscApiClass extends MiscApi {
     }
   }
 
-  async subscribeToNewsletter(email: string) {
+  async subscribeToNewsletter(email: string, overrideListId?: string) {
     const { auth, listId } = this.getMailjetConfig();
-    const url = `https://api.mailjet.com/v3/REST/contactslist/${listId}/managecontact`;
+    const targetListId = overrideListId ?? listId;
+    const url = `https://api.mailjet.com/v3/REST/contactslist/${targetListId}/managecontact`;
 
     const response = await fetch(url, {
       method: "POST",

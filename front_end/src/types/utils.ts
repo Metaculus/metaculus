@@ -5,6 +5,7 @@ export type DeepPartial<T> = {
 };
 export type DataParams = {
   post_id?: number;
+  post_ids?: number[];
   question_id?: number;
   sub_question?: number;
   aggregation_methods?: string[];

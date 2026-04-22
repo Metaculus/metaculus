@@ -14,8 +14,13 @@ export async function cancelBulletin(bulletinId: number) {
   return await serverMiscApi.cancelBulletin(bulletinId);
 }
 
-export async function subscribeToNewsletter(email: string) {
-  return await serverMiscApi.subscribeToNewsletter(email);
+const NEWSLETTER_LIST_IDS: Record<string, string> = {
+  labor: "10617959",
+};
+
+export async function subscribeToNewsletter(email: string, listKey?: string) {
+  const listId = listKey ? NEWSLETTER_LIST_IDS[listKey] : undefined;
+  return await serverMiscApi.subscribeToNewsletter(email, listId);
 }
 
 // Unlike subscribeToNewsletter, unsubscribeFromNewsletter and checkNewsletterSubscription requires

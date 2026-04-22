@@ -5,7 +5,8 @@ import { getTranslations } from "next-intl/server";
 import PageWrapper from "../components/pagewrapper";
 
 export const metadata = {
-  title: "Why Trust Metaculus?",
+  title:
+    "Less Noise, More Truth: Metaculus' method for clear decisions in a complex world",
   description:
     "Learn why Metaculus is one of the most accurate, well-calibrated forecasting platforms available, built on the wisdom of the crowd and a decade of demonstrated accuracy.",
 };
@@ -143,15 +144,6 @@ export default async function WhyTrustMetaculusPage() {
           ),
         })}
       </p>
-
-      <Image
-        src="https://cdn.metaculus.com/user_uploaded/metac-vs-markets_D2ekmH1.jpg"
-        alt={t("whyTrustMetaculusMarketsComparisonAlt")}
-        className="my-4 h-auto w-full rounded"
-        width={1200}
-        height={600}
-        unoptimized
-      />
 
       <h2>{t("whyTrustMetaculusLessNoiseTitle")}</h2>
 

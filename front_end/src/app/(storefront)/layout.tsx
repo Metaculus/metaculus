@@ -3,7 +3,7 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import type { Metadata } from "next";
 
 import { defaultDescription } from "@/constants/metadata";
-import { ForceLightProvider } from "@/contexts/force_light_context";
+import { ThemeOverrideContainer } from "@/contexts/theme_override_context";
 
 import StorefrontFooter from "./components/storefront_footer";
 import FeedbackFloat from "../(main)/(home)/components/feedback_float";
@@ -23,14 +23,15 @@ export default function StorefrontLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ForceLightProvider>
-      <div className="force-light flex min-h-screen flex-col bg-blue-200">
-        <div className="flex-grow">{children}</div>
-        <FeedbackFloat />
-        <StorefrontFooter />
-        <CookiesBanner />
-        <VersionChecker />
-      </div>
-    </ForceLightProvider>
+    <ThemeOverrideContainer
+      override="light"
+      className="flex min-h-screen flex-col bg-blue-200"
+    >
+      <div className="flex-grow">{children}</div>
+      <FeedbackFloat />
+      <StorefrontFooter />
+      <CookiesBanner />
+      <VersionChecker />
+    </ThemeOverrideContainer>
   );
 }
