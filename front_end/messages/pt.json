@@ -565,6 +565,7 @@
   "aboutMetaculusTitle": "<blue>Sobre</blue> o Metaculus",
   "aboutMetaculusDescription": "Metaculus é uma plataforma de previsão online e motor de agregação que trabalha para melhorar o raciocínio humano e a coordenação em temas de importância global.",
   "more": "Mais",
+  "nMore": "{count} mais...",
   "moreLikely": "pontos percentuais mais alto",
   "afterElection": "sob {winner}",
   "ifCandidateElected": "se {candidate} for eleito",

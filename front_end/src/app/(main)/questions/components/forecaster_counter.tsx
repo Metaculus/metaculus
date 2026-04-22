@@ -35,7 +35,7 @@ const ForecastersCounter: FC<Props> = ({
   return (
     <div
       className={cn(
-        "flex flex-row items-center gap-1.5 truncate px-1.5 text-xs font-normal text-gray-700 dark:text-gray-700-dark md:gap-2",
+        "flex flex-row items-center gap-1.5 truncate px-1.5 text-justify text-sm font-normal leading-4 text-gray-700 dark:text-gray-700-dark md:gap-2",
         className
       )}
     >
@@ -45,7 +45,7 @@ const ForecastersCounter: FC<Props> = ({
       />
       {/* Compact version - just shows number */}
       {compact && (
-        <span className="align-middle font-medium tabular-nums">
+        <span className="align-middle tabular-nums">
           {forecastersFormatted}
         </span>
       )}
@@ -58,6 +58,7 @@ const ForecastersCounter: FC<Props> = ({
                 count: forecasters,
                 count_formatted: forecastersFormatted,
                 ...tags,
+                strong: (chunks) => chunks,
               })}
             </span>
           )}

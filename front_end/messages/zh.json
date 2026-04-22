@@ -510,6 +510,7 @@
   "admin": "行政",
   "aboutMetaculus": "關於邁塔庫勒斯",
   "more": "更多的",
+  "nMore": "還有{count}個...",
   "forJournalists": "對於記者",
   "trackRecord": "業績記錄",
   "medals": "獎牌",

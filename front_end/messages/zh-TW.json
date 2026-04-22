@@ -603,6 +603,7 @@
   "aboutMetaculusTitle": "<blue>關於</blue> Metaculus",
   "aboutMetaculusDescription": "Metaculus是一個線上預測平台和聚合引擎，致力於提升人類在全球重要話題上的推理及協調能力。",
   "more": "更多",
+  "nMore": "還有{count}個...",
   "moreLikely": "百分點更高",
   "afterElection": "{winner}當選後",
   "ifCandidateElected": "如果{candidate}當選",

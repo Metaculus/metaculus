@@ -507,6 +507,7 @@
   "admin": "Administrace",
   "aboutMetaculus": "O Metaculus",
   "more": "Více",
+  "nMore": "{count} více...",
   "forJournalists": "Pro novináře",
   "trackRecord": "Historie úspěchů",
   "medals": "Medaile",

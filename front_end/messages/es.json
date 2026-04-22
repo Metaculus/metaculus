@@ -514,6 +514,7 @@
   "admin": "Admin",
   "aboutMetaculus": "Acerca de Metaculus",
   "more": "Más",
+  "nMore": "{count} más...",
   "forJournalists": "Para Periodistas",
   "trackRecord": "Historial",
   "medals": "Medallas",
