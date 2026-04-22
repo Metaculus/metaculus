@@ -37,11 +37,11 @@ const QuestionHeader: FC<{ post: PostWithForecasts }> = ({ post }) => {
         <PostStatusBox post={post} className="mb-5 rounded lg:mb-6" />
       </div>
       <div className="flex flex-1 flex-col gap-4">
-        <MetaRow post={post} className="-mx-8 hidden lg:flex" />
+        <MetaRow post={post} className="-mx-4 mb-2 hidden md:flex lg:-mx-8" />
         {isConditionalPost(post) ? (
           <ConditionalTile post={post} withNavigation withCPRevealBtn />
         ) : (
-          <div className="lg:order-0 order-1 flex items-center gap-4">
+          <div className="lg:order-0 order-1 flex items-start gap-4">
             <QuestionTitle>{post.title}</QuestionTitle>
             {isQuestionPost(post) && (
               <>
@@ -64,10 +64,7 @@ const QuestionHeader: FC<{ post: PostWithForecasts }> = ({ post }) => {
             )}
           </div>
         )}
-        <QuestionHeaderInfo
-          post={post}
-          className="order-0 lg:order-1 lg:hidden"
-        />
+        <QuestionHeaderInfo post={post} className="mb-8 md:hidden" />
       </div>
     </div>
   );
