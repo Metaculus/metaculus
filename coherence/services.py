@@ -46,6 +46,32 @@ def create_coherence_link(
     return obj
 
 
+def update_coherence_link(
+    *,
+    link: CoherenceLink,
+    **kwargs,
+) -> CoherenceLink:
+    updated_fields = []
+
+    if "direction" in kwargs:
+        link.direction = kwargs["direction"]
+        updated_fields.append("direction")
+    if "strength" in kwargs:
+        link.strength = kwargs["strength"]
+        updated_fields.append("strength")
+    if kwargs.get("swap"):
+        # The unique_user_question_pair constraint is symmetric on (q1, q2),
+        # so swapping the two question IDs never violates it.
+        link.question1_id, link.question2_id = link.question2_id, link.question1_id
+        updated_fields.extend(["question1", "question2"])
+
+    if updated_fields:
+        link.full_clean()
+        link.save(update_fields=updated_fields)
+
+    return link
+
+
 def create_aggregate_coherence_link(
     *,
     question1: Question = None,

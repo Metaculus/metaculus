@@ -40,6 +40,13 @@ class ServerCoherenceLinksApiClass extends ApiService {
     return await this.delete(`/coherence/links/${id}/delete/`);
   }
 
+  async updateCoherenceLink(
+    id: number,
+    body: { direction?: number; strength?: number; swap?: boolean }
+  ): Promise<FetchedCoherenceLinks> {
+    return await this.patch(`/coherence/links/${id}/update/`, body);
+  }
+
   async voteAggregateCoherenceLink(
     aggregationId: number,
     vote: AggregateLinkVoteValue

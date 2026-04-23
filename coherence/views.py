@@ -24,6 +24,7 @@ from coherence.serializers import (
 )
 from coherence.services import (
     create_coherence_link,
+    update_coherence_link,
     aggregate_coherence_link_vote,
 )
 from coherence.utils import get_aggregation_results, get_aggregations_links
@@ -145,6 +146,28 @@ def delete_link_api_view(request, pk):
 
     link.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CoherenceLinkUpdateSerializer(serializers.Serializer):
+    direction = serializers.IntegerField(required=False)
+    strength = serializers.IntegerField(required=False)
+    swap = serializers.BooleanField(required=False)
+
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def update_link_api_view(request, pk):
+    link = get_object_or_404(CoherenceLink, pk=pk)
+
+    if request.user.id != link.user_id:
+        raise PermissionDenied(
+            "You don't have permission to update this coherence link"
+        )
+
+    serializer = CoherenceLinkUpdateSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    update_coherence_link(link=link, **serializer.validated_data)
+    return Response(serialize_coherence_link(link))
 
 
 @api_view(["GET"])
