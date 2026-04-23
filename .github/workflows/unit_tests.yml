@@ -19,6 +19,8 @@ jobs:
   backend-unit-tests:
     name: "Backend Checks"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     environment: testing_env
     env:
       TEST_DATABASE_URL: "postgres://postgres:postgres@localhost:5432/test_metaculus"
@@ -45,7 +47,7 @@ jobs:
           - 6379:6379
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
@@ -70,33 +72,42 @@ jobs:
   frontend-unit-tests:
     name: "Frontend Checks"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: front_end/.nvmrc
-          cache: npm
-          cache-dependency-path: front_end/package-lock.json
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v5
+        with:
+          path: front_end/node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('front_end/bun.lock', 'front_end/.nvmrc', 'front_end/package.json') }}
 
       - name: Install dependencies
-        run: npm ci
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: bun ci
         working-directory: front_end
 
       - name: prettier version
-        run: npx prettier -v
+        run: bun x prettier -v
         working-directory: front_end
 
       - name: check formatting
-        run: npm run format:check
+        run: bun run format:check
         working-directory: front_end
 
       - name: check linters
-        run: npm run lint
+        run: bun run lint
         working-directory: front_end
 
       - name: Run unit tests
-        run: npm test
+        run: bun run test
         working-directory: front_end
