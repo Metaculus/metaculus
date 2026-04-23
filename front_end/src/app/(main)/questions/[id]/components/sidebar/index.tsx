@@ -6,7 +6,6 @@ import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 
 import SidebarQuestionInfo from "./sidebar_question_info";
-import SidebarQuestionProjects from "./sidebar_question_projects";
 import QuestionEmbedButton from "../question_embed_button";
 import SidebarContainer from "./sidebar_container";
 
@@ -29,7 +28,6 @@ const Sidebar: FC<Props> = ({
         <SidebarContainer>
           <SidebarQuestionInfo postData={postData} />
         </SidebarContainer>
-        <SidebarQuestionProjects projects={postData.projects} />
 
         {postData.curation_status === PostStatus.APPROVED && (
           <Suspense fallback={null}>
@@ -63,8 +61,6 @@ const Sidebar: FC<Props> = ({
           <SidebarQuestionInfo postData={postData} />
         </div>
       </SidebarContainer>
-
-      <SidebarQuestionProjects projects={postData.projects} />
 
       {postData.curation_status === PostStatus.APPROVED && (
         <Suspense fallback={null}>

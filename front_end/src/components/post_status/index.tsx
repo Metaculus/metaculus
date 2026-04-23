@@ -41,14 +41,14 @@ const PostStatus: FC<Props> = ({
       if (new Date(scheduled_resolve_time).getTime() < Date.now()) {
         return t("resolutionPending");
       }
-      return t("closed");
+      return <span className="font-bold">{t("closed")}</span>;
     }
     if ([PostStatusEnum.APPROVED, PostStatusEnum.OPEN].includes(status)) {
       if (new Date(open_time).getTime() > Date.now()) {
         return (
           <>
-            {t("opens")}{" "}
-            <span className="font-medium tabular-nums">
+            <span className="font-normal">{t("opens")}</span>{" "}
+            <span className="font-bold tabular-nums">
               <LocalDaytime date={open_time} />
             </span>
           </>
@@ -56,8 +56,8 @@ const PostStatus: FC<Props> = ({
       }
       return (
         <>
-          {t("closes")}{" "}
-          <span className="font-medium tabular-nums">
+          <span className="font-normal">{t("closes")}</span>{" "}
+          <span className="font-bold tabular-nums">
             <LocalDaytime date={scheduled_close_time} />
           </span>
         </>
@@ -66,8 +66,8 @@ const PostStatus: FC<Props> = ({
     if (status === PostStatusEnum.RESOLVED && actual_resolve_time) {
       return (
         <>
-          {t("resolved")}{" "}
-          <span className="font-medium tabular-nums">
+          <span className="font-normal">{t("resolved")}</span>{" "}
+          <span className="font-bold tabular-nums">
             <LocalDaytime date={actual_resolve_time} />
           </span>
         </>
@@ -104,7 +104,7 @@ const PostStatus: FC<Props> = ({
       {/* Show text only in non-compact mode */}
       {!compact && (
         <span
-          className="whitespace-nowrap text-xs font-normal"
+          className="whitespace-nowrap text-justify text-sm font-normal leading-4"
           suppressHydrationWarning
         >
           {statusText}

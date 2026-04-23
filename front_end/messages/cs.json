@@ -2166,5 +2166,6 @@
   "whyTrustMetaculusLessNoiseTitle": "Méně šumu, více pravdy",
   "whyTrustMetaculusLessNoise": "Předpovědi Metaculus, poháněné davem, prořezávají šum tím, že zakládají každou předpověď na transparentních důkazech, odpovědném skóre a desetiletí doložené přesnosti. Metaculus vybavuje politiky, výzkumníky, novináře a korporátní organizace předpověďmi založenými na důkazech, které poskytují jasný, kvantifikovatelný vhled do nejkritičtějších nejistot světa. Prozkoumejte naši nabídku <servicesLink>Business řešení</servicesLink> a zjistěte, jak může Metaculus zlepšit rozhodování vaší organizace.",
   "publishTimeLockedDescription": "Čas publikace nelze po vytvoření změnit.",
+  "nMore": "{count} více...",
   "thousandsOfOpenQuestions": "20 000+ otevřených otázek"
 }
