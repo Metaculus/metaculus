@@ -6,6 +6,7 @@ import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_pr
 import KeyFactorsQuestionConsumerSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_question_consumer_section";
 import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_status_box";
 import MetaRow from "@/app/(main)/questions/[id]/components/question_page_shell/meta_row";
+import TitleRow from "@/app/(main)/questions/[id]/components/question_page_shell/title_row";
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import {
@@ -26,7 +27,6 @@ import {
 import QuestionActionButton from "./action_buttons";
 import ConsumerQuestionPrediction from "./prediction";
 import { isDisplayableQuestionLink } from "../../key_factors/utils";
-import QuestionTitle from "../shared/question_title";
 
 type Props = {
   postData: PostWithForecasts;
@@ -80,7 +80,7 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
       </div>
 
       <MetaRow post={postData} className="-mx-4 mb-2 hidden md:flex lg:-mx-8" />
-      <QuestionTitle className="text-center">{postData.title}</QuestionTitle>
+      <TitleRow post={postData} variant="consumer" />
 
       <div className="mt-6 sm:mt-8">
         {showClosedMessageMultipleChoice && (
