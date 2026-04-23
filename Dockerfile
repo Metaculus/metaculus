@@ -1,13 +1,11 @@
 FROM node:24-bookworm-slim AS node
+FROM oven/bun:1.3 AS bun
 
 FROM python:3.12-slim-bookworm AS base
 
 # Copy Node.js from official image (same Debian base, glibc compatible)
 COPY --from=node /usr/local/bin/node /usr/local/bin/
-COPY --from=node /usr/local/bin/corepack /usr/local/bin/
-COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
-RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
-    && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+COPY --from=bun /usr/local/bin/bun /usr/local/bin/
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -25,9 +23,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 FROM base AS frontend_deps
 WORKDIR /app/front_end
 
-COPY front_end/package*.json ./
+COPY front_end/package.json front_end/bun.lock ./
 ENV NODE_ENV=production
-RUN npm ci
+RUN bun install --frozen-lockfile
 
 # ============================================================
 # BACKEND DEPENDENCIES
@@ -72,11 +70,11 @@ COPY --from=frontend_deps /app/front_end/node_modules /app/front_end/node_module
 # Build frontend
 ENV NODE_ENV=production
 RUN cd front_end \
-    && NODE_OPTIONS=--max-old-space-size=8192 npm run build \
+    && NODE_OPTIONS=--max-old-space-size=8192 bun run build \
     && rm -rf .next/cache
 
 # Inject Sentry sourcemaps
-RUN cd front_end && npx sentry-cli sourcemaps inject .next
+RUN cd front_end && bun x sentry-cli sourcemaps inject .next
 
 # ============================================================
 # FINAL ENVIRONMENT
@@ -92,9 +90,6 @@ RUN rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default /e
     && touch /run/nginx.pid \
     && chown -R 1001:0 /var/cache/nginx /var/log/nginx /var/lib/nginx /run/nginx.pid /etc/nginx \
     && chmod -R 755 /var/lib/nginx /var/log/nginx
-
-# Install pm2 globally
-RUN npm install -g pm2@6
 
 # Copy ALL source code (backend + frontend source, but .next is overwritten)
 COPY --chown=1001:0 . /app/
