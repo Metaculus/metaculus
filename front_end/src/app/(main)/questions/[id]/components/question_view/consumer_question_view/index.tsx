@@ -24,7 +24,7 @@ import {
   isMultipleChoicePost,
 } from "@/utils/questions/helpers";
 
-import QuestionActionButton from "./action_buttons";
+import ActionRow from "../action_row";
 import ConsumerQuestionPrediction from "./prediction";
 import { isDisplayableQuestionLink } from "../../key_factors/utils";
 
@@ -82,6 +82,10 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
       <MetaRow post={postData} className="-mx-4 mb-2 hidden md:flex lg:-mx-8" />
       <TitleRow post={postData} variant="consumer" />
 
+      <div className="flex justify-center">
+        <ActionRow post={postData} variant="consumer" />
+      </div>
+
       <div className="mt-6 sm:mt-8">
         {showClosedMessageMultipleChoice && (
           <p className="m-0 mb-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
@@ -99,8 +103,6 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
               {t("predictionClosedMessage")}
             </p>
           )}
-
-          <QuestionActionButton postData={postData} />
         </div>
 
         {shouldShowKeyFactorsSection && (
