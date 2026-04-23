@@ -565,7 +565,6 @@
   "aboutMetaculusTitle": "<blue>Sobre</blue> o Metaculus",
   "aboutMetaculusDescription": "Metaculus é uma plataforma de previsão online e motor de agregação que trabalha para melhorar o raciocínio humano e a coordenação em temas de importância global.",
   "more": "Mais",
-  "nMore": "{count} mais...",
   "moreLikely": "pontos percentuais mais alto",
   "afterElection": "sob {winner}",
   "ifCandidateElected": "se {candidate} for eleito",
@@ -2165,5 +2164,6 @@
   "whyTrustMetaculusLessNoiseTitle": "Menos ruído, mais verdade",
   "whyTrustMetaculusLessNoise": "As previsões baseadas na multidão do Metaculus cortam o ruído ao basear cada previsão em evidências transparentes, pontuações responsáveis e uma década de precisão demonstrada. O Metaculus equipa formuladores de políticas, pesquisadores, jornalistas e organizações corporativas com previsões baseadas em evidências que oferecem insights claros e quantificáveis sobre as incertezas mais críticas do mundo. Explore nosso conjunto de <servicesLink>Soluções Empresariais</servicesLink> para saber mais sobre como o Metaculus pode melhorar a tomada de decisões da sua organização.",
   "publishTimeLockedDescription": "O horário de publicação não pode ser alterado após a criação.",
+  "nMore": "{count} mais...",
   "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
 }

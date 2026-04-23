@@ -510,7 +510,6 @@
   "admin": "行政",
   "aboutMetaculus": "關於邁塔庫勒斯",
   "more": "更多的",
-  "nMore": "還有{count}個...",
   "forJournalists": "對於記者",
   "trackRecord": "業績記錄",
   "medals": "獎牌",
@@ -2169,5 +2168,6 @@
   "whyTrustMetaculusLessNoiseTitle": "少噪音，多真相",
   "whyTrustMetaculusLessNoise": "Metaculus 的众包预测通过以透明证据、可追溯的评分以及十年证明的准确性为基础来削减预测中的噪音。Metaculus 为政策制定者、研究人员、记者和企业组织提供基于证据的预测，为世界上最重要的不确定性提供清晰、可量化的洞察。了解我们的<servicesLink>企业解决方案</servicesLink>，了解 Metaculus 如何改善贵组织的决策。",
   "publishTimeLockedDescription": "创建后将无法更改发布时间。",
+  "nMore": "{count} 更多...",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }

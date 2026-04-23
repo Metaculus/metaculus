@@ -1,7 +1,8 @@
 "use client";
 
+import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useRef, useState } from "react";
+import { FC } from "react";
 
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import TrophyIcon from "@/components/icons/trophy";
@@ -26,18 +27,6 @@ const MetaRow: FC<Props> = ({ post, className }) => {
   const t = useTranslations();
   const resolutionData = extractPostResolution(post);
   const { ref, width } = useContainerSize<HTMLDivElement>();
-  const [isMoreOpen, setIsMoreOpen] = useState(false);
-  const moreRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
-        setIsMoreOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
 
   const projectsData = post.projects;
   const allProjects: Project[] = projectsData
@@ -59,18 +48,13 @@ const MetaRow: FC<Props> = ({ post, className }) => {
   const hiddenChips = allProjects.slice(maxVisibleChips);
 
   const getChipContent = (element: Project) => {
-    if (element.type === TournamentType.Tournament) {
+    if (
+      element.type === TournamentType.Tournament ||
+      element.type === TaxonomyProjectType.LeaderboardTag
+    ) {
       return (
         <span className="flex min-w-0 items-center gap-1">
           <TrophyIcon className="h-4 w-4 shrink-0" />
-          <span className="min-w-0 truncate">{element.name}</span>
-        </span>
-      );
-    }
-    if (element.type === TaxonomyProjectType.LeaderboardTag) {
-      return (
-        <span className="flex min-w-0 items-center gap-1">
-          <span className="shrink-0 text-sm leading-none">🏆</span>
           <span className="min-w-0 truncate">{element.name}</span>
         </span>
       );
@@ -127,35 +111,28 @@ const MetaRow: FC<Props> = ({ post, className }) => {
         ))}
 
         {hiddenChips.length > 0 && (
-          <div ref={moreRef} className="relative shrink-0">
-            <Chip
-              color="gray"
-              className="cursor-pointer text-sm font-medium leading-4"
-              onClick={() => setIsMoreOpen((prev) => !prev)}
-            >
+          <Popover className="relative shrink-0">
+            <PopoverButton className="inline-flex cursor-pointer select-none items-center justify-center gap-1 rounded bg-gray-300 p-1.5 text-sm font-medium leading-4 text-gray-900 hover:bg-gray-400 dark:bg-gray-300-dark dark:text-gray-900-dark dark:hover:bg-gray-400-dark">
               {t("nMore", { count: hiddenChips.length })}
-            </Chip>
-            {isMoreOpen && (
-              <div className="absolute right-0 top-full z-10 mt-1 flex max-w-[250px] flex-wrap gap-2 rounded border border-gray-300 bg-gray-0 p-3 shadow-lg dark:border-gray-300-dark dark:bg-gray-0-dark">
-                {hiddenChips.map((element) => (
-                  <Chip
-                    color={chipColor(element)}
-                    key={element.id}
-                    href={getProjectLink(element)}
-                    className="overflow-hidden text-sm font-medium leading-4"
-                    onClick={() => {
-                      setIsMoreOpen(false);
-                      sendAnalyticsEvent("questionTagClicked", {
-                        event_category: element.name,
-                      });
-                    }}
-                  >
-                    {getChipContent(element)}
-                  </Chip>
-                ))}
-              </div>
-            )}
-          </div>
+            </PopoverButton>
+            <PopoverPanel className="absolute right-0 top-full z-10 mt-1 flex max-w-[250px] flex-wrap gap-2 rounded border border-gray-300 bg-gray-0 p-3 shadow-lg dark:border-gray-300-dark dark:bg-gray-0-dark">
+              {hiddenChips.map((element) => (
+                <Chip
+                  color={chipColor(element)}
+                  key={element.id}
+                  href={getProjectLink(element)}
+                  className="overflow-hidden text-sm font-medium leading-4"
+                  onClick={() => {
+                    sendAnalyticsEvent("questionTagClicked", {
+                      event_category: element.name,
+                    });
+                  }}
+                >
+                  {getChipContent(element)}
+                </Chip>
+              ))}
+            </PopoverPanel>
+          </Popover>
         )}
       </div>
     </div>
