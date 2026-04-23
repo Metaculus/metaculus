@@ -7,6 +7,7 @@ import QuestionTitle from "@/app/(main)/questions/[id]/components/question_view/
 import ConditionalTile from "@/components/conditional_tile";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
+import cn from "@/utils/core/cn";
 import {
   isConditionalPost,
   isContinuousQuestion,
@@ -18,16 +19,26 @@ type Variant = "forecaster" | "consumer";
 type Props = {
   post: PostWithForecasts;
   variant: Variant;
+  className?: string;
 };
 
-const TitleRow: FC<Props> = ({ post, variant }) => {
+const TitleRow: FC<Props> = ({ post, variant, className }) => {
   if (isConditionalPost(post)) {
-    return <ConditionalTile post={post} withNavigation withCPRevealBtn />;
+    return (
+      <div className={className}>
+        <ConditionalTile post={post} withNavigation withCPRevealBtn />
+      </div>
+    );
   }
 
   if (variant === "forecaster" && isQuestionPost(post)) {
     return (
-      <div className="flex w-full items-stretch justify-between gap-2 xs:gap-4 sm:gap-8">
+      <div
+        className={cn(
+          "flex w-full items-stretch justify-between gap-2 xs:gap-4 sm:gap-8",
+          className
+        )}
+      >
         <div className="flex flex-1 flex-col">
           <div className="lg:order-0 order-1 flex items-center">
             <QuestionTitle className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
@@ -55,7 +66,12 @@ const TitleRow: FC<Props> = ({ post, variant }) => {
   }
 
   return (
-    <QuestionTitle className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
+    <QuestionTitle
+      className={cn(
+        "text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl",
+        className
+      )}
+    >
       {post.title}
     </QuestionTitle>
   );

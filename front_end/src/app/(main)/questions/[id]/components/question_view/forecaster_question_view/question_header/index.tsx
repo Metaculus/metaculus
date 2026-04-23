@@ -29,7 +29,11 @@ const QuestionHeader: FC<{ post: PostWithForecasts }> = ({ post }) => {
       </div>
       <div className="flex flex-1 flex-col gap-4">
         <MetaRow post={post} className="-mx-4 mb-2 hidden md:flex lg:-mx-8" />
-        <TitleRow post={post} variant="forecaster" />
+        <TitleRow
+          post={post}
+          variant="forecaster"
+          className="lg:order-0 order-1"
+        />
       </div>
     </div>
   );
