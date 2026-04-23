@@ -5,19 +5,10 @@ import { FC, useEffect } from "react";
 
 import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_status_box";
 import MetaRow from "@/app/(main)/questions/[id]/components/question_page_shell/meta_row";
+import TitleRow from "@/app/(main)/questions/[id]/components/question_page_shell/title_row";
 import QuestionHeaderInfo from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_info";
-import ConditionalTile from "@/components/conditional_tile";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import { PostWithForecasts } from "@/types/post";
-import { QuestionWithForecasts } from "@/types/question";
-import {
-  isContinuousQuestion,
-  isConditionalPost,
-  isQuestionPost,
-} from "@/utils/questions/helpers";
-
-import QuestionHeaderCPStatus from "./question_header_cp_status";
-import QuestionTitle from "../../shared/question_title";
 
 const QuestionHeader: FC<{ post: PostWithForecasts }> = ({ post }) => {
   const { setBannerIsVisible } = useContentTranslatedBannerContext();
@@ -38,33 +29,11 @@ const QuestionHeader: FC<{ post: PostWithForecasts }> = ({ post }) => {
       </div>
       <div className="flex flex-1 flex-col gap-4">
         <MetaRow post={post} className="-mx-4 mb-2 hidden md:flex lg:-mx-8" />
-        {isConditionalPost(post) ? (
-          <ConditionalTile post={post} withNavigation withCPRevealBtn />
-        ) : (
-          <div className="lg:order-0 order-1 flex items-start gap-4">
-            <QuestionTitle>{post.title}</QuestionTitle>
-            {isQuestionPost(post) && (
-              <>
-                <div className="md:hidden">
-                  <QuestionHeaderCPStatus
-                    question={post.question as QuestionWithForecasts}
-                    size="md"
-                    hideLabel={isContinuousQuestion(post.question)}
-                  />
-                </div>
-                {!isContinuousQuestion(post.question) && (
-                  <div className="ml-auto hidden md:block">
-                    <QuestionHeaderCPStatus
-                      question={post.question as QuestionWithForecasts}
-                      size="lg"
-                    />
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        )}
-        <QuestionHeaderInfo post={post} className="mb-8 md:hidden" />
+        <TitleRow
+          post={post}
+          variant="forecaster"
+          className="lg:order-0 order-1"
+        />
       </div>
     </div>
   );
