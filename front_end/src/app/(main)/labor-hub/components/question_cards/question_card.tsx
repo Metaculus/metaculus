@@ -336,13 +336,13 @@ export function QuestionCard({
 
     const node = cardRef.current;
 
-    const { toPng } = await import("html-to-image");
-
-    // Set CSS variables on the node before toPng clones it
-    node.style.setProperty("--ss-visible", "visible");
-    node.style.setProperty("--ss-hidden", "hidden");
-
     try {
+      const { toPng } = await import("html-to-image");
+
+      // Set CSS variables on the node before toPng clones it
+      node.style.setProperty("--ss-visible", "visible");
+      node.style.setProperty("--ss-hidden", "hidden");
+
       const dataUrl = await toPng(node, {
         backgroundColor: exportBackgroundColor,
         pixelRatio: 2,
