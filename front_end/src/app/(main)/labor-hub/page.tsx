@@ -359,7 +359,18 @@ export default function LaborAutomationHubPage() {
                 prefer="timeline"
                 title={
                   <>
-                    Unemployment rate and underemployment rate for{" "}
+                    Unemployment rate and{" "}
+                    <DefinitionTooltip
+                      tooltipContent={
+                        <>
+                          The share of graduates working in jobs that typically
+                          do not require a college degree.
+                        </>
+                      }
+                    >
+                      underemployment rate
+                    </DefinitionTooltip>{" "}
+                    for{" "}
                     <DefinitionTooltip tooltipContent="People aged 22 to 27 with a bachelor's degree or higher">
                       recent
                     </DefinitionTooltip>{" "}

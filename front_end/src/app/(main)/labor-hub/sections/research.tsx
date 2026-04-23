@@ -186,18 +186,6 @@ export function ResearchSection({
       <div className="break-inside-avoid text-blue-700 dark:text-blue-700-dark">
         <ol className="list-decimal space-y-2 pl-5 text-xs [text-wrap:pretty]">
           <li>
-            See the underlying data and how we adapted the figures from these
-            sources{" "}
-            <a
-              href="https://docs.google.com/spreadsheets/d/1-VMGsNPDg9QFnBwwMSYvjEmfVfBDqJr9MZgachjE5VQ/edit?usp=sharing"
-              target="_blank"
-              rel="noreferrer"
-            >
-              here
-            </a>
-            .
-          </li>
-          <li>
             Occupational exposure figures from{" "}
             <a
               href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4414065"
@@ -248,6 +236,18 @@ export function ResearchSection({
             .
           </li>
         </ol>
+        <div className="pl-5 pt-5 text-xs [text-wrap:pretty]">
+          See the underlying data and how we adapted the figures from these
+          sources{" "}
+          <a
+            href="https://docs.google.com/spreadsheets/d/1-VMGsNPDg9QFnBwwMSYvjEmfVfBDqJr9MZgachjE5VQ/edit?usp=sharing"
+            target="_blank"
+            rel="noreferrer"
+          >
+            here
+          </a>
+          .
+        </div>
       </div>
     </SectionCard>
   );
