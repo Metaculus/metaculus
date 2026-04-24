@@ -14,32 +14,45 @@ import EmailConfirmation from "../(main)/(home)/components/email_confirmation";
 
 // Edit this list to update Staff Picks on the storefront
 const STAFF_PICKS = [
-  { name: "Iran War", emoji: "⚔️", url: "/questions/?topic=iran" },
-  { name: "Metaculus Cup", emoji: "🏆", url: "/cup/" },
+  {
+    name: "Iran War",
+    emoji: "💥",
+    url: "/questions/?topic=2026-iran-war&for_main_feed=false",
+  },
+  {
+    name: "Metaculus Cup",
+    emoji: "⚔️",
+    url: "/tournament/metaculus-cup-spring-2026/",
+  },
   {
     name: "Top Questions",
-    emoji: "🔥",
-    url: "/questions/?for_main_feed=true&order_by=-hotness",
+    emoji: "❓",
+    url: "/questions/?for_main_feed=true&order_by=-hotness&for_main_feed=false",
   },
   {
     name: "Current Events",
-    emoji: "📰",
-    url: "/questions/?categories=current-events",
+    emoji: "🗞️",
+    url: "/questions/?categories=current-events&for_main_feed=false",
   },
   {
     name: "Artificial Intelligence",
     emoji: "🤖",
-    url: "/questions/?categories=artificial-intelligence",
+    url: "/questions/?categories=artificial-intelligence&for_main_feed=false",
   },
   {
     name: "Geopolitics",
     emoji: "🌍",
-    url: "/questions/?categories=geopolitics",
+    url: "/questions/?categories=geopolitics&for_main_feed=false",
   },
   {
     name: "Economy and Business",
-    emoji: "📈",
-    url: "/questions/?categories=economy-and-business",
+    emoji: "💼",
+    url: "/questions/?categories=economy-and-business&for_main_feed=false",
+  },
+  {
+    name: "Space",
+    emoji: "🚀",
+    url: "/questions/?categories=space&for_main_feed=false",
   },
 ];
 

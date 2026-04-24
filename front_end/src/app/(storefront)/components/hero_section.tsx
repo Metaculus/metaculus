@@ -346,8 +346,12 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
               </div>
               <div className="relative z-10 ml-auto flex items-center gap-2 md:contents md:gap-4">
                 <p className="m-0 text-xs font-normal text-white opacity-50 group-hover:opacity-80 group-focus-visible:opacity-80 md:flex-1 md:text-sm md:opacity-60">
-                  <span className="md:hidden">{t("laborHubTaglineMobile")}</span>
-                  <span className="hidden md:inline">{t("laborHubTagline")}</span>
+                  <span className="md:hidden">
+                    {t("laborHubTaglineMobile")}
+                  </span>
+                  <span className="hidden md:inline">
+                    {t("laborHubTagline")}
+                  </span>
                 </p>
                 <FontAwesomeIcon
                   icon={faArrowRight}
