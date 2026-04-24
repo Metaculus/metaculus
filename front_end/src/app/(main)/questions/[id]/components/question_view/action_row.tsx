@@ -70,10 +70,10 @@ const ActionRow: FC<Props> = ({ post, variant }) => {
   return (
     <div
       className={cn(
-        "w-full flex-wrap items-center gap-2 py-3",
+        "relative w-full flex-wrap items-center gap-2 py-3",
         variant === "forecaster"
-          ? "hidden lg:flex"
-          : "flex justify-center lg:justify-start"
+          ? "hidden md:flex"
+          : "flex justify-center md:justify-start"
       )}
     >
       {/* Consumer: Predict (primary position) */}
@@ -89,7 +89,7 @@ const ActionRow: FC<Props> = ({ post, variant }) => {
         variant={isFollowPrimary || isSubscribed ? "primary" : "secondary"}
         onClick={isSubscribed ? handleCustomize : handleSubscribe}
         disabled={isLoading}
-        className={cn(variant === "consumer" && "hidden lg:flex")}
+        className={cn(variant === "consumer" && "hidden md:flex")}
       >
         <FontAwesomeIcon
           icon={isSubscribed ? faBell : faBellRegular}
@@ -118,7 +118,7 @@ const ActionRow: FC<Props> = ({ post, variant }) => {
 
       {/* Embed — hidden on mobile for consumer */}
       <PillButton
-        className={cn("capitalize", variant === "consumer" && "hidden lg:flex")}
+        className={cn("capitalize", variant === "consumer" && "hidden md:flex")}
         onClick={() => openEmbedModal(true)}
       >
         <FontAwesomeIcon icon={faCode} />
@@ -135,7 +135,11 @@ const ActionRow: FC<Props> = ({ post, variant }) => {
 
       {/* … overflow — hidden on mobile for consumer */}
       <div
-        className={cn("ml-auto", variant === "consumer" && "hidden lg:block")}
+        className={cn(
+          variant === "consumer"
+            ? "hidden md:absolute md:right-0 md:block lg:static lg:ml-auto"
+            : "ml-auto"
+        )}
       >
         <PostDropdownMenu
           post={post}

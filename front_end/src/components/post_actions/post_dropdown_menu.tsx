@@ -53,7 +53,7 @@ export const PostDropdownMenu: FC<Props> = ({ post, button, hideShare }) => {
     // Curators can edit approved posts that are not yet open
     (isCurator && isApproved && isUpcoming);
 
-  const isLargeScreen = useBreakpoint("lg");
+  const isMediumScreen = useBreakpoint("md");
 
   const canResolve =
     isQuestionPost(post) &&
@@ -127,7 +127,7 @@ export const PostDropdownMenu: FC<Props> = ({ post, button, hideShare }) => {
 
   const menuItems: MenuItemProps[] = [
     // Mobile menu items
-    ...(!isLargeScreen
+    ...(!isMediumScreen
       ? [
           ...(!hideShare
             ? [

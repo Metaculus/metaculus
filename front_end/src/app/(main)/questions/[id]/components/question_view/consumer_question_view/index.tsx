@@ -70,11 +70,11 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
       />
       <TitleRow post={postData} variant="consumer" />
 
-      <div className="order-2 lg:order-none">
+      <div className="order-2 md:order-none">
         <ActionRow post={postData} variant="consumer" />
       </div>
 
-      <div className="order-1 mt-6 sm:mt-8 lg:order-none">
+      <div className="order-1 mt-6 sm:mt-8 md:order-none">
         {showClosedMessageMultipleChoice && (
           <p className="m-0 mb-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
             {t("predictionClosedMessage")}
