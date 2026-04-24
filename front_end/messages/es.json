@@ -702,6 +702,7 @@
   "resolutionCriteriaExplanation": "Una buena pregunta casi siempre se resolverá de manera inequívoca. ¿Cuál es el evento específico que podría ocurrir? ¿Antes de qué fecha tendría que ocurrir para que la pregunta se resuelva como Sí? Si tienes una fuente de datos con la que se resolverá la pregunta, enlázala aquí.",
   "choicesSeparatedBy": "Opciones (separadas por ,)",
   "projects": "proyectos",
+  "projectsTags": "Proyectos / Etiquetas",
   "FABPrizePool": "FONDO DE PREMIOS",
   "FABPrizeValue": "$30,000",
   "FABStartDate": "FECHA DE INICIO",

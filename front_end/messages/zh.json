@@ -691,6 +691,7 @@
   "resolutionCriteriaExplanation": "一個好的問題幾乎總是能夠明確解決。可能發生的具體事件是什麼？在什麼日期之前需要發生才能使問題解決為「是」？如果你有用於解決問題的數據源，請在此處連結。",
   "choicesSeparatedBy": "選項（以逗號分隔）",
   "projects": "專案",
+  "projectsTags": "项目 / 标签",
   "FABPrizePool": "獎金池",
   "FABPrizeValue": "30,000美元",
   "FABStartDate": "開始日期",

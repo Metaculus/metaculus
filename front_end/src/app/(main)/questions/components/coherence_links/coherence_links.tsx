@@ -16,11 +16,12 @@ import { Post } from "@/types/post";
 
 type Props = {
   post: Post;
+  hideToggle?: boolean;
 };
 
 const MAX_COLLAPSED_HEIGHT = 9999;
 
-export const CoherenceLinks: FC<Props> = ({ post }) => {
+export const CoherenceLinks: FC<Props> = ({ post, hideToggle }) => {
   const t = useTranslations();
   const expandLabel = t("showMore");
   const collapseLabel = t("showLess");
@@ -51,57 +52,65 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
   )
     return null;
 
+  const inner = (
+    <ExpandableContent
+      maxCollapsedHeight={MAX_COLLAPSED_HEIGHT}
+      expandLabel={expandLabel}
+      collapseLabel={collapseLabel}
+      className="-mt-4"
+    >
+      <div ref={toggleOpenRef} className="mt-3 flex flex-col gap-3">
+        {Array.from(coherenceLinks?.data ?? [], (link) => (
+          <DisplayCoherenceLink
+            key={link.id}
+            link={link}
+            post={post}
+            compact={false}
+          ></DisplayCoherenceLink>
+        ))}
+
+        {Array.from(newLinks, (id) => (
+          <CreateCoherenceLink
+            post={post}
+            key={id}
+            linkKey={id}
+            deleteLink={deleteLink}
+          ></CreateCoherenceLink>
+        ))}
+
+        <div className="flex flex-col items-center justify-between gap-3 px-0 md:px-20">
+          {(!coherenceLinks || coherenceLinks.data.length === 0) &&
+            newLinks?.length === 0 && (
+              <div className="flex flex-col items-center justify-between gap-2 pt-3">
+                <span className="text-balance text-center text-sm">
+                  {t("noQuestionsLinkedP2")}
+                </span>
+                <span className="text-balance text-center text-sm">
+                  {t("noQuestionsLinkedP3")}
+                </span>
+                <span className="mt-1 text-center text-sm text-blue-600 dark:text-blue-600-dark">
+                  {t("noQuestionsLinkedP1")}
+                </span>
+              </div>
+            )}
+
+          {!user?.is_bot && (
+            <AddButton onClick={addLink} className="mx-auto self-start">
+              {t("linkQuestion")}
+            </AddButton>
+          )}
+        </div>
+      </div>
+    </ExpandableContent>
+  );
+
+  if (hideToggle) {
+    return inner;
+  }
+
   return (
     <SectionToggle title={t("questionLinksPrivate")} defaultOpen={true}>
-      <ExpandableContent
-        maxCollapsedHeight={MAX_COLLAPSED_HEIGHT}
-        expandLabel={expandLabel}
-        collapseLabel={collapseLabel}
-        className="-mt-4"
-      >
-        <div ref={toggleOpenRef} className="mt-3 flex flex-col gap-3">
-          {Array.from(coherenceLinks?.data ?? [], (link) => (
-            <DisplayCoherenceLink
-              key={link.id}
-              link={link}
-              post={post}
-              compact={false}
-            ></DisplayCoherenceLink>
-          ))}
-
-          {Array.from(newLinks, (id) => (
-            <CreateCoherenceLink
-              post={post}
-              key={id}
-              linkKey={id}
-              deleteLink={deleteLink}
-            ></CreateCoherenceLink>
-          ))}
-
-          <div className="flex flex-col items-center justify-between gap-3 px-0 md:px-20">
-            {(!coherenceLinks || coherenceLinks.data.length === 0) &&
-              newLinks?.length === 0 && (
-                <div className="flex flex-col items-center justify-between gap-2 pt-3">
-                  <span className="text-balance text-center text-sm">
-                    {t("noQuestionsLinkedP2")}
-                  </span>
-                  <span className="text-balance text-center text-sm">
-                    {t("noQuestionsLinkedP3")}
-                  </span>
-                  <span className="mt-1 text-center text-sm text-blue-600 dark:text-blue-600-dark">
-                    {t("noQuestionsLinkedP1")}
-                  </span>
-                </div>
-              )}
-
-            {!user?.is_bot && (
-              <AddButton onClick={addLink} className="mx-auto self-start">
-                {t("linkQuestion")}
-              </AddButton>
-            )}
-          </div>
-        </div>
-      </ExpandableContent>
+      {inner}
     </SectionToggle>
   );
 };
