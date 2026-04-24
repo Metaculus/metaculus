@@ -6,19 +6,10 @@ import { FC, useEffect } from "react";
 import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_status_box";
 import MetaRow from "@/app/(main)/questions/[id]/components/question_page_shell/meta_row";
 import TitleRow from "@/app/(main)/questions/[id]/components/question_page_shell/title_row";
-import QuestionHeaderInfo from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_info";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import { PostWithForecasts } from "@/types/post";
-import { QuestionWithForecasts } from "@/types/question";
-import {
-  isContinuousQuestion,
-  isConditionalPost,
-  isQuestionPost,
-} from "@/utils/questions/helpers";
 
-import QuestionHeaderCPStatus from "./question_header_cp_status";
 import ActionRow from "../../action_row";
-import QuestionTitle from "../../shared/question_title";
 
 const QuestionHeader: FC<{ post: PostWithForecasts }> = ({ post }) => {
   const { setBannerIsVisible } = useContentTranslatedBannerContext();
