@@ -28,14 +28,15 @@ import { AddKeyFactorsButton } from "../key_factors/add_button";
 import QuestionPredictButton from "./consumer_question_view/action_buttons/question_predict_button";
 
 const pillVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-full border text-sm font-medium leading-4 transition-colors text-blue-700 border-blue-400 bg-white dark:bg-gray-0-dark dark:border-blue-900/50 dark:text-gray-300-dark",
+  "inline-flex items-center justify-center gap-2 rounded-full border text-sm font-medium leading-4 transition-colors text-blue-700 border-blue-400 bg-white dark:bg-gray-0-dark dark:border-blue-400-dark dark:text-blue-700-dark",
   {
     variants: {
       variant: {
         primary:
-          "pt-2 pb-2 pr-3 pl-3.5 bg-blue-900 border-blue-900 text-white hover:bg-blue-800 active:bg-blue-950 dark:bg-blue-900 dark:border-blue-900 dark:text-gray-100-dark",
-        secondary: "pt-2 pb-2 pr-3 pl-3.5 hover:bg-gray-100 active:bg-gray-200",
-        icon: "h-8 w-8 p-0 hover:bg-gray-100 active:bg-gray-200",
+          "pt-2 pb-2 pr-3 pl-3.5 bg-blue-900 border-blue-900 text-white hover:bg-blue-800 active:bg-blue-950 dark:bg-blue-900-dark dark:border-blue-900-dark dark:text-gray-200-dark dark:hover:bg-blue-800-dark",
+        secondary:
+          "pt-2 pb-2 pr-3 pl-3.5 hover:bg-gray-100 active:bg-gray-200 dark:hover:bg-gray-100-dark dark:active:bg-gray-200-dark",
+        icon: "h-8 w-8 p-0 hover:bg-gray-100 active:bg-gray-200 dark:hover:bg-gray-100-dark dark:active:bg-gray-200-dark",
       },
     },
     defaultVariants: {
@@ -88,8 +89,8 @@ const ActionRow: FC<Props> = ({ post, variant }) => {
             isSubscribed
               ? "text-yellow-400 dark:text-yellow-600"
               : isFollowPrimary
-                ? "text-white"
-                : "text-blue-700"
+                ? "text-white dark:text-gray-200-dark"
+                : "text-blue-700 dark:text-blue-700-dark"
           )}
         />
         {isSubscribed ? t("followingButton") : t("followButton")}
