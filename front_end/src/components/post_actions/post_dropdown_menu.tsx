@@ -29,9 +29,10 @@ import { canChangeQuestionResolution } from "@/utils/questions/resolution";
 type Props = {
   post: Post;
   button?: React.ReactNode;
+  hideShare?: boolean;
 };
 
-export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
+export const PostDropdownMenu: FC<Props> = ({ post, button, hideShare }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const router = useRouter();
@@ -128,12 +129,16 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
     // Mobile menu items
     ...(!isLargeScreen
       ? [
-          {
-            id: "share",
-            name: t("share"),
-            className: "capitalize",
-            items: shareMenuItems,
-          },
+          ...(!hideShare
+            ? [
+                {
+                  id: "share",
+                  name: t("share"),
+                  className: "capitalize",
+                  items: shareMenuItems,
+                },
+              ]
+            : []),
           {
             id: "subscription",
             name: isSubscribed ? t("followingButton") : t("followButton"),

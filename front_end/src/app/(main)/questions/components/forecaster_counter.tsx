@@ -10,12 +10,14 @@ import { abbreviatedNumber } from "@/utils/formatters/number";
 type Props = {
   forecasters?: number;
   compact?: boolean;
+  boldCount?: boolean;
   className?: string;
 };
 
 const ForecastersCounter: FC<Props> = ({
   forecasters,
   compact = false,
+  boldCount = false,
   className,
 }) => {
   const t = useTranslations();
@@ -45,11 +47,13 @@ const ForecastersCounter: FC<Props> = ({
       />
       {/* Compact version - just shows number */}
       {compact && (
-        <span className="align-middle tabular-nums">
+        <span
+          className={cn("align-middle tabular-nums", boldCount && "font-bold")}
+        >
           {forecastersFormatted}
         </span>
       )}
-      {/* Full version - shows descriptive text */}
+      {/* Full version - shows descriptive text with label */}
       {!compact && (
         <RichText>
           {(tags) => (
@@ -58,7 +62,12 @@ const ForecastersCounter: FC<Props> = ({
                 count: forecasters,
                 count_formatted: forecastersFormatted,
                 ...tags,
-                strong: (chunks) => chunks,
+                strong: (chunks) =>
+                  boldCount ? (
+                    <span className="font-bold">{chunks}</span>
+                  ) : (
+                    chunks
+                  ),
               })}
             </span>
           )}
