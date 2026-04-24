@@ -82,7 +82,7 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
       <MetaRow post={postData} className="-mx-4 mb-2 hidden md:flex lg:-mx-8" />
       <TitleRow post={postData} variant="consumer" />
 
-      <div className="flex justify-center">
+      <div className="flex w-full justify-start">
         <ActionRow post={postData} variant="consumer" />
       </div>
 
