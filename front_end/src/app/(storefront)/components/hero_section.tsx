@@ -13,6 +13,7 @@ import { abbreviatedNumber } from "@/utils/formatters/number";
 
 import HeroFutureEvalSymbol from "./hero_futureeval_symbol";
 import HeroGlobeBackground from "./hero_globe_background";
+import LaborHubLogo from "./labor_hub_logo";
 import RadiantLogo from "./radiant_logo";
 import StorefrontNavbar from "./storefront_navbar";
 
@@ -23,6 +24,7 @@ const CARD_ACCENT_COLORS = {
   business: "#bf9cd8", // purple
   futureeval: "#5EA29B", // teal
   radiant: "#F2C59A", // warm beige
+  laborhub: "#F29A9A", // rose
 } as const;
 
 type HoveredCard = keyof typeof CARD_ACCENT_COLORS | null;
@@ -324,6 +326,35 @@ const HeroSection: FC<HeroSectionProps> = ({ stats }) => {
                 />
               </Link>
             </div>
+
+            {/* Labor Hub banner */}
+            <Link
+              href="/labor-hub/"
+              className="group relative flex w-full flex-row items-center gap-2 overflow-hidden rounded-lg bg-[#4c6076] p-4 no-underline backdrop-blur-[1px] transition-colors md:gap-4 md:rounded-xl md:bg-[#4c6076]/80 md:px-6 md:py-4 md:hover:bg-[#4c6076]"
+              onMouseEnter={() => setHoveredCard("laborhub")}
+              onMouseLeave={() => setHoveredCard(null)}
+              onFocus={() => setHoveredCard("laborhub")}
+              onBlur={() => setHoveredCard(null)}
+            >
+              <AccentOverlay accentKey="laborhub" />
+              <div className="absolute -left-[33px] -top-[39px] h-[130px] w-[127px] rounded-full bg-[rgba(242,154,154,0.76)] opacity-40 blur-[51px] md:-left-[142px] md:-top-[140px] md:h-[346px] md:w-[341px]" />
+              <div className="relative z-10 flex items-center gap-2 md:w-[170px] md:shrink-0 md:gap-3">
+                <LaborHubLogo className="size-4 text-white md:size-7" />
+                <span className="text-sm font-semibold text-white md:text-xl">
+                  {t("laborHub")}
+                </span>
+              </div>
+              <div className="relative z-10 ml-auto flex items-center gap-2 md:contents md:gap-4">
+                <p className="m-0 text-xs font-normal text-white opacity-50 group-hover:opacity-80 group-focus-visible:opacity-80 md:flex-1 md:text-sm md:opacity-60">
+                  <span className="md:hidden">{t("laborHubTaglineMobile")}</span>
+                  <span className="hidden md:inline">{t("laborHubTagline")}</span>
+                </p>
+                <FontAwesomeIcon
+                  icon={faArrowRight}
+                  className="text-sm text-white/50 transition-transform group-hover:translate-x-1 group-focus-visible:translate-x-1 md:text-xl"
+                />
+              </div>
+            </Link>
           </div>
         </div>
       </section>
