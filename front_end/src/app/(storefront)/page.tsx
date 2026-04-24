@@ -27,7 +27,7 @@ const STAFF_PICKS = [
   {
     name: "Top Questions",
     emoji: "❓",
-    url: "/questions/?for_main_feed=true&order_by=-hotness&for_main_feed=false",
+    url: "/questions/?topic=top-50&for_main_feed=false",
   },
   {
     name: "Current Events",
