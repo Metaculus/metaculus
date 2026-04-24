@@ -13,10 +13,7 @@ import { SearchParams } from "@/types/navigation";
 import { GroupOfQuestionsGraphType } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import cn from "@/utils/core/cn";
-import {
-  getPostTitle,
-  isGroupOfQuestionsPost,
-} from "@/utils/questions/helpers";
+import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
 
 import NotebookRedirect from "../components/notebook_redirect";
 import QuestionEmbedModal from "../components/question_embed_modal";
@@ -53,7 +50,6 @@ const IndividualQuestionPage: FC<{
   const preselectedGroupQuestionId =
     extractPreselectedGroupQuestionId(searchParams);
 
-  const questionTitle = getPostTitle(postData);
   const isFanChart =
     isGroupOfQuestionsPost(postData) &&
     postData.group_of_questions?.graph_type ===
@@ -105,7 +101,7 @@ const IndividualQuestionPage: FC<{
                       />
                     </QuestionLayout>
                   </div>
-                  <Sidebar postData={postData} questionTitle={questionTitle} />
+                  <Sidebar postData={postData} />
                 </div>
               </main>
 

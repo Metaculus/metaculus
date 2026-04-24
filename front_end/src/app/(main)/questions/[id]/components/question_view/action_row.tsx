@@ -28,14 +28,14 @@ import { AddKeyFactorsButton } from "../key_factors/add_button";
 import QuestionPredictButton from "./consumer_question_view/action_buttons/question_predict_button";
 
 const pillVariants = cva(
-  "inline-flex items-center gap-2 rounded-full border text-sm font-medium leading-4 transition-colors text-blue-700 border-blue-400 bg-white dark:bg-gray-0-dark dark:border-blue-900/50 dark:text-gray-300-dark",
+  "inline-flex items-center justify-center gap-2 rounded-full border text-sm font-medium leading-4 transition-colors text-blue-700 border-blue-400 bg-white dark:bg-gray-0-dark dark:border-blue-900/50 dark:text-gray-300-dark",
   {
     variants: {
       variant: {
         primary:
           "pt-2 pb-2 pr-3 pl-3.5 bg-blue-900 border-blue-900 text-white hover:bg-blue-800 active:bg-blue-950 dark:bg-blue-900 dark:border-blue-900 dark:text-gray-100-dark",
         secondary: "pt-2 pb-2 pr-3 pl-3.5 hover:bg-gray-100 active:bg-gray-200",
-        icon: "h-8 w-8 justify-center p-0 hover:bg-gray-100 active:bg-gray-200",
+        icon: "h-8 w-8 p-0 hover:bg-gray-100 active:bg-gray-200",
       },
     },
     defaultVariants: {
