@@ -4,7 +4,6 @@ import OnboardingCheck from "@/components/onboarding/onboarding_check";
 import serverMiscApi from "@/services/api/misc/misc.server";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import { getPublicSettings } from "@/utils/public_settings.server";
-import { convertSidebarItem } from "@/utils/sidebar";
 
 import FeaturedInMarquee from "./components/featured_in_marquee";
 import ForecastsCarouselSection from "./components/forecasts_carousel_section";
@@ -12,6 +11,50 @@ import HeroSection from "./components/hero_section";
 import { FILTERS } from "./components/homepage_filters";
 import StaffPicks from "./components/staff_picks";
 import EmailConfirmation from "../(main)/(home)/components/email_confirmation";
+
+// Edit this list to update Staff Picks on the storefront
+const STAFF_PICKS = [
+  {
+    name: "Iran War",
+    emoji: "💥",
+    url: "/questions/?topic=2026-iran-war&for_main_feed=false",
+  },
+  {
+    name: "Metaculus Cup",
+    emoji: "⚔️",
+    url: "/tournament/metaculus-cup-spring-2026/",
+  },
+  {
+    name: "Top Questions",
+    emoji: "❓",
+    url: "/questions/?topic=top-50&for_main_feed=false",
+  },
+  {
+    name: "Current Events",
+    emoji: "🗞️",
+    url: "/tournament/current-events/",
+  },
+  {
+    name: "Artificial Intelligence",
+    emoji: "🤖",
+    url: "/questions/?categories=artificial-intelligence&for_main_feed=false",
+  },
+  {
+    name: "Geopolitics",
+    emoji: "🌍",
+    url: "/questions/?categories=geopolitics&for_main_feed=false",
+  },
+  {
+    name: "Economy and Business",
+    emoji: "💼",
+    url: "/questions/?categories=economy-business&for_main_feed=false",
+  },
+  {
+    name: "Space",
+    emoji: "🚀",
+    url: "/questions/?categories=space&for_main_feed=false",
+  },
+];
 
 export default async function Home() {
   const { PUBLIC_LANDING_PAGE_URL } = getPublicSettings();
@@ -27,8 +70,7 @@ export default async function Home() {
     years_of_predictions: 10,
   };
 
-  const [sidebarItems, initialNewsPosts] = await Promise.all([
-    serverMiscApi.getSidebarItems(),
+  const [initialNewsPosts] = await Promise.all([
     ServerPostsApi.getPostsWithCP(FILTERS.popular),
     serverMiscApi
       .getSiteStats()
@@ -38,16 +80,12 @@ export default async function Home() {
       .catch(() => {}),
   ]);
 
-  const hotTopics = sidebarItems
-    .filter(({ section }) => section === "hot_topics")
-    .map((item) => convertSidebarItem(item));
-
   return (
     <main className="mx-auto min-h-screen max-w-[1180px]">
       <OnboardingCheck />
       <EmailConfirmation />
       <HeroSection stats={siteStats} />
-      <StaffPicks items={hotTopics} />
+      <StaffPicks items={STAFF_PICKS} />
       <ForecastsCarouselSection
         initialPosts={initialNewsPosts.results}
         className="mx-auto w-full px-4 pb-8"
