@@ -68,7 +68,14 @@ const ActionRow: FC<Props> = ({ post, variant }) => {
   const isFollowPrimary = !(variant === "consumer" && isPredictable);
 
   return (
-    <div className="flex w-full flex-wrap items-center gap-2 py-3">
+    <div
+      className={cn(
+        "w-full flex-wrap items-center gap-2 py-3",
+        variant === "forecaster"
+          ? "hidden lg:flex"
+          : "flex justify-center lg:justify-start"
+      )}
+    >
       {/* Consumer: Predict (primary position) */}
       {variant === "consumer" && isPredictable && (
         <QuestionPredictButton
@@ -77,11 +84,12 @@ const ActionRow: FC<Props> = ({ post, variant }) => {
         />
       )}
 
-      {/* Follow */}
+      {/* Follow — hidden on mobile for consumer */}
       <PillButton
         variant={isFollowPrimary || isSubscribed ? "primary" : "secondary"}
         onClick={isSubscribed ? handleCustomize : handleSubscribe}
         disabled={isLoading}
+        className={cn(variant === "consumer" && "hidden lg:flex")}
       >
         <FontAwesomeIcon
           icon={isSubscribed ? faBell : faBellRegular}
@@ -108,8 +116,11 @@ const ActionRow: FC<Props> = ({ post, variant }) => {
         </PillButton>
       </SharePostMenu>
 
-      {/* Embed */}
-      <PillButton className="capitalize" onClick={() => openEmbedModal(true)}>
+      {/* Embed — hidden on mobile for consumer */}
+      <PillButton
+        className={cn("capitalize", variant === "consumer" && "hidden lg:flex")}
+        onClick={() => openEmbedModal(true)}
+      >
         <FontAwesomeIcon icon={faCode} />
         {t("embed")}
       </PillButton>
@@ -122,8 +133,10 @@ const ActionRow: FC<Props> = ({ post, variant }) => {
         />
       )}
 
-      {/* … overflow */}
-      <div className="ml-auto">
+      {/* … overflow — hidden on mobile for consumer */}
+      <div
+        className={cn("ml-auto", variant === "consumer" && "hidden lg:block")}
+      >
         <PostDropdownMenu
           post={post}
           button={
