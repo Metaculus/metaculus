@@ -32,7 +32,7 @@ const STAFF_PICKS = [
   {
     name: "Current Events",
     emoji: "🗞️",
-    url: "/questions/?categories=current-events&for_main_feed=false",
+    url: "/tournament/current-events/",
   },
   {
     name: "Artificial Intelligence",
@@ -47,7 +47,7 @@ const STAFF_PICKS = [
   {
     name: "Economy and Business",
     emoji: "💼",
-    url: "/questions/?categories=economy-and-business&for_main_feed=false",
+    url: "/questions/?categories=economy-business&for_main_feed=false",
   },
   {
     name: "Space",
