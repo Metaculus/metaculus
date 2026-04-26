@@ -97,9 +97,25 @@ jobs:
           sparse-checkout: scripts
           sparse-checkout-cone-mode: false
 
+      - name: Determine deploy targets
+        id: targets
+        run: |
+          TARGETS="${{ needs.build.outputs.heroku_targets }}"
+          HAS_MIGRATIONS="${{ needs.check-migrations.outputs.has_migrations }}"
+
+          if [ "$HAS_MIGRATIONS" == "false" ]; then
+            TARGETS=$(echo "$TARGETS" | sed 's/\brelease\b//' | xargs)
+            echo "⏭️ No migrations detected - skipping release phase"
+          else
+            echo "🗄️ Migrations detected (or check inconclusive) - including release phase"
+          fi
+
+          echo "Deploy targets: $TARGETS"
+          echo "targets=$TARGETS" >> "$GITHUB_OUTPUT"
+
       - name: Deploy to Heroku
         run: |
-          heroku container:release ${{ needs.build.outputs.heroku_targets }} -a ${{ env.HEROKU_APP }}
+          heroku container:release ${{ steps.targets.outputs.targets }} -a ${{ env.HEROKU_APP }}
 
       - name: Wait for release to complete
         run: ./scripts/wait_for_heroku_release.sh "${{ env.HEROKU_APP }}" 90

@@ -182,7 +182,7 @@ jobs:
             # Mutable tag: {branch} (always points to latest build for this branch)
             type=raw,value=${{ steps.vars.outputs.branch_slug }},priority=600
             # Latest tag (only for production builds)
-            type=raw,value=latest,enable=${{ inputs.include_latest_tag }},priority=200
+            type=raw,value=latest,enable=${{ inputs.include_latest_tag || false }},priority=200
           labels: |
             # Override revision to match actual checkout (PR branch HEAD, not merge commit)
             org.opencontainers.image.revision=${{ steps.vars.outputs.commit_sha }}
