@@ -375,6 +375,7 @@
   "estimatedReadingTime": "{minutes} min read",
   "predictions": "Predictions",
   "predictors": "Predictors",
+  "predictorsMentionWarning": "Only curators and admins can notify @predictors. Your mention will not send notifications.",
   "relativeLog": "Relative Log",
   "unreadAll": "all unread",
   "questionsLeft": "{count, plural, =1 {1 question left} other {{count} questions left} }",

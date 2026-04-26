@@ -1,5 +1,9 @@
+from datetime import timedelta
+
 import pytest
 import re
+
+from django.utils import timezone
 
 from comments.utils import (
     USERNAME_PATTERN,
@@ -150,3 +154,42 @@ def test_comment_extract_user_mentions(
 
     assert {x.username for x in qs} == expected_usernames
     assert mentions == expected_mentions
+
+
+@pytest.mark.django_db
+def test_predictors_mention_excludes_withdrawn_forecasts(question_binary):
+    """@predictors should only notify users with active (non-withdrawn) predictions."""
+    active_forecaster = factory_user(username="active_forecaster")
+    withdrawn_forecaster = factory_user(username="withdrawn_forecaster")
+    admin = factory_user(username="admin")
+
+    post = factory_post(
+        question=question_binary,
+        default_project=factory_project(
+            type=Project.ProjectTypes.TOURNAMENT,
+            default_permission=ObjectPermission.FORECASTER,
+            override_permissions={
+                admin: ObjectPermission.ADMIN,
+            },
+        ),
+    )
+
+    # Active forecast (no end_time)
+    factory_forecast(question=question_binary, author=active_forecaster)
+    # Withdrawn forecast (end_time in the past)
+    factory_forecast(
+        question=question_binary,
+        author=withdrawn_forecaster,
+        end_time=timezone.now() - timedelta(days=1),
+    )
+
+    qs, mentions = comment_extract_user_mentions(
+        factory_comment(
+            author=admin,
+            on_post=post,
+            text_original="Wanna mention @predictors",
+        )
+    )
+
+    assert {x.username for x in qs} == {"active_forecaster"}
+    assert mentions == {"predictors"}
