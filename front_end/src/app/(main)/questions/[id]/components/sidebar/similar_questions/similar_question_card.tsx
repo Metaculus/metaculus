@@ -8,6 +8,7 @@ import PostVoter from "@/components/post_card/basic_post_card/post_voter";
 import PostStatusIcon from "@/components/post_status/status_icon";
 import RichText from "@/components/rich_text";
 import { PostWithForecasts } from "@/types/post";
+import cn from "@/utils/core/cn";
 import { abbreviatedNumber } from "@/utils/formatters/number";
 import { getPostLink } from "@/utils/navigation";
 import { extractPostResolution } from "@/utils/questions/resolution";
@@ -42,7 +43,12 @@ const SimilarQuestionCard: FC<Props> = ({ post, variant = "forecaster" }) => {
   const resolutionData = extractPostResolution(post);
 
   return (
-    <div className="flex flex-col gap-3 rounded border border-blue-400 bg-blue-100 px-3 py-4 dark:border-blue-400-dark dark:bg-blue-100-dark">
+    <div
+      className={cn(
+        "flex flex-col gap-3 rounded border border-blue-400 bg-blue-100 dark:border-blue-400-dark dark:bg-blue-100-dark",
+        isForecaster ? "px-5 py-4" : "px-6 pb-6 pt-5"
+      )}
+    >
       <Link
         href={getPostLink(post)}
         className="flex flex-col gap-3 no-underline"
@@ -88,7 +94,12 @@ const SimilarQuestionCard: FC<Props> = ({ post, variant = "forecaster" }) => {
           </div>
         )}
 
-        <h4 className="my-0 text-center text-base font-medium leading-6 text-gray-800 dark:text-gray-800-dark">
+        <h4
+          className={cn(
+            "my-0 text-base font-medium leading-6 text-gray-800 dark:text-gray-800-dark",
+            isForecaster ? "text-left" : "text-center"
+          )}
+        >
           {post.title}
         </h4>
 

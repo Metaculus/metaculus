@@ -4,6 +4,7 @@ import { FC } from "react";
 
 import ConsumerQuestionTile from "@/components/consumer_post_card/consumer_question_tile";
 import PercentageForecastCard from "@/components/consumer_post_card/group_forecast_card/percentage_forecast_card";
+import VerticalBarConsumerCard from "@/components/consumer_post_card/group_forecast_card/vertical_bar_consumer_card";
 import GroupOfQuestionsTile from "@/components/post_card/group_of_questions_tile";
 import QuestionTile from "@/components/post_card/question_tile";
 import { useHideCP } from "@/contexts/cp_context";
@@ -42,7 +43,7 @@ const SimilarPredictionChip: FC<Props> = ({ post, variant }) => {
     if (isGroupOfQuestionsPost(post)) {
       return (
         <div className="w-full">
-          <GroupOfQuestionsTile post={post} showChart={false} />
+          <VerticalBarConsumerCard post={post} />
         </div>
       );
     }
@@ -90,7 +91,11 @@ const SimilarPredictionChip: FC<Props> = ({ post, variant }) => {
   if (isGroupOfQuestionsPost(post)) {
     return (
       <div className="w-full">
-        <GroupOfQuestionsTile post={post} showChart={false} />
+        <GroupOfQuestionsTile
+          post={post}
+          showChart={false}
+          hideResolutionIcon={true}
+        />
       </div>
     );
   }
