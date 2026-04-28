@@ -44,33 +44,38 @@ const VerticalBarConsumerCard: FC<Props> = ({ post }) => {
     }
   );
 
-  const bars = choices.map(
-    ({
-      id,
-      choice,
-      aggregationValues,
-      scaling,
-      actual_resolve_time,
-      displayedResolution,
-    }) => {
-      const raw = aggregationValues[aggregationValues.length - 1] ?? null;
-      const s = {
-        range_min: scaling?.range_min ?? 0,
-        range_max: scaling?.range_max ?? 1,
-        zero_point: scaling?.zero_point ?? null,
-      };
-      const scaledV = isNil(raw) ? NaN : scaleInternalLocation(raw, s);
-      const label =
-        displayedResolution ??
-        getPredictionDisplayValue(raw, {
-          questionType: isDateGroup ? QuestionType.Date : QuestionType.Numeric,
-          scaling: s,
-          actual_resolve_time: actual_resolve_time ?? null,
-          emptyLabel: "–",
-        });
-      return { id, choice, scaledV, label };
-    }
-  );
+  // generateChoiceItemsFromGroupQuestions returns all questions; slice to avoid overlapping bars
+  const bars = choices
+    .slice(0, visibleChoicesCount)
+    .map(
+      ({
+        id,
+        choice,
+        aggregationValues,
+        scaling,
+        actual_resolve_time,
+        displayedResolution,
+      }) => {
+        const raw = aggregationValues[aggregationValues.length - 1] ?? null;
+        const s = {
+          range_min: scaling?.range_min ?? 0,
+          range_max: scaling?.range_max ?? 1,
+          zero_point: scaling?.zero_point ?? null,
+        };
+        const scaledV = isNil(raw) ? NaN : scaleInternalLocation(raw, s);
+        const label =
+          displayedResolution ??
+          getPredictionDisplayValue(raw, {
+            questionType: isDateGroup
+              ? QuestionType.Date
+              : QuestionType.Numeric,
+            scaling: s,
+            actual_resolve_time: actual_resolve_time ?? null,
+            emptyLabel: "–",
+          });
+        return { id, choice, scaledV, label };
+      }
+    );
 
   const validScaled = bars.map((b) => b.scaledV).filter((v) => !isNaN(v));
   const maxScaled = validScaled.length > 0 ? Math.max(...validScaled) : 1;
