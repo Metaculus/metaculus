@@ -30,7 +30,7 @@ const Sidebar: FC<Props> = ({
 
         {postData.curation_status === PostStatus.APPROVED && (
           <Suspense fallback={null}>
-            <SimilarQuestions post_id={postData.id} />
+            <SimilarQuestions post_id={postData.id} variant={variant} />
           </Suspense>
         )}
       </section>
@@ -49,7 +49,7 @@ const Sidebar: FC<Props> = ({
 
       {postData.curation_status === PostStatus.APPROVED && (
         <Suspense fallback={null}>
-          <SimilarQuestions post_id={postData.id} />
+          <SimilarQuestions post_id={postData.id} variant={variant} />
         </Suspense>
       )}
     </section>

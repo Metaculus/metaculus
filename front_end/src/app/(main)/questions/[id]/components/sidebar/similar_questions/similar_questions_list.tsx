@@ -6,16 +6,17 @@ import SimilarQuestion from "./similar_question_card";
 
 interface Props {
   questions: PostWithForecasts[];
+  variant?: "forecaster" | "consumer";
 }
 
-const SimilarQuestionsDrawer: FC<Props> = ({ questions }) => {
+const SimilarQuestionsList: FC<Props> = ({ questions, variant }) => {
   return (
     <div className="flex w-full flex-col gap-3">
       {questions.map((question: PostWithForecasts) => (
-        <SimilarQuestion key={question.id} post={question} />
+        <SimilarQuestion key={question.id} post={question} variant={variant} />
       ))}
     </div>
   );
 };
 
-export default SimilarQuestionsDrawer;
+export default SimilarQuestionsList;
