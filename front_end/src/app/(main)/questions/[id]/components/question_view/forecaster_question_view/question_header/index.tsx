@@ -11,6 +11,8 @@ import { PostWithForecasts } from "@/types/post";
 
 import ActionRow from "../../action_row";
 
+import ActionRow from "../../action_row";
+
 const QuestionHeader: FC<{ post: PostWithForecasts }> = ({ post }) => {
   const { setBannerIsVisible } = useContentTranslatedBannerContext();
   const locale = useLocale();
@@ -29,7 +31,11 @@ const QuestionHeader: FC<{ post: PostWithForecasts }> = ({ post }) => {
         <PostStatusBox post={post} className="mb-5 rounded lg:mb-6" />
       </div>
       <div className="flex flex-1 flex-col gap-4">
-        <MetaRow post={post} className="-mx-4 mb-2 hidden md:flex lg:-mx-8" />
+        <MetaRow
+          post={post}
+          variant="forecaster"
+          className="-mx-4 mb-2 lg:-mx-8"
+        />
         <TitleRow
           post={post}
           variant="forecaster"

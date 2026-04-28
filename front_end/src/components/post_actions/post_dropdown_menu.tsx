@@ -29,9 +29,10 @@ import { canChangeQuestionResolution } from "@/utils/questions/resolution";
 type Props = {
   post: Post;
   button?: React.ReactNode;
+  hideShare?: boolean;
 };
 
-export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
+export const PostDropdownMenu: FC<Props> = ({ post, button, hideShare }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const router = useRouter();
@@ -52,7 +53,7 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
     // Curators can edit approved posts that are not yet open
     (isCurator && isApproved && isUpcoming);
 
-  const isLargeScreen = useBreakpoint("lg");
+  const isMediumScreen = useBreakpoint("md");
 
   const canResolve =
     isQuestionPost(post) &&
@@ -126,14 +127,18 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
 
   const menuItems: MenuItemProps[] = [
     // Mobile menu items
-    ...(!isLargeScreen
+    ...(!isMediumScreen
       ? [
-          {
-            id: "share",
-            name: t("share"),
-            className: "capitalize",
-            items: shareMenuItems,
-          },
+          ...(!hideShare
+            ? [
+                {
+                  id: "share",
+                  name: t("share"),
+                  className: "capitalize",
+                  items: shareMenuItems,
+                },
+              ]
+            : []),
           {
             id: "subscription",
             name: isSubscribed ? t("followingButton") : t("followButton"),

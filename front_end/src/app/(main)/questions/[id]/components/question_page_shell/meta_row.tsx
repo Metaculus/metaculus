@@ -1,14 +1,18 @@
 "use client";
 
+import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import TrophyIcon from "@/components/icons/trophy";
+import { PostDropdownMenu } from "@/components/post_actions";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import PostVoter from "@/components/post_card/basic_post_card/post_voter";
 import PostStatus from "@/components/post_status";
+import Button from "@/components/ui/button";
 import Chip from "@/components/ui/chip";
 import useContainerSize from "@/hooks/use_container_size";
 import { PostWithForecasts } from "@/types/post";
@@ -20,10 +24,11 @@ import { extractPostResolution } from "@/utils/questions/resolution";
 
 type Props = {
   post: PostWithForecasts;
+  variant: "forecaster" | "consumer";
   className?: string;
 };
 
-const MetaRow: FC<Props> = ({ post, className }) => {
+const MetaRow: FC<Props> = ({ post, className, variant }) => {
   const t = useTranslations();
   const resolutionData = extractPostResolution(post);
   const { ref, width } = useContainerSize<HTMLDivElement>();
@@ -70,70 +75,113 @@ const MetaRow: FC<Props> = ({ post, className }) => {
       : "orange";
 
   return (
-    <div
-      ref={ref}
-      className={cn(
-        "flex items-center justify-between gap-6 px-4 lg:px-8",
-        className
-      )}
-    >
-      <div className="flex shrink-0 items-center gap-1.5">
-        <PostVoter post={post} />
-        <CommentStatus
-          totalCount={post.comment_count ?? 0}
-          unreadCount={post.unread_comment_count ?? 0}
-          url={getPostLink(post)}
-          className="bg-gray-200 dark:bg-gray-200-dark"
-          compact={false}
-        />
-        <PostStatus post={post} resolution={resolutionData} compact={false} />
-        <ForecastersCounter
-          forecasters={post.nr_forecasters}
-          compact={compactCounters}
-        />
+    <div className={cn("px-4 lg:px-8", className)}>
+      {/* Mobile row */}
+      <div
+        className={cn(
+          "relative flex items-center gap-1.5 md:hidden",
+          variant === "consumer" ? "justify-center" : "justify-start"
+        )}
+      >
+        <div className="flex items-center gap-1.5">
+          {variant === "forecaster" && <PostVoter post={post} />}
+          <CommentStatus
+            totalCount={post.comment_count ?? 0}
+            unreadCount={post.unread_comment_count ?? 0}
+            url={getPostLink(post)}
+            className="bg-gray-200 text-xs leading-4 dark:bg-gray-200-dark"
+            compact={true}
+          />
+          {variant === "forecaster" && (
+            <PostStatus
+              post={post}
+              resolution={resolutionData}
+              compact={true}
+            />
+          )}
+          <ForecastersCounter
+            forecasters={post.nr_forecasters}
+            compact={variant === "forecaster"}
+            boldCount
+            className="text-xs leading-4"
+          />
+        </div>
+        <div className="absolute right-0">
+          <PostDropdownMenu
+            post={post}
+            hideShare={variant === "consumer"}
+            button={
+              <Button className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-blue-400 bg-white p-0 text-blue-700 transition-colors hover:bg-gray-100 active:bg-gray-200 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-blue-700-dark dark:hover:bg-gray-100-dark dark:active:bg-gray-200-dark">
+                <FontAwesomeIcon icon={faEllipsis} className="text-base" />
+              </Button>
+            }
+          />
+        </div>
       </div>
 
-      <div className="flex min-w-0 items-center gap-2">
-        {visibleChips.map((element) => (
-          <Chip
-            color={chipColor(element)}
-            key={element.id}
-            href={getProjectLink(element)}
-            className="min-w-0 overflow-hidden text-sm font-medium leading-4 [&>*]:min-w-0"
-            onClick={() =>
-              sendAnalyticsEvent("questionTagClicked", {
-                event_category: element.name,
-              })
-            }
-          >
-            {getChipContent(element)}
-          </Chip>
-        ))}
+      {/* Desktop row */}
+      <div
+        ref={ref}
+        className="hidden items-center justify-between gap-6 md:flex"
+      >
+        <div className="flex shrink-0 items-center gap-1.5">
+          <PostVoter post={post} />
+          <CommentStatus
+            totalCount={post.comment_count ?? 0}
+            unreadCount={post.unread_comment_count ?? 0}
+            url={getPostLink(post)}
+            className="bg-gray-200 dark:bg-gray-200-dark"
+            compact={false}
+          />
+          <PostStatus post={post} resolution={resolutionData} compact={false} />
+          <ForecastersCounter
+            forecasters={post.nr_forecasters}
+            compact={compactCounters}
+          />
+        </div>
 
-        {hiddenChips.length > 0 && (
-          <Popover className="relative shrink-0">
-            <PopoverButton className="inline-flex cursor-pointer select-none items-center justify-center gap-1 rounded bg-gray-300 p-1.5 text-sm font-medium leading-4 text-gray-900 hover:bg-gray-400 dark:bg-gray-300-dark dark:text-gray-900-dark dark:hover:bg-gray-400-dark">
-              {t("nMore", { count: hiddenChips.length })}
-            </PopoverButton>
-            <PopoverPanel className="absolute right-0 top-full z-10 mt-1 flex max-w-[250px] flex-wrap gap-2 rounded border border-gray-300 bg-gray-0 p-3 shadow-lg dark:border-gray-300-dark dark:bg-gray-0-dark">
-              {hiddenChips.map((element) => (
-                <Chip
-                  color={chipColor(element)}
-                  key={element.id}
-                  href={getProjectLink(element)}
-                  className="overflow-hidden text-sm font-medium leading-4"
-                  onClick={() => {
-                    sendAnalyticsEvent("questionTagClicked", {
-                      event_category: element.name,
-                    });
-                  }}
-                >
-                  {getChipContent(element)}
-                </Chip>
-              ))}
-            </PopoverPanel>
-          </Popover>
-        )}
+        <div className="flex min-w-0 items-center gap-2">
+          {visibleChips.map((element) => (
+            <Chip
+              color={chipColor(element)}
+              key={element.id}
+              href={getProjectLink(element)}
+              className="min-w-0 overflow-hidden text-sm font-medium leading-4 [&>*]:min-w-0"
+              onClick={() =>
+                sendAnalyticsEvent("questionTagClicked", {
+                  event_category: element.name,
+                })
+              }
+            >
+              {getChipContent(element)}
+            </Chip>
+          ))}
+
+          {hiddenChips.length > 0 && (
+            <Popover className="relative shrink-0">
+              <PopoverButton className="inline-flex cursor-pointer select-none items-center justify-center gap-1 rounded bg-gray-300 p-1.5 text-sm font-medium leading-4 text-gray-900 hover:bg-gray-400 dark:bg-gray-300-dark dark:text-gray-900-dark dark:hover:bg-gray-400-dark">
+                {t("nMore", { count: hiddenChips.length })}
+              </PopoverButton>
+              <PopoverPanel className="absolute right-0 top-full z-10 mt-1 flex max-w-[250px] flex-wrap gap-2 rounded border border-gray-300 bg-gray-0 p-3 shadow-lg dark:border-gray-300-dark dark:bg-gray-0-dark">
+                {hiddenChips.map((element) => (
+                  <Chip
+                    color={chipColor(element)}
+                    key={element.id}
+                    href={getProjectLink(element)}
+                    className="overflow-hidden text-sm font-medium leading-4"
+                    onClick={() => {
+                      sendAnalyticsEvent("questionTagClicked", {
+                        event_category: element.name,
+                      });
+                    }}
+                  >
+                    {getChipContent(element)}
+                  </Chip>
+                ))}
+              </PopoverPanel>
+            </Popover>
+          )}
+        </div>
       </div>
     </div>
   );
