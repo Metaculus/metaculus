@@ -3,6 +3,8 @@
 This is the codebase for the open source [Metaculus website](https://metaculus.com).
 This readme is a work in progress. Feel free to suggest edits or [open an issue](https://github.com/Metaculus/metaculus/issues) if you have any questions.
 
+Metaculus is a forecasting platform and aggregation engine that brings together a global community of forecasters to make predictions on questions about science, technology, geopolitics, and more. The goal is to generate accurate, calibrated probabilistic forecasts that help researchers, policymakers, and the public navigate uncertainty about the future.
+
 
 # Contributing
 
