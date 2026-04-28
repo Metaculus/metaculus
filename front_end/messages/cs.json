@@ -700,6 +700,7 @@
   "resolutionCriteriaExplanation": "Dobrá otázka se téměř vždy vyřeší jednoznačně. Jaká je konkrétní událost, která by mohla nastat? Do jakého data by musela nastat, aby se otázka vyřešila jako Ano? Pokud máte zdroj dat, podle kterého se otázka vyřeší, přidejte jej sem.",
   "choicesSeparatedBy": "Možnosti (oddělené čárkou)",
   "projects": "projekty",
+  "projectsTags": "Projekty / Štítky",
   "FABPrizePool": "CENOVÝ FOND",
   "FABPrizeValue": "$30,000",
   "FABStartDate": "STARTOVACÍ DATUM",

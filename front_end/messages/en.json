@@ -1067,6 +1067,7 @@
   "choicesSeparatedBy": "Choices (separated by ,)",
   "choicesLockedHelp": "Options can only be changed through the admin panel once forecasting has started.",
   "projects": "projects",
+  "projectsTags": "Projects / Tags",
   "FABPrizePool": "PRIZE POOL",
   "FABPrizeValue": "$30,000",
   "FABStartDate": "START DATE",
