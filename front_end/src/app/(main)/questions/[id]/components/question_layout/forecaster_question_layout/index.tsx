@@ -2,7 +2,6 @@ import { PropsWithChildren } from "react";
 
 import CommentFeed from "@/components/comment_feed";
 import { PostWithForecasts } from "@/types/post";
-import { getPostTitle } from "@/utils/questions/helpers";
 
 import Sidebar from "../../sidebar";
 import QuestionInfo from "../question_info";
@@ -29,11 +28,7 @@ const ForecasterQuestionLayout: React.FC<PropsWithChildren<Props>> = ({
           showKeyFactors={true}
         />
       </QuestionSection>
-      <Sidebar
-        postData={postData}
-        layout="mobile"
-        questionTitle={getPostTitle(postData)}
-      />
+      <Sidebar postData={postData} layout="mobile" />
       <CommentFeed postData={postData} />
     </div>
   );
