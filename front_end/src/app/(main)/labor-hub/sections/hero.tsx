@@ -35,7 +35,7 @@ export function HeroSection({
               </span>
             </div>
             <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-500-dark">
-              Commentary last updated: <time dateTime="2026-04-20">Apr 20</time>
+              Commentary last updated: <time dateTime="2026-04-28">Apr 28</time>
             </div>
           </div>
         </div>
