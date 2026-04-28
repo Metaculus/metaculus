@@ -41,9 +41,9 @@ from posts.services.common import (
     vote_post,
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
-from posts.services.onboarding import get_onboarding_feed
 from posts.services.hotness import handle_post_boost, compute_hotness_total_boosts
 from posts.services.notes import update_private_note, get_private_notes_feed
+from posts.services.onboarding import get_onboarding_feed
 from posts.services.spam_detection import check_and_handle_post_spam
 from posts.services.subscriptions import create_subscription
 from posts.utils import check_can_edit_post, get_post_slug
@@ -112,6 +112,7 @@ def posts_list_api_view(request):
         include_movements=include_movements,
         include_conditional_cps=include_conditional_cps,
         include_average_scores=True,
+        include_user_forecasts=True,
     )
 
     return paginator.get_paginated_response(data)
@@ -189,6 +190,7 @@ def posts_list_oldapi_view(request):
         with_cp=True,
         current_user=request.user,
         include_descriptions=True,
+        include_user_forecasts=True,
     )
 
     # Given we limit the feed to binary questions, we expect each post to have a question with a description
@@ -206,6 +208,7 @@ def post_detail_oldapi_view(request: Request, pk):
         current_user=request.user,
         with_cp=True,
         with_subscriptions=True,
+        include_user_forecasts=True,
     )
 
     if not posts:
@@ -239,6 +242,7 @@ def post_detail(request: Request, pk):
         include_cp_history=True,
         include_movements=True,
         include_average_scores=True,
+        include_user_forecasts=True
     )
 
     if not posts:
@@ -570,7 +574,12 @@ def post_similar_posts_api_view(request: Request, pk):
 
     # Not to overload the redis
     posts = get_similar_posts(post)
-    posts = serialize_post_many(posts, with_cp=True, group_cutoff=1)
+    posts = serialize_post_many(
+        posts,
+        with_cp=True,
+        group_cutoff=1,
+        current_user=request.user if request.user.is_authenticated else None,
+    )
 
     return Response(posts)
 
