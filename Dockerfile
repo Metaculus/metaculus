@@ -39,7 +39,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=ghcr.io/astral-sh/uv:0.10 /uv /uvx /usr/local/bin/
+COPY --from=ghcr.io/astral-sh/uv:0.11 /uv /uvx /usr/local/bin/
 COPY pyproject.toml uv.lock .python-version ./
 ENV UV_PROJECT_ENVIRONMENT=/app/venv
 RUN uv sync --frozen --no-dev
