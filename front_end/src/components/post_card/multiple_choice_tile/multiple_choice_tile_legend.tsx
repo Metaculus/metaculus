@@ -21,7 +21,6 @@ type Props = {
   canPredict?: boolean;
   ref?: RefObject<HTMLDivElement | null>;
   withChoiceIcon?: boolean;
-  hideResolutionIcon?: boolean;
   layout?: "column" | "wrap";
   cursorTimestamp?: number | null;
 };
@@ -38,7 +37,6 @@ const MultipleChoiceTileLegend: FC<Props> = ({
   ref,
   cursorTimestamp = null,
   withChoiceIcon = true,
-  hideResolutionIcon = false,
   layout = "column",
 }) => {
   const t = useTranslations();
@@ -84,7 +82,6 @@ const MultipleChoiceTileLegend: FC<Props> = ({
               valueClassName={optionValueClassName}
               actual_resolve_time={actual_resolve_time}
               withIcon={withChoiceIcon}
-              hideResolutionIcon={hideResolutionIcon}
               cursorTimestamp={cursorTimestamp}
             />
           </div>

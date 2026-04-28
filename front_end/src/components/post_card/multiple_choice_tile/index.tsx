@@ -51,7 +51,6 @@ type BaseProps = {
   onCursorChange?: (value: number, format: TickFormat) => void;
   withHoverTooltip?: boolean;
   showCursorLabel?: boolean;
-  hideResolutionIcon?: boolean;
 };
 
 type QuestionProps = {
@@ -112,7 +111,6 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   onCursorActiveChange,
   withHoverTooltip = true,
   showCursorLabel = true,
-  hideResolutionIcon = false,
 }) => {
   const enableTooltip = withHoverTooltip;
   const { getReferenceProps, refs } = useChartTooltip();
@@ -204,7 +202,6 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
               onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
               layout={isEmbed && isCompactEmbed ? "wrap" : "column"}
               cursorTimestamp={legendCursorTimestamp}
-              hideResolutionIcon={hideResolutionIcon}
             />
           )
         )}
@@ -286,7 +283,6 @@ export const FanGraphTile: FC<FanGraphTileProps> = ({
   showChart = true,
   minimalistic = false,
   optionsLimit,
-  hideResolutionIcon = false,
 }) => {
   const { onReaffirm } = useCardReaffirmContext();
   const { ref, height } = useContainerSize<HTMLDivElement>();
@@ -332,7 +328,6 @@ export const FanGraphTile: FC<FanGraphTileProps> = ({
             canPredict={canPredict && canReaffirm}
             onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
             withChoiceIcon={false}
-            hideResolutionIcon={hideResolutionIcon}
           />
         )}
       </div>

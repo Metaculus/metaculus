@@ -23,7 +23,6 @@ type Props = {
   valueClassName?: string;
   actual_resolve_time?: string | null;
   withIcon?: boolean;
-  hideResolutionIcon?: boolean;
   cursorTimestamp?: number | null;
   timestamps?: number[];
 };
@@ -42,7 +41,6 @@ const ChoiceOption: FC<Props> = ({
   cursorTimestamp = null,
   timestamps = [],
   withIcon = true,
-  hideResolutionIcon = false,
 }) => {
   const idx =
     cursorTimestamp == null || !timestamps?.length
@@ -134,17 +132,10 @@ const ChoiceOption: FC<Props> = ({
           })}
         </div>
       ) : (
-        <div
-          className={cn(
-            "resize-label leading-0 flex flex-shrink-0 items-center gap-0.5 whitespace-nowrap text-right text-sm tabular-nums",
-            hideResolutionIcon ? "font-normal" : "px-1.5 font-medium"
-          )}
-        >
-          {!hideResolutionIcon && (
-            <ChoiceResolutionIcon
-              color={questionType === QuestionType.Date ? color : undefined}
-            />
-          )}
+        <div className="resize-label leading-0 flex flex-shrink-0 items-center gap-0.5 whitespace-nowrap px-1.5 text-right text-sm font-medium tabular-nums">
+          <ChoiceResolutionIcon
+            color={questionType === QuestionType.Date ? color : undefined}
+          />
           <div className="whitespace-pre text-right">{adjustedResolution}</div>
         </div>
       )}

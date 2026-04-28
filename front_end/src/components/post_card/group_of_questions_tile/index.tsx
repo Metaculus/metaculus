@@ -25,14 +25,12 @@ type Props = {
   post: GroupOfQuestionsPost<QuestionWithNumericForecasts>;
   showChart?: boolean;
   minimalistic?: boolean;
-  hideResolutionIcon?: boolean;
 };
 
 const GroupOfQuestionsTile: FC<Props> = ({
   post,
   showChart,
   minimalistic = false,
-  hideResolutionIcon = false,
 }) => {
   const t = useTranslations();
 
@@ -81,7 +79,6 @@ const GroupOfQuestionsTile: FC<Props> = ({
           showChart={showChart}
           minimalistic={minimalistic}
           optionsLimit={10}
-          hideResolutionIcon={hideResolutionIcon}
         />
       );
     }
@@ -113,7 +110,6 @@ const GroupOfQuestionsTile: FC<Props> = ({
           hideCP={hideCP}
           showChart={showChart}
           minimalistic={minimalistic}
-          hideResolutionIcon={hideResolutionIcon}
         />
       );
     }
