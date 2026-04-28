@@ -23,7 +23,7 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
     <div className="flex flex-col items-start gap-4 self-stretch @container">
       <div className="flex flex-col justify-between gap-3 self-stretch @lg:grid @lg:grid-cols-4 @lg:gap-1 @lg:gap-y-5">
         <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
-          <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
+          <span className="text-xs font-normal uppercase leading-4 text-blue-900 opacity-50 dark:text-blue-900-dark">
             {t("authorWithCount", {
               count: postData.coauthors.length + 1,
             })}
@@ -31,7 +31,7 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
           </span>
           <div className="text-metac-blue-700 dark:text-metac-blue-700-dark flex min-w-0 shrink flex-col items-end gap-1 font-medium @lg:items-start">
             <Link
-              className="flex min-w-0 shrink flex-col items-end gap-1 text-sm font-medium leading-4 text-blue-700 @lg:items-start dark:text-blue-700-dark"
+              className="flex min-w-0 shrink flex-col items-end gap-1 text-sm font-medium leading-5 text-blue-700 underline @lg:items-start dark:text-blue-700-dark"
               href={`/accounts/profile/${postData.author_id}`}
             >
               {postData.author_username}
@@ -39,7 +39,7 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
 
             {postData.coauthors.map((coauthor) => (
               <Link
-                className="flex min-w-0 shrink flex-col items-end gap-1 text-sm font-medium leading-4 text-blue-700 @lg:items-start dark:text-blue-700-dark"
+                className="flex min-w-0 shrink flex-col items-end gap-1 text-sm font-medium leading-5 text-blue-700 underline @lg:items-start dark:text-blue-700-dark"
                 href={`/accounts/profile/${coauthor.id}`}
                 key={`coauthor-${coauthor.id}`}
               >
@@ -51,10 +51,10 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
 
         {postData.status === PostStatus.PENDING && (
           <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
-            <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
+            <span className="text-xs font-normal uppercase leading-4 text-blue-900 opacity-50 dark:text-blue-900-dark">
               {t("inReview")}:
             </span>
-            <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
+            <span className="text-sm font-medium leading-5 text-blue-900 dark:text-blue-900-dark">
               {postData.curation_status_updated_at ? (
                 <LocalDaytime date={postData.curation_status_updated_at} />
               ) : (
@@ -66,20 +66,20 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
 
         {(postData.open_time || postData.published_at) && (
           <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
-            <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
+            <span className="text-xs font-normal uppercase leading-4 text-blue-900 opacity-50 dark:text-blue-900-dark">
               {t(isUpcoming ? "opens" : "opened")}:
             </span>
-            <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
+            <span className="text-sm font-medium leading-5 text-blue-900 dark:text-blue-900-dark">
               <LocalDaytime date={postData.open_time} />
             </span>
           </div>
         )}
 
         <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
-          <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
+          <span className="text-xs font-normal uppercase leading-4 text-blue-900 opacity-50 dark:text-blue-900-dark">
             {postData.status === PostStatus.CLOSED ? t("closed") : t("closes")}:
           </span>
-          <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
+          <span className="text-sm font-medium leading-5 text-blue-900 dark:text-blue-900-dark">
             {postData.scheduled_close_time && (
               <LocalDaytime date={postData.scheduled_close_time} />
             )}
@@ -87,13 +87,13 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
         </div>
 
         <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
-          <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
+          <span className="text-xs font-normal uppercase leading-4 text-blue-900 opacity-50 dark:text-blue-900-dark">
             {postData.status === PostStatus.RESOLVED
               ? t("resolved")
               : t("scheduledResolution")}
             :
           </span>
-          <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
+          <span className="text-sm font-medium leading-5 text-blue-900 dark:text-blue-900-dark">
             <LocalDaytime
               date={
                 (postData.status === PostStatus.RESOLVED &&
@@ -106,10 +106,10 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
 
         {!!postData.question?.spot_scoring_time && (
           <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
-            <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
+            <span className="text-xs font-normal uppercase leading-4 text-blue-900 opacity-50 dark:text-blue-900-dark">
               {t("spotScoingTime")}:
             </span>
-            <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
+            <span className="text-sm font-medium leading-5 text-blue-900 dark:text-blue-900-dark">
               {<LocalDaytime date={postData.question?.spot_scoring_time} />}
             </span>
           </div>
@@ -119,10 +119,10 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
           postData.question?.default_aggregation_method !==
             AggregationMethod.recency_weighted && (
             <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
-              <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
+              <span className="text-xs font-normal uppercase leading-4 text-blue-900 opacity-50 dark:text-blue-900-dark">
                 {t("cpAggregationMethod")}:
               </span>
-              <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
+              <span className="text-sm font-medium leading-5 text-blue-900 dark:text-blue-900-dark">
                 {t(postData.question.default_aggregation_method)}
               </span>
             </div>
