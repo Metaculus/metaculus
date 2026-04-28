@@ -6,7 +6,7 @@
   "devEngines": {
     "packageManager": {
       "name": "bun",
-      "onFail": "error"
+      "onFail": "warn"
     }
   },
   "scripts": {
