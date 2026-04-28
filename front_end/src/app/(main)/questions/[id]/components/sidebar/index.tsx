@@ -1,5 +1,5 @@
 import dynamic from "next/dynamic";
-import React, { FC, Suspense } from "react";
+import { FC, Suspense } from "react";
 
 import { PostStatus, PostWithForecasts } from "@/types/post";
 

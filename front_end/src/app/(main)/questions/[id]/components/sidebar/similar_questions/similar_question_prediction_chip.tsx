@@ -1,3 +1,5 @@
+"use client";
+
 import { FC } from "react";
 
 import GroupOfQuestionsTile from "@/components/post_card/group_of_questions_tile";
@@ -5,7 +7,6 @@ import QuestionTile from "@/components/post_card/question_tile";
 import { useHideCP } from "@/contexts/cp_context";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
-import cn from "@/utils/core/cn";
 import {
   isGroupOfQuestionsPost,
   isQuestionPost,
@@ -22,17 +23,17 @@ const SimilarPredictionChip: FC<Props> = ({ post }) => {
     return;
   }
 
-  const isMCQuestion = post?.question?.type === QuestionType.MultipleChoice;
   if (isQuestionPost(post)) {
+    const isBinary = post.question?.type === QuestionType.Binary;
     return (
-      <div className={cn(isMCQuestion ? "w-full" : "max-w-[100px]")}>
+      <div className="w-full">
         <QuestionTile
           question={post.question}
           curationStatus={post.curation_status}
           authorUsername={post.author_username}
           hideCP={hideCP}
           canPredict={false}
-          showChart={false}
+          showChart={!isBinary}
         />
       </div>
     );
@@ -41,7 +42,7 @@ const SimilarPredictionChip: FC<Props> = ({ post }) => {
   if (isGroupOfQuestionsPost(post)) {
     return (
       <div className="w-full">
-        <GroupOfQuestionsTile post={post} showChart={false} />
+        <GroupOfQuestionsTile post={post} />
       </div>
     );
   }
