@@ -106,11 +106,12 @@ export default function LaborAutomationHubPage() {
                 In the longer run (5-10 years), I am extremely uncertain. I
                 expect the technology will be much more advanced and integrated
                 into peoples&apos; lives. My primary uncertainty is the policy
-                response if AI leads to rapid change. I don&apos;t know how this
-                will resolve itself. There may be scenarios where AI does less
-                than it is capable of because of new regulation. The BLS may
-                also measure activities as work that look more like leisure than
-                what many people do today.
+                response and rate of worker adjustment if AI leads to rapid
+                change. I don&apos;t know how this will resolve itself. There
+                may be scenarios where AI does less than it is capable of
+                because of new regulation. The BLS may also measure activities
+                as work that look more like leisure than what many people do
+                today.
               </p>
             </ActivityCard>
             <ActivityCard
@@ -726,12 +727,10 @@ export default function LaborAutomationHubPage() {
             <ContentParagraph>
               The healthcare sector (employing 13% of Washington residents) is
               forecasted to grow through 2027, largely unaffected by AI in this
-              timeframe. Technology (employing 10%) is expected to see minor
-              growth in the short-term, largely consistent with historical
-              trends. The aerospace sector (employing 2%) is likely to face a
-              slight decline, though the changes are not anticipated to be
-              directly AI-related. These forecasts are short-term, leading to
-              minimal predicted change.
+              timeframe. Technology and aerospace (employing 10% and 2%
+              respectively) are expected to see minor growth in the short-term,
+              largely consistent with historical trends. These forecasts are
+              short-term, leading to minimal predicted change.
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight className="lg:mt-16 print:mt-12">
