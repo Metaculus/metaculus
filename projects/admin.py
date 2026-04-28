@@ -1,4 +1,5 @@
 import random
+from urllib.parse import urlencode
 
 from admin_auto_filters.filters import AutocompleteFilterFactory
 from django import forms
@@ -790,42 +791,34 @@ class ProjectAdmin(CustomTranslationAdmin):
     def posts_summary(self, obj):
         if obj.type == Project.ProjectTypes.SITE_MAIN:
             return None
-        all_posts = Post.objects.filter(
-            Q(default_project=obj) | Q(projects=obj)
-        ).distinct("id")
-        all_ids = list(all_posts.values_list("id", flat=True))
-        all_count = len(all_ids)
-
-        default_posts = Post.objects.filter(default_project=obj)
-        default_posts_ids = list(default_posts.values_list("id", flat=True))
-        default_posts_count = len(default_posts_ids)
-
-        posts = Post.objects.filter(projects=obj).distinct("id")
-        posts_ids = list(posts.values_list("id", flat=True))
-        posts_count = len(posts_ids)
-
-        def make_link(ids, label):
-            query_string = f"id__in={','.join(map(str, ids)) or '0'}"
-            url = reverse("admin:posts_post_changelist") + "?" + query_string
-            return format_html('<a href="{}">{}</a>', url, label)
-
+        all_count = Post.objects.filter_projects(obj).count()
         default_posts_count = Post.objects.filter(default_project=obj).count()
         posts_count = Post.objects.filter(projects=obj).count()
+
+        def make_link(label, **query_params):
+            url = reverse("admin:posts_post_changelist") + "?" + urlencode(query_params)
+            return format_html('<a href="{}">{}</a>', url, label)
+
         return format_html_join(
             format_html("<br>"),
             "{}",
             [
-                (make_link(all_ids, f"{all_count} Posts in Project"),),
                 (
                     make_link(
-                        default_posts_ids,
-                        f"{default_posts_count} Default Posts (Determines Permissions)",
+                        f"{all_count} Posts in Project",
+                        default_or_secondary_project=obj.id,
                     ),
                 ),
                 (
                     make_link(
-                        posts_ids,
+                        f"{default_posts_count} Default Posts (Determines Permissions)",
+                        default_project=obj.id,
+                    ),
+                ),
+                (
+                    make_link(
                         f"{posts_count} Secondary Posts",
+                        projects=obj.id,
                     ),
                 ),
             ],
@@ -840,46 +833,57 @@ class ProjectAdmin(CustomTranslationAdmin):
         if not leaderboard:
             return None
 
-        all_questions = leaderboard.get_questions().filter(question_weight__gt=0)
-        all_ids = list(all_questions.values_list("id", flat=True))
-        all_count = len(all_ids)
+        all_count = Question.objects.filter(
+            post__in=Post.objects.filter_projects(obj)
+        ).count()
+
+        weighted_questions = leaderboard.get_questions().filter(question_weight__gt=0)
+        weighted_ids = list(weighted_questions.values_list("id", flat=True))
 
         finalize_time = leaderboard.finalize_time or obj.close_date
         if finalize_time:
-            in_leaderboard_qs = all_questions.filter(
+            in_leaderboard_qs = weighted_questions.filter(
                 Q(resolution_set_time__isnull=True)
                 | Q(resolution_set_time__lte=finalize_time),
                 scheduled_close_time__lte=finalize_time,
             )
         else:
-            in_leaderboard_qs = all_questions
+            in_leaderboard_qs = weighted_questions
 
         in_leaderboard_ids = list(in_leaderboard_qs.values_list("id", flat=True))
         in_leaderboard_count = len(in_leaderboard_ids)
 
-        not_in_leaderboard_ids = list(set(all_ids) - set(in_leaderboard_ids))
+        not_in_leaderboard_ids = list(set(weighted_ids) - set(in_leaderboard_ids))
         not_in_leaderboard_count = len(not_in_leaderboard_ids)
 
-        def make_link(ids, label):
-            query_string = f"id__in={','.join(map(str, ids)) or '0'}"
-            url = reverse("admin:questions_question_changelist") + "?" + query_string
+        def make_link(label, **query_params):
+            url = (
+                reverse("admin:questions_question_changelist")
+                + "?"
+                + urlencode(query_params)
+            )
             return format_html('<a href="{}">{}</a>', url, label)
 
         return format_html_join(
             format_html("<br>"),
             "{}",
             [
-                (make_link(all_ids, f"{all_count} Questions in Project"),),
                 (
                     make_link(
-                        in_leaderboard_ids,
-                        f"{in_leaderboard_count} Questions in Primary Leaderboard",
+                        f"{all_count} Questions in Project",
+                        default_or_secondary_project=obj.id,
                     ),
                 ),
                 (
                     make_link(
-                        not_in_leaderboard_ids,
+                        f"{in_leaderboard_count} Questions in Primary Leaderboard",
+                        id__in=",".join(map(str, in_leaderboard_ids)) or "0",
+                    ),
+                ),
+                (
+                    make_link(
                         f"{not_in_leaderboard_count} Questions NOT in Primary Leaderboard",
+                        id__in=",".join(map(str, not_in_leaderboard_ids)) or "0",
                     ),
                 ),
             ],
