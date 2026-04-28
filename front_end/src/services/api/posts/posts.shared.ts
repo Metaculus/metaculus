@@ -196,10 +196,7 @@ class PostsApi extends ApiService {
 
   async getSimilarPosts(postId: number): Promise<PostWithForecasts[]> {
     return await this.get<PostWithForecasts[]>(
-      `/posts/${postId}/similar-posts/`,
-      {
-        next: { revalidate: 3600 },
-      }
+      `/posts/${postId}/similar-posts/`
     );
   }
 
