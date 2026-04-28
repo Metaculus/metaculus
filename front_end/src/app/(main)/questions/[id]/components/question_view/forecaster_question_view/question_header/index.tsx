@@ -11,8 +11,6 @@ import { PostWithForecasts } from "@/types/post";
 
 import ActionRow from "../../action_row";
 
-import ActionRow from "../../action_row";
-
 const QuestionHeader: FC<{ post: PostWithForecasts }> = ({ post }) => {
   const { setBannerIsVisible } = useContentTranslatedBannerContext();
   const locale = useLocale();
