@@ -18,7 +18,7 @@ const KeyFactorHeader: FC<Props> = ({ label, username, linkAnchor }) => {
   const questionLayout = useQuestionLayoutSafe();
 
   const handleActivate = () => {
-    questionLayout?.setMobileActiveTab("comments");
+    questionLayout?.setActiveTab("comments");
 
     const target = document.getElementById(linkAnchor.replace("#", ""));
     if (target) {
