@@ -38,6 +38,7 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [isExpandable, setIsExpandable] = useState(false);
   const userInteractedRef = useRef(false);
+  const hasSetInitialStateRef = useRef(false);
 
   useEffect(() => {
     const element = ref.current;
@@ -46,12 +47,17 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
     const contentHeight = element.scrollHeight;
     if (contentHeight <= maxCollapsedHeight) {
       setIsExpandable(false);
-      setIsExpanded(true);
+      if (!userInteractedRef.current) {
+        setIsExpanded(true);
+      }
     } else {
       setIsExpandable(true);
-      if (!userInteractedRef.current) {
+      if (!hasSetInitialStateRef.current && !userInteractedRef.current) {
         setIsExpanded(false);
       }
+    }
+    if (contentHeight > 0) {
+      hasSetInitialStateRef.current = true;
     }
   }, [maxCollapsedHeight, height, width, ref]);
 
