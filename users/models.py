@@ -124,7 +124,7 @@ class User(TimeStampedModel, AbstractUser):
         default=False,
         db_index=True,
         help_text=(
-            "Marks the user’s primary bot. The primary bot is "
+            "Marks the user's primary bot. The primary bot is "
             "eligible for prizes, counts toward peer scores, "
             "and appears on leaderboards."
         ),
