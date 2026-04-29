@@ -124,9 +124,17 @@ class User(TimeStampedModel, AbstractUser):
         default=False,
         db_index=True,
         help_text=(
-            "Marks the user’s primary bot. Only the primary bot can post public comments, "
-            "be eligible for prizes, count toward peer scores, "
-            "and appear on leaderboards."
+            "Marks the user's primary bot. The primary bot is "
+            "eligible for prizes, counts toward peer scores, "
+            "and appears on leaderboards."
+        ),
+    )
+    allow_public_comments_if_bot = models.BooleanField(
+        default=False,
+        help_text=(
+            "Allow this bot to post public comments. "
+            "By default, bots can only post private comments. "
+            "An admin can enable this for select bots."
         ),
     )
     bot_owner = models.ForeignKey(
@@ -172,6 +180,12 @@ class User(TimeStampedModel, AbstractUser):
                 condition=models.Q(is_primary_bot=True),
                 name="unique_primary_bot_per_bot_owner",
                 violation_error_message="Bot owner could have only one primary bot",
+            ),
+            models.CheckConstraint(
+                check=models.Q(is_bot=True)
+                | models.Q(allow_public_comments_if_bot=False),
+                name="user_allow_public_comments_if_bot_only_for_bots",
+                violation_error_message="allow_public_comments_if_bot can only be set for bot accounts",
             ),
         ]
 
