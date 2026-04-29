@@ -54,7 +54,7 @@ const QuestionPageShellTabs: FC<Props> = ({ post, variant, className }) => {
           <KeyFactorsFeed post={post} />
         </div>
       )}
-      <div className="mt-8">{renderActivePanel(activeTab, post, variant)}</div>
+      <div className="mt-5">{renderActivePanel(activeTab, post, variant)}</div>
     </div>
   );
 };

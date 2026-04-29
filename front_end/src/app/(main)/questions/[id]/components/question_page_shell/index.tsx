@@ -37,8 +37,11 @@ import ActionRow from "../question_view/action_row";
 import ConsumerQuestionPrediction from "../question_view/consumer_question_view/prediction";
 import QuestionTimeline from "../question_view/consumer_question_view/timeline";
 
-const sectionClassName =
-  "relative z-10 flex w-[59rem] max-w-full flex-col gap-5 overflow-x-clip rounded border-transparent bg-gray-0 p-4 text-gray-900 dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark lg:gap-6 lg:border lg:p-8";
+const baseSectionClassName =
+  "relative z-10 flex w-[59rem] max-w-full flex-col gap-5 overflow-x-clip rounded border border-blue-400 p-4 text-gray-900 dark:border-blue-200-dark dark:text-gray-900-dark lg:gap-6 lg:p-8";
+
+const mainSectionClassName = `${baseSectionClassName} bg-gray-0 dark:bg-gray-0-dark`;
+const commentSectionClassName = `${baseSectionClassName} bg-blue-100 dark:bg-gray-0-dark`;
 
 type ShellProps = {
   postData: PostWithForecasts;
@@ -64,46 +67,50 @@ export const ForecasterShell: FC<
 
   return (
     <Fragment>
-      <section className={sectionClassName}>
-        <PostStatusBox post={postData} className="mb-5 rounded lg:mb-6" />
-        {postData.projects?.default_project && (
-          <CommunityDisclaimer
-            project={postData.projects.default_project}
-            variant="standalone"
-            className="block sm:hidden"
-          />
-        )}
-        <div className="flex flex-col gap-4">
-          <MetaRow
-            post={postData}
-            variant="forecaster"
-            className="-mx-4 mb-2 lg:-mx-8"
-          />
-          <TitleRow
-            post={postData}
-            variant="forecaster"
-            className="lg:order-0 order-1"
-          />
-        </div>
-        <ActionRow post={postData} variant="forecaster" />
-        <div className="-mt-2 lg:-mt-3">
-          {isQuestionPost(postData) && (
-            <DetailedQuestionCard
-              post={postData}
-              keyFactors={postData.key_factors}
-              hideTitle
+      <div className="flex flex-col gap-4">
+        <section className={mainSectionClassName}>
+          <PostStatusBox post={postData} className="mb-5 rounded lg:mb-6" />
+          {postData.projects?.default_project && (
+            <CommunityDisclaimer
+              project={postData.projects.default_project}
+              variant="standalone"
+              className="block sm:hidden"
             />
           )}
-          {isGroup && (
-            <DetailedGroupCard
+          <div className="flex flex-col gap-4">
+            <MetaRow
               post={postData}
-              preselectedQuestionId={preselectedGroupQuestionId}
+              variant="forecaster"
+              className="-mx-4 mb-2 lg:-mx-8"
             />
-          )}
-        </div>
-        {(!isResolved || isGroup) && <ForecastMaker post={postData} />}
-        <QuestionPageShellTabs post={postData} variant="forecaster" />
-      </section>
+            <TitleRow
+              post={postData}
+              variant="forecaster"
+              className="lg:order-0 order-1"
+            />
+          </div>
+          <ActionRow post={postData} variant="forecaster" />
+          <div className="-mt-2 lg:-mt-3">
+            {isQuestionPost(postData) && (
+              <DetailedQuestionCard
+                post={postData}
+                keyFactors={postData.key_factors}
+                hideTitle
+              />
+            )}
+            {isGroup && (
+              <DetailedGroupCard
+                post={postData}
+                preselectedQuestionId={preselectedGroupQuestionId}
+              />
+            )}
+          </div>
+          {(!isResolved || isGroup) && <ForecastMaker post={postData} />}
+        </section>
+        <section className={commentSectionClassName}>
+          <QuestionPageShellTabs post={postData} variant="forecaster" />
+        </section>
+      </div>
       {mobileSidebar}
     </Fragment>
   );
@@ -155,82 +162,86 @@ export const ConsumerShell: FC<{ postData: PostWithForecasts }> = ({
   const shouldShowKeyFactorsSection = hasKeyFactors || hasQuestionLinks;
 
   return (
-    <section className={sectionClassName}>
-      <PostStatusBox post={postData} className="mb-5 rounded lg:mb-6" />
-      {postData.projects?.default_project && (
-        <CommunityDisclaimer
-          project={postData.projects.default_project}
-          variant="standalone"
-          className="block sm:hidden"
-        />
-      )}
-      <div className="flex flex-col gap-4">
-        <MetaRow
-          post={postData}
-          variant="consumer"
-          className="-mx-4 mb-2 lg:-mx-8"
-        />
-        <TitleRow post={postData} variant="consumer" />
-      </div>
-      <div className="order-2 md:order-none">
-        <ActionRow post={postData} variant="consumer" />
-      </div>
-      <div className="order-1 mt-6 sm:mt-8 md:order-none md:-mt-2 lg:-mt-3">
-        {showClosedMessageMultipleChoice && (
-          <p className="m-0 mb-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
-            {t("predictionClosedMessage")}
-          </p>
+    <div className="flex flex-col gap-4">
+      <section className={mainSectionClassName}>
+        <PostStatusBox post={postData} className="mb-5 rounded lg:mb-6" />
+        {postData.projects?.default_project && (
+          <CommunityDisclaimer
+            project={postData.projects.default_project}
+            variant="standalone"
+            className="block sm:hidden"
+          />
         )}
-        <div
-          className={cn(
-            "flex flex-col",
-            reverseOrder &&
-              !isMultipleChoice &&
-              !isNonFanGroup &&
-              "flex-col-reverse",
-            showSideBySide && "sm:flex-row sm:items-center sm:gap-8"
-          )}
-        >
-          {!isContinuousSingleQuestion && (
-            <div
-              className={
-                showSideBySide
-                  ? isDateGroup
-                    ? "order-2"
-                    : "order-1"
-                  : undefined
-              }
-            >
-              <ConsumerQuestionPrediction postData={postData} />
-            </div>
-          )}
-          {!isFanGraph && (
-            <QuestionTimeline
-              postData={postData}
-              keyFactors={postData.key_factors}
-              hideTitle
-              isConsumerView={!isContinuousSingleQuestion}
-              className={
-                showSideBySide
-                  ? isDateGroup
-                    ? "order-1 mt-0 flex-1"
-                    : "order-2 mt-0 flex-1"
-                  : undefined
-              }
-            />
-          )}
-          {showClosedMessageFanGraph && (
-            <p className="my-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
+        <div className="flex flex-col gap-4">
+          <MetaRow
+            post={postData}
+            variant="consumer"
+            className="-mx-4 mb-2 lg:-mx-8"
+          />
+          <TitleRow post={postData} variant="consumer" />
+        </div>
+        <div className="order-2 md:order-none">
+          <ActionRow post={postData} variant="consumer" />
+        </div>
+        <div className="order-1 mt-6 sm:mt-8 md:order-none md:-mt-2 lg:-mt-3">
+          {showClosedMessageMultipleChoice && (
+            <p className="m-0 mb-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
               {t("predictionClosedMessage")}
             </p>
           )}
+          <div
+            className={cn(
+              "flex flex-col",
+              reverseOrder &&
+                !isMultipleChoice &&
+                !isNonFanGroup &&
+                "flex-col-reverse",
+              showSideBySide && "sm:flex-row sm:items-center sm:gap-8"
+            )}
+          >
+            {!isContinuousSingleQuestion && (
+              <div
+                className={
+                  showSideBySide
+                    ? isDateGroup
+                      ? "order-2"
+                      : "order-1"
+                    : undefined
+                }
+              >
+                <ConsumerQuestionPrediction postData={postData} />
+              </div>
+            )}
+            {!isFanGraph && (
+              <QuestionTimeline
+                postData={postData}
+                keyFactors={postData.key_factors}
+                hideTitle
+                isConsumerView={!isContinuousSingleQuestion}
+                className={
+                  showSideBySide
+                    ? isDateGroup
+                      ? "order-1 mt-0 flex-1"
+                      : "order-2 mt-0 flex-1"
+                    : undefined
+                }
+              />
+            )}
+            {showClosedMessageFanGraph && (
+              <p className="my-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
+                {t("predictionClosedMessage")}
+              </p>
+            )}
+          </div>
+          {shouldShowKeyFactorsSection && (
+            <KeyFactorsQuestionConsumerSection post={postData} />
+          )}
         </div>
-        {shouldShowKeyFactorsSection && (
-          <KeyFactorsQuestionConsumerSection post={postData} />
-        )}
-      </div>
-      <QuestionPageShellTabs post={postData} variant="consumer" />
-    </section>
+      </section>
+      <section className={commentSectionClassName}>
+        <QuestionPageShellTabs post={postData} variant="consumer" />
+      </section>
+    </div>
   );
 };
 
