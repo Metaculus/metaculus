@@ -19,9 +19,10 @@ import { VoteDirection } from "@/types/votes";
 
 import CommentDetailPanel from "./comment_detail_panel";
 import { KeyFactorItem } from "./item_view";
-import { useQuestionLayoutSafe } from "../question_layout/question_layout_context";
 import QuestionLinkKeyFactorItem from "./item_view/question_link/question_link_key_factor_item";
 import MobileKeyFactorOverlay from "./mobile_key_factor_overlay";
+// eslint-disable-next-line import/order
+import { useQuestionLayoutSafe } from "../question_layout/question_layout_context";
 
 type KeyFactorOverlayProps = {
   keyFactor: KeyFactor;
@@ -121,19 +122,20 @@ const KeyFactorDetailOverlay: FC<Props> = (props) => {
     if (!keyFactor) return;
     await ensureCommentLoaded(keyFactor.comment_id);
     onClose();
+    questionLayout?.setActiveTab("comments");
     setTimeout(() => {
-      const el = document.getElementById(`comment-${keyFactor.comment_id}`);
-      el?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 200);
+      questionLayout?.requestScrollToComment(keyFactor.comment_id);
+    }, 50);
   };
 
   const handleReplyToComment = async () => {
     if (!keyFactor) return;
     await ensureCommentLoaded(keyFactor.comment_id);
     onClose();
+    questionLayout?.setActiveTab("comments");
     setTimeout(() => {
       questionLayout?.requestReplyToComment(keyFactor.comment_id);
-    }, 500);
+    }, 50);
   };
 
   const hasComment = !!(keyFactor && (comment?.text?.trim() || !comment));

@@ -123,12 +123,10 @@ const MorePanel: FC<MorePanelProps> = ({
   const handleViewComment = () => {
     onClose();
     questionLayout?.closeKeyFactorOverlay();
+    questionLayout?.setActiveTab("comments");
     setTimeout(() => {
-      const el = document.getElementById(`comment-${keyFactor.comment_id}`);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }, 100);
+      questionLayout?.requestScrollToComment(keyFactor.comment_id);
+    }, 50);
   };
 
   const actions: ActionItem[] = [

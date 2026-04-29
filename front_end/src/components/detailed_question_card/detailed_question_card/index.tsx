@@ -94,6 +94,7 @@ const DetailedQuestionCard: FC<Props> = ({
           <DetailedMultipleChoiceChartCard
             question={question}
             hideCP={hideCP}
+            hideTitle={hideTitle}
             forecastAvailability={forecastAvailability}
             embedMode={isEmbed}
             chartHeight={embedChartHeight}
