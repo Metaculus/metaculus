@@ -1,9 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
-import ConsumerQuestionLayout from "@/app/(main)/questions/[id]/components/question_layout/consumer_question_layout";
-import ForecasterQuestionLayout from "@/app/(main)/questions/[id]/components/question_layout/forecaster_question_layout";
-import ConsumerQuestionView from "@/app/(main)/questions/[id]/components/question_view/consumer_question_view";
-import ForecasterQuestionView from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view";
+import { CoherenceLinksProvider } from "@/app/(main)/components/coherence_links_provider";
+import { QuestionLayoutProvider } from "@/app/(main)/questions/[id]/components/question_layout/question_layout_context";
+import {
+  ConsumerShell,
+  ForecasterShell,
+} from "@/app/(main)/questions/[id]/components/question_page_shell";
 import { PostSubscriptionProvider } from "@/contexts/post_subscription_context";
 import { getMockData as getContinuousMockData } from "@/stories/feed_card/continuous_question/mock_data";
 import { MockCommentsFeedProvider } from "@/stories/utils/mocks/mock_comments_feed_provider";
@@ -24,7 +26,7 @@ type StoryProps = {
 
 const meta = {
   title: "Question Page/Continuous Question",
-  component: ForecasterQuestionView,
+  component: ForecasterShell,
   argTypes: {
     isConsumer: { control: { type: "boolean" } },
     hideUserPredictions: {
@@ -37,23 +39,17 @@ const meta = {
   decorators: [
     (Story, context) => {
       const { postData } = context.args;
-      const Layout = context.args.isConsumer
-        ? ConsumerQuestionLayout
-        : ForecasterQuestionLayout;
       return (
         <PostSubscriptionProvider post={postData}>
-          <MockCommentsFeedProvider>
-            <div style={{ maxWidth: "703px", margin: "0 auto" }}>
-              <Layout
-                postData={postData}
-                preselectedGroupQuestionId={
-                  context.args.preselectedGroupQuestionId
-                }
-              >
-                <Story />
-              </Layout>
-            </div>
-          </MockCommentsFeedProvider>
+          <CoherenceLinksProvider post={postData}>
+            <MockCommentsFeedProvider>
+              <div style={{ maxWidth: "703px", margin: "0 auto" }}>
+                <QuestionLayoutProvider>
+                  <Story />
+                </QuestionLayoutProvider>
+              </div>
+            </MockCommentsFeedProvider>
+          </CoherenceLinksProvider>
         </PostSubscriptionProvider>
       );
     },
@@ -66,7 +62,7 @@ type Story = StoryObj<StoryProps>;
 
 const render = createConditionalRenderer<StoryProps>({
   componentSelector: (args) =>
-    args.isConsumer ? ConsumerQuestionView : ForecasterQuestionView,
+    args.isConsumer ? ConsumerShell : ForecasterShell,
   transformRules: [
     {
       key: "hideUserPredictions",
