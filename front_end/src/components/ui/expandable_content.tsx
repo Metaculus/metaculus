@@ -47,7 +47,7 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
     const contentHeight = element.scrollHeight;
     if (contentHeight <= maxCollapsedHeight) {
       setIsExpandable(false);
-      if (!userInteractedRef.current) {
+      if (!hasSetInitialStateRef.current && !userInteractedRef.current) {
         setIsExpanded(true);
       }
     } else {
