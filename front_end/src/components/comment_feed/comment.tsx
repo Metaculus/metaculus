@@ -6,6 +6,7 @@ import {
   faReply,
   faThumbtack,
   faXmark,
+  faEllipsis,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
@@ -269,6 +270,18 @@ const Comment: FC<CommentProps> = ({
       });
     }
   }, [questionLayout?.replyToCommentId, comment.id, questionLayout]);
+
+  useEffect(() => {
+    if (questionLayout?.scrollToCommentId === comment.id) {
+      questionLayout.clearScrollToComment();
+      requestAnimationFrame(() => {
+        commentRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      });
+    }
+  }, [questionLayout?.scrollToCommentId, comment.id, questionLayout]);
   const [errorMessage, setErrorMessage] = useState<string | ErrorResponse>();
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
   const [tempCommentMarkdown, setTempCommentMarkdown] = useState("");
@@ -1061,7 +1074,17 @@ const Comment: FC<CommentProps> = ({
                     </div>
 
                     <div className={cn(treeDepth > 0 && "pr-1.5 md:pr-2")}>
-                      <DropdownMenu items={menuItems} />
+                      <DropdownMenu items={menuItems}>
+                        <Button
+                          aria-label="menu"
+                          variant="tertiary"
+                          size="md"
+                          presentationType="icon"
+                          className="!rounded-[2px] !border !border-gray-300 !bg-gray-0 !text-[14px] !text-gray-500 dark:!border-gray-700 dark:!bg-gray-0-dark dark:!text-gray-500-dark"
+                        >
+                          <FontAwesomeIcon icon={faEllipsis} />
+                        </Button>
+                      </DropdownMenu>
                     </div>
                   </div>
                 </div>

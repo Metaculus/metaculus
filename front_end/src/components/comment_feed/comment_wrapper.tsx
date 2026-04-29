@@ -51,7 +51,7 @@ export const CommentWrapper: FC<Props> = ({
   return (
     <div
       key={comment.id}
-      className={cn("my-1.5 rounded-md border px-1.5 py-1 md:px-3 md:py-2", {
+      className={cn("rounded border bg-gray-0 p-3 dark:bg-gray-0-dark", {
         "border-blue-500 bg-blue-300/70 dark:border-blue-500-dark dark:bg-blue-300-dark/70":
           is_pinned,
         "border-blue-400 dark:border-blue-400-dark": !isUnread && !is_pinned,
