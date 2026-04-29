@@ -17,17 +17,20 @@ type Props = {
 
 const LayoutSwitcher: FC<Props> = ({ value, onChange, className }) => {
   const t = useTranslations();
+  const nextValue = value === "list" ? "grid" : "list";
+
   return (
-    <div
+    <button
+      type="button"
+      aria-label={nextValue === "list" ? t("listLayout") : t("gridLayout")}
+      onClick={() => onChange(nextValue)}
       className={cn(
-        "flex items-center gap-1.5 rounded-full border border-blue-400 bg-gray-0 p-1 dark:border-blue-400-dark dark:bg-gray-0-dark",
+        "flex cursor-pointer items-center gap-1.5 rounded-full border border-blue-400 bg-gray-0 p-1 dark:border-blue-400-dark dark:bg-gray-0-dark",
         className
       )}
     >
-      <button
-        type="button"
-        aria-label={t("listLayout")}
-        onClick={() => onChange("list")}
+      <span
+        aria-hidden="true"
         className={cn(
           "flex size-6 items-center justify-center rounded-full text-sm transition-colors",
           value === "list"
@@ -36,11 +39,9 @@ const LayoutSwitcher: FC<Props> = ({ value, onChange, className }) => {
         )}
       >
         <FontAwesomeIcon icon={faList} />
-      </button>
-      <button
-        type="button"
-        aria-label={t("gridLayout")}
-        onClick={() => onChange("grid")}
+      </span>
+      <span
+        aria-hidden="true"
         className={cn(
           "flex size-6 items-center justify-center rounded-full text-sm transition-colors",
           value === "grid"
@@ -49,8 +50,8 @@ const LayoutSwitcher: FC<Props> = ({ value, onChange, className }) => {
         )}
       >
         <FontAwesomeIcon icon={faTableCells} />
-      </button>
-    </div>
+      </span>
+    </button>
   );
 };
 

@@ -205,7 +205,6 @@ const MainFeedFilters: FC<Props> = ({
       sortOptions={sortOptions}
       onOrderChange={onOrderChange}
       defaultOrder={QuestionOrder.HotDesc}
-      showRandomButton
       panelClassname={panelClassname}
     />
   );

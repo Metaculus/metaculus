@@ -180,7 +180,7 @@ const FeedSidebar: FC<Props> = ({ items }) => {
     <div
       ref={outerRef}
       className={cn(
-        "sticky z-100 border-y border-blue-400 bg-gray-0/70 backdrop-blur-md dark:border-blue-700 dark:bg-blue-50-dark/70 sm:static sm:min-h-[calc(100vh-3rem)] sm:border-y-0 sm:border-r",
+        "sticky z-100 border-y border-blue-400 bg-gray-0/70 backdrop-blur-md dark:border-blue-700 dark:bg-gray-0-dark/70 sm:static sm:min-h-[calc(100vh-3rem)] sm:border-y-0 sm:border-r",
         isTranslationBannerVisible ? "top-24" : "top-header"
       )}
     >
