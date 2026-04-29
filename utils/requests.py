@@ -30,4 +30,7 @@ def is_internal_request(request: Request) -> bool:
 
     host = (request.get_host() or "").split(":")[0].lower()
 
+    print("HOST: ", request.get_host(), host)
+    print("APP_DOMAIN: ", settings.APP_DOMAIN)
+
     return host != settings.APP_DOMAIN
