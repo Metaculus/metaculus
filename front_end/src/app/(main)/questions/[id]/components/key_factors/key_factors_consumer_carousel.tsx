@@ -10,7 +10,7 @@ import { KeyFactorItem } from "./item_view";
 import QuestionLinkKeyFactorItem from "./item_view/question_link/question_link_key_factor_item";
 import KeyFactorsCarousel from "./key_factors_carousel";
 import { TopItem } from "./types";
-import { useQuestionLayout } from "../question_layout/question_layout_context";
+import { useQuestionLayoutSafe } from "../question_layout/question_layout_context";
 
 type Props = {
   post: PostWithForecasts;
@@ -26,7 +26,7 @@ const KeyFactorsConsumerCarousel: React.FC<Props> = ({
   onKeyFactorClick,
 }) => {
   const isDesktop = useBreakpoint("sm");
-  const { openKeyFactorOverlay, openQuestionLinkOverlay } = useQuestionLayout();
+  const layout = useQuestionLayoutSafe();
 
   return (
     <KeyFactorsCarousel
@@ -43,7 +43,7 @@ const KeyFactorsConsumerCarousel: React.FC<Props> = ({
               if (onKeyFactorClick) {
                 onKeyFactorClick(item.keyFactor);
               } else {
-                openKeyFactorOverlay(item.keyFactor);
+                layout?.openKeyFactorOverlay(item.keyFactor);
               }
               sendAnalyticsEvent("KeyFactorClick", {
                 event_label: "fromTopList",
@@ -70,7 +70,7 @@ const KeyFactorsConsumerCarousel: React.FC<Props> = ({
             tabIndex={0}
             onClick={(e) => {
               e.preventDefault();
-              openQuestionLinkOverlay(item.link);
+              layout?.openQuestionLinkOverlay(item.link);
               sendAnalyticsEvent("KeyFactorClick", {
                 event_label: "fromTopList",
               });

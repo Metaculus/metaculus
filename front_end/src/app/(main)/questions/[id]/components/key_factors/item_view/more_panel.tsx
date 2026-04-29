@@ -8,6 +8,7 @@ import {
   useKeyFactorModeration,
 } from "@/app/(main)/questions/[id]/components/key_factors/hooks";
 import { useQuestionLayoutSafe } from "@/app/(main)/questions/[id]/components/question_layout/question_layout_context";
+import { openFlowCommentsAndScrollToComment } from "@/app/(prediction-flow)/helpers";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { KeyFactor } from "@/types/comment";
@@ -122,13 +123,17 @@ const MorePanel: FC<MorePanelProps> = ({
 
   const handleViewComment = () => {
     onClose();
-    questionLayout?.closeKeyFactorOverlay();
-    setTimeout(() => {
-      const el = document.getElementById(`comment-${keyFactor.comment_id}`);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }, 100);
+    if (questionLayout) {
+      questionLayout.closeKeyFactorOverlay();
+      setTimeout(() => {
+        const el = document.getElementById(`comment-${keyFactor.comment_id}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
+    } else {
+      openFlowCommentsAndScrollToComment(keyFactor.comment_id);
+    }
   };
 
   const actions: ActionItem[] = [
