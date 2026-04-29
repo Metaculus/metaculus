@@ -89,6 +89,8 @@ type Props = {
   forecastAvailability?: ForecastAvailability;
   forFeedPage?: boolean;
   chartTitle?: string;
+  animate?: object;
+  leftPadding?: number;
 };
 
 const LABEL_FONT_FAMILY = "Inter";
@@ -118,6 +120,8 @@ const MultipleChoiceChart: FC<Props> = ({
   forecastAvailability,
   forFeedPage,
   chartTitle,
+  animate,
+  leftPadding = 0,
 }) => {
   const questionKey = useMemo(() => v4(), []);
   const t = useTranslations();
@@ -148,6 +152,10 @@ const MultipleChoiceChart: FC<Props> = ({
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const [zoom, setZoom] = useState<TimelineChartZoomOption>(defaultZoom);
+  const hasUserForecasts = useMemo(
+    () => choiceItems.some(({ userTimestamps }) => userTimestamps.length > 0),
+    [choiceItems]
+  );
   const { xScale, yScale, graphs, xDomain, yDomain, userScatters } = useMemo(
     () =>
       buildChartData({
@@ -279,11 +287,12 @@ const MultipleChoiceChart: FC<Props> = ({
             height={height}
             theme={actualTheme}
             padding={{
-              left: 0,
+              left: leftPadding,
               top: topPadding,
               right: maxRightPadding,
               bottom: bottomPadding,
             }}
+            animate={animate}
             events={[
               {
                 target: "parent",
@@ -406,7 +415,7 @@ const MultipleChoiceChart: FC<Props> = ({
             <VictoryAxis
               tickValues={xScale.ticks}
               tickFormat={
-                hideCP ||
+                (hideCP && !hasUserForecasts) ||
                 isCursorActive ||
                 !!forecastAvailability?.isEmpty ||
                 !!forecastAvailability?.cpRevealsOn

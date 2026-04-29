@@ -1,5 +1,5 @@
-import anthropicDark from "@/app/(main)/aib/assets/ai-models/anthropic-black.png";
-import anthropicLight from "@/app/(main)/aib/assets/ai-models/anthropic-white.webp";
+import anthropicDark from "@/app/(main)/aib/assets/ai-models/anthropic-dark.svg?url";
+import anthropicLight from "@/app/(main)/aib/assets/ai-models/anthropic-light.svg?url";
 import googleLight from "@/app/(main)/aib/assets/ai-models/google.svg?url";
 import openaiLight from "@/app/(main)/aib/assets/ai-models/openai.svg?url";
 import openaiDark from "@/app/(main)/aib/assets/ai-models/openai_dark.svg?url";
@@ -86,8 +86,8 @@ export const MODEL_BENCHMARK_CHIPS: CarouselChip[] = [
   {
     id: "claude",
     label: "Claude",
-    iconLight: anthropicLight.src,
-    iconDark: anthropicDark.src,
+    iconLight: anthropicLight as unknown as string,
+    iconDark: anthropicDark as unknown as string,
   },
   {
     id: "gpt-5",

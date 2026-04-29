@@ -114,7 +114,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <>
         <input
           type={type}
-          className={cn("rounded-s border p-1", className)}
+          className={cn(
+            "rounded-s border p-1 disabled:cursor-not-allowed disabled:border-gray-400 disabled:bg-gray-200 disabled:text-gray-600 disabled:dark:border-gray-400-dark disabled:dark:bg-gray-200-dark disabled:dark:text-gray-600-dark",
+            className
+          )}
           ref={ref}
           name={name}
           {...props}
@@ -134,9 +137,10 @@ type DateInputProps<T extends FieldValues = FieldValues> = {
   defaultValue?: PathValue<T, Path<T>>;
   errors?: ErrorResponse;
   className?: string;
+  disabled?: boolean;
 };
 export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
-  ({ control, name, errors, defaultValue, className }, ref) => {
+  ({ control, name, errors, defaultValue, className, disabled }, ref) => {
     const { field } = useController({ control, name, defaultValue });
 
     return (
@@ -155,6 +159,7 @@ export const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
             field.onChange(value);
           }}
           onBlur={field.onBlur}
+          disabled={disabled}
           withFormValidation
         />
         {errors && <FormError name={name} errors={errors} />}

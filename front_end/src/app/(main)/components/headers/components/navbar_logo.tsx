@@ -13,7 +13,7 @@ const NavbarLogo: FC<{ className?: string }> = ({ className }) => {
 
   return (
     <Link
-      href="/"
+      href="/home/"
       className={cn(
         "inline-flex max-w-60 flex-shrink-0 flex-grow-0 basis-auto flex-col justify-center bg-blue-800 text-center no-underline",
         className

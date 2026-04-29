@@ -32,6 +32,7 @@ type Props = {
   hideCP?: boolean;
   forecastAvailability?: ForecastAvailability;
   onLegendHeightChange?: (height: number) => void;
+  hideTitle?: boolean;
 };
 
 const DetailedMultipleChoiceChartCard: FC<Props> = ({
@@ -43,6 +44,7 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
   hideCP,
   forecastAvailability,
   onLegendHeightChange,
+  hideTitle,
 }) => {
   const t = useTranslations();
   const [isChartHovered, setIsChartHovered] = useState(false);
@@ -299,7 +301,7 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
       onChoiceItemsUpdate={setChoiceItems}
       isClosed={isClosed}
       actualCloseTime={actualCloseTime}
-      title={t("forecastTimelineHeading")}
+      title={hideTitle ? undefined : t("forecastTimelineHeading")}
       chartTheme={chartTheme}
       embedMode={embedMode}
       chartHeight={chartHeight}

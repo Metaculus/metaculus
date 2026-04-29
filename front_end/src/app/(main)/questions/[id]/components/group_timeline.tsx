@@ -11,6 +11,7 @@ import React, {
 import { VictoryThemeDefinition } from "victory";
 
 import MultiChoicesChartView from "@/app/(main)/questions/[id]/components/multiple_choices_chart_view";
+import { GroupTimelineMarker } from "@/components/charts/primitives/timeline_markers/types";
 import CPRevealTime from "@/components/cp_reveal_time";
 import { getEffectiveVisibleCount } from "@/constants/questions";
 import { useAuth } from "@/contexts/auth_context";
@@ -52,6 +53,10 @@ type Props = QuestionsDataProps & {
   withLegend?: boolean;
   className?: string;
   prioritizeOpen?: boolean;
+  timelineMarkers?: GroupTimelineMarker[];
+  activeTimelineMarkerId?: string | null;
+  onTimelineMarkerEnter?: (marker: GroupTimelineMarker) => void;
+  onTimelineMarkerLeave?: (marker: GroupTimelineMarker) => void;
 };
 
 /**
@@ -77,6 +82,10 @@ const GroupTimeline: FC<Props> = ({
   withLegend,
   className,
   prioritizeOpen = false,
+  timelineMarkers,
+  activeTimelineMarkerId,
+  onTimelineMarkerEnter,
+  onTimelineMarkerLeave,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -322,6 +331,10 @@ const GroupTimeline: FC<Props> = ({
       defaultZoom={defaultZoom}
       forecastAvailability={forecastAvailability}
       className={className}
+      timelineMarkers={timelineMarkers}
+      activeTimelineMarkerId={activeTimelineMarkerId}
+      onTimelineMarkerEnter={onTimelineMarkerEnter}
+      onTimelineMarkerLeave={onTimelineMarkerLeave}
     />
   );
 };

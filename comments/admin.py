@@ -1,5 +1,6 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
+from django.contrib.postgres.search import SearchQuery
 
 from utils.models import CustomTranslationAdmin
 from .models import Comment, KeyFactor, KeyFactorDriver
@@ -52,11 +53,35 @@ class CommentAdmin(CustomTranslationAdmin):
         "included_forecast",
         "is_private",
     ]
-    search_fields = ["id", "text"]
+    # `search_fields` must be non-empty for Django admin to render the search box
+    # and dispatch to `get_search_results`, but its contents are unused because we
+    # fully override the search below.
+    search_fields = ["id"]
     inlines = [KeyFactorInline]
 
     def should_update_translations(self, obj):
         return not obj.on_post.is_private()
+
+    def get_search_results(self, request, queryset, search_term):
+        search_term = search_term.strip()
+        if not search_term:
+            return queryset, False
+        if search_term.isdigit():
+            return queryset.filter(pk=int(search_term)), False
+
+        # Uses the partial GIN index on `text_original_search_vector`
+        # (comment_text_search_vector_idx), which is conditional on
+        # is_private=False AND is_soft_deleted=False — so those predicates
+        # are required for the planner to pick the index.
+        query = SearchQuery(search_term, search_type="websearch")
+        return (
+            queryset.filter(
+                is_private=False,
+                is_soft_deleted=False,
+                text_original_search_vector=query,
+            ),
+            False,
+        )
 
 
 @admin.register(KeyFactorDriver)

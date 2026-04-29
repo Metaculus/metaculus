@@ -252,6 +252,7 @@ function FloatingMenu<T extends string>({
                 : undefined,
               minWidth: menuMinWidthMatchesButton ? rect?.width : undefined,
               maxWidth: "min(420px, 100vw - 16px)",
+              maxHeight: "min(320px, 50vh)",
               overflowY: "auto",
               zIndex: 10000,
             }

@@ -117,7 +117,7 @@ export default async function RootLayout({
             `}
         </Script>
       </head>
-      <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
+      <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark print:bg-white">
         <NuqsAdapter>
           <QueryClientProviderWrapper>
             <PolyfillProvider>

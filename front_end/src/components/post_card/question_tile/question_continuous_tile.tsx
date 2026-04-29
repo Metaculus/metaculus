@@ -10,6 +10,7 @@ import { BINARY_FORECAST_PRECISION } from "@/components/forecast_maker/binary_sl
 import {
   buildDefaultForecastExpiration,
   forecastExpirationToDate,
+  getExpirationBaseDate,
 } from "@/components/forecast_maker/forecast_expiration";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import PredictionBinaryInfo from "@/components/post_card/question_tile/prediction_binary_info";
@@ -85,7 +86,10 @@ const QuestionContinuousTile: FC<Props> = ({
           onReaffirm([
             {
               questionId: question.id,
-              forecastEndTime: forecastExpirationToDate(forecastExpiration),
+              forecastEndTime: forecastExpirationToDate(
+                forecastExpiration,
+                getExpirationBaseDate(question)
+              ),
               forecastData: {
                 continuousCdf: null,
                 probabilityYes: forecastValue,

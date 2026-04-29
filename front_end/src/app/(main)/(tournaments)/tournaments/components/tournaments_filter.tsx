@@ -6,17 +6,17 @@ import Listbox, { SelectOption } from "@/components/ui/listbox";
 import { useBreakpoint } from "@/hooks/tailwind";
 import useSearchParams from "@/hooks/use_search_params";
 import { TournamentsSortBy } from "@/types/projects";
+import cn from "@/utils/core/cn";
 
 import { useTournamentsSection } from "./tournaments_provider";
 import { TOURNAMENTS_SORT } from "../constants/query_params";
 
 const TournamentsFilter: React.FC = () => {
   const t = useTranslations();
-  const { closeInfo } = useTournamentsSection();
+  const { closeInfo, defaultSort, isSearching } = useTournamentsSection();
   const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
   const sortBy =
-    (params.get(TOURNAMENTS_SORT) as TournamentsSortBy) ??
-    TournamentsSortBy.Featured;
+    (params.get(TOURNAMENTS_SORT) as TournamentsSortBy) ?? defaultSort;
 
   const sortOptions: SelectOption<TournamentsSortBy>[] = [
     { value: TournamentsSortBy.Featured, label: t("featured") },
@@ -48,14 +48,16 @@ const TournamentsFilter: React.FC = () => {
   );
 
   return (
-    <Listbox
-      className="h-9 rounded-full bg-gray-0 px-3.5 text-base dark:bg-gray-0-dark"
-      onChange={handleSortByChange}
-      onOpenChange={handleOpenChange}
-      options={sortOptions}
-      value={sortBy}
-      menuPosition={isLg ? "right" : "left"}
-    />
+    <div className={cn(isSearching && "pointer-events-none opacity-35")}>
+      <Listbox
+        className="h-9 rounded-full bg-gray-0 px-3.5 text-base dark:bg-gray-0-dark"
+        onChange={handleSortByChange}
+        onOpenChange={handleOpenChange}
+        options={sortOptions}
+        value={sortBy}
+        menuPosition={isLg ? "right" : "left"}
+      />
+    </div>
   );
 };
 

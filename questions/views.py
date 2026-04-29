@@ -8,6 +8,8 @@ from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.serializers import DateTimeField
 
+import numpy as np
+
 from posts.models import Post
 from posts.services.common import get_post_permission_for_user
 from posts.utils import get_post_slug
@@ -119,9 +121,11 @@ def bulk_create_forecasts_api_view(request):
         )
         ObjectPermission.can_forecast(permission, raise_exception=True)
 
-        if not question.open_time or question.open_time > now:
+        if not question.open_time:
             return Response(
-                {"error": f"Question {question.id} is not open for forecasting yet !"},
+                {
+                    "error": f"Question {question.id} is not scheduled for forecasting yet !"
+                },
                 status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
 
@@ -196,9 +200,9 @@ def create_binary_forecast_oldapi_view(request, pk: int):
     permission = get_post_permission_for_user(question.get_post(), user=request.user)
     ObjectPermission.can_forecast(permission, raise_exception=True)
 
-    if not question.open_time or question.open_time > now:
+    if not question.open_time:
         return Response(
-            {"error": "You cannot forecast on this question yet !"},
+            {"error": "This question is not scheduled for forecasting yet !"},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 
@@ -283,12 +287,16 @@ def questions_community_predictions(request) -> Response:
         agg = aggs.get(method)
 
         if agg:
+            pmf = agg.get_pmf()
+            pmf = [
+                v if not np.isnan(v) else None for v in pmf
+            ]  # Convert NaNs to None for JSON serialization
             results.append(
                 {
                     "metaculus_id": qid,
                     "timestamp": ts.isoformat(),
                     "method": method,
-                    "pmf": agg.get_pmf(),
+                    "pmf": pmf,
                     "interval_lower_bounds": agg.interval_lower_bounds,
                     "centers": agg.centers,
                     "interval_upper_bounds": agg.interval_upper_bounds,
@@ -297,5 +305,4 @@ def questions_community_predictions(request) -> Response:
                     "error": None,
                 }
             )
-
     return Response({"results": results})

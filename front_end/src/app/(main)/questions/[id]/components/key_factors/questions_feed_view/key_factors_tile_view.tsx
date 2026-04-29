@@ -20,6 +20,7 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import cn from "@/utils/core/cn";
+import { getPostLink } from "@/utils/navigation";
 
 import {
   KeyFactorTileBaseRateFreqView,
@@ -174,15 +175,19 @@ const KeyFactorsTileView: React.FC<Props> = ({
   }, []);
 
   const questionLinkDisplay = useMemo(() => {
-    if (!primaryQuestionLink || !otherQuestion) return null;
+    if (!primaryQuestionLink || !otherQuestion || !otherQuestion.post_id) {
+      return null;
+    }
 
     const isBinary = otherQuestion.type === QuestionType.Binary;
     const label = isBinary && binaryLabel ? binaryLabel : null;
+    const questionLinkHref = getPostLink({ id: otherQuestion.post_id });
 
     return (
       <li key={`question-link-tile-${primaryQuestionLink.id}`}>
         <KeyFactorTileQuestionLinkView
           kf={{} as KeyFactor}
+          href={questionLinkHref}
           label={label}
           title={otherQuestion.title}
           expanded={isQuestionLinkExpanded}
@@ -190,13 +195,7 @@ const KeyFactorsTileView: React.FC<Props> = ({
         />
       </li>
     );
-  }, [
-    primaryQuestionLink,
-    otherQuestion,
-    binaryLabel,
-    isQuestionLinkExpanded,
-    onToggleQuestionLink,
-  ]);
+  }, [primaryQuestionLink, otherQuestion, binaryLabel, isQuestionLinkExpanded]);
 
   const items = useMemo(
     () =>
