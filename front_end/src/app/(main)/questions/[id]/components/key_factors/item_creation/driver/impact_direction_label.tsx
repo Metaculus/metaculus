@@ -56,12 +56,12 @@ export const KeyFactorImpactDirectionLabel: FC<Props> = ({
     [ImpactDirectionCategory.Earlier]: {
       icon: <FontAwesomeIcon icon={faArrowLeft} />,
       textKey: "hastens",
-      color: "text-olive-800 dark:text-olive-800-dark",
+      color: "text-salmon-700 dark:text-salmon-700-dark",
     },
     [ImpactDirectionCategory.Later]: {
       icon: <FontAwesomeIcon icon={faArrowRight} />,
       textKey: "delays",
-      color: "text-salmon-700 dark:text-salmon-700-dark",
+      color: "text-olive-800 dark:text-olive-800-dark",
     },
     [ImpactDirectionCategory.IncreaseUncertainty]: {
       icon: (
