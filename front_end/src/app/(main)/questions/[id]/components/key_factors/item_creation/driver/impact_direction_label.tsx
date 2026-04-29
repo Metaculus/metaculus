@@ -45,22 +45,22 @@ export const KeyFactorImpactDirectionLabel: FC<Props> = ({
     },
     [ImpactDirectionCategory.More]: {
       icon: <FontAwesomeIcon icon={faArrowUp} />,
-      textKey: "more",
+      textKey: unit ? "more" : "increases",
       color: "text-olive-800 dark:text-olive-800-dark",
     },
     [ImpactDirectionCategory.Less]: {
       icon: <FontAwesomeIcon icon={faArrowDown} />,
-      textKey: "less",
+      textKey: unit ? "less" : "decreases",
       color: "text-salmon-700 dark:text-salmon-700-dark",
     },
     [ImpactDirectionCategory.Earlier]: {
       icon: <FontAwesomeIcon icon={faArrowLeft} />,
-      textKey: "earlier",
+      textKey: "hastens",
       color: "text-olive-800 dark:text-olive-800-dark",
     },
     [ImpactDirectionCategory.Later]: {
       icon: <FontAwesomeIcon icon={faArrowRight} />,
-      textKey: "later",
+      textKey: "delays",
       color: "text-salmon-700 dark:text-salmon-700-dark",
     },
     [ImpactDirectionCategory.IncreaseUncertainty]: {
