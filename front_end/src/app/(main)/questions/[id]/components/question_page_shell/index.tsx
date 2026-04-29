@@ -8,6 +8,7 @@ import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_statu
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
 import ForecastMaker from "@/components/forecast_maker";
+import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import {
   GroupOfQuestionsGraphType,
@@ -36,7 +37,7 @@ import ConsumerQuestionPrediction from "../question_view/consumer_question_view/
 import QuestionTimeline from "../question_view/consumer_question_view/timeline";
 
 const sectionClassName =
-  "flex w-[59rem] max-w-full flex-col gap-5 overflow-x-clip rounded border-transparent bg-gray-0 p-4 text-gray-900 dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark lg:gap-6 lg:border lg:p-8";
+  "relative z-10 flex w-[59rem] max-w-full flex-col gap-5 overflow-x-clip rounded border-transparent bg-gray-0 p-4 text-gray-900 dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark lg:gap-6 lg:border lg:p-8";
 
 type ShellProps = {
   postData: PostWithForecasts;
@@ -64,6 +65,13 @@ export const ForecasterShell: FC<
     <Fragment>
       <section className={sectionClassName}>
         <PostStatusBox post={postData} className="mb-5 rounded lg:mb-6" />
+        {postData.projects?.default_project && (
+          <CommunityDisclaimer
+            project={postData.projects.default_project}
+            variant="standalone"
+            className="block sm:hidden"
+          />
+        )}
         <div className="flex flex-col gap-4">
           <MetaRow
             post={postData}
@@ -134,6 +142,13 @@ export const ConsumerShell: FC<{ postData: PostWithForecasts }> = ({
   return (
     <section className={sectionClassName}>
       <PostStatusBox post={postData} className="mb-5 rounded lg:mb-6" />
+      {postData.projects?.default_project && (
+        <CommunityDisclaimer
+          project={postData.projects.default_project}
+          variant="standalone"
+          className="block sm:hidden"
+        />
+      )}
       <MetaRow
         post={postData}
         variant="consumer"

@@ -83,13 +83,6 @@ const IndividualQuestionPage: FC<{
                         />
                       </div>
                     )}
-                    {isCommunityQuestion && defaultProject && (
-                      <CommunityDisclaimer
-                        project={defaultProject}
-                        variant="standalone"
-                        className="block sm:hidden"
-                      />
-                    )}
                     <QuestionPageShell
                       postData={postData}
                       preselectedGroupQuestionId={preselectedGroupQuestionId}
