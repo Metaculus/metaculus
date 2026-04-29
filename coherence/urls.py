@@ -20,6 +20,11 @@ urlpatterns = [
         name="delete-link",
     ),
     path(
+        "coherence/links/<int:pk>/update/",
+        views.update_link_api_view,
+        name="update-link",
+    ),
+    path(
         "coherence/links/",
         views.get_links_for_questions,
         name="needs-update",
