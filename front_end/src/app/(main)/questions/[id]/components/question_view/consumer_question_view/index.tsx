@@ -5,8 +5,8 @@ import { useTranslations } from "next-intl";
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import KeyFactorsQuestionConsumerSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_question_consumer_section";
 import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_status_box";
-import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
-import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
+import MetaRow from "@/app/(main)/questions/[id]/components/question_page_shell/meta_row";
+import TitleRow from "@/app/(main)/questions/[id]/components/question_page_shell/title_row";
 import {
   GroupOfQuestionsGraphType,
   PostStatus,
@@ -15,17 +15,15 @@ import {
 } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
-import { getPostLink } from "@/utils/navigation";
 import {
   checkGroupOfQuestionsPostType,
   isGroupOfQuestionsPost,
   isMultipleChoicePost,
 } from "@/utils/questions/helpers";
 
-import QuestionActionButton from "./action_buttons";
+import ActionRow from "../action_row";
 import ConsumerQuestionPrediction from "./prediction";
 import { isDisplayableQuestionLink } from "../../key_factors/utils";
-import QuestionTitle from "../shared/question_title";
 
 type Props = {
   postData: PostWithForecasts;
@@ -65,22 +63,18 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
   return (
     <div className="flex flex-col">
       <PostStatusBox post={postData} className="mb-5 rounded lg:mb-6" />
-      <div className="mb-6 flex items-center justify-center gap-[6px]">
-        <CommentStatus
-          totalCount={postData.comment_count ?? 0}
-          unreadCount={postData.unread_comment_count ?? 0}
-          url={getPostLink(postData)}
-          className="bg-gray-200 px-2 dark:bg-gray-200-dark"
-        />
-        <ForecastersCounter
-          forecasters={postData.nr_forecasters}
-          compact={false}
-        />
+      <MetaRow
+        post={postData}
+        variant="consumer"
+        className="-mx-4 mb-2 lg:-mx-8"
+      />
+      <TitleRow post={postData} variant="consumer" />
+
+      <div className="order-2 md:order-none">
+        <ActionRow post={postData} variant="consumer" />
       </div>
 
-      <QuestionTitle className="text-center">{postData.title}</QuestionTitle>
-
-      <div className="mt-6 sm:mt-8">
+      <div className="order-1 mt-6 sm:mt-8 md:order-none">
         {showClosedMessageMultipleChoice && (
           <p className="m-0 mb-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
             {t("predictionClosedMessage")}
@@ -97,8 +91,6 @@ const ConsumerQuestionView: React.FC<Props> = ({ postData }) => {
               {t("predictionClosedMessage")}
             </p>
           )}
-
-          <QuestionActionButton postData={postData} />
         </div>
 
         {shouldShowKeyFactorsSection && (

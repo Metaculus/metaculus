@@ -791,6 +791,7 @@
   "choices": "Escolhas",
   "choicesSeparatedBy": "Escolhas (separadas por ,)",
   "projects": "projetos",
+  "projectsTags": "Projetos / Tags",
   "FABPrizePool": "PRÊMIO TOTAL",
   "FABPrizeValue": "$30,000",
   "FABStartDate": "DATA DE INÍCIO",
@@ -1816,6 +1817,7 @@
   "loadMore": "Carregar Mais",
   "noPrivateNotes": "Ainda não há notas privadas",
   "privateNotes": "Notas Privadas",
+  "questionLinks": "Links da pergunta",
   "justNow": "agora mesmo",
   "cmmButtonShort": "Mente",
   "FABRegisterBot": "Inscreva-se para registrar seu bot no torneio",
@@ -2167,5 +2169,6 @@
   "whyTrustMetaculusLessNoiseTitle": "Menos ruído, mais verdade",
   "whyTrustMetaculusLessNoise": "As previsões baseadas na multidão do Metaculus cortam o ruído ao basear cada previsão em evidências transparentes, pontuações responsáveis e uma década de precisão demonstrada. O Metaculus equipa formuladores de políticas, pesquisadores, jornalistas e organizações corporativas com previsões baseadas em evidências que oferecem insights claros e quantificáveis sobre as incertezas mais críticas do mundo. Explore nosso conjunto de <servicesLink>Soluções Empresariais</servicesLink> para saber mais sobre como o Metaculus pode melhorar a tomada de decisões da sua organização.",
   "publishTimeLockedDescription": "O horário de publicação não pode ser alterado após a criação.",
+  "nMore": "{count} a mais...",
   "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
 }

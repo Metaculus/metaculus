@@ -35,31 +35,43 @@ type QuestionLayoutContextValue = {
   requestReplyToComment: (commentId: number) => void;
   clearReplyToComment: () => void;
 
-  // Mobile tab state
-  mobileActiveTab?: string;
-  setMobileActiveTab: (tab: string) => void;
+  // Active tab state (shared between mobile + desktop tab bars)
+  activeTab?: string;
+  setActiveTab: (tab: string) => void;
 };
+
+const TAB_HASH_VALUES = new Set([
+  "comments",
+  "timeline",
+  "scores",
+  "key-factors",
+  "info",
+  "question-links",
+  "private-notes",
+]);
 
 const QuestionLayoutContext = createContext({} as QuestionLayoutContextValue);
 
 export const QuestionLayoutProvider = ({ children }: PropsWithChildren) => {
   const hash = useHash();
   const [keyFactorsExpanded, setKeyFactorsExpanded] = useState<boolean>();
-  const [mobileActiveTab, setMobileActiveTab] = useState<string>();
+  const [activeTab, setActiveTab] = useState<string>();
   const [keyFactorOverlay, setKeyFactorOverlay] =
     useState<KeyFactorOverlayState>(null);
 
-  // Expand key factors section if URL hash points to it
   useEffect(() => {
+    if (!hash) return;
     if (hash === "key-factors") {
       setKeyFactorsExpanded(true);
-      setMobileActiveTab("key-factors");
+    }
+    if (TAB_HASH_VALUES.has(hash)) {
+      setActiveTab(hash);
     }
   }, [hash]);
 
   const requestKeyFactorsExpand = useCallback(() => {
     setKeyFactorsExpanded(true);
-    setMobileActiveTab("key-factors");
+    setActiveTab("key-factors");
   }, []);
 
   const openKeyFactorOverlay = useCallback((kf: KeyFactor) => {
@@ -96,8 +108,8 @@ export const QuestionLayoutProvider = ({ children }: PropsWithChildren) => {
       replyToCommentId,
       requestReplyToComment,
       clearReplyToComment,
-      mobileActiveTab,
-      setMobileActiveTab,
+      activeTab,
+      setActiveTab,
     }),
     [
       keyFactorsExpanded,
@@ -109,7 +121,7 @@ export const QuestionLayoutProvider = ({ children }: PropsWithChildren) => {
       replyToCommentId,
       requestReplyToComment,
       clearReplyToComment,
-      mobileActiveTab,
+      activeTab,
     ]
   );
 

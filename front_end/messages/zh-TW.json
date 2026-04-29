@@ -853,6 +853,7 @@
   "choices": "選擇",
   "choicesSeparatedBy": "選擇（以,分隔）",
   "projects": "專案",
+  "projectsTags": "專案 / 標籤",
   "FABPrizePool": "獎金池",
   "FABPrizeValue": "$30,000",
   "FABStartDate": "開始日期",
@@ -1815,6 +1816,7 @@
   "loadMore": "載入更多",
   "noPrivateNotes": "尚無私人筆記",
   "privateNotes": "私人筆記",
+  "questionLinks": "問題連結",
   "justNow": "剛剛",
   "cmmButtonShort": "心智",
   "FABRegisterBot": "註冊以參加賽事",
@@ -2166,5 +2168,6 @@
   "whyTrustMetaculusLessNoiseTitle": "更少的噪音，更多的真相",
   "whyTrustMetaculusLessNoise": "Metaculus 的群眾驅動預測通過將每一個預測植根於透明的證據、負責的計分和十年的已證準確性，抑制了噪音。Metaculus 為政策制定者、研究人員、記者和企業組織提供基於證據的預測，為全球最重要的不確定性提供清晰、可量化的洞察。探索我們的 <servicesLink>企業解決方案</servicesLink>，了解 Metaculus 如何改善貴組織的決策。",
   "publishTimeLockedDescription": "建立後將無法更改發佈時間。",
+  "nMore": "還有 {count} 個...",
   "thousandsOfOpenQuestions": "20,000+ 開放問題"
 }

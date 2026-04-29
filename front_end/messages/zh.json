@@ -691,6 +691,7 @@
   "resolutionCriteriaExplanation": "一個好的問題幾乎總是能夠明確解決。可能發生的具體事件是什麼？在什麼日期之前需要發生才能使問題解決為「是」？如果你有用於解決問題的數據源，請在此處連結。",
   "choicesSeparatedBy": "選項（以逗號分隔）",
   "projects": "專案",
+  "projectsTags": "项目 / 标签",
   "FABPrizePool": "獎金池",
   "FABPrizeValue": "30,000美元",
   "FABStartDate": "開始日期",
@@ -1820,6 +1821,7 @@
   "loadMore": "加載更多",
   "noPrivateNotes": "尚無私人筆記",
   "privateNotes": "私人筆記",
+  "questionLinks": "问题链接",
   "justNow": "刚刚",
   "cmmButtonShort": "心情",
   "FABRegisterBot": "注册您的机器人以参加锦标赛",
@@ -2171,5 +2173,6 @@
   "whyTrustMetaculusLessNoiseTitle": "少噪音，多真相",
   "whyTrustMetaculusLessNoise": "Metaculus 的众包预测通过以透明证据、可追溯的评分以及十年证明的准确性为基础来削减预测中的噪音。Metaculus 为政策制定者、研究人员、记者和企业组织提供基于证据的预测，为世界上最重要的不确定性提供清晰、可量化的洞察。了解我们的<servicesLink>企业解决方案</servicesLink>，了解 Metaculus 如何改善贵组织的决策。",
   "publishTimeLockedDescription": "创建后将无法更改发布时间。",
+  "nMore": "{count} 更多...",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }

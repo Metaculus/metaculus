@@ -702,6 +702,7 @@
   "resolutionCriteriaExplanation": "Una buena pregunta casi siempre se resolverá de manera inequívoca. ¿Cuál es el evento específico que podría ocurrir? ¿Antes de qué fecha tendría que ocurrir para que la pregunta se resuelva como Sí? Si tienes una fuente de datos con la que se resolverá la pregunta, enlázala aquí.",
   "choicesSeparatedBy": "Opciones (separadas por ,)",
   "projects": "proyectos",
+  "projectsTags": "Proyectos / Etiquetas",
   "FABPrizePool": "FONDO DE PREMIOS",
   "FABPrizeValue": "$30,000",
   "FABStartDate": "FECHA DE INICIO",
@@ -1818,6 +1819,7 @@
   "loadMore": "Cargar más",
   "noPrivateNotes": "Aún no hay notas privadas",
   "privateNotes": "Notas privadas",
+  "questionLinks": "Enlaces de preguntas",
   "justNow": "justo ahora",
   "cmmButtonShort": "Mente",
   "FABRegisterBot": "Regístrate para inscribir tu bot en el torneo",
@@ -2169,5 +2171,6 @@
   "whyTrustMetaculusLessNoiseTitle": "Menos ruido, más verdad",
   "whyTrustMetaculusLessNoise": "Los pronósticos impulsados por la multitud de Metaculus cortan el ruido al basar cada predicción en evidencia transparente, puntuaciones responsables y una década de precisión demostrada. Metaculus equipa a los responsables de políticas, investigadores, periodistas y organizaciones corporativas con pronósticos basados en evidencia que ofrecen una visión clara y cuantificable de las incertidumbres más críticas del mundo. Explora nuestra suite de <servicesLink>Soluciones Empresariales</servicesLink> para aprender cómo Metaculus puede mejorar la toma de decisiones de tu organización.",
   "publishTimeLockedDescription": "La hora de publicación no puede cambiarse después de la creación.",
+  "nMore": "{count} más...",
   "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
 }
