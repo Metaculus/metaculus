@@ -1,11 +1,21 @@
 "use client";
 
-import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
+import {
+  faArrowUpRightFromSquare,
+  faComment,
+  faNewspaper,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ComponentProps } from "react";
 
+import { ActivityType } from "@/components/charts/primitives/timeline_markers/types";
 import ImageWithFallback from "@/components/ui/image_with_fallback";
 import cn from "@/utils/core/cn";
+
+const ACTIVITY_TYPE_ICON = {
+  news: faNewspaper,
+  comment: faComment,
+} as const;
 
 export function ActivityCard({
   avatar,
@@ -21,6 +31,7 @@ export function ActivityCard({
   onMouseEnter,
   onMouseLeave,
   onClick,
+  activityType,
 }: {
   avatar?: string;
   date?: string;
@@ -35,8 +46,12 @@ export function ActivityCard({
   onMouseEnter?: ComponentProps<"div">["onMouseEnter"];
   onMouseLeave?: ComponentProps<"div">["onMouseLeave"];
   onClick?: ComponentProps<"div">["onClick"];
+  activityType?: ActivityType;
 }) {
   const isClickable = Boolean(onClick);
+  const activityIcon = activityType
+    ? ACTIVITY_TYPE_ICON[activityType]
+    : undefined;
 
   return (
     <div
@@ -92,8 +107,19 @@ export function ActivityCard({
           <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="size-4" />
         </a>
       )}
-      {(avatar || username || subtitle || date) && (
-        <div className="mb-1 flex items-center gap-3">
+      {(activityIcon || avatar || username || subtitle || date) && (
+        <div className="mb-1 flex items-center gap-2">
+          {activityIcon && !avatar && (
+            <FontAwesomeIcon
+              icon={activityIcon}
+              className={cn(
+                "size-3.5 shrink-0",
+                variant === "purple" &&
+                  "text-purple-700 dark:text-purple-700-dark",
+                variant === "mint" && "text-mint-700 dark:text-mint-700-dark"
+              )}
+            />
+          )}
           {avatar && (
             <div className="mt-0.5 size-10 shrink-0 overflow-hidden rounded-full">
               <ImageWithFallback
@@ -111,7 +137,7 @@ export function ActivityCard({
                 variant === "purple" &&
                   "text-purple-700 dark:text-purple-700-dark",
                 variant === "mint" && "text-mint-700 dark:text-mint-700-dark",
-                "flex min-w-0 flex-1 items-start justify-between gap-2 text-xs"
+                "flex min-w-0 flex-1 items-start justify-between gap-2 text-xs lg:text-sm"
               )}
             >
               {username && subtitle && (

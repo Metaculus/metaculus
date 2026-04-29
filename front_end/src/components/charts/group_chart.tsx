@@ -53,7 +53,7 @@ import ChartContainer from "./primitives/chart_container";
 import ChartCursorLabel from "./primitives/chart_cursor_label";
 import GroupResolutionPoint from "./primitives/group_resolution_point";
 import ResolutionDiamond from "./primitives/resolution_diamond";
-import GroupTimelineMarkersOverlay from "./primitives/timeline_markers/group_timeline_markers_overlay";
+import { renderGroupTimelineMarkers } from "./primitives/timeline_markers/group_timeline_markers_overlay";
 import { GroupTimelineMarker } from "./primitives/timeline_markers/types";
 import XTickLabel from "./primitives/x_tick_label";
 
@@ -88,6 +88,8 @@ type Props = {
   activeTimelineMarkerId?: string | null;
   onTimelineMarkerEnter?: (marker: GroupTimelineMarker) => void;
   onTimelineMarkerLeave?: (marker: GroupTimelineMarker) => void;
+  animate?: object;
+  leftPadding?: number;
 };
 
 const LABEL_FONT_FAMILY = "Inter";
@@ -129,6 +131,8 @@ const GroupChart: FC<Props> = ({
   activeTimelineMarkerId,
   onTimelineMarkerEnter,
   onTimelineMarkerLeave,
+  animate,
+  leftPadding = 0,
 }) => {
   const t = useTranslations();
   const {
@@ -234,12 +238,12 @@ const GroupChart: FC<Props> = ({
   }, [rightPadding, MIN_RIGHT_PADDING]);
   const chartPadding = useMemo(
     () => ({
-      left: 0,
+      left: leftPadding,
       top: PLOT_TOP,
       right: maxRightPadding,
       bottom: isEmbedded ? BOTTOM_PADDING - 6 : BOTTOM_PADDING,
     }),
-    [isEmbedded, maxRightPadding]
+    [isEmbedded, maxRightPadding, leftPadding]
   );
   const plotBottom = height - chartPadding.bottom;
 
@@ -247,8 +251,13 @@ const GroupChart: FC<Props> = ({
     () => Object.values(choiceItems).some(({ highlighted }) => highlighted),
     [choiceItems]
   );
+  const hasUserForecasts = useMemo(
+    () => choiceItems.some(({ userTimestamps }) => userTimestamps.length > 0),
+    [choiceItems]
+  );
 
   const prevWidth = usePrevious(chartWidth);
+  const isMarkerHovered = !isNil(activeTimelineMarkerId);
   const baseLineOpacity =
     fadeLinesOnHover && isCursorActive && !isHighlightActive ? 0.35 : 1;
 
@@ -312,7 +321,7 @@ const GroupChart: FC<Props> = ({
 
         setLocalCursorTimestamp(value);
 
-        if (onCursorChange) {
+        if (onCursorChange && !isMarkerHovered) {
           const lastTimestamp = timestamps[timestamps.length - 1];
           if (value === lastTimestamp) {
             onCursorChange(lastTimestamp, xScale.tickFormat);
@@ -341,6 +350,7 @@ const GroupChart: FC<Props> = ({
               domainPadding={{ y: 3 }}
               singleQuadrantDomainPadding={{ y: false }}
               padding={chartPadding}
+              animate={animate}
               events={[
                 {
                   target: "parent",
@@ -437,7 +447,9 @@ const GroupChart: FC<Props> = ({
                 <VictoryAxis
                   tickValues={xScale.ticks}
                   tickFormat={
-                    hideCP || isCursorActive ? () => "" : xScale.tickFormat
+                    (hideCP && !hasUserForecasts) || isCursorActive
+                      ? () => ""
+                      : xScale.tickFormat
                   }
                   tickLabelComponent={
                     <XTickLabel
@@ -652,19 +664,18 @@ const GroupChart: FC<Props> = ({
                   />
                 ) : null
               )}
+              {/* Timeline markers */}
+              {timelineMarkers?.length
+                ? renderGroupTimelineMarkers({
+                    markers: timelineMarkers,
+                    yDomain: yDomain as [number, number],
+                    getThemeColor,
+                    activeMarkerId: activeTimelineMarkerId,
+                    onMarkerEnter: onTimelineMarkerEnter,
+                    onMarkerLeave: onTimelineMarkerLeave,
+                  })
+                : null}
             </VictoryChart>
-            {timelineMarkers?.length ? (
-              <GroupTimelineMarkersOverlay
-                markers={timelineMarkers}
-                chartWidth={chartWidth}
-                chartHeight={height}
-                xDomain={xDomain as [number, number]}
-                chartPadding={chartPadding}
-                activeMarkerId={activeTimelineMarkerId}
-                onMarkerEnter={onTimelineMarkerEnter}
-                onMarkerLeave={onTimelineMarkerLeave}
-              />
-            ) : null}
           </div>
         )}
       </ChartContainer>

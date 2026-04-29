@@ -1,10 +1,12 @@
 "use client";
 
-import { faCaretDown } from "@fortawesome/free-solid-svg-icons";
+import {
+  faSort,
+  faCaretUp,
+  faCaretDown,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { CSSProperties, FC, useMemo, useState } from "react";
-
-import cn from "@/utils/core/cn";
 
 import {
   TableCompact,
@@ -151,15 +153,28 @@ function getSortValue(row: ResearchTableRow, key: SortKey): number {
   return row.values[key.index] ?? 0;
 }
 
-const SortArrow: FC<{ direction: SortDirection }> = ({ direction }) => (
-  <FontAwesomeIcon
-    icon={faCaretDown}
-    aria-hidden="true"
-    className={cn("ml-1 print:hidden", {
-      "rotate-180": direction === "asc",
-    })}
-  />
-);
+const SortColumnIndicator: FC<{
+  isActive: boolean;
+  direction: SortDirection;
+}> = ({ isActive, direction }) => {
+  if (!isActive) {
+    return (
+      <FontAwesomeIcon
+        icon={faSort}
+        aria-hidden="true"
+        className="mb-0.5 ml-1 size-3 shrink-0 text-blue-700/25 dark:text-blue-400/25 print:hidden"
+      />
+    );
+  }
+  const icon = direction === "asc" ? faCaretUp : faCaretDown;
+  return (
+    <FontAwesomeIcon
+      icon={icon}
+      aria-hidden="true"
+      className="mb-0.5 ml-1 size-3 shrink-0 text-blue-950 dark:text-white print:hidden"
+    />
+  );
+};
 
 export const SortableResearchTable: FC<{
   columns: string[];
@@ -243,7 +258,7 @@ export const SortableResearchTable: FC<{
       HeadingSection={
         <>
           <div className="mb-2 text-center text-base font-normal leading-5 text-gray-800 dark:text-gray-800-dark">
-            Metaculus Forecasts Compared to AI Vulnerability Research
+            Metaculus Forecasts Compared to AI Exposure Research
           </div>
           <div className="mb-4 text-balance text-center text-sm font-normal leading-5 text-gray-600 dark:text-gray-600-dark">
             Comparing Metaculus occupational employment forecasts for 2030 and
@@ -291,11 +306,14 @@ export const SortableResearchTable: FC<{
               >
                 <button
                   type="button"
-                  className="font-inherit inline-flex w-full appearance-none items-center justify-center bg-transparent p-0 text-center text-inherit"
+                  className="font-inherit inline-flex w-full appearance-none items-center justify-center gap-0.5 bg-transparent p-0 text-center text-inherit"
                   onClick={() => handleSort(yearSortKey)}
                 >
                   {col}
-                  {isActive && <SortArrow direction={sortDirection} />}
+                  <SortColumnIndicator
+                    isActive={isActive}
+                    direction={sortDirection}
+                  />
                 </button>
               </TableCompactHeaderCell>
             );
@@ -305,17 +323,29 @@ export const SortableResearchTable: FC<{
             [
               {
                 metric: "felten" as const,
-                label: "Felten",
+                label: (
+                  <>
+                    Felten<sup className="text-[0.5rem]">1</sup>
+                  </>
+                ),
                 title: "Felten Language AIOE",
               },
               {
                 metric: "mna" as const,
-                label: "M&A",
+                label: (
+                  <>
+                    M&A<sup className="text-[0.5rem]">2</sup>
+                  </>
+                ),
                 title: "M&A calculated vulnerability",
               },
               {
                 metric: "aoe" as const,
-                label: "AOE",
+                label: (
+                  <>
+                    AOE<sup className="text-[0.5rem]">3</sup>
+                  </>
+                ),
                 title: "Anthropic's observed exposure",
               },
             ] as const
@@ -332,11 +362,14 @@ export const SortableResearchTable: FC<{
                 <button
                   type="button"
                   title={title}
-                  className="font-inherit inline-flex w-full appearance-none items-center justify-center bg-transparent p-0 text-center text-inherit"
+                  className="font-inherit inline-flex w-full appearance-none items-center justify-center gap-0.5 bg-transparent p-0 text-center text-inherit"
                   onClick={() => handleSort(literatureSortKey)}
                 >
                   {label}
-                  {isActive && <SortArrow direction={sortDirection} />}
+                  <SortColumnIndicator
+                    isActive={isActive}
+                    direction={sortDirection}
+                  />
                 </button>
               </TableCompactHeaderCell>
             );

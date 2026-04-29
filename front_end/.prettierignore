@@ -1,4 +1,4 @@
 .next
-package-lock.json
+bun.lock
 public
 node_modules

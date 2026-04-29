@@ -20,10 +20,10 @@ export DATABASE_URL=postgres://postgres:postgres@localhost:5432/test_metaculus
 uv run  ./manage.py collectstatic --noinput
 (uv run gunicorn metaculus_web.wsgi:application --log-level=debug --bind 0.0.0.0:8000 2>&1 | sed 's/^/[Backend]: /') &
 (uv run ./manage.py rundramatiq --processes 1 --threads 1 2>&1 | sed 's/^/[Dramatiq]: /') &
-(npm run --prefix front_end start 2>&1 | sed 's/^/[Frontend]: /') &
+(cd front_end && bun run start 2>&1 | sed 's/^/[Frontend]: /') &
 
-npx wait-on http://localhost:8000/api/healthcheck/ --timeout 30000
-npx wait-on http://localhost:3000 --timeout 30000
+bun x wait-on http://localhost:8000/api/healthcheck/ --timeout 30000
+bun x wait-on http://localhost:3000 --timeout 30000
 
 # Run pytest without Django plugins or the conf test, as the global DB setup/parmas
 # interfere with running the backend in prod "mode"

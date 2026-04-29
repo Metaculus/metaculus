@@ -20,6 +20,7 @@ import { usePrintOverride } from "@/contexts/theme_override_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import cn from "@/utils/core/cn";
+import { pickHighestContrastTextColor } from "@/utils/core/colors";
 
 import {
   CHART_PADDING,
@@ -56,6 +57,8 @@ type Props = {
   historicalForecastDividerX?: number | null;
   /** When false, hides the HISTORICAL / FORECAST labels and the vertical divider line. */
   showHistoricalForecastAnnotation?: boolean;
+  /** When true, hides data labels for historical points (those marked filled) while printing. */
+  hideHistoricalLabelsInPrint?: boolean;
 };
 
 type ResolvedSeriesColors = {
@@ -84,8 +87,6 @@ export const defaultFormatYTick = (value: number): string => {
   return `${sign}${value.toFixed(0)}%`;
 };
 
-const DATA_LABEL_ON_DARK_FILL = METAC_COLORS.gray["0"].DEFAULT;
-const DATA_LABEL_ON_LIGHT_FILL = METAC_COLORS.gray["900"].DEFAULT;
 const AREA_SECTION_LABEL_Y = 18;
 const X_TICK_AVG_CHAR_PX = 6.5;
 const X_TICK_MIN_GAP_PX = 8;
@@ -139,32 +140,6 @@ const MC_OPTION_COLOR_MAP = {
   mc17: METAC_COLORS["mc-option"]["17"],
   mc18: METAC_COLORS["mc-option"]["18"],
 } as const;
-
-const getContrastTextColor = (backgroundColor: string): string => {
-  const normalizedColor = backgroundColor.replace("#", "");
-  const hex =
-    normalizedColor.length === 3
-      ? normalizedColor
-          .split("")
-          .map((value) => `${value}${value}`)
-          .join("")
-      : normalizedColor;
-
-  if (hex.length !== 6) {
-    return DATA_LABEL_ON_DARK_FILL;
-  }
-
-  const red = Number.parseInt(hex.slice(0, 2), 16);
-  const green = Number.parseInt(hex.slice(2, 4), 16);
-  const blue = Number.parseInt(hex.slice(4, 6), 16);
-
-  if ([red, green, blue].some(Number.isNaN)) {
-    return DATA_LABEL_ON_DARK_FILL;
-  }
-
-  const yiq = (red * 299 + green * 587 + blue * 114) / 1000;
-  return yiq >= 160 ? DATA_LABEL_ON_LIGHT_FILL : DATA_LABEL_ON_DARK_FILL;
-};
 
 /** Default for point badges: one decimal and %. */
 export const defaultFormatYValue = (value: number): string => {
@@ -516,6 +491,8 @@ const ChangeBadge: FC<{
   groupClassName?: string;
   rectClassName?: string;
   textClassName?: string;
+  /** Per-x badge top overrides (pixels). When the map contains datum.x, that value replaces the computed badge top. */
+  badgeTopsByX?: Map<number, number>;
 }> = ({
   x,
   y,
@@ -526,11 +503,12 @@ const ChangeBadge: FC<{
   placement = "inline",
   pointRadius = 8,
   lineColor,
-  labelColor = DATA_LABEL_ON_DARK_FILL,
+  labelColor = METAC_COLORS.gray["0"].DEFAULT,
   transparent = false,
   groupClassName,
   rectClassName,
   textClassName,
+  badgeTopsByX,
 }) => {
   if (x === undefined || y === undefined || !datum) return null;
   if (!alwaysVisible && (highlightedX == null || datum.x !== highlightedX))
@@ -542,18 +520,24 @@ const ChangeBadge: FC<{
   const text = formatValue(datum.y);
   const badgeWidth = computeBadgeWidth(text);
 
+  const overrideTop = badgeTopsByX?.get(datum.x);
+
   let badgeTop: number;
-  switch (placement) {
-    case "above":
-      badgeTop = y - pointRadius - DATA_LABEL_GAP - DATA_LABEL_BADGE_HEIGHT;
-      break;
-    case "inline":
-      badgeTop = y - DATA_LABEL_BADGE_HEIGHT / 2;
-      break;
-    case "below":
-    default:
-      badgeTop = y + pointRadius + DATA_LABEL_GAP;
-      break;
+  if (overrideTop != null) {
+    badgeTop = overrideTop;
+  } else {
+    switch (placement) {
+      case "above":
+        badgeTop = y - pointRadius - DATA_LABEL_GAP - DATA_LABEL_BADGE_HEIGHT;
+        break;
+      case "inline":
+        badgeTop = y - DATA_LABEL_BADGE_HEIGHT / 2;
+        break;
+      case "below":
+      default:
+        badgeTop = y + pointRadius + DATA_LABEL_GAP;
+        break;
+    }
   }
 
   return (
@@ -611,6 +595,7 @@ export const MultiLineChart: FC<Props> = ({
   emphasizedSeriesId = null,
   historicalForecastDividerX = null,
   showHistoricalForecastAnnotation = true,
+  hideHistoricalLabelsInPrint = false,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -975,6 +960,123 @@ export const MultiLineChart: FC<Props> = ({
     formatResolvedYValue,
   ]);
 
+  const badgeTopOverridesBySeries = useMemo<
+    Map<string, Map<number, number>>
+  >(() => {
+    const result = new Map<string, Map<number, number>>();
+    if (!chartWidth) return result;
+
+    const plotTop = CHART_PADDING.top;
+    const plotBottom = height - CHART_PADDING.bottom;
+    const plotHeight = plotBottom - plotTop;
+    const [yMin, yMax] = yDomain;
+    const ySpan = yMax - yMin;
+    if (plotHeight <= 0 || ySpan === 0) return result;
+
+    type Candidate = { seriesId: string; naturalTop: number };
+    const byX = new Map<number, Candidate[]>();
+
+    for (const entry of seriesEntries) {
+      const item = entry.series;
+      if ((item.dataLabelPlacement ?? "inline") !== "inline") continue;
+
+      const alwaysMode = getAlwaysVisibleLabelMode(
+        item.dataLabels,
+        isPrintMode
+      );
+      const hoverMode = !isPrintMode && getHoverLabelMode(item.dataLabels);
+      if (!alwaysMode && !hoverMode) continue;
+
+      const perSeriesVisible = visibleDataLabelXsBySeries.get(item.id);
+
+      for (const point of entry.chartData) {
+        if (point.y === 0) continue;
+        if (isPrintMode && hideHistoricalLabelsInPrint && point.filled === true)
+          continue;
+
+        let shows = false;
+        if (alwaysMode) {
+          shows = !perSeriesVisible || perSeriesVisible.has(point.x);
+        } else if (
+          hoverMode &&
+          highlightedX != null &&
+          point.x === highlightedX
+        ) {
+          shows = true;
+        }
+        if (!shows) continue;
+
+        const pixelY = plotBottom - ((point.y - yMin) / ySpan) * plotHeight;
+        const naturalTop = pixelY - DATA_LABEL_BADGE_HEIGHT / 2;
+
+        let list = byX.get(point.x);
+        if (!list) {
+          list = [];
+          byX.set(point.x, list);
+        }
+        list.push({ seriesId: item.id, naturalTop });
+      }
+    }
+
+    const minTop = plotTop + 2;
+    const maxTop = plotBottom - DATA_LABEL_BADGE_HEIGHT - 2;
+    const stride = DATA_LABEL_BADGE_HEIGHT;
+
+    for (const [xValue, candidates] of byX) {
+      if (candidates.length < 2) continue;
+
+      const sorted = [...candidates].sort(
+        (a, b) => a.naturalTop - b.naturalTop
+      );
+      const placed = sorted.map((c) => c.naturalTop);
+
+      for (let iter = 0; iter < 12; iter += 1) {
+        let maxShift = 0;
+        for (let i = 1; i < sorted.length; i += 1) {
+          const overlap = (placed[i - 1] ?? 0) + stride - (placed[i] ?? 0);
+          if (overlap > 0) {
+            const half = overlap / 2;
+            placed[i - 1] = (placed[i - 1] ?? 0) - half;
+            placed[i] = (placed[i] ?? 0) + half;
+            if (half > maxShift) maxShift = half;
+          }
+        }
+        if (maxShift < 0.5) break;
+      }
+
+      for (let i = 0; i < placed.length; i += 1) {
+        const value = placed[i] ?? 0;
+        if (value < minTop) placed[i] = minTop;
+        else if (value > maxTop) placed[i] = maxTop;
+      }
+
+      for (let i = 0; i < sorted.length; i += 1) {
+        const candidate = sorted[i];
+        const resolvedTop = placed[i];
+        if (!candidate || resolvedTop == null) continue;
+        if (Math.abs(resolvedTop - candidate.naturalTop) < 0.5) continue;
+
+        let seriesMap = result.get(candidate.seriesId);
+        if (!seriesMap) {
+          seriesMap = new Map<number, number>();
+          result.set(candidate.seriesId, seriesMap);
+        }
+        seriesMap.set(xValue, resolvedTop);
+      }
+    }
+
+    return result;
+  }, [
+    seriesEntries,
+    highlightedX,
+    chartWidth,
+    height,
+    yDomain,
+    visibleDataLabelXsBySeries,
+    isPrintMode,
+    hideHistoricalLabelsInPrint,
+  ]);
+
   return (
     <div className="w-full">
       {showLegend && (
@@ -1108,36 +1210,37 @@ export const MultiLineChart: FC<Props> = ({
             )}
 
             {historicalForecastLayout && (
-              <>
-                <VictoryLabel
-                  text="HISTORICAL"
-                  x={historicalForecastLayout.historicalLabelX}
-                  y={AREA_SECTION_LABEL_Y}
-                  textAnchor="middle"
-                  style={{
-                    fill: historicalForecastDividerColor,
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: "0.08em",
-                    fontFamily:
-                      "var(--font-inter-variable), var(--font-inter), sans-serif",
-                  }}
-                />
-                <VictoryLabel
-                  text="FORECAST"
-                  x={historicalForecastLayout.forecastLabelX}
-                  y={AREA_SECTION_LABEL_Y}
-                  textAnchor="middle"
-                  style={{
-                    fill: historicalForecastDividerColor,
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: "0.08em",
-                    fontFamily:
-                      "var(--font-inter-variable), var(--font-inter), sans-serif",
-                  }}
-                />
-              </>
+              <VictoryLabel
+                text="HISTORICAL"
+                x={historicalForecastLayout.historicalLabelX}
+                y={AREA_SECTION_LABEL_Y}
+                textAnchor="middle"
+                style={{
+                  fill: historicalForecastDividerColor,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: "0.08em",
+                  fontFamily:
+                    "var(--font-inter-variable), var(--font-inter), sans-serif",
+                }}
+              />
+            )}
+
+            {historicalForecastLayout && (
+              <VictoryLabel
+                text="FORECAST"
+                x={historicalForecastLayout.forecastLabelX}
+                y={AREA_SECTION_LABEL_Y}
+                textAnchor="middle"
+                style={{
+                  fill: historicalForecastDividerColor,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: "0.08em",
+                  fontFamily:
+                    "var(--font-inter-variable), var(--font-inter), sans-serif",
+                }}
+              />
             )}
 
             {showHistoricalForecastAnnotation &&
@@ -1209,9 +1312,13 @@ export const MultiLineChart: FC<Props> = ({
               )
               .map(({ series: item, chartData, colors, pointRadius }) => {
                 const visibleXs = visibleDataLabelXsBySeries.get(item.id);
-                const data = visibleXs
+                const baseData = visibleXs
                   ? chartData.filter((p) => visibleXs.has(p.x))
                   : chartData;
+                const data =
+                  isPrintMode && hideHistoricalLabelsInPrint
+                    ? baseData.filter((p) => p.filled !== true)
+                    : baseData;
                 return (
                   <VictoryScatter
                     key={`labels-always-${item.id}`}
@@ -1223,7 +1330,7 @@ export const MultiLineChart: FC<Props> = ({
                         placement={item.dataLabelPlacement}
                         pointRadius={pointRadius}
                         lineColor={colors.stroke}
-                        labelColor={getContrastTextColor(colors.stroke)}
+                        labelColor={pickHighestContrastTextColor(colors.stroke)}
                         transparent={item.dataLabelTransparent}
                         groupClassName={cn(
                           item.dataLabelClassName,
@@ -1233,6 +1340,7 @@ export const MultiLineChart: FC<Props> = ({
                         )}
                         rectClassName={item.dataLabelRectClassName}
                         textClassName={item.dataLabelTextClassName}
+                        badgeTopsByX={badgeTopOverridesBySeries.get(item.id)}
                       />
                     }
                   />
@@ -1270,7 +1378,9 @@ export const MultiLineChart: FC<Props> = ({
                           placement={item.dataLabelPlacement}
                           pointRadius={pointRadius}
                           lineColor={colors.stroke}
-                          labelColor={getContrastTextColor(colors.stroke)}
+                          labelColor={pickHighestContrastTextColor(
+                            colors.stroke
+                          )}
                           transparent={item.dataLabelTransparent}
                           groupClassName={cn(
                             item.dataLabelClassName,
@@ -1280,6 +1390,7 @@ export const MultiLineChart: FC<Props> = ({
                           )}
                           rectClassName={item.dataLabelRectClassName}
                           textClassName={item.dataLabelTextClassName}
+                          badgeTopsByX={badgeTopOverridesBySeries.get(item.id)}
                         />
                       }
                     />

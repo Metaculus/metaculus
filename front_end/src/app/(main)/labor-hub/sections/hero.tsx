@@ -14,7 +14,7 @@ export function HeroSection({
       )}
       {...props}
     >
-      <div className="flex flex-col-reverse gap-6 sm:flex-row sm:justify-between sm:gap-10">
+      <div className="relative flex flex-col-reverse gap-6 sm:flex-row sm:justify-between sm:gap-10">
         <div className="flex max-w-xs flex-col gap-4 sm:max-w-sm md:max-w-md md:gap-8 lg:max-w-xl lg:basis-7/12">
           <h1 className="my-0 text-2xl/tight font-bold tracking-tight text-blue-800 dark:text-blue-800-dark sm:text-3xl md:text-4xl lg:text-5xl">
             Labor Automation{" "}
@@ -26,6 +26,18 @@ export function HeroSection({
             Real-time forecasts from our global forecasting community on the
             future of the US workforce as AI advances.
           </p>
+          <div className="flex flex-col lg:absolute lg:bottom-1 lg:right-0 lg:items-end">
+            <div className="hidden items-center gap-1 text-sm text-blue-700 dark:text-blue-700-dark lg:flex">
+              <span>Forecasts:</span>
+              <span className="block size-1.5 rounded-full bg-mc-option-2 dark:bg-mc-option-2-dark" />{" "}
+              <span className="text-mc-option-2 dark:text-mc-option-2-dark">
+                Live
+              </span>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-500-dark">
+              Commentary last updated: <time dateTime="2026-04-28">Apr 28</time>
+            </div>
+          </div>
         </div>
 
         <div className="flex h-12 shrink-0 grow-0 flex-row justify-between gap-2 sm:h-44 sm:w-32 sm:flex-col lg:h-20 lg:w-auto lg:basis-5/12 lg:flex-row lg:gap-5">

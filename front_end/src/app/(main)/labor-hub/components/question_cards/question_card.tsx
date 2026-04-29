@@ -16,6 +16,8 @@ import toast from "react-hot-toast";
 import { MetaculusTextLogo } from "@/app/(main)/components/MetaculusTextLogo";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
+import { METAC_COLORS } from "@/constants/colors";
+import useAppTheme from "@/hooks/use_app_theme";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { DownloadAggregationMethod } from "@/types/question";
 import cn from "@/utils/core/cn";
@@ -318,26 +320,37 @@ export function QuestionCard({
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const titleVariant = titleVariantOverride ?? variant;
+  const { getThemeColor } = useAppTheme();
 
   const titleString = useMemo(() => reactNodeToText(title), [title]);
+  const exportBackgroundColor = useMemo(() => {
+    if (variant === "secondary") {
+      return getThemeColor(METAC_COLORS.blue[200]);
+    }
+
+    return getThemeColor(METAC_COLORS.gray[0]);
+  }, [getThemeColor, variant]);
 
   const handleExportPng = useCallback(async () => {
     if (!cardRef.current) return;
 
     const node = cardRef.current;
 
-    // Set CSS variables on the node before toPng clones it
-    node.style.setProperty("--ss-visible", "visible");
-    node.style.setProperty("--ss-hidden", "hidden");
-
     try {
       const { toPng } = await import("html-to-image");
+
+      // Set CSS variables on the node before toPng clones it
+      node.style.setProperty("--ss-visible", "visible");
+      node.style.setProperty("--ss-hidden", "hidden");
+
       const dataUrl = await toPng(node, {
+        backgroundColor: exportBackgroundColor,
         pixelRatio: 2,
         style: {
+          "--tw-bg-opacity": 1,
           margin: "0px",
           borderRadius: "0px",
-        },
+        } as Partial<CSSStyleDeclaration>,
       });
 
       const link = document.createElement("a");
@@ -359,7 +372,7 @@ export function QuestionCard({
       node.style.removeProperty("--ss-visible");
       node.style.removeProperty("--ss-hidden");
     }
-  }, [titleString]);
+  }, [exportBackgroundColor, titleString]);
 
   return (
     <div
@@ -369,7 +382,7 @@ export function QuestionCard({
         variant === "primary" &&
           "rounded-md bg-gray-0 p-5 dark:bg-gray-0-dark lg:p-8",
         variant === "secondary" &&
-          "rounded bg-blue-200 p-4 dark:bg-blue-800 md:p-5 lg:p-6",
+          "rounded bg-blue-200 p-4 dark:bg-blue-200-dark md:p-5 lg:p-6",
         variant === "section" &&
           "rounded-md bg-gray-0 p-5 dark:bg-gray-0-dark md:p-10 print:px-0 print:py-4",
         className

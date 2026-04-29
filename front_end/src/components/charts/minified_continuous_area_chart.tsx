@@ -1,6 +1,6 @@
 "use client";
 import { isNil, merge } from "lodash";
-import React, { FC, useMemo } from "react";
+import React, { FC, useEffect, useMemo, useRef } from "react";
 import {
   Tuple,
   VictoryArea,
@@ -70,6 +70,7 @@ type Props = {
   colorOverride?: string;
   showBaseline?: boolean;
   minMaxLabelsOnly?: boolean;
+  onChartReady?: () => void;
 };
 
 const MinifiedContinuousAreaChart: FC<Props> = ({
@@ -87,10 +88,18 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
   colorOverride,
   showBaseline = false,
   minMaxLabelsOnly = false,
+  onChartReady,
 }) => {
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
   const chartWidth = width || containerWidth;
+  const prevWidth = useRef(0);
+  useEffect(() => {
+    if (!prevWidth.current && chartWidth && onChartReady) {
+      onChartReady();
+    }
+    prevWidth.current = chartWidth;
+  }, [onChartReady, chartWidth]);
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const actualTheme = extraTheme

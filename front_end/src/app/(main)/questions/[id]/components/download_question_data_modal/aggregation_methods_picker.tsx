@@ -1,12 +1,10 @@
 "use client";
-import { faX } from "@fortawesome/free-solid-svg-icons";
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
-import * as React from "react";
 
 import { FormError } from "@/components/ui/form_field";
-import Listbox, { SelectOption } from "@/components/ui/listbox";
 import { useAuth } from "@/contexts/auth_context";
 import { ErrorResponse } from "@/types/fetch";
 import { DownloadAggregationMethod } from "@/types/question";
@@ -27,63 +25,54 @@ const AggregationMethodsPicker: FC<Props> = ({
 }) => {
   const options = useAggregationMethodOptions();
 
-  const optionsLabelMap = useMemo(
-    () =>
-      options.reduce<Record<DownloadAggregationMethod, string>>(
-        (acc, el) => ({ ...acc, [el.value]: el.label }),
-        {} as Record<DownloadAggregationMethod, string>
-      ),
-    [options]
-  );
+  const toggle = (method: DownloadAggregationMethod) => {
+    if (disabled) return;
+    if (methods.includes(method)) {
+      const next = methods.filter((m) => m !== method);
+      if (next.length > 0) onChange(next);
+    } else {
+      onChange([...methods, method]);
+    }
+  };
 
   return (
     <div>
-      <Listbox
-        value={methods}
-        onChange={onChange}
-        options={options}
-        multiple
-        menuPosition="left"
-        buttonVariant="tertiary"
-        disabled={disabled}
-      />
-      {!!methods.length && (
-        <div className="mt-2 flex flex-wrap items-start gap-2">
-          {methods.map((method) => (
-            <div
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((option) => {
+          const isSelected = methods.includes(option.value);
+          return (
+            <button
+              key={option.value}
+              type="button"
+              disabled={disabled}
+              onClick={() => toggle(option.value)}
               className={cn(
-                "group flex w-auto flex-row items-center rounded bg-blue-200 p-2 text-sm dark:bg-blue-700",
-                { "cursor-pointer": !disabled }
+                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                isSelected
+                  ? "border-blue-600 bg-blue-600 text-gray-0 dark:border-blue-600-dark dark:bg-blue-600-dark dark:text-gray-0-dark"
+                  : "border-gray-400 bg-gray-0 text-gray-700 hover:border-blue-500 hover:text-gray-900 dark:border-gray-400-dark dark:bg-gray-0-dark dark:text-gray-700-dark dark:hover:border-blue-500-dark dark:hover:text-gray-900-dark",
+                disabled && "cursor-not-allowed opacity-50"
               )}
-              key={`selected-method-${method}`}
-              onClick={() => {
-                if (disabled) return;
-
-                onChange(methods.filter((el) => el !== method));
-              }}
             >
-              {!disabled && (
-                <FontAwesomeIcon
-                  className="mr-2 cursor-pointer text-gray-400 group-hover:text-gray-500 dark:text-blue-500 dark:group-hover:text-gray-200"
-                  icon={faX}
-                />
+              {isSelected && (
+                <FontAwesomeIcon icon={faXmark} className="size-2.5" />
               )}
-              <span>{optionsLabelMap[method]}</span>
-            </div>
-          ))}
-        </div>
-      )}
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
       {errors && <FormError errors={errors} />}
     </div>
   );
 };
 
-const useAggregationMethodOptions =
-  (): SelectOption<DownloadAggregationMethod>[] => {
-    const { user } = useAuth();
-    const t = useTranslations();
+const useAggregationMethodOptions = () => {
+  const { user } = useAuth();
+  const t = useTranslations();
 
-    const options: SelectOption<DownloadAggregationMethod>[] = [
+  return useMemo(() => {
+    const options = [
       {
         value: DownloadAggregationMethod.recency_weighted,
         label: t("recencyWeighted"),
@@ -110,6 +99,7 @@ const useAggregationMethodOptions =
     }
 
     return options;
-  };
+  }, [user?.is_staff, t]);
+};
 
 export default AggregationMethodsPicker;

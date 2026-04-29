@@ -19,37 +19,38 @@ jobs:
       (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      pull-requests: read
-      issues: read
+      contents: write
+      pull-requests: write
+      issues: write
       id-token: write
-      actions: read # Required for Claude to read CI results on PRs
+      actions: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
       - name: "Install Node"
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: front_end/.nvmrc
-          cache: "npm"
-          cache-dependency-path: front_end/package-lock.json
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
       - name: Cache node_modules
         id: cache-node-modules
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: front_end/node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('front_end/package-lock.json') }}
+          key: node-modules-${{ runner.os }}-${{ hashFiles('front_end/bun.lock', 'front_end/.nvmrc', 'front_end/package.json') }}
       - name: "Install node_modules"
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: cd front_end && npm ci
+        run: cd front_end && bun ci
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          use_commit_signing: true
           branch_name_template: '{{prefix}}{{entityType}}-{{entityNumber}}-{{description}}'
           # This is an optional setting that allows Claude to read CI results on PRs
           additional_permissions: |
@@ -62,5 +63,5 @@ jobs:
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://docs.claude.com/en/docs/claude-code/cli-reference for available options
           claude_args: |
-            --model claude-opus-4-6
-            --allowedTools "Bash(npm ci:*),Bash(npm run:*),Bash(npm install:*),Bash(cd:*)"
+            --model claude-opus-4-7
+            --allowedTools "Bash(bun ci:*),Bash(bun install:*),Bash(bun run:*),Bash(bun x:*),Bash(cd:*)"

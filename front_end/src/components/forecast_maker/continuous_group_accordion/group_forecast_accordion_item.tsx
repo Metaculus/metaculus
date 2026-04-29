@@ -179,7 +179,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
                 isResolved={isResolvedOption}
                 isDirty={!isResolvedOption && isDirty}
               >
-                <div className="flex h-full shrink grow items-center overflow-hidden">
+                <div className="flex h-full max-w-[90px] shrink grow basis-0 items-center overflow-hidden sm:max-w-[110px]">
                   <TruncatedTextTooltip
                     text={title}
                     showTooltip={!open}
@@ -188,7 +188,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
                   />
                 </div>
                 {(!open || !isLargeScreen) && (
-                  <div className="flex h-full min-w-[105px] max-w-[105px] shrink-0 grow-[3] items-center justify-center gap-0.5 sm:min-w-[420px] sm:max-w-[420px]">
+                  <div className="flex h-full min-w-[105px] max-w-[105px] shrink-0 grow-[3] items-center justify-center gap-0.5 sm:min-w-0 sm:max-w-none sm:flex-1">
                     <AccordionResolutionCell
                       formatedResolution={formatedResolution}
                       resolution={resolution}
@@ -203,7 +203,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
                         wasWithdrawn && !isDirty ? withdrawnLabel : undefined
                       }
                     />
-                    <div className="hidden h-full shrink-0 grow-0 items-center sm:block sm:w-[325px]">
+                    <div className="hidden h-full min-w-0 shrink grow items-center sm:block">
                       <ContinuousAreaChart
                         data={continuousAreaChartData}
                         graphType="pmf"
@@ -219,7 +219,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
                     </div>
                   </div>
                 )}
-                <div className="flex h-full w-[43px] shrink-0 grow-0 items-center justify-center">
+                <div className="ml-auto flex h-full w-[43px] shrink-0 grow-0 items-center justify-center">
                   <div className="flex size-[26px] items-center justify-center rounded-full border border-blue-400 bg-blue-100 dark:border-blue-400-dark dark:bg-blue-100-dark">
                     <FontAwesomeIcon
                       icon={faChevronDown}

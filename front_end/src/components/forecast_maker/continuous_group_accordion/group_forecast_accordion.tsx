@@ -162,17 +162,17 @@ const GroupForecastAccordion: FC<Props> = ({
       </div>
       {!!activeOptions.length && (
         <div className="mb-0.5 mt-2 flex w-full gap-0.5 text-left text-xs font-bold text-blue-700 dark:text-blue-700-dark">
-          <div className="flex shrink grow items-center overflow-hidden bg-blue-600/15 py-1 dark:bg-blue-400/15">
+          <div className="flex max-w-[90px] shrink grow basis-0 items-center overflow-hidden bg-blue-600/15 py-1 dark:bg-blue-400/15 sm:max-w-[110px]">
             <span className="line-clamp-2 pl-4">{groupVariable}</span>
           </div>
-          <div className="flex max-w-[105px] shrink grow-[3] items-center gap-0.5 text-center sm:max-w-[422px]">
-            <div className="w-[105px] bg-blue-600/15 py-1 dark:bg-blue-400/15">
+          <div className="flex min-w-0 shrink grow items-center gap-0.5 text-center">
+            <div className="w-[105px] shrink-0 bg-blue-600/15 py-1 dark:bg-blue-400/15">
               {t("median")}
               {homogeneousUnit && !isUnitCompact(homogeneousUnit) && (
                 <div>({homogeneousUnit})</div>
               )}
             </div>
-            <div className="hidden h-full bg-blue-600/15 dark:bg-blue-400/15 sm:flex sm:w-[325px] sm:shrink-0 sm:grow-0 sm:py-1">
+            <div className="hidden h-full bg-blue-600/15 dark:bg-blue-400/15 sm:flex sm:min-w-0 sm:flex-1 sm:py-1">
               <div className="m-auto">{t("pdf")}</div>
             </div>
           </div>
