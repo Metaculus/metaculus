@@ -95,6 +95,7 @@ class TestQuestionForecast:
                         probability_yes_per_category=[0.6, 0.4],
                         start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
                         end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.API,
                     ),
                 ],
             ),  # simple path
@@ -113,6 +114,7 @@ class TestQuestionForecast:
                         probability_yes_per_category=[0.6, 0.15, 0.25],
                         start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
                         end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.API,
                     ),
                 ],
             ),  # simple path 3 options
@@ -133,6 +135,7 @@ class TestQuestionForecast:
                         probability_yes_per_category=[0.6, None, 0.4],
                         start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
                         end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.API,
                     ),
                 ],
             ),  # option deletion
@@ -155,6 +158,7 @@ class TestQuestionForecast:
                         probability_yes_per_category=[0.6, 0.15, 0.20, 0.05],
                         start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
                         end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.API,
                     ),
                 ],
             ),  # option addition
@@ -176,6 +180,7 @@ class TestQuestionForecast:
                         probability_yes_per_category=[0.6, 0.15, None, 0.25],
                         start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
                         end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.API,
                     ),
                     Forecast(
                         probability_yes_per_category=[0.6, 0.15, 0.20, 0.05],
@@ -204,6 +209,7 @@ class TestQuestionForecast:
                         probability_yes_per_category=[0.6, 0.15, None, 0.25],
                         start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
                         end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.API,
                     ),
                     Forecast(
                         probability_yes_per_category=[0.6, 0.15, 0.20, 0.05],
@@ -592,7 +598,6 @@ class TestQuestionForecastAutoWithdrawal:
                 "probability_yes": 0.8,
                 "probability_yes_per_category": None,
                 "distribution_input": None,
-                "source": "ui",
                 "end_time": (
                     forecast_end_time.isoformat() if forecast_end_time else None
                 ),
