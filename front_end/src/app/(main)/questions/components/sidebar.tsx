@@ -1,13 +1,14 @@
 "use client";
 import {
   faArrowUp,
+  faChevronUp,
   faEllipsis,
   faHome,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FC, Fragment, useMemo, useState } from "react";
+import { FC, Fragment, useEffect, useRef, useMemo, useState } from "react";
 
 import TopicItem from "@/app/(main)/questions/components/topic_item";
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
@@ -44,6 +45,8 @@ const FeedSidebar: FC<Props> = ({ items }) => {
   const pathname = usePathname();
   const { params } = useSearchParams();
   const fullPathname = `${pathname}${params.toString() ? `?${params.toString()}` : ""}`;
+  const { bannerIsVisible: isTranslationBannerVisible } =
+    useContentTranslatedBannerContext();
 
   const sidebarSections: SidebarSection[] = useMemo(() => {
     const menuItems: SidebarMenuItem[] = [
@@ -135,22 +138,58 @@ const FeedSidebar: FC<Props> = ({ items }) => {
   ]);
 
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState<
+    Set<SidebarSectionType>
+  >(new Set());
 
-  const { bannerIsVisible: isTranslationBannerVisible } =
-    useContentTranslatedBannerContext();
+  const toggleSection = (sectionType: SidebarSectionType) => {
+    setCollapsedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(sectionType)) {
+        next.delete(sectionType);
+      } else {
+        next.add(sectionType);
+      }
+      return next;
+    });
+  };
+  const outerRef = useRef<HTMLDivElement | null>(null);
 
-  const topPositionClasses = isTranslationBannerVisible
-    ? "top-24 lg:top-20"
-    : "top-12 lg:top-20";
+  useEffect(() => {
+    const el = outerRef.current;
+    if (!el) return;
+
+    const obs = new ResizeObserver(([entry]) => {
+      const h = entry?.borderBoxSize?.[0]?.blockSize ?? el.offsetHeight;
+      document.documentElement.style.setProperty(
+        "--feed-sidebar-mobile-height",
+        `${h}px`
+      );
+    });
+
+    obs.observe(el);
+    return () => {
+      obs.disconnect();
+      document.documentElement.style.removeProperty(
+        "--feed-sidebar-mobile-height"
+      );
+    };
+  }, []);
 
   return (
     <div
+      ref={outerRef}
       className={cn(
-        "sticky z-100 mt-0 self-start sm:top-16 sm:mt-4",
-        topPositionClasses
+        "sticky z-100 border-y border-blue-400 bg-gray-0/70 backdrop-blur-md dark:border-blue-700 dark:bg-gray-0-dark/70 sm:static sm:min-h-[calc(100vh-3rem)] sm:border-y-0 sm:border-r",
+        isTranslationBannerVisible ? "top-24" : "top-header"
       )}
     >
-      <div className="relative w-full border-y border-blue-400 bg-gray-0/75 p-3 backdrop-blur-md no-scrollbar dark:border-blue-700 dark:bg-blue-50-dark/75 sm:max-h-[calc(100vh-76px)] sm:overflow-y-auto sm:border-none sm:bg-blue-200/0 sm:p-2 sm:pt-0 sm:dark:bg-blue-50-dark/0">
+      <div
+        className={cn(
+          "w-full p-2 no-scrollbar sm:sticky sm:max-h-[calc(100vh-3rem)] sm:overflow-y-auto sm:p-3",
+          isTranslationBannerVisible ? "sm:top-20" : "sm:top-header"
+        )}
+      >
         <div
           className={cn(
             "pointer-events-none absolute right-0 top-0 z-20 h-full w-32 bg-gradient-to-r from-transparent to-blue-100 dark:to-blue-50-dark sm:hidden",
@@ -160,7 +199,7 @@ const FeedSidebar: FC<Props> = ({ items }) => {
         <div
           className={cn(
             "absolute right-2 z-20 sm:hidden",
-            isMobileExpanded ? "bottom-3.5" : "top-3.5"
+            isMobileExpanded ? "bottom-2" : "top-2.5"
           )}
         >
           <Button
@@ -178,34 +217,49 @@ const FeedSidebar: FC<Props> = ({ items }) => {
 
         <div
           className={cn(
-            "relative z-10 flex snap-x gap-1.5 gap-y-2 overflow-x-auto pr-8 no-scrollbar sm:static sm:w-56 sm:flex-col sm:gap-y-1.5 sm:overflow-hidden sm:p-1 md:w-[210px] md:px-0 min-[812px]:w-64 min-[812px]:px-1",
+            "relative z-10 flex snap-x gap-1.5 gap-y-2 overflow-x-auto pr-8 no-scrollbar sm:static sm:w-56 sm:flex-col sm:gap-y-1.5 sm:overflow-hidden sm:p-1 lg:w-64",
             isMobileExpanded ? "flex-wrap" : "pr-10"
           )}
         >
           {sidebarSections
             .filter(({ items }) => items.length > 0)
-            .map(({ type: sectionType, title, items }) => (
-              <Fragment key={`menu-${sectionType}`}>
-                {title && (
-                  <div className="mt-1 hidden pl-2 text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-500-dark sm:block">
-                    {title}
-                  </div>
-                )}
-                {items.map(({ name, emoji, onClick, url, isActive }, idx) => (
-                  <TopicItem
-                    key={`menu-${sectionType}-${idx}`}
-                    text={name}
-                    emoji={emoji}
-                    href={url}
-                    onClick={() => {
-                      setIsMobileExpanded(false);
-                      onClick && onClick();
-                    }}
-                    isActive={isActive ?? false}
-                  />
-                ))}
-              </Fragment>
-            ))}
+            .map(({ type: sectionType, title, items }) => {
+              const isCollapsed =
+                sectionType !== null && collapsedSections.has(sectionType);
+              return (
+                <Fragment key={`menu-${sectionType}`}>
+                  {title && sectionType !== null && (
+                    <button
+                      onClick={() => toggleSection(sectionType)}
+                      className="mt-1 hidden h-8 w-full items-center justify-between rounded bg-blue-200 px-2.5 text-xs font-bold uppercase leading-4 text-gray-500 dark:bg-blue-200-dark dark:text-gray-500-dark sm:flex"
+                    >
+                      {title}
+                      <FontAwesomeIcon
+                        icon={faChevronUp}
+                        className={cn(
+                          "text-sm transition-transform duration-200",
+                          isCollapsed && "rotate-180"
+                        )}
+                      />
+                    </button>
+                  )}
+                  {items.map(({ name, emoji, onClick, url, isActive }, idx) => (
+                    <TopicItem
+                      key={`menu-${sectionType}-${idx}`}
+                      text={name}
+                      emoji={emoji}
+                      href={url}
+                      onClick={() => {
+                        setIsMobileExpanded(false);
+                        onClick && onClick();
+                      }}
+                      isActive={isActive ?? false}
+                      className={cn(isCollapsed && "sm:hidden")}
+                    />
+                  ))}
+                </Fragment>
+              );
+            })}
 
           <TopicItem
             href="/questions/discovery"

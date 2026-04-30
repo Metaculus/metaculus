@@ -131,7 +131,10 @@ const Listbox = <T extends string>(props: Props<T>) => {
                   {({ focus, selected }) => (
                     <button
                       className={cn(
-                        "flex h-10 w-full items-center justify-end gap-1 whitespace-nowrap px-3 text-right text-sm",
+                        "flex h-10 w-full items-center gap-1 whitespace-nowrap px-3 text-sm",
+                        menuPosition === "left"
+                          ? "justify-start text-left"
+                          : "justify-end text-right",
                         {
                           "bg-gray-200 dark:bg-gray-200-dark": focus,
                           "font-bold": selected,
@@ -160,6 +163,7 @@ const Listbox = <T extends string>(props: Props<T>) => {
               renderInPortal
               preventParentScroll={preventParentScroll}
               menuMinWidthMatchesButton={menuMinWidthMatchesButton}
+              menuPosition={menuPosition}
               optionsClassName={optionsClassName}
               buttonRef={buttonRef}
               options={options}
@@ -186,6 +190,7 @@ type FloatingMenuProps<T> = {
   renderInPortal: boolean;
   preventParentScroll: boolean;
   menuMinWidthMatchesButton: boolean;
+  menuPosition?: "left" | "right";
   optionsClassName?: string;
   buttonRef: React.RefObject<HTMLButtonElement | null>;
   options: SelectOption<T>[];
@@ -198,6 +203,7 @@ function FloatingMenu<T extends string>({
   renderInPortal,
   preventParentScroll,
   menuMinWidthMatchesButton,
+  menuPosition = "right",
   optionsClassName,
   buttonRef,
   options,
@@ -263,7 +269,10 @@ function FloatingMenu<T extends string>({
           {({ focus, selected }) => (
             <button
               className={cn(
-                "flex h-10 w-full items-center justify-end gap-1 whitespace-nowrap px-3 text-right text-sm",
+                "flex h-10 w-full items-center gap-1 whitespace-nowrap px-3 text-sm",
+                menuPosition === "left"
+                  ? "justify-start text-left"
+                  : "justify-end text-right",
                 {
                   "bg-gray-200 dark:bg-gray-200-dark": focus,
                   "font-bold": selected,

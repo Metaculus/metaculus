@@ -5,7 +5,6 @@ import {
   useState,
   FC,
   createContext,
-  useEffect,
   Dispatch,
   SetStateAction,
   useCallback,
@@ -14,11 +13,7 @@ import {
 import { POST_TEXT_SEARCH_FILTER } from "@/constants/posts_feed";
 import useSearchInputState from "@/hooks/use_search_input_state";
 
-import { useNavigation } from "./navigation_context";
-
 interface GlobalSearchContextProps {
-  isVisible: boolean;
-  setIsVisible: (a: boolean) => void;
   globalSearch: string;
   updateGlobalSearch: (search: string) => void;
   setModifySearchParams: Dispatch<SetStateAction<boolean>>;
@@ -26,8 +21,6 @@ interface GlobalSearchContextProps {
   setIsSearched: Dispatch<SetStateAction<boolean>>;
 }
 const GlobalSearchContext = createContext<GlobalSearchContextProps>({
-  isVisible: false,
-  setIsVisible: () => {},
   globalSearch: "",
   updateGlobalSearch: () => {},
   setModifySearchParams: () => {},
@@ -36,7 +29,6 @@ const GlobalSearchContext = createContext<GlobalSearchContextProps>({
 });
 
 export const GlobalSearchProvider: FC<PropsWithChildren> = ({ children }) => {
-  const [isVisible, setIsVisible] = useState(false);
   const [modifySearchParams, setModifySearchParams] = useState(false);
   const [globalSearch, setGlobalSearch] = useSearchInputState(
     POST_TEXT_SEARCH_FILTER,
@@ -47,20 +39,6 @@ export const GlobalSearchProvider: FC<PropsWithChildren> = ({ children }) => {
     }
   );
   const [isSearched, setIsSearched] = useState(false);
-
-  const { previousPath, currentPath } = useNavigation();
-  useEffect(() => {
-    if (previousPath !== currentPath && previousPath !== null) {
-      setIsVisible(false);
-    }
-  }, [previousPath, currentPath]);
-  const [delayedIsVisible, setDelayedIsVisible] = useState(false);
-
-  useEffect(() => {
-    setTimeout(() => {
-      setDelayedIsVisible(isVisible);
-    }, 100);
-  }, [isVisible]);
 
   const updateGlobalSearch = useCallback(
     (search: string) => {
@@ -76,8 +54,6 @@ export const GlobalSearchProvider: FC<PropsWithChildren> = ({ children }) => {
   return (
     <GlobalSearchContext.Provider
       value={{
-        isVisible: delayedIsVisible,
-        setIsVisible,
         globalSearch,
         updateGlobalSearch,
         setModifySearchParams,

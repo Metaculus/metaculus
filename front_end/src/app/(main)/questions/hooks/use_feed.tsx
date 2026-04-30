@@ -3,6 +3,7 @@ import { useCallback, useMemo } from "react";
 
 import {
   FeedType,
+  POST_CATEGORIES_FILTER,
   POST_COMMUNITIES_FILTER,
   POST_FOLLOWING_FILTER,
   POST_FOR_MAIN_FEED,
@@ -23,6 +24,7 @@ const useFeed = () => {
   const pathname = usePathname();
 
   const selectedTopic = params.get(POST_TOPIC_FILTER);
+  const selectedCategory = params.get(POST_CATEGORIES_FILTER);
   const guessedById = params.get(POST_FORECASTER_ID_FILTER);
   const authorUsernames = params.getAll(POST_USERNAMES_FILTER);
   const following = params.get(POST_FOLLOWING_FILTER);
@@ -32,7 +34,7 @@ const useFeed = () => {
   const commentsFeed = params.get(POST_COMMENTS_FEED_FILTER);
 
   const currentFeed = useMemo(() => {
-    if (selectedTopic) return null;
+    if (selectedTopic || selectedCategory) return null;
     if (guessedById) return FeedType.MY_PREDICTIONS;
     if (following) return FeedType.FOLLOWING;
 
@@ -53,6 +55,7 @@ const useFeed = () => {
     return FeedType.HOME;
   }, [
     selectedTopic,
+    selectedCategory,
     guessedById,
     following,
     authorUsernames,

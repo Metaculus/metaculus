@@ -146,6 +146,8 @@ const TournamentFilters: FC = () => {
       sortOptions={sortOptions}
       onOrderChange={handleOrderChange}
       inputConfig={{ debounceTime: 500, mode: "client" }}
+      className="mb-3"
+      forceLayout="list"
     />
   );
 };

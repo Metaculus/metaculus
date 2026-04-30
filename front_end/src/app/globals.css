@@ -9,10 +9,16 @@
     box-sizing: border-box;
     border: 0 solid #e5e7eb;
   }
-  /* required to fix a open dialog bug
+  /* required to fix HeadlessUI scroll lock breaking sticky elements
   https://github.com/tailwindlabs/headlessui/discussions/2181 */
-  html:has(#headlessui-portal-root) {
-    @apply !overflow-visible !p-0;
+  html[style*="overflow: hidden"],
+  html[style*="overflow:hidden"] {
+    overflow: clip !important;
+    padding-right: 0 !important;
+  }
+  body[style*="overflow: auto"],
+  body[style*="overflow:auto"] {
+    overflow: unset !important;
   }
 }
 

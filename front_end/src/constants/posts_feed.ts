@@ -34,4 +34,6 @@ export const POST_COMMENTS_FEED_FILTER = "comments_feed";
 export const POST_PROJECT_FILTER = "default_project_id";
 export const POST_IDS_FILTER = "ids";
 
+export const FEED_LAYOUT_COOKIE = "feed_layout";
+
 export const POSTS_PER_PAGE = 10;

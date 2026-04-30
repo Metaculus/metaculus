@@ -95,7 +95,11 @@ export default async function IndividualCommunity(props: Props) {
               <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
             }
           >
-            <AwaitedPostsFeed filters={pageFilters} isCommunity={true} />
+            <AwaitedPostsFeed
+              filters={pageFilters}
+              isCommunity={true}
+              forceLayout="list"
+            />
           </Suspense>
         </div>
       </main>

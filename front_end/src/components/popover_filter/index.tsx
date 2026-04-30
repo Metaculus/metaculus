@@ -1,4 +1,4 @@
-import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faFilter, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { useTranslations } from "next-intl";
@@ -33,18 +33,21 @@ const Panel: FC<PropsWithChildren<PanelProps>> = ({
     if (!fullScreenEnabled || isLargeScreen) return;
 
     if (open) {
-      document.body.style.overflow = "hidden";
+      document.body.style.overflow = "clip";
     } else {
       document.body.style.overflow = "auto";
     }
   }, [fullScreenEnabled, isLargeScreen, open]);
 
+  const usePortal = fullScreenEnabled && !isLargeScreen;
+
   return (
     <PopoverPanel
+      portal={usePortal}
       className={cn(
         "absolute right-0 top-10 z-[100] box-border flex flex-col items-start overflow-hidden overflow-y-auto rounded border border-gray-300 bg-gray-0 p-5 shadow-lg shadow-[#0003] dark:border-gray-300-dark dark:bg-gray-0-dark",
         {
-          "max-sm:fixed max-sm:top-0 max-sm:z-[1300] max-sm:h-dvh max-sm:w-screen max-sm:overflow-y-auto max-sm:px-5 max-sm:pb-0 max-sm:pt-5":
+          "max-sm:!fixed max-sm:!inset-0 max-sm:z-[1300] max-sm:h-dvh max-sm:w-screen max-sm:overflow-y-auto max-sm:overscroll-contain max-sm:px-5 max-sm:pb-0 max-sm:pt-5":
             fullScreenEnabled,
         },
         className
@@ -58,6 +61,9 @@ const Panel: FC<PropsWithChildren<PanelProps>> = ({
 type Props = {
   filters: FilterSection[];
   buttonLabel?: string;
+  buttonClassName?: string;
+  clearButtonClassName?: string;
+  iconOnlyBelowMd?: boolean;
   panelClassName?: string;
   onChange: (
     filterId: string,
@@ -67,37 +73,78 @@ type Props = {
   ) => void;
   onClear: () => void;
   fullScreenEnabled?: boolean;
+  hasActiveFilters?: boolean;
 };
 
 const PopoverFilter: FC<Props> = ({
   filters,
   buttonLabel,
+  buttonClassName,
+  clearButtonClassName,
+  iconOnlyBelowMd,
   panelClassName,
   onChange,
   onClear,
   fullScreenEnabled,
+  hasActiveFilters,
 }) => {
   const t = useTranslations();
+  const resolvedButtonLabel = buttonLabel || t("Filter");
 
   return (
     <Popover className="relative">
       {({ open, close }) => (
         <>
-          <PopoverButton
-            as={Button}
-            className={cn({
-              "bg-gray-300 dark:bg-gray-300-dark": open,
-            })}
-            onClick={() =>
-              sendAnalyticsEvent("feedFilterClick", {
-                event_category: new URLSearchParams(
-                  window.location.search
-                ).toString(),
-              })
-            }
-          >
-            {buttonLabel || t("Filter")}
-          </PopoverButton>
+          <div className="flex items-stretch">
+            <PopoverButton
+              as={Button}
+              size="sm"
+              variant={hasActiveFilters ? "secondary" : "tertiary"}
+              aria-label={resolvedButtonLabel}
+              className={cn(
+                hasActiveFilters && "rounded-r-none border-r-0 pr-1.5",
+                {
+                  "border-blue-600 bg-blue-100 dark:border-blue-600-dark dark:bg-blue-100-dark":
+                    open && !hasActiveFilters,
+                },
+                buttonClassName
+              )}
+              onClick={() =>
+                sendAnalyticsEvent("feedFilterClick", {
+                  event_category: new URLSearchParams(
+                    window.location.search
+                  ).toString(),
+                })
+              }
+            >
+              {iconOnlyBelowMd && (
+                <FontAwesomeIcon
+                  icon={faFilter}
+                  className="size-3 sm:size-3.5 md:hidden"
+                />
+              )}
+              <span className={cn(iconOnlyBelowMd && "max-md:hidden")}>
+                {resolvedButtonLabel}
+              </span>
+            </PopoverButton>
+            {hasActiveFilters && (
+              <Button
+                variant="secondary"
+                size="sm"
+                className={cn(
+                  "rounded-l-none border-l-0 pl-1.5 pr-2",
+                  clearButtonClassName
+                )}
+                aria-label={t("clear")}
+                onClick={onClear}
+              >
+                <FontAwesomeIcon
+                  icon={faXmark}
+                  className="text-xs text-salmon-600 dark:text-salmon-500"
+                />
+              </Button>
+            )}
+          </div>
           <Panel
             open={open}
             fullScreenEnabled={fullScreenEnabled}

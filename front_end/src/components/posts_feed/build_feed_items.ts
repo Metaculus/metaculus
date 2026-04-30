@@ -6,6 +6,27 @@ export type FeedItem =
   | { type: "post"; post: PostWithForecasts }
   | { type: "project"; tile: FeedProjectTile };
 
+const postItemCache = new WeakMap<PostWithForecasts, FeedItem>();
+const tileItemCache = new WeakMap<FeedProjectTile, FeedItem>();
+
+function getPostItem(post: PostWithForecasts): FeedItem {
+  let item = postItemCache.get(post);
+  if (!item) {
+    item = { type: "post", post };
+    postItemCache.set(post, item);
+  }
+  return item;
+}
+
+function getTileItem(tile: FeedProjectTile): FeedItem {
+  let item = tileItemCache.get(tile);
+  if (!item) {
+    item = { type: "project", tile };
+    tileItemCache.set(tile, item);
+  }
+  return item;
+}
+
 function seededRandom(seed: number): () => number {
   let s = seed | 0 || 1;
   return () => {
@@ -19,7 +40,7 @@ export function buildFeedItems(
   tiles: FeedProjectTile[]
 ): FeedItem[] {
   if (!tiles.length || !posts.length) {
-    return posts.map((post) => ({ type: "post", post }));
+    return posts.map((post) => getPostItem(post));
   }
 
   const seed =
@@ -59,10 +80,10 @@ export function buildFeedItems(
 
   const items: FeedItem[] = [];
   posts.forEach((post, i) => {
-    items.push({ type: "post", post });
+    items.push(getPostItem(post));
     const tile = tileAtIndex.get(i);
     if (tile) {
-      items.push({ type: "project", tile });
+      items.push(getTileItem(tile));
     }
   });
 

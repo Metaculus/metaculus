@@ -34,8 +34,8 @@ const BasicPostControls: FC<PropsWithChildren<Props>> = ({
     minimalistic;
 
   return (
-    <div className="mt-3 flex items-center justify-between rounded-ee rounded-es dark:border-blue-400-dark max-lg:flex-1">
-      <div className="flex items-center gap-1.5 md:gap-2">
+    <div className="mt-3 flex flex-1 items-center justify-between rounded-ee rounded-es @[680px]:flex-initial dark:border-blue-400-dark">
+      <div className="flex items-center gap-1.5 @[480px]:gap-2">
         {!minimalistic && <PostVoter post={post} />}
 
         {/* CommentStatus - compact on small screens, full on large screens */}
@@ -43,14 +43,14 @@ const BasicPostControls: FC<PropsWithChildren<Props>> = ({
           totalCount={post.comment_count ?? 0}
           unreadCount={post.unread_comment_count ?? 0}
           url={getPostLink(post)}
-          className="bg-gray-200 dark:bg-gray-200-dark md:hidden"
+          className="bg-gray-200 @[480px]:hidden dark:bg-gray-200-dark"
           compact={true}
         />
         <CommentStatus
           totalCount={post.comment_count ?? 0}
           unreadCount={post.unread_comment_count ?? 0}
           url={getPostLink(post)}
-          className="hidden bg-gray-200 dark:bg-gray-200-dark md:flex"
+          className="hidden bg-gray-200 @[480px]:flex dark:bg-gray-200-dark"
           compact={false}
         />
 
@@ -59,28 +59,28 @@ const BasicPostControls: FC<PropsWithChildren<Props>> = ({
           post={post}
           resolution={resolutionData}
           compact={true}
-          className="md:hidden"
+          className="@[480px]:hidden"
         />
         <PostStatus
           post={post}
           resolution={resolutionData}
           compact={shouldUseCompactPostStatus}
-          className="hidden md:flex"
+          className="hidden @[480px]:flex"
         />
 
         {/* ForecastersCounter - compact on small screens, full on large screens */}
         <ForecastersCounter
           forecasters={post.nr_forecasters}
           compact={true}
-          className="md:hidden"
+          className="@[480px]:hidden"
         />
         <ForecastersCounter
           forecasters={post.nr_forecasters}
           compact={minimalistic}
-          className="hidden md:flex"
+          className="hidden @[480px]:flex"
         />
       </div>
-      <div className="hidden overflow-hidden lg:inline-flex">
+      <div className="hidden overflow-hidden @[680px]:inline-flex">
         {!minimalistic && defaultProject && (
           <PostDefaultProject defaultProject={defaultProject} />
         )}
