@@ -92,7 +92,7 @@ class LeaderboardSerializer(serializers.Serializer):
 
     def get_max_coverage(self, obj: Leaderboard):
         if self.context.get("include_max_coverage", False):
-            return (
+            return sum(
                 obj.get_questions()
                 .filter(resolution__isnull=False)
                 .exclude(
@@ -101,7 +101,7 @@ class LeaderboardSerializer(serializers.Serializer):
                         UnsuccessfulResolutionType.AMBIGUOUS,
                     ]
                 )
-                .count()
+                .values_list("question_weight", flat=True)
             )
 
     def get_is_primary_leaderboard(self, obj: Leaderboard):
