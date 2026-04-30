@@ -66,18 +66,7 @@ export function openFlowCommentsAndScrollToComment(commentId: number) {
   if (typeof window === "undefined") return;
 
   const HEADER_OFFSET_PX = 52;
-  const hash = `comment-${commentId}`;
-
-  const setHashNoScroll = (nextHash: string) => {
-    const url = new URL(window.location.href);
-    url.hash = nextHash;
-    history.replaceState(null, "", url);
-    window.dispatchEvent(new Event("hashchange"));
-  };
-
-  if (window.location.hash !== `#${hash}`) {
-    setHashNoScroll(hash);
-  }
+  const targetId = `comment-${commentId}`;
 
   const wrapper = document.getElementById(PREDICTION_FLOW_COMMENTS_TOGGLE_ID);
   const toggleBtn =
@@ -97,7 +86,7 @@ export function openFlowCommentsAndScrollToComment(commentId: number) {
   };
 
   const tryScroll = (attempt = 0) => {
-    const el = document.getElementById(hash);
+    const el = document.getElementById(targetId);
     if (el) {
       scrollToElWithOffset(el);
 
