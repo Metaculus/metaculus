@@ -94,3 +94,6 @@ max-complexity = 56
 
 [tool.ruff.format]
 quote-style = "double"
+
+[tool.uv]
+exclude-newer = "3 days"
