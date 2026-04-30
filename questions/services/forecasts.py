@@ -11,7 +11,10 @@ from rest_framework.exceptions import ValidationError
 
 from notifications.constants import MailingTags
 from posts.models import PostUserSnapshot, PostSubscription
-from posts.services.subscriptions import create_subscription_cp_change
+from posts.services.subscriptions import (
+    create_subscription_cp_change,
+    create_subscription,
+)
 from posts.tasks import run_on_post_forecast
 from questions.services.multiple_choice_handlers import get_all_options_from_history
 from scoring.models import Score
@@ -285,6 +288,59 @@ def update_forecast_notification(
                 "forecast": forecast,
             },
         )
+
+    if created and user.automatically_follow_on_predict:
+        post = question.post
+        existing_subscription = post.subscriptions.filter(user=user).exclude(
+            is_global=True
+        )
+        if (
+            user.follow_notify_cp_change_threshold
+            and not existing_subscription.filter(
+                type=PostSubscription.SubscriptionType.CP_CHANGE
+            ).exists()
+        ):
+            create_subscription(
+                subscription_type=PostSubscription.SubscriptionType.CP_CHANGE,
+                user=user,
+                post=post,
+                cp_change_threshold=user.follow_notify_cp_change_threshold,
+            )
+        if (
+            user.follow_notify_comments_frequency
+            and not existing_subscription.filter(
+                type=PostSubscription.SubscriptionType.NEW_COMMENTS
+            ).exists()
+        ):
+            create_subscription(
+                subscription_type=PostSubscription.SubscriptionType.NEW_COMMENTS,
+                user=user,
+                post=post,
+                comments_frequency=user.follow_notify_comments_frequency,
+            )
+        if (
+            user.follow_notify_milestone_step
+            and not existing_subscription.filter(
+                type=PostSubscription.SubscriptionType.MILESTONE
+            ).exists()
+        ):
+            create_subscription(
+                subscription_type=PostSubscription.SubscriptionType.MILESTONE,
+                user=user,
+                post=post,
+                milestone_step=user.follow_notify_milestone_step,
+            )
+        if (
+            user.follow_notify_on_status_change
+            and not existing_subscription.filter(
+                type=PostSubscription.SubscriptionType.STATUS_CHANGE
+            ).exists()
+        ):
+            create_subscription(
+                subscription_type=PostSubscription.SubscriptionType.STATUS_CHANGE,
+                user=user,
+                post=post,
+            )
 
 
 def get_last_aggregated_forecasts_for_questions(
