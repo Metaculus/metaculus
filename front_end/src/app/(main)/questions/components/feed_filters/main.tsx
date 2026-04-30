@@ -17,7 +17,6 @@ import {
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
-import { useBreakpoint } from "@/hooks/tailwind";
 import useSearchParams from "@/hooks/use_search_params";
 import ClientProjectsApi from "@/services/api/projects/projects.client";
 import { PostStatus } from "@/types/post";
@@ -39,9 +38,6 @@ const MainFeedFilters: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
-
-  const isMediumScreen = useBreakpoint("md");
-  const isLargeScreen = useBreakpoint("lg");
 
   const [projectFilters, setProjectFilters] = useState<
     TournamentPreview[] | undefined
@@ -90,63 +86,34 @@ const MainFeedFilters: FC<Props> = ({
     return filters;
   }, [params, t, user, projectFilters]);
 
-  const mainSortNewsVisible = !PUBLIC_MINIMAL_UI && isLargeScreen;
-  const mainSortNewVisible = isLargeScreen;
-
   const mainSortOptions: GroupButton<QuestionOrder>[] = useMemo(
-    () =>
-      isMediumScreen
+    () => [
+      {
+        value: QuestionOrder.HotDesc,
+        label: t("hot"),
+      },
+      {
+        value: QuestionOrder.WeeklyMovementDesc,
+        label: t("movers"),
+      },
+      {
+        value: QuestionOrder.OpenTimeDesc,
+        label: t("new"),
+      },
+      ...(!PUBLIC_MINIMAL_UI
         ? [
             {
-              value: QuestionOrder.HotDesc,
-              label: t("hot"),
+              value: QuestionOrder.NewsHotness,
+              label: t("inTheNews"),
             },
-            {
-              value: QuestionOrder.WeeklyMovementDesc,
-              label: t("movers"),
-            },
-            ...(mainSortNewVisible
-              ? [
-                  {
-                    value: QuestionOrder.OpenTimeDesc,
-                    label: t("new"),
-                  },
-                ]
-              : []),
-            ...(mainSortNewsVisible
-              ? [
-                  {
-                    value: QuestionOrder.NewsHotness,
-                    label: t("inTheNews"),
-                  },
-                ]
-              : []),
           ]
-        : [],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t, isLargeScreen, isMediumScreen]
+        : []),
+    ],
+    [t, PUBLIC_MINIMAL_UI]
   );
 
   const sortOptions = useMemo(
     () => [
-      ...(!isMediumScreen
-        ? [
-            {
-              value: QuestionOrder.HotDesc,
-              label: t("hot"),
-            },
-            {
-              value: QuestionOrder.WeeklyMovementDesc,
-              label: t("movers"),
-            },
-          ]
-        : []),
-      ...(!isMediumScreen || !mainSortNewVisible
-        ? [{ value: QuestionOrder.OpenTimeDesc, label: t("new") }]
-        : []),
-      ...((!isMediumScreen || !mainSortNewsVisible) && !PUBLIC_MINIMAL_UI
-        ? [{ value: QuestionOrder.NewsHotness, label: t("inTheNews") }]
-        : []),
       { value: QuestionOrder.VotesDesc, label: t("mostUpvotes") },
       { value: QuestionOrder.CommentCountDesc, label: t("mostComments") },
       {
@@ -165,13 +132,7 @@ const MainFeedFilters: FC<Props> = ({
       { value: QuestionOrder.ResolveTimeAsc, label: t("resolvingSoon") },
       { value: QuestionOrder.CpRevealTimeDesc, label: t("recentlyRevealed") },
     ],
-    [
-      mainSortNewVisible,
-      mainSortNewsVisible,
-      PUBLIC_MINIMAL_UI,
-      t,
-      isMediumScreen,
-    ]
+    [t]
   );
 
   const onOrderChange = (

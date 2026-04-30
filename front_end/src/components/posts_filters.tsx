@@ -1,10 +1,19 @@
 "use client";
 
 import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { debounce } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useMemo } from "react";
+import {
+  CSSProperties,
+  FC,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { getFilterChipColor } from "@/app/(main)/questions/helpers/filters";
 import PopoverFilter from "@/components/popover_filter";
@@ -88,6 +97,8 @@ const PostsFilters: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { layout, setLayout } = useFeedLayout();
+  const actionRailRef = useRef<HTMLDivElement>(null);
+  const [actionRailWidth, setActionRailWidth] = useState(0);
   const {
     params,
     setParam,
@@ -121,12 +132,35 @@ const PostsFilters: FC<Props> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    const actionRail = actionRailRef.current;
+
+    if (!actionRail) {
+      return;
+    }
+
+    const updateActionRailWidth = () => {
+      setActionRailWidth(actionRail.offsetWidth);
+    };
+
+    updateActionRailWidth();
+
+    const resizeObserver = new ResizeObserver(updateActionRailWidth);
+    resizeObserver.observe(actionRail);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   const eraseSearch = () => {
     updateGlobalSearch("");
   };
 
   const order = (params.get(POST_ORDER_BY_FILTER) ??
     defaultOrder) as QuestionOrder;
+  const hasActiveDropdownSort =
+    dropdownSortOptions?.some((o) => o.value === order) ?? false;
 
   const [popoverFilters, activeFilters] = useMemo(() => {
     const activeFilters: ActiveFilter[] = filters.flatMap((filterSection) =>
@@ -232,52 +266,93 @@ const PostsFilters: FC<Props> = ({
   const removeFilter = (filterId: string, filterValue: string) => {
     deleteParam(filterId, true, filterValue);
   };
+  const railFadeWidth = actionRailWidth ? 48 : 0;
 
   return (
     <div className={className}>
-      <div className="flex flex-wrap items-center gap-2">
-        {mainSortOptions.map((button) => (
-          <Button
-            key={button.value}
-            variant={button.value === order ? "primary" : "tertiary"}
-            className="border-transparent"
-            size="md"
-            onClick={() => {
-              handleOrderChange(button.value);
-              sendAnalyticsEvent("feedShortcutClick", {
-                event_category: button.label as string,
-              });
-            }}
+      <div className="relative">
+        <div
+          className="-ml-[var(--posts-filter-rail-bleed-left,0px)] w-[calc(100%+var(--posts-filter-rail-bleed-left,0px))] overflow-x-auto no-scrollbar"
+          style={
+            {
+              maskImage: `linear-gradient(to right, black calc(100% - ${
+                actionRailWidth + railFadeWidth
+              }px), transparent calc(100% - ${actionRailWidth}px))`,
+              WebkitMaskImage: `linear-gradient(to right, black calc(100% - ${
+                actionRailWidth + railFadeWidth
+              }px), transparent calc(100% - ${actionRailWidth}px))`,
+            } as CSSProperties
+          }
+        >
+          <div
+            className="flex w-max gap-1.5 pl-[var(--posts-filter-rail-bleed-left,0px)] after:w-[var(--posts-filter-action-rail-width)] after:shrink-0 after:content-[''] sm:gap-2"
+            style={
+              {
+                "--posts-filter-action-rail-width": `${actionRailWidth}px`,
+              } as CSSProperties
+            }
           >
-            {button.label}
-          </Button>
-        ))}
-        <div className="flex grow justify-end gap-3">
+            {mainSortOptions.map((button) => (
+              <Button
+                key={button.value}
+                variant={button.value === order ? "primary" : "tertiary"}
+                className="shrink-0 border-transparent max-sm:px-3 max-sm:text-sm max-sm:leading-none"
+                size="md"
+                onClick={() => {
+                  handleOrderChange(button.value);
+                  sendAnalyticsEvent("feedShortcutClick", {
+                    event_category: button.label as string,
+                  });
+                }}
+              >
+                {button.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+        <div
+          ref={actionRailRef}
+          className="absolute inset-y-0 right-0 z-10 flex items-center gap-1.5 pl-1.5 sm:gap-3 sm:pl-2"
+        >
           {dropdownSortOptions && (
-            <Listbox
-              buttonVariant={
-                dropdownSortOptions.some((o) => o.value === order)
-                  ? "secondary"
-                  : "tertiary"
-              }
-              className="rounded-full"
-              onChange={handleOrderChange}
-              onClick={(value) =>
-                sendAnalyticsEvent("feedSortClick", {
-                  event_category: value,
-                })
-              }
-              options={dropdownSortOptions}
-              value={order || defaultOrder}
-              menuPosition="left"
-              label={
-                dropdownSortOptions.find((o) => o.value === order)
-                  ? `${t("sort")}: ${dropdownSortOptions.find((o) => o.value === order)?.label}`
-                  : t("sort")
-              }
-            />
+            <div className="flex items-stretch">
+              <Listbox
+                buttonVariant={hasActiveDropdownSort ? "secondary" : "tertiary"}
+                className={cn(
+                  "rounded-full max-sm:px-2 max-sm:py-1 max-sm:text-xs",
+                  hasActiveDropdownSort && "rounded-r-none border-r-0 pr-1.5"
+                )}
+                onChange={handleOrderChange}
+                onClick={(value) =>
+                  sendAnalyticsEvent("feedSortClick", {
+                    event_category: value,
+                  })
+                }
+                options={dropdownSortOptions}
+                value={order || defaultOrder}
+                menuPosition="right"
+                label={
+                  dropdownSortOptions.find((o) => o.value === order)
+                    ? `${t("sort")}: ${dropdownSortOptions.find((o) => o.value === order)?.label}`
+                    : t("sort")
+                }
+              />
+              {hasActiveDropdownSort && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="rounded-l-none border-l-0 pl-1.5 pr-2 max-sm:px-1.5 max-sm:py-1"
+                  aria-label={t("clear")}
+                  onClick={() => handleOrderChange(defaultOrder)}
+                >
+                  <FontAwesomeIcon
+                    icon={faXmark}
+                    className="text-xs text-salmon-600 dark:text-salmon-500"
+                  />
+                </Button>
+              )}
+            </div>
           )}
-          {mainSortOptions.length === 0 ? <div className="flex-1" /> : null}
           <PopoverFilter
             filters={popoverFilters}
             onChange={handlePopOverFilterChange}
@@ -285,6 +360,9 @@ const PostsFilters: FC<Props> = ({
             onClear={clearPopupFilters}
             fullScreenEnabled
             hasActiveFilters={activeFilters.length > 0}
+            iconOnlyBelowMd
+            buttonClassName="max-md:shrink-0 max-md:p-0 max-md:[&.rounded-r-none]:rounded-l-full max-md:[&:not(.rounded-r-none)]:rounded-full max-sm:size-[26px] sm:max-md:size-8"
+            clearButtonClassName="max-sm:px-1.5 max-sm:py-1"
           />
           <SearchInput
             value={globalSearch}
@@ -314,17 +392,20 @@ const PostsFilters: FC<Props> = ({
         </div>
       </div>
       {!!activeFilters.length && (
-        <div className="mt-2 flex flex-wrap gap-3">
+        <div className="mt-2 flex flex-wrap gap-1.5 sm:gap-3">
           {activeFilters.map(({ id, label, value }) => (
             <Chip
               color={getFilterChipColor(id)}
               variant="outlined"
-              className="rounded-full pl-1"
+              className="rounded-full pl-1 [&>button]:max-sm:p-1 [&>button]:max-sm:text-xs [&>button]:max-sm:leading-3"
               key={`filter-chip-${id}-${value}`}
               onClick={() => removeFilter(id, value)}
             >
               {label}
-              <FontAwesomeIcon icon={faCircleXmark} className="ml-1" />
+              <FontAwesomeIcon
+                icon={faCircleXmark}
+                className="ml-1 text-salmon-600 dark:text-salmon-500"
+              />
             </Chip>
           ))}
         </div>

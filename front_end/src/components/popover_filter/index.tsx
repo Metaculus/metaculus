@@ -1,4 +1,4 @@
-import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faFilter, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { useTranslations } from "next-intl";
@@ -61,6 +61,9 @@ const Panel: FC<PropsWithChildren<PanelProps>> = ({
 type Props = {
   filters: FilterSection[];
   buttonLabel?: string;
+  buttonClassName?: string;
+  clearButtonClassName?: string;
+  iconOnlyBelowMd?: boolean;
   panelClassName?: string;
   onChange: (
     filterId: string,
@@ -76,6 +79,9 @@ type Props = {
 const PopoverFilter: FC<Props> = ({
   filters,
   buttonLabel,
+  buttonClassName,
+  clearButtonClassName,
+  iconOnlyBelowMd,
   panelClassName,
   onChange,
   onClear,
@@ -83,6 +89,7 @@ const PopoverFilter: FC<Props> = ({
   hasActiveFilters,
 }) => {
   const t = useTranslations();
+  const resolvedButtonLabel = buttonLabel || t("Filter");
 
   return (
     <Popover className="relative">
@@ -93,12 +100,14 @@ const PopoverFilter: FC<Props> = ({
               as={Button}
               size="sm"
               variant={hasActiveFilters ? "secondary" : "tertiary"}
+              aria-label={resolvedButtonLabel}
               className={cn(
                 hasActiveFilters && "rounded-r-none border-r-0 pr-1.5",
                 {
                   "border-blue-600 bg-blue-100 dark:border-blue-600-dark dark:bg-blue-100-dark":
                     open && !hasActiveFilters,
-                }
+                },
+                buttonClassName
               )}
               onClick={() =>
                 sendAnalyticsEvent("feedFilterClick", {
@@ -108,17 +117,31 @@ const PopoverFilter: FC<Props> = ({
                 })
               }
             >
-              {buttonLabel || t("Filter")}
+              {iconOnlyBelowMd && (
+                <FontAwesomeIcon
+                  icon={faFilter}
+                  className="size-3 sm:size-3.5 md:hidden"
+                />
+              )}
+              <span className={cn(iconOnlyBelowMd && "max-md:hidden")}>
+                {resolvedButtonLabel}
+              </span>
             </PopoverButton>
             {hasActiveFilters && (
               <Button
                 variant="secondary"
                 size="sm"
-                className="rounded-l-none border-l-0 pl-1.5 pr-2"
+                className={cn(
+                  "rounded-l-none border-l-0 pl-1.5 pr-2",
+                  clearButtonClassName
+                )}
                 aria-label={t("clear")}
                 onClick={onClear}
               >
-                <FontAwesomeIcon icon={faXmark} className="text-xs" />
+                <FontAwesomeIcon
+                  icon={faXmark}
+                  className="text-xs text-salmon-600 dark:text-salmon-500"
+                />
               </Button>
             )}
           </div>

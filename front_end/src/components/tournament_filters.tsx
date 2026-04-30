@@ -21,7 +21,6 @@ import {
   POST_WITHDRAWN_FILTER,
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
-import { useBreakpoint } from "@/hooks/tailwind";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
@@ -53,45 +52,31 @@ const TournamentFilters: FC = () => {
   const { user } = useAuth();
   const { params } = useSearchParams();
   const t = useTranslations();
-  const isMediumScreen = useBreakpoint("md");
 
   const filters = useMemo(() => {
     return getTournamentPostsFilters({ user, t, params });
   }, [params, t, user]);
 
   const mainSortOptions = useMemo(
-    () =>
-      isMediumScreen
-        ? [
-            {
-              value: QuestionOrder.ActivityDesc,
-              label: t("hot"),
-            },
-            {
-              value: QuestionOrder.WeeklyMovementDesc,
-              label: t("movers"),
-            },
-            {
-              value: QuestionOrder.OpenTimeDesc,
-              label: t("new"),
-            },
-          ]
-        : [],
-    [t, isMediumScreen]
+    () => [
+      {
+        value: QuestionOrder.ActivityDesc,
+        label: t("hot"),
+      },
+      {
+        value: QuestionOrder.WeeklyMovementDesc,
+        label: t("movers"),
+      },
+      {
+        value: QuestionOrder.OpenTimeDesc,
+        label: t("new"),
+      },
+    ],
+    [t]
   );
 
   const sortOptions = useMemo(
     () => [
-      ...(!isMediumScreen
-        ? [
-            { value: QuestionOrder.ActivityDesc, label: t("hot") },
-            {
-              value: QuestionOrder.WeeklyMovementDesc,
-              label: t("movers"),
-            },
-            { value: QuestionOrder.OpenTimeDesc, label: t("new") },
-          ]
-        : []),
       { value: QuestionOrder.VotesDesc, label: t("mostUpvotes") },
       { value: QuestionOrder.CommentCountDesc, label: t("mostComments") },
       {
@@ -128,7 +113,7 @@ const TournamentFilters: FC = () => {
         : []),
       { value: QuestionOrder.NewsHotness, label: t("inTheNews") },
     ],
-    [t, user, isMediumScreen]
+    [t, user]
   );
 
   const handleOrderChange = (

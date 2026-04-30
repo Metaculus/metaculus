@@ -80,7 +80,9 @@ const StickyFilterBar: React.FC<{ children: React.ReactNode }> = ({
           isStuck ? glassClasses : "border-b border-transparent bg-transparent"
         )}
       >
-        <div className="mx-auto max-w-5xl p-2 pt-2.5 sm:p-4">{children}</div>
+        <div className="mx-auto max-w-5xl p-2 pt-2.5 [--posts-filter-rail-bleed-left:0.5rem] sm:p-4 sm:[--posts-filter-rail-bleed-left:1rem]">
+          {children}
+        </div>
       </div>
     </>
   );

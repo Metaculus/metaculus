@@ -16,7 +16,6 @@ import {
   POST_STATUS_FILTER,
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
-import { useBreakpoint } from "@/hooks/tailwind";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
@@ -27,7 +26,6 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
   const { params } = useSearchParams();
   const t = useTranslations();
   const { user } = useAuth();
-  const isMediumScreen = useBreakpoint("lg");
 
   const filters = useMemo(() => {
     const filters = [
@@ -45,44 +43,25 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
   }, [params, t, user]);
 
   const mainSortOptions: GroupButton<QuestionOrder>[] = useMemo(
-    () =>
-      isMediumScreen
-        ? [
-            {
-              value: QuestionOrder.WeeklyMovementDesc,
-              label: t("movers"),
-            },
-            {
-              value: QuestionOrder.UserNextWithdrawTimeAsc,
-              label: t("withdrawingSoon"),
-            },
-            {
-              value: QuestionOrder.UnreadCommentCountDesc,
-              label: t("newComments"),
-            },
-          ]
-        : [],
-    [t, isMediumScreen]
+    () => [
+      {
+        value: QuestionOrder.WeeklyMovementDesc,
+        label: t("movers"),
+      },
+      {
+        value: QuestionOrder.UserNextWithdrawTimeAsc,
+        label: t("withdrawingSoon"),
+      },
+      {
+        value: QuestionOrder.UnreadCommentCountDesc,
+        label: t("newComments"),
+      },
+    ],
+    [t]
   );
 
   const sortOptions = useMemo(
     () => [
-      ...(!isMediumScreen
-        ? [
-            {
-              value: QuestionOrder.WeeklyMovementDesc,
-              label: t("movers"),
-            },
-            {
-              value: QuestionOrder.UserNextWithdrawTimeAsc,
-              label: t("withdrawingSoon"),
-            },
-            {
-              value: QuestionOrder.UnreadCommentCountDesc,
-              label: t("newComments"),
-            },
-          ]
-        : []),
       {
         value: QuestionOrder.LastPredictionTimeDesc,
         label: t("recentPredictions"),
@@ -98,7 +77,7 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
       { value: QuestionOrder.LastPredictionTimeAsc, label: t("stale") },
       { value: QuestionOrder.NewsHotness, label: t("inTheNews") },
     ],
-    [t, isMediumScreen]
+    [t]
   );
 
   const handleFilterChange = (
