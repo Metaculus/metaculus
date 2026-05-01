@@ -16,9 +16,8 @@ import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
 
 import NotebookRedirect from "../components/notebook_redirect";
 import QuestionEmbedModal from "../components/question_embed_modal";
-import QuestionLayout from "../components/question_layout";
+import QuestionPageShell from "../components/question_page_shell";
 import { QuestionVariantComposer } from "../components/question_variant_composer";
-import QuestionView from "../components/question_view";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
 import { cachedGetPost } from "./utils/get_post";
@@ -85,22 +84,13 @@ const IndividualQuestionPage: FC<{
                         />
                       </div>
                     )}
-                    <QuestionLayout
+                    <QuestionPageShell
                       postData={postData}
                       preselectedGroupQuestionId={preselectedGroupQuestionId}
-                    >
-                      {isCommunityQuestion && defaultProject && (
-                        <CommunityDisclaimer
-                          project={defaultProject}
-                          variant="standalone"
-                          className="block sm:hidden"
-                        />
-                      )}
-                      <QuestionView
-                        postData={postData}
-                        preselectedGroupQuestionId={preselectedGroupQuestionId}
-                      />
-                    </QuestionLayout>
+                      mobileSidebar={
+                        <Sidebar postData={postData} layout="mobile" />
+                      }
+                    />
                   </div>
                   <QuestionVariantComposer
                     forecaster={

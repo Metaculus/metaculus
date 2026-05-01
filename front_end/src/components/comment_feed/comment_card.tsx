@@ -108,16 +108,15 @@ const ExpandableCommentContent = ({
     >
       {/* Author info */}
       <div className="flex items-start justify-between gap-1.5 text-gray-500 dark:text-gray-500-dark">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
+        <div className="flex min-w-0 flex-col">
           <Link
             href={`/accounts/profile/${comment.author.id}/`}
             className="truncate text-base font-bold leading-6 text-gray-800 no-underline hover:underline dark:text-gray-800-dark"
           >
             {formatUsername(comment.author)}
           </Link>
-          ·
           <span
-            className="shrink-0 text-base font-normal leading-6"
+            className="shrink-0 text-sm font-normal leading-5 text-gray-500 dark:text-gray-500-dark"
             suppressHydrationWarning
           >
             {t("onDate", {
