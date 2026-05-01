@@ -20,6 +20,7 @@ import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
   checkGroupOfQuestionsPostType,
+  isContinuousQuestion,
   isGroupOfQuestionsPost,
   isMultipleChoicePost,
   isQuestionPost,
@@ -85,7 +86,7 @@ export const ForecasterShell: FC<
           />
         </div>
         <ActionRow post={postData} variant="forecaster" />
-        <div className="md:-mt-2 lg:-mt-3">
+        <div className="-mt-2 lg:-mt-3">
           {isQuestionPost(postData) && (
             <DetailedQuestionCard
               post={postData}
@@ -122,9 +123,23 @@ export const ConsumerShell: FC<{ postData: PostWithForecasts }> = ({
     postData.group_of_questions &&
     checkGroupOfQuestionsPostType(postData, QuestionType.Date);
 
+  const isMultipleChoice = isMultipleChoicePost(postData);
+  const isNonFanGroup = isGroupOfQuestionsPost(postData) && !isFanGraph;
+
   const reverseOrder =
-    (isMultipleChoicePost(postData) || isGroupOfQuestionsPost(postData)) &&
-    !isDateGroup;
+    (isMultipleChoice || isGroupOfQuestionsPost(postData)) && !isDateGroup;
+
+  const isContinuousSingleQuestion =
+    isQuestionPost(postData) && isContinuousQuestion(postData.question);
+
+  const isBinarySingleQuestion =
+    isQuestionPost(postData) &&
+    !isContinuousSingleQuestion &&
+    !isMultipleChoice;
+
+  const showSideBySide =
+    (isMultipleChoice || isNonFanGroup || isBinarySingleQuestion) &&
+    !isContinuousSingleQuestion;
 
   const showClosedMessageMultipleChoice =
     isMultipleChoicePost(postData) &&
@@ -149,12 +164,14 @@ export const ConsumerShell: FC<{ postData: PostWithForecasts }> = ({
           className="block sm:hidden"
         />
       )}
-      <MetaRow
-        post={postData}
-        variant="consumer"
-        className="-mx-4 mb-2 lg:-mx-8"
-      />
-      <TitleRow post={postData} variant="consumer" />
+      <div className="flex flex-col gap-4">
+        <MetaRow
+          post={postData}
+          variant="consumer"
+          className="-mx-4 mb-2 lg:-mx-8"
+        />
+        <TitleRow post={postData} variant="consumer" />
+      </div>
       <div className="order-2 md:order-none">
         <ActionRow post={postData} variant="consumer" />
       </div>
@@ -167,17 +184,39 @@ export const ConsumerShell: FC<{ postData: PostWithForecasts }> = ({
         <div
           className={cn(
             "flex flex-col",
-            reverseOrder && "flex-col-reverse",
-            !reverseOrder && "sm:flex-row sm:items-center sm:gap-8"
+            reverseOrder &&
+              !isMultipleChoice &&
+              !isNonFanGroup &&
+              "flex-col-reverse",
+            showSideBySide && "sm:flex-row sm:items-center sm:gap-8"
           )}
         >
-          <ConsumerQuestionPrediction postData={postData} />
+          {!isContinuousSingleQuestion && (
+            <div
+              className={
+                showSideBySide
+                  ? isDateGroup
+                    ? "order-2"
+                    : "order-1"
+                  : undefined
+              }
+            >
+              <ConsumerQuestionPrediction postData={postData} />
+            </div>
+          )}
           {!isFanGraph && (
             <QuestionTimeline
               postData={postData}
               keyFactors={postData.key_factors}
               hideTitle
-              className={!reverseOrder ? "mt-0 flex-1" : undefined}
+              isConsumerView={!isContinuousSingleQuestion}
+              className={
+                showSideBySide
+                  ? isDateGroup
+                    ? "order-1 mt-0 flex-1"
+                    : "order-2 mt-0 flex-1"
+                  : undefined
+              }
             />
           )}
           {showClosedMessageFanGraph && (

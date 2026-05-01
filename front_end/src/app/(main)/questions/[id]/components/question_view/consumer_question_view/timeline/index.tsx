@@ -20,6 +20,7 @@ type Props = {
   className?: string;
   hideTitle?: boolean;
   keyFactors?: KeyFactor[];
+  isConsumerView?: boolean;
 };
 
 const QuestionTimeline: React.FC<Props> = ({
@@ -27,6 +28,7 @@ const QuestionTimeline: React.FC<Props> = ({
   className,
   hideTitle,
   keyFactors,
+  isConsumerView = true,
 }) => {
   const isFanGraph =
     postData.group_of_questions?.graph_type ===
@@ -44,7 +46,7 @@ const QuestionTimeline: React.FC<Props> = ({
           <DetailedQuestionCard
             post={postData}
             hideTitle={hideTitle}
-            isConsumerView={true}
+            isConsumerView={isConsumerView}
             keyFactors={keyFactors}
           />
         </div>

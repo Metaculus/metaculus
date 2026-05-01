@@ -269,6 +269,18 @@ const Comment: FC<CommentProps> = ({
       });
     }
   }, [questionLayout?.replyToCommentId, comment.id, questionLayout]);
+
+  useEffect(() => {
+    if (questionLayout?.scrollToCommentId === comment.id) {
+      questionLayout.clearScrollToComment();
+      requestAnimationFrame(() => {
+        commentRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      });
+    }
+  }, [questionLayout?.scrollToCommentId, comment.id, questionLayout]);
   const [errorMessage, setErrorMessage] = useState<string | ErrorResponse>();
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
   const [tempCommentMarkdown, setTempCommentMarkdown] = useState("");
