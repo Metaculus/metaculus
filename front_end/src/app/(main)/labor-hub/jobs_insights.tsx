@@ -47,10 +47,10 @@ export const JOBS_INSIGHTS = {
         <strong>finance</strong> and <strong>law</strong> are expected to see
         sharp staff reductions as AI systems take over large portions of coding,
         marketing, accounting, and detailed research work, while{" "}
-        <strong>laborers</strong>, <strong>teachers</strong> and{" "}
-        <strong>designers</strong> see a contraction as more advanced robotics,
-        AI-powered education curricula, and image generation capabilities roll
-        out.
+        <strong>laborers</strong> and <strong>designers</strong> see a
+        contraction as more advanced robotics and image generation capabilities
+        roll out. <strong>Teachers</strong> see a demography-led decline as
+        student numbers fall.
       </>
     ),
   },
