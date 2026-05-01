@@ -89,7 +89,10 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
             totalCount={post.comment_count ?? 0}
             unreadCount={post.unread_comment_count ?? 0}
             url={getPostLink(post)}
-            className="bg-gray-200 text-xs leading-4 dark:bg-gray-200-dark"
+            className={cn(
+              "bg-gray-200 text-xs leading-4 dark:bg-gray-200-dark",
+              variant === "consumer" && "font-bold"
+            )}
             compact={true}
           />
           {variant === "forecaster" && (

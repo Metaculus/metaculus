@@ -410,7 +410,7 @@ const CommentFeed: FC<Props> = ({
             )}
           </div>
         )}
-        <div className="mb-5 flex flex-row items-center justify-start gap-1">
+        <div className="mb-4 flex flex-row items-center justify-start gap-1 md:mb-5">
           <span className="text-sm font-medium leading-5 text-gray-600 dark:text-gray-600-dark">
             {totalCount ? `${totalCount} ` : ""}
             {t("commentsWithCount", { count: totalCount })}
@@ -453,7 +453,7 @@ const CommentFeed: FC<Props> = ({
             )}
           </>
         )}
-        <div className="mt-5 flex flex-col gap-5">
+        <div className="mt-4 flex flex-col gap-4 md:mt-5 md:gap-5">
           {comments.map((comment: CommentType) => (
             <CommentWrapper
               key={comment.id}

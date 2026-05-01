@@ -8,14 +8,14 @@ import { openKeyFactorsSectionAndScrollTo } from "@/app/(main)/questions/[id]/co
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
-import KeyFactorDetailOverlay from "./key_factor_detail_overlay";
-import KeyFactorsConsumerCarousel from "./key_factors_consumer_carousel";
-import { useShouldHideKeyFactors } from "./use_should_hide_key_factors";
-import { useQuestionLayout } from "../question_layout/question_layout_context";
 import {
   MAX_TOP_KEY_FACTORS,
   useTopKeyFactorsCarouselItems,
 } from "./hooks/use_top_key_factors_carousel_items";
+import KeyFactorDetailOverlay from "./key_factor_detail_overlay";
+import KeyFactorsConsumerCarousel from "./key_factors_consumer_carousel";
+import { useShouldHideKeyFactors } from "./use_should_hide_key_factors";
+import { useQuestionLayout } from "../question_layout/question_layout_context";
 
 type Props = {
   post: PostWithForecasts;
@@ -51,7 +51,7 @@ const KeyFactorsQuestionConsumerSection: FC<Props> = ({ post }) => {
 
   return (
     <div
-      className="-ml-4 mt-8 flex w-[calc(100%+32px)] flex-col pb-4 sm:ml-0 sm:w-full"
+      className="-ml-4 flex w-[calc(100%+32px)] flex-col pb-4 sm:ml-0 sm:mt-8 sm:w-full"
       id="top-key-factors"
     >
       <div className="mb-4 flex items-center justify-between px-4 sm:px-0">

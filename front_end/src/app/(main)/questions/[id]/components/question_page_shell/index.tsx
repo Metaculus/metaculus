@@ -39,7 +39,7 @@ import ConsumerQuestionPrediction from "../question_view/consumer_question_view/
 import QuestionTimeline from "../question_view/consumer_question_view/timeline";
 
 const baseSectionClassName =
-  "relative z-10 flex w-[59rem] max-w-full flex-col gap-5 overflow-x-clip rounded border border-blue-400 p-4 text-gray-900 dark:border-blue-200-dark dark:text-gray-900-dark lg:gap-6 lg:p-8";
+  "relative z-10 flex w-[59rem] max-w-full flex-col gap-6 overflow-x-clip rounded border border-blue-400 p-4 text-gray-900 dark:border-blue-200-dark dark:text-gray-900-dark lg:p-8";
 
 const mainSectionClassName = `${baseSectionClassName} bg-gray-0 dark:bg-gray-0-dark`;
 const commentSectionClassName = `${baseSectionClassName} bg-blue-100 dark:bg-gray-0-dark`;
@@ -70,7 +70,7 @@ export const ForecasterShell: FC<
 
   return (
     <Fragment>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1.5 md:gap-4">
         <section className={mainSectionClassName}>
           <PostStatusBox post={postData} className="mb-5 rounded lg:mb-6" />
           {postData.projects?.default_project && (
@@ -168,7 +168,7 @@ export const ConsumerShell: FC<{
   const shouldShowKeyFactorsSection = hasKeyFactors || hasQuestionLinks;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-1.5 md:gap-4">
       <section className={mainSectionClassName}>
         <PostStatusBox post={postData} className="mb-5 rounded lg:mb-6" />
         {postData.projects?.default_project && (
@@ -224,13 +224,13 @@ export const ConsumerShell: FC<{
                 hideTitle
                 isConsumerView={!isContinuousSingleQuestion}
                 preselectedGroupQuestionId={preselectedGroupQuestionId}
-                className={
-                  showSideBySide
-                    ? isDateGroup
+                className={cn(
+                  "hidden sm:block",
+                  showSideBySide &&
+                    (isDateGroup
                       ? "order-1 mt-0 flex-1"
-                      : "order-2 mt-0 flex-1"
-                    : undefined
-                }
+                      : "order-2 mt-0 flex-1")
+                )}
               />
             )}
             {isFanGraph && isGroupOfQuestionsPost(postData) && (
@@ -249,10 +249,12 @@ export const ConsumerShell: FC<{
               </p>
             )}
           </div>
-          {shouldShowKeyFactorsSection && (
-            <KeyFactorsQuestionConsumerSection post={postData} />
-          )}
         </div>
+        {shouldShowKeyFactorsSection && (
+          <div className="order-3 md:order-none">
+            <KeyFactorsQuestionConsumerSection post={postData} />
+          </div>
+        )}
       </section>
       <section className={commentSectionClassName}>
         <QuestionPageShellTabs post={postData} variant="consumer" />

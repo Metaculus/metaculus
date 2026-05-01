@@ -11,6 +11,7 @@ import MyScoresTab from "./tabs/my_scores";
 import PrivateNotesTab from "./tabs/private_notes";
 import QuestionInfoTab from "./tabs/question_info";
 import QuestionLinksTab from "./tabs/question_links";
+import TimelineTab from "./tabs/timeline";
 import KeyFactorsFeed from "../key_factors/key_factors_feed";
 import { useQuestionLayout } from "../question_layout/question_layout_context";
 
@@ -28,6 +29,8 @@ const renderActivePanel = (
   variant: Variant
 ) => {
   switch (activeTab) {
+    case "timeline":
+      return variant === "consumer" ? <TimelineTab post={post} /> : null;
     case "key-factors":
       return <KeyFactorsTab post={post} />;
     case "info":
@@ -57,7 +60,9 @@ const QuestionPageShellTabs: FC<Props> = ({ post, variant, className }) => {
           <KeyFactorsFeed post={post} />
         </div>
       )}
-      <div className="mt-5">{renderActivePanel(activeTab, post, variant)}</div>
+      <div className="mt-4 md:mt-5">
+        {renderActivePanel(activeTab, post, variant)}
+      </div>
     </div>
   );
 };

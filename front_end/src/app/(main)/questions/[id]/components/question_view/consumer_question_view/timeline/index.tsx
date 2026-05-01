@@ -35,11 +35,7 @@ const QuestionTimeline: React.FC<Props> = ({
   const isFanGraph =
     postData.group_of_questions?.graph_type ===
     GroupOfQuestionsGraphType.FanGraph;
-  const wrapperClass = cn(
-    " hidden sm:block",
-    isFanGraph ? "mb-8" : "mt-8",
-    className
-  );
+  const wrapperClass = cn(isFanGraph ? "mb-8" : "mt-8", className);
 
   if (isQuestionPost(postData)) {
     if (postData.question.status !== QuestionStatus.UPCOMING) {
