@@ -903,6 +903,10 @@ export function MethodologySection({ ...props }: ComponentProps<"section">) {
                 Community Prediction, which outperforms nearly all forecasters
                 across many questions.
               </p>
+              <p>
+                For the Labor Automation Forecasting Hub questions, forecasts
+                assume broad stability in global population size.
+              </p>
             </FAQItem>
             <FAQItem question="Who made these forecasts?">
               <p>
