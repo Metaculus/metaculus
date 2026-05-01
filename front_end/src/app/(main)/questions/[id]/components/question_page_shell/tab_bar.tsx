@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTab } from "@/components/ui/tabs";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 
-import { shouldPostShowScores } from "../post_score_data/utils";
+import { shouldPostShowUserScores } from "../post_score_data/utils";
 import { useQuestionLayout } from "../question_layout/question_layout_context";
 
 type TabKey =
@@ -45,7 +45,7 @@ const QuestionPageShellTabBar: FC<Props> = ({ post, variant, className }) => {
 
   const commentCount = post.comment_count ?? 0;
   const keyFactorsCount = post.key_factors?.length ?? 0;
-  const hasScores = shouldPostShowScores(post);
+  const hasScores = shouldPostShowUserScores(post);
 
   const forecasterTabs: TabDef[] = [
     { key: "comments", label: t("comments"), count: commentCount },

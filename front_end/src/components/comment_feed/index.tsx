@@ -345,6 +345,11 @@ const CommentFeed: FC<Props> = ({
     }
   };
 
+  const showBotPrivacyToggle = !profileId && !!user?.is_bot;
+  const showWelcomePrompt = !!postId && showWelcomeMessage && !user?.is_bot;
+  const showCommentHeader =
+    !compactVersion && (showTitle || showBotPrivacyToggle || showWelcomePrompt);
+
   return (
     <DefaultUserMentionsContextProvider
       defaultUserMentions={commentAuthorMentionItems}
@@ -365,49 +370,46 @@ const CommentFeed: FC<Props> = ({
           compactVersion && "p-0 xs:p-0"
         )}
       >
-        {!compactVersion &&
-          (showTitle ||
-            (!profileId && user?.is_bot) ||
-            (postId && showWelcomeMessage && !user?.is_bot)) && (
-            <div className="mb-4 mt-2 flex flex-col items-start gap-3">
-              <div
-                className={cn(
-                  "flex w-full flex-row justify-between gap-4 md:gap-3",
-                  {
-                    "justify-center sm:justify-start": !showTitle,
-                  }
-                )}
-              >
-                {showTitle && (
-                  <h2
-                    className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
-                    id="comments"
-                  >
-                    {t("comments")}
-                  </h2>
-                )}
-                {!profileId && user?.is_bot && (
-                  // Private comments were deprecated in favor of Private Notes
-                  // Leaving for bots for backward compatibility
-                  <ButtonGroup
-                    value={feedFilters.is_private ? "private" : "public"}
-                    buttons={feedOptions}
-                    onChange={(section) => {
-                      handleFilterChange("is_private", section === "private");
-                    }}
-                    variant="tertiary"
-                  />
-                )}
-              </div>
-              {postId && showWelcomeMessage && !user?.is_bot && (
-                <CommentWelcomeMessage
-                  onClick={() => {
-                    setUserCommentsAmount(NEW_USER_COMMENT_LIMIT);
+        {showCommentHeader && (
+          <div className="mb-4 mt-2 flex flex-col items-start gap-3">
+            <div
+              className={cn(
+                "flex w-full flex-row justify-between gap-4 md:gap-3",
+                {
+                  "justify-center sm:justify-start": !showTitle,
+                }
+              )}
+            >
+              {showTitle && (
+                <h2
+                  className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
+                  id="comments"
+                >
+                  {t("comments")}
+                </h2>
+              )}
+              {!profileId && user?.is_bot && (
+                // Private comments were deprecated in favor of Private Notes
+                // Leaving for bots for backward compatibility
+                <ButtonGroup
+                  value={feedFilters.is_private ? "private" : "public"}
+                  buttons={feedOptions}
+                  onChange={(section) => {
+                    handleFilterChange("is_private", section === "private");
                   }}
+                  variant="tertiary"
                 />
               )}
             </div>
-          )}
+            {postId && showWelcomeMessage && !user?.is_bot && (
+              <CommentWelcomeMessage
+                onClick={() => {
+                  setUserCommentsAmount(NEW_USER_COMMENT_LIMIT);
+                }}
+              />
+            )}
+          </div>
+        )}
         <div className="mb-5 flex flex-row items-center justify-start gap-1">
           <span className="text-sm font-medium leading-5 text-gray-600 dark:text-gray-600-dark">
             {totalCount ? `${totalCount} ` : ""}
