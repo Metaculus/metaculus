@@ -41,7 +41,7 @@ const TitleRow: FC<Props> = ({ post, variant, className }) => {
       >
         <div className="flex flex-1 flex-col">
           <div className="lg:order-0 order-1 flex items-center">
-            <QuestionTitle className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
+            <QuestionTitle className="text-xl font-bold leading-tight tracking-[-0.4px] text-blue-800 sm:text-3xl sm:tracking-tight lg:text-4xl dark:text-blue-800-dark">
               {post.title}
             </QuestionTitle>
             <div className="md:hidden">

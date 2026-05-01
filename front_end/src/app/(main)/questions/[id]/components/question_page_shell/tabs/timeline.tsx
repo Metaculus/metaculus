@@ -12,7 +12,6 @@ const TimelineTab: FC<Props> = ({ post }) => (
   <QuestionTimeline
     postData={post}
     keyFactors={post.key_factors}
-    hideTitle
     isConsumerView
   />
 );

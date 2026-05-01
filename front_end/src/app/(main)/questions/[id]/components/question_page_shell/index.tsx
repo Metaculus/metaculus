@@ -98,7 +98,6 @@ export const ForecasterShell: FC<
               <DetailedQuestionCard
                 post={postData}
                 keyFactors={postData.key_factors}
-                hideTitle
               />
             )}
             {isGroup && (
@@ -221,7 +220,6 @@ export const ConsumerShell: FC<{
               <QuestionTimeline
                 postData={postData}
                 keyFactors={postData.key_factors}
-                hideTitle
                 isConsumerView={!isContinuousSingleQuestion}
                 preselectedGroupQuestionId={preselectedGroupQuestionId}
                 className={cn(
