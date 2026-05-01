@@ -7,9 +7,11 @@ import { PostWithForecasts } from "@/types/post";
 import QuestionPageShellTabBar from "./tab_bar";
 import CommentsTab from "./tabs/comments";
 import KeyFactorsTab from "./tabs/key_factors";
+import MyScoresTab from "./tabs/my_scores";
 import PrivateNotesTab from "./tabs/private_notes";
 import QuestionInfoTab from "./tabs/question_info";
 import QuestionLinksTab from "./tabs/question_links";
+import KeyFactorsFeed from "../key_factors/key_factors_feed";
 import { useQuestionLayout } from "../question_layout/question_layout_context";
 
 type Variant = "consumer" | "forecaster";
@@ -34,6 +36,8 @@ const renderActivePanel = (
       return variant === "forecaster" ? <QuestionLinksTab post={post} /> : null;
     case "private-notes":
       return variant === "forecaster" ? <PrivateNotesTab post={post} /> : null;
+    case "my-scores":
+      return variant === "consumer" ? <MyScoresTab post={post} /> : null;
     case "comments":
     default:
       return <CommentsTab post={post} />;
@@ -42,11 +46,18 @@ const renderActivePanel = (
 
 const QuestionPageShellTabs: FC<Props> = ({ post, variant, className }) => {
   const { activeTab } = useQuestionLayout();
+  const isKeyFactors = activeTab === "key-factors";
 
   return (
     <div className={className}>
       <QuestionPageShellTabBar post={post} variant={variant} />
-      <div className="mt-8">{renderActivePanel(activeTab, post, variant)}</div>
+      {/* Mounted only when off the key-factors tab to power the overlay from any tab */}
+      {!isKeyFactors && (
+        <div className="hidden">
+          <KeyFactorsFeed post={post} />
+        </div>
+      )}
+      <div className="mt-5">{renderActivePanel(activeTab, post, variant)}</div>
     </div>
   );
 };
