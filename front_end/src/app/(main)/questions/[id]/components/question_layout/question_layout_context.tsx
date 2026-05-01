@@ -48,7 +48,7 @@ type QuestionLayoutContextValue = {
 const TAB_HASH_VALUES = new Set([
   "comments",
   "timeline",
-  "scores",
+  "my-scores",
   "key-factors",
   "info",
   "question-links",

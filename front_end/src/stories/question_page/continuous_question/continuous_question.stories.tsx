@@ -43,7 +43,7 @@ const meta = {
         <PostSubscriptionProvider post={postData}>
           <CoherenceLinksProvider post={postData}>
             <MockCommentsFeedProvider>
-              <div style={{ maxWidth: "703px", margin: "0 auto" }}>
+              <div style={{ maxWidth: "59rem", margin: "0 auto" }}>
                 <QuestionLayoutProvider>
                   <Story />
                 </QuestionLayoutProvider>

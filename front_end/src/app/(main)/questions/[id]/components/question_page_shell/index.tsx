@@ -56,12 +56,14 @@ export const ForecasterShell: FC<
   const locale = useLocale();
 
   useEffect(() => {
-    if (postData.is_current_content_translated) {
-      setTimeout(() => {
-        setBannerIsVisible(true);
-      }, 0);
-    }
-  }, [postData, locale, setBannerIsVisible]);
+    const timeoutId = window.setTimeout(() => {
+      setBannerIsVisible(Boolean(postData.is_current_content_translated));
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [postData.is_current_content_translated, locale, setBannerIsVisible]);
 
   const isResolved = postData.status === PostStatus.RESOLVED;
   const isGroup = isGroupOfQuestionsPost(postData);
@@ -118,9 +120,10 @@ export const ForecasterShell: FC<
   );
 };
 
-export const ConsumerShell: FC<{ postData: PostWithForecasts }> = ({
-  postData,
-}) => {
+export const ConsumerShell: FC<{
+  postData: PostWithForecasts;
+  mobileSidebar?: ReactNode;
+}> = ({ postData, mobileSidebar }) => {
   const t = useTranslations();
   const { aggregateCoherenceLinks } = useCoherenceLinksContext();
 
@@ -243,6 +246,7 @@ export const ConsumerShell: FC<{ postData: PostWithForecasts }> = ({
       <section className={commentSectionClassName}>
         <QuestionPageShellTabs post={postData} variant="consumer" />
       </section>
+      {mobileSidebar}
     </div>
   );
 };
@@ -261,7 +265,9 @@ const QuestionPageShell: FC<Props> = ({
   return (
     <QuestionLayoutProvider>
       <QuestionVariantComposer
-        consumer={<ConsumerShell postData={postData} />}
+        consumer={
+          <ConsumerShell postData={postData} mobileSidebar={mobileSidebar} />
+        }
         forecaster={
           <ForecasterShell
             postData={postData}
