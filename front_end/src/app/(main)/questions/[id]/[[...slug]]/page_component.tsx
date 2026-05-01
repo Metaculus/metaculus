@@ -18,6 +18,7 @@ import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
 import NotebookRedirect from "../components/notebook_redirect";
 import QuestionEmbedModal from "../components/question_embed_modal";
 import QuestionLayout from "../components/question_layout";
+import { QuestionVariantComposer } from "../components/question_variant_composer";
 import QuestionView from "../components/question_view";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
@@ -101,7 +102,14 @@ const IndividualQuestionPage: FC<{
                       />
                     </QuestionLayout>
                   </div>
-                  <Sidebar postData={postData} />
+                  <QuestionVariantComposer
+                    forecaster={
+                      <Sidebar postData={postData} variant="forecaster" />
+                    }
+                    consumer={
+                      <Sidebar postData={postData} variant="consumer" />
+                    }
+                  />
                 </div>
               </main>
 
