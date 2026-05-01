@@ -1,6 +1,8 @@
 import React, { FC } from "react";
 
 import ForecastMaker from "@/components/forecast_maker";
+import BackgroundInfo from "@/components/question/background_info";
+import ResolutionCriteria from "@/components/question/resolution_criteria";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { isContinuousQuestion } from "@/utils/questions/helpers";
@@ -27,11 +29,20 @@ const SingleQuestionScoreData: FC<Props> = ({
 
   if (isConsumerView) {
     return (
-      <ResolutionScoreCards
-        post={post}
-        isConsumerView={isConsumerView}
-        noSectionWrapper={noSectionWrapper}
-      />
+      <div className="flex flex-col gap-4">
+        {question.type !== QuestionType.MultipleChoice && (
+          <ParticipationSummarySection
+            question={question}
+            forecastsCount={post.forecasts_count ?? 0}
+            forecastersCount={nr_forecasters}
+          />
+        )}
+        <ResolutionScoreCards
+          post={post}
+          isConsumerView={isConsumerView}
+          noSectionWrapper={noSectionWrapper}
+        />
+      </div>
     );
   }
 
@@ -46,6 +57,8 @@ const SingleQuestionScoreData: FC<Props> = ({
       )}
       <ResolutionScoreCards post={post} />
       {isContinuousQuestion(question) && <ForecastMaker post={post} />}
+      <ResolutionCriteria post={post} defaultOpen />
+      <BackgroundInfo post={post} defaultOpen />
     </div>
   );
 };

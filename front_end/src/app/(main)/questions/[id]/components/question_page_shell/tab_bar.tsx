@@ -7,12 +7,14 @@ import { Tabs, TabsList, TabsTab } from "@/components/ui/tabs";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 
+import { shouldPostShowUserScores } from "../post_score_data/utils";
 import { useQuestionLayout } from "../question_layout/question_layout_context";
 
 type TabKey =
   | "comments"
   | "key-factors"
   | "info"
+  | "my-scores"
   | "question-links"
   | "private-notes";
 
@@ -43,20 +45,19 @@ const QuestionPageShellTabBar: FC<Props> = ({ post, variant, className }) => {
 
   const commentCount = post.comment_count ?? 0;
   const keyFactorsCount = post.key_factors?.length ?? 0;
+  const hasScores = shouldPostShowUserScores(post);
+
+  const forecasterTabs: TabDef[] = [
+    { key: "comments", label: t("comments"), count: commentCount },
+    { key: "key-factors", label: t("keyFactors"), count: keyFactorsCount },
+    { key: "info", label: t("info") },
+    { key: "question-links", label: t("questionLinks") },
+    { key: "private-notes", label: t("privateNotes") },
+  ];
 
   const tabs: TabDef[] =
     variant === "forecaster"
-      ? [
-          { key: "comments", label: t("comments"), count: commentCount },
-          {
-            key: "key-factors",
-            label: t("keyFactors"),
-            count: keyFactorsCount,
-          },
-          { key: "info", label: t("info") },
-          { key: "question-links", label: t("questionLinks") },
-          { key: "private-notes", label: t("privateNotes") },
-        ]
+      ? forecasterTabs
       : [
           { key: "comments", label: t("comments"), count: commentCount },
           {
@@ -65,6 +66,9 @@ const QuestionPageShellTabBar: FC<Props> = ({ post, variant, className }) => {
             count: keyFactorsCount,
           },
           { key: "info", label: t("info") },
+          ...(hasScores
+            ? [{ key: "my-scores" as TabKey, label: t("myScores") }]
+            : []),
         ];
 
   const defaultValue: TabKey = "comments";

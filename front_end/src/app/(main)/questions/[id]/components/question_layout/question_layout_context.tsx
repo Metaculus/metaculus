@@ -35,6 +35,11 @@ type QuestionLayoutContextValue = {
   requestReplyToComment: (commentId: number) => void;
   clearReplyToComment: () => void;
 
+  // Comment scroll trigger
+  scrollToCommentId: number | null;
+  requestScrollToComment: (commentId: number) => void;
+  clearScrollToComment: () => void;
+
   // Active tab state (shared between mobile + desktop tab bars)
   activeTab?: string;
   setActiveTab: (tab: string) => void;
@@ -43,7 +48,7 @@ type QuestionLayoutContextValue = {
 const TAB_HASH_VALUES = new Set([
   "comments",
   "timeline",
-  "scores",
+  "my-scores",
   "key-factors",
   "info",
   "question-links",
@@ -99,6 +104,16 @@ export const QuestionLayoutProvider = ({ children }: PropsWithChildren) => {
     setReplyToCommentId(null);
   }, []);
 
+  const [scrollToCommentId, setScrollToCommentId] = useState<number | null>(
+    null
+  );
+  const requestScrollToComment = useCallback((commentId: number) => {
+    setScrollToCommentId(commentId);
+  }, []);
+  const clearScrollToComment = useCallback(() => {
+    setScrollToCommentId(null);
+  }, []);
+
   const value = useMemo<QuestionLayoutContextValue>(
     () => ({
       keyFactorsExpanded,
@@ -110,6 +125,9 @@ export const QuestionLayoutProvider = ({ children }: PropsWithChildren) => {
       replyToCommentId,
       requestReplyToComment,
       clearReplyToComment,
+      scrollToCommentId,
+      requestScrollToComment,
+      clearScrollToComment,
       activeTab,
       setActiveTab,
     }),
@@ -123,6 +141,9 @@ export const QuestionLayoutProvider = ({ children }: PropsWithChildren) => {
       replyToCommentId,
       requestReplyToComment,
       clearReplyToComment,
+      scrollToCommentId,
+      requestScrollToComment,
+      clearScrollToComment,
       activeTab,
     ]
   );

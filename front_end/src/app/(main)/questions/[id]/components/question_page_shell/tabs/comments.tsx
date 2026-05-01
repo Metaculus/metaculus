@@ -11,7 +11,7 @@ type Props = {
 };
 
 const CommentsTab: FC<Props> = ({ post }) => (
-  <div className="[&>section]:!w-full [&>section]:!max-w-none [&>section]:!px-0">
+  <div className="[&>section]:!w-full [&>section]:!max-w-none [&>section]:!border-0 [&>section]:!bg-transparent [&>section]:!px-0 [&>section]:!py-0 [&>section]:after:!hidden">
     <ResponsiveCommentFeed postData={post} showTitle={false} />
   </div>
 );
