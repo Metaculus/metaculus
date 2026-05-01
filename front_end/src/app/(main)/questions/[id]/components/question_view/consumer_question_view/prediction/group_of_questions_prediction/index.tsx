@@ -56,10 +56,17 @@ const GroupOfQuestionsPrediction: React.FC<Props> = ({ postData }) => {
     }
   } else if (checkGroupOfQuestionsPostType(postData, QuestionType.Date)) {
     content = (
-      <DateForecastCard
-        post={postData}
-        questionsGroup={postData.group_of_questions}
-      />
+      <>
+        <div className="sm:hidden">
+          <NumericForecastCard post={postData} />
+        </div>
+        <div className="hidden sm:block">
+          <DateForecastCard
+            post={postData}
+            questionsGroup={postData.group_of_questions}
+          />
+        </div>
+      </>
     );
   }
 
@@ -70,7 +77,7 @@ const GroupOfQuestionsPrediction: React.FC<Props> = ({ postData }) => {
     postData.group_of_questions?.graph_type ===
       GroupOfQuestionsGraphType.FanGraph
       ? "mb-7"
-      : "mt-7";
+      : "md:mt-7";
 
   return <div className={wrapperClass}>{content}</div>;
 };
