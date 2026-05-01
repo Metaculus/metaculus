@@ -17,9 +17,10 @@ type Props = {
   className?: string;
   post: Post;
   questionPage?: boolean;
+  compact?: boolean;
 };
 
-const PostVoter: FC<Props> = ({ className, post, questionPage }) => {
+const PostVoter: FC<Props> = ({ className, post, questionPage, compact }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
 
@@ -77,7 +78,12 @@ const PostVoter: FC<Props> = ({ className, post, questionPage }) => {
         )}
       </Button>
       {vote.score != null && vote.score !== 0 && (
-        <span className="text-sm font-normal leading-4 text-gray-700 dark:text-gray-700-dark">
+        <span
+          className={cn(
+            "font-normal leading-4 text-gray-700 dark:text-gray-700-dark",
+            compact ? "text-xs" : "text-sm"
+          )}
+        >
           <span className="lining-nums tabular-nums">{vote.score}</span>
         </span>
       )}

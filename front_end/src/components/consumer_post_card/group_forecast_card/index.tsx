@@ -59,6 +59,9 @@ const GroupForecastCard: FC<Props> = ({ post, compact }) => {
     post.group_of_questions &&
     checkGroupOfQuestionsPostType(post, QuestionType.Date)
   ) {
+    if (compact) {
+      return <NumericForecastCard post={post} compact />;
+    }
     return (
       <DateForecastCard post={post} questionsGroup={post.group_of_questions} />
     );

@@ -18,6 +18,8 @@ import HistogramDrawer from "../histogram_drawer";
 import KeyFactorsQuestionSection from "../key_factors/key_factors_question_section";
 import { QuestionVariantComposer } from "../question_variant_composer";
 import QuestionTimeline from "../question_view/consumer_question_view/timeline";
+import SidebarContainer from "../sidebar/sidebar_container";
+import SidebarQuestionInfo from "../sidebar/sidebar_question_info";
 
 type Props = {
   postData: PostWithForecasts;
@@ -122,6 +124,15 @@ const QuestionInfo: React.FC<Props> = ({
       <HistogramDrawer post={postData} />
 
       <PrivateNote post={postData} />
+
+      <QuestionVariantComposer
+        consumer={
+          <SidebarContainer>
+            <SidebarQuestionInfo postData={postData} />
+          </SidebarContainer>
+        }
+        forecaster={null}
+      />
     </div>
   );
 };
