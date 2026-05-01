@@ -133,7 +133,7 @@ const QuestionContinuousTile: FC<Props> = ({
   // Binary questions use original side-by-side layout
   if (question.type === QuestionType.Binary) {
     return (
-      <div className="flex min-h-24 justify-between gap-6">
+      <div className="flex min-h-24 justify-center gap-6">
         <div className="inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
           <PredictionBinaryInfo
             question={question}
