@@ -7,6 +7,7 @@ import { PostWithForecasts } from "@/types/post";
 import QuestionPageShellTabBar from "./tab_bar";
 import CommentsTab from "./tabs/comments";
 import KeyFactorsTab from "./tabs/key_factors";
+import MyScoresTab from "./tabs/my_scores";
 import PrivateNotesTab from "./tabs/private_notes";
 import QuestionInfoTab from "./tabs/question_info";
 import QuestionLinksTab from "./tabs/question_links";
@@ -35,6 +36,8 @@ const renderActivePanel = (
       return variant === "forecaster" ? <QuestionLinksTab post={post} /> : null;
     case "private-notes":
       return variant === "forecaster" ? <PrivateNotesTab post={post} /> : null;
+    case "my-scores":
+      return variant === "consumer" ? <MyScoresTab post={post} /> : null;
     case "comments":
     default:
       return <CommentsTab post={post} />;

@@ -19,10 +19,9 @@ import { VoteDirection } from "@/types/votes";
 
 import CommentDetailPanel from "./comment_detail_panel";
 import { KeyFactorItem } from "./item_view";
+import { useQuestionLayoutSafe } from "../question_layout/question_layout_context";
 import QuestionLinkKeyFactorItem from "./item_view/question_link/question_link_key_factor_item";
 import MobileKeyFactorOverlay from "./mobile_key_factor_overlay";
-// eslint-disable-next-line import/order
-import { useQuestionLayoutSafe } from "../question_layout/question_layout_context";
 
 type KeyFactorOverlayProps = {
   keyFactor: KeyFactor;

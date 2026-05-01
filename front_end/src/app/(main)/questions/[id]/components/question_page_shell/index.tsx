@@ -31,6 +31,7 @@ import QuestionPageShellTabs from "./tabs";
 import TitleRow from "./title_row";
 import KeyFactorsQuestionConsumerSection from "../key_factors/key_factors_question_consumer_section";
 import { isDisplayableQuestionLink } from "../key_factors/utils";
+import PostScoreData from "../post_score_data";
 import { QuestionLayoutProvider } from "../question_layout/question_layout_context";
 import { QuestionVariantComposer } from "../question_variant_composer";
 import ActionRow from "../question_view/action_row";
@@ -106,6 +107,7 @@ export const ForecasterShell: FC<
             )}
           </div>
           {(!isResolved || isGroup) && <ForecastMaker post={postData} />}
+          <PostScoreData post={postData} noSectionWrapper />
         </section>
         <section className={commentSectionClassName}>
           <QuestionPageShellTabs post={postData} variant="forecaster" />

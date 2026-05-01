@@ -212,13 +212,9 @@ const CommentFeed: FC<Props> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hash, isLoading]);
 
-  // Handling filters change
+  // Handling filters change — always fetch from offset 0 and replace
   useEffect(() => {
-    const finalFilters = {
-      ...feedFilters,
-      offset,
-    };
-    void fetchComments(true, finalFilters);
+    void fetchComments(false, { ...feedFilters });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feedFilters]);
 
