@@ -369,46 +369,74 @@ const CommentFeed: FC<Props> = ({
           compactVersion && "p-0 xs:p-0"
         )}
       >
-        {!compactVersion && (
-          <div className="mb-4 mt-2 flex flex-col items-start gap-3">
-            <div
-              className={cn(
-                "flex w-full flex-row justify-between gap-4 md:gap-3",
-                {
-                  "justify-center sm:justify-start": !showTitle,
-                }
-              )}
-            >
-              {showTitle && (
-                <h2
-                  className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
-                  id="comments"
-                >
-                  {t("comments")}
-                </h2>
-              )}
-              {!profileId && user?.is_bot && (
-                // Private comments were deprecated in favor of Private Notes
-                // Leaving for bots for backward compatibility
-                <ButtonGroup
-                  value={feedFilters.is_private ? "private" : "public"}
-                  buttons={feedOptions}
-                  onChange={(section) => {
-                    handleFilterChange("is_private", section === "private");
+        {!compactVersion &&
+          (showTitle ||
+            (!profileId && user?.is_bot) ||
+            (postId && showWelcomeMessage && !user?.is_bot)) && (
+            <div className="mb-4 mt-2 flex flex-col items-start gap-3">
+              <div
+                className={cn(
+                  "flex w-full flex-row justify-between gap-4 md:gap-3",
+                  {
+                    "justify-center sm:justify-start": !showTitle,
+                  }
+                )}
+              >
+                {showTitle && (
+                  <h2
+                    className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
+                    id="comments"
+                  >
+                    {t("comments")}
+                  </h2>
+                )}
+                {!profileId && user?.is_bot && (
+                  // Private comments were deprecated in favor of Private Notes
+                  // Leaving for bots for backward compatibility
+                  <ButtonGroup
+                    value={feedFilters.is_private ? "private" : "public"}
+                    buttons={feedOptions}
+                    onChange={(section) => {
+                      handleFilterChange("is_private", section === "private");
+                    }}
+                    variant="tertiary"
+                  />
+                )}
+              </div>
+              {postId && showWelcomeMessage && !user?.is_bot && (
+                <CommentWelcomeMessage
+                  onClick={() => {
+                    setUserCommentsAmount(NEW_USER_COMMENT_LIMIT);
                   }}
-                  variant="tertiary"
                 />
               )}
             </div>
-            {postId && showWelcomeMessage && !user?.is_bot && (
-              <CommentWelcomeMessage
-                onClick={() => {
-                  setUserCommentsAmount(NEW_USER_COMMENT_LIMIT);
-                }}
-              />
+          )}
+        <div className="mb-5 flex flex-row items-center justify-start gap-1">
+          <span className="text-sm font-medium leading-5 text-gray-600 dark:text-gray-600-dark">
+            {totalCount ? `${totalCount} ` : ""}
+            {t("commentsWithCount", { count: totalCount })}
+            {postData?.last_viewed_at && (
+              <>
+                {getUnreadCount(comments) > 0 && (
+                  <span className="ml-1 font-bold text-purple-700 dark:text-purple-700-dark">
+                    ({getUnreadCount(comments)} {t("unread")})
+                  </span>
+                )}
+              </>
             )}
-          </div>
-        )}
+          </span>
+          <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
+            <Button
+              variant="text"
+              className="text-sm font-medium capitalize leading-5 text-blue-800 dark:text-blue-800-dark"
+            >
+              {menuItems.find((item) => item.id === feedFilters.sort)?.name ??
+                "sort"}
+              <FontAwesomeIcon icon={faChevronDown} />
+            </Button>
+          </DropdownMenu>
+        </div>
         {!compactVersion && postId && !user?.is_bot && (
           <>
             {showWelcomeMessage && !getIsMessagePreviouslyClosed() ? null : (
@@ -427,44 +455,23 @@ const CommentFeed: FC<Props> = ({
             )}
           </>
         )}
-
-        <div className="mb-1 mt-3 flex flex-row items-center justify-start gap-1">
-          <span className="text-sm text-gray-600 dark:text-gray-600-dark">
-            {totalCount ? `${totalCount} ` : ""}
-            {t("commentsWithCount", { count: totalCount })}
-            {postData?.last_viewed_at && (
-              <>
-                {getUnreadCount(comments) > 0 && (
-                  <span className="ml-1 font-bold text-purple-700 dark:text-purple-700-dark">
-                    ({getUnreadCount(comments)} {t("unread")})
-                  </span>
-                )}
-              </>
-            )}
-          </span>
-          <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
-            <Button variant="text" className="capitalize">
-              {menuItems.find((item) => item.id === feedFilters.sort)?.name ??
-                "sort"}
-              <FontAwesomeIcon icon={faChevronDown} />
-            </Button>
-          </DropdownMenu>
+        <div className="mt-5 flex flex-col gap-5">
+          {comments.map((comment: CommentType) => (
+            <CommentWrapper
+              key={comment.id}
+              comment={comment}
+              handleCommentPin={handleCommentPin}
+              profileId={profileId}
+              last_viewed_at={postData?.last_viewed_at}
+              postData={postData}
+              suggestKeyFactorsOnFirstRender={
+                // This is the newly added comment, so we want to suggest key factors
+                comment.id === userKeyFactorsComment?.id
+              }
+              shouldSuggestKeyFactors={shouldSuggestKeyFactors}
+            />
+          ))}
         </div>
-        {comments.map((comment: CommentType) => (
-          <CommentWrapper
-            key={comment.id}
-            comment={comment}
-            handleCommentPin={handleCommentPin}
-            profileId={profileId}
-            last_viewed_at={postData?.last_viewed_at}
-            postData={postData}
-            suggestKeyFactorsOnFirstRender={
-              // This is the newly added comment, so we want to suggest key factors
-              comment.id === userKeyFactorsComment?.id
-            }
-            shouldSuggestKeyFactors={shouldSuggestKeyFactors}
-          />
-        ))}
         {comments.length === 0 && !isLoading && (
           <>
             <hr className="my-4" />
