@@ -122,8 +122,9 @@ export const ForecasterShell: FC<
 
 export const ConsumerShell: FC<{
   postData: PostWithForecasts;
+  preselectedGroupQuestionId?: number;
   mobileSidebar?: ReactNode;
-}> = ({ postData, mobileSidebar }) => {
+}> = ({ postData, preselectedGroupQuestionId, mobileSidebar }) => {
   const t = useTranslations();
   const { aggregateCoherenceLinks } = useCoherenceLinksContext();
 
@@ -223,6 +224,7 @@ export const ConsumerShell: FC<{
                 keyFactors={postData.key_factors}
                 hideTitle
                 isConsumerView={!isContinuousSingleQuestion}
+                preselectedGroupQuestionId={preselectedGroupQuestionId}
                 className={
                   showSideBySide
                     ? isDateGroup
@@ -230,6 +232,16 @@ export const ConsumerShell: FC<{
                       : "order-2 mt-0 flex-1"
                     : undefined
                 }
+              />
+            )}
+            {isFanGraph && isGroupOfQuestionsPost(postData) && (
+              <DetailedGroupCard
+                post={postData}
+                preselectedQuestionId={preselectedGroupQuestionId}
+                groupPresentationOverride={
+                  GroupOfQuestionsGraphType.MultipleChoiceGraph
+                }
+                prioritizeOpenSubquestions
               />
             )}
             {showClosedMessageFanGraph && (
@@ -266,7 +278,11 @@ const QuestionPageShell: FC<Props> = ({
     <QuestionLayoutProvider>
       <QuestionVariantComposer
         consumer={
-          <ConsumerShell postData={postData} mobileSidebar={mobileSidebar} />
+          <ConsumerShell
+            postData={postData}
+            preselectedGroupQuestionId={preselectedGroupQuestionId}
+            mobileSidebar={mobileSidebar}
+          />
         }
         forecaster={
           <ForecasterShell

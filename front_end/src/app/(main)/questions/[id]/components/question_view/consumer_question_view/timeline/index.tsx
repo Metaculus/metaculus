@@ -21,6 +21,7 @@ type Props = {
   hideTitle?: boolean;
   keyFactors?: KeyFactor[];
   isConsumerView?: boolean;
+  preselectedGroupQuestionId?: number;
 };
 
 const QuestionTimeline: React.FC<Props> = ({
@@ -29,6 +30,7 @@ const QuestionTimeline: React.FC<Props> = ({
   hideTitle,
   keyFactors,
   isConsumerView = true,
+  preselectedGroupQuestionId,
 }) => {
   const isFanGraph =
     postData.group_of_questions?.graph_type ===
@@ -66,7 +68,10 @@ const QuestionTimeline: React.FC<Props> = ({
         {isDateType ? (
           <NumericForecastCard post={postData} forceColorful />
         ) : (
-          <DetailedGroupCard post={postData} />
+          <DetailedGroupCard
+            post={postData}
+            preselectedQuestionId={preselectedGroupQuestionId}
+          />
         )}
       </div>
     );
