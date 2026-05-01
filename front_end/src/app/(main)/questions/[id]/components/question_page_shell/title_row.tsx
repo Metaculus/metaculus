@@ -69,6 +69,7 @@ const TitleRow: FC<Props> = ({ post, variant, className }) => {
     <QuestionTitle
       className={cn(
         "text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl",
+        variant === "consumer" && "text-center md:text-left",
         className
       )}
     >

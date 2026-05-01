@@ -205,19 +205,18 @@ export const ConsumerShell: FC<{
               showSideBySide && "sm:flex-row sm:items-center sm:gap-8"
             )}
           >
-            {!isContinuousSingleQuestion && (
-              <div
-                className={
-                  showSideBySide
-                    ? isDateGroup
-                      ? "order-2"
-                      : "order-1"
-                    : undefined
-                }
-              >
-                <ConsumerQuestionPrediction postData={postData} />
-              </div>
-            )}
+            <div
+              className={cn(
+                showSideBySide
+                  ? isDateGroup
+                    ? "order-2"
+                    : "order-1"
+                  : undefined,
+                isContinuousSingleQuestion && "md:hidden"
+              )}
+            >
+              <ConsumerQuestionPrediction postData={postData} />
+            </div>
             {!isFanGraph && (
               <QuestionTimeline
                 postData={postData}
