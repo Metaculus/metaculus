@@ -83,9 +83,11 @@ const Voter: FC<Props> = ({
       {votes != null && (votes !== 0 || showZeroVotes) && (
         <span
           className={cn(
-            "text-gray-900 dark:text-gray-900-dark",
+            "text-sm font-normal leading-4",
             {
-              "font-bold": !!userVote,
+              "font-bold text-gray-900 dark:text-gray-900-dark": !!userVote,
+              "text-gray-900 dark:text-gray-900-dark": !userVote && votes !== 0,
+              "text-gray-500 dark:text-gray-500-dark": !userVote && votes === 0,
             },
             voteClassName
           )}

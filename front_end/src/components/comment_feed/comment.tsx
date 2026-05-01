@@ -772,9 +772,10 @@ const Comment: FC<CommentProps> = ({
               })}
             >
               <div
-                className={cn("flex sm:flex-row sm:items-center", {
-                  "flex-col": !isCollapsed,
-                  "items-center": isCollapsed,
+                className={cn("flex", {
+                  "flex-col": !isCollapsed && !onProfile,
+                  "flex-row items-center": isCollapsed,
+                  "sm:flex-row sm:items-center": onProfile && !isCollapsed,
                 })}
               >
                 <Link
@@ -794,8 +795,9 @@ const Comment: FC<CommentProps> = ({
                   )}
                 </Link>
                 <span
-                  className={cn("mx-1 opacity-55 sm:inline", {
-                    hidden: !isCollapsed,
+                  className={cn("mx-1 opacity-55", {
+                    hidden: !isCollapsed && !onProfile,
+                    "sm:inline": onProfile && !isCollapsed,
                   })}
                 >
                   ·
