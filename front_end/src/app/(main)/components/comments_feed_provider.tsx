@@ -199,6 +199,9 @@ const CommentsFeedProvider: FC<
     try {
       setIsLoading(true);
       setError(undefined);
+      if (!keepComments) {
+        setOffset(0);
+      }
       const response = await ClientCommentsApi.getComments({
         post: postData?.id,
         author: profileId,
