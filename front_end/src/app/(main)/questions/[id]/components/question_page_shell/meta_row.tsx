@@ -7,7 +7,6 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
-import TrophyIcon from "@/components/icons/trophy";
 import { PostDropdownMenu } from "@/components/post_actions";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import PostVoter from "@/components/post_card/basic_post_card/post_voter";
@@ -16,11 +15,13 @@ import Button from "@/components/ui/button";
 import Chip from "@/components/ui/chip";
 import useContainerSize from "@/hooks/use_container_size";
 import { PostWithForecasts } from "@/types/post";
-import { Project, TaxonomyProjectType, TournamentType } from "@/types/projects";
+import { Project } from "@/types/projects";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { getPostLink, getProjectLink } from "@/utils/navigation";
 import { extractPostResolution } from "@/utils/questions/resolution";
+
+import { getChipColor, getChipContent } from "./project_chip_helpers";
 
 type Props = {
   post: PostWithForecasts;
@@ -51,28 +52,6 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
 
   const visibleChips = allProjects.slice(0, maxVisibleChips);
   const hiddenChips = allProjects.slice(maxVisibleChips);
-
-  const getChipContent = (element: Project) => {
-    if (
-      element.type === TournamentType.Tournament ||
-      element.type === TaxonomyProjectType.LeaderboardTag
-    ) {
-      return (
-        <span className="flex min-w-0 items-center gap-1">
-          <TrophyIcon className="h-4 w-4 shrink-0" />
-          <span className="min-w-0 truncate">{element.name}</span>
-        </span>
-      );
-    }
-    return <span className="min-w-0 truncate">{element.name}</span>;
-  };
-
-  const chipColor = (element: Project) =>
-    Object.values(TaxonomyProjectType).includes(
-      element.type as TaxonomyProjectType
-    )
-      ? "olive"
-      : "orange";
 
   return (
     <div className={cn("px-4 lg:px-8", className)}>
@@ -146,7 +125,7 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
         <div className="flex min-w-0 items-center gap-2">
           {visibleChips.map((element) => (
             <Chip
-              color={chipColor(element)}
+              color={getChipColor(element)}
               key={element.id}
               href={getProjectLink(element)}
               className="min-w-0 overflow-hidden text-sm font-medium leading-4 [&>*]:min-w-0"
@@ -168,7 +147,7 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
               <PopoverPanel className="absolute right-0 top-full z-10 mt-1 flex max-w-[250px] flex-wrap gap-2 rounded border border-gray-300 bg-gray-0 p-3 shadow-lg dark:border-gray-300-dark dark:bg-gray-0-dark">
                 {hiddenChips.map((element) => (
                   <Chip
-                    color={chipColor(element)}
+                    color={getChipColor(element)}
                     key={element.id}
                     href={getProjectLink(element)}
                     className="overflow-hidden text-sm font-medium leading-4"

@@ -185,10 +185,10 @@ export const ConsumerShell: FC<{
           />
           <TitleRow post={postData} variant="consumer" />
         </div>
-        <div className="order-2 md:order-none">
+        <div className="order-2 sm:order-none">
           <ActionRow post={postData} variant="consumer" />
         </div>
-        <div className="order-1 mt-6 sm:mt-8 md:order-none md:-mt-2 lg:-mt-3">
+        <div className="order-1 mt-3 sm:order-none sm:mt-8 md:-mt-2 lg:-mt-3">
           {showClosedMessageMultipleChoice && (
             <p className="m-0 mb-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
               {t("predictionClosedMessage")}
@@ -249,7 +249,7 @@ export const ConsumerShell: FC<{
           </div>
         </div>
         {shouldShowKeyFactorsSection && (
-          <div className="order-3 md:order-none">
+          <div className="order-3 sm:order-none">
             <KeyFactorsQuestionConsumerSection post={postData} />
           </div>
         )}

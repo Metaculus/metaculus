@@ -20,21 +20,7 @@ const Sidebar: FC<Props> = ({
   variant = "forecaster",
 }) => {
   if (layout === "mobile") {
-    return (
-      <section className="flex flex-col gap-4 lg:hidden">
-        {variant === "forecaster" && (
-          <SidebarContainer>
-            <SidebarQuestionInfo postData={postData} />
-          </SidebarContainer>
-        )}
-
-        {postData.curation_status === PostStatus.APPROVED && (
-          <Suspense fallback={null}>
-            <SimilarQuestions post_id={postData.id} variant={variant} />
-          </Suspense>
-        )}
-      </section>
-    );
+    return null;
   }
 
   return (

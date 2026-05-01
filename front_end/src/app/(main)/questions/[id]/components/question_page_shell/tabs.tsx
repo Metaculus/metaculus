@@ -1,8 +1,9 @@
 "use client";
 
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 
-import { PostWithForecasts } from "@/types/post";
+import ClientPostsApi from "@/services/api/posts/posts.client";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 
 import QuestionPageShellTabBar from "./tab_bar";
 import CommentsTab from "./tabs/comments";
@@ -11,6 +12,7 @@ import MyScoresTab from "./tabs/my_scores";
 import PrivateNotesTab from "./tabs/private_notes";
 import QuestionInfoTab from "./tabs/question_info";
 import QuestionLinksTab from "./tabs/question_links";
+import SimilarQuestionsTab from "./tabs/similar_questions";
 import TimelineTab from "./tabs/timeline";
 import KeyFactorsFeed from "../key_factors/key_factors_feed";
 import { useQuestionLayout } from "../question_layout/question_layout_context";
@@ -26,9 +28,12 @@ type Props = {
 const renderActivePanel = (
   activeTab: string | undefined,
   post: PostWithForecasts,
-  variant: Variant
+  variant: Variant,
+  similarQuestions: PostWithForecasts[]
 ) => {
   switch (activeTab) {
+    case "similar-questions":
+      return <SimilarQuestionsTab questions={similarQuestions} variant={variant} />;
     case "timeline":
       return variant === "consumer" ? <TimelineTab post={post} /> : null;
     case "key-factors":
@@ -51,6 +56,13 @@ const QuestionPageShellTabs: FC<Props> = ({ post, variant, className }) => {
   const { activeTab } = useQuestionLayout();
   const isKeyFactors = activeTab === "key-factors";
 
+  const [similarQuestions, setSimilarQuestions] = useState<PostWithForecasts[]>([]);
+  useEffect(() => {
+    if (post.curation_status === PostStatus.APPROVED) {
+      ClientPostsApi.getSimilarPosts(post.id).then(setSimilarQuestions);
+    }
+  }, [post.id, post.curation_status]);
+
   return (
     <div className={className}>
       <QuestionPageShellTabBar post={post} variant={variant} />
@@ -61,7 +73,7 @@ const QuestionPageShellTabs: FC<Props> = ({ post, variant, className }) => {
         </div>
       )}
       <div className="mt-4 md:mt-5">
-        {renderActivePanel(activeTab, post, variant)}
+        {renderActivePanel(activeTab, post, variant, similarQuestions)}
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ import { FC } from "react";
 
 import { Tabs, TabsList, TabsTab } from "@/components/ui/tabs";
 import { useBreakpoint } from "@/hooks/tailwind";
-import { PostWithForecasts } from "@/types/post";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 
 import { shouldPostShowUserScores } from "../post_score_data/utils";
@@ -19,7 +19,8 @@ type TabKey =
   | "my-scores"
   | "question-links"
   | "private-notes"
-  | "timeline";
+  | "timeline"
+  | "similar-questions";
 
 type TabDef = {
   key: TabKey;
@@ -50,23 +51,42 @@ const QuestionPageShellTabBar: FC<Props> = ({ post, variant, className }) => {
   const commentCount = post.comment_count ?? 0;
   const keyFactorsCount = post.key_factors?.length ?? 0;
   const hasScores = shouldPostShowUserScores(post);
+  const hasSimilarQuestionsTab =
+    !isSm && post.curation_status === PostStatus.APPROVED;
+
   const forecasterTabs: TabDef[] = [
     { key: "comments", label: t("comments"), count: commentCount },
     { key: "key-factors", label: t("keyFactors"), count: keyFactorsCount },
     { key: "info", label: t("info") },
     { key: "question-links", label: t("questionLinks") },
     { key: "private-notes", label: t("privateNotes") },
+    ...(hasSimilarQuestionsTab
+      ? [
+          {
+            key: "similar-questions" as TabKey,
+            label: t("similarQuestions"),
+          },
+        ]
+      : []),
   ];
 
   const consumerTabs: TabDef[] = [
     { key: "comments", label: t("comments"), count: commentCount },
-    { key: "key-factors", label: t("keyFactors"), count: keyFactorsCount },
-    { key: "info", label: t("info") },
     ...(!isSm && hasTimeline(post)
       ? [{ key: "timeline" as TabKey, label: t("timeline") }]
       : []),
+    { key: "key-factors", label: t("keyFactors"), count: keyFactorsCount },
+    { key: "info", label: t("info") },
     ...(hasScores
       ? [{ key: "my-scores" as TabKey, label: t("myScores") }]
+      : []),
+    ...(hasSimilarQuestionsTab
+      ? [
+          {
+            key: "similar-questions" as TabKey,
+            label: t("similarQuestions"),
+          },
+        ]
       : []),
   ];
 
