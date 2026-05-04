@@ -76,7 +76,7 @@ const GroupOfQuestionsPrediction: React.FC<Props> = ({ postData }) => {
     checkGroupOfQuestionsPostType(postData, QuestionType.Date) ||
     postData.group_of_questions?.graph_type ===
       GroupOfQuestionsGraphType.FanGraph
-      ? "mb-7"
+      ? "md:mb-7"
       : "md:mt-7";
 
   return <div className={wrapperClass}>{content}</div>;
