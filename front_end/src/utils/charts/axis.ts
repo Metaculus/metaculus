@@ -619,37 +619,48 @@ export function generateScale({
     majorTicks.push(minorTicks.at(-1) ?? 1);
   } else if (isNil(zeroPoint)) {
     // Linear Scaling
-    // Typical scaling, evenly spaced ticks
-    // choose optimal tick count to minimize the number
-    // of significant digits in the tick labels
-    const majorTickCount = forceTickCount
-      ? forceTickCount
-      : findOptimalTickCount(rangeMin, rangeMax, 4, maxLabelCount);
-    majorTicks = range(0, majorTickCount).map(
-      (i) =>
-        Math.round(
-          (zoomedDomainMin +
-            (i / (majorTickCount - 1)) * (zoomedDomainMax - zoomedDomainMin)) *
-            1000000
-        ) / 1000000
-    );
-    const minorTicksPerMajor = findOptimalTickCount(
-      rangeMin,
-      rangeMin + (rangeMax - rangeMin) * (majorTicks[1] ?? 1 / majorTickCount),
-      direction === "horizontal" ? 4 : 2,
-      direction === "horizontal" ? 10 : 5
-    );
-    const minorTickCount = forceTickCount
-      ? forceTickCount
-      : (majorTickCount - 1) * minorTicksPerMajor + 1;
-    minorTicks = range(0, minorTickCount).map(
-      (i) =>
-        Math.round(
-          (zoomedDomainMin +
-            (i / (minorTickCount - 1)) * (zoomedDomainMax - zoomedDomainMin)) *
-            1000000
-        ) / 1000000
-    );
+    if (forceTickCount) {
+      // forceTickCount must be honored exactly. d3.ticks treats its count
+      // argument as a hint, so fall back to evenly-spaced ticks here.
+      const majorTickCount = forceTickCount;
+      majorTicks = range(0, majorTickCount).map(
+        (i) =>
+          Math.round(
+            (zoomedDomainMin +
+              (i / (majorTickCount - 1)) *
+                (zoomedDomainMax - zoomedDomainMin)) *
+              1000000
+          ) / 1000000
+      );
+      const minorTickCount = forceTickCount;
+      minorTicks = range(0, minorTickCount).map(
+        (i) =>
+          Math.round(
+            (zoomedDomainMin +
+              (i / (minorTickCount - 1)) *
+                (zoomedDomainMax - zoomedDomainMin)) *
+              1000000
+          ) / 1000000
+      );
+    } else {
+      // Use d3.ticks() to pick nice round numbers (multiples of {1,2,5}*10^k)
+      // within the zoomed domain.
+      majorTicks = d3
+        .ticks(zoomedDomainMin, zoomedDomainMax, maxLabelCount)
+        .map((x) => Math.round(x * 1000000) / 1000000);
+      const minorTicksPerMajor = findOptimalTickCount(
+        rangeMin,
+        rangeMin +
+          (rangeMax - rangeMin) * (majorTicks[1] ?? 1 / majorTicks.length),
+        direction === "horizontal" ? 4 : 2,
+        direction === "horizontal" ? 10 : 5
+      );
+      const minorTickCount =
+        Math.max(majorTicks.length - 1, 1) * minorTicksPerMajor + 1;
+      minorTicks = d3
+        .ticks(zoomedDomainMin, zoomedDomainMax, minorTickCount)
+        .map((x) => Math.round(x * 1000000) / 1000000);
+    }
   } else {
     // Logarithmic Scaling
     // Labeled ticks are not spaced evenly, but rather rounded to the nearby

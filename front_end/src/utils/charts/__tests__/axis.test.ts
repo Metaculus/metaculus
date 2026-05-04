@@ -230,6 +230,82 @@ describe("generateScale", () => {
     });
   });
 
+  describe("d3.ticks linear scaling", () => {
+    it("produces nice ticks for an awkward range like [-27.7, 20]", () => {
+      // Given: a question with an ugly range_min that previously yielded
+      // endpoints like -27.7 and 52.7 with the evenly-spaced algorithm.
+      const params = {
+        displayType: QuestionType.Numeric,
+        axisLength: 200,
+        direction: ScaleDirection.Vertical,
+        domain: [-27.7, 20] as [number, number],
+        zoomedDomain: [-27.7, 20] as [number, number],
+        scaling: {
+          range_min: -27.7,
+          range_max: 20,
+          zero_point: null,
+        },
+      };
+
+      // When
+      const scale = generateScale(params);
+
+      // Then: labeled (major) ticks should be nice — multiples of a step
+      // that itself is a member of {1,2,5} * 10^k.
+      const labeledTicks = scale.ticks.filter(
+        (t) => scale.tickFormat(t) !== ""
+      );
+      expect(labeledTicks.length).toBeGreaterThan(1);
+
+      const first = labeledTicks[0] as number;
+      const second = labeledTicks[1] as number;
+      const last = labeledTicks[labeledTicks.length - 1] as number;
+      const step = second - first;
+
+      const exponent = Math.floor(Math.log10(Math.abs(step)));
+      const mantissa = step / Math.pow(10, exponent);
+      expect([1, 2, 5]).toContain(Math.round(mantissa));
+
+      const eps = Math.abs(step) * 1e-9;
+      expect(Math.abs(first - Math.round(first / step) * step)).toBeLessThan(
+        eps
+      );
+      expect(Math.abs(last - Math.round(last / step) * step)).toBeLessThan(eps);
+    });
+
+    it("produces nice ticks for [0, 100]", () => {
+      // Given
+      const params = {
+        displayType: QuestionType.Numeric,
+        axisLength: 200,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 100] as [number, number],
+        zoomedDomain: [0, 100] as [number, number],
+        scaling: {
+          range_min: 0,
+          range_max: 100,
+          zero_point: null,
+        },
+      };
+
+      // When
+      const scale = generateScale(params);
+
+      // Then: labeled (major) ticks should match one of d3's expected outputs.
+      const labeledTicks = scale.ticks.filter(
+        (t) => scale.tickFormat(t) !== ""
+      );
+      const valid1 = [0, 25, 50, 75, 100];
+      const valid2 = [0, 20, 40, 60, 80, 100];
+      const arraysEqual = (a: number[], b: number[]) =>
+        a.length === b.length && a.every((v, i) => v === b[i]);
+
+      expect(
+        arraysEqual(labeledTicks, valid1) || arraysEqual(labeledTicks, valid2)
+      ).toBe(true);
+    });
+  });
+
   describe("graph force ticks count", () => {
     it("helper should return specified number of ticks", () => {
       // Given
