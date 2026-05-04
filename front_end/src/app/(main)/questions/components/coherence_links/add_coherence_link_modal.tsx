@@ -20,7 +20,7 @@ import {
   ALLOWED_COHERENCE_LINK_QUESTION_TYPES,
   LinkTypes,
 } from "@/types/coherence";
-import { Post, PostWithForecasts } from "@/types/post";
+import { Post, PostStatus, PostWithForecasts } from "@/types/post";
 import {
   Question,
   QuestionType,
@@ -29,6 +29,7 @@ import {
 import { getTermByDirectionAndQuestionType } from "@/utils/coherence";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
+import { parseQuestionId } from "@/utils/questions/helpers";
 
 type Props = {
   post: Post;
@@ -39,6 +40,12 @@ type Props = {
 type Step = "pick" | "configure";
 
 const SUGGESTION_LIMIT = 8;
+
+// Group posts don't have a single `question` — expand them to their subquestions
+// so the modal treats each sub as a linkable target. Conditionals/notebooks
+// aren't linkable at all, so they drop out as an empty list.
+const expandPost = (p: PostWithForecasts): QuestionWithForecasts[] =>
+  p.question ? [p.question] : p.group_of_questions?.questions ?? [];
 
 const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
   const t = useTranslations();
@@ -54,9 +61,14 @@ const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
 
   const [step, setStep] = useState<Step>("pick");
   const [search, setSearch] = useState("");
-  const [suggested, setSuggested] = useState<PostWithForecasts[]>([]);
-  const [results, setResults] = useState<PostWithForecasts[]>([]);
+  const [suggested, setSuggested] = useState<QuestionWithForecasts[]>([]);
+  const [results, setResults] = useState<QuestionWithForecasts[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const isLinkable = (q: QuestionWithForecasts): boolean =>
+    ALLOWED_COHERENCE_LINK_QUESTION_TYPES.includes(q.type) &&
+    q.id !== post.question?.id &&
+    !linkedQuestionIds.has(q.id);
 
   const [selected, setSelected] = useState<Question | null>(null);
   // `isOutgoing = true` means current question → selected (current causes selected).
@@ -93,15 +105,8 @@ const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
         if (!cancelled) {
           setSuggested(
             similar
-              .filter(
-                (p) =>
-                  p.id !== post.id &&
-                  p.question &&
-                  !linkedQuestionIds.has(p.question.id) &&
-                  ALLOWED_COHERENCE_LINK_QUESTION_TYPES.includes(
-                    p.question.type
-                  )
-              )
+              .flatMap(expandPost)
+              .filter(isLinkable)
               .slice(0, SUGGESTION_LIMIT)
           );
         }
@@ -123,19 +128,22 @@ const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
       return;
     }
     try {
-      const { results } = await ClientPostsApi.getPostsWithCP({
-        search: query,
-        forecast_type: ALLOWED_COHERENCE_LINK_QUESTION_TYPES,
-        limit: 20,
-      });
-      setResults(
-        results.filter(
-          (p) =>
-            p.id !== post.id &&
-            p.question &&
-            !linkedQuestionIds.has(p.question.id)
-        )
-      );
+      const parsed = parseQuestionId(query);
+      let questions: QuestionWithForecasts[];
+      if (parsed.questionId) {
+        questions = [await ClientPostsApi.getQuestion(parsed.questionId)];
+      } else if (parsed.postId) {
+        questions = expandPost(await ClientPostsApi.getPost(parsed.postId));
+      } else {
+        const { results } = await ClientPostsApi.getPostsWithCP({
+          search: query,
+          forecast_type: ALLOWED_COHERENCE_LINK_QUESTION_TYPES,
+          statuses: [PostStatus.OPEN, PostStatus.UPCOMING],
+          limit: 20,
+        });
+        questions = results.flatMap(expandPost);
+      }
+      setResults(questions.filter(isLinkable));
     } catch (e) {
       logError(e);
       setResults([]);
@@ -150,11 +158,10 @@ const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
     runSearch(search);
   }, [search, step, runSearch]);
 
-  const displayedPosts = search.trim() ? results : suggested;
+  const displayedQuestions = search.trim() ? results : suggested;
 
-  function selectQuestion(p: PostWithForecasts) {
-    if (!p.question) return;
-    setSelected(p.question);
+  function selectQuestion(q: QuestionWithForecasts) {
+    setSelected(q);
     setSubmitError(false);
     setStep("configure");
   }
@@ -241,29 +248,27 @@ const AddCoherenceLinkModal: FC<Props> = ({ post, isOpen, onClose }) => {
               <div className="flex flex-1 items-center justify-center py-8">
                 <LoadingIndicator />
               </div>
-            ) : displayedPosts.length === 0 ? (
+            ) : displayedQuestions.length === 0 ? (
               <div className="flex flex-1 items-center justify-center py-8 text-sm text-gray-600 dark:text-gray-600-dark">
                 {search.trim() ? t("noResults") : t("noSuggestions")}
               </div>
             ) : (
-              displayedPosts.map((p) => (
+              displayedQuestions.map((q) => (
                 <div
-                  key={p.id}
+                  key={q.id}
                   role="button"
                   tabIndex={0}
-                  onClick={() => selectQuestion(p)}
+                  onClick={() => selectQuestion(q)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
-                      selectQuestion(p);
+                      selectQuestion(q);
                     }
                   }}
                   className="flex cursor-pointer flex-row items-center gap-3 rounded border border-blue-400 bg-gray-0 p-4 transition-colors hover:border-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-blue-400-dark dark:bg-gray-0-dark dark:hover:border-blue-500-dark dark:focus-visible:ring-blue-500-dark"
                 >
-                  <div className="flex-grow text-sm">{p.title}</div>
-                  {p.question && (
-                    <CoherencePredictionTile question={p.question} />
-                  )}
+                  <div className="flex-grow text-sm">{q.title}</div>
+                  <CoherencePredictionTile question={q} />
                 </div>
               ))
             )}
