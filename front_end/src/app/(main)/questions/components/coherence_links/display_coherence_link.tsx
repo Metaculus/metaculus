@@ -9,8 +9,8 @@ import {
   swapCoherenceLink,
   updateCoherenceLink,
 } from "@/app/(main)/questions/actions";
-import LinkStrengthIcon from "@/app/(main)/questions/components/coherence_links/link_strength_icon";
 import CoherencePredictionTile from "@/app/(main)/questions/components/coherence_links/coherence_prediction_tile";
+import LinkStrengthIcon from "@/app/(main)/questions/components/coherence_links/link_strength_icon";
 import Button from "@/components/ui/button";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import { CoherenceLink } from "@/types/coherence";

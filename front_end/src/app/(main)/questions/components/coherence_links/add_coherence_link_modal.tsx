@@ -7,8 +7,8 @@ import { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { createCoherenceLink } from "@/app/(main)/questions/actions";
-import LinkStrengthSelectorComponent from "@/app/(main)/questions/components/coherence_links/link_strength_selector_component";
 import CoherencePredictionTile from "@/app/(main)/questions/components/coherence_links/coherence_prediction_tile";
+import LinkStrengthSelectorComponent from "@/app/(main)/questions/components/coherence_links/link_strength_selector_component";
 import BaseModal from "@/components/base_modal";
 import SearchInput from "@/components/search_input";
 import Button from "@/components/ui/button";
