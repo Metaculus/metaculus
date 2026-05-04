@@ -206,6 +206,7 @@ const FutureEvalTournamentOverview: React.FC = () => {
       description:
         "Our primary tournament with ~4-month seasons starting every January, May, and September, each with 300–500 questions across all formats.",
       primary: true,
+      href: "/tournament/summer-futureeval-2026/",
     },
     {
       icon: faBolt,
@@ -214,6 +215,7 @@ const FutureEvalTournamentOverview: React.FC = () => {
       description:
         "Back-to-back 2-week rounds of ~60 auto-generated questions, designed for fast feedback loops and lowering the barrier to entry.",
       primary: true,
+      href: "/tournament/minibench/",
     },
     {
       icon: faChartLine,
@@ -222,6 +224,7 @@ const FutureEvalTournamentOverview: React.FC = () => {
       description:
         "Bots compete for prizes by continuously updating forecasts on numeric group questions throughout each question's lifetime.",
       primary: false,
+      href: "/tournament/market-pulse-26q2/",
     },
     {
       icon: faUsers,
@@ -230,6 +233,7 @@ const FutureEvalTournamentOverview: React.FC = () => {
       description:
         "Test your bot against human forecasters on diverse questions — bots aren't prize-eligible but it's a great strength benchmark.",
       primary: false,
+      href: "/tournament/metaculus-cup-summer-2026/",
     },
   ] as const;
 
@@ -247,10 +251,13 @@ const FutureEvalTournamentOverview: React.FC = () => {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {tournaments.map((t) => (
-          <div
+          <Link
             key={t.title}
+            href={t.href}
+            target="_blank"
+            rel="noopener noreferrer"
             className={cn(
-              "flex flex-col rounded-[10px] border p-5",
+              "group flex flex-col rounded-[10px] border p-5 no-underline transition hover:-translate-y-0.5 hover:shadow-md",
               t.primary
                 ? cn(
                     FE_COLORS.borderPrimary,
@@ -291,7 +298,7 @@ const FutureEvalTournamentOverview: React.FC = () => {
             >
               {t.description}
             </p>
-          </div>
+          </Link>
         ))}
       </div>
 
