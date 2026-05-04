@@ -11,6 +11,7 @@ type Props = {
   onClick?: () => void;
   href?: string;
   className?: string;
+  variant?: "responsive" | "sidebar";
 };
 
 const TopicItem: FC<Props> = ({
@@ -20,6 +21,7 @@ const TopicItem: FC<Props> = ({
   emoji,
   href,
   className,
+  variant = "responsive",
 }) => {
   return (
     <Button
@@ -27,7 +29,10 @@ const TopicItem: FC<Props> = ({
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       href={href!}
       className={cn(
-        "w-auto cursor-pointer snap-start rounded-full p-1.5 px-2 text-sm leading-4 no-underline sm:w-full sm:p-2 sm:px-2.5 sm:text-base sm:leading-5",
+        "cursor-pointer snap-start no-underline",
+        variant === "sidebar"
+          ? "w-full rounded-full p-2 px-2.5 text-base leading-5"
+          : "w-auto rounded-full p-1.5 px-2 text-sm leading-4 sm:w-full sm:p-2 sm:px-2.5 sm:text-base sm:leading-5",
         isActive
           ? "bg-blue-800 text-gray-0 hover:bg-blue-800  dark:bg-blue-800-dark dark:text-gray-200-dark dark:hover:bg-blue-800-dark"
           : "text-blue-800 hover:bg-blue-400 dark:text-blue-200 dark:hover:bg-blue-600",
@@ -36,7 +41,12 @@ const TopicItem: FC<Props> = ({
       type="button"
       onClick={onClick}
     >
-      <div className="flex items-center justify-start gap-1 sm:gap-2">
+      <div
+        className={cn(
+          "flex items-center justify-start",
+          variant === "sidebar" ? "gap-2" : "gap-1 sm:gap-2"
+        )}
+      >
         <div className="inline-flex flex-row items-center justify-center text-sm leading-4 tracking-widest">
           {emoji}
         </div>
