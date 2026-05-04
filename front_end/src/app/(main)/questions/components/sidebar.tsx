@@ -7,6 +7,7 @@ import {
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, Fragment, useEffect, useMemo, useRef, useState } from "react";
@@ -277,7 +278,7 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
           />
           <Drawer.Viewport
             className={cn(
-              "fixed inset-x-0 bottom-0 z-[201] overflow-hidden [--feed-drawer-width:min(20rem,calc(100vw-2.5rem))] sm:hidden",
+              "fixed inset-x-0 bottom-0 z-[201] overflow-hidden [--feed-drawer-width:min(18rem,calc(100vw-3.75rem))] sm:hidden",
               isTranslationBannerVisible ? "top-24" : "top-header"
             )}
           >
@@ -387,19 +388,61 @@ const SidebarMenu: FC<SidebarMenuProps> = ({
                 </button>
               )}
               {!isCollapsed &&
-                items.map(({ name, emoji, onClick, url, isActive }, idx) => (
-                  <TopicItem
-                    key={`menu-${sectionType}-${idx}`}
-                    text={name}
-                    emoji={emoji}
-                    href={url}
-                    onClick={() => {
-                      onClick?.();
-                      onItemSelect?.();
-                    }}
-                    isActive={isActive ?? false}
-                    variant="sidebar"
-                  />
+                (sectionType === "hot_categories" ? (
+                  <div className="grid w-full grid-cols-3 gap-x-2 gap-y-1 py-1 text-center">
+                    {items.map(({ name, emoji, onClick, url, isActive }) => (
+                      <Link
+                        key={url}
+                        href={url}
+                        onClick={() => {
+                          onClick?.();
+                          onItemSelect?.();
+                        }}
+                        className={cn(
+                          "flex min-h-[60px] min-w-0 flex-col items-center justify-center gap-1 rounded py-2 no-underline transition-colors",
+                          isActive
+                            ? "bg-blue-800 dark:bg-blue-800-dark"
+                            : "hover:bg-blue-200 dark:hover:bg-blue-200-dark"
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            "text-base font-bold leading-none",
+                            isActive
+                              ? "text-gray-0 dark:text-gray-200-dark"
+                              : "text-olive-800 dark:text-olive-800-dark"
+                          )}
+                        >
+                          {emoji}
+                        </div>
+                        <div
+                          className={cn(
+                            "w-full min-w-0 hyphens-manual whitespace-normal text-center text-[10px] font-medium leading-3 [overflow-wrap:anywhere] [text-wrap:balance] sm:text-[9.5px] lg:text-[10.5px]",
+                            isActive
+                              ? "text-gray-0 dark:text-gray-200-dark"
+                              : "text-blue-800 dark:text-blue-800-dark"
+                          )}
+                        >
+                          {name}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  items.map(({ name, emoji, onClick, url, isActive }, idx) => (
+                    <TopicItem
+                      key={`menu-${sectionType}-${idx}`}
+                      text={name}
+                      emoji={emoji}
+                      href={url}
+                      onClick={() => {
+                        onClick?.();
+                        onItemSelect?.();
+                      }}
+                      isActive={isActive ?? false}
+                      variant="sidebar"
+                    />
+                  ))
                 ))}
             </Fragment>
           );
