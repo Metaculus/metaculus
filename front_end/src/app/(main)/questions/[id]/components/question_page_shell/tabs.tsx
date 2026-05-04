@@ -1,9 +1,8 @@
 "use client";
 
-import { FC, useEffect, useState } from "react";
+import { FC } from "react";
 
-import ClientPostsApi from "@/services/api/posts/posts.client";
-import { PostStatus, PostWithForecasts } from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
 
 import QuestionPageShellTabBar from "./tab_bar";
 import CommentsTab from "./tabs/comments";
@@ -28,12 +27,11 @@ type Props = {
 const renderActivePanel = (
   activeTab: string | undefined,
   post: PostWithForecasts,
-  variant: Variant,
-  similarQuestions: PostWithForecasts[]
+  variant: Variant
 ) => {
   switch (activeTab) {
     case "similar-questions":
-      return <SimilarQuestionsTab questions={similarQuestions} variant={variant} />;
+      return <SimilarQuestionsTab post={post} variant={variant} />;
     case "timeline":
       return variant === "consumer" ? <TimelineTab post={post} /> : null;
     case "key-factors":
@@ -56,13 +54,6 @@ const QuestionPageShellTabs: FC<Props> = ({ post, variant, className }) => {
   const { activeTab } = useQuestionLayout();
   const isKeyFactors = activeTab === "key-factors";
 
-  const [similarQuestions, setSimilarQuestions] = useState<PostWithForecasts[]>([]);
-  useEffect(() => {
-    if (post.curation_status === PostStatus.APPROVED) {
-      ClientPostsApi.getSimilarPosts(post.id).then(setSimilarQuestions);
-    }
-  }, [post.id, post.curation_status]);
-
   return (
     <div className={className}>
       <QuestionPageShellTabBar post={post} variant={variant} />
@@ -73,7 +64,7 @@ const QuestionPageShellTabs: FC<Props> = ({ post, variant, className }) => {
         </div>
       )}
       <div className="mt-4 md:mt-5">
-        {renderActivePanel(activeTab, post, variant, similarQuestions)}
+        {renderActivePanel(activeTab, post, variant)}
       </div>
     </div>
   );
