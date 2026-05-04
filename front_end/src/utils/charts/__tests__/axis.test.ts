@@ -330,6 +330,100 @@ describe("generateScale", () => {
       // Then
       expect(scale.ticks.length).toBe(FORCE_TICK_COUNT);
     });
+
+    it("treats forceTickCount as a hint for numeric linear scales so labels stay nice", () => {
+      // Regression: previously forceTickCount on a numeric axis bypassed
+      // d3.ticks and produced evenly-spaced labels like
+      // [-27.7, -15.78, -3.85, 8.08, 20]. We now expect d3-nice values.
+      const params = {
+        displayType: QuestionType.Numeric,
+        axisLength: 400,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1] as [number, number],
+        zoomedDomain: [0, 1] as [number, number],
+        scaling: {
+          range_min: -27.7,
+          range_max: 20,
+          zero_point: null,
+        },
+        forceTickCount: 5,
+      };
+
+      const scale = generateScale(params);
+
+      const labeledRangeValues = scale.ticks
+        .filter((t) => scale.tickFormat(t) !== "")
+        .map((t) => -27.7 + t * (20 - -27.7));
+
+      expect(labeledRangeValues.length).toBeGreaterThan(1);
+      const step =
+        (labeledRangeValues[1] as number) - (labeledRangeValues[0] as number);
+      const exponent = Math.floor(Math.log10(Math.abs(step)));
+      const mantissa = Math.abs(step) / Math.pow(10, exponent);
+      expect([1, 2, 5]).toContain(Math.round(mantissa));
+
+      const eps = Math.abs(step) * 1e-6;
+      labeledRangeValues.forEach((v) => {
+        expect(Math.abs(v - Math.round(v / step) * step)).toBeLessThan(eps);
+      });
+    });
+
+    it("treats forceTickCount as a hint when domain is normalized to [0, 1]", () => {
+      // Production-like: domain is [0, 1], range is the actual data range.
+      // The labeled display values must be d3-nice in range space.
+      const params = {
+        displayType: QuestionType.Numeric,
+        axisLength: 400,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1] as [number, number],
+        zoomedDomain: [0, 1] as [number, number],
+        scaling: {
+          range_min: 0,
+          range_max: 100,
+          zero_point: null,
+        },
+        forceTickCount: 5,
+      };
+
+      const scale = generateScale(params);
+
+      const labeledDomainTicks = scale.ticks.filter(
+        (t) => scale.tickFormat(t) !== ""
+      );
+      const labeledRangeValues = labeledDomainTicks.map((t) => 0 + t * 100);
+
+      // d3.ticks(0, 100, 5) returns [0, 20, 40, 60, 80, 100] or
+      // [0, 25, 50, 75, 100] — both are acceptable nice outputs.
+      const valid1 = [0, 25, 50, 75, 100];
+      const valid2 = [0, 20, 40, 60, 80, 100];
+      const arraysEqual = (a: number[], b: number[]) =>
+        a.length === b.length &&
+        a.every((v, i) => Math.abs(v - (b[i] as number)) < 1e-6);
+      expect(
+        arraysEqual(labeledRangeValues, valid1) ||
+          arraysEqual(labeledRangeValues, valid2)
+      ).toBe(true);
+    });
+
+    it("does not throw when forceTickCount is 1 on a date axis", () => {
+      // Edge case: forceTickCount === 1 used to produce NaN ticks via i/0.
+      const params = {
+        displayType: QuestionType.Date,
+        axisLength: 200,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1] as [number, number],
+        zoomedDomain: [0, 1] as [number, number],
+        scaling: {
+          range_min: 1678838400,
+          range_max: 1778803200,
+          zero_point: null,
+        },
+        forceTickCount: 1,
+      };
+
+      const scale = generateScale(params);
+      scale.ticks.forEach((t) => expect(Number.isNaN(t)).toBe(false));
+    });
   });
 });
 
