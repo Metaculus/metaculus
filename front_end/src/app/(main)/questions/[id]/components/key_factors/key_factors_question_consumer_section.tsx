@@ -63,7 +63,7 @@ const KeyFactorsQuestionConsumerSection: FC<Props> = ({ post }) => {
             openKeyFactorsElement("[id='key-factors']");
             sendAnalyticsEvent("KeyFactorViewAllClick");
           }}
-          className="text-sm text-blue-700 hover:text-blue-800 dark:text-blue-700-dark dark:hover:text-blue-600-dark"
+          className="text-center text-sm font-normal leading-5 text-blue-600 hover:text-blue-700 dark:text-blue-600-dark dark:hover:text-blue-700-dark"
         >
           {t("viewAll", { count: totalCount })}
         </button>

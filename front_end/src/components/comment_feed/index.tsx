@@ -427,7 +427,7 @@ const CommentFeed: FC<Props> = ({
           <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
             <Button
               variant="text"
-              className="text-sm font-medium capitalize leading-5 text-blue-800 dark:text-blue-800-dark"
+              className="py-0 text-sm font-medium capitalize leading-5 text-blue-800 dark:text-blue-800-dark"
             >
               {menuItems.find((item) => item.id === feedFilters.sort)?.name ??
                 "sort"}

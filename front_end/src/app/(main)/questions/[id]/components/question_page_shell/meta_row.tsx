@@ -63,7 +63,7 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
         )}
       >
         <div className="flex items-center gap-1.5">
-          {variant === "forecaster" && <PostVoter post={post} />}
+          {variant === "forecaster" && <PostVoter post={post} compact />}
           <CommentStatus
             totalCount={post.comment_count ?? 0}
             unreadCount={post.unread_comment_count ?? 0}
