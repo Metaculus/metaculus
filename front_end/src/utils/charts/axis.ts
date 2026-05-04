@@ -400,6 +400,25 @@ function getSigFigCost(value: number, logarithmic: boolean = false): number {
 }
 
 /**
+ * Like d3.ticks, but treats the count as a ceiling instead of a hint.
+ * d3.ticks picks the nicest step size and returns however many ticks
+ * fit — which can exceed the requested count and overflow tight axes.
+ * Walking down from maxCount until the result fits guarantees count
+ * <= maxCount while preserving the {1,2,5} * 10^k step guarantee.
+ */
+function niceTicksAtMost(
+  start: number,
+  stop: number,
+  maxCount: number
+): number[] {
+  for (let c = Math.max(2, maxCount); c >= 2; c--) {
+    const t = d3.ticks(start, stop, c);
+    if (t.length <= maxCount) return t;
+  }
+  return d3.ticks(start, stop, 2);
+}
+
+/**
  * Take a range's min and max and finds the tick spacing that minimizes
  * the average number of significant digits in the tick values.
  * If two tick counts are equally good, returns the higher one.
@@ -638,7 +657,7 @@ export function generateScale({
         rangeScaling
       );
 
-      const niceMajorRangeTicks = d3.ticks(
+      const niceMajorRangeTicks = niceTicksAtMost(
         zoomedRangeMin,
         zoomedRangeMax,
         tickCountHint

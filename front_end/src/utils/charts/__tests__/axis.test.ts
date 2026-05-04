@@ -400,17 +400,48 @@ describe("generateScale", () => {
       );
       const labeledRangeValues = labeledDomainTicks.map((t) => 0 + t * 100);
 
-      // d3.ticks(0, 100, 5) returns [0, 20, 40, 60, 80, 100] or
-      // [0, 25, 50, 75, 100] — both are acceptable nice outputs.
-      const valid1 = [0, 25, 50, 75, 100];
-      const valid2 = [0, 20, 40, 60, 80, 100];
-      const arraysEqual = (a: number[], b: number[]) =>
-        a.length === b.length &&
-        a.every((v, i) => Math.abs(v - (b[i] as number)) < 1e-6);
-      expect(
-        arraysEqual(labeledRangeValues, valid1) ||
-          arraysEqual(labeledRangeValues, valid2)
-      ).toBe(true);
+      // forceTickCount is treated as a ceiling, not a hint. d3 can't fit 5
+      // ticks across [0, 100] with a step in {1, 2, 5} * 10^k, so we
+      // accept a coarser result like [0, 50, 100] (step 50, 3 ticks).
+      expect(labeledRangeValues.length).toBeGreaterThanOrEqual(2);
+      expect(labeledRangeValues.length).toBeLessThanOrEqual(5);
+      const step =
+        (labeledRangeValues[1] as number) - (labeledRangeValues[0] as number);
+      const log = Math.log10(Math.abs(step));
+      const exponent =
+        Math.abs(log - Math.round(log)) < 1e-3
+          ? Math.round(log)
+          : Math.floor(log);
+      const mantissa = Math.abs(step) / Math.pow(10, exponent);
+      expect([1, 2, 5]).toContain(Math.round(mantissa));
+    });
+
+    it("treats forceTickCount as a ceiling, not a soft hint", () => {
+      // Regression for the [-10, 8] feed-card case: d3.ticks(-10, 8, 3)
+      // picks step 2 and returns 10 ticks, which overflowed the small
+      // axis and produced overlapping labels. The ceiling guarantees
+      // the labeled count never exceeds forceTickCount.
+      const params = {
+        displayType: QuestionType.Numeric,
+        axisLength: 150,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1] as [number, number],
+        zoomedDomain: [0, 1] as [number, number],
+        scaling: {
+          range_min: -10,
+          range_max: 8,
+          zero_point: null,
+        },
+        forceTickCount: 3,
+      };
+
+      const scale = generateScale(params);
+      const labeledTicks = scale.ticks.filter(
+        (t) => scale.tickFormat(t) !== ""
+      );
+
+      expect(labeledTicks.length).toBeLessThanOrEqual(3);
+      expect(labeledTicks.length).toBeGreaterThanOrEqual(2);
     });
 
     it("does not throw when forceTickCount is 1 on a date axis", () => {
