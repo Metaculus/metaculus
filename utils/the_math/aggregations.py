@@ -923,10 +923,25 @@ def get_user_forecast_history(
     forecasts: Sequence[Forecast],
     minimize: bool | int = False,
     cutoff: datetime | None = None,
+    earliest_time: datetime | None = None,
 ) -> list[ForecastSet]:
+    # When earliest_time is set, forecasts that started earlier are treated as
+    # if they started at earliest_time (clipping pre-open predictions to the
+    # question's open_time so the CP timeline begins at open_time).
+    def get_effective_start(forecast: Forecast) -> datetime:
+        if earliest_time and forecast.start_time < earliest_time:
+            return earliest_time
+        return forecast.start_time
+
     timestep_set: set[datetime] = set()
     for forecast in forecasts:
-        timestep_set.add(forecast.start_time)
+        if (
+            earliest_time
+            and forecast.end_time
+            and forecast.end_time <= earliest_time
+        ):
+            continue
+        timestep_set.add(get_effective_start(forecast))
         if forecast.end_time:
             if cutoff and forecast.end_time > cutoff:
                 continue
@@ -946,8 +961,14 @@ def get_user_forecast_history(
         for timestep in timesteps
     }
     for forecast in forecasts:
+        if (
+            earliest_time
+            and forecast.end_time
+            and forecast.end_time <= earliest_time
+        ):
+            continue
         # Find active timesteps using bisect to find the start & end indexes
-        start_index = bisect_left(timesteps, forecast.start_time)
+        start_index = bisect_left(timesteps, get_effective_start(forecast))
         end_index = (
             bisect_left(timesteps, forecast.end_time)
             if forecast.end_time
@@ -1005,16 +1026,48 @@ def get_aggregation_history(
         )
 
     with sentry_sdk.start_span(op="compute", name="get_user_forecast_history"):
-        forecast_history = get_user_forecast_history(forecasts, minimize, cutoff=cutoff)
+        forecast_history = get_user_forecast_history(
+            forecasts,
+            minimize,
+            cutoff=cutoff,
+            earliest_time=question.open_time,
+        )
 
     forecaster_ids = set(forecast.author_id for forecast in forecasts)
     for method in aggregation_methods:
         if method == "geometric_mean":
             if minimize:
                 continue  # gomean is useless minimized
-            from scoring.score_math import get_geometric_means
+            from scoring.score_math import AggregationEntry, get_geometric_means
 
             geometric_means = get_geometric_means(forecasts)
+            open_timestamp = (
+                question.open_time.timestamp() if question.open_time else None
+            )
+            if open_timestamp is not None:
+                # Clip pre-open entries: keep only post-open entries, but
+                # carry the most recent pre-open state forward as a synthetic
+                # entry at open_time so the CP timeline begins at open_time.
+                last_pre_open: AggregationEntry | None = None
+                post_open: list[AggregationEntry] = []
+                for gm in geometric_means:
+                    if gm.timestamp < open_timestamp:
+                        last_pre_open = gm
+                    else:
+                        post_open.append(gm)
+                if last_pre_open is not None and (
+                    not post_open or post_open[0].timestamp > open_timestamp
+                ):
+                    geometric_means = [
+                        AggregationEntry(
+                            pmf=last_pre_open.pmf,
+                            num_forecasters=last_pre_open.num_forecasters,
+                            timestamp=open_timestamp,
+                        ),
+                        *post_open,
+                    ]
+                else:
+                    geometric_means = post_open
             full_summary[method] = []
             previous_forecast = None
             for gm in geometric_means:

@@ -1007,3 +1007,112 @@ class TestGetAggregationHistoryCutoff:
         assert len(aggregations) == 1
         assert aggregations[0].end_time is None
         assert aggregations[0].forecaster_count == 2
+
+
+class TestGetAggregationHistoryPreOpen:
+    @pytest.mark.django_db
+    def test_cp_starts_at_open_time_with_pre_predictions(
+        self, question_binary: Question
+    ):
+        from datetime import timedelta
+        from unittest.mock import patch
+        from questions.models import Forecast
+        from utils.the_math.aggregations import get_aggregation_history
+
+        open_time = datetime(2025, 1, 1, tzinfo=dt_timezone.utc)
+        scheduled_close = datetime(2025, 6, 1, tzinfo=dt_timezone.utc)
+        actual_close = datetime(2025, 6, 1, tzinfo=dt_timezone.utc)
+        fake_now = datetime(2025, 7, 1, tzinfo=dt_timezone.utc)
+
+        question_binary.open_time = open_time
+        question_binary.scheduled_close_time = scheduled_close
+        question_binary.actual_close_time = actual_close
+        question_binary.save()
+
+        user_a = User.objects.create(username="preopen_user_a")
+        user_b = User.objects.create(username="preopen_user_b")
+
+        # User A pre-predicts before the question opens
+        Forecast.objects.create(
+            question=question_binary,
+            author=user_a,
+            probability_yes=0.7,
+            start_time=open_time - timedelta(days=30),
+            end_time=None,
+        )
+        # User B predicts a month after open
+        Forecast.objects.create(
+            question=question_binary,
+            author=user_b,
+            probability_yes=0.3,
+            start_time=open_time + timedelta(days=30),
+            end_time=None,
+        )
+
+        with patch("utils.the_math.aggregations.timezone.now", return_value=fake_now):
+            result = get_aggregation_history(
+                question=question_binary,
+                aggregation_methods=["recency_weighted"],
+                minimize=False,
+            )
+
+        aggregations = result["recency_weighted"]
+        # The CP timeline should start at open_time, not before
+        assert len(aggregations) == 2
+        assert aggregations[0].start_time == open_time
+        assert aggregations[0].forecaster_count == 1
+        assert aggregations[1].start_time == open_time + timedelta(days=30)
+        assert aggregations[1].forecaster_count == 2
+
+    @pytest.mark.django_db
+    def test_pre_prediction_ending_before_open_time_excluded(
+        self, question_binary: Question
+    ):
+        from datetime import timedelta
+        from unittest.mock import patch
+        from questions.models import Forecast
+        from utils.the_math.aggregations import get_aggregation_history
+
+        open_time = datetime(2025, 1, 1, tzinfo=dt_timezone.utc)
+        scheduled_close = datetime(2025, 6, 1, tzinfo=dt_timezone.utc)
+        actual_close = datetime(2025, 6, 1, tzinfo=dt_timezone.utc)
+        fake_now = datetime(2025, 7, 1, tzinfo=dt_timezone.utc)
+
+        question_binary.open_time = open_time
+        question_binary.scheduled_close_time = scheduled_close
+        question_binary.actual_close_time = actual_close
+        question_binary.save()
+
+        user_a = User.objects.create(username="preopen_user_a")
+        user_b = User.objects.create(username="preopen_user_b")
+
+        # User A pre-predicts and the prediction ends before the question opens
+        Forecast.objects.create(
+            question=question_binary,
+            author=user_a,
+            probability_yes=0.7,
+            start_time=open_time - timedelta(days=30),
+            end_time=open_time - timedelta(days=10),
+        )
+        # User B predicts after open
+        Forecast.objects.create(
+            question=question_binary,
+            author=user_b,
+            probability_yes=0.3,
+            start_time=open_time + timedelta(days=30),
+            end_time=None,
+        )
+
+        with patch("utils.the_math.aggregations.timezone.now", return_value=fake_now):
+            result = get_aggregation_history(
+                question=question_binary,
+                aggregation_methods=["recency_weighted"],
+                minimize=False,
+            )
+
+        aggregations = result["recency_weighted"]
+        # User A's pre-prediction ended before open_time, so the CP should
+        # only have one entry starting when user B predicts
+        assert len(aggregations) == 1
+        assert aggregations[0].start_time == open_time + timedelta(days=30)
+        assert aggregations[0].forecaster_count == 1
