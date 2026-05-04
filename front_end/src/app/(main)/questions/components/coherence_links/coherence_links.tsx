@@ -93,7 +93,8 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
               setIsAddModalOpen(true);
             }}
           >
-            {t("linkQuestion")}
+            <span className="md:hidden">{t("add")}</span>
+            <span className="hidden md:inline">{t("linkQuestion")}</span>
           </AddButton>
         ) : null
       }

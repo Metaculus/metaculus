@@ -40,7 +40,10 @@ const DirectionGlyph: FC<{ direction: number; strength: number }> = ({
       ? "bg-olive-100 dark:bg-olive-100-dark"
       : "bg-salmon-100 dark:bg-salmon-100-dark";
   return (
-    <span className="inline-flex flex-col items-center gap-0.5" aria-hidden>
+    <span
+      className="inline-flex -translate-y-1.5 flex-col items-center gap-0.5"
+      aria-hidden
+    >
       <span
         className={cn(
           "text-[10px] font-semibold uppercase tracking-wide",

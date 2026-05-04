@@ -117,20 +117,20 @@ const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
   return (
     <div
       className={
-        "group relative flex flex-row items-center gap-3 rounded border border-blue-400 bg-gray-0 p-4 transition-colors hover:border-blue-500 dark:border-blue-400-dark dark:bg-gray-0-dark dark:hover:border-blue-500-dark"
+        "group relative flex flex-col gap-4 rounded border border-blue-400 bg-gray-0 p-4 transition-colors hover:border-blue-500 dark:border-blue-400-dark dark:bg-gray-0-dark dark:hover:border-blue-500-dark md:flex-row md:items-center md:gap-3"
       }
     >
       <Link
         href={getPostLink({ id: otherQuestion.post_id })}
         target="_blank"
-        className="flex-grow font-normal text-blue-700 no-underline hover:text-blue-800 hover:underline dark:text-blue-700-dark dark:hover:text-blue-800-dark"
+        className="font-normal text-blue-700 no-underline hover:text-blue-800 hover:underline dark:text-blue-700-dark dark:hover:text-blue-800-dark md:flex-grow"
       >
         {otherQuestion.title}
       </Link>
-      {otherQuestionWithForecasts && (
-        <CoherencePredictionTile question={otherQuestionWithForecasts} />
-      )}
-      <div className={"flex flex-row items-center gap-1"}>
+      <div className="flex items-center justify-around gap-2 md:justify-start md:gap-3">
+        {otherQuestionWithForecasts && (
+          <CoherencePredictionTile question={otherQuestionWithForecasts} />
+        )}
         <LinkStrengthIcon
           direction={direction}
           strength={strength}
@@ -143,7 +143,7 @@ const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
         type="button"
         onClick={deleteLink}
         aria-label="Delete link"
-        className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-salmon-500 text-xs text-gray-0 opacity-0 shadow transition-opacity hover:bg-salmon-600 focus-visible:opacity-100 group-hover:opacity-100 dark:bg-salmon-500-dark dark:text-gray-0-dark dark:hover:bg-salmon-600-dark"
+        className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-salmon-500 text-xs text-gray-0 opacity-100 shadow transition-opacity hover:bg-salmon-600 dark:bg-salmon-500-dark dark:text-gray-0-dark dark:hover:bg-salmon-600-dark md:opacity-0 md:focus-visible:opacity-100 md:group-hover:opacity-100"
       >
         <FontAwesomeIcon icon={faXmark} />
       </button>
