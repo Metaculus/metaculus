@@ -9,7 +9,6 @@ import useAppTheme from "@/hooks/use_app_theme";
 import { BenchmarkChart } from "./benchmark-chart";
 import { BenchmarkChartLegend } from "./benchmark-chart-legend";
 import { safeIndex } from "./helpers";
-import { FE_COLORS, FE_TYPOGRAPHY } from "../../../theme";
 import { FAMILY_METADATA, type Family } from "../../leaderboard/bot_meta";
 import { useFutureEvalLeaderboard } from "../../leaderboard/futureeval-leaderboard-provider";
 
@@ -108,16 +107,6 @@ const FutureEvalBenchmarkForecastingPerformance: React.FC = () => {
         onHoveredPointKeyChange={setHoveredPointKey}
         showProjection={showProjection}
       />
-
-      {communityDate && proDate && (
-        <p
-          className={`mt-4 w-full rounded ${FE_COLORS.bgSecondary} text-balance px-4 py-2.5 text-center ${FE_TYPOGRAPHY.bodySmall} ${FE_COLORS.textSecondary}`}
-        >
-          The trend line indicates that bots will start beating the Metaculus
-          community performance in <strong>{communityDate}</strong> and Pro
-          Forecaster performance in <strong>{proDate}</strong>.
-        </p>
-      )}
     </div>
   );
 };
