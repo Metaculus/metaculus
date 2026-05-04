@@ -201,6 +201,46 @@ describe("generateScale", () => {
         .filter((label) => label !== "");
       expect(formattedLabels.length).toBeGreaterThan(2);
     });
+
+    it("picks nice display labels on positive log axes (no awkward endpoints)", () => {
+      // Regression for the [1, 52.7] fan card: the previous algorithm
+      // preserved the range_max as a tick literally, producing labels
+      // like "52.7". Picking nice values in display space avoids that.
+      const params = {
+        displayType: QuestionType.Numeric,
+        axisLength: 200,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1] as [number, number],
+        zoomedDomain: [0, 1] as [number, number],
+        scaling: {
+          range_min: 1,
+          range_max: 52.7,
+          zero_point: 0,
+        },
+        forceTickCount: 5,
+      };
+
+      const scale = generateScale(params);
+      const labels = scale.ticks
+        .map((t) => scale.tickFormat(t))
+        .filter((s) => s !== "");
+
+      expect(labels.length).toBeGreaterThanOrEqual(2);
+      expect(labels).not.toContain("52.7");
+
+      // The labels should be evenly spaced (in display space) by a nice
+      // step in {1, 2, 5} * 10^k.
+      const values = labels.map(Number);
+      values.forEach((v) => expect(Number.isFinite(v)).toBe(true));
+      const step = (values[1] as number) - (values[0] as number);
+      const log = Math.log10(Math.abs(step));
+      const exponent =
+        Math.abs(log - Math.round(log)) < 1e-3
+          ? Math.round(log)
+          : Math.floor(log);
+      const mantissa = Math.abs(step) / Math.pow(10, exponent);
+      expect([1, 2, 5]).toContain(Math.round(mantissa));
+    });
   });
 
   describe("graph ticks formatting", () => {

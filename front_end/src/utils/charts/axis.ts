@@ -301,62 +301,6 @@ export function generateTimestampXScale(
   };
 }
 
-/**
- * Takes an array of values and rounds them to the minimum
- * number of significant digits such that no two values
- * are rounded to the same value.
- * Values must be sorted in ascending order.
- */
-function minimumSignificantRounding(values: number[]): number[] {
-  const roundedValues: number[] = [];
-  const EPS = 1e-12;
-
-  function sigfigRound(val: number, sigfigs: number): number {
-    if (val === 0) return 0; // Special case for zero
-    const divisor = 10 ** (sigfigs - Math.floor(Math.log10(Math.abs(val))) - 1);
-    return Math.round(val * divisor) / divisor;
-  }
-  // TODO: more intelligent ordering for rounded tick value selection
-  // TODO: add dextrous rounding reflecting sig fig cost algorithm
-  values.forEach((value, i) => {
-    if (i === 0 || i === values.length - 1) {
-      roundedValues.push(value);
-      return;
-    }
-    const prevValue = values[i - 1];
-    const nextValue = values[i + 1];
-
-    if (prevValue == null || nextValue == null) {
-      roundedValues.push(value);
-      return;
-    }
-
-    // flat/duplicate guards
-    if (
-      Math.abs(value - prevValue) < EPS ||
-      Math.abs(nextValue - value) < EPS
-    ) {
-      roundedValues.push(value);
-      return;
-    }
-
-    let candidate = value;
-    for (let digits = 1; digits <= 12; digits++) {
-      candidate = sigfigRound(value, digits);
-      const denom = value - prevValue;
-      if (
-        Math.abs(denom) < EPS ||
-        Math.abs((value - candidate) / denom) < 0.2
-      ) {
-        break;
-      }
-    }
-    roundedValues.push(candidate);
-  });
-
-  return roundedValues;
-}
-
 function getSigFigCost(value: number, logarithmic: boolean = false): number {
   const absValue = Math.abs(value);
   // take the length of mantissa of the exponential rounded
@@ -719,46 +663,37 @@ export function generateScale({
     }
   } else {
     // Logarithmic Scaling
-    // Labeled ticks are not spaced evenly, but rather rounded to the nearby
-    // values that have the fewest significant digits
-    // Then, minor ticks are spaced evenly in real space, showcasing the
-    // strength of the logarithmic scaling
-    const minLabelCount = forceTickCount ?? Math.ceil(maxLabelCount / 2) + 1;
-    let bestTicks: number[] = [];
-    let bestAvgDigits = Infinity;
-    for (let i = maxLabelCount; i >= minLabelCount; i--) {
-      const unscaledTargets = Array.from(
-        { length: i },
-        (_, j) =>
-          zoomedDomainMin +
-          ((zoomedDomainMax - zoomedDomainMin) * (j * 1)) / (i - 1)
-      );
-      const scaledTargets = unscaledTargets.map((x) =>
-        scaleInternalLocation(x, rangeScaling)
-      );
-      const roundedScaledTargets = minimumSignificantRounding(scaledTargets);
-      const sigFigCosts = roundedScaledTargets.map((x) =>
-        getSigFigCost(x, true)
-      );
-      const avgDigits = sigFigCosts.reduce((sum, cost) => sum + cost, 0) / i;
-      if (avgDigits < bestAvgDigits) {
-        bestAvgDigits = avgDigits;
-        bestTicks = roundedScaledTargets;
-      }
-    }
-    majorTicks = bestTicks.map(
+    // Pick nice round numbers in display (range) space, then unscale each
+    // back to domain coordinates so they land at the right positions on
+    // the warped axis. The previous approach picked evenly-spaced warped
+    // positions and rounded them to fewest sig figs, but kept the
+    // endpoints verbatim — which produced ugly labels like 52.7.
+    const tickCountHint = forceTickCount ?? maxLabelCount;
+    const displayMin = scaleInternalLocation(zoomedDomainMin, rangeScaling);
+    const displayMax = scaleInternalLocation(zoomedDomainMax, rangeScaling);
+    const niceMajorRangeTicks = niceTicksAtMost(
+      Math.min(displayMin, displayMax),
+      Math.max(displayMin, displayMax),
+      tickCountHint
+    );
+
+    majorTicks = niceMajorRangeTicks.map(
       (x) =>
         Math.round(unscaleNominalLocation(x, rangeScaling) * 1000000) / 1000000
     );
 
+    // Minor ticks subdivide each major interval evenly in display space,
+    // then unscale to domain — that's what makes the gridlines appear
+    // logarithmically spaced and showcases the warp.
     const tickCount = forceTickCount
       ? forceTickCount
       : (maxLabelCount - 1) * (direction === "horizontal" ? 10 : 3) + 1;
-    const minorTicksPerMajorInterval = (tickCount - 1) / (maxLabelCount - 1);
+    const minorTicksPerMajorInterval =
+      (tickCount - 1) / Math.max(1, niceMajorRangeTicks.length - 1);
     minorTicks = majorTicks.slice();
-    range(0, bestTicks.length - 1).forEach((i) => {
-      const prevMajor = bestTicks.at(i) ?? 0;
-      const nextMajor = bestTicks.at(i + 1) ?? 1;
+    range(0, niceMajorRangeTicks.length - 1).forEach((i) => {
+      const prevMajor = niceMajorRangeTicks.at(i) ?? 0;
+      const nextMajor = niceMajorRangeTicks.at(i + 1) ?? 1;
       const step = (nextMajor - prevMajor) / minorTicksPerMajorInterval;
       for (let j = 0; j < minorTicksPerMajorInterval - 1; j++) {
         const newMinorTick = prevMajor + (j + 1) * step;
