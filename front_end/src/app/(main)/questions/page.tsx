@@ -11,6 +11,7 @@ import AwaitedWeeklyTopCommentsFeed from "@/components/weekly_top_comments_feed"
 import {
   POST_COMMENTS_FEED_FILTER,
   POST_COMMUNITIES_FILTER,
+  POST_FORECASTER_ID_FILTER,
   POST_PAGE_FILTER,
   POST_WEEKLY_TOP_COMMENTS_FILTER,
 } from "@/constants/posts_feed";
@@ -35,12 +36,17 @@ export default async function Questions(props: {
   const user = await ServerProfileApi.getMyProfile();
 
   const searchParams = await props.searchParams;
+  const isMyPredictionsFeed =
+    typeof searchParams[POST_FORECASTER_ID_FILTER] === "string" &&
+    searchParams[POST_FORECASTER_ID_FILTER] === user?.id.toString();
   const isCommunityFeed = searchParams[POST_COMMUNITIES_FILTER];
   const isWeeklyTopCommentsFeed = searchParams[POST_WEEKLY_TOP_COMMENTS_FILTER];
   const isCommentsFeed = searchParams[POST_COMMENTS_FEED_FILTER];
   const filters = generateFiltersFromSearchParams(searchParams, {
     // Default Feed ordering should be hotness
-    defaultOrderBy: QuestionOrder.HotDesc,
+    defaultOrderBy: isMyPredictionsFeed
+      ? QuestionOrder.WeeklyMovementDesc
+      : QuestionOrder.HotDesc,
     defaultForMainFeed: true,
     filterForConsumerView:
       isNil(user) || user.interface_type === InterfaceType.ConsumerView,

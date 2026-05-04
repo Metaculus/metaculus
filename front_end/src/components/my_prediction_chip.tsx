@@ -15,6 +15,7 @@ import {
   getDiscreteValueOptions,
   getPredictionDisplayValue,
 } from "@/utils/formatters/prediction";
+import { isQuestionPrePrediction } from "@/utils/questions/predictions";
 
 type Props = {
   question: QuestionWithForecasts;
@@ -101,7 +102,8 @@ const MyPredictionChip: FC<Props> = ({
         </div>
         {!!onReaffirm &&
           canPredict &&
-          question.status === QuestionStatus.OPEN && (
+          (question.status === QuestionStatus.OPEN ||
+            isQuestionPrePrediction(question)) && (
             <ReaffirmButton
               onClick={() => {
                 onReaffirm(latest);

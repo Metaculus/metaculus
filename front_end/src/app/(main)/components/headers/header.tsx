@@ -30,7 +30,7 @@ const Header: FC = () => {
 
   return (
     <>
-      <header className="fixed left-0 top-0 z-[200] flex h-header w-full flex-auto items-stretch justify-between bg-blue-900 text-gray-0">
+      <header className="fixed left-0 top-0 z-[200] flex h-header w-full flex-auto items-stretch justify-between bg-blue-900 text-gray-0 print:hidden">
         <div className="flex items-stretch justify-between">
           <NavbarLogo className="mr-1 lg:mr-5" />
 
