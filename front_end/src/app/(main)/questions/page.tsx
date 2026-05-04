@@ -17,6 +17,7 @@ import {
 } from "@/constants/posts_feed";
 import serverMiscApi from "@/services/api/misc/misc.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
+import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { QuestionOrder } from "@/types/question";
 import { InterfaceType } from "@/types/users";
@@ -52,14 +53,17 @@ export default async function Questions(props: {
     filterForConsumerView:
       isNil(user) || user.interface_type === InterfaceType.ConsumerView,
   });
-  const sidebarItems = await serverMiscApi.getSidebarItems();
+  const [sidebarItems, categories] = await Promise.all([
+    serverMiscApi.getSidebarItems(),
+    ServerProjectsApi.getCategories(),
+  ]);
 
   return (
     <>
       <main className="min-h-[calc(100vh-3rem)] w-full flex-auto">
         <OnboardingCheck />
         <div className="flex flex-col sm:flex-row">
-          <FeedSidebar items={sidebarItems} />
+          <FeedSidebar items={sidebarItems} categories={categories} />
           {isCommentsFeed ? (
             <div className="mx-auto min-h-[calc(100vh-300px)] w-full max-w-5xl grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-4 sm:pt-5">
               <CommentFeedContent />

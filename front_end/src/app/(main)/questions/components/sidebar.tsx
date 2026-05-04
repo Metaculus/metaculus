@@ -3,7 +3,6 @@ import { Drawer } from "@base-ui/react/drawer";
 import {
   faBars,
   faChevronUp,
-  faEllipsis,
   faHome,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
@@ -19,6 +18,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import useSearchParams from "@/hooks/use_search_params";
+import { Category } from "@/types/projects";
 import {
   SidebarItem,
   SidebarMenuItem,
@@ -30,6 +30,7 @@ import { convertSidebarItem } from "@/utils/sidebar";
 
 type Props = {
   items: SidebarItem[];
+  categories: Category[];
 };
 
 type SidebarSection = {
@@ -45,7 +46,7 @@ type SidebarMenuProps = {
   className?: string;
 };
 
-const FeedSidebar: FC<Props> = ({ items }) => {
+const FeedSidebar: FC<Props> = ({ items, categories }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
@@ -116,7 +117,24 @@ const FeedSidebar: FC<Props> = ({ items }) => {
             },
           ]
         : []),
-      ...items.map((obj) => convertSidebarItem(obj, fullPathname)),
+      // Category SidebarItems are legacy; feed categories now come from /projects/categories/.
+      ...items
+        .filter((obj) => obj.section !== "hot_categories")
+        .map((obj) => convertSidebarItem(obj, fullPathname)),
+      ...categories
+        .filter((category) => category.posts_count > 0)
+        .map((category) =>
+          convertSidebarItem(
+            {
+              id: String(category.id),
+              name: category.name,
+              emoji: category.emoji ?? "",
+              section: "hot_categories",
+              project: category,
+            },
+            fullPathname
+          )
+        ),
     ];
 
     return [
@@ -139,6 +157,7 @@ const FeedSidebar: FC<Props> = ({ items }) => {
     PUBLIC_MINIMAL_UI,
     currentFeed,
     fullPathname,
+    categories,
     items,
     t,
     user,
@@ -319,7 +338,6 @@ const DesktopSidebar: FC<{
 
 const SidebarMenu: FC<SidebarMenuProps> = ({
   sections,
-  seeAllCategoriesLabel,
   onItemSelect,
   className,
 }) => {
@@ -386,20 +404,6 @@ const SidebarMenu: FC<SidebarMenuProps> = ({
             </Fragment>
           );
         })}
-
-      <TopicItem
-        href="/questions/discovery"
-        text={seeAllCategoriesLabel}
-        emoji={<FontAwesomeIcon icon={faEllipsis} />}
-        isActive={false}
-        onClick={() => {
-          sendAnalyticsEvent("sidebarClick", {
-            event_category: seeAllCategoriesLabel,
-          });
-          onItemSelect?.();
-        }}
-        variant="sidebar"
-      />
     </div>
   );
 };

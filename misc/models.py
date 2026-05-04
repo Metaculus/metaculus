@@ -141,6 +141,8 @@ class UserDataAccess(TimeStampedModel):
 class SidebarItem(TimeStampedModel):
     class SectionTypes(models.TextChoices):
         HOT_TOPICS = "hot_topics"
+        # Legacy for the question feed sidebar. Feed categories now come from
+        # /projects/categories/ and frontend consumers should ignore this value.
         HOT_CATEGORIES = "hot_categories"
 
     name = models.CharField(

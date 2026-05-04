@@ -157,6 +157,8 @@ def cancel_bulletin(request, pk):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def sidebar_api_view(request: Request):
+    # SidebarItem hot_categories entries are legacy; feed categories should come
+    # from /projects/categories/ instead.
     sidebar_items = SidebarItem.objects.select_related(
         "post__default_project", "project"
     )
