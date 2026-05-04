@@ -356,13 +356,21 @@ describe("generateScale", () => {
         .map((t) => -27.7 + t * (20 - -27.7));
 
       expect(labeledRangeValues.length).toBeGreaterThan(1);
+      // Domain ticks are rounded to 6 decimals before being mapped back to
+      // range values, so the reconstructed step picks up floating-point dust
+      // (e.g. 9.9999711 instead of 10). Snap log10(step) to the nearest
+      // integer when it's right at a 10^k boundary so we bucket correctly.
       const step =
         (labeledRangeValues[1] as number) - (labeledRangeValues[0] as number);
-      const exponent = Math.floor(Math.log10(Math.abs(step)));
+      const log = Math.log10(Math.abs(step));
+      const exponent =
+        Math.abs(log - Math.round(log)) < 1e-3
+          ? Math.round(log)
+          : Math.floor(log);
       const mantissa = Math.abs(step) / Math.pow(10, exponent);
       expect([1, 2, 5]).toContain(Math.round(mantissa));
 
-      const eps = Math.abs(step) * 1e-6;
+      const eps = Math.abs(step) * 1e-3;
       labeledRangeValues.forEach((v) => {
         expect(Math.abs(v - Math.round(v / step) * step)).toBeLessThan(eps);
       });
