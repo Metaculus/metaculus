@@ -56,17 +56,10 @@ const GroupOfQuestionsPrediction: React.FC<Props> = ({ postData }) => {
     }
   } else if (checkGroupOfQuestionsPostType(postData, QuestionType.Date)) {
     content = (
-      <>
-        <div className="sm:hidden">
-          <NumericForecastCard post={postData} />
-        </div>
-        <div className="hidden sm:block">
-          <DateForecastCard
-            post={postData}
-            questionsGroup={postData.group_of_questions}
-          />
-        </div>
-      </>
+      <DateForecastCard
+        post={postData}
+        questionsGroup={postData.group_of_questions}
+      />
     );
   }
 

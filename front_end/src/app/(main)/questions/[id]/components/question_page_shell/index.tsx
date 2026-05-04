@@ -16,6 +16,7 @@ import {
   PostWithForecasts,
   QuestionStatus,
 } from "@/types/post";
+import { TournamentType } from "@/types/projects";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
@@ -73,7 +74,8 @@ export const ForecasterShell: FC<
       <div className="flex flex-col gap-1.5 md:gap-4">
         <section className={mainSectionClassName}>
           <PostStatusBox post={postData} className="mb-5 rounded lg:mb-6" />
-          {postData.projects?.default_project && (
+          {postData.projects?.default_project?.type ===
+            TournamentType.Community && (
             <CommunityDisclaimer
               project={postData.projects.default_project}
               variant="standalone"
@@ -170,7 +172,8 @@ export const ConsumerShell: FC<{
     <div className="flex flex-col gap-1.5 md:gap-4">
       <section className={mainSectionClassName}>
         <PostStatusBox post={postData} className="mb-5 rounded lg:mb-6" />
-        {postData.projects?.default_project && (
+        {postData.projects?.default_project?.type ===
+          TournamentType.Community && (
           <CommunityDisclaimer
             project={postData.projects.default_project}
             variant="standalone"
@@ -206,17 +209,13 @@ export const ConsumerShell: FC<{
           >
             <div
               className={cn(
-                showSideBySide
-                  ? isDateGroup
-                    ? "order-2"
-                    : "order-1"
-                  : undefined,
+                showSideBySide && !isDateGroup ? "order-1" : undefined,
                 isContinuousSingleQuestion && "md:hidden"
               )}
             >
               <ConsumerQuestionPrediction postData={postData} />
             </div>
-            {!isFanGraph && (
+            {!isFanGraph && !isDateGroup && (
               <QuestionTimeline
                 postData={postData}
                 keyFactors={postData.key_factors}
@@ -224,21 +223,8 @@ export const ConsumerShell: FC<{
                 preselectedGroupQuestionId={preselectedGroupQuestionId}
                 className={cn(
                   "hidden sm:block",
-                  showSideBySide &&
-                    (isDateGroup
-                      ? "order-1 mt-0 flex-1"
-                      : "order-2 mt-0 flex-1")
+                  showSideBySide && "order-2 mt-0 flex-1"
                 )}
-              />
-            )}
-            {isFanGraph && isGroupOfQuestionsPost(postData) && (
-              <DetailedGroupCard
-                post={postData}
-                preselectedQuestionId={preselectedGroupQuestionId}
-                groupPresentationOverride={
-                  GroupOfQuestionsGraphType.MultipleChoiceGraph
-                }
-                prioritizeOpenSubquestions
               />
             )}
             {showClosedMessageFanGraph && (

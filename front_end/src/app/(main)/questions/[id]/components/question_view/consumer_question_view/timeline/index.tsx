@@ -62,7 +62,27 @@ const QuestionTimeline: React.FC<Props> = ({
     return (
       <div className={wrapperClass}>
         {isDateType ? (
-          <NumericForecastCard post={postData} forceColorful />
+          <div className="flex flex-col gap-6">
+            <DetailedGroupCard
+              post={postData}
+              preselectedQuestionId={preselectedGroupQuestionId}
+            />
+            <NumericForecastCard post={postData} forceColorful />
+          </div>
+        ) : isFanGraph ? (
+          <div className="flex flex-col gap-6">
+            <DetailedGroupCard
+              post={postData}
+              preselectedQuestionId={preselectedGroupQuestionId}
+              groupPresentationOverride={
+                GroupOfQuestionsGraphType.MultipleChoiceGraph
+              }
+            />
+            <DetailedGroupCard
+              post={postData}
+              preselectedQuestionId={preselectedGroupQuestionId}
+            />
+          </div>
         ) : (
           <DetailedGroupCard
             post={postData}
