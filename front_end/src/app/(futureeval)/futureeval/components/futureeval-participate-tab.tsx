@@ -254,6 +254,8 @@ const FutureEvalTournamentOverview: React.FC = () => {
           <Link
             key={t.title}
             href={t.href}
+            target="_blank"
+            rel="noopener noreferrer"
             className={cn(
               "group flex flex-col rounded-[10px] border p-5 no-underline transition hover:-translate-y-0.5 hover:shadow-md",
               t.primary
