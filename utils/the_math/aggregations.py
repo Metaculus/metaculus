@@ -935,11 +935,7 @@ def get_user_forecast_history(
 
     timestep_set: set[datetime] = set()
     for forecast in forecasts:
-        if (
-            earliest_time
-            and forecast.end_time
-            and forecast.end_time <= earliest_time
-        ):
+        if earliest_time and forecast.end_time and forecast.end_time <= earliest_time:
             continue
         timestep_set.add(get_effective_start(forecast))
         if forecast.end_time:
@@ -961,11 +957,7 @@ def get_user_forecast_history(
         for timestep in timesteps
     }
     for forecast in forecasts:
-        if (
-            earliest_time
-            and forecast.end_time
-            and forecast.end_time <= earliest_time
-        ):
+        if earliest_time and forecast.end_time and forecast.end_time <= earliest_time:
             continue
         # Find active timesteps using bisect to find the start & end indexes
         start_index = bisect_left(timesteps, get_effective_start(forecast))
