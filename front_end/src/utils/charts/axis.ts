@@ -355,11 +355,13 @@ function niceTicksAtMost(
   stop: number,
   maxCount: number
 ): number[] {
-  for (let c = Math.max(2, maxCount); c >= 2; c--) {
+  for (let c = Math.max(1, maxCount); c >= 1; c--) {
     const t = d3.ticks(start, stop, c);
-    if (t.length <= maxCount) return t;
+    if (t.length >= 2 && t.length <= maxCount) return t;
   }
-  return d3.ticks(start, stop, 2);
+  // Degenerate range, or nothing fits — keep the endpoints so callers
+  // always get at least two ticks.
+  return start === stop ? [start] : [start, stop];
 }
 
 /**
@@ -591,7 +593,7 @@ export function generateScale({
       // niceness against the values users will see.
       // forceTickCount, when supplied, is treated as a hint to d3.ticks();
       // the resulting count may differ by ±1-2 in exchange for nicer values.
-      const tickCountHint = forceTickCount ?? maxLabelCount;
+      const tickCountHint = Math.min(4, forceTickCount ?? maxLabelCount);
       const zoomedRangeMin = scaleInternalLocation(
         unscaleNominalLocation(zoomedDomainMin, domainScaling),
         rangeScaling
@@ -630,9 +632,16 @@ export function generateScale({
       );
       const minorTickCount =
         Math.max(majorTicks.length - 1, 1) * minorTicksPerMajor + 1;
-      minorTicks = d3
+      const denseMinor = d3
         .ticks(zoomedRangeMin, zoomedRangeMax, minorTickCount)
         .map((v) => Math.round(rangeToDomain(v) * 1000000) / 1000000);
+      // Major ticks must always be a subset of minor — otherwise their
+      // labels get filtered out at render time (tickFormat checks major
+      // membership). The d3.ticks count for minor can lock onto a step
+      // that doesn't include the major positions, so merge explicitly.
+      minorTicks = Array.from(new Set([...majorTicks, ...denseMinor])).sort(
+        (a, b) => a - b
+      );
     } else if (forceTickCount) {
       // Non-numeric linear scales (e.g. date axes) need exact, evenly-spaced
       // ticks across the zoomed domain — d3.ticks would produce ugly raw
@@ -668,7 +677,7 @@ export function generateScale({
     // the warped axis. The previous approach picked evenly-spaced warped
     // positions and rounded them to fewest sig figs, but kept the
     // endpoints verbatim — which produced ugly labels like 52.7.
-    const tickCountHint = forceTickCount ?? maxLabelCount;
+    const tickCountHint = Math.min(4, forceTickCount ?? maxLabelCount);
     const displayMin = scaleInternalLocation(zoomedDomainMin, rangeScaling);
     const displayMax = scaleInternalLocation(zoomedDomainMax, rangeScaling);
     const niceMajorRangeTicks = niceTicksAtMost(

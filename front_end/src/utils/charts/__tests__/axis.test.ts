@@ -335,8 +335,12 @@ describe("generateScale", () => {
       const labeledTicks = scale.ticks.filter(
         (t) => scale.tickFormat(t) !== ""
       );
-      const valid1 = [0, 25, 50, 75, 100];
-      const valid2 = [0, 20, 40, 60, 80, 100];
+      // With the global max-4 cap, d3.ticks(0, 100, 4) returns 6 ticks
+      // (step 20) which exceeds the cap; the helper falls back to c=3 →
+      // [0, 50, 100]. [0, 25, 50, 75, 100] and the 6-tick options aren't
+      // achievable under the cap.
+      const valid1 = [0, 50, 100];
+      const valid2 = [0, 25, 50, 75, 100];
       const arraysEqual = (a: number[], b: number[]) =>
         a.length === b.length && a.every((v, i) => v === b[i]);
 
