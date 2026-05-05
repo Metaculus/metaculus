@@ -19,7 +19,7 @@ from projects.services.cache import invalidate_projects_questions_count_cache
 from projects.services.common import (
     get_projects_staff_users,
     get_site_main_project,
-    move_project_forecasting_end_date,
+    move_project_close_date,
 )
 from questions.models import Question
 from questions.services.common import (
@@ -432,7 +432,7 @@ def approve_post(
             Project.ProjectTypes.TOURNAMENT,
             Project.ProjectTypes.QUESTION_SERIES,
         ]:
-            move_project_forecasting_end_date(project, post)
+            move_project_close_date(project, post)
 
     post.update_pseudo_materialized_fields()
 

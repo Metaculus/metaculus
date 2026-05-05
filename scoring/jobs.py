@@ -46,7 +46,7 @@ def finalize_leaderboards():
     active_leaderboards = Leaderboard.objects.filter(finalized=False)
     for leaderboard in active_leaderboards:
         finalize_time = leaderboard.finalize_time or (
-            leaderboard.project.close_date if leaderboard.project else None
+            leaderboard.project.winners_announced_date if leaderboard.project else None
         )
         if finalize_time and finalize_time <= timezone.now():
             logger.info(f"Finalizing leaderboard: {leaderboard}")

@@ -187,7 +187,7 @@ class PostInlineBase(admin.TabularInline):
             if project.primary_leaderboard
             else None
         )
-        finalize_time = finalize_time or project.close_date
+        finalize_time = finalize_time or project.winners_announced_date
         if not finalize_time:
             return True
 
@@ -211,7 +211,7 @@ class PostInlineBase(admin.TabularInline):
             if project.primary_leaderboard
             else None
         )
-        finalize_time = finalize_time or project.close_date
+        finalize_time = finalize_time or project.winners_announced_date
         if not finalize_time:
             return True
 
@@ -368,19 +368,19 @@ class ProjectAdminForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         start_date = cleaned_data.get("start_date")
-        forecasting_end_date = cleaned_data.get("forecasting_end_date")
         close_date = cleaned_data.get("close_date")
+        winners_announced_date = cleaned_data.get("winners_announced_date")
 
-        if forecasting_end_date and close_date and forecasting_end_date > close_date:
+        if close_date and winners_announced_date and close_date > winners_announced_date:
             self.add_error(
-                "forecasting_end_date",
-                "Forecasting end date must be before the close date.",
+                "close_date",
+                "Close date must be before the winners announced date.",
             )
 
-        if start_date and forecasting_end_date and start_date > forecasting_end_date:
+        if start_date and close_date and start_date > close_date:
             self.add_error(
                 "start_date",
-                "Start date must be before the forecasting end date.",
+                "Start date must be before the close date.",
             )
 
         return cleaned_data
@@ -844,7 +844,7 @@ class ProjectAdmin(CustomTranslationAdmin):
         all_ids = list(all_questions.values_list("id", flat=True))
         all_count = len(all_ids)
 
-        finalize_time = leaderboard.finalize_time or obj.close_date
+        finalize_time = leaderboard.finalize_time or obj.winners_announced_date
         if finalize_time:
             in_leaderboard_qs = all_questions.filter(
                 Q(resolution_set_time__isnull=True)
@@ -920,7 +920,7 @@ class ProjectAdmin(CustomTranslationAdmin):
             return None
         leaderboard = obj.primary_leaderboard
         if leaderboard:
-            return leaderboard.finalize_time or (obj.close_date if obj else None)
+            return leaderboard.finalize_time or (obj.winners_announced_date if obj else None)
 
     primary_leaderboard_finalize_time.short_description = (
         "Time when Primary Leaderboard is Finalized"
