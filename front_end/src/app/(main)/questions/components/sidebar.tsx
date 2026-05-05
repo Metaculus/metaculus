@@ -306,7 +306,10 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
               <Drawer.Content className="flex h-full min-h-0 flex-col">
                 <Drawer.Title className="sr-only">{t("menu")}</Drawer.Title>
                 <ScrollArea.Root className="min-h-0 flex-1 overflow-hidden">
-                  <ScrollArea.Viewport className="h-full overscroll-contain [-webkit-overflow-scrolling:touch] [touch-action:pan-y]">
+                  <ScrollArea.Viewport
+                    data-base-ui-swipe-ignore
+                    className="h-full overscroll-contain [-webkit-overflow-scrolling:touch] [touch-action:pan-y]"
+                  >
                     <ScrollArea.Content className="p-2">
                       <SidebarMenu
                         sections={sidebarSections}
