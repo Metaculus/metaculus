@@ -4,6 +4,7 @@ import {
   faBars,
   faChevronUp,
   faHome,
+  faMagnifyingGlass,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -14,7 +15,7 @@ import { FC, Fragment, useEffect, useMemo, useRef, useState } from "react";
 
 import TopicItem from "@/app/(main)/questions/components/topic_item";
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
-import { FeedType } from "@/constants/posts_feed";
+import { FeedType, POST_TEXT_SEARCH_FILTER } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
@@ -55,6 +56,8 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
   const pathname = usePathname();
   const { params } = useSearchParams();
   const fullPathname = `${pathname}${params.toString() ? `?${params.toString()}` : ""}`;
+  const searchQuery = params.get(POST_TEXT_SEARCH_FILTER)?.trim() ?? "";
+  const hasActiveSearch = !!searchQuery;
   const { bannerIsVisible: isTranslationBannerVisible } =
     useContentTranslatedBannerContext();
 
@@ -170,10 +173,20 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const mobileMainItems =
     sidebarSections.find(({ type }) => type === null)?.items ?? [];
+  const mobileSearchItem: SidebarMenuItem | null = hasActiveSearch
+    ? {
+        name: searchQuery,
+        emoji: <FontAwesomeIcon icon={faMagnifyingGlass} />,
+        url: fullPathname,
+        isActive: true,
+      }
+    : null;
   const selectedMobileItem =
+    mobileSearchItem ??
     sidebarSections
       .flatMap(({ items }) => items)
-      .find(({ isActive }) => isActive) ?? mobileMainItems[0];
+      .find(({ isActive }) => isActive) ??
+    mobileMainItems[0];
   const mobileRailItems = selectedMobileItem
     ? mobileMainItems.filter(({ url }) => url !== selectedMobileItem.url)
     : mobileMainItems;

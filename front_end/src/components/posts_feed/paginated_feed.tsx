@@ -7,6 +7,7 @@ import { QuestionVariantComposer } from "@/app/(main)/questions/[id]/components/
 import ConsumerPostCard from "@/components/consumer_post_card";
 import NewsCard from "@/components/news_card";
 import PostCard from "@/components/post_card";
+import CompactSearchPostCard from "@/components/post_card/compact_search_post_card";
 import Button from "@/components/ui/button";
 import { type FeedLayout } from "@/components/ui/layout_switcher";
 import LoadingIndicator from "@/components/ui/loading_indicator";
@@ -147,7 +148,8 @@ const PaginatedPostsFeed: FC<Props> = ({
   );
 
   const { layout: contextLayout } = useFeedLayout();
-  const layout = forceLayout ?? contextLayout;
+  const compactSearchMode = !!filters.search;
+  const layout = compactSearchMode ? "list" : forceLayout ?? contextLayout;
 
   return (
     <>
@@ -174,6 +176,7 @@ const PaginatedPostsFeed: FC<Props> = ({
           isCommunity={isCommunity}
           weightByPostId={weightByPostId}
           layout={layout}
+          compactSearchMode={compactSearchMode}
         />
         <PostsFeedScrollRestoration
           serverPage={filters.page ?? null}
@@ -209,7 +212,16 @@ const FeedLayoutView: FC<{
   isCommunity?: boolean;
   weightByPostId: Map<number, number>;
   layout: FeedLayout;
-}> = ({ items, feedPage, type, isCommunity, weightByPostId, layout }) => {
+  compactSearchMode?: boolean;
+}> = ({
+  items,
+  feedPage,
+  type,
+  isCommunity,
+  weightByPostId,
+  layout,
+  compactSearchMode,
+}) => {
   return (
     <Masonry
       items={items}
@@ -231,6 +243,7 @@ const FeedLayoutView: FC<{
           type={type}
           isCommunity={isCommunity}
           weightByPostId={weightByPostId}
+          compactSearchMode={compactSearchMode}
         />
       )}
     />
@@ -243,12 +256,24 @@ const FeedItemCard: FC<{
   type: PostsFeedType;
   isCommunity?: boolean;
   weightByPostId: Map<number, number>;
-}> = ({ item, feedPage, type, isCommunity, weightByPostId }) => {
+  compactSearchMode?: boolean;
+}> = ({
+  item,
+  feedPage,
+  type,
+  isCommunity,
+  weightByPostId,
+  compactSearchMode,
+}) => {
   if (item.type === "project") {
     return <FeedTournamentTile tile={item.tile} feedPage={feedPage} />;
   }
 
   const { post } = item;
+
+  if (compactSearchMode) {
+    return <CompactSearchPostCard post={post} />;
+  }
 
   if (isNotebookPost(post) && type === "news") {
     return <NewsCard post={post} />;

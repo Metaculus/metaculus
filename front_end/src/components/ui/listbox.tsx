@@ -108,7 +108,9 @@ const Listbox = <T extends string>(props: Props<T>) => {
             })}
           >
             <FontAwesomeIcon icon={faChevronDown} />
-            <span className="align-middle">{label ?? activeLabel}</span>
+            <span className="whitespace-nowrap align-middle">
+              {label ?? activeLabel}
+            </span>
           </ListboxButton>
 
           {!renderInPortal && (

@@ -9,6 +9,7 @@ import {
   POST_FOR_MAIN_FEED,
   POST_FORECASTER_ID_FILTER,
   POST_ORDER_BY_FILTER,
+  POST_TEXT_SEARCH_FILTER,
   POST_TOPIC_FILTER,
   POST_USERNAMES_FILTER,
   POST_WEEKLY_TOP_COMMENTS_FILTER,
@@ -25,6 +26,7 @@ const useFeed = () => {
 
   const selectedTopic = params.get(POST_TOPIC_FILTER);
   const selectedCategory = params.get(POST_CATEGORIES_FILTER);
+  const selectedSearch = params.get(POST_TEXT_SEARCH_FILTER);
   const guessedById = params.get(POST_FORECASTER_ID_FILTER);
   const authorUsernames = params.getAll(POST_USERNAMES_FILTER);
   const following = params.get(POST_FOLLOWING_FILTER);
@@ -34,6 +36,7 @@ const useFeed = () => {
   const commentsFeed = params.get(POST_COMMENTS_FEED_FILTER);
 
   const currentFeed = useMemo(() => {
+    if (selectedSearch) return null;
     if (selectedTopic || selectedCategory) return null;
     if (guessedById) return FeedType.MY_PREDICTIONS;
     if (following) return FeedType.FOLLOWING;
@@ -56,6 +59,7 @@ const useFeed = () => {
   }, [
     selectedTopic,
     selectedCategory,
+    selectedSearch,
     guessedById,
     following,
     authorUsernames,

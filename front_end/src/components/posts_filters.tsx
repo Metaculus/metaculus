@@ -31,6 +31,7 @@ import {
   POST_ORDER_BY_FILTER,
   POST_PAGE_FILTER,
   POST_STATUS_FILTER,
+  POST_TEXT_SEARCH_FILTER,
   POST_WITHDRAWN_FILTER,
 } from "@/constants/posts_feed";
 import { useFeedLayout } from "@/contexts/feed_layout_context";
@@ -159,6 +160,9 @@ const PostsFilters: FC<Props> = ({
 
   const order = (params.get(POST_ORDER_BY_FILTER) ??
     defaultOrder) as QuestionOrder;
+  const hasActiveSearch = !!(
+    globalSearch.trim() || params.get(POST_TEXT_SEARCH_FILTER)?.trim()
+  );
   const hasActiveDropdownSort =
     dropdownSortOptions?.some((o) => o.value === order) ?? false;
 
@@ -315,11 +319,11 @@ const PostsFilters: FC<Props> = ({
           className="absolute inset-y-0 right-0 z-10 flex items-center gap-1.5 pl-1.5 sm:gap-3 sm:pl-2"
         >
           {dropdownSortOptions && (
-            <div className="flex items-stretch">
+            <div className="flex shrink-0 items-stretch">
               <Listbox
                 buttonVariant={hasActiveDropdownSort ? "secondary" : "tertiary"}
                 className={cn(
-                  "rounded-full max-sm:px-2 max-sm:py-1 max-sm:text-xs",
+                  "whitespace-nowrap rounded-full max-sm:px-2 max-sm:py-1 max-sm:text-xs",
                   hasActiveDropdownSort && "rounded-r-none border-r-0 pr-1.5"
                 )}
                 onChange={handleOrderChange}
@@ -376,7 +380,7 @@ const PostsFilters: FC<Props> = ({
             className="hidden md:flex"
             collapsible
           />
-          {!forceLayout && (
+          {!forceLayout && !hasActiveSearch && (
             <LayoutSwitcher
               value={layout}
               onChange={setLayout}
