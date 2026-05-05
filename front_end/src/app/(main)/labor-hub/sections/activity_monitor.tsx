@@ -76,7 +76,7 @@ export function ActivityMonitorSection({
         chart={
           <QuestionLoader
             questionId={41307}
-            title="How predictions change over time as AI progresses?"
+            title="How predictions have changed as AI advances"
             subtitle="What will be the percent change in US employment in the following years compared to 2025?"
             className="md:order-2"
             variant="primary"

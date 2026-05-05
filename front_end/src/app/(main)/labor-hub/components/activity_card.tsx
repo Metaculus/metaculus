@@ -137,7 +137,7 @@ export function ActivityCard({
                 variant === "purple" &&
                   "text-purple-700 dark:text-purple-700-dark",
                 variant === "mint" && "text-mint-700 dark:text-mint-700-dark",
-                "flex min-w-0 flex-1 items-start justify-between gap-2 text-xs"
+                "flex min-w-0 flex-1 items-start justify-between gap-2 text-xs lg:text-sm"
               )}
             >
               {username && subtitle && (

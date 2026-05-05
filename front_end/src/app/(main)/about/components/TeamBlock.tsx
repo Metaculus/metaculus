@@ -69,6 +69,13 @@ const people: Person[] = [
       "Christian leads communications and marketing at Metaculus, working closely with the operations and program teams. Prior to joining Metaculus, he was a marketing operations lead in the aerospace and defense industry. Christian earned his master's degree in psychology from Rutgers University, where he conducted behavioral and fMRI research on moral judgment and decision-making. Before graduate school, he was a writer for The Onion AV Club and contributed material to Saturday Night Live.",
   },
   {
+    name: "Cole Sussmeier",
+    position: "Research Engineer",
+    imgSrc: "https://cdn.metaculus.com/about/cole_sussmeier.webp",
+    introduction:
+      "Cole is a Research Engineer at Metaculus, where he works on Radiant and on AI forecasting harnesses and experiments. Before joining Metaculus, he founded Automatic Industries, building predictive analytics models, machine learning pipelines, and dashboard applications for clients. He previously worked as a data science consultant at Deloitte and as a data scientist at COI Energy. Cole holds a master's degree in Data Analytics and a bachelor's degree in Business Analytics, with a minor in Mathematics, from Binghamton University.",
+  },
+  {
     name: "Nikitas Angeletos Chrysaitis",
     position: "Forecasting Program Coordinator",
     imgSrc: "https://cdn.metaculus.com/nikitas-angeletos-chrysaitis.webp",
@@ -353,6 +360,7 @@ const groups: Groups = {
     "Molly Hickman",
     "Leonard Barrett",
     "Christian Williams",
+    "Cole Sussmeier",
     "Ryan Beck",
     "Sylvain Chevalier",
     "Elis Popescu",

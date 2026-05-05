@@ -161,13 +161,11 @@ export async function OverviewSection({
       data: toChartPoints(excludeYears(max, [2027])),
       legendDetail: (
         <>
-          The least and most vulnerable occupation forecasts in this figure are
-          defined based on the three occupations from our set of 15 that are
-          forecasted to grow and shrink the most in the forecasts for 2035. Each
-          line represents a simple average of the median forecasts for these
-          occupations. For more detailed forecasts by occupation see the{" "}
-          <a href="#jobs">Jobs Monitor</a> below, and visit the{" "}
-          <a href="#methodology">Methodology</a> section for more information.
+          Least and most vulnerable are the 3 occupations from our set of 15
+          forecasted to grow and shrink the most in 2035. Values are averages of
+          the median forecasts. Visit the <a href="#jobs">Jobs Monitor</a> below
+          for forecasts by occupation and the{" "}
+          <a href="#methodology">Methodology section</a> for details.
         </>
       ),
     },
@@ -179,13 +177,11 @@ export async function OverviewSection({
       data: toChartPoints(excludeYears(min, [2027])),
       legendDetail: (
         <>
-          The least and most vulnerable occupation forecasts in this figure are
-          defined based on the three occupations from our set of 15 that are
-          forecasted to grow and shrink the most in the forecasts for 2035. Each
-          line represents a simple average of the median forecasts for these
-          occupations. For more detailed forecasts by occupation see the{" "}
-          <a href="#jobs">Jobs Monitor</a> below, and visit the{" "}
-          <a href="#methodology">Methodology</a> section for more information.
+          Least and most vulnerable are the 3 occupations from our set of 15
+          forecasted to grow and shrink the most in 2035. Values are averages of
+          the median forecasts. Visit the <a href="#jobs">Jobs Monitor</a> below
+          for forecasts by occupation and the{" "}
+          <a href="#methodology">Methodology section</a> for details.
         </>
       ),
     },

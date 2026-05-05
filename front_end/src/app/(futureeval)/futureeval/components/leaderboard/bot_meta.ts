@@ -1,7 +1,7 @@
 import type { StaticImageData } from "next/image";
 
-import anthropicDark from "@/app/(main)/aib/assets/ai-models/anthropic-black.png";
-import anthropicLight from "@/app/(main)/aib/assets/ai-models/anthropic-white.webp";
+import anthropicDark from "@/app/(main)/aib/assets/ai-models/anthropic-dark.svg?url";
+import anthropicLight from "@/app/(main)/aib/assets/ai-models/anthropic-light.svg?url";
 import deepseekLight from "@/app/(main)/aib/assets/ai-models/deepseek.svg?url";
 import exaLight from "@/app/(main)/aib/assets/ai-models/exa.png";
 import googleLight from "@/app/(main)/aib/assets/ai-models/google.svg?url";

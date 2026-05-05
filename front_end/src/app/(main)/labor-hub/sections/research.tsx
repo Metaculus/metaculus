@@ -62,17 +62,17 @@ export function ResearchSection({
           </ContentParagraph>
           <ContentParagraph small>
             In the AI exposure literature and research, teachers stand out as
-            having high exposure ratings, but are predicted to see growth as
-            forecasters expect human presence will be strongly desired in
-            classrooms by schools and parents, even if schools do increasingly
-            adopt AI-powered educational tools. Conversely, warehouse workers
-            are rated as low exposure due to the high physical nature of the
-            work, but forecasters anticipate that robotic capabilities will
-            begin to displace more of these roles by 2035. Forecasters do expect
-            that the high exposure and vulnerability of lawyers, sales
-            representatives, financial specialists, and software developers will
-            translate to significant employment reductions in these fields over
-            the next decade. These forecasts provide important context to our
+            having high exposure ratings, but are predicted to see mild decline
+            as forecasters expect human presence will be desired in classrooms
+            by schools and parents, even if schools do increasingly adopt
+            AI-powered educational tools. Conversely, warehouse workers are
+            rated as low exposure due to the high physical nature of the work,
+            but forecasters anticipate that robotic capabilities will begin to
+            displace more of these roles by 2035. Forecasters do expect that the
+            high exposure and vulnerability of lawyers, sales representatives,
+            financial specialists, and software developers will translate to
+            significant employment reductions in these fields over the next
+            decade. These forecasts provide important context to our
             understanding of workforce prospects by quantifying the predicted
             impact of AI on employment levels.
           </ContentParagraph>
@@ -186,18 +186,6 @@ export function ResearchSection({
       <div className="break-inside-avoid text-blue-700 dark:text-blue-700-dark">
         <ol className="list-decimal space-y-2 pl-5 text-xs [text-wrap:pretty]">
           <li>
-            See the underlying data and how we adapted the figures from these
-            sources{" "}
-            <a
-              href="https://docs.google.com/spreadsheets/d/1-VMGsNPDg9QFnBwwMSYvjEmfVfBDqJr9MZgachjE5VQ/edit?usp=sharing"
-              target="_blank"
-              rel="noreferrer"
-            >
-              here
-            </a>
-            .
-          </li>
-          <li>
             Occupational exposure figures from{" "}
             <a
               href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4414065"
@@ -248,6 +236,18 @@ export function ResearchSection({
             .
           </li>
         </ol>
+        <div className="pl-5 pt-5 text-xs [text-wrap:pretty]">
+          See the underlying data and how we adapted the figures from these
+          sources{" "}
+          <a
+            href="https://docs.google.com/spreadsheets/d/1-VMGsNPDg9QFnBwwMSYvjEmfVfBDqJr9MZgachjE5VQ/edit?usp=sharing"
+            target="_blank"
+            rel="noreferrer"
+          >
+            here
+          </a>
+          .
+        </div>
       </div>
     </SectionCard>
   );

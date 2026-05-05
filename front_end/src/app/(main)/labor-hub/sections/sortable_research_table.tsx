@@ -287,7 +287,7 @@ export const SortableResearchTable: FC<{
             colSpan={3}
             className="whitespace-nowrap pb-1 text-center"
           >
-            Literature<sup className="text-[0.5rem]">1</sup>
+            Literature
           </TableCompactHeaderCell>
         </TableCompactRow>
         <TableCompactRow>
@@ -325,7 +325,7 @@ export const SortableResearchTable: FC<{
                 metric: "felten" as const,
                 label: (
                   <>
-                    Felten<sup className="text-[0.5rem]">2</sup>
+                    Felten<sup className="text-[0.5rem]">1</sup>
                   </>
                 ),
                 title: "Felten Language AIOE",
@@ -334,7 +334,7 @@ export const SortableResearchTable: FC<{
                 metric: "mna" as const,
                 label: (
                   <>
-                    M&A<sup className="text-[0.5rem]">3</sup>
+                    M&A<sup className="text-[0.5rem]">2</sup>
                   </>
                 ),
                 title: "M&A calculated vulnerability",
@@ -343,7 +343,7 @@ export const SortableResearchTable: FC<{
                 metric: "aoe" as const,
                 label: (
                   <>
-                    AOE<sup className="text-[0.5rem]">4</sup>
+                    AOE<sup className="text-[0.5rem]">3</sup>
                   </>
                 ),
                 title: "Anthropic's observed exposure",

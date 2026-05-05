@@ -20,7 +20,7 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
         <a
           href="https://www.metaculus.com/accounts/profile/145394/comments/#comment-768524"
           target="_blank"
-          rel="noreferrer"
+          rel="noreferrer noopener"
         >
           Nathan Metzger (Haiku)
         </a>
@@ -37,7 +37,7 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
         <a
           href="https://www.anthropic.com/economic-index#us-usage"
           target="_blank"
-          rel="noreferrer"
+          rel="noreferrer noopener"
         >
           Anthropic
         </a>
@@ -58,7 +58,7 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
         <a
           href="https://www.metaculus.com/questions/41307/us-employment-level-change-vs-2025/#comment-779184"
           target="_blank"
-          rel="noreferrer"
+          rel="noreferrer noopener"
         >
           Adonis
         </a>
@@ -76,7 +76,7 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
         <a
           href="https://www.anthropic.com/glasswing"
           target="_blank"
-          rel="noreferrer"
+          rel="noreferrer noopener"
         >
           Anthropic
         </a>
@@ -94,9 +94,26 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
         <a
           href="https://epoch.ai/blog/half-of-employed-ai-users-now-use-it-for-work"
           target="_blank"
-          rel="noreferrer"
+          rel="noreferrer noopener"
         >
           Epoch AI
+        </a>
+      </>
+    ),
+  },
+  {
+    date: "2026-04-24",
+    type: "news",
+    content: (
+      <>
+        Meta and Microsoft announce 20,000 layoffs, with speculation that AI may
+        be a contributing factor -{" "}
+        <a
+          href="https://www.cnbc.com/2026/04/24/20k-job-cuts-at-meta-microsoft-raise-concern-of-ai-labor-crisis-.html"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          CNBC
         </a>
       </>
     ),
