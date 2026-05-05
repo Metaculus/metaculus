@@ -1,4 +1,4 @@
-import { POSTS_PER_PAGE } from "@/constants/posts_feed";
+import { FEED_TILE_SPACING } from "@/constants/posts_feed";
 import { PostWithForecasts } from "@/types/post";
 import { FeedProjectTile } from "@/types/projects";
 
@@ -62,7 +62,7 @@ export function buildFeedItems(
   // Subsequent tiles: every ~10 posts with +-2 jitter, at least 1 post apart
   while (tileIdx < tiles.length) {
     const lastSlot = insertAfter[insertAfter.length - 1] ?? 0;
-    const base = lastSlot + POSTS_PER_PAGE;
+    const base = lastSlot + FEED_TILE_SPACING;
     const jitter = Math.floor(rand() * 5) - 2;
     const slot = Math.max(base + jitter, lastSlot + 1);
 

@@ -36,4 +36,5 @@ export const POST_IDS_FILTER = "ids";
 
 export const FEED_LAYOUT_COOKIE = "feed_layout";
 
-export const POSTS_PER_PAGE = 10;
+export const POSTS_PER_PAGE = 24;
+export const FEED_TILE_SPACING = 10;
