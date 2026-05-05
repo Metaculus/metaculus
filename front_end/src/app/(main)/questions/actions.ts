@@ -371,6 +371,33 @@ export async function deleteCoherenceLink(link: CoherenceLink) {
   }
 }
 
+export async function updateCoherenceLink(
+  id: number,
+  direction: number,
+  strength: number
+): Promise<null | ErrorResponse> {
+  try {
+    await CoherenceLinksApiClass.updateCoherenceLink(id, {
+      direction,
+      strength,
+    });
+    return null;
+  } catch (err) {
+    return ApiError.isApiError(err) ? err.data : {};
+  }
+}
+
+export async function swapCoherenceLink(
+  id: number
+): Promise<null | ErrorResponse> {
+  try {
+    await CoherenceLinksApiClass.updateCoherenceLink(id, { swap: true });
+    return null;
+  } catch (err) {
+    return ApiError.isApiError(err) ? err.data : {};
+  }
+}
+
 export async function setExcludedFromWeekTopComments(
   commentId: number,
   excluded: boolean
