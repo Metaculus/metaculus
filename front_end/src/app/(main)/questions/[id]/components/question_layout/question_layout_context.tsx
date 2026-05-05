@@ -40,7 +40,9 @@ type QuestionLayoutContextValue = {
   setMobileActiveTab: (tab: string) => void;
 };
 
-const QuestionLayoutContext = createContext({} as QuestionLayoutContextValue);
+const QuestionLayoutContext = createContext<QuestionLayoutContextValue | null>(
+  null
+);
 
 export const QuestionLayoutProvider = ({ children }: PropsWithChildren) => {
   const hash = useHash();
