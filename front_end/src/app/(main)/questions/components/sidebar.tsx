@@ -1,5 +1,6 @@
 "use client";
 import { Drawer } from "@base-ui/react/drawer";
+import { ScrollArea } from "@base-ui/react/scroll-area";
 import {
   faBars,
   faChevronUp,
@@ -304,14 +305,21 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
             <Drawer.Popup className="absolute inset-y-0 left-0 flex w-[var(--feed-drawer-width)] max-w-full flex-col bg-gray-0 text-blue-900 shadow-xl transition-transform duration-200 data-[ending-style]:-translate-x-full data-[starting-style]:-translate-x-full dark:bg-gray-0-dark dark:text-blue-900-dark">
               <Drawer.Content className="flex h-full min-h-0 flex-col">
                 <Drawer.Title className="sr-only">{t("menu")}</Drawer.Title>
-                <div className="min-h-0 flex-1 overflow-y-auto p-2">
-                  <SidebarMenu
-                    sections={sidebarSections}
-                    seeAllCategoriesLabel={t("seeAllCategories")}
-                    onItemSelect={() => setIsMobileDrawerOpen(false)}
-                    className="flex w-full flex-col gap-y-1.5 p-1"
-                  />
-                </div>
+                <ScrollArea.Root className="min-h-0 flex-1 overflow-hidden">
+                  <ScrollArea.Viewport className="h-full overscroll-contain [-webkit-overflow-scrolling:touch] [touch-action:pan-y]">
+                    <ScrollArea.Content className="p-2">
+                      <SidebarMenu
+                        sections={sidebarSections}
+                        seeAllCategoriesLabel={t("seeAllCategories")}
+                        onItemSelect={() => setIsMobileDrawerOpen(false)}
+                        className="flex w-full flex-col gap-y-1.5 p-1"
+                      />
+                    </ScrollArea.Content>
+                  </ScrollArea.Viewport>
+                  <ScrollArea.Scrollbar className="flex w-2 justify-center bg-transparent p-px opacity-0 transition-opacity data-[hovering]:opacity-100 data-[scrolling]:opacity-100">
+                    <ScrollArea.Thumb className="w-1 rounded-full bg-blue-500/70 dark:bg-blue-500-dark/70" />
+                  </ScrollArea.Scrollbar>
+                </ScrollArea.Root>
               </Drawer.Content>
             </Drawer.Popup>
           </Drawer.Viewport>
@@ -332,19 +340,35 @@ const DesktopSidebar: FC<{
   sections: SidebarSection[];
   seeAllCategoriesLabel: string;
 }> = ({ isTranslationBannerVisible, sections, seeAllCategoriesLabel }) => {
+  const stickyTopClass = isTranslationBannerVisible
+    ? "sm:top-20"
+    : "sm:top-header";
+  const maxHeightClass = isTranslationBannerVisible
+    ? "max-h-[calc(100vh-5rem)]"
+    : "max-h-[calc(100vh-3rem)]";
+
   return (
     <div className="hidden border-r border-blue-400 bg-gray-0/70 backdrop-blur-md dark:border-blue-700 dark:bg-gray-0-dark/70 sm:static sm:block sm:min-h-[calc(100vh-3rem)]">
-      <div
-        className={cn(
-          "sticky max-h-[calc(100vh-3rem)] overflow-y-auto p-3 no-scrollbar",
-          isTranslationBannerVisible ? "sm:top-20" : "sm:top-header"
-        )}
-      >
-        <SidebarMenu
-          sections={sections}
-          seeAllCategoriesLabel={seeAllCategoriesLabel}
-          className="w-56 p-1 lg:w-64"
-        />
+      <div className={cn("sticky", stickyTopClass)}>
+        <ScrollArea.Root className={cn("overflow-hidden", maxHeightClass)}>
+          <ScrollArea.Viewport
+            className={cn(
+              "overscroll-contain [-webkit-overflow-scrolling:touch] [touch-action:pan-y]",
+              maxHeightClass
+            )}
+          >
+            <ScrollArea.Content className="p-3">
+              <SidebarMenu
+                sections={sections}
+                seeAllCategoriesLabel={seeAllCategoriesLabel}
+                className="w-56 p-1 lg:w-64"
+              />
+            </ScrollArea.Content>
+          </ScrollArea.Viewport>
+          <ScrollArea.Scrollbar className="flex w-2 justify-center bg-transparent p-px opacity-0 transition-opacity data-[hovering]:opacity-100 data-[scrolling]:opacity-100">
+            <ScrollArea.Thumb className="w-1 rounded-full bg-blue-500/70 dark:bg-blue-500-dark/70" />
+          </ScrollArea.Scrollbar>
+        </ScrollArea.Root>
       </div>
     </div>
   );
