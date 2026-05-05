@@ -1,26 +1,33 @@
 import { getTranslations } from "next-intl/server";
 
+import {
+  ContentParagraph,
+  SectionCard,
+  SectionHeader,
+} from "@/app/(main)/labor-hub/components/section";
+
 import ConsequenceRow from "../components/consequence_row";
 import { MOCK_CONSEQUENCES } from "../data";
 
 export default async function ElectoralConsequencesSection() {
   const t = await getTranslations();
   return (
-    <section className="pt-6">
-      <div className="mb-4">
-        <h2 className="m-0 text-2xl font-bold tracking-tight text-blue-900 dark:text-blue-900-dark">
-          {t("midtermsHubElectoralConsequences")}
-        </h2>
-      </div>
-      <div className="rounded-xl border border-gray-300 bg-gray-0 p-5 dark:border-gray-300-dark dark:bg-gray-0-dark">
-        <div className="hidden border-b border-gray-200 pb-3 dark:border-gray-200-dark md:grid md:grid-cols-[2fr_1fr_1fr] md:gap-4">
-          <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-500-dark">
+    <SectionCard>
+      <SectionHeader className="mb-2">
+        {t("midtermsHubElectoralConsequences")}
+      </SectionHeader>
+      <ContentParagraph className="mb-8">
+        {t("midtermsHubConsequencesSubtitle")}
+      </ContentParagraph>
+      <div className="rounded-md border border-blue-300 bg-blue-100 p-3 dark:border-blue-300-dark dark:bg-blue-100-dark sm:p-5">
+        <div className="hidden border-b border-blue-300 pb-3 dark:border-blue-300-dark md:grid md:grid-cols-[2fr_1fr_1fr] md:gap-4">
+          <span className="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-700-dark">
             {t("midtermsHubConsequenceQuestion")}
           </span>
-          <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-500-dark">
+          <span className="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-700-dark">
             {t("midtermsHubConsequenceIfRep")}
           </span>
-          <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-500-dark">
+          <span className="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-700-dark">
             {t("midtermsHubConsequenceIfDem")}
           </span>
         </div>
@@ -28,6 +35,6 @@ export default async function ElectoralConsequencesSection() {
           <ConsequenceRow key={row.questionKey} row={row} />
         ))}
       </div>
-    </section>
+    </SectionCard>
   );
 }

@@ -10,19 +10,19 @@ import { getLatestUpdateTime } from "../helpers/post_utils";
 
 export default async function FooterSection() {
   const t = await getTranslations();
-  const [races, chamber] = await Promise.all([
+  const [{ parentPost: senateParent }, chamber] = await Promise.all([
     fetchSenateRaces(),
     fetchChamberData(),
   ]);
   const latest = getLatestUpdateTime([
-    ...races.map((r) => r.post),
+    senateParent,
     chamber.senateControl,
     chamber.houseControl,
   ]);
 
   return (
-    <footer className="mt-12 border-t border-gray-200 pt-6 text-xs text-gray-600 dark:border-gray-200-dark dark:text-gray-600-dark">
-      <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
+    <footer className="mt-4 px-3 text-xs text-blue-700 dark:text-blue-700-dark sm:px-0">
+      <div className="flex flex-col items-start justify-between gap-2 border-t border-blue-300 pt-4 dark:border-blue-300-dark sm:flex-row sm:items-center">
         <p className="m-0">{t("midtermsHubFooterDisclaimer")}</p>
         <Link
           href="/"
@@ -32,7 +32,7 @@ export default async function FooterSection() {
         </Link>
       </div>
       {latest && (
-        <p className="mt-2 text-gray-500 dark:text-gray-500-dark">
+        <p className="mt-2 text-blue-600 dark:text-blue-600-dark">
           {t("midtermsHubLastUpdatedFull", {
             date: format(latest, "MMMM d, yyyy, HH:mm 'UTC'"),
           })}

@@ -1,25 +1,24 @@
-import { faUsers } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getTranslations } from "next-intl/server";
 
 import { PostWithForecasts } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
 
 import { MIDTERMS_COLORS } from "../constants";
-import { getForecastersCount } from "../helpers/post_utils";
+import { getMultipleChoiceOptionProbability } from "../helpers/post_utils";
+
+type OutcomeKey = "RR" | "RD" | "DR" | "DD";
+
+const OUTCOME_OPTION_LABEL: Record<OutcomeKey, string> = {
+  RR: "Rep Senate / Rep House",
+  RD: "Rep Senate / Dem House",
+  DR: "Dem Senate / Rep House",
+  DD: "Dem Senate / Dem House",
+};
 
 type Outcome = {
-  key: "RR" | "RD" | "DR" | "DD";
+  key: OutcomeKey;
   pct: number | null;
   borderColor: string;
   bgColor: string;
-};
-
-const PLACEHOLDER_OUTCOMES: Record<Outcome["key"], number> = {
-  RR: 6.2,
-  RD: 61.5,
-  DR: 0.1,
-  DD: 32.3,
 };
 
 type Props = {
@@ -29,36 +28,31 @@ type Props = {
 export default async function CongressOutcomeCard({ post }: Props) {
   const t = await getTranslations();
 
+  const buildOutcome = (
+    key: OutcomeKey,
+    borderColor: string,
+    bgColor: string
+  ): Outcome => {
+    const prob = getMultipleChoiceOptionProbability(
+      post,
+      OUTCOME_OPTION_LABEL[key]
+    );
+    return {
+      key,
+      pct: prob != null ? Math.round(prob * 1000) / 10 : null,
+      borderColor,
+      bgColor,
+    };
+  };
+
   const outcomes: Outcome[] = [
-    {
-      key: "RR",
-      pct: extractPct(post, "RR") ?? PLACEHOLDER_OUTCOMES.RR,
-      borderColor: MIDTERMS_COLORS.repPrimary,
-      bgColor: MIDTERMS_COLORS.repLight,
-    },
-    {
-      key: "RD",
-      pct: extractPct(post, "RD") ?? PLACEHOLDER_OUTCOMES.RD,
-      borderColor: MIDTERMS_COLORS.repPrimary,
-      bgColor: MIDTERMS_COLORS.repLight,
-    },
-    {
-      key: "DR",
-      pct: extractPct(post, "DR") ?? PLACEHOLDER_OUTCOMES.DR,
-      borderColor: MIDTERMS_COLORS.demPrimary,
-      bgColor: MIDTERMS_COLORS.demLight,
-    },
-    {
-      key: "DD",
-      pct: extractPct(post, "DD") ?? PLACEHOLDER_OUTCOMES.DD,
-      borderColor: MIDTERMS_COLORS.demPrimary,
-      bgColor: MIDTERMS_COLORS.demLight,
-    },
+    buildOutcome("RR", MIDTERMS_COLORS.repPrimary, MIDTERMS_COLORS.repLight),
+    buildOutcome("RD", MIDTERMS_COLORS.repPrimary, MIDTERMS_COLORS.repLight),
+    buildOutcome("DR", MIDTERMS_COLORS.demPrimary, MIDTERMS_COLORS.demLight),
+    buildOutcome("DD", MIDTERMS_COLORS.demPrimary, MIDTERMS_COLORS.demLight),
   ];
 
-  const forecasters = getForecastersCount(post);
-
-  const labels: Record<Outcome["key"], string> = {
+  const labels: Record<OutcomeKey, string> = {
     RR: t("midtermsHubOutcomeRepRep"),
     RD: t("midtermsHubOutcomeRepDem"),
     DR: t("midtermsHubOutcomeDemRep"),
@@ -66,25 +60,20 @@ export default async function CongressOutcomeCard({ post }: Props) {
   };
 
   return (
-    <div className="rounded-lg border border-gray-300 bg-gray-0 p-5 dark:border-gray-300-dark dark:bg-gray-0-dark">
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="m-0 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-500-dark">
-          {t("midtermsHubCongressForecast")}
-        </h3>
-        {forecasters > 0 && (
-          <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-500-dark">
-            <FontAwesomeIcon icon={faUsers} className="h-3 w-3" />
-            {forecasters}
-          </span>
-        )}
-      </div>
-      <div className="space-y-2">
+    <div className="rounded-md border border-blue-300 bg-blue-100 p-5 dark:border-blue-300-dark dark:bg-blue-100-dark">
+      <h3 className="m-0 mb-5 text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-700-dark">
+        {t("midtermsHubCongressForecast")}
+      </h3>
+      <div className="space-y-2.5">
         {outcomes.map((o) => (
-          <div key={o.key} className="flex items-center gap-3">
-            <span className="w-32 shrink-0 text-xs text-gray-700 dark:text-gray-700-dark">
+          <div
+            key={o.key}
+            className="grid grid-cols-[8rem_1fr] items-center gap-3"
+          >
+            <span className="text-sm text-blue-800 dark:text-blue-800-dark">
               {labels[o.key]}
             </span>
-            <div className="flex-1">
+            <div className="flex items-center">
               <div
                 className="h-5 rounded-sm"
                 style={{
@@ -93,34 +82,16 @@ export default async function CongressOutcomeCard({ post }: Props) {
                   borderLeft: `3px solid ${o.borderColor}`,
                 }}
               />
+              <span className="ml-2 shrink-0 text-sm font-semibold tabular-nums text-blue-800 dark:text-blue-800-dark">
+                {o.pct != null ? `${o.pct.toFixed(1)}%` : "—"}
+              </span>
             </div>
-            <span className="w-12 shrink-0 text-right text-xs font-medium text-gray-800 dark:text-gray-800-dark">
-              {o.pct?.toFixed(1)}%
-            </span>
           </div>
         ))}
       </div>
-      <p className="mt-4 text-xs leading-relaxed text-gray-700 dark:text-gray-700-dark">
+      <p className="mt-4 text-sm leading-relaxed text-blue-700 dark:text-blue-700-dark">
         {t("midtermsHubCongressSummary")}
       </p>
     </div>
   );
-}
-
-function extractPct(
-  post: PostWithForecasts | null,
-  outcomeKey: Outcome["key"]
-): number | null {
-  if (!post?.group_of_questions) return null;
-  const questions = post.group_of_questions.questions as
-    | QuestionWithNumericForecasts[]
-    | undefined;
-  if (!questions) return null;
-  const question = questions.find((q) => q.label === outcomeKey);
-  if (!question) return null;
-  const center =
-    question.aggregations[question.default_aggregation_method]?.latest
-      ?.centers?.[0];
-  if (center == null) return null;
-  return Math.round(center * 1000) / 10;
 }

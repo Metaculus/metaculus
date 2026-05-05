@@ -36,13 +36,17 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function MidtermsHubPage() {
   return (
-    <main className="mx-auto mb-24 w-full max-w-7xl px-4 sm:px-8 xl:mt-12 xl:px-16">
-      <HeroSection />
-      <ElectionsMapSection />
-      <ThingsToWatchSection />
-      <ElectoralConsequencesSection />
-      <CommunityInsightsSection />
-      <FooterSection />
+    <main className="relative mb-24 min-h-screen xl:mt-12">
+      <div className="mx-auto w-full max-w-7xl xl:px-16">
+        <HeroSection />
+      </div>
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-1 sm:gap-6 sm:px-8 md:gap-8 xl:px-16">
+        <ElectionsMapSection />
+        <ThingsToWatchSection />
+        <ElectoralConsequencesSection />
+        <CommunityInsightsSection />
+        <FooterSection />
+      </div>
     </main>
   );
 }

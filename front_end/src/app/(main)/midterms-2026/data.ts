@@ -1,64 +1,56 @@
 export const MIDTERMS_PROJECT_ID = 32840;
 
+// Single group-of-questions post that holds one binary subquestion per
+// contested 2026 senate race. Subquestions are matched by `subQuestionLabel`.
+export const SENATE_GROUP_POST_ID = 40598;
+
 export type SenateRace = {
   state: string;
   name: string;
-  postId: number;
+  /** Matches `question.label` on a subquestion of SENATE_GROUP_POST_ID. */
+  subQuestionLabel: string;
 };
 
-// Placeholder post IDs — real values supplied later from project 32840
+// Only contested 2026 senate races (matching subquestions of post 40598).
 export const SENATE_RACES: SenateRace[] = [
-  { state: "AL", name: "Alabama Senate", postId: 0 },
-  { state: "AK", name: "Alaska Senate", postId: 0 },
-  { state: "AR", name: "Arkansas Senate", postId: 0 },
-  { state: "CO", name: "Colorado Senate", postId: 0 },
-  { state: "DE", name: "Delaware Senate", postId: 0 },
-  { state: "FL", name: "Florida Senate", postId: 0 },
-  { state: "GA", name: "Georgia Senate", postId: 0 },
-  { state: "ID", name: "Idaho Senate", postId: 0 },
-  { state: "IL", name: "Illinois Senate", postId: 0 },
-  { state: "IA", name: "Iowa Senate", postId: 0 },
-  { state: "KS", name: "Kansas Senate", postId: 0 },
-  { state: "KY", name: "Kentucky Senate", postId: 0 },
-  { state: "LA", name: "Louisiana Senate", postId: 0 },
-  { state: "ME", name: "Maine Senate", postId: 0 },
-  { state: "MA", name: "Massachusetts Senate", postId: 0 },
-  { state: "MI", name: "Michigan Senate", postId: 0 },
-  { state: "MN", name: "Minnesota Senate", postId: 0 },
-  { state: "MS", name: "Mississippi Senate", postId: 0 },
-  { state: "MT", name: "Montana Senate", postId: 0 },
-  { state: "NE", name: "Nebraska Senate", postId: 0 },
-  { state: "NH", name: "New Hampshire Senate", postId: 0 },
-  { state: "NJ", name: "New Jersey Senate", postId: 0 },
-  { state: "NM", name: "New Mexico Senate", postId: 0 },
-  { state: "NC", name: "North Carolina Senate", postId: 0 },
-  { state: "OH", name: "Ohio Senate", postId: 0 },
-  { state: "OK", name: "Oklahoma Senate", postId: 0 },
-  { state: "OR", name: "Oregon Senate", postId: 0 },
-  { state: "RI", name: "Rhode Island Senate", postId: 0 },
-  { state: "SC", name: "South Carolina Senate", postId: 0 },
-  { state: "SD", name: "South Dakota Senate", postId: 0 },
-  { state: "TN", name: "Tennessee Senate", postId: 0 },
-  { state: "TX", name: "Texas Senate", postId: 0 },
-  { state: "VA", name: "Virginia Senate", postId: 0 },
-  { state: "WV", name: "West Virginia Senate", postId: 0 },
-  { state: "WY", name: "Wyoming Senate", postId: 0 },
+  { state: "GA", name: "Georgia Senate", subQuestionLabel: "Georgia" },
+  { state: "IA", name: "Iowa Senate", subQuestionLabel: "Iowa" },
+  { state: "ME", name: "Maine Senate", subQuestionLabel: "Maine" },
+  { state: "MI", name: "Michigan Senate", subQuestionLabel: "Michigan" },
+  { state: "MN", name: "Minnesota Senate", subQuestionLabel: "Minnesota" },
+  {
+    state: "NC",
+    name: "North Carolina Senate",
+    subQuestionLabel: "North Carolina",
+  },
+  {
+    state: "NH",
+    name: "New Hampshire Senate",
+    subQuestionLabel: "New Hampshire",
+  },
+  { state: "OH", name: "Ohio Senate", subQuestionLabel: "Ohio" },
+  { state: "TX", name: "Texas Senate", subQuestionLabel: "Texas" },
 ];
 
 export type ChamberQuestionIds = {
+  /** Multiple-choice: "Democrats" / "Republicans" / "Other" */
   senateControl: number;
+  /** Multiple-choice: "Democrats" / "Republicans" / "Other" */
   houseControl: number;
-  congressOutcomeGroup: number;
+  /** Multiple-choice with 4 options: "Dem Senate / Dem House" etc. */
+  congressOutcome: number;
+  /** Numeric distribution */
   voterTurnout: number;
+  /** Binary */
   electionIntegrity: number;
 };
 
 export const CHAMBER_QUESTIONS: ChamberQuestionIds = {
-  senateControl: 0,
-  houseControl: 0,
-  congressOutcomeGroup: 0,
-  voterTurnout: 0,
-  electionIntegrity: 0,
+  senateControl: 36370,
+  houseControl: 36369,
+  congressOutcome: 34484,
+  voterTurnout: 41177,
+  electionIntegrity: 36327,
 };
 
 export type ConsequenceRow = {

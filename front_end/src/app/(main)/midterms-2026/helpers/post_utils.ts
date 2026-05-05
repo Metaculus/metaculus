@@ -4,18 +4,52 @@ import { scaleInternalLocation } from "@/utils/math";
 
 import { SenateRace } from "../data";
 
-export type SenateRaceWithPost = SenateRace & {
-  post: PostWithForecasts | null;
+export type SenateRaceWithQuestion = SenateRace & {
+  /** The parent group post (shared across all races). */
+  parentPost: PostWithForecasts | null;
+  /** This race's specific binary subquestion. */
+  question: QuestionWithNumericForecasts | null;
 };
+
+export function getQuestionBinaryProbability(
+  question: QuestionWithNumericForecasts | null
+): number | null {
+  if (!question) return null;
+  if (question.type !== QuestionType.Binary) return null;
+  const center =
+    question.aggregations[question.default_aggregation_method]?.latest
+      ?.centers?.[0];
+  return center ?? null;
+}
 
 export function getBinaryProbability(
   post: PostWithForecasts | null
 ): number | null {
   if (!post?.question) return null;
-  const q = post.question as QuestionWithNumericForecasts;
-  if (q.type !== QuestionType.Binary) return null;
-  const center =
-    q.aggregations[q.default_aggregation_method]?.latest?.centers?.[0];
+  return getQuestionBinaryProbability(
+    post.question as QuestionWithNumericForecasts
+  );
+}
+
+/**
+ * For multiple_choice questions, returns the latest aggregated probability
+ * for the option matching `optionLabel` (case-insensitive). Returns null if
+ * the post isn't multiple_choice or the option isn't found.
+ */
+export function getMultipleChoiceOptionProbability(
+  post: PostWithForecasts | null,
+  optionLabel: string
+): number | null {
+  if (!post?.question) return null;
+  const q = post.question;
+  if (q.type !== QuestionType.MultipleChoice) return null;
+  const options = q.options ?? [];
+  const idx = options.findIndex(
+    (opt) => opt.toLowerCase() === optionLabel.toLowerCase()
+  );
+  if (idx < 0) return null;
+  const aggs = (q as unknown as QuestionWithNumericForecasts).aggregations;
+  const center = aggs?.[q.default_aggregation_method]?.latest?.centers?.[idx];
   return center ?? null;
 }
 
@@ -33,7 +67,7 @@ export function getNumericForecast(
 
 export function getForecastersCount(post: PostWithForecasts | null): number {
   if (!post) return 0;
-  return post.forecasts_count ?? 0;
+  return post.nr_forecasters ?? post.forecasts_count ?? 0;
 }
 
 export function getCommentsCount(post: PostWithForecasts | null): number {
@@ -41,9 +75,10 @@ export function getCommentsCount(post: PostWithForecasts | null): number {
   return post.comment_count ?? 0;
 }
 
-export function getDemWinPct(post: PostWithForecasts | null): number | null {
-  if (!post) return null;
-  const prob = getBinaryProbability(post);
+export function getDemWinPct(
+  question: QuestionWithNumericForecasts | null
+): number | null {
+  const prob = getQuestionBinaryProbability(question);
   if (prob == null) return null;
   return Math.round(prob * 100);
 }
@@ -56,7 +91,7 @@ export function getLatestUpdateTime(
     if (!post?.question) continue;
     const q = post.question as QuestionWithNumericForecasts;
     const startTime =
-      q.aggregations[q.default_aggregation_method]?.latest?.start_time;
+      q.aggregations?.[q.default_aggregation_method]?.latest?.start_time;
     if (!startTime) continue;
     const d = new Date(startTime);
     if (!latest || d > latest) latest = d;

@@ -1,23 +1,18 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { FC, MouseEvent, useState } from "react";
 
 import cn from "@/utils/core/cn";
 
-import { MIDTERMS_COLORS, STATE_NAMES } from "../constants";
+import { STATE_NAMES } from "../constants";
 import { US_TILE_GRID } from "../data";
+import MapLegend from "./map_legend";
 import StateTooltipContent from "./state_tooltip";
-import {
-  getCommentsCount,
-  getDemWinPct,
-  getForecastersCount,
-  SenateRaceWithPost,
-} from "../helpers/post_utils";
+import { getDemWinPct, SenateRaceWithQuestion } from "../helpers/post_utils";
 import { getStateColor } from "../helpers/state_color";
 
 type Props = {
-  races: SenateRaceWithPost[];
+  races: SenateRaceWithQuestion[];
 };
 
 type HoverState = {
@@ -45,6 +40,12 @@ const TileMap: FC<Props> = ({ races }) => {
     });
   };
 
+  const handleClick = (race: SenateRaceWithQuestion | undefined) => {
+    if (!race?.parentPost || !race.question) return;
+    const url = `/questions/${race.parentPost.id}/?sub-question=${race.question.id}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
   const hoveredRace = hovered ? racesByState.get(hovered.abbr) : null;
 
   return (
@@ -58,7 +59,7 @@ const TileMap: FC<Props> = ({ races }) => {
       >
         {US_TILE_GRID.map(({ abbr, row, col }) => {
           const race = racesByState.get(abbr);
-          const demWinPct = getDemWinPct(race?.post ?? null);
+          const demWinPct = getDemWinPct(race?.question ?? null);
           const fillColor = getStateColor(demWinPct);
           const isContested = race !== undefined;
 
@@ -68,6 +69,7 @@ const TileMap: FC<Props> = ({ races }) => {
               type="button"
               onMouseEnter={(e) => isContested && handleEnter(abbr, e)}
               onMouseLeave={() => setHovered(null)}
+              onClick={() => isContested && handleClick(race)}
               disabled={!isContested}
               aria-label={STATE_NAMES[abbr] ?? abbr}
               className={cn(
@@ -100,40 +102,12 @@ const TileMap: FC<Props> = ({ races }) => {
         >
           <StateTooltipContent
             race={hoveredRace}
-            demWinPct={getDemWinPct(hoveredRace.post)}
-            forecasters={getForecastersCount(hoveredRace.post)}
-            comments={getCommentsCount(hoveredRace.post)}
+            demWinPct={getDemWinPct(hoveredRace.question)}
           />
         </div>
       )}
 
-      <Legend />
-    </div>
-  );
-};
-
-const Legend: FC = () => {
-  const t = useTranslations();
-  return (
-    <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-xs text-gray-600 dark:text-gray-600-dark">
-      <span className="flex items-center gap-1.5">
-        <span
-          className="h-2.5 w-2.5 rounded-full"
-          style={{ backgroundColor: MIDTERMS_COLORS.demPrimary }}
-        />
-        {t("midtermsHubDemocrat")}
-      </span>
-      <span className="flex items-center gap-1.5">
-        <span
-          className="h-2.5 w-2.5 rounded-full"
-          style={{ backgroundColor: MIDTERMS_COLORS.repPrimary }}
-        />
-        {t("midtermsHubRepublican")}
-      </span>
-      <span className="flex items-center gap-1.5">
-        <span className="h-2.5 w-2.5 rounded-full border border-gray-400 bg-white dark:border-gray-400-dark" />
-        {t("midtermsHubNotContested")}
-      </span>
+      <MapLegend className="mt-4 justify-center" />
     </div>
   );
 };

@@ -1,20 +1,21 @@
 import { FC } from "react";
 
+import ChamberTabs from "./chamber_tabs";
 import GeographicMap from "./geographic_map";
 import TileMap from "./tile_map";
-import { SenateRaceWithPost } from "../helpers/post_utils";
+import { SenateRaceWithQuestion } from "../helpers/post_utils";
 
 type Props = {
-  races: SenateRaceWithPost[];
+  races: SenateRaceWithQuestion[];
 };
 
 const ResponsiveMap: FC<Props> = ({ races }) => {
   return (
     <>
-      <div className="hidden md:block">
-        <GeographicMap races={races} />
+      <div className="hidden h-full md:block">
+        <GeographicMap races={races} tabsSlot={<ChamberTabs />} />
       </div>
-      <div className="block md:hidden">
+      <div className="p-5 md:hidden">
         <TileMap races={races} />
       </div>
     </>

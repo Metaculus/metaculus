@@ -2,79 +2,60 @@ import "server-only";
 import { cache } from "react";
 
 import ServerCommentsApi from "@/services/api/comments/comments.server";
-import { CommentType, KeyFactor } from "@/types/comment";
+import { CommentType } from "@/types/comment";
+import { PostWithForecasts } from "@/types/post";
 
-import { fetchSenateRaces } from "./fetch_dashboard_data";
-import { SenateRaceWithPost } from "./post_utils";
-
-export type KeyFactorInsight = {
-  type: "key-factor";
-  keyFactor: KeyFactor;
-  race: SenateRaceWithPost;
-};
+import { fetchChamberData, fetchSenateRaces } from "./fetch_dashboard_data";
 
 export type TopCommentInsight = {
   type: "top-comment";
   comment: CommentType;
-  race: SenateRaceWithPost;
+  sourcePost: PostWithForecasts;
 };
 
-export type CommunityInsight = KeyFactorInsight | TopCommentInsight;
+export type CommunityInsight = TopCommentInsight;
 
-const MAX_KEY_FACTORS = 4;
-const MAX_TOP_COMMENTS = 4;
+const MAX_TOP_COMMENTS = 8;
 
 export const fetchCommunityInsights = cache(
   async (): Promise<CommunityInsight[]> => {
-    const races = await fetchSenateRaces();
-    const racesWithPosts = races.filter((r) => r.post);
+    const [{ parentPost: senateParent }, chamber] = await Promise.all([
+      fetchSenateRaces(),
+      fetchChamberData(),
+    ]);
 
-    if (!racesWithPosts.length) return [];
+    const sourcePosts: PostWithForecasts[] = [
+      senateParent,
+      chamber.senateControl,
+      chamber.houseControl,
+      chamber.congressOutcome,
+      chamber.voterTurnout,
+      chamber.electionIntegrity,
+    ].filter((p): p is PostWithForecasts => p !== null);
 
-    const keyFactorCards: KeyFactorInsight[] = racesWithPosts
-      .flatMap((race) =>
-        (race.post?.key_factors ?? []).map((kf) => ({
-          type: "key-factor" as const,
-          keyFactor: kf,
-          race,
-        }))
-      )
-      .sort((a, b) => b.keyFactor.vote.score - a.keyFactor.vote.score)
-      .slice(0, MAX_KEY_FACTORS);
+    if (!sourcePosts.length) return [];
 
     const topCommentResults = await Promise.all(
-      racesWithPosts.map(async (race) => {
+      sourcePosts.map(async (post) => {
         try {
           const { results } = await ServerCommentsApi.getComments({
-            post: race.postId,
+            post: post.id,
             sort: "-vote_score",
             limit: 1,
             parent_isnull: true,
           });
           const comment = results[0];
           if (!comment) return null;
-          return { type: "top-comment" as const, comment, race };
+          return { type: "top-comment" as const, comment, sourcePost: post };
         } catch {
           return null;
         }
       })
     );
 
-    const topCommentCards: TopCommentInsight[] = topCommentResults
+    return topCommentResults
       .filter((c): c is TopCommentInsight => c !== null)
       .sort((a, b) => (b.comment.vote_score ?? 0) - (a.comment.vote_score ?? 0))
       .slice(0, MAX_TOP_COMMENTS);
-
-    return interleave<CommunityInsight>(keyFactorCards, topCommentCards);
   }
 );
-
-function interleave<T>(a: T[], b: T[]): T[] {
-  const out: T[] = [];
-  const len = Math.max(a.length, b.length);
-  for (let i = 0; i < len; i++) {
-    if (i < a.length) out.push(a[i] as T);
-    if (i < b.length) out.push(b[i] as T);
-  }
-  return out;
-}

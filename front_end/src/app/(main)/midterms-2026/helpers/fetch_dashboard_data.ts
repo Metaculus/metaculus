@@ -3,34 +3,54 @@ import { cache } from "react";
 
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import { PostWithForecasts } from "@/types/post";
+import { QuestionWithNumericForecasts } from "@/types/question";
 
-import { CHAMBER_QUESTIONS, SENATE_RACES } from "../data";
-import { SenateRaceWithPost } from "./post_utils";
+import { CHAMBER_QUESTIONS, SENATE_GROUP_POST_ID, SENATE_RACES } from "../data";
+import { SenateRaceWithQuestion } from "./post_utils";
 
 export const fetchSenateRaces = cache(
-  async (): Promise<SenateRaceWithPost[]> => {
-    const ids = SENATE_RACES.map((r) => r.postId).filter((id) => id > 0);
-    if (!ids.length) {
-      return SENATE_RACES.map((r) => ({ ...r, post: null }));
+  async (): Promise<{
+    races: SenateRaceWithQuestion[];
+    parentPost: PostWithForecasts | null;
+  }> => {
+    if (!SENATE_GROUP_POST_ID) {
+      return {
+        races: SENATE_RACES.map((r) => ({
+          ...r,
+          parentPost: null,
+          question: null,
+        })),
+        parentPost: null,
+      };
     }
 
-    const { results } = await ServerPostsApi.getPostsWithCP({
-      ids,
-      limit: ids.length,
-    });
+    let parentPost: PostWithForecasts | null = null;
+    try {
+      parentPost = await ServerPostsApi.getPost(SENATE_GROUP_POST_ID, true);
+    } catch {
+      parentPost = null;
+    }
 
-    const byId = new Map(results.map((p) => [p.id, p]));
-    return SENATE_RACES.map((r) => ({
+    const subQuestions =
+      (parentPost?.group_of_questions?.questions as
+        | QuestionWithNumericForecasts[]
+        | undefined) ?? [];
+    const byLabel = new Map(subQuestions.map((q) => [q.label, q]));
+
+    const races: SenateRaceWithQuestion[] = SENATE_RACES.map((r) => ({
       ...r,
-      post: byId.get(r.postId) ?? null,
+      parentPost,
+      question: byLabel.get(r.subQuestionLabel) ?? null,
     }));
+
+    return { races, parentPost };
   }
 );
 
 export type ChamberData = {
   senateControl: PostWithForecasts | null;
   houseControl: PostWithForecasts | null;
-  congressOutcomeGroup: PostWithForecasts | null;
+  congressOutcome: PostWithForecasts | null;
   voterTurnout: PostWithForecasts | null;
   electionIntegrity: PostWithForecasts | null;
 };
@@ -41,7 +61,7 @@ export const fetchChamberData = cache(async (): Promise<ChamberData> => {
     return {
       senateControl: null,
       houseControl: null,
-      congressOutcomeGroup: null,
+      congressOutcome: null,
       voterTurnout: null,
       electionIntegrity: null,
     };
@@ -56,8 +76,7 @@ export const fetchChamberData = cache(async (): Promise<ChamberData> => {
   return {
     senateControl: byId.get(CHAMBER_QUESTIONS.senateControl) ?? null,
     houseControl: byId.get(CHAMBER_QUESTIONS.houseControl) ?? null,
-    congressOutcomeGroup:
-      byId.get(CHAMBER_QUESTIONS.congressOutcomeGroup) ?? null,
+    congressOutcome: byId.get(CHAMBER_QUESTIONS.congressOutcome) ?? null,
     voterTurnout: byId.get(CHAMBER_QUESTIONS.voterTurnout) ?? null,
     electionIntegrity: byId.get(CHAMBER_QUESTIONS.electionIntegrity) ?? null,
   };

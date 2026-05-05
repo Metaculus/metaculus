@@ -8,7 +8,12 @@ export const MIDTERMS_COLORS = {
   tossUp: "#D3D1C7",
   leanR: "#EDA8A4",
   likelyR: "#D4504A",
-  notContested: "#FFFFFF",
+  // Matches the page body background (blue-200 in light mode) so uncontested
+  // states recede into the page; contested states pop above them.
+  notContested: "#eff4f4",
+  notContestedDark: "#2f4155",
+  stateStroke: "#ffffff",
+  stateStrokeDark: "#22262b",
 } as const;
 
 export const STATE_NAMES: Record<string, string> = {
