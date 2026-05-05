@@ -442,7 +442,7 @@ const SidebarMenu: FC<SidebarMenuProps> = ({
                           "flex min-h-[60px] min-w-0 flex-col items-center justify-center gap-1 rounded py-2 no-underline transition-colors",
                           isActive
                             ? "bg-blue-800 dark:bg-blue-800-dark"
-                            : "hover:bg-blue-200 dark:hover:bg-blue-200-dark"
+                            : "can-hover:hover:bg-blue-200 dark:can-hover:hover:bg-blue-200-dark"
                         )}
                       >
                         <div

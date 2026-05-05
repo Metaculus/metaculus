@@ -34,8 +34,8 @@ const TopicItem: FC<Props> = ({
           ? "w-full rounded-full p-2 px-2.5 text-base leading-5"
           : "w-auto rounded-full p-1.5 px-2 text-sm leading-4 sm:w-full sm:p-2 sm:px-2.5 sm:text-base sm:leading-5",
         isActive
-          ? "bg-blue-800 text-gray-0 hover:bg-blue-800  dark:bg-blue-800-dark dark:text-gray-200-dark dark:hover:bg-blue-800-dark"
-          : "text-blue-800 hover:bg-blue-200 dark:text-blue-200 dark:hover:bg-blue-200-dark",
+          ? "bg-blue-800 text-gray-0 can-hover:hover:bg-blue-800 dark:bg-blue-800-dark dark:text-gray-200-dark dark:can-hover:hover:bg-blue-800-dark"
+          : "text-blue-800 can-hover:hover:bg-blue-200 dark:text-blue-200 dark:can-hover:hover:bg-blue-200-dark",
         className
       )}
       type="button"
