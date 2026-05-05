@@ -1,16 +1,19 @@
 import contextlib
 import logging
 import os
+import select
+import socket
 import stat
 import tempfile
-from datetime import timedelta
+import threading
+from datetime import UTC, timedelta
 
 import mysql.connector
 import numpy as np
+import paramiko
 from django.conf import settings
 from django.utils import timezone
 from pgvector.django import CosineDistance
-from sshtunnel import SSHTunnelForwarder
 
 from misc.models import ITNArticle, PostArticle
 from posts.models import Post
@@ -35,33 +38,100 @@ def check_itn_enabled():
     return bool(settings.ITN_DB_MACHINE_SSH_ADDR)
 
 
+class _SSHLocalForwarder:
+    """Listens on a random local TCP port and forwards each connection through
+    an open paramiko Transport to a fixed remote host:port via direct-tcpip."""
+
+    def __init__(
+        self, transport: paramiko.Transport, remote_host: str, remote_port: int
+    ):
+        self._transport = transport
+        self._remote = (remote_host, remote_port)
+        self._listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self._listener.bind(("127.0.0.1", 0))
+        self._listener.listen(8)
+        self._listener.settimeout(1.0)
+        self.local_port: int = self._listener.getsockname()[1]
+        self._stop = threading.Event()
+        self._accept_thread = threading.Thread(target=self._accept_loop, daemon=True)
+
+    def __enter__(self):
+        self._accept_thread.start()
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        self._stop.set()
+        self._listener.close()
+        self._accept_thread.join(timeout=2.0)
+
+    def _accept_loop(self):
+        while not self._stop.is_set():
+            try:
+                client_sock, peer = self._listener.accept()
+            except TimeoutError:
+                continue
+            except OSError:
+                break
+            try:
+                channel = self._transport.open_channel(
+                    "direct-tcpip", self._remote, peer
+                )
+            except Exception:
+                logger.exception("Failed to open SSH forwarding channel")
+                client_sock.close()
+                continue
+            threading.Thread(
+                target=self._pipe, args=(client_sock, channel), daemon=True
+            ).start()
+
+    @staticmethod
+    def _pipe(sock: socket.socket, channel: paramiko.Channel):
+        try:
+            while True:
+                readable, _, _ = select.select([sock, channel], [], [])
+                if sock in readable:
+                    data = sock.recv(4096)
+                    if not data:
+                        break
+                    channel.sendall(data)
+                if channel in readable:
+                    data = channel.recv(4096)
+                    if not data:
+                        break
+                    sock.sendall(data)
+        except OSError:
+            pass
+        finally:
+            channel.close()
+            sock.close()
+
+
 @contextlib.contextmanager
 def itn_db():
     with tempfile.NamedTemporaryFile() as tmp_ssh_key:
         tmp_ssh_key.write(settings.ITN_DB_MACHINE_SSH_KEY.encode())
         tmp_ssh_key.flush()
         os.fchmod(tmp_ssh_key.fileno(), stat.S_IRUSR | stat.S_IWUSR)
-        ssh_key_path = tmp_ssh_key.name
+        pkey = paramiko.PKey.from_path(tmp_ssh_key.name)
 
-        print(ssh_key_path)
-        with SSHTunnelForwarder(
-            (settings.ITN_DB_MACHINE_SSH_ADDR, 22),
-            ssh_username=settings.ITN_DB_MACHINE_SSH_USER,
-            ssh_pkey=ssh_key_path,
-            remote_bind_address=("127.0.0.1", 3306),
-        ) as tunnel:
-            connection = mysql.connector.connect(
-                host=tunnel.local_bind_host,
-                user=settings.ITN_DB_USER,
-                password=settings.ITN_DB_PASSWORD,
-                database="itaculus",
-                port=tunnel.local_bind_port,
-                use_pure=True,
-            )
-
-            with connection:
-                with connection.cursor() as cursor:
-                    yield cursor
+        transport = paramiko.Transport((settings.ITN_DB_MACHINE_SSH_ADDR, 22))
+        try:
+            transport.connect(username=settings.ITN_DB_MACHINE_SSH_USER, pkey=pkey)
+            with _SSHLocalForwarder(transport, "127.0.0.1", 3306) as tunnel:
+                connection = mysql.connector.connect(
+                    host="127.0.0.1",
+                    user=settings.ITN_DB_USER,
+                    password=settings.ITN_DB_PASSWORD,
+                    database="itaculus",
+                    port=tunnel.local_port,
+                    use_pure=True,
+                )
+                with connection:
+                    with connection.cursor() as cursor:
+                        yield cursor
+        finally:
+            transport.close()
 
 
 def get_itn_max_age():
@@ -111,7 +181,7 @@ def sync_itn_news():
                     url=article["url"],
                     img_url=article["imgurl"],
                     favicon_url=article["favicon"] or "",
-                    created_at=article["timestamp"],
+                    created_at=article["timestamp"].replace(tzinfo=UTC),
                     media_name=article["medianame"],
                     media_label=article["media_label"] or "",
                 )

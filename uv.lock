@@ -3,7 +3,7 @@ revision = 3
 requires-python = ">=3.12.3, <3.13"
 
 [options]
-exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
+exclude-newer = "2026-05-02T12:51:49.790521Z"
 exclude-newer-span = "P3D"
 
 [[package]]
@@ -890,11 +890,11 @@ wheels = [
 
 [[package]]
 name = "invoke"
-version = "2.2.1"
+version = "3.0.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/de/bd/b461d3424a24c80490313fd77feeb666ca4f6a28c7e72713e3d9095719b4/invoke-2.2.1.tar.gz", hash = "sha256:515bf49b4a48932b79b024590348da22f39c4942dff991ad1fb8b8baea1be707", size = 304762, upload-time = "2025-10-11T00:36:35.172Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/33/f6/227c48c5fe47fa178ccf1fda8f047d16c97ba926567b661e9ce2045c600c/invoke-3.0.3.tar.gz", hash = "sha256:437b6a622223824380bfb4e64f612711a6b648c795f565efc8625af66fb57f0c", size = 343419, upload-time = "2026-04-07T15:17:48.307Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/32/4b/b99e37f88336009971405cbb7630610322ed6fbfa31e1d7ab3fbf3049a2d/invoke-2.2.1-py3-none-any.whl", hash = "sha256:2413bc441b376e5cd3f55bb5d364f973ad8bdd7bf87e53c79de3c11bf3feecc8", size = 160287, upload-time = "2025-10-11T00:36:33.703Z" },
+    { url = "https://files.pythonhosted.org/packages/5a/de/bbc12563bbf979618d17625a4e753ff7a078523e28d870d3626daa97261a/invoke-3.0.3-py3-none-any.whl", hash = "sha256:f11327165e5cbb89b2ad1d88d3292b5113332c43b8553b494da435d6ec6f5053", size = 160958, upload-time = "2026-04-07T15:17:46.875Z" },
 ]
 
 [[package]]
@@ -1077,6 +1077,7 @@ dependencies = [
     { name = "mysql-connector-python" },
     { name = "numpy" },
     { name = "openai" },
+    { name = "paramiko" },
     { name = "pgvector" },
     { name = "pillow" },
     { name = "psycopg2" },
@@ -1088,7 +1089,6 @@ dependencies = [
     { name = "scipy" },
     { name = "sentry-sdk" },
     { name = "setuptools" },
-    { name = "sshtunnel" },
     { name = "tiktoken" },
     { name = "whitenoise" },
 ]
@@ -1141,6 +1141,7 @@ requires-dist = [
     { name = "mysql-connector-python", specifier = ">=9.0.0,<10" },
     { name = "numpy", specifier = ">=1.26.4,<2" },
     { name = "openai", specifier = ">=1.36.0,<2" },
+    { name = "paramiko", specifier = ">=3.5,<5" },
     { name = "pgvector", specifier = ">=0.3.2,<0.4" },
     { name = "pillow", specifier = ">=12.2.0,<13" },
     { name = "psycopg2", specifier = ">=2.9.10,<3" },
@@ -1152,7 +1153,6 @@ requires-dist = [
     { name = "scipy", specifier = ">=1.13.1,<2" },
     { name = "sentry-sdk", specifier = ">=2.52.0,<3" },
     { name = "setuptools", specifier = "==78.1.1" },
-    { name = "sshtunnel", specifier = ">=0.4.0,<0.5" },
     { name = "tiktoken", specifier = ">=0.7.0,<0.8" },
     { name = "whitenoise", specifier = ">=6.7.0,<7" },
 ]
@@ -1984,18 +1984,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/90/76/437d71068094df0726366574cf3432a4ed754217b436eb7429415cf2d480/sqlparse-0.5.5.tar.gz", hash = "sha256:e20d4a9b0b8585fdf63b10d30066c7c94c5d7a7ec47c889a2d83a3caa93ff28e", size = 120815, upload-time = "2025-12-19T07:17:45.073Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/49/4b/359f28a903c13438ef59ebeee215fb25da53066db67b305c125f1c6d2a25/sqlparse-0.5.5-py3-none-any.whl", hash = "sha256:12a08b3bf3eec877c519589833aed092e2444e68240a3577e8e26148acc7b1ba", size = 46138, upload-time = "2025-12-19T07:17:46.573Z" },
-]
-
-[[package]]
-name = "sshtunnel"
-version = "0.4.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "paramiko" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/8d/ad/4c587adf79865be268ee0b6bd52cfaa7a75d827a23ced072dc5ab554b4af/sshtunnel-0.4.0.tar.gz", hash = "sha256:e7cb0ea774db81bf91844db22de72a40aae8f7b0f9bb9ba0f666d474ef6bf9fc", size = 62716, upload-time = "2021-01-11T13:26:32.975Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/58/13/8476c4328dcadfe26f8bd7f3a1a03bf9ddb890a7e7b692f54a179bc525bf/sshtunnel-0.4.0-py2.py3-none-any.whl", hash = "sha256:98e54c26f726ab8bd42b47a3a21fca5c3e60f58956f0f70de2fb8ab0046d0606", size = 24729, upload-time = "2021-01-11T13:26:29.969Z" },
 ]
 
 [[package]]
