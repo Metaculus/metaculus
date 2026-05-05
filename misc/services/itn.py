@@ -21,6 +21,9 @@ from utils.db import paginate_cursor
 from utils.openai import chunked_tokens, generate_text_embed_vector
 
 MAX_RELEVANT_DISTANCE = 0.5
+SSH_CONNECT_TIMEOUT_S = 10
+SSH_KEEPALIVE_S = 30
+MYSQL_CONNECT_TIMEOUT_S = 10
 
 logger = logging.getLogger(__name__)
 
@@ -115,9 +118,14 @@ def itn_db():
         os.fchmod(tmp_ssh_key.fileno(), stat.S_IRUSR | stat.S_IWUSR)
         pkey = paramiko.PKey.from_path(tmp_ssh_key.name)
 
-        transport = paramiko.Transport((settings.ITN_DB_MACHINE_SSH_ADDR, 22))
+        ssh_sock = socket.create_connection(
+            (settings.ITN_DB_MACHINE_SSH_ADDR, 22), timeout=SSH_CONNECT_TIMEOUT_S
+        )
+        ssh_sock.settimeout(None)
+        transport = paramiko.Transport(ssh_sock)
         try:
             transport.connect(username=settings.ITN_DB_MACHINE_SSH_USER, pkey=pkey)
+            transport.set_keepalive(SSH_KEEPALIVE_S)
             with _SSHLocalForwarder(transport, "127.0.0.1", 3306) as tunnel:
                 connection = mysql.connector.connect(
                     host="127.0.0.1",
@@ -126,6 +134,8 @@ def itn_db():
                     database="itaculus",
                     port=tunnel.local_port,
                     use_pure=True,
+                    connection_timeout=MYSQL_CONNECT_TIMEOUT_S,
+                    time_zone="+00:00",
                 )
                 with connection:
                     with connection.cursor() as cursor:
