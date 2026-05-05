@@ -17,9 +17,10 @@ import PercentageForecastCard from "./percentage_forecast_card";
 type Props = {
   post: PostWithForecasts;
   compact?: boolean;
+  forFeedPage?: boolean;
 };
 
-const GroupForecastCard: FC<Props> = ({ post, compact }) => {
+const GroupForecastCard: FC<Props> = ({ post, compact, forFeedPage }) => {
   // Check forecast availability for group posts
   const forecastAvailability = post.group_of_questions
     ? getGroupForecastAvailability(post.group_of_questions.questions)
@@ -40,7 +41,7 @@ const GroupForecastCard: FC<Props> = ({ post, compact }) => {
 
     // Don't render TimeSeriesChart if should hide chart
     return shouldHideChart ? null : (
-      <TimeSeriesChart questions={sortedQuestions} />
+      <TimeSeriesChart questions={sortedQuestions} forFeedPage={forFeedPage} />
     );
   }
   if (

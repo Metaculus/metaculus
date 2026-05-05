@@ -51,6 +51,7 @@ type BaseProps = {
   onCursorChange?: (value: number, format: TickFormat) => void;
   withHoverTooltip?: boolean;
   showCursorLabel?: boolean;
+  forFeedPage?: boolean;
 };
 
 type QuestionProps = {
@@ -111,6 +112,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   onCursorActiveChange,
   withHoverTooltip = true,
   showCursorLabel = true,
+  forFeedPage = false,
 }) => {
   const enableTooltip = withHoverTooltip;
   const { getReferenceProps, refs } = useChartTooltip();
@@ -163,6 +165,9 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
     () => (isNil(group) ? buildChoicesWithOthers(choices) : choices),
     [choices, group]
   );
+  const effectiveChartHeight =
+    chartHeight ??
+    (forFeedPage ? CHART_HEIGHT : Math.max(height, CHART_HEIGHT));
 
   return (
     <div className="w-full @container">
@@ -217,6 +222,9 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
               "@[550px]:col-span-3":
                 !isEmbed && (!minimalistic || isResolvedView),
             })}
+            style={
+              forFeedPage ? { minHeight: effectiveChartHeight } : undefined
+            }
           >
             <div
               ref={enableTooltip ? refs.setReference : undefined}
@@ -228,7 +236,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
                   timestamps={timestamps}
                   actualCloseTime={actualCloseTime}
                   choiceItems={chartChoices}
-                  height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
+                  height={effectiveChartHeight}
                   extraTheme={chartTheme}
                   defaultZoom={defaultChartZoom}
                   withZoomPicker={withZoomPicker}
@@ -249,7 +257,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
                   timestamps={timestamps}
                   actualCloseTime={actualCloseTime}
                   choiceItems={chartChoices}
-                  height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
+                  height={effectiveChartHeight}
                   extraTheme={chartTheme}
                   defaultZoom={defaultChartZoom}
                   withZoomPicker={withZoomPicker}
@@ -287,6 +295,7 @@ export const FanGraphTile: FC<FanGraphTileProps> = ({
   showChart = true,
   minimalistic = false,
   optionsLimit,
+  forFeedPage = false,
 }) => {
   const { onReaffirm } = useCardReaffirmContext();
   const { ref, height } = useContainerSize<HTMLDivElement>();
@@ -306,6 +315,9 @@ export const FanGraphTile: FC<FanGraphTileProps> = ({
 
     onReaffirm(forecast);
   }, [canReaffirm, forecast, onReaffirm]);
+  const effectiveChartHeight =
+    chartHeight ??
+    (forFeedPage ? CHART_HEIGHT : Math.max(height, CHART_HEIGHT));
 
   return (
     <div className="w-full @container">
@@ -341,10 +353,13 @@ export const FanGraphTile: FC<FanGraphTileProps> = ({
             className={cn("w-full @[550px]:col-span-5", {
               "@[550px]:col-span-3": !minimalistic,
             })}
+            style={
+              forFeedPage ? { minHeight: effectiveChartHeight } : undefined
+            }
           >
             <FanChart
               group={group}
-              height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
+              height={effectiveChartHeight}
               pointSize={9}
               hideCP={hideCP}
               withTooltip={false}

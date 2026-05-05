@@ -27,12 +27,14 @@ type Props = {
   borderColor?: BorderColor;
   forCommunityFeed?: boolean;
   indexWeight?: number;
+  forFeedPage?: boolean;
 };
 
 const ConsumerPostCard: FC<Props> = ({
   post,
   forCommunityFeed,
   indexWeight,
+  forFeedPage = false,
 }) => {
   const t = useTranslations();
 
@@ -50,7 +52,7 @@ const ConsumerPostCard: FC<Props> = ({
           )}
 
           {(isGroupOfQuestionsPost(post) || isMultipleChoicePost(post)) && (
-            <GroupForecastCard post={post} />
+            <GroupForecastCard post={post} forFeedPage={forFeedPage} />
           )}
 
           {[PostStatus.PENDING_RESOLUTION, PostStatus.CLOSED].includes(

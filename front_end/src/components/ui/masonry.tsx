@@ -6,6 +6,10 @@ import React, {
   useCallback,
 } from "react";
 
+let masonryItemKeyCounter = 0;
+const objectMasonryItemKeys = new WeakMap<object, number>();
+const primitiveMasonryItemKeys = new Map<unknown, number>();
+
 export function useGridStyles(columns: number, gap: number) {
   return useMemo(
     () => ({
@@ -145,147 +149,246 @@ function BalancedMasonry<T>({
   styles: React.CSSProperties;
   as?: React.ElementType;
 } & React.ComponentPropsWithoutRef<"div">) {
-  const columnAssignments = useRef<Map<T, number>>(new Map());
   const measuredHeights = useRef<Map<T, number>>(new Map());
-  const prevColumnCount = useRef<number>(columns);
-  const [placementGeneration, setPlacementGeneration] = useState(0);
+  const [columnState, setColumnState] = useState<{
+    columns: number;
+    assignments: Map<T, number>;
+  }>(() => ({ columns, assignments: new Map() }));
+  const itemNodes = useRef<Map<T, HTMLElement>>(new Map());
+  const nodeItems = useRef<Map<Element, T>>(new Map());
+  const resizeObserver = useRef<ResizeObserver | null>(null);
+  const measuredColumnCount = useRef(columns);
 
-  // Breakpoint change: clear everything for full redistribution
-  if (columns !== prevColumnCount.current) {
-    columnAssignments.current.clear();
+  const resetMeasurementsForColumns = useCallback(() => {
+    if (measuredColumnCount.current === columns) {
+      return;
+    }
+
+    measuredColumnCount.current = columns;
     measuredHeights.current.clear();
-    prevColumnCount.current = columns;
-  }
+  }, [columns]);
 
-  // Stale cleanup: remove items no longer in the array
-  const itemSet = new Set(items);
-  for (const key of columnAssignments.current.keys()) {
-    if (!itemSet.has(key)) {
-      columnAssignments.current.delete(key);
-      measuredHeights.current.delete(key);
-    }
-  }
-  for (const key of measuredHeights.current.keys()) {
-    if (!itemSet.has(key)) {
-      measuredHeights.current.delete(key);
-    }
-  }
+  const recordMeasuredHeight = useCallback((item: T, node: Element) => {
+    const height = node.getBoundingClientRect().height;
+    const previousHeight = measuredHeights.current.get(item);
 
-  const placedItems: T[] = [];
-  const pendingItems: T[] = [];
-  for (const item of items) {
-    if (columnAssignments.current.has(item)) {
-      placedItems.push(item);
-    } else {
-      pendingItems.push(item);
+    if (
+      previousHeight !== undefined &&
+      Math.abs(previousHeight - height) < 0.5
+    ) {
+      return;
     }
-  }
 
-  // Build columns for placed items
-  const placedColumns: T[][] = Array.from({ length: columns }, () => []);
-  for (const item of placedItems) {
-    const col = columnAssignments.current.get(item) ?? 0;
-    if (placedColumns[col]) {
-      placedColumns[col].push(item);
+    measuredHeights.current.set(item, height);
+  }, []);
+
+  const getResizeObserver = useCallback(() => {
+    if (typeof ResizeObserver === "undefined") {
+      return null;
     }
-  }
 
-  const pendingMeasureRef = useCallback(
+    if (!resizeObserver.current) {
+      resizeObserver.current = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const item = nodeItems.current.get(entry.target);
+          if (item !== undefined) {
+            recordMeasuredHeight(item, entry.target);
+          }
+        }
+      });
+    }
+
+    return resizeObserver.current;
+  }, [recordMeasuredHeight]);
+
+  const measureItemRef = useCallback(
     (node: HTMLDivElement | null, item: T) => {
-      if (node) {
-        const height = node.getBoundingClientRect().height;
-        measuredHeights.current.set(item, height);
+      const previousNode = itemNodes.current.get(item);
+      const observer = getResizeObserver();
+
+      if (previousNode && previousNode !== node) {
+        observer?.unobserve(previousNode);
+        nodeItems.current.delete(previousNode);
+        itemNodes.current.delete(item);
       }
+
+      if (!node) {
+        return;
+      }
+
+      resetMeasurementsForColumns();
+      itemNodes.current.set(item, node);
+      nodeItems.current.set(node, item);
+      observer?.observe(node);
+      recordMeasuredHeight(item, node);
     },
-    []
+    [getResizeObserver, recordMeasuredHeight, resetMeasurementsForColumns]
   );
 
-  // Place pending items once all are measured
   useEffect(() => {
-    if (pendingItems.length === 0) return;
+    const currentItemNodes = itemNodes.current;
+    const currentNodeItems = nodeItems.current;
 
-    const allMeasured = pendingItems.every((item) =>
-      measuredHeights.current.has(item)
-    );
-    if (!allMeasured) return;
+    return () => {
+      resizeObserver.current?.disconnect();
+      resizeObserver.current = null;
+      currentItemNodes.clear();
+      currentNodeItems.clear();
+    };
+  }, []);
 
-    // Compute current column heights from placed items
-    const currentColumnHeights = new Array(columns).fill(0);
-    for (const item of placedItems) {
-      const col = columnAssignments.current.get(item) ?? 0;
-      currentColumnHeights[col] += measuredHeights.current.get(item) ?? 0;
+  useEffect(() => {
+    const itemSet = new Set(items);
+
+    for (const key of measuredHeights.current.keys()) {
+      if (!itemSet.has(key)) {
+        measuredHeights.current.delete(key);
+      }
     }
 
-    // Distribute pending items to shortest columns
-    const newAssignments = createBalancedColumns(
-      pendingItems,
-      columns,
-      (item) => measuredHeights.current.get(item) ?? 0,
-      currentColumnHeights
-    );
+    setColumnState((prev) => {
+      let nextAssignments: Map<T, number> | null = null;
 
-    for (let colIdx = 0; colIdx < newAssignments.length; colIdx++) {
-      const col = newAssignments[colIdx];
-      if (col) {
-        for (const item of col) {
-          columnAssignments.current.set(item, colIdx);
+      for (const key of prev.assignments.keys()) {
+        if (!itemSet.has(key)) {
+          nextAssignments ??= new Map(prev.assignments);
+          nextAssignments.delete(key);
         }
       }
+
+      return nextAssignments
+        ? { columns: prev.columns, assignments: nextAssignments }
+        : prev;
+    });
+
+    for (const [item, node] of itemNodes.current) {
+      if (!itemSet.has(item)) {
+        resizeObserver.current?.unobserve(node);
+        nodeItems.current.delete(node);
+        itemNodes.current.delete(item);
+      }
+    }
+  }, [items]);
+
+  const placedColumns = useMemo(() => {
+    if (columnState.columns !== columns) {
+      return Array.from<T[], T[]>({ length: columns }, () => []);
     }
 
-    setPlacementGeneration((g) => g + 1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items, columns, pendingItems.length]);
+    return createColumnsFromAssignments(
+      items,
+      columns,
+      columnState.assignments
+    );
+  }, [items, columns, columnState]);
 
-  // Re-measure placed items to keep heights up-to-date (for future placements)
-  const placedMeasureRef = useCallback(
-    (node: HTMLDivElement | null, item: T) => {
-      if (node) {
-        const height = node.getBoundingClientRect().height;
-        measuredHeights.current.set(item, height);
+  const pendingItems = useMemo(() => {
+    if (columnState.columns !== columns) {
+      return items;
+    }
+
+    const pending: T[] = [];
+    for (const item of items) {
+      if (!columnState.assignments.has(item)) {
+        pending.push(item);
       }
-    },
-    []
-  );
+    }
+
+    return pending;
+  }, [items, columns, columnState]);
+
+  const displayedColumns = useMemo(() => {
+    if (pendingItems.length === 0) {
+      return placedColumns;
+    }
+
+    const columnsWithPending = placedColumns.map((column) => [...column]);
+    pendingItems.forEach((item, index) => {
+      columnsWithPending[index % columns]?.push(item);
+    });
+
+    return columnsWithPending;
+  }, [placedColumns, pendingItems, columns]);
+
+  useEffect(() => {
+    if (pendingItems.length === 0) {
+      return;
+    }
+
+    setColumnState((prev) => {
+      const itemSet = new Set(items);
+      const nextAssignments =
+        prev.columns === columns ? new Map(prev.assignments) : new Map();
+
+      for (const key of nextAssignments.keys()) {
+        if (!itemSet.has(key)) {
+          nextAssignments.delete(key);
+        }
+      }
+
+      const stillPending: T[] = [];
+      for (const item of items) {
+        if (!nextAssignments.has(item)) {
+          stillPending.push(item);
+        }
+      }
+
+      if (stillPending.length === 0) {
+        return prev.columns === columns
+          ? prev
+          : { columns, assignments: nextAssignments };
+      }
+
+      const estimatedHeight = getEstimatedHeight(
+        items,
+        measuredHeights.current
+      );
+      const currentColumns = createColumnsFromAssignments(
+        items,
+        columns,
+        nextAssignments
+      );
+      const currentColumnHeights = currentColumns.map((column) =>
+        getColumnHeight(
+          column,
+          (item) => measuredHeights.current.get(item) ?? estimatedHeight,
+          gap
+        )
+      );
+      const currentColumnCounts = currentColumns.map((column) => column.length);
+      const newColumns = createBalancedColumns(
+        stillPending,
+        columns,
+        (item) => measuredHeights.current.get(item) ?? estimatedHeight,
+        currentColumnHeights,
+        gap,
+        currentColumnCounts
+      );
+
+      for (let columnIdx = 0; columnIdx < newColumns.length; columnIdx++) {
+        for (const item of newColumns[columnIdx] ?? []) {
+          nextAssignments.set(item, columnIdx);
+        }
+      }
+
+      return { columns, assignments: nextAssignments };
+    });
+  }, [items, columns, gap, pendingItems.length]);
 
   return (
-    <Component {...rest} style={styles} data-generation={placementGeneration}>
-      {placedColumns.map((column, columnIdx) => (
+    <Component {...rest} style={styles}>
+      {displayedColumns.map((column, columnIdx) => (
         <MasonryRow gap={gap} key={columnIdx}>
-          {column.map((item, idx) => (
-            <div key={idx} ref={(node) => placedMeasureRef(node, item)}>
+          {column.map((item) => (
+            <div
+              key={getMasonryItemKey(item)}
+              ref={(node) => measureItemRef(node, item)}
+            >
               {render(item)}
             </div>
           ))}
         </MasonryRow>
       ))}
-      {/* Hidden measurement area for pending items */}
-      {pendingItems.length > 0 && (
-        <div
-          style={{
-            visibility: "hidden",
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            pointerEvents: "none",
-            display: "grid",
-            gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-            gridColumnGap: gap,
-          }}
-        >
-          {/* Render one pending item per column slot to get correct width */}
-          {pendingItems.map((item, idx) => (
-            <div
-              key={idx}
-              style={{ gridColumn: (idx % columns) + 1 }}
-              ref={(node) => pendingMeasureRef(node, item)}
-            >
-              {render(item)}
-            </div>
-          ))}
-        </div>
-      )}
     </Component>
   );
 }
@@ -336,15 +439,99 @@ export function createDataColumns<T>(data: T[][] = [], columns = 3) {
   return result;
 }
 
+function getMasonryItemKey<T>(item: T) {
+  const itemType = typeof item;
+
+  if (item !== null && (itemType === "object" || itemType === "function")) {
+    const objectItem = item as object;
+    let key = objectMasonryItemKeys.get(objectItem);
+
+    if (key === undefined) {
+      key = masonryItemKeyCounter;
+      masonryItemKeyCounter += 1;
+      objectMasonryItemKeys.set(objectItem, key);
+    }
+
+    return key;
+  }
+
+  let key = primitiveMasonryItemKeys.get(item);
+
+  if (key === undefined) {
+    key = masonryItemKeyCounter;
+    masonryItemKeyCounter += 1;
+    primitiveMasonryItemKeys.set(item, key);
+  }
+
+  return key;
+}
+
+function createColumnsFromAssignments<T>(
+  items: T[],
+  columns: number,
+  assignments: Map<T, number>
+) {
+  const result = Array.from<T[], T[]>({ length: columns }, () => []);
+
+  for (const item of items) {
+    const columnIdx = assignments.get(item);
+
+    if (columnIdx !== undefined && result[columnIdx]) {
+      result[columnIdx].push(item);
+    }
+  }
+
+  return result;
+}
+
+function getEstimatedHeight<T>(items: T[], measuredHeights: Map<T, number>) {
+  let totalHeight = 0;
+  let measuredCount = 0;
+
+  for (const item of items) {
+    const height = measuredHeights.get(item);
+
+    if (height !== undefined) {
+      totalHeight += height;
+      measuredCount += 1;
+    }
+  }
+
+  return measuredCount ? totalHeight / measuredCount : 1;
+}
+
+function getColumnHeight<T>(
+  items: T[],
+  getHeight: (item: T) => number,
+  gap: number
+) {
+  let totalHeight = 0;
+
+  for (let idx = 0; idx < items.length; idx++) {
+    totalHeight += getHeight(items[idx] as T);
+
+    if (idx > 0) {
+      totalHeight += gap;
+    }
+  }
+
+  return totalHeight;
+}
+
 export function createBalancedColumns<T>(
   items: T[],
   columns: number,
   getHeight: (item: T) => number,
-  initialColumnHeights?: number[]
+  initialColumnHeights?: number[],
+  gap = 0,
+  initialColumnCounts?: number[]
 ): T[][] {
   const result = Array.from<T[], T[]>({ length: columns }, () => []);
   const columnHeights = initialColumnHeights
     ? [...initialColumnHeights]
+    : new Array(columns).fill(0);
+  const columnCounts = initialColumnCounts
+    ? [...initialColumnCounts]
     : new Array(columns).fill(0);
 
   // Maintain original order, but distribute to shortest column
@@ -360,7 +547,9 @@ export function createBalancedColumns<T>(
     }
 
     result[shortestColumnIndex]?.push(item);
-    columnHeights[shortestColumnIndex] += getHeight(item);
+    columnHeights[shortestColumnIndex] +=
+      getHeight(item) + (columnCounts[shortestColumnIndex] ? gap : 0);
+    columnCounts[shortestColumnIndex] += 1;
   }
 
   return result;

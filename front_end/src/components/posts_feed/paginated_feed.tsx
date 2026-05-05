@@ -288,6 +288,7 @@ const FeedItemCard: FC<{
           post={post}
           forCommunityFeed={isCommunity}
           indexWeight={indexWeight}
+          forFeedPage
         />
       }
       forecaster={
@@ -295,6 +296,7 @@ const FeedItemCard: FC<{
           post={post}
           forCommunityFeed={isCommunity}
           indexWeight={indexWeight}
+          forFeedPage
         />
       }
     />

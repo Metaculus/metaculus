@@ -43,6 +43,7 @@ type Props = {
   questions: QuestionWithNumericForecasts[];
   height?: number;
   variant?: "default" | "colorful";
+  forFeedPage?: boolean;
 };
 
 const MULTIPLE_CHOICE_LIGHT_COLOR_SCALE = Object.values(
@@ -70,6 +71,7 @@ const TimeSeriesChart: FC<Props> = ({
   questions,
   height = 130,
   variant = "default",
+  forFeedPage = false,
 }) => {
   const { theme, getThemeColor } = useAppTheme();
   const locale = useLocale();
@@ -88,9 +90,9 @@ const TimeSeriesChart: FC<Props> = ({
   const chartData = buildChartData(orderedQuestions, locale);
   const { adjustedChartData, yDomain } = adjustChartData(chartData, chartWidth);
   const shouldDisplayChart = !!chartWidth;
-  const domainPaddingX = useMemo(
-    () => getDomainPaddingX(chartWidth, adjustedChartData.length),
-    [adjustedChartData.length, chartWidth]
+  const domainPaddingX = getDomainPaddingX(
+    chartWidth,
+    adjustedChartData.length
   );
   const { labelVisibilityMap: tickLabelVisibilityMap, widthPerLabel } =
     adjustLabelsForDisplay(adjustedChartData, chartWidth, domainPaddingX);
@@ -103,6 +105,9 @@ const TimeSeriesChart: FC<Props> = ({
   );
 
   const allQuestionsEmpty = adjustedChartData.every((datum) => datum.isEmpty);
+  const reservedChartHeight = chartData.every((datum) => datum.isEmpty)
+    ? 46
+    : height;
 
   // Forecast availabilities map
   const questionAvailabilities = useMemo(
@@ -143,11 +148,17 @@ const TimeSeriesChart: FC<Props> = ({
   }
 
   return (
-    <div ref={chartContainerRef} className="TimeSeriesChart relative w-full">
+    <div
+      ref={chartContainerRef}
+      className="TimeSeriesChart relative w-full"
+      style={forFeedPage ? { minHeight: reservedChartHeight } : undefined}
+    >
       {shouldDisplayChart && (
         <VictoryChart
           width={chartWidth}
-          height={allQuestionsEmpty ? 46 : height}
+          height={
+            forFeedPage ? reservedChartHeight : allQuestionsEmpty ? 46 : height
+          }
           theme={chartTheme}
           padding={{
             left: 0,
