@@ -11,7 +11,17 @@ type Props = {
 };
 
 const SimilarQuestions: FC<Props> = async ({ post_id, variant }) => {
-  const questions = await ServerPostsApi.getSimilarPosts(post_id);
+  let questions = await ServerPostsApi.getSimilarPosts(post_id);
+
+  if (!questions.length) {
+    const { results } = await ServerPostsApi.getPostsWithCP({
+      topic: "top-50",
+      for_main_feed: "false",
+      order_by: "-hotness",
+      limit: 8,
+    });
+    questions = results.filter((q) => q.id !== post_id);
+  }
 
   if (!questions.length) return null;
 

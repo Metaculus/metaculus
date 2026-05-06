@@ -14,15 +14,33 @@ type Props = {
 };
 
 const SimilarQuestionsTab: FC<Props> = ({ post, variant }) => {
-  const { data: questions = [], isFetching } = useQuery({
+  const { data: similarQuestions = [] } = useQuery({
     queryKey: ["similar-posts", post.id],
     queryFn: () => ClientPostsApi.getSimilarPosts(post.id),
     enabled: post.curation_status === PostStatus.APPROVED,
   });
 
-  if (isFetching || !questions.length) return null;
+  const { data: topQuestions = [] } = useQuery({
+    queryKey: ["top-posts-fallback"],
+    queryFn: () =>
+      ClientPostsApi.getPostsWithCP({
+        topic: "top-50",
+        for_main_feed: "false",
+        order_by: "-hotness",
+        limit: 8,
+      }),
+    select: (data) => data.results.filter((q) => q.id !== post.id),
+  });
 
-  return <SimilarQuestionsList questions={questions} variant={variant} />;
+  const displayQuestions = similarQuestions.length
+    ? similarQuestions
+    : topQuestions;
+
+  if (!displayQuestions.length) return null;
+
+  return (
+    <SimilarQuestionsList questions={displayQuestions} variant={variant} />
+  );
 };
 
 export default SimilarQuestionsTab;
