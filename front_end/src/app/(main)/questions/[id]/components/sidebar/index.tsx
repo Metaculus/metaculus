@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
 import { FC, Suspense } from "react";
 
+import LoadingSpinner from "@/components/ui/loading_spiner";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 
 import SidebarContainer from "./sidebar_container";
@@ -34,7 +35,7 @@ const Sidebar: FC<Props> = ({
       )}
 
       {postData.curation_status === PostStatus.APPROVED && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<LoadingSpinner className="my-4" />}>
           <SimilarQuestions post_id={postData.id} variant={variant} />
         </Suspense>
       )}

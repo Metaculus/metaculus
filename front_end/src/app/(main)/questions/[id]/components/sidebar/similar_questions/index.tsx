@@ -2,6 +2,7 @@ import { FC } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import ServerPostsApi from "@/services/api/posts/posts.server";
+import { PostStatus } from "@/types/post";
 
 import SimilarQuestionsList from "./similar_questions_list";
 
@@ -17,7 +18,14 @@ const SimilarQuestions: FC<Props> = async ({ post_id, variant }) => {
     const { results } = await ServerPostsApi.getPostsWithCP({
       topic: "top-50",
       for_main_feed: "false",
+      for_consumer_view: variant === "consumer" ? "true" : "false",
       order_by: "-hotness",
+      statuses: [
+        PostStatus.OPEN,
+        PostStatus.CLOSED,
+        PostStatus.RESOLVED,
+        PostStatus.UPCOMING,
+      ],
       limit: 8,
     });
     questions = results.filter((q) => q.id !== post_id);
