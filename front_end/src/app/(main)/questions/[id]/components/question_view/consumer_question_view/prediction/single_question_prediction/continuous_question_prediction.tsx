@@ -36,7 +36,7 @@ const ContinuousQuestionPrediction: React.FC<Props> = ({
       />
       {!shouldHideChart && (
         <>
-          <div className="w-full overflow-visible pb-1 md:pt-4 md:pb-4">
+          <div className="w-full overflow-visible pb-1 md:pb-4 md:pt-4">
             <div className="origin-center transform-gpu md:scale-150">
               <MinifiedContinuousAreaChart
                 question={question}
