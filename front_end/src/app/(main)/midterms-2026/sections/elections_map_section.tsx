@@ -16,15 +16,15 @@ export default async function ElectionsMapSection() {
 
   return (
     <SectionCard className="overflow-hidden !p-0">
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_460px]">
-        {/* Map column: edge-to-edge of the SectionCard on lg+. */}
+      <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(260px,35%)]">
+        {/* Map column: edge-to-edge of the SectionCard on md+. */}
         <div className="self-stretch">
           <ResponsiveMap races={races} />
         </div>
-        {/* Sidebar column: provides its own padding so the cards stay inset
-            from the white card edges. lg:p-10 keeps the same visual padding
-            the SectionCard used to provide. */}
-        <div className="space-y-4 p-5 md:p-10">
+        {/* Sidebar column: capped at 30% of the container with its own
+            internal padding so the cards stay inset from the white card
+            edges. */}
+        <div className="space-y-4 p-5 lg:p-10">
           <ChamberControlCard data={chamber} />
           <CongressOutcomeCard post={chamber.congressOutcome} />
         </div>

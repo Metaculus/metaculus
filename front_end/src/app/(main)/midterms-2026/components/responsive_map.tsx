@@ -12,11 +12,16 @@ type Props = {
 const ResponsiveMap: FC<Props> = ({ races }) => {
   return (
     <>
-      <div className="hidden h-full md:block">
+      {/* Geographic map shown only at lg+ where the map column has enough
+          room to render the country comfortably. Below lg the layout
+          collapses to a single column and the tile map takes over. */}
+      <div className="hidden h-full lg:block">
         <GeographicMap races={races} tabsSlot={<ChamberTabs />} />
       </div>
-      <div className="p-5 md:hidden">
-        <TileMap races={races} />
+      <div className="flex h-full items-center p-5 lg:hidden">
+        <div className="w-full">
+          <TileMap races={races} />
+        </div>
       </div>
     </>
   );

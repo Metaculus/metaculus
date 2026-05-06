@@ -19,7 +19,7 @@ const InsightCard: FC<Props> = ({ insight }) => {
   return (
     <div className="w-[340px] shrink-0 snap-start [&_a]:no-underline [&_button]:no-underline">
       <ActivityCard
-        variant="purple"
+        variant="blue"
         username={comment.author.username}
         subtitle={t("midtermsHubMetaculusUser")}
         link={`/questions/${sourcePost.id}/#comment-${comment.id}`}

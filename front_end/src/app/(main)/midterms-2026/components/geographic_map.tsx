@@ -1,7 +1,7 @@
 "use client";
 
 import { geoAlbersUsa } from "d3-geo";
-import { FC, MouseEvent, ReactNode, useMemo, useState } from "react";
+import { FC, MouseEvent, ReactNode, useMemo, useRef, useState } from "react";
 import {
   ComposableMap,
   Geographies,
@@ -9,8 +9,11 @@ import {
   GeographyType,
 } from "react-simple-maps";
 
+import useAppTheme from "@/hooks/use_app_theme";
+
 import { MIDTERMS_COLORS } from "../constants";
 import MapLegend from "./map_legend";
+import MapTooltipPortal from "./map_tooltip_portal";
 import StateTooltipContent from "./state_tooltip";
 import { getDemWinPct, SenateRaceWithQuestion } from "../helpers/post_utils";
 import { getStateColor } from "../helpers/state_color";
@@ -73,7 +76,7 @@ const FIPS_TO_ABBR: Record<string, string> = {
 
 type Props = {
   races: SenateRaceWithQuestion[];
-  /** Tabs slot (rendered absolute top-left on md+) */
+  /** Tabs slot (rendered absolute top-left). */
   tabsSlot?: ReactNode;
 };
 
@@ -89,13 +92,31 @@ const MAP_VIEWBOX_HEIGHT = 540;
 const MAP_SCALE = 970;
 const MAP_TRANSLATE: [number, number] = [385, 290];
 
+// Light-mode default/hover opacities for uncontested states.
+const UNCONTESTED_OPACITY_DEFAULT = 0.75;
+const UNCONTESTED_OPACITY_HOVER = 1;
+
 const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
+  const { theme } = useAppTheme();
+  const isDark = theme === "dark";
+
+  const strokeColor = isDark
+    ? MIDTERMS_COLORS.cardBgDark
+    : MIDTERMS_COLORS.cardBgLight;
+  const uncontestedFill = isDark
+    ? MIDTERMS_COLORS.uncontestedDark
+    : MIDTERMS_COLORS.uncontestedLight;
+  const uncontestedHoverFill = isDark
+    ? MIDTERMS_COLORS.uncontestedHoverDark
+    : MIDTERMS_COLORS.uncontestedHoverLight;
+
   const racesByState = useMemo(
     () => new Map(races.map((r) => [r.state, r])),
     [races]
   );
 
   const [hovered, setHovered] = useState<HoverState>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // react-simple-maps' MapProvider hardcodes translate to viewbox center, so
   // we provide a fully-configured projection function instead.
@@ -106,13 +127,10 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
 
   const handleEnter = (abbr: string, e: MouseEvent<SVGPathElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const parent = e.currentTarget.closest(".geo-map-container");
-    if (!parent) return;
-    const parentRect = parent.getBoundingClientRect();
     setHovered({
       abbr,
-      x: rect.left - parentRect.left + rect.width / 2,
-      y: rect.top - parentRect.top,
+      x: rect.left + rect.width / 2 + window.scrollX,
+      y: rect.top + window.scrollY,
     });
   };
 
@@ -125,7 +143,10 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
   const hoveredRace = hovered ? racesByState.get(hovered.abbr) : null;
 
   return (
-    <div className="geo-map-container relative h-full w-full">
+    <div
+      ref={containerRef}
+      className="geo-map-container relative h-full w-full"
+    >
       {tabsSlot && (
         <div className="absolute left-5 top-5 z-10 md:left-10 md:top-10">
           {tabsSlot}
@@ -147,12 +168,14 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
               geographies.map((geo) => {
                 const abbr = FIPS_TO_ABBR[String(geo.id ?? "")];
                 const race = abbr ? racesByState.get(abbr) : undefined;
-                const demWinPct = getDemWinPct(race?.question ?? null);
-                const fillColor = race
-                  ? getStateColor(demWinPct)
-                  : MIDTERMS_COLORS.notContested;
                 const isContested = race !== undefined;
                 const isHovered = hovered?.abbr === abbr;
+
+                const fillColor = isContested
+                  ? getStateColor(getDemWinPct(race?.question ?? null))
+                  : isHovered
+                    ? uncontestedHoverFill
+                    : uncontestedFill;
 
                 return (
                   <Geography
@@ -166,11 +189,11 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
                     style={{
                       default: {
                         fill: fillColor,
-                        stroke: MIDTERMS_COLORS.stateStroke,
+                        stroke: strokeColor,
                         strokeWidth: 1.5,
                         outline: "none",
                         cursor: isContested ? "pointer" : "default",
-                        opacity: isContested ? 1 : 0.5,
+                        opacity: isContested ? 1 : UNCONTESTED_OPACITY_DEFAULT,
                         transition:
                           "fill 150ms ease-out, opacity 150ms ease-out, filter 150ms ease-out",
                         filter:
@@ -179,20 +202,20 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
                             : undefined,
                       },
                       hover: {
-                        fill: fillColor,
-                        stroke: MIDTERMS_COLORS.stateStroke,
+                        fill: isContested ? fillColor : uncontestedHoverFill,
+                        stroke: strokeColor,
                         strokeWidth: isContested ? 2 : 1.5,
                         outline: "none",
                         cursor: isContested ? "pointer" : "default",
-                        opacity: isContested ? 1 : 0.75,
+                        opacity: isContested ? 1 : UNCONTESTED_OPACITY_HOVER,
                         filter: isContested ? "brightness(0.9)" : undefined,
                       },
                       pressed: {
                         fill: fillColor,
-                        stroke: MIDTERMS_COLORS.stateStroke,
+                        stroke: strokeColor,
                         strokeWidth: isContested ? 2 : 1.5,
                         outline: "none",
-                        opacity: isContested ? 1 : 0.75,
+                        opacity: isContested ? 1 : UNCONTESTED_OPACITY_HOVER,
                       },
                     }}
                   />
@@ -204,19 +227,18 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
       </div>
 
       {hoveredRace && hovered && (
-        <div
-          className="pointer-events-none absolute z-20 transition-opacity duration-150"
-          style={{
-            left: hovered.x,
-            top: hovered.y - 8,
-            transform: "translate(-50%, -100%)",
-          }}
+        <MapTooltipPortal
+          x={hovered.x}
+          y={hovered.y}
+          onClick={() => handleClick(hoveredRace)}
+          insideRef={containerRef}
+          onDismiss={() => setHovered(null)}
         >
           <StateTooltipContent
             race={hoveredRace}
             demWinPct={getDemWinPct(hoveredRace.question)}
           />
-        </div>
+        </MapTooltipPortal>
       )}
     </div>
   );

@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 
 import { MIDTERMS_COLORS } from "../constants";
 import { ConsequenceRow as ConsequenceRowData } from "../data";
+import CvBar from "./cv_bar";
 
 type Props = {
   row: ConsequenceRowData;
@@ -23,20 +24,20 @@ export default async function ConsequenceRow({ row }: Props) {
   })();
 
   return (
-    <div className="grid grid-cols-1 gap-3 border-b border-blue-300 py-4 last:border-0 dark:border-blue-300-dark md:grid-cols-[2fr_1fr_1fr] md:gap-4">
+    <div className="group/cv grid grid-cols-1 gap-3 border-b border-blue-300 py-4 last:border-0 dark:border-blue-300-dark md:grid-cols-[2fr_1fr_1fr] md:gap-4">
       <p className="m-0 text-sm font-medium text-blue-800 dark:text-blue-800-dark md:text-base">
         {question}
       </p>
       <ConsequenceBar
         pct={row.repCongressPct}
         color={MIDTERMS_COLORS.repPrimary}
-        bg={MIDTERMS_COLORS.repLight}
+        borderColor={MIDTERMS_COLORS.repBorder}
         mobileLabel={t("midtermsHubConsequenceIfRep")}
       />
       <ConsequenceBar
         pct={row.demCongressPct}
         color={MIDTERMS_COLORS.demPrimary}
-        bg={MIDTERMS_COLORS.demLight}
+        borderColor={MIDTERMS_COLORS.demBorder}
         mobileLabel={t("midtermsHubConsequenceIfDem")}
       />
     </div>
@@ -46,12 +47,12 @@ export default async function ConsequenceRow({ row }: Props) {
 function ConsequenceBar({
   pct,
   color,
-  bg,
+  borderColor,
   mobileLabel,
 }: {
   pct: number;
   color: string;
-  bg: string;
+  borderColor: string;
   mobileLabel: string;
 }) {
   return (
@@ -60,14 +61,7 @@ function ConsequenceBar({
         {mobileLabel}
       </span>
       <div className="flex items-center">
-        <div
-          className="flex h-5 items-center"
-          style={{
-            width: `${pct}%`,
-            backgroundColor: bg,
-            borderLeft: `3px solid ${color}`,
-          }}
-        />
+        <CvBar pct={pct} color={color} borderColor={borderColor} />
         <span className="ml-2 shrink-0 text-sm font-semibold tabular-nums text-blue-800 dark:text-blue-800-dark">
           {pct}%
         </span>

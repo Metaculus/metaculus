@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
@@ -34,7 +34,7 @@ export default async function FooterSection() {
       {latest && (
         <p className="mt-2 text-blue-600 dark:text-blue-600-dark">
           {t("midtermsHubLastUpdatedFull", {
-            date: format(latest, "MMMM d, yyyy, HH:mm 'UTC'"),
+            date: formatInTimeZone(latest, "UTC", "MMMM d, yyyy, HH:mm 'UTC'"),
           })}
         </p>
       )}

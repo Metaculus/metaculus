@@ -1,19 +1,27 @@
 export const MIDTERMS_COLORS = {
   demPrimary: "#6B7AE8",
-  demLight: "#CECBF6",
+  // Slightly darker accents, used for borders / strokes so they read
+  // sharply against the semi-transparent fills.
+  demBorder: "#3A4DD0",
   repPrimary: "#E8827A",
-  repLight: "#FCCAC7",
-  likelyD: "#4A5CD4",
-  leanD: "#8B97EE",
-  tossUp: "#D3D1C7",
-  leanR: "#EDA8A4",
-  likelyR: "#D4504A",
-  // Matches the page body background (blue-200 in light mode) so uncontested
-  // states recede into the page; contested states pop above them.
-  notContested: "#eff4f4",
-  notContestedDark: "#2f4155",
-  stateStroke: "#ffffff",
-  stateStrokeDark: "#22262b",
+  repBorder: "#C53B33",
+  // Continuous-gradient anchors. `tossUp` is the neutral midpoint at 50%,
+  // `likelyR` and `likelyD` are the extremes; intermediate colors are
+  // generated via getColorInSpectrum.
+  spectrumDem: "#4A5CD4",
+  spectrumNeutral: "#D3D1C7",
+  spectrumRep: "#D4504A",
+  // Theme-aware tokens for state stroke + uncontested fill.
+  // Stroke matches the SectionCard background color so state borders blend
+  // with the surrounding card.
+  cardBgLight: "#ffffff",
+  cardBgDark: "#262f38",
+  // Uncontested fill is one elevation step lighter than the card bg so
+  // uncontested states are subtly visible without dominating.
+  uncontestedLight: "#eff4f4",
+  uncontestedDark: "#2d3845",
+  uncontestedHoverLight: "#e0e9eb",
+  uncontestedHoverDark: "#394450",
 } as const;
 
 export const STATE_NAMES: Record<string, string> = {

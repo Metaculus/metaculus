@@ -1,6 +1,10 @@
 import { getTranslations } from "next-intl/server";
 
+import { PostWithForecasts } from "@/types/post";
+import cn from "@/utils/core/cn";
+
 import { MIDTERMS_COLORS } from "../constants";
+import CvBar from "./cv_bar";
 import { ChamberData } from "../helpers/fetch_dashboard_data";
 import { getMultipleChoiceOptionProbability } from "../helpers/post_utils";
 
@@ -49,6 +53,7 @@ export default async function ChamberControlCard({ data }: Props) {
           currentDem={CURRENT_SENATE.dem}
           currentRep={CURRENT_SENATE.rep}
           demNeededLabel={t("midtermsHubDemsNeed", { count: senateDemNeeded })}
+          sourcePost={data.senateControl}
         />
         <ChamberRow
           chamberLabel={t("midtermsHubChamberHouse")}
@@ -57,6 +62,7 @@ export default async function ChamberControlCard({ data }: Props) {
           currentDem={CURRENT_HOUSE.dem}
           currentRep={CURRENT_HOUSE.rep}
           demNeededLabel={t("midtermsHubDemsNeed", { count: houseDemNeeded })}
+          sourcePost={data.houseControl}
         />
       </div>
     </div>
@@ -70,6 +76,7 @@ type RowProps = {
   currentDem: number;
   currentRep: number;
   demNeededLabel: string;
+  sourcePost: PostWithForecasts | null;
 };
 
 function ChamberRow({
@@ -79,7 +86,10 @@ function ChamberRow({
   currentDem,
   currentRep,
   demNeededLabel,
+  sourcePost,
 }: RowProps) {
+  // Normalize Dem+Rep so the two bars together represent ~100% (ignores
+  // the small "Other" slice from the underlying multiple-choice question).
   const total = demProb != null && repProb != null ? demProb + repProb : null;
   const demShare =
     demProb != null && total && total > 0 ? (demProb / total) * 100 : null;
@@ -88,8 +98,10 @@ function ChamberRow({
   const demPct = demProb != null ? Math.round(demProb * 1000) / 10 : null;
   const repPct = repProb != null ? Math.round(repProb * 1000) / 10 : null;
 
-  return (
-    <div>
+  const href = sourcePost ? `/questions/${sourcePost.id}` : undefined;
+
+  const inner = (
+    <>
       <div className="mb-2 flex items-center justify-between">
         <span className="text-base font-semibold text-blue-800 dark:text-blue-800-dark">
           {chamberLabel}
@@ -104,29 +116,20 @@ function ChamberRow({
           </span>
         )}
       </div>
-      <div className="flex h-2.5 w-full items-stretch overflow-hidden rounded-full bg-blue-300 dark:bg-blue-300-dark">
+      <div className="flex w-full items-center gap-1">
         {demShare != null && repShare != null && (
           <>
-            <div
-              className="h-full"
-              style={{
-                width: `calc(${demShare}% - 1px)`,
-                backgroundColor: MIDTERMS_COLORS.demPrimary,
-              }}
+            <CvBar
+              pct={demShare}
+              color={MIDTERMS_COLORS.demPrimary}
+              borderColor={MIDTERMS_COLORS.demBorder}
+              heightClassName="h-3"
             />
-            <div
-              className="h-full shrink-0"
-              style={{
-                width: 2,
-                backgroundColor: MIDTERMS_COLORS.stateStroke,
-              }}
-            />
-            <div
-              className="h-full"
-              style={{
-                width: `calc(${repShare}% - 1px)`,
-                backgroundColor: MIDTERMS_COLORS.repPrimary,
-              }}
+            <CvBar
+              pct={repShare}
+              color={MIDTERMS_COLORS.repPrimary}
+              borderColor={MIDTERMS_COLORS.repBorder}
+              heightClassName="h-3"
             />
           </>
         )}
@@ -143,6 +146,25 @@ function ChamberRow({
         </span>
         <span>{demNeededLabel}</span>
       </div>
-    </div>
+    </>
   );
+
+  const groupClass = cn(
+    "group/cv block",
+    href && "cursor-pointer no-underline"
+  );
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={groupClass}
+      >
+        {inner}
+      </a>
+    );
+  }
+  return <div className={groupClass}>{inner}</div>;
 }
