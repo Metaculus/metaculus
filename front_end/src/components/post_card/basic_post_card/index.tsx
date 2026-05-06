@@ -54,13 +54,14 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
         )}
       <div
         className={cn(
-          "flex flex-col overflow-hidden rounded bg-gray-0 px-5 py-4 @container dark:bg-gray-0-dark",
+          "flex flex-col overflow-hidden rounded bg-gray-0 px-5 py-4 transition-colors @container dark:bg-gray-0-dark",
           { regular: "border", highlighted: "border border-l-4" }[
             borderVariant
           ],
           {
-            blue: "border-blue-400 dark:border-blue-400-dark",
-            purple: "border-purple-500 dark:border-purple-500-dark",
+            blue: "border-blue-400 hover:border-blue-500 dark:border-blue-400-dark dark:hover:border-blue-500-dark dark:hover:bg-gray-100-dark",
+            purple:
+              "border-purple-500 hover:border-purple-600 dark:border-purple-500-dark dark:hover:border-purple-600-dark dark:hover:bg-gray-100-dark",
           }[borderColor]
         )}
       >

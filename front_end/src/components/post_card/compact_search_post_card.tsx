@@ -35,10 +35,10 @@ const CompactSearchPostCard: FC<Props> = ({ post }) => {
   return (
     <article
       className={cn(
-        "overflow-hidden rounded border bg-gray-0 @container dark:bg-gray-0-dark",
+        "overflow-hidden rounded border bg-gray-0 transition-colors @container dark:bg-gray-0-dark",
         isNotebook
-          ? "border-l-4 border-purple-500 dark:border-purple-500-dark"
-          : "border-blue-400 dark:border-blue-400-dark"
+          ? "border-l-4 border-purple-500 hover:border-purple-600 dark:border-purple-500-dark dark:hover:border-purple-600-dark dark:hover:bg-gray-100-dark"
+          : "border-blue-400 hover:border-blue-500 dark:border-blue-400-dark dark:hover:border-blue-500-dark dark:hover:bg-gray-100-dark"
       )}
     >
       <HideCPProvider post={post}>
