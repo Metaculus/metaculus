@@ -14,11 +14,14 @@ type Props = {
 };
 
 const SimilarQuestionsTab: FC<Props> = ({ post, variant }) => {
-  const { data: similarQuestions = [] } = useQuery({
-    queryKey: ["similar-posts", post.id],
-    queryFn: () => ClientPostsApi.getSimilarPosts(post.id),
-    enabled: post.curation_status === PostStatus.APPROVED,
-  });
+  const isApproved = post.curation_status === PostStatus.APPROVED;
+
+  const { data: similarQuestions = [], isSuccess: hasSimilarQuestionsResult } =
+    useQuery({
+      queryKey: ["similar-posts", post.id],
+      queryFn: () => ClientPostsApi.getSimilarPosts(post.id),
+      enabled: isApproved,
+    });
 
   const { data: topQuestions = [] } = useQuery({
     queryKey: ["top-posts-fallback"],
@@ -29,6 +32,9 @@ const SimilarQuestionsTab: FC<Props> = ({ post, variant }) => {
         order_by: "-hotness",
         limit: 8,
       }),
+    // only fetch when similar posts query settled with no results
+    enabled:
+      !isApproved || (hasSimilarQuestionsResult && !similarQuestions.length),
     select: (data) => data.results.filter((q) => q.id !== post.id),
   });
 
