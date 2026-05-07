@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone as dt_timezone
 from typing import cast, Iterable, Literal
 
 import sentry_sdk
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import F, Q, QuerySet, Subquery, OuterRef, Count
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
@@ -294,53 +294,57 @@ def update_forecast_notification(
         existing_subscription = post.subscriptions.filter(user=user).exclude(
             is_global=True
         )
-        if (
-            user.follow_notify_cp_change_threshold
-            and not existing_subscription.filter(
-                type=PostSubscription.SubscriptionType.CP_CHANGE
-            ).exists()
-        ):
-            create_subscription(
-                subscription_type=PostSubscription.SubscriptionType.CP_CHANGE,
-                user=user,
-                post=post,
-                cp_change_threshold=user.follow_notify_cp_change_threshold,
-            )
-        if (
-            user.follow_notify_comments_frequency
-            and not existing_subscription.filter(
-                type=PostSubscription.SubscriptionType.NEW_COMMENTS
-            ).exists()
-        ):
-            create_subscription(
-                subscription_type=PostSubscription.SubscriptionType.NEW_COMMENTS,
-                user=user,
-                post=post,
-                comments_frequency=user.follow_notify_comments_frequency,
-            )
-        if (
-            user.follow_notify_milestone_step
-            and not existing_subscription.filter(
-                type=PostSubscription.SubscriptionType.MILESTONE
-            ).exists()
-        ):
-            create_subscription(
-                subscription_type=PostSubscription.SubscriptionType.MILESTONE,
-                user=user,
-                post=post,
-                milestone_step=user.follow_notify_milestone_step,
-            )
-        if (
-            user.follow_notify_on_status_change
-            and not existing_subscription.filter(
-                type=PostSubscription.SubscriptionType.STATUS_CHANGE
-            ).exists()
-        ):
-            create_subscription(
-                subscription_type=PostSubscription.SubscriptionType.STATUS_CHANGE,
-                user=user,
-                post=post,
-            )
+        if user.follow_notify_cp_change_threshold and not existing_subscription.filter(
+            type=PostSubscription.SubscriptionType.CP_CHANGE
+        ).exists():
+            try:
+                with transaction.atomic():
+                    create_subscription(
+                        subscription_type=PostSubscription.SubscriptionType.CP_CHANGE,
+                        user=user,
+                        post=post,
+                        cp_change_threshold=user.follow_notify_cp_change_threshold,
+                    )
+            except IntegrityError:
+                pass
+        if user.follow_notify_comments_frequency and not existing_subscription.filter(
+            type=PostSubscription.SubscriptionType.NEW_COMMENTS
+        ).exists():
+            try:
+                with transaction.atomic():
+                    create_subscription(
+                        subscription_type=PostSubscription.SubscriptionType.NEW_COMMENTS,
+                        user=user,
+                        post=post,
+                        comments_frequency=user.follow_notify_comments_frequency,
+                    )
+            except IntegrityError:
+                pass
+        if user.follow_notify_milestone_step and not existing_subscription.filter(
+            type=PostSubscription.SubscriptionType.MILESTONE
+        ).exists():
+            try:
+                with transaction.atomic():
+                    create_subscription(
+                        subscription_type=PostSubscription.SubscriptionType.MILESTONE,
+                        user=user,
+                        post=post,
+                        milestone_step=user.follow_notify_milestone_step,
+                    )
+            except IntegrityError:
+                pass
+        if user.follow_notify_on_status_change and not existing_subscription.filter(
+            type=PostSubscription.SubscriptionType.STATUS_CHANGE
+        ).exists():
+            try:
+                with transaction.atomic():
+                    create_subscription(
+                        subscription_type=PostSubscription.SubscriptionType.STATUS_CHANGE,
+                        user=user,
+                        post=post,
+                    )
+            except IntegrityError:
+                pass
 
 
 def get_last_aggregated_forecasts_for_questions(
