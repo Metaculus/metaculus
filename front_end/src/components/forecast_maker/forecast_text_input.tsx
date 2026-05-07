@@ -1,3 +1,5 @@
+"use client";
+
 import { Input } from "@headlessui/react";
 import { ChangeEvent, FC } from "react";
 

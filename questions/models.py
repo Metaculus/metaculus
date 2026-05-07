@@ -626,8 +626,16 @@ class Forecast(models.Model):
         blank=True,
     )
 
-    # CDF of a continuous forecast
-    # evaluated at [0.0, 0.005, 0.010, ..., 0.995, 1.0] (internal representation)
+    # CDF of a continuous forecast with inbound_outcome_count + 1 values (default 201).
+    # Values are evaluated at evenly-spaced unscaled locations [0.0, ..., 1.0].
+    # Boundary semantics (note the asymmetry):
+    #   cdf[0]  = P(outcome < range_min)   — strictly less than (not equal to)
+    #   cdf[-1] = P(outcome <= range_max)  — less than or equal to
+    # For closed lower bounds cdf[0] must be 0.0; probability of the outcome
+    # equalling range_min exactly belongs in the first inbound bucket (cdf[1]).
+    # For closed upper bounds cdf[-1] must be 1.0.
+    # The PMF used for scoring is the array of consecutive differences:
+    #   pmf[i] = cdf[i] - cdf[i-1]  (with cdf[-1] implicitly appended as 1.0)
     continuous_cdf: list[float] = ArrayField(
         models.FloatField(),
         null=True,

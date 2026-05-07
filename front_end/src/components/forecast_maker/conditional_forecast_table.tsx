@@ -104,15 +104,16 @@ const ConditionalForecastTable: FC<Props> = ({
                         {chunks}
                       </span>
                     ),
-                    forecastValue: formatForecastValue
-                      ? formatForecastValue(
-                          option.forecastInputMode ===
-                            ContinuousForecastInputType.Quantile
-                            ? option.quantileValue ?? null
-                            : option.value,
-                          option.forecastInputMode
-                        )
-                      : option.value,
+                    forecastValue:
+                      (formatForecastValue
+                        ? formatForecastValue(
+                            option.forecastInputMode ===
+                              ContinuousForecastInputType.Quantile
+                              ? option.quantileValue ?? null
+                              : option.value,
+                            option.forecastInputMode
+                          )
+                        : option.value) ?? "",
                   })}{" "}
                 </td>
               </>

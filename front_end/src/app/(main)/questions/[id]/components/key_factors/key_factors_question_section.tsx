@@ -1,13 +1,13 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useMemo } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { AddKeyFactorsButton } from "@/app/(main)/questions/[id]/components/key_factors/add_button";
 import KeyFactorsFeed from "@/app/(main)/questions/[id]/components/key_factors/key_factors_feed";
-import { useQuestionLayout } from "@/app/(main)/questions/[id]/components/question_layout/question_layout_context";
+import { useQuestionLayoutSafe } from "@/app/(main)/questions/[id]/components/question_layout/question_layout_context";
 import { openFlowCommentsAndScrollToComment } from "@/app/(prediction-flow)/helpers";
 import ExpandableContent from "@/components/ui/expandable_content";
 import SectionToggle from "@/components/ui/section_toggle";
@@ -23,6 +23,8 @@ import { useShouldHideKeyFactors } from "./use_should_hide_key_factors";
 type KeyFactorsQuestionSectionProps = {
   post: PostWithForecasts;
   variant?: "default" | "flow";
+  defaultCollapsed?: boolean;
+  hideOverlay?: boolean;
 };
 
 const CLOSED_STATUSES: PostStatus[] = [
@@ -34,15 +36,18 @@ const CLOSED_STATUSES: PostStatus[] = [
 const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
   post,
   variant = "default",
+  defaultCollapsed,
+  hideOverlay,
 }) => {
   const isFlow = variant === "flow";
 
   const postStatus = post.status;
   const t = useTranslations();
   const { user } = useAuth();
-  const { keyFactorsExpanded } = useQuestionLayout();
+  const { keyFactorsExpanded } = useQuestionLayoutSafe() ?? {};
   const { combinedKeyFactors } = useCommentsFeed();
   const shouldHideKeyFactors = useShouldHideKeyFactors();
+  const [isSectionExpanded, setIsSectionExpanded] = useState(false);
   const { aggregateCoherenceLinks } = useCoherenceLinksContext();
 
   const questionLinkAggregates = useMemo(
@@ -87,15 +92,16 @@ const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
 
   const showCreateButton =
     !isFlow &&
-    (combinedKeyFactors.length > 0 || hasQuestionLinks) &&
     factorsLimit > 0 &&
+    totalCount > 0 &&
     !CLOSED_STATUSES.includes(postStatus);
 
-  const sectionTitle = isFlow
-    ? `${t("keyFactors")} (${totalCount})`
-    : t("keyFactors");
+  const sectionTitle =
+    totalCount > 0 ? `${t("keyFactors")} (${totalCount})` : t("keyFactors");
 
-  const shouldDefaultOpen = !isFlow || totalCount > 0;
+  const isResolved = postStatus === PostStatus.RESOLVED;
+  const shouldDefaultOpen =
+    !defaultCollapsed && !isResolved && (!isFlow || totalCount > 0);
 
   return (
     <SectionToggle
@@ -129,17 +135,20 @@ const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
             }
           />
         ) : null
-      ) : combinedKeyFactors.length > 0 ? (
+      ) : (
         <ExpandableContent
           maxCollapsedHeight={340}
           expandLabel={t("showMore")}
           collapseLabel={t("showLess")}
           forceState={keyFactorsExpanded}
+          onExpandedChange={setIsSectionExpanded}
         >
-          <KeyFactorsFeed post={post} />
+          <KeyFactorsFeed
+            post={post}
+            truncateText={!isSectionExpanded}
+            hideOverlay={hideOverlay}
+          />
         </ExpandableContent>
-      ) : (
-        <KeyFactorsFeed post={post} />
       )}
     </SectionToggle>
   );

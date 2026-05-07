@@ -1,7 +1,14 @@
 "use client";
 import { isNil, merge } from "lodash";
 import { useLocale } from "next-intl";
-import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  FC,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Tuple,
   VictoryArea,
@@ -96,6 +103,8 @@ type Props = {
   globalScaling?: Scaling;
   outlineUser?: boolean;
   centerOOBResolution?: boolean;
+  animate?: object;
+  onChartReady?: () => void;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -116,11 +125,20 @@ const ContinuousAreaChart: FC<Props> = ({
   globalScaling,
   outlineUser = false,
   centerOOBResolution = false,
+  animate,
+  onChartReady,
 }) => {
   const locale = useLocale();
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
   const chartWidth = width || containerWidth;
+  const prevWidth = useRef(0);
+  useEffect(() => {
+    if (!prevWidth.current && chartWidth && onChartReady) {
+      onChartReady();
+    }
+    prevWidth.current = chartWidth;
+  }, [onChartReady, chartWidth]);
   const [cursorEdge, setCursorEdge] = useState<number | null>(null);
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
@@ -130,6 +148,11 @@ const ContinuousAreaChart: FC<Props> = ({
 
   const discrete = question.type === QuestionType.Discrete;
   const paddingTop = graphType === "cdf" || discrete ? TOP_PADDING : 0;
+
+  const hasUserData = useMemo(
+    () => data.some((d) => d.type === "user"),
+    [data]
+  );
 
   const charts = useMemo(() => {
     const parsedData = hideCP
@@ -579,6 +602,7 @@ const ContinuousAreaChart: FC<Props> = ({
             right: horizontalPadding,
           }}
           domain={{ x: xDomain, y: yDomain }}
+          animate={animate}
           containerComponent={
             onCursorChange ? (
               CursorContainer
@@ -732,7 +756,11 @@ const ContinuousAreaChart: FC<Props> = ({
           )}
           <VictoryAxis
             tickValues={xScale.ticks}
-            tickFormat={hideLabels || hideCP ? () => "" : xScale.tickFormat}
+            tickFormat={
+              hideLabels || (hideCP && !hasUserData)
+                ? () => ""
+                : xScale.tickFormat
+            }
             style={{
               ticks: {
                 strokeWidth: 1,

@@ -1,7 +1,11 @@
 import { isValid } from "date-fns";
 import { toDate } from "date-fns-tz";
 
-import { TournamentPreview, TournamentType } from "@/types/projects";
+import {
+  TournamentPreview,
+  TournamentsSortBy,
+  TournamentType,
+} from "@/types/projects";
 
 import { TournamentsSection } from "../types";
 
@@ -10,6 +14,15 @@ const archiveEndTs = (t: TournamentPreview) =>
     .map((s) => (s ? toDate(s.trim(), { timeZone: "UTC" }) : null))
     .find((d) => d && isValid(d))
     ?.getTime() ?? 0;
+
+export function getDefaultSortForSection(
+  section: TournamentsSection
+): TournamentsSortBy {
+  if (section === "archived") {
+    return TournamentsSortBy.StartDateDesc;
+  }
+  return TournamentsSortBy.Featured;
+}
 
 export function selectTournamentsForSection(
   tournaments: TournamentPreview[],

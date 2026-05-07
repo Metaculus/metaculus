@@ -16,9 +16,10 @@ import PercentageForecastCard from "./percentage_forecast_card";
 
 type Props = {
   post: PostWithForecasts;
+  compact?: boolean;
 };
 
-const GroupForecastCard: FC<Props> = ({ post }) => {
+const GroupForecastCard: FC<Props> = ({ post, compact }) => {
   // Check forecast availability for group posts
   const forecastAvailability = post.group_of_questions
     ? getGroupForecastAvailability(post.group_of_questions.questions)
@@ -46,13 +47,13 @@ const GroupForecastCard: FC<Props> = ({ post }) => {
     isMultipleChoicePost(post) ||
     checkGroupOfQuestionsPostType(post, QuestionType.Binary)
   ) {
-    return <PercentageForecastCard post={post} />;
+    return <PercentageForecastCard post={post} compact={compact} />;
   }
   if (
     checkGroupOfQuestionsPostType(post, QuestionType.Numeric) ||
     checkGroupOfQuestionsPostType(post, QuestionType.Discrete)
   ) {
-    return <NumericForecastCard post={post} />;
+    return <NumericForecastCard post={post} compact={compact} />;
   }
   if (
     post.group_of_questions &&

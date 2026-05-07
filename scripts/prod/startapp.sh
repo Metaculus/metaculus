@@ -41,7 +41,7 @@ export UV_THREADPOOL_SIZE=2
 
 (
   cd front_end &&
-  npm run pm2-runtime \
+  bun run pm2-runtime \
   2>&1 | sed 's/^/[Frontend]: /'
 ) &
 NEXTJS_PID=$!

@@ -3,6 +3,7 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import type { Metadata } from "next";
 
 import { defaultDescription } from "@/constants/metadata";
+import { PrintOverrideProvider } from "@/contexts/theme_override_context";
 import { getAuthCookieManager } from "@/services/auth_tokens";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
@@ -32,21 +33,23 @@ export default async function RootLayout({
   const isImpersonating = authManager.isImpersonating();
 
   return (
-    <div className="flex min-h-screen flex-col pt-header">
-      <GlobalHeader />
+    <PrintOverrideProvider>
+      <div className="flex min-h-screen flex-col pt-header print:pt-0">
+        <GlobalHeader />
 
-      {isImpersonating && <ImpersonationBanner />}
+        {isImpersonating && <ImpersonationBanner />}
 
-      <Bulletins />
-      <div className="flex-grow">{children}</div>
-      {!PUBLIC_MINIMAL_UI && (
-        <>
-          <FeedbackFloat />
-          <Footer />
-        </>
-      )}
-      <CookiesBanner />
-      <VersionChecker />
-    </div>
+        <Bulletins />
+        <div className="flex-grow">{children}</div>
+        {!PUBLIC_MINIMAL_UI && (
+          <>
+            <FeedbackFloat />
+            <Footer />
+          </>
+        )}
+        <CookiesBanner />
+        <VersionChecker />
+      </div>
+    </PrintOverrideProvider>
   );
 }

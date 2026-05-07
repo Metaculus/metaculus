@@ -5,9 +5,12 @@ from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.serializers import DateTimeField
+
+
+import numpy as np
 
 from comments.serializers.common import CommentWriteSerializer
 from comments.services.common import create_comment
@@ -18,10 +21,12 @@ from posts.tasks import run_on_post_forecast
 from posts.utils import get_post_slug
 from projects.permissions import ObjectPermission
 from users.models import User
+from utils.the_math.aggregations import get_aggregations_at_time
 from .constants import QuestionStatus
 from .models import Question
 from .serializers.common import (
     validate_question_resolution,
+    QuestionsCommunityPredictionsSerializer,
     OldForecastWriteSerializer,
     ForecastWriteSerializer,
     ForecastWithdrawSerializer,
@@ -129,9 +134,11 @@ def bulk_create_forecasts_api_view(request):
         )
         ObjectPermission.can_forecast(permission, raise_exception=True)
 
-        if not question.open_time or question.open_time > now:
+        if not question.open_time:
             return Response(
-                {"error": f"Question {question.id} is not open for forecasting yet !"},
+                {
+                    "error": f"Question {question.id} is not scheduled for forecasting yet !"
+                },
                 status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
 
@@ -206,9 +213,9 @@ def create_binary_forecast_oldapi_view(request, pk: int):
     permission = get_post_permission_for_user(question.get_post(), user=request.user)
     ObjectPermission.can_forecast(permission, raise_exception=True)
 
-    if not question.open_time or question.open_time > now:
+    if not question.open_time:
         return Response(
-            {"error": "You cannot forecast on this question yet !"},
+            {"error": "This question is not scheduled for forecasting yet !"},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 
@@ -376,3 +383,57 @@ def bulk_forecast_and_comment_api_view(request):
         run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
 
     return Response({}, status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAdminUser])
+def questions_community_predictions(request) -> Response:
+    src = request.data if request.method == "POST" else request.query_params
+    serializer = QuestionsCommunityPredictionsSerializer(data=src)
+    serializer.is_valid(raise_exception=True)
+
+    question_ids: list[int] = serializer.validated_data["question_ids"]
+    per_entry_timestamps = serializer.get_per_question_timestamps()
+
+    # Fetch questions
+    questions_by_id: dict[int, Question] = {
+        q.id: q for q in Question.objects.filter(id__in=question_ids)
+    }
+
+    # Compute aggregations
+    results = []
+    for qid, ts in zip(question_ids, per_entry_timestamps):
+        question = questions_by_id.get(qid)
+        if not question:
+            continue
+
+        method = question.default_aggregation_method
+        aggs = get_aggregations_at_time(
+            question=question,
+            time=ts,
+            aggregation_methods=[method],
+            include_stats=True,
+            include_bots=question.include_bots_in_aggregates,
+        )
+        agg = aggs.get(method)
+
+        if agg:
+            pmf = agg.get_pmf()
+            pmf = [
+                v if not np.isnan(v) else None for v in pmf
+            ]  # Convert NaNs to None for JSON serialization
+            results.append(
+                {
+                    "metaculus_id": qid,
+                    "timestamp": ts.isoformat(),
+                    "method": method,
+                    "pmf": pmf,
+                    "interval_lower_bounds": agg.interval_lower_bounds,
+                    "centers": agg.centers,
+                    "interval_upper_bounds": agg.interval_upper_bounds,
+                    "means": agg.means,
+                    "forecaster_count": agg.forecaster_count,
+                    "error": None,
+                }
+            )
+    return Response({"results": results})

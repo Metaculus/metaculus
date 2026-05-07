@@ -308,7 +308,7 @@ export async function changePostActivityBoost(
 
 export async function removeRelatedArticle(articleId: number) {
   await ServerPostsApi.removeRelatedArticle(articleId);
-  revalidateTag("related-articles");
+  revalidateTag("related-articles", "max");
 }
 
 export async function changePostSubscriptions(
@@ -368,6 +368,33 @@ export async function deleteCoherenceLink(link: CoherenceLink) {
     return {
       errors: ApiError.isApiError(err) ? err.data : undefined,
     };
+  }
+}
+
+export async function updateCoherenceLink(
+  id: number,
+  direction: number,
+  strength: number
+): Promise<null | ErrorResponse> {
+  try {
+    await CoherenceLinksApiClass.updateCoherenceLink(id, {
+      direction,
+      strength,
+    });
+    return null;
+  } catch (err) {
+    return ApiError.isApiError(err) ? err.data : {};
+  }
+}
+
+export async function swapCoherenceLink(
+  id: number
+): Promise<null | ErrorResponse> {
+  try {
+    await CoherenceLinksApiClass.updateCoherenceLink(id, { swap: true });
+    return null;
+  } catch (err) {
+    return ApiError.isApiError(err) ? err.data : {};
   }
 }
 

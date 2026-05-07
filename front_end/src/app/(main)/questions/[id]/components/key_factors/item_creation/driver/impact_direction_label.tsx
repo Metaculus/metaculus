@@ -20,6 +20,7 @@ type Props = {
   option?: string;
   unit?: string;
   isCompact?: boolean;
+  hideIcon?: boolean;
 };
 
 export const KeyFactorImpactDirectionLabel: FC<Props> = ({
@@ -27,6 +28,7 @@ export const KeyFactorImpactDirectionLabel: FC<Props> = ({
   className,
   option,
   unit,
+  hideIcon,
 }) => {
   const t = useTranslations();
 
@@ -43,23 +45,23 @@ export const KeyFactorImpactDirectionLabel: FC<Props> = ({
     },
     [ImpactDirectionCategory.More]: {
       icon: <FontAwesomeIcon icon={faArrowUp} />,
-      textKey: "more",
+      textKey: unit ? "more" : "increases",
       color: "text-olive-800 dark:text-olive-800-dark",
     },
     [ImpactDirectionCategory.Less]: {
       icon: <FontAwesomeIcon icon={faArrowDown} />,
-      textKey: "less",
+      textKey: unit ? "less" : "decreases",
       color: "text-salmon-700 dark:text-salmon-700-dark",
     },
     [ImpactDirectionCategory.Earlier]: {
       icon: <FontAwesomeIcon icon={faArrowLeft} />,
-      textKey: "earlier",
-      color: "text-olive-800 dark:text-olive-800-dark",
+      textKey: "hastens",
+      color: "text-salmon-700 dark:text-salmon-700-dark",
     },
     [ImpactDirectionCategory.Later]: {
       icon: <FontAwesomeIcon icon={faArrowRight} />,
-      textKey: "later",
-      color: "text-salmon-700 dark:text-salmon-700-dark",
+      textKey: "delays",
+      color: "text-olive-800 dark:text-olive-800-dark",
     },
     [ImpactDirectionCategory.IncreaseUncertainty]: {
       icon: (
@@ -76,14 +78,8 @@ export const KeyFactorImpactDirectionLabel: FC<Props> = ({
   const { icon, textKey, color } = IMPACT_CONFIG[impact];
 
   return (
-    <div
-      className={cn(
-        "flex items-center gap-1.5 text-lg text-xs",
-        color,
-        className
-      )}
-    >
-      {icon}
+    <div className={cn("flex items-center gap-1.5 text-xs", color, className)}>
+      {!hideIcon && icon}
       <span>
         {t(textKey)}
         {impact !== ImpactDirectionCategory.IncreaseUncertainty && unit && (

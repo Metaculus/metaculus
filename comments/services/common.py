@@ -1,7 +1,7 @@
 import datetime
 import difflib
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import (
     F,
     Sum,
@@ -267,6 +267,40 @@ def compute_comment_score(
     return score
 
 
+def vote_comment(comment: Comment, user: User, direction: int | None) -> int:
+    try:
+        with transaction.atomic():
+            CommentVote.objects.filter(user=user, comment=comment).delete()
+
+            if direction:
+                CommentVote.objects.create(
+                    user=user, comment=comment, direction=direction
+                )
+    except IntegrityError:
+        pass
+
+    return comment.update_vote_score()
+
+
+def toggle_cmm(comment: Comment, user: User, enabled: bool) -> bool | None:
+    """Returns True if created, False if deleted, None if no-op."""
+    try:
+        with transaction.atomic():
+            cmm = ChangedMyMindEntry.objects.filter(user=user, comment=comment)
+
+            if not enabled and cmm.exists():
+                cmm.delete()
+                comment.update_cmm_count()
+                return False
+
+            if enabled and not cmm.exists():
+                ChangedMyMindEntry.objects.create(user=user, comment=comment)
+                comment.update_cmm_count()
+                return True
+    except IntegrityError:
+        pass
+
+
 def set_comment_excluded_from_week_top(comment: Comment, excluded: bool = True):
     entry = comment.comments_of_the_week_entry
     if entry:
@@ -319,7 +353,7 @@ def update_top_comments_of_week(week_start_date: datetime.date):
             0,
             output_field=IntegerField(),
         ),
-        key_factor_votes_score=Coalesce(
+        annotated_key_factor_votes_score=Coalesce(
             Subquery(
                 KeyFactor.objects.filter(comment=OuterRef("pk"))
                 .annotate(
@@ -355,7 +389,7 @@ def update_top_comments_of_week(week_start_date: datetime.date):
         count=Count("id"),
         max_vote_score=Max("annotated_vote_score"),
         max_changed_my_mind_count=Max("changed_my_mind_count"),
-        max_key_factor_votes_score=Max("key_factor_votes_score"),
+        max_key_factor_votes_score=Max("annotated_key_factor_votes_score"),
     )
 
     maximum_comment_votes = stats["max_vote_score"]
@@ -364,12 +398,15 @@ def update_top_comments_of_week(week_start_date: datetime.date):
 
     top_comments_of_week: list[CommentsOfTheWeekEntry] = []
     for row in comments_of_week.values(
-        "id", "annotated_vote_score", "changed_my_mind_count", "key_factor_votes_score"
+        "id",
+        "annotated_vote_score",
+        "changed_my_mind_count",
+        "annotated_key_factor_votes_score",
     ):
         comment_score = compute_comment_score(
             comment_votes=max(0, row["annotated_vote_score"]),
             change_my_minds=row["changed_my_mind_count"],
-            key_factor_votes_score=row["key_factor_votes_score"],
+            key_factor_votes_score=row["annotated_key_factor_votes_score"],
             maximum_comment_votes=maximum_comment_votes,
             maximum_cmms=maximum_cmms,
             maximum_key_factor_score=maximum_key_factor_score,
@@ -385,7 +422,7 @@ def update_top_comments_of_week(week_start_date: datetime.date):
                 # for the moment of week entry creation
                 votes_score=row["annotated_vote_score"],
                 changed_my_mind_count=row["changed_my_mind_count"],
-                key_factor_votes_score=row["key_factor_votes_score"],
+                key_factor_votes_score=row["annotated_key_factor_votes_score"],
             )
         )
 

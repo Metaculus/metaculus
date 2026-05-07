@@ -11,6 +11,7 @@ import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import {
   buildDefaultForecastExpiration,
   forecastExpirationToDate,
+  getExpirationBaseDate,
 } from "@/components/forecast_maker/forecast_expiration";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
@@ -33,6 +34,7 @@ import { CurrentUser } from "@/types/users";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 import { buildChoicesWithOthers } from "@/utils/questions/choices";
+import { isQuestionPrePrediction } from "@/utils/questions/predictions";
 
 import MultipleChoiceTileLegend from "./multiple_choice_tile_legend";
 
@@ -391,7 +393,10 @@ function generateReaffirmData({
       user?.prediction_expiration_percent ?? undefined
     );
 
-    const forecastEndTime = forecastExpirationToDate(forecastExpiration);
+    const forecastEndTime = forecastExpirationToDate(
+      forecastExpiration,
+      getExpirationBaseDate(question)
+    );
     return {
       canReaffirm:
         !!latest.forecast_values.length && !!Object.keys(forecastValue).length,
@@ -428,7 +433,10 @@ function generateReaffirmData({
       });
 
       const reaffirmForecasts = groupForecasts.filter(
-        (q) => q.forecast !== null && q.question.status === QuestionStatus.OPEN
+        (q) =>
+          q.forecast !== null &&
+          (q.question.status === QuestionStatus.OPEN ||
+            isQuestionPrePrediction(q.question))
       );
 
       return {
@@ -440,7 +448,10 @@ function generateReaffirmData({
           );
           return {
             questionId: q.question.id,
-            forecastEndTime: forecastExpirationToDate(forecastExpiration),
+            forecastEndTime: forecastExpirationToDate(
+              forecastExpiration,
+              getExpirationBaseDate(q.question)
+            ),
             forecastData: {
               probabilityYes: q.forecast,
               probabilityYesPerCategory: null,
@@ -473,7 +484,8 @@ function generateReaffirmData({
         (q) =>
           !isNil(q.forecastValues) &&
           !isNil(q.distributionInput) &&
-          q.question.status === QuestionStatus.OPEN
+          (q.question.status === QuestionStatus.OPEN ||
+            isQuestionPrePrediction(q.question))
       );
 
       return {
@@ -485,7 +497,10 @@ function generateReaffirmData({
           );
           return {
             questionId: q.question.id,
-            forecastEndTime: forecastExpirationToDate(forecastExpiration),
+            forecastEndTime: forecastExpirationToDate(
+              forecastExpiration,
+              getExpirationBaseDate(q.question)
+            ),
             forecastData: {
               // okay to ignore, we check for null when calculating reaffirmForecasts
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

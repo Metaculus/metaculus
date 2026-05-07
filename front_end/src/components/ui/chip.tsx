@@ -1,3 +1,5 @@
+"use client";
+
 import { faXmarkCircle } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button } from "@headlessui/react";

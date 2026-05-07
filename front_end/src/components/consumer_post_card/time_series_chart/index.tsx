@@ -56,6 +56,16 @@ function getNormalizedTicks(maxValue: number): number[] {
   return [0, maxValue * 0.25, maxValue * 0.5, maxValue * 0.75, maxValue];
 }
 
+const getDomainPaddingX = (chartWidth: number, count: number): number => {
+  if (count <= 2) {
+    return chartWidth * 0.3;
+  }
+  if (count <= 4) {
+    return chartWidth * 0.2;
+  }
+  return chartWidth > 400 ? 80 : 40;
+};
+
 const TimeSeriesChart: FC<Props> = ({
   questions,
   height = 130,
@@ -78,12 +88,17 @@ const TimeSeriesChart: FC<Props> = ({
   const chartData = buildChartData(orderedQuestions, locale);
   const { adjustedChartData, yDomain } = adjustChartData(chartData, chartWidth);
   const shouldDisplayChart = !!chartWidth;
+  const domainPaddingX = useMemo(
+    () => getDomainPaddingX(chartWidth, adjustedChartData.length),
+    [adjustedChartData.length, chartWidth]
+  );
   const { labelVisibilityMap: tickLabelVisibilityMap, widthPerLabel } =
-    adjustLabelsForDisplay(adjustedChartData, chartWidth);
+    adjustLabelsForDisplay(adjustedChartData, chartWidth, domainPaddingX);
 
   const { labelVisibilityMap: barLabelVisibilityMap } = adjustLabelsForDisplay(
     adjustedChartData,
     chartWidth,
+    domainPaddingX,
     true
   );
 
@@ -141,7 +156,7 @@ const TimeSeriesChart: FC<Props> = ({
             bottom: 30,
           }}
           domainPadding={{
-            x: chartWidth > 400 ? 80 : chartData.length > 3 ? 40 : 50,
+            x: domainPaddingX,
             y: 20,
           }}
           domain={yDomain ? { y: yDomain } : undefined}
@@ -401,6 +416,7 @@ function adjustLabelsForDisplay(
     isEmpty: boolean;
   }>,
   chartWidth: number,
+  domainPaddingX: number,
   isBarLabel?: boolean
 ) {
   const labelMargin = 5;
@@ -426,11 +442,12 @@ function adjustLabelsForDisplay(
   if (!charWidth) {
     return { labelVisibilityMap: labels.map(() => true), widthPerLabel: 0 };
   }
-  const chartDomainPadding = chartWidth > 400 ? 60 : 30;
-  const availableWidth = chartWidth - chartDomainPadding;
+  const availableWidth = Math.max(chartWidth - domainPaddingX * 2, 0);
 
   const getLabelX = (index: number) =>
-    (index * availableWidth) / (labels.length - 1) + chartDomainPadding / 2;
+    labels.length <= 1
+      ? chartWidth / 2
+      : (index * availableWidth) / (labels.length - 1) + domainPaddingX;
 
   const getLabelWidth = (label: string) =>
     label.length * charWidth + labelMargin;
