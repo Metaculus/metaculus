@@ -2,8 +2,15 @@
 
 import { isNil, merge } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, memo, useEffect, useMemo, useRef, useState } from "react";
-import { v4 } from "uuid";
+import React, {
+  FC,
+  memo,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   CursorCoordinatesPropType,
   DomainTuple,
@@ -51,9 +58,9 @@ import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
 import ChartContainer from "./primitives/chart_container";
 import ChartCursorLabel from "./primitives/chart_cursor_label";
+import SvgWrapper from "./primitives/svg_wrapper";
 import XTickLabel from "./primitives/x_tick_label";
 import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
-import SvgWrapper from "./primitives/svg_wrapper";
 import YTickLabel from "./primitives/y_tick_label";
 
 type ColoredLinePoint = {
@@ -123,7 +130,7 @@ const MultipleChoiceChart: FC<Props> = ({
   animate,
   leftPadding = 0,
 }) => {
-  const questionKey = useMemo(() => v4(), []);
+  const questionKey = useId();
   const t = useTranslations();
   const {
     ref: chartContainerRef,
