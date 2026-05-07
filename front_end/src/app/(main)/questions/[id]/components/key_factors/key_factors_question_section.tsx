@@ -7,7 +7,7 @@ import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_pr
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
 import { AddKeyFactorsButton } from "@/app/(main)/questions/[id]/components/key_factors/add_button";
 import KeyFactorsFeed from "@/app/(main)/questions/[id]/components/key_factors/key_factors_feed";
-import { useQuestionLayout } from "@/app/(main)/questions/[id]/components/question_layout/question_layout_context";
+import { useQuestionLayoutSafe } from "@/app/(main)/questions/[id]/components/question_layout/question_layout_context";
 import { openFlowCommentsAndScrollToComment } from "@/app/(prediction-flow)/helpers";
 import ExpandableContent from "@/components/ui/expandable_content";
 import SectionToggle from "@/components/ui/section_toggle";
@@ -44,7 +44,7 @@ const KeyFactorsQuestionSection: FC<KeyFactorsQuestionSectionProps> = ({
   const postStatus = post.status;
   const t = useTranslations();
   const { user } = useAuth();
-  const { keyFactorsExpanded } = useQuestionLayout();
+  const { keyFactorsExpanded } = useQuestionLayoutSafe() ?? {};
   const { combinedKeyFactors } = useCommentsFeed();
   const shouldHideKeyFactors = useShouldHideKeyFactors();
   const [isSectionExpanded, setIsSectionExpanded] = useState(false);

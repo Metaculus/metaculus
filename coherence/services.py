@@ -46,6 +46,38 @@ def create_coherence_link(
     return obj
 
 
+@transaction.atomic
+def update_coherence_link(
+    *,
+    link: CoherenceLink,
+    **kwargs,
+) -> CoherenceLink:
+    updated_fields = []
+
+    if "direction" in kwargs:
+        link.direction = kwargs["direction"]
+        updated_fields.append("direction")
+    if "strength" in kwargs:
+        link.strength = kwargs["strength"]
+        updated_fields.append("strength")
+    if kwargs.get("swap"):
+        link.question1_id, link.question2_id = link.question2_id, link.question1_id
+        updated_fields.extend(["question1", "question2"])
+        # The swapped link now belongs to a different aggregate than before,
+        # so we ensure that the aggregate exists
+        create_aggregate_coherence_link(
+            question1=link.question1,
+            question2=link.question2,
+            link_type=link.type,
+        )
+
+    if updated_fields:
+        link.full_clean()
+        link.save(update_fields=updated_fields)
+
+    return link
+
+
 def create_aggregate_coherence_link(
     *,
     question1: Question = None,
