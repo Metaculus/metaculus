@@ -18,6 +18,7 @@ import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
 import { KeyFactor } from "@/types/comment";
 import {
   ForecastAvailability,
+  NumericAggregateForecast,
   QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
@@ -80,6 +81,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
 
   const effectiveWithZoomPicker = withZoomPicker ?? true;
   const isConsumerView = isConsumerViewProp ?? !user;
+  const isContinuousConsumer = isConsumerView && isContinuousQuestion(question);
   const [isChartReady, setIsChartReady] = useState(false);
   const [activeView, setActiveView] = useState<ChartView>("timeline");
 
@@ -188,6 +190,21 @@ const DetailedContinuousChartCard: FC<Props> = ({
     discreteValueOptions,
   ]);
 
+  const isBinary = question.type === QuestionType.Binary;
+
+  const activeForecast = useMemo<NumericAggregateForecast | null>(() => {
+    if (
+      isCpHidden ||
+      cursorTimestamp === null ||
+      !isContinuousQuestion(question)
+    )
+      return null;
+    return getCursorForecast(
+      cursorTimestamp,
+      aggregation
+    ) as NumericAggregateForecast | null;
+  }, [isCpHidden, cursorTimestamp, aggregation, question]);
+
   const handleCursorChange = useCallback((value: number | null) => {
     setCursorTimestamp(value);
   }, []);
@@ -220,8 +237,6 @@ const DetailedContinuousChartCard: FC<Props> = ({
     !forecastAvailability?.isEmpty &&
     !forecastAvailability?.cpRevealsOn &&
     (question.type === QuestionType.Binary || isContinuousQuestion(question));
-
-  const isBinary = question.type === QuestionType.Binary;
 
   const chartViewButtons: GroupButton<ChartView>[] = [
     { value: "timeline", label: t("timeline") },
@@ -278,10 +293,11 @@ const DetailedContinuousChartCard: FC<Props> = ({
       unit={question.unit}
       inboundOutcomeCount={question.inbound_outcome_count}
       simplifiedCursor={false}
+      hideCursorValueLabel={isContinuousConsumer && !isEmbed}
       title={timelineTitle}
       forecastAvailability={forecastAvailability}
       cursorTooltip={cursorTooltip}
-      isConsumerView={isConsumerView}
+      isConsumerView={isContinuousConsumer}
       isEmbedded={isEmbed}
       height={chartHeight}
       extraTheme={extraTheme}
@@ -306,6 +322,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
       hideLabel={isContinuousQuestion(question)}
       colorOverride={cpColorOverride}
       chartTheme={extraTheme}
+      cursorForecast={activeForecast}
     />
   );
 
@@ -404,7 +421,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
         isChartReady ? "opacity-100" : "opacity-0"
       )}
     >
-      {!isConsumerView ? (
+      {isContinuousQuestion(question) && !isEmbed ? (
         <>
           {/* Desktop */}
           <div className="hidden items-stretch gap-4 md:flex">
@@ -413,6 +430,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
                 question={question}
                 size="lg"
                 hideLabel={true}
+                cursorForecast={activeForecast}
               />
             )}
 

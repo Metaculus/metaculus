@@ -235,7 +235,7 @@ export const ConsumerShell: FC<{
               <QuestionTimeline
                 postData={postData}
                 keyFactors={postData.key_factors}
-                isConsumerView={!isContinuousSingleQuestion}
+                isConsumerView={true}
                 preselectedGroupQuestionId={preselectedGroupQuestionId}
                 className={cn(
                   "hidden sm:block",

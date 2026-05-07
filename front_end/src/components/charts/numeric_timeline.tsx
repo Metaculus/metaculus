@@ -61,6 +61,7 @@ type Props = {
   keyFactors?: KeyFactor[];
   showNewsAnnotations?: boolean;
   onToggleNewsAnnotations?: () => void;
+  hideCursorValueLabel?: boolean;
 };
 
 const NumericTimeline: FC<Props> = ({
@@ -98,6 +99,7 @@ const NumericTimeline: FC<Props> = ({
   keyFactors,
   showNewsAnnotations,
   onToggleNewsAnnotations,
+  hideCursorValueLabel,
 }) => {
   const locale = useLocale();
   const resolutionPoint = useMemo(() => {
@@ -235,6 +237,7 @@ const NumericTimeline: FC<Props> = ({
       newsAnnotations={newsAnnotations}
       showNewsAnnotations={showNewsAnnotations}
       onToggleNewsAnnotations={onToggleNewsAnnotations}
+      hideCursorValueLabel={hideCursorValueLabel}
     />
   );
 };
