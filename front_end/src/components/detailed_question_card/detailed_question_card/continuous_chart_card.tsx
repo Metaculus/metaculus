@@ -318,7 +318,27 @@ const DetailedContinuousChartCard: FC<Props> = ({
     const aggregationLatest =
       question.aggregations[question.default_aggregation_method].latest;
     const histogram = aggregationLatest?.histogram?.at(0);
-    if (!histogram?.length) return null;
+    if (!histogram?.length) {
+      return (
+        <div className="flex w-full flex-col">
+          {!isEmbed && !hideTitle && (
+            <div className="mb-2.5 flex w-full md:mb-5">
+              <div className="text-xs font-normal text-blue-900 dark:text-gray-900-dark md:text-base">
+                {viewToggle}
+              </div>
+            </div>
+          )}
+          <div
+            className="flex w-full items-center justify-center"
+            style={{ height: chartHeight }}
+          >
+            <span className="text-sm text-gray-500 dark:text-gray-500-dark">
+              {t("noHistogramData")}
+            </span>
+          </div>
+        </div>
+      );
+    }
 
     const histogramData = histogram.map((value, index) => ({
       x: index,
