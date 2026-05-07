@@ -121,7 +121,10 @@ def bulk_create_forecasts_api_view(request):
         )
         ObjectPermission.can_forecast(permission, raise_exception=True)
 
-        if not question.open_time:
+        if (
+            question.post.curation_status != Post.CurationStatus.APPROVED
+            or not question.open_time
+        ):
             return Response(
                 {
                     "error": f"Question {question.id} is not scheduled for forecasting yet !"
