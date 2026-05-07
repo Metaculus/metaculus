@@ -38,6 +38,7 @@ import { QuestionVariantComposer } from "../question_variant_composer";
 import ActionRow from "../question_view/action_row";
 import ConsumerQuestionPrediction from "../question_view/consumer_question_view/prediction";
 import QuestionTimeline from "../question_view/consumer_question_view/timeline";
+import QuestionHeaderCPStatus from "../question_view/forecaster_question_view/question_header/question_header_cp_status";
 
 const baseSectionClassName =
   "relative z-10 flex w-[59rem] max-w-full flex-col gap-6 overflow-x-clip rounded border border-blue-400 p-4 text-gray-900 dark:border-blue-200-dark dark:text-gray-900-dark lg:p-8";
@@ -152,8 +153,10 @@ export const ConsumerShell: FC<{
     !isMultipleChoice;
 
   const showSideBySide =
-    (isMultipleChoice || isNonFanGroup || isBinarySingleQuestion) &&
-    !isContinuousSingleQuestion;
+    isMultipleChoice ||
+    isNonFanGroup ||
+    isBinarySingleQuestion ||
+    isContinuousSingleQuestion;
 
   const showClosedMessageMultipleChoice =
     isMultipleChoicePost(postData) &&
@@ -191,7 +194,7 @@ export const ConsumerShell: FC<{
         <div className="order-2 sm:order-none">
           <ActionRow post={postData} variant="consumer" />
         </div>
-        <div className="order-1 mt-3 sm:order-none sm:mt-8 md:-mt-2 lg:-mt-3">
+        <div className="order-1 mt-3 sm:order-none sm:mt-0 md:-mt-2 lg:-mt-3">
           {showClosedMessageMultipleChoice && (
             <p className="m-0 mb-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
               {t("predictionClosedMessage")}
@@ -204,17 +207,30 @@ export const ConsumerShell: FC<{
                 !isMultipleChoice &&
                 !isNonFanGroup &&
                 "flex-col-reverse",
-              showSideBySide && "sm:flex-row sm:items-center sm:gap-8"
+              showSideBySide &&
+                cn("sm:flex-row sm:items-center", {
+                  "sm:gap-0 md:gap-8": isBinarySingleQuestion,
+                  "sm:gap-8": !isBinarySingleQuestion,
+                })
             )}
           >
-            <div
-              className={cn(
-                showSideBySide && !isDateGroup ? "order-1" : undefined,
-                isContinuousSingleQuestion && "md:hidden"
-              )}
-            >
-              <ConsumerQuestionPrediction postData={postData} />
-            </div>
+            {isBinarySingleQuestion && isQuestionPost(postData) ? (
+              <div className="order-1 flex w-64 flex-col items-center justify-center gap-[18px] self-center sm:self-stretch">
+                <QuestionHeaderCPStatus
+                  question={postData.question}
+                  size="lg"
+                />
+              </div>
+            ) : (
+              <div
+                className={cn(
+                  showSideBySide && !isDateGroup ? "order-1" : undefined,
+                  isContinuousSingleQuestion && "md:hidden"
+                )}
+              >
+                <ConsumerQuestionPrediction postData={postData} />
+              </div>
+            )}
             {!isFanGraph && !isDateGroup && (
               <QuestionTimeline
                 postData={postData}
@@ -223,7 +239,8 @@ export const ConsumerShell: FC<{
                 preselectedGroupQuestionId={preselectedGroupQuestionId}
                 className={cn(
                   "hidden sm:block",
-                  showSideBySide && "order-2 mt-0 flex-1"
+                  showSideBySide && "order-2 mt-0 flex-1",
+                  isContinuousSingleQuestion && "mt-0"
                 )}
               />
             )}

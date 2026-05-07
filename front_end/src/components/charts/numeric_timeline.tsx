@@ -51,7 +51,7 @@ type Props = {
   inboundOutcomeCount?: number | null;
   isEmbedded?: boolean;
   simplifiedCursor?: boolean;
-  title?: string;
+  title?: ReactNode;
   forecastAvailability?: ForecastAvailability;
   questionStatus?: QuestionStatus;
   cursorTooltip?: ReactNode;
