@@ -27,20 +27,27 @@ info:
 
     <h4>Bot Benchmarking Access Tier</h4>
     <p>
-    An additional access tier is available for bot makers. This tier grants current Community Prediction, question text, and resolution access on a larger set of ~250 open questions and ~250 resolved questions, intended for training and evaluation purposes.
-    To request access, please email <a href="mailto:api-requests@metaculus.com">api-requests@metaculus.com</a>.
+    An additional access tier is available for AI forecasting bot developers. This tier grants current Community Prediction, question text, and resolution access on a larger set of ~250 open questions and ~250 resolved questions, intended for training and evaluation purposes.
+    To request access, please fill out this form: <a href="https://docs.google.com/forms/d/e/1FAIpQLSeJhtZzHl5qMvBjbXbatyaqoS4IU7RE0GGw_vlhs6I9syqn1g/viewform?usp=dialog">Metaculus Data Needs Form</a>.
     </p>
 
-    <h4>Non-commercial &amp; Commercial Use</h4>
+    <h4>Commercial API or Data Access</h4>
     <p>
-    If you want to make non-commercial use of Metaculus data (scientific, hobbyist, etc.), please get in touch &mdash; we generally welcome such projects.
-    For commercial use inquiries, also contact us at <a href="mailto:api-requests@metaculus.com">api-requests@metaculus.com</a>.
+    For commercial use inquiries, please submit our data request form with details about your data needs and intended use case. A member of our team will follow up soon.
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSeJhtZzHl5qMvBjbXbatyaqoS4IU7RE0GGw_vlhs6I9syqn1g/viewform?usp=dialog">Metaculus Data Needs Form</a>
     </p>
 
+    <h4>Non-commercial API or Data Access</h4>
+    <p>
+    If you want to make non-commercial use of Metaculus data (for academic or private research, hobbyist, etc.), please fill out our form &mdash; we generally support research efforts, and sometimes support exciting hobbyist projects.
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSeJhtZzHl5qMvBjbXbatyaqoS4IU7RE0GGw_vlhs6I9syqn1g/viewform?usp=dialog">Metaculus Data Needs Form</a>
+    </p>
+
+    <h4>Questions or Feedback</h4>
+    <p>
     If you have questions, ideas, or feedback, please contact our team at
-    <a href="mailto:api-requests@metaculus.com">api-requests@metaculus.com</a>. We are excited to keep building upon this
-    initial version of the API, and we’d like to keep making it more useful
-    to you. Our aim is to support the forecasting community – we’re listening!
+    <a href="mailto:api-requests@metaculus.com">api-requests@metaculus.com</a>. We are excited to keep building upon the API, and we’d like to keep making it more useful to you.
+    </p>
 
     <h2>Get Started in 15 Seconds</h2>
 
