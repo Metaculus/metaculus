@@ -16,6 +16,7 @@ import {
   PostWithForecasts,
   QuestionStatus,
 } from "@/types/post";
+import { TournamentType } from "@/types/projects";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
@@ -39,7 +40,7 @@ import ConsumerQuestionPrediction from "../question_view/consumer_question_view/
 import QuestionTimeline from "../question_view/consumer_question_view/timeline";
 
 const baseSectionClassName =
-  "relative z-10 flex w-[59rem] max-w-full flex-col gap-5 overflow-x-clip rounded border border-blue-400 p-4 text-gray-900 dark:border-blue-200-dark dark:text-gray-900-dark lg:gap-6 lg:p-8";
+  "relative z-10 flex w-[59rem] max-w-full flex-col gap-6 overflow-x-clip rounded border border-blue-400 p-4 text-gray-900 dark:border-blue-200-dark dark:text-gray-900-dark lg:p-8";
 
 const mainSectionClassName = `${baseSectionClassName} bg-gray-0 dark:bg-gray-0-dark`;
 const commentSectionClassName = `${baseSectionClassName} bg-blue-100 dark:bg-gray-0-dark`;
@@ -70,10 +71,11 @@ export const ForecasterShell: FC<
 
   return (
     <Fragment>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1.5 md:gap-4">
         <section className={mainSectionClassName}>
           <PostStatusBox post={postData} className="mb-5 rounded lg:mb-6" />
-          {postData.projects?.default_project && (
+          {postData.projects?.default_project?.type ===
+            TournamentType.Community && (
             <CommunityDisclaimer
               project={postData.projects.default_project}
               variant="standalone"
@@ -98,7 +100,6 @@ export const ForecasterShell: FC<
               <DetailedQuestionCard
                 post={postData}
                 keyFactors={postData.key_factors}
-                hideTitle
               />
             )}
             {isGroup && (
@@ -168,10 +169,11 @@ export const ConsumerShell: FC<{
   const shouldShowKeyFactorsSection = hasKeyFactors || hasQuestionLinks;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-1.5 md:gap-4">
       <section className={mainSectionClassName}>
         <PostStatusBox post={postData} className="mb-5 rounded lg:mb-6" />
-        {postData.projects?.default_project && (
+        {postData.projects?.default_project?.type ===
+          TournamentType.Community && (
           <CommunityDisclaimer
             project={postData.projects.default_project}
             variant="standalone"
@@ -186,10 +188,10 @@ export const ConsumerShell: FC<{
           />
           <TitleRow post={postData} variant="consumer" />
         </div>
-        <div className="order-2 md:order-none">
+        <div className="order-2 sm:order-none">
           <ActionRow post={postData} variant="consumer" />
         </div>
-        <div className="order-1 mt-6 sm:mt-8 md:order-none md:-mt-2 lg:-mt-3">
+        <div className="order-1 mt-3 sm:order-none sm:mt-8 md:-mt-2 lg:-mt-3">
           {showClosedMessageMultipleChoice && (
             <p className="m-0 mb-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
               {t("predictionClosedMessage")}
@@ -205,43 +207,24 @@ export const ConsumerShell: FC<{
               showSideBySide && "sm:flex-row sm:items-center sm:gap-8"
             )}
           >
-            {!isContinuousSingleQuestion && (
-              <div
-                className={
-                  showSideBySide
-                    ? isDateGroup
-                      ? "order-2"
-                      : "order-1"
-                    : undefined
-                }
-              >
-                <ConsumerQuestionPrediction postData={postData} />
-              </div>
-            )}
-            {!isFanGraph && (
+            <div
+              className={cn(
+                showSideBySide && !isDateGroup ? "order-1" : undefined,
+                isContinuousSingleQuestion && "md:hidden"
+              )}
+            >
+              <ConsumerQuestionPrediction postData={postData} />
+            </div>
+            {!isFanGraph && !isDateGroup && (
               <QuestionTimeline
                 postData={postData}
                 keyFactors={postData.key_factors}
-                hideTitle
                 isConsumerView={!isContinuousSingleQuestion}
                 preselectedGroupQuestionId={preselectedGroupQuestionId}
-                className={
-                  showSideBySide
-                    ? isDateGroup
-                      ? "order-1 mt-0 flex-1"
-                      : "order-2 mt-0 flex-1"
-                    : undefined
-                }
-              />
-            )}
-            {isFanGraph && isGroupOfQuestionsPost(postData) && (
-              <DetailedGroupCard
-                post={postData}
-                preselectedQuestionId={preselectedGroupQuestionId}
-                groupPresentationOverride={
-                  GroupOfQuestionsGraphType.MultipleChoiceGraph
-                }
-                prioritizeOpenSubquestions
+                className={cn(
+                  "hidden sm:block",
+                  showSideBySide && "order-2 mt-0 flex-1"
+                )}
               />
             )}
             {showClosedMessageFanGraph && (
@@ -250,10 +233,12 @@ export const ConsumerShell: FC<{
               </p>
             )}
           </div>
-          {shouldShowKeyFactorsSection && (
-            <KeyFactorsQuestionConsumerSection post={postData} />
-          )}
         </div>
+        {shouldShowKeyFactorsSection && (
+          <div className="order-3 sm:order-none">
+            <KeyFactorsQuestionConsumerSection post={postData} />
+          </div>
+        )}
       </section>
       <section className={commentSectionClassName}>
         <QuestionPageShellTabs post={postData} variant="consumer" />

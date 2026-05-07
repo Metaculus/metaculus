@@ -242,7 +242,7 @@ def post_detail(request: Request, pk):
         include_cp_history=True,
         include_movements=True,
         include_average_scores=True,
-        include_user_forecasts=True
+        include_user_forecasts=True,
     )
 
     if not posts:

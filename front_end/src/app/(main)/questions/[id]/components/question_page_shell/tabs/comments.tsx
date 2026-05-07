@@ -2,9 +2,8 @@
 
 import { FC } from "react";
 
+import CommentFeed from "@/components/comment_feed";
 import { PostWithForecasts } from "@/types/post";
-
-import ResponsiveCommentFeed from "../../question_layout/consumer_question_layout/responsive_comment_feed";
 
 type Props = {
   post: PostWithForecasts;
@@ -12,7 +11,7 @@ type Props = {
 
 const CommentsTab: FC<Props> = ({ post }) => (
   <div className="[&>section]:!w-full [&>section]:!max-w-none [&>section]:!border-0 [&>section]:!bg-transparent [&>section]:!px-0 [&>section]:!py-0 [&>section]:after:!hidden">
-    <ResponsiveCommentFeed postData={post} showTitle={false} />
+    <CommentFeed postData={post} showTitle={false} />
   </div>
 );
 

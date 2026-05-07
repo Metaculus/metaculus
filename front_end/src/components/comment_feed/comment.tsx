@@ -965,6 +965,7 @@ const Comment: FC<CommentProps> = ({
                     withUgcLinks
                     withTwitterPreview
                     withCodeBlocks
+                    contentEditableClassName="text-base font-normal leading-6 [&_p]:!text-gray-700 dark:[&_p]:!text-gray-700-dark [&_ul]:!text-gray-700 dark:[&_ul]:!text-gray-700-dark [&_ol]:!text-gray-700 dark:[&_ol]:!text-gray-700-dark"
                   />
                 )}
                 {commentKeyFactors.length > 0 &&
