@@ -73,7 +73,7 @@ type ChartData = {
 
 type Props = {
   buildChartData: (width: number, zoom: TimelineChartZoomOption) => ChartData;
-  chartTitle?: string;
+  chartTitle?: ReactNode;
   height?: number;
   hideCP?: boolean;
   defaultZoom?: TimelineChartZoomOption;
