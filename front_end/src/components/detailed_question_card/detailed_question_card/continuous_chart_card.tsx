@@ -2,7 +2,14 @@
 import { isNil } from "lodash";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { FC, ReactNode, useCallback, useMemo, useState } from "react";
+import {
+  FC,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
@@ -14,6 +21,7 @@ import ContinuousPredictionChart from "@/components/forecast_maker/continuous_in
 import Button from "@/components/ui/button";
 import { GroupButton } from "@/components/ui/button_group";
 import { useAuth } from "@/contexts/auth_context";
+import { useContinuousChartCursor } from "@/contexts/continuous_chart_cursor_context";
 import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
 import { KeyFactor } from "@/types/comment";
 import {
@@ -204,6 +212,13 @@ const DetailedContinuousChartCard: FC<Props> = ({
       aggregation
     ) as NumericAggregateForecast | null;
   }, [isCpHidden, cursorTimestamp, aggregation, question]);
+
+  const cursorCtx = useContinuousChartCursor();
+  useEffect(() => {
+    if (!isContinuousQuestion(question) || !cursorCtx) return;
+    cursorCtx.setActiveForecast(activeForecast);
+    return () => cursorCtx.setActiveForecast(null);
+  }, [activeForecast, cursorCtx, question]);
 
   const handleCursorChange = useCallback((value: number | null) => {
     setCursorTimestamp(value);
@@ -430,7 +445,9 @@ const DetailedContinuousChartCard: FC<Props> = ({
                 question={question}
                 size="lg"
                 hideLabel={true}
-                cursorForecast={activeForecast}
+                cursorForecast={
+                  isContinuousConsumer ? activeForecast : undefined
+                }
               />
             )}
 

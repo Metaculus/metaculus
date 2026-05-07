@@ -1,10 +1,16 @@
 "use client";
 
-import { getContinuousAreaChartData } from "@/components/charts/continuous_area_chart";
+import {
+  ContinuousAreaGraphInput,
+  getContinuousAreaChartData,
+} from "@/components/charts/continuous_area_chart";
 import MinifiedContinuousAreaChart from "@/components/charts/minified_continuous_area_chart";
 import ConsumerContinuousTile from "@/components/consumer_post_card/consumer_question_tile/consumer_continuous_tile";
+import { useContinuousChartCursor } from "@/contexts/continuous_chart_cursor_context";
+import { ContinuousAreaType } from "@/types/charts";
 import { QuestionStatus } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
+import { cdfToPmf } from "@/utils/math";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 
 type Props = {
@@ -17,6 +23,8 @@ const ContinuousQuestionPrediction: React.FC<Props> = ({
   chartHeight,
 }) => {
   const forecastAvailability = getQuestionForecastAvailability(question);
+  const cursorCtx = useContinuousChartCursor();
+  const cursorForecast = cursorCtx?.activeForecast ?? null;
 
   // Hide chart if no forecasts or CP not yet revealed
   const shouldHideChart =
@@ -27,12 +35,27 @@ const ContinuousQuestionPrediction: React.FC<Props> = ({
     isClosed: question.status === QuestionStatus.CLOSED,
   });
 
+  // Null when cursor is inactive — chart falls back to the latest aggregate.
+  const cursorChartData: ContinuousAreaGraphInput | null =
+    cursorForecast?.forecast_values
+      ? [
+          {
+            pmf: cdfToPmf(cursorForecast.forecast_values),
+            cdf: cursorForecast.forecast_values,
+            type: (question.status === QuestionStatus.CLOSED
+              ? "community_closed"
+              : "community") as ContinuousAreaType,
+          },
+        ]
+      : null;
+
   return (
     <div className="mx-auto mb-7 flex max-w-[340px] flex-col items-center gap-2.5">
       <ConsumerContinuousTile
         question={question}
         forecastAvailability={forecastAvailability}
         variant="question"
+        overrideCenter={cursorForecast?.centers?.[0] ?? null}
       />
       {!shouldHideChart && (
         <>
@@ -40,7 +63,7 @@ const ContinuousQuestionPrediction: React.FC<Props> = ({
             <div className="origin-center transform-gpu md:scale-150">
               <MinifiedContinuousAreaChart
                 question={question}
-                data={continuousAreaChartData}
+                data={cursorChartData ?? continuousAreaChartData}
                 height={chartHeight ?? 50}
                 forceTickCount={2}
                 variant="question"

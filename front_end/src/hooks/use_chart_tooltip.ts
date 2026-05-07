@@ -15,11 +15,15 @@ import { useState } from "react";
 type Props = {
   placement?: Placement;
   tooltipOffset?: number;
+  x?: number | null;
+  y?: number | null;
 };
 
 const useChartTooltip = ({
   placement = "left",
   tooltipOffset = 24,
+  x,
+  y,
 }: Props = {}) => {
   const [isActive, setIsActive] = useState(false);
   const { refs, floatingStyles, context } = useFloating({
@@ -34,7 +38,7 @@ const useChartTooltip = ({
     placement,
     whileElementsMounted: autoUpdate,
   });
-  const clientPoint = useClientPoint(context);
+  const clientPoint = useClientPoint(context, { x, y });
   const dismiss = useDismiss(context);
   const hover = useHover(context);
   const { getReferenceProps, getFloatingProps } = useInteractions([

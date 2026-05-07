@@ -316,6 +316,10 @@ const NumericChart: FC<Props> = ({
           onTouchStart: () => {
             setIsCursorActive(true);
           },
+          onTouchEnd: () => {
+            setIsCursorActive(false);
+            handleCursorChange(null);
+          },
           onMouseEnter: () => {
             setIsCursorActive(true);
           },
@@ -397,8 +401,26 @@ const NumericChart: FC<Props> = ({
     return xDomain;
   }, [xDomain, isEmbedded]);
 
+  const [touchPoint, setTouchPoint] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const { getReferenceProps, getFloatingProps, refs, floatingStyles } =
-    useChartTooltip({ placement: "top", tooltipOffset: 15 });
+    useChartTooltip({
+      placement: "top",
+      tooltipOffset: touchPoint ? 50 : 15,
+      x: touchPoint?.x ?? null,
+      y: touchPoint?.y ?? null,
+    });
+
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    setTouchPoint({ x: touch.clientX, y: touch.clientY });
+  }, []);
+  const handleTouchEnd = useCallback(() => {
+    setTouchPoint(null);
+  }, []);
   const {
     isActive: isDiamondActive,
     getReferenceProps: getDiamondRefProps,
@@ -561,6 +583,8 @@ const NumericChart: FC<Props> = ({
         )}
         ref={refs.setReference}
         {...getReferenceProps()}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         <ForecastAvailabilityChartOverflow
           forecastAvailability={forecastAvailability}
