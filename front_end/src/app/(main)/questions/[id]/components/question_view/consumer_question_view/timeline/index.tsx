@@ -35,11 +35,7 @@ const QuestionTimeline: React.FC<Props> = ({
   const isFanGraph =
     postData.group_of_questions?.graph_type ===
     GroupOfQuestionsGraphType.FanGraph;
-  const wrapperClass = cn(
-    " hidden sm:block",
-    isFanGraph ? "mb-8" : "mt-8",
-    className
-  );
+  const wrapperClass = cn(isFanGraph ? "mb-8" : "mt-8", className);
 
   if (isQuestionPost(postData)) {
     if (postData.question.status !== QuestionStatus.UPCOMING) {
@@ -66,7 +62,27 @@ const QuestionTimeline: React.FC<Props> = ({
     return (
       <div className={wrapperClass}>
         {isDateType ? (
-          <NumericForecastCard post={postData} forceColorful />
+          <div className="flex flex-col gap-6">
+            <DetailedGroupCard
+              post={postData}
+              preselectedQuestionId={preselectedGroupQuestionId}
+            />
+            <NumericForecastCard post={postData} forceColorful />
+          </div>
+        ) : isFanGraph ? (
+          <div className="flex flex-col gap-6">
+            <DetailedGroupCard
+              post={postData}
+              preselectedQuestionId={preselectedGroupQuestionId}
+              groupPresentationOverride={
+                GroupOfQuestionsGraphType.MultipleChoiceGraph
+              }
+            />
+            <DetailedGroupCard
+              post={postData}
+              preselectedQuestionId={preselectedGroupQuestionId}
+            />
+          </div>
         ) : (
           <DetailedGroupCard
             post={postData}

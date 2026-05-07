@@ -20,18 +20,20 @@ const XTickLabel: FC<Props> = ({
 
   const x = (props.x ?? 0) + dx;
 
-  const overlapsRightEdge = withCursor
-    ? x > chartWidth - estimatedTextWidth
-    : x > chartWidth - 12;
-
-  if (overlapsRightEdge) {
-    return null;
+  let textAnchor: "start" | "middle" | "end" = "middle";
+  if (x - estimatedTextWidth < 0) {
+    textAnchor = "start";
+  } else if (
+    withCursor ? x > chartWidth - estimatedTextWidth : x > chartWidth - 12
+  ) {
+    textAnchor = "end";
   }
 
   return (
     <VictoryLabel
       {...props}
       dx={dx}
+      textAnchor={textAnchor}
       style={{
         ...(props.style ?? {}),
         fontSize,
