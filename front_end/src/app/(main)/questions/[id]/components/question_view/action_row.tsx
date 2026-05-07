@@ -70,7 +70,7 @@ const ActionRow: FC<Props> = ({ post, variant }) => {
   return (
     <div
       className={cn(
-        "relative w-full flex-wrap items-center gap-2 py-3",
+        "relative w-full flex-wrap items-center gap-2 pb-3 pt-1 md:py-3",
         variant === "forecaster"
           ? "hidden md:flex"
           : "flex justify-center md:justify-start"

@@ -6,20 +6,17 @@ import { FC } from "react";
 import MarkdownEditor from "@/components/markdown_editor";
 import Chip from "@/components/ui/chip";
 import { PostWithForecasts } from "@/types/post";
-import { TaxonomyProjectType } from "@/types/projects";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { getProjectLink } from "@/utils/navigation";
 
 import SidebarQuestionInfo from "../../sidebar/sidebar_question_info";
+import { getChipColor, getChipContent } from "../project_chip_helpers";
 
 type Props = {
   post: PostWithForecasts;
 };
 
 type MarkdownSection = { title: string; markdown: string };
-
-const getChipText = (name: string, type?: string) =>
-  type === "leaderboard_tag" ? `🏆 ${name}` : name;
 
 const useTextSections = (post: PostWithForecasts): MarkdownSection[] => {
   const t = useTranslations();
@@ -109,22 +106,17 @@ const QuestionInfoTab: FC<Props> = ({ post }) => {
             <div className="flex flex-wrap gap-3">
               {allProjects.map((element) => (
                 <Chip
-                  color={
-                    Object.values(TaxonomyProjectType).includes(
-                      element.type as TaxonomyProjectType
-                    )
-                      ? "olive"
-                      : "orange"
-                  }
+                  color={getChipColor(element)}
                   key={element.id}
                   href={getProjectLink(element)}
+                  className="min-w-0 overflow-hidden [&>*]:min-w-0"
                   onClick={() =>
                     sendAnalyticsEvent("questionTagClicked", {
                       event_category: element.name,
                     })
                   }
                 >
-                  {getChipText(element.name, element.type)}
+                  {getChipContent(element)}
                 </Chip>
               ))}
             </div>
