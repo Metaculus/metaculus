@@ -10,6 +10,7 @@ import React, {
   useState,
 } from "react";
 import {
+  CursorCoordinatesPropType,
   Tuple,
   VictoryArea,
   VictoryAxis,
@@ -531,8 +532,10 @@ const ContinuousAreaChart: FC<Props> = ({
           discrete={discrete}
         />
       }
-      onCursorChange={(props: { x: number } | null) => {
-        if (!props) {
+      onCursorChange={(value: CursorCoordinatesPropType | null) => {
+        const x = typeof value === "number" ? value : value?.x;
+
+        if (isNil(x)) {
           onCursorChange?.(null);
           return;
         }
@@ -541,18 +544,18 @@ const ContinuousAreaChart: FC<Props> = ({
           (acc, el) => {
             if (!discrete) {
               if (el.graphType === "pmf") {
-                acc.yData[el.type] = getClosestYValue(props?.x, el.graphLine);
+                acc.yData[el.type] = getClosestYValue(x, el.graphLine);
               } else {
-                acc.yData[el.type] = interpolateYValue(props?.x, el.graphLine);
+                acc.yData[el.type] = interpolateYValue(x, el.graphLine);
               }
             } else {
-              acc.yData[el.type] = getClosestYValue(props?.x, el.graphLine);
-              acc.x = getClosestXValue(props?.x, el.graphLine);
+              acc.yData[el.type] = getClosestYValue(x, el.graphLine);
+              acc.x = getClosestXValue(x, el.graphLine);
             }
             return acc;
           },
           {
-            x: props.x,
+            x,
             yData: {
               community: 0,
               user: 0,
