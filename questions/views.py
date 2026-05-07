@@ -268,10 +268,18 @@ def legacy_question_api_view(request, pk: int):
 
 
 class BulkForecastAndCommentSerializer(serializers.Serializer):
-    user_id = serializers.IntegerField(required=True)
+    user_id = serializers.IntegerField(required=False, allow_null=True)
+    username = serializers.CharField(required=False, allow_null=True)
     is_staff_override = serializers.BooleanField(required=False, default=False)
     forecasts = ForecastWriteSerializer(many=True, required=False, default=list)
     comments = CommentWriteSerializer(many=True, required=False, default=list)
+
+    def validate(self, attrs):
+        if not attrs.get("user_id") and not attrs.get("username"):
+            raise serializers.ValidationError(
+                "Either user_id or username must be provided."
+            )
+        return attrs
 
 
 @api_view(["POST"])
@@ -280,16 +288,17 @@ def bulk_forecast_and_comment_api_view(request):
     """
     Submits forecasts and comments in a single atomic transaction.
 
-    Staff users may submit on behalf of any user by providing user_id and
-    flag `is_staff_override`.
-    Non-staff users may only submit as themselves (user_id must match
-    the authenticated user's ID).
+    Staff users may submit on behalf of any user by providing user_id or username
+    and flag `is_staff_override`.
+    Non-staff users may submit as themselves or as one of their bots (identified
+    by user_id or username).
     """
     serializer = BulkForecastAndCommentSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     data = serializer.validated_data
 
     user_id = data.get("user_id")
+    username = data.get("username")
     forecasts_data = data["forecasts"]
     comments_data = data.get("comments", [])
     is_staff_override = data.get("is_staff_override", False)
@@ -297,15 +306,23 @@ def bulk_forecast_and_comment_api_view(request):
     request_user = request.user
     if is_staff_override and not request_user.is_staff:
         raise PermissionDenied("Non-staff users cannot use the is_staff_override flag.")
-    if not is_staff_override and user_id != request_user.id:
-        raise PermissionDenied(
-            "Non-staff users can only submit forecasts and comments as themselves."
-        )
 
-    if is_staff_override:
+    if user_id:
         user = get_object_or_404(User, id=user_id)
     else:
-        user = request_user
+        user = get_object_or_404(User, username=username)
+
+    if not is_staff_override:
+        is_self = user.id == request_user.id
+        is_own_bot = (
+            user.is_bot
+            and user.bot_owner_id is not None
+            and user.bot_owner_id == request_user.id
+        )
+        if not is_self and not is_own_bot:
+            raise PermissionDenied(
+                "Non-staff users can only submit forecasts and comments as themselves or their bots."
+            )
 
     now = timezone.now()
 
