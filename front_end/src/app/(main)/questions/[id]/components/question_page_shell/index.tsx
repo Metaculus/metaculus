@@ -38,6 +38,7 @@ import { QuestionVariantComposer } from "../question_variant_composer";
 import ActionRow from "../question_view/action_row";
 import ConsumerQuestionPrediction from "../question_view/consumer_question_view/prediction";
 import QuestionTimeline from "../question_view/consumer_question_view/timeline";
+import QuestionHeaderCPStatus from "../question_view/forecaster_question_view/question_header/question_header_cp_status";
 
 const baseSectionClassName =
   "relative z-10 flex w-[59rem] max-w-full flex-col gap-6 overflow-x-clip rounded border border-blue-400 p-4 text-gray-900 dark:border-blue-200-dark dark:text-gray-900-dark lg:p-8";
@@ -207,14 +208,23 @@ export const ConsumerShell: FC<{
               showSideBySide && "sm:flex-row sm:items-center sm:gap-8"
             )}
           >
-            <div
-              className={cn(
-                showSideBySide && !isDateGroup ? "order-1" : undefined,
-                isContinuousSingleQuestion && "md:hidden"
-              )}
-            >
-              <ConsumerQuestionPrediction postData={postData} />
-            </div>
+            {isBinarySingleQuestion && isQuestionPost(postData) ? (
+              <div className="order-1">
+                <QuestionHeaderCPStatus
+                  question={postData.question}
+                  size="lg"
+                />
+              </div>
+            ) : (
+              <div
+                className={cn(
+                  showSideBySide && !isDateGroup ? "order-1" : undefined,
+                  isContinuousSingleQuestion && "md:hidden"
+                )}
+              >
+                <ConsumerQuestionPrediction postData={postData} />
+              </div>
+            )}
             {!isFanGraph && !isDateGroup && (
               <QuestionTimeline
                 postData={postData}
