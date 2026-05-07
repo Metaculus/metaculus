@@ -68,7 +68,9 @@ class TestBulkForecastAndComment:
     def test_unauthenticated(self, anon_client, user1, open_question):
         response = anon_client.post(
             URL,
-            data=json.dumps({"user_id": user1.id, "forecasts": [forecast_payload(open_question)]}),
+            data=json.dumps(
+                {"user_id": user1.id, "forecasts": [forecast_payload(open_question)]}
+            ),
             content_type="application/json",
         )
         assert response.status_code == 403
@@ -76,7 +78,9 @@ class TestBulkForecastAndComment:
     def test_submit_as_self_by_user_id(self, user1, user1_client, open_question):
         response = user1_client.post(
             URL,
-            data=json.dumps({"user_id": user1.id, "forecasts": [forecast_payload(open_question)]}),
+            data=json.dumps(
+                {"user_id": user1.id, "forecasts": [forecast_payload(open_question)]}
+            ),
             content_type="application/json",
         )
         assert response.status_code == 201
@@ -85,7 +89,12 @@ class TestBulkForecastAndComment:
     def test_submit_as_self_by_username(self, user1, user1_client, open_question):
         response = user1_client.post(
             URL,
-            data=json.dumps({"username": user1.username, "forecasts": [forecast_payload(open_question)]}),
+            data=json.dumps(
+                {
+                    "username": user1.username,
+                    "forecasts": [forecast_payload(open_question)],
+                }
+            ),
             content_type="application/json",
         )
         assert response.status_code == 201
@@ -94,7 +103,9 @@ class TestBulkForecastAndComment:
     def test_submit_as_other_user_denied(self, user1_client, user2, open_question):
         response = user1_client.post(
             URL,
-            data=json.dumps({"user_id": user2.id, "forecasts": [forecast_payload(open_question)]}),
+            data=json.dumps(
+                {"user_id": user2.id, "forecasts": [forecast_payload(open_question)]}
+            ),
             content_type="application/json",
         )
         assert response.status_code == 403
@@ -102,7 +113,9 @@ class TestBulkForecastAndComment:
     def test_submit_as_own_bot_by_user_id(self, user1_client, user_bot, open_question):
         response = user1_client.post(
             URL,
-            data=json.dumps({"user_id": user_bot.id, "forecasts": [forecast_payload(open_question)]}),
+            data=json.dumps(
+                {"user_id": user_bot.id, "forecasts": [forecast_payload(open_question)]}
+            ),
             content_type="application/json",
         )
         assert response.status_code == 201
@@ -111,65 +124,93 @@ class TestBulkForecastAndComment:
     def test_submit_as_own_bot_by_username(self, user1_client, user_bot, open_question):
         response = user1_client.post(
             URL,
-            data=json.dumps({"username": user_bot.username, "forecasts": [forecast_payload(open_question)]}),
+            data=json.dumps(
+                {
+                    "username": user_bot.username,
+                    "forecasts": [forecast_payload(open_question)],
+                }
+            ),
             content_type="application/json",
         )
         assert response.status_code == 201
         assert Forecast.objects.filter(question=open_question, author=user_bot).exists()
 
-    def test_submit_as_other_users_bot_denied(self, user2_client, user_bot, open_question):
+    def test_submit_as_other_users_bot_denied(
+        self, user2_client, user_bot, open_question
+    ):
         # user_bot is owned by user1, not user2
         response = user2_client.post(
             URL,
-            data=json.dumps({"user_id": user_bot.id, "forecasts": [forecast_payload(open_question)]}),
+            data=json.dumps(
+                {"user_id": user_bot.id, "forecasts": [forecast_payload(open_question)]}
+            ),
             content_type="application/json",
         )
         assert response.status_code == 403
 
-    def test_submit_as_bot_with_no_owner_denied(self, user1_client, user_bot_no_owner, open_question):
+    def test_submit_as_bot_with_no_owner_denied(
+        self, user1_client, user_bot_no_owner, open_question
+    ):
         response = user1_client.post(
             URL,
-            data=json.dumps({"user_id": user_bot_no_owner.id, "forecasts": [forecast_payload(open_question)]}),
+            data=json.dumps(
+                {
+                    "user_id": user_bot_no_owner.id,
+                    "forecasts": [forecast_payload(open_question)],
+                }
+            ),
             content_type="application/json",
         )
         assert response.status_code == 403
 
-    def test_staff_override_by_user_id(self, create_client_for_user, user_staff, user2, open_question):
+    def test_staff_override_by_user_id(
+        self, create_client_for_user, user_staff, user2, open_question
+    ):
         staff_client = create_client_for_user(user_staff)
         response = staff_client.post(
             URL,
-            data=json.dumps({
-                "user_id": user2.id,
-                "is_staff_override": True,
-                "forecasts": [forecast_payload(open_question)],
-            }),
+            data=json.dumps(
+                {
+                    "user_id": user2.id,
+                    "is_staff_override": True,
+                    "forecasts": [forecast_payload(open_question)],
+                }
+            ),
             content_type="application/json",
         )
         assert response.status_code == 201
         assert Forecast.objects.filter(question=open_question, author=user2).exists()
 
-    def test_staff_override_by_username(self, create_client_for_user, user_staff, user2, open_question):
+    def test_staff_override_by_username(
+        self, create_client_for_user, user_staff, user2, open_question
+    ):
         staff_client = create_client_for_user(user_staff)
         response = staff_client.post(
             URL,
-            data=json.dumps({
-                "username": user2.username,
-                "is_staff_override": True,
-                "forecasts": [forecast_payload(open_question)],
-            }),
+            data=json.dumps(
+                {
+                    "username": user2.username,
+                    "is_staff_override": True,
+                    "forecasts": [forecast_payload(open_question)],
+                }
+            ),
             content_type="application/json",
         )
         assert response.status_code == 201
         assert Forecast.objects.filter(question=open_question, author=user2).exists()
 
-    def test_non_staff_cannot_use_staff_override(self, user1_client, user1, user2, open_question):
+    def test_non_staff_cannot_use_staff_override(
+        self, user1_client, user1, user2, open_question
+    ):
         response = user1_client.post(
             URL,
-            data=json.dumps({
-                "user_id": user2.id,
-                "is_staff_override": True,
-                "forecasts": [forecast_payload(open_question)],
-            }),
+            data=json.dumps(
+                {
+                    "user_id": user2.id,
+                    "is_staff_override": True,
+                    "forecasts": [forecast_payload(open_question)],
+                }
+            ),
             content_type="application/json",
         )
         assert response.status_code == 403
@@ -177,7 +218,9 @@ class TestBulkForecastAndComment:
     def test_unknown_user_id_returns_404(self, user1_client, open_question):
         response = user1_client.post(
             URL,
-            data=json.dumps({"user_id": 999999, "forecasts": [forecast_payload(open_question)]}),
+            data=json.dumps(
+                {"user_id": 999999, "forecasts": [forecast_payload(open_question)]}
+            ),
             content_type="application/json",
         )
         assert response.status_code == 404
@@ -185,7 +228,12 @@ class TestBulkForecastAndComment:
     def test_unknown_username_returns_404(self, user1_client, open_question):
         response = user1_client.post(
             URL,
-            data=json.dumps({"username": "does_not_exist", "forecasts": [forecast_payload(open_question)]}),
+            data=json.dumps(
+                {
+                    "username": "does_not_exist",
+                    "forecasts": [forecast_payload(open_question)],
+                }
+            ),
             content_type="application/json",
         )
         assert response.status_code == 404
