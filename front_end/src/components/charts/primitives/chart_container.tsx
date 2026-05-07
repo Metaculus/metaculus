@@ -1,7 +1,13 @@
 "use client";
 import { Tab, TabGroup, TabList } from "@headlessui/react";
 import { isNil } from "lodash";
-import { forwardRef, Fragment, PropsWithChildren, useState } from "react";
+import {
+  forwardRef,
+  Fragment,
+  PropsWithChildren,
+  ReactNode,
+  useState,
+} from "react";
 
 import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import { TimelineChartZoomOption } from "@/types/charts";
@@ -12,7 +18,7 @@ type Props = {
   height: number;
   zoom?: TimelineChartZoomOption;
   onZoomChange?: (zoom: TimelineChartZoomOption) => void;
-  chartTitle?: string;
+  chartTitle?: ReactNode;
   leftLegend?: React.ReactNode;
   headerExtra?: React.ReactNode;
 };

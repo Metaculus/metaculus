@@ -1,15 +1,20 @@
 "use client";
 import { isNil } from "lodash";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useCallback, useMemo, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_cp_status";
+import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import NumericTimeline from "@/components/charts/numeric_timeline";
 import QuestionPredictionTooltip from "@/components/charts/primitives/question_prediction_tooltip";
 import ContinuousPredictionChart from "@/components/forecast_maker/continuous_input/continuous_prediction_chart";
+import Button from "@/components/ui/button";
+import { GroupButton } from "@/components/ui/button_group";
 import { useAuth } from "@/contexts/auth_context";
+import useContainerSize from "@/hooks/use_container_size";
 import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
 import { KeyFactor } from "@/types/comment";
 import {
@@ -31,6 +36,10 @@ import {
   isContinuousQuestion,
 } from "@/utils/questions/helpers";
 
+const Histogram = dynamic(() => import("@/components/charts/histogram"), {
+  ssr: false,
+});
+
 type Props = {
   question: QuestionWithNumericForecasts;
   hideCP?: boolean;
@@ -46,6 +55,8 @@ type Props = {
   embedChartType?: EmbedChartType;
   keyFactors?: KeyFactor[];
 };
+
+type ChartView = "timeline" | "histogram";
 
 const DetailedContinuousChartCard: FC<Props> = ({
   question,
@@ -71,6 +82,9 @@ const DetailedContinuousChartCard: FC<Props> = ({
   const effectiveWithZoomPicker = withZoomPicker ?? true;
   const isConsumerView = isConsumerViewProp ?? !user;
   const [isChartReady, setIsChartReady] = useState(false);
+  const [activeView, setActiveView] = useState<ChartView>("timeline");
+  const { ref: histogramContainerRef, width: histogramWidth } =
+    useContainerSize<HTMLDivElement>();
 
   const aggregation =
     question.aggregations[question.default_aggregation_method];
@@ -212,8 +226,35 @@ const DetailedContinuousChartCard: FC<Props> = ({
 
   const isBinary = question.type === QuestionType.Binary;
 
-  const timelineTitle =
-    !isEmbed && !hideTitle ? t("forecastTimelineHeading") : undefined;
+  const chartViewButtons: GroupButton<ChartView>[] = [
+    { value: "timeline", label: t("timeline") },
+    { value: "histogram", label: t("histogram") },
+  ];
+
+  const viewToggle = isBinary ? (
+    <div className="flex gap-2 pl-2">
+      {chartViewButtons.map(({ value, label }) => (
+        <Button
+          key={value}
+          onClick={() => setActiveView(value)}
+          className={cn(
+            "rounded border-0 px-1 py-0.5 text-sm font-normal leading-4",
+            activeView === value
+              ? "bg-blue-200 text-blue-800 hover:text-blue-800 active:text-blue-800 dark:bg-blue-200-dark dark:text-blue-800-dark"
+              : "text-gray-500 hover:text-gray-500 active:text-gray-500 dark:text-gray-500-dark"
+          )}
+        >
+          {label}
+        </Button>
+      ))}
+    </div>
+  ) : null;
+
+  // Binary gets the toggle as the title node; continuous keeps the text heading.
+  let timelineTitle: ReactNode;
+  if (!isEmbed && !hideTitle) {
+    timelineTitle = isBinary ? viewToggle : t("forecastTimelineHeading");
+  }
 
   const chartHeight = embedChartHeight ?? 150;
 
@@ -276,6 +317,41 @@ const DetailedContinuousChartCard: FC<Props> = ({
     !hideCP &&
     !forecastAvailability?.cpRevealsOn;
 
+  const renderHistogram = () => {
+    const aggregationLatest =
+      question.aggregations[question.default_aggregation_method].latest;
+    const histogram = aggregationLatest?.histogram?.at(0);
+    if (!histogram?.length) return null;
+
+    const histogramData = histogram.map((value, index) => ({
+      x: index,
+      y: value,
+    }));
+    const median = aggregationLatest?.centers?.[0];
+    const mean = aggregationLatest?.means?.[0];
+
+    return (
+      <div className="flex w-full flex-col">
+        {!isEmbed && !hideTitle && (
+          <div className="mb-2.5 flex w-full md:mb-5">{viewToggle}</div>
+        )}
+        <div ref={histogramContainerRef}>
+          {hideCP || isCpHidden ? (
+            <RevealCPButton />
+          ) : (
+            <Histogram
+              histogramData={histogramData}
+              median={median}
+              mean={mean}
+              color="gray"
+              width={histogramWidth}
+            />
+          )}
+        </div>
+      </div>
+    );
+  };
+
   if (canRenderCurrentEmbed) {
     return (
       <div className="w-full overflow-hidden" style={{ height: chartHeight }}>
@@ -292,6 +368,10 @@ const DetailedContinuousChartCard: FC<Props> = ({
         />
       </div>
     );
+  }
+
+  if (isBinary && activeView === "histogram") {
+    return <>{renderHistogram()}</>;
   }
 
   return (
