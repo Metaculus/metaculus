@@ -233,7 +233,8 @@ export const ConsumerShell: FC<{
                 preselectedGroupQuestionId={preselectedGroupQuestionId}
                 className={cn(
                   "hidden sm:block",
-                  showSideBySide && "order-2 mt-0 flex-1"
+                  showSideBySide && "order-2 mt-0 flex-1",
+                  isContinuousSingleQuestion && "mt-0"
                 )}
               />
             )}
