@@ -496,6 +496,13 @@ const NumericChart: FC<Props> = ({
     return typeof fromTheme === "number" ? fromTheme : 0.3;
   }, [hasExternalTheme, themeAreaData?.opacity]);
 
+  const cursorDotFill = useMemo(
+    () =>
+      resolveToCssColor(getThemeColor, colorOverride) ??
+      getThemeColor(colorPalette.chip),
+    [getThemeColor, colorOverride, colorPalette.chip]
+  );
+
   const rightPad = Math.max(rightPadding, MIN_RIGHT_PADDING);
   const yAxisLabel = !isNil(yLabel) ? `(${yLabel})` : undefined;
   const leftPad = 10;
@@ -824,9 +831,7 @@ const NumericChart: FC<Props> = ({
                     size={4}
                     style={{
                       data: {
-                        fill: colorOverride
-                          ? String(colorOverride)
-                          : getThemeColor(colorPalette.chip),
+                        fill: cursorDotFill,
                         stroke: "none",
                       },
                     }}
