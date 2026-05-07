@@ -51,4 +51,5 @@ class Migration(migrations.Migration):
             name="follow_notify_on_status_change",
             field=models.BooleanField(default=True),
         ),
+        migrations.RunPython(migrate, migrations.RunPython.noop),
     ]
