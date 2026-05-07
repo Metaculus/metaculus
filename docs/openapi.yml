@@ -2044,7 +2044,7 @@ paths:
         Downloads question data, forecast data, and optionally comments, scores, and key factors as a Zip file of CSVs.
         You must provide at least one of `post_id`, `question_id`, or `project_id` to specify the data to download.
 
-        **Note:** This is a restricted endpoint. To request access, please email [api-requests@metaculus.com](mailto:api-requests@metaculus.com). Additionally, the `project_id` parameter is only accepted if your account has been whitelisted for that specific project, to prevent heavy data requests.
+        **Note:** This is a restricted endpoint. To request access, please fill out the [Metaculus Data Needs Form](https://docs.google.com/forms/d/e/1FAIpQLSeJhtZzHl5qMvBjbXbatyaqoS4IU7RE0GGw_vlhs6I9syqn1g/viewform?usp=dialog). For questions or feedback, contact [api-requests@metaculus.com](mailto:api-requests@metaculus.com). Additionally, the `project_id` parameter is only accepted if your account has been whitelisted for that specific project, to prevent heavy data requests.
 
         This endpoint may time out for large data exports. If your download fails due to a timeout, use the `/api/data/email/` endpoint instead, which processes the export asynchronously.
       tags:
@@ -2141,7 +2141,7 @@ paths:
         Useful for large data exports that may time out with a direct download. Accepts the same parameters as `/api/data/download/`.
         You must provide at least one of `post_id`, `question_id`, or `project_id`.
 
-        **Note:** This is a restricted endpoint. To request access, please email [api-requests@metaculus.com](mailto:api-requests@metaculus.com). Additionally, the `project_id` parameter is only accepted if your account has been whitelisted for that specific project.
+        **Note:** This is a restricted endpoint. To request access, please fill out the [Metaculus Data Needs Form](https://docs.google.com/forms/d/e/1FAIpQLSeJhtZzHl5qMvBjbXbatyaqoS4IU7RE0GGw_vlhs6I9syqn1g/viewform?usp=dialog). For questions or feedback, contact [api-requests@metaculus.com](mailto:api-requests@metaculus.com). Additionally, the `project_id` parameter is only accepted if your account has been whitelisted for that specific project.
 
         The email attachment has a size limit of 25 MB. If your export exceeds this limit, try removing `include_comments` to reduce the file size.
       tags:
