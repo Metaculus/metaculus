@@ -153,8 +153,10 @@ export const ConsumerShell: FC<{
     !isMultipleChoice;
 
   const showSideBySide =
-    (isMultipleChoice || isNonFanGroup || isBinarySingleQuestion) &&
-    !isContinuousSingleQuestion;
+    isMultipleChoice ||
+    isNonFanGroup ||
+    isBinarySingleQuestion ||
+    isContinuousSingleQuestion;
 
   const showClosedMessageMultipleChoice =
     isMultipleChoicePost(postData) &&
@@ -192,7 +194,7 @@ export const ConsumerShell: FC<{
         <div className="order-2 sm:order-none">
           <ActionRow post={postData} variant="consumer" />
         </div>
-        <div className="order-1 mt-3 sm:order-none sm:mt-8 md:-mt-2 lg:-mt-3">
+        <div className="order-1 mt-3 sm:order-none sm:mt-0 md:-mt-2 lg:-mt-3">
           {showClosedMessageMultipleChoice && (
             <p className="m-0 mb-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
               {t("predictionClosedMessage")}
@@ -205,7 +207,11 @@ export const ConsumerShell: FC<{
                 !isMultipleChoice &&
                 !isNonFanGroup &&
                 "flex-col-reverse",
-              showSideBySide && "sm:flex-row sm:items-center sm:gap-8"
+              showSideBySide &&
+                cn("sm:flex-row sm:items-center", {
+                  "sm:gap-0 md:gap-8": isBinarySingleQuestion,
+                  "sm:gap-8": !isBinarySingleQuestion,
+                })
             )}
           >
             {isBinarySingleQuestion && isQuestionPost(postData) ? (
