@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+
 import {
   ContinuousAreaGraphInput,
   getContinuousAreaChartData,
@@ -35,19 +37,21 @@ const ContinuousQuestionPrediction: React.FC<Props> = ({
     isClosed: question.status === QuestionStatus.CLOSED,
   });
 
+  const cursorForecastValues = cursorForecast?.forecast_values ?? null;
+
   // Null when cursor is inactive — chart falls back to the latest aggregate.
-  const cursorChartData: ContinuousAreaGraphInput | null =
-    cursorForecast?.forecast_values
-      ? [
-          {
-            pmf: cdfToPmf(cursorForecast.forecast_values),
-            cdf: cursorForecast.forecast_values,
-            type: (question.status === QuestionStatus.CLOSED
-              ? "community_closed"
-              : "community") as ContinuousAreaType,
-          },
-        ]
-      : null;
+  const cursorChartData = useMemo<ContinuousAreaGraphInput | null>(() => {
+    if (!cursorForecastValues) return null;
+    return [
+      {
+        pmf: cdfToPmf(cursorForecastValues),
+        cdf: cursorForecastValues,
+        type: (question.status === QuestionStatus.CLOSED
+          ? "community_closed"
+          : "community") as ContinuousAreaType,
+      },
+    ];
+  }, [cursorForecastValues, question.status]);
 
   return (
     <div className="mx-auto mb-7 flex max-w-[340px] flex-col items-center gap-2.5">

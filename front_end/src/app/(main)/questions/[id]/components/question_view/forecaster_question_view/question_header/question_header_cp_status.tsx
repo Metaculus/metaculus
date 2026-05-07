@@ -1,6 +1,6 @@
 "use client";
 import { useLocale, useTranslations } from "next-intl";
-import React, { FC } from "react";
+import React, { FC, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import {
@@ -69,6 +69,22 @@ const QuestionHeaderCPStatus: FC<Props> = ({
   const isEmbedBelow376 = isEmbed && (w ?? 0) > 0 && (w ?? 0) < 376;
   const isEmbedWide = isEmbed && (w ?? 0) >= 500;
 
+  const cursorForecastValues = cursorForecast?.forecast_values ?? null;
+  const cursorAreaChartData = useMemo<ContinuousAreaGraphInput | null>(() => {
+    if (!cursorForecastValues) return null;
+    return [
+      {
+        pmf: cdfToPmf(cursorForecastValues),
+        cdf: cursorForecastValues,
+        type: (question.status === QuestionStatus.RESOLVED
+          ? "community_resolved"
+          : question.status === QuestionStatus.CLOSED
+            ? "community_closed"
+            : "community") as ContinuousAreaType,
+      },
+    ];
+  }, [cursorForecastValues, question.status]);
+
   if (question.status === QuestionStatus.RESOLVED && question.resolution) {
     // Resolved/Annulled/Ambiguous
     const formatedResolution = formatResolution({
@@ -118,20 +134,6 @@ const QuestionHeaderCPStatus: FC<Props> = ({
   const cursorCenter = cursorForecast?.centers?.[0] ?? null;
   const cursorLower = cursorForecast?.interval_lower_bounds?.[0] ?? null;
   const cursorUpper = cursorForecast?.interval_upper_bounds?.[0] ?? null;
-  const cursorAreaChartData: ContinuousAreaGraphInput | null =
-    cursorForecast?.forecast_values
-      ? [
-          {
-            pmf: cdfToPmf(cursorForecast.forecast_values),
-            cdf: cursorForecast.forecast_values,
-            type: (question.status === QuestionStatus.RESOLVED
-              ? "community_resolved"
-              : question.status === QuestionStatus.CLOSED
-                ? "community_closed"
-                : "community") as ContinuousAreaType,
-          },
-        ]
-      : null;
 
   if (isContinuous) {
     return (
