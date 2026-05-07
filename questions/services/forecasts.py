@@ -290,9 +290,12 @@ def update_forecast_notification(
         existing_subscription = post.subscriptions.filter(user=user).exclude(
             is_global=True
         )
-        if user.follow_notify_cp_change_threshold and not existing_subscription.filter(
-            type=PostSubscription.SubscriptionType.CP_CHANGE
-        ).exists():
+        if (
+            user.follow_notify_cp_change_threshold
+            and not existing_subscription.filter(
+                type=PostSubscription.SubscriptionType.CP_CHANGE
+            ).exists()
+        ):
             try:
                 with transaction.atomic():
                     create_subscription(
@@ -303,9 +306,12 @@ def update_forecast_notification(
                     )
             except IntegrityError:
                 pass
-        if user.follow_notify_comments_frequency and not existing_subscription.filter(
-            type=PostSubscription.SubscriptionType.NEW_COMMENTS
-        ).exists():
+        if (
+            user.follow_notify_comments_frequency
+            and not existing_subscription.filter(
+                type=PostSubscription.SubscriptionType.NEW_COMMENTS
+            ).exists()
+        ):
             try:
                 with transaction.atomic():
                     create_subscription(
@@ -316,9 +322,12 @@ def update_forecast_notification(
                     )
             except IntegrityError:
                 pass
-        if user.follow_notify_milestone_step and not existing_subscription.filter(
-            type=PostSubscription.SubscriptionType.MILESTONE
-        ).exists():
+        if (
+            user.follow_notify_milestone_step
+            and not existing_subscription.filter(
+                type=PostSubscription.SubscriptionType.MILESTONE
+            ).exists()
+        ):
             try:
                 with transaction.atomic():
                     create_subscription(
@@ -329,9 +338,12 @@ def update_forecast_notification(
                     )
             except IntegrityError:
                 pass
-        if user.follow_notify_on_status_change and not existing_subscription.filter(
-            type=PostSubscription.SubscriptionType.STATUS_CHANGE
-        ).exists():
+        if (
+            user.follow_notify_on_status_change
+            and not existing_subscription.filter(
+                type=PostSubscription.SubscriptionType.STATUS_CHANGE
+            ).exists()
+        ):
             try:
                 with transaction.atomic():
                     create_subscription(
