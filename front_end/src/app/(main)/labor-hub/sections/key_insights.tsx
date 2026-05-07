@@ -38,8 +38,8 @@ function KeyInsightItem({
 
 function describeOverallChange(value: number | null): string {
   if (value == null) return "changing significantly";
-  const rounded = Math.round(Math.abs(value));
-  return `${value < 0 ? "declining" : "growing"} around ${rounded}%`;
+  const formatted = Math.abs(value).toFixed(1);
+  return `${value < 0 ? "declining" : "growing"} around ${formatted}%`;
 }
 
 function describeTradeSchoolGrowth(value: number | null): string {
@@ -83,7 +83,7 @@ export async function KeyInsightsSection({
     logError(error);
   }
 
-  const govBaseline2035 = Math.round(GOVERNMENT_BASELINES["2035"]);
+  const govBaseline2035 = GOVERNMENT_BASELINES["2035"].toFixed(1);
   const hoursDisplay =
     insightsData.hoursWorked2035 != null
       ? Math.round(insightsData.hoursWorked2035)
