@@ -259,35 +259,31 @@ def update_forecast_notification(
         )  # If end_time is None, same case as duration 0 -> no notification
         total_lifetime = end_time - start_time
 
-        if (
+        skip_notification = (
             forecast.end_time is not None
             and question.scheduled_close_time is not None
             and forecast.end_time >= question.scheduled_close_time
-        ):
-            # If the forecast.end_time is after the question.scheduled_close_time,
-            # don't create a notification
-            return
+        ) or total_lifetime < timedelta(hours=8)
 
-        # Determine trigger time based on lifetime
-        if total_lifetime < timedelta(hours=8):
-            return
-        elif total_lifetime > timedelta(weeks=3):
-            # If lifetime > 3 weeks, trigger 1 week before end
-            trigger_time = end_time - timedelta(weeks=1)
-        else:
-            # Otherwise, trigger 1 day before end
-            trigger_time = end_time - timedelta(days=1)
+        if not skip_notification:
+            # Determine trigger time based on lifetime
+            if total_lifetime > timedelta(weeks=3):
+                # If lifetime > 3 weeks, trigger 1 week before end
+                trigger_time = end_time - timedelta(weeks=1)
+            else:
+                # Otherwise, trigger 1 day before end
+                trigger_time = end_time - timedelta(days=1)
 
-        # Create or update the notification
-        UserForecastNotification.objects.update_or_create(
-            user=user,
-            question=question,
-            defaults={
-                "trigger_time": trigger_time,
-                "email_sent": False,
-                "forecast": forecast,
-            },
-        )
+            # Create or update the notification
+            UserForecastNotification.objects.update_or_create(
+                user=user,
+                question=question,
+                defaults={
+                    "trigger_time": trigger_time,
+                    "email_sent": False,
+                    "forecast": forecast,
+                },
+            )
 
     if created and user.automatically_follow_on_predict:
         post = question.post
