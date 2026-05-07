@@ -307,21 +307,28 @@ def bulk_forecast_and_comment_api_view(request):
     if is_staff_override and not request_user.is_staff:
         raise PermissionDenied("Non-staff users cannot use the is_staff_override flag.")
 
-    if user_id:
-        user = get_object_or_404(User, id=user_id)
+    if is_staff_override:
+        if user_id:
+            user = get_object_or_404(User, id=user_id)
+        else:
+            user = get_object_or_404(User, username=username)
     else:
-        user = get_object_or_404(User, username=username)
-
-    if not is_staff_override:
-        is_self = user.id == request_user.id
+        user = (
+            User.objects.filter(id=user_id).first()
+            if user_id
+            else User.objects.filter(username=username).first()
+        )
+        is_self = user is not None and user.id == request_user.id
         is_own_bot = (
-            user.is_bot
+            user is not None
+            and user.is_bot
             and user.bot_owner_id is not None
             and user.bot_owner_id == request_user.id
         )
         if not is_self and not is_own_bot:
             raise PermissionDenied(
-                "Non-staff users can only submit forecasts and comments as themselves or their bots."
+                "Non-staff users can only submit forecasts and comments as themselves "
+                "or their bots."
             )
 
     now = timezone.now()

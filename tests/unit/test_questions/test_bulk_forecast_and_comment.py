@@ -215,7 +215,7 @@ class TestBulkForecastAndComment:
         )
         assert response.status_code == 403
 
-    def test_unknown_user_id_returns_404(self, user1_client, open_question):
+    def test_unknown_user_id_returns_403(self, user1_client, open_question):
         response = user1_client.post(
             URL,
             data=json.dumps(
@@ -223,14 +223,31 @@ class TestBulkForecastAndComment:
             ),
             content_type="application/json",
         )
-        assert response.status_code == 404
+        assert response.status_code == 403
 
-    def test_unknown_username_returns_404(self, user1_client, open_question):
+    def test_unknown_username_returns_403(self, user1_client, open_question):
         response = user1_client.post(
             URL,
             data=json.dumps(
                 {
                     "username": "does_not_exist",
+                    "forecasts": [forecast_payload(open_question)],
+                }
+            ),
+            content_type="application/json",
+        )
+        assert response.status_code == 403
+
+    def test_staff_override_unknown_user_id_returns_404(
+        self, create_client_for_user, user_staff, open_question
+    ):
+        staff_client = create_client_for_user(user_staff)
+        response = staff_client.post(
+            URL,
+            data=json.dumps(
+                {
+                    "user_id": 999999,
+                    "is_staff_override": True,
                     "forecasts": [forecast_payload(open_question)],
                 }
             ),
