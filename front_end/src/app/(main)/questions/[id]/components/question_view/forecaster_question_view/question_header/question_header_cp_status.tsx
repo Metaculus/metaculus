@@ -208,8 +208,8 @@ const QuestionHeaderCPStatus: FC<Props> = ({
         className={cn(
           "flex flex-col",
           {
-            "gap-4": size === "lg", // Desktop: 16px gap
-            "gap-1.5": size === "md", // Mobile: 6px gap
+            "w-36 items-center": size === "lg",
+            "gap-1.5": size === "md",
           },
           isEmbed && "[@container(max-width:375px)]:scale-[130%]"
         )}
@@ -225,7 +225,8 @@ const QuestionHeaderCPStatus: FC<Props> = ({
           <QuestionCPMovement
             question={question}
             className={cn("mx-auto pb-1 text-center", {
-              "w-max max-w-[120px]": size === "md", // 🎯 Mobile constraint
+              "w-max max-w-32": size === "md",
+              "-mt-[55px]": size === "lg",
             })}
             size="sm"
             unit={"%"}

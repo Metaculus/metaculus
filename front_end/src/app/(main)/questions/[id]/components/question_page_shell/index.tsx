@@ -209,7 +209,7 @@ export const ConsumerShell: FC<{
             )}
           >
             {isBinarySingleQuestion && isQuestionPost(postData) ? (
-              <div className="order-1 sm:pl-4 lg:pl-0">
+              <div className="order-1 flex w-64 flex-col items-center justify-center gap-[18px] self-center sm:self-stretch">
                 <QuestionHeaderCPStatus
                   question={postData.question}
                   size="lg"

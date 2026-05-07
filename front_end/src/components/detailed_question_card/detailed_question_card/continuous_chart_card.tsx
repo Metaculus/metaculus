@@ -14,7 +14,6 @@ import ContinuousPredictionChart from "@/components/forecast_maker/continuous_in
 import Button from "@/components/ui/button";
 import { GroupButton } from "@/components/ui/button_group";
 import { useAuth } from "@/contexts/auth_context";
-import useContainerSize from "@/hooks/use_container_size";
 import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
 import { KeyFactor } from "@/types/comment";
 import {
@@ -83,8 +82,6 @@ const DetailedContinuousChartCard: FC<Props> = ({
   const isConsumerView = isConsumerViewProp ?? !user;
   const [isChartReady, setIsChartReady] = useState(false);
   const [activeView, setActiveView] = useState<ChartView>("timeline");
-  const { ref: histogramContainerRef, width: histogramWidth } =
-    useContainerSize<HTMLDivElement>();
 
   const aggregation =
     question.aggregations[question.default_aggregation_method];
@@ -238,7 +235,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
           key={value}
           onClick={() => setActiveView(value)}
           className={cn(
-            "rounded border-0 px-1 py-0.5 text-sm font-normal leading-4",
+            "h-6 rounded border-0 px-1 py-0.5 text-sm font-normal leading-4",
             activeView === value
               ? "bg-blue-200 text-blue-800 hover:text-blue-800 active:text-blue-800 dark:bg-blue-200-dark dark:text-blue-800-dark"
               : "text-gray-500 hover:text-gray-500 active:text-gray-500 dark:text-gray-500-dark"
@@ -333,9 +330,16 @@ const DetailedContinuousChartCard: FC<Props> = ({
     return (
       <div className="flex w-full flex-col">
         {!isEmbed && !hideTitle && (
-          <div className="mb-2.5 flex w-full md:mb-5">{viewToggle}</div>
+          <div className="mb-2.5 flex w-full md:mb-5">
+            <div className="text-xs font-normal text-blue-900 dark:text-gray-900-dark md:text-base">
+              {viewToggle}
+            </div>
+          </div>
         )}
-        <div ref={histogramContainerRef}>
+        <div
+          className="flex w-full flex-col justify-center"
+          style={{ height: chartHeight }}
+        >
           {hideCP || isCpHidden ? (
             <RevealCPButton />
           ) : (
@@ -344,7 +348,6 @@ const DetailedContinuousChartCard: FC<Props> = ({
               median={median}
               mean={mean}
               color="gray"
-              width={histogramWidth}
             />
           )}
         </div>
