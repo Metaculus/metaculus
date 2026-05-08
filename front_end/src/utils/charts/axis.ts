@@ -356,7 +356,13 @@ function niceTicksAtMost(
   maxCount: number
 ): number[] {
   for (let c = Math.max(1, maxCount); c >= 1; c--) {
-    const t = d3.ticks(start, stop, c);
+    // Expand the bounds outward to the nearest step boundary so d3 can
+    // pick endpoints like 1.0 even when the data only goes to 1.05.
+    // Equivalent to what d3.scaleLinear().nice() does internally.
+    const step = d3.tickStep(start, stop, c);
+    const niceStart = Math.floor(start / step) * step;
+    const niceStop = Math.ceil(stop / step) * step;
+    const t = d3.ticks(niceStart, niceStop, c);
     if (t.length >= 2 && t.length <= maxCount) return t;
   }
   // Degenerate range, or nothing fits — keep the endpoints so callers
@@ -878,7 +884,11 @@ export function generateScale({
   // }
 
   return {
-    ticks: minorTicks,
+    // alwaysShowTicks tells the chart to label every tick value verbatim
+    // (it bypasses the major/minor filter in tickFormat). Returning the
+    // major array honors the cap-of-4 in that case; returning the dense
+    // minor array would let callers like group_chart blow past the cap.
+    ticks: alwaysShowTicks ? majorTicks : minorTicks,
     tickFormat: tickFormat,
     cursorFormat: cursorFormat,
   };
