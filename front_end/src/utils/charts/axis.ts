@@ -356,13 +356,7 @@ function niceTicksAtMost(
   maxCount: number
 ): number[] {
   for (let c = Math.max(1, maxCount); c >= 1; c--) {
-    // Expand the bounds outward to the nearest step boundary so d3 can
-    // pick endpoints like 1.0 even when the data only goes to 1.05.
-    // Equivalent to what d3.scaleLinear().nice() does internally.
-    const step = d3.tickStep(start, stop, c);
-    const niceStart = Math.floor(start / step) * step;
-    const niceStop = Math.ceil(stop / step) * step;
-    const t = d3.ticks(niceStart, niceStop, c);
+    const t = d3.ticks(start, stop, c);
     if (t.length >= 2 && t.length <= maxCount) return t;
   }
   // Degenerate range, or nothing fits — keep the endpoints so callers
