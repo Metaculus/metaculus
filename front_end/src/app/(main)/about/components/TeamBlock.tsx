@@ -351,6 +351,13 @@ const people: Person[] = [
     introduction:
       "Jesse Damiani is a writer, curator, and foresight strategist who founded the Reality Studies newsletter and Urgent Futures podcast. He has taught at NYU, USC, SCI-Arc, and elsewhere, and served as Research Affiliate at Institute for the Future and Director of Emerging Technology & Insight at Southern New Hampshire University. His writing appears in Architectural Design, Flash Art, NBC News, WIRED, and The Yale Review.",
   },
+  {
+    name: "Carolin Ullrich",
+    position: "Principal Product Manager",
+    imgSrc: "https://cdn.metaculus.com/caro-grayscale.webp",
+    introduction:
+      "Carolin is a Principal Product Manager at Metaculus, focused on bridging the gap between generating accurate forecasts and enabling organizations to translate them into better decisions. She brings a background in B2B SaaS, having worked at a Data and AI company serving multinational clients across industries. She holds degrees in Psychology and Human-Computer Interaction. Outside of work, Carolin tends to her garden (a hobby she'll tell you has a lot in common with foresight).",
+  },
 ];
 
 const groups: Groups = {
@@ -375,6 +382,7 @@ const groups: Groups = {
     "Kelley Edelmann",
     "Grace McLain",
     "Jesse Damiani",
+    "Carolin Ullrich",
   ],
   board: [
     "Anthony Aguirre",
