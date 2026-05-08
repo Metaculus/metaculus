@@ -236,7 +236,7 @@ const NumericChart: FC<Props> = ({
     return (
       <VictoryCursorContainer
         cursorDimension={"x"}
-        defaultCursor={defaultCursor}
+        defaultCursorValue={defaultCursor}
         style={{
           touchAction: "pan-y",
         }}

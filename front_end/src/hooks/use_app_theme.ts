@@ -61,7 +61,7 @@ const useAppTheme = () => {
   return {
     theme,
     // Currently selected theme. Could be dark, light or system
-    themeChoice: themeChoice ?? AppTheme.System,
+    themeChoice: (themeChoice as AppTheme) ?? AppTheme.System,
     isSyncing,
     setTheme: setTheme as Dispatch<SetStateAction<AppTheme>>,
     getThemeColor,
