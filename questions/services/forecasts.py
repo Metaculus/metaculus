@@ -4,14 +4,17 @@ from datetime import datetime, timedelta, timezone as dt_timezone
 from typing import cast, Iterable, Literal
 
 import sentry_sdk
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import F, Q, QuerySet, Subquery, OuterRef, Count
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from notifications.constants import MailingTags
 from posts.models import PostUserSnapshot, PostSubscription
-from posts.services.subscriptions import create_subscription_cp_change
+from posts.services.subscriptions import (
+    create_subscription_cp_change,
+    create_subscription,
+)
 from posts.tasks import run_on_post_forecast
 from questions.services.multiple_choice_handlers import get_all_options_from_history
 from scoring.models import Score
@@ -256,35 +259,100 @@ def update_forecast_notification(
         )  # If end_time is None, same case as duration 0 -> no notification
         total_lifetime = end_time - start_time
 
-        if (
+        skip_notification = (
             forecast.end_time is not None
             and question.scheduled_close_time is not None
             and forecast.end_time >= question.scheduled_close_time
-        ):
-            # If the forecast.end_time is after the question.scheduled_close_time,
-            # don't create a notification
-            return
+        ) or total_lifetime < timedelta(hours=8)
 
-        # Determine trigger time based on lifetime
-        if total_lifetime < timedelta(hours=8):
-            return
-        elif total_lifetime > timedelta(weeks=3):
-            # If lifetime > 3 weeks, trigger 1 week before end
-            trigger_time = end_time - timedelta(weeks=1)
-        else:
-            # Otherwise, trigger 1 day before end
-            trigger_time = end_time - timedelta(days=1)
+        if not skip_notification:
+            # Determine trigger time based on lifetime
+            if total_lifetime > timedelta(weeks=3):
+                # If lifetime > 3 weeks, trigger 1 week before end
+                trigger_time = end_time - timedelta(weeks=1)
+            else:
+                # Otherwise, trigger 1 day before end
+                trigger_time = end_time - timedelta(days=1)
 
-        # Create or update the notification
-        UserForecastNotification.objects.update_or_create(
-            user=user,
-            question=question,
-            defaults={
-                "trigger_time": trigger_time,
-                "email_sent": False,
-                "forecast": forecast,
-            },
+            # Create or update the notification
+            UserForecastNotification.objects.update_or_create(
+                user=user,
+                question=question,
+                defaults={
+                    "trigger_time": trigger_time,
+                    "email_sent": False,
+                    "forecast": forecast,
+                },
+            )
+
+    if created and user.automatically_follow_on_predict:
+        post = question.post
+        existing_subscription = post.subscriptions.filter(user=user).exclude(
+            is_global=True
         )
+        if (
+            user.follow_notify_cp_change_threshold
+            and not existing_subscription.filter(
+                type=PostSubscription.SubscriptionType.CP_CHANGE
+            ).exists()
+        ):
+            try:
+                with transaction.atomic():
+                    create_subscription(
+                        subscription_type=PostSubscription.SubscriptionType.CP_CHANGE,
+                        user=user,
+                        post=post,
+                        cp_change_threshold=user.follow_notify_cp_change_threshold,
+                    )
+            except IntegrityError:
+                pass
+        if (
+            user.follow_notify_comments_frequency
+            and not existing_subscription.filter(
+                type=PostSubscription.SubscriptionType.NEW_COMMENTS
+            ).exists()
+        ):
+            try:
+                with transaction.atomic():
+                    create_subscription(
+                        subscription_type=PostSubscription.SubscriptionType.NEW_COMMENTS,
+                        user=user,
+                        post=post,
+                        comments_frequency=user.follow_notify_comments_frequency,
+                    )
+            except IntegrityError:
+                pass
+        if (
+            user.follow_notify_milestone_step
+            and not existing_subscription.filter(
+                type=PostSubscription.SubscriptionType.MILESTONE
+            ).exists()
+        ):
+            try:
+                with transaction.atomic():
+                    create_subscription(
+                        subscription_type=PostSubscription.SubscriptionType.MILESTONE,
+                        user=user,
+                        post=post,
+                        milestone_step=user.follow_notify_milestone_step,
+                    )
+            except IntegrityError:
+                pass
+        if (
+            user.follow_notify_on_status_change
+            and not existing_subscription.filter(
+                type=PostSubscription.SubscriptionType.STATUS_CHANGE
+            ).exists()
+        ):
+            try:
+                with transaction.atomic():
+                    create_subscription(
+                        subscription_type=PostSubscription.SubscriptionType.STATUS_CHANGE,
+                        user=user,
+                        post=post,
+                    )
+            except IntegrityError:
+                pass
 
 
 def get_last_aggregated_forecasts_for_questions(

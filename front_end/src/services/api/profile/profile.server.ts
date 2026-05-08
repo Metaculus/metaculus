@@ -24,6 +24,16 @@ type UpdateProfileRequest = {
   unsubscribed_preference_tags?: ProfilePreferencesType[];
   is_onboarding_complete?: boolean;
   language?: string | null;
+  hide_community_prediction?: boolean;
+  prediction_expiration_percent?: number | null;
+  app_theme?: string | null;
+  interface_type?: string;
+  metaculus_news_subscription?: boolean;
+  automatically_follow_on_predict?: boolean;
+  follow_notify_cp_change_threshold?: number | null;
+  follow_notify_comments_frequency?: number | null;
+  follow_notify_milestone_step?: number | null;
+  follow_notify_on_status_change?: boolean;
 };
 
 type UpdateBotRequest = {
