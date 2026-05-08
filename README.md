@@ -223,8 +223,6 @@ If you get an error that the playwright executable doesn't exist, run `uv run pl
 (TODO: add front end testing)
 When contributing to the project, adding tests is highly encouraged and will increase the likelihood of your PR being merged.
 
-## Linting
-We use Husky to run linter and typescript checks before committing (see `front_end/.husky`).
 
 ## Restricted Dev Access
 To enable restricted Dev access, you need to add `ALPHA_ACCESS_TOKEN=<token>` as an env variable for both the BE and the FE (both the FE server & the env where the FE is compiled, which should be the same in most cases)

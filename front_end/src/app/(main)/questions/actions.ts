@@ -30,7 +30,6 @@ import {
 } from "@/types/coherence";
 import { ErrorResponse } from "@/types/fetch";
 import { NotebookPost, PostSubscription } from "@/types/post";
-import { Tournament, TournamentType } from "@/types/projects";
 import { Question } from "@/types/question";
 import { DataParams, DeepPartial } from "@/types/utils";
 import { VoteDirection } from "@/types/votes";
@@ -119,16 +118,9 @@ export async function makeRepost(postId: number, projectId: number) {
   await ServerPostsApi.repost(postId, projectId);
 }
 
-export async function draftPost(postId: number, defaultProject: Tournament) {
+export async function draftPost(postId: number) {
   await ServerPostsApi.makeDraft(postId);
-
-  if (defaultProject.type === TournamentType.Community) {
-    return redirect(
-      `/c/${defaultProject.slug}/settings/?mode=questions&status=pending`
-    );
-  }
-
-  return redirect("/questions/?status=pending");
+  revalidatePath(`/questions/${postId}`);
 }
 
 export async function submitPostForReview(postId: number) {
