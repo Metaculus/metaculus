@@ -70,7 +70,7 @@ const ConditionalForecastTable: FC<Props> = ({
           </th>
         </tr>
       </thead>
-      <RadioGroup value={value} as="tbody" onChange={onChange}>
+      <RadioGroup value={value ?? undefined} as="tbody" onChange={onChange}>
         {options.map((option) => (
           <Radio
             as="tr"
@@ -104,15 +104,16 @@ const ConditionalForecastTable: FC<Props> = ({
                         {chunks}
                       </span>
                     ),
-                    forecastValue: formatForecastValue
-                      ? formatForecastValue(
-                          option.forecastInputMode ===
-                            ContinuousForecastInputType.Quantile
-                            ? option.quantileValue ?? null
-                            : option.value,
-                          option.forecastInputMode
-                        )
-                      : option.value,
+                    forecastValue:
+                      (formatForecastValue
+                        ? formatForecastValue(
+                            option.forecastInputMode ===
+                              ContinuousForecastInputType.Quantile
+                              ? option.quantileValue ?? null
+                              : option.value,
+                            option.forecastInputMode
+                          )
+                        : option.value) ?? "",
                   })}{" "}
                 </td>
               </>

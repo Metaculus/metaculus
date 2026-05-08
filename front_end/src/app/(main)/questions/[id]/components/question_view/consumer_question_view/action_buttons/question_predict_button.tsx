@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { PostWithForecasts } from "@/types/post";
+import { isPostPrePrediction } from "@/utils/questions/predictions";
 
 type Props = {
   post: PostWithForecasts;
@@ -40,7 +41,7 @@ const QuestionPredictButton: React.FC<Props> = ({ post }) => {
     <>
       <Button variant="tertiary" onClick={handleClick}>
         <FontAwesomeIcon icon={faPercent} />
-        {t("predict")}
+        {isPostPrePrediction(post) ? t("prePredict") : t("predict")}
       </Button>
 
       {!isDesktop ? (

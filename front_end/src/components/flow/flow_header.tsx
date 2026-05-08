@@ -32,7 +32,7 @@ export const FlowHeaderRoot: FC<RootProps> = ({ title, children }) => {
 
   return (
     <FlowHeaderContext.Provider value={value}>
-      <header className="fixed left-0 top-0 z-50 flex h-12 w-full flex-auto flex-nowrap items-center justify-between bg-blue-900 text-gray-0">
+      <header className="fixed left-0 top-0 z-100 flex h-12 w-full flex-auto flex-nowrap items-center justify-between bg-blue-900 text-gray-0">
         {children}
       </header>
     </FlowHeaderContext.Provider>

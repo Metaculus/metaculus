@@ -2,7 +2,7 @@ import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { useTranslations } from "next-intl";
-import { FC, useMemo } from "react";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import ChoiceCheckbox from "@/components/choice_checkbox";
 import Button from "@/components/ui/button";
@@ -10,13 +10,13 @@ import Checkbox from "@/components/ui/checkbox";
 import useAppTheme from "@/hooks/use_app_theme";
 import { ChoiceItem } from "@/types/choices";
 import cn from "@/utils/core/cn";
+import { truncateLabel } from "@/utils/formatters/string";
 
 type Props = {
   choices: ChoiceItem[];
   onChoiceChange: (choice: string, checked: boolean) => void;
   onChoiceHighlight: (choice: string, highlighted: boolean) => void;
   onToggleAll: (checked: boolean) => void;
-  maxLegendChoices: number;
   othersToggle?: boolean;
   onOthersToggle?: (checked: boolean) => void;
   othersDisabled?: boolean;
@@ -27,7 +27,6 @@ const ChoicesLegend: FC<Props> = ({
   onChoiceChange,
   onChoiceHighlight,
   onToggleAll,
-  maxLegendChoices,
   othersToggle,
   onOthersToggle,
   othersDisabled,
@@ -35,15 +34,34 @@ const ChoicesLegend: FC<Props> = ({
   const t = useTranslations();
   const { getThemeColor } = useAppTheme();
   const mcMode = typeof othersToggle === "boolean" && !!onOthersToggle;
-  const { legendChoices, dropdownChoices } = useMemo(() => {
-    const left = choices.slice(0, maxLegendChoices);
-    const right = choices.slice(maxLegendChoices);
-    if (mcMode) {
-      const leftOff = left.filter((c) => !c.active);
-      return { legendChoices: left, dropdownChoices: [...leftOff, ...right] };
-    }
-    return { legendChoices: left, dropdownChoices: right };
-  }, [choices, maxLegendChoices, mcMode]);
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const [pinnedChoices, setPinnedChoices] = useState<Set<string>>(
+    () => new Set(choices.filter((c) => c.active).map((c) => c.choice))
+  );
+  useEffect(() => {
+    if (isDropdownOpen) return;
+    setPinnedChoices((prev) => {
+      const next = new Set(prev);
+      let changed = false;
+      choices.forEach((c) => {
+        if (c.active && !next.has(c.choice)) {
+          next.add(c.choice);
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [choices, isDropdownOpen]);
+
+  const { legendChoices, dropdownChoices } = useMemo(
+    () => ({
+      legendChoices: choices.filter((c) => pinnedChoices.has(c.choice)),
+      dropdownChoices: choices.filter((c) => !pinnedChoices.has(c.choice)),
+    }),
+    [choices, pinnedChoices]
+  );
 
   const areAllSelected = useMemo(() => {
     const selectedCount = choices.reduce(
@@ -58,12 +76,16 @@ const ChoicesLegend: FC<Props> = ({
     [t, dropdownChoices.length]
   );
 
+  const handleDropdownOpenChange = useCallback((open: boolean) => {
+    setIsDropdownOpen(open);
+  }, []);
+
   return (
-    <div className="relative flex flex-wrap items-center justify-center gap-[14px] text-xs font-normal">
+    <div className="relative flex flex-wrap items-center gap-x-3.5 gap-y-2 text-xs font-normal">
       {legendChoices.map(({ label, choice, color, active }, idx) => (
         <ChoiceCheckbox
           key={`multiple-choice-legend-${choice}-${idx}`}
-          label={label || choice}
+          label={truncateLabel(label || choice, 30)}
           color={color.DEFAULT}
           checked={active}
           onChange={(checked) => onChoiceChange(choice, checked)}
@@ -71,7 +93,7 @@ const ChoicesLegend: FC<Props> = ({
         />
       ))}
       {!!dropdownChoices.length && (
-        <div className="flex items-center gap-1 md:ml-auto">
+        <div className="flex items-center gap-1">
           {mcMode && (
             <Checkbox
               checked={!!othersToggle}
@@ -89,6 +111,10 @@ const ChoicesLegend: FC<Props> = ({
           <Popover className="relative">
             {({ open }) => (
               <>
+                <PopoverOpenSync
+                  open={open}
+                  onChange={handleDropdownOpenChange}
+                />
                 {!mcMode ? (
                   <PopoverButton
                     as={Button}
@@ -144,6 +170,16 @@ const ChoicesLegend: FC<Props> = ({
       )}
     </div>
   );
+};
+
+const PopoverOpenSync: FC<{
+  open: boolean;
+  onChange: (open: boolean) => void;
+}> = ({ open, onChange }) => {
+  useEffect(() => {
+    onChange(open);
+  }, [open, onChange]);
+  return null;
 };
 
 export default ChoicesLegend;

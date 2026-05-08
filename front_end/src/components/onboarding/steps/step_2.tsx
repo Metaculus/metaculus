@@ -43,7 +43,7 @@ const Step2: React.FC<OnboardingStep> = ({
   return (
     <Step>
       <Step.Title>
-        {t("onboardingStep3Title", { topicName: topic?.name })}
+        {t("onboardingStep3Title", { topicName: topic?.name ?? "" })}
       </Step.Title>
       <Step.QuestionContainer>
         <Step.QuestionTitle>{post.title}</Step.QuestionTitle>

@@ -36,7 +36,7 @@ class TestSimpleFunctionality:
         page = context.new_page()
         page.on("console", lambda msg: print("[Browser console] ", msg.text))
 
-        url = "http://localhost:3000/"
+        url = "http://localhost:3000/questions/"
         page.goto(url)
 
         page.get_by_role("button", name="Log in").click()

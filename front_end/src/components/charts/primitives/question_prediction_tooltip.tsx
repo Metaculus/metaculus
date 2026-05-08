@@ -62,7 +62,7 @@ const QuestionPredictionTooltip: FC<Props> = ({
         <hr className="relative mx-[-12px] border-gray-300 dark:border-gray-300-dark" />
         <div className="flex w-full items-center justify-between">
           <span className="text-sm font-medium">
-            {t("totalForecastersLabel")}
+            {t("activeForecastersLabel")}
           </span>
           <span className="text-sm tabular-nums">{totalForecasters}</span>
         </div>

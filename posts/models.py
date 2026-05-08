@@ -870,6 +870,12 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
 
         return self.comment_count
 
+    def update_cached_fields(self):
+        self.update_forecasts_count()
+        self.update_forecasters_count()
+        self.update_vote_score()
+        self.update_comment_count()
+
     def __str__(self):
         return self.title
 
@@ -1035,11 +1041,17 @@ class PostUserSnapshot(models.Model):
 
     @classmethod
     def update_last_forecast_date(cls, post: Post, user: User):
+        now = timezone.now()
         cls.objects.update_or_create(
             user=user,
             post=post,
             defaults={
-                "last_forecast_date": timezone.now(),
+                "last_forecast_date": now,
+            },
+            create_defaults={
+                "last_forecast_date": now,
+                "comments_count": post.get_comment_count(),
+                "viewed_at": now,
             },
         )
 

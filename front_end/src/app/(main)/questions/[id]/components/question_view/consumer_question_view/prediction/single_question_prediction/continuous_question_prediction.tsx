@@ -9,9 +9,13 @@ import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvail
 
 type Props = {
   question: QuestionWithNumericForecasts;
+  chartHeight?: number;
 };
 
-const ContinuousQuestionPrediction: React.FC<Props> = ({ question }) => {
+const ContinuousQuestionPrediction: React.FC<Props> = ({
+  question,
+  chartHeight,
+}) => {
   const forecastAvailability = getQuestionForecastAvailability(question);
 
   // Hide chart if no forecasts or CP not yet revealed
@@ -37,7 +41,7 @@ const ContinuousQuestionPrediction: React.FC<Props> = ({ question }) => {
               <MinifiedContinuousAreaChart
                 question={question}
                 data={continuousAreaChartData}
-                height={50}
+                height={chartHeight ?? 50}
                 forceTickCount={2}
                 variant="question"
               />

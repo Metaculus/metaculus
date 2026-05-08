@@ -29,7 +29,9 @@ const EmbedQuestionFooter: React.FC<Props> = ({ post, ogReady }) => {
           className="!px-1.5 py-1 [&_strong]:font-normal [&_svg]:text-gray-400 [&_svg]:dark:text-gray-400-dark"
           totalCount={post.comment_count ?? 0}
           unreadCount={post.unread_comment_count ?? 0}
-          url={""}
+          url={questionUrl}
+          target="_blank"
+          rel="noopener noreferrer"
         />
       </div>
 

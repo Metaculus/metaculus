@@ -11,7 +11,6 @@ from utils.the_math.formulas import (
 
 
 class TestFormulas:
-
     binary_details = {"type": Question.QuestionType.BINARY}
     multiple_choice_details = {
         "type": Question.QuestionType.MULTIPLE_CHOICE,

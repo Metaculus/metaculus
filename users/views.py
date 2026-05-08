@@ -12,9 +12,11 @@ from rest_framework.response import Response
 
 from authentication.models import ApiKey
 from authentication.services import get_tokens_for_user, send_password_reset_email
+from projects.models import Project
 from users.models import User, UserSpamActivity
 from users.serializers import (
     UserPrivateSerializer,
+    UserPrivateDataAccessSerializer,
     UserPublicSerializer,
     validate_username,
     UserUpdateProfileSerializer,
@@ -27,6 +29,7 @@ from users.serializers import (
 )
 from users.services.common import (
     get_users,
+    mark_user_as_spam,
     user_unsubscribe_tags,
     send_email_change_confirmation_email,
     change_email_from_token,
@@ -48,7 +51,7 @@ logger = logging.getLogger(__name__)
 @permission_classes([IsAdminUser])
 def mark_as_spam_user_api_view(request, pk):
     user_to_mark_as_spam: User = get_object_or_404(User, pk=pk)
-    user_to_mark_as_spam.mark_as_spam()
+    mark_user_as_spam(user_to_mark_as_spam)
     return Response(status=status.HTTP_200_OK)
 
 
@@ -58,8 +61,10 @@ def current_user_api_view(request):
     A lightweight profile data of the current user
     Should contain minimum profile data without heavy calcs
     """
-
-    return Response(UserPrivateSerializer(request.user).data)
+    if request.GET.get("with_data_access") == "true":
+        return Response(UserPrivateDataAccessSerializer(request.user).data)
+    else:
+        return Response(UserPrivateSerializer(request.user).data)
 
 
 @api_view(["GET"])
@@ -127,7 +132,7 @@ def update_profile_api_view(request: Request) -> Response:
     is_spam, _ = check_profile_update_for_spam(user, serializer)
 
     if is_spam:
-        user.mark_as_spam()
+        mark_user_as_spam(user)
         send_deactivation_email(user.email)
         return Response(
             data={
@@ -137,6 +142,18 @@ def update_profile_api_view(request: Request) -> Response:
             },
             status=status.HTTP_403_FORBIDDEN,
         )
+
+    metaculus_news_subscription: bool | None = serializer.validated_data.pop(
+        "metaculus_news_subscription", None
+    )
+    if metaculus_news_subscription is not None:
+        news_project = Project.objects.filter(slug="platform").first()
+        if news_project:
+            if metaculus_news_subscription:
+                user.project_subscriptions.get_or_create(project=news_project)
+            else:
+                user.project_subscriptions.filter(project=news_project).delete()
+
     unsubscribe_tags: list[str] | None = serializer.validated_data.get(
         "unsubscribed_mailing_tags"
     )
@@ -256,7 +273,7 @@ def update_bot_profile_api_view(request: Request, pk: int):
     is_spam, _ = check_profile_update_for_spam(bot, serializer)
 
     if is_spam:
-        user.mark_as_spam()
+        mark_user_as_spam(user)
         send_deactivation_email(user.email)
 
         return Response(

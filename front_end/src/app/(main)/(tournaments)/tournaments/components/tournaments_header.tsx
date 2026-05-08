@@ -16,7 +16,8 @@ const STICKY_TOP = 48;
 const POPOVER_GAP = 10;
 
 const TournamentsHeader: React.FC = () => {
-  const { current, infoOpen, toggleInfo, closeInfo } = useTournamentsSection();
+  const { current, isSearching, infoOpen, toggleInfo, closeInfo } =
+    useTournamentsSection();
   const {
     dismissed,
     dismiss: infoDismiss,
@@ -73,29 +74,27 @@ const TournamentsHeader: React.FC = () => {
               <TournamentsTabs current={current} />
             </div>
 
-            {current !== "indexes" && (
-              <div className="hidden items-center gap-3 lg:flex">
-                <TournamentsFilter />
-                <TournamentsSearch />
+            <div className="hidden items-center gap-3 lg:flex">
+              {current !== "indexes" && <TournamentsFilter />}
+              <TournamentsSearch />
 
-                {showInfo && isLg ? (
-                  <TournamentsInfoPopover
-                    open={infoOpen}
-                    onOpenChange={(next) => {
-                      if (next) {
-                        toggleInfo();
-                        return;
-                      }
+              {showInfo && isLg && current !== "indexes" && !isSearching ? (
+                <TournamentsInfoPopover
+                  open={infoOpen}
+                  onOpenChange={(next) => {
+                    if (next) {
+                      toggleInfo();
+                      return;
+                    }
 
-                      infoDismiss();
-                      closeInfo();
-                    }}
-                    offsetPx={POPOVER_GAP}
-                    stickyTopPx={STICKY_TOP}
-                  />
-                ) : null}
-              </div>
-            )}
+                    infoDismiss();
+                    closeInfo();
+                  }}
+                  offsetPx={POPOVER_GAP}
+                  stickyTopPx={STICKY_TOP}
+                />
+              ) : null}
+            </div>
           </div>
         </div>
       </div>

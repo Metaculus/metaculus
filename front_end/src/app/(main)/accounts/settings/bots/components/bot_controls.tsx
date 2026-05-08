@@ -41,7 +41,7 @@ const BotControls: FC<Props> = ({ bot }) => {
     if (response.token) {
       setApiToken(response.token);
     } else if (response.errors) {
-      toast.error(extractError(response.errors));
+      toast.error(extractError(response.errors) ?? null);
     }
   };
 
@@ -54,7 +54,7 @@ const BotControls: FC<Props> = ({ bot }) => {
       const response = await impersonateBotAction(id);
 
       if (response?.errors) {
-        toast.error(extractError(response.errors));
+        toast.error(extractError(response.errors) ?? null);
       }
     } finally {
       setIsImpersonating(false);

@@ -18,7 +18,7 @@ from questions.constants import UnsuccessfulResolutionType
 from questions.models import AggregateForecast, Forecast, Question
 from questions.types import AggregationMethod
 from scoring.constants import ScoreTypes, LeaderboardScoreTypes
-from scoring.models import Leaderboard, LeaderboardEntry, Score
+from scoring.models import Leaderboard, LeaderboardEntry, Score, ExclusionStatuses
 from scoring.score_math import (
     evaluate_forecasts_peer_accuracy,
     evaluate_forecasts_peer_spot_forecast,
@@ -206,9 +206,7 @@ def gather_data(
     for question_number, question in enumerate(questions, 1):
         # TODO: cache results every ~100 questions, clearing lists of values
         question_print_str = (
-            f"\033[K"
-            f"| {question_number:>5}/{question_count:<5} "
-            f"| {question.id:<5} "
+            f"\033[K| {question_number:>5}/{question_count:<5} | {question.id:<5} "
         )
         if question.id in cached_question_ids:
             # Skip questions that are already cached
@@ -935,8 +933,8 @@ def run_update_global_bot_leaderboard(
         excluded = False
         if isinstance(uid, int):
             user = User.objects.get(id=uid)
-            bot_details = (user.metadata or dict()).get("bot_details")
-            if bot_details and not bot_details.get("display_in_leaderboard"):
+            bot_details = user.metadata["bot_details"]
+            if not bot_details.get("display_in_leaderboard"):
                 excluded = True
 
         entry: LeaderboardEntry = entry_dict.pop(uid, LeaderboardEntry())
@@ -945,8 +943,9 @@ def run_update_global_bot_leaderboard(
         entry.leaderboard = leaderboard
         entry.score = skill
         entry.rank = rank
-        entry.excluded = excluded
-        entry.show_when_excluded = False
+        entry.exclusion_status = (
+            ExclusionStatuses.EXCLUDE if excluded else ExclusionStatuses.INCLUDE
+        )
         entry.contribution_count = contribution_count
         entry.coverage = contribution_count / question_count
         entry.calculated_on = timezone.now()
@@ -970,24 +969,8 @@ def run_update_global_bot_leaderboard(
     ##########################################################################
     # DISPLAY
     print("Results:")
-    print(
-        "|  2.5%  "
-        "| Skill  "
-        "| 97.5%  "
-        "| Match  "
-        "| Quest. "
-        "|   ID   "
-        "| Username "
-    )
-    print(
-        "| Match  "
-        "|        "
-        "| Match  "
-        "| Count  "
-        "| Count  "
-        "|        "
-        "|          "
-    )
+    print("|  2.5%  | Skill  | 97.5%  | Match  | Quest. |   ID   | Username ")
+    print("| Match  |        | Match  | Count  | Count  |        |          ")
     print(
         "=========================================="
         "=========================================="

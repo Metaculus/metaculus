@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { TimelineChartZoomOption } from "@/types/charts";
+import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
 import { PostWithForecasts } from "@/types/post";
 
 import EmbedQuestionFooter from "./embed_question_footer";
@@ -18,6 +18,7 @@ type Props = {
   titleOverride?: string;
   containerWidth?: number;
   defaultZoom?: TimelineChartZoomOption;
+  embedChartType?: EmbedChartType;
 };
 
 const EmbedQuestionCard: React.FC<Props> = ({
@@ -28,6 +29,7 @@ const EmbedQuestionCard: React.FC<Props> = ({
   titleOverride,
   containerWidth,
   defaultZoom,
+  embedChartType,
 }) => {
   const [headerHeight, setHeaderHeight] = useState(0);
   const [legendHeight, setLegendHeight] = useState(0);
@@ -91,6 +93,7 @@ const EmbedQuestionCard: React.FC<Props> = ({
         onLegendHeightChange={setLegendHeight}
         theme={theme}
         defaultZoom={defaultZoom}
+        embedChartType={embedChartType}
       />
       <EmbedQuestionFooter ogReady={ogReady} post={post} />
     </QuestionViewModeProvider>

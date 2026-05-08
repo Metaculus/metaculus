@@ -6,6 +6,7 @@ import {
   MultipleChoiceTile,
   FanGraphTile,
 } from "@/components/post_card/multiple_choice_tile";
+import { getEffectiveVisibleCount } from "@/constants/questions";
 import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { TimelineChartZoomOption } from "@/types/charts";
@@ -19,8 +20,6 @@ import {
   getContinuousGroupScaling,
 } from "@/utils/questions/helpers";
 import { canPredictQuestion } from "@/utils/questions/predictions";
-
-const VISIBLE_CHOICES_COUNT = 3;
 
 type Props = {
   post: GroupOfQuestionsPost<QuestionWithNumericForecasts>;
@@ -55,11 +54,12 @@ const GroupOfQuestionsTile: FC<Props> = ({
   }
 
   const canPredict = canPredictQuestion(post, user);
+  const visibleCount = getEffectiveVisibleCount(questions.length);
 
   const choices = generateChoiceItemsFromGroupQuestions(
     post.group_of_questions,
     {
-      activeCount: VISIBLE_CHOICES_COUNT,
+      activeCount: visibleCount,
       locale,
       excludeUnit: true,
       resolutionSigfigs: 4,
@@ -71,7 +71,7 @@ const GroupOfQuestionsTile: FC<Props> = ({
       return (
         <FanGraphTile
           choices={choices}
-          visibleChoicesCount={VISIBLE_CHOICES_COUNT}
+          visibleChoicesCount={visibleCount}
           group={post.group_of_questions}
           groupType={groupType}
           canPredict={canPredict}
@@ -96,7 +96,7 @@ const GroupOfQuestionsTile: FC<Props> = ({
           timestamps={timestamps}
           actualCloseTime={actualCloseTime}
           openTime={openTime}
-          visibleChoicesCount={VISIBLE_CHOICES_COUNT}
+          visibleChoicesCount={visibleCount}
           defaultChartZoom={
             user
               ? TimelineChartZoomOption.All

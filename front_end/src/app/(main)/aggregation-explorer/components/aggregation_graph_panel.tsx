@@ -13,7 +13,10 @@ import {
   TimelineChartZoomOption,
 } from "@/types/charts";
 import { QuestionType } from "@/types/question";
-import { getPostDrivenTime } from "@/utils/questions/helpers";
+import {
+  getPostDrivenTime,
+  isContinuousQuestionType,
+} from "@/utils/questions/helpers";
 
 import DistributionCard from "./distribution_card";
 import EmptyGraphState from "./empty_graph_state";
@@ -36,12 +39,6 @@ type Props = {
   optionIndex: number;
   defaultConfigId: string | null;
 };
-
-const NUMERIC_TYPES = new Set([
-  QuestionType.Numeric,
-  QuestionType.Discrete,
-  QuestionType.Date,
-]);
 
 export default function AggregationGraphPanel({
   postId,
@@ -159,7 +156,7 @@ export default function AggregationGraphPanel({
   const actualCloseTime = getPostDrivenTime(mergedData.actual_close_time);
   const effectiveChartTimestamp = cursorTimestamp ?? timestamps.at(-1) ?? null;
 
-  const isNumericType = NUMERIC_TYPES.has(mergedData.type);
+  const isNumericType = isContinuousQuestionType(mergedData.type);
   const errorMethods = methods.filter((method) => method.isError);
 
   return (

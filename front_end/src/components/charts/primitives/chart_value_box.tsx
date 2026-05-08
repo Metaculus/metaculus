@@ -39,8 +39,7 @@ function getRectX(
         adjustedX -
         (textAlignToSide
           ? PLACEMENT_OFFSET_HORIZONTAL
-          : PLACEMENT_OFFSET_VERTICAL) +
-        textWidth -
+          : PLACEMENT_OFFSET_VERTICAL) -
         TEXT_PADDING / 2
       );
     case "right":
@@ -109,6 +108,10 @@ function getResolvedX(
   }
 }
 
+// Offset from chip geometric center to alphabetic baseline so the text
+// renders visually centered even in SVG viewers that ignore dominant-baseline.
+const TEXT_BASELINE_OFFSET = CHIP_FONT_SIZE * 0.35;
+
 function getTextY(
   placement: Placement,
   y: number,
@@ -116,7 +119,7 @@ function getTextY(
   textAlignToSide?: boolean
 ) {
   const baseY =
-    y + CHIP_FONT_SIZE / 10 - (isDistributionChip ? CHIP_HEIGHT : 0);
+    y + TEXT_BASELINE_OFFSET - (isDistributionChip ? CHIP_HEIGHT : 0);
   switch (placement) {
     case "left":
     case "right":
@@ -213,7 +216,10 @@ const ChartValueBox: FC<{
   const adjustedX =
     isCursorActive || isDistributionChip
       ? x
-      : chartWidth - rightPadding + textWidth / 2 + CHIP_OFFSET;
+      : Math.min(
+          chartWidth - rightPadding + textWidth / 2 + CHIP_OFFSET,
+          chartWidth - textWidth / 2 - 2
+        );
   const hasResolution = !!resolution && !isCursorActive;
 
   const chipFill =
@@ -256,7 +262,6 @@ const ChartValueBox: FC<{
         x={getTextX(placement, adjustedX, textAlignToSide)}
         y={getTextY(placement, y, isDistributionChip, textAlignToSide)}
         textAnchor={getTextAnchor(placement)}
-        dominantBaseline="middle"
         fill={getThemeColor(METAC_COLORS.gray["0"])}
         fontWeight="650"
         letterSpacing="0.02em"

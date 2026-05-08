@@ -5,13 +5,12 @@ import { useTranslations } from "next-intl";
 import { FC, useEffect, useMemo, useState } from "react";
 
 import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
-import QuestionCPMovement from "@/components/cp_movement";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import {
   FetchedAggregateCoherenceLink,
   QuestionLinkDirection,
 } from "@/types/coherence";
-import { ImpactDirectionCategory } from "@/types/comment";
+import { ImpactDirection, ImpactDirectionCategory } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import {
   QuestionType,
@@ -23,8 +22,12 @@ import { getPostLink } from "@/utils/navigation";
 
 import { KeyFactorImpactDirectionLabel } from "../../item_creation/driver/impact_direction_label";
 import KeyFactorCardContainer from "../key_factor_card_container";
-import { StrengthScale } from "../key_factor_strength_voter";
+import KeyFactorVotePanels, {
+  useKeyFactorVotePanels,
+} from "../key_factor_vote_panels";
+import { ActionItem } from "../more_panel";
 import QuestionLinkAgreeVoter from "./question_link_agree_voter";
+import { useQuestionLinkCopy } from "./use_question_link_copy";
 
 type Props = {
   link: FetchedAggregateCoherenceLink;
@@ -33,7 +36,9 @@ type Props = {
   id?: string;
   mode?: "forecaster" | "consumer";
   linkToComment?: boolean;
+  titleLinksToQuestion?: boolean;
   className?: string;
+  onClick?: () => void;
 };
 
 const otherQuestionCache = new Map<number, QuestionWithForecasts>();
@@ -45,7 +50,9 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
   id,
   mode = "forecaster",
   linkToComment = true,
+  titleLinksToQuestion = true,
   className,
+  onClick,
 }) => {
   const t = useTranslations();
   const isConsumer = mode === "consumer";
@@ -58,10 +65,27 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
   const [localStrength, setLocalStrength] = useState<number | null>(
     link.strength ?? null
   );
+  const [userVote, setUserVote] = useState<"agree" | "disagree" | null>(
+    link.votes?.user_vote === 1
+      ? "agree"
+      : link.votes?.user_vote === -1
+        ? "disagree"
+        : null
+  );
 
   useEffect(() => {
     setLocalStrength(link.strength ?? null);
   }, [link.strength, link.id]);
+
+  useEffect(() => {
+    setUserVote(
+      link.votes?.user_vote === 1
+        ? "agree"
+        : link.votes?.user_vote === -1
+          ? "disagree"
+          : null
+    );
+  }, [link.id, link.votes?.user_vote]);
 
   useEffect(() => {
     let cancelled = false;
@@ -121,10 +145,15 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
     };
   }, [isFirstQuestion, link]);
 
-  const votesCount = link.links_nr ?? 0;
-
-  const rawStrength = localStrength ?? 0;
-  const strengthScore = Math.max(0, Math.min(5, rawStrength));
+  const rawStrength = localStrength ?? link.strength ?? 0;
+  const baseStrength =
+    rawStrength > 0
+      ? Math.max(0, Math.min(5, rawStrength))
+      : link.direction
+        ? 2.5
+        : 0;
+  const strengthScore =
+    userVote === "agree" ? Math.max(baseStrength, 2.5) : baseStrength;
 
   const questionType: QuestionType | null =
     (isFirstQuestion ? otherQuestion?.type : post.question?.type) ?? null;
@@ -134,148 +163,201 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
     [link.direction, questionType]
   );
 
-  if (!otherQuestion || !post.question) return null;
+  const {
+    impactPanel,
+    downvotePanel,
+    morePanel,
+    handleUpvotePanelToggle,
+    handleDownvotePanelToggle,
+    handleMorePanelToggle,
+    closeAllPanels,
+  } = useKeyFactorVotePanels();
+
+  const [showDownvoteThanks, setShowDownvoteThanks] = useState(false);
+
+  const wrappedHandleDownvotePanelToggle = (open: boolean) => {
+    if (open) {
+      setShowDownvoteThanks(false);
+    }
+    handleDownvotePanelToggle(open);
+  };
+
+  const isFirstQuestionResolved = isFirstQuestion;
+  const fromQuestionRaw = isFirstQuestionResolved
+    ? post.question
+    : otherQuestion;
+  const toQuestionRaw = isFirstQuestionResolved ? otherQuestion : post.question;
+  const defaultDirection: QuestionLinkDirection =
+    link.direction && link.direction < 0 ? "negative" : "positive";
+
+  const { hasPersonalCopy, openCopyModal } = useQuestionLinkCopy({
+    fromQuestion: fromQuestionRaw ?? null,
+    toQuestion: toQuestionRaw ?? null,
+    defaultDirection,
+    defaultStrength: "medium",
+    targetElementId: id,
+    onCloseAllPanels: closeAllPanels,
+  });
+
+  const moreActions: ActionItem[] = useMemo(() => {
+    if (hasPersonalCopy) return [];
+    return [
+      {
+        label: t("copyToMyAccount"),
+        onClick: () => {
+          morePanel.closePanel();
+          openCopyModal();
+        },
+      },
+    ];
+  }, [hasPersonalCopy, t, morePanel, openCopyModal]);
+
+  if (!otherQuestion || !post.question) {
+    return (
+      <KeyFactorCardContainer
+        id={id}
+        linkToComment={linkToComment}
+        isCompact={compact}
+        mode={mode}
+        className={cn("animate-pulse shadow-sm", className)}
+      >
+        <div className="flex min-w-0 flex-col gap-3">
+          <div className="h-3 w-20 rounded bg-gray-200 dark:bg-gray-200-dark" />
+          <div className="flex flex-col gap-1.5">
+            <div className="h-4 w-full rounded bg-gray-200 dark:bg-gray-200-dark" />
+            <div className="h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-200-dark" />
+          </div>
+          <div className="h-3 w-28 rounded bg-gray-200 dark:bg-gray-200-dark" />
+        </div>
+        <div className="flex items-end">
+          <div className="flex gap-0.5">
+            <div className="h-6 w-12 rounded bg-gray-200 dark:bg-gray-200-dark" />
+            <div className="h-6 w-12 rounded bg-gray-200 dark:bg-gray-200-dark" />
+          </div>
+        </div>
+      </KeyFactorCardContainer>
+    );
+  }
 
   const binaryForecastQuestion =
     otherQuestion?.type === QuestionType.Binary
       ? (otherQuestion as QuestionWithNumericForecasts & QuestionWithForecasts)
       : null;
 
-  const fromQuestion = isFirstQuestion ? post.question : otherQuestion;
-  const toQuestion = isFirstQuestion ? otherQuestion : post.question;
-  const defaultDirection: QuestionLinkDirection =
-    link.direction && link.direction < 0 ? "negative" : "positive";
-
-  const votesSummary = link.votes;
-
-  const initialAgree =
-    votesSummary?.aggregated_data?.find((x) => x.score === 1)?.count ?? 0;
-  const initialDisagree =
-    votesSummary?.aggregated_data?.find((x) => x.score === -1)?.count ?? 0;
-
-  const initialUserVote = votesSummary?.user_vote ?? null;
+  const impactDirection: ImpactDirection | null = link.direction
+    ? link.direction > 0
+      ? "increase"
+      : "decrease"
+    : null;
 
   return (
-    <KeyFactorCardContainer
-      id={id}
-      linkToComment={linkToComment}
-      isCompact={compact}
-      mode={mode}
-      className={cn(
-        "shadow-sm",
-        (compact || mode === "consumer") && "max-w-[240px]",
-        isCompactConsumer && "max-w-[186px]",
-        className
-      )}
-    >
-      {!isConsumer && (
-        <div className="flex justify-between">
+    <div ref={impactPanel.anchorRef} className="self-start">
+      <KeyFactorCardContainer
+        id={id}
+        linkToComment={linkToComment}
+        isCompact={compact}
+        mode={mode}
+        impactDirection={impactDirection}
+        impactStrength={strengthScore}
+        className={cn("shadow-sm", className)}
+        onClick={onClick}
+      >
+        <div className="flex min-w-0 flex-col gap-3">
           <div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
             {t("questionLink")}
           </div>
-        </div>
-      )}
 
-      <div className="flex items-center gap-3">
-        <Link
-          href={getPostLink({ id: otherQuestion.post_id })}
-          target="_blank"
-          className={cn(
-            "font-medium leading-5 text-gray-800 no-underline hover:underline dark:text-gray-800-dark",
-            {
-              "text-base": !isConsumer,
-              "text-sm": isConsumer && !isCompactConsumer,
-              "text-xs": isCompactConsumer,
-            }
+          {titleLinksToQuestion ? (
+            <Link
+              href={getPostLink({ id: otherQuestion.post_id })}
+              target="_blank"
+              onClick={(e) => e.stopPropagation()}
+              className={cn(
+                "min-w-0 font-medium text-gray-800 no-underline hover:underline dark:text-gray-800-dark",
+                compact ? "line-clamp-4 text-xs leading-4" : "text-sm leading-5"
+              )}
+            >
+              {otherQuestion.title}
+            </Link>
+          ) : (
+            <span
+              className={cn(
+                "min-w-0 font-medium text-gray-800 dark:text-gray-800-dark",
+                compact
+                  ? "line-clamp-4 text-xs leading-4"
+                  : cn("text-sm leading-5", "line-clamp-5")
+              )}
+            >
+              {otherQuestion.title}
+            </span>
           )}
-        >
-          {otherQuestion.title}
-        </Link>
 
-        {binaryForecastQuestion && (
-          <div
-            className={cn(
-              "flex flex-col items-center justify-center md:hidden",
-              isConsumer && "w-[53px] md:flex"
-            )}
-          >
-            <BinaryCPBar
-              question={
-                binaryForecastQuestion as unknown as QuestionWithNumericForecasts
-              }
-              size={isConsumer ? "xs" : "sm"}
-            />
-            <QuestionCPMovement
-              question={binaryForecastQuestion}
-              unit="%"
-              boldValueUnit
-              size="xs"
-            />
-          </div>
-        )}
-      </div>
-
-      <div className="flex flex-row gap-4">
-        {binaryForecastQuestion && (
-          <div
-            className={cn(
-              "hidden flex-col items-center justify-center md:flex",
-              isConsumer && "md:hidden"
-            )}
-          >
-            <BinaryCPBar
-              question={
-                binaryForecastQuestion as unknown as QuestionWithNumericForecasts
-              }
-              size={isCompactConsumer ? "xs" : "sm"}
-            />
-            <QuestionCPMovement
-              question={binaryForecastQuestion}
-              unit="%"
-              boldValueUnit
-              size="xs"
-            />
-          </div>
-        )}
-
-        <div className="flex flex-1 flex-col gap-3">
-          {impactCategory !== null && (
-            <div className="flex flex-col gap-1.5 leading-tight">
-              <div className="text-[10px] font-medium uppercase text-gray-500 dark:text-gray-500-dark">
-                {t("impact")}
+          {binaryForecastQuestion && (
+            <div className="relative h-9 w-14">
+              <div className="absolute inset-0 flex flex-col items-center">
+                <BinaryCPBar
+                  question={
+                    binaryForecastQuestion as unknown as QuestionWithNumericForecasts
+                  }
+                  size="xs"
+                />
               </div>
-              <KeyFactorImpactDirectionLabel
-                className={cn({
-                  "text-[10px]": isCompactConsumer,
-                })}
-                impact={impactCategory}
-                unit={otherQuestion.unit || post.question?.unit || undefined}
-              />
             </div>
           )}
 
-          <StrengthScale score={strengthScore} count={votesCount} mode={mode} />
+          {impactCategory !== null && (
+            <KeyFactorImpactDirectionLabel
+              className={cn("text-xs", {
+                "text-[10px]": isCompactConsumer,
+              })}
+              impact={impactCategory}
+              unit={otherQuestion.unit || post.question?.unit || undefined}
+              hideIcon
+            />
+          )}
         </div>
-      </div>
 
-      {!isConsumer && (
-        <>
-          <hr className="my-0 bg-gray-500 opacity-20 dark:bg-gray-500-dark" />
-          <QuestionLinkAgreeVoter
-            aggregationId={link.id}
-            initialAgree={initialAgree}
-            initialDisagree={initialDisagree}
-            initialUserVote={initialUserVote}
-            fromQuestion={fromQuestion}
-            toQuestion={toQuestion}
-            defaultDirection={defaultDirection}
-            defaultStrength="medium"
-            targetElementId={id}
-            onStrengthChange={(s) => setLocalStrength(s)}
-          />
-        </>
-      )}
-    </KeyFactorCardContainer>
+        <div className="flex w-full items-end">
+          <div
+            className="w-full"
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <QuestionLinkAgreeVoter
+              aggregationId={link.id}
+              hasPersonalCopy={hasPersonalCopy}
+              onChange={(next) => setUserVote(next)}
+              onStrengthChange={(s) => setLocalStrength(s)}
+              onVotePanelToggle={handleUpvotePanelToggle}
+              onDownvotePanelToggle={wrappedHandleDownvotePanelToggle}
+              onMorePanelToggle={handleMorePanelToggle}
+              isMorePanelOpen={morePanel.showPanel}
+            />
+          </div>
+        </div>
+      </KeyFactorCardContainer>
+
+      <KeyFactorVotePanels
+        impactPanel={impactPanel}
+        downvotePanel={downvotePanel}
+        morePanel={morePanel}
+        anchorRef={impactPanel.anchorRef}
+        isCompact={compact}
+        onDownvoteReasonSelect={() => setShowDownvoteThanks(true)}
+        showDownvoteThanks={showDownvoteThanks}
+        moreActions={moreActions}
+        moreHeader={
+          <span
+            className={cn(
+              "self-start font-normal leading-3 text-gray-500 dark:text-gray-500-dark",
+              compact ? "text-[8px]" : "text-[10px]"
+            )}
+          >
+            {t("questionLinkContributors", { count: link.links_nr })}
+          </span>
+        }
+      />
+    </div>
   );
 };
 

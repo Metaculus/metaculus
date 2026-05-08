@@ -69,11 +69,18 @@ const people: Person[] = [
       "Christian leads communications and marketing at Metaculus, working closely with the operations and program teams. Prior to joining Metaculus, he was a marketing operations lead in the aerospace and defense industry. Christian earned his master's degree in psychology from Rutgers University, where he conducted behavioral and fMRI research on moral judgment and decision-making. Before graduate school, he was a writer for The Onion AV Club and contributed material to Saturday Night Live.",
   },
   {
+    name: "Cole Sussmeier",
+    position: "Research Engineer",
+    imgSrc: "https://cdn.metaculus.com/about/cole_sussmeier.webp",
+    introduction:
+      "Cole is a Research Engineer at Metaculus, where he works on Radiant and on AI forecasting harnesses and experiments. Before joining Metaculus, he founded Automatic Industries, building predictive analytics models, machine learning pipelines, and dashboard applications for clients. He previously worked as a data science consultant at Deloitte and as a data scientist at COI Energy. Cole holds a master's degree in Data Analytics and a bachelor's degree in Business Analytics, with a minor in Mathematics, from Binghamton University.",
+  },
+  {
     name: "Nikitas Angeletos Chrysaitis",
-    position: "Forecasting Analyst",
+    position: "Forecasting Program Coordinator",
     imgSrc: "https://cdn.metaculus.com/nikitas-angeletos-chrysaitis.webp",
     introduction:
-      "Nikitas is a Forecasting Analyst at Metaculus, responsible for platform oversight, question development for various initiatives, and Metaculus Pro forecasting. He holds a background in Mathematics and a PhD in Computational Psychiatry from the University of Edinburgh.",
+      "Nikitas is the Forecasting Program Coordinator at Metaculus, where he leads key program initiatives and oversees the day-to-day functioning of the platform. He brings a strong quantitative foundation to the role, with a degree in Mathematics and a PhD in Computational Psychiatry. Before stepping into this position, Nikitas was a Pro Forecaster at Metaculus, giving him a practitioner's perspective on forecasting that informs all aspects of his work.",
   },
   {
     userId: 183695,
@@ -108,10 +115,10 @@ const people: Person[] = [
   {
     userId: 117502,
     name: "Ryan Beck",
-    position: "Forecasting Program Coordinator",
+    position: "Director of Forecasting",
     imgSrc: "https://cdn.metaculus.com/about/ryan_beck.webp",
     introduction:
-      "Ryan is Metaculus’ Forecasting Program Coordinator. He received a Master’s degree in Civil Engineering from Iowa State University, and was previously a bridge engineer for six years. He is an avid forecaster and a pro-forecaster at INFER. Ryan is also the author of a science fiction novel, <cite>SEER</cite>.",
+      "Ryan is the Director of Forecasting at Metaculus, leading the design and execution of forecasting programs that deliver rigorous, decision-relevant insight for clients, partners, and the broader platform. He joined Metaculus in 2022, following a six-year career as a Bridge Engineer focused on highway bridge design. A graduate of Iowa State University with a master’s in civil engineering, Ryan developed a strong interest in forecasting that later led to work as a Metaculus Pro Forecaster and two years as an INFER Pro Forecaster.",
   },
   {
     userId: 115975,
@@ -337,6 +344,20 @@ const people: Person[] = [
     introduction:
       "Grace is a researcher and evaluator with over a decade of experience in global health. She brings to Metaculus her experience in decision making under uncertainty, mixed methods research, and project delivery. She holds a Master of Science in Public Health from Johns Hopkins. In her spare time, she enjoys crafting/drawing, video/board games, and hiking in beautiful places.",
   },
+  {
+    name: "Jesse Damiani",
+    position: "Communications Strategist",
+    imgSrc: "https://cdn.metaculus.com/jesse.webp",
+    introduction:
+      "Jesse Damiani is a writer, curator, and foresight strategist who founded the Reality Studies newsletter and Urgent Futures podcast. He has taught at NYU, USC, SCI-Arc, and elsewhere, and served as Research Affiliate at Institute for the Future and Director of Emerging Technology & Insight at Southern New Hampshire University. His writing appears in Architectural Design, Flash Art, NBC News, WIRED, and The Yale Review.",
+  },
+  {
+    name: "Carolin Ullrich",
+    position: "Principal Product Manager",
+    imgSrc: "https://cdn.metaculus.com/caro-grayscale.webp",
+    introduction:
+      "Carolin is a Principal Product Manager at Metaculus, focused on bridging the gap between generating accurate forecasts and enabling organizations to translate them into better decisions. She brings a background in B2B SaaS, having worked at a Data and AI company serving multinational clients across industries. She holds degrees in Psychology and Human-Computer Interaction. Outside of work, Carolin tends to her garden (a hobby she'll tell you has a lot in common with foresight).",
+  },
 ];
 
 const groups: Groups = {
@@ -346,6 +367,7 @@ const groups: Groups = {
     "Molly Hickman",
     "Leonard Barrett",
     "Christian Williams",
+    "Cole Sussmeier",
     "Ryan Beck",
     "Sylvain Chevalier",
     "Elis Popescu",
@@ -359,6 +381,8 @@ const groups: Groups = {
     "Cemre Inanc",
     "Kelley Edelmann",
     "Grace McLain",
+    "Jesse Damiani",
+    "Carolin Ullrich",
   ],
   board: [
     "Anthony Aguirre",

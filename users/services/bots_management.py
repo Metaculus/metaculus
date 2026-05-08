@@ -25,7 +25,7 @@ def create_bot(*, bot_owner: User, username: str, **kwargs) -> User:
         language=bot_owner.language,
         app_theme=bot_owner.app_theme,
         newsletter_optin=False,
-        **kwargs
+        **kwargs,
     )
 
     return bot

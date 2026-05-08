@@ -21,9 +21,10 @@ const ChartCursorLabel: FC<Props> = ({
 }) => {
   const { theme } = useAppTheme();
 
-  const estimatedTextWidth = (props.text?.toString().length ?? 0) * FONT_SIZE;
+  const text = props.text?.toString() ?? "";
+  const estimatedTextWidth = text.length * FONT_SIZE;
   const centeredX = (props.x ?? 0) - estimatedTextWidth / 4;
-  if (!isActive) {
+  if (isActive === false || (isActive === undefined && !text)) {
     return null;
   }
 

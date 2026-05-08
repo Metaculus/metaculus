@@ -5,14 +5,17 @@ from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
-from django.db import IntegrityError
+from django.db import transaction, IntegrityError
 from django.db.models import Case, IntegerField, Q, QuerySet, When
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
+from social_django.models import UserSocialAuth
 
 from authentication.jwt_session import revoke_all_user_tokens
+from authentication.models import ApiKey
 from comments.models import Comment
+from comments.services.common import soft_delete_comment
 from notifications.constants import MailingTags
 from posts.models import Post
 from posts.services.common import get_post_permission_for_user
@@ -315,3 +318,85 @@ def register_user_to_campaign(
                 )
     except IntegrityError:
         raise ValidationError("User already registered")
+
+
+@transaction.atomic
+def soft_delete_user(user: User) -> None:
+    user.is_active = False
+
+    comments = user.comment_set.filter(is_soft_deleted=False).select_related("on_post")
+    for comment in comments:
+        # Soft-delete comments and update counters
+        soft_delete_comment(comment)
+
+    user.posts.update(curation_status=Post.CurationStatus.DELETED)
+
+    user.save()
+
+
+@transaction.atomic
+def mark_user_as_spam(user: User) -> None:
+    user.is_spam = True
+    soft_delete_user(user)
+
+
+@transaction.atomic
+def clean_user_data_delete(user: User) -> None:
+    # Update User object
+    user.is_active = False
+    user.bio = ""
+    user.old_usernames = []
+    user.website = None
+    user.twitter = None
+    user.linkedin = None
+    user.facebook = None
+    user.github = None
+    user.good_judgement_open = None
+    user.kalshi = None
+    user.manifold = None
+    user.infer = None
+    user.hypermind = None
+    user.occupation = None
+    user.location = None
+    if user.profile_picture:
+        user.profile_picture.delete(save=False)
+    user.metadata = None
+    user.unsubscribed_mailing_tags = []
+    user.language = None
+    user.username = "deleted_user-" + str(user.id)
+    user.first_name = ""
+    user.last_name = ""
+    user.email = ""
+    user.set_password(None)
+    user.save()
+
+    # Comments
+    user.comment_set.filter(is_private=True).delete()
+    # don't touch public comments
+
+    # Token
+    ApiKey.objects.filter(user=user).delete()
+
+    # Social Auth login credentials
+    UserSocialAuth.objects.filter(user=user).delete()
+
+    def hard_delete_post(post: Post):
+        if question := post.question:
+            question.delete()
+        if group_of_questions := post.group_of_questions:
+            group_of_questions.delete()
+        if conditional := post.conditional:
+            conditional.delete()
+        if notebook := post.notebook:
+            notebook.delete()
+        post.delete()
+
+    posts = user.posts.all()
+    for post in posts:
+        # keep if there is at least one non-author comment
+        if post.comments.exclude(author=user).exists():
+            continue
+        # keep if there is at least one non-author forecast
+        if post.forecasts.exclude(author=user).exists():
+            continue
+        hard_delete_post(post)

@@ -30,7 +30,7 @@ def communities_list_api_view(request: Request):
         user=request.user,
         # Show only listed communities
         unlisted=False,
-        **filters_serializer.validated_data
+        **filters_serializer.validated_data,
     )
 
     # Paginating queryset

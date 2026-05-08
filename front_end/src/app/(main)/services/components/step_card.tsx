@@ -1,8 +1,9 @@
 "use client";
 
-import cn from "classnames";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
+
+import cn from "@/utils/core/cn";
 
 type Props = {
   step: number;

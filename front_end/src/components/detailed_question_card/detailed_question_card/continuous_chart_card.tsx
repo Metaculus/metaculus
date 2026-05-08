@@ -8,8 +8,10 @@ import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view
 import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_cp_status";
 import NumericTimeline from "@/components/charts/numeric_timeline";
 import QuestionPredictionTooltip from "@/components/charts/primitives/question_prediction_tooltip";
+import ContinuousPredictionChart from "@/components/forecast_maker/continuous_input/continuous_prediction_chart";
 import { useAuth } from "@/contexts/auth_context";
-import { TimelineChartZoomOption } from "@/types/charts";
+import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
+import { KeyFactor } from "@/types/comment";
 import {
   ForecastAvailability,
   QuestionType,
@@ -41,6 +43,8 @@ type Props = {
   colorOverride?: ThemeColor | string;
   defaultZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
+  embedChartType?: EmbedChartType;
+  keyFactors?: KeyFactor[];
 };
 
 const DetailedContinuousChartCard: FC<Props> = ({
@@ -55,6 +59,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
   colorOverride,
   defaultZoom,
   withZoomPicker,
+  embedChartType,
+  keyFactors,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -71,6 +77,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
   const isCpHidden = !!forecastAvailability?.cpRevealsOn;
 
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
+  const [showNewsAnnotations, setShowNewsAnnotations] = useState(true);
+  const hasNewsKeyFactors = keyFactors?.some((kf) => !!kf.news) ?? false;
 
   const cursorData = useMemo(() => {
     if (isCpHidden) {
@@ -100,10 +108,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
 
     return {
       timestamp: timestamp,
-      forecasterCount:
-        // If there are no mouseover, we should display total forecasters number,
-        // otherwise - only active during that period
-        (cursorTimestamp ? forecast?.forecaster_count : nrForecasters) ?? 0,
+      forecasterCount: forecast?.forecaster_count ?? 0,
       interval_lower_bound: forecast?.interval_lower_bounds?.[0] ?? null,
       center: forecast?.centers?.[0] ?? null,
       interval_upper_bound: forecast?.interval_upper_bounds?.[0] ?? null,
@@ -243,6 +248,13 @@ const DetailedContinuousChartCard: FC<Props> = ({
       height={chartHeight}
       extraTheme={extraTheme}
       colorOverride={colorOverride}
+      keyFactors={hasNewsKeyFactors ? keyFactors : undefined}
+      showNewsAnnotations={showNewsAnnotations}
+      onToggleNewsAnnotations={
+        hasNewsKeyFactors
+          ? () => setShowNewsAnnotations((prev) => !prev)
+          : undefined
+      }
     />
   );
 
@@ -258,6 +270,29 @@ const DetailedContinuousChartCard: FC<Props> = ({
       chartTheme={extraTheme}
     />
   );
+
+  const canRenderCurrentEmbed =
+    embedChartType === EmbedChartType.Current &&
+    !hideCP &&
+    !forecastAvailability?.cpRevealsOn;
+
+  if (canRenderCurrentEmbed) {
+    return (
+      <div className="w-full overflow-hidden" style={{ height: chartHeight }}>
+        <ContinuousPredictionChart
+          question={question}
+          dataset={{
+            cdf: [],
+            pmf: [],
+          }}
+          chartTheme={extraTheme}
+          graphType={"pmf"}
+          height={chartHeight}
+          readOnly
+        />
+      </div>
+    );
+  }
 
   return (
     <div

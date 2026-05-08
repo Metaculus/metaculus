@@ -2,13 +2,16 @@ import { isNil } from "lodash";
 import { Suspense } from "react";
 
 import FeedSidebar from "@/app/(main)/questions/components/sidebar";
+import CommentFeedContent from "@/components/comment_feed/comment_feed_content";
 import AwaitedCommunitiesFeed from "@/components/communities_feed";
 import OnboardingCheck from "@/components/onboarding/onboarding_check";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import AwaitedWeeklyTopCommentsFeed from "@/components/weekly_top_comments_feed";
 import {
+  POST_COMMENTS_FEED_FILTER,
   POST_COMMUNITIES_FILTER,
+  POST_FORECASTER_ID_FILTER,
   POST_PAGE_FILTER,
   POST_WEEKLY_TOP_COMMENTS_FILTER,
 } from "@/constants/posts_feed";
@@ -33,11 +36,17 @@ export default async function Questions(props: {
   const user = await ServerProfileApi.getMyProfile();
 
   const searchParams = await props.searchParams;
+  const isMyPredictionsFeed =
+    typeof searchParams[POST_FORECASTER_ID_FILTER] === "string" &&
+    searchParams[POST_FORECASTER_ID_FILTER] === user?.id.toString();
   const isCommunityFeed = searchParams[POST_COMMUNITIES_FILTER];
   const isWeeklyTopCommentsFeed = searchParams[POST_WEEKLY_TOP_COMMENTS_FILTER];
+  const isCommentsFeed = searchParams[POST_COMMENTS_FEED_FILTER];
   const filters = generateFiltersFromSearchParams(searchParams, {
     // Default Feed ordering should be hotness
-    defaultOrderBy: QuestionOrder.HotDesc,
+    defaultOrderBy: isMyPredictionsFeed
+      ? QuestionOrder.WeeklyMovementDesc
+      : QuestionOrder.HotDesc,
     defaultForMainFeed: true,
     filterForConsumerView:
       isNil(user) || user.interface_type === InterfaceType.ConsumerView,
@@ -51,7 +60,9 @@ export default async function Questions(props: {
         <div className="gap-3 p-0 sm:flex sm:flex-row sm:gap-4">
           <FeedSidebar items={sidebarItems} />
           <div className="min-h-[calc(100vh-300px)] grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-0 sm:pt-5">
-            {isCommunityFeed ? (
+            {isCommentsFeed ? (
+              <CommentFeedContent />
+            ) : isCommunityFeed ? (
               <Suspense
                 key={JSON.stringify(searchParams)}
                 fallback={

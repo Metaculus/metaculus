@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from comments.constants import TimeWindow
 from comments.models import Comment, KeyFactor, CommentsOfTheWeekEntry
 from comments.utils import comments_extract_user_mentions_mapping
 from posts.models import Post
@@ -21,16 +22,39 @@ class CommentFilterSerializer(serializers.Serializer):
     parent_isnull = serializers.BooleanField(required=False, allow_null=True)
     post = serializers.IntegerField(required=False, allow_null=True)
     author = serializers.IntegerField(required=False, allow_null=True)
+    author_is_staff = serializers.BooleanField(required=False, allow_null=True)
     sort = serializers.CharField(required=False, allow_null=True)
     focus_comment_id = serializers.IntegerField(required=False, allow_null=True)
     is_private = serializers.BooleanField(required=False, allow_null=True)
     include_deleted = serializers.BooleanField(required=False, allow_null=True)
+    last_viewed_at = serializers.DateTimeField(required=False, allow_null=True)
+    time_window = serializers.ChoiceField(
+        choices=TimeWindow.choices,
+        required=False,
+        allow_null=True,
+    )
+    search = serializers.CharField(required=False, allow_null=True, min_length=3)
+    exclude_bots = serializers.BooleanField(required=False, default=False)
+    exclude_bots_only_project = serializers.BooleanField(required=False, default=False)
+    post_status = serializers.ChoiceField(
+        choices=Post.CurationStatus.choices,
+        required=False,
+        allow_null=True,
+    )
 
     def validate_post(self, value: int):
         try:
             return Post.objects.get(pk=value)
         except Post.DoesNotExist:
             raise ValidationError("Post Does not exist")
+
+    def validate(self, attrs):
+        sort = attrs.get("sort")
+        search = attrs.get("search")
+        if sort == "relevance" and not search:
+            raise ValidationError({"sort": "Relevance sort requires a search query."})
+
+        return attrs
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -58,6 +82,7 @@ class CommentSerializer(serializers.ModelSerializer):
             "vote_score",
             "changed_my_mind",
             "is_pinned",
+            "key_factor_votes_score",
         )
 
     def get_changed_my_mind(self, comment: Comment) -> dict[str, bool | int]:
@@ -164,7 +189,9 @@ def serialize_comment(
     serialized_data["mentioned_users"] = BaseUserSerializer(mentions, many=True).data
 
     # Annotate user's vote
-    serialized_data["vote_score"] = comment.vote_score
+    serialized_data["vote_score"] = getattr(
+        comment, "annotated_vote_score", comment.vote_score
+    )
     serialized_data["user_vote"] = comment.user_vote
     serialized_data["author_staff_permission"] = author_staff_permission
 
@@ -192,8 +219,6 @@ def serialize_comment_many(
     qs = qs.select_related(
         "included_forecast__question", "author", "on_post"
     ).prefetch_related("key_factors")
-    qs = qs.annotate_vote_score()
-
     if current_user:
         qs = qs.annotate_user_vote(current_user)
 
