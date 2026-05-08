@@ -29,7 +29,6 @@ def open_question():
     return question
 
 
-
 @pytest.fixture()
 def user_bot(user1: User) -> User:
     return User.objects.create(
@@ -262,7 +261,9 @@ class TestBulkForecastAndComment:
                             "on_post": open_question.get_post().id,
                             "text": "test comment",
                             "is_private": True,
-                            "key_factors": [{"text": "some factor", "is_positive": True}],
+                            "key_factors": [
+                                {"text": "some factor", "is_positive": True}
+                            ],
                         }
                     ],
                 }
