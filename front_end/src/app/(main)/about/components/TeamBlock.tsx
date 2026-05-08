@@ -354,7 +354,7 @@ const people: Person[] = [
   {
     name: "Carolin Ullrich",
     position: "Principal Product Manager",
-    imgSrc: "https://cdn.metaculus.com/carolin.webp",
+    imgSrc: "https://cdn.metaculus.com/caro-grayscale.webp",
     introduction:
       "Carolin is a Principal Product Manager at Metaculus, focused on bridging the gap between generating accurate forecasts and enabling organizations to translate them into better decisions. She brings a background in B2B SaaS, having worked at a Data and AI company serving multinational clients across industries. She holds degrees in Psychology and Human-Computer Interaction. Outside of work, Carolin tends to her garden (a hobby she'll tell you has a lot in common with foresight).",
   },
