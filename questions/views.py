@@ -210,7 +210,10 @@ def create_binary_forecast_oldapi_view(request, pk: int):
     permission = get_post_permission_for_user(question.get_post(), user=request.user)
     ObjectPermission.can_forecast(permission, raise_exception=True)
 
-    if not question.open_time:
+    if (
+        question.post.curation_status != Post.CurationStatus.APPROVED
+        or not question.open_time
+    ):
         return Response(
             {"error": "This question is not scheduled for forecasting yet !"},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
