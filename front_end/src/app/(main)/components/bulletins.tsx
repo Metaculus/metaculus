@@ -9,17 +9,6 @@ import { getBulletinParamsFromPathname } from "@/utils/navigation";
 
 import Bulletin from "./bulletin";
 
-const HIDE_PREFIXES = [
-  "/about",
-  "/services",
-  "/help",
-  "/faq",
-  "/press",
-  "/privacy-policy",
-  "/terms-of-use",
-  "/futureeval",
-] as const;
-
 const Bulletins: FC = () => {
   const [bulletins, setBulletins] = useState<
     {
@@ -29,13 +18,6 @@ const Bulletins: FC = () => {
   >([]);
 
   const pathname = usePathname();
-
-  const shouldHide = useMemo(() => {
-    return (
-      HIDE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p)) ||
-      pathname === "/"
-    );
-  }, [pathname]);
 
   const bulletinParams = useMemo(
     () => getBulletinParamsFromPathname(pathname),
@@ -52,19 +34,27 @@ const Bulletins: FC = () => {
   }, [bulletinParams]);
 
   useEffect(() => {
-    if (!shouldHide) {
-      void fetchBulletins();
-    } else {
-      setBulletins([]);
-    }
-  }, [shouldHide, fetchBulletins]);
+    void fetchBulletins();
+  }, [fetchBulletins]);
+
+  if (bulletins.length === 0) {
+    return null;
+  }
 
   return (
-    <div className="flex w-full flex-col items-center justify-center bg-transparent">
-      {!shouldHide &&
-        bulletins.map((bulletin) => (
-          <Bulletin key={bulletin.id} text={bulletin.text} id={bulletin.id} />
-        ))}
+    <div className="flex w-full flex-col">
+      {bulletins.map((bulletin) => (
+        <Bulletin
+          key={bulletin.id}
+          text={bulletin.text}
+          id={bulletin.id}
+          onHidden={() =>
+            setBulletins((currentBulletins) =>
+              currentBulletins.filter(({ id }) => id !== bulletin.id)
+            )
+          }
+        />
+      ))}
     </div>
   );
 };

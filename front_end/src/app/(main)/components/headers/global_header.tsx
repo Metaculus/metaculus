@@ -9,13 +9,14 @@ import Header from "./header";
 
 type Props = {
   forceDefault?: boolean;
+  fixed?: boolean;
 };
-const GlobalHeader: FC<Props> = ({ forceDefault = false }) => {
+const GlobalHeader: FC<Props> = ({ forceDefault = false, fixed = true }) => {
   const pathname = usePathname();
   const withDefaultHeader = forceDefault || getWithDefaultHeader(pathname);
 
   if (withDefaultHeader) {
-    return <Header />;
+    return <Header fixed={fixed} />;
   }
 
   return null;

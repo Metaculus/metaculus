@@ -2,8 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import React from "react";
 
-import CommunityHeader from "@/app/(main)/components/headers/community_header";
-import Header from "@/app/(main)/components/headers/header";
+import { TopChromeHeaderSetter } from "@/app/(main)/components/top_chrome_header_context";
 import { EXPRESSION_OF_INTEREST_FORM_URL } from "@/app/(main)/pro-forecasters/constants/expression_of_interest_form";
 import QuestionRepost from "@/app/(main)/questions/components/question_repost";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
@@ -55,8 +54,16 @@ const Creator: React.FC<{ searchParams: Promise<SearchParams> }> = async (
 
   return (
     <>
+      <TopChromeHeaderSetter
+        header={
+          community
+            ? { type: "community", community }
+            : {
+                type: "default",
+              }
+        }
+      />
       <QuestionDraftCleanup />
-      {community ? <CommunityHeader community={community} /> : <Header />}
       <div className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
         <div className="text-sm md:text-base">
           <h1 className="text-2xl font-medium capitalize md:text-3xl">
