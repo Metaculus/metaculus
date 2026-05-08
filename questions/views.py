@@ -366,7 +366,7 @@ def bulk_forecast_and_comment_api_view(request):
             continue
 
         if (
-            not post.curation_status != Post.CurationStatus.APPROVED
+            post.curation_status != Post.CurationStatus.APPROVED
             or not question.open_time
             or not question.scheduled_close_time
         ):
