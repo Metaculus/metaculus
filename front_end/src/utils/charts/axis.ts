@@ -365,6 +365,21 @@ function niceTicksAtMost(
 }
 
 /**
+ * Returns a domain that contains both the original data domain and every
+ * tick in the supplied array. Use to widen Victory's yDomain so that
+ * generateScale's tick labels actually land inside the chart's drawing
+ * area — important for log-warped questions where the data clusters in
+ * a small slice and the auto-zoomed yDomain would otherwise clip ticks.
+ */
+export function widenDomainToTicks(
+  domain: Tuple<number>,
+  ticks: number[]
+): Tuple<number> {
+  if (ticks.length === 0) return domain;
+  return [Math.min(domain[0], ...ticks), Math.max(domain[1], ...ticks)];
+}
+
+/**
  * Take a range's min and max and finds the tick spacing that minimizes
  * the average number of significant digits in the tick values.
  * If two tick counts are equally good, returns the higher one.

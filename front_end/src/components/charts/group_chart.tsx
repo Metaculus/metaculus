@@ -44,6 +44,7 @@ import {
   generateTimestampXScale,
   getAxisRightPadding,
   getTickLabelFontSize,
+  widenDomainToTicks,
 } from "@/utils/charts/axis";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
@@ -1062,7 +1063,12 @@ function buildChartData({
     alwaysShowTicks: true,
   });
 
-  return { xScale, yScale, graphs, xDomain, yDomain: zoomedYDomain };
+  // Widen yDomain to encompass every tick — log-warped questions cluster
+  // their data in a small slice and the auto-zoomed yDomain would clip
+  // tick labels that fall outside it.
+  const yDomain = widenDomainToTicks(zoomedYDomain, yScale.ticks);
+
+  return { xScale, yScale, graphs, xDomain, yDomain };
 }
 
 // Define a custom "X" symbol function
