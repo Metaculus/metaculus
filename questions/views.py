@@ -1,3 +1,4 @@
+import numpy as np
 from django.http import Http404
 from django.utils import timezone
 from rest_framework import status
@@ -8,15 +9,14 @@ from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.serializers import DateTimeField
 
-import numpy as np
-
 from posts.models import Post
 from posts.services.common import get_post_permission_for_user
 from posts.utils import get_post_slug
 from projects.permissions import ObjectPermission
+from utils.requests import is_internal_request
 from utils.the_math.aggregations import get_aggregations_at_time
 from .constants import QuestionStatus
-from .models import Question
+from .models import Forecast, Question
 from .serializers.common import (
     validate_question_resolution,
     QuestionsCommunityPredictionsSerializer,
@@ -100,6 +100,12 @@ def bulk_create_forecasts_api_view(request):
     if not validated_data:
         raise ValidationError("At least one forecast is required")
 
+    source = (
+        Forecast.SourceChoices.UI
+        if is_internal_request(request)
+        else Forecast.SourceChoices.API
+    )
+
     # Prefetching questions for bulk optimization
     questions = Question.objects.filter(
         pk__in=[f["question"] for f in validated_data]
@@ -114,6 +120,7 @@ def bulk_create_forecasts_api_view(request):
             raise ValidationError(f"Wrong question id {forecast['question']}")
 
         forecast["question"] = question  # used in create_foreacst_bulk
+        forecast["source"] = source
 
         # Check permissions
         permission = get_post_permission_for_user(
@@ -225,7 +232,14 @@ def create_binary_forecast_oldapi_view(request, pk: int):
 
     create_forecast_bulk(
         user=request.user,
-        forecasts=[{"question": question, "probability_yes": probability}],
+        forecasts=[
+            {
+                "question": question,
+                "probability_yes": probability,
+                # Old endpoint requests are always API
+                "source": Forecast.SourceChoices.API,
+            }
+        ],
     )
 
     return Response({}, status=status.HTTP_201_CREATED)
