@@ -14,10 +14,8 @@ import numpy as np
 
 from comments.serializers.common import CommentWriteSerializer
 from comments.services.common import create_comment
-from comments.services.key_factors.common import create_key_factors
 from posts.models import Post
 from posts.services.common import get_post_permission_for_user
-from posts.tasks import run_on_post_forecast
 from posts.utils import get_post_slug
 from projects.permissions import ObjectPermission
 from users.models import User
@@ -33,10 +31,7 @@ from .serializers.common import (
     serialize_question,
 )
 from .services.forecasts import (
-    after_forecast_actions,
-    create_forecast,
     create_forecast_bulk,
-    update_forecast_notification,
     withdraw_forecast_bulk,
 )
 from .services.lifecycle import resolve_question, unresolve_question
@@ -288,9 +283,9 @@ def bulk_forecast_and_comment_api_view(request):
     """
     Submits forecasts and comments in a single atomic transaction.
 
-    Staff users may submit on behalf of any user by providing user_id or username
+    Superusers may submit on behalf of any user by providing user_id or username
     and flag `is_staff_override`.
-    Non-staff users may submit as themselves or as one of their bots (identified
+    Non-superusers may submit as themselves or as one of their bots (identified
     by user_id or username).
     """
     serializer = BulkForecastAndCommentSerializer(data=request.data)
@@ -304,8 +299,8 @@ def bulk_forecast_and_comment_api_view(request):
     is_staff_override = data.get("is_staff_override", False)
 
     request_user = request.user
-    if is_staff_override and not request_user.is_staff:
-        raise PermissionDenied("Non-staff users cannot use the is_staff_override flag.")
+    if is_staff_override and not request_user.is_superuser:
+        raise PermissionDenied("Only superusers can use the is_staff_override flag.")
 
     if is_staff_override:
         if user_id:
@@ -327,11 +322,12 @@ def bulk_forecast_and_comment_api_view(request):
         )
         if not is_self and not is_own_bot:
             raise PermissionDenied(
-                "Non-staff users can only submit forecasts and comments as themselves "
+                "Non-superusers can only submit forecasts and comments as themselves "
                 "or their bots."
             )
 
     now = timezone.now()
+    errors = []
 
     # Validate forecasts and resolve question IDs to Question objects
     questions_map = {
@@ -342,48 +338,62 @@ def bulk_forecast_and_comment_api_view(request):
     }
 
     for forecast in forecasts_data:
-        question = questions_map.get(forecast["question"])
+        question_id = forecast["question"]
+        question = questions_map.get(question_id)
         if not question:
-            raise ValidationError(f"Wrong question id {forecast['question']}")
+            errors.append(f"Question {question_id} does not exist.")
+            continue
         forecast["question"] = question
 
-        permission = get_post_permission_for_user(question.get_post(), user=user)
-        ObjectPermission.can_forecast(permission, raise_exception=True)
+        post: Post = question.post
+        permission = get_post_permission_for_user(post, user=user)
+        if not ObjectPermission.can_forecast(permission):
+            errors.append(f"Question {question.id}: forecasting not permitted.")
+            continue
 
-        if not question.open_time or question.open_time > now:
-            raise ValidationError(
-                f"Question {question.id} is not open for forecasting yet"
-            )
-        if (question.scheduled_close_time < now) or (
+        if (
+            not post.curation_status != Post.CurationStatus.APPROVED
+            or not question.open_time
+            or not question.scheduled_close_time
+        ):
+            errors.append(f"Question {question.id} is not open for forecasting yet.")
+        elif (question.scheduled_close_time < now) or (
             question.actual_close_time and question.actual_close_time < now
         ):
-            raise ValidationError(
-                f"Question {question.id} is already closed to forecasting"
-            )
+            errors.append(f"Question {question.id} is already closed to forecasting.")
 
-    # Validate comment permissions
-    for comment in comments_data:
+    # Validate comments
+    for i, comment in enumerate(comments_data):
         on_post = comment["on_post"]
+        if not comment.get("is_private"):
+            errors.append(
+                f"Comment {i}: only private comments are allowed in bulk submissions."
+            )
+            continue
+        if comment.get("key_factors"):
+            errors.append(
+                f"Comment {i}: key_factors are not supported in bulk submissions."
+            )
+            continue
         parent = comment.get("parent")
         permission = get_post_permission_for_user(
             parent.on_post if parent else on_post, user=user
         )
-        ObjectPermission.can_comment(permission, raise_exception=True)
+        if not ObjectPermission.can_comment(permission):
+            errors.append(
+                f"Comment {i}: commenting not permitted on post {on_post.id}."
+            )
 
-    posts = set()
-    created_forecasts = []
+    if errors:
+        raise ValidationError(errors)
 
     with transaction.atomic():
-        for forecast_data in forecasts_data:
-            question = forecast_data.pop("question")
-            posts.add(question.get_post())
-            forecast = create_forecast(question=question, user=user, **forecast_data)
-            created_forecasts.append((forecast, question))
+        create_forecast_bulk(user=user, forecasts=forecasts_data)
 
         for comment_data in comments_data:
             on_post = comment_data["on_post"]
             included_forecast_flag = comment_data.pop("included_forecast", False)
-            key_factors = comment_data.pop("key_factors", None)
+            comment_data.pop("key_factors", None)
 
             included_forecast = (
                 on_post.question.user_forecasts.filter(author_id=user.id)
@@ -393,18 +403,9 @@ def bulk_forecast_and_comment_api_view(request):
                 else None
             )
 
-            new_comment = create_comment(
+            create_comment(
                 **comment_data, included_forecast=included_forecast, user=user
             )
-            if key_factors:
-                create_key_factors(new_comment, key_factors)
-
-    for forecast, question in created_forecasts:
-        update_forecast_notification(forecast=forecast, created=True)
-        after_forecast_actions(question, user)
-
-    for post in posts:
-        run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
 
     return Response({}, status=status.HTTP_201_CREATED)
 

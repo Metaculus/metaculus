@@ -155,7 +155,7 @@ def after_forecast_actions(question: Question, user: User):
         )
 
     # Run async tasks
-    from ..tasks import run_build_question_forecasts
+    from questions.tasks import run_build_question_forecasts
 
     run_build_question_forecasts.send(question.id)
 

@@ -29,12 +29,6 @@ def open_question():
     return question
 
 
-@pytest.fixture()
-def user_staff(db) -> User:
-    return User.objects.create(
-        email="staff@metaculus.com", username="staff_user", is_staff=True
-    )
-
 
 @pytest.fixture()
 def user_bot(user1: User) -> User:
@@ -163,10 +157,10 @@ class TestBulkForecastAndComment:
         )
         assert response.status_code == 403
 
-    def test_staff_override_by_user_id(
-        self, create_client_for_user, user_staff, user2, open_question
+    def test_superuser_override_by_user_id(
+        self, create_client_for_user, user_admin, user2, open_question
     ):
-        staff_client = create_client_for_user(user_staff)
+        staff_client = create_client_for_user(user_admin)
         response = staff_client.post(
             URL,
             data=json.dumps(
@@ -181,10 +175,10 @@ class TestBulkForecastAndComment:
         assert response.status_code == 201
         assert Forecast.objects.filter(question=open_question, author=user2).exists()
 
-    def test_staff_override_by_username(
-        self, create_client_for_user, user_staff, user2, open_question
+    def test_superuser_override_by_username(
+        self, create_client_for_user, user_admin, user2, open_question
     ):
-        staff_client = create_client_for_user(user_staff)
+        staff_client = create_client_for_user(user_admin)
         response = staff_client.post(
             URL,
             data=json.dumps(
@@ -199,7 +193,7 @@ class TestBulkForecastAndComment:
         assert response.status_code == 201
         assert Forecast.objects.filter(question=open_question, author=user2).exists()
 
-    def test_non_staff_cannot_use_staff_override(
+    def test_non_superuser_cannot_use_staff_override(
         self, user1_client, user1, user2, open_question
     ):
         response = user1_client.post(
@@ -238,10 +232,10 @@ class TestBulkForecastAndComment:
         )
         assert response.status_code == 403
 
-    def test_staff_override_unknown_user_id_returns_404(
-        self, create_client_for_user, user_staff, open_question
+    def test_superuser_override_unknown_user_id_returns_404(
+        self, create_client_for_user, user_admin, open_question
     ):
-        staff_client = create_client_for_user(user_staff)
+        staff_client = create_client_for_user(user_admin)
         response = staff_client.post(
             URL,
             data=json.dumps(
@@ -254,3 +248,25 @@ class TestBulkForecastAndComment:
             content_type="application/json",
         )
         assert response.status_code == 404
+
+    def test_key_factors_in_bulk_comment_returns_400(
+        self, user1, user1_client, open_question
+    ):
+        response = user1_client.post(
+            URL,
+            data=json.dumps(
+                {
+                    "user_id": user1.id,
+                    "comments": [
+                        {
+                            "on_post": open_question.get_post().id,
+                            "text": "test comment",
+                            "is_private": True,
+                            "key_factors": [{"text": "some factor", "is_positive": True}],
+                        }
+                    ],
+                }
+            ),
+            content_type="application/json",
+        )
+        assert response.status_code == 400
