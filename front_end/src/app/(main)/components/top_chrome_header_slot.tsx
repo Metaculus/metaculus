@@ -16,10 +16,9 @@ export const TopChromeHeaderSlot = ({ defaultHeader }: Props) => {
       <CommunityHeader
         community={activeHeader.community}
         alwaysShowName={activeHeader.alwaysShowName}
-        fixed={false}
       />
     );
   }
 
-  return defaultHeader || <Header fixed={false} />;
+  return defaultHeader || <Header />;
 };

@@ -21,10 +21,10 @@ import NavbarLogo from "./components/navbar_logo";
 import useNavbarLinks from "./hooks/useNavbarLinks";
 
 type Props = {
-  fixed?: boolean;
+  className?: string;
 };
 
-const Header: FC<Props> = ({ fixed = true }) => {
+const Header: FC<Props> = ({ className }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const pathname = usePathname();
@@ -35,7 +35,7 @@ const Header: FC<Props> = ({ fixed = true }) => {
     <header
       className={cn(
         "flex h-12 w-full flex-auto items-stretch justify-between bg-blue-900 text-gray-0 print:hidden",
-        fixed ? "fixed left-0 top-0 z-[200]" : "relative z-[200]"
+        className
       )}
     >
       <div className="flex items-stretch justify-between">

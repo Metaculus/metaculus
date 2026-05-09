@@ -2,7 +2,7 @@
 
 import { faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 
 import cn from "@/utils/core/cn";
 import { sanitizeHtmlContent } from "@/utils/markdown";
@@ -12,6 +12,16 @@ const Bulletin: FC<{
   className?: string;
   onHidden?: () => void;
 }> = ({ text, className, onHidden }) => {
+  const [sanitizedText, setSanitizedText] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSanitizedText(sanitizeHtmlContent(text));
+  }, [text]);
+
+  if (sanitizedText === null) {
+    return null;
+  }
+
   return (
     <div
       className={cn(
@@ -28,7 +38,7 @@ const Bulletin: FC<{
       />
       <div
         dangerouslySetInnerHTML={{
-          __html: sanitizeHtmlContent(text),
+          __html: sanitizedText,
         }}
         suppressHydrationWarning
       />

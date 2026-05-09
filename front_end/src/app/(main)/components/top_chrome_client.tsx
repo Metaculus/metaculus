@@ -2,6 +2,8 @@
 
 import { FC, ReactNode, useEffect, useRef } from "react";
 
+import { logError } from "@/utils/core/errors";
+
 const TOP_CHROME_HEIGHT_CSS_VAR = "--top-chrome-height";
 
 export const TopChromeClient: FC<{ children: ReactNode }> = ({ children }) => {
@@ -14,16 +16,54 @@ export const TopChromeClient: FC<{ children: ReactNode }> = ({ children }) => {
     }
 
     const updateTopChromeHeight = () => {
-      document.documentElement.style.setProperty(
-        TOP_CHROME_HEIGHT_CSS_VAR,
-        `${topChromeEl.getBoundingClientRect().height}px`
-      );
+      try {
+        document.documentElement.style.setProperty(
+          TOP_CHROME_HEIGHT_CSS_VAR,
+          `${topChromeEl.getBoundingClientRect().height}px`
+        );
+      } catch (error) {
+        logError(error, {
+          message: "Failed to measure top chrome height",
+        });
+      }
     };
 
     updateTopChromeHeight();
 
+    if (typeof ResizeObserver === "undefined") {
+      if (typeof MutationObserver === "undefined") {
+        return () => {
+          document.documentElement.style.removeProperty(
+            TOP_CHROME_HEIGHT_CSS_VAR
+          );
+        };
+      }
+
+      const observer = new MutationObserver(updateTopChromeHeight);
+      observer.observe(topChromeEl, {
+        attributes: true,
+        childList: true,
+        subtree: true,
+      });
+      window.addEventListener("resize", updateTopChromeHeight);
+
+      return () => {
+        observer.disconnect();
+        window.removeEventListener("resize", updateTopChromeHeight);
+        document.documentElement.style.removeProperty(
+          TOP_CHROME_HEIGHT_CSS_VAR
+        );
+      };
+    }
+
     const observer = new ResizeObserver(updateTopChromeHeight);
-    observer.observe(topChromeEl);
+    try {
+      observer.observe(topChromeEl);
+    } catch (error) {
+      logError(error, {
+        message: "Failed to observe top chrome height",
+      });
+    }
 
     return () => {
       observer.disconnect();

@@ -17,13 +17,13 @@ import useNavbarLinks from "./hooks/useNavbarLinks";
 type Props = {
   community: Community | null;
   alwaysShowName?: boolean;
-  fixed?: boolean;
+  className?: string;
 };
 
 const CommunityHeader: FC<Props> = ({
   community,
   alwaysShowName = true,
-  fixed = true,
+  className,
 }) => {
   const { showActiveCommunity } = useShowActiveCommunityContext();
   const [localShowName, setLocalShowName] = useState(alwaysShowName);
@@ -33,7 +33,7 @@ const CommunityHeader: FC<Props> = ({
     <header
       className={cn(
         "flex min-h-12 w-full flex-auto flex-wrap items-stretch justify-between bg-blue-900 text-gray-0",
-        fixed ? "fixed left-0 top-0 z-100" : "relative z-100"
+        className
       )}
     >
       <div className="flex items-center">

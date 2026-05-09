@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
+import { TopChrome } from "@/app/(main)/components/top_chrome";
 import PredictionFlowHeader from "@/app/(prediction-flow)/components/header";
 import PredictionFlowPost from "@/app/(prediction-flow)/components/prediction_flow_post";
 import PredictionFlowProvider, {
@@ -63,9 +64,13 @@ export default async function PredictionFlow(props: Props) {
       flowType={flowType}
       initialPosts={forecastFlowPosts}
     >
-      <PredictionFlowHeader
-        tournamentName={tournament.name}
-        tournamentSlug={tournamentSlug}
+      <TopChrome
+        defaultHeader={
+          <PredictionFlowHeader
+            tournamentName={tournament.name}
+            tournamentSlug={tournamentSlug}
+          />
+        }
       />
       <main className="mx-auto flex min-h-screen max-w-3xl flex-grow flex-col pt-header">
         <ProgressSection />
