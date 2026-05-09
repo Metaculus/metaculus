@@ -10,7 +10,7 @@ export async function submitContactForm(data: ContactForm) {
   return await serverMiscApi.submitContactForm(data);
 }
 
-export async function cancelBulletin(bulletinId: number) {
+export async function dismissBulletin(bulletinId: number) {
   return await serverMiscApi.cancelBulletin(bulletinId);
 }
 

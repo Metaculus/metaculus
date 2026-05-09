@@ -2,25 +2,16 @@
 
 import { faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC, useState } from "react";
+import { FC } from "react";
 
 import cn from "@/utils/core/cn";
 import { sanitizeHtmlContent } from "@/utils/markdown";
 
-import { cancelBulletin } from "../actions";
-
 const Bulletin: FC<{
-  text: string | React.ReactNode;
-  id?: number;
+  text: string;
   className?: string;
   onHidden?: () => void;
-}> = ({ text, id, className, onHidden }) => {
-  const [hidden, setHidden] = useState(false);
-
-  if (hidden) {
-    return null;
-  }
-
+}> = ({ text, className, onHidden }) => {
   return (
     <div
       className={cn(
@@ -31,24 +22,16 @@ const Bulletin: FC<{
       <FontAwesomeIcon
         className="absolute right-3 top-2 inline cursor-pointer hover:text-gray-700"
         icon={faClose}
-        onClick={async () => {
-          if (id) {
-            await cancelBulletin(id);
-          }
-          setHidden(true);
+        onClick={() => {
           onHidden?.();
         }}
       />
-      {typeof text === "string" ? (
-        <div
-          dangerouslySetInnerHTML={{
-            __html: sanitizeHtmlContent(text),
-          }}
-          suppressHydrationWarning
-        />
-      ) : (
-        text
-      )}
+      <div
+        dangerouslySetInnerHTML={{
+          __html: sanitizeHtmlContent(text),
+        }}
+        suppressHydrationWarning
+      />
     </div>
   );
 };
