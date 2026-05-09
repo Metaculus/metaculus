@@ -2,25 +2,40 @@
 
 import { faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC, useEffect, useState } from "react";
+import { FC, useMemo } from "react";
+import sanitizeHtml from "sanitize-html";
 
 import cn from "@/utils/core/cn";
-import { sanitizeHtmlContent } from "@/utils/markdown";
+
+const sanitizeBulletinHtml = (content: string): string =>
+  sanitizeHtml(content, {
+    allowedTags: ["a", "b", "br", "del", "em", "i", "s", "strong", "u"],
+    allowedAttributes: {
+      a: ["href", "target", "rel"],
+    },
+    transformTags: {
+      a: (tagName, attribs) => {
+        if (attribs.target === "_blank" && !attribs.rel) {
+          return {
+            tagName,
+            attribs: {
+              ...attribs,
+              rel: "noopener noreferrer",
+            },
+          };
+        }
+
+        return { tagName, attribs };
+      },
+    },
+  });
 
 const Bulletin: FC<{
   text: string;
   className?: string;
   onHidden?: () => void;
 }> = ({ text, className, onHidden }) => {
-  const [sanitizedText, setSanitizedText] = useState<string | null>(null);
-
-  useEffect(() => {
-    setSanitizedText(sanitizeHtmlContent(text));
-  }, [text]);
-
-  if (sanitizedText === null) {
-    return null;
-  }
+  const sanitizedText = useMemo(() => sanitizeBulletinHtml(text), [text]);
 
   return (
     <div
@@ -37,6 +52,7 @@ const Bulletin: FC<{
         }}
       />
       <div
+        className="text-pretty text-center"
         dangerouslySetInnerHTML={{
           __html: sanitizedText,
         }}
