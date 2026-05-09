@@ -7,27 +7,16 @@ import {
   PropsWithChildren,
   useCallback,
   useContext,
-  useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
 } from "react";
 
-import { Community } from "@/types/projects";
-
-export type TopChromeHeaderConfig =
-  | {
-      type: "community";
-      community: Community | null;
-      alwaysShowName?: boolean;
-    }
-  | {
-      type: "default";
-    };
-
-type TopChromeHeaderState = {
-  routeKey: string;
-  header: TopChromeHeaderConfig;
-};
+import {
+  normalizeTopChromeRouteKey,
+  type TopChromeHeaderConfig,
+  type TopChromeHeaderState,
+} from "./top_chrome_header_shared";
 
 type TopChromeHeaderContextType = {
   activeHeader: TopChromeHeaderConfig | null;
@@ -49,12 +38,20 @@ const getHeaderIdentity = (header: TopChromeHeaderConfig) => {
   return `community:${header.community?.id ?? "none"}:${header.alwaysShowName ?? true}`;
 };
 
-export const TopChromeHeaderProvider: FC<PropsWithChildren> = ({
-  children,
-}) => {
-  const routeKey = usePathname();
+export const TopChromeHeaderProvider: FC<
+  PropsWithChildren<{
+    initialHeaderState?: TopChromeHeaderState | null;
+  }>
+> = ({ children, initialHeaderState }) => {
+  const routeKey = normalizeTopChromeRouteKey(usePathname());
   const [headerState, setHeaderState] = useState<TopChromeHeaderState | null>(
-    null
+    () =>
+      initialHeaderState
+        ? {
+            ...initialHeaderState,
+            routeKey: normalizeTopChromeRouteKey(initialHeaderState.routeKey),
+          }
+        : null
   );
 
   const activeHeader =
@@ -62,16 +59,18 @@ export const TopChromeHeaderProvider: FC<PropsWithChildren> = ({
 
   const setHeaderForRoute = useCallback(
     (nextRouteKey: string, header: TopChromeHeaderConfig) => {
+      const normalizedRouteKey = normalizeTopChromeRouteKey(nextRouteKey);
+
       setHeaderState((previousHeaderState) => {
         if (
-          previousHeaderState?.routeKey === nextRouteKey &&
+          previousHeaderState?.routeKey === normalizedRouteKey &&
           getHeaderIdentity(previousHeaderState.header) ===
             getHeaderIdentity(header)
         ) {
           return previousHeaderState;
         }
 
-        return { routeKey: nextRouteKey, header };
+        return { routeKey: normalizedRouteKey, header };
       });
     },
     []
@@ -100,7 +99,7 @@ export const TopChromeHeaderSetter: FC<{
 }> = ({ header }) => {
   const { routeKey, setHeaderForRoute } = useTopChromeHeader();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setHeaderForRoute(routeKey, header);
   }, [header, routeKey, setHeaderForRoute]);
 

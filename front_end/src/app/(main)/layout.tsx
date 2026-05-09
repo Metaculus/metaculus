@@ -12,6 +12,7 @@ import CookiesBanner from "./components/cookies_banner";
 import Footer from "./components/footer";
 import { TopChrome } from "./components/top_chrome";
 import { TopChromeHeaderProvider } from "./components/top_chrome_header_context";
+import { resolveInitialTopChromeHeaderState } from "./components/top_chrome_header_server";
 import VersionChecker from "./components/version_checker";
 
 config.autoAddCss = false;
@@ -23,15 +24,17 @@ export const metadata: Metadata = {
 
 const { PUBLIC_MINIMAL_UI } = getPublicSettings();
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialHeaderState = await resolveInitialTopChromeHeaderState();
+
   return (
     <PrintOverrideProvider>
       <ShowActiveCommunityProvider>
-        <TopChromeHeaderProvider>
+        <TopChromeHeaderProvider initialHeaderState={initialHeaderState}>
           <div className="flex min-h-screen flex-col pt-header print:pt-0">
             <TopChrome />
             <div className="flex-grow">{children}</div>
