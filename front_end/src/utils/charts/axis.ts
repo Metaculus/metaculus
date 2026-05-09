@@ -359,8 +359,15 @@ function niceTicksAtMost(
     const t = d3.ticks(start, stop, c);
     if (t.length >= 2 && t.length <= maxCount) return t;
   }
-  // Degenerate range, or nothing fits — keep the endpoints so callers
-  // always get at least two ticks.
+  // No c produced a count in [2, maxCount] — typically because the nice
+  // step sizes near maxCount land us at 1 tick on one side and >maxCount
+  // on the other. Try counts up to the global cap (4) looking for any
+  // nice result with at least 2 ticks; better to slightly exceed the
+  // local cap than fall back to ugly raw endpoints.
+  for (let c = 1; c <= 4; c++) {
+    const t = d3.ticks(start, stop, c);
+    if (t.length >= 2 && t.length <= 4) return t;
+  }
   return start === stop ? [start] : [start, stop];
 }
 
