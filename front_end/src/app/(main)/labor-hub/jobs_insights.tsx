@@ -34,9 +34,9 @@ export const JOBS_INSIGHTS = {
   "2035": {
     positive: (
       <>
-        By 2035, <strong>nurses</strong> and <strong>restaurant workers</strong>{" "}
-        are expected to see the highest growth, driven by hands-on needs, while{" "}
-        <strong>law enforcement</strong> and{" "}
+        By 2035, <strong>nurses</strong>, <strong>law enforcement</strong>, and{" "}
+        <strong>restaurant workers</strong> are expected to see the highest
+        growth, driven by hands-on needs, while{" "}
         <strong>construction workers</strong> see muted growth counteracted by
         potential robotics advancements.
       </>
