@@ -85,7 +85,7 @@ const DetailedQuestionCard: FC<Props> = ({
             embedChartType={embedChartType}
             keyFactors={keyFactors}
           />
-          {hideCP && <RevealCPButton />}
+          {hideCP && !isConsumerView && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>
       );
     case QuestionType.MultipleChoice:

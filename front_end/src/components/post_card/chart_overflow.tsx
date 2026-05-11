@@ -1,4 +1,3 @@
-import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
 import ChartOverflowContainer from "@/components/charts/cp_reveal_time_overflow";
@@ -18,8 +17,6 @@ const ForecastAvailabilityChartOverflow: FC<Props> = ({
   textClassName,
   style,
 }) => {
-  const t = useTranslations();
-
   if (!forecastAvailability) {
     return null;
   }
@@ -32,18 +29,6 @@ const ForecastAvailabilityChartOverflow: FC<Props> = ({
         style={style}
       >
         <CPRevealTime cpRevealTime={forecastAvailability.cpRevealsOn} />
-      </ChartOverflowContainer>
-    );
-  }
-
-  if (forecastAvailability.isEmpty) {
-    return (
-      <ChartOverflowContainer
-        className={className}
-        textClassName={textClassName}
-        style={style}
-      >
-        <span>{t("noForecastsYet")}</span>
       </ChartOverflowContainer>
     );
   }
