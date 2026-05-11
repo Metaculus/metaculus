@@ -410,31 +410,33 @@ const CommentFeed: FC<Props> = ({
             )}
           </div>
         )}
-        <div className="mb-4 flex flex-row items-center justify-start gap-1 md:mb-5">
-          <span className="text-sm font-medium leading-5 text-gray-600 dark:text-gray-600-dark">
-            {totalCount ? `${totalCount} ` : ""}
-            {t("commentsWithCount", { count: totalCount })}
-            {postData?.last_viewed_at && (
-              <>
-                {getUnreadCount(comments) > 0 && (
-                  <span className="ml-1 font-bold text-purple-700 dark:text-purple-700-dark">
-                    ({getUnreadCount(comments)} {t("unread")})
-                  </span>
-                )}
-              </>
-            )}
-          </span>
-          <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
-            <Button
-              variant="text"
-              className="py-0 text-sm font-medium capitalize leading-5 text-blue-800 dark:text-blue-800-dark"
-            >
-              {menuItems.find((item) => item.id === feedFilters.sort)?.name ??
-                "sort"}
-              <FontAwesomeIcon icon={faChevronDown} />
-            </Button>
-          </DropdownMenu>
-        </div>
+        {!compactVersion && (
+          <div className="mb-4 flex flex-row items-center justify-start gap-1 md:mb-5">
+            <span className="text-sm font-medium leading-5 text-gray-600 dark:text-gray-600-dark">
+              {totalCount ? `${totalCount} ` : ""}
+              {t("commentsWithCount", { count: totalCount })}
+              {postData?.last_viewed_at && (
+                <>
+                  {getUnreadCount(comments) > 0 && (
+                    <span className="ml-1 font-bold text-purple-700 dark:text-purple-700-dark">
+                      ({getUnreadCount(comments)} {t("unread")})
+                    </span>
+                  )}
+                </>
+              )}
+            </span>
+            <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
+              <Button
+                variant="text"
+                className="py-0 text-sm font-medium capitalize leading-5 text-blue-800 dark:text-blue-800-dark"
+              >
+                {menuItems.find((item) => item.id === feedFilters.sort)?.name ??
+                  "sort"}
+                <FontAwesomeIcon icon={faChevronDown} />
+              </Button>
+            </DropdownMenu>
+          </div>
+        )}
         {!compactVersion && postId && !user?.is_bot && (
           <>
             {showWelcomeMessage && !getIsMessagePreviouslyClosed() ? null : (

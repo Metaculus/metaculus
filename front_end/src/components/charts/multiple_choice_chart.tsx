@@ -51,9 +51,9 @@ import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
 import ChartContainer from "./primitives/chart_container";
 import ChartCursorLabel from "./primitives/chart_cursor_label";
+import SvgWrapper from "./primitives/svg_wrapper";
 import XTickLabel from "./primitives/x_tick_label";
 import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
-import SvgWrapper from "./primitives/svg_wrapper";
 import YTickLabel from "./primitives/y_tick_label";
 
 type ColoredLinePoint = {
@@ -426,7 +426,6 @@ const MultipleChoiceChart: FC<Props> = ({
                 <VictoryPortal>
                   <XTickLabel
                     chartWidth={chartWidth}
-                    withCursor={!!onCursorChange}
                     fontSize={tickLabelFontSize as number}
                     dx={isEmbedded ? 16 : 0}
                   />

@@ -663,7 +663,6 @@ const NumericChart: FC<Props> = ({
                     <VictoryPortal>
                       <XTickLabel
                         chartWidth={chartWidth}
-                        withCursor
                         fontSize={tickLabelFontSize}
                         {...(!extraTheme && {
                           style: {

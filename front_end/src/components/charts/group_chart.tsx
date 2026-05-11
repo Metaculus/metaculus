@@ -454,7 +454,6 @@ const GroupChart: FC<Props> = ({
                   tickLabelComponent={
                     <XTickLabel
                       chartWidth={chartWidth}
-                      withCursor={!!onCursorChange}
                       fontSize={tickLabelFontSize as number}
                       dx={isEmbedded ? 16 : 0}
                     />
