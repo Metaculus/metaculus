@@ -323,7 +323,7 @@ export default function LaborAutomationHubPage() {
               }}
             />
             <ContentParagraph small>
-              With only 10% of workers using AI daily as of late 2025, the
+              With only 13% of workers using AI daily as of early 2026, the
               workplace is still in the early stages of an adoption curve that
               could fundamentally change how most Americans do their jobs within
               a decade. But forecasters note that some people may only think
@@ -339,6 +339,7 @@ export default function LaborAutomationHubPage() {
                 2023: 4,
                 2024: 4,
                 2025: 10,
+                2026: 13,
               }}
               chartProps={{
                 showTickLabels: true,
@@ -391,7 +392,7 @@ export default function LaborAutomationHubPage() {
                       2022: 4.1,
                       2023: 4.4,
                       2024: 4.8,
-                      2025: 5.4,
+                      2025: 5.5,
                     },
                   },
                   {
@@ -405,7 +406,7 @@ export default function LaborAutomationHubPage() {
                       2022: 40.3,
                       2023: 39.7,
                       2024: 40.3,
-                      2025: 41.4,
+                      2025: 41.6,
                     },
                   },
                 ]}

@@ -36,21 +36,17 @@ export const JOBS_INSIGHTS = {
       <>
         By 2035, <strong>nurses</strong>, <strong>law enforcement</strong>, and{" "}
         <strong>restaurant workers</strong> are expected to see the highest
-        growth, driven by hands-on needs, while{" "}
-        <strong>construction workers</strong> see more muted growth counteracted
-        by potential robotics advancements.
+        growth, driven by hands-on needs that cannot be easily automated.
       </>
     ),
     negative: (
       <>
-        By 2035, <strong>software</strong>, <strong>sales</strong>,{" "}
-        <strong>finance</strong> and <strong>law</strong> are expected to see
-        sharp staff reductions as AI systems take over large portions of coding,
-        marketing, accounting, and detailed research work, while{" "}
-        <strong>laborers</strong> and <strong>designers</strong> see a
-        contraction as more advanced robotics and image generation capabilities
-        roll out. <strong>Teachers</strong> see a demography-led decline as
-        student numbers fall.
+        By 2035, <strong>software</strong>, <strong>finance</strong> and{" "}
+        <strong>law</strong> are expected to see sharp staff reductions as AI
+        systems take over large portions of coding, accounting, and detailed
+        research work, while <strong>laborers</strong> and{" "}
+        <strong>sales</strong> see a contraction as more advanced robotics roll
+        out and AI automates lead generation and outreach.
       </>
     ),
   },
