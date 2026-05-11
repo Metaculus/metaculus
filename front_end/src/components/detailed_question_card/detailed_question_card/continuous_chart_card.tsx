@@ -160,10 +160,6 @@ const DetailedContinuousChartCard: FC<Props> = ({
   const discreteValueOptions = getDiscreteValueOptions(question);
 
   const cpCursorElement = useMemo(() => {
-    if (forecastAvailability?.isEmpty) {
-      return t("noForecastsYet");
-    }
-
     if (hideCP) {
       return "...";
     }

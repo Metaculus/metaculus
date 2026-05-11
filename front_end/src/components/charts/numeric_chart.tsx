@@ -599,7 +599,11 @@ const NumericChart: FC<Props> = ({
         onTouchEnd={handleTouchEnd}
       >
         <ForecastAvailabilityChartOverflow
-          forecastAvailability={forecastAvailability}
+          forecastAvailability={
+            forecastAvailability
+              ? { ...forecastAvailability, isEmpty: false }
+              : undefined
+          }
           className="text-xs text-gray-700 dark:text-gray-700-dark"
           textClassName="pl-0"
           style={{
