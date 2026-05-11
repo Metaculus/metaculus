@@ -44,6 +44,8 @@ import {
   isContinuousQuestion,
 } from "@/utils/questions/helpers";
 
+import { useFullAggregation } from "./hooks/use_full_aggregation";
+
 const Histogram = dynamic(() => import("@/components/charts/histogram"), {
   ssr: false,
 });
@@ -93,8 +95,21 @@ const DetailedContinuousChartCard: FC<Props> = ({
   const [isChartReady, setIsChartReady] = useState(false);
   const [activeView, setActiveView] = useState<ChartView>("timeline");
 
+  const [shouldFetchFull, setShouldFetchFull] = useState(false);
+  const { data: enrichedAggregation = null } = useFullAggregation(
+    question.id,
+    question.default_aggregation_method,
+    isContinuousConsumer && shouldFetchFull
+  );
+
+  const handlePointerEnter = useCallback(() => {
+    if (isContinuousConsumer) setShouldFetchFull(true);
+  }, [isContinuousConsumer]);
+
   const aggregation =
     question.aggregations[question.default_aggregation_method];
+  const effectiveAggregation = (enrichedAggregation ??
+    aggregation) as typeof aggregation;
   const isCpHidden = !!forecastAvailability?.cpRevealsOn;
 
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
@@ -113,7 +128,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
       };
     }
 
-    const forecast = getCursorForecast(cursorTimestamp, aggregation);
+    const forecast = getCursorForecast(cursorTimestamp, effectiveAggregation);
     let timestamp = cursorTimestamp;
     if (
       timestamp === null &&
@@ -137,7 +152,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
   }, [
     isCpHidden,
     cursorTimestamp,
-    aggregation,
+    effectiveAggregation,
     question.my_forecasts,
     nrForecasters,
   ]);
@@ -209,9 +224,9 @@ const DetailedContinuousChartCard: FC<Props> = ({
       return null;
     return getCursorForecast(
       cursorTimestamp,
-      aggregation
+      effectiveAggregation
     ) as NumericAggregateForecast | null;
-  }, [isCpHidden, cursorTimestamp, aggregation, question]);
+  }, [isCpHidden, cursorTimestamp, effectiveAggregation, question]);
 
   const cursorCtx = useContinuousChartCursor();
   useEffect(() => {
@@ -435,6 +450,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
         "flex w-full flex-col",
         isChartReady ? "opacity-100" : "opacity-0"
       )}
+      onPointerEnter={isContinuousConsumer ? handlePointerEnter : undefined}
     >
       {isContinuousQuestion(question) && !isEmbed ? (
         <>

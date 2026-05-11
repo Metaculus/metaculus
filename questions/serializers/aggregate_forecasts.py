@@ -128,7 +128,7 @@ def serialize_question_aggregations(
 
         for method, forecasts in aggregate_forecasts_by_method.items():
             serialized_data[method]["history"] = [
-                serialize_aggregate_forecast(forecast, question.type, full=True)
+                serialize_aggregate_forecast(forecast, question.type, full=full_forecast_values)
                 for forecast in forecasts
             ]
             serialized_data[method]["latest"] = (
