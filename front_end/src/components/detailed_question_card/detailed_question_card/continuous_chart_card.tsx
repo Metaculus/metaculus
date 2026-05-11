@@ -14,7 +14,6 @@ import { VictoryThemeDefinition } from "victory";
 
 import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_cp_status";
-import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import NumericTimeline from "@/components/charts/numeric_timeline";
 import QuestionPredictionTooltip from "@/components/charts/primitives/question_prediction_tooltip";
 import ContinuousPredictionChart from "@/components/forecast_maker/continuous_input/continuous_prediction_chart";
@@ -161,10 +160,6 @@ const DetailedContinuousChartCard: FC<Props> = ({
   const discreteValueOptions = getDiscreteValueOptions(question);
 
   const cpCursorElement = useMemo(() => {
-    if (forecastAvailability?.isEmpty) {
-      return t("noForecastsYet");
-    }
-
     if (hideCP) {
       return "...";
     }
@@ -328,7 +323,8 @@ const DetailedContinuousChartCard: FC<Props> = ({
       hideCursorValueLabel={isContinuousConsumer && !isEmbed}
       title={timelineTitle}
       forecastAvailability={forecastAvailability}
-      cursorTooltip={cursorTooltip}
+      suppressEmptyOverlay
+      cursorTooltip={forecastAvailability?.isEmpty ? undefined : cursorTooltip}
       isConsumerView={isContinuousConsumer}
       isEmbedded={isEmbed}
       height={chartHeight}
@@ -409,9 +405,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
           className="flex w-full flex-col justify-center"
           style={{ height: chartHeight }}
         >
-          {hideCP || isCpHidden ? (
-            <RevealCPButton />
-          ) : (
+          {!hideCP && !isCpHidden && (
             <Histogram
               histogramData={histogramData}
               median={median}

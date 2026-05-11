@@ -319,10 +319,11 @@ const MultiChoicesChartView: FC<Props> = ({
       )}
 
       {isTooltipActive &&
+        !hideCP &&
+        !forecastAvailability?.cpRevealsOn &&
         !activeTimelineMarkerId &&
         (tooltipChoices.length > 0 ||
           !!tooltipUserChoices?.length ||
-          !!forecastAvailability?.cpRevealsOn ||
           !!forecastAvailability?.isEmpty) && (
           <FloatingPortal>
             <div

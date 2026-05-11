@@ -5,11 +5,13 @@ import { FC, Fragment, ReactNode, useEffect } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_status_box";
+import UpcomingCP from "@/components/consumer_post_card/upcoming_cp";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
 import ForecastMaker from "@/components/forecast_maker";
 import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
 import { ContinuousChartCursorProvider } from "@/contexts/continuous_chart_cursor_context";
+import { useHideCP } from "@/contexts/cp_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import {
   GroupOfQuestionsGraphType,
@@ -20,6 +22,7 @@ import {
 import { TournamentType } from "@/types/projects";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
+import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 import {
   checkGroupOfQuestionsPostType,
   isContinuousQuestion,
@@ -40,6 +43,7 @@ import ActionRow from "../question_view/action_row";
 import ConsumerQuestionPrediction from "../question_view/consumer_question_view/prediction";
 import QuestionTimeline from "../question_view/consumer_question_view/timeline";
 import QuestionHeaderCPStatus from "../question_view/forecaster_question_view/question_header/question_header_cp_status";
+import RevealCPButton from "../reveal_cp_button";
 
 const baseSectionClassName =
   "relative z-10 flex w-[59rem] max-w-full flex-col gap-6 overflow-x-clip rounded border border-blue-400 p-4 text-gray-900 dark:border-blue-200-dark dark:text-gray-900-dark lg:p-8";
@@ -130,6 +134,7 @@ export const ConsumerShell: FC<{
 }> = ({ postData, preselectedGroupQuestionId, mobileSidebar }) => {
   const t = useTranslations();
   const { aggregateCoherenceLinks } = useCoherenceLinksContext();
+  const { hideCP } = useHideCP();
 
   const isFanGraph =
     postData.group_of_questions?.graph_type ===
@@ -153,6 +158,11 @@ export const ConsumerShell: FC<{
     !isContinuousSingleQuestion &&
     !isMultipleChoice;
 
+  const binaryForecastAvailability =
+    isBinarySingleQuestion && isQuestionPost(postData)
+      ? getQuestionForecastAvailability(postData.question)
+      : null;
+
   const showSideBySide =
     isMultipleChoice ||
     isNonFanGroup ||
@@ -170,7 +180,14 @@ export const ConsumerShell: FC<{
     aggregateCoherenceLinks?.data.filter(isDisplayableQuestionLink) ?? [];
   const hasKeyFactors = (postData.key_factors?.length ?? 0) > 0;
   const hasQuestionLinks = questionLinkAggregates.length > 0;
-  const shouldShowKeyFactorsSection = hasKeyFactors || hasQuestionLinks;
+  const questionForecastAvailability = isQuestionPost(postData)
+    ? getQuestionForecastAvailability(postData.question)
+    : null;
+  const isForecastEmpty =
+    !!questionForecastAvailability?.isEmpty &&
+    !questionForecastAvailability?.cpRevealsOn;
+  const shouldShowKeyFactorsSection =
+    hasKeyFactors || hasQuestionLinks || isForecastEmpty;
 
   return (
     <div className="flex flex-col gap-1.5 md:gap-4">
@@ -217,19 +234,39 @@ export const ConsumerShell: FC<{
           >
             {isBinarySingleQuestion && isQuestionPost(postData) ? (
               <div className="order-1 flex w-64 flex-col items-center justify-center gap-[18px] self-center sm:self-stretch">
-                <QuestionHeaderCPStatus
-                  question={postData.question}
-                  size="lg"
-                />
+                {hideCP ? (
+                  <RevealCPButton />
+                ) : binaryForecastAvailability?.cpRevealsOn ? (
+                  <UpcomingCP
+                    cpRevealsOn={binaryForecastAvailability.cpRevealsOn}
+                  />
+                ) : (
+                  <QuestionHeaderCPStatus
+                    question={postData.question}
+                    size="lg"
+                  />
+                )}
               </div>
             ) : (
               <div
                 className={cn(
                   showSideBySide && !isDateGroup ? "order-1" : undefined,
-                  isContinuousSingleQuestion && "md:hidden"
+                  isContinuousSingleQuestion && "md:hidden",
+                  showSideBySide &&
+                    !isDateGroup &&
+                    !isContinuousSingleQuestion &&
+                    "sm:max-w-[200px]",
+                  hideCP &&
+                    !isContinuousSingleQuestion &&
+                    (isDateGroup || isFanGraph) &&
+                    "flex w-full justify-center"
                 )}
               >
-                <ConsumerQuestionPrediction postData={postData} />
+                {hideCP && !isContinuousSingleQuestion ? (
+                  <RevealCPButton />
+                ) : (
+                  <ConsumerQuestionPrediction postData={postData} />
+                )}
               </div>
             )}
             {!isFanGraph && !isDateGroup && (
