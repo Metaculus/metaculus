@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, useEffect } from "react";
 
 import { Tabs, TabsList, TabsTab } from "@/components/ui/tabs";
 import { useBreakpoint } from "@/hooks/tailwind";
@@ -97,6 +97,13 @@ const QuestionPageShellTabBar: FC<Props> = ({ post, variant, className }) => {
     activeTab && tabs.some((tab) => tab.key === activeTab)
       ? activeTab
       : defaultValue;
+
+  // Sync context when the active tab is dropped from the list (e.g. on resize).
+  useEffect(() => {
+    if (activeTab && active !== activeTab) {
+      setActiveTab(active);
+    }
+  }, [active, activeTab, setActiveTab]);
 
   return (
     <Tabs

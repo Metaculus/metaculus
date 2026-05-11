@@ -24,7 +24,11 @@ export const shouldQuestionShowUserScores = (
   question: QuestionWithForecasts
 ) => {
   const userScores = question.my_forecasts?.score_data;
-  return !isNil(userScores) && Object.keys(userScores).length > 0;
+  return (
+    !isNil(userScores) &&
+    Object.keys(userScores).length > 0 &&
+    !isUnsuccessfullyResolved(question.resolution)
+  );
 };
 
 function someQuestionIn(

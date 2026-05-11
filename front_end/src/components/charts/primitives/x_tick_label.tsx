@@ -3,14 +3,12 @@ import { VictoryLabel } from "victory";
 
 type Props = ComponentProps<typeof VictoryLabel> & {
   chartWidth: number;
-  withCursor?: boolean;
   fontSize?: number;
   dx?: number;
 };
 
 const XTickLabel: FC<Props> = ({
   chartWidth,
-  withCursor,
   fontSize = 10,
   dx = 0,
   ...props
@@ -23,9 +21,7 @@ const XTickLabel: FC<Props> = ({
   let textAnchor: "start" | "middle" | "end" = "middle";
   if (x - estimatedTextWidth < 0) {
     textAnchor = "start";
-  } else if (
-    withCursor ? x > chartWidth - estimatedTextWidth : x > chartWidth - 12
-  ) {
+  } else if (x > chartWidth - estimatedTextWidth) {
     textAnchor = "end";
   }
 
