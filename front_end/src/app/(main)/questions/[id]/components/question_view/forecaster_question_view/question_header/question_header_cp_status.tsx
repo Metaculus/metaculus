@@ -144,7 +144,8 @@ const QuestionHeaderCPStatus: FC<Props> = ({
         "min-h-full w-[200px]": size === "lg" && hideLabel,
         "w-max max-w-[200px]": size === "lg" && !hideLabel,
         "max-w-[130px]":
-          size === "md" || (isEmbed && !isEmbedBelow376 && !isEmbedWide),
+          !forecastAvailability.cpRevealsOn &&
+          (size === "md" || (isEmbed && !isEmbedBelow376 && !isEmbedWide)),
         "gap-1": !hideLabel && size === "lg",
         "gap-0": size === "md",
         "-gap-2": size === "md" && hideLabel,
@@ -175,7 +176,10 @@ const QuestionHeaderCPStatus: FC<Props> = ({
           style={borderStyle}
           className={cn(containerClassName, "items-center justify-center")}
         >
-          <UpcomingCP cpRevealsOn={forecastAvailability.cpRevealsOn} />
+          <UpcomingCP
+            cpRevealsOn={forecastAvailability.cpRevealsOn}
+            className="whitespace-nowrap"
+          />
         </div>
       );
     }
@@ -330,7 +334,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({
         {!!forecastAvailability.cpRevealsOn && !isEmbed && (
           <UpcomingCP
             cpRevealsOn={forecastAvailability.cpRevealsOn}
-            className="mt-2"
+            className="mt-2 whitespace-nowrap"
           />
         )}
       </div>

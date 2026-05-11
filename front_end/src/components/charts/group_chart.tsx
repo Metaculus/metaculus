@@ -386,7 +386,9 @@ const GroupChart: FC<Props> = ({
                 },
               ]}
               containerComponent={
-                onCursorChange ? (
+                onCursorChange &&
+                !hideCP &&
+                !forecastAvailability?.cpRevealsOn ? (
                   CursorContainer
                 ) : (
                   <VictoryContainer

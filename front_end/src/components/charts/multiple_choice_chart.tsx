@@ -51,9 +51,9 @@ import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
 import ChartContainer from "./primitives/chart_container";
 import ChartCursorLabel from "./primitives/chart_cursor_label";
+import SvgWrapper from "./primitives/svg_wrapper";
 import XTickLabel from "./primitives/x_tick_label";
 import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
-import SvgWrapper from "./primitives/svg_wrapper";
 import YTickLabel from "./primitives/y_tick_label";
 
 type ColoredLinePoint = {
@@ -321,7 +321,9 @@ const MultipleChoiceChart: FC<Props> = ({
               },
             ]}
             containerComponent={
-              onCursorChange ? (
+              onCursorChange &&
+              !hideCP &&
+              !forecastAvailability?.cpRevealsOn ? (
                 CursorContainer
               ) : (
                 <VictoryContainer
@@ -395,15 +397,16 @@ const MultipleChoiceChart: FC<Props> = ({
                 axis: {
                   stroke: "transparent",
                 },
-                grid: isEmptyDomain
-                  ? {
-                      stroke: getThemeColor(METAC_COLORS.gray["300"]),
-                      strokeWidth: 1,
-                      strokeDasharray: "2, 5",
-                    }
-                  : {
-                      stroke: "transparent",
-                    },
+                grid:
+                  isEmptyDomain || hideCP
+                    ? {
+                        stroke: getThemeColor(METAC_COLORS.gray["300"]),
+                        strokeWidth: 1,
+                        strokeDasharray: "2, 5",
+                      }
+                    : {
+                        stroke: "transparent",
+                      },
               }}
               label={yLabel}
               offsetX={

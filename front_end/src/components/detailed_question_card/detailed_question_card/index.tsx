@@ -3,7 +3,6 @@ import { FC, useEffect } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
-import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { useHideCP } from "@/contexts/cp_context";
 import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
 import { KeyFactor } from "@/types/comment";
@@ -101,7 +100,6 @@ const DetailedQuestionCard: FC<Props> = ({
             chartTheme={chartTheme}
             defaultZoom={defaultZoom}
           />
-          {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>
       );
     default:

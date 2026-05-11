@@ -180,7 +180,14 @@ export const ConsumerShell: FC<{
     aggregateCoherenceLinks?.data.filter(isDisplayableQuestionLink) ?? [];
   const hasKeyFactors = (postData.key_factors?.length ?? 0) > 0;
   const hasQuestionLinks = questionLinkAggregates.length > 0;
-  const shouldShowKeyFactorsSection = hasKeyFactors || hasQuestionLinks;
+  const questionForecastAvailability = isQuestionPost(postData)
+    ? getQuestionForecastAvailability(postData.question)
+    : null;
+  const isForecastEmpty =
+    !!questionForecastAvailability?.isEmpty &&
+    !questionForecastAvailability?.cpRevealsOn;
+  const shouldShowKeyFactorsSection =
+    hasKeyFactors || hasQuestionLinks || isForecastEmpty;
 
   return (
     <div className="flex flex-col gap-1.5 md:gap-4">
@@ -244,10 +251,22 @@ export const ConsumerShell: FC<{
               <div
                 className={cn(
                   showSideBySide && !isDateGroup ? "order-1" : undefined,
-                  isContinuousSingleQuestion && "md:hidden"
+                  isContinuousSingleQuestion && "md:hidden",
+                  showSideBySide &&
+                    !isDateGroup &&
+                    !isContinuousSingleQuestion &&
+                    "sm:max-w-[200px]",
+                  hideCP &&
+                    !isContinuousSingleQuestion &&
+                    (isDateGroup || isFanGraph) &&
+                    "flex w-full justify-center"
                 )}
               >
-                <ConsumerQuestionPrediction postData={postData} />
+                {hideCP && !isContinuousSingleQuestion ? (
+                  <RevealCPButton />
+                ) : (
+                  <ConsumerQuestionPrediction postData={postData} />
+                )}
               </div>
             )}
             {!isFanGraph && !isDateGroup && (

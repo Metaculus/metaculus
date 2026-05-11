@@ -452,7 +452,7 @@ const FanChart: FC<Props> = ({
               domainPadding={v.domainPadding(variantArgs)}
               padding={chartPadding}
               containerComponent={
-                withTooltip ? (
+                withTooltip && !hideCP && !forecastAvailability?.cpRevealsOn ? (
                   containerWithTooltip
                 ) : (
                   <VictoryContainer
