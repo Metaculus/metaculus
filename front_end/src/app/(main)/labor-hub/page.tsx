@@ -179,7 +179,7 @@ export default function LaborAutomationHubPage() {
               </span>
               , <strong>median wages are expected to grow.</strong> The workweek
               is also expected to become{" "}
-              <strong>four hours shorter by 2035</strong> among all workers,
+              <strong>approximately three hours shorter by 2035</strong> among all workers,
               while productivity grows.
             </ContentParagraph>
             <ContentParagraph>
@@ -323,7 +323,7 @@ export default function LaborAutomationHubPage() {
               }}
             />
             <ContentParagraph small>
-              With only 12% of workers using AI daily as of late 2025, the
+              With only 10% of workers using AI daily as of late 2025, the
               workplace is still in the early stages of an adoption curve that
               could fundamentally change how most Americans do their jobs within
               a decade. But forecasters note that some people may only think
