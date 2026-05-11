@@ -149,7 +149,7 @@ export async function KeyInsightsSection({
         <KeyInsightItem title="Young workers">
           The youngest workers are expected to be hit hardest, with unemployment
           for 4-year college graduates in the 22-27 age range expected to grow
-          from the current 6%
+          from the current 5%
           {youthDisplay != null ? ` to ${youthDisplay}%` : ""} in 2035.
           Meanwhile, trade school and community college certificates are
           expected to{" "}
