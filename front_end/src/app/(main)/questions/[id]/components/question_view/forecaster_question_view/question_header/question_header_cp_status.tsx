@@ -300,6 +300,17 @@ const QuestionHeaderCPStatus: FC<Props> = ({
       );
     }
 
+    if (forecastAvailability.cpRevealsOn && !isEmbed) {
+      return (
+        <div className="flex flex-col items-center justify-center">
+          <UpcomingCP
+            cpRevealsOn={forecastAvailability.cpRevealsOn}
+            className="whitespace-nowrap"
+          />
+        </div>
+      );
+    }
+
     return (
       <div
         className={cn(
@@ -318,7 +329,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({
             colorOverride={colorOverride}
           />
         )}
-        {!hideCP && !forecastAvailability.cpRevealsOn && (
+        {!hideCP && (
           <QuestionCPMovement
             question={question}
             className={cn("mx-auto pb-1 text-center", {
@@ -329,12 +340,6 @@ const QuestionHeaderCPStatus: FC<Props> = ({
             unit={"%"}
             variant={"chip"}
             boldValueUnit={true}
-          />
-        )}
-        {!!forecastAvailability.cpRevealsOn && !isEmbed && (
-          <UpcomingCP
-            cpRevealsOn={forecastAvailability.cpRevealsOn}
-            className="mt-2 whitespace-nowrap"
           />
         )}
       </div>

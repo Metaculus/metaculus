@@ -323,6 +323,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
       hideCursorValueLabel={isContinuousConsumer && !isEmbed}
       title={timelineTitle}
       forecastAvailability={forecastAvailability}
+      suppressEmptyOverlay
       cursorTooltip={forecastAvailability?.isEmpty ? undefined : cursorTooltip}
       isConsumerView={isContinuousConsumer}
       isEmbedded={isEmbed}

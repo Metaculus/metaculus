@@ -102,6 +102,7 @@ type Props = {
   showNewsAnnotations?: boolean;
   onToggleNewsAnnotations?: () => void;
   animate?: object;
+  suppressEmptyOverlay?: boolean;
 };
 
 const BOTTOM_PADDING = 20;
@@ -139,6 +140,7 @@ const NumericChart: FC<Props> = ({
   showNewsAnnotations,
   onToggleNewsAnnotations,
   animate,
+  suppressEmptyOverlay = false,
 }) => {
   const { theme, getThemeColor } = useAppTheme();
   const [isChartReady, setIsChartReady] = useState(false);
@@ -309,6 +311,9 @@ const NumericChart: FC<Props> = ({
     handleCursorChange,
     nonInteractive,
     isCursorActive,
+    forecastAvailability,
+    hideCP,
+    isContinuousConsumerView,
   ]);
 
   const chartEvents = useMemo(() => {
@@ -599,10 +604,11 @@ const NumericChart: FC<Props> = ({
         onTouchEnd={handleTouchEnd}
       >
         <ForecastAvailabilityChartOverflow
+          // when suppressEmptyOverlay is set, force isEmpty: false to hide the "No forecasts yet" overlay
           forecastAvailability={
-            forecastAvailability
+            forecastAvailability && suppressEmptyOverlay
               ? { ...forecastAvailability, isEmpty: false }
-              : undefined
+              : forecastAvailability
           }
           className="text-xs text-gray-700 dark:text-gray-700-dark"
           textClassName="pl-0"
