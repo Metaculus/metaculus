@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.html import strip_tags
 from pgvector.django import VectorField
 
 from posts.models import Post
@@ -45,7 +46,8 @@ class Bulletin(TimeStampedModel):
     text = models.TextField()
 
     def __str__(self):
-        return self.text[:150] + "..." if len(self.text) > 150 else self.text
+        plain_text = strip_tags(self.text)
+        return plain_text[:150] + "..." if len(plain_text) > 150 else plain_text
 
 
 class BulletinViewedBy(TimeStampedModel):

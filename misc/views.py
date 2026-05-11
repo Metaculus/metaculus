@@ -140,9 +140,8 @@ def cancel_bulletin(request, pk):
     user = request.user
     if not user or not user.is_authenticated:
         return Response(status=status.HTTP_200_OK)
-    BulletinViewedBy.objects.get_or_create(
-        bulletin=Bulletin.objects.get(pk=pk), user=user
-    )
+    bulletin = get_object_or_404(Bulletin, pk=pk)
+    BulletinViewedBy.objects.get_or_create(bulletin=bulletin, user=user)
     return Response(status=status.HTTP_201_CREATED)
 
 

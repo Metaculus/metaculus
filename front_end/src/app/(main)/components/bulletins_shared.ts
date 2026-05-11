@@ -5,6 +5,8 @@ export const DISMISSED_BULLETINS_COOKIE = "dismissed_bulletins";
 
 const MAX_DISMISSED_BULLETIN_IDS = 10;
 
+const isPositiveInteger = (id: number) => Number.isInteger(id) && id > 0;
+
 export const parseDismissedBulletinIds = (value?: string | null): number[] => {
   if (!value) {
     return [];
@@ -14,14 +16,15 @@ export const parseDismissedBulletinIds = (value?: string | null): number[] => {
     ...new Set(
       value
         .split(",")
-        .map((id) => Number.parseInt(id, 10))
-        .filter(Number.isFinite)
+        .filter((id) => /^\d+$/.test(id))
+        .map((id) => Number(id))
+        .filter(isPositiveInteger)
     ),
   ];
 };
 
 export const serializeDismissedBulletinIds = (ids: Iterable<number>) =>
   [...new Set(ids)]
-    .filter(Number.isFinite)
+    .filter(isPositiveInteger)
     .slice(-MAX_DISMISSED_BULLETIN_IDS)
     .join(",");

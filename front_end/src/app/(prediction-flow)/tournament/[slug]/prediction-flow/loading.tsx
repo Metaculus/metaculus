@@ -1,18 +1,13 @@
-import { faRightFromBracket } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { getTranslations } from "next-intl/server";
-
 import { TopChrome } from "@/app/(main)/components/top_chrome";
 import {
-  FlowHeaderActions,
   FlowHeaderBrand,
   FlowHeaderRoot,
   FlowHeaderTitle,
 } from "@/components/flow/flow_header";
-import Button from "@/components/ui/button";
 
-export default async function Loading() {
-  const t = await getTranslations();
+import LoadingHeaderActions from "./loading_header_actions";
+
+export default function Loading() {
   return (
     <>
       <TopChrome
@@ -26,20 +21,7 @@ export default async function Loading() {
 
             <FlowHeaderTitle />
 
-            <FlowHeaderActions>
-              <Button className="mr-2 hidden sm:block">
-                {t("exitPredictionFlow")}
-              </Button>
-              <Button
-                className="mr-2 border-none bg-transparent text-gray-0 dark:text-gray-0-dark sm:hidden"
-                variant="primary"
-              >
-                <FontAwesomeIcon
-                  icon={faRightFromBracket}
-                  className="h-5 w-5"
-                />
-              </Button>
-            </FlowHeaderActions>
+            <LoadingHeaderActions />
           </FlowHeaderRoot>
         }
       />

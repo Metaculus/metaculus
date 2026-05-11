@@ -82,7 +82,7 @@ const NotebookContentSections: FC<Props> = ({
       ids.push(NOTEBOOK_COMMENTS_TITLE);
 
       const offset = isLargeScreen
-        ? DESKTOP_SCROLL_OFFSET
+        ? DESKTOP_SCROLL_OFFSET + topChromeHeight
         : DESKTOP_SCROLL_OFFSET + topChromeHeight + 16;
 
       const activeId = [...ids].reverse().find((id) => {

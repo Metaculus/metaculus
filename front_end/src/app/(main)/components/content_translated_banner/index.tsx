@@ -54,7 +54,7 @@ const ContentTranslatedBanner: FC<{
         <div className="static right-2 sm:absolute">
           <div className="item-center flex flex-col justify-center gap-1 sm:flex-row">
             <span className="whitespace-nowrap text-[10px]   text-gray-700 dark:text-gray-700-dark">
-              translated by
+              {t("translated_by")}
             </span>
             <GoogleTranslateAttribution />
           </div>

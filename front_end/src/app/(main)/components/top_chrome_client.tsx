@@ -40,15 +40,25 @@ export const TopChromeClient: FC<{ children: ReactNode }> = ({ children }) => {
       }
 
       const observer = new MutationObserver(updateTopChromeHeight);
-      observer.observe(topChromeEl, {
-        attributes: true,
-        childList: true,
-        subtree: true,
-      });
+      let isObserving = false;
+      try {
+        observer.observe(topChromeEl, {
+          attributes: true,
+          childList: true,
+          subtree: true,
+        });
+        isObserving = true;
+      } catch (error) {
+        logError(error, {
+          message: "Failed to observe top chrome height",
+        });
+      }
       window.addEventListener("resize", updateTopChromeHeight);
 
       return () => {
-        observer.disconnect();
+        if (isObserving) {
+          observer.disconnect();
+        }
         window.removeEventListener("resize", updateTopChromeHeight);
         document.documentElement.style.removeProperty(
           TOP_CHROME_HEIGHT_CSS_VAR

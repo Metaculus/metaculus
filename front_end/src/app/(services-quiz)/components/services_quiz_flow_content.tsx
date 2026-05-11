@@ -23,8 +23,7 @@ const STEP_COMPONENTS: Record<ServicesQuizStepId, FC> = {
 
 const ServicesQuizFlowContent: FC = () => {
   const { step } = useServicesQuizFlow();
-  const ActiveStep =
-    STEP_COMPONENTS[step as ServicesQuizStepId] ?? STEP_COMPONENTS[1];
+  const ActiveStep = STEP_COMPONENTS[step];
 
   return (
     <main className="mx-auto flex min-h-screen max-w-[800px] flex-col pt-header antialiased">

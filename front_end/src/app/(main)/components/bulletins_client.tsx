@@ -40,6 +40,16 @@ const BulletinsClient: FC<Props> = ({
   const syncedDismissedBulletinIdsRef = useRef(
     new Set(initialSyncedDismissedBulletinIds)
   );
+  const pendingDismissedBulletinIdsRef = useRef(new Set<number>());
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDismissedBulletinIds(() => new Set(initialDismissedBulletinIds));
+    syncedDismissedBulletinIdsRef.current = new Set(
+      initialSyncedDismissedBulletinIds
+    );
+    pendingDismissedBulletinIdsRef.current = new Set();
+  }, [initialDismissedBulletinIds, initialSyncedDismissedBulletinIds]);
 
   const { data: bulletins = [] } = useQuery({
     queryKey: BULLETINS_QUERY_KEY,
@@ -50,7 +60,7 @@ const BulletinsClient: FC<Props> = ({
         return await ClientMiscApi.getBulletins();
       } catch (error) {
         logError(error);
-        return [];
+        throw error;
       }
     },
   });
@@ -73,10 +83,21 @@ const BulletinsClient: FC<Props> = ({
         return;
       }
 
-      syncedDismissedBulletinIdsRef.current.add(bulletinId);
-      void dismissBulletin(bulletinId).catch((error) => {
-        logError(error);
-      });
+      if (pendingDismissedBulletinIdsRef.current.has(bulletinId)) {
+        return;
+      }
+
+      pendingDismissedBulletinIdsRef.current.add(bulletinId);
+      void dismissBulletin(bulletinId)
+        .then(() => {
+          syncedDismissedBulletinIdsRef.current.add(bulletinId);
+        })
+        .catch((error) => {
+          logError(error);
+        })
+        .finally(() => {
+          pendingDismissedBulletinIdsRef.current.delete(bulletinId);
+        });
     });
   }, [bulletins, dismissedBulletinIds, user]);
 
