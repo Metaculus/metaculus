@@ -339,7 +339,6 @@ export default function LaborAutomationHubPage() {
                 2023: 4,
                 2024: 4,
                 2025: 10,
-                2026: 13,
               }}
               chartProps={{
                 showTickLabels: true,
@@ -387,8 +386,8 @@ export default function LaborAutomationHubPage() {
                     historicalValues: {
                       2018: 3.7,
                       2019: 3.9,
-                      2020: 8.0,
-                      2021: 5.8,
+                      2020: 8.2,
+                      2021: 5.6,
                       2022: 4.1,
                       2023: 4.4,
                       2024: 4.8,
@@ -400,12 +399,12 @@ export default function LaborAutomationHubPage() {
                     title: "Underemployment Rate",
                     historicalValues: {
                       2018: 41.6,
-                      2019: 41.5,
-                      2020: 41.0,
-                      2021: 40.9,
-                      2022: 40.3,
-                      2023: 39.7,
-                      2024: 40.3,
+                      2019: 41.4,
+                      2020: 40.9,
+                      2021: 41.0,
+                      2022: 40.0,
+                      2023: 39.9,
+                      2024: 40.2,
                       2025: 41.6,
                     },
                   },
