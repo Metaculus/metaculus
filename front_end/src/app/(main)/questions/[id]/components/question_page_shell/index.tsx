@@ -9,6 +9,7 @@ import DetailedGroupCard from "@/components/detailed_question_card/detailed_grou
 import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
 import ForecastMaker from "@/components/forecast_maker";
 import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
+import { ContinuousChartCursorProvider } from "@/contexts/continuous_chart_cursor_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import {
   GroupOfQuestionsGraphType,
@@ -235,7 +236,7 @@ export const ConsumerShell: FC<{
               <QuestionTimeline
                 postData={postData}
                 keyFactors={postData.key_factors}
-                isConsumerView={!isContinuousSingleQuestion}
+                isConsumerView={true}
                 preselectedGroupQuestionId={preselectedGroupQuestionId}
                 className={cn(
                   "hidden sm:block",
@@ -280,11 +281,14 @@ const QuestionPageShell: FC<Props> = ({
     <QuestionLayoutProvider>
       <QuestionVariantComposer
         consumer={
-          <ConsumerShell
-            postData={postData}
-            preselectedGroupQuestionId={preselectedGroupQuestionId}
-            mobileSidebar={mobileSidebar}
-          />
+          <ContinuousChartCursorProvider>
+            {/* Bridges timeline cursor to the mobile mini chart in consumer view */}
+            <ConsumerShell
+              postData={postData}
+              preselectedGroupQuestionId={preselectedGroupQuestionId}
+              mobileSidebar={mobileSidebar}
+            />
+          </ContinuousChartCursorProvider>
         }
         forecaster={
           <ForecasterShell

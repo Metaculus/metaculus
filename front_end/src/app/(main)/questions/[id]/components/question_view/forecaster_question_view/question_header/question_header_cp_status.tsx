@@ -1,6 +1,6 @@
 "use client";
 import { useLocale, useTranslations } from "next-intl";
-import React, { FC } from "react";
+import React, { FC, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import {
@@ -8,17 +8,26 @@ import {
   useIsEmbedMode,
 } from "@/app/(embed)/questions/components/question_view_mode_context";
 import QuestionHeaderContinuousResolutionChip from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_continuous_resolution_chip";
-import { getContinuousAreaChartData } from "@/components/charts/continuous_area_chart";
+import {
+  ContinuousAreaGraphInput,
+  getContinuousAreaChartData,
+} from "@/components/charts/continuous_area_chart";
 import MinifiedContinuousAreaChart from "@/components/charts/minified_continuous_area_chart";
 import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
 import QuestionResolutionChip from "@/components/consumer_post_card/question_resolution_chip";
 import QuestionCPMovement from "@/components/cp_movement";
 import ContinuousCPBar from "@/components/post_card/question_tile/continuous_cp_bar";
 import { useHideCP } from "@/contexts/cp_context";
+import { ContinuousAreaType } from "@/types/charts";
 import { QuestionStatus } from "@/types/post";
-import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import {
+  NumericAggregateForecast,
+  QuestionType,
+  QuestionWithForecasts,
+} from "@/types/question";
 import cn from "@/utils/core/cn";
 import { formatResolution } from "@/utils/formatters/resolution";
+import { cdfToPmf } from "@/utils/math";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { isSuccessfullyResolved } from "@/utils/questions/resolution";
 
@@ -28,6 +37,7 @@ type Props = {
   hideLabel?: boolean;
   colorOverride?: string;
   chartTheme?: VictoryThemeDefinition;
+  cursorForecast?: NumericAggregateForecast | null;
 };
 
 const QuestionHeaderCPStatus: FC<Props> = ({
@@ -36,6 +46,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({
   hideLabel = false,
   colorOverride,
   chartTheme,
+  cursorForecast,
 }) => {
   const locale = useLocale();
   const t = useTranslations();
@@ -57,6 +68,22 @@ const QuestionHeaderCPStatus: FC<Props> = ({
   const w = useEmbedContainerWidth();
   const isEmbedBelow376 = isEmbed && (w ?? 0) > 0 && (w ?? 0) < 376;
   const isEmbedWide = isEmbed && (w ?? 0) >= 500;
+
+  const cursorForecastValues = cursorForecast?.forecast_values ?? null;
+  const cursorAreaChartData = useMemo<ContinuousAreaGraphInput | null>(() => {
+    if (!cursorForecastValues) return null;
+    return [
+      {
+        pmf: cdfToPmf(cursorForecastValues),
+        cdf: cursorForecastValues,
+        type: (question.status === QuestionStatus.RESOLVED
+          ? "community_resolved"
+          : question.status === QuestionStatus.CLOSED
+            ? "community_closed"
+            : "community") as ContinuousAreaType,
+      },
+    ];
+  }, [cursorForecastValues, question.status]);
 
   if (question.status === QuestionStatus.RESOLVED && question.resolution) {
     // Resolved/Annulled/Ambiguous
@@ -104,6 +131,10 @@ const QuestionHeaderCPStatus: FC<Props> = ({
         ? "border-[0.5px] border-gray-500 p-3 dark:border-gray-500-dark md:p-3"
         : "border-[0.5px] border-olive-500 p-3 dark:border-olive-500-dark md:p-3";
 
+  const cursorCenter = cursorForecast?.centers?.[0] ?? null;
+  const cursorLower = cursorForecast?.interval_lower_bounds?.[0] ?? null;
+  const cursorUpper = cursorForecast?.interval_upper_bounds?.[0] ?? null;
+
   if (isContinuous) {
     return (
       !forecastAvailability.isEmpty && (
@@ -148,6 +179,12 @@ const QuestionHeaderCPStatus: FC<Props> = ({
                 size={size}
                 variant="question"
                 colorOverride={colorOverride}
+                overrideCenter={cursorCenter}
+                overrideBounds={
+                  cursorLower !== null && cursorUpper !== null
+                    ? [cursorLower, cursorUpper]
+                    : null
+                }
               />
             )}
           </div>
@@ -161,7 +198,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({
             >
               <MinifiedContinuousAreaChart
                 question={question}
-                data={continuousAreaChartData}
+                data={cursorAreaChartData ?? continuousAreaChartData}
                 height={
                   hideLabel && size === "lg"
                     ? 120

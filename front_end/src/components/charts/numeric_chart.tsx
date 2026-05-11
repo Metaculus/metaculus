@@ -76,6 +76,7 @@ type Props = {
   chartTitle?: ReactNode;
   height?: number;
   hideCP?: boolean;
+  hideCursorValueLabel?: boolean;
   defaultZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
   resolutionPoint?: LinePoint[];
@@ -127,10 +128,12 @@ const NumericChart: FC<Props> = ({
   nonInteractive = false,
   isEmbedded = false,
   simplifiedCursor = false,
+  hideCursorValueLabel = false,
   forecastAvailability,
   questionStatus,
   resolution,
   cursorTooltip,
+  isConsumerView,
   questionType,
   newsAnnotations,
   showNewsAnnotations,
@@ -142,6 +145,11 @@ const NumericChart: FC<Props> = ({
   const [zoom, setZoom] = useState(defaultZoom);
 
   const [isCursorActive, setIsCursorActive] = useState(false);
+  const isContinuousConsumerView =
+    isConsumerView &&
+    (questionType === QuestionType.Numeric ||
+      questionType === QuestionType.Date ||
+      questionType === QuestionType.Discrete);
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
   const { line, area, points, yDomain, xDomain, yScale, xScale } = useMemo(
@@ -252,13 +260,17 @@ const NumericChart: FC<Props> = ({
           }
         }}
         cursorComponent={
-          <LineSegment
-            style={{
-              stroke: getThemeColor(METAC_COLORS.blue["700"]),
-              opacity: 0.5,
-              strokeDasharray: "5,2",
-            }}
-          />
+          isContinuousConsumerView ? (
+            <LineSegment style={{ stroke: "none" }} />
+          ) : (
+            <LineSegment
+              style={{
+                stroke: getThemeColor(METAC_COLORS.blue["700"]),
+                opacity: 0.5,
+                strokeDasharray: "5,2",
+              }}
+            />
+          )
         }
         cursorLabelComponent={
           <VictoryPortal>
@@ -303,6 +315,10 @@ const NumericChart: FC<Props> = ({
         eventHandlers: {
           onTouchStart: () => {
             setIsCursorActive(true);
+          },
+          onTouchEnd: () => {
+            setIsCursorActive(false);
+            handleCursorChange(null);
           },
           onMouseEnter: () => {
             setIsCursorActive(true);
@@ -385,8 +401,26 @@ const NumericChart: FC<Props> = ({
     return xDomain;
   }, [xDomain, isEmbedded]);
 
+  const [touchPoint, setTouchPoint] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const { getReferenceProps, getFloatingProps, refs, floatingStyles } =
-    useChartTooltip({ placement: "top", tooltipOffset: 15 });
+    useChartTooltip({
+      placement: "top",
+      tooltipOffset: touchPoint ? 50 : 15,
+      x: touchPoint?.x ?? null,
+      y: touchPoint?.y ?? null,
+    });
+
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    setTouchPoint({ x: touch.clientX, y: touch.clientY });
+  }, []);
+  const handleTouchEnd = useCallback(() => {
+    setTouchPoint(null);
+  }, []);
   const {
     isActive: isDiamondActive,
     getReferenceProps: getDiamondRefProps,
@@ -461,6 +495,13 @@ const NumericChart: FC<Props> = ({
     const fromTheme = themeAreaData?.opacity;
     return typeof fromTheme === "number" ? fromTheme : 0.3;
   }, [hasExternalTheme, themeAreaData?.opacity]);
+
+  const cursorDotFill = useMemo(
+    () =>
+      resolveToCssColor(getThemeColor, colorOverride) ??
+      getThemeColor(colorPalette.chip),
+    [getThemeColor, colorOverride, colorPalette.chip]
+  );
 
   const rightPad = Math.max(rightPadding, MIN_RIGHT_PADDING);
   const yAxisLabel = !isNil(yLabel) ? `(${yLabel})` : undefined;
@@ -549,6 +590,8 @@ const NumericChart: FC<Props> = ({
         )}
         ref={refs.setReference}
         {...getReferenceProps()}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         <ForecastAvailabilityChartOverflow
           forecastAvailability={forecastAvailability}
@@ -778,7 +821,26 @@ const NumericChart: FC<Props> = ({
                   </VictoryPortal>
                 ) : null}
 
-                {!isDiamondActive && !isNil(highlightedPoint) && !hideCP ? (
+                {isCursorActive &&
+                !isNil(highlightedPoint) &&
+                !hideCP &&
+                isContinuousConsumerView ? (
+                  <VictoryScatter
+                    data={[highlightedPoint]}
+                    size={4}
+                    style={{
+                      data: {
+                        fill: cursorDotFill,
+                        stroke: "none",
+                      },
+                    }}
+                  />
+                ) : null}
+
+                {!isDiamondActive &&
+                !isNil(highlightedPoint) &&
+                !hideCP &&
+                !(hideCursorValueLabel && isCursorActive) ? (
                   <VictoryScatter
                     data={[highlightedPoint]}
                     dataComponent={
@@ -824,7 +886,7 @@ const NumericChart: FC<Props> = ({
       </div>
 
       {/* Forecaster view tooltip */}
-      {isCursorActive && !!cursorTooltip ? (
+      {isCursorActive && !!cursorTooltip && !isContinuousConsumerView ? (
         <FloatingPortal>
           <div
             className="pointer-events-none z-100 rounded bg-gray-0 leading-4 shadow-lg dark:bg-gray-0-dark"
