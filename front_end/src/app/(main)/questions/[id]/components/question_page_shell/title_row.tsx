@@ -49,10 +49,10 @@ const TitleRow: FC<Props> = ({ post, variant, className }) => {
               hideCP ? "flex-col" : "items-center"
             )}
           >
-            <QuestionTitle className="break-words text-xl font-bold leading-tight tracking-[-0.4px] text-blue-800 dark:text-blue-800-dark sm:text-3xl sm:tracking-tight lg:text-4xl">
+            <QuestionTitle className="min-w-0 break-words text-xl font-bold leading-tight tracking-[-0.4px] text-blue-800 dark:text-blue-800-dark sm:text-3xl sm:tracking-tight lg:text-4xl">
               {post.title}
             </QuestionTitle>
-            <div className="self-center md:hidden">
+            <div className="shrink-0 self-center md:hidden">
               <QuestionHeaderCPStatus
                 question={post.question as QuestionWithForecasts}
                 size="md"
