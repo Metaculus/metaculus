@@ -8,6 +8,7 @@ import {
   useIsEmbedMode,
 } from "@/app/(embed)/questions/components/question_view_mode_context";
 import QuestionHeaderContinuousResolutionChip from "@/app/(main)/questions/[id]/components/question_view/forecaster_question_view/question_header/question_header_continuous_resolution_chip";
+import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import {
   ContinuousAreaGraphInput,
   getContinuousAreaChartData,
@@ -155,7 +156,42 @@ const QuestionHeaderCPStatus: FC<Props> = ({
 
     // No forecasts and no upcoming reveal — render empty outline box to preserve column width
     if (forecastAvailability.isEmpty && !forecastAvailability.cpRevealsOn) {
-      return <div style={borderStyle} className={containerClassName} />;
+      return (
+        <div
+          style={borderStyle}
+          className={cn(containerClassName, "items-center justify-center")}
+        >
+          {size === "lg" && (
+            <p className="my-0 text-center text-sm text-gray-500 dark:text-gray-500-dark">
+              {t("currentEstimate")}
+            </p>
+          )}
+        </div>
+      );
+    }
+
+    // CP reveals in the future — center the countdown, skip the mini chart
+    if (forecastAvailability.cpRevealsOn && size === "lg") {
+      return (
+        <div
+          style={borderStyle}
+          className={cn(containerClassName, "items-center justify-center")}
+        >
+          <UpcomingCP cpRevealsOn={forecastAvailability.cpRevealsOn} />
+        </div>
+      );
+    }
+
+    // CP hidden by user preference — center the reveal button, skip the mini chart
+    if (hideCP && !isEmbed) {
+      return (
+        <div
+          style={borderStyle}
+          className={cn(containerClassName, "items-center justify-center")}
+        >
+          <RevealCPButton />
+        </div>
+      );
     }
 
     return (
@@ -224,9 +260,6 @@ const QuestionHeaderCPStatus: FC<Props> = ({
             />
           </div>
         )}
-        {!!forecastAvailability.cpRevealsOn && (
-          <UpcomingCP cpRevealsOn={forecastAvailability.cpRevealsOn} />
-        )}
         {!hideCP && !forecastAvailability.cpRevealsOn && (
           <QuestionCPMovement
             question={question}
@@ -246,6 +279,18 @@ const QuestionHeaderCPStatus: FC<Props> = ({
       </div>
     );
   } else if (question.type === QuestionType.Binary) {
+    if (hideCP && !isEmbed) {
+      return (
+        <div
+          className={cn("flex flex-col items-center justify-center", {
+            "w-36": size === "lg",
+          })}
+        >
+          <RevealCPButton />
+        </div>
+      );
+    }
+
     return (
       <div
         className={cn(

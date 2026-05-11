@@ -39,9 +39,9 @@ const TitleRow: FC<Props> = ({ post, variant, className }) => {
           className
         )}
       >
-        <div className="flex flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col">
           <div className="lg:order-0 order-1 flex items-center">
-            <QuestionTitle className="text-xl font-bold leading-tight tracking-[-0.4px] text-blue-800 dark:text-blue-800-dark sm:text-3xl sm:tracking-tight lg:text-4xl">
+            <QuestionTitle className="break-words text-xl font-bold leading-tight tracking-[-0.4px] text-blue-800 dark:text-blue-800-dark sm:text-3xl sm:tracking-tight lg:text-4xl">
               {post.title}
             </QuestionTitle>
             <div className="md:hidden">
@@ -54,7 +54,7 @@ const TitleRow: FC<Props> = ({ post, variant, className }) => {
           </div>
         </div>
         {!isContinuousQuestion(post.question) && (
-          <div className="hidden md:block">
+          <div className="hidden shrink-0 md:block">
             <QuestionHeaderCPStatus
               question={post.question as QuestionWithForecasts}
               size="lg"

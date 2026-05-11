@@ -1,5 +1,6 @@
 "use client";
 
+import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { useMemo } from "react";
 
 import {
@@ -10,6 +11,7 @@ import MinifiedContinuousAreaChart from "@/components/charts/minified_continuous
 import ConsumerContinuousTile from "@/components/consumer_post_card/consumer_question_tile/consumer_continuous_tile";
 import { useContinuousChartCursor } from "@/contexts/continuous_chart_cursor_context";
 import { ContinuousAreaType } from "@/types/charts";
+import { useHideCP } from "@/contexts/cp_context";
 import { QuestionStatus } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { cdfToPmf } from "@/utils/math";
@@ -27,8 +29,8 @@ const ContinuousQuestionPrediction: React.FC<Props> = ({
   const forecastAvailability = getQuestionForecastAvailability(question);
   const cursorCtx = useContinuousChartCursor();
   const cursorForecast = cursorCtx?.activeForecast ?? null;
+  const { hideCP } = useHideCP();
 
-  // Hide chart if no forecasts or CP not yet revealed
   const shouldHideChart =
     forecastAvailability.isEmpty || !!forecastAvailability.cpRevealsOn;
 
@@ -52,6 +54,14 @@ const ContinuousQuestionPrediction: React.FC<Props> = ({
       },
     ];
   }, [cursorForecastValues, question.status]);
+
+  if (hideCP) {
+    return (
+      <div className="mx-auto mb-7 flex max-w-[340px] flex-col items-center justify-center gap-2.5">
+        <RevealCPButton />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto mb-7 flex max-w-[340px] flex-col items-center gap-2.5">

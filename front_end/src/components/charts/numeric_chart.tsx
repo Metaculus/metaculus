@@ -229,7 +229,12 @@ const NumericChart: FC<Props> = ({
   }, [rightPadding, MIN_RIGHT_PADDING]);
 
   const containerComponent = useMemo(() => {
-    if (nonInteractive || forecastAvailability?.isEmpty) {
+    if (
+      nonInteractive ||
+      forecastAvailability?.isEmpty ||
+      hideCP ||
+      !!forecastAvailability?.cpRevealsOn
+    ) {
       return (
         <VictoryContainer
           style={{
