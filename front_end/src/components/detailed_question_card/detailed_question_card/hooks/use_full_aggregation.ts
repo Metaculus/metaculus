@@ -8,16 +8,22 @@ import { NumericAggregateForecastHistory } from "@/types/question";
 export function useFullAggregation(
   questionId: number,
   defaultAggregationMethod: string,
+  includeBots: boolean,
   enabled: boolean
 ) {
   return useQuery({
-    queryKey: ["full-aggregation", questionId, defaultAggregationMethod],
+    queryKey: [
+      "full-aggregation",
+      questionId,
+      defaultAggregationMethod,
+      includeBots,
+    ],
     enabled,
     queryFn: async () => {
       const result = await ClientAggregationExplorerApi.getAggregations({
         questionId,
         aggregationMethods: defaultAggregationMethod,
-        includeBots: false,
+        includeBots,
       });
       return (
         (

@@ -99,6 +99,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
   const { data: enrichedAggregation = null } = useFullAggregation(
     question.id,
     question.default_aggregation_method,
+    question.include_bots_in_aggregates,
     isContinuousConsumer && shouldFetchFull
   );
 
