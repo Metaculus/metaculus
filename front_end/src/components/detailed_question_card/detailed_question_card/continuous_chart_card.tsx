@@ -230,11 +230,12 @@ const DetailedContinuousChartCard: FC<Props> = ({
   }, [isCpHidden, cursorTimestamp, effectiveAggregation, question]);
 
   const cursorCtx = useContinuousChartCursor();
+  const setCursorForecast = cursorCtx?.setActiveForecast;
   useEffect(() => {
-    if (!isContinuousQuestion(question) || !cursorCtx) return;
-    cursorCtx.setActiveForecast(activeForecast);
-    return () => cursorCtx.setActiveForecast(null);
-  }, [activeForecast, cursorCtx, question]);
+    if (!isContinuousQuestion(question) || !setCursorForecast) return;
+    setCursorForecast(activeForecast);
+    return () => setCursorForecast(null);
+  }, [activeForecast, setCursorForecast, question]);
 
   const handleCursorChange = useCallback((value: number | null) => {
     setCursorTimestamp(value);
