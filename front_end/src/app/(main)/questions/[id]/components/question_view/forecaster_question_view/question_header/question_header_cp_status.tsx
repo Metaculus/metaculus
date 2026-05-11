@@ -161,17 +161,15 @@ const QuestionHeaderCPStatus: FC<Props> = ({
           style={borderStyle}
           className={cn(containerClassName, "items-center justify-center")}
         >
-          {size === "lg" && (
-            <p className="my-0 text-center text-sm text-gray-500 dark:text-gray-500-dark">
-              {t("currentEstimate")}
-            </p>
-          )}
+          <p className="my-0 text-center text-sm text-gray-500 dark:text-gray-500-dark">
+            {t("currentEstimate")}
+          </p>
         </div>
       );
     }
 
     // CP reveals in the future — center the countdown, skip the mini chart
-    if (forecastAvailability.cpRevealsOn && size === "lg") {
+    if (forecastAvailability.cpRevealsOn) {
       return (
         <div
           style={borderStyle}
@@ -184,6 +182,13 @@ const QuestionHeaderCPStatus: FC<Props> = ({
 
     // CP hidden by user preference — center the reveal button, skip the mini chart
     if (hideCP && !isEmbed) {
+      if (size === "md") {
+        return (
+          <div className="flex flex-col items-center justify-center">
+            <RevealCPButton />
+          </div>
+        );
+      }
       return (
         <div
           style={borderStyle}
@@ -309,7 +314,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({
             colorOverride={colorOverride}
           />
         )}
-        {!hideCP && (
+        {!hideCP && !forecastAvailability.cpRevealsOn && (
           <QuestionCPMovement
             question={question}
             className={cn("mx-auto pb-1 text-center", {
@@ -320,6 +325,12 @@ const QuestionHeaderCPStatus: FC<Props> = ({
             unit={"%"}
             variant={"chip"}
             boldValueUnit={true}
+          />
+        )}
+        {!!forecastAvailability.cpRevealsOn && !isEmbed && (
+          <UpcomingCP
+            cpRevealsOn={forecastAvailability.cpRevealsOn}
+            className="mt-2"
           />
         )}
       </div>
