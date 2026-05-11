@@ -10,8 +10,6 @@ import {
 } from "@/utils/charts/helpers";
 
 const SIZE = 4;
-// https://commerce.nearform.com/open-source/victory/docs/api/victory-cursor-container#cursorlabeloffset
-const DEFAULT_X_OFFSET = 5;
 
 type Props<T> = {
   chartData: Array<{
@@ -87,13 +85,13 @@ const LineCursorPoints = <T extends string>({
         ) : (
           <Point
             key={index}
-            x={x - DEFAULT_X_OFFSET}
+            x={x}
             y={finalScaledY}
             size={SIZE}
             style={{
-              fill: "transparent",
-              stroke: color,
-              strokeWidth: 1,
+              fill: color,
+              stroke: "white",
+              strokeWidth: 1.5,
             }}
           />
         );
