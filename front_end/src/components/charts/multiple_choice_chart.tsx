@@ -442,7 +442,6 @@ const MultipleChoiceChart: FC<Props> = ({
                 <VictoryPortal>
                   <XTickLabel
                     chartWidth={chartWidth}
-                    withCursor={!!onCursorChange}
                     fontSize={tickLabelFontSize as number}
                     dx={isEmbedded ? 16 : 0}
                   />
