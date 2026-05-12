@@ -1,10 +1,10 @@
+import { TopChrome } from "@/app/(main)/components/top_chrome";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 
 import { getVerificationSession } from "./actions";
 import LoginView from "./components/login-view";
 import StatusView from "./components/status-view";
 import VerifyView from "./components/verify-view";
-import GlobalHeader from "../../(main)/components/headers/global_header";
 
 export const metadata = {
   title: "ID Verification",
@@ -17,8 +17,8 @@ export default async function Page() {
 
   return (
     <>
-      <GlobalHeader />
-      <main className="mt-12 flex  h-full min-h-screen flex-col p-3 sm:p-5">
+      <TopChrome />
+      <main className="mt-header flex h-full min-h-screen flex-col p-3 sm:p-5">
         <h1 className="text-center text-2xl font-bold">ID verification</h1>
         <p className="text-center text-sm">
           On this page you can verify your identity and link it to your

@@ -1302,6 +1302,7 @@
   "unread": "unread",
   "contentTranslatedHeaderText": "Some content on this page is automatically translated, and may be inaccurate.",
   "showOriginalContent": "Show original",
+  "translated_by": "translated by",
   "nextQuestion": "Next Question",
   "next": "Next",
   "fullName": "Full Name",
