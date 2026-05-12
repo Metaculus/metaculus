@@ -328,11 +328,13 @@ const QuestionPageShell: FC<Props> = ({
           </ContinuousChartCursorProvider>
         }
         forecaster={
-          <ForecasterShell
-            postData={postData}
-            preselectedGroupQuestionId={preselectedGroupQuestionId}
-            mobileSidebar={mobileSidebar}
-          />
+          <ContinuousChartCursorProvider>
+            <ForecasterShell
+              postData={postData}
+              preselectedGroupQuestionId={preselectedGroupQuestionId}
+              mobileSidebar={mobileSidebar}
+            />
+          </ContinuousChartCursorProvider>
         }
       />
     </QuestionLayoutProvider>

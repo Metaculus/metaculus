@@ -6,6 +6,7 @@ import QuestionHeaderCPStatus from "@/app/(main)/questions/[id]/components/quest
 import QuestionTitle from "@/app/(main)/questions/[id]/components/question_view/shared/question_title";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import ConditionalTile from "@/components/conditional_tile";
+import { useContinuousChartCursor } from "@/contexts/continuous_chart_cursor_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
@@ -27,6 +28,8 @@ type Props = {
 
 const TitleRow: FC<Props> = ({ post, variant, className }) => {
   const { hideCP } = useHideCP();
+  const cursorCtx = useContinuousChartCursor();
+  const cursorForecast = cursorCtx?.activeForecast ?? null;
 
   if (isConditionalPost(post)) {
     return (
@@ -65,6 +68,7 @@ const TitleRow: FC<Props> = ({ post, variant, className }) => {
                   question={post.question as QuestionWithForecasts}
                   size="md"
                   hideLabel={isContinuous}
+                  cursorForecast={isContinuous ? cursorForecast : undefined}
                 />
               )}
             </div>
