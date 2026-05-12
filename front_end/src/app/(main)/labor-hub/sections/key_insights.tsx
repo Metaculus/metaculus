@@ -44,7 +44,7 @@ function describeOverallChange(value: number | null): string {
 
 function describeTradeSchoolGrowth(value: number | null): string {
   if (value == null) return "change meaningfully";
-  const rounded = Math.round(Math.abs(value));
+  const rounded = Math.round(Math.abs(value) * 10) / 10;
   return `${value < 0 ? "decline" : "grow"} ${rounded}%`;
 }
 
