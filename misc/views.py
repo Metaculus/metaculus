@@ -99,12 +99,8 @@ def get_bulletins(request):
 
 
 @api_view(["GET"])
-@permission_classes([AllowAny])
 def get_dismissed_bulletin_ids(request):
     user = request.user
-    if not user or not user.is_authenticated:
-        return Response({"dismissed_bulletin_ids": []})
-
     dismissed_bulletin_ids = list(
         BulletinViewedBy.objects.filter(
             user=user,
