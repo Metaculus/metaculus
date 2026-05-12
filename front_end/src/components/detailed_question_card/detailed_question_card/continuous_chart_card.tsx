@@ -94,17 +94,18 @@ const DetailedContinuousChartCard: FC<Props> = ({
   const [isChartReady, setIsChartReady] = useState(false);
   const [activeView, setActiveView] = useState<ChartView>("timeline");
 
+  const isContinuous = isContinuousQuestion(question);
   const [shouldFetchFull, setShouldFetchFull] = useState(false);
   const { data: enrichedAggregation = null } = useFullAggregation(
     question.id,
     question.default_aggregation_method,
     question.include_bots_in_aggregates,
-    isContinuousConsumer && shouldFetchFull
+    isContinuous && shouldFetchFull
   );
 
   const handlePointerEnter = useCallback(() => {
-    if (isContinuousConsumer) setShouldFetchFull(true);
-  }, [isContinuousConsumer]);
+    if (isContinuous) setShouldFetchFull(true);
+  }, [isContinuous]);
 
   const aggregation =
     question.aggregations[question.default_aggregation_method];
@@ -446,7 +447,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
         "flex w-full flex-col",
         isChartReady ? "opacity-100" : "opacity-0"
       )}
-      onPointerEnter={isContinuousConsumer ? handlePointerEnter : undefined}
+      onPointerEnter={isContinuous ? handlePointerEnter : undefined}
     >
       {isContinuousQuestion(question) && !isEmbed ? (
         <>
@@ -457,9 +458,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
                 question={question}
                 size="lg"
                 hideLabel={true}
-                cursorForecast={
-                  isContinuousConsumer ? activeForecast : undefined
-                }
+                cursorForecast={activeForecast}
               />
             )}
 
