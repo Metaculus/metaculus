@@ -26,10 +26,10 @@ export default function StorefrontLayout({
   return (
     <ThemeOverrideContainer
       override="light"
-      className="flex min-h-screen flex-col bg-blue-200 pt-header"
+      className="flex min-h-screen flex-col bg-blue-200"
     >
       <TopChrome hideHeader />
-      <div className="flex-grow">{children}</div>
+      <div className="flex flex-grow flex-col">{children}</div>
       <FeedbackFloat />
       <StorefrontFooter />
       <CookiesBanner />

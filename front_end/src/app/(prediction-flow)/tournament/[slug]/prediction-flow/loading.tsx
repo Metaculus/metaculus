@@ -9,7 +9,7 @@ import LoadingHeaderActions from "./loading_header_actions";
 
 export default function Loading() {
   return (
-    <>
+    <div className="flex min-h-screen flex-col">
       <TopChrome
         defaultHeader={
           <FlowHeaderRoot title="">
@@ -25,7 +25,7 @@ export default function Loading() {
           </FlowHeaderRoot>
         }
       />
-      <div className="mx-auto flex min-h-screen max-w-3xl flex-grow flex-col pt-header">
+      <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col">
         <div className="animate-pulse">
           {/* Progress section skeleton */}
           <div className="mb-6 flex items-center gap-2 bg-gray-0 p-4 shadow-md dark:bg-gray-0-dark">
@@ -42,6 +42,6 @@ export default function Loading() {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
