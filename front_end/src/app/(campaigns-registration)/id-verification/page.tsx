@@ -16,9 +16,9 @@ export default async function Page() {
   const verificationSession = await getVerificationSession(currentUser);
 
   return (
-    <>
+    <div className="flex min-h-screen flex-col">
       <TopChrome />
-      <main className="mt-header flex h-full min-h-screen flex-col p-3 sm:p-5">
+      <main className="flex flex-1 flex-col p-3 sm:p-5">
         <h1 className="text-center text-2xl font-bold">ID verification</h1>
         <p className="text-center text-sm">
           On this page you can verify your identity and link it to your
@@ -40,6 +40,6 @@ export default async function Page() {
           )}
         </div>
       </main>
-    </>
+    </div>
   );
 }

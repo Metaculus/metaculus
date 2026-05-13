@@ -20,8 +20,10 @@ const ServicesQuizScreen: FC<Props> = ({ initialCategory }) => {
       exitTo="/services"
       onSubmit={appendServicesQuizRow}
     >
-      <TopChrome defaultHeader={<ServicesQuizHeader />} />
-      <ServicesQuizFlowContent />
+      <div className="flex min-h-screen flex-col">
+        <TopChrome defaultHeader={<ServicesQuizHeader />} />
+        <ServicesQuizFlowContent />
+      </div>
       <ServicesQuizExitModal />
     </ServicesQuizRootProvider>
   );

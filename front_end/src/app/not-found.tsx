@@ -11,7 +11,7 @@ export default async function NotFound() {
   return (
     <div className="mx-auto flex min-h-screen w-full flex-col text-center">
       <TopChrome />
-      <NotFoundSection className="pt-header" />
+      <NotFoundSection />
 
       {!PUBLIC_MINIMAL_UI && (
         <>

@@ -35,7 +35,7 @@ export default async function RootLayout({
     <PrintOverrideProvider>
       <ShowActiveCommunityProvider>
         <TopChromeHeaderProvider initialHeaderState={initialHeaderState}>
-          <div className="flex min-h-screen flex-col pt-header print:pt-0">
+          <div className="flex min-h-screen flex-col">
             <TopChrome />
             <div className="flex-grow">{children}</div>
             {!PUBLIC_MINIMAL_UI && (

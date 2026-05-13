@@ -64,18 +64,20 @@ export default async function PredictionFlow(props: Props) {
       flowType={flowType}
       initialPosts={forecastFlowPosts}
     >
-      <TopChrome
-        defaultHeader={
-          <PredictionFlowHeader
-            tournamentName={tournament.name}
-            tournamentSlug={tournamentSlug}
-          />
-        }
-      />
-      <main className="mx-auto flex min-h-screen max-w-3xl flex-grow flex-col pt-header">
-        <ProgressSection />
-        <PredictionFlowPost tournamentSlug={tournamentSlug} />
-      </main>
+      <div className="flex min-h-screen flex-col">
+        <TopChrome
+          defaultHeader={
+            <PredictionFlowHeader
+              tournamentName={tournament.name}
+              tournamentSlug={tournamentSlug}
+            />
+          }
+        />
+        <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col">
+          <ProgressSection />
+          <PredictionFlowPost tournamentSlug={tournamentSlug} />
+        </main>
+      </div>
     </PredictionFlowProvider>
   );
 }

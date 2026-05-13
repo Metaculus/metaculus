@@ -26,7 +26,7 @@ const ServicesQuizFlowContent: FC = () => {
   const ActiveStep = STEP_COMPONENTS[step];
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-[800px] flex-col pt-header antialiased">
+    <main className="mx-auto flex w-full max-w-[800px] flex-1 flex-col antialiased">
       <ServicesQuizStepper />
       <ActiveStep />
     </main>

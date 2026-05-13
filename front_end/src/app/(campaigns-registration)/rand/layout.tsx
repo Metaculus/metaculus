@@ -9,7 +9,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="flex min-h-screen flex-col pt-header">
+    <div className="flex min-h-screen flex-col">
       <TopChrome />
       <div className="flex-1">{children}</div>
       <CookiesBanner />
