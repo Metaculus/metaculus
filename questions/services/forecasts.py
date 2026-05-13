@@ -7,8 +7,6 @@ import sentry_sdk
 from django.db import IntegrityError, transaction
 from django.db.models import F, Q, QuerySet, Subquery, OuterRef, Count
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError
-
 from notifications.constants import MailingTags
 from posts.models import PostUserSnapshot, PostSubscription
 from posts.services.subscriptions import (
@@ -201,11 +199,12 @@ def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
             author=user,
         ).order_by("start_time")
 
+        # Skip questions where the user has no active forecast at withdraw_at.
+        # This allows bulk "withdraw all" requests to succeed even when some
+        # questions in a group have no forecast from the user (e.g. resolved
+        # questions the user never forecasted on).
         if not user_forecasts.exists():
-            raise ValidationError(
-                f"User {user.id} has no forecast at {withdraw_at} to "
-                f"withdraw for question {question.id}"
-            )
+            continue
 
         forecast_to_terminate = user_forecasts.first()
         forecast_to_terminate.end_time = withdraw_at

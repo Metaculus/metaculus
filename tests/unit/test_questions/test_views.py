@@ -426,15 +426,22 @@ class TestQuestionWithdraw:
         )
         assert response.status_code == 201
 
-    def test_cant_withdraw_forecast_if_no_forecast(
-        self, question_binary_with_forecast_user_1, user2_client
+    def test_withdraw_forecast_no_forecast_is_noop(
+        self, question_binary_with_forecast_user_1, user2, user2_client
     ):
+        # Withdrawing for a question the user never forecasted on is a no-op
+        # so that bulk "withdraw all" works across mixed groups containing
+        # questions the user did not forecast on (e.g. resolved siblings).
         response = user2_client.post(
             self.url,
             data=json.dumps([{"question": question_binary_with_forecast_user_1.id}]),
             content_type="application/json",
         )
-        assert response.status_code == 400
+        assert response.status_code == 201
+        assert not Forecast.objects.filter(
+            question=question_binary_with_forecast_user_1,
+            author=user2,
+        ).exists()
 
 
 class TestQuestionResolve:
