@@ -427,7 +427,7 @@ export default function LaborAutomationHubPage() {
             </ContentParagraph>
             <ContentParagraph>
               The unemployment rate for new graduates is expected to have{" "}
-              <strong>doubled</strong> in 2035 compared to 2025.
+              <strong>more than doubled</strong> in 2035 compared to 2025.
             </ContentParagraph>
             <ContentParagraph>
               The number of degrees awarded overall and for STEM and humanities
