@@ -21,7 +21,6 @@ import {
   VictoryChart,
   VictoryContainer,
   VictoryCursorContainer,
-  VictoryLabel,
   VictoryLabelProps,
   VictoryPortal,
   VictoryScatter,
@@ -29,7 +28,9 @@ import {
   VictoryThemeDefinition,
 } from "victory";
 
+import { CHART_DASH } from "@/constants/chart_dash";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { CHART_FONT_STYLE } from "@/constants/chart_typography";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
@@ -100,9 +101,7 @@ type Props = {
   leftPadding?: number;
 };
 
-const LABEL_FONT_FAMILY = "Inter";
 const BOTTOM_PADDING = 20;
-const TICK_FONT_SIZE = 10;
 
 const MultipleChoiceChart: FC<Props> = ({
   timestamps,
@@ -242,7 +241,7 @@ const MultipleChoiceChart: FC<Props> = ({
             isCursorActive
               ? {
                   stroke: getThemeColor(METAC_COLORS.gray["600"]),
-                  strokeDasharray: "2,1",
+                  strokeDasharray: CHART_DASH.cursor,
                 }
               : {
                   stroke: "transparent",
@@ -389,12 +388,12 @@ const MultipleChoiceChart: FC<Props> = ({
                   stroke: "transparent",
                 },
                 axisLabel: {
-                  fontFamily: LABEL_FONT_FAMILY,
+                  ...CHART_FONT_STYLE.axisLabel,
                   fontSize: tickLabelFontSize,
                   fill: getThemeColor(METAC_COLORS.gray["500"]),
                 },
                 tickLabels: {
-                  fontFamily: LABEL_FONT_FAMILY,
+                  ...CHART_FONT_STYLE.tick,
                   padding: 5,
                   fontSize: tickLabelFontSize,
                   fill: getThemeColor(METAC_COLORS.gray["700"]),
@@ -406,18 +405,14 @@ const MultipleChoiceChart: FC<Props> = ({
                   ? {
                       stroke: getThemeColor(METAC_COLORS.gray["300"]),
                       strokeWidth: 1,
-                      strokeDasharray: "2, 5",
+                      strokeDasharray: CHART_DASH.grid,
                     }
                   : {
                       stroke: "transparent",
                     },
               }}
               label={yLabel}
-              offsetX={
-                isNil(yLabel) ? chartWidth + 5 : chartWidth - TICK_FONT_SIZE + 5
-              }
-              orientation={"left"}
-              axisLabelComponent={<VictoryLabel x={chartWidth} />}
+              orientation="right"
             />
             <VictoryAxis
               tickValues={xScale.ticks}
@@ -447,6 +442,7 @@ const MultipleChoiceChart: FC<Props> = ({
                   stroke: "transparent",
                 },
                 tickLabels: {
+                  ...CHART_FONT_STYLE.tick,
                   fill: getThemeColor(METAC_COLORS.gray["700"]),
                 },
               }}

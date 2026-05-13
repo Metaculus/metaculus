@@ -19,7 +19,6 @@ import {
   VictoryChart,
   VictoryContainer,
   VictoryCursorContainer,
-  VictoryLabel,
   VictoryLabelProps,
   VictoryLine,
   VictoryPortal,
@@ -36,7 +35,12 @@ import { clusterAnnotations } from "@/components/charts/primitives/news_annotati
 import PredictionWithRange from "@/components/charts/primitives/prediction_with_range";
 import ResolutionDiamond from "@/components/charts/primitives/resolution_diamond";
 import XTickLabel from "@/components/charts/primitives/x_tick_label";
+import { CHART_DASH } from "@/constants/chart_dash";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import {
+  CHART_FONT_SIZE,
+  CHART_FONT_STYLE,
+} from "@/constants/chart_typography";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
@@ -105,7 +109,6 @@ type Props = {
 
 const BOTTOM_PADDING = 20;
 const NEWS_ANNOTATION_MARKER_SIZE = 18;
-const LABEL_FONT_FAMILY = "Inter";
 
 const NumericChart: FC<Props> = ({
   buildChartData,
@@ -116,7 +119,7 @@ const NumericChart: FC<Props> = ({
   withZoomPicker = false,
   resolutionPoint,
   yLabel,
-  tickFontSize = 10,
+  tickFontSize = CHART_FONT_SIZE.tick,
   extraTheme,
   onChartReady,
   cursorTimestamp,
@@ -256,7 +259,7 @@ const NumericChart: FC<Props> = ({
             style={{
               stroke: getThemeColor(METAC_COLORS.blue["700"]),
               opacity: 0.5,
-              strokeDasharray: "5,2",
+              strokeDasharray: CHART_DASH.cursor,
             }}
           />
         }
@@ -267,9 +270,7 @@ const NumericChart: FC<Props> = ({
               {...(hasExternalTheme
                 ? {}
                 : { fill: getThemeColor(METAC_COLORS.gray["700"]) })}
-              style={{
-                fontFamily: LABEL_FONT_FAMILY,
-              }}
+              style={CHART_FONT_STYLE.cursor}
               isActive={isCursorActive}
             />
           </VictoryPortal>
@@ -594,7 +595,7 @@ const NumericChart: FC<Props> = ({
                 {/* Y axis used for GRIDLINES */}
                 <VictoryAxis
                   dependentAxis
-                  orientation="left"
+                  orientation="right"
                   style={{
                     ticks: { stroke: "transparent" },
                     tickLabels: { fill: "transparent" }, // hide labels
@@ -602,7 +603,7 @@ const NumericChart: FC<Props> = ({
                     grid: {
                       stroke: getThemeColor(METAC_COLORS.gray["400"]),
                       strokeWidth: 1,
-                      strokeDasharray: "3, 2",
+                      strokeDasharray: CHART_DASH.grid,
                     },
                   }}
                   tickValues={yScaleTicks}
@@ -617,14 +618,14 @@ const NumericChart: FC<Props> = ({
                     axis: { stroke: "transparent" },
                     grid: { stroke: "transparent" },
                     axisLabel: {
-                      fontFamily: LABEL_FONT_FAMILY,
+                      ...CHART_FONT_STYLE.axisLabel,
                       fontSize: tickLabelFontSize,
                       ...(hasExternalTheme
                         ? {}
                         : { fill: getThemeColor(METAC_COLORS.gray["500"]) }),
                     },
                     tickLabels: {
-                      fontFamily: LABEL_FONT_FAMILY,
+                      ...CHART_FONT_STYLE.tick,
                       padding: 5,
                       fontSize: tickLabelFontSize,
                       ...(hasExternalTheme
@@ -635,13 +636,7 @@ const NumericChart: FC<Props> = ({
                   tickValues={yScaleTicks}
                   tickFormat={yScale.tickFormat}
                   label={yAxisLabel}
-                  orientation={"left"}
-                  offsetX={
-                    isNil(yLabel)
-                      ? chartWidth + 5
-                      : chartWidth - tickLabelFontSize + 5
-                  }
-                  axisLabelComponent={<VictoryLabel x={chartWidth} />}
+                  orientation="right"
                 />
 
                 {/* X axis */}
@@ -667,7 +662,7 @@ const NumericChart: FC<Props> = ({
                         fontSize={tickLabelFontSize}
                         {...(!extraTheme && {
                           style: {
-                            fontFamily: LABEL_FONT_FAMILY,
+                            ...CHART_FONT_STYLE.tick,
                             fill: getThemeColor(METAC_COLORS.gray["700"]),
                           },
                         })}
