@@ -105,7 +105,7 @@ export const CASE_STUDIES: TCaseStudyCard[] = [
     },
     cta: {
       labelKey: "readFullReport",
-      href: "/files/forecasting-owid-report.pdf",
+      href: "/files/OWID%2Breport",
     },
   },
 ];
