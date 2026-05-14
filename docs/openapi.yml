@@ -27,20 +27,27 @@ info:
 
     <h4>Bot Benchmarking Access Tier</h4>
     <p>
-    An additional access tier is available for bot makers. This tier grants current Community Prediction, question text, and resolution access on a larger set of ~250 open questions and ~250 resolved questions, intended for training and evaluation purposes.
-    To request access, please email <a href="mailto:api-requests@metaculus.com">api-requests@metaculus.com</a>.
+    An additional access tier is available for AI forecasting bot developers. This tier grants current Community Prediction, question text, and resolution access on a larger set of ~250 open questions and ~250 resolved questions, intended for training and evaluation purposes.
+    To request access, please fill out this form: <a href="https://docs.google.com/forms/d/e/1FAIpQLSeJhtZzHl5qMvBjbXbatyaqoS4IU7RE0GGw_vlhs6I9syqn1g/viewform?usp=dialog">Metaculus Data Needs Form</a>.
     </p>
 
-    <h4>Non-commercial &amp; Commercial Use</h4>
+    <h4>Commercial API or Data Access</h4>
     <p>
-    If you want to make non-commercial use of Metaculus data (scientific, hobbyist, etc.), please get in touch &mdash; we generally welcome such projects.
-    For commercial use inquiries, also contact us at <a href="mailto:api-requests@metaculus.com">api-requests@metaculus.com</a>.
+    For commercial use inquiries, please submit our data request form with details about your data needs and intended use case. A member of our team will follow up soon.
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSeJhtZzHl5qMvBjbXbatyaqoS4IU7RE0GGw_vlhs6I9syqn1g/viewform?usp=dialog">Metaculus Data Needs Form</a>
     </p>
 
+    <h4>Non-commercial API or Data Access</h4>
+    <p>
+    If you want to make non-commercial use of Metaculus data (for academic or private research, hobbyist, etc.), please fill out our form &mdash; we generally support research efforts, and sometimes support exciting hobbyist projects.
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSeJhtZzHl5qMvBjbXbatyaqoS4IU7RE0GGw_vlhs6I9syqn1g/viewform?usp=dialog">Metaculus Data Needs Form</a>
+    </p>
+
+    <h4>Questions or Feedback</h4>
+    <p>
     If you have questions, ideas, or feedback, please contact our team at
-    <a href="mailto:api-requests@metaculus.com">api-requests@metaculus.com</a>. We are excited to keep building upon this
-    initial version of the API, and we’d like to keep making it more useful
-    to you. Our aim is to support the forecasting community – we’re listening!
+    <a href="mailto:api-requests@metaculus.com">api-requests@metaculus.com</a>. We are excited to keep building upon the API, and we’d like to keep making it more useful to you.
+    </p>
 
     <h2>Get Started in 15 Seconds</h2>
 
@@ -2037,7 +2044,7 @@ paths:
         Downloads question data, forecast data, and optionally comments, scores, and key factors as a Zip file of CSVs.
         You must provide at least one of `post_id`, `question_id`, or `project_id` to specify the data to download.
 
-        **Note:** This is a restricted endpoint. To request access, please email [api-requests@metaculus.com](mailto:api-requests@metaculus.com). Additionally, the `project_id` parameter is only accepted if your account has been whitelisted for that specific project, to prevent heavy data requests.
+        **Note:** This is a restricted endpoint. To request access, please fill out the [Metaculus Data Needs Form](https://docs.google.com/forms/d/e/1FAIpQLSeJhtZzHl5qMvBjbXbatyaqoS4IU7RE0GGw_vlhs6I9syqn1g/viewform?usp=dialog). For questions or feedback, contact [api-requests@metaculus.com](mailto:api-requests@metaculus.com). Additionally, the `project_id` parameter is only accepted if your account has been whitelisted for that specific project, to prevent heavy data requests.
 
         This endpoint may time out for large data exports. If your download fails due to a timeout, use the `/api/data/email/` endpoint instead, which processes the export asynchronously.
       tags:
@@ -2134,7 +2141,7 @@ paths:
         Useful for large data exports that may time out with a direct download. Accepts the same parameters as `/api/data/download/`.
         You must provide at least one of `post_id`, `question_id`, or `project_id`.
 
-        **Note:** This is a restricted endpoint. To request access, please email [api-requests@metaculus.com](mailto:api-requests@metaculus.com). Additionally, the `project_id` parameter is only accepted if your account has been whitelisted for that specific project.
+        **Note:** This is a restricted endpoint. To request access, please fill out the [Metaculus Data Needs Form](https://docs.google.com/forms/d/e/1FAIpQLSeJhtZzHl5qMvBjbXbatyaqoS4IU7RE0GGw_vlhs6I9syqn1g/viewform?usp=dialog). For questions or feedback, contact [api-requests@metaculus.com](mailto:api-requests@metaculus.com). Additionally, the `project_id` parameter is only accepted if your account has been whitelisted for that specific project.
 
         The email attachment has a size limit of 25 MB. If your export exceeds this limit, try removing `include_comments` to reduce the file size.
       tags:

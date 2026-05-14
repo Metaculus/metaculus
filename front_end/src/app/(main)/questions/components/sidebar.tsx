@@ -15,7 +15,6 @@ import Button from "@/components/ui/button";
 import { FeedType } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
-import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import useSearchParams from "@/hooks/use_search_params";
 import {
   SidebarItem,
@@ -136,21 +135,9 @@ const FeedSidebar: FC<Props> = ({ items }) => {
 
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
-  const { bannerIsVisible: isTranslationBannerVisible } =
-    useContentTranslatedBannerContext();
-
-  const topPositionClasses = isTranslationBannerVisible
-    ? "top-24 lg:top-20"
-    : "top-12 lg:top-20";
-
   return (
-    <div
-      className={cn(
-        "sticky z-100 mt-0 self-start sm:top-16 sm:mt-4",
-        topPositionClasses
-      )}
-    >
-      <div className="relative w-full border-y border-blue-400 bg-gray-0/75 p-3 backdrop-blur-md no-scrollbar dark:border-blue-700 dark:bg-blue-50-dark/75 sm:max-h-[calc(100vh-76px)] sm:overflow-y-auto sm:border-none sm:bg-blue-200/0 sm:p-2 sm:pt-0 sm:dark:bg-blue-50-dark/0">
+    <div className="sticky top-header z-100 mt-0 self-start sm:top-[calc(var(--top-chrome-height,3rem)_+_1rem)] lg:top-[calc(var(--top-chrome-height,3rem)_+_2rem)] lg:mt-4">
+      <div className="relative w-full border-y border-blue-400 bg-gray-0/75 p-3 backdrop-blur-md no-scrollbar dark:border-blue-700 dark:bg-blue-50-dark/75 sm:max-h-[calc(100vh_-_var(--top-chrome-height,3rem)_-_1.75rem)] sm:overflow-y-auto sm:border-none sm:bg-blue-200/0 sm:p-2 sm:pt-0 sm:dark:bg-blue-50-dark/0">
         <div
           className={cn(
             "pointer-events-none absolute right-0 top-0 z-20 h-full w-32 bg-gradient-to-r from-transparent to-blue-100 dark:to-blue-50-dark sm:hidden",
