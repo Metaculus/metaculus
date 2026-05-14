@@ -11,13 +11,12 @@ import cn from "@/utils/core/cn";
 
 type Props = {
   otherItemsCount: number;
-  othersTotal?: number;
   expanded?: boolean;
   onExpand?: () => void;
   onCollapse?: () => void;
-  hideOthersValue?: boolean;
   compact?: boolean;
   buttonVariant?: "primary" | "minimal";
+  className?: string;
 };
 
 const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
@@ -27,6 +26,7 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
   onCollapse,
   compact = false,
   buttonVariant = "primary",
+  className,
   children,
 }) => {
   const t = useTranslations();
@@ -47,7 +47,8 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
     <div
       className={cn(
         "flex w-full flex-col",
-        compact ? "gap-1 md:gap-2" : "gap-2"
+        compact ? "gap-1 md:gap-2" : "gap-2",
+        className
       )}
     >
       {children}

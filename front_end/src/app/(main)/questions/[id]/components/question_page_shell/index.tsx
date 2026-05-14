@@ -5,6 +5,7 @@ import { FC, Fragment, ReactNode, useEffect } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_status_box";
+import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
 import TimeSeriesChart from "@/components/consumer_post_card/time_series_chart";
 import UpcomingCP from "@/components/consumer_post_card/upcoming_cp";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
@@ -42,6 +43,7 @@ import PostScoreData from "../post_score_data";
 import { QuestionLayoutProvider } from "../question_layout/question_layout_context";
 import { QuestionVariantComposer } from "../question_variant_composer";
 import ActionRow from "../question_view/action_row";
+import ConsumerGroupChart from "../question_view/consumer_question_view/consumer_group_chart";
 import ConsumerListChartShell from "../question_view/consumer_question_view/consumer_list_chart_shell";
 import ConsumerQuestionPrediction from "../question_view/consumer_question_view/prediction";
 import QuestionTimeline from "../question_view/consumer_question_view/timeline";
@@ -161,6 +163,12 @@ export const ConsumerShell: FC<{
   const isNRowBody =
     isMultipleChoice || (isNonFanGroup && !isDateGroup) || isFanGraph;
 
+  const isContinuousNumericGroup =
+    isNonFanGroup &&
+    !isDateGroup &&
+    !isMultipleChoice &&
+    checkGroupOfQuestionsPostType(postData, QuestionType.Numeric);
+
   const binaryForecastAvailability =
     isBinarySingleQuestion && isQuestionPost(postData)
       ? getQuestionForecastAvailability(postData.question)
@@ -263,6 +271,7 @@ export const ConsumerShell: FC<{
           ) : isNRowBody ? (
             <>
               <ConsumerListChartShell
+                stretchListContent={isContinuousNumericGroup && !hideCP}
                 listContent={
                   hideCP ? (
                     <RevealCPButton />
@@ -272,6 +281,8 @@ export const ConsumerShell: FC<{
                       variant="colorful"
                       height={180}
                     />
+                  ) : isContinuousNumericGroup ? (
+                    <NumericForecastCard post={postData} fillHeight />
                   ) : (
                     <ConsumerQuestionPrediction
                       postData={postData}
@@ -282,6 +293,13 @@ export const ConsumerShell: FC<{
                 chartContent={
                   isFanGraph ? (
                     <DetailedGroupCard
+                      post={
+                        postData as GroupOfQuestionsPost<QuestionWithNumericForecasts>
+                      }
+                      preselectedQuestionId={preselectedGroupQuestionId}
+                    />
+                  ) : isContinuousNumericGroup ? (
+                    <ConsumerGroupChart
                       post={
                         postData as GroupOfQuestionsPost<QuestionWithNumericForecasts>
                       }

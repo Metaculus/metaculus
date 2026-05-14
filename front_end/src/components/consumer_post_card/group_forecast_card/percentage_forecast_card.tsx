@@ -39,11 +39,6 @@ const PercentageForecastCard: FC<Props> = ({
   const { setIsExpanded } = useListChartExpanded();
 
   const isMC = isMultipleChoicePost(post);
-  const isGroupBinary =
-    isGroupOfQuestionsPost(post) &&
-    post.group_of_questions?.questions?.every(
-      (q) => q.type === QuestionType.Binary
-    );
   const cpRevealTime = post.question?.cp_reveal_time;
   const emptyLabel =
     cpRevealTime && new Date(cpRevealTime).getTime() > Date.now()
@@ -94,11 +89,6 @@ const PercentageForecastCard: FC<Props> = ({
   const collapsedChoices = allChoices.slice(0, visibleChoicesCount);
   const hiddenCount = allChoices.length - visibleChoicesCount;
 
-  const collapsedSumMC = collapsedChoices.reduce((s, c) => s + c.percent, 0);
-  const othersTotal = isMC
-    ? Math.max(0, Math.min(100, 100 - Math.round(collapsedSumMC)))
-    : 0;
-
   const renderBars = (choices: typeof allChoices) =>
     choices.map((choice) => (
       <ForecastChoiceBar
@@ -121,13 +111,11 @@ const PercentageForecastCard: FC<Props> = ({
       <div className={expanded ? "invisible" : undefined}>
         <ForecastCardWrapper
           otherItemsCount={hiddenCount}
-          othersTotal={othersTotal}
           expanded={false}
           onExpand={() => {
             setExpanded(true);
             setIsExpanded(true);
           }}
-          hideOthersValue={isGroupBinary}
           compact={compact}
           buttonVariant={buttonVariant}
         >
@@ -145,7 +133,6 @@ const PercentageForecastCard: FC<Props> = ({
               setExpanded(false);
               setIsExpanded(false);
             }}
-            hideOthersValue={isGroupBinary}
             compact={compact}
             buttonVariant={buttonVariant}
           >

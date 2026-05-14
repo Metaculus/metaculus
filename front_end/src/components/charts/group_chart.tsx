@@ -90,6 +90,8 @@ type Props = {
   onTimelineMarkerLeave?: (marker: GroupTimelineMarker) => void;
   animate?: object;
   leftPadding?: number;
+  withHighlightArea?: boolean;
+  withHighlightEndpoint?: boolean;
 };
 
 const LABEL_FONT_FAMILY = "Inter";
@@ -133,6 +135,8 @@ const GroupChart: FC<Props> = ({
   onTimelineMarkerLeave,
   animate,
   leftPadding = 0,
+  withHighlightArea = true,
+  withHighlightEndpoint = false,
 }) => {
   const t = useTranslations();
   const {
@@ -377,10 +381,14 @@ const GroupChart: FC<Props> = ({
                       }
                     },
                     onMouseLeave: () => {
-                      if (!onCursorChange) return;
                       inPlotRef.current = false;
                       setIsCursorActive(false);
                       setLocalCursorTimestamp(null);
+                      // Reset to last timestamp so lines don't stay frozen at last hovered position.
+                      const lastTs = timestamps.at(-1);
+                      if (onCursorChange && !isNil(lastTs)) {
+                        onCursorChange(lastTs, () => "");
+                      }
                     },
                   },
                 },
@@ -509,13 +517,45 @@ const GroupChart: FC<Props> = ({
                           : highlighted
                             ? 1
                             : 0.3,
-                        strokeWidth: 1.5,
+                        strokeWidth: isHighlightActive && highlighted ? 3 : 1.5,
                       },
                     }}
                     interpolation="stepAfter"
                   />
                 );
               })}
+              {/* Line endpoint dot */}
+              {withHighlightEndpoint &&
+                graphs.map(
+                  ({ color, active, line, highlighted, isClosed }, index) => {
+                    if (!active) return null;
+                    const filteredLine = filteredLines[index];
+                    if (!filteredLine) return null;
+                    const point = {
+                      x: isClosed
+                        ? line?.at(-1)?.x ?? Number(xDomain[1])
+                        : Number(xDomain[1]),
+                      y: line?.at(-1)?.y ?? 0,
+                    };
+                    return (
+                      <VictoryScatter
+                        key={`group-endpoint-${index}`}
+                        data={[point]}
+                        size={4}
+                        style={{
+                          data: {
+                            fill: getThemeColor(color),
+                            fillOpacity: !isHighlightActive
+                              ? baseLineOpacity
+                              : highlighted
+                                ? 1
+                                : 0.3,
+                          },
+                        }}
+                      />
+                    );
+                  }
+                )}
               {/* Line cursor points */}
               {graphs.map(
                 ({ color, active, line, highlighted, isClosed }, index) => {
@@ -569,7 +609,7 @@ const GroupChart: FC<Props> = ({
                     style={{
                       data: {
                         fill: getThemeColor(color),
-                        opacity: highlighted ? 0.3 : 0,
+                        opacity: withHighlightArea && highlighted ? 0.3 : 0,
                       },
                     }}
                     interpolation="stepAfter"

@@ -8,6 +8,7 @@ import { useListChartExpanded } from "@/app/(main)/questions/[id]/components/que
 import { getEffectiveVisibleCount } from "@/constants/questions";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
+import cn from "@/utils/core/cn";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { scaleInternalLocation } from "@/utils/math";
 import { generateChoiceItemsFromGroupQuestions } from "@/utils/questions/choices";
@@ -24,6 +25,7 @@ type Props = {
   forceColorful?: boolean;
   compact?: boolean;
   buttonVariant?: "primary" | "minimal";
+  fillHeight?: boolean;
 };
 
 const NumericForecastCard: FC<Props> = ({
@@ -31,11 +33,12 @@ const NumericForecastCard: FC<Props> = ({
   forceColorful,
   compact,
   buttonVariant,
+  fillHeight = false,
 }) => {
   const locale = useLocale();
   const t = useTranslations();
   const [expanded, setExpanded] = useState(false);
-  const { setIsExpanded } = useListChartExpanded();
+  const { setIsExpanded, setHoveredChoiceName } = useListChartExpanded();
 
   if (!isGroupOfQuestionsPost(post)) {
     return null;
@@ -84,7 +87,7 @@ const NumericForecastCard: FC<Props> = ({
   const maxScaledValue = Math.max(...scaledValues);
   const minScaledValue = Math.min(...scaledValues);
 
-  const renderBars = (choices: typeof sortedChoices) =>
+  const renderBars = (choices: typeof sortedChoices, stretchBars = false) =>
     choices.map(
       ({
         closeTime,
@@ -136,14 +139,23 @@ const NumericForecastCard: FC<Props> = ({
             unit={unit}
             forceColorful={forceColorful}
             compact={compact}
+            isBordered={false}
+            onMouseEnter={() => setHoveredChoiceName(choice)}
+            onMouseLeave={() => setHoveredChoiceName(null)}
+            className={stretchBars ? "flex-1" : undefined}
           />
         );
       }
     );
 
   return (
-    <div className="relative">
-      <div className={expanded ? "invisible" : undefined}>
+    <div className={cn("relative", fillHeight && "flex flex-1 flex-col")}>
+      <div
+        className={cn(
+          fillHeight && "flex flex-1 flex-col",
+          expanded && "invisible"
+        )}
+      >
         <ForecastCardWrapper
           otherItemsCount={hiddenCount}
           expanded={false}
@@ -151,11 +163,11 @@ const NumericForecastCard: FC<Props> = ({
             setExpanded(true);
             setIsExpanded(true);
           }}
-          hideOthersValue
           compact={compact}
           buttonVariant={buttonVariant}
+          className={fillHeight ? "flex-1" : undefined}
         >
-          {renderBars(collapsedChoices)}
+          {renderBars(collapsedChoices, fillHeight)}
         </ForecastCardWrapper>
       </div>
 
@@ -168,7 +180,6 @@ const NumericForecastCard: FC<Props> = ({
               setExpanded(false);
               setIsExpanded(false);
             }}
-            hideOthersValue
             compact={compact}
             buttonVariant={buttonVariant}
           >

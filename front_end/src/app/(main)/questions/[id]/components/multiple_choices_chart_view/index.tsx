@@ -49,6 +49,8 @@ type Props = {
   activeTimelineMarkerId?: string | null;
   onTimelineMarkerEnter?: (marker: GroupTimelineMarker) => void;
   onTimelineMarkerLeave?: (marker: GroupTimelineMarker) => void;
+  withHighlightArea?: boolean;
+  withHighlightEndpoint?: boolean;
 };
 
 const MultiChoicesChartView: FC<Props> = ({
@@ -82,6 +84,8 @@ const MultiChoicesChartView: FC<Props> = ({
   activeTimelineMarkerId,
   onTimelineMarkerEnter,
   onTimelineMarkerLeave,
+  withHighlightArea = true,
+  withHighlightEndpoint = false,
 }) => {
   const { user } = useAuth();
   const isInteracted = useRef(false);
@@ -243,6 +247,8 @@ const MultiChoicesChartView: FC<Props> = ({
     forceAutoZoom: isInteracted.current,
     forecastAvailability,
     attachRef,
+    withHighlightArea,
+    withHighlightEndpoint,
   } as const;
 
   return (

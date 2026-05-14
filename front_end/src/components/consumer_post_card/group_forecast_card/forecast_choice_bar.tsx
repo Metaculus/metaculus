@@ -25,6 +25,9 @@ type Props = {
   unit?: string;
   forceColorful?: boolean;
   compact?: boolean;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+  className?: string;
 };
 
 const WIDTH_ADJUSTMENT = 2;
@@ -41,6 +44,9 @@ const ForecastChoiceBar: FC<Props> = ({
   unit,
   forceColorful = false,
   compact = false,
+  onMouseEnter,
+  onMouseLeave,
+  className,
 }) => {
   const t = useTranslations();
   const { getThemeColor } = useAppTheme();
@@ -50,8 +56,11 @@ const ForecastChoiceBar: FC<Props> = ({
   const isResolutionSuccessful = isSuccessfullyResolved(resolution);
   return (
     <div
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       className={cn(
-        "relative flex w-full items-center justify-between gap-2 rounded-lg bg-transparent font-medium text-gray-800 dark:text-gray-800-dark",
+        "group relative flex w-full items-center justify-between gap-2 rounded-lg bg-transparent font-medium text-gray-800 transition-colors hover:bg-blue-500/20 dark:text-gray-800-dark dark:hover:bg-blue-500-dark/20",
+        className,
         isBordered
           ? "border border-blue-400 dark:border-blue-400-dark"
           : "border border-transparent",
@@ -100,8 +109,7 @@ const ForecastChoiceBar: FC<Props> = ({
       {isCpRevealed && (
         <div
           className={cn(
-            "absolute -inset-[1px] z-0 rounded-lg border",
-            compact ? "h-6 md:h-8" : "h-8",
+            "absolute -inset-[1px] z-0 rounded-lg border opacity-75 transition-opacity group-hover:opacity-100",
             {
               "border-2": resolution,
             }
@@ -122,12 +130,12 @@ const ForecastChoiceBar: FC<Props> = ({
                   mounted
                     ? getThemeColor(METAC_COLORS.gray["500"])
                     : METAC_COLORS.gray["500"].DEFAULT,
-                  0.3
+                  0.4
                 );
               }
               return addOpacityToHex(
                 mounted ? getThemeColor(color) : color.DEFAULT,
-                0.3
+                0.4
               );
             })(),
             borderColor: (() => {
