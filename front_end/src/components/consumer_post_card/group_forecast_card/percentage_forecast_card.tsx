@@ -24,12 +24,14 @@ type Props = {
   post: PostWithForecasts;
   forceColorful?: boolean;
   compact?: boolean;
+  buttonVariant?: "primary" | "minimal";
 };
 
 const PercentageForecastCard: FC<Props> = ({
   post,
   forceColorful,
   compact,
+  buttonVariant,
 }) => {
   const locale = useLocale();
   const t = useTranslations();
@@ -127,6 +129,7 @@ const PercentageForecastCard: FC<Props> = ({
           }}
           hideOthersValue={isGroupBinary}
           compact={compact}
+          buttonVariant={buttonVariant}
         >
           {renderBars(collapsedChoices)}
         </ForecastCardWrapper>
@@ -144,6 +147,7 @@ const PercentageForecastCard: FC<Props> = ({
             }}
             hideOthersValue={isGroupBinary}
             compact={compact}
+            buttonVariant={buttonVariant}
           >
             {renderBars(allChoices)}
           </ForecastCardWrapper>

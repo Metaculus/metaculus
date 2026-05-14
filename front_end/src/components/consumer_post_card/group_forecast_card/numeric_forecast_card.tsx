@@ -23,9 +23,15 @@ type Props = {
   post: PostWithForecasts;
   forceColorful?: boolean;
   compact?: boolean;
+  buttonVariant?: "primary" | "minimal";
 };
 
-const NumericForecastCard: FC<Props> = ({ post, forceColorful, compact }) => {
+const NumericForecastCard: FC<Props> = ({
+  post,
+  forceColorful,
+  compact,
+  buttonVariant,
+}) => {
   const locale = useLocale();
   const t = useTranslations();
   const [expanded, setExpanded] = useState(false);
@@ -147,6 +153,7 @@ const NumericForecastCard: FC<Props> = ({ post, forceColorful, compact }) => {
           }}
           hideOthersValue
           compact={compact}
+          buttonVariant={buttonVariant}
         >
           {renderBars(collapsedChoices)}
         </ForecastCardWrapper>
@@ -163,6 +170,7 @@ const NumericForecastCard: FC<Props> = ({ post, forceColorful, compact }) => {
             }}
             hideOthersValue
             compact={compact}
+            buttonVariant={buttonVariant}
           >
             {renderBars(sortedChoices)}
           </ForecastCardWrapper>
