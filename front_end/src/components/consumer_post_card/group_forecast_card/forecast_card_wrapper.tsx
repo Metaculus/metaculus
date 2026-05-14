@@ -53,22 +53,26 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
     >
       {children}
 
-      {showExpandRow && (
-        <button
-          type="button"
-          onClick={isMinimal ? undefined : onExpand}
-          aria-pressed={false}
-          className={toggleButtonClassName}
-        >
-          <FontAwesomeIcon
-            icon={isMinimal ? faEllipsis : faChevronDown}
-            className={cn(
-              isMinimal ? "h-3 w-3 opacity-[0.45] sm:h-4 sm:w-4" : "h-4 w-4"
-            )}
-          />
-          {t("otherWithCount", { count: otherItemsCount })}
-        </button>
-      )}
+      {showExpandRow &&
+        (isMinimal ? (
+          <div className={toggleButtonClassName}>
+            <FontAwesomeIcon
+              icon={faEllipsis}
+              className="h-3 w-3 opacity-[0.45] sm:h-4 sm:w-4"
+            />
+            {t("otherWithCount", { count: otherItemsCount })}
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={onExpand}
+            aria-pressed={false}
+            className={toggleButtonClassName}
+          >
+            <FontAwesomeIcon icon={faChevronDown} className="h-4 w-4" />
+            {t("otherWithCount", { count: otherItemsCount })}
+          </button>
+        ))}
 
       {expanded && onCollapse && (
         <button
