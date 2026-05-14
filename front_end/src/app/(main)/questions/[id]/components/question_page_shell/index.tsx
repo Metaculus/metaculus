@@ -5,6 +5,7 @@ import { FC, Fragment, ReactNode, useEffect } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_status_box";
+import TimeSeriesChart from "@/components/consumer_post_card/time_series_chart";
 import UpcomingCP from "@/components/consumer_post_card/upcoming_cp";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
@@ -23,6 +24,7 @@ import {
 import { TournamentType } from "@/types/projects";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
+import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 import {
   checkGroupOfQuestionsPostType,
   isContinuousQuestion,
@@ -171,6 +173,14 @@ export const ConsumerShell: FC<{
   const showClosedMessageFanGraph =
     isFanGraph && postData.status === PostStatus.CLOSED;
 
+  const fanGraphQuestions = isFanGraph
+    ? sortGroupPredictionOptions(
+        (postData.group_of_questions?.questions ??
+          []) as QuestionWithNumericForecasts[],
+        postData.group_of_questions
+      )
+    : null;
+
   const questionLinkAggregates =
     aggregateCoherenceLinks?.data.filter(isDisplayableQuestionLink) ?? [];
   const hasKeyFactors = (postData.key_factors?.length ?? 0) > 0;
@@ -256,6 +266,12 @@ export const ConsumerShell: FC<{
                 listContent={
                   hideCP ? (
                     <RevealCPButton />
+                  ) : isFanGraph && fanGraphQuestions ? (
+                    <TimeSeriesChart
+                      questions={fanGraphQuestions}
+                      variant="colorful"
+                      height={180}
+                    />
                   ) : (
                     <ConsumerQuestionPrediction
                       postData={postData}
