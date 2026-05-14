@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
+import { useListChartExpanded } from "@/app/(main)/questions/[id]/components/question_view/consumer_question_view/consumer_list_chart_shell";
 import { getEffectiveVisibleCount } from "@/constants/questions";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
@@ -33,6 +34,7 @@ const PercentageForecastCard: FC<Props> = ({
   const locale = useLocale();
   const t = useTranslations();
   const [expanded, setExpanded] = useState(false);
+  const { setIsExpanded } = useListChartExpanded();
 
   const isMC = isMultipleChoicePost(post);
   const isGroupBinary =
@@ -87,43 +89,70 @@ const PercentageForecastCard: FC<Props> = ({
 
   const isPostClosed = post.status === PostStatus.CLOSED;
 
-  const visible = expanded
-    ? allChoices
-    : allChoices.slice(0, visibleChoicesCount);
-  const hidden = expanded ? [] : allChoices.slice(visibleChoicesCount);
+  const collapsedChoices = allChoices.slice(0, visibleChoicesCount);
+  const hiddenCount = allChoices.length - visibleChoicesCount;
 
-  const visibleSumMC = visible.reduce((s, c) => s + c.percent, 0);
+  const collapsedSumMC = collapsedChoices.reduce((s, c) => s + c.percent, 0);
   const othersTotal = isMC
-    ? Math.max(0, Math.min(100, 100 - Math.round(visibleSumMC)))
+    ? Math.max(0, Math.min(100, 100 - Math.round(collapsedSumMC)))
     : 0;
 
+  const renderBars = (choices: typeof allChoices) =>
+    choices.map((choice) => (
+      <ForecastChoiceBar
+        key={choice.id ?? choice.choice}
+        choiceLabel={choice.choice}
+        choiceValue={choice.valueStr}
+        isClosed={choice.isChoiceClosed || isPostClosed}
+        displayedResolution={choice.displayedResolution}
+        resolution={choice.resolution}
+        progress={choice.percent}
+        color={choice.color}
+        forceColorful={forceColorful}
+        compact={compact}
+      />
+    ));
+
   return (
-    <ForecastCardWrapper
-      otherItemsCount={hidden.length}
-      othersTotal={othersTotal}
-      expanded={expanded}
-      onExpand={() => setExpanded(true)}
-      hideOthersValue={isGroupBinary}
-      compact={compact}
-    >
-      {visible.map((choice) => (
-        <ForecastChoiceBar
-          key={choice.id ?? choice.choice}
-          choiceLabel={choice.choice}
-          choiceValue={choice.valueStr}
-          isClosed={choice.isChoiceClosed || isPostClosed}
-          displayedResolution={choice.displayedResolution}
-          resolution={choice.resolution}
-          progress={choice.percent}
-          color={choice.color}
-          isBordered={true}
-          forceColorful={forceColorful}
+    <div className="relative">
+      {/* Always in normal flow — keeps the left panel and shell at collapsed height */}
+      <div className={expanded ? "invisible" : undefined}>
+        <ForecastCardWrapper
+          otherItemsCount={hiddenCount}
+          othersTotal={othersTotal}
+          expanded={false}
+          onExpand={() => {
+            setExpanded(true);
+            setIsExpanded(true);
+          }}
+          hideOthersValue={isGroupBinary}
           compact={compact}
-        />
-      ))}
-    </ForecastCardWrapper>
+        >
+          {renderBars(collapsedChoices)}
+        </ForecastCardWrapper>
+      </div>
+
+      {/* Expanded panel — absolutely positioned so it overflows below the shell */}
+      {expanded && (
+        <div className="absolute -left-[21px] -top-[21px] z-20 w-[calc(100%+42px)] rounded-lg border border-gray-400/40 bg-gray-0 p-5 dark:border-gray-400-dark/40 dark:bg-gray-0-dark">
+          <ForecastCardWrapper
+            otherItemsCount={0}
+            expanded={true}
+            onCollapse={() => {
+              setExpanded(false);
+              setIsExpanded(false);
+            }}
+            hideOthersValue={isGroupBinary}
+            compact={compact}
+          >
+            {renderBars(allChoices)}
+          </ForecastCardWrapper>
+        </div>
+      )}
+    </div>
   );
 };
+
 function generateChoiceItems(
   post: PostWithForecasts,
   visibleChoicesCount: number,
@@ -150,4 +179,5 @@ function generateChoiceItems(
   }
   return [];
 }
+
 export default PercentageForecastCard;

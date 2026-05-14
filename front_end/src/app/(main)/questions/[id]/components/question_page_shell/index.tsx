@@ -47,9 +47,9 @@ import QuestionHeaderCPStatus from "../question_view/forecaster_question_view/qu
 import RevealCPButton from "../reveal_cp_button";
 
 const baseSectionClassName =
-  "relative z-10 flex w-[59rem] max-w-full flex-col gap-6 overflow-x-clip rounded border border-blue-400 p-4 text-gray-900 dark:border-blue-200-dark dark:text-gray-900-dark lg:p-8";
+  "relative flex w-[59rem] max-w-full flex-col gap-6 overflow-x-clip rounded border border-blue-400 p-4 text-gray-900 dark:border-blue-200-dark dark:text-gray-900-dark lg:p-8";
 
-const mainSectionClassName = `${baseSectionClassName} bg-gray-0 dark:bg-gray-0-dark`;
+const mainSectionClassName = `${baseSectionClassName} z-10 bg-gray-0 dark:bg-gray-0-dark`;
 const commentSectionClassName = `${baseSectionClassName} bg-blue-100 dark:bg-gray-0-dark`;
 
 type ShellProps = {

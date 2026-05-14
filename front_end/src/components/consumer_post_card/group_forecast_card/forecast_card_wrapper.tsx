@@ -1,3 +1,5 @@
+import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
@@ -8,21 +10,28 @@ type Props = {
   othersTotal?: number;
   expanded?: boolean;
   onExpand?: () => void;
+  onCollapse?: () => void;
   hideOthersValue?: boolean;
   compact?: boolean;
 };
 
 const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
   otherItemsCount,
-  othersTotal = 0,
   expanded = false,
   onExpand,
-  hideOthersValue = false,
+  onCollapse,
   compact = false,
   children,
 }) => {
   const t = useTranslations();
-  const showRow = !expanded && otherItemsCount > 0;
+  const showExpandRow = !expanded && otherItemsCount > 0;
+
+  const toggleButtonClassName = cn(
+    "flex w-full self-stretch items-center gap-2 rounded-lg px-[13px]",
+    "bg-blue-500/20 dark:bg-blue-500-dark/20",
+    "text-sm font-medium leading-4 text-blue-700 dark:text-blue-700-dark",
+    compact ? "h-6 md:h-8" : "h-8"
+  );
 
   return (
     <div
@@ -33,55 +42,27 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
     >
       {children}
 
-      {showRow && (
+      {showExpandRow && (
         <button
           type="button"
           onClick={onExpand}
           aria-pressed={false}
-          className={cn(
-            "group relative flex w-full items-center justify-between gap-3 rounded-[8px]",
-            compact
-              ? "h-6 px-2 py-0.5 md:h-8 md:px-[10px] md:py-1"
-              : "h-8 px-[10px] py-1",
-            "border border-blue-400 bg-white",
-            "dark:border-blue-400-dark dark:bg-transparent"
-          )}
+          className={toggleButtonClassName}
         >
-          <span
-            className={cn(
-              "absolute -inset-[1px] inline-flex items-center text-nowrap rounded-[8px] px-3 py-1 text-gray-700 dark:text-gray-700-dark",
-              compact && "text-xs md:text-base",
-              "border border-gray-500 dark:border-gray-500-dark",
-              "group-hover:border-gray-600 group-hover:dark:border-gray-600-dark",
-              "bg-gray-100 transition-colors dark:bg-gray-100-dark",
-              "group-hover:bg-gray-200 dark:group-hover:bg-gray-200-dark",
-              "group-active:bg-gray-300 dark:group-active:bg-gray-300-dark",
-              "group-hover:text-gray-800 dark:group-hover:text-gray-800-dark"
-            )}
-            style={{
-              width: (() => {
-                const hasPct =
-                  typeof othersTotal === "number" && !Number.isNaN(othersTotal);
-                const pct = hasPct
-                  ? Math.min(100, Math.max(0, othersTotal))
-                  : Math.min(100, Math.max(0, otherItemsCount));
-                return `calc(${pct}% + 2px)`;
-              })(),
-            }}
-          >
-            {t("otherWithCount", { count: otherItemsCount })}
-          </span>
+          <FontAwesomeIcon icon={faChevronDown} className="h-4 w-4" />
+          {t("otherWithCount", { count: otherItemsCount })}
+        </button>
+      )}
 
-          {!hideOthersValue && (
-            <span
-              className={cn(
-                "ml-auto font-semibold text-gray-900 dark:text-gray-900-dark",
-                compact && "text-xs font-normal md:text-base md:font-semibold"
-              )}
-            >
-              {Math.round(othersTotal)}%
-            </span>
-          )}
+      {expanded && onCollapse && (
+        <button
+          type="button"
+          onClick={onCollapse}
+          aria-pressed={true}
+          className={toggleButtonClassName}
+        >
+          <FontAwesomeIcon icon={faChevronUp} className="h-4 w-4" />
+          {t("collapse")}
         </button>
       )}
     </div>

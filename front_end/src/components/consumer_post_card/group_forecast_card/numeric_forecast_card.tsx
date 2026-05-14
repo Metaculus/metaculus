@@ -4,6 +4,7 @@ import { isNil } from "lodash";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
+import { useListChartExpanded } from "@/app/(main)/questions/[id]/components/question_view/consumer_question_view/consumer_list_chart_shell";
 import { getEffectiveVisibleCount } from "@/constants/questions";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
@@ -28,6 +29,7 @@ const NumericForecastCard: FC<Props> = ({ post, forceColorful, compact }) => {
   const locale = useLocale();
   const t = useTranslations();
   const [expanded, setExpanded] = useState(false);
+  const { setIsExpanded } = useListChartExpanded();
 
   if (!isGroupOfQuestionsPost(post)) {
     return null;
@@ -58,10 +60,8 @@ const NumericForecastCard: FC<Props> = ({ post, forceColorful, compact }) => {
   });
 
   const isPostClosed = post.status === PostStatus.CLOSED;
-
-  const visibleChoices = expanded
-    ? sortedChoices
-    : sortedChoices.slice(0, visibleChoicesCount);
+  const hiddenCount = Math.max(0, sortedChoices.length - visibleChoicesCount);
+  const collapsedChoices = sortedChoices.slice(0, visibleChoicesCount);
 
   const scaledValues = [...sortedChoices]
     .filter((choice) => isNil(choice.resolution))
@@ -78,79 +78,97 @@ const NumericForecastCard: FC<Props> = ({ post, forceColorful, compact }) => {
   const maxScaledValue = Math.max(...scaledValues);
   const minScaledValue = Math.min(...scaledValues);
 
-  return (
-    <ForecastCardWrapper
-      otherItemsCount={
-        expanded ? 0 : Math.max(0, sortedChoices.length - visibleChoicesCount)
+  const renderBars = (choices: typeof sortedChoices) =>
+    choices.map(
+      ({
+        closeTime,
+        aggregationValues,
+        scaling,
+        resolution,
+        id,
+        color,
+        displayedResolution,
+        choice,
+        actual_resolve_time,
+        unit,
+      }) => {
+        const isChoiceClosed = closeTime ? closeTime < Date.now() : false;
+        const rawChoiceValue =
+          aggregationValues[aggregationValues.length - 1] ?? null;
+        const normalizedScaling: Scaling = {
+          range_min: scaling?.range_min ?? 0,
+          range_max: scaling?.range_max ?? 1,
+          zero_point: scaling?.zero_point ?? null,
+        };
+        const formattedChoiceValue = getPredictionDisplayValue(rawChoiceValue, {
+          questionType: isDateGroup ? QuestionType.Date : QuestionType.Numeric,
+          scaling: normalizedScaling,
+          actual_resolve_time: actual_resolve_time ?? null,
+          emptyLabel: t("Upcoming"),
+        });
+        const scaledChoiceValue = !isNil(rawChoiceValue)
+          ? scaleInternalLocation(rawChoiceValue, normalizedScaling)
+          : NaN;
+        const relativeWidth = !isNil(resolution)
+          ? 100
+          : calculateRelativeWidth({
+              scaledChoiceValue,
+              maxScaledValue,
+              minScaledValue,
+            });
+
+        return (
+          <ForecastChoiceBar
+            key={id}
+            choiceLabel={choice}
+            choiceValue={formattedChoiceValue}
+            isClosed={isChoiceClosed || isPostClosed}
+            displayedResolution={displayedResolution}
+            resolution={resolution}
+            progress={relativeWidth}
+            color={color}
+            unit={unit}
+            forceColorful={forceColorful}
+            compact={compact}
+          />
+        );
       }
-      expanded={expanded}
-      onExpand={() => setExpanded(true)}
-      hideOthersValue
-      compact={compact}
-    >
-      {visibleChoices.map(
-        ({
-          closeTime,
-          aggregationValues,
-          scaling,
-          resolution,
-          id,
-          color,
-          displayedResolution,
-          choice,
-          actual_resolve_time,
-          unit,
-        }) => {
-          const isChoiceClosed = closeTime ? closeTime < Date.now() : false;
-          const rawChoiceValue =
-            aggregationValues[aggregationValues.length - 1] ?? null;
-          const normalizedScaling: Scaling = {
-            range_min: scaling?.range_min ?? 0,
-            range_max: scaling?.range_max ?? 1,
-            zero_point: scaling?.zero_point ?? null,
-          };
-          const formattedChoiceValue = getPredictionDisplayValue(
-            rawChoiceValue,
-            {
-              questionType: isDateGroup
-                ? QuestionType.Date
-                : QuestionType.Numeric,
-              scaling: normalizedScaling,
-              actual_resolve_time: actual_resolve_time ?? null,
-              emptyLabel: t("Upcoming"),
-            }
-          );
+    );
 
-          const scaledChoiceValue = !isNil(rawChoiceValue)
-            ? scaleInternalLocation(rawChoiceValue, normalizedScaling)
-            : NaN;
+  return (
+    <div className="relative">
+      <div className={expanded ? "invisible" : undefined}>
+        <ForecastCardWrapper
+          otherItemsCount={hiddenCount}
+          expanded={false}
+          onExpand={() => {
+            setExpanded(true);
+            setIsExpanded(true);
+          }}
+          hideOthersValue
+          compact={compact}
+        >
+          {renderBars(collapsedChoices)}
+        </ForecastCardWrapper>
+      </div>
 
-          const relativeWidth = !isNil(resolution)
-            ? 100
-            : calculateRelativeWidth({
-                scaledChoiceValue,
-                maxScaledValue,
-                minScaledValue,
-              });
-
-          return (
-            <ForecastChoiceBar
-              key={id}
-              choiceLabel={choice}
-              choiceValue={formattedChoiceValue}
-              isClosed={isChoiceClosed || isPostClosed}
-              displayedResolution={displayedResolution}
-              resolution={resolution}
-              progress={relativeWidth}
-              color={color}
-              unit={unit}
-              forceColorful={forceColorful}
-              compact={compact}
-            />
-          );
-        }
+      {expanded && (
+        <div className="absolute -left-[21px] -top-[21px] z-20 w-[calc(100%+42px)] rounded-lg border border-gray-400/40 bg-gray-0 p-5 dark:border-gray-400-dark/40 dark:bg-gray-0-dark">
+          <ForecastCardWrapper
+            otherItemsCount={0}
+            expanded={true}
+            onCollapse={() => {
+              setExpanded(false);
+              setIsExpanded(false);
+            }}
+            hideOthersValue
+            compact={compact}
+          >
+            {renderBars(sortedChoices)}
+          </ForecastCardWrapper>
+        </div>
       )}
-    </ForecastCardWrapper>
+    </div>
   );
 };
 
