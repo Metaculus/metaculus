@@ -18,6 +18,7 @@ import cn from "@/utils/core/cn";
 import { buildChoicesWithOthers } from "@/utils/questions/choices";
 
 import ChoicesLegend from "./choices_legend";
+import CompactLegendBar from "./compact_legend_bar";
 
 type Props = {
   choiceItems: ChoiceItem[];
@@ -259,6 +260,17 @@ const MultiChoicesChartView: FC<Props> = ({
         isChartReady ? "opacity-100" : "opacity-0"
       )}
     >
+      {withLegend && (isMC || questionType === QuestionType.Binary) && (
+        <CompactLegendBar
+          items={choiceItems}
+          questionType={
+            isMC ? QuestionType.MultipleChoice : QuestionType.Binary
+          }
+          onChoiceChange={handleChoiceChange}
+          onChoiceHighlight={handleChoiceHighlight}
+        />
+      )}
+
       <div
         ref={refs.setReference}
         {...getReferenceProps()}
@@ -304,7 +316,7 @@ const MultiChoicesChartView: FC<Props> = ({
         )}
       </div>
 
-      {withLegend && (
+      {withLegend && !isMC && questionType !== QuestionType.Binary && (
         <div className="-ml-1 mt-3" ref={legendContainerRef}>
           <ChoicesLegend
             choices={choiceItems}
