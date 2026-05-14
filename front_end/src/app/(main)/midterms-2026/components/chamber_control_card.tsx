@@ -1,5 +1,5 @@
-import { ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
+import { ReactNode } from "react";
 
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
@@ -219,7 +219,7 @@ function ChamberRow({
           />
         </div>
       )}
-      <div className="mt-2 text-right text-sm tabular-nums text-blue-700 dark:text-blue-700-dark">
+      <div className="mt-2 text-center text-sm tabular-nums text-blue-700 dark:text-blue-700-dark">
         <span className="mr-1">{labels.current}</span>
         <span style={{ color: MIDTERMS_COLORS.demPrimary }}>
           D {currentDem}

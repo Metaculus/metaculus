@@ -7,6 +7,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 
 import cn from "@/utils/core/cn";
@@ -33,14 +34,24 @@ type Props = {
  * via `group-hover/cr:*`, and `data-open` so they can also react to the
  * touch-tap state via `group-data-[open]/cr:*`.
  */
+// Server snapshot: assume non-touch so the close button (mobile-only)
+// is hidden during SSR and only appears after hydration on a touch device.
+const subscribeHoverMQ = (callback: () => void) => {
+  const mql = window.matchMedia("(hover: none)");
+  mql.addEventListener("change", callback);
+  return () => mql.removeEventListener("change", callback);
+};
+const getHoverNoneSnapshot = () => window.matchMedia("(hover: none)").matches;
+const getHoverNoneServerSnapshot = () => false;
+
 const ChamberRowTooltip: FC<Props> = ({ body, disclaimer, href, children }) => {
   const [open, setOpen] = useState(false);
-  const [isTouch, setIsTouch] = useState(false);
+  const isTouch = useSyncExternalStore(
+    subscribeHoverMQ,
+    getHoverNoneSnapshot,
+    getHoverNoneServerSnapshot
+  );
   const wrapperRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setIsTouch(window.matchMedia("(hover: none)").matches);
-  }, []);
 
   // Outside-tap dismiss (mousedown to avoid racing the opener's click).
   useEffect(() => {

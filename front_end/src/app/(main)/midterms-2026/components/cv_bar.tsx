@@ -25,23 +25,29 @@ type Props = {
 };
 
 const BG_OPACITY_DEFAULT_LIGHT = 0.4;
-const BG_OPACITY_HOVER_LIGHT = 0.85;
 // Dark mode needs more saturation to read against the navy card bg.
 const BG_OPACITY_DEFAULT_DARK = 0.55;
-const BG_OPACITY_HOVER_DARK = 0.95;
+// Glow ring radius (px) used on active state.
+const ACTIVE_RING_PX = 3;
+const ACTIVE_RING_OPACITY = 0.45;
 
 /**
  * Visual primitive shaped like the consumer view multiple-choice bar:
  * rounded, full-color border, semi-transparent fill in the same color.
  *
- * Hover/active styling is driven by the nearest named-group ancestor:
+ * Active (hover or tooltip-shown) styling is driven by the nearest
+ * named-group ancestor:
  * - `group/cv` for direct hover over the row
- * - `group/cr` for tooltip-shown state on Chamber Control rows
- *   (tapped open on touch devices, hovered on desktop)
+ * - `group/cr` for the Chamber Control tooltip wrapper, which fires
+ *   either via hover (desktop) or `data-open` (touch tap)
  *
- * In dark mode the darker `borderColor` would blend with the card bg,
- * so we fall back to the primary `color` (which is a brighter shade)
- * for the border instead.
+ * On active, the fill goes to 100% color (no opacity), the border
+ * darkens slightly via a CSS variable, and a colored glow ring is
+ * applied via box-shadow so the highlight is unmistakable.
+ *
+ * In dark mode the darker `borderColor` would blend with the card bg
+ * at rest, so we fall back to the primary `color` (which is a brighter
+ * shade) for the resting border instead.
  */
 const CvBar: FC<Props> = ({
   pct,
@@ -57,7 +63,6 @@ const CvBar: FC<Props> = ({
   const defaultOpacity = isDark
     ? BG_OPACITY_DEFAULT_DARK
     : BG_OPACITY_DEFAULT_LIGHT;
-  const hoverOpacity = isDark ? BG_OPACITY_HOVER_DARK : BG_OPACITY_HOVER_LIGHT;
 
   const width = fill ? "100%" : `${Math.max(pct ?? 1, 1)}%`;
 
@@ -65,19 +70,20 @@ const CvBar: FC<Props> = ({
     width,
     borderColor: resolvedBorder,
     backgroundColor: addOpacityToHex(color, defaultOpacity),
-    ["--cv-bar-hover-bg" as string]: addOpacityToHex(color, hoverOpacity),
+    // Active state: full color, slightly darker border, glow ring.
+    ["--cv-bar-active-bg" as string]: color,
+    ["--cv-bar-active-border" as string]: borderColor ?? color,
+    ["--cv-bar-active-ring" as string]: `0 0 0 ${ACTIVE_RING_PX}px ${addOpacityToHex(color, ACTIVE_RING_OPACITY)}`,
   };
 
   return (
     <div
       className={cn(
-        "block shrink-0 rounded-md border transition-colors duration-150",
-        // Hover on the cv-group (direct row hover) OR the tooltip wrapper
-        // either being hovered (desktop) or having data-open (touch tap)
-        // both shift the bar to its bright state.
-        "group-hover/cv:bg-[var(--cv-bar-hover-bg)]",
-        "group-hover/cr:bg-[var(--cv-bar-hover-bg)]",
-        "group-data-[open]/cr:bg-[var(--cv-bar-hover-bg)]",
+        "block shrink-0 rounded-md border transition-[background-color,border-color,box-shadow] duration-150",
+        // Three trigger sources, all resolve to the same active styling.
+        "group-hover/cv:border-[var(--cv-bar-active-border)] group-hover/cv:bg-[var(--cv-bar-active-bg)] group-hover/cv:shadow-[var(--cv-bar-active-ring)]",
+        "group-hover/cr:border-[var(--cv-bar-active-border)] group-hover/cr:bg-[var(--cv-bar-active-bg)] group-hover/cr:shadow-[var(--cv-bar-active-ring)]",
+        "group-data-[open]/cr:border-[var(--cv-bar-active-border)] group-data-[open]/cr:bg-[var(--cv-bar-active-bg)] group-data-[open]/cr:shadow-[var(--cv-bar-active-ring)]",
         heightClassName,
         className
       )}
