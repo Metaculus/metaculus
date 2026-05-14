@@ -15,13 +15,13 @@ import { useHideCP } from "@/contexts/cp_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import {
   GroupOfQuestionsGraphType,
+  GroupOfQuestionsPost,
   PostStatus,
   PostWithForecasts,
   QuestionStatus,
 } from "@/types/post";
 import { TournamentType } from "@/types/projects";
-import { QuestionType } from "@/types/question";
-import cn from "@/utils/core/cn";
+import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 import {
   checkGroupOfQuestionsPostType,
@@ -40,6 +40,7 @@ import PostScoreData from "../post_score_data";
 import { QuestionLayoutProvider } from "../question_layout/question_layout_context";
 import { QuestionVariantComposer } from "../question_variant_composer";
 import ActionRow from "../question_view/action_row";
+import ConsumerListChartShell from "../question_view/consumer_question_view/consumer_list_chart_shell";
 import ConsumerQuestionPrediction from "../question_view/consumer_question_view/prediction";
 import QuestionTimeline from "../question_view/consumer_question_view/timeline";
 import QuestionHeaderCPStatus from "../question_view/forecaster_question_view/question_header/question_header_cp_status";
@@ -147,9 +148,6 @@ export const ConsumerShell: FC<{
   const isMultipleChoice = isMultipleChoicePost(postData);
   const isNonFanGroup = isGroupOfQuestionsPost(postData) && !isFanGraph;
 
-  const reverseOrder =
-    (isMultipleChoice || isGroupOfQuestionsPost(postData)) && !isDateGroup;
-
   const isContinuousSingleQuestion =
     isQuestionPost(postData) && isContinuousQuestion(postData.question);
 
@@ -158,16 +156,13 @@ export const ConsumerShell: FC<{
     !isContinuousSingleQuestion &&
     !isMultipleChoice;
 
+  const isNRowBody =
+    isMultipleChoice || (isNonFanGroup && !isDateGroup) || isFanGraph;
+
   const binaryForecastAvailability =
     isBinarySingleQuestion && isQuestionPost(postData)
       ? getQuestionForecastAvailability(postData.question)
       : null;
-
-  const showSideBySide =
-    isMultipleChoice ||
-    isNonFanGroup ||
-    isBinarySingleQuestion ||
-    isContinuousSingleQuestion;
 
   const showClosedMessageMultipleChoice =
     isMultipleChoicePost(postData) &&
@@ -218,21 +213,8 @@ export const ConsumerShell: FC<{
               {t("predictionClosedMessage")}
             </p>
           )}
-          <div
-            className={cn(
-              "flex flex-col",
-              reverseOrder &&
-                !isMultipleChoice &&
-                !isNonFanGroup &&
-                "flex-col-reverse",
-              showSideBySide &&
-                cn("sm:flex-row sm:items-center", {
-                  "sm:gap-0 md:gap-8": isBinarySingleQuestion,
-                  "sm:gap-8": !isBinarySingleQuestion,
-                })
-            )}
-          >
-            {isBinarySingleQuestion && isQuestionPost(postData) ? (
+          {isBinarySingleQuestion && isQuestionPost(postData) ? (
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-0 md:gap-8">
               <div className="order-1 flex w-64 flex-col items-center justify-center gap-[18px] self-center sm:self-stretch">
                 {hideCP ? (
                   <RevealCPButton />
@@ -247,47 +229,65 @@ export const ConsumerShell: FC<{
                   />
                 )}
               </div>
-            ) : (
-              <div
-                className={cn(
-                  showSideBySide && !isDateGroup ? "order-1" : undefined,
-                  isContinuousSingleQuestion && "md:hidden",
-                  showSideBySide &&
-                    !isDateGroup &&
-                    !isContinuousSingleQuestion &&
-                    "sm:max-w-[200px]",
-                  hideCP &&
-                    !isContinuousSingleQuestion &&
-                    (isDateGroup || isFanGraph) &&
-                    "flex w-full justify-center"
-                )}
-              >
-                {hideCP && !isContinuousSingleQuestion ? (
-                  <RevealCPButton />
-                ) : (
-                  <ConsumerQuestionPrediction postData={postData} />
-                )}
-              </div>
-            )}
-            {!isFanGraph && !isDateGroup && (
               <QuestionTimeline
                 postData={postData}
                 keyFactors={postData.key_factors}
-                isConsumerView={true}
+                isConsumerView
                 preselectedGroupQuestionId={preselectedGroupQuestionId}
-                className={cn(
-                  "hidden sm:block",
-                  showSideBySide && "order-2 mt-0 flex-1",
-                  isContinuousSingleQuestion && "mt-0"
-                )}
+                className="order-2 mt-0 hidden flex-1 sm:block"
               />
-            )}
-            {showClosedMessageFanGraph && (
-              <p className="my-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
-                {t("predictionClosedMessage")}
-              </p>
-            )}
-          </div>
+            </div>
+          ) : isContinuousSingleQuestion ? (
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-8">
+              <div className="order-1 md:hidden">
+                <ConsumerQuestionPrediction postData={postData} />
+              </div>
+              <QuestionTimeline
+                postData={postData}
+                keyFactors={postData.key_factors}
+                isConsumerView={false}
+                preselectedGroupQuestionId={preselectedGroupQuestionId}
+                className="order-2 mt-0 hidden flex-1 sm:block"
+              />
+            </div>
+          ) : isNRowBody ? (
+            <>
+              <ConsumerListChartShell
+                listContent={
+                  hideCP ? (
+                    <RevealCPButton />
+                  ) : (
+                    <ConsumerQuestionPrediction postData={postData} />
+                  )
+                }
+                chartContent={
+                  isFanGraph ? (
+                    <DetailedGroupCard
+                      post={
+                        postData as GroupOfQuestionsPost<QuestionWithNumericForecasts>
+                      }
+                      preselectedQuestionId={preselectedGroupQuestionId}
+                    />
+                  ) : (
+                    <QuestionTimeline
+                      postData={postData}
+                      keyFactors={postData.key_factors}
+                      isConsumerView
+                      preselectedGroupQuestionId={preselectedGroupQuestionId}
+                      className="mt-0"
+                    />
+                  )
+                }
+              />
+              {showClosedMessageFanGraph && (
+                <p className="my-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
+                  {t("predictionClosedMessage")}
+                </p>
+              )}
+            </>
+          ) : (
+            <ConsumerQuestionPrediction postData={postData} />
+          )}
         </div>
         {shouldShowKeyFactorsSection && (
           <div className="order-3 sm:order-none">
