@@ -21,6 +21,10 @@ type Props = {
   borderColor?: string;
   /** Tailwind height class (default `h-5`). */
   heightClassName?: string;
+  /** Force the active (hover-like) styling regardless of cursor position.
+   *  Used when external state (e.g. column-level hover in the Electoral
+   *  Consequences table) decides the bar should appear lit. */
+  active?: boolean;
   className?: string;
 };
 
@@ -55,6 +59,7 @@ const CvBar: FC<Props> = ({
   color,
   borderColor,
   heightClassName = "h-5",
+  active,
   className,
 }) => {
   const { theme } = useAppTheme();
@@ -78,12 +83,16 @@ const CvBar: FC<Props> = ({
 
   return (
     <div
+      data-active={active || undefined}
       className={cn(
         "block shrink-0 rounded-md border transition-[background-color,border-color,box-shadow] duration-150",
-        // Three trigger sources, all resolve to the same active styling.
+        // Active styling can be triggered by any of: direct hover on a
+        // `group/cv` row, hover or tap-open on a `group/cr` Chamber
+        // Control wrapper, or an explicit `active` prop (data-active).
         "group-hover/cv:border-[var(--cv-bar-active-border)] group-hover/cv:bg-[var(--cv-bar-active-bg)] group-hover/cv:shadow-[var(--cv-bar-active-ring)]",
         "group-hover/cr:border-[var(--cv-bar-active-border)] group-hover/cr:bg-[var(--cv-bar-active-bg)] group-hover/cr:shadow-[var(--cv-bar-active-ring)]",
         "group-data-[open]/cr:border-[var(--cv-bar-active-border)] group-data-[open]/cr:bg-[var(--cv-bar-active-bg)] group-data-[open]/cr:shadow-[var(--cv-bar-active-ring)]",
+        "data-[active]:border-[var(--cv-bar-active-border)] data-[active]:bg-[var(--cv-bar-active-bg)] data-[active]:shadow-[var(--cv-bar-active-ring)]",
         heightClassName,
         className
       )}
