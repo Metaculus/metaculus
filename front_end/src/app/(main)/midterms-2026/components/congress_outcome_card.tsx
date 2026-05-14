@@ -16,20 +16,21 @@ const OUTCOME_OPTION_LABEL: Record<OutcomeKey, string> = {
   DD: "Dem Senate / Dem House",
 };
 
-// Split outcomes (Rep Senate / Dem House and vice versa) use an alternating
-// dem+rep dashed border instead of a single-color fill so neither party
-// reads as the "owner" of the bar.
-const SPLIT_COLORS: [string, string] = [
-  MIDTERMS_COLORS.demPrimary,
-  MIDTERMS_COLORS.repPrimary,
-];
+// Split outcomes (Rep Senate / Dem House and vice versa) use a horizontal
+// gradient from the rep color (left) to the dem color (right) — including
+// a matching gradient border — so neither party reads as the "owner" of
+// the bar.
+const SPLIT_GRADIENT = [
+  { fill: MIDTERMS_COLORS.repPrimary, border: MIDTERMS_COLORS.repBorder },
+  { fill: MIDTERMS_COLORS.demPrimary, border: MIDTERMS_COLORS.demBorder },
+] as const;
 
 type Outcome = {
   key: OutcomeKey;
   pct: number | null;
 } & (
   | { kind: "solid"; color: string; borderColor: string }
-  | { kind: "alternating" }
+  | { kind: "gradient" }
 );
 
 type Props = {
@@ -57,7 +58,7 @@ export default async function CongressOutcomeCard({ post }: Props) {
     };
   };
 
-  const buildAlternating = (key: OutcomeKey): Outcome => {
+  const buildGradient = (key: OutcomeKey): Outcome => {
     const prob = getMultipleChoiceOptionProbability(
       post,
       OUTCOME_OPTION_LABEL[key]
@@ -65,14 +66,14 @@ export default async function CongressOutcomeCard({ post }: Props) {
     return {
       key,
       pct: prob != null ? Math.round(prob * 1000) / 10 : null,
-      kind: "alternating",
+      kind: "gradient",
     };
   };
 
   const outcomes: Outcome[] = [
     buildSolid("RR", MIDTERMS_COLORS.repPrimary, MIDTERMS_COLORS.repBorder),
-    buildAlternating("RD"),
-    buildAlternating("DR"),
+    buildGradient("RD"),
+    buildGradient("DR"),
     buildSolid("DD", MIDTERMS_COLORS.demPrimary, MIDTERMS_COLORS.demBorder),
   ];
 
@@ -129,7 +130,10 @@ function OutcomeRow({
             borderColor={outcome.borderColor}
           />
         ) : (
-          <CvBar pct={outcome.pct ?? 0} alternatingColors={SPLIT_COLORS} />
+          <CvBar
+            pct={outcome.pct ?? 0}
+            gradientColors={[SPLIT_GRADIENT[0], SPLIT_GRADIENT[1]]}
+          />
         )}
         <span className="ml-2 shrink-0 text-sm font-semibold tabular-nums text-blue-800 dark:text-blue-800-dark">
           {outcome.pct != null ? `${outcome.pct.toFixed(1)}%` : "—"}
