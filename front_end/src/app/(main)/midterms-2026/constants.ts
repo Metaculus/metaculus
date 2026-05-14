@@ -16,12 +16,14 @@ export const MIDTERMS_COLORS = {
   // with the surrounding card.
   cardBgLight: "#ffffff",
   cardBgDark: "#262f38",
-  // Uncontested fill is one elevation step lighter than the card bg so
-  // uncontested states are subtly visible without dominating.
+  // Uncontested fill matches the page background (blue-200 in light,
+  // blue-50-dark in dark) so uncontested states read as transparent
+  // "cutouts" of the SectionCard down to the page below. Hover variants
+  // are a small step away so hover feedback stays visible.
   uncontestedLight: "#eff4f4",
-  uncontestedDark: "#2d3845",
+  uncontestedDark: "#22262b",
   uncontestedHoverLight: "#e0e9eb",
-  uncontestedHoverDark: "#394450",
+  uncontestedHoverDark: "#2d3845",
 } as const;
 
 export const STATE_NAMES: Record<string, string> = {
