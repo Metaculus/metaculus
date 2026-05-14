@@ -5,10 +5,6 @@ export const MIDTERMS_COLORS = {
   demBorder: "#3A4DD0",
   repPrimary: "#E8827A",
   repBorder: "#C53B33",
-  // Split-control outcomes (Rep Senate / Dem House and vice versa). Pink
-  // so the bars don't read as either party.
-  splitPrimary: "#E879A6",
-  splitBorder: "#BE3F7E",
   // Continuous-gradient anchors. `tossUp` is the neutral midpoint at 50%,
   // `likelyR` and `likelyD` are the extremes; intermediate colors are
   // generated via getColorInSpectrum.

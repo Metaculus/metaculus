@@ -14,11 +14,17 @@ type Props = {
    *  flex can drive its width. Required for adjacent bars that must
    *  exactly tile their container without gap overflow. */
   fill?: boolean;
-  /** Solid hex color (e.g. #6B7AE8). Drives the filled bg. */
-  color: string;
+  /** Solid hex color (e.g. #6B7AE8). Drives the filled bg. Ignored when
+   *  `alternatingColors` is provided. */
+  color?: string;
   /** Border color override for light mode. Defaults to `color`. Use a
    *  darker shade for sharp contrast against the soft fill. */
   borderColor?: string;
+  /** When provided, the bar renders with a transparent fill and a
+   *  multi-colored dashed border alternating between the two colors.
+   *  Used for split-control outcomes where neither party "owns" the
+   *  bar. Overrides `color` / `borderColor`. */
+  alternatingColors?: [string, string];
   /** Tailwind height class (default `h-5`). */
   heightClassName?: string;
   /** Force the active (hover-like) styling regardless of cursor position.
@@ -34,6 +40,9 @@ const BG_OPACITY_DEFAULT_DARK = 0.55;
 // Glow ring radius (px) used on active state.
 const ACTIVE_RING_PX = 3;
 const ACTIVE_RING_OPACITY = 0.45;
+// Alternating-bar stroke + dash sizing.
+const ALT_STROKE_WIDTH = 3; // half visually clipped inside, ~1.5px visible
+const ALT_DASH = 8;
 
 /**
  * Visual primitive shaped like the consumer view multiple-choice bar:
@@ -52,33 +61,92 @@ const ACTIVE_RING_OPACITY = 0.45;
  * In dark mode the darker `borderColor` would blend with the card bg
  * at rest, so we fall back to the primary `color` (which is a brighter
  * shade) for the resting border instead.
+ *
+ * When `alternatingColors` is provided, the bar is rendered as inline
+ * SVG with two stacked rect outlines whose dashes are offset by one
+ * dash length, producing a continuous alternating dashed border.
  */
 const CvBar: FC<Props> = ({
   pct,
   fill,
   color,
   borderColor,
+  alternatingColors,
   heightClassName = "h-5",
   active,
   className,
 }) => {
   const { theme } = useAppTheme();
   const isDark = theme === "dark";
-  const resolvedBorder = isDark ? color : borderColor ?? color;
+
+  const width = fill ? "100%" : `${Math.max(pct ?? 1, 1)}%`;
+
+  if (alternatingColors) {
+    const [colorA, colorB] = alternatingColors;
+    return (
+      <div
+        data-active={active || undefined}
+        className={cn(
+          "block shrink-0 rounded-md transition-shadow duration-150",
+          "group-hover/cv:shadow-[var(--cv-bar-active-ring)]",
+          "group-hover/cr:shadow-[var(--cv-bar-active-ring)]",
+          "group-data-[open]/cr:shadow-[var(--cv-bar-active-ring)]",
+          "data-[active]:shadow-[var(--cv-bar-active-ring)]",
+          heightClassName,
+          className
+        )}
+        style={{
+          width,
+          // Glow ring uses colorA as the source so the active state visually
+          // ties back to the dashed border palette.
+          ["--cv-bar-active-ring" as string]: `0 0 0 ${ACTIVE_RING_PX}px ${addOpacityToHex(colorA, ACTIVE_RING_OPACITY)}`,
+        }}
+      >
+        <svg className="block h-full w-full" aria-hidden="true">
+          <rect
+            x="0"
+            y="0"
+            width="100%"
+            height="100%"
+            rx="6"
+            ry="6"
+            fill="transparent"
+            stroke={colorA}
+            strokeWidth={ALT_STROKE_WIDTH}
+            strokeDasharray={`${ALT_DASH} ${ALT_DASH}`}
+          />
+          <rect
+            x="0"
+            y="0"
+            width="100%"
+            height="100%"
+            rx="6"
+            ry="6"
+            fill="transparent"
+            stroke={colorB}
+            strokeWidth={ALT_STROKE_WIDTH}
+            strokeDasharray={`${ALT_DASH} ${ALT_DASH}`}
+            strokeDashoffset={-ALT_DASH}
+          />
+        </svg>
+      </div>
+    );
+  }
+
+  const solidColor = color ?? "#999999";
+  const resolvedBorder = isDark ? solidColor : borderColor ?? solidColor;
   const defaultOpacity = isDark
     ? BG_OPACITY_DEFAULT_DARK
     : BG_OPACITY_DEFAULT_LIGHT;
 
-  const width = fill ? "100%" : `${Math.max(pct ?? 1, 1)}%`;
-
   const style: CSSProperties = {
     width,
     borderColor: resolvedBorder,
-    backgroundColor: addOpacityToHex(color, defaultOpacity),
+    backgroundColor: addOpacityToHex(solidColor, defaultOpacity),
     // Active state: full color, slightly darker border, glow ring.
-    ["--cv-bar-active-bg" as string]: color,
-    ["--cv-bar-active-border" as string]: borderColor ?? color,
-    ["--cv-bar-active-ring" as string]: `0 0 0 ${ACTIVE_RING_PX}px ${addOpacityToHex(color, ACTIVE_RING_OPACITY)}`,
+    ["--cv-bar-active-bg" as string]: solidColor,
+    ["--cv-bar-active-border" as string]: borderColor ?? solidColor,
+    ["--cv-bar-active-ring" as string]: `0 0 0 ${ACTIVE_RING_PX}px ${addOpacityToHex(solidColor, ACTIVE_RING_OPACITY)}`,
   };
 
   return (

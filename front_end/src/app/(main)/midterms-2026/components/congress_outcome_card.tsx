@@ -16,12 +16,21 @@ const OUTCOME_OPTION_LABEL: Record<OutcomeKey, string> = {
   DD: "Dem Senate / Dem House",
 };
 
+// Split outcomes (Rep Senate / Dem House and vice versa) use an alternating
+// dem+rep dashed border instead of a single-color fill so neither party
+// reads as the "owner" of the bar.
+const SPLIT_COLORS: [string, string] = [
+  MIDTERMS_COLORS.demPrimary,
+  MIDTERMS_COLORS.repPrimary,
+];
+
 type Outcome = {
   key: OutcomeKey;
   pct: number | null;
-  color: string;
-  borderColor: string;
-};
+} & (
+  | { kind: "solid"; color: string; borderColor: string }
+  | { kind: "alternating" }
+);
 
 type Props = {
   post: PostWithForecasts | null;
@@ -30,7 +39,7 @@ type Props = {
 export default async function CongressOutcomeCard({ post }: Props) {
   const t = await getTranslations();
 
-  const buildOutcome = (
+  const buildSolid = (
     key: OutcomeKey,
     color: string,
     borderColor: string
@@ -42,24 +51,29 @@ export default async function CongressOutcomeCard({ post }: Props) {
     return {
       key,
       pct: prob != null ? Math.round(prob * 1000) / 10 : null,
+      kind: "solid",
       color,
       borderColor,
     };
   };
 
+  const buildAlternating = (key: OutcomeKey): Outcome => {
+    const prob = getMultipleChoiceOptionProbability(
+      post,
+      OUTCOME_OPTION_LABEL[key]
+    );
+    return {
+      key,
+      pct: prob != null ? Math.round(prob * 1000) / 10 : null,
+      kind: "alternating",
+    };
+  };
+
   const outcomes: Outcome[] = [
-    buildOutcome("RR", MIDTERMS_COLORS.repPrimary, MIDTERMS_COLORS.repBorder),
-    buildOutcome(
-      "RD",
-      MIDTERMS_COLORS.splitPrimary,
-      MIDTERMS_COLORS.splitBorder
-    ),
-    buildOutcome(
-      "DR",
-      MIDTERMS_COLORS.splitPrimary,
-      MIDTERMS_COLORS.splitBorder
-    ),
-    buildOutcome("DD", MIDTERMS_COLORS.demPrimary, MIDTERMS_COLORS.demBorder),
+    buildSolid("RR", MIDTERMS_COLORS.repPrimary, MIDTERMS_COLORS.repBorder),
+    buildAlternating("RD"),
+    buildAlternating("DR"),
+    buildSolid("DD", MIDTERMS_COLORS.demPrimary, MIDTERMS_COLORS.demBorder),
   ];
 
   const labels: Record<OutcomeKey, string> = {
@@ -108,11 +122,15 @@ function OutcomeRow({
         {label}
       </span>
       <div className="mt-1 flex items-center">
-        <CvBar
-          pct={outcome.pct ?? 0}
-          color={outcome.color}
-          borderColor={outcome.borderColor}
-        />
+        {outcome.kind === "solid" ? (
+          <CvBar
+            pct={outcome.pct ?? 0}
+            color={outcome.color}
+            borderColor={outcome.borderColor}
+          />
+        ) : (
+          <CvBar pct={outcome.pct ?? 0} alternatingColors={SPLIT_COLORS} />
+        )}
         <span className="ml-2 shrink-0 text-sm font-semibold tabular-nums text-blue-800 dark:text-blue-800-dark">
           {outcome.pct != null ? `${outcome.pct.toFixed(1)}%` : "—"}
         </span>
