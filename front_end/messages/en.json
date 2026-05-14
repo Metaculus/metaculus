@@ -2199,7 +2199,7 @@
   "midtermsHubCongressForecast": "Congress Control",
   "midtermsHubChamberCurrent": "Current:",
   "midtermsHubChamberForecast": "Forecast:",
-  "midtermsHubChamberTooltipBody": "{party} need {count} more seats to secure the {chamber}; forecasters give this a {pct}% chance.",
+  "midtermsHubChamberTooltipBody": "{party} need <b>{count} more seats</b> to secure the {chamber}; forecasters give this a <b>{pct}% chance</b>.",
   "midtermsHubChamberTooltipDisclaimer": "Click to view forecasting question",
   "midtermsHubPartyDemocrats": "Democrats",
   "midtermsHubPartyRepublicans": "Republicans",

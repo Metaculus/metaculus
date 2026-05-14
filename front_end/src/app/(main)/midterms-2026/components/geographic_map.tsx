@@ -96,11 +96,14 @@ type HoverState = {
   y: number;
 } | null;
 
-// Centered projection that fits CONUS + AK + HI inside the viewbox.
+// Centered projection that fits CONUS + AK + HI inside the viewbox. The
+// X translate is biased slightly past center so the map sits a hair right
+// of dead-center, leaving breathing room on the left next to the chamber
+// tabs overlay.
 const MAP_VIEWBOX_WIDTH = 760;
 const MAP_VIEWBOX_HEIGHT = 540;
 const MAP_SCALE = 1000;
-const MAP_TRANSLATE: [number, number] = [380, 270];
+const MAP_TRANSLATE: [number, number] = [400, 270];
 
 // Light-mode default/hover opacities for uncontested states.
 const UNCONTESTED_OPACITY_DEFAULT = 0.75;

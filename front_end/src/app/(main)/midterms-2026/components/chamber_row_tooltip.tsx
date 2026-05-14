@@ -1,29 +1,115 @@
 "use client";
 
-import { FC, ReactNode } from "react";
+import {
+  FC,
+  MouseEvent as RMouseEvent,
+  ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
+import cn from "@/utils/core/cn";
 
 type Props = {
-  body: string;
+  body: ReactNode;
   disclaimer: string;
+  /** Question URL — tapping the tooltip body on mobile opens this in a new
+   *  tab; on desktop the wrapped link handles the click directly. */
+  href?: string;
   children: ReactNode;
 };
 
 /**
- * Wraps a Chamber Control row. The body sentence + disclaimer appear in a
- * tooltip directly below the row on hover. The wrapper exposes a `group/cr`
- * Tailwind named group so the tooltip can react to hovering anywhere in the
- * row.
+ * Wraps a Chamber Control row.
+ *
+ * Desktop (hover-capable): the tooltip appears via CSS on hover.
+ * Touch devices: the row toggles the tooltip on tap. While open:
+ *   - tapping the tooltip body opens the question
+ *   - tapping the close button dismisses
+ *   - tapping anywhere outside the row dismisses
+ *
+ * Exposes `group/cr` so descendants (e.g. the CvBars) can react to hover
+ * via `group-hover/cr:*`, and `data-open` so they can also react to the
+ * touch-tap state via `group-data-[open]/cr:*`.
  */
-const ChamberRowTooltip: FC<Props> = ({ body, disclaimer, children }) => {
+const ChamberRowTooltip: FC<Props> = ({ body, disclaimer, href, children }) => {
+  const [open, setOpen] = useState(false);
+  const [isTouch, setIsTouch] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setIsTouch(window.matchMedia("(hover: none)").matches);
+  }, []);
+
+  // Outside-tap dismiss (mousedown to avoid racing the opener's click).
+  useEffect(() => {
+    if (!open) return;
+    const handle = (e: globalThis.MouseEvent) => {
+      if (wrapperRef.current?.contains(e.target as Node)) return;
+      setOpen(false);
+    };
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [open]);
+
+  // First tap on a touch device opens the tooltip and swallows the click so
+  // the wrapped link doesn't navigate. A subsequent tap anywhere in the
+  // row (including the tooltip body) navigates via window.open.
+  const handleWrapperClick = (e: RMouseEvent<HTMLDivElement>) => {
+    if (!isTouch) return;
+    if (!open) {
+      e.preventDefault();
+      e.stopPropagation();
+      setOpen(true);
+    }
+  };
+
+  const navigate = () => {
+    if (!href) return;
+    window.open(href, "_blank", "noopener,noreferrer");
+  };
+
+  const handleTooltipClick = (e: RMouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate();
+  };
+
   return (
-    <div className="group/cr relative">
+    <div
+      ref={wrapperRef}
+      className="group/cr relative"
+      data-open={open || undefined}
+      onClick={handleWrapperClick}
+    >
       {children}
       <div
         role="tooltip"
-        className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 hidden w-max max-w-[260px] -translate-x-1/2 flex-col items-center gap-1 rounded-md bg-blue-800 px-3 py-2 text-center text-xs text-gray-0 shadow-lg group-hover/cr:flex dark:bg-blue-800-dark dark:text-gray-0-dark"
+        onClick={handleTooltipClick}
+        className={cn(
+          "absolute left-1/2 top-full z-20 mt-2 w-max max-w-[300px] -translate-x-1/2 flex-col items-center gap-1 rounded-md bg-blue-800 px-4 py-3 text-center text-base text-gray-0 shadow-lg dark:bg-blue-800-dark dark:text-gray-0-dark",
+          open ? "flex cursor-pointer" : "hidden group-hover/cr:flex"
+        )}
       >
+        {open && isTouch && (
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setOpen(false);
+            }}
+            className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center text-base leading-none text-gray-0 hover:opacity-80 dark:text-gray-0-dark"
+          >
+            ×
+          </button>
+        )}
         <span>{body}</span>
-        <span className="text-[10px] opacity-80">{disclaimer}</span>
+        <span className="text-xs text-blue-400 dark:text-blue-700">
+          {disclaimer}
+        </span>
       </div>
     </div>
   );

@@ -2205,7 +2205,7 @@
   "midtermsHubMetaDescription": "Pronósticos en tiempo real de la comunidad de Metaculus sobre las elecciones intermedias de EE. UU. de 2026.",
   "midtermsHubChamberCurrent": "Actual:",
   "midtermsHubChamberForecast": "Pronóstico:",
-  "midtermsHubChamberTooltipBody": "{party} necesitan {count} escaños más para asegurar el {chamber}; los pronosticadores le dan a esto un {pct}% de probabilidad.",
+  "midtermsHubChamberTooltipBody": "{party} necesitan <b>{count} escaños más</b> para asegurar el {chamber}; los pronosticadores le dan a esto un <b>{pct}% de probabilidad</b>.",
   "midtermsHubChamberTooltipDisclaimer": "Haz clic para ver la pregunta de pronóstico",
   "midtermsHubPartyDemocrats": "Los demócratas",
   "midtermsHubPartyRepublicans": "Los republicanos",

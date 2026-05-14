@@ -2202,7 +2202,7 @@
   "midtermsHubMetaDescription": "Metaculus 社群對 2026 年美國期中選舉的即時預測。",
   "midtermsHubChamberCurrent": "目前：",
   "midtermsHubChamberForecast": "預測：",
-  "midtermsHubChamberTooltipBody": "{party}還需要 {count} 個席位才能掌控{chamber}；預測者認為這一機率為 {pct}%。",
+  "midtermsHubChamberTooltipBody": "{party}還需要 <b>{count} 個席位</b> 才能掌控{chamber}；預測者認為這一機率為 <b>{pct}%</b>。",
   "midtermsHubChamberTooltipDisclaimer": "點擊查看預測問題",
   "midtermsHubPartyDemocrats": "民主黨",
   "midtermsHubPartyRepublicans": "共和黨",

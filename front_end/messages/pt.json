@@ -2203,7 +2203,7 @@
   "midtermsHubMetaDescription": "Previsões em tempo real da comunidade Metaculus sobre as eleições de meio de mandato dos EUA de 2026.",
   "midtermsHubChamberCurrent": "Atual:",
   "midtermsHubChamberForecast": "Previsão:",
-  "midtermsHubChamberTooltipBody": "{party} precisam de mais {count} cadeiras para garantir o {chamber}; os previsores dão a isso uma chance de {pct}%.",
+  "midtermsHubChamberTooltipBody": "{party} precisam de <b>mais {count} cadeiras</b> para garantir o {chamber}; os previsores dão a isso uma <b>chance de {pct}%</b>.",
   "midtermsHubChamberTooltipDisclaimer": "Clique para ver a pergunta de previsão",
   "midtermsHubPartyDemocrats": "Os democratas",
   "midtermsHubPartyRepublicans": "Os republicanos",

@@ -2205,7 +2205,7 @@
   "midtermsHubMetaDescription": "Předpovědi komunity Metaculus v reálném čase k mezičasovým volbám USA v roce 2026.",
   "midtermsHubChamberCurrent": "Aktuálně:",
   "midtermsHubChamberForecast": "Předpověď:",
-  "midtermsHubChamberTooltipBody": "{party} potřebují o {count} mandátů více pro získání {chamber}; předpovídači tomu dávají {pct}% šanci.",
+  "midtermsHubChamberTooltipBody": "{party} potřebují <b>o {count} mandátů více</b> pro získání {chamber}; předpovídači tomu dávají <b>{pct}% šanci</b>.",
   "midtermsHubChamberTooltipDisclaimer": "Klikněte pro zobrazení předpovědní otázky",
   "midtermsHubPartyDemocrats": "Demokraté",
   "midtermsHubPartyRepublicans": "Republikáni",

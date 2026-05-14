@@ -2207,7 +2207,7 @@
   "midtermsHubMetaDescription": "Metaculus 社区对 2026 年美国中期选举的实时预测。",
   "midtermsHubChamberCurrent": "当前：",
   "midtermsHubChamberForecast": "预测：",
-  "midtermsHubChamberTooltipBody": "{party}需要再赢得 {count} 个席位才能掌控{chamber}；预测者认为这一可能性为 {pct}%。",
+  "midtermsHubChamberTooltipBody": "{party}需要再赢得 <b>{count} 个席位</b> 才能掌控{chamber}；预测者认为这一可能性为 <b>{pct}%</b>。",
   "midtermsHubChamberTooltipDisclaimer": "点击查看预测问题",
   "midtermsHubPartyDemocrats": "民主党",
   "midtermsHubPartyRepublicans": "共和党",

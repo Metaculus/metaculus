@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
 
 import { PostWithForecasts } from "@/types/post";
@@ -61,7 +62,6 @@ export default async function ChamberControlCard({ data }: Props) {
           repProb={senateRepProb}
           currentDem={CURRENT_SENATE.dem}
           currentRep={CURRENT_SENATE.rep}
-          totalSeats={SENATE_TOTAL}
           sourcePost={data.senateControl}
           tooltipBody={buildTooltipBody({
             t,
@@ -82,7 +82,6 @@ export default async function ChamberControlCard({ data }: Props) {
           repProb={houseRepProb}
           currentDem={CURRENT_HOUSE.dem}
           currentRep={CURRENT_HOUSE.rep}
-          totalSeats={HOUSE_TOTAL}
           sourcePost={data.houseControl}
           tooltipBody={buildTooltipBody({
             t,
@@ -128,7 +127,7 @@ function buildTooltipBody({
   currentRep: number;
   totalSeats: number;
   labels: Labels;
-}): string | null {
+}): ReactNode | null {
   const demIsTrailing = currentDem <= currentRep;
   const trailingParty = demIsTrailing ? labels.democrats : labels.republicans;
   const trailingCurrent = demIsTrailing ? currentDem : currentRep;
@@ -139,11 +138,12 @@ function buildTooltipBody({
 
   if (trailingProbPct == null) return null;
 
-  return t("midtermsHubChamberTooltipBody", {
+  return t.rich("midtermsHubChamberTooltipBody", {
     party: trailingParty,
     count: seatsNeeded,
     chamber: chamberLabel,
     pct: trailingProbPct,
+    b: (chunks) => <strong className="font-bold">{chunks}</strong>,
   });
 }
 
@@ -153,9 +153,8 @@ type RowProps = {
   repProb: number | null;
   currentDem: number;
   currentRep: number;
-  totalSeats: number;
   sourcePost: PostWithForecasts | null;
-  tooltipBody: string | null;
+  tooltipBody: ReactNode | null;
   tooltipDisclaimer: string;
   labels: Labels;
 };
@@ -183,43 +182,49 @@ function ChamberRow({
 
   const href = sourcePost ? `/questions/${sourcePost.id}` : undefined;
 
+  const slash = (
+    // 50% opacity separator shared by Forecast and Current rows.
+    <span className="opacity-50">{" / "}</span>
+  );
+
   const inner = (
     <>
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2 flex items-center justify-between gap-2">
         <span className="text-base font-semibold text-blue-800 dark:text-blue-800-dark">
           {chamberLabel}
         </span>
         {demPct != null && repPct != null && (
-          <span className="text-sm tabular-nums text-blue-700 dark:text-blue-700-dark">
+          <span className="whitespace-nowrap text-sm tabular-nums text-blue-700 dark:text-blue-700-dark">
             <span className="mr-1">{labels.forecast}</span>
             <span style={{ color: MIDTERMS_COLORS.demPrimary }}>{demPct}%</span>
-            <span>{" / "}</span>
+            {slash}
             <span style={{ color: MIDTERMS_COLORS.repPrimary }}>{repPct}%</span>
           </span>
         )}
       </div>
-      <div className="flex w-full items-center gap-1">
-        {demShare != null && repShare != null && (
-          <>
-            <CvBar
-              pct={demShare}
-              color={MIDTERMS_COLORS.demPrimary}
-              borderColor={MIDTERMS_COLORS.demBorder}
-            />
-            <CvBar
-              pct={repShare}
-              color={MIDTERMS_COLORS.repPrimary}
-              borderColor={MIDTERMS_COLORS.repBorder}
-            />
-          </>
-        )}
-      </div>
-      <div className="mt-2 text-sm tabular-nums text-blue-700 dark:text-blue-700-dark">
+      {demShare != null && repShare != null && (
+        <div
+          className="grid w-full items-center gap-1"
+          style={{ gridTemplateColumns: `${demShare}fr ${repShare}fr` }}
+        >
+          <CvBar
+            fill
+            color={MIDTERMS_COLORS.demPrimary}
+            borderColor={MIDTERMS_COLORS.demBorder}
+          />
+          <CvBar
+            fill
+            color={MIDTERMS_COLORS.repPrimary}
+            borderColor={MIDTERMS_COLORS.repBorder}
+          />
+        </div>
+      )}
+      <div className="mt-2 text-right text-sm tabular-nums text-blue-700 dark:text-blue-700-dark">
         <span className="mr-1">{labels.current}</span>
         <span style={{ color: MIDTERMS_COLORS.demPrimary }}>
           D {currentDem}
         </span>
-        {" — "}
+        {slash}
         <span style={{ color: MIDTERMS_COLORS.repPrimary }}>
           R {currentRep}
         </span>
@@ -248,7 +253,11 @@ function ChamberRow({
   if (!tooltipBody) return linkOrDiv;
 
   return (
-    <ChamberRowTooltip body={tooltipBody} disclaimer={tooltipDisclaimer}>
+    <ChamberRowTooltip
+      body={tooltipBody}
+      disclaimer={tooltipDisclaimer}
+      href={href}
+    >
       {linkOrDiv}
     </ChamberRowTooltip>
   );
