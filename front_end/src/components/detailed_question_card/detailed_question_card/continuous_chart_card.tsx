@@ -300,7 +300,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
 
   const renderTimeline = () => (
     <NumericTimeline
-      aggregation={question.aggregations[question.default_aggregation_method]}
+      aggregation={effectiveAggregation}
       myForecasts={question.my_forecasts}
       resolution={question.resolution}
       resolveTime={question.actual_resolve_time}
@@ -365,8 +365,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
     !forecastAvailability?.cpRevealsOn;
 
   const renderHistogram = () => {
-    const aggregationLatest =
-      question.aggregations[question.default_aggregation_method].latest;
+    const aggregationLatest = effectiveAggregation.latest;
     const histogram = aggregationLatest?.histogram?.at(0);
     if (!histogram?.length) {
       return (
