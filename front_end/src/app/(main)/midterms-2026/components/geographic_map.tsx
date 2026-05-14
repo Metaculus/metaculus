@@ -1,7 +1,17 @@
 "use client";
 
 import { geoAlbersUsa } from "d3-geo";
-import { FC, MouseEvent, ReactNode, useMemo, useRef, useState } from "react";
+import {
+  FC,
+  FocusEvent,
+  KeyboardEvent,
+  MouseEvent,
+  ReactNode,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ComposableMap,
   Geographies,
@@ -117,6 +127,10 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
 
   const [hovered, setHovered] = useState<HoverState>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  // True while the pointer is over the tooltip portal; the SVG path's
+  // onMouseLeave defers to this so the tooltip stays mounted long enough
+  // for its own onClick to fire.
+  const tooltipHoveredRef = useRef(false);
 
   // react-simple-maps' MapProvider hardcodes translate to viewbox center, so
   // we provide a fully-configured projection function instead.
@@ -125,7 +139,10 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
     []
   );
 
-  const handleEnter = (abbr: string, e: MouseEvent<SVGPathElement>) => {
+  const handleEnter = (
+    abbr: string,
+    e: MouseEvent<SVGPathElement> | FocusEvent<SVGPathElement>
+  ) => {
     const rect = e.currentTarget.getBoundingClientRect();
     setHovered({
       abbr,
@@ -138,6 +155,29 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
     if (!race?.parentPost || !race.question) return;
     const url = `/questions/${race.parentPost.id}/?sub-question=${race.question.id}`;
     window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const handleLeave = useCallback(() => {
+    // Defer clearing so a pointer transition into the tooltip portal has a
+    // chance to flip tooltipHoveredRef before we unmount it.
+    requestAnimationFrame(() => {
+      if (!tooltipHoveredRef.current) setHovered(null);
+    });
+  }, []);
+
+  const handleTooltipHoverChange = useCallback((hovering: boolean) => {
+    tooltipHoveredRef.current = hovering;
+    if (!hovering) setHovered(null);
+  }, []);
+
+  const handleKeyDown = (
+    e: KeyboardEvent<SVGPathElement>,
+    race: SenateRaceWithQuestion
+  ) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleClick(race);
+    }
   };
 
   const hoveredRace = hovered ? racesByState.get(hovered.abbr) : null;
@@ -177,15 +217,30 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
                     ? uncontestedHoverFill
                     : uncontestedFill;
 
+                // react-simple-maps' <Geography> hardcodes tabIndex="0" on
+                // every path. For uncontested states we override with -1 so
+                // they don't enter the tab order, since they have no action.
+                const interactiveProps = isContested
+                  ? {
+                      tabIndex: 0,
+                      role: "button",
+                      onMouseEnter: (e: MouseEvent<SVGPathElement>) =>
+                        abbr && handleEnter(abbr, e),
+                      onMouseLeave: handleLeave,
+                      onFocus: (e: FocusEvent<SVGPathElement>) =>
+                        abbr && handleEnter(abbr, e),
+                      onBlur: () => setHovered(null),
+                      onKeyDown: (e: KeyboardEvent<SVGPathElement>) =>
+                        race && handleKeyDown(e, race),
+                      onClick: () => handleClick(race),
+                    }
+                  : { tabIndex: -1 };
+
                 return (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    onMouseEnter={(e) =>
-                      isContested && abbr && handleEnter(abbr, e)
-                    }
-                    onMouseLeave={() => setHovered(null)}
-                    onClick={() => isContested && handleClick(race)}
+                    {...interactiveProps}
                     style={{
                       default: {
                         fill: fillColor,
@@ -233,6 +288,7 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
           onClick={() => handleClick(hoveredRace)}
           insideRef={containerRef}
           onDismiss={() => setHovered(null)}
+          onHoverChange={handleTooltipHoverChange}
         >
           <StateTooltipContent
             race={hoveredRace}

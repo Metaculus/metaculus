@@ -25,6 +25,11 @@ type Props = {
   insideRef?: React.RefObject<HTMLElement | null>;
   /** Called when the user taps anywhere outside the map and tooltip. */
   onDismiss?: () => void;
+  /** Called when the pointer enters/leaves the portal. Parents use this to
+   *  keep the tooltip alive while the pointer hovers it (the SVG path's
+   *  onMouseLeave would otherwise unmount the tooltip before its onClick
+   *  could fire). */
+  onHoverChange?: (hovering: boolean) => void;
   children: ReactNode;
 };
 
@@ -41,6 +46,7 @@ const MapTooltipPortal: FC<Props> = ({
   onClick,
   insideRef,
   onDismiss,
+  onHoverChange,
   children,
 }) => {
   const mounted = useMounted();
@@ -62,7 +68,9 @@ const MapTooltipPortal: FC<Props> = ({
     let leftOffset = 0;
     if (overflowRight > 0) leftOffset = -overflowRight;
     if (overflowLeft > 0) leftOffset = overflowLeft;
-    const placeBelow = rect.top - VIEWPORT_PADDING < window.scrollY;
+    // Viewport-local check: rect.top is already in viewport coordinates, so
+    // comparing it against window.scrollY would mix coordinate spaces.
+    const placeBelow = rect.top < VIEWPORT_PADDING;
     setAdjustment({ leftOffset, placeBelow });
   }, [x, y, mounted]);
 
@@ -75,8 +83,10 @@ const MapTooltipPortal: FC<Props> = ({
       if (tooltipRef.current?.contains(target)) return;
       onDismiss();
     };
-    document.addEventListener("click", handle);
-    return () => document.removeEventListener("click", handle);
+    // mousedown fires before the opener's click, avoiding a race where a
+    // fresh click that opens the tooltip is also treated as an outside click.
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
   }, [onDismiss, insideRef]);
 
   if (!mounted || typeof document === "undefined") return null;
@@ -91,6 +101,8 @@ const MapTooltipPortal: FC<Props> = ({
       ref={tooltipRef}
       type="button"
       onClick={onClick}
+      onMouseEnter={() => onHoverChange?.(true)}
+      onMouseLeave={() => onHoverChange?.(false)}
       className="absolute z-[60] cursor-pointer"
       style={{
         left: x,

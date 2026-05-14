@@ -25,28 +25,35 @@ export async function GET(req: NextRequest) {
     height: 630,
   };
 
+  const screenshotEndpoint = new URL(
+    "/api/screenshot/",
+    screenshotServiceUrl
+  ).toString();
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (screenshotApiKey) {
+    headers.api_key = screenshotApiKey;
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15_000);
+
   try {
-    const screenshotEndpoint = new URL(
-      "/api/screenshot/",
-      screenshotServiceUrl
-    ).toString();
-
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-    if (screenshotApiKey) {
-      headers.api_key = screenshotApiKey;
-    }
-
     const r = await fetch(screenshotEndpoint, {
       method: "POST",
       headers,
       body: JSON.stringify(payload),
+      signal: controller.signal,
     });
 
     if (!r.ok) {
-      const text = await r.text();
-      return NextResponse.json({ error: text }, { status: r.status });
+      // Do not leak upstream screenshot service status codes/bodies.
+      return NextResponse.json(
+        { error: "Upstream service error" },
+        { status: 502 }
+      );
     }
 
     const buf = await r.arrayBuffer();
@@ -60,7 +67,15 @@ export async function GET(req: NextRequest) {
             : "no-store",
       },
     });
-  } catch {
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return NextResponse.json(
+        { error: "screenshot request timed out" },
+        { status: 504 }
+      );
+    }
     return NextResponse.json({ error: "screenshot failed" }, { status: 500 });
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
