@@ -20,7 +20,7 @@ const ConsumerListChartShell: React.FC<Props> = ({
       className
     )}
   >
-    <div className="order-1 sm:max-w-[200px] sm:p-5">{listContent}</div>
+    <div className="order-1 sm:w-[200px] sm:shrink-0 sm:p-5">{listContent}</div>
     <div className="order-2 hidden flex-1 sm:block sm:border-l sm:border-gray-400/40 sm:p-5 dark:sm:border-gray-400-dark/40">
       {chartContent}
     </div>

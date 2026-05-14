@@ -257,7 +257,10 @@ export const ConsumerShell: FC<{
                   hideCP ? (
                     <RevealCPButton />
                   ) : (
-                    <ConsumerQuestionPrediction postData={postData} />
+                    <ConsumerQuestionPrediction
+                      postData={postData}
+                      className="md:mb-0 md:mt-0"
+                    />
                   )
                 }
                 chartContent={
