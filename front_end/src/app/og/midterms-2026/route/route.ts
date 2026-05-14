@@ -5,7 +5,9 @@ import { getPublicSettings } from "@/utils/public_settings.server";
 export async function GET(req: NextRequest) {
   const theme = req.nextUrl.searchParams.get("theme") ?? "dark";
   const { PUBLIC_APP_URL } = getPublicSettings();
-  const pageUrl = `${PUBLIC_APP_URL}/og/midterms-2026?theme=${theme}&non-interactive=true`;
+  // Encode the user-controlled theme value so special characters can't
+  // break out of the query slot or inject additional params.
+  const pageUrl = `${PUBLIC_APP_URL}/og/midterms-2026?theme=${encodeURIComponent(theme)}&non-interactive=true`;
 
   const screenshotServiceUrl = process.env.SCREENSHOT_SERVICE_API_URL;
   const screenshotApiKey = process.env.SCREENSHOT_SERVICE_API_KEY;

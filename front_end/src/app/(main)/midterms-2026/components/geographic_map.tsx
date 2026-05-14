@@ -21,7 +21,7 @@ import {
 
 import useAppTheme from "@/hooks/use_app_theme";
 
-import { MIDTERMS_COLORS } from "../constants";
+import { MIDTERMS_COLORS, STATE_NAMES } from "../constants";
 import MapLegend from "./map_legend";
 import MapTooltipPortal from "./map_tooltip_portal";
 import StateTooltipContent from "./state_tooltip";
@@ -223,10 +223,13 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
                 // react-simple-maps' <Geography> hardcodes tabIndex="0" on
                 // every path. For uncontested states we override with -1 so
                 // they don't enter the tab order, since they have no action.
+                const stateName = abbr ? STATE_NAMES[abbr] ?? abbr : "";
                 const interactiveProps = isContested
                   ? {
                       tabIndex: 0,
                       role: "button",
+                      "aria-label": `${stateName} — view forecast question`,
+                      "aria-haspopup": "dialog" as const,
                       onMouseEnter: (e: MouseEvent<SVGPathElement>) =>
                         abbr && handleEnter(abbr, e),
                       onMouseLeave: handleLeave,
