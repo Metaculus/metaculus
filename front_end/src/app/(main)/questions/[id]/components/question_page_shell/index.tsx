@@ -6,6 +6,7 @@ import { FC, Fragment, ReactNode, useEffect } from "react";
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_status_box";
 import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
+import PercentageForecastCard from "@/components/consumer_post_card/group_forecast_card/percentage_forecast_card";
 import TimeSeriesChart from "@/components/consumer_post_card/time_series_chart";
 import UpcomingCP from "@/components/consumer_post_card/upcoming_cp";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
@@ -167,7 +168,8 @@ export const ConsumerShell: FC<{
     isNonFanGroup &&
     !isDateGroup &&
     !isMultipleChoice &&
-    checkGroupOfQuestionsPostType(postData, QuestionType.Numeric);
+    (checkGroupOfQuestionsPostType(postData, QuestionType.Numeric) ||
+      checkGroupOfQuestionsPostType(postData, QuestionType.Discrete));
 
   const binaryForecastAvailability =
     isBinarySingleQuestion && isQuestionPost(postData)
@@ -271,7 +273,7 @@ export const ConsumerShell: FC<{
           ) : isNRowBody ? (
             <>
               <ConsumerListChartShell
-                stretchListContent={isContinuousNumericGroup && !hideCP}
+                stretchListContent={!hideCP && !isFanGraph}
                 listContent={
                   hideCP ? (
                     <RevealCPButton />
@@ -284,9 +286,10 @@ export const ConsumerShell: FC<{
                   ) : isContinuousNumericGroup ? (
                     <NumericForecastCard post={postData} fillHeight />
                   ) : (
-                    <ConsumerQuestionPrediction
-                      postData={postData}
-                      className="md:mb-0 md:mt-0"
+                    <PercentageForecastCard
+                      post={postData}
+                      forceColorful
+                      fillHeight
                     />
                   )
                 }

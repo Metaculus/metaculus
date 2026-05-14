@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, ReactNode, useContext, useMemo, useState } from "react";
 
 import cn from "@/utils/core/cn";
 
@@ -36,10 +36,14 @@ const ConsumerListChartShell: React.FC<Props> = ({
     null
   );
 
+  // Memoize so isExpanded changes don't re-render context consumers (e.g. the chart).
+  const contextValue = useMemo(
+    () => ({ setIsExpanded, hoveredChoiceName, setHoveredChoiceName }),
+    [hoveredChoiceName, setHoveredChoiceName, setIsExpanded]
+  );
+
   return (
-    <ListChartExpandedContext.Provider
-      value={{ setIsExpanded, hoveredChoiceName, setHoveredChoiceName }}
-    >
+    <ListChartExpandedContext.Provider value={contextValue}>
       <div
         className={cn(
           "flex flex-col sm:rounded-lg sm:border sm:border-gray-400/40 dark:sm:border-gray-400-dark/40",

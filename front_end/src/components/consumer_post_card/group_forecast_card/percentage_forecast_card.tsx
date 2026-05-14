@@ -7,6 +7,7 @@ import { useListChartExpanded } from "@/app/(main)/questions/[id]/components/que
 import { getEffectiveVisibleCount } from "@/constants/questions";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
+import cn from "@/utils/core/cn";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import {
   generateChoiceItemsFromGroupQuestions,
@@ -25,6 +26,7 @@ type Props = {
   forceColorful?: boolean;
   compact?: boolean;
   buttonVariant?: "primary" | "minimal";
+  fillHeight?: boolean;
 };
 
 const PercentageForecastCard: FC<Props> = ({
@@ -32,6 +34,7 @@ const PercentageForecastCard: FC<Props> = ({
   forceColorful,
   compact,
   buttonVariant,
+  fillHeight = false,
 }) => {
   const locale = useLocale();
   const t = useTranslations();
@@ -89,7 +92,7 @@ const PercentageForecastCard: FC<Props> = ({
   const collapsedChoices = allChoices.slice(0, visibleChoicesCount);
   const hiddenCount = allChoices.length - visibleChoicesCount;
 
-  const renderBars = (choices: typeof allChoices) =>
+  const renderBars = (choices: typeof allChoices, stretchBars = false) =>
     choices.map((choice) => (
       <ForecastChoiceBar
         key={choice.id ?? choice.choice}
@@ -102,28 +105,30 @@ const PercentageForecastCard: FC<Props> = ({
         color={choice.color}
         forceColorful={forceColorful}
         compact={compact}
+        className={stretchBars ? "flex-1" : undefined}
       />
     ));
 
-  return (
-    <div className="relative">
-      {/* Always in normal flow — keeps the left panel and shell at collapsed height */}
-      <div className={expanded ? "invisible" : undefined}>
-        <ForecastCardWrapper
-          otherItemsCount={hiddenCount}
-          expanded={false}
-          onExpand={() => {
-            setExpanded(true);
-            setIsExpanded(true);
-          }}
-          compact={compact}
-          buttonVariant={buttonVariant}
-        >
-          {renderBars(collapsedChoices)}
-        </ForecastCardWrapper>
-      </div>
+  // Only fill height when all items are visible (no expand button).
+  const effectiveFillHeight = fillHeight && hiddenCount === 0;
 
-      {/* Expanded panel — absolutely positioned so it overflows below the shell */}
+  return (
+    <div
+      className={cn("relative", effectiveFillHeight && "flex flex-1 flex-col")}
+    >
+      <ForecastCardWrapper
+        otherItemsCount={hiddenCount}
+        expanded={false}
+        onExpand={() => {
+          setExpanded(true);
+          setIsExpanded(true);
+        }}
+        compact={compact}
+        buttonVariant={buttonVariant}
+        className={effectiveFillHeight ? "flex-1" : undefined}
+      >
+        {renderBars(collapsedChoices, effectiveFillHeight)}
+      </ForecastCardWrapper>
       {expanded && (
         <div className="absolute -left-[21px] -top-[21px] z-20 w-[calc(100%+42px)] rounded-lg border border-gray-400/40 bg-gray-0 p-5 dark:border-gray-400-dark/40 dark:bg-gray-0-dark">
           <ForecastCardWrapper

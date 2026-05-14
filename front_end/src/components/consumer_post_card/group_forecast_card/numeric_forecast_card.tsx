@@ -87,20 +87,27 @@ const NumericForecastCard: FC<Props> = ({
   const maxScaledValue = Math.max(...scaledValues);
   const minScaledValue = Math.min(...scaledValues);
 
-  const renderBars = (choices: typeof sortedChoices, stretchBars = false) =>
+  const renderBars = (
+    choices: typeof sortedChoices,
+    stretchBars = false,
+    hoverUpTo = Infinity
+  ) =>
     choices.map(
-      ({
-        closeTime,
-        aggregationValues,
-        scaling,
-        resolution,
-        id,
-        color,
-        displayedResolution,
-        choice,
-        actual_resolve_time,
-        unit,
-      }) => {
+      (
+        {
+          closeTime,
+          aggregationValues,
+          scaling,
+          resolution,
+          id,
+          color,
+          displayedResolution,
+          choice,
+          actual_resolve_time,
+          unit,
+        },
+        index
+      ) => {
         const isChoiceClosed = closeTime ? closeTime < Date.now() : false;
         const rawChoiceValue =
           aggregationValues[aggregationValues.length - 1] ?? null;
@@ -140,36 +147,38 @@ const NumericForecastCard: FC<Props> = ({
             forceColorful={forceColorful}
             compact={compact}
             isBordered={false}
-            onMouseEnter={() => setHoveredChoiceName(choice)}
-            onMouseLeave={() => setHoveredChoiceName(null)}
+            onMouseEnter={
+              index < hoverUpTo ? () => setHoveredChoiceName(choice) : undefined
+            }
+            onMouseLeave={
+              index < hoverUpTo ? () => setHoveredChoiceName(null) : undefined
+            }
             className={stretchBars ? "flex-1" : undefined}
           />
         );
       }
     );
 
+  // Only fill height when all items are visible (no expand button).
+  const effectiveFillHeight = fillHeight && hiddenCount === 0;
+
   return (
-    <div className={cn("relative", fillHeight && "flex flex-1 flex-col")}>
-      <div
-        className={cn(
-          fillHeight && "flex flex-1 flex-col",
-          expanded && "invisible"
-        )}
+    <div
+      className={cn("relative", effectiveFillHeight && "flex flex-1 flex-col")}
+    >
+      <ForecastCardWrapper
+        otherItemsCount={hiddenCount}
+        expanded={false}
+        onExpand={() => {
+          setExpanded(true);
+          setIsExpanded(true);
+        }}
+        compact={compact}
+        buttonVariant={buttonVariant}
+        className={effectiveFillHeight ? "flex-1" : undefined}
       >
-        <ForecastCardWrapper
-          otherItemsCount={hiddenCount}
-          expanded={false}
-          onExpand={() => {
-            setExpanded(true);
-            setIsExpanded(true);
-          }}
-          compact={compact}
-          buttonVariant={buttonVariant}
-          className={fillHeight ? "flex-1" : undefined}
-        >
-          {renderBars(collapsedChoices, fillHeight)}
-        </ForecastCardWrapper>
-      </div>
+        {renderBars(collapsedChoices, effectiveFillHeight)}
+      </ForecastCardWrapper>
 
       {expanded && (
         <div className="absolute -left-[21px] -top-[21px] z-20 w-[calc(100%+42px)] rounded-lg border border-gray-400/40 bg-gray-0 p-5 dark:border-gray-400-dark/40 dark:bg-gray-0-dark">
@@ -183,7 +192,7 @@ const NumericForecastCard: FC<Props> = ({
             compact={compact}
             buttonVariant={buttonVariant}
           >
-            {renderBars(sortedChoices)}
+            {renderBars(sortedChoices, false, visibleChoicesCount)}
           </ForecastCardWrapper>
         </div>
       )}

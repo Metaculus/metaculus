@@ -59,7 +59,9 @@ const ForecastChoiceBar: FC<Props> = ({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       className={cn(
-        "group relative flex w-full items-center justify-between gap-2 rounded-lg bg-transparent font-medium text-gray-800 transition-colors hover:bg-blue-500/20 dark:text-gray-800-dark dark:hover:bg-blue-500-dark/20",
+        "relative flex w-full items-center justify-between gap-2 rounded-lg bg-transparent font-medium text-gray-800 dark:text-gray-800-dark",
+        onMouseEnter &&
+          "group transition-colors hover:bg-blue-500/20 dark:hover:bg-blue-500-dark/20",
         className,
         isBordered
           ? "border border-blue-400 dark:border-blue-400-dark"
@@ -109,7 +111,9 @@ const ForecastChoiceBar: FC<Props> = ({
       {isCpRevealed && (
         <div
           className={cn(
-            "absolute -inset-[1px] z-0 rounded-lg border opacity-75 transition-opacity group-hover:opacity-100",
+            "absolute -inset-[1px] z-0 rounded-lg border",
+            onMouseEnter &&
+              "opacity-75 transition-opacity group-hover:opacity-100",
             {
               "border-2": resolution,
             }
