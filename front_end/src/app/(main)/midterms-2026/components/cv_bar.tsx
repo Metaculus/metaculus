@@ -94,18 +94,26 @@ const CvBar: FC<Props> = ({
     const restBorderFrom = isDark ? from.fill : from.border;
     const restBorderTo = isDark ? to.fill : to.border;
 
-    const restFill = `linear-gradient(to right, ${addOpacityToHex(from.fill, defaultOpacity)}, ${addOpacityToHex(to.fill, defaultOpacity)}) padding-box, linear-gradient(to right, ${restBorderFrom}, ${restBorderTo}) border-box`;
-    const activeFill = `linear-gradient(to right, ${from.fill}, ${to.fill}) padding-box, linear-gradient(to right, ${from.border}, ${to.border}) border-box`;
+    // Fill = semi-transparent gradient (same opacity scheme as solid bars).
+    const fillRest = `linear-gradient(to right, ${addOpacityToHex(from.fill, defaultOpacity)}, ${addOpacityToHex(to.fill, defaultOpacity)})`;
+    const fillActive = `linear-gradient(to right, ${from.fill}, ${to.fill})`;
+    // Border = full-opacity gradient, painted only inside the 1px ring
+    // via a mask-composite trick on the overlay child so it doesn't
+    // bleed through and darken the semi-transparent fill.
+    const borderRest = `linear-gradient(to right, ${restBorderFrom}, ${restBorderTo})`;
+    const borderActive = `linear-gradient(to right, ${from.border}, ${to.border})`;
 
     // Glow ring uses the from-color (left edge) — single source so the
-    // ring reads cleanly. It's subtle either way.
+    // ring reads cleanly.
     const ringColor = from.fill;
 
     const style: CSSProperties = {
       width,
-      background: "var(--cv-bar-bg, var(--cv-bar-bg-rest))",
-      ["--cv-bar-bg-rest" as string]: restFill,
-      ["--cv-bar-bg-active" as string]: activeFill,
+      background: "var(--cv-bar-fill)",
+      ["--cv-bar-fill" as string]: fillRest,
+      ["--cv-bar-fill-active" as string]: fillActive,
+      ["--cv-bar-border" as string]: borderRest,
+      ["--cv-bar-border-active" as string]: borderActive,
       ["--cv-bar-active-ring" as string]: `0 0 0 ${ACTIVE_RING_PX}px ${addOpacityToHex(ringColor, ACTIVE_RING_OPACITY)}`,
     };
 
@@ -113,17 +121,36 @@ const CvBar: FC<Props> = ({
       <div
         data-active={active || undefined}
         className={cn(
-          "block shrink-0 rounded-md border border-transparent transition-[background,box-shadow] duration-150",
-          // Swap the gradient + apply ring on any of the active triggers.
-          "group-hover/cv:shadow-[var(--cv-bar-active-ring)] group-hover/cv:[--cv-bar-bg:var(--cv-bar-bg-active)]",
-          "group-hover/cr:shadow-[var(--cv-bar-active-ring)] group-hover/cr:[--cv-bar-bg:var(--cv-bar-bg-active)]",
-          "group-data-[open]/cr:shadow-[var(--cv-bar-active-ring)] group-data-[open]/cr:[--cv-bar-bg:var(--cv-bar-bg-active)]",
-          "data-[active]:shadow-[var(--cv-bar-active-ring)] data-[active]:[--cv-bar-bg:var(--cv-bar-bg-active)]",
+          "group/cvg relative block shrink-0 rounded-md transition-[background,box-shadow] duration-150",
+          // Each trigger swaps both the fill and border variables to their
+          // active versions and applies the glow ring.
+          "group-hover/cv:shadow-[var(--cv-bar-active-ring)] group-hover/cv:[--cv-bar-border:var(--cv-bar-border-active)] group-hover/cv:[--cv-bar-fill:var(--cv-bar-fill-active)]",
+          "group-hover/cr:shadow-[var(--cv-bar-active-ring)] group-hover/cr:[--cv-bar-border:var(--cv-bar-border-active)] group-hover/cr:[--cv-bar-fill:var(--cv-bar-fill-active)]",
+          "group-data-[open]/cr:shadow-[var(--cv-bar-active-ring)] group-data-[open]/cr:[--cv-bar-border:var(--cv-bar-border-active)] group-data-[open]/cr:[--cv-bar-fill:var(--cv-bar-fill-active)]",
+          "data-[active]:shadow-[var(--cv-bar-active-ring)] data-[active]:[--cv-bar-border:var(--cv-bar-border-active)] data-[active]:[--cv-bar-fill:var(--cv-bar-fill-active)]",
           heightClassName,
           className
         )}
         style={style}
-      />
+      >
+        {/* Gradient-border overlay. Inner div is sized to the full bar via
+            inset:0 with 1px padding; the mask-composite trick paints the
+            border gradient only in that 1px padding ring, leaving the
+            interior transparent so the semi-transparent fill on the
+            parent composites directly with the card bg (not with this
+            full-opacity border gradient). */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 rounded-md transition-[background] duration-150 [background:var(--cv-bar-border)]"
+          style={{
+            padding: "1px",
+            WebkitMask:
+              "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+            WebkitMaskComposite: "xor",
+            maskComposite: "exclude",
+          }}
+        />
+      </div>
     );
   }
 
