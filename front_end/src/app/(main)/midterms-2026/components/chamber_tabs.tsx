@@ -10,7 +10,6 @@ export default async function ChamberTabs({ className }: Props) {
   const t = await getTranslations();
   const tabs: { key: string; label: string; active: boolean }[] = [
     { key: "senate", label: t("midtermsHubChamberSenate"), active: true },
-    { key: "house", label: t("midtermsHubChamberHouse"), active: false },
     { key: "governor", label: t("midtermsHubChamberGovernor"), active: false },
   ];
 

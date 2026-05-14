@@ -19,8 +19,11 @@ type Props = {
   className?: string;
 };
 
-const BG_OPACITY_DEFAULT = 0.4;
-const BG_OPACITY_HOVER = 0.7;
+const BG_OPACITY_DEFAULT_LIGHT = 0.4;
+const BG_OPACITY_HOVER_LIGHT = 0.7;
+// Dark mode needs more saturation to read against the navy card bg.
+const BG_OPACITY_DEFAULT_DARK = 0.55;
+const BG_OPACITY_HOVER_DARK = 0.85;
 
 /**
  * Visual primitive shaped like the consumer view multiple-choice bar:
@@ -42,20 +45,25 @@ const CvBar: FC<Props> = ({
   className,
 }) => {
   const { theme } = useAppTheme();
-  const resolvedBorder = theme === "dark" ? color : borderColor ?? color;
+  const isDark = theme === "dark";
+  const resolvedBorder = isDark ? color : borderColor ?? color;
+  const defaultOpacity = isDark
+    ? BG_OPACITY_DEFAULT_DARK
+    : BG_OPACITY_DEFAULT_LIGHT;
+  const hoverOpacity = isDark ? BG_OPACITY_HOVER_DARK : BG_OPACITY_HOVER_LIGHT;
 
   const style: CSSProperties = {
     width: `${Math.max(pct, 1)}%`,
     borderColor: resolvedBorder,
-    backgroundColor: addOpacityToHex(color, BG_OPACITY_DEFAULT),
-    ["--cv-bar-hover-bg" as string]: addOpacityToHex(color, BG_OPACITY_HOVER),
+    backgroundColor: addOpacityToHex(color, defaultOpacity),
+    ["--cv-bar-hover-bg" as string]: addOpacityToHex(color, hoverOpacity),
   };
 
   return (
     <div
       className={cn(
-        "block shrink-0 rounded-md border transition-[border-width,background-color] duration-150",
-        "group-hover/cv:border-2 group-hover/cv:bg-[var(--cv-bar-hover-bg)]",
+        "block shrink-0 rounded-md border transition-colors duration-150",
+        "group-hover/cv:bg-[var(--cv-bar-hover-bg)]",
         heightClassName,
         className
       )}

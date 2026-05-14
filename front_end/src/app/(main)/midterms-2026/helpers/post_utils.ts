@@ -82,19 +82,3 @@ export function getDemWinPct(
   if (prob == null) return null;
   return Math.round(prob * 100);
 }
-
-export function getLatestUpdateTime(
-  posts: (PostWithForecasts | null)[]
-): Date | null {
-  let latest: Date | null = null;
-  for (const post of posts) {
-    if (!post?.question) continue;
-    const q = post.question as QuestionWithNumericForecasts;
-    const startTime =
-      q.aggregations?.[q.default_aggregation_method]?.latest?.start_time;
-    if (!startTime) continue;
-    const d = new Date(startTime);
-    if (!latest || d > latest) latest = d;
-  }
-  return latest;
-}

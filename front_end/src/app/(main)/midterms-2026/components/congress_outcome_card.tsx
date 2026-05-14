@@ -49,8 +49,16 @@ export default async function CongressOutcomeCard({ post }: Props) {
 
   const outcomes: Outcome[] = [
     buildOutcome("RR", MIDTERMS_COLORS.repPrimary, MIDTERMS_COLORS.repBorder),
-    buildOutcome("RD", MIDTERMS_COLORS.repPrimary, MIDTERMS_COLORS.repBorder),
-    buildOutcome("DR", MIDTERMS_COLORS.demPrimary, MIDTERMS_COLORS.demBorder),
+    buildOutcome(
+      "RD",
+      MIDTERMS_COLORS.splitPrimary,
+      MIDTERMS_COLORS.splitBorder
+    ),
+    buildOutcome(
+      "DR",
+      MIDTERMS_COLORS.splitPrimary,
+      MIDTERMS_COLORS.splitBorder
+    ),
     buildOutcome("DD", MIDTERMS_COLORS.demPrimary, MIDTERMS_COLORS.demBorder),
   ];
 

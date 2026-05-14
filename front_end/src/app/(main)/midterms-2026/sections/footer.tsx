@@ -1,24 +1,8 @@
-import { formatInTimeZone } from "date-fns-tz";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import {
-  fetchChamberData,
-  fetchSenateRaces,
-} from "../helpers/fetch_dashboard_data";
-import { getLatestUpdateTime } from "../helpers/post_utils";
-
 export default async function FooterSection() {
   const t = await getTranslations();
-  const [{ parentPost: senateParent }, chamber] = await Promise.all([
-    fetchSenateRaces(),
-    fetchChamberData(),
-  ]);
-  const latest = getLatestUpdateTime([
-    senateParent,
-    chamber.senateControl,
-    chamber.houseControl,
-  ]);
 
   return (
     <footer className="mt-4 px-3 text-xs text-blue-700 dark:text-blue-700-dark sm:px-0">
@@ -31,13 +15,9 @@ export default async function FooterSection() {
           metaculus.com
         </Link>
       </div>
-      {latest && (
-        <p className="mt-2 text-blue-600 dark:text-blue-600-dark">
-          {t("midtermsHubLastUpdatedFull", {
-            date: formatInTimeZone(latest, "UTC", "MMMM d, yyyy, HH:mm 'UTC'"),
-          })}
-        </p>
-      )}
+      <p className="mt-2 text-blue-600 dark:text-blue-600-dark">
+        {t("midtermsHubForecastsRealtime")}
+      </p>
     </footer>
   );
 }

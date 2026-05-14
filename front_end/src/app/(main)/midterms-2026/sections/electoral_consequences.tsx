@@ -7,6 +7,8 @@ import {
 } from "@/app/(main)/labor-hub/components/section";
 
 import ConsequenceRow from "../components/consequence_row";
+import { DonkeyIcon, ElephantIcon } from "../components/party_icons";
+import { MIDTERMS_COLORS } from "../constants";
 import { MOCK_CONSEQUENCES } from "../data";
 
 export default async function ElectoralConsequencesSection() {
@@ -24,10 +26,22 @@ export default async function ElectoralConsequencesSection() {
           <span className="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-700-dark">
             {t("midtermsHubConsequenceQuestion")}
           </span>
-          <span className="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-700-dark">
+          <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-700-dark">
+            <ElephantIcon
+              width={20}
+              height={20}
+              className="shrink-0"
+              style={{ color: MIDTERMS_COLORS.repPrimary }}
+            />
             {t("midtermsHubConsequenceIfRep")}
           </span>
-          <span className="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-700-dark">
+          <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-700-dark">
+            <DonkeyIcon
+              width={20}
+              height={20}
+              className="shrink-0"
+              style={{ color: MIDTERMS_COLORS.demPrimary }}
+            />
             {t("midtermsHubConsequenceIfDem")}
           </span>
         </div>

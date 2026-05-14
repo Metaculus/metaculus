@@ -96,11 +96,11 @@ type HoverState = {
   y: number;
 } | null;
 
-// Tuned by hand via the dev slider widget.
+// Centered projection that fits CONUS + AK + HI inside the viewbox.
 const MAP_VIEWBOX_WIDTH = 760;
 const MAP_VIEWBOX_HEIGHT = 540;
-const MAP_SCALE = 970;
-const MAP_TRANSLATE: [number, number] = [385, 290];
+const MAP_SCALE = 1000;
+const MAP_TRANSLATE: [number, number] = [380, 270];
 
 // Light-mode default/hover opacities for uncontested states.
 const UNCONTESTED_OPACITY_DEFAULT = 0.75;
@@ -195,12 +195,12 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
       <div className="absolute right-5 top-5 z-10 md:right-10 md:top-12 lg:right-0">
         <MapLegend />
       </div>
-      <div className="h-full w-full overflow-hidden">
+      <div className="h-full w-full">
         <ComposableMap
           projection={projection as unknown as string}
           width={MAP_VIEWBOX_WIDTH}
           height={MAP_VIEWBOX_HEIGHT}
-          preserveAspectRatio="xMaxYMid slice"
+          preserveAspectRatio="xMidYMid meet"
           style={{ width: "100%", height: "100%", display: "block" }}
         >
           <Geographies geography={GEO_URL}>

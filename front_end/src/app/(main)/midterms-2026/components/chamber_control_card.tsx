@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 
+import ChamberRowTooltip from "./chamber_row_tooltip";
 import { MIDTERMS_COLORS } from "../constants";
 import CvBar from "./cv_bar";
 import { ChamberData } from "../helpers/fetch_dashboard_data";
@@ -19,6 +20,14 @@ type Props = {
 
 export default async function ChamberControlCard({ data }: Props) {
   const t = await getTranslations();
+
+  const labels = {
+    forecast: t("midtermsHubChamberForecast"),
+    current: t("midtermsHubChamberCurrent"),
+    democrats: t("midtermsHubPartyDemocrats"),
+    republicans: t("midtermsHubPartyRepublicans"),
+    disclaimer: t("midtermsHubChamberTooltipDisclaimer"),
+  };
 
   const senateDemProb = getMultipleChoiceOptionProbability(
     data.senateControl,
@@ -37,8 +46,8 @@ export default async function ChamberControlCard({ data }: Props) {
     "Republicans"
   );
 
-  const senateDemNeeded = Math.floor(SENATE_TOTAL / 2) + 1 - CURRENT_SENATE.dem;
-  const houseDemNeeded = Math.floor(HOUSE_TOTAL / 2) + 1 - CURRENT_HOUSE.dem;
+  const senateLabel = t("midtermsHubChamberSenate");
+  const houseLabel = t("midtermsHubChamberHouse");
 
   return (
     <div className="rounded-md border border-blue-300 bg-blue-100 p-5 dark:border-blue-300-dark dark:bg-blue-100-dark">
@@ -47,26 +56,95 @@ export default async function ChamberControlCard({ data }: Props) {
       </h3>
       <div className="space-y-5">
         <ChamberRow
-          chamberLabel={t("midtermsHubChamberSenate")}
+          chamberLabel={senateLabel}
           demProb={senateDemProb}
           repProb={senateRepProb}
           currentDem={CURRENT_SENATE.dem}
           currentRep={CURRENT_SENATE.rep}
-          demNeededLabel={t("midtermsHubDemsNeed", { count: senateDemNeeded })}
+          totalSeats={SENATE_TOTAL}
           sourcePost={data.senateControl}
+          tooltipBody={buildTooltipBody({
+            t,
+            chamberLabel: senateLabel,
+            demProb: senateDemProb,
+            repProb: senateRepProb,
+            currentDem: CURRENT_SENATE.dem,
+            currentRep: CURRENT_SENATE.rep,
+            totalSeats: SENATE_TOTAL,
+            labels,
+          })}
+          tooltipDisclaimer={labels.disclaimer}
+          labels={labels}
         />
         <ChamberRow
-          chamberLabel={t("midtermsHubChamberHouse")}
+          chamberLabel={houseLabel}
           demProb={houseDemProb}
           repProb={houseRepProb}
           currentDem={CURRENT_HOUSE.dem}
           currentRep={CURRENT_HOUSE.rep}
-          demNeededLabel={t("midtermsHubDemsNeed", { count: houseDemNeeded })}
+          totalSeats={HOUSE_TOTAL}
           sourcePost={data.houseControl}
+          tooltipBody={buildTooltipBody({
+            t,
+            chamberLabel: houseLabel,
+            demProb: houseDemProb,
+            repProb: houseRepProb,
+            currentDem: CURRENT_HOUSE.dem,
+            currentRep: CURRENT_HOUSE.rep,
+            totalSeats: HOUSE_TOTAL,
+            labels,
+          })}
+          tooltipDisclaimer={labels.disclaimer}
+          labels={labels}
         />
       </div>
     </div>
   );
+}
+
+type Labels = {
+  forecast: string;
+  current: string;
+  democrats: string;
+  republicans: string;
+  disclaimer: string;
+};
+
+function buildTooltipBody({
+  t,
+  chamberLabel,
+  demProb,
+  repProb,
+  currentDem,
+  currentRep,
+  totalSeats,
+  labels,
+}: {
+  t: Awaited<ReturnType<typeof getTranslations>>;
+  chamberLabel: string;
+  demProb: number | null;
+  repProb: number | null;
+  currentDem: number;
+  currentRep: number;
+  totalSeats: number;
+  labels: Labels;
+}): string | null {
+  const demIsTrailing = currentDem <= currentRep;
+  const trailingParty = demIsTrailing ? labels.democrats : labels.republicans;
+  const trailingCurrent = demIsTrailing ? currentDem : currentRep;
+  const seatsNeeded = Math.floor(totalSeats / 2) + 1 - trailingCurrent;
+  const trailingProb = demIsTrailing ? demProb : repProb;
+  const trailingProbPct =
+    trailingProb != null ? Math.round(trailingProb * 1000) / 10 : null;
+
+  if (trailingProbPct == null) return null;
+
+  return t("midtermsHubChamberTooltipBody", {
+    party: trailingParty,
+    count: seatsNeeded,
+    chamber: chamberLabel,
+    pct: trailingProbPct,
+  });
 }
 
 type RowProps = {
@@ -75,8 +153,11 @@ type RowProps = {
   repProb: number | null;
   currentDem: number;
   currentRep: number;
-  demNeededLabel: string;
+  totalSeats: number;
   sourcePost: PostWithForecasts | null;
+  tooltipBody: string | null;
+  tooltipDisclaimer: string;
+  labels: Labels;
 };
 
 function ChamberRow({
@@ -85,8 +166,10 @@ function ChamberRow({
   repProb,
   currentDem,
   currentRep,
-  demNeededLabel,
   sourcePost,
+  tooltipBody,
+  tooltipDisclaimer,
+  labels,
 }: RowProps) {
   // Normalize Dem+Rep so the two bars together represent ~100% (ignores
   // the small "Other" slice from the underlying multiple-choice question).
@@ -107,11 +190,10 @@ function ChamberRow({
           {chamberLabel}
         </span>
         {demPct != null && repPct != null && (
-          <span className="text-sm tabular-nums">
+          <span className="text-sm tabular-nums text-blue-700 dark:text-blue-700-dark">
+            <span className="mr-1">{labels.forecast}</span>
             <span style={{ color: MIDTERMS_COLORS.demPrimary }}>{demPct}%</span>
-            <span className="text-blue-700 dark:text-blue-700-dark">
-              {" / "}
-            </span>
+            <span>{" / "}</span>
             <span style={{ color: MIDTERMS_COLORS.repPrimary }}>{repPct}%</span>
           </span>
         )}
@@ -123,28 +205,24 @@ function ChamberRow({
               pct={demShare}
               color={MIDTERMS_COLORS.demPrimary}
               borderColor={MIDTERMS_COLORS.demBorder}
-              heightClassName="h-3"
             />
             <CvBar
               pct={repShare}
               color={MIDTERMS_COLORS.repPrimary}
               borderColor={MIDTERMS_COLORS.repBorder}
-              heightClassName="h-3"
             />
           </>
         )}
       </div>
-      <div className="mt-2 flex items-center justify-between text-sm tabular-nums text-blue-700 dark:text-blue-700-dark">
-        <span>
-          <span style={{ color: MIDTERMS_COLORS.repPrimary }}>
-            R {currentRep}
-          </span>
-          {" — "}
-          <span style={{ color: MIDTERMS_COLORS.demPrimary }}>
-            D {currentDem}
-          </span>
+      <div className="mt-2 text-sm tabular-nums text-blue-700 dark:text-blue-700-dark">
+        <span className="mr-1">{labels.current}</span>
+        <span style={{ color: MIDTERMS_COLORS.demPrimary }}>
+          D {currentDem}
         </span>
-        <span>{demNeededLabel}</span>
+        {" — "}
+        <span style={{ color: MIDTERMS_COLORS.repPrimary }}>
+          R {currentRep}
+        </span>
       </div>
     </>
   );
@@ -154,17 +232,24 @@ function ChamberRow({
     href && "cursor-pointer no-underline"
   );
 
-  if (href) {
-    return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={groupClass}
-      >
-        {inner}
-      </a>
-    );
-  }
-  return <div className={groupClass}>{inner}</div>;
+  const linkOrDiv = href ? (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={groupClass}
+    >
+      {inner}
+    </a>
+  ) : (
+    <div className={groupClass}>{inner}</div>
+  );
+
+  if (!tooltipBody) return linkOrDiv;
+
+  return (
+    <ChamberRowTooltip body={tooltipBody} disclaimer={tooltipDisclaimer}>
+      {linkOrDiv}
+    </ChamberRowTooltip>
+  );
 }
