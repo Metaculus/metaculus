@@ -176,10 +176,11 @@ def test_predictors_mention_excludes_withdrawn_forecasts(question_binary):
 
     # Active forecast (no end_time)
     factory_forecast(question=question_binary, author=active_forecaster)
-    # Withdrawn forecast (end_time in the past)
+    # Withdrawn forecast (end_time in the past, after start_time)
     factory_forecast(
         question=question_binary,
         author=withdrawn_forecaster,
+        start_time=timezone.now() - timedelta(days=2),
         end_time=timezone.now() - timedelta(days=1),
     )
 

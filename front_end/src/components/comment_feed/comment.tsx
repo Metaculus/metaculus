@@ -527,10 +527,9 @@ const Comment: FC<CommentProps> = ({
         if (
           hasPredictorsMention(parsedMarkdown) &&
           (!userPermission ||
-            ![
-              ProjectPermissions.CURATOR,
-              ProjectPermissions.ADMIN,
-            ].includes(userPermission))
+            ![ProjectPermissions.CURATOR, ProjectPermissions.ADMIN].includes(
+              userPermission
+            ))
         ) {
           toast(t("predictorsMentionWarning"));
         }
