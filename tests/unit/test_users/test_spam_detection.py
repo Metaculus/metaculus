@@ -8,9 +8,9 @@ def test_check_and_handle_content_spam_defaults_to_not_spam_when_openai_fails(
 ):
     settings.CHECK_FOR_SPAM_IN_COMMENTS_AND_POSTS = True
     user = factory_user(check_for_spam=True)
-    mocker.patch("users.services.spam_detection.should_check_for_user_spam").return_value = (
-        True
-    )
+    mocker.patch(
+        "users.services.spam_detection.should_check_for_user_spam"
+    ).return_value = True
     mocker.patch(
         "users.services.spam_detection.run_spam_analysis",
         side_effect=RuntimeError("OpenAI quota exhausted"),
