@@ -113,9 +113,13 @@ const ConsequenceGrid: FC<Props> = ({
       {rows.map((row) => (
         <div
           key={row.key}
-          className="grid grid-cols-1 gap-3 border-b border-blue-300 py-4 last:border-0 dark:border-blue-300-dark md:grid-cols-[2fr_1fr_1fr] md:gap-0"
+          className="grid grid-cols-1 gap-3 border-b border-blue-300 last:border-0 dark:border-blue-300-dark md:grid-cols-[2fr_1fr_1fr] md:gap-0"
         >
-          <p className="m-0 self-center text-sm font-medium text-blue-800 dark:text-blue-800-dark md:pr-4 md:text-base">
+          {/* Vertical padding lives inside each grid cell (not the row) so
+              the cell's mouseenter handler covers the entire row-height
+              footprint of that column, including the breathing room
+              above and below the bar. */}
+          <p className="m-0 flex items-center py-4 text-sm font-medium text-blue-800 dark:text-blue-800-dark md:pr-4 md:text-base">
             {row.question}
           </p>
           <BarCell
@@ -208,7 +212,7 @@ const BarCell: FC<BarCellProps> = ({
     <div
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className="flex h-full w-full flex-col justify-center md:px-2"
+      className="flex h-full w-full flex-col justify-center py-4 md:px-2"
     >
       <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-blue-600 dark:text-blue-600-dark md:hidden">
         {mobileLabel}

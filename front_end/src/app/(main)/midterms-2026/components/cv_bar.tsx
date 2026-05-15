@@ -123,7 +123,7 @@ const CvBar: FC<Props> = ({
       <div
         data-active={active || undefined}
         className={cn(
-          "group/cvg relative block shrink-0 rounded-md transition-[background] duration-150",
+          "group/cvg relative block shrink-0 rounded-md",
           // Active triggers swap fill + border + bump the border padding.
           "group-hover/cv:[--cv-bar-border-pad:2px] group-hover/cv:[--cv-bar-border:var(--cv-bar-border-active)] group-hover/cv:[--cv-bar-fill:var(--cv-bar-fill-active)]",
           "group-hover/cr:[--cv-bar-border-pad:2px] group-hover/cr:[--cv-bar-border:var(--cv-bar-border-active)] group-hover/cr:[--cv-bar-fill:var(--cv-bar-fill-active)]",
@@ -141,7 +141,7 @@ const CvBar: FC<Props> = ({
             the active state doubles it (1px → 2px). */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-md transition-[padding,background] duration-150 [background:var(--cv-bar-border)] [padding:var(--cv-bar-border-pad,1px)]"
+          className="pointer-events-none absolute inset-0 rounded-md [background:var(--cv-bar-border)] [padding:var(--cv-bar-border-pad,1px)]"
           style={{
             WebkitMask:
               "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
@@ -178,7 +178,7 @@ const CvBar: FC<Props> = ({
     <div
       data-active={active || undefined}
       className={cn(
-        "block shrink-0 rounded-md border-solid transition-[background-color,border-color,border-width] duration-150",
+        "block shrink-0 rounded-md border-solid",
         // Active triggers bump bg opacity, swap to the darker border,
         // and double the border width.
         "group-hover/cv:[--cv-bar-bg:var(--cv-bar-bg-active)] group-hover/cv:[--cv-bar-border-w:2px] group-hover/cv:[--cv-bar-border:var(--cv-bar-border-active)]",
