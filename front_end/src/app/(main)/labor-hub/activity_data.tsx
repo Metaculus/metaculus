@@ -118,4 +118,22 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
       </>
     ),
   },
+  {
+    date: "2026-05-07",
+    type: "news",
+    content: (
+      <>
+        The Budget Lab research center at Yale published a study on the effects
+        that AI tools are having on the labor market that found no clear effects
+        as of yet -{" "}
+        <a
+          href="https://budgetlab.yale.edu/research/what-we-do-and-dont-know-about-how-ai-affecting-labor-market"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          The Budget Lab at Yale
+        </a>
+      </>
+    ),
+  },
 ];
