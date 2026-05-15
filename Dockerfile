@@ -7,12 +7,23 @@ FROM python:3.12-slim-bookworm AS base
 COPY --from=node /usr/local/bin/node /usr/local/bin/
 COPY --from=bun /usr/local/bin/bun /usr/local/bin/
 
+ARG NGINX_MIN_VERSION=1.30.1
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
     gettext \
+    gnupg \
     libpq5 \
-    nginx \
     libjemalloc2 \
+    && curl -fsSL https://nginx.org/keys/nginx_signing.key \
+        | gpg --dearmor -o /usr/share/keyrings/nginx-archive-keyring.gpg \
+    && printf "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] https://nginx.org/packages/debian bookworm nginx\n" \
+        > /etc/apt/sources.list.d/nginx.list \
+    && apt-get update && apt-get install -y --no-install-recommends nginx \
+    && nginx_version="$(nginx -v 2>&1 | sed -E 's#^nginx version: nginx/##')" \
+    && dpkg --compare-versions "$nginx_version" ge "$NGINX_MIN_VERSION" \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && ln -s /usr/lib/*/libjemalloc.so.2 /usr/lib/libjemalloc.so.2
