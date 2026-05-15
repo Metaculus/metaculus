@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   FC,
   MouseEvent as RMouseEvent,
@@ -45,6 +46,7 @@ const getHoverNoneSnapshot = () => window.matchMedia("(hover: none)").matches;
 const getHoverNoneServerSnapshot = () => false;
 
 const ChamberRowTooltip: FC<Props> = ({ body, disclaimer, href, children }) => {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const isTouch = useSyncExternalStore(
     subscribeHoverMQ,
@@ -106,7 +108,7 @@ const ChamberRowTooltip: FC<Props> = ({ body, disclaimer, href, children }) => {
         {open && isTouch && (
           <button
             type="button"
-            aria-label="Close"
+            aria-label={t("close")}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();

@@ -15,7 +15,12 @@ export default async function HeroSection() {
       </h1>
       <div className="mb-4 flex flex-col-reverse items-start justify-between gap-3 sm:flex-row sm:items-end sm:gap-6 md:mb-8">
         <p className="my-0 max-w-xl text-base text-blue-700 [text-wrap:pretty] dark:text-blue-700-dark md:text-lg">
-          {t("midtermsHubHeroSubtitle")}
+          <span className="md:hidden">
+            {t("midtermsHubHeroSubtitleMobile")}
+          </span>
+          <span className="hidden md:inline">
+            {t("midtermsHubHeroSubtitle")}
+          </span>
         </p>
         <div className="hidden shrink-0 sm:block">
           <LiveBadge />

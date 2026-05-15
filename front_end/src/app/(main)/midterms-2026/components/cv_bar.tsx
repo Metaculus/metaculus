@@ -6,9 +6,14 @@ import useAppTheme from "@/hooks/use_app_theme";
 import cn from "@/utils/core/cn";
 import { addOpacityToHex } from "@/utils/core/colors";
 
+/** A hex color, optionally split into separate light + dark values that
+ *  CvBar resolves based on the active theme. Plain hex strings keep the
+ *  same value across themes. */
+export type ThemedColor = string | { light: string; dark: string };
+
 export type GradientColorStop = {
-  fill: string;
-  border: string;
+  fill: ThemedColor;
+  border: ThemedColor;
 };
 
 type Props = {
@@ -19,12 +24,12 @@ type Props = {
    *  flex can drive its width. Required for adjacent bars that must
    *  exactly tile their container without gap overflow. */
   fill?: boolean;
-  /** Solid hex color (e.g. #6B7AE8). Drives the filled bg. Ignored when
-   *  `gradientColors` is provided. */
-  color?: string;
+  /** Solid color. Drives the filled bg. Ignored when `gradientColors`
+   *  is provided. */
+  color?: ThemedColor;
   /** Border color override for light mode. Defaults to `color`. Use a
    *  darker shade for sharp contrast against the soft fill. */
-  borderColor?: string;
+  borderColor?: ThemedColor;
   /** When provided, the bar renders with a horizontal gradient fill and
    *  matching gradient border, transitioning from the first color stop
    *  on the left to the second on the right. Used for split-control
@@ -40,12 +45,17 @@ type Props = {
   className?: string;
 };
 
-const BG_OPACITY_DEFAULT_LIGHT = 0.4;
+const BG_OPACITY_REST_LIGHT = 0.4;
 // Dark mode needs more saturation to read against the navy card bg.
-const BG_OPACITY_DEFAULT_DARK = 0.55;
-// Glow ring radius (px) used on active state.
-const ACTIVE_RING_PX = 3;
-const ACTIVE_RING_OPACITY = 0.45;
+const BG_OPACITY_REST_DARK = 0.55;
+// Active state bumps opacity additively by +0.2 (cap 1.0).
+const BG_OPACITY_ACTIVE_BUMP = 0.2;
+
+const resolveThemed = (c: ThemedColor | undefined, isDark: boolean): string => {
+  if (!c) return "#999999";
+  if (typeof c === "string") return c;
+  return isDark ? c.dark : c.light;
+};
 
 /**
  * Visual primitive shaped like the consumer view multiple-choice bar:
@@ -57,17 +67,15 @@ const ACTIVE_RING_OPACITY = 0.45;
  * - `group/cr` for the Chamber Control tooltip wrapper, which fires
  *   either via hover (desktop) or `data-open` (touch tap)
  *
- * On active, the fill goes to 100% color (no opacity), the border
- * darkens slightly via a CSS variable, and a colored glow ring is
- * applied via box-shadow so the highlight is unmistakable.
+ * On active, border-width doubles (1 → 2px) and the fill opacity bumps
+ * by +0.2. Stroke color is held at 1.0 opacity; the doubled width
+ * carries the visual emphasis.
  *
- * In dark mode the darker `borderColor` would blend with the card bg
- * at rest, so we fall back to the primary `color` (which is a brighter
- * shade) for the resting border instead.
- *
- * When `gradientColors` is provided, the bar renders with a horizontal
- * `linear-gradient` fill + matching gradient border. The active state
- * swaps the gradient to its full-opacity variant via a CSS variable.
+ * In dark mode the darker `borderColor` would blend with the card bg,
+ * so we fall back to the brighter `color` for the resting border
+ * instead. Each color prop accepts a `{ light, dark }` pair so callers
+ * can supply mode-specific hex values for proper contrast in both
+ * themes.
  */
 const CvBar: FC<Props> = ({
   pct,
@@ -81,31 +89,26 @@ const CvBar: FC<Props> = ({
 }) => {
   const { theme } = useAppTheme();
   const isDark = theme === "dark";
+  const restOpacity = isDark ? BG_OPACITY_REST_DARK : BG_OPACITY_REST_LIGHT;
+  const activeOpacity = Math.min(restOpacity + BG_OPACITY_ACTIVE_BUMP, 1);
 
   const width = fill ? "100%" : `${Math.max(pct ?? 1, 1)}%`;
 
   if (gradientColors) {
-    const [from, to] = gradientColors;
-    const defaultOpacity = isDark
-      ? BG_OPACITY_DEFAULT_DARK
-      : BG_OPACITY_DEFAULT_LIGHT;
+    const [fromRaw, toRaw] = gradientColors;
+    const fromFill = resolveThemed(fromRaw.fill, isDark);
+    const toFill = resolveThemed(toRaw.fill, isDark);
+    const fromBorderResolved = resolveThemed(fromRaw.border, isDark);
+    const toBorderResolved = resolveThemed(toRaw.border, isDark);
     // Same border-color rule as solid bars: in dark mode the darker
     // `border` shade blends with the card, so use the brighter `fill`.
-    const restBorderFrom = isDark ? from.fill : from.border;
-    const restBorderTo = isDark ? to.fill : to.border;
+    const restBorderFrom = isDark ? fromFill : fromBorderResolved;
+    const restBorderTo = isDark ? toFill : toBorderResolved;
 
-    // Fill = semi-transparent gradient (same opacity scheme as solid bars).
-    const fillRest = `linear-gradient(to right, ${addOpacityToHex(from.fill, defaultOpacity)}, ${addOpacityToHex(to.fill, defaultOpacity)})`;
-    const fillActive = `linear-gradient(to right, ${from.fill}, ${to.fill})`;
-    // Border = full-opacity gradient, painted only inside the 1px ring
-    // via a mask-composite trick on the overlay child so it doesn't
-    // bleed through and darken the semi-transparent fill.
+    const fillRest = `linear-gradient(to right, ${addOpacityToHex(fromFill, restOpacity)}, ${addOpacityToHex(toFill, restOpacity)})`;
+    const fillActive = `linear-gradient(to right, ${addOpacityToHex(fromFill, activeOpacity)}, ${addOpacityToHex(toFill, activeOpacity)})`;
     const borderRest = `linear-gradient(to right, ${restBorderFrom}, ${restBorderTo})`;
-    const borderActive = `linear-gradient(to right, ${from.border}, ${to.border})`;
-
-    // Glow ring uses the from-color (left edge) — single source so the
-    // ring reads cleanly.
-    const ringColor = from.fill;
+    const borderActive = `linear-gradient(to right, ${fromBorderResolved}, ${toBorderResolved})`;
 
     const style: CSSProperties = {
       width,
@@ -114,36 +117,32 @@ const CvBar: FC<Props> = ({
       ["--cv-bar-fill-active" as string]: fillActive,
       ["--cv-bar-border" as string]: borderRest,
       ["--cv-bar-border-active" as string]: borderActive,
-      ["--cv-bar-active-ring" as string]: `0 0 0 ${ACTIVE_RING_PX}px ${addOpacityToHex(ringColor, ACTIVE_RING_OPACITY)}`,
     };
 
     return (
       <div
         data-active={active || undefined}
         className={cn(
-          "group/cvg relative block shrink-0 rounded-md transition-[background,box-shadow] duration-150",
-          // Each trigger swaps both the fill and border variables to their
-          // active versions and applies the glow ring.
-          "group-hover/cv:shadow-[var(--cv-bar-active-ring)] group-hover/cv:[--cv-bar-border:var(--cv-bar-border-active)] group-hover/cv:[--cv-bar-fill:var(--cv-bar-fill-active)]",
-          "group-hover/cr:shadow-[var(--cv-bar-active-ring)] group-hover/cr:[--cv-bar-border:var(--cv-bar-border-active)] group-hover/cr:[--cv-bar-fill:var(--cv-bar-fill-active)]",
-          "group-data-[open]/cr:shadow-[var(--cv-bar-active-ring)] group-data-[open]/cr:[--cv-bar-border:var(--cv-bar-border-active)] group-data-[open]/cr:[--cv-bar-fill:var(--cv-bar-fill-active)]",
-          "data-[active]:shadow-[var(--cv-bar-active-ring)] data-[active]:[--cv-bar-border:var(--cv-bar-border-active)] data-[active]:[--cv-bar-fill:var(--cv-bar-fill-active)]",
+          "group/cvg relative block shrink-0 rounded-md transition-[background] duration-150",
+          // Active triggers swap fill + border + bump the border padding.
+          "group-hover/cv:[--cv-bar-border-pad:2px] group-hover/cv:[--cv-bar-border:var(--cv-bar-border-active)] group-hover/cv:[--cv-bar-fill:var(--cv-bar-fill-active)]",
+          "group-hover/cr:[--cv-bar-border-pad:2px] group-hover/cr:[--cv-bar-border:var(--cv-bar-border-active)] group-hover/cr:[--cv-bar-fill:var(--cv-bar-fill-active)]",
+          "group-data-[open]/cr:[--cv-bar-border-pad:2px] group-data-[open]/cr:[--cv-bar-border:var(--cv-bar-border-active)] group-data-[open]/cr:[--cv-bar-fill:var(--cv-bar-fill-active)]",
+          "data-[active]:[--cv-bar-border-pad:2px] data-[active]:[--cv-bar-border:var(--cv-bar-border-active)] data-[active]:[--cv-bar-fill:var(--cv-bar-fill-active)]",
           heightClassName,
           className
         )}
         style={style}
       >
-        {/* Gradient-border overlay. Inner div is sized to the full bar via
-            inset:0 with 1px padding; the mask-composite trick paints the
-            border gradient only in that 1px padding ring, leaving the
-            interior transparent so the semi-transparent fill on the
-            parent composites directly with the card bg (not with this
-            full-opacity border gradient). */}
+        {/* Gradient-border overlay. The mask-composite trick paints the
+            border gradient only in the padding ring around the inner
+            content box, so it doesn't bleed under the semi-transparent
+            fill. The padding width is driven by --cv-bar-border-pad so
+            the active state doubles it (1px → 2px). */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-md transition-[background] duration-150 [background:var(--cv-bar-border)]"
+          className="pointer-events-none absolute inset-0 rounded-md transition-[padding,background] duration-150 [background:var(--cv-bar-border)] [padding:var(--cv-bar-border-pad,1px)]"
           style={{
-            padding: "1px",
             WebkitMask:
               "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
             WebkitMaskComposite: "xor",
@@ -154,34 +153,38 @@ const CvBar: FC<Props> = ({
     );
   }
 
-  const solidColor = color ?? "#999999";
-  const resolvedBorder = isDark ? solidColor : borderColor ?? solidColor;
-  const defaultOpacity = isDark
-    ? BG_OPACITY_DEFAULT_DARK
-    : BG_OPACITY_DEFAULT_LIGHT;
+  const solidColor = resolveThemed(color, isDark);
+  const resolvedBorderColor = resolveThemed(borderColor ?? color, isDark);
+  // In dark mode, the darker borderColor would blend with the card bg
+  // at rest, so we fall back to the primary `color` (brighter) for the
+  // resting border.
+  const restBorder = isDark ? solidColor : resolvedBorderColor;
+  const activeBorder = resolvedBorderColor;
 
   const style: CSSProperties = {
     width,
-    borderColor: resolvedBorder,
-    backgroundColor: addOpacityToHex(solidColor, defaultOpacity),
-    // Active state: full color, slightly darker border, glow ring.
-    ["--cv-bar-active-bg" as string]: solidColor,
-    ["--cv-bar-active-border" as string]: borderColor ?? solidColor,
-    ["--cv-bar-active-ring" as string]: `0 0 0 ${ACTIVE_RING_PX}px ${addOpacityToHex(solidColor, ACTIVE_RING_OPACITY)}`,
+    backgroundColor:
+      "var(--cv-bar-bg, " + addOpacityToHex(solidColor, restOpacity) + ")",
+    borderColor: "var(--cv-bar-border, " + restBorder + ")",
+    borderWidth: "var(--cv-bar-border-w, 1px)",
+    ["--cv-bar-bg-active" as string]: addOpacityToHex(
+      solidColor,
+      activeOpacity
+    ),
+    ["--cv-bar-border-active" as string]: activeBorder,
   };
 
   return (
     <div
       data-active={active || undefined}
       className={cn(
-        "block shrink-0 rounded-md border transition-[background-color,border-color,box-shadow] duration-150",
-        // Active styling can be triggered by any of: direct hover on a
-        // `group/cv` row, hover or tap-open on a `group/cr` Chamber
-        // Control wrapper, or an explicit `active` prop (data-active).
-        "group-hover/cv:border-[var(--cv-bar-active-border)] group-hover/cv:bg-[var(--cv-bar-active-bg)] group-hover/cv:shadow-[var(--cv-bar-active-ring)]",
-        "group-hover/cr:border-[var(--cv-bar-active-border)] group-hover/cr:bg-[var(--cv-bar-active-bg)] group-hover/cr:shadow-[var(--cv-bar-active-ring)]",
-        "group-data-[open]/cr:border-[var(--cv-bar-active-border)] group-data-[open]/cr:bg-[var(--cv-bar-active-bg)] group-data-[open]/cr:shadow-[var(--cv-bar-active-ring)]",
-        "data-[active]:border-[var(--cv-bar-active-border)] data-[active]:bg-[var(--cv-bar-active-bg)] data-[active]:shadow-[var(--cv-bar-active-ring)]",
+        "block shrink-0 rounded-md border-solid transition-[background-color,border-color,border-width] duration-150",
+        // Active triggers bump bg opacity, swap to the darker border,
+        // and double the border width.
+        "group-hover/cv:[--cv-bar-bg:var(--cv-bar-bg-active)] group-hover/cv:[--cv-bar-border-w:2px] group-hover/cv:[--cv-bar-border:var(--cv-bar-border-active)]",
+        "group-hover/cr:[--cv-bar-bg:var(--cv-bar-bg-active)] group-hover/cr:[--cv-bar-border-w:2px] group-hover/cr:[--cv-bar-border:var(--cv-bar-border-active)]",
+        "group-data-[open]/cr:[--cv-bar-bg:var(--cv-bar-bg-active)] group-data-[open]/cr:[--cv-bar-border-w:2px] group-data-[open]/cr:[--cv-bar-border:var(--cv-bar-border-active)]",
+        "data-[active]:[--cv-bar-bg:var(--cv-bar-bg-active)] data-[active]:[--cv-bar-border-w:2px] data-[active]:[--cv-bar-border:var(--cv-bar-border-active)]",
         heightClassName,
         className
       )}

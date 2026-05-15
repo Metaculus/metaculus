@@ -1,10 +1,10 @@
 "use client";
 
-import { FC, useState } from "react";
+import { FC, ReactNode, useState } from "react";
 
-import cn from "@/utils/core/cn";
+import useAppTheme from "@/hooks/use_app_theme";
 
-import CvBar from "./cv_bar";
+import CvBar, { ThemedColor } from "./cv_bar";
 import { DonkeyIcon, ElephantIcon } from "./party_icons";
 import { MIDTERMS_COLORS } from "../constants";
 
@@ -25,32 +25,69 @@ export type ConsequenceHeaderCopy = {
 };
 
 type Props = {
+  /** Slot for the section title + description. Rendered in column 1 of
+   *  the header row so it sits offset from the colored party cards. */
+  leadingSlot: ReactNode;
   rows: ConsequenceGridRow[];
   repHeader: ConsequenceHeaderCopy;
   demHeader: ConsequenceHeaderCopy;
 };
 
-// Header card colors. The "active" variants are darker / more saturated so
-// the column reads as visibly lit when the user hovers anywhere inside it.
-const REP_HEADER_BG = MIDTERMS_COLORS.repBorder; // #C53B33
-const REP_HEADER_BG_ACTIVE = "#A02B25";
-const DEM_HEADER_BG = "#1E3A8A"; // Tailwind blue-900
-const DEM_HEADER_BG_ACTIVE = "#152A66";
+// Header card backgrounds. Each color has rest + active variants per
+// theme so the column reads as visibly lit when hovered.
+const REP_HEADER_BG = {
+  light: { rest: MIDTERMS_COLORS.repBorder, active: "#A02B25" },
+  dark: { rest: MIDTERMS_COLORS.repBorderDark, active: "#B83C32" },
+};
+const DEM_HEADER_BG = {
+  light: { rest: "#1E3A8A", active: "#152A66" },
+  dark: { rest: MIDTERMS_COLORS.demBorderDark, active: "#4A5FCF" },
+};
 
-const ConsequenceGrid: FC<Props> = ({ rows, repHeader, demHeader }) => {
+// Themed bar colors.
+const DEM_FILL: ThemedColor = {
+  light: MIDTERMS_COLORS.demPrimary,
+  dark: MIDTERMS_COLORS.demPrimaryDark,
+};
+const DEM_BORDER: ThemedColor = {
+  light: MIDTERMS_COLORS.demBorder,
+  dark: MIDTERMS_COLORS.demBorderDark,
+};
+const REP_FILL: ThemedColor = {
+  light: MIDTERMS_COLORS.repPrimary,
+  dark: MIDTERMS_COLORS.repPrimaryDark,
+};
+const REP_BORDER: ThemedColor = {
+  light: MIDTERMS_COLORS.repBorder,
+  dark: MIDTERMS_COLORS.repBorderDark,
+};
+
+const ConsequenceGrid: FC<Props> = ({
+  leadingSlot,
+  rows,
+  repHeader,
+  demHeader,
+}) => {
+  const { theme } = useAppTheme();
+  const isDark = theme === "dark";
   const [hovered, setHovered] = useState<Column | null>(null);
 
   const enter = (col: Column) => () => setHovered(col);
   const leave = () => setHovered(null);
 
+  const repBg = isDark ? REP_HEADER_BG.dark : REP_HEADER_BG.light;
+  const demBg = isDark ? DEM_HEADER_BG.dark : DEM_HEADER_BG.light;
+
   return (
-    <div className="rounded-md border border-blue-300 bg-blue-100 p-3 dark:border-blue-300-dark dark:bg-blue-100-dark sm:p-5">
-      <div className="mb-4 hidden md:grid md:grid-cols-[2fr_1fr_1fr] md:gap-4">
-        {/* Empty header above the Question column. */}
-        <div />
+    <div>
+      {/* Header row: lead slot in col 1 (title + description), party
+          cards in cols 2 & 3. Mobile collapses to single column and the
+          lead slot is rendered above the rows (no party cards). */}
+      <div className="hidden md:mb-4 md:grid md:grid-cols-[2fr_1fr_1fr] md:items-end md:gap-4">
+        <div>{leadingSlot}</div>
         <PartyHeader
-          backgroundColor={REP_HEADER_BG}
-          activeBackgroundColor={REP_HEADER_BG_ACTIVE}
+          backgroundColor={repBg.rest}
+          activeBackgroundColor={repBg.active}
           Icon={ElephantIcon}
           title={repHeader.title}
           subtitle={repHeader.subtitle}
@@ -59,8 +96,8 @@ const ConsequenceGrid: FC<Props> = ({ rows, repHeader, demHeader }) => {
           onMouseLeave={leave}
         />
         <PartyHeader
-          backgroundColor={DEM_HEADER_BG}
-          activeBackgroundColor={DEM_HEADER_BG_ACTIVE}
+          backgroundColor={demBg.rest}
+          activeBackgroundColor={demBg.active}
           Icon={DonkeyIcon}
           title={demHeader.title}
           subtitle={demHeader.subtitle}
@@ -70,18 +107,21 @@ const ConsequenceGrid: FC<Props> = ({ rows, repHeader, demHeader }) => {
         />
       </div>
 
+      {/* Mobile-only leading slot (when md grid above is hidden). */}
+      <div className="mb-6 md:hidden">{leadingSlot}</div>
+
       {rows.map((row) => (
         <div
           key={row.key}
-          className="grid grid-cols-1 gap-3 border-b border-blue-300 py-4 last:border-0 dark:border-blue-300-dark md:grid-cols-[2fr_1fr_1fr] md:gap-4"
+          className="grid grid-cols-1 gap-3 border-b border-blue-300 py-4 last:border-0 dark:border-blue-300-dark md:grid-cols-[2fr_1fr_1fr] md:gap-0"
         >
-          <p className="m-0 text-sm font-medium text-blue-800 dark:text-blue-800-dark md:text-base">
+          <p className="m-0 self-center text-sm font-medium text-blue-800 dark:text-blue-800-dark md:pr-4 md:text-base">
             {row.question}
           </p>
           <BarCell
             pct={row.repPct}
-            color={MIDTERMS_COLORS.repPrimary}
-            borderColor={MIDTERMS_COLORS.repBorder}
+            color={REP_FILL}
+            borderColor={REP_BORDER}
             mobileLabel={row.ifRepLabel}
             active={hovered === "rep"}
             onMouseEnter={enter("rep")}
@@ -89,8 +129,8 @@ const ConsequenceGrid: FC<Props> = ({ rows, repHeader, demHeader }) => {
           />
           <BarCell
             pct={row.demPct}
-            color={MIDTERMS_COLORS.demPrimary}
-            borderColor={MIDTERMS_COLORS.demBorder}
+            color={DEM_FILL}
+            borderColor={DEM_BORDER}
             mobileLabel={row.ifDemLabel}
             active={hovered === "dem"}
             onMouseEnter={enter("dem")}
@@ -147,8 +187,8 @@ const PartyHeader: FC<PartyHeaderProps> = ({
 
 type BarCellProps = {
   pct: number;
-  color: string;
-  borderColor: string;
+  color: ThemedColor;
+  borderColor: ThemedColor;
   mobileLabel: string;
   active: boolean;
   onMouseEnter: () => void;
@@ -165,12 +205,12 @@ const BarCell: FC<BarCellProps> = ({
   onMouseLeave,
 }) => {
   return (
-    <div onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-      <span
-        className={cn(
-          "mb-1 block text-[11px] font-medium uppercase tracking-wider text-blue-600 dark:text-blue-600-dark md:hidden"
-        )}
-      >
+    <div
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      className="flex h-full w-full flex-col justify-center md:px-2"
+    >
+      <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-blue-600 dark:text-blue-600-dark md:hidden">
         {mobileLabel}
       </span>
       <div className="flex items-center">

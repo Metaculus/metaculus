@@ -87,7 +87,9 @@ const InsightsCarousel: FC<Props> = ({ insights, title }) => {
           className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {insights.map((insight, i) => (
-            <InsightCard key={i} insight={insight} />
+            <div key={i} className="w-[340px] shrink-0 snap-start">
+              <InsightCard insight={insight} />
+            </div>
           ))}
         </div>
         <div

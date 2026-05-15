@@ -5,6 +5,16 @@ export const MIDTERMS_COLORS = {
   demBorder: "#3A4DD0",
   repPrimary: "#E8827A",
   repBorder: "#C53B33",
+  // Dark-mode variants — brighter / more vivid so the bars hold the
+  // same perceived saturation against the navy card bg as the light
+  // pair does against the white card. Starter values; tweakable.
+  demPrimaryDark: "#8B96F0",
+  demBorderDark: "#6877E0",
+  repPrimaryDark: "#F09A92",
+  repBorderDark: "#DC5F57",
+  // Dark-mode text color for the contested mobile tiles, where the
+  // pastel fill makes white text hard to read.
+  tileTextDark: "#283441",
   // Continuous-gradient anchors. `tossUp` is the neutral midpoint at 50%,
   // `likelyR` and `likelyD` are the extremes; intermediate colors are
   // generated via getColorInSpectrum.

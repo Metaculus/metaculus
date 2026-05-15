@@ -29,15 +29,23 @@ export default async function ElectoralConsequencesSection() {
     ifDemLabel,
   }));
 
-  return (
-    <SectionCard>
+  // Lead slot for col 1 of the grid header — sits offset to the left of
+  // the colored party cards, matching the reference layout.
+  const leadingSlot = (
+    <>
       <SectionHeader className="mb-2">
         {t("midtermsHubElectoralConsequences")}
       </SectionHeader>
-      <ContentParagraph className="mb-8">
+      <ContentParagraph small className="max-w-sm">
         {t("midtermsHubConsequencesSubtitle")}
       </ContentParagraph>
+    </>
+  );
+
+  return (
+    <SectionCard>
       <ConsequenceGrid
+        leadingSlot={leadingSlot}
         rows={rows}
         repHeader={{
           title: t("midtermsHubConsequenceHeaderRepTitle"),

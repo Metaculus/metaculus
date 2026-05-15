@@ -116,6 +116,11 @@ const TileMap: FC<Props> = ({ races }) => {
                 gridRow: row + 1,
                 backgroundColor: fillColor,
                 opacity: isContested ? 1 : UNCONTESTED_OPACITY_DEFAULT,
+                // Dark mode: pastel tile fills make white text hard to
+                // read. Override to the dark navy token.
+                ...(isContested && isDark
+                  ? { color: MIDTERMS_COLORS.tileTextDark }
+                  : {}),
               }}
             >
               {abbr}

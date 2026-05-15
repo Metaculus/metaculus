@@ -1,10 +1,12 @@
 import { getTranslations } from "next-intl/server";
 
+import { MobileCarousel } from "@/app/(main)/labor-hub/components/mobile_carousel";
 import {
   SectionCard,
   SectionHeader,
 } from "@/app/(main)/labor-hub/components/section";
 
+import InsightCard from "../components/insight_card";
 import InsightsCarousel from "../components/insights_carousel";
 import {
   CommunityInsight,
@@ -28,14 +30,31 @@ export default async function CommunityInsightsSection() {
 
   if (!insights.length) return null;
 
+  const title = (
+    <SectionHeader>{t("midtermsHubCommunityInsights")}</SectionHeader>
+  );
+
   return (
     <SectionCard>
-      <InsightsCarousel
-        insights={insights}
-        title={
-          <SectionHeader>{t("midtermsHubCommunityInsights")}</SectionHeader>
-        }
-      />
+      {/* Desktop: chevron-driven horizontal carousel with edge gradients. */}
+      <div className="hidden lg:block">
+        <InsightsCarousel insights={insights} title={title} />
+      </div>
+
+      {/* Mobile: Labor Hub MobileCarousel — Embla snap-to-center with
+          dot indicators, peek-next-card, no edge gradients. The carousel
+          adds its own horizontal padding; pull the section padding back
+          so slides bleed edge-to-edge. */}
+      <div className="lg:hidden">
+        <div className="mb-4">{title}</div>
+        <div className="-mx-5 md:-mx-10">
+          <MobileCarousel>
+            {insights.map((insight, i) => (
+              <InsightCard key={i} insight={insight} />
+            ))}
+          </MobileCarousel>
+        </div>
+      </div>
     </SectionCard>
   );
 }

@@ -6,9 +6,26 @@ import cn from "@/utils/core/cn";
 
 import ChamberRowTooltip from "./chamber_row_tooltip";
 import { MIDTERMS_COLORS } from "../constants";
-import CvBar from "./cv_bar";
+import CvBar, { ThemedColor } from "./cv_bar";
 import { ChamberData } from "../helpers/fetch_dashboard_data";
 import { getMultipleChoiceOptionProbability } from "../helpers/post_utils";
+
+const DEM_FILL: ThemedColor = {
+  light: MIDTERMS_COLORS.demPrimary,
+  dark: MIDTERMS_COLORS.demPrimaryDark,
+};
+const DEM_BORDER: ThemedColor = {
+  light: MIDTERMS_COLORS.demBorder,
+  dark: MIDTERMS_COLORS.demBorderDark,
+};
+const REP_FILL: ThemedColor = {
+  light: MIDTERMS_COLORS.repPrimary,
+  dark: MIDTERMS_COLORS.repPrimaryDark,
+};
+const REP_BORDER: ThemedColor = {
+  light: MIDTERMS_COLORS.repBorder,
+  dark: MIDTERMS_COLORS.repBorderDark,
+};
 
 const CURRENT_SENATE = { dem: 47, rep: 53 };
 const CURRENT_HOUSE = { dem: 215, rep: 220 };
@@ -207,16 +224,8 @@ function ChamberRow({
           className="grid w-full items-center gap-1"
           style={{ gridTemplateColumns: `${demShare}fr ${repShare}fr` }}
         >
-          <CvBar
-            fill
-            color={MIDTERMS_COLORS.demPrimary}
-            borderColor={MIDTERMS_COLORS.demBorder}
-          />
-          <CvBar
-            fill
-            color={MIDTERMS_COLORS.repPrimary}
-            borderColor={MIDTERMS_COLORS.repBorder}
-          />
+          <CvBar fill color={DEM_FILL} borderColor={DEM_BORDER} />
+          <CvBar fill color={REP_FILL} borderColor={REP_BORDER} />
         </div>
       )}
       <div className="mt-2 text-center text-sm tabular-nums text-blue-700 dark:text-blue-700-dark">

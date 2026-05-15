@@ -4,7 +4,7 @@ import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 
 import { MIDTERMS_COLORS } from "../constants";
-import CvBar from "./cv_bar";
+import CvBar, { GradientColorStop, ThemedColor } from "./cv_bar";
 import { getMultipleChoiceOptionProbability } from "../helpers/post_utils";
 
 type OutcomeKey = "RR" | "RD" | "DR" | "DD";
@@ -16,20 +16,38 @@ const OUTCOME_OPTION_LABEL: Record<OutcomeKey, string> = {
   DD: "Dem Senate / Dem House",
 };
 
+// Themed color tokens for the bars.
+const DEM_FILL: ThemedColor = {
+  light: MIDTERMS_COLORS.demPrimary,
+  dark: MIDTERMS_COLORS.demPrimaryDark,
+};
+const DEM_BORDER: ThemedColor = {
+  light: MIDTERMS_COLORS.demBorder,
+  dark: MIDTERMS_COLORS.demBorderDark,
+};
+const REP_FILL: ThemedColor = {
+  light: MIDTERMS_COLORS.repPrimary,
+  dark: MIDTERMS_COLORS.repPrimaryDark,
+};
+const REP_BORDER: ThemedColor = {
+  light: MIDTERMS_COLORS.repBorder,
+  dark: MIDTERMS_COLORS.repBorderDark,
+};
+
 // Split outcomes (Rep Senate / Dem House and vice versa) use a horizontal
 // gradient from the rep color (left) to the dem color (right) — including
 // a matching gradient border — so neither party reads as the "owner" of
 // the bar.
-const SPLIT_GRADIENT = [
-  { fill: MIDTERMS_COLORS.repPrimary, border: MIDTERMS_COLORS.repBorder },
-  { fill: MIDTERMS_COLORS.demPrimary, border: MIDTERMS_COLORS.demBorder },
-] as const;
+const SPLIT_GRADIENT: [GradientColorStop, GradientColorStop] = [
+  { fill: REP_FILL, border: REP_BORDER },
+  { fill: DEM_FILL, border: DEM_BORDER },
+];
 
 type Outcome = {
   key: OutcomeKey;
   pct: number | null;
 } & (
-  | { kind: "solid"; color: string; borderColor: string }
+  | { kind: "solid"; color: ThemedColor; borderColor: ThemedColor }
   | { kind: "gradient" }
 );
 
@@ -42,8 +60,8 @@ export default async function CongressOutcomeCard({ post }: Props) {
 
   const buildSolid = (
     key: OutcomeKey,
-    color: string,
-    borderColor: string
+    color: ThemedColor,
+    borderColor: ThemedColor
   ): Outcome => {
     const prob = getMultipleChoiceOptionProbability(
       post,
@@ -71,10 +89,10 @@ export default async function CongressOutcomeCard({ post }: Props) {
   };
 
   const outcomes: Outcome[] = [
-    buildSolid("RR", MIDTERMS_COLORS.repPrimary, MIDTERMS_COLORS.repBorder),
+    buildSolid("RR", REP_FILL, REP_BORDER),
     buildGradient("RD"),
     buildGradient("DR"),
-    buildSolid("DD", MIDTERMS_COLORS.demPrimary, MIDTERMS_COLORS.demBorder),
+    buildSolid("DD", DEM_FILL, DEM_BORDER),
   ];
 
   const labels: Record<OutcomeKey, string> = {
@@ -130,10 +148,7 @@ function OutcomeRow({
             borderColor={outcome.borderColor}
           />
         ) : (
-          <CvBar
-            pct={outcome.pct ?? 0}
-            gradientColors={[SPLIT_GRADIENT[0], SPLIT_GRADIENT[1]]}
-          />
+          <CvBar pct={outcome.pct ?? 0} gradientColors={SPLIT_GRADIENT} />
         )}
         <span className="ml-2 shrink-0 text-sm font-semibold tabular-nums text-blue-800 dark:text-blue-800-dark">
           {outcome.pct != null ? `${outcome.pct.toFixed(1)}%` : "—"}

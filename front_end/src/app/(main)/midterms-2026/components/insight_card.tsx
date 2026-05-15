@@ -17,7 +17,7 @@ const InsightCard: FC<Props> = ({ insight }) => {
   const { comment, sourcePost } = insight;
 
   return (
-    <div className="w-[340px] shrink-0 snap-start [&_a]:no-underline [&_button]:no-underline">
+    <div className="h-full [&_a]:no-underline [&_button]:no-underline">
       <ActivityCard
         variant="blue"
         username={comment.author.username}
