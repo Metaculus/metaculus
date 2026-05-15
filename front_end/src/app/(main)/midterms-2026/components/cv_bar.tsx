@@ -100,23 +100,24 @@ const CvBar: FC<Props> = ({
     const toFill = resolveThemed(toRaw.fill, isDark);
     const fromBorderResolved = resolveThemed(fromRaw.border, isDark);
     const toBorderResolved = resolveThemed(toRaw.border, isDark);
-    // Same border-color rule as solid bars: in dark mode the darker
-    // `border` shade blends with the card, so use the brighter `fill`.
-    const restBorderFrom = isDark ? fromFill : fromBorderResolved;
-    const restBorderTo = isDark ? toFill : toBorderResolved;
+    // Border color: light mode uses the darker `border` variant for
+    // contrast against the pastel fill; dark mode uses the brighter
+    // `fill` because the darker `border` shade blends into the navy
+    // card bg. Constant across rest/active — the 2x ring-padding on
+    // hover carries the emphasis, not a color shift.
+    const finalBorderFrom = isDark ? fromFill : fromBorderResolved;
+    const finalBorderTo = isDark ? toFill : toBorderResolved;
 
     const fillRest = `linear-gradient(to right, ${addOpacityToHex(fromFill, restOpacity)}, ${addOpacityToHex(toFill, restOpacity)})`;
     const fillActive = `linear-gradient(to right, ${addOpacityToHex(fromFill, activeOpacity)}, ${addOpacityToHex(toFill, activeOpacity)})`;
-    const borderRest = `linear-gradient(to right, ${restBorderFrom}, ${restBorderTo})`;
-    const borderActive = `linear-gradient(to right, ${fromBorderResolved}, ${toBorderResolved})`;
+    const borderGradient = `linear-gradient(to right, ${finalBorderFrom}, ${finalBorderTo})`;
 
     const style: CSSProperties = {
       width,
       background: "var(--cv-bar-fill)",
       ["--cv-bar-fill" as string]: fillRest,
       ["--cv-bar-fill-active" as string]: fillActive,
-      ["--cv-bar-border" as string]: borderRest,
-      ["--cv-bar-border-active" as string]: borderActive,
+      ["--cv-bar-border" as string]: borderGradient,
     };
 
     return (
@@ -124,11 +125,12 @@ const CvBar: FC<Props> = ({
         data-active={active || undefined}
         className={cn(
           "group/cvg relative block shrink-0 rounded-md",
-          // Active triggers swap fill + border + bump the border padding.
-          "group-hover/cv:[--cv-bar-border-pad:2px] group-hover/cv:[--cv-bar-border:var(--cv-bar-border-active)] group-hover/cv:[--cv-bar-fill:var(--cv-bar-fill-active)]",
-          "group-hover/cr:[--cv-bar-border-pad:2px] group-hover/cr:[--cv-bar-border:var(--cv-bar-border-active)] group-hover/cr:[--cv-bar-fill:var(--cv-bar-fill-active)]",
-          "group-data-[open]/cr:[--cv-bar-border-pad:2px] group-data-[open]/cr:[--cv-bar-border:var(--cv-bar-border-active)] group-data-[open]/cr:[--cv-bar-fill:var(--cv-bar-fill-active)]",
-          "data-[active]:[--cv-bar-border-pad:2px] data-[active]:[--cv-bar-border:var(--cv-bar-border-active)] data-[active]:[--cv-bar-fill:var(--cv-bar-fill-active)]",
+          // Active triggers bump fill opacity + double the ring padding.
+          // Border gradient stays constant.
+          "group-hover/cv:[--cv-bar-border-pad:2px] group-hover/cv:[--cv-bar-fill:var(--cv-bar-fill-active)]",
+          "group-hover/cr:[--cv-bar-border-pad:2px] group-hover/cr:[--cv-bar-fill:var(--cv-bar-fill-active)]",
+          "group-data-[open]/cr:[--cv-bar-border-pad:2px] group-data-[open]/cr:[--cv-bar-fill:var(--cv-bar-fill-active)]",
+          "data-[active]:[--cv-bar-border-pad:2px] data-[active]:[--cv-bar-fill:var(--cv-bar-fill-active)]",
           heightClassName,
           className
         )}
@@ -155,23 +157,23 @@ const CvBar: FC<Props> = ({
 
   const solidColor = resolveThemed(color, isDark);
   const resolvedBorderColor = resolveThemed(borderColor ?? color, isDark);
-  // In dark mode, the darker borderColor would blend with the card bg
-  // at rest, so we fall back to the primary `color` (brighter) for the
-  // resting border.
-  const restBorder = isDark ? solidColor : resolvedBorderColor;
-  const activeBorder = resolvedBorderColor;
+  // Border color: light mode uses the darker `border` variant for
+  // contrast against the pastel fill; dark mode uses the brighter
+  // `color` (the darker `border` shade would blend into the navy
+  // card bg). Constant across rest/active — the 2x width on hover
+  // carries the emphasis.
+  const finalBorder = isDark ? solidColor : resolvedBorderColor;
 
   const style: CSSProperties = {
     width,
     backgroundColor:
       "var(--cv-bar-bg, " + addOpacityToHex(solidColor, restOpacity) + ")",
-    borderColor: "var(--cv-bar-border, " + restBorder + ")",
+    borderColor: finalBorder,
     borderWidth: "var(--cv-bar-border-w, 1px)",
     ["--cv-bar-bg-active" as string]: addOpacityToHex(
       solidColor,
       activeOpacity
     ),
-    ["--cv-bar-border-active" as string]: activeBorder,
   };
 
   return (
@@ -179,12 +181,12 @@ const CvBar: FC<Props> = ({
       data-active={active || undefined}
       className={cn(
         "block shrink-0 rounded-md border-solid",
-        // Active triggers bump bg opacity, swap to the darker border,
-        // and double the border width.
-        "group-hover/cv:[--cv-bar-bg:var(--cv-bar-bg-active)] group-hover/cv:[--cv-bar-border-w:2px] group-hover/cv:[--cv-bar-border:var(--cv-bar-border-active)]",
-        "group-hover/cr:[--cv-bar-bg:var(--cv-bar-bg-active)] group-hover/cr:[--cv-bar-border-w:2px] group-hover/cr:[--cv-bar-border:var(--cv-bar-border-active)]",
-        "group-data-[open]/cr:[--cv-bar-bg:var(--cv-bar-bg-active)] group-data-[open]/cr:[--cv-bar-border-w:2px] group-data-[open]/cr:[--cv-bar-border:var(--cv-bar-border-active)]",
-        "data-[active]:[--cv-bar-bg:var(--cv-bar-bg-active)] data-[active]:[--cv-bar-border-w:2px] data-[active]:[--cv-bar-border:var(--cv-bar-border-active)]",
+        // Active triggers bump bg opacity + double the border width.
+        // Border color stays constant.
+        "group-hover/cv:[--cv-bar-bg:var(--cv-bar-bg-active)] group-hover/cv:[--cv-bar-border-w:2px]",
+        "group-hover/cr:[--cv-bar-bg:var(--cv-bar-bg-active)] group-hover/cr:[--cv-bar-border-w:2px]",
+        "group-data-[open]/cr:[--cv-bar-bg:var(--cv-bar-bg-active)] group-data-[open]/cr:[--cv-bar-border-w:2px]",
+        "data-[active]:[--cv-bar-bg:var(--cv-bar-bg-active)] data-[active]:[--cv-bar-border-w:2px]",
         heightClassName,
         className
       )}
