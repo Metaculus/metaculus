@@ -63,25 +63,20 @@ export default async function Home() {
     return redirect(PUBLIC_LANDING_PAGE_URL);
   }
 
-  let siteStats = {
+  const fallbackSiteStats = {
     predictions: 2133159,
     questions: 17357,
     resolved_questions: 6654,
     years_of_predictions: 10,
   };
 
-  const [initialNewsPosts] = await Promise.all([
+  const [initialNewsPosts, siteStats] = await Promise.all([
     ServerPostsApi.getPostsWithCP(FILTERS.popular),
-    serverMiscApi
-      .getSiteStats()
-      .then((s) => {
-        siteStats = s;
-      })
-      .catch(() => {}),
+    serverMiscApi.getSiteStats().catch(() => fallbackSiteStats),
   ]);
 
   return (
-    <main className="mx-auto min-h-screen max-w-[1180px]">
+    <main className="mx-auto w-full max-w-[1180px] flex-1">
       <OnboardingCheck />
       <EmailConfirmation />
       <HeroSection stats={siteStats} />

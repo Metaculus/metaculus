@@ -60,7 +60,7 @@
 }
 
 .mdxeditor-toolbar {
-  @apply sticky top-12 flex-wrap;
+  @apply sticky top-header flex-wrap;
   container-type: inline-size;
   & [class*="toolbarTitleMode"] {
     display: none; /* We render our custom source mode title instead */
