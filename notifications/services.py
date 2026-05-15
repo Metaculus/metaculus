@@ -222,6 +222,10 @@ class NotificationTypeBase:
         Schedules a notification to be sent using a cron job.
         """
 
+        # Inactive users only receive account-related emails, not notifications
+        if not recipient.is_active:
+            return
+
         # Skip notification sending if it was ignored
         if mailing_tag and mailing_tag in recipient.unsubscribed_mailing_tags:
             return
@@ -722,6 +726,10 @@ def send_comment_mention_notification(recipient, comment: Comment, mention: str)
     Send instant notification of mention in a comment
     """
 
+    # Inactive users only receive account-related emails
+    if not recipient.is_active:
+        return
+
     mention_label = "you" if mention == recipient.username.lower() else mention
     preview_text = generate_email_comment_preview_text(
         comment.text, mention, max_chars=1024
@@ -757,7 +765,7 @@ def send_comment_report_notification_to_staff(
 ):
     recipients = comment.on_post.default_project.get_users_for_permission(
         ObjectPermission.CURATOR
-    )
+    ).filter(is_active=True)
 
     return send_email_with_template(
         [x.email for x in recipients],
@@ -791,7 +799,9 @@ def send_key_factor_report_notification_to_staff(
     comment = key_factor.comment
     post = comment.on_post
 
-    recipients = post.default_project.get_users_for_permission(ObjectPermission.CURATOR)
+    recipients = post.default_project.get_users_for_permission(
+        ObjectPermission.CURATOR
+    ).filter(is_active=True)
 
     return send_email_with_template(
         [x.email for x in recipients],
@@ -821,6 +831,10 @@ def send_forecast_autowidrawal_notification(
     posts_data: list[dict],
     account_settings_url: str,
 ):
+    # Inactive users only receive account-related emails
+    if not user.is_active:
+        return False
+
     send_email_with_template(
         to=user.email,
         subject=_(
@@ -871,6 +885,10 @@ def send_news_category_notebook_publish_notification(user: User, post: Post):
     just like we do for regular questions and notebooks via the
     `NotificationPostStatusChange` notification type.
     """
+
+    # Inactive users only receive account-related emails
+    if not user.is_active:
+        return
 
     preview_text = generate_email_notebook_preview_text(
         post.notebook.markdown, max_words=100

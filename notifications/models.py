@@ -5,7 +5,9 @@ from utils.models import TimeStampedModel
 
 class NotificationQuerySet(models.QuerySet):
     def filter_pending_email(self):
-        return self.filter(email_sent=False, read_at__isnull=True)
+        return self.filter(
+            email_sent=False, read_at__isnull=True, recipient__is_active=True
+        )
 
 
 class Notification(TimeStampedModel):
