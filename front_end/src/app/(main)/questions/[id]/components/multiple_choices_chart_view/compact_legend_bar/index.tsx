@@ -1,9 +1,14 @@
-import { FC } from "react";
+"use client";
+import { useTranslations } from "next-intl";
+import { FC, useState } from "react";
 
+import { useBreakpoint } from "@/hooks/tailwind";
 import { ChoiceItem } from "@/types/choices";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { getForecastPctDisplayValue } from "@/utils/formatters/prediction";
+
+const MOBILE_MAX_ITEMS = 5;
 
 type Props = {
   items: ChoiceItem[];
@@ -32,9 +37,35 @@ const CompactLegendBar: FC<Props> = ({
   onChoiceChange,
   onChoiceHighlight,
 }) => {
+  const t = useTranslations();
+  const isMd = useBreakpoint("md");
+  const [showAll, setShowAll] = useState(false);
+
+  const resolvedNoCount = items.filter((item) =>
+    isResolvedNo(item, questionType)
+  ).length;
+  const normalItems = items.filter((item) => !isResolvedNo(item, questionType));
+
+  let visibleItems: ChoiceItem[];
+  let hiddenCount: number;
+
+  if (showAll) {
+    visibleItems = items;
+    hiddenCount = 0;
+  } else if (!isMd) {
+    // Mobile: show up to MOBILE_MAX_ITEMS normal items only; resolved-NO always hidden
+    const mobileVisible = normalItems.slice(0, MOBILE_MAX_ITEMS);
+    visibleItems = mobileVisible;
+    hiddenCount = items.length - mobileVisible.length;
+  } else {
+    // Desktop: show all normal items; resolved-NO hidden
+    visibleItems = normalItems;
+    hiddenCount = resolvedNoCount;
+  }
+
   return (
-    <div className="mb-2 flex flex-wrap gap-x-3 gap-y-1.5 text-xs">
-      {items.map((item) => {
+    <div className="flex flex-wrap gap-x-3 gap-y-1.5">
+      {visibleItems.map((item) => {
         const resolvedNo = isResolvedNo(item, questionType);
         const pct = getForecastPctDisplayValue(getLastAggregationValue(item));
 
@@ -55,8 +86,8 @@ const CompactLegendBar: FC<Props> = ({
           >
             {resolvedNo ? (
               <>
-                <span className="size-2.5 shrink-0 rounded-full bg-gray-400 dark:bg-gray-400-dark" />
-                <span className="max-w-[120px] truncate text-gray-500 line-through dark:text-gray-500-dark">
+                <span className="size-3 shrink-0 rounded-full bg-gray-300 dark:bg-gray-300-dark" />
+                <span className="max-w-[120px] truncate text-sm font-medium leading-4 text-gray-400 line-through dark:text-gray-400-dark md:text-base md:leading-5">
                   {item.label || item.choice}
                 </span>
               </>
@@ -66,17 +97,14 @@ const CompactLegendBar: FC<Props> = ({
                   role="checkbox"
                   aria-checked={item.active}
                   tabIndex={0}
-                  className="flex size-3.5 shrink-0 cursor-pointer items-center justify-center rounded-[2px] border"
+                  className="flex size-4 shrink-0 cursor-pointer items-center justify-center rounded-[2px] border border-gray-500 dark:border-gray-500-dark"
                   style={
                     item.active
                       ? {
                           backgroundColor: item.color.DEFAULT,
                           borderColor: "transparent",
                         }
-                      : {
-                          borderColor: item.color.DEFAULT,
-                          backgroundColor: "transparent",
-                        }
+                      : undefined
                   }
                   onClick={() => onChoiceChange(item.choice, !item.active)}
                   onKeyDown={(e) => {
@@ -89,7 +117,7 @@ const CompactLegendBar: FC<Props> = ({
                   {item.active && (
                     <svg
                       viewBox="0 0 10 8"
-                      className="h-2 w-2.5 fill-none stroke-white stroke-2"
+                      className="h-2.5 w-3 fill-none stroke-white stroke-2"
                     >
                       <path
                         d="M1 4l3 3 5-6"
@@ -99,10 +127,10 @@ const CompactLegendBar: FC<Props> = ({
                     </svg>
                   )}
                 </span>
-                <span className="max-w-[120px] truncate text-gray-800 dark:text-gray-800-dark">
+                <span className="max-w-[120px] truncate text-sm font-medium leading-4 text-gray-800 dark:text-gray-800-dark md:text-base md:leading-5">
                   {item.label || item.choice}
                 </span>
-                <span className="shrink-0 tabular-nums text-gray-600 dark:text-gray-600-dark">
+                <span className="shrink-0 text-sm tabular-nums leading-4 text-gray-600 dark:text-gray-600-dark md:text-base md:leading-6">
                   {pct}
                 </span>
               </>
@@ -110,6 +138,16 @@ const CompactLegendBar: FC<Props> = ({
           </div>
         );
       })}
+
+      {hiddenCount > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowAll(true)}
+          className="overflow-hidden text-ellipsis text-sm font-medium leading-4 text-gray-500 underline decoration-gray-400 dark:text-gray-500-dark dark:decoration-gray-400-dark md:text-base md:leading-5"
+        >
+          {t("nMore", { count: hiddenCount })}
+        </button>
+      )}
     </div>
   );
 };
