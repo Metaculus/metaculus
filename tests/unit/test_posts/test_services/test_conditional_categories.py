@@ -1,3 +1,7 @@
+import datetime
+
+from django.utils.timezone import make_aware
+
 from posts.services.common import (
     get_conditional_categories,
     sync_conditional_categories,
@@ -17,11 +21,18 @@ class TestConditionalCategoryPropagation:
         cat_b = factory_project(type=Project.ProjectTypes.CATEGORY, name="Category B")
         cat_c = factory_project(type=Project.ProjectTypes.CATEGORY, name="Category C")
 
+        scheduled_close = make_aware(datetime.datetime(2024, 1, 1))
+        scheduled_resolve = make_aware(datetime.datetime(2024, 6, 1))
+
         condition = create_question(
             question_type=Question.QuestionType.BINARY,
+            scheduled_close_time=scheduled_close,
+            scheduled_resolve_time=scheduled_resolve,
         )
         condition_child = create_question(
             question_type=Question.QuestionType.BINARY,
+            scheduled_close_time=scheduled_close,
+            scheduled_resolve_time=scheduled_resolve,
         )
 
         factory_post(
@@ -111,9 +122,7 @@ class TestConditionalCategoryPropagation:
         # User edits the post with only cat_a in the categories payload
         update_post(post, categories=[cat_a])
 
-        post_categories = set(
-            post.projects.filter(type=Project.ProjectTypes.CATEGORY)
-        )
+        post_categories = set(post.projects.filter(type=Project.ProjectTypes.CATEGORY))
         # Inherited categories must still be present
         assert cat_a in post_categories
         assert cat_b in post_categories
