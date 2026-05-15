@@ -168,7 +168,7 @@ const NumericForecastCard: FC<Props> = ({
     >
       <ForecastCardWrapper
         otherItemsCount={hiddenCount}
-        expanded={false}
+        expanded={expanded}
         onExpand={() => {
           setExpanded(true);
           setIsExpanded(true);

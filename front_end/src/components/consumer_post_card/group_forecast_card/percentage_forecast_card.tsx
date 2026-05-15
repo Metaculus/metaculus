@@ -90,7 +90,7 @@ const PercentageForecastCard: FC<Props> = ({
   const isPostClosed = post.status === PostStatus.CLOSED;
 
   const collapsedChoices = allChoices.slice(0, visibleChoicesCount);
-  const hiddenCount = allChoices.length - visibleChoicesCount;
+  const hiddenCount = Math.max(0, allChoices.length - visibleChoicesCount);
 
   const renderBars = (choices: typeof allChoices, stretchBars = false) =>
     choices.map((choice) => (
@@ -118,7 +118,7 @@ const PercentageForecastCard: FC<Props> = ({
     >
       <ForecastCardWrapper
         otherItemsCount={hiddenCount}
-        expanded={false}
+        expanded={expanded}
         onExpand={() => {
           setExpanded(true);
           setIsExpanded(true);
