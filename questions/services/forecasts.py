@@ -187,7 +187,6 @@ def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
     for withdrawal in withdrawals:
         question = cast(Question, withdrawal["question"])
         post = question.get_post()
-        posts.add(post)
 
         withdraw_at = withdrawal["withdraw_at"]
 
@@ -205,6 +204,8 @@ def withdraw_forecast_bulk(user: User = None, withdrawals: list[dict] = None):
         # questions the user never forecasted on).
         if not user_forecasts.exists():
             continue
+
+        posts.add(post)
 
         forecast_to_terminate = user_forecasts.first()
         forecast_to_terminate.end_time = withdraw_at
