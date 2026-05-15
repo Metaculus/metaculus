@@ -52,11 +52,14 @@ type Props = QuestionsDataProps & {
   embedMode?: boolean;
   withLegend?: boolean;
   className?: string;
+  externalHighlightedChoice?: string | null;
   prioritizeOpen?: boolean;
   timelineMarkers?: GroupTimelineMarker[];
   activeTimelineMarkerId?: string | null;
   onTimelineMarkerEnter?: (marker: GroupTimelineMarker) => void;
   onTimelineMarkerLeave?: (marker: GroupTimelineMarker) => void;
+  withHighlightArea?: boolean;
+  withHighlightEndpoint?: boolean;
 };
 
 /**
@@ -86,6 +89,9 @@ const GroupTimeline: FC<Props> = ({
   activeTimelineMarkerId,
   onTimelineMarkerEnter,
   onTimelineMarkerLeave,
+  externalHighlightedChoice,
+  withHighlightArea,
+  withHighlightEndpoint,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -167,6 +173,17 @@ const GroupTimeline: FC<Props> = ({
   useEffect(() => {
     setChoiceItems(generateList(questions, group, preselectedQuestionId));
   }, [questions, preselectedQuestionId, generateList, group]);
+
+  // apply external highlight from parent (e.g. consumer row hover)
+  useEffect(() => {
+    if (externalHighlightedChoice === undefined) return;
+    setChoiceItems((prev) =>
+      prev.map((item) => ({
+        ...item,
+        highlighted: item.choice === externalHighlightedChoice,
+      }))
+    );
+  }, [externalHighlightedChoice]);
 
   const [cursorTimestamp, _tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);
@@ -335,6 +352,8 @@ const GroupTimeline: FC<Props> = ({
       activeTimelineMarkerId={activeTimelineMarkerId}
       onTimelineMarkerEnter={onTimelineMarkerEnter}
       onTimelineMarkerLeave={onTimelineMarkerLeave}
+      withHighlightArea={withHighlightArea}
+      withHighlightEndpoint={withHighlightEndpoint}
     />
   );
 };

@@ -87,6 +87,7 @@ const QuestionTimeline: React.FC<Props> = ({
           <DetailedGroupCard
             post={postData}
             preselectedQuestionId={preselectedGroupQuestionId}
+            withLegend={!isConsumerView}
           />
         )}
       </div>

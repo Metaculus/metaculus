@@ -5,6 +5,9 @@ import { FC, Fragment, ReactNode, useEffect } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_status_box";
+import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
+import PercentageForecastCard from "@/components/consumer_post_card/group_forecast_card/percentage_forecast_card";
+import TimeSeriesChart from "@/components/consumer_post_card/time_series_chart";
 import UpcomingCP from "@/components/consumer_post_card/upcoming_cp";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
@@ -15,14 +18,15 @@ import { useHideCP } from "@/contexts/cp_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import {
   GroupOfQuestionsGraphType,
+  GroupOfQuestionsPost,
   PostStatus,
   PostWithForecasts,
   QuestionStatus,
 } from "@/types/post";
 import { TournamentType } from "@/types/projects";
-import { QuestionType } from "@/types/question";
-import cn from "@/utils/core/cn";
+import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
+import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 import {
   checkGroupOfQuestionsPostType,
   isContinuousQuestion,
@@ -40,15 +44,17 @@ import PostScoreData from "../post_score_data";
 import { QuestionLayoutProvider } from "../question_layout/question_layout_context";
 import { QuestionVariantComposer } from "../question_variant_composer";
 import ActionRow from "../question_view/action_row";
+import ConsumerGroupChart from "../question_view/consumer_question_view/consumer_group_chart";
+import ConsumerListChartShell from "../question_view/consumer_question_view/consumer_list_chart_shell";
 import ConsumerQuestionPrediction from "../question_view/consumer_question_view/prediction";
 import QuestionTimeline from "../question_view/consumer_question_view/timeline";
 import QuestionHeaderCPStatus from "../question_view/forecaster_question_view/question_header/question_header_cp_status";
 import RevealCPButton from "../reveal_cp_button";
 
 const baseSectionClassName =
-  "relative z-10 flex w-[59rem] max-w-full flex-col gap-6 overflow-x-clip rounded border border-blue-400 p-4 text-gray-900 dark:border-blue-200-dark dark:text-gray-900-dark lg:p-8";
+  "relative flex w-[59rem] max-w-full flex-col gap-6 overflow-x-clip rounded border border-blue-400 p-4 text-gray-900 dark:border-blue-200-dark dark:text-gray-900-dark lg:p-8";
 
-const mainSectionClassName = `${baseSectionClassName} bg-gray-0 dark:bg-gray-0-dark`;
+const mainSectionClassName = `${baseSectionClassName} z-10 bg-gray-0 dark:bg-gray-0-dark`;
 const commentSectionClassName = `${baseSectionClassName} bg-blue-100 dark:bg-gray-0-dark`;
 
 type ShellProps = {
@@ -147,9 +153,6 @@ export const ConsumerShell: FC<{
   const isMultipleChoice = isMultipleChoicePost(postData);
   const isNonFanGroup = isGroupOfQuestionsPost(postData) && !isFanGraph;
 
-  const reverseOrder =
-    (isMultipleChoice || isGroupOfQuestionsPost(postData)) && !isDateGroup;
-
   const isContinuousSingleQuestion =
     isQuestionPost(postData) && isContinuousQuestion(postData.question);
 
@@ -158,16 +161,20 @@ export const ConsumerShell: FC<{
     !isContinuousSingleQuestion &&
     !isMultipleChoice;
 
+  const isNRowBody =
+    isMultipleChoice || (isNonFanGroup && !isDateGroup) || isFanGraph;
+
+  const isContinuousNumericGroup =
+    isNonFanGroup &&
+    !isDateGroup &&
+    !isMultipleChoice &&
+    (checkGroupOfQuestionsPostType(postData, QuestionType.Numeric) ||
+      checkGroupOfQuestionsPostType(postData, QuestionType.Discrete));
+
   const binaryForecastAvailability =
     isBinarySingleQuestion && isQuestionPost(postData)
       ? getQuestionForecastAvailability(postData.question)
       : null;
-
-  const showSideBySide =
-    isMultipleChoice ||
-    isNonFanGroup ||
-    isBinarySingleQuestion ||
-    isContinuousSingleQuestion;
 
   const showClosedMessageMultipleChoice =
     isMultipleChoicePost(postData) &&
@@ -175,6 +182,14 @@ export const ConsumerShell: FC<{
 
   const showClosedMessageFanGraph =
     isFanGraph && postData.status === PostStatus.CLOSED;
+
+  const fanGraphQuestions = isFanGraph
+    ? sortGroupPredictionOptions(
+        (postData.group_of_questions?.questions ??
+          []) as QuestionWithNumericForecasts[],
+        postData.group_of_questions
+      )
+    : null;
 
   const questionLinkAggregates =
     aggregateCoherenceLinks?.data.filter(isDisplayableQuestionLink) ?? [];
@@ -218,21 +233,8 @@ export const ConsumerShell: FC<{
               {t("predictionClosedMessage")}
             </p>
           )}
-          <div
-            className={cn(
-              "flex flex-col",
-              reverseOrder &&
-                !isMultipleChoice &&
-                !isNonFanGroup &&
-                "flex-col-reverse",
-              showSideBySide &&
-                cn("sm:flex-row sm:items-center", {
-                  "sm:gap-0 md:gap-8": isBinarySingleQuestion,
-                  "sm:gap-8": !isBinarySingleQuestion,
-                })
-            )}
-          >
-            {isBinarySingleQuestion && isQuestionPost(postData) ? (
+          {isBinarySingleQuestion && isQuestionPost(postData) ? (
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-0 md:gap-8">
               <div className="order-1 flex w-64 flex-col items-center justify-center gap-[18px] self-center sm:self-stretch">
                 {hideCP ? (
                   <RevealCPButton />
@@ -247,47 +249,85 @@ export const ConsumerShell: FC<{
                   />
                 )}
               </div>
-            ) : (
-              <div
-                className={cn(
-                  showSideBySide && !isDateGroup ? "order-1" : undefined,
-                  isContinuousSingleQuestion && "md:hidden",
-                  showSideBySide &&
-                    !isDateGroup &&
-                    !isContinuousSingleQuestion &&
-                    "sm:max-w-[200px]",
-                  hideCP &&
-                    !isContinuousSingleQuestion &&
-                    (isDateGroup || isFanGraph) &&
-                    "flex w-full justify-center"
-                )}
-              >
-                {hideCP && !isContinuousSingleQuestion ? (
-                  <RevealCPButton />
-                ) : (
-                  <ConsumerQuestionPrediction postData={postData} />
-                )}
-              </div>
-            )}
-            {!isFanGraph && !isDateGroup && (
               <QuestionTimeline
                 postData={postData}
                 keyFactors={postData.key_factors}
-                isConsumerView={true}
+                isConsumerView
                 preselectedGroupQuestionId={preselectedGroupQuestionId}
-                className={cn(
-                  "hidden sm:block",
-                  showSideBySide && "order-2 mt-0 flex-1",
-                  isContinuousSingleQuestion && "mt-0"
-                )}
+                className="order-2 mt-0 hidden flex-1 sm:block"
               />
-            )}
-            {showClosedMessageFanGraph && (
-              <p className="my-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
-                {t("predictionClosedMessage")}
-              </p>
-            )}
-          </div>
+            </div>
+          ) : isContinuousSingleQuestion ? (
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-8">
+              <div className="order-1 md:hidden">
+                <ConsumerQuestionPrediction postData={postData} />
+              </div>
+              <QuestionTimeline
+                postData={postData}
+                keyFactors={postData.key_factors}
+                isConsumerView={false}
+                preselectedGroupQuestionId={preselectedGroupQuestionId}
+                className="order-2 mt-0 hidden flex-1 sm:block"
+              />
+            </div>
+          ) : isNRowBody ? (
+            <>
+              <ConsumerListChartShell
+                stretchListContent={!hideCP && !isFanGraph}
+                listContent={
+                  hideCP ? (
+                    <RevealCPButton />
+                  ) : isFanGraph && fanGraphQuestions ? (
+                    <TimeSeriesChart
+                      questions={fanGraphQuestions}
+                      variant="colorful"
+                      height={180}
+                    />
+                  ) : isContinuousNumericGroup ? (
+                    <NumericForecastCard post={postData} fillHeight />
+                  ) : (
+                    <PercentageForecastCard
+                      post={postData}
+                      forceColorful
+                      fillHeight
+                    />
+                  )
+                }
+                chartContent={
+                  isFanGraph ? (
+                    <DetailedGroupCard
+                      post={
+                        postData as GroupOfQuestionsPost<QuestionWithNumericForecasts>
+                      }
+                      preselectedQuestionId={preselectedGroupQuestionId}
+                    />
+                  ) : isContinuousNumericGroup ? (
+                    <ConsumerGroupChart
+                      post={
+                        postData as GroupOfQuestionsPost<QuestionWithNumericForecasts>
+                      }
+                      preselectedQuestionId={preselectedGroupQuestionId}
+                    />
+                  ) : (
+                    <QuestionTimeline
+                      postData={postData}
+                      keyFactors={postData.key_factors}
+                      isConsumerView
+                      preselectedGroupQuestionId={preselectedGroupQuestionId}
+                      className="mt-0"
+                    />
+                  )
+                }
+              />
+              {showClosedMessageFanGraph && (
+                <p className="my-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
+                  {t("predictionClosedMessage")}
+                </p>
+              )}
+            </>
+          ) : (
+            <ConsumerQuestionPrediction postData={postData} />
+          )}
         </div>
         {shouldShowKeyFactorsSection && (
           <div className="order-3 sm:order-none">

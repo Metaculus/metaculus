@@ -99,6 +99,7 @@ const DetailedQuestionCard: FC<Props> = ({
             onLegendHeightChange={onLegendHeightChange}
             chartTheme={chartTheme}
             defaultZoom={defaultZoom}
+            isConsumerView={isConsumerView}
           />
         </DetailsQuestionCardErrorBoundary>
       );

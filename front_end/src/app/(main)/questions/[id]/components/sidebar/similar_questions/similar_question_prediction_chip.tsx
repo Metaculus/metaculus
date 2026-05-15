@@ -36,14 +36,19 @@ const SimilarPredictionChip: FC<Props> = ({ post, variant }) => {
     ) {
       return (
         <div className="w-full">
-          <PercentageForecastCard post={post} forceColorful compact />
+          <PercentageForecastCard
+            post={post}
+            forceColorful
+            compact
+            buttonVariant="minimal"
+          />
         </div>
       );
     }
     if (isGroupOfQuestionsPost(post)) {
       return (
         <div className="w-full">
-          <GroupForecastCard post={post} compact />
+          <GroupForecastCard post={post} compact buttonVariant="minimal" />
         </div>
       );
     }

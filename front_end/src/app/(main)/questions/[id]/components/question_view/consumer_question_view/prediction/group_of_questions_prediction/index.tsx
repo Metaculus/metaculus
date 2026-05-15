@@ -4,6 +4,7 @@ import PercentageForecastCard from "@/components/consumer_post_card/group_foreca
 import TimeSeriesChart from "@/components/consumer_post_card/time_series_chart";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
+import cn from "@/utils/core/cn";
 import { getGroupForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 import {
@@ -13,9 +14,13 @@ import {
 
 type Props = {
   postData: PostWithForecasts;
+  className?: string;
 };
 
-const GroupOfQuestionsPrediction: React.FC<Props> = ({ postData }) => {
+const GroupOfQuestionsPrediction: React.FC<Props> = ({
+  postData,
+  className,
+}) => {
   let content: React.ReactNode | null = null;
 
   if (
@@ -72,7 +77,7 @@ const GroupOfQuestionsPrediction: React.FC<Props> = ({ postData }) => {
       ? "md:mb-7"
       : "md:mt-7";
 
-  return <div className={wrapperClass}>{content}</div>;
+  return <div className={cn(wrapperClass, className)}>{content}</div>;
 };
 
 export default GroupOfQuestionsPrediction;
