@@ -289,7 +289,7 @@ const MultiChoicesChartView: FC<Props> = ({
                 <div {...legendEnterProps}>
                   <CompactLegendBar
                     items={choiceItems}
-                    questionType={QuestionType.Binary}
+                    questionType={QuestionType.MultipleChoice}
                     onChoiceChange={handleChoiceChange}
                     onChoiceHighlight={handleChoiceHighlight}
                   />
