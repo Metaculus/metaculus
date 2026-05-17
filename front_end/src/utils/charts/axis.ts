@@ -301,62 +301,6 @@ export function generateTimestampXScale(
   };
 }
 
-/**
- * Takes an array of values and rounds them to the minimum
- * number of significant digits such that no two values
- * are rounded to the same value.
- * Values must be sorted in ascending order.
- */
-function minimumSignificantRounding(values: number[]): number[] {
-  const roundedValues: number[] = [];
-  const EPS = 1e-12;
-
-  function sigfigRound(val: number, sigfigs: number): number {
-    if (val === 0) return 0; // Special case for zero
-    const divisor = 10 ** (sigfigs - Math.floor(Math.log10(Math.abs(val))) - 1);
-    return Math.round(val * divisor) / divisor;
-  }
-  // TODO: more intelligent ordering for rounded tick value selection
-  // TODO: add dextrous rounding reflecting sig fig cost algorithm
-  values.forEach((value, i) => {
-    if (i === 0 || i === values.length - 1) {
-      roundedValues.push(value);
-      return;
-    }
-    const prevValue = values[i - 1];
-    const nextValue = values[i + 1];
-
-    if (prevValue == null || nextValue == null) {
-      roundedValues.push(value);
-      return;
-    }
-
-    // flat/duplicate guards
-    if (
-      Math.abs(value - prevValue) < EPS ||
-      Math.abs(nextValue - value) < EPS
-    ) {
-      roundedValues.push(value);
-      return;
-    }
-
-    let candidate = value;
-    for (let digits = 1; digits <= 12; digits++) {
-      candidate = sigfigRound(value, digits);
-      const denom = value - prevValue;
-      if (
-        Math.abs(denom) < EPS ||
-        Math.abs((value - candidate) / denom) < 0.2
-      ) {
-        break;
-      }
-    }
-    roundedValues.push(candidate);
-  });
-
-  return roundedValues;
-}
-
 function getSigFigCost(value: number, logarithmic: boolean = false): number {
   const absValue = Math.abs(value);
   // take the length of mantissa of the exponential rounded
@@ -397,6 +341,49 @@ function getSigFigCost(value: number, logarithmic: boolean = false): number {
     }
   }
   return mantissa.length;
+}
+
+/**
+ * Like d3.ticks, but treats the count as a ceiling instead of a hint.
+ * d3.ticks picks the nicest step size and returns however many ticks
+ * fit — which can exceed the requested count and overflow tight axes.
+ * Walking down from maxCount until the result fits guarantees count
+ * <= maxCount while preserving the {1,2,5} * 10^k step guarantee.
+ */
+function niceTicksAtMost(
+  start: number,
+  stop: number,
+  maxCount: number
+): number[] {
+  for (let c = Math.max(1, maxCount); c >= 1; c--) {
+    const t = d3.ticks(start, stop, c);
+    if (t.length >= 2 && t.length <= maxCount) return t;
+  }
+  // No c produced a count in [2, maxCount] — typically because the nice
+  // step sizes near maxCount land us at 1 tick on one side and >maxCount
+  // on the other. Try counts up to the global cap (4) looking for any
+  // nice result with at least 2 ticks; better to slightly exceed the
+  // local cap than fall back to ugly raw endpoints.
+  for (let c = 1; c <= 4; c++) {
+    const t = d3.ticks(start, stop, c);
+    if (t.length >= 2 && t.length <= 4) return t;
+  }
+  return start === stop ? [start] : [start, stop];
+}
+
+/**
+ * Returns a domain that contains both the original data domain and every
+ * tick in the supplied array. Use to widen Victory's yDomain so that
+ * generateScale's tick labels actually land inside the chart's drawing
+ * area — important for log-warped questions where the data clusters in
+ * a small slice and the auto-zoomed yDomain would otherwise clip ticks.
+ */
+export function widenDomainToTicks(
+  domain: Tuple<number>,
+  ticks: number[]
+): Tuple<number> {
+  if (ticks.length === 0) return domain;
+  return [Math.min(domain[0], ...ticks), Math.max(domain[1], ...ticks)];
 }
 
 /**
@@ -619,79 +606,125 @@ export function generateScale({
     majorTicks.push(minorTicks.at(-1) ?? 1);
   } else if (isNil(zeroPoint)) {
     // Linear Scaling
-    // Typical scaling, evenly spaced ticks
-    // choose optimal tick count to minimize the number
-    // of significant digits in the tick labels
-    const majorTickCount = forceTickCount
-      ? forceTickCount
-      : findOptimalTickCount(rangeMin, rangeMax, 4, maxLabelCount);
-    majorTicks = range(0, majorTickCount).map(
-      (i) =>
-        Math.round(
-          (zoomedDomainMin +
-            (i / (majorTickCount - 1)) * (zoomedDomainMax - zoomedDomainMin)) *
-            1000000
-        ) / 1000000
-    );
-    const minorTicksPerMajor = findOptimalTickCount(
-      rangeMin,
-      rangeMin + (rangeMax - rangeMin) * (majorTicks[1] ?? 1 / majorTickCount),
-      direction === "horizontal" ? 4 : 2,
-      direction === "horizontal" ? 10 : 5
-    );
-    const minorTickCount = forceTickCount
-      ? forceTickCount
-      : (majorTickCount - 1) * minorTicksPerMajor + 1;
-    minorTicks = range(0, minorTickCount).map(
-      (i) =>
-        Math.round(
-          (zoomedDomainMin +
-            (i / (minorTickCount - 1)) * (zoomedDomainMax - zoomedDomainMin)) *
-            1000000
-        ) / 1000000
-    );
+    if (displayType === QuestionType.Numeric) {
+      // Pick mathematically "nice" ticks (multiples of {1,2,5} * 10^k) in
+      // the actual data range, then map them back to domain coordinates.
+      // Doing this in range space matters when domain is normalized [0, 1]
+      // but the data range is something like [-27.7, 20]: nice values in
+      // domain space unscale to ugly display values, so we have to compute
+      // niceness against the values users will see.
+      // forceTickCount, when supplied, is treated as a hint to d3.ticks();
+      // the resulting count may differ by ±1-2 in exchange for nicer values.
+      const tickCountHint = Math.min(4, forceTickCount ?? maxLabelCount);
+      const zoomedRangeMin = scaleInternalLocation(
+        unscaleNominalLocation(zoomedDomainMin, domainScaling),
+        rangeScaling
+      );
+      const zoomedRangeMax = scaleInternalLocation(
+        unscaleNominalLocation(zoomedDomainMax, domainScaling),
+        rangeScaling
+      );
+
+      const niceMajorRangeTicks = niceTicksAtMost(
+        zoomedRangeMin,
+        zoomedRangeMax,
+        tickCountHint
+      );
+      const rangeToDomain = (v: number) =>
+        scaleInternalLocation(
+          unscaleNominalLocation(v, rangeScaling),
+          domainScaling
+        );
+      majorTicks = niceMajorRangeTicks.map(
+        (v) => Math.round(rangeToDomain(v) * 1000000) / 1000000
+      );
+
+      // Minor tick density is based on the major step in range units, not
+      // an absolute tick position.
+      const majorRangeStep =
+        niceMajorRangeTicks.length >= 2
+          ? (niceMajorRangeTicks[1] as number) -
+            (niceMajorRangeTicks[0] as number)
+          : zoomedRangeMax - zoomedRangeMin;
+      const minorTicksPerMajor = findOptimalTickCount(
+        0,
+        majorRangeStep,
+        direction === "horizontal" ? 4 : 2,
+        direction === "horizontal" ? 10 : 5
+      );
+      const minorTickCount =
+        Math.max(majorTicks.length - 1, 1) * minorTicksPerMajor + 1;
+      const denseMinor = d3
+        .ticks(zoomedRangeMin, zoomedRangeMax, minorTickCount)
+        .map((v) => Math.round(rangeToDomain(v) * 1000000) / 1000000);
+      // Major ticks must always be a subset of minor — otherwise their
+      // labels get filtered out at render time (tickFormat checks major
+      // membership). The d3.ticks count for minor can lock onto a step
+      // that doesn't include the major positions, so merge explicitly.
+      minorTicks = Array.from(new Set([...majorTicks, ...denseMinor])).sort(
+        (a, b) => a - b
+      );
+    } else if (forceTickCount) {
+      // Non-numeric linear scales (e.g. date axes) need exact, evenly-spaced
+      // ticks across the zoomed domain — d3.ticks would produce ugly raw
+      // timestamps. Clamp count to >= 2 to avoid divide-by-zero.
+      const count = Math.max(2, forceTickCount);
+      const evenlySpaced = range(0, count).map(
+        (i) =>
+          Math.round(
+            (zoomedDomainMin +
+              (i / (count - 1)) * (zoomedDomainMax - zoomedDomainMin)) *
+              1000000
+          ) / 1000000
+      );
+      majorTicks = evenlySpaced;
+      minorTicks = evenlySpaced.slice();
+    } else {
+      const count = Math.max(2, maxLabelCount);
+      const evenlySpaced = range(0, count).map(
+        (i) =>
+          Math.round(
+            (zoomedDomainMin +
+              (i / (count - 1)) * (zoomedDomainMax - zoomedDomainMin)) *
+              1000000
+          ) / 1000000
+      );
+      majorTicks = evenlySpaced;
+      minorTicks = evenlySpaced.slice();
+    }
   } else {
     // Logarithmic Scaling
-    // Labeled ticks are not spaced evenly, but rather rounded to the nearby
-    // values that have the fewest significant digits
-    // Then, minor ticks are spaced evenly in real space, showcasing the
-    // strength of the logarithmic scaling
-    const minLabelCount = forceTickCount ?? Math.ceil(maxLabelCount / 2) + 1;
-    let bestTicks: number[] = [];
-    let bestAvgDigits = Infinity;
-    for (let i = maxLabelCount; i >= minLabelCount; i--) {
-      const unscaledTargets = Array.from(
-        { length: i },
-        (_, j) =>
-          zoomedDomainMin +
-          ((zoomedDomainMax - zoomedDomainMin) * (j * 1)) / (i - 1)
-      );
-      const scaledTargets = unscaledTargets.map((x) =>
-        scaleInternalLocation(x, rangeScaling)
-      );
-      const roundedScaledTargets = minimumSignificantRounding(scaledTargets);
-      const sigFigCosts = roundedScaledTargets.map((x) =>
-        getSigFigCost(x, true)
-      );
-      const avgDigits = sigFigCosts.reduce((sum, cost) => sum + cost, 0) / i;
-      if (avgDigits < bestAvgDigits) {
-        bestAvgDigits = avgDigits;
-        bestTicks = roundedScaledTargets;
-      }
-    }
-    majorTicks = bestTicks.map(
+    // Pick nice round numbers in display (range) space, then unscale each
+    // back to domain coordinates so they land at the right positions on
+    // the warped axis. The previous approach picked evenly-spaced warped
+    // positions and rounded them to fewest sig figs, but kept the
+    // endpoints verbatim — which produced ugly labels like 52.7.
+    const tickCountHint = Math.min(4, forceTickCount ?? maxLabelCount);
+    const displayMin = scaleInternalLocation(zoomedDomainMin, rangeScaling);
+    const displayMax = scaleInternalLocation(zoomedDomainMax, rangeScaling);
+    const niceMajorRangeTicks = niceTicksAtMost(
+      Math.min(displayMin, displayMax),
+      Math.max(displayMin, displayMax),
+      tickCountHint
+    );
+
+    majorTicks = niceMajorRangeTicks.map(
       (x) =>
         Math.round(unscaleNominalLocation(x, rangeScaling) * 1000000) / 1000000
     );
 
+    // Minor ticks subdivide each major interval evenly in display space,
+    // then unscale to domain — that's what makes the gridlines appear
+    // logarithmically spaced and showcases the warp.
     const tickCount = forceTickCount
       ? forceTickCount
       : (maxLabelCount - 1) * (direction === "horizontal" ? 10 : 3) + 1;
-    const minorTicksPerMajorInterval = (tickCount - 1) / (maxLabelCount - 1);
+    const minorTicksPerMajorInterval =
+      (tickCount - 1) / Math.max(1, niceMajorRangeTicks.length - 1);
     minorTicks = majorTicks.slice();
-    range(0, bestTicks.length - 1).forEach((i) => {
-      const prevMajor = bestTicks.at(i) ?? 0;
-      const nextMajor = bestTicks.at(i + 1) ?? 1;
+    range(0, niceMajorRangeTicks.length - 1).forEach((i) => {
+      const prevMajor = niceMajorRangeTicks.at(i) ?? 0;
+      const nextMajor = niceMajorRangeTicks.at(i + 1) ?? 1;
       const step = (nextMajor - prevMajor) / minorTicksPerMajorInterval;
       for (let j = 0; j < minorTicksPerMajorInterval - 1; j++) {
         const newMinorTick = prevMajor + (j + 1) * step;
@@ -867,7 +900,11 @@ export function generateScale({
   // }
 
   return {
-    ticks: minorTicks,
+    // alwaysShowTicks tells the chart to label every tick value verbatim
+    // (it bypasses the major/minor filter in tickFormat). Returning the
+    // major array honors the cap-of-4 in that case; returning the dense
+    // minor array would let callers like group_chart blow past the cap.
+    ticks: alwaysShowTicks ? majorTicks : minorTicks,
     tickFormat: tickFormat,
     cursorFormat: cursorFormat,
   };

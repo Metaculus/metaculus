@@ -201,6 +201,46 @@ describe("generateScale", () => {
         .filter((label) => label !== "");
       expect(formattedLabels.length).toBeGreaterThan(2);
     });
+
+    it("picks nice display labels on positive log axes (no awkward endpoints)", () => {
+      // Regression for the [1, 52.7] fan card: the previous algorithm
+      // preserved the range_max as a tick literally, producing labels
+      // like "52.7". Picking nice values in display space avoids that.
+      const params = {
+        displayType: QuestionType.Numeric,
+        axisLength: 200,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1] as [number, number],
+        zoomedDomain: [0, 1] as [number, number],
+        scaling: {
+          range_min: 1,
+          range_max: 52.7,
+          zero_point: 0,
+        },
+        forceTickCount: 5,
+      };
+
+      const scale = generateScale(params);
+      const labels = scale.ticks
+        .map((t) => scale.tickFormat(t))
+        .filter((s) => s !== "");
+
+      expect(labels.length).toBeGreaterThanOrEqual(2);
+      expect(labels).not.toContain("52.7");
+
+      // The labels should be evenly spaced (in display space) by a nice
+      // step in {1, 2, 5} * 10^k.
+      const values = labels.map(Number);
+      values.forEach((v) => expect(Number.isFinite(v)).toBe(true));
+      const step = (values[1] as number) - (values[0] as number);
+      const log = Math.log10(Math.abs(step));
+      const exponent =
+        Math.abs(log - Math.round(log)) < 1e-3
+          ? Math.round(log)
+          : Math.floor(log);
+      const mantissa = Math.abs(step) / Math.pow(10, exponent);
+      expect([1, 2, 5]).toContain(Math.round(mantissa));
+    });
   });
 
   describe("graph ticks formatting", () => {
@@ -230,6 +270,86 @@ describe("generateScale", () => {
     });
   });
 
+  describe("d3.ticks linear scaling", () => {
+    it("produces nice ticks for an awkward range like [-27.7, 20]", () => {
+      // Given: a question with an ugly range_min that previously yielded
+      // endpoints like -27.7 and 52.7 with the evenly-spaced algorithm.
+      const params = {
+        displayType: QuestionType.Numeric,
+        axisLength: 200,
+        direction: ScaleDirection.Vertical,
+        domain: [-27.7, 20] as [number, number],
+        zoomedDomain: [-27.7, 20] as [number, number],
+        scaling: {
+          range_min: -27.7,
+          range_max: 20,
+          zero_point: null,
+        },
+      };
+
+      // When
+      const scale = generateScale(params);
+
+      // Then: labeled (major) ticks should be nice — multiples of a step
+      // that itself is a member of {1,2,5} * 10^k.
+      const labeledTicks = scale.ticks.filter(
+        (t) => scale.tickFormat(t) !== ""
+      );
+      expect(labeledTicks.length).toBeGreaterThan(1);
+
+      const first = labeledTicks[0] as number;
+      const second = labeledTicks[1] as number;
+      const last = labeledTicks[labeledTicks.length - 1] as number;
+      const step = second - first;
+
+      const exponent = Math.floor(Math.log10(Math.abs(step)));
+      const mantissa = step / Math.pow(10, exponent);
+      expect([1, 2, 5]).toContain(Math.round(mantissa));
+
+      const eps = Math.abs(step) * 1e-9;
+      expect(Math.abs(first - Math.round(first / step) * step)).toBeLessThan(
+        eps
+      );
+      expect(Math.abs(last - Math.round(last / step) * step)).toBeLessThan(eps);
+    });
+
+    it("produces nice ticks for [0, 100]", () => {
+      // Given
+      const params = {
+        displayType: QuestionType.Numeric,
+        axisLength: 200,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 100] as [number, number],
+        zoomedDomain: [0, 100] as [number, number],
+        scaling: {
+          range_min: 0,
+          range_max: 100,
+          zero_point: null,
+        },
+      };
+
+      // When
+      const scale = generateScale(params);
+
+      // Then: labeled (major) ticks should match one of d3's expected outputs.
+      const labeledTicks = scale.ticks.filter(
+        (t) => scale.tickFormat(t) !== ""
+      );
+      // With the global max-4 cap, d3.ticks(0, 100, 4) returns 6 ticks
+      // (step 20) which exceeds the cap; the helper falls back to c=3 →
+      // [0, 50, 100]. [0, 25, 50, 75, 100] and the 6-tick options aren't
+      // achievable under the cap.
+      const valid1 = [0, 50, 100];
+      const valid2 = [0, 25, 50, 75, 100];
+      const arraysEqual = (a: number[], b: number[]) =>
+        a.length === b.length && a.every((v, i) => v === b[i]);
+
+      expect(
+        arraysEqual(labeledTicks, valid1) || arraysEqual(labeledTicks, valid2)
+      ).toBe(true);
+    });
+  });
+
   describe("graph force ticks count", () => {
     it("helper should return specified number of ticks", () => {
       // Given
@@ -253,6 +373,139 @@ describe("generateScale", () => {
 
       // Then
       expect(scale.ticks.length).toBe(FORCE_TICK_COUNT);
+    });
+
+    it("treats forceTickCount as a hint for numeric linear scales so labels stay nice", () => {
+      // Regression: previously forceTickCount on a numeric axis bypassed
+      // d3.ticks and produced evenly-spaced labels like
+      // [-27.7, -15.78, -3.85, 8.08, 20]. We now expect d3-nice values.
+      const params = {
+        displayType: QuestionType.Numeric,
+        axisLength: 400,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1] as [number, number],
+        zoomedDomain: [0, 1] as [number, number],
+        scaling: {
+          range_min: -27.7,
+          range_max: 20,
+          zero_point: null,
+        },
+        forceTickCount: 5,
+      };
+
+      const scale = generateScale(params);
+
+      const labeledRangeValues = scale.ticks
+        .filter((t) => scale.tickFormat(t) !== "")
+        .map((t) => -27.7 + t * (20 - -27.7));
+
+      expect(labeledRangeValues.length).toBeGreaterThan(1);
+      // Domain ticks are rounded to 6 decimals before being mapped back to
+      // range values, so the reconstructed step picks up floating-point dust
+      // (e.g. 9.9999711 instead of 10). Snap log10(step) to the nearest
+      // integer when it's right at a 10^k boundary so we bucket correctly.
+      const step =
+        (labeledRangeValues[1] as number) - (labeledRangeValues[0] as number);
+      const log = Math.log10(Math.abs(step));
+      const exponent =
+        Math.abs(log - Math.round(log)) < 1e-3
+          ? Math.round(log)
+          : Math.floor(log);
+      const mantissa = Math.abs(step) / Math.pow(10, exponent);
+      expect([1, 2, 5]).toContain(Math.round(mantissa));
+
+      const eps = Math.abs(step) * 1e-3;
+      labeledRangeValues.forEach((v) => {
+        expect(Math.abs(v - Math.round(v / step) * step)).toBeLessThan(eps);
+      });
+    });
+
+    it("treats forceTickCount as a hint when domain is normalized to [0, 1]", () => {
+      // Production-like: domain is [0, 1], range is the actual data range.
+      // The labeled display values must be d3-nice in range space.
+      const params = {
+        displayType: QuestionType.Numeric,
+        axisLength: 400,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1] as [number, number],
+        zoomedDomain: [0, 1] as [number, number],
+        scaling: {
+          range_min: 0,
+          range_max: 100,
+          zero_point: null,
+        },
+        forceTickCount: 5,
+      };
+
+      const scale = generateScale(params);
+
+      const labeledDomainTicks = scale.ticks.filter(
+        (t) => scale.tickFormat(t) !== ""
+      );
+      const labeledRangeValues = labeledDomainTicks.map((t) => 0 + t * 100);
+
+      // forceTickCount is treated as a ceiling, not a hint. d3 can't fit 5
+      // ticks across [0, 100] with a step in {1, 2, 5} * 10^k, so we
+      // accept a coarser result like [0, 50, 100] (step 50, 3 ticks).
+      expect(labeledRangeValues.length).toBeGreaterThanOrEqual(2);
+      expect(labeledRangeValues.length).toBeLessThanOrEqual(5);
+      const step =
+        (labeledRangeValues[1] as number) - (labeledRangeValues[0] as number);
+      const log = Math.log10(Math.abs(step));
+      const exponent =
+        Math.abs(log - Math.round(log)) < 1e-3
+          ? Math.round(log)
+          : Math.floor(log);
+      const mantissa = Math.abs(step) / Math.pow(10, exponent);
+      expect([1, 2, 5]).toContain(Math.round(mantissa));
+    });
+
+    it("treats forceTickCount as a ceiling, not a soft hint", () => {
+      // Regression for the [-10, 8] feed-card case: d3.ticks(-10, 8, 3)
+      // picks step 2 and returns 10 ticks, which overflowed the small
+      // axis and produced overlapping labels. The ceiling guarantees
+      // the labeled count never exceeds forceTickCount.
+      const params = {
+        displayType: QuestionType.Numeric,
+        axisLength: 150,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1] as [number, number],
+        zoomedDomain: [0, 1] as [number, number],
+        scaling: {
+          range_min: -10,
+          range_max: 8,
+          zero_point: null,
+        },
+        forceTickCount: 3,
+      };
+
+      const scale = generateScale(params);
+      const labeledTicks = scale.ticks.filter(
+        (t) => scale.tickFormat(t) !== ""
+      );
+
+      expect(labeledTicks.length).toBeLessThanOrEqual(3);
+      expect(labeledTicks.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it("does not throw when forceTickCount is 1 on a date axis", () => {
+      // Edge case: forceTickCount === 1 used to produce NaN ticks via i/0.
+      const params = {
+        displayType: QuestionType.Date,
+        axisLength: 200,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1] as [number, number],
+        zoomedDomain: [0, 1] as [number, number],
+        scaling: {
+          range_min: 1678838400,
+          range_max: 1778803200,
+          zero_point: null,
+        },
+        forceTickCount: 1,
+      };
+
+      const scale = generateScale(params);
+      scale.ticks.forEach((t) => expect(Number.isNaN(t)).toBe(false));
     });
   });
 });

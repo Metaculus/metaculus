@@ -48,6 +48,7 @@ import {
   getAxisLeftPadding,
   getAxisRightPadding,
   getTickLabelFontSize,
+  widenDomainToTicks,
 } from "@/utils/charts/axis";
 import {
   calculateCharWidth,
@@ -881,6 +882,11 @@ function buildChartData({
     }
   });
 
+  // Widen yDomain to encompass every tick — log-warped questions cluster
+  // their data in a small slice and the auto-zoomed yDomain would clip
+  // tick labels that fall outside it.
+  const yDomain = widenDomainToTicks(finalZoom, yScale.ticks);
+
   return {
     communityLines,
     communityAreas,
@@ -889,7 +895,7 @@ function buildChartData({
     resolutionPoints,
     emptyPoints,
     yScale,
-    yDomain: finalZoom,
+    yDomain,
   };
 }
 
