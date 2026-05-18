@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import cn from "@/utils/core/cn";
 
 const glassClasses = cn(
