@@ -23,6 +23,7 @@ import ResolutionDiamond from "@/components/charts/primitives/resolution_diamond
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
+import { useBreakpoint } from "@/hooks/tailwind";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import {
@@ -149,6 +150,8 @@ const FanChart: FC<Props> = ({
 
   const [activePoint, setActivePoint] = useState<string | null>(null);
   const effectiveActivePoint = externalHighlightedLabel ?? activePoint;
+  const isMobile = !useBreakpoint("md");
+  const [pinnedOption, setPinnedOption] = useState<GroupFanDatum | null>(null);
 
   const forecastAvailability = useMemo(() => {
     if (group) return getGroupForecastAvailability(group.questions);
@@ -387,7 +390,9 @@ const FanChart: FC<Props> = ({
       {...tooltipConfig}
       onActivated={(points: { x: string }[]) => {
         const x = points[0]?.x;
-        if (!isNil(x)) setActivePoint(x);
+        if (!isNil(x)) {
+          setActivePoint(x);
+        }
       }}
     />
   );
@@ -432,6 +437,17 @@ const FanChart: FC<Props> = ({
   }, [isEmbedded, embedLegendNames, normOptions, yScale]);
   const isCompactEmbed = isEmbedded && !!chartWidth && chartWidth < 400;
 
+  const pinnedBarX = useMemo(() => {
+    if (!pinnedOption) return 1;
+    const dp = v.domainPadding(variantArgs).x[0];
+    const leftEdge = chartPadding.left + dp;
+    const rightEdge = chartWidth - chartPadding.right - dp;
+    const idx = normOptions.findIndex((o) => o.name === pinnedOption.name);
+    return normOptions.length <= 1
+      ? leftEdge
+      : leftEdge + (idx / (normOptions.length - 1)) * (rightEdge - leftEdge);
+  }, [pinnedOption, v, variantArgs, chartPadding, chartWidth, normOptions]);
+
   return (
     <div className="w-full">
       {isEmbedded && (
@@ -445,6 +461,37 @@ const FanChart: FC<Props> = ({
           ref={chartContainerRef}
           className="relative w-full"
           style={{ height }}
+          onTouchStartCapture={(e) => {
+            if (!isMobile || !withTooltip) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            const touchX = (e.touches[0]?.clientX ?? 0) - rect.left;
+
+            const dp = v.domainPadding(variantArgs).x[0];
+            const leftEdge = chartPadding.left + dp;
+            const rightEdge = chartWidth - chartPadding.right - dp;
+            const n = normOptions.length;
+            if (n === 0) return;
+
+            const optionIndex =
+              n === 1
+                ? 0
+                : Math.max(
+                    0,
+                    Math.min(
+                      n - 1,
+                      Math.round(
+                        ((touchX - leftEdge) / (rightEdge - leftEdge)) * (n - 1)
+                      )
+                    )
+                  );
+
+            const optionName = normOptions[optionIndex]?.name;
+            const opt = optionName
+              ? tooltipOptions.find((o) => o.name === optionName)
+              : null;
+
+            setPinnedOption(opt ?? null);
+          }}
         >
           {shouldDisplayChart && (
             <VictoryChart
@@ -455,7 +502,10 @@ const FanChart: FC<Props> = ({
               domainPadding={v.domainPadding(variantArgs)}
               padding={chartPadding}
               containerComponent={
-                withTooltip && !hideCP && !forecastAvailability?.cpRevealsOn ? (
+                withTooltip &&
+                !isMobile &&
+                !hideCP &&
+                !forecastAvailability?.cpRevealsOn ? (
                   containerWithTooltip
                 ) : (
                   <VictoryContainer
@@ -665,6 +715,19 @@ const FanChart: FC<Props> = ({
               forecastAvailability={forecastAvailability}
               className="text-xs lg:text-sm"
               textClassName="!max-w-[300px]"
+            />
+          )}
+          {pinnedOption && (
+            <ChartFanTooltip
+              key={pinnedOption.name}
+              x={Math.max(pinnedBarX, 1)}
+              y={50}
+              datum={{ xName: pinnedOption.name }}
+              options={tooltipOptions}
+              chartHeight={height}
+              hideCp={hideCP}
+              forecastAvailability={forecastAvailability}
+              skipOpacityHide
             />
           )}
         </div>
