@@ -23,6 +23,7 @@ const useChartTooltip = ({
 }: Props = {}) => {
   const [isActive, setIsActive] = useState(false);
   const { refs, floatingStyles, context } = useFloating({
+    strategy: "fixed",
     middleware: [
       offset(tooltipOffset),
       flip(),

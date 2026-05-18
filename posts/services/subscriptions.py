@@ -322,13 +322,13 @@ def notify_new_comments(post: Post):
         subscription.save()
 
 
-def get_post_lifespan_pct(post: Post) -> float | None:
+def get_post_lifespan_pct(post: Post) -> float:
     """
     Returns current post milestone
     """
 
     if not post.open_time or not post.scheduled_resolve_time:
-        return
+        return 0
 
     duration = post.scheduled_close_time - post.open_time
     passed = timezone.now() - post.open_time

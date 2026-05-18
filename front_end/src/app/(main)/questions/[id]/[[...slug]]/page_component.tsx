@@ -3,8 +3,7 @@ import { FC } from "react";
 
 import { CoherenceLinksProvider } from "@/app/(main)/components/coherence_links_provider";
 import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
-import CommunityHeader from "@/app/(main)/components/headers/community_header";
-import Header from "@/app/(main)/components/headers/header";
+import { TopChromeHeaderSetter } from "@/app/(main)/components/top_chrome_header_context";
 import HideCPProvider from "@/contexts/cp_context";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import { PostSubscriptionProvider } from "@/contexts/post_subscription_context";
@@ -43,12 +42,10 @@ const IndividualQuestionPage: FC<{
   }
 
   const isCommunityQuestion = defaultProject?.type === TournamentType.Community;
-  let currentCommunity = null;
-  if (isCommunityQuestion) {
-    currentCommunity = await ServerProjectsApi.getCommunity(
-      defaultProject.slug as string
-    );
-  }
+  const community =
+    isCommunityQuestion && defaultProject?.slug
+      ? await ServerProjectsApi.getCommunity(defaultProject.slug)
+      : null;
 
   const preselectedGroupQuestionId =
     extractPreselectedGroupQuestionId(searchParams);
@@ -61,15 +58,18 @@ const IndividualQuestionPage: FC<{
 
   return (
     <EmbedModalContextProvider>
+      {community && (
+        <TopChromeHeaderSetter
+          header={{
+            type: "community",
+            community,
+          }}
+        />
+      )}
       <CoherenceLinksProvider post={postData}>
         <CommentsFeedProvider postData={postData} rootCommentStructure={true}>
           <HideCPProvider post={postData}>
             <PostSubscriptionProvider post={postData}>
-              {isCommunityQuestion ? (
-                <CommunityHeader community={currentCommunity} />
-              ) : (
-                <Header />
-              )}
               <main
                 className={cn(
                   "mx-auto flex w-full max-w-max flex-col scroll-smooth py-4 md:py-10",

@@ -95,6 +95,7 @@ class TestQuestionForecast:
                         probability_yes_per_category=[0.6, 0.4],
                         start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
                         end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.API,
                     ),
                 ],
             ),  # simple path
@@ -113,6 +114,7 @@ class TestQuestionForecast:
                         probability_yes_per_category=[0.6, 0.15, 0.25],
                         start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
                         end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.API,
                     ),
                 ],
             ),  # simple path 3 options
@@ -133,6 +135,7 @@ class TestQuestionForecast:
                         probability_yes_per_category=[0.6, None, 0.4],
                         start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
                         end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.API,
                     ),
                 ],
             ),  # option deletion
@@ -155,6 +158,7 @@ class TestQuestionForecast:
                         probability_yes_per_category=[0.6, 0.15, 0.20, 0.05],
                         start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
                         end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.API,
                     ),
                 ],
             ),  # option addition
@@ -176,6 +180,7 @@ class TestQuestionForecast:
                         probability_yes_per_category=[0.6, 0.15, None, 0.25],
                         start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
                         end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.API,
                     ),
                     Forecast(
                         probability_yes_per_category=[0.6, 0.15, 0.20, 0.05],
@@ -204,6 +209,7 @@ class TestQuestionForecast:
                         probability_yes_per_category=[0.6, 0.15, None, 0.25],
                         start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
                         end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.API,
                     ),
                     Forecast(
                         probability_yes_per_category=[0.6, 0.15, 0.20, 0.05],
@@ -420,15 +426,22 @@ class TestQuestionWithdraw:
         )
         assert response.status_code == 201
 
-    def test_cant_withdraw_forecast_if_no_forecast(
-        self, question_binary_with_forecast_user_1, user2_client
+    def test_withdraw_forecast_no_forecast_is_noop(
+        self, question_binary_with_forecast_user_1, user2, user2_client
     ):
+        # Withdrawing for a question the user never forecasted on is a no-op
+        # so that bulk "withdraw all" works across mixed groups containing
+        # questions the user did not forecast on (e.g. resolved siblings).
         response = user2_client.post(
             self.url,
             data=json.dumps([{"question": question_binary_with_forecast_user_1.id}]),
             content_type="application/json",
         )
-        assert response.status_code == 400
+        assert response.status_code == 201
+        assert not Forecast.objects.filter(
+            question=question_binary_with_forecast_user_1,
+            author=user2,
+        ).exists()
 
 
 class TestQuestionResolve:
@@ -592,7 +605,6 @@ class TestQuestionForecastAutoWithdrawal:
                 "probability_yes": 0.8,
                 "probability_yes_per_category": None,
                 "distribution_input": None,
-                "source": "ui",
                 "end_time": (
                     forecast_end_time.isoformat() if forecast_end_time else None
                 ),
@@ -666,15 +678,19 @@ class TestQuestionForecastAutoWithdrawal:
             question_type=Question.QuestionType.BINARY,
             open_time=timezone.now() - timedelta(days=1),
             scheduled_close_time=timezone.now() + timedelta(days=200),
+            scheduled_resolve_time=timezone.now() + timedelta(days=200),
         )
 
         question2 = create_question(
             question_type=Question.QuestionType.BINARY,
             open_time=timezone.now() - timedelta(days=1),
             scheduled_close_time=timezone.now() + timedelta(days=29),
+            scheduled_resolve_time=timezone.now() + timedelta(days=29),
         )
-        factory_post(question=question1)
-        factory_post(question=question2)
+        post1 = factory_post(question=question1)
+        post1.update_pseudo_materialized_fields()
+        post2 = factory_post(question=question2)
+        post2.update_pseudo_materialized_fields()
         base_time = timezone.now()
 
         with freeze_time(base_time):

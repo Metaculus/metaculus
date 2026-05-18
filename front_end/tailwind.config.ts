@@ -14,8 +14,8 @@ const config: Config = {
     [
       // Dark mode: inside .dark, but not the .inverted/.force-light element or its children
       "&:is(.dark *):not(:is(.inverted, .inverted *, .force-light, .force-light *))",
-      // Inverted in light mode: the .inverted element itself OR its children, but not in dark mode
-      "&:is(.inverted, .inverted *):not(.dark *)",
+      // Inverted in light mode: the .inverted element itself OR its children, but not in dark mode or force-light
+      "&:is(.inverted, .inverted *):not(:is(.dark *, .force-light, .force-light *))",
     ],
   ],
   content: [
@@ -84,7 +84,7 @@ const config: Config = {
           "url(\"data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='4' ry='4' stroke='%236387A8FF' stroke-width='1' stroke-dasharray='4%2c 6' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e\")",
       },
       spacing: {
-        header: "3rem",
+        header: "var(--top-chrome-height,3rem)",
       },
       borderRadius: {
         xs: "2px",

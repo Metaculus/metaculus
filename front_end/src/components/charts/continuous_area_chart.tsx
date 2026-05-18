@@ -1,8 +1,16 @@
 "use client";
 import { isNil, merge } from "lodash";
 import { useLocale } from "next-intl";
-import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  FC,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
+  CursorCoordinatesPropType,
   Tuple,
   VictoryArea,
   VictoryAxis,
@@ -96,6 +104,8 @@ type Props = {
   globalScaling?: Scaling;
   outlineUser?: boolean;
   centerOOBResolution?: boolean;
+  animate?: object;
+  onChartReady?: () => void;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -116,11 +126,20 @@ const ContinuousAreaChart: FC<Props> = ({
   globalScaling,
   outlineUser = false,
   centerOOBResolution = false,
+  animate,
+  onChartReady,
 }) => {
   const locale = useLocale();
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
   const chartWidth = width || containerWidth;
+  const prevWidth = useRef(0);
+  useEffect(() => {
+    if (!prevWidth.current && chartWidth && onChartReady) {
+      onChartReady();
+    }
+    prevWidth.current = chartWidth;
+  }, [onChartReady, chartWidth]);
   const [cursorEdge, setCursorEdge] = useState<number | null>(null);
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
@@ -130,6 +149,11 @@ const ContinuousAreaChart: FC<Props> = ({
 
   const discrete = question.type === QuestionType.Discrete;
   const paddingTop = graphType === "cdf" || discrete ? TOP_PADDING : 0;
+
+  const hasUserData = useMemo(
+    () => data.some((d) => d.type === "user"),
+    [data]
+  );
 
   const charts = useMemo(() => {
     const parsedData = hideCP
@@ -508,8 +532,10 @@ const ContinuousAreaChart: FC<Props> = ({
           discrete={discrete}
         />
       }
-      onCursorChange={(props: { x: number } | null) => {
-        if (!props) {
+      onCursorChange={(value: CursorCoordinatesPropType | null) => {
+        const x = typeof value === "number" ? value : value?.x;
+
+        if (isNil(x)) {
           onCursorChange?.(null);
           return;
         }
@@ -518,18 +544,18 @@ const ContinuousAreaChart: FC<Props> = ({
           (acc, el) => {
             if (!discrete) {
               if (el.graphType === "pmf") {
-                acc.yData[el.type] = getClosestYValue(props?.x, el.graphLine);
+                acc.yData[el.type] = getClosestYValue(x, el.graphLine);
               } else {
-                acc.yData[el.type] = interpolateYValue(props?.x, el.graphLine);
+                acc.yData[el.type] = interpolateYValue(x, el.graphLine);
               }
             } else {
-              acc.yData[el.type] = getClosestYValue(props?.x, el.graphLine);
-              acc.x = getClosestXValue(props?.x, el.graphLine);
+              acc.yData[el.type] = getClosestYValue(x, el.graphLine);
+              acc.x = getClosestXValue(x, el.graphLine);
             }
             return acc;
           },
           {
-            x: props.x,
+            x,
             yData: {
               community: 0,
               user: 0,
@@ -579,6 +605,7 @@ const ContinuousAreaChart: FC<Props> = ({
             right: horizontalPadding,
           }}
           domain={{ x: xDomain, y: yDomain }}
+          animate={animate}
           containerComponent={
             onCursorChange ? (
               CursorContainer
@@ -732,7 +759,11 @@ const ContinuousAreaChart: FC<Props> = ({
           )}
           <VictoryAxis
             tickValues={xScale.ticks}
-            tickFormat={hideLabels || hideCP ? () => "" : xScale.tickFormat}
+            tickFormat={
+              hideLabels || (hideCP && !hasUserData)
+                ? () => ""
+                : xScale.tickFormat
+            }
             style={{
               ticks: {
                 strokeWidth: 1,

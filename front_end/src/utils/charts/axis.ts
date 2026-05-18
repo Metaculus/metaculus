@@ -112,6 +112,7 @@ type GenerateYDomainParams = {
   zoomDomainPadding?: number;
   includeClosestBoundOnZoom?: boolean;
   forceAutoZoom?: boolean;
+  useFullYDomain?: boolean;
 };
 
 export function generateTimeSeriesYDomain({
@@ -123,24 +124,30 @@ export function generateTimeSeriesYDomain({
   zoomDomainPadding,
   includeClosestBoundOnZoom,
   forceAutoZoom,
+  useFullYDomain,
 }: GenerateYDomainParams): YDomain {
   const originalYDomain: Tuple<number> = [0, 1];
   const fallback = { originalYDomain, zoomedYDomain: originalYDomain };
 
   if (
-    (zoom === TimelineChartZoomOption.All && !forceAutoZoom) ||
+    (zoom === TimelineChartZoomOption.All &&
+      !forceAutoZoom &&
+      !useFullYDomain) ||
     isChartEmpty
   ) {
     return fallback;
   }
 
+  const shouldIncludeValue = (timestamp: number) =>
+    useFullYDomain || timestamp >= minTimestamp;
+
   const min = minValues
-    .filter((d) => d.timestamp >= minTimestamp)
+    .filter((d) => shouldIncludeValue(d.timestamp))
     .map((d) => d.y)
     .filter((value) => !isNil(value));
   const minValue = min.length ? Math.min(...min) : null;
   const max = maxValues
-    .filter((d) => d.timestamp >= minTimestamp)
+    .filter((d) => shouldIncludeValue(d.timestamp))
     .map((d) => d.y)
     .filter((value) => !isNil(value));
   const maxValue = max.length ? Math.max(...max) : null;
