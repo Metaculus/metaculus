@@ -2,7 +2,6 @@ import json
 from datetime import timedelta
 
 from admin_auto_filters.filters import AutocompleteFilterFactory
-from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.admin.models import CHANGE, LogEntry
 from django.db.models import Count, Exists, OuterRef, Q, F, QuerySet
@@ -10,10 +9,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 from sql_util.aggregates import SubqueryAggregate
 
-from authentication.services import (
-    generate_account_activation_link,
-    generate_password_reset_link,
-)
+from authentication.services import generate_password_reset_link
 from projects.models import ProjectUserPermission
 from questions.models import Forecast
 from users.models import User, UserCampaignRegistration, UserSpamActivity
@@ -362,7 +358,7 @@ class UserAdmin(admin.ModelAdmin):
                 user_id=request.user.id,
                 queryset=[user],
                 action_flag=CHANGE,
-                change_message=f"Generated Password reset link.",
+                change_message="Generated Password reset link.",
                 single_object=True,
             )
 
@@ -378,9 +374,7 @@ class UserAdmin(admin.ModelAdmin):
                 level=messages.INFO,
             )
 
-    generate_password_reset_links.short_description = (
-        "Generate password reset link"
-    )
+    generate_password_reset_links.short_description = "Generate password reset link"
 
     def get_fields(self, request, obj=None):
         fields = list(super().get_fields(request, obj))
