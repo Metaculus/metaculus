@@ -73,8 +73,10 @@ const CompactLegendBar: FC<Props> = ({
           <div
             key={item.choice}
             className={cn(
-              "flex cursor-pointer items-center gap-1 rounded px-1.5 py-0.5",
-              "hover:bg-gray-200 dark:hover:bg-gray-200-dark",
+              "flex items-center gap-1 rounded px-1.5 py-0.5",
+              resolvedNo
+                ? "cursor-default"
+                : "cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-200-dark",
               item.highlighted && "bg-gray-200 dark:bg-gray-200-dark"
             )}
             onMouseEnter={() =>
@@ -95,6 +97,7 @@ const CompactLegendBar: FC<Props> = ({
               <>
                 <span
                   role="checkbox"
+                  aria-label={item.label || item.choice}
                   aria-checked={item.active}
                   tabIndex={0}
                   className="flex size-4 shrink-0 cursor-pointer items-center justify-center rounded-[2px] border border-gray-500 dark:border-gray-500-dark"
