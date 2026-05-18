@@ -307,12 +307,10 @@ const GroupChart: FC<Props> = ({
       }
       cursorLabelComponent={
         showCursorLabel ? (
-          <VictoryPortal>
-            <ChartCursorLabel
-              positionY={height - (isEmbedded ? 4 : 10)}
-              isActive={isCursorActive}
-            />
-          </VictoryPortal>
+          <ChartCursorLabel
+            positionY={height - (isEmbedded ? 4 : 10)}
+            isActive={isCursorActive}
+          />
         ) : undefined
       }
       onCursorChange={(value: CursorCoordinatesPropType) => {

@@ -261,18 +261,16 @@ const NumericChart: FC<Props> = ({
           />
         }
         cursorLabelComponent={
-          <VictoryPortal>
-            <ChartCursorLabel
-              positionY={height - 10}
-              {...(hasExternalTheme
-                ? {}
-                : { fill: getThemeColor(METAC_COLORS.gray["700"]) })}
-              style={{
-                fontFamily: LABEL_FONT_FAMILY,
-              }}
-              isActive={isCursorActive}
-            />
-          </VictoryPortal>
+          <ChartCursorLabel
+            positionY={height - 10}
+            {...(hasExternalTheme
+              ? {}
+              : { fill: getThemeColor(METAC_COLORS.gray["700"]) })}
+            style={{
+              fontFamily: LABEL_FONT_FAMILY,
+            }}
+            isActive={isCursorActive}
+          />
         }
         onCursorChange={(value: CursorCoordinatesPropType) => {
           if (typeof value === "number") {
