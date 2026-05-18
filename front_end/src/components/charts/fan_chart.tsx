@@ -95,6 +95,7 @@ type Props = {
   optionsLimit?: number;
   forFeedPage?: boolean;
   onLegendHeightChange?: (height: number) => void;
+  externalHighlightedLabel?: string | null;
 };
 
 type NormalizedFanDatum = {
@@ -125,6 +126,7 @@ const FanChart: FC<Props> = ({
   optionsLimit,
   forFeedPage,
   onLegendHeightChange,
+  externalHighlightedLabel,
 }) => {
   const effectiveVariant: FanChartVariant = variant ?? "default";
 
@@ -146,6 +148,7 @@ const FanChart: FC<Props> = ({
   const tickLabelFontSize = getTickLabelFontSize(actualTheme);
 
   const [activePoint, setActivePoint] = useState<string | null>(null);
+  const effectiveActivePoint = externalHighlightedLabel ?? activePoint;
 
   const forecastAvailability = useMemo(() => {
     if (group) return getGroupForecastAvailability(group.questions);
@@ -551,6 +554,7 @@ const FanChart: FC<Props> = ({
                     data={line ?? []}
                     style={{
                       data: {
+                        strokeOpacity: 1,
                         stroke: ({ datum }) =>
                           datum?.resolved
                             ? getThemeColor(METAC_COLORS.purple["700"])
@@ -578,12 +582,12 @@ const FanChart: FC<Props> = ({
                       stroke: () => palette.communityPoint,
                       strokeWidth: 6,
                       strokeOpacity: ({ datum }) =>
-                        activePoint === datum.x ? 0.3 : 0,
+                        effectiveActivePoint === datum.x ? 0.3 : 0,
                     },
                   }}
                   dataComponent={
                     <FanPoint
-                      activePoint={activePoint}
+                      activePoint={effectiveActivePoint}
                       pointSize={isEmbedded ? 8 : pointSize}
                       pointColor={palette.communityPoint}
                       bottomPadding={bottomPadForPoints}
@@ -642,7 +646,7 @@ const FanChart: FC<Props> = ({
                   data={[{ ...point, symbol: "diamond" }]}
                   dataComponent={
                     <FanPoint
-                      activePoint={activePoint}
+                      activePoint={effectiveActivePoint}
                       pointSize={v.resolutionPoint.size}
                       strokeWidth={v.resolutionPoint.strokeWidth}
                       unsuccessfullyResolved={point.unsuccessfullyResolved}

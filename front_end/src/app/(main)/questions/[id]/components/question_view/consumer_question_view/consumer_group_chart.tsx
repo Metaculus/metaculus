@@ -12,17 +12,28 @@ import { useListChartExpanded } from "./consumer_list_chart_shell";
 type Props = {
   post: GroupOfQuestionsPost<QuestionWithNumericForecasts>;
   preselectedQuestionId?: number;
+  chartHeight?: number;
+  visibleQuestions?: QuestionWithNumericForecasts[];
 };
 
-const ConsumerGroupChart: FC<Props> = ({ post, preselectedQuestionId }) => {
+const ConsumerGroupChart: FC<Props> = ({
+  post,
+  preselectedQuestionId,
+  chartHeight,
+  visibleQuestions,
+}) => {
   const { hoveredChoiceName, setHoveredChoiceName } = useListChartExpanded();
   const { open_time, actual_close_time, scheduled_close_time, status } = post;
   const refCloseTime = actual_close_time ?? scheduled_close_time;
 
+  const groupTimelineProps = visibleQuestions
+    ? { questions: visibleQuestions }
+    : { group: post.group_of_questions };
+
   return (
     <div onMouseLeave={() => setHoveredChoiceName(null)}>
       <GroupTimeline
-        group={post.group_of_questions}
+        {...groupTimelineProps}
         actualCloseTime={getPostDrivenTime(refCloseTime)}
         openTime={getPostDrivenTime(open_time)}
         isClosed={status === PostStatus.CLOSED}
@@ -31,6 +42,7 @@ const ConsumerGroupChart: FC<Props> = ({ post, preselectedQuestionId }) => {
         withHighlightArea={false}
         withHighlightEndpoint
         externalHighlightedChoice={hoveredChoiceName}
+        chartHeight={chartHeight}
       />
     </div>
   );

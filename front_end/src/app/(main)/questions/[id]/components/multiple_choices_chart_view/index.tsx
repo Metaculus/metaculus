@@ -102,9 +102,14 @@ const MultiChoicesChartView: FC<Props> = ({
   const isMC = questionType === QuestionType.MultipleChoice;
 
   const legendContainerRef = useRef<HTMLDivElement>(null);
-  const [normalizedChartHeight, setNormalizedChartHeight] = useState<number>();
+  const [normalizedChartHeight, setNormalizedChartHeight] =
+    useState(chartHeight);
   useEffect(() => {
-    if (!legendContainerRef.current || !chartHeight) return;
+    if (!chartHeight) return;
+    if (!legendContainerRef.current) {
+      setNormalizedChartHeight(chartHeight);
+      return;
+    }
     setNormalizedChartHeight(
       chartHeight -
         (legendContainerRef.current?.clientHeight ?? 0) -
