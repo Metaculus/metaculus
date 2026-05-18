@@ -4,8 +4,6 @@ import { google } from "googleapis";
 import Image from "next/image";
 import Link from "next/link";
 
-import GlobalHeader from "@/app/(main)/components/headers/global_header";
-
 import ResultsAnnouncement from "./components/results-announcement";
 import ResultsDates from "./components/results-dates";
 import ResultsHero from "./components/results-hero";
@@ -84,8 +82,7 @@ export default async function Page() {
 
   return (
     <>
-      <GlobalHeader />
-      <main className="mt-4 p-3 pt-12 sm:p-5 sm:pt-12 md:mt-5">
+      <main className="mt-4 p-3 sm:p-5 md:mt-5">
         <div className="flex flex-col items-center gap-3">
           <div className="flex w-full flex-col gap-3 md:flex-row">
             <div className="flex w-full flex-col gap-3 md:w-1/2 lg:flex-row">

@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.html import strip_tags
 from pgvector.django import VectorField
 
 from posts.models import Post
@@ -44,30 +45,9 @@ class Bulletin(TimeStampedModel):
     bulletin_end = models.DateTimeField()
     text = models.TextField()
 
-    post = models.ForeignKey(
-        Post,
-        null=True,
-        blank=True,
-        db_index=True,
-        on_delete=models.CASCADE,
-        help_text="""Optional. If set, places this Bulletin only on this post's page.""",
-    )
-    project = models.ForeignKey(
-        Project,
-        null=True,
-        blank=True,
-        db_index=True,
-        on_delete=models.CASCADE,
-        help_text="""Optional. If set, places this Bulletin only on this project's page.""",
-    )
-
     def __str__(self):
-        text = self.text
-        if self.post:
-            text = (self.post.short_title or self.post.title)[:50] + "... " + text
-        elif self.project:
-            text = self.project.name[:50] + "... " + text
-        return text[:150] + "..." if len(text) > 150 else text
+        plain_text = strip_tags(self.text)
+        return plain_text[:150] + "..." if len(plain_text) > 150 else plain_text
 
 
 class BulletinViewedBy(TimeStampedModel):

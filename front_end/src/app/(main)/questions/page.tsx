@@ -60,7 +60,7 @@ export default async function Questions(props: {
 
   return (
     <>
-      <main className="min-h-[calc(100vh-3rem)] w-full flex-auto">
+      <main className="min-h-[calc(100vh-var(--top-chrome-height,3rem))] w-full flex-auto">
         <OnboardingCheck />
         <div className="flex flex-col sm:flex-row">
           <FeedSidebar items={sidebarItems} categories={categories} />

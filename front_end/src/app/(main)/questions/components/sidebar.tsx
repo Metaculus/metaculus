@@ -19,7 +19,6 @@ import useFeed from "@/app/(main)/questions/hooks/use_feed";
 import { FeedType, POST_TEXT_SEARCH_FILTER } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
-import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { Category } from "@/types/projects";
 import {
@@ -59,8 +58,6 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
   const fullPathname = `${pathname}${params.toString() ? `?${params.toString()}` : ""}`;
   const searchQuery = params.get(POST_TEXT_SEARCH_FILTER)?.trim() ?? "";
   const hasActiveSearch = !!searchQuery;
-  const { bannerIsVisible: isTranslationBannerVisible } =
-    useContentTranslatedBannerContext();
 
   const sidebarSections: SidebarSection[] = useMemo(() => {
     const menuItems: SidebarMenuItem[] = [
@@ -240,8 +237,7 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
         <div
           ref={outerRef}
           className={cn(
-            "sticky z-100 border-y border-blue-400 bg-gray-0/70 backdrop-blur-md dark:border-blue-700 dark:bg-gray-0-dark/70 sm:hidden",
-            isTranslationBannerVisible ? "top-24" : "top-header"
+            "sticky top-header z-100 border-y border-blue-400 bg-gray-0/70 backdrop-blur-md dark:border-blue-700 dark:bg-gray-0-dark/70 sm:hidden"
           )}
         >
           <div className="relative w-full p-2 no-scrollbar">
@@ -286,14 +282,12 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
         <Drawer.Portal>
           <Drawer.Backdrop
             className={cn(
-              "fixed inset-x-0 bottom-0 z-[200] bg-blue-900/50 dark:bg-gray-1000/50 sm:hidden",
-              isTranslationBannerVisible ? "top-24" : "top-header"
+              "fixed inset-x-0 bottom-0 top-header z-[200] bg-blue-900/50 dark:bg-gray-1000/50 sm:hidden"
             )}
           />
           <Drawer.Viewport
             className={cn(
-              "fixed inset-x-0 bottom-0 z-[201] overflow-hidden [--feed-drawer-width:min(18rem,calc(100vw-3.75rem))] sm:hidden",
-              isTranslationBannerVisible ? "top-24" : "top-header"
+              "fixed inset-x-0 bottom-0 top-header z-[201] overflow-hidden [--feed-drawer-width:min(18rem,calc(100vw-3.75rem))] sm:hidden"
             )}
           >
             <Drawer.Close
@@ -330,7 +324,6 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
       </Drawer.Root>
 
       <DesktopSidebar
-        isTranslationBannerVisible={isTranslationBannerVisible}
         sections={sidebarSections}
         seeAllCategoriesLabel={t("seeAllCategories")}
       />
@@ -339,25 +332,16 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
 };
 
 const DesktopSidebar: FC<{
-  isTranslationBannerVisible: boolean;
   sections: SidebarSection[];
   seeAllCategoriesLabel: string;
-}> = ({ isTranslationBannerVisible, sections, seeAllCategoriesLabel }) => {
-  const stickyTopClass = isTranslationBannerVisible
-    ? "sm:top-20"
-    : "sm:top-header";
-  const maxHeightClass = isTranslationBannerVisible
-    ? "max-h-[calc(100vh-5rem)]"
-    : "max-h-[calc(100vh-3rem)]";
-
+}> = ({ sections, seeAllCategoriesLabel }) => {
   return (
     <div className="hidden border-r border-blue-400 bg-gray-0/70 backdrop-blur-md dark:border-blue-700 dark:bg-gray-0-dark/70 sm:static sm:block sm:min-h-[calc(100vh-3rem)]">
-      <div className={cn("sticky", stickyTopClass)}>
-        <ScrollArea.Root className={cn("overflow-hidden", maxHeightClass)}>
+      <div className={cn("sticky top-header")}>
+        <ScrollArea.Root className={cn("overflow-hidden")}>
           <ScrollArea.Viewport
             className={cn(
-              "overscroll-contain [-webkit-overflow-scrolling:touch] [touch-action:pan-y]",
-              maxHeightClass
+              "max-h-[calc(100dvh-var(--top-chrome-height,3rem))] overscroll-contain [-webkit-overflow-scrolling:touch] [touch-action:pan-y] "
             )}
           >
             <ScrollArea.Content className="p-3">
@@ -414,6 +398,7 @@ const SidebarMenu: FC<SidebarMenuProps> = ({
             <Fragment key={`menu-${sectionType}`}>
               {title && sectionType !== null && (
                 <button
+                  type="button"
                   onClick={() => toggleSection(sectionType)}
                   className="mt-1 flex h-8 w-full items-center justify-between rounded bg-blue-200 px-2.5 text-xs font-bold uppercase leading-4 text-gray-500 dark:bg-blue-200-dark dark:text-gray-500-dark"
                 >

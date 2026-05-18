@@ -20,6 +20,7 @@ import toast from "react-hot-toast";
 
 import Button from "@/components/ui/button";
 import LoadingSpinner from "@/components/ui/loading_spiner";
+import { useTopChromeHeightPx } from "@/hooks/use_top_chrome_height";
 import cn from "@/utils/core/cn";
 
 import { NewsletterSubscribePopover } from "./newsletter_subscribe_popover";
@@ -36,6 +37,7 @@ export default function LaborHubNavigation({
   const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const topChromeHeight = useTopChromeHeightPx();
 
   const { refs, floatingStyles, context, isPositioned } = useFloating({
     open: isNewsletterOpen,
@@ -136,7 +138,7 @@ export default function LaborHubNavigation({
       },
       {
         threshold: [0],
-        rootMargin: "-48px 0px 0px 0px", // Account for top-12 offset (48px)
+        rootMargin: `-${topChromeHeight}px 0px 0px 0px`,
       }
     );
 
@@ -145,7 +147,7 @@ export default function LaborHubNavigation({
     return () => {
       observer.disconnect();
     };
-  }, []);
+  }, [topChromeHeight]);
 
   const surfaceClassName = "bg-gray-0 dark:bg-gray-0-dark";
   const fadeToSurfaceClassName = "to-gray-0 dark:to-gray-0-dark";
@@ -159,7 +161,7 @@ export default function LaborHubNavigation({
   return (
     <>
       <div ref={sentinelRef} className="h-0" />
-      <div className="pointer-events-none sticky top-12 z-[100] mx-auto w-full max-w-7xl pb-4 transition-all sm:pb-8 xl:px-16 print:hidden">
+      <div className="pointer-events-none sticky top-header z-[100] mx-auto w-full max-w-7xl pb-4 transition-all sm:pb-8 xl:px-16 print:hidden">
         <div
           className={cn(
             "border border-t-0 backdrop-blur-sm transition-[margin,padding] xl:rounded-b-md",

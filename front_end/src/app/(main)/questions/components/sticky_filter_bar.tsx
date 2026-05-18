@@ -19,9 +19,6 @@ const StickyFilterBar: React.FC<{ children: React.ReactNode }> = ({
   const obsRef = useRef<IntersectionObserver | null>(null);
   const [isStuck, setIsStuck] = useState(false);
 
-  const { bannerIsVisible: isTranslationBannerVisible } =
-    useContentTranslatedBannerContext();
-
   const setupObserver = useCallback(() => {
     const sentinel = sentinelRef.current;
     const sticky = stickyRef.current;
@@ -63,7 +60,7 @@ const StickyFilterBar: React.FC<{ children: React.ReactNode }> = ({
       mql.removeEventListener("change", onBreakpoint);
       ro.disconnect();
     };
-  }, [setupObserver, isTranslationBannerVisible]);
+  }, [setupObserver]);
 
   return (
     <>
@@ -72,10 +69,7 @@ const StickyFilterBar: React.FC<{ children: React.ReactNode }> = ({
       <div
         ref={stickyRef}
         className={cn(
-          "sticky z-40",
-          isTranslationBannerVisible
-            ? "top-[calc(var(--feed-sidebar-mobile-height,0px)+6rem)] sm:top-20"
-            : "top-[calc(var(--feed-sidebar-mobile-height,0px)+3rem)] sm:top-header",
+          "sticky top-[calc(var(--feed-sidebar-mobile-height,0px)+var(--top-chrome-height,3rem))] z-40 sm:top-header",
           "transition-[background-color,backdrop-filter,border-color] duration-200",
           isStuck ? glassClasses : "border-b border-transparent bg-transparent"
         )}
