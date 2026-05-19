@@ -123,7 +123,7 @@ class PostsApi extends ApiService {
   }
 
   async getPostsWithCPAnonymous(
-    params?: PostsParams,
+    params?: PostsParams & PostFetchParams,
     options?: FetchOptions
   ): Promise<PaginatedPayload<PostWithForecasts>> {
     const queryParams = encodeQueryParams({
