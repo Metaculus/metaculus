@@ -21,6 +21,7 @@ import PredictionWithRange from "@/components/charts/primitives/prediction_with_
 import ResolutionDiamond from "@/components/charts/primitives/resolution_diamond";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import { CHART_DASH } from "@/constants/chart_dash";
+import { CHART_STROKE_WIDTH } from "@/constants/chart_stroke";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
@@ -570,7 +571,7 @@ const FanChart: FC<Props> = ({
                     data: {
                       fill: () => palette.communityPoint,
                       stroke: () => palette.communityPoint,
-                      strokeWidth: 6,
+                      strokeWidth: CHART_STROKE_WIDTH.fanCommunityLine,
                       strokeOpacity: ({ datum }) =>
                         activePoint === datum.x ? 0.3 : 0,
                     },
@@ -615,7 +616,7 @@ const FanChart: FC<Props> = ({
                       data: {
                         fill: v.resolutionPoint.fill({ getThemeColor }),
                         stroke: () => palette.resolutionStroke,
-                        strokeWidth: 2,
+                        strokeWidth: CHART_STROKE_WIDTH.resolutionLine,
                         strokeOpacity: 1,
                       },
                     }}

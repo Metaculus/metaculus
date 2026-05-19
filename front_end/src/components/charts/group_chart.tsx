@@ -21,6 +21,7 @@ import {
 } from "victory";
 
 import { CHART_DASH } from "@/constants/chart_dash";
+import { CHART_STROKE_WIDTH } from "@/constants/chart_stroke";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { CHART_FONT_STYLE } from "@/constants/chart_typography";
 import { METAC_COLORS } from "@/constants/colors";
@@ -96,7 +97,7 @@ type Props = {
 const BOTTOM_PADDING = 20;
 const POINT_SIZE = 9;
 const USER_POINT_SIZE = 6;
-const USER_POINT_STROKE = 1.5;
+const USER_POINT_STROKE = CHART_STROKE_WIDTH.userPoint;
 const PLOT_TOP = 10;
 
 const GroupChart: FC<Props> = ({
@@ -428,7 +429,7 @@ const GroupChart: FC<Props> = ({
                   },
                   grid: {
                     stroke: getThemeColor(METAC_COLORS.gray["400"]),
-                    strokeWidth: 1,
+                    strokeWidth: CHART_STROKE_WIDTH.grid,
                     strokeDasharray: CHART_DASH.grid,
                   },
                 }}
@@ -478,7 +479,7 @@ const GroupChart: FC<Props> = ({
                       data: {
                         stroke: getThemeColor(color),
                         strokeOpacity: 0.2,
-                        strokeWidth: 1.5,
+                        strokeWidth: CHART_STROKE_WIDTH.forecastLine,
                       },
                     }}
                     interpolation="stepAfter"
@@ -501,7 +502,7 @@ const GroupChart: FC<Props> = ({
                           : highlighted
                             ? 1
                             : 0.3,
-                        strokeWidth: 1.5,
+                        strokeWidth: CHART_STROKE_WIDTH.forecastLine,
                       },
                     }}
                     interpolation="stepAfter"
@@ -544,7 +545,7 @@ const GroupChart: FC<Props> = ({
                             : highlighted
                               ? 1
                               : 0.3,
-                          strokeWidth: 2,
+                          strokeWidth: CHART_STROKE_WIDTH.predictionRange,
                           fill: getThemeColor(color),
                         },
                       }}
@@ -620,7 +621,7 @@ const GroupChart: FC<Props> = ({
                       data: {
                         stroke: getThemeColor(color),
                         fill: getThemeColor(METAC_COLORS.gray["200"]),
-                        strokeWidth: 2.5,
+                        strokeWidth: CHART_STROKE_WIDTH.resolutionDiamond,
                       },
                     }}
                     dataComponent={
@@ -1062,7 +1063,14 @@ function buildChartData({
 type SymbolProps = PointProps & { size?: number; strokeWidth?: number };
 const PredictionSymbol: React.FC<SymbolProps> = (props) => {
   const { getThemeColor } = useAppTheme();
-  const { x, y, datum, size = 6, style, strokeWidth = 1.5 } = props;
+  const {
+    x,
+    y,
+    datum,
+    size = 6,
+    style,
+    strokeWidth = CHART_STROKE_WIDTH.userPoint,
+  } = props;
   if (
     typeof x !== "number" ||
     typeof y !== "number" ||

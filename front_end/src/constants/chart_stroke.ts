@@ -3,6 +3,11 @@ export const CHART_STROKE_WIDTH = {
   resolutionDiamond: 2.5,
   grid: 1,
   cursor: 1,
+  userPoint: 1.5,
+  predictionRange: 2,
+  resolutionLine: 2,
+  timelineMarker: 2,
+  fanCommunityLine: 6,
 } as const;
 
 export const CHART_POINT_SIZE = {

@@ -26,6 +26,7 @@ import {
 } from "victory";
 
 import { CHART_DASH } from "@/constants/chart_dash";
+import { CHART_STROKE_WIDTH } from "@/constants/chart_stroke";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { CHART_FONT_STYLE } from "@/constants/chart_typography";
 import { METAC_COLORS } from "@/constants/colors";
@@ -935,7 +936,7 @@ const ContinuousAreaChart: FC<Props> = ({
                 data: {
                   stroke: getThemeColor(METAC_COLORS.purple["800"]),
                   fill: getThemeColor(METAC_COLORS.gray["200"]),
-                  strokeWidth: 2.5,
+                  strokeWidth: CHART_STROKE_WIDTH.resolutionDiamond,
                 },
               }}
             />
