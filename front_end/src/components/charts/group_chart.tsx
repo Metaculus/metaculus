@@ -376,7 +376,7 @@ const GroupChart: FC<Props> = ({
                         setLocalCursorTimestamp(null);
                       }
                     },
-                    onMouseOutCapture: () => {
+                    onMouseLeave: () => {
                       if (!onCursorChange) return;
                       inPlotRef.current = false;
                       setIsCursorActive(false);
