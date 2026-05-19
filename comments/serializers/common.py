@@ -151,7 +151,7 @@ class CommentWriteSerializer(serializers.ModelSerializer):
         try:
             return Post.objects.get(pk=value)
         except Post.DoesNotExist:
-            raise ValidationError("Post Does not exist")
+            raise ValidationError("Post does not exist")
 
     def validate_parent(self, value):
         if not value:
