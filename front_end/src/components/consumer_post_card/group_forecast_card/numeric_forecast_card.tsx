@@ -147,6 +147,7 @@ const NumericForecastCard: FC<Props> = ({
             forceColorful={forceColorful}
             compact={compact}
             isBordered={false}
+            borderOnly={isDateGroup}
             onMouseEnter={
               index < hoverUpTo ? () => setHoveredChoiceName(choice) : undefined
             }
