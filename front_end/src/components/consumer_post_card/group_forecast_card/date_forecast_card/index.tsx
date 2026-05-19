@@ -43,6 +43,8 @@ type Props = {
   questionsGroup: PostGroupOfQuestions<QuestionWithNumericForecasts>;
   height?: number;
   fillHeight?: boolean;
+  innerChartPaddingX?: number;
+  yearOnlyTicks?: boolean;
 };
 
 const TICK_LABEL_INDEXES = [0, 4, 8];
@@ -54,6 +56,8 @@ const DateForecastCard: FC<Props> = ({
   questionsGroup,
   height = 100,
   fillHeight = false,
+  innerChartPaddingX = 0,
+  yearOnlyTicks = false,
 }) => {
   const { questions } = questionsGroup;
   const locale = useLocale();
@@ -94,14 +98,14 @@ const DateForecastCard: FC<Props> = ({
             height={chartHeight}
             theme={chartTheme}
             padding={{
-              left: 40,
+              left: innerChartPaddingX,
               top: isBigChartView ? 5 : 20,
-              right: 40,
+              right: innerChartPaddingX,
               bottom: isBigChartView ? 20 : 5,
             }}
             domain={{ x: [0, 1], y: [0, 1] }}
             domainPadding={{
-              x: [10, 10],
+              x: [10, innerChartPaddingX > 0 ? 10 : 0],
               y: 20,
             }}
             containerComponent={
@@ -121,10 +125,20 @@ const DateForecastCard: FC<Props> = ({
                 }
                 if (!isNil(todayLine)) {
                   return tick < todayLine - 0.1 || tick > todayLine + 0.1
-                    ? formatTickLabel(tick, adjustedScaling, index)
+                    ? formatTickLabel(
+                        tick,
+                        adjustedScaling,
+                        index,
+                        yearOnlyTicks ? "yyyy" : "dd MMM yyyy"
+                      )
                     : "";
                 }
-                return formatTickLabel(tick, adjustedScaling, index);
+                return formatTickLabel(
+                  tick,
+                  adjustedScaling,
+                  index,
+                  yearOnlyTicks ? "yyyy" : "dd MMM yyyy"
+                );
               }}
               tickValues={TICKS_ARRAY}
               style={{
@@ -167,7 +181,12 @@ const DateForecastCard: FC<Props> = ({
             {!isBigChartView && (
               <VictoryAxis
                 tickFormat={(tick, index) =>
-                  formatTickLabel(tick, adjustedScaling, index)
+                  formatTickLabel(
+                    tick,
+                    adjustedScaling,
+                    index,
+                    yearOnlyTicks ? "yyyy" : "dd MMM yyyy"
+                  )
                 }
                 tickValues={TICKS_ARRAY}
                 orientation="top"
@@ -206,7 +225,9 @@ const DateForecastCard: FC<Props> = ({
         )}
       </div>
       {chartWidth && !isBigChartView && (
-        <DateForecastCardTooltip points={points} />
+        <div className="mt-4">
+          <DateForecastCardTooltip points={points} />
+        </div>
       )}
     </>
   );
@@ -322,7 +343,12 @@ function generateChartData(choices: ChoiceItem[], originalScaling: Scaling) {
   };
 }
 
-function formatTickLabel(tick: number, scaling: Scaling, index: number) {
+function formatTickLabel(
+  tick: number,
+  scaling: Scaling,
+  index: number,
+  dateFormatString: string
+) {
   if (!TICK_LABEL_INDEXES.includes(index)) {
     return "";
   }
@@ -331,7 +357,7 @@ function formatTickLabel(tick: number, scaling: Scaling, index: number) {
     scaling,
     precision: 3,
     actual_resolve_time: null,
-    dateFormatString: "yyyy",
+    dateFormatString,
     skipQuartilesBorders: true,
   });
 }

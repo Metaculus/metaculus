@@ -26,6 +26,7 @@ type Props = {
   compact?: boolean;
   buttonVariant?: "primary" | "minimal";
   fillHeight?: boolean;
+  borderOnly?: boolean;
 };
 
 const NumericForecastCard: FC<Props> = ({
@@ -34,6 +35,7 @@ const NumericForecastCard: FC<Props> = ({
   compact,
   buttonVariant,
   fillHeight = false,
+  borderOnly = false,
 }) => {
   const locale = useLocale();
   const t = useTranslations();
@@ -147,7 +149,7 @@ const NumericForecastCard: FC<Props> = ({
             forceColorful={forceColorful}
             compact={compact}
             isBordered={false}
-            borderOnly={isDateGroup}
+            borderOnly={borderOnly}
             onMouseEnter={
               index < hoverUpTo ? () => setHoveredChoiceName(choice) : undefined
             }

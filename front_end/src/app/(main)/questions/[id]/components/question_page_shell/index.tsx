@@ -288,6 +288,8 @@ export const ConsumerShell: FC<{
                   <DateForecastCard
                     post={postData}
                     questionsGroup={postData.group_of_questions}
+                    innerChartPaddingX={20}
+                    yearOnlyTicks
                   />
                 </div>
               )}
@@ -308,7 +310,11 @@ export const ConsumerShell: FC<{
                   ) : isContinuousNumericGroup ? (
                     <NumericForecastCard post={postData} fillHeight />
                   ) : isDateGroup ? (
-                    <NumericForecastCard post={postData} fillHeight />
+                    <NumericForecastCard
+                      post={postData}
+                      fillHeight
+                      borderOnly
+                    />
                   ) : (
                     <PercentageForecastCard
                       post={postData}
@@ -337,6 +343,8 @@ export const ConsumerShell: FC<{
                       post={postData}
                       questionsGroup={postData.group_of_questions}
                       fillHeight
+                      innerChartPaddingX={40}
+                      yearOnlyTicks
                     />
                   ) : (
                     <QuestionTimeline

@@ -67,7 +67,7 @@ const QuestionTimeline: React.FC<Props> = ({
               post={postData}
               preselectedQuestionId={preselectedGroupQuestionId}
             />
-            <NumericForecastCard post={postData} forceColorful />
+            <NumericForecastCard post={postData} borderOnly />
           </div>
         ) : isFanGraph ? (
           <div className="flex flex-col gap-6">
