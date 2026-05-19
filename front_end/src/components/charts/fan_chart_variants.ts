@@ -81,9 +81,14 @@ export const fanVariants: Record<FanChartVariant, VariantConfig> = {
         strokeDasharray: CHART_DASH.grid,
       },
     }),
-    xAxisStyle: () => ({
+    xAxisStyle: ({ tickLabelFontSize, getThemeColor }) => ({
       ticks: { stroke: "transparent" },
       axis: { stroke: "transparent" },
+      tickLabels: {
+        ...CHART_FONT_STYLE.tick,
+        fontSize: tickLabelFontSize,
+        fill: getThemeColor(METAC_COLORS.gray["600"]),
+      },
     }),
     domainPadding: ({ isEmbedded }) =>
       isEmbedded ? { x: [16, 16] } : { x: [150 / 2, 150 / 2] },
