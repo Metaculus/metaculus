@@ -12,7 +12,6 @@ from notifications.services import (
 from posts.models import Post, PostSubscription, Notebook
 from projects.models import Project, ProjectSubscription
 from projects.permissions import ObjectPermission
-from questions.constants import QuestionStatus
 from questions.models import Question
 from users.models import User
 
@@ -209,9 +208,9 @@ def notify_post_added_to_project(post: Post, project: Project):
         return
 
     for question in post.questions.all():
-        # Don’t send a notification if `open_time_triggered` is False
-        # it will be handled automatically by `handle_question_open`
-        if question.open_time_triggered and question.status == QuestionStatus.OPEN:
+        # Don't send a notification if the publish event hasn't fired yet —
+        # the cron job will pick it up and notify all project subscribers.
+        if question.published_at_triggered:
             notify_project_subscriptions_post_open(
                 post, question=question, project=project
             )

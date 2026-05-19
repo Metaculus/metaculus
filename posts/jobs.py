@@ -74,10 +74,32 @@ def job_compute_movement():
 @dramatiq.actor
 def job_check_post_open_event():
     """
-    A cron job to check for newly opened questions and published posts.
+    A cron job to check for newly published / opened questions.
+
+    Fires two distinct events per question, each idempotent:
+    - publish event (tournament / project follower notifications) when the
+      parent post's `published_at` passes — i.e. the question becomes Upcoming.
+    - open event (post-level status change notifications) when `open_time` passes.
+
     We moved this logic from Post-level to Question-level notifications
     to enable status update emails for subquestion from groups.
     """
+
+    # Tournament / project follower notifications fire at publish time so
+    # pre-prediction questions are surfaced before they open for forecasting.
+    publish_questions_qs = Question.objects.filter(
+        post__in=Post.objects.filter_published(),
+        published_at_triggered=False,
+    ).select_related("post")
+
+    for question in publish_questions_qs:
+        try:
+            notify_project_subscriptions_post_open(question.post, question=question)
+        except Exception:
+            logger.exception("Failed to handle question publish")
+        finally:
+            question.published_at_triggered = True
+            question.save(update_fields=["published_at_triggered"])
 
     questions_qs = Question.objects.filter(
         post__in=Post.objects.filter_published(),
