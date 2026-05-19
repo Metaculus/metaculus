@@ -74,12 +74,10 @@ def test_job_check_post_open_event__publish_notification_is_idempotent(user1, us
     job_check_post_open_event()
     job_check_post_open_event()
 
-    assert (
-        Notification.objects.filter(
-            recipient=user2, type="post_status_change"
-        ).count()
-        == 1
+    notifications = Notification.objects.filter(
+        recipient=user2, type="post_status_change"
     )
+    assert notifications.count() == 1
 
 
 def test_job_check_post_open_event__no_double_publish_on_open(user1, user2):
