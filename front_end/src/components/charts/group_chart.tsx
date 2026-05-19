@@ -473,6 +473,15 @@ const GroupChart: FC<Props> = ({
                         onCursorChange(lastTs, () => "");
                       }
                     },
+                    onTouchCancel: () => {
+                      inPlotRef.current = false;
+                      setIsCursorActive(false);
+                      setLocalCursorTimestamp(null);
+                      const lastTs = timestamps.at(-1);
+                      if (onCursorChange && !isNil(lastTs)) {
+                        onCursorChange(lastTs, () => "");
+                      }
+                    },
                   },
                 },
               ]}
@@ -825,6 +834,7 @@ function pixelXToTimestamp(
   rightPadding: number
 ): number {
   const plotWidth = chartWidth - rightPadding - leftPadding;
+  if (plotWidth <= 0) return Number(xDomain[0]);
   const ratio = Math.max(0, Math.min(1, (x - leftPadding) / plotWidth));
   return Number(xDomain[0]) + ratio * (Number(xDomain[1]) - Number(xDomain[0]));
 }

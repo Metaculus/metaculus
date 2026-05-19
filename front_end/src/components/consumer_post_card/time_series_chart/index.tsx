@@ -252,7 +252,7 @@ const TimeSeriesChart: FC<Props> = ({
             />
           }
         >
-          {!allQuestionsEmpty && !!onBarHover && (
+          {!allQuestionsEmpty && effectiveHoveredIndex !== null && (
             <VictoryBar
               data={adjustedChartData.map(({ x, y }) => ({ x, y }))}
               dataComponent={

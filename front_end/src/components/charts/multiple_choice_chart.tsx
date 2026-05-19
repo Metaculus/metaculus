@@ -328,6 +328,11 @@ const MultipleChoiceChart: FC<Props> = ({
                     setIsCursorActive(false);
                     onCursorActiveChange?.(false);
                   },
+                  onTouchCancelCapture: () => {
+                    if (!onCursorChange) return;
+                    setIsCursorActive(false);
+                    onCursorActiveChange?.(false);
+                  },
                 },
               },
             ]}

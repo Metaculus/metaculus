@@ -10,7 +10,7 @@ import {
   useHover,
   useInteractions,
 } from "@floating-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Props = {
   placement?: Placement;
@@ -29,6 +29,12 @@ const useChartTooltip = ({
 }: Props = {}) => {
   const [hoverActive, setHoverActive] = useState(false);
   const isActive = !!forceOpen || hoverActive;
+
+  useEffect(() => {
+    if (forceOpen) {
+      setHoverActive(false);
+    }
+  }, [forceOpen]);
   const { refs, floatingStyles, context } = useFloating({
     strategy: "fixed",
     middleware: [

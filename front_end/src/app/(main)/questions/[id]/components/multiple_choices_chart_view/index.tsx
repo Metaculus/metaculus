@@ -302,6 +302,7 @@ const MultiChoicesChartView: FC<Props> = ({
           if (touch) setTouchCoords({ x: touch.clientX, y: touch.clientY });
         }}
         onTouchEndCapture={() => setTouchCoords(undefined)}
+        onTouchCancelCapture={() => setTouchCoords(undefined)}
         onMouseMoveCapture={() => setTouchCoords(undefined)}
       >
         {useBinaryView ? (

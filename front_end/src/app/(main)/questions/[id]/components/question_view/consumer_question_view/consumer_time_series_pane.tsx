@@ -27,9 +27,7 @@ const ConsumerTimeSeriesPane: FC<Props> = ({ questions, height = 180 }) => {
         variant="colorful"
         height={height}
         hoveredBarLabel={hoveredChoiceName}
-        onBarHover={(label) => {
-          if (label !== null) setHoveredChoiceName(label);
-        }}
+        onBarHover={setHoveredChoiceName}
       />
     </div>
   );
