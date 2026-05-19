@@ -912,8 +912,8 @@ const ContinuousAreaChart: FC<Props> = ({
                   y={height - BOTTOM_PADDING - 12} // Position above the dot
                   text="Today"
                   style={{
+                    ...CHART_FONT_STYLE.tooltip,
                     fill: getThemeColor(METAC_COLORS.blue["700"]),
-                    fontSize: 12,
                   }}
                   textAnchor="middle"
                 />

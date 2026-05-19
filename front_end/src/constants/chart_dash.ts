@@ -1,6 +1,6 @@
 export const CHART_DASH = {
-  grid: "3 2",
-  cursor: "5 2",
+  grid: "2 3",
+  cursor: "2 2",
   quartile: "2 2",
   threshold: "2 2",
   timelineMarker: "4 3",
