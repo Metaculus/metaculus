@@ -151,7 +151,28 @@ const FanChart: FC<Props> = ({
   const [activePoint, setActivePoint] = useState<string | null>(null);
   const effectiveActivePoint = externalHighlightedLabel ?? activePoint;
   const isMobile = !useBreakpoint("md");
-  const [pinnedOption, setPinnedOption] = useState<GroupFanDatum | null>(null);
+
+  // Dismiss active point on mobile when clicking outside
+  useEffect(() => {
+    if (!isMobile || !activePoint) return;
+
+    const dismiss = () => setActivePoint(null);
+    const onTouchOutside = (e: TouchEvent) => {
+      if (
+        chartContainerRef.current &&
+        !chartContainerRef.current.contains(e.target as Node)
+      ) {
+        dismiss();
+      }
+    };
+
+    document.addEventListener("touchstart", onTouchOutside, { passive: true });
+    window.addEventListener("scroll", dismiss, { passive: true });
+    return () => {
+      document.removeEventListener("touchstart", onTouchOutside);
+      window.removeEventListener("scroll", dismiss);
+    };
+  }, [isMobile, activePoint, chartContainerRef]);
 
   const forecastAvailability = useMemo(() => {
     if (group) return getGroupForecastAvailability(group.questions);
@@ -437,16 +458,31 @@ const FanChart: FC<Props> = ({
   }, [isEmbedded, embedLegendNames, normOptions, yScale]);
   const isCompactEmbed = isEmbedded && !!chartWidth && chartWidth < 400;
 
+  const mobilePinnedOption = useMemo(
+    () =>
+      effectiveActivePoint
+        ? tooltipOptions.find((o) => o.name === effectiveActivePoint) ?? null
+        : null,
+    [effectiveActivePoint, tooltipOptions]
+  );
+
   const pinnedBarX = useMemo(() => {
-    if (!pinnedOption) return 1;
+    if (!effectiveActivePoint) return 1;
     const dp = v.domainPadding(variantArgs).x[0];
     const leftEdge = chartPadding.left + dp;
     const rightEdge = chartWidth - chartPadding.right - dp;
-    const idx = normOptions.findIndex((o) => o.name === pinnedOption.name);
+    const idx = normOptions.findIndex((o) => o.name === effectiveActivePoint);
     return normOptions.length <= 1
       ? leftEdge
       : leftEdge + (idx / (normOptions.length - 1)) * (rightEdge - leftEdge);
-  }, [pinnedOption, v, variantArgs, chartPadding, chartWidth, normOptions]);
+  }, [
+    effectiveActivePoint,
+    v,
+    variantArgs,
+    chartPadding,
+    chartWidth,
+    normOptions,
+  ]);
 
   const handleTouchBar = (e: React.TouchEvent<HTMLDivElement>) => {
     if (!isMobile || !withTooltip) return;
@@ -456,24 +492,22 @@ const FanChart: FC<Props> = ({
     const leftEdge = chartPadding.left + dp;
     const rightEdge = chartWidth - chartPadding.right - dp;
     const n = normOptions.length;
-    if (n === 0) return;
-    const optionIndex =
-      n === 1
-        ? 0
-        : Math.max(
-            0,
-            Math.min(
-              n - 1,
-              Math.round(
-                ((touchX - leftEdge) / (rightEdge - leftEdge)) * (n - 1)
-              )
-            )
-          );
-    const optionName = normOptions[optionIndex]?.name;
-    const opt = optionName
-      ? tooltipOptions.find((o) => o.name === optionName)
-      : null;
-    setPinnedOption(opt ?? null);
+    if (n === 0 || tooltipOptions.length === 0) return;
+
+    let nearestName: string | null = null;
+    let minDist = Infinity;
+    for (const opt of tooltipOptions) {
+      const idx = normOptions.findIndex((o) => o.name === opt.name);
+      if (idx < 0) continue;
+      const barX =
+        n <= 1 ? leftEdge : leftEdge + (idx / (n - 1)) * (rightEdge - leftEdge);
+      const dist = Math.abs(touchX - barX);
+      if (dist < minDist) {
+        minDist = dist;
+        nearestName = opt.name;
+      }
+    }
+    setActivePoint(nearestName);
   };
 
   return (
@@ -491,7 +525,6 @@ const FanChart: FC<Props> = ({
           style={{ height }}
           onTouchStartCapture={handleTouchBar}
           onTouchMove={handleTouchBar}
-          onTouchEnd={() => setPinnedOption(null)}
         >
           {shouldDisplayChart && (
             <VictoryChart
@@ -512,7 +545,7 @@ const FanChart: FC<Props> = ({
                     style={{
                       pointerEvents: "auto",
                       userSelect: "auto",
-                      touchAction: "auto",
+                      touchAction: isMobile ? "pan-y" : "auto",
                     }}
                   />
                 )
@@ -717,11 +750,11 @@ const FanChart: FC<Props> = ({
               textClassName="!max-w-[300px]"
             />
           )}
-          {pinnedOption && (
+          {mobilePinnedOption && (
             <ChartFanTooltip
               x={Math.max(pinnedBarX, 1)}
               y={50}
-              datum={{ xName: pinnedOption.name }}
+              datum={{ xName: mobilePinnedOption.name }}
               options={tooltipOptions}
               chartHeight={height}
               hideCp={hideCP}
