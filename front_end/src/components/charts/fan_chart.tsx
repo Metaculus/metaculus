@@ -448,6 +448,34 @@ const FanChart: FC<Props> = ({
       : leftEdge + (idx / (normOptions.length - 1)) * (rightEdge - leftEdge);
   }, [pinnedOption, v, variantArgs, chartPadding, chartWidth, normOptions]);
 
+  const handleTouchBar = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isMobile || !withTooltip) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const touchX = (e.touches[0]?.clientX ?? 0) - rect.left;
+    const dp = v.domainPadding(variantArgs).x[0];
+    const leftEdge = chartPadding.left + dp;
+    const rightEdge = chartWidth - chartPadding.right - dp;
+    const n = normOptions.length;
+    if (n === 0) return;
+    const optionIndex =
+      n === 1
+        ? 0
+        : Math.max(
+            0,
+            Math.min(
+              n - 1,
+              Math.round(
+                ((touchX - leftEdge) / (rightEdge - leftEdge)) * (n - 1)
+              )
+            )
+          );
+    const optionName = normOptions[optionIndex]?.name;
+    const opt = optionName
+      ? tooltipOptions.find((o) => o.name === optionName)
+      : null;
+    setPinnedOption(opt ?? null);
+  };
+
   return (
     <div className="w-full">
       {isEmbedded && (
@@ -461,37 +489,9 @@ const FanChart: FC<Props> = ({
           ref={chartContainerRef}
           className="relative w-full"
           style={{ height }}
-          onTouchStartCapture={(e) => {
-            if (!isMobile || !withTooltip) return;
-            const rect = e.currentTarget.getBoundingClientRect();
-            const touchX = (e.touches[0]?.clientX ?? 0) - rect.left;
-
-            const dp = v.domainPadding(variantArgs).x[0];
-            const leftEdge = chartPadding.left + dp;
-            const rightEdge = chartWidth - chartPadding.right - dp;
-            const n = normOptions.length;
-            if (n === 0) return;
-
-            const optionIndex =
-              n === 1
-                ? 0
-                : Math.max(
-                    0,
-                    Math.min(
-                      n - 1,
-                      Math.round(
-                        ((touchX - leftEdge) / (rightEdge - leftEdge)) * (n - 1)
-                      )
-                    )
-                  );
-
-            const optionName = normOptions[optionIndex]?.name;
-            const opt = optionName
-              ? tooltipOptions.find((o) => o.name === optionName)
-              : null;
-
-            setPinnedOption(opt ?? null);
-          }}
+          onTouchStartCapture={handleTouchBar}
+          onTouchMove={handleTouchBar}
+          onTouchEnd={() => setPinnedOption(null)}
         >
           {shouldDisplayChart && (
             <VictoryChart
@@ -719,7 +719,6 @@ const FanChart: FC<Props> = ({
           )}
           {pinnedOption && (
             <ChartFanTooltip
-              key={pinnedOption.name}
               x={Math.max(pinnedBarX, 1)}
               y={50}
               datum={{ xName: pinnedOption.name }}

@@ -48,7 +48,7 @@ const ChartFanTooltip: FC<Props> = ({
   chartHeight,
   hideCp = false,
   forecastAvailability,
-  skipOpacityHide,
+  skipOpacityHide = false,
   ...props
 }) => {
   const t = useTranslations();
@@ -93,11 +93,8 @@ const ChartFanTooltip: FC<Props> = ({
     return null;
   }
 
-  const position = skipOpacityHide
-    ? "top"
-    : (y ?? 0) + TOOLTIP_PADDING + height > chartHeight
-      ? "top"
-      : "bottom";
+  const position =
+    y + TOOLTIP_PADDING + height > chartHeight ? "top" : "bottom";
 
   const communityPredictions = getTooltipItems({
     t,
@@ -148,8 +145,7 @@ const ChartFanTooltip: FC<Props> = ({
         width={width}
         height={height}
         x={x}
-        y={Math.max(y ?? 0, 20)}
-        skipOpacityHide={skipOpacityHide}
+        y={y}
         className={[
           "border-purple-600 dark:border-purple-600-dark",
           "p-2",
@@ -176,7 +172,7 @@ const ChartFanTooltip: FC<Props> = ({
     <div
       ref={ref}
       className={cn(
-        "pointer-events-none absolute z-[100] rounded bg-gray-0 text-xs leading-4 shadow-lg dark:bg-gray-0-dark",
+        "pointer-events-none absolute z-100 rounded bg-gray-0 text-xs leading-4 shadow-lg dark:bg-gray-0-dark",
         { "opacity-0": !skipOpacityHide && !width && !height }
       )}
       style={{
@@ -249,31 +245,28 @@ const MinifiedTooltip: FC<
     x: number;
     y: number;
     className?: string;
-    skipOpacityHide?: boolean;
   }>
-> = ({ children, ref, width, height, x, y, className, skipOpacityHide }) => {
+> = ({ children, ref, width, height, x, y, className }) => {
   const baseLeft = (x ?? 0) - width / 2;
   const clampedLeft = useClampedViewportX(ref, baseLeft, [width]);
-  const content = (
-    <div
-      ref={ref}
-      className={cn(
-        "pointer-events-none absolute z-[100] max-w-[200px] rounded border border-gray-300 bg-gray-0 p-2.5 text-center text-sm shadow-lg dark:border-gray-300-dark dark:bg-gray-0-dark",
-        { "opacity-0": !skipOpacityHide && !width && !height },
-        className
-      )}
-      style={{
-        left: clampedLeft,
-        top: (y ?? 0) - height / 2 - (skipOpacityHide ? 15 : 0),
-      }}
-    >
-      {children}
-    </div>
+  return (
+    <FloatingPortal id="fan-graph-container">
+      <div
+        ref={ref}
+        className={cn(
+          "pointer-events-none absolute z-100 max-w-[200px] rounded border border-gray-300 bg-gray-0 p-2.5 text-center text-sm shadow-lg dark:border-gray-300-dark dark:bg-gray-0-dark",
+          { "opacity-0": !width && !height },
+          className
+        )}
+        style={{
+          left: clampedLeft,
+          top: (y ?? 0) - height / 2,
+        }}
+      >
+        {children}
+      </div>
+    </FloatingPortal>
   );
-
-  if (skipOpacityHide) return content;
-
-  return <FloatingPortal id="fan-graph-container">{content}</FloatingPortal>;
 };
 
 // we use this hook instead of useContainerSize because tooltip is rendered inside portal
