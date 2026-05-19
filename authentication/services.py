@@ -17,11 +17,22 @@ from utils.frontend import (
 )
 
 
-def send_activation_email(user: User, redirect_url: str | None):
+def generate_account_activation_link(
+    user: User, redirect_url: str | None = None
+) -> str:
     confirmation_token = default_token_generator.make_token(user)
-    activation_link = build_frontend_account_activation_url(
+    return build_frontend_account_activation_url(
         user.id, confirmation_token, redirect_url
     )
+
+
+def generate_password_reset_link(user: User) -> str:
+    confirmation_token = default_token_generator.make_token(user)
+    return build_frontend_password_reset_url(user.id, confirmation_token)
+
+
+def send_activation_email(user: User, redirect_url: str | None):
+    activation_link = generate_account_activation_link(user, redirect_url)
 
     send_email_with_template(
         user.email,
@@ -39,8 +50,7 @@ def send_activation_email(user: User, redirect_url: str | None):
 
 
 def send_password_reset_email(user: User):
-    confirmation_token = default_token_generator.make_token(user)
-    reset_link = build_frontend_password_reset_url(user.id, confirmation_token)
+    reset_link = generate_password_reset_link(user)
 
     send_email_with_template(
         user.email,
