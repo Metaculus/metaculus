@@ -11,7 +11,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
-
 import toast from "react-hot-toast";
 
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
