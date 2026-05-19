@@ -224,7 +224,7 @@ const MultipleChoiceChart: FC<Props> = ({
       cursorDimension={"x"}
       defaultCursorValue={defaultCursor}
       style={{
-        touchAction: "pan-y",
+        touchAction: "none",
       }}
       cursorLabelOffset={{
         x: 0,

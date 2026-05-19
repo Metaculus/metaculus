@@ -301,7 +301,9 @@ export const ConsumerShell: FC<{
                   hideCP ? (
                     <RevealCPButton />
                   ) : isFanGraph && fanGraphQuestions ? (
-                    <ConsumerTimeSeriesPane questions={fanGraphQuestions} />
+                    <ConsumerTimeSeriesPane
+                      questions={fanGraphQuestions.slice(-4)}
+                    />
                   ) : isContinuousNumericGroup ? (
                     <NumericForecastCard post={postData} fillHeight />
                   ) : (

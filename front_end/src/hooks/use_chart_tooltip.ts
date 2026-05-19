@@ -17,6 +17,7 @@ type Props = {
   tooltipOffset?: number;
   x?: number | null;
   y?: number | null;
+  forceOpen?: boolean;
 };
 
 const useChartTooltip = ({
@@ -24,8 +25,10 @@ const useChartTooltip = ({
   tooltipOffset = 24,
   x,
   y,
+  forceOpen,
 }: Props = {}) => {
-  const [isActive, setIsActive] = useState(false);
+  const [hoverActive, setHoverActive] = useState(false);
+  const isActive = !!forceOpen || hoverActive;
   const { refs, floatingStyles, context } = useFloating({
     strategy: "fixed",
     middleware: [
@@ -34,13 +37,13 @@ const useChartTooltip = ({
       shift({ crossAxis: true, padding: 16 }),
     ],
     open: isActive,
-    onOpenChange: setIsActive,
+    onOpenChange: setHoverActive,
     placement,
     whileElementsMounted: autoUpdate,
   });
   const clientPoint = useClientPoint(context, { x, y });
   const dismiss = useDismiss(context);
-  const hover = useHover(context);
+  const hover = useHover(context, { enabled: !forceOpen });
   const { getReferenceProps, getFloatingProps } = useInteractions([
     clientPoint,
     dismiss,

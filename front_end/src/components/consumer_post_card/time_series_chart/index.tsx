@@ -598,11 +598,11 @@ function adjustChartData(
     : chartData.slice(0, questionsToDisplay);
 
   return {
-    adjustedChartData: sliced.map((datum, sliceIndex) => {
-      const base = ["no", "yes"].includes(datum.resolution as string)
-        ? { ...datum, y: maxY * 0.4 }
-        : datum;
-      return { ...base, originalIndex: sliceIndex };
+    adjustedChartData: sliced.map((datum) => {
+      if (["no", "yes"].includes(datum.resolution as string)) {
+        return { ...datum, y: maxY * 0.4 };
+      }
+      return datum;
     }),
     yDomain:
       unresolvedPoints.length === 0 ? ([0, 1] as [number, number]) : undefined,

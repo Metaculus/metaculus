@@ -40,7 +40,6 @@ const ConsumerGroupChart: FC<Props> = ({
         preselectedQuestionId={preselectedQuestionId}
         withLegend={false}
         withHighlightArea={false}
-        withHighlightEndpoint
         externalHighlightedChoice={hoveredChoiceName}
         chartHeight={chartHeight}
       />
