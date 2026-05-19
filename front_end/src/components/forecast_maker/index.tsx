@@ -23,6 +23,7 @@ type Props = {
 const ForecastMaker: FC<Props> = ({ post, onPredictionSubmit }) => {
   const t = useTranslations();
   const { user } = useAuth();
+
   const { group_of_questions: groupOfQuestions, conditional, question } = post;
   const canPredict = canPredictQuestion(post, user);
   const isPrePrediction = isPostPrePrediction(post);
