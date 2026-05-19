@@ -2,7 +2,15 @@
 
 import { isNil, merge } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, memo, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  FC,
+  memo,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   CursorCoordinatesPropType,
   DomainTuple,
@@ -92,6 +100,7 @@ type Props = {
   leftPadding?: number;
   withHighlightArea?: boolean;
   withHighlightEndpoint?: boolean;
+  headerLeft?: ReactNode;
 };
 
 const LABEL_FONT_FAMILY = "Inter";
@@ -137,6 +146,7 @@ const GroupChart: FC<Props> = ({
   leftPadding = 0,
   withHighlightArea = true,
   withHighlightEndpoint = false,
+  headerLeft,
 }) => {
   const t = useTranslations();
   const {
@@ -344,6 +354,7 @@ const GroupChart: FC<Props> = ({
         height={height}
         zoom={withZoomPicker ? zoom : undefined}
         onZoomChange={setZoom}
+        headerLeft={headerLeft}
       >
         {!!chartWidth && (
           <div className="relative h-full">
