@@ -320,6 +320,7 @@ export const ConsumerShell: FC<{
                       }
                       preselectedQuestionId={preselectedGroupQuestionId}
                       visibleQuestions={fanGraphQuestions?.slice(-4)}
+                      variant="consumer"
                     />
                   ) : isContinuousNumericGroup ? (
                     <ConsumerGroupChart

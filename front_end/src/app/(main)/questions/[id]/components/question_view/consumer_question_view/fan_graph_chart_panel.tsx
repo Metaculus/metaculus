@@ -18,21 +18,31 @@ type Props = {
   post: GroupOfQuestionsPost<QuestionWithNumericForecasts>;
   preselectedQuestionId?: number;
   visibleQuestions?: QuestionWithNumericForecasts[];
+  variant?: "consumer" | "forecaster";
 };
 
 const FanGraphChartPanel: FC<Props> = ({
   post,
   preselectedQuestionId,
   visibleQuestions,
+  variant = "forecaster",
 }) => {
   const t = useTranslations();
   const { hideCP } = useHideCP();
-  const [activeView, setActiveView] = useState<ChartView>("fan");
+  const isConsumer = variant === "consumer";
+  const [activeView, setActiveView] = useState<ChartView>(
+    isConsumer ? "timeline" : "fan"
+  );
 
-  const views: { value: ChartView; label: string }[] = [
-    { value: "fan", label: t("fanChart") },
-    { value: "timeline", label: t("timeline") },
-  ];
+  const views: { value: ChartView; label: string }[] = isConsumer
+    ? [
+        { value: "timeline", label: t("timeline") },
+        { value: "fan", label: t("fanChart") },
+      ]
+    : [
+        { value: "fan", label: t("fanChart") },
+        { value: "timeline", label: t("timeline") },
+      ];
 
   const isCompact = !!visibleQuestions;
 
