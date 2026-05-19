@@ -3,7 +3,6 @@
 import { MDXEditorMethods } from "@mdxeditor/editor";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useRef, useState } from "react";
-
 import toast from "react-hot-toast";
 
 import { createComment } from "@/app/(main)/questions/actions";
