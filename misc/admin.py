@@ -1,4 +1,3 @@
-from admin_auto_filters.filters import AutocompleteFilterFactory
 from django import forms
 from django.contrib import admin
 from django.core.exceptions import ValidationError
@@ -9,12 +8,7 @@ from .models import Bulletin, SidebarItem, UserDataAccess
 @admin.register(Bulletin)
 class BulletinAdmin(admin.ModelAdmin):
     list_display = ["__str__", "bulletin_start", "bulletin_end"]
-    search_fields = ["post", "project", "bulletin_start", "bulletin_end", "text"]
-    list_filter = [
-        AutocompleteFilterFactory("Post", "post"),
-        AutocompleteFilterFactory("Project", "project"),
-    ]
-    autocomplete_fields = ["post", "project"]
+    search_fields = ["bulletin_start", "bulletin_end", "text"]
 
 
 class SidebarItemAdminForm(forms.ModelForm):

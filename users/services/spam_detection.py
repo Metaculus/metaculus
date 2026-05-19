@@ -48,7 +48,15 @@ def check_and_handle_content_spam(
     ):
         return False
 
-    result = run_spam_analysis(content_text, content_type)
+    try:
+        result = run_spam_analysis(content_text, content_type)
+    except Exception:
+        logger.exception(
+            "AI spam analysis failed for %s %s; defaulting to not spam",
+            content_type,
+            content_id,
+        )
+        return False
 
     # TODO: Remove this once we gain some confidence it the level of false positives is acceptable
     logging.info(f"Spam analysis result {result} from content {content_text}")
