@@ -17,6 +17,7 @@ import {
   SectionHeader,
   ContentParagraph,
 } from "./components/section";
+import { LABOR_HUB_POST_IDS } from "./helpers/labor_hub_posts";
 import { ActivityMonitorSection } from "./sections/activity_monitor";
 import { EngagementSection } from "./sections/engagement_section";
 import { HeroSection } from "./sections/hero";
@@ -25,7 +26,6 @@ import { KeyInsightsSection } from "./sections/key_insights";
 import { MethodologySection } from "./sections/methodology";
 import { OverviewSection } from "./sections/overview";
 import { ResearchSection } from "./sections/research";
-import { LABOR_HUB_POST_IDS } from "./helpers/labor_hub_posts";
 
 const SECTIONS = [
   { id: "overview", label: "Overview" },
