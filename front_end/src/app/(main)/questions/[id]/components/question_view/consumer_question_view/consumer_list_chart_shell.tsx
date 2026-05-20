@@ -24,6 +24,7 @@ type Props = {
   stretchListContent?: boolean;
   hideListOnMobile?: boolean;
   hideDivider?: boolean;
+  hideBorder?: boolean;
   reduceInnerPadding?: boolean;
   className?: string;
 };
@@ -34,6 +35,7 @@ const ConsumerListChartShell: React.FC<Props> = ({
   stretchListContent = false,
   hideListOnMobile = false,
   hideDivider = false,
+  hideBorder = false,
   reduceInnerPadding = false,
   className,
 }) => {
@@ -52,8 +54,9 @@ const ConsumerListChartShell: React.FC<Props> = ({
     <ListChartExpandedContext.Provider value={contextValue}>
       <div
         className={cn(
-          "flex flex-col sm:rounded-lg sm:border sm:border-gray-400/40 dark:sm:border-gray-400-dark/40",
-          "sm:flex-row sm:items-stretch",
+          "flex flex-col sm:flex-row sm:items-stretch",
+          !hideBorder &&
+            "sm:rounded-lg sm:border sm:border-gray-400/40 dark:sm:border-gray-400-dark/40",
           className
         )}
         onMouseLeave={() => setHoveredChoiceName(null)}

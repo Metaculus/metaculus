@@ -223,6 +223,9 @@ function calculateRelativeWidth({
   }
   if (minScaledValue < 0) {
     const totalRange = maxScaledValue - minScaledValue;
+    if (totalRange === 0) {
+      return 100;
+    }
     return ((scaledChoiceValue - minScaledValue) / totalRange) * 100;
   }
 
