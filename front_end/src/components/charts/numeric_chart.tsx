@@ -239,13 +239,14 @@ const NumericChart: FC<Props> = ({
     return Math.max(rightPadding, MIN_RIGHT_PADDING);
   }, [rightPadding, MIN_RIGHT_PADDING]);
 
+  const isCursorEnabled =
+    !nonInteractive &&
+    !forecastAvailability?.isEmpty &&
+    !hideCP &&
+    !forecastAvailability?.cpRevealsOn;
+
   const containerComponent = useMemo(() => {
-    if (
-      nonInteractive ||
-      forecastAvailability?.isEmpty ||
-      hideCP ||
-      !!forecastAvailability?.cpRevealsOn
-    ) {
+    if (!isCursorEnabled) {
       return (
         <VictoryContainer
           style={{
@@ -316,15 +317,13 @@ const NumericChart: FC<Props> = ({
     hasExternalTheme,
     getThemeColor,
     handleCursorChange,
-    nonInteractive,
+    isCursorEnabled,
     isCursorActive,
-    forecastAvailability,
-    hideCP,
     isContinuousConsumerView,
   ]);
 
   const chartEvents = useMemo(() => {
-    if (nonInteractive) return [];
+    if (!isCursorEnabled) return [];
 
     return [
       {
@@ -351,7 +350,7 @@ const NumericChart: FC<Props> = ({
         },
       },
     ];
-  }, [nonInteractive, handleCursorChange]);
+  }, [isCursorEnabled, handleCursorChange]);
 
   const shouldDisplayChart = useMemo(
     () => !!chartWidth && !!xScale.ticks.length && yScale.ticks.length,
