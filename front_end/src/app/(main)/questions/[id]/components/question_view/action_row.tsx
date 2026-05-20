@@ -144,7 +144,7 @@ const ActionRow: FC<Props> = ({ post, variant }) => {
         <PostDropdownMenu
           post={post}
           button={
-            <PillButton variant="icon">
+            <PillButton variant="icon" aria-label={t("moreActions")}>
               <FontAwesomeIcon icon={faEllipsis} className="text-base" />
             </PillButton>
           }
