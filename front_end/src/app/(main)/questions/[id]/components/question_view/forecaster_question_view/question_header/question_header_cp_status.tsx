@@ -288,7 +288,10 @@ const QuestionHeaderCPStatus: FC<Props> = ({
       </div>
     );
   } else if (question.type === QuestionType.Binary) {
-    if (hideCP && !isEmbed) {
+    if (hideCP) {
+      if (isEmbed) {
+        return null;
+      }
       return (
         <div
           className={cn("flex flex-col items-center justify-center", {
@@ -300,7 +303,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({
       );
     }
 
-    if (forecastAvailability.cpRevealsOn && !isEmbed) {
+    if (forecastAvailability.cpRevealsOn) {
       return (
         <div className="flex flex-col items-center justify-center">
           <UpcomingCP

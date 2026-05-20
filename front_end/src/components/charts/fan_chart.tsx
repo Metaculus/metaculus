@@ -745,7 +745,7 @@ const FanChart: FC<Props> = ({
               textClassName="!max-w-[300px]"
             />
           )}
-          {isMobile && mobilePinnedOption && (
+          {withTooltip && isMobile && mobilePinnedOption && (
             <ChartFanTooltip
               x={Math.max(pinnedBarX, 1)}
               y={50}
