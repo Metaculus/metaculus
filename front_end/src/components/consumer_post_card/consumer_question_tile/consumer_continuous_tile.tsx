@@ -12,25 +12,33 @@ type Props = {
   question: QuestionWithForecasts;
   forecastAvailability: ForecastAvailability;
   variant?: "feed" | "question";
+  overrideCenter?: number | null;
 };
 
 const ConsumerContinuousTile: FC<Props> = ({
   question,
   forecastAvailability,
   variant = "feed",
+  overrideCenter,
 }) => {
   const locale = useLocale();
 
   const latest =
     question.aggregations[question.default_aggregation_method]?.latest;
-  const communityPredictionDisplayValue = latest
-    ? getPredictionDisplayValue(latest.centers?.[0], {
-        questionType: question.type,
-        scaling: question.scaling,
-        actual_resolve_time: question.actual_resolve_time ?? null,
-        unit: question.unit,
-      })
-    : null;
+  // Cursor position overrides the latest CP center when hovering the timeline.
+  const effectiveCenter =
+    overrideCenter !== null && overrideCenter !== undefined
+      ? overrideCenter
+      : latest?.centers?.[0];
+  const communityPredictionDisplayValue =
+    effectiveCenter !== undefined
+      ? getPredictionDisplayValue(effectiveCenter, {
+          questionType: question.type,
+          scaling: question.scaling,
+          actual_resolve_time: question.actual_resolve_time ?? null,
+          unit: question.unit,
+        })
+      : null;
 
   // Resolved/Annulled/Ambiguous
   if (question.resolution) {

@@ -142,7 +142,7 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
           {hiddenChips.length > 0 && (
             <Popover className="relative shrink-0">
               <PopoverButton className="inline-flex cursor-pointer select-none items-center justify-center gap-1 rounded bg-gray-300 p-1.5 text-sm font-medium leading-4 text-gray-900 hover:bg-gray-400 dark:bg-gray-300-dark dark:text-gray-900-dark dark:hover:bg-gray-400-dark">
-                {t("nMore", { count: hiddenChips.length })}
+                {t("nMore", { count: hiddenChips.length })}...
               </PopoverButton>
               <PopoverPanel className="absolute right-0 top-full z-10 mt-1 flex max-w-[250px] flex-wrap gap-2 rounded border border-gray-300 bg-gray-0 p-3 shadow-lg dark:border-gray-300-dark dark:bg-gray-0-dark">
                 {hiddenChips.map((element) => (
