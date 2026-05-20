@@ -39,7 +39,7 @@ export async function YearStats({ forecasts }: Props) {
             </div>
             <div
               className={cn(
-                "mt-1 font-geist-mono text-2xl font-bold leading-none sm:text-3xl",
+                "mt-1 font-jetbrains-mono text-2xl font-bold leading-none sm:text-3xl",
                 valueClass(value)
               )}
             >

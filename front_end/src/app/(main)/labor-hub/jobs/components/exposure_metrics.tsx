@@ -1,5 +1,10 @@
-import { getTranslations } from "next-intl/server";
+"use client";
 
+import { faCircleQuestion } from "@fortawesome/free-regular-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useTranslations } from "next-intl";
+
+import Tooltip from "@/components/ui/tooltip";
 import cn from "@/utils/core/cn";
 
 import { type JobDefinition } from "../../data";
@@ -48,8 +53,8 @@ type Props = {
   job: Pick<JobDefinition, "felten" | "mna" | "aoe">;
 };
 
-export async function ExposureMetrics({ job }: Props) {
-  const t = await getTranslations();
+export function ExposureMetrics({ job }: Props) {
+  const t = useTranslations();
 
   const ringLabel = (level: ExposureLevel): string =>
     level === "high"
@@ -96,23 +101,37 @@ export async function ExposureMetrics({ job }: Props) {
             className="rounded-md border border-blue-300 bg-blue-100 p-4 dark:border-blue-300-dark dark:bg-blue-100-dark"
           >
             <div className="flex items-center justify-between gap-2">
-              <span
-                className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-700-dark"
-                title={tooltip}
-              >
+              <span className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-700-dark">
                 {label}
               </span>
-              <span
-                className={cn(
-                  "rounded-full border px-2 py-0.5 text-xs font-semibold",
-                  cls.ring,
-                  cls.label
-                )}
-              >
-                {ringLabel(level)}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span
+                  className={cn(
+                    "rounded-full border px-2 py-0.5 text-xs font-semibold",
+                    cls.ring,
+                    cls.label
+                  )}
+                >
+                  {ringLabel(level)}
+                </span>
+                <Tooltip
+                  tooltipContent={tooltip}
+                  showDelayMs={150}
+                  placement="top"
+                >
+                  <span
+                    aria-label={tooltip}
+                    className="inline-flex h-4 w-4 cursor-help items-center justify-center text-blue-600 dark:text-blue-600-dark"
+                  >
+                    <FontAwesomeIcon
+                      icon={faCircleQuestion}
+                      className="text-[14px]"
+                    />
+                  </span>
+                </Tooltip>
+              </div>
             </div>
-            <div className="mt-3 font-geist-mono text-3xl font-bold text-blue-900 dark:text-blue-900-dark">
+            <div className="mt-3 font-jetbrains-mono text-3xl font-bold text-blue-900 dark:text-blue-900-dark">
               {formatValue(key, value)}
             </div>
             <div className="mt-3 h-1.5 rounded-full bg-blue-200 dark:bg-blue-200-dark">

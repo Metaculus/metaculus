@@ -69,7 +69,10 @@ export default async function AllJobsPage() {
           aria-label="Breadcrumb"
           className="mb-3 flex items-center gap-2 text-sm text-blue-700 dark:text-blue-700-dark"
         >
-          <Link href="/labor-hub/" className="font-medium hover:underline">
+          <Link
+            href="/labor-hub/"
+            className="font-medium no-underline transition-colors hover:text-blue-900 dark:hover:text-blue-900-dark"
+          >
             {t("laborHub")}
           </Link>
           <span

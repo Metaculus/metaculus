@@ -55,7 +55,7 @@ export function ShareCardPreview({
       <div className="my-auto flex flex-col gap-2">
         <div
           className={cn(
-            "font-geist-mono font-extrabold leading-none tracking-tight",
+            "font-jetbrains-mono font-extrabold leading-none tracking-tight",
             fullSize ? "text-[180px]" : "text-6xl sm:text-7xl"
           )}
           style={{ color: valueColor(value) }}

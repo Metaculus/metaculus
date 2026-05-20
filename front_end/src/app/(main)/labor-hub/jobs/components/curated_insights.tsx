@@ -1,7 +1,6 @@
 import {
   faArrowTrendDown,
   faArrowTrendUp,
-  faMinus,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getTranslations } from "next-intl/server";
@@ -15,7 +14,7 @@ type Props = {
   jobName: string;
 };
 
-function typeStyle(type: ResolvedInsight["type"]) {
+function directionStyle(type: ResolvedInsight["type"]) {
   switch (type) {
     case "up":
       return {
@@ -29,14 +28,39 @@ function typeStyle(type: ResolvedInsight["type"]) {
         color: "text-mc-option-2 dark:text-mc-option-2-dark",
         bg: "bg-mc-option-light-2 dark:bg-salmon-100-dark",
       };
-    case "neutral":
     default:
-      return {
-        icon: faMinus,
-        color: "text-blue-700 dark:text-blue-700-dark",
-        bg: "bg-blue-200 dark:bg-blue-200-dark",
-      };
+      return null;
   }
+}
+
+function InsightRow({ insight }: { insight: ResolvedInsight }) {
+  const dir = directionStyle(insight.type);
+  return (
+    <div className="flex items-start gap-3">
+      {dir && (
+        <span
+          className={cn(
+            "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
+            dir.bg,
+            dir.color
+          )}
+          aria-hidden="true"
+        >
+          <FontAwesomeIcon icon={dir.icon} className="text-xs" />
+        </span>
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="m-0 text-sm leading-relaxed text-blue-800 group-hover/insight:underline group-hover/insight:decoration-blue-700 group-hover/insight:underline-offset-2 dark:text-blue-800-dark dark:group-hover/insight:decoration-blue-700-dark">
+          {insight.body}
+        </p>
+        {insight.author && (
+          <p className="m-0 mt-1 text-xs text-blue-600 group-hover/insight:text-blue-900 dark:text-blue-600-dark dark:group-hover/insight:text-blue-900-dark">
+            — <span className="font-medium">{insight.author}</span>
+          </p>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export async function CuratedInsights({ insights, jobName }: Props) {
@@ -52,40 +76,26 @@ export async function CuratedInsights({ insights, jobName }: Props) {
           {t("laborHubJobsCuratedInsightsEmpty", { name: jobName })}
         </p>
       ) : (
-        <ul className="mt-3 max-h-80 list-none space-y-3 overflow-y-auto pr-1">
-          {insights.map((insight, i) => {
-            const style = typeStyle(insight.type);
-            return (
-              <li key={i} className="flex items-start gap-3">
-                <span
-                  className={cn(
-                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
-                    style.bg,
-                    style.color
-                  )}
-                  aria-hidden="true"
+        <ul className="mt-3 list-none space-y-3">
+          {insights.map((insight, i) => (
+            <li key={i}>
+              {insight.commentUrl ? (
+                <a
+                  href={insight.commentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group/insight block rounded-sm no-underline transition-colors"
+                  aria-label={`Open original comment by ${insight.author ?? ""} in a new tab`}
                 >
-                  <FontAwesomeIcon icon={style.icon} className="text-xs" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="m-0 text-sm leading-relaxed text-blue-800 dark:text-blue-800-dark">
-                    {insight.body}
-                  </p>
-                  {insight.author && (
-                    <p className="m-0 mt-1 text-xs text-blue-600 dark:text-blue-600-dark">
-                      — <span className="font-medium">{insight.author}</span>
-                      {insight.source === "keyword" && (
-                        <span>
-                          {" · "}
-                          {t("laborHubJobsInsightSourceFromAnotherPost")}
-                        </span>
-                      )}
-                    </p>
-                  )}
+                  <InsightRow insight={insight} />
+                </a>
+              ) : (
+                <div className="group/insight">
+                  <InsightRow insight={insight} />
                 </div>
-              </li>
-            );
-          })}
+              )}
+            </li>
+          ))}
         </ul>
       )}
     </div>

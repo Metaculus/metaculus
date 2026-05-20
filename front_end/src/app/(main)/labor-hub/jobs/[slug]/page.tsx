@@ -7,6 +7,7 @@ import { MultiQuestionLineChart } from "@/app/(main)/labor-hub/components/questi
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 import { ALL_JOB_SLUGS, getJobBySlug } from "../../data";
+import { BentoLayout } from "../components/bento_layout";
 import { CuratedInsights } from "../components/curated_insights";
 import { ExposureMetrics } from "../components/exposure_metrics";
 import { HubCtaCard } from "../components/hub_cta_card";
@@ -123,7 +124,10 @@ export default async function JobDetailPage({
           aria-label="Breadcrumb"
           className="mb-3 flex items-center gap-2 text-sm text-blue-700 dark:text-blue-700-dark"
         >
-          <Link href="/labor-hub/" className="font-medium hover:underline">
+          <Link
+            href="/labor-hub/"
+            className="font-medium no-underline transition-colors hover:text-blue-900 dark:hover:text-blue-900-dark"
+          >
             {t("laborHub")}
           </Link>
           <span
@@ -132,7 +136,10 @@ export default async function JobDetailPage({
           >
             /
           </span>
-          <Link href="/labor-hub/jobs/" className="font-medium hover:underline">
+          <Link
+            href="/labor-hub/jobs/"
+            className="font-medium no-underline transition-colors hover:text-blue-900 dark:hover:text-blue-900-dark"
+          >
             {t("laborHubJobsBreadcrumb")}
           </Link>
           <span
@@ -183,15 +190,11 @@ export default async function JobDetailPage({
       </section>
 
       <section className="mt-6 rounded-md bg-gray-0 px-6 py-8 dark:bg-gray-0-dark sm:px-9 sm:py-10">
-        <ExposureMetrics job={job} />
-        <div className="mt-3 grid gap-3 sm:grid-cols-3">
-          <div className="sm:col-span-2">
-            <CuratedInsights insights={insights} jobName={job.name} />
-          </div>
-          <div className="sm:col-span-1">
-            <WageHoursCards values={wageHours} />
-          </div>
-        </div>
+        <BentoLayout
+          exposure={<ExposureMetrics job={job} />}
+          insights={<CuratedInsights insights={insights} jobName={job.name} />}
+          wagesHours={<WageHoursCards values={wageHours} />}
+        />
       </section>
 
       <div className="mt-6">

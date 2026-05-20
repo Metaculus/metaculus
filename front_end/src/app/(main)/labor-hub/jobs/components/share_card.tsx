@@ -74,7 +74,7 @@ export function ShareCard({
                   aria-pressed={y === year}
                   onClick={() => setYear(y)}
                   className={cn(
-                    "rounded-full px-3 py-1 font-geist-mono text-sm font-medium transition-colors",
+                    "rounded-full px-3 py-1 font-jetbrains-mono text-sm font-medium transition-colors",
                     y === year
                       ? "bg-blue-900 text-gray-0 dark:bg-blue-900-dark dark:text-gray-0-dark"
                       : "text-blue-700 hover:text-blue-900 dark:text-blue-700-dark dark:hover:text-blue-900-dark"
@@ -90,7 +90,7 @@ export function ShareCard({
             <a
               href={downloadUrl}
               download={`metaculus-${slug}-${year}.png`}
-              className="inline-flex items-center justify-center rounded-md bg-blue-900 px-4 py-2 text-sm font-semibold text-gray-0 transition-colors hover:bg-blue-800 dark:bg-blue-900-dark dark:text-gray-0-dark dark:hover:bg-blue-800-dark"
+              className="inline-flex items-center justify-center rounded-md bg-blue-900 px-4 py-2 text-sm font-semibold text-gray-0 no-underline transition-colors hover:bg-blue-800 dark:bg-blue-900-dark dark:text-gray-0-dark dark:hover:bg-blue-800-dark"
             >
               {t("laborHubJobsShareSave")}
             </a>
@@ -98,7 +98,7 @@ export function ShareCard({
               href={tweetIntent}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-md border border-blue-300 bg-gray-0 px-4 py-2 text-sm font-semibold text-blue-900 transition-colors hover:bg-blue-100 dark:border-blue-300-dark dark:bg-gray-0-dark dark:text-blue-900-dark dark:hover:bg-blue-100-dark"
+              className="inline-flex items-center justify-center rounded-md border border-blue-300 bg-gray-0 px-4 py-2 text-sm font-semibold text-blue-900 no-underline transition-colors hover:bg-blue-100 dark:border-blue-300-dark dark:bg-gray-0-dark dark:text-blue-900-dark dark:hover:bg-blue-100-dark"
             >
               {t("laborHubJobsShareTweet")}
             </a>

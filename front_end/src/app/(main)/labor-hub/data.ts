@@ -29,6 +29,8 @@ export type JobDefinition = {
    * "coding" for Software Developers.
    */
   keyword_aliases?: string[];
+  /** Comment IDs to suppress from the Curated Insights list (e.g. off-topic, low-quality). */
+  excluded_comment_ids?: number[];
 };
 
 export const JOBS_DATA: JobDefinition[] = [

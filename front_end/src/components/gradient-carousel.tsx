@@ -76,7 +76,7 @@ function ReusableGradientCarousel<T>({
     const el = viewportRef.current;
     if (!el) return;
     const { scrollLeft, scrollWidth, clientWidth } = el;
-    setCanPrev(loop || scrollLeft > 0);
+    setCanPrev(loop || scrollLeft > 1);
     setCanNext(loop || scrollLeft + clientWidth < scrollWidth - 1);
   }, [loop]);
 
@@ -205,9 +205,21 @@ function ReusableGradientCarousel<T>({
           el.scrollTo({ left: el.scrollWidth, behavior: "smooth" });
           return;
         }
+        el.scrollTo({ left: target, behavior: "smooth" });
+        return;
       }
 
-      el.scrollTo({ left: target, behavior: "smooth" });
+      // Non-loop: snap to the edge when the next step would land us close to it
+      // (otherwise sub-pixel residue / snap-mandatory leaves the arrow visible).
+      const maxScroll = Math.max(0, el.scrollWidth - el.clientWidth);
+      const edgeThreshold = delta * 0.5;
+      let final = target;
+      if (dir === -1 && target < edgeThreshold) {
+        final = 0;
+      } else if (dir === 1 && target > maxScroll - edgeThreshold) {
+        final = maxScroll;
+      }
+      el.scrollTo({ left: final, behavior: "smooth" });
     },
     [loop, slideBy]
   );

@@ -5,9 +5,8 @@ import {
   getJobValueForYear,
 } from "@/app/(main)/labor-hub/helpers/fetch_jobs_data";
 
-import { JOBS_DATA } from "../../data";
-
 import { WALL_YEARS, type WallJob, type WallYear } from "./wall_types";
+import { JOBS_DATA } from "../../data";
 
 export { WALL_YEARS, type WallJob, type WallYear };
 

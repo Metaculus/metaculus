@@ -15,12 +15,12 @@ type Props = {
 
 function tone(value: number | null): string {
   if (value == null)
-    return "bg-blue-200 text-blue-700 dark:bg-blue-200-dark dark:text-blue-700-dark";
+    return "bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-100-dark dark:text-blue-800-dark dark:hover:bg-blue-200-dark";
   if (value > 0)
     return "bg-mc-option-light-3 text-olive-900 dark:bg-olive-300-dark dark:text-olive-900-dark";
   if (value < 0)
-    return "bg-mc-option-light-2 text-salmon-800 dark:bg-salmon-100-dark dark:text-salmon-200-dark";
-  return "bg-blue-200 text-blue-700 dark:bg-blue-200-dark dark:text-blue-700-dark";
+    return "bg-mc-option-light-2 text-salmon-900 dark:bg-salmon-100-dark dark:text-salmon-900-dark";
+  return "bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-100-dark dark:text-blue-800-dark dark:hover:bg-blue-200-dark";
 }
 
 function formatPercent(value: number | null): string {
@@ -44,7 +44,9 @@ export function JobNavStrip({ current, items }: Props) {
           gapClassName="gap-2"
           slideBy={{ mode: "items", count: 3 }}
           gradientFromClass="from-gray-0 dark:from-gray-0-dark"
-          arrowClassName="w-8 h-8 text-blue-700 dark:text-blue-700-dark bg-gray-0 dark:bg-gray-0-dark rounded-full shadow-sm"
+          listClassName="px-0 pb-0"
+          fadeMs={0}
+          arrowClassName="w-8 h-8 rounded-full bg-blue-900 text-gray-0 dark:bg-blue-900-dark dark:text-gray-0-dark shadow-sm !transition-none"
           arrowLeftPosition="left-0"
           arrowRightPosition="right-0"
           renderItem={(item) => {
@@ -55,16 +57,15 @@ export function JobNavStrip({ current, items }: Props) {
                 scroll={false}
                 replace={isActive}
                 className={cn(
-                  "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium",
+                  "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium no-underline transition-colors",
                   isActive
                     ? "bg-blue-900 text-gray-0 dark:bg-blue-900-dark dark:text-gray-0-dark"
-                    : tone(item.value2035),
-                  "transition-colors hover:opacity-80"
+                    : tone(item.value2035)
                 )}
               >
                 <span>{item.name}</span>
                 {item.value2035 != null && (
-                  <span className="font-geist-mono text-xs font-semibold opacity-80">
+                  <span className="font-jetbrains-mono text-xs font-bold tabular-nums opacity-80">
                     {formatPercent(item.value2035)}
                   </span>
                 )}

@@ -8,19 +8,19 @@ export async function HubCtaCard() {
   return (
     <Link
       href="/labor-hub/"
-      className="group flex items-center justify-between gap-4 rounded-lg bg-blue-200 px-5 py-5 text-blue-900 transition-colors hover:bg-blue-300 dark:bg-blue-200-dark dark:text-blue-900-dark dark:hover:bg-blue-300-dark sm:px-6 sm:py-6"
+      className="group flex items-center justify-between gap-4 rounded-md bg-gray-0 px-6 py-8 text-blue-700 no-underline transition-colors hover:bg-blue-100 dark:bg-gray-0-dark dark:text-blue-700-dark dark:hover:bg-blue-100-dark sm:px-9 sm:py-10"
     >
       <span className="flex flex-col">
-        <strong className="text-base font-bold leading-tight sm:text-lg">
+        <strong className="text-base font-bold leading-tight text-blue-900 dark:text-blue-900-dark sm:text-lg">
           {t("laborHubJobsExploreCta")}
         </strong>
-        <span className="mt-1 text-sm text-blue-700 dark:text-blue-700-dark">
+        <span className="mt-1 text-[13px] text-blue-700 dark:text-blue-700-dark">
           {t("laborHubJobsExploreCtaSub")}
         </span>
       </span>
       <span
         aria-hidden="true"
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-700 text-gray-0 transition-transform group-hover:translate-x-1 dark:bg-blue-700-dark dark:text-gray-0-dark"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-700 text-[18px] font-semibold text-gray-0 transition-[transform,background-color] duration-150 group-hover:translate-x-1 group-hover:bg-blue-800 dark:bg-blue-700-dark dark:text-gray-0-dark dark:group-hover:bg-blue-800-dark"
       >
         <FontAwesomeIcon icon={faArrowRight} />
       </span>
