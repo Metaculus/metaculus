@@ -19,6 +19,8 @@ type Props = {
   size?: "md" | "lg";
   variant?: "feed" | "question";
   colorOverride?: string;
+  overrideCenter?: number | null;
+  overrideBounds?: [number, number] | null;
 };
 
 const ContinuousCPBar: FC<Props> = ({
@@ -26,6 +28,8 @@ const ContinuousCPBar: FC<Props> = ({
   size = "md",
   variant = "feed",
   colorOverride,
+  overrideCenter,
+  overrideBounds,
 }) => {
   const latest =
     question.aggregations[question.default_aggregation_method]?.latest;
@@ -41,18 +45,20 @@ const ContinuousCPBar: FC<Props> = ({
   }
   const discreteValueOptions = getDiscreteValueOptions(question);
 
+  const effectiveCenter = overrideCenter ?? latest.centers?.[0];
+  const effectiveLower =
+    overrideBounds?.[0] ?? latest.interval_lower_bounds?.[0];
+  const effectiveUpper =
+    overrideBounds?.[1] ?? latest.interval_upper_bounds?.[0];
+
   const displayValue = getPredictionDisplayValue(
-    latest.centers?.[0],
+    effectiveCenter,
     {
       questionType: question.type,
       scaling: question.scaling,
       range:
-        !isNil(latest?.interval_lower_bounds?.[0]) &&
-        !isNil(latest?.interval_upper_bounds?.[0])
-          ? [
-              latest?.interval_lower_bounds?.[0] as number,
-              latest?.interval_upper_bounds?.[0] as number,
-            ]
+        !isNil(effectiveLower) && !isNil(effectiveUpper)
+          ? [effectiveLower as number, effectiveUpper as number]
           : [],
       unit: question.unit,
       actual_resolve_time: question.actual_resolve_time ?? null,

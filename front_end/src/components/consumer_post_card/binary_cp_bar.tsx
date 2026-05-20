@@ -33,7 +33,7 @@ const BinaryCPBar: FC<Props> = ({
     question.aggregations[question.default_aggregation_method]?.latest
       ?.centers?.[0];
 
-  if (question.type !== QuestionType.Binary || !questionCP) {
+  if (question.type !== QuestionType.Binary) {
     return null;
   }
 

@@ -103,7 +103,7 @@ const Histogram: React.FC<HistogramProps> = ({
           }
           padding={{ top: 0, bottom: 20, left: 12, right: 12 }}
           height={75}
-          width={!!width ? width : undefined}
+          width={width || chartWidth || undefined}
         >
           <VictoryBar
             data={histogramData}
