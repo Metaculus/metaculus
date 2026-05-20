@@ -83,6 +83,11 @@ export function getAxisLeftPadding(
   };
 }
 
+// Width reserved on the right margin for a rotated (270°) yLabel/axis title.
+// Empirically fits an Inter 11px glyph plus a small visual gap before the
+// container edge.
+export const Y_AXIS_LABEL_RESERVED_PX = 16;
+
 export function getAxisRightPadding(
   yScale: Scale,
   labelsFontSize: number,
@@ -94,11 +99,11 @@ export function getAxisRightPadding(
     Math.max(...labels.map((label) => label.length)),
     12
   );
-  const fontSizeScale = yLabel ? 11 : 9;
+  const tickLabelsWidth =
+    Math.round((longestLabelLength * labelsFontSize * 9) / 10) +
+    SCATTER_POINT_PADDING;
   return {
-    rightPadding:
-      Math.round((longestLabelLength * labelsFontSize * fontSizeScale) / 10) +
-      SCATTER_POINT_PADDING,
+    rightPadding: tickLabelsWidth + (yLabel ? Y_AXIS_LABEL_RESERVED_PX : 0),
     MIN_RIGHT_PADDING: 35,
   };
 }

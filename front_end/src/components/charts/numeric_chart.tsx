@@ -19,6 +19,7 @@ import {
   VictoryChart,
   VictoryContainer,
   VictoryCursorContainer,
+  VictoryLabel,
   VictoryLabelProps,
   VictoryLine,
   VictoryPortal,
@@ -56,7 +57,11 @@ import {
 import { QuestionStatus } from "@/types/post";
 import { ForecastAvailability, QuestionType } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
-import { getAxisRightPadding, getTickLabelFontSize } from "@/utils/charts/axis";
+import {
+  getAxisRightPadding,
+  getTickLabelFontSize,
+  Y_AXIS_LABEL_RESERVED_PX,
+} from "@/utils/charts/axis";
 import { findLastIndexBefore } from "@/utils/charts/helpers";
 import cn from "@/utils/core/cn";
 import { resolveToCssColor } from "@/utils/resolve_color";
@@ -626,7 +631,14 @@ const NumericChart: FC<Props> = ({
                     },
                     tickLabels: {
                       ...CHART_FONT_STYLE.tick,
-                      padding: 5,
+                      // Right-align labels at (rightPad - reservedYLabel - 4)px
+                      // past the axis so they sit flush to the right margin,
+                      // leaving room for the optional rotated yLabel.
+                      padding:
+                        rightPad -
+                        (yAxisLabel ? Y_AXIS_LABEL_RESERVED_PX : 0) -
+                        4,
+                      textAnchor: "end",
                       fontSize: tickLabelFontSize,
                       ...(hasExternalTheme
                         ? {}
@@ -637,6 +649,9 @@ const NumericChart: FC<Props> = ({
                   tickFormat={yScale.tickFormat}
                   label={yAxisLabel}
                   orientation="right"
+                  axisLabelComponent={
+                    yAxisLabel ? <VictoryLabel x={chartWidth - 4} /> : undefined
+                  }
                 />
 
                 {/* X axis */}

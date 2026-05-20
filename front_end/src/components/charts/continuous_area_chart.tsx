@@ -749,7 +749,9 @@ const ContinuousAreaChart: FC<Props> = ({
                 style={{
                   tickLabels: {
                     ...CHART_FONT_STYLE.tick,
-                    padding: 2,
+                    // Right-align labels flush to the right margin.
+                    padding: Math.max(horizontalPadding - 4, 2),
+                    textAnchor: "end",
                     fill: getThemeColor(METAC_COLORS.gray["700"]),
                   },
                   ticks: { stroke: "transparent" },

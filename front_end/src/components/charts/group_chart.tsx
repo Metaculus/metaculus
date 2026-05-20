@@ -13,6 +13,7 @@ import {
   VictoryChart,
   VictoryContainer,
   VictoryCursorContainer,
+  VictoryLabel,
   VictoryLabelProps,
   VictoryLine,
   VictoryPortal,
@@ -46,6 +47,7 @@ import {
   generateTimestampXScale,
   getAxisRightPadding,
   getTickLabelFontSize,
+  Y_AXIS_LABEL_RESERVED_PX,
 } from "@/utils/charts/axis";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
@@ -420,7 +422,13 @@ const GroupChart: FC<Props> = ({
                   },
                   tickLabels: {
                     ...CHART_FONT_STYLE.tick,
-                    padding: 5,
+                    // Right-align labels at the right margin, reserving space
+                    // for the rotated yLabel when present.
+                    padding:
+                      maxRightPadding -
+                      (yLabel ? Y_AXIS_LABEL_RESERVED_PX : 0) -
+                      4,
+                    textAnchor: "end",
                     fontSize: tickLabelFontSize,
                     fill: getThemeColor(METAC_COLORS.gray["700"]),
                   },
@@ -435,6 +443,9 @@ const GroupChart: FC<Props> = ({
                 }}
                 label={yLabel}
                 orientation="right"
+                axisLabelComponent={
+                  yLabel ? <VictoryLabel x={chartWidth - 4} /> : undefined
+                }
               />
               {/* X axis */}
               <VictoryPortal>

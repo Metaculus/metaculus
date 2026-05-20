@@ -21,6 +21,7 @@ import {
   VictoryChart,
   VictoryContainer,
   VictoryCursorContainer,
+  VictoryLabel,
   VictoryLabelProps,
   VictoryPortal,
   VictoryScatter,
@@ -52,6 +53,7 @@ import {
   generateTimeSeriesYDomain,
   getTickLabelFontSize,
   getAxisRightPadding,
+  Y_AXIS_LABEL_RESERVED_PX,
 } from "@/utils/charts/axis";
 import { findPreviousTimestamp } from "@/utils/charts/cursor";
 import { truncateLabel } from "@/utils/formatters/string";
@@ -394,7 +396,13 @@ const MultipleChoiceChart: FC<Props> = ({
                 },
                 tickLabels: {
                   ...CHART_FONT_STYLE.tick,
-                  padding: 5,
+                  // Right-align labels at the right margin, reserving space
+                  // for the rotated yLabel when present.
+                  padding:
+                    maxRightPadding -
+                    (yLabel ? Y_AXIS_LABEL_RESERVED_PX : 0) -
+                    4,
+                  textAnchor: "end",
                   fontSize: tickLabelFontSize,
                   fill: getThemeColor(METAC_COLORS.gray["700"]),
                 },
@@ -413,6 +421,9 @@ const MultipleChoiceChart: FC<Props> = ({
               }}
               label={yLabel}
               orientation="right"
+              axisLabelComponent={
+                yLabel ? <VictoryLabel x={chartWidth - 4} /> : undefined
+              }
             />
             <VictoryAxis
               tickValues={xScale.ticks}
