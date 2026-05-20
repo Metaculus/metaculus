@@ -2,7 +2,15 @@
 
 import { isNil, merge } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, memo, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  FC,
+  memo,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   CursorCoordinatesPropType,
   DomainTuple,
@@ -95,6 +103,9 @@ type Props = {
   onTimelineMarkerLeave?: (marker: GroupTimelineMarker) => void;
   animate?: object;
   leftPadding?: number;
+  withHighlightArea?: boolean;
+  withHighlightEndpoint?: boolean;
+  headerLeft?: ReactNode;
 };
 
 const BOTTOM_PADDING = 20;
@@ -136,6 +147,9 @@ const GroupChart: FC<Props> = ({
   onTimelineMarkerLeave,
   animate,
   leftPadding = 0,
+  withHighlightArea = true,
+  withHighlightEndpoint = false,
+  headerLeft,
 }) => {
   const t = useTranslations();
   const {
@@ -279,7 +293,7 @@ const GroupChart: FC<Props> = ({
       cursorDimension={"x"}
       defaultCursorValue={defaultCursor}
       style={{
-        touchAction: "pan-y",
+        touchAction: "none",
       }}
       cursorLabelOffset={showCursorLabel ? { x: 0, y: 0 } : undefined}
       cursorLabel={
@@ -343,6 +357,7 @@ const GroupChart: FC<Props> = ({
         height={height}
         zoom={withZoomPicker ? zoom : undefined}
         onZoomChange={setZoom}
+        headerLeft={headerLeft}
       >
         {!!chartWidth && (
           <div className="relative h-full">
@@ -380,16 +395,103 @@ const GroupChart: FC<Props> = ({
                       }
                     },
                     onMouseLeave: () => {
-                      if (!onCursorChange) return;
                       inPlotRef.current = false;
                       setIsCursorActive(false);
                       setLocalCursorTimestamp(null);
+                      // Reset to last timestamp so lines don't stay frozen at last hovered position.
+                      const lastTs = timestamps.at(-1);
+                      if (onCursorChange && !isNil(lastTs)) {
+                        onCursorChange(lastTs, () => "");
+                      }
+                    },
+                    // Victory doesn't fire cursor events on touch, so we manually compute the timestamp from touch position.
+                    onTouchStartCapture: (e: React.SyntheticEvent) => {
+                      if (!onCursorChange) return;
+                      const touch = (e as React.TouchEvent).touches[0];
+                      if (!touch) return;
+                      const svg =
+                        (e.currentTarget as SVGElement).ownerSVGElement ??
+                        e.currentTarget;
+                      const rect = (svg as SVGElement).getBoundingClientRect();
+                      const x = touch.clientX - rect.left;
+                      const y = touch.clientY - rect.top;
+                      const inPlot =
+                        x >= 0 &&
+                        x <= chartWidth - maxRightPadding &&
+                        y >= PLOT_TOP &&
+                        y <= plotBottom;
+                      inPlotRef.current = inPlot;
+                      setIsCursorActive(inPlot);
+                      if (inPlot) {
+                        const ts = pixelXToTimestamp(
+                          x,
+                          xDomain,
+                          chartWidth,
+                          leftPadding,
+                          maxRightPadding
+                        );
+                        setLocalCursorTimestamp(ts);
+                        if (!isMarkerHovered)
+                          onCursorChange(ts, xScale.tickFormat);
+                      }
+                    },
+                    onTouchMoveCapture: (e: React.SyntheticEvent) => {
+                      if (!onCursorChange) return;
+                      const touch = (e as React.TouchEvent).touches[0];
+                      if (!touch) return;
+                      const svg =
+                        (e.currentTarget as SVGElement).ownerSVGElement ??
+                        e.currentTarget;
+                      const rect = (svg as SVGElement).getBoundingClientRect();
+                      const x = touch.clientX - rect.left;
+                      const y = touch.clientY - rect.top;
+                      const inPlot =
+                        x >= 0 &&
+                        x <= chartWidth - maxRightPadding &&
+                        y >= PLOT_TOP &&
+                        y <= plotBottom;
+                      inPlotRef.current = inPlot;
+                      setIsCursorActive(inPlot);
+                      if (inPlot) {
+                        const ts = pixelXToTimestamp(
+                          x,
+                          xDomain,
+                          chartWidth,
+                          leftPadding,
+                          maxRightPadding
+                        );
+                        setLocalCursorTimestamp(ts);
+                        if (!isMarkerHovered)
+                          onCursorChange(ts, xScale.tickFormat);
+                      } else {
+                        setLocalCursorTimestamp(null);
+                      }
+                    },
+                    onTouchEnd: () => {
+                      inPlotRef.current = false;
+                      setIsCursorActive(false);
+                      setLocalCursorTimestamp(null);
+                      const lastTs = timestamps.at(-1);
+                      if (onCursorChange && !isNil(lastTs)) {
+                        onCursorChange(lastTs, () => "");
+                      }
+                    },
+                    onTouchCancel: () => {
+                      inPlotRef.current = false;
+                      setIsCursorActive(false);
+                      setLocalCursorTimestamp(null);
+                      const lastTs = timestamps.at(-1);
+                      if (onCursorChange && !isNil(lastTs)) {
+                        onCursorChange(lastTs, () => "");
+                      }
                     },
                   },
                 },
               ]}
               containerComponent={
-                onCursorChange ? (
+                onCursorChange &&
+                !hideCP &&
+                !forecastAvailability?.cpRevealsOn ? (
                   CursorContainer
                 ) : (
                   <VictoryContainer
@@ -515,25 +617,70 @@ const GroupChart: FC<Props> = ({
                           : highlighted
                             ? 1
                             : 0.3,
-                        strokeWidth: CHART_STROKE_WIDTH.forecastLine,
+                        strokeWidth:
+                          isHighlightActive && highlighted
+                            ? 3
+                            : CHART_STROKE_WIDTH.forecastLine,
                       },
                     }}
                     interpolation="stepAfter"
                   />
                 );
               })}
+              {/* Line endpoint dot */}
+              {withHighlightEndpoint &&
+                graphs.map(
+                  ({ color, active, line, highlighted, isClosed }, index) => {
+                    if (!active) return null;
+                    const filteredLine = filteredLines[index];
+                    if (!filteredLine) return null;
+                    const lastY = line?.at(-1)?.y;
+                    if (isNil(lastY)) return null; // skip marker if last CP value is null — avoids fake dot on baseline
+                    const point = {
+                      x: isClosed
+                        ? line?.at(-1)?.x ?? Number(xDomain[1])
+                        : Number(xDomain[1]),
+                      y: lastY,
+                    };
+                    return (
+                      <VictoryScatter
+                        key={`group-endpoint-${index}`}
+                        data={[point]}
+                        size={4}
+                        style={{
+                          data: {
+                            fill: getThemeColor(color),
+                            fillOpacity: !isHighlightActive
+                              ? baseLineOpacity
+                              : highlighted
+                                ? 1
+                                : 0.3,
+                          },
+                        }}
+                      />
+                    );
+                  }
+                )}
               {/* Line cursor points */}
               {graphs.map(
                 ({ color, active, line, highlighted, isClosed }, index) => {
                   const filteredLine = filteredLines[index];
-                  const point = onCursorChange
-                    ? filteredLine?.at(-1)
+                  const lastY = line?.at(-1)?.y;
+                  const endpointPoint = isNil(lastY)
+                    ? null
                     : {
                         x: isClosed
                           ? line?.at(-1)?.x ?? Number(xDomain[1])
                           : Number(xDomain[1]),
-                        y: line?.at(-1)?.y ?? 0,
+                        y: lastY,
                       };
+                  // When not hovering, pin dot to line endpoint (avoids null-y cursor-extension points hiding the dot).
+                  const point =
+                    forceShowLinePoints && !isCursorActive
+                      ? endpointPoint
+                      : onCursorChange
+                        ? filteredLine?.at(-1)
+                        : endpointPoint;
                   if (
                     !active ||
                     !filteredLine ||
@@ -575,7 +722,7 @@ const GroupChart: FC<Props> = ({
                     style={{
                       data: {
                         fill: getThemeColor(color),
-                        opacity: highlighted ? 0.3 : 0,
+                        opacity: withHighlightArea && highlighted ? 0.3 : 0,
                       },
                     }}
                     interpolation="stepAfter"
@@ -694,6 +841,19 @@ const GroupChart: FC<Props> = ({
     </div>
   );
 };
+
+function pixelXToTimestamp(
+  x: number,
+  xDomain: DomainTuple,
+  chartWidth: number,
+  leftPadding: number,
+  rightPadding: number
+): number {
+  const plotWidth = chartWidth - rightPadding - leftPadding;
+  if (plotWidth <= 0) return Number(xDomain[0]);
+  const ratio = Math.max(0, Math.min(1, (x - leftPadding) / plotWidth));
+  return Number(xDomain[0]) + ratio * (Number(xDomain[1]) - Number(xDomain[0]));
+}
 
 export type ChoiceGraph = {
   line: Line;

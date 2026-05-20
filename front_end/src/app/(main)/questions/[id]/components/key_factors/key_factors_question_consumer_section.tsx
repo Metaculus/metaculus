@@ -7,12 +7,15 @@ import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider"
 import { openKeyFactorsSectionAndScrollTo } from "@/app/(main)/questions/[id]/components/key_factors/utils";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
+import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
+import { isQuestionPost } from "@/utils/questions/helpers";
 
 import {
   MAX_TOP_KEY_FACTORS,
   useTopKeyFactorsCarouselItems,
 } from "./hooks/use_top_key_factors_carousel_items";
 import KeyFactorDetailOverlay from "./key_factor_detail_overlay";
+import KeyFactorsCarousel from "./key_factors_carousel";
 import KeyFactorsConsumerCarousel from "./key_factors_consumer_carousel";
 import { useShouldHideKeyFactors } from "./use_should_hide_key_factors";
 import { useQuestionLayout } from "../question_layout/question_layout_context";
@@ -41,13 +44,20 @@ const KeyFactorsQuestionConsumerSection: FC<Props> = ({ post }) => {
 
   if (post.status === PostStatus.RESOLVED) return null;
 
+  const postForecastAvailability = isQuestionPost(post)
+    ? getQuestionForecastAvailability(post.question)
+    : null;
+  const forecastIsEmpty =
+    !!postForecastAvailability?.isEmpty &&
+    !postForecastAvailability?.cpRevealsOn;
+
+  if (topItems.length === 0 && !forecastIsEmpty) return null;
+
   const openKeyFactorsElement = (selector: string) => {
     requestKeyFactorsExpand?.();
     openKeyFactorsSectionAndScrollTo({ selector, mobileOnly: false });
     sendAnalyticsEvent("KeyFactorClick", { event_label: "fromTopList" });
   };
-
-  if (topItems.length === 0) return null;
 
   return (
     <div
@@ -58,18 +68,33 @@ const KeyFactorsQuestionConsumerSection: FC<Props> = ({ post }) => {
         <div className="text-sm text-blue-800 dark:text-blue-800-dark">
           {t("topKeyFactors")}
         </div>
-        <button
-          onClick={() => {
-            openKeyFactorsElement("[id='key-factors']");
-            sendAnalyticsEvent("KeyFactorViewAllClick");
-          }}
-          className="text-center text-sm font-normal leading-5 text-blue-600 hover:text-blue-700 dark:text-blue-600-dark dark:hover:text-blue-700-dark"
-        >
-          {t("viewAll", { count: totalCount })}
-        </button>
+        {!forecastIsEmpty && (
+          <button
+            onClick={() => {
+              openKeyFactorsElement("[id='key-factors']");
+              sendAnalyticsEvent("KeyFactorViewAllClick");
+            }}
+            className="text-center text-sm font-normal leading-5 text-blue-600 hover:text-blue-700 dark:text-blue-600-dark dark:hover:text-blue-700-dark"
+          >
+            {t("viewAll", { count: totalCount })}
+          </button>
+        )}
       </div>
 
-      <KeyFactorsConsumerCarousel post={post} items={topItems} />
+      {forecastIsEmpty ? (
+        <KeyFactorsCarousel
+          listClassName="pb-0 [&>:first-child]:pl-4 [&>:last-child]:pr-4 sm:[&>:first-child]:pl-0 sm:[&>:last-child]:pr-0"
+          items={Array.from({ length: 5 })}
+          renderItem={(_, i) => (
+            <div
+              key={i}
+              className="h-[196px] w-[160px] shrink-0 rounded-xl bg-blue-200 dark:bg-blue-200-dark sm:w-[200px]"
+            />
+          )}
+        />
+      ) : (
+        <KeyFactorsConsumerCarousel post={post} items={topItems} />
+      )}
 
       {keyFactorOverlay?.kind === "keyFactor" && (
         <KeyFactorDetailOverlay

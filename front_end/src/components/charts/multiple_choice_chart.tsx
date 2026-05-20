@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import React, {
   FC,
   memo,
+  ReactNode,
   useEffect,
   useId,
   useMemo,
@@ -100,6 +101,7 @@ type Props = {
   forecastAvailability?: ForecastAvailability;
   forFeedPage?: boolean;
   chartTitle?: string;
+  headerLeft?: ReactNode;
   animate?: object;
   leftPadding?: number;
 };
@@ -129,6 +131,7 @@ const MultipleChoiceChart: FC<Props> = ({
   forecastAvailability,
   forFeedPage,
   chartTitle,
+  headerLeft,
   animate,
   leftPadding = 0,
 }) => {
@@ -223,7 +226,7 @@ const MultipleChoiceChart: FC<Props> = ({
       cursorDimension={"x"}
       defaultCursorValue={defaultCursor}
       style={{
-        touchAction: "pan-y",
+        touchAction: "none",
       }}
       cursorLabelOffset={{
         x: 0,
@@ -289,6 +292,7 @@ const MultipleChoiceChart: FC<Props> = ({
         zoom={withZoomPicker ? zoom : undefined}
         onZoomChange={setZoom}
         chartTitle={chartTitle}
+        headerLeft={headerLeft}
       >
         {shouldDisplayChart && (
           <VictoryChart
@@ -326,11 +330,18 @@ const MultipleChoiceChart: FC<Props> = ({
                     setIsCursorActive(false);
                     onCursorActiveChange?.(false);
                   },
+                  onTouchCancelCapture: () => {
+                    if (!onCursorChange) return;
+                    setIsCursorActive(false);
+                    onCursorActiveChange?.(false);
+                  },
                 },
               },
             ]}
             containerComponent={
-              onCursorChange ? (
+              onCursorChange &&
+              !hideCP &&
+              !forecastAvailability?.cpRevealsOn ? (
                 CursorContainer
               ) : (
                 <VictoryContainer
@@ -410,15 +421,16 @@ const MultipleChoiceChart: FC<Props> = ({
                 axis: {
                   stroke: "transparent",
                 },
-                grid: isEmptyDomain
-                  ? {
-                      stroke: getThemeColor(METAC_COLORS.gray["300"]),
-                      strokeWidth: 1,
-                      strokeDasharray: CHART_DASH.grid,
-                    }
-                  : {
-                      stroke: "transparent",
-                    },
+                grid:
+                  isEmptyDomain || hideCP
+                    ? {
+                        stroke: getThemeColor(METAC_COLORS.gray["300"]),
+                        strokeWidth: 1,
+                        strokeDasharray: CHART_DASH.grid,
+                      }
+                    : {
+                        stroke: "transparent",
+                      },
               }}
               label={yLabel}
               orientation="right"
