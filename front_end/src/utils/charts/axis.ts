@@ -93,7 +93,7 @@ export const Y_AXIS_LABEL_RESERVED_PX = 20;
 // textAnchor="middle", the label spans ±fontSize/2 around this point, so
 // the anchor must sit at least fontSize/2 + a small gap inside the edge to
 // avoid being clipped.
-export const Y_AXIS_LABEL_ANCHOR_OFFSET = 9;
+export const Y_AXIS_LABEL_ANCHOR_OFFSET = 12;
 
 export function getAxisRightPadding(
   yScale: Scale,
