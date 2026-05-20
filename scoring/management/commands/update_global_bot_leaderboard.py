@@ -447,7 +447,9 @@ def estimate_variances_from_head_to_head(
     )
     skill_variance = 1 if np.isnan(skill_variance) else skill_variance
 
-    alpha = (error / skill_variance) ** 2
+    # Ridge regularization: λ = σ²_error / σ²_true (ratio of variances).
+    # `error` is a standard deviation, `skill_variance` is already a variance.
+    alpha = error**2 / skill_variance
     if verbose:
         print(
             f"Found {len(rematch_variances)} matchups with >={min_paired_matches} rematches"
@@ -456,8 +458,8 @@ def estimate_variances_from_head_to_head(
         print(
             f"Found {len(high_match_skills)} players with >={min_questions_for_true} questions"
         )
-        print(f"σ_true (skill variance): {skill_variance:.4f}")
-        print(f"alpha = (σ_error / σ_true)² = {alpha:.4f}")
+        print(f"σ²_true (skill variance): {skill_variance:.4f}")
+        print(f"alpha = σ²_error / σ²_true = {alpha:.4f}")
     return alpha
 
 
