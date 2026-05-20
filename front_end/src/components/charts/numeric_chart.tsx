@@ -330,6 +330,10 @@ const NumericChart: FC<Props> = ({
             setIsCursorActive(false);
             handleCursorChange(null);
           },
+          onTouchCancel: () => {
+            setIsCursorActive(false);
+            handleCursorChange(null);
+          },
           onMouseEnter: () => {
             setIsCursorActive(true);
           },
@@ -602,6 +606,7 @@ const NumericChart: FC<Props> = ({
         {...getReferenceProps()}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
       >
         <ForecastAvailabilityChartOverflow
           // when suppressEmptyOverlay is set, force isEmpty: false to hide the "No forecasts yet" overlay
@@ -855,6 +860,7 @@ const NumericChart: FC<Props> = ({
                 {!isDiamondActive &&
                 !isNil(highlightedPoint) &&
                 !hideCP &&
+                !isContinuousConsumerView &&
                 !(hideCursorValueLabel && isCursorActive) ? (
                   <VictoryScatter
                     data={[highlightedPoint]}

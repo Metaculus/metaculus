@@ -2,7 +2,15 @@
 
 import { isNil, merge } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, memo, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  FC,
+  memo,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { v4 } from "uuid";
 import {
   CursorCoordinatesPropType,
@@ -89,6 +97,7 @@ type Props = {
   forecastAvailability?: ForecastAvailability;
   forFeedPage?: boolean;
   chartTitle?: string;
+  headerLeft?: ReactNode;
   animate?: object;
   leftPadding?: number;
 };
@@ -120,6 +129,7 @@ const MultipleChoiceChart: FC<Props> = ({
   forecastAvailability,
   forFeedPage,
   chartTitle,
+  headerLeft,
   animate,
   leftPadding = 0,
 }) => {
@@ -214,7 +224,7 @@ const MultipleChoiceChart: FC<Props> = ({
       cursorDimension={"x"}
       defaultCursorValue={defaultCursor}
       style={{
-        touchAction: "pan-y",
+        touchAction: "none",
       }}
       cursorLabelOffset={{
         x: 0,
@@ -280,6 +290,7 @@ const MultipleChoiceChart: FC<Props> = ({
         zoom={withZoomPicker ? zoom : undefined}
         onZoomChange={setZoom}
         chartTitle={chartTitle}
+        headerLeft={headerLeft}
       >
         {shouldDisplayChart && (
           <VictoryChart
@@ -313,6 +324,11 @@ const MultipleChoiceChart: FC<Props> = ({
                     onCursorActiveChange?.(true);
                   },
                   onTouchEndCapture: () => {
+                    if (!onCursorChange) return;
+                    setIsCursorActive(false);
+                    onCursorActiveChange?.(false);
+                  },
+                  onTouchCancelCapture: () => {
                     if (!onCursorChange) return;
                     setIsCursorActive(false);
                     onCursorActiveChange?.(false);

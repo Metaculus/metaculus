@@ -18,6 +18,7 @@ import cn from "@/utils/core/cn";
 import { buildChoicesWithOthers } from "@/utils/questions/choices";
 
 import ChoicesLegend from "./choices_legend";
+import CompactLegendBar from "./compact_legend_bar";
 
 type Props = {
   choiceItems: ChoiceItem[];
@@ -49,6 +50,8 @@ type Props = {
   activeTimelineMarkerId?: string | null;
   onTimelineMarkerEnter?: (marker: GroupTimelineMarker) => void;
   onTimelineMarkerLeave?: (marker: GroupTimelineMarker) => void;
+  withHighlightArea?: boolean;
+  withHighlightEndpoint?: boolean;
 };
 
 const MultiChoicesChartView: FC<Props> = ({
@@ -82,19 +85,37 @@ const MultiChoicesChartView: FC<Props> = ({
   activeTimelineMarkerId,
   onTimelineMarkerEnter,
   onTimelineMarkerLeave,
+  withHighlightArea = true,
+  withHighlightEndpoint = false,
 }) => {
   const { user } = useAuth();
   const isInteracted = useRef(false);
   const [isChartReady, setIsChartReady] = useState(false);
+  const [isCursorOverLegend, setIsCursorOverLegend] = useState(false);
+  const legendEnterProps = {
+    onMouseEnter: () => setIsCursorOverLegend(true),
+    onMouseLeave: () => setIsCursorOverLegend(false),
+    onTouchStart: () => setIsCursorOverLegend(true),
+    onTouchEnd: () => setIsCursorOverLegend(false),
+    onTouchCancel: () => setIsCursorOverLegend(false),
+  };
   const handleChartReady = useCallback(() => setIsChartReady(true), []);
   const t = useTranslations();
+  const [touchCoords, setTouchCoords] = useState<
+    { x: number; y: number } | undefined
+  >();
 
   const isMC = questionType === QuestionType.MultipleChoice;
 
   const legendContainerRef = useRef<HTMLDivElement>(null);
-  const [normalizedChartHeight, setNormalizedChartHeight] = useState<number>();
+  const [normalizedChartHeight, setNormalizedChartHeight] =
+    useState(chartHeight);
   useEffect(() => {
-    if (!legendContainerRef.current || !chartHeight) return;
+    if (!chartHeight) return;
+    if (!legendContainerRef.current) {
+      setNormalizedChartHeight(chartHeight);
+      return;
+    }
     setNormalizedChartHeight(
       chartHeight -
         (legendContainerRef.current?.clientHeight ?? 0) -
@@ -146,7 +167,23 @@ const MultiChoicesChartView: FC<Props> = ({
     getFloatingProps,
     refs,
     floatingStyles,
-  } = useChartTooltip();
+  } = useChartTooltip({
+    x: touchCoords?.x,
+    y: touchCoords?.y,
+    placement: touchCoords ? "top" : "left",
+    forceOpen: !!touchCoords,
+  });
+  const tooltipStyle = useMemo<React.CSSProperties>(() => {
+    if (!touchCoords) return floatingStyles;
+    return {
+      position: "fixed",
+      top: touchCoords.y - 24,
+      left: touchCoords.x,
+      transform: "translate(-50%, -100%)",
+      zIndex: 100,
+    };
+  }, [touchCoords, floatingStyles]);
+
   const attachRef = useCallback(
     (node: HTMLElement | null) => {
       if (node) refs.setReference(node);
@@ -243,6 +280,8 @@ const MultiChoicesChartView: FC<Props> = ({
     forceAutoZoom: isInteracted.current,
     forecastAvailability,
     attachRef,
+    withHighlightArea,
+    withHighlightEndpoint,
   } as const;
 
   return (
@@ -256,7 +295,18 @@ const MultiChoicesChartView: FC<Props> = ({
       <div
         ref={refs.setReference}
         {...getReferenceProps()}
-        className="relative"
+        className="relative touch-none"
+        onTouchStartCapture={(e) => {
+          const touch = e.touches[0];
+          if (touch) setTouchCoords({ x: touch.clientX, y: touch.clientY });
+        }}
+        onTouchMoveCapture={(e) => {
+          const touch = e.touches[0];
+          if (touch) setTouchCoords({ x: touch.clientX, y: touch.clientY });
+        }}
+        onTouchEndCapture={() => setTouchCoords(undefined)}
+        onTouchCancelCapture={() => setTouchCoords(undefined)}
+        onMouseMoveCapture={() => setTouchCoords(undefined)}
       >
         {useBinaryView ? (
           <GroupChart
@@ -272,13 +322,38 @@ const MultiChoicesChartView: FC<Props> = ({
             activeTimelineMarkerId={activeTimelineMarkerId}
             onTimelineMarkerEnter={onTimelineMarkerEnter}
             onTimelineMarkerLeave={onTimelineMarkerLeave}
+            headerLeft={
+              withLegend ? (
+                <div {...legendEnterProps}>
+                  <CompactLegendBar
+                    items={choiceItems}
+                    questionType={QuestionType.MultipleChoice}
+                    onChoiceChange={handleChoiceChange}
+                    onChoiceHighlight={handleChoiceHighlight}
+                  />
+                </div>
+              ) : undefined
+            }
+            forceShowLinePoints={!embedMode}
           />
         ) : isMC ? (
           <MultipleChoiceChart
             {...commonChartProps}
             isEmbedded={embedMode}
-            chartTitle={!embedMode ? title : undefined}
+            chartTitle={!embedMode && !withLegend ? title : undefined}
             choiceItems={chartChoiceItems}
+            headerLeft={
+              withLegend ? (
+                <div {...legendEnterProps}>
+                  <CompactLegendBar
+                    items={choiceItems}
+                    questionType={QuestionType.MultipleChoice}
+                    onChoiceChange={handleChoiceChange}
+                    onChoiceHighlight={handleChoiceHighlight}
+                  />
+                </div>
+              ) : undefined
+            }
           />
         ) : (
           <GroupChart
@@ -294,11 +369,24 @@ const MultiChoicesChartView: FC<Props> = ({
             activeTimelineMarkerId={activeTimelineMarkerId}
             onTimelineMarkerEnter={onTimelineMarkerEnter}
             onTimelineMarkerLeave={onTimelineMarkerLeave}
+            headerLeft={
+              withLegend && questionType === QuestionType.Binary ? (
+                <div {...legendEnterProps}>
+                  <CompactLegendBar
+                    items={choiceItems}
+                    questionType={QuestionType.Binary}
+                    onChoiceChange={handleChoiceChange}
+                    onChoiceHighlight={handleChoiceHighlight}
+                  />
+                </div>
+              ) : undefined
+            }
+            forceShowLinePoints={!embedMode}
           />
         )}
       </div>
 
-      {withLegend && (
+      {withLegend && !isMC && questionType !== QuestionType.Binary && (
         <div className="-ml-1 mt-3" ref={legendContainerRef}>
           <ChoicesLegend
             choices={choiceItems}
@@ -319,6 +407,7 @@ const MultiChoicesChartView: FC<Props> = ({
       )}
 
       {isTooltipActive &&
+        !isCursorOverLegend &&
         !hideCP &&
         !forecastAvailability?.cpRevealsOn &&
         !activeTimelineMarkerId &&
@@ -329,7 +418,7 @@ const MultiChoicesChartView: FC<Props> = ({
             <div
               className="pointer-events-none z-[100] rounded bg-gray-0 leading-4 shadow-lg dark:bg-gray-0-dark"
               ref={refs.setFloating}
-              style={floatingStyles}
+              style={tooltipStyle}
               {...getFloatingProps()}
             >
               <MCPredictionsTooltip

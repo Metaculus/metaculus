@@ -50,7 +50,9 @@ const ConsumerPostCard: FC<Props> = ({
           )}
 
           {(isGroupOfQuestionsPost(post) || isMultipleChoicePost(post)) && (
-            <GroupForecastCard post={post} />
+            <div className="w-full">
+              <GroupForecastCard post={post} buttonVariant="minimal" />
+            </div>
           )}
 
           {[PostStatus.PENDING_RESOLUTION, PostStatus.CLOSED].includes(

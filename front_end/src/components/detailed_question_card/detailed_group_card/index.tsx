@@ -44,6 +44,7 @@ type Props = {
   onLegendHeightChange?: (height: number) => void;
   chartTheme?: VictoryThemeDefinition;
   defaultZoom?: TimelineChartZoomOption;
+  withLegend?: boolean;
 };
 
 const DetailedGroupCard: FC<Props> = ({
@@ -56,6 +57,7 @@ const DetailedGroupCard: FC<Props> = ({
   onLegendHeightChange,
   chartTheme,
   defaultZoom,
+  withLegend,
 }) => {
   const {
     open_time,
@@ -186,6 +188,7 @@ const DetailedGroupCard: FC<Props> = ({
           chartHeight={embedChartHeight}
           chartTheme={chartTheme}
           defaultZoom={defaultZoom}
+          withLegend={withLegend}
         />
       );
     }
