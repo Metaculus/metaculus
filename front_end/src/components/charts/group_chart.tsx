@@ -623,11 +623,13 @@ const GroupChart: FC<Props> = ({
                     if (!active) return null;
                     const filteredLine = filteredLines[index];
                     if (!filteredLine) return null;
+                    const lastY = line?.at(-1)?.y;
+                    if (isNil(lastY)) return null; // skip marker if last CP value is null — avoids fake dot on baseline
                     const point = {
                       x: isClosed
                         ? line?.at(-1)?.x ?? Number(xDomain[1])
                         : Number(xDomain[1]),
-                      y: line?.at(-1)?.y ?? 0,
+                      y: lastY,
                     };
                     return (
                       <VictoryScatter
@@ -652,12 +654,15 @@ const GroupChart: FC<Props> = ({
               {graphs.map(
                 ({ color, active, line, highlighted, isClosed }, index) => {
                   const filteredLine = filteredLines[index];
-                  const endpointPoint = {
-                    x: isClosed
-                      ? line?.at(-1)?.x ?? Number(xDomain[1])
-                      : Number(xDomain[1]),
-                    y: line?.at(-1)?.y ?? 0,
-                  };
+                  const lastY = line?.at(-1)?.y;
+                  const endpointPoint = isNil(lastY)
+                    ? null
+                    : {
+                        x: isClosed
+                          ? line?.at(-1)?.x ?? Number(xDomain[1])
+                          : Number(xDomain[1]),
+                        y: lastY,
+                      };
                   // When not hovering, pin dot to line endpoint (avoids null-y cursor-extension points hiding the dot).
                   const point =
                     forceShowLinePoints && !isCursorActive

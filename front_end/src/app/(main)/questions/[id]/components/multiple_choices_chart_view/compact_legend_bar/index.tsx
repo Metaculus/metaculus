@@ -7,6 +7,7 @@ import { ChoiceItem } from "@/types/choices";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { getForecastPctDisplayValue } from "@/utils/formatters/prediction";
+import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 const MOBILE_MAX_ITEMS = 5;
 
@@ -19,7 +20,11 @@ type Props = {
 
 function isResolvedNo(item: ChoiceItem, questionType: QuestionType): boolean {
   if (questionType === QuestionType.Binary) return item.resolution === "no";
-  return item.displayedResolution === "No";
+  return (
+    item.resolution !== null &&
+    !isUnsuccessfullyResolved(item.resolution) &&
+    item.choice.toLowerCase() !== String(item.resolution).toLowerCase()
+  );
 }
 
 function getLastAggregationValue(item: ChoiceItem): number | null {

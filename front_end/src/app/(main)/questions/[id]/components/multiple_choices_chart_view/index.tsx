@@ -95,6 +95,9 @@ const MultiChoicesChartView: FC<Props> = ({
   const legendEnterProps = {
     onMouseEnter: () => setIsCursorOverLegend(true),
     onMouseLeave: () => setIsCursorOverLegend(false),
+    onTouchStart: () => setIsCursorOverLegend(true),
+    onTouchEnd: () => setIsCursorOverLegend(false),
+    onTouchCancel: () => setIsCursorOverLegend(false),
   };
   const handleChartReady = useCallback(() => setIsChartReady(true), []);
   const t = useTranslations();
