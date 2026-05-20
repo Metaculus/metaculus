@@ -254,9 +254,6 @@ const MultipleChoiceChart: FC<Props> = ({
         <ChartCursorLabel
           positionY={height - (isEmbedded ? 4 : 10)}
           isActive={isCursorActive}
-          chartWidth={chartWidth}
-          leftPadding={leftPadding}
-          rightPadding={maxRightPadding}
         />
       }
       onCursorChange={(value: CursorCoordinatesPropType) => {
