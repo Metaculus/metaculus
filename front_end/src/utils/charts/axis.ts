@@ -84,9 +84,16 @@ export function getAxisLeftPadding(
 }
 
 // Width reserved on the right margin for a rotated (270°) yLabel/axis title.
-// Empirically fits an Inter 11px glyph plus a small visual gap before the
-// container edge.
-export const Y_AXIS_LABEL_RESERVED_PX = 16;
+// Rotated text occupies its fontSize horizontally (centered on its anchor
+// after rotation); we reserve enough space to fit an Inter 11px glyph plus
+// gaps on both sides — gap to tick labels on the left and gap to the
+// container edge on the right.
+export const Y_AXIS_LABEL_RESERVED_PX = 20;
+// Distance from chartWidth to the rotated yLabel's anchor x. With default
+// textAnchor="middle", the label spans ±fontSize/2 around this point, so
+// the anchor must sit at least fontSize/2 + a small gap inside the edge to
+// avoid being clipped.
+export const Y_AXIS_LABEL_ANCHOR_OFFSET = 9;
 
 export function getAxisRightPadding(
   yScale: Scale,

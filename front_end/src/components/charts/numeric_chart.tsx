@@ -60,6 +60,7 @@ import { ThemeColor } from "@/types/theme";
 import {
   getAxisRightPadding,
   getTickLabelFontSize,
+  Y_AXIS_LABEL_ANCHOR_OFFSET,
   Y_AXIS_LABEL_RESERVED_PX,
 } from "@/utils/charts/axis";
 import { findLastIndexBefore } from "@/utils/charts/helpers";
@@ -650,7 +651,11 @@ const NumericChart: FC<Props> = ({
                   label={yAxisLabel}
                   orientation="right"
                   axisLabelComponent={
-                    yAxisLabel ? <VictoryLabel x={chartWidth - 4} /> : undefined
+                    yAxisLabel ? (
+                      <VictoryLabel
+                        x={chartWidth - Y_AXIS_LABEL_ANCHOR_OFFSET}
+                      />
+                    ) : undefined
                   }
                 />
 

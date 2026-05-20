@@ -53,6 +53,7 @@ import {
   generateTimeSeriesYDomain,
   getTickLabelFontSize,
   getAxisRightPadding,
+  Y_AXIS_LABEL_ANCHOR_OFFSET,
   Y_AXIS_LABEL_RESERVED_PX,
 } from "@/utils/charts/axis";
 import { findPreviousTimestamp } from "@/utils/charts/cursor";
@@ -422,7 +423,9 @@ const MultipleChoiceChart: FC<Props> = ({
               label={yLabel}
               orientation="right"
               axisLabelComponent={
-                yLabel ? <VictoryLabel x={chartWidth - 4} /> : undefined
+                yLabel ? (
+                  <VictoryLabel x={chartWidth - Y_AXIS_LABEL_ANCHOR_OFFSET} />
+                ) : undefined
               }
             />
             <VictoryAxis

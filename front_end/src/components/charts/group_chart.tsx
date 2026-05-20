@@ -47,6 +47,7 @@ import {
   generateTimestampXScale,
   getAxisRightPadding,
   getTickLabelFontSize,
+  Y_AXIS_LABEL_ANCHOR_OFFSET,
   Y_AXIS_LABEL_RESERVED_PX,
 } from "@/utils/charts/axis";
 import { getResolutionPoint } from "@/utils/charts/resolution";
@@ -444,7 +445,9 @@ const GroupChart: FC<Props> = ({
                 label={yLabel}
                 orientation="right"
                 axisLabelComponent={
-                  yLabel ? <VictoryLabel x={chartWidth - 4} /> : undefined
+                  yLabel ? (
+                    <VictoryLabel x={chartWidth - Y_AXIS_LABEL_ANCHOR_OFFSET} />
+                  ) : undefined
                 }
               />
               {/* X axis */}
