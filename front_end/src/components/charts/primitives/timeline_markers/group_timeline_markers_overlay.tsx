@@ -4,6 +4,8 @@ import { faComment, faNewspaper } from "@fortawesome/free-solid-svg-icons";
 import { ReactNode } from "react";
 import { VictoryLine, VictoryPortal, VictoryScatter } from "victory";
 
+import { CHART_DASH } from "@/constants/chart_dash";
+import { CHART_STROKE_WIDTH } from "@/constants/chart_stroke";
 import { METAC_COLORS } from "@/constants/colors";
 import { ThemeColor } from "@/types/theme";
 
@@ -89,7 +91,7 @@ function TimelineMarkerPoint({
         r={size}
         fill={pointFill}
         stroke={pointStroke}
-        strokeWidth={2}
+        strokeWidth={CHART_STROKE_WIDTH.timelineMarker}
         pointerEvents="none"
       />
       {iconPath && iconTransform && (
@@ -137,8 +139,8 @@ export function renderGroupTimelineMarkers({
         style={{
           data: {
             stroke: lineColor,
-            strokeDasharray: "4,3",
-            strokeWidth: 1.5,
+            strokeDasharray: CHART_DASH.timelineMarker,
+            strokeWidth: CHART_STROKE_WIDTH.forecastLine,
             pointerEvents: "none",
           },
         }}

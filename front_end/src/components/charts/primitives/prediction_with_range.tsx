@@ -3,6 +3,7 @@ import { isNil } from "lodash";
 import { FC } from "react";
 import { D3Scale } from "victory";
 
+import { CHART_STROKE_WIDTH } from "@/constants/chart_stroke";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import { ThemeColor } from "@/types/theme";
@@ -38,7 +39,7 @@ const PredictionWithRange: FC<PredictionWithRangeProps> = (props) => {
           y1={y1Scaled}
           y2={y2Scaled}
           stroke={getThemeColor(METAC_COLORS.orange["700"])}
-          strokeWidth={2}
+          strokeWidth={CHART_STROKE_WIDTH.predictionRange}
         />
       )}
       {symbol === "circle" && (
@@ -48,7 +49,7 @@ const PredictionWithRange: FC<PredictionWithRangeProps> = (props) => {
           r={RADIUS}
           fill={getThemeColor(METAC_COLORS.gray["0"])}
           stroke={getThemeColor(METAC_COLORS.orange["700"])}
-          strokeWidth={2}
+          strokeWidth={CHART_STROKE_WIDTH.predictionRange}
         />
       )}
 
@@ -58,7 +59,7 @@ const PredictionWithRange: FC<PredictionWithRangeProps> = (props) => {
           r={RADIUS}
           fill={getThemeColor(METAC_COLORS.gray["0"])}
           stroke={getThemeColor(METAC_COLORS.orange["700"])}
-          strokeWidth={2}
+          strokeWidth={CHART_STROKE_WIDTH.predictionRange}
         />
       )}
     </>

@@ -1,9 +1,11 @@
 import { merge } from "lodash";
 import { VictoryTheme, VictoryThemeDefinition } from "victory";
 
+import {
+  CHART_FONT_FAMILY,
+  CHART_FONT_SIZE,
+} from "@/constants/chart_typography";
 import { METAC_COLORS } from "@/constants/colors";
-
-const sansSerif = "var(--font-inter-variable) var(--font-inter)";
 
 type TickSizeFn = (args: { text?: string }) => number;
 const dynamicTickSize: TickSizeFn = ({ text }) => (text === "" ? 3 : 5);
@@ -29,8 +31,17 @@ export const baseChartTheme: VictoryThemeDefinition = {
       ticks: {
         size: dynamicTickSize as unknown as number,
       },
-      tickLabels: { fontFamily: sansSerif, fontSize: 9, padding: 0 },
-      axisLabel: { fontFamily: sansSerif, fontSize: 9 },
+      tickLabels: {
+        fontFamily: CHART_FONT_FAMILY,
+        fontSize: CHART_FONT_SIZE.tick,
+        fontVariantNumeric: "tabular-nums",
+        padding: 0,
+      },
+      axisLabel: {
+        fontFamily: CHART_FONT_FAMILY,
+        fontSize: CHART_FONT_SIZE.axisLabel,
+        fontVariantNumeric: "tabular-nums",
+      },
     },
   },
 };
