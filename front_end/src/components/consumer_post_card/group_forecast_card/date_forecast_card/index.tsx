@@ -28,6 +28,7 @@ import {
 import { ThemeColor } from "@/types/theme";
 import { calculateTextWidth } from "@/utils/charts/helpers";
 import { getResolutionPoint } from "@/utils/charts/resolution";
+import cn from "@/utils/core/cn";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 import { generateChoiceItemsFromGroupQuestions } from "@/utils/questions/choices";
@@ -90,7 +91,10 @@ const DateForecastCard: FC<Props> = ({
     <>
       <div
         ref={chartContainerRef}
-        className={`DateForecastCard relative w-full${fillHeight ? " flex-1" : ""}`}
+        className={cn(
+          "DateForecastCard relative w-full",
+          fillHeight && "flex-1"
+        )}
       >
         {shouldDisplayChart && (
           <VictoryChart
