@@ -245,11 +245,6 @@ export const ConsumerShell: FC<{
         <div className="order-2 sm:order-none">
           <ActionRow post={postData} variant="consumer" />
         </div>
-        {(isMultipleChoice ||
-          (isNonFanGroup &&
-            checkGroupOfQuestionsPostType(postData, QuestionType.Binary))) && (
-          <div className="order-2 h-px bg-gray-400 opacity-30 dark:bg-gray-400-dark sm:order-none md:mb-2 lg:mb-3" />
-        )}
         <div className="order-1 mt-3 sm:order-none sm:mt-0 md:-mt-2 lg:-mt-3">
           {showClosedMessageMultipleChoice && (
             <p className="m-0 mb-8 text-center text-sm leading-[20px] text-gray-700 dark:text-gray-700-dark">
@@ -309,6 +304,7 @@ export const ConsumerShell: FC<{
                 stretchListContent={!hideCP && !isFanGraph}
                 hideListOnMobile={!!isDateGroup}
                 hideDivider={!!isDateGroup}
+                hideBorder={false}
                 reduceInnerPadding={!!isDateGroup}
                 listContent={
                   hideCP ? (

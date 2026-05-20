@@ -287,6 +287,9 @@ const GroupChart: FC<Props> = ({
     }
   }, [onChartReady, prevWidth, chartWidth, onCursorChange, xDomain, xScale]);
 
+  const canUseCursor =
+    !!onCursorChange && !hideCP && !forecastAvailability?.cpRevealsOn;
+
   const CursorContainer = (
     <VictoryCursorContainer
       containerRef={attachRef}
@@ -398,15 +401,17 @@ const GroupChart: FC<Props> = ({
                       inPlotRef.current = false;
                       setIsCursorActive(false);
                       setLocalCursorTimestamp(null);
-                      // Reset to last timestamp so lines don't stay frozen at last hovered position.
-                      const lastTs = timestamps.at(-1);
-                      if (onCursorChange && !isNil(lastTs)) {
-                        onCursorChange(lastTs, () => "");
+                      // Reset to rendered endpoint, not last raw data point.
+                      if (onCursorChange) {
+                        onCursorChange(
+                          defaultCursor ?? Number(xDomain[1]),
+                          () => ""
+                        );
                       }
                     },
                     // Victory doesn't fire cursor events on touch, so we manually compute the timestamp from touch position.
                     onTouchStartCapture: (e: React.SyntheticEvent) => {
-                      if (!onCursorChange) return;
+                      if (!canUseCursor) return;
                       const touch = (e as React.TouchEvent).touches[0];
                       if (!touch) return;
                       const svg =
@@ -431,12 +436,13 @@ const GroupChart: FC<Props> = ({
                           maxRightPadding
                         );
                         setLocalCursorTimestamp(ts);
-                        if (!isMarkerHovered)
-                          onCursorChange(ts, xScale.tickFormat);
+                        if (!isMarkerHovered) {
+                          onCursorChange?.(ts, xScale.tickFormat);
+                        }
                       }
                     },
                     onTouchMoveCapture: (e: React.SyntheticEvent) => {
-                      if (!onCursorChange) return;
+                      if (!canUseCursor) return;
                       const touch = (e as React.TouchEvent).touches[0];
                       if (!touch) return;
                       const svg =
@@ -461,8 +467,9 @@ const GroupChart: FC<Props> = ({
                           maxRightPadding
                         );
                         setLocalCursorTimestamp(ts);
-                        if (!isMarkerHovered)
-                          onCursorChange(ts, xScale.tickFormat);
+                        if (!isMarkerHovered) {
+                          onCursorChange?.(ts, xScale.tickFormat);
+                        }
                       } else {
                         setLocalCursorTimestamp(null);
                       }
@@ -471,27 +478,29 @@ const GroupChart: FC<Props> = ({
                       inPlotRef.current = false;
                       setIsCursorActive(false);
                       setLocalCursorTimestamp(null);
-                      const lastTs = timestamps.at(-1);
-                      if (onCursorChange && !isNil(lastTs)) {
-                        onCursorChange(lastTs, () => "");
+                      if (onCursorChange) {
+                        onCursorChange(
+                          defaultCursor ?? Number(xDomain[1]),
+                          () => ""
+                        );
                       }
                     },
                     onTouchCancel: () => {
                       inPlotRef.current = false;
                       setIsCursorActive(false);
                       setLocalCursorTimestamp(null);
-                      const lastTs = timestamps.at(-1);
-                      if (onCursorChange && !isNil(lastTs)) {
-                        onCursorChange(lastTs, () => "");
+                      if (onCursorChange) {
+                        onCursorChange(
+                          defaultCursor ?? Number(xDomain[1]),
+                          () => ""
+                        );
                       }
                     },
                   },
                 },
               ]}
               containerComponent={
-                onCursorChange &&
-                !hideCP &&
-                !forecastAvailability?.cpRevealsOn ? (
+                canUseCursor ? (
                   CursorContainer
                 ) : (
                   <VictoryContainer
