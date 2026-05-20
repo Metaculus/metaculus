@@ -22,6 +22,7 @@ type Props = {
   progress: number;
   color: ThemeColor;
   isBordered?: boolean;
+  borderOnly?: boolean;
   unit?: string;
   forceColorful?: boolean;
   compact?: boolean;
@@ -41,6 +42,7 @@ const ForecastChoiceBar: FC<Props> = ({
   resolution,
   color,
   isBordered = true,
+  borderOnly = false,
   unit,
   forceColorful = false,
   compact = false,
@@ -121,12 +123,13 @@ const ForecastChoiceBar: FC<Props> = ({
           style={{
             display:
               !isNil(resolution) && !isResolutionSuccessful ? "none" : "block",
-            width:
-              progress < 3
+            width: borderOnly
+              ? `calc(100% + ${WIDTH_ADJUSTMENT}px)`
+              : progress < 3
                 ? "3%"
                 : `calc(${progress}% + ${WIDTH_ADJUSTMENT}px)`,
             background: (() => {
-              if (resolution) {
+              if (borderOnly || resolution) {
                 return "transparent";
               }
               if (isClosed && !forceColorful) {

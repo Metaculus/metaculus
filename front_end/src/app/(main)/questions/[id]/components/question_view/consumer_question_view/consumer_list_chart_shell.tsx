@@ -22,6 +22,9 @@ type Props = {
   listContent: ReactNode;
   chartContent: ReactNode;
   stretchListContent?: boolean;
+  hideListOnMobile?: boolean;
+  hideDivider?: boolean;
+  reduceInnerPadding?: boolean;
   className?: string;
 };
 
@@ -29,6 +32,9 @@ const ConsumerListChartShell: React.FC<Props> = ({
   listContent,
   chartContent,
   stretchListContent = false,
+  hideListOnMobile = false,
+  hideDivider = false,
+  reduceInnerPadding = false,
   className,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -54,7 +60,9 @@ const ConsumerListChartShell: React.FC<Props> = ({
       >
         <div
           className={cn(
-            "order-1 sm:w-80 sm:shrink-0 sm:p-5",
+            "order-1 sm:w-80 sm:shrink-0",
+            reduceInnerPadding ? "sm:py-5 sm:pl-5" : "sm:p-5",
+            hideListOnMobile ? "hidden sm:block" : "",
             stretchListContent && "sm:flex sm:flex-col"
           )}
         >
@@ -62,9 +70,11 @@ const ConsumerListChartShell: React.FC<Props> = ({
         </div>
         <div
           className={cn(
-            "relative order-2 hidden flex-1 sm:block sm:p-5",
-            "sm:before:absolute sm:before:bottom-0 sm:before:left-0 sm:before:w-px sm:before:bg-gray-400/40 sm:before:content-[''] dark:sm:before:bg-gray-400-dark/40",
-            isExpanded ? "sm:before:top-2" : "sm:before:top-0"
+            "relative order-2 hidden flex-1 sm:flex sm:flex-col",
+            reduceInnerPadding ? "sm:py-5" : "sm:p-5",
+            !hideDivider &&
+              "sm:before:absolute sm:before:bottom-0 sm:before:left-0 sm:before:w-px sm:before:bg-gray-400/40 sm:before:content-[''] dark:sm:before:bg-gray-400-dark/40",
+            !hideDivider && (isExpanded ? "sm:before:top-2" : "sm:before:top-0")
           )}
         >
           {chartContent}

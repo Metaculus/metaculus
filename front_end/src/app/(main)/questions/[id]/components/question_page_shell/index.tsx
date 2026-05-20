@@ -5,6 +5,7 @@ import { FC, Fragment, ReactNode, useEffect } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_status_box";
+import DateForecastCard from "@/components/consumer_post_card/group_forecast_card/date_forecast_card";
 import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
 import PercentageForecastCard from "@/components/consumer_post_card/group_forecast_card/percentage_forecast_card";
 import UpcomingCP from "@/components/consumer_post_card/upcoming_cp";
@@ -179,8 +180,7 @@ export const ConsumerShell: FC<{
     !isContinuousSingleQuestion &&
     !isMultipleChoice;
 
-  const isNRowBody =
-    isMultipleChoice || (isNonFanGroup && !isDateGroup) || isFanGraph;
+  const isNRowBody = isMultipleChoice || isNonFanGroup || isFanGraph;
 
   const isContinuousNumericGroup =
     isNonFanGroup &&
@@ -295,8 +295,21 @@ export const ConsumerShell: FC<{
             </div>
           ) : isNRowBody ? (
             <>
+              {isDateGroup && postData.group_of_questions && (
+                <div className="block sm:hidden">
+                  <DateForecastCard
+                    post={postData}
+                    questionsGroup={postData.group_of_questions}
+                    innerChartPaddingX={20}
+                    yearOnlyTicks
+                  />
+                </div>
+              )}
               <ConsumerListChartShell
                 stretchListContent={!hideCP && !isFanGraph}
+                hideListOnMobile={!!isDateGroup}
+                hideDivider={!!isDateGroup}
+                reduceInnerPadding={!!isDateGroup}
                 listContent={
                   hideCP ? (
                     <RevealCPButton />
@@ -306,6 +319,12 @@ export const ConsumerShell: FC<{
                     />
                   ) : isContinuousNumericGroup ? (
                     <NumericForecastCard post={postData} fillHeight />
+                  ) : isDateGroup ? (
+                    <NumericForecastCard
+                      post={postData}
+                      fillHeight
+                      borderOnly
+                    />
                   ) : (
                     <PercentageForecastCard
                       post={postData}
@@ -330,6 +349,14 @@ export const ConsumerShell: FC<{
                         postData as GroupOfQuestionsPost<QuestionWithNumericForecasts>
                       }
                       preselectedQuestionId={preselectedGroupQuestionId}
+                    />
+                  ) : isDateGroup && postData.group_of_questions ? (
+                    <DateForecastCard
+                      post={postData}
+                      questionsGroup={postData.group_of_questions}
+                      fillHeight
+                      innerChartPaddingX={40}
+                      yearOnlyTicks
                     />
                   ) : (
                     <QuestionTimeline
