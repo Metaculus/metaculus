@@ -7,7 +7,6 @@ import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_pr
 import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_status_box";
 import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
 import PercentageForecastCard from "@/components/consumer_post_card/group_forecast_card/percentage_forecast_card";
-import TimeSeriesChart from "@/components/consumer_post_card/time_series_chart";
 import UpcomingCP from "@/components/consumer_post_card/upcoming_cp";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
@@ -46,6 +45,8 @@ import { QuestionVariantComposer } from "../question_variant_composer";
 import ActionRow from "../question_view/action_row";
 import ConsumerGroupChart from "../question_view/consumer_question_view/consumer_group_chart";
 import ConsumerListChartShell from "../question_view/consumer_question_view/consumer_list_chart_shell";
+import ConsumerTimeSeriesPane from "../question_view/consumer_question_view/consumer_time_series_pane";
+import FanGraphChartPanel from "../question_view/consumer_question_view/fan_graph_chart_panel";
 import ConsumerQuestionPrediction from "../question_view/consumer_question_view/prediction";
 import QuestionTimeline from "../question_view/consumer_question_view/timeline";
 import QuestionHeaderCPStatus from "../question_view/forecaster_question_view/question_header/question_header_cp_status";
@@ -83,6 +84,9 @@ export const ForecasterShell: FC<
   const showChartDivider =
     isMultipleChoicePost(postData) ||
     (isGroup && checkGroupOfQuestionsPostType(postData, QuestionType.Binary));
+  const isForecasterFanGraph =
+    postData.group_of_questions?.graph_type ===
+    GroupOfQuestionsGraphType.FanGraph;
 
   return (
     <Fragment>
@@ -120,12 +124,20 @@ export const ForecasterShell: FC<
                 keyFactors={postData.key_factors}
               />
             )}
-            {isGroup && (
-              <DetailedGroupCard
-                post={postData}
-                preselectedQuestionId={preselectedGroupQuestionId}
-              />
-            )}
+            {isGroup &&
+              (isForecasterFanGraph ? (
+                <FanGraphChartPanel
+                  post={
+                    postData as GroupOfQuestionsPost<QuestionWithNumericForecasts>
+                  }
+                  preselectedQuestionId={preselectedGroupQuestionId}
+                />
+              ) : (
+                <DetailedGroupCard
+                  post={postData}
+                  preselectedQuestionId={preselectedGroupQuestionId}
+                />
+              ))}
           </div>
           {(!isResolved || isGroup) && <ForecastMaker post={postData} />}
           <PostScoreData post={postData} noSectionWrapper />
@@ -289,10 +301,8 @@ export const ConsumerShell: FC<{
                   hideCP ? (
                     <RevealCPButton />
                   ) : isFanGraph && fanGraphQuestions ? (
-                    <TimeSeriesChart
-                      questions={fanGraphQuestions}
-                      variant="colorful"
-                      height={180}
+                    <ConsumerTimeSeriesPane
+                      questions={fanGraphQuestions.slice(-4)}
                     />
                   ) : isContinuousNumericGroup ? (
                     <NumericForecastCard post={postData} fillHeight />
@@ -306,11 +316,13 @@ export const ConsumerShell: FC<{
                 }
                 chartContent={
                   isFanGraph ? (
-                    <DetailedGroupCard
+                    <FanGraphChartPanel
                       post={
                         postData as GroupOfQuestionsPost<QuestionWithNumericForecasts>
                       }
                       preselectedQuestionId={preselectedGroupQuestionId}
+                      visibleQuestions={fanGraphQuestions?.slice(-4)}
+                      variant="consumer"
                     />
                   ) : isContinuousNumericGroup ? (
                     <ConsumerGroupChart

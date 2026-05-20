@@ -50,6 +50,7 @@ const ConsumerListChartShell: React.FC<Props> = ({
           "sm:flex-row sm:items-stretch",
           className
         )}
+        onMouseLeave={() => setHoveredChoiceName(null)}
       >
         <div
           className={cn(

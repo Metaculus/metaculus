@@ -330,6 +330,10 @@ const NumericChart: FC<Props> = ({
             setIsCursorActive(false);
             handleCursorChange(null);
           },
+          onTouchCancel: () => {
+            setIsCursorActive(false);
+            handleCursorChange(null);
+          },
           onMouseEnter: () => {
             setIsCursorActive(true);
           },

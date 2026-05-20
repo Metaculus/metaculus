@@ -224,7 +224,7 @@ const MultipleChoiceChart: FC<Props> = ({
       cursorDimension={"x"}
       defaultCursorValue={defaultCursor}
       style={{
-        touchAction: "pan-y",
+        touchAction: "none",
       }}
       cursorLabelOffset={{
         x: 0,
@@ -324,6 +324,11 @@ const MultipleChoiceChart: FC<Props> = ({
                     onCursorActiveChange?.(true);
                   },
                   onTouchEndCapture: () => {
+                    if (!onCursorChange) return;
+                    setIsCursorActive(false);
+                    onCursorActiveChange?.(false);
+                  },
+                  onTouchCancelCapture: () => {
                     if (!onCursorChange) return;
                     setIsCursorActive(false);
                     onCursorActiveChange?.(false);

@@ -98,13 +98,21 @@ const MultiChoicesChartView: FC<Props> = ({
   };
   const handleChartReady = useCallback(() => setIsChartReady(true), []);
   const t = useTranslations();
+  const [touchCoords, setTouchCoords] = useState<
+    { x: number; y: number } | undefined
+  >();
 
   const isMC = questionType === QuestionType.MultipleChoice;
 
   const legendContainerRef = useRef<HTMLDivElement>(null);
-  const [normalizedChartHeight, setNormalizedChartHeight] = useState<number>();
+  const [normalizedChartHeight, setNormalizedChartHeight] =
+    useState(chartHeight);
   useEffect(() => {
-    if (!legendContainerRef.current || !chartHeight) return;
+    if (!chartHeight) return;
+    if (!legendContainerRef.current) {
+      setNormalizedChartHeight(chartHeight);
+      return;
+    }
     setNormalizedChartHeight(
       chartHeight -
         (legendContainerRef.current?.clientHeight ?? 0) -
@@ -156,7 +164,23 @@ const MultiChoicesChartView: FC<Props> = ({
     getFloatingProps,
     refs,
     floatingStyles,
-  } = useChartTooltip();
+  } = useChartTooltip({
+    x: touchCoords?.x,
+    y: touchCoords?.y,
+    placement: touchCoords ? "top" : "left",
+    forceOpen: !!touchCoords,
+  });
+  const tooltipStyle = useMemo<React.CSSProperties>(() => {
+    if (!touchCoords) return floatingStyles;
+    return {
+      position: "fixed",
+      top: touchCoords.y - 24,
+      left: touchCoords.x,
+      transform: "translate(-50%, -100%)",
+      zIndex: 100,
+    };
+  }, [touchCoords, floatingStyles]);
+
   const attachRef = useCallback(
     (node: HTMLElement | null) => {
       if (node) refs.setReference(node);
@@ -268,7 +292,18 @@ const MultiChoicesChartView: FC<Props> = ({
       <div
         ref={refs.setReference}
         {...getReferenceProps()}
-        className="relative"
+        className="relative touch-none"
+        onTouchStartCapture={(e) => {
+          const touch = e.touches[0];
+          if (touch) setTouchCoords({ x: touch.clientX, y: touch.clientY });
+        }}
+        onTouchMoveCapture={(e) => {
+          const touch = e.touches[0];
+          if (touch) setTouchCoords({ x: touch.clientX, y: touch.clientY });
+        }}
+        onTouchEndCapture={() => setTouchCoords(undefined)}
+        onTouchCancelCapture={() => setTouchCoords(undefined)}
+        onMouseMoveCapture={() => setTouchCoords(undefined)}
       >
         {useBinaryView ? (
           <GroupChart
@@ -296,6 +331,7 @@ const MultiChoicesChartView: FC<Props> = ({
                 </div>
               ) : undefined
             }
+            forceShowLinePoints={!embedMode}
           />
         ) : isMC ? (
           <MultipleChoiceChart
@@ -342,6 +378,7 @@ const MultiChoicesChartView: FC<Props> = ({
                 </div>
               ) : undefined
             }
+            forceShowLinePoints={!embedMode}
           />
         )}
       </div>
@@ -378,7 +415,7 @@ const MultiChoicesChartView: FC<Props> = ({
             <div
               className="pointer-events-none z-[100] rounded bg-gray-0 leading-4 shadow-lg dark:bg-gray-0-dark"
               ref={refs.setFloating}
-              style={floatingStyles}
+              style={tooltipStyle}
               {...getFloatingProps()}
             >
               <MCPredictionsTooltip
