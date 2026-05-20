@@ -270,6 +270,9 @@ const NumericChart: FC<Props> = ({
               fontFamily: LABEL_FONT_FAMILY,
             }}
             isActive={isCursorActive}
+            chartWidth={chartWidth}
+            leftPadding={10}
+            rightPadding={maxRightPadding}
           />
         }
         onCursorChange={(value: CursorCoordinatesPropType) => {
@@ -290,6 +293,8 @@ const NumericChart: FC<Props> = ({
     handleCursorChange,
     nonInteractive,
     isCursorActive,
+    chartWidth,
+    maxRightPadding,
   ]);
 
   const chartEvents = useMemo(() => {

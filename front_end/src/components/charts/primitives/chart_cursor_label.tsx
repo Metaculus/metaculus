@@ -10,6 +10,9 @@ type Props = ComponentProps<typeof VictoryLabel> & {
   positionY: number;
   fill?: string;
   isActive?: boolean;
+  chartWidth?: number;
+  leftPadding?: number;
+  rightPadding?: number;
 };
 
 const ChartCursorLabel: FC<Props> = ({
@@ -17,15 +20,31 @@ const ChartCursorLabel: FC<Props> = ({
   fill,
   isActive,
   style,
+  chartWidth,
+  leftPadding = 0,
+  rightPadding = 0,
   ...props
 }) => {
   const { theme } = useAppTheme();
 
   const text = props.text?.toString() ?? "";
   const estimatedTextWidth = text.length * FONT_SIZE;
-  const centeredX = (props.x ?? 0) - estimatedTextWidth / 4;
+  let centeredX = (props.x ?? 0) - estimatedTextWidth / 4;
+
   if (isActive === false || (isActive === undefined && !text)) {
     return null;
+  }
+
+  // Without VictoryPortal the label is rendered inside the chart's SVG and
+  // clipped at the edges. Clamp the (middle-anchored) label position so the
+  // full text stays inside the chart bounds.
+  if (chartWidth !== undefined && estimatedTextWidth > 0) {
+    const halfWidth = estimatedTextWidth / 2;
+    const minX = leftPadding + halfWidth;
+    const maxX = chartWidth - rightPadding - halfWidth;
+    if (maxX > minX) {
+      centeredX = Math.min(maxX, Math.max(minX, centeredX));
+    }
   }
 
   const baseStyleObj = (Array.isArray(style) ? style[0] : style) ?? {};

@@ -310,6 +310,9 @@ const GroupChart: FC<Props> = ({
           <ChartCursorLabel
             positionY={height - (isEmbedded ? 4 : 10)}
             isActive={isCursorActive}
+            chartWidth={chartWidth}
+            leftPadding={chartPadding.left}
+            rightPadding={chartPadding.right}
           />
         ) : undefined
       }
