@@ -29,6 +29,7 @@ const ContinuousQuestionPrediction: React.FC<Props> = ({
   const forecastAvailability = getQuestionForecastAvailability(question);
   const cursorCtx = useContinuousChartCursor();
   const cursorForecast = cursorCtx?.activeForecast ?? null;
+  const cursorUserForecastValues = cursorCtx?.activeUserForecastValues ?? null;
   const { hideCP } = useHideCP();
 
   const shouldHideChart =
@@ -44,7 +45,7 @@ const ContinuousQuestionPrediction: React.FC<Props> = ({
   // Null when cursor is inactive — chart falls back to the latest aggregate.
   const cursorChartData = useMemo<ContinuousAreaGraphInput | null>(() => {
     if (!cursorForecastValues) return null;
-    return [
+    const data: ContinuousAreaGraphInput = [
       {
         pmf: cdfToPmf(cursorForecastValues),
         cdf: cursorForecastValues,
@@ -53,7 +54,15 @@ const ContinuousQuestionPrediction: React.FC<Props> = ({
           : "community") as ContinuousAreaType,
       },
     ];
-  }, [cursorForecastValues, question.status]);
+    if (cursorUserForecastValues) {
+      data.push({
+        pmf: cdfToPmf(cursorUserForecastValues),
+        cdf: cursorUserForecastValues,
+        type: "user",
+      });
+    }
+    return data;
+  }, [cursorForecastValues, cursorUserForecastValues, question.status]);
 
   if (hideCP) {
     return (
