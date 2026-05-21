@@ -30,6 +30,7 @@ const TitleRow: FC<Props> = ({ post, variant, className }) => {
   const { hideCP } = useHideCP();
   const cursorCtx = useContinuousChartCursor();
   const cursorForecast = cursorCtx?.activeForecast ?? null;
+  const cursorUserForecastValues = cursorCtx?.activeUserForecastValues ?? null;
 
   if (isConditionalPost(post)) {
     return (
@@ -69,6 +70,9 @@ const TitleRow: FC<Props> = ({ post, variant, className }) => {
                   size="md"
                   hideLabel={isContinuous}
                   cursorForecast={isContinuous ? cursorForecast : undefined}
+                  cursorUserForecastValues={
+                    isContinuous ? cursorUserForecastValues : undefined
+                  }
                 />
               )}
             </div>

@@ -5,6 +5,7 @@ import { FC } from "react";
 
 import MarkdownEditor from "@/components/markdown_editor";
 import Chip from "@/components/ui/chip";
+import { usePostTextSections } from "@/hooks/use_post_text_sections";
 import { PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { getProjectLink } from "@/utils/navigation";
@@ -16,71 +17,9 @@ type Props = {
   post: PostWithForecasts;
 };
 
-type MarkdownSection = { title: string; markdown: string };
-
-const useTextSections = (post: PostWithForecasts): MarkdownSection[] => {
-  const t = useTranslations();
-
-  if (post.conditional) {
-    const { condition, condition_child } = post.conditional;
-    const sections: MarkdownSection[] = [];
-    if (condition.resolution_criteria) {
-      sections.push({
-        title: t("parentResolutionCriteria"),
-        markdown: condition.resolution_criteria,
-      });
-    }
-    if (condition.fine_print) {
-      sections.push({ title: t("finePrint"), markdown: condition.fine_print });
-    }
-    if (condition.description) {
-      sections.push({
-        title: t("parentBackgroundInfo"),
-        markdown: condition.description,
-      });
-    }
-    if (condition_child.resolution_criteria) {
-      sections.push({
-        title: t("childResolutionCriteria"),
-        markdown: condition_child.resolution_criteria,
-      });
-    }
-    if (condition_child.fine_print) {
-      sections.push({
-        title: t("finePrint"),
-        markdown: condition_child.fine_print,
-      });
-    }
-    if (condition_child.description) {
-      sections.push({
-        title: t("childBackgroundInfo"),
-        markdown: condition_child.description,
-      });
-    }
-    return sections;
-  }
-
-  const resolution =
-    post.group_of_questions?.resolution_criteria ??
-    post.question?.resolution_criteria ??
-    "";
-  const finePrint =
-    post.group_of_questions?.fine_print ?? post.question?.fine_print ?? "";
-  const description =
-    post.group_of_questions?.description ?? post.question?.description ?? "";
-
-  const sections: MarkdownSection[] = [];
-  if (resolution)
-    sections.push({ title: t("resolutionCriteria"), markdown: resolution });
-  if (finePrint) sections.push({ title: t("finePrint"), markdown: finePrint });
-  if (description)
-    sections.push({ title: t("backgroundInfo"), markdown: description });
-  return sections;
-};
-
 const QuestionInfoTab: FC<Props> = ({ post }) => {
   const t = useTranslations();
-  const sections = useTextSections(post);
+  const sections = usePostTextSections(post);
 
   const projectsData = post.projects;
   const allProjects = projectsData

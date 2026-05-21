@@ -97,7 +97,7 @@ const BinaryCPBar: FC<Props> = ({
           "scale-[0.5]": size === "xs",
           "scale-[0.85]": size === "sm",
           "scale-100": size === "md",
-          "mb-4 scale-[1.25]": size === "lg",
+          "scale-[1.25]": size === "lg",
         },
         isEmbed && "scale-100",
         className

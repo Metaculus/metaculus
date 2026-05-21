@@ -212,6 +212,18 @@ const DetailedContinuousChartCard: FC<Props> = ({
 
   const isBinary = question.type === QuestionType.Binary;
 
+  const cursorUserForecastValues = useMemo<number[] | null>(() => {
+    if (!isContinuous || cursorTimestamp === null) return null;
+    const history = question.my_forecasts?.history;
+    if (!history?.length) return null;
+    const forecast = history.findLast(
+      (f) =>
+        f.start_time <= cursorTimestamp &&
+        (!f.end_time || f.end_time > cursorTimestamp)
+    );
+    return forecast?.forecast_values ?? null;
+  }, [isContinuous, cursorTimestamp, question.my_forecasts]);
+
   const activeForecast = useMemo<NumericAggregateForecast | null>(() => {
     if (
       isCpHidden ||
@@ -227,11 +239,27 @@ const DetailedContinuousChartCard: FC<Props> = ({
 
   const cursorCtx = useContinuousChartCursor();
   const setCursorForecast = cursorCtx?.setActiveForecast;
+  const setCursorUserForecast = cursorCtx?.setActiveUserForecastValues;
   useEffect(() => {
-    if (!isContinuousQuestion(question) || !setCursorForecast) return;
+    if (
+      !isContinuousQuestion(question) ||
+      !setCursorForecast ||
+      !setCursorUserForecast
+    )
+      return;
     setCursorForecast(activeForecast);
-    return () => setCursorForecast(null);
-  }, [activeForecast, setCursorForecast, question]);
+    setCursorUserForecast(cursorUserForecastValues);
+    return () => {
+      setCursorForecast(null);
+      setCursorUserForecast(null);
+    };
+  }, [
+    activeForecast,
+    cursorUserForecastValues,
+    setCursorForecast,
+    setCursorUserForecast,
+    question,
+  ]);
 
   const handleCursorChange = useCallback((value: number | null) => {
     setCursorTimestamp(value);
@@ -356,6 +384,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
       colorOverride={cpColorOverride}
       chartTheme={extraTheme}
       cursorForecast={activeForecast}
+      cursorUserForecastValues={cursorUserForecastValues}
     />
   );
 
@@ -462,6 +491,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
                 size="lg"
                 hideLabel={true}
                 cursorForecast={activeForecast}
+                cursorUserForecastValues={cursorUserForecastValues}
               />
             )}
 
