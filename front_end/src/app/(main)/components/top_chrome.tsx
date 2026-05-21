@@ -1,5 +1,6 @@
 import { logError } from "@/utils/core/errors";
 
+import { ApiForecastingBanner } from "./api_forecasting_banner_server";
 import Bulletins from "./bulletins";
 import ContentTranslatedBanner from "./content_translated_banner";
 import { ImpersonationBanner } from "./impersonation_banner_server";
@@ -40,6 +41,17 @@ const SafeImpersonationBanner = async () => {
   }
 };
 
+const SafeApiForecastingBanner = async () => {
+  try {
+    return await ApiForecastingBanner();
+  } catch (error) {
+    logError(error, {
+      message: "Failed to render top chrome API forecasting banner",
+    });
+    return null;
+  }
+};
+
 export const TopChrome = ({
   hideBulletins = false,
   hideHeader = false,
@@ -67,6 +79,9 @@ export const TopChrome = ({
           <SafeImpersonationBanner />
         </TopChromePartErrorBoundary>
       )}
+      <TopChromePartErrorBoundary name="api forecasting banner">
+        <SafeApiForecastingBanner />
+      </TopChromePartErrorBoundary>
       {!hideTranslationBanner && (
         <TopChromePartErrorBoundary name="translation banner">
           <ContentTranslatedBanner />
