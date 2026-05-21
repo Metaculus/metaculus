@@ -20,7 +20,15 @@ class Migration(migrations.Migration):
                     ("pending", "Pending"),
                 ],
                 default="enabled",
-                help_text="Whether this account may submit forecasts via the API. Bots are created as 'enabled'; human accounts default to 'disabled' and move to 'pending' on their first blocked API forecast, which surfaces the in-app confirmation prompt.",
+                help_text=(
+                    "Whether this account may submit forecasts via the API. "
+                    "Bots start enabled; human accounts start disabled."
+                    "<br>enabled — API forecasts are allowed."
+                    "<br>disabled — Blocks API forecasts and hides the in-app banner."
+                    "<br>pending — Blocks API forecasts and shows the in-app "
+                    "confirmation banner; set automatically on the first blocked "
+                    "API forecast."
+                ),
                 max_length=32,
             ),
         ),
