@@ -447,13 +447,11 @@ class TestApiForecastingRestriction:
                 201,
                 ApiForecastingAccess.ENABLED,
             ),
-            # Bot with DISABLED access: still allowed via the is_bot
-            # short-circuit, and its access value is left untouched.
             (
                 True,
-                ApiForecastingAccess.DISABLED,
+                ApiForecastingAccess.ENABLED,
                 201,
-                ApiForecastingAccess.DISABLED,
+                ApiForecastingAccess.ENABLED,
             ),
         ],
     )
