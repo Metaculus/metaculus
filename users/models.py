@@ -145,6 +145,16 @@ class User(TimeStampedModel, AbstractUser):
         ),
     )
 
+    # Aggregation exclusion
+    exclude_from_aggregations = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text=(
+            "Explicitly excludes this user from aggregations and geometric mean for "
+            "peer scoring, regardless of bot status."
+        ),
+    )
+
     # Bot properties
     is_bot = models.BooleanField(default=False, db_index=True)
     is_primary_bot = models.BooleanField(
