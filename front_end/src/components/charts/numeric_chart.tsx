@@ -229,77 +229,65 @@ const NumericChart: FC<Props> = ({
     return Math.max(rightPadding, MIN_RIGHT_PADDING);
   }, [rightPadding, MIN_RIGHT_PADDING]);
 
-  const containerComponent = useMemo(() => {
-    if (nonInteractive) {
-      return (
-        <VictoryContainer
+  // Do not memoize: VictoryPortal pushes its child into the portal context
+  // only when its `children` reference changes, so a stable element would
+  // freeze the cursor label at its initial empty state on mouse move.
+  const containerComponent = nonInteractive ? (
+    <VictoryContainer
+      style={{
+        pointerEvents: "auto",
+        userSelect: "auto",
+        touchAction: "auto",
+      }}
+    />
+  ) : (
+    <VictoryCursorContainer
+      cursorDimension={"x"}
+      defaultCursorValue={defaultCursor}
+      style={{
+        touchAction: "pan-y",
+      }}
+      cursorLabelOffset={{
+        x: 0,
+        y: 0,
+      }}
+      cursorLabel={({ datum }: VictoryLabelProps) => {
+        if (datum) {
+          return datum.x === defaultCursor
+            ? ""
+            : xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x);
+        }
+      }}
+      cursorComponent={
+        <LineSegment
           style={{
-            pointerEvents: "auto",
-            userSelect: "auto",
-            touchAction: "auto",
+            stroke: getThemeColor(METAC_COLORS.blue["700"]),
+            opacity: 0.5,
+            strokeDasharray: CHART_DASH.cursor,
           }}
         />
-      );
-    }
-
-    return (
-      <VictoryCursorContainer
-        cursorDimension={"x"}
-        defaultCursorValue={defaultCursor}
-        style={{
-          touchAction: "pan-y",
-        }}
-        cursorLabelOffset={{
-          x: 0,
-          y: 0,
-        }}
-        cursorLabel={({ datum }: VictoryLabelProps) => {
-          if (datum) {
-            return datum.x === defaultCursor
-              ? ""
-              : xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x);
-          }
-        }}
-        cursorComponent={
-          <LineSegment
-            style={{
-              stroke: getThemeColor(METAC_COLORS.blue["700"]),
-              opacity: 0.5,
-              strokeDasharray: CHART_DASH.cursor,
-            }}
+      }
+      cursorLabelComponent={
+        <VictoryPortal>
+          <ChartCursorLabel
+            positionY={height - 10}
+            {...(hasExternalTheme
+              ? {}
+              : { fill: getThemeColor(METAC_COLORS.gray["700"]) })}
+            style={CHART_FONT_STYLE.cursor}
+            isActive={isCursorActive}
           />
+        </VictoryPortal>
+      }
+      onCursorChange={(value: CursorCoordinatesPropType) => {
+        if (typeof value === "number") {
+          handleCursorChange(value);
+        } else {
+          handleCursorChange(null);
         }
-        cursorLabelComponent={
-          <VictoryPortal>
-            <ChartCursorLabel
-              positionY={height - 10}
-              {...(hasExternalTheme
-                ? {}
-                : { fill: getThemeColor(METAC_COLORS.gray["700"]) })}
-              style={CHART_FONT_STYLE.cursor}
-              isActive={isCursorActive}
-            />
-          </VictoryPortal>
-        }
-        onCursorChange={(value: CursorCoordinatesPropType) => {
-          if (typeof value === "number") {
-            handleCursorChange(value);
-          } else {
-            handleCursorChange(null);
-          }
-        }}
-      />
-    );
-  }, [
-    defaultCursor,
-    xScale,
-    height,
-    hasExternalTheme,
-    getThemeColor,
-    handleCursorChange,
-    nonInteractive,
-    isCursorActive,
-  ]);
+      }}
+    />
+  );
 
   const chartEvents = useMemo(() => {
     if (nonInteractive) return [];
