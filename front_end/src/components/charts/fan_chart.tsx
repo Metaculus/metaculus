@@ -8,7 +8,6 @@ import {
   VictoryAxis,
   VictoryChart,
   VictoryContainer,
-  VictoryLabel,
   VictoryLine,
   VictoryPortal,
   VictoryScatter,
@@ -21,6 +20,8 @@ import FanPoint from "@/components/charts/primitives/fan_point";
 import PredictionWithRange from "@/components/charts/primitives/prediction_with_range";
 import ResolutionDiamond from "@/components/charts/primitives/resolution_diamond";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
+import { CHART_DASH } from "@/constants/chart_dash";
+import { CHART_STROKE_WIDTH } from "@/constants/chart_stroke";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
@@ -475,7 +476,7 @@ const FanChart: FC<Props> = ({
             >
               <VictoryAxis
                 dependentAxis
-                orientation={isEmbedded ? "right" : undefined}
+                orientation="right"
                 label={isEmbedded ? undefined : yLabel}
                 tickValues={
                   isEmbedded && embedLabelTicks ? embedLabelTicks : yScale.ticks
@@ -485,12 +486,6 @@ const FanChart: FC<Props> = ({
                   ...baseYAxisStyle,
                   grid: isEmbedded ? { display: "none" } : baseYAxisStyle?.grid,
                 }}
-                offsetX={
-                  isEmbedded ? undefined : v.axisLabelOffsetX(variantArgs)
-                }
-                axisLabelComponent={
-                  isEmbedded ? undefined : <VictoryLabel x={chartWidth} />
-                }
               />
 
               {isEmbedded && embedGridTicks && (
@@ -507,7 +502,7 @@ const FanChart: FC<Props> = ({
                     },
                     grid: {
                       ...baseYAxisStyle?.grid,
-                      strokeDasharray: "2,4",
+                      strokeDasharray: CHART_DASH.grid,
                     },
                   }}
                 />
@@ -576,7 +571,7 @@ const FanChart: FC<Props> = ({
                     data: {
                       fill: () => palette.communityPoint,
                       stroke: () => palette.communityPoint,
-                      strokeWidth: 6,
+                      strokeWidth: CHART_STROKE_WIDTH.fanCommunityLine,
                       strokeOpacity: ({ datum }) =>
                         activePoint === datum.x ? 0.3 : 0,
                     },
@@ -621,7 +616,7 @@ const FanChart: FC<Props> = ({
                       data: {
                         fill: v.resolutionPoint.fill({ getThemeColor }),
                         stroke: () => palette.resolutionStroke,
-                        strokeWidth: 2,
+                        strokeWidth: CHART_STROKE_WIDTH.resolutionLine,
                         strokeOpacity: 1,
                       },
                     }}

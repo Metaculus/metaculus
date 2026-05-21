@@ -7,6 +7,7 @@ urlpatterns = [
     path("contact-form/", views.contact_api_view),
     path("contact-form/services/", views.contact_service_api_view),
     path("get-bulletins/", views.get_bulletins),
+    path("get-dismissed-bulletin-ids/", views.get_dismissed_bulletin_ids),
     path("get-site-stats/", views.get_site_stats),
     path("cancel-bulletin/<int:pk>/", views.cancel_bulletin),
     path(

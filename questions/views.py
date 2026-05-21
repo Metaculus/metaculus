@@ -1,3 +1,4 @@
+import numpy as np
 from django.http import Http404
 from django.utils import timezone
 from rest_framework import status
@@ -12,9 +13,10 @@ from posts.models import Post
 from posts.services.common import get_post_permission_for_user
 from posts.utils import get_post_slug
 from projects.permissions import ObjectPermission
+from utils.requests import is_internal_request
 from utils.the_math.aggregations import get_aggregations_at_time
 from .constants import QuestionStatus
-from .models import Question
+from .models import Forecast, Question
 from .serializers.common import (
     validate_question_resolution,
     QuestionsCommunityPredictionsSerializer,
@@ -98,6 +100,12 @@ def bulk_create_forecasts_api_view(request):
     if not validated_data:
         raise ValidationError("At least one forecast is required")
 
+    source = (
+        Forecast.SourceChoices.UI
+        if is_internal_request(request)
+        else Forecast.SourceChoices.API
+    )
+
     # Prefetching questions for bulk optimization
     questions = Question.objects.filter(
         pk__in=[f["question"] for f in validated_data]
@@ -112,6 +120,7 @@ def bulk_create_forecasts_api_view(request):
             raise ValidationError(f"Wrong question id {forecast['question']}")
 
         forecast["question"] = question  # used in create_foreacst_bulk
+        forecast["source"] = source
 
         # Check permissions
         permission = get_post_permission_for_user(
@@ -119,7 +128,10 @@ def bulk_create_forecasts_api_view(request):
         )
         ObjectPermission.can_forecast(permission, raise_exception=True)
 
-        if not question.open_time:
+        if (
+            question.post.curation_status != Post.CurationStatus.APPROVED
+            or not question.open_time
+        ):
             return Response(
                 {
                     "error": f"Question {question.id} is not scheduled for forecasting yet !"
@@ -198,7 +210,10 @@ def create_binary_forecast_oldapi_view(request, pk: int):
     permission = get_post_permission_for_user(question.get_post(), user=request.user)
     ObjectPermission.can_forecast(permission, raise_exception=True)
 
-    if not question.open_time:
+    if (
+        question.post.curation_status != Post.CurationStatus.APPROVED
+        or not question.open_time
+    ):
         return Response(
             {"error": "This question is not scheduled for forecasting yet !"},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
@@ -223,7 +238,14 @@ def create_binary_forecast_oldapi_view(request, pk: int):
 
     create_forecast_bulk(
         user=request.user,
-        forecasts=[{"question": question, "probability_yes": probability}],
+        forecasts=[
+            {
+                "question": question,
+                "probability_yes": probability,
+                # Old endpoint requests are always API
+                "source": Forecast.SourceChoices.API,
+            }
+        ],
     )
 
     return Response({}, status=status.HTTP_201_CREATED)
@@ -285,12 +307,16 @@ def questions_community_predictions(request) -> Response:
         agg = aggs.get(method)
 
         if agg:
+            pmf = agg.get_pmf()
+            pmf = [
+                v if not np.isnan(v) else None for v in pmf
+            ]  # Convert NaNs to None for JSON serialization
             results.append(
                 {
                     "metaculus_id": qid,
                     "timestamp": ts.isoformat(),
                     "method": method,
-                    "pmf": agg.get_pmf(),
+                    "pmf": pmf,
                     "interval_lower_bounds": agg.interval_lower_bounds,
                     "centers": agg.centers,
                     "interval_upper_bounds": agg.interval_upper_bounds,
@@ -299,5 +325,4 @@ def questions_community_predictions(request) -> Response:
                     "error": None,
                 }
             )
-
     return Response({"results": results})

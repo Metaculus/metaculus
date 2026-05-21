@@ -1,6 +1,6 @@
 "use client";
 import { isNil, merge } from "lodash";
-import React, { FC, useMemo } from "react";
+import React, { FC, useEffect, useMemo, useRef } from "react";
 import {
   Tuple,
   VictoryArea,
@@ -13,7 +13,9 @@ import {
   VictoryThemeDefinition,
 } from "victory";
 
+import { CHART_DASH } from "@/constants/chart_dash";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { CHART_FONT_STYLE } from "@/constants/chart_typography";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
@@ -70,6 +72,7 @@ type Props = {
   colorOverride?: string;
   showBaseline?: boolean;
   minMaxLabelsOnly?: boolean;
+  onChartReady?: () => void;
 };
 
 const MinifiedContinuousAreaChart: FC<Props> = ({
@@ -87,10 +90,18 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
   colorOverride,
   showBaseline = false,
   minMaxLabelsOnly = false,
+  onChartReady,
 }) => {
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
   const chartWidth = width || containerWidth;
+  const prevWidth = useRef(0);
+  useEffect(() => {
+    if (!prevWidth.current && chartWidth && onChartReady) {
+      onChartReady();
+    }
+    prevWidth.current = chartWidth;
+  }, [onChartReady, chartWidth]);
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const actualTheme = extraTheme
@@ -412,9 +423,10 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
               axis: {
                 stroke: getThemeColor(METAC_COLORS.olive["100"]),
                 strokeWidth: 0,
-                strokeDasharray: "4, 4",
+                strokeDasharray: CHART_DASH.grid,
               },
               tickLabels: {
+                ...CHART_FONT_STYLE.tick,
                 fontSize: variant === "feed" ? 10 : 8,
                 textAnchor: ({ index, ticks }) =>
                   // We want first and last labels be aligned against area boundaries
@@ -424,7 +436,6 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                       ? "end"
                       : "middle",
                 fill: getThemeColor(METAC_COLORS.gray["500"]),
-                fontFamily: "Inter",
               },
             }}
           />

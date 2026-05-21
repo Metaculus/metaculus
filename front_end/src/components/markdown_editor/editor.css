@@ -60,7 +60,7 @@
 }
 
 .mdxeditor-toolbar {
-  @apply sticky top-12 flex-wrap;
+  @apply sticky top-header flex-wrap;
   container-type: inline-size;
   & [class*="toolbarTitleMode"] {
     display: none; /* We render our custom source mode title instead */
@@ -176,7 +176,6 @@ div:has(.prism-code) + p:has(> br:only-child) {
 .tweets-wrapper > p .tweet-embed-scroll {
   max-height: calc(150cqw);
   overflow-y: auto;
-  overscroll-behavior: contain;
 }
 
 .tweets-wrapper > p .tweet-embed {

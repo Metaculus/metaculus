@@ -36,7 +36,12 @@ import { clusterAnnotations } from "@/components/charts/primitives/news_annotati
 import PredictionWithRange from "@/components/charts/primitives/prediction_with_range";
 import ResolutionDiamond from "@/components/charts/primitives/resolution_diamond";
 import XTickLabel from "@/components/charts/primitives/x_tick_label";
+import { CHART_DASH } from "@/constants/chart_dash";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import {
+  CHART_FONT_SIZE,
+  CHART_FONT_STYLE,
+} from "@/constants/chart_typography";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
@@ -52,7 +57,12 @@ import {
 import { QuestionStatus } from "@/types/post";
 import { ForecastAvailability, QuestionType } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
-import { getAxisRightPadding, getTickLabelFontSize } from "@/utils/charts/axis";
+import {
+  getAxisRightPadding,
+  getTickLabelFontSize,
+  Y_AXIS_LABEL_ANCHOR_OFFSET,
+  Y_AXIS_LABEL_RESERVED_PX,
+} from "@/utils/charts/axis";
 import { findLastIndexBefore } from "@/utils/charts/helpers";
 import cn from "@/utils/core/cn";
 import { resolveToCssColor } from "@/utils/resolve_color";
@@ -100,11 +110,11 @@ type Props = {
   newsAnnotations?: NewsAnnotation[];
   showNewsAnnotations?: boolean;
   onToggleNewsAnnotations?: () => void;
+  animate?: object;
 };
 
 const BOTTOM_PADDING = 20;
 const NEWS_ANNOTATION_MARKER_SIZE = 18;
-const LABEL_FONT_FAMILY = "Inter";
 
 const NumericChart: FC<Props> = ({
   buildChartData,
@@ -115,7 +125,7 @@ const NumericChart: FC<Props> = ({
   withZoomPicker = false,
   resolutionPoint,
   yLabel,
-  tickFontSize = 10,
+  tickFontSize = CHART_FONT_SIZE.tick,
   extraTheme,
   onChartReady,
   cursorTimestamp,
@@ -134,6 +144,7 @@ const NumericChart: FC<Props> = ({
   newsAnnotations,
   showNewsAnnotations,
   onToggleNewsAnnotations,
+  animate,
 }) => {
   const { theme, getThemeColor } = useAppTheme();
   const [isChartReady, setIsChartReady] = useState(false);
@@ -218,79 +229,65 @@ const NumericChart: FC<Props> = ({
     return Math.max(rightPadding, MIN_RIGHT_PADDING);
   }, [rightPadding, MIN_RIGHT_PADDING]);
 
-  const containerComponent = useMemo(() => {
-    if (nonInteractive) {
-      return (
-        <VictoryContainer
+  // Do not memoize: VictoryPortal pushes its child into the portal context
+  // only when its `children` reference changes, so a stable element would
+  // freeze the cursor label at its initial empty state on mouse move.
+  const containerComponent = nonInteractive ? (
+    <VictoryContainer
+      style={{
+        pointerEvents: "auto",
+        userSelect: "auto",
+        touchAction: "auto",
+      }}
+    />
+  ) : (
+    <VictoryCursorContainer
+      cursorDimension={"x"}
+      defaultCursorValue={defaultCursor}
+      style={{
+        touchAction: "pan-y",
+      }}
+      cursorLabelOffset={{
+        x: 0,
+        y: 0,
+      }}
+      cursorLabel={({ datum }: VictoryLabelProps) => {
+        if (datum) {
+          return datum.x === defaultCursor
+            ? ""
+            : xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x);
+        }
+      }}
+      cursorComponent={
+        <LineSegment
           style={{
-            pointerEvents: "auto",
-            userSelect: "auto",
-            touchAction: "auto",
+            stroke: getThemeColor(METAC_COLORS.blue["700"]),
+            opacity: 0.5,
+            strokeDasharray: CHART_DASH.cursor,
           }}
         />
-      );
-    }
-
-    return (
-      <VictoryCursorContainer
-        cursorDimension={"x"}
-        defaultCursor={defaultCursor}
-        style={{
-          touchAction: "pan-y",
-        }}
-        cursorLabelOffset={{
-          x: 0,
-          y: 0,
-        }}
-        cursorLabel={({ datum }: VictoryLabelProps) => {
-          if (datum) {
-            return datum.x === defaultCursor
-              ? ""
-              : xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x);
-          }
-        }}
-        cursorComponent={
-          <LineSegment
-            style={{
-              stroke: getThemeColor(METAC_COLORS.blue["700"]),
-              opacity: 0.5,
-              strokeDasharray: "5,2",
-            }}
+      }
+      cursorLabelComponent={
+        <VictoryPortal>
+          <ChartCursorLabel
+            positionY={height - 10}
+            {...(hasExternalTheme
+              ? {}
+              : { fill: getThemeColor(METAC_COLORS.gray["700"]) })}
+            style={CHART_FONT_STYLE.cursor}
+            isActive={isCursorActive}
           />
+        </VictoryPortal>
+      }
+      onCursorChange={(value: CursorCoordinatesPropType) => {
+        if (typeof value === "number") {
+          handleCursorChange(value);
+        } else {
+          handleCursorChange(null);
         }
-        cursorLabelComponent={
-          <VictoryPortal>
-            <ChartCursorLabel
-              positionY={height - 10}
-              {...(hasExternalTheme
-                ? {}
-                : { fill: getThemeColor(METAC_COLORS.gray["700"]) })}
-              style={{
-                fontFamily: LABEL_FONT_FAMILY,
-              }}
-              isActive={isCursorActive}
-            />
-          </VictoryPortal>
-        }
-        onCursorChange={(value: CursorCoordinatesPropType) => {
-          if (typeof value === "number") {
-            handleCursorChange(value);
-          } else {
-            handleCursorChange(null);
-          }
-        }}
-      />
-    );
-  }, [
-    defaultCursor,
-    xScale,
-    height,
-    hasExternalTheme,
-    getThemeColor,
-    handleCursorChange,
-    nonInteractive,
-    isCursorActive,
-  ]);
+      }}
+    />
+  );
 
   const chartEvents = useMemo(() => {
     if (nonInteractive) return [];
@@ -587,11 +584,12 @@ const NumericChart: FC<Props> = ({
                 padding={chartPadding}
                 events={chartEvents}
                 containerComponent={containerComponent}
+                animate={animate}
               >
                 {/* Y axis used for GRIDLINES */}
                 <VictoryAxis
                   dependentAxis
-                  orientation="left"
+                  orientation="right"
                   style={{
                     ticks: { stroke: "transparent" },
                     tickLabels: { fill: "transparent" }, // hide labels
@@ -599,7 +597,7 @@ const NumericChart: FC<Props> = ({
                     grid: {
                       stroke: getThemeColor(METAC_COLORS.gray["400"]),
                       strokeWidth: 1,
-                      strokeDasharray: "3, 2",
+                      strokeDasharray: CHART_DASH.grid,
                     },
                   }}
                   tickValues={yScaleTicks}
@@ -614,15 +612,22 @@ const NumericChart: FC<Props> = ({
                     axis: { stroke: "transparent" },
                     grid: { stroke: "transparent" },
                     axisLabel: {
-                      fontFamily: LABEL_FONT_FAMILY,
+                      ...CHART_FONT_STYLE.axisLabel,
                       fontSize: tickLabelFontSize,
                       ...(hasExternalTheme
                         ? {}
                         : { fill: getThemeColor(METAC_COLORS.gray["500"]) }),
                     },
                     tickLabels: {
-                      fontFamily: LABEL_FONT_FAMILY,
-                      padding: 5,
+                      ...CHART_FONT_STYLE.tick,
+                      // Right-align labels at (rightPad - reservedYLabel - 4)px
+                      // past the axis so they sit flush to the right margin,
+                      // leaving room for the optional rotated yLabel.
+                      padding:
+                        rightPad -
+                        (yAxisLabel ? Y_AXIS_LABEL_RESERVED_PX : 0) -
+                        4,
+                      textAnchor: "end",
                       fontSize: tickLabelFontSize,
                       ...(hasExternalTheme
                         ? {}
@@ -632,13 +637,14 @@ const NumericChart: FC<Props> = ({
                   tickValues={yScaleTicks}
                   tickFormat={yScale.tickFormat}
                   label={yAxisLabel}
-                  orientation={"left"}
-                  offsetX={
-                    isNil(yLabel)
-                      ? chartWidth + 5
-                      : chartWidth - tickLabelFontSize + 5
+                  orientation="right"
+                  axisLabelComponent={
+                    yAxisLabel ? (
+                      <VictoryLabel
+                        x={chartWidth - Y_AXIS_LABEL_ANCHOR_OFFSET}
+                      />
+                    ) : undefined
                   }
-                  axisLabelComponent={<VictoryLabel x={chartWidth} />}
                 />
 
                 {/* X axis */}
@@ -650,7 +656,7 @@ const NumericChart: FC<Props> = ({
                   offsetY={isEmbedded ? BOTTOM_PADDING - 5 : BOTTOM_PADDING}
                   tickValues={xScale.ticks}
                   tickFormat={
-                    hideCP
+                    hideCP && points.length === 0
                       ? () => ""
                       : isCursorActive
                         ? () => ""
@@ -664,7 +670,7 @@ const NumericChart: FC<Props> = ({
                         fontSize={tickLabelFontSize}
                         {...(!extraTheme && {
                           style: {
-                            fontFamily: LABEL_FONT_FAMILY,
+                            ...CHART_FONT_STYLE.tick,
                             fill: getThemeColor(METAC_COLORS.gray["700"]),
                           },
                         })}

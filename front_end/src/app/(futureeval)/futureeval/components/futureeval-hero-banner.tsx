@@ -18,7 +18,7 @@ const FutureEvalHeroBanner: React.FC<Props> = ({ tabs, activeTab }) => {
   const showHero = activeTab === "benchmark";
 
   return (
-    <div className={cn("w-full pt-header", FE_COLORS.bgPrimary)}>
+    <div className={cn("w-full pt-12", FE_COLORS.bgPrimary)}>
       <div
         className={cn(
           "mx-auto box-content max-w-[1044px] px-4 pt-4 sm:px-10 md:px-16 md:pt-8 lg:pt-16",

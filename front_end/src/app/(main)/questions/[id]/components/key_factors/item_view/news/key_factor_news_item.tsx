@@ -144,15 +144,7 @@ const SourceDateLabel: React.FC<{
   useLayoutEffect(() => {
     const el = measureRef.current;
     if (!el || !date) return;
-
-    const check = () => {
-      setHideSource(el.scrollWidth > el.clientWidth);
-    };
-    check();
-
-    const observer = new ResizeObserver(check);
-    observer.observe(el);
-    return () => observer.disconnect();
+    setHideSource(el.scrollWidth > el.clientWidth);
   }, [source, date]);
 
   if (!date) {
