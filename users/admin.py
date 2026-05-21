@@ -212,7 +212,6 @@ class UserAdmin(admin.ModelAdmin):
         "is_bot",
         "is_primary_bot",
         "bot_owner",
-        "api_forecasting_access",
         "duration_joined_to_last_login",
         "authored_posts",
         "duration_before_first_post",
@@ -233,7 +232,6 @@ class UserAdmin(admin.ModelAdmin):
     list_filter = [
         "is_active",
         "is_spam",
-        "api_forecasting_access",
         "date_joined",
         LastLoginFilter,
         AuthoredPostsFilter,
