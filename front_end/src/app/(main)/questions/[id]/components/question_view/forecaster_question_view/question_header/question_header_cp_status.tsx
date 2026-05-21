@@ -40,6 +40,7 @@ type Props = {
   colorOverride?: string;
   chartTheme?: VictoryThemeDefinition;
   cursorForecast?: NumericAggregateForecast | null;
+  cursorUserForecastValues?: number[] | null;
 };
 
 const QuestionHeaderCPStatus: FC<Props> = ({
@@ -49,6 +50,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({
   colorOverride,
   chartTheme,
   cursorForecast,
+  cursorUserForecastValues,
 }) => {
   const locale = useLocale();
   const t = useTranslations();
@@ -74,18 +76,28 @@ const QuestionHeaderCPStatus: FC<Props> = ({
   const cursorForecastValues = cursorForecast?.forecast_values ?? null;
   const cursorAreaChartData = useMemo<ContinuousAreaGraphInput | null>(() => {
     if (!cursorForecastValues) return null;
-    return [
+    const communityType: ContinuousAreaType =
+      question.status === QuestionStatus.RESOLVED
+        ? "community_resolved"
+        : question.status === QuestionStatus.CLOSED
+          ? "community_closed"
+          : "community";
+    const data: ContinuousAreaGraphInput = [
       {
         pmf: cdfToPmf(cursorForecastValues),
         cdf: cursorForecastValues,
-        type: (question.status === QuestionStatus.RESOLVED
-          ? "community_resolved"
-          : question.status === QuestionStatus.CLOSED
-            ? "community_closed"
-            : "community") as ContinuousAreaType,
+        type: communityType,
       },
     ];
-  }, [cursorForecastValues, question.status]);
+    if (cursorUserForecastValues) {
+      data.push({
+        pmf: cdfToPmf(cursorUserForecastValues),
+        cdf: cursorUserForecastValues,
+        type: "user",
+      });
+    }
+    return data;
+  }, [cursorForecastValues, cursorUserForecastValues, question.status]);
 
   if (question.status === QuestionStatus.RESOLVED && question.resolution) {
     // Resolved/Annulled/Ambiguous
@@ -337,7 +349,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({
             question={question}
             className={cn("mx-auto pb-1 text-center", {
               "w-max max-w-32": size === "md",
-              "-mt-[55px]": size === "lg",
+              "mt-6": size === "lg",
             })}
             size="sm"
             unit={"%"}

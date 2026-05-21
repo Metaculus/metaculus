@@ -12,10 +12,13 @@ import UpcomingCP from "@/components/consumer_post_card/upcoming_cp";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
 import ForecastMaker from "@/components/forecast_maker";
+import MarkdownEditor from "@/components/markdown_editor";
 import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
+import SectionToggle from "@/components/ui/section_toggle";
 import { ContinuousChartCursorProvider } from "@/contexts/continuous_chart_cursor_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
+import { usePostTextSections } from "@/hooks/use_post_text_sections";
 import {
   GroupOfQuestionsGraphType,
   GroupOfQuestionsPost,
@@ -80,6 +83,7 @@ export const ForecasterShell: FC<
     };
   }, [postData.is_current_content_translated, locale, setBannerIsVisible]);
 
+  const sections = usePostTextSections(postData, { excludeFinePrint: true });
   const isResolved = postData.status === PostStatus.RESOLVED;
   const isGroup = isGroupOfQuestionsPost(postData);
   const showChartDivider =
@@ -141,6 +145,21 @@ export const ForecasterShell: FC<
               ))}
           </div>
           {(!isResolved || isGroup) && <ForecastMaker post={postData} />}
+          {sections.length > 0 && (
+            <div className="flex flex-col gap-2">
+              {sections.map((section) => (
+                <SectionToggle
+                  key={section.title}
+                  title={section.title}
+                  variant="dark"
+                  wrapperClassName="bg-opacity-50"
+                  className="font-medium"
+                >
+                  <MarkdownEditor withCodeBlocks markdown={section.markdown} />
+                </SectionToggle>
+              ))}
+            </div>
+          )}
           <PostScoreData post={postData} noSectionWrapper />
         </section>
         <section className={commentSectionClassName}>
