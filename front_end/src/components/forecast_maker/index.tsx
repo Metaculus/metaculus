@@ -1,10 +1,13 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, ReactNode } from "react";
 
 import PredictionStatusMessage from "@/components/forecast_maker/prediction_status_message";
+import MarkdownEditor from "@/components/markdown_editor";
+import SectionToggle from "@/components/ui/section_toggle";
 import { useAuth } from "@/contexts/auth_context";
+import { usePostTextSections } from "@/hooks/use_post_text_sections";
 import { PostWithForecasts } from "@/types/post";
 import {
   canPredictQuestion,
@@ -23,6 +26,7 @@ type Props = {
 const ForecastMaker: FC<Props> = ({ post, onPredictionSubmit }) => {
   const t = useTranslations();
   const { user } = useAuth();
+  const sections = usePostTextSections(post, { excludeFinePrint: true });
 
   const { group_of_questions: groupOfQuestions, conditional, question } = post;
   const canPredict = canPredictQuestion(post, user);
@@ -31,8 +35,23 @@ const ForecastMaker: FC<Props> = ({ post, onPredictionSubmit }) => {
 
   const predictionMessage = <PredictionStatusMessage post={post} />;
 
+  const infoDrawers = sections.length ? (
+    <div className="flex flex-col gap-2">
+      {sections.map((section) => (
+        <SectionToggle
+          key={section.title}
+          title={section.title}
+          variant="light"
+        >
+          <MarkdownEditor withCodeBlocks markdown={section.markdown} />
+        </SectionToggle>
+      ))}
+    </div>
+  ) : null;
+
+  let content: ReactNode = null;
   if (groupOfQuestions) {
-    return (
+    content = (
       <ForecastMakerGroup
         post={post}
         questions={groupOfQuestions.questions}
@@ -43,10 +62,8 @@ const ForecastMaker: FC<Props> = ({ post, onPredictionSubmit }) => {
         onPredictionSubmit={onPredictionSubmit}
       />
     );
-  }
-
-  if (conditional) {
-    return (
+  } else if (conditional) {
+    content = (
       <ForecastMakerConditional
         post={post}
         conditional={conditional}
@@ -56,10 +73,8 @@ const ForecastMaker: FC<Props> = ({ post, onPredictionSubmit }) => {
         onPredictionSubmit={onPredictionSubmit}
       />
     );
-  }
-
-  if (question) {
-    return (
+  } else if (question) {
+    content = (
       <QuestionForecastMaker
         question={question}
         canPredict={canPredict}
@@ -71,7 +86,14 @@ const ForecastMaker: FC<Props> = ({ post, onPredictionSubmit }) => {
     );
   }
 
-  return null;
+  if (!content) return null;
+
+  return (
+    <>
+      {content}
+      {infoDrawers}
+    </>
+  );
 };
 
 export default ForecastMaker;
