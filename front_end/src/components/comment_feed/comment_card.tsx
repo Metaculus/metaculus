@@ -31,7 +31,7 @@ type Props = {
   keyFactorVotesScore: number;
   className?: string;
   expandOverride?: "auto" | "expanded" | "collapsed";
-  onViewComment?: () => void;
+  commentUrl?: string;
   disableVoting?: boolean;
   collapsedHeight?: number;
 };
@@ -84,14 +84,14 @@ const ExpandableCommentContent = ({
   isExpanded,
   needsExpand,
   contentRef,
-  onViewComment,
+  commentUrl,
   collapsedHeight,
 }: {
   comment: BECommentType;
   isExpanded: boolean;
   needsExpand: boolean;
   contentRef: React.RefObject<HTMLDivElement | null>;
-  onViewComment?: () => void;
+  commentUrl?: string;
   collapsedHeight: number;
 }) => {
   const locale = useLocale();
@@ -125,10 +125,12 @@ const ExpandableCommentContent = ({
             })}
           </span>
         </div>
-        {onViewComment && (
+        {commentUrl && (
           <Button
             variant="text"
-            onClick={onViewComment}
+            href={commentUrl}
+            target="_blank"
+            rel="noopener noreferrer"
             size="sm"
             className="gap-2 border-none px-2.5 py-1 font-normal text-blue-700 dark:text-blue-700-dark"
           >
@@ -177,7 +179,7 @@ const CommentCard: FC<Props> = ({
   changedMyMindCount,
   keyFactorVotesScore,
   expandOverride = "auto",
-  onViewComment,
+  commentUrl,
   disableVoting = false,
   collapsedHeight = DEFAULT_collapsedHeight,
 }) => {
@@ -278,7 +280,7 @@ const CommentCard: FC<Props> = ({
         isExpanded={effectiveExpanded}
         needsExpand={needsExpand}
         contentRef={contentRef}
-        onViewComment={onViewComment}
+        commentUrl={commentUrl}
         collapsedHeight={collapsedHeight}
       />
 

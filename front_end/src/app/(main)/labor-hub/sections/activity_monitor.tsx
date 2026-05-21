@@ -13,6 +13,7 @@ import {
 } from "./activity_monitor_interactive";
 import { QuestionLoader } from "../components/question_cards/question";
 import { SectionHeader } from "../components/section";
+import { LABOR_HUB_POST_IDS } from "../helpers/labor_hub_posts";
 
 const activityDateFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -75,7 +76,7 @@ export function ActivityMonitorSection({
         activities={activities}
         chart={
           <QuestionLoader
-            questionId={41307}
+            questionId={LABOR_HUB_POST_IDS.activityMonitor}
             title="How predictions have changed as AI advances"
             subtitle="What will be the percent change in US employment in the following years compared to 2025?"
             className="md:order-2"

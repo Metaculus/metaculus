@@ -21,11 +21,13 @@ import ExitFlowModal from "./exit_flow_modal";
 import { usePredictionFlow } from "./prediction_flow_provider";
 
 type Props = {
+  className?: string;
   tournamentSlug: string;
   tournamentName: string;
 };
 
 const PredictionFlowHeader: FC<Props> = ({
+  className,
   tournamentName,
   tournamentSlug,
 }) => {
@@ -40,7 +42,7 @@ const PredictionFlowHeader: FC<Props> = ({
 
   return (
     <>
-      <FlowHeaderRoot title={tournamentName}>
+      <FlowHeaderRoot className={className} title={tournamentName}>
         <FlowHeaderBrand>
           <Link
             href="/"

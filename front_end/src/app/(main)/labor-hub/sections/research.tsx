@@ -15,6 +15,7 @@ import {
   ContentParagraph,
 } from "../components/section";
 import { fetchJobsData, getSubQuestionValue } from "../helpers/fetch_jobs_data";
+import { LABOR_HUB_POST_IDS } from "../helpers/labor_hub_posts";
 
 export function ResearchSection({
   className,
@@ -107,7 +108,7 @@ export function ResearchSection({
                 Change in the occupational mix
               </DefinitionTooltip>
             }
-            questionId={42850}
+            questionId={LABOR_HUB_POST_IDS.research.occupationalMixChange}
             prefer="chart"
             historicalValues={{
               2023: 3.17,

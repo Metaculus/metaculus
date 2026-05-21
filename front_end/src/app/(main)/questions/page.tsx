@@ -55,7 +55,7 @@ export default async function Questions(props: {
 
   return (
     <>
-      <main className="mx-auto mt-4 min-h-min w-full max-w-5xl flex-auto px-0 sm:px-2 md:px-3">
+      <main className="mx-auto min-h-min w-full max-w-5xl flex-auto px-0 sm:px-2 md:px-3 lg:mt-4">
         <OnboardingCheck />
         <div className="gap-3 p-0 sm:flex sm:flex-row sm:gap-4">
           <FeedSidebar items={sidebarItems} />
