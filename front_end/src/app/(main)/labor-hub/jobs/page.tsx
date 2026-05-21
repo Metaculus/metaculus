@@ -64,38 +64,48 @@ export default async function AllJobsPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="rounded-md bg-gray-0 px-6 py-8 dark:bg-gray-0-dark sm:px-9 sm:py-10">
-        <nav
-          aria-label="Breadcrumb"
-          className="mb-3 flex items-center gap-2 text-sm text-blue-700 dark:text-blue-700-dark"
-        >
-          <Link
-            href="/labor-hub/"
-            className="font-medium no-underline transition-colors hover:text-blue-900 dark:hover:text-blue-900-dark"
+      <div className="rounded-md bg-gray-0 dark:bg-gray-0-dark">
+        <div className="px-6 py-8 sm:px-9 sm:py-10">
+          <nav
+            aria-label="Breadcrumb"
+            className="mb-3 flex items-center gap-2 text-sm text-blue-700 dark:text-blue-700-dark"
           >
-            {t("laborHub")}
-          </Link>
-          <span
-            aria-hidden="true"
-            className="text-blue-500 dark:text-blue-500-dark"
-          >
-            /
-          </span>
-          <span className="font-semibold text-blue-900 dark:text-blue-900-dark">
-            {t("laborHubJobsBreadcrumb")}
-          </span>
-        </nav>
-        <h1 className="m-0 max-w-3xl text-3xl font-extrabold leading-[1.05] tracking-tight text-blue-900 dark:text-blue-900-dark sm:text-5xl">
-          {t("laborHubJobsHeroTitle")}
-        </h1>
-        <p className="mt-4 max-w-2xl text-base leading-relaxed text-blue-700 dark:text-blue-700-dark sm:text-lg">
-          {t("laborHubJobsHeroLead")}
-        </p>
-      </div>
+            <Link
+              href="/labor-hub/"
+              className="font-medium no-underline transition-colors hover:text-blue-900 dark:hover:text-blue-900-dark"
+            >
+              {t("laborHub")}
+            </Link>
+            <span
+              aria-hidden="true"
+              className="text-blue-500 dark:text-blue-500-dark"
+            >
+              /
+            </span>
+            <span className="font-semibold text-blue-900 dark:text-blue-900-dark">
+              {t("laborHubJobsBreadcrumb")}
+            </span>
+          </nav>
+          <h1 className="m-0 max-w-3xl text-3xl font-extrabold leading-[1.05] tracking-tight text-blue-900 dark:text-blue-900-dark sm:text-5xl">
+            {t.rich("laborHubJobsHeroTitle", {
+              accent: (chunks) => (
+                <span className="text-blue-600 dark:text-blue-600-dark">
+                  {chunks}
+                </span>
+              ),
+            })}
+          </h1>
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-blue-700 dark:text-blue-700-dark sm:text-lg">
+            {t("laborHubJobsHeroLead")}
+          </p>
+        </div>
 
-      <section className="mt-6 rounded-md bg-gray-0 px-6 py-8 dark:bg-gray-0-dark sm:px-9 sm:py-10">
-        <JobsWall jobs={jobs} tickers={tickers} />
-      </section>
+        <div className="mx-6 border-t border-blue-200 dark:border-blue-200-dark sm:mx-9" />
+
+        <div className="px-6 py-8 sm:px-9 sm:py-10">
+          <JobsWall jobs={jobs} tickers={tickers} />
+        </div>
+      </div>
 
       <div className="mt-6">
         <HubCtaCard />

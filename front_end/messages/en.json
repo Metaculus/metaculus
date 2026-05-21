@@ -2193,7 +2193,7 @@
   "laborHubJobsBreadcrumb": "All Jobs",
   "laborHubJobsPageTitle": "All Jobs · Labor Automation Forecasting Hub | Metaculus",
   "laborHubJobsPageDescription": "Browse 15 US occupations forecasted by the Metaculus community through 2035. See how AI may reshape each one.",
-  "laborHubJobsHeroTitle": "Which jobs will survive AI?",
+  "laborHubJobsHeroTitle": "Which jobs will <accent>survive AI?</accent>",
   "laborHubJobsHeroLead": "Metaculus forecasters track 15 representative US occupations through 2035. Pick a job to see the forecast trajectory, the why behind the numbers, and what comes next.",
   "laborHubJobDetailTitle": "Will AI replace {name}? · Metaculus Labor Hub forecast",
   "laborHubJobDetailDescription": "Community forecasts for {name} employment, wages and AI exposure through 2035. Live from the Metaculus Labor Automation Forecasting Hub.",
@@ -2226,5 +2226,7 @@
   "laborHubJobsShareYearLabel": "Headline year",
   "laborHubJobsShareYearOption": "By {year}",
   "laborHubJobsShareSave": "💾 Save Image",
-  "laborHubJobsShareTweet": "𝕏 Share on X"
+  "laborHubJobsShareTweet": "𝕏 Share on X",
+  "laborHubJobsChartA11y": "Employment forecast by year",
+  "laborHubJobsChartBaseline": "Baseline"
 }

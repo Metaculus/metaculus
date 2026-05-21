@@ -25,7 +25,7 @@ function levelClasses(level: ExposureLevel): {
     case "high":
       return {
         ring: "border-salmon-700 dark:border-salmon-700-dark",
-        label: "text-salmon-800 dark:text-salmon-200-dark",
+        label: "text-salmon-800 dark:text-salmon-900-dark",
         bar: "bg-salmon-700 dark:bg-salmon-700-dark",
       };
     case "med":
@@ -90,7 +90,7 @@ export function ExposureMetrics({ job }: Props) {
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+    <div className="grid grid-cols-3 gap-2 md:gap-3">
       {items.map(({ key, label, tooltip, value }) => {
         const level = getExposureLevel(key, value);
         const pct = normalize(key, value) * 100;
@@ -98,16 +98,16 @@ export function ExposureMetrics({ job }: Props) {
         return (
           <div
             key={key}
-            className="rounded-md border border-blue-300 bg-blue-100 p-4 dark:border-blue-300-dark dark:bg-blue-100-dark"
+            className="rounded-md border border-blue-300 bg-blue-100 p-3 dark:border-blue-300-dark dark:bg-blue-100-dark md:p-4"
           >
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-700-dark">
+            <div className="flex items-center justify-between gap-1 md:gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-700-dark md:text-xs">
                 {label}
               </span>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1 md:gap-1.5">
                 <span
                   className={cn(
-                    "rounded-full border px-2 py-0.5 text-xs font-semibold",
+                    "rounded-full border px-1.5 py-0.5 text-[10px] font-semibold md:px-2 md:text-xs",
                     cls.ring,
                     cls.label
                   )}
@@ -119,22 +119,23 @@ export function ExposureMetrics({ job }: Props) {
                   showDelayMs={150}
                   placement="top"
                 >
-                  <span
+                  <button
+                    type="button"
                     aria-label={tooltip}
-                    className="inline-flex h-4 w-4 cursor-help items-center justify-center text-blue-600 dark:text-blue-600-dark"
+                    className="hidden h-4 w-4 cursor-help items-center justify-center rounded-full text-blue-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-700 dark:text-blue-600-dark dark:focus-visible:ring-blue-700-dark md:inline-flex"
                   >
                     <FontAwesomeIcon
                       icon={faCircleQuestion}
                       className="text-[14px]"
                     />
-                  </span>
+                  </button>
                 </Tooltip>
               </div>
             </div>
-            <div className="mt-3 font-jetbrains-mono text-3xl font-bold text-blue-900 dark:text-blue-900-dark">
+            <div className="mt-2 font-jetbrains-mono text-xl font-bold text-blue-900 dark:text-blue-900-dark md:mt-3 md:text-3xl">
               {formatValue(key, value)}
             </div>
-            <div className="mt-3 h-1.5 rounded-full bg-blue-200 dark:bg-blue-200-dark">
+            <div className="mt-2 h-1.5 rounded-full bg-blue-200 dark:bg-blue-200-dark md:mt-3">
               <div
                 className={cn("h-full rounded-full", cls.bar)}
                 style={{ width: `${pct}%` }}

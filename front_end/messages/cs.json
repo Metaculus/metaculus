@@ -2204,15 +2204,15 @@
   "laborHubJobsBreadcrumb": "Všechna povolání",
   "laborHubJobsPageTitle": "Všechna povolání · Hub předpovědí pracovní automatizace | Metaculus",
   "laborHubJobsPageDescription": "Prozkoumejte 15 amerických povolání s předpověďmi komunity Metaculus do roku 2035. Zjistěte, jak je AI může proměnit.",
-  "laborHubJobsHeroTitle": "Která povolání přežijí AI?",
-  "laborHubJobsHeroLead": "Předpovědači Metaculus sledují 15 reprezentativních amerických povolání do roku 2035. Vyberte si povolání a podívejte se na trajektorii předpovědi, proč jsou čísla taková, jaká jsou, a co bude dál.",
+  "laborHubJobsHeroTitle": "Která povolání <accent>přežijí AI?</accent>",
+  "laborHubJobsHeroLead": "Předpovídači Metaculus sledují 15 reprezentativních amerických povolání do roku 2035. Vyberte si povolání a podívejte se na trajektorii předpovědi, proč jsou čísla taková, jaká jsou, a co bude dál.",
   "laborHubJobDetailTitle": "Nahradí AI povolání {name}? · Předpověď Labor Hubu Metaculus",
   "laborHubJobDetailDescription": "Předpovědi komunity ohledně zaměstnanosti, mezd a expozice AI pro {name} do roku 2035. Živě z Metaculus Labor Automation Forecasting Hubu.",
   "laborHubJobDetailSubtitle": "Mediánová předpověď komunity o procentuální změně zaměstnanosti vůči roku 2025 v letech 2027, 2030 a 2035.",
-  "laborHubJobsClickTileSubtitle": "Klikněte na libovolnou dlaždici pro úplnou předpověď a komentář předpovědačů",
+  "laborHubJobsClickTileSubtitle": "Klikněte na libovolnou dlaždici pro úplnou předpověď a komentář předpovídačů",
   "laborHubJobsYearToggleLabel": "Rok předpovědi",
   "laborHubJobsExploreCta": "Prozkoumat celý Labor Hub Dashboard",
-  "laborHubJobsExploreCtaSub": "15 povolání · 7 celoekonomických předpovědí · komentáře předpovědačů",
+  "laborHubJobsExploreCtaSub": "15 povolání · 7 celoekonomických předpovědí · komentáře předpovídačů",
   "laborHubJobsByYear": "Do {year}",
   "laborHubJobsJumpToLabel": "Přejít na:",
   "laborHubJobsFeltenLabel": "Feltenova expozice",
@@ -2237,5 +2237,7 @@
   "laborHubJobsShareYearLabel": "Hlavní rok",
   "laborHubJobsShareYearOption": "Do {year}",
   "laborHubJobsShareSave": "💾 Uložit obrázek",
-  "laborHubJobsShareTweet": "𝕏 Sdílet na X"
+  "laborHubJobsShareTweet": "𝕏 Sdílet na X",
+  "laborHubJobsChartA11y": "Předpověď zaměstnanosti podle roku",
+  "laborHubJobsChartBaseline": "Základ"
 }

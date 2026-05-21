@@ -31,14 +31,14 @@ export async function WageHoursCards({ values }: Props) {
   const { wage2035, hours2035, hours2025 } = values;
 
   return (
-    <div className="flex h-full flex-col gap-3">
-      <div className="flex flex-1 flex-col items-start justify-start gap-4 rounded-md border border-blue-300 bg-blue-100 p-5 text-left dark:border-blue-300-dark dark:bg-blue-100-dark sm:items-center sm:justify-center sm:text-center">
-        <div className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-700-dark">
+    <div className="flex h-full flex-row gap-2 md:flex-col md:gap-3">
+      <div className="flex flex-1 flex-col items-start justify-start gap-2 rounded-md border border-blue-300 bg-blue-100 p-3 text-left dark:border-blue-300-dark dark:bg-blue-100-dark md:items-center md:justify-center md:gap-4 md:p-5 md:text-center">
+        <div className="text-[10px] font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-700-dark md:text-xs">
           {t("laborHubJobsWagesTitle")}
         </div>
         <div
           className={cn(
-            "font-jetbrains-mono text-5xl font-bold leading-none tracking-[-0.02em]",
+            "font-jetbrains-mono text-xl font-bold leading-none tracking-[-0.02em] md:text-5xl",
             valueClass(wage2035)
           )}
         >
@@ -50,8 +50,8 @@ export async function WageHoursCards({ values }: Props) {
             : t("laborHubJobsWagesSub")}
         </div>
       </div>
-      <div className="flex flex-1 flex-col items-start justify-start gap-4 rounded-md border border-blue-300 bg-blue-100 p-5 text-left dark:border-blue-300-dark dark:bg-blue-100-dark sm:items-center sm:justify-center sm:text-center">
-        <div className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-700-dark">
+      <div className="flex flex-1 flex-col items-start justify-start gap-2 rounded-md border border-blue-300 bg-blue-100 p-3 text-left dark:border-blue-300-dark dark:bg-blue-100-dark md:items-center md:justify-center md:gap-4 md:p-5 md:text-center">
+        <div className="text-[10px] font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-700-dark md:text-xs">
           {t("laborHubJobsHoursTitle")}
         </div>
         <div className="font-jetbrains-mono text-5xl font-bold leading-none tracking-[-0.02em] text-blue-900 dark:text-blue-900-dark">

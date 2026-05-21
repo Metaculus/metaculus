@@ -119,82 +119,100 @@ export default async function JobDetailPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="rounded-md bg-gray-0 px-6 py-8 dark:bg-gray-0-dark sm:px-9 sm:py-10">
-        <nav
-          aria-label="Breadcrumb"
-          className="mb-3 flex items-center gap-2 text-sm text-blue-700 dark:text-blue-700-dark"
-        >
-          <Link
-            href="/labor-hub/"
-            className="font-medium no-underline transition-colors hover:text-blue-900 dark:hover:text-blue-900-dark"
+      <div className="rounded-md bg-gray-0 dark:bg-gray-0-dark">
+        <div className="px-6 py-8 sm:px-9 sm:py-10">
+          <nav
+            aria-label="Breadcrumb"
+            className="mb-3 flex items-center gap-2 text-sm text-blue-700 dark:text-blue-700-dark"
           >
-            {t("laborHub")}
-          </Link>
-          <span
-            aria-hidden="true"
-            className="text-blue-500 dark:text-blue-500-dark"
-          >
-            /
-          </span>
-          <Link
-            href="/labor-hub/jobs/"
-            className="font-medium no-underline transition-colors hover:text-blue-900 dark:hover:text-blue-900-dark"
-          >
-            {t("laborHubJobsBreadcrumb")}
-          </Link>
-          <span
-            aria-hidden="true"
-            className="text-blue-500 dark:text-blue-500-dark"
-          >
-            /
-          </span>
-          <span className="font-semibold text-blue-900 dark:text-blue-900-dark">
-            {job.name}
-          </span>
-        </nav>
-
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-          <div className="flex flex-col">
-            <h1 className="m-0 text-3xl font-extrabold leading-[1.05] tracking-tight text-blue-900 dark:text-blue-900-dark sm:text-5xl">
+            <Link
+              href="/labor-hub/"
+              className="font-medium no-underline transition-colors hover:text-blue-900 dark:hover:text-blue-900-dark"
+            >
+              {t("laborHub")}
+            </Link>
+            <span
+              aria-hidden="true"
+              className="text-blue-500 dark:text-blue-500-dark"
+            >
+              /
+            </span>
+            <Link
+              href="/labor-hub/jobs/"
+              className="font-medium no-underline transition-colors hover:text-blue-900 dark:hover:text-blue-900-dark"
+            >
+              {t("laborHubJobsBreadcrumb")}
+            </Link>
+            <span
+              aria-hidden="true"
+              className="hidden text-blue-500 dark:text-blue-500-dark sm:inline"
+            >
+              /
+            </span>
+            <span className="hidden truncate font-semibold text-blue-900 dark:text-blue-900-dark sm:inline">
               {job.name}
-            </h1>
-            <p className="mt-3 max-w-xl text-base leading-relaxed text-blue-700 dark:text-blue-700-dark sm:text-lg">
-              {t("laborHubJobDetailSubtitle")}
-            </p>
-            <div className="mt-5">
-              <YearStats forecasts={forecasts} />
+            </span>
+          </nav>
+
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+            <div className="flex flex-col">
+              <h1 className="m-0 text-3xl font-extrabold leading-[1.05] tracking-tight text-blue-900 dark:text-blue-900-dark sm:text-5xl">
+                {job.name}
+              </h1>
+              <p className="mt-3 max-w-xl text-base leading-relaxed text-blue-700 dark:text-blue-700-dark sm:text-lg">
+                {t("laborHubJobDetailSubtitle")}
+              </p>
+              <div className="mt-5">
+                <YearStats forecasts={forecasts} />
+              </div>
+            </div>
+            <div className="overflow-hidden rounded-md border border-blue-300 bg-blue-100 p-2 dark:border-blue-300-dark dark:bg-blue-100-dark">
+              <MultiQuestionLineChart
+                rows={[
+                  {
+                    questionId: job.post_id,
+                    title: job.name,
+                    historicalValues: { 2025: 0 },
+                  },
+                ]}
+                valueFormat="percentageChange"
+                decimals={1}
+                showLegend={false}
+                showMoreButton={false}
+                height={228}
+                showTickLabels
+                historicalLabelText="BASELINE"
+                getSeriesOptions={() => ({
+                  color:
+                    (forecasts["2035"] ?? 0) < 0
+                      ? "mc2"
+                      : (forecasts["2035"] ?? 0) > 0
+                        ? "mc3"
+                        : "mc1",
+                })}
+              />
             </div>
           </div>
-          <div className="overflow-hidden rounded-md border border-blue-300 bg-blue-100 p-2 dark:border-blue-300-dark dark:bg-blue-100-dark">
-            <MultiQuestionLineChart
-              rows={[
-                {
-                  questionId: job.post_id,
-                  title: job.name,
-                  historicalValues: { 2025: 0 },
-                },
-              ]}
-              valueFormat="percentageChange"
-              decimals={1}
-              showLegend={false}
-              showMoreButton={false}
-              height={260}
-              showTickLabels
-            />
-          </div>
+        </div>
+
+        <div className="mx-6 border-t border-blue-200 dark:border-blue-200-dark sm:mx-9" />
+
+        <div className="px-6 py-5 sm:px-9 sm:py-6">
+          <JobNavStrip current={slug} items={navItems} />
         </div>
       </div>
 
-      <section className="mt-6 rounded-md bg-gray-0 px-6 py-6 dark:bg-gray-0-dark sm:px-9 sm:py-6">
-        <JobNavStrip current={slug} items={navItems} />
-      </section>
-
-      <section className="mt-6 rounded-md bg-gray-0 px-6 py-8 dark:bg-gray-0-dark sm:px-9 sm:py-10">
+      <section className="mt-6 rounded-md bg-gray-0 px-6 py-6 dark:bg-gray-0-dark sm:px-9 sm:py-10">
         <BentoLayout
           exposure={<ExposureMetrics job={job} />}
           insights={<CuratedInsights insights={insights} jobName={job.name} />}
           wagesHours={<WageHoursCards values={wageHours} />}
         />
+      </section>
+
+      {/* Mobile-only: full Curated Insights section below the bento */}
+      <section className="mt-6 rounded-md bg-gray-0 px-6 py-6 dark:bg-gray-0-dark md:hidden">
+        <CuratedInsights insights={insights} jobName={job.name} />
       </section>
 
       <div className="mt-6">

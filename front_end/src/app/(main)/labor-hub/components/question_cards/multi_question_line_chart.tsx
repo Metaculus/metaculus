@@ -258,14 +258,27 @@ async function MultiQuestionLineChartContent({
   );
 }
 
-function MultiQuestionLineChartSkeleton({ className }: { className?: string }) {
+function MultiQuestionLineChartSkeleton({
+  className,
+  height,
+  showTitlePlaceholder = true,
+}: {
+  className?: string;
+  height?: number;
+  showTitlePlaceholder?: boolean;
+}) {
   return (
     <div
       data-loading="true"
       className={`animate-pulse overflow-hidden rounded bg-blue-200 p-4 dark:bg-blue-800 md:p-5 ${className ?? ""}`}
     >
-      <div className="mb-4 h-5 w-2/3 rounded bg-gray-300 dark:bg-gray-600" />
-      <div className="h-64 rounded bg-gray-300 dark:bg-gray-600" />
+      {showTitlePlaceholder && (
+        <div className="mb-4 h-5 w-2/3 rounded bg-gray-300 dark:bg-gray-600" />
+      )}
+      <div
+        className="rounded bg-gray-300 dark:bg-gray-600"
+        style={{ height: height ?? 256 }}
+      />
     </div>
   );
 }
@@ -273,7 +286,13 @@ function MultiQuestionLineChartSkeleton({ className }: { className?: string }) {
 export function MultiQuestionLineChart(props: MultiQuestionLineChartProps) {
   return (
     <Suspense
-      fallback={<MultiQuestionLineChartSkeleton className={props.className} />}
+      fallback={
+        <MultiQuestionLineChartSkeleton
+          className={props.className}
+          height={props.height}
+          showTitlePlaceholder={props.title != null}
+        />
+      }
     >
       <MultiQuestionLineChartContent {...props} />
     </Suspense>

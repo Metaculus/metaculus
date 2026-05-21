@@ -2204,7 +2204,7 @@
   "laborHubJobsBreadcrumb": "Todos los empleos",
   "laborHubJobsPageTitle": "Todos los empleos · Hub de Pronósticos de Automatización Laboral | Metaculus",
   "laborHubJobsPageDescription": "Explora 15 ocupaciones de EE. UU. con pronósticos de la comunidad de Metaculus hasta 2035. Descubre cómo la IA podría transformar cada una.",
-  "laborHubJobsHeroTitle": "¿Qué empleos sobrevivirán a la IA?",
+  "laborHubJobsHeroTitle": "¿Qué empleos <accent>sobrevivirán a la IA?</accent>",
   "laborHubJobsHeroLead": "Los pronosticadores de Metaculus siguen 15 ocupaciones representativas de EE. UU. hasta 2035. Elige un empleo para ver la trayectoria pronosticada, el porqué detrás de los números y lo que viene a continuación.",
   "laborHubJobDetailTitle": "¿La IA reemplazará a {name}? · Pronóstico del Labor Hub de Metaculus",
   "laborHubJobDetailDescription": "Pronósticos de la comunidad sobre empleo, salarios y exposición a la IA para {name} hasta 2035. En vivo desde el Hub de Pronósticos de Automatización Laboral de Metaculus.",
@@ -2237,5 +2237,7 @@
   "laborHubJobsShareYearLabel": "Año destacado",
   "laborHubJobsShareYearOption": "Hasta {year}",
   "laborHubJobsShareSave": "💾 Guardar imagen",
-  "laborHubJobsShareTweet": "𝕏 Compartir en X"
+  "laborHubJobsShareTweet": "𝕏 Compartir en X",
+  "laborHubJobsChartA11y": "Pronóstico de empleo por año",
+  "laborHubJobsChartBaseline": "Base"
 }

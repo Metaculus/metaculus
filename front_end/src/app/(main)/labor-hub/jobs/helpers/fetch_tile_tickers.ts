@@ -8,18 +8,31 @@ import { JOBS_DATA } from "../../data";
 const MIN_LENGTH = 60;
 const MAX_LENGTH = 180;
 
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+  nbsp: " ",
+};
+
+/**
+ * Decodes HTML entities for PLAIN-TEXT contexts only — never feed the result
+ * into dangerouslySetInnerHTML. Uses a single-pass replacement so sequences
+ * like "&amp;lt;" decode once (→ "&lt;") rather than double-decoding to "<".
+ */
 function decodeEntities(text: string): string {
-  return text
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) =>
-      String.fromCharCode(parseInt(hex, 16))
-    )
-    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)))
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;/g, "'")
-    .replace(/&nbsp;/g, " ");
+  return text.replace(
+    /&(#x[0-9a-fA-F]+|#\d+|[a-zA-Z]+);/g,
+    (match, entity: string) => {
+      if (entity.startsWith("#x"))
+        return String.fromCharCode(parseInt(entity.slice(2), 16));
+      if (entity.startsWith("#"))
+        return String.fromCharCode(parseInt(entity.slice(1), 10));
+      return NAMED_ENTITIES[entity] ?? match;
+    }
+  );
 }
 
 function strip(text: string): string {

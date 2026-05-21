@@ -1,8 +1,4 @@
-"use client";
-
 import { ReactNode } from "react";
-
-import { MobileCarousel } from "@/app/(main)/labor-hub/components/mobile_carousel";
 
 type Props = {
   exposure: ReactNode;
@@ -13,15 +9,15 @@ type Props = {
 export function BentoLayout({ exposure, insights, wagesHours }: Props) {
   return (
     <>
-      {/* Mobile: 3-step swipe carousel */}
+      {/*
+        Mobile: tight bento — exposure row (3 tiles) + wage/hours row (2 tiles).
+        Insights is rendered as a separate section below (in the page).
+      */}
       <div className="md:hidden">
-        <MobileCarousel>
-          <div>{exposure}</div>
-          <div>{insights}</div>
-          <div>{wagesHours}</div>
-        </MobileCarousel>
+        {exposure}
+        <div className="mt-2">{wagesHours}</div>
       </div>
-      {/* Tablet & desktop: bento grid */}
+      {/* Tablet & desktop: bento grid with insights inline */}
       <div className="hidden md:block">
         {exposure}
         <div className="mt-3 grid gap-3 md:grid-cols-3">

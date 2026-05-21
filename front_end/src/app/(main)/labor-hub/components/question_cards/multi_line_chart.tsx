@@ -57,6 +57,10 @@ type Props = {
   historicalForecastDividerX?: number | null;
   /** When false, hides the HISTORICAL / FORECAST labels and the vertical divider line. */
   showHistoricalForecastAnnotation?: boolean;
+  /** Override for the "HISTORICAL" section label (default: "HISTORICAL"). */
+  historicalLabelText?: string;
+  /** Override for the "FORECAST" section label (default: "FORECAST"). */
+  forecastLabelText?: string;
   /** When true, hides data labels for historical points (those marked filled) while printing. */
   hideHistoricalLabelsInPrint?: boolean;
 };
@@ -595,6 +599,8 @@ export const MultiLineChart: FC<Props> = ({
   emphasizedSeriesId = null,
   historicalForecastDividerX = null,
   showHistoricalForecastAnnotation = true,
+  historicalLabelText = "HISTORICAL",
+  forecastLabelText = "FORECAST",
   hideHistoricalLabelsInPrint = false,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
@@ -1211,7 +1217,7 @@ export const MultiLineChart: FC<Props> = ({
 
             {historicalForecastLayout && (
               <VictoryLabel
-                text="HISTORICAL"
+                text={historicalLabelText}
                 x={historicalForecastLayout.historicalLabelX}
                 y={AREA_SECTION_LABEL_Y}
                 textAnchor="middle"
@@ -1228,7 +1234,7 @@ export const MultiLineChart: FC<Props> = ({
 
             {historicalForecastLayout && (
               <VictoryLabel
-                text="FORECAST"
+                text={forecastLabelText}
                 x={historicalForecastLayout.forecastLabelX}
                 y={AREA_SECTION_LABEL_Y}
                 textAnchor="middle"

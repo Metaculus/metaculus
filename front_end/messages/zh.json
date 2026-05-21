@@ -2206,7 +2206,7 @@
   "laborHubJobsBreadcrumb": "所有职业",
   "laborHubJobsPageTitle": "所有职业 · 劳动自动化预测中心 | Metaculus",
   "laborHubJobsPageDescription": "浏览 Metaculus 社区对 15 个美国职业到 2035 年的预测。了解 AI 可能如何重塑每一个职业。",
-  "laborHubJobsHeroTitle": "哪些职业能在 AI 时代生存？",
+  "laborHubJobsHeroTitle": "哪些职业能在 <accent>AI 时代生存？</accent>",
   "laborHubJobsHeroLead": "Metaculus 预测者跟踪 15 个具有代表性的美国职业到 2035 年。选择一个职业，查看预测轨迹、数据背后的原因，以及未来走向。",
   "laborHubJobDetailTitle": "AI 会取代 {name} 吗？· Metaculus Labor Hub 预测",
   "laborHubJobDetailDescription": "Metaculus 社区对 {name} 就业、薪酬和 AI 暴露度到 2035 年的预测。来自 Metaculus 劳动自动化预测中心的实时数据。",
@@ -2239,5 +2239,7 @@
   "laborHubJobsShareYearLabel": "标题年份",
   "laborHubJobsShareYearOption": "到 {year}",
   "laborHubJobsShareSave": "💾 保存图片",
-  "laborHubJobsShareTweet": "𝕏 在 X 分享"
+  "laborHubJobsShareTweet": "𝕏 在 X 分享",
+  "laborHubJobsChartA11y": "按年份的就业预测",
+  "laborHubJobsChartBaseline": "基准"
 }
