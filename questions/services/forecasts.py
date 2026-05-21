@@ -46,7 +46,7 @@ def check_forecasting_api_access(user: User) -> None:
     attempt flips it from DISABLED to PENDING, which surfaces the in-app
     confirmation prompt on the account settings page.
     """
-    if user.is_bot or user.api_forecasting_access == ApiForecastingAccess.ENABLED:
+    if user.api_forecasting_access == ApiForecastingAccess.ENABLED:
         return
 
     # First blocked attempt from a human account: surface the in-app prompt.
