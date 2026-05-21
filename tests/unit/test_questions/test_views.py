@@ -16,6 +16,8 @@ from tests.unit.test_posts.conftest import *  # noqa
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_questions.factories import create_question
+from tests.unit.test_users.factories import factory_user
+from users.constants import ApiForecastingAccess
 from users.models import User
 
 
@@ -411,6 +413,100 @@ class TestQuestionForecast:
             content_type="application/json",
         )
         assert response.status_code == status_code
+
+
+class TestApiForecastingRestriction:
+    forecast_url = reverse("create-forecast")
+    withdraw_url = reverse("create-withdraw")
+
+    @staticmethod
+    def _forecast_payload(question_id):
+        return json.dumps([{"question": question_id, "probability_yes": 0.5}])
+
+    @pytest.mark.parametrize(
+        "is_bot, access, expected_status, expected_access",
+        [
+            # Non-bot DISABLED: blocked, and the first attempt flips to PENDING.
+            (
+                False,
+                ApiForecastingAccess.DISABLED,
+                403,
+                ApiForecastingAccess.PENDING,
+            ),
+            # Non-bot PENDING: blocked, stays PENDING.
+            (
+                False,
+                ApiForecastingAccess.PENDING,
+                403,
+                ApiForecastingAccess.PENDING,
+            ),
+            # Non-bot ENABLED: allowed.
+            (
+                False,
+                ApiForecastingAccess.ENABLED,
+                201,
+                ApiForecastingAccess.ENABLED,
+            ),
+            # Bot with DISABLED access: still allowed via the is_bot
+            # short-circuit, and its access value is left untouched.
+            (
+                True,
+                ApiForecastingAccess.DISABLED,
+                201,
+                ApiForecastingAccess.DISABLED,
+            ),
+        ],
+    )
+    def test_api_forecast_access(
+        self,
+        post_binary_public,
+        create_client_for_user,
+        is_bot,
+        access,
+        expected_status,
+        expected_access,
+    ):
+        user = factory_user(is_bot=is_bot, api_forecasting_access=access)
+        client = create_client_for_user(user)
+        response = client.post(
+            self.forecast_url,
+            data=self._forecast_payload(post_binary_public.question.id),
+            content_type="application/json",
+        )
+        assert response.status_code == expected_status
+        if expected_status == 403:
+            assert response.json()["code"] == "api_forecasting_not_enabled"
+        assert Forecast.objects.filter(author=user).exists() == (expected_status == 201)
+        user.refresh_from_db()
+        assert user.api_forecasting_access == expected_access
+
+    def test_oldapi_forecast_blocked_for_disabled_non_bot(
+        self, post_binary_public, create_client_for_user
+    ):
+        user = factory_user(api_forecasting_access=ApiForecastingAccess.DISABLED)
+        client = create_client_for_user(user)
+        response = client.post(
+            reverse("oldapi-create-forecast", args=[post_binary_public.id]),
+            data=json.dumps({"prediction": 0.5}),
+            content_type="application/json",
+        )
+        assert response.status_code == 403
+        assert not Forecast.objects.filter(author=user).exists()
+
+    def test_ui_forecast_not_restricted_for_disabled_non_bot(
+        self, post_binary_public, create_client_for_user
+    ):
+        user = factory_user(api_forecasting_access=ApiForecastingAccess.DISABLED)
+        client = create_client_for_user(user)
+        with patch("questions.views.is_internal_request", return_value=True):
+            response = client.post(
+                self.forecast_url,
+                data=self._forecast_payload(post_binary_public.question.id),
+                content_type="application/json",
+            )
+        assert response.status_code == 201
+        user.refresh_from_db()
+        assert user.api_forecasting_access == ApiForecastingAccess.DISABLED
 
 
 class TestQuestionWithdraw:

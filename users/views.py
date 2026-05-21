@@ -159,6 +159,7 @@ def update_profile_api_view(request: Request) -> Response:
     )
     if unsubscribe_tags is not None:
         user_unsubscribe_tags(user, unsubscribe_tags)
+
     serializer.save()
     return Response(UserPrivateSerializer(user).data)
 

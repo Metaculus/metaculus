@@ -7,6 +7,8 @@ import sentry_sdk
 from django.db import IntegrityError, transaction
 from django.db.models import F, Q, QuerySet, Subquery, OuterRef, Count
 from django.utils import timezone
+from rest_framework.exceptions import PermissionDenied
+
 from notifications.constants import MailingTags
 from posts.models import PostUserSnapshot, PostSubscription
 from posts.services.subscriptions import (
@@ -16,8 +18,10 @@ from posts.services.subscriptions import (
 from posts.tasks import run_on_post_forecast
 from questions.services.multiple_choice_handlers import get_all_options_from_history
 from scoring.models import Score
+from users.constants import ApiForecastingAccess
 from users.models import User
 from utils.cache import cache_per_object
+from utils.frontend import build_frontend_url
 from utils.the_math.aggregations import get_aggregation_history
 from .common import get_questions_cutoff
 from ..cache import average_coverage_cache_key
@@ -32,6 +36,38 @@ from ..models import (
 from ..types import AggregationMethod
 
 logger = logging.getLogger(__name__)
+
+
+def check_forecasting_api_access(user: User) -> None:
+    """
+    Enforce API forecasting access for API-sourced forecasts.
+
+    Bots and accounts with ENABLED access pass. A human account's first blocked
+    attempt flips it from DISABLED to PENDING, which surfaces the in-app
+    confirmation prompt on the account settings page.
+    """
+    if user.api_forecasting_access == ApiForecastingAccess.ENABLED:
+        return
+
+    # First blocked attempt from a human account: surface the in-app prompt.
+    if user.api_forecasting_access == ApiForecastingAccess.DISABLED:
+        user.api_forecasting_access = ApiForecastingAccess.PENDING
+        user.save(update_fields=["api_forecasting_access"])
+
+    settings_url = build_frontend_url(
+        "/accounts/settings/account/#api-forecasting-access"
+    )
+    raise PermissionDenied(
+        {
+            "detail": (
+                "API forecasting is not enabled for this account. To enable it, "
+                f"confirm how this account is used at {settings_url}. If these "
+                "forecasts are produced by a bot or automated system, use a "
+                "dedicated bot account instead."
+            ),
+            "code": "api_forecasting_not_enabled",
+        }
+    )
 
 
 def create_forecast(
@@ -158,7 +194,17 @@ def after_forecast_actions(question: Question, user: User):
     run_build_question_forecasts.send(question.id)
 
 
-def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
+def create_forecast_bulk(
+    *,
+    user: User | None = None,
+    forecasts: list[dict] | None = None,
+    source: Forecast.SourceChoices | None = None,
+):
+    # API-sourced forecasts are gated: bots and accounts with ENABLED access
+    # pass; a non-bot account's first blocked attempt is flipped to PENDING.
+    if source == Forecast.SourceChoices.API:
+        check_forecasting_api_access(user)
+
     posts = set()
 
     for forecast in forecasts:
@@ -166,7 +212,9 @@ def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
         post = question.get_post()
         posts.add(post)
 
-        forecast = create_forecast(question=question, user=user, **forecast)
+        forecast = create_forecast(
+            question=question, user=user, source=source, **forecast
+        )
         update_forecast_notification(forecast=forecast, created=True)
         after_forecast_actions(question, user)
 
