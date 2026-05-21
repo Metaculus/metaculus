@@ -309,7 +309,7 @@ def questions_community_predictions(request) -> Response:
         if agg:
             pmf = agg.get_pmf()
             pmf = [
-                v if not np.isnan(v) else None for v in pmf
+                None if (v is None or np.isnan(v)) else v for v in pmf
             ]  # Convert NaNs to None for JSON serialization
             results.append(
                 {
