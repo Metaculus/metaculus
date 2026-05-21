@@ -33,36 +33,78 @@ import {
   getQuestionDraft,
   saveQuestionDraft,
 } from "@/utils/drafts/questionForm";
+import { getMarkdownSummary } from "@/utils/markdown";
 import { getPostLink } from "@/utils/navigation";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import { createQuestionPost, updatePost } from "../actions";
 
-const createNotebookSchema = (t: ReturnType<typeof useTranslations>) => {
-  return z.object({
-    title: z
-      .string()
-      .min(4, {
-        message: t("errorMinLength", { field: "String", minLength: 4 }),
-      })
-      .max(200, {
-        message: t("errorMaxLength", { field: "String", maxLength: 200 }),
-      }),
-    short_title: z
-      .string()
-      .min(4, {
-        message: t("errorMinLength", { field: "String", minLength: 4 }),
-      })
-      .max(80, {
-        message: t("errorMaxLength", { field: "String", maxLength: 80 }),
-      }),
-    default_project: z.number(),
-    markdown: z.string().min(1, {
-      message: t("errorMinLength", { field: "String", minLength: 1 }),
-    }),
-    feed_tile_summary: z.string().optional(),
+// Run the same strip-markdown pipeline the feed tile uses (getMarkdownSummary)
+// to scan exactly what a reader would see. Sized to the widest realistic tile
+// (~900px → ~450 rendered chars); anything past that point is past every tile
+// size and doesn't need a summary. MAX_SOURCE_CHARS_TO_SCAN bounds the remark
+// parse cost on long notebooks — 2000 source chars maps to well over the
+// rendered budget even with markdown-heavy input.
+const TILE_PREVIEW_WIDTH = 900;
+const TILE_PREVIEW_HEIGHT = 80;
+const MAX_SOURCE_CHARS_TO_SCAN = 2000;
+
+// Patterns whose presence in the *rendered* preview would surface visibly on
+// the tile. strip-markdown leaves these in: raw HTML tags (iframes, divs) and
+// pipes from table-like content MDXEditor didn't promote to a real table.
+// Plain text and `[text](url)` link syntax are accepted: links re-render as
+// real <a> tags via the tile's read-mode MarkdownEditor.
+const NOISY_TILE_PREVIEW_PATTERNS: RegExp[] = [
+  /<[a-zA-Z][^>]*>/, // raw HTML
+  /\|[^|\n]*\|[^|\n]*\|/, // 3+ pipes on a single line (table-ish)
+];
+
+const hasNoisyTilePreview = (markdown: string | undefined): boolean => {
+  if (!markdown) return false;
+  const preview = getMarkdownSummary({
+    markdown: markdown.slice(0, MAX_SOURCE_CHARS_TO_SCAN),
+    width: TILE_PREVIEW_WIDTH,
+    height: TILE_PREVIEW_HEIGHT,
   });
+  return NOISY_TILE_PREVIEW_PATTERNS.some((pattern) => pattern.test(preview));
+};
+
+const createNotebookSchema = (t: ReturnType<typeof useTranslations>) => {
+  return z
+    .object({
+      title: z
+        .string()
+        .min(4, {
+          message: t("errorMinLength", { field: "String", minLength: 4 }),
+        })
+        .max(200, {
+          message: t("errorMaxLength", { field: "String", maxLength: 200 }),
+        }),
+      short_title: z
+        .string()
+        .min(4, {
+          message: t("errorMinLength", { field: "String", minLength: 4 }),
+        })
+        .max(80, {
+          message: t("errorMaxLength", { field: "String", maxLength: 80 }),
+        }),
+      default_project: z.number(),
+      markdown: z.string().min(1, {
+        message: t("errorMinLength", { field: "String", minLength: 1 }),
+      }),
+      feed_tile_summary: z.string().optional(),
+    })
+    .superRefine((data, ctx) => {
+      const summary = data.feed_tile_summary?.trim() ?? "";
+      if (summary.length === 0 && hasNoisyTilePreview(data.markdown)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: t("feedTileSummaryRequiredForFormattedContent"),
+          path: ["feed_tile_summary"],
+        });
+      }
+    });
 };
 type FormData = z.infer<ReturnType<typeof createNotebookSchema>>;
 
