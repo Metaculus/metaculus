@@ -7,19 +7,19 @@ import {
   getFilterSectionPostStatus,
   getFilterSectionPostType,
 } from "@/app/(main)/questions/helpers/filters";
+import { useFeedQuery } from "@/app/(main)/questions/hooks/use_feed_query";
 import { FilterOptionType } from "@/components/popover_filter/types";
 import PostsFilters from "@/components/posts_filters";
 import { GroupButton } from "@/components/ui/button_group";
 import { POST_ACCESS_FILTER } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
-import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
 
 type Props = { panelClassname?: string };
 
 const MyQuestionsAndPostsFilters: FC<Props> = ({ panelClassname }) => {
-  const { params } = useSearchParams();
+  const { params } = useFeedQuery();
   const t = useTranslations();
   const { user } = useAuth();
 

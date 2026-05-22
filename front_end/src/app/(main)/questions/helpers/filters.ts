@@ -66,7 +66,7 @@ export const POST_STATUS_LABEL_MAP = {
   [PostStatus.REJECTED]: "Rejected Posts",
 };
 
-type FiltersFromSearchParamsOptions = {
+export type FiltersFromSearchParamsOptions = {
   defaultOrderBy?: string;
   defaultForMainFeed?: boolean;
   withoutPageParam?: boolean;

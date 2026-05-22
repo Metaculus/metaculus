@@ -21,7 +21,6 @@ import { METAC_COLORS } from "@/constants/colors";
 import { FEED_LAYOUT_COOKIE } from "@/constants/posts_feed";
 import AuthProvider from "@/contexts/auth_context";
 import FeedLayoutProvider from "@/contexts/feed_layout_context";
-import { GlobalSearchProvider } from "@/contexts/global_search_context";
 import ModalProvider from "@/contexts/modal_context";
 import NavigationProvider from "@/contexts/navigation_context";
 import PolyfillProvider from "@/contexts/polyfill";
@@ -128,22 +127,18 @@ export default async function RootLayout({
                       <PublicSettingsProvider settings={publicSettings}>
                         <ModalProvider>
                           <NavigationProvider>
-                            <GlobalSearchProvider>
-                              <FeedLayoutProvider
-                                cookieLayout={feedLayoutCookie}
-                              >
-                                <TranslationsBannerProvider>
-                                  <NextTopLoader
-                                    showSpinner={false}
-                                    color={METAC_COLORS.blue["500"].DEFAULT}
-                                  />
-                                  {children}
-                                  <GlobalModals />
-                                  <SimplifiedSignupModal />
-                                  <Toaster />
-                                </TranslationsBannerProvider>
-                              </FeedLayoutProvider>
-                            </GlobalSearchProvider>
+                            <FeedLayoutProvider cookieLayout={feedLayoutCookie}>
+                              <TranslationsBannerProvider>
+                                <NextTopLoader
+                                  showSpinner={false}
+                                  color={METAC_COLORS.blue["500"].DEFAULT}
+                                />
+                                {children}
+                                <GlobalModals />
+                                <SimplifiedSignupModal />
+                                <Toaster />
+                              </TranslationsBannerProvider>
+                            </FeedLayoutProvider>
                           </NavigationProvider>
                         </ModalProvider>
                       </PublicSettingsProvider>

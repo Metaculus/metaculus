@@ -16,11 +16,17 @@ import {
 } from "react";
 
 import { getFilterChipColor } from "@/app/(main)/questions/helpers/filters";
+import { useFeedQuery } from "@/app/(main)/questions/hooks/use_feed_query";
+import {
+  deleteSearchParamValue,
+  setSearchParamValue,
+} from "@/app/(main)/questions/hooks/use_feed_query_params";
 import PopoverFilter from "@/components/popover_filter";
 import {
   FilterReplaceInfo,
   FilterSection,
 } from "@/components/popover_filter/types";
+import RichText from "@/components/rich_text";
 import SearchInput from "@/components/search_input";
 import Button from "@/components/ui/button";
 import { GroupButton } from "@/components/ui/button_group";
@@ -35,8 +41,6 @@ import {
   POST_WITHDRAWN_FILTER,
 } from "@/constants/posts_feed";
 import { useFeedLayout } from "@/contexts/feed_layout_context";
-import { useGlobalSearchContext } from "@/contexts/global_search_context";
-import useSearchParams from "@/hooks/use_search_params";
 import { QuestionOrder } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
@@ -100,18 +104,9 @@ const PostsFilters: FC<Props> = ({
   const { layout, setLayout } = useFeedLayout();
   const actionRailRef = useRef<HTMLDivElement>(null);
   const [actionRailWidth, setActionRailWidth] = useState(0);
-  const {
-    params,
-    setParam,
-    deleteParam,
-    deleteParams,
-    replaceParams,
-    navigateToSearchParams,
-  } = useSearchParams();
+  const { params, resultCount, setFilterParams, setSearchParams } =
+    useFeedQuery();
   defaultOrder = defaultOrder ?? QuestionOrder.ActivityDesc;
-
-  const { globalSearch, updateGlobalSearch, setModifySearchParams } =
-    useGlobalSearchContext();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedAnalyticsEvent = useCallback(
@@ -122,16 +117,6 @@ const PostsFilters: FC<Props> = ({
     }, 2000),
     []
   );
-
-  useEffect(() => {
-    setModifySearchParams(true);
-
-    return () => {
-      setModifySearchParams(false);
-    };
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     const actionRail = actionRailRef.current;
@@ -154,15 +139,14 @@ const PostsFilters: FC<Props> = ({
     };
   }, []);
 
-  const eraseSearch = () => {
-    updateGlobalSearch("");
-  };
-
   const order = (params.get(POST_ORDER_BY_FILTER) ??
     defaultOrder) as QuestionOrder;
-  const hasActiveSearch = !!(
-    globalSearch.trim() || params.get(POST_TEXT_SEARCH_FILTER)?.trim()
-  );
+  const submittedSearch = params.get(POST_TEXT_SEARCH_FILTER)?.trim() ?? "";
+  const [searchDraft, setSearchDraft] = useState(submittedSearch);
+  const hasActiveSearch = !!(searchDraft.trim() || submittedSearch);
+  const searchResultCountLabel = resultCount
+    ? `${resultCount.count.toLocaleString()}${resultCount.isLowerBound ? "+" : ""}`
+    : null;
   const hasActiveDropdownSort =
     dropdownSortOptions?.some((o) => o.value === order) ?? false;
 
@@ -180,75 +164,13 @@ const PostsFilters: FC<Props> = ({
     return [filters, activeFilters];
   }, [filters]);
 
-  // reset page param after applying new filters
   useEffect(() => {
-    deleteParam(POST_PAGE_FILTER, false);
-  }, [filters, deleteParam]);
+    setSearchDraft(submittedSearch);
+  }, [submittedSearch]);
 
-  const handleOrderChange = (order: QuestionOrder) => {
-    const withNavigation = false;
-
-    clearPopupFilters(withNavigation);
-
-    if (order === defaultOrder && !alwaysKeepOrderInUrl) {
-      deleteParam(POST_ORDER_BY_FILTER, withNavigation);
-    } else {
-      setParam(POST_ORDER_BY_FILTER, order, withNavigation);
-    }
-
-    if (onOrderChange) onOrderChange(order, setParam);
-
-    navigateToSearchParams();
-  };
-
-  const handlePopOverFilterChange = (
-    filterId: string,
-    optionValue: string | string[] | null,
-    replaceInfo?: FilterReplaceInfo,
-    extraValues?: Record<string, string>
-  ) => {
-    onPopOverFilterChange?.(
-      { filterId, optionValue, replaceInfo },
-      order,
-      deleteParam
-    );
-
-    if (replaceInfo) {
-      const { optionId, replaceIds } = replaceInfo;
-
-      // Globally handle Withdrawn conditions
-      if (optionId === POST_WITHDRAWN_FILTER) {
-        extraValues = { ...(extraValues ?? {}), [POST_STATUS_FILTER]: "open" };
-      }
-
-      if (!optionValue) {
-        deleteParam(optionId);
-        return;
-      }
-
-      replaceParams(replaceIds, [
-        { name: optionId, value: optionValue },
-        ...(extraValues
-          ? Object.entries(extraValues).map(([key, value]) => ({
-              name: key,
-              value,
-            }))
-          : []),
-      ]);
-      return;
-    }
-
-    if (!optionValue) {
-      deleteParam(filterId);
-      return;
-    }
-
-    setParam(filterId, optionValue);
-  };
-  const clearPopupFilters = (withNavigation = true) => {
-    sendAnalyticsEvent("feedFiltersCleared");
-    const filtersToDelete = popoverFilters.reduce<string[]>(
-      (filterIds, filter) => {
+  const getPopupFilterIds = useCallback(
+    () =>
+      popoverFilters.reduce<string[]>((filterIds, filter) => {
         const optionIds = filter.options.reduce<string[]>(
           (optionIds, option) => {
             if (option.id) {
@@ -262,13 +184,138 @@ const PostsFilters: FC<Props> = ({
         filterIds.push(filter.id, ...optionIds);
 
         return filterIds;
-      },
-      []
-    );
-    deleteParams(filtersToDelete, withNavigation);
+      }, []),
+    [popoverFilters]
+  );
+
+  const commitFilterParams = useCallback(
+    (nextParams: URLSearchParams) => {
+      nextParams.delete(POST_PAGE_FILTER);
+      setFilterParams(nextParams);
+    },
+    [setFilterParams]
+  );
+
+  const commitSearchParams = useCallback(
+    (search: string) => {
+      const nextParams = new URLSearchParams(params);
+      const trimmedSearch = search.trim();
+
+      nextParams.delete(POST_PAGE_FILTER);
+
+      if (trimmedSearch) {
+        setSearchParamValue(nextParams, POST_TEXT_SEARCH_FILTER, trimmedSearch);
+        if (!nextParams.get(POST_ORDER_BY_FILTER)) {
+          setSearchParamValue(
+            nextParams,
+            POST_ORDER_BY_FILTER,
+            QuestionOrder.RankDesc
+          );
+        }
+      } else {
+        nextParams.delete(POST_TEXT_SEARCH_FILTER);
+        if (nextParams.get(POST_ORDER_BY_FILTER) === QuestionOrder.RankDesc) {
+          nextParams.delete(POST_ORDER_BY_FILTER);
+        }
+      }
+
+      setSearchParams(nextParams);
+    },
+    [params, setSearchParams]
+  );
+
+  const eraseSearch = useCallback(() => {
+    setSearchDraft("");
+    commitSearchParams("");
+  }, [commitSearchParams]);
+
+  const handleSearchSubmit = useCallback(
+    (search: string) => {
+      setSearchDraft(search);
+      commitSearchParams(search);
+    },
+    [commitSearchParams]
+  );
+
+  const handleOrderChange = (order: QuestionOrder) => {
+    const nextParams = new URLSearchParams(params);
+
+    getPopupFilterIds().forEach((filterId) => nextParams.delete(filterId));
+
+    if (order === defaultOrder && !alwaysKeepOrderInUrl) {
+      nextParams.delete(POST_ORDER_BY_FILTER);
+    } else {
+      setSearchParamValue(nextParams, POST_ORDER_BY_FILTER, order);
+    }
+
+    if (onOrderChange) {
+      onOrderChange(order, (name, value) =>
+        setSearchParamValue(nextParams, name, value)
+      );
+    }
+
+    commitFilterParams(nextParams);
   };
+
+  const handlePopOverFilterChange = (
+    filterId: string,
+    optionValue: string | string[] | null,
+    replaceInfo?: FilterReplaceInfo,
+    extraValues?: Record<string, string>
+  ) => {
+    const nextParams = new URLSearchParams(params);
+
+    onPopOverFilterChange?.(
+      { filterId, optionValue, replaceInfo },
+      order,
+      (name, _withNavigation, value) =>
+        deleteSearchParamValue(nextParams, name, value)
+    );
+
+    if (replaceInfo) {
+      const { optionId, replaceIds } = replaceInfo;
+
+      // Globally handle Withdrawn conditions
+      if (optionId === POST_WITHDRAWN_FILTER) {
+        extraValues = { ...(extraValues ?? {}), [POST_STATUS_FILTER]: "open" };
+      }
+
+      if (!optionValue) {
+        nextParams.delete(optionId);
+        commitFilterParams(nextParams);
+        return;
+      }
+
+      replaceIds.forEach((id) => nextParams.delete(id));
+      setSearchParamValue(nextParams, optionId, optionValue);
+      Object.entries(extraValues ?? {}).forEach(([key, value]) => {
+        setSearchParamValue(nextParams, key, value);
+      });
+      commitFilterParams(nextParams);
+      return;
+    }
+
+    if (!optionValue) {
+      nextParams.delete(filterId);
+      commitFilterParams(nextParams);
+      return;
+    }
+
+    setSearchParamValue(nextParams, filterId, optionValue);
+    commitFilterParams(nextParams);
+  };
+
+  const clearPopupFilters = () => {
+    sendAnalyticsEvent("feedFiltersCleared");
+    const nextParams = new URLSearchParams(params);
+    getPopupFilterIds().forEach((filterId) => nextParams.delete(filterId));
+    commitFilterParams(nextParams);
+  };
+
   const removeFilter = (filterId: string, filterValue: string) => {
-    deleteParam(filterId, true, filterValue);
+    const nextParams = new URLSearchParams(params);
+    deleteSearchParamValue(nextParams, filterId, filterValue);
+    commitFilterParams(nextParams);
   };
   const railFadeWidth = actionRailWidth ? 48 : 0;
 
@@ -369,13 +416,13 @@ const PostsFilters: FC<Props> = ({
             clearButtonClassName="max-sm:px-1.5 max-sm:py-1"
           />
           <SearchInput
-            value={globalSearch}
+            value={searchDraft}
             onChange={(e) => {
               debouncedAnalyticsEvent();
-              deleteParam(POST_PAGE_FILTER, true);
-              updateGlobalSearch(e.target.value);
+              setSearchDraft(e.target.value);
             }}
             onErase={eraseSearch}
+            onSubmit={handleSearchSubmit}
             placeholder={t("questionSearchPlaceholder")}
             className="hidden md:flex"
             collapsible
@@ -395,8 +442,33 @@ const PostsFilters: FC<Props> = ({
           )}
         </div>
       </div>
-      {!!activeFilters.length && (
+
+      {!!(submittedSearch || activeFilters.length) && (
         <div className="mt-2 flex flex-wrap gap-1.5 sm:gap-3">
+          {submittedSearch && (
+            <div className="flex items-center text-sm md:text-base">
+              <RichText>
+                {(tags) =>
+                  t.rich(
+                    searchResultCountLabel
+                      ? "feedSearchResultsFor"
+                      : "feedSearchResultsForWithoutCount",
+                    {
+                      ...tags,
+                      count: searchResultCountLabel ?? "",
+                      search: submittedSearch,
+                    }
+                  )
+                }
+              </RichText>
+              <button type="button" onClick={eraseSearch}>
+                <FontAwesomeIcon
+                  icon={faXmark}
+                  className="ml-1 text-blue-600 dark:text-blue-600-dark"
+                />
+              </button>
+            </div>
+          )}
           {activeFilters.map(({ id, label, value }) => (
             <Chip
               color={getFilterChipColor(id)}

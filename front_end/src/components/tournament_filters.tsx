@@ -8,6 +8,7 @@ import {
   getFilterSectionPostType,
   getFilterSectionUsername,
 } from "@/app/(main)/questions/helpers/filters";
+import { useFeedQuery } from "@/app/(main)/questions/hooks/use_feed_query";
 import {
   FilterOptionType,
   FilterSection,
@@ -21,7 +22,6 @@ import {
   POST_WITHDRAWN_FILTER,
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
-import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
 import { CurrentUser } from "@/types/users";
@@ -50,7 +50,7 @@ const FORECASTER_ID_FILTERS = [
 
 const TournamentFilters: FC = () => {
   const { user } = useAuth();
-  const { params } = useSearchParams();
+  const { params } = useFeedQuery();
   const t = useTranslations();
 
   const filters = useMemo(() => {

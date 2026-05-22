@@ -1,5 +1,7 @@
 import { FC } from "react";
 
+import { FiltersFromSearchParamsOptions } from "@/app/(main)/questions/helpers/filters";
+import { FeedQueryProvider } from "@/app/(main)/questions/hooks/use_feed_query";
 import PaginatedPostsFeed, {
   PostsFeedType,
 } from "@/components/posts_feed/paginated_feed";
@@ -18,6 +20,8 @@ type Props = {
   isCommunity?: boolean;
   showProjectTiles?: boolean;
   forceLayout?: FeedLayout;
+  clientFilterOptions?: FiltersFromSearchParamsOptions;
+  isFeedQueryProvided?: boolean;
 };
 
 const AwaitedPostsFeed: FC<Props> = async ({
@@ -26,11 +30,13 @@ const AwaitedPostsFeed: FC<Props> = async ({
   isCommunity,
   showProjectTiles,
   forceLayout,
+  clientFilterOptions,
+  isFeedQueryProvided,
 }) => {
   const { PUBLIC_MINIMAL_UI } = getPublicSettings();
   const skipTiles = !showProjectTiles || isCommunity || PUBLIC_MINIMAL_UI;
 
-  const [{ results: questions }, projectTiles] = await Promise.all([
+  const [{ count, results: questions }, projectTiles] = await Promise.all([
     ServerPostsApi.getPostsWithCP({
       ...filters,
       limit:
@@ -45,15 +51,25 @@ const AwaitedPostsFeed: FC<Props> = async ({
         }),
   ]);
 
-  return (
+  const feed = (
     <PaginatedPostsFeed
       filters={filters}
       initialQuestions={questions}
+      initialCount={count}
       initialProjectTiles={projectTiles}
       type={type}
       isCommunity={isCommunity}
       forceLayout={forceLayout}
+      clientFilterOptions={clientFilterOptions}
     />
+  );
+
+  return isFeedQueryProvided ? (
+    feed
+  ) : (
+    <FeedQueryProvider filterOptions={clientFilterOptions}>
+      {feed}
+    </FeedQueryProvider>
   );
 };
 

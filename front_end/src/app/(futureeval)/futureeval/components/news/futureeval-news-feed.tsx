@@ -3,14 +3,18 @@
 import { isNil } from "lodash";
 import { FC, useEffect, useState } from "react";
 
+import {
+  FEED_PAGE_QUERY_OPTIONS,
+  setSearchParamValue,
+  useFeedQueryParams,
+} from "@/app/(main)/questions/hooks/use_feed_query_params";
 import PostsFeedScrollRestoration from "@/components/posts_feed/feed_scroll_restoration";
+import { usePostsFeedQuery } from "@/components/posts_feed/hooks/use_posts_feed_query";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POSTS_PER_PAGE, POST_PAGE_FILTER } from "@/constants/posts_feed";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
-import useSearchParams from "@/hooks/use_search_params";
-import ClientPostsApi from "@/services/api/posts/posts.client";
 import { PostsParams } from "@/services/api/posts/posts.shared";
 import { NotebookPost, PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
@@ -33,37 +37,29 @@ type Props = {
  * Based on PaginatedPostsFeed but simplified for news-only display.
  */
 const FutureEvalNewsFeed: FC<Props> = ({ initialQuestions, filters }) => {
-  const { params, setParam, replaceUrlWithoutNavigation } = useSearchParams();
+  const { params, setParams } = useFeedQueryParams();
   const pageNumberParam = params.get(POST_PAGE_FILTER);
-  const pageNumber = !isNil(pageNumberParam)
-    ? Number(params.get(POST_PAGE_FILTER))
-    : 1;
+  const pageNumber = !isNil(pageNumberParam) ? Number(pageNumberParam) : 1;
   const [clientPageNumber, setClientPageNumber] = useState(pageNumber);
-  const [paginatedPosts, setPaginatedPosts] =
-    useState<PostWithForecasts[]>(initialQuestions);
-  const [offset, setOffset] = useState(
-    !isNaN(pageNumber) && pageNumber > 0
-      ? pageNumber * POSTS_PER_PAGE
-      : POSTS_PER_PAGE
-  );
-
-  const [hasMoreData, setHasMoreData] = useState(
-    initialQuestions.length >= POSTS_PER_PAGE
-  );
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<
-    (Error & { digest?: string }) | undefined
-  >();
 
   const { setBannerIsVisible } = useContentTranslatedBannerContext();
+  const {
+    posts: paginatedPosts,
+    loadedCount,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    error,
+  } = usePostsFeedQuery({
+    filters,
+    initialPosts: initialQuestions,
+  });
 
   useEffect(() => {
-    if (
-      initialQuestions.filter((q) => q.is_current_content_translated).length > 0
-    ) {
+    if (paginatedPosts.some((q) => q.is_current_content_translated)) {
       setBannerIsVisible(true);
     }
-  }, [initialQuestions, setBannerIsVisible]);
+  }, [paginatedPosts, setBannerIsVisible]);
 
   useEffect(() => {
     setClientPageNumber(pageNumber);
@@ -75,41 +71,35 @@ const FutureEvalNewsFeed: FC<Props> = ({ initialQuestions, filters }) => {
     });
   }, [filters]);
 
+  useEffect(() => {
+    if (error) {
+      logError(error);
+    }
+  }, [error]);
+
   const loadMorePosts = async () => {
-    if (!hasMoreData) return;
+    if (!hasNextPage || isFetchingNextPage) return;
 
-    setIsLoading(true);
-    setError(undefined);
-    try {
-      sendAnalyticsEvent("feedSearch", {
-        event_category: JSON.stringify(filters),
-      });
-      const response = await ClientPostsApi.getPostsWithCP({
-        ...filters,
-        offset,
-        limit: POSTS_PER_PAGE,
-      });
-      const newPosts = response.results;
-      const hasNextPage = !!response.next && newPosts.length >= POSTS_PER_PAGE;
+    sendAnalyticsEvent("feedSearch", {
+      event_category: JSON.stringify(filters),
+    });
 
-      if (newPosts.some((q) => q.is_current_content_translated)) {
-        setBannerIsVisible(true);
-      }
+    const result = await fetchNextPage();
+    if (result.isError) {
+      return;
+    }
 
-      if (!hasNextPage) setHasMoreData(false);
-      if (newPosts.length) {
-        setPaginatedPosts((prev) => [...prev, ...newPosts]);
-        const nextPage = offset / POSTS_PER_PAGE + 1;
-        setParam(POST_PAGE_FILTER, String(nextPage), false);
-        replaceUrlWithoutNavigation();
-        setClientPageNumber(nextPage);
-        setOffset((prevOffset) => prevOffset + POSTS_PER_PAGE);
-      }
-    } catch (err) {
-      logError(err);
-      setError(err as Error & { digest?: string });
-    } finally {
-      setIsLoading(false);
+    const latestPage = result.data?.pages.at(-1);
+    const newPostsCount = latestPage?.results.length ?? 0;
+
+    if (newPostsCount) {
+      const nextPage = Math.ceil(
+        (loadedCount + newPostsCount) / POSTS_PER_PAGE
+      );
+      const nextParams = new URLSearchParams(params);
+      setSearchParamValue(nextParams, POST_PAGE_FILTER, String(nextPage));
+      void setParams(nextParams, FEED_PAGE_QUERY_OPTIONS);
+      setClientPageNumber(nextPage);
     }
   };
 
@@ -136,13 +126,13 @@ const FutureEvalNewsFeed: FC<Props> = ({ initialQuestions, filters }) => {
         <PostsFeedScrollRestoration
           serverPage={filters.page ?? null}
           pageNumber={clientPageNumber}
-          loadedCount={paginatedPosts.length}
+          loadedCount={loadedCount}
         />
       </div>
 
-      {hasMoreData ? (
+      {hasNextPage ? (
         <div className="flex py-5">
-          {isLoading ? (
+          {isFetchingNextPage ? (
             <LoadingIndicator className="mx-auto h-8 w-24 text-futureeval-primary-light dark:text-futureeval-primary-dark" />
           ) : (
             <div className="mx-auto flex flex-col items-center">

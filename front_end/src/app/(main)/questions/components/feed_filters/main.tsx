@@ -9,6 +9,7 @@ import {
   getFilterSectionProjects,
   getFilterSectionUsername,
 } from "@/app/(main)/questions/helpers/filters";
+import { useFeedQuery } from "@/app/(main)/questions/hooks/use_feed_query";
 import PostsFilters from "@/components/posts_filters";
 import { GroupButton } from "@/components/ui/button_group";
 import {
@@ -17,7 +18,6 @@ import {
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
-import useSearchParams from "@/hooks/use_search_params";
 import ClientProjectsApi from "@/services/api/projects/projects.client";
 import { PostStatus } from "@/types/post";
 import { TournamentPreview } from "@/types/projects";
@@ -34,7 +34,7 @@ const MainFeedFilters: FC<Props> = ({
   withProjectFilters = false,
   panelClassname,
 }) => {
-  const { params } = useSearchParams();
+  const { params } = useFeedQuery();
   const t = useTranslations();
   const { user } = useAuth();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();

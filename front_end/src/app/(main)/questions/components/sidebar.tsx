@@ -12,14 +12,22 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FC, Fragment, useEffect, useMemo, useRef, useState } from "react";
+import {
+  FC,
+  Fragment,
+  MouseEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import TopicItem from "@/app/(main)/questions/components/topic_item";
-import useFeed from "@/app/(main)/questions/hooks/use_feed";
+import { useFeedQuery } from "@/app/(main)/questions/hooks/use_feed_query";
 import { FeedType, POST_TEXT_SEARCH_FILTER } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
-import useSearchParams from "@/hooks/use_search_params";
 import { Category } from "@/types/projects";
 import {
   SidebarItem,
@@ -52,18 +60,93 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
-  const { getFeedUrl, currentFeed } = useFeed();
+  const { getFeedUrl, currentFeed, params, setFilterParams, switchFeed } =
+    useFeedQuery();
   const pathname = usePathname();
-  const { params } = useSearchParams();
   const fullPathname = `${pathname}${params.toString() ? `?${params.toString()}` : ""}`;
   const searchQuery = params.get(POST_TEXT_SEARCH_FILTER)?.trim() ?? "";
   const hasActiveSearch = !!searchQuery;
+
+  const handleFeedTabClick = useCallback(
+    (
+      event: MouseEvent<HTMLElement>,
+      feed: FeedType,
+      analyticsLabel?: string
+    ) => {
+      if (
+        event.defaultPrevented ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey ||
+        event.button !== 0
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      if (analyticsLabel) {
+        sendAnalyticsEvent("sidebarClick", {
+          event_category: analyticsLabel,
+        });
+      }
+      switchFeed(feed);
+    },
+    [switchFeed]
+  );
+
+  const handleFeedQuerySidebarClick = useCallback(
+    (event: MouseEvent<HTMLElement>, url: string) => {
+      if (
+        event.defaultPrevented ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey ||
+        event.button !== 0
+      ) {
+        return false;
+      }
+
+      const targetUrl = new URL(url, window.location.origin);
+      const currentPathname = pathname.replace(/\/$/, "");
+      const targetPathname = targetUrl.pathname.replace(/\/$/, "");
+
+      if (targetPathname !== currentPathname) {
+        return false;
+      }
+
+      event.preventDefault();
+      setFilterParams(targetUrl.searchParams);
+      return true;
+    },
+    [pathname, setFilterParams]
+  );
+
+  const convertFeedSidebarItem = useCallback(
+    (item: SidebarItem) => {
+      const menuItem = convertSidebarItem(item, fullPathname);
+      const originalOnClick = menuItem.onClick;
+
+      return {
+        ...menuItem,
+        onClick: (event: MouseEvent<HTMLElement>) => {
+          originalOnClick?.(event);
+          handleFeedQuerySidebarClick(event, menuItem.url);
+        },
+      };
+    },
+    [fullPathname, handleFeedQuerySidebarClick]
+  );
 
   const sidebarSections: SidebarSection[] = useMemo(() => {
     const menuItems: SidebarMenuItem[] = [
       {
         name: t("feedHome"),
         emoji: <FontAwesomeIcon icon={faHome} />,
+        onClick: (event) => {
+          handleFeedTabClick(event, FeedType.HOME);
+        },
         url: getFeedUrl(FeedType.HOME),
         isActive: currentFeed == FeedType.HOME,
       },
@@ -72,10 +155,12 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
             {
               name: t("myPredictions"),
               emoji: "👤",
-              onClick: () => {
-                sendAnalyticsEvent("sidebarClick", {
-                  event_category: t("myPredictions"),
-                });
+              onClick: (event: MouseEvent<HTMLElement>) => {
+                handleFeedTabClick(
+                  event,
+                  FeedType.MY_PREDICTIONS,
+                  t("myPredictions")
+                );
               },
               url: getFeedUrl(FeedType.MY_PREDICTIONS),
               isActive: currentFeed == FeedType.MY_PREDICTIONS,
@@ -83,10 +168,12 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
             {
               name: t("myQuestionsAndPosts"),
               emoji: "✍️",
-              onClick: () => {
-                sendAnalyticsEvent("sidebarClick", {
-                  event_category: t("myQuestionsAndPosts"),
-                });
+              onClick: (event: MouseEvent<HTMLElement>) => {
+                handleFeedTabClick(
+                  event,
+                  FeedType.MY_QUESTIONS_AND_POSTS,
+                  t("myQuestionsAndPosts")
+                );
               },
               url: getFeedUrl(FeedType.MY_QUESTIONS_AND_POSTS),
               isActive: currentFeed == FeedType.MY_QUESTIONS_AND_POSTS,
@@ -94,10 +181,12 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
             {
               name: t("followingButton"),
               emoji: "🔎 ",
-              onClick: () => {
-                sendAnalyticsEvent("sidebarClick", {
-                  event_category: t("followingButton"),
-                });
+              onClick: (event: MouseEvent<HTMLElement>) => {
+                handleFeedTabClick(
+                  event,
+                  FeedType.FOLLOWING,
+                  t("followingButton")
+                );
               },
               url: getFeedUrl(FeedType.FOLLOWING),
               isActive: currentFeed == FeedType.FOLLOWING,
@@ -122,11 +211,11 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
       // Category SidebarItems are legacy; feed categories now come from /projects/categories/.
       ...items
         .filter((obj) => obj.section !== "hot_categories")
-        .map((obj) => convertSidebarItem(obj, fullPathname)),
+        .map(convertFeedSidebarItem),
       ...categories
         .filter((category) => category.posts_count > 0)
         .map((category) =>
-          convertSidebarItem(
+          convertFeedSidebarItem(
             {
               id: String(category.id),
               name: category.name,
@@ -164,6 +253,8 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
     t,
     user,
     getFeedUrl,
+    convertFeedSidebarItem,
+    handleFeedTabClick,
   ]);
 
   const outerRef = useRef<HTMLDivElement | null>(null);
@@ -249,8 +340,8 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
                     text={name}
                     emoji={emoji}
                     href={url}
-                    onClick={() => {
-                      onClick?.();
+                    onClick={(event) => {
+                      onClick?.(event);
                     }}
                     isActive={isActive ?? false}
                     className="shrink-0"
@@ -419,8 +510,8 @@ const SidebarMenu: FC<SidebarMenuProps> = ({
                       <Link
                         key={url}
                         href={url}
-                        onClick={() => {
-                          onClick?.();
+                        onClick={(event) => {
+                          onClick?.(event);
                           onItemSelect?.();
                         }}
                         className={cn(
@@ -460,8 +551,8 @@ const SidebarMenu: FC<SidebarMenuProps> = ({
                       text={name}
                       emoji={emoji}
                       href={url}
-                      onClick={() => {
-                        onClick?.();
+                      onClick={(event) => {
+                        onClick?.(event);
                         onItemSelect?.();
                       }}
                       isActive={isActive ?? false}

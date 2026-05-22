@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { FC } from "react";
 
 import MyQuestionsAndPostsFilters from "@/app/(main)/questions/components/feed_filters/my_questions_and_posts";
-import useFeed from "@/app/(main)/questions/hooks/use_feed";
+import { useFeedQuery } from "@/app/(main)/questions/hooks/use_feed_query";
 import { FeedType } from "@/constants/posts_feed";
 
 import MyPredictionsFilters from "./my_predictions";
@@ -19,7 +19,7 @@ const MainFeedFilters = dynamic(
 type Props = { withProjectFilters?: boolean };
 
 const FeedFilters: FC<Props> = ({ withProjectFilters }) => {
-  const { currentFeed } = useFeed();
+  const { currentFeed } = useFeedQuery();
   const panelClassname = "sm:w-[370px] md:w-[500px]";
 
   switch (currentFeed) {
