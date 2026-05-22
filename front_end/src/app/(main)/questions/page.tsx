@@ -116,7 +116,7 @@ export default async function Questions(props: {
                 <StickyFilterBar desktopOnly>
                   <FeedFilters withProjectFilters />
                 </StickyFilterBar>
-                <div className="isolate mx-auto min-h-[calc(100vh-300px)] w-full max-w-5xl overflow-x-hidden p-2 pb-2 no-scrollbar sm:p-4 sm:pb-4">
+                <div className="isolate mx-auto min-h-[calc(100vh-300px)] w-full max-w-5xl overflow-x-hidden px-2 pb-2 pt-0 no-scrollbar sm:px-4 sm:pb-4 sm:pt-0">
                   <Suspense
                     key={JSON.stringify(searchParams)}
                     fallback={
