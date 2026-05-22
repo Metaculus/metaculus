@@ -4,7 +4,7 @@ import { FC } from "react";
 import SidebarContainer from "@/app/(main)/questions/[id]/components/sidebar/sidebar_container";
 import Chip from "@/components/ui/chip";
 import { PostWithForecasts } from "@/types/post";
-import { TaxonomyProjectType } from "@/types/projects";
+import { ProjectVisibility, TaxonomyProjectType } from "@/types/projects";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { getProjectLink } from "@/utils/navigation";
 
@@ -24,6 +24,7 @@ const SidebarQuestionProjects: FC<Props> = ({ projects: projectsData }) => {
     community: _community,
     index: _index,
     leaderboard_tag: _leaderboard_tag,
+    default_project,
   } = projectsData;
   const category = _category ?? [];
   const tournament = _tournament ?? [];
@@ -32,6 +33,7 @@ const SidebarQuestionProjects: FC<Props> = ({ projects: projectsData }) => {
   const index = _index ?? [];
   const leaderboard_tag = _leaderboard_tag ?? [];
 
+  const defaultProjectId = default_project?.id;
   const allProjects = [
     ...index,
     ...tournament,
@@ -39,7 +41,12 @@ const SidebarQuestionProjects: FC<Props> = ({ projects: projectsData }) => {
     ...community,
     ...category,
     ...leaderboard_tag,
-  ];
+  ].filter(
+    (project) =>
+      !("visibility" in project) ||
+      project.visibility !== ProjectVisibility.Unlisted ||
+      project.id === defaultProjectId
+  );
 
   const getChipText = (name: string, type?: string) =>
     type === "leaderboard_tag" ? `🏆 ${name}` : name;

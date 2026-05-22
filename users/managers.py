@@ -1,33 +1,22 @@
-from django.contrib.auth.base_user import BaseUserManager
+from django.contrib.auth.models import UserManager as DjangoUserManager
+
+from users.constants import ApiForecastingAccess
 
 
-class UserManager(BaseUserManager):
-    def create_user(self, username, email, password=None, **extra_fields):
+class UserManager(DjangoUserManager):
+    def create_user(
+        self, *args, api_forecasting_access=None, is_bot=False, **extra_fields
+    ):
         """
-        Create and save a User with the given username, email and optional password.
+        Create and save a User. API forecasting access defaults by account
+        type: bots are enabled, human accounts start disabled.
         """
-
-        email = self.normalize_email(email)
-        user = self.model(email=email, username=username, **extra_fields)
-
-        if password:
-            user.set_password(password)
-
-        user.save()
-
-        return user
-
-    def create_superuser(self, username, email, password, **extra_fields):
-        """
-        Create and save a SuperUser with the given username, email and password.
-        """
-        extra_fields.setdefault("is_staff", True)
-        extra_fields.setdefault("is_superuser", True)
-        extra_fields.setdefault("is_active", True)
-
-        if extra_fields.get("is_staff") is not True:
-            raise ValueError("Superuser must have is_staff=True.")
-        if extra_fields.get("is_superuser") is not True:
-            raise ValueError("Superuser must have is_superuser=True.")
-
-        return self.create_user(username, email, password=password, **extra_fields)
+        api_forecasting_access = api_forecasting_access or (
+            ApiForecastingAccess.ENABLED if is_bot else ApiForecastingAccess.DISABLED
+        )
+        return super().create_user(
+            *args,
+            is_bot=is_bot,
+            api_forecasting_access=api_forecasting_access,
+            **extra_fields,
+        )

@@ -21,7 +21,10 @@ import {
   VictoryThemeDefinition,
 } from "victory";
 
+import { CHART_DASH } from "@/constants/chart_dash";
+import { CHART_STROKE_WIDTH } from "@/constants/chart_stroke";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { CHART_FONT_STYLE } from "@/constants/chart_typography";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
@@ -44,6 +47,8 @@ import {
   generateTimestampXScale,
   getAxisRightPadding,
   getTickLabelFontSize,
+  Y_AXIS_LABEL_ANCHOR_OFFSET,
+  Y_AXIS_LABEL_RESERVED_PX,
 } from "@/utils/charts/axis";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
@@ -92,12 +97,10 @@ type Props = {
   leftPadding?: number;
 };
 
-const LABEL_FONT_FAMILY = "Inter";
 const BOTTOM_PADDING = 20;
-const TICK_FONT_SIZE = 10;
 const POINT_SIZE = 9;
 const USER_POINT_SIZE = 6;
-const USER_POINT_STROKE = 1.5;
+const USER_POINT_STROKE = CHART_STROKE_WIDTH.userPoint;
 const PLOT_TOP = 10;
 
 const GroupChart: FC<Props> = ({
@@ -297,7 +300,7 @@ const GroupChart: FC<Props> = ({
             isCursorActive
               ? {
                   stroke: getThemeColor(METAC_COLORS.gray["600"]),
-                  strokeDasharray: "2,1",
+                  strokeDasharray: CHART_DASH.cursor,
                 }
               : {
                   stroke: "transparent",
@@ -376,7 +379,7 @@ const GroupChart: FC<Props> = ({
                         setLocalCursorTimestamp(null);
                       }
                     },
-                    onMouseLeaveCapture: () => {
+                    onMouseLeave: () => {
                       if (!onCursorChange) return;
                       inPlotRef.current = false;
                       setIsCursorActive(false);
@@ -414,13 +417,19 @@ const GroupChart: FC<Props> = ({
                     stroke: "transparent",
                   },
                   axisLabel: {
-                    fontFamily: LABEL_FONT_FAMILY,
+                    ...CHART_FONT_STYLE.axisLabel,
                     fontSize: tickLabelFontSize,
                     fill: getThemeColor(METAC_COLORS.gray["500"]),
                   },
                   tickLabels: {
-                    fontFamily: LABEL_FONT_FAMILY,
-                    padding: 5,
+                    ...CHART_FONT_STYLE.tick,
+                    // Right-align labels at the right margin, reserving space
+                    // for the rotated yLabel when present.
+                    padding:
+                      maxRightPadding -
+                      (yLabel ? Y_AXIS_LABEL_RESERVED_PX : 0) -
+                      4,
+                    textAnchor: "end",
                     fontSize: tickLabelFontSize,
                     fill: getThemeColor(METAC_COLORS.gray["700"]),
                   },
@@ -429,18 +438,17 @@ const GroupChart: FC<Props> = ({
                   },
                   grid: {
                     stroke: getThemeColor(METAC_COLORS.gray["400"]),
-                    strokeWidth: 1,
-                    strokeDasharray: "3, 2",
+                    strokeWidth: CHART_STROKE_WIDTH.grid,
+                    strokeDasharray: CHART_DASH.grid,
                   },
                 }}
                 label={yLabel}
-                offsetX={
-                  isNil(yLabel)
-                    ? chartWidth + 5
-                    : chartWidth - TICK_FONT_SIZE + 5
+                orientation="right"
+                axisLabelComponent={
+                  yLabel ? (
+                    <VictoryLabel x={chartWidth - Y_AXIS_LABEL_ANCHOR_OFFSET} />
+                  ) : undefined
                 }
-                orientation={"left"}
-                axisLabelComponent={<VictoryLabel x={chartWidth} />}
               />
               {/* X axis */}
               <VictoryPortal>
@@ -467,7 +475,7 @@ const GroupChart: FC<Props> = ({
                       stroke: "transparent",
                     },
                     tickLabels: {
-                      fontFamily: LABEL_FONT_FAMILY,
+                      ...CHART_FONT_STYLE.tick,
                       padding: 5,
                       fontSize: tickLabelFontSize,
                       fill: getThemeColor(METAC_COLORS.gray["700"]),
@@ -485,7 +493,7 @@ const GroupChart: FC<Props> = ({
                       data: {
                         stroke: getThemeColor(color),
                         strokeOpacity: 0.2,
-                        strokeWidth: 1.5,
+                        strokeWidth: CHART_STROKE_WIDTH.forecastLine,
                       },
                     }}
                     interpolation="stepAfter"
@@ -508,7 +516,7 @@ const GroupChart: FC<Props> = ({
                           : highlighted
                             ? 1
                             : 0.3,
-                        strokeWidth: 1.5,
+                        strokeWidth: CHART_STROKE_WIDTH.forecastLine,
                       },
                     }}
                     interpolation="stepAfter"
@@ -551,7 +559,7 @@ const GroupChart: FC<Props> = ({
                             : highlighted
                               ? 1
                               : 0.3,
-                          strokeWidth: 2,
+                          strokeWidth: CHART_STROKE_WIDTH.predictionRange,
                           fill: getThemeColor(color),
                         },
                       }}
@@ -627,7 +635,7 @@ const GroupChart: FC<Props> = ({
                       data: {
                         stroke: getThemeColor(color),
                         fill: getThemeColor(METAC_COLORS.gray["200"]),
-                        strokeWidth: 2.5,
+                        strokeWidth: CHART_STROKE_WIDTH.resolutionDiamond,
                       },
                     }}
                     dataComponent={
@@ -1069,7 +1077,14 @@ function buildChartData({
 type SymbolProps = PointProps & { size?: number; strokeWidth?: number };
 const PredictionSymbol: React.FC<SymbolProps> = (props) => {
   const { getThemeColor } = useAppTheme();
-  const { x, y, datum, size = 6, style, strokeWidth = 1.5 } = props;
+  const {
+    x,
+    y,
+    datum,
+    size = 6,
+    style,
+    strokeWidth = CHART_STROKE_WIDTH.userPoint,
+  } = props;
   if (
     typeof x !== "number" ||
     typeof y !== "number" ||
