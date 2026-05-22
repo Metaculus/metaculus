@@ -980,7 +980,7 @@ const QuestionForm: FC<Props> = ({
               <DateInput
                 control={form.control as unknown as Control<FieldValues>}
                 name="published_at"
-                defaultValue={post?.published_at}
+                defaultValue={isDuplicate ? undefined : post?.published_at}
                 errors={form.formState.errors.published_at}
                 className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
               />
