@@ -214,6 +214,7 @@ function FloatingMenu<T extends string>({
 }: FloatingMenuProps<T>) {
   const [rect, setRect] = useState<DOMRect | null>(null);
   const [flipUp, setFlipUp] = useState(false);
+  const menuGap = 4;
 
   const updateRect = useCallback(() => {
     if (!buttonRef.current) return;
@@ -247,10 +248,14 @@ function FloatingMenu<T extends string>({
           ? undefined
           : {
               position: "fixed",
-              left: rect?.left,
-              top: !flipUp ? rect?.bottom : undefined,
+              left: menuPosition === "right" ? undefined : rect?.left,
+              right:
+                menuPosition === "right" && rect
+                  ? Math.max(8, window.innerWidth - rect.right)
+                  : undefined,
+              top: !flipUp && rect ? rect.bottom + menuGap : undefined,
               bottom: flipUp
-                ? window.innerHeight - (rect?.top ?? 0)
+                ? window.innerHeight - (rect?.top ?? 0) + menuGap
                 : undefined,
               minWidth: menuMinWidthMatchesButton ? rect?.width : undefined,
               maxWidth: "min(420px, 100vw - 16px)",

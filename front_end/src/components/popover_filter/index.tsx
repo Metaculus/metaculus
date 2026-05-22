@@ -102,7 +102,7 @@ const PopoverFilter: FC<Props> = ({
               variant={hasActiveFilters ? "secondary" : "tertiary"}
               aria-label={resolvedButtonLabel}
               className={cn(
-                hasActiveFilters && "rounded-r-none border-r-0 pr-1.5",
+                hasActiveFilters && "rounded-r-none border-r-0 pr-1",
                 {
                   "border-blue-600 bg-blue-100 dark:border-blue-600-dark dark:bg-blue-100-dark":
                     open && !hasActiveFilters,

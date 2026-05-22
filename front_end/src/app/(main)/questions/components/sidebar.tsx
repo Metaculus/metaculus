@@ -16,6 +16,7 @@ import {
   FC,
   Fragment,
   MouseEvent,
+  ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -41,6 +42,8 @@ import { convertSidebarItem } from "@/utils/sidebar";
 type Props = {
   items: SidebarItem[];
   categories: Category[];
+  mobileActions?: ReactNode;
+  mobileFilterBar?: ReactNode;
 };
 
 type SidebarSection = {
@@ -56,7 +59,12 @@ type SidebarMenuProps = {
   className?: string;
 };
 
-const FeedSidebar: FC<Props> = ({ items, categories }) => {
+const FeedSidebar: FC<Props> = ({
+  items,
+  categories,
+  mobileActions,
+  mobileFilterBar,
+}) => {
   const t = useTranslations();
   const { user } = useAuth();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
@@ -215,16 +223,13 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
       ...categories
         .filter((category) => category.posts_count > 0)
         .map((category) =>
-          convertFeedSidebarItem(
-            {
-              id: String(category.id),
-              name: category.name,
-              emoji: category.emoji ?? "",
-              section: "hot_categories",
-              project: category,
-            },
-            fullPathname
-          )
+          convertFeedSidebarItem({
+            id: String(category.id),
+            name: category.name,
+            emoji: category.emoji ?? "",
+            section: "hot_categories",
+            project: category,
+          })
         ),
     ];
 
@@ -247,7 +252,6 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
   }, [
     PUBLIC_MINIMAL_UI,
     currentFeed,
-    fullPathname,
     categories,
     items,
     t,
@@ -276,9 +280,6 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
       .flatMap(({ items }) => items)
       .find(({ isActive }) => isActive) ??
     mobileMainItems[0];
-  const mobileRailItems = selectedMobileItem
-    ? mobileMainItems.filter(({ url }) => url !== selectedMobileItem.url)
-    : mobileMainItems;
 
   useEffect(() => {
     const el = outerRef.current;
@@ -328,33 +329,57 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
         <div
           ref={outerRef}
           className={cn(
-            "sticky top-header z-100 border-y border-blue-400 bg-gray-0/70 backdrop-blur-md dark:border-blue-700 dark:bg-gray-0-dark/70 sm:hidden"
+            "sticky top-header z-100 sm:hidden",
+            mobileFilterBar
+              ? "flex flex-col gap-3 border-b border-[#a9c0d666] bg-white/80 p-3 backdrop-blur-[7.7px] dark:border-blue-500-dark/40 dark:bg-gray-0-dark/80"
+              : "border-y border-blue-400 bg-gray-0/70 backdrop-blur-md dark:border-blue-700 dark:bg-gray-0-dark/70"
           )}
         >
-          <div className="relative w-full p-2 no-scrollbar">
-            <div className="relative z-10 -mr-2 flex snap-x gap-1.5 gap-y-2 overflow-x-auto pl-[calc(var(--mobile-menu-chip-width,8rem)+0.375rem)] pr-0 no-scrollbar [mask-image:linear-gradient(to_right,transparent_0,transparent_calc(var(--mobile-menu-chip-width,8rem)-0.25rem),black_calc(var(--mobile-menu-chip-width,8rem)+0.875rem),black_100%)]">
-              {mobileRailItems.map(
-                ({ name, emoji, onClick, url, isActive }, idx) => (
-                  <TopicItem
-                    key={`mobile-menu-main-${idx}`}
-                    text={name}
-                    emoji={emoji}
-                    href={url}
-                    onClick={(event) => {
-                      onClick?.(event);
-                    }}
-                    isActive={isActive ?? false}
-                    className="shrink-0"
-                  />
-                )
+          <div
+            className={cn(
+              "relative w-full no-scrollbar",
+              mobileFilterBar ? "p-0" : "p-2"
+            )}
+          >
+            <div
+              className={cn(
+                "relative z-10 flex snap-x gap-1.5 gap-y-2 pl-[calc(var(--mobile-menu-chip-width,8rem)+0.375rem)] pr-0 no-scrollbar",
+                mobileFilterBar ? "mr-0" : "-mr-2",
+                mobileFilterBar &&
+                  mobileActions &&
+                  "pointer-events-none z-40 pl-0",
+                mobileActions
+                  ? "justify-end overflow-visible"
+                  : "overflow-x-auto [mask-image:linear-gradient(to_right,transparent_0,transparent_calc(var(--mobile-menu-chip-width,8rem)-0.25rem),black_calc(var(--mobile-menu-chip-width,8rem)+0.875rem),black_100%)]"
               )}
+            >
+              {mobileActions ? (
+                <div
+                  className={cn(
+                    "pointer-events-auto flex shrink-0 items-center justify-end",
+                    mobileFilterBar
+                      ? "relative isolate gap-1 pr-0 before:pointer-events-none before:absolute before:inset-y-0 before:-left-3.5 before:-z-10 before:w-7 before:bg-gradient-to-r before:from-white/0 before:to-white before:content-[''] before:dark:from-gray-0-dark/0 before:dark:to-gray-0-dark"
+                      : "gap-1.5 pr-2"
+                  )}
+                >
+                  {mobileActions}
+                </div>
+              ) : null}
             </div>
 
-            <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-[calc(var(--mobile-menu-chip-width,8rem)+1.25rem)] bg-gradient-to-r from-gray-0 via-gray-0/95 to-gray-0/0 dark:from-gray-0-dark dark:via-gray-0-dark/95 dark:to-gray-0-dark/0" />
-            <div ref={mobileMenuChipRef} className="absolute left-2 top-2 z-30">
+            {!mobileActions && (
+              <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-[calc(var(--mobile-menu-chip-width,8rem)+1.25rem)] bg-gradient-to-r from-gray-0 via-gray-0/95 to-gray-0/0 dark:from-gray-0-dark dark:via-gray-0-dark/95 dark:to-gray-0-dark/0" />
+            )}
+            <div
+              ref={mobileMenuChipRef}
+              className={cn(
+                "absolute z-30",
+                mobileFilterBar ? "left-0 top-0" : "left-2 top-2"
+              )}
+            >
               <Drawer.Trigger
                 aria-label={`${t("menu")}: ${selectedMobileItem?.name ?? t("menu")}`}
-                className="inline-flex max-w-[min(16rem,70vw)] cursor-pointer items-center justify-center gap-1 rounded-full bg-blue-800 p-1.5 px-2 text-sm leading-4 text-gray-0 no-underline shadow-sm hover:bg-blue-800 dark:bg-blue-800-dark dark:text-gray-200-dark dark:hover:bg-blue-800-dark"
+                className="inline-flex h-7 max-w-[min(16rem,70vw)] cursor-pointer items-center justify-center gap-1.5 rounded-full border border-blue-800 bg-blue-800 px-3 py-0 text-sm font-medium leading-5 text-gray-0 no-underline shadow-sm hover:bg-blue-800 dark:border-blue-800-dark dark:bg-blue-800-dark dark:text-gray-200-dark dark:hover:bg-blue-800-dark"
               >
                 <FontAwesomeIcon icon={faBars} className="text-sm" />
                 {selectedMobileItem?.emoji && (
@@ -368,6 +393,11 @@ const FeedSidebar: FC<Props> = ({ items, categories }) => {
               </Drawer.Trigger>
             </div>
           </div>
+          {mobileFilterBar && (
+            <div className="[--posts-filter-rail-bleed-left:12px] [--posts-filter-rail-bleed-right:12px]">
+              {mobileFilterBar}
+            </div>
+          )}
         </div>
 
         <Drawer.Portal>

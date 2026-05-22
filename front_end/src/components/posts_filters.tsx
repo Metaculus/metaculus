@@ -85,6 +85,8 @@ type Props = {
   alwaysKeepOrderInUrl?: boolean;
   className?: string;
   forceLayout?: FeedLayout;
+  variant?: "full" | "mobileActions";
+  hideMobileActions?: boolean;
 };
 
 const PostsFilters: FC<Props> = ({
@@ -99,6 +101,8 @@ const PostsFilters: FC<Props> = ({
   alwaysKeepOrderInUrl,
   className,
   forceLayout,
+  variant = "full",
+  hideMobileActions = false,
 }) => {
   const t = useTranslations();
   const { layout, setLayout } = useFeedLayout();
@@ -318,12 +322,97 @@ const PostsFilters: FC<Props> = ({
     commitFilterParams(nextParams);
   };
   const railFadeWidth = actionRailWidth ? 48 : 0;
+  const usesMobileFeedChips = variant === "mobileActions";
+  const feedChipBaseClasses =
+    "border bg-gray-0 text-blue-800 dark:bg-gray-0-dark dark:text-blue-800-dark";
+  const feedChipActiveClasses = "border-gray-900 dark:border-gray-900-dark";
+  const feedChipInactiveClasses =
+    "border-[#a9c0d699] dark:border-blue-500-dark/60";
+  const feedIconChipInactiveClasses =
+    "border-[#a9c0d666] dark:border-blue-500-dark/40";
+
+  const actionControls = (
+    <>
+      {dropdownSortOptions && (
+        <div className="flex shrink-0 items-stretch">
+          <Listbox
+            buttonVariant={hasActiveDropdownSort ? "secondary" : "tertiary"}
+            className={cn(
+              "whitespace-nowrap rounded-full max-sm:h-7 max-sm:px-3 max-sm:py-0 max-sm:text-sm max-sm:font-medium max-sm:leading-5",
+              usesMobileFeedChips && feedChipBaseClasses,
+              hasActiveDropdownSort && "rounded-r-none border-r-0 pr-1.5",
+              usesMobileFeedChips &&
+                (hasActiveDropdownSort
+                  ? feedChipActiveClasses
+                  : feedChipInactiveClasses)
+            )}
+            onChange={handleOrderChange}
+            onClick={(value) =>
+              sendAnalyticsEvent("feedSortClick", {
+                event_category: value,
+              })
+            }
+            options={dropdownSortOptions}
+            value={order || defaultOrder}
+            menuPosition="right"
+            renderInPortal={variant === "mobileActions"}
+            preventParentScroll={variant === "mobileActions"}
+            label={
+              dropdownSortOptions.find((o) => o.value === order)
+                ? `${t("sort")}: ${dropdownSortOptions.find((o) => o.value === order)?.label}`
+                : t("sort")
+            }
+          />
+          {hasActiveDropdownSort && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="rounded-l-none border-l-0 pl-1.5 pr-2 max-sm:px-1.5 max-sm:py-1"
+              aria-label={t("clear")}
+              onClick={() => handleOrderChange(defaultOrder)}
+            >
+              <FontAwesomeIcon
+                icon={faXmark}
+                className="text-xs text-salmon-600 dark:text-salmon-500"
+              />
+            </Button>
+          )}
+        </div>
+      )}
+      <PopoverFilter
+        filters={popoverFilters}
+        onChange={handlePopOverFilterChange}
+        panelClassName={cn("w-[500px]", panelClassname)}
+        onClear={clearPopupFilters}
+        fullScreenEnabled
+        hasActiveFilters={activeFilters.length > 0}
+        iconOnlyBelowMd
+        buttonClassName={cn(
+          "max-md:shrink-0 max-md:p-0 max-md:[&.rounded-r-none]:rounded-l-full max-md:[&:not(.rounded-r-none)]:rounded-full max-sm:size-7 sm:max-md:size-8",
+          usesMobileFeedChips && feedChipBaseClasses,
+          usesMobileFeedChips &&
+            (activeFilters.length > 0
+              ? feedChipActiveClasses
+              : feedIconChipInactiveClasses)
+        )}
+        clearButtonClassName="max-sm:pl-1 max-sm:pr-1.5 max-sm:py-1"
+      />
+    </>
+  );
+
+  if (variant === "mobileActions") {
+    return (
+      <div className={cn("flex items-center gap-1", className)}>
+        {actionControls}
+      </div>
+    );
+  }
 
   return (
     <div className={className}>
       <div className="relative">
         <div
-          className="-ml-[var(--posts-filter-rail-bleed-left,0px)] w-[calc(100%+var(--posts-filter-rail-bleed-left,0px))] overflow-x-auto no-scrollbar"
+          className="-ml-[var(--posts-filter-rail-bleed-left,0px)] w-[calc(100%+var(--posts-filter-rail-bleed-left,0px)+var(--posts-filter-rail-bleed-right,0px))] overflow-x-auto no-scrollbar"
           style={
             {
               maskImage: `linear-gradient(to right, black calc(100% - ${
@@ -347,7 +436,14 @@ const PostsFilters: FC<Props> = ({
               <Button
                 key={button.value}
                 variant={button.value === order ? "primary" : "tertiary"}
-                className="shrink-0 border-transparent max-sm:px-3 max-sm:text-sm max-sm:leading-none"
+                className={cn(
+                  "shrink-0 max-sm:h-7 max-sm:px-3 max-sm:py-0 max-sm:text-sm max-sm:font-medium max-sm:leading-5",
+                  usesMobileFeedChips &&
+                    (button.value === order
+                      ? "border-blue-800 bg-blue-800 text-gray-0 dark:border-blue-800-dark dark:bg-blue-800-dark dark:text-gray-200-dark"
+                      : cn(feedChipBaseClasses, feedChipInactiveClasses)),
+                  button.className
+                )}
                 size="md"
                 onClick={() => {
                   handleOrderChange(button.value);
@@ -363,58 +459,12 @@ const PostsFilters: FC<Props> = ({
         </div>
         <div
           ref={actionRailRef}
-          className="absolute inset-y-0 right-0 z-10 flex items-center gap-1.5 pl-1.5 sm:gap-3 sm:pl-2"
-        >
-          {dropdownSortOptions && (
-            <div className="flex shrink-0 items-stretch">
-              <Listbox
-                buttonVariant={hasActiveDropdownSort ? "secondary" : "tertiary"}
-                className={cn(
-                  "whitespace-nowrap rounded-full max-sm:px-2 max-sm:py-1 max-sm:text-xs",
-                  hasActiveDropdownSort && "rounded-r-none border-r-0 pr-1.5"
-                )}
-                onChange={handleOrderChange}
-                onClick={(value) =>
-                  sendAnalyticsEvent("feedSortClick", {
-                    event_category: value,
-                  })
-                }
-                options={dropdownSortOptions}
-                value={order || defaultOrder}
-                menuPosition="right"
-                label={
-                  dropdownSortOptions.find((o) => o.value === order)
-                    ? `${t("sort")}: ${dropdownSortOptions.find((o) => o.value === order)?.label}`
-                    : t("sort")
-                }
-              />
-              {hasActiveDropdownSort && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="rounded-l-none border-l-0 pl-1.5 pr-2 max-sm:px-1.5 max-sm:py-1"
-                  aria-label={t("clear")}
-                  onClick={() => handleOrderChange(defaultOrder)}
-                >
-                  <FontAwesomeIcon
-                    icon={faXmark}
-                    className="text-xs text-salmon-600 dark:text-salmon-500"
-                  />
-                </Button>
-              )}
-            </div>
+          className={cn(
+            "absolute inset-y-0 right-0 z-10 flex items-center gap-1.5 pl-1.5 sm:gap-3 sm:pl-2",
+            hideMobileActions && "max-sm:hidden"
           )}
-          <PopoverFilter
-            filters={popoverFilters}
-            onChange={handlePopOverFilterChange}
-            panelClassName={cn("w-[500px]", panelClassname)}
-            onClear={clearPopupFilters}
-            fullScreenEnabled
-            hasActiveFilters={activeFilters.length > 0}
-            iconOnlyBelowMd
-            buttonClassName="max-md:shrink-0 max-md:p-0 max-md:[&.rounded-r-none]:rounded-l-full max-md:[&:not(.rounded-r-none)]:rounded-full max-sm:size-[26px] sm:max-md:size-8"
-            clearButtonClassName="max-sm:px-1.5 max-sm:py-1"
-          />
+        >
+          {actionControls}
           <SearchInput
             value={searchDraft}
             onChange={(e) => {

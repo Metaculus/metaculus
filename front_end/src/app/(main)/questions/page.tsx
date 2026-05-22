@@ -45,6 +45,8 @@ export default async function Questions(props: {
   const isCommunityFeed = searchParams[POST_COMMUNITIES_FILTER];
   const isWeeklyTopCommentsFeed = searchParams[POST_WEEKLY_TOP_COMMENTS_FILTER];
   const isCommentsFeed = searchParams[POST_COMMENTS_FEED_FILTER];
+  const isPostsFeed =
+    !isCommentsFeed && !isCommunityFeed && !isWeeklyTopCommentsFeed;
   const feedFilterOptions = {
     // Default Feed ordering should be hotness
     defaultOrderBy: isMyPredictionsFeed
@@ -69,7 +71,20 @@ export default async function Questions(props: {
         <OnboardingCheck />
         <FeedQueryProvider filterOptions={feedFilterOptions}>
           <div className="flex flex-col sm:flex-row">
-            <FeedSidebar items={sidebarItems} categories={categories} />
+            <FeedSidebar
+              items={sidebarItems}
+              categories={categories}
+              mobileActions={
+                isPostsFeed ? (
+                  <FeedFilters withProjectFilters variant="mobileActions" />
+                ) : undefined
+              }
+              mobileFilterBar={
+                isPostsFeed ? (
+                  <FeedFilters withProjectFilters hideMobileActions />
+                ) : undefined
+              }
+            />
             {isCommentsFeed ? (
               <div className="mx-auto min-h-[calc(100vh-300px)] w-full max-w-5xl grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-4 sm:pt-5">
                 <CommentFeedContent />
@@ -98,7 +113,7 @@ export default async function Questions(props: {
               </div>
             ) : (
               <div className="min-w-0 grow">
-                <StickyFilterBar>
+                <StickyFilterBar desktopOnly>
                   <FeedFilters withProjectFilters />
                 </StickyFilterBar>
                 <div className="isolate mx-auto min-h-[calc(100vh-300px)] w-full max-w-5xl overflow-x-hidden p-2 pb-2 no-scrollbar sm:p-4 sm:pb-4">

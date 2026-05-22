@@ -16,24 +16,53 @@ const MainFeedFilters = dynamic(
   }
 );
 
-type Props = { withProjectFilters?: boolean };
+type Props = {
+  withProjectFilters?: boolean;
+  variant?: "full" | "mobileActions";
+  hideMobileActions?: boolean;
+};
 
-const FeedFilters: FC<Props> = ({ withProjectFilters }) => {
+const FeedFilters: FC<Props> = ({
+  withProjectFilters,
+  variant,
+  hideMobileActions,
+}) => {
   const { currentFeed } = useFeedQuery();
   const panelClassname = "sm:w-[370px] md:w-[500px]";
 
   switch (currentFeed) {
     case FeedType.MY_PREDICTIONS:
-      return <MyPredictionsFilters panelClassname={panelClassname} />;
+      return (
+        <MyPredictionsFilters
+          panelClassname={panelClassname}
+          variant={variant}
+          hideMobileActions={hideMobileActions}
+        />
+      );
     case FeedType.MY_QUESTIONS_AND_POSTS:
-      return <MyQuestionsAndPostsFilters panelClassname={panelClassname} />;
+      return (
+        <MyQuestionsAndPostsFilters
+          panelClassname={panelClassname}
+          variant={variant}
+          hideMobileActions={hideMobileActions}
+        />
+      );
     case FeedType.FOLLOWING:
-      return <MainFeedFilters following panelClassname={panelClassname} />;
+      return (
+        <MainFeedFilters
+          following
+          panelClassname={panelClassname}
+          variant={variant}
+          hideMobileActions={hideMobileActions}
+        />
+      );
     default:
       return (
         <MainFeedFilters
           withProjectFilters={withProjectFilters}
           panelClassname={panelClassname}
+          variant={variant}
+          hideMobileActions={hideMobileActions}
         />
       );
   }

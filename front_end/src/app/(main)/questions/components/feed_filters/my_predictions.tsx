@@ -20,9 +20,17 @@ import { useAuth } from "@/contexts/auth_context";
 import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
 
-type Props = { panelClassname?: string };
+type Props = {
+  panelClassname?: string;
+  variant?: "full" | "mobileActions";
+  hideMobileActions?: boolean;
+};
 
-const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
+const MyPredictionsFilters: FC<Props> = ({
+  panelClassname,
+  variant,
+  hideMobileActions,
+}) => {
   const { params } = useFeedQuery();
   const t = useTranslations();
   const { user } = useAuth();
@@ -155,6 +163,8 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
       defaultOrder={QuestionOrder.WeeklyMovementDesc}
       alwaysKeepOrderInUrl
       panelClassname={panelClassname}
+      variant={variant}
+      hideMobileActions={hideMobileActions}
     />
   );
 };

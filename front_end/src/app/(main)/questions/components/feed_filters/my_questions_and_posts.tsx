@@ -16,9 +16,17 @@ import { useAuth } from "@/contexts/auth_context";
 import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
 
-type Props = { panelClassname?: string };
+type Props = {
+  panelClassname?: string;
+  variant?: "full" | "mobileActions";
+  hideMobileActions?: boolean;
+};
 
-const MyQuestionsAndPostsFilters: FC<Props> = ({ panelClassname }) => {
+const MyQuestionsAndPostsFilters: FC<Props> = ({
+  panelClassname,
+  variant,
+  hideMobileActions,
+}) => {
   const { params } = useFeedQuery();
   const t = useTranslations();
   const { user } = useAuth();
@@ -104,6 +112,8 @@ const MyQuestionsAndPostsFilters: FC<Props> = ({ panelClassname }) => {
       sortOptions={sortOptions}
       defaultOrder={QuestionOrder.HotDesc}
       panelClassname={panelClassname}
+      variant={variant}
+      hideMobileActions={hideMobileActions}
     />
   );
 };

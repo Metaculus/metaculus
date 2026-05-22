@@ -16,13 +16,16 @@ import { type FeedLayout } from "@/components/ui/layout_switcher";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { Masonry } from "@/components/ui/masonry";
 import { POST_PAGE_FILTER, POSTS_PER_PAGE } from "@/constants/posts_feed";
+import { useAuth } from "@/contexts/auth_context";
 import { useFeedLayout } from "@/contexts/feed_layout_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import { PostsParams } from "@/services/api/posts/posts.shared";
 import { PostWithForecasts } from "@/types/post";
 import { FeedProjectTile } from "@/types/projects";
+import { InterfaceType } from "@/types/users";
 import { sendAnalyticsEvent } from "@/utils/analytics";
+import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 import { isNotebookPost } from "@/utils/questions/helpers";
 
@@ -72,6 +75,7 @@ const PaginatedPostsFeed: FC<Props> = ({
   useInitialData = true,
 }) => {
   const t = useTranslations();
+  const { user } = useAuth();
   const {
     params: feedQueryParams,
     filters: clientQueryFilters,
@@ -207,6 +211,8 @@ const PaginatedPostsFeed: FC<Props> = ({
   const { layout: contextLayout } = useFeedLayout();
   const compactSearchMode = !!queryFilters.search;
   const layout = compactSearchMode ? "list" : forceLayout ?? contextLayout;
+  const isConsumerView =
+    !user || user.interface_type === InterfaceType.ConsumerView;
 
   return (
     <>
@@ -234,6 +240,7 @@ const PaginatedPostsFeed: FC<Props> = ({
           weightByPostId={weightByPostId}
           layout={layout}
           compactSearchMode={compactSearchMode}
+          constrainConsumerList={isConsumerView && layout === "list"}
         />
         <PostsFeedScrollRestoration
           serverPage={queryFilters.page ?? null}
@@ -274,6 +281,7 @@ const FeedLayoutView: FC<{
   weightByPostId: Map<number, number>;
   layout: FeedLayout;
   compactSearchMode?: boolean;
+  constrainConsumerList?: boolean;
 }> = ({
   items,
   feedPage,
@@ -282,9 +290,11 @@ const FeedLayoutView: FC<{
   weightByPostId,
   layout,
   compactSearchMode,
+  constrainConsumerList,
 }) => {
   return (
     <Masonry
+      className={cn(constrainConsumerList && "mx-auto w-full max-w-3xl")}
       items={items}
       config={{
         columns: layout === "grid" ? [1, 2, 3] : 1,

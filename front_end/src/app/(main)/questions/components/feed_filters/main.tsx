@@ -27,12 +27,16 @@ type Props = {
   following?: boolean;
   withProjectFilters?: boolean;
   panelClassname?: string;
+  variant?: "full" | "mobileActions";
+  hideMobileActions?: boolean;
 };
 
 const MainFeedFilters: FC<Props> = ({
   following,
   withProjectFilters = false,
   panelClassname,
+  variant,
+  hideMobileActions,
 }) => {
   const { params } = useFeedQuery();
   const t = useTranslations();
@@ -108,6 +112,11 @@ const MainFeedFilters: FC<Props> = ({
             },
           ]
         : []),
+      {
+        value: QuestionOrder.ResolveTimeAsc,
+        label: t("resolvingSoon"),
+        className: "sm:hidden",
+      },
     ],
     [t, PUBLIC_MINIMAL_UI]
   );
@@ -167,6 +176,8 @@ const MainFeedFilters: FC<Props> = ({
       onOrderChange={onOrderChange}
       defaultOrder={QuestionOrder.HotDesc}
       panelClassname={panelClassname}
+      variant={variant}
+      hideMobileActions={hideMobileActions}
     />
   );
 };
