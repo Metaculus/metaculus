@@ -73,6 +73,33 @@ export type FiltersFromSearchParamsOptions = {
   filterForConsumerView?: boolean;
 };
 
+const EXPLICIT_FEED_FILTER_KEYS = [
+  POST_ACCESS_FILTER,
+  POST_AUTHOR_FILTER,
+  POST_CATEGORIES_FILTER,
+  POST_COMMENTED_BY_FILTER,
+  POST_FOLLOWING_FILTER,
+  POST_FOR_MAIN_FEED,
+  POST_FORECASTER_ID_FILTER,
+  POST_IDS_FILTER,
+  POST_LEADERBOARD_TAGS_FILTER,
+  POST_NOT_FORECASTER_ID_FILTER,
+  POST_PROJECT_FILTER,
+  POST_STATUS_FILTER,
+  POST_TEXT_SEARCH_FILTER,
+  POST_TOPIC_FILTER,
+  POST_TYPE_FILTER,
+  POST_UPVOTED_BY_FILTER,
+  POST_USERNAMES_FILTER,
+  POST_WITHDRAWN_FILTER,
+] as const;
+
+function hasSearchParamValue(searchParams: SearchParams, key: string) {
+  const value = searchParams[key];
+
+  return Array.isArray(value) ? value.length > 0 : typeof value === "string";
+}
+
 export function generateFiltersFromSearchParams(
   searchParams: SearchParams,
   options: FiltersFromSearchParamsOptions = {}
@@ -84,6 +111,9 @@ export function generateFiltersFromSearchParams(
     filterForConsumerView,
   } = options;
   const filters: PostsParams = {};
+  const hasExplicitFeedFilter = EXPLICIT_FEED_FILTER_KEYS.some((key) =>
+    hasSearchParamValue(searchParams, key)
+  );
 
   if (!withoutPageParam && typeof searchParams[POST_PAGE_FILTER] === "string") {
     filters.page = Number(searchParams[POST_PAGE_FILTER]);
@@ -168,12 +198,7 @@ export function generateFiltersFromSearchParams(
     filters.access = searchParams[POST_ACCESS_FILTER];
   }
 
-  if (
-    typeof filterForConsumerView !== "undefined" &&
-    !filters.search &&
-    !filters.statuses &&
-    !filters.ids
-  ) {
+  if (typeof filterForConsumerView !== "undefined" && !hasExplicitFeedFilter) {
     filters.for_consumer_view = filterForConsumerView.toString();
   }
 
