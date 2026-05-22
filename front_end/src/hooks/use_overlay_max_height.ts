@@ -12,7 +12,10 @@ export function useOverlayMaxHeight(expanded: boolean) {
   );
 
   useEffect(() => {
-    if (expanded && containerRef.current) {
+    if (!expanded || !containerRef.current) return;
+
+    const recompute = () => {
+      if (!containerRef.current) return;
       const { top } = containerRef.current.getBoundingClientRect();
       setOverlayMaxHeight(
         Math.max(
@@ -20,7 +23,11 @@ export function useOverlayMaxHeight(expanded: boolean) {
           MIN_HEIGHT
         )
       );
-    }
+    };
+
+    recompute();
+    window.addEventListener("resize", recompute);
+    return () => window.removeEventListener("resize", recompute);
   }, [expanded]);
 
   return { containerRef, overlayMaxHeight };

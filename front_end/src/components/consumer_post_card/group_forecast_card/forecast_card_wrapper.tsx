@@ -7,7 +7,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
-import { METAC_COLORS } from "@/constants/colors";
 import cn from "@/utils/core/cn";
 
 type Props = {
@@ -31,7 +30,6 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
   children,
 }) => {
   const t = useTranslations();
-  const showExpandRow = !expanded && otherItemsCount > 0;
 
   const isMinimal = buttonVariant === "minimal";
 
@@ -48,7 +46,7 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
     <div
       className={cn(
         "flex w-full flex-col",
-        !expanded && (compact ? "gap-1 md:gap-2" : "gap-2"),
+        compact ? "gap-1 md:gap-2" : "gap-2",
         className
       )}
     >
@@ -63,11 +61,8 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
             {children}
           </div>
           <div
-            className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-8"
-            style={{
-              opacity: 0.99,
-              background: `linear-gradient(180deg, transparent 0%, ${METAC_COLORS.gray[0].DEFAULT} 67.31%)`,
-            }}
+            className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-8 bg-gradient-to-b from-transparent to-gray-0 dark:to-gray-0-dark"
+            style={{ opacity: 0.99 }}
           />
         </div>
       ) : (
@@ -91,9 +86,14 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
         </button>
       )}
 
-      {showExpandRow &&
+      {otherItemsCount > 0 &&
         (isMinimal ? (
-          <div className={toggleButtonClassName}>
+          <div
+            className={cn(
+              toggleButtonClassName,
+              expanded && "pointer-events-none invisible"
+            )}
+          >
             <FontAwesomeIcon
               icon={faEllipsis}
               className="h-3 w-3 opacity-[0.45] sm:h-4 sm:w-4"
@@ -103,9 +103,13 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
         ) : (
           <button
             type="button"
-            onClick={onExpand}
+            onClick={expanded ? undefined : onExpand}
             aria-pressed={false}
-            className={toggleButtonClassName}
+            className={cn(
+              toggleButtonClassName,
+              expanded && "pointer-events-none invisible"
+            )}
+            disabled={expanded}
           >
             <FontAwesomeIcon icon={faChevronDown} className="h-4 w-4" />
             {t("otherWithCount", { count: otherItemsCount })}

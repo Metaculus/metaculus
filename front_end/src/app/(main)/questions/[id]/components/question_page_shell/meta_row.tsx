@@ -40,15 +40,16 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
   const allProjects: Project[] = projectsData
     ? [
         ...(defaultProject ? [defaultProject] : []),
-        ...[
-          ...(projectsData.index ?? []),
-          ...(projectsData.tournament ?? []),
-          ...(projectsData.question_series ?? []),
-          ...(projectsData.community ?? []),
-          ...(projectsData.category ?? []),
-          ...(projectsData.leaderboard_tag ?? []),
-        ].filter((p) => p.id !== defaultProject?.id),
-      ]
+        ...(projectsData.index ?? []),
+        ...(projectsData.tournament ?? []),
+        ...(projectsData.question_series ?? []),
+        ...(projectsData.community ?? []),
+        ...(projectsData.category ?? []),
+        ...(projectsData.leaderboard_tag ?? []),
+      ].filter(
+        (project, index, arr) =>
+          arr.findIndex((candidate) => candidate.id === project.id) === index
+      )
     : [];
 
   // Drop "forecasters" label first, then reduce visible chips
