@@ -16,8 +16,7 @@ NOTIFICATIONS_DOMAIN_RAMP_PCT = 10
 ACCOUNTS_DOMAIN_RAMP_PCT = 0
 # @metaculus.com staff dogfood the new domain at these splits, independent of
 # the public ramp above, so the team sees the new domain early.
-NOTIFICATIONS_INTERNAL_RAMP_PCT = 50
-ACCOUNTS_INTERNAL_RAMP_PCT = 0
+INTERNAL_RAMP_PCT = 50
 
 
 def resolve_warmup_sender(
@@ -26,7 +25,6 @@ def resolve_warmup_sender(
     legacy_sender: str,
     new_sender: str,
     ramp_pct: int,
-    internal_ramp_pct: int,
 ) -> str:
     """
     Picks a stream's "From" address for a recipient during a sending-domain
@@ -36,7 +34,7 @@ def resolve_warmup_sender(
     domain independently of the public ramp.
     """
     recipient = recipient.strip().lower()
-    pct = internal_ramp_pct if recipient.endswith("@metaculus.com") else ramp_pct
+    pct = INTERNAL_RAMP_PCT if recipient.endswith("@metaculus.com") else ramp_pct
 
     digest = hashlib.md5(f"notifications-warmup:{recipient}".encode()).hexdigest()
     bucket = int(digest, 16) % 100
@@ -50,7 +48,6 @@ def resolve_notification_sender(recipient: str) -> str:
         legacy_sender=settings.EMAIL_NOTIFICATIONS_USER,
         new_sender=settings.EMAIL_NOTIFICATIONS_SENDER,
         ramp_pct=NOTIFICATIONS_DOMAIN_RAMP_PCT,
-        internal_ramp_pct=NOTIFICATIONS_INTERNAL_RAMP_PCT,
     )
 
 
@@ -60,7 +57,6 @@ def resolve_account_sender(recipient: str) -> str:
         legacy_sender=settings.EMAIL_HOST_USER,
         new_sender=settings.EMAIL_ACCOUNTS_SENDER,
         ramp_pct=ACCOUNTS_DOMAIN_RAMP_PCT,
-        internal_ramp_pct=ACCOUNTS_INTERNAL_RAMP_PCT,
     )
 
 
