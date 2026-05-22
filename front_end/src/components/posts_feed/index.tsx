@@ -24,6 +24,12 @@ type Props = {
   isFeedQueryProvided?: boolean;
 };
 
+function getHydrationPageNumber(page: PostsParams["page"]) {
+  const pageNumber = Number(page);
+
+  return Number.isFinite(pageNumber) && pageNumber > 0 ? pageNumber : 1;
+}
+
 const AwaitedPostsFeed: FC<Props> = async ({
   filters,
   type,
@@ -35,13 +41,12 @@ const AwaitedPostsFeed: FC<Props> = async ({
 }) => {
   const { PUBLIC_MINIMAL_UI } = getPublicSettings();
   const skipTiles = !showProjectTiles || isCommunity || PUBLIC_MINIMAL_UI;
+  const hydrationPageNumber = getHydrationPageNumber(filters.page);
 
   const [{ count, results: questions }, projectTiles] = await Promise.all([
     ServerPostsApi.getPostsWithCP({
       ...filters,
-      limit:
-        (!isNaN(Number(filters.page)) ? Number(filters.page) : 1) *
-        POSTS_PER_PAGE,
+      limit: hydrationPageNumber * POSTS_PER_PAGE,
     }),
     skipTiles
       ? Promise.resolve([])

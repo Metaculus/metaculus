@@ -1,7 +1,6 @@
 "use client";
 
-import { isNil } from "lodash";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
 import {
   FEED_PAGE_QUERY_OPTIONS,
@@ -30,6 +29,12 @@ type Props = {
   filters: PostsParams;
 };
 
+function getPageNumberFromParam(pageNumberParam: string | null) {
+  const pageNumber = Number(pageNumberParam);
+
+  return Number.isFinite(pageNumber) && pageNumber > 0 ? pageNumber : 1;
+}
+
 /**
  * FutureEval News Feed
  *
@@ -39,8 +44,9 @@ type Props = {
 const FutureEvalNewsFeed: FC<Props> = ({ initialQuestions, filters }) => {
   const { params, setParams } = useFeedQueryParams();
   const pageNumberParam = params.get(POST_PAGE_FILTER);
-  const pageNumber = !isNil(pageNumberParam) ? Number(pageNumberParam) : 1;
+  const pageNumber = getPageNumberFromParam(pageNumberParam);
   const [clientPageNumber, setClientPageNumber] = useState(pageNumber);
+  const targetLoadedCount = clientPageNumber * POSTS_PER_PAGE;
 
   const { setBannerIsVisible } = useContentTranslatedBannerContext();
   const {
@@ -54,16 +60,39 @@ const FutureEvalNewsFeed: FC<Props> = ({ initialQuestions, filters }) => {
     filters,
     initialPosts: initialQuestions,
   });
+  const visiblePosts = useMemo(
+    () => paginatedPosts.slice(0, targetLoadedCount),
+    [paginatedPosts, targetLoadedCount]
+  );
+  const hasCachedNextPage = paginatedPosts.length > visiblePosts.length;
 
   useEffect(() => {
-    if (paginatedPosts.some((q) => q.is_current_content_translated)) {
+    if (visiblePosts.some((q) => q.is_current_content_translated)) {
       setBannerIsVisible(true);
     }
-  }, [paginatedPosts, setBannerIsVisible]);
+  }, [visiblePosts, setBannerIsVisible]);
 
   useEffect(() => {
     setClientPageNumber(pageNumber);
   }, [pageNumber]);
+
+  useEffect(() => {
+    if (
+      loadedCount >= targetLoadedCount ||
+      !hasNextPage ||
+      isFetchingNextPage
+    ) {
+      return;
+    }
+
+    void fetchNextPage();
+  }, [
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    loadedCount,
+    targetLoadedCount,
+  ]);
 
   useEffect(() => {
     sendAnalyticsEvent("feedSearch", {
@@ -78,6 +107,15 @@ const FutureEvalNewsFeed: FC<Props> = ({ initialQuestions, filters }) => {
   }, [error]);
 
   const loadMorePosts = async () => {
+    if (hasCachedNextPage) {
+      const nextPage = clientPageNumber + 1;
+      const nextParams = new URLSearchParams(params);
+      setSearchParamValue(nextParams, POST_PAGE_FILTER, String(nextPage));
+      void setParams(nextParams, FEED_PAGE_QUERY_OPTIONS);
+      setClientPageNumber(nextPage);
+      return;
+    }
+
     if (!hasNextPage || isFetchingNextPage) return;
 
     sendAnalyticsEvent("feedSearch", {
@@ -94,7 +132,7 @@ const FutureEvalNewsFeed: FC<Props> = ({ initialQuestions, filters }) => {
 
     if (newPostsCount) {
       const nextPage = Math.ceil(
-        (loadedCount + newPostsCount) / POSTS_PER_PAGE
+        (visiblePosts.length + newPostsCount) / POSTS_PER_PAGE
       );
       const nextParams = new URLSearchParams(params);
       setSearchParamValue(nextParams, POST_PAGE_FILTER, String(nextPage));
@@ -106,7 +144,7 @@ const FutureEvalNewsFeed: FC<Props> = ({ initialQuestions, filters }) => {
   return (
     <>
       <div className="flex flex-col gap-4">
-        {!paginatedPosts.length && (
+        {!visiblePosts.length && (
           <span
             className={cn(
               "mt-3 text-center",
@@ -117,7 +155,7 @@ const FutureEvalNewsFeed: FC<Props> = ({ initialQuestions, filters }) => {
             No results found.
           </span>
         )}
-        {paginatedPosts.map(
+        {visiblePosts.map(
           (p) =>
             isNotebookPost(p) && (
               <FutureEvalNewsCard key={p.id} post={p as NotebookPost} />
@@ -126,13 +164,13 @@ const FutureEvalNewsFeed: FC<Props> = ({ initialQuestions, filters }) => {
         <PostsFeedScrollRestoration
           serverPage={filters.page ?? null}
           pageNumber={clientPageNumber}
-          loadedCount={loadedCount}
+          loadedCount={visiblePosts.length}
         />
       </div>
 
-      {hasNextPage ? (
+      {hasCachedNextPage || hasNextPage ? (
         <div className="flex py-5">
-          {isFetchingNextPage ? (
+          {isFetchingNextPage && !hasCachedNextPage ? (
             <LoadingIndicator className="mx-auto h-8 w-24 text-futureeval-primary-light dark:text-futureeval-primary-dark" />
           ) : (
             <div className="mx-auto flex flex-col items-center">

@@ -27,6 +27,7 @@ type Props = {
   forCommunityFeed?: boolean;
   indexWeight?: number;
   minimalistic?: boolean;
+  useShortTitle?: boolean;
 };
 
 const BasicPostCard: FC<PropsWithChildren<Props>> = ({
@@ -38,8 +39,9 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
   forCommunityFeed,
   indexWeight,
   minimalistic = false,
+  useShortTitle = false,
 }) => {
-  const { title } = post;
+  const title = useShortTitle ? post.short_title || post.title : post.title;
 
   return (
     <div>

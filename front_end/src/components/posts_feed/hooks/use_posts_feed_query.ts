@@ -6,7 +6,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import ClientPostsApi from "@/services/api/posts/posts.client";
@@ -87,22 +87,44 @@ function getNextPostsFeedOffset(
   return allPages.reduce((sum, page) => sum + page.results.length, 0);
 }
 
-function createInitialPostsFeedData(
+export function createInitialPostsFeedData(
   posts: PostWithForecasts[],
   pageSize: number,
   count = Number.POSITIVE_INFINITY
 ): PostsFeedInfiniteData {
+  const pageCount = Math.max(1, Math.ceil(posts.length / pageSize));
+  const pages = Array.from({ length: pageCount }, (_, pageIndex) => {
+    const offset = pageIndex * pageSize;
+    const results = posts.slice(offset, offset + pageSize);
+    const isLastPage = pageIndex === pageCount - 1;
+    const mightHaveMore = isLastPage && results.length >= pageSize;
+
+    return {
+      count,
+      next: !isLastPage || mightHaveMore ? "initial-next-page" : null,
+      previous: offset > 0 ? "initial-previous-page" : null,
+      results,
+    };
+  });
+
   return {
-    pageParams: [0],
-    pages: [
-      {
-        count,
-        next: posts.length >= pageSize ? "initial-next-page" : null,
-        previous: null,
-        results: posts,
-      },
-    ],
+    pageParams: pages.map((_, pageIndex) => pageIndex * pageSize),
+    pages,
   };
+}
+
+function getPostsFeedDataSignature(data: PostsFeedInfiniteData) {
+  return [
+    data.pageParams.join(","),
+    data.pages.flatMap((page) => page.results.map((post) => post.id)).join(","),
+    data.pages
+      .map((page) => `${page.results.length}:${page.count}:${page.next ?? ""}`)
+      .join(","),
+  ].join("|");
+}
+
+function getPostsFeedDataCount(data: PostsFeedInfiniteData) {
+  return data.pages.reduce((sum, page) => sum + page.results.length, 0);
 }
 
 export const postsFeedKeys = {
@@ -153,6 +175,18 @@ export function usePostsFeedQuery({
       postsFeedKeys.list(normalizedFilters, normalizedFetchParams, pageSize),
     [normalizedFilters, normalizedFetchParams, pageSize]
   );
+  const initialData = useMemo(
+    () =>
+      initialPosts
+        ? createInitialPostsFeedData(initialPosts, pageSize, initialCount)
+        : undefined,
+    [initialCount, initialPosts, pageSize]
+  );
+  const initialDataSignature = useMemo(
+    () => (initialData ? getPostsFeedDataSignature(initialData) : null),
+    [initialData]
+  );
+  const syncedInitialDataSignature = useRef<string | null>(null);
 
   const query = useInfiniteQuery({
     queryKey,
@@ -171,9 +205,7 @@ export function usePostsFeedQuery({
     enabled,
     staleTime: POSTS_FEED_STALE_TIME,
     gcTime: POSTS_FEED_GC_TIME,
-    initialData: initialPosts
-      ? createInitialPostsFeedData(initialPosts, pageSize, initialCount)
-      : undefined,
+    initialData,
   });
 
   const posts = useMemo(
@@ -187,22 +219,24 @@ export function usePostsFeedQuery({
       : undefined;
 
   useEffect(() => {
-    if (!initialPosts || initialPosts.length <= posts.length) {
+    if (
+      !initialData ||
+      !initialDataSignature ||
+      syncedInitialDataSignature.current === initialDataSignature
+    ) {
       return;
     }
 
-    queryClient.setQueryData<PostsFeedInfiniteData>(
-      queryKey,
-      createInitialPostsFeedData(initialPosts, pageSize, initialCount)
+    syncedInitialDataSignature.current = initialDataSignature;
+    queryClient.setQueryData<PostsFeedInfiniteData>(queryKey, (currentData) =>
+      currentData &&
+      (getPostsFeedDataSignature(currentData) === initialDataSignature ||
+        getPostsFeedDataCount(currentData) >=
+          getPostsFeedDataCount(initialData))
+        ? currentData
+        : initialData
     );
-  }, [
-    initialCount,
-    initialPosts,
-    pageSize,
-    posts.length,
-    queryClient,
-    queryKey,
-  ]);
+  }, [initialData, initialDataSignature, queryClient, queryKey]);
 
   return {
     ...query,

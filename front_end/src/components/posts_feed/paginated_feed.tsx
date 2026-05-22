@@ -1,5 +1,4 @@
 "use client";
-import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useMemo, useState } from "react";
 
@@ -49,6 +48,12 @@ function shouldShowProjectTilesForParams(params: URLSearchParams) {
   return Array.from(params.keys()).every((key) => key === POST_PAGE_FILTER);
 }
 
+function getPageNumberFromParam(pageNumberParam: string | null) {
+  const pageNumber = Number(pageNumberParam);
+
+  return Number.isFinite(pageNumber) && pageNumber > 0 ? pageNumber : 1;
+}
+
 type Props = {
   initialQuestions: PostWithForecasts[];
   initialCount?: number;
@@ -83,7 +88,7 @@ const PaginatedPostsFeed: FC<Props> = ({
     setResultCount,
   } = useFeedQuery();
   const pageNumberParam = feedQueryParams.get(POST_PAGE_FILTER);
-  const pageNumber = !isNil(pageNumberParam) ? Number(pageNumberParam) : 1;
+  const pageNumber = getPageNumberFromParam(pageNumberParam);
   const queryFilters = clientFilterOptions ? clientQueryFilters : filters;
   const shouldUseInitialQuestions = useMemo(
     () =>
@@ -92,6 +97,7 @@ const PaginatedPostsFeed: FC<Props> = ({
     [filters, queryFilters]
   );
   const [clientPageNumber, setClientPageNumber] = useState(pageNumber);
+  const targetLoadedCount = clientPageNumber * POSTS_PER_PAGE;
   const weightByPostId = useMemo(() => {
     const map = new Map<number, number>();
     for (const [key, weight] of Object.entries(indexWeights)) {
@@ -121,6 +127,11 @@ const PaginatedPostsFeed: FC<Props> = ({
     initialCount:
       useInitialData && shouldUseInitialQuestions ? initialCount : undefined,
   });
+  const visiblePosts = useMemo(
+    () => paginatedPosts.slice(0, targetLoadedCount),
+    [paginatedPosts, targetLoadedCount]
+  );
+  const hasCachedNextPage = paginatedPosts.length > visiblePosts.length;
   const shouldUseClientProjectTiles = !!clientFilterOptions;
   const shouldShowClientProjectTiles =
     shouldUseClientProjectTiles &&
@@ -137,14 +148,32 @@ const PaginatedPostsFeed: FC<Props> = ({
     });
 
   useEffect(() => {
-    if (paginatedPosts.some((q) => q.is_current_content_translated)) {
+    if (visiblePosts.some((q) => q.is_current_content_translated)) {
       setBannerIsVisible(true);
     }
-  }, [paginatedPosts, setBannerIsVisible]);
+  }, [visiblePosts, setBannerIsVisible]);
 
   useEffect(() => {
     setClientPageNumber(pageNumber);
   }, [pageNumber]);
+
+  useEffect(() => {
+    if (
+      loadedCount >= targetLoadedCount ||
+      !hasNextPage ||
+      isFetchingNextPage
+    ) {
+      return;
+    }
+
+    void fetchNextPage();
+  }, [
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    loadedCount,
+    targetLoadedCount,
+  ]);
 
   useEffect(() => {
     // capture search event from AwaitedPostsFeed
@@ -166,13 +195,31 @@ const PaginatedPostsFeed: FC<Props> = ({
     }
 
     setResultCount(
-      loadedCount
-        ? { count: loadedCount, isLowerBound: !!hasNextPage }
+      visiblePosts.length
+        ? {
+            count: visiblePosts.length,
+            isLowerBound: hasCachedNextPage || !!hasNextPage,
+          }
         : undefined
     );
-  }, [hasNextPage, loadedCount, setResultCount, totalCount]);
+  }, [
+    hasCachedNextPage,
+    hasNextPage,
+    setResultCount,
+    totalCount,
+    visiblePosts.length,
+  ]);
 
   const loadMorePosts = async () => {
+    if (hasCachedNextPage) {
+      const nextPage = clientPageNumber + 1;
+      const nextParams = new URLSearchParams(feedQueryParams);
+      setSearchParamValue(nextParams, POST_PAGE_FILTER, String(nextPage));
+      setPageParams(nextParams);
+      setClientPageNumber(nextPage);
+      return;
+    }
+
     if (!hasNextPage || isFetchingNextPage) return;
 
     sendAnalyticsEvent("feedSearch", {
@@ -189,7 +236,7 @@ const PaginatedPostsFeed: FC<Props> = ({
 
     if (newPostsCount) {
       const nextPage = Math.ceil(
-        (loadedCount + newPostsCount) / POSTS_PER_PAGE
+        (visiblePosts.length + newPostsCount) / POSTS_PER_PAGE
       );
       const nextParams = new URLSearchParams(feedQueryParams);
       setSearchParamValue(nextParams, POST_PAGE_FILTER, String(nextPage));
@@ -204,8 +251,8 @@ const PaginatedPostsFeed: FC<Props> = ({
       : EMPTY_PROJECT_TILES
     : initialProjectTiles;
   const feedItems = useMemo(
-    () => buildFeedItems(paginatedPosts, projectTiles),
-    [paginatedPosts, projectTiles]
+    () => buildFeedItems(visiblePosts, projectTiles),
+    [visiblePosts, projectTiles]
   );
 
   const { layout: contextLayout } = useFeedLayout();
@@ -221,7 +268,7 @@ const PaginatedPostsFeed: FC<Props> = ({
           queryFilters.statuses === "pending" &&
           !isCommunity &&
           !PUBLIC_MINIMAL_UI && <InReviewBox />}
-        {!isPending && !paginatedPosts.length && (
+        {!isPending && !visiblePosts.length && (
           <>
             {isCommunity ? (
               <EmptyCommunityFeed statuses={queryFilters.statuses} />
@@ -241,19 +288,20 @@ const PaginatedPostsFeed: FC<Props> = ({
           layout={layout}
           compactSearchMode={compactSearchMode}
           constrainConsumerList={isConsumerView && layout === "list"}
+          useShortTitles={layout === "grid"}
         />
         <PostsFeedScrollRestoration
           serverPage={queryFilters.page ?? null}
           pageNumber={clientPageNumber}
-          loadedCount={loadedCount}
+          loadedCount={visiblePosts.length}
         />
       </div>
 
-      {isPending && !paginatedPosts.length ? (
+      {isPending && !visiblePosts.length ? (
         <LoadingSpinner className="mx-auto h-8 w-8 text-gray-600 dark:text-gray-600-dark" />
-      ) : hasNextPage ? (
+      ) : hasCachedNextPage || hasNextPage ? (
         <div className="flex py-5">
-          {isFetchingNextPage ? (
+          {isFetchingNextPage && !hasCachedNextPage ? (
             <LoadingSpinner className="mx-auto h-8 w-8 text-gray-600 dark:text-gray-600-dark" />
           ) : (
             <div className="mx-auto flex flex-col items-center">
@@ -282,6 +330,7 @@ const FeedLayoutView: FC<{
   layout: FeedLayout;
   compactSearchMode?: boolean;
   constrainConsumerList?: boolean;
+  useShortTitles?: boolean;
 }> = ({
   items,
   feedPage,
@@ -291,6 +340,7 @@ const FeedLayoutView: FC<{
   layout,
   compactSearchMode,
   constrainConsumerList,
+  useShortTitles,
 }) => {
   return (
     <Masonry
@@ -315,6 +365,7 @@ const FeedLayoutView: FC<{
           isCommunity={isCommunity}
           weightByPostId={weightByPostId}
           compactSearchMode={compactSearchMode}
+          useShortTitle={useShortTitles}
         />
       )}
     />
@@ -328,6 +379,7 @@ const FeedItemCard: FC<{
   isCommunity?: boolean;
   weightByPostId: Map<number, number>;
   compactSearchMode?: boolean;
+  useShortTitle?: boolean;
 }> = ({
   item,
   feedPage,
@@ -335,6 +387,7 @@ const FeedItemCard: FC<{
   isCommunity,
   weightByPostId,
   compactSearchMode,
+  useShortTitle,
 }) => {
   if (item.type === "project") {
     return <FeedTournamentTile tile={item.tile} feedPage={feedPage} />;
@@ -360,6 +413,7 @@ const FeedItemCard: FC<{
           forCommunityFeed={isCommunity}
           indexWeight={indexWeight}
           forFeedPage
+          useShortTitle={useShortTitle}
         />
       }
       forecaster={
@@ -368,6 +422,7 @@ const FeedItemCard: FC<{
           forCommunityFeed={isCommunity}
           indexWeight={indexWeight}
           forFeedPage
+          useShortTitle={useShortTitle}
         />
       }
     />

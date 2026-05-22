@@ -28,6 +28,7 @@ type Props = {
   forCommunityFeed?: boolean;
   indexWeight?: number;
   forFeedPage?: boolean;
+  useShortTitle?: boolean;
 };
 
 const ConsumerPostCard: FC<Props> = ({
@@ -35,6 +36,7 @@ const ConsumerPostCard: FC<Props> = ({
   forCommunityFeed,
   indexWeight,
   forFeedPage = false,
+  useShortTitle = false,
 }) => {
   const t = useTranslations();
 
@@ -45,6 +47,7 @@ const ConsumerPostCard: FC<Props> = ({
         forCommunityFeed={forCommunityFeed}
         indexWeight={indexWeight}
         isNotebook={isNotebookPost(post)}
+        useShortTitle={useShortTitle}
       >
         <HideCPProvider post={post}>
           {isQuestionPost(post) && !isMultipleChoicePost(post) && (
