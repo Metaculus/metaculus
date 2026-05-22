@@ -28,7 +28,7 @@ from projects.permissions import ObjectPermission
 from users.models import User, UserCampaignRegistration
 from users.serializers import UserPrivateSerializer
 from utils.cache import cached_singleton
-from utils.email import send_email_with_template
+from utils.email import send_account_email_with_template
 from utils.frontend import build_frontend_email_change_url
 
 
@@ -271,7 +271,7 @@ def send_email_change_confirmation_email(user: User, new_email: str):
     confirmation_token = generate_email_change_token(user, new_email)
     reset_link = build_frontend_email_change_url(confirmation_token)
 
-    send_email_with_template(
+    send_account_email_with_template(
         user.email,
         "Metaculus Account Email Change",
         "emails/change_email_confirm.html",
@@ -280,7 +280,6 @@ def send_email_change_confirmation_email(user: User, new_email: str):
             "new_email": new_email,
             "reset_link": reset_link,
         },
-        from_email=settings.EMAIL_HOST_USER,
     )
 
 
