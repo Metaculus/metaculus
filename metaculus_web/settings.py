@@ -305,10 +305,6 @@ EMAIL_ACCOUNTS_SENDER = os.environ.get(
     "EMAIL_ACCOUNTS_SENDER",
     f"Metaculus Accounts <accounts@{MAILGUN_DOMAIN}>",
 )
-# TODO: deprecate as well
-EMAIL_SENDER_NO_REPLY = os.environ.get(
-    "EMAIL_SENDER_NO_REPLY", f"Metaculus NoReply <no-reply@{MAILGUN_DOMAIN}>"
-)
 EMAIL_FEEDBACK = os.environ.get("EMAIL_FEEDBACK", "feedback@metaculus.com")
 EMAIL_SUPPORT = os.environ.get("EMAIL_SUPPORT", "support@metaculus.com")
 # TODO: reconsider after release
