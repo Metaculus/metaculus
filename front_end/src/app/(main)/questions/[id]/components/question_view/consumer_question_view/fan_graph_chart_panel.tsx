@@ -11,6 +11,7 @@ import { QuestionWithNumericForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
 
 import ConsumerGroupChart from "./consumer_group_chart";
+import { useListChartExpanded } from "./consumer_list_chart_shell";
 
 type ChartView = "fan" | "timeline";
 
@@ -29,6 +30,7 @@ const FanGraphChartPanel: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { hideCP } = useHideCP();
+  const { chartAreaHeight } = useListChartExpanded();
   const isConsumer = variant === "consumer";
   const [activeView, setActiveView] = useState<ChartView>(
     isConsumer ? "timeline" : "fan"
@@ -65,6 +67,14 @@ const FanGraphChartPanel: FC<Props> = ({
     </div>
   );
 
+  // Fan view toggle is in-flow (h-6 + mb-2 ≈ 32px); subtract from available height.
+  const fanChartHeight =
+    chartAreaHeight > 0
+      ? Math.max(100, chartAreaHeight - 32)
+      : isCompact
+        ? 150
+        : undefined;
+
   return (
     <div className="grid grid-cols-1 grid-rows-1">
       <div
@@ -78,7 +88,7 @@ const FanGraphChartPanel: FC<Props> = ({
           group={post.group_of_questions}
           hideCP={hideCP}
           withTooltip
-          height={isCompact ? 150 : undefined}
+          height={fanChartHeight}
         />
       </div>
       <div

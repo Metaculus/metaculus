@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
+import { METAC_COLORS } from "@/constants/colors";
 import cn from "@/utils/core/cn";
 
 type Props = {
@@ -47,11 +48,48 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
     <div
       className={cn(
         "flex w-full flex-col",
-        compact ? "gap-1 md:gap-2" : "gap-2",
+        !expanded && (compact ? "gap-1 md:gap-2" : "gap-2"),
         className
       )}
     >
-      {children}
+      {expanded ? (
+        <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div
+            className={cn(
+              "flex flex-1 flex-col overflow-y-auto no-scrollbar",
+              compact ? "gap-1 md:gap-2" : "gap-2"
+            )}
+          >
+            {children}
+          </div>
+          <div
+            className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-8"
+            style={{
+              opacity: 0.99,
+              background: `linear-gradient(180deg, transparent 0%, ${METAC_COLORS.gray[0].DEFAULT} 67.31%)`,
+            }}
+          />
+        </div>
+      ) : (
+        children
+      )}
+
+      {expanded && onCollapse && (
+        <button
+          type="button"
+          onClick={onCollapse}
+          aria-pressed={true}
+          className={cn(toggleButtonClassName, "shrink-0")}
+        >
+          <FontAwesomeIcon
+            icon={isMinimal ? faEllipsis : faChevronUp}
+            className={cn(
+              isMinimal ? "h-3 w-3 opacity-[0.45] sm:h-4 sm:w-4" : "h-4 w-4"
+            )}
+          />
+          {t("collapse")}
+        </button>
+      )}
 
       {showExpandRow &&
         (isMinimal ? (
@@ -73,23 +111,6 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
             {t("otherWithCount", { count: otherItemsCount })}
           </button>
         ))}
-
-      {expanded && onCollapse && (
-        <button
-          type="button"
-          onClick={onCollapse}
-          aria-pressed={true}
-          className={toggleButtonClassName}
-        >
-          <FontAwesomeIcon
-            icon={isMinimal ? faEllipsis : faChevronUp}
-            className={cn(
-              isMinimal ? "h-3 w-3 opacity-[0.45] sm:h-4 sm:w-4" : "h-4 w-4"
-            )}
-          />
-          {t("collapse")}
-        </button>
-      )}
     </div>
   );
 };

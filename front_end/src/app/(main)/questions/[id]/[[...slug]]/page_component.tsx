@@ -75,7 +75,7 @@ const IndividualQuestionPage: FC<{
                 )}
               >
                 <div className="flex gap-4">
-                  <div className="relative w-full">
+                  <div className="relative w-full min-w-0">
                     {isCommunityQuestion && defaultProject && (
                       <div className="absolute z-0 -mt-[34px] hidden w-full sm:block">
                         <CommunityDisclaimer

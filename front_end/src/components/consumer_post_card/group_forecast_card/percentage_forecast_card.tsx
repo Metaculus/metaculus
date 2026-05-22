@@ -5,6 +5,7 @@ import { FC, useMemo, useState } from "react";
 
 import { useListChartExpanded } from "@/app/(main)/questions/[id]/components/question_view/consumer_question_view/consumer_list_chart_shell";
 import { getEffectiveVisibleCount } from "@/constants/questions";
+import { useOverlayMaxHeight } from "@/hooks/use_overlay_max_height";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
@@ -40,6 +41,7 @@ const PercentageForecastCard: FC<Props> = ({
   const t = useTranslations();
   const [expanded, setExpanded] = useState(false);
   const { setIsExpanded } = useListChartExpanded();
+  const { containerRef, overlayMaxHeight } = useOverlayMaxHeight(expanded);
 
   const isMC = isMultipleChoicePost(post);
   const cpRevealTime = post.question?.cp_reveal_time;
@@ -114,6 +116,7 @@ const PercentageForecastCard: FC<Props> = ({
 
   return (
     <div
+      ref={containerRef}
       className={cn("relative", effectiveFillHeight && "flex flex-1 flex-col")}
     >
       <ForecastCardWrapper
@@ -130,7 +133,10 @@ const PercentageForecastCard: FC<Props> = ({
         {renderBars(collapsedChoices, effectiveFillHeight)}
       </ForecastCardWrapper>
       {expanded && (
-        <div className="absolute -left-[21px] -top-[21px] z-20 w-[calc(100%+42px)] rounded-lg border border-gray-400/40 bg-gray-0 p-5 dark:border-gray-400-dark/40 dark:bg-gray-0-dark">
+        <div
+          className="absolute -left-[21px] -top-[21px] z-20 flex w-[calc(100%+42px)] flex-col overflow-hidden rounded-lg border border-gray-400/40 bg-gray-0 p-5 dark:border-gray-400-dark/40 dark:bg-gray-0-dark"
+          style={{ maxHeight: overlayMaxHeight }}
+        >
           <ForecastCardWrapper
             otherItemsCount={0}
             expanded={true}
@@ -140,6 +146,7 @@ const PercentageForecastCard: FC<Props> = ({
             }}
             compact={compact}
             buttonVariant={buttonVariant}
+            className="min-h-0 flex-1"
           >
             {renderBars(allChoices)}
           </ForecastCardWrapper>

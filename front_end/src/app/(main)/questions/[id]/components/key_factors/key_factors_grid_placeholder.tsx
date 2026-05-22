@@ -18,21 +18,20 @@ const KeyFactorsGridPlaceholder: FC<Props> = ({ className, onClick }) => {
   return (
     <div
       className={cn(
-        "group flex min-h-[100px] items-center justify-center overflow-hidden rounded-xl bg-[#e8eeee] dark:bg-blue-300-dark",
+        "flex min-h-[100px] items-center justify-center overflow-hidden rounded-xl bg-[#e8eeee] dark:bg-blue-300-dark",
+        "border border-transparent p-5 opacity-50 transition-opacity hover:opacity-100",
         onClick &&
-          "cursor-pointer border border-transparent p-5 hover:border-blue-500 dark:hover:border-blue-500-dark",
+          "cursor-pointer hover:border-blue-500 dark:hover:border-blue-500-dark",
         className
       )}
       onClick={onClick}
     >
-      {onClick && (
-        <div className="flex flex-col items-center gap-3 text-blue-700 opacity-0 transition-opacity group-hover:opacity-100 dark:text-blue-700-dark">
-          <FontAwesomeIcon icon={faPlus} className="size-[22px]" />
-          <span className="whitespace-nowrap text-base capitalize leading-5">
-            {t("addKeyFactor")}
-          </span>
-        </div>
-      )}
+      <div className="flex flex-col items-center gap-3 text-blue-700 dark:text-blue-700-dark">
+        <FontAwesomeIcon icon={faPlus} className="size-[22px]" />
+        <span className="whitespace-nowrap text-base capitalize leading-5">
+          {t("addKeyFactor")}
+        </span>
+      </div>
     </div>
   );
 };

@@ -14,6 +14,7 @@ import DetailedQuestionCard from "@/components/detailed_question_card/detailed_q
 import ForecastMaker from "@/components/forecast_maker";
 import MarkdownEditor from "@/components/markdown_editor";
 import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
+import ResolutionCriteria from "@/components/question/resolution_criteria";
 import SectionToggle from "@/components/ui/section_toggle";
 import { ContinuousChartCursorProvider } from "@/contexts/continuous_chart_cursor_context";
 import { useHideCP } from "@/contexts/cp_context";
@@ -32,6 +33,7 @@ import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvail
 import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 import {
   checkGroupOfQuestionsPostType,
+  isConditionalPost,
   isContinuousQuestion,
   isGroupOfQuestionsPost,
   isMultipleChoicePost,
@@ -83,7 +85,10 @@ export const ForecasterShell: FC<
     };
   }, [postData.is_current_content_translated, locale, setBannerIsVisible]);
 
-  const sections = usePostTextSections(postData, { excludeFinePrint: true });
+  const sections = usePostTextSections(postData, {
+    excludeFinePrint: true,
+    excludeResolutionCriteria: true,
+  });
   const isResolved = postData.status === PostStatus.RESOLVED;
   const isGroup = isGroupOfQuestionsPost(postData);
   const showChartDivider =
@@ -145,6 +150,7 @@ export const ForecasterShell: FC<
               ))}
           </div>
           {(!isResolved || isGroup) && <ForecastMaker post={postData} />}
+          <ResolutionCriteria post={postData} defaultOpen />
           {sections.length > 0 && (
             <div className="flex flex-col gap-2">
               {sections.map((section) => (
@@ -270,7 +276,13 @@ export const ConsumerShell: FC<{
               {t("predictionClosedMessage")}
             </p>
           )}
-          {isBinarySingleQuestion && isQuestionPost(postData) ? (
+          {isConditionalPost(postData) ? (
+            <QuestionTimeline
+              postData={postData}
+              isConsumerView
+              className="mt-0 hidden sm:block"
+            />
+          ) : isBinarySingleQuestion && isQuestionPost(postData) ? (
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-0 md:gap-8">
               <div className="order-1 flex w-64 flex-col items-center justify-center gap-[18px] self-center sm:self-stretch">
                 {hideCP ? (

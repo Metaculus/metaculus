@@ -6,31 +6,38 @@ export type PostTextSection = { title: string; markdown: string };
 
 export function usePostTextSections(
   post: PostWithForecasts,
-  { excludeFinePrint = false } = {}
+  {
+    excludeFinePrint = false,
+    excludeResolutionCriteria = false,
+  }: { excludeFinePrint?: boolean; excludeResolutionCriteria?: boolean } = {}
 ): PostTextSection[] {
   const t = useTranslations();
 
   if (post.conditional) {
     const { condition, condition_child } = post.conditional;
     const sections: PostTextSection[] = [];
-    if (condition.resolution_criteria)
+    if (!excludeResolutionCriteria && condition.resolution_criteria)
       sections.push({
         title: t("parentResolutionCriteria"),
         markdown: condition.resolution_criteria,
       });
-    if (!excludeFinePrint && condition.fine_print)
+    if (!excludeResolutionCriteria && !excludeFinePrint && condition.fine_print)
       sections.push({ title: t("finePrint"), markdown: condition.fine_print });
     if (condition.description)
       sections.push({
         title: t("parentBackgroundInfo"),
         markdown: condition.description,
       });
-    if (condition_child.resolution_criteria)
+    if (!excludeResolutionCriteria && condition_child.resolution_criteria)
       sections.push({
         title: t("childResolutionCriteria"),
         markdown: condition_child.resolution_criteria,
       });
-    if (!excludeFinePrint && condition_child.fine_print)
+    if (
+      !excludeResolutionCriteria &&
+      !excludeFinePrint &&
+      condition_child.fine_print
+    )
       sections.push({
         title: t("finePrint"),
         markdown: condition_child.fine_print,
@@ -53,9 +60,9 @@ export function usePostTextSections(
     post.group_of_questions?.description ?? post.question?.description ?? "";
 
   const sections: PostTextSection[] = [];
-  if (resolution)
+  if (!excludeResolutionCriteria && resolution)
     sections.push({ title: t("resolutionCriteria"), markdown: resolution });
-  if (!excludeFinePrint && finePrint)
+  if (!excludeResolutionCriteria && !excludeFinePrint && finePrint)
     sections.push({ title: t("finePrint"), markdown: finePrint });
   if (description)
     sections.push({ title: t("backgroundInfo"), markdown: description });

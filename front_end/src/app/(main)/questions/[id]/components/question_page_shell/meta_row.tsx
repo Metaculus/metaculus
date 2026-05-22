@@ -35,23 +35,27 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
   const { ref, width } = useContainerSize<HTMLDivElement>();
 
   const projectsData = post.projects;
+  const defaultProject = projectsData?.default_project ?? null;
+  // default_project is shown first; the rest are deduped and go into "N more"
   const allProjects: Project[] = projectsData
     ? [
-        ...(projectsData.index ?? []),
-        ...(projectsData.tournament ?? []),
-        ...(projectsData.question_series ?? []),
-        ...(projectsData.community ?? []),
-        ...(projectsData.category ?? []),
-        ...(projectsData.leaderboard_tag ?? []),
+        ...(defaultProject ? [defaultProject] : []),
+        ...[
+          ...(projectsData.index ?? []),
+          ...(projectsData.tournament ?? []),
+          ...(projectsData.question_series ?? []),
+          ...(projectsData.community ?? []),
+          ...(projectsData.category ?? []),
+          ...(projectsData.leaderboard_tag ?? []),
+        ].filter((p) => p.id !== defaultProject?.id),
       ]
     : [];
 
   // Drop "forecasters" label first, then reduce visible chips
   const compactCounters = width > 0 && width < 600;
-  const maxVisibleChips = width > 0 && width < 500 ? 1 : 2;
 
-  const visibleChips = allProjects.slice(0, maxVisibleChips);
-  const hiddenChips = allProjects.slice(maxVisibleChips);
+  const visibleChips = allProjects.slice(0, 1);
+  const hiddenChips = allProjects.slice(1);
 
   return (
     <div className={cn("px-4 lg:px-8", className)}>
