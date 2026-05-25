@@ -1,3 +1,6 @@
+"use client";
+
+import ConditionalTimeline from "@/components/conditional_timeline";
 import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
 import DetailedGroupCard from "@/components/detailed_question_card/detailed_group_card";
 import DetailedQuestionCard from "@/components/detailed_question_card/detailed_question_card";
@@ -11,9 +14,12 @@ import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
   checkGroupOfQuestionsPostType,
+  isConditionalPost,
   isGroupOfQuestionsPost,
   isQuestionPost,
 } from "@/utils/questions/helpers";
+
+import { useListChartExpanded } from "../consumer_list_chart_shell";
 
 type Props = {
   postData: PostWithForecasts;
@@ -32,10 +38,25 @@ const QuestionTimeline: React.FC<Props> = ({
   isConsumerView = true,
   preselectedGroupQuestionId,
 }) => {
+  const { chartAreaHeight } = useListChartExpanded();
   const isFanGraph =
     postData.group_of_questions?.graph_type ===
     GroupOfQuestionsGraphType.FanGraph;
-  const wrapperClass = cn(isFanGraph ? "mb-8" : "mt-8", className);
+  const inShell = chartAreaHeight > 0;
+
+  const wrapperClass = cn(
+    inShell ? "" : isFanGraph ? "mb-8" : "mt-8",
+    className
+  );
+  const embedHeight = inShell ? Math.max(80, chartAreaHeight - 44) : undefined;
+
+  if (isConditionalPost(postData)) {
+    return (
+      <div className={cn("mt-8", className)}>
+        <ConditionalTimeline post={postData} />
+      </div>
+    );
+  }
 
   if (isQuestionPost(postData)) {
     if (postData.question.status !== QuestionStatus.UPCOMING) {
@@ -46,6 +67,7 @@ const QuestionTimeline: React.FC<Props> = ({
             hideTitle={hideTitle}
             isConsumerView={isConsumerView}
             keyFactors={keyFactors}
+            embedChartHeight={embedHeight}
           />
         </div>
       );
@@ -88,6 +110,7 @@ const QuestionTimeline: React.FC<Props> = ({
             post={postData}
             preselectedQuestionId={preselectedGroupQuestionId}
             withLegend={!isConsumerView}
+            embedChartHeight={embedHeight}
           />
         )}
       </div>
@@ -98,6 +121,9 @@ const QuestionTimeline: React.FC<Props> = ({
 };
 
 export function hasTimeline(postData: PostWithForecasts): boolean {
+  if (isConditionalPost(postData)) {
+    return true;
+  }
   if (isQuestionPost(postData)) {
     return postData.question.status !== QuestionStatus.UPCOMING;
   }

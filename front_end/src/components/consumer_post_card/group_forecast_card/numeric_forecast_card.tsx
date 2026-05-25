@@ -6,6 +6,7 @@ import { FC, useState } from "react";
 
 import { useListChartExpanded } from "@/app/(main)/questions/[id]/components/question_view/consumer_question_view/consumer_list_chart_shell";
 import { getEffectiveVisibleCount } from "@/constants/questions";
+import { useOverlayMaxHeight } from "@/hooks/use_overlay_max_height";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
 import cn from "@/utils/core/cn";
@@ -41,6 +42,7 @@ const NumericForecastCard: FC<Props> = ({
   const t = useTranslations();
   const [expanded, setExpanded] = useState(false);
   const { setIsExpanded, setHoveredChoiceName } = useListChartExpanded();
+  const { containerRef, overlayMaxHeight } = useOverlayMaxHeight(expanded);
 
   if (!isGroupOfQuestionsPost(post)) {
     return null;
@@ -167,6 +169,7 @@ const NumericForecastCard: FC<Props> = ({
 
   return (
     <div
+      ref={containerRef}
       className={cn("relative", effectiveFillHeight && "flex flex-1 flex-col")}
     >
       <ForecastCardWrapper
@@ -182,22 +185,34 @@ const NumericForecastCard: FC<Props> = ({
       >
         {renderBars(collapsedChoices, effectiveFillHeight)}
       </ForecastCardWrapper>
-
       {expanded && (
-        <div className="absolute -left-[21px] -top-[21px] z-20 w-[calc(100%+42px)] rounded-lg border border-gray-400/40 bg-gray-0 p-5 dark:border-gray-400-dark/40 dark:bg-gray-0-dark">
-          <ForecastCardWrapper
-            otherItemsCount={0}
-            expanded={true}
-            onCollapse={() => {
+        <>
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => {
               setExpanded(false);
               setIsExpanded(false);
             }}
-            compact={compact}
-            buttonVariant={buttonVariant}
+          />
+          <div
+            className="absolute -left-[21px] -top-[21px] z-20 flex w-[calc(100%+42px)] flex-col overflow-hidden rounded-lg border border-gray-400/40 bg-gray-0 p-5 dark:border-gray-400-dark/40 dark:bg-gray-0-dark"
+            style={{ maxHeight: overlayMaxHeight }}
           >
-            {renderBars(sortedChoices, false, visibleChoicesCount)}
-          </ForecastCardWrapper>
-        </div>
+            <ForecastCardWrapper
+              otherItemsCount={0}
+              expanded={true}
+              onCollapse={() => {
+                setExpanded(false);
+                setIsExpanded(false);
+              }}
+              compact={compact}
+              buttonVariant={buttonVariant}
+              className="min-h-0 flex-1"
+            >
+              {renderBars(sortedChoices, false, visibleChoicesCount)}
+            </ForecastCardWrapper>
+          </div>
+        </>
       )}
     </div>
   );

@@ -1,8 +1,6 @@
 import React, { FC } from "react";
 
 import ForecastMaker from "@/components/forecast_maker";
-import BackgroundInfo from "@/components/question/background_info";
-import ResolutionCriteria from "@/components/question/resolution_criteria";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { isContinuousQuestion } from "@/utils/questions/helpers";
@@ -57,8 +55,6 @@ const SingleQuestionScoreData: FC<Props> = ({
       )}
       <ResolutionScoreCards post={post} />
       {isContinuousQuestion(question) && <ForecastMaker post={post} />}
-      <ResolutionCriteria post={post} defaultOpen />
-      <BackgroundInfo post={post} defaultOpen />
     </div>
   );
 };

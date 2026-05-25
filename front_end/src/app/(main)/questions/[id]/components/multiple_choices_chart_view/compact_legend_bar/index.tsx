@@ -13,18 +13,33 @@ const MOBILE_MAX_ITEMS = 5;
 
 type Props = {
   items: ChoiceItem[];
-  questionType: QuestionType.MultipleChoice | QuestionType.Binary;
+  questionType: QuestionType;
   onChoiceChange: (choice: string, checked: boolean) => void;
   onChoiceHighlight: (choice: string, highlighted: boolean) => void;
 };
 
 function isResolvedNo(item: ChoiceItem, questionType: QuestionType): boolean {
   if (questionType === QuestionType.Binary) return item.resolution === "no";
-  return (
-    item.resolution !== null &&
-    !isUnsuccessfullyResolved(item.resolution) &&
-    item.choice.toLowerCase() !== String(item.resolution).toLowerCase()
-  );
+  if (questionType === QuestionType.MultipleChoice) {
+    return (
+      item.resolution !== null &&
+      !isUnsuccessfullyResolved(item.resolution) &&
+      item.choice.toLowerCase() !== String(item.resolution).toLowerCase()
+    );
+  }
+  return false;
+}
+
+function isResolvedYes(item: ChoiceItem, questionType: QuestionType): boolean {
+  if (questionType === QuestionType.Binary) return item.resolution === "yes";
+  if (questionType === QuestionType.MultipleChoice) {
+    return (
+      item.resolution !== null &&
+      !isUnsuccessfullyResolved(item.resolution) &&
+      item.choice.toLowerCase() === String(item.resolution).toLowerCase()
+    );
+  }
+  return false;
 }
 
 function getLastAggregationValue(item: ChoiceItem): number | null {
@@ -55,7 +70,10 @@ const CompactLegendBar: FC<Props> = ({
   let hiddenCount: number;
 
   if (showAll) {
-    visibleItems = items;
+    const resolvedNoItems = items.filter((item) =>
+      isResolvedNo(item, questionType)
+    );
+    visibleItems = [...normalItems, ...resolvedNoItems];
     hiddenCount = 0;
   } else if (!isMd) {
     // Mobile: show up to MOBILE_MAX_ITEMS normal items only; resolved-NO always hidden
@@ -72,6 +90,7 @@ const CompactLegendBar: FC<Props> = ({
     <div className="flex flex-wrap gap-x-3 gap-y-1.5">
       {visibleItems.map((item) => {
         const resolvedNo = isResolvedNo(item, questionType);
+        const resolvedYes = isResolvedYes(item, questionType);
         const pct = getForecastPctDisplayValue(getLastAggregationValue(item));
 
         return (
@@ -81,9 +100,11 @@ const CompactLegendBar: FC<Props> = ({
               "flex items-center gap-1 rounded px-1.5 py-0.5",
               resolvedNo
                 ? "cursor-default"
-                : "cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-200-dark",
-              item.highlighted && "bg-gray-200 dark:bg-gray-200-dark"
+                : "cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-200-dark"
             )}
+            onClick={() =>
+              !resolvedNo && onChoiceChange(item.choice, !item.active)
+            }
             onMouseEnter={() =>
               !resolvedNo && onChoiceHighlight(item.choice, true)
             }
@@ -94,7 +115,7 @@ const CompactLegendBar: FC<Props> = ({
             {resolvedNo ? (
               <>
                 <span className="size-3 shrink-0 rounded-full bg-gray-300 dark:bg-gray-300-dark" />
-                <span className="max-w-[120px] truncate text-sm font-medium leading-4 text-gray-400 line-through dark:text-gray-400-dark md:text-base md:leading-5">
+                <span className="max-w-[300px] truncate text-sm font-medium leading-4 text-gray-400 line-through dark:text-gray-400-dark md:text-base md:leading-5">
                   {item.label || item.choice}
                 </span>
               </>
@@ -114,7 +135,6 @@ const CompactLegendBar: FC<Props> = ({
                         }
                       : undefined
                   }
-                  onClick={() => onChoiceChange(item.choice, !item.active)}
                   onKeyDown={(e) => {
                     if (e.key === " " || e.key === "Enter") {
                       e.preventDefault();
@@ -135,11 +155,11 @@ const CompactLegendBar: FC<Props> = ({
                     </svg>
                   )}
                 </span>
-                <span className="max-w-[120px] truncate text-sm font-medium leading-4 text-gray-800 dark:text-gray-800-dark md:text-base md:leading-5">
+                <span className="max-w-[300px] truncate text-sm font-medium leading-4 text-gray-800 dark:text-gray-800-dark md:text-base md:leading-5">
                   {item.label || item.choice}
                 </span>
                 <span className="shrink-0 text-sm tabular-nums leading-4 text-gray-600 dark:text-gray-600-dark md:text-base md:leading-6">
-                  {pct}
+                  {resolvedYes ? `(${t("Yes")})` : pct}
                 </span>
               </>
             )}

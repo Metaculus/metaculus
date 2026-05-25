@@ -17,7 +17,6 @@ import { ForecastAvailability, QuestionType, Scaling } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { buildChoicesWithOthers } from "@/utils/questions/choices";
 
-import ChoicesLegend from "./choices_legend";
 import CompactLegendBar from "./compact_legend_bar";
 
 type Props = {
@@ -107,26 +106,9 @@ const MultiChoicesChartView: FC<Props> = ({
 
   const isMC = questionType === QuestionType.MultipleChoice;
 
-  const legendContainerRef = useRef<HTMLDivElement>(null);
-  const [normalizedChartHeight, setNormalizedChartHeight] =
-    useState(chartHeight);
-  useEffect(() => {
-    if (!chartHeight) return;
-    if (!legendContainerRef.current) {
-      setNormalizedChartHeight(chartHeight);
-      return;
-    }
-    setNormalizedChartHeight(
-      chartHeight -
-        (legendContainerRef.current?.clientHeight ?? 0) -
-        (legendContainerRef.current.offsetHeight ?? 0)
-    );
-  }, [chartHeight]);
-
   const maxPrimary = embedMode
     ? 2
     : getEffectiveVisibleCount(choiceItems.length);
-  const showOthersToggle = isMC && choiceItems.length > maxPrimary;
 
   const normalizedInitRef = useRef(false);
   useEffect(() => {
@@ -141,25 +123,6 @@ const MultiChoicesChartView: FC<Props> = ({
     if (changed) onChoiceItemsUpdate(updated);
     normalizedInitRef.current = true;
   }, [choiceItems, maxPrimary, onChoiceItemsUpdate]);
-  const computeOthersVisible = useCallback(
-    (items: ChoiceItem[]) => {
-      if (!isMC || items.length <= maxPrimary) return false;
-      const left = items.slice(0, maxPrimary);
-      const right = items.slice(maxPrimary);
-      const dropdown = [...left.filter((c) => !c.active), ...right];
-      if (dropdown.length === 0) return false;
-      return dropdown.every((c) => c.active);
-    },
-    [isMC, maxPrimary]
-  );
-  const [othersVisible, setOthersVisible] = useState<boolean>(() =>
-    computeOthersVisible(choiceItems)
-  );
-  useEffect(() => {
-    if (!showOthersToggle) return;
-    const next = computeOthersVisible(choiceItems);
-    if (next !== othersVisible) setOthersVisible(next);
-  }, [showOthersToggle, choiceItems, computeOthersVisible, othersVisible]);
 
   const {
     isActive: isTooltipActive,
@@ -216,20 +179,6 @@ const MultiChoicesChartView: FC<Props> = ({
     [choiceItems, onChoiceItemsUpdate]
   );
 
-  const toggleSelectAll = useCallback(
-    (isAllSelected: boolean) => {
-      const nextActive = !isAllSelected;
-      onChoiceItemsUpdate(
-        choiceItems.map((item) => ({
-          ...item,
-          active: nextActive,
-          highlighted: false,
-        }))
-      );
-    },
-    [choiceItems, onChoiceItemsUpdate]
-  );
-
   const chartChoiceItems = useMemo(
     () => (isMC ? buildChoicesWithOthers(choiceItems) : choiceItems),
     [isMC, choiceItems]
@@ -273,7 +222,7 @@ const MultiChoicesChartView: FC<Props> = ({
     scaling,
     isClosed,
     extraTheme: chartTheme,
-    height: normalizedChartHeight,
+    height: chartHeight,
     withZoomPicker: true,
     defaultZoom: resolveDefaultZoom(defaultZoom, !!user),
     openTime,
@@ -370,11 +319,11 @@ const MultiChoicesChartView: FC<Props> = ({
             onTimelineMarkerEnter={onTimelineMarkerEnter}
             onTimelineMarkerLeave={onTimelineMarkerLeave}
             headerLeft={
-              withLegend && questionType === QuestionType.Binary ? (
+              withLegend ? (
                 <div {...legendEnterProps}>
                   <CompactLegendBar
                     items={choiceItems}
-                    questionType={QuestionType.Binary}
+                    questionType={questionType ?? QuestionType.Binary}
                     onChoiceChange={handleChoiceChange}
                     onChoiceHighlight={handleChoiceHighlight}
                   />
@@ -385,26 +334,6 @@ const MultiChoicesChartView: FC<Props> = ({
           />
         )}
       </div>
-
-      {withLegend && !isMC && questionType !== QuestionType.Binary && (
-        <div className="-ml-1 mt-3" ref={legendContainerRef}>
-          <ChoicesLegend
-            choices={choiceItems}
-            onChoiceChange={handleChoiceChange}
-            onChoiceHighlight={handleChoiceHighlight}
-            onToggleAll={toggleSelectAll}
-            othersToggle={showOthersToggle ? !timelineMode : undefined}
-            onOthersToggle={
-              showOthersToggle
-                ? (checked) => setTimelineMode(!checked)
-                : undefined
-            }
-            othersDisabled={
-              showOthersToggle ? totalActiveCount !== 1 : undefined
-            }
-          />
-        </div>
-      )}
 
       {isTooltipActive &&
         !isCursorOverLegend &&

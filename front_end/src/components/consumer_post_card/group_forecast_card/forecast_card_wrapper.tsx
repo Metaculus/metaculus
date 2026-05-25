@@ -30,7 +30,6 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
   children,
 }) => {
   const t = useTranslations();
-  const showExpandRow = !expanded && otherItemsCount > 0;
 
   const isMinimal = buttonVariant === "minimal";
 
@@ -51,35 +50,31 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
         className
       )}
     >
-      {children}
-
-      {showExpandRow &&
-        (isMinimal ? (
-          <div className={toggleButtonClassName}>
-            <FontAwesomeIcon
-              icon={faEllipsis}
-              className="h-3 w-3 opacity-[0.45] sm:h-4 sm:w-4"
-            />
-            {t("otherWithCount", { count: otherItemsCount })}
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={onExpand}
-            aria-pressed={false}
-            className={toggleButtonClassName}
+      {expanded ? (
+        <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div
+            className={cn(
+              "flex flex-1 flex-col overflow-y-auto no-scrollbar",
+              compact ? "gap-1 md:gap-2" : "gap-2"
+            )}
           >
-            <FontAwesomeIcon icon={faChevronDown} className="h-4 w-4" />
-            {t("otherWithCount", { count: otherItemsCount })}
-          </button>
-        ))}
+            {children}
+          </div>
+          <div
+            className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-8 bg-gradient-to-b from-transparent to-gray-0 dark:to-gray-0-dark"
+            style={{ opacity: 0.99 }}
+          />
+        </div>
+      ) : (
+        children
+      )}
 
       {expanded && onCollapse && (
         <button
           type="button"
           onClick={onCollapse}
           aria-pressed={true}
-          className={toggleButtonClassName}
+          className={cn(toggleButtonClassName, "shrink-0")}
         >
           <FontAwesomeIcon
             icon={isMinimal ? faEllipsis : faChevronUp}
@@ -90,6 +85,36 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
           {t("collapse")}
         </button>
       )}
+
+      {otherItemsCount > 0 &&
+        (isMinimal ? (
+          <div
+            className={cn(
+              toggleButtonClassName,
+              expanded && "pointer-events-none invisible"
+            )}
+          >
+            <FontAwesomeIcon
+              icon={faEllipsis}
+              className="h-3 w-3 opacity-[0.45] sm:h-4 sm:w-4"
+            />
+            {t("otherWithCount", { count: otherItemsCount })}
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={expanded ? undefined : onExpand}
+            aria-pressed={false}
+            className={cn(
+              toggleButtonClassName,
+              expanded && "pointer-events-none invisible"
+            )}
+            disabled={expanded}
+          >
+            <FontAwesomeIcon icon={faChevronDown} className="h-4 w-4" />
+            {t("otherWithCount", { count: otherItemsCount })}
+          </button>
+        ))}
     </div>
   );
 };

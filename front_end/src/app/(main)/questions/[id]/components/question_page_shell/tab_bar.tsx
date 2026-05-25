@@ -3,11 +3,13 @@
 import { useTranslations } from "next-intl";
 import { FC, useEffect } from "react";
 
+import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { Tabs, TabsList, TabsTab } from "@/components/ui/tabs";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 
+import { isDisplayableQuestionLink } from "../key_factors/utils";
 import { shouldPostShowUserScores } from "../post_score_data/utils";
 import { useQuestionLayout } from "../question_layout/question_layout_context";
 import { hasTimeline } from "../question_view/consumer_question_view/timeline";
@@ -49,7 +51,11 @@ const QuestionPageShellTabBar: FC<Props> = ({ post, variant, className }) => {
 
   const isSm = useBreakpoint("sm");
   const commentCount = post.comment_count ?? 0;
-  const keyFactorsCount = post.key_factors?.length ?? 0;
+  const { aggregateCoherenceLinks } = useCoherenceLinksContext();
+  const questionLinksCount = aggregateCoherenceLinks.data.filter(
+    isDisplayableQuestionLink
+  ).length;
+  const keyFactorsCount = (post.key_factors?.length ?? 0) + questionLinksCount;
   const hasScores = shouldPostShowUserScores(post);
   const hasSimilarQuestionsTab =
     !isSm && post.curation_status === PostStatus.APPROVED;
