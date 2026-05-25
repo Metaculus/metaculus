@@ -13,27 +13,33 @@ const MOBILE_MAX_ITEMS = 5;
 
 type Props = {
   items: ChoiceItem[];
-  questionType: QuestionType.MultipleChoice | QuestionType.Binary;
+  questionType: QuestionType;
   onChoiceChange: (choice: string, checked: boolean) => void;
   onChoiceHighlight: (choice: string, highlighted: boolean) => void;
 };
 
 function isResolvedNo(item: ChoiceItem, questionType: QuestionType): boolean {
   if (questionType === QuestionType.Binary) return item.resolution === "no";
-  return (
-    item.resolution !== null &&
-    !isUnsuccessfullyResolved(item.resolution) &&
-    item.choice.toLowerCase() !== String(item.resolution).toLowerCase()
-  );
+  if (questionType === QuestionType.MultipleChoice) {
+    return (
+      item.resolution !== null &&
+      !isUnsuccessfullyResolved(item.resolution) &&
+      item.choice.toLowerCase() !== String(item.resolution).toLowerCase()
+    );
+  }
+  return false;
 }
 
 function isResolvedYes(item: ChoiceItem, questionType: QuestionType): boolean {
   if (questionType === QuestionType.Binary) return item.resolution === "yes";
-  return (
-    item.resolution !== null &&
-    !isUnsuccessfullyResolved(item.resolution) &&
-    item.choice.toLowerCase() === String(item.resolution).toLowerCase()
-  );
+  if (questionType === QuestionType.MultipleChoice) {
+    return (
+      item.resolution !== null &&
+      !isUnsuccessfullyResolved(item.resolution) &&
+      item.choice.toLowerCase() === String(item.resolution).toLowerCase()
+    );
+  }
+  return false;
 }
 
 function getLastAggregationValue(item: ChoiceItem): number | null {
