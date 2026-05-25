@@ -181,7 +181,9 @@ const KeyFactorsFeed: FC<Props> = ({ post, truncateText, hideOverlay }) => {
               {t("noKeyFactorsP2")}
             </span>
           </div>
-          {canAddKeyFactor && <AddKeyFactorsButton post={post} as="div" />}
+          {(canAddKeyFactor || (!user && !isClosed)) && (
+            <AddKeyFactorsButton post={post} as="div" />
+          )}
         </div>
         {addModal}
       </>

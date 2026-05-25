@@ -133,24 +133,33 @@ const PercentageForecastCard: FC<Props> = ({
         {renderBars(collapsedChoices, effectiveFillHeight)}
       </ForecastCardWrapper>
       {expanded && (
-        <div
-          className="absolute -left-[21px] -top-[21px] z-20 flex w-[calc(100%+42px)] flex-col overflow-hidden rounded-lg border border-gray-400/40 bg-gray-0 p-5 dark:border-gray-400-dark/40 dark:bg-gray-0-dark"
-          style={{ maxHeight: overlayMaxHeight }}
-        >
-          <ForecastCardWrapper
-            otherItemsCount={0}
-            expanded={true}
-            onCollapse={() => {
+        <>
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => {
               setExpanded(false);
               setIsExpanded(false);
             }}
-            compact={compact}
-            buttonVariant={buttonVariant}
-            className="min-h-0 flex-1"
+          />
+          <div
+            className="absolute -left-[21px] -top-[21px] z-20 flex w-[calc(100%+42px)] flex-col overflow-hidden rounded-lg border border-gray-400/40 bg-gray-0 p-5 dark:border-gray-400-dark/40 dark:bg-gray-0-dark"
+            style={{ maxHeight: overlayMaxHeight }}
           >
-            {renderBars(allChoices)}
-          </ForecastCardWrapper>
-        </div>
+            <ForecastCardWrapper
+              otherItemsCount={0}
+              expanded={true}
+              onCollapse={() => {
+                setExpanded(false);
+                setIsExpanded(false);
+              }}
+              compact={compact}
+              buttonVariant={buttonVariant}
+              className="min-h-0 flex-1"
+            >
+              {renderBars(allChoices)}
+            </ForecastCardWrapper>
+          </div>
+        </>
       )}
     </div>
   );
