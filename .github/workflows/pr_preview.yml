@@ -250,6 +250,7 @@ jobs:
           project_id: ${{ secrets.NEON_PROJECT_ID }}
           branch: ${{ needs.setup.outputs.neon_branch }}
           cs_role_name: neondb_owner
+          cs_database: neondb
           parent: true
           api_key: ${{ secrets.NEON_API_KEY }}
 
