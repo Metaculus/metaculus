@@ -2,6 +2,7 @@ import { isNil } from "lodash";
 import React, { ComponentProps } from "react";
 import { Point, Tuple, VictoryLabel } from "victory";
 
+import { CHART_STROKE_WIDTH } from "@/constants/chart_stroke";
 import { Line } from "@/types/charts";
 import {
   getClosestXValue,
@@ -93,7 +94,7 @@ const LineCursorPoints = <T extends string>({
             style={{
               fill: "transparent",
               stroke: color,
-              strokeWidth: 1,
+              strokeWidth: CHART_STROKE_WIDTH.cursor,
             }}
           />
         );

@@ -4,6 +4,7 @@ import {
   Area,
   BaseChartData,
   Line,
+  LinePoint,
   Scale,
   ScaleDirection,
   TimelineChartZoomOption,
@@ -47,6 +48,7 @@ export function buildNumericChartData({
   forceYTickCount,
   inboundOutcomeCount,
   alwaysShowYTicks,
+  resolutionPoint,
 }: {
   questionType: QuestionType;
   actualCloseTime?: number | null;
@@ -64,6 +66,7 @@ export function buildNumericChartData({
   forceYTickCount?: number;
   inboundOutcomeCount?: number | null;
   alwaysShowYTicks?: boolean;
+  resolutionPoint?: LinePoint | null;
 }): ChartData {
   const line: Line = [];
   const area: Area = [];
@@ -221,9 +224,24 @@ export function buildNumericChartData({
     zoom,
     minTimestamp: xDomain[0],
     isChartEmpty: !domainTimestamps.length,
-    minValues: area.map((d) => ({ timestamp: d.x, y: d.y0 })),
-    maxValues: area.map((d) => ({ timestamp: d.x, y: d.y })),
+    minValues: [
+      ...area.map((d) => ({ timestamp: d.x, y: d.y0 })),
+      ...points.map((d) => ({ timestamp: d.x, y: d.y1 ?? d.y })),
+      ...(resolutionPoint
+        ? [{ timestamp: resolutionPoint.x, y: resolutionPoint.y }]
+        : []),
+    ],
+    maxValues: [
+      ...area.map((d) => ({ timestamp: d.x, y: d.y })),
+      ...points.map((d) => ({ timestamp: d.x, y: d.y2 ?? d.y })),
+      ...(resolutionPoint
+        ? [{ timestamp: resolutionPoint.x, y: resolutionPoint.y }]
+        : []),
+    ],
     includeClosestBoundOnZoom: questionType === QuestionType.Binary,
+    useFullYDomain:
+      questionType === QuestionType.Numeric ||
+      questionType === QuestionType.Date,
   });
   const yScale: Scale = generateScale({
     displayType: questionType,

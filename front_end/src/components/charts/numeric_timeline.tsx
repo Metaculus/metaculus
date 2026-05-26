@@ -139,16 +139,18 @@ const NumericTimeline: FC<Props> = ({
 
   const getCursorValue = useCallback(
     (value: number) => {
+      // Omit `unit` on purpose — the unit is already rendered as the
+      // rotated yLabel on the y-axis, so repeating it in the cursor chip
+      // is redundant and makes the chip wider than necessary.
       const displayValue = getPredictionDisplayValue(value, {
         questionType,
         scaling,
-        unit,
         actual_resolve_time: resolveTime ?? null,
       });
 
       return displayValue.split("\n")[0] ?? displayValue;
     },
-    [questionType, scaling, unit, resolveTime]
+    [questionType, scaling, resolveTime]
   );
 
   const buildChartData = useCallback(
@@ -170,6 +172,7 @@ const NumericTimeline: FC<Props> = ({
         forceYTickCount: forFeedPage ? 3 : 5,
         alwaysShowYTicks: true,
         inboundOutcomeCount,
+        resolutionPoint,
       }),
     [
       questionType,
@@ -184,6 +187,7 @@ const NumericTimeline: FC<Props> = ({
       openTime,
       unit,
       inboundOutcomeCount,
+      resolutionPoint,
       forFeedPage,
     ]
   );

@@ -41,23 +41,27 @@ const useNavbarLinks = ({
       ({
         questions: {
           label: t("questions"),
-          href: "/questions",
+          href: "/questions/",
         },
         tournaments: {
           label: t("tournaments"),
-          href: "/tournaments",
+          href: "/tournaments/",
         },
         services: {
           label: t("services"),
-          href: "/services",
+          href: "/services/",
         },
         leaderboards: {
           label: <span className="capitalize">{t("leaderboards")}</span>,
-          href: "/leaderboard",
+          href: "/leaderboard/",
         },
         news: {
           label: t("news"),
           href: "/news/",
+        },
+        laborHub: {
+          label: "Labor Hub",
+          href: "/labor-hub/",
         },
         communities: {
           label: t("communities"),
@@ -89,11 +93,11 @@ const useNavbarLinks = ({
         },
         aggregationExplorer: {
           label: t("aggregationExplorer"),
-          href: "/aggregation-explorer",
+          href: "/aggregation-explorer/",
         },
         aiBenchmark: {
           label: "FutureEval" + " " + t("aiBenchmark"),
-          href: "/futureeval",
+          href: "/futureeval/",
         },
         createQuestion: {
           label: <CreateQuestionButton />,
@@ -181,7 +185,7 @@ const useNavbarLinks = ({
       LINKS.leaderboards,
       LINKS.trackRecord,
       LINKS.aggregationExplorer,
-      ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.aiBenchmark]),
+      ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.aiBenchmark, LINKS.laborHub]),
     ];
 
     // create question link is moved from navbar to desktop menu
@@ -212,6 +216,7 @@ const useNavbarLinks = ({
     LINKS.leaderboards,
     LINKS.services,
     LINKS.news,
+    LINKS.laborHub,
     LINKS.press,
     LINKS.trackRecord,
     PUBLIC_MINIMAL_UI,
@@ -245,7 +250,7 @@ const useNavbarLinks = ({
             LINKS.trackRecord,
             LINKS.journal,
             LINKS.aggregationExplorer,
-            ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.aiBenchmark]),
+            ...(PUBLIC_MINIMAL_UI ? [] : [LINKS.aiBenchmark, LINKS.laborHub]),
           ]),
     ];
 
@@ -308,6 +313,7 @@ const useNavbarLinks = ({
     LINKS.services,
     LINKS.aggregationExplorer,
     LINKS.aiBenchmark,
+    LINKS.laborHub,
     LINKS.faq,
     LINKS.journal,
     LINKS.leaderboards,

@@ -1,5 +1,6 @@
 import datetime
 import difflib
+from collections import defaultdict
 
 from django.db import IntegrityError, transaction
 from django.db.models import (
@@ -457,3 +458,61 @@ def update_top_comments_of_week(week_start_date: datetime.date):
     ).exclude(
         id__in=[entry.id for entry in created_entries],
     ).delete()
+
+
+def privatize_user_comments(user) -> int:
+    """
+    Sets is_private=True on all of the user's comments that have no descendant
+    comments authored by a different user. Skips comments that already have
+    replies (direct or nested) from other users, since hiding those would break
+    the conversation context for the other participants.
+
+    Returns the number of comments that were privatized.
+    """
+    from django.db.models import Q
+
+    user_comments = list(
+        Comment.objects.filter(author=user).values("id", "root_id", "is_private")
+    )
+    if not user_comments:
+        return 0
+
+    # Collect thread root IDs: root-level comments are their own root
+    thread_root_ids: set[int] = set()
+    for c in user_comments:
+        if c["root_id"] is None:
+            thread_root_ids.add(c["id"])
+        else:
+            thread_root_ids.add(c["root_id"])
+
+    # Load every comment in those threads so we can traverse the reply tree
+    all_thread_comments = list(
+        Comment.objects.filter(
+            Q(id__in=thread_root_ids) | Q(root_id__in=thread_root_ids)
+        ).values("id", "author_id", "parent_id")
+    )
+
+    children_map: dict[int, list[int]] = defaultdict(list)
+    for c in all_thread_comments:
+        if c["parent_id"] is not None:
+            children_map[c["parent_id"]].append(c["id"])
+    comment_author_map = {c["id"]: c["author_id"] for c in all_thread_comments}
+
+    def has_non_user_descendant(comment_id: int) -> bool:
+        stack = list(children_map.get(comment_id, []))
+        while stack:
+            child_id = stack.pop()
+            if comment_author_map.get(child_id) != user.id:
+                return True
+            stack.extend(children_map.get(child_id, []))
+        return False
+
+    to_privatize = [
+        c["id"]
+        for c in user_comments
+        if not c["is_private"] and not has_non_user_descendant(c["id"])
+    ]
+
+    if to_privatize:
+        Comment.objects.filter(id__in=to_privatize).update(is_private=True)
+    return len(to_privatize)

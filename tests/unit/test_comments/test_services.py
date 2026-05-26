@@ -118,7 +118,7 @@ def test_notify_mentioned_users(
     factory_forecast(author=user_forecaster, question=question_binary)
 
     mock_send_email_with_template = mocker.patch(
-        "notifications.services.send_email_with_template"
+        "notifications.services.send_notification_email_with_template"
     )
 
     notify_mentioned_users(

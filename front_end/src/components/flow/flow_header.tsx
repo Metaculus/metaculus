@@ -9,6 +9,8 @@ import React, {
   useMemo,
 } from "react";
 
+import cn from "@/utils/core/cn";
+
 type Ctx = {
   title: ReactNode;
 };
@@ -24,15 +26,25 @@ const useFlowHeader = () => {
 };
 
 type RootProps = PropsWithChildren<{
+  className?: string;
   title: ReactNode;
 }>;
 
-export const FlowHeaderRoot: FC<RootProps> = ({ title, children }) => {
+export const FlowHeaderRoot: FC<RootProps> = ({
+  className,
+  title,
+  children,
+}) => {
   const value = useMemo(() => ({ title }), [title]);
 
   return (
     <FlowHeaderContext.Provider value={value}>
-      <header className="fixed left-0 top-0 z-100 flex h-12 w-full flex-auto flex-nowrap items-center justify-between bg-blue-900 text-gray-0">
+      <header
+        className={cn(
+          "flex h-12 w-full flex-auto flex-nowrap items-center justify-between bg-blue-900 text-gray-0",
+          className
+        )}
+      >
         {children}
       </header>
     </FlowHeaderContext.Provider>

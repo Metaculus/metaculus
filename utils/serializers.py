@@ -70,6 +70,9 @@ class SerializerKeyLookupMixin:
 class DataGetRequestSerializer(serializers.Serializer):
     question_id = serializers.IntegerField(required=False)
     post_id = serializers.IntegerField(required=False)
+    post_ids = serializers.ListField(
+        child=serializers.IntegerField(), required=False, allow_null=True
+    )
     project_id = serializers.IntegerField(required=False)
     sub_question = serializers.IntegerField(required=False)
     aggregation_methods = serializers.CharField(required=False)
@@ -125,6 +128,7 @@ class DataGetRequestSerializer(serializers.Serializer):
         # Check if there are any unexpected fields
         allowed_fields = {
             "post_id",
+            "post_ids",
             "question_id",
             "project_id",
             "sub_question",
