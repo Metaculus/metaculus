@@ -3,6 +3,8 @@ from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
 from comments.models import KeyFactorVote, KeyFactorDriver, KeyFactorBaseRate
+from rest_framework.exceptions import PermissionDenied
+
 from comments.services.common import create_comment, soft_delete_comment
 from comments.services.key_factors.common import (
     key_factor_vote,
@@ -376,3 +378,25 @@ def test_base_rate_freshness_ignores_time_decay(user1, post):
 
     freshness = calculate_freshness_base_rate(kf, votes)
     assert freshness == pytest.approx(1.666, abs=0.001)
+
+
+def test_bot_cannot_post_public_comments(post):
+    bot = factory_user(is_bot=True, allow_public_comments=False)
+    with pytest.raises(PermissionDenied):
+        create_comment(user=bot, on_post=post, text="Public comment", is_private=False)
+
+
+def test_bot_can_post_private_comments(post):
+    bot = factory_user(is_bot=True, allow_public_comments=False)
+    comment = create_comment(
+        user=bot, on_post=post, text="Private comment", is_private=True
+    )
+    assert comment.is_private is True
+
+
+def test_bot_with_allow_public_comments_can_post_public(post):
+    bot = factory_user(is_bot=True, allow_public_comments=True)
+    comment = create_comment(
+        user=bot, on_post=post, text="Public comment", is_private=False
+    )
+    assert comment.is_private is False
