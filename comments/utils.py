@@ -2,11 +2,12 @@ import re
 from collections import defaultdict
 from typing import Iterable
 
-from django.db.models import Q, QuerySet
+from django.db.models import Exists, OuterRef, Q, QuerySet
 from django.utils import timezone
 
 from comments.models import Comment
 from projects.permissions import ObjectPermission
+from questions.models import Forecast
 from users.models import User
 
 # Regex pattern to find all @<username> mentions
@@ -58,15 +59,19 @@ def comment_extract_user_mentions(
                     )
                 ):
                     now = timezone.now()
+                    # If the post is closed, evaluate "active" at the close time so
+                    # a forecast that was still active at closure counts even if it
+                    # has since expired.
+                    active_at = min(now, comment.on_post.actual_close_time or now)
                     query |= Q(
                         pk__in=User.objects.filter(
-                            forecast__post=comment.on_post,
+                            Exists(
+                                Forecast.objects.filter_active_at(active_at).filter(
+                                    post=comment.on_post,
+                                    author=OuterRef("pk"),
+                                )
+                            )
                         )
-                        .exclude(
-                            forecast__end_time__isnull=False,
-                            forecast__end_time__lte=now,
-                        )
-                        .distinct("pk")
                     )
                 continue
 

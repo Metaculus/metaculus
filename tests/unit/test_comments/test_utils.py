@@ -194,3 +194,53 @@ def test_predictors_mention_excludes_withdrawn_forecasts(question_binary):
 
     assert {x.username for x in qs} == {"active_forecaster"}
     assert mentions == {"predictors"}
+
+
+@pytest.mark.django_db
+def test_predictors_mention_includes_forecasts_active_at_post_close(question_binary):
+    """A forecast that was still active when the post closed should be notified,
+    even if its end_time is now in the past."""
+    active_at_close = factory_user(username="active_at_close")
+    ended_before_close = factory_user(username="ended_before_close")
+    admin = factory_user(username="admin")
+
+    now = timezone.now()
+    post = factory_post(
+        question=question_binary,
+        default_project=factory_project(
+            type=Project.ProjectTypes.TOURNAMENT,
+            default_permission=ObjectPermission.FORECASTER,
+            override_permissions={
+                admin: ObjectPermission.ADMIN,
+            },
+        ),
+    )
+    # Close the post 10 days ago.
+    post.actual_close_time = now - timedelta(days=10)
+    post.save()
+
+    # Forecast that was active at close (end_time after close, but before now).
+    factory_forecast(
+        question=question_binary,
+        author=active_at_close,
+        start_time=now - timedelta(days=20),
+        end_time=now - timedelta(days=5),
+    )
+    # Forecast that ended before the post closed.
+    factory_forecast(
+        question=question_binary,
+        author=ended_before_close,
+        start_time=now - timedelta(days=20),
+        end_time=now - timedelta(days=15),
+    )
+
+    qs, mentions = comment_extract_user_mentions(
+        factory_comment(
+            author=admin,
+            on_post=post,
+            text_original="Wanna mention @predictors",
+        )
+    )
+
+    assert {x.username for x in qs} == {"active_at_close"}
+    assert mentions == {"predictors"}
