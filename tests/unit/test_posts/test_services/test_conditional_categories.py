@@ -100,11 +100,11 @@ class TestConditionalCategoryPropagation:
         # Should not raise
         sync_conditional_categories(post)
 
-    def test_update_post_categories_preserves_inherited(self, mocker):
+    def test_update_post_categories_respects_user_selection(self, mocker):
         """
-        Regression: calling update_post(..., categories=[...]) on a conditional
-        post must not drop categories inherited from parent/child questions,
-        even when no `conditional` payload is passed.
+        On update, the user-supplied category set is authoritative: users see
+        both own and inherited categories in the editor and can remove any of
+        them, so update_post must not force-resync inherited categories.
         """
         # Avoid downstream side effects that aren't relevant to this test
         mocker.patch("posts.tasks.run_post_indexing.send")
@@ -119,20 +119,11 @@ class TestConditionalCategoryPropagation:
         )
         assert {cat_a, cat_b, cat_c} <= initial_categories
 
-        # User edits the post with only cat_a in the categories payload
+        # User edits the post and explicitly keeps only cat_a
         update_post(post, categories=[cat_a])
 
         post_categories = set(post.projects.filter(type=Project.ProjectTypes.CATEGORY))
-        # Inherited categories must still be present
-        assert cat_a in post_categories
-        assert cat_b in post_categories
-        assert cat_c in post_categories
-
-        # And cat_a should not have been duplicated
-        cat_a_count = post.projects.filter(
-            type=Project.ProjectTypes.CATEGORY, id=cat_a.id
-        ).count()
-        assert cat_a_count == 1
+        assert post_categories == {cat_a}
 
     def test_get_conditional_categories_missing_posts(self):
         """Categories should be collected even if one parent has no post."""

@@ -10,38 +10,33 @@ def backfill_conditional_categories(apps, schema_editor):
 
     category_type = "category"
 
-    conditional_posts = Post.objects.filter(
-        conditional__isnull=False,
-    ).select_related(
-        "conditional__condition",
-        "conditional__condition_child",
+    conditional_posts = (
+        Post.objects.filter(conditional__isnull=False)
+        .select_related(
+            "conditional__condition__post",
+            "conditional__condition_child__post",
+        )
+        .iterator()
     )
 
     for post in conditional_posts:
         conditional = post.conditional
         categories_to_add = set()
 
-        # Get categories from condition's post
-        condition_post_id = conditional.condition.post_id
-        if condition_post_id:
-            condition_post = Post.objects.get(pk=condition_post_id)
+        condition_post = conditional.condition.post
+        if condition_post:
             categories_to_add.update(
                 condition_post.projects.filter(type=category_type)
             )
 
-        # Get categories from condition_child's post
-        child_post_id = conditional.condition_child.post_id
-        if child_post_id:
-            child_post = Post.objects.get(pk=child_post_id)
+        child_post = conditional.condition_child.post
+        if child_post:
             categories_to_add.update(
                 child_post.projects.filter(type=category_type)
             )
 
         if categories_to_add:
-            existing = set(post.projects.filter(type=category_type))
-            new_categories = categories_to_add - existing
-            if new_categories:
-                post.projects.add(*new_categories)
+            post.projects.add(*categories_to_add)
 
 
 class Migration(migrations.Migration):
