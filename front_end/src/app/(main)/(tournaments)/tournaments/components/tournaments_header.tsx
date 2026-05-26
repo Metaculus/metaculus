@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import { useBreakpoint } from "@/hooks/tailwind";
+import { useTopChromeHeightPx } from "@/hooks/use_top_chrome_height";
 import cn from "@/utils/core/cn";
 
 import TournamentsTabs from "./tournament_tabs";
@@ -12,11 +13,11 @@ import { useTournamentsSection } from "./tournaments_provider";
 import TournamentsSearch from "./tournaments_search";
 import { useTournamentsInfoDismissed } from "../hooks/use_tournaments_info_dismissed";
 
-const STICKY_TOP = 48;
 const POPOVER_GAP = 10;
 
 const TournamentsHeader: React.FC = () => {
-  const { current, infoOpen, toggleInfo, closeInfo } = useTournamentsSection();
+  const { current, isSearching, infoOpen, toggleInfo, closeInfo } =
+    useTournamentsSection();
   const {
     dismissed,
     dismiss: infoDismiss,
@@ -34,6 +35,7 @@ const TournamentsHeader: React.FC = () => {
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const isLg = useBreakpoint("lg");
+  const topChromeHeight = useTopChromeHeightPx();
   const [stuck, setStuck] = useState(!isLg);
 
   useEffect(() => {
@@ -45,13 +47,13 @@ const TournamentsHeader: React.FC = () => {
       {
         root: null,
         threshold: 0,
-        rootMargin: `-${STICKY_TOP}px 0px 0px 0px`,
+        rootMargin: `-${topChromeHeight}px 0px 0px 0px`,
       }
     );
 
     obs.observe(el);
     return () => obs.disconnect();
-  }, [isLg]);
+  }, [isLg, topChromeHeight]);
 
   const showInfo = true;
 
@@ -62,10 +64,9 @@ const TournamentsHeader: React.FC = () => {
       <div
         id="tournamentsStickyHeader"
         className={cn(
-          "sticky top-12 z-40",
+          "sticky top-header z-40",
           stuck || !isLg ? popoverSafeGlassClasses : "bg-transparent"
         )}
-        style={{ top: STICKY_TOP }}
       >
         <div className="mx-auto max-w-[1150px] px-3 py-2 sm:px-8 md:py-3">
           <div className="flex items-center justify-between">
@@ -73,29 +74,27 @@ const TournamentsHeader: React.FC = () => {
               <TournamentsTabs current={current} />
             </div>
 
-            {current !== "indexes" && (
-              <div className="hidden items-center gap-3 lg:flex">
-                <TournamentsFilter />
-                <TournamentsSearch />
+            <div className="hidden items-center gap-3 lg:flex">
+              {current !== "indexes" && <TournamentsFilter />}
+              <TournamentsSearch />
 
-                {showInfo && isLg ? (
-                  <TournamentsInfoPopover
-                    open={infoOpen}
-                    onOpenChange={(next) => {
-                      if (next) {
-                        toggleInfo();
-                        return;
-                      }
+              {showInfo && isLg && current !== "indexes" && !isSearching ? (
+                <TournamentsInfoPopover
+                  open={infoOpen}
+                  onOpenChange={(next) => {
+                    if (next) {
+                      toggleInfo();
+                      return;
+                    }
 
-                      infoDismiss();
-                      closeInfo();
-                    }}
-                    offsetPx={POPOVER_GAP}
-                    stickyTopPx={STICKY_TOP}
-                  />
-                ) : null}
-              </div>
-            )}
+                    infoDismiss();
+                    closeInfo();
+                  }}
+                  offsetPx={POPOVER_GAP}
+                  stickyTopPx={topChromeHeight}
+                />
+              ) : null}
+            </div>
           </div>
         </div>
       </div>

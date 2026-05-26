@@ -8,7 +8,7 @@ from rest_framework_simplejwt.exceptions import AuthenticationFailed
 
 from authentication.jwt_session import SessionRefreshToken
 from users.models import User
-from utils.email import send_email_with_template
+from utils.email import send_account_email_with_template
 from utils.frontend import (
     build_frontend_account_activation_url,
     build_frontend_password_reset_url,
@@ -17,13 +17,24 @@ from utils.frontend import (
 )
 
 
-def send_activation_email(user: User, redirect_url: str | None):
+def generate_account_activation_link(
+    user: User, redirect_url: str | None = None
+) -> str:
     confirmation_token = default_token_generator.make_token(user)
-    activation_link = build_frontend_account_activation_url(
+    return build_frontend_account_activation_url(
         user.id, confirmation_token, redirect_url
     )
 
-    send_email_with_template(
+
+def generate_password_reset_link(user: User) -> str:
+    confirmation_token = default_token_generator.make_token(user)
+    return build_frontend_password_reset_url(user.id, confirmation_token)
+
+
+def send_activation_email(user: User, redirect_url: str | None):
+    activation_link = generate_account_activation_link(user, redirect_url)
+
+    send_account_email_with_template(
         user.email,
         "Activate Your Metaculus Account",
         "emails/activation_email.html",
@@ -34,15 +45,13 @@ def send_activation_email(user: User, redirect_url: str | None):
             "redirect_url": redirect_url,
             "public_app_url": settings.PUBLIC_APP_URL,
         },
-        from_email=settings.EMAIL_HOST_USER,
     )
 
 
 def send_password_reset_email(user: User):
-    confirmation_token = default_token_generator.make_token(user)
-    reset_link = build_frontend_password_reset_url(user.id, confirmation_token)
+    reset_link = generate_password_reset_link(user)
 
-    send_email_with_template(
+    send_account_email_with_template(
         user.email,
         "Metaculus Password Reset Request",
         "emails/password_reset.html",
@@ -50,7 +59,6 @@ def send_password_reset_email(user: User):
             "username": user.username,
             "reset_link": reset_link,
         },
-        from_email=settings.EMAIL_HOST_USER,
     )
 
 
@@ -117,7 +125,7 @@ class SignupInviteService:
         invite_token = self._generate_token(email)
         signup_link = build_frontend_account_signup_invitation_url(email, invite_token)
 
-        send_email_with_template(
+        send_account_email_with_template(
             email,
             "Metaculus Signup Invitation",
             "emails/signup_invite.html",
@@ -127,7 +135,6 @@ class SignupInviteService:
                 "invited_by": invited_by.username,
                 "app_name": get_frontend_host(),
             },
-            from_email=settings.EMAIL_HOST_USER,
         )
 
 

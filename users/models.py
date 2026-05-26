@@ -3,17 +3,20 @@ from typing import TYPE_CHECKING
 
 import dateutil.parser
 from django.conf import settings
-from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import QuerySet
 from django.utils import timezone
 
 from utils.models import TimeStampedModel
+from users.constants import ApiAccessTier, ApiForecastingAccess
+from users.managers import UserManager
 
 if TYPE_CHECKING:
     from comments.models import Comment
     from posts.models import Post
+    from misc.models import UserDataAccess
 
 
 class User(TimeStampedModel, AbstractUser):
@@ -30,6 +33,7 @@ class User(TimeStampedModel, AbstractUser):
     id: int
     comment_set: QuerySet["Comment"]
     posts: QuerySet["Post"]
+    data_accesses: QuerySet["UserDataAccess"]
 
     # Profile data
     bio = models.TextField(default="", blank=True)
@@ -71,6 +75,32 @@ class User(TimeStampedModel, AbstractUser):
     prediction_expiration_percent = models.IntegerField(
         default=10, null=True, blank=True
     )
+    automatically_follow_on_predict = models.BooleanField(default=True)
+    # default follow notification settings - these follow values in PostSubscription
+    follow_notify_cp_change_threshold = models.FloatField(
+        null=True,
+        blank=True,
+        default=0.25,
+        help_text=(
+            "Jeffrey's divergence threshold for notifying user of forecasted CP changes."
+            "<br>Null means no default."
+            "<br>0.05 = small change"
+            "<br>0.25 = medium change"
+            "<br>0.6 = large change"
+        ),
+    )
+    follow_notify_comments_frequency = models.IntegerField(
+        null=True,
+        blank=True,
+        default=10,
+    )
+    follow_notify_milestone_step = models.FloatField(
+        null=True,
+        blank=True,
+        default=0.20,
+        help_text="Proportion of question lifetime to trigger notifications",
+    )
+    follow_notify_on_status_change = models.BooleanField(default=True)
 
     # Onboarding
     is_onboarding_complete = models.BooleanField(default=False)
@@ -97,11 +127,6 @@ class User(TimeStampedModel, AbstractUser):
         blank=True,
         choices=settings.LANGUAGES,
     )
-
-    class ApiAccessTier(models.TextChoices):
-        RESTRICTED = "restricted", "Restricted"
-        BOT_BENCHMARKING = "bot_benchmarking", "Bot Benchmarking"
-        UNRESTRICTED = "unrestricted", "Unrestricted"
 
     api_access_tier = models.CharField(
         max_length=32,
@@ -146,6 +171,22 @@ class User(TimeStampedModel, AbstractUser):
         null=True,
         blank=True,
         help_text="All JWT tokens issued before this timestamp are invalid. Set on password change or 'log out everywhere'.",
+    )
+
+    # Controls whether the account may submit forecasts via the API.
+    api_forecasting_access = models.CharField(
+        max_length=32,
+        choices=ApiForecastingAccess.choices,
+        default=ApiForecastingAccess.ENABLED,
+        help_text=(
+            "Whether this account may submit forecasts via the API. "
+            "Bots start enabled; human accounts start disabled."
+            "<br>enabled — API forecasts are allowed."
+            "<br>disabled — Blocks API forecasts and hides the in-app banner."
+            "<br>pending — Blocks API forecasts and shows the in-app "
+            "confirmation banner; set automatically on the first blocked "
+            "API forecast."
+        ),
     )
 
     objects: models.Manager["User"] = UserManager()

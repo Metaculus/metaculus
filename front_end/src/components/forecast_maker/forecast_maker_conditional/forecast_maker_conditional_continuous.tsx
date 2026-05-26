@@ -55,6 +55,7 @@ import {
 } from "@/utils/forecasts/switch_forecast_type";
 import { getTableDisplayValue } from "@/utils/formatters/prediction";
 import { computeQuartilesFromCDF } from "@/utils/math";
+import { isQuestionPrePrediction } from "@/utils/questions/predictions";
 
 import ConditionalForecastTable, {
   ConditionalTableOption,
@@ -65,6 +66,7 @@ import {
   ForecastExpirationModal,
   forecastExpirationToDate,
   ForecastExpirationValue,
+  getExpirationBaseDate,
   useExpirationModalState,
 } from "../forecast_expiration";
 import {
@@ -79,6 +81,7 @@ type Props = {
   postTitle: string;
   conditional: PostConditional<QuestionWithNumericForecasts>;
   canPredict: boolean;
+  predictLabel: string;
   predictionMessage: ReactNode;
   projects: Post["projects"];
   onPredictionSubmit?: () => void;
@@ -89,6 +92,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   postTitle,
   conditional,
   canPredict,
+  predictLabel,
   predictionMessage,
   projects,
   onPredictionSubmit,
@@ -126,12 +130,14 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
 
   const questionYesExpirationState = useExpirationModalState(
     questionYesDuration,
-    question_yes.my_forecasts?.latest
+    question_yes.my_forecasts?.latest,
+    isQuestionPrePrediction(question_yes)
   );
 
   const questionNoExpirationState = useExpirationModalState(
     questionNoDuration,
-    question_no.my_forecasts?.latest
+    question_no.my_forecasts?.latest,
+    isQuestionPrePrediction(question_no)
   );
 
   const [questionOptions, setQuestionOptions] = useState<
@@ -219,10 +225,12 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         (option) =>
           (option.forecastInputMode === ContinuousForecastInputType.Slider &&
             option.value !== null &&
-            option.question.status === QuestionStatus.OPEN) ||
+            (option.question.status === QuestionStatus.OPEN ||
+              option.question.status === QuestionStatus.UPCOMING)) ||
           (option.forecastInputMode === ContinuousForecastInputType.Quantile &&
             option.quantileValue !== null &&
-            option.question.status === QuestionStatus.OPEN)
+            (option.question.status === QuestionStatus.OPEN ||
+              option.question.status === QuestionStatus.UPCOMING))
       ),
     [questionOptions]
   );
@@ -515,7 +523,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         }) => ({
           questionId: question.id,
           forecastEndTime: forecastExpirationToDate(
-            forecastExpiration ?? questionForecastExpiration
+            forecastExpiration ?? questionForecastExpiration,
+            getExpirationBaseDate(question)
           ),
           forecastData: {
             continuousCdf:
@@ -786,7 +795,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             isDirty={predictButtonIsDirty}
             hasUserForecast={hasUserForecast}
             isPending={isSubmitting}
-            predictLabel={previousForecast ? undefined : t("predict")}
+            predictLabel={previousForecast ? undefined : predictLabel}
             isDisabled={predictButtonIsDisabled}
             predictionExpirationChip={expirationShortChip}
             onPredictionExpirationClick={() =>
@@ -845,6 +854,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         hasUserForecast={hasUserForecast}
         isSubmissionDisabled={predictButtonIsDisabled}
         questionDuration={questionDuration}
+        predictLabel={predictLabel}
       />
 
       <ConditionalForecastTable

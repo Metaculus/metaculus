@@ -7,6 +7,7 @@ urlpatterns = [
     path("contact-form/", views.contact_api_view),
     path("contact-form/services/", views.contact_service_api_view),
     path("get-bulletins/", views.get_bulletins),
+    path("get-dismissed-bulletin-ids/", views.get_dismissed_bulletin_ids),
     path("get-site-stats/", views.get_site_stats),
     path("cancel-bulletin/<int:pk>/", views.cancel_bulletin),
     path(
@@ -16,8 +17,8 @@ urlpatterns = [
     ),
     path("select2/", include("django_select2.urls")),
     path(
-        "get-whitelist-status/",
-        views.get_whitelist_status_api_view,
-        name="get-whitelist-status",
+        "get-data-access-status/",
+        views.get_data_access_status_api_view,
+        name="get-data-access-status",
     ),
 ]

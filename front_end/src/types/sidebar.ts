@@ -39,7 +39,7 @@ export type SidebarItem = SidebarWithProject | SidebarWithPost | SidebarWithUrl;
 
 export type SidebarMenuItem = {
   name: string;
-  emoji: string | ReactNode;
+  emoji: string | ReactNode | undefined;
   section?: SidebarSectionType;
   url: string;
   isActive?: boolean;

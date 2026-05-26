@@ -13,9 +13,10 @@ import TournamentCardShell from "./tournament_card_shell";
 
 type Props = {
   item: TournamentPreview;
+  showTypeLabel?: boolean;
 };
 
-const IndexTournamentCard: React.FC<Props> = ({ item }) => {
+const IndexTournamentCard: React.FC<Props> = ({ item, showTypeLabel }) => {
   const t = useTranslations();
 
   const description = useMemo(() => {
@@ -54,6 +55,11 @@ const IndexTournamentCard: React.FC<Props> = ({ item }) => {
           </div>
 
           <div className="min-w-0 flex-1">
+            {showTypeLabel && (
+              <span className="mb-1 inline-block rounded bg-gray-300 px-1 py-0.5 text-xs font-medium uppercase text-gray-800 dark:bg-gray-300-dark dark:text-gray-800-dark">
+                {t("tournamentsTypeIndex")}
+              </span>
+            )}
             <h6
               className={cn(
                 "my-0",
@@ -98,6 +104,11 @@ const IndexTournamentCard: React.FC<Props> = ({ item }) => {
         </div>
 
         <div className="px-3 pb-4 pt-4 lg:px-4 lg:pb-6">
+          {showTypeLabel && (
+            <span className="mb-2 inline-block rounded bg-gray-300 px-1 py-0.5 text-xs font-medium uppercase text-gray-800 dark:bg-gray-300-dark dark:text-gray-800-dark">
+              {t("tournamentsTypeIndex")}
+            </span>
+          )}
           <p className="my-0 text-center text-[10px] font-semibold uppercase text-blue-700/70 dark:text-blue-700-dark/70 lg:text-[12px]">
             {t.rich("tournamentQuestionsCountUpper", {
               count: item.questions_count ?? 0,

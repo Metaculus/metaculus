@@ -5,6 +5,7 @@ export type DeepPartial<T> = {
 };
 export type DataParams = {
   post_id?: number;
+  post_ids?: number[];
   question_id?: number;
   sub_question?: number;
   aggregation_methods?: string[];
@@ -17,7 +18,7 @@ export type DataParams = {
   include_key_factors?: boolean;
   anonymized?: boolean;
 };
-export type WhitelistStatus = {
-  is_whitelisted: boolean;
+export type DataAccessStatus = {
+  has_data_access: boolean;
   view_deanonymized_data: boolean;
 };

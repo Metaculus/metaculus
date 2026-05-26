@@ -116,7 +116,7 @@ def test_notify_mentioned_users(
     factory_forecast(author=user_forecaster, question=question_binary)
 
     mock_send_email_with_template = mocker.patch(
-        "notifications.services.send_email_with_template"
+        "notifications.services.send_notification_email_with_template"
     )
 
     notify_mentioned_users(
@@ -168,6 +168,25 @@ def test_key_factor_vote(user1, user2):
     assert_vote(user2, 0, 2)
     # Add 4th vote
     assert_vote(user4, 5, 2.75)
+
+
+def test_key_factor_vote_reason(user1, user2):
+    kf = factory_key_factor(
+        comment=factory_comment(author=user1, on_post=factory_post(author=user1)),
+        driver=KeyFactorDriver.objects.create(text="Key Factor Text"),
+        vote_type=KeyFactorVote.VoteType.STRENGTH,
+    )
+
+    key_factor_vote(
+        kf,
+        user1,
+        vote=5,
+        vote_type=KeyFactorVote.VoteType.STRENGTH,
+        vote_reason=KeyFactorVote.VoteReason.REDUNDANT,
+    )
+
+    kfv = KeyFactorVote.objects.filter(key_factor=kf).first()
+    assert kfv.vote_reason == KeyFactorVote.VoteReason.REDUNDANT
 
 
 def test_soft_delete_comment(user1, user2, post):

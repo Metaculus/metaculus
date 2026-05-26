@@ -67,7 +67,7 @@ const BotUpdateButton: FC<Props> = ({ bot }) => {
 
       setError("root", {
         type: "manual",
-        message: extractError(response.errors),
+        message: extractError(response.errors) ?? undefined,
       });
     } else {
       setIsEditModalOpen(false);

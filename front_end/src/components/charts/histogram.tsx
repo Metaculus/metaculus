@@ -2,7 +2,7 @@
 
 import { range } from "lodash";
 import { useTranslations } from "next-intl";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import {
   VictoryAxis,
   VictoryBar,
@@ -13,6 +13,7 @@ import {
 } from "victory";
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { CHART_FONT_STYLE } from "@/constants/chart_typography";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
@@ -25,6 +26,8 @@ type HistogramProps = {
   mean: number | null | undefined;
   color: "blue" | "gray";
   width?: number;
+  animate?: object;
+  onChartReady?: () => void;
 };
 
 const Histogram: React.FC<HistogramProps> = ({
@@ -33,12 +36,21 @@ const Histogram: React.FC<HistogramProps> = ({
   mean,
   color,
   width,
+  animate,
+  onChartReady,
 }) => {
   const t = useTranslations();
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
+  const prevWidth = useRef(0);
+  useEffect(() => {
+    if (!prevWidth.current && chartWidth && onChartReady) {
+      onChartReady();
+    }
+    prevWidth.current = chartWidth;
+  }, [onChartReady, chartWidth]);
   const maxY = Math.max(...histogramData.map((d) => d.y));
 
   return (
@@ -80,6 +92,7 @@ const Histogram: React.FC<HistogramProps> = ({
             x: [0, 100],
             y: [0, maxY * 1.01], // prevent highest bar being cut off
           }}
+          animate={animate}
           containerComponent={
             <VictoryContainer
               responsive={true}
@@ -161,7 +174,7 @@ const Histogram: React.FC<HistogramProps> = ({
             }
             style={{
               tickLabels: {
-                fontSize: 10,
+                ...CHART_FONT_STYLE.tick,
                 fontWeight: 400,
                 fill: getThemeColor(METAC_COLORS.gray["700"]),
               },

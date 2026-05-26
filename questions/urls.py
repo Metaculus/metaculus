@@ -29,6 +29,11 @@ urlpatterns = [
         views.legacy_question_api_view,
         name="oldapi-get-question-post",
     ),
+    path(
+        "questions/community-predictions/",
+        views.questions_community_predictions,
+        name="questions-community-predictions",
+    ),
 ]
 old_api = [
     path(

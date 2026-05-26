@@ -17,6 +17,7 @@ import { FC } from "react";
 
 import { updateLanguagePreference } from "@/app/(main)/accounts/profile/actions";
 import { APP_LANGUAGES } from "@/components/language_menu";
+import { FooterLink, FOOTER_LINKS } from "@/constants/footer";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import useAppTheme from "@/hooks/use_app_theme";
@@ -70,39 +71,11 @@ const LanguageIcon: FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-type FooterLink =
-  | { href: string; labelKey: string; isModal?: false; external?: false }
-  | { labelKey: string; isModal: true; href?: undefined; external?: false }
-  | { href: string; labelKey: string; external: true; isModal?: false };
-
-const FOOTER_LINKS = {
-  explore: [
-    { href: "/questions", labelKey: "questions" },
-    { href: "/tournaments", labelKey: "tournaments" },
-    { href: "/aib", labelKey: "tournamentsForAIBots" },
-    { href: "/futureeval", labelKey: "futureEval" },
-  ],
-  services: [
-    { href: "/services#launch-a-tournament", labelKey: "launchATournament" },
-    { href: "/services#private-instances", labelKey: "privateInstances" },
-    { href: "/services#pro-forecasters", labelKey: "proForecasters" },
-  ],
-  company: [
-    { href: "/about/", labelKey: "about" },
-    { labelKey: "contact", isModal: true },
-    {
-      href: "https://apply.workable.com/metaculus",
-      labelKey: "careers",
-      external: true,
-    },
-    { href: "/faq", labelKey: "faq" },
-  ],
-  resources: [
-    { href: "/help/prediction-resources", labelKey: "forecastingResources" },
-    { href: "/press", labelKey: "forJournalists" },
-    { href: "/api", labelKey: "api" },
-  ],
-} as const satisfies Record<string, readonly FooterLink[]>;
+const RESOURCES_LINKS = [
+  { href: "/help/prediction-resources", labelKey: "forecastingResources" },
+  { href: "/press", labelKey: "forJournalists" },
+  { href: "/api", labelKey: "api" },
+] as const satisfies readonly FooterLink[];
 
 const THEME_OPTIONS = [
   { value: AppTheme.System, labelKey: "settingsThemeSystemDefault" },
@@ -264,14 +237,14 @@ const ThemeSelector: FC = () => {
   );
 };
 
-const Footer: FC = () => {
+const Footer: FC<{ hideSelectors?: boolean }> = ({ hideSelectors }) => {
   const t = useTranslations();
   const { setCurrentModal } = useModal();
 
   const handleContactClick = () => setCurrentModal({ type: "contactUs" });
 
   return (
-    <footer className="flex w-full flex-col gap-16 bg-blue-950 px-4 py-20 text-gray-300 lg:items-center lg:px-20">
+    <footer className="flex w-full flex-col gap-16 bg-blue-950 px-4 py-20 text-gray-300 lg:items-center lg:px-20 print:hidden">
       {/* Main content */}
       <div className="flex w-full max-w-[1352px] flex-col gap-16 lg:flex-row lg:gap-4">
         {/* Left column - Logo, description, socials, selectors */}
@@ -310,10 +283,12 @@ const Footer: FC = () => {
           </div>
 
           {/* Language and Theme selectors */}
-          <div className="flex gap-4">
-            <LanguageSelector />
-            <ThemeSelector />
-          </div>
+          {!hideSelectors && (
+            <div className="flex gap-4">
+              <LanguageSelector />
+              <ThemeSelector />
+            </div>
+          )}
         </div>
 
         {/* Right section - Link columns */}
@@ -336,10 +311,7 @@ const Footer: FC = () => {
               links={FOOTER_LINKS.company}
               onContactClick={handleContactClick}
             />
-            <FooterLinkColumn
-              title={t("resources")}
-              links={FOOTER_LINKS.resources}
-            />
+            <FooterLinkColumn title={t("resources")} links={RESOURCES_LINKS} />
           </div>
         </div>
       </div>

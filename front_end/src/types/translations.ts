@@ -1,3 +1,7 @@
 import { MessageKeys } from "next-intl";
 
-export type TranslationKey = MessageKeys<IntlMessages, keyof IntlMessages>;
+import en from "@/../messages/en.json";
+
+type Messages = typeof en;
+
+export type TranslationKey = MessageKeys<Messages, keyof Messages>;

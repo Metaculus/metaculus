@@ -21,7 +21,10 @@ import {
   VictoryThemeDefinition,
 } from "victory";
 
+import { CHART_DASH } from "@/constants/chart_dash";
+import { CHART_STROKE_WIDTH } from "@/constants/chart_stroke";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { CHART_FONT_STYLE } from "@/constants/chart_typography";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
@@ -44,6 +47,8 @@ import {
   generateTimestampXScale,
   getAxisRightPadding,
   getTickLabelFontSize,
+  Y_AXIS_LABEL_ANCHOR_OFFSET,
+  Y_AXIS_LABEL_RESERVED_PX,
 } from "@/utils/charts/axis";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
@@ -53,6 +58,8 @@ import ChartContainer from "./primitives/chart_container";
 import ChartCursorLabel from "./primitives/chart_cursor_label";
 import GroupResolutionPoint from "./primitives/group_resolution_point";
 import ResolutionDiamond from "./primitives/resolution_diamond";
+import { renderGroupTimelineMarkers } from "./primitives/timeline_markers/group_timeline_markers_overlay";
+import { GroupTimelineMarker } from "./primitives/timeline_markers/types";
 import XTickLabel from "./primitives/x_tick_label";
 
 type Props = {
@@ -82,14 +89,18 @@ type Props = {
   isEmbedded?: boolean;
   showCursorLabel?: boolean;
   fadeLinesOnHover?: boolean;
+  timelineMarkers?: GroupTimelineMarker[];
+  activeTimelineMarkerId?: string | null;
+  onTimelineMarkerEnter?: (marker: GroupTimelineMarker) => void;
+  onTimelineMarkerLeave?: (marker: GroupTimelineMarker) => void;
+  animate?: object;
+  leftPadding?: number;
 };
 
-const LABEL_FONT_FAMILY = "Inter";
 const BOTTOM_PADDING = 20;
-const TICK_FONT_SIZE = 10;
 const POINT_SIZE = 9;
 const USER_POINT_SIZE = 6;
-const USER_POINT_STROKE = 1.5;
+const USER_POINT_STROKE = CHART_STROKE_WIDTH.userPoint;
 const PLOT_TOP = 10;
 
 const GroupChart: FC<Props> = ({
@@ -119,6 +130,12 @@ const GroupChart: FC<Props> = ({
   isEmbedded = false,
   showCursorLabel = true,
   fadeLinesOnHover = true,
+  timelineMarkers,
+  activeTimelineMarkerId,
+  onTimelineMarkerEnter,
+  onTimelineMarkerLeave,
+  animate,
+  leftPadding = 0,
 }) => {
   const t = useTranslations();
   const {
@@ -190,8 +207,6 @@ const GroupChart: FC<Props> = ({
   const effectiveCursorTimestamp = !isNil(cursorTimestamp)
     ? cursorTimestamp
     : localCursorTimestamp;
-  const plotBottom =
-    height - (isEmbedded ? BOTTOM_PADDING - 6 : BOTTOM_PADDING);
   const filteredLines = useMemo(() => {
     return graphs.map(({ line, active }) => {
       const lastLineX = line.at(-1)?.x;
@@ -224,13 +239,28 @@ const GroupChart: FC<Props> = ({
   const maxRightPadding = useMemo(() => {
     return Math.max(rightPadding, MIN_RIGHT_PADDING);
   }, [rightPadding, MIN_RIGHT_PADDING]);
+  const chartPadding = useMemo(
+    () => ({
+      left: leftPadding,
+      top: PLOT_TOP,
+      right: maxRightPadding,
+      bottom: isEmbedded ? BOTTOM_PADDING - 6 : BOTTOM_PADDING,
+    }),
+    [isEmbedded, maxRightPadding, leftPadding]
+  );
+  const plotBottom = height - chartPadding.bottom;
 
   const isHighlightActive = useMemo(
     () => Object.values(choiceItems).some(({ highlighted }) => highlighted),
     [choiceItems]
   );
+  const hasUserForecasts = useMemo(
+    () => choiceItems.some(({ userTimestamps }) => userTimestamps.length > 0),
+    [choiceItems]
+  );
 
   const prevWidth = usePrevious(chartWidth);
+  const isMarkerHovered = !isNil(activeTimelineMarkerId);
   const baseLineOpacity =
     fadeLinesOnHover && isCursorActive && !isHighlightActive ? 0.35 : 1;
 
@@ -270,7 +300,7 @@ const GroupChart: FC<Props> = ({
             isCursorActive
               ? {
                   stroke: getThemeColor(METAC_COLORS.gray["600"]),
-                  strokeDasharray: "2,1",
+                  strokeDasharray: CHART_DASH.cursor,
                 }
               : {
                   stroke: "transparent",
@@ -294,7 +324,7 @@ const GroupChart: FC<Props> = ({
 
         setLocalCursorTimestamp(value);
 
-        if (onCursorChange) {
+        if (onCursorChange && !isMarkerHovered) {
           const lastTimestamp = timestamps[timestamps.length - 1];
           if (value === lastTimestamp) {
             onCursorChange(lastTimestamp, xScale.tickFormat);
@@ -315,328 +345,346 @@ const GroupChart: FC<Props> = ({
         onZoomChange={setZoom}
       >
         {!!chartWidth && (
-          <VictoryChart
-            width={chartWidth}
-            height={height}
-            theme={actualTheme}
-            domainPadding={{ y: 3 }}
-            singleQuadrantDomainPadding={{ y: false }}
-            padding={{
-              left: 0,
-              top: 10,
-              right: maxRightPadding,
-              bottom: isEmbedded ? BOTTOM_PADDING - 6 : BOTTOM_PADDING,
-            }}
-            events={[
-              {
-                target: "parent",
-                eventHandlers: {
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  onMouseMoveCapture: (e: any) => {
-                    if (!onCursorChange) return;
-                    const svg =
-                      (e.currentTarget as SVGElement).ownerSVGElement ??
-                      e.currentTarget;
-                    const rect = (svg as SVGElement).getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
+          <div className="relative h-full">
+            <VictoryChart
+              width={chartWidth}
+              height={height}
+              theme={actualTheme}
+              domainPadding={{ y: 3 }}
+              singleQuadrantDomainPadding={{ y: false }}
+              padding={chartPadding}
+              animate={animate}
+              events={[
+                {
+                  target: "parent",
+                  eventHandlers: {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    onMouseMoveCapture: (e: any) => {
+                      if (!onCursorChange) return;
+                      const svg =
+                        (e.currentTarget as SVGElement).ownerSVGElement ??
+                        e.currentTarget;
+                      const rect = (svg as SVGElement).getBoundingClientRect();
+                      const x = e.clientX - rect.left;
+                      const y = e.clientY - rect.top;
 
-                    const inPlot =
-                      x >= 0 &&
-                      x <= chartWidth - maxRightPadding &&
-                      y >= PLOT_TOP &&
-                      y <= plotBottom;
-                    inPlotRef.current = inPlot;
-                    setIsCursorActive(inPlot);
-                    if (!inPlot) {
+                      const inPlot =
+                        x >= 0 &&
+                        x <= chartWidth - maxRightPadding &&
+                        y >= PLOT_TOP &&
+                        y <= plotBottom;
+                      inPlotRef.current = inPlot;
+                      setIsCursorActive(inPlot);
+                      if (!inPlot) {
+                        setLocalCursorTimestamp(null);
+                      }
+                    },
+                    onMouseLeave: () => {
+                      if (!onCursorChange) return;
+                      inPlotRef.current = false;
+                      setIsCursorActive(false);
                       setLocalCursorTimestamp(null);
-                    }
-                  },
-                  onMouseLeaveCapture: () => {
-                    if (!onCursorChange) return;
-                    inPlotRef.current = false;
-                    setIsCursorActive(false);
-                    setLocalCursorTimestamp(null);
+                    },
                   },
                 },
-              },
-            ]}
-            containerComponent={
-              onCursorChange ? (
-                CursorContainer
-              ) : (
-                <VictoryContainer
-                  containerRef={attachRef}
-                  style={{
-                    pointerEvents: "auto",
-                    userSelect: "auto",
-                    touchAction: "auto",
-                  }}
-                />
-              )
-            }
-            domain={{
-              x: xDomain,
-              y: yDomain,
-            }}
-          >
-            {/* Y axis */}
-            <VictoryAxis
-              dependentAxis
-              tickValues={yScale.ticks}
-              tickFormat={yScale.tickFormat}
-              style={{
-                ticks: {
-                  stroke: "transparent",
-                },
-                axisLabel: {
-                  fontFamily: LABEL_FONT_FAMILY,
-                  fontSize: tickLabelFontSize,
-                  fill: getThemeColor(METAC_COLORS.gray["500"]),
-                },
-                tickLabels: {
-                  fontFamily: LABEL_FONT_FAMILY,
-                  padding: 5,
-                  fontSize: tickLabelFontSize,
-                  fill: getThemeColor(METAC_COLORS.gray["700"]),
-                },
-                axis: {
-                  stroke: "transparent",
-                },
-                grid: {
-                  stroke: getThemeColor(METAC_COLORS.gray["400"]),
-                  strokeWidth: 1,
-                  strokeDasharray: "3, 2",
-                },
-              }}
-              label={yLabel}
-              offsetX={
-                isNil(yLabel) ? chartWidth + 5 : chartWidth - TICK_FONT_SIZE + 5
-              }
-              orientation={"left"}
-              axisLabelComponent={<VictoryLabel x={chartWidth} />}
-            />
-            {/* X axis */}
-            <VictoryPortal>
-              <VictoryAxis
-                tickValues={xScale.ticks}
-                tickFormat={
-                  hideCP || isCursorActive ? () => "" : xScale.tickFormat
-                }
-                tickLabelComponent={
-                  <XTickLabel
-                    chartWidth={chartWidth}
-                    withCursor={!!onCursorChange}
-                    fontSize={tickLabelFontSize as number}
-                    dx={isEmbedded ? 16 : 0}
+              ]}
+              containerComponent={
+                onCursorChange ? (
+                  CursorContainer
+                ) : (
+                  <VictoryContainer
+                    containerRef={attachRef}
+                    style={{
+                      pointerEvents: "auto",
+                      userSelect: "auto",
+                      touchAction: "auto",
+                    }}
                   />
-                }
+                )
+              }
+              domain={{
+                x: xDomain,
+                y: yDomain,
+              }}
+            >
+              {/* Y axis */}
+              <VictoryAxis
+                dependentAxis
+                tickValues={yScale.ticks}
+                tickFormat={yScale.tickFormat}
                 style={{
                   ticks: {
                     stroke: "transparent",
                   },
-                  axis: {
-                    stroke: "transparent",
+                  axisLabel: {
+                    ...CHART_FONT_STYLE.axisLabel,
+                    fontSize: tickLabelFontSize,
+                    fill: getThemeColor(METAC_COLORS.gray["500"]),
                   },
                   tickLabels: {
-                    fontFamily: LABEL_FONT_FAMILY,
-                    padding: 5,
+                    ...CHART_FONT_STYLE.tick,
+                    // Right-align labels at the right margin, reserving space
+                    // for the rotated yLabel when present.
+                    padding:
+                      maxRightPadding -
+                      (yLabel ? Y_AXIS_LABEL_RESERVED_PX : 0) -
+                      4,
+                    textAnchor: "end",
                     fontSize: tickLabelFontSize,
                     fill: getThemeColor(METAC_COLORS.gray["700"]),
                   },
+                  axis: {
+                    stroke: "transparent",
+                  },
+                  grid: {
+                    stroke: getThemeColor(METAC_COLORS.gray["400"]),
+                    strokeWidth: CHART_STROKE_WIDTH.grid,
+                    strokeDasharray: CHART_DASH.grid,
+                  },
                 }}
-              />
-            </VictoryPortal>
-            {/* Background line */}
-            {graphs.map(({ line, color, active }, index) =>
-              active ? (
-                <VictoryLine
-                  key={`group-bg-line-${index}`}
-                  data={line}
-                  style={{
-                    data: {
-                      stroke: getThemeColor(color),
-                      strokeOpacity: 0.2,
-                      strokeWidth: 1.5,
-                    },
-                  }}
-                  interpolation="stepAfter"
-                />
-              ) : null
-            )}
-            {/* Main line */}
-            {graphs.map(({ color, active, highlighted }, index) => {
-              const filteredLine = filteredLines[index];
-              if (!active || !filteredLine) return null;
-              return (
-                <VictoryLine
-                  key={`group-main-line-${index}`}
-                  data={filteredLine}
-                  style={{
-                    data: {
-                      stroke: getThemeColor(color),
-                      strokeOpacity: !isHighlightActive
-                        ? baseLineOpacity
-                        : highlighted
-                          ? 1
-                          : 0.3,
-                      strokeWidth: 1.5,
-                    },
-                  }}
-                  interpolation="stepAfter"
-                />
-              );
-            })}
-            {/* Line cursor points */}
-            {graphs.map(
-              ({ color, active, line, highlighted, isClosed }, index) => {
-                const filteredLine = filteredLines[index];
-                const point = onCursorChange
-                  ? filteredLine?.at(-1)
-                  : {
-                      x: isClosed
-                        ? line?.at(-1)?.x ?? Number(xDomain[1])
-                        : Number(xDomain[1]),
-                      y: line?.at(-1)?.y ?? 0,
-                    };
-                if (
-                  !active ||
-                  !filteredLine ||
-                  !point ||
-                  (!forceShowLinePoints &&
-                    (isHighlightActive ||
-                      !isCursorActive ||
-                      (!isNil(cursorTimestamp) && point.x < cursorTimestamp)))
-                ) {
-                  return null;
+                label={yLabel}
+                orientation="right"
+                axisLabelComponent={
+                  yLabel ? (
+                    <VictoryLabel x={chartWidth - Y_AXIS_LABEL_ANCHOR_OFFSET} />
+                  ) : undefined
                 }
-
+              />
+              {/* X axis */}
+              <VictoryPortal>
+                <VictoryAxis
+                  tickValues={xScale.ticks}
+                  tickFormat={
+                    (hideCP && !hasUserForecasts) || isCursorActive
+                      ? () => ""
+                      : xScale.tickFormat
+                  }
+                  tickLabelComponent={
+                    <XTickLabel
+                      chartWidth={chartWidth}
+                      withCursor={!!onCursorChange}
+                      fontSize={tickLabelFontSize as number}
+                      dx={isEmbedded ? 16 : 0}
+                    />
+                  }
+                  style={{
+                    ticks: {
+                      stroke: "transparent",
+                    },
+                    axis: {
+                      stroke: "transparent",
+                    },
+                    tickLabels: {
+                      ...CHART_FONT_STYLE.tick,
+                      padding: 5,
+                      fontSize: tickLabelFontSize,
+                      fill: getThemeColor(METAC_COLORS.gray["700"]),
+                    },
+                  }}
+                />
+              </VictoryPortal>
+              {/* Background line */}
+              {graphs.map(({ line, color, active }, index) =>
+                active ? (
+                  <VictoryLine
+                    key={`group-bg-line-${index}`}
+                    data={line}
+                    style={{
+                      data: {
+                        stroke: getThemeColor(color),
+                        strokeOpacity: 0.2,
+                        strokeWidth: CHART_STROKE_WIDTH.forecastLine,
+                      },
+                    }}
+                    interpolation="stepAfter"
+                  />
+                ) : null
+              )}
+              {/* Main line */}
+              {graphs.map(({ color, active, highlighted }, index) => {
+                const filteredLine = filteredLines[index];
+                if (!active || !filteredLine) return null;
                 return (
-                  <VictoryScatter
-                    key={`group-line-point-${index}`}
-                    data={[point]}
+                  <VictoryLine
+                    key={`group-main-line-${index}`}
+                    data={filteredLine}
                     style={{
                       data: {
                         stroke: getThemeColor(color),
                         strokeOpacity: !isHighlightActive
-                          ? 1
+                          ? baseLineOpacity
                           : highlighted
                             ? 1
                             : 0.3,
-                        strokeWidth: 2,
+                        strokeWidth: CHART_STROKE_WIDTH.forecastLine,
+                      },
+                    }}
+                    interpolation="stepAfter"
+                  />
+                );
+              })}
+              {/* Line cursor points */}
+              {graphs.map(
+                ({ color, active, line, highlighted, isClosed }, index) => {
+                  const filteredLine = filteredLines[index];
+                  const point = onCursorChange
+                    ? filteredLine?.at(-1)
+                    : {
+                        x: isClosed
+                          ? line?.at(-1)?.x ?? Number(xDomain[1])
+                          : Number(xDomain[1]),
+                        y: line?.at(-1)?.y ?? 0,
+                      };
+                  if (
+                    !active ||
+                    !filteredLine ||
+                    !point ||
+                    (!forceShowLinePoints &&
+                      (isHighlightActive ||
+                        !isCursorActive ||
+                        (!isNil(cursorTimestamp) && point.x < cursorTimestamp)))
+                  ) {
+                    return null;
+                  }
+
+                  return (
+                    <VictoryScatter
+                      key={`group-line-point-${index}`}
+                      data={[point]}
+                      style={{
+                        data: {
+                          stroke: getThemeColor(color),
+                          strokeOpacity: !isHighlightActive
+                            ? 1
+                            : highlighted
+                              ? 1
+                              : 0.3,
+                          strokeWidth: CHART_STROKE_WIDTH.predictionRange,
+                          fill: getThemeColor(color),
+                        },
+                      }}
+                    />
+                  );
+                }
+              )}
+              {/* Highlighted line area */}
+              {graphs.map(({ area, color, highlighted, active }, index) =>
+                active ? (
+                  <VictoryArea
+                    key={`group-area-${index}`}
+                    data={area}
+                    style={{
+                      data: {
                         fill: getThemeColor(color),
+                        opacity: highlighted ? 0.3 : 0,
+                      },
+                    }}
+                    interpolation="stepAfter"
+                  />
+                ) : null
+              )}
+              {/* Resolution point */}
+              {graphs.map(({ color, active, resolutionPoint }, index) => {
+                if (!resolutionPoint || !active) return null;
+
+                const textThemeColor =
+                  color === METAC_COLORS["mc-option"][1]
+                    ? METAC_COLORS["mc-option-text"][1]
+                    : color;
+
+                if (
+                  resolutionPoint.placement &&
+                  ["below", "above"].includes(resolutionPoint.placement)
+                ) {
+                  return (
+                    <VictoryPortal key={`group-resolution-portal-${index}`}>
+                      <VictoryScatter
+                        key={`group-resolution-${index}`}
+                        data={[
+                          {
+                            x: resolutionPoint?.x,
+                            y: resolutionPoint?.placement === "below" ? 0 : 1,
+                            x1: resolutionPoint?.x1,
+                            y1: resolutionPoint?.y1,
+                            text: resolutionPoint?.text,
+                            placement: resolutionPoint?.placement,
+                            primary: color,
+                          },
+                        ]}
+                        dataComponent={<ResolutionDiamond hoverable={false} />}
+                      />
+                    </VictoryPortal>
+                  );
+                }
+
+                return (
+                  <VictoryScatter
+                    key={`group-resolution-${index}`}
+                    data={[
+                      {
+                        x: resolutionPoint?.x,
+                        y: resolutionPoint?.y,
+                        x1: resolutionPoint?.x1,
+                        y1: resolutionPoint?.y1,
+                        text: resolutionPoint?.text,
+                        symbol: "diamond",
+                        size: POINT_SIZE,
+                      },
+                    ]}
+                    style={{
+                      data: {
+                        stroke: getThemeColor(color),
+                        fill: getThemeColor(METAC_COLORS.gray["200"]),
+                        strokeWidth: CHART_STROKE_WIDTH.resolutionDiamond,
+                      },
+                    }}
+                    dataComponent={
+                      <GroupResolutionPoint
+                        pointColor={getThemeColor(color)}
+                        pointTextColor={getThemeColor(textThemeColor)}
+                        pointSize={POINT_SIZE}
+                        chartWidth={chartWidth}
+                        chartRightPadding={maxRightPadding}
+                      />
+                    }
+                  />
+                );
+              })}
+              {/* User predictions */}
+              {graphs.map(({ active, scatter, color, highlighted }, index) =>
+                active && (!isHighlightActive || highlighted) ? (
+                  <VictoryScatter
+                    key={`group-scatter-${index}`}
+                    data={scatter}
+                    dataComponent={
+                      <PredictionSymbol
+                        size={USER_POINT_SIZE}
+                        strokeWidth={USER_POINT_STROKE}
+                      />
+                    }
+                    style={{
+                      data: {
+                        stroke: getThemeColor(color),
+                        fill: getThemeColor(METAC_COLORS.gray["200"]),
+                        strokeWidth: USER_POINT_STROKE,
                       },
                     }}
                   />
-                );
-              }
-            )}
-            {/* Highlighted line area */}
-            {graphs.map(({ area, color, highlighted, active }, index) =>
-              active ? (
-                <VictoryArea
-                  key={`group-area-${index}`}
-                  data={area}
-                  style={{
-                    data: {
-                      fill: getThemeColor(color),
-                      opacity: highlighted ? 0.3 : 0,
-                    },
-                  }}
-                  interpolation="stepAfter"
-                />
-              ) : null
-            )}
-            {/* Resolution point */}
-            {graphs.map(({ color, active, resolutionPoint }, index) => {
-              if (!resolutionPoint || !active) return null;
-
-              const textThemeColor =
-                color === METAC_COLORS["mc-option"][1]
-                  ? METAC_COLORS["mc-option-text"][1]
-                  : color;
-
-              if (
-                resolutionPoint.placement &&
-                ["below", "above"].includes(resolutionPoint.placement)
-              ) {
-                return (
-                  <VictoryPortal key={`group-resolution-portal-${index}`}>
-                    <VictoryScatter
-                      key={`group-resolution-${index}`}
-                      data={[
-                        {
-                          x: resolutionPoint?.x,
-                          y: resolutionPoint?.placement === "below" ? 0 : 1,
-                          x1: resolutionPoint?.x1,
-                          y1: resolutionPoint?.y1,
-                          text: resolutionPoint?.text,
-                          placement: resolutionPoint?.placement,
-                          primary: color,
-                        },
-                      ]}
-                      dataComponent={<ResolutionDiamond hoverable={false} />}
-                    />
-                  </VictoryPortal>
-                );
-              }
-
-              return (
-                <VictoryScatter
-                  key={`group-resolution-${index}`}
-                  data={[
-                    {
-                      x: resolutionPoint?.x,
-                      y: resolutionPoint?.y,
-                      x1: resolutionPoint?.x1,
-                      y1: resolutionPoint?.y1,
-                      text: resolutionPoint?.text,
-                      symbol: "diamond",
-                      size: POINT_SIZE,
-                    },
-                  ]}
-                  style={{
-                    data: {
-                      stroke: getThemeColor(color),
-                      fill: getThemeColor(METAC_COLORS.gray["200"]),
-                      strokeWidth: 2.5,
-                    },
-                  }}
-                  dataComponent={
-                    <GroupResolutionPoint
-                      pointColor={getThemeColor(color)}
-                      pointTextColor={getThemeColor(textThemeColor)}
-                      pointSize={POINT_SIZE}
-                      chartWidth={chartWidth}
-                      chartRightPadding={maxRightPadding}
-                    />
-                  }
-                />
-              );
-            })}
-            {/* User predictions */}
-            {graphs.map(({ active, scatter, color, highlighted }, index) =>
-              active && (!isHighlightActive || highlighted) ? (
-                <VictoryScatter
-                  key={`group-scatter-${index}`}
-                  data={scatter}
-                  dataComponent={
-                    <PredictionSymbol
-                      size={USER_POINT_SIZE}
-                      strokeWidth={USER_POINT_STROKE}
-                    />
-                  }
-                  style={{
-                    data: {
-                      stroke: getThemeColor(color),
-                      fill: getThemeColor(METAC_COLORS.gray["200"]),
-                      strokeWidth: USER_POINT_STROKE,
-                    },
-                  }}
-                />
-              ) : null
-            )}
-          </VictoryChart>
+                ) : null
+              )}
+              {/* Timeline markers */}
+              {timelineMarkers?.length
+                ? renderGroupTimelineMarkers({
+                    markers: timelineMarkers,
+                    yDomain: yDomain as [number, number],
+                    getThemeColor,
+                    activeMarkerId: activeTimelineMarkerId,
+                    onMarkerEnter: onTimelineMarkerEnter,
+                    onMarkerLeave: onTimelineMarkerLeave,
+                  })
+                : null}
+            </VictoryChart>
+          </div>
         )}
       </ChartContainer>
       <ForecastAvailabilityChartOverflow
@@ -970,10 +1018,45 @@ function buildChartData({
     zoom,
     minTimestamp: xDomain[0],
     isChartEmpty: !domainTimestamps.length,
-    minValues: areas.map((a) => ({ timestamp: a.x, y: a.y0 })),
-    maxValues: areas.map((a) => ({ timestamp: a.x, y: a.y })),
+    minValues: [
+      ...areas.map((a) => ({ timestamp: a.x, y: a.y0 })),
+      ...graphs
+        .filter((g) => g.active)
+        .flatMap((g) =>
+          (g.scatter ?? []).map((point) => ({
+            timestamp: point.x,
+            y: point.y1 ?? point.y,
+          }))
+        ),
+      ...graphs
+        .filter((g) => g.active && !isNil(g.resolutionPoint))
+        .map((g) => ({
+          timestamp: g.resolutionPoint?.x ?? latestTimestamp,
+          y: g.resolutionPoint?.y,
+        })),
+    ],
+    maxValues: [
+      ...areas.map((a) => ({ timestamp: a.x, y: a.y })),
+      ...graphs
+        .filter((g) => g.active)
+        .flatMap((g) =>
+          (g.scatter ?? []).map((point) => ({
+            timestamp: point.x,
+            y: point.y2 ?? point.y,
+          }))
+        ),
+      ...graphs
+        .filter((g) => g.active && !isNil(g.resolutionPoint))
+        .map((g) => ({
+          timestamp: g.resolutionPoint?.x ?? latestTimestamp,
+          y: g.resolutionPoint?.y,
+        })),
+    ],
     includeClosestBoundOnZoom: questionType === QuestionType.Binary,
     forceAutoZoom,
+    useFullYDomain:
+      questionType === QuestionType.Numeric ||
+      questionType === QuestionType.Date,
   });
 
   const yScale = generateScale({
@@ -994,7 +1077,14 @@ function buildChartData({
 type SymbolProps = PointProps & { size?: number; strokeWidth?: number };
 const PredictionSymbol: React.FC<SymbolProps> = (props) => {
   const { getThemeColor } = useAppTheme();
-  const { x, y, datum, size = 6, style, strokeWidth = 1.5 } = props;
+  const {
+    x,
+    y,
+    datum,
+    size = 6,
+    style,
+    strokeWidth = CHART_STROKE_WIDTH.userPoint,
+  } = props;
   if (
     typeof x !== "number" ||
     typeof y !== "number" ||

@@ -96,7 +96,7 @@ export const TabsList = ({
           ? "" // no negative margins, overflow, or background for contained variant
           : "-mx-3 overflow-x-auto bg-blue-200 px-3 py-3 dark:bg-blue-200-dark sm:-mx-4 sm:px-4",
         ctx.variant === "separated" && !contained
-          ? "sticky top-12 gap-2"
+          ? "sticky top-header gap-2"
           : "gap-2",
         className
       )}

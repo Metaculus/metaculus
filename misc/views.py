@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from django.db.models import Q
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.http import JsonResponse
@@ -23,7 +22,7 @@ from .serializers import (
     SidebarItemSerializer,
 )
 from .services.itn import remove_article
-from .utils import get_whitelist_status
+from .utils import get_data_access_status
 
 
 @api_view(["POST"])
@@ -35,7 +34,7 @@ def contact_api_view(request: Request):
     EmailMessage(
         subject=serializer.data["subject"] or "Contact Form",
         body=serializer.data["message"],
-        from_email=settings.EMAIL_SENDER_NO_REPLY,
+        from_email=settings.EMAIL_ACCOUNTS_SENDER,
         to=[settings.EMAIL_FEEDBACK],
         reply_to=[serializer.data["email"]],
     ).send()
@@ -58,7 +57,7 @@ def contact_service_api_view(request: Request):
             f"Interested in: {serializer.data.get('service')}\n"
             f"Message: {serializer.data.get('message')}\n"
         ),
-        from_email=settings.EMAIL_SENDER_NO_REPLY,
+        from_email=settings.EMAIL_ACCOUNTS_SENDER,
         to=[settings.EMAIL_SUPPORT],
         reply_to=[serializer.data["email"]],
     ).send()
@@ -82,44 +81,34 @@ def remove_article_api_view(request, pk):
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@cache_page(60)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_bulletins(request):
-    user = request.user
-    data = request.query_params
-    post_id = data.get("post_id")
-    project_slug = data.get("project_slug")  # maybe needs to be slug for simplicity
-
     bulletins = Bulletin.objects.filter(
         bulletin_start__lte=timezone.now(),
         bulletin_end__gte=timezone.now(),
-    )
+    ).order_by("-bulletin_start", "-created_at", "-pk")
 
-    if post_id:
-        bulletins = bulletins.filter(Q(post_id__isnull=True) | Q(post_id=post_id))
-    else:
-        bulletins = bulletins.filter(post_id__isnull=True)
-
-    if project_slug:
-        bulletins = bulletins.filter(
-            Q(project_id__isnull=True) | Q(project__slug=project_slug)
-        )
-    else:
-        bulletins = bulletins.filter(project_id__isnull=True)
-
-    bulletins_viewed_by_user = []
-    if user and user.is_authenticated:
-        bulletins_viewed_by_user = [
-            x.bulletin.pk for x in BulletinViewedBy.objects.filter(user=user).all()
-        ]
-
-    bulletins = [x for x in bulletins if x.pk not in bulletins_viewed_by_user]
     bulletins_ser = {
         "bulletins": [
             {"text": bulletin.text, "id": bulletin.pk} for bulletin in bulletins
         ]
     }
     return Response(bulletins_ser)
+
+
+@api_view(["GET"])
+def get_dismissed_bulletin_ids(request):
+    user = request.user
+    dismissed_bulletin_ids = list(
+        BulletinViewedBy.objects.filter(
+            user=user,
+            bulletin__bulletin_start__lte=timezone.now(),
+            bulletin__bulletin_end__gte=timezone.now(),
+        ).values_list("bulletin_id", flat=True)
+    )
+    return Response({"dismissed_bulletin_ids": dismissed_bulletin_ids})
 
 
 @cache_page(60 * 60 * 24)
@@ -147,10 +136,8 @@ def cancel_bulletin(request, pk):
     user = request.user
     if not user or not user.is_authenticated:
         return Response(status=status.HTTP_200_OK)
-    bulletin_viewed_by = BulletinViewedBy(
-        bulletin=Bulletin.objects.get(pk=pk), user=user
-    )
-    bulletin_viewed_by.save()
+    bulletin = get_object_or_404(Bulletin, pk=pk)
+    BulletinViewedBy.objects.get_or_create(bulletin=bulletin, user=user)
     return Response(status=status.HTTP_201_CREATED)
 
 
@@ -166,19 +153,19 @@ def sidebar_api_view(request: Request):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def get_whitelist_status_api_view(request: Request):
+def get_data_access_status_api_view(request: Request):
     data = request.query_params
     post_id = data.get("post_id")
     project_id = data.get("project_id")
     user = request.user if request.user.is_authenticated else None
 
-    is_whitelisted, view_deanonymized_data = get_whitelist_status(
+    has_data_access, view_deanonymized_data = get_data_access_status(
         user, post_id, project_id
     )
 
     return Response(
         {
-            "is_whitelisted": is_whitelisted,
+            "has_data_access": has_data_access,
             "view_deanonymized_data": view_deanonymized_data,
         },
         status=status.HTTP_200_OK,
