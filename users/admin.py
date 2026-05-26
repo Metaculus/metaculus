@@ -195,7 +195,7 @@ class BotInline(admin.TabularInline):
         "email",
         "is_active",
         "is_primary_bot",
-        "allow_public_comments_if_bot",
+        "allow_public_comments",
     ]
     readonly_fields = ["username", "email", "is_active", "is_bot"]
     extra = 0
@@ -219,7 +219,7 @@ class UserAdmin(admin.ModelAdmin):
         "is_spam",
         "is_bot",
         "is_primary_bot",
-        "allow_public_comments_if_bot",
+        "allow_public_comments",
         "bot_owner",
         "duration_joined_to_last_login",
         "authored_posts",

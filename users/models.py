@@ -156,12 +156,12 @@ class User(TimeStampedModel, AbstractUser):
             "and appears on leaderboards."
         ),
     )
-    allow_public_comments_if_bot = models.BooleanField(
-        default=False,
+    allow_public_comments = models.BooleanField(
+        default=True,
         help_text=(
-            "Allow this bot to post public comments. "
-            "By default, bots can only post private comments. "
-            "An admin can enable this for select bots."
+            "Whether this account may post public comments. "
+            "Enabled by default for human accounts. "
+            "Bots are disabled by default; an admin can enable this for select bots."
         ),
     )
     bot_owner = models.ForeignKey(
@@ -223,12 +223,6 @@ class User(TimeStampedModel, AbstractUser):
                 condition=models.Q(is_primary_bot=True),
                 name="unique_primary_bot_per_bot_owner",
                 violation_error_message="Bot owner could have only one primary bot",
-            ),
-            models.CheckConstraint(
-                check=models.Q(is_bot=True)
-                | models.Q(allow_public_comments_if_bot=False),
-                name="user_allow_public_comments_if_bot_only_for_bots",
-                violation_error_message="allow_public_comments_if_bot can only be set for bot accounts",
             ),
         ]
 
