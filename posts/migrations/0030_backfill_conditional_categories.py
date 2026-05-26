@@ -16,7 +16,11 @@ def backfill_conditional_categories(apps, schema_editor):
             "conditional__condition__post",
             "conditional__condition_child__post",
         )
-        .iterator()
+        .prefetch_related(
+            "conditional__condition__post__projects",
+            "conditional__condition_child__post__projects",
+        )
+        .iterator(chunk_size=500)
     )
 
     for post in conditional_posts:
@@ -26,13 +30,13 @@ def backfill_conditional_categories(apps, schema_editor):
         condition_post = conditional.condition.post
         if condition_post:
             categories_to_add.update(
-                condition_post.projects.filter(type=category_type)
+                p for p in condition_post.projects.all() if p.type == category_type
             )
 
         child_post = conditional.condition_child.post
         if child_post:
             categories_to_add.update(
-                child_post.projects.filter(type=category_type)
+                p for p in child_post.projects.all() if p.type == category_type
             )
 
         if categories_to_add:
