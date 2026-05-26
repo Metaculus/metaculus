@@ -795,7 +795,11 @@ def run_update_global_bot_leaderboard(
 
     # set up some user id sets & relevant exclusions
     excluded_ids: set[int | str] = set()
-    metac_bots = User.objects.filter(is_bot=True, metadata__bot_details__metac_bot=True)
+    # agent bots that have metac_bot=True in metadata but should not be scored
+    agent_bot_usernames = {"metac-azimuth", "metac-agent"}
+    metac_bots = User.objects.filter(
+        is_bot=True, metadata__bot_details__metac_bot=True
+    ).exclude(username__in=agent_bot_usernames)
     metac_bot_releases: dict[int, datetime] = {}
     for bot in metac_bots:
         release_iso = bot.metadata["bot_details"]["base_models"][0]["releaseDate"]
