@@ -12,15 +12,11 @@ def backfill_conditional_categories(apps, schema_editor):
 
     conditional_posts = (
         Post.objects.filter(conditional__isnull=False)
-        .select_related(
-            "conditional__condition__post",
-            "conditional__condition_child__post",
-        )
         .prefetch_related(
             "conditional__condition__post__projects",
             "conditional__condition_child__post__projects",
         )
-        .iterator(chunk_size=500)
+        .iterator(chunk_size=200)
     )
 
     for post in conditional_posts:
