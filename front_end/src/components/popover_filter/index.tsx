@@ -32,11 +32,17 @@ const Panel: FC<PropsWithChildren<PanelProps>> = ({
   useEffect(() => {
     if (!fullScreenEnabled || isLargeScreen) return;
 
-    if (open) {
-      document.body.style.overflow = "clip";
-    } else {
+    if (!open) {
       document.body.style.overflow = "auto";
+      return;
     }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "clip";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
   }, [fullScreenEnabled, isLargeScreen, open]);
 
   const usePortal = fullScreenEnabled && !isLargeScreen;
