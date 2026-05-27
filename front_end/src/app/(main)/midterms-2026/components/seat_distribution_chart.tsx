@@ -34,8 +34,22 @@ type Props = {
   ariaTitle: string;
 };
 
-const CHART_HEIGHT = 240;
-const CHART_PADDING = { top: 12, right: 20, bottom: 64, left: 48 };
+// Bigger SVG so the chart fills its column instead of being centered
+// with empty space on either side. The wrapper div is width:100% — the
+// browser scales this SVG to its container while preserving aspect.
+const CHART_WIDTH = 760;
+const CHART_HEIGHT = 320;
+const CHART_PADDING = { top: 16, right: 24, bottom: 56, left: 56 };
+
+// Shared text style for every piece of SVG text inside the chart so
+// the rendered fonts match the rest of the page (Inter via the CSS
+// variables registered in the root layout).
+const TEXT_FONT_FAMILY =
+  "var(--font-inter-variable), var(--font-inter), Inter, system-ui, sans-serif";
+const NEUTRAL_GRAY_FILL_LIGHT = "#D1D5DB";
+const NEUTRAL_GRAY_FILL_DARK = "#475569";
+const NEUTRAL_GRAY_STROKE_LIGHT = "#6B7280";
+const NEUTRAL_GRAY_STROKE_DARK = "#94A3B8";
 
 type Bin = {
   /** Bin midpoint in real-world x units. */
@@ -100,10 +114,28 @@ const SeatDistributionChart: FC<Props> = ({
 
   const { bins, domainMin, domainMax, isDiscrete, quartileXs } = data;
 
-  // Split bins at x=0 — bins fully on one side go to that side; the rare
-  // bin that straddles zero is assigned by its midpoint.
-  const negBins = bins.filter((b) => b.x <= 0);
-  const posBins = bins.filter((b) => b.x > 0);
+  // Identify the "even" bin — the integer bar closest to zero. For the
+  // Senate Discrete chart this is the standalone EVEN bin rendered in
+  // neutral gray. For Continuous (House) we just use it as the splitter
+  // and don't render a separate gray segment.
+  const evenBinIndex = bins.reduce(
+    (closestIdx, b, i) =>
+      Math.abs(b.x) < Math.abs(bins[closestIdx]?.x ?? Infinity)
+        ? i
+        : closestIdx,
+    0
+  );
+  const evenBin = bins[evenBinIndex];
+
+  // Split bins at the even bin so neither side includes it. Bins on the
+  // left of EVEN go blue (dem), bins on the right go red (rep), the
+  // even bin renders separately in gray (Senate only).
+  const negBins = bins.filter(
+    (b, i) => i !== evenBinIndex && b.x < (evenBin?.x ?? 0)
+  );
+  const posBins = bins.filter(
+    (b, i) => i !== evenBinIndex && b.x > (evenBin?.x ?? 0)
+  );
 
   // Theme-aware color tokens.
   const demFill = isDark
@@ -120,12 +152,27 @@ const SeatDistributionChart: FC<Props> = ({
     : MIDTERMS_COLORS.repBorder;
   const axisColor = isDark ? "#94A3B8" : "#475569";
   const tickColor = isDark ? "#CBD5E1" : "#334155";
+  const neutralFill = isDark ? NEUTRAL_GRAY_FILL_DARK : NEUTRAL_GRAY_FILL_LIGHT;
+  const neutralStroke = isDark
+    ? NEUTRAL_GRAY_STROKE_DARK
+    : NEUTRAL_GRAY_STROKE_LIGHT;
 
   const FILL_OPACITY = 0.5;
   const STROKE_WIDTH = 1.2;
   // Max bin height — used to size quartile dashes and the EVEN
   // annotation. Cached so we don't recompute it across renders.
   const maxY = bins.length ? Math.max(...bins.map((b) => b.y)) : 0;
+
+  // Explicit bar width derived from the available plot area divided by
+  // the bin count. Using `barRatio` alone meant Victory's auto-sizing
+  // computed widths from data-point spacing, which is non-uniform when
+  // the question's scale carries a non-null `zero_point` (logarithmic
+  // stretch). With a fixed pixel width every integer bar is identical,
+  // matching the upstream discrete histogram.
+  const plotInnerWidth = CHART_WIDTH - CHART_PADDING.left - CHART_PADDING.right;
+  const barWidth = isDiscrete
+    ? Math.max(2, Math.floor((plotInnerWidth / bins.length) * 0.92))
+    : undefined;
 
   // For the Continuous area to meet cleanly at x=0, anchor each side
   // with a y=0 vertex at zero.
@@ -174,13 +221,14 @@ const SeatDistributionChart: FC<Props> = ({
         fill: tickColor,
         fontSize: 10,
         fontWeight: 500,
+        fontFamily: TEXT_FONT_FAMILY,
+        fontVariantNumeric: "tabular-nums",
       }}
       pointerLength={6}
       constrainToVisibleArea
     />
   );
 
-  const CHART_WIDTH = 520;
   // Center pixel of the plot area — used to anchor the EVEN annotation
   // on the Discrete (Senate) chart.
   const plotCenterX =
@@ -215,7 +263,7 @@ const SeatDistributionChart: FC<Props> = ({
                 strokeWidth: STROKE_WIDTH,
               },
             }}
-            barRatio={0.5}
+            barWidth={barWidth}
           />
         ) : (
           <VictoryArea
@@ -232,6 +280,23 @@ const SeatDistributionChart: FC<Props> = ({
           />
         )}
 
+        {/* Neutral EVEN bin — Discrete (Senate) only. The bar closest to
+            x=0 reads as "no advantage" and gets a gray treatment. */}
+        {isDiscrete && evenBin && (
+          <VictoryBar
+            data={[evenBin]}
+            style={{
+              data: {
+                fill: neutralFill,
+                fillOpacity: FILL_OPACITY,
+                stroke: neutralStroke,
+                strokeWidth: STROKE_WIDTH,
+              },
+            }}
+            barWidth={barWidth}
+          />
+        )}
+
         {/* Positive-side fill — Rep advantage. */}
         {isDiscrete ? (
           <VictoryBar
@@ -244,7 +309,7 @@ const SeatDistributionChart: FC<Props> = ({
                 strokeWidth: STROKE_WIDTH,
               },
             }}
-            barRatio={0.5}
+            barWidth={barWidth}
           />
         ) : (
           <VictoryArea
@@ -310,28 +375,40 @@ const SeatDistributionChart: FC<Props> = ({
           />
         )}
 
-        {/* X axis: numeric ticks + party labels below. */}
+        {/* X axis: numeric ticks. */}
         <VictoryAxis
           tickValues={xTicks}
           tickFormat={formatXTick}
           style={{
             axis: { stroke: axisColor, strokeWidth: 1 },
             ticks: { stroke: axisColor, size: 5 },
-            tickLabels: { fill: tickColor, fontSize: 11, padding: 6 },
+            tickLabels: {
+              fill: tickColor,
+              fontSize: 11,
+              padding: 6,
+              fontFamily: TEXT_FONT_FAMILY,
+              fontVariantNumeric: "tabular-nums",
+            },
           }}
         />
 
-        {/* Y axis: percentages. `crossAxis={false}` keeps it pinned to
-            the left edge of the chart (otherwise Victory crosses it at
-            x = 0, which lands smack in the middle of our signed domain). */}
+        {/* Y axis: percentages. `offsetX` pins it to the left padding
+            edge — without it, Victory would cross the X axis at its
+            origin (x = 0), which is the middle of our signed domain. */}
         <VictoryAxis
           dependentAxis
-          crossAxis={false}
+          offsetX={CHART_PADDING.left}
           tickFormat={(t: number) => `${t.toFixed(0)}%`}
           style={{
             axis: { stroke: axisColor, strokeWidth: 1 },
             ticks: { stroke: axisColor, size: 4 },
-            tickLabels: { fill: tickColor, fontSize: 11, padding: 6 },
+            tickLabels: {
+              fill: tickColor,
+              fontSize: 11,
+              padding: 6,
+              fontFamily: TEXT_FONT_FAMILY,
+              fontVariantNumeric: "tabular-nums",
+            },
             grid: { stroke: "transparent" },
           }}
         />
@@ -340,7 +417,7 @@ const SeatDistributionChart: FC<Props> = ({
       {/* Party advantage labels — HTML overlay below the chart so we
           don't need VictoryLabel at the top level of VictoryChart. */}
       <div
-        className="pointer-events-none absolute bottom-1 flex w-full justify-around text-[11px] font-semibold"
+        className="pointer-events-none absolute bottom-1 flex w-full justify-around font-sans text-[11px] font-semibold"
         style={{
           left: 0,
           paddingLeft: `${(CHART_PADDING.left / CHART_WIDTH) * 100}%`,
@@ -353,18 +430,17 @@ const SeatDistributionChart: FC<Props> = ({
 
       {/* EVEN annotation — Discrete only. Rendered as an HTML overlay
           positioned at the plot-area horizontal center so we don't have
-          to fight Victory's coordinate system. The Senate chart's
-          domain is centered on zero, so the plot midpoint is x=0. */}
+          to fight Victory's coordinate system. */}
       {isDiscrete && (
         <span
-          className="pointer-events-none absolute text-[10px] font-bold uppercase tracking-widest text-blue-700 dark:text-blue-700-dark"
+          className="pointer-events-none absolute font-sans text-[10px] font-bold uppercase tracking-widest text-blue-700 dark:text-blue-700-dark"
           style={{
             // Match the chart's SVG coordinate space — the wrapper
             // <div> is `relative`; the chart's intrinsic SVG width is
-            // CHART_WIDTH (520) which the browser scales responsively,
-            // so we position by percentage.
+            // CHART_WIDTH which the browser scales responsively, so we
+            // position by percentage.
             left: `${(plotCenterX / CHART_WIDTH) * 100}%`,
-            top: "32%",
+            top: "30%",
             transform: "translateX(-50%)",
           }}
         >
