@@ -107,6 +107,7 @@ class UserPrivateSerializer(UserPublicSerializer):
             "interface_type",
             "language",
             "api_access_tier",
+            "api_forecasting_access",
             "is_primary_bot",
             "has_password",
             "metaculus_news_subscription",
@@ -203,6 +204,7 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
             "follow_notify_milestone_step",
             "follow_notify_on_status_change",
             "metaculus_news_subscription",
+            "api_forecasting_access",
         )
 
 

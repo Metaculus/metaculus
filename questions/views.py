@@ -120,7 +120,6 @@ def bulk_create_forecasts_api_view(request):
             raise ValidationError(f"Wrong question id {forecast['question']}")
 
         forecast["question"] = question  # used in create_foreacst_bulk
-        forecast["source"] = source
 
         # Check permissions
         permission = get_post_permission_for_user(
@@ -147,7 +146,7 @@ def bulk_create_forecasts_api_view(request):
                 status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
 
-    create_forecast_bulk(user=request.user, forecasts=validated_data)
+    create_forecast_bulk(user=request.user, forecasts=validated_data, source=source)
 
     return Response({}, status=status.HTTP_201_CREATED)
 
@@ -242,10 +241,10 @@ def create_binary_forecast_oldapi_view(request, pk: int):
             {
                 "question": question,
                 "probability_yes": probability,
-                # Old endpoint requests are always API
-                "source": Forecast.SourceChoices.API,
             }
         ],
+        # Old endpoint requests are always API
+        source=Forecast.SourceChoices.API,
     )
 
     return Response({}, status=status.HTTP_201_CREATED)
@@ -309,7 +308,7 @@ def questions_community_predictions(request) -> Response:
         if agg:
             pmf = agg.get_pmf()
             pmf = [
-                v if not np.isnan(v) else None for v in pmf
+                None if (v is None or np.isnan(v)) else v for v in pmf
             ]  # Convert NaNs to None for JSON serialization
             results.append(
                 {

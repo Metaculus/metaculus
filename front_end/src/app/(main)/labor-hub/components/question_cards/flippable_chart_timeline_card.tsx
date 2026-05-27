@@ -5,7 +5,6 @@ import {
 import { ReactNode, Suspense } from "react";
 
 import { GroupTimelineMarker } from "@/components/charts/primitives/timeline_markers/types";
-import ServerPostsApi from "@/services/api/posts/posts.server";
 
 import { BasicQuestionContent } from "./basic_question";
 import {
@@ -19,6 +18,7 @@ import {
 } from "./multi_question_line_chart";
 import { NoQuestionPlaceholder } from "./placeholder";
 import { QuestionCard, QuestionCardSkeleton } from "./question_card";
+import { fetchLaborHubPost } from "../../helpers/labor_hub_posts";
 
 type FlippableChartTimelineCardProps = {
   questionId: number;
@@ -62,8 +62,12 @@ async function FlippableChartTimelineContent({
 }: FlippableChartTimelineCardProps) {
   let postData;
   try {
-    postData = await ServerPostsApi.getPost(questionId, true);
+    postData = await fetchLaborHubPost(questionId);
   } catch {
+    postData = null;
+  }
+
+  if (!postData) {
     return (
       <QuestionCard
         title={title || fallbackTitle}

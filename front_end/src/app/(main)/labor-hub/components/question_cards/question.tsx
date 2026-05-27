@@ -9,7 +9,6 @@ import {
 import { ReactNode, Suspense } from "react";
 
 import { GroupTimelineMarker } from "@/components/charts/primitives/timeline_markers/types";
-import ServerPostsApi from "@/services/api/posts/posts.server";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import {
@@ -22,6 +21,7 @@ import { BasicQuestionContent } from "./basic_question";
 import { FlippableQuestionCard } from "./flippable_question_card";
 import { NoQuestionPlaceholder } from "./placeholder";
 import { QuestionCard, QuestionCardSkeleton } from "./question_card";
+import { fetchLaborHubPost } from "../../helpers/labor_hub_posts";
 
 function getLeftIcon(postData: PostWithForecasts, subQuestionId?: number) {
   if (isMultipleChoicePost(postData) && !subQuestionId) {
@@ -102,8 +102,12 @@ async function QuestionContent({
 }: QuestionLoaderProps) {
   let postData;
   try {
-    postData = await ServerPostsApi.getPost(questionId, true);
+    postData = await fetchLaborHubPost(questionId);
   } catch {
+    postData = null;
+  }
+
+  if (!postData) {
     return (
       <QuestionCard
         title={title || fallbackTitle}
@@ -190,7 +194,7 @@ async function QuestionContent({
 
 /**
  * Server-side question loader with Suspense for async data fetching.
- * Uses ServerPostsApi.getPost to fetch post data on the server.
+ * Uses the Labor Hub post data layer to fetch post data on the server.
  */
 export function QuestionLoader({
   questionId,

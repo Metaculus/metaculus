@@ -5,7 +5,8 @@ from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin, messages
 from django.contrib.admin.models import CHANGE, LogEntry
 from django.db.models import Count, Exists, OuterRef, Q, F, QuerySet
-from django.urls import reverse
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import path, reverse
 from django.utils.html import format_html
 from sql_util.aggregates import SubqueryAggregate
 
@@ -189,7 +190,13 @@ class ProjectUserPermissionInline(admin.TabularInline):
 class BotInline(admin.TabularInline):
     model = User
     fk_name = "bot_owner"
-    fields = ["username", "email", "is_active", "is_primary_bot"]
+    fields = [
+        "username",
+        "email",
+        "is_active",
+        "is_primary_bot",
+        "allow_public_comments",
+    ]
     readonly_fields = ["username", "email", "is_active", "is_bot"]
     extra = 0
     show_change_link = True
@@ -203,6 +210,7 @@ class BotInline(admin.TabularInline):
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
+    change_form_template = "admin/users/user_change_form.html"
     list_display = [
         "username",
         "id",
@@ -211,6 +219,7 @@ class UserAdmin(admin.ModelAdmin):
         "is_spam",
         "is_bot",
         "is_primary_bot",
+        "allow_public_comments",
         "bot_owner",
         "duration_joined_to_last_login",
         "authored_posts",
@@ -375,6 +384,29 @@ class UserAdmin(admin.ModelAdmin):
             )
 
     generate_password_reset_links.short_description = "Generate password reset link"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "<int:user_id>/privatize-comments/",
+                self.admin_site.admin_view(self.privatize_comments_view),
+                name="privatize-user-comments",
+            ),
+        ]
+        return custom_urls + urls
+
+    def privatize_comments_view(self, request, user_id):
+        from comments.services.common import privatize_user_comments
+
+        user = get_object_or_404(User, pk=user_id)
+        count = privatize_user_comments(user)
+        self.message_user(
+            request,
+            f"Privatized {count} comment(s) for {user.username}.",
+            level=messages.SUCCESS,
+        )
+        return redirect("admin:users_user_change", user_id)
 
     def get_fields(self, request, obj=None):
         fields = list(super().get_fields(request, obj))

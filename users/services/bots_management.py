@@ -1,5 +1,6 @@
 from rest_framework.exceptions import ValidationError
 
+from users.constants import ApiForecastingAccess
 from users.models import User
 
 
@@ -25,6 +26,7 @@ def create_bot(*, bot_owner: User, username: str, **kwargs) -> User:
         language=bot_owner.language,
         app_theme=bot_owner.app_theme,
         newsletter_optin=False,
+        api_forecasting_access=ApiForecastingAccess.ENABLED,
         **kwargs,
     )
 
