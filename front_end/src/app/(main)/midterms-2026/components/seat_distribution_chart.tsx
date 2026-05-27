@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useMemo } from "react";
+import { FC, useId, useMemo } from "react";
 import {
   VictoryArea,
   VictoryAxis,
@@ -48,8 +48,6 @@ const TEXT_FONT_FAMILY =
   "var(--font-inter-variable), var(--font-inter), Inter, system-ui, sans-serif";
 const NEUTRAL_GRAY_FILL_LIGHT = "#D1D5DB";
 const NEUTRAL_GRAY_FILL_DARK = "#475569";
-const NEUTRAL_GRAY_STROKE_LIGHT = "#6B7280";
-const NEUTRAL_GRAY_STROKE_DARK = "#94A3B8";
 
 type Bin = {
   /** Bin midpoint in real-world x units. */
@@ -68,6 +66,11 @@ const SeatDistributionChart: FC<Props> = ({
   ariaTitle,
 }) => {
   const isDark = useIsDark();
+  // Unique gradient ids — declared before any early return so the
+  // useId hook stays in the same order across renders.
+  const reactId = useId().replace(/:/g, "");
+  const fillGradientId = `seat-fill-${reactId}`;
+  const strokeGradientId = `seat-stroke-${reactId}`;
 
   const question = post.question as QuestionWithNumericForecasts | undefined;
 
@@ -153,12 +156,15 @@ const SeatDistributionChart: FC<Props> = ({
   const axisColor = isDark ? "#94A3B8" : "#475569";
   const tickColor = isDark ? "#CBD5E1" : "#334155";
   const neutralFill = isDark ? NEUTRAL_GRAY_FILL_DARK : NEUTRAL_GRAY_FILL_LIGHT;
-  const neutralStroke = isDark
-    ? NEUTRAL_GRAY_STROKE_DARK
-    : NEUTRAL_GRAY_STROKE_LIGHT;
 
-  const FILL_OPACITY = 0.5;
-  const STROKE_WIDTH = 1.2;
+  // Bars carry their identity through fill alone (no stroke — strokes
+  // were making adjacent bars look like they were touching). Areas keep
+  // their stroke as an outline since fill alone doesn't read on the
+  // smooth Continuous curve.
+  const BAR_FILL_OPACITY = 0.7;
+  const BAR_FILL_OPACITY_HOVER = 1;
+  const AREA_FILL_OPACITY = 0.5;
+  const AREA_STROKE_WIDTH = 1.4;
   // Max bin height — used to size quartile dashes and the EVEN
   // annotation. Cached so we don't recompute it across renders.
   const maxY = bins.length ? Math.max(...bins.map((b) => b.y)) : 0;
@@ -174,14 +180,14 @@ const SeatDistributionChart: FC<Props> = ({
     ? Math.max(2, Math.floor((plotInnerWidth / bins.length) * 0.92))
     : undefined;
 
-  // For the Continuous area to meet cleanly at x=0, anchor each side
-  // with a y=0 vertex at zero.
-  const negArea = isDiscrete
-    ? negBins
-    : [...negBins, { x: 0, y: 0, xLeft: 0, xRight: 0 }];
-  const posArea = isDiscrete
-    ? posBins
-    : [{ x: 0, y: 0, xLeft: 0, xRight: 0 }, ...posBins];
+  // Where x=0 falls inside the plot, as a 0-1 fraction. Drives the
+  // hard-edge gradient stop for the Continuous area fill+stroke so the
+  // dem/rep color split happens exactly at x=0 without forcing the
+  // curve to dip to y=0 there (the cause of the visible "0%" notch
+  // before this fix).
+  const zeroFraction =
+    domainMax === domainMin ? 0.5 : (0 - domainMin) / (domainMax - domainMin);
+  const zeroStopPct = `${(zeroFraction * 100).toFixed(2)}%`;
 
   // Axis tick math — handpick a few evenly spaced ticks on each side.
   // Always round to whole numbers and dedupe; the seat advantage is an
@@ -234,8 +240,45 @@ const SeatDistributionChart: FC<Props> = ({
   const plotCenterX =
     (CHART_PADDING.left + (CHART_WIDTH - CHART_PADDING.right)) / 2;
 
+  // Per-bar fillOpacity callback — Victory's voronoi container sets
+  // `active: true` on the data point matching the cursor's x, so the
+  // bar under the cursor lights up. Matches the prediction-input
+  // discrete histogram's hover behavior.
+  const barFillOpacity = ({ active }: { active?: boolean }) =>
+    active ? BAR_FILL_OPACITY_HOVER : BAR_FILL_OPACITY;
+
   return (
     <div className="relative w-full" aria-label={ariaTitle} role="img">
+      {/* Hard-edge linear gradient that snaps from dem fill to rep fill
+          exactly at x=0. Registered in a hidden <svg> so it lives in
+          the document's defs scope and other SVGs can reference it by
+          id. Used by the Continuous (House) area below. */}
+      <svg
+        width={0}
+        height={0}
+        style={{ position: "absolute", pointerEvents: "none" }}
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id={fillGradientId} x1="0" x2="1" y1="0" y2="0">
+            <stop
+              offset={zeroStopPct}
+              stopColor={demFill}
+              stopOpacity={AREA_FILL_OPACITY}
+            />
+            <stop
+              offset={zeroStopPct}
+              stopColor={repFill}
+              stopOpacity={AREA_FILL_OPACITY}
+            />
+          </linearGradient>
+          <linearGradient id={strokeGradientId} x1="0" x2="1" y1="0" y2="0">
+            <stop offset={zeroStopPct} stopColor={demStroke} />
+            <stop offset={zeroStopPct} stopColor={repStroke} />
+          </linearGradient>
+        </defs>
+      </svg>
+
       <VictoryChart
         width={CHART_WIDTH}
         height={CHART_HEIGHT}
@@ -251,75 +294,50 @@ const SeatDistributionChart: FC<Props> = ({
           />
         }
       >
-        {/* Negative-side fill — Dem advantage. */}
-        {isDiscrete ? (
+        {/* Discrete (Senate): three VictoryBar series — neg / even /
+            pos — each with its own solid fill and no stroke. Strokes
+            were what made adjacent bars look like they were touching;
+            without them, the bin-to-bin gap reads cleanly. */}
+        {isDiscrete && (
           <VictoryBar
             data={negBins}
             style={{
-              data: {
-                fill: demFill,
-                fillOpacity: FILL_OPACITY,
-                stroke: demStroke,
-                strokeWidth: STROKE_WIDTH,
-              },
+              data: { fill: demFill, fillOpacity: barFillOpacity },
             }}
             barWidth={barWidth}
           />
-        ) : (
-          <VictoryArea
-            data={negArea}
-            style={{
-              data: {
-                fill: demFill,
-                fillOpacity: FILL_OPACITY,
-                stroke: demStroke,
-                strokeWidth: STROKE_WIDTH,
-              },
-            }}
-            interpolation="monotoneX"
-          />
         )}
-
-        {/* Neutral EVEN bin — Discrete (Senate) only. The bar closest to
-            x=0 reads as "no advantage" and gets a gray treatment. */}
         {isDiscrete && evenBin && (
           <VictoryBar
             data={[evenBin]}
             style={{
-              data: {
-                fill: neutralFill,
-                fillOpacity: FILL_OPACITY,
-                stroke: neutralStroke,
-                strokeWidth: STROKE_WIDTH,
-              },
+              data: { fill: neutralFill, fillOpacity: barFillOpacity },
+            }}
+            barWidth={barWidth}
+          />
+        )}
+        {isDiscrete && (
+          <VictoryBar
+            data={posBins}
+            style={{
+              data: { fill: repFill, fillOpacity: barFillOpacity },
             }}
             barWidth={barWidth}
           />
         )}
 
-        {/* Positive-side fill — Rep advantage. */}
-        {isDiscrete ? (
-          <VictoryBar
-            data={posBins}
-            style={{
-              data: {
-                fill: repFill,
-                fillOpacity: FILL_OPACITY,
-                stroke: repStroke,
-                strokeWidth: STROKE_WIDTH,
-              },
-            }}
-            barWidth={barWidth}
-          />
-        ) : (
+        {/* Continuous (House): ONE area covering every bin. The fill and
+            stroke use the dem→rep linear gradient defined above so the
+            color split happens at x=0 without introducing a y=0 vertex
+            (which used to produce a visible dip / "0%" notch). */}
+        {!isDiscrete && (
           <VictoryArea
-            data={posArea}
+            data={bins}
             style={{
               data: {
-                fill: repFill,
-                fillOpacity: FILL_OPACITY,
-                stroke: repStroke,
-                strokeWidth: STROKE_WIDTH,
+                fill: `url(#${fillGradientId})`,
+                stroke: `url(#${strokeGradientId})`,
+                strokeWidth: AREA_STROKE_WIDTH,
               },
             }}
             interpolation="monotoneX"
@@ -428,20 +446,18 @@ const SeatDistributionChart: FC<Props> = ({
         <span style={{ color: repStroke }}>{repAdvantageLabel}</span>
       </div>
 
-      {/* EVEN annotation — Discrete only. Rendered as an HTML overlay
-          positioned at the plot-area horizontal center so we don't have
-          to fight Victory's coordinate system. */}
+      {/* EVEN annotation — Discrete only. HTML overlay positioned over
+          the gray center bar; rotated 90° so it reads top-to-bottom
+          inside the narrow bar. */}
       {isDiscrete && (
         <span
           className="pointer-events-none absolute font-sans text-[10px] font-bold uppercase tracking-widest text-blue-700 dark:text-blue-700-dark"
           style={{
-            // Match the chart's SVG coordinate space — the wrapper
-            // <div> is `relative`; the chart's intrinsic SVG width is
-            // CHART_WIDTH which the browser scales responsively, so we
-            // position by percentage.
+            // Position relative to the responsively-scaled SVG via
+            // percentages of CHART_WIDTH.
             left: `${(plotCenterX / CHART_WIDTH) * 100}%`,
-            top: "30%",
-            transform: "translateX(-50%)",
+            top: "50%",
+            transform: "translate(-50%, -50%) rotate(90deg)",
           }}
         >
           {evenLabel}
