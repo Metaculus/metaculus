@@ -16,7 +16,7 @@ import {
 
 type Props = {
   question: QuestionWithForecasts;
-  size?: "md" | "lg";
+  size?: "sm" | "md" | "lg";
   variant?: "feed" | "question";
   colorOverride?: string;
   overrideCenter?: number | null;
@@ -94,7 +94,9 @@ const ContinuousCPBar: FC<Props> = ({
     >
       <div
         style={accentStyle}
-        className={cn("text-sm font-bold md:text-base", {
+        className={cn("font-bold", {
+          "text-xs md:text-sm": size === "sm",
+          "text-sm md:text-base": size === "md",
           "mb-1 text-base": size === "lg",
           "mb-0 truncate text-sm md:text-sm": isEmbed,
           "text-olive-800 dark:text-olive-800-dark":
@@ -114,7 +116,8 @@ const ContinuousCPBar: FC<Props> = ({
       {!isNil(intervalLabel) && !isEmbedBelow376 && (
         <div
           style={accentStyle}
-          className={cn("text-[10px] font-normal tabular-nums md:text-xs", {
+          className={cn("font-normal tabular-nums", {
+            "text-[10px] md:text-xs": size === "md" || size === "sm",
             "text-sm": size === "lg",
             "mb-0 text-xs md:text-xs": isEmbed && !isEmbedWide,
             "mb-0 text-sm md:text-sm": isEmbedWide,

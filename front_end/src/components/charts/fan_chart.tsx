@@ -241,8 +241,13 @@ const FanChart: FC<Props> = ({
     [normOptions, height, effectiveVariant, fixedYDomain, forFeedPage]
   );
 
+  const xCategories = useMemo(
+    () => normOptions.map((o) => o.name),
+    [normOptions]
+  );
+
   const labels = adjustLabelsForDisplay(
-    normOptions.map((o) => ({ name: o.name })),
+    xCategories.map((name) => ({ name })),
     chartWidth,
     actualTheme
   );
@@ -294,6 +299,7 @@ const FanChart: FC<Props> = ({
       maxLeftPadding: effectiveMaxLeftPadding,
       maxRightPadding: effectiveMaxRightPadding,
       isEmbedded,
+      forFeedPage,
       getThemeColor,
     }),
     [
@@ -303,6 +309,7 @@ const FanChart: FC<Props> = ({
       effectiveMaxLeftPadding,
       effectiveMaxRightPadding,
       isEmbedded,
+      forFeedPage,
       getThemeColor,
     ]
   );
@@ -532,6 +539,7 @@ const FanChart: FC<Props> = ({
               width={chartWidth}
               height={height}
               theme={actualTheme}
+              categories={xCategories.length ? { x: xCategories } : undefined}
               domain={{ y: yDomain }}
               domainPadding={v.domainPadding(variantArgs)}
               padding={chartPadding}
@@ -596,7 +604,7 @@ const FanChart: FC<Props> = ({
 
               <VictoryPortal>
                 <VictoryAxis
-                  tickValues={normOptions.map((o) => o.name)}
+                  tickValues={xCategories}
                   tickFormat={hideCP ? () => "" : (_, i) => labels[i] ?? ""}
                   style={v.xAxisStyle({
                     tickLabelFontSize,

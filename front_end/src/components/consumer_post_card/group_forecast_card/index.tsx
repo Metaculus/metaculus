@@ -18,9 +18,15 @@ type Props = {
   post: PostWithForecasts;
   compact?: boolean;
   buttonVariant?: "primary" | "minimal";
+  forFeedPage?: boolean;
 };
 
-const GroupForecastCard: FC<Props> = ({ post, compact, buttonVariant }) => {
+const GroupForecastCard: FC<Props> = ({
+  post,
+  compact,
+  buttonVariant,
+  forFeedPage,
+}) => {
   // Check forecast availability for group posts
   const forecastAvailability = post.group_of_questions
     ? getGroupForecastAvailability(post.group_of_questions.questions)
@@ -41,7 +47,7 @@ const GroupForecastCard: FC<Props> = ({ post, compact, buttonVariant }) => {
 
     // Don't render TimeSeriesChart if should hide chart
     return shouldHideChart ? null : (
-      <TimeSeriesChart questions={sortedQuestions} />
+      <TimeSeriesChart questions={sortedQuestions} forFeedPage={forFeedPage} />
     );
   }
   if (

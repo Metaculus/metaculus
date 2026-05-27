@@ -44,6 +44,7 @@ type Props = {
   variant?: "default" | "colorful";
   onBarHover?: (label: string | null) => void;
   hoveredBarLabel?: string | null;
+  forFeedPage?: boolean;
 };
 
 const MULTIPLE_CHOICE_COLOR_SCALE = Object.values(
@@ -105,6 +106,7 @@ const TimeSeriesChart: FC<Props> = ({
   variant = "default",
   onBarHover,
   hoveredBarLabel,
+  forFeedPage = false,
 }) => {
   const { theme, getThemeColor } = useAppTheme();
   const locale = useLocale();
@@ -148,6 +150,9 @@ const TimeSeriesChart: FC<Props> = ({
   );
 
   const allQuestionsEmpty = adjustedChartData.every((datum) => datum.isEmpty);
+  const reservedChartHeight = chartData.every((datum) => datum.isEmpty)
+    ? 46
+    : height;
 
   // Forecast availabilities map
   const questionAvailabilities = useMemo(
@@ -216,12 +221,17 @@ const TimeSeriesChart: FC<Props> = ({
     if (onBarHover) onBarHover(null);
   };
 
-  const chartHeight = allQuestionsEmpty ? 46 : height;
+  const chartHeight = forFeedPage
+    ? reservedChartHeight
+    : allQuestionsEmpty
+      ? 46
+      : height;
 
   return (
     <div
       ref={chartContainerRef}
       className="TimeSeriesChart relative w-full"
+      style={forFeedPage ? { minHeight: reservedChartHeight } : undefined}
       onMouseMove={onBarHover ? handleMouseMove : undefined}
       onMouseLeave={onBarHover ? handleMouseLeave : undefined}
     >

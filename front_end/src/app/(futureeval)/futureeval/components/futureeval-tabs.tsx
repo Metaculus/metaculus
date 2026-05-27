@@ -1,5 +1,7 @@
 import React from "react";
 
+import { SearchParams } from "@/types/navigation";
+
 import FutureEvalBenchmarkTab from "./benchmark/futureeval-benchmark-tab";
 import FutureEvalMethodologyTab from "./futureeval-methodology-tab";
 import FutureEvalParticipateTab from "./futureeval-participate-tab";
@@ -9,9 +11,10 @@ import FutureEvalNewsTab from "./news/futureeval-news-tab";
 
 type Props = {
   current: Section["value"];
+  searchParams?: SearchParams;
 };
 
-const FutureEvalTabs: React.FC<Props> = async ({ current }) => {
+const FutureEvalTabs: React.FC<Props> = async ({ current, searchParams }) => {
   const sections: Section[] = [
     {
       value: "benchmark",
@@ -41,7 +44,7 @@ const FutureEvalTabs: React.FC<Props> = async ({ current }) => {
       value: "news",
       href: "/futureeval/news",
       label: "News",
-      content: <FutureEvalNewsTab />,
+      content: <FutureEvalNewsTab searchParams={searchParams} />,
     },
   ];
 

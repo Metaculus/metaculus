@@ -66,7 +66,7 @@ const PaginatedCommunitiesFeed: FC<Props> = ({
   };
 
   return (
-    <div className="max-w-[780px]">
+    <div className="mx-auto max-w-[780px]">
       <div className="mb-4 rounded-md border border-purple-300 bg-purple-100 px-5 py-4 text-base font-normal leading-6 dark:border-purple-300-dark dark:bg-purple-100-dark">
         {t.rich("introducingCommunities", {
           bold: (chunks) => (

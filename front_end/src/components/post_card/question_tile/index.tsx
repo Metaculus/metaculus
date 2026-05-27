@@ -33,6 +33,7 @@ type Props = {
   showChart?: boolean;
   canPredict?: boolean;
   minimalistic?: boolean;
+  forFeedPage?: boolean;
 };
 
 const QuestionTile: FC<Props> = ({
@@ -43,6 +44,7 @@ const QuestionTile: FC<Props> = ({
   canPredict,
   showChart,
   minimalistic,
+  forFeedPage,
 }) => {
   const t = useTranslations();
   const locale = useLocale();
@@ -124,6 +126,7 @@ const QuestionTile: FC<Props> = ({
           canPredict={canPredict}
           showChart={showChart}
           minimalistic={minimalistic}
+          forFeedPage={forFeedPage}
         />
       );
     }
