@@ -13,14 +13,14 @@ import ContinuousCPBar from "@/components/post_card/question_tile/continuous_cp_
 import { POST_TEXT_SEARCH_FILTER } from "@/constants/posts_feed";
 import HideCPProvider, { useHideCP } from "@/contexts/cp_context";
 import { PostWithForecasts, QuestionStatus } from "@/types/post";
-import {
-  QuestionType,
-  QuestionWithForecasts,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
+import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { getPostLink } from "@/utils/navigation";
-import { isNotebookPost, isQuestionPost } from "@/utils/questions/helpers";
+import {
+  isContinuousQuestion,
+  isNotebookPost,
+  isQuestionPost,
+} from "@/utils/questions/helpers";
 
 type Props = {
   post: PostWithForecasts;
@@ -253,15 +253,5 @@ const CompactCPSection: FC<{ post: PostWithForecasts }> = ({ post }) => {
 
   return null;
 };
-
-function isContinuousQuestion(
-  question: QuestionWithForecasts
-): question is QuestionWithNumericForecasts {
-  return (
-    question.type === QuestionType.Numeric ||
-    question.type === QuestionType.Discrete ||
-    question.type === QuestionType.Date
-  );
-}
 
 export default CompactSearchPostCard;

@@ -26,6 +26,7 @@ import { InterfaceType } from "@/types/users";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
+import { getPageNumberFromParam } from "@/utils/posts_feed";
 import { isNotebookPost } from "@/utils/questions/helpers";
 
 import { FeedItem, buildFeedItems } from "./build_feed_items";
@@ -46,12 +47,6 @@ const EMPTY_PROJECT_TILES: FeedProjectTile[] = [];
 
 function shouldShowProjectTilesForParams(params: URLSearchParams) {
   return Array.from(params.keys()).every((key) => key === POST_PAGE_FILTER);
-}
-
-function getPageNumberFromParam(pageNumberParam: string | null) {
-  const pageNumber = Number(pageNumberParam);
-
-  return Number.isFinite(pageNumber) && pageNumber > 0 ? pageNumber : 1;
 }
 
 type Props = {
