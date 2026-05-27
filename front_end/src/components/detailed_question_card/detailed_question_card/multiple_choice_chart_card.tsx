@@ -33,6 +33,7 @@ type Props = {
   forecastAvailability?: ForecastAvailability;
   onLegendHeightChange?: (height: number) => void;
   hideTitle?: boolean;
+  isConsumerView?: boolean;
 };
 
 const DetailedMultipleChoiceChartCard: FC<Props> = ({
@@ -45,6 +46,7 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
   forecastAvailability,
   onLegendHeightChange,
   hideTitle,
+  isConsumerView,
 }) => {
   const t = useTranslations();
   const [isChartHovered, setIsChartHovered] = useState(false);
@@ -308,6 +310,7 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
       defaultZoom={defaultZoom}
       forecastAvailability={forecastAvailability}
       openTime={openTime}
+      withLegend={!isConsumerView}
     />
   );
 };

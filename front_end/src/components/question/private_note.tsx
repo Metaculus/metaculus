@@ -17,6 +17,7 @@ import { formatDate } from "@/utils/formatters/date";
 
 type Props = {
   post: Post;
+  hideToggle?: boolean;
 };
 
 const SavedAgo: FC<{ savedAt: Date }> = ({ savedAt }) => {
@@ -54,7 +55,7 @@ const SavedAgo: FC<{ savedAt: Date }> = ({ savedAt }) => {
   });
 };
 
-const PrivateNote: FC<Props> = ({ post: { private_note, id } }) => {
+const PrivateNote: FC<Props> = ({ post: { private_note, id }, hideToggle }) => {
   const t = useTranslations();
   const locale = useLocale();
   const { text, updated_at } = private_note || {};
@@ -94,6 +95,52 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id } }) => {
     return null;
   }
 
+  const editorBody = (
+    <MarkdownEditor
+      ref={editorRef}
+      markdown={noteText}
+      mode="write"
+      onChange={(val) => {
+        saveNoteDebounced(val);
+      }}
+      onBlur={() => {
+        const val = editorRef.current?.getMarkdown();
+        if (!isNil(val)) {
+          saveNote(val);
+        }
+      }}
+      withUgcLinks
+      withCodeBlocks
+    />
+  );
+
+  const editor = (
+    <div className="bg-gray-0 dark:bg-gray-0-dark">{editorBody}</div>
+  );
+
+  if (hideToggle) {
+    return (
+      <div className="flex flex-col gap-2">
+        <div className="scroll-mt-24 border border-gray-500 bg-gray-0 dark:border-gray-500-dark dark:bg-gray-0-dark">
+          {editorBody}
+        </div>
+        {(noteStatusDetails || updated_at) && (
+          <div className="text-right text-xs">
+            {noteStatusDetails ??
+              (updated_at &&
+                t.rich("privateNoteUpdatedFrom", {
+                  date: () => (
+                    <RelativeTime datetime={updated_at} format="relative">
+                      {formatDate(locale, new Date(updated_at))}
+                    </RelativeTime>
+                  ),
+                }))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <SectionToggle
       title={t("privateNote")}
@@ -116,24 +163,7 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id } }) => {
         }
       }}
     >
-      <div className="bg-gray-0 dark:bg-gray-0-dark">
-        <MarkdownEditor
-          ref={editorRef}
-          markdown={noteText}
-          mode="write"
-          onChange={(val) => {
-            saveNoteDebounced(val);
-          }}
-          onBlur={() => {
-            const val = editorRef.current?.getMarkdown();
-            if (!isNil(val)) {
-              saveNote(val);
-            }
-          }}
-          withUgcLinks
-          withCodeBlocks
-        />
-      </div>
+      {editor}
     </SectionToggle>
   );
 };

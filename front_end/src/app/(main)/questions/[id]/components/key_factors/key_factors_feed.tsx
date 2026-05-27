@@ -181,7 +181,9 @@ const KeyFactorsFeed: FC<Props> = ({ post, truncateText, hideOverlay }) => {
               {t("noKeyFactorsP2")}
             </span>
           </div>
-          {canAddKeyFactor && <AddKeyFactorsButton post={post} as="div" />}
+          {(canAddKeyFactor || (!user && !isClosed)) && (
+            <AddKeyFactorsButton post={post} as="div" />
+          )}
         </div>
         {addModal}
       </>
@@ -224,9 +226,7 @@ const KeyFactorsFeed: FC<Props> = ({ post, truncateText, hideOverlay }) => {
               <KeyFactorsGridPlaceholder
                 key={`placeholder-${i}`}
                 className={i < 2 - totalItemCount ? "" : "hidden md:flex"}
-                onClick={
-                  i === 0 && canAddKeyFactor ? handleAddClick : undefined
-                }
+                onClick={i === 0 && !isClosed ? handleAddClick : undefined}
               />
             ))}
         </div>
