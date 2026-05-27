@@ -35,13 +35,20 @@ type Props = {
 
 // Header card backgrounds. Each color has rest + active variants per
 // theme so the column reads as visibly lit when hovered.
+//
+// Light mode: rest is the primary border shade, active goes darker —
+// so hover deepens the color (matches the bars below).
+//
+// Dark mode: rest is the darker shade, active is the brighter shade —
+// hover goes LIGHTER, matching the bar-fill behavior in dark mode (the
+// bars also lighten on hover because they sit on a dark card bg).
 const REP_HEADER_BG = {
   light: { rest: MIDTERMS_COLORS.repBorder, active: "#A02B25" },
-  dark: { rest: MIDTERMS_COLORS.repBorderDark, active: "#B83C32" },
+  dark: { rest: "#B83C32", active: MIDTERMS_COLORS.repBorderDark },
 };
 const DEM_HEADER_BG = {
   light: { rest: "#1E3A8A", active: "#152A66" },
-  dark: { rest: MIDTERMS_COLORS.demBorderDark, active: "#4A5FCF" },
+  dark: { rest: "#4A5FCF", active: MIDTERMS_COLORS.demBorderDark },
 };
 
 // Themed bar colors.

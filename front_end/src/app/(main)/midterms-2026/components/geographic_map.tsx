@@ -137,6 +137,12 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
   // onMouseLeave defers to this so the tooltip stays mounted long enough
   // for its own onClick to fire.
   const tooltipHoveredRef = useRef(false);
+  // Pending leave-clear RAF id. We cancel it whenever the pointer
+  // enters a different state directly (state A → state B without
+  // crossing empty space) — otherwise the RAF would clear the hover
+  // state we *just* set for state B, leaving B looking inactive until
+  // the user wiggles back out and in.
+  const pendingLeaveRafRef = useRef<number | null>(null);
 
   // Load + parse the TopoJSON ourselves now that we no longer have
   // react-simple-maps doing it for us. `features` starts empty and
@@ -175,6 +181,13 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
     abbr: string,
     e: MouseEvent<SVGPathElement> | FocusEvent<SVGPathElement>
   ) => {
+    // Cancel any pending "clear hover" RAF queued by leaving a previous
+    // state — otherwise it would fire after this enter and wipe the
+    // hover we're setting now.
+    if (pendingLeaveRafRef.current !== null) {
+      cancelAnimationFrame(pendingLeaveRafRef.current);
+      pendingLeaveRafRef.current = null;
+    }
     const rect = e.currentTarget.getBoundingClientRect();
     setHovered({
       abbr,
@@ -190,10 +203,13 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
   };
 
   const handleLeave = useCallback(() => {
-    // Defer clearing so a pointer transition into the tooltip portal has a
-    // chance to flip tooltipHoveredRef before we unmount it.
-    requestAnimationFrame(() => {
-      if (!tooltipHoveredRef.current) setHovered(null);
+    // Defer clearing so a pointer transition into the tooltip portal has
+    // a chance to flip tooltipHoveredRef, OR a direct transition into
+    // another state has a chance to cancel this RAF via handleEnter.
+    pendingLeaveRafRef.current = requestAnimationFrame(() => {
+      pendingLeaveRafRef.current = null;
+      if (tooltipHoveredRef.current) return;
+      setHovered(null);
     });
   }, []);
 
