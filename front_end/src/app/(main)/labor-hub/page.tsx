@@ -753,10 +753,11 @@ export default function LaborAutomationHubPage() {
             <ContentParagraph>
               The healthcare sector (employing 13% of Washington residents) is
               forecasted to grow through 2027, largely unaffected by AI in this
-              timeframe. Technology and aerospace (employing 10% and 2%
-              respectively) are expected to see minor growth in the short-term,
-              largely consistent with historical trends. These forecasts are
-              short-term, leading to minimal predicted change.
+              timeframe. Aerospace (employing 2% of Washington workers) is
+              expected to see minor growth in the short-term, while technology
+              (employing 10%) is expected to see a slight decline, both largely
+              consistent with historical trends. These forecasts are short-term,
+              leading to minimal predicted change.
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight className="lg:mt-16 print:mt-12">
