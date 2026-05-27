@@ -1,4 +1,5 @@
 from asgiref.sync import async_to_sync
+from django.db.models import Q
 
 from posts.models import Post
 from posts.services.search import (
@@ -113,4 +114,8 @@ def test_perform_post_search_returns_empty_when_google_succeeds_with_no_results(
         mock_gather_search_results,
     )
 
-    assert not perform_post_search(Post.objects.all(), "test").exists()
+    qs = perform_post_search(Post.objects.all(), "test")
+
+    assert not qs.exists()
+    # qs must expose `rank` so downstream `.filter(Q(rank__gte=...))` works
+    assert not qs.filter(Q(rank__gte=0.3)).exists()

@@ -106,7 +106,7 @@ def perform_post_search(qs, search_text: str):
 
     if embedding_vector is None:
         if not semantic_scores_by_id:
-            return qs.none()
+            return qs.none().annotate(rank=Value(0.0, output_field=FloatField()))
 
         return qs.filter(id__in=semantic_scores_by_id.keys()).annotate(
             rank=Case(

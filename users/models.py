@@ -151,9 +151,17 @@ class User(TimeStampedModel, AbstractUser):
         default=False,
         db_index=True,
         help_text=(
-            "Marks the user’s primary bot. Only the primary bot can post public comments, "
-            "be eligible for prizes, count toward peer scores, "
-            "and appear on leaderboards."
+            "Marks the user's primary bot. The primary bot is "
+            "eligible for prizes, counts toward peer scores, "
+            "and appears on leaderboards."
+        ),
+    )
+    allow_public_comments = models.BooleanField(
+        default=True,
+        help_text=(
+            "Whether this account may post public comments. "
+            "Enabled by default for human accounts. "
+            "Bots are disabled by default; an admin can enable this for select bots."
         ),
     )
     bot_owner = models.ForeignKey(

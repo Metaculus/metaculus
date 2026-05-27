@@ -9,11 +9,14 @@ class UserManager(DjangoUserManager):
     ):
         """
         Create and save a User. API forecasting access defaults by account
-        type: bots are enabled, human accounts start disabled.
+        type: bots are enabled, human accounts start disabled. Bots also
+        default to not allowing public comments.
         """
         api_forecasting_access = api_forecasting_access or (
             ApiForecastingAccess.ENABLED if is_bot else ApiForecastingAccess.DISABLED
         )
+        if is_bot:
+            extra_fields.setdefault("allow_public_comments", False)
         return super().create_user(
             *args,
             is_bot=is_bot,
