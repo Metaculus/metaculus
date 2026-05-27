@@ -1,23 +1,26 @@
 "use client";
 
+import { CustomProjection } from "@visx/geo";
 import { geoAlbersUsa } from "d3-geo";
+import type { Feature as GeoFeature, Geometry } from "geojson";
 import {
+  CSSProperties,
   FC,
   FocusEvent,
   KeyboardEvent,
   MouseEvent,
   ReactNode,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import {
-  ComposableMap,
-  Geographies,
-  Geography,
-  GeographyType,
-} from "react-simple-maps";
+import { feature as topoToGeoFeature } from "topojson-client";
+import type {
+  GeometryCollection as TopoGeometryCollection,
+  Topology,
+} from "topojson-specification";
 
 import useAppTheme from "@/hooks/use_app_theme";
 
@@ -135,9 +138,35 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
   // for its own onClick to fire.
   const tooltipHoveredRef = useRef(false);
 
-  // react-simple-maps' MapProvider hardcodes translate to viewbox center, so
-  // we provide a fully-configured projection function instead.
-  const projection = useMemo(
+  // Load + parse the TopoJSON ourselves now that we no longer have
+  // react-simple-maps doing it for us. `features` starts empty and
+  // populates after the fetch resolves — same behavior as before the
+  // RSM internal fetch resolved.
+  const [features, setFeatures] = useState<GeoFeature<Geometry>[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    fetch(GEO_URL)
+      .then((r) => r.json())
+      .then((topology: Topology) => {
+        if (cancelled) return;
+        const states = topology.objects.states as TopoGeometryCollection;
+        const collection = topoToGeoFeature(topology, states);
+        setFeatures(collection.features as GeoFeature<Geometry>[]);
+      })
+      .catch(() => {
+        // Silently fail — the map column just shows tabs + legend with
+        // no states; the rest of the dashboard keeps working.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Memoized projection factory passed to <CustomProjection>. visx
+  // expects a `() => GeoProjection`, which it then configures further
+  // via scale/translate/etc. props — but since we provide a fully-
+  // configured projection here, those extra props are unset.
+  const projectionFactory = useCallback(
     () => geoAlbersUsa().scale(MAP_SCALE).translate(MAP_TRANSLATE),
     []
   );
@@ -199,16 +228,17 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
         <MapLegend />
       </div>
       <div className="h-full w-full">
-        <ComposableMap
-          projection={projection as unknown as string}
-          width={MAP_VIEWBOX_WIDTH}
-          height={MAP_VIEWBOX_HEIGHT}
+        <svg
+          viewBox={`0 0 ${MAP_VIEWBOX_WIDTH} ${MAP_VIEWBOX_HEIGHT}`}
           preserveAspectRatio="xMidYMid meet"
           style={{ width: "100%", height: "100%", display: "block" }}
         >
-          <Geographies geography={GEO_URL}>
-            {({ geographies }: { geographies: GeographyType[] }) =>
-              geographies.map((geo) => {
+          <CustomProjection<GeoFeature<Geometry>>
+            projection={projectionFactory}
+            data={features}
+          >
+            {({ features: parsed }) =>
+              parsed.map(({ feature: geo, path: dAttr }, i) => {
                 const abbr = FIPS_TO_ABBR[String(geo.id ?? "")];
                 const race = abbr ? racesByState.get(abbr) : undefined;
                 const isContested = race !== undefined;
@@ -220,9 +250,6 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
                     ? uncontestedHoverFill
                     : uncontestedFill;
 
-                // react-simple-maps' <Geography> hardcodes tabIndex="0" on
-                // every path. For uncontested states we override with -1 so
-                // they don't enter the tab order, since they have no action.
                 const stateName = abbr ? STATE_NAMES[abbr] ?? abbr : "";
                 const interactiveProps = isContested
                   ? {
@@ -242,49 +269,45 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
                     }
                   : { tabIndex: -1 };
 
+                // react-simple-maps used to drive a default / hover /
+                // pressed style state machine internally. Our hover state
+                // is the same signal that opens the tooltip, so we
+                // collapse to a single inline style toggled off it.
+                const style: CSSProperties = isHovered
+                  ? {
+                      fill: isContested ? fillColor : uncontestedHoverFill,
+                      stroke: strokeColor,
+                      strokeWidth: isContested ? 2 : 1.5,
+                      outline: "none",
+                      cursor: isContested ? "pointer" : "default",
+                      opacity: isContested ? 1 : UNCONTESTED_OPACITY_HOVER,
+                      transition:
+                        "fill 150ms ease-out, opacity 150ms ease-out, filter 150ms ease-out",
+                      filter: isContested ? "brightness(0.9)" : undefined,
+                    }
+                  : {
+                      fill: fillColor,
+                      stroke: strokeColor,
+                      strokeWidth: 1.5,
+                      outline: "none",
+                      cursor: isContested ? "pointer" : "default",
+                      opacity: isContested ? 1 : UNCONTESTED_OPACITY_DEFAULT,
+                      transition:
+                        "fill 150ms ease-out, opacity 150ms ease-out, filter 150ms ease-out",
+                    };
+
                 return (
-                  <Geography
-                    key={geo.rsmKey}
-                    geography={geo}
+                  <path
+                    key={i}
+                    d={dAttr ?? ""}
                     {...interactiveProps}
-                    style={{
-                      default: {
-                        fill: fillColor,
-                        stroke: strokeColor,
-                        strokeWidth: 1.5,
-                        outline: "none",
-                        cursor: isContested ? "pointer" : "default",
-                        opacity: isContested ? 1 : UNCONTESTED_OPACITY_DEFAULT,
-                        transition:
-                          "fill 150ms ease-out, opacity 150ms ease-out, filter 150ms ease-out",
-                        filter:
-                          isContested && isHovered
-                            ? "brightness(0.9)"
-                            : undefined,
-                      },
-                      hover: {
-                        fill: isContested ? fillColor : uncontestedHoverFill,
-                        stroke: strokeColor,
-                        strokeWidth: isContested ? 2 : 1.5,
-                        outline: "none",
-                        cursor: isContested ? "pointer" : "default",
-                        opacity: isContested ? 1 : UNCONTESTED_OPACITY_HOVER,
-                        filter: isContested ? "brightness(0.9)" : undefined,
-                      },
-                      pressed: {
-                        fill: fillColor,
-                        stroke: strokeColor,
-                        strokeWidth: isContested ? 2 : 1.5,
-                        outline: "none",
-                        opacity: isContested ? 1 : UNCONTESTED_OPACITY_HOVER,
-                      },
-                    }}
+                    style={style}
                   />
                 );
               })
             }
-          </Geographies>
-        </ComposableMap>
+          </CustomProjection>
+        </svg>
       </div>
 
       {hoveredRace && hovered && (
