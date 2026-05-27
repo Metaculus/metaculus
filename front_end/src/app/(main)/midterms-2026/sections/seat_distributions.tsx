@@ -1,10 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
-import {
-  ContentParagraph,
-  SectionCard,
-  SectionHeader,
-} from "@/app/(main)/labor-hub/components/section";
+import { SectionCard } from "@/app/(main)/labor-hub/components/section";
 import { PostWithForecasts } from "@/types/post";
 
 import SeatDistributionChart from "../components/seat_distribution_chart";
@@ -21,12 +17,6 @@ export default async function SeatDistributionsSection() {
 
   return (
     <SectionCard>
-      <SectionHeader className="mb-2">
-        {t("midtermsHubSeatDistributionsTitle")}
-      </SectionHeader>
-      <ContentParagraph small className="mb-8 max-w-xl">
-        {t("midtermsHubSeatDistributionsSubtitle")}
-      </ContentParagraph>
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-10">
         <DistributionSlot
           title={t("midtermsHubSenateSeats")}
@@ -71,7 +61,7 @@ function DistributionSlot({
 }: SlotProps) {
   return (
     <div>
-      <h3 className="mb-2 text-2xl font-bold tracking-tight text-blue-800 dark:text-blue-800-dark md:text-3xl">
+      <h3 className="mb-2 text-center text-2xl font-bold tracking-tight text-blue-800 dark:text-blue-800-dark md:text-3xl">
         {title}
       </h3>
       {post ? (

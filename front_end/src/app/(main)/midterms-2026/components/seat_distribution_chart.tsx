@@ -8,6 +8,8 @@ import {
   VictoryChart,
   VictoryLabel,
   VictoryLine,
+  VictoryTooltip,
+  VictoryVoronoiContainer,
 } from "victory";
 
 import { PostWithForecasts } from "@/types/post";
@@ -133,26 +135,48 @@ const SeatDistributionChart: FC<Props> = ({
     : [{ x: 0, y: 0, xLeft: 0, xRight: 0 }, ...posBins];
 
   // Axis tick math — handpick a few evenly spaced ticks on each side.
+  // Always round to whole numbers and dedupe; the seat advantage is an
+  // integer count so fractional ticks would never be meaningful.
   const tickCount = 4;
-  const negTicks: number[] = [];
-  const posTicks: number[] = [];
+  const rawTicks: number[] = [0];
   for (let i = 1; i <= tickCount; i++) {
-    negTicks.push(domainMin + (-domainMin * (i - 1)) / tickCount);
-    posTicks.push((domainMax * i) / tickCount);
+    rawTicks.push(domainMin + (-domainMin * (i - 1)) / tickCount);
+    rawTicks.push((domainMax * i) / tickCount);
   }
-  const xTicks = Array.from(
-    new Set(
-      [...negTicks, 0, ...posTicks].map((t) =>
-        // Round to integer where the domain is integer-y, else keep one
-        // decimal — keeps Senate labels clean as 0, 3, 6, 9, 12 etc.
-        Math.abs(t) >= 5 ? Math.round(t) : Math.round(t * 10) / 10
-      )
-    )
-  ).sort((a, b) => a - b);
+  const xTicks = Array.from(new Set(rawTicks.map((t) => Math.round(t)))).sort(
+    (a, b) => a - b
+  );
 
   // Format ticks as absolute values so both sides read e.g. "12 | 12"
   // instead of "-12 ... 12" (advantage is implied by the party label).
   const formatXTick = (t: number) => (t === 0 ? "0" : `${Math.abs(t)}`);
+
+  // Tooltip label formatter — same UX as the upstream prediction-input
+  // cursor: shows the bin's x value and the community probability at
+  // that point.
+  const formatTooltipLabel = ({ datum }: { datum: { x: number; y: number } }) =>
+    `${datum.x > 0 ? "+" : ""}${
+      Number.isInteger(datum.x) ? datum.x : datum.x.toFixed(1)
+    }\n${datum.y.toFixed(1)}%`;
+
+  const tooltipComponent = (
+    <VictoryTooltip
+      cornerRadius={4}
+      flyoutPadding={{ top: 4, bottom: 4, left: 8, right: 8 }}
+      flyoutStyle={{
+        fill: isDark ? "#1F2937" : "#FFFFFF",
+        stroke: axisColor,
+        strokeWidth: 1,
+      }}
+      style={{
+        fill: tickColor,
+        fontSize: 10,
+        fontWeight: 500,
+      }}
+      pointerLength={6}
+      constrainToVisibleArea
+    />
+  );
 
   return (
     <div className="w-full">
@@ -162,6 +186,14 @@ const SeatDistributionChart: FC<Props> = ({
         padding={CHART_PADDING}
         domain={{ x: [domainMin, domainMax] }}
         domainPadding={{ x: isDiscrete ? 10 : 0 }}
+        containerComponent={
+          <VictoryVoronoiContainer
+            voronoiDimension="x"
+            labels={formatTooltipLabel}
+            labelComponent={tooltipComponent}
+            mouseFollowTooltips={false}
+          />
+        }
       >
         <title>{ariaTitle}</title>
 
@@ -177,7 +209,7 @@ const SeatDistributionChart: FC<Props> = ({
                 strokeWidth: STROKE_WIDTH,
               },
             }}
-            barRatio={0.85}
+            barRatio={0.5}
           />
         ) : (
           <VictoryArea
@@ -206,7 +238,7 @@ const SeatDistributionChart: FC<Props> = ({
                 strokeWidth: STROKE_WIDTH,
               },
             }}
-            barRatio={0.85}
+            barRatio={0.5}
           />
         ) : (
           <VictoryArea
@@ -279,9 +311,12 @@ const SeatDistributionChart: FC<Props> = ({
           }}
         />
 
-        {/* Y axis: percentages. */}
+        {/* Y axis: percentages. `crossAxis={false}` keeps it pinned to
+            the left edge of the chart (otherwise Victory crosses it at
+            x = 0, which lands smack in the middle of our signed domain). */}
         <VictoryAxis
           dependentAxis
+          crossAxis={false}
           tickFormat={(t: number) => `${t.toFixed(0)}%`}
           style={{
             axis: { stroke: axisColor, strokeWidth: 1 },
