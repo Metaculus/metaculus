@@ -5,7 +5,12 @@ import ServerPostsApi from "@/services/api/posts/posts.server";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 
-import { CHAMBER_QUESTIONS, SENATE_GROUP_POST_ID, SENATE_RACES } from "../data";
+import {
+  CHAMBER_QUESTIONS,
+  SEAT_DISTRIBUTION_POSTS,
+  SENATE_GROUP_POST_ID,
+  SENATE_RACES,
+} from "../data";
 import { SenateRaceWithQuestion } from "./post_utils";
 
 export const fetchSenateRaces = cache(
@@ -81,3 +86,32 @@ export const fetchChamberData = cache(async (): Promise<ChamberData> => {
     electionIntegrity: byId.get(CHAMBER_QUESTIONS.electionIntegrity) ?? null,
   };
 });
+
+export type SeatDistributions = {
+  senate: PostWithForecasts | null;
+  house: PostWithForecasts | null;
+};
+
+export const fetchSeatDistributions = cache(
+  async (): Promise<SeatDistributions> => {
+    const ids = [
+      SEAT_DISTRIBUTION_POSTS.senate,
+      SEAT_DISTRIBUTION_POSTS.house,
+    ].filter((id) => id > 0);
+    if (!ids.length) return { senate: null, house: null };
+
+    try {
+      const { results } = await ServerPostsApi.getPostsWithCP({
+        ids,
+        limit: ids.length,
+      });
+      const byId = new Map(results.map((p) => [p.id, p]));
+      return {
+        senate: byId.get(SEAT_DISTRIBUTION_POSTS.senate) ?? null,
+        house: byId.get(SEAT_DISTRIBUTION_POSTS.house) ?? null,
+      };
+    } catch {
+      return { senate: null, house: null };
+    }
+  }
+);

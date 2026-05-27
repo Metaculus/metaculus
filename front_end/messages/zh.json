@@ -2265,5 +2265,13 @@
   "midtermsHubUpdatedRealtime": "实时更新",
   "midtermsHubMetaculusUser": "Metaculus 用户",
   "midtermsHubComingSoon": "即将推出",
-  "midtermsHubClickToView": "点击查看完整问题"
+  "midtermsHubClickToView": "点击查看完整问题",
+  "midtermsHubSeatDistributionsTitle": "参议院与众议院席位分布",
+  "midtermsHubSeatDistributionsSubtitle": "社区目前对两院席位优势走向的预测分布。",
+  "midtermsHubSenateSeats": "参议院席位",
+  "midtermsHubHouseSeats": "众议院席位",
+  "midtermsHubDemSeatAdvantage": "民主党席位优势",
+  "midtermsHubRepSeatAdvantage": "共和党席位优势",
+  "midtermsHubEven": "持平",
+  "midtermsHubForecastUnavailable": "暂无预测"
 }

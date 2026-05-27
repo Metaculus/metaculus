@@ -28,10 +28,10 @@ export const MIDTERMS_COLORS = {
   cardBgDark: "#262f38",
   // Uncontested fill is one elevation step lighter than the card bg so
   // uncontested states are subtly visible without dominating.
-  uncontestedLight: "#eff4f4",
-  uncontestedDark: "#2d3845",
-  uncontestedHoverLight: "#e0e9eb",
-  uncontestedHoverDark: "#394450",
+  uncontestedLight: "#EFF4F4",
+  uncontestedDark: "#37424F",
+  uncontestedHoverLight: "#CFD5E3",
+  uncontestedHoverDark: "#434E5A",
 } as const;
 
 export const STATE_NAMES: Record<string, string> = {

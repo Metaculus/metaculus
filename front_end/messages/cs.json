@@ -2263,5 +2263,13 @@
   "midtermsHubUpdatedRealtime": "Aktualizováno v reálném čase",
   "midtermsHubMetaculusUser": "Uživatel Metaculus",
   "midtermsHubComingSoon": "Již brzy",
-  "midtermsHubClickToView": "Kliknutím zobrazíte celou otázku"
+  "midtermsHubClickToView": "Kliknutím zobrazíte celou otázku",
+  "midtermsHubSeatDistributionsTitle": "Rozdělení mandátů v Senátu a Sněmovně",
+  "midtermsHubSeatDistributionsSubtitle": "Kde komunita aktuálně očekává, že každá komora skončí z hlediska převahy mandátů.",
+  "midtermsHubSenateSeats": "Mandáty v Senátu",
+  "midtermsHubHouseSeats": "Mandáty ve Sněmovně",
+  "midtermsHubDemSeatAdvantage": "Demokratická převaha mandátů",
+  "midtermsHubRepSeatAdvantage": "Republikánská převaha mandátů",
+  "midtermsHubEven": "REMÍZA",
+  "midtermsHubForecastUnavailable": "Předpověď nedostupná"
 }

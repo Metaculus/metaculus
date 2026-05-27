@@ -53,6 +53,15 @@ export const CHAMBER_QUESTIONS: ChamberQuestionIds = {
   electionIntegrity: 36327,
 };
 
+// Seat-advantage distribution questions. The Senate question is a
+// Discrete Continuous type (integer-spaced bars); the House question
+// is a Continuous type (smooth PDF). Both are signed around zero
+// where negative = Dem advantage and positive = Rep advantage.
+export const SEAT_DISTRIBUTION_POSTS = {
+  senate: 40416,
+  house: 40413,
+} as const;
+
 export type ConsequenceRow = {
   questionKey: "climate" | "minWage" | "immigration" | "shutdown";
   repCongressPct: number;

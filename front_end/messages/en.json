@@ -2253,5 +2253,13 @@
   "midtermsHubUpdatedRealtime": "Updated real-time",
   "midtermsHubMetaculusUser": "Metaculus User",
   "midtermsHubComingSoon": "Coming Soon",
-  "midtermsHubClickToView": "Click to view full question"
+  "midtermsHubClickToView": "Click to view full question",
+  "midtermsHubSeatDistributionsTitle": "Senate & House seat distributions",
+  "midtermsHubSeatDistributionsSubtitle": "Where the community currently sees each chamber landing on seat advantage.",
+  "midtermsHubSenateSeats": "Senate Seats",
+  "midtermsHubHouseSeats": "House Seats",
+  "midtermsHubDemSeatAdvantage": "Democrat Seat Advantage",
+  "midtermsHubRepSeatAdvantage": "Republican Seat Advantage",
+  "midtermsHubEven": "EVEN",
+  "midtermsHubForecastUnavailable": "Forecast unavailable"
 }

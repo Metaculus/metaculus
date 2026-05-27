@@ -8,6 +8,7 @@ import ElectionsMapSection from "./sections/elections_map_section";
 import ElectoralConsequencesSection from "./sections/electoral_consequences";
 import FooterSection from "./sections/footer";
 import HeroSection from "./sections/hero";
+import SeatDistributionsSection from "./sections/seat_distributions";
 import ThingsToWatchSection from "./sections/things_to_watch";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -42,6 +43,7 @@ export default function MidtermsHubPage() {
       </div>
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-1 sm:gap-6 sm:px-8 md:gap-8 xl:px-16">
         <ElectionsMapSection />
+        <SeatDistributionsSection />
         <ThingsToWatchSection />
         <ElectoralConsequencesSection />
         <CommunityInsightsSection />

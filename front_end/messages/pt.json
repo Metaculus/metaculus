@@ -2261,5 +2261,13 @@
   "midtermsHubUpdatedRealtime": "Atualizado em tempo real",
   "midtermsHubMetaculusUser": "Usuário Metaculus",
   "midtermsHubComingSoon": "Em breve",
-  "midtermsHubClickToView": "Clique para ver a pergunta completa"
+  "midtermsHubClickToView": "Clique para ver a pergunta completa",
+  "midtermsHubSeatDistributionsTitle": "Distribuição de cadeiras do Senado e da Câmara",
+  "midtermsHubSeatDistributionsSubtitle": "Onde a comunidade atualmente vê cada câmara terminando em termos de vantagem de cadeiras.",
+  "midtermsHubSenateSeats": "Cadeiras do Senado",
+  "midtermsHubHouseSeats": "Cadeiras da Câmara",
+  "midtermsHubDemSeatAdvantage": "Vantagem de cadeiras democratas",
+  "midtermsHubRepSeatAdvantage": "Vantagem de cadeiras republicanas",
+  "midtermsHubEven": "EMPATE",
+  "midtermsHubForecastUnavailable": "Previsão indisponível"
 }

@@ -2263,5 +2263,13 @@
   "midtermsHubUpdatedRealtime": "Actualizado en tiempo real",
   "midtermsHubMetaculusUser": "Usuario de Metaculus",
   "midtermsHubComingSoon": "Próximamente",
-  "midtermsHubClickToView": "Haz clic para ver la pregunta completa"
+  "midtermsHubClickToView": "Haz clic para ver la pregunta completa",
+  "midtermsHubSeatDistributionsTitle": "Distribuciones de escaños en el Senado y la Cámara",
+  "midtermsHubSeatDistributionsSubtitle": "Hacia dónde la comunidad ve actualmente que se inclinará cada cámara en términos de ventaja de escaños.",
+  "midtermsHubSenateSeats": "Escaños del Senado",
+  "midtermsHubHouseSeats": "Escaños de la Cámara",
+  "midtermsHubDemSeatAdvantage": "Ventaja de escaños demócratas",
+  "midtermsHubRepSeatAdvantage": "Ventaja de escaños republicanos",
+  "midtermsHubEven": "EMPATE",
+  "midtermsHubForecastUnavailable": "Pronóstico no disponible"
 }
