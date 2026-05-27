@@ -267,15 +267,26 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
                     : uncontestedFill;
 
                 const stateName = abbr ? STATE_NAMES[abbr] ?? abbr : "";
+                // Mouse enter/leave is wired on every state with a known
+                // abbreviation — contested AND uncontested — so all of
+                // them get a hover fill swap. The tooltip + click +
+                // keyboard handlers are still contested-only; for
+                // uncontested states `hoveredRace` is undefined so the
+                // tooltip block below short-circuits.
+                const hoverHandlers = abbr
+                  ? {
+                      onMouseEnter: (e: MouseEvent<SVGPathElement>) =>
+                        handleEnter(abbr, e),
+                      onMouseLeave: handleLeave,
+                    }
+                  : {};
                 const interactiveProps = isContested
                   ? {
                       tabIndex: 0,
                       role: "button",
                       "aria-label": `${stateName} — view forecast question`,
                       "aria-haspopup": "dialog" as const,
-                      onMouseEnter: (e: MouseEvent<SVGPathElement>) =>
-                        abbr && handleEnter(abbr, e),
-                      onMouseLeave: handleLeave,
+                      ...hoverHandlers,
                       onFocus: (e: FocusEvent<SVGPathElement>) =>
                         abbr && handleEnter(abbr, e),
                       onBlur: () => setHovered(null),
@@ -283,7 +294,7 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
                         race && handleKeyDown(e, race),
                       onClick: () => handleClick(race),
                     }
-                  : { tabIndex: -1 };
+                  : { tabIndex: -1, ...hoverHandlers };
 
                 // react-simple-maps used to drive a default / hover /
                 // pressed style state machine internally. Our hover state
