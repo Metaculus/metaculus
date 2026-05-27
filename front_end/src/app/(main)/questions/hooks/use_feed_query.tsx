@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import type { Options } from "nuqs";
 import {
   createContext,
@@ -75,14 +75,6 @@ function getSearchParamsSignature(params: URLSearchParams) {
     .join("&");
 }
 
-function getLocationSearchParamsSignature() {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  return getSearchParamsSignature(new URLSearchParams(window.location.search));
-}
-
 type Props = PropsWithChildren<{
   filterOptions?: FiltersFromSearchParamsOptions;
   filterUpdateOptions?: Options;
@@ -93,40 +85,32 @@ export const FeedQueryProvider: FC<Props> = ({
   filterOptions,
   filterUpdateOptions = FEED_FILTER_QUERY_OPTIONS,
 }) => {
-  const { params: urlParams, setParams: setUrlParams } = useFeedQueryParams();
-  const [params, setOptimisticParams] = useState(
-    () => new URLSearchParams(urlParams)
+  const { setParams: setUrlParams } = useFeedQueryParams();
+  const nextSearchParams = useSearchParams();
+  const nextSearchParamsString = nextSearchParams.toString();
+  const nextUrlParams = useMemo(
+    () => new URLSearchParams(nextSearchParamsString),
+    [nextSearchParamsString]
   );
+  const nextUrlParamsSignature = useMemo(
+    () => getSearchParamsSignature(nextUrlParams),
+    [nextUrlParams]
+  );
+  const [params, setOptimisticParams] = useState(() => nextUrlParams);
   const [resultCount, setResultCount] = useState<FeedResultCount | undefined>();
   const pendingUrlSignature = useRef<string | null>(null);
   const { user } = useAuth();
   const pathname = usePathname();
-  const urlParamsSignature = getSearchParamsSignature(urlParams);
 
   useEffect(() => {
-    const locationSignature = getLocationSearchParamsSignature();
-    if (
-      locationSignature !== null &&
-      locationSignature !== urlParamsSignature
-    ) {
-      return;
-    }
-
-    if (
-      pendingUrlSignature.current !== null &&
-      pendingUrlSignature.current !== urlParamsSignature
-    ) {
-      return;
-    }
-
     pendingUrlSignature.current = null;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setOptimisticParams((currentParams) =>
-      getSearchParamsSignature(currentParams) === urlParamsSignature
+      getSearchParamsSignature(currentParams) === nextUrlParamsSignature
         ? currentParams
-        : new URLSearchParams(urlParams)
+        : new URLSearchParams(nextUrlParams)
     );
-  }, [urlParams, urlParamsSignature]);
+  }, [nextUrlParams, nextUrlParamsSignature]);
 
   const selectedTopic = params.get(POST_TOPIC_FILTER);
   const selectedCategory = params.get(POST_CATEGORIES_FILTER);

@@ -15,8 +15,8 @@ const isSidebarItemActive = (currentUrl: string, itemUrl: string): boolean => {
   if (item.searchParams.size > 0) {
     return (
       currentPathname === itemPathname &&
-      Array.from(item.searchParams).every(
-        ([key, value]) => current.searchParams.get(key) === value
+      Array.from(item.searchParams).every(([key, value]) =>
+        current.searchParams.getAll(key).includes(value)
       )
     );
   }

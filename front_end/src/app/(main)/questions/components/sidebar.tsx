@@ -10,12 +10,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   FC,
   Fragment,
-  MouseEvent,
   ReactNode,
   useCallback,
   useEffect,
@@ -26,7 +25,18 @@ import {
 
 import TopicItem from "@/app/(main)/questions/components/topic_item";
 import { useFeedQuery } from "@/app/(main)/questions/hooks/use_feed_query";
-import { FeedType, POST_TEXT_SEARCH_FILTER } from "@/constants/posts_feed";
+import {
+  FeedType,
+  POST_CATEGORIES_FILTER,
+  POST_COMMUNITIES_FILTER,
+  POST_COMMENTS_FEED_FILTER,
+  POST_FOLLOWING_FILTER,
+  POST_FORECASTER_ID_FILTER,
+  POST_TEXT_SEARCH_FILTER,
+  POST_TOPIC_FILTER,
+  POST_USERNAMES_FILTER,
+  POST_WEEKLY_TOP_COMMENTS_FILTER,
+} from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { Category } from "@/types/projects";
@@ -68,83 +78,50 @@ const FeedSidebar: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
-  const { getFeedUrl, currentFeed, params, setFilterParams, switchFeed } =
-    useFeedQuery();
+  const { getFeedUrl } = useFeedQuery();
   const pathname = usePathname();
-  const fullPathname = `${pathname}${params.toString() ? `?${params.toString()}` : ""}`;
-  const searchQuery = params.get(POST_TEXT_SEARCH_FILTER)?.trim() ?? "";
+  const searchParams = useSearchParams();
+  const fullPathname = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+  const searchQuery = searchParams.get(POST_TEXT_SEARCH_FILTER)?.trim() ?? "";
   const hasActiveSearch = !!searchQuery;
+  const currentFeed = useMemo(() => {
+    if (
+      searchParams.get(POST_TOPIC_FILTER) ||
+      searchParams.get(POST_CATEGORIES_FILTER)
+    ) {
+      return null;
+    }
+    if (searchParams.get(POST_FORECASTER_ID_FILTER)) {
+      return FeedType.MY_PREDICTIONS;
+    }
+    if (searchParams.get(POST_FOLLOWING_FILTER)) {
+      return FeedType.FOLLOWING;
+    }
 
-  const handleFeedTabClick = useCallback(
-    (
-      event: MouseEvent<HTMLElement>,
-      feed: FeedType,
-      analyticsLabel?: string
-    ) => {
-      if (
-        event.defaultPrevented ||
-        event.metaKey ||
-        event.ctrlKey ||
-        event.shiftKey ||
-        event.altKey ||
-        event.button !== 0
-      ) {
-        return;
-      }
+    const authorUsernames = searchParams.getAll(POST_USERNAMES_FILTER);
+    if (
+      user &&
+      authorUsernames.length &&
+      authorUsernames[0] === user.username
+    ) {
+      return FeedType.MY_QUESTIONS_AND_POSTS;
+    }
+    if (searchParams.get(POST_COMMUNITIES_FILTER)) {
+      return FeedType.COMMUNITIES;
+    }
+    if (searchParams.get(POST_WEEKLY_TOP_COMMENTS_FILTER)) {
+      return FeedType.WEEKLY_TOP_COMMENTS;
+    }
+    if (searchParams.get(POST_COMMENTS_FEED_FILTER)) {
+      return FeedType.COMMENTS_FEED;
+    }
 
-      event.preventDefault();
-      if (analyticsLabel) {
-        sendAnalyticsEvent("sidebarClick", {
-          event_category: analyticsLabel,
-        });
-      }
-      switchFeed(feed);
-    },
-    [switchFeed]
-  );
-
-  const handleFeedQuerySidebarClick = useCallback(
-    (event: MouseEvent<HTMLElement>, url: string) => {
-      if (
-        event.defaultPrevented ||
-        event.metaKey ||
-        event.ctrlKey ||
-        event.shiftKey ||
-        event.altKey ||
-        event.button !== 0
-      ) {
-        return false;
-      }
-
-      const targetUrl = new URL(url, window.location.origin);
-      const currentPathname = pathname.replace(/\/$/, "");
-      const targetPathname = targetUrl.pathname.replace(/\/$/, "");
-
-      if (targetPathname !== currentPathname) {
-        return false;
-      }
-
-      event.preventDefault();
-      setFilterParams(targetUrl.searchParams);
-      return true;
-    },
-    [pathname, setFilterParams]
-  );
+    return FeedType.HOME;
+  }, [searchParams, user]);
 
   const convertFeedSidebarItem = useCallback(
-    (item: SidebarItem) => {
-      const menuItem = convertSidebarItem(item, fullPathname);
-      const originalOnClick = menuItem.onClick;
-
-      return {
-        ...menuItem,
-        onClick: (event: MouseEvent<HTMLElement>) => {
-          originalOnClick?.(event);
-          handleFeedQuerySidebarClick(event, menuItem.url);
-        },
-      };
-    },
-    [fullPathname, handleFeedQuerySidebarClick]
+    (item: SidebarItem) => convertSidebarItem(item, fullPathname),
+    [fullPathname]
   );
 
   const sidebarSections: SidebarSection[] = useMemo(() => {
@@ -152,9 +129,6 @@ const FeedSidebar: FC<Props> = ({
       {
         name: t("feedHome"),
         emoji: <FontAwesomeIcon icon={faHome} />,
-        onClick: (event) => {
-          handleFeedTabClick(event, FeedType.HOME);
-        },
         url: getFeedUrl(FeedType.HOME),
         isActive: currentFeed == FeedType.HOME,
       },
@@ -163,12 +137,10 @@ const FeedSidebar: FC<Props> = ({
             {
               name: t("myPredictions"),
               emoji: "👤",
-              onClick: (event: MouseEvent<HTMLElement>) => {
-                handleFeedTabClick(
-                  event,
-                  FeedType.MY_PREDICTIONS,
-                  t("myPredictions")
-                );
+              onClick: () => {
+                sendAnalyticsEvent("sidebarClick", {
+                  event_category: t("myPredictions"),
+                });
               },
               url: getFeedUrl(FeedType.MY_PREDICTIONS),
               isActive: currentFeed == FeedType.MY_PREDICTIONS,
@@ -176,12 +148,10 @@ const FeedSidebar: FC<Props> = ({
             {
               name: t("myQuestionsAndPosts"),
               emoji: "✍️",
-              onClick: (event: MouseEvent<HTMLElement>) => {
-                handleFeedTabClick(
-                  event,
-                  FeedType.MY_QUESTIONS_AND_POSTS,
-                  t("myQuestionsAndPosts")
-                );
+              onClick: () => {
+                sendAnalyticsEvent("sidebarClick", {
+                  event_category: t("myQuestionsAndPosts"),
+                });
               },
               url: getFeedUrl(FeedType.MY_QUESTIONS_AND_POSTS),
               isActive: currentFeed == FeedType.MY_QUESTIONS_AND_POSTS,
@@ -189,12 +159,10 @@ const FeedSidebar: FC<Props> = ({
             {
               name: t("followingButton"),
               emoji: "🔎 ",
-              onClick: (event: MouseEvent<HTMLElement>) => {
-                handleFeedTabClick(
-                  event,
-                  FeedType.FOLLOWING,
-                  t("followingButton")
-                );
+              onClick: () => {
+                sendAnalyticsEvent("sidebarClick", {
+                  event_category: t("followingButton"),
+                });
               },
               url: getFeedUrl(FeedType.FOLLOWING),
               isActive: currentFeed == FeedType.FOLLOWING,
@@ -258,12 +226,14 @@ const FeedSidebar: FC<Props> = ({
     user,
     getFeedUrl,
     convertFeedSidebarItem,
-    handleFeedTabClick,
   ]);
 
   const outerRef = useRef<HTMLDivElement | null>(null);
+  const mobileTopBarSentinelRef = useRef<HTMLDivElement | null>(null);
+  const mobileTopBarObserverRef = useRef<IntersectionObserver | null>(null);
   const mobileMenuChipRef = useRef<HTMLDivElement | null>(null);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const [isMobileTopBarStuck, setIsMobileTopBarStuck] = useState(false);
   const mobileMainItems =
     sidebarSections.find(({ type }) => type === null)?.items ?? [];
   const mobileSearchItem: SidebarMenuItem | null = hasActiveSearch
@@ -280,6 +250,8 @@ const FeedSidebar: FC<Props> = ({
       .flatMap(({ items }) => items)
       .find(({ isActive }) => isActive) ??
     mobileMainItems[0];
+  const hasMobileFilterBar = !!mobileFilterBar;
+  const showMobileTopBarSurface = isMobileTopBarStuck;
 
   useEffect(() => {
     const el = outerRef.current;
@@ -302,6 +274,46 @@ const FeedSidebar: FC<Props> = ({
     };
   }, []);
 
+  const setupMobileTopBarObserver = useCallback(() => {
+    const sentinel = mobileTopBarSentinelRef.current;
+    const topBar = outerRef.current;
+
+    if (!sentinel || !topBar) {
+      setIsMobileTopBarStuck(false);
+      return;
+    }
+
+    mobileTopBarObserverRef.current?.disconnect();
+
+    const stickyTop = Math.round(parseFloat(getComputedStyle(topBar).top));
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsMobileTopBarStuck(!entry?.isIntersecting),
+      {
+        root: null,
+        threshold: 0,
+        rootMargin: `-${stickyTop}px 0px 0px 0px`,
+      }
+    );
+
+    observer.observe(sentinel);
+    mobileTopBarObserverRef.current = observer;
+  }, []);
+
+  useEffect(() => {
+    const rafId = requestAnimationFrame(setupMobileTopBarObserver);
+
+    const resizeObserver = new ResizeObserver(setupMobileTopBarObserver);
+    if (outerRef.current) {
+      resizeObserver.observe(outerRef.current);
+    }
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      mobileTopBarObserverRef.current?.disconnect();
+      resizeObserver.disconnect();
+    };
+  }, [setupMobileTopBarObserver]);
+
   useEffect(() => {
     const chip = mobileMenuChipRef.current;
     const outer = outerRef.current;
@@ -321,6 +333,11 @@ const FeedSidebar: FC<Props> = ({
 
   return (
     <>
+      <div
+        ref={mobileTopBarSentinelRef}
+        className="h-px w-full sm:hidden"
+        aria-hidden
+      />
       <Drawer.Root
         open={isMobileDrawerOpen}
         onOpenChange={setIsMobileDrawerOpen}
@@ -330,22 +347,31 @@ const FeedSidebar: FC<Props> = ({
           ref={outerRef}
           className={cn(
             "sticky top-header z-100 sm:hidden",
-            mobileFilterBar
-              ? "flex flex-col gap-3 border-b border-[#a9c0d666] bg-white/80 p-3 backdrop-blur-[7.7px] dark:border-blue-500-dark/40 dark:bg-gray-0-dark/80"
-              : "border-y border-blue-400 bg-gray-0/70 backdrop-blur-md dark:border-blue-700 dark:bg-gray-0-dark/70"
+            hasMobileFilterBar &&
+              "flex flex-col gap-3 border-b p-3 transition-[background-color,backdrop-filter,border-color] duration-200",
+            !hasMobileFilterBar &&
+              "border-y transition-[background-color,backdrop-filter,border-color] duration-200",
+            !showMobileTopBarSurface &&
+              "border-transparent bg-transparent backdrop-blur-none",
+            showMobileTopBarSurface &&
+              hasMobileFilterBar &&
+              "border-[#a9c0d666] bg-white/80 backdrop-blur-[7.7px] dark:border-blue-500-dark/40 dark:bg-gray-0-dark/80",
+            showMobileTopBarSurface &&
+              !hasMobileFilterBar &&
+              "border-blue-400 bg-gray-0/70 backdrop-blur-md dark:border-blue-700 dark:bg-gray-0-dark/70"
           )}
         >
           <div
             className={cn(
               "relative w-full no-scrollbar",
-              mobileFilterBar ? "p-0" : "p-2"
+              hasMobileFilterBar ? "min-h-7 p-0" : "min-h-11 p-2"
             )}
           >
             <div
               className={cn(
                 "relative z-10 flex snap-x gap-1.5 gap-y-2 pl-[calc(var(--mobile-menu-chip-width,8rem)+0.375rem)] pr-0 no-scrollbar",
-                mobileFilterBar ? "mr-0" : "-mr-2",
-                mobileFilterBar &&
+                hasMobileFilterBar ? "mr-0" : "-mr-2",
+                hasMobileFilterBar &&
                   mobileActions &&
                   "pointer-events-none z-40 pl-0",
                 mobileActions
@@ -357,8 +383,13 @@ const FeedSidebar: FC<Props> = ({
                 <div
                   className={cn(
                     "pointer-events-auto flex shrink-0 items-center justify-end",
-                    mobileFilterBar
-                      ? "relative isolate gap-1 pr-0 before:pointer-events-none before:absolute before:inset-y-0 before:-left-3.5 before:-z-10 before:w-7 before:bg-gradient-to-r before:from-white/0 before:to-white before:content-[''] before:dark:from-gray-0-dark/0 before:dark:to-gray-0-dark"
+                    hasMobileFilterBar
+                      ? cn(
+                          "relative isolate gap-1 pr-0 before:pointer-events-none before:absolute before:inset-y-0 before:-left-3.5 before:-z-10 before:w-7 before:bg-gradient-to-r before:content-['']",
+                          showMobileTopBarSurface
+                            ? "before:from-white/0 before:to-white before:dark:from-gray-0-dark/0 before:dark:to-gray-0-dark"
+                            : "before:from-transparent before:to-transparent"
+                        )
                       : "gap-1.5 pr-2"
                   )}
                 >
@@ -374,7 +405,7 @@ const FeedSidebar: FC<Props> = ({
               ref={mobileMenuChipRef}
               className={cn(
                 "absolute z-30",
-                mobileFilterBar ? "left-0 top-0" : "left-2 top-2"
+                hasMobileFilterBar ? "left-0 top-0" : "left-2 top-2"
               )}
             >
               <Drawer.Trigger
@@ -393,7 +424,7 @@ const FeedSidebar: FC<Props> = ({
               </Drawer.Trigger>
             </div>
           </div>
-          {mobileFilterBar && (
+          {hasMobileFilterBar && (
             <div className="[--posts-filter-rail-bleed-left:12px] [--posts-filter-rail-bleed-right:12px]">
               {mobileFilterBar}
             </div>
