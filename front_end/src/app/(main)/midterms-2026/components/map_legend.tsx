@@ -3,10 +3,10 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import useAppTheme from "@/hooks/use_app_theme";
 import cn from "@/utils/core/cn";
 
 import { MIDTERMS_COLORS } from "../constants";
+import { useIsDark } from "../helpers/use_is_dark";
 
 type Props = {
   className?: string;
@@ -14,11 +14,10 @@ type Props = {
 
 const MapLegend: FC<Props> = ({ className }) => {
   const t = useTranslations();
-  const { theme } = useAppTheme();
-  const uncontestedFill =
-    theme === "dark"
-      ? MIDTERMS_COLORS.uncontestedDark
-      : MIDTERMS_COLORS.uncontestedLight;
+  const isDark = useIsDark();
+  const uncontestedFill = isDark
+    ? MIDTERMS_COLORS.uncontestedDark
+    : MIDTERMS_COLORS.uncontestedLight;
 
   return (
     <div

@@ -22,14 +22,13 @@ import type {
   Topology,
 } from "topojson-specification";
 
-import useAppTheme from "@/hooks/use_app_theme";
-
 import { MIDTERMS_COLORS, STATE_NAMES } from "../constants";
 import MapLegend from "./map_legend";
 import MapTooltipPortal from "./map_tooltip_portal";
 import StateTooltipContent from "./state_tooltip";
 import { getDemWinPct, SenateRaceWithQuestion } from "../helpers/post_utils";
 import { getStateColor } from "../helpers/state_color";
+import { useIsDark } from "../helpers/use_is_dark";
 
 const GEO_URL = "/us-states-10m.json";
 
@@ -113,8 +112,7 @@ const UNCONTESTED_OPACITY_DEFAULT = 0.75;
 const UNCONTESTED_OPACITY_HOVER = 1;
 
 const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
-  const { theme } = useAppTheme();
-  const isDark = theme === "dark";
+  const isDark = useIsDark();
 
   const strokeColor = isDark
     ? MIDTERMS_COLORS.cardBgDark

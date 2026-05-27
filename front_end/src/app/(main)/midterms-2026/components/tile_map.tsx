@@ -2,7 +2,6 @@
 
 import { FC, MouseEvent, useRef, useState } from "react";
 
-import useAppTheme from "@/hooks/use_app_theme";
 import cn from "@/utils/core/cn";
 
 import { MIDTERMS_COLORS, STATE_NAMES } from "../constants";
@@ -12,6 +11,7 @@ import MapTooltipPortal from "./map_tooltip_portal";
 import StateTooltipContent from "./state_tooltip";
 import { getDemWinPct, SenateRaceWithQuestion } from "../helpers/post_utils";
 import { getStateColor } from "../helpers/state_color";
+import { useIsDark } from "../helpers/use_is_dark";
 
 type Props = {
   races: SenateRaceWithQuestion[];
@@ -31,8 +31,7 @@ const MAX_ROW = Math.max(...US_TILE_GRID.map((c) => c.row));
 const UNCONTESTED_OPACITY_DEFAULT = 0.75;
 
 const TileMap: FC<Props> = ({ races }) => {
-  const { theme } = useAppTheme();
-  const isDark = theme === "dark";
+  const isDark = useIsDark();
   const uncontestedFill = isDark
     ? MIDTERMS_COLORS.uncontestedDark
     : MIDTERMS_COLORS.uncontestedLight;

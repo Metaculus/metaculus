@@ -2,11 +2,10 @@
 
 import { FC, ReactNode, useState } from "react";
 
-import useAppTheme from "@/hooks/use_app_theme";
-
 import CvBar, { ThemedColor } from "./cv_bar";
 import { DonkeyIcon, ElephantIcon } from "./party_icons";
 import { MIDTERMS_COLORS } from "../constants";
+import { useIsDark } from "../helpers/use_is_dark";
 
 type Column = "rep" | "dem";
 
@@ -75,8 +74,7 @@ const ConsequenceGrid: FC<Props> = ({
   repHeader,
   demHeader,
 }) => {
-  const { theme } = useAppTheme();
-  const isDark = theme === "dark";
+  const isDark = useIsDark();
   const [hovered, setHovered] = useState<Column | null>(null);
 
   const enter = (col: Column) => () => setHovered(col);

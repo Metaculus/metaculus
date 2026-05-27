@@ -2,9 +2,10 @@
 
 import { CSSProperties, FC } from "react";
 
-import useAppTheme from "@/hooks/use_app_theme";
 import cn from "@/utils/core/cn";
 import { addOpacityToHex } from "@/utils/core/colors";
+
+import { useIsDark } from "../helpers/use_is_dark";
 
 /** A hex color, optionally split into separate light + dark values that
  *  CvBar resolves based on the active theme. Plain hex strings keep the
@@ -87,8 +88,7 @@ const CvBar: FC<Props> = ({
   active,
   className,
 }) => {
-  const { theme } = useAppTheme();
-  const isDark = theme === "dark";
+  const isDark = useIsDark();
   const restOpacity = isDark ? BG_OPACITY_REST_DARK : BG_OPACITY_REST_LIGHT;
   const activeOpacity = Math.min(restOpacity + BG_OPACITY_ACTIVE_BUMP, 1);
 
