@@ -6,7 +6,6 @@ import {
   VictoryAxis,
   VictoryBar,
   VictoryChart,
-  VictoryLabel,
   VictoryLine,
   VictoryTooltip,
   VictoryVoronoiContainer,
@@ -124,6 +123,9 @@ const SeatDistributionChart: FC<Props> = ({
 
   const FILL_OPACITY = 0.5;
   const STROKE_WIDTH = 1.2;
+  // Max bin height — used to size quartile dashes and the EVEN
+  // annotation. Cached so we don't recompute it across renders.
+  const maxY = bins.length ? Math.max(...bins.map((b) => b.y)) : 0;
 
   // For the Continuous area to meet cleanly at x=0, anchor each side
   // with a y=0 vertex at zero.
@@ -178,10 +180,16 @@ const SeatDistributionChart: FC<Props> = ({
     />
   );
 
+  const CHART_WIDTH = 520;
+  // Center pixel of the plot area — used to anchor the EVEN annotation
+  // on the Discrete (Senate) chart.
+  const plotCenterX =
+    (CHART_PADDING.left + (CHART_WIDTH - CHART_PADDING.right)) / 2;
+
   return (
-    <div className="w-full">
+    <div className="relative w-full" aria-label={ariaTitle} role="img">
       <VictoryChart
-        width={520}
+        width={CHART_WIDTH}
         height={CHART_HEIGHT}
         padding={CHART_PADDING}
         domain={{ x: [domainMin, domainMax] }}
@@ -195,8 +203,6 @@ const SeatDistributionChart: FC<Props> = ({
           />
         }
       >
-        <title>{ariaTitle}</title>
-
         {/* Negative-side fill — Dem advantage. */}
         {isDiscrete ? (
           <VictoryBar
@@ -255,49 +261,53 @@ const SeatDistributionChart: FC<Props> = ({
           />
         )}
 
-        {/* Quartile dashes — Continuous only. */}
+        {/* Quartile dashes — Continuous only. Inlined as separate
+            conditionals (no Fragment wrapper) so VictoryChart's child
+            iteration walks each VictoryLine directly. */}
         {!isDiscrete && (
-          <>
-            <VictoryLine
-              data={[
-                { x: quartileXs.lower25, y: 0 },
-                { x: quartileXs.lower25, y: Math.max(...bins.map((b) => b.y)) },
-              ]}
-              style={{
-                data: {
-                  stroke: axisColor,
-                  strokeWidth: 1,
-                  strokeDasharray: "3,3",
-                },
-              }}
-            />
-            <VictoryLine
-              data={[
-                { x: quartileXs.median, y: 0 },
-                { x: quartileXs.median, y: Math.max(...bins.map((b) => b.y)) },
-              ]}
-              style={{
-                data: {
-                  stroke: axisColor,
-                  strokeWidth: 1.5,
-                  strokeDasharray: "3,3",
-                },
-              }}
-            />
-            <VictoryLine
-              data={[
-                { x: quartileXs.upper75, y: 0 },
-                { x: quartileXs.upper75, y: Math.max(...bins.map((b) => b.y)) },
-              ]}
-              style={{
-                data: {
-                  stroke: axisColor,
-                  strokeWidth: 1,
-                  strokeDasharray: "3,3",
-                },
-              }}
-            />
-          </>
+          <VictoryLine
+            data={[
+              { x: quartileXs.lower25, y: 0 },
+              { x: quartileXs.lower25, y: maxY },
+            ]}
+            style={{
+              data: {
+                stroke: axisColor,
+                strokeWidth: 1,
+                strokeDasharray: "3,3",
+              },
+            }}
+          />
+        )}
+        {!isDiscrete && (
+          <VictoryLine
+            data={[
+              { x: quartileXs.median, y: 0 },
+              { x: quartileXs.median, y: maxY },
+            ]}
+            style={{
+              data: {
+                stroke: axisColor,
+                strokeWidth: 1.5,
+                strokeDasharray: "3,3",
+              },
+            }}
+          />
+        )}
+        {!isDiscrete && (
+          <VictoryLine
+            data={[
+              { x: quartileXs.upper75, y: 0 },
+              { x: quartileXs.upper75, y: maxY },
+            ]}
+            style={{
+              data: {
+                stroke: axisColor,
+                strokeWidth: 1,
+                strokeDasharray: "3,3",
+              },
+            }}
+          />
         )}
 
         {/* X axis: numeric ticks + party labels below. */}
@@ -325,52 +335,42 @@ const SeatDistributionChart: FC<Props> = ({
             grid: { stroke: "transparent" },
           }}
         />
-
-        {/* Below-axis party labels. */}
-        <VictoryLabel
-          text={demAdvantageLabel}
-          x={
-            CHART_PADDING.left +
-            (520 - CHART_PADDING.left - CHART_PADDING.right) / 4
-          }
-          y={CHART_HEIGHT - 14}
-          textAnchor="middle"
-          style={{
-            fill: demStroke,
-            fontSize: 11,
-            fontWeight: 600,
-          }}
-        />
-        <VictoryLabel
-          text={repAdvantageLabel}
-          x={
-            CHART_PADDING.left +
-            ((520 - CHART_PADDING.left - CHART_PADDING.right) * 3) / 4
-          }
-          y={CHART_HEIGHT - 14}
-          textAnchor="middle"
-          style={{
-            fill: repStroke,
-            fontSize: 11,
-            fontWeight: 600,
-          }}
-        />
-
-        {/* EVEN annotation — Discrete only, between -1 and +1 bars. */}
-        {isDiscrete && (
-          <VictoryLabel
-            text={evenLabel}
-            datum={{ x: 0, y: Math.max(...bins.map((b) => b.y)) * 0.6 }}
-            textAnchor="middle"
-            style={{
-              fill: tickColor,
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: 1,
-            }}
-          />
-        )}
       </VictoryChart>
+
+      {/* Party advantage labels — HTML overlay below the chart so we
+          don't need VictoryLabel at the top level of VictoryChart. */}
+      <div
+        className="pointer-events-none absolute bottom-1 flex w-full justify-around text-[11px] font-semibold"
+        style={{
+          left: 0,
+          paddingLeft: `${(CHART_PADDING.left / CHART_WIDTH) * 100}%`,
+          paddingRight: `${(CHART_PADDING.right / CHART_WIDTH) * 100}%`,
+        }}
+      >
+        <span style={{ color: demStroke }}>{demAdvantageLabel}</span>
+        <span style={{ color: repStroke }}>{repAdvantageLabel}</span>
+      </div>
+
+      {/* EVEN annotation — Discrete only. Rendered as an HTML overlay
+          positioned at the plot-area horizontal center so we don't have
+          to fight Victory's coordinate system. The Senate chart's
+          domain is centered on zero, so the plot midpoint is x=0. */}
+      {isDiscrete && (
+        <span
+          className="pointer-events-none absolute text-[10px] font-bold uppercase tracking-widest text-blue-700 dark:text-blue-700-dark"
+          style={{
+            // Match the chart's SVG coordinate space — the wrapper
+            // <div> is `relative`; the chart's intrinsic SVG width is
+            // CHART_WIDTH (520) which the browser scales responsively,
+            // so we position by percentage.
+            left: `${(plotCenterX / CHART_WIDTH) * 100}%`,
+            top: "32%",
+            transform: "translateX(-50%)",
+          }}
+        >
+          {evenLabel}
+        </span>
+      )}
     </div>
   );
 };
