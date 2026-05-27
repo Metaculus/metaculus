@@ -214,23 +214,30 @@ const SeatDistributionChart: FC<Props> = ({
       Number.isInteger(datum.x) ? datum.x : datum.x.toFixed(1)
     }\n${datum.y.toFixed(1)}%`;
 
+  // Tooltip styled to match the Chamber Control hover tooltip — same
+  // blue-800 / blue-800-dark inverted background, gray-0 text, and a
+  // distinctly larger font than the chart's tick labels.
+  // Light-mode bg: blue-800 (#2f4155); dark-mode bg: blue-800-dark
+  // (#d7e7f7). Text inverts accordingly.
+  const tooltipBgFill = isDark ? "#d7e7f7" : "#2f4155";
+  const tooltipTextFill = isDark ? "#262f38" : "#ffffff";
+
   const tooltipComponent = (
     <VictoryTooltip
-      cornerRadius={4}
-      flyoutPadding={{ top: 4, bottom: 4, left: 8, right: 8 }}
+      cornerRadius={6}
+      flyoutPadding={{ top: 12, bottom: 12, left: 16, right: 16 }}
       flyoutStyle={{
-        fill: isDark ? "#1F2937" : "#FFFFFF",
-        stroke: axisColor,
-        strokeWidth: 1,
+        fill: tooltipBgFill,
+        stroke: "transparent",
       }}
       style={{
-        fill: tickColor,
-        fontSize: 10,
-        fontWeight: 500,
+        fill: tooltipTextFill,
+        fontSize: 20,
+        fontWeight: 600,
         fontFamily: TEXT_FONT_FAMILY,
         fontVariantNumeric: "tabular-nums",
       }}
-      pointerLength={6}
+      pointerLength={10}
       constrainToVisibleArea
     />
   );
