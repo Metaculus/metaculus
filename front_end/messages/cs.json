@@ -2264,12 +2264,15 @@
   "midtermsHubMetaculusUser": "Uživatel Metaculus",
   "midtermsHubComingSoon": "Již brzy",
   "midtermsHubClickToView": "Kliknutím zobrazíte celou otázku",
-  "midtermsHubSeatDistributionsTitle": "Rozdělení mandátů v Senátu a Sněmovně",
-  "midtermsHubSeatDistributionsSubtitle": "Kde komunita aktuálně očekává, že každá komora skončí z hlediska převahy mandátů.",
-  "midtermsHubSenateSeats": "Mandáty v Senátu",
-  "midtermsHubHouseSeats": "Mandáty ve Sněmovně",
+  "midtermsHubSeatDistributionsTitle": "Rozdělení mandátů",
+  "midtermsHubSeatDistributionsSubtitle": "Odhady pravděpodobnosti komunity, kolik mandátů může každá strana v jednotlivých komorách získat nebo ztratit.",
+  "midtermsHubSenateSeats": "Senát",
+  "midtermsHubHouseSeats": "Sněmovna",
   "midtermsHubDemSeatAdvantage": "Demokratická převaha mandátů",
   "midtermsHubRepSeatAdvantage": "Republikánská převaha mandátů",
   "midtermsHubEven": "REMÍZA",
-  "midtermsHubForecastUnavailable": "Předpověď nedostupná"
+  "midtermsHubForecastUnavailable": "Předpověď nedostupná",
+  "midtermsHubSeatAdvantageTooltip": "Náskok {count} mandátů",
+  "midtermsHubProbabilityTooltip": "{value}% pravděpodobnost",
+  "midtermsHubEvenTooltip": "Remíza"
 }

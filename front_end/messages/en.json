@@ -2254,12 +2254,15 @@
   "midtermsHubMetaculusUser": "Metaculus User",
   "midtermsHubComingSoon": "Coming Soon",
   "midtermsHubClickToView": "Click to view full question",
-  "midtermsHubSeatDistributionsTitle": "Senate & House seat distributions",
-  "midtermsHubSeatDistributionsSubtitle": "Where the community currently sees each chamber landing on seat advantage.",
-  "midtermsHubSenateSeats": "Senate Seats",
-  "midtermsHubHouseSeats": "House Seats",
+  "midtermsHubSeatDistributionsTitle": "Seat Distributions",
+  "midtermsHubSeatDistributionsSubtitle": "The community's probability estimates for how many seats each party could gain or lose in each chamber.",
+  "midtermsHubSenateSeats": "Senate",
+  "midtermsHubHouseSeats": "House",
   "midtermsHubDemSeatAdvantage": "Democrat Seat Advantage",
   "midtermsHubRepSeatAdvantage": "Republican Seat Advantage",
   "midtermsHubEven": "EVEN",
-  "midtermsHubForecastUnavailable": "Forecast unavailable"
+  "midtermsHubForecastUnavailable": "Forecast unavailable",
+  "midtermsHubSeatAdvantageTooltip": "{count} seat advantage",
+  "midtermsHubProbabilityTooltip": "{value}% probability",
+  "midtermsHubEvenTooltip": "Even"
 }

@@ -2261,12 +2261,15 @@
   "midtermsHubMetaculusUser": "Metaculus 使用者",
   "midtermsHubComingSoon": "即將推出",
   "midtermsHubClickToView": "點擊查看完整問題",
-  "midtermsHubSeatDistributionsTitle": "參議院與眾議院席位分布",
-  "midtermsHubSeatDistributionsSubtitle": "社群目前對兩院席位優勢走向的預測分布。",
-  "midtermsHubSenateSeats": "參議院席位",
-  "midtermsHubHouseSeats": "眾議院席位",
+  "midtermsHubSeatDistributionsTitle": "席次分佈",
+  "midtermsHubSeatDistributionsSubtitle": "社群對各政黨在各議院可能贏得或失去多少席次的機率估計。",
+  "midtermsHubSenateSeats": "參議院",
+  "midtermsHubHouseSeats": "眾議院",
   "midtermsHubDemSeatAdvantage": "民主黨席位優勢",
   "midtermsHubRepSeatAdvantage": "共和黨席位優勢",
   "midtermsHubEven": "持平",
-  "midtermsHubForecastUnavailable": "暫無預測"
+  "midtermsHubForecastUnavailable": "暫無預測",
+  "midtermsHubSeatAdvantageTooltip": "領先 {count} 席",
+  "midtermsHubProbabilityTooltip": "{value}% 機率",
+  "midtermsHubEvenTooltip": "持平"
 }
