@@ -1,10 +1,31 @@
-import { POSTS_PER_PAGE } from "@/constants/posts_feed";
+import { FEED_TILE_SPACING } from "@/constants/posts_feed";
 import { PostWithForecasts } from "@/types/post";
 import { FeedProjectTile } from "@/types/projects";
 
 export type FeedItem =
   | { type: "post"; post: PostWithForecasts }
   | { type: "project"; tile: FeedProjectTile };
+
+const postItemCache = new WeakMap<PostWithForecasts, FeedItem>();
+const tileItemCache = new WeakMap<FeedProjectTile, FeedItem>();
+
+function getPostItem(post: PostWithForecasts): FeedItem {
+  let item = postItemCache.get(post);
+  if (!item) {
+    item = { type: "post", post };
+    postItemCache.set(post, item);
+  }
+  return item;
+}
+
+function getTileItem(tile: FeedProjectTile): FeedItem {
+  let item = tileItemCache.get(tile);
+  if (!item) {
+    item = { type: "project", tile };
+    tileItemCache.set(tile, item);
+  }
+  return item;
+}
 
 function seededRandom(seed: number): () => number {
   let s = seed | 0 || 1;
@@ -19,7 +40,7 @@ export function buildFeedItems(
   tiles: FeedProjectTile[]
 ): FeedItem[] {
   if (!tiles.length || !posts.length) {
-    return posts.map((post) => ({ type: "post", post }));
+    return posts.map((post) => getPostItem(post));
   }
 
   const seed =
@@ -41,7 +62,7 @@ export function buildFeedItems(
   // Subsequent tiles: every ~10 posts with +-2 jitter, at least 1 post apart
   while (tileIdx < tiles.length) {
     const lastSlot = insertAfter[insertAfter.length - 1] ?? 0;
-    const base = lastSlot + POSTS_PER_PAGE;
+    const base = lastSlot + FEED_TILE_SPACING;
     const jitter = Math.floor(rand() * 5) - 2;
     const slot = Math.max(base + jitter, lastSlot + 1);
 
@@ -59,10 +80,10 @@ export function buildFeedItems(
 
   const items: FeedItem[] = [];
   posts.forEach((post, i) => {
-    items.push({ type: "post", post });
+    items.push(getPostItem(post));
     const tile = tileAtIndex.get(i);
     if (tile) {
-      items.push({ type: "project", tile });
+      items.push(getTileItem(tile));
     }
   });
 

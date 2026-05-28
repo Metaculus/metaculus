@@ -66,6 +66,13 @@ export type CurrentUser = User & {
   app_theme?: AppTheme | null;
   interface_type: InterfaceType;
   language?: string | null;
+  metaculus_news_subscription: boolean;
+  automatically_follow_on_predict: boolean;
+  follow_notify_cp_change_threshold: number | null;
+  follow_notify_comments_frequency: number | null;
+  follow_notify_milestone_step: number | null;
+  follow_notify_on_status_change: boolean;
+  api_forecasting_access: ApiForecastingAccess;
 };
 
 export type CurrentBot = CurrentUser & {
@@ -75,4 +82,10 @@ export type CurrentBot = CurrentUser & {
 export enum InterfaceType {
   ConsumerView = "consumer_view",
   ForecasterView = "forecaster_view",
+}
+
+export enum ApiForecastingAccess {
+  Enabled = "enabled",
+  Disabled = "disabled",
+  Pending = "pending",
 }

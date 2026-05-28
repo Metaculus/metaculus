@@ -5,8 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { FC } from "react";
 
 import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
-import CommunityHeader from "@/app/(main)/components/headers/community_header";
-import Header from "@/app/(main)/components/headers/header";
+import { TopChromeHeaderSetter } from "@/app/(main)/components/top_chrome_header_context";
 import NotebookContentSections from "@/app/(main)/notebooks/components/notebook_content_sections";
 import NotebookEditor from "@/app/(main)/notebooks/components/notebook_editor";
 import {
@@ -39,28 +38,26 @@ const IndividualNotebookPage: FC<{
     return notFound();
   }
 
-  const isCommunityQuestion = defaultProject?.type === TournamentType.Community;
-  let currentCommunity = null;
-  if (isCommunityQuestion) {
-    currentCommunity = await ServerProjectsApi.getCommunity(
-      defaultProject.slug as string
-    );
-  }
+  const isCommunityNotebook = defaultProject?.type === TournamentType.Community;
+  const community =
+    isCommunityNotebook && defaultProject?.slug
+      ? await ServerProjectsApi.getCommunity(defaultProject.slug)
+      : null;
 
   const locale = await getLocale();
   const t = await getTranslations();
   const questionTitle = getPostTitle(postData);
 
-  const HeaderElement = isCommunityQuestion ? (
-    <CommunityHeader community={currentCommunity} />
-  ) : (
-    <Header />
-  );
-
   return (
     <>
-      {HeaderElement}
-
+      {community && (
+        <TopChromeHeaderSetter
+          header={{
+            type: "community",
+            community,
+          }}
+        />
+      )}
       <main className="mx-auto mb-24 mt-12 flex w-full max-w-6xl flex-1 flex-col bg-gray-0 p-4 text-base text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark xs:p-8">
         {postData.notebook.image_url &&
           postData.notebook.image_url.startsWith("https:") && (

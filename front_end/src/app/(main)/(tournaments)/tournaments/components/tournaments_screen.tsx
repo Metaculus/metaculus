@@ -7,8 +7,8 @@ import TournamentsHeader from "./tournaments_header";
 import TournamentsHero from "./tournaments_hero";
 import TournamentsMobileCtrl from "./tournaments_mobile_ctrl";
 import { TournamentsSectionProvider } from "./tournaments_provider";
-import { TournamentsSection } from "../types";
 import TournamentsResults from "./tournaments_results";
+import { TournamentsSection } from "../types";
 
 type Props = {
   current: TournamentsSection;

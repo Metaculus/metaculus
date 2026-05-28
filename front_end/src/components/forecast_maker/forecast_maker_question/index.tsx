@@ -19,6 +19,7 @@ type Props = {
   post: PostWithForecasts;
   question: QuestionWithForecasts;
   canPredict: boolean;
+  predictLabel: string;
   predictionMessage: ReactNode;
   onPredictionSubmit?: () => void;
 };
@@ -26,6 +27,7 @@ type Props = {
 const QuestionForecastMaker: FC<Props> = ({
   question,
   canPredict,
+  predictLabel,
   post,
   predictionMessage,
   onPredictionSubmit,
@@ -38,6 +40,7 @@ const QuestionForecastMaker: FC<Props> = ({
             post={post}
             question={question as QuestionWithNumericForecasts}
             canPredict={canPredict}
+            predictLabel={predictLabel}
             predictionMessage={predictionMessage}
             onPredictionSubmit={onPredictionSubmit}
           />
@@ -50,6 +53,7 @@ const QuestionForecastMaker: FC<Props> = ({
             post={post}
             question={question}
             canPredict={canPredict}
+            predictLabel={predictLabel}
             predictionMessage={predictionMessage}
             onPredictionSubmit={onPredictionSubmit}
           />
@@ -62,6 +66,7 @@ const QuestionForecastMaker: FC<Props> = ({
             post={post}
             question={question}
             canPredict={canPredict}
+            predictLabel={predictLabel}
             predictionMessage={predictionMessage}
             onPredictionSubmit={onPredictionSubmit}
           />

@@ -28,7 +28,7 @@ const MedalCard: FC<Props> = ({ medal, href }) => {
         </span>
         <span className="text-base font-normal text-gray-700 dark:text-gray-700-dark">
           {t("rank")}: <span className="font-bold">#{medal.rank}</span>{" "}
-          {t("outOfRank", { total: medal.totalEntries })}
+          {t("outOfRank", { total: medal.totalEntries ?? 0 })}
         </span>
       </div>
     </Link>

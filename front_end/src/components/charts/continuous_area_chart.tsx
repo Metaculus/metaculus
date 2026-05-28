@@ -1,8 +1,16 @@
 "use client";
 import { isNil, merge } from "lodash";
 import { useLocale } from "next-intl";
-import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  FC,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
+  CursorCoordinatesPropType,
   Tuple,
   VictoryArea,
   VictoryAxis,
@@ -17,7 +25,10 @@ import {
   VictoryThemeDefinition,
 } from "victory";
 
+import { CHART_DASH } from "@/constants/chart_dash";
+import { CHART_STROKE_WIDTH } from "@/constants/chart_stroke";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { CHART_FONT_STYLE } from "@/constants/chart_typography";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
@@ -96,6 +107,8 @@ type Props = {
   globalScaling?: Scaling;
   outlineUser?: boolean;
   centerOOBResolution?: boolean;
+  animate?: object;
+  onChartReady?: () => void;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -116,11 +129,20 @@ const ContinuousAreaChart: FC<Props> = ({
   globalScaling,
   outlineUser = false,
   centerOOBResolution = false,
+  animate,
+  onChartReady,
 }) => {
   const locale = useLocale();
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
   const chartWidth = width || containerWidth;
+  const prevWidth = useRef(0);
+  useEffect(() => {
+    if (!prevWidth.current && chartWidth && onChartReady) {
+      onChartReady();
+    }
+    prevWidth.current = chartWidth;
+  }, [onChartReady, chartWidth]);
   const [cursorEdge, setCursorEdge] = useState<number | null>(null);
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
@@ -130,6 +152,11 @@ const ContinuousAreaChart: FC<Props> = ({
 
   const discrete = question.type === QuestionType.Discrete;
   const paddingTop = graphType === "cdf" || discrete ? TOP_PADDING : 0;
+
+  const hasUserData = useMemo(
+    () => data.some((d) => d.type === "user"),
+    [data]
+  );
 
   const charts = useMemo(() => {
     const parsedData = hideCP
@@ -508,8 +535,10 @@ const ContinuousAreaChart: FC<Props> = ({
           discrete={discrete}
         />
       }
-      onCursorChange={(props: { x: number } | null) => {
-        if (!props) {
+      onCursorChange={(value: CursorCoordinatesPropType | null) => {
+        const x = typeof value === "number" ? value : value?.x;
+
+        if (isNil(x)) {
           onCursorChange?.(null);
           return;
         }
@@ -518,18 +547,18 @@ const ContinuousAreaChart: FC<Props> = ({
           (acc, el) => {
             if (!discrete) {
               if (el.graphType === "pmf") {
-                acc.yData[el.type] = getClosestYValue(props?.x, el.graphLine);
+                acc.yData[el.type] = getClosestYValue(x, el.graphLine);
               } else {
-                acc.yData[el.type] = interpolateYValue(props?.x, el.graphLine);
+                acc.yData[el.type] = interpolateYValue(x, el.graphLine);
               }
             } else {
-              acc.yData[el.type] = getClosestYValue(props?.x, el.graphLine);
-              acc.x = getClosestXValue(props?.x, el.graphLine);
+              acc.yData[el.type] = getClosestYValue(x, el.graphLine);
+              acc.x = getClosestXValue(x, el.graphLine);
             }
             return acc;
           },
           {
-            x: props.x,
+            x,
             yData: {
               community: 0,
               user: 0,
@@ -579,6 +608,7 @@ const ContinuousAreaChart: FC<Props> = ({
             right: horizontalPadding,
           }}
           domain={{ x: xDomain, y: yDomain }}
+          animate={animate}
           containerComponent={
             onCursorChange ? (
               CursorContainer
@@ -702,7 +732,9 @@ const ContinuousAreaChart: FC<Props> = ({
                         }
                       })(),
                       strokeDasharray:
-                        chart.type === "user_previous" ? "2,2" : undefined,
+                        chart.type === "user_previous"
+                          ? CHART_DASH.quartile
+                          : undefined,
                     },
                   }}
                 />
@@ -713,9 +745,13 @@ const ContinuousAreaChart: FC<Props> = ({
             <VictoryPortal>
               <VictoryAxis
                 dependentAxis
+                orientation="right"
                 style={{
                   tickLabels: {
-                    padding: 2,
+                    ...CHART_FONT_STYLE.tick,
+                    // Right-align labels flush to the right margin.
+                    padding: Math.max(horizontalPadding - 4, 2),
+                    textAnchor: "end",
                     fill: getThemeColor(METAC_COLORS.gray["700"]),
                   },
                   ticks: { stroke: "transparent" },
@@ -726,13 +762,17 @@ const ContinuousAreaChart: FC<Props> = ({
                 }}
                 tickValues={yScale.ticks}
                 tickFormat={yScale.tickFormat}
-                axisValue={xDomain[0]}
+                axisValue={xDomain[1]}
               />
             </VictoryPortal>
           )}
           <VictoryAxis
             tickValues={xScale.ticks}
-            tickFormat={hideLabels || hideCP ? () => "" : xScale.tickFormat}
+            tickFormat={
+              hideLabels || (hideCP && !hasUserData)
+                ? () => ""
+                : xScale.tickFormat
+            }
             style={{
               ticks: {
                 strokeWidth: 1,
@@ -742,7 +782,7 @@ const ContinuousAreaChart: FC<Props> = ({
                 strokeWidth: 0,
               },
               tickLabels: {
-                fontSize: 10,
+                ...CHART_FONT_STYLE.tick,
                 fill: getThemeColor(METAC_COLORS.gray["700"]),
                 textAnchor: ({ index, ticks }) =>
                   // We want first and last labels be aligned against area boundaries
@@ -836,7 +876,7 @@ const ContinuousAreaChart: FC<Props> = ({
                           return undefined;
                       }
                     })(),
-                    strokeDasharray: "2,2",
+                    strokeDasharray: CHART_DASH.quartile,
                   },
                 }}
               />
@@ -875,8 +915,8 @@ const ContinuousAreaChart: FC<Props> = ({
                   y={height - BOTTOM_PADDING - 12} // Position above the dot
                   text="Today"
                   style={{
+                    ...CHART_FONT_STYLE.tooltip,
                     fill: getThemeColor(METAC_COLORS.blue["700"]),
-                    fontSize: 12,
                   }}
                   textAnchor="middle"
                 />
@@ -898,7 +938,7 @@ const ContinuousAreaChart: FC<Props> = ({
                 data: {
                   stroke: getThemeColor(METAC_COLORS.purple["800"]),
                   fill: getThemeColor(METAC_COLORS.gray["200"]),
-                  strokeWidth: 2.5,
+                  strokeWidth: CHART_STROKE_WIDTH.resolutionDiamond,
                 },
               }}
             />

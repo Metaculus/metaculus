@@ -58,7 +58,7 @@ const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
           feed_page: feedPage,
         })
       }
-      className="relative flex flex-col gap-3 overflow-hidden rounded px-6 py-5 text-gray-0 no-underline"
+      className="group relative flex flex-col gap-3 overflow-hidden rounded border border-transparent px-6 py-5 text-gray-0 no-underline transition-colors hover:border-gray-0/70"
     >
       {project.header_image ? (
         <>
@@ -70,7 +70,7 @@ const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
             className="size-full object-cover object-center"
             unoptimized
           />
-          <div className="absolute inset-0 bg-black/50" />
+          <div className="absolute inset-0 bg-black/50 transition-colors group-hover:bg-black/40" />
         </>
       ) : (
         <div className="absolute inset-0 bg-black" />
@@ -144,7 +144,7 @@ function getRuleLabel(
         count: tile.recently_opened_questions,
       });
     case FeedTileRule.RESOLVED_QUESTIONS:
-      return t("feedTileQuestionsResolved", {
+      return t("feedTileQuestionsRecentlyResolved", {
         count: tile.recently_resolved_questions,
       });
     case FeedTileRule.ALL_QUESTIONS_RESOLVED:

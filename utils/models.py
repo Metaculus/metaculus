@@ -17,7 +17,7 @@ from utils.translation import (
     build_supported_localized_fieldname,
     is_translation_dirty,
 )
-from utils.types import DjangoModelType
+from utils.typing import DjangoModelType
 
 logger = logging.getLogger(__name__)
 

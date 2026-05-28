@@ -40,11 +40,11 @@ export const CoherenceLinksProvider: FC<
   PropsWithChildren<BaseProviderProps>
 > = ({ children, post }) => {
   const [coherenceLinks, setCoherenceLinks] = useState<FetchedCoherenceLinks>({
-    data: [],
+    data: post?.question?.coherence_links ?? [],
   });
   const [aggregateCoherenceLinks, setAggregateCoherenceLinks] =
     useState<FetchedAggregateCoherenceLinks>({
-      data: [],
+      data: post?.question?.coherence_link_aggregations ?? [],
     });
 
   const { user } = useAuth();

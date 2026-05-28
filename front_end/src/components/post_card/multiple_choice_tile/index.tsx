@@ -11,6 +11,7 @@ import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import {
   buildDefaultForecastExpiration,
   forecastExpirationToDate,
+  getExpirationBaseDate,
 } from "@/components/forecast_maker/forecast_expiration";
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import PredictionChip from "@/components/prediction_chip";
@@ -33,6 +34,7 @@ import { CurrentUser } from "@/types/users";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 import { buildChoicesWithOthers } from "@/utils/questions/choices";
+import { isQuestionPrePrediction } from "@/utils/questions/predictions";
 
 import MultipleChoiceTileLegend from "./multiple_choice_tile_legend";
 
@@ -49,6 +51,7 @@ type BaseProps = {
   onCursorChange?: (value: number, format: TickFormat) => void;
   withHoverTooltip?: boolean;
   showCursorLabel?: boolean;
+  forFeedPage?: boolean;
 };
 
 type QuestionProps = {
@@ -109,6 +112,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
   onCursorActiveChange,
   withHoverTooltip = true,
   showCursorLabel = true,
+  forFeedPage = false,
 }) => {
   const enableTooltip = withHoverTooltip;
   const { getReferenceProps, refs } = useChartTooltip();
@@ -161,109 +165,119 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
     () => (isNil(group) ? buildChoicesWithOthers(choices) : choices),
     [choices, group]
   );
+  const effectiveChartHeight =
+    chartHeight ??
+    (forFeedPage ? CHART_HEIGHT : Math.max(height, CHART_HEIGHT));
 
   return (
-    <div
-      ref={tileRef}
-      className={cn(
-        "MultipleChoiceTile ml-0 w-full items-start",
-        {
-          "flex flex-col": isEmbed && isCompactEmbed,
-          "grid grid-cols-2": isEmbed && !isCompactEmbed,
-          "flex grid-cols-5 flex-col md:grid": !isEmbed && showChart,
-        },
-        {
-          "gap-3": isEmbed && isCompactEmbed && !minimalistic,
-          "gap-5": isEmbed && !isCompactEmbed && !minimalistic,
-          "gap-5 md:gap-8": !isEmbed && !minimalistic,
-        }
-      )}
-    >
+    <div className="w-full @container">
       <div
-        className={cn("resize-container w-full min-w-0", {
-          "col-span-1": isEmbed && !isCompactEmbed,
-          "col-span-2": isEmbed && isCompactEmbed,
-          "md:col-span-2": !isEmbed && (!minimalistic || isResolvedView),
-        })}
-      >
-        {isResolvedView ? (
-          <PredictionChip question={question} status={PostStatus.RESOLVED} />
-        ) : (
-          !minimalistic && (
-            <MultipleChoiceTileLegend
-              ref={ref}
-              choices={choices}
-              visibleChoicesCount={visibleChoicesCount}
-              questionType={groupType}
-              hideCP={hideCP}
-              canPredict={canPredict && canReaffirm}
-              onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
-              layout={isEmbed && isCompactEmbed ? "wrap" : "column"}
-              cursorTimestamp={legendCursorTimestamp}
-            />
-          )
+        ref={tileRef}
+        className={cn(
+          "MultipleChoiceTile ml-0 w-full items-start",
+          {
+            "flex flex-col": isEmbed && isCompactEmbed,
+            "grid grid-cols-2": isEmbed && !isCompactEmbed,
+            "flex grid-cols-5 flex-col @[550px]:grid": !isEmbed && showChart,
+          },
+          {
+            "gap-3": isEmbed && isCompactEmbed && !minimalistic,
+            "gap-5": isEmbed && !isCompactEmbed && !minimalistic,
+            "gap-5 @[550px]:gap-8": !isEmbed && !minimalistic,
+          }
         )}
-      </div>
-      {showChart && !isCompactEmbed && !isResolvedView && (
+      >
         <div
-          className={cn("relative w-full min-w-0", {
+          className={cn("resize-container w-full min-w-0", {
             "col-span-1": isEmbed && !isCompactEmbed,
             "col-span-2": isEmbed && isCompactEmbed,
-            "md:col-span-5": !isEmbed,
-            "md:col-span-3": !isEmbed && (!minimalistic || isResolvedView),
+            "@[550px]:col-span-2":
+              !isEmbed && (!minimalistic || isResolvedView),
           })}
         >
-          <div
-            ref={enableTooltip ? refs.setReference : undefined}
-            {...(enableTooltip ? getReferenceProps() : {})}
-            className="relative"
-          >
-            {isNil(group) ? (
-              <MultipleChoiceChart
-                timestamps={timestamps}
-                actualCloseTime={actualCloseTime}
-                choiceItems={chartChoices}
-                height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
-                extraTheme={chartTheme}
-                defaultZoom={defaultChartZoom}
-                withZoomPicker={withZoomPicker}
-                scaling={scaling}
-                forecastAvailability={forecastAvailability}
-                openTime={openTime}
-                hideCP={hideCP}
-                yLabel={yLabel}
-                isEmbedded={isEmbed}
-                onCursorChange={onCursorChange}
-                attachRef={attachRef}
-                forFeedPage
-                onCursorActiveChange={onCursorActiveChange}
-              />
-            ) : (
-              <GroupChart
+          {isResolvedView ? (
+            <PredictionChip question={question} status={PostStatus.RESOLVED} />
+          ) : (
+            !minimalistic && (
+              <MultipleChoiceTileLegend
+                ref={ref}
+                choices={choices}
+                visibleChoicesCount={visibleChoicesCount}
                 questionType={groupType}
-                timestamps={timestamps}
-                actualCloseTime={actualCloseTime}
-                choiceItems={chartChoices}
-                height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
-                extraTheme={chartTheme}
-                defaultZoom={defaultChartZoom}
-                withZoomPicker={withZoomPicker}
-                scaling={scaling}
-                forecastAvailability={forecastAvailability}
-                openTime={openTime}
                 hideCP={hideCP}
-                yLabel={yLabel}
-                onCursorChange={onCursorChange}
-                showCursorLabel={showCursorLabel}
-                forceShowLinePoints={!isEmbed}
-                attachRef={attachRef}
-                isEmbedded={isEmbed}
-                forFeedPage
+                canPredict={canPredict && canReaffirm}
+                onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
+                layout={isEmbed && isCompactEmbed ? "wrap" : "column"}
+                cursorTimestamp={legendCursorTimestamp}
               />
-            )}
-          </div>
+            )
+          )}
         </div>
-      )}
+        {showChart && !isCompactEmbed && !isResolvedView && (
+          <div
+            className={cn("relative w-full min-w-0", {
+              "col-span-1": isEmbed && !isCompactEmbed,
+              "col-span-2": isEmbed && isCompactEmbed,
+              "@[550px]:col-span-5": !isEmbed,
+              "@[550px]:col-span-3":
+                !isEmbed && (!minimalistic || isResolvedView),
+            })}
+            style={
+              forFeedPage ? { minHeight: effectiveChartHeight } : undefined
+            }
+          >
+            <div
+              ref={enableTooltip ? refs.setReference : undefined}
+              {...(enableTooltip ? getReferenceProps() : {})}
+              className="relative"
+            >
+              {isNil(group) ? (
+                <MultipleChoiceChart
+                  timestamps={timestamps}
+                  actualCloseTime={actualCloseTime}
+                  choiceItems={chartChoices}
+                  height={effectiveChartHeight}
+                  extraTheme={chartTheme}
+                  defaultZoom={defaultChartZoom}
+                  withZoomPicker={withZoomPicker}
+                  scaling={scaling}
+                  forecastAvailability={forecastAvailability}
+                  openTime={openTime}
+                  hideCP={hideCP}
+                  yLabel={yLabel}
+                  isEmbedded={isEmbed}
+                  onCursorChange={onCursorChange}
+                  attachRef={attachRef}
+                  forFeedPage
+                  onCursorActiveChange={onCursorActiveChange}
+                />
+              ) : (
+                <GroupChart
+                  questionType={groupType}
+                  timestamps={timestamps}
+                  actualCloseTime={actualCloseTime}
+                  choiceItems={chartChoices}
+                  height={effectiveChartHeight}
+                  extraTheme={chartTheme}
+                  defaultZoom={defaultChartZoom}
+                  withZoomPicker={withZoomPicker}
+                  scaling={scaling}
+                  forecastAvailability={forecastAvailability}
+                  openTime={openTime}
+                  hideCP={hideCP}
+                  yLabel={yLabel}
+                  onCursorChange={onCursorChange}
+                  showCursorLabel={showCursorLabel}
+                  forceShowLinePoints={!isEmbed}
+                  attachRef={attachRef}
+                  isEmbedded={isEmbed}
+                  forFeedPage
+                />
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -281,6 +295,7 @@ export const FanGraphTile: FC<FanGraphTileProps> = ({
   showChart = true,
   minimalistic = false,
   optionsLimit,
+  forFeedPage = false,
 }) => {
   const { onReaffirm } = useCardReaffirmContext();
   const { ref, height } = useContainerSize<HTMLDivElement>();
@@ -300,52 +315,60 @@ export const FanGraphTile: FC<FanGraphTileProps> = ({
 
     onReaffirm(forecast);
   }, [canReaffirm, forecast, onReaffirm]);
+  const effectiveChartHeight =
+    chartHeight ??
+    (forFeedPage ? CHART_HEIGHT : Math.max(height, CHART_HEIGHT));
 
   return (
-    <div
-      className={cn(
-        "MultipleChoiceTile ml-0 flex w-full flex-col items-start",
-        {
-          "md:grid md:grid-cols-5": showChart,
-          "gap-8": !minimalistic,
-        }
-      )}
-    >
+    <div className="w-full @container">
       <div
-        className={cn("resize-container w-full", {
-          "md:col-span-2": !minimalistic,
-        })}
-      >
-        {!minimalistic && (
-          <MultipleChoiceTileLegend
-            ref={ref}
-            choices={choices}
-            visibleChoicesCount={visibleChoicesCount}
-            hideCP={hideCP}
-            questionType={groupType}
-            canPredict={canPredict && canReaffirm}
-            onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
-            withChoiceIcon={false}
-          />
+        className={cn(
+          "MultipleChoiceTile ml-0 flex w-full flex-col items-start",
+          {
+            "@[550px]:grid @[550px]:grid-cols-5": showChart,
+            "gap-8": !minimalistic,
+          }
         )}
-      </div>
-      {showChart && (
+      >
         <div
-          className={cn("w-full md:col-span-5", {
-            "md:col-span-3": !minimalistic,
+          className={cn("resize-container w-full", {
+            "@[550px]:col-span-2": !minimalistic,
           })}
         >
-          <FanChart
-            group={group}
-            height={chartHeight ?? Math.max(height, CHART_HEIGHT)}
-            pointSize={9}
-            hideCP={hideCP}
-            withTooltip={false}
-            optionsLimit={optionsLimit}
-            forFeedPage
-          />
+          {!minimalistic && (
+            <MultipleChoiceTileLegend
+              ref={ref}
+              choices={choices}
+              visibleChoicesCount={visibleChoicesCount}
+              hideCP={hideCP}
+              questionType={groupType}
+              canPredict={canPredict && canReaffirm}
+              onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
+              withChoiceIcon={false}
+            />
+          )}
         </div>
-      )}
+        {showChart && (
+          <div
+            className={cn("w-full @[550px]:col-span-5", {
+              "@[550px]:col-span-3": !minimalistic,
+            })}
+            style={
+              forFeedPage ? { minHeight: effectiveChartHeight } : undefined
+            }
+          >
+            <FanChart
+              group={group}
+              height={effectiveChartHeight}
+              pointSize={9}
+              hideCP={hideCP}
+              withTooltip={false}
+              optionsLimit={optionsLimit}
+              forFeedPage
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -391,7 +414,10 @@ function generateReaffirmData({
       user?.prediction_expiration_percent ?? undefined
     );
 
-    const forecastEndTime = forecastExpirationToDate(forecastExpiration);
+    const forecastEndTime = forecastExpirationToDate(
+      forecastExpiration,
+      getExpirationBaseDate(question)
+    );
     return {
       canReaffirm:
         !!latest.forecast_values.length && !!Object.keys(forecastValue).length,
@@ -428,7 +454,10 @@ function generateReaffirmData({
       });
 
       const reaffirmForecasts = groupForecasts.filter(
-        (q) => q.forecast !== null && q.question.status === QuestionStatus.OPEN
+        (q) =>
+          q.forecast !== null &&
+          (q.question.status === QuestionStatus.OPEN ||
+            isQuestionPrePrediction(q.question))
       );
 
       return {
@@ -440,7 +469,10 @@ function generateReaffirmData({
           );
           return {
             questionId: q.question.id,
-            forecastEndTime: forecastExpirationToDate(forecastExpiration),
+            forecastEndTime: forecastExpirationToDate(
+              forecastExpiration,
+              getExpirationBaseDate(q.question)
+            ),
             forecastData: {
               probabilityYes: q.forecast,
               probabilityYesPerCategory: null,
@@ -473,7 +505,8 @@ function generateReaffirmData({
         (q) =>
           !isNil(q.forecastValues) &&
           !isNil(q.distributionInput) &&
-          q.question.status === QuestionStatus.OPEN
+          (q.question.status === QuestionStatus.OPEN ||
+            isQuestionPrePrediction(q.question))
       );
 
       return {
@@ -485,7 +518,10 @@ function generateReaffirmData({
           );
           return {
             questionId: q.question.id,
-            forecastEndTime: forecastExpirationToDate(forecastExpiration),
+            forecastEndTime: forecastExpirationToDate(
+              forecastExpiration,
+              getExpirationBaseDate(q.question)
+            ),
             forecastData: {
               // okay to ignore, we check for null when calculating reaffirmForecasts
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

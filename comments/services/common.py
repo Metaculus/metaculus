@@ -1,7 +1,8 @@
 import datetime
 import difflib
+from collections import defaultdict
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import (
     F,
     Sum,
@@ -90,8 +91,11 @@ def create_comment(
     if root:
         is_private = root.is_private
 
-    if not is_private and user.is_bot and not user.is_primary_bot:
-        raise PermissionDenied("Only your primary bot can post public comments.")
+    if not is_private and not user.allow_public_comments:
+        raise PermissionDenied(
+            "This account is not allowed to post public comments. "
+            "Use is_private=true to post a private comment."
+        )
 
     with transaction.atomic():
         obj = Comment(
@@ -267,6 +271,40 @@ def compute_comment_score(
     return score
 
 
+def vote_comment(comment: Comment, user: User, direction: int | None) -> int:
+    try:
+        with transaction.atomic():
+            CommentVote.objects.filter(user=user, comment=comment).delete()
+
+            if direction:
+                CommentVote.objects.create(
+                    user=user, comment=comment, direction=direction
+                )
+    except IntegrityError:
+        pass
+
+    return comment.update_vote_score()
+
+
+def toggle_cmm(comment: Comment, user: User, enabled: bool) -> bool | None:
+    """Returns True if created, False if deleted, None if no-op."""
+    try:
+        with transaction.atomic():
+            cmm = ChangedMyMindEntry.objects.filter(user=user, comment=comment)
+
+            if not enabled and cmm.exists():
+                cmm.delete()
+                comment.update_cmm_count()
+                return False
+
+            if enabled and not cmm.exists():
+                ChangedMyMindEntry.objects.create(user=user, comment=comment)
+                comment.update_cmm_count()
+                return True
+    except IntegrityError:
+        pass
+
+
 def set_comment_excluded_from_week_top(comment: Comment, excluded: bool = True):
     entry = comment.comments_of_the_week_entry
     if entry:
@@ -319,7 +357,7 @@ def update_top_comments_of_week(week_start_date: datetime.date):
             0,
             output_field=IntegerField(),
         ),
-        key_factor_votes_score=Coalesce(
+        annotated_key_factor_votes_score=Coalesce(
             Subquery(
                 KeyFactor.objects.filter(comment=OuterRef("pk"))
                 .annotate(
@@ -355,7 +393,7 @@ def update_top_comments_of_week(week_start_date: datetime.date):
         count=Count("id"),
         max_vote_score=Max("annotated_vote_score"),
         max_changed_my_mind_count=Max("changed_my_mind_count"),
-        max_key_factor_votes_score=Max("key_factor_votes_score"),
+        max_key_factor_votes_score=Max("annotated_key_factor_votes_score"),
     )
 
     maximum_comment_votes = stats["max_vote_score"]
@@ -364,12 +402,15 @@ def update_top_comments_of_week(week_start_date: datetime.date):
 
     top_comments_of_week: list[CommentsOfTheWeekEntry] = []
     for row in comments_of_week.values(
-        "id", "annotated_vote_score", "changed_my_mind_count", "key_factor_votes_score"
+        "id",
+        "annotated_vote_score",
+        "changed_my_mind_count",
+        "annotated_key_factor_votes_score",
     ):
         comment_score = compute_comment_score(
             comment_votes=max(0, row["annotated_vote_score"]),
             change_my_minds=row["changed_my_mind_count"],
-            key_factor_votes_score=row["key_factor_votes_score"],
+            key_factor_votes_score=row["annotated_key_factor_votes_score"],
             maximum_comment_votes=maximum_comment_votes,
             maximum_cmms=maximum_cmms,
             maximum_key_factor_score=maximum_key_factor_score,
@@ -385,7 +426,7 @@ def update_top_comments_of_week(week_start_date: datetime.date):
                 # for the moment of week entry creation
                 votes_score=row["annotated_vote_score"],
                 changed_my_mind_count=row["changed_my_mind_count"],
-                key_factor_votes_score=row["key_factor_votes_score"],
+                key_factor_votes_score=row["annotated_key_factor_votes_score"],
             )
         )
 
@@ -416,3 +457,61 @@ def update_top_comments_of_week(week_start_date: datetime.date):
     ).exclude(
         id__in=[entry.id for entry in created_entries],
     ).delete()
+
+
+def privatize_user_comments(user) -> int:
+    """
+    Sets is_private=True on all of the user's comments that have no descendant
+    comments authored by a different user. Skips comments that already have
+    replies (direct or nested) from other users, since hiding those would break
+    the conversation context for the other participants.
+
+    Returns the number of comments that were privatized.
+    """
+    from django.db.models import Q
+
+    user_comments = list(
+        Comment.objects.filter(author=user).values("id", "root_id", "is_private")
+    )
+    if not user_comments:
+        return 0
+
+    # Collect thread root IDs: root-level comments are their own root
+    thread_root_ids: set[int] = set()
+    for c in user_comments:
+        if c["root_id"] is None:
+            thread_root_ids.add(c["id"])
+        else:
+            thread_root_ids.add(c["root_id"])
+
+    # Load every comment in those threads so we can traverse the reply tree
+    all_thread_comments = list(
+        Comment.objects.filter(
+            Q(id__in=thread_root_ids) | Q(root_id__in=thread_root_ids)
+        ).values("id", "author_id", "parent_id")
+    )
+
+    children_map: dict[int, list[int]] = defaultdict(list)
+    for c in all_thread_comments:
+        if c["parent_id"] is not None:
+            children_map[c["parent_id"]].append(c["id"])
+    comment_author_map = {c["id"]: c["author_id"] for c in all_thread_comments}
+
+    def has_non_user_descendant(comment_id: int) -> bool:
+        stack = list(children_map.get(comment_id, []))
+        while stack:
+            child_id = stack.pop()
+            if comment_author_map.get(child_id) != user.id:
+                return True
+            stack.extend(children_map.get(child_id, []))
+        return False
+
+    to_privatize = [
+        c["id"]
+        for c in user_comments
+        if not c["is_private"] and not has_non_user_descendant(c["id"])
+    ]
+
+    if to_privatize:
+        Comment.objects.filter(id__in=to_privatize).update(is_private=True)
+    return len(to_privatize)

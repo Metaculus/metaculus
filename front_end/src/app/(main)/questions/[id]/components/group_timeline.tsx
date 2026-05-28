@@ -11,6 +11,7 @@ import React, {
 import { VictoryThemeDefinition } from "victory";
 
 import MultiChoicesChartView from "@/app/(main)/questions/[id]/components/multiple_choices_chart_view";
+import { GroupTimelineMarker } from "@/components/charts/primitives/timeline_markers/types";
 import CPRevealTime from "@/components/cp_reveal_time";
 import { getEffectiveVisibleCount } from "@/constants/questions";
 import { useAuth } from "@/contexts/auth_context";
@@ -51,7 +52,14 @@ type Props = QuestionsDataProps & {
   embedMode?: boolean;
   withLegend?: boolean;
   className?: string;
+  externalHighlightedChoice?: string | null;
   prioritizeOpen?: boolean;
+  timelineMarkers?: GroupTimelineMarker[];
+  activeTimelineMarkerId?: string | null;
+  onTimelineMarkerEnter?: (marker: GroupTimelineMarker) => void;
+  onTimelineMarkerLeave?: (marker: GroupTimelineMarker) => void;
+  withHighlightArea?: boolean;
+  withHighlightEndpoint?: boolean;
 };
 
 /**
@@ -77,6 +85,13 @@ const GroupTimeline: FC<Props> = ({
   withLegend,
   className,
   prioritizeOpen = false,
+  timelineMarkers,
+  activeTimelineMarkerId,
+  onTimelineMarkerEnter,
+  onTimelineMarkerLeave,
+  externalHighlightedChoice,
+  withHighlightArea,
+  withHighlightEndpoint,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -158,6 +173,18 @@ const GroupTimeline: FC<Props> = ({
   useEffect(() => {
     setChoiceItems(generateList(questions, group, preselectedQuestionId));
   }, [questions, preselectedQuestionId, generateList, group]);
+
+  // derived to keep external highlight authoritative across any setChoiceItems call
+  const displayedChoiceItems = useMemo(
+    () =>
+      externalHighlightedChoice === undefined
+        ? choiceItems
+        : choiceItems.map((item) => ({
+            ...item,
+            highlighted: item.choice === externalHighlightedChoice,
+          })),
+    [choiceItems, externalHighlightedChoice]
+  );
 
   const [cursorTimestamp, _tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);
@@ -261,7 +288,7 @@ const GroupTimeline: FC<Props> = ({
     }
 
     // otherwise display the value when option is highlighted
-    const highlightedChoice = choiceItems.find(
+    const highlightedChoice = displayedChoiceItems.find(
       ({ highlighted }) => highlighted
     );
     if (highlightedChoice) {
@@ -295,7 +322,7 @@ const GroupTimeline: FC<Props> = ({
     }
 
     return null;
-  }, [choiceItems, cursorTimestamp, timestamps]);
+  }, [choiceItems, displayedChoiceItems, cursorTimestamp, timestamps]);
 
   return (
     <MultiChoicesChartView
@@ -304,7 +331,7 @@ const GroupTimeline: FC<Props> = ({
       tooltipUserChoices={tooltipUserChoices}
       tooltipTitle={group?.group_variable}
       forecastersCount={forecastersCount}
-      choiceItems={choiceItems}
+      choiceItems={displayedChoiceItems}
       hideCP={hideCP}
       timestamps={timestamps}
       onCursorChange={handleCursorChange}
@@ -322,6 +349,12 @@ const GroupTimeline: FC<Props> = ({
       defaultZoom={defaultZoom}
       forecastAvailability={forecastAvailability}
       className={className}
+      timelineMarkers={timelineMarkers}
+      activeTimelineMarkerId={activeTimelineMarkerId}
+      onTimelineMarkerEnter={onTimelineMarkerEnter}
+      onTimelineMarkerLeave={onTimelineMarkerLeave}
+      withHighlightArea={withHighlightArea}
+      withHighlightEndpoint={withHighlightEndpoint}
     />
   );
 };

@@ -2,12 +2,15 @@ import json
 from datetime import timedelta
 
 from admin_auto_filters.filters import AutocompleteFilterFactory
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.contrib.admin.models import CHANGE, LogEntry
 from django.db.models import Count, Exists, OuterRef, Q, F, QuerySet
-from django.urls import reverse
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import path, reverse
 from django.utils.html import format_html
 from sql_util.aggregates import SubqueryAggregate
 
+from authentication.services import generate_password_reset_link
 from projects.models import ProjectUserPermission
 from questions.models import Forecast
 from users.models import User, UserCampaignRegistration, UserSpamActivity
@@ -187,7 +190,13 @@ class ProjectUserPermissionInline(admin.TabularInline):
 class BotInline(admin.TabularInline):
     model = User
     fk_name = "bot_owner"
-    fields = ["username", "email", "is_active", "is_primary_bot"]
+    fields = [
+        "username",
+        "email",
+        "is_active",
+        "is_primary_bot",
+        "allow_public_comments",
+    ]
     readonly_fields = ["username", "email", "is_active", "is_bot"]
     extra = 0
     show_change_link = True
@@ -201,6 +210,7 @@ class BotInline(admin.TabularInline):
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
+    change_form_template = "admin/users/user_change_form.html"
     list_display = [
         "username",
         "id",
@@ -209,6 +219,7 @@ class UserAdmin(admin.ModelAdmin):
         "is_spam",
         "is_bot",
         "is_primary_bot",
+        "allow_public_comments",
         "bot_owner",
         "duration_joined_to_last_login",
         "authored_posts",
@@ -224,6 +235,7 @@ class UserAdmin(admin.ModelAdmin):
         "soft_delete_selected",
         "clean_user_data_deletion",
         "run_profile_spam_detection_on_selected",
+        "generate_password_reset_links",
     ]
     search_fields = ["username", "email", "pk"]
     list_filter = [
@@ -252,6 +264,8 @@ class UserAdmin(admin.ModelAdmin):
         actions = super().get_actions(request)
         if "delete_selected" in actions:
             del actions["delete_selected"]
+        if not request.user.is_superuser and "generate_password_reset_links" in actions:
+            del actions["generate_password_reset_links"]
         return actions
 
     def get_queryset(self, request):
@@ -337,6 +351,63 @@ class UserAdmin(admin.ModelAdmin):
                 mark_user_as_spam(user)
                 send_deactivation_email(user.email)
 
+    def generate_password_reset_links(self, request, queryset: QuerySet[User]):
+        if not request.user.is_superuser:
+            self.message_user(
+                request,
+                "Only superusers may generate password reset links.",
+                level=messages.ERROR,
+            )
+            return
+
+        for user in queryset:
+            link = generate_password_reset_link(user)
+
+            LogEntry.objects.log_actions(
+                user_id=request.user.id,
+                queryset=[user],
+                action_flag=CHANGE,
+                change_message="Generated Password reset link.",
+                single_object=True,
+            )
+
+            self.message_user(
+                request,
+                format_html(
+                    "Password Reset link for <strong>{}</strong>:<br />"
+                    "<code style='user-select:all;background:#f4f4f4;padding:2px 4px;"
+                    "word-break:break-all;'>{}</code>",
+                    user.username,
+                    link,
+                ),
+                level=messages.INFO,
+            )
+
+    generate_password_reset_links.short_description = "Generate password reset link"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "<int:user_id>/privatize-comments/",
+                self.admin_site.admin_view(self.privatize_comments_view),
+                name="privatize-user-comments",
+            ),
+        ]
+        return custom_urls + urls
+
+    def privatize_comments_view(self, request, user_id):
+        from comments.services.common import privatize_user_comments
+
+        user = get_object_or_404(User, pk=user_id)
+        count = privatize_user_comments(user)
+        self.message_user(
+            request,
+            f"Privatized {count} comment(s) for {user.username}.",
+            level=messages.SUCCESS,
+        )
+        return redirect("admin:users_user_change", user_id)
+
     def get_fields(self, request, obj=None):
         fields = list(super().get_fields(request, obj))
         for field in ["metadata"]:
@@ -394,7 +465,8 @@ class UserSpamActivityAdmin(admin.ModelAdmin):
         "confidence_value",
         "content_link",
     ]
-    search_fields = ["user__username", "user__email"]
+    search_fields = ["user__username", "user__id", "user__email"]
+    list_filter = ["user"]
 
     def content_link(self, obj):
         match obj.content_type:

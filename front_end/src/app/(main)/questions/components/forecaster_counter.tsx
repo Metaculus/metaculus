@@ -10,12 +10,14 @@ import { abbreviatedNumber } from "@/utils/formatters/number";
 type Props = {
   forecasters?: number;
   compact?: boolean;
+  boldCount?: boolean;
   className?: string;
 };
 
 const ForecastersCounter: FC<Props> = ({
   forecasters,
   compact = false,
+  boldCount = false,
   className,
 }) => {
   const t = useTranslations();
@@ -35,7 +37,7 @@ const ForecastersCounter: FC<Props> = ({
   return (
     <div
       className={cn(
-        "flex flex-row items-center gap-1.5 truncate px-1.5 text-xs font-normal text-gray-700 dark:text-gray-700-dark md:gap-2",
+        "flex flex-row items-center gap-1.5 truncate px-1.5 text-justify text-sm font-normal leading-4 text-gray-700 dark:text-gray-700-dark md:gap-2",
         className
       )}
     >
@@ -45,11 +47,13 @@ const ForecastersCounter: FC<Props> = ({
       />
       {/* Compact version - just shows number */}
       {compact && (
-        <span className="align-middle font-medium tabular-nums">
+        <span
+          className={cn("align-middle tabular-nums", boldCount && "font-bold")}
+        >
           {forecastersFormatted}
         </span>
       )}
-      {/* Full version - shows descriptive text */}
+      {/* Full version - shows descriptive text with label */}
       {!compact && (
         <RichText>
           {(tags) => (
@@ -58,6 +62,12 @@ const ForecastersCounter: FC<Props> = ({
                 count: forecasters,
                 count_formatted: forecastersFormatted,
                 ...tags,
+                strong: (chunks) =>
+                  boldCount ? (
+                    <span className="font-bold">{chunks}</span>
+                  ) : (
+                    chunks
+                  ),
               })}
             </span>
           )}

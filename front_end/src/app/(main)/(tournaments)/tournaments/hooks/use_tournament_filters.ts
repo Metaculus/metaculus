@@ -3,12 +3,13 @@
 import { useMemo } from "react";
 
 import useSearchParams from "@/hooks/use_search_params";
-import { TournamentPreview } from "@/types/projects";
+import { TournamentPreview, TournamentsSortBy } from "@/types/projects";
 
 import { filterTournamentsFromParams } from "../helpers/tournament_filters";
 
 type Options = {
   disableClientSort?: boolean;
+  defaultSort?: TournamentsSortBy;
 };
 
 export function useTournamentFilters(

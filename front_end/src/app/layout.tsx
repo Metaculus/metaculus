@@ -16,9 +16,11 @@ import PublicSettingsScript from "@/components/public_settings_script";
 import QueryClientProviderWrapper from "@/components/query_client_provider";
 import SimplifiedSignupModal from "@/components/simplified_signup_modal";
 import AppThemeProvider from "@/components/theme_provider";
+import { TailwindIndicator } from "@/components/ui/tailwind-indicator";
 import { METAC_COLORS } from "@/constants/colors";
+import { FEED_LAYOUT_COOKIE } from "@/constants/posts_feed";
 import AuthProvider from "@/contexts/auth_context";
-import { GlobalSearchProvider } from "@/contexts/global_search_context";
+import FeedLayoutProvider from "@/contexts/feed_layout_context";
 import ModalProvider from "@/contexts/modal_context";
 import NavigationProvider from "@/contexts/navigation_context";
 import PolyfillProvider from "@/contexts/polyfill";
@@ -88,6 +90,7 @@ export default async function RootLayout({
 
   const cookieStore = await cookies();
   const csrfToken = cookieStore.get(CSRF_COOKIE_NAME)?.value || null;
+  const feedLayoutCookie = cookieStore.get(FEED_LAYOUT_COOKIE)?.value;
 
   return (
     <html
@@ -113,7 +116,7 @@ export default async function RootLayout({
             `}
         </Script>
       </head>
-      <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
+      <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark print:bg-white">
         <NuqsAdapter>
           <QueryClientProviderWrapper>
             <PolyfillProvider>
@@ -124,7 +127,7 @@ export default async function RootLayout({
                       <PublicSettingsProvider settings={publicSettings}>
                         <ModalProvider>
                           <NavigationProvider>
-                            <GlobalSearchProvider>
+                            <FeedLayoutProvider cookieLayout={feedLayoutCookie}>
                               <TranslationsBannerProvider>
                                 <NextTopLoader
                                   showSpinner={false}
@@ -135,7 +138,7 @@ export default async function RootLayout({
                                 <SimplifiedSignupModal />
                                 <Toaster />
                               </TranslationsBannerProvider>
-                            </GlobalSearchProvider>
+                            </FeedLayoutProvider>
                           </NavigationProvider>
                         </ModalProvider>
                       </PublicSettingsProvider>
@@ -148,6 +151,7 @@ export default async function RootLayout({
             </PolyfillProvider>
           </QueryClientProviderWrapper>
         </NuqsAdapter>
+        <TailwindIndicator />
       </body>
       {!!publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID && (
         <GoogleAnalytics gaId={publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID} />
