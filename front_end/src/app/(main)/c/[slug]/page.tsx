@@ -6,6 +6,7 @@ import ProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/componen
 import { TopChromeHeaderSetter } from "@/app/(main)/components/top_chrome_header_context";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import LoadingSpinner from "@/components/ui/loading_spiner";
 import { defaultDescription } from "@/constants/metadata";
 import { PostsParams } from "@/services/api/posts/posts.shared";
 import ServerProfileApi from "@/services/api/profile/profile.server";
@@ -17,6 +18,7 @@ import { stripHtmlTags } from "@/utils/formatters/string";
 
 import FeedFilters from "../../questions/components/feed_filters";
 import { generateFiltersFromSearchParams } from "../../questions/helpers/filters";
+import { FeedQueryProvider } from "../../questions/hooks/use_feed_query";
 import CommunityInfo from "../components/community_info";
 
 type Props = {
@@ -93,15 +95,28 @@ export default async function IndividualCommunity(props: Props) {
         </div>
 
         <div className="min-h-[calc(100vh-300px)] grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-0 sm:pt-5">
-          <FeedFilters />
-          <Suspense
-            key={JSON.stringify(searchParams)}
-            fallback={
-              <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
-            }
+          <FeedQueryProvider
+            filterUpdateOptions={{
+              history: "push",
+              scroll: true,
+              shallow: false,
+            }}
           >
-            <AwaitedPostsFeed filters={pageFilters} isCommunity={true} />
-          </Suspense>
+            <FeedFilters />
+            <Suspense
+              key={JSON.stringify(searchParams)}
+              fallback={
+                <LoadingSpinner className="mx-auto h-8 w-8 text-gray-600 dark:text-gray-600-dark" />
+              }
+            >
+              <AwaitedPostsFeed
+                filters={pageFilters}
+                isCommunity={true}
+                forceLayout="list"
+                isFeedQueryProvided
+              />
+            </Suspense>
+          </FeedQueryProvider>
         </div>
       </main>
     </>

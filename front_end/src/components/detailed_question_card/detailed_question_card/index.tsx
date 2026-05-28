@@ -3,7 +3,6 @@ import { FC, useEffect } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
-import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { useHideCP } from "@/contexts/cp_context";
 import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
 import { KeyFactor } from "@/types/comment";
@@ -85,7 +84,6 @@ const DetailedQuestionCard: FC<Props> = ({
             embedChartType={embedChartType}
             keyFactors={keyFactors}
           />
-          {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>
       );
     case QuestionType.MultipleChoice:
@@ -94,14 +92,15 @@ const DetailedQuestionCard: FC<Props> = ({
           <DetailedMultipleChoiceChartCard
             question={question}
             hideCP={hideCP}
+            hideTitle={hideTitle}
             forecastAvailability={forecastAvailability}
             embedMode={isEmbed}
             chartHeight={embedChartHeight}
             onLegendHeightChange={onLegendHeightChange}
             chartTheme={chartTheme}
             defaultZoom={defaultZoom}
+            isConsumerView={isConsumerView}
           />
-          {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>
       );
     default:
