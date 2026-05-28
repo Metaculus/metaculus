@@ -100,7 +100,7 @@ const SimilarQuestionCard: FC<Props> = ({ post, variant = "forecaster" }) => {
             isForecaster ? "text-left" : "text-center"
           )}
         >
-          {post.title}
+          {post.short_title || post.title}
         </h4>
 
         <SimilarPredictionChip post={post} variant={variant} />
