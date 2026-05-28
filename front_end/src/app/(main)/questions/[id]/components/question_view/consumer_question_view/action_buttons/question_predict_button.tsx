@@ -13,13 +13,15 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { PostWithForecasts } from "@/types/post";
+import cn from "@/utils/core/cn";
 import { isPostPrePrediction } from "@/utils/questions/predictions";
 
 type Props = {
   post: PostWithForecasts;
+  className?: string;
 };
 
-const QuestionPredictButton: React.FC<Props> = ({ post }) => {
+const QuestionPredictButton: React.FC<Props> = ({ post, className }) => {
   const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
   const isDesktop = useBreakpoint("sm");
@@ -39,7 +41,11 @@ const QuestionPredictButton: React.FC<Props> = ({ post }) => {
 
   return (
     <>
-      <Button variant="tertiary" onClick={handleClick}>
+      <Button
+        variant="tertiary"
+        onClick={handleClick}
+        className={cn("px-4 capitalize", className)}
+      >
         <FontAwesomeIcon icon={faPercent} />
         {isPostPrePrediction(post) ? t("prePredict") : t("predict")}
       </Button>

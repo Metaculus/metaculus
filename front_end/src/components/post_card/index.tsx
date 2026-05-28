@@ -25,6 +25,8 @@ type Props = {
   forCommunityFeed?: boolean;
   indexWeight?: number;
   minimalistic?: boolean;
+  forFeedPage?: boolean;
+  useShortTitle?: boolean;
 };
 
 const PostCard: FC<Props> = ({
@@ -32,6 +34,8 @@ const PostCard: FC<Props> = ({
   forCommunityFeed,
   indexWeight,
   minimalistic = false,
+  forFeedPage = false,
+  useShortTitle = false,
 }) => {
   const { user } = useAuth();
   const hideCP =
@@ -56,6 +60,7 @@ const PostCard: FC<Props> = ({
           forCommunityFeed={forCommunityFeed}
           indexWeight={indexWeight}
           minimalistic={minimalistic}
+          useShortTitle={useShortTitle}
         >
           <HideCPProvider post={internalPost}>
             {isQuestionPost(internalPost) && (
@@ -66,12 +71,14 @@ const PostCard: FC<Props> = ({
                 hideCP={hideCP}
                 canPredict={canPredict}
                 minimalistic={minimalistic}
+                forFeedPage={forFeedPage}
               />
             )}
             {isGroupOfQuestionsPost(internalPost) && (
               <GroupOfQuestionsTile
                 post={internalPost}
                 minimalistic={minimalistic}
+                forFeedPage={forFeedPage}
               />
             )}
             {isConditionalPost(internalPost) && (

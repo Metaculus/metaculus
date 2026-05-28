@@ -1,5 +1,4 @@
 "use client";
-import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 
@@ -10,6 +9,7 @@ import {
   getFilterSectionProjects,
   getFilterSectionUsername,
 } from "@/app/(main)/questions/helpers/filters";
+import { useFeedQuery } from "@/app/(main)/questions/hooks/use_feed_query";
 import PostsFilters from "@/components/posts_filters";
 import { GroupButton } from "@/components/ui/button_group";
 import {
@@ -18,8 +18,6 @@ import {
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
-import { useBreakpoint } from "@/hooks/tailwind";
-import useSearchParams from "@/hooks/use_search_params";
 import ClientProjectsApi from "@/services/api/projects/projects.client";
 import { PostStatus } from "@/types/post";
 import { TournamentPreview } from "@/types/projects";
@@ -29,19 +27,21 @@ type Props = {
   following?: boolean;
   withProjectFilters?: boolean;
   panelClassname?: string;
+  variant?: "full" | "mobileActions";
+  hideMobileActions?: boolean;
 };
 
 const MainFeedFilters: FC<Props> = ({
   following,
   withProjectFilters = false,
   panelClassname,
+  variant,
+  hideMobileActions,
 }) => {
-  const { params } = useSearchParams();
+  const { params } = useFeedQuery();
   const t = useTranslations();
   const { user } = useAuth();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
-
-  const isLargeScreen = useBreakpoint("md");
 
   const [projectFilters, setProjectFilters] = useState<
     TournamentPreview[] | undefined
@@ -90,10 +90,6 @@ const MainFeedFilters: FC<Props> = ({
     return filters;
   }, [params, t, user, projectFilters]);
 
-  const mainSortNewsVisible =
-    !PUBLIC_MINIMAL_UI && (isLargeScreen || isNil(user));
-  const mainSortNewVisible = isLargeScreen || !isNil(user);
-
   const mainSortOptions: GroupButton<QuestionOrder>[] = useMemo(
     () => [
       {
@@ -104,15 +100,11 @@ const MainFeedFilters: FC<Props> = ({
         value: QuestionOrder.WeeklyMovementDesc,
         label: t("movers"),
       },
-      ...(mainSortNewVisible
-        ? [
-            {
-              value: QuestionOrder.OpenTimeDesc,
-              label: t("new"),
-            },
-          ]
-        : []),
-      ...(mainSortNewsVisible
+      {
+        value: QuestionOrder.OpenTimeDesc,
+        label: t("new"),
+      },
+      ...(!PUBLIC_MINIMAL_UI
         ? [
             {
               value: QuestionOrder.NewsHotness,
@@ -120,9 +112,13 @@ const MainFeedFilters: FC<Props> = ({
             },
           ]
         : []),
+      {
+        value: QuestionOrder.ResolveTimeAsc,
+        label: t("resolvingSoon"),
+        className: "sm:hidden",
+      },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t, isLargeScreen]
+    [t, PUBLIC_MINIMAL_UI]
   );
 
   const sortOptions = useMemo(
@@ -144,14 +140,8 @@ const MainFeedFilters: FC<Props> = ({
       { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
       { value: QuestionOrder.ResolveTimeAsc, label: t("resolvingSoon") },
       { value: QuestionOrder.CpRevealTimeDesc, label: t("recentlyRevealed") },
-      ...(!mainSortNewVisible
-        ? [{ value: QuestionOrder.OpenTimeDesc, label: t("new") }]
-        : []),
-      ...(!mainSortNewsVisible && !PUBLIC_MINIMAL_UI
-        ? [{ value: QuestionOrder.NewsHotness, label: t("inTheNews") }]
-        : []),
     ],
-    [mainSortNewVisible, mainSortNewsVisible, PUBLIC_MINIMAL_UI, t]
+    [t]
   );
 
   const onOrderChange = (
@@ -185,8 +175,9 @@ const MainFeedFilters: FC<Props> = ({
       sortOptions={sortOptions}
       onOrderChange={onOrderChange}
       defaultOrder={QuestionOrder.HotDesc}
-      showRandomButton
       panelClassname={panelClassname}
+      variant={variant}
+      hideMobileActions={hideMobileActions}
     />
   );
 };

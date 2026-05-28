@@ -132,7 +132,7 @@ const ChoiceOption: FC<Props> = ({
           })}
         </div>
       ) : (
-        <div className="resize-label leading-0 flex flex-shrink-0 items-center gap-0.5 whitespace-nowrap px-1.5 text-right text-sm font-medium tabular-nums">
+        <div className="resize-label leading-0 flex flex-shrink-0 items-center gap-0.5 whitespace-nowrap text-right text-sm font-medium tabular-nums">
           <ChoiceResolutionIcon
             color={questionType === QuestionType.Date ? color : undefined}
           />

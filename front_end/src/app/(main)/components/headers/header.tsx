@@ -10,6 +10,7 @@ import { FC, ReactNode } from "react";
 
 import NavUserButton from "@/components/auth";
 import NavLink from "@/components/nav_link";
+import RandomButton from "@/components/random_button";
 import { useAuth } from "@/contexts/auth_context";
 import cn from "@/utils/core/cn";
 import { isPathEqual } from "@/utils/navigation";
@@ -93,6 +94,10 @@ const Header: FC<Props> = ({ className }) => {
       <div className="ml-auto flex items-stretch">
         {/* Global Search */}
         <GlobalSearch />
+        <RandomButton
+          variant="text"
+          className="ml-1 hidden self-center text-white hover:bg-blue-700 hover:text-white active:bg-blue-600 dark:text-white dark:hover:text-white md:inline-flex"
+        />
 
         <ul className="relative hidden list-none items-center justify-end text-sm font-medium md:flex">
           {!!user && (

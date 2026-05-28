@@ -16,6 +16,7 @@ export type VariantArgs = {
   maxLeftPadding: number;
   maxRightPadding: number;
   isEmbedded?: boolean;
+  forFeedPage?: boolean;
   getThemeColor: (c: ThemeColor) => string;
 };
 
@@ -90,8 +91,8 @@ export const fanVariants: Record<FanChartVariant, VariantConfig> = {
         fill: getThemeColor(METAC_COLORS.gray["600"]),
       },
     }),
-    domainPadding: ({ isEmbedded }) =>
-      isEmbedded ? { x: [16, 16] } : { x: [150 / 2, 150 / 2] },
+    domainPadding: ({ isEmbedded, forFeedPage }) =>
+      isEmbedded || forFeedPage ? { x: [16, 16] } : { x: [150 / 2, 150 / 2] },
     padding: ({ maxRightPadding }) => ({
       left: 10,
       top: 10,
