@@ -2055,7 +2055,6 @@
   "weeklyTopCommentsSubscribeError": "出现问题。请再试一次。",
   "feedTileNewTournament": "新锦标赛",
   "feedTileForecastNewQuestions": "预测 {count, plural, other {# 个新问题}}",
-  "feedTileQuestionsResolved": "{count, plural, other {# 个问题已解决}}",
   "feedTileCheckLeaderboards": "查看最终排行榜",
   "feedTilePopularTournament": "热门锦标赛",
   "feedTileClosesIn": "<strong>{when}</strong>后关闭",

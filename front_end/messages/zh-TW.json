@@ -2050,7 +2050,6 @@
   "weeklyTopCommentsSubscribeError": "出了些問題。請再試一次。",
   "feedTileNewTournament": "新錦標賽",
   "feedTileForecastNewQuestions": "預測 {count, plural, other {# 個新問題}}",
-  "feedTileQuestionsResolved": "{count, plural, other {# 個問題已解決}}",
   "feedTileCheckLeaderboards": "查看最終排行榜",
   "feedTilePopularTournament": "熱門錦標賽",
   "feedTileClosesIn": "<strong>{when}</strong>後關閉",

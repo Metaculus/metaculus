@@ -2053,7 +2053,6 @@
   "weeklyTopCommentsSubscribeError": "Něco se pokazilo. Zkuste to prosím znovu.",
   "feedTileNewTournament": "Nový turnaj",
   "feedTileForecastNewQuestions": "Předpovědět {count, plural, one {# novou otázku} few {# nové otázky} other {# nových otázek}}",
-  "feedTileQuestionsResolved": "{count, plural, one {# otázka vyřešena} few {# otázky vyřešeny} other {# otázek vyřešeno}}",
   "feedTileCheckLeaderboards": "Podívejte se na konečné žebříčky",
   "feedTilePopularTournament": "Populární turnaj",
   "feedTileClosesIn": "Uzavře se za <strong>{when}</strong>",
