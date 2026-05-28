@@ -2051,7 +2051,6 @@
   "weeklyTopCommentsSubscribeError": "Algo deu errado. Por favor, tente novamente.",
   "feedTileNewTournament": "Novo torneio",
   "feedTileForecastNewQuestions": "Prever {count, plural, one {# nova pergunta} other {# novas perguntas}}",
-  "feedTileQuestionsResolved": "{count, plural, one {# pergunta resolvida} other {# perguntas resolvidas}}",
   "feedTileCheckLeaderboards": "Confira as classificações finais",
   "feedTilePopularTournament": "Torneio popular",
   "feedTileClosesIn": "Fecha em <strong>{when}</strong>",
@@ -2218,5 +2217,7 @@
   "publishTimeLockedDescription": "O horário de publicação não pode ser alterado após a criação.",
   "nMore": "{count} a mais",
   "noHistogramData": "Não há dados de histograma disponíveis",
+  "predictorsMentionWarning": "Somente curadores e administradores podem notificar @predictors. Sua menção não enviará notificações.",
+  "feedTileQuestionsRecentlyResolved": "{count, plural, one {# pergunta recentemente resolvida} other {# perguntas recentemente resolvidas}}",
   "thousandsOfOpenQuestions": "20.000+ perguntas abertas"
 }
