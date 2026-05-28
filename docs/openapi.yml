@@ -8,6 +8,11 @@ info:
     <h2>API Data Access</h2>
 
     <p>
+    ⚠️ <b>All use of the API and any data retrieved via the API is governed by the <a href="https://www.metaculus.com/terms-of-use/">Metaculus Terms of Use</a>.</b>
+    In particular: data may not be used to train, evaluate, or otherwise create or develop AI/ML models or algorithms without Metaculus's prior written permission; and any commercial use whatsoever requires a separate written agreement. The endpoints below describe what is technically retrievable &mdash; the Terms of Use govern what you may do with what you retrieve.
+    </p>
+
+    <p>
     The following data access restrictions and request throttling apply to the main Metaculus instance at <a href="https://www.metaculus.com">metaculus.com</a>. If you are running a custom instance, these restrictions do not apply.
     </p>
 

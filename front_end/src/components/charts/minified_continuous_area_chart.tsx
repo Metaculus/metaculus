@@ -13,7 +13,9 @@ import {
   VictoryThemeDefinition,
 } from "victory";
 
+import { CHART_DASH } from "@/constants/chart_dash";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { CHART_FONT_STYLE } from "@/constants/chart_typography";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
@@ -421,9 +423,10 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
               axis: {
                 stroke: getThemeColor(METAC_COLORS.olive["100"]),
                 strokeWidth: 0,
-                strokeDasharray: "4, 4",
+                strokeDasharray: CHART_DASH.grid,
               },
               tickLabels: {
+                ...CHART_FONT_STYLE.tick,
                 fontSize: variant === "feed" ? 10 : 8,
                 textAnchor: ({ index, ticks }) =>
                   // We want first and last labels be aligned against area boundaries
@@ -433,7 +436,6 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                       ? "end"
                       : "middle",
                 fill: getThemeColor(METAC_COLORS.gray["500"]),
-                fontFamily: "Inter",
               },
             }}
           />

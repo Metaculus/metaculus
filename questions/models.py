@@ -676,6 +676,7 @@ class Forecast(models.Model):
         AUTOMATIC = "automatic"
 
     # logging the source of the forecast for data purposes
+    # TODO: require the value and backfill existing records
     source = models.CharField(
         max_length=30,
         blank=True,

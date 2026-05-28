@@ -78,6 +78,20 @@ export function parseUserMentions(
 }
 
 /**
+ * Checks if a comment text contains an @predictors mention.
+ */
+export function hasPredictorsMention(text: string): boolean {
+  const mentions = text.matchAll(userTagPattern);
+  for (const match of mentions) {
+    const username = (match[1] || match[2] || "").toLowerCase();
+    if (username === "predictors") {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * Returns commentId to focus on if id is provided and comment is not already rendered
  */
 export function getCommentIdToFocusOn() {
