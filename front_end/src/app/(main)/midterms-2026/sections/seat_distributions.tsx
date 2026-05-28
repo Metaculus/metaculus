@@ -71,7 +71,7 @@ function DistributionSlot({
 }: SlotProps) {
   return (
     <div>
-      <h3 className="mb-2 text-center text-base font-medium uppercase tracking-wide text-blue-800 dark:text-blue-800-dark">
+      <h3 className="-mb-3 mt-1 text-center text-base font-medium uppercase tracking-wide text-blue-800 dark:text-blue-800-dark">
         {title}
       </h3>
       {post ? (

@@ -7,6 +7,7 @@ import {
   VictoryAxis,
   VictoryBar,
   VictoryChart,
+  VictoryLabel,
   VictoryLine,
   VictoryTooltip,
   VictoryVoronoiContainer,
@@ -32,7 +33,7 @@ type Props = {
   repAdvantageLabel: string;
   /** Localized "EVEN" label rendered at x=0 on the Discrete (Senate) chart. */
   evenLabel: string;
-  /** Hidden SVG <title> for screen readers. */
+  /** Accessible name for the chart. */
   ariaTitle: string;
 };
 
@@ -48,16 +49,11 @@ const DISCRETE_DOMAIN_PADDING_X = 10;
 // registered in the root layout).
 const TEXT_FONT_FAMILY =
   "var(--font-inter-variable), var(--font-inter), Inter, system-ui, sans-serif";
-const AXIS_FONT_SIZE = 14;
+const AXIS_FONT_SIZE = 12;
 const NEUTRAL_GRAY_FILL_LIGHT = "#D1D5DB";
 const NEUTRAL_GRAY_FILL_DARK = "#475569";
 
-type Bin = {
-  /** Integer seat advantage (negative = Dem, positive = Rep). */
-  x: number;
-  /** Probability mass for this seat, already expressed as a percentage. */
-  y: number;
-};
+type Point = { x: number; y: number };
 
 const SeatDistributionChart: FC<Props> = ({
   post,
@@ -88,54 +84,118 @@ const SeatDistributionChart: FC<Props> = ({
     const pmf = cdfToPmf(cdf);
     const scale = question.scaling;
     const N = cdf.length;
-
     const domainMin = scale.range_min ?? 0;
     const domainMax = scale.range_max ?? 0;
+    const isDiscrete = question.type === QuestionType.Discrete;
 
-    // Aggregate the fine PMF grid into integer-seat buckets so each
-    // bar / area point is a per-seat probability. Without this the
-    // continuous (House) chart shows per-internal-bin mass (tiny ~1-2%
-    // peaks) while the discrete (Senate) chart is already ~per-seat
-    // (~17% peaks) — bucketing makes the two charts directly comparable
-    // and the masses sum to ~100%. The open-bound tail mass in pmf[0] /
-    // pmf[N] is intentionally excluded.
     const seatMin = Math.round(domainMin);
     const seatMax = Math.round(domainMax);
+
+    // Two representations of the same forecast:
+    //  - `curve`: the fine PMF grid converted to per-seat probability
+    //    density (mass / bin-width-in-seats). This stays smooth, so the
+    //    House area doesn't get the sawtooth aliasing that integer
+    //    bucketing produced.
+    //  - `bins`: integer-seat buckets (per-seat probability). Used for the
+    //    Senate bars and to drive whole-number tooltips.
+    const curve: Point[] = [];
     const bucketMass = new Map<number, number>();
     for (let i = 1; i < pmf.length - 1; i++) {
       const xLeft = scaleInternalLocation((i - 1) / (N - 1), scale);
       const xRight = scaleInternalLocation(i / (N - 1), scale);
       const mid = (xLeft + xRight) / 2;
+      const width = Math.max(1e-9, xRight - xLeft);
+      curve.push({ x: mid, y: ((pmf[i] ?? 0) * 100) / width });
       const seat = Math.min(seatMax, Math.max(seatMin, Math.round(mid)));
       bucketMass.set(seat, (bucketMass.get(seat) ?? 0) + (pmf[i] ?? 0));
     }
 
-    const bins: Bin[] = [];
+    const bins: Point[] = [];
     for (let s = seatMin; s <= seatMax; s++) {
       bins.push({ x: s, y: (bucketMass.get(s) ?? 0) * 100 });
     }
 
-    const isDiscrete = question.type === QuestionType.Discrete;
+    // Distribution height at an arbitrary x (linear interpolation over the
+    // smooth curve) — used to anchor the hover bars and cap the quartile
+    // dashes at the curve.
+    const yOnCurve = (x: number): number => {
+      if (!curve.length) return 0;
+      const first = curve[0] as Point;
+      const last = curve[curve.length - 1] as Point;
+      if (x <= first.x) return first.y;
+      if (x >= last.x) return last.y;
+      for (let i = 1; i < curve.length; i++) {
+        const b = curve[i] as Point;
+        if (x <= b.x) {
+          const a = curve[i - 1] as Point;
+          const span = b.x - a.x || 1;
+          return a.y + ((x - a.x) / span) * (b.y - a.y);
+        }
+      }
+      return last.y;
+    };
+
+    // Whole-number points that drive the House tooltip + hover bar. Their
+    // height tracks the smooth curve so the hover bar reaches (but doesn't
+    // exceed) the distribution.
+    const houseTooltipPoints: Point[] = [];
+    if (!isDiscrete) {
+      for (let s = seatMin; s <= seatMax; s++) {
+        houseTooltipPoints.push({ x: s, y: yOnCurve(s) });
+      }
+    }
+
     const quartiles = computeQuartilesFromCDF(cdf, false, isDiscrete);
     const quartileXs = {
       median: scaleInternalLocation(quartiles.median, scale),
       lower25: scaleInternalLocation(quartiles.lower25, scale),
       upper75: scaleInternalLocation(quartiles.upper75, scale),
     };
+    const quartileYs = {
+      median: yOnCurve(quartileXs.median),
+      lower25: yOnCurve(quartileXs.lower25),
+      upper75: yOnCurve(quartileXs.upper75),
+    };
 
-    const maxY = bins.length ? Math.max(...bins.map((b) => b.y)) : 0;
+    const series = isDiscrete ? bins : curve;
+    const dataMinX = series[0]?.x ?? domainMin;
+    const dataMaxX = series[series.length - 1]?.x ?? domainMax;
+    const maxY = series.length ? Math.max(...series.map((p) => p.y)) : 0;
 
-    return { bins, domainMin, domainMax, isDiscrete, quartileXs, maxY };
+    return {
+      bins,
+      curve,
+      houseTooltipPoints,
+      domainMin,
+      domainMax,
+      isDiscrete,
+      quartileXs,
+      quartileYs,
+      dataMinX,
+      dataMaxX,
+      maxY,
+    };
   }, [question]);
 
   if (!data || !question) return null;
 
-  const { bins, domainMin, domainMax, isDiscrete, quartileXs, maxY } = data;
+  const {
+    bins,
+    curve,
+    houseTooltipPoints,
+    domainMin,
+    domainMax,
+    isDiscrete,
+    quartileXs,
+    quartileYs,
+    dataMinX,
+    dataMaxX,
+    maxY,
+  } = data;
   const chartWidth = containerWidth;
 
-  // Identify the "even" bin — the seat bucket at x=0. For the Senate
-  // Discrete chart this renders as a standalone neutral-gray bar; the
-  // Continuous (House) chart just uses x=0 as the dem/rep color split.
+  // The "even" bin — the seat bucket at x=0. On Senate it renders as a
+  // standalone neutral-gray bar; on House x=0 is only the color split.
   const evenBin = bins.find((b) => b.x === 0) ?? null;
   const negBins = bins.filter((b) => b.x < 0);
   const posBins = bins.filter((b) => b.x > 0);
@@ -156,6 +216,8 @@ const SeatDistributionChart: FC<Props> = ({
   const axisColor = isDark ? "#94A3B8" : "#475569";
   const tickColor = isDark ? "#CBD5E1" : "#334155";
   const neutralFill = isDark ? NEUTRAL_GRAY_FILL_DARK : NEUTRAL_GRAY_FILL_LIGHT;
+  const hoverBarColor = isDark ? "#E2E8F0" : "#334155";
+  const evenTextColor = isDark ? "#E2E8F0" : "#1E293B";
 
   const BAR_FILL_OPACITY = 0.7;
   const BAR_FILL_OPACITY_HOVER = 1;
@@ -168,37 +230,16 @@ const SeatDistributionChart: FC<Props> = ({
   // bin count, so every integer bar is identical (Victory's barRatio
   // auto-sizing is non-uniform when the scale carries a non-null zero_point).
   const barWidth =
-    isDiscrete && bins.length
+    bins.length > 0
       ? Math.max(2, Math.floor((plotInnerWidth / bins.length) * 0.92))
       : undefined;
 
-  // Where x=0 falls inside the area's bounding box, as a 0-1 fraction.
-  // SVG gradients use objectBoundingBox units, so this must be relative to
-  // the rendered area extent (first..last bin), not the full chart domain.
-  const binMinX = bins[0]?.x ?? domainMin;
-  const binMaxX = bins[bins.length - 1]?.x ?? domainMax;
+  // Where x=0 falls inside the rendered data's bounding box, as a 0-1
+  // fraction. SVG gradients use objectBoundingBox units, so this must be
+  // relative to the rendered extent, not the full chart domain.
   const zeroFraction =
-    binMaxX === binMinX ? 0.5 : (0 - binMinX) / (binMaxX - binMinX);
+    dataMaxX === dataMinX ? 0.5 : (0 - dataMinX) / (dataMaxX - dataMinX);
   const zeroStopPct = `${(zeroFraction * 100).toFixed(2)}%`;
-
-  // Distribution height at an arbitrary x (linear interpolation over the
-  // bucketed bins) — used to cap the House quartile dashes at the curve.
-  const yAtX = (x: number): number => {
-    if (!bins.length) return 0;
-    const first = bins[0] as Bin;
-    const last = bins[bins.length - 1] as Bin;
-    if (x <= first.x) return first.y;
-    if (x >= last.x) return last.y;
-    for (let i = 1; i < bins.length; i++) {
-      const b = bins[i] as Bin;
-      if (x <= b.x) {
-        const a = bins[i - 1] as Bin;
-        const span = b.x - a.x || 1;
-        return a.y + ((x - a.x) / span) * (b.y - a.y);
-      }
-    }
-    return last.y;
-  };
 
   // X-axis ticks — a few evenly spaced whole numbers on each side.
   const tickCount = 4;
@@ -213,14 +254,18 @@ const SeatDistributionChart: FC<Props> = ({
   const formatXTick = (tk: number) => (tk === 0 ? "0" : `${Math.abs(tk)}`);
 
   // Tooltip background follows the side under the cursor: blue for a Dem
-  // advantage (x < 0), red for a Rep advantage (x > 0), neutral gray for
-  // EVEN (x = 0). Text inverts: white on the saturated light-mode bg, dark
+  // advantage (x < 0), red for a Rep advantage (x > 0), neutral for EVEN.
+  // The EVEN swatch is inverted vs the gray bar so it stays readable in
+  // both themes. Text inverts: white on the saturated light-mode bg, dark
   // navy on the pastel dark-mode bg (same treatment as Chamber Control).
+  const evenTooltipFill = isDark
+    ? NEUTRAL_GRAY_FILL_LIGHT
+    : NEUTRAL_GRAY_FILL_DARK;
   const tooltipBgFill = ({ datum }: { datum?: { x: number } }) => {
     const x = datum?.x ?? 0;
     if (x < 0) return demStroke;
     if (x > 0) return repStroke;
-    return neutralFill;
+    return evenTooltipFill;
   };
   const tooltipTextFill = isDark ? "#262f38" : "#ffffff";
 
@@ -247,14 +292,14 @@ const SeatDistributionChart: FC<Props> = ({
       style={[
         {
           fill: tooltipTextFill,
-          fontSize: 17,
+          fontSize: 16,
           fontWeight: 700,
           fontFamily: TEXT_FONT_FAMILY,
           fontVariantNumeric: "tabular-nums",
         },
         {
           fill: tooltipTextFill,
-          fontSize: 15,
+          fontSize: 14,
           fontWeight: 400,
           fontFamily: TEXT_FONT_FAMILY,
           fontVariantNumeric: "tabular-nums",
@@ -278,6 +323,8 @@ const SeatDistributionChart: FC<Props> = ({
 
   const barFillOpacity = ({ active }: { active?: boolean }) =>
     active ? BAR_FILL_OPACITY_HOVER : BAR_FILL_OPACITY;
+  const hoverBarOpacity = ({ active }: { active?: boolean }) =>
+    active ? 0.45 : 0;
 
   return (
     <div
@@ -331,6 +378,9 @@ const SeatDistributionChart: FC<Props> = ({
               labels={formatTooltipLabel}
               labelComponent={tooltipComponent}
               mouseFollowTooltips={false}
+              voronoiBlacklist={
+                isDiscrete ? undefined : ["area", "q-l", "q-m", "q-u"]
+              }
             />
           }
         >
@@ -359,11 +409,12 @@ const SeatDistributionChart: FC<Props> = ({
             />
           )}
 
-          {/* Continuous (House): one area; the dem→rep gradient fills/strokes
-              it so the color split lands at x=0 without a y=0 notch. */}
+          {/* Continuous (House): one smooth area (per-seat density) with the
+              dem→rep gradient so the color split lands at x=0. */}
           {!isDiscrete && (
             <VictoryArea
-              data={bins}
+              name="area"
+              data={curve}
               style={{
                 data: {
                   fill: `url(#${fillGradientId})`,
@@ -375,13 +426,13 @@ const SeatDistributionChart: FC<Props> = ({
             />
           )}
 
-          {/* Quartile dashes — Continuous only. Each line stops at the curve
-              height (yAtX) so the outer dashes don't overshoot the area. */}
+          {/* Quartile dashes — Continuous only. Capped at the curve height. */}
           {!isDiscrete && (
             <VictoryLine
+              name="q-l"
               data={[
                 { x: quartileXs.lower25, y: 0 },
-                { x: quartileXs.lower25, y: yAtX(quartileXs.lower25) },
+                { x: quartileXs.lower25, y: quartileYs.lower25 },
               ]}
               style={{
                 data: {
@@ -394,9 +445,10 @@ const SeatDistributionChart: FC<Props> = ({
           )}
           {!isDiscrete && (
             <VictoryLine
+              name="q-m"
               data={[
                 { x: quartileXs.median, y: 0 },
-                { x: quartileXs.median, y: yAtX(quartileXs.median) },
+                { x: quartileXs.median, y: quartileYs.median },
               ]}
               style={{
                 data: {
@@ -409,9 +461,10 @@ const SeatDistributionChart: FC<Props> = ({
           )}
           {!isDiscrete && (
             <VictoryLine
+              name="q-u"
               data={[
                 { x: quartileXs.upper75, y: 0 },
-                { x: quartileXs.upper75, y: yAtX(quartileXs.upper75) },
+                { x: quartileXs.upper75, y: quartileYs.upper75 },
               ]}
               style={{
                 data: {
@@ -423,7 +476,22 @@ const SeatDistributionChart: FC<Props> = ({
             />
           )}
 
-          {/* X axis: numeric ticks. */}
+          {/* Continuous (House): invisible whole-number bars that drive the
+              tooltip and show a vertical hover bar (height = curve) when the
+              cursor snaps to that seat. */}
+          {!isDiscrete && (
+            <VictoryBar
+              name="tooltip"
+              data={houseTooltipPoints}
+              barWidth={2}
+              style={{
+                data: { fill: hoverBarColor, fillOpacity: hoverBarOpacity },
+              }}
+            />
+          )}
+
+          {/* X axis: numeric ticks, colored by side (blue = Dem advantage,
+              red = Rep advantage, neutral at EVEN). */}
           <VictoryAxis
             tickValues={xTicks}
             tickFormat={formatXTick}
@@ -431,7 +499,15 @@ const SeatDistributionChart: FC<Props> = ({
               axis: { stroke: axisColor, strokeWidth: 1 },
               ticks: { stroke: axisColor, size: 5 },
               tickLabels: {
-                fill: tickColor,
+                fill: (args: {
+                  index?: string | number;
+                  ticks?: Array<string | number>;
+                }) => {
+                  const v = Number(args.ticks?.[Number(args.index ?? 0)] ?? 0);
+                  if (v < 0) return demStroke;
+                  if (v > 0) return repStroke;
+                  return tickColor;
+                },
                 fontSize: AXIS_FONT_SIZE,
                 padding: 6,
                 fontFamily: TEXT_FONT_FAMILY,
@@ -458,6 +534,26 @@ const SeatDistributionChart: FC<Props> = ({
               grid: { stroke: "transparent" },
             }}
           />
+
+          {/* EVEN annotation — Discrete only. Rendered inside the SVG (rather
+              than as an HTML overlay) so the tooltip paints above it. */}
+          {isDiscrete && evenBin && (
+            <VictoryLabel
+              text={evenLabel}
+              x={zeroPx}
+              y={CHART_HEIGHT / 2}
+              angle={90}
+              textAnchor="middle"
+              verticalAnchor="middle"
+              style={{
+                fill: evenTextColor,
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: 2,
+                fontFamily: TEXT_FONT_FAMILY,
+              }}
+            />
+          )}
         </VictoryChart>
       )}
 
@@ -474,21 +570,6 @@ const SeatDistributionChart: FC<Props> = ({
         <span style={{ color: demStroke }}>{demAdvantageLabel}</span>
         <span style={{ color: repStroke }}>{repAdvantageLabel}</span>
       </div>
-
-      {/* EVEN annotation — Discrete only. Positioned over the gray center bar
-          and rotated 90° so it reads top-to-bottom inside the narrow bar. */}
-      {isDiscrete && !!chartWidth && (
-        <span
-          className="pointer-events-none absolute font-sans text-[10px] font-bold uppercase tracking-widest text-blue-700 dark:text-blue-700-dark"
-          style={{
-            left: zeroPx,
-            top: "50%",
-            transform: "translate(-50%, -50%) rotate(90deg)",
-          }}
-        >
-          {evenLabel}
-        </span>
-      )}
     </div>
   );
 };
