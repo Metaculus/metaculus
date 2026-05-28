@@ -5,6 +5,7 @@ import { FC } from "react";
 
 import { ActivityCard } from "@/app/(main)/labor-hub/components/activity_card";
 import { CommentType } from "@/types/comment";
+import { stripMarkdown } from "@/utils/markdown";
 
 import { CommunityInsight } from "../helpers/fetch_community_insights";
 
@@ -32,17 +33,6 @@ const InsightCard: FC<Props> = ({ insight }) => {
 
 function extractCommentText(comment: CommentType): string {
   return stripMarkdown(comment.text).slice(0, 320);
-}
-
-function stripMarkdown(text: string): string {
-  return text
-    .replace(/\*\*(.+?)\*\*/g, "$1")
-    .replace(/\*(.+?)\*/g, "$1")
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-    .replace(/`([^`]+)`/g, "$1")
-    .replace(/^>\s+/gm, "")
-    .replace(/\n+/g, " ")
-    .trim();
 }
 
 export default InsightCard;

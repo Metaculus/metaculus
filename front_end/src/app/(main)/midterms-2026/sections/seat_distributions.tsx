@@ -31,7 +31,6 @@ export default async function SeatDistributionsSection() {
         <DistributionSlot
           title={t("midtermsHubSenateSeats")}
           post={senate}
-          chamberLabel="senate"
           demAdvantageLabel={demAdvantageLabel}
           repAdvantageLabel={repAdvantageLabel}
           evenLabel={evenLabel}
@@ -40,7 +39,6 @@ export default async function SeatDistributionsSection() {
         <DistributionSlot
           title={t("midtermsHubHouseSeats")}
           post={house}
-          chamberLabel="house"
           demAdvantageLabel={demAdvantageLabel}
           repAdvantageLabel={repAdvantageLabel}
           evenLabel={evenLabel}
@@ -54,7 +52,6 @@ export default async function SeatDistributionsSection() {
 type SlotProps = {
   title: string;
   post: PostWithForecasts | null;
-  chamberLabel: "senate" | "house";
   demAdvantageLabel: string;
   repAdvantageLabel: string;
   evenLabel: string;
