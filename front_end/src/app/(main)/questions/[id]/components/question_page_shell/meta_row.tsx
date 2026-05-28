@@ -15,7 +15,7 @@ import Button from "@/components/ui/button";
 import Chip from "@/components/ui/chip";
 import useContainerSize from "@/hooks/use_container_size";
 import { PostWithForecasts } from "@/types/post";
-import { Project } from "@/types/projects";
+import { Project, TournamentType } from "@/types/projects";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { getPostLink, getProjectLink } from "@/utils/navigation";
@@ -48,6 +48,7 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
         ...(projectsData.leaderboard_tag ?? []),
       ].filter(
         (project, index, arr) =>
+          project.type !== TournamentType.SiteMain &&
           arr.findIndex((candidate) => candidate.id === project.id) === index
       )
     : [];

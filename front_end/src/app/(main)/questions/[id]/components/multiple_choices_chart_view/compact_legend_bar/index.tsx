@@ -2,14 +2,13 @@
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
-import { useBreakpoint } from "@/hooks/tailwind";
 import { ChoiceItem } from "@/types/choices";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { getForecastPctDisplayValue } from "@/utils/formatters/prediction";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
-const MOBILE_MAX_ITEMS = 5;
+const MAX_ITEMS = 5;
 
 type Props = {
   items: ChoiceItem[];
@@ -58,12 +57,8 @@ const CompactLegendBar: FC<Props> = ({
   onChoiceHighlight,
 }) => {
   const t = useTranslations();
-  const isMd = useBreakpoint("md");
   const [showAll, setShowAll] = useState(false);
 
-  const resolvedNoCount = items.filter((item) =>
-    isResolvedNo(item, questionType)
-  ).length;
   const normalItems = items.filter((item) => !isResolvedNo(item, questionType));
 
   let visibleItems: ChoiceItem[];
@@ -75,15 +70,10 @@ const CompactLegendBar: FC<Props> = ({
     );
     visibleItems = [...normalItems, ...resolvedNoItems];
     hiddenCount = 0;
-  } else if (!isMd) {
-    // Mobile: show up to MOBILE_MAX_ITEMS normal items only; resolved-NO always hidden
-    const mobileVisible = normalItems.slice(0, MOBILE_MAX_ITEMS);
-    visibleItems = mobileVisible;
-    hiddenCount = items.length - mobileVisible.length;
   } else {
-    // Desktop: show all normal items; resolved-NO hidden
-    visibleItems = normalItems;
-    hiddenCount = resolvedNoCount;
+    const visible = normalItems.slice(0, MAX_ITEMS);
+    visibleItems = visible;
+    hiddenCount = items.length - visible.length;
   }
 
   return (
