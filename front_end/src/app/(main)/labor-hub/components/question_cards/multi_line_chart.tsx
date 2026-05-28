@@ -75,6 +75,11 @@ type VictoryDatum = MultiLineChartPoint & {
   y: number;
 };
 
+type ValueGradient = {
+  id: string;
+  stops: { offset: number; color: string }[];
+};
+
 type ResolvedSeriesEntry = {
   series: MultiLineChartSeries;
   chartData: VictoryDatum[];
@@ -82,6 +87,10 @@ type ResolvedSeriesEntry = {
   pointRadius: number;
   opacity: number;
   strokeWidth: number;
+  /** Set when series.colorByValue: horizontal gradient for the line stroke. */
+  valueGradient?: ValueGradient;
+  /** Set when series.colorByValue: per-point color resolver for the dots. */
+  pointColorFn?: (datum: MultiLineChartPoint) => string;
 };
 
 /** Default Y-axis tick labels: whole-number %, explicit + for positives. */
@@ -365,6 +374,7 @@ const DataPointCircle: FC<{
   opacity?: number;
   highlightedX?: number | null;
   hoverRadiusDelta?: number;
+  colorFn?: (datum: MultiLineChartPoint) => string;
 }> = ({
   x,
   y,
@@ -377,6 +387,7 @@ const DataPointCircle: FC<{
   opacity = 1,
   highlightedX,
   hoverRadiusDelta = 0,
+  colorFn,
 }) => {
   if (x === undefined || y === undefined) return null;
 
@@ -386,14 +397,17 @@ const DataPointCircle: FC<{
       ? resolvedBaseRadius + hoverRadiusDelta
       : resolvedBaseRadius;
   const resolvedIsFilled = datum?.filled ?? isFilled;
+  const perPoint = colorFn && datum ? colorFn(datum) : undefined;
+  const resolvedStroke = perPoint ?? strokeColor;
+  const resolvedFill = resolvedIsFilled ? perPoint ?? fillColor : bgColor;
 
   return (
     <circle
       cx={x}
       cy={y}
       r={resolvedRadius}
-      fill={resolvedIsFilled ? fillColor : bgColor}
-      stroke={strokeColor}
+      fill={resolvedFill}
+      stroke={resolvedStroke}
       strokeWidth={2}
       opacity={opacity}
     />
@@ -497,6 +511,8 @@ const ChangeBadge: FC<{
   textClassName?: string;
   /** Per-x badge top overrides (pixels). When the map contains datum.x, that value replaces the computed badge top. */
   badgeTopsByX?: Map<number, number>;
+  /** Per-point color resolver (overrides lineColor/labelColor when set). */
+  colorFn?: (datum: MultiLineChartPoint) => string;
 }> = ({
   x,
   y,
@@ -513,14 +529,21 @@ const ChangeBadge: FC<{
   rectClassName,
   textClassName,
   badgeTopsByX,
+  colorFn,
 }) => {
   if (x === undefined || y === undefined || !datum) return null;
   if (!alwaysVisible && (highlightedX == null || datum.x !== highlightedX))
     return null;
   if (datum.y === 0) return null;
 
-  const bgColor = transparent ? "transparent" : lineColor;
-  const labelTextColor = transparent ? lineColor : labelColor;
+  const perPoint = colorFn ? colorFn(datum) : undefined;
+  const effectiveLineColor = perPoint ?? lineColor;
+  const effectiveLabelColor = perPoint
+    ? pickHighestContrastTextColor(perPoint)
+    : labelColor;
+
+  const bgColor = transparent ? "transparent" : effectiveLineColor;
+  const labelTextColor = transparent ? effectiveLineColor : effectiveLabelColor;
   const text = formatValue(datum.y);
   const badgeWidth = computeBadgeWidth(text);
 
@@ -715,17 +738,45 @@ export const MultiLineChart: FC<Props> = ({
             ? basePointRadius + 2
             : basePointRadius;
 
+        const chartData = item.data.map((point) => ({
+          ...point,
+          x: point.x,
+          y: point.y,
+        }));
+
+        let valueGradient: ValueGradient | undefined;
+        let pointColorFn: ((datum: MultiLineChartPoint) => string) | undefined;
+        if (item.colorByValue) {
+          const green = getThemeColor(METAC_COLORS["mc-option"]["3"]);
+          const red = getThemeColor(METAC_COLORS["mc-option"]["2"]);
+          const gray = getThemeColor(METAC_COLORS.gray["500"]);
+          const colorFor = (v: number) => (v > 0 ? green : v < 0 ? red : gray);
+          pointColorFn = (datum) => colorFor(datum.y);
+
+          const xs = chartData.map((d) => d.x);
+          const xFirst = Math.min(...xs);
+          const xLast = Math.max(...xs);
+          const span = xLast - xFirst || 1;
+          valueGradient = {
+            id: `lh-value-grad-${item.id.replace(/[^a-zA-Z0-9_-]/g, "")}`,
+            stops: [...chartData]
+              .sort((a, b) => a.x - b.x)
+              .map((d) => ({
+                offset: (d.x - xFirst) / span,
+                color: colorFor(d.y),
+              })),
+          };
+        }
+
         return {
           series: item,
-          chartData: item.data.map((point) => ({
-            ...point,
-            x: point.x,
-            y: point.y,
-          })),
+          chartData,
           colors: getSeriesColors(item.color, getThemeColor),
           pointRadius,
           opacity,
           strokeWidth,
+          valueGradient,
+          pointColorFn,
         };
       }),
     [series, emphasisActive, emphasizedSeriesId, getThemeColor]
@@ -1083,8 +1134,35 @@ export const MultiLineChart: FC<Props> = ({
     hideHistoricalLabelsInPrint,
   ]);
 
+  const valueGradients = seriesEntries
+    .map((entry) => entry.valueGradient)
+    .filter((g): g is ValueGradient => g != null);
+
   return (
     <div className="w-full">
+      {valueGradients.length > 0 && (
+        <svg
+          width="0"
+          height="0"
+          aria-hidden="true"
+          className="absolute"
+          style={{ position: "absolute" }}
+        >
+          <defs>
+            {valueGradients.map((g) => (
+              <linearGradient key={g.id} id={g.id} x1="0" y1="0" x2="1" y2="0">
+                {g.stops.map((s, i) => (
+                  <stop
+                    key={i}
+                    offset={`${(s.offset * 100).toFixed(2)}%`}
+                    stopColor={s.color}
+                  />
+                ))}
+              </linearGradient>
+            ))}
+          </defs>
+        </svg>
+      )}
       {showLegend && (
         <Legend
           series={series}
@@ -1268,13 +1346,22 @@ export const MultiLineChart: FC<Props> = ({
               )}
 
             {seriesEntries.map(
-              ({ series: item, chartData, colors, opacity, strokeWidth }) => (
+              ({
+                series: item,
+                chartData,
+                colors,
+                opacity,
+                strokeWidth,
+                valueGradient,
+              }) => (
                 <VictoryLine
                   key={item.id}
                   data={chartData}
                   style={{
                     data: {
-                      stroke: colors.stroke,
+                      stroke: valueGradient
+                        ? `url(#${valueGradient.id})`
+                        : colors.stroke,
                       strokeWidth,
                       opacity,
                       ...(item.dashed && { strokeDasharray: "6, 4" }),
@@ -1285,7 +1372,14 @@ export const MultiLineChart: FC<Props> = ({
             )}
 
             {seriesEntries.map(
-              ({ series: item, chartData, colors, opacity, pointRadius }) => {
+              ({
+                series: item,
+                chartData,
+                colors,
+                opacity,
+                pointRadius,
+                pointColorFn,
+              }) => {
                 const showsInlineHoverBadge =
                   !isPrintMode &&
                   getHoverLabelMode(item.dataLabels) &&
@@ -1305,6 +1399,7 @@ export const MultiLineChart: FC<Props> = ({
                         opacity={opacity}
                         highlightedX={highlightedX}
                         hoverRadiusDelta={showsInlineHoverBadge ? 0 : 2}
+                        colorFn={pointColorFn}
                       />
                     }
                   />
@@ -1316,47 +1411,64 @@ export const MultiLineChart: FC<Props> = ({
               .filter(({ series: item }) =>
                 getAlwaysVisibleLabelMode(item.dataLabels, isPrintMode)
               )
-              .map(({ series: item, chartData, colors, pointRadius }) => {
-                const visibleXs = visibleDataLabelXsBySeries.get(item.id);
-                const baseData = visibleXs
-                  ? chartData.filter((p) => visibleXs.has(p.x))
-                  : chartData;
-                const data =
-                  isPrintMode && hideHistoricalLabelsInPrint
-                    ? baseData.filter((p) => p.filled !== true)
-                    : baseData;
-                return (
-                  <VictoryScatter
-                    key={`labels-always-${item.id}`}
-                    data={data}
-                    dataComponent={
-                      <ChangeBadge
-                        formatValue={formatResolvedYValue}
-                        alwaysVisible
-                        placement={item.dataLabelPlacement}
-                        pointRadius={pointRadius}
-                        lineColor={colors.stroke}
-                        labelColor={pickHighestContrastTextColor(colors.stroke)}
-                        transparent={item.dataLabelTransparent}
-                        groupClassName={cn(
-                          item.dataLabelClassName,
-                          emphasisActive &&
-                            item.id !== emphasizedSeriesId &&
-                            "opacity-[0.32]"
-                        )}
-                        rectClassName={item.dataLabelRectClassName}
-                        textClassName={item.dataLabelTextClassName}
-                        badgeTopsByX={badgeTopOverridesBySeries.get(item.id)}
-                      />
-                    }
-                  />
-                );
-              })}
+              .map(
+                ({
+                  series: item,
+                  chartData,
+                  colors,
+                  pointRadius,
+                  pointColorFn,
+                }) => {
+                  const visibleXs = visibleDataLabelXsBySeries.get(item.id);
+                  const baseData = visibleXs
+                    ? chartData.filter((p) => visibleXs.has(p.x))
+                    : chartData;
+                  const data =
+                    isPrintMode && hideHistoricalLabelsInPrint
+                      ? baseData.filter((p) => p.filled !== true)
+                      : baseData;
+                  return (
+                    <VictoryScatter
+                      key={`labels-always-${item.id}`}
+                      data={data}
+                      dataComponent={
+                        <ChangeBadge
+                          formatValue={formatResolvedYValue}
+                          alwaysVisible
+                          placement={item.dataLabelPlacement}
+                          pointRadius={pointRadius}
+                          lineColor={colors.stroke}
+                          labelColor={pickHighestContrastTextColor(
+                            colors.stroke
+                          )}
+                          colorFn={pointColorFn}
+                          transparent={item.dataLabelTransparent}
+                          groupClassName={cn(
+                            item.dataLabelClassName,
+                            emphasisActive &&
+                              item.id !== emphasizedSeriesId &&
+                              "opacity-[0.32]"
+                          )}
+                          rectClassName={item.dataLabelRectClassName}
+                          textClassName={item.dataLabelTextClassName}
+                          badgeTopsByX={badgeTopOverridesBySeries.get(item.id)}
+                        />
+                      }
+                    />
+                  );
+                }
+              )}
 
             {!isPrintMode &&
               (highlightedX != null || emphasisActive) &&
               inlineHoverSeriesOrdered.map(
-                ({ series: item, chartData, colors, pointRadius }) => {
+                ({
+                  series: item,
+                  chartData,
+                  colors,
+                  pointRadius,
+                  pointColorFn,
+                }) => {
                   const isEmphasized =
                     emphasisActive && item.id === emphasizedSeriesId;
                   const showAllBadges = isEmphasized;
@@ -1387,6 +1499,7 @@ export const MultiLineChart: FC<Props> = ({
                           labelColor={pickHighestContrastTextColor(
                             colors.stroke
                           )}
+                          colorFn={pointColorFn}
                           transparent={item.dataLabelTransparent}
                           groupClassName={cn(
                             item.dataLabelClassName,

@@ -110,6 +110,7 @@ function buildSeriesFromDatasetRows(
       dataLabelClassName: overrides?.dataLabelClassName,
       dataLabelRectClassName: overrides?.dataLabelRectClassName,
       dataLabelTextClassName: overrides?.dataLabelTextClassName,
+      colorByValue: overrides?.colorByValue,
       data: columns.flatMap((label, columnIndex) => {
         const value = row.values[label];
         if (value == null) return [];

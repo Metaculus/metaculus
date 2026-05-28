@@ -51,6 +51,12 @@ export type MultiLineChartSeries = {
   dataLabelClassName?: string;
   dataLabelRectClassName?: string;
   dataLabelTextClassName?: string;
+  /**
+   * When true, the line and points are colored by each value's sign: positive →
+   * green, negative → red, zero (e.g. a baseline) → gray. The line stroke uses a
+   * horizontal gradient so segments between differing-sign points blend smoothly.
+   */
+  colorByValue?: boolean;
 };
 
 export type MultiLineChartYAxisLabel = {

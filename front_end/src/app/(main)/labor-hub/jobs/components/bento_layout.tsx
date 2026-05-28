@@ -1,30 +1,21 @@
 import { ReactNode } from "react";
 
 type Props = {
-  exposure: ReactNode;
   insights: ReactNode;
-  wagesHours: ReactNode;
+  dataRail: ReactNode;
 };
 
-export function BentoLayout({ exposure, insights, wagesHours }: Props) {
+/**
+ * Below the Jump-To strip.
+ * - Mobile: data rail first (Wage tile if any + exposure tiles 3-across),
+ *   then Curated Insights — all in one container.
+ * - Desktop: Curated Insights (2/3) left, data rail (1/3) right.
+ */
+export function BentoLayout({ insights, dataRail }: Props) {
   return (
-    <>
-      {/*
-        Mobile: tight bento — exposure row (3 tiles) + wage/hours row (2 tiles).
-        Insights is rendered as a separate section below (in the page).
-      */}
-      <div className="md:hidden">
-        {exposure}
-        <div className="mt-2">{wagesHours}</div>
-      </div>
-      {/* Tablet & desktop: bento grid with insights inline */}
-      <div className="hidden md:block">
-        {exposure}
-        <div className="mt-3 grid gap-3 md:grid-cols-3">
-          <div className="md:col-span-2">{insights}</div>
-          <div className="md:col-span-1">{wagesHours}</div>
-        </div>
-      </div>
-    </>
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="md:order-1 md:col-span-2">{insights}</div>
+      <div className="md:order-2 md:col-span-1">{dataRail}</div>
+    </div>
   );
 }

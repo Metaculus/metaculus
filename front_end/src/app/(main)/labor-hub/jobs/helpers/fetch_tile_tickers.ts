@@ -63,10 +63,11 @@ function truncate(text: string, max: number): string {
   return `${slice.slice(0, lastSpace > 0 ? lastSpace : max)}…`;
 }
 
-async function fetchTopForPost(
+/** Returns the qualifying ticker candidates for a post, best-voted first. */
+async function fetchCandidatesForPost(
   postId: number,
   excludedIds: Set<number>
-): Promise<string | null> {
+): Promise<string[]> {
   try {
     const response = await ServerCommentsApi.getComments({
       post: postId,
@@ -75,30 +76,39 @@ async function fetchTopForPost(
       limit: 5,
       parent_isnull: true,
     });
-    const top = response.results.find(
-      (c) => !c.is_soft_deleted && !excludedIds.has(c.id)
-    );
-    if (!top) return null;
-    const stripped = strip(top.text);
-    if (stripped.length < MIN_LENGTH) return null;
-    return truncate(stripped, MAX_LENGTH);
+    return response.results
+      .filter((c) => !c.is_soft_deleted && !excludedIds.has(c.id))
+      .map((c) => truncate(strip(c.text), MAX_LENGTH))
+      .filter((text) => text.length >= MIN_LENGTH);
   } catch (err) {
     logError(err);
-    return null;
+    return [];
   }
 }
 
 async function resolveTickers(): Promise<Record<string, string | null>> {
-  const entries = await Promise.all(
+  // 1. Gather candidates per job in parallel.
+  const perJob = await Promise.all(
     JOBS_DATA.map(async (job) => {
+      const curated = job.curated_insights?.[0]?.body;
+      if (curated) return { slug: job.slug, candidates: [curated] };
       const excluded = new Set(job.excluded_comment_ids ?? []);
-      const ticker =
-        job.curated_insights?.[0]?.body ??
-        (await fetchTopForPost(job.post_id, excluded));
-      return [job.slug, ticker] as const;
+      const candidates = await fetchCandidatesForPost(job.post_id, excluded);
+      return { slug: job.slug, candidates };
     })
   );
-  return Object.fromEntries(entries);
+
+  // 2. Assign, preferring a comment not already shown on another tile so the
+  //    same boilerplate comment doesn't slide across many tiles at once.
+  const used = new Set<string>();
+  const result: Record<string, string | null> = {};
+  for (const { slug, candidates } of perJob) {
+    const unique = candidates.find((c) => !used.has(c));
+    const pick = unique ?? candidates[0] ?? null;
+    if (pick) used.add(pick);
+    result[slug] = pick;
+  }
+  return result;
 }
 
 export const fetchTileTickers = cache(resolveTickers);

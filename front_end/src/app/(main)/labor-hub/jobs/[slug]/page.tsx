@@ -13,10 +13,10 @@ import { ExposureMetrics } from "../components/exposure_metrics";
 import { HubCtaCard } from "../components/hub_cta_card";
 import { JobNavStrip } from "../components/job_nav_strip";
 import { ShareCard } from "../components/share_card";
-import { WageHoursCards } from "../components/wage_hours_cards";
+import { WageTile } from "../components/wage_tile";
 import { YearStats } from "../components/year_stats";
 import { fetchJobInsights } from "../helpers/fetch_job_insights";
-import { fetchWageAndHours } from "../helpers/fetch_wage_and_hours";
+import { fetchWage } from "../helpers/fetch_wage";
 import { fetchWallData } from "../helpers/fetch_wall_data";
 
 type Params = { slug: string };
@@ -70,10 +70,10 @@ export default async function JobDetailPage({
 
   const t = await getTranslations();
   const { PUBLIC_APP_URL } = getPublicSettings();
-  const [allJobs, insights, wageHours] = await Promise.all([
+  const [allJobs, insights, wage2035] = await Promise.all([
     fetchWallData(),
     fetchJobInsights(slug),
-    fetchWageAndHours(job.wage_post_id),
+    fetchWage(job.wage_post_id),
   ]);
   const wallEntry = allJobs.find((j) => j.slug === slug);
   const forecasts = wallEntry?.forecasts ?? {
@@ -166,31 +166,38 @@ export default async function JobDetailPage({
                 <YearStats forecasts={forecasts} />
               </div>
             </div>
-            <div className="overflow-hidden rounded-md border border-blue-300 bg-blue-100 p-2 dark:border-blue-300-dark dark:bg-blue-100-dark">
-              <MultiQuestionLineChart
-                rows={[
-                  {
-                    questionId: job.post_id,
-                    title: job.name,
-                    historicalValues: { 2025: 0 },
-                  },
-                ]}
-                valueFormat="percentageChange"
-                decimals={1}
-                showLegend={false}
-                showMoreButton={false}
-                height={228}
-                showTickLabels
-                historicalLabelText="BASELINE"
-                getSeriesOptions={() => ({
-                  color:
-                    (forecasts["2035"] ?? 0) < 0
-                      ? "mc2"
-                      : (forecasts["2035"] ?? 0) > 0
-                        ? "mc3"
-                        : "mc1",
-                })}
-              />
+            <div className="flex h-full items-center overflow-hidden rounded-md border border-blue-300 bg-blue-100 p-2 dark:border-blue-300-dark dark:bg-blue-100-dark">
+              <div className="w-full">
+                <MultiQuestionLineChart
+                  rows={[
+                    {
+                      questionId: job.post_id,
+                      title: job.name,
+                      historicalValues: { 2025: 0 },
+                    },
+                  ]}
+                  valueFormat="percentageChange"
+                  decimals={1}
+                  showLegend={false}
+                  showMoreButton={false}
+                  height={228}
+                  yAxisGutter={44}
+                  showTickLabels
+                  historicalLabelText="BASELINE"
+                  getSeriesOptions={() => ({
+                    colorByValue: true,
+                    // Base color (used for data-label badges) follows the
+                    // overall 2035 trajectory; the line/dots use per-value
+                    // red/green/gray via colorByValue.
+                    color:
+                      (forecasts["2035"] ?? 0) < 0
+                        ? "mc2"
+                        : (forecasts["2035"] ?? 0) > 0
+                          ? "mc3"
+                          : "mc1",
+                  })}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -204,15 +211,14 @@ export default async function JobDetailPage({
 
       <section className="mt-6 rounded-md bg-gray-0 px-6 py-6 dark:bg-gray-0-dark sm:px-9 sm:py-10">
         <BentoLayout
-          exposure={<ExposureMetrics job={job} />}
           insights={<CuratedInsights insights={insights} jobName={job.name} />}
-          wagesHours={<WageHoursCards values={wageHours} />}
+          dataRail={
+            <div className="flex flex-col gap-2 md:gap-3">
+              {wage2035 != null && <WageTile value={wage2035} />}
+              <ExposureMetrics job={job} />
+            </div>
+          }
         />
-      </section>
-
-      {/* Mobile-only: full Curated Insights section below the bento */}
-      <section className="mt-6 rounded-md bg-gray-0 px-6 py-6 dark:bg-gray-0-dark md:hidden">
-        <CuratedInsights insights={insights} jobName={job.name} />
       </section>
 
       <div className="mt-6">

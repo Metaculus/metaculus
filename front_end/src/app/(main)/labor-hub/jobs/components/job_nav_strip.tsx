@@ -14,7 +14,11 @@ type Props = {
   items: JobNavItem[];
 };
 
-const STORAGE_KEY = "labor-hub-jump-to-scroll";
+// In-memory retained scroll position. Persists across client-side navigations
+// between job pages (the module stays loaded) and resets on a true full reload
+// — so switching jobs retains the strip position, while a fresh visit centers
+// the active pill.
+let retainedScrollLeft: number | null = null;
 
 function formatPercent(value: number | null): string {
   if (value == null) return "";
@@ -22,65 +26,68 @@ function formatPercent(value: number | null): string {
   return `${sign}${Math.abs(value).toFixed(0)}%`;
 }
 
+function valueColor(value: number | null): string {
+  if (value == null) return "";
+  if (value > 0) return "text-mc-option-3 dark:text-mc-option-3-dark";
+  if (value < 0) return "text-mc-option-2 dark:text-mc-option-2-dark";
+  return "text-blue-700 dark:text-blue-700-dark";
+}
+
 export function JobNavStrip({ current, items }: Props) {
   const t = useTranslations();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const activeRef = useRef<HTMLAnchorElement | null>(null);
 
-  // Persist + restore horizontal scroll position across visits.
+  // Retain horizontal scroll across job switches; center the active pill only
+  // on a fresh visit (retainedScrollLeft is null at module load).
   useEffect(() => {
     const root = containerRef.current;
     if (!root) return;
     const viewport = root.querySelector<HTMLDivElement>(".overflow-x-auto");
     if (!viewport) return;
 
-    let savedScroll: number | null = null;
-    try {
-      const raw = sessionStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = Number(raw);
-        if (!Number.isNaN(parsed)) savedScroll = parsed;
-      }
-    } catch {
-      /* ignore */
-    }
+    const isLaidOut = () => viewport.scrollWidth > viewport.clientWidth;
 
-    const ensureActiveVisible = () => {
+    const centerActive = () => {
       const active =
         activeRef.current ??
         viewport.querySelector<HTMLAnchorElement>("[data-active-pill='true']");
       if (!active) return;
       const vpRect = viewport.getBoundingClientRect();
       const actRect = active.getBoundingClientRect();
-      const margin = 16;
-      const isFullyVisible =
-        actRect.left >= vpRect.left - 1 && actRect.right <= vpRect.right + 1;
-      if (isFullyVisible) return;
       const offsetFromViewportLeft =
         actRect.left - vpRect.left + viewport.scrollLeft;
       const target =
         offsetFromViewportLeft - vpRect.width / 2 + actRect.width / 2;
       viewport.scrollLeft = Math.max(
-        margin,
+        0,
         Math.min(target, viewport.scrollWidth - viewport.clientWidth)
       );
     };
 
-    if (savedScroll != null) viewport.scrollLeft = savedScroll;
-    // Always re-center the active pill if it's off-screen after restore.
-    // requestAnimationFrame so the DOM has finished laying out.
-    const raf = requestAnimationFrame(ensureActiveVisible);
+    const apply = () => {
+      if (!isLaidOut()) return;
+      if (retainedScrollLeft != null) {
+        viewport.scrollLeft = retainedScrollLeft;
+      } else {
+        centerActive();
+        retainedScrollLeft = viewport.scrollLeft;
+      }
+    };
+
+    // Two frames: the first may run before the carousel has measured, the
+    // second is after layout so scrollLeft sticks.
+    const raf1 = requestAnimationFrame(() => {
+      apply();
+      requestAnimationFrame(apply);
+    });
 
     const onScroll = () => {
-      try {
-        sessionStorage.setItem(STORAGE_KEY, String(viewport.scrollLeft));
-      } catch {
-        /* ignore */
-      }
+      retainedScrollLeft = viewport.scrollLeft;
     };
     viewport.addEventListener("scroll", onScroll, { passive: true });
     return () => {
-      cancelAnimationFrame(raf);
+      cancelAnimationFrame(raf1);
       viewport.removeEventListener("scroll", onScroll);
     };
   }, [current]);
@@ -125,15 +132,15 @@ export function JobNavStrip({ current, items }: Props) {
                   "inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium no-underline transition-colors",
                   isActive
                     ? "bg-blue-900 text-gray-0 dark:bg-blue-900-dark dark:text-gray-0-dark"
-                    : "bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-100-dark dark:text-blue-800-dark dark:hover:bg-blue-200-dark"
+                    : "bg-blue-200 text-blue-800 hover:bg-blue-300 dark:bg-blue-200-dark dark:text-blue-800-dark dark:hover:bg-blue-300-dark"
                 )}
               >
                 <span>{item.name}</span>
                 {item.value2035 != null && (
                   <span
                     className={cn(
-                      "font-jetbrains-mono text-xs font-bold tabular-nums",
-                      isActive ? "opacity-80" : "opacity-70"
+                      "font-jetbrains-mono text-sm font-bold tabular-nums",
+                      valueColor(item.value2035)
                     )}
                   >
                     {formatPercent(item.value2035)}

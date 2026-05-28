@@ -181,9 +181,3 @@ export const ALL_JOB_SLUGS = JOBS_DATA.map((j) => j.slug);
 export function getJobBySlug(slug: string): JobDefinition | undefined {
   return JOBS_DATA.find((j) => j.slug === slug);
 }
-
-/**
- * Economy-wide hours-worked forecast post — used as the source for the Hours bento card.
- * Per-occupation hours is not tracked, so this card is intentionally labeled as economy-wide.
- */
-export const HOURS_WORKED_POST_ID = 41574;

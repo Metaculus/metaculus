@@ -90,7 +90,7 @@ export function ExposureMetrics({ job }: Props) {
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-2 md:gap-3">
+    <div className="grid grid-cols-3 gap-2 md:grid-cols-1 md:gap-3">
       {items.map(({ key, label, tooltip, value }) => {
         const level = getExposureLevel(key, value);
         const pct = normalize(key, value) * 100;

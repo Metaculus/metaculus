@@ -92,6 +92,19 @@ function formatPercent(value: number | null): string {
   return `${sign}${Math.abs(value).toFixed(0)}%`;
 }
 
+/**
+ * Deterministic negative animation-delay (seconds) per slug, so tickers that
+ * happen to share the same comment never slide in lockstep — and the value is
+ * stable between SSR and hydration (no mismatch).
+ */
+function tickerDelaySeconds(slug: string, duration: number): number {
+  let h = 0;
+  for (let i = 0; i < slug.length; i++) {
+    h = (h * 31 + slug.charCodeAt(i)) >>> 0;
+  }
+  return -(h % duration);
+}
+
 type SizedTile = { job: WallJob; size: TileSize; value: number | null };
 
 function assignSizes(jobs: WallJob[], year: WallYear): SizedTile[] {
@@ -178,6 +191,7 @@ export function JobsWall({ jobs, tickers }: Props) {
 
           const ticker = tickers?.[job.slug];
           const tickerDuration = tickerDurationSeconds(size);
+          const tickerDelay = tickerDelaySeconds(job.slug, tickerDuration);
           return (
             <Link
               key={job.slug}
@@ -229,7 +243,7 @@ export function JobsWall({ jobs, tickers }: Props) {
                         tickerFontSize(size)
                       )}
                       style={{
-                        animation: `labor-hub-ticker-scroll ${tickerDuration}s linear infinite`,
+                        animation: `labor-hub-ticker-scroll ${tickerDuration}s linear ${tickerDelay}s infinite`,
                       }}
                     >
                       {ticker} &nbsp;·&nbsp; {ticker} &nbsp;·&nbsp;
