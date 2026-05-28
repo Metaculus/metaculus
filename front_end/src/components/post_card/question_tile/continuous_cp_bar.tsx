@@ -117,10 +117,13 @@ const ContinuousCPBar: FC<Props> = ({
         <div
           style={accentStyle}
           className={cn("font-normal tabular-nums", {
-            "text-[10px] md:text-xs": size === "md" || size === "sm",
-            "text-sm": size === "lg",
+            "text-[10px] md:text-xs":
+              (size === "md" || size === "sm") && !isDate,
+            "text-sm": size === "lg" && !isDate,
+            "text-xs": isDate,
             "mb-0 text-xs md:text-xs": isEmbed && !isEmbedWide,
-            "mb-0 text-sm md:text-sm": isEmbedWide,
+            "mb-0 text-sm md:text-sm": isEmbedWide && !isDate,
+            "mb-0 text-xs": isEmbedWide && isDate,
             "whitespace-normal break-words": isEmbed && isDate,
             truncate: isEmbed && !isDate,
           })}

@@ -226,7 +226,7 @@ const KeyFactorsFeed: FC<Props> = ({ post, truncateText, hideOverlay }) => {
               <KeyFactorsGridPlaceholder
                 key={`placeholder-${i}`}
                 className={i < 2 - totalItemCount ? "" : "hidden md:flex"}
-                onClick={i === 0 && !isClosed ? handleAddClick : undefined}
+                onClick={handleAddClick}
               />
             ))}
         </div>
