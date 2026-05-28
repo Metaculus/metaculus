@@ -2220,5 +2220,7 @@
   "publishTimeLockedDescription": "La hora de publicación no puede cambiarse después de la creación.",
   "nMore": "{count} más",
   "noHistogramData": "No hay datos de histograma disponibles",
+  "predictorsMentionWarning": "Solo los curadores y administradores pueden notificar a @predictors. Tu mención no enviará notificaciones.",
+  "feedTileQuestionsRecentlyResolved": "{count, plural, one {# pregunta resuelta recientemente} other {# preguntas resueltas recientemente}}",
   "thousandsOfOpenQuestions": "20,000+ preguntas abiertas"
 }

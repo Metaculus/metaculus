@@ -2222,5 +2222,7 @@
   "publishTimeLockedDescription": "创建后将无法更改发布时间。",
   "nMore": "{count} 更多",
   "noHistogramData": "没有可用的直方图数据",
+  "predictorsMentionWarning": "只有策展人和管理员可以通知 @predictors。您的提及不会发送通知。",
+  "feedTileQuestionsRecentlyResolved": "{count, plural, one {# 个问题最近已解决} other {# 个问题最近已解决}}",
   "thousandsOfOpenQuestions": "20,000+ 开放问题"
 }

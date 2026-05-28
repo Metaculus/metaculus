@@ -144,7 +144,7 @@ function getRuleLabel(
         count: tile.recently_opened_questions,
       });
     case FeedTileRule.RESOLVED_QUESTIONS:
-      return t("feedTileQuestionsResolved", {
+      return t("feedTileQuestionsRecentlyResolved", {
         count: tile.recently_resolved_questions,
       });
     case FeedTileRule.ALL_QUESTIONS_RESOLVED:
