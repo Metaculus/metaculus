@@ -19,6 +19,7 @@ import { NotebookPost, PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
+import { getPageNumberFromParam } from "@/utils/posts_feed";
 import { isNotebookPost } from "@/utils/questions/helpers";
 
 import FutureEvalNewsCard from "./futureeval-news-card";
@@ -28,12 +29,6 @@ type Props = {
   initialQuestions: PostWithForecasts[];
   filters: PostsParams;
 };
-
-function getPageNumberFromParam(pageNumberParam: string | null) {
-  const pageNumber = Number(pageNumberParam);
-
-  return Number.isFinite(pageNumber) && pageNumber > 0 ? pageNumber : 1;
-}
 
 /**
  * FutureEval News Feed
