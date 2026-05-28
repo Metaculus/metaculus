@@ -44,8 +44,10 @@ function strip(text: string): string {
   s = s.replace(/^[\s\-=*]{3,}$/gm, "");
   s = s.replace(/[*_`#]+/g, "");
   s = s.replace(/^\s*[>*\-+]\s*/gm, "");
-  s = s.replace(/<\/?[^>]+>/g, "");
+  // Decode entities first (may introduce '<' / '>'), then strip every angle
+  // bracket so no HTML tag syntax can survive or re-form (plain-text output).
   s = decodeEntities(s);
+  s = s.replace(/[<>]/g, "");
   const paragraphs = s
     .split(/\n\s*\n/)
     .map((p) => p.trim())

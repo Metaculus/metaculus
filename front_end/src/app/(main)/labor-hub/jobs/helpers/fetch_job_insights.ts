@@ -68,10 +68,11 @@ function stripBody(text: string): string {
   s = s.replace(/[*_`#]+/g, "");
   // Drop blockquote and bullet prefixes at start of line
   s = s.replace(/^\s*[>*\-+]\s*/gm, "");
-  // Strip HTML tags (e.g. <p>, <strong>)
-  s = s.replace(/<\/?[^>]+>/g, "");
-  // Decode HTML entities
+  // Decode HTML entities first (may introduce '<' / '>' from &lt; / &gt;)
   s = decodeEntities(s);
+  // Remove every angle bracket so no HTML tag syntax can survive or re-form.
+  // (Complete sanitization — safe because the result is rendered as plain text.)
+  s = s.replace(/[<>]/g, "");
   // Take the first non-empty paragraph after the above cleanup
   const paragraphs = s
     .split(/\n\s*\n/)
