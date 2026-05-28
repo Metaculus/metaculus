@@ -41,7 +41,7 @@ type Props = {
 // its true pixel size (no CSS down-scaling => crisp fonts/strokes). This is
 // the same technique the shared ContinuousAreaChart uses via useContainerSize.
 const CHART_HEIGHT = 300;
-const CHART_PADDING = { top: 16, right: 24, bottom: 56, left: 56 };
+const CHART_PADDING = { top: 16, right: 8, bottom: 56, left: 38 };
 const DISCRETE_DOMAIN_PADDING_X = 10;
 
 // Shared text style for every piece of SVG text inside the chart so the
@@ -52,6 +52,18 @@ const TEXT_FONT_FAMILY =
 const AXIS_FONT_SIZE = 12;
 const NEUTRAL_GRAY_FILL_LIGHT = "#D1D5DB";
 const NEUTRAL_GRAY_FILL_DARK = "#475569";
+
+// EVEN center bar (Senate) — tweak its fill + label color here.
+const EVEN_BAR_FILL_LIGHT = "#7d818a";
+const EVEN_BAR_FILL_DARK = "#475569";
+const EVEN_TEXT_COLOR_LIGHT = "#FFFFFF";
+const EVEN_TEXT_COLOR_DARK = "#E2E8F0";
+
+// House on-hover vertical bar — tweak its color / thickness / opacity here.
+const HOVER_BAR_COLOR_LIGHT = "#334155";
+const HOVER_BAR_COLOR_DARK = "#E2E8F0";
+const HOVER_BAR_WIDTH = 1;
+const HOVER_BAR_ACTIVE_OPACITY = 0.75;
 
 type Point = { x: number; y: number };
 
@@ -215,9 +227,9 @@ const SeatDistributionChart: FC<Props> = ({
     : MIDTERMS_COLORS.repBorder;
   const axisColor = isDark ? "#94A3B8" : "#475569";
   const tickColor = isDark ? "#CBD5E1" : "#334155";
-  const neutralFill = isDark ? NEUTRAL_GRAY_FILL_DARK : NEUTRAL_GRAY_FILL_LIGHT;
-  const hoverBarColor = isDark ? "#E2E8F0" : "#334155";
-  const evenTextColor = isDark ? "#E2E8F0" : "#1E293B";
+  const neutralFill = isDark ? EVEN_BAR_FILL_DARK : EVEN_BAR_FILL_LIGHT;
+  const hoverBarColor = isDark ? HOVER_BAR_COLOR_DARK : HOVER_BAR_COLOR_LIGHT;
+  const evenTextColor = isDark ? EVEN_TEXT_COLOR_DARK : EVEN_TEXT_COLOR_LIGHT;
 
   const BAR_FILL_OPACITY = 0.7;
   const BAR_FILL_OPACITY_HOVER = 1;
@@ -324,7 +336,7 @@ const SeatDistributionChart: FC<Props> = ({
   const barFillOpacity = ({ active }: { active?: boolean }) =>
     active ? BAR_FILL_OPACITY_HOVER : BAR_FILL_OPACITY;
   const hoverBarOpacity = ({ active }: { active?: boolean }) =>
-    active ? 0.45 : 0;
+    active ? HOVER_BAR_ACTIVE_OPACITY : 0;
 
   return (
     <div
@@ -483,7 +495,7 @@ const SeatDistributionChart: FC<Props> = ({
             <VictoryBar
               name="tooltip"
               data={houseTooltipPoints}
-              barWidth={2}
+              barWidth={HOVER_BAR_WIDTH}
               style={{
                 data: { fill: hoverBarColor, fillOpacity: hoverBarOpacity },
               }}
@@ -570,6 +582,16 @@ const SeatDistributionChart: FC<Props> = ({
         <span style={{ color: demStroke }}>{demAdvantageLabel}</span>
         <span style={{ color: repStroke }}>{repAdvantageLabel}</span>
       </div>
+
+      {/* Chart title — rendered inside the plot, pinned to the top-left
+          corner at half opacity (see midterms hub mock). */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute font-sans text-sm font-semibold uppercase tracking-wide opacity-60"
+        style={{ left: 52, top: 12, color: tickColor }}
+      >
+        {ariaTitle}
+      </span>
     </div>
   );
 };

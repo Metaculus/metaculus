@@ -24,7 +24,7 @@ export default async function SeatDistributionsSection() {
       <SectionHeader className="mb-2">
         {t("midtermsHubSeatDistributionsTitle")}
       </SectionHeader>
-      <ContentParagraph className="mb-8">
+      <ContentParagraph className="mb-3">
         {t("midtermsHubSeatDistributionsSubtitle")}
       </ContentParagraph>
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-10">
@@ -69,24 +69,29 @@ function DistributionSlot({
   evenLabel,
   unavailableLabel,
 }: SlotProps) {
-  return (
-    <div>
-      <h3 className="-mb-3 mt-1 text-center text-base font-medium uppercase tracking-wide text-blue-800 dark:text-blue-800-dark">
-        {title}
-      </h3>
-      {post ? (
-        <SeatDistributionChart
-          post={post}
-          demAdvantageLabel={demAdvantageLabel}
-          repAdvantageLabel={repAdvantageLabel}
-          evenLabel={evenLabel}
-          ariaTitle={title}
-        />
-      ) : (
+  if (!post) {
+    return (
+      <div>
+        <h3 className="mb-2 text-center text-base font-medium uppercase tracking-wide text-blue-800 dark:text-blue-800-dark">
+          {title}
+        </h3>
         <div className="flex aspect-[2/1] items-center justify-center rounded-md border border-dashed border-blue-300 text-sm text-blue-600 dark:border-blue-300-dark dark:text-blue-600-dark">
           {unavailableLabel}
         </div>
-      )}
+      </div>
+    );
+  }
+
+  // Title is rendered inside the chart (top-left, half opacity).
+  return (
+    <div>
+      <SeatDistributionChart
+        post={post}
+        demAdvantageLabel={demAdvantageLabel}
+        repAdvantageLabel={repAdvantageLabel}
+        evenLabel={evenLabel}
+        ariaTitle={title}
+      />
     </div>
   );
 }
