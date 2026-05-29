@@ -37,7 +37,7 @@ const ForecastersCounter: FC<Props> = ({
   return (
     <div
       className={cn(
-        "flex flex-row items-center gap-1.5 truncate px-1.5 text-justify text-sm font-normal leading-4 text-gray-700 dark:text-gray-700-dark md:gap-2",
+        "flex min-w-0 flex-row items-center gap-1.5 truncate px-1.5 text-justify text-sm font-normal leading-4 text-gray-700 dark:text-gray-700-dark md:gap-2",
         className
       )}
     >
