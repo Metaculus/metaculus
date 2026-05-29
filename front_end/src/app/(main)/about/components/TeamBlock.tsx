@@ -331,13 +331,6 @@ const people: Person[] = [
       "Seth Killian was a graduate fellow at the UIUC Center for Advanced Study teaching philosophy when he was recruited by Capcom into game development. As a designer and founder, he helped revive the Street Fighter series with Street Fighter IV, co-founded the first team acquired by Riot Games, served as lead designer on Fortnite, and as Head of Game Design for Netflix. As a player and organizer, he played on the first US National Street Fighter team, hosted the first fighting game broadcast on ESPN, and co-founded the Evo Championship Series, which has grown to become the largest live gaming competition in the world.",
   },
   {
-    name: "Kelley Edelmann",
-    position: "Head of Consulting Services",
-    imgSrc: "https://cdn.metaculus.com/Kelley.webp",
-    introduction:
-      "Kelley leads Consulting Services at Metaculus, partnering with organizations to translate complex forecasting data into actionable insights that inform high-stakes decisions. She brings nearly two decades of consulting experience in the market research industry, most recently as a strategist at Ipsos. Kelley has led global engagements for Fortune 100 companies across technology, healthcare, and consumer packaged goods sectors, delivering insight that shapes C-suite strategy. Her experience spans B2B and B2C contexts worldwide, applying mixed methodologies with analytical rigor and human empathy to drive meaningful impact.",
-  },
-  {
     name: "Grace McLain",
     position: "Project Delivery Associate",
     imgSrc: "https://cdn.metaculus.com/Grace.webp",
@@ -379,7 +372,6 @@ const groups: Groups = {
     "John Bash",
     "Felipe Oliveira",
     "Cemre Inanc",
-    "Kelley Edelmann",
     "Grace McLain",
     "Jesse Damiani",
     "Carolin Ullrich",
