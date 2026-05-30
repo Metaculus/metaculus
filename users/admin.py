@@ -190,7 +190,13 @@ class ProjectUserPermissionInline(admin.TabularInline):
 class BotInline(admin.TabularInline):
     model = User
     fk_name = "bot_owner"
-    fields = ["username", "email", "is_active", "is_primary_bot"]
+    fields = [
+        "username",
+        "email",
+        "is_active",
+        "is_primary_bot",
+        "allow_public_comments",
+    ]
     readonly_fields = ["username", "email", "is_active", "is_bot"]
     extra = 0
     show_change_link = True
@@ -214,6 +220,7 @@ class UserAdmin(admin.ModelAdmin):
         "is_bot",
         "is_primary_bot",
         "exclude_from_aggregations",
+        "allow_public_comments",
         "bot_owner",
         "duration_joined_to_last_login",
         "authored_posts",

@@ -133,7 +133,7 @@ const QuestionContinuousTile: FC<Props> = ({
   // Binary questions use original side-by-side layout
   if (question.type === QuestionType.Binary) {
     return (
-      <div className="flex min-h-24 justify-between gap-6">
+      <div className="flex min-h-24 justify-between gap-2 @[550px]:gap-6">
         <div className="inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
           <PredictionBinaryInfo
             question={question}
@@ -196,19 +196,19 @@ const QuestionContinuousTile: FC<Props> = ({
         {/* Mobile: Overlay layout */}
         <div
           className={cn(
-            "flex flex-col items-center md:hidden",
-            minimalistic && "md:flex"
+            "flex flex-col items-center @[550px]:hidden",
+            minimalistic && "@[550px]:flex"
           )}
         >
           {/* CP values container - positioned first */}
-          <div className="relative z-20 flex w-full items-stretch justify-stretch md:items-center md:justify-center">
+          <div className="relative z-20 flex w-full items-stretch justify-stretch @[550px]:items-center @[550px]:justify-center">
             <div className="flex w-full flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark">
               <PredictionContinuousInfo
                 question={question}
                 onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
                 canPredict={canPredict}
                 showMyPrediction={true}
-                className={minimalistic ? "md:flex-row" : undefined}
+                className={minimalistic ? "@[550px]:flex-row" : undefined}
               />
             </div>
           </div>
@@ -226,7 +226,7 @@ const QuestionContinuousTile: FC<Props> = ({
               />
               <ForecastAvailabilityChartOverflow
                 forecastAvailability={forecastAvailability}
-                className="pl-3 text-xs md:text-sm"
+                className="pl-3 text-xs @[550px]:text-sm"
               />
             </div>
           )}
@@ -235,8 +235,8 @@ const QuestionContinuousTile: FC<Props> = ({
         {/* Large screens: Side-by-side layout (like binary questions) */}
         <div
           className={cn(
-            "hidden justify-between gap-6 md:flex",
-            minimalistic && "md:hidden"
+            "hidden justify-between gap-2 @[550px]:flex @[550px]:gap-6",
+            minimalistic && "@[550px]:hidden"
           )}
         >
           <div className="inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
@@ -259,7 +259,7 @@ const QuestionContinuousTile: FC<Props> = ({
               />
               <ForecastAvailabilityChartOverflow
                 forecastAvailability={forecastAvailability}
-                className="pl-3 text-xs md:text-sm"
+                className="pl-3 text-xs @[550px]:text-sm"
               />
             </div>
           )}

@@ -198,7 +198,7 @@ export default function LaborAutomationHubPage() {
               </span>
               , <strong>median wages are expected to grow.</strong> The workweek
               is also expected to become{" "}
-              <strong>about four hours shorter by 2035</strong> among all
+              <strong>about three hours shorter by 2035</strong> among all
               workers, while productivity grows.
             </ContentParagraph>
             <ContentParagraph>
@@ -753,10 +753,11 @@ export default function LaborAutomationHubPage() {
             <ContentParagraph>
               The healthcare sector (employing 13% of Washington residents) is
               forecasted to grow through 2027, largely unaffected by AI in this
-              timeframe. Technology and aerospace (employing 10% and 2%
-              respectively) are expected to see minor growth in the short-term,
-              largely consistent with historical trends. These forecasts are
-              short-term, leading to minimal predicted change.
+              timeframe. Aerospace (employing 2%) is expected to see minor
+              growth in the short-term, while technology (employing 10%) is
+              expected to see a marginal decline, largely consistent with
+              historical trends. These forecasts are short-term, leading to
+              minimal predicted change.
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight className="lg:mt-16 print:mt-12">

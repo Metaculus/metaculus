@@ -4,7 +4,6 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timezone as dt_timezone, timedelta
 
 from dateutil.parser import parse as date_parse
-from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from comments.constants import CommentReportType
@@ -21,7 +20,7 @@ from projects.permissions import ObjectPermission
 from questions.models import Question, UserForecastNotification
 from users.models import User
 from utils.dtypes import dataclass_from_dict
-from utils.email import send_email_with_template
+from utils.email import send_notification_email_with_template
 from utils.formatters import abbreviated_number, format_value_unit
 from utils.frontend import build_post_comment_url, build_post_url, build_news_url
 
@@ -265,13 +264,12 @@ class NotificationTypeBase:
         recipient = notifications[0].recipient
         context = cls.get_email_context_group(notifications)
 
-        return send_email_with_template(
+        return send_notification_email_with_template(
             recipient.email,
             cls.generate_subject_group(recipient),
             cls.email_template,
             context=context,
             use_async=False,
-            from_email=settings.EMAIL_NOTIFICATIONS_USER,
         )
 
 
@@ -727,7 +725,7 @@ def send_comment_mention_notification(recipient, comment: Comment, mention: str)
         comment.text, mention, max_chars=1024
     )[0]
 
-    return send_email_with_template(
+    return send_notification_email_with_template(
         recipient.email,
         _(
             f"{comment.author.username} mentioned {mention_label} on “{comment.on_post.title}”"
@@ -748,7 +746,6 @@ def send_comment_mention_notification(recipient, comment: Comment, mention: str)
             },
         },
         use_async=False,
-        from_email=settings.EMAIL_NOTIFICATIONS_USER,
     )
 
 
@@ -759,7 +756,7 @@ def send_comment_report_notification_to_staff(
         ObjectPermission.CURATOR
     )
 
-    return send_email_with_template(
+    return send_notification_email_with_template(
         [x.email for x in recipients],
         _(
             f"Comment report: {comment.author.username} - "
@@ -781,7 +778,6 @@ def send_comment_report_notification_to_staff(
                 "reason": reason,
             },
         },
-        from_email=settings.EMAIL_NOTIFICATIONS_USER,
     )
 
 
@@ -793,7 +789,7 @@ def send_key_factor_report_notification_to_staff(
 
     recipients = post.default_project.get_users_for_permission(ObjectPermission.CURATOR)
 
-    return send_email_with_template(
+    return send_notification_email_with_template(
         [x.email for x in recipients],
         _(
             f"Key Factor report: {comment.author.username} - "
@@ -812,7 +808,6 @@ def send_key_factor_report_notification_to_staff(
                 "reason": reason,
             },
         },
-        from_email=settings.EMAIL_NOTIFICATIONS_USER,
     )
 
 
@@ -821,7 +816,7 @@ def send_forecast_autowidrawal_notification(
     posts_data: list[dict],
     account_settings_url: str,
 ):
-    send_email_with_template(
+    send_notification_email_with_template(
         to=user.email,
         subject=_(
             f"{len(posts_data)} of your predictions will auto-withdraw soon unless updated"
@@ -835,7 +830,6 @@ def send_forecast_autowidrawal_notification(
             "number_of_posts": len(posts_data),
         },
         use_async=False,
-        from_email=settings.EMAIL_NOTIFICATIONS_USER,
     )
 
     return True
@@ -848,7 +842,7 @@ def send_weekly_top_comments_notification(
     other_usernames: str,
     account_settings_url: str,
 ):
-    send_email_with_template(
+    send_notification_email_with_template(
         to=recipients,
         subject=_("Last week’s top Metaculus comments"),
         template_name="emails/weekly_top_comments.html",
@@ -876,7 +870,7 @@ def send_news_category_notebook_publish_notification(user: User, post: Post):
         post.notebook.markdown, max_words=100
     )
 
-    return send_email_with_template(
+    return send_notification_email_with_template(
         to=user.email,
         subject=f"[Metaculus News] {post.title}",
         template_name="emails/subscribed_news_notebook_published.html",
@@ -891,7 +885,6 @@ def send_news_category_notebook_publish_notification(user: User, post: Post):
             },
         },
         use_async=False,
-        from_email=settings.EMAIL_NOTIFICATIONS_USER,
     )
 
 

@@ -5,14 +5,13 @@ import "./styles.scss";
 import { parse, isValid } from "date-fns";
 import { isNil, round } from "lodash";
 import { useLocale } from "next-intl";
-import { FC, useMemo } from "react";
+import React, { FC, useMemo, useState } from "react";
 import {
   LineSegment,
   VictoryAxis,
   VictoryBar,
   VictoryChart,
   VictoryContainer,
-  VictoryGroup,
 } from "victory";
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
@@ -43,14 +42,49 @@ type Props = {
   questions: QuestionWithNumericForecasts[];
   height?: number;
   variant?: "default" | "colorful";
+  onBarHover?: (label: string | null) => void;
+  hoveredBarLabel?: string | null;
+  forFeedPage?: boolean;
 };
 
-const MULTIPLE_CHOICE_LIGHT_COLOR_SCALE = Object.values(
-  METAC_COLORS["mc-option-light"]
-) as ThemeColor[];
 const MULTIPLE_CHOICE_COLOR_SCALE = Object.values(
   METAC_COLORS["mc-option"]
 ) as ThemeColor[];
+
+const CHART_PADDING_TOP = 20;
+const CHART_PADDING_BOTTOM = 30;
+const HIGHLIGHT_WIDTH = 52;
+
+interface HighlightBarProps {
+  x?: number;
+  index?: number;
+  hoveredIndex: number | null;
+  chartHeight: number;
+  fill: string;
+}
+
+const HighlightBar: FC<HighlightBarProps> = ({
+  x,
+  index,
+  hoveredIndex,
+  chartHeight,
+  fill,
+}) => {
+  if (hoveredIndex === null || index !== hoveredIndex || x === undefined) {
+    return null;
+  }
+  return (
+    <rect
+      x={Math.round(x - HIGHLIGHT_WIDTH / 2)}
+      y={CHART_PADDING_TOP}
+      width={HIGHLIGHT_WIDTH}
+      height={chartHeight - CHART_PADDING_TOP - CHART_PADDING_BOTTOM}
+      fill={fill}
+      fillOpacity={0.2}
+      rx={2}
+    />
+  );
+};
 
 function getNormalizedTicks(maxValue: number): number[] {
   return [0, maxValue * 0.25, maxValue * 0.5, maxValue * 0.75, maxValue];
@@ -70,24 +104,37 @@ const TimeSeriesChart: FC<Props> = ({
   questions,
   height = 130,
   variant = "default",
+  onBarHover,
+  hoveredBarLabel,
+  forFeedPage = false,
 }) => {
   const { theme, getThemeColor } = useAppTheme();
   const locale = useLocale();
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const orderedQuestions = useMemo(
     () =>
-      [...questions]
-        .map((q, i) => ({ q, i, k: monthYearKey(q.label) }))
-        .sort((a, b) => (a.k === b.k ? a.i - b.i : a.k - b.k))
-        .map(({ q }) => q),
-    [questions]
+      variant === "colorful"
+        ? questions
+        : [...questions]
+            .map((q, i) => ({ q, i, k: monthYearKey(q.label) }))
+            .sort((a, b) => (a.k === b.k ? a.i - b.i : a.k - b.k))
+            .map(({ q }) => q),
+    [questions, variant]
   );
 
   const chartData = buildChartData(orderedQuestions, locale);
   const { adjustedChartData, yDomain } = adjustChartData(chartData, chartWidth);
   const shouldDisplayChart = !!chartWidth;
+
+  const externalHoveredIndex = useMemo(() => {
+    if (!hoveredBarLabel) return null;
+    const idx = adjustedChartData.findIndex((d) => d.x === hoveredBarLabel);
+    return idx === -1 ? null : idx;
+  }, [hoveredBarLabel, adjustedChartData]);
+  const effectiveHoveredIndex = hoveredIndex ?? externalHoveredIndex;
   const domainPaddingX = useMemo(
     () => getDomainPaddingX(chartWidth, adjustedChartData.length),
     [adjustedChartData.length, chartWidth]
@@ -103,6 +150,9 @@ const TimeSeriesChart: FC<Props> = ({
   );
 
   const allQuestionsEmpty = adjustedChartData.every((datum) => datum.isEmpty);
+  const reservedChartHeight = chartData.every((datum) => datum.isEmpty)
+    ? 46
+    : height;
 
   // Forecast availabilities map
   const questionAvailabilities = useMemo(
@@ -142,12 +192,53 @@ const TimeSeriesChart: FC<Props> = ({
     return null;
   }
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const n = adjustedChartData.length;
+    if (n === 0) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const availableWidth = chartWidth - domainPaddingX * 2;
+    let closestIndex = 0;
+    let minDist = Infinity;
+    for (let i = 0; i < n; i++) {
+      const barX =
+        n === 1
+          ? chartWidth / 2
+          : domainPaddingX + (i * availableWidth) / (n - 1);
+      const dist = Math.abs(mouseX - barX);
+      if (dist < minDist) {
+        minDist = dist;
+        closestIndex = i;
+      }
+    }
+    setHoveredIndex(closestIndex);
+    const datum = adjustedChartData[closestIndex];
+    if (datum && onBarHover) onBarHover(datum.x);
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredIndex(null);
+    if (onBarHover) onBarHover(null);
+  };
+
+  const chartHeight = forFeedPage
+    ? reservedChartHeight
+    : allQuestionsEmpty
+      ? 46
+      : height;
+
   return (
-    <div ref={chartContainerRef} className="TimeSeriesChart relative w-full">
+    <div
+      ref={chartContainerRef}
+      className="TimeSeriesChart relative w-full"
+      style={forFeedPage ? { minHeight: reservedChartHeight } : undefined}
+      onMouseMove={onBarHover ? handleMouseMove : undefined}
+      onMouseLeave={onBarHover ? handleMouseLeave : undefined}
+    >
       {shouldDisplayChart && (
         <VictoryChart
           width={chartWidth}
-          height={allQuestionsEmpty ? 46 : height}
+          height={chartHeight}
           theme={chartTheme}
           padding={{
             left: 0,
@@ -171,6 +262,18 @@ const TimeSeriesChart: FC<Props> = ({
             />
           }
         >
+          {!allQuestionsEmpty && effectiveHoveredIndex !== null && (
+            <VictoryBar
+              data={adjustedChartData.map(({ x, y }) => ({ x, y }))}
+              dataComponent={
+                <HighlightBar
+                  hoveredIndex={effectiveHoveredIndex}
+                  chartHeight={chartHeight}
+                  fill={getThemeColor(METAC_COLORS.blue["500"])}
+                />
+              }
+            />
+          )}
           <VictoryAxis
             style={{
               axis: {
@@ -205,104 +308,76 @@ const TimeSeriesChart: FC<Props> = ({
             tickCount={variant === "default" ? 5 : undefined}
           />
 
-          <VictoryGroup data={adjustedChartData}>
-            <VictoryBar
-              style={{
-                data: { fill: "none" },
-              }}
-              labelComponent={
-                <TimeSeriesLabel
-                  isTickLabel={true}
-                  labelVisibilityMap={tickLabelVisibilityMap}
-                  widthPerLabel={widthPerLabel}
-                  allQuestionsEmpty={allQuestionsEmpty}
-                  colorful={variant === "colorful"}
-                />
-              }
-            />
-            <VictoryBar
-              labelComponent={
-                <TimeSeriesLabel
-                  isTickLabel={false}
-                  labelVisibilityMap={barLabelVisibilityMap}
-                  allQuestionsEmpty={allQuestionsEmpty}
-                  colorful={variant === "colorful"}
-                />
-              }
-              style={{
-                data: {
-                  fill: ({ datum, index }) => {
-                    if (variant === "colorful" && !datum.isEmpty) {
-                      if (datum.resolution) {
-                        return "transparent";
-                      }
-                      const safeIndex = typeof index === "number" ? index : 0;
-                      const color: ThemeColor =
-                        MULTIPLE_CHOICE_LIGHT_COLOR_SCALE[
-                          safeIndex % MULTIPLE_CHOICE_LIGHT_COLOR_SCALE.length
-                        ] ?? (METAC_COLORS.blue["400"] as ThemeColor);
-
-                      return getThemeColor(color);
-                    }
-
+          <VictoryBar
+            data={adjustedChartData}
+            style={{
+              data: { fill: "none" },
+            }}
+            labelComponent={
+              <TimeSeriesLabel
+                isTickLabel={true}
+                labelVisibilityMap={tickLabelVisibilityMap}
+                widthPerLabel={widthPerLabel}
+                allQuestionsEmpty={allQuestionsEmpty}
+                colorful={variant === "colorful"}
+              />
+            }
+          />
+          <VictoryBar
+            data={adjustedChartData}
+            cornerRadius={{ top: 2, bottom: 2 }}
+            labelComponent={
+              <TimeSeriesLabel
+                isTickLabel={false}
+                labelVisibilityMap={barLabelVisibilityMap}
+                allQuestionsEmpty={allQuestionsEmpty}
+                colorful={variant === "colorful"}
+              />
+            }
+            style={{
+              data: {
+                fill: ({ datum, index }) => {
+                  if (variant === "colorful" && !datum.isEmpty) {
                     if (datum.resolution) {
-                      return getThemeColor(
-                        ["no", "yes"].includes(datum.resolution as string)
-                          ? METAC_COLORS.purple["400"]
-                          : METAC_COLORS.purple["500"]
-                      );
+                      return getThemeColor(METAC_COLORS.purple["500"]);
                     }
+                    const safeIndex =
+                      typeof datum.originalIndex === "number"
+                        ? datum.originalIndex
+                        : typeof index === "number"
+                          ? index
+                          : 0;
+                    const color: ThemeColor =
+                      MULTIPLE_CHOICE_COLOR_SCALE[
+                        safeIndex % MULTIPLE_CHOICE_COLOR_SCALE.length
+                      ] ?? (METAC_COLORS.blue["400"] as ThemeColor);
 
-                    return datum.isClosed
-                      ? getThemeColor(METAC_COLORS.gray["500"])
-                      : getThemeColor(METAC_COLORS.blue["400"]);
-                  },
-                  stroke:
-                    variant === "colorful"
-                      ? ({ datum, index }) => {
-                          if (datum.resolution) {
-                            return getThemeColor(METAC_COLORS.purple["600"]);
-                          }
-                          if (!datum.isEmpty) {
-                            const safeIndex =
-                              typeof index === "number" ? index : 0;
-                            const color: ThemeColor =
-                              MULTIPLE_CHOICE_COLOR_SCALE[
-                                safeIndex % MULTIPLE_CHOICE_COLOR_SCALE.length
-                              ] ?? (METAC_COLORS.blue["400"] as ThemeColor);
+                    return getThemeColor(color);
+                  }
 
-                            return getThemeColor(color);
-                          }
-                          return "transparent";
-                        }
-                      : undefined,
-                  strokeLinejoin: "round",
-                  strokeWidth: ({ datum }) => {
-                    if (variant === "colorful") {
-                      if (datum.resolution) {
-                        return 2;
-                      }
-                      return datum.isEmpty ||
-                        ["no", "yes"].includes(datum.resolution as string)
-                        ? 0
-                        : 1;
-                    }
-                    return datum.isEmpty
-                      ? 0
-                      : ["no", "yes"].includes(datum.resolution as string)
-                        ? 0
-                        : 5;
-                  },
-                  width: ({ datum }) =>
-                    datum.isEmpty
-                      ? 0
-                      : ["no", "yes"].includes(datum.resolution as string)
-                        ? 2
-                        : 16,
+                  if (datum.resolution) {
+                    return getThemeColor(
+                      ["no", "yes"].includes(datum.resolution as string)
+                        ? METAC_COLORS.purple["400"]
+                        : METAC_COLORS.purple["500"]
+                    );
+                  }
+
+                  return datum.isClosed
+                    ? getThemeColor(METAC_COLORS.gray["500"])
+                    : getThemeColor(METAC_COLORS.blue["400"]);
                 },
-              }}
-            />
-          </VictoryGroup>
+                stroke: "transparent",
+                strokeWidth: 0,
+                width: ({ datum }) =>
+                  datum.isEmpty
+                    ? 0
+                    : ["no", "yes"].includes(datum.resolution as string)
+                      ? 2
+                      : 16,
+              },
+            }}
+          />
         </VictoryChart>
       )}
       {shouldShowCPLabel && earliestCPRevealTime && (
@@ -325,11 +400,12 @@ function buildChartData(
   isClosed: boolean;
   resolution: Resolution | null;
   isEmpty: boolean;
+  originalIndex: number;
 }[] {
   const scaling = getContinuousGroupScaling(questions);
   return [...questions]
     .filter((question) => !isUnsuccessfullyResolved(question.resolution))
-    .map((question) => {
+    .map((question, index) => {
       const latest_centers =
         question.aggregations[question.default_aggregation_method].latest
           ?.centers?.[0];
@@ -379,6 +455,7 @@ function buildChartData(
         isClosed: question.status === QuestionStatus.CLOSED,
         resolution: question.resolution,
         isEmpty: !hasData,
+        originalIndex: index,
       };
     });
 }
@@ -497,8 +574,10 @@ function adjustChartData(
     isClosed: boolean;
     resolution: Resolution | null;
     isEmpty: boolean;
+    originalIndex: number;
   }[],
-  chartWidth: number
+  chartWidth: number,
+  sliceFromEnd = true
 ) {
   let questionsToDisplay = 8;
   if (chartWidth < 374) {
@@ -524,8 +603,12 @@ function adjustChartData(
     unresolvedPoints.length > 0 ? Math.max(...unresolvedPoints) : 1
   );
 
+  const sliced = sliceFromEnd
+    ? chartData.slice(-questionsToDisplay)
+    : chartData.slice(0, questionsToDisplay);
+
   return {
-    adjustedChartData: chartData.slice(-questionsToDisplay).map((datum) => {
+    adjustedChartData: sliced.map((datum) => {
       if (["no", "yes"].includes(datum.resolution as string)) {
         return { ...datum, y: maxY * 0.4 };
       }

@@ -34,7 +34,7 @@ def contact_api_view(request: Request):
     EmailMessage(
         subject=serializer.data["subject"] or "Contact Form",
         body=serializer.data["message"],
-        from_email=settings.EMAIL_SENDER_NO_REPLY,
+        from_email=settings.EMAIL_ACCOUNTS_SENDER,
         to=[settings.EMAIL_FEEDBACK],
         reply_to=[serializer.data["email"]],
     ).send()
@@ -57,7 +57,7 @@ def contact_service_api_view(request: Request):
             f"Interested in: {serializer.data.get('service')}\n"
             f"Message: {serializer.data.get('message')}\n"
         ),
-        from_email=settings.EMAIL_SENDER_NO_REPLY,
+        from_email=settings.EMAIL_ACCOUNTS_SENDER,
         to=[settings.EMAIL_SUPPORT],
         reply_to=[serializer.data["email"]],
     ).send()
@@ -144,6 +144,8 @@ def cancel_bulletin(request, pk):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def sidebar_api_view(request: Request):
+    # SidebarItem hot_categories entries are legacy; feed categories should come
+    # from /projects/categories/ instead.
     sidebar_items = SidebarItem.objects.select_related(
         "post__default_project", "project"
     )

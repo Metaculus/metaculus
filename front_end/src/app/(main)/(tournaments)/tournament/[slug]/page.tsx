@@ -10,6 +10,7 @@ import invariant from "ts-invariant";
 import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/components/project_contributions";
 import ProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/components/project_leaderboard";
 import TournamentSubscribeButton from "@/app/(main)/(tournaments)/tournament/components/tournament_subscribe_button";
+import { FeedQueryProvider } from "@/app/(main)/questions/hooks/use_feed_query";
 import HtmlContent from "@/components/html_content";
 import TournamentFilters from "@/components/tournament_filters";
 import Button from "@/components/ui/button";
@@ -226,8 +227,16 @@ export default async function TournamentSlug(props: Props) {
               </Button>
             )}
           </div>
-          <TournamentFilters />
-          <TournamentFeed tournament={tournament} />
+          <FeedQueryProvider
+            filterUpdateOptions={{
+              history: "push",
+              scroll: false,
+              shallow: true,
+            }}
+          >
+            <TournamentFilters />
+            <TournamentFeed tournament={tournament} />
+          </FeedQueryProvider>
         </section>
       </div>
 

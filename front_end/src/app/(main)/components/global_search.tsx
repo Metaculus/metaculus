@@ -3,15 +3,13 @@
 import { debounce } from "lodash";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useCallback, useState } from "react";
 
-import RandomButton from "@/components/random_button";
 import SearchInput from "@/components/search_input";
 import {
   POST_ORDER_BY_FILTER,
   POST_TEXT_SEARCH_FILTER,
 } from "@/constants/posts_feed";
-import { useGlobalSearchContext } from "@/contexts/global_search_context";
 import { QuestionOrder } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
@@ -30,8 +28,8 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
 }) => {
   const t = useTranslations();
   const router = useRouter();
-  const [isHidden, setIsHidden] = useState(true);
-
+  const [search, setSearch] = useState("");
+  const [isSearched, setIsSearched] = useState(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedAnalyticsEvent = useCallback(
     debounce(() => {
@@ -42,20 +40,8 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
     []
   );
 
-  const {
-    globalSearch,
-    updateGlobalSearch,
-    isVisible: otherSearchIsVisible,
-    isSearched,
-    setIsSearched,
-  } = useGlobalSearchContext();
-
-  useEffect(() => {
-    setIsHidden(otherSearchIsVisible);
-  }, [otherSearchIsVisible]);
-
   const eraseSearch = () => {
-    updateGlobalSearch("");
+    setSearch("");
     setIsSearched(false);
   };
 
@@ -72,11 +58,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
     );
   };
 
-  const visibilityClass = isMobile
-    ? "flex md:hidden"
-    : isHidden
-      ? "hidden"
-      : "hidden md:flex";
+  const visibilityClass = isMobile ? "flex md:hidden" : "hidden md:flex";
 
   return (
     <div
@@ -87,8 +69,8 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
       )}
     >
       <SearchInput
-        value={globalSearch}
-        onChange={(e) => updateGlobalSearch(e.target.value)}
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
         onErase={eraseSearch}
         onSubmit={handleSearchSubmit}
         placeholder={t("questionSearchPlaceholder")}
@@ -107,7 +89,6 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
         submitButtonClassName="hidden md:block"
         submitIconClassName="text-blue-500 dark:text-blue-500"
       />
-      <RandomButton />
     </div>
   );
 };
