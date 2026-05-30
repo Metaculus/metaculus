@@ -198,7 +198,7 @@ export default function LaborAutomationHubPage() {
               </span>
               , <strong>median wages are expected to grow.</strong> The workweek
               is also expected to become{" "}
-              <strong>about three hours shorter by 2035</strong> among all
+              <strong>about two hours shorter by 2035</strong> among all
               workers, while productivity grows.
             </ContentParagraph>
             <ContentParagraph>
@@ -450,7 +450,7 @@ export default function LaborAutomationHubPage() {
             </ContentParagraph>
             <ContentParagraph>
               The unemployment rate for new graduates is expected to have{" "}
-              <strong>more than doubled</strong> in 2035 compared to 2025.
+              <strong>nearly doubled</strong> in 2035 compared to 2025.
             </ContentParagraph>
             <ContentParagraph>
               The number of degrees awarded overall and for STEM and humanities
