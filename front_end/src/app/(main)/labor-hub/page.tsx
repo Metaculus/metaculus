@@ -198,7 +198,7 @@ export default function LaborAutomationHubPage() {
               </span>
               , <strong>median wages are expected to grow.</strong> The workweek
               is also expected to become{" "}
-              <strong>about three hours shorter by 2035</strong> among all
+              <strong>about two hours shorter by 2035</strong> among all
               workers, while productivity grows.
             </ContentParagraph>
             <ContentParagraph>
@@ -453,11 +453,11 @@ export default function LaborAutomationHubPage() {
               <strong>more than doubled</strong> in 2035 compared to 2025.
             </ContentParagraph>
             <ContentParagraph>
-              The number of degrees awarded overall and for STEM and humanities
-              is expected to see only minor change due to the long gestation
-              time, while trade schools and community colleges are expected to
-              see significant growth in degrees and certificates awarded by
-              2035.
+              The number of degrees awarded overall and for STEM is expected to
+              see only minor to moderate change due to the long gestation time,
+              while humanities degrees are expected to decline significantly by
+              2035. Trade schools and community colleges are expected to see
+              significant growth in degrees and certificates awarded by 2035.
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight className="lg:mt-24 print:mt-12">
