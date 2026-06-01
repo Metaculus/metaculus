@@ -84,6 +84,7 @@ class DataGetRequestSerializer(serializers.Serializer):
         child=serializers.IntegerField(), required=False, allow_null=True
     )
     include_bots = serializers.BooleanField(required=False, allow_null=True)
+    only_bots = serializers.BooleanField(required=False, allow_null=True)
     anonymized = serializers.BooleanField(required=False)
     joined_before_date = serializers.DateTimeField(required=False)
     include_key_factors = serializers.BooleanField(required=False, default=False)
@@ -139,6 +140,7 @@ class DataGetRequestSerializer(serializers.Serializer):
             "include_user_data",
             "user_ids",
             "include_bots",
+            "only_bots",
             "anonymized",
             "joined_before_date",
             "include_key_factors",
@@ -152,13 +154,17 @@ class DataGetRequestSerializer(serializers.Serializer):
         aggregation_methods = attrs.get("aggregation_methods")
         user_ids = attrs.get("user_ids")
         include_bots = attrs.get("include_bots")
+        only_bots = attrs.get("only_bots")
         minimize = attrs.get("minimize", True)
 
         if not aggregation_methods and (
-            (user_ids is not None) or (include_bots is not None) or not minimize
+            (user_ids is not None)
+            or (include_bots is not None)
+            or (only_bots is not None)
+            or not minimize
         ):
             raise serializers.ValidationError(
-                "If user_ids, include_bots, or minimize is set, "
+                "If user_ids, include_bots, only_bots, or minimize is set, "
                 "aggregation_methods must also be set."
             )
 

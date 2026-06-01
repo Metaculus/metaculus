@@ -56,7 +56,8 @@ function parseConfigSpec(spec: string): SelectedAggregationConfig | null {
   const optionId = parts[0];
   if (!optionId || !VALID_AGGREGATION_METHODS.has(optionId)) return null;
 
-  const includeBots = parts.includes("bots");
+  const onlyBots = parts.includes("obots");
+  const includeBots = !onlyBots && parts.includes("bots");
   const joinedBeforeDate = parts.find((p) => /^\d{4}-\d{2}-\d{2}$/.test(p));
   const userIdsStr = parts.find((p) => /^u\d/.test(p));
   const userIds = userIdsStr
@@ -71,6 +72,7 @@ function parseConfigSpec(spec: string): SelectedAggregationConfig | null {
     id,
     optionId: optionId as AggregationMethod,
     includeBots: includeBots || undefined,
+    onlyBots: onlyBots || undefined,
     joinedBeforeDate,
     userIds: userIds?.length ? userIds : undefined,
     enabled: disabled ? false : undefined,

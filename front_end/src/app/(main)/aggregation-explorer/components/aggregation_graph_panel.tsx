@@ -90,6 +90,7 @@ export default function AggregationGraphPanel({
         choice: method.id,
         label: method.label,
         includeBots: method.includeBots,
+        onlyBots: method.onlyBots,
         color: colorById.get(method.id) ?? METAC_COLORS.gray["400"],
       })),
     [methods, colorById]
