@@ -1,4 +1,5 @@
 import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
+import { SearchParams } from "@/types/navigation";
 import { LeaderboardDetails } from "@/types/scoring";
 
 import FutureEvalScreen from "../components/futureeval-screen";
@@ -9,7 +10,10 @@ export const metadata = {
     "Stay updated with the latest news from Metaculus FutureEval, the benchmark measuring AI's ability to predict future outcomes.",
 };
 
-export default async function FutureEvalNewsPage() {
+export default async function FutureEvalNewsPage(props: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const searchParams = await props.searchParams;
   let leaderboard: LeaderboardDetails | null = null;
 
   try {
@@ -26,5 +30,11 @@ export default async function FutureEvalNewsPage() {
   const safeLeaderboard =
     leaderboard ?? ({ entries: [] } as unknown as LeaderboardDetails);
 
-  return <FutureEvalScreen leaderboard={safeLeaderboard} current="news" />;
+  return (
+    <FutureEvalScreen
+      leaderboard={safeLeaderboard}
+      current="news"
+      searchParams={searchParams}
+    />
+  );
 }

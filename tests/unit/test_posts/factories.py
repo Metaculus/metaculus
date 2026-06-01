@@ -19,7 +19,7 @@ def factory_post(
     projects: list[Project] = None,
     default_project: Project = None,
     curation_status: Post.CurationStatus = Post.CurationStatus.APPROVED,
-    **kwargs
+    **kwargs,
 ) -> Post:
     projects = projects or []
     default_project = default_project or get_site_main_project()
@@ -37,7 +37,7 @@ def factory_post(
             conditional=conditional,
             default_project=default_project,
             curation_status=curation_status,
-        )
+        ),
     )
     post.projects.add(*projects)
     post.sync_question_post_fk()
@@ -52,7 +52,7 @@ def factory_post_snapshot(*, user: User = None, post: Post = None, **kwargs):
             kwargs,
             user=user,
             post=post,
-        )
+        ),
     )
 
 

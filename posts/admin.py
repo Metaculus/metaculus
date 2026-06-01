@@ -90,7 +90,7 @@ class PostAdmin(CustomTranslationAdmin):
         components_html = render_components(explanation.get("components", []))
 
         full_html = f"""
-            <p><strong>Total Hotness:</strong> {explanation.get('hotness', 0):.2f}</p>
+            <p><strong>Total Hotness:</strong> {explanation.get("hotness", 0):.2f}</p>
             <p><strong>Components:</strong></p>
             {components_html}
         """
@@ -103,7 +103,7 @@ class PostAdmin(CustomTranslationAdmin):
         return format_html('<a href="{}">View Questions</a>', url)
 
     def update_pseudo_materialized_fields_button(self, obj):
-        if not obj:
+        if not obj or not obj.pk:
             return ""
         url = reverse(
             "admin:posts_post_update_pseudo_materialized_fields", args=[obj.pk]

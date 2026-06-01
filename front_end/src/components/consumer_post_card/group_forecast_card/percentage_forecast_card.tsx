@@ -3,8 +3,12 @@
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
+import { useListChartExpanded } from "@/app/(main)/questions/[id]/components/question_view/consumer_question_view/consumer_list_chart_shell";
+import { getEffectiveVisibleCount } from "@/constants/questions";
+import { useOverlayMaxHeight } from "@/hooks/use_overlay_max_height";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
+import cn from "@/utils/core/cn";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import {
   generateChoiceItemsFromGroupQuestions,
@@ -21,25 +25,37 @@ import ForecastChoiceBar from "./forecast_choice_bar";
 type Props = {
   post: PostWithForecasts;
   forceColorful?: boolean;
+  compact?: boolean;
+  buttonVariant?: "primary" | "minimal";
+  fillHeight?: boolean;
 };
 
-const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
-  const visibleChoicesCount = 3;
+const PercentageForecastCard: FC<Props> = ({
+  post,
+  forceColorful,
+  compact,
+  buttonVariant,
+  fillHeight = false,
+}) => {
   const locale = useLocale();
   const t = useTranslations();
   const [expanded, setExpanded] = useState(false);
+  const { setIsExpanded } = useListChartExpanded();
+  const { containerRef, overlayMaxHeight } = useOverlayMaxHeight(expanded);
 
   const isMC = isMultipleChoicePost(post);
-  const isGroupBinary =
-    isGroupOfQuestionsPost(post) &&
-    post.group_of_questions?.questions?.every(
-      (q) => q.type === QuestionType.Binary
-    );
   const cpRevealTime = post.question?.cp_reveal_time;
   const emptyLabel =
     cpRevealTime && new Date(cpRevealTime).getTime() > Date.now()
       ? t("hidden")
       : t("Upcoming");
+
+  const totalOptionsCount = isMC
+    ? post.question?.options?.length ?? 0
+    : isGroupOfQuestionsPost(post)
+      ? post.group_of_questions?.questions?.length ?? 0
+      : 0;
+  const visibleChoicesCount = getEffectiveVisibleCount(totalOptionsCount);
 
   const allChoices = useMemo(() => {
     const raw = generateChoiceItems(post, visibleChoicesCount, locale, t);
@@ -69,47 +85,86 @@ const PercentageForecastCard: FC<Props> = ({ post, forceColorful }) => {
         isChoiceClosed,
       };
     });
-  }, [post, locale, t, emptyLabel]);
+  }, [post, visibleChoicesCount, locale, t, emptyLabel]);
 
   if (!isMC && !isGroupOfQuestionsPost(post)) return null;
 
   const isPostClosed = post.status === PostStatus.CLOSED;
 
-  const visible = expanded
-    ? allChoices
-    : allChoices.slice(0, visibleChoicesCount);
-  const hidden = expanded ? [] : allChoices.slice(visibleChoicesCount);
+  const collapsedChoices = allChoices.slice(0, visibleChoicesCount);
+  const hiddenCount = Math.max(0, allChoices.length - visibleChoicesCount);
 
-  const visibleSumMC = visible.reduce((s, c) => s + c.percent, 0);
-  const othersTotal = isMC
-    ? Math.max(0, Math.min(100, 100 - Math.round(visibleSumMC)))
-    : 0;
+  const renderBars = (choices: typeof allChoices, stretchBars = false) =>
+    choices.map((choice) => (
+      <ForecastChoiceBar
+        key={choice.id ?? choice.choice}
+        choiceLabel={choice.choice}
+        choiceValue={choice.valueStr}
+        isClosed={choice.isChoiceClosed || isPostClosed}
+        displayedResolution={choice.displayedResolution}
+        resolution={choice.resolution}
+        progress={choice.percent}
+        color={choice.color}
+        forceColorful={forceColorful}
+        compact={compact}
+        className={stretchBars ? "flex-1" : undefined}
+      />
+    ));
+
+  // Only fill height when all items are visible (no expand button).
+  const effectiveFillHeight = fillHeight && hiddenCount === 0;
 
   return (
-    <ForecastCardWrapper
-      otherItemsCount={hidden.length}
-      othersTotal={othersTotal}
-      expanded={expanded}
-      onExpand={() => setExpanded(true)}
-      hideOthersValue={isGroupBinary}
+    <div
+      ref={containerRef}
+      className={cn("relative", effectiveFillHeight && "flex flex-1 flex-col")}
     >
-      {visible.map((choice) => (
-        <ForecastChoiceBar
-          key={choice.id ?? choice.choice}
-          choiceLabel={choice.choice}
-          choiceValue={choice.valueStr}
-          isClosed={choice.isChoiceClosed || isPostClosed}
-          displayedResolution={choice.displayedResolution}
-          resolution={choice.resolution}
-          progress={choice.percent}
-          color={choice.color}
-          isBordered={true}
-          forceColorful={forceColorful}
-        />
-      ))}
-    </ForecastCardWrapper>
+      <ForecastCardWrapper
+        otherItemsCount={hiddenCount}
+        expanded={expanded}
+        onExpand={() => {
+          setExpanded(true);
+          setIsExpanded(true);
+        }}
+        compact={compact}
+        buttonVariant={buttonVariant}
+        className={effectiveFillHeight ? "flex-1" : undefined}
+      >
+        {renderBars(collapsedChoices, effectiveFillHeight)}
+      </ForecastCardWrapper>
+      {expanded && (
+        <>
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => {
+              setExpanded(false);
+              setIsExpanded(false);
+            }}
+          />
+          <div
+            className="absolute -left-[21px] -top-[21px] z-20 flex w-[calc(100%+42px)] flex-col overflow-hidden rounded-lg border border-gray-400/40 bg-gray-0 p-5 dark:border-gray-400-dark/40 dark:bg-gray-0-dark"
+            style={{ maxHeight: overlayMaxHeight }}
+          >
+            <ForecastCardWrapper
+              otherItemsCount={0}
+              expanded={true}
+              onCollapse={() => {
+                setExpanded(false);
+                setIsExpanded(false);
+              }}
+              compact={compact}
+              buttonVariant={buttonVariant}
+              className="min-h-0 flex-1"
+            >
+              {renderBars(allChoices)}
+            </ForecastCardWrapper>
+          </div>
+        </>
+      )}
+    </div>
   );
 };
+
 function generateChoiceItems(
   post: PostWithForecasts,
   visibleChoicesCount: number,
@@ -117,9 +172,15 @@ function generateChoiceItems(
   t: ReturnType<typeof useTranslations>
 ) {
   if (isMultipleChoicePost(post)) {
+    const cpRevealTime = post.question?.cp_reveal_time;
+    const cpRevealsOn =
+      cpRevealTime && new Date(cpRevealTime) >= new Date()
+        ? cpRevealTime
+        : null;
     return generateChoiceItemsFromMultipleChoiceForecast(post.question, t, {
       activeCount: visibleChoicesCount,
       showNoResolutions: false,
+      cpRevealsOn,
     });
   }
   if (isGroupOfQuestionsPost(post)) {
@@ -130,4 +191,5 @@ function generateChoiceItems(
   }
   return [];
 }
+
 export default PercentageForecastCard;

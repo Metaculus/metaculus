@@ -5,10 +5,12 @@ import { VictoryThemeDefinition } from "victory";
 
 import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import GroupTimeline from "@/app/(main)/questions/[id]/components/group_timeline";
-import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import FanChart from "@/components/charts/fan_chart";
 import { MultipleChoiceTile } from "@/components/post_card/multiple_choice_tile";
-import { ContinuousQuestionTypes } from "@/constants/questions";
+import {
+  ContinuousQuestionTypes,
+  getEffectiveVisibleCount,
+} from "@/constants/questions";
 import { useHideCP } from "@/contexts/cp_context";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
@@ -28,8 +30,6 @@ import {
 } from "@/utils/questions/helpers";
 import { getCommonUnit } from "@/utils/questions/units";
 
-import { getMaxVisibleCheckboxes } from "../embeds";
-
 type Props = {
   post: GroupOfQuestionsPost<QuestionWithNumericForecasts>;
   preselectedQuestionId?: number;
@@ -44,6 +44,7 @@ type Props = {
   onLegendHeightChange?: (height: number) => void;
   chartTheme?: VictoryThemeDefinition;
   defaultZoom?: TimelineChartZoomOption;
+  withLegend?: boolean;
 };
 
 const DetailedGroupCard: FC<Props> = ({
@@ -56,6 +57,7 @@ const DetailedGroupCard: FC<Props> = ({
   onLegendHeightChange,
   chartTheme,
   defaultZoom,
+  withLegend,
 }) => {
   const {
     open_time,
@@ -90,8 +92,8 @@ const DetailedGroupCard: FC<Props> = ({
   const isEmbed = useIsEmbedMode();
 
   const maxVisibleCheckboxes = useMemo(
-    () => getMaxVisibleCheckboxes(isEmbed),
-    [isEmbed]
+    () => getEffectiveVisibleCount(questions.length),
+    [questions.length]
   );
 
   const forecastAvailability = getGroupForecastAvailability(questions);
@@ -146,68 +148,60 @@ const DetailedGroupCard: FC<Props> = ({
         );
 
         return (
-          <>
-            <MultipleChoiceTile
-              group={post.group_of_questions}
-              groupType={groupType}
-              choices={choiceItems}
-              visibleChoicesCount={Math.min(
-                maxVisibleCheckboxes,
-                choiceItems.length
-              )}
-              hideCP={hideCP}
-              timestamps={timestamps}
-              actualCloseTime={getPostDrivenTime(refCloseTime)}
-              openTime={getPostDrivenTime(open_time)}
-              forecastAvailability={forecastAvailability}
-              canPredict={false}
-              showChart
-              chartHeight={embedChartHeight}
-              scaling={groupScaling}
-              onLegendHeightChange={onLegendHeightChange}
-              chartTheme={chartTheme}
-              yLabel={commonUnit ?? undefined}
-              onCursorChange={handleCursorChange}
-              defaultChartZoom={defaultZoom}
-            />
-            {hideCP && <RevealCPButton />}
-          </>
+          <MultipleChoiceTile
+            group={post.group_of_questions}
+            groupType={groupType}
+            choices={choiceItems}
+            visibleChoicesCount={Math.min(
+              maxVisibleCheckboxes,
+              choiceItems.length
+            )}
+            hideCP={hideCP}
+            timestamps={timestamps}
+            actualCloseTime={getPostDrivenTime(refCloseTime)}
+            openTime={getPostDrivenTime(open_time)}
+            forecastAvailability={forecastAvailability}
+            canPredict={false}
+            showChart
+            chartHeight={embedChartHeight}
+            scaling={groupScaling}
+            onLegendHeightChange={onLegendHeightChange}
+            chartTheme={chartTheme}
+            yLabel={commonUnit ?? undefined}
+            onCursorChange={handleCursorChange}
+            defaultChartZoom={defaultZoom}
+          />
         );
       }
 
       return (
-        <>
-          <GroupTimeline
-            group={post.group_of_questions}
-            actualCloseTime={getPostDrivenTime(refCloseTime)}
-            openTime={getPostDrivenTime(open_time)}
-            isClosed={status === PostStatus.CLOSED}
-            preselectedQuestionId={preselectedQuestionId}
-            hideCP={hideCP}
-            className={className}
-            prioritizeOpen={prioritizeOpenSubquestions}
-            embedMode={isEmbed}
-            chartHeight={embedChartHeight}
-            chartTheme={chartTheme}
-            defaultZoom={defaultZoom}
-          />
-          {hideCP && <RevealCPButton />}
-        </>
+        <GroupTimeline
+          group={post.group_of_questions}
+          actualCloseTime={getPostDrivenTime(refCloseTime)}
+          openTime={getPostDrivenTime(open_time)}
+          isClosed={status === PostStatus.CLOSED}
+          preselectedQuestionId={preselectedQuestionId}
+          hideCP={hideCP}
+          className={className}
+          prioritizeOpen={prioritizeOpenSubquestions}
+          embedMode={isEmbed}
+          chartHeight={embedChartHeight}
+          chartTheme={chartTheme}
+          defaultZoom={defaultZoom}
+          withLegend={withLegend}
+        />
       );
     }
     case GroupOfQuestionsGraphType.FanGraph:
       return (
-        <>
-          <FanChart
-            group={post.group_of_questions}
-            hideCP={hideCP}
-            withTooltip
-            height={embedChartHeight}
-            isEmbedded={isEmbed}
-            onLegendHeightChange={onLegendHeightChange}
-          />
-          {hideCP && <RevealCPButton />}
-        </>
+        <FanChart
+          group={post.group_of_questions}
+          hideCP={hideCP}
+          withTooltip
+          height={embedChartHeight}
+          isEmbedded={isEmbed}
+          onLegendHeightChange={onLegendHeightChange}
+        />
       );
     default:
       return null;

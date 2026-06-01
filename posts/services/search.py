@@ -8,6 +8,7 @@ from django.contrib.postgres.search import SearchVector, SearchQuery
 from django.db.models import Value, Case, When, FloatField, QuerySet, Q
 from django.utils import timezone
 from pgvector.django import CosineDistance
+from rest_framework.exceptions import APIException
 
 from posts.models import Post
 from utils.openai import (
@@ -18,6 +19,12 @@ from utils.openai import (
 from utils.serper_google import get_google_search_results
 
 logger = logging.getLogger(__name__)
+
+
+class SearchUnavailable(APIException):
+    status_code = 503
+    default_detail = "Search is temporarily unavailable. Please try again later."
+    default_code = "search_unavailable"
 
 
 def generate_post_content_for_embedding_vectorization(post: Post):
@@ -72,28 +79,55 @@ def perform_post_search(qs, search_text: str):
     embedding_vector, semantic_scores_by_id = async_to_sync(gather_search_results)(
         search_text
     )
+
+    if embedding_vector is None and semantic_scores_by_id is None:
+        try:
+            return posts_full_text_search(qs, search_text).annotate(
+                rank=Value(0.3, output_field=FloatField())
+            )
+        except Exception:
+            logger.exception("Failed to perform full-text post search")
+            raise SearchUnavailable()
+
     semantic_scores_by_id = semantic_scores_by_id or {}
 
     semantic_whens = [
         When(id=key, then=Value(val)) for key, val in semantic_scores_by_id.items()
     ]
+    ranking_penalty = Case(
+        # Penalise closed and resolved questions in search by 10%
+        When(
+            Q(resolved=True) | Q(actual_close_time__lte=timezone.now()),
+            then=Value(0.9),
+        ),
+        default=1,
+        output_field=FloatField(),
+    )
+
+    if embedding_vector is None:
+        if not semantic_scores_by_id:
+            return qs.none().annotate(rank=Value(0.0, output_field=FloatField()))
+
+        return qs.filter(id__in=semantic_scores_by_id.keys()).annotate(
+            rank=Case(
+                *semantic_whens,
+                default=0,
+                output_field=FloatField(),
+            )
+            * ranking_penalty
+        )
 
     # Annotating embedding vector distance
-    qs = qs.filter(embedding_vector__isnull=False).annotate(
+    google_result_ids = semantic_scores_by_id.keys()
+    qs = qs.filter(
+        Q(embedding_vector__isnull=False) | Q(id__in=google_result_ids)
+    ).annotate(
         rank=Case(
             *semantic_whens,
             default=1 - CosineDistance("embedding_vector", embedding_vector),
             output_field=FloatField(),
         )
-        * Case(
-            # Penalise closed and resolved questions in search by 10%
-            When(
-                Q(resolved=True) | Q(actual_close_time__lte=timezone.now()),
-                then=Value(0.9),
-            ),
-            default=1,
-            output_field=FloatField(),
-        )
+        * ranking_penalty
     )
 
     return qs
@@ -101,16 +135,23 @@ def perform_post_search(qs, search_text: str):
 
 async def gather_search_results(
     search_text: str,
-) -> tuple[list[float], dict[int, float]]:
+) -> tuple[list[float] | None, dict[int, float] | None]:
     return await asyncio.gather(
-        generate_text_embed_vector_async(search_text),
+        perform_embedding_search(search_text),
         perform_google_search(search_text),
     )
 
 
+async def perform_embedding_search(search_text: str) -> list[float] | None:
+    try:
+        return await generate_text_embed_vector_async(search_text)
+    except Exception:
+        logger.exception("Failed to generate search embedding")
+
+
 async def perform_google_search(
     search_text: str,
-) -> dict[int, float]:
+) -> dict[int, float] | None:
     """
     Returns a dict of question IDs to Google scores.
     """
@@ -150,6 +191,8 @@ def posts_full_text_search(qs: QuerySet[Post], query: str):
     # Each word is matched using a prefix search operator (":*"), enabling partial word matches.
     # Words are joined with an AND operator ("&") to combine search criteria.
     query = " & ".join(f"{word.strip()}:*" for word in query.split() if word.strip())
+    if not query:
+        return qs.none()
 
     search_vector = (
         SearchVector("questions__title")

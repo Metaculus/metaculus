@@ -14,6 +14,7 @@ import {
 import { useBreakpoint } from "@/hooks/tailwind";
 import useHash from "@/hooks/use_hash";
 import useSectionHeadings from "@/hooks/use_section_headings";
+import { useTopChromeHeightPx } from "@/hooks/use_top_chrome_height";
 import cn from "@/utils/core/cn";
 
 type Props = {
@@ -21,7 +22,6 @@ type Props = {
   unreadComments?: number;
 };
 
-const MOBILE_SCROLL_OFFSET = 66 + 48 + 16;
 const DESKTOP_SCROLL_OFFSET = 66;
 
 const NotebookContentSections: FC<Props> = ({
@@ -37,6 +37,7 @@ const NotebookContentSections: FC<Props> = ({
   const [isNotebookTitleVisible, setIsNotebookTitleVisible] =
     useState<boolean>(true);
   const isLargeScreen = useBreakpoint("md");
+  const topChromeHeight = useTopChromeHeightPx();
   useEffect(() => {
     for (const h of headings) {
       const el = document.getElementById(h.id);
@@ -48,10 +49,14 @@ const NotebookContentSections: FC<Props> = ({
   }, [headings]);
 
   useEffect(() => {
-    const notebookTitleElement = document.querySelector(
-      `#${NOTEBOOK_TITLE}`
-    ) as HTMLElement | null;
-    setNotebookTitle(notebookTitleElement?.textContent ?? null);
+    const frame = requestAnimationFrame(() => {
+      const notebookTitleElement = document.querySelector(
+        `#${NOTEBOOK_TITLE}`
+      ) as HTMLElement | null;
+      setNotebookTitle(notebookTitleElement?.textContent ?? null);
+    });
+
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {
@@ -77,8 +82,8 @@ const NotebookContentSections: FC<Props> = ({
       ids.push(NOTEBOOK_COMMENTS_TITLE);
 
       const offset = isLargeScreen
-        ? DESKTOP_SCROLL_OFFSET
-        : MOBILE_SCROLL_OFFSET;
+        ? DESKTOP_SCROLL_OFFSET + topChromeHeight
+        : DESKTOP_SCROLL_OFFSET + topChromeHeight + 16;
 
       const activeId = [...ids].reverse().find((id) => {
         const el = document.getElementById(id);
@@ -100,7 +105,7 @@ const NotebookContentSections: FC<Props> = ({
       window.removeEventListener("scroll", handleOnScroll);
       window.removeEventListener("resize", handleOnScroll);
     };
-  }, [headings, isLargeScreen]);
+  }, [headings, isLargeScreen, topChromeHeight]);
 
   const commentsTitle = useMemo(() => {
     const commentCount = t("commentsWithCount", { count: commentsCount });
@@ -141,7 +146,7 @@ const NotebookContentSections: FC<Props> = ({
   return (
     <Popover
       as="nav"
-      className="sticky top-16 z-10 flex max-h-[calc(100vh-3rem)] flex-col overflow-y-auto border-gray-300 bg-gray-0 text-sm text-blue-900 break-anywhere no-scrollbar dark:border-gray-300-dark dark:bg-gray-0-dark dark:text-blue-900-dark max-md:flex max-md:border max-md:bg-gray-100 max-md:dark:bg-gray-100-dark md:top-12 md:-m-4 md:p-4"
+      className="sticky top-header z-10 flex max-h-[calc(100vh_-_var(--top-chrome-height,3rem))] flex-col overflow-y-auto border-gray-300 bg-gray-0 text-sm text-blue-900 break-anywhere no-scrollbar dark:border-gray-300-dark dark:bg-gray-0-dark dark:text-blue-900-dark max-md:flex max-md:border max-md:bg-gray-100 max-md:dark:bg-gray-100-dark md:-m-4 md:p-4"
     >
       {({ open, close }) => (
         <>

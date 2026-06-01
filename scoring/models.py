@@ -6,7 +6,12 @@ from django.db.models.query import QuerySet, Q
 from projects.models import Project
 from questions.models import Question
 from questions.types import AggregationMethod
-from scoring.constants import ScoreTypes, ArchivedScoreTypes, LeaderboardScoreTypes
+from scoring.constants import (
+    ScoreTypes,
+    ArchivedScoreTypes,
+    LeaderboardScoreTypes,
+    ExclusionStatuses,
+)
 from users.models import User
 from utils.models import TimeStampedModel
 
@@ -199,6 +204,8 @@ class Leaderboard(TimeStampedModel):
         Any remaining money is redistributed. Tournaments that close before June 2025 will have a value of 0.00.
         """,
     )
+
+    # TO BE DEPRECATED IN FAVOR OF bot/human_exclusion_status
     bot_status = models.CharField(
         max_length=32,
         choices=Project.BotLeaderboardStatus.choices,
@@ -206,6 +213,16 @@ class Leaderboard(TimeStampedModel):
         blank=True,
         help_text="""Optional. If not set, the Project's bot_leaderboard_status will be
         used instead. See Project for more details.""",
+    )
+    bot_exclusion_status = models.IntegerField(
+        choices=ExclusionStatuses.choices,
+        default=ExclusionStatuses.EXCLUDE_AND_SHOW,
+        help_text="This sets the default exclusion status for bots on this leaderboard.",
+    )
+    human_exclusion_status = models.IntegerField(
+        choices=ExclusionStatuses.choices,
+        default=ExclusionStatuses.INCLUDE,
+        help_text="This sets the default exclusion status for humans on this leaderboard.",
     )
     user_list = models.ManyToManyField(
         User,
@@ -338,6 +355,8 @@ class LeaderboardEntry(TimeStampedModel):
     )
     take = models.FloatField(null=True, blank=True)
     rank = models.IntegerField(null=True, blank=True)
+
+    # TO BE DEPRECATED IN FAVOR OF exclusion_status
     excluded = models.BooleanField(
         default=False,
         db_index=True,
@@ -354,6 +373,17 @@ class LeaderboardEntry(TimeStampedModel):
         default=False,
         help_text="""If true, this entry will still be shown in the leaderboard even if
         excluded.""",
+    )
+
+    exclusion_status = models.IntegerField(
+        choices=ExclusionStatuses.choices,
+        default=ExclusionStatuses.INCLUDE,
+        help_text="""This sets the minimum exclusion status for this user.
+        </br>- (0) Include: shows entry & takes rank and prize.
+        </br>- (1) Exclude Prize Only: shows entry, takes rank, but excludes from prizes
+        </br>- (2) Exclude and Show: shows entry, but excludes from rank and prizes
+        </br>- (3) Exclude and Show in Advanced: only shows entry in advanced views, excludes from rank and prizes
+        </br>- (4) Exclude: excludes entry from showing, rank, and prizes""",
     )
 
     class Medals(models.TextChoices):
@@ -443,11 +473,23 @@ class MedalExclusionRecord(models.Model):
         choices=ExclusionTypes.choices,
         help_text="""Records the type of exclusion. Use Other for custom exclusions.""",
     )
+    # TO BE DEPRECATED IN FAVOR OF exclusion_status
     show_anyway = models.BooleanField(
         default=False,
         help_text="""If true, users excluded by this record will still appear in leaderboards.
         <br>They will still be excluded from taking ranks and prizes.""",
     )
+    exclusion_status = models.IntegerField(
+        choices=ExclusionStatuses.choices,
+        default=ExclusionStatuses.EXCLUDE,
+        help_text="""This sets the minimum exclusion status for this user.
+        </br>- (0) Include: shows entry & takes rank and prize.
+        </br>- (1) Exclude Prize Only: shows entry, takes rank, but excludes from prizes
+        </br>- (2) Exclude and Show: shows entry, but excludes from rank and prizes
+        </br>- (3) Exclude and Show in Advanced: only shows entry in advanced views, excludes from rank and prizes
+        </br>- (4) Exclude: excludes entry from showing, rank, and prizes""",
+    )
+
     notes = models.TextField(
         null=True,
         blank=True,

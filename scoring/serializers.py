@@ -12,8 +12,10 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
     ci_lower = serializers.FloatField()
     ci_upper = serializers.FloatField()
     rank = serializers.IntegerField()
+    # deprecate in favor of exclusion_status
     excluded = serializers.BooleanField()
     show_when_excluded = serializers.BooleanField()
+    exclusion_status = serializers.IntegerField()
     medal = serializers.CharField()
     prize = serializers.FloatField()
     coverage = serializers.FloatField()
@@ -31,8 +33,10 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
             "ci_lower",
             "ci_upper",
             "rank",
+            # deprecate in favor of exclusion_status
             "excluded",
             "show_when_excluded",
+            "exclusion_status",
             "medal",
             "prize",
             "coverage",
@@ -88,7 +92,7 @@ class LeaderboardSerializer(serializers.Serializer):
 
     def get_max_coverage(self, obj: Leaderboard):
         if self.context.get("include_max_coverage", False):
-            return (
+            return sum(
                 obj.get_questions()
                 .filter(resolution__isnull=False)
                 .exclude(
@@ -97,7 +101,7 @@ class LeaderboardSerializer(serializers.Serializer):
                         UnsuccessfulResolutionType.AMBIGUOUS,
                     ]
                 )
-                .count()
+                .values_list("question_weight", flat=True)
             )
 
     def get_is_primary_leaderboard(self, obj: Leaderboard):

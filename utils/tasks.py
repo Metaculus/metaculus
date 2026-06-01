@@ -7,6 +7,7 @@ from django.core.mail import EmailMessage
 
 from questions.types import AggregationMethod
 from utils.dramatiq import task_concurrent_limit
+from utils.email import resolve_account_sender
 from utils.translation import (
     update_translations_for_model,
     detect_and_update_content_language,
@@ -16,7 +17,9 @@ from utils.translation import (
 
 @dramatiq.actor(min_backoff=3_000, max_retries=3)
 @task_concurrent_limit(
-    lambda app_label, model_name, pk: f"mutex:update-translations-{app_label}.{model_name}/{pk}",
+    lambda app_label, model_name, pk: (
+        f"mutex:update-translations-{app_label}.{model_name}/{pk}"
+    ),
     limit=1,
     # This task shouldn't take longer than 1m
     # So it's fine to set mutex lock timeout for this duration
@@ -63,7 +66,7 @@ def email_all_data_for_questions_task(
         email = EmailMessage(
             subject="Your Metaculus Data",
             body="Attached is your Metaculus data.",
-            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            from_email=resolve_account_sender(email_address),
             to=[email_address],
         )
         email.attach(filename or "metaculus_data.zip", data, "application/zip")
@@ -74,7 +77,7 @@ def email_all_data_for_questions_task(
             subject="Error generating Metaculus data",
             body="Error generating Metaculus data. Please contact an administrator "
             f"for assistance.\nError: {e}",
-            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            from_email=resolve_account_sender(email_address),
             to=[email_address],
         )
         email.send()
@@ -85,7 +88,7 @@ def email_data_task(
     user_id: int,
     user_email: str,
     is_staff: bool,
-    is_whitelisted: bool,
+    has_data_access: bool,
     filename: str,
     question_ids: list[int],
     aggregation_methods: list[AggregationMethod],
@@ -112,7 +115,7 @@ def email_data_task(
         data = export_data_for_questions(
             user_id=user_id,
             is_staff=is_staff,
-            is_whitelisted=is_whitelisted,
+            has_data_access=has_data_access,
             question_ids=question_ids,
             aggregation_methods=aggregation_methods,
             minimize=minimize,
@@ -132,7 +135,7 @@ def email_data_task(
         email = EmailMessage(
             subject="Your Metaculus Data",
             body="Attached is your Metaculus data.",
-            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            from_email=resolve_account_sender(user_email),
             to=[user_email],
         )
         email.attach(filename, data, "application/zip")
@@ -143,7 +146,7 @@ def email_data_task(
             subject="Error generating Metaculus data",
             body="Error generating Metaculus data. Please contact an administrator "
             f"for assistance.\nError: {e}",
-            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            from_email=resolve_account_sender(user_email),
             to=[user_email],
         )
         email.send()
@@ -167,7 +170,7 @@ def email_user_their_data_task(user_id: int):
         email = EmailMessage(
             subject="Your User Data",
             body="Attached is your User Data on Metaculus.",
-            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            from_email=resolve_account_sender(user_email),
             to=[user_email],
         )
         email.attach("user_data.zip", data, "application/zip")
@@ -178,7 +181,7 @@ def email_user_their_data_task(user_id: int):
             subject="Error generating Metaculus data",
             body="Error generating Metaculus data. Please contact an administrator "
             f"for assistance.\nError: {e}",
-            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            from_email=resolve_account_sender(user_email),
             to=[user_email],
         )
         email.send()

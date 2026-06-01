@@ -11,13 +11,13 @@ def factory_comment(
     author: User = None,
     on_post: Post = None,
     is_soft_deleted: bool = False,
-    **kwargs
+    **kwargs,
 ):
     c = G(
         Comment,
         **setdefaults_not_null(
             kwargs, author=author, on_post=on_post, is_soft_deleted=is_soft_deleted
-        )
+        ),
     )
 
     if on_post:
@@ -31,7 +31,7 @@ def factory_key_factor(
     comment: Comment = None,
     votes: dict[User, int] = None,
     vote_type: KeyFactorVote.VoteType = None,
-    **kwargs
+    **kwargs,
 ) -> KeyFactor:
     votes = votes or {}
     cf = G(KeyFactor, **setdefaults_not_null(kwargs, comment=comment))

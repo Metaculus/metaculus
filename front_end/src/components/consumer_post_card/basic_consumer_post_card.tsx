@@ -20,6 +20,7 @@ type Props = {
   forCommunityFeed?: boolean;
   indexWeight?: number;
   isNotebook?: boolean;
+  useShortTitle?: boolean;
 };
 
 const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
@@ -27,9 +28,10 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
   forCommunityFeed,
   indexWeight,
   isNotebook = false,
+  useShortTitle = false,
   children,
 }) => {
-  const { title } = post;
+  const title = useShortTitle ? post.short_title || post.title : post.title;
 
   return (
     <div>
@@ -44,10 +46,10 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
         )}
       <div
         className={cn(
-          "rounded border no-underline @container",
+          "rounded border no-underline transition-colors @container",
           isNotebook
-            ? "gap-1 border-purple-400/50 bg-purple-50/75 p-4 pt-3 dark:border-purple-400-dark/50  dark:bg-purple-100-dark/40"
-            : "gap-2.5 border-blue-400 bg-gray-0 p-6 pt-5 dark:border-blue-400-dark dark:bg-gray-0-dark"
+            ? "gap-1 border-purple-400/50 bg-purple-50/75 p-4 pt-3 hover:border-purple-500 hover:bg-purple-100/75 dark:border-purple-400-dark/50 dark:bg-purple-100-dark/40 dark:hover:border-purple-500-dark dark:hover:bg-purple-100-dark/60"
+            : "gap-2.5 border-blue-400 bg-gray-0 p-6 pt-5 hover:border-blue-500 dark:border-blue-400-dark dark:bg-gray-0-dark dark:hover:border-blue-500-dark dark:hover:bg-gray-100-dark"
         )}
       >
         <div

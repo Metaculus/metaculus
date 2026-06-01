@@ -13,7 +13,7 @@ def factory_score(*, user: User = None, question: Question = None, **kwargs):
             kwargs,
             user=user,
             question=question,
-        )
+        ),
     )
 
     return f

@@ -16,9 +16,17 @@ import PercentageForecastCard from "./percentage_forecast_card";
 
 type Props = {
   post: PostWithForecasts;
+  compact?: boolean;
+  buttonVariant?: "primary" | "minimal";
+  forFeedPage?: boolean;
 };
 
-const GroupForecastCard: FC<Props> = ({ post }) => {
+const GroupForecastCard: FC<Props> = ({
+  post,
+  compact,
+  buttonVariant,
+  forFeedPage,
+}) => {
   // Check forecast availability for group posts
   const forecastAvailability = post.group_of_questions
     ? getGroupForecastAvailability(post.group_of_questions.questions)
@@ -39,25 +47,46 @@ const GroupForecastCard: FC<Props> = ({ post }) => {
 
     // Don't render TimeSeriesChart if should hide chart
     return shouldHideChart ? null : (
-      <TimeSeriesChart questions={sortedQuestions} />
+      <TimeSeriesChart questions={sortedQuestions} forFeedPage={forFeedPage} />
     );
   }
   if (
     isMultipleChoicePost(post) ||
     checkGroupOfQuestionsPostType(post, QuestionType.Binary)
   ) {
-    return <PercentageForecastCard post={post} />;
+    return (
+      <PercentageForecastCard
+        post={post}
+        compact={compact}
+        buttonVariant={buttonVariant}
+      />
+    );
   }
   if (
     checkGroupOfQuestionsPostType(post, QuestionType.Numeric) ||
     checkGroupOfQuestionsPostType(post, QuestionType.Discrete)
   ) {
-    return <NumericForecastCard post={post} />;
+    return (
+      <NumericForecastCard
+        post={post}
+        compact={compact}
+        buttonVariant={buttonVariant}
+      />
+    );
   }
   if (
     post.group_of_questions &&
     checkGroupOfQuestionsPostType(post, QuestionType.Date)
   ) {
+    if (compact) {
+      return (
+        <NumericForecastCard
+          post={post}
+          compact
+          buttonVariant={buttonVariant}
+        />
+      );
+    }
     return (
       <DateForecastCard post={post} questionsGroup={post.group_of_questions} />
     );

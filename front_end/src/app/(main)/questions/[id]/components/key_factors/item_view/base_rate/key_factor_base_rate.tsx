@@ -1,34 +1,42 @@
-'use client"';
+"use client";
 
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
-import { KeyFactor } from "@/types/comment";
-import { ProjectPermissions } from "@/types/post";
+import { KeyFactor, KeyFactorVoteTypes } from "@/types/comment";
 import cn from "@/utils/core/cn";
 
-import KeyFactorHeader from "../key_factor_header";
+import KeyFactorStrengthItem, {
+  ImpactVoteHandler,
+} from "../key_factor_strength_item";
 import KeyFactorText from "../key_factor_text";
 import KeyFactorBaseRateFrequency from "./key_factor_base_rate_frequency";
 import KeyFactorBaseRateTrend from "./key_factor_base_rate_trend";
-import KeyFactorDirectionVoter from "./key_factor_direction_voter";
 
 type Props = {
   keyFactor: KeyFactor;
   mode?: "forecaster" | "consumer";
   isCompact?: boolean;
-  projectPermission?: ProjectPermissions;
   isSuggested?: boolean;
+  impactVoteRef?: React.MutableRefObject<ImpactVoteHandler | null>;
+  onVotePanelToggle?: (open: boolean) => void;
+  onDownvotePanelToggle?: (open: boolean) => void;
+  onMorePanelToggle?: (open: boolean) => void;
+  isMorePanelOpen?: boolean;
+  truncateText?: boolean;
 };
 
 const KeyFactorBaseRate: React.FC<Props> = ({
   keyFactor,
   isCompact,
   mode,
-  projectPermission,
   isSuggested,
+  impactVoteRef,
+  onVotePanelToggle,
+  onDownvotePanelToggle,
+  onMorePanelToggle,
+  isMorePanelOpen,
+  truncateText,
 }) => {
-  const router = useRouter();
   const t = useTranslations();
   if (!keyFactor.base_rate) return null;
   const { base_rate: baseRate } = keyFactor;
@@ -38,21 +46,23 @@ const KeyFactorBaseRate: React.FC<Props> = ({
   const showSourceError = isSuggested && !hasSource;
 
   return (
-    <>
-      {!isConsumer && (
-        <KeyFactorHeader
-          username={keyFactor.author.username}
-          linkAnchor={`#comment-${keyFactor.comment_id}`}
-          label={t("baseRate")}
-        />
-      )}
-
+    <KeyFactorStrengthItem
+      keyFactor={keyFactor}
+      isCompact={isCompact}
+      mode={mode}
+      voteType={KeyFactorVoteTypes.DIRECTION}
+      impactVoteRef={impactVoteRef}
+      onVotePanelToggle={onVotePanelToggle}
+      onDownvotePanelToggle={onDownvotePanelToggle}
+      onMorePanelToggle={onMorePanelToggle}
+      isMorePanelOpen={isMorePanelOpen}
+    >
       <KeyFactorText
         text={baseRate.reference_class}
-        className={cn("text-base leading-5", {
-          "text-sm": isConsumer,
-          "text-xs": isCompact,
-        })}
+        className={
+          isCompact || isConsumer ? "text-xs leading-4" : "text-sm leading-5"
+        }
+        truncate={truncateText}
       />
 
       {baseRate.type === "frequency" && (
@@ -60,6 +70,7 @@ const KeyFactorBaseRate: React.FC<Props> = ({
           numerator={baseRate.rate_numerator ?? 0}
           denominator={baseRate.rate_denominator ?? 0}
           withLightBoxes={(isCompact || isConsumer) && !isSuggested}
+          hideBoxes={isCompact}
         />
       )}
 
@@ -75,37 +86,30 @@ const KeyFactorBaseRate: React.FC<Props> = ({
         />
       )}
 
-      {!isCompact && !isConsumer && (
-        <>
-          <hr className="my-0 opacity-20" />
-          <KeyFactorDirectionVoter
-            keyFactor={keyFactor}
-            projectPermission={projectPermission}
-          />
-        </>
-      )}
-
       {(isCompact || isConsumer) && (
         <div
           className={cn(
             "text-left text-xs",
-            baseRate.type === "trend" && "-mt-2",
-            showSourceError
-              ? "text-salmon-700 dark:text-salmon-700-dark"
-              : "text-blue-600 hover:underline dark:text-blue-600-dark",
-            { "cursor-pointer": !showSourceError && hasSource }
+            baseRate.type === "trend" && "-mt-2"
           )}
-          role={!showSourceError && hasSource ? "link" : undefined}
-          onClick={() => {
-            if (!showSourceError && hasSource && baseRate.source) {
-              router.push(baseRate.source);
-            }
-          }}
         >
-          {showSourceError ? t("sourceMissing") : hasSource ? "(source)" : ""}{" "}
+          {showSourceError ? (
+            <span className="text-salmon-700 dark:text-salmon-700-dark">
+              {t("sourceMissing")}
+            </span>
+          ) : hasSource ? (
+            <a
+              href={baseRate.source}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline dark:text-blue-600-dark"
+            >
+              ({t("source")})
+            </a>
+          ) : null}
         </div>
       )}
-    </>
+    </KeyFactorStrengthItem>
   );
 };
 

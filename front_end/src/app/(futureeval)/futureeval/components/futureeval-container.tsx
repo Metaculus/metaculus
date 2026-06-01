@@ -8,7 +8,7 @@ type Props = HTMLAttributes<HTMLDivElement>;
 
 const FutureEvalContainer: React.FC<Props> = ({ className, children }) => {
   return (
-    <div className={cn(FE_COLORS.bgPrimary, "select-none pt-header")}>
+    <div className={cn(FE_COLORS.bgPrimary, "select-none pt-12")}>
       <div
         className={cn(
           "mx-auto box-content max-w-[1044px] px-4 pb-[58px] pt-8 sm:px-10 md:px-16 lg:pb-[143px]",

@@ -2,8 +2,16 @@
 
 import { isNil, merge } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, memo, useEffect, useMemo, useRef, useState } from "react";
-import { v4 } from "uuid";
+import React, {
+  FC,
+  memo,
+  ReactNode,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   CursorCoordinatesPropType,
   DomainTuple,
@@ -22,7 +30,9 @@ import {
   VictoryThemeDefinition,
 } from "victory";
 
+import { CHART_DASH } from "@/constants/chart_dash";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { CHART_FONT_STYLE } from "@/constants/chart_typography";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
@@ -44,6 +54,8 @@ import {
   generateTimeSeriesYDomain,
   getTickLabelFontSize,
   getAxisRightPadding,
+  Y_AXIS_LABEL_ANCHOR_OFFSET,
+  Y_AXIS_LABEL_RESERVED_PX,
 } from "@/utils/charts/axis";
 import { findPreviousTimestamp } from "@/utils/charts/cursor";
 import { truncateLabel } from "@/utils/formatters/string";
@@ -51,9 +63,9 @@ import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
 import ChartContainer from "./primitives/chart_container";
 import ChartCursorLabel from "./primitives/chart_cursor_label";
+import SvgWrapper from "./primitives/svg_wrapper";
 import XTickLabel from "./primitives/x_tick_label";
 import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
-import SvgWrapper from "./primitives/svg_wrapper";
 import YTickLabel from "./primitives/y_tick_label";
 
 type ColoredLinePoint = {
@@ -89,11 +101,12 @@ type Props = {
   forecastAvailability?: ForecastAvailability;
   forFeedPage?: boolean;
   chartTitle?: string;
+  headerLeft?: ReactNode;
+  animate?: object;
+  leftPadding?: number;
 };
 
-const LABEL_FONT_FAMILY = "Inter";
 const BOTTOM_PADDING = 20;
-const TICK_FONT_SIZE = 10;
 
 const MultipleChoiceChart: FC<Props> = ({
   timestamps,
@@ -118,8 +131,11 @@ const MultipleChoiceChart: FC<Props> = ({
   forecastAvailability,
   forFeedPage,
   chartTitle,
+  headerLeft,
+  animate,
+  leftPadding = 0,
 }) => {
-  const questionKey = useMemo(() => v4(), []);
+  const questionKey = useId();
   const t = useTranslations();
   const {
     ref: chartContainerRef,
@@ -148,6 +164,10 @@ const MultipleChoiceChart: FC<Props> = ({
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const [zoom, setZoom] = useState<TimelineChartZoomOption>(defaultZoom);
+  const hasUserForecasts = useMemo(
+    () => choiceItems.some(({ userTimestamps }) => userTimestamps.length > 0),
+    [choiceItems]
+  );
   const { xScale, yScale, graphs, xDomain, yDomain, userScatters } = useMemo(
     () =>
       buildChartData({
@@ -206,7 +226,7 @@ const MultipleChoiceChart: FC<Props> = ({
       cursorDimension={"x"}
       defaultCursorValue={defaultCursor}
       style={{
-        touchAction: "pan-y",
+        touchAction: "none",
       }}
       cursorLabelOffset={{
         x: 0,
@@ -227,7 +247,7 @@ const MultipleChoiceChart: FC<Props> = ({
             isCursorActive
               ? {
                   stroke: getThemeColor(METAC_COLORS.gray["600"]),
-                  strokeDasharray: "2,1",
+                  strokeDasharray: CHART_DASH.cursor,
                 }
               : {
                   stroke: "transparent",
@@ -272,6 +292,7 @@ const MultipleChoiceChart: FC<Props> = ({
         zoom={withZoomPicker ? zoom : undefined}
         onZoomChange={setZoom}
         chartTitle={chartTitle}
+        headerLeft={headerLeft}
       >
         {shouldDisplayChart && (
           <VictoryChart
@@ -279,11 +300,12 @@ const MultipleChoiceChart: FC<Props> = ({
             height={height}
             theme={actualTheme}
             padding={{
-              left: 0,
+              left: leftPadding,
               top: topPadding,
               right: maxRightPadding,
               bottom: bottomPadding,
             }}
+            animate={animate}
             events={[
               {
                 target: "parent",
@@ -308,11 +330,18 @@ const MultipleChoiceChart: FC<Props> = ({
                     setIsCursorActive(false);
                     onCursorActiveChange?.(false);
                   },
+                  onTouchCancelCapture: () => {
+                    if (!onCursorChange) return;
+                    setIsCursorActive(false);
+                    onCursorActiveChange?.(false);
+                  },
                 },
               },
             ]}
             containerComponent={
-              onCursorChange ? (
+              onCursorChange &&
+              !hideCP &&
+              !forecastAvailability?.cpRevealsOn ? (
                 CursorContainer
               ) : (
                 <VictoryContainer
@@ -373,40 +402,48 @@ const MultipleChoiceChart: FC<Props> = ({
                   stroke: "transparent",
                 },
                 axisLabel: {
-                  fontFamily: LABEL_FONT_FAMILY,
+                  ...CHART_FONT_STYLE.axisLabel,
                   fontSize: tickLabelFontSize,
                   fill: getThemeColor(METAC_COLORS.gray["500"]),
                 },
                 tickLabels: {
-                  fontFamily: LABEL_FONT_FAMILY,
-                  padding: 5,
+                  ...CHART_FONT_STYLE.tick,
+                  // Right-align labels at the right margin, reserving space
+                  // for the rotated yLabel when present.
+                  padding:
+                    maxRightPadding -
+                    (yLabel ? Y_AXIS_LABEL_RESERVED_PX : 0) -
+                    4,
+                  textAnchor: "end",
                   fontSize: tickLabelFontSize,
                   fill: getThemeColor(METAC_COLORS.gray["700"]),
                 },
                 axis: {
                   stroke: "transparent",
                 },
-                grid: isEmptyDomain
-                  ? {
-                      stroke: getThemeColor(METAC_COLORS.gray["300"]),
-                      strokeWidth: 1,
-                      strokeDasharray: "2, 5",
-                    }
-                  : {
-                      stroke: "transparent",
-                    },
+                grid:
+                  isEmptyDomain || hideCP
+                    ? {
+                        stroke: getThemeColor(METAC_COLORS.gray["300"]),
+                        strokeWidth: 1,
+                        strokeDasharray: CHART_DASH.grid,
+                      }
+                    : {
+                        stroke: "transparent",
+                      },
               }}
               label={yLabel}
-              offsetX={
-                isNil(yLabel) ? chartWidth + 5 : chartWidth - TICK_FONT_SIZE + 5
+              orientation="right"
+              axisLabelComponent={
+                yLabel ? (
+                  <VictoryLabel x={chartWidth - Y_AXIS_LABEL_ANCHOR_OFFSET} />
+                ) : undefined
               }
-              orientation={"left"}
-              axisLabelComponent={<VictoryLabel x={chartWidth} />}
             />
             <VictoryAxis
               tickValues={xScale.ticks}
               tickFormat={
-                hideCP ||
+                (hideCP && !hasUserForecasts) ||
                 isCursorActive ||
                 !!forecastAvailability?.isEmpty ||
                 !!forecastAvailability?.cpRevealsOn
@@ -417,7 +454,6 @@ const MultipleChoiceChart: FC<Props> = ({
                 <VictoryPortal>
                   <XTickLabel
                     chartWidth={chartWidth}
-                    withCursor={!!onCursorChange}
                     fontSize={tickLabelFontSize as number}
                     dx={isEmbedded ? 16 : 0}
                   />
@@ -431,6 +467,7 @@ const MultipleChoiceChart: FC<Props> = ({
                   stroke: "transparent",
                 },
                 tickLabels: {
+                  ...CHART_FONT_STYLE.tick,
                   fill: getThemeColor(METAC_COLORS.gray["700"]),
                 },
               }}

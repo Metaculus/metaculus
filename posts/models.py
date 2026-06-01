@@ -1041,11 +1041,17 @@ class PostUserSnapshot(models.Model):
 
     @classmethod
     def update_last_forecast_date(cls, post: Post, user: User):
+        now = timezone.now()
         cls.objects.update_or_create(
             user=user,
             post=post,
             defaults={
-                "last_forecast_date": timezone.now(),
+                "last_forecast_date": now,
+            },
+            create_defaults={
+                "last_forecast_date": now,
+                "comments_count": post.get_comment_count(),
+                "viewed_at": now,
             },
         )
 

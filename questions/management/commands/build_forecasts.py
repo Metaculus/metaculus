@@ -21,7 +21,6 @@ class Command(BaseCommand):
         print(f"Building CP. Found {c} questions with forecasts to process.")
 
         for question in qs.iterator(chunk_size=100):
-
             try:
                 run_build_question_forecasts(question.id)
             except Exception:

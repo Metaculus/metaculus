@@ -2,7 +2,6 @@ import logging
 from datetime import datetime, timedelta, timezone as dt_timezone
 
 import dramatiq
-from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 
@@ -27,7 +26,7 @@ from scoring.constants import ScoreTypes
 from scoring.utils import score_question
 from users.models import User
 from utils.dramatiq import concurrency_retries, task_concurrent_limit
-from utils.email import send_email_with_template
+from utils.email import send_notification_email_with_template
 from utils.frontend import build_frontend_account_settings_url, build_post_url
 
 
@@ -87,7 +86,8 @@ def resolve_question_and_send_notifications(question_id: int):
             user__unsubscribed_mailing_tags__contains=[
                 MailingTags.FORECASTED_QUESTION_RESOLUTION
             ]
-        ).select_related("user")
+        )
+        .select_related("user")
     )
     user_forecasts_count_map = get_forecasts_per_user(question)
 
@@ -321,7 +321,7 @@ def multiple_choice_delete_option_notifications(
         .order_by("id")
     )
     # send out an immediate email
-    send_email_with_template(
+    send_notification_email_with_template(
         to=[forecaster.email for forecaster in forecasters],
         subject=f"Multiple choice option{'s' if len(removed_options) > 1 else ''} "
         f"removed for {post.title}",
@@ -338,7 +338,6 @@ def multiple_choice_delete_option_notifications(
             },
         },
         use_async=False,
-        from_email=settings.EMAIL_NOTIFICATIONS_USER,
     )
 
 
@@ -419,7 +418,7 @@ def multiple_choice_add_option_notifications(
         .order_by("id")
     )
     # send out an immediate email
-    send_email_with_template(
+    send_notification_email_with_template(
         to=[forecaster.email for forecaster in forecasters],
         subject=f"Multiple choice option{'s' if len(added_options) > 1 else ''} "
         f"added for {post.title}",
@@ -436,7 +435,6 @@ def multiple_choice_add_option_notifications(
             },
         },
         use_async=False,
-        from_email=settings.EMAIL_NOTIFICATIONS_USER,
     )
 
     # schedule a followup email for 1 day before grace period

@@ -23,6 +23,7 @@ import React, {
   FC,
   useLayoutEffect,
   useCallback,
+  useEffect,
 } from "react";
 
 import { toggleCMMComment } from "@/app/(main)/questions/actions";
@@ -192,6 +193,14 @@ export const useCmmContext = (
     isCmmEnabled: initialCmmEnabled,
     isModalOpen: false,
   });
+
+  useEffect(() => {
+    setCmmState((prev) => ({
+      ...prev,
+      count: initialCount,
+      isCmmEnabled: initialCmmEnabled,
+    }));
+  }, [initialCount, initialCmmEnabled]);
 
   const setIsOverlayOpen = (open: boolean) =>
     setCmmState({ ...cmmState, isModalOpen: open });

@@ -11,5 +11,5 @@ def factory_user(*, email: str = None, username: str = None, **kwargs) -> User:
             kwargs,
             email=email,
             username=username,
-        )
+        ),
     )

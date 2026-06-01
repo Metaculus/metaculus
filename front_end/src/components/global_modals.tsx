@@ -150,6 +150,7 @@ const GlobalModals: FC = () => {
           onOptimisticAdd={currentModal.data.onOptimisticAdd}
           onFinalize={currentModal.data.onFinalize}
           onRemove={currentModal.data.onRemove}
+          onSubmitted={currentModal.data.onSubmitted}
         />
       )}
       {isModal(currentModal, "copyQuestionLink") && currentModal.data && (
