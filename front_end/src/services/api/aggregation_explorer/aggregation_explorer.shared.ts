@@ -6,6 +6,7 @@ type AggregationExplorerParams = {
   postId?: number | string | null;
   questionId?: number | string | null;
   includeBots?: boolean;
+  onlyBots?: boolean;
   aggregationMethods?: string;
   userIds?: number[];
   joinedBeforeDate?: string;
@@ -17,6 +18,7 @@ class AggregationExplorerApi extends ApiService {
       post_id: params.postId?.toString() || "",
       question_id: params.questionId?.toString() || "",
       include_bots: params.includeBots?.toString() || "false",
+      only_bots: params.onlyBots?.toString() || "false",
       aggregation_methods: params.aggregationMethods || "",
       joined_before_date: params.joinedBeforeDate || "",
       ...(params.userIds !== undefined ? { user_ids: params.userIds } : {}),
