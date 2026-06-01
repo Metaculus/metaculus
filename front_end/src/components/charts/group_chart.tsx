@@ -363,7 +363,18 @@ const GroupChart: FC<Props> = ({
         headerLeft={headerLeft}
       >
         {!!chartWidth && (
-          <div className="relative h-full">
+          <div
+            className="relative h-full"
+            onMouseLeave={() => {
+              if (!onCursorChange) return;
+              inPlotRef.current = false;
+              setIsCursorActive(false);
+              setLocalCursorTimestamp(null);
+              if (!isNil(defaultCursor)) {
+                onCursorChange(defaultCursor, xScale.tickFormat);
+              }
+            }}
+          >
             <VictoryChart
               width={chartWidth}
               height={height}
@@ -391,10 +402,14 @@ const GroupChart: FC<Props> = ({
                         x <= chartWidth - maxRightPadding &&
                         y >= PLOT_TOP &&
                         y <= plotBottom;
+                      const wasInPlot = inPlotRef.current;
                       inPlotRef.current = inPlot;
                       setIsCursorActive(inPlot);
                       if (!inPlot) {
                         setLocalCursorTimestamp(null);
+                        if (wasInPlot && !isNil(defaultCursor)) {
+                          onCursorChange(defaultCursor, xScale.tickFormat);
+                        }
                       }
                     },
                     onMouseLeave: () => {
@@ -696,7 +711,6 @@ const GroupChart: FC<Props> = ({
                     !point ||
                     (!forceShowLinePoints &&
                       (isHighlightActive ||
-                        !isCursorActive ||
                         (!isNil(cursorTimestamp) && point.x < cursorTimestamp)))
                   ) {
                     return null;
