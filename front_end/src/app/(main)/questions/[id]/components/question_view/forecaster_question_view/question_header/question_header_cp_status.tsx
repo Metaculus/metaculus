@@ -99,7 +99,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({
     return data;
   }, [cursorForecastValues, cursorUserForecastValues, question.status]);
 
-  if (question.status === QuestionStatus.RESOLVED && question.resolution) {
+  if (question.status === QuestionStatus.RESOLVED && question.resolution && (!isContinuous || !cursorForecast)) {
     // Resolved/Annulled/Ambiguous
     const formatedResolution = formatResolution({
       resolution: question.resolution,
