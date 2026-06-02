@@ -71,7 +71,7 @@ const ConsequenceGauge: FC<Props> = ({ pct, color }) => {
         )}
       </svg>
       <span
-        className="absolute inset-0 flex items-end justify-center pb-[3px] text-[15px] font-bold tabular-nums leading-none"
+        className="absolute inset-0 bottom-[1px] flex items-end justify-center pb-[3px] text-[16px] font-bold tabular-nums leading-none"
         style={{ color }}
       >
         {pct != null ? `${Math.round(pct)}%` : "—"}

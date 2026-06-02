@@ -22,7 +22,7 @@ type Props = {
   contextNote?: ReactNode;
 };
 
-const CARD_BODY_HEIGHT = 180;
+const CARD_BODY_HEIGHT = 140;
 const CONSUMER_TILE_SCALE = 1.25;
 
 async function WatchCardContent({ questionId, fallbackTitle }: Props) {
