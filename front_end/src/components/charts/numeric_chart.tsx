@@ -278,11 +278,15 @@ const NumericChart: FC<Props> = ({
           <LineSegment style={{ stroke: "none" }} />
         ) : (
           <LineSegment
-            style={{
-              stroke: getThemeColor(METAC_COLORS.blue["700"]),
-              opacity: 0.5,
-              strokeDasharray: CHART_DASH.cursor,
-            }}
+            style={
+              isCursorActive
+                ? {
+                    stroke: getThemeColor(METAC_COLORS.blue["700"]),
+                    opacity: 0.5,
+                    strokeDasharray: CHART_DASH.cursor,
+                  }
+                : { stroke: "transparent" }
+            }
           />
         )
       }
