@@ -2,17 +2,22 @@
 
 import { FC, ReactNode, useState } from "react";
 
+import { addOpacityToHex } from "@/utils/core/colors";
+
 import ConsequenceGauge from "./consequence_gauge";
 import { DonkeyIcon, ElephantIcon } from "./party_icons";
 import { MIDTERMS_COLORS } from "../constants";
 import { useIsDark } from "../helpers/use_is_dark";
 
 type Column = "dem" | "split" | "rep";
+type CellCol = "question" | Column;
 
-// Shared column template: the question takes ~62% and the three scenario
-// columns split the rest. Header and rows use the same template (and gap-0)
-// so the colored headers line up with the gauges below them.
-const COLS = "md:grid-cols-[5fr_1fr_1fr_1fr]";
+// Shared column template. The question column is `minmax(0, 5fr)` so it
+// gives up space first as the container narrows, while the three scenario
+// columns clamp at a min width and stay even. Header and rows share this
+// template (with gap-0) so the colored headers line up with the gauges.
+const COLS =
+  "md:grid-cols-[minmax(0,5fr)_minmax(110px,1fr)_minmax(110px,1fr)_minmax(110px,1fr)]";
 
 export type ConsequenceGridRow = {
   key: string;
@@ -81,6 +86,20 @@ const GAUGE_COLOR: Record<Column, { light: string; dark: string }> = {
   split: { light: "#7D818A", dark: "#94A3B8" },
 };
 
+// Hover-highlight tints. The question column uses a neutral slate.
+const HL_COLOR: Record<CellCol, { light: string; dark: string }> = {
+  question: { light: "#64748B", dark: "#94A3B8" },
+  ...GAUGE_COLOR,
+};
+const HL_SUBTLE = 0.1;
+const HL_STRONG = 0.2;
+
+type HoverState =
+  | { kind: "cell"; row: string; col: Column }
+  | { kind: "row"; row: string }
+  | { kind: "col"; col: Column }
+  | null;
+
 const ConsequenceGrid: FC<Props> = ({
   leadingSlot,
   rows,
@@ -89,10 +108,7 @@ const ConsequenceGrid: FC<Props> = ({
   repHeader,
 }) => {
   const isDark = useIsDark();
-  const [hovered, setHovered] = useState<Column | null>(null);
-
-  const enter = (col: Column) => () => setHovered(col);
-  const leave = () => setHovered(null);
+  const [hover, setHover] = useState<HoverState>(null);
 
   const repBg = isDark ? REP_HEADER_BG.dark : REP_HEADER_BG.light;
   const demBg = isDark ? DEM_HEADER_BG.dark : DEM_HEADER_BG.light;
@@ -100,12 +116,36 @@ const ConsequenceGrid: FC<Props> = ({
   const gauge = (col: Column) =>
     isDark ? GAUGE_COLOR[col].dark : GAUGE_COLOR[col].light;
 
+  const activeCol: Column | null =
+    hover && (hover.kind === "cell" || hover.kind === "col") ? hover.col : null;
+
+  const tint = (key: CellCol, alpha: number) =>
+    addOpacityToHex(isDark ? HL_COLOR[key].dark : HL_COLOR[key].light, alpha);
+
+  // Highlight background for a given cell, given the current hover target:
+  // - hovering a question highlights just that row (neutral);
+  // - hovering a header highlights that whole column (its color);
+  // - hovering a data cell highlights its row + column (its color), with the
+  //   intersection (the hovered cell) a touch stronger.
+  const cellBg = (rowKey: string, col: CellCol): string | undefined => {
+    if (!hover) return undefined;
+    if (hover.kind === "row") {
+      return hover.row === rowKey ? tint("question", HL_SUBTLE) : undefined;
+    }
+    if (hover.kind === "col") {
+      return col === hover.col ? tint(hover.col, HL_SUBTLE) : undefined;
+    }
+    const rowMatch = hover.row === rowKey;
+    const colMatch = col === hover.col;
+    if (rowMatch && colMatch) return tint(hover.col, HL_STRONG);
+    if (rowMatch || colMatch) return tint(hover.col, HL_SUBTLE);
+    return undefined;
+  };
+
   return (
-    <div>
-      {/* Header row: lead slot in col 1 (title + description), party
-          cards in cols 2-4. Uses the same template + gap-0 as the rows so
-          the cards align with the gauges; per-card padding keeps a small
-          gap between them. */}
+    <div onMouseLeave={() => setHover(null)}>
+      {/* Header row: lead slot in col 1, party cards in cols 2-4. Same
+          template + gap-0 as the rows so cards align with the gauges. */}
       <div className={`hidden md:mb-4 md:grid ${COLS} md:items-end md:gap-0`}>
         <div className="md:pr-4">{leadingSlot}</div>
         <div className="md:px-1">
@@ -115,9 +155,8 @@ const ConsequenceGrid: FC<Props> = ({
             icon={<DonkeyIcon width={26} height={26} className="shrink-0" />}
             title={demHeader.title}
             subtitle={demHeader.subtitle}
-            active={hovered === "dem"}
-            onMouseEnter={enter("dem")}
-            onMouseLeave={leave}
+            active={activeCol === "dem"}
+            onMouseEnter={() => setHover({ kind: "col", col: "dem" })}
           />
         </div>
         <div className="md:px-1">
@@ -132,9 +171,8 @@ const ConsequenceGrid: FC<Props> = ({
             }
             title={splitHeader.title}
             subtitle={splitHeader.subtitle}
-            active={hovered === "split"}
-            onMouseEnter={enter("split")}
-            onMouseLeave={leave}
+            active={activeCol === "split"}
+            onMouseEnter={() => setHover({ kind: "col", col: "split" })}
           />
         </div>
         <div className="md:px-1">
@@ -144,9 +182,8 @@ const ConsequenceGrid: FC<Props> = ({
             icon={<ElephantIcon width={26} height={26} className="shrink-0" />}
             title={repHeader.title}
             subtitle={repHeader.subtitle}
-            active={hovered === "rep"}
-            onMouseEnter={enter("rep")}
-            onMouseLeave={leave}
+            active={activeCol === "rep"}
+            onMouseEnter={() => setHover({ kind: "col", col: "rep" })}
           />
         </div>
       </div>
@@ -161,29 +198,35 @@ const ConsequenceGrid: FC<Props> = ({
         >
           {/* Mobile: question spans the full width with the three gauges in
               a row beneath it. Desktop: question is the first column. */}
-          <p className="col-span-3 m-0 flex items-center pb-2 pt-4 text-sm font-medium text-blue-800 dark:text-blue-800-dark md:col-span-1 md:py-4 md:pr-4 md:text-base">
+          <p
+            onMouseEnter={() => setHover({ kind: "row", row: row.key })}
+            style={{ backgroundColor: cellBg(row.key, "question") }}
+            className="col-span-3 m-0 flex items-center pb-2 pt-4 text-sm font-medium text-blue-800 transition-colors dark:text-blue-800-dark md:col-span-1 md:py-4 md:pr-4 md:text-base"
+          >
             {row.question}
           </p>
           <GaugeCell
             pct={row.demPct}
             color={gauge("dem")}
             mobileLabel={row.ifDemLabel}
-            onMouseEnter={enter("dem")}
-            onMouseLeave={leave}
+            bg={cellBg(row.key, "dem")}
+            onEnter={() => setHover({ kind: "cell", row: row.key, col: "dem" })}
           />
           <GaugeCell
             pct={row.splitPct}
             color={gauge("split")}
             mobileLabel={row.ifSplitLabel}
-            onMouseEnter={enter("split")}
-            onMouseLeave={leave}
+            bg={cellBg(row.key, "split")}
+            onEnter={() =>
+              setHover({ kind: "cell", row: row.key, col: "split" })
+            }
           />
           <GaugeCell
             pct={row.repPct}
             color={gauge("rep")}
             mobileLabel={row.ifRepLabel}
-            onMouseEnter={enter("rep")}
-            onMouseLeave={leave}
+            bg={cellBg(row.key, "rep")}
+            onEnter={() => setHover({ kind: "cell", row: row.key, col: "rep" })}
           />
         </div>
       ))}
@@ -202,7 +245,6 @@ type PartyHeaderProps = {
   subtitle: string;
   active: boolean;
   onMouseEnter: () => void;
-  onMouseLeave: () => void;
 };
 
 const PartyHeader: FC<PartyHeaderProps> = ({
@@ -213,7 +255,6 @@ const PartyHeader: FC<PartyHeaderProps> = ({
   subtitle,
   active,
   onMouseEnter,
-  onMouseLeave,
 }) => {
   return (
     <div
@@ -221,7 +262,6 @@ const PartyHeader: FC<PartyHeaderProps> = ({
       className="flex items-center gap-2 rounded-md px-3 py-2 text-white transition-[background] duration-150"
       style={{ background: active ? activeBackground : background }}
       onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
     >
       {icon}
       <div className="text-[11px] font-medium uppercase leading-tight tracking-wider opacity-95">
@@ -235,22 +275,22 @@ type GaugeCellProps = {
   pct: number | null;
   color: string;
   mobileLabel: string;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
+  bg?: string;
+  onEnter: () => void;
 };
 
 const GaugeCell: FC<GaugeCellProps> = ({
   pct,
   color,
   mobileLabel,
-  onMouseEnter,
-  onMouseLeave,
+  bg,
+  onEnter,
 }) => {
   return (
     <div
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      className="flex h-full w-full flex-col items-center justify-center gap-1 pb-4 md:border-l md:border-blue-300 md:py-4 dark:md:border-blue-300-dark"
+      onMouseEnter={onEnter}
+      style={{ backgroundColor: bg }}
+      className="flex h-full w-full flex-col items-center justify-center gap-1 pb-4 transition-colors md:border-l md:border-blue-300 md:py-4 dark:md:border-blue-300-dark"
     >
       <span className="block text-center text-[11px] font-medium uppercase tracking-wider text-blue-600 dark:text-blue-600-dark md:hidden">
         {mobileLabel}
