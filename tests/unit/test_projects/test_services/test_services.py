@@ -8,7 +8,7 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.subscriptions import (
     notify_post_added_to_project,
-    notify_project_subscriptions_post_open,
+    notify_project_subscriptions_post_status_change,
 )
 from questions.models import Question
 from tests.unit.test_posts.factories import factory_post, factory_notebook
@@ -17,7 +17,7 @@ from tests.unit.test_users.factories import factory_user
 from tests.unit.test_projects.factories import factory_project
 
 
-def test_notify_project_subscriptions_post_open_notification(user1, user2):
+def test_notify_project_subscriptions_post_status_change_notification(user1, user2):
     user3 = factory_user()
     project_default = factory_project(
         default_permission=ObjectPermission.FORECASTER, subscribers=[user1, user2]
@@ -34,7 +34,7 @@ def test_notify_project_subscriptions_post_open_notification(user1, user2):
     )
 
     # Post is located in 2 projects
-    notify_project_subscriptions_post_open(
+    notify_project_subscriptions_post_status_change(
         post, event=Post.PostStatusChange.PUBLISHED, question=post.question
     )
 
@@ -60,7 +60,7 @@ def test_notify_project_subscriptions_post_open_notification(user1, user2):
     assert notification.params["post"]
 
 
-def test_notify_project_subscriptions_post_open__private_question(user1, user2):
+def test_notify_project_subscriptions_post_status_change__private_question(user1, user2):
     project_default_private = factory_project(
         default_permission=None,
         override_permissions={user1.pk: ObjectPermission.FORECASTER},
@@ -78,7 +78,7 @@ def test_notify_project_subscriptions_post_open__private_question(user1, user2):
     )
 
     # Post is located in 2 projects
-    notify_project_subscriptions_post_open(
+    notify_project_subscriptions_post_status_change(
         post, event=Post.PostStatusChange.PUBLISHED, question=post.question
     )
 
@@ -89,7 +89,7 @@ def test_notify_project_subscriptions_post_open__private_question(user1, user2):
     ) == {user1.pk}
 
 
-def test_notify_project_subscriptions_post_open__news_category(user1, mocker):
+def test_notify_project_subscriptions_post_status_change__news_category(user1, mocker):
     project_default = factory_project(subscribers=[user1])
     project_1 = factory_project(
         subscribers=[user1], type=Project.ProjectTypes.NEWS_CATEGORY
@@ -109,7 +109,7 @@ def test_notify_project_subscriptions_post_open__news_category(user1, mocker):
 
     # Notebook should be sent in separate email
     # Since it has News Category project type
-    notify_project_subscriptions_post_open(
+    notify_project_subscriptions_post_status_change(
         post, event=Post.PostStatusChange.PUBLISHED, notebook=post.notebook
     )
     mock_send.assert_called_once_with(user1, post)
@@ -119,7 +119,7 @@ def test_notify_project_subscriptions_post_open__news_category(user1, mocker):
     ).exists()
 
 
-def test_notify_project_subscriptions_post_open__notebook(user1, mocker):
+def test_notify_project_subscriptions_post_status_change__notebook(user1, mocker):
     project_default = factory_project(subscribers=[user1])
     project_2 = factory_project(subscribers=[user1])
 
@@ -136,7 +136,7 @@ def test_notify_project_subscriptions_post_open__notebook(user1, mocker):
 
     # Notebook should be sent in separate email
     # Since it has News Category project type
-    notify_project_subscriptions_post_open(
+    notify_project_subscriptions_post_status_change(
         post, event=Post.PostStatusChange.PUBLISHED, notebook=post.notebook
     )
     mock_send.assert_not_called()

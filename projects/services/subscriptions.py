@@ -12,6 +12,7 @@ from notifications.services import (
 from posts.models import Post, PostSubscription, Notebook
 from projects.models import Project, ProjectSubscription
 from projects.permissions import ObjectPermission
+from questions.constants import QuestionStatus
 from questions.models import Question
 from users.models import User
 
@@ -141,7 +142,7 @@ def unsubscribe_project(project: Project, user: User, unfollow_questions: bool =
     project.save()
 
 
-def notify_project_subscriptions_post_open(
+def notify_project_subscriptions_post_status_change(
     post: Post,
     event: Post.PostStatusChange,
     question: Question = None,
@@ -211,18 +212,21 @@ def notify_post_added_to_project(post: Post, project: Project):
     for question in post.questions.all():
         # Don't send a notification if the publish event hasn't fired yet —
         # the cron job will pick it up and notify all project subscribers.
-        if question.published_at_triggered:
-            event = (
-                Post.PostStatusChange.OPEN
-                if question.open_time_triggered
-                else Post.PostStatusChange.PUBLISHED
-            )
-            notify_project_subscriptions_post_open(
-                post, event=event, question=question, project=project
-            )
+        if not question.published_at_triggered:
+            continue
+        # Skip closed/resolved questions — nothing actionable to notify about.
+        if question.status == QuestionStatus.UPCOMING:
+            event = Post.PostStatusChange.PUBLISHED
+        elif question.status == QuestionStatus.OPEN:
+            event = Post.PostStatusChange.OPEN
+        else:
+            continue
+        notify_project_subscriptions_post_status_change(
+            post, event=event, question=question, project=project
+        )
 
-    if post.notebook_id and post.notebook.open_time_triggered:
-        notify_project_subscriptions_post_open(
+    if post.notebook_id and post.notebook.published_at_triggered:
+        notify_project_subscriptions_post_status_change(
             post,
             event=Post.PostStatusChange.PUBLISHED,
             notebook=post.notebook,

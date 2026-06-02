@@ -528,9 +528,10 @@ class Notebook(TranslatedModel):
         blank=True, default="", help_text="Summary text displayed on feed tiles"
     )
 
-    # Indicates whether we triggered "handle_post_open" event
-    # And guarantees idempotency of "on post open" evens
-    open_time_triggered = models.BooleanField(
+    # Indicates whether we triggered the "post published" event for tournament
+    # / project follower notifications. Notebooks have no distinct open vs.
+    # publish lifecycle, so this fires at publish time.
+    published_at_triggered = models.BooleanField(
         default=False, db_index=True, editable=False
     )
 

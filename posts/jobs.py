@@ -13,7 +13,9 @@ from posts.services.subscriptions import (
     notify_milestone,
     notify_date,
 )
-from projects.services.subscriptions import notify_project_subscriptions_post_open
+from projects.services.subscriptions import (
+    notify_project_subscriptions_post_status_change,
+)
 from questions.models import Question
 from questions.services.lifecycle import handle_question_open
 from questions.services.movement import compute_question_movement
@@ -94,7 +96,7 @@ def job_check_post_open_event():
 
     for question in publish_questions_qs:
         try:
-            notify_project_subscriptions_post_open(
+            notify_project_subscriptions_post_status_change(
                 question.post,
                 event=Post.PostStatusChange.PUBLISHED,
                 question=question,
@@ -125,12 +127,12 @@ def job_check_post_open_event():
 
     # Process notebook records
     notebooks_qs = Notebook.objects.filter(
-        post__in=Post.objects.filter_published(), open_time_triggered=False
+        post__in=Post.objects.filter_published(), published_at_triggered=False
     ).select_related("post")
 
     for notebook in notebooks_qs:
         try:
-            notify_project_subscriptions_post_open(
+            notify_project_subscriptions_post_status_change(
                 notebook.post,
                 event=Post.PostStatusChange.PUBLISHED,
                 notebook=notebook,
@@ -139,5 +141,5 @@ def job_check_post_open_event():
             logger.exception("Failed to handle notebook publish")
         finally:
             # Mark as triggered
-            notebook.open_time_triggered = True
-            notebook.save(update_fields=["open_time_triggered"])
+            notebook.published_at_triggered = True
+            notebook.save(update_fields=["published_at_triggered"])
