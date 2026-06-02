@@ -1,4 +1,3 @@
-import dynamic from "next/dynamic";
 import { FC, Suspense } from "react";
 
 import LoadingSpinner from "@/components/ui/loading_spiner";
@@ -6,8 +5,7 @@ import { PostStatus, PostWithForecasts } from "@/types/post";
 
 import SidebarContainer from "./sidebar_container";
 import SidebarQuestionInfo from "./sidebar_question_info";
-
-const SimilarQuestions = dynamic(() => import("./similar_questions"));
+import SimilarQuestions from "./similar_questions";
 
 type Props = {
   postData: PostWithForecasts;

@@ -7,17 +7,18 @@ import { TopChromeHeaderSetter } from "@/app/(main)/components/top_chrome_header
 import HideCPProvider from "@/contexts/cp_context";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import { PostSubscriptionProvider } from "@/contexts/post_subscription_context";
+import ServerProfileApi from "@/services/api/profile/profile.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { GroupOfQuestionsGraphType } from "@/types/post";
 import { TournamentType } from "@/types/projects";
+import { InterfaceType } from "@/types/users";
 import cn from "@/utils/core/cn";
 import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
 
 import NotebookRedirect from "../components/notebook_redirect";
 import QuestionEmbedModal from "../components/question_embed_modal";
 import QuestionPageShell from "../components/question_page_shell";
-import { QuestionVariantComposer } from "../components/question_variant_composer";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
 import { cachedGetPost } from "./utils/get_post";
@@ -32,7 +33,14 @@ const IndividualQuestionPage: FC<{
   params: { id: number; slug: string[] };
   searchParams: SearchParams;
 }> = async ({ params, searchParams }) => {
-  const postData = await cachedGetPost(params.id);
+  const [postData, user] = await Promise.all([
+    cachedGetPost(params.id),
+    ServerProfileApi.getMyProfile(),
+  ]);
+  const sidebarVariant: "consumer" | "forecaster" =
+    !user || user.interface_type === InterfaceType.ConsumerView
+      ? "consumer"
+      : "forecaster";
   const defaultProject = postData.projects?.default_project;
   if (postData.notebook) {
     return <NotebookRedirect id={postData.id} slug={params.slug} />;
@@ -92,14 +100,7 @@ const IndividualQuestionPage: FC<{
                       }
                     />
                   </div>
-                  <QuestionVariantComposer
-                    forecaster={
-                      <Sidebar postData={postData} variant="forecaster" />
-                    }
-                    consumer={
-                      <Sidebar postData={postData} variant="consumer" />
-                    }
-                  />
+                  <Sidebar postData={postData} variant={sidebarVariant} />
                 </div>
               </main>
 
