@@ -276,13 +276,6 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         default=False, db_index=True, editable=False
     )
 
-    # Indicates whether we triggered the "post published" event for tournament
-    # / project follower notifications. Fires once when the parent Post's
-    # `published_at` passes (question is set to Upcoming).
-    published_at_triggered = models.BooleanField(
-        default=False, db_index=True, editable=False
-    )
-
     # Indicates whether we triggered "handle_cp_revealed" event
     # And guarantees idempotency of "on cp revealed" events
     cp_reveal_time_triggered = models.BooleanField(

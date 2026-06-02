@@ -8,11 +8,6 @@ import dramatiq
 from django.db.models import Q
 from django.utils import timezone
 
-from posts.models import Post, Notebook
-from posts.services.subscriptions import (
-    notify_milestone,
-    notify_date,
-)
 from projects.services.subscriptions import (
     notify_project_subscriptions_post_status_change,
 )
@@ -20,6 +15,9 @@ from questions.models import Question
 from questions.services.lifecycle import handle_question_open
 from questions.services.movement import compute_question_movement
 from utils.models import ModelBatchUpdater
+
+from .models import Post
+from .services.subscriptions import notify_date, notify_milestone
 
 logger = logging.getLogger(__name__)
 
@@ -76,36 +74,38 @@ def job_compute_movement():
 @dramatiq.actor
 def job_check_post_open_event():
     """
-    A cron job to check for newly published / opened questions.
+    A cron job to check for newly published / opened posts and questions.
 
-    Fires two distinct events per question, each idempotent:
-    - publish event (tournament / project follower notifications) when the
-      parent post's `published_at` passes — i.e. the question becomes Upcoming.
-    - open event (post-level status change notifications) when `open_time` passes.
-
-    We moved this logic from Post-level to Question-level notifications
-    to enable status update emails for subquestion from groups.
+    Fires two distinct, idempotent events:
+    - publish event (tournament / project follower notifications) once per post
+      when its `published_at` passes — i.e. the post becomes Upcoming. This is a
+      Post-level lifecycle event, so adding questions to an already-published
+      post does not re-notify followers.
+    - open event (post-level status change notifications) per question when its
+      `open_time` passes. This stays question-level to support status update
+      emails for subquestions of a group.
     """
 
     # Tournament / project follower notifications fire at publish time so
-    # pre-prediction questions are surfaced before they open for forecasting.
-    publish_questions_qs = Question.objects.filter(
-        post__in=Post.objects.filter_published(),
-        published_at_triggered=False,
-    ).select_related("post")
+    # pre-prediction posts are surfaced before they open for forecasting.
+    publish_posts_qs = (
+        Post.objects.filter_published()
+        .filter(published_at_triggered=False)
+        .select_related("notebook")
+    )
 
-    for question in publish_questions_qs:
+    for post in publish_posts_qs:
         try:
             notify_project_subscriptions_post_status_change(
-                question.post,
+                post,
                 event=Post.PostStatusChange.PUBLISHED,
-                question=question,
+                notebook=post.notebook if post.notebook_id else None,
             )
         except Exception:
-            logger.exception("Failed to handle question publish")
+            logger.exception("Failed to handle post publish")
         finally:
-            question.published_at_triggered = True
-            question.save(update_fields=["published_at_triggered"])
+            post.published_at_triggered = True
+            post.save(update_fields=["published_at_triggered"])
 
     questions_qs = Question.objects.filter(
         post__in=Post.objects.filter_published(),
@@ -124,22 +124,3 @@ def job_check_post_open_event():
             # Mark as triggered
             question.open_time_triggered = True
             question.save(update_fields=["open_time_triggered"])
-
-    # Process notebook records
-    notebooks_qs = Notebook.objects.filter(
-        post__in=Post.objects.filter_published(), published_at_triggered=False
-    ).select_related("post")
-
-    for notebook in notebooks_qs:
-        try:
-            notify_project_subscriptions_post_status_change(
-                notebook.post,
-                event=Post.PostStatusChange.PUBLISHED,
-                notebook=notebook,
-            )
-        except Exception:
-            logger.exception("Failed to handle notebook publish")
-        finally:
-            # Mark as triggered
-            notebook.published_at_triggered = True
-            notebook.save(update_fields=["published_at_triggered"])

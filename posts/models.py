@@ -528,13 +528,6 @@ class Notebook(TranslatedModel):
         blank=True, default="", help_text="Summary text displayed on feed tiles"
     )
 
-    # Indicates whether we triggered the "post published" event for tournament
-    # / project follower notifications. Notebooks have no distinct open vs.
-    # publish lifecycle, so this fires at publish time.
-    published_at_triggered = models.BooleanField(
-        default=False, db_index=True, editable=False
-    )
-
     def __str__(self):
         return f"Notebook for {self.post} by {self.post.author}"
 
@@ -602,6 +595,14 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         blank=True,
     )
     published_at = models.DateTimeField(db_index=True, null=True, blank=True)
+
+    # Indicates whether we fired the "post published" (Upcoming) event for
+    # tournament / project follower notifications. Publishing is a Post-level
+    # lifecycle event, so this guarantees idempotency and ensures adding
+    # questions to an already-published post does not re-notify followers.
+    published_at_triggered = models.BooleanField(
+        default=False, db_index=True, editable=False
+    )
 
     # Fields populated from Child Question objects
     open_time = models.DateTimeField(

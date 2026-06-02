@@ -60,7 +60,9 @@ def test_notify_project_subscriptions_post_status_change_notification(user1, use
     assert notification.params["post"]
 
 
-def test_notify_project_subscriptions_post_status_change__private_question(user1, user2):
+def test_notify_project_subscriptions_post_status_change__private_question(
+    user1, user2
+):
     project_default_private = factory_project(
         default_permission=None,
         override_permissions={user1.pk: ObjectPermission.FORECASTER},
@@ -166,8 +168,6 @@ def test_notify_post_added_to_project__upcoming_question_sends_published(user1, 
         scheduled_close_time=future_open + timedelta(days=30),
         scheduled_resolve_time=future_open + timedelta(days=60),
     )
-    question.published_at_triggered = True
-    question.save(update_fields=["published_at_triggered"])
 
     post = factory_post(
         author=user1,
@@ -176,6 +176,8 @@ def test_notify_post_added_to_project__upcoming_question_sends_published(user1, 
         projects=[project],
         question=question,
     )
+    post.published_at_triggered = True
+    post.save(update_fields=["published_at_triggered"])
 
     notify_post_added_to_project(post, project)
 
@@ -204,9 +206,8 @@ def test_notify_post_added_to_project__open_question_sends_open(user1, user2):
         scheduled_close_time=past_open + timedelta(days=30),
         scheduled_resolve_time=past_open + timedelta(days=60),
     )
-    question.published_at_triggered = True
     question.open_time_triggered = True
-    question.save(update_fields=["published_at_triggered", "open_time_triggered"])
+    question.save(update_fields=["open_time_triggered"])
 
     post = factory_post(
         author=user1,
@@ -215,6 +216,8 @@ def test_notify_post_added_to_project__open_question_sends_open(user1, user2):
         projects=[project],
         question=question,
     )
+    post.published_at_triggered = True
+    post.save(update_fields=["published_at_triggered"])
 
     notify_post_added_to_project(post, project)
 
