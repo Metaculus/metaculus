@@ -755,7 +755,7 @@ export default function LaborAutomationHubPage() {
               forecasted to grow through 2027, largely unaffected by AI in this
               timeframe. Aerospace (employing 2%) is expected to see minor
               growth in the short-term, while technology (employing 10%) is
-              expected to see a marginal decline, largely consistent with
+              expected to see marginal growth, largely consistent with
               historical trends. These forecasts are short-term, leading to
               minimal predicted change.
             </ContentParagraph>
