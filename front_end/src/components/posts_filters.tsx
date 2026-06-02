@@ -41,6 +41,7 @@ import {
   POST_WITHDRAWN_FILTER,
 } from "@/constants/posts_feed";
 import { useFeedLayout } from "@/contexts/feed_layout_context";
+import { useBreakpoint } from "@/hooks/tailwind";
 import { QuestionOrder } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
@@ -105,6 +106,7 @@ const PostsFilters: FC<Props> = ({
   hideMobileActions = false,
 }) => {
   const t = useTranslations();
+  const isLargeScreen = useBreakpoint("sm");
   const { layout, setLayout } = useFeedLayout();
   const actionRailRef = useRef<HTMLDivElement>(null);
   const [actionRailWidth, setActionRailWidth] = useState(0);
@@ -355,7 +357,8 @@ const PostsFilters: FC<Props> = ({
             options={dropdownSortOptions}
             value={order || defaultOrder}
             menuPosition="right"
-            renderInPortal={variant === "mobileActions"}
+            renderInPortal
+            menuFitContent={isLargeScreen}
             preventParentScroll={variant === "mobileActions"}
             label={
               dropdownSortOptions.find((o) => o.value === order)
