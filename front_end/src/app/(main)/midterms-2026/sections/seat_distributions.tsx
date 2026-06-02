@@ -29,16 +29,16 @@ export default async function SeatDistributionsSection() {
       </ContentParagraph>
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-10">
         <DistributionSlot
-          title={t("midtermsHubSenateSeats")}
-          post={senate}
+          title={t("midtermsHubHouseSeats")}
+          post={house}
           demAdvantageLabel={demAdvantageLabel}
           repAdvantageLabel={repAdvantageLabel}
           evenLabel={evenLabel}
           unavailableLabel={unavailableLabel}
         />
         <DistributionSlot
-          title={t("midtermsHubHouseSeats")}
-          post={house}
+          title={t("midtermsHubSenateSeats")}
+          post={senate}
           demAdvantageLabel={demAdvantageLabel}
           repAdvantageLabel={repAdvantageLabel}
           evenLabel={evenLabel}

@@ -6,7 +6,6 @@ import { FC } from "react";
 import cn from "@/utils/core/cn";
 
 import { MIDTERMS_COLORS } from "../constants";
-import { useIsDark } from "../helpers/use_is_dark";
 
 type Props = {
   className?: string;
@@ -14,10 +13,6 @@ type Props = {
 
 const MapLegend: FC<Props> = ({ className }) => {
   const t = useTranslations();
-  const isDark = useIsDark();
-  const uncontestedFill = isDark
-    ? MIDTERMS_COLORS.uncontestedDark
-    : MIDTERMS_COLORS.uncontestedLight;
 
   return (
     <div
@@ -42,13 +37,6 @@ const MapLegend: FC<Props> = ({ className }) => {
           style={{ backgroundColor: MIDTERMS_COLORS.spectrumRep }}
         />
         {t("midtermsHubRepublican")}
-      </span>
-      <span className="flex items-center gap-1.5">
-        <span
-          className="h-2.5 w-2.5 rounded-full border border-blue-400 dark:border-blue-400-dark"
-          style={{ backgroundColor: uncontestedFill }}
-        />
-        {t("midtermsHubNotContested")}
       </span>
     </div>
   );

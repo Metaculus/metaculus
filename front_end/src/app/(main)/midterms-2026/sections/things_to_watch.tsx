@@ -39,6 +39,24 @@ export default async function ThingsToWatchSection() {
             {t("midtermsHubIntegrityContext")}
           </ContentParagraph>
         </div>
+        <div className="flex flex-col gap-3">
+          <WatchCard
+            questionId={CHAMBER_QUESTIONS.mailInBallots}
+            fallbackTitle={t("midtermsHubMailInBallots")}
+          />
+          <ContentParagraph small>
+            {t("midtermsHubMailInBallotsContext")}
+          </ContentParagraph>
+        </div>
+        <div className="flex flex-col gap-3">
+          <WatchCard
+            questionId={CHAMBER_QUESTIONS.electionEmergency}
+            fallbackTitle={t("midtermsHubElectionEmergency")}
+          />
+          <ContentParagraph small>
+            {t("midtermsHubElectionEmergencyContext")}
+          </ContentParagraph>
+        </div>
       </div>
     </SectionCard>
   );

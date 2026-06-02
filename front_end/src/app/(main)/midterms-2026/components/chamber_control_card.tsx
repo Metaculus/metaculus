@@ -29,8 +29,6 @@ const REP_BORDER: ThemedColor = {
 
 const CURRENT_SENATE = { dem: 47, rep: 53 };
 const CURRENT_HOUSE = { dem: 215, rep: 220 };
-const SENATE_TOTAL = 100;
-const HOUSE_TOTAL = 435;
 
 type Props = {
   data: ChamberData;
@@ -74,26 +72,6 @@ export default async function ChamberControlCard({ data }: Props) {
       </h3>
       <div className="space-y-5">
         <ChamberRow
-          chamberLabel={senateLabel}
-          demProb={senateDemProb}
-          repProb={senateRepProb}
-          currentDem={CURRENT_SENATE.dem}
-          currentRep={CURRENT_SENATE.rep}
-          sourcePost={data.senateControl}
-          tooltipBody={buildTooltipBody({
-            t,
-            chamberLabel: senateLabel,
-            demProb: senateDemProb,
-            repProb: senateRepProb,
-            currentDem: CURRENT_SENATE.dem,
-            currentRep: CURRENT_SENATE.rep,
-            totalSeats: SENATE_TOTAL,
-            labels,
-          })}
-          tooltipDisclaimer={labels.disclaimer}
-          labels={labels}
-        />
-        <ChamberRow
           chamberLabel={houseLabel}
           demProb={houseDemProb}
           repProb={houseRepProb}
@@ -105,9 +83,23 @@ export default async function ChamberControlCard({ data }: Props) {
             chamberLabel: houseLabel,
             demProb: houseDemProb,
             repProb: houseRepProb,
-            currentDem: CURRENT_HOUSE.dem,
-            currentRep: CURRENT_HOUSE.rep,
-            totalSeats: HOUSE_TOTAL,
+            labels,
+          })}
+          tooltipDisclaimer={labels.disclaimer}
+          labels={labels}
+        />
+        <ChamberRow
+          chamberLabel={senateLabel}
+          demProb={senateDemProb}
+          repProb={senateRepProb}
+          currentDem={CURRENT_SENATE.dem}
+          currentRep={CURRENT_SENATE.rep}
+          sourcePost={data.senateControl}
+          tooltipBody={buildTooltipBody({
+            t,
+            chamberLabel: senateLabel,
+            demProb: senateDemProb,
+            repProb: senateRepProb,
             labels,
           })}
           tooltipDisclaimer={labels.disclaimer}
@@ -131,35 +123,27 @@ function buildTooltipBody({
   chamberLabel,
   demProb,
   repProb,
-  currentDem,
-  currentRep,
-  totalSeats,
   labels,
 }: {
   t: Awaited<ReturnType<typeof getTranslations>>;
   chamberLabel: string;
   demProb: number | null;
   repProb: number | null;
-  currentDem: number;
-  currentRep: number;
-  totalSeats: number;
   labels: Labels;
 }): ReactNode | null {
-  const demIsTrailing = currentDem <= currentRep;
-  const trailingParty = demIsTrailing ? labels.democrats : labels.republicans;
-  const trailingCurrent = demIsTrailing ? currentDem : currentRep;
-  const seatsNeeded = Math.floor(totalSeats / 2) + 1 - trailingCurrent;
-  const trailingProb = demIsTrailing ? demProb : repProb;
-  const trailingProbPct =
-    trailingProb != null ? Math.round(trailingProb * 1000) / 10 : null;
+  if (demProb == null || repProb == null) return null;
 
-  if (trailingProbPct == null) return null;
+  // Frame around the party more likely to hold the most seats (a plurality),
+  // not a majority — these are multiple-choice control questions.
+  const demFavored = demProb >= repProb;
+  const favoredParty = demFavored ? labels.democrats : labels.republicans;
+  const favoredProb = demFavored ? demProb : repProb;
+  const favoredPct = Math.round(favoredProb * 1000) / 10;
 
   return t.rich("midtermsHubChamberTooltipBody", {
-    party: trailingParty,
-    count: seatsNeeded,
+    party: favoredParty,
     chamber: chamberLabel,
-    pct: trailingProbPct,
+    pct: favoredPct,
     b: (chunks) => <strong className="font-bold">{chunks}</strong>,
   });
 }

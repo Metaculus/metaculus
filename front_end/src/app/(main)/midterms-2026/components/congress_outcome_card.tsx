@@ -119,9 +119,6 @@ export default async function CongressOutcomeCard({ post }: Props) {
           />
         ))}
       </div>
-      <p className="mt-4 text-sm leading-relaxed text-blue-700 dark:text-blue-700-dark">
-        {t("midtermsHubCongressSummary")}
-      </p>
     </div>
   );
 }

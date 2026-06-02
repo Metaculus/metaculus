@@ -2,20 +2,22 @@
 
 import { FC, ReactNode, useState } from "react";
 
-import CvBar, { ThemedColor } from "./cv_bar";
+import CvBar, { GradientColorStop, ThemedColor } from "./cv_bar";
 import { DonkeyIcon, ElephantIcon } from "./party_icons";
 import { MIDTERMS_COLORS } from "../constants";
 import { useIsDark } from "../helpers/use_is_dark";
 
-type Column = "rep" | "dem";
+type Column = "dem" | "split" | "rep";
 
 export type ConsequenceGridRow = {
   key: string;
   question: string;
-  repPct: number;
-  demPct: number;
-  ifRepLabel: string;
+  demPct: number | null;
+  splitPct: number | null;
+  repPct: number | null;
   ifDemLabel: string;
+  ifSplitLabel: string;
+  ifRepLabel: string;
 };
 
 export type ConsequenceHeaderCopy = {
@@ -28,8 +30,9 @@ type Props = {
    *  the header row so it sits offset from the colored party cards. */
   leadingSlot: ReactNode;
   rows: ConsequenceGridRow[];
-  repHeader: ConsequenceHeaderCopy;
   demHeader: ConsequenceHeaderCopy;
+  splitHeader: ConsequenceHeaderCopy;
+  repHeader: ConsequenceHeaderCopy;
 };
 
 // Header card backgrounds. Each color has rest + active variants per
@@ -50,6 +53,24 @@ const DEM_HEADER_BG = {
   dark: { rest: "#4A5FCF", active: MIDTERMS_COLORS.demBorderDark },
 };
 
+// Split column blends the Dem (left) and Rep (right) header colors into a
+// horizontal gradient so neither party "owns" it.
+const splitGradient = (dem: string, rep: string) =>
+  `linear-gradient(to right, ${dem}, ${rep})`;
+const SPLIT_HEADER_BG = {
+  light: {
+    rest: splitGradient(DEM_HEADER_BG.light.rest, REP_HEADER_BG.light.rest),
+    active: splitGradient(
+      DEM_HEADER_BG.light.active,
+      REP_HEADER_BG.light.active
+    ),
+  },
+  dark: {
+    rest: splitGradient(DEM_HEADER_BG.dark.rest, REP_HEADER_BG.dark.rest),
+    active: splitGradient(DEM_HEADER_BG.dark.active, REP_HEADER_BG.dark.active),
+  },
+};
+
 // Themed bar colors.
 const DEM_FILL: ThemedColor = {
   light: MIDTERMS_COLORS.demPrimary,
@@ -68,11 +89,19 @@ const REP_BORDER: ThemedColor = {
   dark: MIDTERMS_COLORS.repBorderDark,
 };
 
+// Split bars use a horizontal gradient (Dem left → Rep right) with a
+// matching gradient border.
+const SPLIT_GRADIENT: [GradientColorStop, GradientColorStop] = [
+  { fill: DEM_FILL, border: DEM_BORDER },
+  { fill: REP_FILL, border: REP_BORDER },
+];
+
 const ConsequenceGrid: FC<Props> = ({
   leadingSlot,
   rows,
-  repHeader,
   demHeader,
+  splitHeader,
+  repHeader,
 }) => {
   const isDark = useIsDark();
   const [hovered, setHovered] = useState<Column | null>(null);
@@ -82,32 +111,48 @@ const ConsequenceGrid: FC<Props> = ({
 
   const repBg = isDark ? REP_HEADER_BG.dark : REP_HEADER_BG.light;
   const demBg = isDark ? DEM_HEADER_BG.dark : DEM_HEADER_BG.light;
+  const splitBg = isDark ? SPLIT_HEADER_BG.dark : SPLIT_HEADER_BG.light;
 
   return (
     <div>
       {/* Header row: lead slot in col 1 (title + description), party
-          cards in cols 2 & 3. Mobile collapses to single column and the
+          cards in cols 2-4. Mobile collapses to single column and the
           lead slot is rendered above the rows (no party cards). */}
-      <div className="hidden md:mb-4 md:grid md:grid-cols-[2fr_1fr_1fr] md:items-end md:gap-4">
+      <div className="hidden md:mb-4 md:grid md:grid-cols-[2fr_1fr_1fr_1fr] md:items-end md:gap-4">
         <div>{leadingSlot}</div>
         <PartyHeader
-          backgroundColor={repBg.rest}
-          activeBackgroundColor={repBg.active}
-          Icon={ElephantIcon}
-          title={repHeader.title}
-          subtitle={repHeader.subtitle}
-          active={hovered === "rep"}
-          onMouseEnter={enter("rep")}
-          onMouseLeave={leave}
-        />
-        <PartyHeader
-          backgroundColor={demBg.rest}
-          activeBackgroundColor={demBg.active}
-          Icon={DonkeyIcon}
+          background={demBg.rest}
+          activeBackground={demBg.active}
+          icon={<DonkeyIcon width={32} height={32} className="shrink-0" />}
           title={demHeader.title}
           subtitle={demHeader.subtitle}
           active={hovered === "dem"}
           onMouseEnter={enter("dem")}
+          onMouseLeave={leave}
+        />
+        <PartyHeader
+          background={splitBg.rest}
+          activeBackground={splitBg.active}
+          icon={
+            <span className="flex shrink-0 items-center gap-0.5">
+              <DonkeyIcon width={22} height={22} />
+              <ElephantIcon width={22} height={22} />
+            </span>
+          }
+          title={splitHeader.title}
+          subtitle={splitHeader.subtitle}
+          active={hovered === "split"}
+          onMouseEnter={enter("split")}
+          onMouseLeave={leave}
+        />
+        <PartyHeader
+          background={repBg.rest}
+          activeBackground={repBg.active}
+          icon={<ElephantIcon width={32} height={32} className="shrink-0" />}
+          title={repHeader.title}
+          subtitle={repHeader.subtitle}
+          active={hovered === "rep"}
+          onMouseEnter={enter("rep")}
           onMouseLeave={leave}
         />
       </div>
@@ -118,7 +163,7 @@ const ConsequenceGrid: FC<Props> = ({
       {rows.map((row) => (
         <div
           key={row.key}
-          className="grid grid-cols-1 gap-3 border-b border-blue-300 last:border-0 dark:border-blue-300-dark md:grid-cols-[2fr_1fr_1fr] md:gap-0"
+          className="grid grid-cols-1 gap-3 border-b border-blue-300 last:border-0 dark:border-blue-300-dark md:grid-cols-[2fr_1fr_1fr_1fr] md:gap-0"
         >
           {/* Vertical padding lives inside each grid cell (not the row) so
               the cell's mouseenter handler covers the entire row-height
@@ -128,21 +173,29 @@ const ConsequenceGrid: FC<Props> = ({
             {row.question}
           </p>
           <BarCell
-            pct={row.repPct}
-            color={REP_FILL}
-            borderColor={REP_BORDER}
-            mobileLabel={row.ifRepLabel}
-            active={hovered === "rep"}
-            onMouseEnter={enter("rep")}
-            onMouseLeave={leave}
-          />
-          <BarCell
             pct={row.demPct}
             color={DEM_FILL}
             borderColor={DEM_BORDER}
             mobileLabel={row.ifDemLabel}
             active={hovered === "dem"}
             onMouseEnter={enter("dem")}
+            onMouseLeave={leave}
+          />
+          <BarCell
+            pct={row.splitPct}
+            gradientColors={SPLIT_GRADIENT}
+            mobileLabel={row.ifSplitLabel}
+            active={hovered === "split"}
+            onMouseEnter={enter("split")}
+            onMouseLeave={leave}
+          />
+          <BarCell
+            pct={row.repPct}
+            color={REP_FILL}
+            borderColor={REP_BORDER}
+            mobileLabel={row.ifRepLabel}
+            active={hovered === "rep"}
+            onMouseEnter={enter("rep")}
             onMouseLeave={leave}
           />
         </div>
@@ -154,9 +207,9 @@ const ConsequenceGrid: FC<Props> = ({
 export default ConsequenceGrid;
 
 type PartyHeaderProps = {
-  backgroundColor: string;
-  activeBackgroundColor: string;
-  Icon: typeof ElephantIcon;
+  background: string;
+  activeBackground: string;
+  icon: ReactNode;
   title: string;
   subtitle: string;
   active: boolean;
@@ -165,9 +218,9 @@ type PartyHeaderProps = {
 };
 
 const PartyHeader: FC<PartyHeaderProps> = ({
-  backgroundColor,
-  activeBackgroundColor,
-  Icon,
+  background,
+  activeBackground,
+  icon,
   title,
   subtitle,
   active,
@@ -176,14 +229,12 @@ const PartyHeader: FC<PartyHeaderProps> = ({
 }) => {
   return (
     <div
-      className="flex items-center gap-3 rounded-md px-4 py-2.5 text-white transition-colors duration-150"
-      style={{
-        backgroundColor: active ? activeBackgroundColor : backgroundColor,
-      }}
+      className="flex items-center gap-3 rounded-md px-4 py-2.5 text-white transition-[background] duration-150"
+      style={{ background: active ? activeBackground : background }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <Icon width={32} height={32} className="shrink-0" aria-hidden="true" />
+      {icon}
       <div className="leading-tight">
         <div className="text-sm font-bold">{title}</div>
         <div className="mt-0.5 text-[10px] uppercase tracking-wider opacity-90">
@@ -195,9 +246,10 @@ const PartyHeader: FC<PartyHeaderProps> = ({
 };
 
 type BarCellProps = {
-  pct: number;
-  color: ThemedColor;
-  borderColor: ThemedColor;
+  pct: number | null;
+  color?: ThemedColor;
+  borderColor?: ThemedColor;
+  gradientColors?: [GradientColorStop, GradientColorStop];
   mobileLabel: string;
   active: boolean;
   onMouseEnter: () => void;
@@ -208,6 +260,7 @@ const BarCell: FC<BarCellProps> = ({
   pct,
   color,
   borderColor,
+  gradientColors,
   mobileLabel,
   active,
   onMouseEnter,
@@ -224,13 +277,14 @@ const BarCell: FC<BarCellProps> = ({
       </span>
       <div className="flex items-center">
         <CvBar
-          pct={pct}
+          pct={pct ?? 0}
           color={color}
           borderColor={borderColor}
+          gradientColors={gradientColors}
           active={active}
         />
         <span className="ml-2 shrink-0 text-sm font-semibold tabular-nums text-blue-800 dark:text-blue-800-dark">
-          {pct}%
+          {pct != null ? `${pct}%` : "—"}
         </span>
       </div>
     </div>

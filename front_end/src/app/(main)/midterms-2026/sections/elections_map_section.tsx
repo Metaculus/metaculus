@@ -5,21 +5,27 @@ import CongressOutcomeCard from "../components/congress_outcome_card";
 import ResponsiveMap from "../components/responsive_map";
 import {
   fetchChamberData,
+  fetchGovernorRaces,
   fetchSenateRaces,
 } from "../helpers/fetch_dashboard_data";
 
 export default async function ElectionsMapSection() {
-  const [{ races }, chamber] = await Promise.all([
-    fetchSenateRaces(),
-    fetchChamberData(),
-  ]);
+  const [{ races: senateRaces }, { races: governorRaces }, chamber] =
+    await Promise.all([
+      fetchSenateRaces(),
+      fetchGovernorRaces(),
+      fetchChamberData(),
+    ]);
 
   return (
     <SectionCard className="overflow-hidden !p-0">
       <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(260px,35%)]">
         {/* Map column: edge-to-edge of the SectionCard on md+. */}
         <div className="self-stretch">
-          <ResponsiveMap races={races} />
+          <ResponsiveMap
+            senateRaces={senateRaces}
+            governorRaces={governorRaces}
+          />
         </div>
         {/* Sidebar column: capped at 30% of the container with its own
             internal padding so the cards stay inset from the white card

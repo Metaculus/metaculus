@@ -11,17 +11,32 @@ export type SenateRace = {
   subQuestionLabel: string;
 };
 
-// Only contested 2026 senate races (matching subquestions of post 40598).
+// Contested 2026 senate races (matching subquestions of post 40598).
 export const SENATE_RACES: SenateRace[] = [
+  { state: "AK", name: "Alaska Senate", subQuestionLabel: "Alaska" },
+  { state: "AR", name: "Arkansas Senate", subQuestionLabel: "Arkansas" },
+  { state: "CO", name: "Colorado Senate", subQuestionLabel: "Colorado" },
+  { state: "FL", name: "Florida Senate", subQuestionLabel: "Florida" },
   { state: "GA", name: "Georgia Senate", subQuestionLabel: "Georgia" },
   { state: "IA", name: "Iowa Senate", subQuestionLabel: "Iowa" },
+  { state: "ID", name: "Idaho Senate", subQuestionLabel: "Idaho" },
+  { state: "KS", name: "Kansas Senate", subQuestionLabel: "Kansas" },
+  { state: "KY", name: "Kentucky Senate", subQuestionLabel: "Kentucky" },
+  { state: "LA", name: "Louisiana Senate", subQuestionLabel: "Louisiana" },
   { state: "ME", name: "Maine Senate", subQuestionLabel: "Maine" },
   { state: "MI", name: "Michigan Senate", subQuestionLabel: "Michigan" },
   { state: "MN", name: "Minnesota Senate", subQuestionLabel: "Minnesota" },
+  { state: "MS", name: "Mississippi Senate", subQuestionLabel: "Mississippi" },
+  { state: "MT", name: "Montana Senate", subQuestionLabel: "Montana" },
   {
     state: "NC",
     name: "North Carolina Senate",
     subQuestionLabel: "North Carolina",
+  },
+  {
+    state: "NE",
+    name: "Nebraska Senate",
+    subQuestionLabel: "Nebraska",
   },
   {
     state: "NH",
@@ -29,7 +44,60 @@ export const SENATE_RACES: SenateRace[] = [
     subQuestionLabel: "New Hampshire",
   },
   { state: "OH", name: "Ohio Senate", subQuestionLabel: "Ohio" },
+  { state: "OR", name: "Oregon Senate", subQuestionLabel: "Oregon" },
+  {
+    state: "RI",
+    name: "Rhode Island Senate",
+    subQuestionLabel: "Rhode Island",
+  },
+  {
+    state: "SC",
+    name: "South Carolina Senate",
+    subQuestionLabel: "South Carolina",
+  },
   { state: "TX", name: "Texas Senate", subQuestionLabel: "Texas" },
+];
+
+// Single group-of-questions post (one binary subquestion per state) for the
+// 2026 gubernatorial races. Alaska and Maine are NOT in this group — they are
+// standalone multiple-choice posts (see STANDALONE_GOVERNOR_RACES).
+export const GOVERNOR_GROUP_POST_ID = 43448;
+
+export const GOVERNOR_RACES: SenateRace[] = [
+  { state: "AZ", name: "Arizona Governor", subQuestionLabel: "Arizona" },
+  { state: "FL", name: "Florida Governor", subQuestionLabel: "Florida" },
+  { state: "GA", name: "Georgia Governor", subQuestionLabel: "Georgia" },
+  { state: "HI", name: "Hawaii Governor", subQuestionLabel: "Hawaii" },
+  { state: "IA", name: "Iowa Governor", subQuestionLabel: "Iowa" },
+  { state: "KS", name: "Kansas Governor", subQuestionLabel: "Kansas" },
+  { state: "MI", name: "Michigan Governor", subQuestionLabel: "Michigan" },
+  { state: "NE", name: "Nebraska Governor", subQuestionLabel: "Nebraska" },
+  {
+    state: "NH",
+    name: "New Hampshire Governor",
+    subQuestionLabel: "New Hampshire",
+  },
+  { state: "NM", name: "New Mexico Governor", subQuestionLabel: "New Mexico" },
+  { state: "NV", name: "Nevada Governor", subQuestionLabel: "Nevada" },
+  { state: "OH", name: "Ohio Governor", subQuestionLabel: "Ohio" },
+  { state: "OR", name: "Oregon Governor", subQuestionLabel: "Oregon" },
+  {
+    state: "SC",
+    name: "South Carolina Governor",
+    subQuestionLabel: "South Carolina",
+  },
+  { state: "TX", name: "Texas Governor", subQuestionLabel: "Texas" },
+  { state: "VT", name: "Vermont Governor", subQuestionLabel: "Vermont" },
+  { state: "WI", name: "Wisconsin Governor", subQuestionLabel: "Wisconsin" },
+];
+
+// Standalone gubernatorial posts (multiple-choice: Democrat/Republican/Other)
+// that are not part of GOVERNOR_GROUP_POST_ID.
+export type StandaloneRace = { state: string; name: string; postId: number };
+
+export const STANDALONE_GOVERNOR_RACES: StandaloneRace[] = [
+  { state: "AK", name: "Alaska Governor", postId: 43462 },
+  { state: "ME", name: "Maine Governor", postId: 43464 },
 ];
 
 export type ChamberQuestionIds = {
@@ -43,6 +111,10 @@ export type ChamberQuestionIds = {
   voterTurnout: number;
   /** Binary */
   electionIntegrity: number;
+  /** Binary — courts block USPS mail-in ballot restrictions */
+  mailInBallots: number;
+  /** Binary — Trump declares an election-integrity national emergency */
+  electionEmergency: number;
 };
 
 export const CHAMBER_QUESTIONS: ChamberQuestionIds = {
@@ -51,6 +123,8 @@ export const CHAMBER_QUESTIONS: ChamberQuestionIds = {
   congressOutcome: 34484,
   voterTurnout: 41177,
   electionIntegrity: 36327,
+  mailInBallots: 43527,
+  electionEmergency: 43609,
 };
 
 // Seat-advantage distribution questions. The Senate question is a
@@ -62,19 +136,13 @@ export const SEAT_DISTRIBUTION_POSTS = {
   house: 40413,
 } as const;
 
-export type ConsequenceRow = {
-  questionKey: "climate" | "minWage" | "immigration" | "shutdown";
-  repCongressPct: number;
-  demCongressPct: number;
-};
-
-// Hardcoded mock rows — swap with real conditional questions when ready
-export const MOCK_CONSEQUENCES: ConsequenceRow[] = [
-  { questionKey: "climate", repCongressPct: 12, demCongressPct: 67 },
-  { questionKey: "minWage", repCongressPct: 8, demCongressPct: 52 },
-  { questionKey: "immigration", repCongressPct: 35, demCongressPct: 28 },
-  { questionKey: "shutdown", repCongressPct: 18, demCongressPct: 42 },
-];
+// Electoral Consequences rows. Each is a group-of-questions post that is
+// conditional on control of Congress, with three binary subquestions labeled
+// "Democratic" / "Republican" / "Mixed" (→ Dem / Rep / Split Congress columns).
+// Numeric-resolution conditionals (NSF budget 43677, Democracy Threat Index
+// 43624, Article III judge count 43628) are intentionally excluded — the grid
+// only renders probabilities.
+export const CONSEQUENCE_QUESTION_IDS = [43591, 43632, 43617, 43630, 43640];
 
 export type TileCell = { abbr: string; row: number; col: number };
 

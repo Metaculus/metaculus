@@ -9,7 +9,7 @@ import { US_TILE_GRID } from "../data";
 import MapLegend from "./map_legend";
 import MapTooltipPortal from "./map_tooltip_portal";
 import StateTooltipContent from "./state_tooltip";
-import { getDemWinPct, SenateRaceWithQuestion } from "../helpers/post_utils";
+import { SenateRaceWithQuestion } from "../helpers/post_utils";
 import { getStateColor } from "../helpers/state_color";
 import { useIsDark } from "../helpers/use_is_dark";
 
@@ -50,9 +50,8 @@ const TileMap: FC<Props> = ({ races }) => {
   };
 
   const navigate = (race: SenateRaceWithQuestion | undefined) => {
-    if (!race?.parentPost || !race.question) return;
-    const url = `/questions/${race.parentPost.id}/?sub-question=${race.question.id}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+    if (!race?.href) return;
+    window.open(race.href, "_blank", "noopener,noreferrer");
   };
 
   const handleTileClick = (
@@ -92,7 +91,7 @@ const TileMap: FC<Props> = ({ races }) => {
           const race = racesByState.get(abbr);
           const isContested = race !== undefined;
           const fillColor = isContested
-            ? getStateColor(getDemWinPct(race.question))
+            ? getStateColor(race.demWinPct)
             : uncontestedFill;
 
           return (
@@ -138,7 +137,7 @@ const TileMap: FC<Props> = ({ races }) => {
         >
           <StateTooltipContent
             race={hoveredRace}
-            demWinPct={getDemWinPct(hoveredRace.question)}
+            demWinPct={hoveredRace.demWinPct}
           />
         </MapTooltipPortal>
       )}

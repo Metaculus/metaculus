@@ -26,7 +26,7 @@ import { MIDTERMS_COLORS, STATE_NAMES } from "../constants";
 import MapLegend from "./map_legend";
 import MapTooltipPortal from "./map_tooltip_portal";
 import StateTooltipContent from "./state_tooltip";
-import { getDemWinPct, SenateRaceWithQuestion } from "../helpers/post_utils";
+import { SenateRaceWithQuestion } from "../helpers/post_utils";
 import { getStateColor } from "../helpers/state_color";
 import { useIsDark } from "../helpers/use_is_dark";
 
@@ -195,9 +195,8 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
   };
 
   const handleClick = (race: SenateRaceWithQuestion | undefined) => {
-    if (!race?.parentPost || !race.question) return;
-    const url = `/questions/${race.parentPost.id}/?sub-question=${race.question.id}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+    if (!race?.href) return;
+    window.open(race.href, "_blank", "noopener,noreferrer");
   };
 
   const handleLeave = useCallback(() => {
@@ -259,7 +258,7 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
                 const isHovered = hovered?.abbr === abbr;
 
                 const fillColor = isContested
-                  ? getStateColor(getDemWinPct(race?.question ?? null))
+                  ? getStateColor(race?.demWinPct ?? null)
                   : isHovered
                     ? uncontestedHoverFill
                     : uncontestedFill;
@@ -346,7 +345,7 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
         >
           <StateTooltipContent
             race={hoveredRace}
-            demWinPct={getDemWinPct(hoveredRace.question)}
+            demWinPct={hoveredRace.demWinPct}
           />
         </MapTooltipPortal>
       )}
