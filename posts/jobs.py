@@ -94,7 +94,11 @@ def job_check_post_open_event():
 
     for question in publish_questions_qs:
         try:
-            notify_project_subscriptions_post_open(question.post, question=question)
+            notify_project_subscriptions_post_open(
+                question.post,
+                event=Post.PostStatusChange.PUBLISHED,
+                question=question,
+            )
         except Exception:
             logger.exception("Failed to handle question publish")
         finally:
@@ -126,7 +130,11 @@ def job_check_post_open_event():
 
     for notebook in notebooks_qs:
         try:
-            notify_project_subscriptions_post_open(notebook.post, notebook=notebook)
+            notify_project_subscriptions_post_open(
+                notebook.post,
+                event=Post.PostStatusChange.PUBLISHED,
+                notebook=notebook,
+            )
         except Exception:
             logger.exception("Failed to handle notebook publish")
         finally:

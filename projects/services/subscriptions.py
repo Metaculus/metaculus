@@ -143,6 +143,7 @@ def unsubscribe_project(project: Project, user: User, unfollow_questions: bool =
 
 def notify_project_subscriptions_post_open(
     post: Post,
+    event: Post.PostStatusChange,
     question: Question = None,
     notebook: Notebook = None,
     project: Project = None,
@@ -188,7 +189,7 @@ def notify_project_subscriptions_post_open(
                 subscription.user,
                 NotificationPostStatusChange.ParamsType(
                     post=NotificationPostParams.from_post(post),
-                    event=Post.PostStatusChange.PUBLISHED,
+                    event=event,
                     project=NotificationProjectParams.from_project(
                         subscription.project
                     ),
@@ -211,13 +212,21 @@ def notify_post_added_to_project(post: Post, project: Project):
         # Don't send a notification if the publish event hasn't fired yet —
         # the cron job will pick it up and notify all project subscribers.
         if question.published_at_triggered:
+            event = (
+                Post.PostStatusChange.OPEN
+                if question.open_time_triggered
+                else Post.PostStatusChange.PUBLISHED
+            )
             notify_project_subscriptions_post_open(
-                post, question=question, project=project
+                post, event=event, question=question, project=project
             )
 
     if post.notebook_id and post.notebook.open_time_triggered:
         notify_project_subscriptions_post_open(
-            post, notebook=post.notebook, project=project
+            post,
+            event=Post.PostStatusChange.PUBLISHED,
+            notebook=post.notebook,
+            project=project,
         )
 
     # Auto-follow new questions for subscribers with follow_questions enabled
