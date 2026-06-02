@@ -113,8 +113,6 @@ export type ChamberQuestionIds = {
   electionIntegrity: number;
   /** Binary — courts block USPS mail-in ballot restrictions */
   mailInBallots: number;
-  /** Binary — Trump declares an election-integrity national emergency */
-  electionEmergency: number;
 };
 
 export const CHAMBER_QUESTIONS: ChamberQuestionIds = {
@@ -124,7 +122,6 @@ export const CHAMBER_QUESTIONS: ChamberQuestionIds = {
   voterTurnout: 41177,
   electionIntegrity: 36327,
   mailInBallots: 43527,
-  electionEmergency: 43609,
 };
 
 // Seat-advantage distribution questions. The Senate question is a

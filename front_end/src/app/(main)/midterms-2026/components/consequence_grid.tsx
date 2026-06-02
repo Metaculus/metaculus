@@ -2,7 +2,7 @@
 
 import { FC, ReactNode, useState } from "react";
 
-import CvBar, { GradientColorStop, ThemedColor } from "./cv_bar";
+import ConsequenceGauge from "./consequence_gauge";
 import { DonkeyIcon, ElephantIcon } from "./party_icons";
 import { MIDTERMS_COLORS } from "../constants";
 import { useIsDark } from "../helpers/use_is_dark";
@@ -37,13 +37,6 @@ type Props = {
 
 // Header card backgrounds. Each color has rest + active variants per
 // theme so the column reads as visibly lit when hovered.
-//
-// Light mode: rest is the primary border shade, active goes darker —
-// so hover deepens the color (matches the bars below).
-//
-// Dark mode: rest is the darker shade, active is the brighter shade —
-// hover goes LIGHTER, matching the bar-fill behavior in dark mode (the
-// bars also lighten on hover because they sit on a dark card bg).
 const REP_HEADER_BG = {
   light: { rest: MIDTERMS_COLORS.repBorder, active: "#A02B25" },
   dark: { rest: "#B83C32", active: MIDTERMS_COLORS.repBorderDark },
@@ -53,8 +46,7 @@ const DEM_HEADER_BG = {
   dark: { rest: "#4A5FCF", active: MIDTERMS_COLORS.demBorderDark },
 };
 
-// Split column blends the Dem (left) and Rep (right) header colors into a
-// horizontal gradient so neither party "owns" it.
+// Split column blends the Dem (left) and Rep (right) header colors.
 const splitGradient = (dem: string, rep: string) =>
   `linear-gradient(to right, ${dem}, ${rep})`;
 const SPLIT_HEADER_BG = {
@@ -71,30 +63,18 @@ const SPLIT_HEADER_BG = {
   },
 };
 
-// Themed bar colors.
-const DEM_FILL: ThemedColor = {
-  light: MIDTERMS_COLORS.demPrimary,
-  dark: MIDTERMS_COLORS.demPrimaryDark,
+// Per-column gauge tint. Split uses a neutral slate (neither party).
+const GAUGE_COLOR: Record<Column, { light: string; dark: string }> = {
+  dem: {
+    light: MIDTERMS_COLORS.demPrimary,
+    dark: MIDTERMS_COLORS.demPrimaryDark,
+  },
+  rep: {
+    light: MIDTERMS_COLORS.repPrimary,
+    dark: MIDTERMS_COLORS.repPrimaryDark,
+  },
+  split: { light: "#7D818A", dark: "#94A3B8" },
 };
-const DEM_BORDER: ThemedColor = {
-  light: MIDTERMS_COLORS.demBorder,
-  dark: MIDTERMS_COLORS.demBorderDark,
-};
-const REP_FILL: ThemedColor = {
-  light: MIDTERMS_COLORS.repPrimary,
-  dark: MIDTERMS_COLORS.repPrimaryDark,
-};
-const REP_BORDER: ThemedColor = {
-  light: MIDTERMS_COLORS.repBorder,
-  dark: MIDTERMS_COLORS.repBorderDark,
-};
-
-// Split bars use a horizontal gradient (Dem left → Rep right) with a
-// matching gradient border.
-const SPLIT_GRADIENT: [GradientColorStop, GradientColorStop] = [
-  { fill: DEM_FILL, border: DEM_BORDER },
-  { fill: REP_FILL, border: REP_BORDER },
-];
 
 const ConsequenceGrid: FC<Props> = ({
   leadingSlot,
@@ -112,6 +92,8 @@ const ConsequenceGrid: FC<Props> = ({
   const repBg = isDark ? REP_HEADER_BG.dark : REP_HEADER_BG.light;
   const demBg = isDark ? DEM_HEADER_BG.dark : DEM_HEADER_BG.light;
   const splitBg = isDark ? SPLIT_HEADER_BG.dark : SPLIT_HEADER_BG.light;
+  const gauge = (col: Column) =>
+    isDark ? GAUGE_COLOR[col].dark : GAUGE_COLOR[col].light;
 
   return (
     <div>
@@ -123,7 +105,7 @@ const ConsequenceGrid: FC<Props> = ({
         <PartyHeader
           background={demBg.rest}
           activeBackground={demBg.active}
-          icon={<DonkeyIcon width={32} height={32} className="shrink-0" />}
+          icon={<DonkeyIcon width={28} height={28} className="shrink-0" />}
           title={demHeader.title}
           subtitle={demHeader.subtitle}
           active={hovered === "dem"}
@@ -135,8 +117,8 @@ const ConsequenceGrid: FC<Props> = ({
           activeBackground={splitBg.active}
           icon={
             <span className="flex shrink-0 items-center gap-0.5">
-              <DonkeyIcon width={22} height={22} />
-              <ElephantIcon width={22} height={22} />
+              <DonkeyIcon width={20} height={20} />
+              <ElephantIcon width={20} height={20} />
             </span>
           }
           title={splitHeader.title}
@@ -148,7 +130,7 @@ const ConsequenceGrid: FC<Props> = ({
         <PartyHeader
           background={repBg.rest}
           activeBackground={repBg.active}
-          icon={<ElephantIcon width={32} height={32} className="shrink-0" />}
+          icon={<ElephantIcon width={28} height={28} className="shrink-0" />}
           title={repHeader.title}
           subtitle={repHeader.subtitle}
           active={hovered === "rep"}
@@ -165,36 +147,27 @@ const ConsequenceGrid: FC<Props> = ({
           key={row.key}
           className="grid grid-cols-1 gap-3 border-b border-blue-300 last:border-0 dark:border-blue-300-dark md:grid-cols-[2fr_1fr_1fr_1fr] md:gap-0"
         >
-          {/* Vertical padding lives inside each grid cell (not the row) so
-              the cell's mouseenter handler covers the entire row-height
-              footprint of that column, including the breathing room
-              above and below the bar. */}
           <p className="m-0 flex items-center py-4 text-sm font-medium text-blue-800 dark:text-blue-800-dark md:pr-4 md:text-base">
             {row.question}
           </p>
-          <BarCell
+          <GaugeCell
             pct={row.demPct}
-            color={DEM_FILL}
-            borderColor={DEM_BORDER}
+            color={gauge("dem")}
             mobileLabel={row.ifDemLabel}
-            active={hovered === "dem"}
             onMouseEnter={enter("dem")}
             onMouseLeave={leave}
           />
-          <BarCell
+          <GaugeCell
             pct={row.splitPct}
-            gradientColors={SPLIT_GRADIENT}
+            color={gauge("split")}
             mobileLabel={row.ifSplitLabel}
-            active={hovered === "split"}
             onMouseEnter={enter("split")}
             onMouseLeave={leave}
           />
-          <BarCell
+          <GaugeCell
             pct={row.repPct}
-            color={REP_FILL}
-            borderColor={REP_BORDER}
+            color={gauge("rep")}
             mobileLabel={row.ifRepLabel}
-            active={hovered === "rep"}
             onMouseEnter={enter("rep")}
             onMouseLeave={leave}
           />
@@ -210,6 +183,7 @@ type PartyHeaderProps = {
   background: string;
   activeBackground: string;
   icon: ReactNode;
+  /** Used as the accessible label; not rendered visually. */
   title: string;
   subtitle: string;
   active: boolean;
@@ -229,40 +203,32 @@ const PartyHeader: FC<PartyHeaderProps> = ({
 }) => {
   return (
     <div
-      className="flex items-center gap-3 rounded-md px-4 py-2.5 text-white transition-[background] duration-150"
+      aria-label={title}
+      className="flex items-center gap-2 rounded-md px-3 py-2 text-white transition-[background] duration-150"
       style={{ background: active ? activeBackground : background }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
       {icon}
-      <div className="leading-tight">
-        <div className="text-sm font-bold">{title}</div>
-        <div className="mt-0.5 text-[10px] uppercase tracking-wider opacity-90">
-          {subtitle}
-        </div>
+      <div className="text-[11px] font-medium uppercase leading-tight tracking-wider opacity-95">
+        {subtitle}
       </div>
     </div>
   );
 };
 
-type BarCellProps = {
+type GaugeCellProps = {
   pct: number | null;
-  color?: ThemedColor;
-  borderColor?: ThemedColor;
-  gradientColors?: [GradientColorStop, GradientColorStop];
+  color: string;
   mobileLabel: string;
-  active: boolean;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
 };
 
-const BarCell: FC<BarCellProps> = ({
+const GaugeCell: FC<GaugeCellProps> = ({
   pct,
   color,
-  borderColor,
-  gradientColors,
   mobileLabel,
-  active,
   onMouseEnter,
   onMouseLeave,
 }) => {
@@ -270,23 +236,12 @@ const BarCell: FC<BarCellProps> = ({
     <div
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className="flex h-full w-full flex-col justify-center py-4 md:px-2"
+      className="flex h-full w-full flex-col items-center justify-center gap-1 py-4 md:border-l md:border-blue-300 dark:md:border-blue-300-dark"
     >
-      <span className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-blue-600 dark:text-blue-600-dark md:hidden">
+      <span className="block text-[11px] font-medium uppercase tracking-wider text-blue-600 dark:text-blue-600-dark md:hidden">
         {mobileLabel}
       </span>
-      <div className="flex items-center">
-        <CvBar
-          pct={pct ?? 0}
-          color={color}
-          borderColor={borderColor}
-          gradientColors={gradientColors}
-          active={active}
-        />
-        <span className="ml-2 shrink-0 text-sm font-semibold tabular-nums text-blue-800 dark:text-blue-800-dark">
-          {pct != null ? `${pct}%` : "—"}
-        </span>
-      </div>
+      <ConsequenceGauge pct={pct} color={color} />
     </div>
   );
 };
