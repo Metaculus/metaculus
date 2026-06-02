@@ -136,4 +136,38 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
       </>
     ),
   },
+  {
+    date: "2026-05-14",
+    type: "news",
+    content: (
+      <>
+        Indeed Hiring Lab releases a report based on structural modeling
+        documenting anticipated labor effects of AI -{" "}
+        <a
+          href="https://www.hiringlab.org/2026/05/14/how-a-shrinking-workforce-ai-and-labor-reallocation-will-define-the-next-15-years/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          Indeed Hiring Lab
+        </a>
+      </>
+    ),
+  },
+  {
+    date: "2026-05-21",
+    type: "news",
+    content: (
+      <>
+        California Governor issues executive order to explore policies related
+        to AI-driven workforce disruption -{" "}
+        <a
+          href="https://www.gov.ca.gov/2026/05/21/governor-newsom-signs-first-of-its-kind-executive-order-to-prepare-workers-and-businesses-for-potential-ai-disruption/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          Office of Governor Gavin Newsom
+        </a>
+      </>
+    ),
+  },
 ];

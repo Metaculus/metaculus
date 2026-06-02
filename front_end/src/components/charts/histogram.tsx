@@ -13,6 +13,7 @@ import {
 } from "victory";
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { CHART_FONT_STYLE } from "@/constants/chart_typography";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
@@ -102,7 +103,7 @@ const Histogram: React.FC<HistogramProps> = ({
           }
           padding={{ top: 0, bottom: 20, left: 12, right: 12 }}
           height={75}
-          width={!!width ? width : undefined}
+          width={width || chartWidth || undefined}
         >
           <VictoryBar
             data={histogramData}
@@ -173,7 +174,7 @@ const Histogram: React.FC<HistogramProps> = ({
             }
             style={{
               tickLabels: {
-                fontSize: 10,
+                ...CHART_FONT_STYLE.tick,
                 fontWeight: 400,
                 fill: getThemeColor(METAC_COLORS.gray["700"]),
               },

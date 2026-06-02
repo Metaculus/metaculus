@@ -7,6 +7,7 @@ export type GroupButton<T> = {
   value: T;
   label: string | ReactNode;
   href?: string;
+  className?: string;
 };
 
 type Props<T> = {
@@ -54,7 +55,8 @@ const ButtonGroup = <T extends string>({
                 : index !== buttons.length - 1
                   ? "ml-[-1px] rounded-none"
                   : "ml-[-1px] rounded-l-none"),
-            value === button.value ? activeClassName : className
+            value === button.value ? activeClassName : className,
+            button.className
           )}
         >
           {button.label}

@@ -176,7 +176,6 @@ div:has(.prism-code) + p:has(> br:only-child) {
 .tweets-wrapper > p .tweet-embed-scroll {
   max-height: calc(150cqw);
   overflow-y: auto;
-  overscroll-behavior: contain;
 }
 
 .tweets-wrapper > p .tweet-embed {
