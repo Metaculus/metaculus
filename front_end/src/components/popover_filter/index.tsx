@@ -55,8 +55,10 @@ const Panel: FC<PropsWithChildren<PanelProps>> = ({
       portal={usePortal}
       {...(isLargeScreen && { anchor: "bottom end" as const })}
       className={cn(
-        "z-[100] box-border flex flex-col items-start overflow-hidden overflow-y-auto rounded border border-gray-300 bg-gray-0 p-5 shadow-lg shadow-[#0003] dark:border-gray-300-dark dark:bg-gray-0-dark",
+        "box-border flex flex-col items-start overflow-hidden overflow-y-auto rounded border border-gray-300 bg-gray-0 p-5 shadow-lg shadow-[#0003] dark:border-gray-300-dark dark:bg-gray-0-dark",
+        !useFullscreen && "z-[100]",
         !usePortal && "absolute right-0 top-10",
+        isLargeScreen && "max-h-[var(--anchor-max-height)]",
         useFullscreen &&
           "!fixed !inset-0 z-[1300] h-dvh !w-screen overflow-y-auto overscroll-contain px-5 pb-0 pt-5",
         className
