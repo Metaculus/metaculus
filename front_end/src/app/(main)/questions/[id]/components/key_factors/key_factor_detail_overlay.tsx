@@ -121,19 +121,20 @@ const KeyFactorDetailOverlay: FC<Props> = (props) => {
     if (!keyFactor) return;
     await ensureCommentLoaded(keyFactor.comment_id);
     onClose();
+    questionLayout?.setActiveTab("comments");
     setTimeout(() => {
-      const el = document.getElementById(`comment-${keyFactor.comment_id}`);
-      el?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 200);
+      questionLayout?.requestScrollToComment(keyFactor.comment_id);
+    }, 50);
   };
 
   const handleReplyToComment = async () => {
     if (!keyFactor) return;
     await ensureCommentLoaded(keyFactor.comment_id);
     onClose();
+    questionLayout?.setActiveTab("comments");
     setTimeout(() => {
       questionLayout?.requestReplyToComment(keyFactor.comment_id);
-    }, 500);
+    }, 50);
   };
 
   const hasComment = !!(keyFactor && (comment?.text?.trim() || !comment));

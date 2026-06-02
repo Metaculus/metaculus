@@ -1,5 +1,6 @@
 import { ApiService } from "@/services/api/api_service";
 import {
+  CountlessPaginatedPayload,
   FetchOptions,
   PaginatedPayload,
   PaginationParams,
@@ -107,7 +108,7 @@ class PostsApi extends ApiService {
   async getPostsWithCP(
     params?: PostsParams,
     fetchParams?: PostFetchParams
-  ): Promise<PaginatedPayload<PostWithForecasts>> {
+  ): Promise<CountlessPaginatedPayload<PostWithForecasts>> {
     const queryParams = encodeQueryParams({
       ...(params ?? {}),
       with_cp: true,
@@ -117,7 +118,7 @@ class PostsApi extends ApiService {
       ...(fetchParams ?? {}),
     });
 
-    return await this.get<PaginatedPayload<PostWithForecasts>>(
+    return await this.get<CountlessPaginatedPayload<PostWithForecasts>>(
       `/posts/${queryParams}`
     );
   }
@@ -125,13 +126,13 @@ class PostsApi extends ApiService {
   async getPostsWithCPAnonymous(
     params?: PostsParams & PostFetchParams,
     options?: FetchOptions
-  ): Promise<PaginatedPayload<PostWithForecasts>> {
+  ): Promise<CountlessPaginatedPayload<PostWithForecasts>> {
     const queryParams = encodeQueryParams({
       ...(params ?? {}),
       with_cp: true,
     });
 
-    return await this.get<PaginatedPayload<PostWithForecasts>>(
+    return await this.get<CountlessPaginatedPayload<PostWithForecasts>>(
       `/posts/${queryParams}`,
       options,
       { passAuthHeader: false }
@@ -140,13 +141,13 @@ class PostsApi extends ApiService {
 
   async getPosts(
     params?: PostsParams
-  ): Promise<PaginatedPayload<PostWithForecasts>> {
+  ): Promise<CountlessPaginatedPayload<PostWithForecasts>> {
     const queryParams = encodeQueryParams({
       ...(params ?? {}),
       with_cp: false,
     });
 
-    return await this.get<PaginatedPayload<PostWithForecasts>>(
+    return await this.get<CountlessPaginatedPayload<PostWithForecasts>>(
       `/posts/${queryParams}`
     );
   }
@@ -161,7 +162,7 @@ class PostsApi extends ApiService {
 
   async getPostsWithCPForHomepage(
     params?: PostsParams
-  ): Promise<PaginatedPayload<PostWithForecasts>> {
+  ): Promise<CountlessPaginatedPayload<PostWithForecasts>> {
     const queryParams = encodeQueryParams({
       ...(params ?? {}),
       with_cp: true,
@@ -170,7 +171,7 @@ class PostsApi extends ApiService {
       include_movements: true,
     });
 
-    return await this.get<PaginatedPayload<PostWithForecasts>>(
+    return await this.get<CountlessPaginatedPayload<PostWithForecasts>>(
       `/posts/${queryParams}`,
       {
         next: {
@@ -197,9 +198,7 @@ class PostsApi extends ApiService {
   async getSimilarPosts(postId: number): Promise<PostWithForecasts[]> {
     return await this.get<PostWithForecasts[]>(
       `/posts/${postId}/similar-posts/`,
-      {
-        next: { revalidate: 3600 },
-      }
+      { next: { revalidate: 1800 } }
     );
   }
 
