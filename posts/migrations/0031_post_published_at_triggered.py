@@ -14,7 +14,7 @@ def set_already_published(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("posts", "0029_remove_notebook_markdown_summary_and_more"),
+        ("posts", "0030_backfill_conditional_categories"),
     ]
 
     operations = [
