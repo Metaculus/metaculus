@@ -9,6 +9,11 @@ import { useIsDark } from "../helpers/use_is_dark";
 
 type Column = "dem" | "split" | "rep";
 
+// Shared column template: the question takes ~62% and the three scenario
+// columns split the rest. Header and rows use the same template (and gap-0)
+// so the colored headers line up with the gauges below them.
+const COLS = "md:grid-cols-[5fr_1fr_1fr_1fr]";
+
 export type ConsequenceGridRow = {
   key: string;
   question: string;
@@ -98,45 +103,52 @@ const ConsequenceGrid: FC<Props> = ({
   return (
     <div>
       {/* Header row: lead slot in col 1 (title + description), party
-          cards in cols 2-4. Mobile collapses to single column and the
-          lead slot is rendered above the rows (no party cards). */}
-      <div className="hidden md:mb-4 md:grid md:grid-cols-[2fr_1fr_1fr_1fr] md:items-end md:gap-4">
-        <div>{leadingSlot}</div>
-        <PartyHeader
-          background={demBg.rest}
-          activeBackground={demBg.active}
-          icon={<DonkeyIcon width={28} height={28} className="shrink-0" />}
-          title={demHeader.title}
-          subtitle={demHeader.subtitle}
-          active={hovered === "dem"}
-          onMouseEnter={enter("dem")}
-          onMouseLeave={leave}
-        />
-        <PartyHeader
-          background={splitBg.rest}
-          activeBackground={splitBg.active}
-          icon={
-            <span className="flex shrink-0 items-center gap-0.5">
-              <DonkeyIcon width={20} height={20} />
-              <ElephantIcon width={20} height={20} />
-            </span>
-          }
-          title={splitHeader.title}
-          subtitle={splitHeader.subtitle}
-          active={hovered === "split"}
-          onMouseEnter={enter("split")}
-          onMouseLeave={leave}
-        />
-        <PartyHeader
-          background={repBg.rest}
-          activeBackground={repBg.active}
-          icon={<ElephantIcon width={28} height={28} className="shrink-0" />}
-          title={repHeader.title}
-          subtitle={repHeader.subtitle}
-          active={hovered === "rep"}
-          onMouseEnter={enter("rep")}
-          onMouseLeave={leave}
-        />
+          cards in cols 2-4. Uses the same template + gap-0 as the rows so
+          the cards align with the gauges; per-card padding keeps a small
+          gap between them. */}
+      <div className={`hidden md:mb-4 md:grid ${COLS} md:items-end md:gap-0`}>
+        <div className="md:pr-4">{leadingSlot}</div>
+        <div className="md:px-1">
+          <PartyHeader
+            background={demBg.rest}
+            activeBackground={demBg.active}
+            icon={<DonkeyIcon width={26} height={26} className="shrink-0" />}
+            title={demHeader.title}
+            subtitle={demHeader.subtitle}
+            active={hovered === "dem"}
+            onMouseEnter={enter("dem")}
+            onMouseLeave={leave}
+          />
+        </div>
+        <div className="md:px-1">
+          <PartyHeader
+            background={splitBg.rest}
+            activeBackground={splitBg.active}
+            icon={
+              <span className="flex shrink-0 items-center gap-0.5">
+                <DonkeyIcon width={18} height={18} />
+                <ElephantIcon width={18} height={18} />
+              </span>
+            }
+            title={splitHeader.title}
+            subtitle={splitHeader.subtitle}
+            active={hovered === "split"}
+            onMouseEnter={enter("split")}
+            onMouseLeave={leave}
+          />
+        </div>
+        <div className="md:px-1">
+          <PartyHeader
+            background={repBg.rest}
+            activeBackground={repBg.active}
+            icon={<ElephantIcon width={26} height={26} className="shrink-0" />}
+            title={repHeader.title}
+            subtitle={repHeader.subtitle}
+            active={hovered === "rep"}
+            onMouseEnter={enter("rep")}
+            onMouseLeave={leave}
+          />
+        </div>
       </div>
 
       {/* Mobile-only leading slot (when md grid above is hidden). */}
@@ -145,9 +157,11 @@ const ConsequenceGrid: FC<Props> = ({
       {rows.map((row) => (
         <div
           key={row.key}
-          className="grid grid-cols-1 gap-3 border-b border-blue-300 last:border-0 dark:border-blue-300-dark md:grid-cols-[2fr_1fr_1fr_1fr] md:gap-0"
+          className={`grid grid-cols-3 border-b border-blue-300 last:border-0 dark:border-blue-300-dark ${COLS} md:gap-0`}
         >
-          <p className="m-0 flex items-center py-4 text-sm font-medium text-blue-800 dark:text-blue-800-dark md:pr-4 md:text-base">
+          {/* Mobile: question spans the full width with the three gauges in
+              a row beneath it. Desktop: question is the first column. */}
+          <p className="col-span-3 m-0 flex items-center pb-2 pt-4 text-sm font-medium text-blue-800 dark:text-blue-800-dark md:col-span-1 md:py-4 md:pr-4 md:text-base">
             {row.question}
           </p>
           <GaugeCell
@@ -236,9 +250,9 @@ const GaugeCell: FC<GaugeCellProps> = ({
     <div
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className="flex h-full w-full flex-col items-center justify-center gap-1 py-4 md:border-l md:border-blue-300 dark:md:border-blue-300-dark"
+      className="flex h-full w-full flex-col items-center justify-center gap-1 pb-4 md:border-l md:border-blue-300 md:py-4 dark:md:border-blue-300-dark"
     >
-      <span className="block text-[11px] font-medium uppercase tracking-wider text-blue-600 dark:text-blue-600-dark md:hidden">
+      <span className="block text-center text-[11px] font-medium uppercase tracking-wider text-blue-600 dark:text-blue-600-dark md:hidden">
         {mobileLabel}
       </span>
       <ConsequenceGauge pct={pct} color={color} />

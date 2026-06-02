@@ -7,9 +7,9 @@ import { FC } from "react";
 // Consequences table. Takes a raw percentage + a single color so each cell
 // can be tinted to its column (Dem / Split / Rep).
 
-const WIDTH = 58;
-const HEIGHT = 36;
-const STROKE = 6;
+const WIDTH = 67;
+const HEIGHT = 42;
+const STROKE = 7;
 const ARC_ANGLE = Math.PI * 1.1;
 
 type Props = {
@@ -41,13 +41,14 @@ const ConsequenceGauge: FC<Props> = ({ pct, color }) => {
           strokeWidth={STROKE}
           strokeLinecap="round"
         />
+        {/* Butt cap (no round) so the filled arc ends exactly at the tick
+            instead of overflowing past it. */}
         {progress && (
           <path
             d={progress.path}
             fill="none"
             stroke={color}
             strokeWidth={STROKE}
-            strokeLinecap="round"
           />
         )}
         {progress && (
@@ -70,7 +71,7 @@ const ConsequenceGauge: FC<Props> = ({ pct, color }) => {
         )}
       </svg>
       <span
-        className="absolute inset-x-0 bottom-0 text-center text-[11px] font-bold tabular-nums leading-none"
+        className="absolute inset-0 flex items-end justify-center pb-[3px] text-[13px] font-bold tabular-nums leading-none"
         style={{ color }}
       >
         {pct != null ? `${Math.round(pct)}%` : "—"}
