@@ -569,6 +569,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         DELETED = "deleted"
 
     class PostStatusChange(models.TextChoices):
+        PUBLISHED = "published", _("Upcoming")
         OPEN = "open", _("Open")
         CLOSED = "closed", _("Closed")
         RESOLVED = "resolved", _("Resolved")

@@ -49,7 +49,7 @@ def test_job_check_post_open_event__fires_publish_notification_before_open_time(
         recipient=user2, type="post_status_change"
     )
     assert notifications.count() == 1
-    assert notifications.first().params["event"] == "open"
+    assert notifications.first().params["event"] == "published"
 
 
 def test_job_check_post_open_event__publish_notification_is_idempotent(user1, user2):

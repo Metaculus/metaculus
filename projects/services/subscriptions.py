@@ -188,7 +188,7 @@ def notify_project_subscriptions_post_open(
                 subscription.user,
                 NotificationPostStatusChange.ParamsType(
                     post=NotificationPostParams.from_post(post),
-                    event=Post.PostStatusChange.OPEN,
+                    event=Post.PostStatusChange.PUBLISHED,
                     project=NotificationProjectParams.from_project(
                         subscription.project
                     ),
