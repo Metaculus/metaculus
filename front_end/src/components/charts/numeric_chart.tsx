@@ -22,7 +22,6 @@ import {
   VictoryLabel,
   VictoryLabelProps,
   VictoryLine,
-  VictoryPortal,
   VictoryScatter,
   VictoryThemeDefinition,
 } from "victory";
@@ -43,7 +42,6 @@ import {
   CHART_FONT_STYLE,
 } from "@/constants/chart_typography";
 import { METAC_COLORS } from "@/constants/colors";
-import { useBreakpoint } from "@/hooks/tailwind";
 import useAppTheme from "@/hooks/use_app_theme";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
 import useContainerSize from "@/hooks/use_container_size";
@@ -71,11 +69,6 @@ import { resolveToCssColor } from "@/utils/resolve_color";
 import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
 import ChartValueBox from "./primitives/chart_value_box";
 import ResolutionTooltip from "./primitives/resolution_tooltip";
-
-// VictoryPortal fixes SVG z-ordering but causes an infinite loop on mobile
-// (touch-move → new JSX ref → addChild → setState → re-render → repeat).
-const wrapPortal = (element: React.ReactElement, disabled: boolean) =>
-  disabled ? element : <VictoryPortal>{element}</VictoryPortal>;
 
 type ChartData = {
   line: Line;
@@ -161,7 +154,6 @@ const NumericChart: FC<Props> = ({
   const { theme, getThemeColor } = useAppTheme();
   const [isChartReady, setIsChartReady] = useState(false);
   const [zoom, setZoom] = useState(defaultZoom);
-  const isMobile = !useBreakpoint("md");
 
   const [isCursorActive, setIsCursorActive] = useState(false);
   const isContinuousConsumerView =
@@ -294,7 +286,7 @@ const NumericChart: FC<Props> = ({
           />
         )
       }
-      cursorLabelComponent={wrapPortal(
+      cursorLabelComponent={
         <ChartCursorLabel
           positionY={height - 10}
           {...(hasExternalTheme
@@ -302,9 +294,8 @@ const NumericChart: FC<Props> = ({
             : { fill: getThemeColor(METAC_COLORS.gray["700"]) })}
           style={CHART_FONT_STYLE.cursor}
           isActive={isCursorActive}
-        />,
-        isMobile
-      )}
+        />
+      }
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number") {
           handleCursorChange(value);
@@ -729,7 +720,7 @@ const NumericChart: FC<Props> = ({
                         ? () => ""
                         : xScale.tickFormat
                   }
-                  tickLabelComponent={wrapPortal(
+                  tickLabelComponent={
                     <XTickLabel
                       chartWidth={chartWidth}
                       fontSize={tickLabelFontSize}
@@ -739,9 +730,8 @@ const NumericChart: FC<Props> = ({
                           fill: getThemeColor(METAC_COLORS.gray["700"]),
                         },
                       })}
-                    />,
-                    isMobile
-                  )}
+                    />
+                  }
                 />
 
                 {/* CP range */}
@@ -788,68 +778,58 @@ const NumericChart: FC<Props> = ({
                 ) : null}
 
                 {/* Prediction points */}
-                {wrapPortal(
-                  <VictoryScatter
-                    data={clampedPoints}
-                    dataComponent={
-                      <PredictionWithRange
-                        colorOverride={colorOverride ?? colorPalette.chip}
-                      />
-                    }
-                  />,
-                  isMobile
-                )}
+                <VictoryScatter
+                  data={clampedPoints}
+                  dataComponent={
+                    <PredictionWithRange
+                      colorOverride={colorOverride ?? colorPalette.chip}
+                    />
+                  }
+                />
 
                 {/* Resolution marker */}
                 {!!resolutionPoint &&
                 !isCursorActive &&
-                resolutionPlacement === "in"
-                  ? wrapPortal(
-                      <VictoryScatter
-                        data={resolutionPoint}
-                        size={() => 4}
-                        style={{
-                          data: {
-                            stroke: getThemeColor(METAC_COLORS.purple["800"]),
-                            fill: getThemeColor(METAC_COLORS.gray["0"]),
-                            strokeWidth: 2.5,
-                          },
-                        }}
-                      />,
-                      isMobile
-                    )
-                  : null}
+                resolutionPlacement === "in" ? (
+                  <VictoryScatter
+                    data={resolutionPoint}
+                    size={() => 4}
+                    style={{
+                      data: {
+                        stroke: getThemeColor(METAC_COLORS.purple["800"]),
+                        fill: getThemeColor(METAC_COLORS.gray["0"]),
+                        strokeWidth: 2.5,
+                      },
+                    }}
+                  />
+                ) : null}
 
                 {/* Cursor value chip / box */}
                 {resolutionClamped &&
                 resolutionPlacement &&
-                resolutionPlacement !== "in"
-                  ? wrapPortal(
-                      <VictoryScatter
-                        data={[
-                          {
-                            x: resolutionClamped.x,
-                            y: resolutionClamped.y,
-                            placement: resolutionPlacement,
-                            primary:
-                              colorOverride ?? METAC_COLORS.purple["800"],
-                            secondary: METAC_COLORS.purple["500"],
-                          },
-                        ]}
-                        dataComponent={
-                          <ResolutionDiamond
-                            isHovered={isDiamondActive}
-                            refProps={{
-                              ...getDiamondRefProps(),
-                              ref: diamondRefs.setReference,
-                              style: { pointerEvents: "visiblePainted" },
-                            }}
-                          />
-                        }
-                      />,
-                      isMobile
-                    )
-                  : null}
+                resolutionPlacement !== "in" ? (
+                  <VictoryScatter
+                    data={[
+                      {
+                        x: resolutionClamped.x,
+                        y: resolutionClamped.y,
+                        placement: resolutionPlacement,
+                        primary: colorOverride ?? METAC_COLORS.purple["800"],
+                        secondary: METAC_COLORS.purple["500"],
+                      },
+                    ]}
+                    dataComponent={
+                      <ResolutionDiamond
+                        isHovered={isDiamondActive}
+                        refProps={{
+                          ...getDiamondRefProps(),
+                          ref: diamondRefs.setReference,
+                          style: { pointerEvents: "visiblePainted" },
+                        }}
+                      />
+                    }
+                  />
+                ) : null}
 
                 {isCursorActive &&
                 !isNil(highlightedPoint) &&
@@ -874,7 +854,7 @@ const NumericChart: FC<Props> = ({
                 !(hideCursorValueLabel && isCursorActive) ? (
                   <VictoryScatter
                     data={[highlightedPoint]}
-                    dataComponent={wrapPortal(
+                    dataComponent={
                       useSimplifiedCursor ? (
                         <CursorChip
                           shouldRender={
@@ -896,9 +876,8 @@ const NumericChart: FC<Props> = ({
                           questionType={questionType}
                           colorOverride={colorOverride ?? colorPalette.chip}
                         />
-                      ),
-                      isMobile
-                    )}
+                      )
+                    }
                   />
                 ) : null}
               </VictoryChart>
