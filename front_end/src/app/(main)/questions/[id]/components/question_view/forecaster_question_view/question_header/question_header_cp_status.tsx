@@ -304,6 +304,17 @@ const QuestionHeaderCPStatus: FC<Props> = ({
       </div>
     );
   } else if (question.type === QuestionType.Binary) {
+    if (forecastAvailability.cpRevealsOn) {
+      return (
+        <div className="flex flex-col items-center justify-center">
+          <UpcomingCP
+            cpRevealsOn={forecastAvailability.cpRevealsOn}
+            className="whitespace-nowrap"
+          />
+        </div>
+      );
+    }
+
     if (hideCP) {
       if (isEmbed) {
         return null;
@@ -315,17 +326,6 @@ const QuestionHeaderCPStatus: FC<Props> = ({
           })}
         >
           <RevealCPButton />
-        </div>
-      );
-    }
-
-    if (forecastAvailability.cpRevealsOn) {
-      return (
-        <div className="flex flex-col items-center justify-center">
-          <UpcomingCP
-            cpRevealsOn={forecastAvailability.cpRevealsOn}
-            className="whitespace-nowrap"
-          />
         </div>
       );
     }
