@@ -15,6 +15,7 @@ import { JobNavStrip } from "../components/job_nav_strip";
 import { ShareCard } from "../components/share_card";
 import { WageTile } from "../components/wage_tile";
 import { YearStats } from "../components/year_stats";
+import { getHistoricalPercentByYear } from "../data/oews_history";
 import { fetchJobInsights } from "../helpers/fetch_job_insights";
 import { fetchWage } from "../helpers/fetch_wage";
 import { fetchWallData } from "../helpers/fetch_wall_data";
@@ -171,6 +172,16 @@ export default async function JobDetailPage({
                 <MultiQuestionLineChart
                   rows={[
                     {
+                      // Historical actual employment (BLS/OEWS), rebased so the
+                      // 2024 actual ≈ the 2025 baseline (0%). Static row → drawn
+                      // as one muted line spanning 2015→2025.
+                      title: job.name,
+                      historicalValues: {
+                        ...getHistoricalPercentByYear(slug),
+                        2025: 0,
+                      },
+                    },
+                    {
                       questionId: job.post_id,
                       title: job.name,
                       historicalValues: { 2025: 0 },
@@ -183,19 +194,28 @@ export default async function JobDetailPage({
                   height={228}
                   yAxisGutter={44}
                   showTickLabels
-                  historicalLabelText="BASELINE"
-                  getSeriesOptions={() => ({
-                    colorByValue: true,
-                    // Base color (used for data-label badges) follows the
-                    // overall 2035 trajectory; the line/dots use per-value
-                    // red/green/gray via colorByValue.
-                    color:
-                      (forecasts["2035"] ?? 0) < 0
-                        ? "mc2"
-                        : (forecasts["2035"] ?? 0) > 0
-                          ? "mc3"
-                          : "mc1",
-                  })}
+                  historicalLabelText="HISTORICAL"
+                  getSeriesOptions={(_row, index) =>
+                    index === 0
+                      ? {
+                          // Muted, neutral past trajectory.
+                          color: "gray",
+                          colorByValue: false,
+                          dotSize: 2.5,
+                        }
+                      : {
+                          colorByValue: true,
+                          // Base color (used for data-label badges) follows the
+                          // overall 2035 trajectory; the line/dots use per-value
+                          // red/green/gray via colorByValue.
+                          color:
+                            (forecasts["2035"] ?? 0) < 0
+                              ? "mc2"
+                              : (forecasts["2035"] ?? 0) > 0
+                                ? "mc3"
+                                : "mc1",
+                        }
+                  }
                 />
               </div>
             </div>
@@ -215,7 +235,11 @@ export default async function JobDetailPage({
           dataRail={
             <div className="flex flex-col gap-2 md:gap-3">
               {wage2035 != null && <WageTile value={wage2035} />}
-              <ExposureMetrics job={job} />
+              <ExposureMetrics
+                job={job}
+                currentSlug={slug}
+                currentName={job.name}
+              />
             </div>
           }
         />

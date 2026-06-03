@@ -6,25 +6,25 @@ import { useMemo, useState } from "react";
 
 import cn from "@/utils/core/cn";
 
+import { formatSignedPercent } from "../helpers/format";
 import { WALL_YEARS, type WallJob, type WallYear } from "../helpers/wall_types";
 
-type TileSize = "xl" | "lg" | "md" | "sm";
+type TileSize = "top3" | "md" | "sm";
 
+// Top 3 (by |forecast|) are equal-width across the first row; the rest form a
+// lighter mosaic below — no single oversized tile.
 const SIZE_BUCKETS: { size: TileSize; count: number }[] = [
-  { size: "xl", count: 1 },
-  { size: "lg", count: 2 },
+  { size: "top3", count: 3 },
   { size: "md", count: 8 },
   { size: "sm", count: 4 },
 ];
 
 function sizeClassNames(size: TileSize): string {
   // Mobile: uniform 1-col-of-3 grid (no size variation).
-  // sm+: prototype-spec size variation.
+  // sm+: top row = 3 equal tiles, lighter mosaic below.
   switch (size) {
-    case "xl":
-      return "col-span-1 sm:col-span-6 sm:row-span-2";
-    case "lg":
-      return "col-span-1 sm:col-span-3 sm:row-span-2";
+    case "top3":
+      return "col-span-1 sm:col-span-4 sm:row-span-2";
     case "md":
       return "col-span-1 sm:col-span-3";
     case "sm":
@@ -35,10 +35,8 @@ function sizeClassNames(size: TileSize): string {
 function tilePercentClasses(size: TileSize): string {
   // Mobile: uniform text-[26px]; sm+: per-size.
   switch (size) {
-    case "xl":
-      return "text-[26px] sm:text-[96px]";
-    case "lg":
-      return "text-[26px] sm:text-[64px]";
+    case "top3":
+      return "text-[26px] sm:text-[56px]";
     case "md":
       return "text-[26px] sm:text-[40px]";
     case "sm":
@@ -49,10 +47,8 @@ function tilePercentClasses(size: TileSize): string {
 function tileNameClasses(size: TileSize): string {
   // Mobile: uniform text-[11px]; sm+: per-size.
   switch (size) {
-    case "xl":
-      return "text-[11px] sm:text-[22px]";
-    case "lg":
-      return "text-[11px] sm:text-[16px]";
+    case "top3":
+      return "text-[11px] sm:text-[18px]";
     case "md":
       return "text-[11px] sm:text-[14px]";
     case "sm":
@@ -62,9 +58,7 @@ function tileNameClasses(size: TileSize): string {
 
 function tickerFontSize(size: TileSize): string {
   switch (size) {
-    case "xl":
-      return "text-[13px]";
-    case "lg":
+    case "top3":
       return "text-[12px]";
     case "md":
       return "text-[11px]";
@@ -75,21 +69,13 @@ function tickerFontSize(size: TileSize): string {
 
 function tickerDurationSeconds(size: TileSize): number {
   switch (size) {
-    case "xl":
-      return 40;
-    case "lg":
+    case "top3":
       return 35;
     case "md":
       return 30;
     case "sm":
       return 25;
   }
-}
-
-function formatPercent(value: number | null): string {
-  if (value == null) return "—";
-  const sign = value > 0 ? "+" : value < 0 ? "−" : "";
-  return `${sign}${Math.abs(value).toFixed(0)}%`;
 }
 
 /**
@@ -215,7 +201,7 @@ export function JobsWall({ jobs, tickers }: Props) {
                   tilePercentClasses(size)
                 )}
               >
-                {formatPercent(value)}
+                {formatSignedPercent(value)}
               </span>
               <span
                 className={cn(

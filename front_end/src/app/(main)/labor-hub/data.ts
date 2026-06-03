@@ -181,3 +181,34 @@ export const ALL_JOB_SLUGS = JOBS_DATA.map((j) => j.slug);
 export function getJobBySlug(slug: string): JobDefinition | undefined {
   return JOBS_DATA.find((j) => j.slug === slug);
 }
+
+const SLUG_BY_NAME = new Map(JOBS_DATA.map((j) => [j.name, j.slug]));
+
+/** Resolves a job's display name (as shown in the Jobs Monitor) to its slug. */
+export function getJobSlugByName(name: string): string | undefined {
+  return SLUG_BY_NAME.get(name);
+}
+
+/** Compact labels for tight chips (e.g. the metric comparison chart). */
+const SHORT_BY_SLUG: Record<string, string> = {
+  "laborers-and-movers": "Laborers",
+  "construction-workers": "Construction",
+  "janitors-and-cleaners": "Janitors",
+  "restaurant-servers": "Servers",
+  "law-enforcement": "Law Enf.",
+  physicians: "Physicians",
+  "registered-nurses": "Nurses",
+  "k12-teachers": "Teachers",
+  "lawyers-and-law-clerks": "Lawyers",
+  "services-sales-representatives": "Sales Reps",
+  designers: "Designers",
+  engineers: "Engineers",
+  "software-developers": "Software Devs",
+  "financial-specialists": "Financial",
+  "general-managers": "GMs",
+};
+
+/** Short label for a job, falling back to its full name. */
+export function getJobShort(slug: string): string {
+  return SHORT_BY_SLUG[slug] ?? getJobBySlug(slug)?.name ?? slug;
+}

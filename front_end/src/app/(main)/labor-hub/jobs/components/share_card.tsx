@@ -1,5 +1,8 @@
 "use client";
 
+import { faLinkedin, faXTwitter } from "@fortawesome/free-brands-svg-icons";
+import { faDownload } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useRef } from "react";
 
@@ -7,6 +10,9 @@ import { logError } from "@/utils/core/errors";
 
 import { ShareCardPreview } from "./share_card_preview";
 import { type WallYear } from "../helpers/wall_types";
+
+const SHARE_BUTTON_CLASS =
+  "inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-full bg-blue-900 px-5 py-2.5 text-sm font-semibold text-gray-0 no-underline transition-colors hover:bg-blue-800 dark:bg-blue-900-dark dark:text-gray-0-dark dark:hover:bg-blue-800-dark";
 
 type Props = {
   slug: string;
@@ -36,6 +42,7 @@ export function ShareCard({
   }, [forecasts, jobName, pageUrl]);
 
   const tweetIntent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+  const linkedinIntent = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}`;
 
   const handleSave = useCallback(() => {
     const svg = cardRef.current?.querySelector("svg");
@@ -98,21 +105,32 @@ export function ShareCard({
           />
         </div>
 
-        <div className="flex flex-col justify-end gap-3">
+        <div className="flex flex-col items-center justify-center gap-3">
           <button
             type="button"
             onClick={handleSave}
-            className="inline-flex items-center justify-center rounded-md bg-blue-900 px-4 py-2 text-sm font-semibold text-gray-0 transition-colors hover:bg-blue-800 dark:bg-blue-900-dark dark:text-gray-0-dark dark:hover:bg-blue-800-dark"
+            className={SHARE_BUTTON_CLASS}
           >
+            <FontAwesomeIcon icon={faDownload} />
             {t("laborHubJobsShareSave")}
           </button>
           <a
             href={tweetIntent}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center rounded-md border border-blue-300 bg-gray-0 px-4 py-2 text-sm font-semibold text-blue-900 no-underline transition-colors hover:bg-blue-100 dark:border-blue-300-dark dark:bg-gray-0-dark dark:text-blue-900-dark dark:hover:bg-blue-100-dark"
+            className={SHARE_BUTTON_CLASS}
           >
+            <FontAwesomeIcon icon={faXTwitter} />
             {t("laborHubJobsShareTweet")}
+          </a>
+          <a
+            href={linkedinIntent}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={SHARE_BUTTON_CLASS}
+          >
+            <FontAwesomeIcon icon={faLinkedin} />
+            {t("laborHubJobsShareLinkedin")}
           </a>
         </div>
       </div>

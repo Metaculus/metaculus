@@ -2,17 +2,12 @@ import { getTranslations } from "next-intl/server";
 
 import cn from "@/utils/core/cn";
 
+import { formatSignedPercent } from "../helpers/format";
 import { type WallYear } from "../helpers/wall_types";
 
 type Props = {
   forecasts: Record<WallYear, number | null>;
 };
-
-function formatPercent(value: number | null): string {
-  if (value == null) return "—";
-  const sign = value > 0 ? "+" : value < 0 ? "−" : "";
-  return `${sign}${Math.abs(value).toFixed(0)}%`;
-}
 
 function valueClass(value: number | null): string {
   if (value == null) return "text-blue-700 dark:text-blue-700-dark";
@@ -43,7 +38,7 @@ export async function YearStats({ forecasts }: Props) {
                 valueClass(value)
               )}
             >
-              {formatPercent(value)}
+              {formatSignedPercent(value)}
             </div>
           </div>
         );

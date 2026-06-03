@@ -3,18 +3,18 @@
 import { faCircleQuestion } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 
-import Tooltip from "@/components/ui/tooltip";
 import cn from "@/utils/core/cn";
 
+import { MetricOverlay } from "./metric_overlay";
 import { type JobDefinition } from "../../data";
 import {
   type ExposureLevel,
   getExposureLevel,
   normalize,
 } from "../helpers/exposure_thresholds";
-
-type MetricKey = "felten" | "mna" | "aoe";
+import { type MetricKey } from "../helpers/metric_defs";
 
 function levelClasses(level: ExposureLevel): {
   ring: string;
@@ -51,10 +51,13 @@ function formatValue(key: MetricKey, value: number): string {
 
 type Props = {
   job: Pick<JobDefinition, "felten" | "mna" | "aoe">;
+  currentSlug: string;
+  currentName: string;
 };
 
-export function ExposureMetrics({ job }: Props) {
+export function ExposureMetrics({ job, currentSlug, currentName }: Props) {
   const t = useTranslations();
+  const [active, setActive] = useState<MetricKey | null>(null);
 
   const ringLabel = (level: ExposureLevel): string =>
     level === "high"
@@ -90,60 +93,80 @@ export function ExposureMetrics({ job }: Props) {
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-2 md:grid-cols-1 md:gap-3">
-      {items.map(({ key, label, tooltip, value }) => {
-        const level = getExposureLevel(key, value);
-        const pct = normalize(key, value) * 100;
-        const cls = levelClasses(level);
-        return (
-          <div
-            key={key}
-            className="rounded-md border border-blue-300 bg-blue-100 p-3 dark:border-blue-300-dark dark:bg-blue-100-dark md:p-4"
-          >
-            <div className="flex items-center justify-between gap-1 md:gap-2">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-700-dark md:text-xs">
-                {label}
-              </span>
-              <div className="flex items-center gap-1 md:gap-1.5">
-                <span
-                  className={cn(
-                    "rounded-full border px-1.5 py-0.5 text-[10px] font-semibold md:px-2 md:text-xs",
-                    cls.ring,
-                    cls.label
-                  )}
-                >
-                  {ringLabel(level)}
+    <>
+      <div className="grid grid-cols-3 gap-2 md:grid-cols-1 md:gap-3">
+        {items.map(({ key, label, tooltip, value }) => {
+          const level = getExposureLevel(key, value);
+          const pct = normalize(key, value) * 100;
+          const cls = levelClasses(level);
+          return (
+            <div
+              key={key}
+              role="button"
+              tabIndex={0}
+              aria-label={`${label} — ${t("laborHubJobsMetricSeeAll")}`}
+              onClick={() => setActive(key)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setActive(key);
+                }
+              }}
+              className="group relative cursor-pointer rounded-md border border-blue-300 bg-blue-100 p-3 transition-colors hover:border-blue-500 hover:bg-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 dark:border-blue-300-dark dark:bg-blue-100-dark dark:hover:border-blue-500-dark dark:hover:bg-blue-200-dark dark:focus-visible:ring-blue-700-dark md:p-4"
+            >
+              <div className="flex items-center justify-between gap-1 md:gap-2">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-700-dark md:text-xs">
+                  {label}
                 </span>
-                <Tooltip
-                  tooltipContent={tooltip}
-                  showDelayMs={150}
-                  placement="top"
-                >
-                  <button
-                    type="button"
-                    aria-label={tooltip}
-                    className="hidden h-4 w-4 cursor-help items-center justify-center rounded-full text-blue-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-700 dark:text-blue-600-dark dark:focus-visible:ring-blue-700-dark md:inline-flex"
+                <div className="flex items-center gap-1 md:gap-1.5">
+                  <span
+                    className={cn(
+                      "rounded-full border px-1.5 py-0.5 text-[10px] font-semibold md:px-2 md:text-xs",
+                      cls.ring,
+                      cls.label
+                    )}
                   >
-                    <FontAwesomeIcon
-                      icon={faCircleQuestion}
-                      className="text-[14px]"
-                    />
-                  </button>
-                </Tooltip>
+                    {ringLabel(level)}
+                  </span>
+                  <FontAwesomeIcon
+                    icon={faCircleQuestion}
+                    aria-hidden
+                    className="hidden text-[14px] text-blue-600 dark:text-blue-600-dark md:inline"
+                  />
+                </div>
+              </div>
+              <div className="mt-2 font-jetbrains-mono text-xl font-bold text-blue-900 dark:text-blue-900-dark md:mt-3 md:text-3xl">
+                {formatValue(key, value)}
+              </div>
+              <div className="mt-2 h-1.5 rounded-full bg-blue-200 dark:bg-blue-200-dark md:mt-3">
+                <div
+                  className={cn("h-full rounded-full", cls.bar)}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+
+              {/* Tile-wide tooltip under the whole card (hover / keyboard focus). */}
+              <div className="pointer-events-none absolute left-0 right-0 top-full z-30 mt-2 hidden rounded-md bg-blue-900 p-3 text-left text-xs leading-snug text-gray-0 shadow-lg group-focus-within:block can-hover:group-hover:block dark:bg-blue-900-dark dark:text-gray-0-dark">
+                <span
+                  aria-hidden
+                  className="absolute -top-1 left-6 h-2 w-2 rotate-45 bg-blue-900 dark:bg-blue-900-dark"
+                />
+                <span className="block">{tooltip}</span>
+                <span className="mt-1.5 block opacity-60">
+                  {t("laborHubJobsMetricSeeAll")}
+                </span>
               </div>
             </div>
-            <div className="mt-2 font-jetbrains-mono text-xl font-bold text-blue-900 dark:text-blue-900-dark md:mt-3 md:text-3xl">
-              {formatValue(key, value)}
-            </div>
-            <div className="mt-2 h-1.5 rounded-full bg-blue-200 dark:bg-blue-200-dark md:mt-3">
-              <div
-                className={cn("h-full rounded-full", cls.bar)}
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+
+      <MetricOverlay
+        metricKey={active}
+        currentSlug={currentSlug}
+        currentName={currentName}
+        onClose={() => setActive(null)}
+      />
+    </>
   );
 }

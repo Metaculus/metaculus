@@ -7,6 +7,8 @@ import { useCallback, useEffect, useRef } from "react";
 import ReusableGradientCarousel from "@/components/gradient-carousel";
 import cn from "@/utils/core/cn";
 
+import { formatSignedPercent } from "../helpers/format";
+
 type JobNavItem = { slug: string; name: string; value2035: number | null };
 
 type Props = {
@@ -19,12 +21,6 @@ type Props = {
 // — so switching jobs retains the strip position, while a fresh visit centers
 // the active pill.
 let retainedScrollLeft: number | null = null;
-
-function formatPercent(value: number | null): string {
-  if (value == null) return "";
-  const sign = value > 0 ? "+" : value < 0 ? "−" : "";
-  return `${sign}${Math.abs(value).toFixed(0)}%`;
-}
 
 function valueColor(value: number | null): string {
   if (value == null) return "";
@@ -143,7 +139,7 @@ export function JobNavStrip({ current, items }: Props) {
                       valueColor(item.value2035)
                     )}
                   >
-                    {formatPercent(item.value2035)}
+                    {formatSignedPercent(item.value2035)}
                   </span>
                 )}
               </Link>
