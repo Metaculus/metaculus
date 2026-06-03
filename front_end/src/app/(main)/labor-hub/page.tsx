@@ -453,11 +453,12 @@ export default function LaborAutomationHubPage() {
               <strong>more than doubled</strong> in 2035 compared to 2025.
             </ContentParagraph>
             <ContentParagraph>
-              The number of degrees awarded overall and for STEM and humanities
-              is expected to see only minor change due to the long gestation
-              time, while trade schools and community colleges are expected to
-              see significant growth in degrees and certificates awarded by
-              2035.
+              The number of degrees awarded for STEM is expected to see only
+              minor change due to the long gestation time, while overall 4-year
+              degrees are expected to decline 3.7% and humanities degrees are
+              expected to decline 7.1% by 2035. Trade schools and community
+              colleges are expected to see significant growth in degrees and
+              certificates awarded by 2035.
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight className="lg:mt-24 print:mt-12">
