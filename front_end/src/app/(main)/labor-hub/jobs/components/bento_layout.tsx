@@ -14,8 +14,8 @@ type Props = {
 export function BentoLayout({ insights, dataRail }: Props) {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-      <div className="md:order-1 md:col-span-2">{insights}</div>
-      <div className="md:order-2 md:col-span-1">{dataRail}</div>
+      <div className="order-2 md:order-1 md:col-span-2">{insights}</div>
+      <div className="order-1 md:order-2 md:col-span-1">{dataRail}</div>
     </div>
   );
 }

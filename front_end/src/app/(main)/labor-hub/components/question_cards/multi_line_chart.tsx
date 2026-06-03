@@ -2,7 +2,14 @@
 
 import { faCircleQuestion } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC, useCallback, useMemo, useState, type MouseEvent } from "react";
+import {
+  FC,
+  useCallback,
+  useId,
+  useMemo,
+  useState,
+  type MouseEvent,
+} from "react";
 import {
   LineSegment,
   VictoryAxis,
@@ -640,6 +647,9 @@ export const MultiLineChart: FC<Props> = ({
   // When filling the parent, drive the chart height from the measured container
   // (falling back to the prop until the first measurement lands).
   const height = fillHeight ? measuredHeight || heightProp : heightProp;
+  // Per-instance prefix so colorByValue gradient ids never collide across
+  // multiple charts on the same page (sanitized — useId() contains colons).
+  const gradientIdPrefix = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const isPrintMode = usePrintOverride();
@@ -770,7 +780,7 @@ export const MultiLineChart: FC<Props> = ({
           const xLast = Math.max(...xs);
           const span = xLast - xFirst || 1;
           valueGradient = {
-            id: `lh-value-grad-${item.id.replace(/[^a-zA-Z0-9_-]/g, "")}`,
+            id: `lh-value-grad-${gradientIdPrefix}-${item.id.replace(/[^a-zA-Z0-9_-]/g, "")}`,
             stops: [...chartData]
               .sort((a, b) => a.x - b.x)
               .map((d) => ({
@@ -791,7 +801,13 @@ export const MultiLineChart: FC<Props> = ({
           pointColorFn,
         };
       }),
-    [series, emphasisActive, emphasizedSeriesId, getThemeColor]
+    [
+      series,
+      emphasisActive,
+      emphasizedSeriesId,
+      getThemeColor,
+      gradientIdPrefix,
+    ]
   );
 
   const handleChartMouseMove = useCallback(
