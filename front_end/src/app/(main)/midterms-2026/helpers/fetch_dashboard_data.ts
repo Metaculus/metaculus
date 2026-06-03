@@ -168,9 +168,20 @@ export const fetchConsequenceConditionals = cache(
     const ids = CONSEQUENCE_QUESTION_IDS.filter((id) => id > 0);
     if (!ids.length) return [];
 
-    const posts = await Promise.all(
-      ids.map((id) => ServerPostsApi.getPost(id, true).catch(() => null))
-    );
+    // Use the list endpoint (getPostsWithCP) rather than per-post getPost:
+    // it surfaces the group subquestions' community prediction (the single
+    // getPost endpoint does not include it on the deployed backend) and it
+    // collapses N requests into one — matching how chamber/seat fetch.
+    let byId = new Map<number, PostWithForecasts>();
+    try {
+      const { results } = await ServerPostsApi.getPostsWithCP({
+        ids,
+        limit: ids.length,
+      });
+      byId = new Map(results.map((p) => [p.id, p]));
+    } catch {
+      byId = new Map();
+    }
 
     const pct = (
       q: QuestionWithNumericForecasts | undefined
@@ -179,8 +190,9 @@ export const fetchConsequenceConditionals = cache(
       return prob != null ? Math.round(prob * 100) : null;
     };
 
-    return posts
-      .map((post, i): ConsequenceConditional | null => {
+    return ids
+      .map((id): ConsequenceConditional | null => {
+        const post = byId.get(id);
         if (!post) return null;
         const subs =
           (post.group_of_questions?.questions as
@@ -189,7 +201,6 @@ export const fetchConsequenceConditionals = cache(
         const byLabel = new Map(
           subs.map((q) => [(q.label ?? "").toLowerCase(), q])
         );
-        const id = ids[i] as number;
         return {
           id,
           href: `/questions/${id}`,
