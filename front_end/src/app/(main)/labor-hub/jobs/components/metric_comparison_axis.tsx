@@ -72,8 +72,8 @@ export function MetricComparisonAxis({ metricKey, currentSlug }: Props) {
           </span>
         </div>
 
-        {/* Axis line */}
-        <div className="absolute inset-x-0 top-[50px] h-[3px] rounded bg-blue-400 dark:bg-blue-400-dark" />
+        {/* Axis line — as thick as the dots, darker than the panel and dots */}
+        <div className="absolute inset-x-0 top-[43px] h-3.5 rounded-full bg-blue-950 dark:bg-blue-950-dark" />
 
         {/* Dots */}
         {sorted.map((job) => {
@@ -90,10 +90,10 @@ export function MetricComparisonAxis({ metricKey, currentSlug }: Props) {
               )}
               style={{ left: `${pct}%` }}
             >
-              {/* Enlarged invisible hit-area */}
+              {/* Enlarged invisible hit-area (covers most of the track height) */}
               <span
                 aria-hidden
-                className="absolute left-1/2 top-1/2 h-16 w-9 -translate-x-1/2 -translate-y-1/2"
+                className="absolute left-1/2 top-1/2 h-24 w-9 -translate-x-1/2 -translate-y-1/2"
               />
 
               {/* Visible mark */}
