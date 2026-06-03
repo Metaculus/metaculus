@@ -154,6 +154,23 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
     ),
   },
   {
+    date: "2026-05-15",
+    type: "news",
+    content: (
+      <>
+        Pope Leo XIV publishes an encyclical addressing human dignity in the era
+        of artificial intelligence -{" "}
+        <a
+          href="https://www.vatican.va/content/leo-xiv/en/encyclicals/documents/20260515-magnifica-humanitas.html"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          The Vatican
+        </a>
+      </>
+    ),
+  },
+  {
     date: "2026-05-21",
     type: "news",
     content: (
