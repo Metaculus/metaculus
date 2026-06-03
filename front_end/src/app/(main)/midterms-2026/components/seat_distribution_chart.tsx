@@ -242,7 +242,7 @@ const SeatDistributionChart: FC<Props> = ({
   // (often two-line) party-advantage labels clear the numeric ticks.
   const isNarrow = !!chartWidth && chartWidth < 480;
   const chartPadding = isNarrow
-    ? { ...CHART_PADDING, bottom: 76 }
+    ? { ...CHART_PADDING, bottom: 66 }
     : CHART_PADDING;
 
   // Explicit bar width derived from the available plot area divided by the
@@ -306,7 +306,7 @@ const SeatDistributionChart: FC<Props> = ({
   const tooltipComponent = (
     <VictoryTooltip
       cornerRadius={6}
-      flyoutPadding={{ top: 12, bottom: 12, left: 16, right: 16 }}
+      flyoutPadding={{ top: 12, bottom: 12, left: 12, right: 12 }}
       flyoutStyle={{ fill: tooltipBgFill, stroke: "transparent" }}
       style={[
         {
@@ -573,6 +573,23 @@ const SeatDistributionChart: FC<Props> = ({
               }}
             />
           )}
+
+          {/* Chart title (SENATE / HOUSE) — rendered inside the SVG (not as an
+              HTML overlay) so the voronoi tooltip paints above it. */}
+          <VictoryLabel
+            text={ariaTitle.toUpperCase()}
+            x={52}
+            y={14}
+            textAnchor="start"
+            verticalAnchor="start"
+            style={{
+              fill: tickColor,
+              fontSize: 16,
+              fontWeight: 700,
+              letterSpacing: 0.5,
+              fontFamily: TEXT_FONT_FAMILY,
+            }}
+          />
         </VictoryChart>
       )}
 
@@ -598,7 +615,7 @@ const SeatDistributionChart: FC<Props> = ({
           corner at half opacity (see midterms hub mock). */}
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute font-sans text-sm font-semibold uppercase tracking-wide opacity-60"
+        className="pointer-events-none absolute font-sans text-base font-bold uppercase tracking-wide"
         style={{ left: 52, top: 12, color: tickColor }}
       >
         {ariaTitle}

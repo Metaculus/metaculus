@@ -209,7 +209,7 @@ const ConsequenceGrid: FC<Props> = ({
             style={{ backgroundColor: cellBg(row.key, "question") }}
             className="col-span-3 m-0 flex items-center pb-2 pt-4 text-sm font-medium text-blue-800 transition-colors dark:text-blue-800-dark md:col-span-1 md:py-4 md:pr-4 md:text-base"
           >
-            <span className="decoration-1 decoration-blue-500 underline-offset-4 group-hover/row:underline">
+            <span className="decoration-blue-500 decoration-1 underline-offset-4 group-hover/row:underline">
               {row.question}
             </span>
           </p>
