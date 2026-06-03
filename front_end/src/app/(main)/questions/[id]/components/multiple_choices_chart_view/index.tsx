@@ -279,6 +279,7 @@ const MultiChoicesChartView: FC<Props> = ({
                     questionType={QuestionType.MultipleChoice}
                     onChoiceChange={handleChoiceChange}
                     onChoiceHighlight={handleChoiceHighlight}
+                    hideCP={hideCP}
                   />
                 </div>
               ) : undefined
@@ -299,6 +300,7 @@ const MultiChoicesChartView: FC<Props> = ({
                     questionType={QuestionType.MultipleChoice}
                     onChoiceChange={handleChoiceChange}
                     onChoiceHighlight={handleChoiceHighlight}
+                    hideCP={hideCP}
                   />
                 </div>
               ) : undefined
@@ -326,6 +328,7 @@ const MultiChoicesChartView: FC<Props> = ({
                     questionType={questionType ?? QuestionType.Binary}
                     onChoiceChange={handleChoiceChange}
                     onChoiceHighlight={handleChoiceHighlight}
+                    hideCP={hideCP}
                   />
                 </div>
               ) : undefined
