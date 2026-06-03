@@ -610,16 +610,6 @@ const SeatDistributionChart: FC<Props> = ({
           {repAdvantageLabel}
         </span>
       </div>
-
-      {/* Chart title — rendered inside the plot, pinned to the top-left
-          corner at half opacity (see midterms hub mock). */}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute font-sans text-base font-bold uppercase tracking-wide"
-        style={{ left: 52, top: 12, color: tickColor }}
-      >
-        {ariaTitle}
-      </span>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FC, ReactNode, useState } from "react";
+import { CSSProperties, FC, ReactNode, useState } from "react";
 
 import { addOpacityToHex } from "@/utils/core/colors";
 
@@ -144,6 +144,17 @@ const ConsequenceGrid: FC<Props> = ({
     return undefined;
   };
 
+  // The question (leftmost) cell fades its highlight in from the left edge so
+  // the row tint doesn't begin with a hard vertical edge.
+  const questionBg = (rowKey: string): CSSProperties | undefined => {
+    const b = cellBg(rowKey, "question");
+    return b
+      ? {
+          background: `linear-gradient(to right, transparent 0%, ${b} 10%, ${b} 100%)`,
+        }
+      : undefined;
+  };
+
   return (
     <div onMouseLeave={() => setHover(null)}>
       {/* Header row: lead slot in col 1, party cards in cols 2-4. Same
@@ -206,10 +217,10 @@ const ConsequenceGrid: FC<Props> = ({
               underlines on row hover to signal the row is a link. */}
           <p
             onMouseEnter={() => setHover({ kind: "row", row: row.key })}
-            style={{ backgroundColor: cellBg(row.key, "question") }}
+            style={questionBg(row.key)}
             className="col-span-3 m-0 flex items-center pb-2 pt-4 text-sm font-medium text-blue-800 transition-colors dark:text-blue-800-dark md:col-span-1 md:py-4 md:pr-4 md:text-base"
           >
-            <span className="decoration-blue-500 decoration-1 underline-offset-4 group-hover/row:underline">
+            <span className="decoration-blue-400/50 decoration-1 underline-offset-4 group-hover/row:underline dark:decoration-blue-400-dark/50">
               {row.question}
             </span>
           </p>

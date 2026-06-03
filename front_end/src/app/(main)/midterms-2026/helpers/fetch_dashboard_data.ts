@@ -190,6 +190,18 @@ export const fetchConsequenceConditionals = cache(
       return prob != null ? Math.round(prob * 100) : null;
     };
 
+    // Match the three scenario subquestions by keyword rather than an exact
+    // label, so wording changes (e.g. "Mixed" → "Split Congress",
+    // "Democratic" → "Democratic Congress") don't blank out the gauges.
+    const findSub = (
+      subs: QuestionWithNumericForecasts[],
+      ...keywords: string[]
+    ): QuestionWithNumericForecasts | undefined =>
+      subs.find((q) => {
+        const label = (q.label ?? "").toLowerCase();
+        return keywords.some((k) => label.includes(k));
+      });
+
     return ids
       .map((id): ConsequenceConditional | null => {
         const post = byId.get(id);
@@ -198,16 +210,13 @@ export const fetchConsequenceConditionals = cache(
           (post.group_of_questions?.questions as
             | QuestionWithNumericForecasts[]
             | undefined) ?? [];
-        const byLabel = new Map(
-          subs.map((q) => [(q.label ?? "").toLowerCase(), q])
-        );
         return {
           id,
           href: `/questions/${id}`,
           title: post.short_title || post.title || "",
-          demPct: pct(byLabel.get("democratic")),
-          splitPct: pct(byLabel.get("mixed")),
-          repPct: pct(byLabel.get("republican")),
+          demPct: pct(findSub(subs, "democrat")),
+          splitPct: pct(findSub(subs, "split", "mixed")),
+          repPct: pct(findSub(subs, "republican")),
         };
       })
       .filter((row): row is ConsequenceConditional => row !== null);
