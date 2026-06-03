@@ -41,6 +41,8 @@ import {
 type Props = {
   series: MultiLineChartSeries[];
   height?: number;
+  /** When true, the chart fills its parent's height (measured) instead of using `height`. */
+  fillHeight?: boolean;
   yAxisLabels?: MultiLineChartYAxisLabel[];
   showTickLabels?: boolean;
   showLegend?: boolean;
@@ -534,7 +536,10 @@ const ChangeBadge: FC<{
   if (x === undefined || y === undefined || !datum) return null;
   if (!alwaysVisible && (highlightedX == null || datum.x !== highlightedX))
     return null;
-  if (datum.y === 0) return null;
+  // Hide the baseline "0%" badge by default, but show it when that exact point
+  // is hovered (so the baseline reads like any other data point).
+  const isHovered = highlightedX != null && datum.x === highlightedX;
+  if (datum.y === 0 && !isHovered) return null;
 
   const perPoint = colorFn ? colorFn(datum) : undefined;
   const effectiveLineColor = perPoint ?? lineColor;
@@ -606,7 +611,8 @@ const getHoverLabelMode = (mode: DataLabelMode | undefined) =>
 
 export const MultiLineChart: FC<Props> = ({
   series,
-  height = 250,
+  height: heightProp = 250,
+  fillHeight = false,
   yAxisLabels,
   showTickLabels = false,
   showLegend = true,
@@ -626,8 +632,14 @@ export const MultiLineChart: FC<Props> = ({
   forecastLabelText = "FORECAST",
   hideHistoricalLabelsInPrint = false,
 }) => {
-  const { ref: chartContainerRef, width: chartWidth } =
-    useContainerSize<HTMLDivElement>();
+  const {
+    ref: chartContainerRef,
+    width: chartWidth,
+    height: measuredHeight,
+  } = useContainerSize<HTMLDivElement>();
+  // When filling the parent, drive the chart height from the measured container
+  // (falling back to the prop until the first measurement lands).
+  const height = fillHeight ? measuredHeight || heightProp : heightProp;
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const isPrintMode = usePrintOverride();
@@ -1139,8 +1151,8 @@ export const MultiLineChart: FC<Props> = ({
     .filter((g): g is ValueGradient => g != null);
 
   return (
-    <div className="w-full">
-      {valueGradients.length > 0 && (
+    <div className={cn("w-full", fillHeight && "h-full")}>
+      {shouldDisplayChart && valueGradients.length > 0 && (
         <svg
           width="0"
           height="0"
@@ -1173,8 +1185,11 @@ export const MultiLineChart: FC<Props> = ({
 
       <div
         ref={chartContainerRef}
-        className="relative w-full cursor-crosshair"
-        style={{ height }}
+        className={cn(
+          "relative w-full cursor-crosshair",
+          fillHeight && "h-full"
+        )}
+        style={fillHeight ? undefined : { height }}
         onMouseMove={handleChartMouseMove}
         onMouseLeave={handleChartMouseLeave}
       >

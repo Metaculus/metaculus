@@ -167,24 +167,24 @@ export default async function JobDetailPage({
                 <YearStats forecasts={forecasts} />
               </div>
             </div>
-            <div className="flex h-full items-center overflow-hidden rounded-md border border-blue-300 bg-blue-100 p-2 dark:border-blue-300-dark dark:bg-blue-100-dark">
-              <div className="w-full">
+            <div className="flex h-[228px] overflow-hidden lg:h-full">
+              <div className="h-full w-full">
                 <MultiQuestionLineChart
+                  fillHeight
                   rows={[
                     {
                       // Historical actual employment (BLS/OEWS), rebased so the
-                      // 2024 actual ≈ the 2025 baseline (0%). Static row → drawn
-                      // as one muted line spanning 2015→2025.
+                      // latest actual (2024) is the 0% baseline. Static row →
+                      // drawn as one muted line spanning 2015→2024.
                       title: job.name,
-                      historicalValues: {
-                        ...getHistoricalPercentByYear(slug),
-                        2025: 0,
-                      },
+                      historicalValues: getHistoricalPercentByYear(slug),
                     },
                     {
                       questionId: job.post_id,
                       title: job.name,
-                      historicalValues: { 2025: 0 },
+                      // Forecast anchored at the 2024 baseline (no synthetic 2025
+                      // point) so history and forecast share a single 0% point.
+                      historicalValues: { 2024: 0 },
                     },
                   ]}
                   valueFormat="percentageChange"

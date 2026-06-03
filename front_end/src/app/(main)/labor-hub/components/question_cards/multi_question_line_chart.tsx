@@ -194,6 +194,7 @@ async function MultiQuestionLineChartContent({
   valueFormat = "percentageChange",
   decimals = 1,
   getSeriesOptions,
+  fillHeight = false,
   ...chartProps
 }: MultiQuestionLineChartProps) {
   const postIds = rows
@@ -230,7 +231,9 @@ async function MultiQuestionLineChartContent({
 
   return (
     <>
-      <div className={cn("group/card relative", className)}>
+      <div
+        className={cn("group/card relative", fillHeight && "h-full", className)}
+      >
         {showMoreButton && postIds.length > 0 && (
           <div className="absolute right-4 top-4 z-10 [visibility:var(--ss-hidden,visible)] print:hidden">
             <MoreButton postIds={postIds} postTitle={titleText} />
@@ -248,6 +251,7 @@ async function MultiQuestionLineChartContent({
           historicalForecastDividerX={historicalForecastDividerX}
           valueFormat={valueFormat}
           decimals={decimals}
+          fillHeight={fillHeight}
         />
       </div>
       {note && (

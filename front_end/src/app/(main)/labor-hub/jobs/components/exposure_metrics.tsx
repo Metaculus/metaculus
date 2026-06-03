@@ -138,15 +138,17 @@ export function ExposureMetrics({ job, currentSlug, currentName }: Props) {
               <div className="mt-2 font-jetbrains-mono text-xl font-bold text-blue-900 dark:text-blue-900-dark md:mt-3 md:text-3xl">
                 {formatValue(key, value)}
               </div>
-              <div className="mt-2 h-1.5 rounded-full bg-blue-200 dark:bg-blue-200-dark md:mt-3">
+              <div className="mt-2 h-1.5 rounded-full bg-blue-200 transition-colors group-hover:bg-blue-300 dark:bg-blue-200-dark dark:group-hover:bg-blue-300-dark md:mt-3">
                 <div
                   className={cn("h-full rounded-full", cls.bar)}
                   style={{ width: `${pct}%` }}
                 />
               </div>
 
-              {/* Tile-wide tooltip under the whole card (hover / keyboard focus). */}
-              <div className="pointer-events-none absolute left-0 right-0 top-full z-30 mt-2 hidden rounded-md bg-blue-900 p-3 text-left text-xs leading-snug text-gray-0 shadow-lg group-focus-within:block can-hover:group-hover:block dark:bg-blue-900-dark dark:text-gray-0-dark">
+              {/* Tile-wide tooltip under the whole card (pointer hover only, so it
+                  doesn't linger when focus returns to the tile after the overlay
+                  closes). */}
+              <div className="pointer-events-none absolute left-0 right-0 top-full z-30 mt-2 hidden rounded-md bg-blue-900 p-3 text-left text-xs leading-snug text-gray-0 shadow-lg can-hover:group-hover:block dark:bg-blue-900-dark dark:text-gray-0-dark">
                 <span
                   aria-hidden
                   className="absolute -top-1 left-6 h-2 w-2 rotate-45 bg-blue-900 dark:bg-blue-900-dark"
