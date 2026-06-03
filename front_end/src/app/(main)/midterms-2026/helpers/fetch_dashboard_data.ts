@@ -3,7 +3,11 @@ import { cache } from "react";
 
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import { PostWithForecasts } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import {
+  getDiscreteValueOptions,
+  getPredictionDisplayValue,
+} from "@/utils/formatters/prediction";
 
 import {
   CHAMBER_QUESTIONS,
@@ -147,21 +151,65 @@ export const fetchGovernorRaces = cache(
   }
 );
 
+// One scenario cell: a binary probability (rendered as a gauge), a numeric
+// median + interquartile range (rendered as text), or empty.
+export type ConsequenceCell =
+  | { kind: "binary"; pct: number | null }
+  | { kind: "numeric"; median: string; range: string }
+  | { kind: "empty" };
+
 export type ConsequenceConditional = {
   id: number;
+  href: string;
   title: string;
-  /** If Democrats control Congress (subquestion label "Democratic"). */
-  demPct: number | null;
-  /** If control is split (subquestion label "Mixed"). */
-  splitPct: number | null;
-  /** If Republicans control Congress (subquestion label "Republican"). */
-  repPct: number | null;
+  /** "Democratic" subquestion → if Democrats control Congress. */
+  dem: ConsequenceCell;
+  /** "Mixed" subquestion → if control is split. */
+  split: ConsequenceCell;
+  /** "Republican" subquestion → if Republicans control Congress. */
+  rep: ConsequenceCell;
 };
 
+function buildConsequenceCell(
+  q: QuestionWithNumericForecasts | undefined
+): ConsequenceCell {
+  if (!q) return { kind: "empty" };
+
+  if (q.type === QuestionType.Binary) {
+    const prob = getQuestionBinaryProbability(q);
+    return {
+      kind: "binary",
+      pct: prob != null ? Math.round(prob * 100) : null,
+    };
+  }
+
+  // Numeric / discrete → median + 25th–75th interquartile range.
+  const latest = q.aggregations?.[q.default_aggregation_method]?.latest;
+  const median = latest?.centers?.[0];
+  if (median == null) return { kind: "empty" };
+  const lo = latest?.interval_lower_bounds?.[0];
+  const hi = latest?.interval_upper_bounds?.[0];
+
+  const display = getPredictionDisplayValue(
+    median,
+    {
+      questionType: q.type,
+      scaling: q.scaling,
+      range: lo != null && hi != null ? [lo, hi] : [],
+      unit: q.unit,
+      actual_resolve_time: q.actual_resolve_time ?? null,
+      discreteValueOptions: getDiscreteValueOptions(q),
+    },
+    false
+  );
+  const [medianStr = "", rangeStr = ""] = display.split("\n");
+  return { kind: "numeric", median: medianStr.trim(), range: rangeStr.trim() };
+}
+
 // Each Electoral Consequences post is a group-of-questions conditional on
-// control of Congress, with three binary subquestions labeled
-// "Democratic" / "Republican" / "Mixed". We pull each branch's community
-// probability and the post's short title.
+// control of Congress, with three subquestions labeled "Democratic" /
+// "Republican" / "Mixed". Binary subquestions yield a probability; numeric /
+// discrete ones yield a median + interquartile range.
 export const fetchConsequenceConditionals = cache(
   async (): Promise<ConsequenceConditional[]> => {
     const ids = CONSEQUENCE_QUESTION_IDS.filter((id) => id > 0);
@@ -170,13 +218,6 @@ export const fetchConsequenceConditionals = cache(
     const posts = await Promise.all(
       ids.map((id) => ServerPostsApi.getPost(id, true).catch(() => null))
     );
-
-    const pct = (
-      q: QuestionWithNumericForecasts | undefined
-    ): number | null => {
-      const prob = getQuestionBinaryProbability(q ?? null);
-      return prob != null ? Math.round(prob * 100) : null;
-    };
 
     return posts
       .map((post, i): ConsequenceConditional => {
@@ -187,17 +228,21 @@ export const fetchConsequenceConditionals = cache(
         const byLabel = new Map(
           subs.map((q) => [(q.label ?? "").toLowerCase(), q])
         );
+        const id = ids[i] as number;
         return {
-          id: ids[i] as number,
+          id,
+          href: `/questions/${id}`,
           title: post?.short_title || post?.title || "",
-          demPct: pct(byLabel.get("democratic")),
-          splitPct: pct(byLabel.get("mixed")),
-          repPct: pct(byLabel.get("republican")),
+          dem: buildConsequenceCell(byLabel.get("democratic")),
+          split: buildConsequenceCell(byLabel.get("mixed")),
+          rep: buildConsequenceCell(byLabel.get("republican")),
         };
       })
       .filter(
         (row) =>
-          row.demPct != null || row.splitPct != null || row.repPct != null
+          row.dem.kind !== "empty" ||
+          row.split.kind !== "empty" ||
+          row.rep.kind !== "empty"
       );
   }
 );

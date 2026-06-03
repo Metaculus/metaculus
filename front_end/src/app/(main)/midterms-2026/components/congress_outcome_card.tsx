@@ -1,20 +1,16 @@
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
 
 import { MIDTERMS_COLORS } from "../constants";
+import {
+  CONGRESS_OUTCOME_LABELS,
+  CongressOutcomeKey as OutcomeKey,
+} from "../data";
 import CvBar, { GradientColorStop, ThemedColor } from "./cv_bar";
 import { getMultipleChoiceOptionProbability } from "../helpers/post_utils";
-
-type OutcomeKey = "RR" | "RD" | "DR" | "DD";
-
-const OUTCOME_OPTION_LABEL: Record<OutcomeKey, string> = {
-  RR: "Rep Senate / Rep House",
-  RD: "Rep Senate / Dem House",
-  DR: "Dem Senate / Rep House",
-  DD: "Dem Senate / Dem House",
-};
 
 // Themed color tokens for the bars.
 const DEM_FILL: ThemedColor = {
@@ -65,7 +61,7 @@ export default async function CongressOutcomeCard({ post }: Props) {
   ): Outcome => {
     const prob = getMultipleChoiceOptionProbability(
       post,
-      OUTCOME_OPTION_LABEL[key]
+      CONGRESS_OUTCOME_LABELS[key]
     );
     return {
       key,
@@ -79,7 +75,7 @@ export default async function CongressOutcomeCard({ post }: Props) {
   const buildGradient = (key: OutcomeKey): Outcome => {
     const prob = getMultipleChoiceOptionProbability(
       post,
-      OUTCOME_OPTION_LABEL[key]
+      CONGRESS_OUTCOME_LABELS[key]
     );
     return {
       key,
@@ -161,14 +157,14 @@ function OutcomeRow({
 
   if (href) {
     return (
-      <a
+      <Link
         href={href}
         target="_blank"
         rel="noopener noreferrer"
         className={className}
       >
         {inner}
-      </a>
+      </Link>
     );
   }
   return <div className={className}>{inner}</div>;

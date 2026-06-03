@@ -21,10 +21,11 @@ export default async function ElectoralConsequencesSection() {
 
   const rows: ConsequenceGridRow[] = conditionals.map((c) => ({
     key: String(c.id),
+    href: c.href,
     question: c.title,
-    demPct: c.demPct,
-    splitPct: c.splitPct,
-    repPct: c.repPct,
+    dem: c.dem,
+    split: c.split,
+    rep: c.rep,
     ifDemLabel,
     ifSplitLabel,
     ifRepLabel,

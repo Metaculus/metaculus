@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FC, ReactNode, useState } from "react";
 
 import { addOpacityToHex } from "@/utils/core/colors";
@@ -7,24 +8,26 @@ import { addOpacityToHex } from "@/utils/core/colors";
 import ConsequenceGauge from "./consequence_gauge";
 import { DonkeyIcon, ElephantIcon } from "./party_icons";
 import { MIDTERMS_COLORS } from "../constants";
+import type { ConsequenceCell } from "../helpers/fetch_dashboard_data";
 import { useIsDark } from "../helpers/use_is_dark";
 
 type Column = "dem" | "split" | "rep";
 type CellCol = "question" | Column;
 
-// Shared column template. The question column is `minmax(0, 5fr)` so it
-// gives up space first as the container narrows, while the three scenario
-// columns clamp at a min width and stay even. Header and rows share this
-// template (with gap-0) so the colored headers line up with the gauges.
+// Shared column template. The question column is `minmax(0, 5fr)` so it gives
+// up space first as the container narrows, while the three scenario columns
+// clamp at a min width and stay even. Header and rows share this template (and
+// gap-0) so the colored headers line up with the cells below.
 const COLS =
   "md:grid-cols-[minmax(0,5fr)_minmax(110px,1fr)_minmax(110px,1fr)_minmax(110px,1fr)]";
 
 export type ConsequenceGridRow = {
   key: string;
+  href: string;
   question: string;
-  demPct: number | null;
-  splitPct: number | null;
-  repPct: number | null;
+  dem: ConsequenceCell;
+  split: ConsequenceCell;
+  rep: ConsequenceCell;
   ifDemLabel: string;
   ifSplitLabel: string;
   ifRepLabel: string;
@@ -73,7 +76,8 @@ const SPLIT_HEADER_BG = {
   },
 };
 
-// Per-column gauge tint. Split uses a neutral slate (neither party).
+// Per-column tint (gauge fill + numeric value text). Split uses a neutral
+// slate (neither party).
 const GAUGE_COLOR: Record<Column, { light: string; dark: string }> = {
   dem: {
     light: MIDTERMS_COLORS.demPrimary,
@@ -113,7 +117,7 @@ const ConsequenceGrid: FC<Props> = ({
   const repBg = isDark ? REP_HEADER_BG.dark : REP_HEADER_BG.light;
   const demBg = isDark ? DEM_HEADER_BG.dark : DEM_HEADER_BG.light;
   const splitBg = isDark ? SPLIT_HEADER_BG.dark : SPLIT_HEADER_BG.light;
-  const gauge = (col: Column) =>
+  const tone = (col: Column) =>
     isDark ? GAUGE_COLOR[col].dark : GAUGE_COLOR[col].light;
 
   const activeCol: Column | null =
@@ -145,7 +149,7 @@ const ConsequenceGrid: FC<Props> = ({
   return (
     <div onMouseLeave={() => setHover(null)}>
       {/* Header row: lead slot in col 1, party cards in cols 2-4. Same
-          template + gap-0 as the rows so cards align with the gauges. */}
+          template + gap-0 as the rows so cards align with the cells below. */}
       <div className={`hidden md:mb-4 md:grid ${COLS} md:items-end md:gap-0`}>
         <div className="md:pr-4">{leadingSlot}</div>
         <div className="md:px-1">
@@ -192,12 +196,15 @@ const ConsequenceGrid: FC<Props> = ({
       <div className="mb-6 md:hidden">{leadingSlot}</div>
 
       {rows.map((row) => (
-        <div
+        <Link
           key={row.key}
-          className={`grid grid-cols-3 border-b border-blue-300 last:border-0 dark:border-blue-300-dark ${COLS} md:gap-0`}
+          href={row.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`grid grid-cols-3 border-b border-blue-300 no-underline last:border-0 dark:border-blue-300-dark ${COLS} md:gap-0`}
         >
-          {/* Mobile: question spans the full width with the three gauges in
-              a row beneath it. Desktop: question is the first column. */}
+          {/* Mobile: question spans the full width with the three cells in a
+              row beneath it. Desktop: question is the first column. */}
           <p
             onMouseEnter={() => setHover({ kind: "row", row: row.key })}
             style={{ backgroundColor: cellBg(row.key, "question") }}
@@ -205,30 +212,30 @@ const ConsequenceGrid: FC<Props> = ({
           >
             {row.question}
           </p>
-          <GaugeCell
-            pct={row.demPct}
-            color={gauge("dem")}
+          <ScenarioCell
+            cell={row.dem}
+            color={tone("dem")}
             mobileLabel={row.ifDemLabel}
             bg={cellBg(row.key, "dem")}
             onEnter={() => setHover({ kind: "cell", row: row.key, col: "dem" })}
           />
-          <GaugeCell
-            pct={row.splitPct}
-            color={gauge("split")}
+          <ScenarioCell
+            cell={row.split}
+            color={tone("split")}
             mobileLabel={row.ifSplitLabel}
             bg={cellBg(row.key, "split")}
             onEnter={() =>
               setHover({ kind: "cell", row: row.key, col: "split" })
             }
           />
-          <GaugeCell
-            pct={row.repPct}
-            color={gauge("rep")}
+          <ScenarioCell
+            cell={row.rep}
+            color={tone("rep")}
             mobileLabel={row.ifRepLabel}
             bg={cellBg(row.key, "rep")}
             onEnter={() => setHover({ kind: "cell", row: row.key, col: "rep" })}
           />
-        </div>
+        </Link>
       ))}
     </div>
   );
@@ -271,16 +278,16 @@ const PartyHeader: FC<PartyHeaderProps> = ({
   );
 };
 
-type GaugeCellProps = {
-  pct: number | null;
+type ScenarioCellProps = {
+  cell: ConsequenceCell;
   color: string;
   mobileLabel: string;
   bg?: string;
   onEnter: () => void;
 };
 
-const GaugeCell: FC<GaugeCellProps> = ({
-  pct,
+const ScenarioCell: FC<ScenarioCellProps> = ({
+  cell,
   color,
   mobileLabel,
   bg,
@@ -295,7 +302,25 @@ const GaugeCell: FC<GaugeCellProps> = ({
       <span className="block text-center text-[11px] font-medium uppercase tracking-wider text-blue-600 dark:text-blue-600-dark md:hidden">
         {mobileLabel}
       </span>
-      <ConsequenceGauge pct={pct} color={color} />
+      {cell.kind === "binary" ? (
+        <ConsequenceGauge pct={cell.pct} color={color} />
+      ) : cell.kind === "numeric" ? (
+        <div
+          className="flex flex-col items-center leading-tight"
+          style={{ color }}
+        >
+          <span className="text-[15px] font-bold tabular-nums">
+            {cell.median}
+          </span>
+          <span className="text-[11px] font-medium tabular-nums opacity-70">
+            {cell.range}
+          </span>
+        </div>
+      ) : (
+        <span className="text-sm font-bold" style={{ color }}>
+          —
+        </span>
+      )}
     </div>
   );
 };

@@ -238,6 +238,13 @@ const SeatDistributionChart: FC<Props> = ({
 
   const plotInnerWidth = chartWidth - CHART_PADDING.left - CHART_PADDING.right;
 
+  // On narrow (mobile) widths give the axis more bottom room so the
+  // (often two-line) party-advantage labels clear the numeric ticks.
+  const isNarrow = !!chartWidth && chartWidth < 480;
+  const chartPadding = isNarrow
+    ? { ...CHART_PADDING, bottom: 76 }
+    : CHART_PADDING;
+
   // Explicit bar width derived from the available plot area divided by the
   // bin count, so every integer bar is identical (Victory's barRatio
   // auto-sizing is non-uniform when the scale carries a non-null zero_point).
@@ -378,7 +385,7 @@ const SeatDistributionChart: FC<Props> = ({
         <VictoryChart
           width={chartWidth}
           height={CHART_HEIGHT}
-          padding={CHART_PADDING}
+          padding={chartPadding}
           domain={{
             x: [domainMin, domainMax],
             y: [0, maxY > 0 ? maxY * 1.15 : 1],
@@ -572,15 +579,19 @@ const SeatDistributionChart: FC<Props> = ({
       {/* Party advantage labels — HTML overlay below the chart. Positioned in
           px since the SVG now renders at its true size. */}
       <div
-        className="pointer-events-none absolute bottom-1 flex w-full justify-around font-sans text-xs font-semibold"
+        className="pointer-events-none absolute bottom-1 flex w-full font-sans text-xs font-semibold leading-tight"
         style={{
           left: 0,
           paddingLeft: CHART_PADDING.left,
           paddingRight: CHART_PADDING.right,
         }}
       >
-        <span style={{ color: demStroke }}>{demAdvantageLabel}</span>
-        <span style={{ color: repStroke }}>{repAdvantageLabel}</span>
+        <span className="w-1/2 text-center" style={{ color: demStroke }}>
+          {demAdvantageLabel}
+        </span>
+        <span className="w-1/2 text-center" style={{ color: repStroke }}>
+          {repAdvantageLabel}
+        </span>
       </div>
 
       {/* Chart title — rendered inside the plot, pinned to the top-left

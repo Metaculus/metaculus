@@ -2,6 +2,8 @@
 
 import { FC } from "react";
 
+import { describeArc } from "@/utils/charts/arc";
+
 // A compact version of the binary-CP radial gauge (see
 // components/consumer_post_card/binary_cp_bar.tsx) sized for the Electoral
 // Consequences table. Takes a raw percentage + a single color so each cell
@@ -21,10 +23,15 @@ const ConsequenceGauge: FC<Props> = ({ pct, color }) => {
   const radius = (WIDTH - STROKE) / 2;
   const center = { x: WIDTH / 2, y: HEIGHT - STROKE };
 
-  const background = describeArc(100, ARC_ANGLE, center, radius, 1);
+  const background = describeArc({
+    percentage: 100,
+    arcAngle: ARC_ANGLE,
+    center,
+    radius,
+  });
   const progress =
     pct != null && pct > 0
-      ? describeArc(pct, ARC_ANGLE, center, radius, pct > 90 ? 1 : 0)
+      ? describeArc({ percentage: pct, arcAngle: ARC_ANGLE, center, radius })
       : null;
 
   return (
@@ -79,26 +86,5 @@ const ConsequenceGauge: FC<Props> = ({ pct, color }) => {
     </div>
   );
 };
-
-function describeArc(
-  percentage: number,
-  arcAngle: number,
-  center: { x: number; y: number },
-  radius: number,
-  isLargerFlag: 0 | 1
-) {
-  const startAngle = Math.PI - (arcAngle - Math.PI) / 2;
-  const endAngle = startAngle + (percentage / 100) * arcAngle;
-  const startX = center.x + radius * Math.cos(startAngle);
-  const startY = center.y + radius * Math.sin(startAngle);
-  const endX = center.x + radius * Math.cos(endAngle);
-  const endY = center.y + radius * Math.sin(endAngle);
-
-  return {
-    path: `M ${startX} ${startY} A ${radius} ${radius} 0 ${isLargerFlag} 1 ${endX} ${endY}`,
-    endPoint: { x: endX, y: endY },
-    angle: endAngle,
-  };
-}
 
 export default ConsequenceGauge;

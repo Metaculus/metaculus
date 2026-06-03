@@ -2,11 +2,11 @@ import { getTranslations } from "next-intl/server";
 import { ReactNode } from "react";
 
 import { PostWithForecasts } from "@/types/post";
-import cn from "@/utils/core/cn";
 
 import ChamberRowTooltip from "./chamber_row_tooltip";
 import { MIDTERMS_COLORS } from "../constants";
 import CvBar, { ThemedColor } from "./cv_bar";
+import { CONGRESS_OUTCOME_LABELS } from "../data";
 import { ChamberData } from "../helpers/fetch_dashboard_data";
 import { getMultipleChoiceOptionProbability } from "../helpers/post_utils";
 
@@ -30,6 +30,21 @@ const REP_BORDER: ThemedColor = {
 const CURRENT_SENATE = { dem: 47, rep: 53 };
 const CURRENT_HOUSE = { dem: 215, rep: 220 };
 
+// Sums several option probabilities of a multiple-choice post; null if any
+// option is missing.
+function sumOptions(
+  post: PostWithForecasts | null,
+  labels: string[]
+): number | null {
+  let total = 0;
+  for (const label of labels) {
+    const p = getMultipleChoiceOptionProbability(post, label);
+    if (p == null) return null;
+    total += p;
+  }
+  return total;
+}
+
 type Props = {
   data: ChamberData;
 };
@@ -42,25 +57,27 @@ export default async function ChamberControlCard({ data }: Props) {
     current: t("midtermsHubChamberCurrent"),
     democrats: t("midtermsHubPartyDemocrats"),
     republicans: t("midtermsHubPartyRepublicans"),
-    disclaimer: t("midtermsHubChamberTooltipDisclaimer"),
   };
 
-  const senateDemProb = getMultipleChoiceOptionProbability(
-    data.senateControl,
-    "Democrats"
-  );
-  const senateRepProb = getMultipleChoiceOptionProbability(
-    data.senateControl,
-    "Republicans"
-  );
-  const houseDemProb = getMultipleChoiceOptionProbability(
-    data.houseControl,
-    "Democrats"
-  );
-  const houseRepProb = getMultipleChoiceOptionProbability(
-    data.houseControl,
-    "Republicans"
-  );
+  // Both chambers' marginals are derived from the single congress-control
+  // question (#34484) by summing the relevant two-chamber outcomes.
+  const co = data.congressOutcome;
+  const houseDemProb = sumOptions(co, [
+    CONGRESS_OUTCOME_LABELS.DD,
+    CONGRESS_OUTCOME_LABELS.RD,
+  ]);
+  const houseRepProb = sumOptions(co, [
+    CONGRESS_OUTCOME_LABELS.RR,
+    CONGRESS_OUTCOME_LABELS.DR,
+  ]);
+  const senateDemProb = sumOptions(co, [
+    CONGRESS_OUTCOME_LABELS.DD,
+    CONGRESS_OUTCOME_LABELS.DR,
+  ]);
+  const senateRepProb = sumOptions(co, [
+    CONGRESS_OUTCOME_LABELS.RR,
+    CONGRESS_OUTCOME_LABELS.RD,
+  ]);
 
   const senateLabel = t("midtermsHubChamberSenate");
   const houseLabel = t("midtermsHubChamberHouse");
@@ -77,7 +94,6 @@ export default async function ChamberControlCard({ data }: Props) {
           repProb={houseRepProb}
           currentDem={CURRENT_HOUSE.dem}
           currentRep={CURRENT_HOUSE.rep}
-          sourcePost={data.houseControl}
           tooltipBody={buildTooltipBody({
             t,
             chamberLabel: houseLabel,
@@ -85,7 +101,6 @@ export default async function ChamberControlCard({ data }: Props) {
             repProb: houseRepProb,
             labels,
           })}
-          tooltipDisclaimer={labels.disclaimer}
           labels={labels}
         />
         <ChamberRow
@@ -94,7 +109,6 @@ export default async function ChamberControlCard({ data }: Props) {
           repProb={senateRepProb}
           currentDem={CURRENT_SENATE.dem}
           currentRep={CURRENT_SENATE.rep}
-          sourcePost={data.senateControl}
           tooltipBody={buildTooltipBody({
             t,
             chamberLabel: senateLabel,
@@ -102,7 +116,6 @@ export default async function ChamberControlCard({ data }: Props) {
             repProb: senateRepProb,
             labels,
           })}
-          tooltipDisclaimer={labels.disclaimer}
           labels={labels}
         />
       </div>
@@ -115,7 +128,6 @@ type Labels = {
   current: string;
   democrats: string;
   republicans: string;
-  disclaimer: string;
 };
 
 function buildTooltipBody({
@@ -154,9 +166,7 @@ type RowProps = {
   repProb: number | null;
   currentDem: number;
   currentRep: number;
-  sourcePost: PostWithForecasts | null;
   tooltipBody: ReactNode | null;
-  tooltipDisclaimer: string;
   labels: Labels;
 };
 
@@ -166,9 +176,7 @@ function ChamberRow({
   repProb,
   currentDem,
   currentRep,
-  sourcePost,
   tooltipBody,
-  tooltipDisclaimer,
   labels,
 }: RowProps) {
   // Normalize Dem+Rep so the two bars together represent ~100% (ignores
@@ -181,15 +189,13 @@ function ChamberRow({
   const demPct = demProb != null ? Math.round(demProb * 1000) / 10 : null;
   const repPct = repProb != null ? Math.round(repProb * 1000) / 10 : null;
 
-  const href = sourcePost ? `/questions/${sourcePost.id}` : undefined;
-
   const slash = (
     // 50% opacity separator shared by Forecast and Current rows.
     <span className="opacity-50">{" / "}</span>
   );
 
-  const inner = (
-    <>
+  const content = (
+    <div className="group/cv block">
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="text-base font-semibold text-blue-800 dark:text-blue-800-dark">
           {chamberLabel}
@@ -222,36 +228,10 @@ function ChamberRow({
           R {currentRep}
         </span>
       </div>
-    </>
+    </div>
   );
 
-  const groupClass = cn(
-    "group/cv block",
-    href && "cursor-pointer no-underline"
-  );
+  if (!tooltipBody) return content;
 
-  const linkOrDiv = href ? (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={groupClass}
-    >
-      {inner}
-    </a>
-  ) : (
-    <div className={groupClass}>{inner}</div>
-  );
-
-  if (!tooltipBody) return linkOrDiv;
-
-  return (
-    <ChamberRowTooltip
-      body={tooltipBody}
-      disclaimer={tooltipDisclaimer}
-      href={href}
-    >
-      {linkOrDiv}
-    </ChamberRowTooltip>
-  );
+  return <ChamberRowTooltip body={tooltipBody}>{content}</ChamberRowTooltip>;
 }

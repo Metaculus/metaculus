@@ -124,6 +124,17 @@ export const CHAMBER_QUESTIONS: ChamberQuestionIds = {
   mailInBallots: 43527,
 };
 
+export type CongressOutcomeKey = "RR" | "RD" | "DR" | "DD";
+
+// Option labels of the congress-control multiple-choice question (#34484).
+// First letter = Senate, second = House. Strings must match the API options.
+export const CONGRESS_OUTCOME_LABELS: Record<CongressOutcomeKey, string> = {
+  RR: "Rep Senate / Rep House",
+  RD: "Rep Senate / Dem House",
+  DR: "Dem Senate / Rep House",
+  DD: "Dem Senate / Dem House",
+};
+
 // Seat-advantage distribution questions. The Senate question is a
 // Discrete Continuous type (integer-spaced bars); the House question
 // is a Continuous type (smooth PDF). Both are signed around zero
@@ -133,13 +144,15 @@ export const SEAT_DISTRIBUTION_POSTS = {
   house: 40413,
 } as const;
 
-// Electoral Consequences rows. Each is a group-of-questions post that is
-// conditional on control of Congress, with three binary subquestions labeled
-// "Democratic" / "Republican" / "Mixed" (→ Dem / Rep / Split Congress columns).
-// Numeric-resolution conditionals (NSF budget 43677, Democracy Threat Index
-// 43624, Article III judge count 43628) are intentionally excluded — the grid
-// only renders probabilities.
-export const CONSEQUENCE_QUESTION_IDS = [43591, 43632, 43617, 43630, 43640];
+// Electoral Consequences rows. Each is a group-of-questions post conditional on
+// control of Congress, with three subquestions labeled "Democratic" /
+// "Republican" / "Mixed" (→ Dem / Rep / Split Congress columns). Binary
+// subquestions render as gauges; numeric/discrete ones (NSF budget 43677,
+// Democracy Threat Index 43624, Article III judges 43628) render as
+// median + (25th–75th).
+export const CONSEQUENCE_QUESTION_IDS = [
+  43591, 43632, 43628, 43617, 43624, 43630, 43677, 43640,
+];
 
 export type TileCell = { abbr: string; row: number; col: number };
 
