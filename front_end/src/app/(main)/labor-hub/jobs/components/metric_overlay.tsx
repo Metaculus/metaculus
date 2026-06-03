@@ -15,7 +15,6 @@ import {
 type Props = {
   metricKey: MetricKey | null;
   currentSlug: string;
-  currentName: string;
   onClose: () => void;
 };
 
@@ -24,12 +23,7 @@ const richTags = {
   em: (chunks: ReactNode) => <em>{chunks}</em>,
 };
 
-export function MetricOverlay({
-  metricKey,
-  currentSlug,
-  currentName,
-  onClose,
-}: Props) {
+export function MetricOverlay({ metricKey, currentSlug, onClose }: Props) {
   const t = useTranslations();
   const def = metricKey ? METRIC_DEFS[metricKey] : null;
 
@@ -52,15 +46,8 @@ export function MetricOverlay({
           <h2 className="m-0 mt-1 text-2xl font-extrabold tracking-tight text-blue-900 dark:text-blue-900-dark sm:text-[28px]">
             {t(def.labelKey)}
           </h2>
-          <p className="mt-2 text-[13px] font-bold text-blue-700 dark:text-blue-700-dark">
-            {t.rich("laborHubJobsMetricChartHead", {
-              job: () => (
-                <span style={{ color: METRIC_ACCENT_WARM }}>{currentName}</span>
-              ),
-            })}
-          </p>
 
-          <div className="mt-3">
+          <div className="mt-4">
             <MetricComparisonAxis
               metricKey={def.key}
               currentSlug={currentSlug}

@@ -26,29 +26,6 @@ export function MetricComparisonAxis({ metricKey, currentSlug }: Props) {
   const span = max - min || 1;
   const toPct = (v: number) => ((v - min) / span) * 100;
 
-  const currentJob = JOBS_DATA.find((j) => j.slug === currentSlug);
-  const currentPct = currentJob ? toPct(def.valueOf(currentJob)) : 50;
-
-  // Pick up to 3 non-current jobs to label by default: spread out and far from
-  // the highlighted job, so they give context without crowding it.
-  const alwaysLabeled = new Set<string>();
-  {
-    const candidates = [...JOBS_DATA]
-      .filter((j) => j.slug !== currentSlug)
-      .sort((a, b) => def.valueOf(a) - def.valueOf(b));
-    const pickedPcts: number[] = [];
-    for (const job of candidates) {
-      if (alwaysLabeled.size >= 3) break;
-      const pct = toPct(def.valueOf(job));
-      const farFromCurrent = Math.abs(pct - currentPct) > 18;
-      const farFromPicked = pickedPcts.every((p) => Math.abs(pct - p) > 16);
-      if (farFromCurrent && farFromPicked) {
-        alwaysLabeled.add(job.slug);
-        pickedPcts.push(pct);
-      }
-    }
-  }
-
   // Render the current job last so its dot sits on top of any clustered ones.
   const sorted = [...JOBS_DATA].sort((a, b) => {
     if (a.slug === currentSlug) return 1;
@@ -56,11 +33,12 @@ export function MetricComparisonAxis({ metricKey, currentSlug }: Props) {
     return def.valueOf(a) - def.valueOf(b);
   });
 
-  // Keep edge labels from overflowing the panel.
+  // Only align labels that sit right at the edges (otherwise keep them centered
+  // on the dot — a near-edge label like ~90% doesn't need right-alignment).
   const labelAlignClass = (pct: number) =>
-    pct < 12
+    pct < 8
       ? "left-0 translate-x-0 text-left"
-      : pct > 88
+      : pct > 92
         ? "right-0 translate-x-0 text-right"
         : "left-1/2 -translate-x-1/2 text-center";
 
@@ -153,20 +131,6 @@ export function MetricComparisonAxis({ metricKey, currentSlug }: Props) {
                     className="block font-jetbrains-mono text-xs font-bold tabular-nums"
                     style={{ color: METRIC_ACCENT_WARM }}
                   >
-                    {def.format(value)}
-                  </span>
-                </span>
-              ) : alwaysLabeled.has(job.slug) ? (
-                <span
-                  className={cn(
-                    "absolute bottom-full mb-3 whitespace-nowrap leading-tight opacity-100 transition-opacity group-hover/axis:opacity-0 group-hover/dot:!opacity-100",
-                    align
-                  )}
-                >
-                  <span className="block text-xs font-semibold text-blue-700 dark:text-blue-700-dark">
-                    {getJobShort(job.slug)}
-                  </span>
-                  <span className="block font-jetbrains-mono text-xs font-semibold tabular-nums text-blue-700 dark:text-blue-700-dark">
                     {def.format(value)}
                   </span>
                 </span>

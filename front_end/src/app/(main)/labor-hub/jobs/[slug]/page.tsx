@@ -235,11 +235,7 @@ export default async function JobDetailPage({
           dataRail={
             <div className="flex flex-col gap-2 md:gap-3">
               {wage2035 != null && <WageTile value={wage2035} />}
-              <ExposureMetrics
-                job={job}
-                currentSlug={slug}
-                currentName={job.name}
-              />
+              <ExposureMetrics job={job} currentSlug={slug} />
             </div>
           }
         />

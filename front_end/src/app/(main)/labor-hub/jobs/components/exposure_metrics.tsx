@@ -52,10 +52,9 @@ function formatValue(key: MetricKey, value: number): string {
 type Props = {
   job: Pick<JobDefinition, "felten" | "mna" | "aoe">;
   currentSlug: string;
-  currentName: string;
 };
 
-export function ExposureMetrics({ job, currentSlug, currentName }: Props) {
+export function ExposureMetrics({ job, currentSlug }: Props) {
   const t = useTranslations();
   const [active, setActive] = useState<MetricKey | null>(null);
 
@@ -166,7 +165,6 @@ export function ExposureMetrics({ job, currentSlug, currentName }: Props) {
       <MetricOverlay
         metricKey={active}
         currentSlug={currentSlug}
-        currentName={currentName}
         onClose={() => setActive(null)}
       />
     </>
