@@ -51,6 +51,7 @@ type Props<T> = {
   renderInPortal?: boolean;
   preventParentScroll?: boolean;
   menuMinWidthMatchesButton?: boolean;
+  menuFitContent?: boolean;
   onOpenChange?: (open: boolean) => void;
 } & (SingleSelectProps<T> | MultiSelectProps<T>);
 
@@ -68,6 +69,7 @@ const Listbox = <T extends string>(props: Props<T>) => {
     renderInPortal = false,
     preventParentScroll = false,
     menuMinWidthMatchesButton = true,
+    menuFitContent = false,
   } = props;
 
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -165,6 +167,7 @@ const Listbox = <T extends string>(props: Props<T>) => {
               renderInPortal
               preventParentScroll={preventParentScroll}
               menuMinWidthMatchesButton={menuMinWidthMatchesButton}
+              menuFitContent={menuFitContent}
               menuPosition={menuPosition}
               optionsClassName={optionsClassName}
               buttonRef={buttonRef}
@@ -192,6 +195,7 @@ type FloatingMenuProps<T> = {
   renderInPortal: boolean;
   preventParentScroll: boolean;
   menuMinWidthMatchesButton: boolean;
+  menuFitContent: boolean;
   menuPosition?: "left" | "right";
   optionsClassName?: string;
   buttonRef: React.RefObject<HTMLButtonElement | null>;
@@ -205,6 +209,7 @@ function FloatingMenu<T extends string>({
   renderInPortal,
   preventParentScroll,
   menuMinWidthMatchesButton,
+  menuFitContent,
   menuPosition = "right",
   optionsClassName,
   buttonRef,
@@ -241,6 +246,7 @@ function FloatingMenu<T extends string>({
     <ListboxOptions
       className={cn(
         "divide-y divide-gray-300 rounded border border-gray-300 bg-gray-0 shadow-lg outline-none dark:divide-gray-300-dark dark:border-gray-300-dark dark:bg-gray-0-dark",
+        menuFitContent && "no-scrollbar",
         optionsClassName
       )}
       style={
@@ -259,8 +265,10 @@ function FloatingMenu<T extends string>({
                 : undefined,
               minWidth: menuMinWidthMatchesButton ? rect?.width : undefined,
               maxWidth: "min(420px, 100vw - 16px)",
-              maxHeight: "min(320px, 50vh)",
-              overflowY: "auto",
+              ...(!menuFitContent && {
+                maxHeight: "min(320px, 50vh)",
+                overflowY: "auto" as const,
+              }),
               zIndex: 10000,
             }
       }

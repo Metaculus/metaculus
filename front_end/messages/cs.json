@@ -2053,7 +2053,6 @@
   "weeklyTopCommentsSubscribeError": "Něco se pokazilo. Zkuste to prosím znovu.",
   "feedTileNewTournament": "Nový turnaj",
   "feedTileForecastNewQuestions": "Předpovědět {count, plural, one {# novou otázku} few {# nové otázky} other {# nových otázek}}",
-  "feedTileQuestionsResolved": "{count, plural, one {# otázka vyřešena} few {# otázky vyřešeny} other {# otázek vyřešeno}}",
   "feedTileCheckLeaderboards": "Podívejte se na konečné žebříčky",
   "feedTilePopularTournament": "Populární turnaj",
   "feedTileClosesIn": "Uzavře se za <strong>{when}</strong>",
@@ -2259,5 +2258,7 @@
   "laborHubJobsShareSave": "💾 Uložit obrázek",
   "laborHubJobsShareTweet": "𝕏 Sdílet na X",
   "laborHubJobsChartA11y": "Předpověď zaměstnanosti podle roku",
-  "laborHubJobsChartBaseline": "Základ"
+  "laborHubJobsChartBaseline": "Základ",
+  "predictorsMentionWarning": "Pouze kurátoři a administrátoři mohou upozornit @predictors. Vaše zmínka neodešle oznámení.",
+  "feedTileQuestionsRecentlyResolved": "{count, plural, one {# otázka nedávno vyřešena} other {# otázek nedávno vyřešeno}}"
 }

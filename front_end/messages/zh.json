@@ -2055,7 +2055,6 @@
   "weeklyTopCommentsSubscribeError": "出现问题。请再试一次。",
   "feedTileNewTournament": "新锦标赛",
   "feedTileForecastNewQuestions": "预测 {count, plural, other {# 个新问题}}",
-  "feedTileQuestionsResolved": "{count, plural, other {# 个问题已解决}}",
   "feedTileCheckLeaderboards": "查看最终排行榜",
   "feedTilePopularTournament": "热门锦标赛",
   "feedTileClosesIn": "<strong>{when}</strong>后关闭",
@@ -2261,5 +2260,7 @@
   "laborHubJobsShareSave": "💾 保存图片",
   "laborHubJobsShareTweet": "𝕏 在 X 分享",
   "laborHubJobsChartA11y": "按年份的就业预测",
-  "laborHubJobsChartBaseline": "基准"
+  "laborHubJobsChartBaseline": "基准",
+  "predictorsMentionWarning": "只有策展人和管理员可以通知 @predictors。您的提及不会发送通知。",
+  "feedTileQuestionsRecentlyResolved": "{count, plural, one {# 个问题最近已解决} other {# 个问题最近已解决}}"
 }

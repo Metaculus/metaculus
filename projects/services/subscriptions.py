@@ -142,11 +142,12 @@ def unsubscribe_project(project: Project, user: User, unfollow_questions: bool =
     project.save()
 
 
-def notify_project_subscriptions_post_open(
+def notify_project_subscriptions_post_status_change(
     post: Post,
-    question: Question = None,
-    notebook: Notebook = None,
-    project: Project = None,
+    event: Post.PostStatusChange,
+    question: Question | None = None,
+    notebook: Notebook | None = None,
+    project: Project | None = None,
 ):
     if project:
         subscriptions = ProjectSubscription.objects.filter(project=project)
@@ -189,7 +190,7 @@ def notify_project_subscriptions_post_open(
                 subscription.user,
                 NotificationPostStatusChange.ParamsType(
                     post=NotificationPostParams.from_post(post),
-                    event=Post.PostStatusChange.OPEN,
+                    event=event,
                     project=NotificationProjectParams.from_project(
                         subscription.project
                     ),
@@ -208,18 +209,28 @@ def notify_post_added_to_project(post: Post, project: Project):
     if post.curation_status != Post.CurationStatus.APPROVED:
         return
 
-    for question in post.questions.all():
-        # Don’t send a notification if `open_time_triggered` is False
-        # it will be handled automatically by `handle_question_open`
-        if question.open_time_triggered and question.status == QuestionStatus.OPEN:
-            notify_project_subscriptions_post_open(
-                post, question=question, project=project
+    # Publishing is a Post-level event. If it hasn't fired yet, the cron job
+    # will pick it up and notify all project subscribers — so we skip here.
+    if post.published_at_triggered:
+        if post.notebook_id:
+            notify_project_subscriptions_post_status_change(
+                post,
+                event=Post.PostStatusChange.PUBLISHED,
+                notebook=post.notebook,
+                project=project,
             )
-
-    if post.notebook_id and post.notebook.open_time_triggered:
-        notify_project_subscriptions_post_open(
-            post, notebook=post.notebook, project=project
-        )
+        else:
+            for question in post.questions.all():
+                # Skip closed/resolved questions — nothing actionable to notify.
+                if question.status == QuestionStatus.UPCOMING:
+                    event = Post.PostStatusChange.PUBLISHED
+                elif question.status == QuestionStatus.OPEN:
+                    event = Post.PostStatusChange.OPEN
+                else:
+                    continue
+                notify_project_subscriptions_post_status_change(
+                    post, event=event, question=question, project=project
+                )
 
     # Auto-follow new questions for subscribers with follow_questions enabled
     if post.question_id or post.conditional_id or post.group_of_questions_id:

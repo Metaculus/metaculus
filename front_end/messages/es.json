@@ -2053,7 +2053,6 @@
   "weeklyTopCommentsSubscribeError": "Algo salió mal. Por favor, inténtalo de nuevo.",
   "feedTileNewTournament": "Nuevo torneo",
   "feedTileForecastNewQuestions": "Pronosticar {count, plural, one {# nueva pregunta} other {# nuevas preguntas}}",
-  "feedTileQuestionsResolved": "{count, plural, one {# pregunta resuelta} other {# preguntas resueltas}}",
   "feedTileCheckLeaderboards": "Consulta las clasificaciones finales",
   "feedTilePopularTournament": "Torneo popular",
   "feedTileClosesIn": "Cierra en <strong>{when}</strong>",
@@ -2259,5 +2258,7 @@
   "laborHubJobsShareSave": "💾 Guardar imagen",
   "laborHubJobsShareTweet": "𝕏 Compartir en X",
   "laborHubJobsChartA11y": "Pronóstico de empleo por año",
-  "laborHubJobsChartBaseline": "Base"
+  "laborHubJobsChartBaseline": "Base",
+  "predictorsMentionWarning": "Solo los curadores y administradores pueden notificar a @predictors. Tu mención no enviará notificaciones.",
+  "feedTileQuestionsRecentlyResolved": "{count, plural, one {# pregunta resuelta recientemente} other {# preguntas resueltas recientemente}}"
 }

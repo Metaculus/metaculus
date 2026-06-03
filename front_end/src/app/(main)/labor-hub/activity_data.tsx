@@ -137,6 +137,23 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
     ),
   },
   {
+    date: "2026-05-14",
+    type: "news",
+    content: (
+      <>
+        Indeed Hiring Lab releases a report based on structural modeling
+        documenting anticipated labor effects of AI -{" "}
+        <a
+          href="https://www.hiringlab.org/2026/05/14/how-a-shrinking-workforce-ai-and-labor-reallocation-will-define-the-next-15-years/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          Indeed Hiring Lab
+        </a>
+      </>
+    ),
+  },
+  {
     date: "2026-05-21",
     type: "news",
     content: (

@@ -25,6 +25,7 @@ import {
 } from "@/utils/questions/helpers";
 
 const VISIBLE_CHOICES_COUNT = 3;
+const COMPACT_STATS_THRESHOLD = 1000;
 
 type Props = {
   post: PostWithForecasts;
@@ -35,6 +36,10 @@ const CompactCommentPostCard: FC<Props> = ({ post, className }) => {
   const t = useTranslations();
   const locale = useLocale();
 
+  const compactStats =
+    (post.comment_count ?? 0) >= COMPACT_STATS_THRESHOLD &&
+    (post.nr_forecasters ?? 0) >= COMPACT_STATS_THRESHOLD;
+
   return (
     <div
       className={cn(
@@ -42,16 +47,23 @@ const CompactCommentPostCard: FC<Props> = ({ post, className }) => {
         className
       )}
     >
-      <div className="flex items-center gap-2">
+      <div
+        className={cn(
+          "flex flex-wrap items-center gap-2",
+          compactStats && "justify-center"
+        )}
+      >
         <CommentStatus
           totalCount={post.comment_count ?? 0}
           unreadCount={0}
           url={getPostLink(post)}
           variant="gray"
+          compact={compactStats}
           className="pl-0 md:pl-0"
         />
         <ForecastersCounter
           forecasters={post.nr_forecasters}
+          compact={compactStats}
           className="px-0 md:px-0"
         />
       </div>
