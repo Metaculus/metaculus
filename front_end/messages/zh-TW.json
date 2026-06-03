@@ -2280,5 +2280,5 @@
   "laborHubJobsChartA11y": "按年份的就業預測",
   "laborHubJobsChartBaseline": "基準",
   "predictorsMentionWarning": "只有館長和管理員可以通知 @predictors。您的提及將不會發送通知。",
-  "feedTileQuestionsRecentlyResolved": "{count, plural, one {最近解答了 # 個問題} other {最近解答了 # 個問題}}"
+  "feedTileQuestionsRecentlyResolved": "{count, plural, one {最近解決了 # 個問題} other {最近解決了 # 個問題}}"
 }

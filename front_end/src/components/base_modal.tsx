@@ -72,7 +72,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
             className={cn(
               "my-auto max-h-full w-full max-w-fit transform overflow-y-auto rounded bg-gray-0 p-5 text-left align-middle text-sm text-blue-900 shadow-xl transition-all dark:bg-gray-0-dark dark:text-blue-900-dark md:p-7",
               isImmersive
-                ? "h-svh max-sm:h-[calc(100svh-theme(spacing.header))] md:h-fit"
+                ? "max-sm:h-[calc(100svh-theme(spacing.header))] sm:max-h-[calc(100svh-2rem)] md:h-fit"
                 : "",
               className
             )}
