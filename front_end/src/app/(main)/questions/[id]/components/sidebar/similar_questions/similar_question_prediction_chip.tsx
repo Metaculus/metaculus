@@ -73,6 +73,7 @@ const SimilarPredictionChip: FC<Props> = ({ post, variant }) => {
           hideCP={hideCP}
           canPredict={false}
           showChart={false}
+          forFeedPage
         />
       </div>
     );
@@ -88,6 +89,7 @@ const SimilarPredictionChip: FC<Props> = ({ post, variant }) => {
           hideCP={hideCP}
           canPredict={false}
           showChart={true}
+          forFeedPage
         />
       </div>
     );

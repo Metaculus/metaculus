@@ -45,7 +45,7 @@ const SimilarQuestionCard: FC<Props> = ({ post, variant = "forecaster" }) => {
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 rounded border border-blue-400 bg-blue-100 dark:border-blue-400-dark dark:bg-blue-100-dark",
+        "flex flex-col gap-3 rounded border border-blue-400 bg-blue-100 @container dark:border-blue-400-dark dark:bg-blue-100-dark",
         isForecaster ? "px-5 py-4" : "px-6 pb-6 pt-5"
       )}
     >
