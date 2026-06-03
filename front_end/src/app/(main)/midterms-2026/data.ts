@@ -145,14 +145,10 @@ export const SEAT_DISTRIBUTION_POSTS = {
 } as const;
 
 // Electoral Consequences rows. Each is a group-of-questions post conditional on
-// control of Congress, with three subquestions labeled "Democratic" /
-// "Republican" / "Mixed" (→ Dem / Rep / Split Congress columns). Binary
-// subquestions render as gauges; numeric/discrete ones (NSF budget 43677,
-// Democracy Threat Index 43624, Article III judges 43628) render as
-// median + (25th–75th).
-export const CONSEQUENCE_QUESTION_IDS = [
-  43591, 43632, 43628, 43617, 43624, 43630, 43677, 43640,
-];
+// control of Congress, with three binary subquestions labeled "Democratic" /
+// "Republican" / "Mixed" (→ Dem / Rep / Split Congress columns), rendered as
+// gauges. Numeric/discrete conditionals are intentionally excluded.
+export const CONSEQUENCE_QUESTION_IDS = [43591, 43632, 43617, 43630, 43640];
 
 export type TileCell = { abbr: string; row: number; col: number };
 
