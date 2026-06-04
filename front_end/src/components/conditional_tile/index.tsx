@@ -13,6 +13,7 @@ import { ConditionalPost, PostStatus } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
+import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 import ConditionalCard from "./conditional_card";
@@ -167,7 +168,12 @@ const ConditionalTile: FC<Props> = ({
           </div>
         </div>
       </div>
-      {withCPRevealBtn && hideCP && <RevealCPButton />}
+      {withCPRevealBtn &&
+        hideCP &&
+        !(
+          getQuestionForecastAvailability(question_yes).cpRevealsOn &&
+          getQuestionForecastAvailability(question_no).cpRevealsOn
+        ) && <RevealCPButton />}
     </>
   );
 };

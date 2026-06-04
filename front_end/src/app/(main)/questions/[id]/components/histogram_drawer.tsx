@@ -7,6 +7,7 @@ import SectionToggle from "@/components/ui/section_toggle";
 import { useHideCP } from "@/contexts/cp_context";
 import useContainerSize from "@/hooks/use_container_size";
 import { PostWithForecasts } from "@/types/post";
+import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 
 import RevealCPButton from "./reveal_cp_button";
 
@@ -28,6 +29,7 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
 
   if (post.question?.type === "binary") {
     const question = post.question;
+    const forecastAvailability = getQuestionForecastAvailability(question);
 
     const histogram =
       question.aggregations[
@@ -50,7 +52,7 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
     return (
       <div ref={chartContainerRef}>
         <SectionToggle title={t("histogram")} defaultOpen>
-          {hideCP ? (
+          {hideCP && !forecastAvailability.cpRevealsOn ? (
             <RevealCPButton />
           ) : (
             <Histogram
@@ -107,7 +109,11 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
     return (
       <div ref={chartContainerRef}>
         <SectionToggle title={t("histogram")}>
-          {hideCP ? (
+          {hideCP &&
+          !getQuestionForecastAvailability(post.conditional.question_yes)
+            .cpRevealsOn &&
+          !getQuestionForecastAvailability(post.conditional.question_no)
+            .cpRevealsOn ? (
             <RevealCPButton />
           ) : (
             <>

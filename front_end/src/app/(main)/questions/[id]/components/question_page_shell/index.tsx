@@ -219,6 +219,11 @@ export const ConsumerShell: FC<{
       ? getQuestionForecastAvailability(postData.question)
       : null;
 
+  const mcForecastAvailability =
+    isMultipleChoice && isQuestionPost(postData)
+      ? getQuestionForecastAvailability(postData.question)
+      : null;
+
   const showClosedMessageMultipleChoice =
     isMultipleChoicePost(postData) &&
     postData.question.status === QuestionStatus.CLOSED;
@@ -285,12 +290,12 @@ export const ConsumerShell: FC<{
           ) : isBinarySingleQuestion && isQuestionPost(postData) ? (
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-0 md:gap-8">
               <div className="order-1 flex w-64 flex-col items-center justify-center gap-[18px] self-center sm:self-stretch">
-                {hideCP ? (
-                  <RevealCPButton />
-                ) : binaryForecastAvailability?.cpRevealsOn ? (
+                {binaryForecastAvailability?.cpRevealsOn ? (
                   <UpcomingCP
                     cpRevealsOn={binaryForecastAvailability.cpRevealsOn}
                   />
+                ) : hideCP ? (
+                  <RevealCPButton />
                 ) : (
                   <QuestionHeaderCPStatus
                     question={postData.question}
@@ -338,7 +343,7 @@ export const ConsumerShell: FC<{
                 hideBorder={false}
                 reduceInnerPadding={!!isDateGroup}
                 listContent={
-                  hideCP ? (
+                  hideCP && !mcForecastAvailability?.cpRevealsOn ? (
                     <RevealCPButton />
                   ) : isFanGraph && fanGraphQuestions ? (
                     <ConsumerTimeSeriesPane
