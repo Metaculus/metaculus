@@ -16,7 +16,6 @@ import {
 import MinifiedContinuousAreaChart from "@/components/charts/minified_continuous_area_chart";
 import BinaryCPBar from "@/components/consumer_post_card/binary_cp_bar";
 import QuestionResolutionChip from "@/components/consumer_post_card/question_resolution_chip";
-import UpcomingCP from "@/components/consumer_post_card/upcoming_cp";
 import QuestionCPMovement from "@/components/cp_movement";
 import ContinuousCPBar from "@/components/post_card/question_tile/continuous_cp_bar";
 import { useHideCP } from "@/contexts/cp_context";
@@ -185,19 +184,8 @@ const QuestionHeaderCPStatus: FC<Props> = ({
       );
     }
 
-    // CP reveals in the future — center the countdown, skip the mini chart
     if (forecastAvailability.cpRevealsOn) {
-      return (
-        <div
-          style={borderStyle}
-          className={cn(containerClassName, "items-center justify-center")}
-        >
-          <UpcomingCP
-            cpRevealsOn={forecastAvailability.cpRevealsOn}
-            className="whitespace-nowrap"
-          />
-        </div>
-      );
+      return null;
     }
 
     // CP hidden by user preference — center the reveal button, skip the mini chart
@@ -304,6 +292,10 @@ const QuestionHeaderCPStatus: FC<Props> = ({
       </div>
     );
   } else if (question.type === QuestionType.Binary) {
+    if (forecastAvailability.cpRevealsOn) {
+      return null;
+    }
+
     if (hideCP) {
       if (isEmbed) {
         return null;
@@ -315,17 +307,6 @@ const QuestionHeaderCPStatus: FC<Props> = ({
           })}
         >
           <RevealCPButton />
-        </div>
-      );
-    }
-
-    if (forecastAvailability.cpRevealsOn) {
-      return (
-        <div className="flex flex-col items-center justify-center">
-          <UpcomingCP
-            cpRevealsOn={forecastAvailability.cpRevealsOn}
-            className="whitespace-nowrap"
-          />
         </div>
       );
     }
