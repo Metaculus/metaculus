@@ -9,6 +9,7 @@ import { getEffectiveVisibleCount } from "@/constants/questions";
 import { useOverlayMaxHeight } from "@/hooks/use_overlay_max_height";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
+import { findPreviousTimestamp } from "@/utils/charts/cursor";
 import cn from "@/utils/core/cn";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { scaleInternalLocation } from "@/utils/math";
@@ -41,7 +42,8 @@ const NumericForecastCard: FC<Props> = ({
   const locale = useLocale();
   const t = useTranslations();
   const [expanded, setExpanded] = useState(false);
-  const { setIsExpanded, setHoveredChoiceName } = useListChartExpanded();
+  const { setIsExpanded, setHoveredChoiceName, cursorTimestamp } =
+    useListChartExpanded();
   const { containerRef, overlayMaxHeight } = useOverlayMaxHeight(expanded);
 
   if (!isGroupOfQuestionsPost(post)) {
@@ -76,11 +78,33 @@ const NumericForecastCard: FC<Props> = ({
   const hiddenCount = Math.max(0, sortedChoices.length - visibleChoicesCount);
   const collapsedChoices = sortedChoices.slice(0, visibleChoicesCount);
 
+  // Anchor all sub-questions to the same timestamp; fall back to the first
+  // choice's last entry since history lengths differ per sub-question.
+  const refTimestamps = sortedChoices[0]?.aggregationTimestamps ?? [];
+  const refTs =
+    cursorTimestamp !== null
+      ? cursorTimestamp
+      : refTimestamps[refTimestamps.length - 1] ?? null;
+
+  // Returns the aggregation value for a sub-question at refTs using its own
+  // timestamp array, since each sub-question may have a different history length.
+  const getChoiceValue = (
+    aggregationValues: (number | null)[],
+    ownTimestamps: number[]
+  ): number | null => {
+    if (refTs === null || !ownTimestamps.length) {
+      return aggregationValues[aggregationValues.length - 1] ?? null;
+    }
+    const closestTs = findPreviousTimestamp(ownTimestamps, refTs);
+    const idx = ownTimestamps.indexOf(closestTs);
+    return idx >= 0 ? aggregationValues[idx] ?? null : null;
+  };
+
   const scaledValues = [...sortedChoices]
     .filter((choice) => isNil(choice.resolution))
-    .map(({ aggregationValues, scaling }) =>
+    .map(({ aggregationValues, aggregationTimestamps, scaling }) =>
       scaleInternalLocation(
-        aggregationValues[aggregationValues.length - 1] ?? 0,
+        getChoiceValue(aggregationValues, aggregationTimestamps) ?? 0,
         {
           range_min: scaling?.range_min ?? 0,
           range_max: scaling?.range_max ?? 1,
@@ -101,6 +125,7 @@ const NumericForecastCard: FC<Props> = ({
         {
           closeTime,
           aggregationValues,
+          aggregationTimestamps,
           scaling,
           resolution,
           id,
@@ -113,8 +138,10 @@ const NumericForecastCard: FC<Props> = ({
         index
       ) => {
         const isChoiceClosed = closeTime ? closeTime < Date.now() : false;
-        const rawChoiceValue =
-          aggregationValues[aggregationValues.length - 1] ?? null;
+        const rawChoiceValue = getChoiceValue(
+          aggregationValues,
+          aggregationTimestamps
+        );
         const normalizedScaling: Scaling = {
           range_min: scaling?.range_min ?? 0,
           range_max: scaling?.range_max ?? 1,

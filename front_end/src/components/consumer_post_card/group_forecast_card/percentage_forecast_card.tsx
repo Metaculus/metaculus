@@ -8,6 +8,7 @@ import { getEffectiveVisibleCount } from "@/constants/questions";
 import { useOverlayMaxHeight } from "@/hooks/use_overlay_max_height";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
+import { findPreviousTimestamp } from "@/utils/charts/cursor";
 import cn from "@/utils/core/cn";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import {
@@ -40,7 +41,7 @@ const PercentageForecastCard: FC<Props> = ({
   const locale = useLocale();
   const t = useTranslations();
   const [expanded, setExpanded] = useState(false);
-  const { setIsExpanded } = useListChartExpanded();
+  const { setIsExpanded, cursorTimestamp } = useListChartExpanded();
   const { containerRef, overlayMaxHeight } = useOverlayMaxHeight(expanded);
 
   const isMC = isMultipleChoicePost(post);
@@ -87,12 +88,41 @@ const PercentageForecastCard: FC<Props> = ({
     });
   }, [post, visibleChoicesCount, locale, t, emptyLabel]);
 
+  // Resolves each choice's value at the cursor (or last) timestamp using its
+  // own timeline, since history lengths differ per sub-question.
+  const displayChoices = useMemo(() => {
+    const refTimestamps = allChoices[0]?.aggregationTimestamps ?? [];
+    if (!refTimestamps.length) return allChoices;
+    const refTs =
+      cursorTimestamp ?? refTimestamps[refTimestamps.length - 1] ?? null;
+    if (refTs === null) return allChoices;
+
+    return allChoices.map((choice) => {
+      const ownTimestamps = choice.aggregationTimestamps;
+      const closestTs = findPreviousTimestamp(ownTimestamps, refTs);
+      const ownIdx = ownTimestamps.indexOf(closestTs);
+      const rawVal =
+        ownIdx >= 0 ? choice.aggregationValues[ownIdx] ?? null : null;
+      const valueStr = getPredictionDisplayValue(rawVal, {
+        questionType: QuestionType.Binary,
+        scaling: choice.scaling,
+        actual_resolve_time: choice.actual_resolve_time ?? null,
+        emptyLabel,
+      });
+      const percent =
+        typeof valueStr === "string"
+          ? Number(valueStr.replace("%", "")) || 0
+          : 0;
+      return { ...choice, valueStr, percent };
+    });
+  }, [allChoices, cursorTimestamp, emptyLabel]);
+
   if (!isMC && !isGroupOfQuestionsPost(post)) return null;
 
   const isPostClosed = post.status === PostStatus.CLOSED;
 
-  const collapsedChoices = allChoices.slice(0, visibleChoicesCount);
-  const hiddenCount = Math.max(0, allChoices.length - visibleChoicesCount);
+  const collapsedChoices = displayChoices.slice(0, visibleChoicesCount);
+  const hiddenCount = Math.max(0, displayChoices.length - visibleChoicesCount);
 
   const renderBars = (choices: typeof allChoices, stretchBars = false) =>
     choices.map((choice) => (
@@ -156,7 +186,7 @@ const PercentageForecastCard: FC<Props> = ({
               buttonVariant={buttonVariant}
               className="min-h-0 flex-1"
             >
-              {renderBars(allChoices)}
+              {renderBars(displayChoices)}
             </ForecastCardWrapper>
           </div>
         </>
