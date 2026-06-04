@@ -36,11 +36,11 @@ function tilePercentClasses(size: TileSize): string {
   // Mobile: uniform text-[26px]; sm+: per-size.
   switch (size) {
     case "top3":
-      return "text-[26px] sm:text-[56px]";
+      return "text-[18px] xs:text-[24px] sm:text-[56px]";
     case "md":
-      return "text-[26px] sm:text-[40px]";
+      return "text-[18px] xs:text-[24px] sm:text-[40px]";
     case "sm":
-      return "text-[26px] sm:text-[30px]";
+      return "text-[18px] xs:text-[24px] sm:text-[30px]";
   }
 }
 

@@ -113,11 +113,11 @@ export function ExposureMetrics({ job, currentSlug }: Props) {
               }}
               className="group relative cursor-pointer rounded-md border border-blue-300 bg-blue-100 p-3 transition-colors hover:border-blue-500 hover:bg-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 dark:border-blue-300-dark dark:bg-blue-100-dark dark:hover:border-blue-500-dark dark:hover:bg-blue-200-dark dark:focus-visible:ring-blue-700-dark md:p-4"
             >
-              <div className="flex items-center justify-between gap-1 md:gap-2">
+              <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between md:gap-2">
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-700-dark md:text-xs">
                   {label}
                 </span>
-                <div className="flex items-center gap-1 md:gap-1.5">
+                <div className="flex items-center gap-1 self-start md:gap-1.5 md:self-auto">
                   <span
                     className={cn(
                       "rounded-full border px-1.5 py-0.5 text-[10px] font-semibold md:px-2 md:text-xs",

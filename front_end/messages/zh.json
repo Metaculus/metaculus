@@ -2223,6 +2223,7 @@
   "nMore": "{count} 更多",
   "noHistogramData": "没有可用的直方图数据",
   "laborHubJobsBreadcrumb": "所有职业",
+  "laborHubJobsVisitCta": "查看职业",
   "laborHubJobsPageTitle": "所有职业 · 劳动自动化预测中心 | Metaculus",
   "laborHubJobsPageDescription": "浏览 Metaculus 社区对 15 个美国职业到 2035 年的预测。了解 AI 可能如何重塑每一个职业。",
   "laborHubJobsHeroTitle": "哪些职业能在 <accent>AI 时代生存？</accent>",

@@ -2218,6 +2218,7 @@
   "nMore": "還有 {count} 個",
   "noHistogramData": "沒有可用的直方圖資料",
   "laborHubJobsBreadcrumb": "所有職業",
+  "laborHubJobsVisitCta": "查看職業",
   "laborHubJobsPageTitle": "所有職業 · 勞動自動化預測中心 | Metaculus",
   "laborHubJobsPageDescription": "瀏覽 Metaculus 社群對 15 個美國職業到 2035 年的預測。了解 AI 可能如何重塑每一個職業。",
   "laborHubJobsHeroTitle": "哪些職業能在 <accent>AI 時代生存？</accent>",

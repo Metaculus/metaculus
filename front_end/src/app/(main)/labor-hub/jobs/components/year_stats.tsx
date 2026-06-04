@@ -27,14 +27,14 @@ export async function YearStats({ forecasts }: Props) {
         return (
           <div
             key={year}
-            className="rounded-md border border-blue-300 bg-blue-100 p-3 dark:border-blue-300-dark dark:bg-blue-100-dark sm:p-4"
+            className="rounded-md border border-blue-300 bg-blue-100 p-2.5 dark:border-blue-300-dark dark:bg-blue-100-dark xs:p-3 sm:p-4"
           >
             <div className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-700-dark">
               {t("laborHubJobsByYear", { year })}
             </div>
             <div
               className={cn(
-                "mt-1 font-jetbrains-mono text-2xl font-bold leading-none sm:text-3xl",
+                "mt-1 font-jetbrains-mono text-xl font-bold leading-none tracking-tight xs:text-2xl sm:text-3xl",
                 valueClass(value)
               )}
             >

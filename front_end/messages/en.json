@@ -2212,6 +2212,7 @@
   "publishTimeLockedDescription": "Publish time cannot be changed after creation.",
   "feedTileSummaryPlaceholder": "Optional: Enter a custom summary text to display on feed tiles (if not provided, a summary will be auto-generated from the notebook content)",
   "laborHubJobsBreadcrumb": "All Jobs",
+  "laborHubJobsVisitCta": "Visit Jobs",
   "laborHubJobsPageTitle": "All Jobs · Labor Automation Forecasting Hub | Metaculus",
   "laborHubJobsPageDescription": "Browse 15 US occupations forecasted by the Metaculus community through 2035. See how AI may reshape each one.",
   "laborHubJobsHeroTitle": "Which jobs will <accent>survive AI?</accent>",

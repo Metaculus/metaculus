@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 
 import cn from "@/utils/core/cn";
 
@@ -19,6 +20,9 @@ type Props = {
 export function MetricComparisonAxis({ metricKey, currentSlug }: Props) {
   const t = useTranslations();
   const def = METRIC_DEFS[metricKey];
+  // Horizontal position (0–100%) of a soft glow that follows the cursor inside
+  // the axis line; null when the cursor isn't over the axis.
+  const [glowPct, setGlowPct] = useState<number | null>(null);
 
   const values = JOBS_DATA.map((j) => def.valueOf(j));
   const min = Math.min(...values);
@@ -53,7 +57,14 @@ export function MetricComparisonAxis({ metricKey, currentSlug }: Props) {
       </div>
 
       {/* Desktop: horizontal comparison axis */}
-      <div className="group/axis relative hidden h-[92px] md:block">
+      <div
+        className="group/axis relative hidden h-[92px] md:block"
+        onMouseMove={(e) => {
+          const r = e.currentTarget.getBoundingClientRect();
+          setGlowPct(((e.clientX - r.left) / r.width) * 100);
+        }}
+        onMouseLeave={() => setGlowPct(null)}
+      >
         {/* End labels */}
         <div className="absolute left-0 top-[62px] flex flex-col">
           <span className="font-jetbrains-mono text-sm font-bold tabular-nums text-blue-800 dark:text-blue-800-dark">
@@ -72,8 +83,21 @@ export function MetricComparisonAxis({ metricKey, currentSlug }: Props) {
           </span>
         </div>
 
-        {/* Axis line — as thick as the dots, darker than the panel and dots */}
-        <div className="absolute inset-x-0 top-[43px] h-3.5 rounded-full bg-blue-950 dark:bg-blue-950-dark" />
+        {/* Axis line — as thick as the dots, darker than the panel and dots.
+            Houses a soft glow clipped to the bar that tracks the cursor. */}
+        <div className="absolute inset-x-0 top-[43px] h-3.5 overflow-hidden rounded-full bg-blue-700 dark:bg-blue-950-dark">
+          {glowPct != null && (
+            <span
+              aria-hidden
+              className="pointer-events-none absolute top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
+              style={{
+                left: `${glowPct}%`,
+                background:
+                  "radial-gradient(circle, rgba(255,255,255,0.4), transparent 70%)",
+              }}
+            />
+          )}
+        </div>
 
         {/* Dots */}
         {sorted.map((job) => {

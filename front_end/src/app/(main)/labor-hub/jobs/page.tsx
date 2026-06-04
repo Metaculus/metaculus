@@ -99,12 +99,12 @@ export default async function AllJobsPage() {
             {t("laborHubJobsHeroLead")}
           </p>
         </div>
+      </div>
 
-        <div className="mx-6 border-t border-blue-200 dark:border-blue-200-dark sm:mx-9" />
-
-        <div className="px-6 py-8 sm:px-9 sm:py-10">
-          <JobsWall jobs={jobs} tickers={tickers} />
-        </div>
+      {/* Tiles float on the page background (transparent container, no divider).
+          More width on mobile (px-0), aligned with the hero on desktop. */}
+      <div className="px-0 pt-3 sm:px-9 sm:pt-5">
+        <JobsWall jobs={jobs} tickers={tickers} />
       </div>
 
       <div className="mt-6">

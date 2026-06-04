@@ -2,12 +2,17 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 
 import ReusableGradientCarousel from "@/components/gradient-carousel";
 import cn from "@/utils/core/cn";
 
 import { formatSignedPercent } from "../helpers/format";
+
+// useLayoutEffect on the client (so the scroll position is set before paint),
+// useEffect on the server (avoids the SSR warning).
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 type JobNavItem = { slug: string; name: string; value2035: number | null };
 
@@ -15,12 +20,6 @@ type Props = {
   current: string;
   items: JobNavItem[];
 };
-
-// In-memory retained scroll position. Persists across client-side navigations
-// between job pages (the module stays loaded) and resets on a true full reload
-// — so switching jobs retains the strip position, while a fresh visit centers
-// the active pill.
-let retainedScrollLeft: number | null = null;
 
 function valueColor(value: number | null): string {
   if (value == null) return "";
@@ -34,58 +33,26 @@ export function JobNavStrip({ current, items }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const activeRef = useRef<HTMLAnchorElement | null>(null);
 
-  // Retain horizontal scroll across job switches; center the active pill only
-  // on a fresh visit (retainedScrollLeft is null at module load).
-  useEffect(() => {
-    const root = containerRef.current;
-    if (!root) return;
-    const viewport = root.querySelector<HTMLDivElement>(".overflow-x-auto");
-    if (!viewport) return;
+  // Center the active pill instantly on mount (fresh load and client-side
+  // job→job navigation). Runs after layout but before paint, so the strip is
+  // already in position with no visible scroll animation, and the active chip
+  // is always revealed regardless of where it sits in the list.
+  useIsomorphicLayoutEffect(() => {
+    const viewport =
+      containerRef.current?.querySelector<HTMLDivElement>(".overflow-x-auto");
+    const active =
+      activeRef.current ??
+      viewport?.querySelector<HTMLAnchorElement>("[data-active-pill='true']");
+    if (!viewport || !active) return;
 
-    const isLaidOut = () => viewport.scrollWidth > viewport.clientWidth;
-
-    const centerActive = () => {
-      const active =
-        activeRef.current ??
-        viewport.querySelector<HTMLAnchorElement>("[data-active-pill='true']");
-      if (!active) return;
-      const vpRect = viewport.getBoundingClientRect();
-      const actRect = active.getBoundingClientRect();
-      const offsetFromViewportLeft =
-        actRect.left - vpRect.left + viewport.scrollLeft;
-      const target =
-        offsetFromViewportLeft - vpRect.width / 2 + actRect.width / 2;
-      viewport.scrollLeft = Math.max(
-        0,
-        Math.min(target, viewport.scrollWidth - viewport.clientWidth)
-      );
-    };
-
-    const apply = () => {
-      if (!isLaidOut()) return;
-      if (retainedScrollLeft != null) {
-        viewport.scrollLeft = retainedScrollLeft;
-      } else {
-        centerActive();
-        retainedScrollLeft = viewport.scrollLeft;
-      }
-    };
-
-    // Two frames: the first may run before the carousel has measured, the
-    // second is after layout so scrollLeft sticks.
-    const raf1 = requestAnimationFrame(() => {
-      apply();
-      requestAnimationFrame(apply);
-    });
-
-    const onScroll = () => {
-      retainedScrollLeft = viewport.scrollLeft;
-    };
-    viewport.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      cancelAnimationFrame(raf1);
-      viewport.removeEventListener("scroll", onScroll);
-    };
+    const vp = viewport.getBoundingClientRect();
+    const a = active.getBoundingClientRect();
+    const target =
+      viewport.scrollLeft + (a.left - vp.left) - (vp.width - a.width) / 2;
+    viewport.scrollLeft = Math.max(
+      0,
+      Math.min(target, viewport.scrollWidth - viewport.clientWidth)
+    );
   }, [current]);
 
   const handlePillRef = useCallback(
@@ -107,7 +74,7 @@ export function JobNavStrip({ current, items }: Props) {
           gapClassName="gap-2"
           slideBy={{ mode: "items", count: 3 }}
           gradientFromClass="from-gray-0 dark:from-gray-0-dark"
-          gradientWidthClass="w-[60px] sm:w-[100px]"
+          gradientWidthClass="w-[15px] sm:w-[100px]"
           listClassName="px-0 pb-0"
           fadeMs={0}
           viewportClassName="[&]:overflow-x-auto"

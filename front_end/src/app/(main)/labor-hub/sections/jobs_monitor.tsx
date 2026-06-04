@@ -1,8 +1,12 @@
 "use client";
 
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { ComponentProps, useState } from "react";
 
+import Button from "@/components/ui/button";
 import ButtonGroup from "@/components/ui/button_group";
 import cn from "@/utils/core/cn";
 
@@ -99,6 +103,7 @@ export function JobsMonitorSection({
   jobs: JobRow[];
   postIds?: number[];
 } & ComponentProps<"div">) {
+  const t = useTranslations();
   const [year, setYear] = useState(columns[columns.length - 1] ?? "");
 
   return (
@@ -109,6 +114,17 @@ export function JobsMonitorSection({
       subtitle="AI is reshaping the job market, but not all fields are affected equally."
       subtitleClassName="print:mx-auto print:text-center"
       postIds={postIds}
+      headerActions={
+        <Button
+          href="/labor-hub/jobs/"
+          variant="primary"
+          size="sm"
+          className="h-8 gap-1.5 px-3"
+        >
+          {t("laborHubJobsVisitCta")}
+          <FontAwesomeIcon icon={faArrowRight} />
+        </Button>
+      }
       {...props}
     >
       <div className="mb-4 mt-3 flex justify-start md:mb-8 md:mt-5 md:justify-center print:justify-center">
