@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { CSSProperties, FC, ReactNode, useState } from "react";
 
-import { addOpacityToHex } from "@/utils/core/colors";
+import { addOpacityToHex, shadeHex } from "@/utils/core/colors";
 
 import ConsequenceGauge from "./consequence_gauge";
 import { DonkeyIcon, ElephantIcon } from "./party_icons";
@@ -94,7 +94,7 @@ const HL_COLOR: Record<CellCol, { light: string; dark: string }> = {
   ...GAUGE_COLOR,
 };
 const HL_SUBTLE = 0.1;
-const HL_STRONG = 0.2;
+const HL_STRONG = 0.3;
 
 type HoverState =
   | { kind: "cell"; row: string; col: Column }
@@ -117,6 +117,15 @@ const ConsequenceGrid: FC<Props> = ({
   const splitBg = isDark ? SPLIT_HEADER_BG.dark : SPLIT_HEADER_BG.light;
   const tone = (col: Column) =>
     isDark ? GAUGE_COLOR[col].dark : GAUGE_COLOR[col].light;
+
+  // The gauge inside the hovered cell shifts darker (light mode) / lighter
+  // (dark mode) so it stands out from the rest of the row + column.
+  const gaugeColor = (rowKey: string, col: Column): string => {
+    const base = tone(col);
+    const active =
+      hover?.kind === "cell" && hover.row === rowKey && hover.col === col;
+    return active ? shadeHex(base, isDark ? 0.3 : -0.3) : base;
+  };
 
   const activeCol: Column | null =
     hover && (hover.kind === "cell" || hover.kind === "col") ? hover.col : null;
@@ -210,7 +219,7 @@ const ConsequenceGrid: FC<Props> = ({
           href={row.href}
           target="_blank"
           rel="noopener noreferrer"
-          className={`group/row grid grid-cols-3 border-b border-blue-300 no-underline last:border-0 dark:border-blue-300-dark ${COLS} md:gap-0`}
+          className={`group/row grid grid-cols-3 border-b border-blue-400 no-underline last:border-0 dark:border-blue-300-dark/60 ${COLS} md:gap-0`}
         >
           {/* Mobile: question spans the full width with the three gauges in a
               row beneath it. Desktop: question is the first column. The title
@@ -220,20 +229,20 @@ const ConsequenceGrid: FC<Props> = ({
             style={questionBg(row.key)}
             className="col-span-3 m-0 flex items-center pb-2 pt-4 text-sm font-medium text-blue-800 transition-colors dark:text-blue-800-dark md:col-span-1 md:py-4 md:pr-4 md:text-base"
           >
-            <span className="decoration-blue-400/50 decoration-1 underline-offset-4 group-hover/row:underline dark:decoration-blue-400-dark/50">
+            <span className="decoration-blue-600 decoration-1 underline-offset-4 group-hover/row:underline dark:decoration-blue-400-dark">
               {row.question}
             </span>
           </p>
           <GaugeCell
             pct={row.demPct}
-            color={tone("dem")}
+            color={gaugeColor(row.key, "dem")}
             mobileLabel={row.ifDemLabel}
             bg={cellBg(row.key, "dem")}
             onEnter={() => setHover({ kind: "cell", row: row.key, col: "dem" })}
           />
           <GaugeCell
             pct={row.splitPct}
-            color={tone("split")}
+            color={gaugeColor(row.key, "split")}
             mobileLabel={row.ifSplitLabel}
             bg={cellBg(row.key, "split")}
             onEnter={() =>
@@ -242,7 +251,7 @@ const ConsequenceGrid: FC<Props> = ({
           />
           <GaugeCell
             pct={row.repPct}
-            color={tone("rep")}
+            color={gaugeColor(row.key, "rep")}
             mobileLabel={row.ifRepLabel}
             bg={cellBg(row.key, "rep")}
             onEnter={() => setHover({ kind: "cell", row: row.key, col: "rep" })}
@@ -309,7 +318,7 @@ const GaugeCell: FC<GaugeCellProps> = ({
     <div
       onMouseEnter={onEnter}
       style={{ backgroundColor: bg }}
-      className="flex h-full w-full flex-col items-center justify-center gap-1 pb-4 transition-colors md:border-l md:border-blue-300 md:py-4 dark:md:border-blue-300-dark"
+      className="flex h-full w-full flex-col items-center justify-center gap-1 pb-4 transition-colors md:border-l md:border-blue-400 md:py-4 dark:md:border-blue-300-dark/60"
     >
       <span className="block text-center text-[11px] font-medium uppercase tracking-wider text-blue-600 dark:text-blue-600-dark md:hidden">
         {mobileLabel}

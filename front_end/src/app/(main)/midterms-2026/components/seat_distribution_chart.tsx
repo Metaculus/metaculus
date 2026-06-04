@@ -306,8 +306,9 @@ const SeatDistributionChart: FC<Props> = ({
   const tooltipComponent = (
     <VictoryTooltip
       cornerRadius={6}
-      flyoutPadding={{ top: 12, bottom: 12, left: 12, right: 12 }}
+      flyoutPadding={{ top: 10, bottom: 10, left: 12, right: 12 }}
       flyoutStyle={{ fill: tooltipBgFill, stroke: "transparent" }}
+      labelComponent={<VictoryLabel lineHeight={1.3} />}
       style={[
         {
           fill: tooltipTextFill,

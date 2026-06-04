@@ -64,6 +64,25 @@ export function addOpacityToHex(hex: string, opacity: number) {
   return `${hex}${alpha}`;
 }
 
+/**
+ * Lightens (amount > 0, mixes toward white) or darkens (amount < 0, mixes
+ * toward black) a `#RRGGBB` hex by the given fraction (-1..1). Returns the
+ * input unchanged if it isn't a parseable hex.
+ */
+export function shadeHex(hex: string, amount: number): string {
+  const rgb = parseHexColor(hex);
+  if (!rgb) return hex;
+  const shade = (c: number) =>
+    Math.max(
+      0,
+      Math.min(
+        255,
+        Math.round(amount >= 0 ? c + (255 - c) * amount : c * (1 + amount))
+      )
+    );
+  return rgbToHex([shade(rgb[0]), shade(rgb[1]), shade(rgb[2])]);
+}
+
 /** Parses `#RGB` / `#RRGGBB` (with optional leading `#`). Returns null if not a 6-digit hex. */
 export function parseHexColor(color: string): RGBColor | null {
   const normalizedColor = color.replace("#", "");

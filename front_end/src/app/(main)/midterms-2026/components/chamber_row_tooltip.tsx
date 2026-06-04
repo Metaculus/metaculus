@@ -77,7 +77,9 @@ const ChamberRowTooltip: FC<Props> = ({ body, children }) => {
         role="tooltip"
         className={cn(
           "absolute left-1/2 top-full z-20 mt-2 w-max max-w-[300px] -translate-x-1/2 flex-col items-center gap-1 rounded-md bg-blue-800 px-4 py-3 text-center text-base text-gray-0 shadow-lg dark:bg-blue-800-dark dark:text-gray-0-dark",
-          open ? "flex" : "hidden group-hover/cr:flex"
+          // On touch, sticky `:hover` would keep the tooltip open after the X
+          // sets `open=false`; gate the hover fallback to non-touch devices.
+          open ? "flex" : isTouch ? "hidden" : "hidden group-hover/cr:flex"
         )}
       >
         {open && isTouch && (

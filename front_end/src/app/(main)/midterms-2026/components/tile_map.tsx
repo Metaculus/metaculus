@@ -107,7 +107,11 @@ const TileMap: FC<Props> = ({ races }) => {
                 "flex aspect-square items-center justify-center rounded-sm text-xs font-medium transition-transform duration-150 ease-out",
                 isContested
                   ? "cursor-pointer text-white hover:scale-105"
-                  : "cursor-default text-blue-600 dark:text-blue-600-dark"
+                  : "cursor-default text-blue-600 dark:text-blue-600-dark",
+                // Active tile (its tooltip is open): thick contrast outline
+                // until the tooltip is dismissed.
+                hovered?.abbr === abbr &&
+                  "relative z-10 ring-[3px] ring-blue-900 dark:ring-blue-100"
               )}
               style={{
                 gridColumn: col + 1,
