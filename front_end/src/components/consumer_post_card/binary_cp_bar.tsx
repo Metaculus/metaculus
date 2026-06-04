@@ -8,6 +8,7 @@ import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view
 import { useHideCP } from "@/contexts/cp_context";
 import { QuestionStatus } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import { describeArc } from "@/utils/charts/arc";
 import { getBinaryGaugeColors } from "@/utils/colors/binary_gauge_colors";
 import cn from "@/utils/core/cn";
 
@@ -54,7 +55,6 @@ const BinaryCPBar: FC<Props> = ({
 
   const backgroundArc = describeArc({
     percentage: 100,
-    isLargerFlag: 1,
     arcAngle,
     center,
     radius,
@@ -64,7 +64,6 @@ const BinaryCPBar: FC<Props> = ({
     cpPercentage && cpPercentage > 0
       ? describeArc({
           percentage: cpPercentage,
-          isLargerFlag: cpPercentage > 90 ? 1 : 0,
           arcAngle,
           center,
           radius,
@@ -203,32 +202,5 @@ const BinaryCPBar: FC<Props> = ({
     </div>
   );
 };
-
-function describeArc({
-  percentage,
-  isLargerFlag,
-  arcAngle,
-  center,
-  radius,
-}: {
-  percentage: number;
-  isLargerFlag: 0 | 1;
-  arcAngle: number;
-  center: { x: number; y: number };
-  radius: number;
-}) {
-  const startAngle = Math.PI - (arcAngle - Math.PI) / 2;
-  const endAngle = startAngle + (percentage / 100) * arcAngle;
-  const startX = center.x + radius * Math.cos(startAngle);
-  const startY = center.y + radius * Math.sin(startAngle);
-  const endX = center.x + radius * Math.cos(endAngle);
-  const endY = center.y + radius * Math.sin(endAngle);
-
-  return {
-    path: `M ${startX} ${startY} A ${radius} ${radius} 0 ${isLargerFlag} 1 ${endX} ${endY}`,
-    endPoint: { x: endX, y: endY },
-    angle: endAngle,
-  };
-}
 
 export default BinaryCPBar;
