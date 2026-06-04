@@ -64,7 +64,7 @@ const ContinuousQuestionPrediction: React.FC<Props> = ({
     return data;
   }, [cursorForecastValues, cursorUserForecastValues, question.status]);
 
-  if (hideCP) {
+  if (hideCP && !forecastAvailability.cpRevealsOn) {
     return (
       <div className="mx-auto mb-7 flex max-w-[340px] flex-col items-center justify-center gap-2.5">
         <RevealCPButton />

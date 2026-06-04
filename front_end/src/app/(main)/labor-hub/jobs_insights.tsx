@@ -24,10 +24,10 @@ export const JOBS_INSIGHTS = {
     ),
     negative: (
       <>
-        By 2030, <strong>software developers</strong> are expected to see a
-        steep decline, while <strong>financial</strong> and{" "}
-        <strong>sales</strong> roles begin to see sharper effects of AI
-        capabilities substitution.
+        By 2030, <strong>software developers</strong> and{" "}
+        <strong>sales representatives</strong> are expected to see steep
+        declines, while <strong>financial</strong> roles begin to see the
+        effects of AI capabilities substitution.
       </>
     ),
   },
@@ -41,12 +41,13 @@ export const JOBS_INSIGHTS = {
     ),
     negative: (
       <>
-        By 2035, <strong>software</strong>, <strong>finance</strong> and{" "}
+        By 2035, <strong>software</strong>, <strong>sales</strong> and{" "}
         <strong>law</strong> are expected to see sharp staff reductions as AI
-        systems take over large portions of coding, accounting, and detailed
+        systems take over large portions of coding, outreach, and detailed
         research work, while <strong>laborers</strong> and{" "}
-        <strong>sales</strong> see a contraction as more advanced robotics roll
-        out and AI automates lead generation and outreach.
+        <strong>financial specialists</strong> see a contraction as more
+        advanced robotics roll out and AI automates accounting and
+        administrative tasks.
       </>
     ),
   },

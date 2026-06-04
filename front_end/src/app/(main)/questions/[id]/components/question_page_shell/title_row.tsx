@@ -11,6 +11,7 @@ import { useHideCP } from "@/contexts/cp_context";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
+import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 import {
   isConditionalPost,
   isContinuousQuestion,
@@ -43,6 +44,9 @@ const TitleRow: FC<Props> = ({ post, variant, className }) => {
   if (variant === "forecaster" && isQuestionPost(post)) {
     const isMultipleChoice = post.question.type === QuestionType.MultipleChoice;
     const isContinuous = isContinuousQuestion(post.question);
+    const mcForecastAvailability = isMultipleChoice
+      ? getQuestionForecastAvailability(post.question)
+      : null;
 
     return (
       <div
@@ -63,7 +67,10 @@ const TitleRow: FC<Props> = ({ post, variant, className }) => {
             </QuestionTitle>
             <div className="shrink-0 self-center md:hidden">
               {isMultipleChoice ? (
-                hideCP && <RevealCPButton className="whitespace-nowrap" />
+                hideCP &&
+                !mcForecastAvailability?.cpRevealsOn && (
+                  <RevealCPButton className="whitespace-nowrap" />
+                )
               ) : (
                 <QuestionHeaderCPStatus
                   question={post.question as QuestionWithForecasts}
@@ -80,7 +87,9 @@ const TitleRow: FC<Props> = ({ post, variant, className }) => {
         </div>
         {!isContinuous && (
           <div className="hidden shrink-0 md:block">
-            {isMultipleChoice && hideCP ? (
+            {isMultipleChoice &&
+            hideCP &&
+            !mcForecastAvailability?.cpRevealsOn ? (
               <RevealCPButton className="whitespace-nowrap" />
             ) : (
               <QuestionHeaderCPStatus
