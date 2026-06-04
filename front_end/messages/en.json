@@ -2210,5 +2210,6 @@
   "whyTrustMetaculusLessNoiseTitle": "Less noise, more truth",
   "whyTrustMetaculusLessNoise": "Metaculus's crowd-powered forecasts cut through the noise by grounding every prediction in transparent evidence, accountable scoring, and a decade of demonstrated accuracy. Metaculus equips policymakers, researchers, journalists, and corporate organizations with evidence-based forecasts that surface clear, quantifiable insight into the world's most critical uncertainties. Explore our suite of <servicesLink>Business Solutions</servicesLink> to learn more about how Metaculus can improve your organization's decision-making.",
   "publishTimeLockedDescription": "Publish time cannot be changed after creation.",
-  "feedTileSummaryPlaceholder": "Optional: Enter a custom summary text to display on feed tiles (if not provided, a summary will be auto-generated from the notebook content)"
+  "feedTileSummaryPlaceholder": "Optional: Enter a custom summary text to display on feed tiles (if not provided, a summary will be auto-generated from the notebook content)",
+  "feedTileSummaryRequiredForFormattedContent": "Feed tile summary is required because the visible start of your notebook contains a table or raw HTML that wouldn't render cleanly on a feed tile. Add a short plain-text summary so readers see a clean preview."
 }
