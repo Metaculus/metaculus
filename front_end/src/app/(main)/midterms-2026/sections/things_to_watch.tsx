@@ -41,12 +41,9 @@ export default async function ThingsToWatchSection() {
 
   return (
     <SectionCard>
-      <SectionHeader className="mb-2">
+      <SectionHeader className="mb-6">
         {t("midtermsHubThingsToWatch")}
       </SectionHeader>
-      <ContentParagraph className="mb-8">
-        {t("midtermsHubThingsToWatchSubtitle")}
-      </ContentParagraph>
 
       {/* Desktop: 3-column grid. */}
       <div className="hidden gap-6 lg:grid lg:grid-cols-3">

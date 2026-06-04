@@ -36,8 +36,10 @@ export default async function CommunityInsightsSection() {
 
   return (
     <SectionCard>
-      {/* Desktop: chevron-driven horizontal carousel with edge gradients. */}
-      <div className="hidden lg:block">
+      {/* Desktop / tablet (>=480px): chevron-driven horizontal carousel with
+          edge gradients. Below xs it falls back to the full-width mobile
+          carousel. */}
+      <div className="hidden xs:block">
         <InsightsCarousel insights={insights} title={title} />
       </div>
 
@@ -45,7 +47,7 @@ export default async function CommunityInsightsSection() {
           dot indicators, peek-next-card, no edge gradients. The carousel
           adds its own horizontal padding; pull the section padding back
           so slides bleed edge-to-edge. */}
-      <div className="lg:hidden">
+      <div className="xs:hidden">
         <div className="mb-4">{title}</div>
         <div className="-mx-5 md:-mx-10">
           <MobileCarousel>

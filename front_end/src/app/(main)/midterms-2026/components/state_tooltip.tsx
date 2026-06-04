@@ -40,10 +40,7 @@ const StateTooltipContent: FC<Props> = ({ race, demWinPct }) => {
           {probLabel}
         </span>
       </div>
-      <p
-        className="m-0 text-xs no-underline"
-        style={{ color: MIDTERMS_COLORS.demPrimary }}
-      >
+      <p className="m-0 text-xs text-gray-700 underline decoration-gray-400 underline-offset-2 dark:text-gray-700-dark dark:decoration-gray-400-dark">
         {t("midtermsHubClickToView")}
       </p>
     </div>

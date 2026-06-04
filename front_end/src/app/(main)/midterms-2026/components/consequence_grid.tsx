@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { CSSProperties, FC, ReactNode, useState } from "react";
 
+import cn from "@/utils/core/cn";
 import { addOpacityToHex, shadeHex } from "@/utils/core/colors";
 
 import ConsequenceGauge from "./consequence_gauge";
@@ -185,12 +186,7 @@ const ConsequenceGrid: FC<Props> = ({
           <PartyHeader
             background={splitBg.rest}
             activeBackground={splitBg.active}
-            icon={
-              <span className="flex shrink-0 items-center gap-0.5">
-                <DonkeyIcon width={18} height={18} />
-                <ElephantIcon width={18} height={18} />
-              </span>
-            }
+            icon={null}
             title={splitHeader.title}
             subtitle={splitHeader.subtitle}
             active={activeCol === "split"}
@@ -287,12 +283,20 @@ const PartyHeader: FC<PartyHeaderProps> = ({
   return (
     <div
       aria-label={title}
-      className="flex items-center gap-2 rounded-md px-3 py-2 text-white transition-[background] duration-150"
+      className={cn(
+        "flex items-center gap-2 rounded-md px-3 py-2 text-white transition-[background] duration-150",
+        !icon && "justify-center"
+      )}
       style={{ background: active ? activeBackground : background }}
       onMouseEnter={onMouseEnter}
     >
       {icon}
-      <div className="text-[11px] font-medium uppercase leading-tight tracking-wider opacity-95">
+      <div
+        className={cn(
+          "text-[11px] font-medium uppercase leading-tight tracking-wider opacity-95",
+          !icon && "text-center"
+        )}
+      >
         {subtitle}
       </div>
     </div>
