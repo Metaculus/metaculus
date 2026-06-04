@@ -6,7 +6,11 @@ import { PostWithForecasts } from "@/types/post";
 import ChamberRowTooltip from "./chamber_row_tooltip";
 import { MIDTERMS_COLORS } from "../constants";
 import CvBar, { ThemedColor } from "./cv_bar";
-import { CONGRESS_OUTCOME_LABELS } from "../data";
+import {
+  CONGRESS_OUTCOME_LABELS,
+  CURRENT_HOUSE,
+  CURRENT_SENATE,
+} from "../data";
 import { ChamberData } from "../helpers/fetch_dashboard_data";
 import { getMultipleChoiceOptionProbability } from "../helpers/post_utils";
 
@@ -26,9 +30,6 @@ const REP_BORDER: ThemedColor = {
   light: MIDTERMS_COLORS.repBorder,
   dark: MIDTERMS_COLORS.repBorderDark,
 };
-
-const CURRENT_SENATE = { dem: 47, rep: 53 };
-const CURRENT_HOUSE = { dem: 215, rep: 220 };
 
 // Sums several option probabilities of a multiple-choice post; null if any
 // option is missing.
@@ -186,8 +187,11 @@ function ChamberRow({
     demProb != null && total && total > 0 ? (demProb / total) * 100 : null;
   const repShare = demShare != null ? 100 - demShare : null;
 
-  const demPct = demProb != null ? Math.round(demProb * 1000) / 10 : null;
-  const repPct = repProb != null ? Math.round(repProb * 1000) / 10 : null;
+  // Display the same normalized shares the bars use, so text and bar geometry
+  // always agree (the two marginals already sum to ~100%, so this is a no-op in
+  // practice, but keeps them locked together).
+  const demPct = demShare != null ? Math.round(demShare * 10) / 10 : null;
+  const repPct = repShare != null ? Math.round(repShare * 10) / 10 : null;
 
   const slash = (
     // 50% opacity separator shared by Forecast and Current rows.

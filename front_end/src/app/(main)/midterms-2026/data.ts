@@ -107,10 +107,10 @@ export type ChamberQuestionIds = {
   houseControl: number;
   /** Multiple-choice with 4 options: "Dem Senate / Dem House" etc. */
   congressOutcome: number;
-  /** Numeric distribution */
-  voterTurnout: number;
-  /** Binary */
-  electionIntegrity: number;
+  /** Binary — Trump declares a national emergency over election integrity */
+  electionEmergency: number;
+  /** Binary — Missouri Amendment 3 repeals 2024 abortion-rights protections */
+  abortionAmendment: number;
   /** Binary — courts block USPS mail-in ballot restrictions */
   mailInBallots: number;
 };
@@ -119,10 +119,16 @@ export const CHAMBER_QUESTIONS: ChamberQuestionIds = {
   senateControl: 36370,
   houseControl: 36369,
   congressOutcome: 34484,
-  voterTurnout: 41177,
-  electionIntegrity: 36327,
+  electionEmergency: 43609,
+  abortionAmendment: 43490,
   mailInBallots: 43527,
 };
+
+// Pre-midterm composition of the 119th Congress (seats held going into the
+// 2026 elections). Static baseline — update only if special elections or party
+// switches shift it; there is no live "current seat count" feed.
+export const CURRENT_SENATE = { dem: 47, rep: 53 };
+export const CURRENT_HOUSE = { dem: 215, rep: 220 };
 
 export type CongressOutcomeKey = "RR" | "RD" | "DR" | "DD";
 

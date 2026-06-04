@@ -29,8 +29,8 @@ export const fetchCommunityInsights = cache(
       chamber.senateControl,
       chamber.houseControl,
       chamber.congressOutcome,
-      chamber.voterTurnout,
-      chamber.electionIntegrity,
+      chamber.electionEmergency,
+      chamber.abortionAmendment,
     ].filter((p): p is PostWithForecasts => p !== null);
 
     if (!sourcePosts.length) return [];

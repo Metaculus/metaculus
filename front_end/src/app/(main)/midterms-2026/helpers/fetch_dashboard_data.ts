@@ -227,35 +227,39 @@ export type ChamberData = {
   senateControl: PostWithForecasts | null;
   houseControl: PostWithForecasts | null;
   congressOutcome: PostWithForecasts | null;
-  voterTurnout: PostWithForecasts | null;
-  electionIntegrity: PostWithForecasts | null;
+  electionEmergency: PostWithForecasts | null;
+  abortionAmendment: PostWithForecasts | null;
+};
+
+const EMPTY_CHAMBER_DATA: ChamberData = {
+  senateControl: null,
+  houseControl: null,
+  congressOutcome: null,
+  electionEmergency: null,
+  abortionAmendment: null,
 };
 
 export const fetchChamberData = cache(async (): Promise<ChamberData> => {
   const ids = Object.values(CHAMBER_QUESTIONS).filter((id) => id > 0);
-  if (!ids.length) {
+  if (!ids.length) return EMPTY_CHAMBER_DATA;
+
+  try {
+    const { results } = await ServerPostsApi.getPostsWithCP({
+      ids,
+      limit: ids.length,
+    });
+    const byId = new Map(results.map((p) => [p.id, p]));
+
     return {
-      senateControl: null,
-      houseControl: null,
-      congressOutcome: null,
-      voterTurnout: null,
-      electionIntegrity: null,
+      senateControl: byId.get(CHAMBER_QUESTIONS.senateControl) ?? null,
+      houseControl: byId.get(CHAMBER_QUESTIONS.houseControl) ?? null,
+      congressOutcome: byId.get(CHAMBER_QUESTIONS.congressOutcome) ?? null,
+      electionEmergency: byId.get(CHAMBER_QUESTIONS.electionEmergency) ?? null,
+      abortionAmendment: byId.get(CHAMBER_QUESTIONS.abortionAmendment) ?? null,
     };
+  } catch {
+    return EMPTY_CHAMBER_DATA;
   }
-
-  const { results } = await ServerPostsApi.getPostsWithCP({
-    ids,
-    limit: ids.length,
-  });
-  const byId = new Map(results.map((p) => [p.id, p]));
-
-  return {
-    senateControl: byId.get(CHAMBER_QUESTIONS.senateControl) ?? null,
-    houseControl: byId.get(CHAMBER_QUESTIONS.houseControl) ?? null,
-    congressOutcome: byId.get(CHAMBER_QUESTIONS.congressOutcome) ?? null,
-    voterTurnout: byId.get(CHAMBER_QUESTIONS.voterTurnout) ?? null,
-    electionIntegrity: byId.get(CHAMBER_QUESTIONS.electionIntegrity) ?? null,
-  };
 });
 
 export type SeatDistributions = {

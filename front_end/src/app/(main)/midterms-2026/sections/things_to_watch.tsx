@@ -16,14 +16,14 @@ export default async function ThingsToWatchSection() {
 
   const slides: { id: number; title: string; context: string }[] = [
     {
-      id: CHAMBER_QUESTIONS.voterTurnout,
-      title: t("midtermsHubVoterTurnout"),
-      context: t("midtermsHubTurnoutContext"),
+      id: CHAMBER_QUESTIONS.electionEmergency,
+      title: t("midtermsHubElectionEmergency"),
+      context: t("midtermsHubElectionEmergencyContext"),
     },
     {
-      id: CHAMBER_QUESTIONS.electionIntegrity,
-      title: t("midtermsHubElectionIntegrity"),
-      context: t("midtermsHubIntegrityContext"),
+      id: CHAMBER_QUESTIONS.abortionAmendment,
+      title: t("midtermsHubAbortionAmendment"),
+      context: t("midtermsHubAbortionAmendmentContext"),
     },
     {
       id: CHAMBER_QUESTIONS.mailInBallots,
