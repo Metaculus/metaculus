@@ -8,7 +8,7 @@ export async function HubCtaCard() {
   return (
     <Link
       href="/labor-hub/"
-      className="group flex items-center justify-between gap-4 rounded-md bg-gray-0 px-6 py-8 text-blue-700 no-underline transition-colors hover:bg-blue-100 dark:bg-gray-0-dark dark:text-blue-700-dark dark:hover:bg-blue-100-dark sm:px-9 sm:py-10"
+      className="group flex items-center justify-between gap-4 rounded-md bg-gray-0 px-6 py-5 text-blue-700 no-underline transition-colors hover:bg-blue-100 dark:bg-gray-0-dark dark:text-blue-700-dark dark:hover:bg-blue-100-dark sm:px-9 sm:py-6"
     >
       <span className="flex flex-col">
         <strong className="text-base font-bold leading-tight text-blue-900 dark:text-blue-900-dark sm:text-lg">

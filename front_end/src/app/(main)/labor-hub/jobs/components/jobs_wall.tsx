@@ -137,8 +137,8 @@ export function JobsWall({ jobs, tickers }: Props) {
           "@keyframes labor-hub-ticker-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }"
         }
       </style>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-blue-700 dark:text-blue-700-dark">
+      <div className="flex flex-wrap items-center justify-center gap-0 md:justify-between md:gap-3">
+        <p className="mb-1 mt-2 text-center text-sm text-blue-700 dark:text-blue-700-dark md:text-left">
           {t("laborHubJobsClickTileSubtitle")}
         </p>
         <div
@@ -165,7 +165,7 @@ export function JobsWall({ jobs, tickers }: Props) {
         </div>
       </div>
 
-      <div className="mt-5 grid auto-rows-[96px] grid-cols-3 gap-2 sm:auto-rows-[130px] sm:grid-cols-12 sm:gap-3">
+      <div className="mt-3 grid auto-rows-[96px] grid-cols-3 gap-2 sm:auto-rows-[130px] sm:grid-cols-12 sm:gap-3 md:mt-5">
         {tiles.map(({ job, size, value }) => {
           const isPositive = value != null && value > 0;
           const isNegative = value != null && value < 0;

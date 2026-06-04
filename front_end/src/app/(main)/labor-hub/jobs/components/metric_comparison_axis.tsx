@@ -51,7 +51,7 @@ export function MetricComparisonAxis({ metricKey, currentSlug }: Props) {
   );
 
   return (
-    <div className="rounded-md border border-blue-300 bg-blue-100 px-5 py-4 dark:border-blue-300-dark dark:bg-blue-100-dark">
+    <div className="rounded-md border border-blue-300 bg-blue-100 px-5 pb-6 pt-4 dark:border-blue-300-dark dark:bg-blue-100-dark">
       <div className="mb-1 text-center text-[11px] font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-600-dark">
         {t(def.axisLabelKey)}
       </div>
@@ -66,7 +66,7 @@ export function MetricComparisonAxis({ metricKey, currentSlug }: Props) {
         onMouseLeave={() => setGlowPct(null)}
       >
         {/* End labels */}
-        <div className="absolute left-0 top-[62px] flex flex-col">
+        <div className="absolute left-[-4px] top-[69px] flex flex-col">
           <span className="font-jetbrains-mono text-sm font-bold tabular-nums text-blue-800 dark:text-blue-800-dark">
             {def.format(min)}
           </span>
@@ -74,7 +74,7 @@ export function MetricComparisonAxis({ metricKey, currentSlug }: Props) {
             {t("laborHubJobsMetricLower")}
           </span>
         </div>
-        <div className="absolute right-0 top-[62px] flex flex-col text-right">
+        <div className="absolute right-[-4px] top-[69px] flex flex-col text-right">
           <span className="font-jetbrains-mono text-sm font-bold tabular-nums text-blue-800 dark:text-blue-800-dark">
             {def.format(max)}
           </span>
@@ -85,17 +85,30 @@ export function MetricComparisonAxis({ metricKey, currentSlug }: Props) {
 
         {/* Axis line — as thick as the dots, darker than the panel and dots.
             Houses a soft glow clipped to the bar that tracks the cursor. */}
-        <div className="absolute inset-x-0 top-[43px] h-3.5 overflow-hidden rounded-full bg-blue-700 dark:bg-blue-950-dark">
+        <div className="absolute inset-x-0 top-[43px] h-5 overflow-hidden rounded-full bg-blue-400 dark:bg-blue-950-dark/60">
           {glowPct != null && (
-            <span
-              aria-hidden
-              className="pointer-events-none absolute top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
-              style={{
-                left: `${glowPct}%`,
-                background:
-                  "radial-gradient(circle, rgba(255,255,255,0.4), transparent 70%)",
-              }}
-            />
+            <>
+              {/* Light-mode glow */}
+              <span
+                aria-hidden
+                className="pointer-events-none absolute top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl dark:hidden"
+                style={{
+                  left: `${glowPct}%`,
+                  background:
+                    "radial-gradient(circle, rgb(42, 38, 78), transparent 75%)",
+                }}
+              />
+              {/* Dark-mode glow (tune independently) */}
+              <span
+                aria-hidden
+                className="pointer-events-none absolute top-1/2 hidden h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl dark:block"
+                style={{
+                  left: `${glowPct}%`,
+                  background:
+                    "radial-gradient(circle, rgba(255, 255, 255, 0.45), transparent 60%)",
+                }}
+              />
+            </>
           )}
         </div>
 
@@ -109,7 +122,7 @@ export function MetricComparisonAxis({ metricKey, currentSlug }: Props) {
             <div
               key={job.slug}
               className={cn(
-                "group/dot absolute top-[50px]",
+                "group/dot absolute top-[53px]",
                 isCurrent ? "z-20" : "z-10 hover:z-30"
               )}
               style={{ left: `${pct}%` }}
@@ -126,7 +139,7 @@ export function MetricComparisonAxis({ metricKey, currentSlug }: Props) {
                   "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-gray-0 transition-transform dark:ring-gray-0-dark",
                   isCurrent
                     ? "h-5 w-5"
-                    : "h-3.5 w-3.5 bg-blue-500 group-hover/dot:scale-125 group-hover/axis:bg-blue-600 dark:bg-blue-500-dark dark:group-hover/axis:bg-blue-600-dark"
+                    : "h-3.5 w-3.5 bg-blue-500 group-hover/dot:scale-125 group-hover/dot:bg-blue-600 dark:bg-blue-500-dark dark:group-hover/dot:bg-blue-700-dark"
                 )}
                 style={
                   isCurrent

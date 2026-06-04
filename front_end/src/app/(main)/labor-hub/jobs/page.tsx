@@ -59,13 +59,13 @@ export default async function AllJobsPage() {
   };
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-3 pb-16 pt-6 sm:px-8 xl:px-16">
+    <main className="mx-auto w-full max-w-7xl px-3 pb-16 pt-4 sm:px-8 md:pt-8 xl:px-16">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="rounded-md bg-gray-0 dark:bg-gray-0-dark">
-        <div className="px-6 py-8 sm:px-9 sm:py-10">
+        <div className="px-6 pb-2 pt-6 sm:px-9 sm:pb-4 sm:pt-8">
           <nav
             aria-label="Breadcrumb"
             className="mb-3 flex items-center gap-2 text-sm text-blue-700 dark:text-blue-700-dark"
