@@ -91,10 +91,16 @@ const PercentageForecastCard: FC<Props> = ({
   // Resolves each choice's value at the cursor (or last) timestamp using its
   // own timeline, since history lengths differ per sub-question.
   const displayChoices = useMemo(() => {
-    const refTimestamps = allChoices[0]?.aggregationTimestamps ?? [];
-    if (!refTimestamps.length) return allChoices;
-    const refTs =
-      cursorTimestamp ?? refTimestamps[refTimestamps.length - 1] ?? null;
+    const fallbackLatestTs = allChoices.reduce<number | null>(
+      (maxTs, choice) => {
+        const own = choice.aggregationTimestamps;
+        const lastTs = own[own.length - 1] ?? null;
+        if (lastTs === null) return maxTs;
+        return maxTs === null || lastTs > maxTs ? lastTs : maxTs;
+      },
+      null
+    );
+    const refTs = cursorTimestamp ?? fallbackLatestTs;
     if (refTs === null) return allChoices;
 
     return allChoices.map((choice) => {

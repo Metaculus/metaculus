@@ -78,13 +78,20 @@ const NumericForecastCard: FC<Props> = ({
   const hiddenCount = Math.max(0, sortedChoices.length - visibleChoicesCount);
   const collapsedChoices = sortedChoices.slice(0, visibleChoicesCount);
 
-  // Anchor all sub-questions to the same timestamp; fall back to the first
-  // choice's last entry since history lengths differ per sub-question.
-  const refTimestamps = sortedChoices[0]?.aggregationTimestamps ?? [];
-  const refTs =
-    cursorTimestamp !== null
-      ? cursorTimestamp
-      : refTimestamps[refTimestamps.length - 1] ?? null;
+  // Anchor all sub-questions to the same timestamp. Use the global latest
+  // across all choices so resolved rows (sorted first) don't anchor to a
+  // stale timestamp and show outdated values on initial load.
+  const fallbackLatestTs = sortedChoices.reduce<number | null>(
+    (maxTs, choice) => {
+      const lastTs =
+        choice.aggregationTimestamps[choice.aggregationTimestamps.length - 1] ??
+        null;
+      if (lastTs === null) return maxTs;
+      return maxTs === null || lastTs > maxTs ? lastTs : maxTs;
+    },
+    null
+  );
+  const refTs = cursorTimestamp ?? fallbackLatestTs;
 
   // Returns the aggregation value for a sub-question at refTs using its own
   // timestamp array, since each sub-question may have a different history length.
