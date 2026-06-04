@@ -9,6 +9,7 @@ export type ChoiceItem = {
   id?: number;
   choice: string; // multiple choice option or subquestion label
   label?: string; // label to display if different from "choice"
+  isDeleted?: boolean;
   color: ThemeColor;
   highlighted: boolean;
   active: boolean;
