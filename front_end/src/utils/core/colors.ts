@@ -72,12 +72,19 @@ export function addOpacityToHex(hex: string, opacity: number) {
 export function shadeHex(hex: string, amount: number): string {
   const rgb = parseHexColor(hex);
   if (!rgb) return hex;
+  // Enforce the documented -1..1 contract: coerce NaN/Infinity to 0 and clamp,
+  // so bad input can't propagate a malformed `#NaNNaNNaN` color downstream.
+  const safeAmount = Number.isFinite(amount)
+    ? Math.max(-1, Math.min(1, amount))
+    : 0;
   const shade = (c: number) =>
     Math.max(
       0,
       Math.min(
         255,
-        Math.round(amount >= 0 ? c + (255 - c) * amount : c * (1 + amount))
+        Math.round(
+          safeAmount >= 0 ? c + (255 - c) * safeAmount : c * (1 + safeAmount)
+        )
       )
     );
   return rgbToHex([shade(rgb[0]), shade(rgb[1]), shade(rgb[2])]);
