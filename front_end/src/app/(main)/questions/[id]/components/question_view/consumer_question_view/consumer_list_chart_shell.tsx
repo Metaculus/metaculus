@@ -98,6 +98,7 @@ const ConsumerListChartShell: React.FC<Props> = ({
           "flex flex-col sm:flex-row sm:items-stretch",
           !hideBorder &&
             "sm:rounded-lg sm:border sm:border-gray-400/40 dark:sm:border-gray-400-dark/40",
+          stretchListContent && "sm:min-h-[192px]",
           className
         )}
         onMouseLeave={() => setHoveredChoiceName(null)}
@@ -105,7 +106,8 @@ const ConsumerListChartShell: React.FC<Props> = ({
         <div
           ref={listColumnRef}
           className={cn(
-            "order-1 sm:w-80 sm:shrink-0 sm:self-start lg:w-64 xl:w-80",
+            "order-1 sm:w-80 sm:shrink-0 lg:w-64 xl:w-80",
+            !stretchListContent && "sm:self-start",
             reduceInnerPadding ? "sm:py-5 sm:pl-5" : "sm:p-5",
             hideListOnMobile ? "hidden sm:block" : "",
             stretchListContent && "sm:flex sm:flex-col"
