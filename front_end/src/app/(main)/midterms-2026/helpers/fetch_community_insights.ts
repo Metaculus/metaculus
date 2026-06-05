@@ -60,6 +60,18 @@ function proseLength(text: string): number {
     .trim().length;
 }
 
+// Order comments by votes, then substance (prose length), then recency. Used
+// both within a question and across the final list, so the per-question cap
+// keeps each question's *best* comments rather than an arbitrary vote-tie order.
+function compareComments(a: CommentType, b: CommentType): number {
+  return (
+    (b.vote_score ?? 0) - (a.vote_score ?? 0) ||
+    proseLength(b.text ?? "") - proseLength(a.text ?? "") ||
+    (b.created_at ? Date.parse(b.created_at) : 0) -
+      (a.created_at ? Date.parse(a.created_at) : 0)
+  );
+}
+
 // A comment is dropped if it's downvoted, authored/aimed at staff, a
 // resolution/admin housekeeping note, or just a link / one-liner.
 function isLowQuality(comment: CommentType): boolean {
@@ -122,6 +134,7 @@ export const fetchCommunityInsights = cache(
           });
           return (results ?? [])
             .filter((comment) => !isLowQuality(comment))
+            .sort(compareComments)
             .slice(0, MAX_PER_POST)
             .map((comment) => ({
               type: "top-comment" as const,
@@ -134,19 +147,10 @@ export const fetchCommunityInsights = cache(
       }
     );
 
-    // Rank globally by votes, then substance (prose length), then recency.
+    // Rank the whole list by the same comparator and cap it.
     return perPost
       .flat()
-      .map((insight) => ({
-        insight,
-        votes: insight.comment.vote_score ?? 0,
-        len: proseLength(insight.comment.text ?? ""),
-        time: insight.comment.created_at
-          ? Date.parse(insight.comment.created_at)
-          : 0,
-      }))
-      .sort((a, b) => b.votes - a.votes || b.len - a.len || b.time - a.time)
-      .slice(0, MAX_INSIGHTS)
-      .map((r) => r.insight);
+      .sort((a, b) => compareComments(a.comment, b.comment))
+      .slice(0, MAX_INSIGHTS);
   }
 );
