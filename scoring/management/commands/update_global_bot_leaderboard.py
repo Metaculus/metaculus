@@ -384,12 +384,25 @@ def estimate_variances_from_head_to_head(
     min_questions_for_true=100,
     min_paired_matches=100,
     verbose: bool | None = None,
-) -> float:
+    include_discrimination: bool = False,
+    min_matches_per_question_for_disc: int = 30,
+) -> float | tuple[float, float]:
     """
     Helper function: Estimate σ_error and σ_true from head-to-head data.
 
     Returns:
-        alpha: estimated standard deviations and regularization parameter
+        alpha: skill ridge regularization parameter σ²_error / σ²_true
+
+    When `include_discrimination=True`, also estimates σ²_D (the spread of
+    per-question discriminations around 1) and returns
+    `(alpha_skill, alpha_disc)` with `alpha_disc = σ²_error / σ²_D`. This is
+    the empirical-Bayes regularization for D, returned *uncapped*: σ²_D is
+    estimated by fitting a per-question least-squares discrimination on the
+    warm-start skill fit (questions with at least
+    `min_matches_per_question_for_disc` matches) and taking the variance of
+    those D estimates around 1. Note this estimator can be large when
+    σ_error is large; see the FutureEval notebook for why that tends to
+    push D toward 1.
     """
     verbose = False if verbose is None else verbose
     # Estimate σ_error from paired matches
@@ -465,7 +478,46 @@ def estimate_variances_from_head_to_head(
         )
         print(f"σ²_true (skill variance): {skill_variance:.4f}")
         print(f"alpha = σ²_error / σ²_true = {alpha:.4f}")
-    return alpha
+
+    if not include_discrimination:
+        return alpha
+
+    # Estimate σ²_D from the warm-start skills: for each question with
+    # enough matches, fit a 1-parameter (unregularized) least-squares regression
+    matches_by_q: dict[int, list[tuple[float, float, float]]] = defaultdict(list)
+    for u1id, u2id, qid, score, weight in zip(
+        user1_ids, user2_ids, question_ids, scores, weights
+    ):
+        s_diff = skills[player_to_idx[u1id]] - skills[player_to_idx[u2id]]
+        matches_by_q[qid].append((float(weight), float(s_diff), float(score)))
+
+    d_estimates: list[float] = []
+    for qid, rows in matches_by_q.items():
+        if len(rows) < min_matches_per_question_for_disc:
+            continue
+        num = 0.0
+        den = 0.0
+        for wt, sd, sc in rows:
+            num += wt * sd * sc
+            den += wt * sd * sd
+        if den > 0:
+            d_estimates.append(num / den)
+    if len(d_estimates) > 1:
+        sigma_D_sq = float(np.var(np.array(d_estimates) - 1.0, ddof=1))
+    else:
+        sigma_D_sq = 1.0
+    if np.isnan(sigma_D_sq) or sigma_D_sq <= 0:
+        sigma_D_sq = 1.0
+
+    alpha_disc = error**2 / sigma_D_sq
+    if verbose:
+        print(
+            f"Found {len(d_estimates)} questions with "
+            f">={min_matches_per_question_for_disc} matches for D estimation"
+        )
+        print(f"σ²_D (discrimination variance around 1): {sigma_D_sq:.4f}")
+        print(f"alpha_disc = σ²_error / σ²_D = {alpha_disc:.4f} (uncapped)")
+    return alpha, alpha_disc
 
 
 def compute_skills(
@@ -510,6 +562,153 @@ def compute_skills(
     return skills
 
 
+def compute_skills_and_discriminations_als(
+    user1_ids: list[int | str],
+    user2_ids: list[int | str],
+    question_ids: list[int],
+    scores: list[float],
+    weights: list[float],
+    alpha_skill: float,
+    alpha_disc: float,
+    max_iter: int = 40,
+    tol: float = 1e-4,
+    verbose: bool | None = None,
+    init: str = "zeros",
+    seed: int | None = None,
+) -> tuple[SkillType, dict[int, float]]:
+    """
+    Compute player skills and per-question discriminations via Alternating
+    Least Squares with ridge regularization.
+
+    The model: For each match i on question q(i):
+        score_i = (skill[player_a_i] - skill[player_b_i]) * D[q(i)] + error_i
+
+    D_q == 1 reproduces the simpler skill-only model already used by
+    `compute_skills`. Large |D_q| means the question discriminates strongly
+    between skill levels; negative D_q inverts the skill ordering on that
+    question.
+
+    Each iteration alternates:
+      (a) discrimination step: per-question closed-form ridge toward 1.
+          D_q is then clipped to `[-1, 1]` to limit per-question leverage
+          and sign-flip instability from low-participation questions.
+      (b) skill step: ridge regression with row i having
+          X[i, u1]=+D_q(i), X[i, u2]=-D_q(i), y[i]=score_i,
+          regularized toward 0 with alpha_skill.
+    After each pass we renormalize so the coverage-weighted mean of D
+    equals 1 (and absorb the inverse factor into skills), to break the
+    scale ambiguity between skills and D. This `mean(D)=1` gauge keeps the
+    skill-step regularization (alpha_skill) on a stable scale across
+    iterations.
+
+    Once converged, the *reporting* gauge is switched to `max|D| = 1` so
+    the returned discriminations are bounded in `[-1, 1]` (1 = most skill-
+    discriminating question, 0 = luck, -1 = most skill-inverting).
+
+    Initialization (`init`):
+      - "zeros": skills=0. Because the discrimination step runs first and
+        the data term vanishes when skills=0, iteration 1 sets D≡1 and the
+        first skill step is exactly the skill-only ridge — i.e. an implicit
+        skill-only warm start.
+      - "random": cold start with skills ~ N(0, σ) where σ matches the
+        skill-only fit's spread; `seed` controls reproducibility. Use this
+        (with several seeds) to probe whether the non-convex ALS objective
+        has multiple basins.
+    """
+    verbose = False if verbose is None else verbose
+
+    match_count = len(scores)
+    if match_count == 0:
+        return {}, {}
+
+    user_ids = list(set(user1_ids) | set(user2_ids))
+    player_to_idx = {p: i for i, p in enumerate(user_ids)}
+    n_players = len(user_ids)
+
+    u1_idx = np.array([player_to_idx[u] for u in user1_ids], dtype=np.int64)
+    u2_idx = np.array([player_to_idx[u] for u in user2_ids], dtype=np.int64)
+    y = np.asarray(scores, dtype=float)
+    w = np.asarray(weights, dtype=float)
+
+    unique_questions = list(set(question_ids))
+    q_to_idx = {q: i for i, q in enumerate(unique_questions)}
+    q_arr = np.array([q_to_idx[q] for q in question_ids], dtype=np.int64)
+    q_total_weight = np.zeros(len(unique_questions))
+    np.add.at(q_total_weight, q_arr, w)
+    n_questions = len(unique_questions)
+
+    rows_template = np.concatenate([np.arange(match_count), np.arange(match_count)])
+    cols_template = np.concatenate([u1_idx, u2_idx])
+
+    if init == "zeros":
+        skills_arr = np.zeros(n_players)
+    elif init == "random":
+        # Random cold start scaled to the skill-only fit's spread, to probe
+        # whether the non-convex ALS objective has multiple basins.
+        warm = compute_skills(user1_ids, user2_ids, scores, weights, alpha_skill)
+        scale = float(np.std(np.array(list(warm.values())))) or 1.0
+        skills_arr = np.random.default_rng(seed).normal(0.0, scale, n_players)
+    else:
+        raise ValueError(f"Unknown init {init!r}; expected zeros|random")
+    # D is recomputed in the discrimination step before use, so its initial
+    # value is irrelevant; ones keeps it on the natural scale.
+    D_per_q = np.ones(n_questions)
+    prev_skills = skills_arr.copy()
+
+    for iteration in range(max_iter):
+        # Discrimination step (fix skills)
+        s_diff = skills_arr[u1_idx] - skills_arr[u2_idx]
+        num = np.full(n_questions, alpha_disc, dtype=float)
+        den = np.full(n_questions, alpha_disc, dtype=float)
+        np.add.at(num, q_arr, w * s_diff * y)
+        np.add.at(den, q_arr, w * s_diff * s_diff)
+        D_per_q = num / np.where(den > 0, den, 1.0)
+        D_per_q = np.clip(D_per_q, -1.0, 1.0)
+
+        # Renormalize: coverage-weighted mean(D) -> 1
+        total_w = q_total_weight.sum()
+        c = float(np.sum(D_per_q * q_total_weight) / total_w) if total_w > 0 else 1.0
+        if abs(c) < 1e-9:
+            c = 1.0
+        D_per_q = D_per_q / c
+        skills_arr = skills_arr * c
+
+        # Skill step (fix D)
+        D_per_match = D_per_q[q_arr]
+        X = sparse.csr_matrix(
+            (np.concatenate([D_per_match, -D_per_match]), (rows_template, cols_template)),
+            shape=(match_count, n_players),
+        )
+        model = Ridge(alpha=alpha_skill, fit_intercept=False, solver="lsqr")
+        model.fit(X, y, sample_weight=w)
+        skills_arr = np.asarray(model.coef_, dtype=float)
+
+        delta = float(np.max(np.abs(skills_arr - prev_skills)))
+        if verbose:
+            print(
+                f"  ALS iter {iteration + 1:>2}: max|Δskill|={delta:.6f}  "
+                f"scale={c:.4f}  D mean={D_per_q.mean():.3f}  D std={D_per_q.std():.3f}"
+            )
+        if iteration > 0 and delta < tol:
+            break
+        prev_skills = skills_arr.copy()
+
+    # Final reporting gauge: anchor max|D| = 1 so discriminations stay in
+    # [-1, 1]. Absorbing the reciprocal into skills preserves every
+    # prediction D·(s_A - s_B); skills are variance-rematched downstream,
+    # so the leaderboard is unchanged.
+    max_abs_D = float(np.max(np.abs(D_per_q))) if n_questions else 1.0
+    if max_abs_D > 1e-9:
+        D_per_q = D_per_q / max_abs_D
+        skills_arr = skills_arr * max_abs_D
+
+    skills: SkillType = {p: float(skills_arr[player_to_idx[p]]) for p in user_ids}
+    discriminations: dict[int, float] = {
+        q: float(D_per_q[q_to_idx[q]]) for q in unique_questions
+    }
+    return skills, discriminations
+
+
 def rescale_skills_(
     skills: SkillType,
     baseline_player: int | str,
@@ -543,22 +742,80 @@ def get_skills(
     baseline_player: int | str,
     var_avg_scores: float,
     verbose: bool | None = None,
-) -> SkillType:
-    alpha = estimate_variances_from_head_to_head(
-        user1_ids=user1_ids,
-        user2_ids=user2_ids,
-        question_ids=question_ids,
-        scores=scores,
-        weights=weights,
-        verbose=verbose,
-    )
-    skills = compute_skills(
-        user1_ids=user1_ids,
-        user2_ids=user2_ids,
-        scores=scores,
-        weights=weights,
-        alpha=alpha,
-    )
+    use_discrimination: bool = False,
+    alpha_disc: float = 0.25,
+    use_bayesian_alpha_disc: bool = False,
+    als_init: str = "zeros",
+    als_seed: int | None = None,
+) -> tuple[SkillType, dict[int, float]]:
+    """
+    Estimate forecaster skills (and optionally per-question discriminations)
+    from head-to-head scores, then rescale to peer-score units.
+
+    When `use_discrimination=False` this runs the legacy
+    `compute_skills` ridge regression. When True, it runs the ALS variant
+    `compute_skills_and_discriminations_als` instead, which jointly fits
+    skills and per-question discriminations D_q (see the FutureEval
+    notebook's "Future improvements → Question difficulty" section).
+
+    ALS-only knobs (ignored when use_discrimination=False):
+      - alpha_disc: ridge strength pulling each per-question D_q toward 1.
+      - use_bayesian_alpha_disc: when True, ignore the manual `alpha_disc`
+        and instead derive it empirically as σ²_error / σ²_D (uncapped),
+        mirroring how alpha_skill is computed.
+
+    Returns `(skills, discriminations)`. `discriminations` is `{}` when
+    `use_discrimination=False`.
+    """
+    if use_discrimination:
+        if use_bayesian_alpha_disc:
+            alpha_skill, alpha_disc = estimate_variances_from_head_to_head(
+                user1_ids=user1_ids,
+                user2_ids=user2_ids,
+                question_ids=question_ids,
+                scores=scores,
+                weights=weights,
+                verbose=verbose,
+                include_discrimination=True,
+            )  # type: ignore[misc]
+        else:
+            alpha_skill = estimate_variances_from_head_to_head(
+                user1_ids=user1_ids,
+                user2_ids=user2_ids,
+                question_ids=question_ids,
+                scores=scores,
+                weights=weights,
+                verbose=verbose,
+            )
+        skills, discriminations = compute_skills_and_discriminations_als(
+            user1_ids=user1_ids,
+            user2_ids=user2_ids,
+            question_ids=question_ids,
+            scores=scores,
+            weights=weights,
+            alpha_skill=alpha_skill,
+            alpha_disc=alpha_disc,
+            verbose=verbose,
+            init=als_init,
+            seed=als_seed,
+        )
+    else:
+        alpha = estimate_variances_from_head_to_head(
+            user1_ids=user1_ids,
+            user2_ids=user2_ids,
+            question_ids=question_ids,
+            scores=scores,
+            weights=weights,
+            verbose=verbose,
+        )
+        skills = compute_skills(
+            user1_ids=user1_ids,
+            user2_ids=user2_ids,
+            scores=scores,
+            weights=weights,
+            alpha=alpha,
+        )
+        discriminations = {}
     # Apply baseline and variance rescaling
     skills = rescale_skills_(
         skills=skills,
@@ -566,7 +823,7 @@ def get_skills(
         var_avg_scores=var_avg_scores,
         verbose=verbose,
     )
-    return skills
+    return skills, discriminations
 
 
 def bootstrap_skills(
@@ -579,6 +836,11 @@ def bootstrap_skills(
     baseline_player: int | str = 269196,
     verbose: bool | None = None,
     bootstrap_count: int = 30,
+    use_discrimination: bool = False,
+    alpha_disc: float = 0.25,
+    use_bayesian_alpha_disc: bool = False,
+    als_init: str = "zeros",
+    als_seed: int | None = None,
 ) -> tuple[SkillType, SkillType]:
     """
     get Confidence Intervals around the skills using Bootstrapping
@@ -635,7 +897,7 @@ def bootstrap_skills(
             boot_weights.extend(data[3])
 
         # Recompute skills with bootstrap-specific alpha
-        boot_skills = get_skills(
+        boot_skills, _ = get_skills(
             user1_ids=boot_user1_ids,
             user2_ids=boot_user2_ids,
             question_ids=boot_question_ids,
@@ -644,6 +906,11 @@ def bootstrap_skills(
             baseline_player=baseline_player,
             var_avg_scores=var_avg_scores,
             verbose=verbose,
+            use_discrimination=use_discrimination,
+            alpha_disc=alpha_disc,
+            use_bayesian_alpha_disc=use_bayesian_alpha_disc,
+            als_init=als_init,
+            als_seed=als_seed,
         )
 
         for player, boot_skill in boot_skills.items():
@@ -681,6 +948,11 @@ def run_update_global_bot_leaderboard(
     bot_recent_scores: int = 0,  # 400 most recent scores, 0 means no filter
     bot_recent_coverage: int = 400,  # 400 most recent coverage, 0 means no filter
     scale_weight_by_participants: bool = True,
+    use_discrimination: bool = True,  # ALS for per-question difficulty
+    alpha_disc: float = 0.25,  # ridge pull of per-question D toward 1
+    use_bayesian_alpha_disc: bool = False,  # derive alpha_disc = σ²_error/σ²_D (uncapped)
+    als_init: str = "zeros",  # ALS skill init: zeros | random
+    als_seed: int | None = None,  # seed for als_init="random"
     verbose: bool | None = None,
     # performance/logging
     cache_use: str = "partial",
@@ -722,6 +994,7 @@ def run_update_global_bot_leaderboard(
             ),
             post__curation_status=Post.CurationStatus.APPROVED,
             resolution__isnull=False,
+            actual_close_time__isnull=False,
             scheduled_close_time__lte=timezone.now(),
         )
         .exclude(resolution__in=UnsuccessfulResolutionType)
@@ -968,7 +1241,7 @@ def run_update_global_bot_leaderboard(
     )
 
     # compute skills initially
-    skills = get_skills(
+    skills, discriminations = get_skills(
         user1_ids=user1_ids,
         user2_ids=user2_ids,
         question_ids=question_ids,
@@ -977,6 +1250,11 @@ def run_update_global_bot_leaderboard(
         baseline_player=baseline_player,
         var_avg_scores=var_avg_scores,
         verbose=verbose,
+        use_discrimination=use_discrimination,
+        alpha_disc=alpha_disc,
+        use_bayesian_alpha_disc=use_bayesian_alpha_disc,
+        als_init=als_init,
+        als_seed=als_seed,
     )
 
     # Compute bootstrap confidence intervals
@@ -990,6 +1268,11 @@ def run_update_global_bot_leaderboard(
         baseline_player=baseline_player,
         verbose=verbose,
         bootstrap_count=bootstrap_count,
+        use_discrimination=use_discrimination,
+        alpha_disc=alpha_disc,
+        use_bayesian_alpha_disc=use_bayesian_alpha_disc,
+        als_init=als_init,
+        als_seed=als_seed,
     )
     print()
 
@@ -1141,6 +1424,12 @@ def run_update_global_bot_leaderboard(
             suffix += f"_NonMBRC{bot_recent_coverage}"
         if scale_weight_by_participants:
             suffix += "_SWP"
+        if use_discrimination:
+            suffix += "_ALS"
+            if use_bayesian_alpha_disc:
+                suffix += "_aDbayes"
+            else:
+                suffix += f"_aD{alpha_disc:g}"
         if suffix:
             suffix = "_" + suffix
 
@@ -1152,6 +1441,72 @@ def run_update_global_bot_leaderboard(
             )
             writer.writerows(csv_rows)
         print(f"Wrote CSV results to {csv_path}")
+
+        if use_discrimination and discriminations:
+            disc_path = Path(f"global_bot_question_discriminations{suffix}.csv")
+            participants_by_q: dict[int, int] = {
+                qid: len(participants) for qid, participants in p_by_q.items()
+            }
+            matches_by_q_count: dict[int, int] = defaultdict(int)
+            for qid in question_ids:
+                matches_by_q_count[qid] += 1
+
+            # collect per-question scores and skill diffs for std/correlation
+            scores_by_q: dict[int, list[float]] = defaultdict(list)
+            skill_diffs_by_q: dict[int, list[float]] = defaultdict(list)
+            for u1id, u2id, qid, score in zip(
+                user1_ids, user2_ids, question_ids, scores
+            ):
+                scores_by_q[qid].append(score)
+                skill_diffs_by_q[qid].append(skills.get(u1id, 0) - skills.get(u2id, 0))
+
+            # question titles for the questions in the leaderboard
+            disc_qids = list(discriminations.keys())
+            titles_by_q: dict[int, str] = dict(
+                Question.objects.filter(id__in=disc_qids).values_list("id", "title")
+            )
+
+            with disc_path.open("w", newline="") as output_file:
+                writer = csv.writer(output_file)
+                writer.writerow(
+                    [
+                        "question_id",
+                        "question_title",
+                        "discrimination",
+                        "n_matches",
+                        "n_participants",
+                        "score_std",
+                        "score_skill_corr",
+                    ]
+                )
+                for qid, d_val in sorted(
+                    discriminations.items(), key=lambda kv: -kv[1]
+                ):
+                    q_scores = np.array(scores_by_q.get(qid, []))
+                    q_skill_diffs = np.array(skill_diffs_by_q.get(qid, []))
+                    score_std = float(np.std(q_scores)) if len(q_scores) else 0.0
+                    if (
+                        len(q_scores) > 1
+                        and np.std(q_scores) > 0
+                        and np.std(q_skill_diffs) > 0
+                    ):
+                        score_skill_corr = float(
+                            np.corrcoef(q_scores, q_skill_diffs)[0][1]
+                        )
+                    else:
+                        score_skill_corr = 0.0
+                    writer.writerow(
+                        [
+                            qid,
+                            titles_by_q.get(qid, ""),
+                            round(d_val, 4),
+                            matches_by_q_count.get(qid, 0),
+                            participants_by_q.get(qid, 0),
+                            round(score_std, 4),
+                            round(score_skill_corr, 4),
+                        ]
+                    )
+            print(f"Wrote question discriminations to {disc_path}")
 
     ##########################################################################
     ##########################################################################
@@ -1222,23 +1577,28 @@ class Command(BaseCommand):
             cache_use = "partial"
 
         baseline_player = 236038
-        include_minibench = True
+        include_minibench = False
         cache_use = "partial"
 
         bootstrap_count = 30
-        min_participation_count = 100
+        min_participation_count = 150
         metac_bot_age = 365
         cp_by_years = True
         pro_by_years = True
-        include_non_metac_bots = True
+        include_non_metac_bots = False
         non_metac_bots_by_year = False
         bot_recency = 3 * 30
         bot_recent_scores = 0
         bot_recent_coverage = 400
         scale_weight_by_participants = False
+        use_discrimination = False # Takes 30+ mins to run
+        alpha_disc: float = 10000  # Only used if use_discrimination is true, range of (0,10000] doesn't change much
+        use_bayesian_alpha_disc = True # When True, ignore alpha_disc and derive it as σ²_error/σ²_D (uncapped)
+        als_init = "random"  # ALS skill init: zeros | random
+        als_seed: int | None = 123  # seed for als_init="random"
 
         store_results_csv = True
-        verbose = False
+        verbose = True
 
         run_update_global_bot_leaderboard(
             # settings
@@ -1255,6 +1615,11 @@ class Command(BaseCommand):
             bot_recent_scores=bot_recent_scores,
             bot_recent_coverage=bot_recent_coverage,
             scale_weight_by_participants=scale_weight_by_participants,
+            use_discrimination=use_discrimination,
+            alpha_disc=alpha_disc,
+            use_bayesian_alpha_disc=use_bayesian_alpha_disc,
+            als_init=als_init,
+            als_seed=als_seed,
             verbose=verbose,
             # performance/logging
             cache_use=cache_use,
