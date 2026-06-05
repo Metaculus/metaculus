@@ -23,6 +23,23 @@ const COMMENTS_PER_POST = 10; // candidates pulled per question
 const MIN_PROSE_LENGTH = 100; // chars of real prose after stripping links
 const MAX_PER_POST = 3; // diversity cap in the final list
 const MAX_INSIGHTS = 30; // overall safety cap
+// Cap how many comment requests fire at once so the whole project's questions
+// don't flood the backend in one burst (the dashboard already runs many
+// parallel SSR fetches; an unbounded fan-out here can saturate it).
+const FETCH_CONCURRENCY = 4;
+
+// Map over items with bounded concurrency (sequential batches of `limit`).
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<R>
+): Promise<R[]> {
+  const out: R[] = [];
+  for (let i = 0; i < items.length; i += limit) {
+    out.push(...(await Promise.all(items.slice(i, i + limit).map(fn))));
+  }
+  return out;
+}
 
 // Comments that @-mention a moderator/admin or ask about question mechanics are
 // housekeeping, not forecasting insight. Patterns are phrase-anchored so that
@@ -89,9 +106,12 @@ export const fetchCommunityInsights = cache(
     if (!posts.length) return [];
 
     // Pull the top candidates per question, keep only the substantive ones,
-    // and cap each question's contribution for diversity.
-    const perPost = await Promise.all(
-      posts.map(async (sourcePost) => {
+    // and cap each question's contribution for diversity. Bounded concurrency
+    // keeps the per-question fan-out from saturating the backend.
+    const perPost = await mapWithConcurrency(
+      posts,
+      FETCH_CONCURRENCY,
+      async (sourcePost) => {
         try {
           const { results } = await ServerCommentsApi.getComments({
             post: sourcePost.id,
@@ -111,7 +131,7 @@ export const fetchCommunityInsights = cache(
         } catch {
           return [];
         }
-      })
+      }
     );
 
     // Rank globally by votes, then substance (prose length), then recency.
