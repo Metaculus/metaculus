@@ -23,7 +23,7 @@ const ChamberTabs: FC<Props> = ({ value, onChange, className }) => {
   return (
     <div
       className={cn(
-        "inline-flex overflow-visible rounded-md border border-blue-300 bg-gray-0 dark:border-blue-300-dark dark:bg-gray-0-dark",
+        "inline-flex overflow-visible rounded-md border border-blue-400 bg-gray-0 dark:border-blue-400-dark dark:bg-gray-0-dark",
         className
       )}
     >
@@ -36,10 +36,10 @@ const ChamberTabs: FC<Props> = ({ value, onChange, className }) => {
             aria-current={active ? "true" : undefined}
             onClick={() => onChange(tab.key)}
             className={cn(
-              "px-4 py-1.5 text-sm font-medium transition-colors",
+              "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
               active
-                ? "bg-blue-200 text-blue-800 dark:bg-blue-200-dark dark:text-blue-800-dark"
-                : "bg-gray-0 text-blue-700 hover:bg-blue-100 dark:bg-gray-0-dark dark:text-blue-700-dark dark:hover:bg-blue-100-dark"
+                ? "bg-blue-400/60 text-blue-900 dark:bg-blue-400-dark/50 dark:text-blue-900-dark"
+                : "bg-gray-0 text-blue-800 hover:bg-blue-100 dark:bg-gray-0-dark dark:text-blue-800-dark dark:hover:bg-blue-100-dark"
             )}
           >
             {tab.label}

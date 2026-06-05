@@ -28,7 +28,7 @@ export const MIDTERMS_COLORS = {
   cardBgDark: "#262f38",
   // Uncontested fill is one elevation step lighter than the card bg so
   // uncontested states are subtly visible without dominating.
-  uncontestedLight: "#EFF4F4",
+  uncontestedLight: "#dce3e3",
   uncontestedDark: "#37424F",
   uncontestedHoverLight: "#CFD5E3",
   uncontestedHoverDark: "#434E5A",

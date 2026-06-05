@@ -401,6 +401,10 @@ const SeatDistributionChart: FC<Props> = ({
               voronoiBlacklist={
                 isDiscrete ? undefined : ["area", "q-l", "q-m", "q-u"]
               }
+              // Let the page scroll vertically through the chart on touch; the
+              // chart only consumes horizontal moves (for the tooltip). Mirrors
+              // the question-page forecast charts.
+              style={{ touchAction: "pan-y" }}
             />
           }
         >
