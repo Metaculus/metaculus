@@ -66,7 +66,7 @@ function proseLength(text: string): number {
 function compareComments(a: CommentType, b: CommentType): number {
   return (
     (b.vote_score ?? 0) - (a.vote_score ?? 0) ||
-    proseLength(b.text ?? "") - proseLength(a.text ?? "") ||
+    proseLength(b.text) - proseLength(a.text) ||
     (b.created_at ? Date.parse(b.created_at) : 0) -
       (a.created_at ? Date.parse(a.created_at) : 0)
   );
