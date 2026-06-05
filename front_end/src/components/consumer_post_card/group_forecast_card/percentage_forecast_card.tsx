@@ -62,7 +62,7 @@ const PercentageForecastCard: FC<Props> = ({
     const raw = generateChoiceItems(post, visibleChoicesCount, locale, t);
     return raw.map((choice) => {
       const valueStr = getPredictionDisplayValue(
-        choice.aggregationValues.at(-1),
+        choice.latestValue ?? choice.aggregationValues.at(-1),
         {
           questionType: QuestionType.Binary,
           scaling: choice.scaling,
