@@ -7,8 +7,8 @@ import GroupForecastCard from "@/components/consumer_post_card/group_forecast_ca
 import PercentageForecastCard from "@/components/consumer_post_card/group_forecast_card/percentage_forecast_card";
 import GroupOfQuestionsTile from "@/components/post_card/group_of_questions_tile";
 import QuestionTile from "@/components/post_card/question_tile";
-import { useHideCP } from "@/contexts/cp_context";
-import { PostWithForecasts } from "@/types/post";
+import { useAuth } from "@/contexts/auth_context";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import {
   checkGroupOfQuestionsPostType,
@@ -23,7 +23,10 @@ type Props = {
 };
 
 const SimilarPredictionChip: FC<Props> = ({ post, variant }) => {
-  const { hideCP } = useHideCP();
+  const { user } = useAuth();
+  const hideCP =
+    !!user?.hide_community_prediction &&
+    ![PostStatus.CLOSED, PostStatus.RESOLVED].includes(post.status);
 
   if (hideCP) {
     return null;
@@ -73,6 +76,7 @@ const SimilarPredictionChip: FC<Props> = ({ post, variant }) => {
           hideCP={hideCP}
           canPredict={false}
           showChart={false}
+          forFeedPage
         />
       </div>
     );
@@ -88,6 +92,7 @@ const SimilarPredictionChip: FC<Props> = ({ post, variant }) => {
           hideCP={hideCP}
           canPredict={false}
           showChart={true}
+          forFeedPage
         />
       </div>
     );

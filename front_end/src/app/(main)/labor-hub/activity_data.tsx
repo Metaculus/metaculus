@@ -137,6 +137,40 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
     ),
   },
   {
+    date: "2026-05-14",
+    type: "news",
+    content: (
+      <>
+        Indeed Hiring Lab releases a report based on structural modeling
+        documenting anticipated labor effects of AI -{" "}
+        <a
+          href="https://www.hiringlab.org/2026/05/14/how-a-shrinking-workforce-ai-and-labor-reallocation-will-define-the-next-15-years/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          Indeed Hiring Lab
+        </a>
+      </>
+    ),
+  },
+  {
+    date: "2026-05-15",
+    type: "news",
+    content: (
+      <>
+        Pope Leo XIV publishes an encyclical addressing human dignity in the era
+        of artificial intelligence -{" "}
+        <a
+          href="https://www.vatican.va/content/leo-xiv/en/encyclicals/documents/20260515-magnifica-humanitas.html"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          The Vatican
+        </a>
+      </>
+    ),
+  },
+  {
     date: "2026-05-21",
     type: "news",
     content: (

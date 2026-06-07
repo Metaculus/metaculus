@@ -95,6 +95,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
   const [activeView, setActiveView] = useState<ChartView>("timeline");
 
   const isContinuous = isContinuousQuestion(question);
+  const userHasPrediction = !!question.my_forecasts?.history.length;
   const [shouldFetchFull, setShouldFetchFull] = useState(false);
   const { data: enrichedAggregation = null } = useFullAggregation(
     question.id,
@@ -354,7 +355,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
       forecastAvailability={forecastAvailability}
       suppressEmptyOverlay
       cursorTooltip={
-        forecastAvailability?.isEmpty || isContinuous
+        forecastAvailability?.isEmpty || (isContinuous && !userHasPrediction)
           ? undefined
           : cursorTooltip
       }
