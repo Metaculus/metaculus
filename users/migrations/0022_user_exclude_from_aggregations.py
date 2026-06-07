@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [ 
-        ("users", "0020_api_forecasting_access"),
+        ("users", "0021_user_allow_public_comments"),
     ]
 
     operations = [
@@ -23,3 +23,4 @@ class Migration(migrations.Migration):
             ),
         ),
     ]
+ 
