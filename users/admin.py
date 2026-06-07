@@ -219,6 +219,7 @@ class UserAdmin(admin.ModelAdmin):
         "is_spam",
         "is_bot",
         "is_primary_bot",
+        "exclude_from_aggregations",
         "allow_public_comments",
         "bot_owner",
         "duration_joined_to_last_login",
@@ -241,6 +242,7 @@ class UserAdmin(admin.ModelAdmin):
     list_filter = [
         "is_active",
         "is_spam",
+        "exclude_from_aggregations",
         "date_joined",
         LastLoginFilter,
         AuthoredPostsFilter,
