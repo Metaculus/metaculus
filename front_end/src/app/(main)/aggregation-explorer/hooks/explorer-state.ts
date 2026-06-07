@@ -145,12 +145,14 @@ export function useExplorerState(postData: PostWithForecasts) {
     joinedBeforeDate?: string;
     userIds?: number[];
     includeBots?: boolean;
+    onlyBots?: boolean;
   }) => {
     const configId = buildConfigId(
       payload.optionId,
       payload.includeBots ?? false,
       payload.joinedBeforeDate,
-      payload.userIds
+      payload.userIds,
+      payload.onlyBots
     );
     void setSelectedConfigs((prev) => {
       if (prev.some((c) => c.id === configId)) return prev;
@@ -162,6 +164,7 @@ export function useExplorerState(postData: PostWithForecasts) {
           joinedBeforeDate: payload.joinedBeforeDate,
           userIds: payload.userIds,
           includeBots: payload.includeBots,
+          onlyBots: payload.onlyBots,
           enabled: true,
         },
       ];

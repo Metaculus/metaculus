@@ -74,6 +74,7 @@ def aggregation_explorer_api_view(request) -> Response:
     aggregation_methods = params.get("aggregation_methods", [])
     only_include_user_ids = params.get("user_ids")
     include_bots = params.get("include_bots")
+    only_bots = params.get("only_bots") or False
     minimize = params.get("minimize", True)
     joined_before = params.get("joined_before_date")
 
@@ -88,6 +89,7 @@ def aggregation_explorer_api_view(request) -> Response:
             if include_bots is not None
             else question.include_bots_in_aggregates
         ),
+        only_bots=only_bots,
         histogram=True,
         include_future=False,
         joined_before=joined_before,
@@ -107,6 +109,8 @@ def aggregation_explorer_api_view(request) -> Response:
     forecasters_qs = question.get_forecasters()
     if only_include_user_ids:
         forecasters_qs = forecasters_qs.filter(id__in=only_include_user_ids)
+    elif only_bots:
+        forecasters_qs = forecasters_qs.filter(is_bot=True)
     elif not include_bots:
         forecasters_qs = forecasters_qs.filter(is_bot=False)
 
