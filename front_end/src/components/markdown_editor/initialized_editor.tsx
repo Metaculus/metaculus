@@ -1,5 +1,6 @@
 import "@mdxeditor/editor/style.css";
 import "./editor.css";
+import "./plugins/read_only_image";
 
 import {
   CodeBlockEditorDescriptor,

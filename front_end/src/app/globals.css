@@ -201,7 +201,7 @@ a {
 }
 
 .content img {
-  @apply mx-auto block max-h-[500px];
+  @apply mx-auto block max-h-[500px] max-w-full;
 }
 
 .content blockquote {
