@@ -86,7 +86,7 @@ export const CommentWrapper: FC<Props> = ({
           /* replies should always be sorted from oldest to newest */
           sort={"created_at" as SortOption}
           postData={postData}
-          lastViewedAt={postData?.last_viewed_at}
+          lastViewedAt={last_viewed_at}
           isCollapsed={isCollapsed}
           isCommentJustCreated={suggestKeyFactorsOnFirstRender}
           shouldSuggestKeyFactors={shouldSuggestKeyFactors}
