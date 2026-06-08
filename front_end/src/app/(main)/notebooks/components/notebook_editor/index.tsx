@@ -121,7 +121,7 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
         </div>
       )}
       <div id={contentId} ref={contentRef}>
-        <MarkdownEditor mode="read" markdown={markdown} withTwitterPreview />
+        <MarkdownEditor mode="read" markdown={markdown} />
       </div>
     </div>
   );
