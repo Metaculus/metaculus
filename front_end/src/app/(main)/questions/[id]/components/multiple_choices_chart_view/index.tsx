@@ -51,6 +51,7 @@ type Props = {
   onTimelineMarkerLeave?: (marker: GroupTimelineMarker) => void;
   withHighlightArea?: boolean;
   withHighlightEndpoint?: boolean;
+  hideTooltip?: boolean;
 };
 
 const MultiChoicesChartView: FC<Props> = ({
@@ -86,6 +87,7 @@ const MultiChoicesChartView: FC<Props> = ({
   onTimelineMarkerLeave,
   withHighlightArea = true,
   withHighlightEndpoint = false,
+  hideTooltip = false,
 }) => {
   const { user } = useAuth();
   const isInteracted = useRef(false);
@@ -339,6 +341,7 @@ const MultiChoicesChartView: FC<Props> = ({
       </div>
 
       {isTooltipActive &&
+        !hideTooltip &&
         !isCursorOverLegend &&
         !hideCP &&
         !forecastAvailability?.cpRevealsOn &&
