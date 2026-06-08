@@ -1,39 +1,71 @@
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
 import { FC } from "react";
 
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
-import ServerPostsApi from "@/services/api/posts/posts.server";
-import { PostStatus } from "@/types/post";
+import LoadingSpinner from "@/components/ui/loading_spiner";
+import ClientPostsApi from "@/services/api/posts/posts.client";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 
 import SimilarQuestionsList from "./similar_questions_list";
 
 type Props = {
-  post_id: number;
+  post: PostWithForecasts;
   variant?: "forecaster" | "consumer";
 };
 
-const SimilarQuestions: FC<Props> = async ({ post_id, variant }) => {
-  let questions = await ServerPostsApi.getSimilarPosts(post_id);
+const SimilarQuestions: FC<Props> = ({ post, variant }) => {
+  const isApproved = post.curation_status === PostStatus.APPROVED;
 
-  if (!questions.length) {
-    const { results } = await ServerPostsApi.getPostsWithCP({
-      topic: "top-50",
-      for_main_feed: "false",
-      for_consumer_view: variant === "consumer" ? "true" : "false",
-      order_by: "-hotness",
-      statuses: [
-        PostStatus.OPEN,
-        PostStatus.CLOSED,
-        PostStatus.RESOLVED,
-        PostStatus.UPCOMING,
-      ],
-      limit: 8,
-    });
-    questions = results.filter((q) => q.id !== post_id);
+  const {
+    data: similarQuestions = [],
+    isSuccess: hasSimilarQuestionsResult,
+    isError: isSimilarError,
+    isLoading: isSimilarLoading,
+  } = useQuery({
+    queryKey: ["similar-posts", post.id],
+    queryFn: () => ClientPostsApi.getSimilarPosts(post.id),
+    enabled: isApproved,
+  });
+
+  const { data: topQuestions = [], isLoading: isTopLoading } = useQuery({
+    queryKey: ["top-posts-fallback", variant],
+    queryFn: () =>
+      ClientPostsApi.getPostsWithCP({
+        topic: "top-50",
+        for_main_feed: "false",
+        for_consumer_view: variant === "consumer" ? "true" : "false",
+        order_by: "-hotness",
+        statuses: [
+          PostStatus.OPEN,
+          PostStatus.CLOSED,
+          PostStatus.RESOLVED,
+          PostStatus.UPCOMING,
+        ],
+        limit: 8,
+      }),
+    enabled:
+      !isApproved ||
+      isSimilarError ||
+      (hasSimilarQuestionsResult && !similarQuestions.length),
+    select: (data) => data.results.filter((q) => q.id !== post.id),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const displayQuestions = similarQuestions.length
+    ? similarQuestions
+    : topQuestions;
+
+  if (!displayQuestions.length) {
+    if (isSimilarLoading || isTopLoading) {
+      return <LoadingSpinner className="my-4" />;
+    }
+    return null;
   }
 
-  if (!questions.length) return null;
-
-  return <SimilarQuestionsList questions={questions} variant={variant} />;
+  return (
+    <SimilarQuestionsList questions={displayQuestions} variant={variant} />
+  );
 };
 
-export default WithServerComponentErrorBoundary(SimilarQuestions) as FC<Props>;
+export default SimilarQuestions;
