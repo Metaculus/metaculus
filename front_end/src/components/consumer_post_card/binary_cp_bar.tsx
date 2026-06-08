@@ -17,6 +17,7 @@ type Props = {
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
   colorOverride?: string;
+  overrideValue?: number | null;
 };
 
 const BinaryCPBar: FC<Props> = ({
@@ -24,6 +25,7 @@ const BinaryCPBar: FC<Props> = ({
   size = "md",
   className,
   colorOverride,
+  overrideValue,
 }) => {
   const t = useTranslations();
   const { hideCP } = useHideCP();
@@ -31,8 +33,10 @@ const BinaryCPBar: FC<Props> = ({
   const isEmbed = useIsEmbedMode();
 
   const questionCP =
-    question.aggregations[question.default_aggregation_method]?.latest
-      ?.centers?.[0];
+    overrideValue != null
+      ? overrideValue
+      : question.aggregations[question.default_aggregation_method]?.latest
+          ?.centers?.[0];
 
   if (question.type !== QuestionType.Binary) {
     return null;

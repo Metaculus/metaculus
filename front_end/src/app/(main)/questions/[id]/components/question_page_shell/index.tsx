@@ -16,7 +16,10 @@ import MarkdownEditor from "@/components/markdown_editor";
 import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
 import ResolutionCriteria from "@/components/question/resolution_criteria";
 import SectionToggle from "@/components/ui/section_toggle";
-import { ContinuousChartCursorProvider } from "@/contexts/continuous_chart_cursor_context";
+import {
+  ContinuousChartCursorProvider,
+  useContinuousChartCursor,
+} from "@/contexts/continuous_chart_cursor_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import { usePostTextSections } from "@/hooks/use_post_text_sections";
@@ -28,7 +31,11 @@ import {
   QuestionStatus,
 } from "@/types/post";
 import { TournamentType } from "@/types/projects";
-import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import {
+  QuestionType,
+  QuestionWithForecasts,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 import {
@@ -177,6 +184,19 @@ export const ForecasterShell: FC<
   );
 };
 
+const BinaryCursorGauge: FC<{
+  question: QuestionWithForecasts;
+}> = ({ question }) => {
+  const cursorCtx = useContinuousChartCursor();
+  return (
+    <QuestionHeaderCPStatus
+      question={question}
+      size="lg"
+      cursorBinaryValue={cursorCtx?.activeBinaryValue}
+    />
+  );
+};
+
 export const ConsumerShell: FC<{
   postData: PostWithForecasts;
   preselectedGroupQuestionId?: number;
@@ -297,10 +317,7 @@ export const ConsumerShell: FC<{
                 ) : hideCP ? (
                   <RevealCPButton />
                 ) : (
-                  <QuestionHeaderCPStatus
-                    question={postData.question}
-                    size="lg"
-                  />
+                  <BinaryCursorGauge question={postData.question} />
                 )}
               </div>
               <QuestionTimeline

@@ -60,6 +60,8 @@ type Props = QuestionsDataProps & {
   onTimelineMarkerLeave?: (marker: GroupTimelineMarker) => void;
   withHighlightArea?: boolean;
   withHighlightEndpoint?: boolean;
+  onCursorChange?: (ts: number) => void;
+  hideTooltip?: boolean;
 };
 
 /**
@@ -92,6 +94,8 @@ const GroupTimeline: FC<Props> = ({
   externalHighlightedChoice,
   withHighlightArea,
   withHighlightEndpoint,
+  onCursorChange,
+  hideTooltip,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -186,8 +190,15 @@ const GroupTimeline: FC<Props> = ({
     [choiceItems, externalHighlightedChoice]
   );
 
-  const [cursorTimestamp, _tooltipDate, handleCursorChange] =
+  const [cursorTimestamp, _tooltipDate, _handleCursorChange] =
     useTimestampCursor(timestamps);
+  const handleCursorChange = useCallback(
+    (value: number, format: Parameters<typeof _handleCursorChange>[1]) => {
+      _handleCursorChange(value, format);
+      onCursorChange?.(value);
+    },
+    [_handleCursorChange, onCursorChange]
+  );
   const tooltipChoices = useMemo<ChoiceTooltipItem[]>(() => {
     return choiceItems
       .filter(({ active }) => active)
@@ -355,6 +366,7 @@ const GroupTimeline: FC<Props> = ({
       onTimelineMarkerLeave={onTimelineMarkerLeave}
       withHighlightArea={withHighlightArea}
       withHighlightEndpoint={withHighlightEndpoint}
+      hideTooltip={hideTooltip}
     />
   );
 };

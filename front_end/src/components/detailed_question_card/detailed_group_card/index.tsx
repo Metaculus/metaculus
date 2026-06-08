@@ -45,6 +45,8 @@ type Props = {
   chartTheme?: VictoryThemeDefinition;
   defaultZoom?: TimelineChartZoomOption;
   withLegend?: boolean;
+  onCursorChange?: (ts: number) => void;
+  hideTooltip?: boolean;
 };
 
 const DetailedGroupCard: FC<Props> = ({
@@ -58,6 +60,8 @@ const DetailedGroupCard: FC<Props> = ({
   chartTheme,
   defaultZoom,
   withLegend,
+  onCursorChange,
+  hideTooltip,
 }) => {
   const {
     open_time,
@@ -189,6 +193,8 @@ const DetailedGroupCard: FC<Props> = ({
           chartTheme={chartTheme}
           defaultZoom={defaultZoom}
           withLegend={withLegend}
+          onCursorChange={onCursorChange}
+          hideTooltip={hideTooltip}
         />
       );
     }

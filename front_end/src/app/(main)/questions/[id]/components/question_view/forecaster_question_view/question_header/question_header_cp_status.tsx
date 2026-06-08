@@ -40,6 +40,7 @@ type Props = {
   chartTheme?: VictoryThemeDefinition;
   cursorForecast?: NumericAggregateForecast | null;
   cursorUserForecastValues?: number[] | null;
+  cursorBinaryValue?: number | null;
 };
 
 const QuestionHeaderCPStatus: FC<Props> = ({
@@ -50,6 +51,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({
   chartTheme,
   cursorForecast,
   cursorUserForecastValues,
+  cursorBinaryValue,
 }) => {
   const locale = useLocale();
   const t = useTranslations();
@@ -327,6 +329,7 @@ const QuestionHeaderCPStatus: FC<Props> = ({
             question={question}
             size={size === "lg" ? "lg" : "sm"}
             colorOverride={colorOverride}
+            overrideValue={cursorBinaryValue}
           />
         )}
         {!hideCP && (
