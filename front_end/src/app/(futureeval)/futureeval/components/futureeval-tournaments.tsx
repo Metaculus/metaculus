@@ -15,11 +15,17 @@ import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
 const FutureEvalTournaments: React.FC = () => {
   const CARDS_DATA = [
     {
+      title: "Summer 2026",
+      href: "/aib/2026/summer",
+      imgUrl: "https://cdn.metaculus.com/hires-summer.webp",
+      prize: "$58,000",
+      isLive: true,
+    },
+    {
       title: "Spring 2026",
       href: "/aib/2026/spring",
       imgUrl: "https://cdn.metaculus.com/hires-spring.webp",
       prize: "$58,000",
-      isLive: true,
     },
     {
       title: "Fall 2025",
