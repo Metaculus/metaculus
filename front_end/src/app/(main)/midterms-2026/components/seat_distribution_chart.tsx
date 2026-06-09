@@ -16,6 +16,7 @@ import {
 import useContainerSize from "@/hooks/use_container_size";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import { getDiscreteValueOptions } from "@/utils/formatters/prediction";
 import {
   cdfToPmf,
   computeQuartilesFromCDF,
@@ -27,6 +28,9 @@ import { useIsDark } from "../helpers/use_is_dark";
 
 type Props = {
   post: PostWithForecasts;
+  /** Forecast-values CDF to render instead of the question's default CP — e.g.
+   *  the Medalists aggregation. Falls back to the default CP when omitted. */
+  cdfOverride?: number[];
   /** Localized "Democrat Seat Advantage" label rendered below the x-axis. */
   demAdvantageLabel: string;
   /** Localized "Republican Seat Advantage" label rendered below the x-axis. */
@@ -69,6 +73,7 @@ type Point = { x: number; y: number };
 
 const SeatDistributionChart: FC<Props> = ({
   post,
+  cdfOverride,
   demAdvantageLabel,
   repAdvantageLabel,
   evenLabel,
@@ -89,6 +94,7 @@ const SeatDistributionChart: FC<Props> = ({
   const data = useMemo(() => {
     if (!question) return null;
     const cdf =
+      cdfOverride ??
       question.aggregations?.[question.default_aggregation_method]?.latest
         ?.forecast_values;
     if (!cdf || cdf.length < 2) return null;
@@ -103,29 +109,51 @@ const SeatDistributionChart: FC<Props> = ({
     const seatMin = Math.round(domainMin);
     const seatMax = Math.round(domainMax);
 
+    // Discrete questions carry their own native outcomes (the Senate's 25
+    // integer margins, the House's 81). Render one bar per native outcome —
+    // independent of the CDF resolution — so the bar count always matches the
+    // question and a wider chamber just gets more (thinner) bars rather than
+    // mis-binned or phantom-edged ones.
+    const discreteOptions = isDiscrete
+      ? getDiscreteValueOptions(question)
+      : undefined;
+    const binCount = discreteOptions?.length ?? 0;
+    const span = domainMax - domainMin || 1;
+
     // Two representations of the same forecast:
     //  - `curve`: the fine PMF grid converted to per-seat probability
-    //    density (mass / bin-width-in-seats). This stays smooth, so the
-    //    House area doesn't get the sawtooth aliasing that integer
-    //    bucketing produced.
-    //  - `bins`: integer-seat buckets (per-seat probability). Used for the
-    //    Senate bars and to drive whole-number tooltips.
+    //    density (mass / bin-width-in-seats). This stays smooth for the
+    //    continuous area path.
+    //  - `bins`: probability gathered into the discrete bins — native
+    //    outcomes when discrete, else integer seats (continuous fallback).
     const curve: Point[] = [];
     const bucketMass = new Map<number, number>();
+    const optionMass = binCount ? new Array<number>(binCount).fill(0) : null;
     for (let i = 1; i < pmf.length - 1; i++) {
       const xLeft = scaleInternalLocation((i - 1) / (N - 1), scale);
       const xRight = scaleInternalLocation(i / (N - 1), scale);
       const mid = (xLeft + xRight) / 2;
       const width = Math.max(1e-9, xRight - xLeft);
       curve.push({ x: mid, y: ((pmf[i] ?? 0) * 100) / width });
-      const seat = Math.min(seatMax, Math.max(seatMin, Math.round(mid)));
-      bucketMass.set(seat, (bucketMass.get(seat) ?? 0) + (pmf[i] ?? 0));
+      if (optionMass) {
+        const idx = Math.min(
+          binCount - 1,
+          Math.max(0, Math.floor(((mid - domainMin) / span) * binCount))
+        );
+        optionMass[idx] = (optionMass[idx] ?? 0) + (pmf[i] ?? 0);
+      } else {
+        const seat = Math.min(seatMax, Math.max(seatMin, Math.round(mid)));
+        bucketMass.set(seat, (bucketMass.get(seat) ?? 0) + (pmf[i] ?? 0));
+      }
     }
 
-    const bins: Point[] = [];
-    for (let s = seatMin; s <= seatMax; s++) {
-      bins.push({ x: s, y: (bucketMass.get(s) ?? 0) * 100 });
-    }
+    const bins: Point[] =
+      discreteOptions && optionMass
+        ? discreteOptions.map((x, j) => ({ x, y: (optionMass[j] ?? 0) * 100 }))
+        : Array.from({ length: seatMax - seatMin + 1 }, (_, k) => {
+            const s = seatMin + k;
+            return { x: s, y: (bucketMass.get(s) ?? 0) * 100 };
+          });
 
     // Distribution height at an arbitrary x (linear interpolation over the
     // smooth curve) — used to anchor the hover bars and cap the quartile
@@ -187,7 +215,7 @@ const SeatDistributionChart: FC<Props> = ({
       dataMaxX,
       maxY,
     };
-  }, [question]);
+  }, [question, cdfOverride]);
 
   if (!data || !question) return null;
 
