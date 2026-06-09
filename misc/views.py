@@ -22,7 +22,11 @@ from .serializers import (
     ContactServicesSerializer,
     SidebarItemSerializer,
 )
-from .services.ad_tiles import dismiss_tile, get_combined_feed_tiles
+from .services.ad_tiles import (
+    dismiss_tile,
+    get_combined_feed_tiles,
+    get_tile_object_by_id,
+)
 from .services.itn import remove_article
 from .utils import get_data_access_status
 
@@ -173,9 +177,10 @@ def dismiss_ad_tile_api_view(request: Request, dismiss_id: str):
     """
     Persist a per-user dismissal of a feed tile (ad or project), identified by
     the opaque tile `id` in the URL (e.g. `ad:123` or `project:12:NEW_QUESTIONS`).
-    Authenticated only.
+    Ids not referring to an existing object are silently ignored. Authenticated only.
     """
-    dismiss_tile(request.user, dismiss_id)
+    if get_tile_object_by_id(dismiss_id):
+        dismiss_tile(request.user, dismiss_id)
 
     return Response(status=status.HTTP_201_CREATED)
 

@@ -50,6 +50,20 @@ def dismiss_tile(user: User, dismiss_id: str) -> None:
     cache.set(_dismiss_cache_key(user.id, dismiss_id), True, DISMISS_TTL)
 
 
+def get_tile_object_by_id(object_id: str) -> AdTile | Project | None:
+    kind, _, rest = object_id.partition(":")
+    pk = rest.partition(":")[0]
+    if not pk.isdigit():
+        return None
+
+    if kind == "ad":
+        return AdTile.objects.filter(pk=int(pk)).first()
+    if kind == "project":
+        return Project.objects.filter(pk=int(pk)).first()
+
+    return None
+
+
 def get_combined_feed_tiles(user: User | None = None) -> list[dict]:
     ads = list(get_active_ad_tiles_qs())
 
