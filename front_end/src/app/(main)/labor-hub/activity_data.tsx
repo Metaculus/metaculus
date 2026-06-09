@@ -187,4 +187,20 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
       </>
     ),
   },
+  {
+    date: "2026-05-28",
+    type: "news",
+    content: (
+      <>
+        Anthropic releases Claude Opus 4.8 -{" "}
+        <a
+          href="https://www.anthropic.com/news/claude-opus-4-8"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          Anthropic
+        </a>
+      </>
+    ),
+  },
 ];
