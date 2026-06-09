@@ -84,7 +84,7 @@ const MultipleChoiceTileLegend: FC<Props> = ({
               actual_resolve_time={actual_resolve_time}
               withIcon={withChoiceIcon}
               cursorTimestamp={cursorTimestamp}
-              latestValue={latestValue}
+              latestValue={hideCP ? undefined : latestValue}
             />
           </div>
         )
