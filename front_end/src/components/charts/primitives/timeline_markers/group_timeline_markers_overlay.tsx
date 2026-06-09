@@ -1,6 +1,6 @@
 "use client";
 
-import { faComment, faNewspaper } from "@fortawesome/free-solid-svg-icons";
+import { faLightbulb, faNewspaper } from "@fortawesome/free-solid-svg-icons";
 import { ReactNode } from "react";
 import { VictoryLine, VictoryPortal, VictoryScatter } from "victory";
 
@@ -27,7 +27,7 @@ const HIT_AREA_FILL = "rgba(255, 255, 255, 0.001)";
 
 const ACTIVITY_TYPE_ICON = {
   news: faNewspaper,
-  comment: faComment,
+  insight: faLightbulb,
 } as const;
 
 type MarkerPointDatum = {

@@ -2,7 +2,7 @@
 
 import {
   faArrowUpRightFromSquare,
-  faComment,
+  faLightbulb,
   faNewspaper,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -14,7 +14,7 @@ import cn from "@/utils/core/cn";
 
 const ACTIVITY_TYPE_ICON = {
   news: faNewspaper,
-  comment: faComment,
+  insight: faLightbulb,
 } as const;
 
 export function ActivityCard({
