@@ -60,8 +60,12 @@ const NEUTRAL_GRAY_FILL_DARK = "#475569";
 // EVEN center bar (Senate) — tweak its fill + label color here.
 const EVEN_BAR_FILL_LIGHT = "#7d818a";
 const EVEN_BAR_FILL_DARK = "#475569";
-const EVEN_TEXT_COLOR_LIGHT = "#FFFFFF";
+// The EVEN label now sits above the bin on the chart background, so it uses a
+// color that reads on the background (inverted from the old on-bar white).
+const EVEN_TEXT_COLOR_LIGHT = "#475569";
 const EVEN_TEXT_COLOR_DARK = "#E2E8F0";
+// Length (px) of the connector line from the EVEN label down to the bin top.
+const EVEN_CONNECTOR_PX = 8;
 
 // House on-hover vertical bar — tweak its color / thickness / opacity here.
 const HOVER_BAR_COLOR_LIGHT = "#334155";
@@ -145,6 +149,15 @@ const SeatDistributionChart: FC<Props> = ({
         const seat = Math.min(seatMax, Math.max(seatMin, Math.round(mid)));
         bucketMass.set(seat, (bucketMass.get(seat) ?? 0) + (pmf[i] ?? 0));
       }
+    }
+
+    // Fold the open-bound tails into the edge bins so a landslide beyond the
+    // chart's range (e.g. Democrats winning the House by 40+ seats) is still
+    // represented at the edge rather than dropped.
+    if (optionMass && binCount) {
+      optionMass[0] = (optionMass[0] ?? 0) + (pmf[0] ?? 0);
+      optionMass[binCount - 1] =
+        (optionMass[binCount - 1] ?? 0) + (pmf[pmf.length - 1] ?? 0);
     }
 
     const bins: Point[] =
@@ -369,6 +382,19 @@ const SeatDistributionChart: FC<Props> = ({
       ? innerSpan / 2
       : ((0 - domainMin) / (domainMax - domainMin)) * innerSpan);
 
+  // EVEN annotation geometry: the label sits above the even bin with a short
+  // connector down to it. Mirror Victory's y-scale (y=0 -> plotBottom,
+  // y=yMax -> plotTop) to find the bin's top edge in pixels.
+  const yMax = maxY > 0 ? maxY * 1.15 : 1;
+  const plotBottom = CHART_HEIGHT - chartPadding.bottom;
+  const plotHeight = plotBottom - chartPadding.top;
+  const evenBinTopPx = evenBin
+    ? chartPadding.top + (1 - (evenBin.y ?? 0) / yMax) * plotHeight
+    : 0;
+  const evenConnectorTopY = evenBin
+    ? (evenBin.y ?? 0) + (EVEN_CONNECTOR_PX * yMax) / plotHeight
+    : 0;
+
   const barFillOpacity = ({ active }: { active?: boolean }) =>
     active ? BAR_FILL_OPACITY_HOVER : BAR_FILL_OPACITY;
   const hoverBarOpacity = ({ active }: { active?: boolean }) =>
@@ -427,7 +453,7 @@ const SeatDistributionChart: FC<Props> = ({
               labelComponent={tooltipComponent}
               mouseFollowTooltips={false}
               voronoiBlacklist={
-                isDiscrete ? undefined : ["area", "q-l", "q-m", "q-u"]
+                isDiscrete ? ["even-connector"] : ["area", "q-l", "q-m", "q-u"]
               }
               // Let the page scroll vertically through the chart on touch; the
               // chart only consumes horizontal moves (for the tooltip). Mirrors
@@ -587,21 +613,31 @@ const SeatDistributionChart: FC<Props> = ({
             }}
           />
 
-          {/* EVEN annotation — Discrete only. Rendered inside the SVG (rather
-              than as an HTML overlay) so the tooltip paints above it. */}
+          {/* EVEN annotation — Discrete only. Label sits above the even bin
+              with a short connector down to it. Rendered inside the SVG (not an
+              HTML overlay) so the voronoi tooltip paints above it. */}
+          {isDiscrete && evenBin && (
+            <VictoryLine
+              name="even-connector"
+              data={[
+                { x: 0, y: evenBin.y },
+                { x: 0, y: evenConnectorTopY },
+              ]}
+              style={{ data: { stroke: tickColor, strokeWidth: 1 } }}
+            />
+          )}
           {isDiscrete && evenBin && (
             <VictoryLabel
               text={evenLabel}
               x={zeroPx}
-              y={CHART_HEIGHT / 2}
-              angle={90}
+              y={evenBinTopPx - EVEN_CONNECTOR_PX - 2}
               textAnchor="middle"
-              verticalAnchor="middle"
+              verticalAnchor="end"
               style={{
                 fill: evenTextColor,
                 fontSize: 10,
                 fontWeight: 700,
-                letterSpacing: 2,
+                letterSpacing: 1,
                 fontFamily: TEXT_FONT_FAMILY,
               }}
             />
