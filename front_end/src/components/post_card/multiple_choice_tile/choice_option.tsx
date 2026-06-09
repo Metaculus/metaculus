@@ -80,7 +80,7 @@ const ChoiceOption: FC<Props> = ({
         .join(" ")
     : resolution;
 
-  const hasValue = !isNil(latestValue);
+  const hasValue = !isNil(valueAtCursor);
   const isEmbed = useIsEmbedMode();
 
   return (
