@@ -42,7 +42,9 @@ function sizedSvg(svg, color, width, height) {
 // Bare-M at a given ink height, width preserving aspect ratio.
 function markPng(color, heightPx) {
   const width = Math.round(heightPx * MARK_RATIO);
-  return sharp(sizedSvg(MARK_SVG, color, width, heightPx)).png().toBuffer();
+  return sharp(sizedSvg(MARK_SVG, color, width, heightPx))
+    .png()
+    .toBuffer();
 }
 
 // Round to the nearest EVEN integer. The favicon squares are even-sized, so an
