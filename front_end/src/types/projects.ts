@@ -192,3 +192,22 @@ export type FeedProjectTile = {
   project_resolution_date: string | null;
   rule: FeedTileRule | null;
 };
+
+export type AdTileData = {
+  title: string;
+  description: string;
+  image: string | null;
+  cta_text: string;
+  url: string;
+  exposure_rate: number;
+  project_id: number | null;
+};
+
+export type CombinedFeedTile =
+  | {
+      type: "ad";
+      id: string;
+      ad: AdTileData;
+      project: TournamentPreview | null;
+    }
+  | ({ type: "project"; id: string } & FeedProjectTile);

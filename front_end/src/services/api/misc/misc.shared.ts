@@ -1,4 +1,5 @@
 import { ApiService } from "@/services/api/api_service";
+import { CombinedFeedTile } from "@/types/projects";
 
 export type ContactForm = {
   email: string;
@@ -49,6 +50,14 @@ class MiscApi extends ApiService {
         revalidate: 60 * 60 * 24, // 24 hours
       },
     });
+  }
+
+  async getCombinedFeedTiles(): Promise<CombinedFeedTile[]> {
+    return await this.get<CombinedFeedTile[]>("/ad-tiles/");
+  }
+
+  async dismissFeedTile(dismissId: string): Promise<void> {
+    await this.post(`/ad-tiles/${encodeURIComponent(dismissId)}/dismiss/`, {});
   }
 }
 
