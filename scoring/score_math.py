@@ -365,6 +365,7 @@ def evaluate_question(
     if not only_include_user_ids:
         # only include forecasts by non-primary bots if user ids explicitly specified
         base_forecasts = base_forecasts.exclude_non_primary_bots()
+        base_forecasts = base_forecasts.exclude_blacklisted_users()
         if not question.include_bots_in_aggregates:
             base_forecasts = base_forecasts.exclude(author__is_bot=True)
     aggregations = get_aggregation_history(

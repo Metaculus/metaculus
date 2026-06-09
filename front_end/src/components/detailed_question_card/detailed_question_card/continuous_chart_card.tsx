@@ -7,6 +7,7 @@ import {
   ReactNode,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
 } from "react";
@@ -95,6 +96,7 @@ const DetailedContinuousChartCard: FC<Props> = ({
   const [activeView, setActiveView] = useState<ChartView>("timeline");
 
   const isContinuous = isContinuousQuestion(question);
+  const userHasPrediction = !!question.my_forecasts?.history.length;
   const [shouldFetchFull, setShouldFetchFull] = useState(false);
   const { data: enrichedAggregation = null } = useFullAggregation(
     question.id,
@@ -237,9 +239,25 @@ const DetailedContinuousChartCard: FC<Props> = ({
     ) as NumericAggregateForecast | null;
   }, [isCpHidden, cursorTimestamp, effectiveAggregation, question]);
 
+  // CP probability at the cursor position, pushed to context so the binary
+  // gauge on the left updates in sync with timeline hover.
+  const activeBinaryValue = useMemo<number | null>(() => {
+    if (!isBinary || !isConsumerView || isCpHidden || cursorTimestamp === null)
+      return null;
+    const forecast = getCursorForecast(cursorTimestamp, effectiveAggregation);
+    return forecast?.centers?.[0] ?? null;
+  }, [
+    isBinary,
+    isConsumerView,
+    isCpHidden,
+    cursorTimestamp,
+    effectiveAggregation,
+  ]);
+
   const cursorCtx = useContinuousChartCursor();
   const setCursorForecast = cursorCtx?.setActiveForecast;
   const setCursorUserForecast = cursorCtx?.setActiveUserForecastValues;
+  const setCursorBinaryValue = cursorCtx?.setActiveBinaryValue;
   useEffect(() => {
     if (
       !isContinuousQuestion(question) ||
@@ -260,6 +278,11 @@ const DetailedContinuousChartCard: FC<Props> = ({
     setCursorUserForecast,
     question,
   ]);
+  // Syncs the binary gauge to the cursor position on every cursor move
+  useLayoutEffect(() => {
+    if (!isBinary || !isConsumerView || !setCursorBinaryValue) return;
+    setCursorBinaryValue(activeBinaryValue);
+  }, [activeBinaryValue, isBinary, isConsumerView, setCursorBinaryValue]);
 
   const handleCursorChange = useCallback((value: number | null) => {
     setCursorTimestamp(value);
@@ -354,7 +377,9 @@ const DetailedContinuousChartCard: FC<Props> = ({
       forecastAvailability={forecastAvailability}
       suppressEmptyOverlay
       cursorTooltip={
-        forecastAvailability?.isEmpty || isContinuous
+        forecastAvailability?.isEmpty ||
+        (isContinuous && !userHasPrediction) ||
+        (isConsumerView && isBinary)
           ? undefined
           : cursorTooltip
       }

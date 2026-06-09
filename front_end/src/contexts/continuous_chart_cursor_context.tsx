@@ -17,6 +17,8 @@ type CursorContextValue = {
   setActiveForecast: (f: NumericAggregateForecast | null) => void;
   activeUserForecastValues: number[] | null;
   setActiveUserForecastValues: (v: number[] | null) => void;
+  activeBinaryValue: number | null;
+  setActiveBinaryValue: (v: number | null) => void;
 };
 
 const ContinuousChartCursorContext = createContext<CursorContextValue | null>(
@@ -31,6 +33,9 @@ export const ContinuousChartCursorProvider: FC<{ children: ReactNode }> = ({
   const [activeUserForecastValues, setActiveUserForecastValues] = useState<
     number[] | null
   >(null);
+  const [activeBinaryValue, setActiveBinaryValue] = useState<number | null>(
+    null
+  );
 
   const stableSet = useCallback(
     (f: NumericAggregateForecast | null) => setActiveForecast(f),
@@ -40,6 +45,10 @@ export const ContinuousChartCursorProvider: FC<{ children: ReactNode }> = ({
     (v: number[] | null) => setActiveUserForecastValues(v),
     []
   );
+  const stableSetBinary = useCallback(
+    (v: number | null) => setActiveBinaryValue(v),
+    []
+  );
 
   const value = useMemo(
     () => ({
@@ -47,8 +56,17 @@ export const ContinuousChartCursorProvider: FC<{ children: ReactNode }> = ({
       setActiveForecast: stableSet,
       activeUserForecastValues,
       setActiveUserForecastValues: stableSetUser,
+      activeBinaryValue,
+      setActiveBinaryValue: stableSetBinary,
     }),
-    [activeForecast, stableSet, activeUserForecastValues, stableSetUser]
+    [
+      activeForecast,
+      stableSet,
+      activeUserForecastValues,
+      stableSetUser,
+      activeBinaryValue,
+      stableSetBinary,
+    ]
   );
   return (
     <ContinuousChartCursorContext.Provider value={value}>
