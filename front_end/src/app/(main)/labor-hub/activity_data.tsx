@@ -70,7 +70,7 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
     type: "news",
     content: (
       <>
-        Anthropic published a system card for Claude Mythos, a model so capable
+        Anthropic publishes a system card for Claude Mythos, a model so capable
         at finding software vulnerabilities that it&apos;s being withheld from
         public release and shared with ~50 security partners. -{" "}
         <a
@@ -123,8 +123,8 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
     type: "insight",
     content: (
       <>
-        The Budget Lab research center at Yale published a study on the effects
-        that AI tools are having on the labor market that found no clear effects
+        The Budget Lab research center at Yale publishes a study on the effects
+        that AI tools are having on the labor market that finds no clear effects
         as of yet -{" "}
         <a
           href="https://budgetlab.yale.edu/research/what-we-do-and-dont-know-about-how-ai-affecting-labor-market"
