@@ -21,6 +21,7 @@ type Props = {
   postData?: PostWithForecasts;
   suggestKeyFactorsOnFirstRender?: boolean;
   shouldSuggestKeyFactors?: boolean;
+  onReplyCreated?: (createdAt: string) => void;
 };
 
 export const CommentWrapper: FC<Props> = ({
@@ -31,6 +32,7 @@ export const CommentWrapper: FC<Props> = ({
   handleCommentPin,
   suggestKeyFactorsOnFirstRender = false,
   shouldSuggestKeyFactors = false,
+  onReplyCreated,
 }) => {
   const { user } = useAuth();
   const isUnread =
@@ -91,6 +93,7 @@ export const CommentWrapper: FC<Props> = ({
           isCommentJustCreated={suggestKeyFactorsOnFirstRender}
           shouldSuggestKeyFactors={shouldSuggestKeyFactors}
           forceExpandedChildren={isFocusedCommentInTree}
+          onReplyCreated={onReplyCreated}
         />
       </KeyFactorsProvider>
     </div>

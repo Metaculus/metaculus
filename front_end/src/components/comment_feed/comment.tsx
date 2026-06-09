@@ -80,6 +80,7 @@ type CommentChildrenTreeProps = {
   lastViewedAt?: string;
   shouldSuggestKeyFactors?: boolean;
   isSomeChildrenUnread?: boolean;
+  onReplyCreated?: (createdAt: string) => void;
 };
 
 const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
@@ -92,6 +93,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
   lastViewedAt,
   shouldSuggestKeyFactors = false,
   isSomeChildrenUnread = false,
+  onReplyCreated,
 }) => {
   const t = useTranslations();
   const sortedCommentChildren = sortComments([...commentChildren], sort);
@@ -212,6 +214,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
                   forceExpandedChildren={
                     forceExpandedChildren || forceExpandSubtree
                   }
+                  onReplyCreated={onReplyCreated}
                 />
               </div>
             );
@@ -233,6 +236,7 @@ type CommentProps = {
   isCommentJustCreated?: boolean;
   shouldSuggestKeyFactors?: boolean;
   forceExpandedChildren?: boolean;
+  onReplyCreated?: (createdAt: string) => void;
 };
 
 const Comment: FC<CommentProps> = ({
@@ -247,6 +251,7 @@ const Comment: FC<CommentProps> = ({
   isCommentJustCreated = false,
   shouldSuggestKeyFactors = false,
   forceExpandedChildren = false,
+  onReplyCreated,
 }) => {
   const t = useTranslations();
   const commentRef = useRef<HTMLDivElement>(null);
@@ -365,7 +370,7 @@ const Comment: FC<CommentProps> = ({
   const [hasExhaustedSuggestions, setHasExhaustedSuggestions] = useState(false);
   const hasAutoOpenedKeyFactorsRef = useRef(false);
 
-  const { combinedKeyFactors } = useCommentsFeed();
+  const { combinedKeyFactors, totalCount, setTotalCount } = useCommentsFeed();
   const {
     suggestedKeyFactors,
     isLoadingSuggestedKeyFactors,
@@ -1119,6 +1124,10 @@ const Comment: FC<CommentProps> = ({
             replyUsername={comment.author.username}
             onSubmit={(newComment: CommentType) => {
               addNewChildrenComment(comment, newComment);
+              onReplyCreated?.(newComment.created_at);
+              if (typeof totalCount === "number") {
+                setTotalCount(totalCount + 1);
+              }
               setIsReplying(false);
             }}
             isReplying={isReplying}
@@ -1152,6 +1161,7 @@ const Comment: FC<CommentProps> = ({
           lastViewedAt={lastViewedAt}
           shouldSuggestKeyFactors={shouldSuggestKeyFactors}
           isSomeChildrenUnread={isSomeChildrenUnread}
+          onReplyCreated={onReplyCreated}
         />
       )}
       <CommentReportModal

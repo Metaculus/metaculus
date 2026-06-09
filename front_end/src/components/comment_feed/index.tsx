@@ -469,6 +469,7 @@ const CommentFeed: FC<Props> = ({
               profileId={profileId}
               last_viewed_at={lastViewedAt}
               postData={postData}
+              onReplyCreated={setLastViewedAt}
               suggestKeyFactorsOnFirstRender={
                 // This is the newly added comment, so we want to suggest key factors
                 comment.id === userKeyFactorsComment?.id
