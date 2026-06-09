@@ -29,7 +29,7 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
   },
   {
     date: "2026-03-24",
-    type: "news",
+    type: "insight",
     content: (
       <>
         Anthropic’s Economic Index Report shows where and how Claude is being
@@ -85,7 +85,7 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
   },
   {
     date: "2026-04-09",
-    type: "news",
+    type: "insight",
     content: (
       <>
         A survey shows that half of employed AI users use AI for work at least
@@ -120,7 +120,7 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
   },
   {
     date: "2026-05-07",
-    type: "news",
+    type: "insight",
     content: (
       <>
         The Budget Lab research center at Yale published a study on the effects
@@ -138,7 +138,7 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
   },
   {
     date: "2026-05-14",
-    type: "news",
+    type: "insight",
     content: (
       <>
         Indeed Hiring Lab releases a report based on structural modeling
@@ -155,7 +155,7 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
   },
   {
     date: "2026-05-15",
-    type: "news",
+    type: "insight",
     content: (
       <>
         Pope Leo XIV publishes an encyclical addressing human dignity in the era
