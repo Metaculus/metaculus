@@ -3,6 +3,7 @@
 import {
   faArrowUpRightFromSquare,
   faComment,
+  faLightbulb,
   faNewspaper,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -14,6 +15,7 @@ import cn from "@/utils/core/cn";
 
 const ACTIVITY_TYPE_ICON = {
   news: faNewspaper,
+  insight: faLightbulb,
   comment: faComment,
 } as const;
 

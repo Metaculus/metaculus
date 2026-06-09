@@ -55,7 +55,9 @@ export function ActivityMonitorSection({
   );
 
   // Pass the full set of candidate markers; the client chart decides how many to show based on print mode.
+  // Only "news" entries are shown on the timeline — "insight" and "comment" entries appear in the card list only.
   const timelineMarkers: GroupTimelineMarker[] = sortedEntries
+    .filter((activity) => activity.type === "news")
     .slice(0, 10)
     .map((activity) => ({
       id: getActivityId(activity),
