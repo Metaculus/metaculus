@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { FC, useEffect } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
+import { useCommentsFeedSafe } from "@/app/(main)/components/comments_feed_provider";
 import { Tabs, TabsList, TabsTab } from "@/components/ui/tabs";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { PostStatus, PostWithForecasts } from "@/types/post";
@@ -50,7 +51,11 @@ const QuestionPageShellTabBar: FC<Props> = ({ post, variant, className }) => {
   const { activeTab, setActiveTab } = useQuestionLayout();
 
   const isSm = useBreakpoint("sm");
-  const commentCount = post.comment_count ?? 0;
+  const commentsFeed = useCommentsFeedSafe();
+  const commentCount =
+    typeof commentsFeed?.totalCount === "number"
+      ? commentsFeed.totalCount
+      : post.comment_count ?? 0;
   const { aggregateCoherenceLinks } = useCoherenceLinksContext();
   const questionLinksCount = aggregateCoherenceLinks.data.filter(
     isDisplayableQuestionLink
