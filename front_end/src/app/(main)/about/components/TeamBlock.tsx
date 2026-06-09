@@ -101,10 +101,10 @@ const people: Person[] = [
   {
     userId: 228596,
     name: "Ben Wilson",
-    position: "AI Research Automation Engineer",
+    position: "AI Research Engineer",
     imgSrc: "https://cdn.metaculus.com/Ben-Wilson.webp",
     introduction:
-      "Ben is an AI Research Automation Engineer proficient in Python, web scraping, prompt engineering, Next.js, and a wide range of other technologies. In 2024, he briefly entered the top 100 on Metaculus, and his bot placed 12th in Metaculus's Q3 AI Forecasting Benchmark Tournament. Ben also founded a non-profit with the goal of creating 'Logipedia: The Wikipedia for Debatable Topics.' He has a passion for philosophy and enjoys improvising on the piano.",
+      "Ben is an AI Research Engineer focused on improving good judgment and forecasting. Currently running FutureEval (https://metaculus.com/futureeval) and working on various research projects for improving AI forecasting and decision making. He has a passion for philosophy and enjoys improvising on the piano.",
     socials: [
       {
         link: "https://www.linkedin.com/in/wilsonbenjamin1000/",
