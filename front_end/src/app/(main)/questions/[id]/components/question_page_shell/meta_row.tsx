@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
+import { MetaculusWordmark } from "@/components/logos";
 import { PostDropdownMenu } from "@/components/post_actions";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import PostVoter from "@/components/post_card/basic_post_card/post_voter";
@@ -62,12 +63,7 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
   return (
     <div className={cn("px-4 lg:px-8", className)}>
       {/* Mobile row */}
-      <div
-        className={cn(
-          "relative flex items-center gap-1.5 md:hidden",
-          variant === "consumer" ? "justify-center" : "justify-start"
-        )}
-      >
+      <div className="relative flex items-center justify-start gap-1.5 md:hidden">
         <div className="flex items-center gap-1.5">
           {variant === "forecaster" && <PostVoter post={post} compact />}
           <CommentStatus
@@ -94,7 +90,11 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
             className="text-xs leading-4"
           />
         </div>
-        <div className="absolute right-0">
+        <div className="absolute right-0 flex items-center gap-2">
+          <MetaculusWordmark
+            aria-hidden
+            className="h-[16px] w-auto text-blue-700/25 dark:text-blue-300/25 max-[389px]:h-[14px] max-[349px]:hidden"
+          />
           <PostDropdownMenu
             post={post}
             hideShare={variant === "consumer"}
