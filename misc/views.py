@@ -3,8 +3,8 @@ from datetime import datetime
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.http import JsonResponse
-from django.views.decorators.cache import cache_page
 from django.utils import timezone
+from django.views.decorators.cache import cache_page
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied
@@ -14,12 +14,18 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from questions.constants import UnsuccessfulResolutionType
-from questions.models import Question, Forecast
+from questions.models import Forecast, Question
+
 from .models import Bulletin, BulletinViewedBy, ITNArticle, SidebarItem
 from .serializers import (
     ContactSerializer,
     ContactServicesSerializer,
     SidebarItemSerializer,
+)
+from .services.ad_tiles import (
+    dismiss_tile,
+    get_combined_feed_tiles,
+    get_tile_object_by_id,
 )
 from .services.itn import remove_article
 from .utils import get_data_access_status
@@ -151,6 +157,32 @@ def sidebar_api_view(request: Request):
     )
 
     return Response(SidebarItemSerializer(sidebar_items, many=True).data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def ad_tiles_api_view(request: Request):
+    """
+    Combined, ordered feed tiles: active ad tiles first, then the auto-generated
+    project tiles (see projects.services.common.get_feed_project_tiles) as fallback.
+    Each item carries an opaque `id` used as the React key and the dismiss handle.
+    """
+    return Response(
+        get_combined_feed_tiles(request.user if request.user.is_authenticated else None)
+    )
+
+
+@api_view(["POST"])
+def dismiss_ad_tile_api_view(request: Request, dismiss_id: str):
+    """
+    Persist a per-user dismissal of a feed tile (ad or project), identified by
+    the opaque tile `id` in the URL (e.g. `ad:123` or `project:12:NEW_QUESTIONS`).
+    Ids not referring to an existing object are silently ignored. Authenticated only.
+    """
+    if get_tile_object_by_id(dismiss_id):
+        dismiss_tile(request.user, dismiss_id)
+
+    return Response(status=status.HTTP_201_CREATED)
 
 
 @api_view(["GET"])
