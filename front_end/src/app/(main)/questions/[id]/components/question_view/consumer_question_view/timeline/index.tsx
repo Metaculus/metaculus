@@ -38,7 +38,7 @@ const QuestionTimeline: React.FC<Props> = ({
   isConsumerView = true,
   preselectedGroupQuestionId,
 }) => {
-  const { chartAreaHeight } = useListChartExpanded();
+  const { chartAreaHeight, setCursorTimestamp } = useListChartExpanded();
   const isFanGraph =
     postData.group_of_questions?.graph_type ===
     GroupOfQuestionsGraphType.FanGraph;
@@ -111,6 +111,8 @@ const QuestionTimeline: React.FC<Props> = ({
             preselectedQuestionId={preselectedGroupQuestionId}
             withLegend={!isConsumerView}
             embedChartHeight={embedHeight}
+            onCursorChange={isConsumerView ? setCursorTimestamp : undefined}
+            hideTooltip={isConsumerView}
           />
         )}
       </div>

@@ -15,6 +15,7 @@ import {
   MouseEventHandler,
   ReactElement,
   useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -63,21 +64,21 @@ function InnerMenuContent({
   className,
   onClose,
 }: DropdownMenuProps & { open: boolean }) {
-  const [prevItems, setPrevItems] = useState<MenuItemProps[]>(items);
+  const prevItemsRef = useRef<MenuItemProps[]>(items);
   const [activeItems, setActiveItems] = useState<MenuItemProps[]>(items);
 
   // Track prop change
   useEffect(() => {
-    setPrevItems(items);
+    prevItemsRef.current = items;
     setActiveItems(items);
   }, [items]);
 
   useEffect(() => {
     if (!open) {
-      setActiveItems(prevItems);
+      setActiveItems(prevItemsRef.current);
       if (onClose) onClose();
     }
-  }, [open, onClose, prevItems]);
+  }, [open, onClose]);
 
   return (
     <>

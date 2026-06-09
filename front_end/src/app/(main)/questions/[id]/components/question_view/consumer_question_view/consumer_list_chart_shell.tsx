@@ -19,6 +19,8 @@ type ListChartExpandedContextType = {
   hoveredChoiceName: string | null;
   setHoveredChoiceName: (name: string | null) => void;
   chartAreaHeight: number;
+  cursorTimestamp: number | null;
+  setCursorTimestamp: (ts: number | null) => void;
 };
 
 const ListChartExpandedContext = createContext<ListChartExpandedContextType>({
@@ -26,6 +28,8 @@ const ListChartExpandedContext = createContext<ListChartExpandedContextType>({
   hoveredChoiceName: null,
   setHoveredChoiceName: () => {},
   chartAreaHeight: 0,
+  cursorTimestamp: null,
+  setCursorTimestamp: () => {},
 });
 
 export const useListChartExpanded = () => useContext(ListChartExpandedContext);
@@ -56,6 +60,7 @@ const ConsumerListChartShell: React.FC<Props> = ({
   const [hoveredChoiceName, setHoveredChoiceName] = useState<string | null>(
     null
   );
+  const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
 
   const { ref: listColumnRef, height: listColumnHeight } =
     useContainerSize<HTMLDivElement>();
@@ -87,8 +92,17 @@ const ConsumerListChartShell: React.FC<Props> = ({
       hoveredChoiceName,
       setHoveredChoiceName,
       chartAreaHeight,
+      cursorTimestamp,
+      setCursorTimestamp,
     }),
-    [hoveredChoiceName, chartAreaHeight, setHoveredChoiceName, setIsExpanded]
+    [
+      hoveredChoiceName,
+      chartAreaHeight,
+      setHoveredChoiceName,
+      setIsExpanded,
+      cursorTimestamp,
+      setCursorTimestamp,
+    ]
   );
 
   return (
@@ -101,7 +115,10 @@ const ConsumerListChartShell: React.FC<Props> = ({
           stretchListContent && "sm:min-h-[192px]",
           className
         )}
-        onMouseLeave={() => setHoveredChoiceName(null)}
+        onMouseLeave={() => {
+          setHoveredChoiceName(null);
+          setCursorTimestamp(null);
+        }}
       >
         <div
           ref={listColumnRef}
