@@ -7,14 +7,14 @@ export type MetricKey = "felten" | "mna" | "aoe";
 export type MetricDef = {
   key: MetricKey;
   valueOf: (job: Pick<JobDefinition, "felten" | "mna" | "aoe">) => number;
-  /** Display formatting — differs per metric (z-score / percentage / 0–100 index). */
+  /** Display formatting — differs per metric (signed z-score / 0–1 score / percentage). */
   format: (value: number) => string;
   labelKey: TranslationKey;
   /** Short tile tooltip body (reused from the exposure tiles). */
   tooltipKey: TranslationKey;
   sourceKey: TranslationKey;
   axisLabelKey: TranslationKey;
-  natureKeys: [TranslationKey, TranslationKey, TranslationKey];
+  natureKeys: [TranslationKey, TranslationKey];
   boundsKey: TranslationKey;
 };
 
@@ -27,41 +27,29 @@ export const METRIC_DEFS: Record<MetricKey, MetricDef> = {
     tooltipKey: "laborHubJobsFeltenTooltip",
     sourceKey: "laborHubJobsFeltenSource",
     axisLabelKey: "laborHubJobsFeltenAxisLabel",
-    natureKeys: [
-      "laborHubJobsFeltenNature1",
-      "laborHubJobsFeltenNature2",
-      "laborHubJobsFeltenNature3",
-    ],
+    natureKeys: ["laborHubJobsFeltenNature1", "laborHubJobsFeltenNature3"],
     boundsKey: "laborHubJobsFeltenBounds",
   },
   mna: {
     key: "mna",
     valueOf: (job) => job.mna,
-    format: (v) => `${(v * 100).toFixed(1)}%`,
+    format: (v) => v.toFixed(3),
     labelKey: "laborHubJobsMnaLabel",
     tooltipKey: "laborHubJobsMnaTooltip",
     sourceKey: "laborHubJobsMnaSource",
     axisLabelKey: "laborHubJobsMnaAxisLabel",
-    natureKeys: [
-      "laborHubJobsMnaNature1",
-      "laborHubJobsMnaNature2",
-      "laborHubJobsMnaNature3",
-    ],
+    natureKeys: ["laborHubJobsMnaNature1", "laborHubJobsMnaNature3"],
     boundsKey: "laborHubJobsMnaBounds",
   },
   aoe: {
     key: "aoe",
     valueOf: (job) => job.aoe,
-    format: (v) => v.toFixed(1),
+    format: (v) => `${v.toFixed(1)}%`,
     labelKey: "laborHubJobsAoeLabel",
     tooltipKey: "laborHubJobsAoeTooltip",
     sourceKey: "laborHubJobsAoeSource",
     axisLabelKey: "laborHubJobsAoeAxisLabel",
-    natureKeys: [
-      "laborHubJobsAoeNature1",
-      "laborHubJobsAoeNature2",
-      "laborHubJobsAoeNature3",
-    ],
+    natureKeys: ["laborHubJobsAoeNature1", "laborHubJobsAoeNature3"],
     boundsKey: "laborHubJobsAoeBounds",
   },
 };

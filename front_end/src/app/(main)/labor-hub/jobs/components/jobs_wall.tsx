@@ -142,7 +142,7 @@ export function JobsWall({ jobs, tickers }: Props) {
           {t("laborHubJobsClickTileSubtitle")}
         </p>
         <div
-          className="inline-flex items-center gap-1 rounded-full bg-blue-200 p-1 dark:bg-blue-200-dark"
+          className="inline-flex items-center gap-1 rounded-full bg-gray-0 p-1 dark:bg-blue-200-dark"
           role="group"
           aria-label={t("laborHubJobsYearToggleLabel")}
         >

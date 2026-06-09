@@ -45,7 +45,7 @@ function levelClasses(level: ExposureLevel): {
 
 function formatValue(key: MetricKey, value: number): string {
   if (key === "aoe") return `${value.toFixed(1)}%`;
-  if (key === "mna") return `${(value * 100).toFixed(1)}%`;
+  if (key === "mna") return value.toFixed(3);
   return value.toFixed(2);
 }
 
