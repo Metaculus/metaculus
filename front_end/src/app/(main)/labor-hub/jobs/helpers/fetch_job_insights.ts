@@ -144,18 +144,29 @@ async function fetchCommentsByIds(
   ids: number[]
 ): Promise<ResolvedInsight[]> {
   try {
-    const response = await ServerCommentsApi.getComments({
-      post: postId,
-      parent_isnull: true,
-      limit: 100,
-    });
-
     const byId = new Map<number, CommentType>();
     const collect = (comment: CommentType) => {
       byId.set(comment.id, comment);
       for (const child of comment.children ?? []) collect(child);
     };
-    response.results.forEach(collect);
+
+    // Page through root threads (accumulating into byId) until every requested
+    // ID is found or the post runs out of pages — so curated IDs in threads
+    // beyond the first page (or nested under them) aren't missed.
+    const wanted = new Set(ids);
+    const PAGE_SIZE = 100;
+    const MAX_PAGES = 10;
+    for (let page = 0; page < MAX_PAGES; page++) {
+      const response = await ServerCommentsApi.getComments({
+        post: postId,
+        parent_isnull: true,
+        limit: PAGE_SIZE,
+        offset: page * PAGE_SIZE,
+      });
+      response.results.forEach(collect);
+      const allFound = [...wanted].every((id) => byId.has(id));
+      if (allFound || !response.next) break;
+    }
 
     return ids
       .map((id) => byId.get(id))
