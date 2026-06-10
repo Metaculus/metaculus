@@ -5,6 +5,7 @@ import { FC, Fragment, ReactNode, useEffect } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_status_box";
+import ConditionalTimeline from "@/components/conditional_timeline";
 import DateForecastCard from "@/components/consumer_post_card/group_forecast_card/date_forecast_card";
 import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
 import PercentageForecastCard from "@/components/consumer_post_card/group_forecast_card/percentage_forecast_card";
@@ -155,6 +156,9 @@ export const ForecasterShell: FC<
                   preselectedQuestionId={preselectedGroupQuestionId}
                 />
               ))}
+            {isConditionalPost(postData) && (
+              <ConditionalTimeline post={postData} />
+            )}
           </div>
           {(!isResolved || isGroup) && <ForecastMaker post={postData} />}
           <ResolutionCriteria post={postData} defaultOpen />
