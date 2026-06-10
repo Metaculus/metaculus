@@ -45,29 +45,51 @@ import { createQuestionPost, updatePost } from "../actions";
 // (~900px → ~450 rendered chars); anything past that point is past every tile
 // size and doesn't need a summary. MAX_SOURCE_CHARS_TO_SCAN bounds the remark
 // parse cost on long notebooks — 2000 source chars maps to well over the
-// rendered budget even with markdown-heavy input.
+// rendered budget even with markdown-heavy input. TILE_VISIBLE_SOURCE_CHARS
+// is a tighter window used for raw-source checks (lists, blockquotes, code
+// fences): their markers are stripped before render, so we can't see them in
+// the preview output and instead approximate "could appear on the tile" by
+// scanning the first ~600 source chars.
 const TILE_PREVIEW_WIDTH = 900;
 const TILE_PREVIEW_HEIGHT = 80;
 const MAX_SOURCE_CHARS_TO_SCAN = 2000;
+const TILE_VISIBLE_SOURCE_CHARS = 600;
 
-// Patterns whose presence in the *rendered* preview would surface visibly on
-// the tile. strip-markdown leaves these in: raw HTML tags (iframes, divs) and
+// Patterns whose presence in the *rendered* preview surfaces visibly on the
+// tile. strip-markdown leaves these in: raw HTML tags (iframes, divs) and
 // pipes from table-like content MDXEditor didn't promote to a real table.
 // Plain text and `[text](url)` link syntax are accepted: links re-render as
 // real <a> tags via the tile's read-mode MarkdownEditor.
-const NOISY_TILE_PREVIEW_PATTERNS: RegExp[] = [
+const NOISY_RENDERED_PATTERNS: RegExp[] = [
   /<[a-zA-Z][^>]*>/, // raw HTML
   /\|[^|\n]*\|[^|\n]*\|/, // 3+ pipes on a single line (table-ish)
 ];
 
+// Patterns whose markers strip-markdown removes, but whose visual semantics
+// (bullets, numbering, indentation, monospace) are part of the author's
+// intent. Without them the tile shows the content as run-on prose, which
+// silently strips meaning rather than displaying syntax. Checked against the
+// raw source within the tile-visible window. The `{0,3}` allowance matches
+// CommonMark's leading-space tolerance for these block constructs.
+const NOISY_RAW_SOURCE_PATTERNS: RegExp[] = [
+  /^[ \t]{0,3}[-*+][ \t]+\S/m, // bullet list item
+  /^[ \t]{0,3}\d+[.)][ \t]+\S/m, // ordered list item
+  /^[ \t]{0,3}>[ \t]?/m, // blockquote
+  /^[ \t]{0,3}```/m, // fenced code block
+];
+
 const hasNoisyTilePreview = (markdown: string | undefined): boolean => {
   if (!markdown) return false;
+  const rawSource = markdown.slice(0, TILE_VISIBLE_SOURCE_CHARS);
+  if (NOISY_RAW_SOURCE_PATTERNS.some((pattern) => pattern.test(rawSource))) {
+    return true;
+  }
   const preview = getMarkdownSummary({
     markdown: markdown.slice(0, MAX_SOURCE_CHARS_TO_SCAN),
     width: TILE_PREVIEW_WIDTH,
     height: TILE_PREVIEW_HEIGHT,
   });
-  return NOISY_TILE_PREVIEW_PATTERNS.some((pattern) => pattern.test(preview));
+  return NOISY_RENDERED_PATTERNS.some((pattern) => pattern.test(preview));
 };
 
 const createNotebookSchema = (t: ReturnType<typeof useTranslations>) => {
