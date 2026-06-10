@@ -24,21 +24,21 @@ function levelClasses(level: ExposureLevel): {
   switch (level) {
     case "high":
       return {
-        ring: "border-salmon-700 dark:border-salmon-700-dark",
-        label: "text-salmon-800 dark:text-salmon-900-dark",
-        bar: "bg-salmon-700 dark:bg-salmon-700-dark",
+        ring: "border-mc-option-2 dark:border-mc-option-2-dark",
+        label: "text-mc-option-2 dark:text-mc-option-2-dark",
+        bar: "bg-mc-option-2 dark:bg-mc-option-2-dark",
       };
     case "med":
       return {
-        ring: "border-orange-700 dark:border-orange-700-dark",
-        label: "text-orange-700 dark:text-orange-700-dark",
-        bar: "bg-orange-700 dark:bg-orange-700-dark",
+        ring: "border-[#7d8d73] dark:border-[#8c8f72]",
+        label: "text-[#6f7e66] dark:text-[#9aa37e]",
+        bar: "bg-[#7d8d73] dark:bg-[#8c8f72]",
       };
     case "low":
       return {
-        ring: "border-olive-700 dark:border-olive-700-dark",
-        label: "text-olive-800 dark:text-olive-800-dark",
-        bar: "bg-olive-700 dark:bg-olive-700-dark",
+        ring: "border-mc-option-3 dark:border-mc-option-3-dark",
+        label: "text-mc-option-3 dark:text-mc-option-3-dark",
+        bar: "bg-mc-option-3 dark:bg-mc-option-3-dark",
       };
   }
 }

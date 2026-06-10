@@ -37,11 +37,21 @@ export function MetricOverlay({ metricKey, currentSlug, onClose }: Props) {
     >
       {def && (
         <div className="overflow-y-auto overflow-x-hidden px-6 py-8 sm:px-9 sm:py-9">
-          <div
-            className="text-[11px] font-semibold uppercase tracking-[0.06em]"
-            style={{ color: METRIC_ACCENT_WARM }}
-          >
-            {t(def.sourceKey)}
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <span
+              className="text-[11px] font-semibold uppercase tracking-[0.06em]"
+              style={{ color: METRIC_ACCENT_WARM }}
+            >
+              {t(def.sourceKey)}
+            </span>
+            <a
+              href={def.paperUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[11px] font-medium text-blue-700 hover:underline dark:text-blue-700-dark"
+            >
+              {t("laborHubJobsMetricPaperLink")}
+            </a>
           </div>
           <h2 className="m-0 mt-1 text-2xl font-extrabold tracking-tight text-blue-900 dark:text-blue-900-dark sm:text-[28px]">
             {t(def.labelKey)}

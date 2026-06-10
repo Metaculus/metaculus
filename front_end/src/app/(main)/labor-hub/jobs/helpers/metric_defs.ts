@@ -16,6 +16,8 @@ export type MetricDef = {
   axisLabelKey: TranslationKey;
   natureKeys: [TranslationKey, TranslationKey];
   boundsKey: TranslationKey;
+  /** Canonical source paper, linked from the overlay. */
+  paperUrl: string;
 };
 
 export const METRIC_DEFS: Record<MetricKey, MetricDef> = {
@@ -29,6 +31,7 @@ export const METRIC_DEFS: Record<MetricKey, MetricDef> = {
     axisLabelKey: "laborHubJobsFeltenAxisLabel",
     natureKeys: ["laborHubJobsFeltenNature1", "laborHubJobsFeltenNature3"],
     boundsKey: "laborHubJobsFeltenBounds",
+    paperUrl: "https://arxiv.org/abs/2303.01157",
   },
   mna: {
     key: "mna",
@@ -40,6 +43,7 @@ export const METRIC_DEFS: Record<MetricKey, MetricDef> = {
     axisLabelKey: "laborHubJobsMnaAxisLabel",
     natureKeys: ["laborHubJobsMnaNature1", "laborHubJobsMnaNature3"],
     boundsKey: "laborHubJobsMnaBounds",
+    paperUrl: "https://www.nber.org/papers/w34705",
   },
   aoe: {
     key: "aoe",
@@ -51,6 +55,7 @@ export const METRIC_DEFS: Record<MetricKey, MetricDef> = {
     axisLabelKey: "laborHubJobsAoeAxisLabel",
     natureKeys: ["laborHubJobsAoeNature1", "laborHubJobsAoeNature3"],
     boundsKey: "laborHubJobsAoeBounds",
+    paperUrl: "https://www.anthropic.com/research/labor-market-impacts",
   },
 };
 

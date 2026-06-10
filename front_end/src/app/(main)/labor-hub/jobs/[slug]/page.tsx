@@ -83,11 +83,20 @@ export default async function JobDetailPage({
     "2035": null,
   };
 
-  const navItems = allJobs.map((j) => ({
-    slug: j.slug,
-    name: j.name,
-    value2035: j.forecasts["2035"],
-  }));
+  const navItems = allJobs
+    .map((j) => ({
+      slug: j.slug,
+      name: j.name,
+      value2035: j.forecasts["2035"],
+    }))
+    // Order most decline → most growth (nulls last).
+    .sort((a, b) =>
+      a.value2035 == null
+        ? 1
+        : b.value2035 == null
+          ? -1
+          : a.value2035 - b.value2035
+    );
 
   const canonical = `${PUBLIC_APP_URL}/labor-hub/jobs/${slug}/`;
   const jsonLd = {
