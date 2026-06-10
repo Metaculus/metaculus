@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import cn from "@/utils/core/cn";
+import { getBinaryGaugeColors } from "@/utils/colors/binary_gauge_colors";
 
 import { MetricOverlay } from "./metric_overlay";
 import { type JobDefinition } from "../../data";
@@ -15,36 +15,6 @@ import {
   normalize,
 } from "../helpers/exposure_thresholds";
 import { type MetricKey } from "../helpers/metric_defs";
-
-// Tier colors are taken from the radial-gauge red→green ramp
-// (see getBinaryGaugeColors in @/utils/colors/binary_gauge_colors), which uses
-// the same hex in light and dark mode: red end / middle / green end.
-function levelClasses(level: ExposureLevel): {
-  ring: string;
-  label: string;
-  bar: string;
-} {
-  switch (level) {
-    case "high":
-      return {
-        ring: "border-[#D58B80]",
-        label: "text-[#D58B80]",
-        bar: "bg-[#D58B80]",
-      };
-    case "med":
-      return {
-        ring: "border-[#A59775]",
-        label: "text-[#A59775]",
-        bar: "bg-[#A59775]",
-      };
-    case "low":
-      return {
-        ring: "border-[#66A566]",
-        label: "text-[#66A566]",
-        bar: "bg-[#66A566]",
-      };
-  }
-}
 
 function formatValue(key: MetricKey, value: number): string {
   if (key === "aoe") return `${value.toFixed(1)}%`;
@@ -100,7 +70,10 @@ export function ExposureMetrics({ job, currentSlug }: Props) {
         {items.map(({ key, label, tooltip, value }) => {
           const level = getExposureLevel(key, value);
           const pct = normalize(key, value) * 100;
-          const cls = levelClasses(level);
+          // Color comes from the radial-gauge red→green ramp, sampled at the
+          // value's normalized position (inverted: high exposure = red end),
+          // so it steps incrementally with the value rather than per tier.
+          const { hex } = getBinaryGaugeColors(100 - pct);
           return (
             <div
               key={key}
@@ -122,11 +95,8 @@ export function ExposureMetrics({ job, currentSlug }: Props) {
                 </span>
                 <div className="flex items-center gap-1 self-start md:gap-1.5 md:self-auto">
                   <span
-                    className={cn(
-                      "rounded-full border px-1.5 py-0.5 text-[10px] font-semibold md:px-2 md:text-xs",
-                      cls.ring,
-                      cls.label
-                    )}
+                    className="rounded-full border px-1.5 py-0.5 text-[10px] font-semibold md:px-2 md:text-xs"
+                    style={{ borderColor: hex, color: hex }}
                   >
                     {ringLabel(level)}
                   </span>
@@ -142,8 +112,8 @@ export function ExposureMetrics({ job, currentSlug }: Props) {
               </div>
               <div className="mt-2 h-1.5 rounded-full bg-blue-200 transition-colors group-hover:bg-blue-300 dark:bg-blue-200-dark dark:group-hover:bg-blue-300-dark md:mt-3">
                 <div
-                  className={cn("h-full rounded-full", cls.bar)}
-                  style={{ width: `${pct}%` }}
+                  className="h-full rounded-full"
+                  style={{ width: `${pct}%`, backgroundColor: hex }}
                 />
               </div>
 
