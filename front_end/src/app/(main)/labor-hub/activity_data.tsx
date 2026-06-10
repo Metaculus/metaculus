@@ -102,6 +102,22 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
     ),
   },
   {
+    date: "2026-04-23",
+    type: "news",
+    content: (
+      <>
+        OpenAI launches their latest GPT 5.5 model -{" "}
+        <a
+          href="https://openai.com/index/introducing-gpt-5-5/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          OpenAI
+        </a>
+      </>
+    ),
+  },
+  {
     date: "2026-04-24",
     type: "news",
     content: (
@@ -171,6 +187,22 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
     ),
   },
   {
+    date: "2026-05-19",
+    type: "news",
+    content: (
+      <>
+        Google launches Gemini 3.5, their latest model -{" "}
+        <a
+          href="https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-5/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          Google
+        </a>
+      </>
+    ),
+  },
+  {
     date: "2026-05-21",
     type: "news",
     content: (
@@ -195,6 +227,23 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
         Anthropic releases Claude Opus 4.8 -{" "}
         <a
           href="https://www.anthropic.com/news/claude-opus-4-8"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          Anthropic
+        </a>
+      </>
+    ),
+  },
+  {
+    date: "2026-06-09",
+    type: "news",
+    content: (
+      <>
+        Anthropic launches Claude Fable 5, a Mythos-class model made safe for
+        general use -{" "}
+        <a
+          href="https://www.anthropic.com/news/claude-fable-5-mythos-5"
           target="_blank"
           rel="noreferrer noopener"
         >
