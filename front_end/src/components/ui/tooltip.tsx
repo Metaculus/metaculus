@@ -22,9 +22,9 @@ import cn from "@/utils/core/cn";
 export type TooltipVariant = "dark" | "light";
 
 const VARIANT_CLASS_NAMES: Record<TooltipVariant, string> = {
-  dark: "bg-blue-900-dark dark:border-gray-100 dark:bg-blue-900 dark:text-gray-100",
+  dark: "bg-blue-800 text-gray-0 dark:bg-blue-800-dark dark:text-gray-0-dark",
   light:
-    "border-blue-400 bg-gray-0 text-gray-800 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-gray-800-dark",
+    "border border-blue-400 bg-gray-0 text-gray-800 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-gray-800-dark",
 };
 
 type Props = {
@@ -78,7 +78,7 @@ const Tooltip: FC<PropsWithChildren<Props>> = ({
       onClick={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.preventDefault()}
       className={cn(
-        "z-[200] w-max max-w-[300px] rounded border p-2 text-sm open:block sm:max-w-sm md:max-w-md",
+        "z-[200] w-max max-w-[300px] rounded-md px-4 py-3 text-base shadow-lg open:block sm:max-w-sm md:max-w-md",
         VARIANT_CLASS_NAMES[variant],
         tooltipClassName
       )}
