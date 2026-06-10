@@ -368,17 +368,19 @@ const Histogram: React.FC<HistogramProps> = ({
       {showTooltip && (
         <FloatingPortal>
           <div
-            className="pointer-events-none z-100 rounded bg-gray-0 px-2 py-1 leading-4 shadow-lg dark:bg-gray-0-dark"
+            className="pointer-events-none z-100 rounded bg-blue-800 px-3 py-1.5 leading-5 shadow-lg dark:bg-blue-800-dark"
             ref={refs.setFloating}
             style={floatingStyles}
             {...getFloatingProps()}
           >
             <div
-              className="text-center text-gray-800 dark:text-gray-800-dark"
+              className="text-center text-blue-200 dark:text-gray-200-dark"
               style={CHART_FONT_STYLE.tooltip}
             >
-              <div className="font-semibold tabular-nums">{hoveredBin}%</div>
-              <div className="tabular-nums text-gray-700 dark:text-gray-700-dark">
+              <div className="text-lg font-normal tabular-nums">
+                {hoveredBin}%
+              </div>
+              <div className="tabular-nums text-blue-300 dark:text-blue-300-dark">
                 <RichText>
                   {(tags) => (
                     <>
