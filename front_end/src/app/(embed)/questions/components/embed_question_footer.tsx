@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import React, { useMemo } from "react";
 
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
@@ -13,6 +14,7 @@ type Props = {
 };
 
 const EmbedQuestionFooter: React.FC<Props> = ({ post, ogReady }) => {
+  const t = useTranslations();
   const questionUrl = useMemo(() => getPostLink(post), [post]);
 
   return (
@@ -38,7 +40,7 @@ const EmbedQuestionFooter: React.FC<Props> = ({ post, ogReady }) => {
           target="_blank"
           rel="noopener noreferrer"
           className="block"
-          aria-label="Open on Metaculus"
+          aria-label={t("openOnMetaculus")}
         >
           <div id="id-logo-used-by-screenshot-donot-change">
             <MetaculusWordmark

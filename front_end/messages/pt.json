@@ -1846,6 +1846,7 @@
   "copyQuestionLinkSuccess": "Link da pergunta criado com sucesso! Você pode vê-los na seção <strong>Links de Perguntas</strong> para cada pergunta.",
   "viewQuestionLinks": "Ver Links de Perguntas",
   "moreActions": "Mais ações",
+  "openOnMetaculus": "Abrir no Metaculus",
   "copyQuestionLinkImpactPrefix": "tem um",
   "copyQuestionLinkImpactSuffix": "impacto causal em:",
   "copyQuestionLinkStrengthLabel": "A força deste impacto é:",
