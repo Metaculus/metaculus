@@ -4,7 +4,7 @@ from projects.models import Project
 from .common import ProjectQuestionCounts, get_questions_count_for_projects
 
 QUESTIONS_COUNT_CACHE_PREFIX = "project_questions_count:v2"
-QUESTIONS_COUNT_CACHE_TIMEOUT = 1 * 3600  # 3 hour
+QUESTIONS_COUNT_CACHE_TIMEOUT = 1 * 3600  # 1 hour
 PROJECT_TIMELINE_TTL_SECONDS = 5 * 360
 
 
