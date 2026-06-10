@@ -3,8 +3,15 @@ from django.contrib.auth.models import AnonymousUser
 from posts.models import Post
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from tests.unit.test_posts.factories import factory_post
+from questions.constants import UnsuccessfulResolutionType
+from questions.models import Question
+from tests.unit.test_posts.factories import factory_notebook, factory_post
 from tests.unit.test_projects.factories import factory_project
+from tests.unit.test_questions.factories import (
+    create_conditional,
+    create_question,
+    factory_group_of_questions,
+)
 from tests.unit.test_users.factories import factory_user
 
 
@@ -132,3 +139,70 @@ def test_annotate_posts_count(
         Project.objects.filter(pk=project.pk).annotate_posts_count().first().posts_count
         == 2
     )
+
+
+def test_annotate_questions_count(user1):
+    project = factory_project()
+
+    # Single-question post via default_project
+    factory_post(
+        author=user1,
+        default_project=project,
+        question=create_question(question_type=Question.QuestionType.BINARY),
+    )
+
+    # Group post with 3 subquestions via projects m2m
+    group_post = factory_post(
+        author=user1,
+        default_project=factory_project(),
+        projects=[project],
+        group_of_questions=factory_group_of_questions(),
+    )
+    for _ in range(3):
+        create_question(
+            question_type=Question.QuestionType.BINARY,
+            group=group_post.group_of_questions,
+        )
+
+    # Conditional post: question_yes/question_no belong to it
+    factory_post(
+        author=user1,
+        default_project=project,
+        conditional=create_conditional(
+            condition=create_question(question_type=Question.QuestionType.BINARY),
+            condition_child=create_question(question_type=Question.QuestionType.BINARY),
+            question_yes=create_question(question_type=Question.QuestionType.BINARY),
+            question_no=create_question(question_type=Question.QuestionType.BINARY),
+        ),
+    )
+
+    # Excluded: notebook post, draft post, annulled-only post, zero-weight question
+    factory_post(author=user1, default_project=project, notebook=factory_notebook())
+    factory_post(
+        author=user1,
+        default_project=project,
+        question=create_question(question_type=Question.QuestionType.BINARY),
+        curation_status=Post.CurationStatus.DRAFT,
+    )
+    factory_post(
+        author=user1,
+        default_project=project,
+        question=create_question(
+            question_type=Question.QuestionType.BINARY,
+            resolution=UnsuccessfulResolutionType.ANNULLED,
+        ),
+    )
+    factory_post(
+        author=user1,
+        default_project=project,
+        question=create_question(
+            question_type=Question.QuestionType.BINARY, question_weight=0
+        ),
+    )
+
+    obj = Project.objects.filter(pk=project.pk).annotate_questions_count().first()
+
+    # single + group + conditional posts
+    assert obj.questions_count == 3
+    # 1 single + 3 subquestions + 2 conditional branches
+    assert obj.questions_count_including_subquestions == 6

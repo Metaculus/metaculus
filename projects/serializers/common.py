@@ -287,10 +287,14 @@ def serialize_tournaments_with_counts(
     data: list[dict] = []
     for obj in projects:
         serialized_tournament = TournamentShortSerializer(obj).data
+        counts = questions_count_map.get(obj.id)
 
         serialized_tournament.update(
             {
-                "questions_count": questions_count_map.get(obj.id) or 0,
+                "questions_count": counts["questions_count"] if counts else 0,
+                "questions_count_including_subquestions": (
+                    counts["questions_count_including_subquestions"] if counts else 0
+                ),
                 "forecasts_count": obj.forecasts_count,
                 "forecasters_count": obj.forecasters_count,
                 "timeline": projects_timeline_map.get(obj.id),
