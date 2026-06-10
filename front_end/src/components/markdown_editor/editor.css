@@ -88,7 +88,7 @@
 }
 
 [data-editor-block-type="image"] {
-  @apply mx-auto flex w-fit;
+  @apply mx-auto flex w-fit max-w-full;
 }
 
 [data-editor-block-type="image"] > :last-child:not(:only-child) {

@@ -6,7 +6,9 @@ import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { useCommentsFeedSafe } from "@/app/(main)/components/comments_feed_provider";
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
+import { MetaculusWordmark } from "@/components/logos";
 import { PostDropdownMenu } from "@/components/post_actions";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import PostVoter from "@/components/post_card/basic_post_card/post_voter";
@@ -33,6 +35,11 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
   const t = useTranslations();
   const resolutionData = extractPostResolution(post);
   const { ref, width } = useContainerSize<HTMLDivElement>();
+  const commentsFeed = useCommentsFeedSafe();
+  const commentCount =
+    typeof commentsFeed?.totalCount === "number"
+      ? commentsFeed.totalCount
+      : post.comment_count ?? 0;
 
   const projectsData = post.projects;
   const defaultProject = projectsData?.default_project ?? null;
@@ -62,16 +69,11 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
   return (
     <div className={cn("px-4 lg:px-8", className)}>
       {/* Mobile row */}
-      <div
-        className={cn(
-          "relative flex items-center gap-1.5 md:hidden",
-          variant === "consumer" ? "justify-center" : "justify-start"
-        )}
-      >
+      <div className="relative flex items-center justify-start gap-1.5 md:hidden">
         <div className="flex items-center gap-1.5">
           {variant === "forecaster" && <PostVoter post={post} compact />}
           <CommentStatus
-            totalCount={post.comment_count ?? 0}
+            totalCount={commentCount}
             unreadCount={post.unread_comment_count ?? 0}
             url={getPostLink(post)}
             className={cn(
@@ -94,7 +96,11 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
             className="text-xs leading-4"
           />
         </div>
-        <div className="absolute right-0">
+        <div className="absolute right-0 flex items-center gap-2">
+          <MetaculusWordmark
+            aria-hidden
+            className="h-[16px] w-auto text-blue-700/25 dark:text-blue-300/25 max-[389px]:h-[14px] max-[349px]:hidden"
+          />
           <PostDropdownMenu
             post={post}
             hideShare={variant === "consumer"}
@@ -115,7 +121,7 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
         <div className="flex shrink-0 items-center gap-1.5">
           <PostVoter post={post} />
           <CommentStatus
-            totalCount={post.comment_count ?? 0}
+            totalCount={commentCount}
             unreadCount={post.unread_comment_count ?? 0}
             url={getPostLink(post)}
             className="bg-gray-200 dark:bg-gray-200-dark"

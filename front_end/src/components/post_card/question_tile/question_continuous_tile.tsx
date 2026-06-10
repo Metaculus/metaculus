@@ -40,6 +40,7 @@ type Props = {
   canPredict?: boolean;
   showChart?: boolean;
   minimalistic?: boolean;
+  forFeedPage?: boolean;
 };
 
 const QuestionContinuousTile: FC<Props> = ({
@@ -49,6 +50,7 @@ const QuestionContinuousTile: FC<Props> = ({
   canPredict,
   showChart = true,
   minimalistic = false,
+  forFeedPage = false,
 }) => {
   const { onReaffirm } = useCardReaffirmContext();
 
@@ -171,7 +173,7 @@ const QuestionContinuousTile: FC<Props> = ({
               tickFontSize={9}
               questionStatus={question.status}
               forecastAvailability={forecastAvailability}
-              forFeedPage
+              forFeedPage={forFeedPage}
             />
           </div>
         )}

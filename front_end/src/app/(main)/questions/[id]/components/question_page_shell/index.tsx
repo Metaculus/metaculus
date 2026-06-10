@@ -5,6 +5,7 @@ import { FC, Fragment, ReactNode, useEffect } from "react";
 
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { PostStatusBox } from "@/app/(main)/questions/[id]/components/post_status_box";
+import ConditionalTimeline from "@/components/conditional_timeline";
 import DateForecastCard from "@/components/consumer_post_card/group_forecast_card/date_forecast_card";
 import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
 import PercentageForecastCard from "@/components/consumer_post_card/group_forecast_card/percentage_forecast_card";
@@ -16,7 +17,10 @@ import MarkdownEditor from "@/components/markdown_editor";
 import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
 import ResolutionCriteria from "@/components/question/resolution_criteria";
 import SectionToggle from "@/components/ui/section_toggle";
-import { ContinuousChartCursorProvider } from "@/contexts/continuous_chart_cursor_context";
+import {
+  ContinuousChartCursorProvider,
+  useContinuousChartCursor,
+} from "@/contexts/continuous_chart_cursor_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import { usePostTextSections } from "@/hooks/use_post_text_sections";
@@ -28,7 +32,11 @@ import {
   QuestionStatus,
 } from "@/types/post";
 import { TournamentType } from "@/types/projects";
-import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import {
+  QuestionType,
+  QuestionWithForecasts,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 import {
@@ -148,6 +156,9 @@ export const ForecasterShell: FC<
                   preselectedQuestionId={preselectedGroupQuestionId}
                 />
               ))}
+            {isConditionalPost(postData) && (
+              <ConditionalTimeline post={postData} />
+            )}
           </div>
           {(!isResolved || isGroup) && <ForecastMaker post={postData} />}
           <ResolutionCriteria post={postData} defaultOpen />
@@ -174,6 +185,19 @@ export const ForecasterShell: FC<
       </div>
       {mobileSidebar}
     </Fragment>
+  );
+};
+
+const BinaryCursorGauge: FC<{
+  question: QuestionWithForecasts;
+}> = ({ question }) => {
+  const cursorCtx = useContinuousChartCursor();
+  return (
+    <QuestionHeaderCPStatus
+      question={question}
+      size="lg"
+      cursorBinaryValue={cursorCtx?.activeBinaryValue}
+    />
   );
 };
 
@@ -216,6 +240,11 @@ export const ConsumerShell: FC<{
 
   const binaryForecastAvailability =
     isBinarySingleQuestion && isQuestionPost(postData)
+      ? getQuestionForecastAvailability(postData.question)
+      : null;
+
+  const mcForecastAvailability =
+    isMultipleChoice && isQuestionPost(postData)
       ? getQuestionForecastAvailability(postData.question)
       : null;
 
@@ -285,17 +314,14 @@ export const ConsumerShell: FC<{
           ) : isBinarySingleQuestion && isQuestionPost(postData) ? (
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-0 md:gap-8">
               <div className="order-1 flex w-64 flex-col items-center justify-center gap-[18px] self-center sm:self-stretch">
-                {hideCP ? (
-                  <RevealCPButton />
-                ) : binaryForecastAvailability?.cpRevealsOn ? (
+                {binaryForecastAvailability?.cpRevealsOn ? (
                   <UpcomingCP
                     cpRevealsOn={binaryForecastAvailability.cpRevealsOn}
                   />
+                ) : hideCP ? (
+                  <RevealCPButton />
                 ) : (
-                  <QuestionHeaderCPStatus
-                    question={postData.question}
-                    size="lg"
-                  />
+                  <BinaryCursorGauge question={postData.question} />
                 )}
               </div>
               <QuestionTimeline
@@ -338,7 +364,7 @@ export const ConsumerShell: FC<{
                 hideBorder={false}
                 reduceInnerPadding={!!isDateGroup}
                 listContent={
-                  hideCP ? (
+                  hideCP && !mcForecastAvailability?.cpRevealsOn ? (
                     <RevealCPButton />
                   ) : isFanGraph && fanGraphQuestions ? (
                     <ConsumerTimeSeriesPane

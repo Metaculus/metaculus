@@ -19,6 +19,8 @@ type ListChartExpandedContextType = {
   hoveredChoiceName: string | null;
   setHoveredChoiceName: (name: string | null) => void;
   chartAreaHeight: number;
+  cursorTimestamp: number | null;
+  setCursorTimestamp: (ts: number | null) => void;
 };
 
 const ListChartExpandedContext = createContext<ListChartExpandedContextType>({
@@ -26,6 +28,8 @@ const ListChartExpandedContext = createContext<ListChartExpandedContextType>({
   hoveredChoiceName: null,
   setHoveredChoiceName: () => {},
   chartAreaHeight: 0,
+  cursorTimestamp: null,
+  setCursorTimestamp: () => {},
 });
 
 export const useListChartExpanded = () => useContext(ListChartExpandedContext);
@@ -56,6 +60,7 @@ const ConsumerListChartShell: React.FC<Props> = ({
   const [hoveredChoiceName, setHoveredChoiceName] = useState<string | null>(
     null
   );
+  const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
 
   const { ref: listColumnRef, height: listColumnHeight } =
     useContainerSize<HTMLDivElement>();
@@ -87,8 +92,17 @@ const ConsumerListChartShell: React.FC<Props> = ({
       hoveredChoiceName,
       setHoveredChoiceName,
       chartAreaHeight,
+      cursorTimestamp,
+      setCursorTimestamp,
     }),
-    [hoveredChoiceName, chartAreaHeight, setHoveredChoiceName, setIsExpanded]
+    [
+      hoveredChoiceName,
+      chartAreaHeight,
+      setHoveredChoiceName,
+      setIsExpanded,
+      cursorTimestamp,
+      setCursorTimestamp,
+    ]
   );
 
   return (
@@ -98,14 +112,19 @@ const ConsumerListChartShell: React.FC<Props> = ({
           "flex flex-col sm:flex-row sm:items-stretch",
           !hideBorder &&
             "sm:rounded-lg sm:border sm:border-gray-400/40 dark:sm:border-gray-400-dark/40",
+          stretchListContent && "sm:min-h-[192px]",
           className
         )}
-        onMouseLeave={() => setHoveredChoiceName(null)}
+        onMouseLeave={() => {
+          setHoveredChoiceName(null);
+          setCursorTimestamp(null);
+        }}
       >
         <div
           ref={listColumnRef}
           className={cn(
-            "order-1 sm:w-80 sm:shrink-0 sm:self-start lg:w-64 xl:w-80",
+            "order-1 sm:w-80 sm:shrink-0 lg:w-64 xl:w-80",
+            !stretchListContent && "sm:self-start",
             reduceInnerPadding ? "sm:py-5 sm:pl-5" : "sm:p-5",
             hideListOnMobile ? "hidden sm:block" : "",
             stretchListContent && "sm:flex sm:flex-col"

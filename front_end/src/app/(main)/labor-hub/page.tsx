@@ -453,11 +453,12 @@ export default function LaborAutomationHubPage() {
               <strong>more than doubled</strong> in 2035 compared to 2025.
             </ContentParagraph>
             <ContentParagraph>
-              The number of degrees awarded overall and for STEM and humanities
-              is expected to see only minor change due to the long gestation
-              time, while trade schools and community colleges are expected to
-              see significant growth in degrees and certificates awarded by
-              2035.
+              The number of degrees awarded for STEM is expected to see only
+              minor change due to the long gestation time, while overall 4-year
+              degrees are expected to see a modest decline and humanities
+              degrees are expected to see a more substantial decline by 2035.
+              Trade schools and community colleges are expected to see
+              significant growth in degrees and certificates awarded by 2035.
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight className="lg:mt-24 print:mt-12">
@@ -755,7 +756,7 @@ export default function LaborAutomationHubPage() {
               forecasted to grow through 2027, largely unaffected by AI in this
               timeframe. Aerospace (employing 2%) is expected to see minor
               growth in the short-term, while technology (employing 10%) is
-              expected to see a marginal decline, largely consistent with
+              expected to see marginal decline, largely consistent with
               historical trends. These forecasts are short-term, leading to
               minimal predicted change.
             </ContentParagraph>

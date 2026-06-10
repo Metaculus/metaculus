@@ -24,7 +24,10 @@ def _get_notification_schedules() -> dict[str, Q]:
     custom = {
         "open_status": Q(
             type=NotificationPostStatusChange.type,
-            params__event=Post.PostStatusChange.OPEN,
+            params__event__in=[
+                Post.PostStatusChange.PUBLISHED,
+                Post.PostStatusChange.OPEN,
+            ],
         ),
     }
 
@@ -53,8 +56,8 @@ def job_send_notification_groups():
 @dramatiq.actor
 def job_send_open_status_notifications():
     """
-    Sends only post_status_change notifications with event=open.
-    Runs every 30 minutes for faster delivery of OPEN status changes.
+    Sends only post_status_change notifications with event in (published, open).
+    Runs every 30 minutes for faster delivery of PUBLISHED / OPEN status changes.
     """
 
     qs = Notification.objects.filter_pending_email().filter(

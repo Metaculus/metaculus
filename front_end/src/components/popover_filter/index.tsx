@@ -45,17 +45,22 @@ const Panel: FC<PropsWithChildren<PanelProps>> = ({
     };
   }, [fullScreenEnabled, isLargeScreen, open]);
 
-  const usePortal = fullScreenEnabled && !isLargeScreen;
+  const useFullscreen = fullScreenEnabled && !isLargeScreen;
+  // Desktop always uses portal (escapes chart stacking contexts).
+  // Mobile uses portal only for fullscreen overlay; otherwise keeps original absolute positioning.
+  const usePortal = isLargeScreen || useFullscreen;
 
   return (
     <PopoverPanel
       portal={usePortal}
+      {...(isLargeScreen && { anchor: "bottom end" as const })}
       className={cn(
-        "absolute right-0 top-10 z-[100] box-border flex flex-col items-start overflow-hidden overflow-y-auto rounded border border-gray-300 bg-gray-0 p-5 shadow-lg shadow-[#0003] dark:border-gray-300-dark dark:bg-gray-0-dark",
-        {
-          "max-sm:!fixed max-sm:!inset-0 max-sm:z-[1300] max-sm:h-dvh max-sm:w-screen max-sm:overflow-y-auto max-sm:overscroll-contain max-sm:px-5 max-sm:pb-0 max-sm:pt-5":
-            fullScreenEnabled,
-        },
+        "box-border flex flex-col items-start overflow-hidden overflow-y-auto rounded border border-gray-300 bg-gray-0 p-5 shadow-lg shadow-[#0003] dark:border-gray-300-dark dark:bg-gray-0-dark",
+        !useFullscreen && "z-[100]",
+        !usePortal && "absolute right-0 top-10",
+        isLargeScreen && "max-h-[var(--anchor-max-height)]",
+        useFullscreen &&
+          "!fixed !inset-0 z-[1300] h-dvh !w-screen overflow-y-auto overscroll-contain px-5 pb-0 pt-5",
         className
       )}
     >

@@ -15,7 +15,7 @@ const UpcomingCP: FC<Props> = ({ cpRevealsOn, className }) => {
   const locale = useLocale();
   return (
     <div className={cn("w-full text-center", className)}>
-      <span>{t("cpRevealed")} </span>
+      <span className="block">{t("cpRevealed")}</span>
       <RelativeTime datetime={cpRevealsOn} lang={locale} className="leading-6">
         {intlFormatDistance(cpRevealsOn, new Date(), {
           locale,

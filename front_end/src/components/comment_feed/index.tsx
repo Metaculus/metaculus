@@ -119,6 +119,10 @@ const CommentFeed: FC<Props> = ({
   const [userKeyFactorsComment, setUserKeyFactorsComment] =
     useState<CommentType | null>(null);
 
+  const [lastViewedAt, setLastViewedAt] = useState<string | undefined>(
+    postData?.last_viewed_at
+  );
+
   const [feedFilters, setFeedFilters] = useState<getCommentsParams>(() => ({
     is_private: false,
     sort: "-created_at",
@@ -286,8 +290,8 @@ const CommentFeed: FC<Props> = ({
 
   const getUnreadCount = useCallback(
     (comments: CommentType[]): number => {
-      if (!postData?.last_viewed_at) return 0;
-      const lastViewedDate = new Date(postData.last_viewed_at);
+      if (!lastViewedAt) return 0;
+      const lastViewedDate = new Date(lastViewedAt);
 
       let unreadCount = 0;
       const countUnread = (comment: CommentType) => {
@@ -301,7 +305,7 @@ const CommentFeed: FC<Props> = ({
       comments.forEach(countUnread);
       return unreadCount;
     },
-    [postData?.last_viewed_at]
+    [lastViewedAt]
   );
 
   const handleCommentPin = useCallback(
@@ -329,6 +333,7 @@ const CommentFeed: FC<Props> = ({
 
   const onNewComment = (newComment: CommentType) => {
     setComments([newComment, ...comments]);
+    setLastViewedAt(newComment.created_at);
 
     fetchTotalCount({
       is_private: feedFilters.is_private,
@@ -415,7 +420,7 @@ const CommentFeed: FC<Props> = ({
             <span className="text-sm font-medium leading-5 text-gray-600 dark:text-gray-600-dark">
               {totalCount ? `${totalCount} ` : ""}
               {t("commentsWithCount", { count: totalCount })}
-              {postData?.last_viewed_at && (
+              {lastViewedAt && (
                 <>
                   {getUnreadCount(comments) > 0 && (
                     <span className="ml-1 font-bold text-purple-700 dark:text-purple-700-dark">
@@ -462,8 +467,9 @@ const CommentFeed: FC<Props> = ({
               comment={comment}
               handleCommentPin={handleCommentPin}
               profileId={profileId}
-              last_viewed_at={postData?.last_viewed_at}
+              last_viewed_at={lastViewedAt}
               postData={postData}
+              onReplyCreated={setLastViewedAt}
               suggestKeyFactorsOnFirstRender={
                 // This is the newly added comment, so we want to suggest key factors
                 comment.id === userKeyFactorsComment?.id
