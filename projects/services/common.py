@@ -1,11 +1,12 @@
 import random
+import re
 from collections import defaultdict
 from datetime import datetime, timedelta
 from itertools import chain
 from typing import Iterable
 
 from django.db import IntegrityError
-from django.db.models import QuerySet, TextChoices
+from django.db.models import Q, QuerySet, TextChoices
 from django.utils import timezone
 from django.utils.timezone import make_aware
 
@@ -289,6 +290,35 @@ def get_timeline_data_for_projects(project_ids: list[int]) -> dict[int, dict]:
         pid: _calculate_timeline_data(project, questions_by_project.get(pid, []))
         for pid, project in projects.items()
     }
+
+
+# Path segment -> candidate Project types for project-promoting URLs.
+# The /tournament/ prefix serves both tournaments and question series.
+_URL_TYPES_BY_PATH = {
+    "tournament": [
+        Project.ProjectTypes.TOURNAMENT,
+        Project.ProjectTypes.QUESTION_SERIES,
+    ],
+    "index": [Project.ProjectTypes.INDEX],
+}
+# Matches /tournament/<slug> or /index/<slug>
+_PROJECT_URL_RE = re.compile(r"/(?P<path>tournament|index)/(?P<slug>[\w-]+)")
+
+
+def project_ids_from_urls(urls: list[str]) -> set[int]:
+    """Bulk-resolve project URLs (tournament/index/question-series links) to ids."""
+    url_filters = Q()
+    matched_any = False
+    for url in urls:
+        match = _PROJECT_URL_RE.search(url or "")
+        if not match:
+            continue
+        project_types = _URL_TYPES_BY_PATH[match.group("path")]
+        url_filters |= Q(type__in=project_types, slug=match.group("slug"))
+        matched_any = True
+    if not matched_any:
+        return set()
+    return set(Project.objects.filter(url_filters).values_list("id", flat=True))
 
 
 class FeedTileRule(TextChoices):
