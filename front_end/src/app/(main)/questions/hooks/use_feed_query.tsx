@@ -31,7 +31,6 @@ import {
   POST_COMMUNITIES_FILTER,
   POST_COMMENTS_FEED_FILTER,
   POST_FOLLOWING_FILTER,
-  POST_FOR_MAIN_FEED,
   POST_FORECASTER_ID_FILTER,
   POST_ORDER_BY_FILTER,
   POST_TEXT_SEARCH_FILTER,
@@ -169,14 +168,12 @@ export const FeedQueryProvider: FC<Props> = ({
         case FeedType.MY_PREDICTIONS:
           if (!user) return {};
           return {
-            [POST_FOR_MAIN_FEED]: "false",
             [POST_FORECASTER_ID_FILTER]: user.id.toString(),
             [POST_ORDER_BY_FILTER]: QuestionOrder.WeeklyMovementDesc,
           };
         case FeedType.MY_QUESTIONS_AND_POSTS:
           if (!user) return {};
           return {
-            [POST_FOR_MAIN_FEED]: "false",
             [POST_USERNAMES_FILTER]: user.username,
           };
         case FeedType.COMMUNITIES:
