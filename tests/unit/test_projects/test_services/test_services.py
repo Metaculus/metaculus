@@ -6,6 +6,7 @@ from notifications.models import Notification
 from posts.models import Post
 from projects.models import Project
 from projects.permissions import ObjectPermission
+from projects.services.common import project_ids_from_urls
 from projects.services.subscriptions import (
     notify_post_added_to_project,
     notify_project_subscriptions_post_status_change,
@@ -226,3 +227,20 @@ def test_notify_post_added_to_project__open_question_sends_open(user1, user2):
     )
     assert notifications.count() == 1
     assert notifications.first().params["event"] == "open"
+
+
+def test_project_ids_from_urls_resolves_known_project_links():
+    tournament = factory_project(slug="cup", type=Project.ProjectTypes.TOURNAMENT)
+    index = factory_project(slug="idx", type=Project.ProjectTypes.INDEX)
+    # Question series also live under the /tournament/<slug>/ prefix.
+    series = factory_project(slug="series", type=Project.ProjectTypes.QUESTION_SERIES)
+
+    assert project_ids_from_urls(
+        [
+            "https://metaculus.com/tournament/cup/",
+            "https://metaculus.com/index/idx/",
+            "https://metaculus.com/tournament/series/",
+            "https://metaculus.com/about/",  # unrelated path -> ignored
+            "https://metaculus.com/tournament/missing/",  # unknown slug -> ignored
+        ]
+    ) == {tournament.id, index.id, series.id}

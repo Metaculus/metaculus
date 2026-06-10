@@ -6,6 +6,7 @@ import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { useCommentsFeedSafe } from "@/app/(main)/components/comments_feed_provider";
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import { MetaculusWordmark } from "@/components/logos";
 import { PostDropdownMenu } from "@/components/post_actions";
@@ -34,6 +35,11 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
   const t = useTranslations();
   const resolutionData = extractPostResolution(post);
   const { ref, width } = useContainerSize<HTMLDivElement>();
+  const commentsFeed = useCommentsFeedSafe();
+  const commentCount =
+    typeof commentsFeed?.totalCount === "number"
+      ? commentsFeed.totalCount
+      : post.comment_count ?? 0;
 
   const projectsData = post.projects;
   const defaultProject = projectsData?.default_project ?? null;
@@ -67,7 +73,7 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
         <div className="flex items-center gap-1.5">
           {variant === "forecaster" && <PostVoter post={post} compact />}
           <CommentStatus
-            totalCount={post.comment_count ?? 0}
+            totalCount={commentCount}
             unreadCount={post.unread_comment_count ?? 0}
             url={getPostLink(post)}
             className={cn(
@@ -115,7 +121,7 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
         <div className="flex shrink-0 items-center gap-1.5">
           <PostVoter post={post} />
           <CommentStatus
-            totalCount={post.comment_count ?? 0}
+            totalCount={commentCount}
             unreadCount={post.unread_comment_count ?? 0}
             url={getPostLink(post)}
             className="bg-gray-200 dark:bg-gray-200-dark"
