@@ -31,12 +31,6 @@ export type JobDefinition = {
   keyword_aliases?: string[];
   /** Comment IDs to suppress from the Curated Insights list (e.g. off-topic, low-quality). */
   excluded_comment_ids?: number[];
-  /**
-   * Hand-picked comment IDs (on this job's own post) to feature, in display order.
-   * When set, the Curated Insights list shows ONLY these — no top-comment/keyword
-   * fallback — and silently skips any ID not present in the DB.
-   */
-  curated_comment_ids?: number[];
 };
 
 export const JOBS_DATA: JobDefinition[] = [
@@ -48,7 +42,6 @@ export const JOBS_DATA: JobDefinition[] = [
     mna: 0.257,
     aoe: 0,
     keyword_aliases: ["laborer", "mover", "warehouse", "logistics"],
-    curated_comment_ids: [799619, 799482, 792968],
   },
   {
     name: "Construction Workers",
@@ -59,7 +52,6 @@ export const JOBS_DATA: JobDefinition[] = [
     mna: 0.158,
     aoe: 0.9,
     keyword_aliases: ["construction", "builder", "trades"],
-    curated_comment_ids: [792763, 776050],
   },
   {
     name: "Janitors and Cleaners",
@@ -69,7 +61,6 @@ export const JOBS_DATA: JobDefinition[] = [
     mna: 0.179,
     aoe: 0,
     keyword_aliases: ["janitor", "cleaner", "cleaning"],
-    curated_comment_ids: [792762, 799110, 773358],
   },
   {
     name: "Restaurant Servers",
@@ -79,7 +70,6 @@ export const JOBS_DATA: JobDefinition[] = [
     mna: 0.295,
     aoe: 0,
     keyword_aliases: ["server", "restaurant", "waiter", "hospitality"],
-    curated_comment_ids: [821674, 799120],
   },
   {
     name: "Law Enforcement",
@@ -89,7 +79,6 @@ export const JOBS_DATA: JobDefinition[] = [
     mna: 0.252,
     aoe: 7.3,
     keyword_aliases: ["police", "officer", "law enforcement"],
-    curated_comment_ids: [798844, 771922, 772605],
   },
   {
     name: "Physicians",
@@ -99,7 +88,6 @@ export const JOBS_DATA: JobDefinition[] = [
     mna: 0.243,
     aoe: 3.5,
     keyword_aliases: ["physician", "doctor", "medical"],
-    curated_comment_ids: [796544, 785300, 779170],
   },
   {
     name: "Registered Nurses",
@@ -109,7 +97,6 @@ export const JOBS_DATA: JobDefinition[] = [
     mna: 0.28,
     aoe: 6,
     keyword_aliases: ["nurse", "nursing", "healthcare"],
-    curated_comment_ids: [805475, 799627, 799626],
   },
   {
     name: "K-12 Teachers",
@@ -119,7 +106,6 @@ export const JOBS_DATA: JobDefinition[] = [
     mna: 0.32,
     aoe: 16.4,
     keyword_aliases: ["teacher", "education", "school", "k-12"],
-    curated_comment_ids: [797855, 783466, 797966],
   },
   {
     name: "Lawyers and Law Clerks",
@@ -129,7 +115,6 @@ export const JOBS_DATA: JobDefinition[] = [
     mna: 0.236,
     aoe: 16.7,
     keyword_aliases: ["lawyer", "attorney", "legal", "law clerk"],
-    curated_comment_ids: [773363, 777876],
   },
   {
     name: "Services Sales Representatives",
@@ -139,7 +124,6 @@ export const JOBS_DATA: JobDefinition[] = [
     mna: 0.317,
     aoe: 36.1,
     keyword_aliases: ["sales", "salesperson", "representative"],
-    curated_comment_ids: [801586, 798904, 778131],
   },
   {
     name: "Designers",
@@ -149,7 +133,6 @@ export const JOBS_DATA: JobDefinition[] = [
     mna: 0.215,
     aoe: 14,
     keyword_aliases: ["designer", "design", "ux", "graphic"],
-    curated_comment_ids: [801539, 774787, 774105],
   },
   {
     name: "Engineers",
@@ -160,7 +143,6 @@ export const JOBS_DATA: JobDefinition[] = [
     mna: 0.23,
     aoe: 5.2,
     keyword_aliases: ["engineer", "engineering"],
-    curated_comment_ids: [799629, 798889, 773926],
   },
   {
     name: "Software Developers",
@@ -171,7 +153,6 @@ export const JOBS_DATA: JobDefinition[] = [
     mna: 0.116,
     aoe: 33.8,
     keyword_aliases: ["developer", "software", "programmer", "coding"],
-    curated_comment_ids: [772388, 779168, 797821],
   },
   {
     name: "Financial Specialists",
@@ -182,7 +163,6 @@ export const JOBS_DATA: JobDefinition[] = [
     mna: 0.342,
     aoe: 31.3,
     keyword_aliases: ["financial", "finance", "analyst", "specialist"],
-    curated_comment_ids: [801593, 772256, 801865],
   },
   {
     name: "General Managers",
@@ -193,7 +173,6 @@ export const JOBS_DATA: JobDefinition[] = [
     mna: 0.264,
     aoe: 13.8,
     keyword_aliases: ["manager", "management", "general manager"],
-    curated_comment_ids: [768208, 768524, 771087],
   },
 ];
 

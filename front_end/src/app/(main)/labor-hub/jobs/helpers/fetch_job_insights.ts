@@ -1,11 +1,11 @@
 import { cache } from "react";
 
 import ServerCommentsApi from "@/services/api/comments/comments.server";
-import { type CommentType } from "@/types/comment";
 import { logError } from "@/utils/core/errors";
 
 import { buildCommentUrl } from "./build_comment_url";
 import { type CuratedInsight, JOBS_DATA, type JobDefinition } from "../../data";
+import { CURATED_QUOTES } from "../curated_insights_data";
 
 export type ResolvedInsight = CuratedInsight & {
   source: "curated" | "comment" | "keyword";
@@ -18,8 +18,6 @@ export type ResolvedInsight = CuratedInsight & {
 const TARGET_INSIGHT_COUNT = 4;
 const MIN_BODY_LENGTH = 80;
 const MAX_BODY_LENGTH = 320;
-// Hand-picked comments are shown in (near-)full — they were curated deliberately.
-const CURATED_MAX_BODY_LENGTH = 600;
 
 function truncate(text: string, max: number): string {
   if (text.length <= max) return text;
@@ -135,70 +133,31 @@ async function fetchTopComments(
 }
 
 /**
- * Resolves a hand-picked, ordered list of comment IDs against a single post.
- * Flattens root comments and their nested replies, then returns insights in the
- * requested order, silently skipping IDs that are missing or soft-deleted.
+ * Curated pro-forecaster excerpts for a job, shown verbatim (exactly as written
+ * in the source doc) rather than re-derived from the live comment body. The
+ * commentId only powers the "open original comment" link.
  */
-async function fetchCommentsByIds(
-  postId: number,
-  ids: number[]
-): Promise<ResolvedInsight[]> {
-  try {
-    const byId = new Map<number, CommentType>();
-    const collect = (comment: CommentType) => {
-      byId.set(comment.id, comment);
-      for (const child of comment.children ?? []) collect(child);
-    };
-
-    // Page through root threads (accumulating into byId) until every requested
-    // ID is found or the post runs out of pages — so curated IDs in threads
-    // beyond the first page (or nested under them) aren't missed.
-    const wanted = new Set(ids);
-    const PAGE_SIZE = 100;
-    const MAX_PAGES = 10;
-    for (let page = 0; page < MAX_PAGES; page++) {
-      const response = await ServerCommentsApi.getComments({
-        post: postId,
-        parent_isnull: true,
-        limit: PAGE_SIZE,
-        offset: page * PAGE_SIZE,
-      });
-      response.results.forEach(collect);
-      const allFound = [...wanted].every((id) => byId.has(id));
-      if (allFound || !response.next) break;
-    }
-
-    return ids
-      .map((id) => byId.get(id))
-      .filter(
-        (comment): comment is CommentType =>
-          comment != null && !comment.is_soft_deleted
-      )
-      .map(
-        (comment): ResolvedInsight => ({
-          type: "neutral",
-          body: truncate(stripBody(comment.text), CURATED_MAX_BODY_LENGTH),
-          source: "comment",
-          author: comment.author.username,
-          commentId: comment.id,
-          onPostId: comment.on_post,
-          commentUrl: buildCommentUrl(comment.on_post, comment.id),
-        })
-      )
-      .filter((insight) => insight.body.length > 0);
-  } catch (err) {
-    logError(err);
-    return [];
-  }
+function getCuratedQuotes(slug: string, postId: number): ResolvedInsight[] {
+  return (CURATED_QUOTES[slug] ?? []).map((quote) => ({
+    type: "neutral",
+    body: quote.body,
+    source: "curated",
+    author: quote.author,
+    commentId: quote.commentId,
+    onPostId: postId,
+    commentUrl: buildCommentUrl(postId, quote.commentId),
+  }));
 }
 
 async function resolveInsights(slug: string): Promise<ResolvedInsight[]> {
   const job = JOBS_DATA.find((j) => j.slug === slug);
   if (!job) return [];
 
-  // Hand-picked comments win outright: show only these, no fallback tiers.
-  if (job.curated_comment_ids?.length) {
-    return fetchCommentsByIds(job.post_id, job.curated_comment_ids);
+  // Curated pro-forecaster excerpts win outright: show only these, verbatim,
+  // with no fallback tiers.
+  const curatedQuotes = getCuratedQuotes(slug, job.post_id);
+  if (curatedQuotes.length) {
+    return curatedQuotes;
   }
 
   const excluded = new Set(job.excluded_comment_ids ?? []);
