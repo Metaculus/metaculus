@@ -21,10 +21,6 @@ export type JobDefinition = {
   aoe: number;
   /** Optional per-occupation wage forecast post (used by the Wages bento card). */
   wage_post_id?: number;
-  /** Optional hand-written ticker line for the All Jobs wall (see fetch_tile_tickers). */
-  curated_insights?: CuratedInsight[];
-  /** Comment IDs to suppress from the tile tickers (e.g. off-topic, low-quality). */
-  excluded_comment_ids?: number[];
 };
 
 export const JOBS_DATA: JobDefinition[] = [

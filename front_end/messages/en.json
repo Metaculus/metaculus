@@ -2219,7 +2219,7 @@
   "laborHubJobsHeroLead": "Metaculus forecasters track 15 representative US occupations through 2035. Pick a job to see the forecast trajectory, the why behind the numbers, and what comes next.",
   "laborHubJobDetailTitle": "Will AI replace {name}? · Metaculus Labor Hub forecast",
   "laborHubJobDetailDescription": "Community forecasts for {name} employment, wages and AI exposure through 2035. Live from the Metaculus Labor Automation Forecasting Hub.",
-  "laborHubJobDetailSubtitle": "Median community forecast of percentage employment change versus 2025, across 2027, 2030 and 2035.",
+  "laborHubJobDetailSubtitle": "Community forecast of employment change versus 2025, across 2027, 2030, and 2035.",
   "laborHubJobsClickTileSubtitle": "Click any tile for the full forecast & forecaster commentary",
   "laborHubJobsYearToggleLabel": "Forecast year",
   "laborHubJobsExploreCta": "Explore the full Labor Hub Dashboard",

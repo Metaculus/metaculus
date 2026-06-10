@@ -6,7 +6,7 @@ import { getPublicSettings } from "@/utils/public_settings.server";
 
 import { HubCtaCard } from "./components/hub_cta_card";
 import { JobsWall } from "./components/jobs_wall";
-import { fetchTileTickers } from "./helpers/fetch_tile_tickers";
+import { CURATED_QUOTES } from "./curated_insights_data";
 import { fetchWallData } from "./helpers/fetch_wall_data";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -38,10 +38,14 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function AllJobsPage() {
   const t = await getTranslations();
   const { PUBLIC_APP_URL } = getPublicSettings();
-  const [jobs, tickers] = await Promise.all([
-    fetchWallData(),
-    fetchTileTickers(),
-  ]);
+  const jobs = await fetchWallData();
+  // Each tile's ticker is the job's lead curated quote (doc order).
+  const tickers = Object.fromEntries(
+    Object.entries(CURATED_QUOTES).map(([slug, quotes]) => [
+      slug,
+      quotes[0]?.body ?? null,
+    ])
+  );
 
   const jsonLd = {
     "@context": "https://schema.org",

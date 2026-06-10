@@ -2296,7 +2296,7 @@
   "laborHubJobsHeroLead": "Os previsores do Metaculus acompanham 15 profissões representativas dos EUA até 2035. Escolha uma profissão para ver a trajetória da previsão, o porquê por trás dos números e o que vem a seguir.",
   "laborHubJobDetailTitle": "A IA vai substituir {name}? · Previsão do Labor Hub do Metaculus",
   "laborHubJobDetailDescription": "Previsões da comunidade sobre emprego, salários e exposição à IA para {name} até 2035. Ao vivo do Metaculus Labor Automation Forecasting Hub.",
-  "laborHubJobDetailSubtitle": "Previsão mediana da comunidade sobre a variação percentual do emprego em relação a 2025, em 2027, 2030 e 2035.",
+  "laborHubJobDetailSubtitle": "Previsão da comunidade sobre a variação do emprego em relação a 2025, em 2027, 2030 e 2035.",
   "laborHubJobsClickTileSubtitle": "Clique em qualquer ladrilho para a previsão completa e comentários dos previsores",
   "laborHubJobsYearToggleLabel": "Ano da previsão",
   "laborHubJobsExploreCta": "Explore o Labor Hub completo",

@@ -6,6 +6,19 @@ export type CuratedQuote = {
   commentId: number;
 };
 
+/**
+ * Real names for the pros who gave permission to use them (source-doc legend);
+ * everyone else stays username-only.
+ */
+export const REAL_NAMES: Record<string, string> = {
+  draaglom: "Patric Molgaard",
+  exmateriae: "Yann Riviere",
+  lubossaloky: "Ľuboš Saloky",
+  Adonis: "Adonis da Silva",
+  Haiku: "Nathan Metzger",
+  Jleibowich: "Jared Leibowich",
+};
+
 // Hand-curated pro-forecaster excerpts, keyed by job slug. Shown verbatim in the
 // Curated Insights section (not derived from the live comment body); commentId
 // links back to the original comment.

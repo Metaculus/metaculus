@@ -2298,7 +2298,7 @@
   "laborHubJobsHeroLead": "Los pronosticadores de Metaculus siguen 15 ocupaciones representativas de EE. UU. hasta 2035. Elige un empleo para ver la trayectoria pronosticada, el porqué detrás de los números y lo que viene a continuación.",
   "laborHubJobDetailTitle": "¿La IA reemplazará a {name}? · Pronóstico del Labor Hub de Metaculus",
   "laborHubJobDetailDescription": "Pronósticos de la comunidad sobre empleo, salarios y exposición a la IA para {name} hasta 2035. En vivo desde el Hub de Pronósticos de Automatización Laboral de Metaculus.",
-  "laborHubJobDetailSubtitle": "Pronóstico mediano de la comunidad sobre el cambio porcentual de empleo respecto a 2025, en 2027, 2030 y 2035.",
+  "laborHubJobDetailSubtitle": "Pronóstico de la comunidad sobre el cambio de empleo respecto a 2025, en 2027, 2030 y 2035.",
   "laborHubJobsClickTileSubtitle": "Haz clic en cualquier mosaico para ver el pronóstico completo y los comentarios de los pronosticadores",
   "laborHubJobsYearToggleLabel": "Año del pronóstico",
   "laborHubJobsExploreCta": "Explora el Labor Hub completo",

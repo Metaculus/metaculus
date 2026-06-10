@@ -16,6 +16,9 @@ import {
 } from "../helpers/exposure_thresholds";
 import { type MetricKey } from "../helpers/metric_defs";
 
+// Tier colors are taken from the radial-gauge red→green ramp
+// (see getBinaryGaugeColors in @/utils/colors/binary_gauge_colors), which uses
+// the same hex in light and dark mode: red end / middle / green end.
 function levelClasses(level: ExposureLevel): {
   ring: string;
   label: string;
@@ -24,21 +27,21 @@ function levelClasses(level: ExposureLevel): {
   switch (level) {
     case "high":
       return {
-        ring: "border-mc-option-2 dark:border-mc-option-2-dark",
-        label: "text-mc-option-2 dark:text-mc-option-2-dark",
-        bar: "bg-mc-option-2 dark:bg-mc-option-2-dark",
+        ring: "border-[#D58B80]",
+        label: "text-[#D58B80]",
+        bar: "bg-[#D58B80]",
       };
     case "med":
       return {
-        ring: "border-mc-option-11 dark:border-mc-option-11-dark",
-        label: "text-mc-option-11 dark:text-mc-option-11-dark",
-        bar: "bg-mc-option-11 dark:bg-mc-option-11-dark",
+        ring: "border-[#A59775]",
+        label: "text-[#A59775]",
+        bar: "bg-[#A59775]",
       };
     case "low":
       return {
-        ring: "border-mc-option-3 dark:border-mc-option-3-dark",
-        label: "text-mc-option-3 dark:text-mc-option-3-dark",
-        bar: "bg-mc-option-3 dark:bg-mc-option-3-dark",
+        ring: "border-[#66A566]",
+        label: "text-[#66A566]",
+        bar: "bg-[#66A566]",
       };
   }
 }

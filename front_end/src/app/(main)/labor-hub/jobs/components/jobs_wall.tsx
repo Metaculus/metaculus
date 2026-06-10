@@ -79,9 +79,9 @@ function tickerDurationSeconds(size: TileSize): number {
 }
 
 /**
- * Deterministic negative animation-delay (seconds) per slug, so tickers that
- * happen to share the same comment never slide in lockstep — and the value is
- * stable between SSR and hydration (no mismatch).
+ * Deterministic negative animation-delay (seconds) per slug, so tickers never
+ * slide in lockstep — and the value is stable between SSR and hydration (no
+ * mismatch).
  */
 function tickerDelaySeconds(slug: string, duration: number): number {
   let h = 0;

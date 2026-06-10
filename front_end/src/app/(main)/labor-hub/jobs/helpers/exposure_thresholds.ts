@@ -4,17 +4,13 @@ export type ExposureLevel = "low" | "med" | "high";
 
 type Field = "felten" | "mna" | "aoe";
 
-function tercileBreaks(values: number[]): { mid: number; high: number } {
-  const sorted = [...values].sort((a, b) => a - b);
-  const lo = sorted[Math.floor((sorted.length - 1) / 3)] ?? 0;
-  const hi = sorted[Math.floor((sorted.length - 1) * (2 / 3))] ?? 0;
-  return { mid: lo, high: hi };
-}
-
+// Fixed, scale-meaningful tier cutoffs (not data terciles), per editorial review:
+// felten — standardized z-score: within ±1σ of the average occupation = MED;
+// mna — 0–1 vulnerability score: 0.2 / 0.3; aoe — observed exposure %: 10 / 20.
 const BREAKS: Record<Field, { mid: number; high: number }> = {
-  felten: tercileBreaks(JOBS_DATA.map((j) => j.felten)),
-  mna: tercileBreaks(JOBS_DATA.map((j) => j.mna)),
-  aoe: tercileBreaks(JOBS_DATA.map((j) => j.aoe)),
+  felten: { mid: -1, high: 1 },
+  mna: { mid: 0.2, high: 0.3 },
+  aoe: { mid: 10, high: 20 },
 };
 
 /** Min/max per metric (for normalized progress-bar widths). */
