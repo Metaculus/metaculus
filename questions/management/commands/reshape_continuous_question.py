@@ -430,125 +430,125 @@ class Command(BaseCommand):
         discrete: bool,
         step: float | None,
     ):
-previous_inbound_outcome_count = question_to_change.inbound_outcome_count
-if discrete:
-    if step is None:  # keep the same step
-        # since we're using real range (not nominal),
-        # don't subtract 1 from inbound outcome count
-        step = (question_to_change.range_max - question_to_change.range_min) / (
-            question_to_change.inbound_outcome_count
-        )
-    float_inbound_outcome_count = (
-        new_nominal_range_max - new_nominal_range_min
-    ) / step + 1
-    if not round(float_inbound_outcome_count, 10) % 1 == 0:
-        raise ValueError("step must divide range")
-    new_inbound_outcome_count = round(float_inbound_outcome_count)
-    question_to_change.range_min = round(new_nominal_range_min - 0.5 * step, 10)
-    question_to_change.range_max = round(new_nominal_range_max + 0.5 * step, 10)
-    question_to_change.inbound_outcome_count = new_inbound_outcome_count
-    question_to_change.type = Question.QuestionType.DISCRETE
-else:
-    question_to_change.range_min = new_nominal_range_min
-    question_to_change.range_max = new_nominal_range_max
-if new_scheduled_close_time:
-    question_to_change.scheduled_close_time = new_scheduled_close_time
-if new_scheduled_resolve_time or new_scheduled_close_time:
-    question_to_change.scheduled_resolve_time = (
-        new_scheduled_resolve_time or new_scheduled_close_time
-    )
-question_to_change.save()
-post: Post = question_to_change.post
-post.update_pseudo_materialized_fields()
-
-new_inbound_outcome_count = question_to_change.get_inbound_outcome_count()
-
-def transform_cdf(cdf: list[float]):
-
-    x_locs = np.linspace(
-        0, 1, (previous_inbound_outcome_count or 200) + 1
-    ).tolist()
-    spline = cubic_spline_c2(x_locs, cdf, bc="not-a-knot")
-
-    def get_cdf_at(unscaled_location: float) -> float:
-        if unscaled_location <= 0:
-            return cdf[0]
-        if unscaled_location >= 1:
-            return cdf[-1]
-        return spline(unscaled_location)
-
-    if not discrete:
-        # evaluate cdf at critical points
-        new_cdf: list[float] = []
-        for x in np.linspace(
-            new_nominal_range_min,
-            new_nominal_range_max,
-            new_inbound_outcome_count + 1,
-        ):
-            location = scaled_location_to_unscaled_location(x, basis_question)
-            new_cdf.append(get_cdf_at(location))
-    else:
-        # evaluate pmf at critical points, ignoring mass assigned between them
-        # no smoothing b/c resolution decreases
-        pmf = [cdf[0]]
-        for i in range(1, len(cdf)):
-            pmf.append(cdf[i] - cdf[i - 1])
-        pmf.append(1 - cdf[-1])
-        inbound_pmf: list[float] = []
-        for x in np.linspace(
-            new_nominal_range_min,
-            new_nominal_range_max,
-            new_inbound_outcome_count,
-        ):
-            index = string_location_to_bucket_index(
-                str(round(x, 10)), basis_question
-            )
-            assert index is not None
-            inbound_pmf.append(pmf[index])
-
-        prob_below_lower = (
-            get_cdf_at(
-                scaled_location_to_unscaled_location(
-                    question_to_change.range_min, basis_question
+        previous_inbound_outcome_count = question_to_change.inbound_outcome_count
+        if discrete:
+            if step is None:  # keep the same step
+                # since we're using real range (not nominal),
+                # don't subtract 1 from inbound outcome count
+                step = (question_to_change.range_max - question_to_change.range_min) / (
+                    question_to_change.inbound_outcome_count
                 )
+            float_inbound_outcome_count = (
+                new_nominal_range_max - new_nominal_range_min
+            ) / step + 1
+            if not round(float_inbound_outcome_count, 10) % 1 == 0:
+                raise ValueError("step must divide range")
+            new_inbound_outcome_count = round(float_inbound_outcome_count)
+            question_to_change.range_min = round(new_nominal_range_min - 0.5 * step, 10)
+            question_to_change.range_max = round(new_nominal_range_max + 0.5 * step, 10)
+            question_to_change.inbound_outcome_count = new_inbound_outcome_count
+            question_to_change.type = Question.QuestionType.DISCRETE
+        else:
+            question_to_change.range_min = new_nominal_range_min
+            question_to_change.range_max = new_nominal_range_max
+        if new_scheduled_close_time:
+            question_to_change.scheduled_close_time = new_scheduled_close_time
+        if new_scheduled_resolve_time or new_scheduled_close_time:
+            question_to_change.scheduled_resolve_time = (
+                new_scheduled_resolve_time or new_scheduled_close_time
             )
-            if question_to_change.open_lower_bound
-            else 0
-        )
-        prob_above_upper = (
-            1
-            - get_cdf_at(
-                scaled_location_to_unscaled_location(
-                    question_to_change.range_max, basis_question
+        question_to_change.save()
+        post: Post = question_to_change.post
+        post.update_pseudo_materialized_fields()
+
+        new_inbound_outcome_count = question_to_change.get_inbound_outcome_count()
+
+        def transform_cdf(cdf: list[float]):
+
+            x_locs = np.linspace(
+                0, 1, (previous_inbound_outcome_count or 200) + 1
+            ).tolist()
+            spline = cubic_spline_c2(x_locs, cdf, bc="not-a-knot")
+
+            def get_cdf_at(unscaled_location: float) -> float:
+                if unscaled_location <= 0:
+                    return cdf[0]
+                if unscaled_location >= 1:
+                    return cdf[-1]
+                return spline(unscaled_location)
+
+            if not discrete:
+                # evaluate cdf at critical points
+                new_cdf: list[float] = []
+                for x in np.linspace(
+                    new_nominal_range_min,
+                    new_nominal_range_max,
+                    new_inbound_outcome_count + 1,
+                ):
+                    location = scaled_location_to_unscaled_location(x, basis_question)
+                    new_cdf.append(get_cdf_at(location))
+            else:
+                # evaluate pmf at critical points, ignoring mass assigned between them
+                # no smoothing b/c resolution decreases
+                pmf = [cdf[0]]
+                for i in range(1, len(cdf)):
+                    pmf.append(cdf[i] - cdf[i - 1])
+                pmf.append(1 - cdf[-1])
+                inbound_pmf: list[float] = []
+                for x in np.linspace(
+                    new_nominal_range_min,
+                    new_nominal_range_max,
+                    new_inbound_outcome_count,
+                ):
+                    index = string_location_to_bucket_index(
+                        str(round(x, 10)), basis_question
+                    )
+                    assert index is not None
+                    inbound_pmf.append(pmf[index])
+
+                prob_below_lower = (
+                    get_cdf_at(
+                        scaled_location_to_unscaled_location(
+                            question_to_change.range_min, basis_question
+                        )
+                    )
+                    if question_to_change.open_lower_bound
+                    else 0
                 )
-            )
-            if question_to_change.open_upper_bound
-            else 0
-        )
-        # renormalize (respecting out of bounds weights)
-        ip_array = np.array(inbound_pmf)
-        ip_array = (
-            (1 - prob_below_lower - prob_above_upper)
-            * ip_array
-            / np.sum(ip_array)
-        )
-        new_pmf = [prob_below_lower] + ip_array.tolist() + [prob_above_upper]
-        new_cdf = np.cumsum(new_pmf).tolist()[:-1]
-    return new_cdf
+                prob_above_upper = (
+                    1
+                    - get_cdf_at(
+                        scaled_location_to_unscaled_location(
+                            question_to_change.range_max, basis_question
+                        )
+                    )
+                    if question_to_change.open_upper_bound
+                    else 0
+                )
+                # renormalize (respecting out of bounds weights)
+                ip_array = np.array(inbound_pmf)
+                ip_array = (
+                    (1 - prob_below_lower - prob_above_upper)
+                    * ip_array
+                    / np.sum(ip_array)
+                )
+                new_pmf = [prob_below_lower] + ip_array.tolist() + [prob_above_upper]
+                new_cdf = np.cumsum(new_pmf).tolist()[:-1]
+            return new_cdf
 
-forecasts = question_to_change.user_forecasts.all()
-c = forecasts.count()
-with ModelBatchUpdater(
-    model_class=Forecast,
-    fields=["continuous_cdf", "distribution_input"],
-    batch_size=100,
-) as updater:
-    for idx, forecast in enumerate(forecasts.iterator(chunk_size=100), 1):
-        forecast.continuous_cdf = transform_cdf(forecast.continuous_cdf)
-        forecast.distribution_input = None
-        updater.append(forecast)
+        forecasts = question_to_change.user_forecasts.all()
+        c = forecasts.count()
+        with ModelBatchUpdater(
+            model_class=Forecast,
+            fields=["continuous_cdf", "distribution_input"],
+            batch_size=100,
+        ) as updater:
+            for idx, forecast in enumerate(forecasts.iterator(chunk_size=100), 1):
+                forecast.continuous_cdf = transform_cdf(forecast.continuous_cdf)
+                forecast.distribution_input = None
+                updater.append(forecast)
 
-build_question_forecasts(question_to_change)
+        build_question_forecasts(question_to_change)
 
     def handle(self, *args, **options) -> None:
         question_id = options["question_id"]
