@@ -1,6 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import { QuestionVariantComposer } from "@/app/(main)/questions/[id]/components/question_variant_composer";
 import { FiltersFromSearchParamsOptions } from "@/app/(main)/questions/helpers/filters";
@@ -10,6 +10,7 @@ import ConsumerPostCard from "@/components/consumer_post_card";
 import NewsCard from "@/components/news_card";
 import PostCard from "@/components/post_card";
 import CompactSearchPostCard from "@/components/post_card/compact_search_post_card";
+import { PromoTile } from "@/components/promo_tiles";
 import Button from "@/components/ui/button";
 import { type FeedLayout } from "@/components/ui/layout_switcher";
 import LoadingSpinner from "@/components/ui/loading_spiner";
@@ -19,9 +20,10 @@ import { useAuth } from "@/contexts/auth_context";
 import { useFeedLayout } from "@/contexts/feed_layout_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
+import ClientMiscApi from "@/services/api/misc/misc.client";
 import { PostsParams } from "@/services/api/posts/posts.shared";
 import { PostWithForecasts } from "@/types/post";
-import { FeedProjectTile } from "@/types/projects";
+import { CombinedFeedTile } from "@/types/projects";
 import { InterfaceType } from "@/types/users";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
@@ -32,10 +34,9 @@ import { isNotebookPost } from "@/utils/questions/helpers";
 import { FeedItem, buildFeedItems } from "./build_feed_items";
 import EmptyCommunityFeed from "./empty_community_feed";
 import PostsFeedScrollRestoration from "./feed_scroll_restoration";
-import FeedTournamentTile from "./feed_tournament_tile";
 import {
   normalizePostsFeedFilters,
-  useFeedProjectTilesQuery,
+  useCombinedFeedTilesQuery,
   usePostsFeedQuery,
 } from "./hooks/use_posts_feed_query";
 import InReviewBox from "./in_review_box";
@@ -43,7 +44,7 @@ import { FormErrorMessage } from "../ui/form_field";
 
 export type PostsFeedType = "posts" | "news";
 
-const EMPTY_PROJECT_TILES: FeedProjectTile[] = [];
+const EMPTY_PROJECT_TILES: CombinedFeedTile[] = [];
 
 function shouldShowProjectTilesForParams(params: URLSearchParams) {
   return Array.from(params.keys()).every((key) => key === POST_PAGE_FILTER);
@@ -52,7 +53,7 @@ function shouldShowProjectTilesForParams(params: URLSearchParams) {
 type Props = {
   initialQuestions: PostWithForecasts[];
   initialCount?: number;
-  initialProjectTiles?: FeedProjectTile[];
+  initialProjectTiles?: CombinedFeedTile[];
   filters: PostsParams;
   type?: PostsFeedType;
   isCommunity?: boolean;
@@ -134,13 +135,19 @@ const PaginatedPostsFeed: FC<Props> = ({
     !PUBLIC_MINIMAL_UI &&
     shouldShowProjectTilesForParams(feedQueryParams);
   const { data: clientProjectTiles = EMPTY_PROJECT_TILES } =
-    useFeedProjectTilesQuery({
+    useCombinedFeedTilesQuery({
       enabled: shouldShowClientProjectTiles,
       initialTiles:
         shouldShowClientProjectTiles && initialProjectTiles.length
           ? initialProjectTiles
           : undefined,
     });
+
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  const handleDismiss = useCallback((id: string) => {
+    setDismissedIds((prev) => new Set([...prev, id]));
+    void ClientMiscApi.dismissFeedTile(id);
+  }, []);
 
   useEffect(() => {
     if (visiblePosts.some((q) => q.is_current_content_translated)) {
@@ -240,11 +247,15 @@ const PaginatedPostsFeed: FC<Props> = ({
     }
   };
 
-  const projectTiles = shouldUseClientProjectTiles
+  const rawTiles = shouldUseClientProjectTiles
     ? shouldShowClientProjectTiles
       ? clientProjectTiles
       : EMPTY_PROJECT_TILES
     : initialProjectTiles;
+  const projectTiles = useMemo(
+    () => rawTiles.filter((t) => !dismissedIds.has(t.id)),
+    [rawTiles, dismissedIds]
+  );
   const feedItems = useMemo(
     () => buildFeedItems(visiblePosts, projectTiles),
     [visiblePosts, projectTiles]
@@ -284,6 +295,7 @@ const PaginatedPostsFeed: FC<Props> = ({
           compactSearchMode={compactSearchMode}
           constrainConsumerList={isConsumerView && layout === "list"}
           useShortTitles={layout === "grid"}
+          onDismiss={user ? handleDismiss : undefined}
         />
         <PostsFeedScrollRestoration
           serverPage={queryFilters.page ?? null}
@@ -326,6 +338,7 @@ const FeedLayoutView: FC<{
   compactSearchMode?: boolean;
   constrainConsumerList?: boolean;
   useShortTitles?: boolean;
+  onDismiss?: (id: string) => void;
 }> = ({
   items,
   feedPage,
@@ -336,6 +349,7 @@ const FeedLayoutView: FC<{
   compactSearchMode,
   constrainConsumerList,
   useShortTitles,
+  onDismiss,
 }) => {
   return (
     <Masonry
@@ -349,11 +363,7 @@ const FeedLayoutView: FC<{
       }}
       render={(item) => (
         <FeedItemCard
-          key={
-            item.type === "project"
-              ? `project-${item.tile.project_id}`
-              : `post-${item.post.id}`
-          }
+          key={item.type === "tile" ? item.tile.id : `post-${item.post.id}`}
           item={item}
           feedPage={feedPage}
           type={type}
@@ -361,6 +371,7 @@ const FeedLayoutView: FC<{
           weightByPostId={weightByPostId}
           compactSearchMode={compactSearchMode}
           useShortTitle={useShortTitles}
+          onDismiss={onDismiss}
         />
       )}
     />
@@ -375,6 +386,7 @@ const FeedItemCard: FC<{
   weightByPostId: Map<number, number>;
   compactSearchMode?: boolean;
   useShortTitle?: boolean;
+  onDismiss?: (id: string) => void;
 }> = ({
   item,
   feedPage,
@@ -383,9 +395,12 @@ const FeedItemCard: FC<{
   weightByPostId,
   compactSearchMode,
   useShortTitle,
+  onDismiss,
 }) => {
-  if (item.type === "project") {
-    return <FeedTournamentTile tile={item.tile} feedPage={feedPage} />;
+  if (item.type === "tile") {
+    return (
+      <PromoTile tile={item.tile} feedPage={feedPage} onDismiss={onDismiss} />
+    );
   }
 
   const { post } = item;

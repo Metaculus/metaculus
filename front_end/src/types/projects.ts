@@ -211,3 +211,9 @@ export type CombinedFeedTile =
       project: TournamentPreview | null;
     }
   | ({ type: "project"; id: string } & FeedProjectTile);
+
+export type AdCombinedFeedTile = Extract<CombinedFeedTile, { type: "ad" }>;
+export type ProjectCombinedFeedTile = Extract<
+  CombinedFeedTile,
+  { type: "project" }
+>;
