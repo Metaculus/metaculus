@@ -30,9 +30,9 @@ function levelClasses(level: ExposureLevel): {
       };
     case "med":
       return {
-        ring: "border-[#7d8d73] dark:border-[#8c8f72]",
-        label: "text-[#6f7e66] dark:text-[#9aa37e]",
-        bar: "bg-[#7d8d73] dark:bg-[#8c8f72]",
+        ring: "border-mc-option-11 dark:border-mc-option-11-dark",
+        label: "text-mc-option-11 dark:text-mc-option-11-dark",
+        bar: "bg-mc-option-11 dark:bg-mc-option-11-dark",
       };
     case "low":
       return {

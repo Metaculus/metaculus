@@ -21,15 +21,9 @@ export type JobDefinition = {
   aoe: number;
   /** Optional per-occupation wage forecast post (used by the Wages bento card). */
   wage_post_id?: number;
-  /** Optional hand-curated insights for the Job Detail page. Overrides the comments fallback. */
+  /** Optional hand-written ticker line for the All Jobs wall (see fetch_tile_tickers). */
   curated_insights?: CuratedInsight[];
-  /**
-   * Optional aliases used by the keyword fallback when the job's own post has too few
-   * comments. Should include common synonyms / role variants — e.g. "developer", "engineer",
-   * "coding" for Software Developers.
-   */
-  keyword_aliases?: string[];
-  /** Comment IDs to suppress from the Curated Insights list (e.g. off-topic, low-quality). */
+  /** Comment IDs to suppress from the tile tickers (e.g. off-topic, low-quality). */
   excluded_comment_ids?: number[];
 };
 
@@ -41,7 +35,6 @@ export const JOBS_DATA: JobDefinition[] = [
     felten: -1.07,
     mna: 0.257,
     aoe: 0,
-    keyword_aliases: ["laborer", "mover", "warehouse", "logistics"],
   },
   {
     name: "Construction Workers",
@@ -51,7 +44,6 @@ export const JOBS_DATA: JobDefinition[] = [
     felten: -1.263,
     mna: 0.158,
     aoe: 0.9,
-    keyword_aliases: ["construction", "builder", "trades"],
   },
   {
     name: "Janitors and Cleaners",
@@ -60,7 +52,6 @@ export const JOBS_DATA: JobDefinition[] = [
     felten: -1.076,
     mna: 0.179,
     aoe: 0,
-    keyword_aliases: ["janitor", "cleaner", "cleaning"],
   },
   {
     name: "Restaurant Servers",
@@ -69,7 +60,6 @@ export const JOBS_DATA: JobDefinition[] = [
     felten: -0.38,
     mna: 0.295,
     aoe: 0,
-    keyword_aliases: ["server", "restaurant", "waiter", "hospitality"],
   },
   {
     name: "Law Enforcement",
@@ -78,7 +68,6 @@ export const JOBS_DATA: JobDefinition[] = [
     felten: -0.567,
     mna: 0.252,
     aoe: 7.3,
-    keyword_aliases: ["police", "officer", "law enforcement"],
   },
   {
     name: "Physicians",
@@ -87,7 +76,6 @@ export const JOBS_DATA: JobDefinition[] = [
     felten: 0.754,
     mna: 0.243,
     aoe: 3.5,
-    keyword_aliases: ["physician", "doctor", "medical"],
   },
   {
     name: "Registered Nurses",
@@ -96,7 +84,6 @@ export const JOBS_DATA: JobDefinition[] = [
     felten: 0.272,
     mna: 0.28,
     aoe: 6,
-    keyword_aliases: ["nurse", "nursing", "healthcare"],
   },
   {
     name: "K-12 Teachers",
@@ -105,7 +92,6 @@ export const JOBS_DATA: JobDefinition[] = [
     felten: 1.004,
     mna: 0.32,
     aoe: 16.4,
-    keyword_aliases: ["teacher", "education", "school", "k-12"],
   },
   {
     name: "Lawyers and Law Clerks",
@@ -114,7 +100,6 @@ export const JOBS_DATA: JobDefinition[] = [
     felten: 1.455,
     mna: 0.236,
     aoe: 16.7,
-    keyword_aliases: ["lawyer", "attorney", "legal", "law clerk"],
   },
   {
     name: "Services Sales Representatives",
@@ -123,7 +108,6 @@ export const JOBS_DATA: JobDefinition[] = [
     felten: 1.279,
     mna: 0.317,
     aoe: 36.1,
-    keyword_aliases: ["sales", "salesperson", "representative"],
   },
   {
     name: "Designers",
@@ -132,7 +116,6 @@ export const JOBS_DATA: JobDefinition[] = [
     felten: 0.079,
     mna: 0.215,
     aoe: 14,
-    keyword_aliases: ["designer", "design", "ux", "graphic"],
   },
   {
     name: "Engineers",
@@ -142,7 +125,6 @@ export const JOBS_DATA: JobDefinition[] = [
     felten: 0.829,
     mna: 0.23,
     aoe: 5.2,
-    keyword_aliases: ["engineer", "engineering"],
   },
   {
     name: "Software Developers",
@@ -152,7 +134,6 @@ export const JOBS_DATA: JobDefinition[] = [
     felten: 1.011,
     mna: 0.116,
     aoe: 33.8,
-    keyword_aliases: ["developer", "software", "programmer", "coding"],
   },
   {
     name: "Financial Specialists",
@@ -162,7 +143,6 @@ export const JOBS_DATA: JobDefinition[] = [
     felten: 1.257,
     mna: 0.342,
     aoe: 31.3,
-    keyword_aliases: ["financial", "finance", "analyst", "specialist"],
   },
   {
     name: "General Managers",
@@ -172,7 +152,6 @@ export const JOBS_DATA: JobDefinition[] = [
     felten: 0.678,
     mna: 0.264,
     aoe: 13.8,
-    keyword_aliases: ["manager", "management", "general manager"],
   },
 ];
 

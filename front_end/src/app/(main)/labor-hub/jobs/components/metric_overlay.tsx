@@ -37,21 +37,11 @@ export function MetricOverlay({ metricKey, currentSlug, onClose }: Props) {
     >
       {def && (
         <div className="overflow-y-auto overflow-x-hidden px-6 py-8 sm:px-9 sm:py-9">
-          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <span
-              className="text-[11px] font-semibold uppercase tracking-[0.06em]"
-              style={{ color: METRIC_ACCENT_WARM }}
-            >
-              {t(def.sourceKey)}
-            </span>
-            <a
-              href={def.paperUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="text-[11px] font-medium text-blue-700 hover:underline dark:text-blue-700-dark"
-            >
-              {t("laborHubJobsMetricPaperLink")}
-            </a>
+          <div
+            className="text-[11px] font-semibold uppercase tracking-[0.06em]"
+            style={{ color: METRIC_ACCENT_WARM }}
+          >
+            {t(def.sourceKey)}
           </div>
           <h2 className="m-0 mt-1 text-2xl font-extrabold tracking-tight text-blue-900 dark:text-blue-900-dark sm:text-[28px]">
             {t(def.labelKey)}
@@ -82,6 +72,17 @@ export function MetricOverlay({ metricKey, currentSlug, onClose }: Props) {
 
           <div className="mt-5 rounded-md bg-mint-200 px-4 py-3 text-[13px] leading-relaxed text-mint-900 dark:bg-mint-200-dark dark:text-mint-900-dark">
             {t(def.boundsKey)}
+          </div>
+
+          <div className="mt-6 flex justify-center">
+            <a
+              href={def.paperUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-md border border-blue-400 px-5 py-2.5 text-sm font-semibold text-blue-700 no-underline transition-colors hover:bg-blue-100 dark:border-blue-400-dark dark:text-blue-700-dark dark:hover:bg-blue-100-dark"
+            >
+              {t("laborHubJobsMetricPaperLink")}
+            </a>
           </div>
         </div>
       )}
