@@ -19,6 +19,14 @@ import { FC, PropsWithChildren, ReactNode, useState } from "react";
 
 import cn from "@/utils/core/cn";
 
+export type TooltipVariant = "dark" | "light";
+
+const VARIANT_CLASS_NAMES: Record<TooltipVariant, string> = {
+  dark: "bg-blue-900-dark dark:border-gray-100 dark:bg-blue-900 dark:text-gray-100",
+  light:
+    "border-blue-400 bg-gray-0 text-gray-800 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-gray-800-dark",
+};
+
 type Props = {
   tooltipContent: ReactNode;
   className?: string;
@@ -26,6 +34,7 @@ type Props = {
   showDelayMs?: number;
   placement?: Placement;
   renderInPortal?: boolean;
+  variant?: TooltipVariant;
 };
 
 const Tooltip: FC<PropsWithChildren<Props>> = ({
@@ -36,6 +45,7 @@ const Tooltip: FC<PropsWithChildren<Props>> = ({
   tooltipClassName,
   children,
   renderInPortal = true,
+  variant = "dark",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { refs, floatingStyles, context } = useFloating({
@@ -68,7 +78,8 @@ const Tooltip: FC<PropsWithChildren<Props>> = ({
       onClick={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.preventDefault()}
       className={cn(
-        "z-[200] w-max max-w-[300px] rounded border bg-blue-900-dark p-2 text-sm open:block dark:border-gray-100 dark:bg-blue-900 dark:text-gray-100 sm:max-w-sm md:max-w-md",
+        "z-[200] w-max max-w-[300px] rounded border p-2 text-sm open:block sm:max-w-sm md:max-w-md",
+        VARIANT_CLASS_NAMES[variant],
         tooltipClassName
       )}
       ref={refs.setFloating}
