@@ -8,9 +8,9 @@ import PaginatedPostsFeed, {
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import { FeedLayout } from "@/components/ui/layout_switcher";
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
+import serverMiscApi from "@/services/api/misc/misc.server";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import { PostsParams } from "@/services/api/posts/posts.shared";
-import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { logError } from "@/utils/core/errors";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
@@ -50,7 +50,7 @@ const AwaitedPostsFeed: FC<Props> = async ({
     }),
     skipTiles
       ? Promise.resolve([])
-      : ServerProjectsApi.getFeedTiles().catch((err) => {
+      : serverMiscApi.getCombinedFeedTiles().catch((err) => {
           logError(err);
           return [];
         }),
