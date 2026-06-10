@@ -1977,6 +1977,7 @@
   "copyQuestionLinkSuccess": "Question link successfully created! You can see them under the <strong>Question Links</strong> section for each question.",
   "viewQuestionLinks": "View Question Links",
   "moreActions": "More actions",
+  "openOnMetaculus": "Open on Metaculus",
   "copyQuestionLinkImpactPrefix": "has a",
   "copyQuestionLinkImpactSuffix": "causal impact on:",
   "copyQuestionLinkStrengthLabel": "The strength of this impact is:",

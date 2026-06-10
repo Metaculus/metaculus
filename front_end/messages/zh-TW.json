@@ -1845,6 +1845,7 @@
   "copyQuestionLinkSuccess": "問題連結已成功建立！您可以在每個問題的<strong>問題連結</strong>部分看到它們。",
   "viewQuestionLinks": "查看問題連結",
   "moreActions": "更多操作",
+  "openOnMetaculus": "在 Metaculus 上開啟",
   "copyQuestionLinkImpactPrefix": "有",
   "copyQuestionLinkImpactSuffix": "因果影響於：",
   "copyQuestionLinkStrengthLabel": "此影響的強度是：",
