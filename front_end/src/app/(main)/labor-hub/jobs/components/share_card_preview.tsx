@@ -4,6 +4,7 @@ type Props = {
   jobName: string;
   forecasts: Record<WallYear, number | null>;
   forecasterCount?: number | null;
+  year?: WallYear;
 };
 
 const BG = "#283441";
@@ -32,18 +33,21 @@ function valueColor(value: number | null): string {
 /**
  * Self-contained SVG share card (1.91:1 / 1200×630). All styling is inline so
  * the element can be serialized standalone and rasterized to PNG client-side.
- * The 2035 community forecast renders as a faint full-width line behind the
- * big headline number.
+ * The community forecast for the focused `year` renders as a faint trajectory
+ * behind the big headline number; the trajectory is truncated at that year.
  */
 export function ShareCardPreview({
   jobName,
   forecasts,
   forecasterCount,
+  year = "2035",
 }: Props) {
-  const value = forecasts["2035"];
+  const value = forecasts[year];
   const accent = valueColor(value);
+  const yearNum = Number(year);
 
-  // Faint background forecast line.
+  // Faint background forecast line. Truncated at the focused year so the
+  // trajectory ends at the hero number rather than overshooting it.
   const rawPoints = [
     { year: 2025, value: 0 },
     { year: 2027, value: forecasts["2027"] },
@@ -51,7 +55,8 @@ export function ShareCardPreview({
     { year: 2035, value: forecasts["2035"] },
   ];
   const points = rawPoints.filter(
-    (p): p is { year: number; value: number } => p.value != null
+    (p): p is { year: number; value: number } =>
+      p.value != null && p.year <= yearNum
   );
 
   const CX0 = 60;
@@ -83,7 +88,7 @@ export function ShareCardPreview({
       className="block h-auto w-full"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-label={`${jobName}: ${formatPercent(value)} by 2035`}
+      aria-label={`${jobName}: ${formatPercent(value)} by ${year}`}
     >
       <defs>
         {points.length > 1 && (
@@ -185,7 +190,7 @@ export function ShareCardPreview({
         fontWeight="600"
         fill={TEXT_LIGHT}
       >
-        {jobName}, by 2035
+        {jobName}, by {year}
       </text>
 
       {/* Footer */}

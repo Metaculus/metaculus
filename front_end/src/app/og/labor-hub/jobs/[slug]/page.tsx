@@ -6,20 +6,32 @@ import {
   getJobValueForYear,
 } from "@/app/(main)/labor-hub/helpers/fetch_jobs_data";
 import { ShareCardPreview } from "@/app/(main)/labor-hub/jobs/components/share_card_preview";
-import { type WallYear } from "@/app/(main)/labor-hub/jobs/helpers/wall_types";
+import {
+  WALL_YEARS,
+  type WallYear,
+} from "@/app/(main)/labor-hub/jobs/helpers/wall_types";
 
 export const revalidate = 3600;
 
 type Params = { slug: string };
+type SearchParams = { year?: string };
 
 export default async function OgJobSharePage({
   params,
+  searchParams,
 }: {
   params: Promise<Params>;
+  searchParams: Promise<SearchParams>;
 }) {
   const { slug } = await params;
+  const { year: yearParam } = await searchParams;
   const job = getJobBySlug(slug);
   if (!job) notFound();
+
+  const year: WallYear =
+    yearParam && (WALL_YEARS as readonly string[]).includes(yearParam)
+      ? (yearParam as WallYear)
+      : "2035";
 
   const { jobs } = await fetchJobsData();
   const withPost = jobs.find((j) => j.post_id === job.post_id);
@@ -43,6 +55,7 @@ export default async function OgJobSharePage({
         jobName={job.name}
         forecasts={forecasts}
         forecasterCount={forecasterCount}
+        year={year}
       />
       <div
         id="id-logo-used-by-screenshot-donot-change"
