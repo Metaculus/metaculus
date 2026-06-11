@@ -378,7 +378,7 @@ const Histogram: React.FC<HistogramProps> = ({
               style={CHART_FONT_STYLE.tooltip}
             >
               <div className="text-lg font-normal tabular-nums">
-                {hoveredBin}%
+                {`${hoveredBin}-${hoveredBin}.9%`}
               </div>
               <div className="tabular-nums text-blue-300 dark:text-blue-300-dark">
                 <RichText>
