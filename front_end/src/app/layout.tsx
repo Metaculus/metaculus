@@ -138,6 +138,7 @@ export default async function RootLayout({
                                 <GlobalModals />
                                 <SimplifiedSignupModal />
                                 <Toaster />
+                                <GoogleTagManager />
                               </TranslationsBannerProvider>
                             </FeedLayoutProvider>
                           </NavigationProvider>
@@ -148,7 +149,6 @@ export default async function RootLayout({
                 </AuthProvider>
                 {/* TODO: remove this after the campaign is over */}
                 <AllBWPixelTagsForRegisteredUsers />
-                <GoogleTagManager />
               </CSPostHogProvider>
             </PolyfillProvider>
           </QueryClientProviderWrapper>
