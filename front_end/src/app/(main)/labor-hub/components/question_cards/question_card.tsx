@@ -13,7 +13,7 @@ import { ReactNode } from "react";
 import { ComponentProps, useCallback, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
-import { MetaculusTextLogo } from "@/app/(main)/components/MetaculusTextLogo";
+import { MetaculusWordmark } from "@/components/logos";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { METAC_COLORS } from "@/constants/colors";
@@ -444,7 +444,7 @@ export function QuestionCard({
       {/* Footer with Metaculus attribution */}
       <div className="-mb-4 mt-2 flex items-center justify-center gap-1.5 text-xs text-gray-500 [visibility:var(--ss-visible,hidden)] dark:text-gray-500-dark">
         <span>Data from</span>
-        <MetaculusTextLogo className="h-3 w-auto" />
+        <MetaculusWordmark className="h-3 w-auto" />
         <span>on {formatCurrentDate()}</span>
       </div>
     </div>

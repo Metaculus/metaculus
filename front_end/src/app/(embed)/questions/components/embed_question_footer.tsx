@@ -1,14 +1,12 @@
-import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import React, { useMemo } from "react";
 
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
+import { MetaculusWordmark } from "@/components/logos";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import { PostWithForecasts } from "@/types/post";
 import { getPostLink } from "@/utils/navigation";
-
-import metaculusDarkLogo from "../assets/metaculus-dark.png";
-import metaculusLightLogo from "../assets/metaculus-light.png";
 
 type Props = {
   post: PostWithForecasts;
@@ -16,6 +14,7 @@ type Props = {
 };
 
 const EmbedQuestionFooter: React.FC<Props> = ({ post, ogReady }) => {
+  const t = useTranslations();
   const questionUrl = useMemo(() => getPostLink(post), [post]);
 
   return (
@@ -41,22 +40,12 @@ const EmbedQuestionFooter: React.FC<Props> = ({ post, ogReady }) => {
           target="_blank"
           rel="noopener noreferrer"
           className="block"
-          aria-label="Open on Metaculus"
+          aria-label={t("openOnMetaculus")}
         >
           <div id="id-logo-used-by-screenshot-donot-change">
-            <Image
-              className="dark:hidden"
-              src={metaculusDarkLogo}
-              alt="Metaculus Logo"
-              width={74}
-              height={15}
-            />
-            <Image
-              className="hidden dark:block"
-              src={metaculusLightLogo}
-              alt="Metaculus Logo"
-              width={74}
-              height={15}
+            <MetaculusWordmark
+              aria-hidden
+              className="h-[15px] w-auto text-blue-800 dark:text-blue-800-dark"
             />
           </div>
         </Link>
