@@ -1,5 +1,7 @@
 "use client";
 
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -58,7 +60,7 @@ const TournamentTile: FC<Props> = ({ tile, feedPage, onDismiss }) => {
           className="absolute right-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded text-gray-0/60 transition-colors hover:text-gray-0"
           aria-label="Dismiss"
         >
-          ×
+          <FontAwesomeIcon icon={faXmark} />
         </button>
       )}
 

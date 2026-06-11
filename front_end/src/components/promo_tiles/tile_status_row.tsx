@@ -40,7 +40,7 @@ export const TileStatusRow: FC<Props> = ({
 
   return (
     <div
-      className={`relative flex items-center gap-5 text-xs ${className ?? "flex-wrap px-1.5 py-1"}`}
+      className={`relative flex items-center gap-2 text-xs ${className ?? "flex-wrap px-1.5 py-1"}`}
     >
       {statusLabel && (
         <span className="flex items-center gap-2">
