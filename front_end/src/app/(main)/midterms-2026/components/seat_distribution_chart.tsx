@@ -251,26 +251,42 @@ const SeatDistributionChart: FC<Props> = ({
     dataMaxX === dataMinX ? 0.5 : (0 - dataMinX) / (dataMaxX - dataMinX);
   const zeroStopPct = `${(zeroFraction * 100).toFixed(2)}%`;
 
-  // X-axis ticks — evenly spaced whole numbers toward the center, with the two
-  // edges pinned to the integer bin extremes. Rounding the half-integer range
-  // bounds directly is asymmetric (e.g. -39.5 -> -39 but +39.5 -> +40), so the
-  // edges are taken as ceil(min) / floor(max) — the outermost real outcomes.
+  // X-axis ticks — for discrete questions, sampled only from actual bin x-values
+  // (bins[1..-2], excluding the half-integer domain edge sentinels). For the
+  // continuous case, evenly spaced whole numbers with edges pinned to ceil/floor
+  // of the half-integer range bounds.
   const axisMin = Math.ceil(domainMin);
   const axisMax = Math.floor(domainMax);
-  const tickCount = 4;
-  const innerTicks: number[] = [0];
-  for (let i = 1; i < tickCount; i++) {
-    innerTicks.push((domainMin * i) / tickCount);
-    innerTicks.push((domainMax * i) / tickCount);
+  const tickCount = 6;
+  const visibleDiscreteXs = isDiscrete ? bins.slice(1, -1).map((b) => b.x) : [];
+
+  let xTicks: number[];
+  if (isDiscrete && visibleDiscreteXs.length > 0) {
+    const total = visibleDiscreteXs.length;
+    const tickIndices = new Set<number>([0, total - 1]);
+    for (let i = 1; i < tickCount; i++) {
+      tickIndices.add(Math.round(((total - 1) * i) / tickCount));
+    }
+    const zeroIdx = visibleDiscreteXs.indexOf(0);
+    if (zeroIdx >= 0) tickIndices.add(zeroIdx);
+    xTicks = Array.from(tickIndices)
+      .sort((a, b) => a - b)
+      .map((i) => visibleDiscreteXs[i]!);
+  } else {
+    const innerTicks: number[] = [0];
+    for (let i = 1; i < tickCount; i++) {
+      innerTicks.push((domainMin * i) / tickCount);
+      innerTicks.push((domainMax * i) / tickCount);
+    }
+    xTicks = Array.from(
+      new Set(
+        innerTicks
+          .map((tk) => Math.round(tk))
+          .filter((tk) => tk > axisMin && tk < axisMax)
+          .concat([axisMin, axisMax])
+      )
+    ).sort((a, b) => a - b);
   }
-  const xTicks = Array.from(
-    new Set(
-      innerTicks
-        .map((tk) => Math.round(tk))
-        .filter((tk) => tk > axisMin && tk < axisMax)
-        .concat([axisMin, axisMax])
-    )
-  ).sort((a, b) => a - b);
   const formatXTick = (tk: number) => {
     if (tk === axisMin) return `≤${Math.abs(tk)}`;
     if (tk === axisMax) return `≥${Math.abs(tk)}`;
