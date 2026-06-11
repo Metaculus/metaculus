@@ -104,75 +104,25 @@ const SeatDistributionChart: FC<Props> = ({
     if (!cdf || cdf.length < 2) return null;
 
     const pmf = cdfToPmf(cdf);
-    const scale = question.scaling;
-    const N = cdf.length;
-    const domainMin = scale.range_min ?? 0;
-    const domainMax = scale.range_max ?? 0;
+    const { range_min, range_max } = question.scaling;
+    if (range_min === null || range_max === null) return null;
+    const inbound_outcome_count = question.inbound_outcome_count ?? 0;
+    const discreteOptions = getDiscreteValueOptions(question);
     const isDiscrete = question.type === QuestionType.Discrete;
 
-    const seatMin = Math.round(domainMin);
-    const seatMax = Math.round(domainMax);
+    const step = (range_max - range_min) / (inbound_outcome_count - 1);
+    const domainMin = range_min - step / 2;
+    const domainMax = range_max + step / 2;
+    const bins: Point[] = [
+      domainMin,
+      ...(discreteOptions ?? []),
+      domainMax,
+    ].map((x, j) => ({ x, y: (pmf[j] ?? 0) * 100 }));
 
-    // Discrete questions carry their own native outcomes (the Senate's 25
-    // integer margins, the House's 81). Render one bar per native outcome —
-    // independent of the CDF resolution — so the bar count always matches the
-    // question and a wider chamber just gets more (thinner) bars rather than
-    // mis-binned or phantom-edged ones.
-    const discreteOptions = isDiscrete
-      ? getDiscreteValueOptions(question)
-      : undefined;
-    const binCount = discreteOptions?.length ?? 0;
-    const span = domainMax - domainMin || 1;
+    const curve: Point[] = bins;
 
-    // Two representations of the same forecast:
-    //  - `curve`: the fine PMF grid converted to per-seat probability
-    //    density (mass / bin-width-in-seats). This stays smooth for the
-    //    continuous area path.
-    //  - `bins`: probability gathered into the discrete bins — native
-    //    outcomes when discrete, else integer seats (continuous fallback).
-    const curve: Point[] = [];
-    const bucketMass = new Map<number, number>();
-    const optionMass = binCount ? new Array<number>(binCount).fill(0) : null;
-    for (let i = 1; i < pmf.length - 1; i++) {
-      const xLeft = scaleInternalLocation((i - 1) / (N - 1), scale);
-      const xRight = scaleInternalLocation(i / (N - 1), scale);
-      const mid = (xLeft + xRight) / 2;
-      const width = Math.max(1e-9, xRight - xLeft);
-      curve.push({ x: mid, y: ((pmf[i] ?? 0) * 100) / width });
-      if (optionMass) {
-        const idx = Math.min(
-          binCount - 1,
-          Math.max(0, Math.floor(((mid - domainMin) / span) * binCount))
-        );
-        optionMass[idx] = (optionMass[idx] ?? 0) + (pmf[i] ?? 0);
-      } else {
-        const seat = Math.min(seatMax, Math.max(seatMin, Math.round(mid)));
-        bucketMass.set(seat, (bucketMass.get(seat) ?? 0) + (pmf[i] ?? 0));
-      }
-    }
-
-    // Fold the open-bound tails into the edge bins so a landslide beyond the
-    // chart's range (e.g. Democrats winning the House by 40+ seats) is still
-    // represented at the edge rather than dropped.
-    if (optionMass && binCount) {
-      optionMass[0] = (optionMass[0] ?? 0) + (pmf[0] ?? 0);
-      optionMass[binCount - 1] =
-        (optionMass[binCount - 1] ?? 0) + (pmf[pmf.length - 1] ?? 0);
-    }
-
-    const bins: Point[] =
-      discreteOptions && optionMass
-        ? discreteOptions.map((x, j) => ({ x, y: (optionMass[j] ?? 0) * 100 }))
-        : Array.from({ length: seatMax - seatMin + 1 }, (_, k) => {
-            const s = seatMin + k;
-            return { x: s, y: (bucketMass.get(s) ?? 0) * 100 };
-          });
-
-    // Distribution height at an arbitrary x (linear interpolation over the
-    // smooth curve) — used to anchor the hover bars and cap the quartile
-    // dashes at the curve.
     const yOnCurve = (x: number): number => {
-      if (!curve.length) return 0;
+      if (!pmf.length) return 0;
       const first = curve[0] as Point;
       const last = curve[curve.length - 1] as Point;
       if (x <= first.x) return first.y;
@@ -193,16 +143,16 @@ const SeatDistributionChart: FC<Props> = ({
     // exceed) the distribution.
     const houseTooltipPoints: Point[] = [];
     if (!isDiscrete) {
-      for (let s = seatMin; s <= seatMax; s++) {
+      for (let s = range_min; s <= range_max; s++) {
         houseTooltipPoints.push({ x: s, y: yOnCurve(s) });
       }
     }
 
     const quartiles = computeQuartilesFromCDF(cdf, false, isDiscrete);
     const quartileXs = {
-      median: scaleInternalLocation(quartiles.median, scale),
-      lower25: scaleInternalLocation(quartiles.lower25, scale),
-      upper75: scaleInternalLocation(quartiles.upper75, scale),
+      median: scaleInternalLocation(quartiles.median, question.scaling),
+      lower25: scaleInternalLocation(quartiles.lower25, question.scaling),
+      upper75: scaleInternalLocation(quartiles.upper75, question.scaling),
     };
     const quartileYs = {
       median: yOnCurve(quartileXs.median),
@@ -321,7 +271,11 @@ const SeatDistributionChart: FC<Props> = ({
         .concat([axisMin, axisMax])
     )
   ).sort((a, b) => a - b);
-  const formatXTick = (tk: number) => (tk === 0 ? "0" : `${Math.abs(tk)}`);
+  const formatXTick = (tk: number) => {
+    if (tk === axisMin) return `≤${Math.abs(tk)}`;
+    if (tk === axisMax) return `≥${Math.abs(tk)}`;
+    return tk === 0 ? "0" : `${Math.abs(tk)}`;
+  };
 
   // Tooltip background follows the side under the cursor: blue for a Dem
   // advantage (x < 0), red for a Rep advantage (x > 0), neutral for EVEN.
