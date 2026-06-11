@@ -33,7 +33,13 @@ function directionStyle(type: ResolvedInsight["type"]) {
   }
 }
 
-function InsightRow({ insight }: { insight: ResolvedInsight }) {
+function InsightRow({
+  insight,
+  proTitle,
+}: {
+  insight: ResolvedInsight;
+  proTitle: string;
+}) {
   const dir = directionStyle(insight.type);
   return (
     <div className="flex items-start gap-3">
@@ -55,7 +61,11 @@ function InsightRow({ insight }: { insight: ResolvedInsight }) {
         </p>
         {insight.author && (
           <p className="m-0 mt-1 text-xs text-blue-600 group-hover/insight:text-blue-900 dark:text-blue-600-dark dark:group-hover/insight:text-blue-900-dark">
-            — <span className="font-medium">{insight.author}</span>
+            —{" "}
+            <span className="font-medium">
+              {[proTitle, insight.realName].filter(Boolean).join(" ")} (
+              {insight.author})
+            </span>
           </p>
         )}
       </div>
@@ -65,6 +75,7 @@ function InsightRow({ insight }: { insight: ResolvedInsight }) {
 
 export async function CuratedInsights({ insights, jobName }: Props) {
   const t = await getTranslations();
+  const proTitle = t("laborHubJobsProForecasterTitle");
 
   return (
     <div className="flex h-full flex-col rounded-md border border-blue-300 bg-blue-100 p-4 dark:border-blue-300-dark dark:bg-blue-100-dark">
@@ -87,11 +98,11 @@ export async function CuratedInsights({ insights, jobName }: Props) {
                   className="group/insight block rounded-sm no-underline transition-colors"
                   aria-label={`Open original comment by ${insight.author ?? ""} in a new tab`}
                 >
-                  <InsightRow insight={insight} />
+                  <InsightRow insight={insight} proTitle={proTitle} />
                 </a>
               ) : (
                 <div className="group/insight">
-                  <InsightRow insight={insight} />
+                  <InsightRow insight={insight} proTitle={proTitle} />
                 </div>
               )}
             </li>
