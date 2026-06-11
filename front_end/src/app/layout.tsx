@@ -12,6 +12,7 @@ import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
 import GlobalModals from "@/components/global_modals";
+import GoogleTagManager from "@/components/google_tag_manager";
 import PublicSettingsScript from "@/components/public_settings_script";
 import QueryClientProviderWrapper from "@/components/query_client_provider";
 import SimplifiedSignupModal from "@/components/simplified_signup_modal";
@@ -147,6 +148,7 @@ export default async function RootLayout({
                 </AuthProvider>
                 {/* TODO: remove this after the campaign is over */}
                 <AllBWPixelTagsForRegisteredUsers />
+                <GoogleTagManager />
               </CSPostHogProvider>
             </PolyfillProvider>
           </QueryClientProviderWrapper>
