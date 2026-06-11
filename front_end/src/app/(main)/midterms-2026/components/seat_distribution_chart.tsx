@@ -301,16 +301,26 @@ const SeatDistributionChart: FC<Props> = ({
     dataMaxX === dataMinX ? 0.5 : (0 - dataMinX) / (dataMaxX - dataMinX);
   const zeroStopPct = `${(zeroFraction * 100).toFixed(2)}%`;
 
-  // X-axis ticks — a few evenly spaced whole numbers on each side.
+  // X-axis ticks — evenly spaced whole numbers toward the center, with the two
+  // edges pinned to the integer bin extremes. Rounding the half-integer range
+  // bounds directly is asymmetric (e.g. -39.5 -> -39 but +39.5 -> +40), so the
+  // edges are taken as ceil(min) / floor(max) — the outermost real outcomes.
+  const axisMin = Math.ceil(domainMin);
+  const axisMax = Math.floor(domainMax);
   const tickCount = 4;
-  const rawTicks: number[] = [0];
-  for (let i = 1; i <= tickCount; i++) {
-    rawTicks.push(domainMin + (-domainMin * (i - 1)) / tickCount);
-    rawTicks.push((domainMax * i) / tickCount);
+  const innerTicks: number[] = [0];
+  for (let i = 1; i < tickCount; i++) {
+    innerTicks.push((domainMin * i) / tickCount);
+    innerTicks.push((domainMax * i) / tickCount);
   }
-  const xTicks = Array.from(new Set(rawTicks.map((tk) => Math.round(tk)))).sort(
-    (a, b) => a - b
-  );
+  const xTicks = Array.from(
+    new Set(
+      innerTicks
+        .map((tk) => Math.round(tk))
+        .filter((tk) => tk > axisMin && tk < axisMax)
+        .concat([axisMin, axisMax])
+    )
+  ).sort((a, b) => a - b);
   const formatXTick = (tk: number) => (tk === 0 ? "0" : `${Math.abs(tk)}`);
 
   // Tooltip background follows the side under the cursor: blue for a Dem
