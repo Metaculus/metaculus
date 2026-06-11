@@ -78,12 +78,14 @@ function getSearchParamsSignature(params: URLSearchParams) {
 type Props = PropsWithChildren<{
   filterOptions?: FiltersFromSearchParamsOptions;
   filterUpdateOptions?: Options;
+  searchUpdateOptions?: Options;
 }>;
 
 export const FeedQueryProvider: FC<Props> = ({
   children,
   filterOptions,
   filterUpdateOptions = FEED_FILTER_QUERY_OPTIONS,
+  searchUpdateOptions = FEED_SEARCH_QUERY_OPTIONS,
 }) => {
   const { setParams: setUrlParams } = useFeedQueryParams();
   const nextSearchParams = useSearchParams();
@@ -238,9 +240,9 @@ export const FeedQueryProvider: FC<Props> = ({
 
   const setSearchParams = useCallback(
     (nextParams: URLSearchParams) => {
-      commitParams(nextParams, FEED_SEARCH_QUERY_OPTIONS);
+      commitParams(nextParams, searchUpdateOptions);
     },
-    [commitParams]
+    [commitParams, searchUpdateOptions]
   );
 
   const switchFeed = useCallback(
