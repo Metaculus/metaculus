@@ -200,7 +200,7 @@ export type AdTileData = {
   image: string | null;
   cta_text: string;
   url: string;
-  exposure_rate: number;
+  exposure_rate: number; // percent 1–100: chance this ad is shown in a given feed slot
   project_id: number | null;
 };
 
