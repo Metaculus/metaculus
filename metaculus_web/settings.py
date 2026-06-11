@@ -49,6 +49,13 @@ SECRET_KEY = os.environ.get(
 
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
+FEED_RESPONSE_CACHE_ENABLED = (
+    os.environ.get("FEED_RESPONSE_CACHE_ENABLED", "false").lower() == "true"
+)
+FEED_FRAGMENT_CACHE_ENABLED = (
+    os.environ.get("FEED_FRAGMENT_CACHE_ENABLED", "false").lower() == "true"
+)
+
 # Application definition
 
 INSTALLED_APPS = [

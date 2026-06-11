@@ -20,7 +20,6 @@ from questions.models import (
 from questions.serializers.aggregate_forecasts import serialize_question_aggregations
 from questions.services.multiple_choice_handlers import get_all_options_from_history
 from questions.types import OptionsHistoryType, QuestionMovement
-from users.models import User
 from utils.the_math.formulas import (
     get_scaled_quartiles_from_cdf,
     unscaled_location_to_scaled_location,
@@ -623,9 +622,68 @@ class ForecastWithdrawSerializer(serializers.Serializer):
     withdraw_at = serializers.DateTimeField(required=False)
 
 
+def serialize_my_forecasts(question: Question) -> dict:
+    """
+    Serializes the requesting user's forecasts/scores for a question.
+    Requires `request_user_forecasts`, `user_scores` and `user_archived_scores`
+    to be prefetched on the instance (see PostQuerySet.prefetch_user_forecasts).
+    """
+
+    scores = question.user_scores
+    archived_scores = question.user_archived_scores
+    user_forecasts = question.request_user_forecasts
+    last_forecast = user_forecasts[-1] if user_forecasts else None
+    # if the user has a pre-registered forecast,
+    # replace the current forecast and anything after it
+    if question.type == Question.QuestionType.MULTIPLE_CHOICE:
+        # Right now, Multiple Choice is the only type that can have pre-registered
+        # forecasts
+        if last_forecast and last_forecast.start_time > timezone.now():
+            user_forecasts = [
+                f for f in user_forecasts if f.start_time < timezone.now()
+            ]
+            if user_forecasts:
+                # last_forecast.start_time = user_forecasts[-1].start_time
+                # user_forecasts[-1] = last_forecast
+                user_forecasts[-1].end_time = last_forecast.end_time
+            else:
+                last_forecast.start_time = timezone.now()
+                user_forecasts = [last_forecast]
+    if (
+        last_forecast
+        and last_forecast.end_time
+        and question.actual_close_time
+        and (last_forecast.end_time > question.actual_close_time)
+    ):
+        last_forecast.end_time = None
+
+    my_forecasts = {
+        "history": MyForecastSerializer(
+            user_forecasts,
+            context={"include_forecast_values": False},
+            many=True,
+        ).data,
+        "latest": (MyForecastSerializer(last_forecast).data if last_forecast else None),
+        "score_data": dict(),
+    }
+    for score in scores:
+        my_forecasts["score_data"][score.score_type + "_score"] = score.score
+        if score.score_type == "peer":
+            my_forecasts["score_data"]["coverage"] = score.coverage
+        if score.score_type == "relative_legacy":
+            my_forecasts["score_data"]["weighted_coverage"] = score.coverage
+    for score in archived_scores:
+        my_forecasts["score_data"][score.score_type + "_archived_score"] = score.score
+        if score.score_type == "peer":
+            my_forecasts["score_data"]["coverage"] = score.coverage
+        if score.score_type == "relative_legacy":
+            my_forecasts["score_data"]["weighted_coverage"] = score.coverage
+
+    return my_forecasts
+
+
 def serialize_question(
     question: Question,
-    current_user: User | None = None,
     post: Post | None = None,
     aggregate_forecasts: list[AggregateForecast] = None,
     full_forecast_values: bool = False,
@@ -633,18 +691,19 @@ def serialize_question(
     include_descriptions: bool = False,
     question_movement: QuestionMovement | None = None,
     question_average_coverage: float = None,
-    coherence_links: list[dict] = None,
     coherence_link_aggregations: list[dict] = None,
 ):
     """
-    Serializes question object
+    Serializes question content. User-independent by design: per-user fields
+    (my_forecasts, the user's own coherence_links) are added by
+    posts.serializers.enrich_posts_for_user.
     """
 
     serialized_data = QuestionSerializer(question).data
 
     serialized_data.update(
         {
-            "coherence_links": coherence_links,
+            "coherence_links": None,
             "coherence_link_aggregations": coherence_link_aggregations,
         }
     )
@@ -673,80 +732,11 @@ def serialize_question(
         ):
             default_agg["movement"] = question_movement
 
-    if (
-        current_user
-        and not current_user.is_anonymous
-        and hasattr(question, "request_user_forecasts")
-    ):
-        scores = question.user_scores
-        archived_scores = question.user_archived_scores
-        user_forecasts = question.request_user_forecasts
-        last_forecast = user_forecasts[-1] if user_forecasts else None
-        # if the user has a pre-registered forecast,
-        # replace the current forecast and anything after it
-        if question.type == Question.QuestionType.MULTIPLE_CHOICE:
-            # Right now, Multiple Choice is the only type that can have pre-registered
-            # forecasts
-            if last_forecast and last_forecast.start_time > timezone.now():
-                user_forecasts = [
-                    f for f in user_forecasts if f.start_time < timezone.now()
-                ]
-                if user_forecasts:
-                    # last_forecast.start_time = user_forecasts[-1].start_time
-                    # user_forecasts[-1] = last_forecast
-                    user_forecasts[-1].end_time = last_forecast.end_time
-                else:
-                    last_forecast.start_time = timezone.now()
-                    user_forecasts = [last_forecast]
-        if (
-            last_forecast
-            and last_forecast.end_time
-            and question.actual_close_time
-            and (last_forecast.end_time > question.actual_close_time)
-        ):
-            last_forecast.end_time = None
-        serialized_data["my_forecasts"] = {
-            "history": MyForecastSerializer(
-                user_forecasts,
-                context={"include_forecast_values": False},
-                many=True,
-            ).data,
-            "latest": (
-                MyForecastSerializer(last_forecast).data if last_forecast else None
-            ),
-            "score_data": dict(),
-        }
-        for score in scores:
-            serialized_data["my_forecasts"]["score_data"][
-                score.score_type + "_score"
-            ] = score.score
-            if score.score_type == "peer":
-                serialized_data["my_forecasts"]["score_data"]["coverage"] = (
-                    score.coverage
-                )
-            if score.score_type == "relative_legacy":
-                serialized_data["my_forecasts"]["score_data"]["weighted_coverage"] = (
-                    score.coverage
-                )
-        for score in archived_scores:
-            serialized_data["my_forecasts"]["score_data"][
-                score.score_type + "_archived_score"
-            ] = score.score
-            if score.score_type == "peer":
-                serialized_data["my_forecasts"]["score_data"]["coverage"] = (
-                    score.coverage
-                )
-            if score.score_type == "relative_legacy":
-                serialized_data["my_forecasts"]["score_data"]["weighted_coverage"] = (
-                    score.coverage
-                )
-
     return serialized_data
 
 
 def serialize_conditional(
     conditional: Conditional,
-    current_user: User = None,
     post: Post = None,
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
     include_descriptions: bool = False,
@@ -771,7 +761,6 @@ def serialize_conditional(
 
     serialized_data["condition"] = serialize_question(
         conditional.condition,
-        current_user=current_user,
         post=conditional.condition.get_post(),
         aggregate_forecasts=parent_question_aggregate_forecasts,
         include_descriptions=include_descriptions,
@@ -779,7 +768,6 @@ def serialize_conditional(
 
     serialized_data["condition_child"] = serialize_question(
         conditional.condition_child,
-        current_user=current_user,
         post=conditional.condition_child.get_post(),
         aggregate_forecasts=child_question_aggregate_forecasts,
         include_descriptions=include_descriptions,
@@ -793,7 +781,6 @@ def serialize_conditional(
     )
     serialized_data["question_yes"] = serialize_question(
         conditional.question_yes,
-        current_user=current_user,
         post=post,
         aggregate_forecasts=question_yes_aggregate_forecasts,
         include_descriptions=include_descriptions,
@@ -807,7 +794,6 @@ def serialize_conditional(
     )
     serialized_data["question_no"] = serialize_question(
         conditional.question_no,
-        current_user=current_user,
         post=post,
         aggregate_forecasts=question_no_aggregate_forecasts,
         include_descriptions=include_descriptions,
@@ -819,7 +805,6 @@ def serialize_conditional(
 
 def serialize_group(
     group: GroupOfQuestions,
-    current_user: User = None,
     post: Post = None,
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
     include_descriptions: bool = False,
@@ -847,7 +832,6 @@ def serialize_group(
         serialized_data["questions"].append(
             serialize_question(
                 question,
-                current_user=current_user,
                 post=post,
                 aggregate_forecasts=(
                     aggregate_forecasts.get(question) or []

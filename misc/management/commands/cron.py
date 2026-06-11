@@ -22,6 +22,7 @@ from posts.jobs import (
     job_subscription_notify_date,
     job_subscription_notify_milestone,
     job_check_post_open_event,
+    job_warm_posts_feed_cache,
 )
 from posts.services.hotness import compute_feed_hotness
 from questions.jobs import job_close_question, job_check_cp_revealed
@@ -107,6 +108,14 @@ class Command(BaseCommand):
             max_instances=1,
             replace_existing=True,
         )
+        if settings.FEED_RESPONSE_CACHE_ENABLED:
+            scheduler.add_job(
+                close_old_connections(job_warm_posts_feed_cache.send),
+                trigger=CronTrigger.from_crontab("* * * * *"),  # Every minute
+                id="posts_warm_feed_response_cache",
+                max_instances=1,
+                replace_existing=True,
+            )
         scheduler.add_job(
             close_old_connections(job_subscription_notify_date.send),
             trigger=CronTrigger.from_crontab("30 * * * *"),  # Every Hour at :30

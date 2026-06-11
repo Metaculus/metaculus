@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.cache import cache_page
@@ -41,6 +42,13 @@ from posts.services.common import (
     vote_post,
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
+from posts.services.feed_cache import (
+    build_cached_paginated_response,
+    feed_response_cache_key,
+    get_cached_feed_response,
+    serialize_post_many_cached,
+    set_cached_feed_response,
+)
 from posts.services.hotness import handle_post_boost, compute_hotness_total_boosts
 from posts.services.notes import update_private_note, get_private_notes_feed
 from posts.services.onboarding import get_onboarding_feed
@@ -97,12 +105,35 @@ def posts_list_api_view(request):
     filters_serializer = PostFilterSerializer(data=request.query_params)
     filters_serializer.is_valid(raise_exception=True)
 
+    response_cache_key = None
+    if settings.FEED_RESPONSE_CACHE_ENABLED and (
+        not request.user or request.user.is_anonymous
+    ):
+        response_cache_key = feed_response_cache_key(
+            filters_serializer.validated_data,
+            {
+                "with_cp": with_cp,
+                "include_descriptions": include_descriptions,
+                "include_cp_history": include_cp_history,
+                "include_movements": include_movements,
+                "include_conditional_cps": include_conditional_cps,
+                "group_cutoff": group_cutoff,
+            },
+            paginator.get_limit(request),
+            paginator.get_offset(request),
+        )
+        if response_cache_key:
+            cached_results = get_cached_feed_response(response_cache_key)
+            if cached_results is not None:
+                return build_cached_paginated_response(
+                    paginator, request, cached_results
+                )
+
     qs = get_posts_feed(qs, user=request.user, **filters_serializer.validated_data)
     # Paginating queryset
     posts = paginator.paginate_queryset(qs, request)
 
-    data = serialize_post_many(
-        posts,
+    serialize_kwargs = dict(
         with_cp=with_cp,
         current_user=request.user,
         group_cutoff=group_cutoff,
@@ -114,6 +145,13 @@ def posts_list_api_view(request):
         include_average_scores=True,
         include_user_forecasts=True,
     )
+    if settings.FEED_FRAGMENT_CACHE_ENABLED:
+        data = serialize_post_many_cached(posts, **serialize_kwargs)
+    else:
+        data = serialize_post_many(posts, **serialize_kwargs)
+
+    if response_cache_key:
+        set_cached_feed_response(response_cache_key, data)
 
     return paginator.get_paginated_response(data)
 
@@ -280,7 +318,7 @@ def post_create_api_view(request):
         raise spam_error
 
     return Response(
-        serialize_post(post, current_user=request.user),
+        serialize_post(post),
         status=status.HTTP_201_CREATED,
     )
 
@@ -330,7 +368,7 @@ def post_update_api_view(request, pk):
     trigger_update_post_translations(post, with_comments=False, force=False)
 
     return Response(
-        serialize_post(post, current_user=request.user),
+        serialize_post(post),
         status=status.HTTP_200_OK,
     )
 

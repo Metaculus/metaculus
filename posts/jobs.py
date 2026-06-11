@@ -124,3 +124,10 @@ def job_check_post_open_event():
             # Mark as triggered
             question.open_time_triggered = True
             question.save(update_fields=["open_time_triggered"])
+
+
+@dramatiq.actor
+def job_warm_posts_feed_cache():
+    from posts.services.feed_cache import warm_default_feed_response
+
+    warm_default_feed_response()

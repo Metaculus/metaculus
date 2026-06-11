@@ -207,3 +207,27 @@ def test_job_check_post_open_event__notebook_publish_fires_once(user1, user2):
     )
     assert notifications.count() == 1
     assert notifications.first().params["event"] == "published"
+
+
+def test_warm_default_feed_response(settings):
+    from django.core.cache import cache as django_cache
+    from rest_framework.test import APIClient
+
+    from posts.services.feed_cache import (
+        DEFAULT_FEED_QUERY,
+        warm_default_feed_response,
+    )
+
+    settings.FEED_RESPONSE_CACHE_ENABLED = True
+    settings.CACHES = {
+        "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}
+    }
+    django_cache.clear()
+    warm_default_feed_response()
+    locmem = django_cache._cache
+    assert sum(1 for k in locmem if "feed_resp:" in k) == 1
+
+    # an identical anonymous request must hit the warmed key, not add a second
+    response = APIClient().get("/api/posts/", DEFAULT_FEED_QUERY)
+    assert response.status_code == 200
+    assert sum(1 for k in locmem if "feed_resp:" in k) == 1

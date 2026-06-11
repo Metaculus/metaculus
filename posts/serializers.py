@@ -1,8 +1,9 @@
 import logging
+from collections import defaultdict
 from typing import Union, Iterable
 
 from django.db import models
-from django.db.models import QuerySet
+from django.db.models import F, Prefetch, Q, QuerySet
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 from rest_framework import serializers
@@ -12,10 +13,10 @@ from coherence.serializers import (
     serialize_coherence_links_questions_map,
     serialize_aggregate_coherence_links_questions_map,
 )
-from comments.models import KeyFactor
+from comments.models import KeyFactor, KeyFactorVote
 from comments.serializers.key_factors import serialize_key_factors_many
 from misc.models import ITNArticle
-from projects.models import Project
+from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
 from projects.serializers.common import (
     validate_categories,
@@ -23,17 +24,19 @@ from projects.serializers.common import (
     serialize_projects,
 )
 from projects.services.common import get_projects_for_posts
-from questions.models import Question, AggregateForecast
+from questions.models import Question, AggregateForecast, Forecast
 from questions.serializers.common import (
     QuestionWriteSerializer,
     QuestionUpdateSerializer,
     serialize_question,
     serialize_conditional,
     serialize_group,
+    serialize_my_forecasts,
     ConditionalWriteSerializer,
     GroupOfQuestionsWriteSerializer,
     GroupOfQuestionsUpdateSerializer,
 )
+from scoring.models import ArchivedScore, Score
 from questions.serializers.forecasting_flow import serialize_forecasting_flow_content
 from questions.services.forecasts import (
     get_aggregated_forecasts_for_questions,
@@ -48,7 +51,7 @@ from questions.services.movement import (
 from users.models import User
 from utils.dtypes import flatten, generate_map_from_list
 from utils.serializers import SerializerKeyLookupMixin
-from .models import Notebook, Post, PostSubscription, PostUserSnapshot
+from .models import Notebook, Post, PostSubscription, PostUserSnapshot, Vote
 from .utils import get_post_slug
 
 logger = logging.getLogger(__name__)
@@ -339,24 +342,22 @@ class OldQuestionFilterSerializer(SerializerKeyLookupMixin, serializers.Serializ
 
 def serialize_post(
     post: Post,
-    current_user: User = None,
-    with_subscriptions: bool = False,
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
     key_factors: list[dict] = None,
     projects: Iterable[Project] = None,
     include_descriptions: bool = False,
     question_movements: dict[Question, QuestionMovement | None] = None,
     question_average_coverages: dict[Question, float] = None,
-    coherence_links: dict[Question, list[dict]] = None,
     coherence_link_aggregations: dict[Question, list[dict]] = None,
 ) -> dict:
-    current_user = (
-        current_user if current_user and not current_user.is_anonymous else None
-    )
+    """
+    Serializes post content. User-independent by design: per-user fields
+    (my_forecasts, votes, snapshots, subscriptions, permissions, the user's own
+    coherence links) are added by enrich_posts_for_user.
+    """
     serialized_data = PostReadSerializer(post).data
     question_movements = question_movements or {}
     question_average_coverages = question_average_coverages or {}
-    coherence_links = coherence_links or {}
     coherence_link_aggregations = coherence_link_aggregations or {}
 
     # Appending projects
@@ -367,7 +368,6 @@ def serialize_post(
     if post.question:
         serialized_data["question"] = serialize_question(
             post.question,
-            current_user=current_user,
             post=post,
             aggregate_forecasts=(
                 aggregate_forecasts[post.question] or []
@@ -377,14 +377,12 @@ def serialize_post(
             include_descriptions=include_descriptions,
             question_movement=question_movements.get(post.question),
             question_average_coverage=question_average_coverages.get(post.question),
-            coherence_links=coherence_links.get(post.question),
             coherence_link_aggregations=coherence_link_aggregations.get(post.question),
         )
 
     if post.conditional:
         serialized_data["conditional"] = serialize_conditional(
             post.conditional,
-            current_user=current_user,
             post=post,
             aggregate_forecasts=aggregate_forecasts,
             include_descriptions=include_descriptions,
@@ -394,7 +392,6 @@ def serialize_post(
     if post.group_of_questions:
         serialized_data["group_of_questions"] = serialize_group(
             post.group_of_questions,
-            current_user=current_user,
             post=post,
             aggregate_forecasts=aggregate_forecasts,
             include_descriptions=include_descriptions,
@@ -405,51 +402,15 @@ def serialize_post(
     if post.notebook:
         serialized_data["notebook"] = NotebookSerializer(post.notebook).data
 
-    # Permissions
+    # Permissions and votes hold the anonymous baseline here;
+    # enrich_posts_for_user replaces them for authenticated users
     serialized_data["user_permission"] = post.user_permission
-
-    # Annotate user's vote
     serialized_data["vote"] = {
         "score": post.vote_score,
         "user_vote": post.user_vote,
     }
     # Forecasters
     serialized_data["forecasts_count"] = post.forecasts_count
-
-    # Subscriptions
-    if with_subscriptions and current_user:
-        serialized_data["subscriptions"] = [
-            get_subscription_serializer_by_type(sub.type)(sub).data
-            for sub in post.user_subscriptions
-            if not sub.is_global
-        ]
-
-    if hasattr(post, "user_snapshots") and current_user and post.user_snapshots:
-        snapshot = post.user_snapshots[0]
-        unread_comment_count = (post.comment_count or 0) - (
-            snapshot.comments_count or 0
-        )
-
-        # Unread comment stats were synced from the old db
-        # This workaround fixes possible discrepancies
-        if unread_comment_count < 0:
-            unread_comment_count = 0
-
-        serialized_data.update(
-            {
-                "unread_comment_count": unread_comment_count,
-                "last_viewed_at": snapshot.viewed_at,
-                # User private notes
-                "private_note": (
-                    {
-                        "text": snapshot.private_note,
-                        "updated_at": snapshot.private_note_updated_at,
-                    }
-                    if snapshot.private_note
-                    else None
-                ),
-            }
-        )
 
     serialized_data["key_factors"] = key_factors or []
 
@@ -464,11 +425,9 @@ def serialize_post(
     return serialized_data
 
 
-def serialize_post_many(
+def serialize_post_many_base(
     posts: Union[QuerySet[Post], list[Post], list[int] | set[int]],
     with_cp: bool = False,
-    current_user: User = None,
-    with_subscriptions: bool = False,
     group_cutoff: int = None,
     with_key_factors: bool = False,
     include_descriptions: bool = False,
@@ -476,16 +435,17 @@ def serialize_post_many(
     include_movements: bool = False,
     include_conditional_cps: bool = False,
     include_average_scores: bool = False,
-    include_user_forecasts: bool = False,
 ) -> list[dict]:
-    current_user = (
-        current_user if current_user and not current_user.is_anonymous else None
-    )
+    """
+    The user-independent serialization phase. Output for a given post depends
+    only on the post's content and these flags, which makes it cacheable per
+    post (see posts.services.feed_cache).
+    """
     ids = [p.id if isinstance(p, Post) else p for p in posts]
     qs = Post.objects.filter(id__in=ids)
 
     qs = (
-        qs.annotate_user_permission(user=current_user)
+        qs.annotate_user_permission(user=None)
         .prefetch_questions()
         .select_related(
             "conditional__condition__post",
@@ -497,20 +457,8 @@ def serialize_post_many(
         .prefetch_related("coauthors")
     )
 
-    if current_user:
-        qs = qs.annotate_user_vote(current_user)
-
     if with_cp:
         qs = qs.prefetch_questions_scores()
-
-        if current_user and include_user_forecasts:
-            qs = qs.prefetch_user_forecasts(current_user.id)
-
-    if with_subscriptions and current_user:
-        qs = qs.prefetch_user_subscriptions(user=current_user)
-
-    if current_user:
-        qs = qs.prefetch_user_snapshots(current_user)
 
     # Restore the original ordering
     posts = sorted(qs.all(), key=lambda obj: ids.index(obj.id))
@@ -534,7 +482,6 @@ def serialize_post_many(
         )
 
     comment_key_factors_map = {}
-    coherence_links_map = {}
     coherence_link_aggs_map = {}
 
     if with_key_factors:
@@ -543,18 +490,12 @@ def serialize_post_many(
                 KeyFactor.objects.for_posts(posts)
                 .filter_active()
                 .order_by("-votes_score"),
-                current_user=current_user,
             ),
             key=lambda x: x["post"]["id"],
         )
 
-        if current_user:
-            coherence_links_map = serialize_coherence_links_questions_map(
-                questions, current_user
-            )
-
         coherence_link_aggs_map = serialize_aggregate_coherence_links_questions_map(
-            questions, current_user
+            questions
         )
 
     question_movements = {}
@@ -566,13 +507,11 @@ def serialize_post_many(
         question_average_coverages = get_average_coverage_for_questions(questions)
 
     # Fetch projects
-    projects_map = get_projects_for_posts(posts, user=current_user)
+    projects_map = get_projects_for_posts(posts, user=None)
 
     return [
         serialize_post(
             post,
-            current_user=current_user,
-            with_subscriptions=with_subscriptions,
             aggregate_forecasts={
                 q: v
                 for q, v in aggregate_forecasts.items()
@@ -588,11 +527,230 @@ def serialize_post_many(
             include_descriptions=include_descriptions,
             question_movements=question_movements,
             question_average_coverages=question_average_coverages,
-            coherence_links=coherence_links_map,
             coherence_link_aggregations=coherence_link_aggs_map,
         )
         for post in posts
     ]
+
+
+def serialize_post_many(
+    posts: Union[QuerySet[Post], list[Post], list[int] | set[int]],
+    with_cp: bool = False,
+    current_user: User = None,
+    with_subscriptions: bool = False,
+    group_cutoff: int = None,
+    with_key_factors: bool = False,
+    include_descriptions: bool = False,
+    include_cp_history: bool = False,
+    include_movements: bool = False,
+    include_conditional_cps: bool = False,
+    include_average_scores: bool = False,
+    include_user_forecasts: bool = False,
+) -> list[dict]:
+    data = serialize_post_many_base(
+        posts,
+        with_cp=with_cp,
+        group_cutoff=group_cutoff,
+        with_key_factors=with_key_factors,
+        include_descriptions=include_descriptions,
+        include_cp_history=include_cp_history,
+        include_movements=include_movements,
+        include_conditional_cps=include_conditional_cps,
+        include_average_scores=include_average_scores,
+    )
+
+    return enrich_posts_for_user(
+        data,
+        current_user,
+        with_cp=with_cp,
+        include_user_forecasts=include_user_forecasts,
+        with_key_factors=with_key_factors,
+        with_subscriptions=with_subscriptions,
+    )
+
+
+_CONDITIONAL_QUESTION_KEYS = (
+    "condition",
+    "condition_child",
+    "question_yes",
+    "question_no",
+)
+
+
+def _collect_question_dicts(data: list[dict]) -> dict[int, list[dict]]:
+    """Maps question id -> serialized question dicts inside serialized posts."""
+    found = defaultdict(list)
+
+    def visit(qdict):
+        if qdict:
+            found[qdict["id"]].append(qdict)
+
+    for serialized_post in data:
+        visit(serialized_post.get("question"))
+        for key in _CONDITIONAL_QUESTION_KEYS:
+            visit((serialized_post.get("conditional") or {}).get(key))
+        for qdict in (serialized_post.get("group_of_questions") or {}).get(
+            "questions", []
+        ):
+            visit(qdict)
+
+    return found
+
+
+def _questions_with_user_data(question_ids, user: User) -> list[Question]:
+    return list(
+        Question.objects.filter(id__in=question_ids).prefetch_related(
+            Prefetch(
+                "user_forecasts",
+                # only retrieve forecasts that were made before question close
+                queryset=Forecast.objects.filter(author_id=user.id)
+                .annotate(actual_close_time=F("question__actual_close_time"))
+                .filter(
+                    Q(actual_close_time__isnull=True)
+                    | Q(start_time__lte=F("actual_close_time"))
+                )
+                .order_by("start_time"),
+                to_attr="request_user_forecasts",
+            ),
+            Prefetch(
+                "scores",
+                queryset=Score.objects.filter(user_id=user.id),
+                to_attr="user_scores",
+            ),
+            Prefetch(
+                "archived_scores",
+                queryset=ArchivedScore.objects.filter(user_id=user.id),
+                to_attr="user_archived_scores",
+            ),
+        )
+    )
+
+
+def enrich_posts_for_user(
+    data: list[dict],
+    user: User = None,
+    *,
+    with_cp: bool = False,
+    include_user_forecasts: bool = False,
+    with_key_factors: bool = False,
+    with_subscriptions: bool = False,
+) -> list[dict]:
+    """
+    The user-dependent serialization phase: patches per-user fields into the
+    output of serialize_post_many_base. The single place that knows where user
+    data lives in a serialized post — both the fresh path (serialize_post_many)
+    and the cached path (posts.services.feed_cache) go through here.
+
+    Mutates and returns `data`.
+    """
+    if not data or user is None or user.is_anonymous:
+        return data
+
+    post_ids = [p["id"] for p in data]
+    question_dicts = _collect_question_dicts(data)
+
+    permission_map = dict(
+        Post.objects.filter(id__in=post_ids)
+        .annotate_user_permission(user=user)
+        .values_list("id", "user_permission")
+    )
+    vote_map = dict(
+        Vote.objects.filter(user=user, post_id__in=post_ids).values_list(
+            "post_id", "direction"
+        )
+    )
+    snapshot_map = {
+        s.post_id: s
+        for s in PostUserSnapshot.objects.filter(user=user, post_id__in=post_ids)
+    }
+
+    subscriptions_map = defaultdict(list)
+    if with_subscriptions:
+        for sub in PostSubscription.objects.filter(
+            user=user, post_id__in=post_ids
+        ).order_by("-created_at"):
+            subscriptions_map[sub.post_id].append(sub)
+
+    questions = _questions_with_user_data(question_dicts.keys(), user)
+
+    # my_forecasts — under the same condition the pre-split serializer used
+    if with_cp and include_user_forecasts:
+        for question in questions:
+            for qdict in question_dicts[question.id]:
+                qdict["my_forecasts"] = serialize_my_forecasts(question)
+
+    if with_key_factors:
+        user_links = serialize_coherence_links_questions_map(questions, user)
+        agg_links = serialize_aggregate_coherence_links_questions_map(questions, user)
+        user_links_by_id = {q.id: links for q, links in user_links.items()}
+        agg_links_by_id = {q.id: links for q, links in agg_links.items()}
+        for question_id, qdicts in question_dicts.items():
+            for qdict in qdicts:
+                qdict["coherence_links"] = user_links_by_id.get(question_id)
+                qdict["coherence_link_aggregations"] = agg_links_by_id.get(question_id)
+
+        key_factor_dicts = {
+            kf["id"]: kf for p in data for kf in (p.get("key_factors") or [])
+        }
+        if key_factor_dicts:
+            for kf_vote in KeyFactorVote.objects.filter(
+                user=user, key_factor_id__in=key_factor_dicts.keys()
+            ):
+                vote_data = key_factor_dicts[kf_vote.key_factor_id]["vote"]
+                vote_data["user_vote"] = kf_vote.score
+                vote_data["user_vote_reason"] = kf_vote.vote_reason
+
+    # Project visibility differs from anonymous only for users with explicit
+    # per-project permissions
+    projects_map = None
+    default_projects = {}
+    if ProjectUserPermission.objects.filter(user=user).exists():
+        posts = list(
+            Post.objects.filter(id__in=post_ids).select_related(
+                "default_project__primary_leaderboard"
+            )
+        )
+        projects_map = get_projects_for_posts(posts, user=user)
+        default_projects = {p.id: p.default_project for p in posts}
+
+    for serialized_post in data:
+        post_id = serialized_post["id"]
+        serialized_post["user_permission"] = permission_map.get(post_id)
+        serialized_post["vote"]["user_vote"] = vote_map.get(post_id)
+
+        if with_subscriptions:
+            serialized_post["subscriptions"] = [
+                get_subscription_serializer_by_type(sub.type)(sub).data
+                for sub in subscriptions_map.get(post_id, [])
+                if not sub.is_global
+            ]
+
+        snapshot = snapshot_map.get(post_id)
+        if snapshot:
+            unread_comment_count = (serialized_post.get("comment_count") or 0) - (
+                snapshot.comments_count or 0
+            )
+
+            # Unread comment stats were synced from the old db
+            # This workaround fixes possible discrepancies
+            serialized_post["unread_comment_count"] = max(unread_comment_count, 0)
+            serialized_post["last_viewed_at"] = snapshot.viewed_at
+            # User private notes
+            serialized_post["private_note"] = (
+                {
+                    "text": snapshot.private_note,
+                    "updated_at": snapshot.private_note_updated_at,
+                }
+                if snapshot.private_note
+                else None
+            )
+
+        if projects_map is not None:
+            serialized_post["projects"] = serialize_projects(
+                projects_map.get(post_id) or [], default_projects.get(post_id)
+            )
+
+    return data
 
 
 class SubscriptionNewCommentsSerializer(serializers.ModelSerializer):

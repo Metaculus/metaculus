@@ -632,3 +632,56 @@ def test_post_vote__private(user1, user1_client, user2_client):
     # Denied
     response = user2_client.post(url, {"direction": 1}, format="json")
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+class TestPostsListFeedCache:
+    url = "/api/posts/"
+    locmem_caches = {
+        "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}
+    }
+
+    def test_fragment_cache_flag(self, anon_client, user1, settings, mocker):
+        from posts import views as posts_views
+
+        settings.FEED_FRAGMENT_CACHE_ENABLED = True
+        settings.CACHES = self.locmem_caches
+        post = factory_post(
+            author=user1,
+            question=create_question(question_type=Question.QuestionType.BINARY),
+        )
+
+        spy = mocker.spy(posts_views, "serialize_post_many_cached")
+        response = anon_client.get(self.url, {"limit": 10})
+        assert response.status_code == status.HTTP_200_OK
+        assert spy.call_count == 1
+        assert any(r["id"] == post.id for r in response.data["results"])
+
+    def test_response_cache_anonymous(self, anon_client, user1, settings, mocker):
+        from posts import views as posts_views
+
+        settings.FEED_RESPONSE_CACHE_ENABLED = True
+        settings.CACHES = self.locmem_caches
+        factory_post(
+            author=user1,
+            question=create_question(question_type=Question.QuestionType.BINARY),
+        )
+
+        spy = mocker.spy(posts_views, "get_posts_feed")
+        first = anon_client.get(self.url, {"limit": 10})
+        second = anon_client.get(self.url, {"limit": 10})
+
+        assert first.status_code == second.status_code == status.HTTP_200_OK
+        assert spy.call_count == 1  # second request served from cache
+        assert first.data["results"] == second.data["results"]
+        assert second.data["next"]  # links rebuilt for the live request
+        assert "testserver" in second.data["next"]
+
+    def test_response_cache_skips_authenticated(self, user1_client, settings, mocker):
+        from posts import views as posts_views
+
+        settings.FEED_RESPONSE_CACHE_ENABLED = True
+        settings.CACHES = self.locmem_caches
+        spy = mocker.spy(posts_views, "get_posts_feed")
+        user1_client.get(self.url, {"limit": 10})
+        user1_client.get(self.url, {"limit": 10})
+        assert spy.call_count == 2
