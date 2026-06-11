@@ -44,10 +44,8 @@ export const JOBS_INSIGHTS = {
         By 2035, <strong>software</strong>, <strong>sales</strong> and{" "}
         <strong>law</strong> are expected to see sharp staff reductions as AI
         systems take over large portions of coding, outreach, and detailed
-        research work, while <strong>laborers</strong> and{" "}
-        <strong>financial specialists</strong> see a contraction as more
-        advanced robotics roll out and AI automates accounting and
-        administrative tasks.
+        research work, while <strong>laborers</strong> see a modest decline as
+        more advanced robotics expand their reach.
       </>
     ),
   },

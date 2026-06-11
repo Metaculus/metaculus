@@ -233,6 +233,11 @@ export default async function TournamentSlug(props: Props) {
               scroll: false,
               shallow: true,
             }}
+            searchUpdateOptions={{
+              history: "replace",
+              scroll: false,
+              shallow: true,
+            }}
           >
             <TournamentFilters />
             <TournamentFeed tournament={tournament} />
