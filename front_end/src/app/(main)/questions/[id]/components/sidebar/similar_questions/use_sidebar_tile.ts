@@ -19,7 +19,7 @@ function getDaySeed(): number {
 
 export function useSidebarTile(post: PostWithForecasts) {
   const { user } = useAuth();
-  const [dismissedId, setDismissedId] = useState<string | null>(null);
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
 
   const { data: tiles = [], isLoading } = useQuery({
     // Shares cache with the feed so no extra network request when both are visible
@@ -34,16 +34,16 @@ export function useSidebarTile(post: PostWithForecasts) {
     const rand = seededRandom(post.id + getDaySeed());
 
     for (const t of tiles) {
-      if (t.id === dismissedId) continue;
+      if (dismissedIds.has(t.id)) continue;
       // Filter ad tiles by exposure_rate; project tiles always show
       if (t.type === "ad" && rand() * 100 >= t.ad.exposure_rate) continue;
       return t;
     }
     return null;
-  }, [tiles, dismissedId, post.id]);
+  }, [tiles, dismissedIds, post.id]);
 
   const onDismiss = useCallback((id: string) => {
-    setDismissedId(id);
+    setDismissedIds((prev) => new Set([...prev, id]));
     void ClientMiscApi.dismissFeedTile(id);
   }, []);
 

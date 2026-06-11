@@ -1,5 +1,7 @@
 "use client";
 
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import Link from "next/link";
 import { FC } from "react";
@@ -25,9 +27,9 @@ const AdTile: FC<Props> = ({ tile, onDismiss }) => {
       onClick={() =>
         sendAnalyticsEvent("internalAdClicked", { ad_title: ad.title })
       }
-      className="group relative flex flex-col gap-3 overflow-hidden rounded border border-transparent px-6 py-5 text-gray-0 no-underline transition-colors hover:border-gray-0/70"
+      className="group relative flex flex-col gap-8 overflow-hidden rounded border border-blue-700 px-6 py-5 text-gray-0 no-underline transition-colors hover:border-gray-0/70"
     >
-      <div className="absolute inset-0 bg-blue-900" />
+      <div className="absolute inset-0 bg-blue-700" />
       {image && (
         <Image
           src={image}
@@ -49,7 +51,7 @@ const AdTile: FC<Props> = ({ tile, onDismiss }) => {
           className="absolute right-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded text-gray-0/60 transition-colors hover:text-gray-0"
           aria-label="Dismiss"
         >
-          ×
+          <FontAwesomeIcon icon={faXmark} />
         </button>
       )}
 
