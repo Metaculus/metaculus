@@ -8,6 +8,7 @@ import { FC } from "react";
 
 import { AdCombinedFeedTile } from "@/types/projects";
 import { sendAnalyticsEvent } from "@/utils/analytics";
+import cn from "@/utils/core/cn";
 
 import { TileStatusRow } from "./tile_status_row";
 
@@ -27,7 +28,10 @@ const AdTile: FC<Props> = ({ tile, onDismiss }) => {
       onClick={() =>
         sendAnalyticsEvent("internalAdClicked", { ad_title: ad.title })
       }
-      className={`group relative flex min-h-40 flex-col justify-center overflow-hidden rounded border border-blue-700 px-6 py-5 text-gray-0 no-underline transition-colors hover:border-gray-0/70 ${hasCta ? "gap-8" : "gap-3"}`}
+      className={cn(
+        "group relative flex min-h-40 flex-col justify-center overflow-hidden rounded border border-blue-700 px-6 py-5 text-gray-0 no-underline transition-colors hover:border-gray-0/70",
+        hasCta ? "gap-8" : "gap-3"
+      )}
     >
       <div className="absolute inset-0 bg-blue-700" />
       {image && (
