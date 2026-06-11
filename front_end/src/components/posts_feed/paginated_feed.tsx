@@ -252,13 +252,12 @@ const PaginatedPostsFeed: FC<Props> = ({
       ? clientProjectTiles
       : EMPTY_PROJECT_TILES
     : initialProjectTiles;
-  const projectTiles = useMemo(
-    () => rawTiles.filter((t) => !dismissedIds.has(t.id)),
-    [rawTiles, dismissedIds]
-  );
   const feedItems = useMemo(
-    () => buildFeedItems(visiblePosts, projectTiles),
-    [visiblePosts, projectTiles]
+    () =>
+      buildFeedItems(visiblePosts, rawTiles).filter(
+        (item) => item.type !== "tile" || !dismissedIds.has(item.tile.id)
+      ),
+    [visiblePosts, rawTiles, dismissedIds]
   );
 
   const { layout: contextLayout } = useFeedLayout();
