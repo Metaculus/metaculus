@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 
+import { dismissFeedTile } from "@/app/(main)/actions";
 import { QuestionVariantComposer } from "@/app/(main)/questions/[id]/components/question_variant_composer";
 import { FiltersFromSearchParamsOptions } from "@/app/(main)/questions/helpers/filters";
 import { useFeedQuery } from "@/app/(main)/questions/hooks/use_feed_query";
@@ -21,7 +22,6 @@ import { useAuth } from "@/contexts/auth_context";
 import { useFeedLayout } from "@/contexts/feed_layout_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
-import ClientMiscApi from "@/services/api/misc/misc.client";
 import { PostsParams } from "@/services/api/posts/posts.shared";
 import { PostWithForecasts } from "@/types/post";
 import { CombinedFeedTile } from "@/types/projects";
@@ -150,7 +150,7 @@ const PaginatedPostsFeed: FC<Props> = ({
   const handleDismiss = useCallback(
     (id: string) => {
       setDismissedIds((prev) => new Set([...prev, id]));
-      void ClientMiscApi.dismissFeedTile(id)
+      void dismissFeedTile(id)
         .then(() => {
           queryClient.setQueryData<CombinedFeedTile[]>(
             postsFeedKeys.tiles(),
