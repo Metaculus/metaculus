@@ -27,7 +27,7 @@ const AdTile: FC<Props> = ({ tile, onDismiss }) => {
       onClick={() =>
         sendAnalyticsEvent("internalAdClicked", { ad_title: ad.title })
       }
-      className="group relative flex flex-col gap-8 overflow-hidden rounded border border-blue-700 px-6 py-5 text-gray-0 no-underline transition-colors hover:border-gray-0/70"
+      className={`group relative flex min-h-40 flex-col justify-center overflow-hidden rounded border border-blue-700 px-6 py-5 text-gray-0 no-underline transition-colors hover:border-gray-0/70 ${hasCta ? "gap-8" : "gap-3"}`}
     >
       <div className="absolute inset-0 bg-blue-700" />
       {image && (
@@ -67,7 +67,9 @@ const AdTile: FC<Props> = ({ tile, onDismiss }) => {
       </div>
 
       {(hasCta || project) && (
-        <div className="relative flex flex-wrap items-center gap-4">
+        <div
+          className={`relative flex flex-wrap items-center gap-4 ${!hasCta ? "justify-center" : ""}`}
+        >
           {hasCta && (
             <span className="inline-flex items-center justify-center rounded-full border border-blue-400 bg-gray-0 px-3 py-2 text-sm font-medium leading-4 text-blue-700">
               {ad.cta_text}
