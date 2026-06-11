@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { ComponentProps, FC } from "react";
 
 import ShareIcon from "@/components/icons/share";
+import { MetaculusWordmark } from "@/components/logos";
 import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions";
 import Button from "@/components/ui/button";
 import useEmbedModalContext from "@/contexts/embed_modal_context";
@@ -133,14 +134,19 @@ const ActionRow: FC<Props> = ({ post, variant }) => {
         />
       )}
 
-      {/* … overflow — hidden on mobile for consumer */}
+      {/* Logo watermark + … overflow — hidden on mobile for consumer */}
       <div
         className={cn(
+          "items-center gap-5",
           variant === "consumer"
-            ? "hidden md:absolute md:right-0 md:block lg:static lg:ml-auto"
-            : "ml-auto"
+            ? "hidden md:absolute md:right-0 md:flex lg:static lg:ml-auto"
+            : "ml-auto flex"
         )}
       >
+        <MetaculusWordmark
+          aria-hidden
+          className="hidden h-[20px] w-auto text-blue-700/25 dark:text-blue-300/25 md:block"
+        />
         <PostDropdownMenu
           post={post}
           button={

@@ -1849,6 +1849,7 @@
   "copyQuestionLinkSuccess": "Odkaz na otázku byl úspěšně vytvořen! Můžete ho vidět v sekci <strong>Odkazy na otázky</strong> u každé otázky.",
   "viewQuestionLinks": "Zobrazit odkazy na otázky",
   "moreActions": "Další akce",
+  "openOnMetaculus": "Otevřít na Metaculusu",
   "copyQuestionLinkImpactPrefix": "má",
   "copyQuestionLinkImpactSuffix": "kauzální dopad na:",
   "copyQuestionLinkStrengthLabel": "Síla tohoto dopadu je:",
