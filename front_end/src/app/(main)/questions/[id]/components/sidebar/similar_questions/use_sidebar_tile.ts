@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 
 import {
@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/auth_context";
 import ClientMiscApi from "@/services/api/misc/misc.client";
 import { PostWithForecasts } from "@/types/post";
 import { CombinedFeedTile } from "@/types/projects";
+import { logError } from "@/utils/core/errors";
 import { seededRandom } from "@/utils/posts_feed";
 
 // Extracted so Date.now() is not called directly in the hook body
@@ -42,10 +43,21 @@ export function useSidebarTile(post: PostWithForecasts) {
     return null;
   }, [tiles, dismissed, post.id]);
 
-  const onDismiss = useCallback((id: string) => {
-    setDismissed(true);
-    void ClientMiscApi.dismissFeedTile(id);
-  }, []);
+  const queryClient = useQueryClient();
+  const onDismiss = useCallback(
+    (id: string) => {
+      setDismissed(true);
+      void ClientMiscApi.dismissFeedTile(id)
+        .then(() => {
+          queryClient.setQueryData<CombinedFeedTile[]>(
+            postsFeedKeys.tiles(),
+            (old) => old?.filter((t) => t.id !== id) ?? []
+          );
+        })
+        .catch(logError);
+    },
+    [queryClient]
+  );
 
   return { tile, onDismiss: user ? onDismiss : undefined, isLoading };
 }
