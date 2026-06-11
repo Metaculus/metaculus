@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 
+import { dismissFeedTile } from "@/app/(main)/actions";
 import {
   POSTS_FEED_GC_TIME,
   POSTS_FEED_STALE_TIME,
@@ -47,7 +48,7 @@ export function useSidebarTile(post: PostWithForecasts) {
   const onDismiss = useCallback(
     (id: string) => {
       setDismissed(true);
-      void ClientMiscApi.dismissFeedTile(id)
+      void dismissFeedTile(id)
         .then(() => {
           queryClient.setQueryData<CombinedFeedTile[]>(
             postsFeedKeys.tiles(),
