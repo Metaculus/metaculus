@@ -9,6 +9,7 @@ import { FC } from "react";
 import { AdCombinedFeedTile } from "@/types/projects";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
+import { getProjectLink } from "@/utils/navigation";
 
 import { TileStatusRow } from "./tile_status_row";
 
@@ -19,12 +20,13 @@ type Props = {
 
 const AdTile: FC<Props> = ({ tile, onDismiss }) => {
   const { ad, project } = tile;
+  const href = ad.url || (project ? getProjectLink(project) : "");
   const image = ad.image ?? project?.header_image ?? null;
   const hasCta = !!ad.cta_text;
 
   return (
     <Link
-      href={ad.url}
+      href={href}
       onClick={() =>
         sendAnalyticsEvent("internalAdClicked", { ad_title: ad.title })
       }
