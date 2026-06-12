@@ -148,7 +148,7 @@ export const CONGRESS_OUTCOME_LABELS: Record<CongressOutcomeKey, string> = {
 // Discrete; the charts render the Medalists aggregation for both.
 export const SEAT_DISTRIBUTION_POSTS = {
   senate: 40416,
-  house: 43900,
+  house: 40413,
 } as const;
 
 // Electoral Consequences rows. Each is a group-of-questions post conditional on
