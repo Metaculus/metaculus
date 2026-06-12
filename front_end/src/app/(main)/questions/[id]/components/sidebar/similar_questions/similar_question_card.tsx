@@ -51,6 +51,7 @@ const SimilarQuestionCard: FC<Props> = ({ post, variant = "forecaster" }) => {
     >
       <Link
         href={getPostLink(post)}
+        prefetch={false}
         className="flex flex-col gap-3 no-underline"
       >
         {!isForecaster && (

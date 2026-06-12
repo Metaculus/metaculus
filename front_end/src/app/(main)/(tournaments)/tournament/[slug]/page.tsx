@@ -41,7 +41,9 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const { slug } = await props.params;
-  const tournament = await ServerProjectsApi.getTournament(slug);
+  const tournament = await ServerProjectsApi.getTournament(slug, {
+    next: { revalidate: 60 },
+  });
   if (!tournament) return {};
 
   const raw = tournament.subtitle || tournament.description || "";
