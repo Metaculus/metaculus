@@ -1,5 +1,5 @@
 "use client";
-import { useQueryClient } from "@tanstack/react-query";
+
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 
@@ -37,7 +37,6 @@ import EmptyCommunityFeed from "./empty_community_feed";
 import PostsFeedScrollRestoration from "./feed_scroll_restoration";
 import {
   normalizePostsFeedFilters,
-  postsFeedKeys,
   useCombinedFeedTilesQuery,
   usePostsFeedQuery,
 } from "./hooks/use_posts_feed_query";
@@ -145,22 +144,11 @@ const PaginatedPostsFeed: FC<Props> = ({
           : undefined,
     });
 
-  const queryClient = useQueryClient();
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
-  const handleDismiss = useCallback(
-    (id: string) => {
-      setDismissedIds((prev) => new Set([...prev, id]));
-      void dismissFeedTile(id)
-        .then(() => {
-          queryClient.setQueryData<CombinedFeedTile[]>(
-            postsFeedKeys.tiles(),
-            (old) => old?.filter((t) => t.id !== id) ?? []
-          );
-        })
-        .catch(logError);
-    },
-    [queryClient]
-  );
+  const handleDismiss = useCallback((id: string) => {
+    setDismissedIds((prev) => new Set([...prev, id]));
+    void dismissFeedTile(id).catch(logError);
+  }, []);
 
   useEffect(() => {
     if (visiblePosts.some((q) => q.is_current_content_translated)) {
