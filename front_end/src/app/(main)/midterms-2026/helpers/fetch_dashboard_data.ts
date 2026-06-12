@@ -293,8 +293,7 @@ const fetchMedalistsCdf = async (postId: number): Promise<number[] | null> => {
 export const fetchSeatDistributions = cache(
   async (): Promise<SeatDistributions> => {
     const senateId = SEAT_DISTRIBUTION_POSTS.senate;
-    // const houseId = SEAT_DISTRIBUTION_POSTS.house;
-    const houseId = 43900;
+    const houseId = SEAT_DISTRIBUTION_POSTS.house;
     const ids = [senateId, houseId].filter((id) => id > 0);
     if (!ids.length) return { senate: null, house: null };
 

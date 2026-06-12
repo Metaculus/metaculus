@@ -119,6 +119,12 @@ const SeatDistributionChart: FC<Props> = ({
       domainMax,
     ].map((x, j) => ({ x, y: (pmf[j] ?? 0) * 100 }));
 
+    // The index mapping above requires the CDF at native bin resolution
+    // (one value per inbound outcome, plus the two open-bound tails). If the
+    // question serves a finer grid, bars would be silently wrong — render the
+    // unavailable placeholder instead.
+    if (isDiscrete && pmf.length !== bins.length) return null;
+
     const curve: Point[] = bins;
 
     const yOnCurve = (x: number): number => {
@@ -271,7 +277,8 @@ const SeatDistributionChart: FC<Props> = ({
     if (zeroIdx >= 0) tickIndices.add(zeroIdx);
     xTicks = Array.from(tickIndices)
       .sort((a, b) => a - b)
-      .map((i) => visibleDiscreteXs[i]!);
+      .map((i) => visibleDiscreteXs[i])
+      .filter((x): x is number => x !== undefined);
   } else {
     const innerTicks: number[] = [0];
     for (let i = 1; i < tickCount; i++) {
