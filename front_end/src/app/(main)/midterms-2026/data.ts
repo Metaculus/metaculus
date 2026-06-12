@@ -143,9 +143,8 @@ export const CONGRESS_OUTCOME_LABELS: Record<CongressOutcomeKey, string> = {
 
 // Seat-advantage distribution questions. Both are Discrete (integer-spaced
 // bars with open-bound landslide tails), signed around zero where negative =
-// Dem advantage and positive = Rep advantage. The House question (43900)
-// replaced the original Continuous one (40413) when it was relaunched as
-// Discrete; the charts render the Medalists aggregation for both.
+// Dem advantage and positive = Rep advantage.
+// the charts render the Medalists aggregation for both.
 export const SEAT_DISTRIBUTION_POSTS = {
   senate: 40416,
   house: 40413,
