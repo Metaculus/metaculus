@@ -16,6 +16,7 @@ import {
 import useContainerSize from "@/hooks/use_container_size";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import { getDiscreteValueOptions } from "@/utils/formatters/prediction";
 import {
   cdfToPmf,
   computeQuartilesFromCDF,
@@ -27,6 +28,9 @@ import { useIsDark } from "../helpers/use_is_dark";
 
 type Props = {
   post: PostWithForecasts;
+  /** Forecast-values CDF to render instead of the question's default CP — e.g.
+   *  the Medalists aggregation. Falls back to the default CP when omitted. */
+  cdfOverride?: number[];
   /** Localized "Democrat Seat Advantage" label rendered below the x-axis. */
   demAdvantageLabel: string;
   /** Localized "Republican Seat Advantage" label rendered below the x-axis. */
@@ -56,8 +60,12 @@ const NEUTRAL_GRAY_FILL_DARK = "#475569";
 // EVEN center bar (Senate) — tweak its fill + label color here.
 const EVEN_BAR_FILL_LIGHT = "#7d818a";
 const EVEN_BAR_FILL_DARK = "#475569";
-const EVEN_TEXT_COLOR_LIGHT = "#FFFFFF";
+// The EVEN label now sits above the bin on the chart background, so it uses a
+// color that reads on the background (inverted from the old on-bar white).
+const EVEN_TEXT_COLOR_LIGHT = "#475569";
 const EVEN_TEXT_COLOR_DARK = "#E2E8F0";
+// Length (px) of the connector line from the EVEN label down to the bin top.
+const EVEN_CONNECTOR_PX = 8;
 
 // House on-hover vertical bar — tweak its color / thickness / opacity here.
 const HOVER_BAR_COLOR_LIGHT = "#334155";
@@ -69,6 +77,7 @@ type Point = { x: number; y: number };
 
 const SeatDistributionChart: FC<Props> = ({
   post,
+  cdfOverride,
   demAdvantageLabel,
   repAdvantageLabel,
   evenLabel,
@@ -89,49 +98,37 @@ const SeatDistributionChart: FC<Props> = ({
   const data = useMemo(() => {
     if (!question) return null;
     const cdf =
+      cdfOverride ??
       question.aggregations?.[question.default_aggregation_method]?.latest
         ?.forecast_values;
     if (!cdf || cdf.length < 2) return null;
 
     const pmf = cdfToPmf(cdf);
-    const scale = question.scaling;
-    const N = cdf.length;
-    const domainMin = scale.range_min ?? 0;
-    const domainMax = scale.range_max ?? 0;
+    const { range_min, range_max } = question.scaling;
+    if (range_min === null || range_max === null) return null;
+    const inbound_outcome_count = question.inbound_outcome_count ?? 0;
+    const discreteOptions = getDiscreteValueOptions(question);
     const isDiscrete = question.type === QuestionType.Discrete;
 
-    const seatMin = Math.round(domainMin);
-    const seatMax = Math.round(domainMax);
+    const step = (range_max - range_min) / (inbound_outcome_count - 1);
+    const domainMin = range_min - step / 2;
+    const domainMax = range_max + step / 2;
+    const bins: Point[] = [
+      domainMin,
+      ...(discreteOptions ?? []),
+      domainMax,
+    ].map((x, j) => ({ x, y: (pmf[j] ?? 0) * 100 }));
 
-    // Two representations of the same forecast:
-    //  - `curve`: the fine PMF grid converted to per-seat probability
-    //    density (mass / bin-width-in-seats). This stays smooth, so the
-    //    House area doesn't get the sawtooth aliasing that integer
-    //    bucketing produced.
-    //  - `bins`: integer-seat buckets (per-seat probability). Used for the
-    //    Senate bars and to drive whole-number tooltips.
-    const curve: Point[] = [];
-    const bucketMass = new Map<number, number>();
-    for (let i = 1; i < pmf.length - 1; i++) {
-      const xLeft = scaleInternalLocation((i - 1) / (N - 1), scale);
-      const xRight = scaleInternalLocation(i / (N - 1), scale);
-      const mid = (xLeft + xRight) / 2;
-      const width = Math.max(1e-9, xRight - xLeft);
-      curve.push({ x: mid, y: ((pmf[i] ?? 0) * 100) / width });
-      const seat = Math.min(seatMax, Math.max(seatMin, Math.round(mid)));
-      bucketMass.set(seat, (bucketMass.get(seat) ?? 0) + (pmf[i] ?? 0));
-    }
+    // The index mapping above requires the CDF at native bin resolution
+    // (one value per inbound outcome, plus the two open-bound tails). If the
+    // question serves a finer grid, bars would be silently wrong — render the
+    // unavailable placeholder instead.
+    if (isDiscrete && pmf.length !== bins.length) return null;
 
-    const bins: Point[] = [];
-    for (let s = seatMin; s <= seatMax; s++) {
-      bins.push({ x: s, y: (bucketMass.get(s) ?? 0) * 100 });
-    }
+    const curve: Point[] = bins;
 
-    // Distribution height at an arbitrary x (linear interpolation over the
-    // smooth curve) — used to anchor the hover bars and cap the quartile
-    // dashes at the curve.
     const yOnCurve = (x: number): number => {
-      if (!curve.length) return 0;
+      if (!pmf.length) return 0;
       const first = curve[0] as Point;
       const last = curve[curve.length - 1] as Point;
       if (x <= first.x) return first.y;
@@ -152,16 +149,16 @@ const SeatDistributionChart: FC<Props> = ({
     // exceed) the distribution.
     const houseTooltipPoints: Point[] = [];
     if (!isDiscrete) {
-      for (let s = seatMin; s <= seatMax; s++) {
+      for (let s = range_min; s <= range_max; s++) {
         houseTooltipPoints.push({ x: s, y: yOnCurve(s) });
       }
     }
 
     const quartiles = computeQuartilesFromCDF(cdf, false, isDiscrete);
     const quartileXs = {
-      median: scaleInternalLocation(quartiles.median, scale),
-      lower25: scaleInternalLocation(quartiles.lower25, scale),
-      upper75: scaleInternalLocation(quartiles.upper75, scale),
+      median: scaleInternalLocation(quartiles.median, question.scaling),
+      lower25: scaleInternalLocation(quartiles.lower25, question.scaling),
+      upper75: scaleInternalLocation(quartiles.upper75, question.scaling),
     };
     const quartileYs = {
       median: yOnCurve(quartileXs.median),
@@ -187,7 +184,7 @@ const SeatDistributionChart: FC<Props> = ({
       dataMaxX,
       maxY,
     };
-  }, [question]);
+  }, [question, cdfOverride]);
 
   if (!data || !question) return null;
 
@@ -260,17 +257,48 @@ const SeatDistributionChart: FC<Props> = ({
     dataMaxX === dataMinX ? 0.5 : (0 - dataMinX) / (dataMaxX - dataMinX);
   const zeroStopPct = `${(zeroFraction * 100).toFixed(2)}%`;
 
-  // X-axis ticks — a few evenly spaced whole numbers on each side.
-  const tickCount = 4;
-  const rawTicks: number[] = [0];
-  for (let i = 1; i <= tickCount; i++) {
-    rawTicks.push(domainMin + (-domainMin * (i - 1)) / tickCount);
-    rawTicks.push((domainMax * i) / tickCount);
+  // X-axis ticks — for discrete questions, sampled only from actual bin x-values
+  // (bins[1..-2], excluding the half-integer domain edge sentinels). For the
+  // continuous case, evenly spaced whole numbers with edges pinned to ceil/floor
+  // of the half-integer range bounds.
+  const axisMin = Math.ceil(domainMin);
+  const axisMax = Math.floor(domainMax);
+  const tickCount = 6;
+  const visibleDiscreteXs = isDiscrete ? bins.slice(1, -1).map((b) => b.x) : [];
+
+  let xTicks: number[];
+  if (isDiscrete && visibleDiscreteXs.length > 0) {
+    const total = visibleDiscreteXs.length;
+    const tickIndices = new Set<number>([0, total - 1]);
+    for (let i = 1; i < tickCount; i++) {
+      tickIndices.add(Math.round(((total - 1) * i) / tickCount));
+    }
+    const zeroIdx = visibleDiscreteXs.indexOf(0);
+    if (zeroIdx >= 0) tickIndices.add(zeroIdx);
+    xTicks = Array.from(tickIndices)
+      .sort((a, b) => a - b)
+      .map((i) => visibleDiscreteXs[i])
+      .filter((x): x is number => x !== undefined);
+  } else {
+    const innerTicks: number[] = [0];
+    for (let i = 1; i < tickCount; i++) {
+      innerTicks.push((domainMin * i) / tickCount);
+      innerTicks.push((domainMax * i) / tickCount);
+    }
+    xTicks = Array.from(
+      new Set(
+        innerTicks
+          .map((tk) => Math.round(tk))
+          .filter((tk) => tk > axisMin && tk < axisMax)
+          .concat([axisMin, axisMax])
+      )
+    ).sort((a, b) => a - b);
   }
-  const xTicks = Array.from(new Set(rawTicks.map((tk) => Math.round(tk)))).sort(
-    (a, b) => a - b
-  );
-  const formatXTick = (tk: number) => (tk === 0 ? "0" : `${Math.abs(tk)}`);
+  const formatXTick = (tk: number) => {
+    if (tk === axisMin) return `≤${Math.abs(tk)}`;
+    if (tk === axisMax) return `≥${Math.abs(tk)}`;
+    return tk === 0 ? "0" : `${Math.abs(tk)}`;
+  };
 
   // Tooltip background follows the side under the cursor: blue for a Dem
   // advantage (x < 0), red for a Rep advantage (x > 0), neutral for EVEN.
@@ -341,6 +369,19 @@ const SeatDistributionChart: FC<Props> = ({
       ? innerSpan / 2
       : ((0 - domainMin) / (domainMax - domainMin)) * innerSpan);
 
+  // EVEN annotation geometry: the label sits above the even bin with a short
+  // connector down to it. Mirror Victory's y-scale (y=0 -> plotBottom,
+  // y=yMax -> plotTop) to find the bin's top edge in pixels.
+  const yMax = maxY > 0 ? maxY * 1.15 : 1;
+  const plotBottom = CHART_HEIGHT - chartPadding.bottom;
+  const plotHeight = plotBottom - chartPadding.top;
+  const evenBinTopPx = evenBin
+    ? chartPadding.top + (1 - (evenBin.y ?? 0) / yMax) * plotHeight
+    : 0;
+  const evenConnectorTopY = evenBin
+    ? (evenBin.y ?? 0) + (EVEN_CONNECTOR_PX * yMax) / plotHeight
+    : 0;
+
   const barFillOpacity = ({ active }: { active?: boolean }) =>
     active ? BAR_FILL_OPACITY_HOVER : BAR_FILL_OPACITY;
   const hoverBarOpacity = ({ active }: { active?: boolean }) =>
@@ -399,7 +440,7 @@ const SeatDistributionChart: FC<Props> = ({
               labelComponent={tooltipComponent}
               mouseFollowTooltips={false}
               voronoiBlacklist={
-                isDiscrete ? undefined : ["area", "q-l", "q-m", "q-u"]
+                isDiscrete ? ["even-connector"] : ["area", "q-l", "q-m", "q-u"]
               }
               // Let the page scroll vertically through the chart on touch; the
               // chart only consumes horizontal moves (for the tooltip). Mirrors
@@ -559,21 +600,31 @@ const SeatDistributionChart: FC<Props> = ({
             }}
           />
 
-          {/* EVEN annotation — Discrete only. Rendered inside the SVG (rather
-              than as an HTML overlay) so the tooltip paints above it. */}
+          {/* EVEN annotation — Discrete only. Label sits above the even bin
+              with a short connector down to it. Rendered inside the SVG (not an
+              HTML overlay) so the voronoi tooltip paints above it. */}
+          {isDiscrete && evenBin && (
+            <VictoryLine
+              name="even-connector"
+              data={[
+                { x: 0, y: evenBin.y },
+                { x: 0, y: evenConnectorTopY },
+              ]}
+              style={{ data: { stroke: tickColor, strokeWidth: 1 } }}
+            />
+          )}
           {isDiscrete && evenBin && (
             <VictoryLabel
               text={evenLabel}
               x={zeroPx}
-              y={CHART_HEIGHT / 2}
-              angle={90}
+              y={evenBinTopPx - EVEN_CONNECTOR_PX - 2}
               textAnchor="middle"
-              verticalAnchor="middle"
+              verticalAnchor="end"
               style={{
                 fill: evenTextColor,
                 fontSize: 10,
                 fontWeight: 700,
-                letterSpacing: 2,
+                letterSpacing: 1,
                 fontFamily: TEXT_FONT_FAMILY,
               }}
             />

@@ -1,6 +1,8 @@
 import "server-only";
 import { cache } from "react";
 
+import { NumericAggregationExtraQuestion } from "@/app/(main)/aggregation-explorer/types";
+import ServerAggregationsExplorerApi from "@/services/api/aggregation_explorer/aggregation_explorer.server";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
@@ -262,28 +264,56 @@ export const fetchChamberData = cache(async (): Promise<ChamberData> => {
   }
 });
 
+export type SeatDistributionDatum = {
+  post: PostWithForecasts;
+  /** Medalists-aggregation CDF (forecast_values), or null when unavailable. */
+  medalistsCdf: number[] | null;
+};
+
 export type SeatDistributions = {
-  senate: PostWithForecasts | null;
-  house: PostWithForecasts | null;
+  senate: SeatDistributionDatum | null;
+  house: SeatDistributionDatum | null;
+};
+
+// The seat-distribution charts render the Medalists community prediction,
+// fetched via the same Aggregation Explorer endpoint the explorer UI uses.
+const fetchMedalistsCdf = async (postId: number): Promise<number[] | null> => {
+  try {
+    const question = (await ServerAggregationsExplorerApi.getAggregations({
+      postId,
+      aggregationMethods: "medalists",
+      includeBots: false,
+    })) as NumericAggregationExtraQuestion;
+    return question?.aggregations?.medalists?.latest?.forecast_values ?? null;
+  } catch {
+    return null;
+  }
 };
 
 export const fetchSeatDistributions = cache(
   async (): Promise<SeatDistributions> => {
-    const ids = [
-      SEAT_DISTRIBUTION_POSTS.senate,
-      SEAT_DISTRIBUTION_POSTS.house,
-    ].filter((id) => id > 0);
+    const senateId = SEAT_DISTRIBUTION_POSTS.senate;
+    const houseId = SEAT_DISTRIBUTION_POSTS.house;
+    const ids = [senateId, houseId].filter((id) => id > 0);
     if (!ids.length) return { senate: null, house: null };
 
     try {
-      const { results } = await ServerPostsApi.getPostsWithCP({
-        ids,
-        limit: ids.length,
-      });
+      const [{ results }, senateCdf, houseCdf] = await Promise.all([
+        ServerPostsApi.getPostsWithCP({ ids, limit: ids.length }),
+        fetchMedalistsCdf(senateId),
+        fetchMedalistsCdf(houseId),
+      ]);
       const byId = new Map(results.map((p) => [p.id, p]));
+      const toDatum = (
+        id: number,
+        medalistsCdf: number[] | null
+      ): SeatDistributionDatum | null => {
+        const post = byId.get(id);
+        return post ? { post, medalistsCdf } : null;
+      };
       return {
-        senate: byId.get(SEAT_DISTRIBUTION_POSTS.senate) ?? null,
-        house: byId.get(SEAT_DISTRIBUTION_POSTS.house) ?? null,
+        senate: toDatum(senateId, senateCdf),
+        house: toDatum(houseId, houseCdf),
       };
     } catch {
       return { senate: null, house: null };
