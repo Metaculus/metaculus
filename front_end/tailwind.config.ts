@@ -66,6 +66,10 @@ const config: Config = {
         "league-gothic": "var(--font-league-gothic)",
         geist: ["var(--font-geist)", ...defaultTheme.fontFamily.sans],
         "geist-mono": ["var(--font-geist-mono)", ...defaultTheme.fontFamily.mono],
+        "jetbrains-mono": [
+          "var(--font-jetbrains-mono)",
+          ...defaultTheme.fontFamily.mono,
+        ],
         newsreader: ["var(--font-newsreader)", ...defaultTheme.fontFamily.serif],
       },
       strokeWidth: {

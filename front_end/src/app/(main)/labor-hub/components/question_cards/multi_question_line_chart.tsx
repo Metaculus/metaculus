@@ -110,6 +110,7 @@ function buildSeriesFromDatasetRows(
       dataLabelClassName: overrides?.dataLabelClassName,
       dataLabelRectClassName: overrides?.dataLabelRectClassName,
       dataLabelTextClassName: overrides?.dataLabelTextClassName,
+      colorByValue: overrides?.colorByValue,
       data: columns.flatMap((label, columnIndex) => {
         const value = row.values[label];
         if (value == null) return [];
@@ -193,6 +194,7 @@ async function MultiQuestionLineChartContent({
   valueFormat = "percentageChange",
   decimals = 1,
   getSeriesOptions,
+  fillHeight = false,
   ...chartProps
 }: MultiQuestionLineChartProps) {
   const postIds = rows
@@ -229,7 +231,9 @@ async function MultiQuestionLineChartContent({
 
   return (
     <>
-      <div className={cn("group/card relative", className)}>
+      <div
+        className={cn("group/card relative", fillHeight && "h-full", className)}
+      >
         {showMoreButton && postIds.length > 0 && (
           <div className="absolute right-4 top-4 z-10 [visibility:var(--ss-hidden,visible)] print:hidden">
             <MoreButton postIds={postIds} postTitle={titleText} />
@@ -247,6 +251,7 @@ async function MultiQuestionLineChartContent({
           historicalForecastDividerX={historicalForecastDividerX}
           valueFormat={valueFormat}
           decimals={decimals}
+          fillHeight={fillHeight}
         />
       </div>
       {note && (
@@ -258,14 +263,27 @@ async function MultiQuestionLineChartContent({
   );
 }
 
-function MultiQuestionLineChartSkeleton({ className }: { className?: string }) {
+function MultiQuestionLineChartSkeleton({
+  className,
+  height,
+  showTitlePlaceholder = true,
+}: {
+  className?: string;
+  height?: number;
+  showTitlePlaceholder?: boolean;
+}) {
   return (
     <div
       data-loading="true"
       className={`animate-pulse overflow-hidden rounded bg-blue-200 p-4 dark:bg-blue-800 md:p-5 ${className ?? ""}`}
     >
-      <div className="mb-4 h-5 w-2/3 rounded bg-gray-300 dark:bg-gray-600" />
-      <div className="h-64 rounded bg-gray-300 dark:bg-gray-600" />
+      {showTitlePlaceholder && (
+        <div className="mb-4 h-5 w-2/3 rounded bg-gray-300 dark:bg-gray-600" />
+      )}
+      <div
+        className="rounded bg-gray-300 dark:bg-gray-600"
+        style={{ height: height ?? 256 }}
+      />
     </div>
   );
 }
@@ -273,7 +291,13 @@ function MultiQuestionLineChartSkeleton({ className }: { className?: string }) {
 export function MultiQuestionLineChart(props: MultiQuestionLineChartProps) {
   return (
     <Suspense
-      fallback={<MultiQuestionLineChartSkeleton className={props.className} />}
+      fallback={
+        <MultiQuestionLineChartSkeleton
+          className={props.className}
+          height={props.height}
+          showTitlePlaceholder={props.title != null}
+        />
+      }
     >
       <MultiQuestionLineChartContent {...props} />
     </Suspense>
