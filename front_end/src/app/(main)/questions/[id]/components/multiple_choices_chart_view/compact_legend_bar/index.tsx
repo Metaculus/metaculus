@@ -83,7 +83,9 @@ const CompactLegendBar: FC<Props> = ({
       {visibleItems.map((item) => {
         const resolvedNo = isResolvedNo(item, questionType);
         const resolvedYes = isResolvedYes(item, questionType);
-        const pct = getForecastPctDisplayValue(getLastAggregationValue(item));
+        const pct = getForecastPctDisplayValue(
+          item.latestValue ?? getLastAggregationValue(item)
+        );
 
         return (
           <div

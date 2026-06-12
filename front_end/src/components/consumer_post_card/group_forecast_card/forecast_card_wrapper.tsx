@@ -5,7 +5,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { FC, PropsWithChildren } from "react";
+import { FC, PropsWithChildren, useEffect, useRef, useState } from "react";
 
 import cn from "@/utils/core/cn";
 
@@ -33,6 +33,33 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
 
   const isMinimal = buttonVariant === "minimal";
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollDown, setCanScrollDown] = useState(true);
+
+  // 4px threshold avoids a permanently visible gradient on sub-pixel scroll remainders
+  const checkScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const { scrollTop, clientHeight, scrollHeight } = el;
+    setCanScrollDown(scrollTop + clientHeight < scrollHeight - 4);
+  };
+
+  // Hide the bottom gradient when the expanded list has nothing left to scroll
+  useEffect(() => {
+    if (!expanded) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    const frameId = window.requestAnimationFrame(checkScroll);
+    const observer = new ResizeObserver(checkScroll);
+    observer.observe(el);
+    el.addEventListener("scroll", checkScroll, { passive: true });
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      observer.disconnect();
+      el.removeEventListener("scroll", checkScroll);
+    };
+  }, [expanded]);
+
   const toggleButtonClassName = cn(
     "flex w-full self-stretch items-center gap-2 rounded-lg px-[13px]",
     "font-medium leading-4",
@@ -53,6 +80,7 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
       {expanded ? (
         <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
           <div
+            ref={scrollRef}
             className={cn(
               "flex flex-1 flex-col overflow-y-auto no-scrollbar",
               compact ? "gap-1 md:gap-2" : "gap-2"
@@ -61,8 +89,10 @@ const ForecastCardWrapper: FC<PropsWithChildren<Props>> = ({
             {children}
           </div>
           <div
-            className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-8 bg-gradient-to-b from-transparent to-gray-0 dark:to-gray-0-dark"
-            style={{ opacity: 0.99 }}
+            className={cn(
+              "pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-8 bg-gradient-to-b from-transparent to-gray-0 transition-opacity dark:to-gray-0-dark",
+              canScrollDown ? "opacity-100" : "opacity-0"
+            )}
           />
         </div>
       ) : (
