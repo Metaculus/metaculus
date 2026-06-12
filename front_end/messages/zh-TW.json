@@ -1149,6 +1149,7 @@
   "pickQuestion": "選擇問題",
   "forecastFlow": "預測流程",
   "viewQuestions": "查看問題<bold>({count})</bold>",
+  "includingSubquestions": "包含子問題：{count}",
   "started": "已開始",
   "starts": "開始",
   "lastDayForPrizeParticipation": "參與獎品的最後一天",

@@ -1141,6 +1141,7 @@
   "Index": "索引",
   "forecastFlow": "预测流程",
   "viewQuestions": "查看问题<bold>({count})</bold>",
+  "includingSubquestions": "包含子问题：{count}",
   "started": "已开始",
   "starts": "开始",
   "lastDayForPrizeParticipation": "奖品参与的最后一天",

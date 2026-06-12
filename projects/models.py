@@ -99,38 +99,49 @@ class ProjectsQuerySet(models.QuerySet):
     def annotate_questions_count(self):
         from posts.models import Post
 
+        posts_filter = Q(
+            posts__curation_status=Post.CurationStatus.APPROVED,
+            posts__questions__question_weight__gt=0,
+        ) & ~Q(
+            posts__questions__resolution__in=[
+                UnsuccessfulResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
+            ]
+        )
+        default_posts_filter = Q(
+            default_posts__curation_status=Post.CurationStatus.APPROVED,
+            default_posts__questions__question_weight__gt=0,
+        ) & ~Q(
+            default_posts__questions__resolution__in=[
+                UnsuccessfulResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
+            ]
+        )
+
         return self.annotate(
             posts_questions_count=Count(
-                "posts__questions__id",
-                filter=Q(
-                    posts__curation_status=Post.CurationStatus.APPROVED,
-                    posts__questions__question_weight__gt=0,
-                )
-                & ~Q(
-                    posts__questions__resolution__in=[
-                        UnsuccessfulResolutionType.AMBIGUOUS,
-                        UnsuccessfulResolutionType.ANNULLED,
-                    ]
-                ),
-                distinct=True,
+                "posts__questions__id", filter=posts_filter, distinct=True
             ),
             default_posts_questions_count=Count(
                 "default_posts__questions__id",
-                filter=Q(
-                    default_posts__curation_status=Post.CurationStatus.APPROVED,
-                    default_posts__questions__question_weight__gt=0,
-                )
-                & ~Q(
-                    default_posts__questions__resolution__in=[
-                        UnsuccessfulResolutionType.AMBIGUOUS,
-                        UnsuccessfulResolutionType.ANNULLED,
-                    ]
-                ),
+                filter=default_posts_filter,
                 distinct=True,
             ),
+            posts_with_questions_count=Count(
+                "posts__id", filter=posts_filter, distinct=True
+            ),
+            default_posts_with_questions_count=Count(
+                "default_posts__id", filter=default_posts_filter, distinct=True
+            ),
         ).annotate(
-            questions_count=Coalesce(F("posts_questions_count"), 0)
-            + Coalesce(F("default_posts_questions_count"), 0)
+            # Top-level count: each question post counts once, regardless of
+            # how many subquestions (group children, conditional branches) it has
+            questions_count=Coalesce(F("posts_with_questions_count"), 0)
+            + Coalesce(F("default_posts_with_questions_count"), 0),
+            questions_count_including_subquestions=Coalesce(
+                F("posts_questions_count"), 0
+            )
+            + Coalesce(F("default_posts_questions_count"), 0),
         )
 
     def annotate_is_subscribed(self, user: User, include_members: bool = False):

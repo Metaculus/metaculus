@@ -184,7 +184,8 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
                     text={title}
                     showTooltip={!open}
                     className="line-clamp-2 pl-4 pr-2 text-sm font-bold text-gray-900 dark:text-gray-900-dark sm:text-base"
-                    tooltipClassName="text-center !border-blue-400 dark:!border-blue-400-dark bg-gray-0 dark:bg-gray-0-dark text-sm font-bold text-gray-900 dark:text-gray-900-dark sm:text-base p-2"
+                    variant="light"
+                    tooltipClassName="text-center text-sm font-bold text-gray-900 dark:text-gray-900-dark sm:text-base p-2"
                   />
                 </div>
                 {(!open || !isLargeScreen) && (
