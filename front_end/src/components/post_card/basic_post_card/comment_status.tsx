@@ -21,6 +21,7 @@ type Props = {
   variant?: "default" | "gray";
   target?: string;
   rel?: string;
+  prefetch?: boolean | null;
 };
 
 const CommentStatus: FC<Props> = ({
@@ -32,6 +33,7 @@ const CommentStatus: FC<Props> = ({
   variant = "default",
   target,
   rel,
+  prefetch,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -61,6 +63,7 @@ const CommentStatus: FC<Props> = ({
         className
       )}
       href={url + "#comments"}
+      prefetch={prefetch}
       target={target}
       rel={rel}
     >

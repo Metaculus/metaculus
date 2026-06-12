@@ -23,6 +23,7 @@ type Props = {
 const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
   const t = useTranslations();
   const { project, rule, project_resolution_date } = tile;
+  const now = useMemo(() => Date.now(), []);
   const href = useMemo(() => {
     const base = getProjectLink(project);
     return tile.rule === FeedTileRule.ALL_QUESTIONS_RESOLVED
@@ -35,21 +36,22 @@ const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
   );
 
   const ruleLabel = getRuleLabel(t, tile);
-  const statusLabel = getStatusLabel(t, tile);
+  const statusLabel = getStatusLabel(t, tile, now);
   const rawCloseTime =
     rule === FeedTileRule.ALL_QUESTIONS_RESOLVED && project_resolution_date
       ? project_resolution_date
       : project.close_date ??
         project.forecasting_end_date ??
         project.start_date;
-  const rawCloseTs = safeTs(rawCloseTime) ?? Date.now() + 1000;
+  const rawCloseTs = safeTs(rawCloseTime) ?? now + 1000;
   const scheduled_close_time = new Date(
-    Math.max(rawCloseTs, Date.now() + 1000)
+    Math.max(rawCloseTs, now + 1000)
   ).toISOString();
 
   return (
     <Link
       href={href}
+      prefetch={false}
       onClick={() =>
         sendAnalyticsEvent("feedProjectTileClick", {
           project_id: project.id,
@@ -154,9 +156,9 @@ function getRuleLabel(
 
 function getStatusLabel(
   t: ReturnType<typeof useTranslations>,
-  { project, all_questions_resolved, project_resolution_date }: FeedProjectTile
+  { project, all_questions_resolved, project_resolution_date }: FeedProjectTile,
+  now: number
 ): ReactNode | null {
-  const now = Date.now();
   const startTs = safeTs(project.start_date);
   const closeTs = safeTs(project.close_date);
   const resolveTs = safeTs(project_resolution_date);

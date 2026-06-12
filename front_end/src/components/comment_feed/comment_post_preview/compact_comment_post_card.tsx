@@ -77,6 +77,7 @@ const CompactCommentPostCard: FC<Props> = ({ post, className }) => {
       </HideCPProvider>
       <Link
         href={getPostLink(post)}
+        prefetch={false}
         aria-label={post.title}
         className="absolute left-0 top-0 z-100 h-full w-full @container"
       />

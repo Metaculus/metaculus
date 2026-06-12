@@ -26,6 +26,7 @@ const NewsCard: FC<Props> = ({ post }) => {
     <div className="overflow-hidden rounded border border-gray-300 bg-gray-0 transition-colors hover:border-gray-400 dark:border-gray-300-dark dark:bg-gray-0-dark dark:hover:border-gray-400-dark dark:hover:bg-gray-100-dark">
       <Link
         href={getPostLink(post)}
+        prefetch={false}
         className="flex flex-col items-stretch no-underline sm:h-64 sm:flex-row-reverse"
       >
         {post.notebook.image_url &&
