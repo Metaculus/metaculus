@@ -28,7 +28,9 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
-  const community = await ServerProjectsApi.getCommunity(params.slug);
+  const community = await ServerProjectsApi.getCommunity(params.slug, {
+    next: { revalidate: 60 },
+  });
 
   if (!community) {
     return {};

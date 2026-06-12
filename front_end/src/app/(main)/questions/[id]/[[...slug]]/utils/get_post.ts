@@ -48,3 +48,9 @@ async function getPost(id: number, with_cp = true) {
 }
 
 export const cachedGetPost = cache(getPost);
+
+async function getPostForMetadata(id: number) {
+  return ServerPostsApi.getPost(id, false, { next: { revalidate: 60 } });
+}
+
+export const cachedGetPostForMetadata = cache(getPostForMetadata);

@@ -6,7 +6,7 @@ import { getValidString } from "@/utils/formatters/string";
 import { getPostTitle } from "@/utils/questions/helpers";
 
 import IndividualQuestionPage from "./page_component";
-import { cachedGetPost } from "./utils/get_post";
+import { cachedGetPostForMetadata } from "./utils/get_post";
 
 type Props = {
   params: Promise<{ id: number; slug: string[] }>;
@@ -15,7 +15,7 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
-  const postData = await cachedGetPost(params.id);
+  const postData = await cachedGetPostForMetadata(params.id);
 
   if (!postData) {
     return {};
