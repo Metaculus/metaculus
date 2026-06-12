@@ -23,7 +23,7 @@ type Props = {
 const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
   const t = useTranslations();
   const { project, rule, project_resolution_date } = tile;
-  const now = useMemo(() => Date.now(), []);
+  const now = Date.now();
   const href = useMemo(() => {
     const base = getProjectLink(project);
     return tile.rule === FeedTileRule.ALL_QUESTIONS_RESOLVED
