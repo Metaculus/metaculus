@@ -26,8 +26,7 @@ export const JOBS_INSIGHTS = {
       <>
         By 2030, <strong>software developers</strong> and{" "}
         <strong>sales representatives</strong> are expected to see steep
-        declines, while <strong>financial</strong> roles begin to see the
-        effects of AI capabilities substitution.
+        declines as AI takes over core tasks in their fields.
       </>
     ),
   },
