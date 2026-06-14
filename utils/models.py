@@ -373,6 +373,23 @@ class ModelBatchUpdater:
         self.flush()
 
 
+class ModelBatchCreator(ModelBatchUpdater):
+    def __init__(
+        self,
+        model_class: type[DjangoModelType],
+        batch_size: int = 100,
+    ):
+        self.model_class = model_class
+        self.batch_size = batch_size
+
+        self._batch: list[DjangoModelType] = []
+
+    def flush(self) -> None:
+        if self._batch:
+            self.model_class.objects.bulk_create(self._batch)
+            self._batch.clear()
+
+
 def get_by_pk_or_slug(
     queryset: QuerySet, slug_or_pk: str | int, slug_field: str = "slug"
 ):
