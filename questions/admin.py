@@ -1,4 +1,4 @@
-from admin_auto_filters.filters import AutocompleteFilterFactory
+from admin_auto_filters.filters import AutocompleteFilterFactory, AutocompleteFilter
 from datetime import datetime, timedelta, timezone as dt_timezone
 
 from django import forms
@@ -15,6 +15,7 @@ from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from posts.models import Post
 from posts.tasks import run_post_generate_history_snapshot
+from projects.models import Project
 from questions.constants import UnsuccessfulResolutionType
 from questions.models import (
     AggregateForecast,
@@ -480,6 +481,27 @@ class MultipleChoiceOptionsAdminForm(forms.Form):
         raise forms.ValidationError("Invalid action selected.")
 
 
+class DefaultOrSecondaryProjectFilter(AutocompleteFilter):
+    """Autocomplete filter — `?default_or_secondary_project=<id>` matches
+    questions whose post has the project as default_project OR in the projects M2M."""
+
+    title = "Default or Secondary Project"
+    field_name = "default_project"
+    rel_model = Post
+    parameter_name = "default_or_secondary_project"
+    use_pk_exact = False
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if not value:
+            return queryset
+        try:
+            project = Project.objects.get(pk=int(value))
+        except (Project.DoesNotExist, ValueError):
+            return queryset.none()
+        return queryset.filter(post__in=Post.objects.filter_projects(project))
+
+
 @admin.register(Question)
 class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
     form = QuestionAdminForm
@@ -521,6 +543,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
         AutocompleteFilterFactory("Author", "post__author"),
         AutocompleteFilterFactory("Default Project", "post__default_project"),
         AutocompleteFilterFactory("Project", "post__projects"),
+        DefaultOrSecondaryProjectFilter,
     ]
 
     autocomplete_fields = ["group"]

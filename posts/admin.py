@@ -1,4 +1,4 @@
-from admin_auto_filters.filters import AutocompleteFilterFactory
+from admin_auto_filters.filters import AutocompleteFilterFactory, AutocompleteFilter
 from django.contrib import admin, messages
 from django.db.models import QuerySet
 from django.http import HttpResponse
@@ -19,6 +19,26 @@ from utils.csv_utils import export_all_data_for_questions
 from utils.models import CustomTranslationAdmin
 
 
+class DefaultOrSecondaryProjectFilter(AutocompleteFilter):
+    """Autocomplete filter — `?default_or_secondary_project=<id>` matches posts
+    where the project is the default_project OR appears in the projects M2M."""
+
+    title = "Default or Secondary Project"
+    field_name = "default_project"
+    parameter_name = "default_or_secondary_project"
+    use_pk_exact = False
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if not value:
+            return queryset
+        try:
+            project = Project.objects.get(pk=int(value))
+        except (Project.DoesNotExist, ValueError):
+            return queryset.none()
+        return queryset.filter_projects(project)
+
+
 @admin.register(Post)
 class PostAdmin(CustomTranslationAdmin):
     list_display = [
@@ -36,6 +56,7 @@ class PostAdmin(CustomTranslationAdmin):
         "show_on_homepage",
         AutocompleteFilterFactory("Default Project", "default_project"),
         AutocompleteFilterFactory("Project", "projects"),
+        DefaultOrSecondaryProjectFilter,
     ]
     autocomplete_fields = [
         "author",
