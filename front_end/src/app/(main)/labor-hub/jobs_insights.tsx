@@ -8,8 +8,9 @@ export const JOBS_INSIGHTS = {
     ),
     negative: (
       <>
-        By 2027, <strong>software developers</strong> are expected to already
-        start seeing a contraction due to AI coding capabilities.
+        By 2027, <strong>software developers</strong> are expected to see
+        near-flat employment growth, as AI coding capabilities begin to put
+        pressure on the sector.
       </>
     ),
   },
