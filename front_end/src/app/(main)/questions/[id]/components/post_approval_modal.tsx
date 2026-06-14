@@ -27,7 +27,7 @@ const PostApprovalModal: FC<{
   const [isLoading, setIsLoading] = useState(false);
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse>();
   const [activeModal, setActiveModal] = useState<
-    "approvePost" | "confirmForecastingEndDate"
+    "approvePost" | "confirmCloseDate"
   >();
   const default_project = post.projects?.default_project;
 
@@ -161,23 +161,23 @@ const PostApprovalModal: FC<{
   const handleApprovePostSubmit = useCallback(async () => {
     if (!default_project) return;
 
-    const { forecasting_end_date, close_date } = default_project;
+    const { close_date, winners_announced_date } = default_project;
     const { scheduled_close_time, scheduled_resolve_time } = approvalData;
 
-    // Checks whether given post potentially affects Project.forecasting_end_date value
+    // Checks whether given post potentially affects Project.close_date value
     if (
       // Show popup for single questions only
       post.question &&
       // Only eligible for Tournaments
       default_project.type == TournamentType.Tournament &&
-      forecasting_end_date &&
       close_date &&
+      winners_announced_date &&
       scheduled_close_time &&
       scheduled_resolve_time &&
-      isAfter(new Date(scheduled_close_time), new Date(forecasting_end_date)) &&
-      !isAfter(new Date(scheduled_resolve_time), new Date(close_date))
+      isAfter(new Date(scheduled_close_time), new Date(close_date)) &&
+      !isAfter(new Date(scheduled_resolve_time), new Date(winners_announced_date))
     ) {
-      setActiveModal("confirmForecastingEndDate");
+      setActiveModal("confirmCloseDate");
     } else {
       await handleApprove();
     }
@@ -349,7 +349,7 @@ const PostApprovalModal: FC<{
         </div>
       </BaseModal>{" "}
       <BaseModal
-        isOpen={activeModal == "confirmForecastingEndDate"}
+        isOpen={activeModal == "confirmCloseDate"}
         label={t("postQuestionApproval")}
         onClose={() => {
           setIsOpen(false);
@@ -358,13 +358,9 @@ const PostApprovalModal: FC<{
         <div className="flex max-w-sm flex-col gap-4">
           <p className="text-base leading-tight">
             {t.rich("postNotebookMoveDateModalCopy", {
-              tournament_forecasting_end_date:
-                default_project?.forecasting_end_date
-                  ? formatDate(
-                      locale,
-                      new Date(default_project.forecasting_end_date)
-                    )
-                  : "",
+              tournament_close_date: default_project?.close_date
+                ? formatDate(locale, new Date(default_project.close_date))
+                : "",
               question_close_date: approvalData.scheduled_close_time
                 ? formatDate(
                     locale,

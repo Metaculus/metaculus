@@ -56,10 +56,10 @@ export function filterTournaments(
       case TournamentsSortBy.PrizePoolDesc:
         return Number(b.prize_pool) - Number(a.prize_pool);
 
-      case TournamentsSortBy.CloseDateAsc:
+      case TournamentsSortBy.WinnersAnnouncedDateAsc:
         return differenceInMilliseconds(
-          new Date(a.close_date ?? 0),
-          new Date(b.close_date ?? 0)
+          new Date(a.winners_announced_date ?? 0),
+          new Date(b.winners_announced_date ?? 0)
         );
 
       case TournamentsSortBy.StartDateDesc:
@@ -97,7 +97,7 @@ const statusRank = (t: TournamentPreview, nowTs: number): number => {
   const hasQuestions = t.questions_count > 0;
   const allClosed = hasQuestions && !!t.timeline?.all_questions_closed;
   const allResolved = hasQuestions && !!t.timeline?.all_questions_resolved;
-  const forecastEndTs = safeTs(t.forecasting_end_date);
+  const forecastEndTs = safeTs(t.close_date);
   const forecastEnded = forecastEndTs != null && nowTs >= forecastEndTs;
   const forecastOpen = forecastEndTs != null && !forecastEnded;
 
@@ -112,7 +112,7 @@ const orderValue = (t: TournamentPreview): number =>
 
 const durationPctPassed = (t: TournamentPreview, nowTs: number): number => {
   const startTs = safeTs(t.start_date);
-  const endTs = safeTs(t.forecasting_end_date ?? t.close_date);
+  const endTs = safeTs(t.close_date ?? t.winners_announced_date);
   if (startTs == null || endTs == null || endTs <= startTs) {
     return Number.POSITIVE_INFINITY;
   }

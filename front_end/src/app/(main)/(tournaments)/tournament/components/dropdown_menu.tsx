@@ -99,8 +99,8 @@ const TournamentStats = ({ tournament }: { tournament: Tournament }) => {
   const isUpcoming =
     new Date(tournament.start_date || "").getTime() > Date.now();
   const forecastingClosed =
-    tournament.forecasting_end_date &&
-    new Date(tournament.forecasting_end_date).getTime() < Date.now();
+    tournament.close_date &&
+    new Date(tournament.close_date).getTime() < Date.now();
   const questionsResolved = !!tournament.timeline.latest_actual_resolve_time;
   return (
     <div className="flex flex-col items-start gap-4 self-stretch @container">
@@ -114,7 +114,7 @@ const TournamentStats = ({ tournament }: { tournament: Tournament }) => {
           </span>
         </div>
 
-        {tournament.forecasting_end_date && (
+        {tournament.close_date && (
           <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
             <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
               {forecastingClosed
@@ -123,7 +123,7 @@ const TournamentStats = ({ tournament }: { tournament: Tournament }) => {
               :
             </span>
             <span className="text-right text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
-              <LocalDaytime date={tournament.forecasting_end_date} />
+              <LocalDaytime date={tournament.close_date} />
             </span>
           </div>
         )}
@@ -142,13 +142,13 @@ const TournamentStats = ({ tournament }: { tournament: Tournament }) => {
             </span>
           </div>
         )}
-        {tournament.close_date && (
+        {tournament.winners_announced_date && (
           <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
             <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
               {t("winnersAnnounced")}:
             </span>
             <span className="text-right text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
-              <LocalDaytime date={tournament.close_date} />
+              <LocalDaytime date={tournament.winners_announced_date} />
             </span>
           </div>
         )}

@@ -152,7 +152,7 @@ def retrieve_question_scores(
     }
 
     finalize_time = leaderboard.finalize_time or (
-        leaderboard.project.close_date if leaderboard.project else None
+        leaderboard.project.winners_announced_date if leaderboard.project else None
     )
     if finalize_time:
         qs_filters["question__scheduled_close_time__lte"] = finalize_time
@@ -446,10 +446,10 @@ def assign_exclusions_(
         leaderboard.project.start_date if leaderboard.project else None
     )
     end_time = leaderboard.end_time or (
-        leaderboard.project.close_date if leaderboard.project else None
+        leaderboard.project.winners_announced_date if leaderboard.project else None
     )
     finalize_time = leaderboard.finalize_time or (
-        leaderboard.project.close_date if leaderboard.project else None
+        leaderboard.project.winners_announced_date if leaderboard.project else None
     )
     if start_time:
         exclusion_records = exclusion_records.filter(
@@ -592,7 +592,7 @@ def calculate_medals_points_at_time(at_time):
     # Look only at leaderboard entries which are closed before the timestamp
     relevant_entries_qs = LeaderboardEntry.objects.filter(
         Q(leaderboard__end_time__lte=at_time)
-        | Q(leaderboard__project__close_date__lte=at_time),
+        | Q(leaderboard__project__winners_announced_date__lte=at_time),
         leaderboard__project__default_permission=ObjectPermission.FORECASTER,
     )
 
@@ -601,7 +601,7 @@ def calculate_medals_points_at_time(at_time):
     leaderboard_age_expr = Case(
         When(
             leaderboard__project__type="tournament",
-            then=(at_time.year - ExtractYear(F("leaderboard__project__close_date"))),
+            then=(at_time.year - ExtractYear(F("leaderboard__project__winners_announced_date"))),
         ),
         When(
             leaderboard__end_time__isnull=False,
@@ -779,7 +779,7 @@ def process_entries_for_leaderboard_(
     assign_prizes_(entries, prize_pool)
     # check if we're ready to finalize and assign medals/prizes if applicable
     finalize_time = leaderboard.finalize_time or (
-        project.close_date if project else None
+        project.winners_announced_date if project else None
     )
     if force_finalize or (finalize_time and (timezone.now() >= finalize_time)):
         if (

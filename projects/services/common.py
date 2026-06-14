@@ -138,25 +138,25 @@ def get_projects_for_posts(
     return post_projects_map
 
 
-def move_project_forecasting_end_date(project: Project, post: Post):
-    if not project.close_date:
+def move_project_close_date(project: Project, post: Post):
+    if not project.winners_announced_date:
         return
 
-    forecasting_end_date = project.forecasting_end_date
+    close_date = project.close_date
 
     for question in post.get_questions():
         if (
-            question.scheduled_close_time <= project.close_date
-            and question.scheduled_resolve_time <= project.close_date
+            question.scheduled_close_time <= project.winners_announced_date
+            and question.scheduled_resolve_time <= project.winners_announced_date
             and (
-                not forecasting_end_date
-                or question.scheduled_close_time > forecasting_end_date
+                not close_date
+                or question.scheduled_close_time > close_date
             )
         ):
-            forecasting_end_date = question.scheduled_close_time
+            close_date = question.scheduled_close_time
 
-    project.forecasting_end_date = forecasting_end_date
-    project.save(update_fields=["forecasting_end_date"])
+    project.close_date = close_date
+    project.save(update_fields=["close_date"])
 
 
 def get_questions_by_project(
@@ -214,15 +214,15 @@ def _calculate_timeline_data(project: Project, questions: Iterable[Question]) ->
     actual_resolve_times = []
     scheduled_resolve_times = []
 
-    project_close_date = project.close_date or make_aware(datetime.max)
-    project_forecasting_end_date = project.forecasting_end_date or project_close_date
+    project_winners_announced_date = project.winners_announced_date or make_aware(datetime.max)
+    project_close_date = project.close_date or project_winners_announced_date
 
     for question in questions:
         if all_questions_resolved:
             all_questions_resolved = (
                 question.actual_resolve_time
                 # Or treat as resolved as scheduled resolution is in the future
-                or question.scheduled_resolve_time > project_close_date
+                or question.scheduled_resolve_time > project_winners_announced_date
             )
 
         # Determine questions closure
@@ -230,7 +230,7 @@ def _calculate_timeline_data(project: Project, questions: Iterable[Question]) ->
             close_time = question.actual_close_time or question.scheduled_close_time
             all_questions_closed = (
                 close_time <= timezone.now()
-                or close_time > project_forecasting_end_date
+                or close_time > project_close_date
             )
 
         if question.cp_reveal_time:
@@ -246,7 +246,7 @@ def _calculate_timeline_data(project: Project, questions: Iterable[Question]) ->
             scheduled_resolve_times.append(scheduled_resolve_time)
 
     def get_max(data: list):
-        return max([x for x in data if x <= project_close_date], default=None)
+        return max([x for x in data if x <= project_winners_announced_date], default=None)
 
     return {
         "last_cp_reveal_time": get_max(cp_reveal_times),
@@ -379,13 +379,13 @@ def get_feed_project_tiles() -> list[dict]:
             for q in questions
             if q.resolution_set_time and q.resolution_set_time >= three_days_ago
         )
-        project_close_date = project.close_date or make_aware(datetime.max)
+        project_winners_announced_date = project.winners_announced_date or make_aware(datetime.max)
         all_resolved = len(questions) > 0 and all(
             q.actual_resolve_time
             # Or treat as resolved if scheduled resolution is in the future
             or (
                 q.scheduled_resolve_time
-                and q.scheduled_resolve_time > project_close_date
+                and q.scheduled_resolve_time > project_winners_announced_date
             )
             for q in questions
         )
@@ -395,12 +395,12 @@ def get_feed_project_tiles() -> list[dict]:
                 for q in questions
                 if q.actual_resolve_time
                 and q.resolution_set_time
-                and q.actual_resolve_time <= project_close_date
+                and q.actual_resolve_time <= project_winners_announced_date
             ),
             default=None,
         )
         project_resolution_date = (
-            max(last_resolve_time, project.close_date or last_resolve_time)
+            max(last_resolve_time, project.winners_announced_date or last_resolve_time)
             if last_resolve_time
             else None
         )
@@ -441,9 +441,9 @@ def get_feed_project_tiles() -> list[dict]:
             p
             for p in projects
             if p.start_date
-            and p.close_date
-            and (total := (p.close_date - p.start_date).total_seconds()) > 0
-            and (p.close_date - now).total_seconds() / total > 0.5
+            and p.winners_announced_date
+            and (total := (p.winners_announced_date - p.start_date).total_seconds()) > 0
+            and (p.winners_announced_date - now).total_seconds() / total > 0.5
         ]
         if candidates:
             pick = random.choice(candidates)
