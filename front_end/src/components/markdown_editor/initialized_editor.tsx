@@ -258,11 +258,11 @@ const InitializedMarkdownEditor: FC<
       equationPlugin(),
     ];
 
-    if (!withCodeBlocks) {
-      return common;
-    }
-
-    if (mode === "read") {
+    // Always register codeBlockPlugin so pre-existing ``` fences in the source
+    // markdown parse — otherwise MDXEditor throws on unknown "code" nodes.
+    // `withCodeBlocks` only gates the insert-code-block toolbar affordance and
+    // the rich CodeMirror editing experience.
+    if (!withCodeBlocks || mode === "read") {
       return [
         ...common,
         codeBlockPlugin({
