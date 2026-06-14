@@ -15,6 +15,7 @@ import {
 } from "@/components/popover_filter/types";
 import PostsFilters from "@/components/posts_filters";
 import {
+  POST_COMMENTED_BY_FILTER,
   POST_FOLLOWING_FILTER,
   POST_FORECASTER_ID_FILTER,
   POST_NOT_FORECASTER_ID_FILTER,
@@ -227,6 +228,12 @@ function getTournamentPostsFilters({
           label: t("followed"),
           value: "true",
           active: !!params.get(POST_FOLLOWING_FILTER),
+        },
+        {
+          id: POST_COMMENTED_BY_FILTER,
+          label: t("commented"),
+          value: user.id.toString(),
+          active: !!params.get(POST_COMMENTED_BY_FILTER),
         },
       ],
     });
