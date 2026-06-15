@@ -9,7 +9,8 @@ export const JOBS_INSIGHTS = {
     negative: (
       <>
         By 2027, <strong>software developers</strong> are expected to already
-        start seeing a contraction due to AI coding capabilities.
+        start seeing their growth stall as AI coding capabilities begin to have
+        an early impact.
       </>
     ),
   },
