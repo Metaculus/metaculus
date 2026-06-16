@@ -72,6 +72,8 @@ const EVEN_CONNECTOR_PX = 8;
 // How far (in inbound-bin steps) to push the out-of-bounds "landslide" bins
 // beyond the last real outcome, opening a gap for the divider line. Tunable.
 const OOB_GAP_STEPS = 2;
+// Fraction of the chart's vertical height the out-of-bounds divider lines span.
+const OOB_DIVIDER_HEIGHT_FRAC = 0.5;
 
 // House on-hover vertical bar — tweak its color / thickness / opacity here.
 const HOVER_BAR_COLOR_LIGHT = "#334155";
@@ -689,7 +691,7 @@ const SeatDistributionChart: FC<Props> = ({
               name="oob-divider-l"
               data={[
                 { x: leftDividerX, y: 0 },
-                { x: leftDividerX, y: yMax },
+                { x: leftDividerX, y: yMax * OOB_DIVIDER_HEIGHT_FRAC },
               ]}
               style={{ data: { stroke: axisColor, strokeWidth: 1 } }}
             />
@@ -699,7 +701,7 @@ const SeatDistributionChart: FC<Props> = ({
               name="oob-divider-r"
               data={[
                 { x: rightDividerX, y: 0 },
-                { x: rightDividerX, y: yMax },
+                { x: rightDividerX, y: yMax * OOB_DIVIDER_HEIGHT_FRAC },
               ]}
               style={{ data: { stroke: axisColor, strokeWidth: 1 } }}
             />
