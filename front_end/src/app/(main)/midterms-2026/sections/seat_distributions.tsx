@@ -72,8 +72,10 @@ function DistributionSlot({
   evenLabel,
   unavailableLabel,
 }: SlotProps) {
-  // No post, or no Medalists aggregation to show -> unavailable placeholder.
-  if (!datum || !datum.medalistsCdf?.length) {
+  // No post, or no renderable Medalists CDF -> unavailable placeholder. The
+  // >=2 floor matches SeatDistributionChart's own minimum, so a degenerate
+  // 1-point CDF shows the placeholder rather than a blank slot.
+  if (!datum?.medalistsCdf || datum.medalistsCdf.length < 2) {
     return (
       <div>
         <h3 className="mb-2 text-center text-base font-medium uppercase tracking-wide text-blue-800 dark:text-blue-800-dark">
