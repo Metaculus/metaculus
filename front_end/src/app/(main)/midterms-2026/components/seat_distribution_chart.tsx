@@ -31,6 +31,9 @@ type Props = {
   /** Forecast-values CDF to render instead of the question's default CP — e.g.
    *  the Medalists aggregation. Falls back to the default CP when omitted. */
   cdfOverride?: number[];
+  /** Detach the open-bound "landslide" bins (the first/last sentinels) with a
+   *  gap + divider line and a ">N seat advantage" tooltip. House only. */
+  separateOutOfBounds?: boolean;
   /** Localized "Democrat Seat Advantage" label rendered below the x-axis. */
   demAdvantageLabel: string;
   /** Localized "Republican Seat Advantage" label rendered below the x-axis. */
@@ -66,6 +69,9 @@ const EVEN_TEXT_COLOR_LIGHT = "#475569";
 const EVEN_TEXT_COLOR_DARK = "#E2E8F0";
 // Length (px) of the connector line from the EVEN label down to the bin top.
 const EVEN_CONNECTOR_PX = 8;
+// How far (in inbound-bin steps) to push the out-of-bounds "landslide" bins
+// beyond the last real outcome, opening a gap for the divider line. Tunable.
+const OOB_GAP_STEPS = 2;
 
 // House on-hover vertical bar — tweak its color / thickness / opacity here.
 const HOVER_BAR_COLOR_LIGHT = "#334155";
@@ -78,6 +84,7 @@ type Point = { x: number; y: number };
 const SeatDistributionChart: FC<Props> = ({
   post,
   cdfOverride,
+  separateOutOfBounds,
   demAdvantageLabel,
   repAdvantageLabel,
   evenLabel,
@@ -111,8 +118,8 @@ const SeatDistributionChart: FC<Props> = ({
     const isDiscrete = question.type === QuestionType.Discrete;
 
     const step = (range_max - range_min) / (inbound_outcome_count - 1);
-    const domainMin = range_min - step / 2;
-    const domainMax = range_max + step / 2;
+    let domainMin = range_min - step / 2;
+    let domainMax = range_max + step / 2;
     const bins: Point[] = [
       domainMin,
       ...(discreteOptions ?? []),
@@ -124,6 +131,36 @@ const SeatDistributionChart: FC<Props> = ({
     // question serves a finer grid, bars would be silently wrong — render the
     // unavailable placeholder instead.
     if (isDiscrete && pmf.length !== bins.length) return null;
+
+    // Out-of-bounds (landslide) separation — House only. The first/last bins are
+    // the open-bound tails; push them outward to open a gap, and record a
+    // divider-line x in each gap. Identified from the live config, not hardcoded.
+    let leftDividerX: number | null = null;
+    let rightDividerX: number | null = null;
+    if (
+      separateOutOfBounds &&
+      isDiscrete &&
+      discreteOptions &&
+      discreteOptions.length >= 2 &&
+      bins.length >= 3
+    ) {
+      const optMin = discreteOptions[0] ?? 0;
+      const optMax = discreteOptions[discreteOptions.length - 1] ?? 0;
+      const optStep =
+        (discreteOptions[1] ?? 0) - (discreteOptions[0] ?? 0) || step;
+      const leftOobX = optMin - OOB_GAP_STEPS * optStep;
+      const rightOobX = optMax + OOB_GAP_STEPS * optStep;
+      const first = bins[0];
+      const last = bins[bins.length - 1];
+      if (first && last) {
+        bins[0] = { ...first, x: leftOobX };
+        bins[bins.length - 1] = { ...last, x: rightOobX };
+      }
+      leftDividerX = optMin - (OOB_GAP_STEPS / 2) * optStep;
+      rightDividerX = optMax + (OOB_GAP_STEPS / 2) * optStep;
+      domainMin = leftOobX - optStep / 2;
+      domainMax = rightOobX + optStep / 2;
+    }
 
     const curve: Point[] = bins;
 
@@ -183,8 +220,12 @@ const SeatDistributionChart: FC<Props> = ({
       dataMinX,
       dataMaxX,
       maxY,
+      rangeMin: range_min,
+      rangeMax: range_max,
+      leftDividerX,
+      rightDividerX,
     };
-  }, [question, cdfOverride]);
+  }, [question, cdfOverride, separateOutOfBounds]);
 
   if (!data || !question) return null;
 
@@ -200,6 +241,10 @@ const SeatDistributionChart: FC<Props> = ({
     dataMinX,
     dataMaxX,
     maxY,
+    rangeMin,
+    rangeMax,
+    leftDividerX,
+    rightDividerX,
   } = data;
   const chartWidth = containerWidth;
 
@@ -323,8 +368,13 @@ const SeatDistributionChart: FC<Props> = ({
   }) => {
     const seats = Math.abs(Math.round(datum.x));
     const probability = datum.y.toFixed(1);
-    const line1 =
-      datum.x === 0
+    const isOutOfBounds =
+      separateOutOfBounds && (datum.x < rangeMin || datum.x > rangeMax);
+    const line1 = isOutOfBounds
+      ? t("midtermsHubSeatAdvantageOverTooltip", {
+          count: Math.abs(Math.round(rangeMax)),
+        })
+      : datum.x === 0
         ? t("midtermsHubEvenTooltip")
         : t("midtermsHubSeatAdvantageTooltip", { count: seats });
     const line2 = t("midtermsHubProbabilityTooltip", { value: probability });
@@ -440,7 +490,9 @@ const SeatDistributionChart: FC<Props> = ({
               labelComponent={tooltipComponent}
               mouseFollowTooltips={false}
               voronoiBlacklist={
-                isDiscrete ? ["even-connector"] : ["area", "q-l", "q-m", "q-u"]
+                isDiscrete
+                  ? ["even-connector", "oob-divider-l", "oob-divider-r"]
+                  : ["area", "q-l", "q-m", "q-u"]
               }
               // Let the page scroll vertically through the chart on touch; the
               // chart only consumes horizontal moves (for the tooltip). Mirrors
@@ -627,6 +679,29 @@ const SeatDistributionChart: FC<Props> = ({
                 letterSpacing: 1,
                 fontFamily: TEXT_FONT_FAMILY,
               }}
+            />
+          )}
+
+          {/* Out-of-bounds divider lines — House only. A thin vertical rule in
+              the gap that detaches each landslide bin from the distribution. */}
+          {isDiscrete && leftDividerX !== null && (
+            <VictoryLine
+              name="oob-divider-l"
+              data={[
+                { x: leftDividerX, y: 0 },
+                { x: leftDividerX, y: yMax },
+              ]}
+              style={{ data: { stroke: axisColor, strokeWidth: 1 } }}
+            />
+          )}
+          {isDiscrete && rightDividerX !== null && (
+            <VictoryLine
+              name="oob-divider-r"
+              data={[
+                { x: rightDividerX, y: 0 },
+                { x: rightDividerX, y: yMax },
+              ]}
+              style={{ data: { stroke: axisColor, strokeWidth: 1 } }}
             />
           )}
 

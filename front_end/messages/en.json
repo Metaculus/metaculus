@@ -2342,6 +2342,7 @@
   "midtermsHubEven": "EVEN",
   "midtermsHubForecastUnavailable": "Forecast unavailable",
   "midtermsHubSeatAdvantageTooltip": "{count} seat advantage",
+  "midtermsHubSeatAdvantageOverTooltip": ">{count} seat advantage",
   "midtermsHubProbabilityTooltip": "{value}% probability",
   "midtermsHubEvenTooltip": "Even"
 }

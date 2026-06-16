@@ -2287,6 +2287,7 @@
   "midtermsHubEven": "REMÍZA",
   "midtermsHubForecastUnavailable": "Předpověď nedostupná",
   "midtermsHubSeatAdvantageTooltip": "Náskok {count} mandátů",
+  "midtermsHubSeatAdvantageOverTooltip": "Náskok více než {count} mandátů",
   "midtermsHubProbabilityTooltip": "{value}% pravděpodobnost",
   "midtermsHubEvenTooltip": "Remíza",
   "nMore": "{count} více",

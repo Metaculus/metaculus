@@ -33,6 +33,7 @@ export default async function SeatDistributionsSection() {
         <DistributionSlot
           title={t("midtermsHubHouseSeats")}
           datum={house}
+          separateOutOfBounds
           demAdvantageLabel={demAdvantageLabel}
           repAdvantageLabel={repAdvantageLabel}
           evenLabel={evenLabel}
@@ -54,6 +55,8 @@ export default async function SeatDistributionsSection() {
 type SlotProps = {
   title: string;
   datum: SeatDistributionDatum | null;
+  /** Detach the out-of-bounds landslide bins (House only). */
+  separateOutOfBounds?: boolean;
   demAdvantageLabel: string;
   repAdvantageLabel: string;
   evenLabel: string;
@@ -63,6 +66,7 @@ type SlotProps = {
 function DistributionSlot({
   title,
   datum,
+  separateOutOfBounds,
   demAdvantageLabel,
   repAdvantageLabel,
   evenLabel,
@@ -88,6 +92,7 @@ function DistributionSlot({
       <SeatDistributionChart
         post={datum.post}
         cdfOverride={datum.medalistsCdf}
+        separateOutOfBounds={separateOutOfBounds}
         demAdvantageLabel={demAdvantageLabel}
         repAdvantageLabel={repAdvantageLabel}
         evenLabel={evenLabel}
