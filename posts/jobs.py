@@ -8,16 +8,16 @@ import dramatiq
 from django.db.models import Q
 from django.utils import timezone
 
-from posts.models import Post, Notebook
-from posts.services.subscriptions import (
-    notify_milestone,
-    notify_date,
+from projects.services.subscriptions import (
+    notify_project_subscriptions_post_status_change,
 )
-from projects.services.subscriptions import notify_project_subscriptions_post_open
 from questions.models import Question
 from questions.services.lifecycle import handle_question_open
 from questions.services.movement import compute_question_movement
 from utils.models import ModelBatchUpdater
+
+from .models import Post
+from .services.subscriptions import notify_date, notify_milestone
 
 logger = logging.getLogger(__name__)
 
@@ -74,10 +74,38 @@ def job_compute_movement():
 @dramatiq.actor
 def job_check_post_open_event():
     """
-    A cron job to check for newly opened questions and published posts.
-    We moved this logic from Post-level to Question-level notifications
-    to enable status update emails for subquestion from groups.
+    A cron job to check for newly published / opened posts and questions.
+
+    Fires two distinct, idempotent events:
+    - publish event (tournament / project follower notifications) once per post
+      when its `published_at` passes — i.e. the post becomes Upcoming. This is a
+      Post-level lifecycle event, so adding questions to an already-published
+      post does not re-notify followers.
+    - open event (post-level status change notifications) per question when its
+      `open_time` passes. This stays question-level to support status update
+      emails for subquestions of a group.
     """
+
+    # Tournament / project follower notifications fire at publish time so
+    # pre-prediction posts are surfaced before they open for forecasting.
+    publish_posts_qs = (
+        Post.objects.filter_published()
+        .filter(published_at_triggered=False)
+        .select_related("notebook")
+    )
+
+    for post in publish_posts_qs:
+        try:
+            notify_project_subscriptions_post_status_change(
+                post,
+                event=Post.PostStatusChange.PUBLISHED,
+                notebook=post.notebook if post.notebook_id else None,
+            )
+        except Exception:
+            logger.exception("Failed to handle post publish")
+        finally:
+            post.published_at_triggered = True
+            post.save(update_fields=["published_at_triggered"])
 
     questions_qs = Question.objects.filter(
         post__in=Post.objects.filter_published(),
@@ -96,18 +124,3 @@ def job_check_post_open_event():
             # Mark as triggered
             question.open_time_triggered = True
             question.save(update_fields=["open_time_triggered"])
-
-    # Process notebook records
-    notebooks_qs = Notebook.objects.filter(
-        post__in=Post.objects.filter_published(), open_time_triggered=False
-    ).select_related("post")
-
-    for notebook in notebooks_qs:
-        try:
-            notify_project_subscriptions_post_open(notebook.post, notebook=notebook)
-        except Exception:
-            logger.exception("Failed to handle notebook publish")
-        finally:
-            # Mark as triggered
-            notebook.open_time_triggered = True
-            notebook.save(update_fields=["open_time_triggered"])

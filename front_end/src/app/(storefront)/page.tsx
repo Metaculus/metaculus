@@ -15,6 +15,11 @@ import EmailConfirmation from "../(main)/(home)/components/email_confirmation";
 // Edit this list to update Staff Picks on the storefront
 const STAFF_PICKS = [
   {
+    name: "US Midterms",
+    emoji: "🇺🇸",
+    url: "/midterms-2026",
+  },
+  {
     name: "Iran War",
     emoji: "💥",
     url: "/questions/?topic=2026-iran-war&for_main_feed=false",

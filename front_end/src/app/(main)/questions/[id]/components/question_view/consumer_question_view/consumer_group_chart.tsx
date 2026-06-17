@@ -22,8 +22,12 @@ const ConsumerGroupChart: FC<Props> = ({
   chartHeight,
   visibleQuestions,
 }) => {
-  const { hoveredChoiceName, setHoveredChoiceName, chartAreaHeight } =
-    useListChartExpanded();
+  const {
+    hoveredChoiceName,
+    setHoveredChoiceName,
+    chartAreaHeight,
+    setCursorTimestamp,
+  } = useListChartExpanded();
   const { open_time, actual_close_time, scheduled_close_time, status } = post;
   const refCloseTime = actual_close_time ?? scheduled_close_time;
 
@@ -51,6 +55,8 @@ const ConsumerGroupChart: FC<Props> = ({
         withHighlightArea={false}
         externalHighlightedChoice={hoveredChoiceName}
         chartHeight={effectiveChartHeight}
+        onCursorChange={setCursorTimestamp}
+        hideTooltip
       />
     </div>
   );

@@ -26,7 +26,9 @@ const StickyFilterBar: React.FC<{
 
     obsRef.current?.disconnect();
 
-    const stickyTop = Math.round(parseFloat(getComputedStyle(sticky).top));
+    const rawTop = parseFloat(getComputedStyle(sticky).top);
+    const stickyTop =
+      Number.isFinite(rawTop) && rawTop >= 0 ? Math.round(rawTop) : 0;
 
     const obs = new IntersectionObserver(
       ([entry]) => setIsStuck(!entry?.isIntersecting),

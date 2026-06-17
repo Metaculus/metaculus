@@ -15,6 +15,7 @@ type Props = {
   questionType: QuestionType;
   onChoiceChange: (choice: string, checked: boolean) => void;
   onChoiceHighlight: (choice: string, highlighted: boolean) => void;
+  hideCP?: boolean;
 };
 
 function isResolvedNo(item: ChoiceItem, questionType: QuestionType): boolean {
@@ -55,6 +56,7 @@ const CompactLegendBar: FC<Props> = ({
   questionType,
   onChoiceChange,
   onChoiceHighlight,
+  hideCP,
 }) => {
   const t = useTranslations();
   const [showAll, setShowAll] = useState(false);
@@ -148,9 +150,11 @@ const CompactLegendBar: FC<Props> = ({
                 <span className="max-w-[300px] truncate text-sm font-medium leading-4 text-gray-800 dark:text-gray-800-dark md:text-base md:leading-5">
                   {item.label || item.choice}
                 </span>
-                <span className="shrink-0 text-sm tabular-nums leading-4 text-gray-600 dark:text-gray-600-dark md:text-base md:leading-6">
-                  {resolvedYes ? `(${t("Yes")})` : pct}
-                </span>
+                {(resolvedYes || (!item.isDeleted && !hideCP)) && (
+                  <span className="shrink-0 text-sm tabular-nums leading-4 text-gray-600 dark:text-gray-600-dark md:text-base md:leading-6">
+                    {resolvedYes ? `(${t("Yes")})` : pct}
+                  </span>
+                )}
               </>
             )}
           </div>

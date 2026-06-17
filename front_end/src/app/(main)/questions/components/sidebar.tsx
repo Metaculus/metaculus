@@ -285,7 +285,9 @@ const FeedSidebar: FC<Props> = ({
 
     mobileTopBarObserverRef.current?.disconnect();
 
-    const stickyTop = Math.round(parseFloat(getComputedStyle(topBar).top));
+    const rawTop = parseFloat(getComputedStyle(topBar).top);
+    const stickyTop =
+      Number.isFinite(rawTop) && rawTop >= 0 ? Math.round(rawTop) : 0;
     const observer = new IntersectionObserver(
       ([entry]) => setIsMobileTopBarStuck(!entry?.isIntersecting),
       {

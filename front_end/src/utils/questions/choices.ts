@@ -172,6 +172,7 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
         : isUpcoming
           ? choice + " (" + t("Upcoming") + ")"
           : choice,
+      isDeleted,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       highlighted: false,
       active: true,

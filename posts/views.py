@@ -578,6 +578,7 @@ def post_similar_posts_api_view(request: Request, pk):
         posts,
         with_cp=True,
         group_cutoff=1,
+        include_cp_history=True,
         current_user=request.user if request.user.is_authenticated else None,
     )
 

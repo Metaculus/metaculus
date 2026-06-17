@@ -496,6 +496,7 @@ const ContinuousAreaChart: FC<Props> = ({
   const CursorContainer = (
     <VictoryCursorContainer
       cursorLabel={"label"}
+      cursorLabelOffset={{ x: 0, y: 0 }}
       style={{
         strokeWidth: 0,
         touchAction: "pan-y",
