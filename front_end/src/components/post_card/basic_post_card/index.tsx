@@ -67,7 +67,11 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
           }[borderColor]
         )}
       >
-        <Link href={getPostLink(post)} className="block no-underline">
+        <Link
+          href={getPostLink(post)}
+          prefetch={false}
+          className="block no-underline"
+        >
           {!hideTitle && (
             <div className="mb-[18px] flex flex-col gap-[10px] @[480px]:mb-0 @[480px]:flex-row @[480px]:gap-3">
               <h4

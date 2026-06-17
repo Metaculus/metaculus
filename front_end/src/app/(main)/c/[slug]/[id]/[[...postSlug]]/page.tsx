@@ -18,7 +18,9 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
-  const postData = await ServerPostsApi.getPost(params.id);
+  const postData = await ServerPostsApi.getPost(params.id, false, {
+    next: { revalidate: 60 },
+  });
 
   if (!postData) {
     return {};

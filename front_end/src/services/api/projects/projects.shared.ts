@@ -1,5 +1,9 @@
 import { ApiService } from "@/services/api/api_service";
-import { PaginatedPayload, PaginationParams } from "@/types/fetch";
+import {
+  FetchOptions,
+  PaginatedPayload,
+  PaginationParams,
+} from "@/types/fetch";
 import { Post, ProjectPermissions } from "@/types/post";
 import {
   Category,
@@ -65,12 +69,19 @@ class ProjectsApi extends ApiService {
     const queryParams = encodeQueryParams(params ?? {});
 
     return await this.get<TournamentPreview[]>(
-      `/projects/tournaments/${queryParams}`
+      `/projects/tournaments/${queryParams}`,
+      { next: { revalidate: 60 } }
     );
   }
 
-  async getTournament(slug: string | number): Promise<Tournament | null> {
-    return await this.get<Tournament>(`/projects/tournaments/${slug}/`);
+  async getTournament(
+    slug: string | number,
+    fetchOptions?: FetchOptions
+  ): Promise<Tournament | null> {
+    return await this.get<Tournament>(
+      `/projects/tournaments/${slug}/`,
+      fetchOptions
+    );
   }
 
   async getMinibenchTournaments(): Promise<TournamentPreview[]> {
@@ -95,8 +106,11 @@ class ProjectsApi extends ApiService {
     );
   }
 
-  async getCommunity(slug: string): Promise<Community> {
-    return this.get<Community>(`/projects/communities/${slug}/`);
+  async getCommunity(
+    slug: string,
+    fetchOptions?: FetchOptions
+  ): Promise<Community> {
+    return this.get<Community>(`/projects/communities/${slug}/`, fetchOptions);
   }
 }
 

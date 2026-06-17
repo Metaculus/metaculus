@@ -11,7 +11,7 @@ import UserInfo from "@/app/(main)/accounts/profile/components/user_info";
 import Button from "@/components/ui/button";
 import { defaultDescription } from "@/constants/metadata";
 import ServerProfileApi from "@/services/api/profile/profile.server";
-import { UserProfile } from "@/types/users";
+import { UserProfileWithStats } from "@/types/users";
 import cn from "@/utils/core/cn";
 
 const SoftDeleteButton = dynamic(
@@ -25,7 +25,11 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
-  const profile = await ServerProfileApi.getProfileById(+params.id);
+  const profile = await ServerProfileApi.getProfileById(
+    +params.id,
+    {},
+    { next: { revalidate: 60 } }
+  );
 
   if (!profile) {
     return {};
@@ -46,7 +50,12 @@ export default async function ProfileLayout(props: Props) {
   const currentUser = await ServerProfileApi.getMyProfile();
   const isCurrentUser = currentUser?.id === id;
 
-  let profile: UserProfile = await ServerProfileApi.getProfileById(id);
+  let profile: UserProfileWithStats = await ServerProfileApi.getProfileById(
+    id,
+    {
+      includeStats: true,
+    }
+  );
 
   if (!profile) {
     return notFound();
