@@ -269,6 +269,9 @@ const createQuestionSchemas = (
         z
           .string()
           .min(1, { message: t("errorRequired") })
+          .max(30, {
+            message: t("errorMaxLength", { field: "String", maxLength: 30 }),
+          })
           .refine((value) => value.trim() !== "", {
             message: t("emptyOptionError"),
           })
@@ -774,6 +777,7 @@ const QuestionForm: FC<Props> = ({
                         <Input
                           {...form.register(`options.${opt_index}`)}
                           readOnly={optionsLocked}
+                          maxLength={30}
                           className="my-2 w-full min-w-32 rounded border  border-gray-500 p-2 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                           value={option}
                           placeholder={`Option ${opt_index + 1}`}
