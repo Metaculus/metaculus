@@ -1,4 +1,5 @@
 import { ApiService } from "@/services/api/api_service";
+import { FetchOptions } from "@/types/fetch";
 import {
   CurrentBot,
   User,
@@ -10,18 +11,22 @@ import { encodeQueryParams } from "@/utils/navigation";
 class ProfileApi extends ApiService {
   async getProfileById(
     id: number,
-    options: { includeStats: true }
+    options: { includeStats: true },
+    fetchOptions?: FetchOptions
   ): Promise<UserProfileWithStats>;
   async getProfileById(
     id: number,
-    options?: { includeStats?: false }
+    options?: { includeStats?: false },
+    fetchOptions?: FetchOptions
   ): Promise<UserProfile>;
   async getProfileById(
     id: number,
-    { includeStats = false }: { includeStats?: boolean } = {}
+    { includeStats = false }: { includeStats?: boolean } = {},
+    fetchOptions?: FetchOptions
   ): Promise<UserProfile | UserProfileWithStats> {
     return await this.get<UserProfileWithStats>(
-      `/users/${id}/${encodeQueryParams({ include_stats: includeStats })}`
+      `/users/${id}/${encodeQueryParams({ include_stats: includeStats })}`,
+      fetchOptions
     );
   }
 
