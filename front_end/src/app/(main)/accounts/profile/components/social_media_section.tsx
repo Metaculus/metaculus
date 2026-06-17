@@ -87,7 +87,7 @@ const SocialMediaFragment: FC<{
       {socialMedia.map(({ icon, link, name }) => {
         return (
           <div key={name} className="flex flex-col">
-            <Link href={link} target="_blank" rel="ugc">
+            <Link href={link} target="_blank" rel="ugc noopener noreferrer">
               <FontAwesomeIcon
                 icon={icon}
                 size="lg"
