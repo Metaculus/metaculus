@@ -6,11 +6,11 @@ import { FC } from "react";
 
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import { useAuth } from "@/contexts/auth_context";
-import { UserProfile } from "@/types/users";
+import { UserProfileWithStats } from "@/types/users";
 import { isPathEqual } from "@/utils/navigation";
 
 type Props = {
-  profile: UserProfile;
+  profile: UserProfileWithStats;
 };
 
 const ProfileMenu: FC<Props> = ({

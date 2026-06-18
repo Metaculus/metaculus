@@ -4,6 +4,7 @@ import { cache } from "react";
 
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import ServerQuestionsApi from "@/services/api/questions/questions.server";
+import { FetchOptions } from "@/types/fetch";
 import { getPostLink } from "@/utils/navigation";
 
 import { SLUG_POST_SUB_QUESTION_ID } from "../../search_params";
@@ -11,9 +12,13 @@ import { SLUG_POST_SUB_QUESTION_ID } from "../../search_params";
 /**
  * A backward compatibility util
  */
-async function getPost(id: number, with_cp = true) {
+async function getPost(
+  id: number,
+  with_cp = true,
+  fetchOptions?: FetchOptions
+) {
   try {
-    return await ServerPostsApi.getPost(id, with_cp);
+    return await ServerPostsApi.getPost(id, with_cp, fetchOptions);
   } catch (e) {
     const lastLegacyQuestionId = parseInt(
       process.env.LAST_LEGACY_QUESTION_ID || ""
@@ -48,3 +53,9 @@ async function getPost(id: number, with_cp = true) {
 }
 
 export const cachedGetPost = cache(getPost);
+
+async function getPostForMetadata(id: number) {
+  return getPost(id, false);
+}
+
+export const cachedGetPostForMetadata = cache(getPostForMetadata);
