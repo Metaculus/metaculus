@@ -1,8 +1,10 @@
 "use client";
 
-import { capitalize, isNil } from "lodash";
+import { isNil } from "lodash";
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { ANNULLED_RESOLUTION } from "@/constants/questions";
 import { QuestionStatus } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
@@ -18,7 +20,13 @@ type Props = {
 };
 
 const ContinuousCompactForecastText: FC<Props> = ({ question, className }) => {
+  const t = useTranslations();
+
   if (isUnsuccessfullyResolved(question.resolution)) {
+    const label =
+      question.resolution === ANNULLED_RESOLUTION
+        ? t("resolutionAnnulled")
+        : t("resolutionAmbiguous");
     return (
       <span
         className={cn(
@@ -26,9 +34,7 @@ const ContinuousCompactForecastText: FC<Props> = ({ question, className }) => {
           className
         )}
       >
-        <span className="font-bold">
-          {capitalize(question.resolution as string)}
-        </span>
+        <span className="font-bold">{label}</span>
       </span>
     );
   }
