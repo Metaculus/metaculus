@@ -589,3 +589,6 @@ def build_question_forecasts(
             question.latest_aggregate_forecast = serialize_aggregate_forecast(
                 latest, question.type, full=True
             )
+        else:
+            question.latest_aggregate_forecast = None
+        question.save(update_fields=["latest_aggregate_forecast"])
