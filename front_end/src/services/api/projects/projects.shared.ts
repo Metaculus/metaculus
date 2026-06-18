@@ -69,8 +69,7 @@ class ProjectsApi extends ApiService {
     const queryParams = encodeQueryParams(params ?? {});
 
     return await this.get<TournamentPreview[]>(
-      `/projects/tournaments/${queryParams}`,
-      { next: { revalidate: 60 } }
+      `/projects/tournaments/${queryParams}`
     );
   }
 
