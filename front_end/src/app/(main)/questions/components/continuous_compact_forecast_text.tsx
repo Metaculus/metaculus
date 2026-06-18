@@ -1,6 +1,6 @@
 "use client";
 
-import { isNil } from "lodash";
+import { capitalize, isNil } from "lodash";
 import { FC } from "react";
 
 import { QuestionStatus } from "@/types/post";
@@ -10,6 +10,7 @@ import {
   getDiscreteValueOptions,
   getPredictionDisplayValue,
 } from "@/utils/formatters/prediction";
+import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -17,6 +18,21 @@ type Props = {
 };
 
 const ContinuousCompactForecastText: FC<Props> = ({ question, className }) => {
+  if (isUnsuccessfullyResolved(question.resolution)) {
+    return (
+      <span
+        className={cn(
+          "text-xs font-medium text-gray-700 dark:text-gray-700-dark",
+          className
+        )}
+      >
+        <span className="font-bold">
+          {capitalize(question.resolution as string)}
+        </span>
+      </span>
+    );
+  }
+
   const latest =
     question.aggregations[question.default_aggregation_method]?.latest;
 
