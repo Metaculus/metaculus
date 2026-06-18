@@ -55,7 +55,7 @@ async function getPost(
 export const cachedGetPost = cache(getPost);
 
 async function getPostForMetadata(id: number) {
-  return getPost(id, false, { next: { revalidate: 60 } });
+  return getPost(id, false);
 }
 
 export const cachedGetPostForMetadata = cache(getPostForMetadata);
