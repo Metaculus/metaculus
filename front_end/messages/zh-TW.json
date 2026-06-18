@@ -2284,6 +2284,7 @@
   "midtermsHubEven": "持平",
   "midtermsHubForecastUnavailable": "暫無預測",
   "midtermsHubSeatAdvantageTooltip": "領先 {count} 席",
+  "midtermsHubSeatAdvantageOverTooltip": "領先超過 {count} 席",
   "midtermsHubProbabilityTooltip": "{value}% 機率",
   "midtermsHubEvenTooltip": "持平",
   "nMore": "還有 {count} 個",
