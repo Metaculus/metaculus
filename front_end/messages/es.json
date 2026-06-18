@@ -2287,6 +2287,7 @@
   "midtermsHubEven": "EMPATE",
   "midtermsHubForecastUnavailable": "Pronóstico no disponible",
   "midtermsHubSeatAdvantageTooltip": "{count} escaños de ventaja",
+  "midtermsHubSeatAdvantageOverTooltip": ">{count} escaños de ventaja",
   "midtermsHubProbabilityTooltip": "{value}% de probabilidad",
   "midtermsHubEvenTooltip": "Empate",
   "nMore": "{count} más",

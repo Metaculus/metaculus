@@ -2285,6 +2285,7 @@
   "midtermsHubEven": "EMPATE",
   "midtermsHubForecastUnavailable": "Previsão indisponível",
   "midtermsHubSeatAdvantageTooltip": "{count} cadeiras de vantagem",
+  "midtermsHubSeatAdvantageOverTooltip": ">{count} cadeiras de vantagem",
   "midtermsHubProbabilityTooltip": "{value}% de probabilidade",
   "midtermsHubEvenTooltip": "Empate",
   "nMore": "{count} a mais",
