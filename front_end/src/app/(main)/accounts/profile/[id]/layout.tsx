@@ -25,11 +25,7 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
-  const profile = await ServerProfileApi.getProfileById(
-    +params.id,
-    {},
-    { next: { revalidate: 60 } }
-  );
+  const profile = await ServerProfileApi.getProfileById(+params.id);
 
   if (!profile) {
     return {};
