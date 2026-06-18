@@ -281,10 +281,12 @@ const fetchMedalistsCdf = async (postId: number): Promise<number[] | null> => {
   try {
     const question = (await ServerAggregationsExplorerApi.getAggregations({
       postId,
-      aggregationMethods: "medalists",
+      aggregationMethods: "silver_medalists",
       includeBots: false,
     })) as NumericAggregationExtraQuestion;
-    return question?.aggregations?.medalists?.latest?.forecast_values ?? null;
+    return (
+      question?.aggregations?.silver_medalists?.latest?.forecast_values ?? null
+    );
   } catch {
     return null;
   }
