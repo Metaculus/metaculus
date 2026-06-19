@@ -11,14 +11,37 @@ const NOTEBOOK_THUMBNAIL_HEIGHT = 96;
 
 type Props = {
   post: NotebookPost;
+  fullBackground?: boolean;
 };
 
-const NotebookTile: FC<Props> = ({ post }) => {
+const NotebookTile: FC<Props> = ({ post, fullBackground = false }) => {
   const { ref, width } = useContainerSize<HTMLDivElement>();
 
   const { notebook } = post;
   const hasImage =
     !!notebook.image_url && notebook.image_url.startsWith("https:");
+
+  if (fullBackground) {
+    return (
+      <div ref={ref} className="min-w-0">
+        {!!width && (
+          <MarkdownEditor
+            mode="read"
+            markdown={
+              notebook.feed_tile_summary ||
+              getMarkdownSummary({
+                markdown: notebook.markdown,
+                width,
+                height: 80,
+              })
+            }
+            contentEditableClassName="!m-0 line-clamp-3 !text-sm !leading-5 !text-gray-0 *:m-0 dark:!text-gray-0-dark"
+            withUgcLinks
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="flex gap-4">

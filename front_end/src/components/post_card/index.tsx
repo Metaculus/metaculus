@@ -46,6 +46,12 @@ const PostCard: FC<Props> = ({
 
   const canPredict = canPredictQuestion(internalPost, user);
 
+  const notebookImageUrl =
+    isNotebookPost(internalPost) &&
+    internalPost.notebook.image_url?.startsWith("https:")
+      ? internalPost.notebook.image_url
+      : undefined;
+
   return (
     <CardReaffirmContextProvider
       post={internalPost}
@@ -57,6 +63,7 @@ const PostCard: FC<Props> = ({
           hideTitle={!!internalPost.conditional}
           borderVariant={internalPost.notebook ? "highlighted" : "regular"}
           borderColor={internalPost.notebook ? "purple" : "blue"}
+          backgroundImageUrl={notebookImageUrl}
           forCommunityFeed={forCommunityFeed}
           indexWeight={indexWeight}
           minimalistic={minimalistic}
@@ -85,7 +92,10 @@ const PostCard: FC<Props> = ({
               <ConditionalTile post={internalPost} />
             )}
             {isNotebookPost(internalPost) && (
-              <NotebookTile post={internalPost} />
+              <NotebookTile
+                post={internalPost}
+                fullBackground={!!notebookImageUrl}
+              />
             )}
           </HideCPProvider>
         </BasicPostCard>

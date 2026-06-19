@@ -1,6 +1,7 @@
 "use client";
 
 import { isNil } from "lodash";
+import Image from "next/image";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
@@ -24,6 +25,7 @@ type Props = {
   hideTitle?: boolean;
   borderVariant?: BorderVariant;
   borderColor?: BorderColor;
+  backgroundImageUrl?: string;
   forCommunityFeed?: boolean;
   indexWeight?: number;
   minimalistic?: boolean;
@@ -35,6 +37,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
   hideTitle = false,
   borderVariant = "regular",
   borderColor = "blue",
+  backgroundImageUrl,
   children,
   forCommunityFeed,
   indexWeight,
@@ -42,6 +45,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
   useShortTitle = false,
 }) => {
   const title = useShortTitle ? post.short_title || post.title : post.title;
+  const hasBackgroundImage = !!backgroundImageUrl;
 
   return (
     <div>
@@ -56,27 +60,48 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
         )}
       <div
         className={cn(
-          "flex flex-col overflow-hidden rounded bg-gray-0 px-5 py-4 transition-colors @container dark:bg-gray-0-dark",
-          { regular: "border", highlighted: "border border-l-4" }[
-            borderVariant
-          ],
-          {
-            blue: "border-blue-400 hover:border-blue-500 dark:border-blue-400-dark dark:hover:border-blue-500-dark dark:hover:bg-gray-100-dark",
-            purple:
-              "border-purple-500 hover:border-purple-600 dark:border-purple-500-dark dark:hover:border-purple-600-dark dark:hover:bg-gray-100-dark",
-          }[borderColor]
+          "flex flex-col overflow-hidden rounded px-5 py-4 transition-colors @container",
+          hasBackgroundImage
+            ? "group relative min-h-[160px] justify-end border border-transparent text-gray-0 hover:border-gray-0/70"
+            : cn(
+                "bg-gray-0 dark:bg-gray-0-dark",
+                { regular: "border", highlighted: "border border-l-4" }[
+                  borderVariant
+                ],
+                {
+                  blue: "border-blue-400 hover:border-blue-500 dark:border-blue-400-dark dark:hover:border-blue-500-dark dark:hover:bg-gray-100-dark",
+                  purple:
+                    "border-purple-500 hover:border-purple-600 dark:border-purple-500-dark dark:hover:border-purple-600-dark dark:hover:bg-gray-100-dark",
+                }[borderColor]
+              )
         )}
       >
+        {hasBackgroundImage && (
+          <>
+            <div className="absolute inset-0 bg-black" />
+            <Image
+              src={backgroundImageUrl}
+              alt=""
+              fill
+              unoptimized
+              className="absolute inset-0 size-full object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10 transition-colors group-hover:from-black/95" />
+          </>
+        )}
         <Link
           href={getPostLink(post)}
           prefetch={false}
-          className="block no-underline"
+          className={cn("block no-underline", hasBackgroundImage && "relative")}
         >
           {!hideTitle && (
             <div className="mb-[18px] flex flex-col gap-[10px] @[480px]:mb-0 @[480px]:flex-row @[480px]:gap-3">
               <h4
                 className={cn(
-                  "relative mb-0 mt-0 text-base font-semibold text-gray-900 @[480px]:mb-3 dark:text-gray-900-dark",
+                  "relative mb-0 mt-0 text-base font-semibold @[480px]:mb-3",
+                  hasBackgroundImage
+                    ? "text-gray-0"
+                    : "text-gray-900 dark:text-gray-900-dark",
                   minimalistic && " line-clamp-2"
                 )}
               >
@@ -92,7 +117,11 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
           {children}
         </Link>
         <div className="mt-auto" />
-        <BasicPostControls post={post} minimalistic={minimalistic} />
+        <BasicPostControls
+          post={post}
+          minimalistic={minimalistic}
+          onImage={hasBackgroundImage}
+        />
         {!minimalistic && isQuestionPost(post) && (
           <CoherenceLinksProvider post={post}>
             <KeyFactorsTileView post={post} />
