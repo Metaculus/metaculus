@@ -982,6 +982,9 @@ def run_update_global_bot_leaderboard(
     assert not bot_recent_coverage or not bot_recent_scores, (
         "can only set one of bot_recent_coverage or bot_recent_scores"
     )
+    assert not non_metac_bots_by_year or include_non_metac_bots, (
+        "non_metac_bots_by_year requires include_non_metac_bots to be set"
+    )
 
     # SETUP: users to evaluate & questions
     print("Initializing...")
@@ -1129,8 +1132,6 @@ def run_update_global_bot_leaderboard(
                 user1_id = f"Pro Aggregate ({datetime.fromtimestamp(timestamp).year})"
             if user2_id == "Pro Aggregate":
                 user2_id = f"Pro Aggregate ({datetime.fromtimestamp(timestamp).year})"
-        if non_metac_bots_by_year:
-            raise NotImplementedError("non_metac_bots_by_year not implemented yet")
         temp_uer1_ids.append(user1_id)
         temp_user2_ids.append(user2_id)
     user1_ids = temp_uer1_ids
@@ -1159,6 +1160,30 @@ def run_update_global_bot_leaderboard(
     )
     if not include_non_metac_bots:
         excluded_ids = excluded_ids.union(non_metac_bot_ids)
+
+    # split non-metac bots into per-year players, parallel to cp/pro aggregates.
+    # done here (after non_metac_bot_ids is known) rather than in the mapping loop
+    # above. converting these ids to year-tagged strings also removes them from
+    # non_metac_bot_ids membership, which intentionally bypasses the recency filter
+    # below so the full per-year history is retained.
+    if non_metac_bots_by_year:
+        non_metac_bot_usernames: dict[int, str] = dict(
+            User.objects.filter(id__in=non_metac_bot_ids).values_list(
+                "id", "username"
+            )
+        )
+        temp_user1_ids = []
+        temp_user2_ids = []
+        for user1_id, user2_id, timestamp in zip(user1_ids, user2_ids, timestamps):
+            year = datetime.fromtimestamp(timestamp).year
+            if user1_id in non_metac_bot_ids:
+                user1_id = f"{non_metac_bot_usernames[user1_id]} ({year})"
+            if user2_id in non_metac_bot_ids:
+                user2_id = f"{non_metac_bot_usernames[user2_id]} ({year})"
+            temp_user1_ids.append(user1_id)
+            temp_user2_ids.append(user2_id)
+        user1_ids = temp_user1_ids
+        user2_ids = temp_user2_ids
 
     # initialize loop
     print("Starting matches:", len(timestamps))
