@@ -1,8 +1,8 @@
-import IsabelJuniewiczImage from "@/app/(main)/pro-forecasters/assets/Isabel Juniewicz.png";
-import JaredImage from "@/app/(main)/pro-forecasters/assets/Jared.png";
-import MarkusImage from "@/app/(main)/pro-forecasters/assets/Max.png";
-import PeterWildefordImage from "@/app/(main)/pro-forecasters/assets/Peter Wildeford.png";
-import ScottEastmanImage from "@/app/(main)/pro-forecasters/assets/Scott Eastman.jpeg";
+import IsabelJuniewiczImage from "./pro-forecasters/assets/Isabel Juniewicz.png";
+import JaredImage from "./pro-forecasters/assets/Jared.png";
+import MarkusImage from "./pro-forecasters/assets/Max.png";
+import PeterWildefordImage from "./pro-forecasters/assets/Peter Wildeford.png";
+import ScottEastmanImage from "./pro-forecasters/assets/Scott Eastman.jpeg";
 
 const ServiceConfig = {
   proForecastersImages: [

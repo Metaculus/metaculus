@@ -89,7 +89,9 @@ def comments_list_api_view(request: Request):
     ).run_validation(request.query_params.get("use_root_comments_pagination"))
 
     # Validate query parameters using the serializer
-    filters_serializer = CommentFilterSerializer(data=request.query_params)
+    filters_serializer = CommentFilterSerializer(
+        data=request.query_params, context={"request": request}
+    )
     filters_serializer.is_valid(raise_exception=True)
 
     validated_data = filters_serializer.validated_data
