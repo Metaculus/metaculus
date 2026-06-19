@@ -49,6 +49,83 @@ def participation_parent_key(uid: int | str) -> int | str:
     return uid
 
 
+# 95% normal critical value, used to convert CI half-widths to/from SEs.
+_CI_Z = 1.959963985
+
+
+def combine_year_split_players(
+    skills: SkillType,
+    ci_lower: dict[int | str, float],
+    ci_upper: dict[int | str, float],
+    player_stats: dict[int | str, list],
+) -> tuple[SkillType, dict[int | str, float], dict[int | str, float], dict[int | str, list]]:
+    """Collapse year-split players (e.g. "Community Aggregate (2025)" or
+    "SomeBot (2024)") into a single combined entry per parent, so the
+    leaderboard reports one number per model rather than one per year.
+
+    - score: contribution-count-weighted mean of the per-year skills, with
+      weight = max(distinct-question count, 1).
+    - CI: per-year half-widths are converted to SEs and propagated through the
+      same normalized weights -- se_combined = sqrt(Σ (wᵢ/W)² · seᵢ²), then
+      score ± z·se_combined. Combining estimates *narrows* the interval. CI is
+      dropped unless every member has both bounds.
+    - match count / distinct questions / coverage: combined across the year
+      slices (which are disjoint in questions).
+
+    Single-member groups (including non-year-split players and integer
+    metac/third-party bot ids) pass through unchanged except for being renamed
+    to their parent key, preserving the original (possibly asymmetric) CI.
+    """
+    groups: dict[int | str, list[int | str]] = defaultdict(list)
+    for uid in skills:
+        groups[participation_parent_key(uid)].append(uid)
+
+    new_skills: SkillType = {}
+    new_ci_lower: dict[int | str, float] = {}
+    new_ci_upper: dict[int | str, float] = {}
+    new_player_stats: dict[int | str, list] = {}
+    for parent, members in groups.items():
+        match_count = sum(player_stats[m][0] for m in members)
+        questions: set[int] = set()
+        for m in members:
+            questions |= player_stats[m][1]
+        coverage_total = sum(player_stats[m][2] for m in members)
+        new_player_stats[parent] = [match_count, questions, coverage_total]
+
+        if len(members) == 1:
+            # Preserve the original (possibly asymmetric) bootstrap CI.
+            member = members[0]
+            new_skills[parent] = skills[member]
+            if member in ci_lower:
+                new_ci_lower[parent] = ci_lower[member]
+            if member in ci_upper:
+                new_ci_upper[parent] = ci_upper[member]
+            continue
+
+        weights = [max(len(player_stats[m][1]), 1) for m in members]
+        total_weight = sum(weights)
+        combined_score = (
+            sum(skills[m] * w for m, w in zip(members, weights)) / total_weight
+        )
+        new_skills[parent] = combined_score
+
+        have_all_cis = all(
+            ci_lower.get(m) is not None and ci_upper.get(m) is not None
+            for m in members
+        )
+        if have_all_cis:
+            combined_var = 0.0
+            for m, w in zip(members, weights):
+                se = (ci_upper[m] - ci_lower[m]) / (2 * _CI_Z)
+                norm_w = w / total_weight
+                combined_var += norm_w * norm_w * se * se
+            combined_se = float(np.sqrt(combined_var))
+            new_ci_lower[parent] = combined_score - _CI_Z * combined_se
+            new_ci_upper[parent] = combined_score + _CI_Z * combined_se
+
+    return new_skills, new_ci_lower, new_ci_upper, new_player_stats
+
+
 AIB_PROJECT_IDS = [
     3349,  # aib q3 2024
     32506,  # aib q4 2024
@@ -1397,9 +1474,6 @@ def run_update_global_bot_leaderboard(
     )
     print()
 
-    ordered_skills = sorted(
-        [(user, skill) for user, skill in skills.items()], key=lambda x: -x[1]
-    )
     player_stats: dict[int | str, list] = dict()
     for u1id, u2id, qid in zip(user1_ids, user2_ids, question_ids):
         if u1id not in player_stats:
@@ -1414,6 +1488,19 @@ def run_update_global_bot_leaderboard(
     for uid, cov in cov_by_u.items():
         if uid in player_stats:
             player_stats[uid][2] = cov
+
+    # Collapse year-split players (community/pro aggregates and, under
+    # `non_metac_bots_by_year`, third-party bots) into one combined entry per
+    # model for the leaderboard + CSV output. The per-year `skills`/`ci_*`/
+    # `player_stats` are kept intact for the discrimination and
+    # skill-distribution diagnostics below.
+    (
+        combined_skills,
+        combined_ci_lower,
+        combined_ci_upper,
+        combined_player_stats,
+    ) = combine_year_split_players(skills, ci_lower, ci_upper, player_stats)
+    ordered_skills = sorted(combined_skills.items(), key=lambda x: -x[1])
 
     ##########################################################################
     ##########################################################################
@@ -1435,7 +1522,7 @@ def run_update_global_bot_leaderboard(
     question_count = len(set(question_ids))
     seen = set()
     for uid, skill in ordered_skills:
-        contribution_count = len(player_stats[uid][1])
+        contribution_count = len(combined_player_stats[uid][1])
 
         excluded = False
         if isinstance(uid, int):
@@ -1456,8 +1543,8 @@ def run_update_global_bot_leaderboard(
         entry.contribution_count = contribution_count
         entry.coverage = contribution_count / question_count
         entry.calculated_on = timezone.now()
-        entry.ci_lower = ci_lower.get(uid, None)
-        entry.ci_upper = ci_upper.get(uid, None)
+        entry.ci_lower = combined_ci_lower.get(uid, None)
+        entry.ci_upper = combined_ci_upper.get(uid, None)
         # TODO: support for more efficient saving once this is implemented
         # for leaderboards with more than 100 entries
         entry.save()
@@ -1491,16 +1578,16 @@ def run_update_global_bot_leaderboard(
             username = uid
         else:
             username = User.objects.get(id=uid).username
-        unevaluated.remove(uid)
-        lower = ci_lower.get(uid, 0)
-        upper = ci_upper.get(uid, 0)
+        unevaluated.discard(uid)
+        lower = combined_ci_lower.get(uid, 0)
+        upper = combined_ci_upper.get(uid, 0)
         print(
             f"| {round(lower, 2):>6} "
             f"| {round(skill, 2):>6} "
             f"| {round(upper, 2):>6} "
-            f"| {player_stats[uid][0]:>6} "
-            f"| {len(player_stats[uid][1]):>6} "
-            f"| {round(player_stats[uid][2], 2):>6} "
+            f"| {combined_player_stats[uid][0]:>6} "
+            f"| {len(combined_player_stats[uid][1]):>6} "
+            f"| {round(combined_player_stats[uid][2], 2):>6} "
             f"| {uid if isinstance(uid, int) else '':>6} "
             f"| {username}"
         )
@@ -1509,9 +1596,9 @@ def run_update_global_bot_leaderboard(
                 round(lower, 2),
                 round(skill, 2),
                 round(upper, 2),
-                player_stats[uid][0],
-                len(player_stats[uid][1]),
-                round(player_stats[uid][2], 2),
+                combined_player_stats[uid][0],
+                len(combined_player_stats[uid][1]),
+                round(combined_player_stats[uid][2], 2),
                 uid if isinstance(uid, int) else "",
                 username,
             ]
