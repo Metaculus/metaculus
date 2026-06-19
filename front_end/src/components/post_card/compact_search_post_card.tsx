@@ -244,6 +244,18 @@ const CompactCPSection: FC<{ post: PostWithForecasts }> = ({ post }) => {
   }
 
   if (isContinuousQuestion(question)) {
+    if (
+      question.status === QuestionStatus.RESOLVED &&
+      question.resolution !== null &&
+      question.resolution !== undefined
+    ) {
+      return (
+        <div className="hidden min-w-[96px] shrink-0 items-center justify-center sm:flex">
+          <QuestionResolutionChipFacade question={question} size="sm" />
+        </div>
+      );
+    }
+
     if (hideCP) {
       return null;
     }
