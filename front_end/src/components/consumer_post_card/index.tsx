@@ -6,7 +6,6 @@ import { FC } from "react";
 import BasicConsumerPostCard from "@/components/consumer_post_card/basic_consumer_post_card";
 import GroupForecastCard from "@/components/consumer_post_card/group_forecast_card";
 import PostCardErrorBoundary from "@/components/post_card/error_boundary";
-import NotebookTile from "@/components/post_card/notebook_tile";
 import HideCPProvider from "@/contexts/cp_context";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import {
@@ -41,11 +40,6 @@ const ConsumerPostCard: FC<Props> = ({
 }) => {
   const t = useTranslations();
 
-  const notebookImageUrl =
-    isNotebookPost(post) && post.notebook.image_url?.startsWith("https:")
-      ? post.notebook.image_url
-      : undefined;
-
   return (
     <PostCardErrorBoundary>
       <BasicConsumerPostCard
@@ -53,16 +47,9 @@ const ConsumerPostCard: FC<Props> = ({
         forCommunityFeed={forCommunityFeed}
         indexWeight={indexWeight}
         isNotebook={isNotebookPost(post)}
-        backgroundImageUrl={notebookImageUrl}
         useShortTitle={useShortTitle}
       >
         <HideCPProvider post={post}>
-          {isNotebookPost(post) && notebookImageUrl && (
-            <div className="w-full text-left">
-              <NotebookTile post={post} fullBackground />
-            </div>
-          )}
-
           {isQuestionPost(post) && !isMultipleChoicePost(post) && (
             <ConsumerQuestionTile question={post.question} />
           )}

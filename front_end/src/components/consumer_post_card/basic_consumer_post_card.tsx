@@ -1,5 +1,4 @@
 import { isNil } from "lodash";
-import Image from "next/image";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
@@ -21,7 +20,6 @@ type Props = {
   forCommunityFeed?: boolean;
   indexWeight?: number;
   isNotebook?: boolean;
-  backgroundImageUrl?: string;
   useShortTitle?: boolean;
 };
 
@@ -30,12 +28,10 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
   forCommunityFeed,
   indexWeight,
   isNotebook = false,
-  backgroundImageUrl,
   useShortTitle = false,
   children,
 }) => {
   const title = useShortTitle ? post.short_title || post.title : post.title;
-  const hasBackgroundImage = !!backgroundImageUrl;
 
   return (
     <div>
@@ -51,38 +47,18 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
       <div
         className={cn(
           "rounded border no-underline transition-colors @container",
-          hasBackgroundImage
-            ? "group relative flex min-h-[160px] flex-col justify-center overflow-hidden border-transparent p-4 text-gray-0 hover:border-gray-0/70"
-            : isNotebook
-              ? "gap-1 border-purple-400/50 bg-purple-50/75 p-4 pt-3 hover:border-purple-500 hover:bg-purple-100/75 dark:border-purple-400-dark/50 dark:bg-purple-100-dark/40 dark:hover:border-purple-500-dark dark:hover:bg-purple-100-dark/60"
-              : "gap-2.5 border-blue-400 bg-gray-0 p-6 pt-5 hover:border-blue-500 dark:border-blue-400-dark dark:bg-gray-0-dark dark:hover:border-blue-500-dark dark:hover:bg-gray-100-dark"
+          isNotebook
+            ? "gap-1 border-purple-400/50 bg-purple-50/75 p-4 pt-3 hover:border-purple-500 hover:bg-purple-100/75 dark:border-purple-400-dark/50 dark:bg-purple-100-dark/40 dark:hover:border-purple-500-dark dark:hover:bg-purple-100-dark/60"
+            : "gap-2.5 border-blue-400 bg-gray-0 p-6 pt-5 hover:border-blue-500 dark:border-blue-400-dark dark:bg-gray-0-dark dark:hover:border-blue-500-dark dark:hover:bg-gray-100-dark"
         )}
       >
-        {hasBackgroundImage && (
-          <>
-            <div className="absolute inset-0 bg-black" />
-            <Image
-              src={backgroundImageUrl}
-              alt=""
-              fill
-              unoptimized
-              className="absolute inset-0 size-full object-cover object-center"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10 transition-colors group-hover:from-black/95" />
-          </>
-        )}
         <div
           className={cn(
             "relative z-0 flex flex-col items-center overflow-hidden",
             isNotebook ? "gap-1" : "gap-2.5"
           )}
         >
-          <div
-            className={cn(
-              "flex items-center justify-between rounded-ee rounded-es dark:border-blue-400-dark max-lg:flex-1",
-              hasBackgroundImage && "relative text-gray-0"
-            )}
-          >
+          <div className="flex items-center justify-between rounded-ee rounded-es dark:border-blue-400-dark max-lg:flex-1">
             <CommentStatus
               totalCount={post.comment_count ?? 0}
               unreadCount={post.unread_comment_count ?? 0}
@@ -101,11 +77,9 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
             <h4
               className={cn(
                 "m-0 max-w-xl text-center",
-                hasBackgroundImage
-                  ? "text-sm font-medium text-gray-0 md:text-base"
-                  : isNotebook
-                    ? "text-sm font-medium text-purple-900 dark:text-purple-900-dark md:text-base"
-                    : "text-base font-medium md:text-lg"
+                isNotebook
+                  ? "text-sm font-medium text-purple-900 dark:text-purple-900-dark md:text-base"
+                  : "text-base font-medium md:text-lg"
               )}
             >
               {title}
