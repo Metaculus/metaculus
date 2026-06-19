@@ -6,7 +6,7 @@ from pathlib import Path
 from datetime import datetime, timedelta, timezone as dt_timezone
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.db.models import Exists, OuterRef, Prefetch, QuerySet, Q
+from django.db.models import Count, Exists, F, OuterRef, Prefetch, QuerySet, Q
 from django.utils import timezone
 import numpy as np
 from scipy import sparse, stats
@@ -201,6 +201,11 @@ def gather_data(
             )
     print("creating AIB <> Pro AIB question mapping...DONE\n")
     #
+    minibench_question_ids: set[int] = set(
+        Question.objects.filter(
+            post__default_project__slug__startswith="minibench"
+        ).values_list("id", flat=True)
+    )
     user_ids = users.values_list("id", flat=True)
     t0 = datetime.now()
     question_count = questions.count()
@@ -238,7 +243,8 @@ def gather_data(
             forecast_dict[f.author_id].append(f)
         # human aggregate forecasts - conditional on a bunch of stuff
         human_question: Question | None = aib_question_map.get(question, question)
-        if not human_question:
+        if not human_question or question.id in minibench_question_ids:
+            # No real human crowd to aggregate (minibench, or unmapped AIB).
             aggregate_forecasts: list[AggregateForecast] = []
         else:
             if question in aib_question_map:
@@ -940,6 +946,7 @@ def run_update_global_bot_leaderboard(
     baseline_player: int | str = 236038,  # metac-gpt-4o+asknews
     bootstrap_count: int = 30,
     min_participation_count: int = 100,
+    min_human_forecasters: int = 10,
     metac_bot_age: int = 365,  # don't include metac bots after this many days since creation
     include_minibench: bool = False,
     aib_minibench_only: bool = False,
@@ -1014,12 +1021,74 @@ def run_update_global_bot_leaderboard(
         questions = questions.exclude(
             post__default_project__slug__startswith="minibench"
         )
+    # Questions with too few human forecasters: keep the question but drop the community aggregate
+    low_human_question_ids: set[int] = set()
+    if min_human_forecasters:
+        low_human_question_ids = set(
+            Question.objects.filter(
+                project_filter,
+                post__curation_status=Post.CurationStatus.APPROVED,
+                resolution__isnull=False,
+                actual_close_time__isnull=False,
+                scheduled_close_time__lte=timezone.now(),
+            )
+            .exclude(resolution__in=UnsuccessfulResolutionType)
+            .exclude(post__default_project_id__in=AIB_PROJECT_IDS)
+            .exclude(post__default_project__slug__startswith="minibench")
+            .annotate(
+                human_forecaster_count=Count(
+                    "user_forecasts__author",
+                    filter=Q(
+                        user_forecasts__author__is_bot=False,
+                        user_forecasts__start_time__lte=F("actual_close_time"),
+                    ),
+                    distinct=True,
+                )
+            )
+            .filter(human_forecaster_count__lt=min_human_forecasters)
+            .values_list("id", flat=True)
+        )
+        print(
+            f"Dropping the community aggregate on {len(low_human_question_ids)} "
+            f"community questions with < {min_human_forecasters} human forecasters"
+        )
+    # Minibench has no real human crowd: drop the Community Aggregate
+    minibench_question_ids: set[int] = set(
+        Question.objects.filter(
+            post__default_project__slug__startswith="minibench"
+        ).values_list("id", flat=True)
+    )
+    print(
+        f"Dropping the community aggregate on {len(minibench_question_ids)} "
+        f"minibench questions (no real human crowd)"
+    )
+    # Questions on which the Community Aggregate match should be dropped.
+    drop_cp_question_ids = low_human_question_ids | minibench_question_ids
     print("Initializing... DONE")
 
     # Gather head to head scores
     user1_ids, user2_ids, question_ids, scores, coverages, timestamps = gather_data(
         users, questions, cache_use=cache_use
     )
+
+    # Drop only the community-aggregate matches on low-human / minibench questions,
+    if drop_cp_question_ids:
+        keep = [
+            i
+            for i, (qid, u1, u2) in enumerate(
+                zip(question_ids, user1_ids, user2_ids)
+            )
+            if not (
+                qid in drop_cp_question_ids
+                and ("Community Aggregate" in (u1, u2))
+            )
+        ]
+        user1_ids = [user1_ids[i] for i in keep]
+        user2_ids = [user2_ids[i] for i in keep]
+        question_ids = [question_ids[i] for i in keep]
+        scores = [scores[i] for i in keep]
+        coverages = [coverages[i] for i in keep]
+        timestamps = [timestamps[i] for i in keep]
     # sort by most recent!
     sorted_indices = sorted(
         range(len(timestamps)), key=lambda i: timestamps[i], reverse=True
@@ -1405,6 +1474,8 @@ def run_update_global_bot_leaderboard(
         suffix += f"_BS{bootstrap_count}"
         if min_participation_count:
             suffix += f"_MinQ{min_participation_count}"
+        if min_human_forecasters:
+            suffix += f"_MinHF{min_human_forecasters}"
         if metac_bot_age:
             suffix += f"_MBotAge{metac_bot_age}"
         if aib_minibench_only:
