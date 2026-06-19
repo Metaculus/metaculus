@@ -386,16 +386,18 @@ def estimate_variances_from_head_to_head(
     verbose: bool | None = None,
     include_discrimination: bool = False,
     min_matches_per_question_for_disc: int = 30,
-) -> float | tuple[float, float]:
+) -> tuple[float, float | None]:
     """
     Helper function: Estimate σ_error and σ_true from head-to-head data.
 
     Returns:
-        alpha: skill ridge regularization parameter σ²_error / σ²_true
+        `(alpha_skill, alpha_disc)` where `alpha_skill` is the skill ridge
+        regularization parameter σ²_error / σ²_true. `alpha_disc` is `None`
+        unless `include_discrimination=True`.
 
     When `include_discrimination=True`, also estimates σ²_D (the spread of
-    per-question discriminations around 1) and returns
-    `(alpha_skill, alpha_disc)` with `alpha_disc = σ²_error / σ²_D`. This is
+    per-question discriminations around 1) and populates `alpha_disc` with
+    `σ²_error / σ²_D`. This is
     the empirical-Bayes regularization for D, returned *uncapped*: σ²_D is
     estimated by fitting a per-question least-squares discrimination on the
     warm-start skill fit (questions with at least
@@ -480,7 +482,7 @@ def estimate_variances_from_head_to_head(
         print(f"alpha = σ²_error / σ²_true = {alpha:.4f}")
 
     if not include_discrimination:
-        return alpha
+        return alpha, None
 
     # Estimate σ²_D from the warm-start skills: for each question with
     # enough matches, fit a 1-parameter (unregularized) least-squares regression
@@ -777,9 +779,9 @@ def get_skills(
                 weights=weights,
                 verbose=verbose,
                 include_discrimination=True,
-            )  # type: ignore[misc]
+            )
         else:
-            alpha_skill = estimate_variances_from_head_to_head(
+            alpha_skill, _ = estimate_variances_from_head_to_head(
                 user1_ids=user1_ids,
                 user2_ids=user2_ids,
                 question_ids=question_ids,
@@ -800,7 +802,7 @@ def get_skills(
             seed=als_seed,
         )
     else:
-        alpha = estimate_variances_from_head_to_head(
+        alpha, _ = estimate_variances_from_head_to_head(
             user1_ids=user1_ids,
             user2_ids=user2_ids,
             question_ids=question_ids,
