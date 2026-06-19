@@ -40,6 +40,11 @@ const ConsumerPostCard: FC<Props> = ({
 }) => {
   const t = useTranslations();
 
+  const notebookImageUrl =
+    isNotebookPost(post) && post.notebook.image_url?.startsWith("https:")
+      ? post.notebook.image_url
+      : undefined;
+
   return (
     <PostCardErrorBoundary>
       <BasicConsumerPostCard
@@ -47,6 +52,7 @@ const ConsumerPostCard: FC<Props> = ({
         forCommunityFeed={forCommunityFeed}
         indexWeight={indexWeight}
         isNotebook={isNotebookPost(post)}
+        backgroundImageUrl={notebookImageUrl}
         useShortTitle={useShortTitle}
       >
         <HideCPProvider post={post}>
