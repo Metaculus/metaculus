@@ -30,6 +30,15 @@ from utils.the_math.formulas import string_location_to_bucket_index
 
 SkillType = dict[int | str, float]
 
+AIB_PROJECT_IDS = [
+    3349,  # aib q3 2024
+    32506,  # aib q4 2024
+    32627,  # aib q1 2025
+    32721,  # aib q2 2025
+    32813,  # aib fall 2025
+    32916,  # aib Q1 2026
+]
+
 
 def get_score_pair(
     user1_forecasts: list[Forecast | AggregateForecast],
@@ -162,16 +171,7 @@ def gather_data(
 
     # TODO: make authoritative mapping
     print("creating AIB <> Pro AIB question mapping...", end="\r")
-    aib_projects = Project.objects.filter(
-        id__in=[
-            3349,  # Q3 2024
-            32506,  # Q4 2024
-            32627,  # Q1 2025
-            32721,  # Q2 2025
-            32813,  # fall 2025
-            32916,  # Q1 2026
-        ]
-    )
+    aib_projects = Project.objects.filter(id__in=AIB_PROJECT_IDS)
     aib_to_pro_version = {
         3349: 3345,
         32506: 3673,
