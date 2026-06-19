@@ -1,4 +1,5 @@
 import random
+import re
 from collections import defaultdict
 import csv
 from pathlib import Path
@@ -29,6 +30,24 @@ from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import string_location_to_bucket_index
 
 SkillType = dict[int | str, float]
+
+# matches a trailing " (YYYY)" year tag on a year-split player id
+_YEAR_SUFFIX_RE = re.compile(r"^(?P<parent>.*) \(\d{4}\)$")
+
+
+def participation_parent_key(uid: int | str) -> int | str:
+    """Map a year-split player id (e.g. "Community Aggregate (2025)") to its
+    parent ("Community Aggregate"). Non-split ids are returned unchanged.
+
+    Used so the min-participation threshold applies to a player's combined
+    history across years rather than to each per-year slice independently.
+    """
+    if isinstance(uid, str):
+        match = _YEAR_SUFFIX_RE.match(uid)
+        if match:
+            return match.group("parent")
+    return uid
+
 
 AIB_PROJECT_IDS = [
     3349,  # aib q3 2024
@@ -1267,9 +1286,16 @@ def run_update_global_bot_leaderboard(
                 continue
             questions_forecasted[u1id].add(qid)
             questions_forecasted[u2id].add(qid)
-        ov = {uid: len(qs) for uid, qs in questions_forecasted.items()}  # total counts
-        for uid, count in ov.items():
-            if count < min_participation_count:
+        # year-split players (e.g. "Community Aggregate (2025)") share a parent;
+        # apply the participation threshold to the parent's combined question
+        # set so splitting an established aggregate/bot by year doesn't drop
+        # otherwise-sparse individual years.
+        parent_questions: dict[int | str, set[int]] = defaultdict(set)
+        for uid, qs in questions_forecasted.items():
+            parent_questions[participation_parent_key(uid)].update(qs)
+        for uid in questions_forecasted:
+            parent_count = len(parent_questions[participation_parent_key(uid)])
+            if parent_count < min_participation_count:
                 excluded_ids.add(uid)
     user1_ids = []
     user2_ids = []
