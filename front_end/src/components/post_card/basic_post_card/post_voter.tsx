@@ -80,8 +80,9 @@ const PostVoter: FC<Props> = ({ className, post, questionPage, compact }) => {
       {vote.score != null && vote.score !== 0 && (
         <span
           className={cn(
-            "font-normal leading-4 text-gray-700 dark:text-gray-700-dark",
-            compact ? "text-xs" : "text-sm"
+            "font-normal text-gray-700 dark:text-gray-700-dark",
+            compact ? "text-xs" : "text-sm",
+            "leading-4"
           )}
         >
           <span className="lining-nums tabular-nums">{vote.score}</span>
