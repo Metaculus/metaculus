@@ -3,7 +3,7 @@ from typing import Iterable
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
-from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.exceptions import ValidationError
 
 from comments.constants import TimeWindow
 from comments.models import Comment, KeyFactor, CommentsOfTheWeekEntry
@@ -43,12 +43,10 @@ class CommentFilterSerializer(serializers.Serializer):
     )
 
     def validate_post(self, value: int):
-        request = self.context.get("request")
-        user = request.user if request else None
         try:
-            return Post.objects.filter_permission(user=user).get(pk=value)
+            return Post.objects.get(pk=value)
         except Post.DoesNotExist:
-            raise NotFound("Post not found")
+            raise ValidationError("Post Does not exist")
 
     def validate(self, attrs):
         sort = attrs.get("sort")
