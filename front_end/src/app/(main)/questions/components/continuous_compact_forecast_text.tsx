@@ -4,7 +4,10 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { ANNULLED_RESOLUTION } from "@/constants/questions";
+import {
+  AMBIGUOUS_RESOLUTION,
+  ANNULLED_RESOLUTION,
+} from "@/constants/questions";
 import { QuestionStatus } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
@@ -26,7 +29,9 @@ const ContinuousCompactForecastText: FC<Props> = ({ question, className }) => {
     const label =
       question.resolution === ANNULLED_RESOLUTION
         ? t("resolutionAnnulled")
-        : t("resolutionAmbiguous");
+        : question.resolution === AMBIGUOUS_RESOLUTION
+          ? t("resolutionAmbiguous")
+          : "";
     return (
       <span
         className={cn(
