@@ -35,7 +35,7 @@ const NotebookTile: FC<Props> = ({ post, fullBackground = false }) => {
                 height: 80,
               })
             }
-            contentEditableClassName="!m-0 line-clamp-3 !text-sm !leading-5 !text-gray-0 *:m-0 dark:!text-gray-0-dark"
+            contentEditableClassName="!m-0 line-clamp-3 !text-sm !leading-5 !text-gray-0 *:m-0 [&_*]:!text-gray-0 dark:!text-gray-0-dark dark:[&_*]:!text-gray-0-dark"
             withUgcLinks
           />
         )}
