@@ -1039,26 +1039,26 @@ def bootstrap_skills(
 
 def run_update_global_bot_leaderboard(
     # run settings
-    baseline_player: int | str = 236038,  # metac-gpt-4o+asknews
+    baseline_player: int | str = 236038,
     bootstrap_count: int = 30,
     min_participation_count: int = 100,
     min_human_forecasters: int = 10,
-    metac_bot_age: int = 365,  # don't include metac bots after this many days since creation
+    metac_bot_age: int = 365,
     include_minibench: bool = False,
     aib_minibench_only: bool = False,
     cp_by_years: bool = False,
     pro_by_years: bool = False,
     include_non_metac_bots: bool = False,
     non_metac_bots_by_year: bool = False,
-    bot_recency: int = 3 * 30,  # 3 months, 0 means no filter
-    bot_recent_scores: int = 0,  # 400 most recent scores, 0 means no filter
-    bot_recent_coverage: int = 400,  # 400 most recent coverage, 0 means no filter
+    bot_recency: int = 3 * 30,
+    bot_recent_scores: int = 0,
+    bot_recent_coverage: int = 400,
     scale_weight_by_participants: bool = True,
-    use_discrimination: bool = True,  # ALS for per-question difficulty
-    alpha_disc: float = 0.25,  # ridge pull of per-question D toward 1
-    use_bayesian_alpha_disc: bool = False,  # derive alpha_disc = σ²_error/σ²_D (uncapped)
-    als_init: str = "zeros",  # ALS skill init: zeros | random
-    als_seed: int | None = None,  # seed for als_init="random"
+    use_discrimination: bool = True,
+    alpha_disc: float = 0.25,
+    use_bayesian_alpha_disc: bool = False,
+    als_init: str = "zeros",
+    als_seed: int | None = None,
     verbose: bool | None = None,
     # performance/logging
     cache_use: str = "partial",
@@ -1788,39 +1788,42 @@ class Command(BaseCommand):
         else:
             cache_use = "partial"
 
-        baseline_player = 236038
-        include_minibench = False
+        baseline_player = 236038  # metac-gpt-4o+asknews
+        aib_minibench_only = False  # only include questions from AIB and Minibench
+        include_minibench = True
         cache_use = "partial"
 
         bootstrap_count = 30
         min_participation_count = 150
-        metac_bot_age = 365
+        min_human_forecasters = 10  # drop community predictions with fewer human forecasters; 0 disables
+        metac_bot_age = 365  # don't include metac bots after this many days since creation
         cp_by_years = True
         pro_by_years = True
-        include_non_metac_bots = False
-        non_metac_bots_by_year = False
-        bot_recency = 3 * 30
-        bot_recent_scores = 0
-        bot_recent_coverage = 400
+        include_non_metac_bots = True
+        non_metac_bots_by_year = True
+        bot_recency = 3 * 30  # 3 months, 0 means no filter
+        bot_recent_scores = 150  # most recent scores, 0 means no filter
+        bot_recent_coverage = 0
         scale_weight_by_participants = False
-        use_discrimination = False # Takes 30+ mins to run
-        alpha_disc: float = 10000  # Only used if use_discrimination is true, range of (0,10000] doesn't change much
-        use_bayesian_alpha_disc = True # When True, ignore alpha_disc and derive it as σ²_error/σ²_D (uncapped)
-        als_init = "random"  # ALS skill init: zeros | random
-        als_seed: int | None = 123  # seed for als_init="random"
+        use_discrimination = False  # ALS for per-question difficulty; takes 30+ mins to run
+        alpha_disc = 10000  # ridge pull of per-question D toward 1; only used if use_discrimination is true
+        use_bayesian_alpha_disc = True  # derive alpha_disc = σ²_error/σ²_D (uncapped); ignores alpha_disc when True
+        als_init = "zeros"  # ALS skill init: zeros | random
+        als_seed = 123  # seed for als_init="random"
 
         store_results_csv = True
         verbose = True
 
         run_update_global_bot_leaderboard(
-            # settings
-            baseline_player=baseline_player,  # metac-gpt-4o+asknews
+            baseline_player=baseline_player,
             include_minibench=include_minibench,
+            aib_minibench_only=aib_minibench_only,
             cp_by_years=cp_by_years,
             pro_by_years=pro_by_years,
             metac_bot_age=metac_bot_age,
             bootstrap_count=bootstrap_count,
             min_participation_count=min_participation_count,
+            min_human_forecasters=min_human_forecasters,
             include_non_metac_bots=include_non_metac_bots,
             non_metac_bots_by_year=non_metac_bots_by_year,
             bot_recency=bot_recency,
@@ -1833,7 +1836,6 @@ class Command(BaseCommand):
             als_init=als_init,
             als_seed=als_seed,
             verbose=verbose,
-            # performance/logging
             cache_use=cache_use,
             store_results_csv=store_results_csv,
         )
