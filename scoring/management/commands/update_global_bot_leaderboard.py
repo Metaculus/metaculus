@@ -942,6 +942,7 @@ def run_update_global_bot_leaderboard(
     min_participation_count: int = 100,
     metac_bot_age: int = 365,  # don't include metac bots after this many days since creation
     include_minibench: bool = False,
+    aib_minibench_only: bool = False,
     cp_by_years: bool = False,
     pro_by_years: bool = False,
     include_non_metac_bots: bool = False,
@@ -981,19 +982,17 @@ def run_update_global_bot_leaderboard(
     user_forecast_exists = Forecast.objects.filter(
         question_id=OuterRef("pk"), author__in=users
     )
+    if aib_minibench_only:
+        project_filter = Q(post__default_project_id__in=AIB_PROJECT_IDS) | Q(
+            post__default_project__slug__startswith="minibench"
+        )
+    else:
+        project_filter = Q(
+            post__default_project__default_permission__in=["viewer", "forecaster"]
+        ) | Q(post__default_project_id__in=AIB_PROJECT_IDS)
     questions: QuerySet[Question] = (
         Question.objects.filter(
-            Q(post__default_project__default_permission__in=["viewer", "forecaster"])
-            | Q(
-                post__default_project_id__in=[
-                    3349,  # aib q3 2024
-                    32506,  # aib q4 2024
-                    32627,  # aib q1 2025
-                    32721,  # aib q2 2025
-                    32813,  # aib fall 2025
-                    32916,  # aib Q1 2026
-                ]
-            ),
+            project_filter,
             post__curation_status=Post.CurationStatus.APPROVED,
             resolution__isnull=False,
             actual_close_time__isnull=False,
@@ -1011,7 +1010,7 @@ def run_update_global_bot_leaderboard(
     for question in questions:
         if question.default_score_type == "spot_peer":
             break
-    if not include_minibench:
+    if not include_minibench and not aib_minibench_only:
         questions = questions.exclude(
             post__default_project__slug__startswith="minibench"
         )
@@ -1408,7 +1407,9 @@ def run_update_global_bot_leaderboard(
             suffix += f"_MinQ{min_participation_count}"
         if metac_bot_age:
             suffix += f"_MBotAge{metac_bot_age}"
-        if include_minibench:
+        if aib_minibench_only:
+            suffix += "_AIBMiniB"
+        elif include_minibench:
             suffix += "_MiniB"
         if cp_by_years:
             suffix += "_CPY"
