@@ -89,8 +89,8 @@ const LiveTournamentCard: React.FC<Props> = ({
             nowTs={nowTs}
             timeline={item.timeline ?? null}
             startDate={item.start_date ?? null}
-            forecastingEndDate={item.forecasting_end_date ?? null}
             closeDate={item.close_date ?? null}
+            winnersAnnouncedDate={item.winners_announced_date ?? null}
             isOngoing={Boolean(item.is_ongoing)}
           />
         )}
@@ -103,19 +103,19 @@ function TournamentTimelineBar({
   nowTs,
   timeline,
   startDate,
-  forecastingEndDate,
   closeDate,
+  winnersAnnouncedDate,
   isOngoing,
 }: {
   nowTs: number | null;
   timeline: TournamentTimeline | null;
   startDate?: string | null;
-  forecastingEndDate?: string | null;
   closeDate?: string | null;
+  winnersAnnouncedDate?: string | null;
   isOngoing: boolean;
 }) {
   const startTs = safeTs(startDate);
-  const closedTs = safeTs(forecastingEndDate ?? closeDate ?? null);
+  const closedTs = safeTs(closeDate ?? winnersAnnouncedDate ?? null);
   if (!startTs || !closedTs) return null;
 
   const now = nowTs ?? Date.now();
@@ -136,7 +136,7 @@ function TournamentTimelineBar({
     <ClosedMiniBar
       nowTs={now}
       isResolved={isResolved}
-      closeDate={closeDate ?? null}
+      winnersAnnouncedDate={winnersAnnouncedDate ?? null}
       timeline={timeline}
     />
   );
@@ -196,12 +196,12 @@ function ClosedMiniBar({
   nowTs,
   isResolved,
   timeline,
-  closeDate,
+  winnersAnnouncedDate,
 }: {
   nowTs: number | null;
   isResolved: boolean;
   timeline: TournamentTimeline | null;
-  closeDate: string | null;
+  winnersAnnouncedDate: string | null;
 }) {
   const t = useTranslations();
   const label = isResolved
@@ -211,7 +211,7 @@ function ClosedMiniBar({
 
   if (nowTs != null) {
     const resolvedTs = pickResolveTs(nowTs, timeline);
-    const winnersTs = pickWinnersTs(resolvedTs, closeDate);
+    const winnersTs = pickWinnersTs(resolvedTs, winnersAnnouncedDate);
 
     if (resolvedTs && nowTs >= resolvedTs) progress = 50;
     if (winnersTs && nowTs >= winnersTs) progress = 100;
@@ -286,8 +286,8 @@ function pickResolveTs(nowTs: number, timeline: TournamentTimeline | null) {
   return (isAllResolved ? actual : null) ?? effectiveScheduled ?? null;
 }
 
-function pickWinnersTs(resolvedTs: number | null, closeDate: string | null) {
-  const closeTs = safeTs(closeDate);
+function pickWinnersTs(resolvedTs: number | null, winnersAnnouncedDate: string | null) {
+  const closeTs = safeTs(winnersAnnouncedDate);
   if (closeTs) return closeTs;
   return resolvedTs ? resolvedTs + TWO_WEEKS_MS : null;
 }

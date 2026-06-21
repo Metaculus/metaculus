@@ -1217,7 +1217,7 @@
   "communityDisclaimer": "由<community></community>社群提供。<learnMore>了解更多</learnMore>",
   "conditionalBranchResolutionAnnulled": "此分支已取消，因為<link>父問題</link>解決了<resolution></resolution>。",
   "communityDisclaimerSiteMain": "這個問題也是 Metaculus 主站的一部分。",
-  "postNotebookMoveDateModalCopy": "比賽預測的結束日期是<b>{tournament_forecasting_end_date}</b>，而你正嘗試批准一個截止日期為<b>{question_close_date}</b>的問題。你想將比賽預測的結束日期移動到<b>{question_close_date}</b>嗎？",
+  "postNotebookMoveDateModalCopy": "比賽預測的結束日期是<b>{tournament_close_date}</b>，而你正嘗試批准一個截止日期為<b>{question_close_date}</b>的問題。你想將比賽預測的結束日期移動到<b>{question_close_date}</b>嗎？",
   "moveDate": "移動日期",
   "addKeyFactor": "加入關鍵因素",
   "addKeyFactors": "加入關鍵因素",

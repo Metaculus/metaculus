@@ -40,8 +40,8 @@ const FeedTournamentTile: FC<Props> = ({ tile, feedPage }) => {
   const rawCloseTime =
     rule === FeedTileRule.ALL_QUESTIONS_RESOLVED && project_resolution_date
       ? project_resolution_date
-      : project.close_date ??
-        project.forecasting_end_date ??
+      : project.winners_announced_date ??
+        project.close_date ??
         project.start_date;
   const rawCloseTs = safeTs(rawCloseTime) ?? now + 1000;
   const scheduled_close_time = new Date(
@@ -160,7 +160,7 @@ function getStatusLabel(
   now: number
 ): ReactNode | null {
   const startTs = safeTs(project.start_date);
-  const closeTs = safeTs(project.close_date);
+  const closeTs = safeTs(project.winners_announced_date);
   const resolveTs = safeTs(project_resolution_date);
 
   const strong = (chunks: ReactNode) => <strong>{chunks}</strong>;

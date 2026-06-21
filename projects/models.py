@@ -291,22 +291,21 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         default=None, decimal_places=2, max_digits=15, null=True, blank=True
     )
     start_date = models.DateTimeField(null=True, blank=True)
-    close_date = models.DateTimeField(
+    winners_announced_date = models.DateTimeField(
         null=True,
         blank=True,
         help_text=(
             "The date the tournament wraps up and prizes will be paid. "
-            "All questions that should be included in the leaderboard must close and resolve before this date. "
-            "This is displayed on the front end as the “Winners announced date”"
+            "All questions that should be included in the leaderboard must close and resolve before this date."
         ),
     )
-    forecasting_end_date = models.DateTimeField(
+    close_date = models.DateTimeField(
         null=True,
         blank=True,
         help_text=(
-            "The date the last scored question that counts for the tournament closes."
-            "The date shown is the latest of the Forecasting end date "
-            "and the latest question close date closing and resolving before the Close date."
+            "The date the last question that counts for the tournament is scheduled to close. "
+            "If such questions have scheduled close dates after the project Winners announced date, "
+            "the front end will show the latest of these close dates."
         ),
     )
     sign_up_fields = models.JSONField(
@@ -443,7 +442,11 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
             self.ProjectTypes.QUESTION_SERIES,
             self.ProjectTypes.INDEX,
         ):
-            return self.close_date > django_timezone.now() if self.close_date else True
+            return (
+                self.winners_announced_date > django_timezone.now()
+                if self.winners_announced_date
+                else True
+            )
 
     def get_users_for_permission(self, min_permission: ObjectPermission):
         """
