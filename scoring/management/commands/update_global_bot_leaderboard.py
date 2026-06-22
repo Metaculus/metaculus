@@ -1120,8 +1120,10 @@ def run_update_global_bot_leaderboard(
         questions = questions.exclude(
             post__default_project__slug__startswith="minibench"
         )
-    # Questions with too few human forecasters: keep the question but drop the community aggregate
-    low_human_question_ids: set[int] = set()
+    # Questions with too few human forecasters: drop them entirely. We primarily
+    # evaluate bot-vs-bot on minibench / AIB questions, so these low-signal community
+    # questions aren't needed and dropping them keeps the logic simple. (Minibench has
+    # no real human crowd, so its Community Aggregate is already skipped in gather_data.)
     if min_human_forecasters:
         low_human_question_ids = set(
             Question.objects.filter(
@@ -1148,21 +1150,10 @@ def run_update_global_bot_leaderboard(
             .values_list("id", flat=True)
         )
         print(
-            f"Dropping the community aggregate on {len(low_human_question_ids)} "
-            f"community questions with < {min_human_forecasters} human forecasters"
+            f"Dropping {len(low_human_question_ids)} community questions with "
+            f"< {min_human_forecasters} human forecasters"
         )
-    # Minibench has no real human crowd: drop the Community Aggregate
-    minibench_question_ids: set[int] = set(
-        Question.objects.filter(
-            post__default_project__slug__startswith="minibench"
-        ).values_list("id", flat=True)
-    )
-    print(
-        f"Dropping the community aggregate on {len(minibench_question_ids)} "
-        f"minibench questions (no real human crowd)"
-    )
-    # Questions on which the Community Aggregate match should be dropped.
-    drop_cp_question_ids = low_human_question_ids | minibench_question_ids
+        questions = questions.exclude(id__in=low_human_question_ids)
     print("Initializing... DONE")
 
     # Gather head to head scores
@@ -1170,24 +1161,6 @@ def run_update_global_bot_leaderboard(
         users, questions, cache_use=cache_use
     )
 
-    # Drop only the community-aggregate matches on low-human / minibench questions,
-    if drop_cp_question_ids:
-        keep = [
-            i
-            for i, (qid, u1, u2) in enumerate(
-                zip(question_ids, user1_ids, user2_ids)
-            )
-            if not (
-                qid in drop_cp_question_ids
-                and ("Community Aggregate" in (u1, u2))
-            )
-        ]
-        user1_ids = [user1_ids[i] for i in keep]
-        user2_ids = [user2_ids[i] for i in keep]
-        question_ids = [question_ids[i] for i in keep]
-        scores = [scores[i] for i in keep]
-        coverages = [coverages[i] for i in keep]
-        timestamps = [timestamps[i] for i in keep]
     # sort by most recent!
     sorted_indices = sorted(
         range(len(timestamps)), key=lambda i: timestamps[i], reverse=True
