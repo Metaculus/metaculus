@@ -1,4 +1,5 @@
 import random
+import re
 from collections import defaultdict
 import csv
 from pathlib import Path
@@ -6,7 +7,7 @@ from pathlib import Path
 from datetime import datetime, timedelta, timezone as dt_timezone
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.db.models import Exists, OuterRef, Prefetch, QuerySet, Q
+from django.db.models import Count, Exists, F, OuterRef, Prefetch, QuerySet, Q
 from django.utils import timezone
 import numpy as np
 from scipy import sparse, stats
@@ -29,6 +30,114 @@ from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import string_location_to_bucket_index
 
 SkillType = dict[int | str, float]
+
+# matches a trailing " (YYYY)" year tag on a year-split player id
+_YEAR_SUFFIX_RE = re.compile(r"^(?P<parent>.*) \(\d{4}\)$")
+
+
+def participation_parent_key(uid: int | str) -> int | str:
+    """Map a year-split player id (e.g. "Community Aggregate (2025)") to its
+    parent ("Community Aggregate"). Non-split ids are returned unchanged.
+
+    Used so the min-participation threshold applies to a player's combined
+    history across years rather than to each per-year slice independently.
+    """
+    if isinstance(uid, str):
+        match = _YEAR_SUFFIX_RE.match(uid)
+        if match:
+            return match.group("parent")
+    return uid
+
+
+# 95% normal critical value, used to convert CI half-widths to/from SEs.
+_CI_Z = 1.959963985
+
+
+def combine_year_split_players(
+    skills: SkillType,
+    ci_lower: dict[int | str, float],
+    ci_upper: dict[int | str, float],
+    player_stats: dict[int | str, list],
+) -> tuple[SkillType, dict[int | str, float], dict[int | str, float], dict[int | str, list]]:
+    """Collapse year-split players (e.g. "Community Aggregate (2025)" or
+    "SomeBot (2024)") into a single combined entry per parent, so the
+    leaderboard reports one number per model rather than one per year.
+
+    - score: contribution-count-weighted mean of the per-year skills, with
+      weight = max(distinct-question count, 1).
+    - CI: per-year half-widths are converted to SEs and propagated through the
+      same normalized weights -- se_combined = sqrt(Σ (wᵢ/W)² · seᵢ²), then
+      score ± z·se_combined. Combining estimates *narrows* the interval. CI is
+      dropped unless every member has both bounds.
+    - match count / distinct questions / coverage: combined across the year
+      slices (which are disjoint in questions).
+
+    Note: The scores + CIs generated with this process are similar to what they would have 
+    been if players were never split by year to begin with, though they do not result
+    in the exact same values. We score by year because these forecasters change w.r.t time.
+
+    Single-member groups (including non-year-split players and integer
+    metac/third-party bot ids) pass through unchanged except for being renamed
+    to their parent key, preserving the original (possibly asymmetric) CI.
+    """
+    groups: dict[int | str, list[int | str]] = defaultdict(list)
+    for uid in skills:
+        groups[participation_parent_key(uid)].append(uid)
+
+    new_skills: SkillType = {}
+    new_ci_lower: dict[int | str, float] = {}
+    new_ci_upper: dict[int | str, float] = {}
+    new_player_stats: dict[int | str, list] = {}
+    for parent, members in groups.items():
+        match_count = sum(player_stats[m][0] for m in members)
+        questions: set[int] = set()
+        for m in members:
+            questions |= player_stats[m][1]
+        coverage_total = sum(player_stats[m][2] for m in members)
+        new_player_stats[parent] = [match_count, questions, coverage_total]
+
+        if len(members) == 1:
+            # Preserve the original (possibly asymmetric) bootstrap CI.
+            member = members[0]
+            new_skills[parent] = skills[member]
+            if member in ci_lower:
+                new_ci_lower[parent] = ci_lower[member]
+            if member in ci_upper:
+                new_ci_upper[parent] = ci_upper[member]
+            continue
+
+        weights = [max(len(player_stats[m][1]), 1) for m in members]
+        total_weight = sum(weights)
+        combined_score = (
+            sum(skills[m] * w for m, w in zip(members, weights)) / total_weight
+        )
+        new_skills[parent] = combined_score
+
+        have_all_cis = all(
+            ci_lower.get(m) is not None and ci_upper.get(m) is not None
+            for m in members
+        )
+        if have_all_cis:
+            combined_var = 0.0
+            for m, w in zip(members, weights):
+                se = (ci_upper[m] - ci_lower[m]) / (2 * _CI_Z)
+                norm_w = w / total_weight
+                combined_var += norm_w * norm_w * se * se
+            combined_se = float(np.sqrt(combined_var))
+            new_ci_lower[parent] = combined_score - _CI_Z * combined_se
+            new_ci_upper[parent] = combined_score + _CI_Z * combined_se
+
+    return new_skills, new_ci_lower, new_ci_upper, new_player_stats
+
+
+AIB_PROJECT_IDS = [
+    3349,  # aib q3 2024
+    32506,  # aib q4 2024
+    32627,  # aib q1 2025
+    32721,  # aib q2 2025
+    32813,  # aib fall 2025
+    32916,  # aib Q1 2026
+]
 
 
 def get_score_pair(
@@ -162,16 +271,7 @@ def gather_data(
 
     # TODO: make authoritative mapping
     print("creating AIB <> Pro AIB question mapping...", end="\r")
-    aib_projects = Project.objects.filter(
-        id__in=[
-            3349,  # Q3 2024
-            32506,  # Q4 2024
-            32627,  # Q1 2025
-            32721,  # Q2 2025
-            32813,  # fall 2025
-            32916,  # Q1 2026
-        ]
-    )
+    aib_projects = Project.objects.filter(id__in=AIB_PROJECT_IDS)
     aib_to_pro_version = {
         3349: 3345,
         32506: 3673,
@@ -201,6 +301,11 @@ def gather_data(
             )
     print("creating AIB <> Pro AIB question mapping...DONE\n")
     #
+    minibench_question_ids: set[int] = set(
+        Question.objects.filter(
+            post__default_project__slug__startswith="minibench"
+        ).values_list("id", flat=True)
+    )
     user_ids = users.values_list("id", flat=True)
     t0 = datetime.now()
     question_count = questions.count()
@@ -238,7 +343,8 @@ def gather_data(
             forecast_dict[f.author_id].append(f)
         # human aggregate forecasts - conditional on a bunch of stuff
         human_question: Question | None = aib_question_map.get(question, question)
-        if not human_question:
+        if not human_question or question.id in minibench_question_ids:
+            # No real human crowd to aggregate (minibench, or unmapped AIB).
             aggregate_forecasts: list[AggregateForecast] = []
         else:
             if question in aib_question_map:
@@ -386,16 +492,18 @@ def estimate_variances_from_head_to_head(
     verbose: bool | None = None,
     include_discrimination: bool = False,
     min_matches_per_question_for_disc: int = 30,
-) -> float | tuple[float, float]:
+) -> tuple[float, float | None]:
     """
     Helper function: Estimate σ_error and σ_true from head-to-head data.
 
     Returns:
-        alpha: skill ridge regularization parameter σ²_error / σ²_true
+        `(alpha_skill, alpha_disc)` where `alpha_skill` is the skill ridge
+        regularization parameter σ²_error / σ²_true. `alpha_disc` is `None`
+        unless `include_discrimination=True`.
 
     When `include_discrimination=True`, also estimates σ²_D (the spread of
-    per-question discriminations around 1) and returns
-    `(alpha_skill, alpha_disc)` with `alpha_disc = σ²_error / σ²_D`. This is
+    per-question discriminations around 1) and populates `alpha_disc` with
+    `σ²_error / σ²_D`. This is
     the empirical-Bayes regularization for D, returned *uncapped*: σ²_D is
     estimated by fitting a per-question least-squares discrimination on the
     warm-start skill fit (questions with at least
@@ -480,7 +588,7 @@ def estimate_variances_from_head_to_head(
         print(f"alpha = σ²_error / σ²_true = {alpha:.4f}")
 
     if not include_discrimination:
-        return alpha
+        return alpha, None
 
     # Estimate σ²_D from the warm-start skills: for each question with
     # enough matches, fit a 1-parameter (unregularized) least-squares regression
@@ -777,9 +885,9 @@ def get_skills(
                 weights=weights,
                 verbose=verbose,
                 include_discrimination=True,
-            )  # type: ignore[misc]
+            )
         else:
-            alpha_skill = estimate_variances_from_head_to_head(
+            alpha_skill, _ = estimate_variances_from_head_to_head(
                 user1_ids=user1_ids,
                 user2_ids=user2_ids,
                 question_ids=question_ids,
@@ -800,7 +908,7 @@ def get_skills(
             seed=als_seed,
         )
     else:
-        alpha = estimate_variances_from_head_to_head(
+        alpha, _ = estimate_variances_from_head_to_head(
             user1_ids=user1_ids,
             user2_ids=user2_ids,
             question_ids=question_ids,
@@ -935,24 +1043,26 @@ def bootstrap_skills(
 
 def run_update_global_bot_leaderboard(
     # run settings
-    baseline_player: int | str = 236038,  # metac-gpt-4o+asknews
+    baseline_player: int | str = 236038,
     bootstrap_count: int = 30,
     min_participation_count: int = 100,
-    metac_bot_age: int = 365,  # don't include metac bots after this many days since creation
+    min_human_forecasters: int = 10,
+    metac_bot_age: int = 365,
     include_minibench: bool = False,
+    aib_minibench_only: bool = False,
     cp_by_years: bool = False,
     pro_by_years: bool = False,
     include_non_metac_bots: bool = False,
     non_metac_bots_by_year: bool = False,
-    bot_recency: int = 3 * 30,  # 3 months, 0 means no filter
-    bot_recent_scores: int = 0,  # 400 most recent scores, 0 means no filter
-    bot_recent_coverage: int = 400,  # 400 most recent coverage, 0 means no filter
+    bot_recency: int = 3 * 30,
+    bot_recent_scores: int = 0,
+    bot_recent_coverage: int = 400,
     scale_weight_by_participants: bool = True,
-    use_discrimination: bool = True,  # ALS for per-question difficulty
-    alpha_disc: float = 0.25,  # ridge pull of per-question D toward 1
-    use_bayesian_alpha_disc: bool = False,  # derive alpha_disc = σ²_error/σ²_D (uncapped)
-    als_init: str = "zeros",  # ALS skill init: zeros | random
-    als_seed: int | None = None,  # seed for als_init="random"
+    use_discrimination: bool = True,
+    alpha_disc: float = 0.25,
+    use_bayesian_alpha_disc: bool = False,
+    als_init: str = "zeros",
+    als_seed: int | None = None,
     verbose: bool | None = None,
     # performance/logging
     cache_use: str = "partial",
@@ -972,6 +1082,9 @@ def run_update_global_bot_leaderboard(
     assert not bot_recent_coverage or not bot_recent_scores, (
         "can only set one of bot_recent_coverage or bot_recent_scores"
     )
+    assert not non_metac_bots_by_year or include_non_metac_bots, (
+        "non_metac_bots_by_year requires include_non_metac_bots to be set"
+    )
 
     # SETUP: users to evaluate & questions
     print("Initializing...")
@@ -979,19 +1092,17 @@ def run_update_global_bot_leaderboard(
     user_forecast_exists = Forecast.objects.filter(
         question_id=OuterRef("pk"), author__in=users
     )
+    if aib_minibench_only:
+        project_filter = Q(post__default_project_id__in=AIB_PROJECT_IDS) | Q(
+            post__default_project__slug__startswith="minibench"
+        )
+    else:
+        project_filter = Q(
+            post__default_project__default_permission__in=["viewer", "forecaster"]
+        ) | Q(post__default_project_id__in=AIB_PROJECT_IDS)
     questions: QuerySet[Question] = (
         Question.objects.filter(
-            Q(post__default_project__default_permission__in=["viewer", "forecaster"])
-            | Q(
-                post__default_project_id__in=[
-                    3349,  # aib q3 2024
-                    32506,  # aib q4 2024
-                    32627,  # aib q1 2025
-                    32721,  # aib q2 2025
-                    32813,  # aib fall 2025
-                    32916,  # aib Q1 2026
-                ]
-            ),
+            project_filter,
             post__curation_status=Post.CurationStatus.APPROVED,
             resolution__isnull=False,
             actual_close_time__isnull=False,
@@ -1009,16 +1120,51 @@ def run_update_global_bot_leaderboard(
     for question in questions:
         if question.default_score_type == "spot_peer":
             break
-    if not include_minibench:
+    if not include_minibench and not aib_minibench_only:
         questions = questions.exclude(
             post__default_project__slug__startswith="minibench"
         )
+    # Questions with too few human forecasters: drop them entirely. We primarily
+    # evaluate bot-vs-bot on minibench / AIB questions, so these low-signal community
+    # questions aren't needed and dropping them keeps the logic simple. (Minibench has
+    # no real human crowd, so its Community Aggregate is already skipped in gather_data.)
+    if min_human_forecasters:
+        low_human_question_ids = set(
+            Question.objects.filter(
+                project_filter,
+                post__curation_status=Post.CurationStatus.APPROVED,
+                resolution__isnull=False,
+                actual_close_time__isnull=False,
+                scheduled_close_time__lte=timezone.now(),
+            )
+            .exclude(resolution__in=UnsuccessfulResolutionType)
+            .exclude(post__default_project_id__in=AIB_PROJECT_IDS)
+            .exclude(post__default_project__slug__startswith="minibench")
+            .annotate(
+                human_forecaster_count=Count(
+                    "user_forecasts__author",
+                    filter=Q(
+                        user_forecasts__author__is_bot=False,
+                        user_forecasts__start_time__lte=F("actual_close_time"),
+                    ),
+                    distinct=True,
+                )
+            )
+            .filter(human_forecaster_count__lt=min_human_forecasters)
+            .values_list("id", flat=True)
+        )
+        print(
+            f"Dropping {len(low_human_question_ids)} community questions with "
+            f"< {min_human_forecasters} human forecasters"
+        )
+        questions = questions.exclude(id__in=low_human_question_ids)
     print("Initializing... DONE")
 
     # Gather head to head scores
     user1_ids, user2_ids, question_ids, scores, coverages, timestamps = gather_data(
         users, questions, cache_use=cache_use
     )
+
     # sort by most recent!
     sorted_indices = sorted(
         range(len(timestamps)), key=lambda i: timestamps[i], reverse=True
@@ -1059,8 +1205,6 @@ def run_update_global_bot_leaderboard(
                 user1_id = f"Pro Aggregate ({datetime.fromtimestamp(timestamp).year})"
             if user2_id == "Pro Aggregate":
                 user2_id = f"Pro Aggregate ({datetime.fromtimestamp(timestamp).year})"
-        if non_metac_bots_by_year:
-            raise NotImplementedError("non_metac_bots_by_year not implemented yet")
         temp_uer1_ids.append(user1_id)
         temp_user2_ids.append(user2_id)
     user1_ids = temp_uer1_ids
@@ -1089,6 +1233,30 @@ def run_update_global_bot_leaderboard(
     )
     if not include_non_metac_bots:
         excluded_ids = excluded_ids.union(non_metac_bot_ids)
+
+    # split non-metac bots into per-year players, parallel to cp/pro aggregates.
+    # done here (after non_metac_bot_ids is known) rather than in the mapping loop
+    # above. converting these ids to year-tagged strings also removes them from
+    # non_metac_bot_ids membership, which intentionally bypasses the recency filter
+    # below so the full per-year history is retained.
+    if non_metac_bots_by_year:
+        non_metac_bot_usernames: dict[int, str] = dict(
+            User.objects.filter(id__in=non_metac_bot_ids).values_list(
+                "id", "username"
+            )
+        )
+        temp_user1_ids = []
+        temp_user2_ids = []
+        for user1_id, user2_id, timestamp in zip(user1_ids, user2_ids, timestamps):
+            year = datetime.fromtimestamp(timestamp).year
+            if user1_id in non_metac_bot_ids:
+                user1_id = f"{non_metac_bot_usernames[user1_id]} ({year})"
+            if user2_id in non_metac_bot_ids:
+                user2_id = f"{non_metac_bot_usernames[user2_id]} ({year})"
+            temp_user1_ids.append(user1_id)
+            temp_user2_ids.append(user2_id)
+        user1_ids = temp_user1_ids
+        user2_ids = temp_user2_ids
 
     # initialize loop
     print("Starting matches:", len(timestamps))
@@ -1172,9 +1340,16 @@ def run_update_global_bot_leaderboard(
                 continue
             questions_forecasted[u1id].add(qid)
             questions_forecasted[u2id].add(qid)
-        ov = {uid: len(qs) for uid, qs in questions_forecasted.items()}  # total counts
-        for uid, count in ov.items():
-            if count < min_participation_count:
+        # year-split players (e.g. "Community Aggregate (2025)") share a parent;
+        # apply the participation threshold to the parent's combined question
+        # set so splitting an established aggregate/bot by year doesn't drop
+        # otherwise-sparse individual years.
+        parent_questions: dict[int | str, set[int]] = defaultdict(set)
+        for uid, qs in questions_forecasted.items():
+            parent_questions[participation_parent_key(uid)].update(qs)
+        for uid in questions_forecasted:
+            parent_count = len(parent_questions[participation_parent_key(uid)])
+            if parent_count < min_participation_count:
                 excluded_ids.add(uid)
     user1_ids = []
     user2_ids = []
@@ -1276,9 +1451,6 @@ def run_update_global_bot_leaderboard(
     )
     print()
 
-    ordered_skills = sorted(
-        [(user, skill) for user, skill in skills.items()], key=lambda x: -x[1]
-    )
     player_stats: dict[int | str, list] = dict()
     for u1id, u2id, qid in zip(user1_ids, user2_ids, question_ids):
         if u1id not in player_stats:
@@ -1293,6 +1465,19 @@ def run_update_global_bot_leaderboard(
     for uid, cov in cov_by_u.items():
         if uid in player_stats:
             player_stats[uid][2] = cov
+
+    # Collapse year-split players (community/pro aggregates and, under
+    # `non_metac_bots_by_year`, third-party bots) into one combined entry per
+    # model for the leaderboard + CSV output. The per-year `skills`/`ci_*`/
+    # `player_stats` are kept intact for the discrimination and
+    # skill-distribution diagnostics below.
+    (
+        combined_skills,
+        combined_ci_lower,
+        combined_ci_upper,
+        combined_player_stats,
+    ) = combine_year_split_players(skills, ci_lower, ci_upper, player_stats)
+    ordered_skills = sorted(combined_skills.items(), key=lambda x: -x[1])
 
     ##########################################################################
     ##########################################################################
@@ -1314,7 +1499,7 @@ def run_update_global_bot_leaderboard(
     question_count = len(set(question_ids))
     seen = set()
     for uid, skill in ordered_skills:
-        contribution_count = len(player_stats[uid][1])
+        contribution_count = len(combined_player_stats[uid][1])
 
         excluded = False
         if isinstance(uid, int):
@@ -1335,8 +1520,8 @@ def run_update_global_bot_leaderboard(
         entry.contribution_count = contribution_count
         entry.coverage = contribution_count / question_count
         entry.calculated_on = timezone.now()
-        entry.ci_lower = ci_lower.get(uid, None)
-        entry.ci_upper = ci_upper.get(uid, None)
+        entry.ci_lower = combined_ci_lower.get(uid, None)
+        entry.ci_upper = combined_ci_upper.get(uid, None)
         # TODO: support for more efficient saving once this is implemented
         # for leaderboards with more than 100 entries
         entry.save()
@@ -1370,16 +1555,16 @@ def run_update_global_bot_leaderboard(
             username = uid
         else:
             username = User.objects.get(id=uid).username
-        unevaluated.remove(uid)
-        lower = ci_lower.get(uid, 0)
-        upper = ci_upper.get(uid, 0)
+        unevaluated.discard(uid)
+        lower = combined_ci_lower.get(uid, 0)
+        upper = combined_ci_upper.get(uid, 0)
         print(
             f"| {round(lower, 2):>6} "
             f"| {round(skill, 2):>6} "
             f"| {round(upper, 2):>6} "
-            f"| {player_stats[uid][0]:>6} "
-            f"| {len(player_stats[uid][1]):>6} "
-            f"| {round(player_stats[uid][2], 2):>6} "
+            f"| {combined_player_stats[uid][0]:>6} "
+            f"| {len(combined_player_stats[uid][1]):>6} "
+            f"| {round(combined_player_stats[uid][2], 2):>6} "
             f"| {uid if isinstance(uid, int) else '':>6} "
             f"| {username}"
         )
@@ -1388,9 +1573,9 @@ def run_update_global_bot_leaderboard(
                 round(lower, 2),
                 round(skill, 2),
                 round(upper, 2),
-                player_stats[uid][0],
-                len(player_stats[uid][1]),
-                round(player_stats[uid][2], 2),
+                combined_player_stats[uid][0],
+                len(combined_player_stats[uid][1]),
+                round(combined_player_stats[uid][2], 2),
                 uid if isinstance(uid, int) else "",
                 username,
             ]
@@ -1404,9 +1589,13 @@ def run_update_global_bot_leaderboard(
         suffix += f"_BS{bootstrap_count}"
         if min_participation_count:
             suffix += f"_MinQ{min_participation_count}"
+        if min_human_forecasters:
+            suffix += f"_MinHF{min_human_forecasters}"
         if metac_bot_age:
             suffix += f"_MBotAge{metac_bot_age}"
-        if include_minibench:
+        if aib_minibench_only:
+            suffix += "_AIBMiniB"
+        elif include_minibench:
             suffix += "_MiniB"
         if cp_by_years:
             suffix += "_CPY"
@@ -1576,39 +1765,42 @@ class Command(BaseCommand):
         else:
             cache_use = "partial"
 
-        baseline_player = 236038
-        include_minibench = False
+        baseline_player = 236038  # metac-gpt-4o+asknews
+        aib_minibench_only = False  # only include questions from AIB and Minibench
+        include_minibench = True
         cache_use = "partial"
 
         bootstrap_count = 30
         min_participation_count = 150
-        metac_bot_age = 365
+        min_human_forecasters = 10  # drop community predictions with fewer human forecasters; 0 disables
+        metac_bot_age = 365  # don't include metac bots after this many days since creation
         cp_by_years = True
         pro_by_years = True
-        include_non_metac_bots = False
-        non_metac_bots_by_year = False
-        bot_recency = 3 * 30
-        bot_recent_scores = 0
-        bot_recent_coverage = 400
+        include_non_metac_bots = True
+        non_metac_bots_by_year = True
+        bot_recency = 3 * 30  # 3 months, 0 means no filter
+        bot_recent_scores = 150  # most recent scores, 0 means no filter
+        bot_recent_coverage = 0
         scale_weight_by_participants = False
-        use_discrimination = False # Takes 30+ mins to run
-        alpha_disc: float = 10000  # Only used if use_discrimination is true, range of (0,10000] doesn't change much
-        use_bayesian_alpha_disc = True # When True, ignore alpha_disc and derive it as σ²_error/σ²_D (uncapped)
-        als_init = "random"  # ALS skill init: zeros | random
-        als_seed: int | None = 123  # seed for als_init="random"
+        use_discrimination = False  # ALS for per-question difficulty; takes 30+ mins to run
+        alpha_disc = 10000  # ridge pull of per-question D toward 1; only used if use_discrimination is true
+        use_bayesian_alpha_disc = True  # derive alpha_disc = σ²_error/σ²_D (uncapped); ignores alpha_disc when True
+        als_init = "zeros"  # ALS skill init: zeros | random
+        als_seed = 123  # seed for als_init="random"
 
         store_results_csv = True
         verbose = True
 
         run_update_global_bot_leaderboard(
-            # settings
-            baseline_player=baseline_player,  # metac-gpt-4o+asknews
+            baseline_player=baseline_player,
             include_minibench=include_minibench,
+            aib_minibench_only=aib_minibench_only,
             cp_by_years=cp_by_years,
             pro_by_years=pro_by_years,
             metac_bot_age=metac_bot_age,
             bootstrap_count=bootstrap_count,
             min_participation_count=min_participation_count,
+            min_human_forecasters=min_human_forecasters,
             include_non_metac_bots=include_non_metac_bots,
             non_metac_bots_by_year=non_metac_bots_by_year,
             bot_recency=bot_recency,
@@ -1621,7 +1813,6 @@ class Command(BaseCommand):
             als_init=als_init,
             als_seed=als_seed,
             verbose=verbose,
-            # performance/logging
             cache_use=cache_use,
             store_results_csv=store_results_csv,
         )
