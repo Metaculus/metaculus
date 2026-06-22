@@ -5,7 +5,7 @@ import { FC, useState } from "react";
 import { ChoiceItem } from "@/types/choices";
 import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
-import { getForecastPctDisplayValue } from "@/utils/formatters/prediction";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 const MAX_ITEMS = 5;
@@ -83,7 +83,15 @@ const CompactLegendBar: FC<Props> = ({
       {visibleItems.map((item) => {
         const resolvedNo = isResolvedNo(item, questionType);
         const resolvedYes = isResolvedYes(item, questionType);
-        const pct = getForecastPctDisplayValue(getLastAggregationValue(item));
+        const displayValue = getPredictionDisplayValue(
+          getLastAggregationValue(item),
+          {
+            questionType,
+            scaling: item.scaling,
+            actual_resolve_time: item.actual_resolve_time ?? null,
+            emptyLabel: "?",
+          }
+        );
 
         return (
           <div
@@ -152,7 +160,7 @@ const CompactLegendBar: FC<Props> = ({
                 </span>
                 {(resolvedYes || (!item.isDeleted && !hideCP)) && (
                   <span className="shrink-0 text-sm tabular-nums leading-4 text-gray-600 dark:text-gray-600-dark md:text-base md:leading-6">
-                    {resolvedYes ? `(${t("Yes")})` : pct}
+                    {resolvedYes ? `(${t("Yes")})` : displayValue}
                   </span>
                 )}
               </>

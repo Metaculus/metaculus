@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 import dramatiq
 from django.conf import settings
@@ -9,10 +10,12 @@ from questions.types import AggregationMethod
 from utils.dramatiq import task_concurrent_limit
 from utils.email import resolve_account_sender
 from utils.translation import (
-    update_translations_for_model,
     detect_and_update_content_language,
     queryset_filter_outdated_translations,
+    update_translations_for_model,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @dramatiq.actor(min_backoff=3_000, max_retries=3)
@@ -50,8 +53,8 @@ def email_all_data_for_questions_task(
 ):
     # TODO: deprecate this, use email_data_task instead
     try:
-        from utils.csv_utils import export_all_data_for_questions
         from questions.models import Question
+        from utils.csv_utils import export_all_data_for_questions
 
         questions = Question.objects.filter(id__in=question_ids)
         data = export_all_data_for_questions(
@@ -72,11 +75,11 @@ def email_all_data_for_questions_task(
         email.attach(filename or "metaculus_data.zip", data, "application/zip")
         email.send()
 
-    except Exception as e:
+    except Exception:
+        logger.exception(f"Failed to generate or email data for {email_address}")
         email = EmailMessage(
             subject="Error generating Metaculus data",
-            body="Error generating Metaculus data. Please contact an administrator "
-            f"for assistance.\nError: {e}",
+            body="Error generating Metaculus data. Please contact an administrator for assistance.",
             from_email=resolve_account_sender(email_address),
             to=[email_address],
         )
@@ -141,11 +144,11 @@ def email_data_task(
         email.attach(filename, data, "application/zip")
         email.send()
 
-    except Exception as e:
+    except Exception:
+        logger.exception(f"Failed to generate or email data for {user_email}")
         email = EmailMessage(
             subject="Error generating Metaculus data",
-            body="Error generating Metaculus data. Please contact an administrator "
-            f"for assistance.\nError: {e}",
+            body="Error generating Metaculus data. Please contact an administrator for assistance.",
             from_email=resolve_account_sender(user_email),
             to=[user_email],
         )
@@ -176,11 +179,11 @@ def email_user_their_data_task(user_id: int):
         email.attach("user_data.zip", data, "application/zip")
         email.send()
 
-    except Exception as e:
+    except Exception:
+        logger.exception(f"Failed to generate or email user data for {user_email}")
         email = EmailMessage(
             subject="Error generating Metaculus data",
-            body="Error generating Metaculus data. Please contact an administrator "
-            f"for assistance.\nError: {e}",
+            body="Error generating Metaculus data. Please contact an administrator for assistance.",
             from_email=resolve_account_sender(user_email),
             to=[user_email],
         )

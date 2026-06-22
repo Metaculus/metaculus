@@ -37,6 +37,10 @@ export type User = UserBase & {
 };
 
 export type UserProfile = User & {
+  spam_count?: number;
+};
+
+export type UserProfileStats = {
   calibration_curve?: TrackRecordCalibrationCurveItem[];
   score_histogram?: TrackRecordHistogramItem[];
   score_scatter_plot?: TrackRecordScatterPlotItem[];
@@ -48,8 +52,9 @@ export type UserProfile = User & {
   forecasts_on_authored_questions_count?: number;
   notebooks_authored_count?: number;
   comments_count?: number;
-  spam_count?: number;
 };
+
+export type UserProfileWithStats = UserProfile & UserProfileStats;
 
 export type CurrentUser = User & {
   email: string;

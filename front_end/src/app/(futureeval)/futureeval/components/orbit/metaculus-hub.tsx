@@ -3,6 +3,7 @@
 import Link from "next/link";
 import React from "react";
 
+import { MetaculusMark } from "@/components/logos";
 import cn from "@/utils/core/cn";
 
 import { FE_COLORS } from "../../theme";
@@ -23,16 +24,7 @@ const MetaculusHub: React.FC = () => {
           )}
           style={{ width: 36, height: 36 }}
         >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            xmlns="http://www.w3.org/2000/svg"
-            className="text-futureeval-bg-light dark:text-futureeval-bg-dark"
-          >
-            <path d="M7.76271 17V7.11394L9.52542 17H10.4294L12.1921 7.11394V17H14V3H11.4689L9.9774 9.96852L8.48588 3H6V17H7.76271Z" />
-          </svg>
+          <MetaculusMark className="h-[18px] w-auto text-futureeval-bg-light dark:text-futureeval-bg-dark" />
         </div>
 
         {/* Title */}
