@@ -72,6 +72,10 @@ def combine_year_split_players(
     - match count / distinct questions / coverage: combined across the year
       slices (which are disjoint in questions).
 
+    Note: The scores + CIs generated with this process are similar to what they would have 
+    been if players were never split by year to begin with, though they do not result
+    in the exact same values. We score by year because these forecasters change w.r.t time.
+
     Single-member groups (including non-year-split players and integer
     metac/third-party bot ids) pass through unchanged except for being renamed
     to their parent key, preserving the original (possibly asymmetric) CI.
