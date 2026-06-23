@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 # Sending-domain warm-up ramp, per stream: the percentage (0-100) of recipients
 # routed to the new domain. Advance the warm-up by bumping these in code.
 NOTIFICATIONS_DOMAIN_RAMP_PCT = 10
-ACCOUNTS_DOMAIN_RAMP_PCT = 10
+ACCOUNTS_DOMAIN_RAMP_PCT = 50
 # @metaculus.com staff dogfood the new domain at these splits, independent of
 # the public ramp above, so the team sees the new domain early.
 INTERNAL_RAMP_PCT = 50
