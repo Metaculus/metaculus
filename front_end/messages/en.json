@@ -236,6 +236,7 @@
   "metaculus_prediction": "Metaculus Prediction",
   "metaculus": "Metaculus",
   "community": "community",
+  "enterProbability": "Enter probability",
   "communityPrediction": "Community Prediction",
   "unweightedAggregate": "Unweighted Aggregate",
   "firstQuartile": "lower 25%",

@@ -47,9 +47,7 @@ const BinarySlider: FC<Props> = ({
   styles,
   withArrowStep = true,
 }) => {
-  const inputDisplayValue = forecast ? forecast.toString() + "%" : "—";
-  const [, setInputValue] = useState(inputDisplayValue);
-  const [isInputFocused] = useState(false);
+  const t = useTranslations();
   const [markShiftX, setMarkShiftX] = useState(0);
   const [sliderValue, setSliderValue] = useState(
     forecast ?? DEFAULT_SLIDER_VALUE
@@ -58,12 +56,6 @@ const BinarySlider: FC<Props> = ({
 
   const sliderContainerRef = useRef<HTMLDivElement>(null);
   const communityBubbleRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!isInputFocused) {
-      setInputValue(inputDisplayValue);
-    }
-  }, [inputDisplayValue, isInputFocused]);
 
   useLayoutEffect(() => {
     if (
@@ -154,7 +146,6 @@ const BinarySlider: FC<Props> = ({
 
   const handleSliderForecastChange = useCallback(
     (value: number) => {
-      setInputValue(value.toString() + "%");
       setSliderValue(value);
       onBecomeDirty?.();
       onChange(value);
@@ -195,6 +186,8 @@ const BinarySlider: FC<Props> = ({
           disabled={disabled}
           styles={disabled ? { handle: { cursor: "default" } } : styles}
           showValue
+          editable={!disabled}
+          editAriaLabel={t("enterProbability")}
         />
         {forecast !== null && helperDisplay && (
           <div
