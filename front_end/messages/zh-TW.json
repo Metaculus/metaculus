@@ -720,6 +720,7 @@
   "parentResolutionCriteria": "父問題解析標準",
   "childResolutionCriteria": "子問題解析標準",
   "loadMoreComments": "載入更多評論",
+  "linkedComment": "連結的評論",
   "followers": "追隨者",
   "followed": "已追隨",
   "followButton": "追隨",

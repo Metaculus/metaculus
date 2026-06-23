@@ -596,6 +596,7 @@
   "parentResolutionCriteria": "Kritéria vyřešení nadřazené otázky",
   "childResolutionCriteria": "Kritéria vyřešení podřazené otázky",
   "loadMoreComments": "Načíst více komentářů",
+  "linkedComment": "Odkazovaný komentář",
   "followButton": "Sledovat",
   "followingButton": "Sledujete",
   "unfollowButton": "Přestat sledovat",
