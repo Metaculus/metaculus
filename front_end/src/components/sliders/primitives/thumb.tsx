@@ -168,7 +168,9 @@ const SliderThumb: FC<Props> = ({
               inputMode="decimal"
               aria-label={editAriaLabel}
               value={draftValue}
-              className="mx-auto w-full bg-transparent text-center text-sm outline-none"
+              // 16px font-size keeps iOS from auto-zooming on focus; scale it
+              // back down so it still renders at the 14px (text-sm) visual size.
+              className="mx-auto w-full scale-[0.875] bg-transparent text-center text-base outline-none"
               onPointerDown={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
               onTouchStart={(e) => e.stopPropagation()}
