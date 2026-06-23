@@ -226,6 +226,8 @@ def get_posts_feed(
         qs = qs.filter_private()
     if access == PostFilterSerializer.Access.PUBLIC:
         qs = qs.filter_public()
+    if access == PostFilterSerializer.Access.PERSONAL:
+        qs = qs.filter_personal()
 
     # Similar posts lookup
     if similar_to_post_id:
