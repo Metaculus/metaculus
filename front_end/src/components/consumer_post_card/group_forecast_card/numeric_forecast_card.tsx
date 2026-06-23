@@ -6,6 +6,7 @@ import { FC, useState } from "react";
 
 import { useListChartExpanded } from "@/app/(main)/questions/[id]/components/question_view/consumer_question_view/consumer_list_chart_shell";
 import { getEffectiveVisibleCount } from "@/constants/questions";
+import { useHideCP } from "@/contexts/cp_context";
 import { useOverlayMaxHeight } from "@/hooks/use_overlay_max_height";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
@@ -41,6 +42,7 @@ const NumericForecastCard: FC<Props> = ({
 }) => {
   const locale = useLocale();
   const t = useTranslations();
+  const { hideCP } = useHideCP();
   const [expanded, setExpanded] = useState(false);
   const { setIsExpanded, setHoveredChoiceName, cursorTimestamp } =
     useListChartExpanded();
@@ -145,10 +147,9 @@ const NumericForecastCard: FC<Props> = ({
         index
       ) => {
         const isChoiceClosed = closeTime ? closeTime < Date.now() : false;
-        const rawChoiceValue = getChoiceValue(
-          aggregationValues,
-          aggregationTimestamps
-        );
+        const rawChoiceValue = hideCP
+          ? null
+          : getChoiceValue(aggregationValues, aggregationTimestamps);
         const normalizedScaling: Scaling = {
           range_min: scaling?.range_min ?? 0,
           range_max: scaling?.range_max ?? 1,
@@ -158,18 +159,20 @@ const NumericForecastCard: FC<Props> = ({
           questionType: isDateGroup ? QuestionType.Date : QuestionType.Numeric,
           scaling: normalizedScaling,
           actual_resolve_time: actual_resolve_time ?? null,
-          emptyLabel: t("Upcoming"),
+          emptyLabel: hideCP ? t("hidden") : t("Upcoming"),
         });
         const scaledChoiceValue = !isNil(rawChoiceValue)
           ? scaleInternalLocation(rawChoiceValue, normalizedScaling)
           : NaN;
         const relativeWidth = !isNil(resolution)
           ? 100
-          : calculateRelativeWidth({
-              scaledChoiceValue,
-              maxScaledValue,
-              minScaledValue,
-            });
+          : hideCP
+            ? 0
+            : calculateRelativeWidth({
+                scaledChoiceValue,
+                maxScaledValue,
+                minScaledValue,
+              });
 
         return (
           <ForecastChoiceBar

@@ -5,6 +5,7 @@ import { FC, useMemo, useState } from "react";
 
 import { useListChartExpanded } from "@/app/(main)/questions/[id]/components/question_view/consumer_question_view/consumer_list_chart_shell";
 import { getEffectiveVisibleCount } from "@/constants/questions";
+import { useHideCP } from "@/contexts/cp_context";
 import { useOverlayMaxHeight } from "@/hooks/use_overlay_max_height";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
@@ -40,6 +41,7 @@ const PercentageForecastCard: FC<Props> = ({
 }) => {
   const locale = useLocale();
   const t = useTranslations();
+  const { hideCP } = useHideCP();
   const [expanded, setExpanded] = useState(false);
   const { setIsExpanded, cursorTimestamp } = useListChartExpanded();
   const { containerRef, overlayMaxHeight } = useOverlayMaxHeight(expanded);
@@ -47,7 +49,7 @@ const PercentageForecastCard: FC<Props> = ({
   const isMC = isMultipleChoicePost(post);
   const cpRevealTime = post.question?.cp_reveal_time;
   const emptyLabel =
-    cpRevealTime && new Date(cpRevealTime).getTime() > Date.now()
+    hideCP || (cpRevealTime && new Date(cpRevealTime).getTime() > Date.now())
       ? t("hidden")
       : t("Upcoming");
 
@@ -62,7 +64,7 @@ const PercentageForecastCard: FC<Props> = ({
     const raw = generateChoiceItems(post, visibleChoicesCount, locale, t);
     return raw.map((choice) => {
       const valueStr = getPredictionDisplayValue(
-        choice.aggregationValues.at(-1),
+        hideCP ? null : choice.latestValue ?? choice.aggregationValues.at(-1),
         {
           questionType: QuestionType.Binary,
           scaling: choice.scaling,
@@ -86,7 +88,7 @@ const PercentageForecastCard: FC<Props> = ({
         isChoiceClosed,
       };
     });
-  }, [post, visibleChoicesCount, locale, t, emptyLabel]);
+  }, [post, visibleChoicesCount, locale, t, emptyLabel, hideCP]);
 
   // Resolves each choice's value at the cursor (or last) timestamp using its
   // own timeline, since history lengths differ per sub-question.
@@ -107,8 +109,11 @@ const PercentageForecastCard: FC<Props> = ({
       const ownTimestamps = choice.aggregationTimestamps;
       const closestTs = findPreviousTimestamp(ownTimestamps, refTs);
       const ownIdx = ownTimestamps.indexOf(closestTs);
-      const rawVal =
-        ownIdx >= 0 ? choice.aggregationValues[ownIdx] ?? null : null;
+      const rawVal = hideCP
+        ? null
+        : ownIdx >= 0
+          ? choice.aggregationValues[ownIdx] ?? null
+          : null;
       const valueStr = getPredictionDisplayValue(rawVal, {
         questionType: QuestionType.Binary,
         scaling: choice.scaling,
@@ -121,7 +126,7 @@ const PercentageForecastCard: FC<Props> = ({
           : 0;
       return { ...choice, valueStr, percent };
     });
-  }, [allChoices, cursorTimestamp, emptyLabel]);
+  }, [allChoices, cursorTimestamp, emptyLabel, hideCP]);
 
   if (!isMC && !isGroupOfQuestionsPost(post)) return null;
 

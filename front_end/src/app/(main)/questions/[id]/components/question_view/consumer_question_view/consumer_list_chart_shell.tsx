@@ -134,7 +134,7 @@ const ConsumerListChartShell: React.FC<Props> = ({
         </div>
         <div
           className={cn(
-            "relative order-2 hidden flex-1 overflow-hidden sm:flex sm:flex-col",
+            "relative order-2 hidden flex-1 overflow-visible sm:flex sm:flex-col",
             reduceInnerPadding ? "sm:py-5" : "sm:p-5",
             !hideDivider &&
               "sm:before:absolute sm:before:bottom-0 sm:before:left-0 sm:before:w-px sm:before:bg-gray-400/40 sm:before:content-[''] dark:sm:before:bg-gray-400-dark/40",

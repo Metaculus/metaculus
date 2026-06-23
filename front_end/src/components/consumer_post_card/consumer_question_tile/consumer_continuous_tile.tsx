@@ -1,8 +1,9 @@
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
 import ContinuousCPBar from "@/components/consumer_post_card/consumer_question_tile/continuous_cp_bar";
 import QuestionContinuousResolutionChip from "@/components/consumer_post_card/question_continuous_resolution_chip";
+import { useHideCP } from "@/contexts/cp_context";
 import { QuestionStatus } from "@/types/post";
 import { ForecastAvailability, QuestionWithForecasts } from "@/types/question";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
@@ -22,6 +23,8 @@ const ConsumerContinuousTile: FC<Props> = ({
   overrideCenter,
 }) => {
   const locale = useLocale();
+  const t = useTranslations();
+  const { hideCP } = useHideCP();
 
   const latest =
     question.aggregations[question.default_aggregation_method]?.latest;
@@ -30,7 +33,7 @@ const ConsumerContinuousTile: FC<Props> = ({
     overrideCenter !== null && overrideCenter !== undefined
       ? overrideCenter
       : latest?.centers?.[0];
-  const communityPredictionDisplayValue =
+  const rawCommunityPredictionDisplayValue =
     effectiveCenter !== undefined
       ? getPredictionDisplayValue(effectiveCenter, {
           questionType: question.type,
@@ -39,6 +42,10 @@ const ConsumerContinuousTile: FC<Props> = ({
           unit: question.unit,
         })
       : null;
+  const communityPredictionDisplayValue =
+    hideCP && rawCommunityPredictionDisplayValue !== null
+      ? t("hidden")
+      : rawCommunityPredictionDisplayValue;
 
   // Resolved/Annulled/Ambiguous
   if (question.resolution) {
