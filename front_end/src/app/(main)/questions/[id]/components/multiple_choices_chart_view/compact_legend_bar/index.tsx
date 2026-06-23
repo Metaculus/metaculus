@@ -84,7 +84,7 @@ const CompactLegendBar: FC<Props> = ({
         const resolvedNo = isResolvedNo(item, questionType);
         const resolvedYes = isResolvedYes(item, questionType);
         const displayValue = getPredictionDisplayValue(
-          getLastAggregationValue(item),
+          item.latestValue ?? getLastAggregationValue(item),
           {
             questionType,
             scaling: item.scaling,
