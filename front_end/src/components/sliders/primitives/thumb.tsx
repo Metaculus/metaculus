@@ -9,6 +9,7 @@ import {
   useEffect,
   useRef,
 } from "react";
+import { flushSync } from "react-dom";
 
 import { FORECAST_INPUT_REGEX } from "@/components/forecast_maker/forecast_text_input";
 import cn from "@/utils/core/cn";
@@ -63,6 +64,7 @@ const SliderThumb: FC<Props> = ({
   // after a small drag. rc-slider keeps owning the actual drag.
   const movedRef = useRef(false);
   const detachRef = useRef<(() => void) | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Tear down any dangling document listener if the thumb unmounts mid-press.
   useEffect(() => () => detachRef.current?.(), []);
@@ -97,11 +99,25 @@ const SliderThumb: FC<Props> = ({
     []
   );
 
-  const handleClick = useCallback(() => {
-    if (!movedRef.current) {
-      onRequestEdit?.();
-    }
+  // Mount the input synchronously, then focus it within the same gesture. iOS
+  // only raises the keyboard for a focus() call made directly inside a user
+  // gesture handler, so we can't rely on autoFocus after an async re-render.
+  const openAndFocus = useCallback(() => {
+    if (movedRef.current) return;
+    flushSync(() => onRequestEdit?.());
+    inputRef.current?.focus();
   }, [onRequestEdit]);
+
+  // Mouse opens on `click` (the browser's own click-vs-drag disambiguation).
+  // Touch/pen open on `pointerup`: a single tap should work, but iOS suppresses
+  // the first `click` once the thumb enters its :hover state, so it would
+  // otherwise need a second tap.
+  const handlePointerUp = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (e.pointerType !== "mouse") openAndFocus();
+    },
+    [openAndFocus]
+  );
 
   return (
     <div
@@ -134,7 +150,8 @@ const SliderThumb: FC<Props> = ({
           onClickIn?.(e.shiftKey);
         }}
         onPointerDown={editable && !isEditing ? handlePressStart : undefined}
-        onClick={editable && !isEditing ? handleClick : undefined}
+        onPointerUp={editable && !isEditing ? handlePointerUp : undefined}
+        onClick={editable && !isEditing ? openAndFocus : undefined}
         className={cn(
           "group/thumb flex items-center border-2 border-gray-600 bg-blue-100 text-center font-medium dark:border-gray-600-dark dark:bg-blue-100-dark",
           "active:bg-blue-400 active:dark:bg-blue-400-dark",
@@ -145,6 +162,7 @@ const SliderThumb: FC<Props> = ({
         {showValue &&
           (isEditing ? (
             <input
+              ref={inputRef}
               autoFocus
               type="text"
               inputMode="decimal"
@@ -177,7 +195,7 @@ const SliderThumb: FC<Props> = ({
               className={cn(
                 "mx-auto select-none text-center text-sm",
                 editable &&
-                  "decoration-blue-700 underline-offset-2 group-hover/thumb:underline dark:decoration-blue-500"
+                  "decoration-blue-700 underline-offset-2 dark:decoration-blue-500 [@media(hover:hover)]:group-hover/thumb:underline"
               )}
             >
               {value}%

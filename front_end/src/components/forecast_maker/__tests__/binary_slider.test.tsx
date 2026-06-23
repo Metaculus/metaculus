@@ -110,6 +110,23 @@ describe("BinarySlider keyboard entry", () => {
     expect(input.value).toBe("50");
   });
 
+  it("opens on a touch tap via pointerup (iOS suppresses the first click)", () => {
+    renderSlider();
+    const value = screen.getByText("50%");
+    fireEvent.pointerDown(value, {
+      clientX: 10,
+      clientY: 10,
+      pointerType: "touch",
+    });
+    fireEvent.pointerUp(value, {
+      clientX: 10,
+      clientY: 10,
+      pointerType: "touch",
+    });
+
+    expect(screen.getByLabelText(EDIT_LABEL)).toBeInTheDocument();
+  });
+
   it("commits the typed value on Enter and reports it upward", () => {
     const { onChange } = renderSlider();
     tapThumb(screen.getByText("50%"));
