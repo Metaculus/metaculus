@@ -177,7 +177,7 @@ const SliderThumb: FC<Props> = ({
               className={cn(
                 "mx-auto select-none text-center text-sm",
                 editable &&
-                  "decoration-[color-mix(in_srgb,currentColor_50%,transparent)] underline-offset-4 group-hover/thumb:underline"
+                  "decoration-blue-700 underline-offset-2 group-hover/thumb:underline dark:decoration-blue-500"
               )}
             >
               {value}%
