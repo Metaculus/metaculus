@@ -55,14 +55,9 @@ class PostQuerySet(models.QuerySet):
             prefetches += [
                 Prefetch(
                     f"{rel}__user_forecasts",
-                    # only retrieve forecasts that were made before question close
-                    queryset=Forecast.objects.filter(author_id=user_id)
-                    .annotate(actual_close_time=F("question__actual_close_time"))
-                    .filter(
-                        Q(actual_close_time__isnull=True)
-                        | Q(start_time__lte=F("actual_close_time"))
-                    )
-                    .order_by("start_time"),
+                    queryset=Forecast.objects.filter(author_id=user_id).order_by(
+                        "start_time"
+                    ),
                     to_attr="request_user_forecasts",
                 ),
                 Prefetch(
