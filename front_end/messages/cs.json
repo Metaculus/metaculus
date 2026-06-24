@@ -1141,6 +1141,7 @@
   "Index": "Index",
   "forecastFlow": "Předpověď průtoků",
   "viewQuestions": "Zobrazit otázky<bold>({count})</bold>",
+  "includingSubquestions": "Včetně podotázek: {count}",
   "started": "Začátek",
   "starts": "Začíná",
   "lastDayForPrizeParticipation": "Poslední den pro účast v soutěži o ceny",

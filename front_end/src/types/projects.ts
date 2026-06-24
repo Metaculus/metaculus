@@ -67,6 +67,7 @@ export type TournamentPreview = Project & {
   is_ongoing: boolean;
   created_at: string;
   questions_count: number;
+  questions_count_including_subquestions?: number;
   user_permission: ProjectPermissions;
   default_permission: ProjectPermissions | null;
   score_type: string;

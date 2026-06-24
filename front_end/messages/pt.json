@@ -1138,6 +1138,7 @@
   "Index": "Índice",
   "forecastFlow": "Fluxo de Previsão",
   "viewQuestions": "Ver Perguntas<bold>({count})</bold>",
+  "includingSubquestions": "Incluindo subperguntas: {count}",
   "started": "Iniciado",
   "starts": "Começa",
   "lastDayForPrizeParticipation": "Último dia para participação no prêmio",
