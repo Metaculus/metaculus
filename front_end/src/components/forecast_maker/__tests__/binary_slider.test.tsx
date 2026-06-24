@@ -140,6 +140,25 @@ describe("BinarySlider keyboard entry", () => {
     expect(screen.getByText("65.5%")).toBeInTheDocument();
   });
 
+  it("treats a typed comma as a decimal point", () => {
+    const { onChange } = renderSlider();
+    tapThumb(screen.getByText("50%"));
+
+    const input = screen.getByLabelText(EDIT_LABEL) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "55,5" } });
+    expect(input.value).toBe("55.5");
+
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(onChange).toHaveBeenCalledWith(55.5);
+  });
+
+  it("removes the native input chrome on the editor (appearance-none)", () => {
+    renderSlider();
+    tapThumb(screen.getByText("50%"));
+
+    expect(screen.getByLabelText(EDIT_LABEL)).toHaveClass("appearance-none");
+  });
+
   it("commits on blur", () => {
     const { onChange } = renderSlider();
     tapThumb(screen.getByText("50%"));

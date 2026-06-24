@@ -69,6 +69,24 @@ const SliderThumb: FC<Props> = ({
   // Tear down any dangling document listener if the thumb unmounts mid-press.
   useEffect(() => () => detachRef.current?.(), []);
 
+  // The decimal keypad has no return key, so commit normally only happens on
+  // blur — but dismissing the iOS keyboard doesn't reliably blur the input.
+  // Watch the visual viewport and blur once the keyboard closes (which fires
+  // onBlur -> onCommit -> the thumb moves), so no extra tap is needed.
+  useEffect(() => {
+    if (!isEditing) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    let keyboardOpened = false;
+    const onResize = () => {
+      const occluded = window.innerHeight - vv.height;
+      if (occluded > 120) keyboardOpened = true;
+      else if (keyboardOpened) inputRef.current?.blur();
+    };
+    vv.addEventListener("resize", onResize);
+    return () => vv.removeEventListener("resize", onResize);
+  }, [isEditing]);
+
   const handlePressStart = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
       movedRef.current = false;
@@ -125,6 +143,10 @@ const SliderThumb: FC<Props> = ({
       className={cn(
         "absolute flex cursor-pointer touch-none items-center focus:outline-none",
         active ? "z-10" : "z-0",
+        // Promote to its own layer so iOS Safari paints the absolutely
+        // positioned handle at the right spot on first paint (otherwise its
+        // bottom is clipped until the first interaction triggers a repaint).
+        showValue && "will-change-transform",
         className
       )}
     >
@@ -170,15 +192,19 @@ const SliderThumb: FC<Props> = ({
               value={draftValue}
               // 16px font-size keeps iOS from auto-zooming on focus; scale it
               // back down so it still renders at the 14px (text-sm) visual size.
-              className="mx-auto w-full scale-[0.875] bg-transparent text-center text-base outline-none"
+              // appearance-none removes the native iOS input chrome (solid bg /
+              // sharp corners) that would otherwise show inside the rounded pill.
+              className="mx-auto w-full scale-[0.875] appearance-none bg-transparent text-center text-base outline-none"
               onPointerDown={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
               onTouchStart={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
               onFocus={(e) => e.currentTarget.select()}
               onChange={(e) => {
-                if (!FORECAST_INPUT_REGEX.test(e.target.value)) return;
-                onDraftChange?.(e.target.value);
+                // Localized decimal keypads emit "," — treat it as ".".
+                const v = e.target.value.replace(",", ".");
+                if (!FORECAST_INPUT_REGEX.test(v)) return;
+                onDraftChange?.(v);
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
