@@ -101,13 +101,6 @@ describe("BinarySlider keyboard entry", () => {
     expect(screen.getByText("50%")).toBeInTheDocument();
   });
 
-  it("centers the handle deterministically (top + translateY), not via flex", () => {
-    renderSlider();
-    const handle = screen.getByRole("slider");
-    expect(handle).toHaveStyle({ top: "50%" });
-    expect(handle.style.transform).toContain("translateY(-50%)");
-  });
-
   it("opens an input seeded with the current value on tap", () => {
     renderSlider();
     tapThumb(screen.getByText("50%"));

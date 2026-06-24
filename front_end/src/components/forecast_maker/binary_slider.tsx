@@ -144,6 +144,22 @@ const BinarySlider: FC<Props> = ({
     });
   }, [sliderValue, communityForecast, markShiftX]);
 
+  // iOS Safari clips the absolutely-positioned thumb (a child of the flex
+  // `.rc-slider`) to the container bounds on first paint, until an interaction
+  // forces a repaint. There's no overflow rule to remove — it's a WebKit
+  // flex/abs-pos quirk — so nudge the subtree once on mount to force the
+  // repaint. Imperceptible (one frame at 0.99 opacity).
+  useEffect(() => {
+    const el = sliderContainerRef.current;
+    if (!el) return;
+    el.style.opacity = "0.99";
+    const id = requestAnimationFrame(() => {
+      const node = sliderContainerRef.current;
+      if (node) node.style.opacity = "";
+    });
+    return () => cancelAnimationFrame(id);
+  }, []);
+
   const handleSliderForecastChange = useCallback(
     (value: number) => {
       setSliderValue(value);
@@ -184,20 +200,7 @@ const BinarySlider: FC<Props> = ({
               : undefined
           }
           disabled={disabled}
-          styles={{
-            ...styles,
-            handle: {
-              ...styles?.handle,
-              // Center the handle vertically deterministically. rc-slider only
-              // sets `left` + `translateX(-50%)` for horizontal sliders and
-              // leans on flex `items-center` for vertical centering, which iOS
-              // Safari mispaints on first load (the thumb's bottom is clipped
-              // until an interaction forces a repaint).
-              top: "50%",
-              transform: "translateX(-50%) translateY(-50%)",
-              ...(disabled ? { cursor: "default" } : {}),
-            },
-          }}
+          styles={disabled ? { handle: { cursor: "default" } } : styles}
           showValue
           editable={!disabled}
           editAriaLabel={t("enterProbability")}

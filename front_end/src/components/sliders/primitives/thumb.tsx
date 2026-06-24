@@ -87,6 +87,20 @@ const SliderThumb: FC<Props> = ({
     return () => vv.removeEventListener("resize", onResize);
   }, [isEditing]);
 
+  // When the editor closes, release any drag rc-slider armed from the opening
+  // tap. iOS can fire `touchcancel` (which rc-slider doesn't clean up) when the
+  // keyboard opens, leaving a document touchmove listener that would move the
+  // slider on the next scroll. A manual tap-to-commit used to fire a document
+  // touchend that cleared it; now that we auto-commit on keyboard dismiss, we
+  // dispatch that release ourselves. (Harmless no-op when nothing is armed.)
+  const wasEditingRef = useRef(false);
+  useEffect(() => {
+    if (wasEditingRef.current && !isEditing) {
+      document.dispatchEvent(new MouseEvent("mouseup"));
+    }
+    wasEditingRef.current = isEditing;
+  }, [isEditing]);
+
   const handlePressStart = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
       movedRef.current = false;
@@ -162,12 +176,10 @@ const SliderThumb: FC<Props> = ({
         }}
         onTouchStart={(e) => {
           if (isEditing) return;
-          // Always preventDefault, even when editable: it suppresses the
-          // simulated mouse events that would otherwise hit rc-slider's
-          // track-click handler (`onSliderMouseDown`) and move/arm-drag the
-          // slider during a later scroll. Touch opens the editor via
-          // onPointerUp (which still fires), so the synthetic click isn't needed.
-          e.preventDefault();
+          // When editable, don't preventDefault: doing so also suppresses the
+          // tap that opens the editor on iOS. Any rc-slider drag this tap arms
+          // is released when the editor closes (see the cleanup effect above).
+          if (!editable) e.preventDefault();
           onClickIn?.(e.shiftKey);
         }}
         onPointerDown={editable && !isEditing ? handlePressStart : undefined}
