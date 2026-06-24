@@ -143,10 +143,6 @@ const SliderThumb: FC<Props> = ({
       className={cn(
         "absolute flex cursor-pointer touch-none items-center focus:outline-none",
         active ? "z-10" : "z-0",
-        // Promote to its own layer so iOS Safari paints the absolutely
-        // positioned handle at the right spot on first paint (otherwise its
-        // bottom is clipped until the first interaction triggers a repaint).
-        showValue && "will-change-transform",
         className
       )}
     >
@@ -166,9 +162,12 @@ const SliderThumb: FC<Props> = ({
         }}
         onTouchStart={(e) => {
           if (isEditing) return;
-          // When editable, don't preventDefault: it would suppress the synthetic
-          // `click` we rely on to open the editor on a tap.
-          if (!editable) e.preventDefault();
+          // Always preventDefault, even when editable: it suppresses the
+          // simulated mouse events that would otherwise hit rc-slider's
+          // track-click handler (`onSliderMouseDown`) and move/arm-drag the
+          // slider during a later scroll. Touch opens the editor via
+          // onPointerUp (which still fires), so the synthetic click isn't needed.
+          e.preventDefault();
           onClickIn?.(e.shiftKey);
         }}
         onPointerDown={editable && !isEditing ? handlePressStart : undefined}

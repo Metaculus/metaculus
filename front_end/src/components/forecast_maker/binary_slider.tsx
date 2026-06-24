@@ -184,7 +184,20 @@ const BinarySlider: FC<Props> = ({
               : undefined
           }
           disabled={disabled}
-          styles={disabled ? { handle: { cursor: "default" } } : styles}
+          styles={{
+            ...styles,
+            handle: {
+              ...styles?.handle,
+              // Center the handle vertically deterministically. rc-slider only
+              // sets `left` + `translateX(-50%)` for horizontal sliders and
+              // leans on flex `items-center` for vertical centering, which iOS
+              // Safari mispaints on first load (the thumb's bottom is clipped
+              // until an interaction forces a repaint).
+              top: "50%",
+              transform: "translateX(-50%) translateY(-50%)",
+              ...(disabled ? { cursor: "default" } : {}),
+            },
+          }}
           showValue
           editable={!disabled}
           editAriaLabel={t("enterProbability")}
