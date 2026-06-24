@@ -25,6 +25,7 @@ export type ChoiceItem = {
   aggregationMinValues: (number | null)[];
   aggregationMaxValues: (number | null)[];
   aggregationForecasterCounts: number[];
+  latestValue?: number | null;
   userTimestamps: number[];
   userValues: (number | null)[];
   actual_resolve_time?: string | null;

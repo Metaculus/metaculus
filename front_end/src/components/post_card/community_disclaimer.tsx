@@ -25,6 +25,7 @@ const getDisclaimerCopy = (
       community: () => (
         <Button
           href={getProjectLink(project)}
+          prefetch={false}
           variant="link"
           className="text-xs"
         >

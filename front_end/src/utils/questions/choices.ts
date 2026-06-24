@@ -400,6 +400,9 @@ export function generateChoiceItemsFromGroupQuestions(
       aggregationMinValues: aggregationMinValues,
       aggregationMaxValues: aggregationMaxValues,
       aggregationForecasterCounts: aggregationForecasterCounts,
+      latestValue:
+        question.aggregations[question.default_aggregation_method].latest
+          ?.centers?.[0] ?? null,
       userTimestamps: sortedUserTimestamps,
       userValues: userValues,
       userMinValues:

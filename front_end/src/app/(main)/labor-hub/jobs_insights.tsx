@@ -8,8 +8,9 @@ export const JOBS_INSIGHTS = {
     ),
     negative: (
       <>
-        By 2027, <strong>software developers</strong> are expected to already
-        start seeing a contraction due to AI coding capabilities.
+        By 2027, <strong>sales representatives</strong> are expected to see
+        early declines as AI begins to automate outreach and client
+        interactions.
       </>
     ),
   },
@@ -24,19 +25,18 @@ export const JOBS_INSIGHTS = {
     ),
     negative: (
       <>
-        By 2030, <strong>software developers</strong> and{" "}
-        <strong>sales representatives</strong> are expected to see steep
-        declines, while <strong>financial</strong> roles begin to see the
-        effects of AI capabilities substitution.
+        By 2030, <strong>software developers</strong>,{" "}
+        <strong>sales representatives</strong>, and <strong>lawyers</strong> are
+        expected to see steep declines, as AI takes over their core tasks.
       </>
     ),
   },
   "2035": {
     positive: (
       <>
-        By 2035, <strong>nurses</strong>, <strong>physicians</strong>, and{" "}
-        <strong>law enforcement</strong> are expected to see the highest growth,
-        driven by hands-on needs that cannot be easily automated.
+        By 2035, <strong>nurses</strong>, <strong>restaurant servers</strong>,
+        and <strong>law enforcement</strong> are expected to see the highest
+        growth, driven by hands-on needs that cannot be easily automated.
       </>
     ),
     negative: (
@@ -44,8 +44,8 @@ export const JOBS_INSIGHTS = {
         By 2035, <strong>software</strong>, <strong>sales</strong> and{" "}
         <strong>law</strong> are expected to see sharp staff reductions as AI
         systems take over large portions of coding, outreach, and detailed
-        research work, while <strong>laborers</strong> see a modest decline as
-        more advanced robotics expand their reach.
+        research work, while <strong>laborers</strong> see modest gains as
+        robotics have yet to fully displace physical roles by this horizon.
       </>
     ),
   },

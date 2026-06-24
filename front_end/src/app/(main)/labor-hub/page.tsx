@@ -198,7 +198,7 @@ export default function LaborAutomationHubPage() {
               </span>
               , <strong>median wages are expected to grow.</strong> The workweek
               is also expected to become{" "}
-              <strong>about three hours shorter by 2035</strong> among all
+              <strong>about four hours shorter by 2035</strong> among all
               workers, while productivity grows.
             </ContentParagraph>
             <ContentParagraph>
@@ -756,7 +756,7 @@ export default function LaborAutomationHubPage() {
               forecasted to grow through 2027, largely unaffected by AI in this
               timeframe. Aerospace (employing 2%) is expected to see minor
               growth in the short-term, while technology (employing 10%) is
-              expected to see marginal decline, largely consistent with
+              expected to see marginal growth, largely consistent with
               historical trends. These forecasts are short-term, leading to
               minimal predicted change.
             </ContentParagraph>

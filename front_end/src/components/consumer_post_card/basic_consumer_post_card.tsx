@@ -63,6 +63,7 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
               totalCount={post.comment_count ?? 0}
               unreadCount={post.unread_comment_count ?? 0}
               url={getPostLink(post)}
+              prefetch={false}
               variant="gray"
               className="z-[101]"
             />
@@ -92,6 +93,7 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
           </div>
           <Link
             href={getPostLink(post)}
+            prefetch={false}
             className="absolute top-0 z-100 h-full w-full @container"
           ></Link>
         </div>

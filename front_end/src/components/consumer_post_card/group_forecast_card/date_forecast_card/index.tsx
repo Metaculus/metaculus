@@ -16,6 +16,7 @@ import {
 import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
+import { useHideCP } from "@/contexts/cp_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import { ChoiceItem } from "@/types/choices";
@@ -63,6 +64,7 @@ const DateForecastCard: FC<Props> = ({
   const { questions } = questionsGroup;
   const locale = useLocale();
   const t = useTranslations();
+  const { hideCP } = useHideCP();
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const {
@@ -82,7 +84,7 @@ const DateForecastCard: FC<Props> = ({
     choices,
     scaling
   );
-  if (points.length === 0) {
+  if (points.length === 0 || hideCP) {
     // Render empty state taken from the Numeric representation
     return <NumericForecastCard post={post} />;
   }

@@ -122,7 +122,9 @@ const PerformanceCard: FC<{
 
 export default async function MedalsPage(props: Props) {
   const params = await props.params;
-  const profile = await ServerProfileApi.getProfileById(params.id);
+  const profile = await ServerProfileApi.getProfileById(params.id, {
+    includeStats: true,
+  });
 
   const t = await getTranslations();
   const [userMedals, userMedalRanks] = await Promise.all([

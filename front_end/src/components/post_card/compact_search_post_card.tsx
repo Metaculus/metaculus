@@ -44,7 +44,11 @@ const CompactSearchPostCard: FC<Props> = ({ post }) => {
       <HideCPProvider post={post}>
         <div className="flex items-start gap-4 p-3 sm:items-center sm:px-4">
           <div className="min-w-0 flex-1">
-            <Link href={postUrl} className="block no-underline">
+            <Link
+              href={postUrl}
+              prefetch={false}
+              className="block no-underline"
+            >
               <h4 className="m-0 text-pretty text-sm font-medium leading-5 text-gray-800 transition-colors hover:text-blue-700 dark:text-gray-800-dark dark:hover:text-blue-700-dark sm:text-base sm:leading-6">
                 <HighlightedTitle title={post.title} query={searchQuery} />
               </h4>
@@ -240,6 +244,18 @@ const CompactCPSection: FC<{ post: PostWithForecasts }> = ({ post }) => {
   }
 
   if (isContinuousQuestion(question)) {
+    if (
+      question.status === QuestionStatus.RESOLVED &&
+      question.resolution !== null &&
+      question.resolution !== undefined
+    ) {
+      return (
+        <div className="hidden min-w-[96px] shrink-0 items-center justify-center sm:flex">
+          <QuestionResolutionChipFacade question={question} size="sm" />
+        </div>
+      );
+    }
+
     if (hideCP) {
       return null;
     }

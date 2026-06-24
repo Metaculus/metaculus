@@ -1394,6 +1394,7 @@
   "selectChildQuestion": "Select Child Question",
   "pickQuestion": "Pick Question",
   "viewQuestions": "View Questions<bold>({count})</bold>",
+  "includingSubquestions": "Including Subquestions: {count}",
   "predictionFlow": "Prediction Flow",
   "started": "Started",
   "starts": "Starts",
@@ -2342,6 +2343,7 @@
   "midtermsHubEven": "EVEN",
   "midtermsHubForecastUnavailable": "Forecast unavailable",
   "midtermsHubSeatAdvantageTooltip": "{count} seat advantage",
+  "midtermsHubSeatAdvantageOverTooltip": ">{count} seat advantage",
   "midtermsHubProbabilityTooltip": "{value}% probability",
   "midtermsHubEvenTooltip": "Even"
 }
