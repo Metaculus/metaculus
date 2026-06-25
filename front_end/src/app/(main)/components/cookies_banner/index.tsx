@@ -44,12 +44,8 @@ const CookiesBanner: FC = () => {
     }
   }, [consentGiven]);
 
-  const submitBanner = (necessaryOnly?: boolean) => {
-    const consentValue = necessaryOnly
-      ? "no"
-      : analyticsCheckboxValue
-        ? "yes"
-        : "no";
+  const submitBanner = (analyticsConsent: boolean) => {
+    const consentValue: ConsentGiven = analyticsConsent ? "yes" : "no";
     safeLocalStorage.setItem(STORAGE_KEY, consentValue);
     setConsentGiven(consentValue);
     router.refresh();
@@ -83,7 +79,7 @@ const CookiesBanner: FC = () => {
           <div className="flex gap-2">
             <Button
               className="whitespace-nowrap"
-              onClick={() => submitBanner(true)}
+              onClick={() => submitBanner(false)}
             >
               {t("necessaryOnly")}
             </Button>
@@ -92,7 +88,7 @@ const CookiesBanner: FC = () => {
           <Button
             className="whitespace-nowrap"
             variant="primary"
-            onClick={() => submitBanner()}
+            onClick={() => submitBanner(true)}
           >
             {t("acceptAndClose")}
           </Button>
@@ -104,7 +100,7 @@ const CookiesBanner: FC = () => {
         onClose={closeModal}
         analyticsValue={analyticsCheckboxValue}
         onAnalyticsValueChange={setAnalyticsCheckboxValue}
-        onSubmit={submitBanner}
+        onSubmit={() => submitBanner(analyticsCheckboxValue)}
       />
     </div>
   );
