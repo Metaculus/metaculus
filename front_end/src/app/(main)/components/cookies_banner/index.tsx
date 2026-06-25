@@ -22,7 +22,7 @@ const CookiesBanner: FC = () => {
   const [consentGiven, setConsentGiven] = useState<ConsentGiven | null>(null);
   const router = useRouter();
   const [analyticsCheckboxValue, setAnalyticsCheckboxValue] =
-    useState<boolean>(true);
+    useState<boolean>(false);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
