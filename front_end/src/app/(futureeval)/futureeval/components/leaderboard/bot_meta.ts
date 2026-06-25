@@ -36,7 +36,6 @@ function detectFamily(username: string, model?: string) {
   if (
     u.includes("gemini") ||
     u.includes("gemma") ||
-    m.startsWith("gemini") ||
     m.startsWith("gemma")
   )
     return "google";
