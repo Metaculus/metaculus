@@ -35,8 +35,7 @@ function detectFamily(username: string, model?: string) {
     return "anthropic";
   if (
     u.includes("gemini") ||
-    u.includes("gemma") ||
-    m.startsWith("gemma")
+    u.includes("gemma")
   )
     return "google";
   if (
