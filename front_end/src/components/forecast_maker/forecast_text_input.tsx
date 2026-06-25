@@ -9,7 +9,8 @@ import cn from "@/utils/core/cn";
 export const FORECAST_INPUT_REGEX = /^(\d{1,2}\.?\d?)?%?$/;
 
 export function parseForecastInput(raw: string): number | null {
-  const parsed = parseFloat(raw);
+  // Tolerate a comma decimal separator (localized keypads) at the parse layer.
+  const parsed = parseFloat(raw.replace(",", "."));
   return Number.isNaN(parsed) ? null : parsed;
 }
 

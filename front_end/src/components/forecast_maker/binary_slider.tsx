@@ -184,7 +184,11 @@ const BinarySlider: FC<Props> = ({
               : undefined
           }
           disabled={disabled}
-          styles={disabled ? { handle: { cursor: "default" } } : styles}
+          styles={
+            disabled
+              ? { ...styles, handle: { ...styles?.handle, cursor: "default" } }
+              : styles
+          }
           showValue
           editable={!disabled}
           editAriaLabel={t("enterProbability")}

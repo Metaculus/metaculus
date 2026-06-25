@@ -78,6 +78,7 @@ const tapThumb = (target: HTMLElement) => {
 describe("forecast input helpers", () => {
   it("parses, returning null for non-numeric input", () => {
     expect(parseForecastInput("65.5")).toBe(65.5);
+    expect(parseForecastInput("55,5")).toBe(55.5);
     expect(parseForecastInput("abc")).toBeNull();
     expect(parseForecastInput("")).toBeNull();
   });
