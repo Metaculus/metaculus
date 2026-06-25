@@ -31,17 +31,22 @@ const AdTile: FC<Props> = ({ tile, onDismiss }) => {
         sendAnalyticsEvent("internalAdClicked", { ad_title: ad.title })
       }
       className={cn(
-        "group relative flex min-h-40 flex-col justify-center overflow-hidden rounded border border-blue-700 px-6 py-5 text-gray-0 no-underline transition-colors hover:border-gray-0/70",
+        "group relative flex min-h-40 flex-col justify-center overflow-hidden rounded border border-blue-400 px-6 py-5 text-gray-0 no-underline transition-colors hover:border-blue-500 dark:border-blue-400-dark dark:hover:border-blue-500-dark",
         hasCta ? "gap-8" : "gap-3"
       )}
     >
-      <div className="absolute inset-0 bg-blue-700" />
+      <div
+        className={cn(
+          "absolute inset-0",
+          image ? "bg-blue-900" : "bg-blue-700"
+        )}
+      />
       {image && (
         <Image
           src={image}
           alt=""
           fill
-          className="size-full object-cover object-center"
+          className="size-full object-cover object-center opacity-30"
           unoptimized
         />
       )}

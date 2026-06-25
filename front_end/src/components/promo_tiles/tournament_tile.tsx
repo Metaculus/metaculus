@@ -47,7 +47,7 @@ const TournamentTile: FC<Props> = ({ tile, feedPage, onDismiss }) => {
           feed_page: feedPage,
         })
       }
-      className="group relative flex flex-col gap-2 overflow-hidden rounded border border-transparent px-6 py-5 text-gray-0 no-underline transition-colors hover:border-gray-0/70"
+      className="group relative flex flex-col gap-2 overflow-hidden rounded border border-blue-400 px-6 py-5 text-gray-0 no-underline transition-colors hover:border-blue-500 dark:border-blue-400-dark dark:hover:border-blue-500-dark"
     >
       {onDismiss && (
         <button
@@ -70,7 +70,7 @@ const TournamentTile: FC<Props> = ({ tile, feedPage, onDismiss }) => {
           src={project.header_image}
           alt=""
           fill
-          className="size-full object-cover object-center"
+          className="size-full object-cover object-center opacity-30"
           unoptimized
         />
       )}
