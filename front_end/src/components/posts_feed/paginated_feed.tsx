@@ -13,7 +13,7 @@ import CompactSearchPostCard from "@/components/post_card/compact_search_post_ca
 import Button from "@/components/ui/button";
 import { type FeedLayout } from "@/components/ui/layout_switcher";
 import LoadingSpinner from "@/components/ui/loading_spiner";
-import { Masonry, useMediaValues } from "@/components/ui/masonry";
+import { useMediaValues } from "@/components/ui/masonry";
 import VirtualizedMasonry from "@/components/ui/virtualized_masonry";
 import { POST_PAGE_FILTER, POSTS_PER_PAGE } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
@@ -51,6 +51,8 @@ const GRID_COLUMNS = [1, 2, 3];
 const GRID_GAPS = [12, 12, 12];
 const GRID_MEDIA = [1024, 1280, 1536];
 const GRID_OVERSCAN = 9;
+const LIST_GAP = 12;
+const LIST_OVERSCAN = 12;
 
 function shouldShowProjectTilesForParams(params: URLSearchParams) {
   return Array.from(params.keys()).every((key) => key === POST_PAGE_FILTER);
@@ -60,6 +62,17 @@ function estimateFeedItemSize(item: FeedItem) {
   if (item.type === "project") return 360;
   if (isNotebookPost(item.post)) return 220;
   return 440;
+}
+
+function estimateFeedItemSizeList(item: FeedItem) {
+  if (item.type === "project") return 220;
+  if (isNotebookPost(item.post)) return 180;
+  return 280;
+}
+
+function estimateFeedItemSizeCompact(item: FeedItem) {
+  if (item.type === "project") return 220;
+  return 96;
 }
 
 type Props = {
@@ -399,13 +412,18 @@ const FeedLayoutView: FC<{
   }
 
   return (
-    <Masonry
+    <VirtualizedMasonry
       className={className}
+      columns={1}
+      estimateSize={
+        compactSearchMode
+          ? estimateFeedItemSizeCompact
+          : estimateFeedItemSizeList
+      }
+      gap={LIST_GAP}
+      getItemKey={getFeedItemKey}
       items={items}
-      config={{
-        columns: 1,
-        gap: 12,
-      }}
+      overscan={LIST_OVERSCAN}
       render={renderItem}
     />
   );
