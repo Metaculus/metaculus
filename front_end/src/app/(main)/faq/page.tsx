@@ -4,15 +4,144 @@ import { getLocale } from "next-intl/server";
 
 import KatexRenderer from "@/components/katex_renderer";
 
+import FaqTocSidebar, { TocSection } from "./components/toc_sidebar";
 import content_es from "./page_es";
 import content_pt from "./page_pt";
-import PageWrapper from "../components/pagewrapper";
 
 export const metadata = {
   title: "Metaculus FAQ",
   description:
     "Frequently asked questions about Metaculus, including basics, question types, resolution processes, predictions, scoring, and more.",
 };
+
+const FAQ_TOC: TocSection[] = [
+  {
+    title: "Basics",
+    items: [
+      { id: "whatismetaculus", label: "What is Metaculus?" },
+      { id: "whatisforecasting", label: "What is forecasting?" },
+      { id: "whenforecastingvaluable", label: "When is forecasting valuable?" },
+      { id: "aim", label: "Why should I be a forecaster?" },
+      { id: "whocreated", label: "Who created Metaculus?" },
+      {
+        id: "whattournaments",
+        label: "Metaculus Tournaments and Question Series",
+      },
+      { id: "predmarket", label: "Is Metaculus a prediction market?" },
+      { id: "justpolling", label: "Are Metaculus questions polls?" },
+    ],
+  },
+  {
+    title: "Metaculus Questions",
+    items: [
+      { id: "whatsort", label: "What makes a good question?" },
+      { id: "whocreates", label: "Who creates the questions?" },
+      { id: "whoedits", label: "Who can edit questions?" },
+      { id: "question-submission", label: "How to get my question posted" },
+      { id: "pending-question", label: "Pending submissions" },
+      { id: "admins-resolution", label: "When a question should be resolved" },
+      { id: "question-private", label: "Where are my private questions?" },
+      { id: "comments", label: "Comment rules and guidelines" },
+      { id: "definitions", label: "Phrase definitions" },
+      { id: "question-types", label: "Question types" },
+      { id: "question-groups", label: "Question groups" },
+      { id: "conditionals", label: "Conditional pairs" },
+      { id: "navigation-and-filtering", label: "Finding questions" },
+    ],
+  },
+  {
+    title: "Question Resolution",
+    items: [
+      { id: "closers", label: "Open, close, resolve dates" },
+      { id: "timezone", label: "Question timezone" },
+      { id: "who-resolves", label: "Who resolves a question" },
+      { id: "ambiguous-annulled", label: "Ambiguous and Annulled resolutions" },
+      { id: "allres", label: "Do all questions get resolved?" },
+      { id: "whenresolve", label: "When will a question be resolved?" },
+      { id: "resolvebackground", label: "Background material and resolution" },
+      { id: "unclearresolve", label: "Unclear or suboptimal criteria" },
+      { id: "reresolve", label: "Can questions be re-resolved?" },
+      { id: "whatifres", label: "Resolved before close" },
+      { id: "retroactive-closure", label: "Retroactive closure" },
+      { id: "whatifres2", label: "Resolved before opening" },
+      { id: "ressrc", label: "Resolution source errors" },
+      { id: "resmethod", label: "Source methodology changes" },
+      { id: "rescouncil", label: "Resolution Councils" },
+    ],
+  },
+  {
+    title: "Predictions",
+    items: [
+      { id: "tutorial", label: "Tutorials and walkthroughs" },
+      { id: "howpredict", label: "How to make a prediction" },
+      { id: "prediction-flow", label: "The prediction flow" },
+      { id: "reaffirming", label: "Reaffirming a prediction" },
+      { id: "howwithdraw", label: "Withdrawing a prediction" },
+      { id: "auto-withdrawal", label: "Auto-withdrawal" },
+      { id: "range-interface", label: "The range interface" },
+      { id: "community-prediction", label: "The Community Prediction" },
+      { id: "include-bots", label: "Bots and the Community Prediction" },
+      { id: "metaculus-prediction", label: "The Metaculus Prediction" },
+    ],
+  },
+  {
+    title: "Comments and engagement",
+    items: [
+      { id: "key-factors", label: "Key factors" },
+      { id: "change-my-mind", label: "Change my mind" },
+      { id: "top-comments-of-the-week", label: "Top Comments of the Week" },
+      { id: "related-news", label: "NewsMatch" },
+    ],
+  },
+  {
+    title: "Forecaster and Consumer views",
+    items: [
+      { id: "forecaster-view", label: "Forecaster vs. Consumer view" },
+    ],
+  },
+  {
+    title: "Bots",
+    items: [
+      { id: "bots-overview", label: "Bots on Metaculus" },
+    ],
+  },
+  {
+    title: "FutureEval",
+    items: [
+      { id: "futureeval-overview", label: "What is FutureEval?" },
+      { id: "futureeval-participate", label: "Entering a bot tournament" },
+    ],
+  },
+  {
+    title: "Scores and Medals",
+    items: [
+      { id: "whatscores", label: "What are scores?" },
+      { id: "whatmedals", label: "What are medals?" },
+      { id: "whatmedalranks", label: "Medal ranks" },
+    ],
+  },
+  {
+    title: "Metaculus Journal",
+    items: [
+      { id: "whatisjournal", label: "What is the Metaculus Journal?" },
+      { id: "fortifiedessay", label: "Fortified essays" },
+    ],
+  },
+  {
+    title: "Miscellany",
+    items: [
+      { id: "what-are-pros", label: "Metaculus Pro Forecasters" },
+      { id: "api", label: "API" },
+      { id: "change-name", label: "Changing my username" },
+      { id: "cant-comment", label: "Why can't I comment?" },
+      { id: "suspensions", label: "Account suspensions" },
+      { id: "cant-see", label: "Why can't I see the CP?" },
+      { id: "domains", label: "Can I get my own Metaculus?" },
+      { id: "spreadword", label: "Spreading the word" },
+      { id: "closeaccount", label: "Closing my account" },
+    ],
+  },
+];
 
 export default async function FAQ() {
   const locale = await getLocale();
@@ -24,317 +153,11 @@ export default async function FAQ() {
   }
 
   return (
-    <PageWrapper>
-      <h1 className="text-3xl font-bold">Metaculus FAQ</h1>
-      <hr />
-      <div className="flex flex-col">
-        <div>
-          <h2 className="mb-4 mt-0 text-2xl font-semibold">Basics</h2>
-          <ul className="space-y-1">
-            <li>
-              <a href="#whatismetaculus">What is Metaculus?</a>
-            </li>
-            <li>
-              <a href="#whatisforecasting">What is forecasting?</a>
-            </li>
-            <li>
-              <a href="#whenforecastingvaluable">
-                When is forecasting valuable?
-              </a>
-            </li>
-            <li>
-              <a href="#aim">Why should I be a forecaster?</a>
-            </li>
-            <li>
-              <a href="#whocreated">Who created Metaculus?</a>
-            </li>
-            <li>
-              <a href="#whattournaments">
-                What are Metaculus Tournaments and Question Series?
-              </a>
-            </li>
-            <li>
-              <a href="#predmarket">Is Metaculus a prediction market?</a>
-            </li>
-            <li>
-              <a href="#justpolling">Are Metaculus questions Polls?</a>
-            </li>
-          </ul>
-        </div>
-        <hr />
-        <div>
-          <h2 className="mb-4 mt-0 text-2xl font-semibold">
-            Metaculus Questions
-          </h2>
-          <ul className="space-y-1">
-            <li>
-              <a href="#whatsort">
-                What sorts of questions are allowed, and what makes a good
-                question?
-              </a>
-            </li>
-            <li>
-              <a href="#whocreates">
-                Who creates the questions, and who decides which get posted?
-              </a>
-            </li>
-            <li>
-              <a href="#whoedits">Who can edit questions?</a>
-            </li>
-            <li>
-              <a href="#question-submission">
-                How can I get my own question posted?
-              </a>
-            </li>
-            <li>
-              <a href="#pending-question">
-                What can I do if a question I submitted has been pending for a
-                long time?
-              </a>
-            </li>
-            <li>
-              <a href="#admins-resolution">
-                What can I do if a question should be resolved but isn&apos;t?
-              </a>
-            </li>
-            <li>
-              <a href="#question-private">Where are my private questions?</a>
-            </li>
-            <li>
-              <a href="#comments">
-                What are the rules and guidelines for comments and discussions?
-              </a>
-            </li>
-            <li>
-              <a href="#definitions">
-                What do &quot;credible source&quot; and &quot;before [date
-                X]&quot; and such phrases mean exactly?
-              </a>
-            </li>
-            <li>
-              <a href="#question-types">What types of questions are there?</a>
-            </li>
-            <li>
-              <a href="#question-groups">What are question groups?</a>
-            </li>
-            <li>
-              <a href="#conditionals">What are Conditional Pairs?</a>
-            </li>
-            <li>
-              <a href="#navigation-and-filtering">
-                How do I find certain questions on Metaculus?
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        <hr />
-        <div>
-          <h2 className="mb-4 mt-0 text-2xl font-semibold">
-            Question Resolution
-          </h2>
-          <ul className="space-y-1">
-            <li>
-              <a href="#closers">
-                What are the &quot;open date&quot;, &quot;close date&quot; and
-                &quot;resolve date?&quot;
-              </a>
-            </li>
-            <li>
-              <a href="#timezone">What timezone is used for questions?</a>
-            </li>
-            <li>
-              <a href="#who-resolves">
-                Who decides the resolution to a question?
-              </a>
-            </li>
-            <li>
-              <a href="#ambiguous-annulled">
-                What are &quot;Ambiguous&quot; and &quot;Annulled&quot;
-                resolutions?
-              </a>
-            </li>
-            <li>
-              <a href="#allres">Do all questions get resolved?</a>
-            </li>
-            <li>
-              <a href="#whenresolve">When will a question be resolved?</a>
-            </li>
-            <li>
-              <a href="#resolvebackground">
-                Is the background material used for question resolution?
-              </a>
-            </li>
-            <li>
-              <a href="#unclearresolve">
-                What happens if the resolution criteria of a question is unclear
-                or suboptimal?
-              </a>
-            </li>
-            <li>
-              <a href="#reresolve">Can questions be re-resolved?</a>
-            </li>
-            <li>
-              <a href="#whatifres">
-                What happens if a question gets resolved in the real world prior
-                to the close time?
-              </a>
-            </li>
-            <li>
-              <a href="#retroactive-closure">
-                When should a question specify retroactive closure?
-              </a>
-            </li>
-            <li>
-              <a href="#whatifres2">
-                What happens if a question&apos;s resolution criteria turn out
-                to have been fulfilled prior to the opening time?
-              </a>
-            </li>
-            <li>
-              <a href="#ressrc">
-                What happens if a resolution source is in error or no longer
-                available?
-              </a>
-            </li>
-            <li>
-              <a href="#resmethod">
-                What happens if a resolution source changes methodology?
-              </a>
-            </li>
-            <li>
-              <a href="#rescouncil">What are Resolution Councils?</a>
-            </li>
-          </ul>
-        </div>
-        <hr />
-        <div>
-          <h2 className="mb-4 mt-0 text-2xl font-semibold">Predictions</h2>
-          <ul className="space-y-1">
-            <li>
-              <a href="#tutorial">Is there a tutorial or walkthrough?</a>
-            </li>
-            <li>
-              <a href="#howpredict">
-                How do I make a prediction? Can I change it later?
-              </a>
-            </li>
-            <li>
-              <a href="#reaffirming">
-                What is &quot;Reaffirming&quot; a prediction?
-              </a>
-            </li>
-            <li>
-              <a href="#howwithdraw">How can I withdraw my prediction?</a>
-            </li>
-            <li>
-              <a href="#auto-withdrawal">What is prediction auto-withdrawal?</a>
-            </li>
-            <li>
-              <a href="#range-interface">How do I use the range interface?</a>
-            </li>
-            <li>
-              <a href="#community-prediction">
-                How is the Community Prediction calculated?
-              </a>
-            </li>
-            <li>
-              <a href="#metaculus-prediction">
-                What is the Metaculus Prediction?
-              </a>
-            </li>
-          </ul>
-        </div>
-        <hr />
-        <div>
-          <h2 className="mb-4 mt-0 text-2xl font-semibold">
-            Scores and Medals
-          </h2>
-          <ul className="space-y-1">
-            <li>
-              <a href="#whatscores">What are scores?</a>
-            </li>
-            <li>
-              <a href="#whatmedals">What are medals?</a>
-            </li>
-            <li>
-              <a href="#whatmedalranks">What are medal ranks?</a>
-            </li>
-          </ul>
-        </div>
-        <hr />
-        <div>
-          <h2 className="mb-4 mt-0 text-2xl font-semibold">Features</h2>
-          <ul className="space-y-1">
-            <li>
-              <a href="#related-news">What is NewsMatch?</a>
-            </li>
-            <li>
-              <a href="#top-comments-of-the-week">
-                What is Top Comments of the Week?
-              </a>
-            </li>
-          </ul>
-        </div>
-        <hr />
-        <div>
-          <h2 className="mb-4 mt-0 text-2xl font-semibold">
-            Metaculus Journal
-          </h2>
-          <ul className="space-y-1">
-            <li>
-              <a href="#whatisjournal">What is the metaculus Journal?</a>
-            </li>
-            <li>
-              <a href="#fortifiedessay">What is a fortified essay?</a>
-            </li>
-          </ul>
-        </div>
-        <hr />
-        <div>
-          <h2 className="mb-4 mt-0 text-2xl font-semibold">Miscellany</h2>
-          <ul className="space-y-1">
-            <li>
-              <a href="#what-are-pros">What are Metaculus Pro Forecasters?</a>
-            </li>
-            <li>
-              <a href="#api">Does Metaculus have an API?</a>
-            </li>
-            <li>
-              <a href="#change-name">How do I change my username?</a>
-            </li>
-            <li>
-              <a href="#cant-comment">
-                I&apos;ve registered an account. Why can&apos;t I comment on a
-                question?
-              </a>
-            </li>
-            <li>
-              <a href="#suspensions">Understanding account suspensions</a>
-            </li>
-            <li>
-              <a href="#cant-see">
-                Why can I see the Community Prediction on some questions, the
-                Metaculus Prediction on others, and no prediction on some
-                others?
-              </a>
-            </li>
-            <li>
-              <a href="#domains">Can I get my own Metaculus?</a>
-            </li>
-            <li>
-              <a href="#spreadword">
-                How can I help spread the word about Metaculus?
-              </a>
-            </li>
-            <li>
-              <a href="#closeaccount">
-                How can I close my account and delete my personal information on
-                Metaculus?
-              </a>
-            </li>
-          </ul>
-        </div>
+    <div className="container mx-auto my-0 max-w-7xl px-3.5 pt-2 md:my-10 md:px-6 md:py-4">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
+        <FaqTocSidebar sections={FAQ_TOC} title="FAQ contents" />
+        <article className="prose min-w-0 flex-1 rounded bg-transparent dark:bg-blue-900 dark:bg-transparent md:bg-white md:p-6 dark:md:bg-blue-900 [&_a:hover]:text-blue-800 [&_a:hover]:underline [&_a:hover]:dark:text-blue-200 [&_a]:text-blue-700 [&_a]:dark:text-blue-400 [&_code]:rounded [&_code]:border [&_code]:border-blue-400 [&_code]:bg-white [&_code]:p-0.5 [&_code]:dark:border-blue-700 [&_code]:dark:bg-blue-900 [&_code]:md:bg-blue-200 [&_code]:dark:md:bg-blue-800 [&_h1]:mb-4 [&_hr]:border-gray-300 [&_hr]:dark:border-blue-700 [&_li]:text-sm [&_li]:md:text-base [&_p]:text-sm [&_p]:text-gray-700 [&_p]:dark:text-gray-400 [&_p]:md:text-base [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:border [&_pre]:border-blue-400 [&_pre]:bg-white [&_pre]:p-3 [&_pre]:dark:border-blue-700 [&_pre]:dark:bg-blue-900 [&_pre]:md:bg-blue-200 [&_pre]:dark:md:bg-blue-800">
+        <h1 className="text-3xl font-bold">Metaculus FAQ</h1>
         <hr />
         <h2 className="scroll-mt-nav text-2xl font-bold" id="basics">
           Basics
@@ -2368,6 +2191,51 @@ export default async function FAQ() {
 
         <div>
           <h3
+            id="prediction-flow"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
+          >
+            What does the prediction flow look like?
+          </h3>
+          <p>
+            When you submit a forecast, the platform walks you through a short
+            flow:
+          </p>
+          <ol className="ml-5 list-decimal space-y-2">
+            <li>
+              <strong>Enter your forecast.</strong> Binary questions use a
+              single probability slider; multiple-choice questions take a
+              probability per option; numeric and date questions use the{" "}
+              <a href="#range-interface">range interface</a> to specify a full
+              distribution.
+            </li>
+            <li>
+              <strong>Set a lifespan.</strong> After you click{" "}
+              <em>Predict</em>, a modal asks how long this forecast should
+              stand: one day, three days, one week, one month, a custom date,
+              or infinity. When the lifespan elapses, your forecast{" "}
+              <a href="#auto-withdrawal">auto-withdraws</a> and stops counting
+              toward the Community Prediction.
+            </li>
+            <li>
+              <strong>Submit.</strong> The forecast is recorded with a fresh
+              start time. You can later{" "}
+              <a href="#reaffirming">reaffirm</a>,{" "}
+              <a href="#howwithdraw">withdraw</a>, or update it any time before
+              the question closes.
+            </li>
+          </ol>
+          <p>
+            For tournaments and large question groups, the dedicated{" "}
+            <em>prediction flow</em> page serves you one question at a time,
+            shows progress through the set, highlights questions whose
+            community forecast has moved or whose Community Prediction is
+            stale, and lets you skip individual questions you don&apos;t want
+            to forecast.
+          </p>
+        </div>
+
+        <div>
+          <h3
             id="reaffirming"
             className="mb-4 scroll-mt-nav text-2xl font-semibold"
           >
@@ -3155,10 +3023,256 @@ export default async function FAQ() {
           <p>
             If a comment has key factors, we compute a total{" "}
             <strong>key factor impact</strong> score. It’s calculated as the
-            average of the absolute value of impact votes on that key factor
-            (low=2, moderate=3, high=5), summed across all the key factors on
-            that comment. If you didn’t add key factors to your comment, this
-            metric won’t appear.
+            average of the absolute value of impact votes on each key factor
+            (low=1, medium=2, high=5), summed across all the key factors on that
+            comment. If you didn’t add key factors to your comment, this metric
+            won’t appear.
+          </p>
+        </div>
+
+        <hr />
+        <div>
+          <h2
+            id="comments-and-engagement"
+            className="mb-4 scroll-mt-nav text-3xl font-bold"
+          >
+            Comments and engagement
+          </h2>
+
+          <h3
+            id="key-factors"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
+          >
+            What are key factors?
+          </h3>
+          <p>
+            A <strong>key factor</strong> is a piece of reasoning attached to a
+            comment that highlights what is driving the comment author&apos;s
+            forecast. Each key factor is one of three types:
+          </p>
+          <ul className="ml-5 list-disc space-y-1">
+            <li>
+              <strong>Driver:</strong> a free-text reason for the forecast,
+              marked as pushing the outcome up or down (an{" "}
+              <em>impact direction</em>), with an optional level of certainty.
+            </li>
+            <li>
+              <strong>Base rate:</strong> a historical frequency or trend the
+              author is anchoring on (for example, an estimated probability per
+              year, or an extrapolation of a recent trend).
+            </li>
+            <li>
+              <strong>News:</strong> a relevant article — either matched from
+              the platform&apos;s news index or pasted in as a URL — that
+              materially shifted the author&apos;s view, also tagged with an
+              impact direction.
+            </li>
+          </ul>
+          <p>
+            Only the comment author can add or edit the key factors on their own
+            comment. Each comment can carry up to four active key factors, and
+            each user can have at most six active key factors across all of
+            their comments on a single post.
+          </p>
+          <p>
+            Other forecasters can vote on each key factor. Drivers and news
+            items get a <em>strength</em> vote — no impact (0), low (1), medium
+            (2), or high (5) — and base rates get an <em>agree / disagree</em>{" "}
+            vote of ±5. Key factor scores surface in the question&apos;s key
+            factor feed and feed the Top Comments of the Week ranking.
+          </p>
+
+          <h3
+            id="change-my-mind"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
+          >
+            What is &quot;Change my mind&quot;?
+          </h3>
+          <p>
+            Every comment has a <strong>Change my mind</strong> button in its
+            action bar. Clicking it tells the platform — and the comment&apos;s
+            author — that this comment caused you to rethink your forecast.
+            You can change your mind on a given comment once; clicking again
+            toggles it off.
+          </p>
+          <p>
+            The button is hidden on your own comments and is disabled when
+            you&apos;re not logged in or aren&apos;t eligible to forecast on
+            the question. There&apos;s no requirement that you actually updated
+            your forecast after voting — the signal is purely social.
+          </p>
+          <p>
+            A comment&apos;s &quot;minds changed&quot; count is shown on the
+            comment card whenever it&apos;s above zero, and feeds the Top
+            Comments of the Week ranking with the same weight as upvotes.
+          </p>
+        </div>
+
+        <hr />
+        <div>
+          <h2
+            id="forecaster-vs-consumer"
+            className="mb-4 scroll-mt-nav text-3xl font-bold"
+          >
+            Forecaster and Consumer views
+          </h2>
+
+          <h3
+            id="forecaster-view"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
+          >
+            What&apos;s the difference between Forecaster view and Consumer
+            view?
+          </h3>
+          <p>
+            Metaculus has two display modes for question pages, controlled in
+            the <Link href="/accounts/settings/">Display preferences</Link>{" "}
+            section of your account settings.
+          </p>
+          <ul className="ml-5 list-disc space-y-2">
+            <li>
+              <strong>Forecaster view</strong> is the default for registered
+              users. It shows the full forecasting interface, the complete
+              question metadata, every historical aggregate forecast on the
+              chart, and the resolution criteria expanded by default. Pick this
+              when you&apos;re forecasting.
+            </li>
+            <li>
+              <strong>Consumer view</strong> is a simplified, lower-density
+              layout — more whitespace, fewer controls, only the most recent
+              aggregate forecasts on the chart, and no in-line prediction
+              widget. The feed it lands you on also hides resolved questions
+              and only shows questions whose Community Prediction has already
+              been revealed. Pick this when you&apos;re reading.
+            </li>
+          </ul>
+          <p>
+            Logged-out visitors see Consumer view by default; new accounts
+            start in Forecaster view. You can switch any time from{" "}
+            <Link href="/accounts/settings/">your settings</Link>.
+          </p>
+        </div>
+
+        <hr />
+        <div>
+          <h2
+            id="bots-section"
+            className="mb-4 scroll-mt-nav text-3xl font-bold"
+          >
+            Bots
+          </h2>
+
+          <h3
+            id="bots-overview"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
+          >
+            What is a bot on Metaculus?
+          </h3>
+          <p>
+            A <strong>bot</strong> is an automated account that submits
+            forecasts through the API. Every bot is linked to a human{" "}
+            <em>owner</em> account that&apos;s responsible for it.
+          </p>
+
+          <h4 className="scroll-mt-nav text-lg font-semibold">
+            How do I create a bot?
+          </h4>
+          <p>
+            Any registered user can create up to five bots from the bots
+            section of their profile. Creating a bot mints an API key and a
+            JWT that the bot uses to authenticate against the forecasting
+            endpoints. The first bot you create is automatically marked your{" "}
+            <em>primary bot</em> — the one Metaculus uses for scoring and
+            leaderboards. You can change which bot is primary later.
+          </p>
+
+          <h4 className="scroll-mt-nav text-lg font-semibold">
+            Are bot forecasts included in the Community Prediction?
+          </h4>
+          <p>
+            By default, no. Every question carries an <em>Include Bots</em>{" "}
+            flag; when it&apos;s off, all bot forecasts are excluded from the
+            Community Prediction. When it&apos;s on, only each user&apos;s
+            primary bot is included — secondary bots never count toward the
+            aggregate. The flag is shown on the question sidebar when it&apos;s
+            enabled.
+          </p>
+
+          <h4 className="scroll-mt-nav text-lg font-semibold">
+            Do bots count for medals and leaderboards?
+          </h4>
+          <p>
+            Each leaderboard sets its own bot policy. On most standard
+            leaderboards bots are excluded from prizes but still visible (often
+            in an &quot;Advanced&quot; tab). The{" "}
+            <em>Global Bot Leaderboard</em> is bot-only, with head-to-head
+            scoring against the human Community Prediction.
+          </p>
+          <p>
+            By default, bots also cannot post public comments — owners must
+            request that capability be enabled.
+          </p>
+
+          <h4 className="scroll-mt-nav text-lg font-semibold">
+            Are there bot-only competitions?
+          </h4>
+          <p>
+            Yes. Metaculus runs dedicated competitions for bots under the{" "}
+            <Link href="/futureeval/">FutureEval</Link> program — see the
+            FutureEval section below.
+          </p>
+        </div>
+
+        <hr />
+        <div>
+          <h2
+            id="futureeval"
+            className="mb-4 scroll-mt-nav text-3xl font-bold"
+          >
+            FutureEval
+          </h2>
+
+          <h3
+            id="futureeval-overview"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
+          >
+            What is FutureEval?
+          </h3>
+          <p>
+            <Link href="/futureeval/">FutureEval</Link> is Metaculus&apos;s
+            benchmarking program for AI forecasters. It has two parts:
+          </p>
+          <ul className="ml-5 list-disc space-y-2">
+            <li>
+              A <strong>fixed-prompt benchmark</strong> in which major
+              foundation models (Claude, GPT, Gemini, DeepSeek, and others) are
+              run against the same prompts on a rolling set of open Metaculus
+              questions. As those questions resolve, scores are computed and
+              the public{" "}
+              <Link href="/futureeval/leaderboard/">leaderboard</Link> ranks
+              models on accuracy versus the Community Prediction and against
+              human Pro Forecasters.
+            </li>
+            <li>
+              <strong>Bot tournaments</strong> in which independent developers
+              submit their own forecasting bots to compete against each other
+              for prize pools.
+            </li>
+          </ul>
+
+          <h3
+            id="futureeval-participate"
+            className="mb-4 scroll-mt-nav text-2xl font-semibold"
+          >
+            How do I enter a bot in a FutureEval tournament?
+          </h3>
+          <p>
+            See the{" "}
+            <Link href="/futureeval/participate/">participate page</Link> for
+            the current entry instructions and template repositories. In short:
+            create an account, create a bot (see the Bots section), copy the
+            bot&apos;s API token, and have your bot submit forecasts to the
+            tournament&apos;s questions through the API.
           </p>
         </div>
 
@@ -3429,7 +3543,8 @@ export default async function FAQ() {
             and comments from our active database.
           </p>
         </div>
+        </article>
       </div>
-    </PageWrapper>
+    </div>
   );
 }
