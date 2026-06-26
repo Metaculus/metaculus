@@ -1,6 +1,59 @@
-import { Line, LinePoint } from "@/types/charts";
+import { Area, Line, LinePoint } from "@/types/charts";
 
 type NumericPoint = { index: number; x: number; y: number };
+
+export const FEED_CHART_TARGET_POINTS = 50;
+type PointLike = { x: unknown; y: unknown };
+
+export function downsampleLineSegments<X = number, Y = number | null>(
+  points: Line<X, Y>,
+  targetCount = FEED_CHART_TARGET_POINTS
+): Line<X, Y> {
+  return downsampleSegments(points, targetCount) as Line<X, Y>;
+}
+
+export function downsampleAreaSegments<X = number, Y = number | null>(
+  points: Area<X, Y>,
+  targetCount = FEED_CHART_TARGET_POINTS
+): Area<X, Y> {
+  return downsampleSegments(points, targetCount) as Area<X, Y>;
+}
+
+function downsampleSegments<P extends PointLike>(
+  points: P[],
+  targetCount: number
+): P[] {
+  if (targetCount < 3 || targetCount >= points.length) {
+    return points;
+  }
+
+  const sampled: P[] = [];
+  let segment: P[] = [];
+
+  const flushSegment = () => {
+    if (!segment.length) return;
+    sampled.push(...(lttb(segment as Line, targetCount) as P[]));
+    segment = [];
+  };
+
+  for (const point of points) {
+    if (
+      point.x != null &&
+      point.y != null &&
+      Number.isFinite(Number(point.x)) &&
+      Number.isFinite(Number(point.y))
+    ) {
+      segment.push(point);
+      continue;
+    }
+
+    flushSegment();
+    sampled.push(point);
+  }
+
+  flushSegment();
+  return sampled;
+}
 
 // Largest-Triangle-Three-Buckets downsampling.
 // Reference: Sveinn Steinarsson, "Downsampling Time Series for Visual Representation" (2013).

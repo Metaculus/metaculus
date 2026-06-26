@@ -33,7 +33,7 @@ import {
 } from "@/types/question";
 import { generateScale } from "@/utils/charts/axis";
 import { getClosestYValue, interpolateYValue } from "@/utils/charts/helpers";
-import { lttb } from "@/utils/charts/lttb";
+import { FEED_CHART_TARGET_POINTS, lttb } from "@/utils/charts/lttb";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 import { cdfToPmf, computeQuartilesFromCDF } from "@/utils/math";
@@ -57,7 +57,6 @@ export type ContinuousAreaGraphInput = Array<{
 
 const BOTTOM_PADDING = 15;
 const HORIZONTAL_PADDING = 10;
-const FEED_CHART_TARGET_POINTS = 50;
 
 type Props = {
   question: Question | GraphingQuestionProps;
@@ -88,7 +87,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
   shortLabels = false,
   alignChartTabs,
   forceTickCount,
-  variant = "feed",
+  variant = "question",
   colorOverride,
   showBaseline = false,
   minMaxLabelsOnly = false,

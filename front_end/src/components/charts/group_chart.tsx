@@ -58,6 +58,10 @@ import {
   Y_AXIS_LABEL_ANCHOR_OFFSET,
   Y_AXIS_LABEL_RESERVED_PX,
 } from "@/utils/charts/axis";
+import {
+  downsampleAreaSegments,
+  downsampleLineSegments,
+} from "@/utils/charts/lttb";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
@@ -1085,8 +1089,8 @@ function buildChartData({
       const item: ChoiceGraph = {
         choice,
         color,
-        line: line,
-        area: area,
+        line: forFeedPage ? downsampleLineSegments(line) : line,
+        area: forFeedPage ? downsampleAreaSegments(area) : area,
         scatter: scatter,
         active,
         highlighted,

@@ -1,6 +1,6 @@
 import { Line } from "@/types/charts";
 
-import { lttb } from "../lttb";
+import { downsampleLineSegments, lttb } from "../lttb";
 
 function makePoints(n: number, fn: (i: number) => number): Line {
   return Array.from({ length: n }, (_, i) => ({ x: i, y: fn(i) }));
@@ -46,5 +46,26 @@ describe("lttb", () => {
     const result = lttb(points, 4);
     expect(result).toHaveLength(4);
     expect(result.every((p) => p.y !== null)).toBe(true);
+  });
+});
+describe("downsampleLineSegments", () => {
+  it("preserves null separators between timeline segments", () => {
+    const points: Line = [
+      ...makePoints(20, (i) => i),
+      { x: 20, y: null },
+      ...makePoints(20, (i) => 100 - i).map((point) => ({
+        ...point,
+        x: Number(point.x) + 21,
+      })),
+    ];
+
+    const result = downsampleLineSegments(points, 5);
+
+    expect(result.filter((point) => point.y === null)).toHaveLength(1);
+    expect(result.some((point) => point.x === 20 && point.y === null)).toBe(
+      true
+    );
+    expect(result[0]).toEqual(points[0]);
+    expect(result[result.length - 1]).toEqual(points[points.length - 1]);
   });
 });

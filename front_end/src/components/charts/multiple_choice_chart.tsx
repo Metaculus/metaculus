@@ -58,6 +58,7 @@ import {
   Y_AXIS_LABEL_RESERVED_PX,
 } from "@/utils/charts/axis";
 import { findPreviousTimestamp } from "@/utils/charts/cursor";
+import { downsampleLineSegments } from "@/utils/charts/lttb";
 import { truncateLabel } from "@/utils/formatters/string";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
@@ -783,7 +784,7 @@ function buildChartData({
           const item: ChoiceGraph = {
             choice,
             color,
-            line,
+            line: forFeedPage ? downsampleLineSegments(line) : line,
             scatter,
             active,
             highlighted,
