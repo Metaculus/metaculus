@@ -31,7 +31,7 @@ dependencies = [
     "openai>=1.36.0,<2",
     "pgvector>=0.3.2,<0.4",
     "tiktoken>=0.7.0,<0.8",
-    "aiohttp>=3.13.3,<4",
+    "aiohttp>=3.14.1,<4",
     "django-mjml>=1.2,<2",
     "markdown>=3.6,<4",
     "paramiko>=3.5,<5",
@@ -50,7 +50,7 @@ dependencies = [
     "psycopg2>=2.9.10,<3",
     "scikit-learn>=1.7.2,<2",
     "djangorestframework-simplejwt>=5.5.1,<6",
-    "cryptography>=46.0.5,<47",
+    "cryptography>=48.0.1,<49",
 ]
 
 [dependency-groups]

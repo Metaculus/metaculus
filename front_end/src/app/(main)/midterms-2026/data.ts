@@ -141,10 +141,10 @@ export const CONGRESS_OUTCOME_LABELS: Record<CongressOutcomeKey, string> = {
   DD: "Dem Senate / Dem House",
 };
 
-// Seat-advantage distribution questions. The Senate question is a
-// Discrete Continuous type (integer-spaced bars); the House question
-// is a Continuous type (smooth PDF). Both are signed around zero
-// where negative = Dem advantage and positive = Rep advantage.
+// Seat-advantage distribution questions. Both are Discrete (integer-spaced
+// bars with open-bound landslide tails), signed around zero where negative =
+// Dem advantage and positive = Rep advantage.
+// the charts render the Medalists aggregation for both.
 export const SEAT_DISTRIBUTION_POSTS = {
   senate: 40416,
   house: 40413,

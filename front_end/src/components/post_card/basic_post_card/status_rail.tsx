@@ -33,6 +33,7 @@ const PostStatusRail: FC<Props> = ({
         totalCount={post.comment_count ?? 0}
         unreadCount={post.unread_comment_count ?? 0}
         url={postUrl}
+        prefetch={false}
         className="bg-gray-200 @[480px]:hidden dark:bg-gray-200-dark"
         compact
       />
@@ -40,6 +41,7 @@ const PostStatusRail: FC<Props> = ({
         totalCount={post.comment_count ?? 0}
         unreadCount={post.unread_comment_count ?? 0}
         url={postUrl}
+        prefetch={false}
         className="hidden bg-gray-200 @[480px]:flex dark:bg-gray-200-dark"
         compact={false}
       />

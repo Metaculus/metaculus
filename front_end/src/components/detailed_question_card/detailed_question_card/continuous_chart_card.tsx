@@ -459,16 +459,16 @@ const DetailedContinuousChartCard: FC<Props> = ({
             </div>
           </div>
         )}
-        <div
-          className="flex w-full flex-col justify-center"
-          style={{ height: chartHeight }}
-        >
+        <div className="w-full" style={{ height: chartHeight }}>
           {!hideCP && !isCpHidden && (
             <Histogram
               histogramData={histogramData}
               median={median}
               mean={mean}
-              color="gray"
+              questionStatus={question.status}
+              totalForecasters={
+                aggregationLatest?.forecaster_count ?? nrForecasters
+              }
             />
           )}
         </div>

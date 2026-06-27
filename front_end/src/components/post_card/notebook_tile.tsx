@@ -8,6 +8,12 @@ import { NotebookPost } from "@/types/post";
 import { getMarkdownSummary } from "@/utils/markdown";
 
 const NOTEBOOK_THUMBNAIL_HEIGHT = 96;
+// Below this rendered tile width (Tailwind `sm`) we drop the thumbnail so the
+// text can use the full width. Covers both narrow causes: multi-column grid
+// tiles (~480-520px) and narrow-screen devices.
+const NARROW_TILE_THRESHOLD = 640;
+const NOTEBOOK_IMAGE_WIDTH = 176; // matches the image's min-w-44/max-w-44
+const NOTEBOOK_IMAGE_GAP = 16; // matches the container's gap-4
 
 type Props = {
   post: NotebookPost;
@@ -17,13 +23,16 @@ const NotebookTile: FC<Props> = ({ post }) => {
   const { ref, width } = useContainerSize<HTMLDivElement>();
 
   const { notebook } = post;
-  const hasImage =
+  const hasImageUrl =
     !!notebook.image_url && notebook.image_url.startsWith("https:");
+  const hasImage = hasImageUrl && width >= NARROW_TILE_THRESHOLD;
+  const textWidth = hasImage
+    ? width - NOTEBOOK_IMAGE_WIDTH - NOTEBOOK_IMAGE_GAP
+    : width;
 
   return (
-    <div className="flex gap-4">
+    <div ref={ref} className="flex gap-4">
       <div
-        ref={ref}
         className={
           hasImage ? "h-24 min-w-0 flex-1 overflow-hidden" : "min-w-0 flex-1"
         }
@@ -35,7 +44,7 @@ const NotebookTile: FC<Props> = ({ post }) => {
               notebook.feed_tile_summary ||
               getMarkdownSummary({
                 markdown: notebook.markdown,
-                width,
+                width: textWidth,
                 height: hasImage ? NOTEBOOK_THUMBNAIL_HEIGHT : 80,
               })
             }

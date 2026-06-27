@@ -1,11 +1,11 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { PRO_FORECASTERS } from "@/app/(main)/pro-forecasters/constants/pro_forecasters";
 import cn from "@/utils/core/cn";
 
 import ProForecasterCard from "./pro_forecaster_card";
 import EmblaCarousel from "../../components/embla_carousel";
+import { PRO_FORECASTERS } from "../constants/pro_forecasters";
 
 type Props = {
   className?: string;

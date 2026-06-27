@@ -7,6 +7,7 @@ import MarkdownEditor from "@/components/markdown_editor";
 import Chip from "@/components/ui/chip";
 import { usePostTextSections } from "@/hooks/use_post_text_sections";
 import { PostWithForecasts } from "@/types/post";
+import { ProjectVisibility } from "@/types/projects";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import { getProjectLink } from "@/utils/navigation";
 
@@ -22,6 +23,7 @@ const QuestionInfoTab: FC<Props> = ({ post }) => {
   const sections = usePostTextSections(post);
 
   const projectsData = post.projects;
+  const defaultProjectId = projectsData?.default_project?.id;
   const allProjects = projectsData
     ? [
         ...(projectsData.index ?? []),
@@ -30,7 +32,12 @@ const QuestionInfoTab: FC<Props> = ({ post }) => {
         ...(projectsData.community ?? []),
         ...(projectsData.category ?? []),
         ...(projectsData.leaderboard_tag ?? []),
-      ]
+      ].filter(
+        (project) =>
+          !("visibility" in project) ||
+          project.visibility !== ProjectVisibility.Unlisted ||
+          project.id === defaultProjectId
+      )
     : [];
 
   return (

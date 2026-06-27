@@ -187,6 +187,7 @@ export const KeyFactorTileQuestionLinkView: FC<
       {href ? (
         <Link
           href={href}
+          prefetch={false}
           className="no-underline hover:underline"
           onClick={(e) => e.stopPropagation()}
         >

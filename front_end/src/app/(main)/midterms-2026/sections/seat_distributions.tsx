@@ -5,10 +5,12 @@ import {
   SectionCard,
   SectionHeader,
 } from "@/app/(main)/labor-hub/components/section";
-import { PostWithForecasts } from "@/types/post";
 
 import SeatDistributionChart from "../components/seat_distribution_chart";
-import { fetchSeatDistributions } from "../helpers/fetch_dashboard_data";
+import {
+  fetchSeatDistributions,
+  SeatDistributionDatum,
+} from "../helpers/fetch_dashboard_data";
 
 export default async function SeatDistributionsSection() {
   const t = await getTranslations();
@@ -30,7 +32,8 @@ export default async function SeatDistributionsSection() {
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-10">
         <DistributionSlot
           title={t("midtermsHubHouseSeats")}
-          post={house}
+          datum={house}
+          separateOutOfBounds
           demAdvantageLabel={demAdvantageLabel}
           repAdvantageLabel={repAdvantageLabel}
           evenLabel={evenLabel}
@@ -38,7 +41,7 @@ export default async function SeatDistributionsSection() {
         />
         <DistributionSlot
           title={t("midtermsHubSenateSeats")}
-          post={senate}
+          datum={senate}
           demAdvantageLabel={demAdvantageLabel}
           repAdvantageLabel={repAdvantageLabel}
           evenLabel={evenLabel}
@@ -51,7 +54,9 @@ export default async function SeatDistributionsSection() {
 
 type SlotProps = {
   title: string;
-  post: PostWithForecasts | null;
+  datum: SeatDistributionDatum | null;
+  /** Detach the out-of-bounds landslide bins (House only). */
+  separateOutOfBounds?: boolean;
   demAdvantageLabel: string;
   repAdvantageLabel: string;
   evenLabel: string;
@@ -60,13 +65,17 @@ type SlotProps = {
 
 function DistributionSlot({
   title,
-  post,
+  datum,
+  separateOutOfBounds,
   demAdvantageLabel,
   repAdvantageLabel,
   evenLabel,
   unavailableLabel,
 }: SlotProps) {
-  if (!post) {
+  // No post, or no renderable Medalists CDF -> unavailable placeholder. The
+  // >=2 floor matches SeatDistributionChart's own minimum, so a degenerate
+  // 1-point CDF shows the placeholder rather than a blank slot.
+  if (!datum?.medalistsCdf || datum.medalistsCdf.length < 2) {
     return (
       <div>
         <h3 className="mb-2 text-center text-base font-medium uppercase tracking-wide text-blue-800 dark:text-blue-800-dark">
@@ -83,7 +92,9 @@ function DistributionSlot({
   return (
     <div>
       <SeatDistributionChart
-        post={post}
+        post={datum.post}
+        cdfOverride={datum.medalistsCdf}
+        separateOutOfBounds={separateOutOfBounds}
         demAdvantageLabel={demAdvantageLabel}
         repAdvantageLabel={repAdvantageLabel}
         evenLabel={evenLabel}
