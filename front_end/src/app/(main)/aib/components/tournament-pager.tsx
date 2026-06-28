@@ -177,6 +177,7 @@ export const TOURNAMENT_ITEMS = [
   { title: "Q2 2025", href: "/aib/2025/q2" },
   { title: "Fall 2025", href: "/aib/2025/fall" },
   { title: "Spring 2026", href: "/aib/2026/spring" },
+  { title: "Summer 2026", href: "/aib/2026/summer" },
 ].reverse();
 
 export default TournamentPager;
