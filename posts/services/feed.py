@@ -48,6 +48,7 @@ def get_posts_feed(
     show_on_homepage: bool = None,
     following: bool = None,
     upvoted_by: int = None,
+    commented_by: int = None,
     **kwargs,
 ) -> Post.objects:
     """
@@ -216,6 +217,9 @@ def get_posts_feed(
             votes__user=upvoted_by,
             votes__direction=Vote.VoteDirection.UP,
         )
+
+    if commented_by:
+        qs = qs.filter(comments__author_id=commented_by).distinct()
 
     # Followed posts
     if user and user.is_authenticated and following:
