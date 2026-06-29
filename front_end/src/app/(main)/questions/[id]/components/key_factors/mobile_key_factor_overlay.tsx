@@ -145,6 +145,18 @@ const MobileKeyFactorOverlay: FC<Props> = ({
     [ensureCommentLoaded, onClose, questionLayout]
   );
 
+  const handleReplyToComment = useCallback(
+    async (kf: KeyFactor) => {
+      await ensureCommentLoaded(kf.comment_id);
+      onClose();
+      questionLayout?.setActiveTab("comments");
+      setTimeout(() => {
+        questionLayout?.requestReplyToComment(kf.comment_id);
+      }, 50);
+    },
+    [ensureCommentLoaded, onClose, questionLayout]
+  );
+
   const handleVoteChange = useCallback(
     (kf: KeyFactor, voteScore: number, userVote: VoteDirection | null) => {
       updateComment(kf.comment_id, {
@@ -276,7 +288,7 @@ const MobileKeyFactorOverlay: FC<Props> = ({
                   <CommentActionBar
                     comment={comment}
                     post={post}
-                    onReply={() => handleScrollToComment(kf)}
+                    onReply={() => handleReplyToComment(kf)}
                     onScrollToLink={() => handleScrollToComment(kf)}
                     onVoteChange={(voteScore, userVote) =>
                       handleVoteChange(kf, voteScore, userVote)
