@@ -1065,6 +1065,7 @@
   "scrollToKeyFactor": "Desplazarse al factor clave",
   "keyFactors": "Factores Clave",
   "keyFactorsFor": "Factores clave para",
+  "goToKeyFactor": "Ir al factor clave {number}",
   "notAvailable": "No disponible",
   "indexesTitle": "Proyecto",
   "indexScore": "Valor del índice: <bold>{value}</bold>",

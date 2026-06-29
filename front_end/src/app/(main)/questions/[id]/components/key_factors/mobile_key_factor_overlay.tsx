@@ -372,7 +372,7 @@ const MobileKeyFactorOverlay: FC<Props> = ({
           {isCarousel && (
             <div className="flex shrink-0 items-center justify-between gap-3 pt-3">
               <button
-                aria-label="Previous"
+                aria-label={t("previous")}
                 disabled={!canPrev}
                 onClick={() => scrollToSlide(selectedIndex - 1)}
                 className="flex size-12 shrink-0 items-center justify-center rounded-full border border-blue-400 bg-gray-0 text-xl text-blue-700 transition-opacity disabled:opacity-30 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-blue-700-dark"
@@ -384,7 +384,7 @@ const MobileKeyFactorOverlay: FC<Props> = ({
                   <button
                     key={kf.id}
                     type="button"
-                    aria-label={`Go to key factor ${i + 1}`}
+                    aria-label={t("goToKeyFactor", { number: i + 1 })}
                     onClick={() => scrollToSlide(i)}
                     className={cn(
                       "size-2 rounded-full transition-colors",
@@ -396,7 +396,7 @@ const MobileKeyFactorOverlay: FC<Props> = ({
                 ))}
               </div>
               <button
-                aria-label="Next"
+                aria-label={t("next")}
                 disabled={!canNext}
                 onClick={() => scrollToSlide(selectedIndex + 1)}
                 className="flex size-12 shrink-0 items-center justify-center rounded-full border border-blue-400 bg-gray-0 text-xl text-blue-700 transition-opacity disabled:opacity-30 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-blue-700-dark"

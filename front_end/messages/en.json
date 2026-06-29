@@ -1336,6 +1336,7 @@
   "scrollToKeyFactor": "Scroll to key factor",
   "keyFactors": "Key Factors",
   "keyFactorsFor": "Key factors for",
+  "goToKeyFactor": "Go to key factor {number}",
   "topKeyFactors": "Top Key Factors",
   "notAvailable": "Not available",
   "indexesTitle": "Project",

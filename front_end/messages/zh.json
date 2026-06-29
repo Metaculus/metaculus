@@ -1067,6 +1067,7 @@
   "scrollToKeyFactor": "滚动到关键因素",
   "keyFactors": "关键因素",
   "keyFactorsFor": "以下问题的关键因素",
+  "goToKeyFactor": "转到关键因素 {number}",
   "notAvailable": "不可用",
   "indexesTitle": "项目",
   "indexScore": "指数值：<bold>{value}</bold>",

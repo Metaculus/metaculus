@@ -1063,6 +1063,7 @@
   "scrollToKeyFactor": "Rolar para o fator chave",
   "keyFactors": "Fatores Chave",
   "keyFactorsFor": "Fatores-chave para",
+  "goToKeyFactor": "Ir para o fator-chave {number}",
   "notAvailable": "Indisponível",
   "indexesTitle": "Projeto",
   "indexScore": "Valor do Índice: <bold>{value}</bold>",
