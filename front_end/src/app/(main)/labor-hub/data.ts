@@ -1,5 +1,3 @@
-import { LABOR_HUB_POST_IDS } from "./helpers/labor_hub_posts";
-
 export const GOVERNMENT_BASELINES = {
   "2025": 0,
   "2027": 0.62,
@@ -13,6 +11,50 @@ export type CuratedInsight = {
   type: CuratedInsightType;
   body: string;
 };
+
+// Non-job Labor Hub post IDs. Job post IDs are below in JOBS_DATA.
+export const LABOR_HUB_POST_IDS = {
+  overallEmployment: 41307,
+  activityMonitor: 41307,
+  wages: {
+    overall: 42216,
+    softwareDevelopers: 43106,
+    nurses: 43107,
+    salesRepresentatives: 43108,
+    financialSpecialists: 43109,
+    designers: 43110,
+    averageWeeklyHours: 41574,
+    aiDailyUse: 42215,
+  },
+  familyResources: {
+    twentiethPercentile: 42944,
+    fiftiethPercentile: 43042,
+    eightiethPercentile: 43043,
+  },
+  graduates: {
+    unemploymentRate: 42212,
+    underemploymentRate: 42213,
+    overallFourYearDegrees: 42220,
+    stemFourYearDegrees: 42852,
+    humanitiesFourYearDegrees: 42853,
+    tradeSchoolAndCommunityCollege: 42856,
+  },
+  economy: {
+    laborProductivity: 43087,
+    fortune500SmallWorkforce: 41324,
+    longTermUnemploymentRate: 41313,
+    laborShareOfNationalIncome: 41578,
+  },
+  research: {
+    occupationalMixChange: 42850,
+  },
+  state: {
+    washingtonOverallEmployment: 43081,
+    washingtonAerospaceSector: 43084,
+    washingtonTechnologySector: 43085,
+    washingtonHealthcareSector: 43086,
+  },
+} as const;
 
 export type JobDefinition = {
   name: string;

@@ -13,7 +13,7 @@ import {
 } from "./activity_monitor_interactive";
 import { QuestionLoader } from "../components/question_cards/question";
 import { SectionHeader } from "../components/section";
-import { LABOR_HUB_POST_IDS } from "../helpers/labor_hub_posts";
+import { LABOR_HUB_POST_IDS } from "../data";
 
 const activityDateFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
