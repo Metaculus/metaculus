@@ -84,6 +84,9 @@ const MobileKeyFactorOverlay: FC<Props> = ({
   const [selectedIndex, setSelectedIndex] = useState(startIndexRef.current);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
+  // The carousel only holds the key factor cards; its height tracks the active
+  // card so the shared comment panel below re-anchors as you swipe.
+  const [carouselHeight, setCarouselHeight] = useState<number>();
 
   // The parent passes a fresh onSelectKeyFactor each render; keep it in a ref so
   // syncState stays stable and the embla subscription isn't torn down/looped.
@@ -119,6 +122,28 @@ const MobileKeyFactorOverlay: FC<Props> = ({
       emblaApi.off("reInit", syncState);
     };
   }, [emblaApi, syncState]);
+
+  const measureHeight = useCallback(() => {
+    if (!emblaApi) return;
+    const node = emblaApi.slideNodes()[emblaApi.selectedScrollSnap()];
+    if (node) setCarouselHeight(node.offsetHeight);
+  }, [emblaApi]);
+
+  // Keep the carousel height in sync with the active card, including when its
+  // content height changes (e.g. the card finishes loading).
+  useEffect(() => {
+    if (!emblaApi) return;
+    measureHeight();
+    emblaApi.on("select", measureHeight);
+    emblaApi.on("reInit", measureHeight);
+    const ro = new ResizeObserver(() => measureHeight());
+    emblaApi.slideNodes().forEach((node) => ro.observe(node));
+    return () => {
+      emblaApi.off("select", measureHeight);
+      emblaApi.off("reInit", measureHeight);
+      ro.disconnect();
+    };
+  }, [emblaApi, measureHeight]);
 
   // Load the initially shown comment up front (covers the non-carousel path
   // where there is no embla instance to drive syncState).
@@ -182,164 +207,122 @@ const MobileKeyFactorOverlay: FC<Props> = ({
     [updateComment]
   );
 
-  const renderSlide = (kf: KeyFactor) => {
+  const activeKf = allPostKeyFactors[selectedIndex] ?? allPostKeyFactors[0];
+
+  // The shared comment panel: rendered once for the active key factor. It is
+  // keyed by comment_id so swiping between siblings of the SAME comment reuses
+  // it in place (static), while a different comment remounts and cross-fades.
+  const renderCommentPanel = (kf: KeyFactor | undefined) => {
+    if (!kf) return null;
     const comment = findById(comments, kf.comment_id);
     // While the comment is still loading we optimistically show the comment
     // region (with a skeleton); an empty loaded comment hides it.
     const hasComment = !!(comment?.text?.trim() || !comment);
-    const relatedKeyFactors = allPostKeyFactors.filter(
-      (other) => other.id !== kf.id && other.comment_id === kf.comment_id
-    );
-    const showNewsCta = !hasComment && isNewsKF(kf) && kf.news;
+
+    if (!hasComment) {
+      if (isNewsKF(kf) && kf.news) {
+        return (
+          <div
+            key={`news-${kf.id}`}
+            className="flex flex-1 animate-fade-in items-end justify-center px-4 pb-2"
+          >
+            <a
+              href={kf.news.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-blue-900 px-4 py-2 text-base font-medium leading-5 text-gray-200 no-underline dark:bg-blue-900-dark dark:text-gray-200-dark"
+            >
+              <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+              {t("viewArticle")}
+            </a>
+          </div>
+        );
+      }
+      return null;
+    }
 
     return (
-      <div className="h-full overflow-y-auto overflow-x-hidden overscroll-contain">
-        <div className="flex min-h-full flex-col gap-2">
-          <div className="shrink-0">
-            <KeyFactorItem
-              keyFactor={kf}
-              linkToComment={false}
-              projectPermission={post.user_permission}
-              large
-            />
+      <div
+        key={kf.comment_id}
+        className="mx-4 flex flex-1 animate-fade-in flex-col rounded-xl bg-blue-200 px-5 py-4 dark:bg-blue-200-dark"
+      >
+        <div className="mb-2 flex items-start justify-between gap-2">
+          <div className="flex min-w-0 flex-col">
+            <h4 className="my-0 break-words text-base font-bold leading-6 text-gray-800 dark:text-gray-800-dark">
+              {formatUsername(kf.author)}
+            </h4>
+            <span
+              className="text-sm leading-5 text-gray-500 dark:text-gray-500-dark"
+              suppressHydrationWarning
+            >
+              {t("onDate", {
+                date: formatDate(locale, new Date(kf.created_at)),
+              })}
+            </span>
           </div>
+          <button
+            onClick={() => handleScrollToComment(kf)}
+            className="shrink-0 text-base text-blue-600 dark:text-blue-600-dark"
+            aria-label={t("viewComment")}
+          >
+            <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+          </button>
+        </div>
 
-          {hasComment && (
-            <div className="flex flex-1 flex-col rounded-xl bg-blue-200 px-5 py-4 dark:bg-blue-200-dark">
-              <div className="mb-2 flex items-start justify-between gap-2">
-                <div className="flex min-w-0 flex-col">
-                  <h4 className="my-0 break-words text-base font-bold leading-6 text-gray-800 dark:text-gray-800-dark">
-                    {formatUsername(kf.author)}
-                  </h4>
-                  <span
-                    className="text-sm leading-5 text-gray-500 dark:text-gray-500-dark"
-                    suppressHydrationWarning
-                  >
-                    {t("onDate", {
-                      date: formatDate(locale, new Date(kf.created_at)),
-                    })}
-                  </span>
-                </div>
-                <button
-                  onClick={() => handleScrollToComment(kf)}
-                  className="shrink-0 text-base text-blue-600 dark:text-blue-600-dark"
-                  aria-label={t("viewComment")}
-                >
-                  <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
-                </button>
-              </div>
-
-              <div className="text-base leading-6 text-gray-700 dark:text-gray-700-dark">
-                {!comment && (
-                  <div className="animate-pulse space-y-[10px]">
-                    <div className="h-[1.5em] rounded bg-gray-300 dark:bg-gray-300-dark" />
-                    <div className="h-[1.5em] rounded bg-gray-300 dark:bg-gray-300-dark" />
-                    <div className="h-[1.5em] w-4/5 rounded bg-gray-300 dark:bg-gray-300-dark" />
-                  </div>
-                )}
-                {comment && (
-                  <MarkdownEditor
-                    mode="read"
-                    markdown={parseUserMentions(
-                      comment.text,
-                      comment.mentioned_users
-                    )}
-                    contentEditableClassName="!text-base !leading-6 !text-gray-700 dark:!text-gray-700-dark"
-                    withUgcLinks
-                    withCodeBlocks
-                  />
-                )}
-              </div>
-
-              {relatedKeyFactors.length > 0 && (
-                <div className="mt-3.5 flex flex-col gap-3">
-                  <span className="text-[10px] font-medium uppercase leading-3 text-gray-500 dark:text-gray-500-dark">
-                    {t("keyFactors")}
-                  </span>
-                  <div className="flex gap-2.5 overflow-x-auto">
-                    {relatedKeyFactors.map((related) => (
-                      <KeyFactorItem
-                        key={related.id}
-                        keyFactor={related}
-                        isCompact
-                        projectPermission={post.user_permission}
-                        className="w-[160px] shrink-0"
-                        onClick={() => {
-                          const idx = allPostKeyFactors.findIndex(
-                            (item) => item.id === related.id
-                          );
-                          if (idx >= 0) scrollToSlide(idx);
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-              <div className="mt-auto pt-4">
-                {!comment ? (
-                  <div className="flex animate-pulse items-center gap-3 text-sm leading-4">
-                    <div className="inline-flex items-center gap-2 rounded-sm border border-blue-500/30 px-1 dark:border-blue-600/30">
-                      <div className="size-6 rounded-sm bg-gray-200 dark:bg-gray-200-dark" />
-                      <div className="h-3 w-4 rounded bg-gray-200 dark:bg-gray-200-dark" />
-                      <div className="size-6 rounded-sm bg-gray-200 dark:bg-gray-200-dark" />
-                    </div>
-                  </div>
-                ) : (
-                  <CommentActionBar
-                    comment={comment}
-                    post={post}
-                    onReply={() => handleReplyToComment(kf)}
-                    onScrollToLink={() => handleScrollToComment(kf)}
-                    onVoteChange={(voteScore, userVote) =>
-                      handleVoteChange(kf, voteScore, userVote)
-                    }
-                    onCmmToggle={(enabled) =>
-                      handleCmmToggle(kf, comment, enabled)
-                    }
-                  />
-                )}
-              </div>
+        <div className="text-base leading-6 text-gray-700 dark:text-gray-700-dark">
+          {!comment && (
+            <div className="animate-pulse space-y-[10px]">
+              <div className="h-[1.5em] rounded bg-gray-300 dark:bg-gray-300-dark" />
+              <div className="h-[1.5em] rounded bg-gray-300 dark:bg-gray-300-dark" />
+              <div className="h-[1.5em] w-4/5 rounded bg-gray-300 dark:bg-gray-300-dark" />
             </div>
           )}
+          {comment && (
+            <MarkdownEditor
+              mode="read"
+              markdown={parseUserMentions(
+                comment.text,
+                comment.mentioned_users
+              )}
+              contentEditableClassName="!text-base !leading-6 !text-gray-700 dark:!text-gray-700-dark"
+              withUgcLinks
+              withCodeBlocks
+            />
+          )}
+        </div>
 
-          {showNewsCta && kf.news && (
-            <div className="flex flex-1 items-end justify-center pb-2">
-              <a
-                href={kf.news.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-blue-900 px-4 py-2 text-base font-medium leading-5 text-gray-200 no-underline dark:bg-blue-900-dark dark:text-gray-200-dark"
-              >
-                <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
-                {t("viewArticle")}
-              </a>
+        <div className="mt-auto pt-4">
+          {!comment ? (
+            <div className="flex animate-pulse items-center gap-3 text-sm leading-4">
+              <div className="inline-flex items-center gap-2 rounded-sm border border-blue-500/30 px-1 dark:border-blue-600/30">
+                <div className="size-6 rounded-sm bg-gray-200 dark:bg-gray-200-dark" />
+                <div className="h-3 w-4 rounded bg-gray-200 dark:bg-gray-200-dark" />
+                <div className="size-6 rounded-sm bg-gray-200 dark:bg-gray-200-dark" />
+              </div>
             </div>
+          ) : (
+            <CommentActionBar
+              comment={comment}
+              post={post}
+              onReply={() => handleReplyToComment(kf)}
+              onScrollToLink={() => handleScrollToComment(kf)}
+              onVoteChange={(voteScore, userVote) =>
+                handleVoteChange(kf, voteScore, userVote)
+              }
+              onCmmToggle={(enabled) => handleCmmToggle(kf, comment, enabled)}
+            />
           )}
         </div>
       </div>
     );
   };
 
-  const singleSlide = questionLink ? (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="shrink-0">
-        <QuestionLinkKeyFactorItem
-          link={questionLink}
-          post={post}
-          linkToComment={false}
-        />
-      </div>
-    </div>
-  ) : allPostKeyFactors[0] ? (
-    renderSlide(allPostKeyFactors[0])
-  ) : null;
-
   return (
     <Transition appear show as={Fragment}>
       <Dialog as="div" className="relative z-modal" onClose={onClose}>
         <div className="fixed inset-0 bg-white/90 backdrop-blur-[10px] dark:bg-gray-0-dark/90" />
-        <DialogPanel className="fixed inset-x-0 top-0 flex h-[100dvh] flex-col px-4 pb-3 pt-3">
-          <div className="mb-2 flex shrink-0 items-center justify-between gap-3">
+        <DialogPanel className="fixed inset-x-0 top-0 flex h-[100dvh] flex-col pb-3 pt-3">
+          <div className="mb-2 flex shrink-0 items-center justify-between gap-3 px-4">
             <span className="text-[11px] font-medium uppercase leading-3 tracking-wide text-gray-500 dark:text-gray-500-dark">
               {t("keyFactorsFor")}
             </span>
@@ -352,7 +335,7 @@ const MobileKeyFactorOverlay: FC<Props> = ({
             </button>
           </div>
 
-          <div className="flex shrink-0 items-start gap-3">
+          <div className="flex shrink-0 items-start gap-3 px-4">
             <h2 className="mt-0 min-w-0 flex-1 text-base font-semibold leading-5 tracking-tight text-gray-800 dark:text-gray-800-dark">
               {post.title}
             </h2>
@@ -365,24 +348,59 @@ const MobileKeyFactorOverlay: FC<Props> = ({
             )}
           </div>
 
-          <div className="mt-3 min-h-0 flex-1">
-            {isCarousel ? (
-              <div ref={emblaRef} className="-mx-4 h-full overflow-hidden">
-                <div className="flex h-full px-2.5">
-                  {allPostKeyFactors.map((kf) => (
-                    <div key={kf.id} className="min-w-0 flex-[0_0_86%] px-1.5">
-                      {renderSlide(kf)}
-                    </div>
-                  ))}
+          <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-contain">
+            <div className="flex min-h-full flex-col gap-2">
+              {questionLink ? (
+                <div className="shrink-0 px-4">
+                  <QuestionLinkKeyFactorItem
+                    link={questionLink}
+                    post={post}
+                    linkToComment={false}
+                  />
                 </div>
-              </div>
-            ) : (
-              singleSlide
-            )}
+              ) : isCarousel ? (
+                <>
+                  <div
+                    ref={emblaRef}
+                    className="shrink-0 overflow-hidden transition-[height] duration-200"
+                    style={{ height: carouselHeight }}
+                  >
+                    <div className="flex items-start px-2.5">
+                      {allPostKeyFactors.map((kf) => (
+                        <div
+                          key={kf.id}
+                          className="min-w-0 flex-[0_0_86%] px-1.5"
+                        >
+                          <KeyFactorItem
+                            keyFactor={kf}
+                            linkToComment={false}
+                            projectPermission={post.user_permission}
+                            large
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {renderCommentPanel(activeKf)}
+                </>
+              ) : activeKf ? (
+                <>
+                  <div className="shrink-0 px-4">
+                    <KeyFactorItem
+                      keyFactor={activeKf}
+                      linkToComment={false}
+                      projectPermission={post.user_permission}
+                      large
+                    />
+                  </div>
+                  {renderCommentPanel(activeKf)}
+                </>
+              ) : null}
+            </div>
           </div>
 
           {isCarousel && (
-            <div className="flex shrink-0 items-center justify-between gap-3 pt-3">
+            <div className="flex shrink-0 items-center justify-between gap-3 px-4 pt-3">
               <button
                 aria-label={t("previous")}
                 disabled={!canPrev}
