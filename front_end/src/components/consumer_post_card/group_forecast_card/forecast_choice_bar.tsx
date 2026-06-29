@@ -4,6 +4,7 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import TruncatedTextTooltip from "@/components/truncated_text_tooltip";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useMounted from "@/hooks/use_mounted";
@@ -80,7 +81,13 @@ const ForecastChoiceBar: FC<Props> = ({
         }
       )}
     >
-      <span className="z-10 line-clamp-1 max-w-[85%]">{choiceLabel}</span>
+      <div className="z-10 flex max-w-[85%] overflow-hidden">
+        <TruncatedTextTooltip
+          text={choiceLabel}
+          className="line-clamp-1"
+          variant="light"
+        />
+      </div>
       <span
         className={cn("z-10 text-nowrap", {
           "text-xs font-normal text-gray-700 opacity-50 dark:text-gray-700-dark":
