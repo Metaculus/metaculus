@@ -177,7 +177,7 @@ const NumericTimeline: FC<Props> = ({
         alwaysShowYTicks: true,
         inboundOutcomeCount,
         resolutionPoint,
-        downsample: forFeedPage,
+        reduceStepData: forFeedPage,
       }),
     [
       questionType,

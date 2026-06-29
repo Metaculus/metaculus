@@ -23,10 +23,9 @@ import {
   getTickLabelFontSize,
 } from "@/utils/charts/axis";
 import {
-  downsampleAreaSegments,
-  downsampleLineSegments,
-} from "@/utils/charts/lttb";
-
+  reduceStepAreaSegments,
+  reduceStepLineSegments,
+} from "@/utils/charts/step_reducer";
 export type ChartData = BaseChartData & {
   line: Line;
   area: Area;
@@ -53,7 +52,7 @@ export function buildNumericChartData({
   inboundOutcomeCount,
   alwaysShowYTicks,
   resolutionPoint,
-  downsample,
+  reduceStepData,
 }: {
   questionType: QuestionType;
   actualCloseTime?: number | null;
@@ -72,7 +71,7 @@ export function buildNumericChartData({
   inboundOutcomeCount?: number | null;
   alwaysShowYTicks?: boolean;
   resolutionPoint?: LinePoint | null;
-  downsample?: boolean;
+  reduceStepData?: boolean;
 }): ChartData {
   const line: Line = [];
   const area: Area = [];
@@ -263,8 +262,8 @@ export function buildNumericChartData({
   });
 
   return {
-    line: downsample ? downsampleLineSegments(line) : line,
-    area: downsample ? downsampleAreaSegments(area) : area,
+    line: reduceStepData ? reduceStepLineSegments(line) : line,
+    area: reduceStepData ? reduceStepAreaSegments(area) : area,
     yDomain: zoomedYDomain,
     xDomain,
     xScale,

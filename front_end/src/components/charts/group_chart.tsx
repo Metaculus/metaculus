@@ -58,11 +58,11 @@ import {
   Y_AXIS_LABEL_ANCHOR_OFFSET,
   Y_AXIS_LABEL_RESERVED_PX,
 } from "@/utils/charts/axis";
-import {
-  downsampleAreaSegments,
-  downsampleLineSegments,
-} from "@/utils/charts/lttb";
 import { getResolutionPoint } from "@/utils/charts/resolution";
+import {
+  reduceStepAreaSegments,
+  reduceStepLineSegments,
+} from "@/utils/charts/step_reducer";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
 import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
@@ -1089,8 +1089,8 @@ function buildChartData({
       const item: ChoiceGraph = {
         choice,
         color,
-        line: forFeedPage ? downsampleLineSegments(line) : line,
-        area: forFeedPage ? downsampleAreaSegments(area) : area,
+        line: forFeedPage ? reduceStepLineSegments(line) : line,
+        area: forFeedPage ? reduceStepAreaSegments(area) : area,
         scatter: scatter,
         active,
         highlighted,
