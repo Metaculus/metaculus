@@ -1065,6 +1065,7 @@
   "keyFactor": "Klíčový faktor",
   "scrollToKeyFactor": "Přejít na klíčový faktor",
   "keyFactors": "Klíčové faktory",
+  "keyFactorsFor": "Klíčové faktory pro",
   "notAvailable": "Není k dispozici",
   "indexesTitle": "Projekt",
   "indexScore": "Hodnota indexu: <bold>{value}</bold>",

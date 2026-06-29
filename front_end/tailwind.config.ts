@@ -80,6 +80,8 @@ const config: Config = {
       },
       zIndex: {
         "100": "100",
+        header: "210",
+        modal: "220",
       },
       backgroundImage: {
         "border-dashed-1":
