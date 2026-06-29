@@ -193,7 +193,7 @@ const MobileKeyFactorOverlay: FC<Props> = ({
     const showNewsCta = !hasComment && isNewsKF(kf) && kf.news;
 
     return (
-      <div className="h-full overflow-y-auto overscroll-contain">
+      <div className="h-full overflow-y-auto overflow-x-hidden overscroll-contain">
         <div className="flex min-h-full flex-col gap-2">
           <div className="shrink-0">
             <KeyFactorItem
