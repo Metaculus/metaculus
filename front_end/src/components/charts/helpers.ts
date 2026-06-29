@@ -22,7 +22,10 @@ import {
   generateTimeSeriesYDomain,
   getTickLabelFontSize,
 } from "@/utils/charts/axis";
-
+import {
+  reduceStepAreaSegments,
+  reduceStepLineSegments,
+} from "@/utils/charts/step_reducer";
 export type ChartData = BaseChartData & {
   line: Line;
   area: Area;
@@ -49,6 +52,7 @@ export function buildNumericChartData({
   inboundOutcomeCount,
   alwaysShowYTicks,
   resolutionPoint,
+  reduceStepData,
 }: {
   questionType: QuestionType;
   actualCloseTime?: number | null;
@@ -67,6 +71,7 @@ export function buildNumericChartData({
   inboundOutcomeCount?: number | null;
   alwaysShowYTicks?: boolean;
   resolutionPoint?: LinePoint | null;
+  reduceStepData?: boolean;
 }): ChartData {
   const line: Line = [];
   const area: Area = [];
@@ -257,8 +262,8 @@ export function buildNumericChartData({
   });
 
   return {
-    line,
-    area,
+    line: reduceStepData ? reduceStepLineSegments(line) : line,
+    area: reduceStepData ? reduceStepAreaSegments(area) : area,
     yDomain: zoomedYDomain,
     xDomain,
     xScale,
