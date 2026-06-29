@@ -4,12 +4,8 @@ import { PostWithForecasts } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { scaleInternalLocation } from "@/utils/math";
 
-import { JOBS_DATA } from "../data";
-import {
-  LABOR_HUB_POST_IDS,
-  fetchLaborHubPost,
-  fetchLaborHubPostsByIds,
-} from "./labor_hub_posts";
+import { JOBS_DATA, LABOR_HUB_POST_IDS } from "../data";
+import { fetchLaborHubPost, fetchLaborHubPostsByIds } from "./labor_hub_posts";
 
 export type JobWithPost = (typeof JOBS_DATA)[number] & {
   post: PostWithForecasts | null;

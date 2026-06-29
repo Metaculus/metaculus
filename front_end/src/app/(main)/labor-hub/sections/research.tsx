@@ -14,8 +14,8 @@ import {
   SectionHeader,
   ContentParagraph,
 } from "../components/section";
+import { LABOR_HUB_POST_IDS } from "../data";
 import { fetchJobsData, getSubQuestionValue } from "../helpers/fetch_jobs_data";
-import { LABOR_HUB_POST_IDS } from "../helpers/labor_hub_posts";
 
 export function ResearchSection({
   className,

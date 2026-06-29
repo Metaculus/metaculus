@@ -52,6 +52,7 @@ import {
   getClosestYValue,
   interpolateYValue,
 } from "@/utils/charts/helpers";
+import { FEED_CHART_TARGET_POINTS, lttb } from "@/utils/charts/lttb";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 import { formatResolution } from "@/utils/formatters/resolution";
@@ -102,6 +103,7 @@ type Props = {
   shortLabels?: boolean;
   alignChartTabs?: boolean;
   forceTickCount?: number; // is used on feed page
+  variant?: "feed" | "question";
   withResolutionChip?: boolean;
   withTodayLine?: boolean;
   globalScaling?: Scaling;
@@ -124,6 +126,7 @@ const ContinuousAreaChart: FC<Props> = ({
   shortLabels = false,
   alignChartTabs,
   forceTickCount,
+  variant = "question",
   withResolutionChip = true,
   withTodayLine = true,
   globalScaling,
@@ -199,8 +202,14 @@ const ContinuousAreaChart: FC<Props> = ({
         }
       }
     }
+    if (variant === "feed" && question.type !== QuestionType.Discrete) {
+      return chartData.map((chart) => ({
+        ...chart,
+        graphLine: lttb(chart.graphLine, FEED_CHART_TARGET_POINTS),
+      }));
+    }
     return chartData;
-  }, [data, graphType, hideCP, question, globalScaling]);
+  }, [data, graphType, hideCP, question, globalScaling, variant]);
 
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;
