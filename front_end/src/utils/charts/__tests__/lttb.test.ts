@@ -47,4 +47,19 @@ describe("lttb", () => {
     expect(result).toHaveLength(4);
     expect(result.every((p) => p.y !== null)).toBe(true);
   });
+
+  it("does not coerce a null y into a real y=0 sample", () => {
+    // A null sits among uniformly high values. If null were coerced to 0,
+    // LTTB would treat it as a large downward spike and select it.
+    const points: Line = [
+      { x: 0, y: 10 },
+      { x: 1, y: 10 },
+      { x: 2, y: null },
+      { x: 3, y: 10 },
+      { x: 4, y: 10 },
+      { x: 5, y: 10 },
+    ];
+    const result = lttb(points, 4);
+    expect(result.some((p) => p.y === null)).toBe(false);
+  });
 });

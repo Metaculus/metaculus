@@ -1,6 +1,7 @@
 import { Area, Line } from "@/types/charts";
 
 import {
+  getSharedStepKeepMask,
   reduceStepAreaSegments,
   reduceStepLineSegments,
 } from "../step_reducer";
@@ -58,5 +59,41 @@ describe("reduceStepAreaSegments", () => {
       { x: 3, y: 5, y0: 2 },
       { x: 4, y: 5, y0: 2 },
     ]);
+  });
+});
+
+describe("getSharedStepKeepMask", () => {
+  it("keeps endpoints and any index where a series changes value", () => {
+    // series A is flat; series B changes at index 3 only.
+    const a = [5, 5, 5, 5, 5, 5];
+    const b = [1, 1, 1, 9, 9, 9];
+
+    expect(getSharedStepKeepMask([a, b], 6)).toEqual([
+      true, // endpoint
+      false,
+      false,
+      true, // B changes here
+      false,
+      true, // endpoint
+    ]);
+  });
+
+  it("treats null<->real transitions as changes and keeps them aligned", () => {
+    const a = [1, 1, null, 1, 1];
+    const b = [2, 2, 2, 2, 2];
+
+    expect(getSharedStepKeepMask([a, b], 5)).toEqual([
+      true, // endpoint
+      false,
+      true, // A goes null
+      true, // A comes back
+      true, // endpoint
+    ]);
+  });
+
+  it("returns all-kept for short grids and empty for zero length", () => {
+    expect(getSharedStepKeepMask([[1]], 1)).toEqual([true]);
+    expect(getSharedStepKeepMask([[1, 2]], 2)).toEqual([true, true]);
+    expect(getSharedStepKeepMask([], 0)).toEqual([]);
   });
 });

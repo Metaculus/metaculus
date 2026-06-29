@@ -77,6 +77,36 @@ function reduceSegment<P extends StepPoint>(
   return reduced;
 }
 
+// Shared boundary-preserving keep-mask for stacked step series.
+// Returns a boolean[] over the shared timestamp grid: an index is kept if it is
+// an endpoint, or if ANY series changes value at that index vs the previous one.
+// Applying the same mask to every stacked series keeps them index/x-aligned
+// (so VictoryStack's per-x stacking stays correct) while remaining lossless for
+// stepAfter rendering - between kept indices every series holds a constant value.
+export function getSharedStepKeepMask(
+  series: ReadonlyArray<ReadonlyArray<number | null>>,
+  length: number
+): boolean[] {
+  const keep = new Array<boolean>(length).fill(false);
+  if (length === 0) {
+    return keep;
+  }
+
+  keep[0] = true;
+  keep[length - 1] = true;
+
+  for (let i = 1; i < length - 1; i++) {
+    for (const values of series) {
+      if (!Object.is(values[i] ?? null, values[i - 1] ?? null)) {
+        keep[i] = true;
+        break;
+      }
+    }
+  }
+
+  return keep;
+}
+
 function haveSameLineValue<X, Y>(
   a: LinePoint<X, Y>,
   b: LinePoint<X, Y>

@@ -20,6 +20,9 @@ export function lttb<X = number, Y = number | null>(
   const numericPoints: NumericPoint[] = [];
   for (let i = 0; i < points.length; i++) {
     const point = points[i] as LinePoint<X, Y>;
+    // Skip nulls explicitly: Number(null) === 0 is finite, so coercing first
+    // would turn gap markers into real y=0 samples.
+    if (point.x == null || point.y == null) continue;
     const x = Number(point.x);
     const y = Number(point.y);
     if (Number.isFinite(x) && Number.isFinite(y)) {
