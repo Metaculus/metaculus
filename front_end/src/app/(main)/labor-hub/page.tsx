@@ -172,16 +172,16 @@ export default function LaborAutomationHubPage() {
                     title: "Software Developers",
                   },
                   {
-                    questionId: LABOR_HUB_POST_IDS.wages.constructionWorkers,
-                    title: "Construction Workers",
+                    questionId: LABOR_HUB_POST_IDS.wages.nurses,
+                    title: "Registered Nurses",
                   },
                   {
-                    questionId: LABOR_HUB_POST_IDS.wages.generalManagers,
-                    title: "General Managers",
+                    questionId: LABOR_HUB_POST_IDS.wages.salesRepresentatives,
+                    title: "Sales Representatives",
                   },
                   {
-                    questionId: LABOR_HUB_POST_IDS.wages.engineers,
-                    title: "Engineers",
+                    questionId: LABOR_HUB_POST_IDS.wages.designers,
+                    title: "Designers",
                   },
                   {
                     questionId: LABOR_HUB_POST_IDS.wages.financialSpecialists,
