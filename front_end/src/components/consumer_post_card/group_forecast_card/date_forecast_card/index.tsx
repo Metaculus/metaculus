@@ -19,6 +19,7 @@ import { METAC_COLORS } from "@/constants/colors";
 import { useHideCP } from "@/contexts/cp_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
+import useDeferredRender from "@/hooks/use_deferred_render";
 import { ChoiceItem } from "@/types/choices";
 import { PostGroupOfQuestions, PostWithForecasts } from "@/types/post";
 import {
@@ -48,6 +49,7 @@ type Props = {
   innerChartPaddingX?: number;
   yearOnlyTicks?: boolean;
   withHeader?: boolean;
+  forFeedPage?: boolean;
 };
 
 const TICK_LABEL_INDEXES = [0, 4, 8];
@@ -62,11 +64,13 @@ const DateForecastCard: FC<Props> = ({
   innerChartPaddingX = 0,
   yearOnlyTicks = false,
   withHeader = false,
+  forFeedPage = false,
 }) => {
   const { questions } = questionsGroup;
   const locale = useLocale();
   const t = useTranslations();
   const { hideCP } = useHideCP();
+  const shouldRenderFeedChart = useDeferredRender(forFeedPage, post.id);
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const {
@@ -114,8 +118,9 @@ const DateForecastCard: FC<Props> = ({
           "DateForecastCard relative w-full",
           fillHeight && "min-h-0 flex-1"
         )}
+        style={forFeedPage ? { minHeight: chartHeight } : undefined}
       >
-        {shouldDisplayChart && (
+        {shouldDisplayChart && !(forFeedPage && !shouldRenderFeedChart) && (
           <VictoryChart
             width={chartWidth}
             height={chartHeight}
