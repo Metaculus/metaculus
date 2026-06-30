@@ -278,8 +278,11 @@ class TestUserProfileByUsername:
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_staff_can_lookup_inactive_users(
-        self, user_admin_client: APIClient, user1: User
+        self, user_admin_client: APIClient, user_admin: User, user1: User
     ) -> None:
+        user_admin.is_staff = True
+        user_admin.save()
+
         user1.is_active = False
         user1.save()
 
