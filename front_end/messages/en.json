@@ -1001,7 +1001,7 @@
   "settingsNewEmail": "New Email",
   "settingsEmailChangeDescription": "Enter a new email address and a password, and we'll send you a link to change your email.",
   "settingsChangeEmailAddress": "Change email address",
-  "settingsChangeEmailAddressSuccess": "A confirmation email has been sent to your new address. Please follow the link inside to activate it.",
+  "settingsChangeEmailAddressSuccess": "A confirmation email has been sent to your old address. Please follow the link inside to activate it.",
   "emailChangeErrorMessage": "Failed to change email",
   "emailChangeSuccessMessage": "Your email address has been changed successfully",
   "socialAccountNoPasswordBanner": "Your account doesn't have a password yet. Set one below to change your email or log in with email and password.",
