@@ -1031,8 +1031,8 @@ export default async function FAQ() {
           all options at once is more informative than asking a separate
           question for each. If you need forecasters to treat the outcomes as
           independent — or if you want to allow more than one to be true — use a{" "}
-          <Link href="/faq/#question-groups">Question Group</Link>instead. See{" "}
-          <a href="#mc-vs-groups">Multiple Choice vs. Question Groups</a>for
+          <Link href="/faq/#question-groups">Question Group</Link> instead. See{" "}
+          <a href="#mc-vs-groups">Multiple Choice vs. Question Groups</a> for
           details.
         </p>
 
@@ -1118,20 +1118,20 @@ export default async function FAQ() {
         </h4>
         <p>
           Question Groups and{" "}
-          <Link href="/faq/#question-types">Multiple Choice</Link>questions look
+          <Link href="/faq/#question-types">Multiple Choice</Link> questions look
           similar — both present several options on a single page — but they
           model very different situations:
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
-            <strong>Multiple Choice</strong>is a single question whose options
+            <strong>Multiple Choice</strong> is a single question whose options
             are <i>mutually exclusive</i> and <i>collectively exhaustive</i>.
             Exactly one option will turn out to be correct, and the forecast
             probabilities across options sum to 100%. Use it when you&apos;re
             asking &quot;which one?&quot; from a fixed list.
           </li>
           <li>
-            A <strong>Question Group</strong>is a bundle of <i>independent</i>{" "}
+            A <strong>Question Group</strong> is a bundle of <i>independent</i>{" "}
             subquestions sharing a page for convenience. Each subquestion
             resolves on its own, you don&apos;t have to forecast on all of them,
             and the community probabilities are not constrained to sum to 100%.
