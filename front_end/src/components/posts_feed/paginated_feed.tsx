@@ -55,25 +55,32 @@ const GRID_MEDIA = [1024, 1280, 1536];
 const GRID_OVERSCAN = 9;
 const LIST_GAP = 12;
 const LIST_OVERSCAN = 12;
+const AD_TILE_ESTIMATE = 180;
 
 function shouldShowProjectTilesForParams(params: URLSearchParams) {
   return Array.from(params.keys()).every((key) => key === POST_PAGE_FILTER);
 }
 
 function estimateFeedItemSize(item: FeedItem) {
-  if (item.type === "tile") return 360;
+  if (item.type === "tile") {
+    return item.tile.type === "ad" ? AD_TILE_ESTIMATE : 360;
+  }
   if (isNotebookPost(item.post)) return 220;
   return 440;
 }
 
 function estimateFeedItemSizeList(item: FeedItem) {
-  if (item.type === "project") return 220;
+  if (item.type === "tile") {
+    return item.tile.type === "ad" ? AD_TILE_ESTIMATE : 220;
+  }
   if (isNotebookPost(item.post)) return 180;
   return 280;
 }
 
 function estimateFeedItemSizeCompact(item: FeedItem) {
-  if (item.type === "project") return 220;
+  if (item.type === "tile") {
+    return item.tile.type === "ad" ? AD_TILE_ESTIMATE : 220;
+  }
   return 96;
 }
 
