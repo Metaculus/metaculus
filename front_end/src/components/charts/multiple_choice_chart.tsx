@@ -101,8 +101,9 @@ type Props = {
   isEmbedded?: boolean;
   forecastAvailability?: ForecastAvailability;
   forFeedPage?: boolean;
-  chartTitle?: string;
+  chartTitle?: ReactNode;
   headerLeft?: ReactNode;
+  headerExtra?: ReactNode;
   animate?: object;
   leftPadding?: number;
 };
@@ -133,6 +134,7 @@ const MultipleChoiceChart: FC<Props> = ({
   forFeedPage,
   chartTitle,
   headerLeft,
+  headerExtra,
   animate,
   leftPadding = 0,
 }) => {
@@ -294,6 +296,7 @@ const MultipleChoiceChart: FC<Props> = ({
         onZoomChange={setZoom}
         chartTitle={chartTitle}
         headerLeft={headerLeft}
+        headerExtra={headerExtra}
       >
         {shouldDisplayChart && (
           <VictoryChart

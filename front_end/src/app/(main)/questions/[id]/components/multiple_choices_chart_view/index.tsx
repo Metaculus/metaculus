@@ -1,7 +1,15 @@
 "use client";
 import { FloatingPortal } from "@floating-ui/react";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  FC,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import GroupChart from "@/components/charts/group_chart";
@@ -17,6 +25,7 @@ import { ForecastAvailability, QuestionType, Scaling } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { buildChoicesWithOthers } from "@/utils/questions/choices";
 
+import ChoicesOptionsDropdown from "./choices_options_dropdown";
 import CompactLegendBar from "./compact_legend_bar";
 
 type Props = {
@@ -33,7 +42,7 @@ type Props = {
   isClosed?: boolean;
   hideCP?: boolean;
   cursorTimestamp?: number | null;
-  title?: string;
+  title?: ReactNode;
   yLabel?: string;
   questionType?: QuestionType;
   scaling?: Scaling;
@@ -181,6 +190,20 @@ const MultiChoicesChartView: FC<Props> = ({
     [choiceItems, onChoiceItemsUpdate]
   );
 
+  const handleToggleAll = useCallback(
+    (checked: boolean) => {
+      if (!isInteracted.current) isInteracted.current = true;
+      onChoiceItemsUpdate(
+        choiceItems.map((item) => ({
+          ...item,
+          active: checked,
+          highlighted: false,
+        }))
+      );
+    },
+    [choiceItems, onChoiceItemsUpdate]
+  );
+
   const chartChoiceItems = useMemo(
     () => (isMC ? buildChoicesWithOthers(choiceItems) : choiceItems),
     [isMC, choiceItems]
@@ -233,6 +256,14 @@ const MultiChoicesChartView: FC<Props> = ({
     attachRef,
     withHighlightArea,
     withHighlightEndpoint,
+    headerExtra:
+      !embedMode && choiceItems.length > 1 ? (
+        <ChoicesOptionsDropdown
+          choices={choiceItems}
+          onChoiceChange={handleChoiceChange}
+          onToggleAll={handleToggleAll}
+        />
+      ) : undefined,
   } as const;
 
   return (
@@ -269,6 +300,7 @@ const MultiChoicesChartView: FC<Props> = ({
               !!forecastAvailability?.cpRevealsOn
             }
             choiceItems={binaryChoiceItems}
+            chartTitle={!embedMode ? title : undefined}
             timelineMarkers={timelineMarkers}
             activeTimelineMarkerId={activeTimelineMarkerId}
             onTimelineMarkerEnter={onTimelineMarkerEnter}
@@ -292,7 +324,7 @@ const MultiChoicesChartView: FC<Props> = ({
           <MultipleChoiceChart
             {...commonChartProps}
             isEmbedded={embedMode}
-            chartTitle={!embedMode && !withLegend ? title : undefined}
+            chartTitle={!embedMode ? title : undefined}
             choiceItems={chartChoiceItems}
             headerLeft={
               withLegend ? (
@@ -318,6 +350,7 @@ const MultiChoicesChartView: FC<Props> = ({
             }
             cursorTimestamp={cursorTimestamp}
             choiceItems={choiceItems}
+            chartTitle={!embedMode ? title : undefined}
             timelineMarkers={timelineMarkers}
             activeTimelineMarkerId={activeTimelineMarkerId}
             onTimelineMarkerEnter={onTimelineMarkerEnter}
