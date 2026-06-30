@@ -1613,6 +1613,7 @@
   "info": "Informace o otázce",
   "hiddenUntil": "Skryto do",
   "forecastersWithCount": "<strong>{count_formatted}</strong> {count, plural, =1 {předpověď} other {předpovědi}}",
+  "histogramBinShare": "{share} váhy předpovědí",
   "unreadWithTotalCountXs": "<purple>(<strong>{unread_count_formatted}</strong>)</purple> <strong>{total_count_formatted}</strong>",
   "unreadWithTotalCount": "<purple>(<strong>{unread_count_formatted}</strong> nepřečtených)</purple> <strong>{total_count_formatted}</strong> celkem",
   "totalCommentsCount": "<strong>{total_count_formatted}</strong> {total_count, plural, =0 {komentářů} =1 {komentář} other {komentáře}}",

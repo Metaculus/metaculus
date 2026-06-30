@@ -1612,6 +1612,7 @@
   "info": "Información de la Pregunta",
   "hiddenUntil": "Oculto hasta",
   "forecastersWithCount": "<strong>{count_formatted}</strong> {count, plural, =1 {pronosticador} other {pronosticadores}}",
+  "histogramBinShare": "{share} del peso de los pronósticos",
   "unreadWithTotalCountXs": "<purple>(<strong>{unread_count_formatted}</strong>)</purple> <strong>{total_count_formatted}</strong>",
   "unreadWithTotalCount": "<purple>(<strong>{unread_count_formatted}</strong> sin leer)</purple> <strong>{total_count_formatted}</strong> en total",
   "totalCommentsCount": "<strong>{total_count_formatted}</strong> {total_count, plural, =0 {comentarios} =1 {comentario} other {comentarios}}",

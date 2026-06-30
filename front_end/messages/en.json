@@ -389,6 +389,7 @@
   "unreadWithTotalCount": "<purple>(<strong>{unread_count_formatted}</strong> unread)</purple> <strong>{total_count_formatted}</strong> total",
   "unreadWithTotalCountXs": "<purple>(<strong>{unread_count_formatted}</strong>)</purple> <strong>{total_count_formatted}</strong>",
   "forecastersWithCount": "<strong>{count_formatted}</strong> {count, plural, =1 {forecaster} other {forecasters}}",
+  "histogramBinShare": "{share} weight of forecasts",
   "or": "or",
   "signupInviteUsers": "Invite Users",
   "signupInviteUsersDescription": "Enter the email addresses of users you would like to invite, separated by newlines. They will receive an invitation to sign up by email.",
