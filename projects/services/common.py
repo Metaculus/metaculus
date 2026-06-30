@@ -3,7 +3,7 @@ import re
 from collections import defaultdict
 from datetime import datetime, timedelta
 from itertools import chain
-from typing import Iterable
+from typing import Iterable, TypedDict
 
 from django.db import IntegrityError
 from django.db.models import Q, QuerySet, TextChoices
@@ -461,14 +461,27 @@ def get_feed_project_tiles() -> list[dict]:
     return results
 
 
-def get_questions_count_for_projects(project_ids: list[int]) -> dict[int, int]:
+class ProjectQuestionCounts(TypedDict):
+    questions_count: int
+    questions_count_including_subquestions: int
+
+
+def get_questions_count_for_projects(
+    project_ids: list[int],
+) -> dict[int, ProjectQuestionCounts]:
     """
-    Returns a dict mapping each project_id to its questions_count
+    Returns a dict mapping each project_id to its question counts
     (0 if it doesn’t exist or has no questions).
     """
     qs = (
         Project.objects.filter(id__in=project_ids)
         .annotate_questions_count()
-        .values_list("id", "questions_count")
+        .values_list("id", "questions_count", "questions_count_including_subquestions")
     )
-    return {pid: count or 0 for pid, count in qs}
+    return {
+        pid: ProjectQuestionCounts(
+            questions_count=top_level or 0,
+            questions_count_including_subquestions=total or 0,
+        )
+        for pid, top_level, total in qs
+    }

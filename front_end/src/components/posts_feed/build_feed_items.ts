@@ -6,6 +6,12 @@ export type FeedItem =
   | { type: "post"; post: PostWithForecasts }
   | { type: "project"; tile: FeedProjectTile };
 
+export function getFeedItemKey(item: FeedItem) {
+  return item.type === "project"
+    ? `project-${item.tile.project_id}`
+    : `post-${item.post.id}`;
+}
+
 const postItemCache = new WeakMap<PostWithForecasts, FeedItem>();
 const tileItemCache = new WeakMap<FeedProjectTile, FeedItem>();
 

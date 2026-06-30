@@ -1,6 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, memo, useEffect, useMemo, useState } from "react";
 
 import { QuestionVariantComposer } from "@/app/(main)/questions/[id]/components/question_variant_composer";
 import { FiltersFromSearchParamsOptions } from "@/app/(main)/questions/helpers/filters";
@@ -13,12 +13,14 @@ import CompactSearchPostCard from "@/components/post_card/compact_search_post_ca
 import Button from "@/components/ui/button";
 import { type FeedLayout } from "@/components/ui/layout_switcher";
 import LoadingSpinner from "@/components/ui/loading_spiner";
-import { Masonry } from "@/components/ui/masonry";
+import { useMediaValues } from "@/components/ui/masonry";
+import VirtualizedMasonry from "@/components/ui/virtualized_masonry";
 import { POST_PAGE_FILTER, POSTS_PER_PAGE } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import { useFeedLayout } from "@/contexts/feed_layout_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
+import useMounted from "@/hooks/use_mounted";
 import { PostsParams } from "@/services/api/posts/posts.shared";
 import { PostWithForecasts } from "@/types/post";
 import { FeedProjectTile } from "@/types/projects";
@@ -29,7 +31,7 @@ import { logError } from "@/utils/core/errors";
 import { getPageNumberFromParam } from "@/utils/posts_feed";
 import { isNotebookPost } from "@/utils/questions/helpers";
 
-import { FeedItem, buildFeedItems } from "./build_feed_items";
+import { FeedItem, buildFeedItems, getFeedItemKey } from "./build_feed_items";
 import EmptyCommunityFeed from "./empty_community_feed";
 import PostsFeedScrollRestoration from "./feed_scroll_restoration";
 import FeedTournamentTile from "./feed_tournament_tile";
@@ -43,10 +45,34 @@ import { FormErrorMessage } from "../ui/form_field";
 
 export type PostsFeedType = "posts" | "news";
 
+const EMPTY_INDEX_WEIGHTS: Record<string, number> = {};
 const EMPTY_PROJECT_TILES: FeedProjectTile[] = [];
+const GRID_COLUMNS = [1, 2, 3];
+const GRID_GAPS = [12, 12, 12];
+const GRID_MEDIA = [1024, 1280, 1536];
+const GRID_OVERSCAN = 9;
+const LIST_GAP = 12;
+const LIST_OVERSCAN = 12;
 
 function shouldShowProjectTilesForParams(params: URLSearchParams) {
   return Array.from(params.keys()).every((key) => key === POST_PAGE_FILTER);
+}
+
+function estimateFeedItemSize(item: FeedItem) {
+  if (item.type === "project") return 360;
+  if (isNotebookPost(item.post)) return 220;
+  return 440;
+}
+
+function estimateFeedItemSizeList(item: FeedItem) {
+  if (item.type === "project") return 220;
+  if (isNotebookPost(item.post)) return 180;
+  return 280;
+}
+
+function estimateFeedItemSizeCompact(item: FeedItem) {
+  if (item.type === "project") return 220;
+  return 96;
 }
 
 type Props = {
@@ -69,12 +95,13 @@ const PaginatedPostsFeed: FC<Props> = ({
   filters,
   type = "posts",
   isCommunity,
-  indexWeights = {},
+  indexWeights = EMPTY_INDEX_WEIGHTS,
   forceLayout,
   clientFilterOptions,
   useInitialData = true,
 }) => {
   const t = useTranslations();
+  const mounted = useMounted();
   const { user } = useAuth();
   const {
     params: feedQueryParams,
@@ -253,6 +280,12 @@ const PaginatedPostsFeed: FC<Props> = ({
   const { layout: contextLayout } = useFeedLayout();
   const compactSearchMode = !!queryFilters.search;
   const layout = compactSearchMode ? "list" : forceLayout ?? contextLayout;
+  const { columns: gridColumns, gap: gridGap } = useMediaValues(
+    GRID_MEDIA,
+    GRID_COLUMNS,
+    GRID_GAPS
+  );
+  const isFeedLayoutReady = layout !== "grid" || mounted;
   const isConsumerView =
     !user || user.interface_type === InterfaceType.ConsumerView;
 
@@ -274,25 +307,33 @@ const PaginatedPostsFeed: FC<Props> = ({
             )}
           </>
         )}
-        <FeedLayoutView
-          items={feedItems}
-          feedPage={clientPageNumber}
-          type={type}
-          isCommunity={isCommunity}
-          weightByPostId={weightByPostId}
-          layout={layout}
-          compactSearchMode={compactSearchMode}
-          constrainConsumerList={isConsumerView && layout === "list"}
-          useShortTitles={layout === "grid"}
-        />
-        <PostsFeedScrollRestoration
-          serverPage={queryFilters.page ?? null}
-          pageNumber={clientPageNumber}
-          loadedCount={visiblePosts.length}
-        />
+        {isFeedLayoutReady ? (
+          <>
+            <FeedLayoutView
+              columns={gridColumns}
+              gap={gridGap}
+              items={feedItems}
+              feedPage={clientPageNumber}
+              type={type}
+              isCommunity={isCommunity}
+              weightByPostId={weightByPostId}
+              layout={layout}
+              compactSearchMode={compactSearchMode}
+              constrainConsumerList={isConsumerView && layout === "list"}
+              useShortTitles={layout === "grid"}
+            />
+            <PostsFeedScrollRestoration
+              serverPage={queryFilters.page ?? null}
+              pageNumber={clientPageNumber}
+              loadedCount={visiblePosts.length}
+            />
+          </>
+        ) : (
+          <LoadingSpinner className="mx-auto h-8 w-8 text-gray-600 dark:text-gray-600-dark" />
+        )}
       </div>
 
-      {isPending && !visiblePosts.length ? (
+      {!isFeedLayoutReady ? null : isPending && !visiblePosts.length ? (
         <LoadingSpinner className="mx-auto h-8 w-8 text-gray-600 dark:text-gray-600-dark" />
       ) : hasCachedNextPage || hasNextPage ? (
         <div className="flex py-5">
@@ -317,6 +358,8 @@ const PaginatedPostsFeed: FC<Props> = ({
 };
 
 const FeedLayoutView: FC<{
+  columns: number;
+  gap: number;
   items: FeedItem[];
   feedPage: number;
   type: PostsFeedType;
@@ -327,6 +370,8 @@ const FeedLayoutView: FC<{
   constrainConsumerList?: boolean;
   useShortTitles?: boolean;
 }> = ({
+  columns,
+  gap,
   items,
   feedPage,
   type,
@@ -337,37 +382,54 @@ const FeedLayoutView: FC<{
   constrainConsumerList,
   useShortTitles,
 }) => {
+  const className = cn(constrainConsumerList && "mx-auto w-full max-w-3xl");
+
+  const renderItem = (item: FeedItem) => (
+    <FeedItemCard
+      item={item}
+      feedPage={feedPage}
+      type={type}
+      isCommunity={isCommunity}
+      weightByPostId={weightByPostId}
+      compactSearchMode={compactSearchMode}
+      useShortTitle={useShortTitles}
+    />
+  );
+
+  if (layout === "grid") {
+    return (
+      <VirtualizedMasonry
+        className={className}
+        columns={columns}
+        estimateSize={estimateFeedItemSize}
+        gap={gap}
+        getItemKey={getFeedItemKey}
+        items={items}
+        overscan={GRID_OVERSCAN}
+        render={renderItem}
+      />
+    );
+  }
+
   return (
-    <Masonry
-      className={cn(constrainConsumerList && "mx-auto w-full max-w-3xl")}
+    <VirtualizedMasonry
+      className={className}
+      columns={1}
+      estimateSize={
+        compactSearchMode
+          ? estimateFeedItemSizeCompact
+          : estimateFeedItemSizeList
+      }
+      gap={LIST_GAP}
+      getItemKey={getFeedItemKey}
       items={items}
-      config={{
-        columns: layout === "grid" ? [1, 2, 3] : 1,
-        gap: layout === "grid" ? [12, 12, 12] : 12,
-        media: layout === "grid" ? [1024, 1280, 1536] : undefined,
-        useBalancedLayout: layout === "grid",
-      }}
-      render={(item) => (
-        <FeedItemCard
-          key={
-            item.type === "project"
-              ? `project-${item.tile.project_id}`
-              : `post-${item.post.id}`
-          }
-          item={item}
-          feedPage={feedPage}
-          type={type}
-          isCommunity={isCommunity}
-          weightByPostId={weightByPostId}
-          compactSearchMode={compactSearchMode}
-          useShortTitle={useShortTitles}
-        />
-      )}
+      overscan={LIST_OVERSCAN}
+      render={renderItem}
     />
   );
 };
 
-const FeedItemCard: FC<{
+const FeedItemCardComponent: FC<{
   item: FeedItem;
   feedPage: number;
   type: PostsFeedType;
@@ -423,5 +485,7 @@ const FeedItemCard: FC<{
     />
   );
 };
+
+const FeedItemCard = memo(FeedItemCardComponent);
 
 export default PaginatedPostsFeed;
