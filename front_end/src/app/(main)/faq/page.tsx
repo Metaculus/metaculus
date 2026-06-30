@@ -1032,9 +1032,8 @@ export default async function FAQ() {
           question for each. If you need forecasters to treat the outcomes as
           independent — or if you want to allow more than one to be true — use a{" "}
           <Link href="/faq/#question-groups">Question Group</Link>instead. See{" "}
-          <a href="#mc-vs-groups">
-            Multiple Choice vs. Question Groups
-          </a>for details.
+          <a href="#mc-vs-groups">Multiple Choice vs. Question Groups</a>for
+          details.
         </p>
 
         <h3

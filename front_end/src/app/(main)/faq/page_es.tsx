@@ -1089,9 +1089,9 @@ export default function FAQ() {
         <p>
           Las preguntas de Opción Múltiple presentan un conjunto fijo de
           opciones mutuamente excluyentes y colectivamente exhaustivas, y se
-          resuelven exactamente en una de ellas. Los pronosticadores asignan
-          una probabilidad a cada opción, y esas probabilidades suman 100%.
-          Por ejemplo, la pregunta &quot;
+          resuelven exactamente en una de ellas. Los pronosticadores asignan una
+          probabilidad a cada opción, y esas probabilidades suman 100%. Por
+          ejemplo, la pregunta &quot;
           <Link href="/questions/20683/which-ai-world-before-2050/">
             Qué mundo de IA antes de 2050?
           </Link>
@@ -1109,9 +1109,7 @@ export default function FAQ() {
           quieres permitir que más de uno sea verdadero, utiliza un{" "}
           <Link href="/faq/#question-groups">Grupo de Preguntas</Link> en su
           lugar. Consulta{" "}
-          <a href="#mc-vs-groups">
-            Opción Múltiple vs. Grupos de Preguntas
-          </a>{" "}
+          <a href="#mc-vs-groups">Opción Múltiple vs. Grupos de Preguntas</a>{" "}
           para más detalles.
         </p>
         <h3
@@ -1208,29 +1206,27 @@ export default function FAQ() {
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
-            <strong>Opción Múltiple</strong> es una sola pregunta cuyas
-            opciones son <i>mutuamente excluyentes</i> y{" "}
-            <i>colectivamente exhaustivas</i>. Exactamente una opción
-            resultará ser la correcta, y las probabilidades pronosticadas
-            entre las opciones suman 100%. Úsala cuando preguntas
-            &quot;cuál?&quot; a partir de una lista fija.
+            <strong>Opción Múltiple</strong> es una sola pregunta cuyas opciones
+            son <i>mutuamente excluyentes</i> y{" "}
+            <i>colectivamente exhaustivas</i>. Exactamente una opción resultará
+            ser la correcta, y las probabilidades pronosticadas entre las
+            opciones suman 100%. Úsala cuando preguntas &quot;cuál?&quot; a
+            partir de una lista fija.
           </li>
           <li>
             Un <strong>Grupo de Preguntas</strong> es un conjunto de
             subpreguntas <i>independientes</i> que comparten una página por
-            conveniencia. Cada subpregunta se resuelve por su cuenta, no
-            tienes que pronosticar en todas ellas, y las probabilidades de la
-            comunidad no están limitadas a sumar 100%. Úsalo cuando varios
-            resultados relacionados puedan ser verdaderos o falsos por
-            separado (por ejemplo, &quot;Ocurrirá X para 2025? Para 2026?
-            Para 2027?&quot;).
+            conveniencia. Cada subpregunta se resuelve por su cuenta, no tienes
+            que pronosticar en todas ellas, y las probabilidades de la comunidad
+            no están limitadas a sumar 100%. Úsalo cuando varios resultados
+            relacionados puedan ser verdaderos o falsos por separado (por
+            ejemplo, &quot;Ocurrirá X para 2025? Para 2026? Para 2027?&quot;).
           </li>
         </ul>
         <p>
-          Regla general: si exactamente una opción debe ocurrir, prefiere
-          Opción Múltiple. Si los resultados pueden coexistir o quieres que
-          los pronosticadores puedan omitir algunos, prefiere un Grupo de
-          Preguntas.
+          Regla general: si exactamente una opción debe ocurrir, prefiere Opción
+          Múltiple. Si los resultados pueden coexistir o quieres que los
+          pronosticadores puedan omitir algunos, prefiere un Grupo de Preguntas.
         </p>
         <h3 className="scroll-mt-nav text-xl font-semibold" id="conditionals">
           Qué son los pares condicionales?
