@@ -1087,13 +1087,14 @@ export default function FAQ() {
         </p>
         <h4 className="text-lg font-semibold">Opción Múltiple</h4>
         <p>
-          Las preguntas de Opción Múltiple presentan un conjunto fijo de
-          opciones mutuamente excluyentes y colectivamente exhaustivas, y se
-          resuelven exactamente en una de ellas. Los pronosticadores asignan una
+          Las preguntas de Opción Múltiple presentan un conjunto de opciones
+          mutuamente excluyentes y colectivamente exhaustivas, y se resuelven
+          exactamente en una de ellas. Se pueden agregar o quitar opciones a
+          medida que la pregunta evoluciona. Los pronosticadores asignan una
           probabilidad a cada opción, y esas probabilidades suman 100%. Por
           ejemplo, la pregunta &quot;
           <Link href="/questions/20683/which-ai-world-before-2050/">
-            Qué mundo de IA antes de 2050?
+            Qué mundo de IA se hará realidad antes de 2050?
           </Link>
           &quot; pide a los pronosticadores que distribuyan la probabilidad
           entre varios escenarios mutuamente excluyentes sobre cómo podría
@@ -1200,9 +1201,9 @@ export default function FAQ() {
         </h4>
         <p>
           Los Grupos de Preguntas y las preguntas de{" "}
-          <Link href="/faq/#question-types">Opción Múltiple</Link> se parecen
-          —ambos presentan varias opciones en una sola página— pero modelan
-          situaciones muy diferentes:
+          <Link href="/faq/#question-types">Opción Múltiple</Link> se parecen,
+          ya que ambos presentan varias opciones en una sola página, pero
+          modelan situaciones muy diferentes:
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
@@ -1210,17 +1211,20 @@ export default function FAQ() {
             son <i>mutuamente excluyentes</i> y{" "}
             <i>colectivamente exhaustivas</i>. Exactamente una opción resultará
             ser la correcta, y las probabilidades pronosticadas entre las
-            opciones suman 100%. Úsala cuando preguntas &quot;cuál?&quot; a
-            partir de una lista fija.
+            opciones suman 100%. Como es una sola pregunta, los pronosticadores
+            reciben una única puntuación por ella. Úsala cuando preguntas
+            &quot;cuál?&quot; a partir de un conjunto de opciones.
           </li>
           <li>
             Un <strong>Grupo de Preguntas</strong> es un conjunto de
             subpreguntas <i>independientes</i> que comparten una página por
             conveniencia. Cada subpregunta se resuelve por su cuenta, no tienes
             que pronosticar en todas ellas, y las probabilidades de la comunidad
-            no están limitadas a sumar 100%. Úsalo cuando varios resultados
-            relacionados puedan ser verdaderos o falsos por separado (por
-            ejemplo, &quot;Ocurrirá X para 2025? Para 2026? Para 2027?&quot;).
+            no están limitadas a sumar 100%. Cada subpregunta se puntúa por
+            separado, por lo que los pronosticadores reciben una puntuación por
+            subpregunta. Úsalo cuando varios resultados relacionados puedan ser
+            verdaderos o falsos por separado (por ejemplo, &quot;Ocurrirá X para
+            2025? Para 2026? Para 2027?&quot;).
           </li>
         </ul>
         <p>
@@ -3125,16 +3129,16 @@ export default function FAQ() {
                       <span className="base">
                         <span className="strut"></span>
                         <span className="mopen">[</span>
-                        <span className="mord">0,001.</span>
-                        <span className="mpunct">0,001,</span>
+                        <span className="mord">0,1%</span>
+                        <span className="mpunct">,</span>
                         <span className="mspace"></span>
-                        <span className="mord">0.999</span>
+                        <span className="mord">99,9%</span>
                         <span className="mclose">]</span>
                       </span>
                     </span>
                   </span>
                 </span>
-                ].
+                .
               </li>
               <li>
                 Para

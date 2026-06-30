@@ -1014,12 +1014,13 @@ export default async function FAQ() {
 
         <h4 className="text-lg font-semibold">Multiple Choice</h4>
         <p>
-          Multiple Choice questions present a fixed set of mutually exclusive,
+          Multiple Choice questions present a set of mutually exclusive,
           collectively exhaustive options and resolve to exactly one of them.
-          Forecasters assign a probability to each option, and those
-          probabilities sum to 100%. For example, the question &quot;
+          Options can be added or removed as the question evolves. Forecasters
+          assign a probability to each option, and those probabilities sum to
+          100%. For example, the question &quot;
           <Link href="/questions/20683/which-ai-world-before-2050/">
-            Which AI world before 2050?
+            Which AI world will come to pass before 2050?
           </Link>
           &quot; asks forecasters to distribute probability across several
           mutually exclusive scenarios for how advanced AI might first arrive,
@@ -1030,7 +1031,7 @@ export default async function FAQ() {
           well-defined list of possibilities and assigning probability across
           all options at once is more informative than asking a separate
           question for each. If you need forecasters to treat the outcomes as
-          independent — or if you want to allow more than one to be true — use a{" "}
+          independent, or if you want to allow more than one to be true, use a{" "}
           <Link href="/faq/#question-groups">Question Group</Link> instead. See{" "}
           <a href="#mc-vs-groups">Multiple Choice vs. Question Groups</a> for
           details.
@@ -1119,7 +1120,7 @@ export default async function FAQ() {
         <p>
           Question Groups and{" "}
           <Link href="/faq/#question-types">Multiple Choice</Link> questions
-          look similar — both present several options on a single page — but
+          look similar, since both present several options on a single page, but
           they model very different situations:
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
@@ -1127,17 +1128,19 @@ export default async function FAQ() {
             <strong>Multiple Choice</strong> is a single question whose options
             are <i>mutually exclusive</i> and <i>collectively exhaustive</i>.
             Exactly one option will turn out to be correct, and the forecast
-            probabilities across options sum to 100%. Use it when you&apos;re
-            asking &quot;which one?&quot; from a fixed list.
+            probabilities across options sum to 100%. Because it is one
+            question, forecasters receive a single score for it. Use it when
+            you&apos;re asking &quot;which one?&quot; from a set of options.
           </li>
           <li>
             A <strong>Question Group</strong> is a bundle of <i>independent</i>{" "}
             subquestions sharing a page for convenience. Each subquestion
             resolves on its own, you don&apos;t have to forecast on all of them,
             and the community probabilities are not constrained to sum to 100%.
-            Use it when several related outcomes can each be true or false on
-            their own terms (e.g. &quot;Will X happen by 2025? By 2026? By
-            2027?&quot;).
+            Each subquestion is scored separately, so forecasters receive one
+            score per subquestion. Use it when several related outcomes can each
+            be true or false on their own terms (e.g. &quot;Will X happen by
+            2025? By 2026? By 2027?&quot;).
           </li>
         </ul>
         <p>
@@ -2971,7 +2974,7 @@ export default async function FAQ() {
                 </a>{" "}
                 of the individual forecaster probabilities, renormalized to sum
                 to 1 and respect the bounds of{" "}
-                <KatexRenderer equation="[0.001, 0.999]" inline />.
+                <KatexRenderer equation="[0.1\%, 99.9\%]" inline />.
               </li>
               <li>
                 For{" "}
