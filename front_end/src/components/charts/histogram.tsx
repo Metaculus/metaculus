@@ -380,7 +380,7 @@ const Histogram: React.FC<HistogramProps> = ({
               <div className="text-lg font-normal tabular-nums">
                 {`${hoveredBin}-${hoveredBin}.9%`}
               </div>
-              <div className="mx-auto max-w-[7.5rem] text-balance tabular-nums text-blue-300 dark:text-blue-300-dark">
+              <div className="mx-auto max-w-[7.5rem] text-balance tabular-nums leading-tight text-blue-300 dark:text-blue-300-dark">
                 {t("histogramBinShare", { share: shareLabel })}
               </div>
             </div>
