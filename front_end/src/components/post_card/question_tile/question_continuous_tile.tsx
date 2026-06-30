@@ -224,6 +224,7 @@ const QuestionContinuousTile: FC<Props> = ({
                 question={question}
                 hideCP={hideCP}
                 forceTickCount={3}
+                variant={forFeedPage ? "feed" : "question"}
                 centerOOBResolution
               />
               <ForecastAvailabilityChartOverflow
@@ -257,6 +258,7 @@ const QuestionContinuousTile: FC<Props> = ({
                 question={question}
                 hideCP={hideCP}
                 forceTickCount={3}
+                variant={forFeedPage ? "feed" : "question"}
                 centerOOBResolution
               />
               <ForecastAvailabilityChartOverflow
@@ -294,6 +296,7 @@ const QuestionContinuousTile: FC<Props> = ({
             question={question}
             hideCP={hideCP}
             forceTickCount={3}
+            variant={forFeedPage ? "feed" : "question"}
             centerOOBResolution
           />
           <ForecastAvailabilityChartOverflow
