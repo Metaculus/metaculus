@@ -1018,11 +1018,12 @@ export default async function FAQ() {
           collectively exhaustive options and resolve to exactly one of them.
           Forecasters assign a probability to each option, and those
           probabilities sum to 100%. For example, the question &quot;
-          <Link href="/questions/11437/winner-of-2024-us-presidential-election/">
-            Who will win the 2024 US Presidential Election?
+          <Link href="/questions/20683/which-ai-world-before-2050/">
+            Which AI world before 2050?
           </Link>
-          &quot; resolved as <strong>Donald Trump</strong>, because Donald Trump
-          won the election.
+          &quot; asks forecasters to distribute probability across several
+          mutually exclusive scenarios for how advanced AI might first arrive,
+          and will resolve to whichever scenario occurs first.
         </p>
         <p>
           Multiple Choice is the right format when the answer is one of a small,

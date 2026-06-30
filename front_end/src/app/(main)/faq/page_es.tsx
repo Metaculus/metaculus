@@ -102,6 +102,12 @@ export default function FAQ() {
               <a href="#question-groups">Qué cuestionan los grupos?</a>
             </li>
             <li>
+              <a href="#mc-vs-groups">
+                Cuál es la diferencia entre un Grupo de Preguntas y una pregunta
+                de Opción Múltiple?
+              </a>
+            </li>
+            <li>
               <a href="#conditionals">Qué son los pares condicionales?</a>
             </li>
             <li>
@@ -1079,6 +1085,35 @@ export default function FAQ() {
           SpaceX Super Heavy no fue lanzado antes del 29 de marzo de 2022, que
           era el límite superior.
         </p>
+        <h4 className="text-lg font-semibold">Opción Múltiple</h4>
+        <p>
+          Las preguntas de Opción Múltiple presentan un conjunto fijo de
+          opciones mutuamente excluyentes y colectivamente exhaustivas, y se
+          resuelven exactamente en una de ellas. Los pronosticadores asignan
+          una probabilidad a cada opción, y esas probabilidades suman 100%.
+          Por ejemplo, la pregunta &quot;
+          <Link href="/questions/20683/which-ai-world-before-2050/">
+            Qué mundo de IA antes de 2050?
+          </Link>
+          &quot; pide a los pronosticadores que distribuyan la probabilidad
+          entre varios escenarios mutuamente excluyentes sobre cómo podría
+          llegar primero la IA avanzada, y se resolverá según el escenario que
+          ocurra primero.
+        </p>
+        <p>
+          Opción Múltiple es el formato adecuado cuando la respuesta es una de
+          una lista pequeña y bien definida de posibilidades, y asignar
+          probabilidad a todas las opciones a la vez es más informativo que
+          hacer una pregunta por separado para cada una. Si necesitas que los
+          pronosticadores traten los resultados como independientes, o si
+          quieres permitir que más de uno sea verdadero, utiliza un{" "}
+          <Link href="/faq/#question-groups">Grupo de Preguntas</Link> en su
+          lugar. Consulta{" "}
+          <a href="#mc-vs-groups">
+            Opción Múltiple vs. Grupos de Preguntas
+          </a>{" "}
+          para más detalles.
+        </p>
         <h3
           className="scroll-mt-nav text-xl font-semibold"
           id="question-groups"
@@ -1160,6 +1195,42 @@ export default function FAQ() {
             de preguntas
           </Link>
           .
+        </p>
+        <h4 className="scroll-mt-nav text-lg font-semibold" id="mc-vs-groups">
+          Cuál es la diferencia entre un Grupo de Preguntas y una pregunta de
+          Opción Múltiple?
+        </h4>
+        <p>
+          Los Grupos de Preguntas y las preguntas de{" "}
+          <Link href="/faq/#question-types">Opción Múltiple</Link> se parecen
+          —ambos presentan varias opciones en una sola página— pero modelan
+          situaciones muy diferentes:
+        </p>
+        <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
+          <li>
+            <strong>Opción Múltiple</strong> es una sola pregunta cuyas
+            opciones son <i>mutuamente excluyentes</i> y{" "}
+            <i>colectivamente exhaustivas</i>. Exactamente una opción
+            resultará ser la correcta, y las probabilidades pronosticadas
+            entre las opciones suman 100%. Úsala cuando preguntas
+            &quot;cuál?&quot; a partir de una lista fija.
+          </li>
+          <li>
+            Un <strong>Grupo de Preguntas</strong> es un conjunto de
+            subpreguntas <i>independientes</i> que comparten una página por
+            conveniencia. Cada subpregunta se resuelve por su cuenta, no
+            tienes que pronosticar en todas ellas, y las probabilidades de la
+            comunidad no están limitadas a sumar 100%. Úsalo cuando varios
+            resultados relacionados puedan ser verdaderos o falsos por
+            separado (por ejemplo, &quot;Ocurrirá X para 2025? Para 2026?
+            Para 2027?&quot;).
+          </li>
+        </ul>
+        <p>
+          Regla general: si exactamente una opción debe ocurrir, prefiere
+          Opción Múltiple. Si los resultados pueden coexistir o quieres que
+          los pronosticadores puedan omitir algunos, prefiere un Grupo de
+          Preguntas.
         </p>
         <h3 className="scroll-mt-nav text-xl font-semibold" id="conditionals">
           Qué son los pares condicionales?
