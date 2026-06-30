@@ -125,10 +125,10 @@ export async function KeyInsightsSection({
             </>
           ) : (
             <>
-              Software developers, lawyers and law clerks, and laborers and
-              material movers are all expected to see the largest decreases in
-              employment rates, while registered nurses, K-12 teachers, and
-              restaurant servers are projected to grow.
+              Software developers, lawyers and law clerks, and sales
+              representatives are all expected to see the largest decreases in
+              employment rates, while registered nurses, restaurant servers, and
+              physicians are projected to grow.
             </>
           )}
         </KeyInsightItem>
