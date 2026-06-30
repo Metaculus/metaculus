@@ -1118,9 +1118,9 @@ export default async function FAQ() {
         </h4>
         <p>
           Question Groups and{" "}
-          <Link href="/faq/#question-types">Multiple Choice</Link> questions look
-          similar — both present several options on a single page — but they
-          model very different situations:
+          <Link href="/faq/#question-types">Multiple Choice</Link> questions
+          look similar — both present several options on a single page — but
+          they model very different situations:
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
