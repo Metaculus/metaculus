@@ -45,6 +45,7 @@ type Props = {
   titleLinksToArticle?: boolean;
   disableHover?: boolean;
   large?: boolean;
+  isActive?: boolean;
 };
 
 function getImpactMetadata(keyFactor: KeyFactor): ImpactMetadata | null {
@@ -66,6 +67,7 @@ export const KeyFactorItem: FC<Props> = ({
   titleLinksToArticle: titleLinksToArticleProp,
   disableHover,
   large,
+  isActive,
 }) => {
   const { user } = useAuth();
   const commentsFeed = useCommentsFeedSafe();
@@ -169,6 +171,7 @@ export const KeyFactorItem: FC<Props> = ({
         impactDirection={impactDirection}
         impactStrength={impactStrength}
         disableHover={disableHover}
+        isActive={isActive}
       >
         {liveKeyFactor.driver && (
           <KeyFactorDriver

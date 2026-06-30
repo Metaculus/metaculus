@@ -13,6 +13,7 @@ import { useLocale, useTranslations } from "next-intl";
 import {
   FC,
   Fragment,
+  type TouchEvent as ReactTouchEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -87,6 +88,43 @@ const MobileKeyFactorOverlay: FC<Props> = ({
   // The carousel only holds the key factor cards; its height tracks the active
   // card so the shared comment panel below re-anchors as you swipe.
   const [carouselHeight, setCarouselHeight] = useState<number>();
+  // Direction of the last index change, so the comment slides in from the side
+  // it is travelling towards (+1 = next/from-right, -1 = prev/from-left).
+  const [slideDir, setSlideDir] = useState(0);
+  const prevIndexRef = useRef(startIndexRef.current);
+
+  // Top/bottom fade overlays for the inner scroll area.
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showTopFade, setShowTopFade] = useState(false);
+  const [showBottomFade, setShowBottomFade] = useState(false);
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setShowTopFade(el.scrollTop > 1);
+    setShowBottomFade(el.scrollTop + el.clientHeight < el.scrollHeight - 1);
+  }, []);
+
+  // Let a horizontal swipe anywhere in the scroll column (incl. the comment)
+  // page between key factors, not just dragging the cards.
+  const swipeStartRef = useRef<{ x: number; y: number } | null>(null);
+  const handleSwipeStart = (e: ReactTouchEvent) => {
+    const touch = e.touches[0];
+    swipeStartRef.current = touch
+      ? { x: touch.clientX, y: touch.clientY }
+      : null;
+  };
+  const handleSwipeEnd = (e: ReactTouchEvent) => {
+    const start = swipeStartRef.current;
+    swipeStartRef.current = null;
+    const touch = e.changedTouches[0];
+    if (!start || !touch || !emblaApi) return;
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+      if (dx < 0) emblaApi.scrollNext();
+      else emblaApi.scrollPrev();
+    }
+  };
 
   // The parent passes a fresh onSelectKeyFactor each render; keep it in a ref so
   // syncState stays stable and the embla subscription isn't torn down/looped.
@@ -99,6 +137,8 @@ const MobileKeyFactorOverlay: FC<Props> = ({
   const syncState = useCallback(() => {
     if (!emblaApi) return;
     const idx = emblaApi.selectedScrollSnap();
+    setSlideDir(Math.sign(idx - prevIndexRef.current));
+    prevIndexRef.current = idx;
     setSelectedIndex(idx);
     setCanPrev(emblaApi.canScrollPrev());
     setCanNext(emblaApi.canScrollNext());
@@ -152,6 +192,11 @@ const MobileKeyFactorOverlay: FC<Props> = ({
     if (kf) void ensureCommentLoaded(kf.comment_id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Recompute the top/bottom fades whenever the scrollable content changes.
+  useEffect(() => {
+    handleScroll();
+  }, [handleScroll, carouselHeight, selectedIndex, comments]);
 
   const scrollToSlide = useCallback(
     (idx: number) => emblaApi?.scrollTo(idx),
@@ -212,6 +257,13 @@ const MobileKeyFactorOverlay: FC<Props> = ({
   // The shared comment panel: rendered once for the active key factor. It is
   // keyed by comment_id so swiping between siblings of the SAME comment reuses
   // it in place (static), while a different comment remounts and cross-fades.
+  const enterAnim =
+    slideDir > 0
+      ? "animate-comment-in-right"
+      : slideDir < 0
+        ? "animate-comment-in-left"
+        : "animate-fade-in";
+
   const renderCommentPanel = (kf: KeyFactor | undefined) => {
     if (!kf) return null;
     const comment = findById(comments, kf.comment_id);
@@ -224,7 +276,12 @@ const MobileKeyFactorOverlay: FC<Props> = ({
         return (
           <div
             key={`news-${kf.id}`}
-            className="flex flex-1 animate-fade-in items-end justify-center px-4 pb-2"
+            onTouchStart={handleSwipeStart}
+            onTouchEnd={handleSwipeEnd}
+            className={cn(
+              "flex flex-1 touch-pan-y items-end justify-center px-4 pb-2",
+              enterAnim
+            )}
           >
             <a
               href={kf.news.url}
@@ -244,8 +301,22 @@ const MobileKeyFactorOverlay: FC<Props> = ({
     return (
       <div
         key={kf.comment_id}
-        className="mx-4 flex flex-1 animate-fade-in flex-col rounded-xl bg-blue-200 px-5 py-4 dark:bg-blue-200-dark"
+        onTouchStart={handleSwipeStart}
+        onTouchEnd={handleSwipeEnd}
+        className={cn(
+          "relative mx-4 flex flex-1 touch-pan-y flex-col rounded-xl bg-blue-200 px-5 py-4 dark:bg-blue-200-dark",
+          enterAnim
+        )}
       >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-xl border border-blue-500 dark:border-blue-500-dark"
+          style={{
+            WebkitMaskImage:
+              "linear-gradient(to bottom, black, transparent 50px)",
+            maskImage: "linear-gradient(to bottom, black, transparent 50px)",
+          }}
+        />
         <div className="mb-2 flex items-start justify-between gap-2">
           <div className="flex min-w-0 flex-col">
             <h4 className="my-0 break-words text-base font-bold leading-6 text-gray-800 dark:text-gray-800-dark">
@@ -348,55 +419,79 @@ const MobileKeyFactorOverlay: FC<Props> = ({
             )}
           </div>
 
-          <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-contain">
-            <div className="flex min-h-full flex-col gap-2">
-              {questionLink ? (
-                <div className="shrink-0 px-4">
-                  <QuestionLinkKeyFactorItem
-                    link={questionLink}
-                    post={post}
-                    linkToComment={false}
-                  />
-                </div>
-              ) : isCarousel ? (
-                <>
-                  <div
-                    ref={emblaRef}
-                    className="shrink-0 overflow-hidden transition-[height] duration-200"
-                    style={{ height: carouselHeight }}
-                  >
-                    <div className="flex items-start px-2.5">
-                      {allPostKeyFactors.map((kf) => (
-                        <div
-                          key={kf.id}
-                          className="min-w-0 flex-[0_0_86%] px-1.5"
-                        >
-                          <KeyFactorItem
-                            keyFactor={kf}
-                            linkToComment={false}
-                            projectPermission={post.user_permission}
-                            large
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  {renderCommentPanel(activeKf)}
-                </>
-              ) : activeKf ? (
-                <>
+          <div className="relative mt-3 flex min-h-0 flex-1 flex-col">
+            <div
+              ref={scrollRef}
+              onScroll={handleScroll}
+              className="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-contain"
+            >
+              <div className="flex min-h-full flex-col gap-2">
+                {questionLink ? (
                   <div className="shrink-0 px-4">
-                    <KeyFactorItem
-                      keyFactor={activeKf}
+                    <QuestionLinkKeyFactorItem
+                      link={questionLink}
+                      post={post}
                       linkToComment={false}
-                      projectPermission={post.user_permission}
-                      large
                     />
                   </div>
-                  {renderCommentPanel(activeKf)}
-                </>
-              ) : null}
+                ) : isCarousel ? (
+                  <>
+                    <div
+                      ref={emblaRef}
+                      className="shrink-0 overflow-hidden transition-[height] duration-200"
+                      style={{ height: carouselHeight }}
+                    >
+                      <div className="flex items-start">
+                        {allPostKeyFactors.map((kf, i) => (
+                          <div
+                            key={kf.id}
+                            className="min-w-0 flex-[0_0_86%] px-1.5 first:pl-4 last:pr-4"
+                          >
+                            <KeyFactorItem
+                              keyFactor={kf}
+                              linkToComment={false}
+                              projectPermission={post.user_permission}
+                              large
+                              disableHover
+                              isActive={i === selectedIndex}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    {renderCommentPanel(activeKf)}
+                  </>
+                ) : activeKf ? (
+                  <>
+                    <div className="shrink-0 px-4">
+                      <KeyFactorItem
+                        keyFactor={activeKf}
+                        linkToComment={false}
+                        projectPermission={post.user_permission}
+                        large
+                        disableHover
+                        isActive
+                      />
+                    </div>
+                    {renderCommentPanel(activeKf)}
+                  </>
+                ) : null}
+              </div>
             </div>
+            <div
+              aria-hidden
+              className={cn(
+                "pointer-events-none absolute inset-x-0 top-0 h-2.5 bg-gradient-to-b from-gray-0 to-transparent transition-opacity dark:from-gray-0-dark",
+                showTopFade ? "opacity-100" : "opacity-0"
+              )}
+            />
+            <div
+              aria-hidden
+              className={cn(
+                "pointer-events-none absolute inset-x-0 bottom-0 h-2.5 bg-gradient-to-t from-gray-0 to-transparent transition-opacity dark:from-gray-0-dark",
+                showBottomFade ? "opacity-100" : "opacity-0"
+              )}
+            />
           </div>
 
           {isCarousel && (
