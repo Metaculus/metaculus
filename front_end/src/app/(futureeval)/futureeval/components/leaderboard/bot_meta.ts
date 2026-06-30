@@ -6,6 +6,7 @@ import deepseekLight from "@/app/(main)/aib/assets/ai-models/deepseek.svg?url";
 import exaLight from "@/app/(main)/aib/assets/ai-models/exa.png";
 import googleLight from "@/app/(main)/aib/assets/ai-models/google.svg?url";
 import kimiLight from "@/app/(main)/aib/assets/ai-models/kimi-icon.svg?url";
+import minimaxLight from "@/app/(main)/aib/assets/ai-models/minimax.svg?url";
 import llamaDark from "@/app/(main)/aib/assets/ai-models/ollama_dark.svg?url";
 import llamaLight from "@/app/(main)/aib/assets/ai-models/ollama_light.svg?url";
 import openaiLight from "@/app/(main)/aib/assets/ai-models/openai.svg?url";
@@ -31,7 +32,7 @@ function detectFamily(username: string, model?: string) {
     m.includes("sonnet")
   )
     return "anthropic";
-  if (u.includes("gemini") || m.startsWith("gemini")) return "google";
+  if (u.includes("gemini") || u.includes("gemma")) return "google";
   if (
     u.includes("gpt") ||
     u.includes("metac-o") ||
@@ -66,6 +67,7 @@ function detectFamily(username: string, model?: string) {
   )
     return "llama";
   if (u.startsWith("metac-exa") || m.startsWith("exa")) return "exa";
+  if (u.includes("minimax") || m.startsWith("minimax")) return "minimax";
 
   return "other";
 }
@@ -90,6 +92,7 @@ export const FAMILY_METADATA: Readonly<
   zai: { label: "Z.AI", iconLight: zaiLight },
   llama: { label: "Meta", iconLight: llamaLight, iconDark: llamaDark },
   exa: { label: "Exa", iconLight: exaLight },
+  minimax: { label: "MiniMax", iconLight: minimaxLight },
   other: { label: "Other" },
 };
 
