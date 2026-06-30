@@ -20,7 +20,6 @@ import {
 } from "victory";
 import type { CallbackArgs } from "victory-core";
 
-import RichText from "@/components/rich_text";
 import { CHART_DASH } from "@/constants/chart_dash";
 import { CHART_STROKE_WIDTH } from "@/constants/chart_stroke";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
@@ -45,7 +44,6 @@ type HistogramProps = {
   median: number | null | undefined;
   mean: number | null | undefined;
   questionStatus?: QuestionStatus;
-  totalForecasters?: number;
   height?: number;
   onChartReady?: () => void;
 };
@@ -55,7 +53,6 @@ const Histogram: React.FC<HistogramProps> = ({
   median,
   mean,
   questionStatus,
-  totalForecasters,
   height,
   onChartReady,
 }) => {
@@ -178,13 +175,16 @@ const Histogram: React.FC<HistogramProps> = ({
     [binValues]
   );
   const hoveredValue = hoveredBin === null ? 0 : binValues[hoveredBin] ?? 0;
-  // y values are recency-weighted sums, so a bin's forecaster count is
-  // estimated from its share of the total weight
-  const hoveredCount = !hoveredValue
-    ? 0
-    : totalForecasters && totalWeight
-      ? Math.max(1, Math.round((hoveredValue / totalWeight) * totalForecasters))
-      : Math.max(1, Math.round(hoveredValue));
+  // Bars are recency-weighted, so a bin can't be expressed as a raw forecaster
+  // count; show its share of the total weight instead.
+  const sharePct = totalWeight > 0 ? (hoveredValue / totalWeight) * 100 : 0;
+  // never read "0%" for a non-empty bin (those still render a marker)
+  const shareLabel =
+    sharePct === 0
+      ? "0%"
+      : sharePct < 0.1
+        ? "<0.1%"
+        : `${sharePct.toFixed(1)}%`;
   const showTooltip = isActive && hoveredBin !== null;
 
   const isBinHovered = useCallback(
@@ -380,19 +380,8 @@ const Histogram: React.FC<HistogramProps> = ({
               <div className="text-lg font-normal tabular-nums">
                 {`${hoveredBin}-${hoveredBin}.9%`}
               </div>
-              <div className="tabular-nums text-blue-300 dark:text-blue-300-dark">
-                <RichText>
-                  {(tags) => (
-                    <>
-                      {t.rich("forecastersWithCount", {
-                        count: hoveredCount,
-                        count_formatted:
-                          hoveredCount === 0 ? "0" : `~${hoveredCount}`,
-                        ...tags,
-                      })}
-                    </>
-                  )}
-                </RichText>
+              <div className="mx-auto max-w-[7.5rem] text-balance tabular-nums leading-tight text-blue-300 dark:text-blue-300-dark">
+                {t("histogramBinShare", { share: shareLabel })}
               </div>
             </div>
           </div>
