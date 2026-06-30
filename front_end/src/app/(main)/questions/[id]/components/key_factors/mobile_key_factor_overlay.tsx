@@ -7,7 +7,12 @@ import {
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Dialog, DialogPanel, Transition } from "@headlessui/react";
+import {
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  Transition,
+} from "@headlessui/react";
 import useEmblaCarousel from "embla-carousel-react";
 import { useLocale, useTranslations } from "next-intl";
 import {
@@ -254,13 +259,23 @@ const MobileKeyFactorOverlay: FC<Props> = ({
 
   const activeKf = allPostKeyFactors[selectedIndex] ?? allPostKeyFactors[0];
 
-  // The shared comment panel: rendered once for the active key factor. It is
-  // keyed by comment_id so swiping between siblings of the SAME comment reuses
-  // it in place (static), while a different comment remounts and cross-fades.
+  // Freeze the comment's entrance direction to the moment its comment_id
+  // actually changes. The comment panel is keyed by comment_id, so swiping
+  // between siblings of the same comment keeps it mounted; without this freeze,
+  // a reversed swipe would flip the animation class on that still-mounted panel
+  // and replay the animation even though the comment did not change.
+  const [displayedCommentId, setDisplayedCommentId] = useState(
+    () => allPostKeyFactors[startIndexRef.current]?.comment_id
+  );
+  const [commentEnterDir, setCommentEnterDir] = useState(0);
+  if (activeKf && activeKf.comment_id !== displayedCommentId) {
+    setDisplayedCommentId(activeKf.comment_id);
+    setCommentEnterDir(slideDir);
+  }
   const enterAnim =
-    slideDir > 0
+    commentEnterDir > 0
       ? "animate-comment-in-right"
-      : slideDir < 0
+      : commentEnterDir < 0
         ? "animate-comment-in-left"
         : "animate-fade-in";
 
@@ -407,9 +422,12 @@ const MobileKeyFactorOverlay: FC<Props> = ({
           </div>
 
           <div className="flex shrink-0 items-start gap-3 px-4">
-            <h2 className="mt-0 min-w-0 flex-1 text-base font-semibold leading-5 tracking-tight text-gray-800 dark:text-gray-800-dark">
+            <DialogTitle
+              as="h2"
+              className="mt-0 min-w-0 flex-1 text-base font-semibold leading-5 tracking-tight text-gray-800 dark:text-gray-800-dark"
+            >
               {post.title}
-            </h2>
+            </DialogTitle>
             {binaryQuestion && (
               <BinaryCPBar
                 question={binaryQuestion}
