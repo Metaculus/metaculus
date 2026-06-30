@@ -135,7 +135,6 @@ function renderChart(
             median={median}
             mean={mean}
             questionStatus={question.status as unknown as QuestionStatus}
-            totalForecasters={agg.latest?.forecaster_count}
             onChartReady={onChartReady}
           />
         </div>

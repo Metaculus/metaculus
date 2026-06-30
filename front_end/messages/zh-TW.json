@@ -1517,6 +1517,7 @@
   "info": "問題資訊",
   "hiddenUntil": "隱藏至",
   "forecastersWithCount": "<strong>{count_formatted}</strong> 位{count, plural, =1 {預測者} other {預測者}}",
+  "histogramBinShare": "占預測權重的 {share}",
   "unreadWithTotalCountXs": "<purple>(<strong>{unread_count_formatted}</strong>)</purple> <strong>{total_count_formatted}</strong>",
   "unreadWithTotalCount": "<purple>（<strong>{unread_count_formatted}</strong> 未讀）</purple> <strong>{total_count_formatted}</strong> 總計",
   "totalCommentsCount": "<strong>{total_count_formatted}</strong> {total_count, plural, =0 {則評論} =1 {則評論} other {則評論}}",
