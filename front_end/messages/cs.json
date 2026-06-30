@@ -990,7 +990,7 @@
   "settingsNewEmail": "Nový e-mail",
   "settingsEmailChangeDescription": "Zadejte novou e-mailovou adresu a heslo a my vám pošleme odkaz na změnu e-mailu.",
   "settingsChangeEmailAddress": "Změnit e-mailovou adresu",
-  "settingsChangeEmailAddressSuccess": "Na váš nový e-mail byla zaslána potvrzovací zpráva. Prosím, následujte odkaz uvnitř pro aktivaci.",
+  "settingsChangeEmailAddressSuccess": "Na váš starý e-mail byla zaslána potvrzovací zpráva. Prosím, následujte odkaz uvnitř pro aktivaci.",
   "emailChangeErrorMessage": "Nepodařilo se změnit e-mail",
   "emailChangeSuccessMessage": "Vaše e-mailová adresa byla úspěšně změněna",
   "socialAccountNoPasswordBanner": "Váš účet zatím nemá nastavené heslo. Nastavte si ho níže, abyste mohli změnit svůj e-mail nebo se přihlásit pomocí e-mailu a hesla.",
