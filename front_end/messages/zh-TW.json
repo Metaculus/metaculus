@@ -794,7 +794,7 @@
   "settingsNewEmail": "新電子郵件",
   "settingsEmailChangeDescription": "輸入新電子郵件地址及密碼，我們將發送郵件讓您更改電子郵件。",
   "settingsChangeEmailAddress": "更改電子郵件地址",
-  "settingsChangeEmailAddressSuccess": "確認信已發送到您的新地址。請循信內的鏈接以激活。",
+  "settingsChangeEmailAddressSuccess": "確認信已發送到您的舊地址。請循信內的鏈接以激活。",
   "emailChangeErrorMessage": "更改電子郵件失敗",
   "emailChangeSuccessMessage": "您的電子郵件地址已成功更改",
   "socialAccountNoPasswordBanner": "您的帳號尚未設定密碼。請在下方設定密碼，以便更改電子郵件或使用電子郵件和密碼登入。",

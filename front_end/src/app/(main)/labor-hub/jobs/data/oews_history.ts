@@ -1,5 +1,5 @@
 /**
- * BLS OEWS historical employment by occupation (2015–2024), transcribed from the
+ * BLS OEWS historical employment by occupation (2015–2025), transcribed from the
  * `labor-hub-tools` occupation-forecasting dataset (`oews_cache.json`). Keyed by
  * our job slug. `employment` is the head-count per year.
  *
@@ -27,6 +27,7 @@ export const OEWS_HISTORY: Record<string, OewsSeries> = {
       2022: 3376680,
       2023: 3507810,
       2024: 3584420,
+      2025: 3503020,
     },
   },
   "financial-specialists": {
@@ -42,6 +43,7 @@ export const OEWS_HISTORY: Record<string, OewsSeries> = {
       2022: 3016910,
       2023: 3039480,
       2024: 3033120,
+      2025: 3051310,
     },
   },
   "software-developers": {
@@ -53,6 +55,7 @@ export const OEWS_HISTORY: Record<string, OewsSeries> = {
       2022: 2049920,
       2023: 2176710,
       2024: 2154370,
+      2025: 2150380,
     },
   },
   engineers: {
@@ -68,6 +71,7 @@ export const OEWS_HISTORY: Record<string, OewsSeries> = {
       2022: 1659230,
       2023: 1703700,
       2024: 1746750,
+      2025: 1800740,
     },
   },
   "lawyers-and-law-clerks": {
@@ -83,6 +87,7 @@ export const OEWS_HISTORY: Record<string, OewsSeries> = {
       2022: 722710,
       2023: 746020,
       2024: 760970,
+      2025: 767800,
     },
   },
   "k12-teachers": {
@@ -98,6 +103,7 @@ export const OEWS_HISTORY: Record<string, OewsSeries> = {
       2022: 4177640,
       2023: 4261430,
       2024: 4321590,
+      2025: 4373040,
     },
   },
   designers: {
@@ -113,6 +119,7 @@ export const OEWS_HISTORY: Record<string, OewsSeries> = {
       2022: 563810,
       2023: 570330,
       2024: 588160,
+      2025: 550190,
     },
   },
   "registered-nurses": {
@@ -128,6 +135,7 @@ export const OEWS_HISTORY: Record<string, OewsSeries> = {
       2022: 3072700,
       2023: 3175390,
       2024: 3282010,
+      2025: 3379720,
     },
   },
   physicians: {
@@ -137,6 +145,7 @@ export const OEWS_HISTORY: Record<string, OewsSeries> = {
       2022: 702910,
       2023: 716950,
       2024: 727050,
+      2025: 754760,
     },
   },
   "law-enforcement": {
@@ -152,6 +161,7 @@ export const OEWS_HISTORY: Record<string, OewsSeries> = {
       2022: 1161080,
       2023: 1136430,
       2024: 1177270,
+      2025: 1201970,
     },
   },
   "restaurant-servers": {
@@ -167,6 +177,7 @@ export const OEWS_HISTORY: Record<string, OewsSeries> = {
       2022: 6309200,
       2023: 6893410,
       2024: 7101010,
+      2025: 7175250,
     },
   },
   "janitors-and-cleaners": {
@@ -182,6 +193,7 @@ export const OEWS_HISTORY: Record<string, OewsSeries> = {
       2022: 2935360,
       2023: 3022470,
       2024: 3071180,
+      2025: 3087640,
     },
   },
   "services-sales-representatives": {
@@ -197,6 +209,7 @@ export const OEWS_HISTORY: Record<string, OewsSeries> = {
       2022: 2124250,
       2023: 2245510,
       2024: 2287740,
+      2025: 2371490,
     },
   },
   "construction-workers": {
@@ -212,6 +225,7 @@ export const OEWS_HISTORY: Record<string, OewsSeries> = {
       2022: 4509820,
       2023: 4588620,
       2024: 4691890,
+      2025: 4739450,
     },
   },
   "laborers-and-movers": {
@@ -227,15 +241,15 @@ export const OEWS_HISTORY: Record<string, OewsSeries> = {
       2022: 6840530,
       2023: 6935980,
       2024: 6784150,
+      2025: 6766670,
     },
   },
 };
 
 /**
- * Historical employment expressed as % change vs the latest actual year (2024),
- * which we treat as the 2025 baseline anchor (no 2025 actual exists yet). The
- * latest year therefore maps to 0, and the chart's explicit 2025=0 point
- * continues flat from it. Years before a SOC reclassification break are dropped.
+ * Historical employment expressed as % change vs the latest actual year (2025).
+ * The latest year therefore maps to 0, and the forecast line continues from that
+ * real 2025 point. Years before a SOC reclassification break are dropped.
  */
 export function getHistoricalPercentByYear(
   slug: string
