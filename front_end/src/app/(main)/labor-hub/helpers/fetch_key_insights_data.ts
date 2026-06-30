@@ -5,7 +5,8 @@ import { PostWithForecasts } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 
 import { getSubQuestionValue } from "./fetch_jobs_data";
-import { LABOR_HUB_POST_IDS, fetchLaborHubPostsByIds } from "./labor_hub_posts";
+import { LABOR_HUB_POST_IDS } from "../data";
+import { fetchLaborHubPostsByIds } from "./labor_hub_posts";
 
 const HOURS_WORKED_POST_ID = LABOR_HUB_POST_IDS.wages.averageWeeklyHours;
 const YOUTH_UNEMPLOYMENT_POST_ID =

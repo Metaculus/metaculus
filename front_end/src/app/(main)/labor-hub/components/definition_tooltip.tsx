@@ -28,10 +28,8 @@ export function DefinitionTooltip({
       tooltipContent={tooltipContent}
       placement={placement}
       showDelayMs={showDelayMs}
-      tooltipClassName={cn(
-        "border-blue-400 bg-gray-0 text-gray-800 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-gray-800-dark",
-        tooltipClassName
-      )}
+      variant="light"
+      tooltipClassName={tooltipClassName}
     >
       <span
         className={cn(
