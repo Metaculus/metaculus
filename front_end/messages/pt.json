@@ -742,7 +742,7 @@
   "settingsNewEmail": "Novo E-mail",
   "settingsEmailChangeDescription": "Insira um novo endereço de e-mail e uma senha, e enviaremos um link para alterar seu e-mail.",
   "settingsChangeEmailAddress": "Alterar endereço de e-mail",
-  "settingsChangeEmailAddressSuccess": "Um e-mail de confirmação foi enviado para seu novo endereço. Por favor, siga o link dentro para ativá-lo.",
+  "settingsChangeEmailAddressSuccess": "Um e-mail de confirmação foi enviado para seu endereço anterior. Por favor, siga o link dentro para ativá-lo.",
   "emailChangeErrorMessage": "Falha ao alterar o e-mail",
   "emailChangeSuccessMessage": "Seu endereço de e-mail foi alterado com sucesso",
   "socialAccountNoPasswordBanner": "Sua conta ainda não tem uma senha. Defina uma abaixo para alterar seu e-mail ou fazer login com e-mail e senha.",
