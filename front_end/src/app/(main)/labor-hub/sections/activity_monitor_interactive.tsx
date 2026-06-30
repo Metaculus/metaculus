@@ -89,7 +89,7 @@ function ActivityMonitorInteractiveInner({ chart, activities }: Props) {
   });
   const modalScrollRef = useRef<HTMLDivElement>(null);
   const isPrintMode = usePrintOverride();
-  const previewActivities = activities.slice(0, isPrintMode ? 10 : 4);
+  const previewActivities = activities.slice(0, isPrintMode ? 10 : 6);
 
   const openModal = (activityId?: string) => {
     setModalScrollState({
@@ -159,18 +159,22 @@ function ActivityMonitorInteractiveInner({ chart, activities }: Props) {
         <div className="md:order-2 md:h-full print:order-2 print:h-full">
           {chart}
         </div>
-        <div className="flex flex-col gap-2.5 md:order-1 md:h-full print:order-1 print:h-full">
-          <ActivityCardsList
-            activities={previewActivities}
-            //onActivityClick={(activity) => openModal(activity.id)}
-          />
-          <button
-            type="button"
-            onClick={() => openModal()}
-            className="mt-auto w-full rounded-md border border-blue-400 bg-blue-100 py-3 text-center text-lg font-medium leading-7 text-blue-800 hover:bg-blue-200 dark:border-blue-400-dark dark:bg-blue-100-dark dark:text-blue-800-dark dark:hover:bg-blue-200-dark print:hidden"
-          >
-            See all activity
-          </button>
+        <div className="relative flex flex-col pb-16 md:order-1 md:h-full md:min-h-0 md:pb-0 print:order-1 print:h-full print:pb-0">
+          <div className="flex flex-col gap-2.5 md:absolute md:-inset-1 md:overflow-hidden md:p-1 md:[-webkit-mask-image:linear-gradient(to_top,transparent_0,transparent_3.5rem,black_8rem,black_100%)] md:[mask-image:linear-gradient(to_top,transparent_0,transparent_3.5rem,black_8rem,black_100%)] print:static print:overflow-visible print:p-0 print:[-webkit-mask-image:none] print:[mask-image:none]">
+            <ActivityCardsList
+              activities={previewActivities}
+              //onActivityClick={(activity) => openModal(activity.id)}
+            />
+          </div>
+          <div className="absolute -inset-x-1 -bottom-1 z-20 p-1 print:hidden">
+            <button
+              type="button"
+              onClick={() => openModal()}
+              className="block w-full rounded-md border border-blue-400 bg-blue-100 py-3 text-center text-lg font-medium leading-7 text-blue-800 hover:bg-blue-200 dark:border-blue-400-dark dark:bg-blue-100-dark dark:text-blue-800-dark dark:hover:bg-blue-200-dark"
+            >
+              See all activity
+            </button>
+          </div>
         </div>
       </div>
       <BaseModal

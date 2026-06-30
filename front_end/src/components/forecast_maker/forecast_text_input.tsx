@@ -1,11 +1,27 @@
 "use client";
 
 import { Input } from "@headlessui/react";
+import { clamp } from "lodash";
 import { ChangeEvent, FC } from "react";
 
 import cn from "@/utils/core/cn";
 
-const INPUT_REGEX = /^(\d{1,2}\.?\d?)?%?$/;
+export const FORECAST_INPUT_REGEX = /^(\d{1,2}\.?\d?)?%?$/;
+
+export function parseForecastInput(raw: string): number | null {
+  // Tolerate a comma decimal separator (localized keypads) at the parse layer.
+  const parsed = parseFloat(raw.replace(",", "."));
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+export function clampForecast(value: number, min: number, max: number): number {
+  return clamp(value, min, max);
+}
+
+export function roundForecast(value: number, precision = 1): number {
+  const multiplier = 10 ** precision;
+  return Math.round(value * multiplier) / multiplier;
+}
 
 type Props = {
   value: string;
@@ -44,7 +60,7 @@ const ForecastTextInput: FC<Props> = ({
     const parsed = parseFloat(value);
     if (
       (Number.isNaN(parsed) && value.length !== 0) ||
-      !INPUT_REGEX.test(value) ||
+      !FORECAST_INPUT_REGEX.test(value) ||
       (parsed !== 0 && (parsed < minValue || parsed > maxValue))
     ) {
       return;

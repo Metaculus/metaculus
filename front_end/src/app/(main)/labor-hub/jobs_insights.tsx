@@ -8,8 +8,9 @@ export const JOBS_INSIGHTS = {
     ),
     negative: (
       <>
-        By 2027, <strong>software developers</strong> are expected to see
-        stagnant growth, as early AI coding capabilities begin to dampen demand.
+        By 2027, <strong>sales representatives</strong> are expected to see
+        early declines as AI begins to automate outreach and client
+        interactions.
       </>
     ),
   },
@@ -34,8 +35,8 @@ export const JOBS_INSIGHTS = {
     positive: (
       <>
         By 2035, <strong>nurses</strong>, <strong>restaurant servers</strong>,
-        and <strong>law enforcement</strong> are expected to see the highest
-        growth, driven by hands-on needs that cannot be easily automated.
+        and <strong>physicians</strong> are expected to see the highest growth,
+        driven by hands-on needs that cannot be easily automated.
       </>
     ),
     negative: (
@@ -43,8 +44,9 @@ export const JOBS_INSIGHTS = {
         By 2035, <strong>software</strong>, <strong>sales</strong> and{" "}
         <strong>law</strong> are expected to see sharp staff reductions as AI
         systems take over large portions of coding, outreach, and detailed
-        research work, while <strong>laborers</strong> see modest gains as
-        robotics have yet to fully displace physical roles by this horizon.
+        research work, while <strong>construction workers</strong> see modest
+        gains as robotics have yet to fully displace physical roles by this
+        horizon.
       </>
     ),
   },

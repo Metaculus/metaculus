@@ -12,6 +12,50 @@ export type CuratedInsight = {
   body: string;
 };
 
+// Non-job Labor Hub post IDs. Job post IDs are below in JOBS_DATA.
+export const LABOR_HUB_POST_IDS = {
+  overallEmployment: 41307,
+  activityMonitor: 41307,
+  wages: {
+    overall: 42216,
+    softwareDevelopers: 43106,
+    nurses: 43107,
+    salesRepresentatives: 43108,
+    financialSpecialists: 43109,
+    designers: 43110,
+    averageWeeklyHours: 41574,
+    aiDailyUse: 42215,
+  },
+  familyResources: {
+    twentiethPercentile: 42944,
+    fiftiethPercentile: 43042,
+    eightiethPercentile: 43043,
+  },
+  graduates: {
+    unemploymentRate: 42212,
+    underemploymentRate: 42213,
+    overallFourYearDegrees: 42220,
+    stemFourYearDegrees: 42852,
+    humanitiesFourYearDegrees: 42853,
+    tradeSchoolAndCommunityCollege: 42856,
+  },
+  economy: {
+    laborProductivity: 43087,
+    fortune500SmallWorkforce: 41324,
+    longTermUnemploymentRate: 41313,
+    laborShareOfNationalIncome: 41578,
+  },
+  research: {
+    occupationalMixChange: 42850,
+  },
+  state: {
+    washingtonOverallEmployment: 43081,
+    washingtonAerospaceSector: 43084,
+    washingtonTechnologySector: 43085,
+    washingtonHealthcareSector: 43086,
+  },
+} as const;
+
 export type JobDefinition = {
   name: string;
   slug: string;
@@ -36,7 +80,6 @@ export const JOBS_DATA: JobDefinition[] = [
     name: "Construction Workers",
     slug: "construction-workers",
     post_id: 42625,
-    wage_post_id: 43109,
     felten: -1.263,
     mna: 0.158,
     aoe: 0.9,
@@ -77,6 +120,7 @@ export const JOBS_DATA: JobDefinition[] = [
     name: "Registered Nurses",
     slug: "registered-nurses",
     post_id: 42620,
+    wage_post_id: LABOR_HUB_POST_IDS.wages.nurses,
     felten: 0.272,
     mna: 0.28,
     aoe: 6,
@@ -101,6 +145,7 @@ export const JOBS_DATA: JobDefinition[] = [
     name: "Services Sales Representatives",
     slug: "services-sales-representatives",
     post_id: 42617,
+    wage_post_id: LABOR_HUB_POST_IDS.wages.salesRepresentatives,
     felten: 1.279,
     mna: 0.317,
     aoe: 36.1,
@@ -109,6 +154,7 @@ export const JOBS_DATA: JobDefinition[] = [
     name: "Designers",
     slug: "designers",
     post_id: 42615,
+    wage_post_id: LABOR_HUB_POST_IDS.wages.designers,
     felten: 0.079,
     mna: 0.215,
     aoe: 14,
@@ -117,7 +163,6 @@ export const JOBS_DATA: JobDefinition[] = [
     name: "Engineers",
     slug: "engineers",
     post_id: 42614,
-    wage_post_id: 43110,
     felten: 0.829,
     mna: 0.23,
     aoe: 5.2,
@@ -126,7 +171,7 @@ export const JOBS_DATA: JobDefinition[] = [
     name: "Software Developers",
     slug: "software-developers",
     post_id: 42613,
-    wage_post_id: 43106,
+    wage_post_id: LABOR_HUB_POST_IDS.wages.softwareDevelopers,
     felten: 1.011,
     mna: 0.116,
     aoe: 33.8,
@@ -135,7 +180,7 @@ export const JOBS_DATA: JobDefinition[] = [
     name: "Financial Specialists",
     slug: "financial-specialists",
     post_id: 42612,
-    wage_post_id: 43107,
+    wage_post_id: LABOR_HUB_POST_IDS.wages.financialSpecialists,
     felten: 1.257,
     mna: 0.342,
     aoe: 31.3,
@@ -144,7 +189,6 @@ export const JOBS_DATA: JobDefinition[] = [
     name: "General Managers",
     slug: "general-managers",
     post_id: 41308,
-    wage_post_id: 43108,
     felten: 0.678,
     mna: 0.264,
     aoe: 13.8,
