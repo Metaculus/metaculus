@@ -148,6 +148,7 @@ const GroupDistributionsView: FC<Props> = ({
             getDistributionColor(selectedQuestion, selectedColor)
           )}
           onCursorChange={() => {}}
+          cursorQuartileTooltip
         />
       )}
     </div>

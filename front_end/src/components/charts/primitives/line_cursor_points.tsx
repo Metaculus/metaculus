@@ -29,6 +29,7 @@ type Props<T> = {
   xDomain: Tuple<number>;
   barWidth: number;
   discrete?: boolean;
+  suppress?: boolean;
 };
 
 const LineCursorPoints = <T extends string>({
@@ -45,8 +46,9 @@ const LineCursorPoints = <T extends string>({
   x,
   datum,
   discrete,
+  suppress,
 }: ComponentProps<typeof VictoryLabel> & Props<T>) => {
-  if (isNil(datum?.x) || isNil(datum?.y) || isNil(x)) {
+  if (suppress || isNil(datum?.x) || isNil(datum?.y) || isNil(x)) {
     return null;
   }
   return (

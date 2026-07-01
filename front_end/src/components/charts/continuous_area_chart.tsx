@@ -55,6 +55,7 @@ import {
 import { FEED_CHART_TARGET_POINTS, lttb } from "@/utils/charts/lttb";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 import { isForecastActive } from "@/utils/forecasts/helpers";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { formatResolution } from "@/utils/formatters/resolution";
 import {
   cdfToPmf,
@@ -109,6 +110,9 @@ type Props = {
   withTodayLine?: boolean;
   globalScaling?: Scaling;
   colorOverride?: string;
+  // Show a value chip at the top of the chart (instead of the cursor circle)
+  // when the cursor is near a quartile line. Used by the group distributions view.
+  cursorQuartileTooltip?: boolean;
   outlineUser?: boolean;
   centerOOBResolution?: boolean;
   animate?: object;
@@ -134,6 +138,7 @@ const ContinuousAreaChart: FC<Props> = ({
   withTodayLine = true,
   globalScaling,
   colorOverride,
+  cursorQuartileTooltip = false,
   outlineUser = false,
   centerOOBResolution = false,
   animate,
@@ -151,6 +156,7 @@ const ContinuousAreaChart: FC<Props> = ({
     prevWidth.current = chartWidth;
   }, [onChartReady, chartWidth]);
   const [cursorEdge, setCursorEdge] = useState<number | null>(null);
+  const [cursorX, setCursorX] = useState<number | null>(null);
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const actualTheme = extraTheme
@@ -398,6 +404,7 @@ const ContinuousAreaChart: FC<Props> = ({
   const handleMouseLeave = useCallback(() => {
     onCursorChange?.(null);
     setCursorEdge(null);
+    setCursorX(null);
   }, [onCursorChange]);
 
   const handleMouseMove = useCallback(
@@ -505,6 +512,55 @@ const ContinuousAreaChart: FC<Props> = ({
       (1.09 * ((question.inbound_outcome_count || 200) + openBoundCount))
     );
   }, [chartWidth, data, question, horizontalPadding]);
+
+  // When enabled, snap a value chip to the nearest quartile line while the
+  // cursor is close to it (used in the group distributions view). Replaces the
+  // cursor circle at that moment.
+  const quartileTooltip = useMemo(() => {
+    if (!cursorQuartileTooltip || cursorX == null || discrete) return null;
+    const displayChart = charts.find((c) => c.type !== "user_components");
+    if (!displayChart) return null;
+    const innerWidth = chartWidth - 2 * horizontalPadding;
+    if (innerWidth <= 0) return null;
+    const threshold = 10 / innerWidth;
+    let best: { x: number } | null = null;
+    let bestDist = Infinity;
+    for (const line of displayChart.verticalLines) {
+      const d = Math.abs(cursorX - line.x);
+      if (d < bestDist) {
+        bestDist = d;
+        best = line;
+      }
+    }
+    if (!best || bestDist > threshold) return null;
+    const plotHeight = height - paddingTop - BOTTOM_PADDING;
+    // Position the chip just below the top edge of the plot.
+    const chipY =
+      plotHeight > 0
+        ? yDomain[0] + (yDomain[1] - yDomain[0]) * (1 - 10 / plotHeight)
+        : yDomain[1];
+    return {
+      x: best.x,
+      y: chipY,
+      label: getPredictionDisplayValue(best.x, {
+        questionType: question.type,
+        scaling: question.scaling,
+        actual_resolve_time: null,
+      }),
+    };
+  }, [
+    cursorQuartileTooltip,
+    cursorX,
+    discrete,
+    charts,
+    chartWidth,
+    horizontalPadding,
+    height,
+    paddingTop,
+    yDomain,
+    question.type,
+    question.scaling,
+  ]);
   const CursorContainer = (
     <VictoryCursorContainer
       cursorLabel={"label"}
@@ -549,6 +605,7 @@ const ContinuousAreaChart: FC<Props> = ({
           paddingLeft={horizontalPadding}
           paddingRight={horizontalPadding}
           discrete={discrete}
+          suppress={!!quartileTooltip}
         />
       }
       onCursorChange={(value: CursorCoordinatesPropType | null) => {
@@ -556,8 +613,10 @@ const ContinuousAreaChart: FC<Props> = ({
 
         if (isNil(x)) {
           onCursorChange?.(null);
+          if (cursorQuartileTooltip) setCursorX(null);
           return;
         }
+        if (cursorQuartileTooltip) setCursorX(x);
 
         const hoverState = charts.reduce<ContinuousAreaHoverState>(
           (acc, el) => {
@@ -1096,6 +1155,24 @@ const ContinuousAreaChart: FC<Props> = ({
               paddingRight={horizontalPadding}
               discrete={discrete}
               barWidth={barWidth}
+            />
+          )}
+
+          {/* Value chip snapped to the nearest quartile line on hover */}
+          {quartileTooltip && (
+            <VictoryScatter
+              data={[{ x: quartileTooltip.x, y: quartileTooltip.y }]}
+              dataComponent={
+                <VictoryPortal>
+                  <ChartValueBox
+                    isCursorActive
+                    chartWidth={chartWidth}
+                    rightPadding={horizontalPadding}
+                    colorOverride={colorOverride}
+                    getCursorValue={() => quartileTooltip.label}
+                  />
+                </VictoryPortal>
+              }
             />
           )}
         </VictoryChart>
