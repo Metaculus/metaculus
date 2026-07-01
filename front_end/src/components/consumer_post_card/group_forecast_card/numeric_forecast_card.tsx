@@ -2,7 +2,7 @@
 
 import { isNil } from "lodash";
 import { useLocale, useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 
 import { useListChartExpanded } from "@/app/(main)/questions/[id]/components/question_view/consumer_question_view/consumer_list_chart_shell";
 import { hasSubquestionDistribution } from "@/app/(main)/questions/[id]/components/question_view/consumer_question_view/group_distribution_utils";
@@ -55,6 +55,30 @@ const NumericForecastCard: FC<Props> = ({
   } = useListChartExpanded();
   const { containerRef, overlayMaxHeight } = useOverlayMaxHeight(expanded);
 
+  // Snapshot (updated during render below) so the effect can auto-expand the
+  // list when the active distribution row is hidden behind the "N others" fold.
+  const collapsedInfoRef = useRef<{
+    hiddenCount: number;
+    visibleIds: Set<number>;
+  }>({ hiddenCount: 0, visibleIds: new Set() });
+  const prevSelectedIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (viewMode !== "distributions" || selectedQuestionId == null) {
+      prevSelectedIdRef.current = selectedQuestionId;
+      return;
+    }
+    const { hiddenCount, visibleIds } = collapsedInfoRef.current;
+    if (
+      prevSelectedIdRef.current !== selectedQuestionId &&
+      hiddenCount > 0 &&
+      !visibleIds.has(selectedQuestionId)
+    ) {
+      setExpanded(true);
+      setIsExpanded(true);
+    }
+    prevSelectedIdRef.current = selectedQuestionId;
+  }, [viewMode, selectedQuestionId, setIsExpanded]);
+
   if (!isGroupOfQuestionsPost(post)) {
     return null;
   }
@@ -91,6 +115,12 @@ const NumericForecastCard: FC<Props> = ({
   const isPostClosed = post.status === PostStatus.CLOSED;
   const hiddenCount = Math.max(0, sortedChoices.length - visibleChoicesCount);
   const collapsedChoices = sortedChoices.slice(0, visibleChoicesCount);
+  collapsedInfoRef.current = {
+    hiddenCount,
+    visibleIds: new Set(
+      collapsedChoices.map((c) => c.id).filter((id): id is number => id != null)
+    ),
+  };
 
   // Anchor all sub-questions to the same timestamp. Use the global latest
   // across all choices so resolved rows (sorted first) don't anchor to a

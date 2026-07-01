@@ -112,6 +112,7 @@ const DistributionsTab: FC<Props> = ({ post }) => {
               colorOverride={getThemeColor(
                 getDistributionColor(question, choice.color)
               )}
+              alignChartTabs
             />
           </div>
         ))}

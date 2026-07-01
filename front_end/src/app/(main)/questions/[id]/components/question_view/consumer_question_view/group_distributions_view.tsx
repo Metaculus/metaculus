@@ -149,6 +149,7 @@ const GroupDistributionsView: FC<Props> = ({
           )}
           onCursorChange={() => {}}
           cursorQuartileTooltip
+          alignChartTabs
         />
       )}
     </div>

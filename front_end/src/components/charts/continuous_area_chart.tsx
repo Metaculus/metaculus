@@ -523,7 +523,7 @@ const ContinuousAreaChart: FC<Props> = ({
     const innerWidth = chartWidth - 2 * horizontalPadding;
     if (innerWidth <= 0) return null;
     const threshold = 10 / innerWidth;
-    let best: { x: number } | null = null;
+    let best: { x: number; y: number | null } | null = null;
     let bestDist = Infinity;
     for (const line of displayChart.verticalLines) {
       const d = Math.abs(cursorX - line.x);
@@ -533,15 +533,11 @@ const ContinuousAreaChart: FC<Props> = ({
       }
     }
     if (!best || bestDist > threshold) return null;
-    const plotHeight = height - paddingTop - BOTTOM_PADDING;
-    // Position the chip just below the top edge of the plot.
-    const chipY =
-      plotHeight > 0
-        ? yDomain[0] + (yDomain[1] - yDomain[0]) * (1 - 10 / plotHeight)
-        : yDomain[1];
     return {
+      // Anchor the chip where the curve meets the quartile line (i.e. where the
+      // cursor circle would be).
       x: best.x,
-      y: chipY,
+      y: best.y ?? 0,
       label: getPredictionDisplayValue(best.x, {
         questionType: question.type,
         scaling: question.scaling,
@@ -555,9 +551,6 @@ const ContinuousAreaChart: FC<Props> = ({
     charts,
     chartWidth,
     horizontalPadding,
-    height,
-    paddingTop,
-    yDomain,
     question.type,
     question.scaling,
   ]);
@@ -943,35 +936,43 @@ const ContinuousAreaChart: FC<Props> = ({
               />
             )}
           {charts.map((chart, k) =>
-            chart.verticalLines.map((line, index) => (
-              <VictoryLine
-                key={`${k}-${index}`}
-                data={[
-                  { x: line.x, y: 0 },
-                  { x: line.x, y: line.y },
-                ]}
-                style={{
-                  data: {
-                    stroke: (() => {
-                      if (colorOverride && chart.type !== "user") {
-                        return colorOverride;
-                      }
-                      switch (chart.color) {
-                        case "orange":
-                          return getThemeColor(METAC_COLORS.orange["700"]);
-                        case "gray":
-                          return getThemeColor(METAC_COLORS.gray["500"]);
-                        case "purple":
-                          return getThemeColor(METAC_COLORS.purple["700"]);
-                        default:
-                          return undefined;
-                      }
-                    })(),
-                    strokeDasharray: CHART_DASH.quartile,
-                  },
-                }}
-              />
-            ))
+            chart.verticalLines.map((line, index) => {
+              // The quartile line under the cursor becomes solid and thicker.
+              const isActiveQuartile =
+                !!quartileTooltip && quartileTooltip.x === line.x;
+              return (
+                <VictoryLine
+                  key={`${k}-${index}`}
+                  data={[
+                    { x: line.x, y: 0 },
+                    { x: line.x, y: line.y },
+                  ]}
+                  style={{
+                    data: {
+                      stroke: (() => {
+                        if (colorOverride && chart.type !== "user") {
+                          return colorOverride;
+                        }
+                        switch (chart.color) {
+                          case "orange":
+                            return getThemeColor(METAC_COLORS.orange["700"]);
+                          case "gray":
+                            return getThemeColor(METAC_COLORS.gray["500"]);
+                          case "purple":
+                            return getThemeColor(METAC_COLORS.purple["700"]);
+                          default:
+                            return undefined;
+                        }
+                      })(),
+                      strokeDasharray: isActiveQuartile
+                        ? undefined
+                        : CHART_DASH.quartile,
+                      strokeWidth: isActiveQuartile ? 2 : undefined,
+                    },
+                  }}
+                />
+              );
+            })
           )}
 
           {/* Today's date dot for date questions */}
