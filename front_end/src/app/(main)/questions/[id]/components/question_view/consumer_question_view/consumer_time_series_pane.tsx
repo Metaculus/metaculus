@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, useCallback, useMemo } from "react";
 
 import TimeSeriesChart from "@/components/consumer_post_card/time_series_chart";
 import { QuestionWithNumericForecasts } from "@/types/question";
@@ -15,7 +15,29 @@ type Props = {
 
 const ConsumerTimeSeriesPane: FC<Props> = ({ questions, height = 180 }) => {
   const t = useTranslations();
-  const { hoveredChoiceName, setHoveredChoiceName } = useListChartExpanded();
+  const {
+    hoveredChoiceName,
+    setHoveredChoiceName,
+    viewMode,
+    selectedQuestionId,
+    setSelectedQuestionId,
+  } = useListChartExpanded();
+  const isDistributions = viewMode === "distributions";
+
+  const selectedBarLabel = useMemo(() => {
+    if (!isDistributions || selectedQuestionId == null) return null;
+    return questions.find((q) => q.id === selectedQuestionId)?.label ?? null;
+  }, [isDistributions, selectedQuestionId, questions]);
+
+  const handleBarClick = useCallback(
+    (label: string) => {
+      const question = questions.find((q) => q.label === label);
+      if (question?.id != null) {
+        setSelectedQuestionId(question.id);
+      }
+    },
+    [questions, setSelectedQuestionId]
+  );
 
   return (
     <div className="flex flex-col">
@@ -28,6 +50,8 @@ const ConsumerTimeSeriesPane: FC<Props> = ({ questions, height = 180 }) => {
         height={height}
         hoveredBarLabel={hoveredChoiceName}
         onBarHover={setHoveredChoiceName}
+        selectedBarLabel={selectedBarLabel}
+        onBarClick={isDistributions ? handleBarClick : undefined}
       />
     </div>
   );

@@ -520,6 +520,9 @@ const ContinuousAreaChart: FC<Props> = ({
             .map((chart) => ({
               line: chart.graphLine,
               color: (() => {
+                if (colorOverride && chart.type !== "user") {
+                  return colorOverride;
+                }
                 switch (chart.color) {
                   case "orange":
                     return getThemeColor(
@@ -845,37 +848,41 @@ const ContinuousAreaChart: FC<Props> = ({
               }}
             />
           ))}
-          {/* Left/Right borders at bounds if requested */}
-          {(question.scaling.range_min ?? 1) <=
-            (globalScaling?.range_min ?? 0) && (
-            <VictoryLine
-              data={[
-                { x: 0, y: yDomain[0] },
-                { x: 0, y: yDomain[1] * 0.9 },
-              ]}
-              style={{
-                data: {
-                  stroke: getThemeColor(METAC_COLORS.gray["500"]),
-                  strokeWidth: 0.5,
-                },
-              }}
-            />
-          )}
-          {(question.scaling.range_max ?? 0) >=
-            (globalScaling?.range_max ?? 1) && (
-            <VictoryLine
-              data={[
-                { x: 1, y: yDomain[0] },
-                { x: 1, y: yDomain[1] * 0.9 },
-              ]}
-              style={{
-                data: {
-                  stroke: getThemeColor(METAC_COLORS.gray["500"]),
-                  strokeWidth: 0.5,
-                },
-              }}
-            />
-          )}
+          {/* Left/Right borders at bounds — only meaningful on a shared (global)
+              scale. Gated on globalScaling so standalone charts (prediction
+              inputs, single distributions) don't render an asymmetric edge line. */}
+          {globalScaling &&
+            (question.scaling.range_min ?? 1) <=
+              (globalScaling.range_min ?? 0) && (
+              <VictoryLine
+                data={[
+                  { x: 0, y: yDomain[0] },
+                  { x: 0, y: yDomain[1] * 0.9 },
+                ]}
+                style={{
+                  data: {
+                    stroke: getThemeColor(METAC_COLORS.gray["500"]),
+                    strokeWidth: 0.5,
+                  },
+                }}
+              />
+            )}
+          {globalScaling &&
+            (question.scaling.range_max ?? 0) >=
+              (globalScaling.range_max ?? 1) && (
+              <VictoryLine
+                data={[
+                  { x: 1, y: yDomain[0] },
+                  { x: 1, y: yDomain[1] * 0.9 },
+                ]}
+                style={{
+                  data: {
+                    stroke: getThemeColor(METAC_COLORS.gray["500"]),
+                    strokeWidth: 0.5,
+                  },
+                }}
+              />
+            )}
           {charts.map((chart, k) =>
             chart.verticalLines.map((line, index) => (
               <VictoryLine
@@ -887,6 +894,9 @@ const ContinuousAreaChart: FC<Props> = ({
                 style={{
                   data: {
                     stroke: (() => {
+                      if (colorOverride && chart.type !== "user") {
+                        return colorOverride;
+                      }
                       switch (chart.color) {
                         case "orange":
                           return getThemeColor(METAC_COLORS.orange["700"]);
@@ -1146,6 +1156,16 @@ function generateNumericAreaGraph(data: {
   } else {
     if (graphType === "cdf") {
       cdf.forEach((value, index) => {
+        if (index === 0) {
+          // extend to the left edge so the area fills the full width
+          graph.push({ x: -1e-10, y: value });
+          return;
+        }
+        if (index === cdf.length - 1) {
+          // extend to the right edge so the area fills the full width
+          graph.push({ x: 1 + 1e-10, y: value });
+          return;
+        }
         graph.push({ x: (index - 0.5) / (cdf.length - 1), y: value });
       });
     } else {

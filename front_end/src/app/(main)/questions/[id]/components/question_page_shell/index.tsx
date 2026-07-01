@@ -361,9 +361,9 @@ export const ConsumerShell: FC<{
               <ConsumerListChartShell
                 stretchListContent={!hideCP && !isFanGraph}
                 hideListOnMobile={!!isDateGroup}
-                hideDivider={!!isDateGroup}
+                hideDivider={false}
                 hideBorder={false}
-                reduceInnerPadding={!!isDateGroup}
+                reduceInnerPadding={false}
                 listContent={
                   hideCP && !mcForecastAvailability?.cpRevealsOn ? (
                     <RevealCPButton />

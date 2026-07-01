@@ -1,4 +1,5 @@
 import { ContinuousAreaGraphInput } from "@/components/charts/continuous_area_chart";
+import { METAC_COLORS } from "@/constants/colors";
 import { ContinuousAreaType } from "@/types/charts";
 import {
   GroupOfQuestionsGraphType,
@@ -7,6 +8,7 @@ import {
   QuestionStatus,
 } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import { ThemeColor } from "@/types/theme";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 import { cdfToPmf } from "@/utils/math";
 import {
@@ -51,6 +53,18 @@ export function hasSubquestionDistribution(
   question: QuestionWithNumericForecasts
 ): boolean {
   return getSubquestionDistributionData(question).length > 0;
+}
+
+// Closed subquestions are shown in gray in the list, so their distribution
+// should be gray too; open/resolved keep their per-row color.
+export function getDistributionColor(
+  question: QuestionWithNumericForecasts,
+  choiceColor: ThemeColor
+): ThemeColor {
+  if (question.status === QuestionStatus.CLOSED) {
+    return METAC_COLORS.gray["500"];
+  }
+  return choiceColor;
 }
 
 // Non-fan continuous (Numeric/Discrete/Date) group posts get the

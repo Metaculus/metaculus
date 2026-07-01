@@ -14,6 +14,7 @@ import { generateChoiceItemsFromGroupQuestions } from "@/utils/questions/choices
 import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
 
 import {
+  getDistributionColor,
   getSubquestionDistributionData,
   hasSubquestionDistribution,
 } from "../../question_view/consumer_question_view/group_distribution_utils";
@@ -108,7 +109,9 @@ const DistributionsTab: FC<Props> = ({ post }) => {
               data={getSubquestionDistributionData(question)}
               graphType={graphType}
               height={140}
-              colorOverride={getThemeColor(choice.color)}
+              colorOverride={getThemeColor(
+                getDistributionColor(question, choice.color)
+              )}
             />
           </div>
         ))}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 import FanChart from "@/components/charts/fan_chart";
 import Button from "@/components/ui/button";
@@ -13,7 +13,7 @@ import cn from "@/utils/core/cn";
 import ConsumerGroupChart from "./consumer_group_chart";
 import { useListChartExpanded } from "./consumer_list_chart_shell";
 
-type ChartView = "fan" | "timeline";
+type ChartView = "fan" | "timeline" | "distributions";
 
 type Props = {
   post: GroupOfQuestionsPost<QuestionWithNumericForecasts>;
@@ -30,16 +30,32 @@ const FanGraphChartPanel: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { hideCP } = useHideCP();
-  const { chartAreaHeight } = useListChartExpanded();
+  const { chartAreaHeight, setViewMode } = useListChartExpanded();
   const isConsumer = variant === "consumer";
   const [activeView, setActiveView] = useState<ChartView>(
     isConsumer ? "timeline" : "fan"
   );
 
+  // "fan" is orthogonal to the shared timeline/distributions view mode; keep the
+  // shared mode in sync so the left bins know when to show distribution
+  // selection and the embedded chart renders the right body.
+  useEffect(() => {
+    if (!isConsumer) return;
+    setViewMode(activeView === "distributions" ? "distributions" : "timeline");
+  }, [activeView, isConsumer, setViewMode]);
+
   const views: { value: ChartView; label: string }[] = isConsumer
     ? [
         { value: "timeline", label: t("timeline") },
         { value: "fan", label: t("fanChart") },
+        ...(hideCP
+          ? []
+          : [
+              {
+                value: "distributions" as ChartView,
+                label: t("distributions"),
+              },
+            ]),
       ]
     : [
         { value: "fan", label: t("fanChart") },
@@ -94,7 +110,7 @@ const FanGraphChartPanel: FC<Props> = ({
       <div
         className={cn(
           "relative col-start-1 row-start-1",
-          activeView !== "timeline" && "pointer-events-none invisible"
+          activeView === "fan" && "pointer-events-none invisible"
         )}
       >
         <div className="absolute left-2 top-0 z-10">{toggle}</div>
@@ -103,6 +119,7 @@ const FanGraphChartPanel: FC<Props> = ({
           preselectedQuestionId={preselectedQuestionId}
           chartHeight={isCompact ? 150 : 220}
           visibleQuestions={visibleQuestions}
+          hideViewTabs
         />
       </div>
     </div>

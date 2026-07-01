@@ -40,7 +40,7 @@ const ConsumerDateGroupChart: FC<Props> = ({ post }) => {
         post={post}
         questionsGroup={post.group_of_questions}
         fillHeight
-        innerChartPaddingX={40}
+        innerChartPaddingX={20}
         yearOnlyTicks
       />
     </div>

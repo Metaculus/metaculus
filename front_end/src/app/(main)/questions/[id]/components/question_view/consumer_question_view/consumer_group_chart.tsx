@@ -17,6 +17,9 @@ type Props = {
   preselectedQuestionId?: number;
   chartHeight?: number;
   visibleQuestions?: QuestionWithNumericForecasts[];
+  // Suppress the internal Timeline/Distributions switcher when a parent (the
+  // fan-graph panel) owns the tab bar.
+  hideViewTabs?: boolean;
 };
 
 const ConsumerGroupChart: FC<Props> = ({
@@ -24,6 +27,7 @@ const ConsumerGroupChart: FC<Props> = ({
   preselectedQuestionId,
   chartHeight,
   visibleQuestions,
+  hideViewTabs = false,
 }) => {
   const { hideCP } = useHideCP();
   const {
@@ -56,6 +60,7 @@ const ConsumerGroupChart: FC<Props> = ({
         post={post}
         visibleQuestions={visibleQuestions}
         height={effectiveChartHeight}
+        hideViewTabs={hideViewTabs}
       />
     );
   }
@@ -75,7 +80,7 @@ const ConsumerGroupChart: FC<Props> = ({
         onCursorChange={setCursorTimestamp}
         hideTooltip
         headerLeft={
-          hideCP ? undefined : (
+          hideCP || hideViewTabs ? undefined : (
             <GroupChartViewTabs value={viewMode} onChange={setViewMode} />
           )
         }

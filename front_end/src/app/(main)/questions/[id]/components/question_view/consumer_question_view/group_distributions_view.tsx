@@ -13,6 +13,7 @@ import { generateChoiceItemsFromGroupQuestions } from "@/utils/questions/choices
 import { useListChartExpanded } from "./consumer_list_chart_shell";
 import GroupChartViewTabs from "./group_chart_view_tabs";
 import {
+  getDistributionColor,
   getSubquestionDistributionData,
   hasSubquestionDistribution,
 } from "./group_distribution_utils";
@@ -22,6 +23,9 @@ type Props = {
   post: GroupOfQuestionsPost<QuestionWithNumericForecasts>;
   visibleQuestions?: QuestionWithNumericForecasts[];
   height?: number;
+  // When the parent owns the view switcher (e.g. the fan-graph panel), hide the
+  // internal Timeline/Distributions tabs and keep only the PDF/CDF toggle.
+  hideViewTabs?: boolean;
 };
 
 // Distributions-mode chart body for a continuous group: header (view tabs +
@@ -31,6 +35,7 @@ const GroupDistributionsView: FC<Props> = ({
   post,
   visibleQuestions,
   height,
+  hideViewTabs = false,
 }) => {
   const locale = useLocale();
   const { getThemeColor } = useAppTheme();
@@ -49,13 +54,15 @@ const GroupDistributionsView: FC<Props> = ({
     [visibleQuestions, post.group_of_questions?.questions]
   );
 
-  // Same generation the list uses, so per-subquestion colors match the rows.
+  // Same generation the neighbouring selector uses (the list rows, or the
+  // fan-graph bins when visibleQuestions is a slice), so colors line up.
   const choices = useMemo(
     () =>
-      generateChoiceItemsFromGroupQuestions(post.group_of_questions, {
-        locale,
-      }).filter((c): c is ChoiceItem & { id: number } => c.id != null),
-    [post.group_of_questions, locale]
+      generateChoiceItemsFromGroupQuestions(
+        visibleQuestions ?? post.group_of_questions,
+        { locale }
+      ).filter((c): c is ChoiceItem & { id: number } => c.id != null),
+    [visibleQuestions, post.group_of_questions, locale]
   );
   const colorById = useMemo(
     () => new Map(choices.map((c) => [c.id, c.color])),
@@ -120,7 +127,9 @@ const GroupDistributionsView: FC<Props> = ({
       onMouseLeave={() => setHoveredChoiceName(null)}
     >
       <div className="mb-2.5 flex w-full items-center md:mb-5">
-        <GroupChartViewTabs value={viewMode} onChange={setViewMode} />
+        {!hideViewTabs && (
+          <GroupChartViewTabs value={viewMode} onChange={setViewMode} />
+        )}
         <div className="ml-auto flex">
           <PdfCdfTabs
             value={graphType}
@@ -135,7 +144,9 @@ const GroupDistributionsView: FC<Props> = ({
           data={getSubquestionDistributionData(selectedQuestion)}
           graphType={graphType}
           height={height}
-          colorOverride={getThemeColor(selectedColor)}
+          colorOverride={getThemeColor(
+            getDistributionColor(selectedQuestion, selectedColor)
+          )}
           onCursorChange={() => {}}
         />
       )}
