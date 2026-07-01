@@ -1087,12 +1087,12 @@ export default function FAQ() {
         </p>
         <h4 className="text-lg font-semibold">Opción Múltiple</h4>
         <p>
-          Las preguntas de Opción Múltiple presentan un conjunto de opciones
-          que son mutuamente excluyentes y cubren todas las posibilidades, y se
-          resuelven exactamente en una de ellas. Se pueden agregar o quitar opciones a
-          medida que la pregunta evoluciona. Los pronosticadores asignan una
-          probabilidad a cada opción, y esas probabilidades suman 100%. Por
-          ejemplo, la pregunta &quot;
+          Las preguntas de Opción Múltiple presentan un conjunto de opciones que
+          son mutuamente excluyentes y cubren todas las posibilidades, y se
+          resuelven exactamente en una de ellas. Se pueden agregar o quitar
+          opciones a medida que la pregunta evoluciona. Los pronosticadores
+          asignan una probabilidad a cada opción, y esas probabilidades suman
+          100%. Por ejemplo, la pregunta &quot;
           <Link href="/questions/20683/which-ai-world-before-2050/">
             Qué mundo de IA se hará realidad antes de 2050?
           </Link>
@@ -1210,9 +1210,10 @@ export default function FAQ() {
             <strong>Opción Múltiple</strong> es una sola pregunta cuyas opciones
             son mutuamente excluyentes y cubren todas las posibilidades.
             Exactamente una opción resultará ser la correcta, y las
-            probabilidades pronosticadas entre las opciones suman 100%. Como es una sola pregunta, los pronosticadores
-            reciben una única puntuación por ella. Úsala cuando preguntas
-            &quot;cuál?&quot; a partir de un conjunto de opciones.
+            probabilidades pronosticadas entre las opciones suman 100%. Como es
+            una sola pregunta, los pronosticadores reciben una única puntuación
+            por ella. Úsala cuando preguntas &quot;cuál?&quot; a partir de un
+            conjunto de opciones.
           </li>
           <li>
             Un <strong>Grupo de Preguntas</strong> es un conjunto de

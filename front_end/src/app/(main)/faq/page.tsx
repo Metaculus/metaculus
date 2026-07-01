@@ -1016,10 +1016,9 @@ export default async function FAQ() {
         <p>
           Multiple Choice questions present a set of options that are mutually
           exclusive and cover all possibilities, and resolve to exactly one of
-          them.
-          Options can be added or removed as the question evolves. Forecasters
-          assign a probability to each option, and those probabilities sum to
-          100%. For example, the question &quot;
+          them. Options can be added or removed as the question evolves.
+          Forecasters assign a probability to each option, and those
+          probabilities sum to 100%. For example, the question &quot;
           <Link href="/questions/20683/which-ai-world-before-2050/">
             Which AI world will come to pass before 2050?
           </Link>
@@ -1127,11 +1126,11 @@ export default async function FAQ() {
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
             <strong>Multiple Choice</strong> is a single question whose options
-            are mutually exclusive and cover all possibilities.
-            Exactly one option will turn out to be correct, and the forecast
-            probabilities across options sum to 100%. Because it is one
-            question, forecasters receive a single score for it. Use it when
-            you&apos;re asking &quot;which one?&quot; from a set of options.
+            are mutually exclusive and cover all possibilities. Exactly one
+            option will turn out to be correct, and the forecast probabilities
+            across options sum to 100%. Because it is one question, forecasters
+            receive a single score for it. Use it when you&apos;re asking
+            &quot;which one?&quot; from a set of options.
           </li>
           <li>
             A <strong>Question Group</strong> is a bundle of <i>independent</i>{" "}
