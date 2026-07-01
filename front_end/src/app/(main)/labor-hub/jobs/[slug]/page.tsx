@@ -183,17 +183,17 @@ export default async function JobDetailPage({
                   rows={[
                     {
                       // Historical actual employment (BLS/OEWS), rebased so the
-                      // latest actual (2024) is the 0% baseline. Static row →
-                      // drawn as one muted line spanning 2015→2024.
+                      // latest actual (2025) is the 0% baseline. Static row →
+                      // drawn as one muted line spanning 2015→2025.
                       title: job.name,
                       historicalValues: getHistoricalPercentByYear(slug),
                     },
                     {
                       questionId: job.post_id,
                       title: job.name,
-                      // Forecast anchored at the 2024 baseline (no synthetic 2025
-                      // point) so history and forecast share a single 0% point.
-                      historicalValues: { 2024: 0 },
+                      // Forecast anchored at the 2025 baseline so history and
+                      // forecast share a single 0% point.
+                      historicalValues: { 2025: 0 },
                     },
                   ]}
                   valueFormat="percentageChange"
