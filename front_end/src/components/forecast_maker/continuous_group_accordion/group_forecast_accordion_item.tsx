@@ -14,7 +14,7 @@ import TruncatedTextTooltip from "@/components/truncated_text_tooltip";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { QuestionStatus } from "@/types/post";
-import { Quantile, Scaling } from "@/types/question";
+import { Quantile, QuestionType, Scaling } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
   getQuantileNumericForecastDataset,
@@ -210,6 +210,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
                         graphType="pmf"
                         height={55}
                         hideLabels
+                        hideYAxis={question.type === QuestionType.Discrete}
                         hideCP={!showCP}
                         question={question}
                         withResolutionChip={false}

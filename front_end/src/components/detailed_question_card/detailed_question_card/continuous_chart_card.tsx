@@ -466,9 +466,6 @@ const DetailedContinuousChartCard: FC<Props> = ({
               median={median}
               mean={mean}
               questionStatus={question.status}
-              totalForecasters={
-                aggregationLatest?.forecaster_count ?? nrForecasters
-              }
             />
           )}
         </div>

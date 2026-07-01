@@ -9,15 +9,15 @@ import {
 import { useEffect, useMemo, useRef } from "react";
 
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
+import ClientMiscApi from "@/services/api/misc/misc.client";
 import ClientPostsApi from "@/services/api/posts/posts.client";
 import {
   PostFetchParams,
   PostsParams,
 } from "@/services/api/posts/posts.shared";
-import ClientProjectsApi from "@/services/api/projects/projects.client";
 import { CountlessPaginatedPayload } from "@/types/fetch";
 import { PostWithForecasts } from "@/types/post";
-import { FeedProjectTile } from "@/types/projects";
+import { CombinedFeedTile } from "@/types/projects";
 
 export const POSTS_FEED_STALE_TIME = 60 * 1000;
 export const POSTS_FEED_GC_TIME = 10 * 60 * 1000;
@@ -246,18 +246,18 @@ export function usePostsFeedQuery({
   };
 }
 
-type UseFeedProjectTilesQueryParams = {
+type UseCombinedFeedTilesQueryParams = {
   enabled?: boolean;
-  initialTiles?: FeedProjectTile[];
+  initialTiles?: CombinedFeedTile[];
 };
 
-export function useFeedProjectTilesQuery({
+export function useCombinedFeedTilesQuery({
   enabled = true,
   initialTiles,
-}: UseFeedProjectTilesQueryParams = {}) {
+}: UseCombinedFeedTilesQueryParams = {}) {
   return useQuery({
     queryKey: postsFeedKeys.tiles(),
-    queryFn: () => ClientProjectsApi.getFeedTiles(),
+    queryFn: () => ClientMiscApi.getCombinedFeedTiles(),
     enabled,
     staleTime: POSTS_FEED_STALE_TIME,
     gcTime: POSTS_FEED_GC_TIME,

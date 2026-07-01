@@ -1,7 +1,9 @@
 "use client";
-import { useTranslations } from "next-intl";
-import { FC, memo, useEffect, useMemo, useState } from "react";
 
+import { useTranslations } from "next-intl";
+import { FC, memo, useCallback, useEffect, useMemo, useState } from "react";
+
+import { dismissFeedTile } from "@/app/(main)/actions";
 import { QuestionVariantComposer } from "@/app/(main)/questions/[id]/components/question_variant_composer";
 import { FiltersFromSearchParamsOptions } from "@/app/(main)/questions/helpers/filters";
 import { useFeedQuery } from "@/app/(main)/questions/hooks/use_feed_query";
@@ -10,6 +12,7 @@ import ConsumerPostCard from "@/components/consumer_post_card";
 import NewsCard from "@/components/news_card";
 import PostCard from "@/components/post_card";
 import CompactSearchPostCard from "@/components/post_card/compact_search_post_card";
+import { PromoTile } from "@/components/promo_tiles";
 import Button from "@/components/ui/button";
 import { type FeedLayout } from "@/components/ui/layout_switcher";
 import LoadingSpinner from "@/components/ui/loading_spiner";
@@ -23,7 +26,7 @@ import { useContentTranslatedBannerContext } from "@/contexts/translations_banne
 import useMounted from "@/hooks/use_mounted";
 import { PostsParams } from "@/services/api/posts/posts.shared";
 import { PostWithForecasts } from "@/types/post";
-import { FeedProjectTile } from "@/types/projects";
+import { CombinedFeedTile } from "@/types/projects";
 import { InterfaceType } from "@/types/users";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
@@ -34,10 +37,9 @@ import { isNotebookPost } from "@/utils/questions/helpers";
 import { FeedItem, buildFeedItems, getFeedItemKey } from "./build_feed_items";
 import EmptyCommunityFeed from "./empty_community_feed";
 import PostsFeedScrollRestoration from "./feed_scroll_restoration";
-import FeedTournamentTile from "./feed_tournament_tile";
 import {
   normalizePostsFeedFilters,
-  useFeedProjectTilesQuery,
+  useCombinedFeedTilesQuery,
   usePostsFeedQuery,
 } from "./hooks/use_posts_feed_query";
 import InReviewBox from "./in_review_box";
@@ -46,39 +48,46 @@ import { FormErrorMessage } from "../ui/form_field";
 export type PostsFeedType = "posts" | "news";
 
 const EMPTY_INDEX_WEIGHTS: Record<string, number> = {};
-const EMPTY_PROJECT_TILES: FeedProjectTile[] = [];
+const EMPTY_PROJECT_TILES: CombinedFeedTile[] = [];
 const GRID_COLUMNS = [1, 2, 3];
 const GRID_GAPS = [12, 12, 12];
 const GRID_MEDIA = [1024, 1280, 1536];
 const GRID_OVERSCAN = 9;
 const LIST_GAP = 12;
 const LIST_OVERSCAN = 12;
+const AD_TILE_ESTIMATE = 180;
 
 function shouldShowProjectTilesForParams(params: URLSearchParams) {
   return Array.from(params.keys()).every((key) => key === POST_PAGE_FILTER);
 }
 
 function estimateFeedItemSize(item: FeedItem) {
-  if (item.type === "project") return 360;
+  if (item.type === "tile") {
+    return item.tile.type === "ad" ? AD_TILE_ESTIMATE : 360;
+  }
   if (isNotebookPost(item.post)) return 220;
   return 440;
 }
 
 function estimateFeedItemSizeList(item: FeedItem) {
-  if (item.type === "project") return 220;
+  if (item.type === "tile") {
+    return item.tile.type === "ad" ? AD_TILE_ESTIMATE : 220;
+  }
   if (isNotebookPost(item.post)) return 180;
   return 280;
 }
 
 function estimateFeedItemSizeCompact(item: FeedItem) {
-  if (item.type === "project") return 220;
+  if (item.type === "tile") {
+    return item.tile.type === "ad" ? AD_TILE_ESTIMATE : 220;
+  }
   return 96;
 }
 
 type Props = {
   initialQuestions: PostWithForecasts[];
   initialCount?: number;
-  initialProjectTiles?: FeedProjectTile[];
+  initialProjectTiles?: CombinedFeedTile[];
   filters: PostsParams;
   type?: PostsFeedType;
   isCommunity?: boolean;
@@ -161,13 +170,19 @@ const PaginatedPostsFeed: FC<Props> = ({
     !PUBLIC_MINIMAL_UI &&
     shouldShowProjectTilesForParams(feedQueryParams);
   const { data: clientProjectTiles = EMPTY_PROJECT_TILES } =
-    useFeedProjectTilesQuery({
+    useCombinedFeedTilesQuery({
       enabled: shouldShowClientProjectTiles,
       initialTiles:
         shouldShowClientProjectTiles && initialProjectTiles.length
           ? initialProjectTiles
           : undefined,
     });
+
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  const handleDismiss = useCallback((id: string) => {
+    setDismissedIds((prev) => new Set([...prev, id]));
+    void dismissFeedTile(id).catch(logError);
+  }, []);
 
   useEffect(() => {
     if (visiblePosts.some((q) => q.is_current_content_translated)) {
@@ -267,14 +282,17 @@ const PaginatedPostsFeed: FC<Props> = ({
     }
   };
 
-  const projectTiles = shouldUseClientProjectTiles
+  const rawTiles = shouldUseClientProjectTiles
     ? shouldShowClientProjectTiles
       ? clientProjectTiles
       : EMPTY_PROJECT_TILES
     : initialProjectTiles;
   const feedItems = useMemo(
-    () => buildFeedItems(visiblePosts, projectTiles),
-    [visiblePosts, projectTiles]
+    () =>
+      buildFeedItems(visiblePosts, rawTiles).filter(
+        (item) => item.type !== "tile" || !dismissedIds.has(item.tile.id)
+      ),
+    [visiblePosts, rawTiles, dismissedIds]
   );
 
   const { layout: contextLayout } = useFeedLayout();
@@ -321,6 +339,7 @@ const PaginatedPostsFeed: FC<Props> = ({
               compactSearchMode={compactSearchMode}
               constrainConsumerList={isConsumerView && layout === "list"}
               useShortTitles={layout === "grid"}
+              onDismiss={user ? handleDismiss : undefined}
             />
             <PostsFeedScrollRestoration
               serverPage={queryFilters.page ?? null}
@@ -369,6 +388,7 @@ const FeedLayoutView: FC<{
   compactSearchMode?: boolean;
   constrainConsumerList?: boolean;
   useShortTitles?: boolean;
+  onDismiss?: (id: string) => void;
 }> = ({
   columns,
   gap,
@@ -381,6 +401,7 @@ const FeedLayoutView: FC<{
   compactSearchMode,
   constrainConsumerList,
   useShortTitles,
+  onDismiss,
 }) => {
   const className = cn(constrainConsumerList && "mx-auto w-full max-w-3xl");
 
@@ -393,6 +414,7 @@ const FeedLayoutView: FC<{
       weightByPostId={weightByPostId}
       compactSearchMode={compactSearchMode}
       useShortTitle={useShortTitles}
+      onDismiss={onDismiss}
     />
   );
 
@@ -437,6 +459,7 @@ const FeedItemCardComponent: FC<{
   weightByPostId: Map<number, number>;
   compactSearchMode?: boolean;
   useShortTitle?: boolean;
+  onDismiss?: (id: string) => void;
 }> = ({
   item,
   feedPage,
@@ -445,9 +468,12 @@ const FeedItemCardComponent: FC<{
   weightByPostId,
   compactSearchMode,
   useShortTitle,
+  onDismiss,
 }) => {
-  if (item.type === "project") {
-    return <FeedTournamentTile tile={item.tile} feedPage={feedPage} />;
+  if (item.type === "tile") {
+    return (
+      <PromoTile tile={item.tile} feedPage={feedPage} onDismiss={onDismiss} />
+    );
   }
 
   const { post } = item;
