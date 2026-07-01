@@ -17,10 +17,10 @@ export const JOBS_INSIGHTS = {
   "2030": {
     positive: (
       <>
-        By 2030, roles in <strong>construction</strong> and{" "}
-        <strong>healthcare</strong> are expected to grow due to infrastructure
-        buildouts, an aging population, and legal restrictions unlikely to
-        change in the short-term.
+        By 2030, roles in <strong>design</strong>, <strong>construction</strong>
+        , and <strong>healthcare</strong> are expected to grow due to demand for
+        specialized human expertise, infrastructure buildouts, an aging
+        population, and legal restrictions unlikely to change in the short-term.
       </>
     ),
     negative: (
@@ -41,12 +41,12 @@ export const JOBS_INSIGHTS = {
     ),
     negative: (
       <>
-        By 2035, <strong>software</strong>, <strong>sales</strong> and{" "}
-        <strong>law</strong> are expected to see sharp staff reductions as AI
-        systems take over large portions of coding, outreach, and detailed
-        research work, while <strong>construction workers</strong> see modest
-        gains as robotics have yet to fully displace physical roles by this
-        horizon.
+        By 2035, <strong>financial specialists</strong>, <strong>sales</strong>{" "}
+        and <strong>law</strong> are expected to see sharp staff reductions as
+        AI systems take over large portions of financial analysis, outreach, and
+        detailed research work, while <strong>construction workers</strong> see
+        modest gains as robotics have yet to fully displace physical roles by
+        this horizon.
       </>
     ),
   },
