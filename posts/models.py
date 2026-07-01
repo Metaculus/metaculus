@@ -451,9 +451,7 @@ class PostQuerySet(models.QuerySet):
         Filter posts that live in a user's Personal Project
         """
 
-        return self.filter(
-            default_project__type=Project.ProjectTypes.PERSONAL_PROJECT
-        )
+        return self.filter(default_project__type=Project.ProjectTypes.PERSONAL_PROJECT)
 
     def filter_published(self):
         """
