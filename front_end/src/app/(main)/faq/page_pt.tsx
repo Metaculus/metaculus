@@ -1104,9 +1104,9 @@ export default function FAQ() {
         </p>
         <h4 className="text-lg font-semibold">Múltipla Escolha</h4>
         <p>
-          As perguntas de Múltipla Escolha apresentam um conjunto de opções
-          mutuamente exclusivas e coletivamente exaustivas, e resolvem
-          exatamente em uma delas. As opções podem ser adicionadas ou removidas
+          As perguntas de Múltipla Escolha apresentam um conjunto de opções que
+          são mutuamente exclusivas e cobrem todas as possibilidades, e
+          resolvem exatamente em uma delas. As opções podem ser adicionadas ou removidas
           à medida que a pergunta evolui. Os previsores atribuem uma
           probabilidade a cada opção, e essas probabilidades somam 100%. Por
           exemplo, a pergunta &quot;
@@ -1226,7 +1226,7 @@ export default function FAQ() {
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
             <strong>Múltipla Escolha</strong> é uma única pergunta cujas opções
-            são <i>mutuamente exclusivas</i> e <i>coletivamente exaustivas</i>.
+            são mutuamente exclusivas e cobrem todas as possibilidades.
             Exatamente uma opção será a correta, e as probabilidades previstas
             entre as opções somam 100%. Por ser uma única pergunta, os
             previsores recebem uma única pontuação por ela. Use quando estiver

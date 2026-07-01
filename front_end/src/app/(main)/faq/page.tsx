@@ -1014,8 +1014,9 @@ export default async function FAQ() {
 
         <h4 className="text-lg font-semibold">Multiple Choice</h4>
         <p>
-          Multiple Choice questions present a set of mutually exclusive,
-          collectively exhaustive options and resolve to exactly one of them.
+          Multiple Choice questions present a set of options that are mutually
+          exclusive and cover all possibilities, and resolve to exactly one of
+          them.
           Options can be added or removed as the question evolves. Forecasters
           assign a probability to each option, and those probabilities sum to
           100%. For example, the question &quot;
@@ -1126,7 +1127,7 @@ export default async function FAQ() {
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
             <strong>Multiple Choice</strong> is a single question whose options
-            are <i>mutually exclusive</i> and <i>collectively exhaustive</i>.
+            are mutually exclusive and cover all possibilities.
             Exactly one option will turn out to be correct, and the forecast
             probabilities across options sum to 100%. Because it is one
             question, forecasters receive a single score for it. Use it when
