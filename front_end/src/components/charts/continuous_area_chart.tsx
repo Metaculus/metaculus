@@ -100,6 +100,7 @@ type Props = {
   onCursorChange?: (value: ContinuousAreaHoverState | null) => void;
   hideCP?: boolean;
   hideLabels?: boolean;
+  hideYAxis?: boolean;
   shortLabels?: boolean;
   alignChartTabs?: boolean;
   forceTickCount?: number; // is used on feed page
@@ -123,6 +124,7 @@ const ContinuousAreaChart: FC<Props> = ({
   onCursorChange,
   hideCP,
   hideLabels = false,
+  hideYAxis = false,
   shortLabels = false,
   alignChartTabs,
   forceTickCount,
@@ -154,6 +156,9 @@ const ContinuousAreaChart: FC<Props> = ({
     : chartTheme;
 
   const discrete = question.type === QuestionType.Discrete;
+  const showYAxis =
+    graphType === "cdf" ||
+    (question.type === QuestionType.Discrete && !hideYAxis);
   const paddingTop = graphType === "cdf" || discrete ? TOP_PADDING : 0;
 
   const hasUserData = useMemo(
@@ -375,11 +380,7 @@ const ContinuousAreaChart: FC<Props> = ({
   // const massBelowBounds = dataset[0];
   // const massAboveBounds = dataset[dataset.length - 1];
   const horizontalPadding = useMemo(() => {
-    if (
-      alignChartTabs ||
-      graphType === "cdf" ||
-      question.type === QuestionType.Discrete
-    ) {
+    if (alignChartTabs || showYAxis) {
       const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
       const longestLabelLength = Math.max(
         ...labels.map((label) => label.length)
@@ -390,7 +391,7 @@ const ContinuousAreaChart: FC<Props> = ({
     }
 
     return HORIZONTAL_PADDING;
-  }, [graphType, yScale, question.type, alignChartTabs]);
+  }, [yScale, showYAxis, alignChartTabs]);
 
   const handleMouseLeave = useCallback(() => {
     onCursorChange?.(null);
@@ -750,7 +751,7 @@ const ContinuousAreaChart: FC<Props> = ({
                 />
               ))
             : null}
-          {(graphType === "cdf" || question.type === QuestionType.Discrete) && (
+          {showYAxis && (
             // Prevent Y axis being cut off in edge cases
             <VictoryPortal>
               <VictoryAxis
