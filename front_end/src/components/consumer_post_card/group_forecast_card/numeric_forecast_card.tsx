@@ -50,6 +50,7 @@ const NumericForecastCard: FC<Props> = ({
     setHoveredChoiceName,
     cursorTimestamp,
     viewMode,
+    setViewMode,
     selectedQuestionId,
     setSelectedQuestionId,
   } = useListChartExpanded();
@@ -61,22 +62,20 @@ const NumericForecastCard: FC<Props> = ({
     hiddenCount: number;
     visibleIds: Set<number>;
   }>({ hiddenCount: 0, visibleIds: new Set() });
-  const prevSelectedIdRef = useRef<number | null>(null);
+  // Re-expand on every switch into distributions or change of selection (but not
+  // on unrelated re-renders), so a manual collapse followed by re-entering shows
+  // the active row again.
+  const prevExpandTriggerRef = useRef<string | null>(null);
   useEffect(() => {
-    if (viewMode !== "distributions" || selectedQuestionId == null) {
-      prevSelectedIdRef.current = selectedQuestionId;
-      return;
-    }
+    const trigger = `${viewMode}:${selectedQuestionId ?? ""}`;
+    if (prevExpandTriggerRef.current === trigger) return;
+    prevExpandTriggerRef.current = trigger;
+    if (viewMode !== "distributions" || selectedQuestionId == null) return;
     const { hiddenCount, visibleIds } = collapsedInfoRef.current;
-    if (
-      prevSelectedIdRef.current !== selectedQuestionId &&
-      hiddenCount > 0 &&
-      !visibleIds.has(selectedQuestionId)
-    ) {
+    if (hiddenCount > 0 && !visibleIds.has(selectedQuestionId)) {
       setExpanded(true);
       setIsExpanded(true);
     }
-    prevSelectedIdRef.current = selectedQuestionId;
   }, [viewMode, selectedQuestionId, setIsExpanded]);
 
   if (!isGroupOfQuestionsPost(post)) {
@@ -217,11 +216,10 @@ const NumericForecastCard: FC<Props> = ({
               });
 
         const question = id != null ? questionsById.get(id) : undefined;
+        // Rows with a distribution are always clickable; clicking one switches
+        // into distributions mode and activates that row.
         const isSelectable =
-          isDistributions &&
-          id != null &&
-          !!question &&
-          hasSubquestionDistribution(question);
+          id != null && !!question && hasSubquestionDistribution(question);
 
         return (
           <ForecastChoiceBar
@@ -246,7 +244,10 @@ const NumericForecastCard: FC<Props> = ({
             }
             onClick={
               isSelectable && id != null
-                ? () => setSelectedQuestionId(id)
+                ? () => {
+                    setSelectedQuestionId(id);
+                    setViewMode("distributions");
+                  }
                 : undefined
             }
             isActive={

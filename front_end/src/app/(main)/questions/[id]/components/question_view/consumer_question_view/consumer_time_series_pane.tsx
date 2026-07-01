@@ -19,6 +19,7 @@ const ConsumerTimeSeriesPane: FC<Props> = ({ questions, height = 180 }) => {
     hoveredChoiceName,
     setHoveredChoiceName,
     viewMode,
+    setViewMode,
     selectedQuestionId,
     setSelectedQuestionId,
   } = useListChartExpanded();
@@ -29,14 +30,16 @@ const ConsumerTimeSeriesPane: FC<Props> = ({ questions, height = 180 }) => {
     return questions.find((q) => q.id === selectedQuestionId)?.label ?? null;
   }, [isDistributions, selectedQuestionId, questions]);
 
+  // Clicking a bin activates its distribution and switches into that mode.
   const handleBarClick = useCallback(
     (label: string) => {
       const question = questions.find((q) => q.label === label);
       if (question?.id != null) {
         setSelectedQuestionId(question.id);
+        setViewMode("distributions");
       }
     },
-    [questions, setSelectedQuestionId]
+    [questions, setSelectedQuestionId, setViewMode]
   );
 
   return (
@@ -51,7 +54,7 @@ const ConsumerTimeSeriesPane: FC<Props> = ({ questions, height = 180 }) => {
         hoveredBarLabel={hoveredChoiceName}
         onBarHover={setHoveredChoiceName}
         selectedBarLabel={selectedBarLabel}
-        onBarClick={isDistributions ? handleBarClick : undefined}
+        onBarClick={handleBarClick}
       />
     </div>
   );
