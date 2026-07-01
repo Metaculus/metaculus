@@ -25,7 +25,7 @@ export const getDefaultSubscriptionProps = () =>
           next_trigger_datetime: formatInTimeZone(
             addWeeks(new Date(), 1),
             "UTC",
-            "yyyy-MM-dd'T'HH:mm:ss'Z'"
+            "yyyy-MM-dd'T'00:00:00'Z'"
           ),
           recurrence_interval: "",
         },

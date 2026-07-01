@@ -495,6 +495,7 @@
   "reminderErrorPercentLifetimeRequired": "Please set a percent of lifetime",
   "reminderErrorPercentLifetimeCannotHappen": "This would result in no notification, please select a lower value",
   "reminderErrorPercentLifetimeWouldNotRepeat": "This would result in no repetition. Consider switching to \"Doesn't Repeat\"",
+  "reminderErrorDuplicateDate": "This date is already selected. Please choose a different date.",
   "reminderNotePlaceholder": "Write yourself a note...",
   "reminderCPChangesDescription1": "Notify me when the forecast changes by more than 10%",
   "reminderCPChangesDescription2": "For continuous questions, this is measured by a <a href=\"https://en.wikipedia.org/wiki/Kolmogorov–Smirnov_test\">Kolmogorov–Smirnov test</a>.",
