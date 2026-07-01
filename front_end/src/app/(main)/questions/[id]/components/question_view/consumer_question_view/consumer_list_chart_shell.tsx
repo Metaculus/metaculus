@@ -12,7 +12,10 @@ import {
 } from "react";
 
 import useContainerSize from "@/hooks/use_container_size";
+import { ContinuousAreaGraphType } from "@/types/charts";
 import cn from "@/utils/core/cn";
+
+export type GroupChartViewMode = "timeline" | "distributions";
 
 type ListChartExpandedContextType = {
   setIsExpanded: (value: boolean) => void;
@@ -21,6 +24,12 @@ type ListChartExpandedContextType = {
   chartAreaHeight: number;
   cursorTimestamp: number | null;
   setCursorTimestamp: (ts: number | null) => void;
+  viewMode: GroupChartViewMode;
+  setViewMode: (mode: GroupChartViewMode) => void;
+  selectedQuestionId: number | null;
+  setSelectedQuestionId: (id: number | null) => void;
+  graphType: ContinuousAreaGraphType;
+  setGraphType: (graphType: ContinuousAreaGraphType) => void;
 };
 
 const ListChartExpandedContext = createContext<ListChartExpandedContextType>({
@@ -30,6 +39,12 @@ const ListChartExpandedContext = createContext<ListChartExpandedContextType>({
   chartAreaHeight: 0,
   cursorTimestamp: null,
   setCursorTimestamp: () => {},
+  viewMode: "timeline",
+  setViewMode: () => {},
+  selectedQuestionId: null,
+  setSelectedQuestionId: () => {},
+  graphType: "pmf",
+  setGraphType: () => {},
 });
 
 export const useListChartExpanded = () => useContext(ListChartExpandedContext);
@@ -61,6 +76,11 @@ const ConsumerListChartShell: React.FC<Props> = ({
     null
   );
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
+  const [viewMode, setViewMode] = useState<GroupChartViewMode>("timeline");
+  const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(
+    null
+  );
+  const [graphType, setGraphType] = useState<ContinuousAreaGraphType>("pmf");
 
   const { ref: listColumnRef, height: listColumnHeight } =
     useContainerSize<HTMLDivElement>();
@@ -94,6 +114,12 @@ const ConsumerListChartShell: React.FC<Props> = ({
       chartAreaHeight,
       cursorTimestamp,
       setCursorTimestamp,
+      viewMode,
+      setViewMode,
+      selectedQuestionId,
+      setSelectedQuestionId,
+      graphType,
+      setGraphType,
     }),
     [
       hoveredChoiceName,
@@ -102,6 +128,9 @@ const ConsumerListChartShell: React.FC<Props> = ({
       setIsExpanded,
       cursorTimestamp,
       setCursorTimestamp,
+      viewMode,
+      selectedQuestionId,
+      graphType,
     ]
   );
 

@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
 import { useListChartExpanded } from "@/app/(main)/questions/[id]/components/question_view/consumer_question_view/consumer_list_chart_shell";
+import { hasSubquestionDistribution } from "@/app/(main)/questions/[id]/components/question_view/consumer_question_view/group_distribution_utils";
 import { getEffectiveVisibleCount } from "@/constants/questions";
 import { useHideCP } from "@/contexts/cp_context";
 import { useOverlayMaxHeight } from "@/hooks/use_overlay_max_height";
@@ -44,13 +45,24 @@ const NumericForecastCard: FC<Props> = ({
   const t = useTranslations();
   const { hideCP } = useHideCP();
   const [expanded, setExpanded] = useState(false);
-  const { setIsExpanded, setHoveredChoiceName, cursorTimestamp } =
-    useListChartExpanded();
+  const {
+    setIsExpanded,
+    setHoveredChoiceName,
+    cursorTimestamp,
+    viewMode,
+    selectedQuestionId,
+    setSelectedQuestionId,
+  } = useListChartExpanded();
   const { containerRef, overlayMaxHeight } = useOverlayMaxHeight(expanded);
 
   if (!isGroupOfQuestionsPost(post)) {
     return null;
   }
+
+  const isDistributions = viewMode === "distributions";
+  const questionsById = new Map(
+    (post.group_of_questions?.questions ?? []).map((q) => [q.id, q])
+  );
 
   const isDateGroup = checkGroupOfQuestionsPostType(post, QuestionType.Date);
   const visibleChoicesCount = getEffectiveVisibleCount(
@@ -174,6 +186,13 @@ const NumericForecastCard: FC<Props> = ({
                 minScaledValue,
               });
 
+        const question = id != null ? questionsById.get(id) : undefined;
+        const isSelectable =
+          isDistributions &&
+          id != null &&
+          !!question &&
+          hasSubquestionDistribution(question);
+
         return (
           <ForecastChoiceBar
             key={id}
@@ -194,6 +213,14 @@ const NumericForecastCard: FC<Props> = ({
             }
             onMouseLeave={
               index < hoverUpTo ? () => setHoveredChoiceName(null) : undefined
+            }
+            onClick={
+              isSelectable && id != null
+                ? () => setSelectedQuestionId(id)
+                : undefined
+            }
+            isActive={
+              isDistributions && id != null && selectedQuestionId === id
             }
             className={stretchBars ? "flex-1" : undefined}
           />

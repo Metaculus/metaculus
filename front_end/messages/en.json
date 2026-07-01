@@ -907,6 +907,7 @@
   "parentBackgroundInfo": "Parent Question Background Info",
   "childBackgroundInfo": "Child Question Background Info",
   "histogram": "Histogram",
+  "distributions": "Distributions",
   "frequency": "Frequency",
   "brierScoreForPlayer": "Brier scores for player predictions",
   "scoreHistogram": "Score Histogram",

@@ -57,6 +57,7 @@ import PostScoreData from "../post_score_data";
 import { QuestionLayoutProvider } from "../question_layout/question_layout_context";
 import { QuestionVariantComposer } from "../question_variant_composer";
 import ActionRow from "../question_view/action_row";
+import ConsumerDateGroupChart from "../question_view/consumer_question_view/consumer_date_group_chart";
 import ConsumerGroupChart from "../question_view/consumer_question_view/consumer_group_chart";
 import ConsumerListChartShell from "../question_view/consumer_question_view/consumer_list_chart_shell";
 import ConsumerTimeSeriesPane from "../question_view/consumer_question_view/consumer_time_series_pane";
@@ -404,12 +405,10 @@ export const ConsumerShell: FC<{
                       preselectedQuestionId={preselectedGroupQuestionId}
                     />
                   ) : isDateGroup && postData.group_of_questions ? (
-                    <DateForecastCard
-                      post={postData}
-                      questionsGroup={postData.group_of_questions}
-                      fillHeight
-                      innerChartPaddingX={40}
-                      yearOnlyTicks
+                    <ConsumerDateGroupChart
+                      post={
+                        postData as GroupOfQuestionsPost<QuestionWithNumericForecasts>
+                      }
                     />
                   ) : (
                     <QuestionTimeline

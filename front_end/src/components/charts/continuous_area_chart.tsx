@@ -108,6 +108,7 @@ type Props = {
   withResolutionChip?: boolean;
   withTodayLine?: boolean;
   globalScaling?: Scaling;
+  colorOverride?: string;
   outlineUser?: boolean;
   centerOOBResolution?: boolean;
   animate?: object;
@@ -132,6 +133,7 @@ const ContinuousAreaChart: FC<Props> = ({
   withResolutionChip = true,
   withTodayLine = true,
   globalScaling,
+  colorOverride,
   outlineUser = false,
   centerOOBResolution = false,
   animate,
@@ -645,6 +647,9 @@ const ContinuousAreaChart: FC<Props> = ({
                     style={{
                       data: {
                         fill: (() => {
+                          if (colorOverride && chart.type !== "user") {
+                            return colorOverride;
+                          }
                           if (extraTheme?.area?.style?.data?.fill) {
                             return extraTheme.area.style.data.fill;
                           }
@@ -683,6 +688,9 @@ const ContinuousAreaChart: FC<Props> = ({
                   style={{
                     data: {
                       fill: (() => {
+                        if (colorOverride && chart.type !== "user") {
+                          return colorOverride;
+                        }
                         if (extraTheme?.area?.style?.data?.fill) {
                           return extraTheme.area.style.data.fill;
                         }
@@ -718,6 +726,9 @@ const ContinuousAreaChart: FC<Props> = ({
                   style={{
                     data: {
                       stroke: (() => {
+                        if (colorOverride && chart.type !== "user") {
+                          return colorOverride;
+                        }
                         if (extraTheme?.line?.style?.data?.stroke) {
                           return extraTheme?.line?.style?.data?.stroke;
                         }

@@ -29,6 +29,8 @@ type Props = {
   compact?: boolean;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  onClick?: () => void;
+  isActive?: boolean;
   className?: string;
 };
 
@@ -49,6 +51,8 @@ const ForecastChoiceBar: FC<Props> = ({
   compact = false,
   onMouseEnter,
   onMouseLeave,
+  onClick,
+  isActive = false,
   className,
 }) => {
   const t = useTranslations();
@@ -61,10 +65,15 @@ const ForecastChoiceBar: FC<Props> = ({
     <div
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onClick={onClick}
       className={cn(
         "relative flex w-full items-center justify-between gap-2 rounded-lg bg-transparent font-medium text-gray-800 dark:text-gray-800-dark",
+        onMouseEnter && "group transition-colors",
         onMouseEnter &&
-          "group transition-colors hover:bg-blue-500/20 dark:hover:bg-blue-500-dark/20",
+          !isActive &&
+          "hover:bg-blue-500/20 dark:hover:bg-blue-500-dark/20",
+        isActive && "bg-blue-500/30 dark:bg-blue-500-dark/30",
+        onClick && "cursor-pointer",
         className,
         isBordered
           ? "border border-blue-400 dark:border-blue-400-dark"
@@ -122,7 +131,9 @@ const ForecastChoiceBar: FC<Props> = ({
           className={cn(
             "absolute -inset-[1px] z-0 rounded-lg border",
             onMouseEnter &&
-              "opacity-75 transition-opacity group-hover:opacity-100",
+              (isActive
+                ? "opacity-100 transition-opacity"
+                : "opacity-75 transition-opacity group-hover:opacity-100"),
             {
               "border-2": resolution,
             }

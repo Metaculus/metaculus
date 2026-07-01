@@ -587,6 +587,7 @@
   "parentBackgroundInfo": "Základní informace o nadřazené otázce",
   "childBackgroundInfo": "Základní informace o podřazené otázce",
   "histogram": "Histogram",
+  "distributions": "Rozdělení",
   "frequency": "Frekvence",
   "brierScoreForPlayer": "Brierova skóre pro hráčské předpovědi",
   "scoreHistogram": "Histogram skóre",

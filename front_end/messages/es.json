@@ -596,6 +596,7 @@
   "parentBackgroundInfo": "Información de Fondo de la Pregunta Principal",
   "childBackgroundInfo": "Información de Fondo de la Pregunta Secundaria",
   "histogram": "Histograma",
+  "distributions": "Distribuciones",
   "frequency": "Frecuencia",
   "brierScoreForPlayer": "Puntuaciones Brier para las predicciones de los jugadores",
   "scoreHistogram": "Histograma de Puntuaciones",

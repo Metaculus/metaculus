@@ -710,6 +710,7 @@
   "parentBackgroundInfo": "父問題背景資訊",
   "childBackgroundInfo": "子問題背景資訊",
   "histogram": "直方圖",
+  "distributions": "分佈",
   "frequency": "頻率",
   "brierScoreForPlayer": "玩家預測的Brier分數",
   "scoreHistogram": "分數直方圖",
