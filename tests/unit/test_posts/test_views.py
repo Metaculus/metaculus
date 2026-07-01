@@ -590,9 +590,7 @@ def test_approve_post__updates_global_leaderboard_tags(user1, user1_client):
     )
     # Pre-condition: create-time tag pass produced no leaderboard tag because
     # the timing fields were null.
-    post.projects.set(
-        post.projects.exclude(type=Project.ProjectTypes.LEADERBOARD_TAG)
-    )
+    post.projects.set(post.projects.exclude(type=Project.ProjectTypes.LEADERBOARD_TAG))
 
     url = reverse("post-approve", kwargs={"pk": post.pk})
     response = user1_client.post(
