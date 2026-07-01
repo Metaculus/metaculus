@@ -46,9 +46,6 @@ const HistogramDrawer: FC<Props> = ({
           median={median}
           mean={mean}
           questionStatus={questionData.status}
-          totalForecasters={
-            activeAggregation.history[timestampIndex]?.forecaster_count
-          }
           height={75}
         />
       )

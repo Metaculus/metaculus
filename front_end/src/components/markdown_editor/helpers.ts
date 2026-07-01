@@ -102,9 +102,9 @@ function escapePlainTextSymbols(str: string) {
   });
 
   // escape { that is not correctly used
-  tempStr = tempStr
-    .replace(/([^{]){(?![^}]*})/g, "$1\\{")
-    .replace(/^{(?![^}]*})/g, "\\{");
+  tempStr = tempStr.replace(/{(?![^}]*})/g, (match, offset, input) =>
+    isEscapedAt(input, offset) ? match : `\\${match}`
+  );
 
   return tempStr;
 }

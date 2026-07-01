@@ -281,7 +281,8 @@ const Legend: FC<{
                 showDelayMs={150}
                 placement="top"
                 tooltipContent={item.legendDetail}
-                tooltipClassName="max-w-64 border-blue-400 bg-gray-0 text-left text-gray-800 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-gray-800-dark"
+                variant="light"
+                tooltipClassName="max-w-64 text-left"
                 className="text-[11px] leading-none text-gray-500 dark:text-gray-500-dark"
               >
                 <span

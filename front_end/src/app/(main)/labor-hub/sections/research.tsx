@@ -14,8 +14,8 @@ import {
   SectionHeader,
   ContentParagraph,
 } from "../components/section";
+import { LABOR_HUB_POST_IDS } from "../data";
 import { fetchJobsData, getSubQuestionValue } from "../helpers/fetch_jobs_data";
-import { LABOR_HUB_POST_IDS } from "../helpers/labor_hub_posts";
 
 export function ResearchSection({
   className,
@@ -73,10 +73,10 @@ export function ResearchSection({
             high exposure and vulnerability of lawyers, sales representatives,
             and software developers will translate to significant employment
             reductions in these fields over the next decade, while financial
-            specialists are expected to see only modest growth. These forecasts
-            provide important context to our understanding of workforce
-            prospects by quantifying the predicted impact of AI on employment
-            levels.
+            specialists are expected to see only modest declines. These
+            forecasts provide important context to our understanding of
+            workforce prospects by quantifying the predicted impact of AI on
+            employment levels.
           </ContentParagraph>
         </div>
 

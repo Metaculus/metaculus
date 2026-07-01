@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from "react";
 
-import Tooltip from "@/components/ui/tooltip";
+import Tooltip, { TooltipVariant } from "@/components/ui/tooltip";
 import useContainerSize from "@/hooks/use_container_size";
 import cn from "@/utils/core/cn";
 
@@ -11,6 +11,7 @@ type Props = {
   showDelayMs?: number;
   placement?: "top" | "bottom" | "left" | "right";
   showTooltip?: boolean;
+  variant?: TooltipVariant;
 };
 
 const TruncatedTextTooltip: FC<Props> = ({
@@ -20,6 +21,7 @@ const TruncatedTextTooltip: FC<Props> = ({
   showDelayMs = 200,
   placement = "bottom",
   showTooltip = true,
+  variant,
 }) => {
   const { ref, width } = useContainerSize<HTMLSpanElement>();
   const [isTextTruncated, setIsTextTruncated] = useState(false);
@@ -42,6 +44,7 @@ const TruncatedTextTooltip: FC<Props> = ({
       tooltipContent={text}
       showDelayMs={showDelayMs}
       placement={placement}
+      variant={variant}
       tooltipClassName={cn(tooltipClassName, {
         hidden: !isTextTruncated || !showTooltip,
       })}

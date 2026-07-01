@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 
 import { createComment } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
+import { processMarkdown } from "@/components/markdown_editor/helpers";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { FormErrorMessage, Textarea } from "@/components/ui/form_field";
@@ -128,7 +129,10 @@ const CommentEditor: FC<CommentEditorProps> = ({
     setServerError(undefined);
     setIsLoading(true);
 
-    const markdown = markdownRef.current ?? "";
+    const markdown = processMarkdown(
+      editorRef.current?.getMarkdown() ?? markdownRef.current ?? "",
+      { revert: true, withTwitterPreview: false }
+    );
 
     if (user && !PUBLIC_MINIMAL_UI) {
       const validateNode = validateComment(markdown.trim(), user, t);

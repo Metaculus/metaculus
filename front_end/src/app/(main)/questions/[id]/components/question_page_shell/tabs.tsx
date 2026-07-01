@@ -11,7 +11,7 @@ import MyScoresTab from "./tabs/my_scores";
 import PrivateNotesTab from "./tabs/private_notes";
 import QuestionInfoTab from "./tabs/question_info";
 import QuestionLinksTab from "./tabs/question_links";
-import SimilarQuestionsTab from "./tabs/similar_questions";
+import SimilarQuestionsTab from "../sidebar/similar_questions";
 import TimelineTab from "./tabs/timeline";
 import KeyFactorsFeed from "../key_factors/key_factors_feed";
 import { useQuestionLayout } from "../question_layout/question_layout_context";
