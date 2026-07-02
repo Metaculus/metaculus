@@ -10,6 +10,7 @@ import {
 import { getAlphaTokenSession } from "@/services/session";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
 import { ApiError } from "@/utils/core/errors";
+import { applyCspHeaders, buildCsp } from "@/utils/csp";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 /**
@@ -70,7 +71,15 @@ export async function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-url", request.url);
 
+  const nonce = btoa(crypto.randomUUID());
+  const cspHeader = buildCsp(nonce);
+  requestHeaders.set("x-nonce", nonce);
+  // Next.js reads the nonce from this request header to tag its own scripts
+  // (next/script, framework chunks) - it checks the report-only variant too
+  requestHeaders.set("Content-Security-Policy-Report-Only", cspHeader);
+
   const response = NextResponse.next({ request: { headers: requestHeaders } });
+  applyCspHeaders(response, cspHeader);
   const responseAuth = new AuthCookieManager(response.cookies);
 
   let hasSession = false;
@@ -106,7 +115,15 @@ export async function proxy(request: NextRequest) {
       !pathname.startsWith("/accounts/") &&
       !hasSession
     ) {
-      return NextResponse.rewrite(new URL("/not-found/", request.url));
+      const rewriteResponse = NextResponse.rewrite(
+        new URL("/not-found/", request.url),
+        { request: { headers: requestHeaders } }
+      );
+      applyCspHeaders(rewriteResponse, cspHeader);
+      response.cookies.getAll().forEach((cookie) => {
+        rewriteResponse.cookies.set(cookie);
+      });
+      return rewriteResponse;
     }
   }
 
