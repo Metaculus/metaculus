@@ -222,10 +222,13 @@ def get_posts_feed(
         qs = qs.annotate_user_is_following(user=user).filter(user_is_following=True)
 
     # Filter by access
-    if access == PostFilterSerializer.Access.PRIVATE:
-        qs = qs.filter_private()
-    if access == PostFilterSerializer.Access.PUBLIC:
-        qs = qs.filter_public()
+    access_filters = {
+        PostFilterSerializer.Access.PRIVATE: "filter_private",
+        PostFilterSerializer.Access.PUBLIC: "filter_public",
+        PostFilterSerializer.Access.PERSONAL: "filter_personal",
+    }
+    if access in access_filters:
+        qs = getattr(qs, access_filters[access])()
 
     # Similar posts lookup
     if similar_to_post_id:
