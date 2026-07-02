@@ -410,6 +410,7 @@ export const ConsumerShell: FC<{
                       fillHeight
                       innerChartPaddingX={40}
                       yearOnlyTicks
+                      withHeader
                     />
                   ) : (
                     <QuestionTimeline

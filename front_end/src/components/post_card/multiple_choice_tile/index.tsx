@@ -19,6 +19,7 @@ import { ContinuousQuestionTypes } from "@/constants/questions";
 import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
 import useContainerSize from "@/hooks/use_container_size";
+import useDeferredRender from "@/hooks/use_deferred_render";
 import { ForecastPayload } from "@/services/api/questions/questions.server";
 import { TickFormat, TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
@@ -169,6 +170,11 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
     chartHeight ??
     (forFeedPage ? CHART_HEIGHT : Math.max(height, CHART_HEIGHT));
 
+  const shouldRenderFeedChart = useDeferredRender(
+    forFeedPage,
+    question?.id ?? group?.id
+  );
+
   return (
     <div className="w-full @container">
       <div
@@ -231,7 +237,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
               {...(enableTooltip ? getReferenceProps() : {})}
               className="relative"
             >
-              {isNil(group) ? (
+              {forFeedPage && !shouldRenderFeedChart ? null : isNil(group) ? (
                 <MultipleChoiceChart
                   timestamps={timestamps}
                   actualCloseTime={actualCloseTime}
@@ -248,7 +254,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
                   isEmbedded={isEmbed}
                   onCursorChange={onCursorChange}
                   attachRef={attachRef}
-                  forFeedPage
+                  forFeedPage={forFeedPage}
                   onCursorActiveChange={onCursorActiveChange}
                 />
               ) : (
@@ -271,7 +277,7 @@ export const MultipleChoiceTile: FC<ContinuousMultipleChoiceTileProps> = ({
                   forceShowLinePoints={!isEmbed}
                   attachRef={attachRef}
                   isEmbedded={isEmbed}
-                  forFeedPage
+                  forFeedPage={forFeedPage}
                 />
               )}
             </div>
@@ -319,6 +325,8 @@ export const FanGraphTile: FC<FanGraphTileProps> = ({
     chartHeight ??
     (forFeedPage ? CHART_HEIGHT : Math.max(height, CHART_HEIGHT));
 
+  const shouldRenderFeedChart = useDeferredRender(forFeedPage, group.id);
+
   return (
     <div className="w-full @container">
       <div
@@ -357,15 +365,17 @@ export const FanGraphTile: FC<FanGraphTileProps> = ({
               forFeedPage ? { minHeight: effectiveChartHeight } : undefined
             }
           >
-            <FanChart
-              group={group}
-              height={effectiveChartHeight}
-              pointSize={9}
-              hideCP={hideCP}
-              withTooltip={false}
-              optionsLimit={optionsLimit}
-              forFeedPage
-            />
+            {forFeedPage && !shouldRenderFeedChart ? null : (
+              <FanChart
+                group={group}
+                height={effectiveChartHeight}
+                pointSize={9}
+                hideCP={hideCP}
+                withTooltip={false}
+                optionsLimit={optionsLimit}
+                forFeedPage={forFeedPage}
+              />
+            )}
           </div>
         )}
       </div>

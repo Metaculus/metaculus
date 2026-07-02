@@ -15,6 +15,8 @@ import { useListChartExpanded } from "./consumer_list_chart_shell";
 
 type ChartView = "fan" | "timeline";
 
+const TOGGLE_ROW_HEIGHT = 32;
+
 type Props = {
   post: GroupOfQuestionsPost<QuestionWithNumericForecasts>;
   preselectedQuestionId?: number;
@@ -66,44 +68,45 @@ const FanGraphChartPanel: FC<Props> = ({
       ))}
     </div>
   );
-
-  // Fan view toggle is in-flow (h-6 + mb-2 ≈ 32px); subtract from available height.
   const fanChartHeight =
     chartAreaHeight > 0
-      ? Math.max(100, chartAreaHeight - 32)
+      ? Math.max(100, chartAreaHeight - TOGGLE_ROW_HEIGHT)
       : isCompact
         ? 150
         : undefined;
 
   return (
-    <div className="grid grid-cols-1 grid-rows-1">
-      <div
-        className={cn(
-          "col-start-1 row-start-1",
-          activeView !== "fan" && "pointer-events-none invisible"
-        )}
-      >
-        <div className="mb-2 pl-2">{toggle}</div>
-        <FanChart
-          group={post.group_of_questions}
-          hideCP={hideCP}
-          withTooltip
-          height={fanChartHeight}
-        />
-      </div>
-      <div
-        className={cn(
-          "relative col-start-1 row-start-1",
-          activeView !== "timeline" && "pointer-events-none invisible"
-        )}
-      >
-        <div className="absolute left-2 top-0 z-10">{toggle}</div>
-        <ConsumerGroupChart
-          post={post}
-          preselectedQuestionId={preselectedQuestionId}
-          chartHeight={isCompact ? 150 : 220}
-          visibleQuestions={visibleQuestions}
-        />
+    <div>
+      <div className="mb-2">{toggle}</div>
+      <div className="grid grid-cols-1 grid-rows-1">
+        <div
+          className={cn(
+            "col-start-1 row-start-1",
+            activeView !== "fan" && "pointer-events-none invisible"
+          )}
+        >
+          <FanChart
+            group={post.group_of_questions}
+            hideCP={hideCP}
+            withTooltip
+            height={fanChartHeight}
+            alignPlotLeft
+          />
+        </div>
+        <div
+          className={cn(
+            "col-start-1 row-start-1",
+            activeView !== "timeline" && "pointer-events-none invisible"
+          )}
+        >
+          <ConsumerGroupChart
+            post={post}
+            preselectedQuestionId={preselectedQuestionId}
+            chartHeight={isCompact ? 150 : 220}
+            visibleQuestions={visibleQuestions}
+            reservedHeight={TOGGLE_ROW_HEIGHT}
+          />
+        </div>
       </div>
     </div>
   );
