@@ -1,7 +1,15 @@
 "use client";
 import { FloatingPortal } from "@floating-ui/react";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  FC,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import GroupChart from "@/components/charts/group_chart";
@@ -52,6 +60,7 @@ type Props = {
   withHighlightArea?: boolean;
   withHighlightEndpoint?: boolean;
   hideTooltip?: boolean;
+  headerLeft?: ReactNode;
 };
 
 const MultiChoicesChartView: FC<Props> = ({
@@ -88,6 +97,7 @@ const MultiChoicesChartView: FC<Props> = ({
   withHighlightArea = true,
   withHighlightEndpoint = false,
   hideTooltip = false,
+  headerLeft,
 }) => {
   const { user } = useAuth();
   const isInteracted = useRef(false);
@@ -333,7 +343,9 @@ const MultiChoicesChartView: FC<Props> = ({
                     hideCP={hideCP}
                   />
                 </div>
-              ) : undefined
+              ) : (
+                headerLeft
+              )
             }
             forceShowLinePoints={!embedMode}
           />

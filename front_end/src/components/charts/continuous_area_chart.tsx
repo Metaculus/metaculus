@@ -55,6 +55,7 @@ import {
 import { FEED_CHART_TARGET_POINTS, lttb } from "@/utils/charts/lttb";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 import { isForecastActive } from "@/utils/forecasts/helpers";
+import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { formatResolution } from "@/utils/formatters/resolution";
 import {
   cdfToPmf,
@@ -108,6 +109,10 @@ type Props = {
   withResolutionChip?: boolean;
   withTodayLine?: boolean;
   globalScaling?: Scaling;
+  colorOverride?: string;
+  // Show a value chip at the top of the chart (instead of the cursor circle)
+  // when the cursor is near a quartile line. Used by the group distributions view.
+  cursorQuartileTooltip?: boolean;
   outlineUser?: boolean;
   centerOOBResolution?: boolean;
   animate?: object;
@@ -132,6 +137,8 @@ const ContinuousAreaChart: FC<Props> = ({
   withResolutionChip = true,
   withTodayLine = true,
   globalScaling,
+  colorOverride,
+  cursorQuartileTooltip = false,
   outlineUser = false,
   centerOOBResolution = false,
   animate,
@@ -149,6 +156,7 @@ const ContinuousAreaChart: FC<Props> = ({
     prevWidth.current = chartWidth;
   }, [onChartReady, chartWidth]);
   const [cursorEdge, setCursorEdge] = useState<number | null>(null);
+  const [cursorX, setCursorX] = useState<number | null>(null);
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const actualTheme = extraTheme
@@ -396,6 +404,7 @@ const ContinuousAreaChart: FC<Props> = ({
   const handleMouseLeave = useCallback(() => {
     onCursorChange?.(null);
     setCursorEdge(null);
+    setCursorX(null);
   }, [onCursorChange]);
 
   const handleMouseMove = useCallback(
@@ -503,6 +512,48 @@ const ContinuousAreaChart: FC<Props> = ({
       (1.09 * ((question.inbound_outcome_count || 200) + openBoundCount))
     );
   }, [chartWidth, data, question, horizontalPadding]);
+
+  // When enabled, snap a value chip to the nearest quartile line while the
+  // cursor is close to it (used in the group distributions view). Replaces the
+  // cursor circle at that moment.
+  const quartileTooltip = useMemo(() => {
+    if (!cursorQuartileTooltip || cursorX == null || discrete) return null;
+    const displayChart = charts.find((c) => c.type !== "user_components");
+    if (!displayChart) return null;
+    const innerWidth = chartWidth - 2 * horizontalPadding;
+    if (innerWidth <= 0) return null;
+    const threshold = 10 / innerWidth;
+    let best: { x: number; y: number | null } | null = null;
+    let bestDist = Infinity;
+    for (const line of displayChart.verticalLines) {
+      const d = Math.abs(cursorX - line.x);
+      if (d < bestDist) {
+        bestDist = d;
+        best = line;
+      }
+    }
+    if (!best || bestDist > threshold) return null;
+    return {
+      // Anchor the chip where the curve meets the quartile line (i.e. where the
+      // cursor circle would be).
+      x: best.x,
+      y: best.y ?? 0,
+      label: getPredictionDisplayValue(best.x, {
+        questionType: question.type,
+        scaling: question.scaling,
+        actual_resolve_time: null,
+      }),
+    };
+  }, [
+    cursorQuartileTooltip,
+    cursorX,
+    discrete,
+    charts,
+    chartWidth,
+    horizontalPadding,
+    question.type,
+    question.scaling,
+  ]);
   const CursorContainer = (
     <VictoryCursorContainer
       cursorLabel={"label"}
@@ -518,6 +569,9 @@ const ContinuousAreaChart: FC<Props> = ({
             .map((chart) => ({
               line: chart.graphLine,
               color: (() => {
+                if (colorOverride && chart.type !== "user") {
+                  return colorOverride;
+                }
                 switch (chart.color) {
                   case "orange":
                     return getThemeColor(
@@ -544,6 +598,7 @@ const ContinuousAreaChart: FC<Props> = ({
           paddingLeft={horizontalPadding}
           paddingRight={horizontalPadding}
           discrete={discrete}
+          suppress={!!quartileTooltip}
         />
       }
       onCursorChange={(value: CursorCoordinatesPropType | null) => {
@@ -551,8 +606,10 @@ const ContinuousAreaChart: FC<Props> = ({
 
         if (isNil(x)) {
           onCursorChange?.(null);
+          if (cursorQuartileTooltip) setCursorX(null);
           return;
         }
+        if (cursorQuartileTooltip) setCursorX(x);
 
         const hoverState = charts.reduce<ContinuousAreaHoverState>(
           (acc, el) => {
@@ -645,6 +702,9 @@ const ContinuousAreaChart: FC<Props> = ({
                     style={{
                       data: {
                         fill: (() => {
+                          if (colorOverride && chart.type !== "user") {
+                            return colorOverride;
+                          }
                           if (extraTheme?.area?.style?.data?.fill) {
                             return extraTheme.area.style.data.fill;
                           }
@@ -683,6 +743,9 @@ const ContinuousAreaChart: FC<Props> = ({
                   style={{
                     data: {
                       fill: (() => {
+                        if (colorOverride && chart.type !== "user") {
+                          return colorOverride;
+                        }
                         if (extraTheme?.area?.style?.data?.fill) {
                           return extraTheme.area.style.data.fill;
                         }
@@ -718,6 +781,9 @@ const ContinuousAreaChart: FC<Props> = ({
                   style={{
                     data: {
                       stroke: (() => {
+                        if (colorOverride && chart.type !== "user") {
+                          return colorOverride;
+                        }
                         if (extraTheme?.line?.style?.data?.stroke) {
                           return extraTheme?.line?.style?.data?.stroke;
                         }
@@ -834,64 +900,79 @@ const ContinuousAreaChart: FC<Props> = ({
               }}
             />
           ))}
-          {/* Left/Right borders at bounds if requested */}
-          {(question.scaling.range_min ?? 1) <=
-            (globalScaling?.range_min ?? 0) && (
-            <VictoryLine
-              data={[
-                { x: 0, y: yDomain[0] },
-                { x: 0, y: yDomain[1] * 0.9 },
-              ]}
-              style={{
-                data: {
-                  stroke: getThemeColor(METAC_COLORS.gray["500"]),
-                  strokeWidth: 0.5,
-                },
-              }}
-            />
-          )}
-          {(question.scaling.range_max ?? 0) >=
-            (globalScaling?.range_max ?? 1) && (
-            <VictoryLine
-              data={[
-                { x: 1, y: yDomain[0] },
-                { x: 1, y: yDomain[1] * 0.9 },
-              ]}
-              style={{
-                data: {
-                  stroke: getThemeColor(METAC_COLORS.gray["500"]),
-                  strokeWidth: 0.5,
-                },
-              }}
-            />
-          )}
-          {charts.map((chart, k) =>
-            chart.verticalLines.map((line, index) => (
+          {/* Left/Right borders at bounds — only meaningful on a shared (global)
+              scale. Gated on globalScaling so standalone charts (prediction
+              inputs, single distributions) don't render an asymmetric edge line. */}
+          {globalScaling &&
+            (question.scaling.range_min ?? 1) <=
+              (globalScaling.range_min ?? 0) && (
               <VictoryLine
-                key={`${k}-${index}`}
                 data={[
-                  { x: line.x, y: 0 },
-                  { x: line.x, y: line.y },
+                  { x: 0, y: yDomain[0] },
+                  { x: 0, y: yDomain[1] * 0.9 },
                 ]}
                 style={{
                   data: {
-                    stroke: (() => {
-                      switch (chart.color) {
-                        case "orange":
-                          return getThemeColor(METAC_COLORS.orange["700"]);
-                        case "gray":
-                          return getThemeColor(METAC_COLORS.gray["500"]);
-                        case "purple":
-                          return getThemeColor(METAC_COLORS.purple["700"]);
-                        default:
-                          return undefined;
-                      }
-                    })(),
-                    strokeDasharray: CHART_DASH.quartile,
+                    stroke: getThemeColor(METAC_COLORS.gray["500"]),
+                    strokeWidth: 0.5,
                   },
                 }}
               />
-            ))
+            )}
+          {globalScaling &&
+            (question.scaling.range_max ?? 0) >=
+              (globalScaling.range_max ?? 1) && (
+              <VictoryLine
+                data={[
+                  { x: 1, y: yDomain[0] },
+                  { x: 1, y: yDomain[1] * 0.9 },
+                ]}
+                style={{
+                  data: {
+                    stroke: getThemeColor(METAC_COLORS.gray["500"]),
+                    strokeWidth: 0.5,
+                  },
+                }}
+              />
+            )}
+          {charts.map((chart, k) =>
+            chart.verticalLines.map((line, index) => {
+              // The quartile line under the cursor becomes solid and thicker.
+              const isActiveQuartile =
+                !!quartileTooltip && quartileTooltip.x === line.x;
+              return (
+                <VictoryLine
+                  key={`${k}-${index}`}
+                  data={[
+                    { x: line.x, y: 0 },
+                    { x: line.x, y: line.y },
+                  ]}
+                  style={{
+                    data: {
+                      stroke: (() => {
+                        if (colorOverride && chart.type !== "user") {
+                          return colorOverride;
+                        }
+                        switch (chart.color) {
+                          case "orange":
+                            return getThemeColor(METAC_COLORS.orange["700"]);
+                          case "gray":
+                            return getThemeColor(METAC_COLORS.gray["500"]);
+                          case "purple":
+                            return getThemeColor(METAC_COLORS.purple["700"]);
+                          default:
+                            return undefined;
+                        }
+                      })(),
+                      strokeDasharray: isActiveQuartile
+                        ? undefined
+                        : CHART_DASH.quartile,
+                      strokeWidth: isActiveQuartile ? 2 : undefined,
+                    },
+                  }}
+                />
+              );
+            })
           )}
 
           {/* Today's date dot for date questions */}
@@ -1077,6 +1158,24 @@ const ContinuousAreaChart: FC<Props> = ({
               barWidth={barWidth}
             />
           )}
+
+          {/* Value chip snapped to the nearest quartile line on hover */}
+          {quartileTooltip && (
+            <VictoryScatter
+              data={[{ x: quartileTooltip.x, y: quartileTooltip.y }]}
+              dataComponent={
+                <VictoryPortal>
+                  <ChartValueBox
+                    isCursorActive
+                    chartWidth={chartWidth}
+                    rightPadding={horizontalPadding}
+                    colorOverride={colorOverride}
+                    getCursorValue={() => quartileTooltip.label}
+                  />
+                </VictoryPortal>
+              }
+            />
+          )}
         </VictoryChart>
       )}
     </div>
@@ -1135,6 +1234,16 @@ function generateNumericAreaGraph(data: {
   } else {
     if (graphType === "cdf") {
       cdf.forEach((value, index) => {
+        if (index === 0) {
+          // extend to the left edge so the area fills the full width
+          graph.push({ x: -1e-10, y: value });
+          return;
+        }
+        if (index === cdf.length - 1) {
+          // extend to the right edge so the area fills the full width
+          graph.push({ x: 1 + 1e-10, y: value });
+          return;
+        }
         graph.push({ x: (index - 0.5) / (cdf.length - 1), y: value });
       });
     } else {

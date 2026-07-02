@@ -6,6 +6,7 @@ import { FC, useEffect } from "react";
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { useCommentsFeedSafe } from "@/app/(main)/components/comments_feed_provider";
 import { Tabs, TabsList, TabsTab } from "@/components/ui/tabs";
+import { useHideCP } from "@/contexts/cp_context";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
@@ -13,6 +14,7 @@ import cn from "@/utils/core/cn";
 import { isDisplayableQuestionLink } from "../key_factors/utils";
 import { shouldPostShowUserScores } from "../post_score_data/utils";
 import { useQuestionLayout } from "../question_layout/question_layout_context";
+import { isContinuousGroupPost } from "../question_view/consumer_question_view/group_distribution_utils";
 import { hasTimeline } from "../question_view/consumer_question_view/timeline";
 
 type TabKey =
@@ -23,6 +25,7 @@ type TabKey =
   | "question-links"
   | "private-notes"
   | "timeline"
+  | "distributions"
   | "similar-questions";
 
 type TabDef = {
@@ -51,6 +54,7 @@ const QuestionPageShellTabBar: FC<Props> = ({ post, variant, className }) => {
   const { activeTab, setActiveTab } = useQuestionLayout();
 
   const isSm = useBreakpoint("sm");
+  const { hideCP } = useHideCP();
   const commentsFeed = useCommentsFeedSafe();
   const commentCount =
     typeof commentsFeed?.totalCount === "number"
@@ -85,6 +89,9 @@ const QuestionPageShellTabBar: FC<Props> = ({ post, variant, className }) => {
     { key: "comments", label: t("comments"), count: commentCount },
     ...(!isSm && hasTimeline(post)
       ? [{ key: "timeline" as TabKey, label: t("timeline") }]
+      : []),
+    ...(!isSm && !hideCP && isContinuousGroupPost(post)
+      ? [{ key: "distributions" as TabKey, label: t("distributions") }]
       : []),
     { key: "key-factors", label: t("keyFactors"), count: keyFactorsCount },
     { key: "info", label: t("info") },

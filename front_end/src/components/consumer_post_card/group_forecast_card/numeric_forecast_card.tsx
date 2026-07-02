@@ -2,9 +2,10 @@
 
 import { isNil } from "lodash";
 import { useLocale, useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 
 import { useListChartExpanded } from "@/app/(main)/questions/[id]/components/question_view/consumer_question_view/consumer_list_chart_shell";
+import { hasSubquestionDistribution } from "@/app/(main)/questions/[id]/components/question_view/consumer_question_view/group_distribution_utils";
 import { getEffectiveVisibleCount } from "@/constants/questions";
 import { useHideCP } from "@/contexts/cp_context";
 import { useOverlayMaxHeight } from "@/hooks/use_overlay_max_height";
@@ -44,13 +45,47 @@ const NumericForecastCard: FC<Props> = ({
   const t = useTranslations();
   const { hideCP } = useHideCP();
   const [expanded, setExpanded] = useState(false);
-  const { setIsExpanded, setHoveredChoiceName, cursorTimestamp } =
-    useListChartExpanded();
+  const {
+    setIsExpanded,
+    setHoveredChoiceName,
+    cursorTimestamp,
+    viewMode,
+    setViewMode,
+    selectedQuestionId,
+    setSelectedQuestionId,
+  } = useListChartExpanded();
   const { containerRef, overlayMaxHeight } = useOverlayMaxHeight(expanded);
+
+  // Snapshot (updated during render below) so the effect can auto-expand the
+  // list when the active distribution row is hidden behind the "N others" fold.
+  const collapsedInfoRef = useRef<{
+    hiddenCount: number;
+    visibleIds: Set<number>;
+  }>({ hiddenCount: 0, visibleIds: new Set() });
+  // Re-expand on every switch into distributions or change of selection (but not
+  // on unrelated re-renders), so a manual collapse followed by re-entering shows
+  // the active row again.
+  const prevExpandTriggerRef = useRef<string | null>(null);
+  useEffect(() => {
+    const trigger = `${viewMode}:${selectedQuestionId ?? ""}`;
+    if (prevExpandTriggerRef.current === trigger) return;
+    prevExpandTriggerRef.current = trigger;
+    if (viewMode !== "distributions" || selectedQuestionId == null) return;
+    const { hiddenCount, visibleIds } = collapsedInfoRef.current;
+    if (hiddenCount > 0 && !visibleIds.has(selectedQuestionId)) {
+      setExpanded(true);
+      setIsExpanded(true);
+    }
+  }, [viewMode, selectedQuestionId, setIsExpanded]);
 
   if (!isGroupOfQuestionsPost(post)) {
     return null;
   }
+
+  const isDistributions = viewMode === "distributions";
+  const questionsById = new Map(
+    (post.group_of_questions?.questions ?? []).map((q) => [q.id, q])
+  );
 
   const isDateGroup = checkGroupOfQuestionsPostType(post, QuestionType.Date);
   const visibleChoicesCount = getEffectiveVisibleCount(
@@ -79,6 +114,12 @@ const NumericForecastCard: FC<Props> = ({
   const isPostClosed = post.status === PostStatus.CLOSED;
   const hiddenCount = Math.max(0, sortedChoices.length - visibleChoicesCount);
   const collapsedChoices = sortedChoices.slice(0, visibleChoicesCount);
+  collapsedInfoRef.current = {
+    hiddenCount,
+    visibleIds: new Set(
+      collapsedChoices.map((c) => c.id).filter((id): id is number => id != null)
+    ),
+  };
 
   // Anchor all sub-questions to the same timestamp. Use the global latest
   // across all choices so resolved rows (sorted first) don't anchor to a
@@ -174,6 +215,12 @@ const NumericForecastCard: FC<Props> = ({
                 minScaledValue,
               });
 
+        const question = id != null ? questionsById.get(id) : undefined;
+        // Rows with a distribution are always clickable; clicking one switches
+        // into distributions mode and activates that row.
+        const isSelectable =
+          id != null && !!question && hasSubquestionDistribution(question);
+
         return (
           <ForecastChoiceBar
             key={id}
@@ -194,6 +241,17 @@ const NumericForecastCard: FC<Props> = ({
             }
             onMouseLeave={
               index < hoverUpTo ? () => setHoveredChoiceName(null) : undefined
+            }
+            onClick={
+              isSelectable && id != null
+                ? () => {
+                    setSelectedQuestionId(id);
+                    setViewMode("distributions");
+                  }
+                : undefined
+            }
+            isActive={
+              isDistributions && id != null && selectedQuestionId === id
             }
             className={stretchBars ? "flex-1" : undefined}
           />

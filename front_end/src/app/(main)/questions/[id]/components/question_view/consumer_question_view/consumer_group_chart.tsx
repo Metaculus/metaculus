@@ -3,17 +3,23 @@
 import { FC } from "react";
 
 import GroupTimeline from "@/app/(main)/questions/[id]/components/group_timeline";
+import { useHideCP } from "@/contexts/cp_context";
 import { GroupOfQuestionsPost, PostStatus } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
 
 import { useListChartExpanded } from "./consumer_list_chart_shell";
+import GroupChartViewTabs from "./group_chart_view_tabs";
+import GroupDistributionsView from "./group_distributions_view";
 
 type Props = {
   post: GroupOfQuestionsPost<QuestionWithNumericForecasts>;
   preselectedQuestionId?: number;
   chartHeight?: number;
   visibleQuestions?: QuestionWithNumericForecasts[];
+  // Suppress the internal Timeline/Distributions switcher when a parent (the
+  // fan-graph panel) owns the tab bar.
+  hideViewTabs?: boolean;
 };
 
 const ConsumerGroupChart: FC<Props> = ({
@@ -21,12 +27,16 @@ const ConsumerGroupChart: FC<Props> = ({
   preselectedQuestionId,
   chartHeight,
   visibleQuestions,
+  hideViewTabs = false,
 }) => {
+  const { hideCP } = useHideCP();
   const {
     hoveredChoiceName,
     setHoveredChoiceName,
     chartAreaHeight,
     setCursorTimestamp,
+    viewMode,
+    setViewMode,
   } = useListChartExpanded();
   const { open_time, actual_close_time, scheduled_close_time, status } = post;
   const refCloseTime = actual_close_time ?? scheduled_close_time;
@@ -43,6 +53,18 @@ const ConsumerGroupChart: FC<Props> = ({
       ? Math.max(80, chartAreaHeight - CHART_HEADER_HEIGHT)
       : chartHeight;
 
+  // When CP is hidden we keep the plain timeline and hide the view switcher.
+  if (!hideCP && viewMode === "distributions") {
+    return (
+      <GroupDistributionsView
+        post={post}
+        visibleQuestions={visibleQuestions}
+        height={effectiveChartHeight}
+        hideViewTabs={hideViewTabs}
+      />
+    );
+  }
+
   return (
     <div onMouseLeave={() => setHoveredChoiceName(null)}>
       <GroupTimeline
@@ -57,6 +79,11 @@ const ConsumerGroupChart: FC<Props> = ({
         chartHeight={effectiveChartHeight}
         onCursorChange={setCursorTimestamp}
         hideTooltip
+        headerLeft={
+          hideCP || hideViewTabs ? undefined : (
+            <GroupChartViewTabs value={viewMode} onChange={setViewMode} />
+          )
+        }
       />
     </div>
   );

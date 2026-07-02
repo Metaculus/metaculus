@@ -82,7 +82,7 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
               {(!!zoom || !!headerExtra) && (
                 <div
                   className={cn(
-                    "hidden items-center gap-2 self-end md:flex",
+                    "ChartZoomControls hidden items-center gap-2 self-end md:flex",
                     !!headerLeft ? "md:ml-auto" : "ml-auto"
                   )}
                 >

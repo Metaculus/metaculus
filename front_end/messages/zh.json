@@ -585,6 +585,7 @@
   "parentBackgroundInfo": "家長問題背景資訊",
   "childBackgroundInfo": "兒童問題背景訊息",
   "histogram": "直方圖",
+  "distributions": "分布",
   "frequency": "頻率",
   "brierScoreForPlayer": "Brier 球員預測得分",
   "scoreHistogram": "分數直方圖",

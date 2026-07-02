@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 import FanChart from "@/components/charts/fan_chart";
 import Button from "@/components/ui/button";
@@ -13,7 +13,7 @@ import cn from "@/utils/core/cn";
 import ConsumerGroupChart from "./consumer_group_chart";
 import { useListChartExpanded } from "./consumer_list_chart_shell";
 
-type ChartView = "fan" | "timeline";
+type ChartView = "fan" | "timeline" | "distributions";
 
 type Props = {
   post: GroupOfQuestionsPost<QuestionWithNumericForecasts>;
@@ -30,16 +30,49 @@ const FanGraphChartPanel: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { hideCP } = useHideCP();
-  const { chartAreaHeight } = useListChartExpanded();
+  const { chartAreaHeight, viewMode, setViewMode } = useListChartExpanded();
   const isConsumer = variant === "consumer";
-  const [activeView, setActiveView] = useState<ChartView>(
-    isConsumer ? "timeline" : "fan"
-  );
+
+  // "fan" is orthogonal to the shared timeline/distributions view mode. The
+  // distributions/timeline choice lives in context so the left pane (bins) can
+  // drive it, while fan is a local overlay on top of that.
+  const [showFan, setShowFan] = useState(!isConsumer);
+
+  // Selecting a distribution (e.g. clicking a bin) forces us out of the fan view.
+  useEffect(() => {
+    if (isConsumer && viewMode === "distributions") {
+      setShowFan(false);
+    }
+  }, [isConsumer, viewMode]);
+
+  const activeView: ChartView = showFan
+    ? "fan"
+    : viewMode === "distributions"
+      ? "distributions"
+      : "timeline";
+
+  const selectView = (view: ChartView) => {
+    if (view === "fan") {
+      setShowFan(true);
+      setViewMode("timeline");
+      return;
+    }
+    setShowFan(false);
+    setViewMode(view === "distributions" ? "distributions" : "timeline");
+  };
 
   const views: { value: ChartView; label: string }[] = isConsumer
     ? [
         { value: "timeline", label: t("timeline") },
         { value: "fan", label: t("fanChart") },
+        ...(hideCP
+          ? []
+          : [
+              {
+                value: "distributions" as ChartView,
+                label: t("distributions"),
+              },
+            ]),
       ]
     : [
         { value: "fan", label: t("fanChart") },
@@ -53,7 +86,7 @@ const FanGraphChartPanel: FC<Props> = ({
       {views.map(({ value, label }) => (
         <Button
           key={value}
-          onClick={() => setActiveView(value)}
+          onClick={() => selectView(value)}
           className={cn(
             "h-6 rounded border-0 px-1 py-0.5 text-sm font-normal leading-4",
             activeView === value
@@ -80,7 +113,7 @@ const FanGraphChartPanel: FC<Props> = ({
       <div
         className={cn(
           "col-start-1 row-start-1",
-          activeView !== "fan" && "pointer-events-none invisible"
+          !showFan && "pointer-events-none invisible"
         )}
       >
         <div className="mb-2 pl-2">{toggle}</div>
@@ -94,7 +127,7 @@ const FanGraphChartPanel: FC<Props> = ({
       <div
         className={cn(
           "relative col-start-1 row-start-1",
-          activeView !== "timeline" && "pointer-events-none invisible"
+          showFan && "pointer-events-none invisible"
         )}
       >
         <div className="absolute left-2 top-0 z-10">{toggle}</div>
@@ -103,6 +136,7 @@ const FanGraphChartPanel: FC<Props> = ({
           preselectedQuestionId={preselectedQuestionId}
           chartHeight={isCompact ? 150 : 220}
           visibleQuestions={visibleQuestions}
+          hideViewTabs
         />
       </div>
     </div>
