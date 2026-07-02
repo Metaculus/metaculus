@@ -25,6 +25,14 @@ class ProfileApi extends ApiService {
     );
   }
 
+  async getProfileIdByUsername(
+    username: string
+  ): Promise<{ id: number; username: string } | null> {
+    return await this.get<{ id: number; username: string } | null>(
+      `/users/by-username/${encodeURIComponent(username)}/`
+    );
+  }
+
   async searchUsers(query: string, postId?: number) {
     const params: Record<string, string | number> = { search: query };
     if (postId) {

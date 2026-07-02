@@ -14,6 +14,7 @@ type Props = {
   preselectedQuestionId?: number;
   chartHeight?: number;
   visibleQuestions?: QuestionWithNumericForecasts[];
+  reservedHeight?: number;
 };
 
 const ConsumerGroupChart: FC<Props> = ({
@@ -21,6 +22,7 @@ const ConsumerGroupChart: FC<Props> = ({
   preselectedQuestionId,
   chartHeight,
   visibleQuestions,
+  reservedHeight = 0,
 }) => {
   const {
     hoveredChoiceName,
@@ -40,7 +42,7 @@ const ConsumerGroupChart: FC<Props> = ({
   const CHART_HEADER_HEIGHT = 44;
   const effectiveChartHeight =
     chartAreaHeight > 0
-      ? Math.max(80, chartAreaHeight - CHART_HEADER_HEIGHT)
+      ? Math.max(80, chartAreaHeight - reservedHeight - CHART_HEADER_HEIGHT)
       : chartHeight;
 
   return (
