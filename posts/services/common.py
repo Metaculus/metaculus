@@ -455,6 +455,12 @@ def approve_post(
         ],
     )
 
+    # Now that the question timing fields are finalized, recompute global
+    # leaderboard tags — at create time these were skipped because the
+    # required open_time / scheduled_close_time were not yet set (relevant
+    # for duplicated posts in particular, whose timing fields are cleared).
+    update_global_leaderboard_tags(post)
+
     # Automatically update secondary and default project forecasting end date
     for project in post.get_related_projects():
         if project.type in [

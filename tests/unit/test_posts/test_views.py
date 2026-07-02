@@ -11,6 +11,8 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
 from questions.models import Question
+from scoring.constants import LeaderboardScoreTypes
+from scoring.models import Leaderboard
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
@@ -553,6 +555,59 @@ def test_approve_post(user1, user1_client, question_binary):
         },
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@freeze_time("2024-11-17T12:00Z")
+def test_approve_post__updates_global_leaderboard_tags(user1, user1_client):
+    # Set up a matching global leaderboard on the site-main project so that
+    # approval-time question dates fall inside its window.
+    site_main = get_site_main_project()
+    Leaderboard.objects.create(
+        project=site_main,
+        score_type=LeaderboardScoreTypes.PEER_GLOBAL,
+        start_time=make_aware(datetime(2024, 1, 1)),
+        end_time=make_aware(datetime(2025, 1, 1)),
+    )
+
+    tournament = factory_project(
+        type=Project.ProjectTypes.TOURNAMENT,
+        visibility=Project.Visibility.NORMAL,
+        override_permissions={user1.pk: ObjectPermission.ADMIN},
+    )
+    # Simulate a duplicated post: question has no open/close/resolve times set
+    # yet (frontend clears them for duplicates), so create-time tag update
+    # cannot compute a leaderboard window.
+    question = create_question(question_type=Question.QuestionType.BINARY)
+    question.open_time = None
+    question.scheduled_close_time = None
+    question.scheduled_resolve_time = None
+    question.save()
+    post = factory_post(
+        author=user1,
+        curation_status=Post.CurationStatus.PENDING,
+        default_project=tournament,
+        question=question,
+    )
+    # Pre-condition: create-time tag pass produced no leaderboard tag because
+    # the timing fields were null.
+    post.projects.set(post.projects.exclude(type=Project.ProjectTypes.LEADERBOARD_TAG))
+
+    url = reverse("post-approve", kwargs={"pk": post.pk})
+    response = user1_client.post(
+        url,
+        {
+            "published_at": "2024-11-17T11:00Z",
+            "open_time": "2024-11-17T11:00Z",
+            "cp_reveal_time": "2024-11-18T11:00Z",
+            "scheduled_close_time": "2024-11-19T11:00Z",
+            "scheduled_resolve_time": "2024-11-19T11:00Z",
+        },
+    )
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    post.refresh_from_db()
+    leaderboard_tags = post.projects.filter(type=Project.ProjectTypes.LEADERBOARD_TAG)
+    assert leaderboard_tags.count() == 1
 
 
 def test_repost(user1, user1_client, user2, user2_client, question_binary):
