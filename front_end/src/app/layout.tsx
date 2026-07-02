@@ -2,7 +2,7 @@ import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
@@ -92,6 +92,7 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const csrfToken = cookieStore.get(CSRF_COOKIE_NAME)?.value || null;
   const feedLayoutCookie = cookieStore.get(FEED_LAYOUT_COOKIE)?.value;
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
     <html
@@ -102,7 +103,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <PublicSettingsScript publicSettings={publicSettings} />
+        <PublicSettingsScript publicSettings={publicSettings} nonce={nonce} />
         {/* Set default consent mode before GA loads */}
         <Script id="default-consent" strategy="beforeInteractive">
           {`
@@ -123,7 +124,7 @@ export default async function RootLayout({
             <PolyfillProvider>
               <CSPostHogProvider locale={locale}>
                 <AuthProvider user={user} locale={locale} csrfToken={csrfToken}>
-                  <AppThemeProvider>
+                  <AppThemeProvider nonce={nonce}>
                     <NextIntlClientProvider messages={messages}>
                       <PublicSettingsProvider settings={publicSettings}>
                         <ModalProvider>
