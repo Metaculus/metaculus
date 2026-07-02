@@ -111,6 +111,11 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         a better choice.
         """,
     )
+    latest_aggregate_forecast = models.JSONField(
+        null=True,
+        blank=True,
+        help_text="Serialized form of the latest aggregate forecast for this question.",
+    )
 
     # description fields
     title = models.CharField(max_length=2000)
