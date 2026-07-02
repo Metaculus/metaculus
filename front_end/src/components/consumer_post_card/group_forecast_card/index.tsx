@@ -1,6 +1,7 @@
 import { FC } from "react";
 
 import { useHideCP } from "@/contexts/cp_context";
+import useDeferredRender from "@/hooks/use_deferred_render";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { getGroupForecastAvailability } from "@/utils/questions/forecastAvailability";
@@ -22,6 +23,8 @@ type Props = {
   forFeedPage?: boolean;
 };
 
+const FEED_TIME_SERIES_CHART_HEIGHT = 130;
+
 const GroupForecastCard: FC<Props> = ({
   post,
   compact,
@@ -41,16 +44,25 @@ const GroupForecastCard: FC<Props> = ({
     (forecastAvailability &&
       (forecastAvailability.isEmpty || !!forecastAvailability.cpRevealsOn));
 
+  const shouldRenderFeedTimeSeries = useDeferredRender(!!forFeedPage, post.id);
+
   if (
     post.group_of_questions?.graph_type === GroupOfQuestionsGraphType.FanGraph
   ) {
+    if (shouldHideChart) {
+      return null;
+    }
+
+    if (forFeedPage && !shouldRenderFeedTimeSeries) {
+      return <div style={{ minHeight: FEED_TIME_SERIES_CHART_HEIGHT }} />;
+    }
+
     const sortedQuestions = sortGroupPredictionOptions(
       post.group_of_questions?.questions,
       post.group_of_questions
     );
 
-    // Don't render TimeSeriesChart if should hide chart
-    return shouldHideChart ? null : (
+    return (
       <TimeSeriesChart questions={sortedQuestions} forFeedPage={forFeedPage} />
     );
   }
@@ -92,7 +104,11 @@ const GroupForecastCard: FC<Props> = ({
       );
     }
     return (
-      <DateForecastCard post={post} questionsGroup={post.group_of_questions} />
+      <DateForecastCard
+        post={post}
+        questionsGroup={post.group_of_questions}
+        forFeedPage={forFeedPage}
+      />
     );
   }
 
