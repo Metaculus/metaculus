@@ -112,7 +112,6 @@ def comments_list_api_view(request: Request):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
 def comment_delete_api_view(request: Request, pk: int):
     comment = get_object_or_404(Comment, pk=pk)
 
