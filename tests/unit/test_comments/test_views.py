@@ -238,6 +238,58 @@ def test_upvote_own_comment(user1, user2, user2_client, user1_client):
     assert response.status_code == 200
 
 
+class TestCommentDelete:
+    def test_author_can_delete_own_comment(self, user1, user1_client):
+        post = factory_post(author=user1)
+        comment = factory_comment(author=user1, on_post=post)
+
+        response = user1_client.post(
+            reverse("comment-delete", kwargs={"pk": comment.pk})
+        )
+
+        assert response.status_code == 200
+        comment.refresh_from_db()
+        assert comment.is_soft_deleted is True
+
+    def test_non_author_cannot_delete(self, user1, user2_client):
+        post = factory_post(author=user1)
+        comment = factory_comment(author=user1, on_post=post)
+
+        response = user2_client.post(
+            reverse("comment-delete", kwargs={"pk": comment.pk})
+        )
+
+        assert response.status_code == 403
+        comment.refresh_from_db()
+        assert comment.is_soft_deleted is False
+
+    def test_staff_can_delete_any_comment(self, user1, user_admin, user_admin_client):
+        user_admin.is_staff = True
+        user_admin.save(update_fields=["is_staff"])
+        post = factory_post(author=user1)
+        comment = factory_comment(author=user1, on_post=post)
+
+        response = user_admin_client.post(
+            reverse("comment-delete", kwargs={"pk": comment.pk})
+        )
+
+        assert response.status_code == 200
+        comment.refresh_from_db()
+        assert comment.is_soft_deleted is True
+
+    def test_anonymous_cannot_delete(self, user1, anon_client):
+        post = factory_post(author=user1)
+        comment = factory_comment(author=user1, on_post=post)
+
+        response = anon_client.post(
+            reverse("comment-delete", kwargs={"pk": comment.pk})
+        )
+
+        assert response.status_code in (401, 403)
+        comment.refresh_from_db()
+        assert comment.is_soft_deleted is False
+
+
 class TestCommentCreation:
     url = reverse("comment-create")
 

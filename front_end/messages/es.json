@@ -108,6 +108,8 @@
   "commentsReadGuidelines": "Lee nuestras directrices",
   "commentsLearnMarkdown": "Aprende sobre nuestro Markdown",
   "commentDeleted": "Comentario eliminado",
+  "deleteCommentConfirmTitle": "¿Eliminar comentario?",
+  "deleteCommentConfirmDescription": "Este comentario se eliminará. Esta acción no se puede deshacer.",
   "commentsReportCommentHeading": "Reportar este comentario",
   "commentsReportCommentDescription": "¿Hay algo mal con este comentario? Ayúdanos a mantener nuestra comunidad en buen estado reportándolo.",
   "commentsReportSpam": "Reportar como spam",

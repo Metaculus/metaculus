@@ -274,6 +274,8 @@
   "commentsReadGuidelines": "Read our guidelines",
   "commentsLearnMarkdown": "Learn about our Markdown",
   "commentDeleted": "Comment deleted",
+  "deleteCommentConfirmTitle": "Delete comment?",
+  "deleteCommentConfirmDescription": "This comment will be removed. This can't be undone.",
   "commentsReportCommentHeading": "Report this comment",
   "commentsReportCommentDescription": "Is there something wrong with this comment? Please help us keep our community great by reporting it.",
   "commentsReportSpam": "Report as spam",
