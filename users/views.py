@@ -69,6 +69,22 @@ def current_user_api_view(request):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
+def user_profile_by_username_api_view(request, username: str):
+    """
+    Lookup a user's id by username (case-insensitive).
+    Used by the frontend to redirect /accounts/profile/<username>/ to
+    /accounts/profile/<id>/.
+    """
+    qs = User.objects.all()
+    if not request.user.is_staff:
+        qs = qs.filter(is_active=True, is_spam=False)
+
+    user = get_object_or_404(qs, username__iexact=username)
+    return Response({"id": user.id, "username": user.username})
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
 def user_profile_api_view(request, pk: int):
     current_user = request.user
 

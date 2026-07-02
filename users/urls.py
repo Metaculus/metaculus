@@ -7,6 +7,11 @@ urlpatterns = [
     path("users/me/", views.current_user_api_view, name="user-me"),
     path("users/<int:pk>/", views.user_profile_api_view, name="user-profile"),
     path(
+        "users/by-username/<str:username>/",
+        views.user_profile_by_username_api_view,
+        name="user-profile-by-username",
+    ),
+    path(
         "users/<int:pk>/mark-as-spam/",
         views.mark_as_spam_user_api_view,
         name="user-mark-as-spam",
