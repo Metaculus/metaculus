@@ -76,7 +76,14 @@ const MobileKeyFactorOverlay: FC<Props> = ({
 
   // Freeze the starting slide to the tapped key factor so re-renders (triggered
   // by onSelectKeyFactor) don't re-init embla and fight the user's swipes.
-  const startIndexRef = useRef(Math.max(initialIndex, 0));
+  // Clamp to the list bounds so an out-of-range initialIndex can't desync the
+  // selected card from its comment.
+  const startIndexRef = useRef(
+    Math.min(
+      Math.max(initialIndex, 0),
+      Math.max(allPostKeyFactors.length - 1, 0)
+    )
+  );
   const emblaOptions = useMemo(
     () => ({
       align: "center" as const,
@@ -210,7 +217,8 @@ const MobileKeyFactorOverlay: FC<Props> = ({
 
   const handleScrollToComment = useCallback(
     async (kf: KeyFactor) => {
-      await ensureCommentLoaded(kf.comment_id);
+      const loaded = await ensureCommentLoaded(kf.comment_id);
+      if (!loaded) return;
       onClose();
       questionLayout?.setActiveTab("comments");
       setTimeout(() => {
@@ -222,7 +230,8 @@ const MobileKeyFactorOverlay: FC<Props> = ({
 
   const handleReplyToComment = useCallback(
     async (kf: KeyFactor) => {
-      await ensureCommentLoaded(kf.comment_id);
+      const loaded = await ensureCommentLoaded(kf.comment_id);
+      if (!loaded) return;
       onClose();
       questionLayout?.setActiveTab("comments");
       setTimeout(() => {

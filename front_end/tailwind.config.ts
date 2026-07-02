@@ -103,6 +103,7 @@ const config: Config = {
         "100": "100",
         header: "210",
         modal: "220",
+        popover: "230",
       },
       backgroundImage: {
         "border-dashed-1":
