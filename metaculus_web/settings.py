@@ -286,20 +286,16 @@ EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "anymail.backends.mailgun.EmailB
 EMAIL_HOST_USER = os.environ.get(
     "EMAIL_HOST_USER", f"Metaculus Accounts <accounts@{MAILGUN_DOMAIN}>"
 )
-# TODO: deprecate after 100% rollout
-# Legacy notification sender. Deprecated: kept as the warm-up "from" side and a
-# fallback while the notification stream migrates to EMAIL_NOTIFICATIONS_SENDER;
-# remove once that migration completes.
-EMAIL_NOTIFICATIONS_USER = os.environ.get(
-    "EMAIL_NOTIFICATIONS_USER",
-    f"Metaculus Notifications <notifications@{MAILGUN_DOMAIN}>",
-)
-# Active per-stream senders. Defaults stay on MAILGUN_DOMAIN so standalone
-# instances are unaffected; point these at dedicated domains in production to
-# drive the sending-domain warm-up (the ramp lives in utils/email.py).
+# Per-stream senders. Defaults stay on MAILGUN_DOMAIN so standalone
+# instances are unaffected; point these at dedicated domains in production.
 EMAIL_NOTIFICATIONS_SENDER = os.environ.get(
     "EMAIL_NOTIFICATIONS_SENDER",
-    f"Metaculus Notifications <notifications@{MAILGUN_DOMAIN}>",
+    # EMAIL_NOTIFICATIONS_USER is the deprecated env var name, kept for
+    # backward compatibility.
+    os.environ.get(
+        "EMAIL_NOTIFICATIONS_USER",
+        f"Metaculus Notifications <notifications@{MAILGUN_DOMAIN}>",
+    ),
 )
 EMAIL_ACCOUNTS_SENDER = os.environ.get(
     "EMAIL_ACCOUNTS_SENDER",
