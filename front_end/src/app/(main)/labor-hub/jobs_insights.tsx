@@ -45,7 +45,7 @@ export const JOBS_INSIGHTS = {
         and <strong>law</strong> are expected to see sharp staff reductions as
         AI systems take over large portions of financial analysis, outreach, and
         detailed research work, while <strong>construction workers</strong> see
-        modest gains as robotics have yet to fully displace physical roles by
+        little change as robotics have yet to fully displace physical roles by
         this horizon.
       </>
     ),
