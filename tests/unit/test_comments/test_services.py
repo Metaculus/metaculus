@@ -3,6 +3,8 @@ from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
 from comments.models import KeyFactorVote, KeyFactorDriver, KeyFactorBaseRate
+from rest_framework.exceptions import PermissionDenied
+
 from comments.services.common import create_comment, soft_delete_comment
 from comments.services.key_factors.common import (
     key_factor_vote,
@@ -116,7 +118,7 @@ def test_notify_mentioned_users(
     factory_forecast(author=user_forecaster, question=question_binary)
 
     mock_send_email_with_template = mocker.patch(
-        "notifications.services.send_email_with_template"
+        "notifications.services.send_notification_email_with_template"
     )
 
     notify_mentioned_users(
@@ -168,6 +170,25 @@ def test_key_factor_vote(user1, user2):
     assert_vote(user2, 0, 2)
     # Add 4th vote
     assert_vote(user4, 5, 2.75)
+
+
+def test_key_factor_vote_reason(user1, user2):
+    kf = factory_key_factor(
+        comment=factory_comment(author=user1, on_post=factory_post(author=user1)),
+        driver=KeyFactorDriver.objects.create(text="Key Factor Text"),
+        vote_type=KeyFactorVote.VoteType.STRENGTH,
+    )
+
+    key_factor_vote(
+        kf,
+        user1,
+        vote=5,
+        vote_type=KeyFactorVote.VoteType.STRENGTH,
+        vote_reason=KeyFactorVote.VoteReason.REDUNDANT,
+    )
+
+    kfv = KeyFactorVote.objects.filter(key_factor=kf).first()
+    assert kfv.vote_reason == KeyFactorVote.VoteReason.REDUNDANT
 
 
 def test_soft_delete_comment(user1, user2, post):
@@ -357,3 +378,25 @@ def test_base_rate_freshness_ignores_time_decay(user1, post):
 
     freshness = calculate_freshness_base_rate(kf, votes)
     assert freshness == pytest.approx(1.666, abs=0.001)
+
+
+def test_bot_cannot_post_public_comments(post):
+    bot = factory_user(is_bot=True, allow_public_comments=False)
+    with pytest.raises(PermissionDenied):
+        create_comment(user=bot, on_post=post, text="Public comment", is_private=False)
+
+
+def test_bot_can_post_private_comments(post):
+    bot = factory_user(is_bot=True, allow_public_comments=False)
+    comment = create_comment(
+        user=bot, on_post=post, text="Private comment", is_private=True
+    )
+    assert comment.is_private is True
+
+
+def test_bot_with_allow_public_comments_can_post_public(post):
+    bot = factory_user(is_bot=True, allow_public_comments=True)
+    comment = create_comment(
+        user=bot, on_post=post, text="Public comment", is_private=False
+    )
+    assert comment.is_private is False

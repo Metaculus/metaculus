@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import useContainerSize from "@/hooks/use_container_size";
-import { UserProfile } from "@/types/users";
+import { UserProfileWithStats } from "@/types/users";
 import cn from "@/utils/core/cn";
 import { formatUsername } from "@/utils/formatters/users";
 
@@ -36,7 +36,7 @@ import SocialMediaFragment, {
 } from "./social_media_section";
 
 export type UserInfoProps = {
-  profile: UserProfile;
+  profile: UserProfileWithStats;
   isCurrentUser: boolean;
 };
 

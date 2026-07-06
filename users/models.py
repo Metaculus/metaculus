@@ -3,19 +3,20 @@ from typing import TYPE_CHECKING
 
 import dateutil.parser
 from django.conf import settings
-from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import ArrayField
-from django.db import models, transaction
+from django.db import models
 from django.db.models import QuerySet
 from django.utils import timezone
-from social_django.models import UserSocialAuth
 
-from authentication.models import ApiKey
 from utils.models import TimeStampedModel
+from users.constants import ApiAccessTier, ApiForecastingAccess
+from users.managers import UserManager
 
 if TYPE_CHECKING:
     from comments.models import Comment
     from posts.models import Post
+    from misc.models import UserDataAccess
 
 
 class User(TimeStampedModel, AbstractUser):
@@ -32,6 +33,7 @@ class User(TimeStampedModel, AbstractUser):
     id: int
     comment_set: QuerySet["Comment"]
     posts: QuerySet["Post"]
+    data_accesses: QuerySet["UserDataAccess"]
 
     # Profile data
     bio = models.TextField(default="", blank=True)
@@ -73,6 +75,32 @@ class User(TimeStampedModel, AbstractUser):
     prediction_expiration_percent = models.IntegerField(
         default=10, null=True, blank=True
     )
+    automatically_follow_on_predict = models.BooleanField(default=True)
+    # default follow notification settings - these follow values in PostSubscription
+    follow_notify_cp_change_threshold = models.FloatField(
+        null=True,
+        blank=True,
+        default=0.25,
+        help_text=(
+            "Jeffrey's divergence threshold for notifying user of forecasted CP changes."
+            "<br>Null means no default."
+            "<br>0.05 = small change"
+            "<br>0.25 = medium change"
+            "<br>0.6 = large change"
+        ),
+    )
+    follow_notify_comments_frequency = models.IntegerField(
+        null=True,
+        blank=True,
+        default=10,
+    )
+    follow_notify_milestone_step = models.FloatField(
+        null=True,
+        blank=True,
+        default=0.20,
+        help_text="Proportion of question lifetime to trigger notifications",
+    )
+    follow_notify_on_status_change = models.BooleanField(default=True)
 
     # Onboarding
     is_onboarding_complete = models.BooleanField(default=False)
@@ -100,10 +128,6 @@ class User(TimeStampedModel, AbstractUser):
         choices=settings.LANGUAGES,
     )
 
-    class ApiAccessTier(models.TextChoices):
-        RESTRICTED = "restricted", "Restricted"
-        UNRESTRICTED = "unrestricted", "Unrestricted"
-
     api_access_tier = models.CharField(
         max_length=32,
         choices=ApiAccessTier.choices,
@@ -121,15 +145,33 @@ class User(TimeStampedModel, AbstractUser):
         ),
     )
 
+    # Aggregation exclusion
+    exclude_from_aggregations = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text=(
+            "Explicitly excludes this user from aggregations and geometric mean for "
+            "peer scoring, regardless of bot status."
+        ),
+    )
+
     # Bot properties
     is_bot = models.BooleanField(default=False, db_index=True)
     is_primary_bot = models.BooleanField(
         default=False,
         db_index=True,
         help_text=(
-            "Marks the user’s primary bot. Only the primary bot can post public comments, "
-            "be eligible for prizes, count toward peer scores, "
-            "and appear on leaderboards."
+            "Marks the user's primary bot. The primary bot is "
+            "eligible for prizes, counts toward peer scores, "
+            "and appears on leaderboards."
+        ),
+    )
+    allow_public_comments = models.BooleanField(
+        default=True,
+        help_text=(
+            "Whether this account may post public comments. "
+            "Enabled by default for human accounts. "
+            "Bots are disabled by default; an admin can enable this for select bots."
         ),
     )
     bot_owner = models.ForeignKey(
@@ -147,6 +189,22 @@ class User(TimeStampedModel, AbstractUser):
         null=True,
         blank=True,
         help_text="All JWT tokens issued before this timestamp are invalid. Set on password change or 'log out everywhere'.",
+    )
+
+    # Controls whether the account may submit forecasts via the API.
+    api_forecasting_access = models.CharField(
+        max_length=32,
+        choices=ApiForecastingAccess.choices,
+        default=ApiForecastingAccess.ENABLED,
+        help_text=(
+            "Whether this account may submit forecasts via the API. "
+            "Bots start enabled; human accounts start disabled."
+            "<br>enabled — API forecasts are allowed."
+            "<br>disabled — Blocks API forecasts and hides the in-app banner."
+            "<br>pending — Blocks API forecasts and shows the in-app "
+            "confirmation banner; set automatically on the first blocked "
+            "API forecast."
+        ),
     )
 
     objects: models.Manager["User"] = UserManager()
@@ -205,91 +263,6 @@ class User(TimeStampedModel, AbstractUser):
     def update_username(self, val: str):
         self.old_usernames.append((self.username, timezone.now().isoformat()))
         self.username = val
-
-    def mark_as_spam(self):
-        self.is_spam = True
-        self.soft_delete()
-
-    def soft_delete(self: "User") -> None:
-        # set to inactive
-        self.is_active = False
-
-        from posts.models import Post
-
-        # set soft delete comments
-        comments = self.comment_set.all()
-        posts: QuerySet[Post] = Post.objects.filter(comments__in=comments).distinct()
-        comments.update(is_soft_deleted=True)
-        # update comment counts on said questions
-        for post in posts:
-            post.update_comment_count()
-
-        # soft delete user's authored posts
-        self.posts.update(curation_status=Post.CurationStatus.DELETED)
-
-        self.save()
-
-    @transaction.atomic
-    def clean_user_data_delete(self: "User") -> None:
-        # Update User object
-        self.is_active = False
-        self.bio = ""
-        self.old_usernames = []
-        self.website = None
-        self.twitter = None
-        self.linkedin = None
-        self.facebook = None
-        self.github = None
-        self.good_judgement_open = None
-        self.kalshi = None
-        self.manifold = None
-        self.infer = None
-        self.hypermind = None
-        self.occupation = None
-        self.location = None
-        self.profile_picture = None
-        self.unsubscribed_mailing_tags = []
-        self.language = None
-        self.username = "deleted_user-" + str(self.id)
-        self.first_name = ""
-        self.last_name = ""
-        self.email = ""
-        self.set_password(None)
-        self.save()
-
-        # Comments
-        self.comment_set.filter(is_private=True).delete()
-        # don't touch public comments
-
-        # Token
-        ApiKey.objects.filter(user=self).delete()
-
-        # Social Auth login credentials
-        UserSocialAuth.objects.filter(user=self).delete()
-
-        # Posts (Notebooks/Questions)
-        from posts.models import Post
-
-        def hard_delete_post(post: Post):
-            if question := post.question:
-                question.delete()
-            if group_of_questions := post.group_of_questions:
-                group_of_questions.delete()
-            if conditional := post.conditional:
-                conditional.delete()
-            if notebook := post.notebook:
-                notebook.delete()
-            post.delete()
-
-        posts = self.posts.all()
-        for post in posts:
-            # keep if there is at least one non-author comment
-            if post.comments.exclude(author=self).exists():
-                continue
-            # keep if there is at least one non-author forecast
-            if post.forecasts.exclude(author=self).exists():
-                continue
-            hard_delete_post(post)
 
 
 class UserCampaignRegistration(TimeStampedModel):

@@ -226,17 +226,24 @@ def tournament_by_slug_api_view(request: Request, slug: str):
     obj: Project = get_by_pk_or_slug(qs, slug)
 
     # Get questions count using cached operation
-    questions_count_map = get_projects_questions_count_cached([obj.id])
+    counts = get_projects_questions_count_cached([obj.id]).get(obj.id)
 
     data = TournamentSerializer(obj).data
-    data["questions_count"] = questions_count_map.get(obj.id) or 0
+    data["questions_count"] = counts["questions_count"] if counts else 0
+    data["questions_count_including_subquestions"] = (
+        counts["questions_count_including_subquestions"] if counts else 0
+    )
     data["timeline"] = get_project_timeline_data(obj)
     data["forecasts_count"] = obj.forecasts_count
     data["forecasters_count"] = obj.forecasters_count
     data["followers_count"] = obj.followers_count
 
     if request.user.is_authenticated:
-        data["is_subscribed"] = obj.subscriptions.filter(user=request.user).exists()
+        subscription = obj.subscriptions.filter(user=request.user).first()
+        data["is_subscribed"] = subscription is not None
+        data["follow_questions"] = (
+            subscription.follow_questions if subscription else False
+        )
 
     if obj.index_id:
         data["index_data"] = serialize_index_data(obj.index)
@@ -397,7 +404,10 @@ def project_subscribe_api_view(request: Request, pk: str):
     qs = get_projects_qs(user=request.user)
     project = get_object_or_404(qs, pk=pk)
 
-    subscribe_project(project=project, user=request.user)
+    follow_questions = request.data.get("follow_questions", False)
+    subscribe_project(
+        project=project, user=request.user, follow_questions=follow_questions
+    )
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -407,7 +417,10 @@ def project_unsubscribe_api_view(request: Request, pk: str):
     qs = get_projects_qs(user=request.user)
     project = get_object_or_404(qs, pk=pk)
 
-    unsubscribe_project(project=project, user=request.user)
+    unfollow_questions = request.data.get("unfollow_questions", False)
+    unsubscribe_project(
+        project=project, user=request.user, unfollow_questions=unfollow_questions
+    )
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 

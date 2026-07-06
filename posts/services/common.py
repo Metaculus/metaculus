@@ -51,6 +51,31 @@ from ..tasks import run_post_indexing, run_post_generate_history_snapshot
 logger = logging.getLogger(__name__)
 
 
+def get_conditional_categories(conditional) -> list[Project]:
+    """Get the union of categories from a conditional's condition and condition_child posts."""
+    categories = set()
+
+    condition_post = conditional.condition.get_post()
+    if condition_post:
+        categories.update(condition_post.projects.filter_category())
+
+    condition_child_post = conditional.condition_child.get_post()
+    if condition_child_post:
+        categories.update(condition_child_post.projects.filter_category())
+
+    return list(categories)
+
+
+def sync_conditional_categories(post: Post):
+    """Sync the categories of a conditional post with its parent/child question categories."""
+    if not post.conditional_id:
+        return
+
+    conditional_categories = get_conditional_categories(post.conditional)
+    if conditional_categories:
+        post.projects.add(*conditional_categories)
+
+
 def add_categories(categories: list[int], post: Post):
     existing = [x.pk for x in post.projects.filter(type=Project.ProjectTypes.CATEGORY)]
     categories = [x for x in categories if x not in existing]
@@ -169,6 +194,10 @@ def create_post(
             categories.remove(obj.default_project)
 
         obj.projects.add(*categories)
+
+        # Propagate categories from condition and condition_child posts
+        if obj.conditional_id:
+            sync_conditional_categories(obj)
 
         # Update global leaderboard tags
         update_global_leaderboard_tags(obj)
@@ -458,7 +487,7 @@ def reject_post(post: Post):
 
 def submit_for_review_post(post: Post):
     if post.curation_status != Post.CurationStatus.DRAFT:
-        raise ValueError("Can't submit for review non-draft post")
+        raise ValidationError("Can't submit for review non-draft post")
 
     post.update_curation_status(Post.CurationStatus.PENDING)
     post.save()
@@ -466,7 +495,7 @@ def submit_for_review_post(post: Post):
 
 def post_make_draft(post: Post):
     if post.curation_status != Post.CurationStatus.PENDING:
-        raise ValueError("Can't submit for review non-pending post")
+        raise ValidationError("Can't submit for review non-pending post")
 
     post.update_curation_status(Post.CurationStatus.DRAFT)
     post.save()
@@ -474,7 +503,7 @@ def post_make_draft(post: Post):
 
 def send_back_to_review(post: Post):
     if post.curation_status != Post.CurationStatus.APPROVED:
-        raise ValueError("Can't send back to review non-approved post")
+        raise ValidationError("Can't send back to review non-approved post")
 
     post.curation_status = Post.CurationStatus.PENDING
     post.open_time = None

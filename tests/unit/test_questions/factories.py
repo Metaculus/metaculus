@@ -30,7 +30,7 @@ def factory_group_of_questions(
         GroupOfQuestions,
         **setdefaults_not_null(
             kwargs,
-        )
+        ),
     )
 
     questions = questions or []
@@ -48,7 +48,7 @@ def create_conditional(
     condition_child: Question = None,
     question_yes: Question = None,
     question_no: Question = None,
-    **kwargs
+    **kwargs,
 ):
     return G(
         Conditional,
@@ -58,7 +58,7 @@ def create_conditional(
             condition_child=condition_child,
             question_yes=question_yes,
             question_no=question_no,
-        )
+        ),
     )
 
 
@@ -69,7 +69,7 @@ def factory_forecast(*, author: User = None, question: Question = None, **kwargs
             kwargs,
             author=author,
             question=question,
-        )
+        ),
     )
 
     f.post.update_forecasts_count()

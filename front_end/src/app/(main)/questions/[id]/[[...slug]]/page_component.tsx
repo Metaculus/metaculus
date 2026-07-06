@@ -3,25 +3,22 @@ import { FC } from "react";
 
 import { CoherenceLinksProvider } from "@/app/(main)/components/coherence_links_provider";
 import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
-import CommunityHeader from "@/app/(main)/components/headers/community_header";
-import Header from "@/app/(main)/components/headers/header";
+import { TopChromeHeaderSetter } from "@/app/(main)/components/top_chrome_header_context";
 import HideCPProvider from "@/contexts/cp_context";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import { PostSubscriptionProvider } from "@/contexts/post_subscription_context";
+import ServerProfileApi from "@/services/api/profile/profile.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
 import { GroupOfQuestionsGraphType } from "@/types/post";
 import { TournamentType } from "@/types/projects";
+import { InterfaceType } from "@/types/users";
 import cn from "@/utils/core/cn";
-import {
-  getPostTitle,
-  isGroupOfQuestionsPost,
-} from "@/utils/questions/helpers";
+import { isGroupOfQuestionsPost } from "@/utils/questions/helpers";
 
 import NotebookRedirect from "../components/notebook_redirect";
 import QuestionEmbedModal from "../components/question_embed_modal";
-import QuestionLayout from "../components/question_layout";
-import QuestionView from "../components/question_view";
+import QuestionPageShell from "../components/question_page_shell";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
 import { cachedGetPost } from "./utils/get_post";
@@ -36,24 +33,28 @@ const IndividualQuestionPage: FC<{
   params: { id: number; slug: string[] };
   searchParams: SearchParams;
 }> = async ({ params, searchParams }) => {
-  const postData = await cachedGetPost(params.id);
+  const [postData, user] = await Promise.all([
+    cachedGetPost(params.id),
+    ServerProfileApi.getMyProfile(),
+  ]);
+  const sidebarVariant: "consumer" | "forecaster" =
+    !user || user.interface_type === InterfaceType.ConsumerView
+      ? "consumer"
+      : "forecaster";
   const defaultProject = postData.projects?.default_project;
   if (postData.notebook) {
     return <NotebookRedirect id={postData.id} slug={params.slug} />;
   }
 
   const isCommunityQuestion = defaultProject?.type === TournamentType.Community;
-  let currentCommunity = null;
-  if (isCommunityQuestion) {
-    currentCommunity = await ServerProjectsApi.getCommunity(
-      defaultProject.slug as string
-    );
-  }
+  const community =
+    isCommunityQuestion && defaultProject?.slug
+      ? await ServerProjectsApi.getCommunity(defaultProject.slug)
+      : null;
 
   const preselectedGroupQuestionId =
     extractPreselectedGroupQuestionId(searchParams);
 
-  const questionTitle = getPostTitle(postData);
   const isFanChart =
     isGroupOfQuestionsPost(postData) &&
     postData.group_of_questions?.graph_type ===
@@ -61,15 +62,18 @@ const IndividualQuestionPage: FC<{
 
   return (
     <EmbedModalContextProvider>
+      {community && (
+        <TopChromeHeaderSetter
+          header={{
+            type: "community",
+            community,
+          }}
+        />
+      )}
       <CoherenceLinksProvider post={postData}>
         <CommentsFeedProvider postData={postData} rootCommentStructure={true}>
           <HideCPProvider post={postData}>
             <PostSubscriptionProvider post={postData}>
-              {isCommunityQuestion ? (
-                <CommunityHeader community={currentCommunity} />
-              ) : (
-                <Header />
-              )}
               <main
                 className={cn(
                   "mx-auto flex w-full max-w-max flex-col scroll-smooth py-4 md:py-10",
@@ -79,7 +83,7 @@ const IndividualQuestionPage: FC<{
                 )}
               >
                 <div className="flex gap-4">
-                  <div className="relative w-full">
+                  <div className="relative w-full min-w-0">
                     {isCommunityQuestion && defaultProject && (
                       <div className="absolute z-0 -mt-[34px] hidden w-full sm:block">
                         <CommunityDisclaimer
@@ -88,24 +92,15 @@ const IndividualQuestionPage: FC<{
                         />
                       </div>
                     )}
-                    <QuestionLayout
+                    <QuestionPageShell
                       postData={postData}
                       preselectedGroupQuestionId={preselectedGroupQuestionId}
-                    >
-                      {isCommunityQuestion && defaultProject && (
-                        <CommunityDisclaimer
-                          project={defaultProject}
-                          variant="standalone"
-                          className="block sm:hidden"
-                        />
-                      )}
-                      <QuestionView
-                        postData={postData}
-                        preselectedGroupQuestionId={preselectedGroupQuestionId}
-                      />
-                    </QuestionLayout>
+                      mobileSidebar={
+                        <Sidebar postData={postData} layout="mobile" />
+                      }
+                    />
                   </div>
-                  <Sidebar postData={postData} questionTitle={questionTitle} />
+                  <Sidebar postData={postData} variant={sidebarVariant} />
                 </div>
               </main>
 

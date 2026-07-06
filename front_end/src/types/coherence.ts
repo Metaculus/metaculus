@@ -1,4 +1,5 @@
 import { Question, QuestionType } from "@/types/question";
+import { TranslationKey } from "@/types/translations";
 export enum Strengths {
   Low = "low",
   Medium = "medium",
@@ -43,7 +44,17 @@ export const ALLOWED_COHERENCE_LINK_QUESTION_TYPES = [
 ];
 
 export const DIRECTION_OPTIONS = [-1, 1];
-export const STRENGTH_OPTIONS = [1, 2, 5];
+
+// Persisted strength values stored in the DB and their display labels. The
+// three tiers are rendered in order, so the array order matters.
+export const STRENGTH_TIERS: readonly {
+  value: number;
+  label: TranslationKey;
+}[] = [
+  { value: 1, label: "aBit" },
+  { value: 2, label: "mid" },
+  { value: 5, label: "aLot" },
+];
 
 export type AggregateCoherenceLinkVoteBucket = {
   score: number;

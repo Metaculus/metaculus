@@ -13,7 +13,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { FC } from "react";
 
-import { UserProfile } from "@/types/users";
+import { User } from "@/types/users";
 
 export type SocialMediaFieldName =
   | "website"
@@ -34,7 +34,7 @@ export type SocialMediaEntry = {
   label: string;
 };
 
-export const getSocialMediaArray = (user: UserProfile): SocialMediaEntry[] => [
+export const getSocialMediaArray = (user: User): SocialMediaEntry[] => [
   { icon: faEarth, link: user.website, name: "website", label: "Website" },
   { icon: faXTwitter, link: user.twitter, name: "twitter", label: "Twitter/X" },
   {
@@ -72,12 +72,12 @@ export const getSocialMediaArray = (user: UserProfile): SocialMediaEntry[] => [
   },
 ];
 
-export const hasUserSocialMediaLink = (user: UserProfile) => {
+export const hasUserSocialMediaLink = (user: User) => {
   return getSocialMediaArray(user).some(({ link }) => !!link);
 };
 
 const SocialMediaFragment: FC<{
-  user: UserProfile;
+  user: User;
 }> = ({ user }) => {
   const socialMedia = getSocialMediaArray(user).filter(
     ({ link }) => !!link
@@ -87,7 +87,7 @@ const SocialMediaFragment: FC<{
       {socialMedia.map(({ icon, link, name }) => {
         return (
           <div key={name} className="flex flex-col">
-            <Link href={link} target="_blank" rel="ugc">
+            <Link href={link} target="_blank" rel="ugc noopener noreferrer">
               <FontAwesomeIcon
                 icon={icon}
                 size="lg"

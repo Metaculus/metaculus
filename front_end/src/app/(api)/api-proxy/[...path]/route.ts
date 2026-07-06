@@ -10,6 +10,11 @@ import {
 import { getAlphaTokenSession } from "@/services/session";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
+// Statuses that must not include a response body (Fetch spec "null body status").
+const NULL_BODY_STATUSES = new Set([204, 205, 304]);
+// Body-related headers that are meaningless once the body is dropped.
+const NULL_BODY_HEADERS = new Set(["content-length", "content-type"]);
+
 export async function GET(request: NextRequest) {
   return handleProxyRequest(request, "GET");
 }
@@ -120,10 +125,18 @@ async function handleProxyRequest(request: NextRequest, method: string) {
     }
   }
 
-  const responseData = await response.blob();
+  // Per the Fetch spec these statuses must not carry a body; passing one to
+  // the Response constructor throws a TypeError.
+  const isNullBodyStatus = NULL_BODY_STATUSES.has(response.status);
+
+  const responseData = isNullBodyStatus ? null : await response.blob();
   const responseHeaders: HeadersInit = {};
   response.headers.forEach((value, key) => {
     const lowerKey = key.toLowerCase();
+
+    if (isNullBodyStatus && NULL_BODY_HEADERS.has(lowerKey)) {
+      return;
+    }
 
     if (lowerKey === "content-disposition") {
       responseHeaders[lowerKey] = processContentDispositionHeader(value);

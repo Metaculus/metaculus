@@ -5,26 +5,26 @@ import io
 import zipfile
 
 import numpy as np
-from django.db.models import QuerySet, Q
+from django.db.models import Q, QuerySet
 from django.utils import timezone
 
 from coherence.models import AggregateCoherenceLink
 from comments.models import Comment, KeyFactor
 from posts.models import Post
 from questions.models import (
-    Question,
+    QUESTION_CONTINUOUS_TYPES,
     AggregateForecast,
     Forecast,
-    QUESTION_CONTINUOUS_TYPES,
+    Question,
 )
 from questions.services.multiple_choice_handlers import get_all_options_from_history
 from questions.types import AggregationMethod
-from scoring.models import Score, ArchivedScore
+from scoring.models import ArchivedScore, Score
 from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import (
-    unscaled_location_to_scaled_location,
     string_location_to_bucket_index,
+    unscaled_location_to_scaled_location,
 )
 from utils.the_math.measures import percent_point_function
 
@@ -120,7 +120,7 @@ def export_all_data_for_questions(
 def export_data_for_questions(
     user_id: int | None,
     is_staff: bool,
-    is_whitelisted: bool,
+    has_data_access: bool,
     question_ids: list[int],
     aggregation_methods: list[AggregationMethod] | None,
     minimize: bool,
@@ -145,10 +145,10 @@ def export_data_for_questions(
         )
     if only_include_user_ids:
         user_forecasts = user_forecasts.filter(author_id__in=only_include_user_ids)
-    if not (is_whitelisted or is_staff):
+    if not (has_data_access or is_staff):
         user_forecasts = user_forecasts.filter(author=user)
 
-    if is_whitelisted or is_staff:
+    if has_data_access or is_staff:
         questions_with_revealed_cp = questions
     else:
         questions_with_revealed_cp = questions.filter(
@@ -226,7 +226,7 @@ def export_data_for_questions(
             archived_scores = archived_scores.filter(
                 Q(user_id__in=only_include_user_ids) | Q(user__isnull=True)
             )
-        elif not (is_whitelisted or is_staff):
+        elif not (has_data_access or is_staff):
             # only include user-specific scores for the logged-in user
             scores = scores.filter(
                 Q(user__isnull=True) | (Q(user=user) if user else Q())
@@ -1010,7 +1010,9 @@ def generate_data(
 
     # create a zip file with both csv files
     zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+    with zipfile.ZipFile(
+        zip_buffer, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9
+    ) as zip_file:
         zip_file.writestr("README.md", readme_output.getvalue())
         zip_file.writestr("question_data.csv", question_output.getvalue())
         zip_file.writestr("forecast_data.csv", forecast_output.getvalue())

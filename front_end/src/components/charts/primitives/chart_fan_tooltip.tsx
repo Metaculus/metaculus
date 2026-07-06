@@ -40,6 +40,7 @@ type Props = ComponentProps<typeof VictoryLabel> & {
   chartHeight: number;
   forecastAvailability?: ForecastAvailability;
   hideCp?: boolean;
+  skipOpacityHide?: boolean;
 };
 
 const ChartFanTooltip: FC<Props> = ({
@@ -47,6 +48,7 @@ const ChartFanTooltip: FC<Props> = ({
   chartHeight,
   hideCp = false,
   forecastAvailability,
+  skipOpacityHide = false,
   ...props
 }) => {
   const t = useTranslations();
@@ -166,72 +168,73 @@ const ChartFanTooltip: FC<Props> = ({
     );
   }
 
-  return (
-    <FloatingPortal id="fan-graph-container">
-      <div
-        ref={ref}
-        className={cn(
-          "pointer-events-none absolute z-100 rounded bg-gray-0 text-xs leading-4 shadow-lg dark:bg-gray-0-dark",
-          { "opacity-0": !width && !height }
-        )}
-        style={{
-          left: clampedLeft,
-          top:
-            position === "bottom"
-              ? (y ?? 0) + TOOLTIP_PADDING
-              : (y ?? 0) - height - TOOLTIP_PADDING,
-        }}
-      >
-        <GroupPredictionsTooltip
-          title={activeItem.question.label}
-          communityPredictions={communityPredictions}
-          userPredictions={userPredictions}
-          FooterRow={
-            <>
-              {/* Total Forecasters Row */}
+  const content = (
+    <div
+      ref={ref}
+      className={cn(
+        "pointer-events-none absolute z-100 rounded bg-gray-0 text-xs leading-4 shadow-lg dark:bg-gray-0-dark",
+        { "opacity-0": !skipOpacityHide && !width && !height }
+      )}
+      style={{
+        left: clampedLeft,
+        top:
+          position === "bottom"
+            ? (y ?? 0) + TOOLTIP_PADDING
+            : (y ?? 0) - height - TOOLTIP_PADDING,
+      }}
+    >
+      <GroupPredictionsTooltip
+        title={activeItem.question.label}
+        communityPredictions={communityPredictions}
+        userPredictions={userPredictions}
+        FooterRow={
+          <>
+            {/* Total Forecasters Row */}
+            <tr className="border-t border-gray-300 dark:border-gray-300-dark">
+              <th className="px-3 pb-1.5 pt-2 text-left text-sm font-medium capitalize text-gray-800 dark:text-gray-800-dark">
+                {t("activeForecastersLabel")}
+              </th>
+              <td
+                className="pb-1 pr-3.5 pt-2 text-right text-sm font-normal tabular-nums text-gray-700 dark:text-gray-700-dark"
+                colSpan={3}
+              >
+                {activeItem.question.aggregations[
+                  activeItem.question.default_aggregation_method
+                ].latest?.forecaster_count ?? 0}
+              </td>
+            </tr>
+            {/* Resolution Row - only if resolved */}
+            {resolved && (
               <tr className="border-t border-gray-300 dark:border-gray-300-dark">
-                <th className="px-3 pb-1.5 pt-2 text-left text-sm font-medium capitalize text-gray-800 dark:text-gray-800-dark">
-                  {t("totalForecastersLabel")}
+                <th className="px-3 pb-1 pt-2 text-left text-sm font-medium capitalize text-gray-800 dark:text-gray-800-dark">
+                  {t("resolution")}
                 </th>
                 <td
-                  className="pb-1 pr-3.5 pt-2 text-right text-sm font-normal tabular-nums text-gray-700 dark:text-gray-700-dark"
+                  className="pb-1 pr-3.5 pt-2 text-right text-sm font-normal tabular-nums text-purple-800 dark:text-purple-800-dark"
                   colSpan={3}
                 >
-                  {activeItem.question.aggregations[
-                    activeItem.question.default_aggregation_method
-                  ].latest?.forecaster_count ?? 0}
+                  <div>
+                    {formatResolution({
+                      resolution: question.resolution,
+                      questionType: question.type,
+                      locale,
+                      scaling: question.scaling,
+                      unit: question.unit,
+                      actual_resolve_time: question.actual_resolve_time ?? null,
+                    })}
+                  </div>
                 </td>
               </tr>
-              {/* Resolution Row - only if resolved */}
-              {resolved && (
-                <tr className="border-t border-gray-300 dark:border-gray-300-dark">
-                  <th className="px-3 pb-1 pt-2 text-left text-sm font-medium capitalize text-gray-800 dark:text-gray-800-dark">
-                    {t("resolution")}
-                  </th>
-                  <td
-                    className="pb-1 pr-3.5 pt-2 text-right text-sm font-normal tabular-nums text-purple-800 dark:text-purple-800-dark"
-                    colSpan={3}
-                  >
-                    <div>
-                      {formatResolution({
-                        resolution: question.resolution,
-                        questionType: question.type,
-                        locale,
-                        scaling: question.scaling,
-                        unit: question.unit,
-                        actual_resolve_time:
-                          question.actual_resolve_time ?? null,
-                      })}
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </>
-          }
-        />
-      </div>
-    </FloatingPortal>
+            )}
+          </>
+        }
+      />
+    </div>
   );
+
+  if (skipOpacityHide) return content;
+
+  return <FloatingPortal id="fan-graph-container">{content}</FloatingPortal>;
 };
 
 const MinifiedTooltip: FC<
@@ -381,7 +384,7 @@ const getBoundsLabel = ({
   return (value * 100).toFixed(1) + "%";
 };
 
-function getTooltipItems({
+export function getTooltipItems({
   t,
   quartiles,
   bounds,

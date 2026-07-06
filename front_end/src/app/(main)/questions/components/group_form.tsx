@@ -9,7 +9,6 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { forEach, isNil } from "lodash";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -210,6 +209,7 @@ const GroupForm: React.FC<Props> = ({
 }) => {
   const router = useRouter();
   const t = useTranslations();
+  const isDuplicate = mode === "create" && !!post;
   const isDraftMounted = useRef(false);
   const draftKey = `group_${subtype}`;
   const [isLoading, setIsLoading] = useState<boolean>();
@@ -388,10 +388,12 @@ const GroupForm: React.FC<Props> = ({
         id: x.id,
         type: x.type as QuestionType,
         clientId: crypto.randomUUID(),
-        scheduled_close_time: x.scheduled_close_time,
-        scheduled_resolve_time: x.scheduled_resolve_time,
-        open_time: x.open_time,
-        cp_reveal_time: x.cp_reveal_time,
+        scheduled_close_time: isDuplicate ? undefined : x.scheduled_close_time,
+        scheduled_resolve_time: isDuplicate
+          ? undefined
+          : x.scheduled_resolve_time,
+        open_time: isDuplicate ? undefined : x.open_time,
+        cp_reveal_time: isDuplicate ? undefined : x.cp_reveal_time,
         label: x.label,
         unit: x.unit,
         scaling: x.scaling,
@@ -647,10 +649,7 @@ const GroupForm: React.FC<Props> = ({
         <InputContainer
           labelText={t("backgroundInformation")}
           isNativeFormControl={false}
-          explanation={t.rich("backgroundInfoExplanation", {
-            link: (chunks) => <Link href="/help/markdown">{chunks}</Link>,
-            markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
-          })}
+          explanation={t("backgroundInfoExplanation")}
         >
           <MarkdownEditorField
             control={form.control}

@@ -1,8 +1,9 @@
 import React from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
-import { POSTS_PER_PAGE } from "@/constants/posts_feed";
+import { POST_PAGE_FILTER, POSTS_PER_PAGE } from "@/constants/posts_feed";
 import ServerPostsApi from "@/services/api/posts/posts.server";
+import { SearchParams } from "@/types/navigation";
 
 import FutureEvalNewsFeed from "./futureeval-news-feed";
 
@@ -12,14 +13,28 @@ import FutureEvalNewsFeed from "./futureeval-news-feed";
  * A themed variant of the AIBNewsTab for the FutureEval project.
  * Uses FutureEval-specific news cards and styling.
  */
-const FutureEvalNewsTab: React.FC = async () => {
+type Props = {
+  searchParams?: SearchParams;
+};
+
+function getHydrationPageNumber(searchParams: SearchParams) {
+  const rawPageNumber = searchParams[POST_PAGE_FILTER];
+  const pageNumber =
+    typeof rawPageNumber === "string" ? Number(rawPageNumber) : 1;
+
+  return Number.isFinite(pageNumber) && pageNumber > 0 ? pageNumber : 1;
+}
+
+const FutureEvalNewsTab: React.FC<Props> = async ({ searchParams = {} }) => {
+  const pageNumber = getHydrationPageNumber(searchParams);
   const filters = {
     tournaments: "futureeval-posts",
+    page: pageNumber,
   };
 
   const { results: questions } = await ServerPostsApi.getPostsWithCP({
     ...filters,
-    limit: POSTS_PER_PAGE,
+    limit: pageNumber * POSTS_PER_PAGE,
   });
 
   return (

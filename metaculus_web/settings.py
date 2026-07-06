@@ -286,12 +286,20 @@ EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "anymail.backends.mailgun.EmailB
 EMAIL_HOST_USER = os.environ.get(
     "EMAIL_HOST_USER", f"Metaculus Accounts <accounts@{MAILGUN_DOMAIN}>"
 )
-EMAIL_NOTIFICATIONS_USER = os.environ.get(
-    "EMAIL_NOTIFICATIONS_USER",
-    f"Metaculus Notifications <notifications@{MAILGUN_DOMAIN}>",
+# Per-stream senders. Defaults stay on MAILGUN_DOMAIN so standalone
+# instances are unaffected; point these at dedicated domains in production.
+EMAIL_NOTIFICATIONS_SENDER = os.environ.get(
+    "EMAIL_NOTIFICATIONS_SENDER",
+    # EMAIL_NOTIFICATIONS_USER is the deprecated env var name, kept for
+    # backward compatibility.
+    os.environ.get(
+        "EMAIL_NOTIFICATIONS_USER",
+        f"Metaculus Notifications <notifications@{MAILGUN_DOMAIN}>",
+    ),
 )
-EMAIL_SENDER_NO_REPLY = os.environ.get(
-    "EMAIL_SENDER_NO_REPLY", f"Metaculus NoReply <no-reply@{MAILGUN_DOMAIN}>"
+EMAIL_ACCOUNTS_SENDER = os.environ.get(
+    "EMAIL_ACCOUNTS_SENDER",
+    f"Metaculus Accounts <accounts@{MAILGUN_DOMAIN}>",
 )
 EMAIL_FEEDBACK = os.environ.get("EMAIL_FEEDBACK", "feedback@metaculus.com")
 EMAIL_SUPPORT = os.environ.get("EMAIL_SUPPORT", "support@metaculus.com")
@@ -346,8 +354,7 @@ DRAMATIQ_BROKER = {
     "BROKER": "dramatiq.brokers.redis.RedisBroker",
     "OPTIONS": {
         # Setting redis db to 1 for the MQ storage (unless REDIS_MQ_URL is defined)
-        "url": REDIS_MQ_URL
-        or f"{REDIS_URL}/1?{REDIS_URL_CONFIG}",
+        "url": REDIS_MQ_URL or f"{REDIS_URL}/1?{REDIS_URL_CONFIG}",
     },
     "MIDDLEWARE": [
         "dramatiq.middleware.AgeLimit",

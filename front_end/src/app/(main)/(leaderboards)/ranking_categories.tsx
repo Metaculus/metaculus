@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { ReactNode } from "react";
 
-import { EXPRESSION_OF_INTEREST_FORM_URL } from "@/app/(main)/pro-forecasters/constants/expression_of_interest_form";
 import { CategoryKey } from "@/types/scoring";
 import cn from "@/utils/core/cn";
+
+import { EXPRESSION_OF_INTEREST_FORM_URL } from "../services/pro-forecasters/constants/expression_of_interest_form";
 
 const baseLinkClassName =
   "text-blue-700 hover:text-blue-800 dark:text-blue-700-dark dark:hover:text-blue-800-dark";

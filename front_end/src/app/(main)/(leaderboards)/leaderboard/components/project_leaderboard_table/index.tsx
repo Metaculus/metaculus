@@ -5,7 +5,11 @@ import { FC, useCallback, useMemo, useState } from "react";
 
 import enMessages from "@/../messages/en.json";
 import Button from "@/components/ui/button";
-import { LeaderboardDetails, LeaderboardDisplayConfig } from "@/types/scoring";
+import {
+  ExclusionStatuses,
+  LeaderboardDetails,
+  LeaderboardDisplayConfig,
+} from "@/types/scoring";
 
 import TableHeader from "./table_header";
 import TableRow from "./table_row";
@@ -52,7 +56,11 @@ const ProjectLeaderboardTable: FC<Props> = ({
 
   const filteredEntries = useMemo(() => {
     return leaderboardDetails.entries.filter(
-      (entry) => !entry.excluded || entry.show_when_excluded || isAdvanced
+      (entry) =>
+        entry.exclusion_status <= ExclusionStatuses.EXCLUDE_AND_SHOW ||
+        (isAdvanced &&
+          entry.exclusion_status ==
+            ExclusionStatuses.EXCLUDE_AND_SHOW_IN_ADVANCED)
     );
   }, [leaderboardDetails.entries, isAdvanced]);
 

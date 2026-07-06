@@ -528,12 +528,6 @@ class Notebook(TranslatedModel):
         blank=True, default="", help_text="Summary text displayed on feed tiles"
     )
 
-    # Indicates whether we triggered "handle_post_open" event
-    # And guarantees idempotency of "on post open" evens
-    open_time_triggered = models.BooleanField(
-        default=False, db_index=True, editable=False
-    )
-
     def __str__(self):
         return f"Notebook for {self.post} by {self.post.author}"
 
@@ -569,6 +563,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         DELETED = "deleted"
 
     class PostStatusChange(models.TextChoices):
+        PUBLISHED = "published", _("Upcoming")
         OPEN = "open", _("Open")
         CLOSED = "closed", _("Closed")
         RESOLVED = "resolved", _("Resolved")
@@ -600,6 +595,14 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         blank=True,
     )
     published_at = models.DateTimeField(db_index=True, null=True, blank=True)
+
+    # Indicates whether we fired the "post published" (Upcoming) event for
+    # tournament / project follower notifications. Publishing is a Post-level
+    # lifecycle event, so this guarantees idempotency and ensures adding
+    # questions to an already-published post does not re-notify followers.
+    published_at_triggered = models.BooleanField(
+        default=False, db_index=True, editable=False
+    )
 
     # Fields populated from Child Question objects
     open_time = models.DateTimeField(
@@ -870,6 +873,12 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
 
         return self.comment_count
 
+    def update_cached_fields(self):
+        self.update_forecasts_count()
+        self.update_forecasters_count()
+        self.update_vote_score()
+        self.update_comment_count()
+
     def __str__(self):
         return self.title
 
@@ -1035,11 +1044,17 @@ class PostUserSnapshot(models.Model):
 
     @classmethod
     def update_last_forecast_date(cls, post: Post, user: User):
+        now = timezone.now()
         cls.objects.update_or_create(
             user=user,
             post=post,
             defaults={
-                "last_forecast_date": timezone.now(),
+                "last_forecast_date": now,
+            },
+            create_defaults={
+                "last_forecast_date": now,
+                "comments_count": post.get_comment_count(),
+                "viewed_at": now,
             },
         )
 

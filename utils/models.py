@@ -17,7 +17,7 @@ from utils.translation import (
     build_supported_localized_fieldname,
     is_translation_dirty,
 )
-from utils.types import DjangoModelType
+from utils.typing import DjangoModelType
 
 logger = logging.getLogger(__name__)
 
@@ -293,9 +293,9 @@ def model_update(
         # If field is not an actual model field, raise an error
         model_field = model_fields.get(field)
 
-        assert (
-            model_field is not None
-        ), f"{field} is not part of {instance.__class__.__name__} fields."
+        assert model_field is not None, (
+            f"{field} is not part of {instance.__class__.__name__} fields."
+        )
 
         # If we have m2m field, handle differently
         if isinstance(model_field, models.ManyToManyField):
@@ -346,11 +346,11 @@ class ModelBatchUpdater:
     def __init__(
         self,
         model_class: type[DjangoModelType],
-        fields: list[str],
+        fields: list[str] | None = None,
         batch_size: int = 100,
     ):
         self.model_class = model_class
-        self.fields = fields
+        self.fields = fields or []
         self.batch_size = batch_size
 
         self._batch: list[DjangoModelType] = []
@@ -370,7 +370,22 @@ class ModelBatchUpdater:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.flush()
+        if exc_type is None:
+            self.flush()
+
+
+class ModelBatchCreator(ModelBatchUpdater):
+    def __init__(
+        self,
+        model_class: type[DjangoModelType],
+        batch_size: int = 100,
+    ):
+        super().__init__(model_class, batch_size=batch_size)
+
+    def flush(self) -> None:
+        if self._batch:
+            self.model_class.objects.bulk_create(self._batch)
+            self._batch.clear()
 
 
 def get_by_pk_or_slug(

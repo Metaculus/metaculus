@@ -8,7 +8,6 @@ from scoring.constants import LeaderboardScoreTypes
 from scoring.models import Leaderboard
 from scoring.utils import update_project_leaderboard
 from scoring.tasks import update_custom_leaderboard
-from scoring.tasks import update_coherence_spring_2026_cup
 
 from scoring.management.commands.update_global_bot_leaderboard import (
     run_update_global_bot_leaderboard,
@@ -85,20 +84,21 @@ def update_custom_leaderboards():
             # )
         except Exception as e:
             logger.error(
-                f"Error updating custom leaderboard for project "
-                f"'{project.name}': {e}"
+                f"Error updating custom leaderboard for project '{project.name}': {e}"
             )
     else:
         # don't warn or error because this project doesn't necessarily exist
         # in all environments
         logger.info("Index 'us-democracy-threat' not found.")
 
-    # Coherence Links Tournament Metaculus Cup Spring 2026
-    project = Project.objects.filter(slug="metaculus-cup-spring-2026").first()
-    if project:
-        try:
-            update_coherence_spring_2026_cup.send()
-        except Exception as e:
-            logger.error(
-                f"Error updating Coherence Links Tournament Metaculus Cup Spring 2026: {e}"
-            )
+    # TODO: remove this and relevant code after finalization is done
+    # from scoring.tasks import update_coherence_spring_2026_cup
+    # # Coherence Links Tournament Metaculus Cup Spring 2026
+    # project = Project.objects.filter(slug="metaculus-cup-spring-2026").first()
+    # if project:
+    #     try:
+    #         update_coherence_spring_2026_cup.send()
+    #     except Exception as e:
+    #         logger.error(
+    #             f"Error updating Coherence Links Tournament Metaculus Cup Spring 2026: {e}"
+    #         )

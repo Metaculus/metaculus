@@ -7,13 +7,17 @@ import GroupChart from "@/components/charts/group_chart";
 import ButtonGroup from "@/components/ui/button_group";
 import { METAC_COLORS } from "@/constants/colors";
 import { useBreakpoint } from "@/hooks/tailwind";
+import { useTopChromeHeightPx } from "@/hooks/use_top_chrome_height";
 import {
   ContinuousAreaGraphType,
   TickFormat,
   TimelineChartZoomOption,
 } from "@/types/charts";
 import { QuestionType } from "@/types/question";
-import { getPostDrivenTime } from "@/utils/questions/helpers";
+import {
+  getPostDrivenTime,
+  isContinuousQuestionType,
+} from "@/utils/questions/helpers";
 
 import DistributionCard from "./distribution_card";
 import EmptyGraphState from "./empty_graph_state";
@@ -37,12 +41,6 @@ type Props = {
   defaultConfigId: string | null;
 };
 
-const NUMERIC_TYPES = new Set([
-  QuestionType.Numeric,
-  QuestionType.Discrete,
-  QuestionType.Date,
-]);
-
 export default function AggregationGraphPanel({
   postId,
   questionTitle,
@@ -62,17 +60,21 @@ export default function AggregationGraphPanel({
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
   const [graphType, setGraphType] = useGraphTypeState();
   const [isStuck, setIsStuck] = useState(false);
+  const topChromeHeight = useTopChromeHeightPx();
   const observerRef = useRef<IntersectionObserver | null>(null);
-  const sentinelRef = useCallback((node: HTMLDivElement | null) => {
-    observerRef.current?.disconnect();
-    if (!node) return;
+  const sentinelRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      observerRef.current?.disconnect();
+      if (!node) return;
 
-    observerRef.current = new IntersectionObserver(
-      ([entry]) => setIsStuck(entry ? !entry.isIntersecting : false),
-      { threshold: 0, rootMargin: "-48px 0px 0px 0px" }
-    );
-    observerRef.current.observe(node);
-  }, []);
+      observerRef.current = new IntersectionObserver(
+        ([entry]) => setIsStuck(entry ? !entry.isIntersecting : false),
+        { threshold: 0, rootMargin: `-${topChromeHeight}px 0px 0px 0px` }
+      );
+      observerRef.current.observe(node);
+    },
+    [topChromeHeight]
+  );
 
   const handleCursorChange = useCallback(
     (value: number, _format: TickFormat) => {
@@ -159,7 +161,7 @@ export default function AggregationGraphPanel({
   const actualCloseTime = getPostDrivenTime(mergedData.actual_close_time);
   const effectiveChartTimestamp = cursorTimestamp ?? timestamps.at(-1) ?? null;
 
-  const isNumericType = NUMERIC_TYPES.has(mergedData.type);
+  const isNumericType = isContinuousQuestionType(mergedData.type);
   const errorMethods = methods.filter((method) => method.isError);
 
   return (

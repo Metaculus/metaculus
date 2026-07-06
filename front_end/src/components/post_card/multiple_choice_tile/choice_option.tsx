@@ -20,10 +20,12 @@ type Props = {
   questionType?: QuestionType;
   scaling?: Scaling;
   labelClassName?: string;
+  valueClassName?: string;
   actual_resolve_time?: string | null;
   withIcon?: boolean;
   cursorTimestamp?: number | null;
   timestamps?: number[];
+  latestValue?: number | null;
 };
 
 const ChoiceOption: FC<Props> = ({
@@ -35,10 +37,12 @@ const ChoiceOption: FC<Props> = ({
   questionType,
   scaling,
   labelClassName,
+  valueClassName,
   actual_resolve_time,
   cursorTimestamp = null,
   timestamps = [],
   withIcon = true,
+  latestValue,
 }) => {
   const idx =
     cursorTimestamp == null || !timestamps?.length
@@ -53,7 +57,8 @@ const ChoiceOption: FC<Props> = ({
           )
         );
 
-  const valueAtCursor = values[idx];
+  const valueAtCursor =
+    cursorTimestamp == null && !isNil(latestValue) ? latestValue : values[idx];
   const resolutionWords = String(displayedResolution)?.split(" ");
   const adjustedResolution = resolutionWords.length
     ? resolutionWords
@@ -75,7 +80,7 @@ const ChoiceOption: FC<Props> = ({
         .join(" ")
     : resolution;
 
-  const hasValue = !isNil(values.at(-1));
+  const hasValue = !isNil(valueAtCursor);
   const isEmbed = useIsEmbedMode();
 
   return (
@@ -101,7 +106,7 @@ const ChoiceOption: FC<Props> = ({
       <div
         className={cn(
           "resize-label min-w-0 flex-1 pr-2.5 text-left text-sm font-normal leading-4",
-          isEmbed ? "truncate" : "line-clamp-2",
+          "truncate",
           labelClassName
         )}
       >
@@ -114,7 +119,8 @@ const ChoiceOption: FC<Props> = ({
             {
               "opacity-30": !hasValue,
             },
-            "leading-0"
+            "leading-0",
+            valueClassName
           )}
         >
           {getPredictionDisplayValue(valueAtCursor, {
@@ -129,7 +135,7 @@ const ChoiceOption: FC<Props> = ({
           })}
         </div>
       ) : (
-        <div className="resize-label leading-0 flex flex-shrink-0 items-center gap-0.5 whitespace-nowrap px-1.5 text-right text-sm font-medium tabular-nums">
+        <div className="resize-label leading-0 flex flex-shrink-0 items-center gap-0.5 whitespace-nowrap text-right text-sm font-medium tabular-nums">
           <ChoiceResolutionIcon
             color={questionType === QuestionType.Date ? color : undefined}
           />

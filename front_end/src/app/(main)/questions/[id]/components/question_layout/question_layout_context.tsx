@@ -11,45 +11,141 @@ import {
 } from "react";
 
 import useHash from "@/hooks/use_hash";
+import { FetchedAggregateCoherenceLink } from "@/types/coherence";
+import { KeyFactor } from "@/types/comment";
+
+type KeyFactorOverlayState =
+  | { kind: "keyFactor"; keyFactor: KeyFactor }
+  | { kind: "questionLink"; link: FetchedAggregateCoherenceLink }
+  | null;
 
 type QuestionLayoutContextValue = {
   // Key Factors Section UI State
   keyFactorsExpanded?: boolean;
   requestKeyFactorsExpand: () => void;
 
-  // Mobile tab state
-  mobileActiveTab?: string;
-  setMobileActiveTab: (tab: string) => void;
+  // Key Factor Overlay
+  keyFactorOverlay: KeyFactorOverlayState;
+  openKeyFactorOverlay: (kf: KeyFactor) => void;
+  openQuestionLinkOverlay: (link: FetchedAggregateCoherenceLink) => void;
+  closeKeyFactorOverlay: () => void;
+
+  // Comment reply trigger
+  replyToCommentId: number | null;
+  requestReplyToComment: (commentId: number) => void;
+  clearReplyToComment: () => void;
+
+  // Comment scroll trigger
+  scrollToCommentId: number | null;
+  requestScrollToComment: (commentId: number) => void;
+  clearScrollToComment: () => void;
+
+  // Active tab state (shared between mobile + desktop tab bars)
+  activeTab?: string;
+  setActiveTab: (tab: string) => void;
 };
 
-const QuestionLayoutContext = createContext({} as QuestionLayoutContextValue);
+const TAB_HASH_VALUES = new Set([
+  "comments",
+  "timeline",
+  "my-scores",
+  "key-factors",
+  "info",
+  "question-links",
+  "private-notes",
+]);
+
+const QuestionLayoutContext = createContext<QuestionLayoutContextValue | null>(
+  null
+);
 
 export const QuestionLayoutProvider = ({ children }: PropsWithChildren) => {
   const hash = useHash();
   const [keyFactorsExpanded, setKeyFactorsExpanded] = useState<boolean>();
-  const [mobileActiveTab, setMobileActiveTab] = useState<string>();
+  const [activeTab, setActiveTab] = useState<string>();
+  const [keyFactorOverlay, setKeyFactorOverlay] =
+    useState<KeyFactorOverlayState>(null);
 
-  // Expand key factors section if URL hash points to it
   useEffect(() => {
+    if (!hash) return;
     if (hash === "key-factors") {
       setKeyFactorsExpanded(true);
-      setMobileActiveTab("key-factors");
+    }
+    if (TAB_HASH_VALUES.has(hash)) {
+      setActiveTab(hash);
     }
   }, [hash]);
 
   const requestKeyFactorsExpand = useCallback(() => {
     setKeyFactorsExpanded(true);
-    setMobileActiveTab("key-factors");
+    setActiveTab("key-factors");
+  }, []);
+
+  const openKeyFactorOverlay = useCallback((kf: KeyFactor) => {
+    setKeyFactorOverlay({ kind: "keyFactor", keyFactor: kf });
+  }, []);
+
+  const openQuestionLinkOverlay = useCallback(
+    (link: FetchedAggregateCoherenceLink) => {
+      setKeyFactorOverlay({ kind: "questionLink", link });
+    },
+    []
+  );
+
+  const closeKeyFactorOverlay = useCallback(() => {
+    setKeyFactorOverlay(null);
+  }, []);
+
+  const [replyToCommentId, setReplyToCommentId] = useState<number | null>(null);
+  const requestReplyToComment = useCallback((commentId: number) => {
+    setReplyToCommentId(commentId);
+  }, []);
+  const clearReplyToComment = useCallback(() => {
+    setReplyToCommentId(null);
+  }, []);
+
+  const [scrollToCommentId, setScrollToCommentId] = useState<number | null>(
+    null
+  );
+  const requestScrollToComment = useCallback((commentId: number) => {
+    setScrollToCommentId(commentId);
+  }, []);
+  const clearScrollToComment = useCallback(() => {
+    setScrollToCommentId(null);
   }, []);
 
   const value = useMemo<QuestionLayoutContextValue>(
     () => ({
       keyFactorsExpanded,
       requestKeyFactorsExpand,
-      mobileActiveTab,
-      setMobileActiveTab,
+      keyFactorOverlay,
+      openKeyFactorOverlay,
+      openQuestionLinkOverlay,
+      closeKeyFactorOverlay,
+      replyToCommentId,
+      requestReplyToComment,
+      clearReplyToComment,
+      scrollToCommentId,
+      requestScrollToComment,
+      clearScrollToComment,
+      activeTab,
+      setActiveTab,
     }),
-    [keyFactorsExpanded, requestKeyFactorsExpand, mobileActiveTab]
+    [
+      keyFactorsExpanded,
+      requestKeyFactorsExpand,
+      keyFactorOverlay,
+      openKeyFactorOverlay,
+      openQuestionLinkOverlay,
+      closeKeyFactorOverlay,
+      replyToCommentId,
+      requestReplyToComment,
+      clearReplyToComment,
+      scrollToCommentId,
+      requestScrollToComment,
+      clearScrollToComment,
+      activeTab,
+    ]
   );
 
   return (

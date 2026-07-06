@@ -44,3 +44,39 @@ def send_email_with_template(
             send_email_async(**kwargs)
         except Exception:
             logger.exception("Failed to send email")
+
+
+def send_notification_email_with_template(
+    to: list[str] | str,
+    subject: str,
+    template_name: str,
+    context: dict = None,
+    use_async: bool = True,
+):
+    """Sends a notification-stream email."""
+    send_email_with_template(
+        to,
+        subject,
+        template_name,
+        context=context,
+        use_async=use_async,
+        from_email=settings.EMAIL_NOTIFICATIONS_SENDER,
+    )
+
+
+def send_account_email_with_template(
+    to: list[str] | str,
+    subject: str,
+    template_name: str,
+    context: dict = None,
+    use_async: bool = True,
+):
+    """Sends an account-stream (transactional) email."""
+    send_email_with_template(
+        to,
+        subject,
+        template_name,
+        context=context,
+        use_async=use_async,
+        from_email=settings.EMAIL_ACCOUNTS_SENDER,
+    )

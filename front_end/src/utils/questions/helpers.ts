@@ -162,12 +162,18 @@ export function checkGroupOfQuestionsPostType<T extends QuestionType>(
   );
 }
 
-export function isContinuousQuestion(question: QuestionWithForecasts): boolean {
+export function isContinuousQuestionType(type: QuestionType): boolean {
   return [
     QuestionType.Numeric,
     QuestionType.Discrete,
     QuestionType.Date,
-  ].includes(question.type);
+  ].includes(type);
+}
+
+export function isContinuousQuestion(
+  question: QuestionWithForecasts
+): question is QuestionWithNumericForecasts {
+  return isContinuousQuestionType(question.type);
 }
 
 export function isValidScaling(

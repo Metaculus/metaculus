@@ -12,9 +12,11 @@ from rest_framework.response import Response
 
 from authentication.models import ApiKey
 from authentication.services import get_tokens_for_user, send_password_reset_email
+from projects.models import Project
 from users.models import User, UserSpamActivity
 from users.serializers import (
     UserPrivateSerializer,
+    UserPrivateDataAccessSerializer,
     UserPublicSerializer,
     validate_username,
     UserUpdateProfileSerializer,
@@ -27,6 +29,7 @@ from users.serializers import (
 )
 from users.services.common import (
     get_users,
+    mark_user_as_spam,
     user_unsubscribe_tags,
     send_email_change_confirmation_email,
     change_email_from_token,
@@ -48,7 +51,7 @@ logger = logging.getLogger(__name__)
 @permission_classes([IsAdminUser])
 def mark_as_spam_user_api_view(request, pk):
     user_to_mark_as_spam: User = get_object_or_404(User, pk=pk)
-    user_to_mark_as_spam.mark_as_spam()
+    mark_user_as_spam(user_to_mark_as_spam)
     return Response(status=status.HTTP_200_OK)
 
 
@@ -58,14 +61,38 @@ def current_user_api_view(request):
     A lightweight profile data of the current user
     Should contain minimum profile data without heavy calcs
     """
+    if request.GET.get("with_data_access") == "true":
+        return Response(UserPrivateDataAccessSerializer(request.user).data)
+    else:
+        return Response(UserPrivateSerializer(request.user).data)
 
-    return Response(UserPrivateSerializer(request.user).data)
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def user_profile_by_username_api_view(request, username: str):
+    """
+    Lookup a user's id by username (case-insensitive).
+    Used by the frontend to redirect /accounts/profile/<username>/ to
+    /accounts/profile/<id>/.
+    """
+    qs = User.objects.all()
+    if not request.user.is_staff:
+        qs = qs.filter(is_active=True, is_spam=False)
+
+    user = get_object_or_404(qs, username__iexact=username)
+    return Response({"id": user.id, "username": user.username})
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def user_profile_api_view(request, pk: int):
     current_user = request.user
+
+    # Forecasting stats (scatter plot, histogram, calibration curve, etc.) are
+    # expensive to compute and only needed on the profile page itself.
+    include_stats = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("include_stats")
+    )
 
     qs = User.objects.all()
     if not current_user.is_staff:
@@ -81,8 +108,8 @@ def user_profile_api_view(request, pk: int):
             {"spam_count": UserSpamActivity.objects.filter(user=user).count()}
         )
 
-    # Performing slow but cached profile request
-    profile.update(serialize_user_stats(user))
+    if include_stats:
+        profile.update(serialize_user_stats(user))
 
     return Response(profile)
 
@@ -127,7 +154,7 @@ def update_profile_api_view(request: Request) -> Response:
     is_spam, _ = check_profile_update_for_spam(user, serializer)
 
     if is_spam:
-        user.mark_as_spam()
+        mark_user_as_spam(user)
         send_deactivation_email(user.email)
         return Response(
             data={
@@ -137,11 +164,24 @@ def update_profile_api_view(request: Request) -> Response:
             },
             status=status.HTTP_403_FORBIDDEN,
         )
+
+    metaculus_news_subscription: bool | None = serializer.validated_data.pop(
+        "metaculus_news_subscription", None
+    )
+    if metaculus_news_subscription is not None:
+        news_project = Project.objects.filter(slug="platform").first()
+        if news_project:
+            if metaculus_news_subscription:
+                user.project_subscriptions.get_or_create(project=news_project)
+            else:
+                user.project_subscriptions.filter(project=news_project).delete()
+
     unsubscribe_tags: list[str] | None = serializer.validated_data.get(
         "unsubscribed_mailing_tags"
     )
     if unsubscribe_tags is not None:
         user_unsubscribe_tags(user, unsubscribe_tags)
+
     serializer.save()
     return Response(UserPrivateSerializer(user).data)
 
@@ -256,7 +296,7 @@ def update_bot_profile_api_view(request: Request, pk: int):
     is_spam, _ = check_profile_update_for_spam(bot, serializer)
 
     if is_spam:
-        user.mark_as_spam()
+        mark_user_as_spam(user)
         send_deactivation_email(user.email)
 
         return Response(

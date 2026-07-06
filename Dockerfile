@@ -1,20 +1,29 @@
 FROM node:24-bookworm-slim AS node
+FROM oven/bun:1.3 AS bun
 
 FROM python:3.12-slim-bookworm AS base
 
 # Copy Node.js from official image (same Debian base, glibc compatible)
 COPY --from=node /usr/local/bin/node /usr/local/bin/
-COPY --from=node /usr/local/bin/corepack /usr/local/bin/
-COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
-RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
-    && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+COPY --from=bun /usr/local/bin/bun /usr/local/bin/
+
+ARG NGINX_MIN_VERSION=1.30.1
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
     gettext \
+    gnupg \
     libpq5 \
-    nginx \
     libjemalloc2 \
+    && curl -fsSL https://nginx.org/keys/nginx_signing.key \
+        | gpg --dearmor -o /usr/share/keyrings/nginx-archive-keyring.gpg \
+    && printf "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] https://nginx.org/packages/debian bookworm nginx\n" \
+        > /etc/apt/sources.list.d/nginx.list \
+    && apt-get update && apt-get install -y --no-install-recommends nginx \
+    && nginx_version="$(nginx -v 2>&1 | sed -E 's#^nginx version: nginx/##')" \
+    && dpkg --compare-versions "$nginx_version" ge "$NGINX_MIN_VERSION" \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && ln -s /usr/lib/*/libjemalloc.so.2 /usr/lib/libjemalloc.so.2
@@ -25,9 +34,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 FROM base AS frontend_deps
 WORKDIR /app/front_end
 
-COPY front_end/package*.json ./
+COPY front_end/package.json front_end/bun.lock ./
 ENV NODE_ENV=production
-RUN npm ci
+RUN bun install --frozen-lockfile
 
 # ============================================================
 # BACKEND DEPENDENCIES
@@ -41,13 +50,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY poetry.lock pyproject.toml ./
-
-RUN pip install --no-cache-dir poetry \
-    && poetry config virtualenvs.create false \
-    && python -m venv venv \
-    && . venv/bin/activate \
-    && poetry install --without dev --no-interaction --no-ansi
+COPY --from=ghcr.io/astral-sh/uv:0.11 /uv /uvx /usr/local/bin/
+COPY pyproject.toml uv.lock .python-version ./
+ENV UV_PROJECT_ENVIRONMENT=/app/venv
+RUN uv sync --frozen --no-dev
 
 # ============================================================
 # MJML EMAIL TEMPLATES
@@ -92,11 +98,11 @@ COPY --from=frontend_deps /app/front_end/node_modules /app/front_end/node_module
 # Build frontend
 ENV NODE_ENV=production
 RUN cd front_end \
-    && NODE_OPTIONS=--max-old-space-size=4096 npm run build \
+    && NODE_OPTIONS=--max-old-space-size=8192 bun run build \
     && rm -rf .next/cache
 
 # Inject Sentry sourcemaps
-RUN cd front_end && npx sentry-cli sourcemaps inject .next
+RUN cd front_end && bun x sentry-cli sourcemaps inject .next
 
 # ============================================================
 # FINAL ENVIRONMENT
@@ -112,9 +118,6 @@ RUN rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default /e
     && touch /run/nginx.pid \
     && chown -R 1001:0 /var/cache/nginx /var/log/nginx /var/lib/nginx /run/nginx.pid /etc/nginx \
     && chmod -R 755 /var/lib/nginx /var/log/nginx
-
-# Install pm2 globally
-RUN npm install -g pm2@6
 
 # Copy ALL source code (backend + frontend source, but .next is overwritten)
 COPY --chown=1001:0 . /app/

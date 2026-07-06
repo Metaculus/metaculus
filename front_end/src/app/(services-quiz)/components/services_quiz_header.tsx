@@ -17,12 +17,16 @@ import cn from "@/utils/core/cn";
 
 import { useServicesQuizExitGuard } from "./quiz_state/services_quiz_exit_guard_provider";
 
-const ServicesQuizHeader: FC = () => {
+type Props = {
+  className?: string;
+};
+
+const ServicesQuizHeader: FC<Props> = ({ className }) => {
   const t = useTranslations();
   const { requestExit } = useServicesQuizExitGuard();
 
   return (
-    <FlowHeaderRoot title={t("workWithMetaculus")}>
+    <FlowHeaderRoot className={className} title={t("workWithMetaculus")}>
       <FlowHeaderBrand>
         <Link
           href="/"

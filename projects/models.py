@@ -1,24 +1,24 @@
+from django.contrib.postgres.expressions import ArraySubquery
 from django.db import models
 from django.db.models import (
-    Count,
-    FilteredRelation,
-    Q,
-    F,
     BooleanField,
+    Count,
     Exists,
+    F,
+    FilteredRelation,
     OuterRef,
+    Q,
     Sum,
 )
 from django.db.models.functions import Coalesce
 from django.utils import timezone as django_timezone
 from sql_util.aggregates import SubqueryAggregate
-from django.contrib.postgres.expressions import ArraySubquery
 
 from projects.permissions import ObjectPermission
 from questions.constants import UnsuccessfulResolutionType
 from scoring.constants import LeaderboardScoreTypes
 from users.models import User
-from utils.models import validate_alpha_slug, TimeStampedModel, TranslatedModel
+from utils.models import TimeStampedModel, TranslatedModel, validate_alpha_slug
 
 
 class ProjectsQuerySet(models.QuerySet):
@@ -99,38 +99,49 @@ class ProjectsQuerySet(models.QuerySet):
     def annotate_questions_count(self):
         from posts.models import Post
 
+        posts_filter = Q(
+            posts__curation_status=Post.CurationStatus.APPROVED,
+            posts__questions__question_weight__gt=0,
+        ) & ~Q(
+            posts__questions__resolution__in=[
+                UnsuccessfulResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
+            ]
+        )
+        default_posts_filter = Q(
+            default_posts__curation_status=Post.CurationStatus.APPROVED,
+            default_posts__questions__question_weight__gt=0,
+        ) & ~Q(
+            default_posts__questions__resolution__in=[
+                UnsuccessfulResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
+            ]
+        )
+
         return self.annotate(
-            posts_questions_count=Count(
-                "posts__questions__id",
-                filter=Q(
-                    posts__curation_status=Post.CurationStatus.APPROVED,
-                    posts__questions__question_weight__gt=0,
-                )
-                & ~Q(
-                    posts__questions__resolution__in=[
-                        UnsuccessfulResolutionType.AMBIGUOUS,
-                        UnsuccessfulResolutionType.ANNULLED,
-                    ]
-                ),
+            _question_posts_in_default_project=Count(
+                "default_posts__id", filter=default_posts_filter, distinct=True
+            ),
+            _question_posts_in_secondary_projects=Count(
+                "posts__id", filter=posts_filter, distinct=True
+            ),
+            _questions_in_default_project=Count(
+                "default_posts__questions__id",
+                filter=default_posts_filter,
                 distinct=True,
             ),
-            default_posts_questions_count=Count(
-                "default_posts__questions__id",
-                filter=Q(
-                    default_posts__curation_status=Post.CurationStatus.APPROVED,
-                    default_posts__questions__question_weight__gt=0,
-                )
-                & ~Q(
-                    default_posts__questions__resolution__in=[
-                        UnsuccessfulResolutionType.AMBIGUOUS,
-                        UnsuccessfulResolutionType.ANNULLED,
-                    ]
-                ),
-                distinct=True,
+            _questions_in_secondary_projects=Count(
+                "posts__questions__id", filter=posts_filter, distinct=True
             ),
         ).annotate(
-            questions_count=Coalesce(F("posts_questions_count"), 0)
-            + Coalesce(F("default_posts_questions_count"), 0)
+            # Top-level count: each question post counts once, regardless of
+            # how many subquestions (group children, conditional branches) it has
+            questions_count=Coalesce(F("_question_posts_in_default_project"), 0)
+            + Coalesce(F("_question_posts_in_secondary_projects"), 0),
+            questions_count_including_subquestions=Coalesce(
+                F("_questions_in_default_project"), 0
+            )
+            + Coalesce(F("_questions_in_secondary_projects"), 0),
         )
 
     def annotate_is_subscribed(self, user: User, include_members: bool = False):
@@ -245,6 +256,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         blank=True,
     )
 
+    # TO BE DEPRECATED in favor of Leaderboard field
     class BotLeaderboardStatus(models.TextChoices):
         EXCLUDE_AND_HIDE = "exclude_and_hide"
         EXCLUDE_AND_SHOW = "exclude_and_show"
@@ -261,6 +273,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         include: Bots are included in ranks/prizes/medals and shown on the leaderboard.<br>
         bots_only: Only Bots are included in ranks/prizes/medals. Non-bots are still shown.<br>
         """,
+        db_index=True,
     )
 
     name = models.CharField(max_length=200)
@@ -284,6 +297,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     )
 
     # Tournament-specific fields
+    # TO BE DEPRECATED in favor of Leaderboard field
     prize_pool = models.DecimalField(
         default=None, decimal_places=2, max_digits=15, null=True, blank=True
     )
@@ -403,11 +417,6 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
 
     def save(self, *args, **kwargs):
         creating = not self.pk
-        # Check if the primary leaderboard is associated with this project
-        if self.primary_leaderboard and self.primary_leaderboard.project != self:
-            raise ValueError(
-                "Primary leaderboard must be associated with this project."
-            )
 
         # Auto-create index object
         if self.type == self.ProjectTypes.INDEX and not self.index_id:
@@ -520,6 +529,7 @@ class ProjectSubscription(TimeStampedModel):
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="subscriptions"
     )
+    follow_questions = models.BooleanField(default=False)
 
     class Meta:
         constraints = [

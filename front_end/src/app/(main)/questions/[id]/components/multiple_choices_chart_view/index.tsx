@@ -1,23 +1,32 @@
 "use client";
 import { FloatingPortal } from "@floating-ui/react";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  FC,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import GroupChart from "@/components/charts/group_chart";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import MCPredictionsTooltip from "@/components/charts/primitives/mc_predictions_tooltip";
-import { METAC_COLORS } from "@/constants/colors";
+import { GroupTimelineMarker } from "@/components/charts/primitives/timeline_markers/types";
+import { getEffectiveVisibleCount } from "@/constants/questions";
 import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
 import { TickFormat, TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
 import { ForecastAvailability, QuestionType, Scaling } from "@/types/question";
 import cn from "@/utils/core/cn";
+import { buildChoicesWithOthers } from "@/utils/questions/choices";
 
-import ChoicesLegend from "./choices_legend";
-
-const MAX_VISIBLE_CHECKBOXES = 3;
+import ChoicesOptionsDropdown from "./choices_options_dropdown";
+import CompactLegendBar from "./compact_legend_bar";
 
 type Props = {
   choiceItems: ChoiceItem[];
@@ -33,7 +42,7 @@ type Props = {
   isClosed?: boolean;
   hideCP?: boolean;
   cursorTimestamp?: number | null;
-  title?: string;
+  title?: ReactNode;
   yLabel?: string;
   questionType?: QuestionType;
   scaling?: Scaling;
@@ -45,6 +54,13 @@ type Props = {
   embedMode?: boolean;
   className?: string;
   forecastAvailability?: ForecastAvailability;
+  timelineMarkers?: GroupTimelineMarker[];
+  activeTimelineMarkerId?: string | null;
+  onTimelineMarkerEnter?: (marker: GroupTimelineMarker) => void;
+  onTimelineMarkerLeave?: (marker: GroupTimelineMarker) => void;
+  withHighlightArea?: boolean;
+  withHighlightEndpoint?: boolean;
+  hideTooltip?: boolean;
 };
 
 const MultiChoicesChartView: FC<Props> = ({
@@ -74,32 +90,39 @@ const MultiChoicesChartView: FC<Props> = ({
   embedMode = false,
   className,
   forecastAvailability,
+  timelineMarkers,
+  activeTimelineMarkerId,
+  onTimelineMarkerEnter,
+  onTimelineMarkerLeave,
+  withHighlightArea = true,
+  withHighlightEndpoint = false,
+  hideTooltip = false,
 }) => {
   const { user } = useAuth();
   const isInteracted = useRef(false);
   const [isChartReady, setIsChartReady] = useState(false);
+  const [isCursorOverLegend, setIsCursorOverLegend] = useState(false);
+  const legendEnterProps = {
+    onMouseEnter: () => setIsCursorOverLegend(true),
+    onMouseLeave: () => setIsCursorOverLegend(false),
+    onTouchStart: () => setIsCursorOverLegend(true),
+    onTouchEnd: () => setIsCursorOverLegend(false),
+    onTouchCancel: () => setIsCursorOverLegend(false),
+  };
   const handleChartReady = useCallback(() => setIsChartReady(true), []);
   const t = useTranslations();
+  const [touchCoords, setTouchCoords] = useState<
+    { x: number; y: number } | undefined
+  >();
 
   const isMC = questionType === QuestionType.MultipleChoice;
 
-  const legendContainerRef = useRef<HTMLDivElement>(null);
-  const [normalizedChartHeight, setNormalizedChartHeight] = useState<number>();
-  useEffect(() => {
-    if (!legendContainerRef.current || !chartHeight) return;
-    setNormalizedChartHeight(
-      chartHeight -
-        (legendContainerRef.current?.clientHeight ?? 0) -
-        (legendContainerRef.current.offsetHeight ?? 0)
-    );
-  }, [chartHeight]);
-
-  const maxPrimary = embedMode ? 2 : MAX_VISIBLE_CHECKBOXES;
-  const showOthersToggle = isMC && choiceItems.length > maxPrimary;
+  const maxPrimary = embedMode
+    ? 2
+    : getEffectiveVisibleCount(choiceItems.length);
 
   const normalizedInitRef = useRef(false);
   useEffect(() => {
-    if (!isMC) return;
     if (normalizedInitRef.current) return;
     if (!choiceItems.length) return;
     const updated = choiceItems.map((it, idx) =>
@@ -110,27 +133,7 @@ const MultiChoicesChartView: FC<Props> = ({
     );
     if (changed) onChoiceItemsUpdate(updated);
     normalizedInitRef.current = true;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMC, choiceItems, maxPrimary, onChoiceItemsUpdate]);
-  const computeOthersVisible = useCallback(
-    (items: ChoiceItem[]) => {
-      if (!isMC || items.length <= maxPrimary) return false;
-      const left = items.slice(0, maxPrimary);
-      const right = items.slice(maxPrimary);
-      const dropdown = [...left.filter((c) => !c.active), ...right];
-      if (dropdown.length === 0) return false;
-      return dropdown.every((c) => c.active);
-    },
-    [isMC, maxPrimary]
-  );
-  const [othersVisible, setOthersVisible] = useState<boolean>(() =>
-    computeOthersVisible(choiceItems)
-  );
-  useEffect(() => {
-    if (!showOthersToggle) return;
-    const next = computeOthersVisible(choiceItems);
-    if (next !== othersVisible) setOthersVisible(next);
-  }, [showOthersToggle, choiceItems, computeOthersVisible, othersVisible]);
+  }, [choiceItems, maxPrimary, onChoiceItemsUpdate]);
 
   const {
     isActive: isTooltipActive,
@@ -138,7 +141,23 @@ const MultiChoicesChartView: FC<Props> = ({
     getFloatingProps,
     refs,
     floatingStyles,
-  } = useChartTooltip();
+  } = useChartTooltip({
+    x: touchCoords?.x,
+    y: touchCoords?.y,
+    placement: touchCoords ? "top" : "left",
+    forceOpen: !!touchCoords,
+  });
+  const tooltipStyle = useMemo<React.CSSProperties>(() => {
+    if (!touchCoords) return floatingStyles;
+    return {
+      position: "fixed",
+      top: touchCoords.y - 24,
+      left: touchCoords.x,
+      transform: "translate(-50%, -100%)",
+      zIndex: 100,
+    };
+  }, [touchCoords, floatingStyles]);
+
   const attachRef = useCallback(
     (node: HTMLElement | null) => {
       if (node) refs.setReference(node);
@@ -171,47 +190,23 @@ const MultiChoicesChartView: FC<Props> = ({
     [choiceItems, onChoiceItemsUpdate]
   );
 
-  const toggleSelectAll = useCallback(
-    (isAllSelected: boolean) => {
-      if (isMC && choiceItems.length > maxPrimary) {
-        const left = choiceItems.slice(0, maxPrimary);
-        const leftInactive = new Set(
-          left.filter((c) => !c.active).map((c) => c.choice)
-        );
-        const rightChoices = new Set(
-          choiceItems.slice(maxPrimary).map((c) => c.choice)
-        );
-        const dropdownSet = new Set<string>([...leftInactive, ...rightChoices]);
-        const nextActive = !isAllSelected;
-        onChoiceItemsUpdate(
-          choiceItems.map((item) =>
-            dropdownSet.has(item.choice)
-              ? { ...item, active: nextActive, highlighted: false }
-              : item
-          )
-        );
-      } else {
-        if (isAllSelected) {
-          onChoiceItemsUpdate(
-            choiceItems.map((item) => ({
-              ...item,
-              active: false,
-              highlighted: false,
-            }))
-          );
-        } else {
-          onChoiceItemsUpdate(
-            choiceItems.map((item) => ({ ...item, active: true }))
-          );
-        }
-      }
+  const handleToggleAll = useCallback(
+    (checked: boolean) => {
+      if (!isInteracted.current) isInteracted.current = true;
+      onChoiceItemsUpdate(
+        choiceItems.map((item) => ({
+          ...item,
+          active: checked,
+          highlighted: false,
+        }))
+      );
     },
-    [isMC, choiceItems, maxPrimary, onChoiceItemsUpdate]
+    [choiceItems, onChoiceItemsUpdate]
   );
 
   const chartChoiceItems = useMemo(
-    () => (isMC ? buildChartChoiceItems(choiceItems, embedMode) : choiceItems),
-    [isMC, choiceItems, embedMode]
+    () => (isMC ? buildChoicesWithOthers(choiceItems) : choiceItems),
+    [isMC, choiceItems]
   );
 
   const totalActiveCount = useMemo(
@@ -252,13 +247,23 @@ const MultiChoicesChartView: FC<Props> = ({
     scaling,
     isClosed,
     extraTheme: chartTheme,
-    height: normalizedChartHeight,
+    height: chartHeight,
     withZoomPicker: true,
     defaultZoom: resolveDefaultZoom(defaultZoom, !!user),
     openTime,
     forceAutoZoom: isInteracted.current,
     forecastAvailability,
     attachRef,
+    withHighlightArea,
+    withHighlightEndpoint,
+    headerExtra:
+      !embedMode && choiceItems.length > 1 ? (
+        <ChoicesOptionsDropdown
+          choices={choiceItems}
+          onChoiceChange={handleChoiceChange}
+          onToggleAll={handleToggleAll}
+        />
+      ) : undefined,
   } as const;
 
   return (
@@ -272,7 +277,18 @@ const MultiChoicesChartView: FC<Props> = ({
       <div
         ref={refs.setReference}
         {...getReferenceProps()}
-        className="relative"
+        className="relative touch-none"
+        onTouchStartCapture={(e) => {
+          const touch = e.touches[0];
+          if (touch) setTouchCoords({ x: touch.clientX, y: touch.clientY });
+        }}
+        onTouchMoveCapture={(e) => {
+          const touch = e.touches[0];
+          if (touch) setTouchCoords({ x: touch.clientX, y: touch.clientY });
+        }}
+        onTouchEndCapture={() => setTouchCoords(undefined)}
+        onTouchCancelCapture={() => setTouchCoords(undefined)}
+        onMouseMoveCapture={() => setTouchCoords(undefined)}
       >
         {useBinaryView ? (
           <GroupChart
@@ -284,6 +300,25 @@ const MultiChoicesChartView: FC<Props> = ({
               !!forecastAvailability?.cpRevealsOn
             }
             choiceItems={binaryChoiceItems}
+            chartTitle={!embedMode ? title : undefined}
+            timelineMarkers={timelineMarkers}
+            activeTimelineMarkerId={activeTimelineMarkerId}
+            onTimelineMarkerEnter={onTimelineMarkerEnter}
+            onTimelineMarkerLeave={onTimelineMarkerLeave}
+            headerLeft={
+              withLegend ? (
+                <div {...legendEnterProps}>
+                  <CompactLegendBar
+                    items={choiceItems}
+                    questionType={QuestionType.MultipleChoice}
+                    onChoiceChange={handleChoiceChange}
+                    onChoiceHighlight={handleChoiceHighlight}
+                    hideCP={hideCP}
+                  />
+                </div>
+              ) : undefined
+            }
+            forceShowLinePoints={!embedMode}
           />
         ) : isMC ? (
           <MultipleChoiceChart
@@ -291,6 +326,19 @@ const MultiChoicesChartView: FC<Props> = ({
             isEmbedded={embedMode}
             chartTitle={!embedMode ? title : undefined}
             choiceItems={chartChoiceItems}
+            headerLeft={
+              withLegend ? (
+                <div {...legendEnterProps}>
+                  <CompactLegendBar
+                    items={choiceItems}
+                    questionType={QuestionType.MultipleChoice}
+                    onChoiceChange={handleChoiceChange}
+                    onChoiceHighlight={handleChoiceHighlight}
+                    hideCP={hideCP}
+                  />
+                </div>
+              ) : undefined
+            }
           />
         ) : (
           <GroupChart
@@ -302,41 +350,43 @@ const MultiChoicesChartView: FC<Props> = ({
             }
             cursorTimestamp={cursorTimestamp}
             choiceItems={choiceItems}
+            chartTitle={!embedMode ? title : undefined}
+            timelineMarkers={timelineMarkers}
+            activeTimelineMarkerId={activeTimelineMarkerId}
+            onTimelineMarkerEnter={onTimelineMarkerEnter}
+            onTimelineMarkerLeave={onTimelineMarkerLeave}
+            headerLeft={
+              withLegend ? (
+                <div {...legendEnterProps}>
+                  <CompactLegendBar
+                    items={choiceItems}
+                    questionType={questionType ?? QuestionType.Binary}
+                    onChoiceChange={handleChoiceChange}
+                    onChoiceHighlight={handleChoiceHighlight}
+                    hideCP={hideCP}
+                  />
+                </div>
+              ) : undefined
+            }
+            forceShowLinePoints={!embedMode}
           />
         )}
       </div>
 
-      {withLegend && (
-        <div className="-ml-1 mt-3" ref={legendContainerRef}>
-          <ChoicesLegend
-            choices={choiceItems}
-            onChoiceChange={handleChoiceChange}
-            onChoiceHighlight={handleChoiceHighlight}
-            onToggleAll={toggleSelectAll}
-            maxLegendChoices={embedMode ? 2 : MAX_VISIBLE_CHECKBOXES}
-            othersToggle={showOthersToggle ? !timelineMode : undefined}
-            onOthersToggle={
-              showOthersToggle
-                ? (checked) => setTimelineMode(!checked)
-                : undefined
-            }
-            othersDisabled={
-              showOthersToggle ? totalActiveCount !== 1 : undefined
-            }
-          />
-        </div>
-      )}
-
       {isTooltipActive &&
+        !hideTooltip &&
+        !isCursorOverLegend &&
+        !hideCP &&
+        !forecastAvailability?.cpRevealsOn &&
+        !activeTimelineMarkerId &&
         (tooltipChoices.length > 0 ||
           !!tooltipUserChoices?.length ||
-          !!forecastAvailability?.cpRevealsOn ||
           !!forecastAvailability?.isEmpty) && (
           <FloatingPortal>
             <div
               className="pointer-events-none z-[100] rounded bg-gray-0 leading-4 shadow-lg dark:bg-gray-0-dark"
               ref={refs.setFloating}
-              style={floatingStyles}
+              style={tooltipStyle}
               {...getFloatingProps()}
             >
               <MCPredictionsTooltip
@@ -383,63 +433,6 @@ function resolveDefaultZoom(
     explicit ??
     (hasUser ? TimelineChartZoomOption.All : TimelineChartZoomOption.TwoMonths)
   );
-}
-
-function buildChartChoiceItems(
-  all: ChoiceItem[],
-  embedMode: boolean
-): ChoiceItem[] {
-  const maxPrimary = embedMode ? 2 : MAX_VISIBLE_CHECKBOXES;
-  const primary = all.slice(0, maxPrimary);
-  const right = all.slice(maxPrimary);
-  const series: ChoiceItem[] = [];
-  primary.forEach((p) => {
-    if (p.active) series.push(p);
-  });
-  right.forEach((r) => {
-    if (r.active) series.push(r);
-  });
-
-  const pool = [
-    ...primary.filter((p) => !p.active),
-    ...right.filter((r) => !r.active),
-  ];
-  if (pool.length === 0) return series.length ? series : primary;
-
-  const aggTs = pool[0]?.aggregationTimestamps ?? [];
-  const userTs = pool[0]?.userTimestamps ?? [];
-
-  const sumNullable = (vals: Array<number | null | undefined>) => {
-    let sum = 0;
-    let hasAny = false;
-    for (const v of vals) {
-      if (v != null) {
-        sum += v;
-        hasAny = true;
-      }
-    }
-    return hasAny ? Number(sum.toFixed(6)) : null;
-  };
-
-  const aggregationValues = aggTs.map((_, i) =>
-    sumNullable(pool.map((o) => o.aggregationValues[i]))
-  );
-  const userValues = userTs.map((_, i) =>
-    sumNullable(pool.map((o) => o.userValues[i]))
-  );
-
-  const othersItem = {
-    choice: "Others",
-    color: METAC_COLORS.gray["400"],
-    active: true,
-    highlighted: false,
-    aggregationTimestamps: aggTs,
-    aggregationValues,
-    userTimestamps: userTs,
-    userValues,
-  } as unknown as ChoiceItem;
-
-  return [...series, othersItem];
 }
 
 function getSingleActive(all: ChoiceItem[]): ChoiceItem | null {

@@ -23,7 +23,6 @@ def fab_management_view(request):
 
             saved_context = {"tournament_id": tournament_id}
             match action_name:
-
                 case "submit_dry":
                     doc_id = request.POST["doc_id"]
                     sheet_name = request.POST["sheet_name"]

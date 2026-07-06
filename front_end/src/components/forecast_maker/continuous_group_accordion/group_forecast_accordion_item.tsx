@@ -1,3 +1,5 @@
+"use client";
+
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Disclosure, DisclosurePanel } from "@headlessui/react";
@@ -12,7 +14,7 @@ import TruncatedTextTooltip from "@/components/truncated_text_tooltip";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { QuestionStatus } from "@/types/post";
-import { Quantile, Scaling } from "@/types/question";
+import { Quantile, QuestionType, Scaling } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
   getQuantileNumericForecastDataset,
@@ -177,16 +179,17 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
                 isResolved={isResolvedOption}
                 isDirty={!isResolvedOption && isDirty}
               >
-                <div className="flex h-full shrink grow items-center overflow-hidden">
+                <div className="flex h-full max-w-[90px] shrink grow basis-0 items-center overflow-hidden sm:max-w-[110px]">
                   <TruncatedTextTooltip
                     text={title}
                     showTooltip={!open}
                     className="line-clamp-2 pl-4 pr-2 text-sm font-bold text-gray-900 dark:text-gray-900-dark sm:text-base"
-                    tooltipClassName="text-center !border-blue-400 dark:!border-blue-400-dark bg-gray-0 dark:bg-gray-0-dark text-sm font-bold text-gray-900 dark:text-gray-900-dark sm:text-base p-2"
+                    variant="light"
+                    tooltipClassName="text-center text-sm font-bold text-gray-900 dark:text-gray-900-dark sm:text-base p-2"
                   />
                 </div>
                 {(!open || !isLargeScreen) && (
-                  <div className="flex h-full min-w-[105px] max-w-[105px] shrink-0 grow-[3] items-center justify-center gap-0.5 sm:min-w-[420px] sm:max-w-[420px]">
+                  <div className="flex h-full min-w-[105px] max-w-[105px] shrink-0 grow-[3] items-center justify-center gap-0.5 sm:min-w-0 sm:max-w-none sm:flex-1">
                     <AccordionResolutionCell
                       formatedResolution={formatedResolution}
                       resolution={resolution}
@@ -201,12 +204,13 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
                         wasWithdrawn && !isDirty ? withdrawnLabel : undefined
                       }
                     />
-                    <div className="hidden h-full shrink-0 grow-0 items-center sm:block sm:w-[325px]">
+                    <div className="hidden h-full min-w-0 shrink grow items-center sm:block">
                       <ContinuousAreaChart
                         data={continuousAreaChartData}
                         graphType="pmf"
                         height={55}
                         hideLabels
+                        hideYAxis={question.type === QuestionType.Discrete}
                         hideCP={!showCP}
                         question={question}
                         withResolutionChip={false}
@@ -217,7 +221,7 @@ const AccordionItem: FC<PropsWithChildren<AccordionItemProps>> = memo(
                     </div>
                   </div>
                 )}
-                <div className="flex h-full w-[43px] shrink-0 grow-0 items-center justify-center">
+                <div className="ml-auto flex h-full w-[43px] shrink-0 grow-0 items-center justify-center">
                   <div className="flex size-[26px] items-center justify-center rounded-full border border-blue-400 bg-blue-100 dark:border-blue-400-dark dark:bg-blue-100-dark">
                     <FontAwesomeIcon
                       icon={faChevronDown}
