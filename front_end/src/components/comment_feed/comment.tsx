@@ -30,7 +30,6 @@ import { CommentDate } from "@/components/comment_feed/comment_date";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import CommentReportModal from "@/components/comment_feed/comment_report_modal";
 import CommentVoter from "@/components/comment_feed/comment_voter";
-import ConfirmModal from "@/components/confirm_modal";
 import { Admin } from "@/components/icons/admin";
 import { Moderator } from "@/components/icons/moderator";
 import MarkdownEditor from "@/components/markdown_editor";
@@ -41,6 +40,7 @@ import Checkbox from "@/components/ui/checkbox";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
+import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useCommentDraft } from "@/hooks/use_comment_draft";
 import useContainerSize from "@/hooks/use_container_size";
@@ -300,10 +300,10 @@ const Comment: FC<CommentProps> = ({
     comment.included_forecast
   );
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const { ref, width } = useContainerSize<HTMLDivElement>();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
   const { user } = useAuth();
+  const { setCurrentModal } = useModal();
   const scrollTo = useScrollTo();
   const userCanPredict = postData && canPredictQuestion(postData, user);
   const userForecast =
@@ -697,7 +697,16 @@ const Comment: FC<CommentProps> = ({
       hidden: !(isCommentAuthor || user?.is_staff),
       id: "delete",
       name: t("delete"),
-      onClick: () => setIsDeleteModalOpen(true),
+      onClick: () =>
+        setCurrentModal({
+          type: "confirm",
+          data: {
+            title: t("deleteCommentConfirmTitle"),
+            description: t("deleteCommentConfirmDescription"),
+            actionText: t("delete"),
+            onConfirm: handleDeleteComment,
+          },
+        }),
     },
     {
       hidden: !user?.is_staff,
@@ -1179,14 +1188,6 @@ const Comment: FC<CommentProps> = ({
         comment={comment}
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
-      />
-      <ConfirmModal
-        isOpen={isDeleteModalOpen}
-        onCloseModal={() => setIsDeleteModalOpen(false)}
-        title={t("deleteCommentConfirmTitle")}
-        description={t("deleteCommentConfirmDescription")}
-        actionText={t("delete")}
-        onConfirm={handleDeleteComment}
       />
     </div>
   );
