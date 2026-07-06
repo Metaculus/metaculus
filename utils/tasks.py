@@ -8,7 +8,6 @@ from django.core.mail import EmailMessage
 
 from questions.types import AggregationMethod
 from utils.dramatiq import task_concurrent_limit
-from utils.email import resolve_account_sender
 from utils.translation import (
     detect_and_update_content_language,
     queryset_filter_outdated_translations,
@@ -69,7 +68,7 @@ def email_all_data_for_questions_task(
         email = EmailMessage(
             subject="Your Metaculus Data",
             body="Attached is your Metaculus data.",
-            from_email=resolve_account_sender(email_address),
+            from_email=settings.EMAIL_ACCOUNTS_SENDER,
             to=[email_address],
         )
         email.attach(filename or "metaculus_data.zip", data, "application/zip")
@@ -80,7 +79,7 @@ def email_all_data_for_questions_task(
         email = EmailMessage(
             subject="Error generating Metaculus data",
             body="Error generating Metaculus data. Please contact an administrator for assistance.",
-            from_email=resolve_account_sender(email_address),
+            from_email=settings.EMAIL_ACCOUNTS_SENDER,
             to=[email_address],
         )
         email.send()
@@ -138,7 +137,7 @@ def email_data_task(
         email = EmailMessage(
             subject="Your Metaculus Data",
             body="Attached is your Metaculus data.",
-            from_email=resolve_account_sender(user_email),
+            from_email=settings.EMAIL_ACCOUNTS_SENDER,
             to=[user_email],
         )
         email.attach(filename, data, "application/zip")
@@ -149,7 +148,7 @@ def email_data_task(
         email = EmailMessage(
             subject="Error generating Metaculus data",
             body="Error generating Metaculus data. Please contact an administrator for assistance.",
-            from_email=resolve_account_sender(user_email),
+            from_email=settings.EMAIL_ACCOUNTS_SENDER,
             to=[user_email],
         )
         email.send()
@@ -173,7 +172,7 @@ def email_user_their_data_task(user_id: int):
         email = EmailMessage(
             subject="Your User Data",
             body="Attached is your User Data on Metaculus.",
-            from_email=resolve_account_sender(user_email),
+            from_email=settings.EMAIL_ACCOUNTS_SENDER,
             to=[user_email],
         )
         email.attach("user_data.zip", data, "application/zip")
@@ -184,7 +183,7 @@ def email_user_their_data_task(user_id: int):
         email = EmailMessage(
             subject="Error generating Metaculus data",
             body="Error generating Metaculus data. Please contact an administrator for assistance.",
-            from_email=resolve_account_sender(user_email),
+            from_email=settings.EMAIL_ACCOUNTS_SENDER,
             to=[user_email],
         )
         email.send()
