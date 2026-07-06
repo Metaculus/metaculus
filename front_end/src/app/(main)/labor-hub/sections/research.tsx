@@ -70,13 +70,12 @@ export function ResearchSection({
             rated as low exposure due to the high physical nature of the work,
             but forecasters anticipate that robotic capabilities will begin to
             displace more of these roles by 2035. Forecasters do expect that the
-            high exposure and vulnerability of lawyers, sales representatives,
-            and software developers will translate to significant employment
-            reductions in these fields over the next decade, while financial
-            specialists are expected to see only modest declines. These
-            forecasts provide important context to our understanding of
-            workforce prospects by quantifying the predicted impact of AI on
-            employment levels.
+            high exposure and vulnerability of lawyers, financial specialists,
+            sales representatives, and software developers will translate to
+            significant employment reductions in these fields over the next
+            decade. These forecasts provide important context to our
+            understanding of workforce prospects by quantifying the predicted
+            impact of AI on employment levels.
           </ContentParagraph>
         </div>
 

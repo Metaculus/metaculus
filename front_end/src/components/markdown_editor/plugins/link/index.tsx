@@ -5,6 +5,8 @@ import {
   addComposerChild$,
   addExportVisitor$,
   addImportVisitor$,
+  addNestedEditorChild$,
+  addTableCellEditorChild$,
   addLexicalNode$,
   realmPlugin,
 } from "@mdxeditor/editor";
@@ -50,18 +52,22 @@ export const linkPlugin = realmPlugin<{
     const withUgcLinks = Boolean(params?.withUgcLinks);
 
     const MdastLinkVisitor = createMdastLinkVisitor(withUgcLinks);
+    const LinkPlugins = () => (
+      <>
+        <LexicalLinkPlugin {...linkPluginProps} />
+        {disableAutoLink ? null : <LexicalAutoLinkPlugin />}
+      </>
+    );
+
     realm.pubIn({
       [addActivePlugin$]: "link",
       [addImportVisitor$]: MdastLinkVisitor,
       [addLexicalNode$]: [LinkNode, AutoLinkNode],
       [addExportVisitor$]: LexicalLinkVisitor,
       [disableAutoLink$]: disableAutoLink,
-      [addComposerChild$]: () => (
-        <>
-          <LexicalLinkPlugin {...linkPluginProps} />
-          {disableAutoLink ? null : <LexicalAutoLinkPlugin />}
-        </>
-      ),
+      [addComposerChild$]: LinkPlugins,
+      [addNestedEditorChild$]: LinkPlugins,
+      [addTableCellEditorChild$]: LinkPlugins,
     });
   },
 });
