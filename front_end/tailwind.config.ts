@@ -45,12 +45,27 @@ const config: Config = {
           "50%": { backgroundColor: "rgb(196 180 255 / 0.8)" },
           "100%": { backgroundColor: "transparent" },
         },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        "comment-in-right": {
+          from: { opacity: "0", transform: "translateX(28px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
+        "comment-in-left": {
+          from: { opacity: "0", transform: "translateX(-28px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
       },
       animation: {
         "loading-slide":
           "loading-slide cubic-bezier(0.3, 1, 0.7, 0) 1.7s infinite",
         spin: "spin 1s infinite",
         "highlight-flash": "highlight-flash 2s ease-out forwards",
+        "fade-in": "fade-in 200ms ease-out",
+        "comment-in-right": "comment-in-right 280ms ease-out",
+        "comment-in-left": "comment-in-left 280ms ease-out",
       },
       fontFamily: {
         sans: [
@@ -65,12 +80,18 @@ const config: Config = {
         mono: ['"Ubuntu mono"', ...defaultTheme.fontFamily.mono],
         "league-gothic": "var(--font-league-gothic)",
         geist: ["var(--font-geist)", ...defaultTheme.fontFamily.sans],
-        "geist-mono": ["var(--font-geist-mono)", ...defaultTheme.fontFamily.mono],
+        "geist-mono": [
+          "var(--font-geist-mono)",
+          ...defaultTheme.fontFamily.mono,
+        ],
         "jetbrains-mono": [
           "var(--font-jetbrains-mono)",
           ...defaultTheme.fontFamily.mono,
         ],
-        newsreader: ["var(--font-newsreader)", ...defaultTheme.fontFamily.serif],
+        newsreader: [
+          "var(--font-newsreader)",
+          ...defaultTheme.fontFamily.serif,
+        ],
       },
       strokeWidth: {
         "3": "3px",
@@ -80,6 +101,9 @@ const config: Config = {
       },
       zIndex: {
         "100": "100",
+        header: "210",
+        modal: "220",
+        popover: "230",
       },
       backgroundImage: {
         "border-dashed-1":

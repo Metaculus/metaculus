@@ -17,10 +17,11 @@ export const JOBS_INSIGHTS = {
   "2030": {
     positive: (
       <>
-        By 2030, roles in <strong>design</strong>, <strong>construction</strong>
-        , and <strong>healthcare</strong> are expected to grow due to demand for
-        specialized human expertise, infrastructure buildouts, an aging
-        population, and legal restrictions unlikely to change in the short-term.
+        By 2030, roles in <strong>food service</strong>,{" "}
+        <strong>construction</strong>, and <strong>healthcare</strong> are
+        expected to grow due to demand for in-person service, infrastructure
+        buildouts, and an aging population that AI is unlikely to displace in
+        the short-term.
       </>
     ),
     negative: (
@@ -34,8 +35,8 @@ export const JOBS_INSIGHTS = {
   "2035": {
     positive: (
       <>
-        By 2035, <strong>nurses</strong>, <strong>restaurant servers</strong>,
-        and <strong>physicians</strong> are expected to see the highest growth,
+        By 2035, <strong>nurses</strong>, <strong>physicians</strong>, and{" "}
+        <strong>law enforcement</strong> are expected to see the highest growth,
         driven by hands-on needs that cannot be easily automated.
       </>
     ),
@@ -45,7 +46,7 @@ export const JOBS_INSIGHTS = {
         and <strong>law</strong> are expected to see sharp staff reductions as
         AI systems take over large portions of financial analysis, outreach, and
         detailed research work, while <strong>construction workers</strong> see
-        modest gains as robotics have yet to fully displace physical roles by
+        little change as robotics have yet to fully displace physical roles by
         this horizon.
       </>
     ),

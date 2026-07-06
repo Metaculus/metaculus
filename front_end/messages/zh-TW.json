@@ -1093,6 +1093,8 @@
   "keyFactor": "關鍵因素",
   "scrollToKeyFactor": "滾動到關鍵因素",
   "keyFactors": "關鍵因素",
+  "keyFactorsFor": "以下問題的關鍵因素",
+  "goToKeyFactor": "前往關鍵因素 {number}",
   "notAvailable": "不可用",
   "indexesTitle": "項目",
   "indexScore": "指數值：<bold>{value}</bold>",
