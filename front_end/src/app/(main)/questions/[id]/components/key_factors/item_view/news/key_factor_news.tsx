@@ -5,8 +5,9 @@ const KeyFactorNews: React.FC<
   Omit<Parameters<typeof KeyFactorStrengthItem>[0], "impactMetadata"> & {
     titleLinksToArticle?: boolean;
     truncateText?: boolean;
+    large?: boolean;
   }
-> = ({ titleLinksToArticle, truncateText, ...props }) => {
+> = ({ titleLinksToArticle, truncateText, large, ...props }) => {
   if (!props.keyFactor.news) return null;
   const { news } = props.keyFactor;
   return (
@@ -27,6 +28,7 @@ const KeyFactorNews: React.FC<
         url={news.url}
         titleLinksToArticle={titleLinksToArticle}
         truncate={truncateText}
+        large={large}
       />
     </KeyFactorStrengthItem>
   );

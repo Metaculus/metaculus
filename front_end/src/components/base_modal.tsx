@@ -47,7 +47,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog
         as="div"
-        className={cn("relative z-[201]", dialogClassName)}
+        className={cn("relative z-modal", dialogClassName)}
         onClose={onClose}
         onWheel={(e) => isImmersive && e.stopPropagation()}
         onKeyDownCapture={(e) => {
