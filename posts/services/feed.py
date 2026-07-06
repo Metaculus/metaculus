@@ -21,18 +21,6 @@ from utils.models import build_order_by
 from utils.serializers import parse_order_by
 
 
-def _apply_access_filter(
-    qs: Post.objects, access: PostFilterSerializer.Access | None
-) -> Post.objects:
-    if access == PostFilterSerializer.Access.PRIVATE:
-        return qs.filter_private()
-    if access == PostFilterSerializer.Access.PUBLIC:
-        return qs.filter_public()
-    if access == PostFilterSerializer.Access.PERSONAL:
-        return qs.filter_personal()
-    return qs
-
-
 def get_posts_feed(
     qs: Post.objects = None,
     user: User = None,
@@ -234,7 +222,12 @@ def get_posts_feed(
         qs = qs.annotate_user_is_following(user=user).filter(user_is_following=True)
 
     # Filter by access
-    qs = _apply_access_filter(qs, access)
+    if access == PostFilterSerializer.Access.PRIVATE:
+        qs = qs.filter_private()
+    if access == PostFilterSerializer.Access.PUBLIC:
+        qs = qs.filter_public()
+    if access == PostFilterSerializer.Access.PERSONAL:
+        qs = qs.filter_personal()
 
     # Similar posts lookup
     if similar_to_post_id:
