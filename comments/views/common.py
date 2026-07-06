@@ -225,6 +225,9 @@ def comment_toggle_cmm_view(request, pk=int):
     enabled = request.data.get("enabled", False)
     comment = get_object_or_404(Comment, pk=pk)
 
+    permission = get_post_permission_for_user(comment.on_post, user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
     result = toggle_cmm(comment, request.user, enabled)
 
     if result is None:
@@ -241,12 +244,14 @@ def comment_report_api_view(request, pk=int):
     comment = get_object_or_404(Comment, pk=pk)
     post = comment.on_post
 
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
     reason = serializers.ChoiceField(choices=CommentReportType.choices).run_validation(
         request.data.get("reason")
     )
 
-    if post:
-        send_comment_report_notification_to_staff(comment, reason, request.user)
+    send_comment_report_notification_to_staff(comment, reason, request.user)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -329,7 +334,7 @@ def comments_of_week_view(request: Request):
 
     # Admins can see all top (max 18) candidates for the weekly top comments
     top_comments_of_week_entries = CommentsOfTheWeekEntry.objects.filter(
-        week_start_date=week_start_date
+        week_start_date=week_start_date,
     ).order_by("-score", "comment__created_at")
 
     # Users only see the top 6 comments which are not excluded
