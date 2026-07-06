@@ -108,6 +108,8 @@
   "commentsReadGuidelines": "Přečtěte si naše pokyny",
   "commentsLearnMarkdown": "Přečtěte si více o našem Markdownu",
   "commentDeleted": "Komentář smazán",
+  "deleteCommentConfirmTitle": "Smazat komentář?",
+  "deleteCommentConfirmDescription": "Tento komentář bude odstraněn. Tuto akci nelze vrátit zpět.",
   "commentsReportCommentHeading": "Nahlásit komentář",
   "commentsReportCommentDescription": "Je na komentáři něco v nepořádku? Dejte nám o tom vědět náhlašením komentáře.",
   "commentsReportSpam": "Náhlásit jako spam",

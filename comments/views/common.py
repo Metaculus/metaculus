@@ -112,9 +112,11 @@ def comments_list_api_view(request: Request):
 
 
 @api_view(["POST"])
-@permission_classes([IsAdminUser])
 def comment_delete_api_view(request: Request, pk: int):
     comment = get_object_or_404(Comment, pk=pk)
+
+    if comment.author_id != request.user.id and not request.user.is_staff:
+        raise PermissionDenied("You do not have permission to delete this comment.")
 
     soft_delete_comment(comment)
 

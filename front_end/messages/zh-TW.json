@@ -146,6 +146,8 @@
   "commentsReadGuidelines": "閱讀我們的指導方針",
   "commentsLearnMarkdown": "了解我們的 Markdown",
   "commentDeleted": "評論已刪除",
+  "deleteCommentConfirmTitle": "刪除評論？",
+  "deleteCommentConfirmDescription": "此評論將被刪除。此操作無法復原。",
   "commentsReportCommentHeading": "舉報此評論",
   "commentsReportCommentDescription": "這條評論有問題嗎？請幫助我們保持社群的優質，舉報它。",
   "commentsReportSpam": "舉報為垃圾郵件",
