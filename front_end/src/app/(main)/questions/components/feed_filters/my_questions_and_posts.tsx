@@ -57,8 +57,8 @@ const MyQuestionsAndPostsFilters: FC<Props> = ({
           {
             id: POST_ACCESS_FILTER,
             label: t("personal"),
-            value: "private",
-            active: params.get(POST_ACCESS_FILTER) === "private",
+            value: "personal",
+            active: params.get(POST_ACCESS_FILTER) === "personal",
           },
         ],
       },

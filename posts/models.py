@@ -446,6 +446,13 @@ class PostQuerySet(models.QuerySet):
 
         return self.filter(default_project__default_permission__isnull=True)
 
+    def filter_personal(self):
+        """
+        Filter posts that live in a user's Personal Project
+        """
+
+        return self.filter(default_project__type=Project.ProjectTypes.PERSONAL_PROJECT)
+
     def filter_published(self):
         """
         Filter approved published posts
