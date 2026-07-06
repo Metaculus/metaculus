@@ -10,7 +10,9 @@ type Props = {
 
 export default async function TrackRecord(props: Props) {
   const params = await props.params;
-  const profile = await ServerProfileApi.getProfileById(params.id);
+  const profile = await ServerProfileApi.getProfileById(params.id, {
+    includeStats: true,
+  });
 
   const keyStatStyles =
     "flex w-full md:w-1/3 flex-col min-h-[100px] justify-center gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950";

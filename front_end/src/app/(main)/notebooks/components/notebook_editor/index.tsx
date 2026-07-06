@@ -8,7 +8,7 @@ import MarkdownEditor from "@/components/markdown_editor";
 import Chip from "@/components/ui/chip";
 import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
 import { NotebookPost } from "@/types/post";
-import { TaxonomyProjectType } from "@/types/projects";
+import { ProjectVisibility, TaxonomyProjectType } from "@/types/projects";
 import { getProjectLink } from "@/utils/navigation";
 
 interface NotebookEditorProps {
@@ -89,7 +89,12 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
     ...(postData.projects?.community ?? []),
     ...(postData.projects?.category ?? []),
     ...(postData.projects?.leaderboard_tag ?? []),
-  ].filter((p) => defaultProject && p.id !== defaultProject.id);
+  ].filter(
+    (p) =>
+      defaultProject &&
+      p.id !== defaultProject.id &&
+      (!("visibility" in p) || p.visibility !== ProjectVisibility.Unlisted)
+  );
 
   const allProjects = defaultProject
     ? [defaultProject, ...otherProjects]
@@ -121,7 +126,7 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
         </div>
       )}
       <div id={contentId} ref={contentRef}>
-        <MarkdownEditor mode="read" markdown={markdown} withTwitterPreview />
+        <MarkdownEditor mode="read" markdown={markdown} />
       </div>
     </div>
   );

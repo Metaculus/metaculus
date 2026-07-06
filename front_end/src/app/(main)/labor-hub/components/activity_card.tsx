@@ -3,6 +3,7 @@
 import {
   faArrowUpRightFromSquare,
   faComment,
+  faLightbulb,
   faNewspaper,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -14,6 +15,7 @@ import cn from "@/utils/core/cn";
 
 const ACTIVITY_TYPE_ICON = {
   news: faNewspaper,
+  insight: faLightbulb,
   comment: faComment,
 } as const;
 
@@ -39,7 +41,7 @@ export function ActivityCard({
   subtitle?: string;
   children: React.ReactNode;
   degradeIndex?: number;
-  variant?: "purple" | "mint";
+  variant?: "purple" | "mint" | "blue";
   link?: string;
   highlighted?: boolean;
   className?: string;
@@ -76,12 +78,17 @@ export function ActivityCard({
           "border-purple-400 bg-purple-200 dark:border-purple-200-dark dark:bg-purple-100-dark",
         variant === "mint" &&
           "border-mint-500 bg-mint-200 dark:border-mint-300-dark dark:bg-mint-200-dark",
+        variant === "blue" &&
+          "border-blue-400 bg-blue-200 dark:border-blue-400-dark dark:bg-blue-200-dark",
         highlighted &&
           variant === "purple" &&
           "border-purple-700 ring-2 ring-purple-700 dark:border-purple-700-dark dark:ring-purple-700-dark",
         highlighted &&
           variant === "mint" &&
           "border-mint-700 ring-2 ring-mint-700 dark:border-mint-700-dark dark:ring-mint-700-dark",
+        highlighted &&
+          variant === "blue" &&
+          "border-blue-700 ring-2 ring-blue-700 dark:border-blue-700-dark dark:ring-blue-700-dark",
         isClickable &&
           "cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
         link && "pr-12",
@@ -101,6 +108,8 @@ export function ActivityCard({
               "text-purple-700 hover:text-purple-800 dark:text-purple-700-dark dark:hover:text-purple-800-dark",
             variant === "mint" &&
               "text-mint-700 hover:text-mint-800 dark:text-mint-700-dark dark:hover:text-mint-800-dark",
+            variant === "blue" &&
+              "text-blue-700 hover:text-blue-800 dark:text-blue-700-dark dark:hover:text-blue-800-dark",
             "absolute right-3.5 top-3 inline-flex size-5 items-center justify-center opacity-70 transition-opacity hover:opacity-100"
           )}
         >
@@ -116,7 +125,8 @@ export function ActivityCard({
                 "size-3.5 shrink-0",
                 variant === "purple" &&
                   "text-purple-700 dark:text-purple-700-dark",
-                variant === "mint" && "text-mint-700 dark:text-mint-700-dark"
+                variant === "mint" && "text-mint-700 dark:text-mint-700-dark",
+                variant === "blue" && "text-blue-700 dark:text-blue-700-dark"
               )}
             />
           )}
@@ -137,6 +147,7 @@ export function ActivityCard({
                 variant === "purple" &&
                   "text-purple-700 dark:text-purple-700-dark",
                 variant === "mint" && "text-mint-700 dark:text-mint-700-dark",
+                variant === "blue" && "text-blue-700 dark:text-blue-700-dark",
                 "flex min-w-0 flex-1 items-start justify-between gap-2 text-xs lg:text-sm"
               )}
             >
@@ -157,6 +168,7 @@ export function ActivityCard({
         className={cn(
           variant === "purple" && "text-purple-800 dark:text-purple-800-dark",
           variant === "mint" && "text-mint-800 dark:text-mint-800-dark",
+          variant === "blue" && "text-blue-800 dark:text-blue-800-dark",
           "text-xs leading-normal lg:text-sm"
         )}
       >

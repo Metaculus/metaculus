@@ -8,10 +8,9 @@ from notifications.constants import MailingTags
 from notifications.services import send_comment_mention_notification
 from notifications.utils import generate_email_comment_preview_text
 from users.models import User
-from utils.email import send_email_with_template
+from utils.email import send_notification_email_with_template
 from utils.frontend import build_frontend_url, build_post_url
 from ..utils import comment_extract_user_mentions, get_mention_for_user
-from django.conf import settings
 
 
 def notify_mentioned_users(comment: Comment):
@@ -87,7 +86,7 @@ def notify_weekly_top_comments_subscribers(
         if not emails_batch:
             break
 
-        send_email_with_template(
+        send_notification_email_with_template(
             to=emails_batch,
             subject="Last week’s top Metaculus comments",
             template_name="emails/weekly_top_comments.html",
@@ -97,6 +96,5 @@ def notify_weekly_top_comments_subscribers(
                 "other_usernames": other_usernames,
             },
             use_async=False,
-            from_email=settings.EMAIL_NOTIFICATIONS_USER,
         )
         start += batch_size

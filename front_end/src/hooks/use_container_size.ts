@@ -30,6 +30,8 @@ const useContainerSize = <T extends HTMLElement>() => {
       return;
     }
 
+    onResize();
+
     const resizeObserver = new ResizeObserver(onResize);
     resizeObserver.observe(ref.current);
 

@@ -8,45 +8,46 @@ export const JOBS_INSIGHTS = {
     ),
     negative: (
       <>
-        By 2027, <strong>software developers</strong> are expected to already
-        start seeing a contraction due to AI coding capabilities.
+        By 2027, <strong>sales representatives</strong> are expected to see
+        early declines as AI begins to automate outreach and client
+        interactions.
       </>
     ),
   },
   "2030": {
     positive: (
       <>
-        By 2030, roles in <strong>construction</strong> and{" "}
-        <strong>healthcare</strong> are expected to grow due to infrastructure
-        buildouts, an aging population, and legal restrictions unlikely to
-        change in the short-term.
+        By 2030, roles in <strong>food service</strong>,{" "}
+        <strong>construction</strong>, and <strong>healthcare</strong> are
+        expected to grow due to demand for in-person service, infrastructure
+        buildouts, and an aging population that AI is unlikely to displace in
+        the short-term.
       </>
     ),
     negative: (
       <>
-        By 2030, <strong>software developers</strong> are expected to see a
-        steep decline, while <strong>financial</strong> and{" "}
-        <strong>sales</strong> roles begin to see sharper effects of AI
-        capabilities substitution.
+        By 2030, <strong>software developers</strong>,{" "}
+        <strong>sales representatives</strong>, and <strong>lawyers</strong> are
+        expected to see steep declines, as AI takes over their core tasks.
       </>
     ),
   },
   "2035": {
     positive: (
       <>
-        By 2035, <strong>nurses</strong>, <strong>law enforcement</strong>, and{" "}
-        <strong>restaurant workers</strong> are expected to see the highest
-        growth, driven by hands-on needs that cannot be easily automated.
+        By 2035, <strong>nurses</strong>, <strong>physicians</strong>, and{" "}
+        <strong>law enforcement</strong> are expected to see the highest growth,
+        driven by hands-on needs that cannot be easily automated.
       </>
     ),
     negative: (
       <>
-        By 2035, <strong>software</strong>, <strong>finance</strong> and{" "}
-        <strong>law</strong> are expected to see sharp staff reductions as AI
-        systems take over large portions of coding, accounting, and detailed
-        research work, while <strong>laborers</strong> and{" "}
-        <strong>sales</strong> see a contraction as more advanced robotics roll
-        out and AI automates lead generation and outreach.
+        By 2035, <strong>financial specialists</strong>, <strong>sales</strong>{" "}
+        and <strong>law</strong> are expected to see sharp staff reductions as
+        AI systems take over large portions of financial analysis, outreach, and
+        detailed research work, while <strong>construction workers</strong> see
+        little change as robotics have yet to fully displace physical roles by
+        this horizon.
       </>
     ),
   },

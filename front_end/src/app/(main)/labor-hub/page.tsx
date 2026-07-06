@@ -17,6 +17,7 @@ import {
   SectionHeader,
   ContentParagraph,
 } from "./components/section";
+import { LABOR_HUB_POST_IDS } from "./data";
 import { ActivityMonitorSection } from "./sections/activity_monitor";
 import { EngagementSection } from "./sections/engagement_section";
 import { HeroSection } from "./sections/hero";
@@ -162,12 +163,30 @@ export default function LaborAutomationHubPage() {
                 firstColumnHeader="Occupation"
                 decimals={1}
                 rows={[
-                  { questionId: 42216, title: "Overall" },
-                  { questionId: 43106, title: "Software Developers" },
-                  { questionId: 43109, title: "Construction Workers" },
-                  { questionId: 43108, title: "General Managers" },
-                  { questionId: 43110, title: "Engineers" },
-                  { questionId: 43107, title: "Financial Specialists" },
+                  {
+                    questionId: LABOR_HUB_POST_IDS.wages.overall,
+                    title: "Overall",
+                  },
+                  {
+                    questionId: LABOR_HUB_POST_IDS.wages.softwareDevelopers,
+                    title: "Software Developers",
+                  },
+                  {
+                    questionId: LABOR_HUB_POST_IDS.wages.nurses,
+                    title: "Registered Nurses",
+                  },
+                  {
+                    questionId: LABOR_HUB_POST_IDS.wages.salesRepresentatives,
+                    title: "Sales Representatives",
+                  },
+                  {
+                    questionId: LABOR_HUB_POST_IDS.wages.designers,
+                    title: "Designers",
+                  },
+                  {
+                    questionId: LABOR_HUB_POST_IDS.wages.financialSpecialists,
+                    title: "Financial Specialists",
+                  },
                 ]}
               />
             </ThemeOverrideContainer>
@@ -199,7 +218,7 @@ export default function LaborAutomationHubPage() {
             </ContentParagraph>
             <FlippableChartTimelineCard
               title="Average weekly hours worked"
-              questionId={41574}
+              questionId={LABOR_HUB_POST_IDS.wages.averageWeeklyHours}
               prefer="chart"
               historicalValues={{
                 2018: 38.9,
@@ -275,7 +294,8 @@ export default function LaborAutomationHubPage() {
               tableHistoricalValueKeys={["2024"]}
               rows={[
                 {
-                  questionId: 42944,
+                  questionId:
+                    LABOR_HUB_POST_IDS.familyResources.twentiethPercentile,
                   title: "20th percentile",
                   historicalValues: {
                     2018: 1.1811,
@@ -288,7 +308,8 @@ export default function LaborAutomationHubPage() {
                   },
                 },
                 {
-                  questionId: 43042,
+                  questionId:
+                    LABOR_HUB_POST_IDS.familyResources.fiftiethPercentile,
                   title: "50th percentile",
                   historicalValues: {
                     2018: 2.3499,
@@ -301,7 +322,8 @@ export default function LaborAutomationHubPage() {
                   },
                 },
                 {
-                  questionId: 43043,
+                  questionId:
+                    LABOR_HUB_POST_IDS.familyResources.eightiethPercentile,
                   title: "80th percentile",
                   historicalValues: {
                     2018: 4.3322,
@@ -333,7 +355,7 @@ export default function LaborAutomationHubPage() {
             </ContentParagraph>
             <FlippableChartTimelineCard
               title="Percent of workers that use AI daily"
-              questionId={42215}
+              questionId={LABOR_HUB_POST_IDS.wages.aiDailyUse}
               prefer="chart"
               historicalValues={{
                 2023: 4,
@@ -381,7 +403,7 @@ export default function LaborAutomationHubPage() {
                 tableHistoricalValueKeys={["2025"]}
                 rows={[
                   {
-                    questionId: 42212,
+                    questionId: LABOR_HUB_POST_IDS.graduates.unemploymentRate,
                     title: "Unemployment Rate",
                     historicalValues: {
                       2018: 3.7,
@@ -395,7 +417,8 @@ export default function LaborAutomationHubPage() {
                     },
                   },
                   {
-                    questionId: 42213,
+                    questionId:
+                      LABOR_HUB_POST_IDS.graduates.underemploymentRate,
                     title: "Underemployment Rate",
                     historicalValues: {
                       2018: 41.6,
@@ -430,11 +453,12 @@ export default function LaborAutomationHubPage() {
               <strong>more than doubled</strong> in 2035 compared to 2025.
             </ContentParagraph>
             <ContentParagraph>
-              The number of degrees awarded overall and for STEM and humanities
-              is expected to see only minor change due to the long gestation
-              time, while trade schools and community colleges are expected to
-              see significant growth in degrees and certificates awarded by
-              2035.
+              The number of degrees awarded for STEM is expected to see only
+              minor change due to the long gestation time, while overall 4-year
+              degrees are expected to see a modest decline and humanities
+              degrees are expected to see a more substantial decline by 2035.
+              Trade schools and community colleges are expected to see
+              significant growth in degrees and certificates awarded by 2035.
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight className="lg:mt-24 print:mt-12">
@@ -459,7 +483,8 @@ export default function LaborAutomationHubPage() {
               tableHistoricalValueKeys={["2025"]}
               rows={[
                 {
-                  questionId: 42220,
+                  questionId:
+                    LABOR_HUB_POST_IDS.graduates.overallFourYearDegrees,
                   title: "Overall 4-year",
                   historicalValues: {
                     2018: 1.31,
@@ -473,7 +498,7 @@ export default function LaborAutomationHubPage() {
                   },
                 },
                 {
-                  questionId: 42852,
+                  questionId: LABOR_HUB_POST_IDS.graduates.stemFourYearDegrees,
                   title: "STEM 4-year",
                   historicalValues: {
                     2018: -8.9,
@@ -487,7 +512,8 @@ export default function LaborAutomationHubPage() {
                   },
                 },
                 {
-                  questionId: 42853,
+                  questionId:
+                    LABOR_HUB_POST_IDS.graduates.humanitiesFourYearDegrees,
                   title: "Humanities 4-year",
                   historicalValues: {
                     2018: 23.1,
@@ -501,7 +527,8 @@ export default function LaborAutomationHubPage() {
                   },
                 },
                 {
-                  questionId: 42856,
+                  questionId:
+                    LABOR_HUB_POST_IDS.graduates.tradeSchoolAndCommunityCollege,
                   title: "Trade School and Community College",
                   historicalValues: {
                     2018: 2.72,
@@ -550,7 +577,7 @@ export default function LaborAutomationHubPage() {
             <ThemeOverrideContainer override="inverted">
               <FlippableChartTimelineCard
                 title="Percentage change in labor productivity relative to 2025"
-                questionId={43087}
+                questionId={LABOR_HUB_POST_IDS.economy.laborProductivity}
                 prefer="chart"
                 historicalValues={{
                   2018: -13.93,
@@ -616,7 +643,7 @@ export default function LaborAutomationHubPage() {
             </ContentParagraph>
             <FlippableChartTimelineCard
               title="Number of Fortune 500 companies with fewer than 5,000 employees"
-              questionId={41324}
+              questionId={LABOR_HUB_POST_IDS.economy.fortune500SmallWorkforce}
               prefer="chart"
               historicalValues={{
                 2026: 30,
@@ -659,7 +686,7 @@ export default function LaborAutomationHubPage() {
                   Long-term unemployment rate
                 </DefinitionTooltip>
               }
-              questionId={41313}
+              questionId={LABOR_HUB_POST_IDS.economy.longTermUnemploymentRate}
               prefer="chart"
               historicalValues={{
                 2018: 0.83,
@@ -690,7 +717,7 @@ export default function LaborAutomationHubPage() {
                   Labor share of national income
                 </DefinitionTooltip>
               }
-              questionId={41578}
+              questionId={LABOR_HUB_POST_IDS.economy.laborShareOfNationalIncome}
               prefer="chart"
               historicalValues={{
                 2018: 62.4,
@@ -727,10 +754,11 @@ export default function LaborAutomationHubPage() {
             <ContentParagraph>
               The healthcare sector (employing 13% of Washington residents) is
               forecasted to grow through 2027, largely unaffected by AI in this
-              timeframe. Technology and aerospace (employing 10% and 2%
-              respectively) are expected to see minor growth in the short-term,
-              largely consistent with historical trends. These forecasts are
-              short-term, leading to minimal predicted change.
+              timeframe. Aerospace (employing 2%) is expected to see minor
+              growth in the short-term, while technology (employing 10%) is
+              expected to see marginal growth, largely consistent with
+              historical trends. These forecasts are short-term, leading to
+              minimal predicted change.
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight className="lg:mt-16 print:mt-12">
@@ -741,19 +769,23 @@ export default function LaborAutomationHubPage() {
               decimals={1}
               rows={[
                 {
-                  questionId: 43081,
+                  questionId:
+                    LABOR_HUB_POST_IDS.state.washingtonOverallEmployment,
                   title: "Overall Employment",
                 },
                 {
-                  questionId: 43084,
+                  questionId:
+                    LABOR_HUB_POST_IDS.state.washingtonAerospaceSector,
                   title: "Aerospace Sector",
                 },
                 {
-                  questionId: 43085,
+                  questionId:
+                    LABOR_HUB_POST_IDS.state.washingtonTechnologySector,
                   title: "Technology Sector",
                 },
                 {
-                  questionId: 43086,
+                  questionId:
+                    LABOR_HUB_POST_IDS.state.washingtonHealthcareSector,
                   title: "Healthcare Sector",
                 },
               ]}

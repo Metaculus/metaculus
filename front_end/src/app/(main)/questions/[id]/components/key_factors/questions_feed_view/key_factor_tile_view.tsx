@@ -136,10 +136,20 @@ export const KeyFactorTileQuestionLinkView: FC<
   Props & {
     href?: string;
     label: string | null;
+    labelPlaceholder?: string;
     title: string;
   }
-> = ({ className, expanded, href, label, onToggle, title }) => {
+> = ({
+  className,
+  expanded,
+  href,
+  label,
+  labelPlaceholder,
+  onToggle,
+  title,
+}) => {
   const tooltipText = "This is another Metaculus question.";
+  const shouldRenderLabelSlot = !!label || !!labelPlaceholder;
 
   return (
     <KeyFactorTileContainer
@@ -147,13 +157,17 @@ export const KeyFactorTileQuestionLinkView: FC<
       className={className}
       onClick={onToggle}
       startAdornment={
-        label ? (
+        shouldRenderLabelSlot ? (
           <span
             className={cn(
               "shrink-0 font-medium text-olive-800 dark:text-olive-800-dark"
             )}
           >
-            {label}
+            {label ?? (
+              <span aria-hidden className="invisible">
+                {labelPlaceholder}
+              </span>
+            )}
           </span>
         ) : undefined
       }
@@ -173,6 +187,7 @@ export const KeyFactorTileQuestionLinkView: FC<
       {href ? (
         <Link
           href={href}
+          prefetch={false}
           className="no-underline hover:underline"
           onClick={(e) => e.stopPropagation()}
         >

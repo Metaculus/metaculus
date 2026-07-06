@@ -106,8 +106,6 @@ const KeyFactorDetailOverlay: FC<Props> = (props) => {
   const currentIndex = allPostKeyFactors.findIndex(
     (kf) => kf.id === keyFactor?.id
   );
-  const hasPrev = currentIndex > 0;
-  const hasNext = currentIndex < allPostKeyFactors.length - 1;
 
   const binaryQuestion = useMemo(() => {
     const q = post.question;
@@ -121,22 +119,22 @@ const KeyFactorDetailOverlay: FC<Props> = (props) => {
     if (!keyFactor) return;
     await ensureCommentLoaded(keyFactor.comment_id);
     onClose();
+    questionLayout?.setActiveTab("comments");
     setTimeout(() => {
-      const el = document.getElementById(`comment-${keyFactor.comment_id}`);
-      el?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 200);
+      questionLayout?.requestScrollToComment(keyFactor.comment_id);
+    }, 50);
   };
 
   const handleReplyToComment = async () => {
     if (!keyFactor) return;
     await ensureCommentLoaded(keyFactor.comment_id);
     onClose();
+    questionLayout?.setActiveTab("comments");
     setTimeout(() => {
       questionLayout?.requestReplyToComment(keyFactor.comment_id);
-    }, 500);
+    }, 50);
   };
 
-  const hasComment = !!(keyFactor && (comment?.text?.trim() || !comment));
   const isSimple =
     questionLink ||
     !keyFactor?.driver ||
@@ -145,22 +143,13 @@ const KeyFactorDetailOverlay: FC<Props> = (props) => {
   if (!isAboveSm) {
     return (
       <MobileKeyFactorOverlay
-        keyFactor={keyFactor}
         questionLink={questionLink}
         post={post}
-        comment={comment}
         binaryQuestion={binaryQuestion}
-        relatedKeyFactors={relatedKeyFactors}
         allPostKeyFactors={allPostKeyFactors}
-        currentIndex={currentIndex}
-        hasPrev={hasPrev}
-        hasNext={hasNext}
-        hasComment={hasComment}
+        initialIndex={currentIndex}
         onClose={onClose}
         onSelectKeyFactor={props.onSelectKeyFactor}
-        onScrollToComment={handleScrollToComment}
-        onVoteChange={handleVoteChange}
-        onCmmToggle={handleCmmToggle}
       />
     );
   }
@@ -181,7 +170,7 @@ const KeyFactorDetailOverlay: FC<Props> = (props) => {
   if (isSimple || !keyFactor || !props.onSelectKeyFactor) {
     return (
       <Transition appear show as={Fragment}>
-        <Dialog as="div" className="relative z-[201]" onClose={onClose}>
+        <Dialog as="div" className="relative z-modal" onClose={onClose}>
           <div className="fixed inset-0 bg-blue-900/60 backdrop-blur-md dark:bg-gray-1000/60" />
           <div className="fixed inset-0 flex items-center justify-center overflow-y-auto px-4 pb-4 pt-14">
             <DialogPanel className="w-full max-w-md" onClick={onClose}>
@@ -213,7 +202,7 @@ const KeyFactorDetailOverlay: FC<Props> = (props) => {
 
   return (
     <Transition appear show as={Fragment}>
-      <Dialog as="div" className="relative z-[201]" onClose={onClose}>
+      <Dialog as="div" className="relative z-modal" onClose={onClose}>
         <div className="fixed inset-0 bg-blue-900/60 backdrop-blur-md dark:bg-gray-1000/60" />
         <div className="fixed inset-0 flex items-center justify-center overflow-y-auto px-4 pb-4 pt-14">
           <DialogPanel

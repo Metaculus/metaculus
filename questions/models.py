@@ -570,6 +570,9 @@ class ForecastQuerySet(QuerySet):
             Q(author__is_bot=False) | Q(author__is_primary_bot=True),
         )
 
+    def exclude_blacklisted_users(self):
+        return self.filter(author__exclude_from_aggregations=False)
+
     def active(self):
         """
         Returns active forecasts.
@@ -676,6 +679,7 @@ class Forecast(models.Model):
         AUTOMATIC = "automatic"
 
     # logging the source of the forecast for data purposes
+    # TODO: require the value and backfill existing records
     source = models.CharField(
         max_length=30,
         blank=True,

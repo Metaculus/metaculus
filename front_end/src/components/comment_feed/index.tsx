@@ -119,6 +119,10 @@ const CommentFeed: FC<Props> = ({
   const [userKeyFactorsComment, setUserKeyFactorsComment] =
     useState<CommentType | null>(null);
 
+  const [lastViewedAt, setLastViewedAt] = useState<string | undefined>(
+    postData?.last_viewed_at
+  );
+
   const [feedFilters, setFeedFilters] = useState<getCommentsParams>(() => ({
     is_private: false,
     sort: "-created_at",
@@ -212,13 +216,9 @@ const CommentFeed: FC<Props> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hash, isLoading]);
 
-  // Handling filters change
+  // Handling filters change — always fetch from offset 0 and replace
   useEffect(() => {
-    const finalFilters = {
-      ...feedFilters,
-      offset,
-    };
-    void fetchComments(true, finalFilters);
+    void fetchComments(false, { ...feedFilters });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feedFilters]);
 
@@ -290,8 +290,8 @@ const CommentFeed: FC<Props> = ({
 
   const getUnreadCount = useCallback(
     (comments: CommentType[]): number => {
-      if (!postData?.last_viewed_at) return 0;
-      const lastViewedDate = new Date(postData.last_viewed_at);
+      if (!lastViewedAt) return 0;
+      const lastViewedDate = new Date(lastViewedAt);
 
       let unreadCount = 0;
       const countUnread = (comment: CommentType) => {
@@ -305,7 +305,7 @@ const CommentFeed: FC<Props> = ({
       comments.forEach(countUnread);
       return unreadCount;
     },
-    [postData?.last_viewed_at]
+    [lastViewedAt]
   );
 
   const handleCommentPin = useCallback(
@@ -333,6 +333,7 @@ const CommentFeed: FC<Props> = ({
 
   const onNewComment = (newComment: CommentType) => {
     setComments([newComment, ...comments]);
+    setLastViewedAt(newComment.created_at);
 
     fetchTotalCount({
       is_private: feedFilters.is_private,
@@ -348,6 +349,11 @@ const CommentFeed: FC<Props> = ({
       setUserKeyFactorsComment(newComment);
     }
   };
+
+  const showBotPrivacyToggle = !profileId && !!user?.is_bot;
+  const showWelcomePrompt = !!postId && showWelcomeMessage && !user?.is_bot;
+  const showCommentHeader =
+    !compactVersion && (showTitle || showBotPrivacyToggle || showWelcomePrompt);
 
   return (
     <DefaultUserMentionsContextProvider
@@ -369,7 +375,7 @@ const CommentFeed: FC<Props> = ({
           compactVersion && "p-0 xs:p-0"
         )}
       >
-        {!compactVersion && (
+        {showCommentHeader && (
           <div className="mb-4 mt-2 flex flex-col items-start gap-3">
             <div
               className={cn(
@@ -409,6 +415,33 @@ const CommentFeed: FC<Props> = ({
             )}
           </div>
         )}
+        {!compactVersion && (
+          <div className="mb-4 flex flex-row items-center justify-start gap-1 md:mb-5">
+            <span className="text-sm font-medium leading-5 text-gray-600 dark:text-gray-600-dark">
+              {totalCount ? `${totalCount} ` : ""}
+              {t("commentsWithCount", { count: totalCount })}
+              {lastViewedAt && (
+                <>
+                  {getUnreadCount(comments) > 0 && (
+                    <span className="ml-1 font-bold text-purple-700 dark:text-purple-700-dark">
+                      ({getUnreadCount(comments)} {t("unread")})
+                    </span>
+                  )}
+                </>
+              )}
+            </span>
+            <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
+              <Button
+                variant="text"
+                className="py-0 text-sm font-medium capitalize leading-5 text-blue-800 dark:text-blue-800-dark"
+              >
+                {menuItems.find((item) => item.id === feedFilters.sort)?.name ??
+                  "sort"}
+                <FontAwesomeIcon icon={faChevronDown} />
+              </Button>
+            </DropdownMenu>
+          </div>
+        )}
         {!compactVersion && postId && !user?.is_bot && (
           <>
             {showWelcomeMessage && !getIsMessagePreviouslyClosed() ? null : (
@@ -427,44 +460,24 @@ const CommentFeed: FC<Props> = ({
             )}
           </>
         )}
-
-        <div className="mb-1 mt-3 flex flex-row items-center justify-start gap-1">
-          <span className="text-sm text-gray-600 dark:text-gray-600-dark">
-            {totalCount ? `${totalCount} ` : ""}
-            {t("commentsWithCount", { count: totalCount })}
-            {postData?.last_viewed_at && (
-              <>
-                {getUnreadCount(comments) > 0 && (
-                  <span className="ml-1 font-bold text-purple-700 dark:text-purple-700-dark">
-                    ({getUnreadCount(comments)} {t("unread")})
-                  </span>
-                )}
-              </>
-            )}
-          </span>
-          <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
-            <Button variant="text" className="capitalize">
-              {menuItems.find((item) => item.id === feedFilters.sort)?.name ??
-                "sort"}
-              <FontAwesomeIcon icon={faChevronDown} />
-            </Button>
-          </DropdownMenu>
+        <div className="mt-4 flex flex-col gap-4 md:mt-5 md:gap-5">
+          {comments.map((comment: CommentType) => (
+            <CommentWrapper
+              key={comment.id}
+              comment={comment}
+              handleCommentPin={handleCommentPin}
+              profileId={profileId}
+              last_viewed_at={lastViewedAt}
+              postData={postData}
+              onReplyCreated={setLastViewedAt}
+              suggestKeyFactorsOnFirstRender={
+                // This is the newly added comment, so we want to suggest key factors
+                comment.id === userKeyFactorsComment?.id
+              }
+              shouldSuggestKeyFactors={shouldSuggestKeyFactors}
+            />
+          ))}
         </div>
-        {comments.map((comment: CommentType) => (
-          <CommentWrapper
-            key={comment.id}
-            comment={comment}
-            handleCommentPin={handleCommentPin}
-            profileId={profileId}
-            last_viewed_at={postData?.last_viewed_at}
-            postData={postData}
-            suggestKeyFactorsOnFirstRender={
-              // This is the newly added comment, so we want to suggest key factors
-              comment.id === userKeyFactorsComment?.id
-            }
-            shouldSuggestKeyFactors={shouldSuggestKeyFactors}
-          />
-        ))}
         {comments.length === 0 && !isLoading && (
           <>
             <hr className="my-4" />

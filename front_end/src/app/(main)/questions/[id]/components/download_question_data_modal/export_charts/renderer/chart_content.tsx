@@ -127,17 +127,17 @@ function renderChart(
       }));
       const median = agg.latest?.centers?.[0] ?? null;
       const mean = agg.latest?.means?.[0] ?? null;
-      const isClosed = question.status === "closed";
 
       return (
-        <Histogram
-          histogramData={histogramData}
-          median={median}
-          mean={mean}
-          color={isClosed ? "gray" : "blue"}
-          width={dimensions.width}
-          onChartReady={onChartReady}
-        />
+        <div style={{ width: dimensions.width, height: dimensions.height }}>
+          <Histogram
+            histogramData={histogramData}
+            median={median}
+            mean={mean}
+            questionStatus={question.status as unknown as QuestionStatus}
+            onChartReady={onChartReady}
+          />
+        </div>
       );
     }
 

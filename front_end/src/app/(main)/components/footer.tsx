@@ -17,6 +17,7 @@ import { FC } from "react";
 
 import { updateLanguagePreference } from "@/app/(main)/accounts/profile/actions";
 import { APP_LANGUAGES } from "@/components/language_menu";
+import { MetaculusWordmark } from "@/components/logos";
 import { FooterLink, FOOTER_LINKS } from "@/constants/footer";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
@@ -25,8 +26,6 @@ import useMounted from "@/hooks/use_mounted";
 import { AppTheme } from "@/types/theme";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
-
-import { MetaculusTextLogo } from "./MetaculusTextLogo";
 
 const ComputerIcon: FC<{ className?: string }> = ({ className }) => (
   <svg
@@ -244,14 +243,14 @@ const Footer: FC<{ hideSelectors?: boolean }> = ({ hideSelectors }) => {
   const handleContactClick = () => setCurrentModal({ type: "contactUs" });
 
   return (
-    <footer className="flex w-full flex-col gap-16 bg-blue-950 px-4 py-20 text-gray-300 lg:items-center lg:px-20 print:hidden">
+    <footer className="flex w-full flex-col gap-16 border-t border-blue-800 bg-blue-950 px-4 py-20 text-gray-300 dark:border-blue-700 lg:items-center lg:px-20 print:hidden">
       {/* Main content */}
       <div className="flex w-full max-w-[1352px] flex-col gap-16 lg:flex-row lg:gap-4">
         {/* Left column - Logo, description, socials, selectors */}
         <div className="flex w-full max-w-[344px] flex-col gap-8 lg:gap-16">
           {/* Logo and description */}
           <div className="flex max-w-[241px] flex-col items-start gap-3">
-            <MetaculusTextLogo className="h-[24px] w-auto text-gray-300" />
+            <MetaculusWordmark className="h-[24px] w-auto text-gray-300" />
             <p className="my-0 text-sm font-medium leading-5 text-gray-300">
               {t("publicBenefitCorporation")}
             </p>

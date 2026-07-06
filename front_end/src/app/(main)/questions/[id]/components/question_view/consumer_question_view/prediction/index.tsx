@@ -14,9 +14,13 @@ import SingleQuestionPrediction from "./single_question_prediction";
 
 type Props = {
   postData: PostWithForecasts;
+  className?: string;
 };
 
-const ConsumerQuestionPrediction: React.FC<Props> = ({ postData }) => {
+const ConsumerQuestionPrediction: React.FC<Props> = ({
+  postData,
+  className,
+}) => {
   const { user } = useAuth();
 
   if (isQuestionPost(postData) && !isMultipleChoicePost(postData)) {
@@ -29,7 +33,9 @@ const ConsumerQuestionPrediction: React.FC<Props> = ({ postData }) => {
   }
 
   if (isMultipleChoicePost(postData) || isGroupOfQuestionsPost(postData)) {
-    return <GroupOfQuestionsPrediction postData={postData} />;
+    return (
+      <GroupOfQuestionsPrediction postData={postData} className={className} />
+    );
   }
 
   return null;

@@ -15,25 +15,29 @@ type Props = {
 const KeyFactorsGridPlaceholder: FC<Props> = ({ className, onClick }) => {
   const t = useTranslations();
 
-  return (
-    <div
-      className={cn(
-        "group flex min-h-[100px] items-center justify-center overflow-hidden rounded-xl bg-[#e8eeee] dark:bg-blue-300-dark",
-        onClick &&
-          "cursor-pointer border border-transparent p-5 hover:border-blue-500 dark:hover:border-blue-500-dark",
-        className
-      )}
-      onClick={onClick}
-    >
-      {onClick && (
-        <div className="flex flex-col items-center gap-3 text-blue-700 opacity-0 transition-opacity group-hover:opacity-100 dark:text-blue-700-dark">
-          <FontAwesomeIcon icon={faPlus} className="size-[22px]" />
-          <span className="whitespace-nowrap text-base capitalize leading-5">
-            {t("addKeyFactor")}
-          </span>
-        </div>
-      )}
+  const sharedClassName = cn(
+    "flex min-h-[100px] items-center justify-center overflow-hidden rounded-xl bg-[#e8eeee] dark:bg-blue-300-dark",
+    "border border-transparent p-5 opacity-50 transition-opacity hover:opacity-100",
+    onClick &&
+      "cursor-pointer hover:border-blue-500 dark:hover:border-blue-500-dark",
+    className
+  );
+
+  const content = (
+    <div className="flex flex-col items-center gap-3 text-blue-700 dark:text-blue-700-dark">
+      <FontAwesomeIcon icon={faPlus} className="size-[22px]" />
+      <span className="whitespace-nowrap text-base capitalize leading-5">
+        {t("addKeyFactor")}
+      </span>
     </div>
+  );
+
+  return onClick ? (
+    <button type="button" className={sharedClassName} onClick={onClick}>
+      {content}
+    </button>
+  ) : (
+    <div className={sharedClassName}>{content}</div>
   );
 };
 

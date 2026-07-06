@@ -51,7 +51,7 @@ type Props = {
   inboundOutcomeCount?: number | null;
   isEmbedded?: boolean;
   simplifiedCursor?: boolean;
-  title?: string;
+  title?: ReactNode;
   forecastAvailability?: ForecastAvailability;
   questionStatus?: QuestionStatus;
   cursorTooltip?: ReactNode;
@@ -61,6 +61,8 @@ type Props = {
   keyFactors?: KeyFactor[];
   showNewsAnnotations?: boolean;
   onToggleNewsAnnotations?: () => void;
+  hideCursorValueLabel?: boolean;
+  suppressEmptyOverlay?: boolean;
 };
 
 const NumericTimeline: FC<Props> = ({
@@ -98,6 +100,8 @@ const NumericTimeline: FC<Props> = ({
   keyFactors,
   showNewsAnnotations,
   onToggleNewsAnnotations,
+  hideCursorValueLabel,
+  suppressEmptyOverlay,
 }) => {
   const locale = useLocale();
   const resolutionPoint = useMemo(() => {
@@ -139,16 +143,18 @@ const NumericTimeline: FC<Props> = ({
 
   const getCursorValue = useCallback(
     (value: number) => {
+      // Omit `unit` on purpose — the unit is already rendered as the
+      // rotated yLabel on the y-axis, so repeating it in the cursor chip
+      // is redundant and makes the chip wider than necessary.
       const displayValue = getPredictionDisplayValue(value, {
         questionType,
         scaling,
-        unit,
         actual_resolve_time: resolveTime ?? null,
       });
 
       return displayValue.split("\n")[0] ?? displayValue;
     },
-    [questionType, scaling, unit, resolveTime]
+    [questionType, scaling, resolveTime]
   );
 
   const buildChartData = useCallback(
@@ -171,6 +177,7 @@ const NumericTimeline: FC<Props> = ({
         alwaysShowYTicks: true,
         inboundOutcomeCount,
         resolutionPoint,
+        reduceStepData: forFeedPage,
       }),
     [
       questionType,
@@ -235,6 +242,8 @@ const NumericTimeline: FC<Props> = ({
       newsAnnotations={newsAnnotations}
       showNewsAnnotations={showNewsAnnotations}
       onToggleNewsAnnotations={onToggleNewsAnnotations}
+      hideCursorValueLabel={hideCursorValueLabel}
+      suppressEmptyOverlay={suppressEmptyOverlay}
     />
   );
 };

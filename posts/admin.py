@@ -103,7 +103,7 @@ class PostAdmin(CustomTranslationAdmin):
         return format_html('<a href="{}">View Questions</a>', url)
 
     def update_pseudo_materialized_fields_button(self, obj):
-        if not obj:
+        if not obj or not obj.pk:
             return ""
         url = reverse(
             "admin:posts_post_update_pseudo_materialized_fields", args=[obj.pk]

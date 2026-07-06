@@ -13,6 +13,7 @@ import {
 } from "./activity_monitor_interactive";
 import { QuestionLoader } from "../components/question_cards/question";
 import { SectionHeader } from "../components/section";
+import { LABOR_HUB_POST_IDS } from "../data";
 
 const activityDateFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -54,7 +55,9 @@ export function ActivityMonitorSection({
   );
 
   // Pass the full set of candidate markers; the client chart decides how many to show based on print mode.
+  // Only "news" entries are shown on the timeline — "insight" and "comment" entries appear in the card list only.
   const timelineMarkers: GroupTimelineMarker[] = sortedEntries
+    .filter((activity) => activity.type === "news")
     .slice(0, 10)
     .map((activity) => ({
       id: getActivityId(activity),
@@ -75,7 +78,7 @@ export function ActivityMonitorSection({
         activities={activities}
         chart={
           <QuestionLoader
-            questionId={41307}
+            questionId={LABOR_HUB_POST_IDS.activityMonitor}
             title="How predictions have changed as AI advances"
             subtitle="What will be the percent change in US employment in the following years compared to 2025?"
             className="md:order-2"

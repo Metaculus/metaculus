@@ -86,11 +86,11 @@ export async function KeyInsightsSection({
   const govBaseline2035 = GOVERNMENT_BASELINES["2035"].toFixed(1);
   const hoursDisplay =
     insightsData.hoursWorked2035 != null
-      ? Math.round(insightsData.hoursWorked2035)
+      ? Math.round(insightsData.hoursWorked2035 * 10) / 10
       : null;
   const youthDisplay =
     insightsData.youthUnemployment2035 != null
-      ? Math.round(insightsData.youthUnemployment2035)
+      ? Math.round(insightsData.youthUnemployment2035 * 10) / 10
       : null;
   const mostVulnerableText = formatJobList(mostVulnerable2035);
   const leastVulnerableText = formatJobList(leastVulnerable2035);
@@ -125,10 +125,10 @@ export async function KeyInsightsSection({
             </>
           ) : (
             <>
-              Software developers, lawyers and law clerks, and laborers and
-              material movers are all expected to see the largest decreases in
-              employment rates, while registered nurses, K-12 teachers, and
-              restaurant servers are projected to grow.
+              Software developers, lawyers and law clerks, and sales
+              representatives are all expected to see the largest decreases in
+              employment rates, while registered nurses, restaurant servers, and
+              physicians are projected to grow.
             </>
           )}
         </KeyInsightItem>

@@ -1,11 +1,13 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.fields.files import ImageFieldFile
 from django.utils.html import strip_tags
 from pgvector.django import VectorField
 
 from posts.models import Post
 from projects.models import Project
-from users.models import User
 from users.constants import ApiAccessTier
+from users.models import User
 from utils.models import TimeStampedModel
 
 
@@ -118,9 +120,82 @@ class UserDataAccess(TimeStampedModel):
         ]
 
 
+class AdTile(TimeStampedModel):
+    title = models.CharField(
+        max_length=200,
+        blank=True,
+        default="",
+        help_text="Required unless a Project is selected (its name is used instead).",
+    )
+    description = models.TextField(blank=True, default="")
+    image = models.ImageField(null=True, blank=True)
+    cta_text = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        help_text="Call-to-action button label. If blank, no CTA button is rendered.",
+    )
+    url = models.CharField(
+        blank=True,
+        default="",
+        help_text="Destination URL. Required unless a Project is selected (its link is used).",
+    )
+
+    project = models.ForeignKey(
+        Project,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="ad_tiles",
+        help_text=(
+            "Optional. Provides default title/image and de-duplicates against the "
+            "auto-generated feed tile for the same project."
+        ),
+    )
+
+    is_active = models.BooleanField(
+        default=True, help_text="Master on/off switch, independent of the schedule."
+    )
+    publish_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Optional scheduled start. Blank = immediately.",
+    )
+    expires_at = models.DateTimeField(
+        null=True, blank=True, help_text="Optional auto-hide time. Blank = never."
+    )
+
+    order = models.PositiveIntegerField(
+        default=0, help_text="Lower numbers are served first."
+    )
+    exposure_rate = models.PositiveSmallIntegerField(
+        default=100,
+        validators=[MinValueValidator(1), MaxValueValidator(100)],
+        help_text="1-100. Percentage chance of being shown (rolled on the frontend).",
+    )
+
+    class Meta:
+        ordering = ("order", "-created_at")
+
+    def __str__(self):
+        return self.display_title or self.url
+
+    @property
+    def display_title(self) -> str:
+        return self.title or (self.project.name if self.project_id else "")
+
+    @property
+    def display_image(self) -> ImageFieldFile | None:
+        if self.image:
+            return self.image
+        return self.project.header_image if self.project_id else None
+
+
 class SidebarItem(TimeStampedModel):
     class SectionTypes(models.TextChoices):
         HOT_TOPICS = "hot_topics"
+        # Legacy for the question feed sidebar. Feed categories now come from
+        # /projects/categories/ and frontend consumers should ignore this value.
         HOT_CATEGORIES = "hot_categories"
 
     name = models.CharField(

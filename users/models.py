@@ -3,14 +3,15 @@ from typing import TYPE_CHECKING
 
 import dateutil.parser
 from django.conf import settings
-from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import QuerySet
 from django.utils import timezone
 
 from utils.models import TimeStampedModel
-from users.constants import ApiAccessTier
+from users.constants import ApiAccessTier, ApiForecastingAccess
+from users.managers import UserManager
 
 if TYPE_CHECKING:
     from comments.models import Comment
@@ -144,15 +145,33 @@ class User(TimeStampedModel, AbstractUser):
         ),
     )
 
+    # Aggregation exclusion
+    exclude_from_aggregations = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text=(
+            "Explicitly excludes this user from aggregations and geometric mean for "
+            "peer scoring, regardless of bot status."
+        ),
+    )
+
     # Bot properties
     is_bot = models.BooleanField(default=False, db_index=True)
     is_primary_bot = models.BooleanField(
         default=False,
         db_index=True,
         help_text=(
-            "Marks the user’s primary bot. Only the primary bot can post public comments, "
-            "be eligible for prizes, count toward peer scores, "
-            "and appear on leaderboards."
+            "Marks the user's primary bot. The primary bot is "
+            "eligible for prizes, counts toward peer scores, "
+            "and appears on leaderboards."
+        ),
+    )
+    allow_public_comments = models.BooleanField(
+        default=True,
+        help_text=(
+            "Whether this account may post public comments. "
+            "Enabled by default for human accounts. "
+            "Bots are disabled by default; an admin can enable this for select bots."
         ),
     )
     bot_owner = models.ForeignKey(
@@ -170,6 +189,22 @@ class User(TimeStampedModel, AbstractUser):
         null=True,
         blank=True,
         help_text="All JWT tokens issued before this timestamp are invalid. Set on password change or 'log out everywhere'.",
+    )
+
+    # Controls whether the account may submit forecasts via the API.
+    api_forecasting_access = models.CharField(
+        max_length=32,
+        choices=ApiForecastingAccess.choices,
+        default=ApiForecastingAccess.ENABLED,
+        help_text=(
+            "Whether this account may submit forecasts via the API. "
+            "Bots start enabled; human accounts start disabled."
+            "<br>enabled — API forecasts are allowed."
+            "<br>disabled — Blocks API forecasts and hides the in-app banner."
+            "<br>pending — Blocks API forecasts and shows the in-app "
+            "confirmation banner; set automatically on the first blocked "
+            "API forecast."
+        ),
     )
 
     objects: models.Manager["User"] = UserManager()
