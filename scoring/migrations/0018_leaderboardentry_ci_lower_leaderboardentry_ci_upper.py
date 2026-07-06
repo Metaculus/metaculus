@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
             model_name="leaderboardentry",
             name="ci_upper",
             field=models.FloatField(
-                blank=True, help_text="Confidence Interval lower bound", null=True
+                blank=True, help_text="Confidence Interval upper bound", null=True
             ),
         ),
     ]

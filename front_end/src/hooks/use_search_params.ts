@@ -21,8 +21,15 @@ const useSearchParams = () => {
 
   // allows pushing search params to the url without page reload
   const shallowNavigateToSearchParams = useCallback(() => {
-    window.history.pushState(null, "", `?${params.toString()}`);
-  }, [params]);
+    router.replace(pathname + "?" + params.toString(), { scroll: false });
+  }, [params, pathname, router]);
+
+  const replaceUrlWithoutNavigation = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const qs = params.toString();
+    const url = qs ? `${pathname}?${qs}` : pathname;
+    window.history.replaceState(window.history.state, "", url);
+  }, [params, pathname]);
 
   const setParam = useCallback(
     (name: string, val: string | string[], withNavigation = true) => {
@@ -105,6 +112,7 @@ const useSearchParams = () => {
     replaceParams,
     navigateToSearchParams,
     shallowNavigateToSearchParams,
+    replaceUrlWithoutNavigation,
   };
 };
 

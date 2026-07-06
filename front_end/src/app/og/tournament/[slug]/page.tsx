@@ -4,6 +4,7 @@ import Image from "next/image";
 import tournamentPlaceholder from "@/app/assets/images/tournament.png";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import type { Tournament } from "@/types/projects";
+import { stripHtmlTags } from "@/utils/formatters/string";
 
 export const dynamic = "force-dynamic";
 
@@ -95,8 +96,7 @@ export default async function OgTournamentPage({
 }
 
 const stripFirstLine = (html?: string): string =>
-  (html ?? "")
-    .replace(/<[^>]*>/g, "")
+  stripHtmlTags(html ?? "")
     .split("\n")[0]
     ?.trim() ?? "";
 

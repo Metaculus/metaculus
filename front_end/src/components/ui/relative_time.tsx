@@ -12,7 +12,7 @@ interface RelativeTimeProps
 const RelativeTime = ({ children, ...props }: RelativeTimeProps) => {
   return (
     // @ts-expect-error relative-time-element lacks TS compatibility with React 19, tracked here: https://github.com/github/relative-time-element/issues/304
-    <relative-time {...props}>
+    <relative-time suppressHydrationWarning {...props}>
       {children}
       {/* @ts-expect-error relative-time-element lacks TS compatibility with React 19, tracked here: https://github.com/github/relative-time-element/issues/304 */}
     </relative-time>

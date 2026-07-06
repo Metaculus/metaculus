@@ -4,17 +4,19 @@ import {
 } from "lexical-beautiful-mentions";
 import { FC, useEffect, useRef } from "react";
 
+import { ProjectPermissions } from "@/types/post";
+
 import useUserMentionsContext from "./default_mentions_context";
 import { Menu, MenuItem } from "./menu";
 import { queryMentions } from "../utils";
 
 type Props = {
   initialMention?: string;
-  isStuff?: boolean;
+  userPermission?: ProjectPermissions;
 };
 
-const MentionsPlugin: FC<Props> = ({ initialMention, isStuff }) => {
-  const { defaultUserMentions } = useUserMentionsContext();
+const MentionsPlugin: FC<Props> = ({ initialMention, userPermission }) => {
+  const { defaultUserMentions, postId } = useUserMentionsContext();
   const { insertMention } = useBeautifulMentions();
 
   const insertedReplyMention = useRef(false);
@@ -30,7 +32,13 @@ const MentionsPlugin: FC<Props> = ({ initialMention, isStuff }) => {
     <BeautifulMentionsPlugin
       triggers={["@"]}
       onSearch={(trigger, queryString) =>
-        queryMentions(trigger, queryString, defaultUserMentions, isStuff)
+        queryMentions(
+          trigger,
+          queryString,
+          defaultUserMentions,
+          userPermission,
+          postId
+        )
       }
       menuComponent={Menu}
       menuItemComponent={MenuItem}

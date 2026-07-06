@@ -2,7 +2,7 @@ import React from "react";
 
 import { ServiceType } from "@/constants/services";
 
-import { ServiceOption } from "../../../components/get_in_touch_form";
+import { ServiceOption } from "../../../components/contact_section/contact_form";
 
 export const metadata = {
   title: "Metaculus Pro Forecasters for Financial Services",

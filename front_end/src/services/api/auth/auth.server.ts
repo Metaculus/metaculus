@@ -1,7 +1,9 @@
 import "server-only";
+
 import { ApiService } from "@/services/api/api_service";
 import {
   AuthResponse,
+  AuthTokens,
   SignUpResponse,
   SocialAuthResponse,
   SocialProvider,
@@ -13,7 +15,6 @@ export type SignUpProps = {
   email: string;
   username: string;
   password: string;
-  is_bot: boolean;
   add_to_project?: number;
   campaign_key?: string;
   campaign_data?: object;
@@ -25,6 +26,15 @@ export type SignUpProps = {
 };
 
 class ServerAuthApiClass extends ApiService {
+  async refreshTokens(refreshToken: string) {
+    return this.post<AuthTokens>(
+      "/auth/refresh/",
+      { refresh: refreshToken },
+      {},
+      { passAuthHeader: false }
+    );
+  }
+
   async getSocialProviders(redirect_uri: string): Promise<SocialProvider[]> {
     try {
       return await this.get<SocialProvider[]>(
@@ -53,10 +63,12 @@ class ServerAuthApiClass extends ApiService {
     return this.post<
       SocialAuthResponse,
       { code: string; redirect_uri: string }
-    >(`/auth/social/${provider}/`, {
-      code,
-      redirect_uri,
-    });
+    >(
+      `/auth/social/${provider}/`,
+      { code, redirect_uri },
+      {},
+      { passAuthHeader: false }
+    );
   }
 
   async resendActivationEmail(login: string, redirect_url: string) {
@@ -72,27 +84,37 @@ class ServerAuthApiClass extends ApiService {
   async signIn(login: string, password: string) {
     return this.post<AuthResponse, { login: string; password: string }>(
       "/auth/login/token/",
-      { login, password }
+      { login, password },
+      {},
+      { passAuthHeader: false }
     );
   }
 
   async signUp(props: SignUpProps, turnstileHeaders: HeadersInit) {
-    return this.post<SignUpResponse, SignUpProps>("/auth/signup/", props, {
-      headers: turnstileHeaders,
-    });
+    return this.post<SignUpResponse, SignUpProps>(
+      "/auth/signup/",
+      props,
+      { headers: turnstileHeaders },
+      { passAuthHeader: false }
+    );
   }
 
   async activateAccount(userId: string, token: string) {
     return this.post<AuthResponse, { user_id: string; token: string }>(
       "/auth/signup/activate/",
-      { user_id: userId, token }
+      { user_id: userId, token },
+      {},
+      { passAuthHeader: false }
     );
   }
 
   async passwordResetRequest(login: string) {
-    return this.post<null, { login: string }>("/auth/password-reset/", {
-      login,
-    });
+    return this.post<null, { login: string }>(
+      "/auth/password-reset/",
+      { login },
+      {},
+      { passAuthHeader: false }
+    );
   }
 
   async passwordResetVerifyToken(user_id: number, token: string) {
@@ -108,9 +130,9 @@ class ServerAuthApiClass extends ApiService {
   ): Promise<AuthResponse> {
     return this.post<AuthResponse>(
       `/auth/password-reset/change/?user_id=${user_id}&token=${token}`,
-      {
-        password,
-      }
+      { password },
+      {},
+      { passAuthHeader: false }
     );
   }
 
@@ -126,8 +148,22 @@ class ServerAuthApiClass extends ApiService {
   ): Promise<SignUpResponse> {
     return this.post<SignUpResponse, { username: string; auth_token: string }>(
       "/auth/signup/simplified/",
-      { username, auth_token }
+      { username, auth_token },
+      {},
+      { passAuthHeader: false }
     );
+  }
+
+  async getApiKey(): Promise<{ key: string | null }> {
+    return this.get<{ key: string | null }>("/auth/api-key/");
+  }
+
+  async rotateApiKey(): Promise<{ key: string }> {
+    return this.post<{ key: string }>("/auth/api-key/rotate/", {});
+  }
+
+  async logout(): Promise<void> {
+    await this.post("/auth/logout/", {});
   }
 }
 

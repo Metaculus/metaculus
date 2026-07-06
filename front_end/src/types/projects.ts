@@ -1,5 +1,5 @@
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
-import { UserBase, UserProfile } from "@/types/users";
+import { User, UserBase } from "@/types/users";
 
 export enum ProjectVisibility {
   Normal = "normal",
@@ -43,18 +43,20 @@ export enum TaxonomyProjectType {
 }
 
 export enum TournamentsSortBy {
+  Featured = "featured",
   PrizePoolDesc = "-prize_pool",
   CloseDateAsc = "close_date",
   StartDateDesc = "-start_date",
 }
 
 export type TournamentMember = {
-  user: UserProfile;
+  user: User;
   permission: ProjectPermissions;
 };
 
 export type TournamentPreview = Project & {
   type: TournamentType;
+  show_on_homepage: boolean;
   header_image: string;
   forecasts_count: number;
   forecasters_count: number;
@@ -65,10 +67,14 @@ export type TournamentPreview = Project & {
   is_ongoing: boolean;
   created_at: string;
   questions_count: number;
+  questions_count_including_subquestions?: number;
   user_permission: ProjectPermissions;
   default_permission: ProjectPermissions | null;
   score_type: string;
   followers_count?: number;
+  timeline: TournamentTimeline;
+  description_preview?: string;
+  order?: number;
 };
 
 export type TournamentTimeline = {
@@ -89,6 +95,7 @@ export type Tournament = TournamentPreview & {
     image_url: string;
   };
   is_subscribed?: boolean;
+  follow_questions?: boolean;
   add_posts_to_main_feed: boolean;
   visibility: ProjectVisibility;
   default_permission?: ProjectPermissions | null;
@@ -169,3 +176,45 @@ export type MultiYearIndexData = IndexBase & {
 };
 
 export type IndexData = DefaultIndexData | MultiYearIndexData;
+
+export enum FeedTileRule {
+  NEW_TOURNAMENT = "NEW_TOURNAMENT",
+  NEW_QUESTIONS = "NEW_QUESTIONS",
+  RESOLVED_QUESTIONS = "RESOLVED_QUESTIONS",
+  ALL_QUESTIONS_RESOLVED = "ALL_QUESTIONS_RESOLVED",
+}
+
+export type FeedProjectTile = {
+  project: TournamentPreview;
+  project_id: number;
+  recently_opened_questions: number;
+  recently_resolved_questions: number;
+  all_questions_resolved: boolean;
+  project_resolution_date: string | null;
+  rule: FeedTileRule | null;
+};
+
+export type AdTileData = {
+  title: string;
+  description: string;
+  image: string | null;
+  cta_text: string;
+  url: string;
+  exposure_rate: number; // percent 1–100: chance this ad is shown in a given feed slot
+  project_id: number | null;
+};
+
+export type CombinedFeedTile =
+  | {
+      type: "ad";
+      id: string;
+      ad: AdTileData;
+      project: TournamentPreview | null;
+    }
+  | ({ type: "project"; id: string } & FeedProjectTile);
+
+export type AdCombinedFeedTile = Extract<CombinedFeedTile, { type: "ad" }>;
+export type ProjectCombinedFeedTile = Extract<
+  CombinedFeedTile,
+  { type: "project" }
+>;

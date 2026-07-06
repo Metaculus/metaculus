@@ -118,6 +118,12 @@ export default async function FAQ() {
               <a href="#question-groups">What are question groups?</a>
             </li>
             <li>
+              <a href="#mc-vs-groups">
+                What&apos;s the difference between a Question Group and a
+                Multiple Choice question?
+              </a>
+            </li>
+            <li>
               <a href="#conditionals">What are Conditional Pairs?</a>
             </li>
             <li>
@@ -264,6 +270,20 @@ export default async function FAQ() {
         </div>
         <hr />
         <div>
+          <h2 className="mb-4 mt-0 text-2xl font-semibold">Features</h2>
+          <ul className="space-y-1">
+            <li>
+              <a href="#related-news">What is NewsMatch?</a>
+            </li>
+            <li>
+              <a href="#top-comments-of-the-week">
+                What is Top Comments of the Week?
+              </a>
+            </li>
+          </ul>
+        </div>
+        <hr />
+        <div>
           <h2 className="mb-4 mt-0 text-2xl font-semibold">
             Metaculus Journal
           </h2>
@@ -304,12 +324,6 @@ export default async function FAQ() {
                 Metaculus Prediction on others, and no prediction on some
                 others?
               </a>
-            </li>
-            <li>
-              <a href="#related-news">What is NewsMatch?</a>
-            </li>
-            <li>
-              <a href="#community-insights">What are Community Insights?</a>
             </li>
             <li>
               <a href="#domains">Can I get my own Metaculus?</a>
@@ -998,6 +1012,31 @@ export default async function FAQ() {
           which was the upper bound.
         </p>
 
+        <h4 className="text-lg font-semibold">Multiple Choice</h4>
+        <p>
+          Multiple Choice questions present a set of options that are mutually
+          exclusive and cover all possibilities, and resolve to exactly one of
+          them. Options can be added or removed as the question evolves.
+          Forecasters assign a probability to each option, and those
+          probabilities sum to 100%. For example, the question &quot;
+          <Link href="/questions/20683/which-ai-world-before-2050/">
+            Which AI world will come to pass before 2050?
+          </Link>
+          &quot; asks forecasters to distribute probability across several
+          mutually exclusive scenarios for how advanced AI might first arrive,
+          and will resolve to whichever scenario occurs first.
+        </p>
+        <p>
+          Multiple Choice is the right format when the answer is one of a small,
+          well-defined list of possibilities and assigning probability across
+          all options at once is more informative than asking a separate
+          question for each. If you need forecasters to treat the outcomes as
+          independent, or if you want to allow more than one to be true, use a{" "}
+          <Link href="/faq/#question-groups">Question Group</Link> instead. See{" "}
+          <a href="#mc-vs-groups">Multiple Choice vs. Question Groups</a> for
+          details.
+        </p>
+
         <h3
           className="scroll-mt-nav text-xl font-semibold"
           id="question-groups"
@@ -1072,6 +1111,42 @@ export default async function FAQ() {
             question group discussion post
           </Link>
           .
+        </p>
+
+        <h4 className="scroll-mt-nav text-lg font-semibold" id="mc-vs-groups">
+          What&apos;s the difference between a Question Group and a Multiple
+          Choice question?
+        </h4>
+        <p>
+          Question Groups and{" "}
+          <Link href="/faq/#question-types">Multiple Choice</Link> questions
+          look similar, since both present several options on a single page, but
+          they model very different situations:
+        </p>
+        <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
+          <li>
+            <strong>Multiple Choice</strong> is a single question whose options
+            are mutually exclusive and cover all possibilities. Exactly one
+            option will turn out to be correct, and the forecast probabilities
+            across options sum to 100%. Because it is one question, forecasters
+            receive a single score for it. Use it when you&apos;re asking
+            &quot;which one?&quot; from a set of options.
+          </li>
+          <li>
+            A <strong>Question Group</strong> is a bundle of <i>independent</i>{" "}
+            subquestions sharing a page for convenience. Each subquestion
+            resolves on its own, you don&apos;t have to forecast on all of them,
+            and the community probabilities are not constrained to sum to 100%.
+            Each subquestion is scored separately, so forecasters receive one
+            score per subquestion. Use it when several related outcomes can each
+            be true or false on their own terms (e.g. &quot;Will X happen by
+            2025? By 2026? By 2027?&quot;).
+          </li>
+        </ul>
+        <p>
+          Rule of thumb: if exactly one option must occur, prefer Multiple
+          Choice. If the outcomes can co-occur or you want forecasters to be
+          able to skip some, prefer a Question Group.
         </p>
 
         <h3 className="scroll-mt-nav text-xl font-semibold" id="conditionals">
@@ -2899,7 +2974,7 @@ export default async function FAQ() {
                 </a>{" "}
                 of the individual forecaster probabilities, renormalized to sum
                 to 1 and respect the bounds of{" "}
-                <KatexRenderer equation="[0.001, 0.999]" inline />.
+                <KatexRenderer equation="[0.1\%, 99.9\%]" inline />.
               </li>
               <li>
                 For{" "}
@@ -3067,6 +3142,95 @@ export default async function FAQ() {
 
         <hr />
         <div>
+          <h2 className="scroll-mt-nav text-2xl font-bold" id="features">
+            Features
+          </h2>
+
+          <h3 className="scroll-mt-nav text-xl font-semibold" id="related-news">
+            What is NewsMatch?
+          </h3>
+
+          <p>
+            NewsMatch displays a selection of articles relevant to the current
+            Metaculus question. These serve as an additional resource for
+            forecasters as they discuss and predict on the question. Each
+            article is listed with its source and its publication date. Clicking
+            an article title navigates to the article itself. Up and downvoting
+            allows you to indicate whether the article was helpful or not. Your
+            input improves the accuracy and the usefulness of the model that
+            matches articles to Metaculus questions.
+          </p>
+          <p>
+            The article matching model is supported by{" "}
+            <a href="https://www.improvethenews.org/">Improve the News</a>, a
+            news aggregator developed by a group of researchers at MIT. Designed
+            to give readers more control over their news consumption, Improve
+            the News helps readers stay informed while encountering a wider
+            variety of viewpoints.
+          </p>
+          <p>
+            Articles in ITN&apos;s database are matched with relevant Metaculus
+            questions by a transformer-based machine learning model trained to
+            map semantically similar passages to regions in &quot;embedding
+            space.&quot; The embeddings themselves are generated using{" "}
+            <a href="https://arxiv.org/abs/2004.09297">MPNet</a>.
+          </p>
+
+          <h3
+            className="scroll-mt-nav text-xl font-semibold"
+            id="top-comments-of-the-week"
+          >
+            What is Top Comments of the Week?
+          </h3>
+
+          <p>
+            Top Comments is a weekly spotlight on the clearest, most useful
+            reasoning on Metaculus. Each Sunday winners from the previous week
+            are announced and a new week of fierce competition starts. You’ll
+            see the highlights in the sidebar and in your inbox. Only votes cast
+            within 7 days of a comment’s posting count toward its ranking. This
+            keeps the playing field fair so older comments don’t gain an
+            advantage simply by being around longer.
+          </p>
+
+          <h4 className="scroll-mt-nav text-lg font-semibold">
+            How many winners are there, and how are they recognized?
+          </h4>
+
+          <p>
+            Six per week: 🥇 goes to the top comment, 🥈 to 2nd and 3rd, 🥉 to
+            4th–6th. They get spotlighted in the Top Comments page, in the
+            weekly email, and more soon.
+          </p>
+
+          <h4 className="scroll-mt-nav text-lg font-semibold">
+            How are rankings calculated?
+          </h4>
+
+          <p>
+            We blend three signals: comment upvotes, “change my mind” votes, and
+            key factor votes (see below for that last one). Each is normalised,
+            then weighted: upvotes and “change my mind” have a weight of 40%
+            each, and key factor votes have a weight of 20%. There’s also a
+            bonus for comments that perform well across multiple signals.
+          </p>
+
+          <h4 className="scroll-mt-nav text-lg font-semibold">
+            What is “key factor impact,” and how do you compute it?
+          </h4>
+
+          <p>
+            If a comment has key factors, we compute a total{" "}
+            <strong>key factor impact</strong> score. It’s calculated as the
+            average of the absolute value of impact votes on that key factor
+            (low=2, moderate=3, high=5), summed across all the key factors on
+            that comment. If you didn’t add key factors to your comment, this
+            metric won’t appear.
+          </p>
+        </div>
+
+        <hr />
+        <div>
           <h2
             id="Metaculus Journal"
             className="mb-4 scroll-mt-nav text-3xl font-bold"
@@ -3138,36 +3302,62 @@ export default async function FAQ() {
           </h3>
           <p>
             For certain projects, Metaculus employs{" "}
-            <Link href={"/pro-forecasters"}>Pro Forecasters</Link> who have
-            demonstrated excellent forecasting ability and who have a history of
-            clearly describing their rationales. Pros forecast on private and
-            public sets of questions to produce well-calibrated forecasts and
-            descriptive rationales for our partners. We primarily recruit
-            members of the Metaculus community with the best track records for
-            our Pro team, but forecasters who have demonstrated excellent
-            forecasting ability elsewhere may be considered as well.
+            <Link href="/services/pro-forecasters/">Pro Forecasters</Link> who
+            have demonstrated excellent forecasting ability and who have a
+            history of clearly describing their rationales. Pros forecast on
+            private and public sets of questions to produce well-calibrated
+            forecasts and descriptive rationales for our partners. We primarily
+            recruit members of the Metaculus community with the best track
+            records for our Pro team, but forecasters who have demonstrated
+            excellent forecasting ability elsewhere may be considered as well.
           </p>
           <p>
-            If you’re interested in hiring Metaculus Pro Forecasters for a
-            project, contact us at{" "}
-            <a href="mailto:support@metaculus.com">support@metaculus.com</a>{" "}
-            with the subject &quot;Project Inquiry&quot;.
+            If you&apos;re interested in hiring Metaculus Pro Forecasters for a
+            project, reach out to us by completing our{" "}
+            <Link href="/services/pro-forecasters/#contact-us">
+              contact form
+            </Link>
+            .
           </p>
+
           <p>
-            Metaculus selects individuals according to the following criteria:
+            Pro Forecasters are carefully selected from forecasters who have
+            fulfilled certain criteria to ensure the quality of their
+            predictions and reasoning. These criteria are:
           </p>
-          <ol className="ml-5 list-inside list-decimal">
-            <li>Have scores in the top 2% of all Metaculus forecasters.</li>
+
+          <ul className="ml-5 list-disc space-y-2">
             <li>
-              Have forecasted on a minimum of 75+ questions that have been
-              resolved.
+              <strong>Excellent forecasting ability:</strong> Our Pro selection
+              methodology uses the{" "}
+              <Link href="/leaderboard">Metaculus Leaderboards</Link>, combining
+              the Peer Accuracy, Baseline Accuracy, and Comments leaderboards to
+              produce a weighted average score across those leaderboards and
+              across different leaderboard periods. Pros are selected from
+              forecasters who have the highest score on this combined metric,
+              representing the very best forecasters from all of Metaculus. Note
+              that while the Peer score is weighted highest in this combined
+              metric, the weighting is such that forecasters must have good
+              scores in all categories.
             </li>
-            <li>Have experience forecasting for a year or more.</li>
-            <li>Have forecasted across multiple subject areas.</li>
+
             <li>
-              Have a history of providing commentary explaining their forecasts.
+              <strong>Robust track records:</strong> Pro Forecasters must have
+              at least 75 resolved questions and must have made predictions
+              across multiple subject areas, with at least one year of
+              experience making predictions. We also consider recruiting
+              forecasters who have demonstrated excellent forecasting ability
+              elsewhere.
             </li>
-          </ol>
+
+            <li>
+              <strong>Clear comments and communications:</strong> Our Pros work
+              on projects for external partners who value clear reasoning to
+              better interpret the forecasts. We select Pros who have a history
+              of making clear and insightful comments, and who are willing to
+              disagree with their peers, but in a polite and respectful manner.
+            </li>
+          </ul>
 
           <h3 id="api" className="mb-4 scroll-mt-nav text-2xl font-semibold">
             Does Metaculus have an API?
@@ -3227,69 +3417,6 @@ export default async function FAQ() {
             predictions, which may &quot;ground&quot; or bias later ones. Once
             the Community Prediction is visible, the Metaculus Prediction is
             hidden until the question closes.
-          </p>
-        </div>
-        <div>
-          <h3
-            id="related-news"
-            className="mb-4 scroll-mt-nav text-2xl font-semibold"
-          >
-            What is NewsMatch?
-          </h3>
-          <p>
-            NewsMatch displays a selection of articles relevant to the current
-            Metaculus question. These serve as an additional resource for
-            forecasters as they discuss and predict on the question. Each
-            article is listed with its source and its publication date. Clicking
-            an article title navigates to the article itself. Up and downvoting
-            allows you to indicate whether the article was helpful or not. Your
-            input improves the accuracy and the usefulness of the model that
-            matches articles to Metaculus questions.
-          </p>
-          <p>
-            The article matching model is supported by{" "}
-            <a href="https://www.improvethenews.org/">Improve the News</a>, a
-            news aggregator developed by a group of researchers at MIT. Designed
-            to give readers more control over their news consumption, Improve
-            the News helps readers stay informed while encountering a wider
-            variety of viewpoints.
-          </p>
-          <p>
-            Articles in ITN&apos;s database are matched with relevant Metaculus
-            questions by a transformer-based machine learning model trained to
-            map semantically similar passages to regions in &quot;embedding
-            space.&quot; The embeddings themselves are generated using{" "}
-            <a href="https://arxiv.org/abs/2004.09297">MPNet</a>.
-          </p>
-        </div>
-
-        <div>
-          <h3
-            id="community-insights"
-            className="mb-4 scroll-mt-nav text-2xl font-semibold"
-          >
-            What are Community Insights?
-          </h3>
-          <p>
-            Community Insights summarize Metaculus user comments on a given
-            question using GPT-4. They condense recent predictions, timestamped
-            comments, and the current community prediction into concise
-            summaries of relevant arguments for different forecasts on a given
-            question. Forecasters can use them to make more informed decisions
-            and stay up-to-date with the latest insights from the community.
-          </p>
-          <p>
-            Community Insights are currently available on binary and continuous
-            questions with large comment threads and will update regularly as
-            new discussion emerges in the comments. If you have feedback on
-            these summaries—or would like to see them appear on a wider variety
-            of questions—email{" "}
-            <a href="mailto:support@metaculus.com">support@metaculus.com</a>.
-          </p>
-          <p>
-            If you find a Community Insights summary to be incorrect, offensive,
-            or misleading please use the button at the bottom of the summary to
-            &quot;Flag this summary&quot; so the Metaculus team can address it.
           </p>
         </div>
 

@@ -13,6 +13,7 @@ import {
   POST_FOLLOWING_FILTER,
   POST_FOR_MAIN_FEED,
   POST_FORECASTER_ID_FILTER,
+  POST_IDS_FILTER,
   POST_LEADERBOARD_TAGS_FILTER,
   POST_NOT_FORECASTER_ID_FILTER,
   POST_ORDER_BY_FILTER,
@@ -65,12 +66,39 @@ export const POST_STATUS_LABEL_MAP = {
   [PostStatus.REJECTED]: "Rejected Posts",
 };
 
-type FiltersFromSearchParamsOptions = {
+export type FiltersFromSearchParamsOptions = {
   defaultOrderBy?: string;
   defaultForMainFeed?: boolean;
   withoutPageParam?: boolean;
   filterForConsumerView?: boolean;
 };
+
+const EXPLICIT_FEED_FILTER_KEYS = [
+  POST_ACCESS_FILTER,
+  POST_AUTHOR_FILTER,
+  POST_CATEGORIES_FILTER,
+  POST_COMMENTED_BY_FILTER,
+  POST_FOLLOWING_FILTER,
+  POST_FOR_MAIN_FEED,
+  POST_FORECASTER_ID_FILTER,
+  POST_IDS_FILTER,
+  POST_LEADERBOARD_TAGS_FILTER,
+  POST_NOT_FORECASTER_ID_FILTER,
+  POST_PROJECT_FILTER,
+  POST_STATUS_FILTER,
+  POST_TEXT_SEARCH_FILTER,
+  POST_TOPIC_FILTER,
+  POST_TYPE_FILTER,
+  POST_UPVOTED_BY_FILTER,
+  POST_USERNAMES_FILTER,
+  POST_WITHDRAWN_FILTER,
+] as const;
+
+function hasSearchParamValue(searchParams: SearchParams, key: string) {
+  const value = searchParams[key];
+
+  return Array.isArray(value) ? value.length > 0 : typeof value === "string";
+}
 
 export function generateFiltersFromSearchParams(
   searchParams: SearchParams,
@@ -83,6 +111,9 @@ export function generateFiltersFromSearchParams(
     filterForConsumerView,
   } = options;
   const filters: PostsParams = {};
+  const hasExplicitFeedFilter = EXPLICIT_FEED_FILTER_KEYS.some((key) =>
+    hasSearchParamValue(searchParams, key)
+  );
 
   if (!withoutPageParam && typeof searchParams[POST_PAGE_FILTER] === "string") {
     filters.page = Number(searchParams[POST_PAGE_FILTER]);
@@ -122,11 +153,24 @@ export function generateFiltersFromSearchParams(
   if (searchParams[POST_PROJECT_FILTER]) {
     filters.default_project_id = searchParams[POST_PROJECT_FILTER].toString();
   }
+  if (searchParams[POST_IDS_FILTER]) {
+    const idsParam = searchParams[POST_IDS_FILTER];
+    if (Array.isArray(idsParam)) {
+      filters.ids = idsParam.map(Number).filter((id) => !isNaN(id));
+    } else if (typeof idsParam === "string") {
+      // Handle comma-separated values or single value
+      filters.ids = idsParam
+        .split(",")
+        .map(Number)
+        .filter((id) => !isNaN(id));
+    }
+  }
   if (typeof searchParams[POST_FOR_MAIN_FEED] === "string") {
     filters.for_main_feed = searchParams[POST_FOR_MAIN_FEED];
   } else if (
     typeof defaultForMainFeed !== "undefined" &&
-    !searchParams[POST_TEXT_SEARCH_FILTER]
+    !searchParams[POST_TEXT_SEARCH_FILTER] &&
+    !filters.ids
   ) {
     filters.for_main_feed = defaultForMainFeed.toString();
   }
@@ -154,11 +198,7 @@ export function generateFiltersFromSearchParams(
     filters.access = searchParams[POST_ACCESS_FILTER];
   }
 
-  if (
-    typeof filterForConsumerView !== "undefined" &&
-    !filters.search &&
-    !filters.statuses
-  ) {
+  if (typeof filterForConsumerView !== "undefined" && !hasExplicitFeedFilter) {
     filters.for_consumer_view = filterForConsumerView.toString();
   }
 
@@ -167,7 +207,7 @@ export function generateFiltersFromSearchParams(
   } else if (defaultOrderBy) {
     filters.order_by = defaultOrderBy;
 
-    if (!filters.statuses && !filters.search) {
+    if (!filters.statuses && !filters.search && !filters.ids) {
       filters.statuses = [
         PostStatus.OPEN,
         PostStatus.CLOSED,
@@ -245,7 +285,7 @@ export function getFilterSectionUsername({
 
       try {
         const response = await ClientProfileApi.searchUsers(query);
-        return response.results.map((obj) => ({
+        return response.map((obj) => ({
           label: obj.username,
           value: obj.username,
           active: params.getAll(POST_USERNAMES_FILTER).includes(obj.username),

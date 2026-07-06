@@ -2,9 +2,10 @@ from typing import Callable
 
 import dramatiq
 import pytest
-from rest_framework.authtoken.models import Token
+from authentication.models import ApiKey
 from rest_framework.test import APIClient
 
+from users.constants import ApiForecastingAccess
 from users.models import User
 
 
@@ -44,14 +45,20 @@ def await_queue(broker, worker):
 
 @pytest.fixture
 def user1() -> User:
-    user, _ = User.objects.get_or_create(email="user@metaculus.com", username="user1")
+    user, _ = User.objects.get_or_create(
+        email="user@metaculus.com",
+        username="user1",
+        defaults={"api_forecasting_access": ApiForecastingAccess.ENABLED},
+    )
     return user
 
 
 @pytest.fixture
 def user2() -> User:
     user, _ = User.objects.get_or_create(
-        email="user-second@metaculus.com", username="user2"
+        email="user-second@metaculus.com",
+        username="user2",
+        defaults={"api_forecasting_access": ApiForecastingAccess.ENABLED},
     )
     return user
 
@@ -59,7 +66,10 @@ def user2() -> User:
 @pytest.fixture
 def user_admin() -> User:
     return User.objects.create(
-        email="admin@metaculus.com", username="admin", is_superuser=True
+        email="admin@metaculus.com",
+        username="admin",
+        is_superuser=True,
+        api_forecasting_access=ApiForecastingAccess.ENABLED,
     )
 
 
@@ -69,7 +79,7 @@ def create_client_for_user() -> Callable[[User | None], APIClient]:
         client = APIClient()
 
         if user:
-            token = Token.objects.create(user=user)
+            token = ApiKey.objects.create(user=user)
             client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
 
         return client

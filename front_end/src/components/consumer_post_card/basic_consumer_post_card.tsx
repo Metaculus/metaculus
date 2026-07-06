@@ -3,7 +3,9 @@ import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
 import WeightBadge from "@/app/(main)/(tournaments)/tournament/components/index/index_weight_badge";
-import KeyFactorsTileDisplay from "@/app/(main)/questions/[id]/components/key_factors/key_factors_tile_display";
+import { CoherenceLinksProvider } from "@/app/(main)/components/coherence_links_provider";
+import KeyFactorsTileView from "@/app/(main)/questions/[id]/components/key_factors/questions_feed_view/key_factors_tile_view";
+import ParticipationSummaryQuestionTile from "@/app/(main)/questions/[id]/components/post_score_data/participation_summary_question_tile";
 import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import CommunityDisclaimer from "@/components/post_card/community_disclaimer";
@@ -18,6 +20,7 @@ type Props = {
   forCommunityFeed?: boolean;
   indexWeight?: number;
   isNotebook?: boolean;
+  useShortTitle?: boolean;
 };
 
 const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
@@ -25,15 +28,17 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
   forCommunityFeed,
   indexWeight,
   isNotebook = false,
+  useShortTitle = false,
   children,
 }) => {
-  const { title } = post;
+  const title = useShortTitle ? post.short_title || post.title : post.title;
 
   return (
     <div>
       {!isNil(forCommunityFeed) &&
         forCommunityFeed !==
-          (post.projects.default_project.type === TournamentType.Community) && (
+          (post.projects?.default_project?.type === TournamentType.Community) &&
+        post.projects?.default_project && (
           <CommunityDisclaimer
             project={post.projects.default_project}
             variant="inline"
@@ -41,10 +46,10 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
         )}
       <div
         className={cn(
-          "rounded border no-underline @container",
+          "rounded border no-underline transition-colors @container",
           isNotebook
-            ? "gap-1 border-purple-400/50 bg-purple-50/75 p-4 pt-3 dark:border-purple-400-dark/50  dark:bg-purple-100-dark/40"
-            : "gap-2.5 border-blue-400 bg-gray-0 p-6 pt-5 dark:border-blue-400-dark dark:bg-gray-0-dark"
+            ? "gap-1 border-purple-400/50 bg-purple-50/75 p-4 pt-3 hover:border-purple-500 hover:bg-purple-100/75 dark:border-purple-400-dark/50 dark:bg-purple-100-dark/40 dark:hover:border-purple-500-dark dark:hover:bg-purple-100-dark/60"
+            : "gap-2.5 border-blue-400 bg-gray-0 p-6 pt-5 hover:border-blue-500 dark:border-blue-400-dark dark:bg-gray-0-dark dark:hover:border-blue-500-dark dark:hover:bg-gray-100-dark"
         )}
       >
         <div
@@ -58,6 +63,7 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
               totalCount={post.comment_count ?? 0}
               unreadCount={post.unread_comment_count ?? 0}
               url={getPostLink(post)}
+              prefetch={false}
               variant="gray"
               className="z-[101]"
             />
@@ -72,8 +78,8 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
               className={cn(
                 "m-0 max-w-xl text-center",
                 isNotebook
-                  ? "text-sm font-medium text-purple-900 dark:text-purple-900-dark md:text-base" // Add your notebook title styles here
-                  : "text-base font-medium md:text-lg" // Add your regular title styles here
+                  ? "text-sm font-medium text-purple-900 dark:text-purple-900-dark md:text-base"
+                  : "text-base font-medium md:text-lg"
               )}
             >
               {title}
@@ -87,12 +93,18 @@ const BasicConsumerPostCard: FC<PropsWithChildren<Props>> = ({
           </div>
           <Link
             href={getPostLink(post)}
+            prefetch={false}
             className="absolute top-0 z-100 h-full w-full @container"
           ></Link>
         </div>
 
-        {isQuestionPost(post) && (post.key_factors?.length ?? 0) > 0 && (
-          <KeyFactorsTileDisplay post={post} className="mt-[28px]" />
+        {isQuestionPost(post) && (
+          <CoherenceLinksProvider post={post}>
+            <KeyFactorsTileView post={post} className="mt-[28px]" />
+          </CoherenceLinksProvider>
+        )}
+        {isQuestionPost(post) && (
+          <ParticipationSummaryQuestionTile post={post} />
         )}
       </div>
     </div>

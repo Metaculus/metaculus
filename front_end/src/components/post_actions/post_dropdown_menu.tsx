@@ -11,6 +11,8 @@ import PostDestructiveActionModal, {
   PostDestructiveActionModalProps,
 } from "@/app/(main)/questions/[id]/components/post_destructive_action_modal";
 import { changePostActivityBoost } from "@/app/(main)/questions/actions";
+import QuestionResolutionModal from "@/components/forecast_maker/resolution/resolution_modal";
+import QuestionUnresolveModal from "@/components/forecast_maker/resolution/unresolve_modal";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
@@ -21,22 +23,26 @@ import { useShareMenuItems } from "@/hooks/use_share_menu_items";
 import { BoostDirection } from "@/services/api/posts/posts.shared";
 import { Post, PostStatus, ProjectPermissions } from "@/types/post";
 import { getPostEditLink } from "@/utils/navigation";
+import { isQuestionPost } from "@/utils/questions/helpers";
+import { canChangeQuestionResolution } from "@/utils/questions/resolution";
 
 type Props = {
   post: Post;
   button?: React.ReactNode;
+  hideShare?: boolean;
 };
 
-export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
+export const PostDropdownMenu: FC<Props> = ({ post, button, hideShare }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const router = useRouter();
   const { updateIsOpen: openEmbedModal } = useEmbedModalContext();
 
+  const { user_permission } = post;
   const isUpcoming = new Date(post.open_time).getTime() > Date.now();
-  const isAdmin = [ProjectPermissions.ADMIN].includes(post.user_permission);
-  const isCurator = [ProjectPermissions.CURATOR].includes(post.user_permission);
-  const isCreator = post.user_permission === ProjectPermissions.CREATOR;
+  const isAdmin = [ProjectPermissions.ADMIN].includes(user_permission);
+  const isCurator = [ProjectPermissions.CURATOR].includes(user_permission);
+  const isCreator = user_permission === ProjectPermissions.CREATOR;
   const isApproved = post.curation_status === PostStatus.APPROVED;
 
   const allowEdit =
@@ -47,7 +53,14 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
     // Curators can edit approved posts that are not yet open
     (isCurator && isApproved && isUpcoming);
 
-  const isLargeScreen = useBreakpoint("lg");
+  const isMediumScreen = useBreakpoint("md");
+
+  const canResolve =
+    isQuestionPost(post) &&
+    canChangeQuestionResolution(post.question, user_permission);
+  const canUnresolve =
+    isQuestionPost(post) &&
+    canChangeQuestionResolution(post.question, user_permission, false);
 
   const shareMenuItems = useShareMenuItems({
     questionTitle: post.title,
@@ -88,6 +101,9 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
     [post.id, t]
   );
 
+  const [isResolutionModalOpen, setIsResolutionModalOpen] = useState(false);
+  const [isUnresolveModalOpen, setIsUnresolveModalOpen] = useState(false);
+
   const createDuplicateLink = (post: Post) => {
     if (post.question) {
       return `/questions/create/question?mode=create&post_id=${post.id}`;
@@ -111,14 +127,18 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
 
   const menuItems: MenuItemProps[] = [
     // Mobile menu items
-    ...(!isLargeScreen
+    ...(!isMediumScreen
       ? [
-          {
-            id: "share",
-            name: t("share"),
-            className: "capitalize",
-            items: shareMenuItems,
-          },
+          ...(!hideShare
+            ? [
+                {
+                  id: "share",
+                  name: t("share"),
+                  className: "capitalize",
+                  items: shareMenuItems,
+                },
+              ]
+            : []),
           {
             id: "subscription",
             name: isSubscribed ? t("followingButton") : t("followButton"),
@@ -129,6 +149,27 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
             name: t("embed"),
             className: "capitalize",
             onClick: () => openEmbedModal(true),
+          },
+        ]
+      : []),
+
+    // Resolution actions
+    ...(canResolve
+      ? [
+          {
+            id: "resolve",
+            name: t("resolve"),
+            onClick: () => setIsResolutionModalOpen(true),
+          },
+        ]
+      : []),
+
+    ...(canUnresolve
+      ? [
+          {
+            id: "unresolve",
+            name: t("unresolve"),
+            onClick: () => setIsUnresolveModalOpen(true),
           },
         ]
       : []),
@@ -196,6 +237,11 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
     ...(!post.notebook
       ? [
           {
+            id: "openInAggregationExplorer",
+            name: t("openInAggregationExplorer"),
+            link: `/aggregation-explorer?post_id=${post.id}`,
+          },
+          {
             id: "downloadQuestionData",
             name: t("downloadQuestionData"),
             onClick: openDownloadModal,
@@ -240,8 +286,24 @@ export const PostDropdownMenu: FC<Props> = ({ post, button }) => {
       <DataRequestModal
         isOpen={isDownloadModalOpen}
         onClose={closeDownloadModal}
+        postId={post.id}
+        title={post.short_title || post.title}
         post={post}
       />
+      {isQuestionPost(post) && (
+        <>
+          <QuestionResolutionModal
+            question={post.question}
+            isOpen={isResolutionModalOpen}
+            onClose={() => setIsResolutionModalOpen(false)}
+          />
+          <QuestionUnresolveModal
+            question={post.question}
+            isOpen={isUnresolveModalOpen}
+            onClose={() => setIsUnresolveModalOpen(false)}
+          />
+        </>
+      )}
       <DropdownMenu
         items={menuItems}
         className="divide-y divide-gray-300 border-gray-300 dark:divide-gray-300-dark dark:border-gray-300-dark dark:bg-gray-0-dark"

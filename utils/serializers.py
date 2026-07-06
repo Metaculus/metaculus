@@ -70,6 +70,9 @@ class SerializerKeyLookupMixin:
 class DataGetRequestSerializer(serializers.Serializer):
     question_id = serializers.IntegerField(required=False)
     post_id = serializers.IntegerField(required=False)
+    post_ids = serializers.ListField(
+        child=serializers.IntegerField(), required=False, allow_null=True
+    )
     project_id = serializers.IntegerField(required=False)
     sub_question = serializers.IntegerField(required=False)
     aggregation_methods = serializers.CharField(required=False)
@@ -83,6 +86,7 @@ class DataGetRequestSerializer(serializers.Serializer):
     include_bots = serializers.BooleanField(required=False, allow_null=True)
     anonymized = serializers.BooleanField(required=False)
     joined_before_date = serializers.DateTimeField(required=False)
+    include_key_factors = serializers.BooleanField(required=False, default=False)
 
     def validate_aggregation_methods(self, value: str | None):
         valid_aggregation_methods = [
@@ -112,7 +116,7 @@ class DataGetRequestSerializer(serializers.Serializer):
     def validate_user_ids(self, user_ids: list[int]):
         if not user_ids:
             return user_ids
-        if not (self.context.get("is_staff") or self.context.get("is_whitelisted")):
+        if not (self.context.get("is_staff") or self.context.get("has_data_access")):
             raise serializers.ValidationError(
                 "Current user cannot view user-specific data. "
                 "Please remove user_ids parameter."
@@ -124,6 +128,7 @@ class DataGetRequestSerializer(serializers.Serializer):
         # Check if there are any unexpected fields
         allowed_fields = {
             "post_id",
+            "post_ids",
             "question_id",
             "project_id",
             "sub_question",
@@ -136,6 +141,7 @@ class DataGetRequestSerializer(serializers.Serializer):
             "include_bots",
             "anonymized",
             "joined_before_date",
+            "include_key_factors",
         }
         input_fields = set(self.initial_data.keys())
         unexpected_fields = input_fields - allowed_fields
@@ -176,8 +182,11 @@ class DataPostRequestSerializer(DataGetRequestSerializer):
         if methods is None:
             return
         user: User = self.context.get("user")
+        valid_aggregation_methods = [
+            aggregation.method for aggregation in AGGREGATIONS
+        ] + [AggregationMethod.METACULUS_PREDICTION, "geometric_mean"]
         invalid_methods = [
-            method for method in methods if method not in AggregationMethod.values
+            method for method in methods if method not in valid_aggregation_methods
         ]
         if invalid_methods:
             raise serializers.ValidationError(
@@ -194,7 +203,7 @@ class DataPostRequestSerializer(DataGetRequestSerializer):
     def validate_user_ids(self, user_ids: list[int]):
         if not user_ids:
             return user_ids
-        if not (self.context.get("is_staff") or self.context.get("is_whitelisted")):
+        if not (self.context.get("is_staff") or self.context.get("has_data_access")):
             raise serializers.ValidationError(
                 "Current user cannot view user-specific data. "
                 "Please remove user_ids parameter."

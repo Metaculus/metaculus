@@ -76,6 +76,7 @@ export const METAC_COLORS = {
     600: { DEFAULT: "#c56d6d", dark: "#f3b4b4" },
     700: { DEFAULT: "#ab5959", dark: "#f9d2d2" },
     800: { DEFAULT: "#904747", dark: "#fce8e8" },
+    900: { DEFAULT: "#5a1f1f", dark: "#fbcfce" },
   },
   tan: {
     500: { DEFAULT: "#d6cca9", dark: "#d6cca9" },
@@ -189,6 +190,13 @@ export const METAC_COLORS = {
 
   bell: { DEFAULT: "#b79d00", dark: "#dac024" },
   twitter: { DEFAULT: "#1da1f2" },
+  // FutureEval brand colors
+  futureeval: {
+    "primary-light": "#00A99E",
+    "primary-dark": "#23FBE3",
+    "bg-light": "#FBFFFC",
+    "bg-dark": "#030C07",
+  },
 } as const;
 
 export const MULTIPLE_CHOICE_COLOR_SCALE = Object.values(

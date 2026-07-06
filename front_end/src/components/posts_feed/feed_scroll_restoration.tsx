@@ -1,26 +1,24 @@
 import { usePathname } from "next/navigation";
-import { FC, useEffect } from "react";
+import { FC, useEffect, useMemo } from "react";
 
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import useSearchParams from "@/hooks/use_search_params";
-import { PostWithForecasts } from "@/types/post";
 import { safeSessionStorage } from "@/utils/core/storage";
 
 import { SCROLL_CACHE_KEY } from "./constants";
 
 type Props = {
-  initialQuestions: PostWithForecasts[];
+  loadedCount: number;
   serverPage: number | null;
   pageNumber: number;
 };
 const PostsFeedScrollRestoration: FC<Props> = ({
-  initialQuestions,
   pageNumber,
   serverPage,
+  loadedCount,
 }) => {
   const pathname = usePathname();
-  const { params, navigateToSearchParams } = useSearchParams();
-  const fullPathname = `${pathname}${params.toString() ? `?${params.toString()}` : ""}`;
+  const { navigateToSearchParams } = useSearchParams();
 
   // disable native scroll restoration as we're doing it programmatically
   useEffect(() => {
@@ -38,46 +36,57 @@ const PostsFeedScrollRestoration: FC<Props> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const fullPathname = useMemo(() => {
+    if (typeof window === "undefined") return pathname;
+    return window.location.pathname + window.location.search;
+  }, [pathname]);
+
   useEffect(() => {
     const saveScrollPosition = () => {
       const currentScroll = window.scrollY;
       if (currentScroll >= 0) {
+        const key = window.location.pathname + window.location.search;
+
         safeSessionStorage.setItem(
           SCROLL_CACHE_KEY,
           JSON.stringify({
-            scrollPathName: fullPathname,
-            scrollPosition: currentScroll.toString(),
+            scrollPathName: key,
+            scrollPosition: String(currentScroll),
           })
         );
       }
     };
 
-    const savedScrollData = safeSessionStorage.getItem(SCROLL_CACHE_KEY);
-    const parsedScrollData = savedScrollData ? JSON.parse(savedScrollData) : {};
-    const { scrollPathName, scrollPosition } = parsedScrollData;
+    const saved = safeSessionStorage.getItem(SCROLL_CACHE_KEY);
+    const parsed = saved ? JSON.parse(saved) : {};
+    const { scrollPathName, scrollPosition } = parsed as {
+      scrollPathName?: string;
+      scrollPosition?: string;
+    };
 
-    const minRequiredQuestions = (pageNumber - 1) * POSTS_PER_PAGE;
+    const minRequired = (pageNumber - 1) * POSTS_PER_PAGE;
     if (
       scrollPosition &&
-      initialQuestions.length > minRequiredQuestions &&
-      !!pageNumber &&
+      loadedCount > minRequired &&
       scrollPathName === fullPathname
     ) {
-      window.scrollTo({
-        top: parseInt(scrollPosition),
-        behavior: "smooth",
-      });
-
+      window.scrollTo({ top: Number(scrollPosition), behavior: "auto" });
       safeSessionStorage.removeItem(SCROLL_CACHE_KEY);
-      window.addEventListener("scrollend", saveScrollPosition);
-    } else {
-      window.addEventListener("scrollend", saveScrollPosition);
     }
 
-    return () => {
-      window.removeEventListener("scrollend", saveScrollPosition);
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(saveScrollPosition);
     };
-  }, [fullPathname, initialQuestions.length, pageNumber]);
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [fullPathname, loadedCount, pageNumber]);
 
   return null;
 };

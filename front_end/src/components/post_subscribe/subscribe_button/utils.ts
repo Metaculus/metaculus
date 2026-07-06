@@ -9,7 +9,7 @@ import { PostSubscription, PostSubscriptionType } from "@/types/post";
 export const getDefaultSubscriptionProps = () =>
   ({
     [PostSubscriptionType.NEW_COMMENTS]: {
-      comments_frequency: 10,
+      comments_frequency: 1,
     },
     [PostSubscriptionType.STATUS_CHANGE]: {},
     [PostSubscriptionType.MILESTONE]: {
@@ -25,7 +25,7 @@ export const getDefaultSubscriptionProps = () =>
           next_trigger_datetime: formatInTimeZone(
             addWeeks(new Date(), 1),
             "UTC",
-            "yyyy-MM-dd'T'HH:mm:ss'Z'"
+            "yyyy-MM-dd'T'00:00:00'Z'"
           ),
           recurrence_interval: "",
         },

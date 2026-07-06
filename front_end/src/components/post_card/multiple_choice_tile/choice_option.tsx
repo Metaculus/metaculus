@@ -1,11 +1,13 @@
 import { isNil } from "lodash";
 import React, { FC } from "react";
 
+import { useIsEmbedMode } from "@/app/(embed)/questions/components/question_view_mode_context";
 import ChoiceIcon from "@/components/choice_icon";
 import ChoiceResolutionIcon from "@/components/choice_resolution_icon";
 import { Resolution } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
+import { findPreviousTimestamp } from "@/utils/charts/cursor";
 import cn from "@/utils/core/cn";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 
@@ -18,8 +20,12 @@ type Props = {
   questionType?: QuestionType;
   scaling?: Scaling;
   labelClassName?: string;
+  valueClassName?: string;
   actual_resolve_time?: string | null;
   withIcon?: boolean;
+  cursorTimestamp?: number | null;
+  timestamps?: number[];
+  latestValue?: number | null;
 };
 
 const ChoiceOption: FC<Props> = ({
@@ -31,9 +37,28 @@ const ChoiceOption: FC<Props> = ({
   questionType,
   scaling,
   labelClassName,
+  valueClassName,
   actual_resolve_time,
+  cursorTimestamp = null,
+  timestamps = [],
   withIcon = true,
+  latestValue,
 }) => {
+  const idx =
+    cursorTimestamp == null || !timestamps?.length
+      ? values.length - 1
+      : Math.max(
+          0,
+          Math.min(
+            timestamps.indexOf(
+              findPreviousTimestamp(timestamps, cursorTimestamp)
+            ),
+            values.length - 1
+          )
+        );
+
+  const valueAtCursor =
+    cursorTimestamp == null && !isNil(latestValue) ? latestValue : values[idx];
   const resolutionWords = String(displayedResolution)?.split(" ");
   const adjustedResolution = resolutionWords.length
     ? resolutionWords
@@ -55,16 +80,18 @@ const ChoiceOption: FC<Props> = ({
         .join(" ")
     : resolution;
 
-  const hasValue = !isNil(values.at(-1));
+  const hasValue = !isNil(valueAtCursor);
+  const isEmbed = useIsEmbedMode();
 
   return (
     <div
       key={`choice-option-${choice}`}
       className={cn(
-        "flex h-auto flex-row items-center self-stretch text-gray-900 dark:text-gray-900-dark",
+        "flex h-auto w-full min-w-0 flex-row items-center self-stretch text-gray-900 dark:text-gray-900-dark",
         {
           "text-gray-800 dark:text-gray-800-dark": !hasValue,
-        }
+        },
+        isEmbed && "pl-0.5"
       )}
     >
       {withIcon && (
@@ -78,7 +105,8 @@ const ChoiceOption: FC<Props> = ({
 
       <div
         className={cn(
-          "resize-label line-clamp-2 min-w-0 flex-1 pr-2.5 text-left text-sm font-normal leading-4",
+          "resize-label min-w-0 flex-1 pr-2.5 text-left text-sm font-normal leading-4",
+          "truncate",
           labelClassName
         )}
       >
@@ -91,10 +119,11 @@ const ChoiceOption: FC<Props> = ({
             {
               "opacity-30": !hasValue,
             },
-            "leading-0"
+            "leading-0",
+            valueClassName
           )}
         >
-          {getPredictionDisplayValue(values.at(-1), {
+          {getPredictionDisplayValue(valueAtCursor, {
             questionType: questionType ?? QuestionType.Binary,
             scaling: scaling ?? {
               range_min: 0,
@@ -106,7 +135,7 @@ const ChoiceOption: FC<Props> = ({
           })}
         </div>
       ) : (
-        <div className="resize-label leading-0 flex flex-shrink-0 items-center gap-0.5 whitespace-nowrap px-1.5 text-right text-sm font-medium tabular-nums">
+        <div className="resize-label leading-0 flex flex-shrink-0 items-center gap-0.5 whitespace-nowrap text-right text-sm font-medium tabular-nums">
           <ChoiceResolutionIcon
             color={questionType === QuestionType.Date ? color : undefined}
           />

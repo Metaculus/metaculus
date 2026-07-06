@@ -6,7 +6,18 @@ import plugin from "tailwindcss/plugin";
 import { METAC_COLORS } from "./src/constants/colors";
 
 const config: Config = {
-  darkMode: "class",
+  // Note: .force-light only suppresses Tailwind-generated dark: utilities.
+  // Hand-written .dark selectors in CSS files (e.g. KaTeX, markdown styles)
+  // are not affected and will still match the .dark class on <html>.
+  darkMode: [
+    "variant",
+    [
+      // Dark mode: inside .dark, but not the .inverted/.force-light element or its children
+      "&:is(.dark *):not(:is(.inverted, .inverted *, .force-light, .force-light *))",
+      // Inverted in light mode: the .inverted element itself OR its children, but not in dark mode or force-light
+      "&:is(.inverted, .inverted *):not(:is(.dark *, .force-light, .force-light *))",
+    ],
+  ],
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -29,11 +40,32 @@ const config: Config = {
           "0%": { transform: "rotate(0deg)" },
           "90%, 100%": { transform: "rotate(360deg)" },
         },
+        "highlight-flash": {
+          "0%": { backgroundColor: "rgb(196 180 255 / 0.5)" },
+          "50%": { backgroundColor: "rgb(196 180 255 / 0.8)" },
+          "100%": { backgroundColor: "transparent" },
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        "comment-in-right": {
+          from: { opacity: "0", transform: "translateX(28px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
+        "comment-in-left": {
+          from: { opacity: "0", transform: "translateX(-28px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
       },
       animation: {
         "loading-slide":
           "loading-slide cubic-bezier(0.3, 1, 0.7, 0) 1.7s infinite",
         spin: "spin 1s infinite",
+        "highlight-flash": "highlight-flash 2s ease-out forwards",
+        "fade-in": "fade-in 200ms ease-out",
+        "comment-in-right": "comment-in-right 280ms ease-out",
+        "comment-in-left": "comment-in-left 280ms ease-out",
       },
       fontFamily: {
         sans: [
@@ -47,6 +79,19 @@ const config: Config = {
         ],
         mono: ['"Ubuntu mono"', ...defaultTheme.fontFamily.mono],
         "league-gothic": "var(--font-league-gothic)",
+        geist: ["var(--font-geist)", ...defaultTheme.fontFamily.sans],
+        "geist-mono": [
+          "var(--font-geist-mono)",
+          ...defaultTheme.fontFamily.mono,
+        ],
+        "jetbrains-mono": [
+          "var(--font-jetbrains-mono)",
+          ...defaultTheme.fontFamily.mono,
+        ],
+        newsreader: [
+          "var(--font-newsreader)",
+          ...defaultTheme.fontFamily.serif,
+        ],
       },
       strokeWidth: {
         "3": "3px",
@@ -56,6 +101,9 @@ const config: Config = {
       },
       zIndex: {
         "100": "100",
+        header: "210",
+        modal: "220",
+        popover: "230",
       },
       backgroundImage: {
         "border-dashed-1":
@@ -64,7 +112,7 @@ const config: Config = {
           "url(\"data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='4' ry='4' stroke='%236387A8FF' stroke-width='1' stroke-dasharray='4%2c 6' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e\")",
       },
       spacing: {
-        header: "3rem",
+        header: "var(--top-chrome-height,3rem)",
       },
       borderRadius: {
         xs: "2px",
@@ -73,12 +121,11 @@ const config: Config = {
   },
   plugins: [
     containerQueries,
-    // @ts-ignore
+    // @ts-expect-error - addVariant is typed as any
     function ({ addVariant }) {
       addVariant("no-hover", "@media (hover: none)");
       addVariant("can-hover", "@media (hover: hover)");
     },
-    // @ts-ignore
     plugin(function ({ addUtilities }) {
       addUtilities({
         /* https://github.com/tailwindlabs/tailwindcss/pull/12128 */

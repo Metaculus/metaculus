@@ -18,7 +18,7 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
-  const postData = await ServerPostsApi.getPost(params.id);
+  const postData = await ServerPostsApi.getPost(params.id, false);
 
   if (!postData) {
     return {};
@@ -68,8 +68,8 @@ async function CommunityPost(props: Props) {
     return notFound();
   }
 
-  const defaultProject = postData.projects.default_project;
-  const isCommunityPost = defaultProject.type === TournamentType.Community;
+  const defaultProject = postData.projects?.default_project;
+  const isCommunityPost = defaultProject?.type === TournamentType.Community;
   if (!isCommunityPost) {
     // question page also handle redirect to regular notebooks path
     return redirect(`/questions/${postData.id}`);

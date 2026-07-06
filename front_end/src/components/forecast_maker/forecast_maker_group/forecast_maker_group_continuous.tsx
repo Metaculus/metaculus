@@ -35,7 +35,7 @@ import {
   DistributionQuantile,
   DistributionSlider,
   QuestionWithNumericForecasts,
-  UserForecast,
+  NumericUserForecast,
 } from "@/types/question";
 import {
   getQuantileNumericForecastDataset,
@@ -66,6 +66,7 @@ import {
   forecastExpirationToDate,
   ForecastExpirationValue,
   getEffectiveLatest,
+  getExpirationBaseDate,
   getTimeToExpireDays,
 } from "../forecast_expiration";
 import { validateUserQuantileData } from "../helpers";
@@ -78,7 +79,7 @@ type Props = {
   questions: QuestionWithNumericForecasts[];
   groupVariable: string;
   canPredict: boolean;
-  canResolve: boolean;
+  predictLabel: string;
   predictionMessage: ReactNode;
   onPredictionSubmit?: () => void;
 };
@@ -87,6 +88,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   post,
   questions,
   canPredict,
+  predictLabel,
   groupVariable,
   predictionMessage,
   onPredictionSubmit,
@@ -351,8 +353,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
 
   const handleSingleQuestionSubmit = useCallback(
     async (questionId: number, forecastExpiration: ForecastExpirationValue) => {
-      const optionToSubmit = questionsToSubmit.find(
-        (opt) => opt.id === questionId
+      const optionToSubmit = groupOptions.find(
+        (opt) => opt.question.id === questionId
       );
 
       if (!optionToSubmit) return;
@@ -361,7 +363,10 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       const response = await createForecasts(postId, [
         {
           questionId: optionToSubmit.question.id,
-          forecastEndTime: forecastExpirationToDate(forecastExpiration),
+          forecastEndTime: forecastExpirationToDate(
+            forecastExpiration,
+            getExpirationBaseDate(optionToSubmit.question)
+          ),
           forecastData: {
             continuousCdf:
               optionToSubmit.forecastInputMode ===
@@ -410,7 +415,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       setIsSubmitting(false);
       return response;
     },
-    [postId, questionsToSubmit, onPredictionSubmit]
+    [postId, onPredictionSubmit, groupOptions]
   );
 
   const handlePredictSubmit = useCallback(async () => {
@@ -453,7 +458,10 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         }) => {
           return {
             questionId: question.id,
-            forecastEndTime: forecastExpirationToDate(forecastExpiration),
+            forecastEndTime: forecastExpirationToDate(
+              forecastExpiration,
+              getExpirationBaseDate(question)
+            ),
             forecastData: {
               continuousCdf:
                 forecastInputMode === ContinuousForecastInputType.Quantile
@@ -592,19 +600,24 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     setIsSubmitting(true);
     const response = await createForecasts(
       postId,
-      predictedQuestions.map(({ my_forecasts, id, forecastExpiration }) => {
-        const latest = my_forecasts?.latest as UserForecast;
-        return {
-          questionId: id,
-          forecastEndTime: forecastExpirationToDate(forecastExpiration),
-          forecastData: {
-            continuousCdf: latest.forecast_values,
-            probabilityYesPerCategory: null,
-            probabilityYes: null,
-          },
-          distributionInput: latest.distribution_input,
-        };
-      })
+      predictedQuestions.map(
+        ({ my_forecasts, id, forecastExpiration, status, open_time }) => {
+          const latest = my_forecasts?.latest as NumericUserForecast;
+          return {
+            questionId: id,
+            forecastEndTime: forecastExpirationToDate(
+              forecastExpiration,
+              getExpirationBaseDate({ status, open_time })
+            ),
+            forecastData: {
+              continuousCdf: latest.forecast_values,
+              probabilityYesPerCategory: null,
+              probabilityYes: null,
+            },
+            distributionInput: latest.distribution_input,
+          };
+        }
+      )
     );
 
     if (response && "errors" in response && !!response.errors) {
@@ -622,6 +635,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         options={groupOptions}
         groupVariable={groupVariable}
         canPredict={canPredict}
+        predictLabel={predictLabel}
         isPending={isSubmitting}
         subQuestionId={subQuestionId}
         handleChange={handleChange}

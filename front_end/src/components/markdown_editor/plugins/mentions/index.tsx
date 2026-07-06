@@ -9,13 +9,15 @@ import {
   createBeautifulMentionNode,
 } from "lexical-beautiful-mentions";
 
+import { ProjectPermissions } from "@/types/post";
+
 import CustomMentionComponent from "./components/mention";
 import MentionsPlugin from "./components/plugin";
 import { LexicalBeautifulMentionVisitor } from "./LexicalBeautifulMentionVisitor";
 
 export const mentionsPlugin = realmPlugin<{
   initialMention?: string;
-  isStuff?: boolean;
+  userPermission?: ProjectPermissions;
 }>({
   init(realm, params) {
     realm.pubIn({
@@ -27,7 +29,7 @@ export const mentionsPlugin = realmPlugin<{
       [addComposerChild$]: () => (
         <MentionsPlugin
           initialMention={params?.initialMention}
-          isStuff={params?.isStuff}
+          userPermission={params?.userPermission}
         />
       ),
     });

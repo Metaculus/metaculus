@@ -1,9 +1,10 @@
-import { extract } from "@extractus/article-extractor";
+import { extractFromHtml } from "@extractus/article-extractor";
 import { NextRequest, NextResponse } from "next/server";
 
 import ServerProfileApi from "@/services/api/profile/profile.server";
+import { safeValidatedFetch } from "@/utils/url_validation";
 
-const EXTRACT_TIMEOUT_MS = 5000;
+const MAX_HTML_BYTES = 5 * 1024 * 1024; // 5 MB
 
 export async function GET(request: NextRequest) {
   const user = await ServerProfileApi.getMyProfile();
@@ -15,26 +16,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL("/", request.url));
     }
 
-    // Validate URL format
-    try {
-      new URL(url);
-    } catch {
+    const response = await safeValidatedFetch(url);
+    if (!response.ok) {
       return NextResponse.json(
-        { error: "Invalid URL format" },
-        { status: 400 }
+        { error: `Upstream fetch failed: ${response.statusText}` },
+        { status: response.status }
       );
     }
 
-    // Create a timeout promise
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(
-        () => reject(new Error("Article extraction timeout")),
-        EXTRACT_TIMEOUT_MS
-      )
-    );
-
-    // Race between extraction and timeout
-    const articleData = await Promise.race([extract(url), timeoutPromise]);
+    const finalUrl = response.url;
+    const buffer = await response.arrayBuffer();
+    if (buffer.byteLength > MAX_HTML_BYTES) {
+      return NextResponse.json(
+        { error: "Response too large" },
+        { status: 413 }
+      );
+    }
+    const html = new TextDecoder().decode(buffer);
+    const articleData = await extractFromHtml(html, finalUrl);
 
     if (!articleData) {
       return NextResponse.json(

@@ -27,6 +27,9 @@ export const MockCommentsFeedProvider: React.FC<PropsWithChildren> = ({
         finalizeReply: () => {},
         optimisticallyAddReplyEnsuringParent: async () => 0,
         removeTempReply: () => {},
+        ensureCommentLoaded: async () => false,
+        refreshComment: async () => {},
+        updateComment: () => {},
       }}
     >
       {children}

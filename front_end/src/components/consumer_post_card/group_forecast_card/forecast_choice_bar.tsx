@@ -4,6 +4,7 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import TruncatedTextTooltip from "@/components/truncated_text_tooltip";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useMounted from "@/hooks/use_mounted";
@@ -22,8 +23,13 @@ type Props = {
   progress: number;
   color: ThemeColor;
   isBordered?: boolean;
+  borderOnly?: boolean;
   unit?: string;
   forceColorful?: boolean;
+  compact?: boolean;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+  className?: string;
 };
 
 const WIDTH_ADJUSTMENT = 2;
@@ -36,9 +42,14 @@ const ForecastChoiceBar: FC<Props> = ({
   displayedResolution,
   resolution,
   color,
-  isBordered = false,
+  isBordered = true,
+  borderOnly = false,
   unit,
   forceColorful = false,
+  compact = false,
+  onMouseEnter,
+  onMouseLeave,
+  className,
 }) => {
   const t = useTranslations();
   const { getThemeColor } = useAppTheme();
@@ -48,10 +59,20 @@ const ForecastChoiceBar: FC<Props> = ({
   const isResolutionSuccessful = isSuccessfullyResolved(resolution);
   return (
     <div
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       className={cn(
-        "relative flex h-8 w-full items-center justify-between gap-2 rounded-lg border border-blue-400 bg-transparent px-2.5 py-1 text-base font-medium leading-6 text-gray-800 dark:border-blue-400-dark dark:text-gray-800-dark",
+        "relative flex w-full items-center justify-between gap-2 rounded-lg bg-transparent font-medium text-gray-800 dark:text-gray-800-dark",
+        onMouseEnter &&
+          "group transition-colors hover:bg-blue-500/20 dark:hover:bg-blue-500-dark/20",
+        className,
+        isBordered
+          ? "border border-blue-400 dark:border-blue-400-dark"
+          : "border border-transparent",
+        compact
+          ? "h-6 px-2 py-0.5 text-xs leading-4 md:h-8 md:px-2.5 md:py-1 md:text-base md:leading-6"
+          : "h-8 px-2.5 py-1 text-base leading-6",
         {
-          "border-transparent": !isBordered,
           "text-purple-800 dark:text-purple-800-dark": isResolutionSuccessful,
           "border-2 border-gray-400 text-gray-700 dark:border-gray-400-dark dark:text-gray-700-dark":
             !isNil(resolution) && !isResolutionSuccessful,
@@ -60,7 +81,13 @@ const ForecastChoiceBar: FC<Props> = ({
         }
       )}
     >
-      <span className="z-10 line-clamp-1 max-w-[85%]">{choiceLabel}</span>
+      <div className="z-10 flex max-w-[85%] overflow-hidden">
+        <TruncatedTextTooltip
+          text={choiceLabel}
+          className="line-clamp-1"
+          variant="light"
+        />
+      </div>
       <span
         className={cn("z-10 text-nowrap", {
           "text-xs font-normal text-gray-700 opacity-50 dark:text-gray-700-dark":
@@ -92,18 +119,24 @@ const ForecastChoiceBar: FC<Props> = ({
 
       {isCpRevealed && (
         <div
-          className={cn("absolute -inset-[1px] z-0 h-8 rounded-lg border", {
-            "border-2": resolution,
-          })}
+          className={cn(
+            "absolute -inset-[1px] z-0 rounded-lg border",
+            onMouseEnter &&
+              "opacity-75 transition-opacity group-hover:opacity-100",
+            {
+              "border-2": resolution,
+            }
+          )}
           style={{
             display:
               !isNil(resolution) && !isResolutionSuccessful ? "none" : "block",
-            width:
-              progress < 3
+            width: borderOnly
+              ? `calc(100% + ${WIDTH_ADJUSTMENT}px)`
+              : progress < 3
                 ? "3%"
                 : `calc(${progress}% + ${WIDTH_ADJUSTMENT}px)`,
             background: (() => {
-              if (resolution) {
+              if (borderOnly || resolution) {
                 return "transparent";
               }
               if (isClosed && !forceColorful) {
@@ -111,12 +144,12 @@ const ForecastChoiceBar: FC<Props> = ({
                   mounted
                     ? getThemeColor(METAC_COLORS.gray["500"])
                     : METAC_COLORS.gray["500"].DEFAULT,
-                  0.3
+                  0.4
                 );
               }
               return addOpacityToHex(
                 mounted ? getThemeColor(color) : color.DEFAULT,
-                0.3
+                0.4
               );
             })(),
             borderColor: (() => {

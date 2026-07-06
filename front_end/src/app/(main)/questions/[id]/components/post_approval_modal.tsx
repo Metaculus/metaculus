@@ -29,9 +29,7 @@ const PostApprovalModal: FC<{
   const [activeModal, setActiveModal] = useState<
     "approvePost" | "confirmForecastingEndDate"
   >();
-  const {
-    projects: { default_project },
-  } = post;
+  const default_project = post.projects?.default_project;
 
   useEffect(() => {
     if (isOpen) {
@@ -161,6 +159,8 @@ const PostApprovalModal: FC<{
   }, [approvalData, post.id, setIsOpen]);
 
   const handleApprovePostSubmit = useCallback(async () => {
+    if (!default_project) return;
+
     const { forecasting_end_date, close_date } = default_project;
     const { scheduled_close_time, scheduled_resolve_time } = approvalData;
 
@@ -359,7 +359,7 @@ const PostApprovalModal: FC<{
           <p className="text-base leading-tight">
             {t.rich("postNotebookMoveDateModalCopy", {
               tournament_forecasting_end_date:
-                default_project.forecasting_end_date
+                default_project?.forecasting_end_date
                   ? formatDate(
                       locale,
                       new Date(default_project.forecasting_end_date)

@@ -32,5 +32,5 @@ export function mapCategoryKeyToLeaderboardType(
 export function getPeriodLabel(year: string, duration: string) {
   return duration === "1"
     ? year
-    : `${year} - ${Number(year) + (Number(duration) - 1)}`;
+    : `${year}-${Number(year.slice(2)) + (Number(duration) - 1)}`;
 }

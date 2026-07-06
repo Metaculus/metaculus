@@ -5,7 +5,7 @@ import { addDays, isAfter } from "date-fns";
 import { safeLocalStorage } from "@/utils/core/storage";
 
 const ONBOARDING_SUPPRESSED_KEY = "onboardingSuppressedAt";
-export const ONBOARDING_STATE_KEY = "onboardingStateV2";
+export const ONBOARDING_STATE_KEY = "onboardingStateV3";
 
 export function checkOnboardingAllowed() {
   const closedAt = safeLocalStorage.getItem(ONBOARDING_SUPPRESSED_KEY);

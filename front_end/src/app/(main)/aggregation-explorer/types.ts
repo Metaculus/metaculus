@@ -1,28 +1,46 @@
 import {
-  AggregationQuestion,
-  Aggregations,
-  AggregateForecastHistory,
+  NumericAggregationQuestion,
+  MultipleChoiceAggregationQuestion,
+  NumericAggregations,
+  MultipleChoiceAggregations,
+  NumericAggregateForecastHistory,
+  MultipleChoiceAggregateForecastHistory,
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 
 // flexible version of Aggregations type which can include
 // arbitrarily named aggregations
-export type AggregationsExtra = Aggregations &
-  Partial<Record<string, AggregateForecastHistory>>;
 
-export type AggregationExtraQuestion = AggregationQuestion & {
-  aggregations: AggregationsExtra;
+export type NumericAggregationsExtra = NumericAggregations &
+  Partial<Record<string, NumericAggregateForecastHistory>>;
+
+export type NumericAggregationExtraQuestion = NumericAggregationQuestion & {
+  aggregations: NumericAggregationsExtra;
 };
 
-export enum AggregationExtraMethod {
+export type MultipleChoiceAggregationsExtra = MultipleChoiceAggregations &
+  Partial<Record<string, MultipleChoiceAggregateForecastHistory>>;
+
+export type MultipleChoiceAggregationExtraQuestion =
+  MultipleChoiceAggregationQuestion & {
+    aggregations: MultipleChoiceAggregationsExtra;
+  };
+
+export type AggregationsExtra =
+  | NumericAggregationsExtra
+  | MultipleChoiceAggregationsExtra;
+
+export type AggregationExtraQuestion =
+  | NumericAggregationExtraQuestion
+  | MultipleChoiceAggregationExtraQuestion;
+
+// All aggregation methods the aggregation explorer API accepts.
+// Each value is sent directly as the `aggregation_methods` query param.
+export enum AggregationMethod {
   recency_weighted = "recency_weighted",
-  recency_weighted_bot = "recency_weighted_bot",
   unweighted = "unweighted",
-  unweighted_bot = "unweighted_bot",
   single_aggregation = "single_aggregation",
-  single_aggregation_bot = "single_aggregation_bot",
   metaculus_prediction = "metaculus_prediction",
-  metaculus_prediction_bot = "metaculus_prediction_bot",
   metaculus_pros = "metaculus_pros",
   medalists = "medalists",
   silver_medalists = "silver_medalists",
@@ -31,16 +49,23 @@ export enum AggregationExtraMethod {
 }
 
 export type AggregationOption = {
-  id: AggregationExtraMethod;
-  value: string;
-  label: string;
-  includeBots: boolean;
+  id: string;
+  labelKey: string;
   isStaffOnly?: boolean;
+  isDeprecated?: boolean;
+  supportsBotToggle?: boolean;
+  supportsUserIds?: boolean;
+  requiresDate?: boolean;
+  basedOn?: string;
+  childSelector?: {
+    labelKey: string;
+    options: AggregationOption[];
+  };
 };
 
 export type AggregationTooltip = {
   aggregationMethod: string;
-  choice: AggregationExtraMethod;
+  choice: string;
   label: string;
   includeBots: boolean;
   color: ThemeColor;

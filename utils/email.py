@@ -4,7 +4,6 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
-from metaculus_web.settings import SEND_ALL_MAIL_TO
 from misc.tasks import send_email_async
 
 logger = logging.getLogger(__name__)
@@ -28,9 +27,6 @@ def send_email_with_template(
     )
     plain_message = strip_tags(convert_to_html_content)
 
-    if SEND_ALL_MAIL_TO:
-        to = SEND_ALL_MAIL_TO
-
     to = [to] if isinstance(to, str) else list(to)
 
     kwargs = dict(
@@ -48,3 +44,39 @@ def send_email_with_template(
             send_email_async(**kwargs)
         except Exception:
             logger.exception("Failed to send email")
+
+
+def send_notification_email_with_template(
+    to: list[str] | str,
+    subject: str,
+    template_name: str,
+    context: dict = None,
+    use_async: bool = True,
+):
+    """Sends a notification-stream email."""
+    send_email_with_template(
+        to,
+        subject,
+        template_name,
+        context=context,
+        use_async=use_async,
+        from_email=settings.EMAIL_NOTIFICATIONS_SENDER,
+    )
+
+
+def send_account_email_with_template(
+    to: list[str] | str,
+    subject: str,
+    template_name: str,
+    context: dict = None,
+    use_async: bool = True,
+):
+    """Sends an account-stream (transactional) email."""
+    send_email_with_template(
+        to,
+        subject,
+        template_name,
+        context=context,
+        use_async=use_async,
+        from_email=settings.EMAIL_ACCOUNTS_SENDER,
+    )

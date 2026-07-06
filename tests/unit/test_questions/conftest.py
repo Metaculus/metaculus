@@ -9,6 +9,7 @@ from tests.unit.utils import datetime_aware
 
 __all__ = [
     "question_binary",
+    "question_multiple_choice",
     "question_numeric",
     "conditional_1",
     "question_binary_with_forecast_user_1",
@@ -28,6 +29,7 @@ def question_multiple_choice():
     return create_question(
         question_type=Question.QuestionType.MULTIPLE_CHOICE,
         options=["a", "b", "c", "d"],
+        options_history=[("0001-01-01T00:00:00", ["a", "b", "c", "d"])],
     )
 
 

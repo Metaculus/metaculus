@@ -29,6 +29,8 @@ export function getGroupForecastAvailability(
 
   return {
     isEmpty: groupQuestions.every(getIsQuestionForecastEmpty),
+    isAggregationsEmpty: groupQuestions.every(getIsAggregationsEmpty),
+    isMyForecastsEmpty: groupQuestions.every(getIsMyForecastsEmpty),
     cpRevealsOn:
       closestCPRevealTime && new Date(closestCPRevealTime) >= new Date()
         ? closestCPRevealTime
@@ -41,6 +43,8 @@ export function getQuestionForecastAvailability(
 ): ForecastAvailability {
   return {
     isEmpty: getIsQuestionForecastEmpty(question),
+    isAggregationsEmpty: getIsAggregationsEmpty(question),
+    isMyForecastsEmpty: getIsMyForecastsEmpty(question),
     cpRevealsOn:
       !question.resolution && // always show cp when resolved or annulled
       question.cp_reveal_time &&
@@ -50,6 +54,11 @@ export function getQuestionForecastAvailability(
   };
 }
 
-const getIsQuestionForecastEmpty = (question: QuestionWithForecasts): boolean =>
-  !question.aggregations[question.default_aggregation_method].history.length &&
+const getIsAggregationsEmpty = (question: QuestionWithForecasts): boolean =>
+  !question.aggregations[question.default_aggregation_method].history.length;
+
+const getIsMyForecastsEmpty = (question: QuestionWithForecasts): boolean =>
   !question.my_forecasts?.history.length;
+
+const getIsQuestionForecastEmpty = (question: QuestionWithForecasts): boolean =>
+  getIsAggregationsEmpty(question) && getIsMyForecastsEmpty(question);

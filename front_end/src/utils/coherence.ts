@@ -13,6 +13,8 @@ export const getTermByDirectionAndQuestionType = (
   | "negative" => {
   if (type === QuestionType.Numeric) {
     return direction === +1 ? "increases" : "decreases";
+  } else if (type === QuestionType.Discrete) {
+    return direction === +1 ? "increases" : "decreases";
   } else if (type === QuestionType.Date) {
     return direction === +1 ? "hastens" : "delays";
   } else {

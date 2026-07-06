@@ -29,6 +29,16 @@ def test_check_and_activate_user__wrong_token():
         check_and_activate_user(user.id, "wrong_token")
 
 
+def test_check_and_activate_user__active_user_invalid_token():
+    """
+    invalid token must be rejected even for already-active users.
+    """
+    user = factory_user(is_active=True)
+
+    with pytest.raises(ValidationError, match="Activation Token is expired or invalid"):
+        check_and_activate_user(user.id, "garbage_token")
+
+
 def test_check_and_activate_user__spam_user():
     user = factory_user(is_active=False, is_spam=True)
     token = default_token_generator.make_token(user)

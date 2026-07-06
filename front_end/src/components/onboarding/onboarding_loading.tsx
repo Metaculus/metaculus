@@ -4,8 +4,8 @@ import React from "react";
 
 const OnboardingLoading: React.FC = () => {
   return (
-    <div className="flex min-h-dvh w-full items-center justify-center md:min-h-fit">
-      <div className="flex w-dvw items-center justify-center md:w-fit md:min-w-[400px]">
+    <div className="flex w-full items-center justify-center py-8">
+      <div className="flex items-center justify-center">
         <FontAwesomeIcon
           icon={faSpinner}
           spinPulse

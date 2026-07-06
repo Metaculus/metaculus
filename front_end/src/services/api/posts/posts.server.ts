@@ -91,6 +91,10 @@ class ServerPostsApiClass extends PostsApi {
   async repost(postId: number, projectId: number) {
     return this.post(`/posts/${postId}/repost/`, { project_id: projectId });
   }
+
+  async savePrivateNote(postId: number, text: string) {
+    return this.post(`/posts/${postId}/private-note/`, { text });
+  }
 }
 
 const ServerPostsApi = new ServerPostsApiClass(serverFetcher);

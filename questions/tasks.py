@@ -1,10 +1,11 @@
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone as dt_timezone
 
 import dramatiq
 from django.db.models import Q
 from django.utils import timezone
 
+from comments.services.common import create_comment
 from notifications.constants import MailingTags
 from notifications.services import (
     NotificationPredictedQuestionResolved,
@@ -15,22 +16,23 @@ from notifications.services import (
 )
 from posts.models import Post
 from posts.services.subscriptions import notify_post_status_change
-from questions.models import Question, UserForecastNotification
-from questions.services import (
+from questions.models import Forecast, Question, UserForecastNotification
+from questions.services.common import get_outbound_question_links
+from questions.services.forecasts import (
     build_question_forecasts,
     get_forecasts_per_user,
-    get_outbound_question_links,
 )
 from scoring.constants import ScoreTypes
 from scoring.utils import score_question
 from users.models import User
 from utils.dramatiq import concurrency_retries, task_concurrent_limit
+from utils.email import send_notification_email_with_template
 from utils.frontend import build_frontend_account_settings_url, build_post_url
 
 
 @dramatiq.actor(max_backoff=10_000, retry_when=concurrency_retries(max_retries=20))
 @task_concurrent_limit(
-    lambda question_id: f"build-question-forecasts-{question_id}",
+    lambda question_id: f"mutex:build-question-forecasts-{question_id}",
     # We want only one task for the same question id be executed at the same time
     # To ensure all forecasts will be included in the AggregatedForecasts model
     limit=1,
@@ -84,7 +86,8 @@ def resolve_question_and_send_notifications(question_id: int):
             user__unsubscribed_mailing_tags__contains=[
                 MailingTags.FORECASTED_QUESTION_RESOLUTION
             ]
-        ).select_related("user")
+        )
+        .select_related("user")
     )
     user_forecasts_count_map = get_forecasts_per_user(question)
 
@@ -93,7 +96,7 @@ def resolve_question_and_send_notifications(question_id: int):
     ] = {}
 
     # Update leaderboards
-    from questions.services import update_leaderboards_for_question
+    from questions.services.common import update_leaderboards_for_question
 
     update_leaderboards_for_question(question)
 
@@ -164,10 +167,16 @@ def check_and_schedule_forecast_widrawal_due_notifications():
         question__actual_close_time__lte=now
     )
 
-    forecast_alreday_withdrawn = Q(forecast__end_time__lt=now)
+    forecast_already_withdrawn = Q(forecast__end_time__lt=now)
+
+    # Inactive users only receive account-related emails
+    user_is_inactive = Q(user__is_active=False)
 
     all_notifications = UserForecastNotification.objects.filter(due_and_unsent).exclude(
-        user_is_unsubscribed | question_is_closed | forecast_alreday_withdrawn
+        user_is_unsubscribed
+        | user_is_inactive
+        | question_is_closed
+        | forecast_already_withdrawn
     )
 
     # Group notifications by user and post
@@ -255,3 +264,206 @@ def format_time_remaining(time_remaining: timedelta):
         return f"{minutes} minute{'s' if minutes != 1 else ''}"
     else:
         return f"{total_seconds} second{'s' if total_seconds != 1 else ''}"
+
+
+@dramatiq.actor
+def multiple_choice_delete_option_notifications(
+    question_id: int,
+    timestamp: float,
+    comment_author_id: int,
+    comment_text: str | None = None,
+):
+    timestep = datetime.fromtimestamp(timestamp, tz=dt_timezone.utc)
+    question = Question.objects.get(id=question_id)
+    post: Post = question.post
+    options_history = question.options_history
+    previous_options = options_history[-2][1]
+    current_options = options_history[-1][1]
+    removed_options = [opt for opt in previous_options if opt not in current_options]
+    catch_all_option = question.options[-1] if question.options else ""
+
+    # send out a comment
+    comment_author = User.objects.get(id=comment_author_id)
+    default_text = (
+        "Options {removed_options} were removed on {timestep}. "
+        'Your predictions on those options were moved to the "{catch_all_option}" option.'
+    )
+    template = comment_text or default_text
+    removed_options_text = ", ".join(f'"{option}"' for option in removed_options)
+    formatted_timestep = timestep
+    if timezone.is_naive(formatted_timestep):
+        formatted_timestep = timezone.make_aware(formatted_timestep, dt_timezone.utc)
+    formatted_timestep = timezone.localtime(
+        formatted_timestep, timezone=dt_timezone.utc
+    ).strftime("%d %B %Y %H:%M UTC")
+    formatted_timestep = formatted_timestep.lstrip("0")
+    if len(removed_options) == 1:
+        template = template.replace("Options ", "Option ", 1)
+        template = template.replace("Their", "Its", 1)
+    try:
+        text = template.format(
+            removed_options=removed_options_text,
+            timestep=formatted_timestep,
+            catch_all_option=catch_all_option,
+        )
+    except Exception:
+        text = (
+            f"{template} (removed options: {removed_options_text}, "
+            f"at {formatted_timestep}, catch-all: {catch_all_option})"
+        )
+
+    create_comment(comment_author, post, text=text)
+
+    forecasters = (
+        question.get_forecasters()
+        # Inactive users only receive account-related emails
+        .filter(is_active=True)
+        .exclude(
+            unsubscribed_mailing_tags__contains=[
+                MailingTags.BEFORE_PREDICTION_AUTO_WITHDRAWAL  # seems most reasonable
+            ]
+        )
+        .exclude(email__isnull=True)
+        .exclude(email="")
+        .distinct("id")
+        .order_by("id")
+    )
+    # send out an immediate email
+    send_notification_email_with_template(
+        to=[forecaster.email for forecaster in forecasters],
+        subject=f"Multiple choice option{'s' if len(removed_options) > 1 else ''} "
+        f"removed for {post.title}",
+        template_name="emails/multiple_choice_option_deletion.html",
+        context={
+            "email_subject_display": "Multiple choice "
+            f"option{'s' if len(removed_options) > 1 else ''} removed",
+            "params": {
+                "post": NotificationPostParams.from_post(post),
+                "removed_options": removed_options,
+                "number_options": len(removed_options),
+                "timestep": timestep,
+                "catch_all_option": catch_all_option,
+            },
+        },
+        use_async=False,
+    )
+
+
+@dramatiq.actor
+def multiple_choice_add_option_notifications(
+    question_id: int,
+    grace_period_end_timestamp: float,
+    timestamp: float,
+    comment_author_id: int,
+    comment_text: str | None = None,
+):
+    timestep = datetime.fromtimestamp(timestamp, tz=dt_timezone.utc)
+    grace_period_end = datetime.fromtimestamp(
+        grace_period_end_timestamp, tz=dt_timezone.utc
+    )
+    question = Question.objects.get(id=question_id)
+    post: Post = question.post
+    options_history = question.options_history
+    previous_options = options_history[-2][1]
+    current_options = options_history[-1][1]
+    added_options = [opt for opt in current_options if opt not in previous_options]
+
+    # send out a comment
+    comment_author = User.objects.get(id=comment_author_id)
+    default_text = (
+        "Options {added_options} were added on {timestep}. "
+        "Please update forecasts before {grace_period_end}, when existing "
+        "forecasts will auto-withdraw."
+    )
+    template = comment_text or default_text
+    added_options_text = ", ".join(f'"{option}"' for option in added_options)
+    formatted_timestep = timestep
+    if timezone.is_naive(formatted_timestep):
+        formatted_timestep = timezone.make_aware(formatted_timestep, dt_timezone.utc)
+    formatted_timestep = timezone.localtime(
+        formatted_timestep, timezone=dt_timezone.utc
+    ).strftime("%d %B %Y %H:%M UTC")
+    formatted_timestep = formatted_timestep.lstrip("0")
+    formatted_grace_period_end = grace_period_end
+    if timezone.is_naive(formatted_grace_period_end):
+        formatted_grace_period_end = timezone.make_aware(
+            formatted_grace_period_end, dt_timezone.utc
+        )
+    formatted_grace_period_end = timezone.localtime(
+        formatted_grace_period_end, timezone=dt_timezone.utc
+    ).strftime("%d %B %Y %H:%M UTC")
+    formatted_grace_period_end = formatted_grace_period_end.lstrip("0")
+    if len(added_options) == 1:
+        template = template.replace("Options ", "Option ", 1)
+    try:
+        text = template.format(
+            added_options=added_options_text,
+            timestep=formatted_timestep,
+            grace_period_end=formatted_grace_period_end,
+        )
+    except Exception:
+        text = (
+            f"{template} (added options: {added_options_text}, at {formatted_timestep}, "
+            f"grace ends: {formatted_grace_period_end})"
+        )
+
+    create_comment(comment_author, post, text=text)
+
+    forecasters = (
+        User.objects.filter(
+            forecast__in=question.user_forecasts.filter(
+                end_time=grace_period_end
+            ),  # all effected forecasts have their end_time set to grace_period_end
+            # Inactive users only receive account-related emails
+            is_active=True,
+        )
+        .exclude(
+            unsubscribed_mailing_tags__contains=[
+                MailingTags.BEFORE_PREDICTION_AUTO_WITHDRAWAL  # seems most reasonable
+            ]
+        )
+        .exclude(email__isnull=True)
+        .exclude(email="")
+        .distinct("id")
+        .order_by("id")
+    )
+    # send out an immediate email
+    send_notification_email_with_template(
+        to=[forecaster.email for forecaster in forecasters],
+        subject=f"Multiple choice option{'s' if len(added_options) > 1 else ''} "
+        f"added for {post.title}",
+        template_name="emails/multiple_choice_option_addition.html",
+        context={
+            "email_subject_display": "Multiple choice option"
+            f"{'s' if len(added_options) > 1 else ''} added",
+            "params": {
+                "post": NotificationPostParams.from_post(post),
+                "added_options": added_options,
+                "number_options": len(added_options),
+                "grace_period_end": grace_period_end,
+                "timestep": timestep,
+            },
+        },
+        use_async=False,
+    )
+
+    # schedule a followup email for 1 day before grace period
+    #   (if grace period is more than 1 day away)
+    if grace_period_end - timedelta(days=1) > timestep:
+        for forecaster in forecasters:
+            UserForecastNotification.objects.filter(
+                user=forecaster, question=question
+            ).delete()  # is this necessary?
+            UserForecastNotification.objects.update_or_create(
+                user=forecaster,
+                question=question,
+                defaults={
+                    "trigger_time": grace_period_end - timedelta(days=1),
+                    "email_sent": False,
+                    "forecast": Forecast.objects.filter(
+                        question=question, author=forecaster
+                    )
+                    .order_by("-start_time")
+                    .first(),
+                },
+            )

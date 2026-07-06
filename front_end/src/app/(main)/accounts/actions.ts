@@ -1,23 +1,20 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
-import { z } from "zod";
 
-import { signInSchema, SignUpSchema } from "@/app/(main)/accounts/schemas";
+import { SignUpSchema } from "@/app/(main)/accounts/schemas";
+import { DISMISSED_BULLETINS_COOKIE } from "@/app/(main)/components/bulletins_shared";
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 import { LanguageService } from "@/services/language_service";
-import { deleteServerSession, setServerSession } from "@/services/session";
 import { AuthResponse, SignUpResponse } from "@/types/auth";
 import { CurrentUser } from "@/types/users";
 import { ApiError } from "@/utils/core/errors";
 import { getPublicSettings } from "@/utils/public_settings.server";
-
-type FieldErrorsFrom<TSchema extends z.ZodTypeAny> =
-  z.inferFlattenedErrors<TSchema>["fieldErrors"];
 
 export type ApiErrorPayload = {
   message?: string;
@@ -33,41 +30,29 @@ export type PostLoginAction = {
 };
 
 export type LoginActionState = {
-  errors?: FieldErrorsFrom<typeof signInSchema> | ApiErrorPayload;
+  errors?: ApiErrorPayload;
   user?: CurrentUser;
   postLoginAction?: PostLoginAction;
 } | null;
 
 export default async function loginAction(
-  prevState: LoginActionState,
-  formData: FormData
+  login: string,
+  password: string
 ): Promise<LoginActionState> {
-  const validatedFields = signInSchema.safeParse(
-    Object.fromEntries(formData.entries())
-  );
-
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
-  }
-
   let response: AuthResponse;
 
   try {
-    response = await ServerAuthApi.signIn(
-      validatedFields.data.login,
-      validatedFields.data.password
-    );
+    response = await ServerAuthApi.signIn(login, password);
   } catch (err: unknown) {
     return {
       errors: ApiError.isApiError(err)
         ? (err.data as ApiErrorPayload)
-        : undefined,
+        : { detail: "Something went wrong. Please try again." },
     };
   }
 
-  await setServerSession(response.token);
+  const authManager = await getAuthCookieManager();
+  authManager.setAuthTokens(response.tokens);
 
   // Set user's language preference as the active locale
   if (response.user.language) {
@@ -112,7 +97,6 @@ export async function signUpAction(
         email: validatedSignupData.email,
         username: validatedSignupData.username,
         password: validatedSignupData.password,
-        is_bot: validatedSignupData.isBot,
         add_to_project: validatedSignupData.addToProject,
         campaign_key: validatedSignupData.campaignKey,
         campaign_data: validatedSignupData.campaignData,
@@ -132,8 +116,9 @@ export async function signUpAction(
 
     const signUpActionState: SignUpActionState = { ...response };
 
-    if (response.is_active && response.token) {
-      await setServerSession(response.token);
+    if (response.is_active && response.tokens) {
+      const authManager = await getAuthCookieManager();
+      authManager.setAuthTokens(response.tokens);
 
       // Set user's language preference as the active locale
       if (response.user?.language) {
@@ -164,7 +149,18 @@ export async function signUpAction(
 }
 
 export async function LogOut() {
-  await deleteServerSession();
+  try {
+    await ServerAuthApi.logout();
+  } catch {}
+
+  const authManager = await getAuthCookieManager();
+  authManager.clearAuthTokens();
+  authManager.clearImpersonatorRefreshToken();
+  const cookieStore = await cookies();
+  // Keep anonymous dismissals through login/signup, but clear them on explicit
+  // logout so a shared browser does not hide bulletins for the next user.
+  cookieStore.delete(DISMISSED_BULLETINS_COOKIE);
+
   return redirect("/");
 }
 
@@ -212,8 +208,9 @@ export async function simplifiedSignUpAction(
   try {
     const response = await ServerAuthApi.simplifiedSignUp(username, authToken);
 
-    if (response?.token) {
-      await setServerSession(response.token);
+    if (response && response.tokens) {
+      const authManager = await getAuthCookieManager();
+      authManager.setAuthTokens(response.tokens);
     }
     return response;
   } catch (err: unknown) {

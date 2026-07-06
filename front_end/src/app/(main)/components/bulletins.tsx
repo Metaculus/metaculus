@@ -1,67 +1,67 @@
-"use client";
-import dynamic from "next/dynamic";
-import { usePathname } from "next/navigation";
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { cookies } from "next/headers";
 
-import ClientMiscApi from "@/services/api/misc/misc.client";
+import ServerMiscApi from "@/services/api/misc/misc.server";
+import type { BulletinItem } from "@/services/api/misc/misc.shared";
+import { AuthCookieReader } from "@/services/auth_tokens";
 import { logError } from "@/utils/core/errors";
 
-import Bulletin from "./bulletin";
+import BulletinsClient from "./bulletins_client";
+import {
+  DISMISSED_BULLETINS_COOKIE,
+  parseDismissedBulletinIds,
+} from "./bulletins_shared";
 
-const HIDE_PREFIXES = [
-  "/about",
-  "/services",
-  "/help",
-  "/faq",
-  "/press",
-  "/privacy-policy",
-  "/terms-of-use",
-] as const;
+const getInitialBulletins = async (): Promise<BulletinItem[]> => {
+  try {
+    return await ServerMiscApi.getBulletins();
+  } catch (error) {
+    logError(error);
+    return [];
+  }
+};
 
-const Bulletins: FC = () => {
-  const [bulletins, setBulletins] = useState<
-    {
-      text: string;
-      id: number;
-    }[]
-  >([]);
+const getInitialDismissedBulletinIds = async (): Promise<number[]> => {
+  try {
+    return await ServerMiscApi.getDismissedBulletinIds();
+  } catch (error) {
+    logError(error);
+    return [];
+  }
+};
 
-  const pathname = usePathname();
+const mergeBulletinIds = (...idGroups: number[][]) => [
+  ...new Set(idGroups.flat()),
+];
 
-  const shouldHide = useMemo(() => {
-    return (
-      HIDE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p)) ||
-      pathname === "/"
-    );
-  }, [pathname]);
+const Bulletins = async () => {
+  const initialBulletinsPromise = getInitialBulletins();
+  const cookieStore = await cookies();
+  const cookieDismissedBulletinIds = parseDismissedBulletinIds(
+    cookieStore.get(DISMISSED_BULLETINS_COOKIE)?.value
+  );
+  const authenticatedDismissedBulletinIdsPromise = new AuthCookieReader(
+    cookieStore
+  ).hasAuthSession()
+    ? getInitialDismissedBulletinIds()
+    : Promise.resolve([]);
 
-  const fetchBulletins = useCallback(async () => {
-    try {
-      const bulletins = await ClientMiscApi.getBulletins();
-      setBulletins(bulletins);
-    } catch (error) {
-      logError(error);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!shouldHide) {
-      void fetchBulletins();
-    } else {
-      setBulletins([]);
-    }
-  }, [shouldHide, fetchBulletins]);
+  const [initialBulletins, authenticatedDismissedBulletinIds] =
+    await Promise.all([
+      initialBulletinsPromise,
+      authenticatedDismissedBulletinIdsPromise,
+    ]);
+  const initialDismissedBulletinIds = mergeBulletinIds(
+    authenticatedDismissedBulletinIds,
+    cookieDismissedBulletinIds
+  );
 
   return (
-    <div className="mt-12 flex w-full flex-col items-center justify-center bg-transparent">
-      {!shouldHide &&
-        bulletins.map((bulletin) => (
-          <Bulletin key={bulletin.id} text={bulletin.text} id={bulletin.id} />
-        ))}
-    </div>
+    <BulletinsClient
+      initialBulletins={initialBulletins}
+      initialDismissedBulletinIds={initialDismissedBulletinIds}
+      initialSyncedDismissedBulletinIds={authenticatedDismissedBulletinIds}
+    />
   );
 };
 
-export default dynamic(() => Promise.resolve(Bulletins), {
-  ssr: false,
-});
+export default Bulletins;

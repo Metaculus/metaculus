@@ -49,7 +49,7 @@
                                         </div>
                                         {% if notification.post.post_type != 'notebook' %}
                                         <div style="font-size: 13px; font-weight: 600; color: #758EA9;">
-                                            is now {{ notification.event }}
+                                            is now {% if notification.event == 'published' %}{% trans "Upcoming" %}{% else %}{{ notification.event }}{% endif %}
                                         </div>
                                         {% endif %}
                                     </div>
@@ -91,7 +91,7 @@
                                     {{ item.question.title|default:item.post.post_title }}
                                 </div>
                                 <div style="font-size: 13px; font-weight: 600; color: #758EA9;">
-                                    is now {{ item.event }}
+                                    is now {% if item.event == 'published' %}{% trans "Upcoming" %}{% else %}{{ item.event }}{% endif %}
                                 </div>
                             </div>
                         </a>

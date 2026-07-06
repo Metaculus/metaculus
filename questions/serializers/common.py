@@ -17,10 +17,9 @@ from questions.models import (
     AggregateForecast,
     Forecast,
 )
-from questions.serializers.aggregate_forecasts import (
-    serialize_question_aggregations,
-)
-from questions.types import QuestionMovement
+from questions.serializers.aggregate_forecasts import serialize_question_aggregations
+from questions.services.multiple_choice_handlers import get_all_options_from_history
+from questions.types import OptionsHistoryType, QuestionMovement
 from users.models import User
 from utils.the_math.formulas import (
     get_scaled_quartiles_from_cdf,
@@ -40,6 +39,7 @@ class QuestionSerializer(serializers.ModelSerializer):
     actual_close_time = serializers.SerializerMethodField()
     resolution = serializers.SerializerMethodField()
     spot_scoring_time = serializers.SerializerMethodField()
+    all_options_ever = serializers.SerializerMethodField()
 
     class Meta:
         model = Question
@@ -58,6 +58,9 @@ class QuestionSerializer(serializers.ModelSerializer):
             "type",
             # Multiple-choice Questions only
             "options",
+            "all_options_ever",
+            "options_history",
+            "options_order",
             "group_variable",
             # Used for Group Of Questions to determine
             # whether question is eligible for forecasting
@@ -122,6 +125,10 @@ class QuestionSerializer(serializers.ModelSerializer):
             return min(question.scheduled_close_time, question.actual_resolve_time)
         return question.scheduled_close_time
 
+    def get_all_options_ever(self, question: Question):
+        if question.options_history:
+            return get_all_options_from_history(question.options_history)
+
     def get_resolution(self, question: Question):
         resolution = question.resolution
 
@@ -159,6 +166,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "open_lower_bound",
             "inbound_outcome_count",
             "options",
+            "options_order",
             "group_variable",
             "label",
             "resolution_criteria",
@@ -225,6 +233,23 @@ class QuestionUpdateSerializer(QuestionWriteSerializer):
             "open_time",
             "cp_reveal_time",
         )
+
+    def validate(self, data: dict):
+        data = super().validate(data)
+
+        if qid := data.get("id"):
+            question = Question.objects.get(id=qid)
+            if data.get("options") != question.options:
+                # if there are user forecasts, we can't update options this way
+                if question.user_forecasts.exists():
+                    raise ValidationError(
+                        "Cannot update options through this endpoint while there are "
+                        "user forecasts. "
+                        "Instead, use /api/questions/update-mc-options/ or the UI on "
+                        "the question detail page."
+                    )
+
+        return data
 
     # TODO: add validation for updating continuous question bounds
 
@@ -374,7 +399,12 @@ class MyForecastSerializer(serializers.ModelSerializer):
         return forecast.end_time.timestamp() if forecast.end_time else None
 
     def get_forecast_values(self, forecast: Forecast) -> list[float] | None:
-        return forecast.get_prediction_values()
+        if forecast.probability_yes is not None:
+            return [1 - forecast.probability_yes, forecast.probability_yes]
+        if forecast.probability_yes_per_category:
+            return forecast.probability_yes_per_category
+        else:
+            return forecast.continuous_cdf
 
     def get_interval_lower_bounds(self, forecast: Forecast) -> list[float] | None:
         if forecast.continuous_cdf is not None:
@@ -394,7 +424,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
 
     probability_yes = serializers.FloatField(allow_null=True, required=False)
     probability_yes_per_category = serializers.DictField(
-        child=serializers.FloatField(), allow_null=True, required=False
+        child=serializers.FloatField(allow_null=True), allow_null=True, required=False
     )
     continuous_cdf = serializers.ListField(
         child=serializers.FloatField(),
@@ -405,13 +435,6 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
 
     distribution_input = serializers.JSONField(allow_null=True, required=False)
 
-    source = serializers.ChoiceField(
-        allow_null=True,
-        required=False,
-        allow_blank=True,
-        choices=Forecast.SourceChoices.choices,
-    )
-
     class Meta:
         model = Forecast
         fields = (
@@ -421,7 +444,6 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             "probability_yes_per_category",
             "percentiles",
             "distribution_input",
-            "source",
             "end_time",
         )
 
@@ -435,21 +457,47 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             )
         return probability_yes
 
-    def multiple_choice_validation(self, probability_yes_per_category, options):
+    def multiple_choice_validation(
+        self,
+        probability_yes_per_category: dict[str, float | None],
+        current_options: list[str],
+        options_history: OptionsHistoryType | None,
+    ):
         if probability_yes_per_category is None:
             raise serializers.ValidationError(
                 "probability_yes_per_category is required"
             )
         if not isinstance(probability_yes_per_category, dict):
             raise serializers.ValidationError("Forecast must be a dictionary")
-        if set(probability_yes_per_category.keys()) != set(options):
-            raise serializers.ValidationError("Forecast must include all options")
-        values = [float(probability_yes_per_category[option]) for option in options]
-        if not all([0.001 <= v <= 0.999 for v in values]) or not np.isclose(
-            sum(values), 1
-        ):
+        if not set(current_options).issubset(set(probability_yes_per_category.keys())):
             raise serializers.ValidationError(
-                "All probabilities must be between 0.001 and 0.999 and sum to 1.0"
+                f"Forecast must reflect current options: {current_options}"
+            )
+        all_options = get_all_options_from_history(options_history)
+        if not set(probability_yes_per_category.keys()).issubset(set(all_options)):
+            raise serializers.ValidationError(
+                "Forecast contains probabilities for unknown options"
+            )
+
+        values: list[float | None] = []
+        for option in all_options:
+            value = probability_yes_per_category.get(option, None)
+            if option in current_options:
+                if (value is None) or (not (0.001 <= value <= 0.999)):
+                    raise serializers.ValidationError(
+                        "Probabilities for current options must be between 0.001 and 0.999"
+                    )
+            elif value is not None:
+                raise serializers.ValidationError(
+                    f"Probability for inactive option '{option}' must be null or absent"
+                )
+            values.append(value)
+        if not np.isclose(sum(filter(None, values)), 1):
+            raise serializers.ValidationError(
+                "Forecast values must sum to 1.0. "
+                f"Received {probability_yes_per_category} which is interpreted as "
+                f"values: {values} representing {all_options} "
+                f"with current options {current_options}"
             )
         return values
 
@@ -486,11 +534,9 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                 "continuous_cdf must be increasing by at least "
                 f"{min_diff} at every step.\n"
             )
-        # max diff for default CDF is derived empirically from slider positions
-        # TODO: make this lower and scale with inbound_outcome_count
-        max_diff = (
-            0.59 if len(continuous_cdf) == DEFAULT_INBOUND_OUTCOME_COUNT + 1 else 1
-        )
+        # Check if maximum difference between cdf points is acceptable
+        # (0.2 if inbound outcome count is the default 200)
+        max_diff = 0.2 * DEFAULT_INBOUND_OUTCOME_COUNT / inbound_outcome_count
         if not all(inbound_pmf <= max_diff):
             errors += (
                 "continuous_cdf must be increasing by no more than "
@@ -505,8 +551,10 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         else:
             if not continuous_cdf[0] == 0.00:
                 errors += (
-                    "continuous_cdf at lower bound must be 0.00"
-                    " due to lower bound being closed.\n"
+                    "continuous_cdf[0] must be 0.0 for questions with a closed lower bound "
+                    "(outcomes strictly below the lower bound are impossible). "
+                    "If you want to assign probability to the outcome equalling the lower bound, "
+                    "place that mass in the first inbound bucket by increasing cdf[1].\n"
                 )
         if question.open_upper_bound:
             if not continuous_cdf[-1] <= 0.999:
@@ -556,7 +604,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                     "provided for multiple choice questions"
                 )
             data["probability_yes_per_category"] = self.multiple_choice_validation(
-                probability_yes_per_category, question.options
+                probability_yes_per_category, question.options, question.options_history
             )
         else:  # Continuous question
             if probability_yes or probability_yes_per_category:
@@ -585,12 +633,21 @@ def serialize_question(
     include_descriptions: bool = False,
     question_movement: QuestionMovement | None = None,
     question_average_coverage: float = None,
+    coherence_links: list[dict] = None,
+    coherence_link_aggregations: list[dict] = None,
 ):
     """
     Serializes question object
     """
 
     serialized_data = QuestionSerializer(question).data
+
+    serialized_data.update(
+        {
+            "coherence_links": coherence_links,
+            "coherence_link_aggregations": coherence_link_aggregations,
+        }
+    )
 
     if include_descriptions:
         serialized_data.update(
@@ -601,7 +658,10 @@ def serialize_question(
             }
         )
 
-    serialized_data["post_id"] = post.id if post else question.get_post_id()
+    if post:
+        serialized_data["short_title"] = post.short_title
+
+    serialized_data["post_id"] = post.id if post else question.post_id
     serialized_data["aggregations"] = serialize_question_aggregations(
         question, aggregate_forecasts, full_forecast_values, minimize
     )
@@ -622,6 +682,22 @@ def serialize_question(
         archived_scores = question.user_archived_scores
         user_forecasts = question.request_user_forecasts
         last_forecast = user_forecasts[-1] if user_forecasts else None
+        # if the user has a pre-registered forecast,
+        # replace the current forecast and anything after it
+        if question.type == Question.QuestionType.MULTIPLE_CHOICE:
+            # Right now, Multiple Choice is the only type that can have pre-registered
+            # forecasts
+            if last_forecast and last_forecast.start_time > timezone.now():
+                user_forecasts = [
+                    f for f in user_forecasts if f.start_time < timezone.now()
+                ]
+                if user_forecasts:
+                    # last_forecast.start_time = user_forecasts[-1].start_time
+                    # user_forecasts[-1] = last_forecast
+                    user_forecasts[-1].end_time = last_forecast.end_time
+                else:
+                    last_forecast.start_time = timezone.now()
+                    user_forecasts = [last_forecast]
         if (
             last_forecast
             and last_forecast.end_time
@@ -636,11 +712,7 @@ def serialize_question(
                 many=True,
             ).data,
             "latest": (
-                MyForecastSerializer(
-                    user_forecasts[-1],
-                ).data
-                if user_forecasts
-                else None
+                MyForecastSerializer(last_forecast).data if last_forecast else None
             ),
             "score_data": dict(),
         }
@@ -649,25 +721,25 @@ def serialize_question(
                 score.score_type + "_score"
             ] = score.score
             if score.score_type == "peer":
-                serialized_data["my_forecasts"]["score_data"][
-                    "coverage"
-                ] = score.coverage
+                serialized_data["my_forecasts"]["score_data"]["coverage"] = (
+                    score.coverage
+                )
             if score.score_type == "relative_legacy":
-                serialized_data["my_forecasts"]["score_data"][
-                    "weighted_coverage"
-                ] = score.coverage
+                serialized_data["my_forecasts"]["score_data"]["weighted_coverage"] = (
+                    score.coverage
+                )
         for score in archived_scores:
             serialized_data["my_forecasts"]["score_data"][
                 score.score_type + "_archived_score"
             ] = score.score
             if score.score_type == "peer":
-                serialized_data["my_forecasts"]["score_data"][
-                    "coverage"
-                ] = score.coverage
+                serialized_data["my_forecasts"]["score_data"]["coverage"] = (
+                    score.coverage
+                )
             if score.score_type == "relative_legacy":
-                serialized_data["my_forecasts"]["score_data"][
-                    "weighted_coverage"
-                ] = score.coverage
+                serialized_data["my_forecasts"]["score_data"]["weighted_coverage"] = (
+                    score.coverage
+                )
 
     return serialized_data
 
@@ -798,9 +870,9 @@ def validate_question_resolution(question: Question, resolution: str) -> str:
     if question.type == Question.QuestionType.BINARY:
         return serializers.ChoiceField(choices=["yes", "no"]).run_validation(resolution)
     if question.type == Question.QuestionType.MULTIPLE_CHOICE:
-        return serializers.ChoiceField(choices=question.options).run_validation(
-            resolution
-        )
+        return serializers.ChoiceField(
+            choices=get_all_options_from_history(question.options_history)
+        ).run_validation(resolution)
 
     # Continuous question
     if resolution == "above_upper_bound":
@@ -857,6 +929,46 @@ class QuestionApproveSerializer(serializers.Serializer):
     scheduled_resolve_time = serializers.DateTimeField(required=True)
 
 
+class QuestionsCommunityPredictionsSerializer(serializers.Serializer):
+    question_ids = serializers.ListField(
+        child=serializers.IntegerField(), required=True
+    )
+    # timestamp applies the same datetime to every question_id.
+    # timestamps (parallel list) takes priority when provided.
+    timestamp = serializers.DateTimeField(required=False, default=None)
+    timestamps = serializers.ListField(
+        child=serializers.DateTimeField(), required=False, default=None
+    )
+
+    def validate(self, data):
+        question_ids = data.get("question_ids", [])
+        if not question_ids:
+            raise serializers.ValidationError(
+                "question_ids is required and must be non-empty"
+            )
+        timestamps = data.get("timestamps")
+        timestamp = data.get("timestamp")
+        if timestamps is not None:
+            if len(timestamps) != len(question_ids):
+                raise serializers.ValidationError(
+                    f"timestamps length ({len(timestamps)}) must match "
+                    f"question_ids length ({len(question_ids)})"
+                )
+        elif timestamp is None:
+            raise serializers.ValidationError(
+                "either timestamp or timestamps is required"
+            )
+        return data
+
+    def get_per_question_timestamps(self) -> list[datetime]:
+        timestamps = self.validated_data.get("timestamps")
+        if timestamps is not None:
+            return timestamps
+        return [self.validated_data["timestamp"]] * len(
+            self.validated_data["question_ids"]
+        )
+
+
 def serialize_question_movement(
     question: Question,
     f1: AggregateForecast,
@@ -865,8 +977,8 @@ def serialize_question_movement(
     threshold: float = 0.0,
 ) -> dict | None:
     divergence = prediction_difference_for_sorting(
-        f1.forecast_values,
-        f2.forecast_values,
+        f1.get_prediction_values(),
+        f2.get_prediction_values(),
         question.type,
     )
 

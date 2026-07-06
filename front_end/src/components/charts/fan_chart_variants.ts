@@ -1,6 +1,9 @@
 import { ComponentProps } from "react";
 import { VictoryAxis } from "victory";
 
+import { CHART_DASH } from "@/constants/chart_dash";
+import { CHART_POINT_SIZE, CHART_STROKE_WIDTH } from "@/constants/chart_stroke";
+import { CHART_FONT_STYLE } from "@/constants/chart_typography";
 import { METAC_COLORS } from "@/constants/colors";
 import { ThemeColor } from "@/types/theme";
 
@@ -13,6 +16,7 @@ export type VariantArgs = {
   maxLeftPadding: number;
   maxRightPadding: number;
   isEmbedded?: boolean;
+  forFeedPage?: boolean;
   getThemeColor: (c: ThemeColor) => string;
 };
 
@@ -44,7 +48,7 @@ export type VariantConfig = {
   };
   axisLabelOffsetX: (args: VariantArgs) => number;
   forceTickCount?: number;
-  palette: (args: Pick<VariantArgs, "getThemeColor">) => {
+  palette: (args: Pick<VariantArgs, "getThemeColor" | "isEmbedded">) => {
     communityArea: string;
     communityLine: string;
     userArea: string;
@@ -61,12 +65,12 @@ export const fanVariants: Record<FanChartVariant, VariantConfig> = {
     yAxisStyle: ({ getThemeColor, tickLabelFontSize }) => ({
       ticks: { stroke: "transparent" },
       axisLabel: {
-        fontFamily: "Inter",
+        ...CHART_FONT_STYLE.axisLabel,
         fontSize: tickLabelFontSize,
         fill: getThemeColor(METAC_COLORS.gray["600"]),
       },
       tickLabels: {
-        fontFamily: "Inter",
+        ...CHART_FONT_STYLE.tick,
         padding: 5,
         fontSize: tickLabelFontSize,
         fill: getThemeColor(METAC_COLORS.gray["600"]),
@@ -74,33 +78,41 @@ export const fanVariants: Record<FanChartVariant, VariantConfig> = {
       axis: { stroke: "transparent" },
       grid: {
         stroke: getThemeColor(METAC_COLORS.gray["400"]),
-        strokeWidth: 1,
-        strokeDasharray: "2, 5",
+        strokeWidth: CHART_STROKE_WIDTH.grid,
+        strokeDasharray: CHART_DASH.grid,
       },
     }),
-    xAxisStyle: () => ({
+    xAxisStyle: ({ tickLabelFontSize, getThemeColor }) => ({
       ticks: { stroke: "transparent" },
       axis: { stroke: "transparent" },
+      tickLabels: {
+        ...CHART_FONT_STYLE.tick,
+        fontSize: tickLabelFontSize,
+        fill: getThemeColor(METAC_COLORS.gray["600"]),
+      },
     }),
-    domainPadding: () => ({ x: [150 / 2, 150 / 2] }),
-    padding: ({ maxLeftPadding }) => ({
-      left: maxLeftPadding,
+    domainPadding: ({ isEmbedded, forFeedPage }) =>
+      isEmbedded || forFeedPage ? { x: [16, 16] } : { x: [150 / 2, 150 / 2] },
+    padding: ({ maxRightPadding }) => ({
+      left: 10,
       top: 10,
-      right: 10,
+      right: maxRightPadding,
       bottom: 20,
     }),
-    axisLabelOffsetX: ({ maxLeftPadding }) => Math.max(maxLeftPadding - 2, 8),
-    palette: ({ getThemeColor }) => ({
+    axisLabelOffsetX: () => 0,
+    palette: ({ getThemeColor, isEmbedded }) => ({
       communityArea: getThemeColor(METAC_COLORS.olive["500"]),
       communityLine: getThemeColor(METAC_COLORS.olive["800"]),
       userArea: getThemeColor(METAC_COLORS.orange["500"]),
       userLine: getThemeColor(METAC_COLORS.orange["700"]),
       resolutionStroke: getThemeColor(METAC_COLORS.purple["800"]),
-      communityPoint: getThemeColor(METAC_COLORS.olive["800"]),
+      communityPoint: isEmbedded
+        ? getThemeColor(METAC_COLORS.olive["700"])
+        : getThemeColor(METAC_COLORS.olive["800"]),
     }),
     resolutionPoint: {
-      size: 8,
-      strokeWidth: 2,
+      size: CHART_POINT_SIZE.resolutionDiamond,
+      strokeWidth: CHART_STROKE_WIDTH.resolutionDiamond,
       fill: () => "none",
     },
   },
@@ -109,12 +121,12 @@ export const fanVariants: Record<FanChartVariant, VariantConfig> = {
     yAxisStyle: ({ tickLabelFontSize, getThemeColor }) => ({
       ticks: { stroke: "transparent" },
       axisLabel: {
-        fontFamily: "Inter",
+        ...CHART_FONT_STYLE.axisLabel,
         fontSize: tickLabelFontSize,
         fill: getThemeColor(METAC_COLORS.gray["600"]),
       },
       tickLabels: {
-        fontFamily: "Inter",
+        ...CHART_FONT_STYLE.tick,
         padding: 5,
         fontSize: tickLabelFontSize,
         fill: getThemeColor(METAC_COLORS.gray["600"]),
@@ -122,15 +134,15 @@ export const fanVariants: Record<FanChartVariant, VariantConfig> = {
       axis: { stroke: "transparent" },
       grid: {
         stroke: getThemeColor(METAC_COLORS.gray["400"]),
-        strokeWidth: 1,
-        strokeDasharray: "2, 5",
+        strokeWidth: CHART_STROKE_WIDTH.grid,
+        strokeDasharray: CHART_DASH.grid,
       },
     }),
     xAxisStyle: ({ tickLabelFontSize, getThemeColor }) => ({
       ticks: { stroke: "transparent" },
       axis: { stroke: "transparent" },
       tickLabels: {
-        fontFamily: "Inter",
+        ...CHART_FONT_STYLE.tick,
         fontSize: tickLabelFontSize,
         fill: getThemeColor(METAC_COLORS.gray["600"]),
       },
@@ -139,11 +151,10 @@ export const fanVariants: Record<FanChartVariant, VariantConfig> = {
     padding: ({ maxRightPadding }) => ({
       left: 10,
       top: 10,
-      right: maxRightPadding - 10,
+      right: maxRightPadding,
       bottom: 15,
     }),
-    axisLabelOffsetX: ({ chartWidth, yLabel, tickLabelFontSize }) =>
-      !yLabel ? chartWidth + 5 : chartWidth - tickLabelFontSize + 5,
+    axisLabelOffsetX: () => 0,
     forceTickCount: 5,
     palette: ({ getThemeColor }) => ({
       communityArea: getThemeColor(METAC_COLORS.blue["500"]),
@@ -154,8 +165,8 @@ export const fanVariants: Record<FanChartVariant, VariantConfig> = {
       communityPoint: getThemeColor(METAC_COLORS.blue["700"]),
     }),
     resolutionPoint: {
-      size: 13,
-      strokeWidth: 3,
+      size: CHART_POINT_SIZE.resolutionDiamond,
+      strokeWidth: CHART_STROKE_WIDTH.resolutionDiamond,
       fill: ({ getThemeColor }) => getThemeColor(METAC_COLORS.purple["800"]),
     },
   },

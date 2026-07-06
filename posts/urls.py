@@ -8,6 +8,11 @@ urlpatterns = [
         "posts/homepage/", views.posts_list_homeage_api_view, name="post-list-homepage"
     ),
     path("posts/upload-image/", views.upload_image_api_view, name="post-upload-image"),
+    path(
+        "posts/onboarding-feed/",
+        views.onboarding_feed_api_view,
+        name="post-onboarding-feed",
+    ),
     path("posts/<int:pk>/", views.post_detail, name="post-detail"),
     path("posts/<int:pk>/boost/", views.activity_boost_api_view, name="post-boost"),
     path("posts/<int:pk>/repost/", views.repost_api_view, name="post-repost"),
@@ -46,6 +51,16 @@ urlpatterns = [
         "posts/<int:pk>/subscriptions/",
         views.post_subscriptions_create,
         name="post-subscriptions",
+    ),
+    path(
+        "posts/<int:pk>/private-note/",
+        views.post_private_note_api_view,
+        name="post-private-note",
+    ),
+    path(
+        "posts/private-notes/",
+        views.private_notes_list_api_view,
+        name="private-notes-list",
     ),
     path(
         "posts/subscriptions/",

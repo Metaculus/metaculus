@@ -40,25 +40,11 @@ const people: Person[] = [
     ],
   },
   {
-    name: "Alex Costea",
-    position: "Research Engineer",
-    imgSrc: "https://cdn.metaculus.com/alex-costea-modified.webp",
-    introduction:
-      "Alex Costea is a Research Engineer at Metaculus, developing the PRISM-CC project. His passion lies in bridging the gap between technology and societal systems. Prior to Metaculus, he worked as a Software Engineer for SAP, developing e-commerce solutions for large multi-national corporations. He received a Bachelor's degree in Sociology from the University of Amsterdam. In his free time, he enjoys learning new things and creating various projects, software and otherwise.",
-  },
-  {
     name: "Jordan Rubin",
     position: "Quantitative Finance Executive",
     imgSrc: "https://cdn.metaculus.com/jordan-rubin-modified.webp",
     introduction:
       "Jordan is on garden leave after building the systematic buy-side alpha capture business at Two Sigma Investments. He currently blogs at FUTURE TOKENS on Substack. Jordan received a BS/BA degree in Economics from Wharton School at University of Pennsylvania. As advisor to Metaculus, he focuses on commercialization and monetization.",
-  },
-  {
-    name: "Abhimanyu Pallavi Sudhir",
-    position: "Research Fellow",
-    imgSrc: "https://cdn.metaculus.com/abhimanyu-pallavi-sudhir-modified.webp",
-    introduction:
-      "Abhimanyu focuses on three primary research areas: (1) exploring analogies between economics and AI systems, particularly examining market dynamics and bounded rationality frameworks, (2) developing information markets and scalable oversight mechanisms to enhance epistemic processes and advance AI alignment, and (3) investigating applications of thermodynamics to these domains.",
   },
   {
     userId: 126463,
@@ -83,11 +69,18 @@ const people: Person[] = [
       "Christian leads communications and marketing at Metaculus, working closely with the operations and program teams. Prior to joining Metaculus, he was a marketing operations lead in the aerospace and defense industry. Christian earned his master's degree in psychology from Rutgers University, where he conducted behavioral and fMRI research on moral judgment and decision-making. Before graduate school, he was a writer for The Onion AV Club and contributed material to Saturday Night Live.",
   },
   {
+    name: "Cole Sussmeier",
+    position: "Research Engineer",
+    imgSrc: "https://cdn.metaculus.com/about/cole_sussmeier.webp",
+    introduction:
+      "Cole is a Research Engineer at Metaculus, where he works on Radiant and on AI forecasting harnesses and experiments. Before joining Metaculus, he founded Automatic Industries, building predictive analytics models, machine learning pipelines, and dashboard applications for clients. He previously worked as a data science consultant at Deloitte and as a data scientist at COI Energy. Cole holds a master's degree in Data Analytics and a bachelor's degree in Business Analytics, with a minor in Mathematics, from Binghamton University.",
+  },
+  {
     name: "Nikitas Angeletos Chrysaitis",
-    position: "Forecasting Analyst",
+    position: "Forecasting Program Coordinator",
     imgSrc: "https://cdn.metaculus.com/nikitas-angeletos-chrysaitis.webp",
     introduction:
-      "Nikitas is a Forecasting Analyst at Metaculus, responsible for platform oversight, question development for various initiatives, and Metaculus Pro forecasting. He holds a background in Mathematics and a PhD in Computational Psychiatry from the University of Edinburgh.",
+      "Nikitas is the Forecasting Program Coordinator at Metaculus, where he leads key program initiatives and oversees the day-to-day functioning of the platform. He brings a strong quantitative foundation to the role, with a degree in Mathematics and a PhD in Computational Psychiatry. Before stepping into this position, Nikitas was a Pro Forecaster at Metaculus, giving him a practitioner's perspective on forecasting that informs all aspects of his work.",
   },
   {
     userId: 183695,
@@ -108,10 +101,10 @@ const people: Person[] = [
   {
     userId: 228596,
     name: "Ben Wilson",
-    position: "AI Research Automation Engineer",
+    position: "AI Research Engineer",
     imgSrc: "https://cdn.metaculus.com/Ben-Wilson.webp",
     introduction:
-      "Ben is an AI Research Automation Engineer proficient in Python, web scraping, prompt engineering, Next.js, and a wide range of other technologies. In 2024, he briefly entered the top 100 on Metaculus, and his bot placed 12th in Metaculus's Q3 AI Forecasting Benchmark Tournament. Ben also founded a non-profit with the goal of creating 'Logipedia: The Wikipedia for Debatable Topics.' He has a passion for philosophy and enjoys improvising on the piano.",
+      "Ben is an AI Research Engineer focused on improving good judgment and forecasting. Currently running FutureEval (https://metaculus.com/futureeval) and working on various research projects for improving AI forecasting and decision making. He has a passion for philosophy and enjoys improvising on the piano.",
     socials: [
       {
         link: "https://www.linkedin.com/in/wilsonbenjamin1000/",
@@ -122,10 +115,10 @@ const people: Person[] = [
   {
     userId: 117502,
     name: "Ryan Beck",
-    position: "Forecasting Program Coordinator",
+    position: "Director of Forecasting",
     imgSrc: "https://cdn.metaculus.com/about/ryan_beck.webp",
     introduction:
-      "Ryan is Metaculus’ Forecasting Program Coordinator. He received a Master’s degree in Civil Engineering from Iowa State University, and was previously a bridge engineer for six years. He is an avid forecaster and a pro-forecaster at INFER. Ryan is also the author of a science fiction novel, <cite>SEER</cite>.",
+      "Ryan is the Director of Forecasting at Metaculus, leading the design and execution of forecasting programs that deliver rigorous, decision-relevant insight for clients, partners, and the broader platform. He joined Metaculus in 2022, following a six-year career as a Bridge Engineer focused on highway bridge design. A graduate of Iowa State University with a master’s in civil engineering, Ryan developed a strong interest in forecasting that later led to work as a Metaculus Pro Forecaster and two years as an INFER Pro Forecaster.",
   },
   {
     userId: 115975,
@@ -151,14 +144,6 @@ const people: Person[] = [
     imgSrc: "https://cdn.metaculus.com/about/juan_cambeiro.webp",
     introduction:
       "Juan is a Presidential Management Fellow in the Division of Biosafety, Biosecurity, and Emerging Biotechnology Policy at the National Institutes of Health. Juan received his Masters of Public Health in epidemiology/biostatistics from Columbia University. He is currently a PhD student in Health Security at Johns Hopkins University. Juan was the top-ranked forecaster in IARPA’s COVID-19 FOCUS Forecasting Tournament and is a Superforecaster with Good Judgment Open, where he was ranked #1 on COVID-19 forecast questions.",
-  },
-  {
-    userId: 109639,
-    name: "Nikos Bosse",
-    position: "Research Coordinator",
-    imgSrc: "https://cdn.metaculus.com/about/nikos_bosse.webp",
-    introduction:
-      "Nikos advances Metaculus’ research agenda, focusing on forecast aggregation and forecast evaluation. He received his master’s in applied statistics from the University of Göttingen and is working toward his PhD in infectious disease forecasting and forecast evaluation at the London School of Hygiene and Tropical Medicine.",
   },
   {
     userId: 127582,
@@ -203,6 +188,19 @@ const people: Person[] = [
     imgSrc: "https://cdn.metaculus.com/about/luke_sabor.webp",
     introduction:
       "Passionate about AI safety and fueled by a love for math and logic games, Luke previously worked as a personal assistant to Max Tegmark and conducted research at UPenn's superforecasting team under Philip Tetlock. His diverse experience, spanning AI safety research to collaborating with quantum physicists, led him to work on development for Metaculus. Beyond technology, Luke enjoys exploring nature through climbing, running, biking, and birdwatching.",
+  },
+  {
+    name: "Cemre Inanc",
+    position: "Software Developer",
+    imgSrc: "https://cdn.metaculus.com/about/cemre_inanc.webp",
+    introduction:
+      "Cemre is a Software Developer with a degree in Visual Communication Design and over a decade of experience building interactive platforms, virtual event systems, and digital archives. Through his studio Kraftend, he has delivered projects for brands like Nike, Beko, Samsung, Netflix, and Red Bull. At Metaculus, he focuses on platform development and delivering seamless user experiences.",
+    socials: [
+      {
+        link: "https://www.linkedin.com/in/cemreinanc/",
+        platform: "LinkedIn",
+      },
+    ],
   },
 
   {
@@ -287,20 +285,6 @@ const people: Person[] = [
     ],
   },
   {
-    userId: 104761,
-    name: "Tamay Besiroglu",
-    position: "Co-founder & CEO, Mechanize",
-    imgSrc: "https://cdn.metaculus.com/about/tamay_besiroglu.webp",
-    introduction:
-      "Tamay is a research scientist at the Computer Science and AI Lab at MIT, an associate director at Epoch, and was previously the strategy and operations lead at Metaculus. Tamay has also contributed to the Future of Humanity Institute at Oxford University and to Bloomberg LP in London. He studied philosophy, politics, and economics at University of Warwick and received his Master of Philosophy in economics from the University of Cambridge.",
-    socials: [
-      {
-        link: "https://www.linkedin.com/in/tamay-besiroglu/",
-        platform: "LinkedIn",
-      },
-    ],
-  },
-  {
     name: "Welton Chang",
     position: "Co-founder & CEO, Pyrra Technologies",
     imgSrc: "https://cdn.metaculus.com/about/welton_chang.webp",
@@ -346,28 +330,51 @@ const people: Person[] = [
     introduction:
       "Seth Killian was a graduate fellow at the UIUC Center for Advanced Study teaching philosophy when he was recruited by Capcom into game development. As a designer and founder, he helped revive the Street Fighter series with Street Fighter IV, co-founded the first team acquired by Riot Games, served as lead designer on Fortnite, and as Head of Game Design for Netflix. As a player and organizer, he played on the first US National Street Fighter team, hosted the first fighting game broadcast on ESPN, and co-founded the Evo Championship Series, which has grown to become the largest live gaming competition in the world.",
   },
+  {
+    name: "Grace McLain",
+    position: "Project Delivery Associate",
+    imgSrc: "https://cdn.metaculus.com/Grace.webp",
+    introduction:
+      "Grace is a researcher and evaluator with over a decade of experience in global health. She brings to Metaculus her experience in decision making under uncertainty, mixed methods research, and project delivery. She holds a Master of Science in Public Health from Johns Hopkins. In her spare time, she enjoys crafting/drawing, video/board games, and hiking in beautiful places.",
+  },
+  {
+    name: "Jesse Damiani",
+    position: "Communications Strategist",
+    imgSrc: "https://cdn.metaculus.com/jesse.webp",
+    introduction:
+      "Jesse Damiani is a writer, curator, and foresight strategist who founded the Reality Studies newsletter and Urgent Futures podcast. He has taught at NYU, USC, SCI-Arc, and elsewhere, and served as Research Affiliate at Institute for the Future and Director of Emerging Technology & Insight at Southern New Hampshire University. His writing appears in Architectural Design, Flash Art, NBC News, WIRED, and The Yale Review.",
+  },
+  {
+    name: "Carolin Ullrich",
+    position: "Principal Product Manager",
+    imgSrc: "https://cdn.metaculus.com/caro-grayscale.webp",
+    introduction:
+      "Carolin is a Principal Product Manager at Metaculus, focused on bridging the gap between generating accurate forecasts and enabling organizations to translate them into better decisions. She brings a background in B2B SaaS, having worked at a Data and AI company serving multinational clients across industries. She holds degrees in Psychology and Human-Computer Interaction. Outside of work, Carolin tends to her garden (a hobby she'll tell you has a lot in common with foresight).",
+  },
 ];
 
 const groups: Groups = {
   team: [
     "Deger Turan",
-    "Alex Costea",
     "Atakan Seçkin",
     "Molly Hickman",
     "Leonard Barrett",
     "Christian Williams",
+    "Cole Sussmeier",
     "Ryan Beck",
     "Sylvain Chevalier",
-    "Nikos Bosse",
     "Elis Popescu",
     "Hlib Kononenko",
     "Ben Wilson",
     "Nikita Oleinykof",
     "Luke Sabor",
     "Nikitas Angeletos Chrysaitis",
-    "Abhimanyu Pallavi Sudhir",
     "John Bash",
     "Felipe Oliveira",
+    "Cemre Inanc",
+    "Grace McLain",
+    "Jesse Damiani",
+    "Carolin Ullrich",
   ],
   board: [
     "Anthony Aguirre",
@@ -378,7 +385,6 @@ const groups: Groups = {
   ],
   advisors: [
     "Juan Cambeiro",
-    "Tamay Besiroglu",
     "Welton Chang",
     "Burak Nehbit",
     "Jordan Rubin",

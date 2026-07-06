@@ -1,6 +1,7 @@
 import type { Language } from "prism-react-renderer";
 
 export const CANONICAL_TO_LABEL = {
+  text: "Plain text",
   ts: "TypeScript",
   tsx: "TSX",
   js: "JavaScript",
@@ -14,6 +15,10 @@ export const CANONICAL_TO_LABEL = {
 export type CanonicalLang = keyof typeof CANONICAL_TO_LABEL;
 
 const ALIAS_TO_CANONICAL: Record<string, CanonicalLang> = {
+  text: "text",
+  plaintext: "text",
+  plain: "text",
+
   typescript: "ts",
   ts: "ts",
   tsx: "tsx",
@@ -42,6 +47,7 @@ export function normalizeLang(
 }
 
 export const CANONICAL_TO_PRISM: Record<CanonicalLang, Language> = {
+  text: "text" as Language,
   ts: "typescript",
   tsx: "tsx",
   js: "javascript",

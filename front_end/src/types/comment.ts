@@ -35,6 +35,7 @@ export type BECommentType = {
   };
   is_current_content_translated?: boolean;
   key_factors?: KeyFactor[];
+  key_factor_votes_score?: number;
   is_pinned: boolean;
 };
 
@@ -53,7 +54,7 @@ export type CommentOfWeekEntry = {
 export type ForecastType = {
   start_time: Date;
   probability_yes: number;
-  probability_yes_per_category: number[];
+  probability_yes_per_category: (number | null)[];
   options: string[];
   continuous_cdf: number[];
   quartiles: [number, number, number];
@@ -64,6 +65,7 @@ export type ForecastType = {
 
 export enum KeyFactorVoteTypes {
   STRENGTH = "strength",
+  DIRECTION = "direction",
 }
 
 export enum StrengthValues {
@@ -78,10 +80,7 @@ export type KeyFactorVoteType =
 
 export type StrengthVoteOption = 0 | 1 | 2 | 5;
 
-// TODO: drop Legacy AB-test scores
-type KeyFactorVoteA = -1 | 1 | null;
-type KeyFactorVoteBAndC = -5 | -3 | -2 | 0 | 2 | 3 | 5;
-export type KeyFactorVoteScore = KeyFactorVoteA | KeyFactorVoteBAndC;
+export type KeyFactorVoteScore = -5 | -3 | -2 | -1 | 0 | 1 | 2 | 3 | 5 | null;
 
 export type KeyFactorVote = {
   vote_type: KeyFactorVoteType;
@@ -105,15 +104,44 @@ export type ImpactMetadata = {
   certainty: -1 | null;
 };
 
+export type ImpactDirection = "increase" | "decrease" | "uncertainty";
+
 export type Driver = ImpactMetadata & {
   text: string;
 };
 
+export type BaseRate = {
+  type: "frequency" | "trend";
+  reference_class: string;
+
+  rate_numerator?: number | null;
+  rate_denominator?: number | null;
+
+  projected_value?: number | null;
+  projected_by_year?: number | null;
+
+  unit: string;
+  extrapolation?: "" | "linear" | "exponential" | "other";
+  based_on?: string;
+  source: string;
+};
+
+export type News = ImpactMetadata & {
+  url: string;
+  title: string;
+  img_url?: string;
+  source: string;
+  published_at?: string;
+};
+
 export type KeyFactor = {
   id: number;
-  driver: Driver;
+  driver?: Driver | null;
+  base_rate?: BaseRate | null;
+  news?: News | null;
   author: AuthorType; // used to set limit per question
   comment_id: number;
+  created_at: string;
   vote: KeyFactorVoteAggregate;
   question_id?: number | null;
   question?: {
@@ -131,13 +159,18 @@ export type KeyFactor = {
   flagged_by_me?: boolean;
 };
 
+export type KeyFactorVoteReason = "wrong_direction" | "no_impact" | "redundant";
+
 export type KeyFactorVoteAggregate = {
   // Aggregated strength score
   score: number;
   // Current user's vote
-  user_vote: StrengthVoteOption | null;
+  user_vote: KeyFactorVoteScore;
+  // Current user's downvote reason
+  user_vote_reason: KeyFactorVoteReason | null;
   // Total number of votes
   count: number;
+  aggregated_data: { score: number; count: number }[];
 };
 
 type DraftBase = {

@@ -92,12 +92,6 @@ class PostQuerySet(models.QuerySet):
             "conditional__question_no",
         )
 
-    def prefetch_condition_post(self):
-        return self.prefetch_related(
-            "conditional__condition__related_posts__post",
-            "conditional__condition_child__related_posts__post",
-        )
-
     def prefetch_questions_scores(self):
         question_relations = [
             "question",
@@ -163,6 +157,36 @@ class PostQuerySet(models.QuerySet):
         return self.annotate(
             user_last_forecasts_date=Coalesce(
                 Subquery(last_forecast_date_subquery), Value(None)
+            )
+        )
+
+    def filter_user_has_not_forecasted(self, author_id: int):
+        """
+        Filter to posts where user has NOT forecasted.
+        Uses NOT EXISTS which is more efficient than annotate + filter IS NULL.
+        """
+        return self.filter(
+            ~Exists(
+                PostUserSnapshot.objects.filter(
+                    user_id=author_id,
+                    post_id=OuterRef("pk"),
+                    last_forecast_date__isnull=False,
+                )
+            )
+        )
+
+    def filter_user_has_forecasted(self, author_id: int):
+        """
+        Filter to posts where user HAS forecasted.
+        Uses EXISTS which is more efficient than annotate + filter IS NOT NULL.
+        """
+        return self.filter(
+            Exists(
+                PostUserSnapshot.objects.filter(
+                    user_id=author_id,
+                    post_id=OuterRef("pk"),
+                    last_forecast_date__isnull=False,
+                )
             )
         )
 
@@ -494,15 +518,14 @@ class PostManager(models.Manager.from_queryset(PostQuerySet)):
         return super().get_queryset().defer("embedding_vector")
 
 
-class Notebook(TimeStampedModel, TranslatedModel):  # type: ignore
+class Notebook(TranslatedModel):
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    edited_at = models.DateTimeField(editable=False, null=True)
+
     markdown = models.TextField()
     image_url = models.ImageField(null=True, blank=True, upload_to="user_uploaded")
-    markdown_summary = models.TextField(blank=True, default="")
-
-    # Indicates whether we triggered "handle_post_open" event
-    # And guarantees idempotency of "on post open" evens
-    open_time_triggered = models.BooleanField(
-        default=False, db_index=True, editable=False
+    feed_tile_summary = models.TextField(
+        blank=True, default="", help_text="Summary text displayed on feed tiles"
     )
 
     def __str__(self):
@@ -540,9 +563,11 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         DELETED = "deleted"
 
     class PostStatusChange(models.TextChoices):
+        PUBLISHED = "published", _("Upcoming")
         OPEN = "open", _("Open")
         CLOSED = "closed", _("Closed")
         RESOLVED = "resolved", _("Resolved")
+        CP_REVEALED = "cp_revealed", _("CP Revealed")
 
     curation_status = models.CharField(
         max_length=20,
@@ -570,6 +595,14 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         blank=True,
     )
     published_at = models.DateTimeField(db_index=True, null=True, blank=True)
+
+    # Indicates whether we fired the "post published" (Upcoming) event for
+    # tournament / project follower notifications. Publishing is a Post-level
+    # lifecycle event, so this guarantees idempotency and ensures adding
+    # questions to an already-published post does not re-notify followers.
+    published_at_triggered = models.BooleanField(
+        default=False, db_index=True, editable=False
+    )
 
     # Fields populated from Child Question objects
     open_time = models.DateTimeField(
@@ -770,8 +803,9 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
 
     # Relations
     # TODO: add db constraint to have only one not-null value of these fields
+    # Note: related_name="+" disables reverse accessor since Question.post FK is now canonical
     question = models.OneToOneField(
-        Question, models.CASCADE, related_name="post", null=True, blank=True
+        Question, models.CASCADE, related_name="+", null=True, blank=True
     )
     conditional = models.OneToOneField(
         Conditional, models.CASCADE, related_name="post", null=True, blank=True
@@ -810,7 +844,11 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         Update forecasts count cache
         """
 
-        self.forecasts_count = self.forecasts.filter_within_question_period().count()
+        self.forecasts_count = (
+            self.forecasts.filter_within_question_period()
+            .exclude(source=Forecast.SourceChoices.AUTOMATIC)
+            .count()
+        )
         self.save(update_fields=["forecasts_count"])
 
     def update_forecasters_count(self):
@@ -835,8 +873,34 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
 
         return self.comment_count
 
+    def update_cached_fields(self):
+        self.update_forecasts_count()
+        self.update_forecasters_count()
+        self.update_vote_score()
+        self.update_comment_count()
+
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        # Sync the Question.post FK only when creating a new post
+        if is_new:
+            self.sync_question_post_fk()
+
+    def sync_question_post_fk(self):
+        """Ensure all questions associated with this post have their post FK set."""
+        questions_to_update = []
+
+        for q in self.get_questions():
+            if q.post_id != self.pk:
+                q.post_id = self.pk
+                questions_to_update.append(q)
+
+        if questions_to_update:
+            Question.objects.bulk_update(questions_to_update, ["post_id"])
 
     def update_curation_status(self, status: CurationStatus):
         self.curation_status = status
@@ -957,6 +1021,9 @@ class PostUserSnapshot(models.Model):
         null=True, blank=True, db_index=True
     )  # Jeffrey's Divergence
 
+    private_note = models.TextField(default="", blank=True)
+    private_note_updated_at = models.DateTimeField(null=True, blank=True, db_index=True)
+
     # TODO: these two fields might be necessary for display purposes
     # divergence_total = models.FloatField(null=True, blank=True)
     # divergence_asymmetric = models.FloatField(null=True, blank=True)
@@ -967,20 +1034,33 @@ class PostUserSnapshot(models.Model):
                 name="postusersnapshot_unique_user_post", fields=["user_id", "post_id"]
             )
         ]
+        indexes = [
+            models.Index(
+                fields=["user", "-private_note_updated_at"],
+                name="posts_postuser_notes_idx",
+                condition=~Q(private_note=""),
+            )
+        ]
 
     @classmethod
     def update_last_forecast_date(cls, post: Post, user: User):
+        now = timezone.now()
         cls.objects.update_or_create(
             user=user,
             post=post,
             defaults={
-                "last_forecast_date": timezone.now(),
+                "last_forecast_date": now,
+            },
+            create_defaults={
+                "last_forecast_date": now,
+                "comments_count": post.get_comment_count(),
+                "viewed_at": now,
             },
         )
 
     @classmethod
     def update_viewed_at(cls, post: Post, user: User):
-        cls.objects.update_or_create(
+        return cls.objects.update_or_create(
             user=user,
             post=post,
             defaults={

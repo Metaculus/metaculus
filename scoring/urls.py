@@ -30,7 +30,7 @@ urlpatterns = [
     ),
     path(
         "medals/contributions/",
-        views.medal_contributions,
+        views.leaderboard_contributions,
         name="medal-contributions",
     ),
     path(

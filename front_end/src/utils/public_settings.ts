@@ -6,6 +6,7 @@ export interface PublicSettings {
   PUBLIC_POSTHOG_KEY: string;
   PUBLIC_POSTHOG_BASE_URL: string;
   PUBLIC_FRONTEND_SENTRY_DSN: string;
+  PUBLIC_METACULUS_ENV: string;
   PUBLIC_GOOGLE_MEASUREMENT_ID: string;
   PUBLIC_DISALLOW_ALL_BOTS: boolean;
   PUBLIC_ALLOW_TUTORIAL: boolean;
@@ -13,6 +14,7 @@ export interface PublicSettings {
   PUBLIC_LANDING_PAGE_URL: string;
   PUBLIC_AUTHENTICATION_REQUIRED: boolean;
   PUBLIC_SCREENSHOT_SERVICE_ENABLED: boolean;
+  PUBLIC_GTM_ID: string;
 }
 
 export const defaultPublicSettingsValues: PublicSettings = {
@@ -23,6 +25,7 @@ export const defaultPublicSettingsValues: PublicSettings = {
   PUBLIC_POSTHOG_KEY: "",
   PUBLIC_POSTHOG_BASE_URL: "https://us.i.posthog.com",
   PUBLIC_FRONTEND_SENTRY_DSN: "",
+  PUBLIC_METACULUS_ENV: "",
   PUBLIC_GOOGLE_MEASUREMENT_ID: "",
   PUBLIC_DISALLOW_ALL_BOTS: false,
   PUBLIC_ALLOW_TUTORIAL: true,
@@ -30,4 +33,5 @@ export const defaultPublicSettingsValues: PublicSettings = {
   PUBLIC_LANDING_PAGE_URL: "/",
   PUBLIC_AUTHENTICATION_REQUIRED: false,
   PUBLIC_SCREENSHOT_SERVICE_ENABLED: false,
+  PUBLIC_GTM_ID: "",
 };

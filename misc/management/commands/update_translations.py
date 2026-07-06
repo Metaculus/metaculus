@@ -85,7 +85,7 @@ class Command(BaseCommand):
             queryset = queryset_filter_outdated_translations(queryset)
 
             logging.info(
-                f"Detecting lanuage and updating translations for model {model}, {queryset.count()} objects"
+                f"Detecting language and updating translations for model {model}, {queryset.count()} objects"
             )
 
             detect_and_update_content_language(queryset, batch_size)

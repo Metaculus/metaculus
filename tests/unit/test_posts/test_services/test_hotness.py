@@ -11,7 +11,6 @@ from posts.services.common import vote_post
 from posts.services.hotness import (
     decay,
     compute_question_hotness,
-    _compute_hotness_approval_score,
     _compute_hotness_post_votes,
     _compute_hotness_comments,
     _compute_hotness_relevant_news,
@@ -65,7 +64,7 @@ def test_decay(dt: datetime.datetime, expected: float):
                 "scheduled_close_time": make_aware(datetime.datetime(2025, 4, 25)),
                 "movement": 0.4,
             },
-            13.0,
+            10.5,
         ],
         # Resolved question
         [
@@ -78,7 +77,7 @@ def test_decay(dt: datetime.datetime, expected: float):
                 # Should be ignored
                 "movement": 0.4,
             },
-            6.25,
+            5.625,
         ],
         # Unsuccessfully resolved question
         [
@@ -89,7 +88,7 @@ def test_decay(dt: datetime.datetime, expected: float):
                 "resolution_set_time": make_aware(datetime.datetime(2025, 4, 11)),
                 "resolution": "annulled",
             },
-            1.25,
+            0.625,
         ],
     ],
 )
@@ -99,18 +98,6 @@ def test_compute_question_hotness(question_kwargs, expected):
     )
 
     assert compute_question_hotness(question) == expected
-
-
-@freeze_time("2025-04-18")
-def test_compute_hotness_approval_score(post_binary_public):
-    post_binary_public.published_at = make_aware(datetime.datetime(2025, 4, 20))
-    assert _compute_hotness_approval_score(post_binary_public) == 0
-
-    post_binary_public.published_at = make_aware(datetime.datetime(2025, 4, 17, 13))
-    assert _compute_hotness_approval_score(post_binary_public) == 20
-
-    post_binary_public.published_at = make_aware(datetime.datetime(2025, 4, 11))
-    assert _compute_hotness_approval_score(post_binary_public) == 5.0
 
 
 @freeze_time("2025-04-18")
@@ -217,7 +204,7 @@ def test_compute_post_hotness(user1):
     # Add ITN article
     PostArticle.objects.create(post=post, article=factory_itn_article(), distance=0.1)
 
-    assert compute_post_hotness(post) == 110.9
+    assert compute_post_hotness(post) == 109.025
 
 
 @freeze_time("2025-04-18")
@@ -230,15 +217,15 @@ def test_handle_post_boost(user1):
     post.hotness = compute_post_hotness(post)
     post.save()
 
-    assert post.hotness == 20
+    assert post.hotness == 0
 
     # Boost
     handle_post_boost(user1, post, Vote.VoteDirection.UP)
-    assert post.hotness == 45
+    assert post.hotness == 20
 
     # Bury
     handle_post_boost(user1, post, Vote.VoteDirection.DOWN)
-    assert post.hotness == 3
+    assert post.hotness == -10
 
 
 @pytest.mark.parametrize(

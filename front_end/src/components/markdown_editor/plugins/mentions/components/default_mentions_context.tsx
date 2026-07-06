@@ -4,12 +4,14 @@ import { MentionItem } from "../types";
 
 type UserMentionsContextType = {
   defaultUserMentions?: MentionItem[];
+  postId?: number;
 };
 
 const UserMentionsContext = createContext({} as UserMentionsContextType);
 
 type ProviderProps = {
   defaultUserMentions?: MentionItem[];
+  postId?: number;
 };
 
 /**
@@ -17,11 +19,12 @@ type ProviderProps = {
  */
 export const DefaultUserMentionsContextProvider: FC<
   PropsWithChildren<ProviderProps>
-> = ({ defaultUserMentions, children }) => {
+> = ({ defaultUserMentions, postId, children }) => {
   return (
     <UserMentionsContext.Provider
       value={{
         defaultUserMentions,
+        postId,
       }}
     >
       {children}

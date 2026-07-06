@@ -33,7 +33,10 @@ import {
   isOpenQuestionPredicted,
 } from "@/utils/forecasts/helpers";
 import { formatResolution } from "@/utils/formatters/resolution";
-import { canWithdrawForecast } from "@/utils/questions/predictions";
+import {
+  canWithdrawForecast,
+  isQuestionPrePrediction,
+} from "@/utils/questions/predictions";
 
 import { ContinuousGroupOption } from "../continuous_group_accordion/group_forecast_accordion";
 import ContinuousInput from "../continuous_input";
@@ -47,12 +50,12 @@ import {
   validateUserQuantileData,
 } from "../helpers";
 import PredictButton from "../predict_button";
-import ScoreDisplay from "../resolution/score_display";
 import WithdrawButton from "../withdraw/withdraw_button";
 
 type Props = {
   option: ContinuousGroupOption;
   canPredict: boolean;
+  predictLabel?: string;
   isPending: boolean;
   permission?: ProjectPermissions;
   handleChange: (
@@ -88,6 +91,7 @@ type Props = {
 const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
   option,
   canPredict,
+  predictLabel,
   isPending,
   permission,
   handleChange,
@@ -255,7 +259,8 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
     previousForecastExpiration,
   } = useExpirationModalState(
     questionDuration,
-    option.question.my_forecasts?.latest
+    option.question.my_forecasts?.latest,
+    isQuestionPrePrediction(option.question)
   );
 
   useEffect(() => {
@@ -278,7 +283,11 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           t,
         }).length !== 0 || !isNil(submitError);
 
-  if (option.question.status === QuestionStatus.OPEN && canPredict) {
+  if (
+    (option.question.status === QuestionStatus.OPEN ||
+      isQuestionPrePrediction(option.question)) &&
+    canPredict
+  ) {
     SubmitControls = (
       <>
         <FormError
@@ -339,7 +348,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
             isUserForecastActive={hasActiveUserForecast}
             isPending={isPending}
             isDisabled={predictButtonIsDisabled}
-            predictLabel={previousForecast ? undefined : t("predict")}
+            predictLabel={previousForecast ? undefined : predictLabel}
             predictionExpirationChip={expirationShortChip}
             onPredictionExpirationClick={() =>
               setIsForecastExpirationModalOpen(true)
@@ -381,6 +390,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           hasUserForecast={hasUserForecast}
           isUserForecastActive={hasActiveUserForecast}
           isSubmissionDisabled={predictButtonIsDisabled}
+          predictLabel={predictLabel}
         />
 
         <ContinuousInput
@@ -412,7 +422,9 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           isDirty={option.isDirty}
           submitControls={SubmitControls}
           disabled={
-            !canPredict || option.question.status !== QuestionStatus.OPEN
+            !canPredict ||
+            (option.question.status !== QuestionStatus.OPEN &&
+              !isQuestionPrePrediction(option.question))
           }
           predictionMessage={
             predictionMessage ? t(predictionMessage) : undefined
@@ -446,12 +458,6 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
           </p>
         </div>
       )}
-
-      {!isNil(option.question.resolution) && (
-        <div className="my-4 p-4">
-          <ScoreDisplay question={option.question} variant="transparent" />
-        </div>
-      )}
     </div>
   );
 };
@@ -463,7 +469,7 @@ function getSubquestionPredictionInputMessage(
     case QuestionStatus.CLOSED:
       return "predictionClosedMessage";
     case QuestionStatus.UPCOMING:
-      return "predictionUpcomingMessage";
+      return "prePredictionMessage";
     default:
       return null;
   }

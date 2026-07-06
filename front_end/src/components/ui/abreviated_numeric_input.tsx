@@ -104,6 +104,15 @@ const parseFormattedNumber = (value: string): number | undefined => {
   // Remove any commas and whitespace
   value = value.replace(/,|\s/g, "").toLowerCase();
 
+  // First, try to parse scientific notation (e.g., 1e5, 2.5e-3, 1.23e+10)
+  // This regex matches: optional sign, digits with optional decimal, 'e', optional sign, digits
+  const scientificMatch = value.match(/^(-?\d*\.?\d+)e([+-]?\d+)$/);
+  if (scientificMatch) {
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? undefined : parsed;
+  }
+
+  // Then try abbreviated notation (k, m, b, t)
   const multipliers: { [key: string]: number } = {
     k: 1e3,
     m: 1e6,

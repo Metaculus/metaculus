@@ -10,7 +10,8 @@ export type Fetcher = {
   post<T = Response, B = Record<string, unknown>>(
     url: string,
     body: B,
-    options?: FetchOptions
+    options?: FetchOptions,
+    config?: FetchConfig
   ): Promise<T>;
   put<T, B>(url: string, body: B, options?: FetchOptions): Promise<T>;
   patch<T, B>(url: string, body: B, options?: FetchOptions): Promise<T>;
@@ -50,4 +51,11 @@ export type PaginatedPayload<T> = {
   next: string | null;
   previous: string | null;
   results: T[];
+};
+
+export type CountlessPaginatedPayload<T> = Omit<
+  PaginatedPayload<T>,
+  "count"
+> & {
+  count?: number;
 };

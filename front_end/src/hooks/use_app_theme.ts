@@ -1,8 +1,15 @@
 import { useTheme } from "next-themes";
-import { Dispatch, SetStateAction, useCallback, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import { useAuth } from "@/contexts/auth_context";
+import { useThemeOverride } from "@/contexts/theme_override_context";
 import { AppTheme, ThemeColor } from "@/types/theme";
 import { logError } from "@/utils/core/errors";
 
@@ -15,6 +22,16 @@ const useAppTheme = () => {
   } = useTheme();
   const [isSyncing, setIsSyncing] = useState<boolean>();
   const { user, setUser } = useAuth();
+  const themeOverride = useThemeOverride();
+
+  const theme = useMemo(() => {
+    if (themeOverride === "light") return "light" as AppTheme;
+    const base = (forcedTheme ?? resolvedTheme ?? "light") as AppTheme;
+    if (themeOverride === "inverted") {
+      return base === "dark" ? ("light" as AppTheme) : ("dark" as AppTheme);
+    }
+    return base;
+  }, [themeOverride, forcedTheme, resolvedTheme]);
 
   const setTheme = useCallback(
     async (newTheme: AppTheme) => {
@@ -36,21 +53,15 @@ const useAppTheme = () => {
 
   const getThemeColor = useCallback(
     (color: ThemeColor) => {
-      if (resolvedTheme === "dark") {
-        return color.dark;
-      }
-
-      return color.DEFAULT;
+      return theme === "dark" ? color.dark : color.DEFAULT;
     },
-    [resolvedTheme]
+    [theme]
   );
 
   return {
-    // Currently active theme respecting Forced selection
-    // Could be dark or light
-    theme: (forcedTheme ?? resolvedTheme) as AppTheme,
+    theme,
     // Currently selected theme. Could be dark, light or system
-    themeChoice: themeChoice ?? AppTheme.System,
+    themeChoice: (themeChoice as AppTheme) ?? AppTheme.System,
     isSyncing,
     setTheme: setTheme as Dispatch<SetStateAction<AppTheme>>,
     getThemeColor,

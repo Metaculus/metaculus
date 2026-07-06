@@ -53,7 +53,7 @@ const QuestionPredictionTooltip: FC<Props> = ({
 
         {userPrediction && (
           <div className="flex w-full items-center justify-between">
-            <span className="text-xsfont-medium capitalize text-orange-700 dark:text-orange-700-dark">
+            <span className="text-xs font-medium capitalize text-orange-700 dark:text-orange-700-dark">
               {t("myPrediction")}
             </span>
             <span className="text-sm tabular-nums">{userPrediction}</span>
@@ -62,7 +62,7 @@ const QuestionPredictionTooltip: FC<Props> = ({
         <hr className="relative mx-[-12px] border-gray-300 dark:border-gray-300-dark" />
         <div className="flex w-full items-center justify-between">
           <span className="text-sm font-medium">
-            {t("totalForecastersLabel")}
+            {t("activeForecastersLabel")}
           </span>
           <span className="text-sm tabular-nums">{totalForecasters}</span>
         </div>

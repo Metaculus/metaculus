@@ -6,8 +6,10 @@ import { FC, useCallback, useEffect, useState } from "react";
 
 import { CoherenceLinksProvider } from "@/app/(main)/components/coherence_links_provider";
 import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
+import KeyFactorsQuestionSection from "@/app/(main)/questions/[id]/components/key_factors/key_factors_question_section";
 import ForecastMaker from "@/components/forecast_maker";
 import BackgroundInfo from "@/components/question/background_info";
+import PrivateNote from "@/components/question/private_note";
 import ResolutionCriteria from "@/components/question/resolution_criteria";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
@@ -137,22 +139,25 @@ const PredictionFlowPost: FC<Props> = ({ tournamentSlug }) => {
                 <ForecastMaker
                   post={detailedPost}
                   onPredictionSubmit={onPredictionSubmit}
-                  disableResolveButtons={true}
                 />
               </div>
 
               <div className="flex flex-col gap-2">
-                <ResolutionCriteria
-                  post={detailedPost}
-                  defaultOpen={false}
-                  className="my-0 gap-2"
-                />
-                <BackgroundInfo post={detailedPost} defaultOpen={false} />
-
                 <CommentsFeedProvider
                   postData={detailedPost}
                   rootCommentStructure={true}
                 >
+                  <ResolutionCriteria
+                    post={detailedPost}
+                    defaultOpen={false}
+                    className="my-0 gap-2"
+                  />
+                  <KeyFactorsQuestionSection
+                    post={detailedPost}
+                    variant="flow"
+                  />
+                  <BackgroundInfo post={detailedPost} defaultOpen={false} />
+                  <PrivateNote post={detailedPost} />
                   <PredictionFlowCommentsSection postData={detailedPost} />
                 </CommentsFeedProvider>
               </div>

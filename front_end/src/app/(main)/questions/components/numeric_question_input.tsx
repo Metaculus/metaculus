@@ -126,22 +126,6 @@ const NumericQuestionInput: React.FC<{
     question_weight: 1.0,
     default_score_type: "peer",
     default_aggregation_method: AggregationMethod.recency_weighted,
-    forecasts: {
-      timestamps: [],
-      nr_forecasters: [],
-      my_forecasts: {
-        timestamps: [],
-        medians: [],
-        distribution_input: null,
-      },
-      medians: [],
-      q3s: [],
-      q1s: [],
-      means: [],
-      latest_pmf: [],
-      latest_cdf: [],
-      histogram: [],
-    },
     type: questionType,
     scaling: {
       range_max: max as number,
@@ -179,7 +163,11 @@ const NumericQuestionInput: React.FC<{
         if ((min ? min : 0) <= zeroPoint && zeroPoint <= (max ? max : 0)) {
           questionType == QuestionType.Numeric
             ? current_errors.push(
-                t.rich("zeroPointError1", { zeroPoint, min, max })
+                t.rich("zeroPointError1", {
+                  zeroPoint,
+                  min: min ?? 0,
+                  max: max ?? 0,
+                })
               )
             : current_errors.push(
                 t.rich("zeroPointError1", {
@@ -583,8 +571,7 @@ const NumericQuestionInput: React.FC<{
         )}
 
         {errors.length === 0 && !isNil(max) && !isNil(min) && (
-          <div style={{ width: 700 }}>
-            {/* width set to match default contianer width on question page */}
+          <div>
             Example input chart:
             <ExampleContinuousInput question={question} />
           </div>

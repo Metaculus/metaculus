@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 
 import FanChart from "@/components/charts/fan_chart";
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
@@ -26,9 +26,10 @@ type YearTab = "overview" | string;
 
 type Props = {
   tournament: Tournament;
+  children?: ReactNode;
 };
 
-export default function IndexHeaderBlock({ tournament }: Props) {
+export default function IndexHeaderBlock({ tournament, children }: Props) {
   const t = useTranslations();
   const idx = tournament.index_data;
 
@@ -134,6 +135,8 @@ export default function IndexHeaderBlock({ tournament }: Props) {
             max={idx?.max ?? null}
           />
         )}
+
+        {children ? <div className="mt-4 sm:mt-5">{children}</div> : null}
       </div>
     </div>
   );

@@ -3,10 +3,16 @@ import { CurrentUser } from "@/types/users";
 export type AuthContextType = {
   user: CurrentUser | null;
   setUser: (user: CurrentUser | null) => void;
+  csrfToken?: string | null;
+};
+
+export type AuthTokens = {
+  access: string;
+  refresh: string;
 };
 
 export type SocialAuthResponse = {
-  token: string;
+  tokens: AuthTokens;
 };
 
 export type SocialProviderType = "facebook" | "google-oauth2";
@@ -17,11 +23,12 @@ export type SocialProvider = {
 };
 
 export type AuthResponse = {
-  token: string;
+  tokens: AuthTokens;
   user: CurrentUser;
 };
 
-export type SignUpResponse = AuthResponse & {
+export type SignUpResponse = {
+  tokens: AuthTokens | null;
+  user: CurrentUser;
   is_active: boolean;
-  token: string | null;
 };

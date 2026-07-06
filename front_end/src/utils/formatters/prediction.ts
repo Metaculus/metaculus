@@ -52,6 +52,7 @@ export function getForecastNumericDisplayValue(
   params?: {
     precision?: number;
     unit?: string;
+    scaling?: Scaling;
     discreteValueOptions?: number[];
   }
 ) {
@@ -60,6 +61,11 @@ export function getForecastNumericDisplayValue(
   if (discreteValueOptions) {
     closestValue = discreteValueOptions.reduce((prev, curr) =>
       Math.abs(curr - +value) < Math.abs(prev - +value) ? curr : prev
+    );
+  } else if (params?.scaling) {
+    return formatValueUnit(
+      abbreviatedNumber(closestValue, precision, false, params.scaling),
+      unit
     );
   }
   return formatValueUnit(abbreviatedNumber(closestValue, precision), unit);
@@ -140,6 +146,7 @@ function formatPredictionDisplayValue(
     return getForecastNumericDisplayValue(value, {
       precision,
       unit,
+      scaling,
       discreteValueOptions,
     });
   } else {
@@ -401,9 +408,9 @@ export function getUserPredictionDisplayValue({
     return "...";
   }
 
-  let center: number | undefined;
-  let lower: number | undefined = undefined;
-  let upper: number | undefined = undefined;
+  let center: number | null | undefined;
+  let lower: number | null | undefined = undefined;
+  let upper: number | null | undefined = undefined;
   if (questionType === QuestionType.Binary) {
     center = closestUserForecast.forecast_values[1];
   } else {

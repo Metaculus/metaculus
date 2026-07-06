@@ -61,13 +61,20 @@ export function getMarkdownSummary({
   return result;
 }
 
+export function stripMarkdown(markdown: string): string {
+  return String(remark().use(strip).processSync(markdown)).trim();
+}
+
 export function estimateReadingTime(markdown: string) {
   const words = markdown.split(/\s+/).length;
   const wordsPerMinute = 225;
   return Math.ceil(words / wordsPerMinute);
 }
 
-export function sanitizeHtmlContent(content: string): string {
+export function sanitizeHtmlContent(
+  content: string,
+  options?: { allowStyleTag?: boolean }
+): string {
   // DOMPurify doesn't allow self-closing tags for mXSS protection
   // Our DB includes a bunch of self-closing tags for iframes, so pre-process text to expected HTML format
   const iframeRegex = /<iframe\s+([^>]*?)\s*\/>/gs;
@@ -75,8 +82,15 @@ export function sanitizeHtmlContent(content: string): string {
     return `<iframe ${attributes}></iframe>`;
   });
 
+  const addTags = ["iframe"];
+  if (options?.allowStyleTag) {
+    addTags.push("style");
+  }
+
   const purified = DOMPurify.sanitize(processedContent, {
-    ADD_TAGS: ["iframe"],
+    ADD_TAGS: addTags,
+    // FORCE_BODY prevents DOMPurify from stripping <style> tags at the beginning of HTML
+    FORCE_BODY: options?.allowStyleTag,
     ADD_ATTR: [
       /**
        * Attribute-driven toggle
@@ -95,8 +109,25 @@ export function sanitizeHtmlContent(content: string): string {
       "frameborder",
       "allowfullscreen",
       "scrolling",
+
+      /**
+       * Link attributes
+       */
+      "target",
+      "rel",
     ],
   });
 
-  return purified;
+  // Prevent tabnabbing: add rel="noopener noreferrer" to target="_blank" links
+  const withSafeLinks = purified.replace(
+    /<a\s+([^>]*target="_blank"[^>]*)>/gi,
+    (match, attrs) => {
+      if (/rel=/.test(attrs)) {
+        return match;
+      }
+      return `<a ${attrs} rel="noopener noreferrer">`;
+    }
+  );
+
+  return withSafeLinks;
 }

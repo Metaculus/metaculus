@@ -24,7 +24,7 @@ urlpatterns = [
     path(
         "comments/<int:pk>/toggle-pin/",
         common.comment_toggle_pin_view,
-        name="comment-togle-pin",
+        name="comment-toggle-pin",
     ),
     path("comments/create/", common.comment_create_api_view, name="comment-create"),
     path(

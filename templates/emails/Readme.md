@@ -6,7 +6,7 @@ We compile MJML to HTML once, when we change the e-mails, and then use the compi
 
 This is how we compile all `metac_question` email templates:
 
-1. Install [mjml](https://mjml.io/): `npm i -g mjml`
+1. Install [mjml](https://mjml.io/): `bun add -g mjml`
 2. Compose mjml templates in django apps: `python manage.py mjml_compose`
 
 ## Limitations

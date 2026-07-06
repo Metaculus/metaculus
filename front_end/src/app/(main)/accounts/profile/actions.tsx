@@ -7,8 +7,8 @@ import {
   updateProfileSchema,
 } from "@/app/(main)/accounts/schemas";
 import ServerProfileApi from "@/services/api/profile/profile.server";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 import { LanguageService } from "@/services/language_service";
-import { getServerSession } from "@/services/session";
 import type { ErrorResponse } from "@/types/fetch";
 import { CurrentUser } from "@/types/users";
 import { ApiError } from "@/utils/core/errors";
@@ -109,6 +109,12 @@ export async function updateProfileAction(
       | "app_theme"
       | "interface_type"
       | "language"
+      | "metaculus_news_subscription"
+      | "automatically_follow_on_predict"
+      | "follow_notify_cp_change_threshold"
+      | "follow_notify_comments_frequency"
+      | "follow_notify_milestone_step"
+      | "follow_notify_on_status_change"
     >
   >,
   revalidate = true
@@ -129,9 +135,9 @@ export async function updateLanguagePreference(
   language: string,
   revalidate = true
 ) {
-  const serverSession = await getServerSession();
+  const authManager = await getAuthCookieManager();
 
-  if (serverSession) {
+  if (authManager.hasAuthSession()) {
     // Update the user's language preference in the database
     await ServerProfileApi.updateProfile({
       language: language,

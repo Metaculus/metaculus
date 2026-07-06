@@ -242,7 +242,7 @@
                                   </tr>
                                 </thead>
                                 <tbody> {% for item in notification.question_data %} <tr style="{% if not forloop.last %}border-bottom: 1px solid #E5E7EB;{% endif %}">
-                                    <td style="padding: 8px; text-align: left; font-size: 13px; color: #161C22;"> {% if item.question.type == "multiple_choice" %} {{ item.label }} {% else %} {{ item.format_question_title }} {% endif %} </td>
+                                    <td style="padding: 8px; text-align: left; font-size: 13px; color: #161C22;"> {% if item.question.type == "multiple_choice" %} {{ item.label }} {% else %} {{ item.question.label }} {% endif %} </td>
                                     <td style="padding: 8px 4px; text-align: center; font-size: 13px; font-weight: 600; color: #161C22;">
                                       {{ item.get_cp_change_symbol }}{{item.format_cp_change_value }}
                                     </td>

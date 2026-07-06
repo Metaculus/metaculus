@@ -1,13 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import BaseModal from "@/components/base_modal";
-import OnboardingLoading from "@/components/onboarding/onboarding_loading";
+import { useOnboardingFeed } from "@/components/onboarding/hooks/use_onboarding_feed";
 import StepsRouter from "@/components/onboarding/steps";
-import { ONBOARDING_TOPICS } from "@/components/onboarding/utils";
 import { useAuth } from "@/contexts/auth_context";
 import useStoredState from "@/hooks/use_stored_state";
-import ClientPostsApi from "@/services/api/posts/posts.client";
 import { OnboardingStoredState, OnboardingTopic } from "@/types/onboarding";
 import { PostWithForecasts } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
@@ -23,7 +21,7 @@ type OnboardingModalProps = {
 };
 
 const INITIAL_STATE = {
-  selectedTopicId: null,
+  selectedTopicName: null,
   currentStep: 0,
   step2Prediction: 50,
 };
@@ -34,13 +32,15 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
 }) => {
   const modalContentRef = useRef<HTMLDivElement>(null);
   const [posts, setPosts] = useState<PostWithForecasts[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [topic, setTopic] = useState<OnboardingTopic | null>(null);
   const { user, setUser } = useAuth();
 
+  const { topics, postMap, isLoading, fetchError, refetch } =
+    useOnboardingFeed(isOpen);
+
   const [onboardingState, setOnboardingState, deleteOnboardingState] =
     useStoredState<OnboardingStoredState>(ONBOARDING_STATE_KEY, INITIAL_STATE);
-  const { selectedTopicId, currentStep } = onboardingState;
+  const { selectedTopicName, currentStep } = onboardingState;
 
   useEffect(() => {
     // Cleanup onboarding state after completion
@@ -54,38 +54,34 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
     }
   };
 
-  // Topic change handler
+  // Topic selection handler
   useEffect(() => {
-    if (isOpen && selectedTopicId !== null && !posts.length) {
-      const topicObject = ONBOARDING_TOPICS[selectedTopicId];
-      if (!topicObject) return;
+    if (isOpen && selectedTopicName !== null && !posts.length) {
+      const topicObject = topics.find((t) => t.name === selectedTopicName);
+      if (!topicObject) {
+        // Persisted selection no longer matches any topic; reset
+        setTopic(null);
+        setPosts([]);
+        setOnboardingState(INITIAL_STATE);
+        return;
+      }
 
-      setIsLoading(true);
       setTopic(topicObject);
 
-      const updatePosts = async () => {
-        try {
-          const postIds = topicObject.questions.slice(0, 2);
-          const { results: posts } = await ClientPostsApi.getPostsWithCP({
-            ids: postIds,
-            offset: 0,
-            limit: postIds.length,
-          });
-          setPosts(posts);
-          // Go to next page
-          if (currentStep === 0) {
-            onNext();
-          }
-        } finally {
-          setIsLoading(false);
-        }
-      };
+      // Look up posts from postMap (no additional API call needed)
+      const topicPosts = topicObject.questions
+        .map((id) => postMap.get(id))
+        .filter((p): p is PostWithForecasts => p != null);
 
-      // Load posts
-      void updatePosts();
+      setPosts(topicPosts);
+
+      // Go to next page
+      if (currentStep === 0) {
+        onNext();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, selectedTopicId, posts.length]);
+  }, [isOpen, selectedTopicName, posts.length, topics.length]);
 
   // Hide tutorial for 24h
   const handlePostponeTutorial = () => {
@@ -97,11 +93,12 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
     onClose();
   };
 
-  const resetState = () => {
+  const resetState = useCallback(() => {
     setTopic(null);
     setPosts([]);
     deleteOnboardingState();
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deleteOnboardingState]);
 
   // Mark tutorial as completed
   const handleCompleteTutorial = () => {
@@ -128,15 +125,18 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
     if (nextStep > 0) {
       setOnboardingState((prev) => ({ ...prev, currentStep: nextStep }));
     } else {
-      resetState();
+      // Go back to topic selection without clearing fetched data
+      setTopic(null);
+      setPosts([]);
+      setOnboardingState(INITIAL_STATE);
     }
     scrollToTop();
   };
 
-  const setTopicId = (id: number) => {
+  const setTopicByName = (name: string) => {
     setOnboardingState((prev) => ({
       ...prev,
-      selectedTopicId: id,
+      selectedTopicName: name,
     }));
   };
 
@@ -147,22 +147,22 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
       isImmersive={true}
       modalContentRef={modalContentRef}
     >
-      {isLoading ? (
-        <OnboardingLoading />
-      ) : (
-        <StepsRouter
-          topic={topic}
-          onNext={onNext}
-          onPrev={onPrev}
-          onComplete={handleCompleteTutorial}
-          setTopic={setTopicId}
-          onboardingState={onboardingState}
-          setOnboardingState={setOnboardingState}
-          posts={posts}
-          handleComplete={handleCompleteTutorial}
-          handlePostpone={handlePostponeTutorial}
-        />
-      )}
+      <StepsRouter
+        topic={topic}
+        topics={topics}
+        isLoading={isLoading}
+        fetchError={fetchError}
+        onRetry={refetch}
+        onNext={onNext}
+        onPrev={onPrev}
+        onComplete={handleCompleteTutorial}
+        setTopic={setTopicByName}
+        onboardingState={onboardingState}
+        setOnboardingState={setOnboardingState}
+        posts={posts}
+        handleComplete={handleCompleteTutorial}
+        handlePostpone={handlePostponeTutorial}
+      />
     </BaseModal>
   );
 };

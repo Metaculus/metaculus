@@ -1,3 +1,6 @@
+"use client";
+
+import { useAuth } from "@/contexts/auth_context";
 import { PostWithForecasts } from "@/types/post";
 import {
   isGroupOfQuestionsPost,
@@ -11,20 +14,28 @@ import SingleQuestionPrediction from "./single_question_prediction";
 
 type Props = {
   postData: PostWithForecasts;
+  className?: string;
 };
 
-const ConsumerQuestionPrediction: React.FC<Props> = ({ postData }) => {
+const ConsumerQuestionPrediction: React.FC<Props> = ({
+  postData,
+  className,
+}) => {
+  const { user } = useAuth();
+
   if (isQuestionPost(postData) && !isMultipleChoicePost(postData)) {
     return (
       <SingleQuestionPrediction
-        canPredict={canPredictQuestion(postData)}
+        canPredict={canPredictQuestion(postData, user)}
         question={postData.question}
       />
     );
   }
 
   if (isMultipleChoicePost(postData) || isGroupOfQuestionsPost(postData)) {
-    return <GroupOfQuestionsPrediction postData={postData} />;
+    return (
+      <GroupOfQuestionsPrediction postData={postData} className={className} />
+    );
   }
 
   return null;

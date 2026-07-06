@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { CoherenceLinksApiClass } from "@/services/api/coherence_links/coherence_links.server";
+import { AggregateLinkVoteValue } from "@/services/api/coherence_links/coherence_links.shared";
 import ServerCommentsApi from "@/services/api/comments/comments.server";
 import {
   CommentReportReason,
@@ -23,10 +24,12 @@ import ServerQuestionsApi, {
   ForecastPayload,
   WithdrawalPayload,
 } from "@/services/api/questions/questions.server";
-import { CoherenceLink } from "@/types/coherence";
+import {
+  AggregateCoherenceLinkVotesSummary,
+  CoherenceLink,
+} from "@/types/coherence";
 import { ErrorResponse } from "@/types/fetch";
 import { NotebookPost, PostSubscription } from "@/types/post";
-import { Tournament, TournamentType } from "@/types/projects";
 import { Question } from "@/types/question";
 import { DataParams, DeepPartial } from "@/types/utils";
 import { VoteDirection } from "@/types/votes";
@@ -115,16 +118,9 @@ export async function makeRepost(postId: number, projectId: number) {
   await ServerPostsApi.repost(postId, projectId);
 }
 
-export async function draftPost(postId: number, defaultProject: Tournament) {
+export async function draftPost(postId: number) {
   await ServerPostsApi.makeDraft(postId);
-
-  if (defaultProject.type === TournamentType.Community) {
-    return redirect(
-      `/c/${defaultProject.slug}/settings/?mode=questions&status=pending`
-    );
-  }
-
-  return redirect("/questions/?status=pending");
+  revalidatePath(`/questions/${postId}`);
 }
 
 export async function submitPostForReview(postId: number) {
@@ -143,6 +139,10 @@ export async function deletePost(postId: number) {
 
 export async function sendBackToReview(postId: number) {
   return await ServerPostsApi.sendBackToReview(postId);
+}
+
+export async function savePrivateNote(postId: number, text: string) {
+  return await ServerPostsApi.savePrivateNote(postId, text);
 }
 
 export async function updateNotebook(
@@ -300,7 +300,7 @@ export async function changePostActivityBoost(
 
 export async function removeRelatedArticle(articleId: number) {
   await ServerPostsApi.removeRelatedArticle(articleId);
-  revalidateTag("related-articles");
+  revalidateTag("related-articles", "max");
 }
 
 export async function changePostSubscriptions(
@@ -363,6 +363,33 @@ export async function deleteCoherenceLink(link: CoherenceLink) {
   }
 }
 
+export async function updateCoherenceLink(
+  id: number,
+  direction: number,
+  strength: number
+): Promise<null | ErrorResponse> {
+  try {
+    await CoherenceLinksApiClass.updateCoherenceLink(id, {
+      direction,
+      strength,
+    });
+    return null;
+  } catch (err) {
+    return ApiError.isApiError(err) ? err.data : {};
+  }
+}
+
+export async function swapCoherenceLink(
+  id: number
+): Promise<null | ErrorResponse> {
+  try {
+    await CoherenceLinksApiClass.updateCoherenceLink(id, { swap: true });
+    return null;
+  } catch (err) {
+    return ApiError.isApiError(err) ? err.data : {};
+  }
+}
+
 export async function setExcludedFromWeekTopComments(
   commentId: number,
   excluded: boolean
@@ -397,4 +424,25 @@ export async function replyToComment(
     text,
     is_private: false,
   });
+}
+
+export type VoteAggregateCoherenceLinkResult =
+  | { data: AggregateCoherenceLinkVotesSummary }
+  | { errors: ErrorResponse };
+
+export async function voteAggregateCoherenceLink(
+  aggregationId: number,
+  vote: AggregateLinkVoteValue
+): Promise<VoteAggregateCoherenceLinkResult> {
+  try {
+    const data = await CoherenceLinksApiClass.voteAggregateCoherenceLink(
+      aggregationId,
+      vote
+    );
+    return { data };
+  } catch (err) {
+    return {
+      errors: ApiError.isApiError(err) ? err.data : {},
+    };
+  }
 }

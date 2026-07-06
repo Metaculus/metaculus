@@ -10,6 +10,14 @@ class ScoreTypes(models.TextChoices):
     MANUAL = "manual"
 
 
+class ExclusionStatuses(models.IntegerChoices):
+    INCLUDE = 0
+    EXCLUDE_PRIZE_ONLY = 1
+    EXCLUDE_AND_SHOW = 2
+    EXCLUDE_AND_SHOW_IN_ADVANCED = 3
+    EXCLUDE = 4
+
+
 class ArchivedScoreTypes(models.TextChoices):
     RELATIVE_LEGACY = "relative_legacy"
 

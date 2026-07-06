@@ -139,7 +139,7 @@ const LeaderboardHeader: FC<Props> = ({ filters, leaderboardTags }) => {
         )}
       </div>
       <div className="flex flex-col gap-3">
-        {Number(year) + Number(duration) > 2024 && (
+        {Number(year) + Number(duration) > 2025 && (
           <div className="max-w-3xl px-5 py-2 text-center text-xs font-normal text-gray-700 dark:text-gray-700-dark sm:py-0">
             {t("liveLeaderboardDisclaimer")}
           </div>

@@ -12,21 +12,28 @@ type Props = {
 const ContinuousInputModeSwitcher: FC<Props> = ({ mode, onChange }) => {
   const t = useTranslations();
   return (
-    <div className="flex h-fit gap-1">
-      <SwitcherBtn
-        onChange={onChange}
-        mode={mode}
-        value={ContinuousForecastInputType.Slider}
-      >
-        {t("slider")}
-      </SwitcherBtn>
-      <SwitcherBtn
-        onChange={onChange}
-        mode={mode}
-        value={ContinuousForecastInputType.Quantile}
-      >
-        {t("table")}
-      </SwitcherBtn>
+    <div className="flex h-fit flex-col gap-1">
+      <div className="flex gap-1">
+        <SwitcherBtn
+          onChange={onChange}
+          mode={mode}
+          value={ContinuousForecastInputType.Slider}
+        >
+          {t("slider")}
+        </SwitcherBtn>
+        <SwitcherBtn
+          onChange={onChange}
+          mode={mode}
+          value={ContinuousForecastInputType.Quantile}
+        >
+          {t("table")}
+        </SwitcherBtn>
+      </div>
+      {mode === ContinuousForecastInputType.Quantile && (
+        <p className="m-0 pl-3 text-xs text-gray-600 dark:text-gray-600-dark">
+          ↑ {t("switchBackToSlidersHint")}
+        </p>
+      )}
     </div>
   );
 };

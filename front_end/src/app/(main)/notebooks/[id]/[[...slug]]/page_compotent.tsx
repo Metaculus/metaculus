@@ -5,8 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { FC } from "react";
 
 import CommentsFeedProvider from "@/app/(main)/components/comments_feed_provider";
-import CommunityHeader from "@/app/(main)/components/headers/community_header";
-import Header from "@/app/(main)/components/headers/header";
+import { TopChromeHeaderSetter } from "@/app/(main)/components/top_chrome_header_context";
 import NotebookContentSections from "@/app/(main)/notebooks/components/notebook_content_sections";
 import NotebookEditor from "@/app/(main)/notebooks/components/notebook_editor";
 import {
@@ -20,7 +19,6 @@ import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions";
 import PostVoter from "@/components/post_card/basic_post_card/post_voter";
 import PostSubscribeButton from "@/components/post_subscribe/subscribe_button";
 import CircleDivider from "@/components/ui/circle_divider";
-import { POST_CATEGORIES_FILTER } from "@/constants/posts_feed";
 import { PostSubscriptionProvider } from "@/contexts/post_subscription_context";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
@@ -34,34 +32,32 @@ const IndividualNotebookPage: FC<{
   params: { id: number; slug: string[] };
 }> = async ({ params }) => {
   const postData = await ServerPostsApi.getPost(params.id);
-  const defaultProject = postData.projects.default_project;
+  const defaultProject = postData.projects?.default_project;
 
   if (!isNotebookPost(postData)) {
     return notFound();
   }
 
-  const isCommunityQuestion = defaultProject.type === TournamentType.Community;
-  let currentCommunity = null;
-  if (isCommunityQuestion) {
-    currentCommunity = await ServerProjectsApi.getCommunity(
-      defaultProject.slug as string
-    );
-  }
+  const isCommunityNotebook = defaultProject?.type === TournamentType.Community;
+  const community =
+    isCommunityNotebook && defaultProject?.slug
+      ? await ServerProjectsApi.getCommunity(defaultProject.slug)
+      : null;
 
   const locale = await getLocale();
   const t = await getTranslations();
   const questionTitle = getPostTitle(postData);
 
-  const HeaderElement = isCommunityQuestion ? (
-    <CommunityHeader community={currentCommunity} />
-  ) : (
-    <Header />
-  );
-
   return (
     <>
-      {HeaderElement}
-
+      {community && (
+        <TopChromeHeaderSetter
+          header={{
+            type: "community",
+            community,
+          }}
+        />
+      )}
       <main className="mx-auto mb-24 mt-12 flex w-full max-w-6xl flex-1 flex-col bg-gray-0 p-4 text-base text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark xs:p-8">
         {postData.notebook.image_url &&
           postData.notebook.image_url.startsWith("https:") && (
@@ -100,13 +96,27 @@ const IndividualNotebookPage: FC<{
             <CircleDivider className="mx-1" />
 
             <span className="whitespace-nowrap">
-              {formatDate(locale, new Date(postData.published_at))}
+              {formatDate(
+                locale,
+                new Date(postData.published_at ?? postData.notebook.created_at)
+              )}
             </span>
-            <CircleDivider className="mx-1" />
-            <span className="whitespace-nowrap">
-              Edited on{" "}
-              {formatDate(locale, new Date(postData.notebook.edited_at))}
-            </span>
+            {postData.notebook.edited_at &&
+              (!postData.published_at ||
+                new Date(postData.published_at) <=
+                  new Date(postData.notebook.edited_at)) && (
+                <>
+                  <CircleDivider className="mx-1" />
+                  <span className="whitespace-nowrap">
+                    {t("editedOnDate", {
+                      date: formatDate(
+                        locale,
+                        new Date(postData.notebook.edited_at)
+                      ),
+                    })}
+                  </span>
+                </>
+              )}
             <CircleDivider className="mx-1" />
             <span className="whitespace-nowrap">
               {t("estimatedReadingTime", {
@@ -152,27 +162,6 @@ const IndividualNotebookPage: FC<{
               postData={postData}
               contentId={NOTEBOOK_CONTENT_SECTION}
             />
-            <div className="flex flex-col gap-2">
-              {!!postData.projects.category?.length && (
-                <div>
-                  <span className="font-medium">{t("Categories") + ":"}</span>
-                  {postData.projects.category?.map((category, index) => (
-                    <span key={category.id}>
-                      {" "}
-                      <Link
-                        className="text-gray-800 no-underline hover:underline dark:text-gray-800-dark"
-                        href={`/questions?${POST_CATEGORIES_FILTER}=${category.slug}`}
-                      >
-                        {category.name}
-                      </Link>
-                      {index < (postData.projects.category?.length ?? 0) - 1
-                        ? ","
-                        : "."}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
             <CommentsFeedProvider
               postData={postData}
               rootCommentStructure={true}

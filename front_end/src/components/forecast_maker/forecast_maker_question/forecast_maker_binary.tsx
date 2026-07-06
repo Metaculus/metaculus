@@ -15,33 +15,32 @@ import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
-import { PostWithForecasts, ProjectPermissions } from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { sendPredictEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
+import { isQuestionPrePrediction } from "@/utils/questions/predictions";
 
 import PredictionSuccessBox from "./prediction_success_box";
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import {
   ForecastExpirationModal,
-  ForecastExpirationValue,
   forecastExpirationToDate,
+  ForecastExpirationValue,
+  getExpirationBaseDate,
   useExpirationModalState,
 } from "../forecast_expiration";
 import PredictButton from "../predict_button";
-import QuestionResolutionButton from "../resolution";
-import QuestionUnresolveButton from "../resolution/unresolve_button";
 import WithdrawButton from "../withdraw/withdraw_button";
 
 type Props = {
   post: PostWithForecasts;
   question: QuestionWithNumericForecasts;
   prevForecast?: number | null;
-  permission?: ProjectPermissions;
   canPredict: boolean;
-  canResolve: boolean;
+  predictLabel: string;
   predictionMessage?: ReactNode;
   onPredictionSubmit?: () => void;
 };
@@ -49,9 +48,8 @@ type Props = {
 const ForecastMakerBinary: FC<Props> = ({
   post,
   question,
-  permission,
   canPredict,
-  canResolve,
+  predictLabel,
   predictionMessage,
   onPredictionSubmit,
 }) => {
@@ -100,7 +98,11 @@ const ForecastMakerBinary: FC<Props> = ({
     isForecastExpirationModalOpen,
     setIsForecastExpirationModalOpen,
     previousForecastExpiration,
-  } = useExpirationModalState(questionDuration, question.my_forecasts?.latest);
+  } = useExpirationModalState(
+    questionDuration,
+    question.my_forecasts?.latest,
+    isQuestionPrePrediction(question)
+  );
 
   const [submitError, setSubmitError] = useState<ErrorResponse>();
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
@@ -122,7 +124,10 @@ const ForecastMakerBinary: FC<Props> = ({
           probabilityYes: forecastValue,
           probabilityYesPerCategory: null,
         },
-        forecastEndTime: forecastExpirationToDate(forecastExpiration),
+        forecastEndTime: forecastExpirationToDate(
+          forecastExpiration,
+          getExpirationBaseDate(question)
+        ),
       },
     ]);
     setIsForecastDirty(false);
@@ -172,6 +177,7 @@ const ForecastMakerBinary: FC<Props> = ({
         isUserForecastActive={!!activeUserForecast}
         isDirty={isForecastDirty}
         questionDuration={questionDuration}
+        predictLabel={predictLabel}
       />
 
       <BinarySlider
@@ -208,7 +214,7 @@ const ForecastMakerBinary: FC<Props> = ({
                   isDirty={isForecastDirty}
                   isPending={isPending}
                   onSubmit={() => submit(modalSavedState.forecastExpiration)}
-                  predictLabel={t("predict")}
+                  predictLabel={predictLabel}
                   predictionExpirationChip={expirationShortChip}
                   onPredictionExpirationClick={() =>
                     setIsForecastExpirationModalOpen(true)
@@ -256,15 +262,6 @@ const ForecastMakerBinary: FC<Props> = ({
               router.push(`${pathname}?action=comment-with-forecast`);
             }}
             className="mb-4 w-full justify-center"
-          />
-        )}
-
-        <QuestionUnresolveButton question={question} permission={permission} />
-
-        {canResolve && (
-          <QuestionResolutionButton
-            question={question}
-            permission={permission}
           />
         )}
       </div>

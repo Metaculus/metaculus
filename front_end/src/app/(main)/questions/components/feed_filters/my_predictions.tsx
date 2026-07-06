@@ -7,6 +7,7 @@ import {
   getFilterSectionPostStatus,
   getFilterSectionPostType,
 } from "@/app/(main)/questions/helpers/filters";
+import { useFeedQuery } from "@/app/(main)/questions/hooks/use_feed_query";
 import { FilterReplaceInfo } from "@/components/popover_filter/types";
 import PostsFilters from "@/components/posts_filters";
 import { GroupButton } from "@/components/ui/button_group";
@@ -16,14 +17,21 @@ import {
   POST_STATUS_FILTER,
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
-import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
 
-type Props = { panelClassname?: string };
+type Props = {
+  panelClassname?: string;
+  variant?: "full" | "mobileActions";
+  hideMobileActions?: boolean;
+};
 
-const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
-  const { params } = useSearchParams();
+const MyPredictionsFilters: FC<Props> = ({
+  panelClassname,
+  variant,
+  hideMobileActions,
+}) => {
+  const { params } = useFeedQuery();
   const t = useTranslations();
   const { user } = useAuth();
 
@@ -49,8 +57,8 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
         label: t("movers"),
       },
       {
-        value: QuestionOrder.DivergenceDesc,
-        label: t("divergence"),
+        value: QuestionOrder.UserNextWithdrawTimeAsc,
+        label: t("withdrawingSoon"),
       },
       {
         value: QuestionOrder.UnreadCommentCountDesc,
@@ -67,10 +75,11 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
         label: t("recentPredictions"),
       },
       {
-        value: QuestionOrder.UserNextWithdrawTimeAsc,
-        label: t("withdrawingSoon"),
+        value: QuestionOrder.DivergenceDesc,
+        label: t("divergence"),
       },
       { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
+      { value: QuestionOrder.CpRevealTimeDesc, label: t("recentlyRevealed") },
       { value: QuestionOrder.ScoreDesc, label: t("bestScores") },
       { value: QuestionOrder.ScoreAsc, label: t("worstScores") },
       { value: QuestionOrder.LastPredictionTimeAsc, label: t("stale") },
@@ -85,6 +94,7 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
       optionValue: string | string[] | null;
       replaceInfo?: FilterReplaceInfo;
     },
+    order: QuestionOrder,
     deleteParam: (
       name: string,
       withNavigation?: boolean,
@@ -101,10 +111,9 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
       QuestionOrder.WeeklyMovementDesc,
       QuestionOrder.DivergenceDesc,
       QuestionOrder.ScoreDesc,
-      QuestionOrder.ScoreDesc,
       QuestionOrder.LastPredictionTimeAsc,
       QuestionOrder.HotAsc,
-    ].includes(params.get(POST_ORDER_BY_FILTER) as QuestionOrder);
+    ].includes(order);
 
     if (didRemoveUserFilter && isUserSpecificOrder) {
       // clear user specific order if user filter is removed
@@ -152,7 +161,10 @@ const MyPredictionsFilters: FC<Props> = ({ panelClassname }) => {
       onOrderChange={handleOrderChange}
       onPopOverFilterChange={handleFilterChange}
       defaultOrder={QuestionOrder.WeeklyMovementDesc}
+      alwaysKeepOrderInUrl
       panelClassname={panelClassname}
+      variant={variant}
+      hideMobileActions={hideMobileActions}
     />
   );
 };

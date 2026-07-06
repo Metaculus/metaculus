@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from misc.models import WhitelistUser
+from misc.models import UserDataAccess
 from posts.models import Post
 from posts.services.common import get_post_permission_for_user
 from projects.models import Project
@@ -51,18 +51,19 @@ def aggregation_explorer_api_view(request) -> Response:
 
     # Context for the serializer
     is_staff = user.is_authenticated and user.is_staff
-    is_whitelisted = user.is_authenticated and (
-        WhitelistUser.objects.filter(
+    has_data_access = user.is_authenticated and (
+        UserDataAccess.objects.filter(
             Q(post=post)
             | Q(project=post.default_project)
             | (Q(post__isnull=True) & Q(project__isnull=True)),
             user=user,
+            view_user_data=True,
         ).exists()
     )
     serializer_context = {
         "user": user if user.is_authenticated else None,
         "is_staff": is_staff,
-        "is_whitelisted": is_whitelisted,
+        "has_data_access": has_data_access,
     }
 
     serializer = DataGetRequestSerializer(
@@ -70,7 +71,7 @@ def aggregation_explorer_api_view(request) -> Response:
     )
     serializer.is_valid(raise_exception=True)
     params = serializer.validated_data
-    aggregation_methods = params.get("aggregation_methods")
+    aggregation_methods = params.get("aggregation_methods", [])
     only_include_user_ids = params.get("user_ids")
     include_bots = params.get("include_bots")
     minimize = params.get("minimize", True)
@@ -124,7 +125,7 @@ def validate_data_request(request: Request, **kwargs):
     user: User = request.user
 
     question: Question | None = None
-    post: Post | None = None
+    posts: list[Post] = []
     project: Project | None = None
 
     if question_id := data.get("question_id"):
@@ -132,21 +133,36 @@ def validate_data_request(request: Request, **kwargs):
     elif sub_question := data.get("sub_question"):
         question = get_object_or_404(Question, id=sub_question)
 
+    # Handle multiple post_ids
+    # For GET requests, use getlist to handle repeated query params (post_ids=1&post_ids=2)
+    if request.method == "GET":
+        post_ids = request.GET.getlist("post_ids") or []
+    else:
+        post_ids = data.get("post_ids") or []
     if post_id := data.get("post_id"):
-        post = get_object_or_404(Post, id=post_id)
+        post_ids = [post_id] + [pid for pid in post_ids if str(pid) != str(post_id)]
+
+    if post_ids:
+        posts = list(Post.objects.filter(id__in=post_ids))
+        if len(posts) != len(post_ids):
+            found_ids = {p.id for p in posts}
+            missing_ids = [pid for pid in post_ids if int(pid) not in found_ids]
+            raise NotFound(f"Posts not found: {missing_ids}")
+        # Check permissions for all posts
+        for post in posts:
+            permission = get_post_permission_for_user(post, user=user)
+            ObjectPermission.can_view(permission, raise_exception=True)
     elif question:
         post = question.get_post()
-    else:
-        post = None
-    if post:
-        # Check permissions
-        permission = get_post_permission_for_user(post, user=user)
-        ObjectPermission.can_view(permission, raise_exception=True)
+        if post:
+            posts = [post]
+            permission = get_post_permission_for_user(post, user=user)
+            ObjectPermission.can_view(permission, raise_exception=True)
 
     if project_id := data.get("project_id"):
         project = get_object_or_404(Project, id=project_id)
-    elif post:
-        project = post.default_project
+    elif len(posts) == 1:
+        project = posts[0].default_project
     if project:
         # Check permissions
         permission = get_project_permission_for_user(project, user=user)
@@ -155,19 +171,20 @@ def validate_data_request(request: Request, **kwargs):
     # Context for the serializer
     is_staff = user.is_authenticated and user.is_staff
     project_ids = [project.id] if project else []
-    if post:
+    for post in posts:
         project_ids.extend(post.projects.values_list("id", flat=True))
-    whitelistings = WhitelistUser.objects.filter(
-        (Q(post=post) if post else Q())
+    data_access_entries = UserDataAccess.objects.filter(
+        (Q(post__in=posts) if posts else Q())
         | (Q(project_id__in=project_ids) if project_ids else Q())
         | Q(project__isnull=True, post__isnull=True),
         user_id=user.id or 0,
+        view_user_data=True,
     )
-    is_whitelisted = user.is_authenticated and whitelistings.exists()
+    has_data_access = user.is_authenticated and data_access_entries.exists()
     serializer_context = {
         "user": user if user.is_authenticated else None,
         "is_staff": is_staff,
-        "is_whitelisted": is_whitelisted,
+        "has_data_access": has_data_access,
     }
 
     serializer = DataPostRequestSerializer(data=data, context=serializer_context)
@@ -180,13 +197,15 @@ def validate_data_request(request: Request, **kwargs):
     include_scores = params.get("include_scores", True)
     include_user_data = params.get("include_user_data", False)
     include_future = params.get("include_future", False)
+    include_key_factors = params.get("include_key_factors", False)
     # TODO: change url param name to only_include_user_ids (requires front end changes)
     only_include_user_ids = params.get("user_ids")
     include_bots = params.get("include_bots")
+    joined_before_date = params.get("joined_before_date")
     if is_staff:
         anonymized = params.get("anonymized", False)
-    elif is_whitelisted:
-        if whitelistings.filter(view_deanonymized_data=True).exists():
+    elif has_data_access:
+        if data_access_entries.filter(view_deanonymized_data=True).exists():
             anonymized = params.get("anonymized", False)
         else:
             anonymized = True
@@ -197,21 +216,24 @@ def validate_data_request(request: Request, **kwargs):
     questions = []
     if question:
         questions = [question]
-    elif post:
-        questions = list(post.get_questions())
+    elif posts:
+        for post in posts:
+            questions.extend(post.get_questions())
     elif project:
         questions = list(
             Question.objects.filter(
-                Q(related_posts__post__default_project=project)
-                | Q(related_posts__post__projects=project)
+                Q(post__default_project=project) | Q(post__projects=project)
             ).distinct()
         )
     if not questions:
         raise NotFound("No questions found")
 
+    # Generate filename
     filename = "metaculus_data"
-    if post:
-        filename = post.short_title or post.title
+    if len(posts) == 1:
+        filename = posts[0].short_title or posts[0].title
+    elif len(posts) > 1:
+        filename = f"metaculus_data_{len(posts)}_posts"
     elif project:
         filename = project.slug or project.name
     filename = filename.replace("\n", "").replace("\r", "")
@@ -224,7 +246,7 @@ def validate_data_request(request: Request, **kwargs):
         "user_id": user.id if user.is_authenticated else None,
         "user_email": user.email if user.is_authenticated else None,
         "is_staff": is_staff,
-        "is_whitelisted": is_whitelisted,
+        "has_data_access": has_data_access,
         "filename": filename,
         "question_ids": [q.id for q in questions],
         "aggregation_methods": aggregation_methods,
@@ -232,8 +254,10 @@ def validate_data_request(request: Request, **kwargs):
         "include_scores": include_scores,
         "include_user_data": include_user_data,
         "include_comments": include_comments,
+        "include_key_factors": include_key_factors,
         "only_include_user_ids": only_include_user_ids,
         "include_bots": include_bots,
+        "joined_before_date": joined_before_date,
         "anonymized": anonymized,
         "include_future": include_future,
     }
@@ -243,6 +267,11 @@ def validate_data_request(request: Request, **kwargs):
 @permission_classes([IsAuthenticated])
 def email_data_view(request: Request):
     validated_task_params = validate_data_request(request)
+    # Dramatiq uses JSON serialization, so convert datetime to ISO string
+    if validated_task_params.get("joined_before_date") is not None:
+        validated_task_params["joined_before_date"] = validated_task_params[
+            "joined_before_date"
+        ].isoformat()
     email_data_task.send(**validated_task_params)
     return Response({"message": "Email scheduled to be sent"}, status=200)
 

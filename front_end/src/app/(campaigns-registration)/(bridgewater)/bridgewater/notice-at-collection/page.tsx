@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import Button from "@/components/ui/button";
 
-import GlobalHeader from "../../../../(main)/components/headers/global_header";
 import PageWrapper from "../../../../(main)/components/pagewrapper";
 
 export const metadata = {
@@ -14,12 +13,11 @@ export const metadata = {
 export default function NoticeAtCollection() {
   return (
     <>
-      <GlobalHeader />
-      <div className="mx-auto mt-12 flex w-full justify-center pb-0 pt-10">
+      <div className="mx-auto flex w-full justify-center pb-0 pt-10">
         <Button
           variant="secondary"
           className="cursor-pointer"
-          href="/tournament/bridgewater/"
+          href="/bridgewater/"
         >
           View Tournament Page
         </Button>

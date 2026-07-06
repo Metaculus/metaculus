@@ -10,13 +10,10 @@ import ForecastersCounter from "@/app/(main)/questions/components/forecaster_cou
 import PredictionChip from "@/components/prediction_chip";
 import { useHideCP } from "@/contexts/cp_context";
 import { ConditionalPost, PostStatus } from "@/types/post";
-import { QuestionWithForecasts } from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
-import {
-  getConditionalQuestionTitle,
-  getConditionTitle,
-} from "@/utils/questions/helpers";
+import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 
 import ConditionalCard from "./conditional_card";
@@ -25,7 +22,7 @@ import Arrow from "./icons/Arrow";
 import DisabledArrow from "./icons/DisabledArrow";
 
 type Props = {
-  post: ConditionalPost<QuestionWithForecasts>;
+  post: ConditionalPost<QuestionWithNumericForecasts>;
   withNavigation?: boolean;
   chartTheme?: VictoryThemeDefinition;
   withCPRevealBtn?: boolean;
@@ -40,7 +37,7 @@ const ConditionalTile: FC<Props> = ({
   const t = useTranslations();
   const { hideCP } = useHideCP();
 
-  const { conditional, title, nr_forecasters } = post;
+  const { conditional, nr_forecasters } = post;
   const { condition, condition_child, question_yes, question_no } = conditional;
 
   const isEmbedded = !!chartTheme;
@@ -80,93 +77,103 @@ const ConditionalTile: FC<Props> = ({
 
   return (
     <>
-      <div className="ConditionalSummary grid grid-cols-[72px_minmax(0,_1fr)] gap-y-3 md:grid-cols-[minmax(0,_1fr)_72px_minmax(0,_1fr)]">
-        <div
-          className={cn(
-            "ConditionalSummary-condition col-span-2 flex flex-col justify-center",
-            {
-              "row-span-1 md:col-span-1 md:row-auto": !isEmbedded,
-              "xs:col-span-1": isEmbedded,
-            }
-          )}
-        >
-          <ConditionalCard
-            label={t("condition")}
-            title={getConditionTitle(title, condition)}
-            resolved={parentSuccessfullyResolved}
-            href={withNavigation ? conditionHref : undefined}
-          >
-            {(parentSuccessfullyResolved || parentIsClosed) && (
-              <PredictionChip
-                question={condition}
-                status={
-                  parentSuccessfullyResolved
-                    ? PostStatus.RESOLVED
-                    : PostStatus.CLOSED
-                }
-                size="compact"
-                hideCP={hideCP}
-              />
-            )}
-            <ForecastersCounter forecasters={nr_forecasters} />
-          </ConditionalCard>
-        </div>
-        <div
-          className={cn(
-            "ConditionalSummary-arrows relative flex flex-col justify-start gap-0 md:row-auto md:justify-center md:gap-12",
-            { "row-span-2 ml-3 md:ml-0": !isEmbedded }
-          )}
-        >
-          <ConditionalArrow
-            label={t("ifYes")}
-            didHappen={yesHappened}
-            disabled={yesDisabled}
-            className={"flex-1 md:flex-none"}
-          />
-          <ConditionalArrow
-            label={t("ifNo")}
-            didHappen={noHappened}
-            disabled={noDisabled}
-            className={"flex-1 md:flex-none"}
-          />
-
+      <div className="@container">
+        <div className="ConditionalSummary grid grid-cols-[72px_minmax(0,_1fr)] gap-y-3 @[768px]:grid-cols-[minmax(0,_1fr)_72px_minmax(0,_1fr)]">
           <div
             className={cn(
-              "absolute left-0 top-0 h-3/4 w-px bg-blue-700 dark:bg-blue-700-dark md:hidden",
-              { "xs:hidden": isEmbedded }
+              "ConditionalSummary-condition col-span-2 flex flex-col justify-center",
+              {
+                "row-span-1 @[768px]:col-span-1 @[768px]:row-auto": !isEmbedded,
+                "@[480px]:col-span-1": isEmbedded,
+              }
             )}
-          />
-        </div>
-        <div
-          className={cn("ConditionalSummary-conditionals flex flex-col gap-3", {
-            "row-span-2 md:row-auto": !isEmbedded,
-          })}
-        >
-          <ConditionalCard
-            title={getConditionalQuestionTitle(question_yes)}
-            href={withNavigation ? conditionChildHref : undefined}
           >
-            <ConditionalChart
-              question={question_yes}
+            <ConditionalCard
+              label={t("condition")}
+              title={condition.short_title || condition.title}
+              resolved={parentSuccessfullyResolved}
+              href={withNavigation ? conditionHref : undefined}
+            >
+              {(parentSuccessfullyResolved || parentIsClosed) && (
+                <PredictionChip
+                  question={condition}
+                  status={
+                    parentSuccessfullyResolved
+                      ? PostStatus.RESOLVED
+                      : PostStatus.CLOSED
+                  }
+                  size="compact"
+                  hideCP={hideCP}
+                />
+              )}
+              <ForecastersCounter forecasters={nr_forecasters} />
+            </ConditionalCard>
+          </div>
+          <div
+            className={cn(
+              "ConditionalSummary-arrows relative flex flex-col justify-start gap-0 @[768px]:row-auto @[768px]:justify-center @[768px]:gap-12",
+              { "row-span-2 ml-3 @[768px]:ml-0": !isEmbedded }
+            )}
+          >
+            <ConditionalArrow
+              label={t("ifYes")}
+              didHappen={yesHappened}
               disabled={yesDisabled}
-              chartTheme={chartTheme}
-              hideCP={hideCP}
+              className={"flex-1 @[768px]:flex-none"}
             />
-          </ConditionalCard>
-          <ConditionalCard
-            title={getConditionalQuestionTitle(question_no)}
-            href={withNavigation ? conditionChildHref : undefined}
-          >
-            <ConditionalChart
-              question={question_no}
+            <ConditionalArrow
+              label={t("ifNo")}
+              didHappen={noHappened}
               disabled={noDisabled}
-              chartTheme={chartTheme}
-              hideCP={hideCP}
+              className={"flex-1 @[768px]:flex-none"}
             />
-          </ConditionalCard>
+
+            <div
+              className={cn(
+                "absolute left-0 top-0 h-3/4 w-px bg-blue-700 @[768px]:hidden dark:bg-blue-700-dark",
+                { "@[480px]:hidden": isEmbedded }
+              )}
+            />
+          </div>
+          <div
+            className={cn(
+              "ConditionalSummary-conditionals flex flex-col gap-3",
+              {
+                "row-span-2 @[768px]:row-auto": !isEmbedded,
+              }
+            )}
+          >
+            <ConditionalCard
+              title={condition_child.short_title || condition_child.title}
+              href={withNavigation ? conditionChildHref : undefined}
+            >
+              <ConditionalChart
+                question={question_yes}
+                disabled={yesDisabled}
+                chartTheme={chartTheme}
+                hideCP={hideCP}
+              />
+            </ConditionalCard>
+            <ConditionalCard
+              title={condition_child.short_title || condition_child.title}
+              href={withNavigation ? conditionChildHref : undefined}
+            >
+              <ConditionalChart
+                question={question_no}
+                disabled={noDisabled}
+                chartTheme={chartTheme}
+                hideCP={hideCP}
+              />
+            </ConditionalCard>
+          </div>
         </div>
       </div>
-      {withCPRevealBtn && hideCP && <RevealCPButton />}
+      {withCPRevealBtn &&
+        hideCP &&
+        !(
+          getQuestionForecastAvailability(question_yes).cpRevealsOn &&
+          getQuestionForecastAvailability(question_no).cpRevealsOn
+        ) && <RevealCPButton />}
     </>
   );
 };
@@ -185,7 +192,7 @@ const ConditionalArrow: FC<{
         className
       )}
     >
-      <div className={cn("absolute w-full", { "md:px-1": !disabled })}>
+      <div className={cn("absolute w-full", { "@[768px]:px-1": !disabled })}>
         {disabled ? <DisabledArrow /> : <Arrow didHappen={didHappen} />}
       </div>
 

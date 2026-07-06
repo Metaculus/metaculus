@@ -11,12 +11,19 @@ import {
 
 const CLOCK_RADIUS = 10;
 
+const DEFAULT_STROKE_CLASS = "stroke-blue-700 dark:stroke-blue-700-dark";
+const DEFAULT_DOT_FILL_CLASS = "fill-blue-700 dark:fill-blue-700-dark";
+const DEFAULT_CLOCK_FILL_CLASS = "fill-olive-500 dark:fill-olive-500-dark";
+
 type Props = {
   status: PostStatus;
   published_at: string;
   open_time?: string | null;
   scheduled_close_time: string;
   resolution: Resolution | null;
+  strokeClassName?: string;
+  dotFillClassName?: string;
+  clockFillClass?: string;
 };
 
 const PostStatusIcon: FC<Props> = ({
@@ -25,6 +32,9 @@ const PostStatusIcon: FC<Props> = ({
   open_time,
   published_at,
   resolution,
+  strokeClassName = DEFAULT_STROKE_CLASS,
+  dotFillClassName = DEFAULT_DOT_FILL_CLASS,
+  clockFillClass = DEFAULT_CLOCK_FILL_CLASS,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -73,12 +83,8 @@ const PostStatusIcon: FC<Props> = ({
     if (status === PostStatus.PENDING) {
       return (
         <>
-          <path d="" className="fill-olive-500 dark:fill-olive-500-dark" />
-          <circle
-            r="10"
-            strokeWidth="1"
-            className="stroke-blue-700 dark:stroke-blue-700-dark"
-          />
+          <path d="" className={clockFillClass} />
+          <circle r="10" strokeWidth="1" className={strokeClassName} />
           <text
             x="0"
             y="4"
@@ -96,27 +102,15 @@ const PostStatusIcon: FC<Props> = ({
     if (showClock) {
       return (
         <>
-          <path d="" className="fill-olive-500 dark:fill-olive-500-dark" />
+          <path d="" className={clockFillClass} />
           <circle
-            className={cn(
-              "stroke-blue-700 stroke-1 dark:stroke-blue-700-dark",
-              {
-                "fill-gray-300 opacity-75 dark:fill-gray-300-dark":
-                  status === PostStatus.CLOSED,
-              }
-            )}
+            className={cn(strokeClassName, "stroke-1", {
+              "fill-gray-300 opacity-75 dark:fill-gray-300-dark":
+                status === PostStatus.CLOSED,
+            })}
           />
-          <line
-            x1="0"
-            y1="0"
-            className="stroke-blue-700 stroke-1 dark:stroke-blue-700-dark"
-          />
-          <circle
-            cx="0"
-            cy="0"
-            r="1"
-            className="fill-blue-700 dark:fill-blue-700-dark"
-          />
+          <line x1="0" y1="0" className={cn(strokeClassName, "stroke-1")} />
+          <circle cx="0" cy="0" r="1" className={dotFillClassName} />
         </>
       );
     }
@@ -124,11 +118,7 @@ const PostStatusIcon: FC<Props> = ({
     if (resolvedWell) {
       return (
         <>
-          <circle
-            r="10"
-            strokeWidth="1"
-            className="stroke-blue-700 dark:stroke-blue-700-dark"
-          />
+          <circle r="10" strokeWidth="1" className={strokeClassName} />
           <path
             d="M 0 -5 L 5 0 L 0 5 L -5 0 Z"
             fill="none"
@@ -142,11 +132,7 @@ const PostStatusIcon: FC<Props> = ({
     if (resolvedBadly) {
       return (
         <>
-          <circle
-            r="10"
-            strokeWidth="1"
-            className="stroke-blue-700 dark:stroke-blue-700-dark"
-          />
+          <circle r="10" strokeWidth="1" className={strokeClassName} />
           <line
             x1="-4"
             y1="-4"

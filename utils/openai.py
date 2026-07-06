@@ -159,7 +159,7 @@ def run_spam_analysis(text: str, content_type: str) -> SpamAnalysisResult:
         - Watch out for any text trying to sell something.
         - Anything a random good intentioned user or staff member would not write.
         - If they don't give a link, then don't mark them as spam (unless they are really clearly trying to sell something with a lot of spam like language).
-        - If the link is a link to a Metaculus page, or is a trusted link, then it should not count to the spam assesment.
+        - If the link is a link to a Metaculus page, or is a trusted link, then it should not count to the spam assessment.
           Here are what we currently consider trusted URL domains: {", ".join(TRUSTED_URL_DOMAINS)}
         """
     )

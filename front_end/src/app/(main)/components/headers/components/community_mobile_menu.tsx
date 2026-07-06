@@ -24,6 +24,8 @@ type Props = {
 const CommunityMobileMenu: FC<Props> = ({ community, onClick }) => {
   const t = useTranslations();
   const { mobileMenuLinks } = useNavbarLinks({ community });
+  const { mainLinks, accountLinks } = mobileMenuLinks;
+  const allLinks = [...mainLinks, ...accountLinks];
 
   if (!community) {
     return null;
@@ -57,7 +59,7 @@ const CommunityMobileMenu: FC<Props> = ({ community, onClick }) => {
         leaveTo="opacity-0"
       >
         <MenuItems className="absolute inset-x-0 top-12 max-h-[calc(100dvh-48px)] list-none flex-col items-stretch justify-end space-y-0.5 overflow-y-auto bg-blue-200-dark text-base no-underline lg:hidden">
-          {mobileMenuLinks.map((link, index) => {
+          {allLinks.map((link, index) => {
             if (link.isTitle) {
               return (
                 <MobileMenuTitle key={index} className={link.className}>

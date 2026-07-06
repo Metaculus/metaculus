@@ -2,20 +2,26 @@ import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
-import "./globals.css";
+import { cookies, headers } from "next/headers";
 import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import NextTopLoader from "nextjs-toploader";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "react-hot-toast";
+import "./globals.css";
 
 import GlobalModals from "@/components/global_modals";
+import GoogleTagManager from "@/components/google_tag_manager";
 import PublicSettingsScript from "@/components/public_settings_script";
+import QueryClientProviderWrapper from "@/components/query_client_provider";
 import SimplifiedSignupModal from "@/components/simplified_signup_modal";
 import AppThemeProvider from "@/components/theme_provider";
+import { TailwindIndicator } from "@/components/ui/tailwind-indicator";
 import { METAC_COLORS } from "@/constants/colors";
+import { FEED_LAYOUT_COOKIE } from "@/constants/posts_feed";
 import AuthProvider from "@/contexts/auth_context";
-import { GlobalSearchProvider } from "@/contexts/global_search_context";
+import FeedLayoutProvider from "@/contexts/feed_layout_context";
 import ModalProvider from "@/contexts/modal_context";
 import NavigationProvider from "@/contexts/navigation_context";
 import PolyfillProvider from "@/contexts/polyfill";
@@ -23,6 +29,7 @@ import CSPostHogProvider from "@/contexts/posthog_context";
 import PublicSettingsProvider from "@/contexts/public_settings_context";
 import { TranslationsBannerProvider } from "@/contexts/translations_banner_context";
 import ServerProfileApi from "@/services/api/profile/profile.server";
+import { CSRF_COOKIE_NAME } from "@/services/csrf";
 import { LanguageService } from "@/services/language_service";
 import { CurrentUser } from "@/types/users";
 import { logError } from "@/utils/core/errors";
@@ -41,19 +48,20 @@ export async function generateMetadata(): Promise<Metadata> {
     description: "Metaculus",
     openGraph: {
       images: {
-        width: 720,
-        height: 720,
-        url: "/images/default_preview.png",
+        width: 1200,
+        height: 630,
+        url: "/images/metaculus-og-image.jpg",
         alt: "Metaculus",
       },
     },
     twitter: {
       images: {
-        width: 720,
-        height: 720,
-        url: "/images/default_preview.png",
+        width: 1200,
+        height: 630,
+        url: "/images/metaculus-og-image.jpg",
         alt: "Metaculus",
       },
+      card: "summary_large_image",
     },
     metadataBase: new URL(publicSettings.PUBLIC_APP_URL),
     robots: publicSettings.PUBLIC_DISALLOW_ALL_BOTS
@@ -81,6 +89,11 @@ export default async function RootLayout({
   await LanguageService.syncUserLanguagePreference(user, locale);
   const publicSettings = getPublicSettings();
 
+  const cookieStore = await cookies();
+  const csrfToken = cookieStore.get(CSRF_COOKIE_NAME)?.value || null;
+  const feedLayoutCookie = cookieStore.get(FEED_LAYOUT_COOKIE)?.value;
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   return (
     <html
       lang={locale}
@@ -90,7 +103,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <PublicSettingsScript publicSettings={publicSettings} />
+        <PublicSettingsScript publicSettings={publicSettings} nonce={nonce} />
         {/* Set default consent mode before GA loads */}
         <Script id="default-consent" strategy="beforeInteractive">
           {`
@@ -105,37 +118,43 @@ export default async function RootLayout({
             `}
         </Script>
       </head>
-      <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
-        <PolyfillProvider>
-          <CSPostHogProvider locale={locale}>
-            <AuthProvider user={user} locale={locale}>
-              <AppThemeProvider>
-                <NextIntlClientProvider messages={messages}>
-                  <PublicSettingsProvider settings={publicSettings}>
-                    <ModalProvider>
-                      <NavigationProvider>
-                        <GlobalSearchProvider>
-                          <TranslationsBannerProvider>
-                            <NextTopLoader
-                              showSpinner={false}
-                              color={METAC_COLORS.blue["500"].DEFAULT}
-                            />
-                            {children}
-                            <GlobalModals />
-                            <SimplifiedSignupModal />
-                            <Toaster />
-                          </TranslationsBannerProvider>
-                        </GlobalSearchProvider>
-                      </NavigationProvider>
-                    </ModalProvider>
-                  </PublicSettingsProvider>
-                </NextIntlClientProvider>
-              </AppThemeProvider>
-            </AuthProvider>
-            {/* TODO: remove this after the campaign is over */}
-            <AllBWPixelTagsForRegisteredUsers />
-          </CSPostHogProvider>
-        </PolyfillProvider>
+      <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark print:bg-white">
+        <NuqsAdapter>
+          <QueryClientProviderWrapper>
+            <PolyfillProvider>
+              <CSPostHogProvider locale={locale}>
+                <AuthProvider user={user} locale={locale} csrfToken={csrfToken}>
+                  <AppThemeProvider nonce={nonce}>
+                    <NextIntlClientProvider messages={messages}>
+                      <PublicSettingsProvider settings={publicSettings}>
+                        <ModalProvider>
+                          <NavigationProvider>
+                            <FeedLayoutProvider cookieLayout={feedLayoutCookie}>
+                              <TranslationsBannerProvider>
+                                <NextTopLoader
+                                  showSpinner={false}
+                                  color={METAC_COLORS.blue["500"].DEFAULT}
+                                />
+                                {children}
+                                <GlobalModals />
+                                <SimplifiedSignupModal />
+                                <Toaster />
+                                <GoogleTagManager />
+                              </TranslationsBannerProvider>
+                            </FeedLayoutProvider>
+                          </NavigationProvider>
+                        </ModalProvider>
+                      </PublicSettingsProvider>
+                    </NextIntlClientProvider>
+                  </AppThemeProvider>
+                </AuthProvider>
+                {/* TODO: remove this after the campaign is over */}
+                <AllBWPixelTagsForRegisteredUsers />
+              </CSPostHogProvider>
+            </PolyfillProvider>
+          </QueryClientProviderWrapper>
+        </NuqsAdapter>
+        <TailwindIndicator />
       </body>
       {!!publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID && (
         <GoogleAnalytics gaId={publicSettings.PUBLIC_GOOGLE_MEASUREMENT_ID} />

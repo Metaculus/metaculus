@@ -1,8 +1,13 @@
 import { isNil } from "lodash";
-import React, { FC } from "react";
+import { FC } from "react";
 
+import {
+  useEmbedContainerWidth,
+  useIsEmbedMode,
+} from "@/app/(embed)/questions/components/question_view_mode_context";
 import { QuestionStatus } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { QuestionWithForecasts } from "@/types/question";
+import { QuestionType } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
   getDiscreteValueOptions,
@@ -10,36 +15,50 @@ import {
 } from "@/utils/formatters/prediction";
 
 type Props = {
-  question: QuestionWithNumericForecasts;
-  size?: "md" | "lg";
+  question: QuestionWithForecasts;
+  size?: "sm" | "md" | "lg";
   variant?: "feed" | "question";
+  colorOverride?: string;
+  overrideCenter?: number | null;
+  overrideBounds?: [number, number] | null;
 };
 
 const ContinuousCPBar: FC<Props> = ({
   question,
   size = "md",
   variant = "feed",
+  colorOverride,
+  overrideCenter,
+  overrideBounds,
 }) => {
   const latest =
     question.aggregations[question.default_aggregation_method]?.latest;
+
+  const isDate = question.type === QuestionType.Date;
+  const isEmbed = useIsEmbedMode();
+  const w = useEmbedContainerWidth();
+  const isEmbedBelow376 = isEmbed && (w ?? 0) > 0 && (w ?? 0) < 376;
+  const isEmbedWide = isEmbed && (w ?? 0) >= 500;
 
   if (!latest) {
     return null;
   }
   const discreteValueOptions = getDiscreteValueOptions(question);
 
+  const effectiveCenter = overrideCenter ?? latest.centers?.[0];
+  const effectiveLower =
+    overrideBounds?.[0] ?? latest.interval_lower_bounds?.[0];
+  const effectiveUpper =
+    overrideBounds?.[1] ?? latest.interval_upper_bounds?.[0];
+
   const displayValue = getPredictionDisplayValue(
-    latest.centers?.[0],
+    effectiveCenter,
     {
       questionType: question.type,
       scaling: question.scaling,
       range:
-        !isNil(latest?.interval_lower_bounds?.[0]) &&
-        !isNil(latest?.interval_upper_bounds?.[0])
-          ? [
-              latest?.interval_lower_bounds?.[0] as number,
-              latest?.interval_upper_bounds?.[0] as number,
-            ]
+        !isNil(effectiveLower) && !isNil(effectiveUpper)
+          ? [effectiveLower as number, effectiveUpper as number]
           : [],
       unit: question.unit,
       actual_resolve_time: question.actual_resolve_time ?? null,
@@ -49,32 +68,64 @@ const ContinuousCPBar: FC<Props> = ({
   );
   const displayValueChunks = displayValue.split("\n");
   const [centerLabel, intervalLabel] = displayValueChunks;
+  const isClosed = question.status === QuestionStatus.CLOSED;
+  const isResolved = question.status === QuestionStatus.RESOLVED;
+  const accentStyle =
+    !isClosed && !isResolved && colorOverride
+      ? ({ color: colorOverride } as const)
+      : undefined;
 
   return (
     <div
       className={cn(
-        "relative flex flex-col justify-center gap-0 pt-0.5 tabular-nums text-olive-900 dark:text-olive-900-dark md:gap-0.5 md:pt-1",
+        "relative flex flex-col justify-center gap-0 pt-0.5 tabular-nums md:gap-0.5 md:pt-1",
         {
-          "text-gray-800 dark:text-gray-800-dark":
-            question.status === QuestionStatus.CLOSED,
+          "text-olive-900 dark:text-olive-900-dark":
+            !isClosed && !isResolved && !accentStyle,
+          "text-gray-800 dark:text-gray-800-dark": isClosed,
+          "text-purple-800 dark:text-purple-800-dark": isResolved,
           // Feed variant: center on mobile, left on desktop
           "text-center md:text-left": variant === "feed",
           // Question variant: always center
           "text-center": variant === "question",
+          "gap-0.5 md:gap-0.5": isEmbed,
         }
       )}
     >
       <div
-        className={cn("text-sm font-bold md:text-base", {
+        style={accentStyle}
+        className={cn("font-bold", {
+          "text-xs md:text-sm": size === "sm",
+          "text-sm md:text-base": size === "md",
           "mb-1 text-base": size === "lg",
+          "mb-0 truncate text-sm md:text-sm": isEmbed,
+          "text-olive-800 dark:text-olive-800-dark":
+            isEmbed && !isClosed && !isResolved && !accentStyle,
+          "text-gray-800 dark:text-gray-800-dark": isEmbed && isClosed,
+          "text-purple-800 dark:text-purple-800-dark": isEmbed && isResolved,
+          "text-[18px] font-bold text-olive-900 dark:text-olive-900-dark":
+            isEmbedBelow376 && !isClosed && !isResolved,
+          "text-[18px] font-bold text-gray-800 dark:text-gray-800-dark":
+            isEmbedBelow376 && isClosed,
+          "text-[18px] font-bold text-purple-800 dark:text-purple-800-dark":
+            isEmbedBelow376 && isResolved,
         })}
       >
         {centerLabel}
       </div>
-      {!isNil(intervalLabel) && (
+      {!isNil(intervalLabel) && !isEmbedBelow376 && (
         <div
-          className={cn("text-[10px] font-normal tabular-nums md:text-xs", {
-            "text-sm": size === "lg",
+          style={accentStyle}
+          className={cn("font-normal tabular-nums", {
+            "text-[10px] md:text-xs":
+              (size === "md" || size === "sm") && !isDate,
+            "text-sm": size === "lg" && !isDate,
+            "text-xs": isDate,
+            "mb-0 text-xs md:text-xs": isEmbed && !isEmbedWide,
+            "mb-0 text-sm md:text-sm": isEmbedWide && !isDate,
+            "mb-0 text-xs": isEmbedWide && isDate,
+            "whitespace-normal break-words": isEmbed && isDate,
+            truncate: isEmbed && !isDate,
           })}
         >
           {intervalLabel}

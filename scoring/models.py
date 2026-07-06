@@ -6,7 +6,12 @@ from django.db.models.query import QuerySet, Q
 from projects.models import Project
 from questions.models import Question
 from questions.types import AggregationMethod
-from scoring.constants import ScoreTypes, ArchivedScoreTypes, LeaderboardScoreTypes
+from scoring.constants import (
+    ScoreTypes,
+    ArchivedScoreTypes,
+    LeaderboardScoreTypes,
+    ExclusionStatuses,
+)
 from users.models import User
 from utils.models import TimeStampedModel
 
@@ -109,6 +114,23 @@ class Leaderboard(TimeStampedModel):
         on_delete=models.CASCADE,
         related_name="leaderboards",
     )
+    display_config = models.JSONField(
+        null=True,
+        blank=True,
+        help_text=(
+            "Optional JSON configuration for displaying this leaderboard."
+            "<br>If not set, default display settings will be used."
+            "<br>Example display_config:"
+            "<pre>{\n"
+            '    "display_name": "My Custom Leaderboard",\n'
+            '    "column_renames": {\n'
+            '        "Questions": "Question Links"\n'
+            "    },\n"
+            '    "display_order": 1,\n'
+            '    "display_on_project": true\n'
+            "}</pre>"
+        ),
+    )
 
     score_type = models.CharField(
         max_length=200,
@@ -182,6 +204,8 @@ class Leaderboard(TimeStampedModel):
         Any remaining money is redistributed. Tournaments that close before June 2025 will have a value of 0.00.
         """,
     )
+
+    # TO BE DEPRECATED IN FAVOR OF bot/human_exclusion_status
     bot_status = models.CharField(
         max_length=32,
         choices=Project.BotLeaderboardStatus.choices,
@@ -189,6 +213,16 @@ class Leaderboard(TimeStampedModel):
         blank=True,
         help_text="""Optional. If not set, the Project's bot_leaderboard_status will be
         used instead. See Project for more details.""",
+    )
+    bot_exclusion_status = models.IntegerField(
+        choices=ExclusionStatuses.choices,
+        default=ExclusionStatuses.EXCLUDE_AND_SHOW,
+        help_text="This sets the default exclusion status for bots on this leaderboard.",
+    )
+    human_exclusion_status = models.IntegerField(
+        choices=ExclusionStatuses.choices,
+        default=ExclusionStatuses.INCLUDE,
+        help_text="This sets the default exclusion status for humans on this leaderboard.",
     )
     user_list = models.ManyToManyField(
         User,
@@ -208,15 +242,15 @@ class Leaderboard(TimeStampedModel):
         from posts.models import Post
 
         questions = Question.objects.filter(
-            related_posts__post__curation_status=Post.CurationStatus.APPROVED
+            post__curation_status=Post.CurationStatus.APPROVED
         )
 
         if not (self.project and self.project.type == Project.ProjectTypes.SITE_MAIN):
             # normal Project leaderboard
             if self.project:
                 questions = questions.filter(
-                    Q(related_posts__post__projects=self.project)
-                    | Q(related_posts__post__default_project=self.project),
+                    Q(post__projects=self.project)
+                    | Q(post__default_project=self.project),
                 )
             return questions.distinct("id")
 
@@ -225,12 +259,12 @@ class Leaderboard(TimeStampedModel):
             raise ValueError("Global leaderboards must have start and end times")
 
         questions = questions.filter_public().filter(
-            related_posts__post__in=Post.objects.filter_for_main_feed()
+            post__in=Post.objects.filter_for_main_feed()
         )
 
         if self.score_type == LeaderboardScoreTypes.COMMENT_INSIGHT:
             # post must be published
-            return questions.filter(related_posts__post__published_at__lt=self.end_time)
+            return questions.filter(post__published_at__lt=self.end_time)
         elif self.score_type == LeaderboardScoreTypes.QUESTION_WRITING:
             # post must be published, and can't be resolved before the start_time
             # of the leaderboard
@@ -240,7 +274,7 @@ class Leaderboard(TimeStampedModel):
                     Q(actual_close_time__isnull=True)
                     | Q(actual_close_time__gte=self.start_time)
                 ),
-                related_posts__post__published_at__lt=self.end_time,
+                post__published_at__lt=self.end_time,
             )
 
         close_grace_period = timedelta(days=3)
@@ -255,7 +289,7 @@ class Leaderboard(TimeStampedModel):
         )
 
         gl_dates = global_leaderboard_dates()
-        checked_intervals: list[tuple[datetime, datetime]] = []
+        checked_intervals: set[tuple[datetime, datetime]] = set()
         for start, end in gl_dates[::-1]:  # must be in reverse order, biggest first
             if (
                 (self.start_time, self.end_time) == (start, end)
@@ -269,12 +303,13 @@ class Leaderboard(TimeStampedModel):
                     to_add = False
                     break
             if to_add:
-                checked_intervals.append((start, end))
-                questions = questions.filter(
-                    Q(open_time__lt=start)
-                    | Q(scheduled_close_time__gt=end + close_grace_period)
-                    | Q(actual_resolve_time__gt=end + resolve_grace_period)
-                )
+                if (start, end) not in checked_intervals:
+                    checked_intervals.add((start, end))
+                    questions = questions.filter(
+                        Q(open_time__lt=start)
+                        | Q(scheduled_close_time__gt=end + close_grace_period)
+                        | Q(actual_resolve_time__gt=end + resolve_grace_period)
+                    )
 
         return questions
 
@@ -316,15 +351,39 @@ class LeaderboardEntry(TimeStampedModel):
         null=True, blank=True, help_text="Confidence Interval lower bound"
     )
     ci_upper = models.FloatField(
-        null=True, blank=True, help_text="Confidence Interval lower bound"
+        null=True, blank=True, help_text="Confidence Interval upper bound"
     )
     take = models.FloatField(null=True, blank=True)
     rank = models.IntegerField(null=True, blank=True)
-    excluded = models.BooleanField(default=False, db_index=True)
+
+    # TO BE DEPRECATED IN FAVOR OF exclusion_status
+    excluded = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text=(
+            "Marking an entry as excluded does NOT automatically recalculate the "
+            "leaderboard or reassign ranks/prizes. Recalculating the leaderboard "
+            "will re-include manually-excluded entries. To properly exclude a user from "
+            "leaderboard rankings and prizes, create a MedalExclusionRecord for "
+            "the user and attach it to the appropriate Project or Leaderboard, "
+            "then recalculate the leaderboard."
+        ),
+    )
     show_when_excluded = models.BooleanField(
         default=False,
         help_text="""If true, this entry will still be shown in the leaderboard even if
         excluded.""",
+    )
+
+    exclusion_status = models.IntegerField(
+        choices=ExclusionStatuses.choices,
+        default=ExclusionStatuses.INCLUDE,
+        help_text="""This sets the minimum exclusion status for this user.
+        </br>- (0) Include: shows entry & takes rank and prize.
+        </br>- (1) Exclude Prize Only: shows entry, takes rank, but excludes from prizes
+        </br>- (2) Exclude and Show: shows entry, but excludes from rank and prizes
+        </br>- (3) Exclude and Show in Advanced: only shows entry in advanced views, excludes from rank and prizes
+        </br>- (4) Exclude: excludes entry from showing, rank, and prizes""",
     )
 
     class Medals(models.TextChoices):
@@ -414,11 +473,23 @@ class MedalExclusionRecord(models.Model):
         choices=ExclusionTypes.choices,
         help_text="""Records the type of exclusion. Use Other for custom exclusions.""",
     )
+    # TO BE DEPRECATED IN FAVOR OF exclusion_status
     show_anyway = models.BooleanField(
         default=False,
         help_text="""If true, users excluded by this record will still appear in leaderboards.
         <br>They will still be excluded from taking ranks and prizes.""",
     )
+    exclusion_status = models.IntegerField(
+        choices=ExclusionStatuses.choices,
+        default=ExclusionStatuses.EXCLUDE,
+        help_text="""This sets the minimum exclusion status for this user.
+        </br>- (0) Include: shows entry & takes rank and prize.
+        </br>- (1) Exclude Prize Only: shows entry, takes rank, but excludes from prizes
+        </br>- (2) Exclude and Show: shows entry, but excludes from rank and prizes
+        </br>- (3) Exclude and Show in Advanced: only shows entry in advanced views, excludes from rank and prizes
+        </br>- (4) Exclude: excludes entry from showing, rank, and prizes""",
+    )
+
     notes = models.TextField(
         null=True,
         blank=True,
@@ -464,5 +535,5 @@ def global_leaderboard_dates() -> list[tuple[datetime, datetime]]:
         end_time__isnull=False,
     )
     intervals = [(lb.start_time, lb.end_time) for lb in leaderboards]
-    intervals.sort(key=lambda x: (x[1] - x[0], x[0]))
+    intervals.sort(key=lambda x: (x[1].year - x[0].year, x[0]))
     return intervals

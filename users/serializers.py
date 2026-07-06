@@ -1,4 +1,8 @@
+from datetime import timedelta
+
+from django.utils import timezone
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from comments.models import KeyFactor
 from projects.models import Project
@@ -84,6 +88,8 @@ class UserPrivateSerializer(UserPublicSerializer):
     metadata = serializers.JSONField(read_only=True)
     registered_campaigns = serializers.SerializerMethodField()
     should_suggest_keyfactors = serializers.SerializerMethodField()
+    has_password = serializers.SerializerMethodField()
+    metaculus_news_subscription = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -100,6 +106,16 @@ class UserPrivateSerializer(UserPublicSerializer):
             "app_theme",
             "interface_type",
             "language",
+            "api_access_tier",
+            "api_forecasting_access",
+            "is_primary_bot",
+            "has_password",
+            "metaculus_news_subscription",
+            "automatically_follow_on_predict",
+            "follow_notify_cp_change_threshold",
+            "follow_notify_comments_frequency",
+            "follow_notify_milestone_step",
+            "follow_notify_on_status_change",
         )
 
     def get_registered_campaigns(self, user: User):
@@ -122,9 +138,40 @@ class UserPrivateSerializer(UserPublicSerializer):
             or LeaderboardEntry.objects.filter(user=user, medal__isnull=False).exists()
         )
 
+    def get_has_password(self, user: User) -> bool:
+        return user.has_usable_password()
+
+    def get_metaculus_news_subscription(self, user: User) -> bool:
+        return user.project_subscriptions.filter(project__slug="platform").exists()
+
+
+class UserPrivateDataAccessSerializer(UserPrivateSerializer):
+    project_data_access = serializers.SerializerMethodField()
+
+    class Meta(UserPrivateSerializer.Meta):
+        fields = UserPrivateSerializer.Meta.fields + ("project_data_access",)
+
+    def get_project_data_access(self, user: User):
+        entries = (
+            user.data_accesses.filter(project_id__isnull=False)
+            .values("project_id", "api_access_tier")
+            .distinct()
+        )
+        return list(entries)
+
 
 class UserUpdateProfileSerializer(serializers.ModelSerializer):
     website = serializers.URLField(allow_blank=True, max_length=100)
+    metaculus_news_subscription = serializers.BooleanField(required=False)
+    follow_notify_cp_change_threshold = serializers.FloatField(
+        min_value=0, max_value=1, allow_null=True, required=False
+    )
+    follow_notify_milestone_step = serializers.FloatField(
+        min_value=0, max_value=1, allow_null=True, required=False
+    )
+    follow_notify_comments_frequency = serializers.IntegerField(
+        min_value=1, allow_null=True, required=False
+    )
 
     class Meta:
         model = User
@@ -151,7 +198,19 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
             "app_theme",
             "interface_type",
             "language",
+            "automatically_follow_on_predict",
+            "follow_notify_cp_change_threshold",
+            "follow_notify_comments_frequency",
+            "follow_notify_milestone_step",
+            "follow_notify_on_status_change",
+            "metaculus_news_subscription",
+            "api_forecasting_access",
         )
+
+
+class BotUpdateProfileSerializer(UserUpdateProfileSerializer):
+    class Meta(UserUpdateProfileSerializer.Meta):
+        fields = UserUpdateProfileSerializer.Meta.fields + ("username",)
 
 
 def validate_username(value: str):
@@ -174,8 +233,28 @@ def validate_username(value: str):
     return value
 
 
+def validate_username_change(user: User, username: str):
+    username = validate_username(username)
+
+    if old_usernames := user.get_old_usernames():
+        _, change_date = old_usernames[0]
+
+        if (timezone.now() - change_date) < timedelta(days=180):
+            raise ValidationError("can only change username once every 180 days")
+
+    return username
+
+
 class UserFilterSerializer(serializers.Serializer):
-    search = serializers.CharField(required=True, min_length=3)
+    search = serializers.CharField(required=False, min_length=3)
+    post_id = serializers.IntegerField(required=False)
+
+    def validate(self, attrs):
+        if not attrs.get("search") and not attrs.get("post_id"):
+            raise serializers.ValidationError(
+                "At least one of 'search' or 'post_id' is required."
+            )
+        return attrs
 
 
 class PasswordChangeSerializer(serializers.Serializer):

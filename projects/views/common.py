@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.views.decorators.cache import cache_page
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
@@ -7,7 +8,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from posts.models import Post
-from posts.serializers import serialize_posts_many_forecast_flow
+from posts.serializers import serialize_posts_many_forecast_flow, serialize_post
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers.common import (
@@ -16,18 +17,21 @@ from projects.serializers.common import (
     CategorySerializer,
     TournamentSerializer,
     ProjectUserSerializer,
-    TournamentShortSerializer,
     NewsCategorySerialize,
     LeaderboardTagSerializer,
     serialize_index_data,
+    serialize_tournaments_with_counts,
 )
-from projects.services.cache import get_projects_questions_count_cached
+from projects.services.cache import (
+    get_projects_questions_count_cached,
+)
 from projects.services.common import (
     get_projects_qs,
     get_project_permission_for_user,
     invite_user_to_project,
     get_site_main_project,
     get_project_timeline_data,
+    get_feed_project_tiles,
 )
 from projects.services.subscriptions import subscribe_project, unsubscribe_project
 from questions.models import Question
@@ -72,6 +76,38 @@ def news_categories_list_api_view(request: Request):
             "is_subscribed": getattr(obj, "is_subscribed", False),
         }
         for obj in qs.all()
+    ]
+
+    return Response(data)
+
+
+@cache_page(60 * 30)
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def homepage_categories_list_api_view(request: Request):
+    qs = (
+        get_projects_qs(user=request.user)
+        .filter_category()
+        .annotate_categories_with_top_n_posts_ids()
+    )
+
+    categories = list(qs.all())
+    all_post_ids = set()
+    for cat in categories:
+        all_post_ids.update(cat.top_n_post_ids or [])
+
+    posts = Post.objects.filter(id__in=all_post_ids)
+    posts_map = {p.id: serialize_post(p) for p in posts}
+
+    data = [
+        {
+            **CategorySerializer(obj).data,
+            "posts": [
+                posts_map[pid] for pid in (obj.top_n_post_ids or []) if pid in posts_map
+            ],
+        }
+        for obj in categories
+        if len(obj.top_n_post_ids) > 0
     ]
 
     return Response(data)
@@ -132,27 +168,54 @@ def tournaments_list_api_view(request: Request):
         )
         .exclude(visibility=Project.Visibility.UNLISTED)
         .filter_tournament()
+        .select_related("primary_leaderboard")
+    )
+    projects = list(qs)
+    data = serialize_tournaments_with_counts(
+        projects, sort_key=lambda r: r["questions_count"], with_timeline=True
+    )
+
+    return Response(data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def feed_project_tiles_api_view(request: Request):
+    tiles = get_feed_project_tiles()
+
+    # Fresh query for live project data
+    serialized_projects = serialize_tournaments_with_counts(
+        Project.objects.filter(id__in=[t["project_id"] for t in tiles]).select_related(
+            "primary_leaderboard"
+        )
+    )
+
+    # Fresh query for live project data
+    serialized_projects_map = {p["id"]: p for p in serialized_projects}
+
+    data = [
+        {
+            "project": serialized_projects_map[tile["project_id"]],
+            **tile,
+        }
+        for tile in tiles
+        if tile["project_id"] in serialized_projects_map
+    ]
+
+    return Response(data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def minibench_tournaments_api_view(request: Request):
+    qs = (
+        get_projects_qs(user=request.user)
+        .filter_tournament()
+        .filter(slug__icontains="minibench")
         .prefetch_related("primary_leaderboard")
     )
 
-    # Get all projects without the expensive annotation
-    projects: list[Project] = list(qs.all())
-
-    # Get questions count using cached bulk operation
-    questions_count_map = get_projects_questions_count_cached([p.id for p in projects])
-
-    data = []
-    for obj in projects:
-        serialized_tournament = TournamentShortSerializer(obj).data
-        serialized_tournament["questions_count"] = questions_count_map.get(obj.id) or 0
-        serialized_tournament["forecasts_count"] = obj.forecasts_count
-        serialized_tournament["forecasters_count"] = obj.forecasters_count
-
-        data.append(serialized_tournament)
-
-    # Sort by questions_count descending
-    data.sort(key=lambda x: x["questions_count"], reverse=True)
-
+    data = serialize_tournaments_with_counts(qs, sort_key=lambda x: x["start_date"])
     return Response(data)
 
 
@@ -163,17 +226,24 @@ def tournament_by_slug_api_view(request: Request, slug: str):
     obj: Project = get_by_pk_or_slug(qs, slug)
 
     # Get questions count using cached operation
-    questions_count_map = get_projects_questions_count_cached([obj.id])
+    counts = get_projects_questions_count_cached([obj.id]).get(obj.id)
 
     data = TournamentSerializer(obj).data
-    data["questions_count"] = questions_count_map.get(obj.id) or 0
+    data["questions_count"] = counts["questions_count"] if counts else 0
+    data["questions_count_including_subquestions"] = (
+        counts["questions_count_including_subquestions"] if counts else 0
+    )
     data["timeline"] = get_project_timeline_data(obj)
     data["forecasts_count"] = obj.forecasts_count
     data["forecasters_count"] = obj.forecasters_count
     data["followers_count"] = obj.followers_count
 
     if request.user.is_authenticated:
-        data["is_subscribed"] = obj.subscriptions.filter(user=request.user).exists()
+        subscription = obj.subscriptions.filter(user=request.user).first()
+        data["is_subscribed"] = subscription is not None
+        data["follow_questions"] = (
+            subscription.follow_questions if subscription else False
+        )
 
     if obj.index_id:
         data["index_data"] = serialize_index_data(obj.index)
@@ -235,7 +305,7 @@ def project_delete_api_view(request: Request, project_id: int):
     permission = get_project_permission_for_user(obj, user=request.user)
     ObjectPermission.can_edit_project(permission, raise_exception=True)
 
-    Question.objects.filter(related_posts__post__default_project=obj).delete()
+    Question.objects.filter(post__default_project=obj).delete()
     Post.objects.filter(default_project=obj).delete()
     obj.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
@@ -334,7 +404,10 @@ def project_subscribe_api_view(request: Request, pk: str):
     qs = get_projects_qs(user=request.user)
     project = get_object_or_404(qs, pk=pk)
 
-    subscribe_project(project=project, user=request.user)
+    follow_questions = request.data.get("follow_questions", False)
+    subscribe_project(
+        project=project, user=request.user, follow_questions=follow_questions
+    )
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -344,7 +417,10 @@ def project_unsubscribe_api_view(request: Request, pk: str):
     qs = get_projects_qs(user=request.user)
     project = get_object_or_404(qs, pk=pk)
 
-    unsubscribe_project(project=project, user=request.user)
+    unfollow_questions = request.data.get("unfollow_questions", False)
+    unsubscribe_project(
+        project=project, user=request.user, unfollow_questions=unfollow_questions
+    )
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 

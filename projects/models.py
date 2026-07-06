@@ -1,12 +1,13 @@
+from django.contrib.postgres.expressions import ArraySubquery
 from django.db import models
 from django.db.models import (
-    Count,
-    FilteredRelation,
-    Q,
-    F,
     BooleanField,
+    Count,
     Exists,
+    F,
+    FilteredRelation,
     OuterRef,
+    Q,
     Sum,
 )
 from django.db.models.functions import Coalesce
@@ -17,7 +18,7 @@ from projects.permissions import ObjectPermission
 from questions.constants import UnsuccessfulResolutionType
 from scoring.constants import LeaderboardScoreTypes
 from users.models import User
-from utils.models import validate_alpha_slug, TimeStampedModel, TranslatedModel
+from utils.models import TimeStampedModel, TranslatedModel, validate_alpha_slug
 
 
 class ProjectsQuerySet(models.QuerySet):
@@ -45,6 +46,34 @@ class ProjectsQuerySet(models.QuerySet):
     def filter_communities(self):
         return self.filter(type=Project.ProjectTypes.COMMUNITY)
 
+    def annotate_categories_with_top_n_posts_ids(self, n: int = 3):
+        from posts.models import Post
+
+        now = django_timezone.now()
+        # We must query the M2M through table directly instead of Post.objects.filter(projects=OuterRef("pk"))
+        # When filtering Post with an M2M relation using OuterRef, Django generates a JOIN that
+        # includes extra columns in the SELECT. ArraySubquery wraps the query in PostgreSQL's ARRAY()
+        # which requires exactly one column. Querying the through table with a direct FK lookup
+        # generates a clean single-column SELECT.
+        ThroughModel = Post.projects.through
+        subquery = (
+            ThroughModel.objects.filter(
+                project_id=OuterRef("pk"),
+                post__curation_status=Post.CurationStatus.APPROVED,
+                post__open_time__lte=now,
+                post__notebook__isnull=True,
+                post__default_project__default_permission__isnull=False,
+                post__default_project__visibility=Project.Visibility.NORMAL,
+            )
+            .filter(
+                Q(post__actual_close_time__isnull=True)
+                | Q(post__actual_close_time__gt=now)
+            )
+            .order_by("-post__hotness")
+            .values("post_id")[:n]
+        )
+        return self.annotate(top_n_post_ids=ArraySubquery(subquery))
+
     def annotate_posts_count(self):
         from posts.models import Post
 
@@ -70,38 +99,49 @@ class ProjectsQuerySet(models.QuerySet):
     def annotate_questions_count(self):
         from posts.models import Post
 
+        posts_filter = Q(
+            posts__curation_status=Post.CurationStatus.APPROVED,
+            posts__questions__question_weight__gt=0,
+        ) & ~Q(
+            posts__questions__resolution__in=[
+                UnsuccessfulResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
+            ]
+        )
+        default_posts_filter = Q(
+            default_posts__curation_status=Post.CurationStatus.APPROVED,
+            default_posts__questions__question_weight__gt=0,
+        ) & ~Q(
+            default_posts__questions__resolution__in=[
+                UnsuccessfulResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
+            ]
+        )
+
         return self.annotate(
-            posts_questions_count=Count(
-                "posts__related_questions__question_id",
-                filter=Q(
-                    posts__curation_status=Post.CurationStatus.APPROVED,
-                    posts__related_questions__question__question_weight__gt=0,
-                )
-                & ~Q(
-                    posts__related_questions__question__resolution__in=[
-                        UnsuccessfulResolutionType.AMBIGUOUS,
-                        UnsuccessfulResolutionType.ANNULLED,
-                    ]
-                ),
+            _question_posts_in_default_project=Count(
+                "default_posts__id", filter=default_posts_filter, distinct=True
+            ),
+            _question_posts_in_secondary_projects=Count(
+                "posts__id", filter=posts_filter, distinct=True
+            ),
+            _questions_in_default_project=Count(
+                "default_posts__questions__id",
+                filter=default_posts_filter,
                 distinct=True,
             ),
-            default_posts_questions_count=Count(
-                "default_posts__related_questions__question_id",
-                filter=Q(
-                    default_posts__curation_status=Post.CurationStatus.APPROVED,
-                    default_posts__related_questions__question__question_weight__gt=0,
-                )
-                & ~Q(
-                    default_posts__related_questions__question__resolution__in=[
-                        UnsuccessfulResolutionType.AMBIGUOUS,
-                        UnsuccessfulResolutionType.ANNULLED,
-                    ]
-                ),
-                distinct=True,
+            _questions_in_secondary_projects=Count(
+                "posts__questions__id", filter=posts_filter, distinct=True
             ),
         ).annotate(
-            questions_count=Coalesce(F("posts_questions_count"), 0)
-            + Coalesce(F("default_posts_questions_count"), 0)
+            # Top-level count: each question post counts once, regardless of
+            # how many subquestions (group children, conditional branches) it has
+            questions_count=Coalesce(F("_question_posts_in_default_project"), 0)
+            + Coalesce(F("_question_posts_in_secondary_projects"), 0),
+            questions_count_including_subquestions=Coalesce(
+                F("_questions_in_default_project"), 0
+            )
+            + Coalesce(F("_questions_in_secondary_projects"), 0),
         )
 
     def annotate_is_subscribed(self, user: User, include_members: bool = False):
@@ -216,6 +256,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         blank=True,
     )
 
+    # TO BE DEPRECATED in favor of Leaderboard field
     class BotLeaderboardStatus(models.TextChoices):
         EXCLUDE_AND_HIDE = "exclude_and_hide"
         EXCLUDE_AND_SHOW = "exclude_and_show"
@@ -232,6 +273,7 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
         include: Bots are included in ranks/prizes/medals and shown on the leaderboard.<br>
         bots_only: Only Bots are included in ranks/prizes/medals. Non-bots are still shown.<br>
         """,
+        db_index=True,
     )
 
     name = models.CharField(max_length=200)
@@ -250,11 +292,12 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     emoji = models.CharField(max_length=10, default="", blank=True)
 
     order = models.IntegerField(
-        help_text="Will be displayed ordered by this field inside each section",
+        help_text="Will be displayed ordered by this field inside each section. Lower numbers appear first.",
         default=0,
     )
 
     # Tournament-specific fields
+    # TO BE DEPRECATED in favor of Leaderboard field
     prize_pool = models.DecimalField(
         default=None, decimal_places=2, max_digits=15, null=True, blank=True
     )
@@ -374,11 +417,6 @@ class Project(TimeStampedModel, TranslatedModel):  # type: ignore
 
     def save(self, *args, **kwargs):
         creating = not self.pk
-        # Check if the primary leaderboard is associated with this project
-        if self.primary_leaderboard and self.primary_leaderboard.project != self:
-            raise ValueError(
-                "Primary leaderboard must be associated with this project."
-            )
 
         # Auto-create index object
         if self.type == self.ProjectTypes.INDEX and not self.index_id:
@@ -491,6 +529,7 @@ class ProjectSubscription(TimeStampedModel):
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="subscriptions"
     )
+    follow_questions = models.BooleanField(default=False)
 
     class Meta:
         constraints = [

@@ -5,11 +5,12 @@ import { FC } from "react";
 import { Href } from "@/types/navigation";
 import {
   CategoryKey,
+  ExclusionStatuses,
   LeaderboardEntry,
   LeaderboardType,
 } from "@/types/scoring";
 import cn from "@/utils/core/cn";
-import { abbreviatedNumber } from "@/utils/formatters/number";
+import { formatNumberBipm } from "@/utils/formatters/number";
 import { formatUsername } from "@/utils/formatters/users";
 
 import MedalIcon from "../../../components/medal_icon";
@@ -27,6 +28,17 @@ type Props = {
   isUserRow?: boolean;
 };
 
+const DEFAULT_SCORE_FORMAT_OPTIONS: Intl.NumberFormatOptions = {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+};
+const SCORE_FORMAT_OPTIONS: Partial<
+  Record<LeaderboardType, Intl.NumberFormatOptions>
+> = {
+  baseline_global: { minimumFractionDigits: 0, maximumFractionDigits: 0 },
+  peer_global: { minimumFractionDigits: 1, maximumFractionDigits: 1 },
+};
+
 const LeaderboardRow: FC<Props> = ({
   rowEntry,
   scoreType,
@@ -41,7 +53,7 @@ const LeaderboardRow: FC<Props> = ({
     contribution_count,
     score,
     medal,
-    excluded,
+    exclusion_status,
   } = rowEntry;
 
   const t = useTranslations();
@@ -56,7 +68,8 @@ const LeaderboardRow: FC<Props> = ({
         },
         {
           "bg-purple-200 hover:bg-purple-300 dark:bg-purple-200-dark hover:dark:bg-purple-300-dark":
-            !isUserRow && excluded,
+            !isUserRow &&
+            exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_ONLY,
         }
       )}
     >
@@ -74,7 +87,7 @@ const LeaderboardRow: FC<Props> = ({
             <>
               {!!medal && <MedalIcon type={medal} className="size-5" />}
               <span className="flex-1 text-center">
-                {excluded ? (
+                {exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_ONLY ? (
                   <>
                     <ExcludedEntryTooltip />
                   </>
@@ -108,29 +121,35 @@ const LeaderboardRow: FC<Props> = ({
           </span>
         </Link>
       </td>
-      <td className="hidden w-24 p-0 font-mono text-base leading-4 @md:!table-cell">
+      <td className="hidden w-24 p-0 text-base font-[425] tabular-nums leading-4 @md:!table-cell">
         <Link
           href={href}
           className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
           prefetch={false}
         >
-          {abbreviatedNumber(contribution_count, 3, false)}
+          {formatNumberBipm(contribution_count, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+          })}
         </Link>
       </td>
       {scoreType == "peer_global" && (
-        <td className="hidden w-24 p-0 font-mono text-base leading-4 @md:!table-cell">
+        <td className="hidden w-24 p-0 text-base font-[425] tabular-nums leading-4 @md:!table-cell">
           <Link
             href={href}
             className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
             prefetch={false}
           >
-            {abbreviatedNumber(coverage, 3, false)}
+            {formatNumberBipm(coverage, {
+              minimumFractionDigits: 1,
+              maximumFractionDigits: 1,
+            })}
           </Link>
         </td>
       )}
       <td
         className={cn(
-          "w-20 p-0 font-mono text-base leading-4",
+          "w-20 p-0 text-base font-[425] tabular-nums leading-4",
           !isUserRow && "text-gray-600 dark:text-gray-600-dark"
         )}
       >
@@ -139,7 +158,10 @@ const LeaderboardRow: FC<Props> = ({
           className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
           prefetch={false}
         >
-          {abbreviatedNumber(score, 3, false)}
+          {formatNumberBipm(
+            score,
+            SCORE_FORMAT_OPTIONS[scoreType] ?? DEFAULT_SCORE_FORMAT_OPTIONS
+          )}
         </Link>
       </td>
     </tr>

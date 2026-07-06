@@ -28,7 +28,8 @@ const Step2: React.FC<OnboardingStep> = ({
     if (typeof step3Prediction === "undefined") {
       setOnboardingState((prev) => ({
         ...prev,
-        step3Prediction: communityForecast * 100,
+        step3Prediction:
+          extractPrevBinaryForecastValue(communityForecast) ?? 50,
       }));
     }
 
@@ -42,7 +43,7 @@ const Step2: React.FC<OnboardingStep> = ({
   return (
     <Step>
       <Step.Title>
-        {t("onboardingStep3Title", { topicName: topic?.name })}
+        {t("onboardingStep3Title", { topicName: topic?.name ?? "" })}
       </Step.Title>
       <Step.QuestionContainer>
         <Step.QuestionTitle>{post.title}</Step.QuestionTitle>

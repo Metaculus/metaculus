@@ -1,4 +1,5 @@
 import ClientProfileApi from "@/services/api/profile/profile.client";
+import { ProjectPermissions } from "@/types/post";
 
 import { MentionItem } from "./types";
 
@@ -6,14 +7,16 @@ export async function queryMentions(
   _trigger: string,
   query: string | null | undefined,
   defaultUserMentions?: MentionItem[],
-  isStuff?: boolean
+  userPermission?: ProjectPermissions,
+  postId?: number
 ): Promise<MentionItem[]> {
-  const usersGroupMentions = [
-    { value: "moderators" },
-    { value: "admins" },
-    { value: "members" },
-  ];
-  if (isStuff) {
+  const usersGroupMentions = [{ value: "moderators" }, { value: "admins" }];
+  if (
+    userPermission &&
+    [ProjectPermissions.CURATOR, ProjectPermissions.ADMIN].includes(
+      userPermission
+    )
+  ) {
     usersGroupMentions.push({ value: "predictors" });
   }
   const fallbackUserMentions = defaultUserMentions ? defaultUserMentions : [];
@@ -28,14 +31,15 @@ export async function queryMentions(
   }
 
   try {
-    const users = await ClientProfileApi.searchUsers(query);
-    return sortUsernames(query, [
-      ...users.results.map((user) => ({
-        value: user.username,
-        userId: user.id,
-      })),
-      ...usersGroupMentions,
-    ]);
+    const users = await ClientProfileApi.searchUsers(query, postId);
+    const userMentions = users.map((user) => ({
+      value: user.username,
+      userId: user.id,
+    }));
+    const combined = [...userMentions, ...usersGroupMentions];
+    // When post_id is provided, the backend already sorts by relevance;
+    // skip frontend re-sorting to preserve that order.
+    return postId ? combined : sortUsernames(query, combined);
   } catch {
     return clientSearch(query, fallbackMentions);
   }

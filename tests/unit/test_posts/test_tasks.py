@@ -3,7 +3,7 @@ from freezegun import freeze_time
 from posts.tasks import run_on_post_forecast
 from projects.models import Project
 from questions.models import Question
-from questions.services import create_forecast_bulk
+from questions.services.forecasts import create_forecast_bulk
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.factories import create_question

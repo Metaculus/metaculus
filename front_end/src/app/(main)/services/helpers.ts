@@ -6,10 +6,10 @@ export function sortServiceTournaments(tournaments: TournamentPreview[]) {
   const { tournamentsOrder } = ServiceConfig;
   return tournaments.sort(
     (a, b) =>
-      (tournamentsOrder.find((t) => t.id === String(a.slug ?? a.id))?.order ??
-        0) -
-      (tournamentsOrder.find((t) => t.id === String(b.slug ?? b.id))?.order ??
-        0)
+      (tournamentsOrder.find((t) => t.id === a.id || String(t.id) === a.slug)
+        ?.order ?? 0) -
+      (tournamentsOrder.find((t) => t.id === b.id || String(t.id) === b.slug)
+        ?.order ?? 0)
   );
 }
 

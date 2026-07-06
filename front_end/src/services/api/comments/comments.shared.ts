@@ -1,10 +1,11 @@
 import { ApiService } from "@/services/api/api_service";
 import {
-  CommentType,
-  KeyFactorVoteType,
   CommentOfWeekEntry,
-  Driver,
+  CommentType,
+  KeyFactorVoteReason,
+  KeyFactorVoteType,
 } from "@/types/comment";
+import { KeyFactorDraft } from "@/types/key_factors";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type getCommentsParams = {
@@ -17,13 +18,16 @@ export type getCommentsParams = {
   use_root_comments_pagination?: boolean;
   focus_comment_id?: string;
   is_private?: boolean;
+  last_viewed_at?: string;
+  time_window?: "all_time" | "past_week" | "past_month" | "past_year";
+  search?: string;
+  exclude_bots?: boolean;
+  exclude_bots_only_project?: boolean;
+  include_deleted?: boolean;
+  post_status?: string;
 };
 
-export type KeyFactorWritePayload = {
-  question_id?: number;
-  question_option?: string;
-  driver: Driver;
-};
+export type KeyFactorWritePayload = KeyFactorDraft;
 
 export type CreateCommentParams = {
   parent?: number;
@@ -38,6 +42,7 @@ export type EditCommentParams = {
   id: number;
   text: string;
   author: number;
+  include_forecast?: boolean;
 };
 
 export type VoteParams = {
@@ -48,6 +53,7 @@ export type VoteParams = {
 
 export type KeyFactorVoteParams = VoteParams & {
   vote_type: KeyFactorVoteType;
+  vote_reason?: KeyFactorVoteReason | null;
 };
 
 export type ToggleCMMCommentParams = {

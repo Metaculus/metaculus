@@ -1,0 +1,35 @@
+name: Mark stale issues and PRs
+
+permissions:
+  issues: write
+  pull-requests: write
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Daily at midnight UTC
+  workflow_dispatch:
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v10
+        with:
+          stale-issue-message: >
+            This issue has been automatically marked as stale because it has not had
+            recent activity. It will **not** be closed automatically, but please consider
+            updating it or closing it if it is no longer relevant.
+          stale-pr-message: >
+            This pull request has been automatically marked as stale because it has not had
+            recent activity. It will **not** be closed automatically, but please consider
+            updating it or closing it if it is no longer relevant.
+          stale-issue-label: 'Stale'
+          stale-pr-label: 'Stale'
+          days-before-issue-stale: 60
+          days-before-pr-stale: 30
+          days-before-close: -1
+          exempt-issue-labels: 'Awaiting QA,High Priority'
+          exempt-pr-labels: 'Awaiting QA,High Priority,Do not merge yet'
+          exempt-all-milestones: true
+          exempt-draft-pr: false
+          operations-per-run: 120

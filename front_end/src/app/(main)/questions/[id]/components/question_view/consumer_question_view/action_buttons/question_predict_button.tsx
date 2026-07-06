@@ -13,12 +13,15 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { PostWithForecasts } from "@/types/post";
+import cn from "@/utils/core/cn";
+import { isPostPrePrediction } from "@/utils/questions/predictions";
 
 type Props = {
   post: PostWithForecasts;
+  className?: string;
 };
 
-const QuestionPredictButton: React.FC<Props> = ({ post }) => {
+const QuestionPredictButton: React.FC<Props> = ({ post, className }) => {
   const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
   const isDesktop = useBreakpoint("sm");
@@ -30,14 +33,21 @@ const QuestionPredictButton: React.FC<Props> = ({ post }) => {
       setCurrentModal({ type: "signin" });
       return;
     }
+    if (user.is_bot) {
+      return;
+    }
     setIsOpen(true);
   };
 
   return (
     <>
-      <Button variant="tertiary" onClick={handleClick}>
+      <Button
+        variant="tertiary"
+        onClick={handleClick}
+        className={cn("px-4 capitalize", className)}
+      >
         <FontAwesomeIcon icon={faPercent} />
-        {t("predict")}
+        {isPostPrePrediction(post) ? t("prePredict") : t("predict")}
       </Button>
 
       {!isDesktop ? (
@@ -56,7 +66,7 @@ const QuestionPredictButton: React.FC<Props> = ({ post }) => {
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
           label={post.question?.title ?? ""}
-          className="!h-[calc(100vh-200px)] w-full max-w-2xl"
+          className="max-h-[calc(100vh-200px)] w-full max-w-2xl"
         >
           <ForecastMaker
             post={post}

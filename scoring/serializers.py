@@ -12,8 +12,10 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
     ci_lower = serializers.FloatField()
     ci_upper = serializers.FloatField()
     rank = serializers.IntegerField()
+    # deprecate in favor of exclusion_status
     excluded = serializers.BooleanField()
     show_when_excluded = serializers.BooleanField()
+    exclusion_status = serializers.IntegerField()
     medal = serializers.CharField()
     prize = serializers.FloatField()
     coverage = serializers.FloatField()
@@ -31,8 +33,10 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
             "ci_lower",
             "ci_upper",
             "rank",
+            # deprecate in favor of exclusion_status
             "excluded",
             "show_when_excluded",
+            "exclusion_status",
             "medal",
             "prize",
             "coverage",
@@ -44,10 +48,12 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
 
 
 class LeaderboardSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
     project_id = serializers.IntegerField()
     project_type = serializers.CharField(source="project.type")
     project_name = serializers.CharField(source="project.name")
     project_slug = serializers.CharField(source="project.slug")
+    is_primary_leaderboard = serializers.SerializerMethodField()
     score_type = serializers.CharField()
     name = serializers.CharField()
     start_time = serializers.DateTimeField()
@@ -56,14 +62,17 @@ class LeaderboardSerializer(serializers.Serializer):
     finalized = serializers.BooleanField()
     prize_pool = serializers.SerializerMethodField()
     max_coverage = serializers.SerializerMethodField()
+    display_config = serializers.JSONField()
 
     class Meta:
         model = Leaderboard
         fields = [
+            "id",
             "project_id",
             "project_type",
             "project_name",
             "project_slug",
+            "is_primary_leaderboard",
             "score_type",
             "name",
             "start_time",
@@ -72,6 +81,7 @@ class LeaderboardSerializer(serializers.Serializer):
             "finalized",
             "prize_pool",
             "max_coverage",
+            "display_config",
         ]
 
     def get_prize_pool(self, obj: Leaderboard):
@@ -82,7 +92,7 @@ class LeaderboardSerializer(serializers.Serializer):
 
     def get_max_coverage(self, obj: Leaderboard):
         if self.context.get("include_max_coverage", False):
-            return (
+            return sum(
                 obj.get_questions()
                 .filter(resolution__isnull=False)
                 .exclude(
@@ -91,8 +101,13 @@ class LeaderboardSerializer(serializers.Serializer):
                         UnsuccessfulResolutionType.AMBIGUOUS,
                     ]
                 )
-                .count()
+                .values_list("question_weight", flat=True)
             )
+
+    def get_is_primary_leaderboard(self, obj: Leaderboard):
+        if obj.project and obj.project.primary_leaderboard_id == obj.id:
+            return True
+        return False
 
 
 class ContributionSerializer(serializers.Serializer):
@@ -121,4 +136,5 @@ class GetLeaderboardSerializer(serializers.Serializer):
     start_time = serializers.DateTimeField(required=False)
     end_time = serializers.DateTimeField(required=False)
     name = serializers.CharField(required=False)
-    primary = serializers.BooleanField(required=False, default=True)
+    primary_only = serializers.BooleanField(required=False, default=False)
+    with_entries = serializers.BooleanField(required=False, default=True)

@@ -1,5 +1,8 @@
+import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
+import { TopChrome } from "@/app/(main)/components/top_chrome";
 import PredictionFlowHeader from "@/app/(prediction-flow)/components/header";
 import PredictionFlowPost from "@/app/(prediction-flow)/components/prediction_flow_post";
 import PredictionFlowProvider, {
@@ -16,6 +19,20 @@ type Props = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<SearchParams>;
 };
+
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const { slug } = await props.params;
+  const tournament = await ServerProjectsApi.getTournament(slug);
+  const t = await getTranslations();
+
+  if (!tournament) {
+    return {};
+  }
+
+  return {
+    title: `${tournament.name} | ${t("predictionFlow")}`,
+  };
+}
 
 export default async function PredictionFlow(props: Props) {
   const params = await props.params;
@@ -47,14 +64,20 @@ export default async function PredictionFlow(props: Props) {
       flowType={flowType}
       initialPosts={forecastFlowPosts}
     >
-      <PredictionFlowHeader
-        tournamentName={tournament.name}
-        tournamentSlug={tournamentSlug}
-      />
-      <main className="mx-auto flex min-h-screen max-w-3xl flex-grow flex-col pt-header">
-        <ProgressSection />
-        <PredictionFlowPost tournamentSlug={tournamentSlug} />
-      </main>
+      <div className="flex min-h-screen flex-col">
+        <TopChrome
+          defaultHeader={
+            <PredictionFlowHeader
+              tournamentName={tournament.name}
+              tournamentSlug={tournamentSlug}
+            />
+          }
+        />
+        <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col">
+          <ProgressSection />
+          <PredictionFlowPost tournamentSlug={tournamentSlug} />
+        </main>
+      </div>
     </PredictionFlowProvider>
   );
 }

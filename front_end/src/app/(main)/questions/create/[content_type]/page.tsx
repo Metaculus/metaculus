@@ -2,8 +2,7 @@ import { isNil } from "lodash";
 import { notFound } from "next/navigation";
 import invariant from "ts-invariant";
 
-import CommunityHeader from "@/app/(main)/components/headers/community_header";
-import Header from "@/app/(main)/components/headers/header";
+import { TopChromeHeaderSetter } from "@/app/(main)/components/top_chrome_header_context";
 import GroupForm from "@/app/(main)/questions/components/group_form";
 import QuestionForm from "@/app/(main)/questions/components/question_form";
 import RepostForm from "@/app/(main)/questions/components/repost";
@@ -67,7 +66,9 @@ export default async function QuestionCreator(props: Props) {
     ? communitiesResponse.results[0]
     : undefined;
 
-  const shouldUseDraftValue = mode === "create" && isNil(post);
+  // When mode is "create", always use draft values to persist edits
+  // This handles both new posts and duplicated posts
+  const shouldUseDraftValue = mode === "create";
 
   const componentProps = {
     post,
@@ -146,7 +147,15 @@ export default async function QuestionCreator(props: Props) {
 
   return (
     <>
-      {community ? <CommunityHeader community={community} /> : <Header />}
+      <TopChromeHeaderSetter
+        header={
+          community
+            ? { type: "community", community }
+            : {
+                type: "default",
+              }
+        }
+      />
       <QuestionDraftCleanup />
       {component}
     </>

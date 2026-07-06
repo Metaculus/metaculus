@@ -7,11 +7,10 @@ import {
   format,
   formatDuration,
   intervalToDuration,
+  parseISO,
 } from "date-fns";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import posthog from "posthog-js";
-import { useFeatureFlagEnabled } from "posthog-js/react";
 import React, {
   Dispatch,
   FC,
@@ -23,12 +22,14 @@ import React, {
 
 import PredictButton from "@/components/forecast_maker/predict_button";
 import { useAuth } from "@/contexts/auth_context";
+import { QuestionStatus } from "@/types/post";
 import { QuestionWithForecasts, UserForecast } from "@/types/question";
 import cn from "@/utils/core/cn";
 import {
   formatDurationToShortStr,
   truncateDuration,
 } from "@/utils/formatters/date";
+import { isQuestionPrePrediction } from "@/utils/questions/predictions";
 
 import BaseModal from "../base_modal";
 import Button from "../ui/button";
@@ -45,6 +46,7 @@ interface ForecastExpirationModalProps {
   hasUserForecast: boolean;
   isUserForecastActive?: boolean;
   isSubmissionDisabled?: boolean;
+  predictLabel?: string;
 }
 
 type Preset = { id: string; duration?: Duration };
@@ -62,12 +64,9 @@ interface ModalState {
 }
 
 export const forecastExpirationToDate = (
-  expiration: ForecastExpirationValue | undefined
+  expiration: ForecastExpirationValue | undefined,
+  baseDate?: Date
 ): Date | undefined => {
-  if (!posthog.getFeatureFlag("forecast_expiration")) {
-    return undefined;
-  }
-
   if (!expiration) {
     return undefined;
   }
@@ -77,10 +76,22 @@ export const forecastExpirationToDate = (
   }
 
   if (expiration.kind === "duration") {
-    return add(new Date(), expiration.value);
+    return add(baseDate ?? new Date(), expiration.value);
   }
   return expiration.value;
 };
+
+export const getExpirationBaseDate = (question: {
+  status?: QuestionStatus | string;
+  open_time?: string | null;
+}): Date | undefined => {
+  if (isQuestionPrePrediction(question) && question.open_time) {
+    return parseISO(question.open_time);
+  }
+  return undefined;
+};
+
+const MIN_DEFAULT_EXPIRATION_DURATION_SEC = 30 * 24 * 60 * 60; // 30 days in seconds
 
 const durationPresets: DurationPreset[] = [
   { id: "1d", duration: { days: 1 } },
@@ -128,7 +139,10 @@ export function getEffectiveLatest(opt: ContinuousGroupOption) {
     };
   }
   if (opt.forecastExpiration) {
-    const d = forecastExpirationToDate(opt.forecastExpiration);
+    const d = forecastExpirationToDate(
+      opt.forecastExpiration,
+      getExpirationBaseDate(opt.question)
+    );
     if (d) return { end_time: Math.floor(d.getTime() / 1000) };
   }
   return opt.question.my_forecasts?.latest;
@@ -145,7 +159,10 @@ export const buildDefaultForecastExpiration = (
     new Date(question.open_time ?? question.created_at).getTime();
 
   const userDefaultExpirationDurationSec = userPredictionExpirationPercent
-    ? ((userPredictionExpirationPercent / 100) * questionDuration) / 1000
+    ? Math.max(
+        ((userPredictionExpirationPercent / 100) * questionDuration) / 1000,
+        MIN_DEFAULT_EXPIRATION_DURATION_SEC
+      )
     : null;
 
   const defaultState = buildDefaultState(
@@ -253,7 +270,8 @@ const getPresetLabel = (
 
 export const useExpirationModalState = (
   questionDuration: number,
-  lastForecast: UserForecast | undefined
+  lastForecast: UserForecast | undefined,
+  isPrePrediction?: boolean
 ) => {
   const [isForecastExpirationModalOpen, setIsForecastExpirationModalOpen] =
     useState(false);
@@ -261,7 +279,10 @@ export const useExpirationModalState = (
   const { user } = useAuth();
   const userExpirationPercent = user?.prediction_expiration_percent ?? null;
   const userDefaultExpirationDurationSec = userExpirationPercent
-    ? ((userExpirationPercent / 100) * questionDuration) / 1000
+    ? Math.max(
+        ((userExpirationPercent / 100) * questionDuration) / 1000,
+        MIN_DEFAULT_EXPIRATION_DURATION_SEC
+      )
     : null;
 
   const initialState = buildDefaultState(
@@ -272,10 +293,6 @@ export const useExpirationModalState = (
   const [modalSavedState, setModalSavedState] =
     useState<ModalState>(initialState);
 
-  const isForecastExpirationEnabled = useFeatureFlagEnabled(
-    "forecast_expiration"
-  );
-
   useEffect(() => {
     // When the user last forecast changes (user withdraws), we need to update the chip to duration closed to the last user forecast
     setModalSavedState(
@@ -284,16 +301,28 @@ export const useExpirationModalState = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastForecast]);
 
+  const t = useTranslations();
+  const showFromOpen =
+    isPrePrediction && modalSavedState.forecastExpiration.kind !== "infinity";
+
   let expirationShortChip: React.ReactNode = (
     <FontAwesomeIcon icon={faInfinity} />
   );
 
   if (modalSavedState.forecastExpiration.kind === "duration") {
-    expirationShortChip = formatDurationToShortStr(
+    const durationStr = formatDurationToShortStr(
       truncateDuration(modalSavedState.forecastExpiration.value, 1)
     );
+    expirationShortChip = showFromOpen ? (
+      <span className="flex items-baseline gap-0.5">
+        {durationStr}
+        <span className="text-[10px] opacity-70">{t("fromOpenShort")}</span>
+      </span>
+    ) : (
+      durationStr
+    );
   } else if (modalSavedState.forecastExpiration.kind === "date") {
-    expirationShortChip = formatDurationToShortStr(
+    const durationStr = formatDurationToShortStr(
       truncateDuration(
         intervalToDuration({
           start: new Date(),
@@ -301,6 +330,14 @@ export const useExpirationModalState = (
         }),
         1
       )
+    );
+    expirationShortChip = showFromOpen ? (
+      <span className="flex items-baseline gap-0.5">
+        {durationStr}
+        <span className="text-[10px] opacity-70">{t("fromOpenShort")}</span>
+      </span>
+    ) : (
+      durationStr
     );
   }
 
@@ -344,11 +381,6 @@ export const useExpirationModalState = (
     };
   }
 
-  if (!isForecastExpirationEnabled) {
-    expirationShortChip = undefined;
-    previousForecastExpiration = undefined;
-  }
-
   return {
     modalSavedState,
     setModalSavedState,
@@ -370,6 +402,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   hasUserForecast,
   isUserForecastActive,
   isSubmissionDisabled,
+  predictLabel: predictLabelProp,
 }) => {
   const t = useTranslations();
 
@@ -379,7 +412,10 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
   const { user } = useAuth();
   const userExpirationPercent = user?.prediction_expiration_percent ?? null;
   const userDefaultExpirationDurationSec = userExpirationPercent
-    ? ((userExpirationPercent / 100) * questionDuration) / 1000
+    ? Math.max(
+        ((userExpirationPercent / 100) * questionDuration) / 1000,
+        MIN_DEFAULT_EXPIRATION_DURATION_SEC
+      )
     : null;
 
   const datePickerDate = savedState.datePickerDate;
@@ -545,7 +581,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
           </Button>
           <p className="my-0 text-xs text-gray-700 dark:text-gray-700-dark">
             {t.rich("useAccountSettingDescription", {
-              userForecastExpirationPercent: userExpirationPercent,
+              userForecastExpirationPercent: userExpirationPercent ?? 0,
               settingsLink: (chunk) => (
                 <Link
                   href="/accounts/settings/"
@@ -580,7 +616,7 @@ export const ForecastExpirationModal: FC<ForecastExpirationModalProps> = ({
             hasUserForecast={hasUserForecast}
             isUserForecastActive={isUserForecastActive}
             isPending={false}
-            predictLabel={t("predict")}
+            predictLabel={predictLabelProp ?? t("predict")}
             isDisabled={isSubmissionDisabled}
           />
         </div>

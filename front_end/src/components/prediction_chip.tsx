@@ -27,7 +27,7 @@ type Size = "compact" | "large";
 type Props = {
   question: QuestionWithForecasts;
   status: PostStatus;
-  predictionOverride?: number; // override displayed CP (e.g. for graph cursor), otherwise the latest CP is used
+  predictionOverride?: number | null; // override displayed CP (e.g. for graph cursor), otherwise the latest CP is used
   size?: Size;
   className?: string;
   chipClassName?: string;

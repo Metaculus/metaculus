@@ -9,21 +9,23 @@ import { useTranslations } from "next-intl";
 import { FC, ReactNode } from "react";
 
 import NavUserButton from "@/components/auth";
-import LanguageMenu from "@/components/language_menu";
 import NavLink from "@/components/nav_link";
-import ThemeToggle from "@/components/theme_toggle";
+import RandomButton from "@/components/random_button";
 import { useAuth } from "@/contexts/auth_context";
 import cn from "@/utils/core/cn";
 import { isPathEqual } from "@/utils/navigation";
 
-import ContentTranslatedBanner from "../content_translated_banner";
 import GlobalSearch from "../global_search";
 import MobileMenu from "./components/mobile_menu";
 import NavbarLinks from "./components/navbar_links";
 import NavbarLogo from "./components/navbar_logo";
 import useNavbarLinks from "./hooks/useNavbarLinks";
 
-const Header: FC = () => {
+type Props = {
+  className?: string;
+};
+
+const Header: FC<Props> = ({ className }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const pathname = usePathname();
@@ -31,12 +33,14 @@ const Header: FC = () => {
   const { lgLinks, smLinks, xsLinks, xxsLinks } = navbarLinks;
 
   return (
-    <>
-      <header className="fixed left-0 top-0 z-[200] flex h-header w-full flex-auto items-stretch justify-between bg-blue-900 text-gray-0">
-        <NavbarLogo />
-
-        {/* Global Search */}
-        <GlobalSearch />
+    <header
+      className={cn(
+        "flex h-12 w-full flex-auto items-stretch justify-between bg-blue-900 text-gray-0 print:hidden",
+        className
+      )}
+    >
+      <div className="flex items-stretch justify-between">
+        <NavbarLogo className="mr-1 lg:mr-5" />
 
         {/* Regular links */}
         <NavbarLinks links={lgLinks} className="hidden lg:flex" />
@@ -53,37 +57,49 @@ const Header: FC = () => {
           className="hidden justify-start max-[374px]:flex"
         />
 
+        {/* The More menu */}
+        <div className="hidden h-full justify-start text-sm font-medium md:block">
+          <Menu>
+            <MenuButton
+              className={cn(
+                "group relative flex h-full items-center gap-1 p-3 no-underline hover:bg-blue-700",
+                {
+                  active: menuLinks.some((link) =>
+                    isPathEqual(pathname, link.href ?? "")
+                  ),
+                }
+              )}
+            >
+              {t("more")}
+              <FontAwesomeIcon size="xs" icon={faChevronDown} />
+              <span className="absolute bottom-0 left-0 h-1 w-full bg-blue-600 opacity-0 transition-opacity group-[.active]:opacity-100" />
+            </MenuButton>
+            <MenuItems
+              anchor="bottom"
+              className="z-100 border border-blue-200-dark bg-blue-900 text-sm text-gray-0"
+            >
+              {menuLinks.map((link) => (
+                <LinkMenuItem
+                  key={link.href}
+                  href={link.href}
+                  label={link.label}
+                />
+              ))}
+            </MenuItems>
+          </Menu>
+        </div>
+      </div>
+
+      {/* Right-side items wrapper */}
+      <div className="ml-auto flex items-stretch">
+        {/* Global Search */}
+        <GlobalSearch />
+        <RandomButton
+          variant="text"
+          className="ml-1 hidden self-center text-white hover:bg-blue-700 hover:text-white active:bg-blue-600 dark:text-white dark:hover:text-white md:inline-flex"
+        />
+
         <ul className="relative hidden list-none items-center justify-end text-sm font-medium md:flex">
-          <li className="h-full">
-            <Menu>
-              <MenuButton
-                className={cn(
-                  "group relative flex h-full items-center gap-1 p-3 no-underline hover:bg-blue-700",
-                  {
-                    active: menuLinks.some((link) =>
-                      isPathEqual(pathname, link.href ?? "")
-                    ),
-                  }
-                )}
-              >
-                {t("more")}
-                <FontAwesomeIcon size="xs" icon={faChevronDown} />
-                <span className="absolute bottom-0 left-0 h-1 w-full bg-blue-600 opacity-0 transition-opacity group-[.active]:opacity-100" />
-              </MenuButton>
-              <MenuItems
-                anchor="bottom"
-                className="z-100 border border-blue-200-dark bg-blue-900 text-sm text-gray-0"
-              >
-                {menuLinks.map((link) => (
-                  <LinkMenuItem
-                    key={link.href}
-                    href={link.href}
-                    label={link.label}
-                  />
-                ))}
-              </MenuItems>
-            </Menu>
-          </li>
           {!!user && (
             <li className="hidden h-full lg:block">
               <NavLink
@@ -97,12 +113,6 @@ const Header: FC = () => {
           <li className="z-10 flex h-full items-center justify-center">
             <NavUserButton />
           </li>
-          <li className="z-10 flex h-full items-center p-2 hover:bg-blue-700">
-            <LanguageMenu />
-          </li>
-          <li className="z-10 flex items-center p-4">
-            <ThemeToggle />
-          </li>
         </ul>
 
         {!user && (
@@ -112,9 +122,8 @@ const Header: FC = () => {
         )}
 
         <MobileMenu />
-      </header>
-      <ContentTranslatedBanner />
-    </>
+      </div>
+    </header>
   );
 };
 

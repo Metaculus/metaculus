@@ -1,6 +1,6 @@
-import { getServerSession } from "@/services/session";
+import { getAuthCookieManager } from "@/services/auth_tokens";
 
-import AiBenchmarkingTournamentPage from "../../components/page-view";
+import AiBenchmarkingTournamentPage from "../../components/page-view-2025-fall";
 
 export const metadata = {
   title: "AI Forecasting Benchmark Tournament | Metaculus",
@@ -9,7 +9,8 @@ export const metadata = {
 };
 
 export default async function Settings() {
-  const token = await getServerSession();
+  const authManager = await getAuthCookieManager();
+  const token = authManager.getAccessToken();
 
   return <AiBenchmarkingTournamentPage token={token} />;
 }

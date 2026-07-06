@@ -24,9 +24,19 @@ type Props = {
   post: PostWithForecasts;
   forCommunityFeed?: boolean;
   indexWeight?: number;
+  minimalistic?: boolean;
+  forFeedPage?: boolean;
+  useShortTitle?: boolean;
 };
 
-const PostCard: FC<Props> = ({ post, forCommunityFeed, indexWeight }) => {
+const PostCard: FC<Props> = ({
+  post,
+  forCommunityFeed,
+  indexWeight,
+  minimalistic = false,
+  forFeedPage = false,
+  useShortTitle = false,
+}) => {
   const { user } = useAuth();
   const hideCP =
     user?.hide_community_prediction &&
@@ -34,7 +44,7 @@ const PostCard: FC<Props> = ({ post, forCommunityFeed, indexWeight }) => {
 
   const [internalPost, setInternalPost] = useState<PostWithForecasts>(post);
 
-  const canPredict = canPredictQuestion(internalPost);
+  const canPredict = canPredictQuestion(internalPost, user);
 
   return (
     <CardReaffirmContextProvider
@@ -49,6 +59,8 @@ const PostCard: FC<Props> = ({ post, forCommunityFeed, indexWeight }) => {
           borderColor={internalPost.notebook ? "purple" : "blue"}
           forCommunityFeed={forCommunityFeed}
           indexWeight={indexWeight}
+          minimalistic={minimalistic}
+          useShortTitle={useShortTitle}
         >
           <HideCPProvider post={internalPost}>
             {isQuestionPost(internalPost) && (
@@ -58,10 +70,16 @@ const PostCard: FC<Props> = ({ post, forCommunityFeed, indexWeight }) => {
                 curationStatus={post.status}
                 hideCP={hideCP}
                 canPredict={canPredict}
+                minimalistic={minimalistic}
+                forFeedPage={forFeedPage}
               />
             )}
             {isGroupOfQuestionsPost(internalPost) && (
-              <GroupOfQuestionsTile post={internalPost} />
+              <GroupOfQuestionsTile
+                post={internalPost}
+                minimalistic={minimalistic}
+                forFeedPage={forFeedPage}
+              />
             )}
             {isConditionalPost(internalPost) && (
               <ConditionalTile post={internalPost} />

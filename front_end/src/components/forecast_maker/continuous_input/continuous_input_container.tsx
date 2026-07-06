@@ -10,7 +10,7 @@ import {
   ContinuousAreaGraphType,
   ContinuousForecastInputType,
 } from "@/types/charts";
-import { QuestionType, UserForecast } from "@/types/question";
+import { QuestionType, NumericUserForecast } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 
@@ -21,7 +21,7 @@ export type ContinuousInputContainerProps = {
   onInputModeChange: (mode: ContinuousForecastInputType) => void;
   overlayPreviousForecast: boolean;
   onOverlayPreviousForecastChange: (value: boolean) => void;
-  previousForecast?: UserForecast;
+  previousForecast?: NumericUserForecast;
   menu?: ReactNode;
   copyMenu?: ReactNode;
   children?: (
@@ -49,7 +49,7 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
   const [sliderGraphType, setSliderGraphType] =
     useState<ContinuousAreaGraphType>("pmf");
   const [tableGraphType, setTableGraphType] =
-    useState<ContinuousAreaGraphType>("cdf");
+    useState<ContinuousAreaGraphType>("pmf");
   const activeGraphType = useMemo(() => {
     if (forecastInputMode === ContinuousForecastInputType.Slider) {
       return sliderGraphType;
@@ -76,7 +76,7 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
             onChange={onInputModeChange}
           />
         )}
-        <div className="flex flex-col items-center gap-2 self-end">
+        <div className="flex flex-col items-center gap-2 self-start">
           <div className="flex w-fit flex-row items-center gap-2 self-end">
             <p
               className={cn(
@@ -113,7 +113,8 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
                 " while CDF (Cumulative Distribution Function) shows the cumulative probability of outcomes up to a certain value."
               }
               className=""
-              tooltipClassName="text-center !max-w-[331px] !border-blue-400 dark:!border-blue-400-dark bg-gray-0 dark:bg-gray-0-dark !text-base !p-4"
+              variant="light"
+              tooltipClassName="text-center !max-w-[331px] !text-base !p-4"
             >
               <FontAwesomeIcon
                 icon={faCircleQuestion}
@@ -134,7 +135,7 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
               )}
             </div>
           </div>
-          {!!previousForecast && (
+          {!!previousForecast && !disabled && (
             <div className="ml-auto mr-auto mt-1 flex items-center md:-mr-1">
               <Checkbox
                 checked={overlayPreviousForecast}

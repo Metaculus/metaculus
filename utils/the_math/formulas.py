@@ -5,6 +5,7 @@ import numpy as np
 
 from questions.constants import UnsuccessfulResolutionType
 from questions.models import Question
+from questions.services.multiple_choice_handlers import get_all_options_from_history
 from utils.typing import ForecastValues
 
 logger = logging.getLogger(__name__)
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 # scaled_location: the location in actual scale
 #     binary: 0 or 1
 #     multiple_choice: some int of the index of the option
-#     continuous: the actual value in float form
+#     continuous: the actual value in float form (nominal units, e.g. degrees, dollars)
 # unscaled_location: an internal representation of the location
 #     binary: 0 or 1
 #     multiple_choice: some int of the index of the option
@@ -23,6 +24,14 @@ logger = logging.getLogger(__name__)
 #         0 to 1 for the value within bounds, is not logarithmicly scaled
 # bucket_index: the index of the bucket for scoring when viewing the forecast
 #     as a PMF
+#     continuous: 0 = strictly below lower bound, 1..N = inbound buckets,
+#         N+1 = above upper bound (where N = inbound_outcome_count).
+#     Importantly, a scaled_location equal to range_min (the nominal lower bound)
+#     maps to bucket_index 1, not 0. Bucket 1 is a closed-on-both-sides interval
+#     [range_min, range_min + step] — it includes the lower bound. Bucket 0
+#     is reserved for outcomes strictly below range_min (only possible when
+#     open_lower_bound is True). This mirrors the CDF convention where cdf[0] is
+#     P(x < range_min) and cdf[1] is P(x <= range_min + step).
 
 
 def string_location_to_scaled_location(
@@ -33,7 +42,8 @@ def string_location_to_scaled_location(
     if question.type == Question.QuestionType.BINARY:
         return 1.0 if string_location == "yes" else 0.0
     if question.type == Question.QuestionType.MULTIPLE_CHOICE:
-        return float(question.options.index(string_location))
+        list_of_all_options = get_all_options_from_history(question.options_history)
+        return float(list_of_all_options.index(string_location))
     # continuous
     if string_location == "below_lower_bound":
         return question.range_min - 1.0
@@ -51,7 +61,8 @@ def scaled_location_to_string_location(
     if question.type == Question.QuestionType.BINARY:
         return "yes" if scaled_location > 0.5 else "no"
     if question.type == Question.QuestionType.MULTIPLE_CHOICE:
-        return question.options[int(scaled_location)]
+        list_of_all_options = get_all_options_from_history(question.options_history)
+        return list_of_all_options[int(scaled_location)]
     # continuous
     if scaled_location < question.range_min:
         return "below_lower_bound"
@@ -130,6 +141,8 @@ def unscaled_location_to_bucket_index(
         return question.get_inbound_outcome_count() + 1
     if unscaled_location == 1:
         return question.get_inbound_outcome_count()
+    # Clamp to minimum 1: unscaled_location=0 (exactly range_min) must land in
+    # bucket 1, not bucket 0. Bucket 0 is reserved for strictly-below-lower-bound.
     return max(
         int(unscaled_location * question.get_inbound_outcome_count() + 1 - 1e-10), 1
     )

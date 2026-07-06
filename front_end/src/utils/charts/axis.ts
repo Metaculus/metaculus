@@ -83,6 +83,18 @@ export function getAxisLeftPadding(
   };
 }
 
+// Width reserved on the right margin for a rotated (270°) yLabel/axis title.
+// Rotated text occupies its fontSize horizontally (centered on its anchor
+// after rotation); we reserve enough space to fit an Inter 11px glyph plus
+// gaps on both sides — gap to tick labels on the left and gap to the
+// container edge on the right.
+export const Y_AXIS_LABEL_RESERVED_PX = 20;
+// Distance from chartWidth to the rotated yLabel's anchor x. With default
+// textAnchor="middle", the label spans ±fontSize/2 around this point, so
+// the anchor must sit at least fontSize/2 + a small gap inside the edge to
+// avoid being clipped.
+export const Y_AXIS_LABEL_ANCHOR_OFFSET = 12;
+
 export function getAxisRightPadding(
   yScale: Scale,
   labelsFontSize: number,
@@ -94,11 +106,11 @@ export function getAxisRightPadding(
     Math.max(...labels.map((label) => label.length)),
     12
   );
-  const fontSizeScale = yLabel ? 11 : 9;
+  const tickLabelsWidth =
+    Math.round((longestLabelLength * labelsFontSize * 9) / 10) +
+    SCATTER_POINT_PADDING;
   return {
-    rightPadding:
-      Math.round((longestLabelLength * labelsFontSize * fontSizeScale) / 10) +
-      SCATTER_POINT_PADDING,
+    rightPadding: tickLabelsWidth + (yLabel ? Y_AXIS_LABEL_RESERVED_PX : 0),
     MIN_RIGHT_PADDING: 35,
   };
 }
@@ -112,6 +124,7 @@ type GenerateYDomainParams = {
   zoomDomainPadding?: number;
   includeClosestBoundOnZoom?: boolean;
   forceAutoZoom?: boolean;
+  useFullYDomain?: boolean;
 };
 
 export function generateTimeSeriesYDomain({
@@ -123,24 +136,30 @@ export function generateTimeSeriesYDomain({
   zoomDomainPadding,
   includeClosestBoundOnZoom,
   forceAutoZoom,
+  useFullYDomain,
 }: GenerateYDomainParams): YDomain {
   const originalYDomain: Tuple<number> = [0, 1];
   const fallback = { originalYDomain, zoomedYDomain: originalYDomain };
 
   if (
-    (zoom === TimelineChartZoomOption.All && !forceAutoZoom) ||
+    (zoom === TimelineChartZoomOption.All &&
+      !forceAutoZoom &&
+      !useFullYDomain) ||
     isChartEmpty
   ) {
     return fallback;
   }
 
+  const shouldIncludeValue = (timestamp: number) =>
+    useFullYDomain || timestamp >= minTimestamp;
+
   const min = minValues
-    .filter((d) => d.timestamp >= minTimestamp)
+    .filter((d) => shouldIncludeValue(d.timestamp))
     .map((d) => d.y)
     .filter((value) => !isNil(value));
   const minValue = min.length ? Math.min(...min) : null;
   const max = maxValues
-    .filter((d) => d.timestamp >= minTimestamp)
+    .filter((d) => shouldIncludeValue(d.timestamp))
     .map((d) => d.y)
     .filter((value) => !isNil(value));
   const maxValue = max.length ? Math.max(...max) : null;
@@ -572,19 +591,19 @@ export function generateScale({
       tickStart,
       tickEnd + 1e-4,
       1 / (tickCount - openBoundCount)
-    ).map((x) => Math.round(x * 100000) / 100000);
+    ).map((x) => Math.round(x * 1000000) / 1000000);
     const step =
       Math.max(1, Math.ceil((tickCount - openBoundCount) / maxLabelCount)) /
       (tickCount - openBoundCount);
     majorTicks = range(tickStart, tickEnd - 0.6 * step, step).map(
-      (x) => Math.round(x * 100000) / 100000
+      (x) => Math.round(x * 1000000) / 1000000
     );
     majorTicks.push(minorTicks.at(-1) ?? 1);
   } else if (
     displayType === QuestionType.Discrete &&
     direction === "vertical"
   ) {
-    // expect to have a foreced tick count, and never include
+    // expect to have a forced tick count, and never include
     // out of bounds values
     const tickCount = forceTickCount
       ? Math.min(forceTickCount, inbound_outcome_count)
@@ -600,14 +619,14 @@ export function generateScale({
         Math.round((i / (tickCount - 1)) * (inbound_outcome_count - 1)) /
         (inbound_outcome_count - 1);
       return (
-        Math.round((tickStart + (tickEnd - tickStart) * x) * 100000) / 100000
+        Math.round((tickStart + (tickEnd - tickStart) * x) * 1000000) / 1000000
       );
     });
 
     const step =
       Math.max(1, Math.ceil((tickCount - 2) / maxLabelCount)) / tickCount;
     majorTicks = range(tickStart, tickEnd - 0.6 * step, step).map(
-      (x) => Math.round(x * 100000) / 100000
+      (x) => Math.round(x * 1000000) / 1000000
     );
     majorTicks.push(minorTicks.at(-1) ?? 1);
   } else if (isNil(zeroPoint)) {
@@ -623,8 +642,8 @@ export function generateScale({
         Math.round(
           (zoomedDomainMin +
             (i / (majorTickCount - 1)) * (zoomedDomainMax - zoomedDomainMin)) *
-            100000
-        ) / 100000
+            1000000
+        ) / 1000000
     );
     const minorTicksPerMajor = findOptimalTickCount(
       rangeMin,
@@ -640,8 +659,8 @@ export function generateScale({
         Math.round(
           (zoomedDomainMin +
             (i / (minorTickCount - 1)) * (zoomedDomainMax - zoomedDomainMin)) *
-            100000
-        ) / 100000
+            1000000
+        ) / 1000000
     );
   } else {
     // Logarithmic Scaling
@@ -674,7 +693,7 @@ export function generateScale({
     }
     majorTicks = bestTicks.map(
       (x) =>
-        Math.round(unscaleNominalLocation(x, rangeScaling) * 100000) / 100000
+        Math.round(unscaleNominalLocation(x, rangeScaling) * 1000000) / 1000000
     );
 
     const tickCount = forceTickCount
@@ -711,7 +730,7 @@ export function generateScale({
   function tickFormat(x: number, idx?: number) {
     if (
       alwaysShowTicks ||
-      majorTicks.includes(Math.round(x * 100000) / 100000)
+      majorTicks.includes(Math.round(x * 1000000) / 1000000)
     ) {
       if (displayType === QuestionType.Discrete) {
         return conditionallyShowUnit(
@@ -770,7 +789,7 @@ export function generateScale({
     );
   }
 
-  // if (!true && displayType === "numeric" && direction === "horizontal") {
+  // if (displayType === "numeric" && direction === "horizontal") {
   //   // Debugging - do not remove
   //   console.log(
   //     "\n displayType",

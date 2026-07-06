@@ -19,8 +19,11 @@ type Props<T> = {
   slideBy?: SlideBy;
   showGradients?: Resolver<GradientVisibility>;
   gradientFromClass?: string;
+  gradientWidthClass?: string;
   showArrows?: Resolver<boolean>;
   arrowClassName?: string;
+  arrowLeftPosition?: string;
+  arrowRightPosition?: string;
   prevLabel?: string;
   nextLabel?: string;
   className?: string;
@@ -40,8 +43,11 @@ function ReusableGradientCarousel<T>({
   slideBy = { mode: "items", count: 2 },
   showGradients = true,
   gradientFromClass = "from-blue-200 dark:from-blue-200-dark",
+  gradientWidthClass = "w-[152px]",
   showArrows = true,
   arrowClassName = "w-10 h-10 md:w-[44px] md:h-[44px] text-blue-700 dark:text-blue-700-dark bg-gray-0 dark:bg-gray-0-dark mt-3 md:text-gray-200 md:dark:text-gray-200-dark rounded-full md:bg-blue-900 md:dark:bg-blue-900-dark",
+  arrowLeftPosition = "left-[18px]",
+  arrowRightPosition = "right-[18px]",
   prevLabel = "Previous",
   nextLabel = "Next",
   className,
@@ -72,7 +78,7 @@ function ReusableGradientCarousel<T>({
     const el = viewportRef.current;
     if (!el) return;
     const { scrollLeft, scrollWidth, clientWidth } = el;
-    setCanPrev(loop || scrollLeft > 0);
+    setCanPrev(loop || scrollLeft > 1);
     setCanNext(loop || scrollLeft + clientWidth < scrollWidth - 1);
   }, [loop]);
 
@@ -201,9 +207,21 @@ function ReusableGradientCarousel<T>({
           el.scrollTo({ left: el.scrollWidth, behavior: "smooth" });
           return;
         }
+        el.scrollTo({ left: target, behavior: "smooth" });
+        return;
       }
 
-      el.scrollTo({ left: target, behavior: "smooth" });
+      // Non-loop: snap to the edge when the next step would land us close to it
+      // (otherwise sub-pixel residue / snap-mandatory leaves the arrow visible).
+      const maxScroll = Math.max(0, el.scrollWidth - el.clientWidth);
+      const edgeThreshold = delta * 0.5;
+      let final = target;
+      if (dir === -1 && target < edgeThreshold) {
+        final = 0;
+      } else if (dir === 1 && target > maxScroll - edgeThreshold) {
+        final = maxScroll;
+      }
+      el.scrollTo({ left: final, behavior: "smooth" });
     },
     [loop, slideBy]
   );
@@ -235,10 +253,10 @@ function ReusableGradientCarousel<T>({
         ref={viewportRef}
         className={cn(
           "overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none]",
-          "touch-pan-x snap-x snap-mandatory",
+          "touch-manipulation snap-x snap-mandatory",
           "[-webkit-overflow-scrolling:touch]",
           dragScroll && (isGrabbing ? "cursor-grabbing" : "cursor-grab"),
-          dragScroll && "select-none",
+          dragScroll && "select-none [-webkit-user-select:none]",
           viewportClassName
         )}
       >
@@ -264,7 +282,8 @@ function ReusableGradientCarousel<T>({
         <div
           aria-hidden
           className={cn(
-            "pointer-events-none absolute inset-y-0 left-0 w-[152px]",
+            "pointer-events-none absolute inset-y-0 left-0",
+            gradientWidthClass,
             "bg-gradient-to-r",
             gradientFromClass,
             "to-transparent",
@@ -275,7 +294,8 @@ function ReusableGradientCarousel<T>({
         <div
           aria-hidden
           className={cn(
-            "pointer-events-none absolute inset-y-0 right-0 w-[152px]",
+            "pointer-events-none absolute inset-y-0 right-0",
+            gradientWidthClass,
             "bg-gradient-to-l",
             gradientFromClass,
             "to-transparent",
@@ -294,7 +314,8 @@ function ReusableGradientCarousel<T>({
             disabled={!canPrev && !loop}
             tabIndex={canPrev || loop ? 0 : -1}
             className={cn(
-              "absolute left-[18px] top-1/2 -translate-y-1/2",
+              "absolute top-1/2 -translate-y-1/2",
+              arrowLeftPosition,
               arrowClassName,
               fadeCls,
               arrowsActive && canPrev
@@ -313,7 +334,8 @@ function ReusableGradientCarousel<T>({
             disabled={!canNext && !loop}
             tabIndex={canNext || loop ? 0 : -1}
             className={cn(
-              "absolute right-[18px] top-1/2 -translate-y-1/2",
+              "absolute top-1/2 -translate-y-1/2",
+              arrowRightPosition,
               arrowClassName,
               fadeCls,
               arrowsActive && canNext

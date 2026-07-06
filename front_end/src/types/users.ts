@@ -37,6 +37,10 @@ export type User = UserBase & {
 };
 
 export type UserProfile = User & {
+  spam_count?: number;
+};
+
+export type UserProfileStats = {
   calibration_curve?: TrackRecordCalibrationCurveItem[];
   score_histogram?: TrackRecordHistogramItem[];
   score_scatter_plot?: TrackRecordScatterPlotItem[];
@@ -48,8 +52,9 @@ export type UserProfile = User & {
   forecasts_on_authored_questions_count?: number;
   notebooks_authored_count?: number;
   comments_count?: number;
-  spam_count?: number;
 };
+
+export type UserProfileWithStats = UserProfile & UserProfileStats;
 
 export type CurrentUser = User & {
   email: string;
@@ -62,20 +67,30 @@ export type CurrentUser = User & {
   registered_campaigns: { key: string; details: object }[];
   should_suggest_keyfactors: boolean;
   prediction_expiration_percent: number | null;
+  has_password: boolean;
   app_theme?: AppTheme | null;
   interface_type: InterfaceType;
   language?: string | null;
+  metaculus_news_subscription: boolean;
+  automatically_follow_on_predict: boolean;
+  follow_notify_cp_change_threshold: number | null;
+  follow_notify_comments_frequency: number | null;
+  follow_notify_milestone_step: number | null;
+  follow_notify_on_status_change: boolean;
+  api_forecasting_access: ApiForecastingAccess;
 };
 
-export enum ProfilePageMode {
-  Overview = "overview",
-  TrackRecord = "track_record",
-  Medals = "medals",
-  Comments = "comments",
-  Questions = "questions",
-}
+export type CurrentBot = CurrentUser & {
+  is_primary_bot: boolean;
+};
 
 export enum InterfaceType {
   ConsumerView = "consumer_view",
   ForecasterView = "forecaster_view",
+}
+
+export enum ApiForecastingAccess {
+  Enabled = "enabled",
+  Disabled = "disabled",
+  Pending = "pending",
 }

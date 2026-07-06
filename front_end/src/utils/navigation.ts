@@ -1,3 +1,4 @@
+import { SearchParams } from "@/types/navigation";
 import { Notebook, Post, PostGroupOfQuestions } from "@/types/post";
 import {
   Project,
@@ -12,6 +13,20 @@ import {
   isGroupOfQuestionsPost,
   isNotebookPost,
 } from "@/utils/questions/helpers";
+
+/**
+ * Converts URLSearchParams to a plain object, preserving multi-value params as arrays.
+ * Unlike Object.fromEntries(), this doesn't discard duplicate keys.
+ */
+export function urlSearchParamsToRecord(params: URLSearchParams): SearchParams {
+  const result: SearchParams = {};
+  params.forEach((_, key) => {
+    if (key in result) return;
+    const values = params.getAll(key);
+    result[key] = values.length > 1 ? values : values[0];
+  });
+  return result;
+}
 
 type EncodableValue = string | number | boolean;
 
@@ -152,12 +167,6 @@ export const getProjectSlug = (project: Pick<Project, "id" | "slug">) => {
   return project.slug ?? project.id;
 };
 
-export const getWithDefaultHeader = (pathname: string): boolean =>
-  !pathname.match(/^\/questions\/(\d+)(\/.*)?$/) &&
-  !pathname.match(/^\/notebooks\/(\d+)(\/.*)?$/) &&
-  !pathname.startsWith("/c/") &&
-  !pathname.startsWith("/questions/create");
-
 /**
  * Ensures trailing slash is handled properly, e.g. when link is defined manually in code
  *
@@ -180,3 +189,29 @@ export const getPostEditLink = (post: Post) => {
 
   return `/questions/create/${edit_type}?post_id=${post.id}`;
 };
+
+/**
+ * Ensures a safe, normalized relative redirect path.
+ */
+export function ensureRelativeRedirect(input: string): string {
+  if (!input) return "/";
+
+  let url = input.trim();
+
+  if (url.startsWith("//")) {
+    throw new Error(
+      "Unsafe redirect URL: protocol-relative URLs are not allowed"
+    );
+  }
+
+  url = url.replace(/^\/+/, "");
+
+  if (/^[a-zA-Z][a-zA-Z0-9+\-.]*:/.test(url)) {
+    throw new Error(
+      "Unsafe redirect URL: absolute or protocol URLs are not allowed"
+    );
+  }
+
+  // Normalize slashes
+  return "/" + url;
+}

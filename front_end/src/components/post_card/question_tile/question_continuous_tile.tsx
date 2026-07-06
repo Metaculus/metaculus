@@ -10,6 +10,7 @@ import { BINARY_FORECAST_PRECISION } from "@/components/forecast_maker/binary_sl
 import {
   buildDefaultForecastExpiration,
   forecastExpirationToDate,
+  getExpirationBaseDate,
 } from "@/components/forecast_maker/forecast_expiration";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
 import PredictionBinaryInfo from "@/components/post_card/question_tile/prediction_binary_info";
@@ -17,6 +18,7 @@ import PredictionContinuousInfo from "@/components/post_card/question_tile/predi
 import useCardReaffirmContext from "@/components/post_card/reaffirm_context";
 import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
+import useDeferredRender from "@/hooks/use_deferred_render";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { QuestionStatus } from "@/types/post";
 import {
@@ -25,6 +27,7 @@ import {
   QuestionWithNumericForecasts,
   UserForecast,
 } from "@/types/question";
+import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
@@ -37,6 +40,8 @@ type Props = {
   forecastAvailability: ForecastAvailability;
   canPredict?: boolean;
   showChart?: boolean;
+  minimalistic?: boolean;
+  forFeedPage?: boolean;
 };
 
 const QuestionContinuousTile: FC<Props> = ({
@@ -45,11 +50,23 @@ const QuestionContinuousTile: FC<Props> = ({
   forecastAvailability,
   canPredict,
   showChart = true,
+  minimalistic = false,
+  forFeedPage = false,
 }) => {
   const { onReaffirm } = useCardReaffirmContext();
 
   const { hideCP } = useHideCP();
   const { user } = useAuth();
+
+  const shouldRenderFeedChart = useDeferredRender(forFeedPage, question.id);
+  // Defer the heavy Victory chart mount on the feed; reserve its height so the
+  // placeholder doesn't shift layout when the real chart swaps in.
+  const renderDeferrableChart = (chart: React.ReactNode) =>
+    forFeedPage && !shouldRenderFeedChart ? (
+      <div style={{ height: HEIGHT }} />
+    ) : (
+      chart
+    );
 
   const continuousAreaChartData = getContinuousAreaChartData({
     question,
@@ -82,7 +99,10 @@ const QuestionContinuousTile: FC<Props> = ({
           onReaffirm([
             {
               questionId: question.id,
-              forecastEndTime: forecastExpirationToDate(forecastExpiration),
+              forecastEndTime: forecastExpirationToDate(
+                forecastExpiration,
+                getExpirationBaseDate(question)
+              ),
               forecastData: {
                 continuousCdf: null,
                 probabilityYes: forecastValue,
@@ -107,7 +127,9 @@ const QuestionContinuousTile: FC<Props> = ({
             {
               questionId: question.id,
               forecastData: {
-                continuousCdf: activeForecast.forecast_values,
+                continuousCdf: activeForecast.forecast_values.map(
+                  (value) => value ?? 0
+                ),
                 probabilityYes: null,
                 probabilityYesPerCategory: null,
               },
@@ -124,7 +146,7 @@ const QuestionContinuousTile: FC<Props> = ({
   // Binary questions use original side-by-side layout
   if (question.type === QuestionType.Binary) {
     return (
-      <div className="flex min-h-24 justify-between gap-6">
+      <div className="flex min-h-24 justify-between gap-2 @[550px]:gap-6">
         <div className="inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
           <PredictionBinaryInfo
             question={question}
@@ -139,31 +161,33 @@ const QuestionContinuousTile: FC<Props> = ({
         </div>
         {showChart && (
           <div className="relative min-h-12 w-2/3 min-w-24 flex-1 overflow-visible">
-            <NumericTimeline
-              nonInteractive={true}
-              aggregation={
-                question.aggregations[question.default_aggregation_method]
-              }
-              myForecasts={question.my_forecasts}
-              height={HEIGHT}
-              questionType={question.type}
-              actualCloseTime={getPostDrivenTime(question.actual_close_time)}
-              scaling={question.scaling}
-              defaultZoom={defaultChartZoom}
-              resolution={question.resolution}
-              resolveTime={question.actual_resolve_time}
-              hideCP={hideCP}
-              isEmptyDomain={
-                !!forecastAvailability?.isEmpty ||
-                !!forecastAvailability?.cpRevealsOn
-              }
-              openTime={getPostDrivenTime(question.open_time)}
-              unit={question.unit}
-              tickFontSize={9}
-              questionStatus={question.status}
-              forecastAvailability={forecastAvailability}
-              forFeedPage
-            />
+            {renderDeferrableChart(
+              <NumericTimeline
+                nonInteractive={true}
+                aggregation={
+                  question.aggregations[question.default_aggregation_method]
+                }
+                myForecasts={question.my_forecasts}
+                height={HEIGHT}
+                questionType={question.type}
+                actualCloseTime={getPostDrivenTime(question.actual_close_time)}
+                scaling={question.scaling}
+                defaultZoom={defaultChartZoom}
+                resolution={question.resolution}
+                resolveTime={question.actual_resolve_time}
+                hideCP={hideCP}
+                isEmptyDomain={
+                  !!forecastAvailability?.isEmpty ||
+                  !!forecastAvailability?.cpRevealsOn
+                }
+                openTime={getPostDrivenTime(question.open_time)}
+                unit={question.unit}
+                tickFontSize={9}
+                questionStatus={question.status}
+                forecastAvailability={forecastAvailability}
+                forFeedPage={forFeedPage}
+              />
+            )}
           </div>
         )}
       </div>
@@ -185,15 +209,21 @@ const QuestionContinuousTile: FC<Props> = ({
     return (
       <div className="w-full">
         {/* Mobile: Overlay layout */}
-        <div className="flex flex-col items-center md:hidden">
+        <div
+          className={cn(
+            "flex flex-col items-center @[550px]:hidden",
+            minimalistic && "@[550px]:flex"
+          )}
+        >
           {/* CP values container - positioned first */}
-          <div className="relative z-20 flex w-full items-stretch justify-stretch md:items-center md:justify-center">
+          <div className="relative z-20 flex w-full items-stretch justify-stretch @[550px]:items-center @[550px]:justify-center">
             <div className="flex w-full flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark">
               <PredictionContinuousInfo
                 question={question}
                 onReaffirm={onReaffirm ? handleReaffirmClick : undefined}
                 canPredict={canPredict}
                 showMyPrediction={true}
+                className={minimalistic ? "@[550px]:flex-row" : undefined}
               />
             </div>
           </div>
@@ -201,23 +231,33 @@ const QuestionContinuousTile: FC<Props> = ({
           {/* Full-width chart background - overlapping with negative margin */}
           {showChart && (
             <div className="relative z-10 -mt-8 flex w-full flex-col overflow-visible">
-              <ContinuousAreaChart
-                data={continuousAreaChartData}
-                height={HEIGHT}
-                question={question}
-                hideCP={hideCP}
-                forceTickCount={3}
-              />
+              {renderDeferrableChart(
+                <ContinuousAreaChart
+                  data={continuousAreaChartData}
+                  height={HEIGHT}
+                  question={question}
+                  hideCP={hideCP}
+                  hideYAxis={question.type === QuestionType.Discrete}
+                  forceTickCount={3}
+                  variant={forFeedPage ? "feed" : "question"}
+                  centerOOBResolution
+                />
+              )}
               <ForecastAvailabilityChartOverflow
                 forecastAvailability={forecastAvailability}
-                className="pl-3 text-xs md:text-sm"
+                className="pl-3 text-xs @[550px]:text-sm"
               />
             </div>
           )}
         </div>
 
         {/* Large screens: Side-by-side layout (like binary questions) */}
-        <div className="hidden justify-between gap-6 md:flex">
+        <div
+          className={cn(
+            "hidden justify-between gap-2 @[550px]:flex @[550px]:gap-6",
+            minimalistic && "@[550px]:hidden"
+          )}
+        >
           <div className="inline-flex flex-col justify-center gap-3 text-xs text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
             <PredictionContinuousInfo
               question={question}
@@ -228,16 +268,21 @@ const QuestionContinuousTile: FC<Props> = ({
           </div>
           {showChart && (
             <div className="relative h-24 w-2/3 min-w-24 flex-1 overflow-visible">
-              <ContinuousAreaChart
-                data={continuousAreaChartData}
-                height={HEIGHT}
-                question={question}
-                hideCP={hideCP}
-                forceTickCount={3}
-              />
+              {renderDeferrableChart(
+                <ContinuousAreaChart
+                  data={continuousAreaChartData}
+                  height={HEIGHT}
+                  question={question}
+                  hideCP={hideCP}
+                  hideYAxis={question.type === QuestionType.Discrete}
+                  forceTickCount={3}
+                  variant={forFeedPage ? "feed" : "question"}
+                  centerOOBResolution
+                />
+              )}
               <ForecastAvailabilityChartOverflow
                 forecastAvailability={forecastAvailability}
-                className="pl-3 text-xs md:text-sm"
+                className="pl-3 text-xs @[550px]:text-sm"
               />
             </div>
           )}
@@ -264,13 +309,18 @@ const QuestionContinuousTile: FC<Props> = ({
       {/* Chart below CP values */}
       {showChart && (
         <div className="relative w-full overflow-visible">
-          <ContinuousAreaChart
-            data={continuousAreaChartData}
-            height={HEIGHT}
-            question={question}
-            hideCP={hideCP}
-            forceTickCount={3}
-          />
+          {renderDeferrableChart(
+            <ContinuousAreaChart
+              data={continuousAreaChartData}
+              height={HEIGHT}
+              question={question}
+              hideCP={hideCP}
+              hideYAxis={question.type === QuestionType.Discrete}
+              forceTickCount={3}
+              variant={forFeedPage ? "feed" : "question"}
+              centerOOBResolution
+            />
+          )}
           <ForecastAvailabilityChartOverflow
             forecastAvailability={forecastAvailability}
             className="pl-3 text-xs text-gray-700 dark:text-gray-700-dark md:text-sm"

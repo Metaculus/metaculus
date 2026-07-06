@@ -123,7 +123,7 @@ class Migration(migrations.Migration):
                     "start_time",
                     models.DateTimeField(
                         db_index=True,
-                        help_text="Begining time when this prediction is active",
+                        help_text="Beginning time when this prediction is active",
                     ),
                 ),
                 (

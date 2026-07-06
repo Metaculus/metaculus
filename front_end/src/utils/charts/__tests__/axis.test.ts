@@ -196,10 +196,10 @@ describe("generateScale", () => {
       const scale = generateScale(params);
 
       // Then
-      const formatedLables = scale.ticks
+      const formattedLabels = scale.ticks
         .map((tick) => scale.tickFormat(tick))
         .filter((label) => label !== "");
-      expect(formatedLables.length).toBeGreaterThan(2);
+      expect(formattedLabels.length).toBeGreaterThan(2);
     });
   });
 
@@ -223,10 +223,10 @@ describe("generateScale", () => {
       const scale = generateScale(params);
 
       // Then
-      const formatedLables = scale.ticks
+      const formattedLabels = scale.ticks
         .map((tick) => scale.tickFormat(tick))
         .filter((label) => label !== "");
-      expect(formatedLables.length).toBeGreaterThan(2);
+      expect(formattedLabels.length).toBeGreaterThan(2);
     });
   });
 
@@ -309,5 +309,41 @@ describe("generateTimeSeriesYDomain", () => {
     expect(scale.zoomedYDomain[0] === 0 || scale.zoomedYDomain[1] === 1).toBe(
       true
     );
+  });
+
+  it("should ignore zoom window when useFullYDomain is enabled", () => {
+    const params = {
+      zoom: TimelineChartZoomOption.OneDay,
+      isChartEmpty: false,
+      minValues: [
+        { timestamp: 100, y: 0.2 },
+        { timestamp: 200, y: 0.45 },
+      ],
+      maxValues: [
+        { timestamp: 100, y: 0.75 },
+        { timestamp: 200, y: 0.55 },
+      ],
+      minTimestamp: 150,
+      useFullYDomain: true,
+    };
+
+    const scale = generateTimeSeriesYDomain(params);
+
+    expect(scale.zoomedYDomain).toEqual([0.15, 0.8]);
+  });
+
+  it("should auto zoom for all when useFullYDomain is enabled", () => {
+    const params = {
+      zoom: TimelineChartZoomOption.All,
+      isChartEmpty: false,
+      minValues: [{ timestamp: 100, y: 0.3 }],
+      maxValues: [{ timestamp: 100, y: 0.6 }],
+      minTimestamp: 100,
+      useFullYDomain: true,
+    };
+
+    const scale = generateTimeSeriesYDomain(params);
+
+    expect(scale.zoomedYDomain).toEqual([0.25, 0.65]);
   });
 });

@@ -16,7 +16,7 @@ import { useHideCP } from "@/contexts/cp_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ContinuousForecastInputType } from "@/types/charts";
 import { ErrorResponse } from "@/types/fetch";
-import { PostWithForecasts, ProjectPermissions } from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
 import {
   DistributionQuantile,
   DistributionQuantileComponent,
@@ -43,6 +43,7 @@ import {
 } from "@/utils/forecasts/initial_values";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { computeQuartilesFromCDF } from "@/utils/math";
+import { isQuestionPrePrediction } from "@/utils/questions/predictions";
 
 import PredictionSuccessBox from "./prediction_success_box";
 import ContinuousInput from "../continuous_input";
@@ -50,6 +51,7 @@ import {
   ForecastExpirationModal,
   forecastExpirationToDate,
   ForecastExpirationValue,
+  getExpirationBaseDate,
   useExpirationModalState,
 } from "../forecast_expiration";
 import {
@@ -57,16 +59,13 @@ import {
   validateUserQuantileData,
 } from "../helpers";
 import PredictButton from "../predict_button";
-import QuestionResolutionButton from "../resolution";
-import QuestionUnresolveButton from "../resolution/unresolve_button";
 import WithdrawButton from "../withdraw/withdraw_button";
 
 type Props = {
   post: PostWithForecasts;
   question: QuestionWithNumericForecasts;
-  permission?: ProjectPermissions;
   canPredict: boolean;
-  canResolve: boolean;
+  predictLabel: string;
   predictionMessage?: ReactNode;
   onPredictionSubmit?: () => void;
 };
@@ -74,9 +73,8 @@ type Props = {
 const ForecastMakerContinuous: FC<Props> = ({
   post,
   question,
-  permission,
   canPredict,
-  canResolve,
+  predictLabel,
   predictionMessage,
   onPredictionSubmit,
 }) => {
@@ -249,7 +247,11 @@ const ForecastMakerContinuous: FC<Props> = ({
     isForecastExpirationModalOpen,
     setIsForecastExpirationModalOpen,
     previousForecastExpiration,
-  } = useExpirationModalState(questionDuration, question.my_forecasts?.latest);
+  } = useExpirationModalState(
+    questionDuration,
+    question.my_forecasts?.latest,
+    isQuestionPrePrediction(question)
+  );
 
   const handlePredictSubmit = async (
     forecastExpiration: ForecastExpirationValue
@@ -283,7 +285,10 @@ const ForecastMakerContinuous: FC<Props> = ({
           probabilityYes: null,
           probabilityYesPerCategory: null,
         },
-        forecastEndTime: forecastExpirationToDate(forecastExpiration),
+        forecastEndTime: forecastExpirationToDate(
+          forecastExpiration,
+          getExpirationBaseDate(question)
+        ),
         distributionInput: {
           type: forecastInputMode,
           components:
@@ -416,7 +421,7 @@ const ForecastMakerContinuous: FC<Props> = ({
               hasUserForecast={!!previousForecast}
               isUserForecastActive={hasUserActiveForecast}
               isPending={isPending}
-              predictLabel={previousForecast ? undefined : t("predict")}
+              predictLabel={previousForecast ? undefined : predictLabel}
               predictionExpirationChip={expirationShortChip}
               onPredictionExpirationClick={() =>
                 setIsForecastExpirationModalOpen(true)
@@ -472,6 +477,7 @@ const ForecastMakerContinuous: FC<Props> = ({
         onSubmit={submit}
         questionDuration={questionDuration}
         isSubmissionDisabled={predictButtonIsDisabled}
+        predictLabel={predictLabel}
       />
       <ContinuousInput
         question={question}
@@ -511,16 +517,6 @@ const ForecastMakerContinuous: FC<Props> = ({
         disabled={!canPredict}
         predictionMessage={predictionMessage}
       />
-
-      <div className="flex flex-col items-center justify-center">
-        <QuestionUnresolveButton question={question} permission={permission} />
-        {canResolve && (
-          <QuestionResolutionButton
-            question={question}
-            permission={permission}
-          />
-        )}
-      </div>
     </>
   );
 };

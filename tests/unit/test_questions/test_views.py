@@ -10,11 +10,15 @@ from rest_framework.reverse import reverse
 
 from posts.models import Post
 from questions.models import Forecast, Question, UserForecastNotification
+from questions.types import OptionsHistoryType
 from questions.tasks import check_and_schedule_forecast_widrawal_due_notifications
 from tests.unit.test_posts.conftest import *  # noqa
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.conftest import *  # noqa
 from tests.unit.test_questions.factories import create_question
+from tests.unit.test_users.factories import factory_user
+from users.constants import ApiForecastingAccess
+from users.models import User
 
 
 class TestQuestionForecast:
@@ -75,30 +79,179 @@ class TestQuestionForecast:
         )
         assert response.status_code == 400
 
+    @freeze_time("2025-01-01")
     @pytest.mark.parametrize(
-        "props",
+        "options_history,forecast_props,expected",
         [
-            {"probability_yes_per_category": {"a": 0.1, "b": 0.2, "c": 0.3, "d": 0.4}},
+            (
+                [("0001-01-01T00:00:00", ["a", "other"])],
+                {
+                    "probability_yes_per_category": {
+                        "a": 0.6,
+                        "other": 0.4,
+                    },
+                    "end_time": "2026-01-01",
+                },
+                [
+                    Forecast(
+                        probability_yes_per_category=[0.6, 0.4],
+                        start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
+                        end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.API,
+                    ),
+                ],
+            ),  # simple path
+            (
+                [("0001-01-01T00:00:00", ["a", "b", "other"])],
+                {
+                    "probability_yes_per_category": {
+                        "a": 0.6,
+                        "b": 0.15,
+                        "other": 0.25,
+                    },
+                    "end_time": "2026-01-01",
+                },
+                [
+                    Forecast(
+                        probability_yes_per_category=[0.6, 0.15, 0.25],
+                        start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
+                        end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.API,
+                    ),
+                ],
+            ),  # simple path 3 options
+            (
+                [
+                    ("0001-01-01T00:00:00", ["a", "b", "other"]),
+                    (datetime(2024, 1, 1).isoformat(), ["a", "other"]),
+                ],
+                {
+                    "probability_yes_per_category": {
+                        "a": 0.6,
+                        "other": 0.4,
+                    },
+                    "end_time": "2026-01-01",
+                },
+                [
+                    Forecast(
+                        probability_yes_per_category=[0.6, None, 0.4],
+                        start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
+                        end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.API,
+                    ),
+                ],
+            ),  # option deletion
+            (
+                [
+                    ("0001-01-01T00:00:00", ["a", "b", "other"]),
+                    (datetime(2024, 1, 1).isoformat(), ["a", "b", "c", "other"]),
+                ],
+                {
+                    "probability_yes_per_category": {
+                        "a": 0.6,
+                        "b": 0.15,
+                        "c": 0.20,
+                        "other": 0.05,
+                    },
+                    "end_time": "2026-01-01",
+                },
+                [
+                    Forecast(
+                        probability_yes_per_category=[0.6, 0.15, 0.20, 0.05],
+                        start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
+                        end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.API,
+                    ),
+                ],
+            ),  # option addition
+            (
+                [
+                    ("0001-01-01T00:00:00", ["a", "b", "other"]),
+                    (datetime(2026, 1, 1).isoformat(), ["a", "b", "c", "other"]),
+                ],
+                {
+                    "probability_yes_per_category": {
+                        "a": 0.6,
+                        "b": 0.15,
+                        "c": 0.20,
+                        "other": 0.05,
+                    },
+                },
+                [
+                    Forecast(
+                        probability_yes_per_category=[0.6, 0.15, None, 0.25],
+                        start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
+                        end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.API,
+                    ),
+                    Forecast(
+                        probability_yes_per_category=[0.6, 0.15, 0.20, 0.05],
+                        start_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        end_time=None,
+                        source=Forecast.SourceChoices.AUTOMATIC,
+                    ),
+                ],
+            ),  # forecasting during a grace period
+            (
+                [
+                    ("0001-01-01T00:00:00", ["a", "b", "other"]),
+                    (datetime(2026, 1, 1).isoformat(), ["a", "b", "c", "other"]),
+                ],
+                {
+                    "probability_yes_per_category": {
+                        "a": 0.6,
+                        "b": 0.15,
+                        "c": 0.20,
+                        "other": 0.05,
+                    },
+                    "end_time": "2027-01-01",
+                },
+                [
+                    Forecast(
+                        probability_yes_per_category=[0.6, 0.15, None, 0.25],
+                        start_time=datetime(2025, 1, 1, tzinfo=dt_timezone.utc),
+                        end_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.API,
+                    ),
+                    Forecast(
+                        probability_yes_per_category=[0.6, 0.15, 0.20, 0.05],
+                        start_time=datetime(2026, 1, 1, tzinfo=dt_timezone.utc),
+                        end_time=datetime(2027, 1, 1, tzinfo=dt_timezone.utc),
+                        source=Forecast.SourceChoices.AUTOMATIC,
+                    ),
+                ],
+            ),  # forecasting during a grace period with end time
         ],
     )
     def test_forecast_multiple_choice(
-        self, post_multiple_choice_public, user1, user1_client, props
+        self,
+        post_multiple_choice_public: Post,
+        user1: User,
+        user1_client,
+        options_history: OptionsHistoryType,
+        forecast_props: dict,
+        expected: list[Forecast],
     ):
+        question = post_multiple_choice_public.question
+        question.options_history = options_history
+        question.options = options_history[-1][1]
+        question.save()
         response = user1_client.post(
             self.url,
-            data=json.dumps(
-                [{"question": post_multiple_choice_public.question.id, **props}]
-            ),
+            data=json.dumps([{"question": question.id, **forecast_props}]),
             content_type="application/json",
         )
         assert response.status_code == 201
-        forecast = Forecast.objects.filter(
-            question=post_multiple_choice_public.question, author=user1
-        ).first()
-        assert forecast
-        assert forecast.probability_yes_per_category == list(
-            props.get("probability_yes_per_category").values()
-        )
+        forecasts = Forecast.objects.filter(
+            question=post_multiple_choice_public.question,
+            author=user1,
+        ).order_by("start_time")
+        assert len(forecasts) == len(expected)
+        for f, e in zip(forecasts, expected):
+            assert f.start_time == e.start_time
+            assert f.end_time == e.end_time
+            assert f.probability_yes_per_category == e.probability_yes_per_category
+            assert f.source == e.source
 
     @pytest.mark.parametrize(
         "props",
@@ -262,6 +415,98 @@ class TestQuestionForecast:
         assert response.status_code == status_code
 
 
+class TestApiForecastingRestriction:
+    forecast_url = reverse("create-forecast")
+    withdraw_url = reverse("create-withdraw")
+
+    @staticmethod
+    def _forecast_payload(question_id):
+        return json.dumps([{"question": question_id, "probability_yes": 0.5}])
+
+    @pytest.mark.parametrize(
+        "is_bot, access, expected_status, expected_access",
+        [
+            # Non-bot DISABLED: blocked, and the first attempt flips to PENDING.
+            (
+                False,
+                ApiForecastingAccess.DISABLED,
+                403,
+                ApiForecastingAccess.PENDING,
+            ),
+            # Non-bot PENDING: blocked, stays PENDING.
+            (
+                False,
+                ApiForecastingAccess.PENDING,
+                403,
+                ApiForecastingAccess.PENDING,
+            ),
+            # Non-bot ENABLED: allowed.
+            (
+                False,
+                ApiForecastingAccess.ENABLED,
+                201,
+                ApiForecastingAccess.ENABLED,
+            ),
+            (
+                True,
+                ApiForecastingAccess.ENABLED,
+                201,
+                ApiForecastingAccess.ENABLED,
+            ),
+        ],
+    )
+    def test_api_forecast_access(
+        self,
+        post_binary_public,
+        create_client_for_user,
+        is_bot,
+        access,
+        expected_status,
+        expected_access,
+    ):
+        user = factory_user(is_bot=is_bot, api_forecasting_access=access)
+        client = create_client_for_user(user)
+        response = client.post(
+            self.forecast_url,
+            data=self._forecast_payload(post_binary_public.question.id),
+            content_type="application/json",
+        )
+        assert response.status_code == expected_status
+        if expected_status == 403:
+            assert response.json()["code"] == "api_forecasting_not_enabled"
+        assert Forecast.objects.filter(author=user).exists() == (expected_status == 201)
+        user.refresh_from_db()
+        assert user.api_forecasting_access == expected_access
+
+    def test_oldapi_forecast_blocked_for_disabled_non_bot(
+        self, post_binary_public, create_client_for_user
+    ):
+        user = factory_user(api_forecasting_access=ApiForecastingAccess.DISABLED)
+        client = create_client_for_user(user)
+        response = client.post(
+            reverse("oldapi-create-forecast", args=[post_binary_public.id]),
+            data=json.dumps({"prediction": 0.5}),
+            content_type="application/json",
+        )
+        assert response.status_code == 403
+        assert not Forecast.objects.filter(author=user).exists()
+
+    def test_ui_forecast_not_restricted_for_disabled_non_bot(
+        self, post_binary_public, create_client_for_user
+    ):
+        user = factory_user(api_forecasting_access=ApiForecastingAccess.DISABLED)
+        client = create_client_for_user(user)
+        with patch("questions.views.is_internal_request", return_value=True):
+            response = client.post(
+                self.forecast_url,
+                data=self._forecast_payload(post_binary_public.question.id),
+                content_type="application/json",
+            )
+        assert response.status_code == 201
+        user.refresh_from_db()
+        assert user.api_forecasting_access == ApiForecastingAccess.DISABLED
+
+
 class TestQuestionWithdraw:
     url = reverse("create-withdraw")
 
@@ -275,19 +520,25 @@ class TestQuestionWithdraw:
         )
         assert response.status_code == 201
 
-    def test_cant_withdraw_forecast_if_no_forecast(
-        self, question_binary_with_forecast_user_1, user2_client
+    def test_withdraw_forecast_no_forecast_is_noop(
+        self, question_binary_with_forecast_user_1, user2, user2_client
     ):
+        # Withdrawing for a question the user never forecasted on is a no-op
+        # so that bulk "withdraw all" works across mixed groups containing
+        # questions the user did not forecast on (e.g. resolved siblings).
         response = user2_client.post(
             self.url,
             data=json.dumps([{"question": question_binary_with_forecast_user_1.id}]),
             content_type="application/json",
         )
-        assert response.status_code == 400
+        assert response.status_code == 201
+        assert not Forecast.objects.filter(
+            question=question_binary_with_forecast_user_1,
+            author=user2,
+        ).exists()
 
 
 class TestQuestionResolve:
-
     def test_resolve_binary(self, post_binary_public, user_admin_client):
         url = reverse("question-resolve", args=[post_binary_public.question.id])
         payload = {
@@ -448,7 +699,6 @@ class TestQuestionForecastAutoWithdrawal:
                 "probability_yes": 0.8,
                 "probability_yes_per_category": None,
                 "distribution_input": None,
-                "source": "ui",
                 "end_time": (
                     forecast_end_time.isoformat() if forecast_end_time else None
                 ),
@@ -522,15 +772,19 @@ class TestQuestionForecastAutoWithdrawal:
             question_type=Question.QuestionType.BINARY,
             open_time=timezone.now() - timedelta(days=1),
             scheduled_close_time=timezone.now() + timedelta(days=200),
+            scheduled_resolve_time=timezone.now() + timedelta(days=200),
         )
 
         question2 = create_question(
             question_type=Question.QuestionType.BINARY,
             open_time=timezone.now() - timedelta(days=1),
             scheduled_close_time=timezone.now() + timedelta(days=29),
+            scheduled_resolve_time=timezone.now() + timedelta(days=29),
         )
-        factory_post(question=question1)
-        factory_post(question=question2)
+        post1 = factory_post(question=question1)
+        post1.update_pseudo_materialized_fields()
+        post2 = factory_post(question=question2)
+        post2.update_pseudo_materialized_fields()
         base_time = timezone.now()
 
         with freeze_time(base_time):

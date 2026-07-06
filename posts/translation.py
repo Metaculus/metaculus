@@ -7,7 +7,7 @@ class PostTranslationOptions(TranslationOptions):
 
 
 class NotebookTranslationOptions(TranslationOptions):
-    fields = ("markdown", "markdown_summary")
+    fields = ("markdown", "feed_tile_summary")
 
 
 translator.register(Post, PostTranslationOptions)

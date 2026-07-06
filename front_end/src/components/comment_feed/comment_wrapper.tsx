@@ -4,7 +4,9 @@ import { isNil } from "lodash";
 import Link from "next/link";
 import { FC, useState } from "react";
 
+import { KeyFactorsProvider } from "@/app/(main)/questions/[id]/components/key_factors/key_factors_context";
 import Comment from "@/components/comment_feed/comment";
+import { useAuth } from "@/contexts/auth_context";
 import { CommentType } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import cn from "@/utils/core/cn";
@@ -19,6 +21,7 @@ type Props = {
   postData?: PostWithForecasts;
   suggestKeyFactorsOnFirstRender?: boolean;
   shouldSuggestKeyFactors?: boolean;
+  onReplyCreated?: (createdAt: string) => void;
 };
 
 export const CommentWrapper: FC<Props> = ({
@@ -29,7 +32,9 @@ export const CommentWrapper: FC<Props> = ({
   handleCommentPin,
   suggestKeyFactorsOnFirstRender = false,
   shouldSuggestKeyFactors = false,
+  onReplyCreated,
 }) => {
+  const { user } = useAuth();
   const isUnread =
     last_viewed_at && new Date(last_viewed_at) < new Date(comment.created_at);
   const match = window.location.hash.match(/#comment-(\d+)/);
@@ -48,7 +53,7 @@ export const CommentWrapper: FC<Props> = ({
   return (
     <div
       key={comment.id}
-      className={cn("my-1.5 rounded-md border px-1.5 py-1 md:px-3 md:py-2", {
+      className={cn("rounded border bg-gray-0 p-3 dark:bg-gray-0-dark", {
         "border-blue-500 bg-blue-300/70 dark:border-blue-500-dark dark:bg-blue-300-dark/70":
           is_pinned,
         "border-blue-400 dark:border-blue-400-dark": !isUnread && !is_pinned,
@@ -69,20 +74,28 @@ export const CommentWrapper: FC<Props> = ({
           </Link>
         </h3>
       )}
-      <Comment
-        onProfile={!!profileId}
-        comment={comment}
-        handleCommentPin={handleCommentPin}
-        treeDepth={0}
-        /* replies should always be sorted from oldest to newest */
-        sort={"created_at" as SortOption}
-        postData={postData}
-        lastViewedAt={postData?.last_viewed_at}
-        isCollapsed={isCollapsed}
-        isCommentJustCreated={suggestKeyFactorsOnFirstRender}
-        shouldSuggestKeyFactors={shouldSuggestKeyFactors}
-        forceExpandedChildren={isFocusedCommentInTree}
-      />
+      <KeyFactorsProvider
+        user={user}
+        post={postData}
+        commentId={comment.id}
+        suggest={shouldSuggestKeyFactors && suggestKeyFactorsOnFirstRender}
+      >
+        <Comment
+          onProfile={!!profileId}
+          comment={comment}
+          handleCommentPin={handleCommentPin}
+          treeDepth={0}
+          /* replies should always be sorted from oldest to newest */
+          sort={"created_at" as SortOption}
+          postData={postData}
+          lastViewedAt={last_viewed_at}
+          isCollapsed={isCollapsed}
+          isCommentJustCreated={suggestKeyFactorsOnFirstRender}
+          shouldSuggestKeyFactors={shouldSuggestKeyFactors}
+          forceExpandedChildren={isFocusedCommentInTree}
+          onReplyCreated={onReplyCreated}
+        />
+      </KeyFactorsProvider>
     </div>
   );
 };

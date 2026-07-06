@@ -102,6 +102,12 @@ export default function FAQ() {
               <a href="#question-groups">Qué cuestionan los grupos?</a>
             </li>
             <li>
+              <a href="#mc-vs-groups">
+                Cuál es la diferencia entre un Grupo de Preguntas y una pregunta
+                de Opción Múltiple?
+              </a>
+            </li>
+            <li>
               <a href="#conditionals">Qué son los pares condicionales?</a>
             </li>
             <li>
@@ -239,6 +245,19 @@ export default function FAQ() {
           </ul>
         </div>
         <div>
+          <h2 className="mb-4 mt-0 text-2xl font-semibold">Funciones</h2>
+          <ul className="space-y-1">
+            <li>
+              <a href="#related-news">Qué es NewsMatch?</a>
+            </li>
+            <li>
+              <a href="#top-comments-of-the-week">
+                Qué es Top Comments de la semana?
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div>
           <h2 className="mb-4 mt-0 text-2xl font-semibold">
             El Diario de Metaculus
           </h2>
@@ -281,14 +300,6 @@ export default function FAQ() {
                 Por qué puedo ver el pronóstico de la comunidad sobre algunos
                 temas, Metaculus predicción de otros, y sin predicciones sobre
                 unos cuantos otros?
-              </a>
-            </li>
-            <li>
-              <a href="#related-news">Qué es NewsMatch?</a>
-            </li>
-            <li>
-              <a href="#community-insights">
-                Qué son las perspectivas de la Comunidad?
               </a>
             </li>
             <li>
@@ -1074,6 +1085,34 @@ export default function FAQ() {
           SpaceX Super Heavy no fue lanzado antes del 29 de marzo de 2022, que
           era el límite superior.
         </p>
+        <h4 className="text-lg font-semibold">Opción Múltiple</h4>
+        <p>
+          Las preguntas de Opción Múltiple presentan un conjunto de opciones que
+          son mutuamente excluyentes y cubren todas las posibilidades, y se
+          resuelven exactamente en una de ellas. Se pueden agregar o quitar
+          opciones a medida que la pregunta evoluciona. Los pronosticadores
+          asignan una probabilidad a cada opción, y esas probabilidades suman
+          100%. Por ejemplo, la pregunta &quot;
+          <Link href="/questions/20683/which-ai-world-before-2050/">
+            Qué mundo de IA se hará realidad antes de 2050?
+          </Link>
+          &quot; pide a los pronosticadores que distribuyan la probabilidad
+          entre varios escenarios mutuamente excluyentes sobre cómo podría
+          llegar primero la IA avanzada, y se resolverá según el escenario que
+          ocurra primero.
+        </p>
+        <p>
+          Opción Múltiple es el formato adecuado cuando la respuesta es una de
+          una lista pequeña y bien definida de posibilidades, y asignar
+          probabilidad a todas las opciones a la vez es más informativo que
+          hacer una pregunta por separado para cada una. Si necesitas que los
+          pronosticadores traten los resultados como independientes, o si
+          quieres permitir que más de uno sea verdadero, utiliza un{" "}
+          <Link href="/faq/#question-groups">Grupo de Preguntas</Link> en su
+          lugar. Consulta{" "}
+          <a href="#mc-vs-groups">Opción Múltiple vs. Grupos de Preguntas</a>{" "}
+          para más detalles.
+        </p>
         <h3
           className="scroll-mt-nav text-xl font-semibold"
           id="question-groups"
@@ -1155,6 +1194,43 @@ export default function FAQ() {
             de preguntas
           </Link>
           .
+        </p>
+        <h4 className="scroll-mt-nav text-lg font-semibold" id="mc-vs-groups">
+          Cuál es la diferencia entre un Grupo de Preguntas y una pregunta de
+          Opción Múltiple?
+        </h4>
+        <p>
+          Los Grupos de Preguntas y las preguntas de{" "}
+          <Link href="/faq/#question-types">Opción Múltiple</Link> se parecen,
+          ya que ambos presentan varias opciones en una sola página, pero
+          modelan situaciones muy diferentes:
+        </p>
+        <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
+          <li>
+            <strong>Opción Múltiple</strong> es una sola pregunta cuyas opciones
+            son mutuamente excluyentes y cubren todas las posibilidades.
+            Exactamente una opción resultará ser la correcta, y las
+            probabilidades pronosticadas entre las opciones suman 100%. Como es
+            una sola pregunta, los pronosticadores reciben una única puntuación
+            por ella. Úsala cuando preguntas &quot;cuál?&quot; a partir de un
+            conjunto de opciones.
+          </li>
+          <li>
+            Un <strong>Grupo de Preguntas</strong> es un conjunto de
+            subpreguntas <i>independientes</i> que comparten una página por
+            conveniencia. Cada subpregunta se resuelve por su cuenta, no tienes
+            que pronosticar en todas ellas, y las probabilidades de la comunidad
+            no están limitadas a sumar 100%. Cada subpregunta se puntúa por
+            separado, por lo que los pronosticadores reciben una puntuación por
+            subpregunta. Úsalo cuando varios resultados relacionados puedan ser
+            verdaderos o falsos por separado (por ejemplo, &quot;Ocurrirá X para
+            2025? Para 2026? Para 2027?&quot;).
+          </li>
+        </ul>
+        <p>
+          Regla general: si exactamente una opción debe ocurrir, prefiere Opción
+          Múltiple. Si los resultados pueden coexistir o quieres que los
+          pronosticadores puedan omitir algunos, prefiere un Grupo de Preguntas.
         </p>
         <h3 className="scroll-mt-nav text-xl font-semibold" id="conditionals">
           Qué son los pares condicionales?
@@ -3053,16 +3129,16 @@ export default function FAQ() {
                       <span className="base">
                         <span className="strut"></span>
                         <span className="mopen">[</span>
-                        <span className="mord">0,001.</span>
-                        <span className="mpunct">0,001,</span>
+                        <span className="mord">0,1%</span>
+                        <span className="mpunct">,</span>
                         <span className="mspace"></span>
-                        <span className="mord">0.999</span>
+                        <span className="mord">99,9%</span>
                         <span className="mclose">]</span>
                       </span>
                     </span>
                   </span>
                 </span>
-                ].
+                .
               </li>
               <li>
                 Para
@@ -3481,6 +3557,95 @@ export default function FAQ() {
           </p>
         </div>
         <div>
+          <h2 id="features" className="scroll-mt-nav text-2xl font-bold">
+            Funciones
+          </h2>
+          <h3 className="scroll-mt-nav text-xl font-semibold" id="related-news">
+            Qué es NewsMatch?
+          </h3>
+          <p>
+            NewsMatch muestra una selección de artículos relevantes para la
+            actual pregunta de Metaculus. Estos sirven como un recurso adicional
+            para los meteorólogos mientras discuten y predicen el tema. Cada
+            artículo aparece en la lista con su fuente y fecha de publicación.
+            Haciendo clic en el título de un artículo navega por el propio
+            artículo. La votación al alza le permite indicar si el artículo fue
+            útil o no. Su entrada mejora la precisión y utilidad del modelo que
+            corresponde a los artículos para las preguntas de Metaculus.
+          </p>
+          <p>
+            El modelo de coincidencia de artículos es apoyado por
+            <a href="https://www.improvethenews.org/">Improve the News</a>, un
+            agregador de noticias desarrollado por un grupo de investigadores
+            del MIT. Diseñado para dar a los lectores más control sobre el
+            consumo de noticias, Improve the News ayuda a los lectores a
+            mantenerse informados mientras encuentran una variedad más amplia de
+            puntos de vista.
+          </p>
+          <p>
+            Los artículos de la base de datos ITN se combinan con preguntas
+            relevantes de Metaculus por un modelo de aprendizaje automático
+            basado en transformadores capacitado para cartografiar pasajes
+            semánticamente similares a regiones en &quot;espacio
+            retrasado&quot;. Las adiciones se generan utilizando
+            <a href="https://arxiv.org/abs/2004.09297">MPNet</a>.
+          </p>
+
+          <h3
+            className="scroll-mt-nav text-xl font-semibold"
+            id="top-comments-of-the-week"
+          >
+            Qué es Top Comments de la semana?
+          </h3>
+
+          <p>
+            Top Comments es un foco semanal sobre el razonamiento más claro y
+            útil en Metaculus. Cada domingo se anuncian los ganadores de la
+            semana anterior y comienza una nueva semana de competencia. Verás
+            los destacados en la barra lateral y en tu bandeja de entrada. Solo
+            cuentan para el ranking los votos emitidos dentro de los 7 días
+            posteriores a la publicación de un comentario. Esto mantiene la
+            competencia justa para que los comentarios más antiguos no tengan
+            ventaja simplemente por llevar más tiempo.
+          </p>
+
+          <h4 className="scroll-mt-nav text-lg font-semibold">
+            Cuántos ganadores hay y cómo se reconocen?
+          </h4>
+
+          <p>
+            Seis por semana: 🥇 va para el mejor comentario, 🥈 para el 2.º y
+            3.º, 🥉 para el 4.º–6.º. Se destacan en la página Top Comments, en
+            el correo semanal y pronto en más lugares.
+          </p>
+
+          <h4 className="scroll-mt-nav text-lg font-semibold">
+            Cómo se calculan las clasificaciones?
+          </h4>
+
+          <p>
+            Combinamos tres señales: votos positivos, votos de “cambia mi
+            opinión” y votos de factores clave (ver abajo para el último). Cada
+            uno se normaliza y luego se pondera: los votos positivos y “cambia
+            mi opinión” pesan 40% cada uno, y los votos de factores clave pesan
+            20%. También hay un bono para comentarios que funcionan bien en
+            múltiples señales.
+          </p>
+
+          <h4 className="scroll-mt-nav text-lg font-semibold">
+            Qué es el “impacto de factor clave” y cómo lo calculan?
+          </h4>
+
+          <p>
+            Si un comentario tiene factores clave, calculamos una puntuación
+            total de <strong>impacto de factor clave</strong>. Se calcula como
+            el promedio del valor absoluto de los votos de impacto sobre ese
+            factor clave (bajo=2, moderado=3, alto=5), sumado en todos los
+            factores clave de ese comentario. Si no añadiste factores clave a tu
+            comentario, esta métrica no aparecerá.
+          </p>
+        </div>
+        <div>
           <h2
             id="Metaculus Journal"
             className="mb-4 scroll-mt-nav text-3xl font-bold"
@@ -3551,44 +3716,65 @@ export default function FAQ() {
             Qué son los meteorólogos Metaculus Pro?
           </h3>
           <p>
-            Para ciertos proyectos, Metaculus emplea
-            <Link href="/pro-forecasters/">Procandeos Progres</Link> que han
-            demostrado una excelente capacidad predictiva y que tienen un
-            historial de describir claramente sus justificaciones. Los
-            profesionales prevén conjuntos de preguntas privadas y públicas para
-            producir predicciones bien calibradas y justificaciones descriptivas
-            para nuestros socios. Reclutamos principalmente a miembros de la
-            comunidad Metaculus con las mejores historias para nuestro equipo
-            Pro, pero también se puede considerar a los meteorólogos que han
-            demostrado una excelente capacidad predictiva en otros lugares.
+            Para ciertos proyectos, Metaculus emplea{" "}
+            <Link href="/services/pro-forecasters/">Pro Forecasters</Link> que
+            han demostrado una excelente capacidad de pronóstico y que tienen un
+            historial de describir con claridad sus razonamientos. Los Pros
+            pronostican en conjuntos privados y públicos de preguntas para
+            producir pronósticos bien calibrados y de alta calidad para
+            proyectos de clientes y socios.
           </p>
+
           <p>
-            Si usted está interesado en contratar Metaculus Procasters para un
-            proyecto, por favor contáctenos en
-            <a href="mailto:support@metaculus.com">e-soco.com</a>.
-            <a href="mailto:support@metaculus.com">com</a> con el tema 2306:73
-            error `&quot;` can be escaped with `&quot;`, `&ldquo;`, `&#34;`,
-            `&rdquo;` react/no-unescaped-entitiesInvestigación de proyectos
-            2306:73 error `&quot;` can be escaped with `&quot;`, `&ldquo;`,
-            `&#34;`, `&rdquo;` react/no-unescaped-entities.
+            Si te interesa contratar Pro Forecasters de Metaculus para un
+            proyecto, contáctanos completando nuestro{" "}
+            <Link href="/services/pro-forecasters/#contact-us">
+              formulario de contacto
+            </Link>
+            .
           </p>
+
           <p>
-            Metaculus selecciona a los individuos de acuerdo con los siguientes
-            criterios:
+            Los Pro Forecasters se seleccionan cuidadosamente entre
+            pronosticadores que cumplen ciertos criterios para asegurar la
+            calidad de sus predicciones y su razonamiento. Estos criterios
+            incluyen:
           </p>
-          <ol className="ml-5 list-inside list-decimal">
+
+          <ul className="ml-5 list-disc space-y-2">
             <li>
-              Decenas en el 2% superior de todos los meteorólogos de
-              Metaculusos.
+              <strong>Excelente capacidad de pronóstico:</strong> Nuestra
+              metodología de selección utiliza los{" "}
+              <Link href="/leaderboard">Leaderboards de Metaculus</Link>,
+              combinando los leaderboards de Peer Accuracy, Baseline Accuracy y
+              Comments para producir un puntaje promedio ponderado (a través de
+              esos leaderboards y de distintos períodos). Los Pros se
+              seleccionan entre los pronosticadores con mejor puntaje en esta
+              métrica combinada, representando a los mejores de Metaculus. Ten
+              en cuenta que, aunque el puntaje Peer tiene el mayor peso, la
+              ponderación está diseñada para que los pronosticadores deban
+              rendir bien en todas las categorías.
             </li>
-            <li>Predijo un mínimo de 75 asuntos que se resolvieron.</li>
-            <li>Espere experiencia durante un año o más.</li>
-            <li>Ha previsto en varias esferas temáticas.</li>
+
             <li>
-              Tenga un historial de proporcionar comentarios explicando sus
-              pronósticos.
+              <strong>Historial sólido:</strong> Los Pro Forecasters deben tener
+              al menos 75 preguntas resueltas y haber realizado predicciones en
+              múltiples áreas temáticas, con al menos un año de experiencia
+              pronosticando. También consideramos reclutar pronosticadores que
+              hayan demostrado una excelente capacidad predictiva en otros
+              lugares.
             </li>
-          </ol>
+
+            <li>
+              <strong>Comentarios y comunicación claros:</strong> Nuestros Pros
+              trabajan en proyectos para socios externos que valoran un
+              razonamiento claro para interpretar mejor los pronósticos.
+              Seleccionamos Pros que tienen un historial de comentarios claros e
+              informativos, y que están dispuestos a discrepar con sus pares,
+              siempre de forma educada y respetuosa.
+            </li>
+          </ul>
+
           <h3 id="api" className="mb-4 scroll-mt-nav text-2xl font-semibold">
             Tiene Metaculuso una API?
           </h3>
@@ -3647,73 +3833,6 @@ export default function FAQ() {
             isla o posterior. Una vez que la predicción de la comunidad es
             visible, la predicción de Metaculus se esconde hasta que el tema se
             cierra.
-          </p>
-        </div>
-        <div>
-          <h3
-            id="related-news"
-            className="mb-4 scroll-mt-nav text-2xl font-semibold"
-          >
-            Qué es NewsMatch?
-          </h3>
-          <p>
-            NewsMatch muestra una selección de artículos relevantes para la
-            actual pregunta de Metaculus. Estos sirven como un recurso adicional
-            para los meteorólogos mientras discuten y predicen el tema. Cada
-            artículo aparece en la lista con su fuente y fecha de publicación.
-            Haciendo clic en el título de un artículo navega por el propio
-            artículo. La votación al alza le permite indicar si el artículo fue
-            útil o no. Su entrada mejora la precisión y utilidad del modelo que
-            corresponde a los artículos para las preguntas de Metaculus.
-          </p>
-          <p>
-            El modelo de coincidencia de artículos es apoyado por
-            <a href="https://www.improvethenews.org/">Improve the News</a>, un
-            agregador de noticias desarrollado por un grupo de investigadores
-            del MIT. Diseñado para dar a los lectores más control sobre el
-            consumo de noticias, Improve the News ayuda a los lectores a
-            mantenerse informados mientras encuentran una variedad más amplia de
-            puntos de vista.
-          </p>
-          <p>
-            Los artículos de la base de datos ITN se combinan con preguntas
-            relevantes de Metaculus por un modelo de aprendizaje automático
-            basado en transformadores capacitado para cartografiar pasajes
-            semánticamente similares a regiones en &quot;espacio
-            retrasado&quot;. Las adiciones se generan utilizando
-            <a href="https://arxiv.org/abs/2004.09297">MPNet</a>.
-          </p>
-        </div>
-        <div>
-          <h3
-            id="community-insights"
-            className="mb-4 scroll-mt-nav text-2xl font-semibold"
-          >
-            Qué son las perspectivas de la Comunidad?
-          </h3>
-          <p>
-            Community Insights resume los comentarios del usuario de Metaculus
-            sobre una pregunta particular usando GPT-4. Condensan las
-            predicciones recientes, comentarios de fecha-tacados, y la
-            predicción actual de la comunidad en resúmenes concisos de
-            argumentos relevantes para diferentes predicciones sobre un tema
-            dado. Los meteorólogos pueden usarlos para tomar decisiones más
-            informadas y mantenerse al día con las últimas ideas de la
-            comunidad.
-          </p>
-          <p>
-            Community Insights está actualmente disponible en preguntas binarias
-            y en curso con importantes temas de comentarios y se actualizará
-            periódicamente a medida que surjan nuevos debates en los
-            comentarios. Si tienes retroalimentación sobre estos resúmenes - o
-            quieres verlos aparecer en una gama más amplia de preguntas -
-            <a href="mailto:support@metaculus.com">email support.com</a>.
-          </p>
-          <p>
-            Si encuentras un resumen de Community Insights incorrecto, ofensivo
-            o engañoso, usa el botón en la parte inferior del resumen para
-            &quot;Desplaza este resumen&quot; para que el equipo de Metaculus
-            pueda resolverlo.
           </p>
         </div>
         <div>

@@ -60,14 +60,24 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
     isPostOpenQuestionPredicted(post, {
       checkAllSubquestions: false,
       treatClosedAsPredicted: false,
+      treatWithdrawnAsPredicted: true,
     })
   );
   const unpredictedPosts: PredictionFlowPost[] = [];
+  const withdrawnPosts: PredictionFlowPost[] = [];
   const stalePredictionsPosts: PredictionFlowPost[] = [];
   const significantMovementPosts: PredictionFlowPost[] = [];
 
   posts.forEach((post) => {
-    if (!isPostOpenQuestionPredicted(post)) {
+    // Check if post has withdrawn forecasts (was predicted but now inactive)
+    const hasWithdrawnForecast = isPostOpenQuestionPredicted(post, {
+      treatWithdrawnAsPredicted: true,
+    });
+    const hasActiveForecast = isPostOpenQuestionPredicted(post);
+
+    if (hasWithdrawnForecast && !hasActiveForecast) {
+      withdrawnPosts.push(post);
+    } else if (!hasActiveForecast) {
       unpredictedPosts.push(post);
     }
     if (isPostStale(post)) {
@@ -79,6 +89,7 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
   });
   const isRequireAttention =
     !!unpredictedPosts.length ||
+    !!withdrawnPosts.length ||
     !!stalePredictionsPosts.length ||
     !!significantMovementPosts.length;
 
@@ -106,6 +117,16 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
                   count: unpredictedPosts.length,
                 })}
                 icon={faExclamationTriangle}
+              />
+            )}
+            {/* Withdrawn questions */}
+            {!!withdrawnPosts.length && (
+              <ParticipationBlockLink
+                href={`/tournament/${tournamentSlug}/prediction-flow?flow_type=${FlowType.NOT_PREDICTED}`}
+                text={t("questionsPreviouslyPredicted", {
+                  count: withdrawnPosts.length,
+                })}
+                icon={faClock}
               />
             )}
             {/* Significant movement forecasts */}

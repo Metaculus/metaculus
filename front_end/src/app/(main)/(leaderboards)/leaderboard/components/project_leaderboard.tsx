@@ -3,7 +3,7 @@ import { FC } from "react";
 
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import ServerLeaderboardApi from "@/services/api/leaderboard/leaderboard.server";
-import { LeaderboardType } from "@/types/scoring";
+import { LeaderboardDetails, LeaderboardType } from "@/types/scoring";
 
 import ProjectLeaderboardClient from "./project_leaderboard_client";
 
@@ -14,20 +14,42 @@ type Props = {
   isQuestionSeries?: boolean;
 };
 
+function sortLeaderboards(
+  leaderboards: LeaderboardDetails[]
+): LeaderboardDetails[] {
+  return [...leaderboards].sort((a, b) => {
+    const orderA = a.display_config?.display_order ?? 0;
+    const orderB = b.display_config?.display_order ?? 0;
+    return orderA - orderB;
+  });
+}
+
 const ProjectLeaderboard: FC<Props> = async ({
   projectId,
   leaderboardType,
   isQuestionSeries,
   userId,
 }) => {
-  const leaderboardDetails = await ServerLeaderboardApi.getProjectLeaderboard(
+  const params = leaderboardType
+    ? new URLSearchParams({ score_type: leaderboardType })
+    : null;
+  const leaderboards = await ServerLeaderboardApi.getProjectLeaderboard(
     projectId,
-    leaderboardType
+    params
   );
 
-  if (!leaderboardDetails || !leaderboardDetails.entries.length) {
+  if (!leaderboards || leaderboards.length === 0) {
     return null;
   }
+
+  const leaderboardsWithEntries = leaderboards.filter(
+    (lb) => lb.entries.length > 0
+  );
+  if (leaderboardsWithEntries.length === 0) {
+    return null;
+  }
+
+  const sortedLeaderboards = sortLeaderboards(leaderboardsWithEntries);
 
   const t = await getTranslations();
 
@@ -37,7 +59,7 @@ const ProjectLeaderboard: FC<Props> = async ({
 
   return (
     <ProjectLeaderboardClient
-      leaderboardDetails={leaderboardDetails}
+      leaderboards={sortedLeaderboards}
       leaderboardTitle={leaderboardTitle}
       isQuestionSeries={isQuestionSeries}
       userId={userId}

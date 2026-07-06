@@ -6,7 +6,7 @@ import { OnboardingStep } from "@/types/onboarding";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 
 import Step from "./step";
-import { extractCommunityForecast } from "../utils";
+import { extractCommunityForecast, extractKeyFactorTexts } from "../utils";
 
 const Step3: React.FC<OnboardingStep> = ({
   onNext,
@@ -22,6 +22,7 @@ const Step3: React.FC<OnboardingStep> = ({
   // Should not be the case
   if (!post) return null;
   const communityForecast = extractCommunityForecast(post);
+  const factors = extractKeyFactorTexts(post);
 
   const handleSubmit = async () => {
     sendAnalyticsEvent("onboardingPredicted2", {
@@ -34,18 +35,20 @@ const Step3: React.FC<OnboardingStep> = ({
   return (
     <Step>
       <Step.Title>{t("onboardingStep4Factors")}</Step.Title>
-      <div>
-        <ul className="list-none space-y-2">
-          {topic?.factors.map((factor, index) => (
-            <li
-              key={index}
-              className="flex flex-row items-center justify-between gap-4 rounded-md bg-purple-400/45 p-2.5 px-4 text-sm dark:bg-purple-600/25 md:text-base"
-            >
-              {factor}
-            </li>
-          ))}
-        </ul>
-      </div>
+      {factors.length > 0 && (
+        <div>
+          <ul className="list-none space-y-2">
+            {factors.map((factor, index) => (
+              <li
+                key={index}
+                className="flex flex-row items-center justify-between gap-4 rounded-md bg-purple-400/45 p-2.5 px-4 text-sm dark:bg-purple-600/25 md:text-base"
+              >
+                {factor}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <Step.Paragraph>{t("onboardingStep4ConsideringOthers")}</Step.Paragraph>
       <Step.Paragraph>{t("onboardingStep4WhatDoYouThink")}</Step.Paragraph>
       <div className="flex flex-col gap-1 rounded-md bg-blue-200 dark:bg-blue-800">

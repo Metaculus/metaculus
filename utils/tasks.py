@@ -1,3 +1,6 @@
+import datetime
+import logging
+
 import dramatiq
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -6,15 +9,19 @@ from django.core.mail import EmailMessage
 from questions.types import AggregationMethod
 from utils.dramatiq import task_concurrent_limit
 from utils.translation import (
-    update_translations_for_model,
     detect_and_update_content_language,
     queryset_filter_outdated_translations,
+    update_translations_for_model,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @dramatiq.actor(min_backoff=3_000, max_retries=3)
 @task_concurrent_limit(
-    lambda app_label, model_name, pk: f"update-translations-{app_label}.{model_name}/{pk}",
+    lambda app_label, model_name, pk: (
+        f"mutex:update-translations-{app_label}.{model_name}/{pk}"
+    ),
     limit=1,
     # This task shouldn't take longer than 1m
     # So it's fine to set mutex lock timeout for this duration
@@ -45,8 +52,8 @@ def email_all_data_for_questions_task(
 ):
     # TODO: deprecate this, use email_data_task instead
     try:
-        from utils.csv_utils import export_all_data_for_questions
         from questions.models import Question
+        from utils.csv_utils import export_all_data_for_questions
 
         questions = Question.objects.filter(id__in=question_ids)
         data = export_all_data_for_questions(
@@ -61,18 +68,18 @@ def email_all_data_for_questions_task(
         email = EmailMessage(
             subject="Your Metaculus Data",
             body="Attached is your Metaculus data.",
-            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            from_email=settings.EMAIL_ACCOUNTS_SENDER,
             to=[email_address],
         )
         email.attach(filename or "metaculus_data.zip", data, "application/zip")
         email.send()
 
-    except Exception as e:
+    except Exception:
+        logger.exception(f"Failed to generate or email data for {email_address}")
         email = EmailMessage(
             subject="Error generating Metaculus data",
-            body="Error generating Metaculus data. Please contact an adminstrator "
-            f"for assistance.\nError: {e}",
-            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            body="Error generating Metaculus data. Please contact an administrator for assistance.",
+            from_email=settings.EMAIL_ACCOUNTS_SENDER,
             to=[email_address],
         )
         email.send()
@@ -83,7 +90,7 @@ def email_data_task(
     user_id: int,
     user_email: str,
     is_staff: bool,
-    is_whitelisted: bool,
+    has_data_access: bool,
     filename: str,
     question_ids: list[int],
     aggregation_methods: list[AggregationMethod],
@@ -91,26 +98,36 @@ def email_data_task(
     include_scores: bool,
     include_user_data: bool,
     include_comments: bool,
+    include_key_factors: bool,
     only_include_user_ids: list[int] | None,
     include_bots: bool | None,
     anonymized: bool,
     include_future: bool,
+    joined_before_date: str | None = None,
 ):
     try:
         from utils.csv_utils import export_data_for_questions
 
+        parsed_joined_before = (
+            datetime.datetime.fromisoformat(joined_before_date)
+            if joined_before_date
+            else None
+        )
+
         data = export_data_for_questions(
             user_id=user_id,
             is_staff=is_staff,
-            is_whitelisted=is_whitelisted,
+            has_data_access=has_data_access,
             question_ids=question_ids,
             aggregation_methods=aggregation_methods,
             minimize=minimize,
             include_scores=include_scores,
             include_user_data=include_user_data,
             include_comments=include_comments,
+            include_key_factors=include_key_factors,
             only_include_user_ids=only_include_user_ids,
             include_bots=include_bots,
+            joined_before_date=parsed_joined_before,
             anonymized=anonymized,
             include_future=include_future,
         )
@@ -120,18 +137,18 @@ def email_data_task(
         email = EmailMessage(
             subject="Your Metaculus Data",
             body="Attached is your Metaculus data.",
-            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            from_email=settings.EMAIL_ACCOUNTS_SENDER,
             to=[user_email],
         )
         email.attach(filename, data, "application/zip")
         email.send()
 
-    except Exception as e:
+    except Exception:
+        logger.exception(f"Failed to generate or email data for {user_email}")
         email = EmailMessage(
             subject="Error generating Metaculus data",
-            body="Error generating Metaculus data. Please contact an adminstrator "
-            f"for assistance.\nError: {e}",
-            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            body="Error generating Metaculus data. Please contact an administrator for assistance.",
+            from_email=settings.EMAIL_ACCOUNTS_SENDER,
             to=[user_email],
         )
         email.send()
@@ -155,18 +172,18 @@ def email_user_their_data_task(user_id: int):
         email = EmailMessage(
             subject="Your User Data",
             body="Attached is your User Data on Metaculus.",
-            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            from_email=settings.EMAIL_ACCOUNTS_SENDER,
             to=[user_email],
         )
         email.attach("user_data.zip", data, "application/zip")
         email.send()
 
-    except Exception as e:
+    except Exception:
+        logger.exception(f"Failed to generate or email user data for {user_email}")
         email = EmailMessage(
             subject="Error generating Metaculus data",
-            body="Error generating Metaculus data. Please contact an adminstrator "
-            f"for assistance.\nError: {e}",
-            from_email=settings.EMAIL_SENDER_NO_REPLY,
+            body="Error generating Metaculus data. Please contact an administrator for assistance.",
+            from_email=settings.EMAIL_ACCOUNTS_SENDER,
             to=[user_email],
         )
         email.send()

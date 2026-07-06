@@ -1,6 +1,6 @@
 "use client";
 import { isNil, merge } from "lodash";
-import React, { FC, useMemo } from "react";
+import React, { FC, useEffect, useMemo, useRef } from "react";
 import {
   Tuple,
   VictoryArea,
@@ -13,7 +13,9 @@ import {
   VictoryThemeDefinition,
 } from "victory";
 
+import { CHART_DASH } from "@/constants/chart_dash";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { CHART_FONT_STYLE } from "@/constants/chart_typography";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
@@ -27,18 +29,20 @@ import {
   GraphingQuestionProps,
   Question,
   QuestionType,
-  QuestionWithForecasts,
+  QuestionWithNumericForecasts,
 } from "@/types/question";
 import { generateScale } from "@/utils/charts/axis";
 import { getClosestYValue, interpolateYValue } from "@/utils/charts/helpers";
+import { FEED_CHART_TARGET_POINTS, lttb } from "@/utils/charts/lttb";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 import { cdfToPmf, computeQuartilesFromCDF } from "@/utils/math";
 
-type ContinuousAreaColor = "orange" | "green" | "gray";
+type ContinuousAreaColor = "orange" | "green" | "gray" | "purple";
 const CHART_COLOR_MAP: Record<ContinuousAreaType, ContinuousAreaColor> = {
   community: "green",
   community_closed: "gray",
+  community_resolved: "purple",
   user: "orange",
   user_previous: "orange",
   user_components: "orange",
@@ -66,6 +70,10 @@ type Props = {
   alignChartTabs?: boolean;
   forceTickCount?: number;
   variant?: "feed" | "question";
+  colorOverride?: string;
+  showBaseline?: boolean;
+  minMaxLabelsOnly?: boolean;
+  onChartReady?: () => void;
 };
 
 const MinifiedContinuousAreaChart: FC<Props> = ({
@@ -79,11 +87,22 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
   shortLabels = false,
   alignChartTabs,
   forceTickCount,
-  variant = "feed",
+  variant = "question",
+  colorOverride,
+  showBaseline = false,
+  minMaxLabelsOnly = false,
+  onChartReady,
 }) => {
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
   const chartWidth = width || containerWidth;
+  const prevWidth = useRef(0);
+  useEffect(() => {
+    if (!prevWidth.current && chartWidth && onChartReady) {
+      onChartReady();
+    }
+    prevWidth.current = chartWidth;
+  }, [onChartReady, chartWidth]);
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const actualTheme = extraTheme
@@ -121,8 +140,14 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
         }
       }
     }
+    if (variant === "feed" && question.type !== QuestionType.Discrete) {
+      return chartData.map((chart) => ({
+        ...chart,
+        graphLine: lttb(chart.graphLine, FEED_CHART_TARGET_POINTS),
+      }));
+    }
     return chartData;
-  }, [data, hideCP, question]);
+  }, [data, hideCP, question, variant]);
 
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;
@@ -197,7 +222,12 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
       : null;
 
   const horizontalPadding = useMemo(() => {
-    if (alignChartTabs || question.type === QuestionType.Discrete) {
+    const needsDiscreteLabelPadding =
+      question.type === QuestionType.Discrete &&
+      !hideLabels &&
+      !minMaxLabelsOnly;
+
+    if (alignChartTabs || needsDiscreteLabelPadding) {
       const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
       const longestLabelLength = Math.max(
         ...labels.map((label) => label.length)
@@ -208,7 +238,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
     }
 
     return HORIZONTAL_PADDING;
-  }, [yScale, question.type, alignChartTabs]);
+  }, [yScale, question.type, alignChartTabs, hideLabels, minMaxLabelsOnly]);
 
   const barWidth = useMemo(() => {
     if (question.type !== QuestionType.Discrete) {
@@ -228,9 +258,11 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
     // However, if there's a resolution point, we need extra padding to prevent clipping
     const hasResolution =
       !isNil(question.resolution) && question.resolution !== "";
+    const wantsAnyXLabels = !hideCP && (!hideLabels || minMaxLabelsOnly);
+    if (wantsAnyXLabels) return BOTTOM_PADDING;
     const baseMinimalPadding = hasResolution ? 8 : 3; // Extra padding for resolution diamond
-    return hideCP || hideLabels ? baseMinimalPadding : BOTTOM_PADDING;
-  }, [hideCP, hideLabels, question.resolution]);
+    return baseMinimalPadding;
+  }, [hideCP, hideLabels, minMaxLabelsOnly, question.resolution]);
 
   return (
     <div ref={chartContainerRef} className="h-full w-full" style={{ height }}>
@@ -256,6 +288,22 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
             />
           }
         >
+          {showBaseline && (
+            <VictoryLine
+              data={[
+                { x: xDomain[0], y: yDomain[0] },
+                { x: xDomain[1], y: yDomain[0] },
+              ]}
+              style={{
+                data: {
+                  stroke: colorOverride
+                    ? colorOverride
+                    : getThemeColor(METAC_COLORS.olive["700"]),
+                  strokeWidth: 1,
+                },
+              }}
+            />
+          )}
           {charts
             .filter((chart) => chart.type !== "user_components")
             .map((chart, index) => {
@@ -268,6 +316,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                     style={{
                       data: {
                         fill: (() => {
+                          if (colorOverride) return colorOverride;
                           if (extraTheme?.area?.style?.data?.fill) {
                             return extraTheme.area.style.data.fill;
                           }
@@ -279,9 +328,11 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                                 ]
                               );
                             case "green":
-                              return getThemeColor(METAC_COLORS.olive["600"]);
+                              return getThemeColor(METAC_COLORS.olive["500"]);
                             case "gray":
                               return getThemeColor(METAC_COLORS.gray["500"]);
+                            case "purple":
+                              return getThemeColor(METAC_COLORS.purple["500"]);
                             default:
                               return undefined;
                           }
@@ -314,6 +365,8 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                             return getThemeColor(METAC_COLORS.olive["500"]);
                           case "gray":
                             return getThemeColor(METAC_COLORS.gray["500"]);
+                          case "purple":
+                            return getThemeColor(METAC_COLORS.purple["500"]);
                           default:
                             return undefined;
                         }
@@ -333,18 +386,22 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
               <VictoryLine
                 key={`border-${index}`}
                 data={chart.graphLine}
+                interpolation={discrete ? "step" : undefined}
                 style={{
                   data: {
                     stroke: (() => {
+                      if (colorOverride) return colorOverride;
                       switch (chart.color) {
                         case "orange":
                           return getThemeColor(METAC_COLORS.orange["600"]);
                         case "green":
-                          return getThemeColor(METAC_COLORS.olive["600"]);
+                          return getThemeColor(METAC_COLORS.olive["700"]);
                         case "gray":
                           return getThemeColor(METAC_COLORS.gray["600"]);
+                        case "purple":
+                          return getThemeColor(METAC_COLORS.purple["700"]);
                         default:
-                          return getThemeColor(METAC_COLORS.olive["600"]);
+                          return getThemeColor(METAC_COLORS.olive["700"]);
                       }
                     })(),
                     strokeWidth: 1,
@@ -356,7 +413,20 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
 
           <VictoryAxis
             tickValues={xScale.ticks}
-            tickFormat={hideCP || hideLabels ? () => "" : xScale.tickFormat}
+            tickFormat={(tick: number, index?: number, ticks?: number[]) => {
+              if (hideCP) return "";
+
+              if (hideLabels && !minMaxLabelsOnly) return "";
+
+              if (minMaxLabelsOnly) {
+                const last = (ticks?.length ?? 0) - 1;
+                if (index === 0 || index === last)
+                  return xScale.tickFormat(tick);
+                return "";
+              }
+
+              return xScale.tickFormat(tick);
+            }}
             style={{
               ticks: {
                 strokeWidth: 1,
@@ -365,9 +435,10 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
               axis: {
                 stroke: getThemeColor(METAC_COLORS.olive["100"]),
                 strokeWidth: 0,
-                strokeDasharray: "4, 4",
+                strokeDasharray: CHART_DASH.grid,
               },
               tickLabels: {
+                ...CHART_FONT_STYLE.tick,
                 fontSize: variant === "feed" ? 10 : 8,
                 textAnchor: ({ index, ticks }) =>
                   // We want first and last labels be aligned against area boundaries
@@ -377,7 +448,6 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                       ? "end"
                       : "middle",
                 fill: getThemeColor(METAC_COLORS.gray["500"]),
-                fontFamily: "Inter",
               },
             }}
           />
@@ -393,9 +463,12 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                   style={{
                     data: {
                       stroke: (() => {
+                        if (colorOverride) return colorOverride;
                         switch (chart.color) {
                           case "gray":
                             return getThemeColor(METAC_COLORS.gray["500"]);
+                          case "purple":
+                            return getThemeColor(METAC_COLORS.purple["700"]);
                           default:
                             return getThemeColor(METAC_COLORS.olive["700"]);
                         }
@@ -417,17 +490,23 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
                   style={{
                     data: {
                       fill: (() => {
+                        if (colorOverride) return colorOverride;
                         switch (chart.color) {
                           case "gray":
                             return getThemeColor(METAC_COLORS.gray["600"]);
+                          case "purple":
+                            return getThemeColor(METAC_COLORS.purple["800"]);
                           default:
                             return getThemeColor(METAC_COLORS.olive["800"]);
                         }
                       })(),
                       stroke: (() => {
+                        if (colorOverride) return colorOverride;
                         switch (chart.color) {
                           case "gray":
                             return getThemeColor(METAC_COLORS.gray["600"]);
+                          case "purple":
+                            return getThemeColor(METAC_COLORS.purple["800"]);
                           default:
                             return getThemeColor(METAC_COLORS.olive["800"]);
                         }
@@ -595,9 +674,11 @@ function generateNumericAreaGraph(data: {
 export function getContinuousAreaChartData({
   question,
   isClosed,
+  isResolved,
 }: {
-  question: QuestionWithForecasts;
+  question: QuestionWithNumericForecasts;
   isClosed?: boolean;
+  isResolved?: boolean;
 }): ContinuousAreaGraphInput {
   const chartData: ContinuousAreaGraphInput = [];
 
@@ -605,10 +686,15 @@ export function getContinuousAreaChartData({
     question.aggregations[question.default_aggregation_method]?.latest;
 
   if (latest && isForecastActive(latest)) {
+    const type: ContinuousAreaType = isResolved
+      ? "community_resolved"
+      : isClosed
+        ? "community_closed"
+        : "community";
     chartData.push({
       pmf: cdfToPmf(latest.forecast_values),
       cdf: latest.forecast_values,
-      type: (isClosed ? "community_closed" : "community") as ContinuousAreaType,
+      type,
     });
   }
 

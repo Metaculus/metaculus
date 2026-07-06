@@ -17,6 +17,7 @@ export function getPublicSettings() {
     PUBLIC_POSTHOG_BASE_URL:
       process.env.PUBLIC_POSTHOG_BASE_URL ?? defVals.PUBLIC_POSTHOG_BASE_URL,
     PUBLIC_FRONTEND_SENTRY_DSN: process.env.PUBLIC_FRONTEND_SENTRY_DSN ?? "",
+    PUBLIC_METACULUS_ENV: process.env.METACULUS_ENV ?? "",
     PUBLIC_GOOGLE_MEASUREMENT_ID:
       process.env.PUBLIC_GOOGLE_MEASUREMENT_ID ?? "",
     PUBLIC_DISALLOW_ALL_BOTS:
@@ -38,5 +39,6 @@ export function getPublicSettings() {
         ? process.env.PUBLIC_AUTHENTICATION_REQUIRED === "true"
         : defVals.PUBLIC_AUTHENTICATION_REQUIRED,
     PUBLIC_SCREENSHOT_SERVICE_ENABLED: !!process.env.SCREENSHOT_SERVICE_API_URL,
+    PUBLIC_GTM_ID: process.env.PUBLIC_GTM_ID ?? "",
   };
 }
