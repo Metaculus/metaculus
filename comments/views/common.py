@@ -252,8 +252,7 @@ def comment_report_api_view(request, pk=int):
         request.data.get("reason")
     )
 
-    if post:
-        send_comment_report_notification_to_staff(comment, reason, request.user)
+    send_comment_report_notification_to_staff(comment, reason, request.user)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 
