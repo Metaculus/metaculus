@@ -567,6 +567,7 @@
   "userProfile": "Perfil de {username}",
   "unknownUserProfile": "Perfil del Usuario",
   "userMedals": "Medallas de {username}",
+  "userContributions": "Contribuciones de {username}",
   "unknownUserMedals": "Medallas del Usuario",
   "noMedals": "Aún no hay medallas",
   "leaderboard": "Tabla de Clasificación",

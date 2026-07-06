@@ -856,6 +856,7 @@
   "userProfile": "{username}'s profile",
   "unknownUserProfile": "User's profile",
   "userMedals": "{username}'s medals",
+  "userContributions": "{username}'s contributions",
   "unknownUserMedals": "User's medals",
   "noMedals": "No medals yet",
   "leaderboard": "Leaderboard",

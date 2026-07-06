@@ -99,8 +99,9 @@ const LeaderboardTable: FC<Props> = ({
             entriesToDisplay.map((entry) => {
               let navigationUrl: string;
               if (cardSized) {
-                // on combined global leaderboard all table row links to the category page
-                navigationUrl = categoryUrl;
+                navigationUrl = entry.user
+                  ? `/contributions/${category}/${entry.user.id}/?${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`
+                  : categoryUrl;
               } else {
                 navigationUrl = entry.user
                   ? `/contributions/${category}/${entry.user.id}/?${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`

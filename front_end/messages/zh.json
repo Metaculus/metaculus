@@ -561,6 +561,7 @@
   "userProfile": "{username} 的個人資料",
   "unknownUserProfile": "用戶個人資料",
   "userMedals": "{username}的獎牌",
+  "userContributions": "{username} 的貢獻",
   "unknownUserMedals": "用戶的獎牌",
   "noMedals": "還沒有獎牌",
   "leaderboard": "排行榜",
