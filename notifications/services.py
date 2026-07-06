@@ -220,9 +220,13 @@ class NotificationTypeBase:
     ):
         """
         Schedules a notification to be sent using a cron job.
+
+        Convention: this is the single choke point for all cron-scheduled
+        notification types. Inactive users are skipped here rather than in
+        each subclass' callers. Non-scheduled email senders rely on their
+        callers to filter recipient querysets.
         """
 
-        # Inactive users only receive account-related emails, not notifications
         if not recipient.is_active:
             return
 
@@ -726,10 +730,6 @@ def send_comment_mention_notification(recipient, comment: Comment, mention: str)
     Send instant notification of mention in a comment
     """
 
-    # Inactive users only receive account-related emails
-    if not recipient.is_active:
-        return
-
     mention_label = "you" if mention == recipient.username.lower() else mention
     preview_text = generate_email_comment_preview_text(
         comment.text, mention, max_chars=1024
@@ -831,10 +831,6 @@ def send_forecast_autowidrawal_notification(
     posts_data: list[dict],
     account_settings_url: str,
 ):
-    # Inactive users only receive account-related emails
-    if not user.is_active:
-        return False
-
     send_email_with_template(
         to=user.email,
         subject=_(
@@ -885,10 +881,6 @@ def send_news_category_notebook_publish_notification(user: User, post: Post):
     just like we do for regular questions and notebooks via the
     `NotificationPostStatusChange` notification type.
     """
-
-    # Inactive users only receive account-related emails
-    if not user.is_active:
-        return
 
     preview_text = generate_email_notebook_preview_text(
         post.notebook.markdown, max_words=100

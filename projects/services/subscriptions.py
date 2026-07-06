@@ -160,7 +160,8 @@ def notify_project_subscriptions_post_open(
             # Ensure notify users that have access to the question
             user__in=post.default_project.get_users_for_permission(
                 ObjectPermission.VIEWER
-            )
+            ),
+            user__is_active=True,
         )
         .annotate(
             # We want to prioritize news categories over regular projects
