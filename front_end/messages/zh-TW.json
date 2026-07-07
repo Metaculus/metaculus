@@ -1943,6 +1943,7 @@
   "tournamentsTypeIndex": "指數",
   "tournamentsTypeQuestionSeries": "問答系列",
   "tournamentTimelineClosed": "待处理的决议",
+  "tournamentTimelinePendingWinners": "待公布得獎者",
   "questionsPreviouslyPredicted": "先前預測的{count, plural, =1 {# 個問題} other {# 個問題}}",
   "includeMyForecastAtTheTime": "包括我當時的預測 <strong>({forecast})</strong>",
   "dismiss": "關閉",
