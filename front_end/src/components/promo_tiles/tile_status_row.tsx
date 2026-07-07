@@ -83,8 +83,8 @@ function getScheduledCloseTime(
   const rawCloseTime =
     rule === FeedTileRule.ALL_QUESTIONS_RESOLVED && projectResolutionDate
       ? projectResolutionDate
-      : project.close_date ??
-        project.forecasting_end_date ??
+      : project.forecasting_end_date ??
+        project.close_date ??
         project.start_date;
   const rawCloseTs = safeTs(rawCloseTime) ?? Date.now() + 1000;
   return new Date(Math.max(rawCloseTs, Date.now() + 1000)).toISOString();
@@ -102,7 +102,7 @@ function getStatusLabel(
   } = {}
 ): ReactNode | null {
   const now = Date.now();
-  const closeTs = safeTs(project.close_date);
+  const closeTs = safeTs(project.forecasting_end_date ?? project.close_date);
   const startTs = safeTs(project.start_date);
   const resolveTs = safeTs(projectResolutionDate);
 
