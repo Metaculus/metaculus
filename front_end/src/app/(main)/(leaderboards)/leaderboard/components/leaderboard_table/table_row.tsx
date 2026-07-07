@@ -12,12 +12,9 @@ import {
 import cn from "@/utils/core/cn";
 import { formatNumberBipm } from "@/utils/formatters/number";
 import { formatUsername } from "@/utils/formatters/users";
+import { getContributionsUrl } from "@/utils/navigation";
 
 import MedalIcon from "../../../components/medal_icon";
-import {
-  SCORING_DURATION_FILTER,
-  SCORING_YEAR_FILTER,
-} from "../../../search_params";
 import AggregationRankTooltip from "../aggregation_rank_tooltip";
 import ExcludedEntryTooltip from "../excluded_entry_tooltop";
 
@@ -220,7 +217,12 @@ export const UserLeaderboardRow: FC<UserLeaderboardRowProps> = ({
   // in this category
   if (!userEntry?.user) return null;
 
-  const userHref = `/contributions/${category}/${userEntry.user.id}/?${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`;
+  const userHref = getContributionsUrl({
+    category,
+    userId: userEntry.user.id,
+    year,
+    duration,
+  });
 
   return (
     <LeaderboardRow

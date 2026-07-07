@@ -7,6 +7,7 @@ import {
   LeaderboardTag,
 } from "@/types/projects";
 import { Question } from "@/types/question";
+import { CategoryKey } from "@/types/scoring";
 import { Optional } from "@/types/utils";
 import {
   isConditionalPost,
@@ -147,6 +148,24 @@ export function getLeaderboardTagFeedUrl({ slug }: LeaderboardTag) {
   return `/questions/?leaderboard_tags=${slug}&for_main_feed=false`;
 }
 
+type ContributionsUrlParams = {
+  category: CategoryKey;
+  userId: number;
+  year: string;
+  duration: string;
+};
+
+export function getContributionsUrl({
+  category,
+  userId,
+  year,
+  duration,
+}: ContributionsUrlParams) {
+  return `/contributions/${category}/${userId}/${encodeQueryParams({
+    year,
+    duration,
+  })}`;
+}
 /**
  * Builds a leaderboard tag key
  */
