@@ -2049,6 +2049,7 @@
   "tournamentTimelineStarts": "Starts {when}",
   "tournamentTimelineEnds": "Ends {when}",
   "tournamentTimelineClosed": "Pending resolutions",
+  "tournamentTimelinePendingWinners": "Pending winners announcement",
   "tournamentTimelineAllResolved": "All questions resolved",
   "tournamentRelativeSoon": "soon",
   "tournamentRelativeUnderMinute": "in under a minute",

@@ -1947,6 +1947,7 @@
   "tournamentsTypeIndex": "Index",
   "tournamentsTypeQuestionSeries": "Série otázek",
   "tournamentTimelineClosed": "Čekající vyřešení",
+  "tournamentTimelinePendingWinners": "Čeká se na vyhlášení vítězů",
   "questionsPreviouslyPredicted": "{count, plural, =1 {# otázka} other {# otázek}} dříve předpovězených",
   "includeMyForecastAtTheTime": "Zahrnout mou předpověď v daném čase <strong>({forecast})</strong>",
   "tournamentsInfoTitle": "Jsme <predmarket>nepredikční trh</predmarket>. Můžete se účastnit zdarma a vyhrát peněžní ceny za přesnost.",
