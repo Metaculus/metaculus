@@ -558,6 +558,7 @@
   "userProfile": "{username}'s profil",
   "unknownUserProfile": "Profil uživatele",
   "userMedals": "{username}'s medaile",
+  "userContributions": "Příspěvky uživatele {username}",
   "unknownUserMedals": "Medaile uživatele",
   "noMedals": "Zatím žádné medaile",
   "leaderboard": "Žebříček",
