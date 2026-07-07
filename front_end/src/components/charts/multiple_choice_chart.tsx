@@ -59,6 +59,7 @@ import {
 } from "@/utils/charts/axis";
 import { findPreviousTimestamp } from "@/utils/charts/cursor";
 import { getSharedStepKeepMask } from "@/utils/charts/step_reducer";
+import { pickHighestContrastTextColor } from "@/utils/core/colors";
 import { truncateLabel } from "@/utils/formatters/string";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
@@ -949,9 +950,7 @@ const ResolutionChip: FC<{
     ? METAC_COLORS.purple["800"].dark
     : METAC_COLORS.gray["0"].DEFAULT;
 
-  const chipTextColor = isDarkTheme
-    ? METAC_COLORS.purple["800"].dark
-    : METAC_COLORS.gray["0"].DEFAULT;
+  const chipTextColor = pickHighestContrastTextColor(color);
   const [textWidth, setTextWidth] = useState(0);
   const textRef = useRef<SVGTextElement>(null);
 
