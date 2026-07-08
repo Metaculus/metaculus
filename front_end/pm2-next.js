@@ -17,7 +17,14 @@
 // values near 1 mean SSR is starving the event loop.
 const { performance } = require("perf_hooks");
 
-const MEMORY_LIMIT_MB = Number(process.env.NODE_MEMORY_LIMIT_MB ?? 3072);
+const rawMemoryLimit = Number(process.env.NODE_MEMORY_LIMIT_MB);
+const MEMORY_LIMIT_MB =
+  Number.isFinite(rawMemoryLimit) && rawMemoryLimit > 0 ? rawMemoryLimit : 3072;
+if (process.env.NODE_MEMORY_LIMIT_MB && MEMORY_LIMIT_MB !== rawMemoryLimit) {
+  console.warn(
+    `[pm2-next] invalid NODE_MEMORY_LIMIT_MB=${JSON.stringify(process.env.NODE_MEMORY_LIMIT_MB)}; using ${MEMORY_LIMIT_MB}MB`
+  );
+}
 const MB = 1048576;
 
 let lastElu = performance.eventLoopUtilization();
