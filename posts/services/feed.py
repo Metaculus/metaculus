@@ -70,7 +70,9 @@ def get_posts_feed(  # noqa: C901
 
     # Apply consumer views filter
     if for_consumer_view:
-        qs = filter_for_consumer_view(qs)
+        # When the user is searching, keep resolved posts in the result set so
+        # they can still find questions by title regardless of resolution state.
+        qs = filter_for_consumer_view(qs, include_resolved=bool(search))
 
     # Exclude Deleted posts
     qs = qs.exclude(curation_status=Post.CurationStatus.DELETED)
@@ -333,7 +335,9 @@ def get_posts_feed(  # noqa: C901
     return qs.distinct("id", order_type).only("pk")
 
 
-def filter_for_consumer_view(qs: QuerySet[Post]) -> QuerySet[Post]:
+def filter_for_consumer_view(
+    qs: QuerySet[Post], include_resolved: bool = False
+) -> QuerySet[Post]:
     """
     A special filter applied to default Consumer View feed representation
     https://github.com/Metaculus/metaculus/issues/3377
@@ -370,8 +374,10 @@ def filter_for_consumer_view(qs: QuerySet[Post]) -> QuerySet[Post]:
         )
     )
 
-    # Exclude resolved questions
-    qs = qs.exclude(resolved=True)
+    # Exclude resolved questions (unless the caller explicitly wants them, e.g.
+    # for search results where the user is looking up a specific question).
+    if not include_resolved:
+        qs = qs.exclude(resolved=True)
 
     # Exclude AIB / bots-only tournaments — the same questions are typically
     # cross-posted in a human-facing project (Metaculus Cup etc.), so showing
