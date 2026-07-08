@@ -14,7 +14,7 @@ import cn from "@/utils/core/cn";
 import { isDisplayableQuestionLink } from "../key_factors/utils";
 import { shouldPostShowUserScores } from "../post_score_data/utils";
 import { useQuestionLayout } from "../question_layout/question_layout_context";
-import { isContinuousGroupPost } from "../question_view/consumer_question_view/group_distribution_utils";
+import { hasGroupDistributions } from "../question_view/consumer_question_view/group_distribution_utils";
 import { hasTimeline } from "../question_view/consumer_question_view/timeline";
 
 type TabKey =
@@ -90,7 +90,7 @@ const QuestionPageShellTabBar: FC<Props> = ({ post, variant, className }) => {
     ...(!isSm && hasTimeline(post)
       ? [{ key: "timeline" as TabKey, label: t("timeline") }]
       : []),
-    ...(!isSm && !hideCP && isContinuousGroupPost(post)
+    ...(!isSm && !hideCP && hasGroupDistributions(post)
       ? [{ key: "distributions" as TabKey, label: t("distributions") }]
       : []),
     { key: "key-factors", label: t("keyFactors"), count: keyFactorsCount },

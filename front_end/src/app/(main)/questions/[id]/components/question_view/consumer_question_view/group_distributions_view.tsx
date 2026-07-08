@@ -112,14 +112,13 @@ const GroupDistributionsView: FC<Props> = ({
     setSelectedQuestionId,
   ]);
 
-  const selectedQuestion =
-    effectiveSelectedId != null
-      ? questionsById.get(effectiveSelectedId)
-      : undefined;
-  const selectedColor =
-    effectiveSelectedId != null
-      ? colorById.get(effectiveSelectedId)
-      : undefined;
+  // Nothing eligible to show — avoid rendering an empty header + blank chart.
+  if (effectiveSelectedId == null) {
+    return null;
+  }
+
+  const selectedQuestion = questionsById.get(effectiveSelectedId);
+  const selectedColor = colorById.get(effectiveSelectedId);
 
   return (
     <div

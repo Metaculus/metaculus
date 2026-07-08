@@ -10,6 +10,7 @@ import { getPostDrivenTime } from "@/utils/questions/helpers";
 
 import { useListChartExpanded } from "./consumer_list_chart_shell";
 import GroupChartViewTabs from "./group_chart_view_tabs";
+import { hasSubquestionDistribution } from "./group_distribution_utils";
 import GroupDistributionsView from "./group_distributions_view";
 
 type Props = {
@@ -45,6 +46,12 @@ const ConsumerGroupChart: FC<Props> = ({
     ? { questions: visibleQuestions }
     : { group: post.group_of_questions };
 
+  const canShowDistributions = (
+    visibleQuestions ??
+    post.group_of_questions?.questions ??
+    []
+  ).some(hasSubquestionDistribution);
+
   // GroupChart renders a ~44px header (title + zoom picker) above the SVG div.
   // Subtract it so header + SVG together fit within chartAreaHeight.
   const CHART_HEADER_HEIGHT = 44;
@@ -53,8 +60,9 @@ const ConsumerGroupChart: FC<Props> = ({
       ? Math.max(80, chartAreaHeight - CHART_HEADER_HEIGHT)
       : chartHeight;
 
-  // When CP is hidden we keep the plain timeline and hide the view switcher.
-  if (!hideCP && viewMode === "distributions") {
+  // When CP is hidden, or nothing has a distribution, we keep the plain timeline
+  // and hide the view switcher.
+  if (!hideCP && canShowDistributions && viewMode === "distributions") {
     return (
       <GroupDistributionsView
         post={post}
@@ -80,7 +88,7 @@ const ConsumerGroupChart: FC<Props> = ({
         onCursorChange={setCursorTimestamp}
         hideTooltip
         headerLeft={
-          hideCP || hideViewTabs ? undefined : (
+          hideCP || hideViewTabs || !canShowDistributions ? undefined : (
             <GroupChartViewTabs value={viewMode} onChange={setViewMode} />
           )
         }

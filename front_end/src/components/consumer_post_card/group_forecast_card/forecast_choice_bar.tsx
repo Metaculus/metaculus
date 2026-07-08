@@ -80,6 +80,18 @@ const ForecastChoiceBar: FC<Props> = ({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
       style={activeGlowStyle}
       className={cn(
         "relative flex w-full items-center justify-between gap-2 rounded-lg bg-transparent font-medium text-gray-800 dark:text-gray-800-dark",

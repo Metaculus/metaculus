@@ -60,10 +60,9 @@ const PdfCdfTabs: FC<Props> = ({
         placement="bottom"
         renderInPortal={false}
         tooltipContent={
-          (questionType === QuestionType.Discrete
-            ? "PMF (Probability Mass Function) shows how likely different specific outcomes are,"
-            : "PDF (Probability Density Function) shows how likely different outcomes are around specific values,") +
-          " while CDF (Cumulative Distribution Function) shows the cumulative probability of outcomes up to a certain value."
+          questionType === QuestionType.Discrete
+            ? t("pmfCdfExplanation")
+            : t("pdfCdfExplanation")
         }
         variant="light"
         tooltipClassName="text-center !max-w-[331px] !text-base !p-4"

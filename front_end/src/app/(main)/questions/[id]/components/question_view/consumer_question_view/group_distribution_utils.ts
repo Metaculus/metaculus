@@ -1,12 +1,7 @@
 import { ContinuousAreaGraphInput } from "@/components/charts/continuous_area_chart";
 import { METAC_COLORS } from "@/constants/colors";
 import { ContinuousAreaType } from "@/types/charts";
-import {
-  GroupOfQuestionsGraphType,
-  GroupOfQuestionsPost,
-  PostWithForecasts,
-  QuestionStatus,
-} from "@/types/post";
+import { PostWithForecasts, QuestionStatus } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { isForecastActive } from "@/utils/forecasts/helpers";
@@ -22,6 +17,15 @@ import { isUnsuccessfullyResolved } from "@/utils/questions/resolution";
 export function getSubquestionDistributionData(
   question: QuestionWithNumericForecasts
 ): ContinuousAreaGraphInput {
+  // Binary subquestions (e.g. binary fan-graph groups) have no continuous
+  // distribution — their aggregation has no forecast_values.
+  if (
+    question.type !== QuestionType.Numeric &&
+    question.type !== QuestionType.Discrete &&
+    question.type !== QuestionType.Date
+  ) {
+    return [];
+  }
   if (isUnsuccessfullyResolved(question.resolution)) {
     return [];
   }
@@ -67,22 +71,22 @@ export function getDistributionColor(
   return choiceColor;
 }
 
-// Non-fan continuous (Numeric/Discrete/Date) group posts get the
-// Timeline/Distributions treatment. Fan graphs use their own presentation.
-export function isContinuousGroupPost(
-  post: PostWithForecasts
-): post is GroupOfQuestionsPost<QuestionWithNumericForecasts> {
+// A group can show Distributions only when its subquestions are continuous
+// (Numeric/Discrete/Date — excludes binary time-series groups) AND at least one
+// subquestion actually has distribution data. Fan graphs are allowed here (a
+// numeric fan graph qualifies; a binary one does not).
+export function hasGroupDistributions(post: PostWithForecasts): boolean {
   if (!isGroupOfQuestionsPost(post)) {
     return false;
   }
-  if (
-    post.group_of_questions?.graph_type === GroupOfQuestionsGraphType.FanGraph
-  ) {
-    return false;
-  }
-  return (
+  const isContinuousType =
     checkGroupOfQuestionsPostType(post, QuestionType.Numeric) ||
     checkGroupOfQuestionsPostType(post, QuestionType.Discrete) ||
-    checkGroupOfQuestionsPostType(post, QuestionType.Date)
+    checkGroupOfQuestionsPostType(post, QuestionType.Date);
+  if (!isContinuousType) {
+    return false;
+  }
+  return (post.group_of_questions?.questions ?? []).some(
+    hasSubquestionDistribution
   );
 }

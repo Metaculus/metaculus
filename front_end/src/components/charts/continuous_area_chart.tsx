@@ -1,6 +1,6 @@
 "use client";
 import { isNil, merge } from "lodash";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import React, {
   FC,
   useCallback,
@@ -145,6 +145,7 @@ const ContinuousAreaChart: FC<Props> = ({
   onChartReady,
 }) => {
   const locale = useLocale();
+  const t = useTranslations();
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
   const chartWidth = width || containerWidth;
@@ -524,20 +525,30 @@ const ContinuousAreaChart: FC<Props> = ({
     if (innerWidth <= 0) return null;
     const threshold = 10 / innerWidth;
     let best: { x: number; y: number | null } | null = null;
+    let bestIndex = -1;
     let bestDist = Infinity;
-    for (const line of displayChart.verticalLines) {
+    // verticalLines order is [lower25, median, upper75].
+    for (const [index, line] of displayChart.verticalLines.entries()) {
       const d = Math.abs(cursorX - line.x);
       if (d < bestDist) {
         bestDist = d;
         best = line;
+        bestIndex = index;
       }
     }
     if (!best || bestDist > threshold) return null;
+    const topLabel =
+      bestIndex === 0
+        ? t("quartileLabelP25")
+        : bestIndex === 2
+          ? t("quartileLabelP75")
+          : t("quartileLabelMedian");
     return {
       // Anchor the chip where the curve meets the quartile line (i.e. where the
       // cursor circle would be).
       x: best.x,
       y: best.y ?? 0,
+      topLabel,
       label: getPredictionDisplayValue(best.x, {
         questionType: question.type,
         scaling: question.scaling,
@@ -553,6 +564,7 @@ const ContinuousAreaChart: FC<Props> = ({
     horizontalPadding,
     question.type,
     question.scaling,
+    t,
   ]);
   const CursorContainer = (
     <VictoryCursorContainer
@@ -885,6 +897,11 @@ const ContinuousAreaChart: FC<Props> = ({
               style={{
                 data: {
                   stroke: (() => {
+                    // The x-axis baseline stays grayscale in the distributions
+                    // view (colorOverride) regardless of subquestion color/state.
+                    if (colorOverride) {
+                      return getThemeColor(METAC_COLORS.gray["400"]);
+                    }
                     switch (chart.color) {
                       case "orange":
                         return getThemeColor(METAC_COLORS.orange["800"]);
@@ -1137,16 +1154,32 @@ const ContinuousAreaChart: FC<Props> = ({
                 x: cursorEdge,
                 y: 0,
               }}
-              chartData={charts.map((chart) => ({
-                line: chart.graphLine,
-                color: getThemeColor(
-                  chart.color === "orange"
-                    ? METAC_COLORS.orange[chart.type === "user" ? "800" : "500"]
-                    : METAC_COLORS.olive["700"]
-                ),
-                type: chart.type,
-                graphType: chart.graphType,
-              }))}
+              chartData={charts
+                .filter((chart) => chart.type !== "user_components")
+                .map((chart) => ({
+                  line: chart.graphLine,
+                  color: (() => {
+                    if (colorOverride && chart.type !== "user") {
+                      return colorOverride;
+                    }
+                    switch (chart.color) {
+                      case "orange":
+                        return getThemeColor(
+                          METAC_COLORS.orange[
+                            chart.type === "user" ? "800" : "500"
+                          ]
+                        );
+                      case "gray":
+                        return getThemeColor(METAC_COLORS.gray["500"]);
+                      case "purple":
+                        return getThemeColor(METAC_COLORS.purple["700"]);
+                      default:
+                        return getThemeColor(METAC_COLORS.olive["700"]);
+                    }
+                  })(),
+                  type: chart.type,
+                  graphType: chart.graphType,
+                }))}
               chartHeight={height}
               yDomain={yDomain}
               xDomain={xDomain}
@@ -1171,6 +1204,8 @@ const ContinuousAreaChart: FC<Props> = ({
                     rightPadding={horizontalPadding}
                     colorOverride={colorOverride}
                     getCursorValue={() => quartileTooltip.label}
+                    topLabel={quartileTooltip.topLabel}
+                    topLabelColor={colorOverride}
                   />
                 </VictoryPortal>
               }

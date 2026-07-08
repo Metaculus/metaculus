@@ -7,6 +7,7 @@ import TimeSeriesChart from "@/components/consumer_post_card/time_series_chart";
 import { QuestionWithNumericForecasts } from "@/types/question";
 
 import { useListChartExpanded } from "./consumer_list_chart_shell";
+import { hasSubquestionDistribution } from "./group_distribution_utils";
 
 type Props = {
   questions: QuestionWithNumericForecasts[];
@@ -24,6 +25,10 @@ const ConsumerTimeSeriesPane: FC<Props> = ({ questions, height = 180 }) => {
     setSelectedQuestionId,
   } = useListChartExpanded();
   const isDistributions = viewMode === "distributions";
+  const canSelectDistribution = useMemo(
+    () => questions.some(hasSubquestionDistribution),
+    [questions]
+  );
 
   const selectedBarLabel = useMemo(() => {
     if (!isDistributions || selectedQuestionId == null) return null;
@@ -34,7 +39,7 @@ const ConsumerTimeSeriesPane: FC<Props> = ({ questions, height = 180 }) => {
   const handleBarClick = useCallback(
     (label: string) => {
       const question = questions.find((q) => q.label === label);
-      if (question?.id != null) {
+      if (question?.id != null && hasSubquestionDistribution(question)) {
         setSelectedQuestionId(question.id);
         setViewMode("distributions");
       }
@@ -54,7 +59,7 @@ const ConsumerTimeSeriesPane: FC<Props> = ({ questions, height = 180 }) => {
         hoveredBarLabel={hoveredChoiceName}
         onBarHover={setHoveredChoiceName}
         selectedBarLabel={selectedBarLabel}
-        onBarClick={handleBarClick}
+        onBarClick={canSelectDistribution ? handleBarClick : undefined}
       />
     </div>
   );

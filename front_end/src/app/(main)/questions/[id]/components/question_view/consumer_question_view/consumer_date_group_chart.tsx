@@ -9,6 +9,7 @@ import { QuestionWithNumericForecasts } from "@/types/question";
 
 import { useListChartExpanded } from "./consumer_list_chart_shell";
 import GroupChartViewTabs from "./group_chart_view_tabs";
+import { hasSubquestionDistribution } from "./group_distribution_utils";
 import GroupDistributionsView from "./group_distributions_view";
 
 type Props = {
@@ -25,13 +26,17 @@ const ConsumerDateGroupChart: FC<Props> = ({ post }) => {
       ? Math.max(80, chartAreaHeight - CHART_HEADER_HEIGHT)
       : undefined;
 
-  if (!hideCP && viewMode === "distributions") {
+  const canShowDistributions = (post.group_of_questions?.questions ?? []).some(
+    hasSubquestionDistribution
+  );
+
+  if (!hideCP && canShowDistributions && viewMode === "distributions") {
     return <GroupDistributionsView post={post} height={effectiveChartHeight} />;
   }
 
   return (
     <div className="flex h-full w-full flex-col">
-      {!hideCP && (
+      {!hideCP && canShowDistributions && (
         <div className="mb-2.5 flex w-full items-center md:mb-5">
           <GroupChartViewTabs value={viewMode} onChange={setViewMode} />
         </div>

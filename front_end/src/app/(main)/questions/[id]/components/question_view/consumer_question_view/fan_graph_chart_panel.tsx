@@ -12,6 +12,7 @@ import cn from "@/utils/core/cn";
 
 import ConsumerGroupChart from "./consumer_group_chart";
 import { useListChartExpanded } from "./consumer_list_chart_shell";
+import { hasGroupDistributions } from "./group_distribution_utils";
 
 type ChartView = "fan" | "timeline" | "distributions";
 
@@ -32,6 +33,7 @@ const FanGraphChartPanel: FC<Props> = ({
   const { hideCP } = useHideCP();
   const { chartAreaHeight, viewMode, setViewMode } = useListChartExpanded();
   const isConsumer = variant === "consumer";
+  const canShowDistributions = hasGroupDistributions(post);
 
   // "fan" is orthogonal to the shared timeline/distributions view mode. The
   // distributions/timeline choice lives in context so the left pane (bins) can
@@ -65,7 +67,7 @@ const FanGraphChartPanel: FC<Props> = ({
     ? [
         { value: "timeline", label: t("timeline") },
         { value: "fan", label: t("fanChart") },
-        ...(hideCP
+        ...(hideCP || !canShowDistributions
           ? []
           : [
               {

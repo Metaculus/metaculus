@@ -58,6 +58,49 @@ const CHART_PADDING_TOP = 20;
 const CHART_PADDING_BOTTOM = 30;
 const HIGHLIGHT_WIDTH = 52;
 
+// Single source of truth for a bar's color so the fill and the selection
+// highlight stay in sync (resolved → purple, closed → gray, else MC scale).
+function resolveBarFillColor(
+  getThemeColor: (color: ThemeColor) => string,
+  datum: {
+    isEmpty?: boolean;
+    resolution?: Resolution | null;
+    isClosed?: boolean;
+    originalIndex?: number;
+  },
+  index: number | undefined,
+  variant: "default" | "colorful"
+): string {
+  if (variant === "colorful" && !datum.isEmpty) {
+    if (datum.resolution) {
+      return getThemeColor(METAC_COLORS.purple["500"]);
+    }
+    const safeIndex =
+      typeof datum.originalIndex === "number"
+        ? datum.originalIndex
+        : typeof index === "number"
+          ? index
+          : 0;
+    const color: ThemeColor =
+      MULTIPLE_CHOICE_COLOR_SCALE[
+        safeIndex % MULTIPLE_CHOICE_COLOR_SCALE.length
+      ] ?? (METAC_COLORS.blue["400"] as ThemeColor);
+    return getThemeColor(color);
+  }
+
+  if (datum.resolution) {
+    return getThemeColor(
+      ["no", "yes"].includes(datum.resolution as string)
+        ? METAC_COLORS.purple["400"]
+        : METAC_COLORS.purple["500"]
+    );
+  }
+
+  return datum.isClosed
+    ? getThemeColor(METAC_COLORS.gray["500"])
+    : getThemeColor(METAC_COLORS.blue["400"]);
+}
+
 interface HighlightBarProps {
   x?: number;
   index?: number;
@@ -151,12 +194,11 @@ const TimeSeriesChart: FC<Props> = ({
   const selectedDatum =
     selectedIndex !== null ? adjustedChartData[selectedIndex] : null;
   const selectedBarColor = selectedDatum
-    ? getThemeColor(
-        MULTIPLE_CHOICE_COLOR_SCALE[
-          (typeof selectedDatum.originalIndex === "number"
-            ? selectedDatum.originalIndex
-            : selectedIndex ?? 0) % MULTIPLE_CHOICE_COLOR_SCALE.length
-        ] ?? (METAC_COLORS.blue["400"] as ThemeColor)
+    ? resolveBarFillColor(
+        getThemeColor,
+        selectedDatum,
+        selectedIndex ?? undefined,
+        variant
       )
     : undefined;
   const domainPaddingX = useMemo(
@@ -407,37 +449,13 @@ const TimeSeriesChart: FC<Props> = ({
             }
             style={{
               data: {
-                fill: ({ datum, index }) => {
-                  if (variant === "colorful" && !datum.isEmpty) {
-                    if (datum.resolution) {
-                      return getThemeColor(METAC_COLORS.purple["500"]);
-                    }
-                    const safeIndex =
-                      typeof datum.originalIndex === "number"
-                        ? datum.originalIndex
-                        : typeof index === "number"
-                          ? index
-                          : 0;
-                    const color: ThemeColor =
-                      MULTIPLE_CHOICE_COLOR_SCALE[
-                        safeIndex % MULTIPLE_CHOICE_COLOR_SCALE.length
-                      ] ?? (METAC_COLORS.blue["400"] as ThemeColor);
-
-                    return getThemeColor(color);
-                  }
-
-                  if (datum.resolution) {
-                    return getThemeColor(
-                      ["no", "yes"].includes(datum.resolution as string)
-                        ? METAC_COLORS.purple["400"]
-                        : METAC_COLORS.purple["500"]
-                    );
-                  }
-
-                  return datum.isClosed
-                    ? getThemeColor(METAC_COLORS.gray["500"])
-                    : getThemeColor(METAC_COLORS.blue["400"]);
-                },
+                fill: ({ datum, index }) =>
+                  resolveBarFillColor(
+                    getThemeColor,
+                    datum,
+                    typeof index === "number" ? index : undefined,
+                    variant
+                  ),
                 stroke: "transparent",
                 strokeWidth: 0,
                 width: ({ datum }) =>
