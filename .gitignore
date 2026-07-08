@@ -166,13 +166,3 @@ trace.zip
 # Email preview tools (local development only)
 email_previews/
 .email-tools/
-
-# design-sync (skill artifacts)
-.design-sync/sb-reference/
-.design-sync/learnings/
-.design-sync/.cache/
-.design-sync/node_modules
-.design-sync/sb-build.log
-.ds-sync/
-ds-bundle/
-front_end/.ds-entry.mjs
