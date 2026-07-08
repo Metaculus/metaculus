@@ -26,9 +26,9 @@ export const JOBS_INSIGHTS = {
     ),
     negative: (
       <>
-        By 2030, <strong>software developers</strong>,{" "}
-        <strong>sales representatives</strong>, and <strong>lawyers</strong> are
-        expected to see steep declines, as AI takes over their core tasks.
+        By 2030, <strong>software developers</strong>, <strong>lawyers</strong>,
+        and <strong>financial specialists</strong> are expected to see steep
+        declines, as AI takes over their core tasks.
       </>
     ),
   },
