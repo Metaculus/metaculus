@@ -100,16 +100,47 @@ envsubst '${PORT},${APP_DOMAIN}' \
 nginx -g "daemon off;" &
 NGINX_PID=$!
 
-# 5) Monitor services and report which one exits
-echo "[Supervisor]: All services started (Gunicorn=$GUNICORN_PID, Next.js=$NEXTJS_PID, Nginx=$NGINX_PID)"
+# 5) Next.js liveness watchdog
+#
+# PM2 restarts crashed Next.js instances on its own, but if the whole PM2
+# process tree dies, no process the supervisor waits on exits: nginx keeps
+# $PORT bound (so Heroku considers the dyno healthy) and serves 502 for every
+# frontend route indefinitely. Probe the Next.js listener and crash the dyno
+# so Heroku replaces it.
+#
+# Only "connection refused" (curl exit 7) counts as a failure: a slow but
+# alive Next.js under CPU load must never trigger dyno restarts.
+(
+  fails=0
+  while true; do
+    sleep 30
+    rc=0
+    curl -s -o /dev/null --max-time 10 http://localhost:3000/app-version/ || rc=$?
+    if [ "$rc" -eq 7 ]; then
+      fails=$((fails + 1))
+      echo "[Watchdog]: Next.js refused connection ($fails/3)"
+      if [ "$fails" -ge 3 ]; then
+        echo "[Watchdog]: Next.js is not listening; exiting to force dyno restart"
+        exit 1
+      fi
+    else
+      fails=0
+    fi
+  done
+) &
+WATCHDOG_PID=$!
+
+# 6) Monitor services and report which one exits
+echo "[Supervisor]: All services started (Gunicorn=$GUNICORN_PID, Next.js=$NEXTJS_PID, Nginx=$NGINX_PID, Watchdog=$WATCHDOG_PID)"
 
 EXITED_PID=""
-wait -n -p EXITED_PID $GUNICORN_PID $NEXTJS_PID $NGINX_PID || true
+wait -n -p EXITED_PID $GUNICORN_PID $NEXTJS_PID $NGINX_PID $WATCHDOG_PID || true
 
 case "$EXITED_PID" in
   "$GUNICORN_PID") echo "[Supervisor]: Gunicorn exited" ;;
   "$NEXTJS_PID")   echo "[Supervisor]: Next.js exited" ;;
   "$NGINX_PID")    echo "[Supervisor]: Nginx exited" ;;
+  "$WATCHDOG_PID") echo "[Supervisor]: Watchdog detected dead Next.js listener" ;;
   *)               echo "[Supervisor]: Unknown process exited (PID: $EXITED_PID)" ;;
 esac
 
