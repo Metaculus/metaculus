@@ -182,9 +182,8 @@ const ChartValueBox: FC<{
   isDistributionChip?: boolean;
   questionType?: QuestionType;
   textAlignToSide?: boolean;
-  // Optional one-word label rendered in a dark rounded pill above the chip.
+  // Optional one-word label rendered above the chip.
   topLabel?: string;
-  topLabelColor?: ThemeColor | string;
 }> = (props) => {
   const { getThemeColor } = useAppTheme();
   const {
@@ -201,7 +200,6 @@ const ChartValueBox: FC<{
     questionType,
     textAlignToSide,
     topLabel,
-    topLabelColor,
   } = props;
   const CHIP_OFFSET = !isNil(resolution) ? 8 : 0;
 
@@ -221,14 +219,6 @@ const ChartValueBox: FC<{
     }
   }, [displayText]);
 
-  const [topLabelWidth, setTopLabelWidth] = useState(0);
-  const topLabelRef = useRef<SVGTextElement>(null);
-  useEffect(() => {
-    if (topLabelRef.current) {
-      setTopLabelWidth(topLabelRef.current.getBBox().width);
-    }
-  }, [topLabel]);
-
   if (isNil(x) || isNil(y)) return null;
 
   const adjustedX =
@@ -244,50 +234,29 @@ const ChartValueBox: FC<{
     resolveToCssColor(getThemeColor, colorOverride) ??
     getThemeColor(METAC_COLORS.olive["600"]);
 
-  // Optional pill label above the chip (e.g. MEDIAN / 25TH %).
+  // Optional one-word label above the chip (e.g. MEDIAN / 25TH %).
   const TOP_LABEL_FONT_SIZE = 10;
-  const TOP_LABEL_PADDING = 2;
-  const TOP_LABEL_GAP = 3;
-  const topLabelBoxHeight = TOP_LABEL_FONT_SIZE + TOP_LABEL_PADDING * 2;
-  const topLabelBoxWidth = topLabelWidth + TOP_LABEL_PADDING * 2;
+  const TOP_LABEL_GAP = 5;
   const chipTopY = getRectY(placement, y, isDistributionChip, textAlignToSide);
-  const topLabelBoxY = chipTopY - TOP_LABEL_GAP - topLabelBoxHeight;
-  const topLabelBoxX = adjustedX - topLabelBoxWidth / 2;
-  const topLabelCenterY = topLabelBoxY + topLabelBoxHeight / 2;
+  const topLabelCenterY = chipTopY - TOP_LABEL_GAP - TOP_LABEL_FONT_SIZE / 2;
 
   return (
     <g>
       {!!topLabel && (
-        <g>
-          <rect
-            x={topLabelBoxX}
-            y={topLabelBoxY}
-            width={topLabelBoxWidth}
-            height={topLabelBoxHeight}
-            fill="#000000"
-            fillOpacity={0.5}
-            rx={2}
-            ry={2}
-          />
-          <text
-            ref={topLabelRef}
-            x={adjustedX}
-            y={topLabelCenterY}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fill={
-              resolveToCssColor(getThemeColor, topLabelColor) ??
-              getThemeColor(METAC_COLORS.gray["0"])
-            }
-            fontFamily={CHART_FONT_FAMILY}
-            fontWeight="650"
-            letterSpacing="0.02em"
-            fontSize={TOP_LABEL_FONT_SIZE}
-            style={{ textTransform: "uppercase" }}
-          >
-            {topLabel}
-          </text>
-        </g>
+        <text
+          x={adjustedX}
+          y={topLabelCenterY}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fill={getThemeColor(METAC_COLORS.gray["700"])}
+          fontFamily={CHART_FONT_FAMILY}
+          fontWeight="650"
+          letterSpacing="0.02em"
+          fontSize={TOP_LABEL_FONT_SIZE}
+          style={{ textTransform: "uppercase" }}
+        >
+          {topLabel}
+        </text>
       )}
       {hasResolution && questionType !== QuestionType.Binary && (
         <text

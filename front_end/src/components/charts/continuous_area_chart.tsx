@@ -1205,7 +1205,6 @@ const ContinuousAreaChart: FC<Props> = ({
                     colorOverride={colorOverride}
                     getCursorValue={() => quartileTooltip.label}
                     topLabel={quartileTooltip.topLabel}
-                    topLabelColor={colorOverride}
                   />
                 </VictoryPortal>
               }
