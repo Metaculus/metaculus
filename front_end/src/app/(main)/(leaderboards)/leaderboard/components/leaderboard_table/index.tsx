@@ -10,6 +10,7 @@ import {
   ExclusionStatuses,
   LeaderboardDetails,
 } from "@/types/scoring";
+import { getContributionsUrl } from "@/utils/navigation";
 
 import LeaderboardRow, { UserLeaderboardRow } from "./table_row";
 import { RANKING_CATEGORIES } from "../../../ranking_categories";
@@ -99,11 +100,22 @@ const LeaderboardTable: FC<Props> = ({
             entriesToDisplay.map((entry) => {
               let navigationUrl: string;
               if (cardSized) {
-                // on combined global leaderboard all table row links to the category page
-                navigationUrl = categoryUrl;
+                navigationUrl = entry.user
+                  ? getContributionsUrl({
+                      category,
+                      userId: entry.user.id,
+                      year,
+                      duration,
+                    })
+                  : categoryUrl;
               } else {
                 navigationUrl = entry.user
-                  ? `/contributions/${category}/${entry.user.id}/?${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`
+                  ? getContributionsUrl({
+                      category,
+                      userId: entry.user.id,
+                      year,
+                      duration,
+                    })
                   : `/questions/track-record`;
               }
               if (entry.user && entry.user.id === userEntry?.user?.id) {

@@ -21,6 +21,7 @@ type Props = {
   // Suppress the internal Timeline/Distributions switcher when a parent (the
   // fan-graph panel) owns the tab bar.
   hideViewTabs?: boolean;
+  reservedHeight?: number;
 };
 
 const ConsumerGroupChart: FC<Props> = ({
@@ -29,6 +30,7 @@ const ConsumerGroupChart: FC<Props> = ({
   chartHeight,
   visibleQuestions,
   hideViewTabs = false,
+  reservedHeight = 0,
 }) => {
   const { hideCP } = useHideCP();
   const {
@@ -57,7 +59,7 @@ const ConsumerGroupChart: FC<Props> = ({
   const CHART_HEADER_HEIGHT = 44;
   const effectiveChartHeight =
     chartAreaHeight > 0
-      ? Math.max(80, chartAreaHeight - CHART_HEADER_HEIGHT)
+      ? Math.max(80, chartAreaHeight - reservedHeight - CHART_HEADER_HEIGHT)
       : chartHeight;
 
   // When CP is hidden, or nothing has a distribution, we keep the plain timeline

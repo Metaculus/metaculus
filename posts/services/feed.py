@@ -21,7 +21,7 @@ from utils.models import build_order_by
 from utils.serializers import parse_order_by
 
 
-def get_posts_feed(
+def get_posts_feed(  # noqa: C901
     qs: Post.objects = None,
     user: User = None,
     search: str = None,
@@ -226,6 +226,8 @@ def get_posts_feed(
         qs = qs.filter_private()
     if access == PostFilterSerializer.Access.PUBLIC:
         qs = qs.filter_public()
+    if access == PostFilterSerializer.Access.PERSONAL:
+        qs = qs.filter_personal()
 
     # Similar posts lookup
     if similar_to_post_id:

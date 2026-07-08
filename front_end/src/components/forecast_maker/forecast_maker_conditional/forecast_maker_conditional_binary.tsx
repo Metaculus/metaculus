@@ -118,13 +118,15 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   const questionYesExpirationState = useExpirationModalState(
     questionYesDuration,
     question_yes.my_forecasts?.latest,
-    isQuestionPrePrediction(question_yes)
+    isQuestionPrePrediction(question_yes),
+    question_yes.scheduled_close_time
   );
 
   const questionNoExpirationState = useExpirationModalState(
     questionNoDuration,
     question_no.my_forecasts?.latest,
-    isQuestionPrePrediction(question_no)
+    isQuestionPrePrediction(question_no),
+    question_no.scheduled_close_time
   );
 
   const questionDuration =

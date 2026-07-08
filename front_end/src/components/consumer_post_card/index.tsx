@@ -51,7 +51,10 @@ const ConsumerPostCard: FC<Props> = ({
       >
         <HideCPProvider post={post}>
           {isQuestionPost(post) && !isMultipleChoicePost(post) && (
-            <ConsumerQuestionTile question={post.question} />
+            <ConsumerQuestionTile
+              question={post.question}
+              forFeedPage={forFeedPage}
+            />
           )}
 
           {(isGroupOfQuestionsPost(post) || isMultipleChoicePost(post)) && (

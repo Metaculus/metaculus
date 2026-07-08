@@ -67,7 +67,20 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
               )}
             >
               {!!headerLeft ? (
-                <div className="w-full min-w-0 md:flex-1">{headerLeft}</div>
+                <div className="flex w-full min-w-0 flex-col gap-1 md:flex-1">
+                  {!!chartTitle && (
+                    <div
+                      className={cn(
+                        isEmbed
+                          ? "text-xs text-gray-600 dark:text-gray-600-dark"
+                          : "text-xs font-normal text-blue-900 dark:text-gray-900-dark md:text-base"
+                      )}
+                    >
+                      {chartTitle}
+                    </div>
+                  )}
+                  {headerLeft}
+                </div>
               ) : !!chartTitle ? (
                 <div
                   className={cn(
@@ -82,42 +95,45 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
               {(!!zoom || !!headerExtra) && (
                 <div
                   className={cn(
-                    "ChartZoomControls hidden items-center gap-2 self-end md:flex",
+                    "ChartZoomControls items-center gap-2 self-end",
+                    !!headerExtra ? "flex" : "hidden md:flex",
                     !!headerLeft ? "md:ml-auto" : "ml-auto"
                   )}
                 >
                   {!!zoom && (
-                    <TabGroup
-                      selectedIndex={selectedIndex}
-                      onChange={handleTabChange}
-                      manual
-                    >
-                      <TabList className="flex gap-0.5">
-                        {tabOptions.map((option) => (
-                          <Tab as={Fragment} key={option.value}>
-                            {({ selected, hover }) => (
-                              <button
-                                className={cn(
-                                  "ChartZoomButton rounded px-1 py-0.5 text-xs font-normal uppercase leading-4 text-gray-600 hover:text-blue-800 focus:outline-none dark:text-gray-600-dark hover:dark:text-blue-800-dark md:text-sm",
-                                  {
-                                    "text-gray-900 dark:text-gray-900-dark":
-                                      selected,
-                                  },
-                                  {
-                                    "bg-gray-300 dark:bg-gray-300-dark":
-                                      hover || selected,
-                                  },
-                                  isEmbed &&
-                                    "uppercase text-gray-600 dark:text-gray-600-dark md:text-xs"
-                                )}
-                              >
-                                {option.label}
-                              </button>
-                            )}
-                          </Tab>
-                        ))}
-                      </TabList>
-                    </TabGroup>
+                    <div className="ChartZoomControls hidden md:flex">
+                      <TabGroup
+                        selectedIndex={selectedIndex}
+                        onChange={handleTabChange}
+                        manual
+                      >
+                        <TabList className="flex gap-0.5">
+                          {tabOptions.map((option) => (
+                            <Tab as={Fragment} key={option.value}>
+                              {({ selected, hover }) => (
+                                <button
+                                  className={cn(
+                                    "ChartZoomButton rounded px-1 py-0.5 text-xs font-normal uppercase leading-4 text-gray-600 hover:text-blue-800 focus:outline-none dark:text-gray-600-dark hover:dark:text-blue-800-dark md:text-sm",
+                                    {
+                                      "text-gray-900 dark:text-gray-900-dark":
+                                        selected,
+                                    },
+                                    {
+                                      "bg-gray-300 dark:bg-gray-300-dark":
+                                        hover || selected,
+                                    },
+                                    isEmbed &&
+                                      "uppercase text-gray-600 dark:text-gray-600-dark md:text-xs"
+                                  )}
+                                >
+                                  {option.label}
+                                </button>
+                              )}
+                            </Tab>
+                          ))}
+                        </TabList>
+                      </TabGroup>
+                    </div>
                   )}
                   {headerExtra}
                 </div>

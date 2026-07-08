@@ -16,6 +16,8 @@ import { hasGroupDistributions } from "./group_distribution_utils";
 
 type ChartView = "fan" | "timeline" | "distributions";
 
+const TOGGLE_ROW_HEIGHT = 32;
+
 type Props = {
   post: GroupOfQuestionsPost<QuestionWithNumericForecasts>;
   preselectedQuestionId?: number;
@@ -101,11 +103,9 @@ const FanGraphChartPanel: FC<Props> = ({
       ))}
     </div>
   );
-
-  // Fan view toggle is in-flow (h-6 + mb-2 ≈ 32px); subtract from available height.
   const fanChartHeight =
     chartAreaHeight > 0
-      ? Math.max(100, chartAreaHeight - 32)
+      ? Math.max(100, chartAreaHeight - TOGGLE_ROW_HEIGHT)
       : isCompact
         ? 150
         : undefined;
@@ -124,6 +124,7 @@ const FanGraphChartPanel: FC<Props> = ({
           hideCP={hideCP}
           withTooltip
           height={fanChartHeight}
+          alignPlotLeft
         />
       </div>
       <div
