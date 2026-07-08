@@ -31,7 +31,7 @@ source venv/bin/activate
     --access-logformat '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(M)s' \
     --access-logfile - \
     --error-logfile - \
-  2>&1 | sed 's/^/[Backend]: /'
+  2>&1 | sed -u 's/^/[Backend]: /'
 ) &
 GUNICORN_PID=$!
 
@@ -42,7 +42,7 @@ export UV_THREADPOOL_SIZE=2
 (
   cd front_end &&
   bun run pm2-runtime \
-  2>&1 | sed 's/^/[Frontend]: /'
+  2>&1 | sed -u 's/^/[Frontend]: /'
 ) &
 NEXTJS_PID=$!
 
@@ -97,7 +97,10 @@ envsubst '${PORT},${APP_DOMAIN}' \
   < /etc/nginx/conf.d/app_nginx.template \
   > /etc/nginx/conf.d/app_nginx.conf
 
-nginx -g "daemon off;" &
+(
+  nginx -g "daemon off;" \
+  2>&1 | sed -u 's/^/[Nginx]: /'
+) &
 NGINX_PID=$!
 
 # 5) Next.js liveness watchdog
