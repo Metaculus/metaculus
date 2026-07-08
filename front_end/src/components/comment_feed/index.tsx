@@ -148,19 +148,26 @@ const CommentFeed: FC<Props> = ({
     thread: CommentType;
   } | null>(null);
   const [isLinkedLoading, setIsLinkedLoading] = useState(false);
+  const linkedRequestRef = useRef(0);
+
+  const clearLinkedFocusedThread = useCallback(() => {
+    linkedRequestRef.current += 1; // invalidate any in-flight fetch
+    setIsLinkedLoading(false);
+    setLinkedFocusedThread(null);
+  }, []);
 
   const loadLinkedFocusedThread = useCallback(
     async (id: number) => {
+      const requestId = (linkedRequestRef.current += 1);
       setIsLinkedLoading(true);
       try {
         const thread = await fetchFocusedCommentThread(id);
-        if (thread) {
-          setLinkedFocusedThread({ focusedId: id, thread });
-        } else {
-          setLinkedFocusedThread(null);
-        }
+        if (requestId !== linkedRequestRef.current) return; // superseded — discard
+        setLinkedFocusedThread(thread ? { focusedId: id, thread } : null);
       } finally {
-        setIsLinkedLoading(false);
+        if (requestId === linkedRequestRef.current) {
+          setIsLinkedLoading(false);
+        }
       }
     },
     [fetchFocusedCommentThread]
@@ -211,16 +218,22 @@ const CommentFeed: FC<Props> = ({
   // Track #comment-id and #comments hash changes to load & focus on target comment
   useEffect(() => {
     if (isLoading) return;
-    if (!hash) return;
+    if (!hash) {
+      clearLinkedFocusedThread();
+      return;
+    }
 
     const match = hash.match(/comment-(\d+)/);
     if (match?.[1]) {
       const numericId = Number(match[1]);
-      if (Number.isNaN(numericId)) return;
+      if (Number.isNaN(numericId)) {
+        clearLinkedFocusedThread();
+        return;
+      }
 
       // Comment already in the natural feed — comment.tsx handles scrolling.
       if (findById(comments, numericId)) {
-        if (linkedFocusedThread) setLinkedFocusedThread(null);
+        clearLinkedFocusedThread();
         return;
       }
 
@@ -241,6 +254,8 @@ const CommentFeed: FC<Props> = ({
       return () => {
         clearTimeout(timeoutId);
       };
+    } else {
+      clearLinkedFocusedThread();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hash, isLoading, comments]);
