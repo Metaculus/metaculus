@@ -373,6 +373,13 @@ def filter_for_consumer_view(qs: QuerySet[Post]) -> QuerySet[Post]:
     # Exclude resolved questions
     qs = qs.exclude(resolved=True)
 
+    # Exclude AIB / bots-only tournaments — the same questions are typically
+    # cross-posted in a human-facing project (Metaculus Cup etc.), so showing
+    # them here produces duplicate-looking search results.
+    qs = qs.exclude(
+        default_project__bot_leaderboard_status=Project.BotLeaderboardStatus.BOTS_ONLY
+    )
+
     return qs
 
 
