@@ -4,6 +4,7 @@ import hashlib
 import html
 import json
 import logging
+import re
 from datetime import datetime
 import time
 
@@ -110,6 +111,11 @@ async def agoogle_translate_text(source_language, target_language, text):
                 # See the comment above with the new lines
                 output = output.replace("<br>", "\n")
                 output = html.unescape(output)
+                # Google Translate (in its default HTML mode) frequently inserts
+                # whitespace between the `]` and `(` of markdown inline links,
+                # e.g. `[text](url)` -> `[text] (url)`, which breaks link parsing
+                # in the frontend markdown renderer. Reglue that seam.
+                output = re.sub(r"\]\s+\(", "](", output)
                 return output
             else:
                 error = await response.text()
