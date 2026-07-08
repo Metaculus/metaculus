@@ -22,4 +22,5 @@ setInterval(() => {
 }, 30_000).unref();
 
 process.argv = process.argv.slice(0, 2).concat("start");
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- CJS on purpose: a static import would hoist above the argv fix and re-break `next start`
 require("next/dist/bin/next");
