@@ -64,6 +64,19 @@ async function verifyToken(): Promise<boolean> {
   }
 }
 
+function shouldSkipCspHeaders(request: NextRequest): boolean {
+  const purpose = request.headers.get("purpose");
+  const secPurpose = request.headers.get("sec-purpose");
+
+  return (
+    request.nextUrl.searchParams.has("_rsc") ||
+    request.headers.get("rsc") === "1" ||
+    request.headers.has("next-router-prefetch") ||
+    purpose === "prefetch" ||
+    secPurpose?.includes("prefetch") === true
+  );
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const requestAuth = new AuthCookieReader(request.cookies);
@@ -71,15 +84,21 @@ export async function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-url", request.url);
 
-  const nonce = btoa(crypto.randomUUID());
-  const cspHeader = buildCsp(nonce);
-  requestHeaders.set("x-nonce", nonce);
-  // Next.js reads the nonce from this request header to tag its own scripts
-  // (next/script, framework chunks) - it checks the report-only variant too
-  requestHeaders.set("Content-Security-Policy-Report-Only", cspHeader);
+  const shouldApplyCsp = !shouldSkipCspHeaders(request);
+  const nonce = shouldApplyCsp ? btoa(crypto.randomUUID()) : null;
+  const cspHeader = nonce ? buildCsp(nonce) : null;
+
+  if (cspHeader && nonce) {
+    requestHeaders.set("x-nonce", nonce);
+    // Next.js reads the nonce from this request header to tag its own scripts
+    // (next/script, framework chunks) - it checks the report-only variant too
+    requestHeaders.set("Content-Security-Policy-Report-Only", cspHeader);
+  }
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
-  applyCspHeaders(response, cspHeader);
+  if (cspHeader) {
+    applyCspHeaders(response, cspHeader);
+  }
   const responseAuth = new AuthCookieManager(response.cookies);
 
   let hasSession = false;
@@ -119,7 +138,9 @@ export async function proxy(request: NextRequest) {
         new URL("/not-found/", request.url),
         { request: { headers: requestHeaders } }
       );
-      applyCspHeaders(rewriteResponse, cspHeader);
+      if (cspHeader) {
+        applyCspHeaders(rewriteResponse, cspHeader);
+      }
       response.cookies.getAll().forEach((cookie) => {
         rewriteResponse.cookies.set(cookie);
       });
@@ -169,7 +190,7 @@ export const config = {
       // Ignores prefetch requests, all media files
       // And embedded urls
       source:
-        "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|questions/embed|experiments/embed|opengraph-image-|twitter-image-|app-version|.*\\..*).*)",
+        "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|csp-report|questions/embed|experiments/embed|opengraph-image-|twitter-image-|app-version|.*\\..*).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },

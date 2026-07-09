@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 import { getPublicSettings } from "@/utils/public_settings.server";
 
-export const CSP_REPORT_URI = "/api/csp-report/";
+export const CSP_REPORT_URI = "/csp-report/";
 
 function getSentryHost(dsn: string): string | null {
   try {
@@ -49,7 +49,7 @@ export function buildCsp(nonce: string): string {
       sentryHost ? `https://${sentryHost}` : `https://*.ingest.sentry.io`,
       `https://www.google-analytics.com https://*.analytics.google.com`,
       // marketing pixel beacons
-      `https://www.facebook.com https://px.ads.linkedin.com`,
+      `https://www.facebook.com https://px.ads.linkedin.com https://pixel-config.reddit.com`,
     ]
       .filter(Boolean)
       .join(" "),
