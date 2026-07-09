@@ -55,6 +55,11 @@ server {
 
         proxy_redirect              off;
         proxy_buffering             off;
+        # Next.js occasionally emits response headers over the 8k default
+        # (large Set-Cookie/RSC headers), which nginx turns into a 502
+        # ("upstream sent too big header")
+        proxy_buffer_size           32k;
+        proxy_buffers               8 32k;
 
         client_max_body_size 10M;
     }
@@ -63,6 +68,9 @@ server {
         alias /app/front_end/.next/static/;
         expires 1y;
         access_log off;
+        # Stale chunk requests (clients holding pre-deploy HTML) are expected;
+        # don't log each miss as an [error]
+        log_not_found off;
     }
 
     # Backend
@@ -72,6 +80,8 @@ server {
         proxy_pass http://unix:/app/gunicorn.sock;
         proxy_redirect              off;
         proxy_buffering             off;
+        proxy_buffer_size           32k;
+        proxy_buffers               8 32k;
 
         keepalive_timeout           950s;
         client_max_body_size 10M;
