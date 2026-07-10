@@ -26,8 +26,9 @@ export const JOBS_INSIGHTS = {
     ),
     negative: (
       <>
-        By 2030, <strong>software developers</strong>, <strong>lawyers</strong>,
-        and <strong>financial specialists</strong> are expected to see steep
+        By 2030, <strong>software developers</strong>,{" "}
+        <strong>financial specialists</strong>, and{" "}
+        <strong>sales representatives</strong> are expected to see steep
         declines, as AI takes over their core tasks.
       </>
     ),
@@ -42,12 +43,12 @@ export const JOBS_INSIGHTS = {
     ),
     negative: (
       <>
-        By 2035, <strong>financial specialists</strong>, <strong>sales</strong>{" "}
-        and <strong>law</strong> are expected to see sharp staff reductions as
-        AI systems take over large portions of financial analysis, outreach, and
-        detailed research work, while <strong>construction workers</strong> see
-        little change as robotics have yet to fully displace physical roles by
-        this horizon.
+        By 2035, <strong>financial specialists</strong>,{" "}
+        <strong>lawyers</strong>, and <strong>laborers and movers</strong> are
+        expected to see sharp staff reductions as AI and automation take over
+        large portions of financial analysis, legal research, and physical labor
+        tasks, while <strong>construction workers</strong> see little change as
+        robotics have yet to fully displace physical roles by this horizon.
       </>
     ),
   },
