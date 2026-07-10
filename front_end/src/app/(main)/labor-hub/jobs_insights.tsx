@@ -17,38 +17,39 @@ export const JOBS_INSIGHTS = {
   "2030": {
     positive: (
       <>
-        By 2030, roles in <strong>food service</strong>,{" "}
-        <strong>construction</strong>, and <strong>healthcare</strong> are
-        expected to grow due to demand for in-person service, infrastructure
-        buildouts, and an aging population that AI is unlikely to displace in
-        the short-term.
+        By 2030, <strong>nurses</strong>, <strong>construction workers</strong>,
+        and <strong>engineers</strong> are expected to see the largest gains.
+        Demand is rising, from an aging population, and from data center and
+        energy infrastructure buildouts, while robotics is not yet expected to
+        handle unstructured worksites.
       </>
     ),
     negative: (
       <>
         By 2030, <strong>software developers</strong>,{" "}
-        <strong>financial specialists</strong>, and{" "}
-        <strong>sales representatives</strong> are expected to see steep
-        declines, as AI takes over their core tasks.
+        <strong>financial specialists</strong>, and <strong>sales</strong> are
+        expected to see the largest declines as AI absorbs coding, rules-based
+        analysis, and outreach. Software development leads the drop, with rapid
+        AI adoption and no legal protections.
       </>
     ),
   },
   "2035": {
     positive: (
       <>
-        By 2035, <strong>nurses</strong>, <strong>physicians</strong>, and{" "}
-        <strong>engineers</strong> are expected to see the highest growth,
-        driven by hands-on needs that cannot be easily automated.
+        By 2035, <strong>nurses</strong> and <strong>physicians</strong> are
+        expected to see the highest growth, driven by high demand from an aging
+        population, while liability concerns and lack of trust in AI limit
+        automation.
       </>
     ),
     negative: (
       <>
-        By 2035, <strong>financial specialists</strong>,{" "}
-        <strong>lawyers</strong>, and <strong>laborers and movers</strong> are
-        expected to see sharp staff reductions as AI and automation take over
-        large portions of financial analysis, legal research, and physical labor
-        tasks, while <strong>construction workers</strong> see little change as
-        robotics have yet to fully displace physical roles by this horizon.
+        By 2035, <strong>financial specialists</strong>, <strong>sales</strong>,
+        and <strong>law</strong> are expected to see sharp staff reductions as
+        AI takes over analysis, outreach, and research work.{" "}
+        <strong>Laborers and movers</strong> will also see reductions as
+        robotics automates work in controlled indoor environments.
       </>
     ),
   },
