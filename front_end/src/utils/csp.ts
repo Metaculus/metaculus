@@ -47,7 +47,7 @@ export function buildCsp(nonce: string): string {
       isDev ? `ws: wss:` : "",
       PUBLIC_POSTHOG_BASE_URL,
       sentryHost ? `https://${sentryHost}` : `https://*.ingest.sentry.io`,
-      `https://www.google-analytics.com https://*.analytics.google.com`,
+      `https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.google.com`,
       // marketing pixel beacons
       `https://www.facebook.com https://px.ads.linkedin.com https://pixel-config.reddit.com`,
     ]
