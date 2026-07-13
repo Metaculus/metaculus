@@ -190,6 +190,24 @@ class PostQuerySet(models.QuerySet):
             )
         )
 
+    def filter_user_has_commented(self, author_id: int):
+        """
+        Filter to posts where user has commented.
+        Uses EXISTS which is more efficient than annotate + filter IS NOT NULL.
+        """
+        # Local import: comments.models imports Post
+        from comments.models import Comment
+
+        return self.filter(
+            Exists(
+                Comment.objects.filter(
+                    on_post_id=OuterRef("pk"),
+                    author_id=author_id,
+                    is_soft_deleted=False,
+                )
+            )
+        )
+
     def annotate_has_active_forecast(self, author_id: int):
         """
         Annotates if user has active forecast for post

@@ -357,6 +357,7 @@
   "searchOptionActivePrediction": "Active Prediction",
   "searchOptionWithdrawnPrediction": "Withdrawn",
   "searchOptionNotPredicted": "Not Predicted",
+  "searchOptionCommented": "Commented",
   "searchOptionAuthored": "Authored",
   "searchOptionUpvoted": "Upvoted",
   "searchOptionPrivate": "Private",

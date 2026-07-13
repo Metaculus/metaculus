@@ -185,6 +185,7 @@
   "searchOptionAny": "Cualquiera",
   "searchOptionPredicted": "Predicho",
   "searchOptionNotPredicted": "No Predicho",
+  "searchOptionCommented": "Comentado",
   "searchOptionAuthored": "Autorizado",
   "searchOptionUpvoted": "Votado positivamente",
   "searchOptionPrivate": "Privado",
