@@ -191,6 +191,7 @@
   "searchOptionAny": "任何",
   "searchOptionPredicted": "已預測",
   "searchOptionNotPredicted": "未預測",
+  "searchOptionCommented": "已評論",
   "searchOptionAuthored": "創作",
   "searchOptionUpvoted": "點贊",
   "searchOptionPrivate": "私有",
