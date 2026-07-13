@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 import { getPublicSettings } from "@/utils/public_settings.server";
 
-export const CSP_REPORT_URI = "/api/csp-report/";
+export const CSP_REPORT_URI = "/csp-report/";
 
 function getSentryHost(dsn: string): string | null {
   try {
@@ -26,12 +26,14 @@ export function buildCsp(nonce: string): string {
 
   const sentryHost = getSentryHost(PUBLIC_FRONTEND_SENTRY_DSN);
 
-  // Next dev needs eval for source maps/react-refresh and WebSockets for HMR.
+  // Next dev needs WebSockets for HMR.
   const isDev = process.env.NODE_ENV !== "production";
+  // Temporary: allow eval while existing eval-based forecast code is being replaced.
+  const unsafeEval = " 'unsafe-eval'";
 
   const directives = [
     `default-src 'self'`,
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-inline' https:${isDev ? " 'unsafe-eval'" : ""}`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-inline' https:${unsafeEval}`,
     // React style={{}} props and user-authored <style> tags in markdown
     // require 'unsafe-inline' (accepted tradeoff, script-src stays strict)
     `style-src 'self' 'unsafe-inline'`,
@@ -47,9 +49,9 @@ export function buildCsp(nonce: string): string {
       isDev ? `ws: wss:` : "",
       PUBLIC_POSTHOG_BASE_URL,
       sentryHost ? `https://${sentryHost}` : `https://*.ingest.sentry.io`,
-      `https://www.google-analytics.com https://*.analytics.google.com`,
+      `https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.google.com`,
       // marketing pixel beacons
-      `https://www.facebook.com https://px.ads.linkedin.com`,
+      `https://www.facebook.com https://px.ads.linkedin.com https://pixel-config.reddit.com`,
     ]
       .filter(Boolean)
       .join(" "),
