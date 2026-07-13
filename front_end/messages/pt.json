@@ -675,6 +675,7 @@
   "parentResolutionCriteria": "Critérios de Resolução da Pergunta Pai",
   "childResolutionCriteria": "Critérios de Resolução da Pergunta Filha",
   "loadMoreComments": "Carregar mais comentários",
+  "linkedComment": "Comentário vinculado",
   "followers": "Seguidores",
   "followButton": "Seguir",
   "followingButton": "Seguindo",

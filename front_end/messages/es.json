@@ -609,6 +609,7 @@
   "parentResolutionCriteria": "Criterios de Resolución de la Pregunta Principal",
   "childResolutionCriteria": "Criterios de Resolución de la Pregunta Secundaria",
   "loadMoreComments": "Cargar más comentarios",
+  "linkedComment": "Comentario enlazado",
   "followButton": "Seguir",
   "followingButton": "Siguiendo",
   "unfollowButton": "Dejar de seguir",
