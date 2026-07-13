@@ -320,7 +320,9 @@ const MultiChoicesChartView: FC<Props> = ({
                     hideCP={hideCP}
                   />
                 </div>
-              ) : undefined
+              ) : (
+                headerLeft
+              )
             }
             forceShowLinePoints={!embedMode}
           />
@@ -341,7 +343,9 @@ const MultiChoicesChartView: FC<Props> = ({
                     hideCP={hideCP}
                   />
                 </div>
-              ) : undefined
+              ) : (
+                headerLeft
+              )
             }
           />
         ) : (
