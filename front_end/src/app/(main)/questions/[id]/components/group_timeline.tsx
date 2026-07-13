@@ -63,6 +63,7 @@ type Props = QuestionsDataProps & {
   onCursorChange?: (ts: number) => void;
   hideTooltip?: boolean;
   headerLeft?: ReactNode;
+  hideChartTitle?: boolean;
 };
 
 /**
@@ -98,6 +99,7 @@ const GroupTimeline: FC<Props> = ({
   onCursorChange,
   hideTooltip,
   headerLeft,
+  hideChartTitle,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -370,6 +372,7 @@ const GroupTimeline: FC<Props> = ({
       withHighlightEndpoint={withHighlightEndpoint}
       hideTooltip={hideTooltip}
       headerLeft={headerLeft}
+      hideChartTitle={hideChartTitle}
     />
   );
 };

@@ -1,10 +1,13 @@
 "use client";
 
+import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
 import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
 import { Tabs, TabsList, TabsTab } from "@/components/ui/tabs";
+import Tooltip from "@/components/ui/tooltip";
 import useAppTheme from "@/hooks/use_app_theme";
 import { ContinuousAreaGraphType } from "@/types/charts";
 import { PostWithForecasts } from "@/types/post";
@@ -90,6 +93,25 @@ const DistributionsTab: FC<Props> = ({ post }) => {
           >
             {t("cdf")}
           </TabsTab>
+          <div className="ml-auto flex items-center">
+            <Tooltip
+              showDelayMs={200}
+              placement="bottom"
+              tooltipContent={
+                groupType === QuestionType.Discrete
+                  ? t("pmfCdfExplanation")
+                  : t("pdfCdfExplanation")
+              }
+              variant="light"
+              tooltipClassName="text-center !max-w-[331px] !text-base !p-4"
+            >
+              <FontAwesomeIcon
+                icon={faCircleQuestion}
+                height={16}
+                className="text-gray-500 hover:text-blue-800 dark:text-gray-500-dark dark:hover:text-blue-800-dark"
+              />
+            </Tooltip>
+          </div>
         </TabsList>
       </Tabs>
       <div className="flex flex-col gap-6">

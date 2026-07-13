@@ -88,7 +88,7 @@ const ConsumerGroupChart: FC<Props> = ({
         externalHighlightedChoice={hoveredChoiceName}
         chartHeight={effectiveChartHeight}
         onCursorChange={setCursorTimestamp}
-        hideTooltip
+        hideChartTitle={hideViewTabs || (!hideCP && canShowDistributions)}
         headerLeft={
           hideCP || hideViewTabs || !canShowDistributions ? undefined : (
             <GroupChartViewTabs value={viewMode} onChange={setViewMode} />
