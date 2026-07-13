@@ -260,7 +260,8 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
   } = useExpirationModalState(
     questionDuration,
     option.question.my_forecasts?.latest,
-    isQuestionPrePrediction(option.question)
+    isQuestionPrePrediction(option.question),
+    option.question.scheduled_close_time
   );
 
   useEffect(() => {

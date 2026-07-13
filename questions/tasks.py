@@ -169,8 +169,14 @@ def check_and_schedule_forecast_widrawal_due_notifications():
 
     forecast_already_withdrawn = Q(forecast__end_time__lt=now)
 
+    # Inactive users only receive account-related emails
+    user_is_inactive = Q(user__is_active=False)
+
     all_notifications = UserForecastNotification.objects.filter(due_and_unsent).exclude(
-        user_is_unsubscribed | question_is_closed | forecast_already_withdrawn
+        user_is_unsubscribed
+        | user_is_inactive
+        | question_is_closed
+        | forecast_already_withdrawn
     )
 
     # Group notifications by user and post
@@ -310,6 +316,8 @@ def multiple_choice_delete_option_notifications(
 
     forecasters = (
         question.get_forecasters()
+        # Inactive users only receive account-related emails
+        .filter(is_active=True)
         .exclude(
             unsubscribed_mailing_tags__contains=[
                 MailingTags.BEFORE_PREDICTION_AUTO_WITHDRAWAL  # seems most reasonable
@@ -405,7 +413,9 @@ def multiple_choice_add_option_notifications(
         User.objects.filter(
             forecast__in=question.user_forecasts.filter(
                 end_time=grace_period_end
-            )  # all effected forecasts have their end_time set to grace_period_end
+            ),  # all effected forecasts have their end_time set to grace_period_end
+            # Inactive users only receive account-related emails
+            is_active=True,
         )
         .exclude(
             unsubscribed_mailing_tags__contains=[

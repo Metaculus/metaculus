@@ -20,6 +20,8 @@ def notify_mentioned_users(comment: Comment):
         users.exclude(pk=comment.author_id)
         # Exclude users with disabled notifications
         .exclude(unsubscribed_mailing_tags__contains=[MailingTags.COMMENT_MENTIONS])
+        # Inactive users only receive account-related emails
+        .filter(is_active=True)
     )
 
     for user in users:
@@ -68,7 +70,8 @@ def notify_weekly_top_comments_subscribers(
         other_usernames = ", ".join(other_usernames_list)
 
     recipients_qs = (
-        User.objects.exclude(
+        User.objects.filter(is_active=True)
+        .exclude(
             Q(unsubscribed_mailing_tags__contains=[MailingTags.WEEKLY_TOP_COMMENTS])
         )
         .exclude(email__isnull=True)

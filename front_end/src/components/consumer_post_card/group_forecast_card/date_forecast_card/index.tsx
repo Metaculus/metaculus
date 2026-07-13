@@ -19,6 +19,7 @@ import { METAC_COLORS } from "@/constants/colors";
 import { useHideCP } from "@/contexts/cp_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
+import useDeferredRender from "@/hooks/use_deferred_render";
 import { ChoiceItem } from "@/types/choices";
 import { PostGroupOfQuestions, PostWithForecasts } from "@/types/post";
 import {
@@ -47,6 +48,8 @@ type Props = {
   fillHeight?: boolean;
   innerChartPaddingX?: number;
   yearOnlyTicks?: boolean;
+  withHeader?: boolean;
+  forFeedPage?: boolean;
 };
 
 const TICK_LABEL_INDEXES = [0, 4, 8];
@@ -60,11 +63,14 @@ const DateForecastCard: FC<Props> = ({
   fillHeight = false,
   innerChartPaddingX = 0,
   yearOnlyTicks = false,
+  withHeader = false,
+  forFeedPage = false,
 }) => {
   const { questions } = questionsGroup;
   const locale = useLocale();
   const t = useTranslations();
   const { hideCP } = useHideCP();
+  const shouldRenderFeedChart = useDeferredRender(forFeedPage, post.id);
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const {
@@ -90,15 +96,31 @@ const DateForecastCard: FC<Props> = ({
   }
 
   return (
-    <>
+    <div
+      className={cn(
+        "relative flex w-full flex-col",
+        fillHeight && "min-h-0 flex-1"
+      )}
+    >
+      {withHeader && (
+        <div
+          className="mb-2.5 text-xs font-normal text-blue-900 dark:text-gray-900-dark md:mb-5 md:text-base"
+          style={{
+            paddingLeft: innerChartPaddingX || undefined,
+          }}
+        >
+          {t("forecastTimelineHeading")}
+        </div>
+      )}
       <div
         ref={chartContainerRef}
         className={cn(
           "DateForecastCard relative w-full",
-          fillHeight && "flex-1"
+          fillHeight && "min-h-0 flex-1"
         )}
+        style={forFeedPage ? { minHeight: chartHeight } : undefined}
       >
-        {shouldDisplayChart && (
+        {shouldDisplayChart && !(forFeedPage && !shouldRenderFeedChart) && (
           <VictoryChart
             width={chartWidth}
             height={chartHeight}
@@ -231,11 +253,11 @@ const DateForecastCard: FC<Props> = ({
         )}
       </div>
       {chartWidth && !isBigChartView && (
-        <div className="mt-4">
+        <div className="mt-4 shrink-0">
           <DateForecastCardTooltip points={points} />
         </div>
       )}
-    </>
+    </div>
   );
 };
 

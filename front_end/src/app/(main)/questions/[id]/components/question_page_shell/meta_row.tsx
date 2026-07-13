@@ -17,7 +17,7 @@ import Button from "@/components/ui/button";
 import Chip from "@/components/ui/chip";
 import useContainerSize from "@/hooks/use_container_size";
 import { PostWithForecasts } from "@/types/post";
-import { Project, TournamentType } from "@/types/projects";
+import { Project, ProjectVisibility, TournamentType } from "@/types/projects";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { getPostLink, getProjectLink } from "@/utils/navigation";
@@ -43,6 +43,7 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
 
   const projectsData = post.projects;
   const defaultProject = projectsData?.default_project ?? null;
+  const defaultProjectId = defaultProject?.id;
   // default_project is shown first; the rest are deduped and go into "N more"
   const allProjects: Project[] = projectsData
     ? [
@@ -56,7 +57,10 @@ const MetaRow: FC<Props> = ({ post, className, variant }) => {
       ].filter(
         (project, index, arr) =>
           project.type !== TournamentType.SiteMain &&
-          arr.findIndex((candidate) => candidate.id === project.id) === index
+          arr.findIndex((candidate) => candidate.id === project.id) === index &&
+          (!("visibility" in project) ||
+            project.visibility !== ProjectVisibility.Unlisted ||
+            project.id === defaultProjectId)
       )
     : [];
 

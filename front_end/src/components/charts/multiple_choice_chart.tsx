@@ -58,6 +58,8 @@ import {
   Y_AXIS_LABEL_RESERVED_PX,
 } from "@/utils/charts/axis";
 import { findPreviousTimestamp } from "@/utils/charts/cursor";
+import { getSharedStepKeepMask } from "@/utils/charts/step_reducer";
+import { pickHighestContrastTextColor } from "@/utils/core/colors";
 import { truncateLabel } from "@/utils/formatters/string";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
@@ -100,8 +102,9 @@ type Props = {
   isEmbedded?: boolean;
   forecastAvailability?: ForecastAvailability;
   forFeedPage?: boolean;
-  chartTitle?: string;
+  chartTitle?: ReactNode;
   headerLeft?: ReactNode;
+  headerExtra?: ReactNode;
   animate?: object;
   leftPadding?: number;
 };
@@ -132,6 +135,7 @@ const MultipleChoiceChart: FC<Props> = ({
   forFeedPage,
   chartTitle,
   headerLeft,
+  headerExtra,
   animate,
   leftPadding = 0,
 }) => {
@@ -293,6 +297,7 @@ const MultipleChoiceChart: FC<Props> = ({
         onZoomChange={setZoom}
         chartTitle={chartTitle}
         headerLeft={headerLeft}
+        headerExtra={headerExtra}
       >
         {shouldDisplayChart && (
           <VictoryChart
@@ -634,6 +639,18 @@ function buildChartData({
   const activeItems = choiceItems.filter((c) => c.active);
   const shouldNormalize = activeItems.length > 1;
 
+  // Feed previews: downsample the CP timelines on a single shared index grid so
+  // every stacked option keeps identical x-coordinates. Reducing each option's
+  // line independently would desync the grids and corrupt VictoryStack. Keeping
+  // any index where some active option changes value is lossless for stepAfter.
+  const cpKeepMask =
+    forFeedPage && !hideCP && activeItems.length > 0
+      ? getSharedStepKeepMask(
+          activeItems.map((it) => it.aggregationValues),
+          activeItems[0]?.aggregationValues.length ?? 0
+        )
+      : null;
+
   // for MC questions userTimestamps will be the same array for every choice item
   const userTimestamps = choiceItems[0]?.userTimestamps ?? [];
   const userScatters: ColoredLine = [];
@@ -729,6 +746,11 @@ function buildChartData({
           });
           if (!hideCP) {
             aggregationTimestamps.forEach((timestamp, timestampIndex) => {
+              // Drop indices no active option changes at (feed only). Endpoints
+              // and every value/null transition stay, so stepAfter is unchanged.
+              if (active && cpKeepMask?.[timestampIndex] === false) {
+                return;
+              }
               const aggregationValue = aggregationValues[timestampIndex];
               // build line (CP data)
               const val =
@@ -928,9 +950,7 @@ const ResolutionChip: FC<{
     ? METAC_COLORS.purple["800"].dark
     : METAC_COLORS.gray["0"].DEFAULT;
 
-  const chipTextColor = isDarkTheme
-    ? METAC_COLORS.purple["800"].dark
-    : METAC_COLORS.gray["0"].DEFAULT;
+  const chipTextColor = pickHighestContrastTextColor(color);
   const [textWidth, setTextWidth] = useState(0);
   const textRef = useRef<SVGTextElement>(null);
 

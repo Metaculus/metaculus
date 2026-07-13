@@ -27,7 +27,10 @@ function getAnchorStyle(
     top: rect.bottom + 4,
     left: rect.left,
     width: rect.width,
-    zIndex: 210,
+    // Above the modal layer (z-modal = 220) so these action popovers stay
+    // visible when opened from inside a full-screen overlay (e.g. the mobile
+    // key factor overlay).
+    zIndex: 230,
   };
 }
 

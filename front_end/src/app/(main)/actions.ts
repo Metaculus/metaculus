@@ -14,6 +14,10 @@ export async function dismissBulletin(bulletinId: number) {
   return await serverMiscApi.cancelBulletin(bulletinId);
 }
 
+export async function dismissFeedTile(id: string) {
+  return await serverMiscApi.dismissFeedTile(id);
+}
+
 const NEWSLETTER_LIST_IDS: Record<string, string> = {
   labor: "10617959",
 };

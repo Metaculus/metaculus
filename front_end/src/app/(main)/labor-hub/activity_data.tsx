@@ -241,7 +241,8 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
     content: (
       <>
         Anthropic launches Claude Fable 5, a Mythos-class model made safe for
-        general use -{" "}
+        general use, and 3 days later the US government restricts all public
+        use. -{" "}
         <a
           href="https://www.anthropic.com/news/claude-fable-5-mythos-5"
           target="_blank"

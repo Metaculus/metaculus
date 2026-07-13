@@ -199,6 +199,7 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     class Access(models.TextChoices):
         PRIVATE = "private"
         PUBLIC = "public"
+        PERSONAL = "personal"
 
     ids = serializers.ListField(child=serializers.IntegerField(), required=False)
     access = serializers.ChoiceField(required=False, choices=Access.choices)

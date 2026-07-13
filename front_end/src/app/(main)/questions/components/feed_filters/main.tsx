@@ -1,6 +1,7 @@
 "use client";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, useMemo } from "react";
 
 import {
   getFilterSectionParticipation,
@@ -20,7 +21,6 @@ import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import ClientProjectsApi from "@/services/api/projects/projects.client";
 import { PostStatus } from "@/types/post";
-import { TournamentPreview } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
 
 type Props = {
@@ -43,23 +43,7 @@ const MainFeedFilters: FC<Props> = ({
   const { user } = useAuth();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
 
-  const [projectFilters, setProjectFilters] = useState<
-    TournamentPreview[] | undefined
-  >();
-  const fetchProjectFilters = useFetchProjectFilters();
-
-  useEffect(() => {
-    const loadProjectFilters = async () => {
-      const filters = await fetchProjectFilters();
-      if (filters) {
-        setProjectFilters(filters);
-      }
-    };
-
-    if (withProjectFilters) {
-      void loadProjectFilters();
-    }
-  }, [fetchProjectFilters, withProjectFilters]);
+  const projectFilters = useProjectFilters(withProjectFilters);
 
   const filters = useMemo(() => {
     const filters = [
@@ -182,24 +166,23 @@ const MainFeedFilters: FC<Props> = ({
   );
 };
 
-const useFetchProjectFilters = () => {
+const useProjectFilters = (withProjectFilters: boolean) => {
   const { user } = useAuth();
 
-  return useCallback(async () => {
-    if (!user?.is_superuser) {
-      return null;
-    }
-
-    try {
+  const { data } = useQuery({
+    queryKey: ["feed-project-filters"],
+    queryFn: async () => {
       const [tournaments, siteMain] = await Promise.all([
         ClientProjectsApi.getTournaments(),
         ClientProjectsApi.getSiteMain(),
       ]);
       return [siteMain, ...tournaments];
-    } catch {
-      return null;
-    }
-  }, [user?.is_superuser]);
+    },
+    enabled: withProjectFilters && !!user?.is_superuser,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  return data;
 };
 
 export default MainFeedFilters;
