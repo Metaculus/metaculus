@@ -31,7 +31,9 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import SectionToggle from "@/components/ui/section_toggle";
 import Select from "@/components/ui/select";
+import { MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { ContinuousQuestionTypes } from "@/constants/questions";
+import { useAuth } from "@/contexts/auth_context";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostStatus, PostWithForecasts } from "@/types/post";
@@ -61,6 +63,7 @@ import { getQuestionStatus } from "@/utils/questions/helpers";
 import { createQuestionPost, updatePost } from "../actions";
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
+import ColorPicker from "./color_picker";
 import NumericQuestionInput from "./numeric_question_input";
 
 // Extended interface to include additional fields being used
@@ -277,6 +280,7 @@ const createQuestionSchemas = (
           })
       ),
       options_order: z.nativeEnum(MultipleChoiceOptionsOrder).optional(),
+      options_colors: z.record(z.string()).optional(),
     })
   );
 
@@ -316,6 +320,7 @@ const QuestionForm: FC<Props> = ({
 }) => {
   const router = useRouter();
   const t = useTranslations();
+  const { user } = useAuth();
   const { isDone, hasForecasts } = getQuestionStatus(post);
   const optionsLocked = hasForecasts && mode !== "create";
   const [isLoading, setIsLoading] = useState<boolean>();
@@ -377,6 +382,11 @@ const QuestionForm: FC<Props> = ({
             ...(data as MultipleChoiceQuestionType),
             type: QuestionType.MultipleChoice,
             options: optionsList.map((o) => o.trim()),
+            options_colors: Object.fromEntries(
+              optionsList
+                .map((o, i) => [o.trim(), optionColors[i]] as const)
+                .filter(([, c]) => !!c)
+            ),
           } as MultipleChoiceQuestionType)
         : ({
             ...data,
@@ -424,6 +434,13 @@ const QuestionForm: FC<Props> = ({
     post?.question?.options
       ? post.question.options
       : Array(MIN_OPTIONS_AMOUNT).fill("")
+  );
+  const [optionColors, setOptionColors] = useState<(string | null)[]>(
+    post?.question?.options
+      ? post.question.options.map(
+          (o) => post?.question?.options_colors?.[o] ?? null
+        )
+      : Array(MIN_OPTIONS_AMOUNT).fill(null)
   );
 
   const [categoriesList, setCategoriesList] = useState<Category[]>(
@@ -501,11 +518,23 @@ const QuestionForm: FC<Props> = ({
       saveQuestionDraft(questionType, {
         ...formData,
         options: optionsList,
+        options_colors: Object.fromEntries(
+          optionsList
+            .map((o, i) => [o, optionColors[i]] as const)
+            .filter(([, c]) => !!c)
+        ),
         categories: categoriesList,
         type: formData.type as unknown as QuestionType,
       } as Partial<ExtendedQuestionDraft>);
     }
-  }, [form, shouldUseDraftValue, questionType, optionsList, categoriesList]);
+  }, [
+    form,
+    shouldUseDraftValue,
+    questionType,
+    optionsList,
+    optionColors,
+    categoriesList,
+  ]);
 
   const debouncedHandleFormChange = useDebouncedCallback(
     handleFormChange,
@@ -606,6 +635,11 @@ const QuestionForm: FC<Props> = ({
       const draft = getQuestionDraft(questionType);
       if (draft) {
         setOptionsList(draft.options ?? Array(MIN_OPTIONS_AMOUNT).fill("")); // MC questions
+        setOptionColors(
+          draft.options
+            ? draft.options.map((o) => draft.options_colors?.[o] ?? null)
+            : Array(MIN_OPTIONS_AMOUNT).fill(null)
+        );
         setCategoriesList(draft.categories ?? []);
         setCurrentProject(
           !isNil(draft.default_project) &&
@@ -635,6 +669,13 @@ const QuestionForm: FC<Props> = ({
     });
     return () => subscription.unsubscribe();
   }, [form, shouldUseDraftValue, debouncedHandleFormChange]);
+
+  // update draft when option colors change
+  useEffect(() => {
+    if (shouldUseDraftValue && isDraftMounted.current) {
+      debouncedHandleFormChange();
+    }
+  }, [shouldUseDraftValue, debouncedHandleFormChange, optionColors]);
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -800,6 +841,21 @@ const QuestionForm: FC<Props> = ({
                           }
                         />
                       </div>
+                      {user?.is_superuser && (
+                        <div className="my-2 flex h-[42px] items-center px-2">
+                          <ColorPicker
+                            value={optionColors[opt_index]}
+                            fallback={MULTIPLE_CHOICE_COLOR_SCALE[opt_index]}
+                            onChange={(key) => {
+                              setOptionColors((prev) =>
+                                prev.map((c, index) =>
+                                  index === opt_index ? key : c
+                                )
+                              );
+                            }}
+                          />
+                        </div>
+                      )}
                       {opt_index >= MIN_OPTIONS_AMOUNT && !optionsLocked && (
                         <Button
                           className="my-2 h-[42px] w-max self-start capitalize"
@@ -812,6 +868,9 @@ const QuestionForm: FC<Props> = ({
                               form.setValue("options", newOptionsArray);
                               return newOptionsArray;
                             });
+                            setOptionColors((prev) =>
+                              prev.filter((_, index) => index !== opt_index)
+                            );
                           }}
                         >
                           <FontAwesomeIcon icon={faXmark} />
@@ -824,7 +883,10 @@ const QuestionForm: FC<Props> = ({
               <Button
                 className="w-max capitalize"
                 disabled={optionsLocked}
-                onClick={() => setOptionsList([...optionsList, ""])}
+                onClick={() => {
+                  setOptionsList([...optionsList, ""]);
+                  setOptionColors([...optionColors, null]);
+                }}
               >
                 + {t("addOption")}
               </Button>

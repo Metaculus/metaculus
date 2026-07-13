@@ -777,6 +777,8 @@
   "groupVariableDescription": "子問題標籤所代表的內容（例如年份、國家等）。",
   "categoryPickerDescription": "子問題之間變化的參數名稱，如「選項」、「年份」或「國家」",
   "subquestionLabel": "子問題標籤",
+  "optionColor": "颜色",
+  "defaultColor": "默认颜色",
   "subquestionLabelDescription": "識別此子問題的���籤或參數，如「選項1」、「2033」或「法國」",
   "conditionalPairDescription": "條件對是一種特殊類型的問題組，用於獲取條件概率。每個條件對位於父問題和子問題之間。父問題必須是二元問題，而子問題可以是單一二元、數值或日期問題。",
   "isDoneError": "無法編輯已關閉、已解決或被拒絕的問題",
