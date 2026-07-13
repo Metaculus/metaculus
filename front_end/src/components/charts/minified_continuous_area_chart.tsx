@@ -33,6 +33,7 @@ import {
 } from "@/types/question";
 import { generateScale } from "@/utils/charts/axis";
 import { getClosestYValue, interpolateYValue } from "@/utils/charts/helpers";
+import { FEED_CHART_TARGET_POINTS, lttb } from "@/utils/charts/lttb";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 import { cdfToPmf, computeQuartilesFromCDF } from "@/utils/math";
@@ -86,7 +87,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
   shortLabels = false,
   alignChartTabs,
   forceTickCount,
-  variant = "feed",
+  variant = "question",
   colorOverride,
   showBaseline = false,
   minMaxLabelsOnly = false,
@@ -139,8 +140,14 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
         }
       }
     }
+    if (variant === "feed" && question.type !== QuestionType.Discrete) {
+      return chartData.map((chart) => ({
+        ...chart,
+        graphLine: lttb(chart.graphLine, FEED_CHART_TARGET_POINTS),
+      }));
+    }
     return chartData;
-  }, [data, hideCP, question]);
+  }, [data, hideCP, question, variant]);
 
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;
@@ -215,7 +222,12 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
       : null;
 
   const horizontalPadding = useMemo(() => {
-    if (alignChartTabs || question.type === QuestionType.Discrete) {
+    const needsDiscreteLabelPadding =
+      question.type === QuestionType.Discrete &&
+      !hideLabels &&
+      !minMaxLabelsOnly;
+
+    if (alignChartTabs || needsDiscreteLabelPadding) {
       const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
       const longestLabelLength = Math.max(
         ...labels.map((label) => label.length)
@@ -226,7 +238,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
     }
 
     return HORIZONTAL_PADDING;
-  }, [yScale, question.type, alignChartTabs]);
+  }, [yScale, question.type, alignChartTabs, hideLabels, minMaxLabelsOnly]);
 
   const barWidth = useMemo(() => {
     if (question.type !== QuestionType.Discrete) {

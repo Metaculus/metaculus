@@ -52,6 +52,7 @@ import {
   getClosestYValue,
   interpolateYValue,
 } from "@/utils/charts/helpers";
+import { FEED_CHART_TARGET_POINTS, lttb } from "@/utils/charts/lttb";
 import { getResolutionPoint } from "@/utils/charts/resolution";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 import { formatResolution } from "@/utils/formatters/resolution";
@@ -99,9 +100,11 @@ type Props = {
   onCursorChange?: (value: ContinuousAreaHoverState | null) => void;
   hideCP?: boolean;
   hideLabels?: boolean;
+  hideYAxis?: boolean;
   shortLabels?: boolean;
   alignChartTabs?: boolean;
   forceTickCount?: number; // is used on feed page
+  variant?: "feed" | "question";
   withResolutionChip?: boolean;
   withTodayLine?: boolean;
   globalScaling?: Scaling;
@@ -121,9 +124,11 @@ const ContinuousAreaChart: FC<Props> = ({
   onCursorChange,
   hideCP,
   hideLabels = false,
+  hideYAxis = false,
   shortLabels = false,
   alignChartTabs,
   forceTickCount,
+  variant = "question",
   withResolutionChip = true,
   withTodayLine = true,
   globalScaling,
@@ -151,6 +156,9 @@ const ContinuousAreaChart: FC<Props> = ({
     : chartTheme;
 
   const discrete = question.type === QuestionType.Discrete;
+  const showYAxis =
+    graphType === "cdf" ||
+    (question.type === QuestionType.Discrete && !hideYAxis);
   const paddingTop = graphType === "cdf" || discrete ? TOP_PADDING : 0;
 
   const hasUserData = useMemo(
@@ -199,8 +207,14 @@ const ContinuousAreaChart: FC<Props> = ({
         }
       }
     }
+    if (variant === "feed" && question.type !== QuestionType.Discrete) {
+      return chartData.map((chart) => ({
+        ...chart,
+        graphLine: lttb(chart.graphLine, FEED_CHART_TARGET_POINTS),
+      }));
+    }
     return chartData;
-  }, [data, graphType, hideCP, question, globalScaling]);
+  }, [data, graphType, hideCP, question, globalScaling, variant]);
 
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;
@@ -366,11 +380,7 @@ const ContinuousAreaChart: FC<Props> = ({
   // const massBelowBounds = dataset[0];
   // const massAboveBounds = dataset[dataset.length - 1];
   const horizontalPadding = useMemo(() => {
-    if (
-      alignChartTabs ||
-      graphType === "cdf" ||
-      question.type === QuestionType.Discrete
-    ) {
+    if (alignChartTabs || showYAxis) {
       const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
       const longestLabelLength = Math.max(
         ...labels.map((label) => label.length)
@@ -381,7 +391,7 @@ const ContinuousAreaChart: FC<Props> = ({
     }
 
     return HORIZONTAL_PADDING;
-  }, [graphType, yScale, question.type, alignChartTabs]);
+  }, [yScale, showYAxis, alignChartTabs]);
 
   const handleMouseLeave = useCallback(() => {
     onCursorChange?.(null);
@@ -741,7 +751,7 @@ const ContinuousAreaChart: FC<Props> = ({
                 />
               ))
             : null}
-          {(graphType === "cdf" || question.type === QuestionType.Discrete) && (
+          {showYAxis && (
             // Prevent Y axis being cut off in edge cases
             <VictoryPortal>
               <VictoryAxis

@@ -8,44 +8,48 @@ export const JOBS_INSIGHTS = {
     ),
     negative: (
       <>
-        By 2027, <strong>software developers</strong> are expected to see
-        stagnant growth, as early AI coding capabilities begin to dampen demand.
+        By 2027, <strong>sales representatives</strong> are expected to see
+        early declines as AI begins to automate outreach and client
+        interactions.
       </>
     ),
   },
   "2030": {
     positive: (
       <>
-        By 2030, roles in <strong>construction</strong> and{" "}
-        <strong>healthcare</strong> are expected to grow due to infrastructure
-        buildouts, an aging population, and legal restrictions unlikely to
-        change in the short-term.
+        By 2030, <strong>nurses</strong>, <strong>construction workers</strong>,
+        and <strong>engineers</strong> are expected to see the largest gains.
+        Demand is rising, from an aging population, and from data center and
+        energy infrastructure buildouts, while robotics is not yet expected to
+        handle unstructured worksites.
       </>
     ),
     negative: (
       <>
-        By 2030, <strong>software developers</strong> and{" "}
-        <strong>sales representatives</strong> are expected to see steep
-        declines, while <strong>financial</strong> roles begin to see the
-        effects of AI capabilities substitution.
+        By 2030, <strong>software developers</strong>,{" "}
+        <strong>financial specialists</strong>, and <strong>sales</strong> are
+        expected to see the largest declines as AI absorbs coding, rules-based
+        analysis, and outreach. Software development leads the drop, with rapid
+        AI adoption and no legal protections.
       </>
     ),
   },
   "2035": {
     positive: (
       <>
-        By 2035, <strong>nurses</strong>, <strong>physicians</strong>, and{" "}
-        <strong>law enforcement</strong> are expected to see the highest growth,
-        driven by hands-on needs that cannot be easily automated.
+        By 2035, <strong>nurses</strong> and <strong>physicians</strong> are
+        expected to see the highest growth, driven by high demand from an aging
+        population, while liability concerns and lack of trust in AI limit
+        automation.
       </>
     ),
     negative: (
       <>
-        By 2035, <strong>software</strong>, <strong>sales</strong> and{" "}
-        <strong>law</strong> are expected to see sharp staff reductions as AI
-        systems take over large portions of coding, outreach, and detailed
-        research work, while <strong>laborers</strong> see a modest decline as
-        more advanced robotics expand their reach.
+        By 2035, <strong>financial specialists</strong>, <strong>sales</strong>,
+        and <strong>law</strong> are expected to see sharp staff reductions as
+        AI takes over analysis, outreach, and research work.{" "}
+        <strong>Laborers and movers</strong> will also see reductions as
+        robotics automates work in controlled indoor environments.
       </>
     ),
   },

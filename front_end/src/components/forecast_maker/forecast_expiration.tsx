@@ -271,7 +271,8 @@ const getPresetLabel = (
 export const useExpirationModalState = (
   questionDuration: number,
   lastForecast: UserForecast | undefined,
-  isPrePrediction?: boolean
+  isPrePrediction?: boolean,
+  scheduledCloseTime?: string
 ) => {
   const [isForecastExpirationModalOpen, setIsForecastExpirationModalOpen] =
     useState(false);
@@ -343,7 +344,12 @@ export const useExpirationModalState = (
 
   let previousForecastExpiration = undefined;
 
-  if (lastForecast?.end_time) {
+  const withdrawalHappensAfterQuestionCloses =
+    !!lastForecast?.end_time &&
+    !!scheduledCloseTime &&
+    lastForecast.end_time * 1000 > new Date(scheduledCloseTime).getTime();
+
+  if (lastForecast?.end_time && !withdrawalHappensAfterQuestionCloses) {
     const lastForecastExpiryDate = new Date((lastForecast.end_time - 1) * 1000); //make this one second earlier, to avoid having 0 seconds as expiration delta
     const previousForecastIsExpired = lastForecastExpiryDate <= new Date();
 

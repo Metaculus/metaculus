@@ -7,8 +7,9 @@ import KeyFactorText from "../key_factor_text";
 const KeyFactorDriver: FC<
   Omit<Parameters<typeof KeyFactorStrengthItem>[0], "impactMetadata"> & {
     truncateText?: boolean;
+    large?: boolean;
   }
-> = ({ truncateText, ...props }) => {
+> = ({ truncateText, large, ...props }) => {
   if (!props.keyFactor.driver) return null;
 
   const { driver } = props.keyFactor;
@@ -23,7 +24,13 @@ const KeyFactorDriver: FC<
     >
       <KeyFactorText
         text={driver.text}
-        className={props.isCompact ? "text-xs leading-4" : "text-sm leading-5"}
+        className={
+          large
+            ? "text-base leading-6"
+            : props.isCompact
+              ? "text-xs leading-4"
+              : "text-sm leading-5"
+        }
         truncate={truncateText}
       />
     </KeyFactorStrengthItem>

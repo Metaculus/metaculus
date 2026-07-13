@@ -25,6 +25,7 @@ type Props = {
   withIcon?: boolean;
   cursorTimestamp?: number | null;
   timestamps?: number[];
+  latestValue?: number | null;
 };
 
 const ChoiceOption: FC<Props> = ({
@@ -41,6 +42,7 @@ const ChoiceOption: FC<Props> = ({
   cursorTimestamp = null,
   timestamps = [],
   withIcon = true,
+  latestValue,
 }) => {
   const idx =
     cursorTimestamp == null || !timestamps?.length
@@ -55,7 +57,8 @@ const ChoiceOption: FC<Props> = ({
           )
         );
 
-  const valueAtCursor = values[idx];
+  const valueAtCursor =
+    cursorTimestamp == null && !isNil(latestValue) ? latestValue : values[idx];
   const resolutionWords = String(displayedResolution)?.split(" ");
   const adjustedResolution = resolutionWords.length
     ? resolutionWords
@@ -77,7 +80,7 @@ const ChoiceOption: FC<Props> = ({
         .join(" ")
     : resolution;
 
-  const hasValue = !isNil(values.at(-1));
+  const hasValue = !isNil(valueAtCursor);
   const isEmbed = useIsEmbedMode();
 
   return (

@@ -17,7 +17,7 @@ import {
   SectionHeader,
   ContentParagraph,
 } from "./components/section";
-import { LABOR_HUB_POST_IDS } from "./helpers/labor_hub_posts";
+import { LABOR_HUB_POST_IDS } from "./data";
 import { ActivityMonitorSection } from "./sections/activity_monitor";
 import { EngagementSection } from "./sections/engagement_section";
 import { HeroSection } from "./sections/hero";
@@ -172,16 +172,16 @@ export default function LaborAutomationHubPage() {
                     title: "Software Developers",
                   },
                   {
-                    questionId: LABOR_HUB_POST_IDS.wages.constructionWorkers,
-                    title: "Construction Workers",
+                    questionId: LABOR_HUB_POST_IDS.wages.nurses,
+                    title: "Registered Nurses",
                   },
                   {
-                    questionId: LABOR_HUB_POST_IDS.wages.generalManagers,
-                    title: "General Managers",
+                    questionId: LABOR_HUB_POST_IDS.wages.salesRepresentatives,
+                    title: "Sales Representatives",
                   },
                   {
-                    questionId: LABOR_HUB_POST_IDS.wages.engineers,
-                    title: "Engineers",
+                    questionId: LABOR_HUB_POST_IDS.wages.designers,
+                    title: "Designers",
                   },
                   {
                     questionId: LABOR_HUB_POST_IDS.wages.financialSpecialists,
@@ -453,22 +453,21 @@ export default function LaborAutomationHubPage() {
               <strong>more than doubled</strong> in 2035 compared to 2025.
             </ContentParagraph>
             <ContentParagraph>
-              The number of degrees awarded for STEM is expected to see only
-              minor change due to the long gestation time, while overall 4-year
-              degrees are expected to see a modest decline and humanities
-              degrees are expected to see a more substantial decline by 2035.
-              Trade schools and community colleges are expected to see
-              significant growth in degrees and certificates awarded by 2035.
+              Four-year degrees are expected to decline modestly by 2035, with
+              humanities falling substantially and STEM increasingly too, led by
+              computer science, while trade schools and community colleges see
+              significant growth in degrees and certificates awarded.
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight className="lg:mt-24 print:mt-12">
             <ContentParagraph small>
-              The rise of AI is threatening to accelerate an already-looming
-              decline in 4-year college enrollment, as fewer high school
-              graduates and shrinking job prospects for degree-holders could
-              combine to reshape the future of higher education. At the same
-              time, enrollment in community colleges and trade schools is
-              expected to increase.
+              Fewer Americans are expected to earn four-year degrees over the
+              next decade. Shrinking cohorts after the post-2007 birth drop and
+              years of falling enrollment drive the decline; AI compounds it by
+              making students doubt that degrees in automatable fields will lead
+              to jobs, though students already enrolled delay its effect until
+              after 2030. Computer science is expected to be hit hardest, while
+              humanities continue their long slide.
             </ContentParagraph>
             <FlippableMultiQuestionCard
               prefer="timeline"

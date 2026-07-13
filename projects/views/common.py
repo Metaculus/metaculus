@@ -226,10 +226,13 @@ def tournament_by_slug_api_view(request: Request, slug: str):
     obj: Project = get_by_pk_or_slug(qs, slug)
 
     # Get questions count using cached operation
-    questions_count_map = get_projects_questions_count_cached([obj.id])
+    counts = get_projects_questions_count_cached([obj.id]).get(obj.id)
 
     data = TournamentSerializer(obj).data
-    data["questions_count"] = questions_count_map.get(obj.id) or 0
+    data["questions_count"] = counts["questions_count"] if counts else 0
+    data["questions_count_including_subquestions"] = (
+        counts["questions_count_including_subquestions"] if counts else 0
+    )
     data["timeline"] = get_project_timeline_data(obj)
     data["forecasts_count"] = obj.forecasts_count
     data["forecasters_count"] = obj.forecasters_count

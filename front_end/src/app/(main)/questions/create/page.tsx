@@ -3,7 +3,6 @@ import { getTranslations } from "next-intl/server";
 import React from "react";
 
 import { TopChromeHeaderSetter } from "@/app/(main)/components/top_chrome_header_context";
-import { EXPRESSION_OF_INTEREST_FORM_URL } from "@/app/(main)/pro-forecasters/constants/expression_of_interest_form";
 import QuestionRepost from "@/app/(main)/questions/components/question_repost";
 import ServerProjectsApi from "@/services/api/projects/projects.server";
 import { SearchParams } from "@/types/navigation";
@@ -11,6 +10,7 @@ import { ProjectPermissions } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
+import { EXPRESSION_OF_INTEREST_FORM_URL } from "../../services/pro-forecasters/constants/expression_of_interest_form";
 import QuestionTypePicker from "../components/question_type_picker";
 import QuestionDraftCleanup from "./components/question_draft_cleanup";
 

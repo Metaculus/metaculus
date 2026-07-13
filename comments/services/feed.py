@@ -26,6 +26,7 @@ def get_comments_feed(
     sort=None,
     is_private=None,
     focus_comment_id: int = None,
+    focus_thread_only: bool = False,
     include_deleted: bool | None = None,
     last_viewed_at: datetime = None,
     time_window: str = None,
@@ -147,21 +148,27 @@ def get_comments_feed(
                 # Fetch all children
                 fc_q |= Q(root_id=focus_comment_id)
 
-            qs = qs.annotate(
-                is_focused_comment=Case(
-                    When(fc_q, then=Value(1)),
-                    default=Value(0),
-                    output_field=IntegerField(),
+            if focus_thread_only:
+                # Restrict the feed to only the focused thread so the caller
+                # can render it as a standalone "linked comment" section
+                # without disturbing the natural pagination/sort.
+                qs = qs.filter(fc_q)
+            else:
+                qs = qs.annotate(
+                    is_focused_comment=Case(
+                        When(fc_q, then=Value(1)),
+                        default=Value(0),
+                        output_field=IntegerField(),
+                    )
                 )
-            )
-            # Insert after pinned but before unread prioritization
-            # so focused comment always appears on the first page
-            pinned_idx = (
-                order_by_args.index("-is_pinned_thread") + 1
-                if "-is_pinned_thread" in order_by_args
-                else 0
-            )
-            order_by_args.insert(pinned_idx, "-is_focused_comment")
+                # Insert after pinned but before unread prioritization
+                # so focused comment always appears on the first page
+                pinned_idx = (
+                    order_by_args.index("-is_pinned_thread") + 1
+                    if "-is_pinned_thread" in order_by_args
+                    else 0
+                )
+                order_by_args.insert(pinned_idx, "-is_focused_comment")
 
     if sort:
         if sort == "relevance":

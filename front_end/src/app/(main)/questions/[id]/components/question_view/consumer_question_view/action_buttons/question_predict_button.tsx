@@ -66,7 +66,7 @@ const QuestionPredictButton: React.FC<Props> = ({ post, className }) => {
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
           label={post.question?.title ?? ""}
-          className="!h-[calc(100vh-200px)] w-full max-w-2xl"
+          className="max-h-[calc(100vh-200px)] w-full max-w-2xl"
         >
           <ForecastMaker
             post={post}

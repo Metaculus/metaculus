@@ -2,10 +2,12 @@
 
 import { FC } from "react";
 
+import { PromoTile } from "@/components/promo_tiles";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { PostWithForecasts } from "@/types/post";
 
 import SimilarQuestionsList from "./similar_questions_list";
+import { useSidebarTile } from "./use_sidebar_tile";
 import { useSimilarQuestions } from "./use_similar_questions";
 
 type Props = {
@@ -14,12 +16,24 @@ type Props = {
 };
 
 const SimilarQuestions: FC<Props> = ({ post, variant }) => {
-  const { questions, isLoading } = useSimilarQuestions(post, variant);
+  const { questions, isLoading: isQuestionsLoading } = useSimilarQuestions(
+    post,
+    variant
+  );
+  const { tile, onDismiss, isLoading: isTileLoading } = useSidebarTile(post);
 
-  if (isLoading) return <LoadingSpinner className="my-4" />;
-  if (!questions.length) return null;
+  if (isQuestionsLoading || isTileLoading)
+    return <LoadingSpinner className="my-4" />;
+  if (!questions.length && !tile) return null;
 
-  return <SimilarQuestionsList questions={questions} variant={variant} />;
+  return (
+    <div className="flex flex-col gap-4">
+      {tile && <PromoTile tile={tile} onDismiss={onDismiss} />}
+      {questions.length > 0 && (
+        <SimilarQuestionsList questions={questions} variant={variant} />
+      )}
+    </div>
+  );
 };
 
 export default SimilarQuestions;

@@ -9,6 +9,7 @@ import {
   faEllipsis,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { MDXEditorMethods } from "@mdxeditor/editor";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -32,12 +33,14 @@ import CommentVoter from "@/components/comment_feed/comment_voter";
 import { Admin } from "@/components/icons/admin";
 import { Moderator } from "@/components/icons/moderator";
 import MarkdownEditor from "@/components/markdown_editor";
+import { processMarkdown } from "@/components/markdown_editor/helpers";
 import RichText from "@/components/rich_text";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
+import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useCommentDraft } from "@/hooks/use_comment_draft";
 import useContainerSize from "@/hooks/use_container_size";
@@ -255,6 +258,7 @@ const Comment: FC<CommentProps> = ({
 }) => {
   const t = useTranslations();
   const commentRef = useRef<HTMLDivElement>(null);
+  const editEditorRef = useRef<MDXEditorMethods>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editorKey, setEditorKey] = useState<number>(0);
   const originalTextRef = useRef<string>(comment.text);
@@ -299,6 +303,7 @@ const Comment: FC<CommentProps> = ({
   const { ref, width } = useContainerSize<HTMLDivElement>();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
   const { user } = useAuth();
+  const { setCurrentModal } = useModal();
   const scrollTo = useScrollTo();
   const userCanPredict = postData && canPredictQuestion(postData, user);
   const userForecast =
@@ -534,7 +539,11 @@ const Comment: FC<CommentProps> = ({
       setIsLoading(true);
       setErrorMessage("");
 
-      const parsedMarkdown = commentMarkdown.replace(userTagPattern, (match) =>
+      const latestMarkdown = processMarkdown(
+        editEditorRef.current?.getMarkdown() ?? commentMarkdown,
+        { revert: true, withTwitterPreview: false }
+      );
+      const parsedMarkdown = latestMarkdown.replace(userTagPattern, (match) =>
         match.replace(/[\\]/g, "")
       );
 
@@ -629,6 +638,16 @@ const Comment: FC<CommentProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [comment.id]);
 
+  const handleDeleteComment = async () => {
+    const response = await softDeleteComment(comment.id);
+
+    if (response && "errors" in response) {
+      console.error("Error deleting comment:", response.errors);
+    } else {
+      setIsDeleted(true);
+    }
+  };
+
   const menuItems: MenuItemProps[] = [
     {
       hidden: !(user?.id === comment.author.id) || !!user?.is_bot,
@@ -675,19 +694,19 @@ const Comment: FC<CommentProps> = ({
       onClick: () => setIsReportModalOpen(true),
     },
     {
-      hidden: !user?.is_staff,
+      hidden: !(isCommentAuthor || user?.is_staff),
       id: "delete",
       name: t("delete"),
-      onClick: async () => {
-        //setDeleteModalOpen(true),
-        const response = await softDeleteComment(comment.id);
-
-        if (response && "errors" in response) {
-          console.error("Error deleting comment:", response.errors);
-        } else {
-          setIsDeleted(true);
-        }
-      },
+      onClick: () =>
+        setCurrentModal({
+          type: "confirm",
+          data: {
+            title: t("deleteCommentConfirmTitle"),
+            description: t("deleteCommentConfirmDescription"),
+            actionText: t("delete"),
+            onConfirm: handleDeleteComment,
+          },
+        }),
     },
     {
       hidden: !user?.is_staff,
@@ -894,6 +913,7 @@ const Comment: FC<CommentProps> = ({
                   <div>
                     <MarkdownEditor
                       key={`edit-${comment.id}-${editorKey}`}
+                      ref={editEditorRef}
                       className="rounded border border-gray-500 dark:border-gray-500-dark"
                       markdown={commentMarkdown}
                       mode="write"

@@ -260,6 +260,7 @@ const ForecastCard: FC<Props> = ({
     >
       <Link
         href={getPostLink(post)}
+        prefetch={false}
         className="absolute inset-0"
         target={navigateToNewTab ? "_blank" : "_self"}
       />

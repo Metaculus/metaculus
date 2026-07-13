@@ -1,5 +1,5 @@
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
-import { UserBase, UserProfile } from "@/types/users";
+import { User, UserBase } from "@/types/users";
 
 export enum ProjectVisibility {
   Normal = "normal",
@@ -50,7 +50,7 @@ export enum TournamentsSortBy {
 }
 
 export type TournamentMember = {
-  user: UserProfile;
+  user: User;
   permission: ProjectPermissions;
 };
 
@@ -67,6 +67,7 @@ export type TournamentPreview = Project & {
   is_ongoing: boolean;
   created_at: string;
   questions_count: number;
+  questions_count_including_subquestions?: number;
   user_permission: ProjectPermissions;
   default_permission: ProjectPermissions | null;
   score_type: string;
@@ -192,3 +193,28 @@ export type FeedProjectTile = {
   project_resolution_date: string | null;
   rule: FeedTileRule | null;
 };
+
+export type AdTileData = {
+  title: string;
+  description: string;
+  image: string | null;
+  cta_text: string;
+  url: string;
+  exposure_rate: number; // percent 1–100: chance this ad is shown in a given feed slot
+  project_id: number | null;
+};
+
+export type CombinedFeedTile =
+  | {
+      type: "ad";
+      id: string;
+      ad: AdTileData;
+      project: TournamentPreview | null;
+    }
+  | ({ type: "project"; id: string } & FeedProjectTile);
+
+export type AdCombinedFeedTile = Extract<CombinedFeedTile, { type: "ad" }>;
+export type ProjectCombinedFeedTile = Extract<
+  CombinedFeedTile,
+  { type: "project" }
+>;

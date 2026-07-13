@@ -177,6 +177,36 @@ class TestPagination:
             comments["c5"].pk,
         ]
 
+    def test_focus_thread_only__root(self, user2, user1_client, comments):
+        # With focus_thread_only=true, only the focused root + its children
+        # are returned so the FE can render them as a separate "linked" section.
+        response = user1_client.get(
+            f"/api/comments/?limit=10&sort=created_at&use_root_comments_pagination=true"
+            f"&focus_comment_id={comments['c4'].pk}&focus_thread_only=true"
+            f"&post={comments['post'].pk}"
+        )
+
+        assert {x["id"] for x in response.data["results"]} == {
+            comments["c4"].pk,
+            comments["c4_1"].pk,
+            comments["c4_1_1"].pk,
+        }
+
+    def test_focus_thread_only__child(self, user2, user1_client, comments):
+        # When the focused comment is a child, the response still includes
+        # the root and all siblings of the focused comment.
+        response = user1_client.get(
+            f"/api/comments/?limit=10&sort=created_at&use_root_comments_pagination=true"
+            f"&focus_comment_id={comments['c4_1'].pk}&focus_thread_only=true"
+            f"&post={comments['post'].pk}"
+        )
+
+        assert {x["id"] for x in response.data["results"]} == {
+            comments["c4"].pk,
+            comments["c4_1"].pk,
+            comments["c4_1_1"].pk,
+        }
+
 
 def test_get_comments_feed_permissions(user1, user2):
     private_post = factory_post(
@@ -236,6 +266,58 @@ def test_upvote_own_comment(user1, user2, user2_client, user1_client):
 
     response = user2_client.post(url, data={"vote": 1})
     assert response.status_code == 200
+
+
+class TestCommentDelete:
+    def test_author_can_delete_own_comment(self, user1, user1_client):
+        post = factory_post(author=user1)
+        comment = factory_comment(author=user1, on_post=post)
+
+        response = user1_client.post(
+            reverse("comment-delete", kwargs={"pk": comment.pk})
+        )
+
+        assert response.status_code == 200
+        comment.refresh_from_db()
+        assert comment.is_soft_deleted is True
+
+    def test_non_author_cannot_delete(self, user1, user2_client):
+        post = factory_post(author=user1)
+        comment = factory_comment(author=user1, on_post=post)
+
+        response = user2_client.post(
+            reverse("comment-delete", kwargs={"pk": comment.pk})
+        )
+
+        assert response.status_code == 403
+        comment.refresh_from_db()
+        assert comment.is_soft_deleted is False
+
+    def test_staff_can_delete_any_comment(self, user1, user_admin, user_admin_client):
+        user_admin.is_staff = True
+        user_admin.save(update_fields=["is_staff"])
+        post = factory_post(author=user1)
+        comment = factory_comment(author=user1, on_post=post)
+
+        response = user_admin_client.post(
+            reverse("comment-delete", kwargs={"pk": comment.pk})
+        )
+
+        assert response.status_code == 200
+        comment.refresh_from_db()
+        assert comment.is_soft_deleted is True
+
+    def test_anonymous_cannot_delete(self, user1, anon_client):
+        post = factory_post(author=user1)
+        comment = factory_comment(author=user1, on_post=post)
+
+        response = anon_client.post(
+            reverse("comment-delete", kwargs={"pk": comment.pk})
+        )
+
+        assert response.status_code in (401, 403)
+        comment.refresh_from_db()
+        assert comment.is_soft_deleted is False
 
 
 class TestCommentCreation:

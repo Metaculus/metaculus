@@ -59,6 +59,10 @@ import {
   Y_AXIS_LABEL_RESERVED_PX,
 } from "@/utils/charts/axis";
 import { getResolutionPoint } from "@/utils/charts/resolution";
+import {
+  reduceStepAreaSegments,
+  reduceStepLineSegments,
+} from "@/utils/charts/step_reducer";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
 import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
@@ -95,6 +99,8 @@ type Props = {
   forceShowLinePoints?: boolean;
   forFeedPage?: boolean;
   isEmbedded?: boolean;
+  chartTitle?: ReactNode;
+  headerExtra?: ReactNode;
   showCursorLabel?: boolean;
   fadeLinesOnHover?: boolean;
   timelineMarkers?: GroupTimelineMarker[];
@@ -139,6 +145,8 @@ const GroupChart: FC<Props> = ({
   forceShowLinePoints = false,
   forFeedPage,
   isEmbedded = false,
+  chartTitle,
+  headerExtra,
   showCursorLabel = true,
   fadeLinesOnHover = true,
   timelineMarkers,
@@ -360,7 +368,9 @@ const GroupChart: FC<Props> = ({
         height={height}
         zoom={withZoomPicker ? zoom : undefined}
         onZoomChange={setZoom}
+        chartTitle={chartTitle}
         headerLeft={headerLeft}
+        headerExtra={headerExtra}
       >
         {!!chartWidth && (
           <div
@@ -1085,8 +1095,8 @@ function buildChartData({
       const item: ChoiceGraph = {
         choice,
         color,
-        line: line,
-        area: area,
+        line: forFeedPage ? reduceStepLineSegments(line) : line,
+        area: forFeedPage ? reduceStepAreaSegments(area) : area,
         scatter: scatter,
         active,
         highlighted,

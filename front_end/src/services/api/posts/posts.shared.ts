@@ -68,9 +68,14 @@ export type PrivateNoteWithPost = {
 export type BoostDirection = 1 | -1;
 
 class PostsApi extends ApiService {
-  async getPost(id: number, with_cp = true): Promise<PostWithForecasts> {
+  async getPost(
+    id: number,
+    with_cp = true,
+    fetchOptions?: FetchOptions
+  ): Promise<PostWithForecasts> {
     return await this.get<PostWithForecasts>(
-      `/posts/${id}/${encodeQueryParams({ with_cp })}`
+      `/posts/${id}/${encodeQueryParams({ with_cp })}`,
+      fetchOptions
     );
   }
 
