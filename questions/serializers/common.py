@@ -61,6 +61,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "all_options_ever",
             "options_history",
             "options_order",
+            "options_colors",
             "group_variable",
             # Used for Group Of Questions to determine
             # whether question is eligible for forecasting
@@ -72,6 +73,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "default_score_type",
             "default_aggregation_method",
             "label",
+            "label_color",
             "unit",
             "open_upper_bound",
             "open_lower_bound",
@@ -167,8 +169,10 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "inbound_outcome_count",
             "options",
             "options_order",
+            "options_colors",
             "group_variable",
             "label",
+            "label_color",
             "resolution_criteria",
             "open_time",
             "cp_reveal_time",
@@ -178,6 +182,17 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "fine_print",
             "group_rank",
         )
+
+    def validate_options_colors(self, value):
+        if value is None:
+            return value
+        if not isinstance(value, dict) or not all(
+            isinstance(k, str) and isinstance(v, str) for k, v in value.items()
+        ):
+            raise serializers.ValidationError(
+                "options_colors must be a mapping of option label to palette key"
+            )
+        return value
 
     def validate(self, data: dict):
         errors = []

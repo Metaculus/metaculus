@@ -32,7 +32,9 @@ import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import Select from "@/components/ui/select";
+import { MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { ContinuousQuestionTypes } from "@/constants/questions";
+import { useAuth } from "@/contexts/auth_context";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import {
   GroupOfQuestionsGraphType,
@@ -66,6 +68,7 @@ import { sortGroupPredictionOptions } from "@/utils/questions/groupOrdering";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
+import ColorPicker from "./color_picker";
 import NumericQuestionInput from "./numeric_question_input";
 import { createQuestionPost, updatePost } from "../actions";
 
@@ -73,6 +76,7 @@ type SubQuestionDraftBase = {
   id?: number;
   clientId: string;
   label: string;
+  label_color?: string | null;
   scheduled_close_time?: string | undefined;
   scheduled_resolve_time?: string | undefined;
   open_time?: string | undefined;
@@ -96,6 +100,7 @@ type CreateSubQuestionPayload = {
   type: SimpleQuestionType;
   title: string;
   label: string;
+  label_color?: string | null;
   scheduled_close_time: string | undefined;
   scheduled_resolve_time?: string | undefined;
   open_time: string | undefined;
@@ -209,6 +214,7 @@ const GroupForm: React.FC<Props> = ({
 }) => {
   const router = useRouter();
   const t = useTranslations();
+  const { user } = useAuth();
   const isDuplicate = mode === "create" && !!post;
   const isDraftMounted = useRef(false);
   const draftKey = `group_${subtype}`;
@@ -259,6 +265,7 @@ const GroupForm: React.FC<Props> = ({
           type: sqType,
           title: `${data["title"]} (${x.label})`,
           label: x.label,
+          label_color: x.label_color ?? null,
           scheduled_close_time: x.scheduled_close_time,
           scheduled_resolve_time: x.scheduled_resolve_time,
           open_time: x.open_time,
@@ -395,6 +402,7 @@ const GroupForm: React.FC<Props> = ({
         open_time: isDuplicate ? undefined : x.open_time,
         cp_reveal_time: isDuplicate ? undefined : x.cp_reveal_time,
         label: x.label,
+        label_color: x.label_color,
         unit: x.unit,
         scaling: x.scaling,
         open_lower_bound: x.open_lower_bound,
@@ -789,20 +797,38 @@ const GroupForm: React.FC<Props> = ({
                       : undefined
                   }
                 >
-                  <Input
-                    onChange={(e) => {
-                      setSubQuestions(
-                        subQuestions.map((subQuestion, iter_index) => {
-                          if (index === iter_index) {
-                            subQuestion["label"] = e.target.value;
-                          }
-                          return subQuestion;
-                        })
-                      );
-                    }}
-                    className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                    value={subQuestion?.label}
-                  />
+                  <div className="flex items-center gap-2">
+                    <Input
+                      onChange={(e) => {
+                        setSubQuestions(
+                          subQuestions.map((subQuestion, iter_index) => {
+                            if (index === iter_index) {
+                              subQuestion["label"] = e.target.value;
+                            }
+                            return subQuestion;
+                          })
+                        );
+                      }}
+                      className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                      value={subQuestion?.label}
+                    />
+                    {user?.is_superuser && (
+                      <ColorPicker
+                        value={subQuestion?.label_color}
+                        fallback={MULTIPLE_CHOICE_COLOR_SCALE[index]}
+                        onChange={(key) => {
+                          setSubQuestions(
+                            subQuestions.map((subQuestion, iter_index) => {
+                              if (index === iter_index) {
+                                subQuestion["label_color"] = key;
+                              }
+                              return subQuestion;
+                            })
+                          );
+                        }}
+                      />
+                    )}
+                  </div>
                 </InputContainer>
                 {collapsedSubQuestions[index] && (
                   <div className="flex w-full flex-col gap-4">

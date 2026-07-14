@@ -881,6 +881,8 @@
   "groupVariableDescription": "O que os rótulos das subperguntas representam (por exemplo, ano, país, etc.).",
   "categoryPickerDescription": "Um nome para o parâmetro que varia entre as subperguntas, como \"Opção\", \"Ano\" ou \"País\"",
   "subquestionLabel": "Rótulo da Subpergunta",
+  "optionColor": "Cor",
+  "defaultColor": "Cor padrão",
   "subquestionLabelDescription": "O rótulo ou parâmetro que identifica esta subpergunta, como \"Opção 1\", \"2033\" ou \"França\"",
   "conditionalPairDescription": "Um Par Condicional é um tipo especial de Grupo de Perguntas que elicia probabilidades condicionais. Cada Par Condicional está entre uma Pergunta Pai e uma Pergunta Filha. O Pai deve ser uma pergunta binária, enquanto a filha pode ser uma única pergunta binária, numérica ou de data.",
   "isDoneError": "Não é possível editar perguntas fechadas, resolvidas ou rejeitadas",

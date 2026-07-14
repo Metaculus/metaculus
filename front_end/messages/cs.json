@@ -788,6 +788,8 @@
   "groupVariableDescription": "Co představují štítky podotázek (např. rok, země atd.).",
   "categoryPickerDescription": "Název parametru, který se liší mezi podotázkami, jako je \"Možnost\", \"Rok\" nebo \"Země\"",
   "subquestionLabel": "Štítek podotázky",
+  "optionColor": "Barva",
+  "defaultColor": "Výchozí barva",
   "subquestionLabelDescription": "Štítek nebo parametr, který identifikuje tuto podotázku, jako je \"Možnost 1\", \"2033\" nebo \"Francie\"",
   "conditionalPairDescription": "Podmíněný pár je speciální typ skupiny otázek, který vyvolává podmíněné pravděpodobnosti. Každý podmíněný pár je mezi nadřazenou otázkou a podřazenou otázkou. Nadřazená otázka musí být binární, zatímco podřazená může být buď binární, číselná nebo datová otázka.",
   "isDoneError": "Nelze upravit uzavřené, vyřešené nebo odmítnuté otázky",
