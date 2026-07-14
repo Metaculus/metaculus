@@ -209,11 +209,9 @@ export function formatIntlDate(
   date: Date | number | string,
   formatOptions?: Intl.DateTimeFormatOptions
 ): string {
-  return intlFormat(
-    date,
-    formatOptions ?? {},
-    { locale: normalizeIntlLocale(locale) }
-  );
+  return intlFormat(date, formatOptions ?? {}, {
+    locale: normalizeIntlLocale(locale),
+  });
 }
 
 /**
