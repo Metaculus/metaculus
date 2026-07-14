@@ -253,4 +253,22 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
       </>
     ),
   },
+  {
+    date: "2026-06-26",
+    type: "news",
+    content: (
+      <>
+        OpenAI announces that it is previewing its latest model series, GPT-5.6,
+        with a small group of trusted partners, while delaying a broader rollout
+        at the request of the US government. -{" "}
+        <a
+          href="https://openai.com/index/previewing-gpt-5-6-sol/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          OpenAI
+        </a>
+      </>
+    ),
+  },
 ];
