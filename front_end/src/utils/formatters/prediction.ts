@@ -24,7 +24,7 @@ export function getDiscreteValueOptions(
     return undefined;
   }
   const discreteValueOptions: number[] = [];
-  for (let i = 0; i < question.inbound_outcome_count; i++) {
+  for (let i = -1; i < question.inbound_outcome_count + 1; i++) {
     discreteValueOptions.push(
       question.scaling.range_min +
         ((question.scaling.range_max - question.scaling.range_min) *
