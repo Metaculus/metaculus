@@ -51,19 +51,22 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
 
   if (
     isNil(user) ||
-    user.is_bot ||
     !tournament.forecasts_flow_enabled ||
     tournament.timeline.all_questions_closed
   ) {
     return null;
   }
-  const isParticipated = posts.some((post) =>
+  const hasOpenQuestionForecast = posts.some((post) =>
     isPostOpenQuestionPredicted(post, {
       checkAllSubquestions: false,
       treatClosedAsPredicted: false,
       treatWithdrawnAsPredicted: true,
     })
   );
+  // has_participated also covers now-closed questions, which the flow omits
+  const isParticipated =
+    !!tournament.has_participated || hasOpenQuestionForecast;
+
   const unpredictedPosts: PredictionFlowPost[] = [];
   const withdrawnPosts: PredictionFlowPost[] = [];
   const stalePredictionsPosts: PredictionFlowPost[] = [];
