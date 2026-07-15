@@ -2,6 +2,7 @@
 
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren, ReactNode } from "react";
 
@@ -132,9 +133,23 @@ export const KeyFactorTileBaseRateFreqView: FC<Props> = ({
 };
 
 export const KeyFactorTileQuestionLinkView: FC<
-  Props & { label: string | null; title: string }
-> = ({ className, expanded, onToggle, label, title }) => {
+  Props & {
+    href?: string;
+    label: string | null;
+    labelPlaceholder?: string;
+    title: string;
+  }
+> = ({
+  className,
+  expanded,
+  href,
+  label,
+  labelPlaceholder,
+  onToggle,
+  title,
+}) => {
   const tooltipText = "This is another Metaculus question.";
+  const shouldRenderLabelSlot = !!label || !!labelPlaceholder;
 
   return (
     <KeyFactorTileContainer
@@ -142,27 +157,45 @@ export const KeyFactorTileQuestionLinkView: FC<
       className={className}
       onClick={onToggle}
       startAdornment={
-        label ? (
+        shouldRenderLabelSlot ? (
           <span
             className={cn(
               "shrink-0 font-medium text-olive-800 dark:text-olive-800-dark"
             )}
           >
-            {label}
+            {label ?? (
+              <span aria-hidden className="invisible">
+                {labelPlaceholder}
+              </span>
+            )}
           </span>
         ) : undefined
       }
       endAdornment={
         <Tooltip tooltipContent={tooltipText} showDelayMs={150}>
           <FontAwesomeIcon
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             icon={faQuestionCircle}
             className="cursor-pointer text-blue-500 hover:text-blue-800 dark:text-blue-500-dark dark:hover:text-blue-800-dark"
           />
         </Tooltip>
       }
     >
-      {title}
+      {href ? (
+        <Link
+          href={href}
+          prefetch={false}
+          className="no-underline hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {title}
+        </Link>
+      ) : (
+        title
+      )}
     </KeyFactorTileContainer>
   );
 };

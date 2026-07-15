@@ -10,6 +10,7 @@ import {
   ExclusionStatuses,
   LeaderboardDetails,
 } from "@/types/scoring";
+import { getContributionsUrl } from "@/utils/navigation";
 
 import LeaderboardRow, { UserLeaderboardRow } from "./table_row";
 import { RANKING_CATEGORIES } from "../../../ranking_categories";
@@ -43,9 +44,17 @@ const LeaderboardTable: FC<Props> = ({
   const categoryUrl = `/leaderboard/?${SCORING_CATEGORY_FILTER}=${category}&${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`;
 
   const userEntry = leaderboardDetails.userEntry ?? null;
+  const visibleEntries = leaderboardDetails.entries.filter((entry) => {
+    const exclusionStatus = entry.exclusion_status;
+    return !(
+      exclusionStatus === ExclusionStatuses.EXCLUDE ||
+      (exclusionStatus === ExclusionStatuses.EXCLUDE_AND_SHOW_IN_ADVANCED &&
+        !currentUser?.is_staff)
+    );
+  });
   const entriesToDisplay = cardSized
-    ? leaderboardDetails.entries.slice(0, 10)
-    : leaderboardDetails.entries;
+    ? visibleEntries.slice(0, 10)
+    : visibleEntries;
 
   if (!isLargeScreen && !!activeCategoryKey && activeCategoryKey !== category) {
     return null;
@@ -89,24 +98,24 @@ const LeaderboardTable: FC<Props> = ({
           </tr>
           {!!entriesToDisplay.length ? (
             entriesToDisplay.map((entry) => {
-              // only show entries that are not excluded
-              // or if current user is staff and exclusion status allows showing in advanced mode
-              const exclusionStatus = entry.exclusion_status;
-              if (
-                exclusionStatus == ExclusionStatuses.EXCLUDE ||
-                (exclusionStatus ==
-                  ExclusionStatuses.EXCLUDE_AND_SHOW_IN_ADVANCED &&
-                  !currentUser?.is_staff)
-              ) {
-                return null;
-              }
               let navigationUrl: string;
               if (cardSized) {
-                // on combined global leaderboard all table row links to the category page
-                navigationUrl = categoryUrl;
+                navigationUrl = entry.user
+                  ? getContributionsUrl({
+                      category,
+                      userId: entry.user.id,
+                      year,
+                      duration,
+                    })
+                  : categoryUrl;
               } else {
                 navigationUrl = entry.user
-                  ? `/contributions/${category}/${entry.user.id}/?${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`
+                  ? getContributionsUrl({
+                      category,
+                      userId: entry.user.id,
+                      year,
+                      duration,
+                    })
                   : `/questions/track-record`;
               }
               if (entry.user && entry.user.id === userEntry?.user?.id) {

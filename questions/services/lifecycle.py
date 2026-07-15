@@ -10,7 +10,6 @@ from notifications.services import delete_scheduled_question_resolution_notifica
 from posts.models import Post
 from posts.services.subscriptions import notify_post_status_change
 from projects.services.cache import invalidate_projects_questions_count_cache
-from projects.services.subscriptions import notify_project_subscriptions_post_open
 from questions.constants import UnsuccessfulResolutionType
 from questions.models import Question, Conditional, UserForecastNotification
 from scoring.constants import ScoreTypes
@@ -28,11 +27,9 @@ def handle_question_open(question: Question):
 
     post = question.get_post()
 
-    # Handle post subscriptions
+    # Handle post subscriptions. Tournament / project follower notifications
+    # fire earlier (at publish time) and are handled by the cron job.
     notify_post_status_change(post, Post.PostStatusChange.OPEN, question=question)
-
-    # Handle question on followed projects subscriptions
-    notify_project_subscriptions_post_open(post, question=question)
 
 
 @transaction.atomic()

@@ -11,6 +11,10 @@ import {
   isGroupOfQuestionsPost,
   isQuestionPost,
 } from "@/utils/questions/helpers";
+import {
+  isPostPrePrediction,
+  isQuestionPrePrediction,
+} from "@/utils/questions/predictions";
 
 import QuestionPredictButton from "./question_predict_button";
 
@@ -23,8 +27,12 @@ const QuestionActionButton: React.FC<Props> = ({ postData }) => {
 
   const isPredictable =
     (isQuestionPost(postData) &&
-      postData.question.status === QuestionStatus.OPEN) ||
-    (isGroupOfQuestionsPost(postData) && postData.status === PostStatus.OPEN);
+      (postData.question.status === QuestionStatus.OPEN ||
+        isQuestionPrePrediction(postData.question))) ||
+    (isGroupOfQuestionsPost(postData) &&
+      (postData.status === PostStatus.OPEN ||
+        postData.status === PostStatus.APPROVED)) ||
+    isPostPrePrediction(postData);
 
   return (
     <div className="mx-auto flex items-center justify-center gap-2 pb-5">

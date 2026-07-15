@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { MouseEvent, ReactNode } from "react";
 
 import { Post } from "@/types/post";
 import { Project } from "@/types/projects";
@@ -39,9 +39,9 @@ export type SidebarItem = SidebarWithProject | SidebarWithPost | SidebarWithUrl;
 
 export type SidebarMenuItem = {
   name: string;
-  emoji: string | ReactNode;
+  emoji: string | ReactNode | undefined;
   section?: SidebarSectionType;
   url: string;
   isActive?: boolean;
-  onClick?: () => void;
+  onClick?: (event: MouseEvent<HTMLElement>) => void;
 };

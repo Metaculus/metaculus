@@ -9,6 +9,7 @@ import {
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import { useAuth } from "@/contexts/auth_context";
+import { useThemeOverride } from "@/contexts/theme_override_context";
 import { AppTheme, ThemeColor } from "@/types/theme";
 import { logError } from "@/utils/core/errors";
 
@@ -21,10 +22,16 @@ const useAppTheme = () => {
   } = useTheme();
   const [isSyncing, setIsSyncing] = useState<boolean>();
   const { user, setUser } = useAuth();
+  const themeOverride = useThemeOverride();
 
   const theme = useMemo(() => {
-    return (forcedTheme ?? resolvedTheme ?? "light") as AppTheme;
-  }, [forcedTheme, resolvedTheme]);
+    if (themeOverride === "light") return "light" as AppTheme;
+    const base = (forcedTheme ?? resolvedTheme ?? "light") as AppTheme;
+    if (themeOverride === "inverted") {
+      return base === "dark" ? ("light" as AppTheme) : ("dark" as AppTheme);
+    }
+    return base;
+  }, [themeOverride, forcedTheme, resolvedTheme]);
 
   const setTheme = useCallback(
     async (newTheme: AppTheme) => {
@@ -45,14 +52,16 @@ const useAppTheme = () => {
   );
 
   const getThemeColor = useCallback(
-    (color: ThemeColor) => (theme === "dark" ? color.dark : color.DEFAULT),
+    (color: ThemeColor) => {
+      return theme === "dark" ? color.dark : color.DEFAULT;
+    },
     [theme]
   );
 
   return {
     theme,
     // Currently selected theme. Could be dark, light or system
-    themeChoice: themeChoice ?? AppTheme.System,
+    themeChoice: (themeChoice as AppTheme) ?? AppTheme.System,
     isSyncing,
     setTheme: setTheme as Dispatch<SetStateAction<AppTheme>>,
     getThemeColor,

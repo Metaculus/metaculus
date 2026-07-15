@@ -53,6 +53,7 @@ def serialize_key_factor(
         "id": key_factor.id,
         "author": BaseUserSerializer(key_factor.comment.author).data,
         "comment_id": key_factor.comment_id,
+        "created_at": key_factor.created_at.isoformat(),
         "vote": serialize_key_factor_votes(
             key_factor,
             vote_scores or [],

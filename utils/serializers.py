@@ -70,6 +70,9 @@ class SerializerKeyLookupMixin:
 class DataGetRequestSerializer(serializers.Serializer):
     question_id = serializers.IntegerField(required=False)
     post_id = serializers.IntegerField(required=False)
+    post_ids = serializers.ListField(
+        child=serializers.IntegerField(), required=False, allow_null=True
+    )
     project_id = serializers.IntegerField(required=False)
     sub_question = serializers.IntegerField(required=False)
     aggregation_methods = serializers.CharField(required=False)
@@ -113,7 +116,7 @@ class DataGetRequestSerializer(serializers.Serializer):
     def validate_user_ids(self, user_ids: list[int]):
         if not user_ids:
             return user_ids
-        if not (self.context.get("is_staff") or self.context.get("is_whitelisted")):
+        if not (self.context.get("is_staff") or self.context.get("has_data_access")):
             raise serializers.ValidationError(
                 "Current user cannot view user-specific data. "
                 "Please remove user_ids parameter."
@@ -125,6 +128,7 @@ class DataGetRequestSerializer(serializers.Serializer):
         # Check if there are any unexpected fields
         allowed_fields = {
             "post_id",
+            "post_ids",
             "question_id",
             "project_id",
             "sub_question",
@@ -199,7 +203,7 @@ class DataPostRequestSerializer(DataGetRequestSerializer):
     def validate_user_ids(self, user_ids: list[int]):
         if not user_ids:
             return user_ids
-        if not (self.context.get("is_staff") or self.context.get("is_whitelisted")):
+        if not (self.context.get("is_staff") or self.context.get("has_data_access")):
             raise serializers.ValidationError(
                 "Current user cannot view user-specific data. "
                 "Please remove user_ids parameter."

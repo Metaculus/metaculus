@@ -22,17 +22,25 @@ import {
   VictoryLabel,
   VictoryLabelProps,
   VictoryLine,
-  VictoryPortal,
   VictoryScatter,
   VictoryThemeDefinition,
 } from "victory";
 
 import ChartContainer from "@/components/charts/primitives/chart_container";
 import ChartCursorLabel from "@/components/charts/primitives/chart_cursor_label";
+import NewsAnnotationToggle from "@/components/charts/primitives/news_annotations/news_annotation_toggle";
+import TimelineNewsAnnotations from "@/components/charts/primitives/news_annotations/timeline_news_annotations";
+import { NewsAnnotation } from "@/components/charts/primitives/news_annotations/types";
+import { clusterAnnotations } from "@/components/charts/primitives/news_annotations/utils";
 import PredictionWithRange from "@/components/charts/primitives/prediction_with_range";
 import ResolutionDiamond from "@/components/charts/primitives/resolution_diamond";
 import XTickLabel from "@/components/charts/primitives/x_tick_label";
+import { CHART_DASH } from "@/constants/chart_dash";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import {
+  CHART_FONT_SIZE,
+  CHART_FONT_STYLE,
+} from "@/constants/chart_typography";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
@@ -48,7 +56,12 @@ import {
 import { QuestionStatus } from "@/types/post";
 import { ForecastAvailability, QuestionType } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
-import { getAxisRightPadding, getTickLabelFontSize } from "@/utils/charts/axis";
+import {
+  getAxisRightPadding,
+  getTickLabelFontSize,
+  Y_AXIS_LABEL_ANCHOR_OFFSET,
+  Y_AXIS_LABEL_RESERVED_PX,
+} from "@/utils/charts/axis";
 import { findLastIndexBefore } from "@/utils/charts/helpers";
 import cn from "@/utils/core/cn";
 import { resolveToCssColor } from "@/utils/resolve_color";
@@ -69,9 +82,10 @@ type ChartData = {
 
 type Props = {
   buildChartData: (width: number, zoom: TimelineChartZoomOption) => ChartData;
-  chartTitle?: string;
+  chartTitle?: ReactNode;
   height?: number;
   hideCP?: boolean;
+  hideCursorValueLabel?: boolean;
   defaultZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
   resolutionPoint?: LinePoint[];
@@ -93,10 +107,16 @@ type Props = {
   cursorTooltip?: ReactNode;
   isConsumerView?: boolean;
   questionType?: QuestionType;
+  newsAnnotations?: NewsAnnotation[];
+  showNewsAnnotations?: boolean;
+  onToggleNewsAnnotations?: () => void;
+  animate?: object;
+  suppressEmptyOverlay?: boolean;
 };
 
 const BOTTOM_PADDING = 20;
-const LABEL_FONT_FAMILY = "Inter";
+const fallbackTimestamp = Date.now() / 1000;
+const NEWS_ANNOTATION_MARKER_SIZE = 18;
 
 const NumericChart: FC<Props> = ({
   buildChartData,
@@ -107,7 +127,7 @@ const NumericChart: FC<Props> = ({
   withZoomPicker = false,
   resolutionPoint,
   yLabel,
-  tickFontSize = 10,
+  tickFontSize = CHART_FONT_SIZE.tick,
   extraTheme,
   onChartReady,
   cursorTimestamp,
@@ -118,17 +138,29 @@ const NumericChart: FC<Props> = ({
   nonInteractive = false,
   isEmbedded = false,
   simplifiedCursor = false,
+  hideCursorValueLabel = false,
   forecastAvailability,
   questionStatus,
   resolution,
   cursorTooltip,
+  isConsumerView,
   questionType,
+  newsAnnotations,
+  showNewsAnnotations,
+  onToggleNewsAnnotations,
+  animate,
+  suppressEmptyOverlay = false,
 }) => {
   const { theme, getThemeColor } = useAppTheme();
   const [isChartReady, setIsChartReady] = useState(false);
   const [zoom, setZoom] = useState(defaultZoom);
 
   const [isCursorActive, setIsCursorActive] = useState(false);
+  const isContinuousConsumerView =
+    isConsumerView &&
+    (questionType === QuestionType.Numeric ||
+      questionType === QuestionType.Date ||
+      questionType === QuestionType.Discrete);
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
   const { line, area, points, yDomain, xDomain, yScale, xScale } = useMemo(
@@ -137,7 +169,7 @@ const NumericChart: FC<Props> = ({
   );
   const shouldAdjustCursorLabel = line.at(-1)?.x !== xDomain.at(-1);
   const defaultCursor = useMemo(
-    () => line.at(-1)?.x ?? Date.now() / 1000,
+    () => line.at(-1)?.x ?? fallbackTimestamp,
     [line]
   );
   const cursorValue = useMemo(() => {
@@ -207,82 +239,79 @@ const NumericChart: FC<Props> = ({
     return Math.max(rightPadding, MIN_RIGHT_PADDING);
   }, [rightPadding, MIN_RIGHT_PADDING]);
 
-  const containerComponent = useMemo(() => {
-    if (nonInteractive) {
-      return (
-        <VictoryContainer
-          style={{
-            pointerEvents: "auto",
-            userSelect: "auto",
-            touchAction: "auto",
-          }}
-        />
-      );
-    }
-
-    return (
-      <VictoryCursorContainer
-        cursorDimension={"x"}
-        defaultCursor={defaultCursor}
-        style={{
-          touchAction: "pan-y",
-        }}
-        cursorLabelOffset={{
-          x: 0,
-          y: 0,
-        }}
-        cursorLabel={({ datum }: VictoryLabelProps) => {
-          if (datum) {
-            return datum.x === defaultCursor
-              ? ""
-              : xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x);
-          }
-        }}
-        cursorComponent={
+  const isCursorEnabled =
+    !nonInteractive &&
+    !forecastAvailability?.isEmpty &&
+    !hideCP &&
+    !forecastAvailability?.cpRevealsOn;
+  // Do not memoize: VictoryPortal pushes its child into the portal context
+  // only when its `children` reference changes, so a stable element would
+  // freeze the cursor label at its initial empty state on mouse move.
+  const containerComponent = !isCursorEnabled ? (
+    <VictoryContainer
+      style={{
+        pointerEvents: "auto",
+        userSelect: "auto",
+        touchAction: "auto",
+      }}
+    />
+  ) : (
+    <VictoryCursorContainer
+      cursorDimension={"x"}
+      defaultCursorValue={defaultCursor}
+      style={{
+        touchAction: "pan-y",
+      }}
+      cursorLabelOffset={{
+        x: 0,
+        y: 0,
+      }}
+      cursorLabel={({ datum }: VictoryLabelProps) => {
+        if (datum) {
+          return datum.x === defaultCursor
+            ? ""
+            : xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x);
+        }
+      }}
+      cursorComponent={
+        isContinuousConsumerView ? (
+          <LineSegment style={{ stroke: "none" }} />
+        ) : (
           <LineSegment
-            style={{
-              stroke: getThemeColor(METAC_COLORS.blue["700"]),
-              opacity: 0.5,
-              strokeDasharray: "5,2",
-            }}
+            style={
+              isCursorActive
+                ? {
+                    stroke: getThemeColor(METAC_COLORS.blue["700"]),
+                    opacity: 0.5,
+                    strokeDasharray: CHART_DASH.cursor,
+                  }
+                : { stroke: "transparent" }
+            }
           />
+        )
+      }
+      cursorLabelComponent={
+        <ChartCursorLabel
+          positionY={height - 10}
+          {...(hasExternalTheme
+            ? {}
+            : { fill: getThemeColor(METAC_COLORS.gray["700"]) })}
+          style={CHART_FONT_STYLE.cursor}
+          isActive={isCursorActive}
+        />
+      }
+      onCursorChange={(value: CursorCoordinatesPropType) => {
+        if (typeof value === "number") {
+          handleCursorChange(value);
+        } else {
+          handleCursorChange(null);
         }
-        cursorLabelComponent={
-          <VictoryPortal>
-            <ChartCursorLabel
-              positionY={height - 10}
-              {...(hasExternalTheme
-                ? {}
-                : { fill: getThemeColor(METAC_COLORS.gray["700"]) })}
-              style={{
-                fontFamily: LABEL_FONT_FAMILY,
-              }}
-              isActive={isCursorActive}
-            />
-          </VictoryPortal>
-        }
-        onCursorChange={(value: CursorCoordinatesPropType) => {
-          if (typeof value === "number") {
-            handleCursorChange(value);
-          } else {
-            handleCursorChange(null);
-          }
-        }}
-      />
-    );
-  }, [
-    defaultCursor,
-    xScale,
-    height,
-    hasExternalTheme,
-    getThemeColor,
-    handleCursorChange,
-    nonInteractive,
-    isCursorActive,
-  ]);
+      }}
+    />
+  );
 
   const chartEvents = useMemo(() => {
-    if (nonInteractive) return [];
+    if (!isCursorEnabled) return [];
 
     return [
       {
@@ -290,6 +319,14 @@ const NumericChart: FC<Props> = ({
         eventHandlers: {
           onTouchStart: () => {
             setIsCursorActive(true);
+          },
+          onTouchEnd: () => {
+            setIsCursorActive(false);
+            handleCursorChange(null);
+          },
+          onTouchCancel: () => {
+            setIsCursorActive(false);
+            handleCursorChange(null);
           },
           onMouseEnter: () => {
             setIsCursorActive(true);
@@ -301,7 +338,7 @@ const NumericChart: FC<Props> = ({
         },
       },
     ];
-  }, [nonInteractive, handleCursorChange]);
+  }, [isCursorEnabled, handleCursorChange]);
 
   const shouldDisplayChart = useMemo(
     () => !!chartWidth && !!xScale.ticks.length && yScale.ticks.length,
@@ -372,8 +409,26 @@ const NumericChart: FC<Props> = ({
     return xDomain;
   }, [xDomain, isEmbedded]);
 
+  const [touchPoint, setTouchPoint] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const { getReferenceProps, getFloatingProps, refs, floatingStyles } =
-    useChartTooltip({ placement: "top", tooltipOffset: 15 });
+    useChartTooltip({
+      placement: "top",
+      tooltipOffset: touchPoint ? 50 : 15,
+      x: touchPoint?.x ?? null,
+      y: touchPoint?.y ?? null,
+    });
+
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    setTouchPoint({ x: touch.clientX, y: touch.clientY });
+  }, []);
+  const handleTouchEnd = useCallback(() => {
+    setTouchPoint(null);
+  }, []);
   const {
     isActive: isDiamondActive,
     getReferenceProps: getDiamondRefProps,
@@ -449,20 +504,90 @@ const NumericChart: FC<Props> = ({
     return typeof fromTheme === "number" ? fromTheme : 0.3;
   }, [hasExternalTheme, themeAreaData?.opacity]);
 
+  const cursorDotFill = useMemo(
+    () =>
+      resolveToCssColor(getThemeColor, colorOverride) ??
+      getThemeColor(colorPalette.chip),
+    [getThemeColor, colorOverride, colorPalette.chip]
+  );
+
   const rightPad = Math.max(rightPadding, MIN_RIGHT_PADDING);
   const yAxisLabel = !isNil(yLabel) ? `(${yLabel})` : undefined;
   const leftPad = 10;
 
+  const hasNewsAnnotations = !!newsAnnotations?.length;
+  const annotationBottomExtra = hasNewsAnnotations
+    ? Math.ceil(NEWS_ANNOTATION_MARKER_SIZE / 2)
+    : 0;
+  const effectiveBottomPadding = BOTTOM_PADDING + annotationBottomExtra;
   const chartPadding = isEmbedded
     ? {
         top: 10,
-        bottom: BOTTOM_PADDING + 15,
+        bottom: effectiveBottomPadding + 15,
         left: leftPad,
         right: rightPad,
       }
-    : { top: 10, bottom: BOTTOM_PADDING, left: 10, right: rightPad };
+    : { top: 10, bottom: effectiveBottomPadding, left: 10, right: rightPad };
 
   const useSimplifiedCursor = simplifiedCursor && !isEmbedded;
+
+  // For discrete charts, the first y-axis tick (representing value "0") is at
+  // halfBucket (0.5/inboundOutcomeCount) rather than domain value 0. Compute
+  // the pixel offset so the annotation marker centers on that gridline.
+  const firstTickYOffset = useMemo(() => {
+    if (!yScaleTicks.length) return 0;
+    const firstTick = yScaleTicks[0] ?? 0;
+    const [dMin, dMax] = yDomain as [number, number];
+    const domainRange = dMax - dMin;
+    if (domainRange <= 0 || firstTick <= dMin) return 0;
+    const plotHeight = height - chartPadding.top - chartPadding.bottom;
+    return ((firstTick - dMin) / domainRange) * plotHeight;
+  }, [yScaleTicks, yDomain, height, chartPadding.top, chartPadding.bottom]);
+
+  const positionedClusters = useMemo(() => {
+    if (!showNewsAnnotations || !newsAnnotations?.length || !chartWidth) {
+      return [];
+    }
+    const [xMin, xMax] = adjustedXDomain as [number, number];
+    const plotWidth = chartWidth - chartPadding.left - chartPadding.right;
+    if (plotWidth <= 0 || xMax <= xMin) return [];
+
+    const getXPixel = (timestamp: number) => {
+      const fraction = (timestamp - xMin) / (xMax - xMin);
+      return chartPadding.left + fraction * plotWidth;
+    };
+
+    const isAllZoom = zoom === TimelineChartZoomOption.All;
+
+    // In "all" mode, clamp out-of-range annotations to the edges.
+    // In zoomed modes, filter them out entirely.
+    const visibleAnnotations = isAllZoom
+      ? newsAnnotations
+      : newsAnnotations.filter(
+          (a) => a.timestamp >= xMin && a.timestamp <= xMax
+        );
+
+    const getClampedXPixel = (timestamp: number) => {
+      const px = getXPixel(timestamp);
+      return Math.max(
+        chartPadding.left,
+        Math.min(px, chartWidth - chartPadding.right)
+      );
+    };
+
+    return clusterAnnotations(
+      visibleAnnotations,
+      isAllZoom ? getClampedXPixel : getXPixel
+    );
+  }, [
+    showNewsAnnotations,
+    newsAnnotations,
+    chartWidth,
+    adjustedXDomain,
+    chartPadding.left,
+    chartPadding.right,
+    zoom,
+  ]);
 
   return (
     <>
@@ -473,9 +598,17 @@ const NumericChart: FC<Props> = ({
         )}
         ref={refs.setReference}
         {...getReferenceProps()}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
       >
         <ForecastAvailabilityChartOverflow
-          forecastAvailability={forecastAvailability}
+          // when suppressEmptyOverlay is set, force isEmpty: false to hide the "No forecasts yet" overlay
+          forecastAvailability={
+            forecastAvailability && suppressEmptyOverlay
+              ? { ...forecastAvailability, isEmpty: false }
+              : forecastAvailability
+          }
           className="text-xs text-gray-700 dark:text-gray-700-dark"
           textClassName="pl-0"
           style={{
@@ -492,147 +625,163 @@ const NumericChart: FC<Props> = ({
           onZoomChange={setZoom}
           chartTitle={chartTitle}
           leftLegend={leftLegend}
+          headerExtra={
+            newsAnnotations &&
+            newsAnnotations.length > 0 &&
+            onToggleNewsAnnotations ? (
+              <NewsAnnotationToggle
+                enabled={!!showNewsAnnotations}
+                onToggle={onToggleNewsAnnotations}
+              />
+            ) : undefined
+          }
         >
-          {shouldDisplayChart ? (
-            <VictoryChart
-              domain={{ y: yDomain, x: adjustedXDomain }}
-              width={chartWidth}
-              height={height}
-              theme={actualTheme}
-              padding={chartPadding}
-              events={chartEvents}
-              containerComponent={containerComponent}
-            >
-              {/* Y axis used for GRIDLINES */}
-              <VictoryAxis
-                dependentAxis
-                orientation="left"
-                style={{
-                  ticks: { stroke: "transparent" },
-                  tickLabels: { fill: "transparent" }, // hide labels
-                  axis: { stroke: "transparent" },
-                  grid: {
-                    stroke: getThemeColor(METAC_COLORS.gray["400"]),
-                    strokeWidth: 1,
-                    strokeDasharray: "3, 2",
-                  },
-                }}
-                tickValues={yScaleTicks}
-                tickFormat={yScale.tickFormat}
-              />
+          <div className="relative">
+            {shouldDisplayChart ? (
+              <VictoryChart
+                domain={{ y: yDomain, x: adjustedXDomain }}
+                width={chartWidth}
+                height={height}
+                theme={actualTheme}
+                padding={chartPadding}
+                events={chartEvents}
+                containerComponent={containerComponent}
+                animate={animate}
+              >
+                {/* Y axis used for GRIDLINES */}
+                <VictoryAxis
+                  dependentAxis
+                  orientation="right"
+                  style={{
+                    ticks: { stroke: "transparent" },
+                    tickLabels: { fill: "transparent" }, // hide labels
+                    axis: { stroke: "transparent" },
+                    grid: {
+                      stroke: getThemeColor(METAC_COLORS.gray["400"]),
+                      strokeWidth: 1,
+                      strokeDasharray: CHART_DASH.grid,
+                    },
+                  }}
+                  tickValues={yScaleTicks}
+                  tickFormat={yScale.tickFormat}
+                />
 
-              {/* Y axis used for LABELS */}
-              <VictoryAxis
-                dependentAxis
-                style={{
-                  ticks: { stroke: "transparent" },
-                  axis: { stroke: "transparent" },
-                  grid: { stroke: "transparent" },
-                  axisLabel: {
-                    fontFamily: LABEL_FONT_FAMILY,
-                    fontSize: tickLabelFontSize,
-                    ...(hasExternalTheme
-                      ? {}
-                      : { fill: getThemeColor(METAC_COLORS.gray["500"]) }),
-                  },
-                  tickLabels: {
-                    fontFamily: LABEL_FONT_FAMILY,
-                    padding: 5,
-                    fontSize: tickLabelFontSize,
-                    ...(hasExternalTheme
-                      ? {}
-                      : { fill: getThemeColor(METAC_COLORS.gray["700"]) }),
-                  },
-                }}
-                tickValues={yScaleTicks}
-                tickFormat={yScale.tickFormat}
-                label={yAxisLabel}
-                orientation={"left"}
-                offsetX={
-                  isNil(yLabel)
-                    ? chartWidth + 5
-                    : chartWidth - tickLabelFontSize + 5
-                }
-                axisLabelComponent={<VictoryLabel x={chartWidth} />}
-              />
+                {/* Y axis used for LABELS */}
+                <VictoryAxis
+                  dependentAxis
+                  style={{
+                    ticks: { stroke: "transparent" },
+                    axis: { stroke: "transparent" },
+                    grid: { stroke: "transparent" },
+                    axisLabel: {
+                      ...CHART_FONT_STYLE.axisLabel,
+                      fontSize: tickLabelFontSize,
+                      ...(hasExternalTheme
+                        ? {}
+                        : { fill: getThemeColor(METAC_COLORS.gray["500"]) }),
+                    },
+                    tickLabels: {
+                      ...CHART_FONT_STYLE.tick,
+                      // Right-align labels at (rightPad - reservedYLabel - 4)px
+                      // past the axis so they sit flush to the right margin,
+                      // leaving room for the optional rotated yLabel.
+                      padding:
+                        rightPad -
+                        (yAxisLabel ? Y_AXIS_LABEL_RESERVED_PX : 0) -
+                        4,
+                      textAnchor: "end",
+                      fontSize: tickLabelFontSize,
+                      ...(hasExternalTheme
+                        ? {}
+                        : { fill: getThemeColor(METAC_COLORS.gray["700"]) }),
+                    },
+                  }}
+                  tickValues={yScaleTicks}
+                  tickFormat={yScale.tickFormat}
+                  label={yAxisLabel}
+                  orientation="right"
+                  axisLabelComponent={
+                    yAxisLabel ? (
+                      <VictoryLabel
+                        x={chartWidth - Y_AXIS_LABEL_ANCHOR_OFFSET}
+                      />
+                    ) : undefined
+                  }
+                />
 
-              {/* X axis */}
-              <VictoryAxis
-                style={{
-                  ticks: { stroke: "transparent" },
-                  axis: { stroke: "transparent" },
-                }}
-                offsetY={isEmbedded ? BOTTOM_PADDING - 5 : BOTTOM_PADDING}
-                tickValues={xScale.ticks}
-                tickFormat={
-                  hideCP
-                    ? () => ""
-                    : isCursorActive
+                {/* X axis */}
+                <VictoryAxis
+                  style={{
+                    ticks: { stroke: "transparent" },
+                    axis: { stroke: "transparent" },
+                  }}
+                  offsetY={isEmbedded ? BOTTOM_PADDING - 5 : BOTTOM_PADDING}
+                  tickValues={xScale.ticks}
+                  tickFormat={
+                    hideCP && points.length === 0
                       ? () => ""
-                      : xScale.tickFormat
-                }
-                tickLabelComponent={
-                  <VictoryPortal>
+                      : isCursorActive
+                        ? () => ""
+                        : xScale.tickFormat
+                  }
+                  tickLabelComponent={
                     <XTickLabel
                       chartWidth={chartWidth}
-                      withCursor
                       fontSize={tickLabelFontSize}
                       {...(!extraTheme && {
                         style: {
-                          fontFamily: LABEL_FONT_FAMILY,
+                          ...CHART_FONT_STYLE.tick,
                           fill: getThemeColor(METAC_COLORS.gray["700"]),
                         },
                       })}
                     />
-                  </VictoryPortal>
-                }
-              />
-
-              {/* CP range */}
-              {!hideCP ? (
-                <VictoryArea
-                  data={area}
-                  style={{
-                    data: {
-                      opacity: cpRangeOpacity,
-                      fill: cpRangeFill,
-                    },
-                  }}
-                  interpolation="stepAfter"
+                  }
                 />
-              ) : null}
 
-              {/* CP Line background */}
-              {!hideCP ? (
-                <VictoryLine
-                  data={line}
-                  style={{
-                    data: {
-                      strokeWidth: 2.5,
-                      stroke: cpLineStroke,
-                      opacity: 0.2,
-                    },
-                  }}
-                  interpolation="stepAfter"
-                />
-              ) : null}
+                {/* CP range */}
+                {!hideCP ? (
+                  <VictoryArea
+                    data={area}
+                    style={{
+                      data: {
+                        opacity: cpRangeOpacity,
+                        fill: cpRangeFill,
+                      },
+                    }}
+                    interpolation="stepAfter"
+                  />
+                ) : null}
 
-              {/* CP Line (highlighted to cursor) */}
-              {!hideCP ? (
-                <VictoryLine
-                  data={highlightedLine}
-                  style={{
-                    data: {
-                      strokeWidth: simplifiedCursor ? 2.5 : 1.5,
-                      stroke: cpLineStroke,
-                    },
-                  }}
-                  interpolation="stepAfter"
-                />
-              ) : null}
+                {/* CP Line background */}
+                {!hideCP ? (
+                  <VictoryLine
+                    data={line}
+                    style={{
+                      data: {
+                        strokeWidth: 2.5,
+                        stroke: cpLineStroke,
+                        opacity: 0.2,
+                      },
+                    }}
+                    interpolation="stepAfter"
+                  />
+                ) : null}
 
-              {/* Prediction points */}
-              <VictoryPortal>
+                {/* CP Line (highlighted to cursor) */}
+                {!hideCP ? (
+                  <VictoryLine
+                    data={highlightedLine}
+                    style={{
+                      data: {
+                        strokeWidth: simplifiedCursor ? 2.5 : 1.5,
+                        stroke: cpLineStroke,
+                      },
+                    }}
+                    interpolation="stepAfter"
+                  />
+                ) : null}
+
+                {/* Prediction points */}
                 <VictoryScatter
                   data={clampedPoints}
                   dataComponent={
@@ -641,13 +790,11 @@ const NumericChart: FC<Props> = ({
                     />
                   }
                 />
-              </VictoryPortal>
 
-              {/* Resolution marker */}
-              {!!resolutionPoint &&
-              !isCursorActive &&
-              resolutionPlacement === "in" ? (
-                <VictoryPortal>
+                {/* Resolution marker */}
+                {!!resolutionPoint &&
+                !isCursorActive &&
+                resolutionPlacement === "in" ? (
                   <VictoryScatter
                     data={resolutionPoint}
                     size={() => 4}
@@ -659,14 +806,12 @@ const NumericChart: FC<Props> = ({
                       },
                     }}
                   />
-                </VictoryPortal>
-              ) : null}
+                ) : null}
 
-              {/* Cursor value chip / box */}
-              {resolutionClamped &&
-              resolutionPlacement &&
-              resolutionPlacement !== "in" ? (
-                <VictoryPortal>
+                {/* Cursor value chip / box */}
+                {resolutionClamped &&
+                resolutionPlacement &&
+                resolutionPlacement !== "in" ? (
                   <VictoryScatter
                     data={[
                       {
@@ -688,15 +833,33 @@ const NumericChart: FC<Props> = ({
                       />
                     }
                   />
-                </VictoryPortal>
-              ) : null}
+                ) : null}
 
-              {!isDiamondActive && !isNil(highlightedPoint) && !hideCP ? (
-                <VictoryScatter
-                  data={[highlightedPoint]}
-                  dataComponent={
-                    <VictoryPortal>
-                      {useSimplifiedCursor ? (
+                {isCursorActive &&
+                !isNil(highlightedPoint) &&
+                !hideCP &&
+                isContinuousConsumerView ? (
+                  <VictoryScatter
+                    data={[highlightedPoint]}
+                    size={4}
+                    style={{
+                      data: {
+                        fill: cursorDotFill,
+                        stroke: "none",
+                      },
+                    }}
+                  />
+                ) : null}
+
+                {!isDiamondActive &&
+                !isNil(highlightedPoint) &&
+                !hideCP &&
+                !isContinuousConsumerView &&
+                !(hideCursorValueLabel && isCursorActive) ? (
+                  <VictoryScatter
+                    data={[highlightedPoint]}
+                    dataComponent={
+                      useSimplifiedCursor ? (
                         <CursorChip
                           shouldRender={
                             (isCursorActive && !isNil(resolution)) ||
@@ -717,18 +880,26 @@ const NumericChart: FC<Props> = ({
                           questionType={questionType}
                           colorOverride={colorOverride ?? colorPalette.chip}
                         />
-                      )}
-                    </VictoryPortal>
-                  }
-                />
-              ) : null}
-            </VictoryChart>
-          ) : null}
+                      )
+                    }
+                  />
+                ) : null}
+              </VictoryChart>
+            ) : null}
+            {positionedClusters.length > 0 && (
+              <TimelineNewsAnnotations
+                clusters={positionedClusters}
+                chartHeight={height}
+                axisBottomOffset={effectiveBottomPadding + firstTickYOffset}
+                questionType={questionType}
+              />
+            )}
+          </div>
         </ChartContainer>
       </div>
 
       {/* Forecaster view tooltip */}
-      {isCursorActive && !!cursorTooltip ? (
+      {isCursorActive && !!cursorTooltip && !isContinuousConsumerView ? (
         <FloatingPortal>
           <div
             className="pointer-events-none z-100 rounded bg-gray-0 leading-4 shadow-lg dark:bg-gray-0-dark"

@@ -132,7 +132,7 @@ jobs:
             -w /app/front_end \
             -e SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} \
             ${{ needs.build.outputs.image_url }} \
-            npx sentry-cli sourcemaps upload /app/front_end/.next/ \
+            bun x sentry-cli sourcemaps upload /app/front_end/.next/ \
               --project metaculus-frontend \
               --org metaculus
 

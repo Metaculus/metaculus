@@ -7,6 +7,7 @@ import GroupChart from "@/components/charts/group_chart";
 import ButtonGroup from "@/components/ui/button_group";
 import { METAC_COLORS } from "@/constants/colors";
 import { useBreakpoint } from "@/hooks/tailwind";
+import { useTopChromeHeightPx } from "@/hooks/use_top_chrome_height";
 import {
   ContinuousAreaGraphType,
   TickFormat,
@@ -59,17 +60,21 @@ export default function AggregationGraphPanel({
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
   const [graphType, setGraphType] = useGraphTypeState();
   const [isStuck, setIsStuck] = useState(false);
+  const topChromeHeight = useTopChromeHeightPx();
   const observerRef = useRef<IntersectionObserver | null>(null);
-  const sentinelRef = useCallback((node: HTMLDivElement | null) => {
-    observerRef.current?.disconnect();
-    if (!node) return;
+  const sentinelRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      observerRef.current?.disconnect();
+      if (!node) return;
 
-    observerRef.current = new IntersectionObserver(
-      ([entry]) => setIsStuck(entry ? !entry.isIntersecting : false),
-      { threshold: 0, rootMargin: "-48px 0px 0px 0px" }
-    );
-    observerRef.current.observe(node);
-  }, []);
+      observerRef.current = new IntersectionObserver(
+        ([entry]) => setIsStuck(entry ? !entry.isIntersecting : false),
+        { threshold: 0, rootMargin: `-${topChromeHeight}px 0px 0px 0px` }
+      );
+      observerRef.current.observe(node);
+    },
+    [topChromeHeight]
+  );
 
   const handleCursorChange = useCallback(
     (value: number, _format: TickFormat) => {

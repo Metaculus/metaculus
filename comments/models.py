@@ -1,5 +1,6 @@
 from typing import Iterable
 
+import numpy as np
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.db import models
@@ -18,7 +19,6 @@ from django.db.models import (
 from django.db.models.functions import Coalesce
 from django.db.models.lookups import Exact
 from django.utils import timezone
-from sql_util.aggregates import SubqueryAggregate
 
 from posts.models import Post
 from projects.models import Project
@@ -28,15 +28,6 @@ from utils.models import TimeStampedModel, TranslatedModel
 
 
 class CommentQuerySet(models.QuerySet):
-    def annotate_vote_score(self):
-        return self.annotate(
-            annotated_vote_score=Coalesce(
-                SubqueryAggregate("comment_votes__direction", aggregate=Sum),
-                0,
-                output_field=IntegerField(),
-            )
-        )
-
     def annotate_user_vote(self, user: User):
         """
         Annotates queryset with the user's vote option
@@ -126,6 +117,7 @@ class Comment(TimeStampedModel, TranslatedModel):
     # Denormalized fields
     vote_score = models.IntegerField(default=0, db_index=True, editable=False)
     cmm_count = models.IntegerField(default=0, db_index=True, editable=False)
+    key_factor_votes_score = models.FloatField(default=0, db_index=True, editable=False)
     text_original_search_vector = SearchVectorField(null=True, editable=False)
 
     # annotated fields
@@ -180,13 +172,28 @@ class Comment(TimeStampedModel, TranslatedModel):
         ]
         self.vote_score = score
         self.save(update_fields=["vote_score"])
+
         return score
 
     def update_cmm_count(self):
         count = self.changedmymindentry_set.count()
         self.cmm_count = count
         self.save(update_fields=["cmm_count"])
+
         return count
+
+    def update_key_factor_votes_score(self):
+        score = 0.0
+
+        for kf in self.key_factors.prefetch_related("votes").all():
+            votes = [abs(v.score) for v in kf.votes.all()]
+            if votes:
+                score += np.mean(votes)
+
+        self.key_factor_votes_score = score
+        self.save(update_fields=["key_factor_votes_score"])
+
+        return score
 
 
 class CommentDiff(TimeStampedModel):

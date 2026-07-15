@@ -69,6 +69,14 @@ const people: Person[] = [
       "Christian leads communications and marketing at Metaculus, working closely with the operations and program teams. Prior to joining Metaculus, he was a marketing operations lead in the aerospace and defense industry. Christian earned his master's degree in psychology from Rutgers University, where he conducted behavioral and fMRI research on moral judgment and decision-making. Before graduate school, he was a writer for The Onion AV Club and contributed material to Saturday Night Live.",
   },
   {
+    userId: 276406,
+    name: "Cole Sussmeier",
+    position: "AI Research Engineer",
+    imgSrc: "https://cdn.metaculus.com/about/cole_sussmeier.webp",
+    introduction:
+      "Prior to joining Metaculus, Cole worked in data science consulting and specialized in time series forecasting. He also won a gold medal in the Bridgewater x Metaculus 2026 forecasting tournament. Cole holds a Master of Science in data analytics from Binghamton University, where he also studied business and mathematics for his bachelor's degree. Cole is passionate about forecasting systems, snowboarding, and factory automation games.",
+  },
+  {
     name: "Nikitas Angeletos Chrysaitis",
     position: "Forecasting Program Coordinator",
     imgSrc: "https://cdn.metaculus.com/nikitas-angeletos-chrysaitis.webp",
@@ -94,10 +102,10 @@ const people: Person[] = [
   {
     userId: 228596,
     name: "Ben Wilson",
-    position: "AI Research Automation Engineer",
+    position: "AI Research Engineer",
     imgSrc: "https://cdn.metaculus.com/Ben-Wilson.webp",
     introduction:
-      "Ben is an AI Research Automation Engineer proficient in Python, web scraping, prompt engineering, Next.js, and a wide range of other technologies. In 2024, he briefly entered the top 100 on Metaculus, and his bot placed 12th in Metaculus's Q3 AI Forecasting Benchmark Tournament. Ben also founded a non-profit with the goal of creating 'Logipedia: The Wikipedia for Debatable Topics.' He has a passion for philosophy and enjoys improvising on the piano.",
+      "Ben is an AI Research Engineer focused on improving good judgment and forecasting. Currently running FutureEval (https://metaculus.com/futureeval) and working on various research projects for improving AI forecasting and decision making. He has a passion for philosophy and enjoys improvising on the piano.",
     socials: [
       {
         link: "https://www.linkedin.com/in/wilsonbenjamin1000/",
@@ -324,13 +332,6 @@ const people: Person[] = [
       "Seth Killian was a graduate fellow at the UIUC Center for Advanced Study teaching philosophy when he was recruited by Capcom into game development. As a designer and founder, he helped revive the Street Fighter series with Street Fighter IV, co-founded the first team acquired by Riot Games, served as lead designer on Fortnite, and as Head of Game Design for Netflix. As a player and organizer, he played on the first US National Street Fighter team, hosted the first fighting game broadcast on ESPN, and co-founded the Evo Championship Series, which has grown to become the largest live gaming competition in the world.",
   },
   {
-    name: "Kelley Edelmann",
-    position: "Head of Consulting Services",
-    imgSrc: "https://cdn.metaculus.com/Kelley.webp",
-    introduction:
-      "Kelley leads Consulting Services at Metaculus, partnering with organizations to translate complex forecasting data into actionable insights that inform high-stakes decisions. She brings nearly two decades of consulting experience in the market research industry, most recently as a strategist at Ipsos. Kelley has led global engagements for Fortune 100 companies across technology, healthcare, and consumer packaged goods sectors, delivering insight that shapes C-suite strategy. Her experience spans B2B and B2C contexts worldwide, applying mixed methodologies with analytical rigor and human empathy to drive meaningful impact.",
-  },
-  {
     name: "Grace McLain",
     position: "Project Delivery Associate",
     imgSrc: "https://cdn.metaculus.com/Grace.webp",
@@ -344,6 +345,13 @@ const people: Person[] = [
     introduction:
       "Jesse Damiani is a writer, curator, and foresight strategist who founded the Reality Studies newsletter and Urgent Futures podcast. He has taught at NYU, USC, SCI-Arc, and elsewhere, and served as Research Affiliate at Institute for the Future and Director of Emerging Technology & Insight at Southern New Hampshire University. His writing appears in Architectural Design, Flash Art, NBC News, WIRED, and The Yale Review.",
   },
+  {
+    name: "Carolin Ullrich",
+    position: "Principal Product Manager",
+    imgSrc: "https://cdn.metaculus.com/caro-grayscale.webp",
+    introduction:
+      "Carolin is a Principal Product Manager at Metaculus, focused on bridging the gap between generating accurate forecasts and enabling organizations to translate them into better decisions. She brings a background in B2B SaaS, having worked at a Data and AI company serving multinational clients across industries. She holds degrees in Psychology and Human-Computer Interaction. Outside of work, Carolin tends to her garden (a hobby she'll tell you has a lot in common with foresight).",
+  },
 ];
 
 const groups: Groups = {
@@ -353,6 +361,7 @@ const groups: Groups = {
     "Molly Hickman",
     "Leonard Barrett",
     "Christian Williams",
+    "Cole Sussmeier",
     "Ryan Beck",
     "Sylvain Chevalier",
     "Elis Popescu",
@@ -364,9 +373,9 @@ const groups: Groups = {
     "John Bash",
     "Felipe Oliveira",
     "Cemre Inanc",
-    "Kelley Edelmann",
     "Grace McLain",
     "Jesse Damiani",
+    "Carolin Ullrich",
   ],
   board: [
     "Anthony Aguirre",

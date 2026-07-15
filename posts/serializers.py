@@ -199,6 +199,7 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     class Access(models.TextChoices):
         PRIVATE = "private"
         PUBLIC = "public"
+        PERSONAL = "personal"
 
     ids = serializers.ListField(child=serializers.IntegerField(), required=False)
     access = serializers.ChoiceField(required=False, choices=Access.choices)
@@ -227,6 +228,7 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     not_forecaster_id = serializers.IntegerField(required=False, allow_null=True)
     similar_to_post_id = serializers.IntegerField(required=False, allow_null=True)
     upvoted_by = serializers.IntegerField(required=False, allow_null=True)
+    commented_by = serializers.IntegerField(required=False, allow_null=True)
 
     search = serializers.CharField(required=False, allow_null=True)
     for_main_feed = serializers.BooleanField(required=False, allow_null=True)
@@ -476,6 +478,7 @@ def serialize_post_many(
     include_movements: bool = False,
     include_conditional_cps: bool = False,
     include_average_scores: bool = False,
+    include_user_forecasts: bool = False,
 ) -> list[dict]:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -502,7 +505,7 @@ def serialize_post_many(
     if with_cp:
         qs = qs.prefetch_questions_scores()
 
-        if current_user:
+        if current_user and include_user_forecasts:
             qs = qs.prefetch_user_forecasts(current_user.id)
 
     if with_subscriptions and current_user:

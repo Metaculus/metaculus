@@ -27,12 +27,16 @@ type Props = {
   borderColor?: BorderColor;
   forCommunityFeed?: boolean;
   indexWeight?: number;
+  forFeedPage?: boolean;
+  useShortTitle?: boolean;
 };
 
 const ConsumerPostCard: FC<Props> = ({
   post,
   forCommunityFeed,
   indexWeight,
+  forFeedPage = false,
+  useShortTitle = false,
 }) => {
   const t = useTranslations();
 
@@ -43,14 +47,24 @@ const ConsumerPostCard: FC<Props> = ({
         forCommunityFeed={forCommunityFeed}
         indexWeight={indexWeight}
         isNotebook={isNotebookPost(post)}
+        useShortTitle={useShortTitle}
       >
         <HideCPProvider post={post}>
           {isQuestionPost(post) && !isMultipleChoicePost(post) && (
-            <ConsumerQuestionTile question={post.question} />
+            <ConsumerQuestionTile
+              question={post.question}
+              forFeedPage={forFeedPage}
+            />
           )}
 
           {(isGroupOfQuestionsPost(post) || isMultipleChoicePost(post)) && (
-            <GroupForecastCard post={post} />
+            <div className="w-full">
+              <GroupForecastCard
+                post={post}
+                buttonVariant="minimal"
+                forFeedPage={forFeedPage}
+              />
+            </div>
           )}
 
           {[PostStatus.PENDING_RESOLUTION, PostStatus.CLOSED].includes(

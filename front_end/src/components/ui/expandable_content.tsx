@@ -17,6 +17,7 @@ type Props = {
   className?: string;
   gradientClassName?: string;
   forceState?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
 };
 
 const ExpandableContent: FC<PropsWithChildren<Props>> = ({
@@ -26,6 +27,7 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
   gradientClassName = "from-blue-200 dark:from-blue-200-dark",
   className,
   forceState,
+  onExpandedChange,
   children,
 }) => {
   const t = useTranslations();
@@ -36,6 +38,7 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [isExpandable, setIsExpandable] = useState(false);
   const userInteractedRef = useRef(false);
+  const hasSetInitialStateRef = useRef(false);
 
   useEffect(() => {
     const element = ref.current;
@@ -44,12 +47,17 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
     const contentHeight = element.scrollHeight;
     if (contentHeight <= maxCollapsedHeight) {
       setIsExpandable(false);
-      setIsExpanded(true);
+      if (!hasSetInitialStateRef.current && !userInteractedRef.current) {
+        setIsExpanded(true);
+      }
     } else {
       setIsExpandable(true);
-      if (!userInteractedRef.current) {
+      if (!hasSetInitialStateRef.current && !userInteractedRef.current) {
         setIsExpanded(false);
       }
+    }
+    if (contentHeight > 0) {
+      hasSetInitialStateRef.current = true;
     }
   }, [maxCollapsedHeight, height, width, ref]);
 
@@ -61,20 +69,28 @@ const ExpandableContent: FC<PropsWithChildren<Props>> = ({
     }
   }, [forceState]);
 
+  useEffect(() => {
+    onExpandedChange?.(isExpanded);
+  }, [isExpanded, onExpandedChange]);
+
   return (
     <div className={cn(gradientClassName, className)}>
       <div className="relative">
         <div
           ref={ref}
-          className="m-0 flex flex-col overflow-hidden"
+          className={cn("m-0 flex flex-col overflow-hidden")}
           style={{ maxHeight: isExpanded ? "" : maxCollapsedHeight }}
         >
           {children}
           <div
             className={cn(
-              "pointer-events-none absolute bottom-0 block h-1/2 w-full bg-gradient-to-t to-transparent",
+              "absolute bottom-0 block h-1/2 w-full cursor-pointer bg-gradient-to-t to-transparent",
               { hidden: isExpanded }
             )}
+            onClick={() => {
+              userInteractedRef.current = true;
+              setIsExpanded(true);
+            }}
           />
           <div
             className={cn(

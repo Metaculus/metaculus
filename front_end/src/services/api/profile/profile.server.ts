@@ -3,7 +3,7 @@ import { getAuthCookieManager } from "@/services/auth_tokens";
 import { AuthTokens } from "@/types/auth";
 import { SubscriptionEmailType } from "@/types/notifications";
 import { ProfilePreferencesType } from "@/types/preferences";
-import { CurrentBot, CurrentUser } from "@/types/users";
+import { ApiForecastingAccess, CurrentBot, CurrentUser } from "@/types/users";
 import { serverFetcher } from "@/utils/core/fetch/fetch.server";
 
 import ProfileApi from "./profile.shared";
@@ -24,6 +24,17 @@ type UpdateProfileRequest = {
   unsubscribed_preference_tags?: ProfilePreferencesType[];
   is_onboarding_complete?: boolean;
   language?: string | null;
+  hide_community_prediction?: boolean;
+  prediction_expiration_percent?: number | null;
+  app_theme?: string | null;
+  interface_type?: string;
+  metaculus_news_subscription?: boolean;
+  automatically_follow_on_predict?: boolean;
+  follow_notify_cp_change_threshold?: number | null;
+  follow_notify_comments_frequency?: number | null;
+  follow_notify_milestone_step?: number | null;
+  follow_notify_on_status_change?: boolean;
+  api_forecasting_access?: ApiForecastingAccess;
 };
 
 type UpdateBotRequest = {

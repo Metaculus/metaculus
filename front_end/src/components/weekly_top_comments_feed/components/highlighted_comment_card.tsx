@@ -130,7 +130,7 @@ const HighlightedCommentCard: FC<Props> = ({
         {comment.on_post_data && (
           <div
             className={cn(
-              "hidden items-start rounded-l border border-blue-500 dark:border-blue-500-dark md:flex md:w-[280px] md:shrink-0",
+              "hidden items-start overflow-hidden rounded-l border border-blue-500 dark:border-blue-500-dark md:flex md:w-[325px] md:shrink-0",
               placement === 1
                 ? "border-r-yellow-500 dark:border-r-yellow-500/40"
                 : "border-r-blue-400 dark:border-r-blue-400-dark"
@@ -140,6 +140,7 @@ const HighlightedCommentCard: FC<Props> = ({
               post={post}
               postTitle={comment.on_post_data.title}
               postId={comment.on_post_data.id}
+              className="w-full"
             />
           </div>
         )}
@@ -167,7 +168,7 @@ const HighlightedCommentCard: FC<Props> = ({
           )}
 
           {/* Placement header */}
-          <div className="flex items-center justify-between gap-3 px-3 pb-0 pt-3 md:px-4 md:pt-4">
+          <div className="flex items-center justify-between gap-3 border-b border-gray-300 p-3 px-3 pb-3 pt-3 dark:border-gray-300-dark sm:border-b-0 md:px-4 md:pb-0 md:pt-4">
             <div className="flex items-center gap-3">
               {placement && placement <= 6 && (
                 <Trophy type={getTrophyType(placement)} />
@@ -233,6 +234,7 @@ const HighlightedCommentCard: FC<Props> = ({
             votesScore={votes_score}
             className="mt-0 border-none dark:border-none md:mt-0"
             expandOverride={expandOverride}
+            disableVoting
           />
         </div>
       </div>

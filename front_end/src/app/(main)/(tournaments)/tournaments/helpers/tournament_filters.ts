@@ -99,7 +99,9 @@ const statusRank = (t: TournamentPreview, nowTs: number): number => {
   const allResolved = hasQuestions && !!t.timeline?.all_questions_resolved;
   const forecastEndTs = safeTs(t.forecasting_end_date);
   const forecastEnded = forecastEndTs != null && nowTs >= forecastEndTs;
+  const forecastOpen = forecastEndTs != null && !forecastEnded;
 
+  if (forecastOpen) return 0;
   if (allResolved) return 2;
   if (forecastEnded || allClosed) return 1;
   return 0;

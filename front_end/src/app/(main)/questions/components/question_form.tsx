@@ -32,6 +32,7 @@ import { MarkdownText } from "@/components/ui/markdown_text";
 import SectionToggle from "@/components/ui/section_toggle";
 import Select from "@/components/ui/select";
 import { ContinuousQuestionTypes } from "@/constants/questions";
+import { useAuth } from "@/contexts/auth_context";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostStatus, PostWithForecasts } from "@/types/post";
@@ -269,6 +270,9 @@ const createQuestionSchemas = (
         z
           .string()
           .min(1, { message: t("errorRequired") })
+          .max(30, {
+            message: t("errorMaxLength", { field: "String", maxLength: 30 }),
+          })
           .refine((value) => value.trim() !== "", {
             message: t("emptyOptionError"),
           })
@@ -313,6 +317,8 @@ const QuestionForm: FC<Props> = ({
 }) => {
   const router = useRouter();
   const t = useTranslations();
+  const { user } = useAuth();
+  const isAdminOrModerator = !!user?.is_staff || !!user?.is_superuser;
   const { isDone, hasForecasts } = getQuestionStatus(post);
   const optionsLocked = hasForecasts && mode !== "create";
   const [isLoading, setIsLoading] = useState<boolean>();
@@ -462,14 +468,16 @@ const QuestionForm: FC<Props> = ({
     | DiscreteQuestionType
     | DateQuestionType;
 
+  const isDuplicate = mode === "create" && !!post;
+
   // TODO: refactor validation schema setup to properly populate useForm generic
   const form = useForm<FormSchemaType>({
     mode: "all",
     resolver: zodResolver(getFormSchema(questionType)),
     defaultValues: {
-      open_time: post?.question?.open_time,
-      published_at: post?.published_at,
-      cp_reveal_time: post?.question?.cp_reveal_time,
+      open_time: isDuplicate ? undefined : post?.question?.open_time,
+      published_at: isDuplicate ? undefined : post?.published_at,
+      cp_reveal_time: isDuplicate ? undefined : post?.question?.cp_reveal_time,
       include_bots_in_aggregates:
         post?.question?.include_bots_in_aggregates ?? false,
       options_order:
@@ -772,6 +780,7 @@ const QuestionForm: FC<Props> = ({
                         <Input
                           {...form.register(`options.${opt_index}`)}
                           readOnly={optionsLocked}
+                          maxLength={30}
                           className="my-2 w-full min-w-32 rounded border  border-gray-500 p-2 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                           value={option}
                           placeholder={`Option ${opt_index + 1}`}
@@ -868,7 +877,9 @@ const QuestionForm: FC<Props> = ({
             <DateInput
               control={form.control as unknown as Control<FieldValues>}
               name="scheduled_close_time"
-              defaultValue={post?.question?.scheduled_close_time}
+              defaultValue={
+                isDuplicate ? undefined : post?.question?.scheduled_close_time
+              }
               errors={form.formState.errors.scheduled_close_time}
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
             />
@@ -881,7 +892,9 @@ const QuestionForm: FC<Props> = ({
             <DateInput
               control={form.control as unknown as Control<FieldValues>}
               name="scheduled_resolve_time"
-              defaultValue={post?.question?.scheduled_resolve_time}
+              defaultValue={
+                isDuplicate ? undefined : post?.question?.scheduled_resolve_time
+              }
               errors={form.formState.errors.scheduled_resolve_time}
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
             />
@@ -897,7 +910,7 @@ const QuestionForm: FC<Props> = ({
             <DateInput
               control={form.control as unknown as Control<FieldValues>}
               name="open_time"
-              defaultValue={post?.question?.open_time}
+              defaultValue={isDuplicate ? undefined : post?.question?.open_time}
               errors={form.formState.errors.open_time}
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
             />
@@ -910,7 +923,9 @@ const QuestionForm: FC<Props> = ({
             <DateInput
               control={form.control as unknown as Control<FieldValues>}
               name="cp_reveal_time"
-              defaultValue={post?.question?.cp_reveal_time}
+              defaultValue={
+                isDuplicate ? undefined : post?.question?.cp_reveal_time
+              }
               errors={form.formState.errors.cp_reveal_time}
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
             />
@@ -962,14 +977,24 @@ const QuestionForm: FC<Props> = ({
           <div className="mb-6 flex w-full flex-col gap-4 md:flex-row">
             <InputContainer
               labelText={"Publish Time"}
-              explanation={t("publishTimeDescription")}
+              explanation={
+                mode === "edit" ? (
+                  <>
+                    <span>{t("publishTimeDescription")} </span>
+                    <span>{t("publishTimeLockedDescription")}</span>
+                  </>
+                ) : (
+                  t("publishTimeDescription")
+                )
+              }
               className="w-full gap-2"
             >
               <DateInput
                 control={form.control as unknown as Control<FieldValues>}
                 name="published_at"
-                defaultValue={post?.published_at}
+                defaultValue={isDuplicate ? undefined : post?.published_at}
                 errors={form.formState.errors.published_at}
+                disabled={mode === "edit"}
                 className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
               />
             </InputContainer>
@@ -987,24 +1012,26 @@ const QuestionForm: FC<Props> = ({
               />
             )}
 
-          <InputContainer
-            labelText={t("includeBotsInAggregatesLabel")}
-            explanation={t("includeBotsInAggregatesExplanation")}
-            isNativeFormControl={false}
-            className="mb-6"
-          >
-            <Checkbox
-              label={t("includeBotsInAggregatesLabel")}
-              checked={form.watch("include_bots_in_aggregates") ?? false}
-              onChange={(checked) => {
-                form.setValue("include_bots_in_aggregates", checked, {
-                  shouldDirty: true,
-                  shouldTouch: true,
-                  shouldValidate: true,
-                });
-              }}
-            />
-          </InputContainer>
+          {isAdminOrModerator && (
+            <InputContainer
+              labelText={t("includeBotsInAggregatesLabel")}
+              explanation={t("includeBotsInAggregatesExplanation")}
+              isNativeFormControl={false}
+              className="mb-6"
+            >
+              <Checkbox
+                label={t("includeBotsInAggregatesLabel")}
+                checked={form.watch("include_bots_in_aggregates") ?? false}
+                onChange={(checked) => {
+                  form.setValue("include_bots_in_aggregates", checked, {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                    shouldValidate: true,
+                  });
+                }}
+              />
+            </InputContainer>
+          )}
         </SectionToggle>
 
         <div className="flex-col">

@@ -5,6 +5,7 @@ import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import MultiChoicesChartView from "@/app/(main)/questions/[id]/components/multiple_choices_chart_view";
+import { useListChartExpanded } from "@/app/(main)/questions/[id]/components/question_view/consumer_question_view/consumer_list_chart_shell";
 import CPRevealTime from "@/components/cp_reveal_time";
 import { MultipleChoiceTile } from "@/components/post_card/multiple_choice_tile";
 import { getEffectiveVisibleCount } from "@/constants/questions";
@@ -32,6 +33,8 @@ type Props = {
   hideCP?: boolean;
   forecastAvailability?: ForecastAvailability;
   onLegendHeightChange?: (height: number) => void;
+  hideTitle?: boolean;
+  isConsumerView?: boolean;
 };
 
 const DetailedMultipleChoiceChartCard: FC<Props> = ({
@@ -43,9 +46,12 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
   hideCP,
   forecastAvailability,
   onLegendHeightChange,
+  hideTitle,
+  isConsumerView,
 }) => {
   const t = useTranslations();
   const [isChartHovered, setIsChartHovered] = useState(false);
+  const { setCursorTimestamp: setCtxCursorTimestamp } = useListChartExpanded();
 
   const actualCloseTime = getPostDrivenTime(question.actual_close_time);
   const openTime = getPostDrivenTime(question.open_time);
@@ -90,8 +96,16 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
     [choiceItems]
   );
 
-  const [cursorTimestamp, _tooltipDate, handleCursorChange] =
+  const [cursorTimestamp, _tooltipDate, _handleCursorChange] =
     useTimestampCursor(timestamps);
+  // In consumer view, pushes the cursor timestamp to the sidebar choice bars.
+  const handleCursorChange = useCallback(
+    (value: number, format: Parameters<typeof _handleCursorChange>[1]) => {
+      _handleCursorChange(value, format);
+      if (isConsumerView) setCtxCursorTimestamp(value);
+    },
+    [_handleCursorChange, isConsumerView, setCtxCursorTimestamp]
+  );
 
   const liveOptions = useMemo(() => {
     if (!question.options_history?.length || cursorTimestamp === null) {
@@ -299,13 +313,15 @@ const DetailedMultipleChoiceChartCard: FC<Props> = ({
       onChoiceItemsUpdate={setChoiceItems}
       isClosed={isClosed}
       actualCloseTime={actualCloseTime}
-      title={t("forecastTimelineHeading")}
+      title={hideTitle ? undefined : t("forecastTimelineHeading")}
       chartTheme={chartTheme}
       embedMode={embedMode}
       chartHeight={chartHeight}
       defaultZoom={defaultZoom}
       forecastAvailability={forecastAvailability}
       openTime={openTime}
+      withLegend={!isConsumerView}
+      hideTooltip={isConsumerView}
     />
   );
 };

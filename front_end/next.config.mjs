@@ -24,6 +24,7 @@ const nextConfig = {
     },
   },
   images: {
+    qualities: [75, 100],
     remotePatterns: [
       {
         protocol: "https",
@@ -54,17 +55,22 @@ const nextConfig = {
     return [
       {
         source: "/project/:slug",
-        destination: "/tournament/:slug",
+        destination: "/tournament/:slug/",
         permanent: true,
       },
       {
         source: "/bridgewater-reg",
-        destination: "/bridgewater",
+        destination: "/bridgewater/",
         permanent: true,
       },
       {
         source: "/aib",
-        destination: "/futureeval",
+        destination: "/futureeval/",
+        permanent: true,
+      },
+      {
+        source: "/pro-forecasters",
+        destination: "/services/pro-forecasters/",
         permanent: true,
       },
     ];
@@ -81,9 +87,6 @@ const nextConfig = {
           "https://metaculus-public.s3.us-west-2.amazonaws.com/OWID%2Breport.pdf",
       },
     ];
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
   },
   webpack: (config, { buildId, webpack }) => {
     // propagate buildId to environment so we could trigger prompt message on outdated version
