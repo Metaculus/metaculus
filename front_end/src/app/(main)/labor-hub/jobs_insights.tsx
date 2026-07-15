@@ -18,10 +18,10 @@ export const JOBS_INSIGHTS = {
     positive: (
       <>
         By 2030, <strong>nurses</strong>, <strong>construction workers</strong>,
-        and <strong>engineers</strong> are expected to see the largest gains.
-        Demand is rising, from an aging population, and from data center and
-        energy infrastructure buildouts, while robotics is not yet expected to
-        handle unstructured worksites.
+        and <strong>restaurant servers</strong> are expected to see the largest
+        gains, driven by an aging population, infrastructure buildouts, and
+        continued demand for in-person service that AI is unlikely to displace
+        in the short term.
       </>
     ),
     negative: (
@@ -45,11 +45,13 @@ export const JOBS_INSIGHTS = {
     ),
     negative: (
       <>
-        By 2035, <strong>financial specialists</strong>, <strong>sales</strong>,
-        and <strong>law</strong> are expected to see sharp staff reductions as
-        AI takes over analysis, outreach, and research work.{" "}
-        <strong>Laborers and movers</strong> will also see reductions as
-        robotics automates work in controlled indoor environments.
+        By 2035, <strong>financial specialists</strong>,{" "}
+        <strong>lawyers and law clerks</strong>, and{" "}
+        <strong>laborers and movers</strong> are expected to see sharp staff
+        reductions as AI takes over analysis and research work while robotics
+        automates tasks in controlled indoor environments.{" "}
+        <strong>Sales representatives</strong> will also see reductions as AI
+        automates outreach and client work.
       </>
     ),
   },
