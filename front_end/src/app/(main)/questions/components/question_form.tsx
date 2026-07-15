@@ -32,6 +32,7 @@ import { MarkdownText } from "@/components/ui/markdown_text";
 import SectionToggle from "@/components/ui/section_toggle";
 import Select from "@/components/ui/select";
 import { ContinuousQuestionTypes } from "@/constants/questions";
+import { useAuth } from "@/contexts/auth_context";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostStatus, PostWithForecasts } from "@/types/post";
@@ -316,6 +317,8 @@ const QuestionForm: FC<Props> = ({
 }) => {
   const router = useRouter();
   const t = useTranslations();
+  const { user } = useAuth();
+  const isAdminOrModerator = !!user?.is_staff || !!user?.is_superuser;
   const { isDone, hasForecasts } = getQuestionStatus(post);
   const optionsLocked = hasForecasts && mode !== "create";
   const [isLoading, setIsLoading] = useState<boolean>();
@@ -1009,24 +1012,26 @@ const QuestionForm: FC<Props> = ({
               />
             )}
 
-          <InputContainer
-            labelText={t("includeBotsInAggregatesLabel")}
-            explanation={t("includeBotsInAggregatesExplanation")}
-            isNativeFormControl={false}
-            className="mb-6"
-          >
-            <Checkbox
-              label={t("includeBotsInAggregatesLabel")}
-              checked={form.watch("include_bots_in_aggregates") ?? false}
-              onChange={(checked) => {
-                form.setValue("include_bots_in_aggregates", checked, {
-                  shouldDirty: true,
-                  shouldTouch: true,
-                  shouldValidate: true,
-                });
-              }}
-            />
-          </InputContainer>
+          {isAdminOrModerator && (
+            <InputContainer
+              labelText={t("includeBotsInAggregatesLabel")}
+              explanation={t("includeBotsInAggregatesExplanation")}
+              isNativeFormControl={false}
+              className="mb-6"
+            >
+              <Checkbox
+                label={t("includeBotsInAggregatesLabel")}
+                checked={form.watch("include_bots_in_aggregates") ?? false}
+                onChange={(checked) => {
+                  form.setValue("include_bots_in_aggregates", checked, {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                    shouldValidate: true,
+                  });
+                }}
+              />
+            </InputContainer>
+          )}
         </SectionToggle>
 
         <div className="flex-col">
