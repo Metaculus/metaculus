@@ -1228,10 +1228,10 @@ function getFanOptionsFromContinuousGroup(
   return questions
     .map((q) => {
       const latest = q.my_forecasts?.latest;
+      const activeForecast =
+        latest && isForecastActive(latest) ? latest : undefined;
       const userForecast = extractPrevNumericForecastValue(
-        latest && isForecastActive(latest)
-          ? latest.distribution_input
-          : undefined
+        activeForecast?.distribution_input
       );
 
       let userCdf: number[] | null = null;
@@ -1245,6 +1245,10 @@ function getFanOptionsFromContinuousGroup(
               userForecast.components,
               q
             ).cdf);
+      } else if (activeForecast?.forecast_values.length) {
+        // distribution_input can be absent even
+        // though forecast_values holds the full CDF, so fall back to it.
+        userCdf = activeForecast.forecast_values;
       }
 
       return {
