@@ -131,6 +131,22 @@
 div:has(.prism-code) + p:has(> br:only-child) {
   display: none;
 }
+
+/*
+ * Keep fenced code blocks from stretching the editor horizontally.
+ * `overflow-x: auto` on the <pre> only clips when every ancestor up to the
+ * content-editable is width-bounded — Lexical wraps decorator blocks in
+ * intermediate spans/divs that default to intrinsic width, so we force
+ * min-width: 0 on the wrappers and cap the <pre> at 100% of its container.
+ */
+.mdx-content-editable pre {
+  max-width: 100%;
+}
+.mdx-content-editable [data-lexical-decorator],
+.mdx-content-editable [data-lexical-decorator] > * {
+  min-width: 0;
+  max-width: 100%;
+}
 @media (min-width: 1024px) {
   .markdown-editor.markdown-editor-read .tweets-wrapper {
     display: block;
