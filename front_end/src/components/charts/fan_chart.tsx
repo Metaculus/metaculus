@@ -1246,8 +1246,8 @@ function getFanOptionsFromContinuousGroup(
               q
             ).cdf);
       } else if (activeForecast?.forecast_values.length) {
-        // distribution_input can be absent even
-        // though forecast_values holds the full CDF, so fall back to it.
+        // distribution_input is absent for bots
+        // forecast_values still holds the full CDF, so fall back to it.
         userCdf = activeForecast.forecast_values;
       }
 
