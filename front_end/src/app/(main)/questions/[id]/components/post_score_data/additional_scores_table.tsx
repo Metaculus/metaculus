@@ -10,11 +10,11 @@ import { QuestionWithForecasts, ScoreData } from "@/types/question";
 import { TranslationKey } from "@/types/translations";
 import cn from "@/utils/core/cn";
 
-type Variant = "auto" | "compact";
+import { getMaxCoverage } from "./utils";
+
 type Props = {
   question: QuestionWithForecasts;
   separateCoverage?: boolean;
-  variant?: Variant;
 };
 
 type ScoreRow = { label: string; value: string; valueSuffix?: ReactNode };
@@ -22,7 +22,6 @@ type ScoreRow = { label: string; value: string; valueSuffix?: ReactNode };
 const ScoreTable: FC<{
   rows: ScoreRow[];
   className?: string;
-  variant?: Variant;
 }> = ({ rows, className }) => (
   <div
     className={cn(
@@ -71,25 +70,9 @@ const buildScoreLabelKey = (
   return (prefix + toCamel(key) + suffix) as TranslationKey;
 };
 
-/**
- * Returns the max attainable peer coverage (0–1) for a question that resolved
- * before its scheduled close time, or null if not applicable.
- */
-const getMaxCoverage = (question: QuestionWithForecasts): number | null => {
-  const { open_time, actual_close_time, scheduled_close_time } = question;
-  if (!open_time || !actual_close_time || !scheduled_close_time) return null;
-  const open = new Date(open_time).getTime();
-  const actualClose = new Date(actual_close_time).getTime();
-  const scheduledClose = new Date(scheduled_close_time).getTime();
-  const totalDuration = scheduledClose - open;
-  if (totalDuration <= 0) return null;
-  return (actualClose - open) / totalDuration;
-};
-
 export const AdditionalScoresTable: FC<Props> = ({
   question,
   separateCoverage,
-  variant,
 }) => {
   const t = useTranslations();
 
@@ -136,7 +119,7 @@ export const AdditionalScoresTable: FC<Props> = ({
     maxCoverageValueSuffix = (
       <Tooltip tooltipContent={tooltipContent} renderInPortal={false}>
         <span className="cursor-help text-sm text-gray-600 dark:text-gray-600-dark">
-          (max. {(maxCoverage * 100).toFixed(1)}%
+          (max. {Math.round(maxCoverage * 100)}%
           <FontAwesomeIcon
             icon={faCircleInfo}
             className="ml-0.5 text-blue-500 dark:text-blue-500-dark"
@@ -190,19 +173,13 @@ export const AdditionalScoresTable: FC<Props> = ({
   if (coverageRows.length === 0 && otherRows.length === 0) return null;
 
   if (!separateCoverage) {
-    return (
-      <ScoreTable rows={[...coverageRows, ...otherRows]} variant={variant} />
-    );
+    return <ScoreTable rows={[...coverageRows, ...otherRows]} />;
   }
 
   return (
     <>
-      {coverageRows.length > 0 && (
-        <ScoreTable rows={coverageRows} variant={variant} />
-      )}
-      {otherRows.length > 0 && (
-        <ScoreTable rows={otherRows} variant={variant} />
-      )}
+      {coverageRows.length > 0 && <ScoreTable rows={coverageRows} />}
+      {otherRows.length > 0 && <ScoreTable rows={otherRows} />}
     </>
   );
 };

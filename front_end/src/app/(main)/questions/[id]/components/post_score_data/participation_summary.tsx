@@ -13,6 +13,8 @@ import Tooltip from "@/components/ui/tooltip";
 import { QuestionWithForecasts } from "@/types/question";
 import cn from "@/utils/core/cn";
 
+import { getMaxCoverage } from "./utils";
+
 const ParticipationItem: React.FC<
   PropsWithChildren<{ icon: ReactNode; className?: string }>
 > = ({ icon, children, className }) => {
@@ -37,21 +39,6 @@ type Props = {
   forecastersCount: number;
   className?: string;
   itemClassName?: string;
-};
-
-/**
- * Returns the max attainable peer coverage (0–1) for a question that resolved
- * before its scheduled close time, or null if not applicable.
- */
-const getMaxCoverage = (question: QuestionWithForecasts): number | null => {
-  const { open_time, actual_close_time, scheduled_close_time } = question;
-  if (!open_time || !actual_close_time || !scheduled_close_time) return null;
-  const open = new Date(open_time).getTime();
-  const actualClose = new Date(actual_close_time).getTime();
-  const scheduledClose = new Date(scheduled_close_time).getTime();
-  const totalDuration = scheduledClose - open;
-  if (totalDuration <= 0) return null;
-  return (actualClose - open) / totalDuration;
 };
 
 export const ParticipationSummary: React.FC<Props> = ({
