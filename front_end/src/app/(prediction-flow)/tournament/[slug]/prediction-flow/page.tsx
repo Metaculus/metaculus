@@ -49,6 +49,7 @@ export default async function PredictionFlow(props: Props) {
   }
   if (
     !user ||
+    user.is_bot ||
     !tournament.forecasts_flow_enabled ||
     tournament.timeline.all_questions_closed
   ) {

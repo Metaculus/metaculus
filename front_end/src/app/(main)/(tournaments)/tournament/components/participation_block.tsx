@@ -51,6 +51,7 @@ const ParticipationBlock: FC<Props> = ({ tournament, posts }) => {
 
   if (
     isNil(user) ||
+    user.is_bot ||
     !tournament.forecasts_flow_enabled ||
     tournament.timeline.all_questions_closed
   ) {
