@@ -2196,7 +2196,6 @@
   "switchBackToSlidersHint": "切回滑块以进行更精细的调整",
   "view": "查看",
   "maxAttainableCoverageExplanation": "为确保分数的准确性，提前解决的问题，其分数和覆盖率会被截断。<link>在此了解更多信息。</link>",
-=======
   "viewArticle": "查看文章",
   "createdTimeAgoBy": "由 @{author} 创建于 {timeAgo}",
   "createdTimeAgo": "创建于 {timeAgo}",
@@ -2376,4 +2375,4 @@
   "laborHubJobsChartBaseline": "基准",
   "predictorsMentionWarning": "只有策展人和管理员可以通知 @predictors。您的提及不会发送通知。",
   "feedTileQuestionsRecentlyResolved": "{count, plural, one {# 个问题最近已解决} other {# 个问题最近已解决}}"
->>>>>>> 20cf7d742f3d0ec5d55113f1f2fb06e717451ac4
+}
