@@ -1,8 +1,19 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from django.db.models import Q, Case, When, Value, IntegerField, Exists, OuterRef
+from django.contrib.postgres.search import SearchQuery, SearchRank
+from django.db.models import F, Q, Case, When, Value, IntegerField, Exists, OuterRef
+from django.utils import timezone
 
+from comments.constants import TimeWindow
 from comments.models import Comment
+from posts.models import Post
+from projects.models import Project
+
+TIME_WINDOW_DELTAS = {
+    TimeWindow.PAST_WEEK: timedelta(days=7),
+    TimeWindow.PAST_MONTH: timedelta(days=30),
+    TimeWindow.PAST_YEAR: timedelta(days=365),
+}
 
 
 def get_comments_feed(
@@ -15,16 +26,21 @@ def get_comments_feed(
     sort=None,
     is_private=None,
     focus_comment_id: int = None,
-    include_deleted=False,
+    focus_thread_only: bool = False,
+    include_deleted: bool | None = None,
     last_viewed_at: datetime = None,
+    time_window: str = None,
+    search: str = None,
+    exclude_bots: bool = False,
+    exclude_bots_only_project: bool = False,
+    post_status: Post.CurationStatus | None = None,
 ):
     user = user if user and user.is_authenticated else None
     sort = sort or "-created_at"
     order_by_args = []
 
-    # Require at least one filter
-    if not post and not author and not (is_private and user):
-        return qs.none()
+    if post_status:
+        qs = qs.filter(on_post__curation_status=post_status)
 
     if parent_isnull is not None:
         qs = qs.filter(parent=None)
@@ -83,13 +99,38 @@ def get_comments_feed(
     else:
         qs = qs.filter(is_private=False)
 
-    if not include_deleted:
+    if exclude_bots:
+        qs = qs.filter(author__is_bot=False)
+
+    if exclude_bots_only_project:
+        qs = qs.exclude(
+            on_post__default_project__bot_leaderboard_status=Project.BotLeaderboardStatus.BOTS_ONLY
+        )
+
+    if include_deleted is None:
         qs = qs.filter(
             Q(is_soft_deleted=False)
             | Exists(
                 Comment.objects.filter(parent_id=OuterRef("pk"), is_soft_deleted=False)
             )
         )
+
+    if include_deleted is False:
+        qs = qs.filter(is_soft_deleted=False)
+
+    # Time window filter
+    if time_window and time_window in TIME_WINDOW_DELTAS:
+        cutoff = timezone.now() - TIME_WINDOW_DELTAS[time_window]
+        qs = qs.filter(created_at__gte=cutoff)
+
+    # Full-text search using stored search vector
+    if search:
+        query = SearchQuery(search, search_type="websearch", config="english")
+        qs = qs.filter(text_original_search_vector=query)
+        if sort == "relevance":
+            qs = qs.annotate(
+                search_rank=SearchRank(F("text_original_search_vector"), query)
+            )
 
     # Filter comments located under Posts current user is allowed to see
     qs = qs.filter_by_user_permission(user=user)
@@ -107,28 +148,33 @@ def get_comments_feed(
                 # Fetch all children
                 fc_q |= Q(root_id=focus_comment_id)
 
-            qs = qs.annotate(
-                is_focused_comment=Case(
-                    When(fc_q, then=Value(1)),
-                    default=Value(0),
-                    output_field=IntegerField(),
+            if focus_thread_only:
+                # Restrict the feed to only the focused thread so the caller
+                # can render it as a standalone "linked comment" section
+                # without disturbing the natural pagination/sort.
+                qs = qs.filter(fc_q)
+            else:
+                qs = qs.annotate(
+                    is_focused_comment=Case(
+                        When(fc_q, then=Value(1)),
+                        default=Value(0),
+                        output_field=IntegerField(),
+                    )
                 )
-            )
-            # Insert after pinned but before unread prioritization
-            # so focused comment always appears on the first page
-            pinned_idx = (
-                order_by_args.index("-is_pinned_thread") + 1
-                if "-is_pinned_thread" in order_by_args
-                else 0
-            )
-            order_by_args.insert(pinned_idx, "-is_focused_comment")
+                # Insert after pinned but before unread prioritization
+                # so focused comment always appears on the first page
+                pinned_idx = (
+                    order_by_args.index("-is_pinned_thread") + 1
+                    if "-is_pinned_thread" in order_by_args
+                    else 0
+                )
+                order_by_args.insert(pinned_idx, "-is_focused_comment")
 
     if sort:
-        if "vote_score" in sort:
-            qs = qs.annotate_vote_score()
-            sort = sort.replace("vote_score", "annotated_vote_score")
-
-        order_by_args.append(sort)
+        if sort == "relevance":
+            order_by_args.append("-search_rank")
+        else:
+            order_by_args.append(sort)
 
     if order_by_args:
         qs = qs.order_by(*order_by_args)

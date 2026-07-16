@@ -241,6 +241,58 @@ def mock_spam_detection_and_email(
     return mock_gpt_spam_check, mock_send_mail
 
 
+class TestUserProfileByUsername:
+    def test_returns_id_for_existing_username(
+        self, anon_client: APIClient, user1: User
+    ) -> None:
+        url = reverse("user-profile-by-username", args=[user1.username])
+        response = anon_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data == {"id": user1.id, "username": user1.username}
+
+    def test_lookup_is_case_insensitive(
+        self, anon_client: APIClient, user1: User
+    ) -> None:
+        url = reverse("user-profile-by-username", args=[user1.username.upper()])
+        response = anon_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["id"] == user1.id
+
+    def test_returns_404_for_unknown_username(self, anon_client: APIClient) -> None:
+        url = reverse("user-profile-by-username", args=["does-not-exist"])
+        response = anon_client.get(url)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_hides_inactive_users_from_non_staff(
+        self, anon_client: APIClient, user1: User
+    ) -> None:
+        user1.is_active = False
+        user1.save()
+
+        url = reverse("user-profile-by-username", args=[user1.username])
+        response = anon_client.get(url)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_staff_can_lookup_inactive_users(
+        self, user_admin_client: APIClient, user_admin: User, user1: User
+    ) -> None:
+        user_admin.is_staff = True
+        user_admin.save()
+
+        user1.is_active = False
+        user1.save()
+
+        url = reverse("user-profile-by-username", args=[user1.username])
+        response = user_admin_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["id"] == user1.id
+
+
 @pytest.mark.skip(
     reason="Run this manually when needed. It should not be run automatically. It can be referenced as examples of real spam and legitimate content."
 )

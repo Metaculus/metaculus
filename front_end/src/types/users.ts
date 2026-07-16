@@ -37,6 +37,10 @@ export type User = UserBase & {
 };
 
 export type UserProfile = User & {
+  spam_count?: number;
+};
+
+export type UserProfileStats = {
   calibration_curve?: TrackRecordCalibrationCurveItem[];
   score_histogram?: TrackRecordHistogramItem[];
   score_scatter_plot?: TrackRecordScatterPlotItem[];
@@ -48,8 +52,9 @@ export type UserProfile = User & {
   forecasts_on_authored_questions_count?: number;
   notebooks_authored_count?: number;
   comments_count?: number;
-  spam_count?: number;
 };
+
+export type UserProfileWithStats = UserProfile & UserProfileStats;
 
 export type CurrentUser = User & {
   email: string;
@@ -66,6 +71,13 @@ export type CurrentUser = User & {
   app_theme?: AppTheme | null;
   interface_type: InterfaceType;
   language?: string | null;
+  metaculus_news_subscription: boolean;
+  automatically_follow_on_predict: boolean;
+  follow_notify_cp_change_threshold: number | null;
+  follow_notify_comments_frequency: number | null;
+  follow_notify_milestone_step: number | null;
+  follow_notify_on_status_change: boolean;
+  api_forecasting_access: ApiForecastingAccess;
 };
 
 export type CurrentBot = CurrentUser & {
@@ -75,4 +87,10 @@ export type CurrentBot = CurrentUser & {
 export enum InterfaceType {
   ConsumerView = "consumer_view",
   ForecasterView = "forecaster_view",
+}
+
+export enum ApiForecastingAccess {
+  Enabled = "enabled",
+  Disabled = "disabled",
+  Pending = "pending",
 }

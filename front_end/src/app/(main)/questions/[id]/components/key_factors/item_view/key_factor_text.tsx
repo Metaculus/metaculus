@@ -5,17 +5,21 @@ import cn from "@/utils/core/cn";
 type Props = {
   text: string;
   className?: string;
+  truncate?: boolean;
 };
 
-const KeyFactorText: FC<Props> = ({ text, className }) => {
+const KeyFactorText: FC<Props> = ({ text, className, truncate }) => {
   return (
     <div
       className={cn(
-        "relative inline min-w-0 max-w-full flex-1 break-words text-left font-medium",
+        "relative min-w-0 max-w-full flex-1 break-words text-left font-medium",
+        truncate ? "line-clamp-5" : "inline",
         className
       )}
     >
-      <div className="relative inline xs:ml-0">{text}</div>
+      <div className={cn("relative xs:ml-0", !truncate && "inline")}>
+        {text}
+      </div>
     </div>
   );
 };

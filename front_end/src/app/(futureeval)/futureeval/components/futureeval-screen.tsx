@@ -1,16 +1,25 @@
+import { SearchParams } from "@/types/navigation";
 import { LeaderboardDetails } from "@/types/scoring";
 
 import FutureEvalTabs from "./futureeval-tabs";
 import { Section } from "./futureeval-tabs-shell";
 import { FutureEvalLeaderboardProvider } from "./leaderboard/futureeval-leaderboard-provider";
 
-type Props = { leaderboard: LeaderboardDetails; current: Section["value"] };
+type Props = {
+  leaderboard: LeaderboardDetails;
+  current: Section["value"];
+  searchParams?: SearchParams;
+};
 
-const FutureEvalScreen: React.FC<Props> = ({ leaderboard, current }) => {
+const FutureEvalScreen: React.FC<Props> = ({
+  leaderboard,
+  current,
+  searchParams,
+}) => {
   return (
     <FutureEvalLeaderboardProvider leaderboard={leaderboard}>
       <div className="flex flex-1 flex-col">
-        <FutureEvalTabs current={current} />
+        <FutureEvalTabs current={current} searchParams={searchParams} />
       </div>
     </FutureEvalLeaderboardProvider>
   );

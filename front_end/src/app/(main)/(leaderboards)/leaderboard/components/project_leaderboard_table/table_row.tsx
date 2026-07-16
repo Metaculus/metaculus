@@ -53,7 +53,7 @@ const TableRow: FC<Props> = ({
       ? t("communityPrediction")
       : aggregation_method == "unweighted"
         ? t("unweightedAggregate")
-        : aggregation_method ?? undefined;
+        : aggregation_method ?? "";
   const forecasterLink = user
     ? `/accounts/profile/${user.id}/`
     : `/faq/#community-prediction`;
@@ -67,9 +67,20 @@ const TableRow: FC<Props> = ({
           <AggregationRankTooltip aggregationMethod={aggregation_method} />
         ) : (
           <>
-            {!!medal && (
-              <MedalIcon type={medal} className="mr-2 inline-block size-4" />
-            )}
+            {!!medal &&
+              (user ? (
+                <Link
+                  href={`/accounts/profile/${user.id}/medals/`}
+                  aria-label={t("userMedals", { username: forecasterLabel })}
+                >
+                  <MedalIcon
+                    type={medal}
+                    className="mr-2 inline-block size-4"
+                  />
+                </Link>
+              ) : (
+                <MedalIcon type={medal} className="mr-2 inline-block size-4" />
+              ))}
 
             <span className="flex-1 text-center">
               {exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_ONLY ? (
@@ -90,7 +101,7 @@ const TableRow: FC<Props> = ({
         <Link
           href={forecasterLink}
           title={forecasterLabel}
-          className="block truncate"
+          className="block truncate hover:underline"
         >
           {forecasterLabel}
         </Link>

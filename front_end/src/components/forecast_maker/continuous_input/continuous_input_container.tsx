@@ -135,7 +135,8 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
                 " while CDF (Cumulative Distribution Function) shows the cumulative probability of outcomes up to a certain value."
               }
               className=""
-              tooltipClassName="text-center !max-w-[331px] !border-blue-400 dark:!border-blue-400-dark bg-gray-0 dark:bg-gray-0-dark !text-base !p-4"
+              variant="light"
+              tooltipClassName="text-center !max-w-[331px] !text-base !p-4"
             >
               <FontAwesomeIcon
                 icon={faCircleQuestion}

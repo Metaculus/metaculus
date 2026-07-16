@@ -83,6 +83,18 @@ export function getAxisLeftPadding(
   };
 }
 
+// Width reserved on the right margin for a rotated (270°) yLabel/axis title.
+// Rotated text occupies its fontSize horizontally (centered on its anchor
+// after rotation); we reserve enough space to fit an Inter 11px glyph plus
+// gaps on both sides — gap to tick labels on the left and gap to the
+// container edge on the right.
+export const Y_AXIS_LABEL_RESERVED_PX = 20;
+// Distance from chartWidth to the rotated yLabel's anchor x. With default
+// textAnchor="middle", the label spans ±fontSize/2 around this point, so
+// the anchor must sit at least fontSize/2 + a small gap inside the edge to
+// avoid being clipped.
+export const Y_AXIS_LABEL_ANCHOR_OFFSET = 12;
+
 export function getAxisRightPadding(
   yScale: Scale,
   labelsFontSize: number,
@@ -94,11 +106,11 @@ export function getAxisRightPadding(
     Math.max(...labels.map((label) => label.length)),
     12
   );
-  const fontSizeScale = yLabel ? 11 : 9;
+  const tickLabelsWidth =
+    Math.round((longestLabelLength * labelsFontSize * 9) / 10) +
+    SCATTER_POINT_PADDING;
   return {
-    rightPadding:
-      Math.round((longestLabelLength * labelsFontSize * fontSizeScale) / 10) +
-      SCATTER_POINT_PADDING,
+    rightPadding: tickLabelsWidth + (yLabel ? Y_AXIS_LABEL_RESERVED_PX : 0),
     MIN_RIGHT_PADDING: 35,
   };
 }
@@ -112,6 +124,7 @@ type GenerateYDomainParams = {
   zoomDomainPadding?: number;
   includeClosestBoundOnZoom?: boolean;
   forceAutoZoom?: boolean;
+  useFullYDomain?: boolean;
 };
 
 export function generateTimeSeriesYDomain({
@@ -123,24 +136,30 @@ export function generateTimeSeriesYDomain({
   zoomDomainPadding,
   includeClosestBoundOnZoom,
   forceAutoZoom,
+  useFullYDomain,
 }: GenerateYDomainParams): YDomain {
   const originalYDomain: Tuple<number> = [0, 1];
   const fallback = { originalYDomain, zoomedYDomain: originalYDomain };
 
   if (
-    (zoom === TimelineChartZoomOption.All && !forceAutoZoom) ||
+    (zoom === TimelineChartZoomOption.All &&
+      !forceAutoZoom &&
+      !useFullYDomain) ||
     isChartEmpty
   ) {
     return fallback;
   }
 
+  const shouldIncludeValue = (timestamp: number) =>
+    useFullYDomain || timestamp >= minTimestamp;
+
   const min = minValues
-    .filter((d) => d.timestamp >= minTimestamp)
+    .filter((d) => shouldIncludeValue(d.timestamp))
     .map((d) => d.y)
     .filter((value) => !isNil(value));
   const minValue = min.length ? Math.min(...min) : null;
   const max = maxValues
-    .filter((d) => d.timestamp >= minTimestamp)
+    .filter((d) => shouldIncludeValue(d.timestamp))
     .map((d) => d.y)
     .filter((value) => !isNil(value));
   const maxValue = max.length ? Math.max(...max) : null;
@@ -520,7 +539,7 @@ export function generateScale({
     displayType === QuestionType.Discrete &&
     direction === ScaleDirection.Horizontal
   ) {
-    // get last label width to determine the number of labels
+    // look at the size of the last two labels to determine the max label count
     const lastLabel = getPredictionDisplayValue(
       1 - 0.5 / inbound_outcome_count,
       {
@@ -534,8 +553,22 @@ export function generateScale({
         discreteValueOptions,
       }
     );
+    const secondLastLabel = getPredictionDisplayValue(
+      1 - 1.5 / inbound_outcome_count,
+      {
+        questionType: displayType as QuestionType,
+        scaling: rangeScaling,
+        precision: 3,
+        actual_resolve_time: null,
+        dateFormatString: shortLabels ? "yyyy" : undefined,
+        adjustLabels,
+        skipQuartilesBorders: false,
+        discreteValueOptions,
+      }
+    );
+    const labelLength = Math.max(secondLastLabel.length, lastLabel.length);
     maxLabelCount = Math.min(
-      lastLabel.length ? axisLength / (12 * lastLabel.length) : 15,
+      labelLength ? axisLength / (12 * labelLength) : 15,
       inbound_outcome_count + openBoundCount
     );
   } else if (axisLength < 100) {

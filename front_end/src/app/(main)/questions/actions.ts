@@ -30,7 +30,6 @@ import {
 } from "@/types/coherence";
 import { ErrorResponse } from "@/types/fetch";
 import { NotebookPost, PostSubscription } from "@/types/post";
-import { Tournament, TournamentType } from "@/types/projects";
 import { Question } from "@/types/question";
 import { DataParams, DeepPartial } from "@/types/utils";
 import { VoteDirection } from "@/types/votes";
@@ -119,16 +118,9 @@ export async function makeRepost(postId: number, projectId: number) {
   await ServerPostsApi.repost(postId, projectId);
 }
 
-export async function draftPost(postId: number, defaultProject: Tournament) {
+export async function draftPost(postId: number) {
   await ServerPostsApi.makeDraft(postId);
-
-  if (defaultProject.type === TournamentType.Community) {
-    return redirect(
-      `/c/${defaultProject.slug}/settings/?mode=questions&status=pending`
-    );
-  }
-
-  return redirect("/questions/?status=pending");
+  revalidatePath(`/questions/${postId}`);
 }
 
 export async function submitPostForReview(postId: number) {
@@ -308,7 +300,7 @@ export async function changePostActivityBoost(
 
 export async function removeRelatedArticle(articleId: number) {
   await ServerPostsApi.removeRelatedArticle(articleId);
-  revalidateTag("related-articles");
+  revalidateTag("related-articles", "max");
 }
 
 export async function changePostSubscriptions(
@@ -368,6 +360,33 @@ export async function deleteCoherenceLink(link: CoherenceLink) {
     return {
       errors: ApiError.isApiError(err) ? err.data : undefined,
     };
+  }
+}
+
+export async function updateCoherenceLink(
+  id: number,
+  direction: number,
+  strength: number
+): Promise<null | ErrorResponse> {
+  try {
+    await CoherenceLinksApiClass.updateCoherenceLink(id, {
+      direction,
+      strength,
+    });
+    return null;
+  } catch (err) {
+    return ApiError.isApiError(err) ? err.data : {};
+  }
+}
+
+export async function swapCoherenceLink(
+  id: number
+): Promise<null | ErrorResponse> {
+  try {
+    await CoherenceLinksApiClass.updateCoherenceLink(id, { swap: true });
+    return null;
+  } catch (err) {
+    return ApiError.isApiError(err) ? err.data : {};
   }
 }
 

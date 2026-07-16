@@ -52,3 +52,10 @@ export type PaginatedPayload<T> = {
   previous: string | null;
   results: T[];
 };
+
+export type CountlessPaginatedPayload<T> = Omit<
+  PaginatedPayload<T>,
+  "count"
+> & {
+  count?: number;
+};

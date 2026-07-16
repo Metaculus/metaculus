@@ -54,7 +54,10 @@ const ProjectLeaderboardClient = ({
   const hasMultipleLeaderboards = leaderboards.length > 1;
 
   const advancedToggleElement = (
-    <div className="ml-auto flex items-center gap-2">
+    <div
+      className="ml-auto flex items-center gap-2"
+      onClick={(e) => e.stopPropagation()}
+    >
       <span className="text-sm">{t("advanced")}</span>
       <Switch
         as="div"

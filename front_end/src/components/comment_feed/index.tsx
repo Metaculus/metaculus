@@ -8,7 +8,10 @@ import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
-import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
+import {
+  findById,
+  useCommentsFeed,
+} from "@/app/(main)/components/comments_feed_provider";
 import {
   commentTogglePin,
   markPostAsRead,
@@ -28,7 +31,6 @@ import ClientCommentsApi from "@/services/api/comments/comments.client";
 import { getCommentsParams } from "@/services/api/comments/comments.shared";
 import { CommentType } from "@/types/comment";
 import { PostStatus, PostWithForecasts } from "@/types/post";
-import { getCommentIdToFocusOn } from "@/utils/comments";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 import { getQuestionStatus } from "@/utils/questions/helpers";
@@ -119,10 +121,13 @@ const CommentFeed: FC<Props> = ({
   const [userKeyFactorsComment, setUserKeyFactorsComment] =
     useState<CommentType | null>(null);
 
+  const [lastViewedAt, setLastViewedAt] = useState<string | undefined>(
+    postData?.last_viewed_at
+  );
+
   const [feedFilters, setFeedFilters] = useState<getCommentsParams>(() => ({
     is_private: false,
     sort: "-created_at",
-    focus_comment_id: getCommentIdToFocusOn() || undefined,
   }));
 
   const {
@@ -135,7 +140,38 @@ const CommentFeed: FC<Props> = ({
     totalCount,
     fetchComments,
     fetchTotalCount,
+    fetchFocusedCommentThread,
   } = useCommentsFeed();
+
+  const [linkedFocusedThread, setLinkedFocusedThread] = useState<{
+    focusedId: number;
+    thread: CommentType;
+  } | null>(null);
+  const [isLinkedLoading, setIsLinkedLoading] = useState(false);
+  const linkedRequestRef = useRef(0);
+
+  const clearLinkedFocusedThread = useCallback(() => {
+    linkedRequestRef.current += 1; // invalidate any in-flight fetch
+    setIsLinkedLoading(false);
+    setLinkedFocusedThread(null);
+  }, []);
+
+  const loadLinkedFocusedThread = useCallback(
+    async (id: number) => {
+      const requestId = (linkedRequestRef.current += 1);
+      setIsLinkedLoading(true);
+      try {
+        const thread = await fetchFocusedCommentThread(id);
+        if (requestId !== linkedRequestRef.current) return; // superseded — discard
+        setLinkedFocusedThread(thread ? { focusedId: id, thread } : null);
+      } finally {
+        if (requestId === linkedRequestRef.current) {
+          setIsLinkedLoading(false);
+        }
+      }
+    },
+    [fetchFocusedCommentThread]
+  );
   const postId = postData?.id;
   const includeUserForecast = shouldIncludeForecast(postData);
 
@@ -171,8 +207,6 @@ const CommentFeed: FC<Props> = ({
       setOffset(0);
       setFeedFilters({
         ...feedFilters,
-        // We want to reset focus comment in case of filters change
-        focus_comment_id: undefined,
         [key]: value,
       });
     },
@@ -183,42 +217,52 @@ const CommentFeed: FC<Props> = ({
 
   // Track #comment-id and #comments hash changes to load & focus on target comment
   useEffect(() => {
-    if (hash) {
-      const focus_comment_id = getCommentIdToFocusOn();
-      if (
-        focus_comment_id &&
-        // Ensure we don't make duplicated calls
-        focus_comment_id != feedFilters.focus_comment_id
-      ) {
-        setOffset(0);
-        setFeedFilters({
-          ...feedFilters,
-          focus_comment_id,
-        });
-      } else if (hash === "comments" && isFirstRender.current && !isLoading) {
-        isFirstRender.current = false;
-        // same workaround as in comment.tsx
-        const timeoutId = setTimeout(() => {
-          if (commentsRef.current) {
-            scrollTo(commentsRef.current.getBoundingClientRect().top);
-          }
-        }, 1000);
+    if (isLoading) return;
+    if (!hash) {
+      clearLinkedFocusedThread();
+      return;
+    }
 
-        return () => {
-          clearTimeout(timeoutId);
-        };
+    const match = hash.match(/comment-(\d+)/);
+    if (match?.[1]) {
+      const numericId = Number(match[1]);
+      if (Number.isNaN(numericId)) {
+        clearLinkedFocusedThread();
+        return;
       }
+
+      // Comment already in the natural feed — comment.tsx handles scrolling.
+      if (findById(comments, numericId)) {
+        clearLinkedFocusedThread();
+        return;
+      }
+
+      if (linkedFocusedThread?.focusedId === numericId) {
+        return;
+      }
+
+      void loadLinkedFocusedThread(numericId);
+    } else if (hash === "comments" && isFirstRender.current) {
+      isFirstRender.current = false;
+      // same workaround as in comment.tsx
+      const timeoutId = setTimeout(() => {
+        if (commentsRef.current) {
+          scrollTo(commentsRef.current.getBoundingClientRect().top);
+        }
+      }, 1000);
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
+    } else {
+      clearLinkedFocusedThread();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hash, isLoading]);
+  }, [hash, isLoading, comments]);
 
-  // Handling filters change
+  // Handling filters change — always fetch from offset 0 and replace
   useEffect(() => {
-    const finalFilters = {
-      ...feedFilters,
-      offset,
-    };
-    void fetchComments(true, finalFilters);
+    void fetchComments(false, { ...feedFilters });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feedFilters]);
 
@@ -290,8 +334,8 @@ const CommentFeed: FC<Props> = ({
 
   const getUnreadCount = useCallback(
     (comments: CommentType[]): number => {
-      if (!postData?.last_viewed_at) return 0;
-      const lastViewedDate = new Date(postData.last_viewed_at);
+      if (!lastViewedAt) return 0;
+      const lastViewedDate = new Date(lastViewedAt);
 
       let unreadCount = 0;
       const countUnread = (comment: CommentType) => {
@@ -305,7 +349,7 @@ const CommentFeed: FC<Props> = ({
       comments.forEach(countUnread);
       return unreadCount;
     },
-    [postData?.last_viewed_at]
+    [lastViewedAt]
   );
 
   const handleCommentPin = useCallback(
@@ -333,6 +377,7 @@ const CommentFeed: FC<Props> = ({
 
   const onNewComment = (newComment: CommentType) => {
     setComments([newComment, ...comments]);
+    setLastViewedAt(newComment.created_at);
 
     fetchTotalCount({
       is_private: feedFilters.is_private,
@@ -348,6 +393,11 @@ const CommentFeed: FC<Props> = ({
       setUserKeyFactorsComment(newComment);
     }
   };
+
+  const showBotPrivacyToggle = !profileId && !!user?.is_bot;
+  const showWelcomePrompt = !!postId && showWelcomeMessage && !user?.is_bot;
+  const showCommentHeader =
+    !compactVersion && (showTitle || showBotPrivacyToggle || showWelcomePrompt);
 
   return (
     <DefaultUserMentionsContextProvider
@@ -369,7 +419,7 @@ const CommentFeed: FC<Props> = ({
           compactVersion && "p-0 xs:p-0"
         )}
       >
-        {!compactVersion && (
+        {showCommentHeader && (
           <div className="mb-4 mt-2 flex flex-col items-start gap-3">
             <div
               className={cn(
@@ -409,6 +459,33 @@ const CommentFeed: FC<Props> = ({
             )}
           </div>
         )}
+        {!compactVersion && (
+          <div className="mb-4 flex flex-row items-center justify-start gap-1 md:mb-5">
+            <span className="text-sm font-medium leading-5 text-gray-600 dark:text-gray-600-dark">
+              {totalCount ? `${totalCount} ` : ""}
+              {t("commentsWithCount", { count: totalCount })}
+              {lastViewedAt && (
+                <>
+                  {getUnreadCount(comments) > 0 && (
+                    <span className="ml-1 font-bold text-purple-700 dark:text-purple-700-dark">
+                      ({getUnreadCount(comments)} {t("unread")})
+                    </span>
+                  )}
+                </>
+              )}
+            </span>
+            <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
+              <Button
+                variant="text"
+                className="py-0 text-sm font-medium capitalize leading-5 text-blue-800 dark:text-blue-800-dark"
+              >
+                {menuItems.find((item) => item.id === feedFilters.sort)?.name ??
+                  "sort"}
+                <FontAwesomeIcon icon={faChevronDown} />
+              </Button>
+            </DropdownMenu>
+          </div>
+        )}
         {!compactVersion && postId && !user?.is_bot && (
           <>
             {showWelcomeMessage && !getIsMessagePreviouslyClosed() ? null : (
@@ -427,44 +504,24 @@ const CommentFeed: FC<Props> = ({
             )}
           </>
         )}
-
-        <div className="mb-1 mt-3 flex flex-row items-center justify-start gap-1">
-          <span className="text-sm text-gray-600 dark:text-gray-600-dark">
-            {totalCount ? `${totalCount} ` : ""}
-            {t("commentsWithCount", { count: totalCount })}
-            {postData?.last_viewed_at && (
-              <>
-                {getUnreadCount(comments) > 0 && (
-                  <span className="ml-1 font-bold text-purple-700 dark:text-purple-700-dark">
-                    ({getUnreadCount(comments)} {t("unread")})
-                  </span>
-                )}
-              </>
-            )}
-          </span>
-          <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
-            <Button variant="text" className="capitalize">
-              {menuItems.find((item) => item.id === feedFilters.sort)?.name ??
-                "sort"}
-              <FontAwesomeIcon icon={faChevronDown} />
-            </Button>
-          </DropdownMenu>
+        <div className="mt-4 flex flex-col gap-4 md:mt-5 md:gap-5">
+          {comments.map((comment: CommentType) => (
+            <CommentWrapper
+              key={comment.id}
+              comment={comment}
+              handleCommentPin={handleCommentPin}
+              profileId={profileId}
+              last_viewed_at={lastViewedAt}
+              postData={postData}
+              onReplyCreated={setLastViewedAt}
+              suggestKeyFactorsOnFirstRender={
+                // This is the newly added comment, so we want to suggest key factors
+                comment.id === userKeyFactorsComment?.id
+              }
+              shouldSuggestKeyFactors={shouldSuggestKeyFactors}
+            />
+          ))}
         </div>
-        {comments.map((comment: CommentType) => (
-          <CommentWrapper
-            key={comment.id}
-            comment={comment}
-            handleCommentPin={handleCommentPin}
-            profileId={profileId}
-            last_viewed_at={postData?.last_viewed_at}
-            postData={postData}
-            suggestKeyFactorsOnFirstRender={
-              // This is the newly added comment, so we want to suggest key factors
-              comment.id === userKeyFactorsComment?.id
-            }
-            shouldSuggestKeyFactors={shouldSuggestKeyFactors}
-          />
-        ))}
         {comments.length === 0 && !isLoading && (
           <>
             <hr className="my-4" />
@@ -483,6 +540,30 @@ const CommentFeed: FC<Props> = ({
             >
               {t("loadMoreComments")}
             </Button>
+          </div>
+        )}
+        {(linkedFocusedThread || isLinkedLoading) && (
+          <div className="mt-6 flex flex-col gap-2">
+            <div className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-600-dark">
+              <hr className="flex-1 border-gray-300 dark:border-gray-300-dark" />
+              <span>{t("linkedComment")}</span>
+              <hr className="flex-1 border-gray-300 dark:border-gray-300-dark" />
+            </div>
+            {isLinkedLoading && (
+              <LoadingIndicator className="mx-auto my-4 w-24" />
+            )}
+            {!isLinkedLoading && linkedFocusedThread && (
+              <CommentWrapper
+                key={`linked-${linkedFocusedThread.thread.id}`}
+                comment={linkedFocusedThread.thread}
+                handleCommentPin={handleCommentPin}
+                profileId={profileId}
+                last_viewed_at={lastViewedAt}
+                postData={postData}
+                onReplyCreated={setLastViewedAt}
+                shouldSuggestKeyFactors={shouldSuggestKeyFactors}
+              />
+            )}
           </div>
         )}
       </section>

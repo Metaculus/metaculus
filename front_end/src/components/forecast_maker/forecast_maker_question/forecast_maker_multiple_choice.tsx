@@ -45,6 +45,7 @@ import {
   getAllOptionsHistory,
   getUpcomingOptions,
 } from "@/utils/questions/helpers";
+import { isQuestionPrePrediction } from "@/utils/questions/predictions";
 
 import {
   BINARY_FORECAST_PRECISION,
@@ -60,6 +61,7 @@ import {
   ForecastExpirationModal,
   forecastExpirationToDate,
   ForecastExpirationValue,
+  getExpirationBaseDate,
   useExpirationModalState,
 } from "../forecast_expiration";
 import PredictButton from "../predict_button";
@@ -153,6 +155,7 @@ type Props = {
   post: PostWithForecasts;
   question: QuestionWithMultipleChoiceForecasts;
   canPredict: boolean;
+  predictLabel: string;
   predictionMessage: ReactNode;
   onPredictionSubmit?: () => void;
 };
@@ -161,6 +164,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   post,
   question,
   canPredict,
+  predictLabel,
   predictionMessage,
   onPredictionSubmit,
 }) => {
@@ -192,7 +196,9 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
   const expirationState = useExpirationModalState(
     questionDuration,
-    question.my_forecasts?.latest
+    question.my_forecasts?.latest,
+    isQuestionPrePrediction(question),
+    question.scheduled_close_time
   );
 
   const {
@@ -470,7 +476,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         {
           questionId: question.id,
           forecastEndTime: forecastExpirationToDate(
-            forecastExpiration ?? modalSavedState.forecastExpiration
+            forecastExpiration ?? modalSavedState.forecastExpiration,
+            getExpirationBaseDate(question)
           ),
           forecastData: {
             continuousCdf: null,
@@ -536,6 +543,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         isUserForecastActive={isOpenQuestionPredicted(question)}
         isSubmissionDisabled={!isForecastValid}
         onSubmit={submit}
+        predictLabel={predictLabel}
       />
       {showOverlay && (
         <NewOptionCallout
@@ -674,6 +682,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
                 isUserForecastActive={isOpenQuestionPredicted(question)}
                 isPending={isPending}
                 isDisabled={!isForecastValid}
+                predictLabel={predictLabel}
                 predictionExpirationChip={expirationShortChip}
                 onPredictionExpirationClick={() =>
                   setIsForecastExpirationModalOpen(true)

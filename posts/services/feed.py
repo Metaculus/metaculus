@@ -21,7 +21,7 @@ from utils.models import build_order_by
 from utils.serializers import parse_order_by
 
 
-def get_posts_feed(
+def get_posts_feed(  # noqa: C901
     qs: Post.objects = None,
     user: User = None,
     search: str = None,
@@ -48,6 +48,7 @@ def get_posts_feed(
     show_on_homepage: bool = None,
     following: bool = None,
     upvoted_by: int = None,
+    commented_by: int = None,
     **kwargs,
 ) -> Post.objects:
     """
@@ -59,6 +60,9 @@ def get_posts_feed(
         raise PermissionDenied()
 
     if not_forecaster_id and (not user or not_forecaster_id != user.id):
+        raise PermissionDenied()
+
+    if commented_by and (not user or commented_by != user.id):
         raise PermissionDenied()
 
     if qs is None:
@@ -217,6 +221,9 @@ def get_posts_feed(
             votes__direction=Vote.VoteDirection.UP,
         )
 
+    if commented_by:
+        qs = qs.filter_user_has_commented(commented_by)
+
     # Followed posts
     if user and user.is_authenticated and following:
         qs = qs.annotate_user_is_following(user=user).filter(user_is_following=True)
@@ -226,6 +233,8 @@ def get_posts_feed(
         qs = qs.filter_private()
     if access == PostFilterSerializer.Access.PUBLIC:
         qs = qs.filter_public()
+    if access == PostFilterSerializer.Access.PERSONAL:
+        qs = qs.filter_personal()
 
     # Similar posts lookup
     if similar_to_post_id:

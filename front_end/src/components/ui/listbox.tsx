@@ -1,3 +1,5 @@
+"use client";
+
 import { faCheck, faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -49,6 +51,7 @@ type Props<T> = {
   renderInPortal?: boolean;
   preventParentScroll?: boolean;
   menuMinWidthMatchesButton?: boolean;
+  menuFitContent?: boolean;
   onOpenChange?: (open: boolean) => void;
 } & (SingleSelectProps<T> | MultiSelectProps<T>);
 
@@ -66,6 +69,7 @@ const Listbox = <T extends string>(props: Props<T>) => {
     renderInPortal = false,
     preventParentScroll = false,
     menuMinWidthMatchesButton = true,
+    menuFitContent = false,
   } = props;
 
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -106,7 +110,9 @@ const Listbox = <T extends string>(props: Props<T>) => {
             })}
           >
             <FontAwesomeIcon icon={faChevronDown} />
-            <span className="align-middle">{label ?? activeLabel}</span>
+            <span className="whitespace-nowrap align-middle">
+              {label ?? activeLabel}
+            </span>
           </ListboxButton>
 
           {!renderInPortal && (
@@ -129,7 +135,10 @@ const Listbox = <T extends string>(props: Props<T>) => {
                   {({ focus, selected }) => (
                     <button
                       className={cn(
-                        "flex h-10 w-full items-center justify-end gap-1 whitespace-nowrap px-3 text-right text-sm",
+                        "flex h-10 w-full items-center gap-1 whitespace-nowrap px-3 text-sm",
+                        menuPosition === "left"
+                          ? "justify-start text-left"
+                          : "justify-end text-right",
                         {
                           "bg-gray-200 dark:bg-gray-200-dark": focus,
                           "font-bold": selected,
@@ -158,6 +167,8 @@ const Listbox = <T extends string>(props: Props<T>) => {
               renderInPortal
               preventParentScroll={preventParentScroll}
               menuMinWidthMatchesButton={menuMinWidthMatchesButton}
+              menuFitContent={menuFitContent}
+              menuPosition={menuPosition}
               optionsClassName={optionsClassName}
               buttonRef={buttonRef}
               options={options}
@@ -184,6 +195,8 @@ type FloatingMenuProps<T> = {
   renderInPortal: boolean;
   preventParentScroll: boolean;
   menuMinWidthMatchesButton: boolean;
+  menuFitContent: boolean;
+  menuPosition?: "left" | "right";
   optionsClassName?: string;
   buttonRef: React.RefObject<HTMLButtonElement | null>;
   options: SelectOption<T>[];
@@ -196,6 +209,8 @@ function FloatingMenu<T extends string>({
   renderInPortal,
   preventParentScroll,
   menuMinWidthMatchesButton,
+  menuFitContent,
+  menuPosition = "right",
   optionsClassName,
   buttonRef,
   options,
@@ -204,6 +219,7 @@ function FloatingMenu<T extends string>({
 }: FloatingMenuProps<T>) {
   const [rect, setRect] = useState<DOMRect | null>(null);
   const [flipUp, setFlipUp] = useState(false);
+  const menuGap = 4;
 
   const updateRect = useCallback(() => {
     if (!buttonRef.current) return;
@@ -230,6 +246,7 @@ function FloatingMenu<T extends string>({
     <ListboxOptions
       className={cn(
         "divide-y divide-gray-300 rounded border border-gray-300 bg-gray-0 shadow-lg outline-none dark:divide-gray-300-dark dark:border-gray-300-dark dark:bg-gray-0-dark",
+        menuFitContent && "no-scrollbar",
         optionsClassName
       )}
       style={
@@ -237,14 +254,21 @@ function FloatingMenu<T extends string>({
           ? undefined
           : {
               position: "fixed",
-              left: rect?.left,
-              top: !flipUp ? rect?.bottom : undefined,
+              left: menuPosition === "right" ? undefined : rect?.left,
+              right:
+                menuPosition === "right" && rect
+                  ? Math.max(8, window.innerWidth - rect.right)
+                  : undefined,
+              top: !flipUp && rect ? rect.bottom + menuGap : undefined,
               bottom: flipUp
-                ? window.innerHeight - (rect?.top ?? 0)
+                ? window.innerHeight - (rect?.top ?? 0) + menuGap
                 : undefined,
               minWidth: menuMinWidthMatchesButton ? rect?.width : undefined,
               maxWidth: "min(420px, 100vw - 16px)",
-              overflowY: "auto",
+              ...(!menuFitContent && {
+                maxHeight: "min(320px, 50vh)",
+                overflowY: "auto" as const,
+              }),
               zIndex: 10000,
             }
       }
@@ -260,7 +284,10 @@ function FloatingMenu<T extends string>({
           {({ focus, selected }) => (
             <button
               className={cn(
-                "flex h-10 w-full items-center justify-end gap-1 whitespace-nowrap px-3 text-right text-sm",
+                "flex h-10 w-full items-center gap-1 whitespace-nowrap px-3 text-sm",
+                menuPosition === "left"
+                  ? "justify-start text-left"
+                  : "justify-end text-right",
                 {
                   "bg-gray-200 dark:bg-gray-200-dark": focus,
                   "font-bold": selected,

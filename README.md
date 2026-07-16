@@ -16,7 +16,7 @@ Feel free to suggest your own changes and ideas as an issue. We'll discuss it an
 
 # Setup
 
-To run this project locally, you'll need python, uv, django, postgres, redis, and npm/node. This will be a
+To run this project locally, you'll need python, uv, django, postgres, redis, Bun, and Node.js. This will be a
 quick rundown of the setup process.
 (Note: all commands written for a unix bash shell)
 
@@ -114,8 +114,8 @@ Then install the python dependencies (uv will automatically download the correct
 uv sync
 ```
 
-## Nvm/Node & Frontend
-You'll need node to build the frontend. We use nvm for managing node versions. 
+## Node, Bun & Frontend
+You'll need Node.js for runtime compatibility and Bun for frontend package management. We use nvm for managing node versions.
 Install nvm with:
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
@@ -128,11 +128,18 @@ nvm install
 nvm use
 ```
 This will automatically use the version specified in `front_end/.nvmrc` (currently 24.12.0).
+Then install Bun:
+```bash
+curl -fsSL https://bun.com/install | bash
+```
+
+Or `brew tap oven-sh/bun && brew install bun` on Mac.
+
 To install the frontend dependencies, run in the `front_end` directory:
 ```bash
-npm install
+bun install
 ```
-Note: you always have to switch to the `front_end` directory to run the npm commands as they are all nested there.
+Note: you always have to switch to the `front_end` directory to run the Bun commands as they are all nested there.
 
 ## Running the server
 The first time you're booting up the server, make sure postgres is running (`sudo service postgresql start`), then you'll need to run the migrations and collect static files. Start by navigating to the root directory.
@@ -154,7 +161,7 @@ Running the front end is pretty easy. Note that you'll have to navigate to the `
 ```bash
 cd front_end
 nvm use # Uses the version specified in .nvmrc
-npm run dev
+bun run dev
 ```
 
 ## Running the task broker
@@ -176,7 +183,7 @@ ensure the HTML updates automatically after changes:
 1. **Install MJML Dependencies**\
    Use the following command to globally install MJML and related dependencies:
    ```bash
-   npm install -g mjml mjml-column
+   bun add -g mjml mjml-column
 	```
 2. **Compose MJML Templates**\
    Run the following command to process and update the MJML templates:
@@ -216,8 +223,6 @@ If you get an error that the playwright executable doesn't exist, run `uv run pl
 (TODO: add front end testing)
 When contributing to the project, adding tests is highly encouraged and will increase the likelihood of your PR being merged.
 
-## Linting
-We use Husky to run linter and typescript checks before committing (see `front_end/.husky`).
 
 ## Restricted Dev Access
 To enable restricted Dev access, you need to add `ALPHA_ACCESS_TOKEN=<token>` as an env variable for both the BE and the FE (both the FE server & the env where the FE is compiled, which should be the same in most cases)
@@ -230,7 +235,8 @@ By default, we use the Mailgun provider.
 `.env` Configuration:
 - `MAILGUN_API_KEY`
 - `EMAIL_HOST_USER`
-- `EMAIL_NOTIFICATIONS_USER`
+- `EMAIL_NOTIFICATIONS_SENDER`
+- `EMAIL_ACCOUNTS_SENDER`
 
 
 # Bug Bounty

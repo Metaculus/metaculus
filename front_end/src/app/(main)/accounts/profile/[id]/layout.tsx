@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { FC, PropsWithChildren } from "react";
 import { remark } from "remark";
@@ -11,8 +11,10 @@ import UserInfo from "@/app/(main)/accounts/profile/components/user_info";
 import Button from "@/components/ui/button";
 import { defaultDescription } from "@/constants/metadata";
 import ServerProfileApi from "@/services/api/profile/profile.server";
-import { UserProfile } from "@/types/users";
+import { UserProfileWithStats } from "@/types/users";
 import cn from "@/utils/core/cn";
+
+const isNumericId = (value: string) => /^\d+$/.test(value);
 
 const SoftDeleteButton = dynamic(
   () => import("../components/soft_delete_button")
@@ -25,6 +27,9 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
+  if (!isNumericId(params.id)) {
+    return {};
+  }
   const profile = await ServerProfileApi.getProfileById(+params.id);
 
   if (!profile) {
@@ -40,13 +45,25 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
 export default async function ProfileLayout(props: Props) {
   const params = await props.params;
+  if (!isNumericId(params.id)) {
+    const lookup = await ServerProfileApi.getProfileIdByUsername(params.id);
+    if (!lookup) {
+      return notFound();
+    }
+    redirect(`/accounts/profile/${lookup.id}/`);
+  }
   const id = +params.id;
   const { children } = props;
 
   const currentUser = await ServerProfileApi.getMyProfile();
   const isCurrentUser = currentUser?.id === id;
 
-  let profile: UserProfile = await ServerProfileApi.getProfileById(id);
+  let profile: UserProfileWithStats = await ServerProfileApi.getProfileById(
+    id,
+    {
+      includeStats: true,
+    }
+  );
 
   if (!profile) {
     return notFound();

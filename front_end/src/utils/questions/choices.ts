@@ -172,6 +172,7 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
         : isUpcoming
           ? choice + " (" + t("Upcoming") + ")"
           : choice,
+      isDeleted,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       highlighted: false,
       active: true,
@@ -399,6 +400,9 @@ export function generateChoiceItemsFromGroupQuestions(
       aggregationMinValues: aggregationMinValues,
       aggregationMaxValues: aggregationMaxValues,
       aggregationForecasterCounts: aggregationForecasterCounts,
+      latestValue:
+        question.aggregations[question.default_aggregation_method].latest
+          ?.centers?.[0] ?? null,
       userTimestamps: sortedUserTimestamps,
       userValues: userValues,
       userMinValues:

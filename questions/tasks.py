@@ -2,7 +2,6 @@ import logging
 from datetime import datetime, timedelta, timezone as dt_timezone
 
 import dramatiq
-from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 
@@ -27,7 +26,7 @@ from scoring.constants import ScoreTypes
 from scoring.utils import score_question
 from users.models import User
 from utils.dramatiq import concurrency_retries, task_concurrent_limit
-from utils.email import send_email_with_template
+from utils.email import send_notification_email_with_template
 from utils.frontend import build_frontend_account_settings_url, build_post_url
 
 
@@ -170,8 +169,14 @@ def check_and_schedule_forecast_widrawal_due_notifications():
 
     forecast_already_withdrawn = Q(forecast__end_time__lt=now)
 
+    # Inactive users only receive account-related emails
+    user_is_inactive = Q(user__is_active=False)
+
     all_notifications = UserForecastNotification.objects.filter(due_and_unsent).exclude(
-        user_is_unsubscribed | question_is_closed | forecast_already_withdrawn
+        user_is_unsubscribed
+        | user_is_inactive
+        | question_is_closed
+        | forecast_already_withdrawn
     )
 
     # Group notifications by user and post
@@ -311,6 +316,8 @@ def multiple_choice_delete_option_notifications(
 
     forecasters = (
         question.get_forecasters()
+        # Inactive users only receive account-related emails
+        .filter(is_active=True)
         .exclude(
             unsubscribed_mailing_tags__contains=[
                 MailingTags.BEFORE_PREDICTION_AUTO_WITHDRAWAL  # seems most reasonable
@@ -322,7 +329,7 @@ def multiple_choice_delete_option_notifications(
         .order_by("id")
     )
     # send out an immediate email
-    send_email_with_template(
+    send_notification_email_with_template(
         to=[forecaster.email for forecaster in forecasters],
         subject=f"Multiple choice option{'s' if len(removed_options) > 1 else ''} "
         f"removed for {post.title}",
@@ -339,7 +346,6 @@ def multiple_choice_delete_option_notifications(
             },
         },
         use_async=False,
-        from_email=settings.EMAIL_NOTIFICATIONS_USER,
     )
 
 
@@ -407,7 +413,9 @@ def multiple_choice_add_option_notifications(
         User.objects.filter(
             forecast__in=question.user_forecasts.filter(
                 end_time=grace_period_end
-            )  # all effected forecasts have their end_time set to grace_period_end
+            ),  # all effected forecasts have their end_time set to grace_period_end
+            # Inactive users only receive account-related emails
+            is_active=True,
         )
         .exclude(
             unsubscribed_mailing_tags__contains=[
@@ -420,7 +428,7 @@ def multiple_choice_add_option_notifications(
         .order_by("id")
     )
     # send out an immediate email
-    send_email_with_template(
+    send_notification_email_with_template(
         to=[forecaster.email for forecaster in forecasters],
         subject=f"Multiple choice option{'s' if len(added_options) > 1 else ''} "
         f"added for {post.title}",
@@ -437,7 +445,6 @@ def multiple_choice_add_option_notifications(
             },
         },
         use_async=False,
-        from_email=settings.EMAIL_NOTIFICATIONS_USER,
     )
 
     # schedule a followup email for 1 day before grace period
