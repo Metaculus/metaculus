@@ -435,6 +435,7 @@ def hello_world():
       <ul className="ml-5 list-disc">
         <li>afdc.energy.gov</li>
         <li>data.worldbank.org</li>
+        <li>finance.yahoo.com</li>
         <li>fred.stlouisfed.org</li>
         <li>ourworldindata.org</li>
         <li>www.eia.gov</li>

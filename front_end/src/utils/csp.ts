@@ -60,7 +60,7 @@ export function buildCsp(nonce: string): string {
       // non-prod hosts; challenges.cloudflare.com - Turnstile captcha
       `frame-src 'self' https://www.metaculus.com https://challenges.cloudflare.com`,
       // documented markdown iframe allowlist (see /help/markdown/)
-      `https://afdc.energy.gov https://data.worldbank.org https://fred.stlouisfed.org https://ourworldindata.org https://www.eia.gov`,
+      `https://afdc.energy.gov https://data.worldbank.org https://finance.yahoo.com https://fred.stlouisfed.org https://ourworldindata.org https://www.eia.gov`,
     ].join(" "),
     `frame-ancestors 'self'`,
     `base-uri 'self'`,
