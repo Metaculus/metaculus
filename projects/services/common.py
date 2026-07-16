@@ -233,8 +233,7 @@ def _calculate_timeline_data(project: Project, questions: Iterable[Question]) ->
                 or close_time > project_forecasting_end_date
             )
 
-        # spot_scoring_time defaults to cp_reveal_time when unset (see Question model)
-        spot_scoring_time = question.spot_scoring_time or question.cp_reveal_time
+        spot_scoring_time = question.get_spot_scoring_time()
         if spot_scoring_time:
             spot_scoring_times.append(spot_scoring_time)
 
