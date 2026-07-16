@@ -7,6 +7,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -269,11 +270,20 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
     handleForecastExpiration(option.id, modalSavedState.forecastExpiration);
   }, [handleForecastExpiration, option.id, modalSavedState.forecastExpiration]);
 
+  const skipModeSyncRef = useRef(false);
+
   const handleClipboardPaste = useCallback(
     (
       type: ContinuousForecastInputType,
       components: DistributionSliderComponent[] | DistributionQuantileComponent
     ) => {
+      // Only skip the mode-sync effect if this paste actually changes the
+      // mode — if it fires while already on the target mode, the effect
+      // never runs to consume the flag, and it would wrongly suppress the
+      // next genuine manual mode toggle.
+      if (type !== forecastInputMode) {
+        skipModeSyncRef.current = true;
+      }
       if (type === ContinuousForecastInputType.Slider) {
         handleChange(option.id, {
           type: ContinuousForecastInputType.Slider,
@@ -290,7 +300,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
       }
       setForecastInputMode(type);
     },
-    [handleChange, option.id, setForecastInputMode]
+    [handleChange, option.id, setForecastInputMode, forecastInputMode]
   );
 
   let SubmitControls: ReactNode = null;
@@ -462,6 +472,7 @@ const ContinuousInputWrapper: FC<PropsWithChildren<Props>> = ({
             quantileComponents: option.userQuantileForecast,
             onPaste: handleClipboardPaste,
           }}
+          skipModeSyncRef={skipModeSyncRef}
           userPreviousLabel={showWithdrawnRow ? "(Withdrawn)" : undefined}
           userPreviousRowClassName={showWithdrawnRow ? "text-xs" : undefined}
           hideCurrentUserRow={showWithdrawnRow}

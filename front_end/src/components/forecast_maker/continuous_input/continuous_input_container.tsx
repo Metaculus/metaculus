@@ -15,6 +15,7 @@ import {
   NumericUserForecast,
   DistributionSliderComponent,
   DistributionQuantileComponent,
+  Scaling,
 } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
@@ -33,11 +34,12 @@ export type ContinuousInputContainerProps = {
   clipboardData?: {
     sliderComponents: DistributionSliderComponent[];
     quantileComponents: DistributionQuantileComponent;
+    scaling: Scaling;
+    openLowerBound: boolean;
+    openUpperBound: boolean;
     onPaste: (
       type: ContinuousForecastInputType,
-      components:
-        | DistributionSliderComponent[]
-        | DistributionQuantileComponent
+      components: DistributionSliderComponent[] | DistributionQuantileComponent
     ) => void;
   };
   children?: (
@@ -151,6 +153,9 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
                     forecastInputMode={forecastInputMode}
                     sliderComponents={clipboardData.sliderComponents}
                     quantileComponents={clipboardData.quantileComponents}
+                    scaling={clipboardData.scaling}
+                    openLowerBound={clipboardData.openLowerBound}
+                    openUpperBound={clipboardData.openUpperBound}
                     onPaste={clipboardData.onPaste}
                     disabled={disabled}
                     containerRef={containerRef}

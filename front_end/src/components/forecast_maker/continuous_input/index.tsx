@@ -57,7 +57,11 @@ type Props = {
   predictionMessage?: ReactNode;
   menu?: ReactNode;
   copyMenu?: ReactNode;
-  clipboardData?: ContinuousInputContainerProps["clipboardData"];
+  clipboardData?: Omit<
+    NonNullable<ContinuousInputContainerProps["clipboardData"]>,
+    "scaling" | "openLowerBound" | "openUpperBound"
+  >;
+  skipModeSyncRef?: React.RefObject<boolean>;
   userPreviousLabel?: string;
   userPreviousRowClassName?: string;
   hideCurrentUserRow?: boolean;
@@ -87,6 +91,7 @@ const ContinuousInput: FC<Props> = ({
   menu,
   copyMenu,
   clipboardData,
+  skipModeSyncRef,
   userPreviousLabel,
   userPreviousRowClassName,
   hideCurrentUserRow,
@@ -104,6 +109,10 @@ const ContinuousInput: FC<Props> = ({
   useEffect(() => {
     if (!isMounted.current) {
       isMounted.current = true;
+      return;
+    }
+    if (skipModeSyncRef?.current) {
+      skipModeSyncRef.current = false;
       return;
     }
     if (
@@ -147,7 +156,16 @@ const ContinuousInput: FC<Props> = ({
       previousForecast={previousForecast}
       menu={menu}
       copyMenu={copyMenu}
-      clipboardData={clipboardData}
+      clipboardData={
+        clipboardData
+          ? {
+              ...clipboardData,
+              scaling: question.scaling,
+              openLowerBound: !!question.open_lower_bound,
+              openUpperBound: !!question.open_upper_bound,
+            }
+          : undefined
+      }
       disabled={disabled || disableInputModeSwitch}
       questionType={question.type}
     >
