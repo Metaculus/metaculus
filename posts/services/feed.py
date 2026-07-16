@@ -13,6 +13,7 @@ from posts.services.search import (
     posts_full_text_search,
 )
 from projects.models import Project
+from projects.services.common import get_site_main_project
 from questions.models import Question
 from users.models import User
 from utils.cache import cache_get_or_set
@@ -140,7 +141,17 @@ def get_posts_feed(  # noqa: C901
 
     for status in statuses:
         if status in Post.CurationStatus:
-            post_status_q |= Q(curation_status=status)
+            status_q = Q(curation_status=status)
+            # Main-feed pending queue should only include posts attached to site_main,
+            # not pending posts from tournaments/question series with visibility=NORMAL.
+            if status == Post.CurationStatus.PENDING and for_main_feed:
+                site_main = get_site_main_project()
+                status_q &= Q(default_project=site_main) | Q(
+                    pk__in=Post.projects.through.objects.filter(
+                        project=site_main
+                    ).values("post_id")
+                )
+            post_status_q |= status_q
         if status == "open":
             post_status_q |= Q(
                 Q(published_at__lte=now)
