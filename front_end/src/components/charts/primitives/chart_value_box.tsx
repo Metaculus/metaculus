@@ -182,6 +182,8 @@ const ChartValueBox: FC<{
   isDistributionChip?: boolean;
   questionType?: QuestionType;
   textAlignToSide?: boolean;
+  // Optional one-word label rendered above the chip.
+  topLabel?: string;
 }> = (props) => {
   const { getThemeColor } = useAppTheme();
   const {
@@ -197,6 +199,7 @@ const ChartValueBox: FC<{
     isDistributionChip,
     questionType,
     textAlignToSide,
+    topLabel,
   } = props;
   const CHIP_OFFSET = !isNil(resolution) ? 8 : 0;
 
@@ -231,8 +234,30 @@ const ChartValueBox: FC<{
     resolveToCssColor(getThemeColor, colorOverride) ??
     getThemeColor(METAC_COLORS.olive["600"]);
 
+  // Optional one-word label above the chip (e.g. MEDIAN / 25TH %).
+  const TOP_LABEL_FONT_SIZE = 10;
+  const TOP_LABEL_GAP = 5;
+  const chipTopY = getRectY(placement, y, isDistributionChip, textAlignToSide);
+  const topLabelCenterY = chipTopY - TOP_LABEL_GAP - TOP_LABEL_FONT_SIZE / 2;
+
   return (
     <g>
+      {!!topLabel && (
+        <text
+          x={adjustedX}
+          y={topLabelCenterY}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fill={getThemeColor(METAC_COLORS.gray["700"])}
+          fontFamily={CHART_FONT_FAMILY}
+          fontWeight="650"
+          letterSpacing="0.02em"
+          fontSize={TOP_LABEL_FONT_SIZE}
+          style={{ textTransform: "uppercase" }}
+        >
+          {topLabel}
+        </text>
+      )}
       {hasResolution && questionType !== QuestionType.Binary && (
         <text
           x={getResolvedX(placement, adjustedX, textAlignToSide)}

@@ -95,13 +95,13 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
               {(!!zoom || !!headerExtra) && (
                 <div
                   className={cn(
-                    "items-center gap-2 self-end",
+                    "ChartZoomControls items-center gap-2 self-end",
                     !!headerExtra ? "flex" : "hidden md:flex",
                     !!headerLeft ? "md:ml-auto" : "ml-auto"
                   )}
                 >
                   {!!zoom && (
-                    <div className="hidden md:flex">
+                    <div className="ChartZoomControls hidden md:flex">
                       <TabGroup
                         selectedIndex={selectedIndex}
                         onChange={handleTabChange}

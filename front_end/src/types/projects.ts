@@ -96,6 +96,7 @@ export type Tournament = TournamentPreview & {
   };
   is_subscribed?: boolean;
   follow_questions?: boolean;
+  has_participated?: boolean;
   add_posts_to_main_feed: boolean;
   visibility: ProjectVisibility;
   default_permission?: ProjectPermissions | null;
