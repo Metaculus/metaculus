@@ -17,36 +17,41 @@ export const JOBS_INSIGHTS = {
   "2030": {
     positive: (
       <>
-        By 2030, roles in <strong>design</strong>, <strong>construction</strong>
-        , and <strong>healthcare</strong> are expected to grow due to demand for
-        specialized human expertise, infrastructure buildouts, an aging
-        population, and legal restrictions unlikely to change in the short-term.
+        By 2030, <strong>nurses</strong>, <strong>construction workers</strong>,
+        and <strong>restaurant servers</strong> are expected to see the largest
+        gains, driven by an aging population, infrastructure buildouts, and
+        continued demand for in-person service that AI is unlikely to displace
+        in the short term.
       </>
     ),
     negative: (
       <>
         By 2030, <strong>software developers</strong>,{" "}
-        <strong>sales representatives</strong>, and <strong>lawyers</strong> are
-        expected to see steep declines, as AI takes over their core tasks.
+        <strong>financial specialists</strong>, and <strong>sales</strong> are
+        expected to see the largest declines as AI absorbs coding, rules-based
+        analysis, and outreach. Software development leads the drop, with rapid
+        AI adoption and no legal protections.
       </>
     ),
   },
   "2035": {
     positive: (
       <>
-        By 2035, <strong>nurses</strong>, <strong>restaurant servers</strong>,
-        and <strong>physicians</strong> are expected to see the highest growth,
-        driven by hands-on needs that cannot be easily automated.
+        By 2035, <strong>nurses</strong> and <strong>physicians</strong> are
+        expected to see the highest growth, driven by high demand from an aging
+        population, while liability concerns and lack of trust in AI limit
+        automation.
       </>
     ),
     negative: (
       <>
-        By 2035, <strong>financial specialists</strong>, <strong>sales</strong>{" "}
-        and <strong>law</strong> are expected to see sharp staff reductions as
-        AI systems take over large portions of financial analysis, outreach, and
-        detailed research work, while <strong>construction workers</strong> see
-        modest gains as robotics have yet to fully displace physical roles by
-        this horizon.
+        By 2035, <strong>financial specialists</strong>,{" "}
+        <strong>lawyers and law clerks</strong>, and{" "}
+        <strong>laborers and movers</strong> are expected to see sharp staff
+        reductions as AI takes over analysis and research work while robotics
+        automates tasks in controlled indoor environments.{" "}
+        <strong>Sales representatives</strong> will also see reductions as AI
+        automates outreach and client work.
       </>
     ),
   },

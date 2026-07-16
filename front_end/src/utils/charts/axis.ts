@@ -539,7 +539,7 @@ export function generateScale({
     displayType === QuestionType.Discrete &&
     direction === ScaleDirection.Horizontal
   ) {
-    // get last label width to determine the number of labels
+    // look at the size of the last two labels to determine the max label count
     const lastLabel = getPredictionDisplayValue(
       1 - 0.5 / inbound_outcome_count,
       {
@@ -553,8 +553,22 @@ export function generateScale({
         discreteValueOptions,
       }
     );
+    const secondLastLabel = getPredictionDisplayValue(
+      1 - 1.5 / inbound_outcome_count,
+      {
+        questionType: displayType as QuestionType,
+        scaling: rangeScaling,
+        precision: 3,
+        actual_resolve_time: null,
+        dateFormatString: shortLabels ? "yyyy" : undefined,
+        adjustLabels,
+        skipQuartilesBorders: false,
+        discreteValueOptions,
+      }
+    );
+    const labelLength = Math.max(secondLastLabel.length, lastLabel.length);
     maxLabelCount = Math.min(
-      lastLabel.length ? axisLength / (12 * lastLabel.length) : 15,
+      labelLength ? axisLength / (12 * labelLength) : 15,
       inbound_outcome_count + openBoundCount
     );
   } else if (axisLength < 100) {

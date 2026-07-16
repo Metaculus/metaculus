@@ -235,7 +235,8 @@ By default, we use the Mailgun provider.
 `.env` Configuration:
 - `MAILGUN_API_KEY`
 - `EMAIL_HOST_USER`
-- `EMAIL_NOTIFICATIONS_USER`
+- `EMAIL_NOTIFICATIONS_SENDER`
+- `EMAIL_ACCOUNTS_SENDER`
 
 
 # Bug Bounty

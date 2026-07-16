@@ -222,7 +222,12 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
       : null;
 
   const horizontalPadding = useMemo(() => {
-    if (alignChartTabs || question.type === QuestionType.Discrete) {
+    const needsDiscreteLabelPadding =
+      question.type === QuestionType.Discrete &&
+      !hideLabels &&
+      !minMaxLabelsOnly;
+
+    if (alignChartTabs || needsDiscreteLabelPadding) {
       const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
       const longestLabelLength = Math.max(
         ...labels.map((label) => label.length)
@@ -233,7 +238,7 @@ const MinifiedContinuousAreaChart: FC<Props> = ({
     }
 
     return HORIZONTAL_PADDING;
-  }, [yScale, question.type, alignChartTabs]);
+  }, [yScale, question.type, alignChartTabs, hideLabels, minMaxLabelsOnly]);
 
   const barWidth = useMemo(() => {
     if (question.type !== QuestionType.Discrete) {

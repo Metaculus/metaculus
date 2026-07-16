@@ -306,6 +306,13 @@ const PaginatedPostsFeed: FC<Props> = ({
   const isFeedLayoutReady = layout !== "grid" || mounted;
   const isConsumerView =
     !user || user.interface_type === InterfaceType.ConsumerView;
+  const usernamesFilter = queryFilters.usernames;
+  const isFilteringOwnAuthored =
+    !!user?.username &&
+    (usernamesFilter === user.username ||
+      (Array.isArray(usernamesFilter) &&
+        usernamesFilter.length === 1 &&
+        usernamesFilter[0] === user.username));
 
   return (
     <>
@@ -313,7 +320,8 @@ const PaginatedPostsFeed: FC<Props> = ({
         {queryFilters.statuses &&
           queryFilters.statuses === "pending" &&
           !isCommunity &&
-          !PUBLIC_MINIMAL_UI && <InReviewBox />}
+          !PUBLIC_MINIMAL_UI &&
+          !isFilteringOwnAuthored && <InReviewBox />}
         {!isPending && !visiblePosts.length && (
           <>
             {isCommunity ? (

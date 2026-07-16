@@ -40,6 +40,7 @@ import Checkbox from "@/components/ui/checkbox";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
+import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useCommentDraft } from "@/hooks/use_comment_draft";
 import useContainerSize from "@/hooks/use_container_size";
@@ -302,6 +303,7 @@ const Comment: FC<CommentProps> = ({
   const { ref, width } = useContainerSize<HTMLDivElement>();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
   const { user } = useAuth();
+  const { setCurrentModal } = useModal();
   const scrollTo = useScrollTo();
   const userCanPredict = postData && canPredictQuestion(postData, user);
   const userForecast =
@@ -636,6 +638,16 @@ const Comment: FC<CommentProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [comment.id]);
 
+  const handleDeleteComment = async () => {
+    const response = await softDeleteComment(comment.id);
+
+    if (response && "errors" in response) {
+      console.error("Error deleting comment:", response.errors);
+    } else {
+      setIsDeleted(true);
+    }
+  };
+
   const menuItems: MenuItemProps[] = [
     {
       hidden: !(user?.id === comment.author.id) || !!user?.is_bot,
@@ -682,19 +694,19 @@ const Comment: FC<CommentProps> = ({
       onClick: () => setIsReportModalOpen(true),
     },
     {
-      hidden: !user?.is_staff,
+      hidden: !(isCommentAuthor || user?.is_staff),
       id: "delete",
       name: t("delete"),
-      onClick: async () => {
-        //setDeleteModalOpen(true),
-        const response = await softDeleteComment(comment.id);
-
-        if (response && "errors" in response) {
-          console.error("Error deleting comment:", response.errors);
-        } else {
-          setIsDeleted(true);
-        }
-      },
+      onClick: () =>
+        setCurrentModal({
+          type: "confirm",
+          data: {
+            title: t("deleteCommentConfirmTitle"),
+            description: t("deleteCommentConfirmDescription"),
+            actionText: t("delete"),
+            onConfirm: handleDeleteComment,
+          },
+        }),
     },
     {
       hidden: !user?.is_staff,

@@ -101,7 +101,8 @@ const ForecastMakerBinary: FC<Props> = ({
   } = useExpirationModalState(
     questionDuration,
     question.my_forecasts?.latest,
-    isQuestionPrePrediction(question)
+    isQuestionPrePrediction(question),
+    question.scheduled_close_time
   );
 
   const [submitError, setSubmitError] = useState<ErrorResponse>();

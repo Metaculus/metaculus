@@ -244,6 +244,11 @@ def tournament_by_slug_api_view(request: Request, slug: str):
         data["follow_questions"] = (
             subscription.follow_questions if subscription else False
         )
+        data["has_participated"] = (
+            Post.objects.filter_projects(obj)
+            .filter_user_has_forecasted(request.user.id)
+            .exists()
+        )
 
     if obj.index_id:
         data["index_data"] = serialize_index_data(obj.index)

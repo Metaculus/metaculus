@@ -99,6 +99,8 @@ type Props = {
   forceShowLinePoints?: boolean;
   forFeedPage?: boolean;
   isEmbedded?: boolean;
+  chartTitle?: ReactNode;
+  headerExtra?: ReactNode;
   showCursorLabel?: boolean;
   fadeLinesOnHover?: boolean;
   timelineMarkers?: GroupTimelineMarker[];
@@ -143,6 +145,8 @@ const GroupChart: FC<Props> = ({
   forceShowLinePoints = false,
   forFeedPage,
   isEmbedded = false,
+  chartTitle,
+  headerExtra,
   showCursorLabel = true,
   fadeLinesOnHover = true,
   timelineMarkers,
@@ -364,7 +368,9 @@ const GroupChart: FC<Props> = ({
         height={height}
         zoom={withZoomPicker ? zoom : undefined}
         onZoomChange={setZoom}
+        chartTitle={chartTitle}
         headerLeft={headerLeft}
+        headerExtra={headerExtra}
       >
         {!!chartWidth && (
           <div

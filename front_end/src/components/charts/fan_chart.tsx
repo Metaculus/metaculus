@@ -98,6 +98,7 @@ type Props = {
   forFeedPage?: boolean;
   onLegendHeightChange?: (height: number) => void;
   externalHighlightedLabel?: string | null;
+  alignPlotLeft?: boolean;
 };
 
 type NormalizedFanDatum = {
@@ -129,6 +130,7 @@ const FanChart: FC<Props> = ({
   forFeedPage,
   onLegendHeightChange,
   externalHighlightedLabel,
+  alignPlotLeft = false,
 }) => {
   const effectiveVariant: FanChartVariant = variant ?? "default";
 
@@ -316,7 +318,9 @@ const FanChart: FC<Props> = ({
 
   const chartPadding = useMemo(() => {
     const p = v.padding(variantArgs);
-    if (!isEmbedded) return p;
+    if (!isEmbedded) {
+      return alignPlotLeft ? { ...p, left: 0 } : p;
+    }
 
     const safeRight = Math.max(
       typeof p.right === "number" ? p.right : 0,
@@ -329,7 +333,14 @@ const FanChart: FC<Props> = ({
       left: EMBED_SIDE_PAD,
       right: safeRight,
     };
-  }, [v, variantArgs, isEmbedded, effectiveMaxRightPadding, MIN_RIGHT_PADDING]);
+  }, [
+    v,
+    variantArgs,
+    isEmbedded,
+    alignPlotLeft,
+    effectiveMaxRightPadding,
+    MIN_RIGHT_PADDING,
+  ]);
 
   const bottomPadForPoints = v.padding(variantArgs).bottom;
 
@@ -1217,10 +1228,10 @@ function getFanOptionsFromContinuousGroup(
   return questions
     .map((q) => {
       const latest = q.my_forecasts?.latest;
+      const activeForecast =
+        latest && isForecastActive(latest) ? latest : undefined;
       const userForecast = extractPrevNumericForecastValue(
-        latest && isForecastActive(latest)
-          ? latest.distribution_input
-          : undefined
+        activeForecast?.distribution_input
       );
 
       let userCdf: number[] | null = null;
@@ -1234,6 +1245,10 @@ function getFanOptionsFromContinuousGroup(
               userForecast.components,
               q
             ).cdf);
+      } else if (activeForecast?.forecast_values.length) {
+        // distribution_input is absent for bots
+        // forecast_values still holds the full CDF, so fall back to it.
+        userCdf = activeForecast.forecast_values;
       }
 
       return {

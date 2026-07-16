@@ -84,7 +84,7 @@ export const TopChromeClient: FC<{ children: ReactNode }> = ({ children }) => {
   return (
     <div
       ref={topChromeRef}
-      className="sticky left-0 top-0 z-[210] w-full print:hidden"
+      className="sticky left-0 top-0 z-header w-full print:hidden"
     >
       {children}
     </div>

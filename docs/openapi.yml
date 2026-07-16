@@ -259,7 +259,7 @@ info:
 
         - assigns no mass outside of closed bounds (scales accordingly)
         - assigns at least a minimum amount of mass outside of open bounds
-        - increasing by at least the minimum amount (0.01 / 200 = 0.0005)
+        - increasing by at least the minimum amount (0.01 / 200 = 0.00005)
         - caps the maximum growth to 0.2
 
         Note, thresholds change with different `inbound_outcome_count`s
@@ -2468,6 +2468,12 @@ paths:
           schema:
             type: integer
           description: The ID of a comment to place at the top of the results.
+        - name: focus_thread_only
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: When used alongside `focus_comment_id`, restricts the response to only the focused comment thread (the comment plus its root/siblings if it has a parent).
       responses:
         '200':
           description: List of comments

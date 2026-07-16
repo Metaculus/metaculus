@@ -30,6 +30,11 @@ from projects.permissions import ObjectPermission
 def key_factor_vote_view(request: Request, pk: int):
     key_factor = get_object_or_404(KeyFactor, pk=pk)
 
+    permission = get_post_permission_for_user(
+        key_factor.comment.on_post, user=request.user
+    )
+    ObjectPermission.can_view(permission, raise_exception=True)
+
     vote_type, vote_choices = get_key_factor_vote_type_and_choices(key_factor)
 
     vote = serializers.ChoiceField(
@@ -83,6 +88,9 @@ def comment_add_key_factors_view(request: Request, pk: int):
 @permission_classes([IsAuthenticated])
 def comment_suggested_key_factors_view(request: Request, pk: int):
     comment = get_object_or_404(Comment, pk=pk)
+
+    permission = get_post_permission_for_user(comment.on_post, user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
 
     existing_keyfactors = (
         KeyFactor.objects.for_posts([comment.on_post])

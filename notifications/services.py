@@ -219,7 +219,15 @@ class NotificationTypeBase:
     ):
         """
         Schedules a notification to be sent using a cron job.
+
+        Convention: this is the single choke point for all cron-scheduled
+        notification types. Inactive users are skipped here rather than in
+        each subclass' callers. Non-scheduled email senders rely on their
+        callers to filter recipient querysets.
         """
+
+        if not recipient.is_active:
+            return
 
         # Skip notification sending if it was ignored
         if mailing_tag and mailing_tag in recipient.unsubscribed_mailing_tags:
@@ -754,7 +762,7 @@ def send_comment_report_notification_to_staff(
 ):
     recipients = comment.on_post.default_project.get_users_for_permission(
         ObjectPermission.CURATOR
-    )
+    ).filter(is_active=True)
 
     return send_notification_email_with_template(
         [x.email for x in recipients],
@@ -787,7 +795,9 @@ def send_key_factor_report_notification_to_staff(
     comment = key_factor.comment
     post = comment.on_post
 
-    recipients = post.default_project.get_users_for_permission(ObjectPermission.CURATOR)
+    recipients = post.default_project.get_users_for_permission(
+        ObjectPermission.CURATOR
+    ).filter(is_active=True)
 
     return send_notification_email_with_template(
         [x.email for x in recipients],
