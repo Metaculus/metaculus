@@ -48,6 +48,7 @@ def get_posts_feed(  # noqa: C901
     show_on_homepage: bool = None,
     following: bool = None,
     upvoted_by: int = None,
+    commented_by: int = None,
     **kwargs,
 ) -> Post.objects:
     """
@@ -59,6 +60,9 @@ def get_posts_feed(  # noqa: C901
         raise PermissionDenied()
 
     if not_forecaster_id and (not user or not_forecaster_id != user.id):
+        raise PermissionDenied()
+
+    if commented_by and (not user or commented_by != user.id):
         raise PermissionDenied()
 
     if qs is None:
@@ -216,6 +220,9 @@ def get_posts_feed(  # noqa: C901
             votes__user=upvoted_by,
             votes__direction=Vote.VoteDirection.UP,
         )
+
+    if commented_by:
+        qs = qs.filter_user_has_commented(commented_by)
 
     # Followed posts
     if user and user.is_authenticated and following:

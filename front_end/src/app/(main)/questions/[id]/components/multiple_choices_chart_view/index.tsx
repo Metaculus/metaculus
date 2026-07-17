@@ -61,6 +61,8 @@ type Props = {
   withHighlightArea?: boolean;
   withHighlightEndpoint?: boolean;
   hideTooltip?: boolean;
+  headerLeft?: ReactNode;
+  hideChartTitle?: boolean;
 };
 
 const MultiChoicesChartView: FC<Props> = ({
@@ -97,6 +99,8 @@ const MultiChoicesChartView: FC<Props> = ({
   withHighlightArea = true,
   withHighlightEndpoint = false,
   hideTooltip = false,
+  headerLeft,
+  hideChartTitle = false,
 }) => {
   const { user } = useAuth();
   const isInteracted = useRef(false);
@@ -300,7 +304,7 @@ const MultiChoicesChartView: FC<Props> = ({
               !!forecastAvailability?.cpRevealsOn
             }
             choiceItems={binaryChoiceItems}
-            chartTitle={!embedMode ? title : undefined}
+            chartTitle={!embedMode && !hideChartTitle ? title : undefined}
             timelineMarkers={timelineMarkers}
             activeTimelineMarkerId={activeTimelineMarkerId}
             onTimelineMarkerEnter={onTimelineMarkerEnter}
@@ -316,7 +320,9 @@ const MultiChoicesChartView: FC<Props> = ({
                     hideCP={hideCP}
                   />
                 </div>
-              ) : undefined
+              ) : (
+                headerLeft
+              )
             }
             forceShowLinePoints={!embedMode}
           />
@@ -324,7 +330,7 @@ const MultiChoicesChartView: FC<Props> = ({
           <MultipleChoiceChart
             {...commonChartProps}
             isEmbedded={embedMode}
-            chartTitle={!embedMode ? title : undefined}
+            chartTitle={!embedMode && !hideChartTitle ? title : undefined}
             choiceItems={chartChoiceItems}
             headerLeft={
               withLegend ? (
@@ -337,7 +343,9 @@ const MultiChoicesChartView: FC<Props> = ({
                     hideCP={hideCP}
                   />
                 </div>
-              ) : undefined
+              ) : (
+                headerLeft
+              )
             }
           />
         ) : (
@@ -350,7 +358,7 @@ const MultiChoicesChartView: FC<Props> = ({
             }
             cursorTimestamp={cursorTimestamp}
             choiceItems={choiceItems}
-            chartTitle={!embedMode ? title : undefined}
+            chartTitle={!embedMode && !hideChartTitle ? title : undefined}
             timelineMarkers={timelineMarkers}
             activeTimelineMarkerId={activeTimelineMarkerId}
             onTimelineMarkerEnter={onTimelineMarkerEnter}
@@ -366,7 +374,9 @@ const MultiChoicesChartView: FC<Props> = ({
                     hideCP={hideCP}
                   />
                 </div>
-              ) : undefined
+              ) : (
+                headerLeft
+              )
             }
             forceShowLinePoints={!embedMode}
           />
