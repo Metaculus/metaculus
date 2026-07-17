@@ -4,7 +4,7 @@ from collections import defaultdict
 import csv
 from pathlib import Path
 
-from datetime import datetime, timedelta, timezone as dt_timezone
+from datetime import datetime, timedelta
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db.models import Count, Exists, F, OuterRef, Prefetch, QuerySet, Q
@@ -19,7 +19,7 @@ from questions.constants import UnsuccessfulResolutionType
 from questions.models import AggregateForecast, Forecast, Question
 from questions.types import AggregationMethod
 from scoring.constants import ScoreTypes, LeaderboardScoreTypes
-from scoring.models import Leaderboard, LeaderboardEntry, Score, ExclusionStatuses
+from scoring.models import Leaderboard, LeaderboardEntry, ExclusionStatuses
 from scoring.score_math import (
     evaluate_forecasts_peer_accuracy,
     evaluate_forecasts_peer_spot_forecast,
@@ -1041,7 +1041,7 @@ def bootstrap_skills(
     return ci_lower, ci_upper
 
 
-def run_update_global_bot_leaderboard(
+def run_update_global_bot_leaderboard(  # noqa: C901
     # run settings
     baseline_player: int | str = 236038,
     bootstrap_count: int = 30,
