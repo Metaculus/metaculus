@@ -83,7 +83,8 @@ const DatetimeUtc = forwardRef<HTMLInputElement, DatetimeUtcProps>(
       <Input
         ref={ref}
         type="datetime-local"
-        defaultValue={localValue ? format(localValue, formatStr) : ""}
+        defaultValue={localValue}
+        max={props.type === "date" ? "9999-12-31" : "9999-12-31T23:59"}
         className={className}
         onChange={handleChange}
         onBlur={handleChange}
