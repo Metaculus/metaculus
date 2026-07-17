@@ -78,7 +78,7 @@ export type TournamentPreview = Project & {
 };
 
 export type TournamentTimeline = {
-  last_cp_reveal_time?: string;
+  last_spot_scoring_time?: string;
   latest_actual_resolve_time?: string;
   latest_scheduled_resolve_time?: string;
   all_questions_resolved: boolean;

@@ -455,6 +455,8 @@ def approve_post(
         ],
     )
 
+    update_global_leaderboard_tags(post)
+
     # Automatically update secondary and default project forecasting end date
     for project in post.get_related_projects():
         if project.type in [
