@@ -227,12 +227,13 @@ jobs:
 
           for target in ${{ inputs.heroku_targets }}; do
             echo "Building Heroku target: $target"
+            # Heroku registry only accepts Docker Manifest V2 Schema 2, not OCI
             docker buildx build \
               --provenance=false \
+              --sbom=false \
               --platform linux/amd64 \
               --target "$target" \
-              --tag "registry.heroku.com/${{ inputs.heroku_app }}/$target" \
-              --push \
+              --output "type=image,name=registry.heroku.com/${{ inputs.heroku_app }}/$target,push=true,oci-mediatypes=false" \
               --cache-from "type=registry,ref=${IMAGE_NAME}:buildcache-main" \
               --cache-from "type=registry,ref=${IMAGE_NAME}:buildcache-${CACHE_SCOPE}" \
               .
