@@ -58,7 +58,9 @@ def combine_year_split_players(
     ci_lower: dict[int | str, float],
     ci_upper: dict[int | str, float],
     player_stats: dict[int | str, list],
-) -> tuple[SkillType, dict[int | str, float], dict[int | str, float], dict[int | str, list]]:
+) -> tuple[
+    SkillType, dict[int | str, float], dict[int | str, float], dict[int | str, list]
+]:
     """Collapse year-split players (e.g. "Community Aggregate (2025)" or
     "SomeBot (2024)") into a single combined entry per parent, so the
     leaderboard reports one number per model rather than one per year.
@@ -72,7 +74,7 @@ def combine_year_split_players(
     - match count / distinct questions / coverage: combined across the year
       slices (which are disjoint in questions).
 
-    Note: The scores + CIs generated with this process are similar to what they would have 
+    Note: The scores + CIs generated with this process are similar to what they would have
     been if players were never split by year to begin with, though they do not result
     in the exact same values. We score by year because these forecasters change w.r.t time.
 
@@ -114,8 +116,7 @@ def combine_year_split_players(
         new_skills[parent] = combined_score
 
         have_all_cis = all(
-            ci_lower.get(m) is not None and ci_upper.get(m) is not None
-            for m in members
+            ci_lower.get(m) is not None and ci_upper.get(m) is not None for m in members
         )
         if have_all_cis:
             combined_var = 0.0
@@ -784,7 +785,10 @@ def compute_skills_and_discriminations_als(
         # Skill step (fix D)
         D_per_match = D_per_q[q_arr]
         X = sparse.csr_matrix(
-            (np.concatenate([D_per_match, -D_per_match]), (rows_template, cols_template)),
+            (
+                np.concatenate([D_per_match, -D_per_match]),
+                (rows_template, cols_template),
+            ),
             shape=(match_count, n_players),
         )
         model = Ridge(alpha=alpha_skill, fit_intercept=False, solver="lsqr")
@@ -1241,9 +1245,7 @@ def run_update_global_bot_leaderboard(  # noqa: C901
     # below so the full per-year history is retained.
     if non_metac_bots_by_year:
         non_metac_bot_usernames: dict[int, str] = dict(
-            User.objects.filter(id__in=non_metac_bot_ids).values_list(
-                "id", "username"
-            )
+            User.objects.filter(id__in=non_metac_bot_ids).values_list("id", "username")
         )
         temp_user1_ids = []
         temp_user2_ids = []
@@ -1772,8 +1774,12 @@ class Command(BaseCommand):
 
         bootstrap_count = 30
         min_participation_count = 150
-        min_human_forecasters = 10  # drop community predictions with fewer human forecasters; 0 disables
-        metac_bot_age = 365  # don't include metac bots after this many days since creation
+        min_human_forecasters = (
+            10  # drop community predictions with fewer human forecasters; 0 disables
+        )
+        metac_bot_age = (
+            365  # don't include metac bots after this many days since creation
+        )
         cp_by_years = True
         pro_by_years = True
         include_non_metac_bots = True
@@ -1782,7 +1788,9 @@ class Command(BaseCommand):
         bot_recent_scores = 150  # most recent scores, 0 means no filter
         bot_recent_coverage = 0
         scale_weight_by_participants = False
-        use_discrimination = False  # ALS for per-question difficulty; takes 30+ mins to run
+        use_discrimination = (
+            False  # ALS for per-question difficulty; takes 30+ mins to run
+        )
         alpha_disc = 10000  # ridge pull of per-question D toward 1; only used if use_discrimination is true
         use_bayesian_alpha_disc = True  # derive alpha_disc = σ²_error/σ²_D (uncapped); ignores alpha_disc when True
         als_init = "zeros"  # ALS skill init: zeros | random
