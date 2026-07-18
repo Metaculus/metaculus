@@ -2,9 +2,9 @@
 import { ComponentProps, FC } from "react";
 import { VictoryLabel, VictoryLabelProps } from "victory";
 
+import { CHART_FONT_STYLE } from "@/constants/chart_typography";
+import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
-
-const FONT_SIZE = 10;
 
 type Props = ComponentProps<typeof VictoryLabel> & {
   positionY: number;
@@ -19,11 +19,12 @@ const ChartCursorLabel: FC<Props> = ({
   style,
   ...props
 }) => {
-  const { theme } = useAppTheme();
+  const { getThemeColor } = useAppTheme();
 
-  const estimatedTextWidth = (props.text?.toString().length ?? 0) * FONT_SIZE;
+  const text = props.text?.toString() ?? "";
+  const estimatedTextWidth = text.length * CHART_FONT_STYLE.cursor.fontSize;
   const centeredX = (props.x ?? 0) - estimatedTextWidth / 4;
-  if (!isActive) {
+  if (isActive === false || (isActive === undefined && !text)) {
     return null;
   }
 
@@ -31,8 +32,8 @@ const ChartCursorLabel: FC<Props> = ({
 
   const mergedStyle: VictoryLabelProps["style"] = {
     ...baseStyleObj,
-    fontSize: FONT_SIZE,
-    fill: fill ?? (theme === "dark" ? "white" : "black"),
+    ...CHART_FONT_STYLE.cursor,
+    fill: fill ?? getThemeColor(METAC_COLORS.gray["700"]),
   };
 
   return (

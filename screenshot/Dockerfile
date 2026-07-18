@@ -5,7 +5,7 @@ FROM python:3.12-slim-bookworm
 ARG TZ=Etc/GMT
 ARG DEBIAN_FRONTEND=noninteractive
 
-COPY --from=ghcr.io/astral-sh/uv:0.10 /uv /uvx /usr/local/bin/
+COPY --from=ghcr.io/astral-sh/uv:0.11 /uv /uvx /usr/local/bin/
 
 # Install curl (needed for Heroku CLI) and Heroku CLI in a single layer
 RUN apt-get update && \

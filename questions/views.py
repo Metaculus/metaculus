@@ -1,3 +1,4 @@
+import numpy as np
 from django.http import Http404
 from django.utils import timezone
 from rest_framework import status
@@ -12,9 +13,10 @@ from posts.models import Post
 from posts.services.common import get_post_permission_for_user
 from posts.utils import get_post_slug
 from projects.permissions import ObjectPermission
+from utils.requests import is_internal_request
 from utils.the_math.aggregations import get_aggregations_at_time
 from .constants import QuestionStatus
-from .models import Question
+from .models import Forecast, Question
 from .serializers.common import (
     validate_question_resolution,
     QuestionsCommunityPredictionsSerializer,
@@ -98,6 +100,12 @@ def bulk_create_forecasts_api_view(request):
     if not validated_data:
         raise ValidationError("At least one forecast is required")
 
+    source = (
+        Forecast.SourceChoices.UI
+        if is_internal_request(request)
+        else Forecast.SourceChoices.API
+    )
+
     # Prefetching questions for bulk optimization
     questions = Question.objects.filter(
         pk__in=[f["question"] for f in validated_data]
@@ -119,9 +127,14 @@ def bulk_create_forecasts_api_view(request):
         )
         ObjectPermission.can_forecast(permission, raise_exception=True)
 
-        if not question.open_time or question.open_time > now:
+        if (
+            question.post.curation_status != Post.CurationStatus.APPROVED
+            or not question.open_time
+        ):
             return Response(
-                {"error": f"Question {question.id} is not open for forecasting yet !"},
+                {
+                    "error": f"Question {question.id} is not scheduled for forecasting yet !"
+                },
                 status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
 
@@ -133,7 +146,7 @@ def bulk_create_forecasts_api_view(request):
                 status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
 
-    create_forecast_bulk(user=request.user, forecasts=validated_data)
+    create_forecast_bulk(user=request.user, forecasts=validated_data, source=source)
 
     return Response({}, status=status.HTTP_201_CREATED)
 
@@ -196,9 +209,12 @@ def create_binary_forecast_oldapi_view(request, pk: int):
     permission = get_post_permission_for_user(question.get_post(), user=request.user)
     ObjectPermission.can_forecast(permission, raise_exception=True)
 
-    if not question.open_time or question.open_time > now:
+    if (
+        question.post.curation_status != Post.CurationStatus.APPROVED
+        or not question.open_time
+    ):
         return Response(
-            {"error": "You cannot forecast on this question yet !"},
+            {"error": "This question is not scheduled for forecasting yet !"},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 
@@ -221,7 +237,14 @@ def create_binary_forecast_oldapi_view(request, pk: int):
 
     create_forecast_bulk(
         user=request.user,
-        forecasts=[{"question": question, "probability_yes": probability}],
+        forecasts=[
+            {
+                "question": question,
+                "probability_yes": probability,
+            }
+        ],
+        # Old endpoint requests are always API
+        source=Forecast.SourceChoices.API,
     )
 
     return Response({}, status=status.HTTP_201_CREATED)
@@ -283,12 +306,16 @@ def questions_community_predictions(request) -> Response:
         agg = aggs.get(method)
 
         if agg:
+            pmf = agg.get_pmf()
+            pmf = [
+                None if (v is None or np.isnan(v)) else v for v in pmf
+            ]  # Convert NaNs to None for JSON serialization
             results.append(
                 {
                     "metaculus_id": qid,
                     "timestamp": ts.isoformat(),
                     "method": method,
-                    "pmf": agg.get_pmf(),
+                    "pmf": pmf,
                     "interval_lower_bounds": agg.interval_lower_bounds,
                     "centers": agg.centers,
                     "interval_upper_bounds": agg.interval_upper_bounds,
@@ -297,5 +324,4 @@ def questions_community_predictions(request) -> Response:
                     "error": None,
                 }
             )
-
     return Response({"results": results})

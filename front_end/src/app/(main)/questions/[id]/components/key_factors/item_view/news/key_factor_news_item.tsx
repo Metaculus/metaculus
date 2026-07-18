@@ -22,6 +22,7 @@ type Props = {
   isConsumer?: boolean;
   titleLinksToArticle?: boolean;
   truncate?: boolean;
+  large?: boolean;
 };
 
 const KeyFactorNewsItem: React.FC<Props> = ({
@@ -33,8 +34,15 @@ const KeyFactorNewsItem: React.FC<Props> = ({
   isCompact = false,
   titleLinksToArticle = true,
   truncate = false,
+  large = false,
 }) => {
   const locale = useLocale();
+
+  const titleSizeCls = large
+    ? "text-base leading-6"
+    : isCompact
+      ? "line-clamp-4 text-xs leading-4"
+      : cn("text-sm leading-5", truncate && "line-clamp-5");
 
   let date: Date | null = null;
   if (createdAt) {
@@ -63,9 +71,7 @@ const KeyFactorNewsItem: React.FC<Props> = ({
             {...linkProps}
             className={cn(
               "my-0 block break-words font-medium text-gray-900 no-underline hover:underline dark:text-gray-900-dark",
-              isCompact
-                ? "line-clamp-4 text-xs leading-4"
-                : cn("text-sm leading-5", truncate && "line-clamp-5")
+              titleSizeCls
             )}
           >
             {title}
@@ -74,9 +80,7 @@ const KeyFactorNewsItem: React.FC<Props> = ({
           <span
             className={cn(
               "my-0 block break-words font-medium text-gray-900 dark:text-gray-900-dark",
-              isCompact
-                ? "line-clamp-4 text-xs leading-4"
-                : cn("text-sm leading-5", truncate && "line-clamp-5")
+              titleSizeCls
             )}
           >
             {title}
@@ -144,15 +148,7 @@ const SourceDateLabel: React.FC<{
   useLayoutEffect(() => {
     const el = measureRef.current;
     if (!el || !date) return;
-
-    const check = () => {
-      setHideSource(el.scrollWidth > el.clientWidth);
-    };
-    check();
-
-    const observer = new ResizeObserver(check);
-    observer.observe(el);
-    return () => observer.disconnect();
+    setHideSource(el.scrollWidth > el.clientWidth);
   }, [source, date]);
 
   if (!date) {

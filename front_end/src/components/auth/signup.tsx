@@ -112,6 +112,7 @@ export const SignupForm: FC<{
         event_category: new URLSearchParams(window.location.search).toString(),
         signupPath: redirectLocation,
       });
+      window.rdt?.("track", "SignUp");
       if (response?.is_active) {
         setCurrentModal(null);
       } else {

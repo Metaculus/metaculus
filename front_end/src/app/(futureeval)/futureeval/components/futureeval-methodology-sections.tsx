@@ -16,7 +16,6 @@ import Button from "@/components/ui/button";
 import cn from "@/utils/core/cn";
 
 import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
-import { useFutureEvalLeaderboard } from "./leaderboard/futureeval-leaderboard-provider";
 
 const PROMPTS = {
   binary: `You are a professional forecaster interviewing for a job.
@@ -305,9 +304,6 @@ const BulletList: React.FC<{ items: ReactNode[] }> = ({ items }) => {
  * All additional methodology sections
  */
 const FutureEvalMethodologySections: React.FC = () => {
-  const { sotaCrossingDates } = useFutureEvalLeaderboard();
-  const { communityDate, proDate } = sotaCrossingDates;
-
   return (
     <div className="space-y-[60px] sm:space-y-[80px] lg:space-y-[120px]">
       {/* Section 1: What Makes FutureEval Unique */}
@@ -538,14 +534,6 @@ const FutureEvalMethodologySections: React.FC = () => {
             forecast of our first AI model to today. These lines may move as new
             data is added to this running average.
           </p>
-          {communityDate && proDate && (
-            <p className="m-0">
-              The trend line indicates that bots will start beating the
-              Metaculus community performance in{" "}
-              <strong>{communityDate}</strong> and Pro Forecaster performance in{" "}
-              <strong>{proDate}</strong>.
-            </p>
-          )}
         </SectionBody>
       </section>
 

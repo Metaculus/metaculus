@@ -1,4 +1,4 @@
-name: Weekly Slack Reminder
+name: Weekly Comment of the Week Slack Reminder
 
 permissions:
   contents: read

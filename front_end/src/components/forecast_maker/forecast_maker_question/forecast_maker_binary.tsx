@@ -21,6 +21,7 @@ import { sendPredictEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts/initial_values";
+import { isQuestionPrePrediction } from "@/utils/questions/predictions";
 
 import PredictionSuccessBox from "./prediction_success_box";
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
@@ -28,6 +29,7 @@ import {
   ForecastExpirationModal,
   forecastExpirationToDate,
   ForecastExpirationValue,
+  getExpirationBaseDate,
   useExpirationModalState,
 } from "../forecast_expiration";
 import PredictButton from "../predict_button";
@@ -38,6 +40,7 @@ type Props = {
   question: QuestionWithNumericForecasts;
   prevForecast?: number | null;
   canPredict: boolean;
+  predictLabel: string;
   predictionMessage?: ReactNode;
   onPredictionSubmit?: () => void;
 };
@@ -46,6 +49,7 @@ const ForecastMakerBinary: FC<Props> = ({
   post,
   question,
   canPredict,
+  predictLabel,
   predictionMessage,
   onPredictionSubmit,
 }) => {
@@ -94,7 +98,12 @@ const ForecastMakerBinary: FC<Props> = ({
     isForecastExpirationModalOpen,
     setIsForecastExpirationModalOpen,
     previousForecastExpiration,
-  } = useExpirationModalState(questionDuration, question.my_forecasts?.latest);
+  } = useExpirationModalState(
+    questionDuration,
+    question.my_forecasts?.latest,
+    isQuestionPrePrediction(question),
+    question.scheduled_close_time
+  );
 
   const [submitError, setSubmitError] = useState<ErrorResponse>();
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
@@ -116,7 +125,10 @@ const ForecastMakerBinary: FC<Props> = ({
           probabilityYes: forecastValue,
           probabilityYesPerCategory: null,
         },
-        forecastEndTime: forecastExpirationToDate(forecastExpiration),
+        forecastEndTime: forecastExpirationToDate(
+          forecastExpiration,
+          getExpirationBaseDate(question)
+        ),
       },
     ]);
     setIsForecastDirty(false);
@@ -166,6 +178,7 @@ const ForecastMakerBinary: FC<Props> = ({
         isUserForecastActive={!!activeUserForecast}
         isDirty={isForecastDirty}
         questionDuration={questionDuration}
+        predictLabel={predictLabel}
       />
 
       <BinarySlider
@@ -202,7 +215,7 @@ const ForecastMakerBinary: FC<Props> = ({
                   isDirty={isForecastDirty}
                   isPending={isPending}
                   onSubmit={() => submit(modalSavedState.forecastExpiration)}
-                  predictLabel={t("predict")}
+                  predictLabel={predictLabel}
                   predictionExpirationChip={expirationShortChip}
                   onPredictionExpirationClick={() =>
                     setIsForecastExpirationModalOpen(true)

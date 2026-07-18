@@ -1,11 +1,12 @@
 import random
+import re
 from collections import defaultdict
 from datetime import datetime, timedelta
 from itertools import chain
-from typing import Iterable
+from typing import Iterable, TypedDict
 
 from django.db import IntegrityError
-from django.db.models import QuerySet, TextChoices
+from django.db.models import Q, QuerySet, TextChoices
 from django.utils import timezone
 from django.utils.timezone import make_aware
 
@@ -209,7 +210,7 @@ def _calculate_timeline_data(project: Project, questions: Iterable[Question]) ->
     all_questions_resolved = True
     all_questions_closed = True
 
-    cp_reveal_times = []
+    spot_scoring_times = []
     actual_resolve_times = []
     scheduled_resolve_times = []
 
@@ -232,8 +233,9 @@ def _calculate_timeline_data(project: Project, questions: Iterable[Question]) ->
                 or close_time > project_forecasting_end_date
             )
 
-        if question.cp_reveal_time:
-            cp_reveal_times.append(question.cp_reveal_time)
+        spot_scoring_time = question.get_spot_scoring_time()
+        if spot_scoring_time:
+            spot_scoring_times.append(spot_scoring_time)
 
         if question.actual_resolve_time:
             actual_resolve_times.append(question.actual_resolve_time)
@@ -248,7 +250,7 @@ def _calculate_timeline_data(project: Project, questions: Iterable[Question]) ->
         return max([x for x in data if x <= project_close_date], default=None)
 
     return {
-        "last_cp_reveal_time": get_max(cp_reveal_times),
+        "last_spot_scoring_time": get_max(spot_scoring_times),
         "latest_actual_resolve_time": get_max(actual_resolve_times),
         "latest_scheduled_resolve_time": get_max(scheduled_resolve_times),
         "all_questions_resolved": all_questions_resolved,
@@ -276,6 +278,7 @@ def get_timeline_data_for_projects(project_ids: list[int]) -> dict[int, dict]:
         "id",
         "post_id",
         "cp_reveal_time",
+        "spot_scoring_time",
         "actual_resolve_time",
         "scheduled_resolve_time",
         "actual_close_time",
@@ -289,6 +292,35 @@ def get_timeline_data_for_projects(project_ids: list[int]) -> dict[int, dict]:
         pid: _calculate_timeline_data(project, questions_by_project.get(pid, []))
         for pid, project in projects.items()
     }
+
+
+# Path segment -> candidate Project types for project-promoting URLs.
+# The /tournament/ prefix serves both tournaments and question series.
+_URL_TYPES_BY_PATH = {
+    "tournament": [
+        Project.ProjectTypes.TOURNAMENT,
+        Project.ProjectTypes.QUESTION_SERIES,
+    ],
+    "index": [Project.ProjectTypes.INDEX],
+}
+# Matches /tournament/<slug> or /index/<slug>
+_PROJECT_URL_RE = re.compile(r"/(?P<path>tournament|index)/(?P<slug>[\w-]+)")
+
+
+def project_ids_from_urls(urls: list[str]) -> set[int]:
+    """Bulk-resolve project URLs (tournament/index/question-series links) to ids."""
+    url_filters = Q()
+    matched_any = False
+    for url in urls:
+        match = _PROJECT_URL_RE.search(url or "")
+        if not match:
+            continue
+        project_types = _URL_TYPES_BY_PATH[match.group("path")]
+        url_filters |= Q(type__in=project_types, slug=match.group("slug"))
+        matched_any = True
+    if not matched_any:
+        return set()
+    return set(Project.objects.filter(url_filters).values_list("id", flat=True))
 
 
 class FeedTileRule(TextChoices):
@@ -431,14 +463,27 @@ def get_feed_project_tiles() -> list[dict]:
     return results
 
 
-def get_questions_count_for_projects(project_ids: list[int]) -> dict[int, int]:
+class ProjectQuestionCounts(TypedDict):
+    questions_count: int
+    questions_count_including_subquestions: int
+
+
+def get_questions_count_for_projects(
+    project_ids: list[int],
+) -> dict[int, ProjectQuestionCounts]:
     """
-    Returns a dict mapping each project_id to its questions_count
+    Returns a dict mapping each project_id to its question counts
     (0 if it doesn’t exist or has no questions).
     """
     qs = (
         Project.objects.filter(id__in=project_ids)
         .annotate_questions_count()
-        .values_list("id", "questions_count")
+        .values_list("id", "questions_count", "questions_count_including_subquestions")
     )
-    return {pid: count or 0 for pid, count in qs}
+    return {
+        pid: ProjectQuestionCounts(
+            questions_count=top_level or 0,
+            questions_count_including_subquestions=total or 0,
+        )
+        for pid, top_level, total in qs
+    }

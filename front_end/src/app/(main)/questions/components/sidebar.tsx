@@ -1,22 +1,45 @@
 "use client";
+import { Drawer } from "@base-ui/react/drawer";
+import { ScrollArea } from "@base-ui/react/scroll-area";
 import {
-  faArrowUp,
-  faEllipsis,
+  faBars,
+  faChevronUp,
   faHome,
+  faMagnifyingGlass,
+  faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FC, Fragment, useMemo, useState } from "react";
+import {
+  FC,
+  Fragment,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import TopicItem from "@/app/(main)/questions/components/topic_item";
-import useFeed from "@/app/(main)/questions/hooks/use_feed";
-import Button from "@/components/ui/button";
-import { FeedType } from "@/constants/posts_feed";
+import { useFeedQuery } from "@/app/(main)/questions/hooks/use_feed_query";
+import {
+  FeedType,
+  POST_CATEGORIES_FILTER,
+  POST_COMMUNITIES_FILTER,
+  POST_COMMENTS_FEED_FILTER,
+  POST_FOLLOWING_FILTER,
+  POST_FORECASTER_ID_FILTER,
+  POST_TEXT_SEARCH_FILTER,
+  POST_TOPIC_FILTER,
+  POST_USERNAMES_FILTER,
+  POST_WEEKLY_TOP_COMMENTS_FILTER,
+} from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
-import { useContentTranslatedBannerContext } from "@/contexts/translations_banner_context";
-import useSearchParams from "@/hooks/use_search_params";
+import { Category } from "@/types/projects";
 import {
   SidebarItem,
   SidebarMenuItem,
@@ -28,6 +51,9 @@ import { convertSidebarItem } from "@/utils/sidebar";
 
 type Props = {
   items: SidebarItem[];
+  categories: Category[];
+  mobileActions?: ReactNode;
+  mobileFilterBar?: ReactNode;
 };
 
 type SidebarSection = {
@@ -36,14 +62,67 @@ type SidebarSection = {
   items: SidebarMenuItem[];
 };
 
-const FeedSidebar: FC<Props> = ({ items }) => {
+type SidebarMenuProps = {
+  sections: SidebarSection[];
+  seeAllCategoriesLabel: string;
+  onItemSelect?: () => void;
+  className?: string;
+};
+
+const FeedSidebar: FC<Props> = ({
+  items,
+  categories,
+  mobileActions,
+  mobileFilterBar,
+}) => {
   const t = useTranslations();
   const { user } = useAuth();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
-  const { getFeedUrl, currentFeed } = useFeed();
+  const { getFeedUrl } = useFeedQuery();
   const pathname = usePathname();
-  const { params } = useSearchParams();
-  const fullPathname = `${pathname}${params.toString() ? `?${params.toString()}` : ""}`;
+  const searchParams = useSearchParams();
+  const fullPathname = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+  const searchQuery = searchParams.get(POST_TEXT_SEARCH_FILTER)?.trim() ?? "";
+  const hasActiveSearch = !!searchQuery;
+  const currentFeed = useMemo(() => {
+    if (
+      searchParams.get(POST_TOPIC_FILTER) ||
+      searchParams.get(POST_CATEGORIES_FILTER)
+    ) {
+      return null;
+    }
+    if (searchParams.get(POST_FORECASTER_ID_FILTER)) {
+      return FeedType.MY_PREDICTIONS;
+    }
+    if (searchParams.get(POST_FOLLOWING_FILTER)) {
+      return FeedType.FOLLOWING;
+    }
+
+    const authorUsernames = searchParams.getAll(POST_USERNAMES_FILTER);
+    if (
+      user &&
+      authorUsernames.length &&
+      authorUsernames[0] === user.username
+    ) {
+      return FeedType.MY_QUESTIONS_AND_POSTS;
+    }
+    if (searchParams.get(POST_COMMUNITIES_FILTER)) {
+      return FeedType.COMMUNITIES;
+    }
+    if (searchParams.get(POST_WEEKLY_TOP_COMMENTS_FILTER)) {
+      return FeedType.WEEKLY_TOP_COMMENTS;
+    }
+    if (searchParams.get(POST_COMMENTS_FEED_FILTER)) {
+      return FeedType.COMMENTS_FEED;
+    }
+
+    return FeedType.HOME;
+  }, [searchParams, user]);
+
+  const convertFeedSidebarItem = useCallback(
+    (item: SidebarItem) => convertSidebarItem(item, fullPathname),
+    [fullPathname]
+  );
 
   const sidebarSections: SidebarSection[] = useMemo(() => {
     const menuItems: SidebarMenuItem[] = [
@@ -105,7 +184,21 @@ const FeedSidebar: FC<Props> = ({ items }) => {
             },
           ]
         : []),
-      ...items.map((obj) => convertSidebarItem(obj, fullPathname)),
+      // Category SidebarItems are legacy; feed categories now come from /projects/categories/.
+      ...items
+        .filter((obj) => obj.section !== "hot_categories")
+        .map(convertFeedSidebarItem),
+      ...categories
+        .filter((category) => category.posts_count > 0)
+        .map((category) =>
+          convertFeedSidebarItem({
+            id: String(category.id),
+            name: category.name,
+            emoji: category.emoji ?? "",
+            section: "hot_categories",
+            project: category,
+          })
+        ),
     ];
 
     return [
@@ -127,99 +220,412 @@ const FeedSidebar: FC<Props> = ({ items }) => {
   }, [
     PUBLIC_MINIMAL_UI,
     currentFeed,
-    fullPathname,
+    categories,
     items,
     t,
     user,
     getFeedUrl,
+    convertFeedSidebarItem,
   ]);
 
-  const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+  const outerRef = useRef<HTMLDivElement | null>(null);
+  const mobileTopBarSentinelRef = useRef<HTMLDivElement | null>(null);
+  const mobileTopBarObserverRef = useRef<IntersectionObserver | null>(null);
+  const mobileMenuChipRef = useRef<HTMLDivElement | null>(null);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const [isMobileTopBarStuck, setIsMobileTopBarStuck] = useState(false);
+  const mobileMainItems =
+    sidebarSections.find(({ type }) => type === null)?.items ?? [];
+  const mobileSearchItem: SidebarMenuItem | null = hasActiveSearch
+    ? {
+        name: searchQuery,
+        emoji: <FontAwesomeIcon icon={faMagnifyingGlass} />,
+        url: fullPathname,
+        isActive: true,
+      }
+    : null;
+  const selectedMobileItem =
+    mobileSearchItem ??
+    sidebarSections
+      .flatMap(({ items }) => items)
+      .find(({ isActive }) => isActive) ??
+    mobileMainItems[0];
+  const hasMobileFilterBar = !!mobileFilterBar;
+  const showMobileTopBarSurface = isMobileTopBarStuck;
 
-  const { bannerIsVisible: isTranslationBannerVisible } =
-    useContentTranslatedBannerContext();
+  useEffect(() => {
+    const el = outerRef.current;
+    if (!el) return;
 
-  const topPositionClasses = isTranslationBannerVisible
-    ? "top-24 lg:top-20"
-    : "top-12 lg:top-20";
+    const obs = new ResizeObserver(([entry]) => {
+      const h = entry?.borderBoxSize?.[0]?.blockSize ?? el.offsetHeight;
+      document.documentElement.style.setProperty(
+        "--feed-sidebar-mobile-height",
+        `${h}px`
+      );
+    });
+
+    obs.observe(el);
+    return () => {
+      obs.disconnect();
+      document.documentElement.style.removeProperty(
+        "--feed-sidebar-mobile-height"
+      );
+    };
+  }, []);
+
+  const setupMobileTopBarObserver = useCallback(() => {
+    const sentinel = mobileTopBarSentinelRef.current;
+    const topBar = outerRef.current;
+
+    if (!sentinel || !topBar) {
+      setIsMobileTopBarStuck(false);
+      return;
+    }
+
+    mobileTopBarObserverRef.current?.disconnect();
+
+    const rawTop = parseFloat(getComputedStyle(topBar).top);
+    const stickyTop =
+      Number.isFinite(rawTop) && rawTop >= 0 ? Math.round(rawTop) : 0;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsMobileTopBarStuck(!entry?.isIntersecting),
+      {
+        root: null,
+        threshold: 0,
+        rootMargin: `-${stickyTop}px 0px 0px 0px`,
+      }
+    );
+
+    observer.observe(sentinel);
+    mobileTopBarObserverRef.current = observer;
+  }, []);
+
+  useEffect(() => {
+    const rafId = requestAnimationFrame(setupMobileTopBarObserver);
+
+    const resizeObserver = new ResizeObserver(setupMobileTopBarObserver);
+    if (outerRef.current) {
+      resizeObserver.observe(outerRef.current);
+    }
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      mobileTopBarObserverRef.current?.disconnect();
+      resizeObserver.disconnect();
+    };
+  }, [setupMobileTopBarObserver]);
+
+  useEffect(() => {
+    const chip = mobileMenuChipRef.current;
+    const outer = outerRef.current;
+    if (!chip || !outer) return;
+
+    const obs = new ResizeObserver(([entry]) => {
+      const width = entry?.borderBoxSize?.[0]?.inlineSize ?? chip.offsetWidth;
+      outer.style.setProperty("--mobile-menu-chip-width", `${width}px`);
+    });
+
+    obs.observe(chip);
+    return () => {
+      obs.disconnect();
+      outer.style.removeProperty("--mobile-menu-chip-width");
+    };
+  }, [selectedMobileItem?.name]);
+
+  return (
+    <>
+      <div
+        ref={mobileTopBarSentinelRef}
+        className="h-px w-full sm:hidden"
+        aria-hidden
+      />
+      <Drawer.Root
+        open={isMobileDrawerOpen}
+        onOpenChange={setIsMobileDrawerOpen}
+        swipeDirection="left"
+      >
+        <div
+          ref={outerRef}
+          className={cn(
+            "sticky top-header z-100 sm:hidden",
+            hasMobileFilterBar &&
+              "flex flex-col gap-3 border-b p-3 transition-[background-color,backdrop-filter,border-color] duration-200",
+            !hasMobileFilterBar &&
+              "border-y transition-[background-color,backdrop-filter,border-color] duration-200",
+            !showMobileTopBarSurface &&
+              "border-transparent bg-transparent backdrop-blur-none",
+            showMobileTopBarSurface &&
+              hasMobileFilterBar &&
+              "border-[#a9c0d666] bg-white/80 backdrop-blur-[7.7px] dark:border-blue-500-dark/40 dark:bg-gray-0-dark/80",
+            showMobileTopBarSurface &&
+              !hasMobileFilterBar &&
+              "border-blue-400 bg-gray-0/70 backdrop-blur-md dark:border-blue-700 dark:bg-gray-0-dark/70"
+          )}
+        >
+          <div
+            className={cn(
+              "relative w-full no-scrollbar",
+              hasMobileFilterBar ? "min-h-7 p-0" : "min-h-11 p-2"
+            )}
+          >
+            <div
+              className={cn(
+                "relative z-10 flex snap-x gap-1.5 gap-y-2 pl-[calc(var(--mobile-menu-chip-width,8rem)+0.375rem)] pr-0 no-scrollbar",
+                hasMobileFilterBar ? "mr-0" : "-mr-2",
+                hasMobileFilterBar &&
+                  mobileActions &&
+                  "pointer-events-none z-40 pl-0",
+                mobileActions
+                  ? "justify-end overflow-visible"
+                  : "overflow-x-auto [mask-image:linear-gradient(to_right,transparent_0,transparent_calc(var(--mobile-menu-chip-width,8rem)-0.25rem),black_calc(var(--mobile-menu-chip-width,8rem)+0.875rem),black_100%)]"
+              )}
+            >
+              {mobileActions ? (
+                <div
+                  className={cn(
+                    "pointer-events-auto flex shrink-0 items-center justify-end",
+                    hasMobileFilterBar
+                      ? cn(
+                          "relative isolate gap-1 pr-0 before:pointer-events-none before:absolute before:inset-y-0 before:-left-3.5 before:-z-10 before:w-7 before:bg-gradient-to-r before:content-['']",
+                          showMobileTopBarSurface
+                            ? "before:from-white/0 before:to-white before:dark:from-gray-0-dark/0 before:dark:to-gray-0-dark"
+                            : "before:from-transparent before:to-transparent"
+                        )
+                      : "gap-1.5 pr-2"
+                  )}
+                >
+                  {mobileActions}
+                </div>
+              ) : null}
+            </div>
+
+            {!mobileActions && (
+              <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-[calc(var(--mobile-menu-chip-width,8rem)+1.25rem)] bg-gradient-to-r from-gray-0 via-gray-0/95 to-gray-0/0 dark:from-gray-0-dark dark:via-gray-0-dark/95 dark:to-gray-0-dark/0" />
+            )}
+            <div
+              ref={mobileMenuChipRef}
+              className={cn(
+                "absolute z-30",
+                hasMobileFilterBar ? "left-0 top-0" : "left-2 top-2"
+              )}
+            >
+              <Drawer.Trigger
+                aria-label={`${t("menu")}: ${selectedMobileItem?.name ?? t("menu")}`}
+                className="inline-flex h-7 max-w-[min(16rem,70vw)] cursor-pointer items-center justify-center gap-1.5 rounded-full border border-blue-800 bg-blue-800 px-3 py-0 text-sm font-medium leading-5 text-gray-0 no-underline shadow-sm hover:bg-blue-800 dark:border-blue-800-dark dark:bg-blue-800-dark dark:text-gray-200-dark dark:hover:bg-blue-800-dark"
+              >
+                <FontAwesomeIcon icon={faBars} className="text-sm" />
+                {selectedMobileItem?.emoji && (
+                  <span className="inline-flex flex-row items-center justify-center text-sm leading-4 tracking-widest">
+                    {selectedMobileItem.emoji}
+                  </span>
+                )}
+                <span className="min-w-0 truncate font-sans font-normal">
+                  {selectedMobileItem?.name ?? t("menu")}
+                </span>
+              </Drawer.Trigger>
+            </div>
+          </div>
+          {hasMobileFilterBar && (
+            <div className="[--posts-filter-rail-bleed-left:12px] [--posts-filter-rail-bleed-right:12px]">
+              {mobileFilterBar}
+            </div>
+          )}
+        </div>
+
+        <Drawer.Portal>
+          <Drawer.Backdrop
+            className={cn(
+              "fixed inset-x-0 bottom-0 top-header z-[200] bg-blue-900/50 dark:bg-gray-1000/50 sm:hidden"
+            )}
+          />
+          <Drawer.Viewport
+            className={cn(
+              "fixed inset-x-0 bottom-0 top-header z-[201] overflow-hidden [--feed-drawer-width:min(18rem,calc(100vw-3.75rem))] sm:hidden"
+            )}
+          >
+            <Drawer.Close
+              className="absolute left-[calc(var(--feed-drawer-width)+0.5rem)] top-2 inline-flex size-11 items-center justify-center rounded-full border border-blue-400 bg-gray-0 text-lg text-blue-600 hover:bg-blue-400 dark:border-blue-400-dark dark:bg-gray-0-dark dark:text-blue-600-dark dark:hover:bg-blue-600"
+              aria-label={t("close")}
+            >
+              <FontAwesomeIcon icon={faXmark} />
+            </Drawer.Close>
+            <Drawer.Popup className="absolute inset-y-0 left-0 flex w-[var(--feed-drawer-width)] max-w-full flex-col bg-gray-0 text-blue-900 shadow-xl transition-transform duration-200 data-[ending-style]:-translate-x-full data-[starting-style]:-translate-x-full dark:bg-gray-0-dark dark:text-blue-900-dark">
+              <Drawer.Content className="flex h-full min-h-0 flex-col">
+                <Drawer.Title className="sr-only">{t("menu")}</Drawer.Title>
+                <ScrollArea.Root className="min-h-0 flex-1 overflow-hidden">
+                  <ScrollArea.Viewport
+                    data-base-ui-swipe-ignore
+                    className="h-full overscroll-contain [-webkit-overflow-scrolling:touch] [touch-action:pan-y]"
+                  >
+                    <ScrollArea.Content className="p-2">
+                      <SidebarMenu
+                        sections={sidebarSections}
+                        seeAllCategoriesLabel={t("seeAllCategories")}
+                        onItemSelect={() => setIsMobileDrawerOpen(false)}
+                        className="flex w-full flex-col gap-y-1.5 p-1"
+                      />
+                    </ScrollArea.Content>
+                  </ScrollArea.Viewport>
+                  <ScrollArea.Scrollbar className="flex w-2 justify-center bg-transparent p-px opacity-0 transition-opacity data-[hovering]:opacity-100 data-[scrolling]:opacity-100">
+                    <ScrollArea.Thumb className="w-1 rounded-full bg-blue-500/70 dark:bg-blue-500-dark/70" />
+                  </ScrollArea.Scrollbar>
+                </ScrollArea.Root>
+              </Drawer.Content>
+            </Drawer.Popup>
+          </Drawer.Viewport>
+        </Drawer.Portal>
+      </Drawer.Root>
+
+      <DesktopSidebar
+        sections={sidebarSections}
+        seeAllCategoriesLabel={t("seeAllCategories")}
+      />
+    </>
+  );
+};
+
+const DesktopSidebar: FC<{
+  sections: SidebarSection[];
+  seeAllCategoriesLabel: string;
+}> = ({ sections, seeAllCategoriesLabel }) => {
+  return (
+    <div className="hidden border-r border-blue-400 bg-gray-0/70 backdrop-blur-md dark:border-blue-700 dark:bg-gray-0-dark/70 sm:static sm:block sm:min-h-[calc(100vh-3rem)]">
+      <div className={cn("sticky top-header")}>
+        <ScrollArea.Root className={cn("overflow-hidden")}>
+          <ScrollArea.Viewport
+            className={cn(
+              "max-h-[calc(100dvh-var(--top-chrome-height,3rem))] overscroll-contain [-webkit-overflow-scrolling:touch] [touch-action:pan-y] "
+            )}
+          >
+            <ScrollArea.Content className="p-3">
+              <SidebarMenu
+                sections={sections}
+                seeAllCategoriesLabel={seeAllCategoriesLabel}
+                className="w-56 p-1 lg:w-64"
+              />
+            </ScrollArea.Content>
+          </ScrollArea.Viewport>
+          <ScrollArea.Scrollbar className="flex w-2 justify-center bg-transparent p-px opacity-0 transition-opacity data-[hovering]:opacity-100 data-[scrolling]:opacity-100">
+            <ScrollArea.Thumb className="w-1 rounded-full bg-blue-500/70 dark:bg-blue-500-dark/70" />
+          </ScrollArea.Scrollbar>
+        </ScrollArea.Root>
+      </div>
+    </div>
+  );
+};
+
+const SidebarMenu: FC<SidebarMenuProps> = ({
+  sections,
+  onItemSelect,
+  className,
+}) => {
+  const [collapsedSections, setCollapsedSections] = useState<
+    Set<SidebarSectionType>
+  >(new Set());
+
+  const toggleSection = (sectionType: SidebarSectionType) => {
+    setCollapsedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(sectionType)) {
+        next.delete(sectionType);
+      } else {
+        next.add(sectionType);
+      }
+      return next;
+    });
+  };
 
   return (
     <div
       className={cn(
-        "sticky z-100 mt-0 self-start sm:top-16 sm:mt-4",
-        topPositionClasses
+        "relative z-10 flex flex-col gap-y-1.5 overflow-hidden",
+        className
       )}
     >
-      <div className="relative w-full border-y border-blue-400 bg-gray-0/75 p-3 backdrop-blur-md no-scrollbar dark:border-blue-700 dark:bg-blue-50-dark/75 sm:max-h-[calc(100vh-76px)] sm:overflow-y-auto sm:border-none sm:bg-blue-200/0 sm:p-2 sm:pt-0 sm:dark:bg-blue-50-dark/0">
-        <div
-          className={cn(
-            "pointer-events-none absolute right-0 top-0 z-20 h-full w-32 bg-gradient-to-r from-transparent to-blue-100 dark:to-blue-50-dark sm:hidden",
-            isMobileExpanded && "hidden"
-          )}
-        />
-        <div
-          className={cn(
-            "absolute right-2 z-20 sm:hidden",
-            isMobileExpanded ? "bottom-3.5" : "top-3.5"
-          )}
-        >
-          <Button
-            aria-label={t("toggleAllTopics")}
-            onClick={() => setIsMobileExpanded((prev) => !prev)}
-            variant="tertiary"
-            presentationType="icon"
-          >
-            <FontAwesomeIcon
-              className={cn({ "-rotate-180": !isMobileExpanded })}
-              icon={faArrowUp}
-            />
-          </Button>
-        </div>
-
-        <div
-          className={cn(
-            "relative z-10 flex snap-x gap-1.5 gap-y-2 overflow-x-auto pr-8 no-scrollbar sm:static sm:w-56 sm:flex-col sm:gap-y-1.5 sm:overflow-hidden sm:p-1 md:w-[210px] md:px-0 min-[812px]:w-64 min-[812px]:px-1",
-            isMobileExpanded ? "flex-wrap" : "pr-10"
-          )}
-        >
-          {sidebarSections
-            .filter(({ items }) => items.length > 0)
-            .map(({ type: sectionType, title, items }) => (
-              <Fragment key={`menu-${sectionType}`}>
-                {title && (
-                  <div className="mt-1 hidden pl-2 text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-500-dark sm:block">
-                    {title}
-                  </div>
-                )}
-                {items.map(({ name, emoji, onClick, url, isActive }, idx) => (
-                  <TopicItem
-                    key={`menu-${sectionType}-${idx}`}
-                    text={name}
-                    emoji={emoji}
-                    href={url}
-                    onClick={() => {
-                      setIsMobileExpanded(false);
-                      onClick && onClick();
-                    }}
-                    isActive={isActive ?? false}
+      {sections
+        .filter(({ items }) => items.length > 0)
+        .map(({ type: sectionType, title, items }) => {
+          const isCollapsed =
+            sectionType !== null && collapsedSections.has(sectionType);
+          return (
+            <Fragment key={`menu-${sectionType}`}>
+              {title && sectionType !== null && (
+                <button
+                  type="button"
+                  onClick={() => toggleSection(sectionType)}
+                  className="mt-1 flex h-8 w-full items-center justify-between rounded bg-blue-200 px-2.5 text-xs font-bold uppercase leading-4 text-gray-500 dark:bg-blue-200-dark dark:text-gray-500-dark"
+                >
+                  {title}
+                  <FontAwesomeIcon
+                    icon={faChevronUp}
+                    className={cn(
+                      "text-sm transition-transform duration-200",
+                      isCollapsed && "rotate-180"
+                    )}
                   />
+                </button>
+              )}
+              {!isCollapsed &&
+                (sectionType === "hot_categories" ? (
+                  <div className="grid w-full grid-cols-3 gap-x-2 gap-y-1 py-1 text-center">
+                    {items.map(({ name, emoji, onClick, url, isActive }) => (
+                      <Link
+                        key={url}
+                        href={url}
+                        onClick={(event) => {
+                          onClick?.(event);
+                          onItemSelect?.();
+                        }}
+                        className={cn(
+                          "flex min-h-[60px] min-w-0 flex-col items-center justify-center gap-1 rounded py-2 no-underline transition-colors",
+                          isActive
+                            ? "bg-blue-800 dark:bg-blue-800-dark"
+                            : "can-hover:hover:bg-blue-200 dark:can-hover:hover:bg-blue-200-dark"
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            "text-base font-bold leading-none",
+                            isActive
+                              ? "text-gray-0 dark:text-gray-200-dark"
+                              : "text-olive-800 dark:text-olive-800-dark"
+                          )}
+                        >
+                          {emoji}
+                        </div>
+                        <div
+                          className={cn(
+                            "w-full min-w-0 hyphens-manual whitespace-normal text-center text-[10px] font-medium leading-3 [overflow-wrap:anywhere] [text-wrap:balance] sm:text-[9.5px] lg:text-[10.5px]",
+                            isActive
+                              ? "text-gray-0 dark:text-gray-200-dark"
+                              : "text-blue-800 dark:text-blue-800-dark"
+                          )}
+                        >
+                          {name}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  items.map(({ name, emoji, onClick, url, isActive }, idx) => (
+                    <TopicItem
+                      key={`menu-${sectionType}-${idx}`}
+                      text={name}
+                      emoji={emoji}
+                      href={url}
+                      onClick={(event) => {
+                        onClick?.(event);
+                        onItemSelect?.();
+                      }}
+                      isActive={isActive ?? false}
+                      variant="sidebar"
+                    />
+                  ))
                 ))}
-              </Fragment>
-            ))}
-
-          <TopicItem
-            href="/questions/discovery"
-            text={t("seeAllCategories")}
-            emoji={<FontAwesomeIcon icon={faEllipsis} />}
-            isActive={false}
-            onClick={() => {
-              sendAnalyticsEvent("sidebarClick", {
-                event_category: t("seeAllCategories"),
-              });
-            }}
-          />
-        </div>
-      </div>
+            </Fragment>
+          );
+        })}
     </div>
   );
 };

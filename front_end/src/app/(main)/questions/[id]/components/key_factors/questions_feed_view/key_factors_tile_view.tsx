@@ -20,6 +20,7 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import cn from "@/utils/core/cn";
+import { getPostLink } from "@/utils/navigation";
 
 import {
   KeyFactorTileBaseRateFreqView,
@@ -112,20 +113,25 @@ const KeyFactorsTileView: React.FC<Props> = ({
     return other;
   }, [primaryQuestionLink, post.id]);
 
-  const [binaryLabel, setBinaryLabel] = useState<string | null>(null);
+  const [binaryLabel, setBinaryLabel] = useState<{
+    key: string;
+    label: string;
+  } | null>(null);
 
   useEffect(() => {
-    setBinaryLabel(null);
-
     if (!otherQuestion) return;
     if (otherQuestion.type !== QuestionType.Binary) return;
 
     let cancelled = false;
+    const labelKey = getQuestionLabelKey(otherQuestion);
 
     const applyProb = (rawProb?: number | null) => {
       if (cancelled || typeof rawProb !== "number") return;
       const pct = Math.round(rawProb * 100);
-      setBinaryLabel(`${pct}% ${t("chance")}`);
+      setBinaryLabel({
+        key: labelKey,
+        label: `${pct}% ${t("chance")}`,
+      });
     };
 
     const inlineCP = getBinaryCPFromQuestion(otherQuestion);
@@ -174,16 +180,24 @@ const KeyFactorsTileView: React.FC<Props> = ({
   }, []);
 
   const questionLinkDisplay = useMemo(() => {
-    if (!primaryQuestionLink || !otherQuestion) return null;
+    if (!primaryQuestionLink || !otherQuestion || !otherQuestion.post_id) {
+      return null;
+    }
 
     const isBinary = otherQuestion.type === QuestionType.Binary;
-    const label = isBinary && binaryLabel ? binaryLabel : null;
+    const labelKey = getQuestionLabelKey(otherQuestion);
+    const label =
+      isBinary && binaryLabel?.key === labelKey ? binaryLabel.label : null;
+    const labelPlaceholder = isBinary ? `100% ${t("chance")}` : undefined;
+    const questionLinkHref = getPostLink({ id: otherQuestion.post_id });
 
     return (
       <li key={`question-link-tile-${primaryQuestionLink.id}`}>
         <KeyFactorTileQuestionLinkView
           kf={{} as KeyFactor}
+          href={questionLinkHref}
           label={label}
+          labelPlaceholder={labelPlaceholder}
           title={otherQuestion.title}
           expanded={isQuestionLinkExpanded}
           onToggle={onToggleQuestionLink}
@@ -196,6 +210,7 @@ const KeyFactorsTileView: React.FC<Props> = ({
     binaryLabel,
     isQuestionLinkExpanded,
     onToggleQuestionLink,
+    t,
   ]);
 
   const items = useMemo(
@@ -269,6 +284,10 @@ function getBinaryCPFromQuestion(
   if (typeof mean === "number") return mean;
 
   return null;
+}
+
+function getQuestionLabelKey(question: QuestionWithCP) {
+  return `${question.post_id ?? ""}:${question.id ?? ""}`;
 }
 
 const score = (kf: KeyFactor) => (kf.freshness ?? 0) * 10;

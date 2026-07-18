@@ -35,31 +35,50 @@ type QuestionLayoutContextValue = {
   requestReplyToComment: (commentId: number) => void;
   clearReplyToComment: () => void;
 
-  // Mobile tab state
-  mobileActiveTab?: string;
-  setMobileActiveTab: (tab: string) => void;
+  // Comment scroll trigger
+  scrollToCommentId: number | null;
+  requestScrollToComment: (commentId: number) => void;
+  clearScrollToComment: () => void;
+
+  // Active tab state (shared between mobile + desktop tab bars)
+  activeTab?: string;
+  setActiveTab: (tab: string) => void;
 };
 
-const QuestionLayoutContext = createContext({} as QuestionLayoutContextValue);
+const TAB_HASH_VALUES = new Set([
+  "comments",
+  "timeline",
+  "my-scores",
+  "key-factors",
+  "info",
+  "question-links",
+  "private-notes",
+]);
+
+const QuestionLayoutContext = createContext<QuestionLayoutContextValue | null>(
+  null
+);
 
 export const QuestionLayoutProvider = ({ children }: PropsWithChildren) => {
   const hash = useHash();
   const [keyFactorsExpanded, setKeyFactorsExpanded] = useState<boolean>();
-  const [mobileActiveTab, setMobileActiveTab] = useState<string>();
+  const [activeTab, setActiveTab] = useState<string>();
   const [keyFactorOverlay, setKeyFactorOverlay] =
     useState<KeyFactorOverlayState>(null);
 
-  // Expand key factors section if URL hash points to it
   useEffect(() => {
+    if (!hash) return;
     if (hash === "key-factors") {
       setKeyFactorsExpanded(true);
-      setMobileActiveTab("key-factors");
+    }
+    if (TAB_HASH_VALUES.has(hash)) {
+      setActiveTab(hash);
     }
   }, [hash]);
 
   const requestKeyFactorsExpand = useCallback(() => {
     setKeyFactorsExpanded(true);
-    setMobileActiveTab("key-factors");
+    setActiveTab("key-factors");
   }, []);
 
   const openKeyFactorOverlay = useCallback((kf: KeyFactor) => {
@@ -85,6 +104,16 @@ export const QuestionLayoutProvider = ({ children }: PropsWithChildren) => {
     setReplyToCommentId(null);
   }, []);
 
+  const [scrollToCommentId, setScrollToCommentId] = useState<number | null>(
+    null
+  );
+  const requestScrollToComment = useCallback((commentId: number) => {
+    setScrollToCommentId(commentId);
+  }, []);
+  const clearScrollToComment = useCallback(() => {
+    setScrollToCommentId(null);
+  }, []);
+
   const value = useMemo<QuestionLayoutContextValue>(
     () => ({
       keyFactorsExpanded,
@@ -96,8 +125,11 @@ export const QuestionLayoutProvider = ({ children }: PropsWithChildren) => {
       replyToCommentId,
       requestReplyToComment,
       clearReplyToComment,
-      mobileActiveTab,
-      setMobileActiveTab,
+      scrollToCommentId,
+      requestScrollToComment,
+      clearScrollToComment,
+      activeTab,
+      setActiveTab,
     }),
     [
       keyFactorsExpanded,
@@ -109,7 +141,10 @@ export const QuestionLayoutProvider = ({ children }: PropsWithChildren) => {
       replyToCommentId,
       requestReplyToComment,
       clearReplyToComment,
-      mobileActiveTab,
+      scrollToCommentId,
+      requestScrollToComment,
+      clearScrollToComment,
+      activeTab,
     ]
   );
 

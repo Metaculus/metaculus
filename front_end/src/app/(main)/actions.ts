@@ -10,12 +10,21 @@ export async function submitContactForm(data: ContactForm) {
   return await serverMiscApi.submitContactForm(data);
 }
 
-export async function cancelBulletin(bulletinId: number) {
+export async function dismissBulletin(bulletinId: number) {
   return await serverMiscApi.cancelBulletin(bulletinId);
 }
 
-export async function subscribeToNewsletter(email: string) {
-  return await serverMiscApi.subscribeToNewsletter(email);
+export async function dismissFeedTile(id: string) {
+  return await serverMiscApi.dismissFeedTile(id);
+}
+
+const NEWSLETTER_LIST_IDS: Record<string, string> = {
+  labor: "10617959",
+};
+
+export async function subscribeToNewsletter(email: string, listKey?: string) {
+  const listId = listKey ? NEWSLETTER_LIST_IDS[listKey] : undefined;
+  return await serverMiscApi.subscribeToNewsletter(email, listId);
 }
 
 // Unlike subscribeToNewsletter, unsubscribeFromNewsletter and checkNewsletterSubscription requires

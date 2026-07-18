@@ -1,5 +1,5 @@
 import { ApiService } from "@/services/api/api_service";
-import { encodeQueryParams } from "@/utils/navigation";
+import { CombinedFeedTile } from "@/types/projects";
 
 export type ContactForm = {
   email: string;
@@ -22,21 +22,26 @@ export interface SiteStats {
   years_of_predictions: number;
 }
 
-type BulletinParams = {
-  post_id?: number;
-  project_slug?: string;
+export type BulletinItem = {
+  text: string;
+  id: number;
 };
 
 class MiscApi extends ApiService {
-  async getBulletins(params?: BulletinParams) {
-    const queryParams = encodeQueryParams(params ?? {});
+  async getBulletins(): Promise<BulletinItem[]> {
     const resp = await this.get<{
-      bulletins: {
-        text: string;
-        id: number;
-      }[];
-    }>(`/get-bulletins/${queryParams}`);
-    return resp?.bulletins;
+      bulletins: BulletinItem[];
+    }>("/get-bulletins/", undefined, {
+      passAuthHeader: false,
+    });
+    return resp.bulletins;
+  }
+
+  async getDismissedBulletinIds() {
+    const resp = await this.get<{
+      dismissed_bulletin_ids: number[];
+    }>("/get-dismissed-bulletin-ids/");
+    return resp.dismissed_bulletin_ids;
   }
 
   async getSiteStats() {
@@ -45,6 +50,14 @@ class MiscApi extends ApiService {
         revalidate: 60 * 60 * 24, // 24 hours
       },
     });
+  }
+
+  async getCombinedFeedTiles(): Promise<CombinedFeedTile[]> {
+    return await this.get<CombinedFeedTile[]>("/ad-tiles/");
+  }
+
+  async dismissFeedTile(dismissId: string): Promise<void> {
+    await this.post(`/ad-tiles/${encodeURIComponent(dismissId)}/dismiss/`, {});
   }
 }
 

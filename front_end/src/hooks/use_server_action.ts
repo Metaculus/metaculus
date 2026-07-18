@@ -3,10 +3,11 @@ import { useEffect, useRef, useState, useTransition } from "react";
 export const useServerAction = <P extends unknown[], R>(
   action: (...args: P) => Promise<R>,
   onFinished?: (_: R | undefined) => void
-): [(...args: P) => Promise<R | undefined>, boolean] => {
+): [(...args: P) => Promise<R | undefined>, boolean, boolean] => {
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<R>();
   const [finished, setFinished] = useState(false);
+  const [hasError, setHasError] = useState(false);
   const resolver = useRef<(value?: R | PromiseLike<R>) => void>(undefined);
 
   useEffect(() => {
@@ -19,11 +20,13 @@ export const useServerAction = <P extends unknown[], R>(
 
   const runAction = async (...args: P): Promise<R | undefined> => {
     startTransition(() => {
+      setHasError(false);
       action(...args)
         .then((data) => {
           setResult(data);
         })
         .catch((err) => {
+          setHasError(true);
           console.error(err);
         })
         .finally(() => {
@@ -36,5 +39,5 @@ export const useServerAction = <P extends unknown[], R>(
     });
   };
 
-  return [runAction, isPending];
+  return [runAction, isPending, hasError];
 };

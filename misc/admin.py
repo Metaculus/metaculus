@@ -1,20 +1,62 @@
-from admin_auto_filters.filters import AutocompleteFilterFactory
 from django import forms
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 
-from .models import Bulletin, SidebarItem, UserDataAccess
+from .models import AdTile, Bulletin, SidebarItem, UserDataAccess
+
+
+class AdTileAdminForm(forms.ModelForm):
+    class Meta:
+        model = AdTile
+        fields = "__all__"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        title = cleaned_data.get("title")
+        url = cleaned_data.get("url")
+        project = cleaned_data.get("project")
+        publish_at = cleaned_data.get("publish_at")
+        expires_at = cleaned_data.get("expires_at")
+
+        if not title and not project:
+            raise ValidationError(
+                "Title is required unless a Project is selected (its name is used)."
+            )
+        if not url and not project:
+            raise ValidationError(
+                "URL is required unless a Project is selected (the frontend links to it)."
+            )
+        if publish_at and expires_at and expires_at <= publish_at:
+            raise ValidationError("Expiration must be after the publish date.")
+        return cleaned_data
+
+
+@admin.register(AdTile)
+class AdTileAdmin(admin.ModelAdmin):
+    form = AdTileAdminForm
+    list_display = [
+        "display_title",
+        "is_active",
+        "order",
+        "exposure_rate",
+        "publish_at",
+        "expires_at",
+        "project",
+    ]
+    list_filter = ["is_active"]
+    search_fields = ["title", "url"]
+    ordering = ["order"]
+    autocomplete_fields = ["project"]
+
+    @admin.display(description="Title")
+    def display_title(self, obj):
+        return obj.display_title
 
 
 @admin.register(Bulletin)
 class BulletinAdmin(admin.ModelAdmin):
     list_display = ["__str__", "bulletin_start", "bulletin_end"]
-    search_fields = ["post", "project", "bulletin_start", "bulletin_end", "text"]
-    list_filter = [
-        AutocompleteFilterFactory("Post", "post"),
-        AutocompleteFilterFactory("Project", "project"),
-    ]
-    autocomplete_fields = ["post", "project"]
+    search_fields = ["bulletin_start", "bulletin_end", "text"]
 
 
 class SidebarItemAdminForm(forms.ModelForm):

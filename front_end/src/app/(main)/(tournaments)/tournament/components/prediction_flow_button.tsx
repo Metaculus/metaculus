@@ -22,7 +22,7 @@ const PredictionFlowButton: React.FC<Props> = ({ tournament }) => {
     tournament.forecasts_flow_enabled &&
     !tournament.timeline.all_questions_closed;
 
-  if (!isForecastsFlowEnabled || isNil(user)) {
+  if (!isForecastsFlowEnabled || isNil(user) || user.is_bot) {
     return null;
   }
 
