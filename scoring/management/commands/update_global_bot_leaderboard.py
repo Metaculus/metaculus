@@ -1282,36 +1282,26 @@ def run_update_global_bot_leaderboard(  # noqa: C901
         # X days or within their most recent Y scores/coverage (whichever is more)
         # NOTE: assumes data is sorted by most recent matches first
         oldest_ts = (timezone.now() - timedelta(days=bot_recency)).timestamp()
-        # user1
-        q_by_u[user1_id].add(question_id)
-        u1_current_coverage = cov_by_q_by_u[user1_id][question_id]
-        if coverage > u1_current_coverage:
-            cov_by_q_by_u[user1_id][question_id] = coverage
-            cov_by_u[user1_id] += coverage - u1_current_coverage
-        if (
-            (bot_recency and (bot_recent_scores or bot_recent_coverage))
-            and (user1_id in non_metac_bot_ids)
-            and (timestamp < oldest_ts)
-        ):
-            if bot_recent_scores and (len(q_by_u[user1_id]) > bot_recent_scores):
-                continue
-            if bot_recent_coverage and (cov_by_u[user1_id] > bot_recent_coverage):
-                continue
-        # user2
-        q_by_u[user2_id].add(question_id)
-        u2_current_coverage = cov_by_q_by_u[user2_id][question_id]
-        if coverage > u2_current_coverage:
-            cov_by_q_by_u[user2_id][question_id] = coverage
-            cov_by_u[user2_id] += coverage - u2_current_coverage
-        if (
-            (bot_recency and (bot_recent_scores or bot_recent_coverage))
-            and (user2_id in non_metac_bot_ids)
-            and (timestamp < oldest_ts)
-        ):
-            if bot_recent_scores and (len(q_by_u[user2_id]) > bot_recent_scores):
-                continue
-            if bot_recent_coverage and (cov_by_u[user2_id] > bot_recent_coverage):
-                continue
+        # update both users' question and coverage state before making any skip
+        # decision, so accounting stays symmetric regardless of pairing order.
+        for uid in (user1_id, user2_id):
+            q_by_u[uid].add(question_id)
+            current_coverage = cov_by_q_by_u[uid][question_id]
+            if coverage > current_coverage:
+                cov_by_q_by_u[uid][question_id] = coverage
+                cov_by_u[uid] += coverage - current_coverage
+        # compute each user's recency-cap eligibility independently, then skip the
+        # match only after both users have been evaluated.
+        recency_active = bool(bot_recency and (bot_recent_scores or bot_recent_coverage))
+        skip_match = False
+        for uid in (user1_id, user2_id):
+            if recency_active and (uid in non_metac_bot_ids) and (timestamp < oldest_ts):
+                if bot_recent_scores and (len(q_by_u[uid]) > bot_recent_scores):
+                    skip_match = True
+                if bot_recent_coverage and (cov_by_u[uid] > bot_recent_coverage):
+                    skip_match = True
+        if skip_match:
+            continue
 
         # filter out new matches for metac bots
         if metac_bot_age:
