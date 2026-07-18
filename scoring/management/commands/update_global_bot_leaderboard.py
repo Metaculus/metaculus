@@ -1292,10 +1292,16 @@ def run_update_global_bot_leaderboard(  # noqa: C901
                 cov_by_u[uid] += coverage - current_coverage
         # compute each user's recency-cap eligibility independently, then skip the
         # match only after both users have been evaluated.
-        recency_active = bool(bot_recency and (bot_recent_scores or bot_recent_coverage))
+        recency_active = bool(
+            bot_recency and (bot_recent_scores or bot_recent_coverage)
+        )
         skip_match = False
         for uid in (user1_id, user2_id):
-            if recency_active and (uid in non_metac_bot_ids) and (timestamp < oldest_ts):
+            if (
+                recency_active
+                and (uid in non_metac_bot_ids)
+                and (timestamp < oldest_ts)
+            ):
                 if bot_recent_scores and (len(q_by_u[uid]) > bot_recent_scores):
                     skip_match = True
                 if bot_recent_coverage and (cov_by_u[uid] > bot_recent_coverage):
