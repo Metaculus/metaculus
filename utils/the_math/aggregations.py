@@ -11,7 +11,7 @@ Normalise to 1 over all outcomes.
 
 from bisect import bisect_left, bisect_right
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone as dt_timezone
 from typing import Sequence
 
@@ -54,6 +54,24 @@ class ForecastSet:
     timestep: datetime
     forecaster_ids: list[int] = list
     timesteps: list[datetime] = list
+    _timesteps_epoch_cache: np.ndarray | None = field(
+        default=None, repr=False, compare=False
+    )
+
+    def timesteps_epoch(self) -> np.ndarray:
+        """Cached numpy array of `timesteps` as epoch-second floats. Computed
+        lazily on first access (rather than in get_user_forecast_history, so
+        that ForecastSets built for callers that never need it - most
+        weighting/aggregation methods don't touch `.timesteps` at all - don't
+        pay for it), and cached so that reusing the same ForecastSet across
+        multiple aggregation methods in get_aggregation_history only pays the
+        Python-level datetime->float conversion once.
+        """
+        if self._timesteps_epoch_cache is None:
+            self._timesteps_epoch_cache = np.array(
+                [t.timestamp() for t in self.timesteps]
+            )
+        return self._timesteps_epoch_cache
 
 
 # Helpers ##########################################
@@ -64,7 +82,9 @@ def get_histogram(
     weights: Weights,
     question_type: Question.QuestionType,
 ) -> np.ndarray:
-    values = np.array(values)
+    # asarray: values is never mutated below, so if the caller already has an
+    # ndarray (e.g. a shared per-entry conversion), avoid re-copying it.
+    values = np.asarray(values)
     if len(values) == 0:
         return np.zeros(100)
     if weights is None:
@@ -90,7 +110,9 @@ def compute_discrete_forecast_values(
     weights: Weights = None,
     percentile: float | list[float] | Percentiles = 50.0,
 ) -> ForecastsValues:
-    forecasts_values = np.array(forecasts_values)
+    # asarray: forecasts_values is never mutated below (only reshaped/read),
+    # so an already-converted shared array is reused rather than re-copied.
+    forecasts_values = np.asarray(forecasts_values)
     if isinstance(percentile, float):
         percentile = np.array([percentile])
     if forecasts_values.shape[1] == 2:
@@ -227,6 +249,7 @@ class ReputationWeighted(Weighted):
         self,
         question: Question,
         all_forecaster_ids: list[int] | set[int] | None,
+        forecast_history: Sequence["ForecastSet"] | None = None,
         **kwargs,
     ):
         if question is None or all_forecaster_ids is None:
@@ -235,15 +258,83 @@ class ReputationWeighted(Weighted):
         self.reputations: dict[int, list[Reputation]] = self.get_reputation_history(
             all_forecaster_ids
         )
+        # If the full forecast history is known up front, precompute every
+        # active forecaster's reputation value at every timestep they appear
+        # in via one batched `np.searchsorted` call per user, instead of one
+        # Python-level bisect lookup per (timestep, forecaster) pair live in
+        # `get_reputations`. A single bisect call is actually *cheaper* than a
+        # single searchsorted call (numpy's per-call dispatch overhead), so
+        # this only pays off once a user has enough queries to amortize that
+        # overhead - which is exactly the common case here (a forecaster is
+        # typically active across many consecutive timesteps). Falls back to
+        # the live per-call lookup when forecast_history isn't provided (e.g.
+        # single-snapshot callers, or direct construction in tests).
+        self._precomputed_weights: dict[int, np.ndarray] | None = None
+        if forecast_history is not None:
+            self._precomputed_weights = self._precompute_reputations(forecast_history)
 
     def get_reputation_history(
         self, all_forecaster_ids: list[int] | set[int]
     ) -> dict[int, list[Reputation]]:
         raise NotImplementedError("Implement in Child Class")
 
-    def get_reputations(self, forecast_set: ForecastSet) -> list[Reputation]:
-        reps = []
-        for user_id in forecast_set.forecaster_ids:
+    def _precompute_reputations(
+        self, forecast_history: Sequence["ForecastSet"]
+    ) -> dict[int, np.ndarray]:
+        forecast_history = list(forecast_history)
+        # Each distinct timestep's epoch value, computed once - many users
+        # share the same handful of distinct timesteps (a forecaster is
+        # typically active across many consecutive ones), so deriving this
+        # per (user, timestep) pair instead would redo the same conversion
+        # up to num_users times over.
+        timestep_epochs = np.array(
+            [forecast_set.timestep.timestamp() for forecast_set in forecast_history]
+        )
+
+        query_indexes_by_user: dict[int, list[int]] = defaultdict(list)
+        query_positions_by_user: dict[int, list[int]] = defaultdict(list)
+        for fs_index, forecast_set in enumerate(forecast_history):
+            for position, user_id in enumerate(forecast_set.forecaster_ids):
+                query_indexes_by_user[user_id].append(fs_index)
+                query_positions_by_user[user_id].append(position)
+
+        results = [
+            np.zeros(len(forecast_set.forecaster_ids))
+            for forecast_set in forecast_history
+        ]
+
+        for user_id, fs_indexes in query_indexes_by_user.items():
+            history = self.reputations[user_id]
+            if not history:
+                continue
+            times_array = np.array([r.time.timestamp() for r in history])
+            values_array = np.array([r.value for r in history])
+            query_epochs = timestep_epochs[fs_indexes]
+            indexes = np.searchsorted(times_array, query_epochs, side="right") - 1
+            found = indexes >= 0
+            values = np.where(found, values_array[np.clip(indexes, 0, None)], 0.0)
+            positions = query_positions_by_user[user_id]
+            for fs_index, position, value in zip(fs_indexes, positions, values):
+                results[fs_index][position] = value
+
+        return {
+            id(forecast_set): results[i]
+            for i, forecast_set in enumerate(forecast_history)
+        }
+
+    def get_reputations(self, forecast_set: ForecastSet) -> np.ndarray:
+        """Returns the reputation value active at forecast_set.timestep for
+        each of forecast_set.forecaster_ids (0 if none, i.e. no weight),
+        as a parallel array."""
+        if self._precomputed_weights is not None:
+            cached = self._precomputed_weights.get(id(forecast_set))
+            if cached is not None:
+                return cached
+        return self._live_reputations(forecast_set)
+
+    def _live_reputations(self, forecast_set: ForecastSet) -> np.ndarray:
+        values = np.zeros(len(forecast_set.forecaster_ids))
+        for i, user_id in enumerate(forecast_set.forecaster_ids):
             # self.reputations[user_id] is sorted ascending by `.time`, so the
             # latest reputation with time <= timestep sits right before the
             # insertion point.
@@ -252,38 +343,43 @@ class ReputationWeighted(Weighted):
                 bisect_right(history, forecast_set.timestep, key=lambda r: r.time) - 1
             )
             if index >= 0:
-                reps.append(history[index])
-            else:
-                # no reputation -> no weight
-                reps.append(
-                    Reputation(user_id=user_id, value=0, time=forecast_set.timestep)
-                )
-        return reps
+                values[i] = history[index].value
+        return values
 
     def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
-        reps = self.get_reputations(forecast_set)
-        return np.array([reputation.value for reputation in reps])
+        return self.get_reputations(forecast_set)
 
 
 class LearnedReputationWeighted(ReputationWeighted):
+    def __init__(
+        self,
+        question: Question,
+        all_forecaster_ids: list[int] | set[int] | None,
+        **kwargs,
+    ):
+        super().__init__(question, all_forecaster_ids, **kwargs)
+        # Cached once per aggregation run rather than re-derived from a
+        # timedelta subtraction on every calculate_weights call.
+        self.question_duration_seconds = (
+            self.question.scheduled_close_time - self.question.open_time
+        ).total_seconds()
+
     def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
         # Custom overwrite to uniquely combine time weighting with reputation
-        reps = self.get_reputations(forecast_set)
+        reputation_values = self.get_reputations(forecast_set)
         # TODO: make these learned parameters
         a = 0.5
         b = 6.0
-        question_duration = self.question.scheduled_close_time - self.question.open_time
-        # Build the (timedelta / timedelta) ratios in plain Python first, then
-        # hand numpy one array to exponentiate - calling np.exp/** per element
-        # in a list comprehension is much slower than a single vectorized call.
-        decay_ratios = np.array(
-            [
-                -(forecast_set.timestep - start_time) / question_duration
-                for start_time in forecast_set.timesteps
-            ]
+        # epoch-second floats (cached on the ForecastSet) instead of Python
+        # datetime/timedelta arithmetic per element - lets the subtraction
+        # and division below run as a single vectorized numpy op rather than
+        # once per active forecaster in a Python loop.
+        timesteps_epoch = forecast_set.timesteps_epoch()
+        timestep_epoch = forecast_set.timestep.timestamp()
+        decay_ratios = (
+            -(timestep_epoch - timesteps_epoch) / self.question_duration_seconds
         )
         decays = np.exp(decay_ratios)
-        reputation_values = np.array([reputation.value for reputation in reps])
 
         weights = (decays**a * reputation_values ** (1 - a)) ** b
         if np.all(weights == 0):
@@ -462,6 +558,19 @@ class GoldMedalistsReputationWeighted(MedalistsReputationWeighted):
 # Aggregators ##########################################
 
 
+def _forecasts_values_array(
+    forecast_set: ForecastSet, forecasts_values_array: np.ndarray | None
+) -> np.ndarray:
+    """Returns the given pre-converted array if provided, otherwise converts
+    forecast_set.forecasts_values. Callers that already have the array (e.g.
+    `calculate_aggregation_entry`, which needs it regardless of which mixin
+    methods get called) should pass it through to avoid re-converting the
+    same underlying list multiple times per aggregation entry."""
+    if forecasts_values_array is not None:
+        return forecasts_values_array
+    return np.asarray(forecast_set.forecasts_values)
+
+
 class AggregatorMixin:
     """
     The method of aggregating forecasts, given their weights
@@ -471,7 +580,10 @@ class AggregatorMixin:
     question: Question
 
     def calculate_forecast_values(
-        self, forecast_set: ForecastSet, weights: np.ndarray | None = None
+        self,
+        forecast_set: ForecastSet,
+        weights: np.ndarray | None = None,
+        forecasts_values_array: np.ndarray | None = None,
     ) -> np.ndarray:
         raise NotImplementedError("Implementation required in Mixin")
 
@@ -480,6 +592,7 @@ class AggregatorMixin:
         forecast_set: ForecastSet,
         aggregation_forecast_values: ForecastValues,
         weights: np.ndarray | None = None,
+        forecasts_values_array: np.ndarray | None = None,
     ) -> RangeValuesType:
         raise NotImplementedError("Implementation required in Mixin")
 
@@ -492,11 +605,15 @@ class MedianAggregatorMixin:
     question: Question
 
     def calculate_forecast_values(
-        self, forecast_set: ForecastSet, weights: np.ndarray | None = None
+        self,
+        forecast_set: ForecastSet,
+        weights: np.ndarray | None = None,
+        forecasts_values_array: np.ndarray | None = None,
     ) -> np.ndarray:
         # Default Aggregation method uses weighted medians for binary and MC questions
         # and weighted average for continuous
-        forecasts_values = np.array(forecast_set.forecasts_values)
+        # never mutated below, so the shared array (if given) is reused as-is
+        forecasts_values = _forecasts_values_array(forecast_set, forecasts_values_array)
         if self.question.type == Question.QuestionType.BINARY:
             return np.array(
                 compute_discrete_forecast_values(forecasts_values, weights, 50.0)[0]
@@ -519,14 +636,19 @@ class MedianAggregatorMixin:
         forecast_set: ForecastSet,
         aggregation_forecast_values: ForecastValues,
         weights: np.ndarray | None = None,
+        forecasts_values_array: np.ndarray | None = None,
     ) -> tuple[list[float | None], list[float | None], list[float | None]]:
         if self.question.type == Question.QuestionType.BINARY:
-            forecasts_values = np.array(forecast_set.forecasts_values)
+            forecasts_values = _forecasts_values_array(
+                forecast_set, forecasts_values_array
+            )
             lowers, centers, uppers = compute_discrete_forecast_values(
                 forecasts_values, weights, [25.0, 50.0, 75.0]
             )
         elif self.question.type == Question.QuestionType.MULTIPLE_CHOICE:
-            forecasts_values = np.array(forecast_set.forecasts_values)
+            forecasts_values = _forecasts_values_array(
+                forecast_set, forecasts_values_array
+            )
             non_nans = ~np.isnan(forecasts_values[0]) if forecasts_values.size else []
             lowers, centers, uppers = compute_discrete_forecast_values(
                 forecasts_values, weights, [25.0, 50.0, 75.0]
@@ -565,9 +687,17 @@ class MeanAggregatorMixin:
     question: Question
 
     def calculate_forecast_values(
-        self, forecast_set: ForecastSet, weights: np.ndarray | None = None
+        self,
+        forecast_set: ForecastSet,
+        weights: np.ndarray | None = None,
+        forecasts_values_array: np.ndarray | None = None,
     ) -> np.ndarray:
-        forecasts_values = np.array(forecast_set.forecasts_values)
+        # .copy(): forecast_values below is a view into row 0 of this array
+        # and gets mutated in place, so a shared array must not be used
+        # directly here.
+        forecasts_values = _forecasts_values_array(
+            forecast_set, forecasts_values_array
+        ).copy()
         forecast_values = forecasts_values[0] if forecasts_values.size else np.array([])
         non_nones = np.logical_not(np.equal(forecast_values, None))
         forecast_values[non_nones] = np.average(
@@ -580,6 +710,7 @@ class MeanAggregatorMixin:
         forecast_set: ForecastSet,
         aggregation_forecast_values: ForecastValues,
         weights: np.ndarray | None = None,
+        forecasts_values_array: np.ndarray | None = None,
     ):
         if self.question.type in QUESTION_CONTINUOUS_TYPES:
             if np.any(np.equal(aggregation_forecast_values, None)):
@@ -592,8 +723,11 @@ class MeanAggregatorMixin:
             uppers = [uppers]
         else:
             centers = np.array(aggregation_forecast_values)
+            # compute_weighted_semi_standard_deviations always makes its own
+            # copy (it mutates in place), but copying an existing array is
+            # still cheaper than building one from the raw list.
             lowers_sd, uppers_sd = compute_weighted_semi_standard_deviations(
-                forecast_set.forecasts_values, weights
+                _forecasts_values_array(forecast_set, forecasts_values_array), weights
             )
             non_nones = np.logical_not(np.equal(centers, None))
             lowers = centers.copy()
@@ -624,6 +758,7 @@ class Aggregation(AggregatorMixin):
         question: Question,
         all_forecaster_ids: list[int] | set[int] | None = None,
         joined_before: datetime | None = None,
+        forecast_history: Sequence["ForecastSet"] | None = None,
     ):
         self.question = question
         self.weightings: list[Weighted] = [
@@ -631,6 +766,7 @@ class Aggregation(AggregatorMixin):
                 question=question,
                 all_forecaster_ids=all_forecaster_ids,
                 joined_before=joined_before,
+                forecast_history=forecast_history,
             )
             for Klass in self.weighting_classes
         ]
@@ -666,7 +802,14 @@ class Aggregation(AggregatorMixin):
             assert weights == 0, "0 is only supported int return of get_weights"
             return None
         aggregation = AggregateForecast(question=self.question, method=self.method)
-        forecast_values = self.calculate_forecast_values(forecast_set, weights)
+        # Converted once here and threaded through calculate_forecast_values /
+        # get_range_values / means / histogram below, instead of each of them
+        # independently re-converting the same forecast_set.forecasts_values
+        # list to an array.
+        forecasts_values_array = np.asarray(forecast_set.forecasts_values)
+        forecast_values = self.calculate_forecast_values(
+            forecast_set, weights, forecasts_values_array
+        )
         aggregation.forecast_values = [
             None if np.isnan(v) else v for v in forecast_values
         ]
@@ -678,7 +821,7 @@ class Aggregation(AggregatorMixin):
             aggregation.forecaster_count = len(forecast_set.forecasts_values)
         if include_stats:
             lowers, centers, uppers = self.get_range_values(
-                forecast_set, forecast_values, weights
+                forecast_set, forecast_values, weights, forecasts_values_array
             )
             aggregation.interval_lower_bounds = [
                 None if np.isnan(v) else v for v in lowers
@@ -691,8 +834,7 @@ class Aggregation(AggregatorMixin):
                 Question.QuestionType.BINARY,
                 Question.QuestionType.MULTIPLE_CHOICE,
             ]:
-                forecasts_values = np.array(forecast_set.forecasts_values)
-                means = np.average(forecasts_values, weights=weights, axis=0)
+                means = np.average(forecasts_values_array, weights=weights, axis=0)
                 aggregation.means = [None if np.isnan(v) else v for v in means]
 
         if histogram and self.question.type in [
@@ -700,7 +842,7 @@ class Aggregation(AggregatorMixin):
             Question.QuestionType.MULTIPLE_CHOICE,
         ]:
             aggregation.histogram = get_histogram(
-                forecast_set.forecasts_values,
+                forecasts_values_array,
                 weights,
                 question_type=self.question.type,
             ).tolist()
@@ -817,6 +959,7 @@ def get_aggregations_at_time(
             question=question,
             all_forecaster_ids=set(forecast_set.forecaster_ids),
             joined_before=joined_before,
+            forecast_history=[forecast_set],
         )
         new_entry = aggregation_generator.calculate_aggregation_entry(
             forecast_set,
@@ -1019,12 +1162,14 @@ def get_user_forecast_history(
             events.append((forecast.end_time, 1, forecast))
     events.sort(key=lambda event: event[0])
 
-    # (author_id, prediction_values, start_time) per active forecast, keyed by
-    # forecast id. prediction_values is computed once per forecast (when it
-    # becomes active) and reused across every snapshot it appears in - same
-    # as the original implementation, which called get_prediction_values()
-    # once per forecast rather than once per (timestep, forecast) pair.
-    active: dict[int, tuple[int, list[float], datetime]] = {}
+    # (author_id, prediction_values, start_time, start_time_epoch) per active
+    # forecast, keyed by forecast id. prediction_values and start_time_epoch
+    # are each computed once per forecast (when it becomes active) and
+    # reused across every snapshot it appears in, rather than being
+    # recomputed at every timestep it's active for - same reasoning as the
+    # original implementation calling get_prediction_values() once per
+    # forecast rather than once per (timestep, forecast) pair.
+    active: dict[int, tuple[int, list[float], datetime, float]] = {}
     forecast_sets: list[ForecastSet] = []
     event_index = 0
     n_events = len(events)
@@ -1036,6 +1181,7 @@ def get_user_forecast_history(
                     forecast.author_id,
                     forecast.get_prediction_values(),
                     forecast.start_time,
+                    forecast.start_time.timestamp(),
                 )
             else:
                 active.pop(forecast.id, None)
@@ -1047,6 +1193,9 @@ def get_user_forecast_history(
                 timestep=timestep,
                 forecaster_ids=[entry[0] for entry in active_entries],
                 timesteps=[entry[2] for entry in active_entries],
+                _timesteps_epoch_cache=np.array(
+                    [entry[3] for entry in active_entries]
+                ),
             )
         )
 
@@ -1152,6 +1301,7 @@ def get_aggregation_history(
                 question=question,
                 all_forecaster_ids=forecaster_ids,
                 joined_before=joined_before,
+                forecast_history=forecast_history,
             )
 
         last_historical_entry_index = -1

@@ -13,6 +13,7 @@ from questions.types import AggregationMethod
 from questions.models import Question, AggregateForecast, Forecast
 from scoring.models import Leaderboard, LeaderboardEntry, Reputation, Score
 from scoring.constants import ScoreTypes
+from tests.unit.test_questions.factories import create_question
 from users.models import User
 from utils.the_math.aggregations import (
     AGGREGATIONS,
@@ -29,6 +30,7 @@ from utils.the_math.aggregations import (
     JoinedBeforeDateAggregation,
     SingleAggregation,
     YearPerformanceAggregation,
+    YearPerformanceReputationWeighted,
     compute_weighted_semi_standard_deviations,
 )
 from utils.typing import (
@@ -1149,24 +1151,101 @@ class TestAggregationSpeed:
         assert result["year_performance"]
 
 
-class TestAggregationHeavyLoad:
-    """Stress tests for `get_aggregation_history` under a large, non-minimized
-    forecast history: ~1000 users each with a handful of forecasts on a single
-    question, run with minimize=False and include_stats=True (i.e. the most
-    expensive realistic configuration) to get a feel for worst-case timing.
+class TestReputationPrecomputeEquivalence:
+    """`ReputationWeighted` can either precompute reputation weights for a
+    whole known forecast_history up front (batched `np.searchsorted` per
+    user) or look them up live per call (per-(timestep, forecaster) bisect).
+    These must agree exactly regardless of which path is taken.
     """
 
-    N_USERS = 1000
-    FORECASTS_PER_USER = 3
+    def test_precomputed_matches_live_lookup(self, question_binary: Question):
+        question_binary.open_time = datetime(2015, 1, 1, tzinfo=dt_timezone.utc)
+        question_binary.scheduled_close_time = datetime(2026, 1, 1, tzinfo=dt_timezone.utc)
+        question_binary.save()
+
+        rng = random.Random(99)
+        users = [User.objects.create(username=f"precompute_user_{i}") for i in range(25)]
+
+        reputations = []
+        for user in users:
+            n_entries = rng.randint(0, 5)
+            for _ in range(n_entries):
+                reputations.append(
+                    Reputation(
+                        user=user,
+                        time=datetime(2015, 1, 1, tzinfo=dt_timezone.utc)
+                        + timedelta(days=rng.randint(0, 4000)),
+                        type=Reputation.ReputationTypes.YEAR_PERFORMANCE,
+                        value=rng.uniform(0.01, 5.0),
+                    )
+                )
+        Reputation.objects.bulk_create(reputations)
+
+        user_ids = [u.id for u in users]
+
+        # Build a synthetic forecast history: each timestep has a random
+        # subset of users active (some users appear at many timesteps, some
+        # at none, some only once - all edge cases for the batching).
+        forecast_history = []
+        for _ in range(40):
+            timestep = datetime(2015, 1, 1, tzinfo=dt_timezone.utc) + timedelta(
+                days=rng.randint(0, 4000)
+            )
+            active_ids = rng.sample(user_ids, k=rng.randint(0, len(user_ids)))
+            forecast_history.append(
+                ForecastSet(
+                    forecasts_values=[[0.5, 0.5]] * len(active_ids),
+                    timestep=timestep,
+                    forecaster_ids=active_ids,
+                    timesteps=[timestep] * len(active_ids),
+                )
+            )
+
+        live = YearPerformanceReputationWeighted(
+            question=question_binary,
+            all_forecaster_ids=user_ids,
+            forecast_history=None,
+        )
+        precomputed = YearPerformanceReputationWeighted(
+            question=question_binary,
+            all_forecaster_ids=user_ids,
+            forecast_history=forecast_history,
+        )
+
+        for forecast_set in forecast_history:
+            live_values = live.get_reputations(forecast_set)
+            precomputed_values = precomputed.get_reputations(forecast_set)
+            assert np.allclose(live_values, precomputed_values), (
+                f"mismatch at timestep={forecast_set.timestep}"
+            )
+
+
+class TestAggregationHeavyLoad:
+    """Stress tests for `get_aggregation_history` under a large, non-minimized
+    forecast history: ~1500 users with ~5000 forecasts total on a single
+    numeric question (continuous_cdf of size 201), run with minimize=False
+    and include_stats=True (i.e. the most expensive realistic configuration)
+    to get a feel for worst-case timing.
+    """
+
+    N_USERS = 1500
+    N_FORECASTS = 5000
+    INBOUND_OUTCOME_COUNT = 200
 
     open_time = datetime(2015, 1, 1, tzinfo=dt_timezone.utc)
     scheduled_close_time = datetime(2026, 1, 1, tzinfo=dt_timezone.utc)
 
-    def _setup_question(self, question_binary: Question) -> Question:
-        question_binary.open_time = self.open_time
-        question_binary.scheduled_close_time = self.scheduled_close_time
-        question_binary.save()
-        return question_binary
+    def _setup_question(self) -> Question:
+        return create_question(
+            question_type=Question.QuestionType.NUMERIC,
+            inbound_outcome_count=self.INBOUND_OUTCOME_COUNT,
+            range_min=0,
+            range_max=self.INBOUND_OUTCOME_COUNT,
+            open_lower_bound=False,
+            open_upper_bound=False,
+            open_time=self.open_time,
+            scheduled_close_time=self.scheduled_close_time,
+        )
 
     def _create_users(self) -> list[User]:
         User.objects.bulk_create(
@@ -1174,22 +1253,36 @@ class TestAggregationHeavyLoad:
         )
         return list(User.objects.filter(username__startswith="heavy_user_"))
 
+    def _random_cdf(self, rng: random.Random) -> list[float]:
+        # Monotonically increasing CDF of size inbound_outcome_count + 1,
+        # from 0.0 (closed lower bound) to 1.0 (closed upper bound).
+        size = self.INBOUND_OUTCOME_COUNT + 1
+        increments = [rng.random() + 1e-6 for _ in range(size - 1)]
+        total = sum(increments)
+        cdf = [0.0]
+        running = 0.0
+        for increment in increments:
+            running += increment / total
+            cdf.append(running)
+        cdf[-1] = 1.0
+        return cdf
+
     def _create_forecasts(self, question: Question, users: list[User]) -> None:
         rng = random.Random(42)
         span = (self.scheduled_close_time - self.open_time).total_seconds()
+        base_count, remainder = divmod(self.N_FORECASTS, len(users))
         forecasts = []
-        for user in users:
-            offsets = sorted(
-                rng.uniform(0, span) for _ in range(self.FORECASTS_PER_USER)
-            )
+        for i, user in enumerate(users):
+            count = base_count + (1 if i < remainder else 0)
+            offsets = sorted(rng.uniform(0, span) for _ in range(count))
             times = [self.open_time + timedelta(seconds=offset) for offset in offsets]
-            for i, forecast_start_time in enumerate(times):
-                forecast_end_time = times[i + 1] if i + 1 < len(times) else None
+            for j, forecast_start_time in enumerate(times):
+                forecast_end_time = times[j + 1] if j + 1 < len(times) else None
                 forecasts.append(
                     Forecast(
                         question=question,
                         author=user,
-                        probability_yes=rng.uniform(0.01, 0.99),
+                        continuous_cdf=self._random_cdf(rng),
                         start_time=forecast_start_time,
                         end_time=forecast_end_time,
                     )
@@ -1207,21 +1300,22 @@ class TestAggregationHeavyLoad:
         elapsed = time.perf_counter() - start
         print(
             f"\n{method} get_aggregation_history "
-            f"(~{self.N_USERS} users, ~{self.N_USERS * self.FORECASTS_PER_USER} "
-            f"forecasts, minimize=False, include_stats=True): {elapsed:.4f}s"
+            f"(~{self.N_USERS} users, ~{self.N_FORECASTS} "
+            f"forecasts, numeric/cdf-{self.INBOUND_OUTCOME_COUNT + 1}, "
+            f"minimize=False, include_stats=True): {elapsed:.4f}s"
         )
         return result
 
-    def test_RecencyWeightedAggregation_heavy_load(self, question_binary: Question):
-        question = self._setup_question(question_binary)
+    def test_RecencyWeightedAggregation_heavy_load(self):
+        question = self._setup_question()
         users = self._create_users()
         self._create_forecasts(question, users)
 
         result = self._time_history(question, AggregationMethod.RECENCY_WEIGHTED)
         assert result[AggregationMethod.RECENCY_WEIGHTED]
 
-    def test_SingleAggregation_heavy_load(self, question_binary: Question):
-        question = self._setup_question(question_binary)
+    def test_SingleAggregation_heavy_load(self):
+        question = self._setup_question()
         users = self._create_users()
 
         project, _ = Project.objects.get_or_create(
@@ -1258,8 +1352,8 @@ class TestAggregationHeavyLoad:
         result = self._time_history(question, AggregationMethod.SINGLE_AGGREGATION)
         assert result[AggregationMethod.SINGLE_AGGREGATION]
 
-    def test_YearPerformanceAggregation_heavy_load(self, question_binary: Question):
-        question = self._setup_question(question_binary)
+    def test_YearPerformanceAggregation_heavy_load(self):
+        question = self._setup_question()
         users = self._create_users()
 
         rng = random.Random(13)
