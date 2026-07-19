@@ -443,6 +443,10 @@ MINIMUM_REPUTATION = 1e-6
 
 
 class Reputation(TimeStampedModel):
+    # typing
+    objects: models.Manager["Reputation"]
+    user_id: int
+
     class ReputationTypes(models.TextChoices):
         YEAR_PERFORMANCE = "year_performance"
 

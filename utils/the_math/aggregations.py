@@ -29,7 +29,7 @@ from questions.models import (
 )
 from questions.types import AggregationMethod
 from scoring.constants import ScoreTypes
-from scoring.models import Score, LeaderboardEntry
+from scoring.models import MINIMUM_REPUTATION, Reputation, Score, LeaderboardEntry
 from users.models import User
 from utils.the_math.measures import (
     weighted_percentile_2d,
@@ -54,13 +54,6 @@ class ForecastSet:
     timestep: datetime
     forecaster_ids: list[int] = list
     timesteps: list[datetime] = list
-
-
-@dataclass
-class Reputation:
-    user_id: int
-    value: float
-    time: datetime
 
 
 # Helpers ##########################################
@@ -251,15 +244,20 @@ class ReputationWeighted(Weighted):
     def get_reputations(self, forecast_set: ForecastSet) -> list[Reputation]:
         reps = []
         for user_id in forecast_set.forecaster_ids:
-            found = False
-            for reputation in self.reputations[user_id][::-1]:
-                if reputation.time <= forecast_set.timestep:
-                    reps.append(reputation)
-                    found = True
-                    break
-            if not found:
+            # self.reputations[user_id] is sorted ascending by `.time`, so the
+            # latest reputation with time <= timestep sits right before the
+            # insertion point.
+            history = self.reputations[user_id]
+            index = (
+                bisect_right(history, forecast_set.timestep, key=lambda r: r.time) - 1
+            )
+            if index >= 0:
+                reps.append(history[index])
+            else:
                 # no reputation -> no weight
-                reps.append(Reputation(user_id, 0, forecast_set.timestep))
+                reps.append(
+                    Reputation(user_id=user_id, value=0, time=forecast_set.timestep)
+                )
         return reps
 
     def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
@@ -267,7 +265,33 @@ class ReputationWeighted(Weighted):
         return np.array([reputation.value for reputation in reps])
 
 
-class PeerScoreReputationWeighted(ReputationWeighted):
+class LearnedReputationWeighted(ReputationWeighted):
+    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
+        # Custom overwrite to uniquely combine time weighting with reputation
+        reps = self.get_reputations(forecast_set)
+        # TODO: make these learned parameters
+        a = 0.5
+        b = 6.0
+        question_duration = self.question.scheduled_close_time - self.question.open_time
+        # Build the (timedelta / timedelta) ratios in plain Python first, then
+        # hand numpy one array to exponentiate - calling np.exp/** per element
+        # in a list comprehension is much slower than a single vectorized call.
+        decay_ratios = np.array(
+            [
+                -(forecast_set.timestep - start_time) / question_duration
+                for start_time in forecast_set.timesteps
+            ]
+        )
+        decays = np.exp(decay_ratios)
+        reputation_values = np.array([reputation.value for reputation in reps])
+
+        weights = (decays**a * reputation_values ** (1 - a)) ** b
+        if np.all(weights == 0):
+            return None
+        return weights if weights.size else None
+
+
+class PeerScoreReputationWeighted(LearnedReputationWeighted):
     @staticmethod
     def reputation_value(scores: Sequence[Score]) -> float:
         return max(
@@ -309,7 +333,9 @@ class PeerScoreReputationWeighted(ReputationWeighted):
                 scores_by_user[score.user_id][score.question_id] = score
             for user_id in all_forecaster_ids:
                 value = self.reputation_value(list(scores_by_user[user_id].values()))
-                reputations[user_id].append(Reputation(user_id, value, start))
+                reputations[user_id].append(
+                    Reputation(user_id=user_id, value=value, time=start)
+                )
 
         # Then, for each new score, add a new reputation record
         new_peer_scores = list(
@@ -327,32 +353,42 @@ class PeerScoreReputationWeighted(ReputationWeighted):
                     list(scores_by_user[score.user_id].values())
                 )
                 reputations[score.user_id].append(
-                    Reputation(score.user_id, value, score.edited_at)
+                    Reputation(user_id=score.user_id, value=value, time=score.edited_at)
                 )
         return reputations
 
-    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
-        # Custom overwrite to uniquely combine time weighting with reputation
-        reps = self.get_reputations(forecast_set)
-        # TODO: make these learned parameters
-        a = 0.5
-        b = 6.0
-        decays = [
-            np.exp(
-                -(forecast_set.timestep - start_time)
-                / (self.question.scheduled_close_time - self.question.open_time)
-            )
-            for start_time in forecast_set.timesteps
-        ]
-        weights = np.array(
-            [
-                (decay**a * reputation.value ** (1 - a)) ** b
-                for decay, reputation in zip(decays, reps)
+
+class YearPerformanceReputationWeighted(LearnedReputationWeighted):
+    """Uses precomputed Reputation records to bypass the on-the-fly reputation
+    calculations other ReputationWeighted subclasses perform in
+    `get_reputation_history`.
+
+    # TODO: hardcoded to the only Reputation type that exists so far. Once more
+    # types are added, this should be properly genericized/renamed.
+    """
+
+    reputation_type = Reputation.ReputationTypes.YEAR_PERFORMANCE
+
+    def get_reputation_history(
+        self, all_forecaster_ids: list[int] | set[int]
+    ) -> dict[int, list[Reputation]]:
+        reputations: dict[int, list[Reputation]] = {
+            user_id: [
+                Reputation(
+                    user_id=user_id,
+                    value=MINIMUM_REPUTATION,
+                    time=datetime.min.replace(tzinfo=dt_timezone.utc),
+                )
             ]
-        )
-        if all(weights == 0):
-            return None
-        return weights if weights.size else None
+            for user_id in all_forecaster_ids
+        }
+        records = Reputation.objects.filter(
+            user_id__in=all_forecaster_ids,
+            type=self.reputation_type,
+        ).order_by("time")
+        for record in records:
+            reputations[record.user_id].append(record)
+        return reputations
 
 
 class MedalistsReputationWeighted(ReputationWeighted):
@@ -385,17 +421,23 @@ class MedalistsReputationWeighted(ReputationWeighted):
         old_medals = list(medals.filter(set_time__lte=start).order_by("set_time"))
         for medal in old_medals:
             user_id = medal.user_id
-            reputations[user_id] = [Reputation(user_id, 1, start)]
+            reputations[user_id] = [Reputation(user_id=user_id, value=1, time=start)]
         for user_id in all_forecaster_ids:
             if user_id not in reputations:
-                reputations[user_id] = [Reputation(user_id, 0, start)]
+                reputations[user_id] = [
+                    Reputation(user_id=user_id, value=0, time=start)
+                ]
         # Then, for each new medal, add a new reputation record
         new_medals = list(medals.filter(set_time__gt=start).order_by("set_time"))
         for medal in new_medals:
             user_id = medal.user_id
             if reputations[user_id][-1].value == 0:
                 reputations[user_id].append(
-                    Reputation(user_id, 1, medal.edited_at or medal.created_at)
+                    Reputation(
+                        user_id=user_id,
+                        value=1,
+                        time=medal.edited_at or medal.created_at,
+                    )
                 )
         return reputations
 
@@ -687,6 +729,11 @@ class SingleAggregation(MeanAggregatorMixin, Aggregation):
 # Aggregations that can be calculated, but not stored in database
 
 
+class YearPerformanceAggregation(MeanAggregatorMixin, Aggregation):
+    method = "year_performance"
+    weighting_classes = [YearPerformanceReputationWeighted]
+
+
 class MedalistsAggregation(MedianAggregatorMixin, Aggregation):
     method = "medalists"
     weighting_classes = [RecencyWeighted, MedalistsReputationWeighted]
@@ -716,6 +763,7 @@ AGGREGATIONS: list[type[Aggregation]] = [
     UnweightedAggregation,
     RecencyWeightedAggregation,
     SingleAggregation,
+    YearPerformanceAggregation,
     MedalistsAggregation,
     SilverMedalistsAggregation,
     GoldMedalistsAggregation,
@@ -929,12 +977,18 @@ def get_user_forecast_history(
 ) -> list[ForecastSet]:
     if latest_time and earliest_time and latest_time <= earliest_time:
         return []
+
+    relevant_forecasts = [
+        forecast
+        for forecast in forecasts
+        if not (
+            (earliest_time and forecast.end_time and forecast.end_time <= earliest_time)
+            or (latest_time and forecast.start_time > latest_time)
+        )
+    ]
+
     timestep_set: set[datetime] = set()
-    for forecast in forecasts:
-        if (
-            earliest_time and forecast.end_time and forecast.end_time <= earliest_time
-        ) or (latest_time and forecast.start_time > latest_time):
-            continue
+    for forecast in relevant_forecasts:
         timestep_set.add(
             max(forecast.start_time, earliest_time)
             if earliest_time
@@ -947,30 +1001,56 @@ def get_user_forecast_history(
         timesteps = minimize_history(timesteps, minimize)
     elif minimize:
         timesteps = minimize_history(timesteps)
-    forecast_sets: dict[datetime, ForecastSet] = {
-        timestep: ForecastSet(
-            forecasts_values=[],
-            timestep=timestep,
-            forecaster_ids=[],
-            timesteps=[],
-        )
-        for timestep in timesteps
-    }
-    for forecast in forecasts:
-        # Find active timesteps using bisect to find the start & end indexes
-        start_index = bisect_left(timesteps, forecast.start_time)
-        end_index = (
-            bisect_left(timesteps, forecast.end_time)
-            if forecast.end_time
-            else len(timesteps)
-        )
-        forecast_values = forecast.get_prediction_values()
-        for timestep in timesteps[start_index:end_index]:
-            forecast_sets[timestep].forecasts_values.append(forecast_values)
-            forecast_sets[timestep].forecaster_ids.append(forecast.author_id)
-            forecast_sets[timestep].timesteps.append(forecast.start_time)
 
-    return sorted(list(forecast_sets.values()), key=lambda x: x.timestep)
+    if not timesteps:
+        return []
+
+    # Sweep the (already sorted) timestep grid once, maintaining the set of
+    # currently-active forecasts via add/remove events, instead of - per
+    # forecast - re-deriving and copying its slice of active timesteps. The
+    # number of (timestep, active-forecast) pairs produced is unchanged (that
+    # is the actual output size), but this avoids the O(forecasts) redundant
+    # list-slice copies and replaces per-pair `.append()` calls with one bulk
+    # snapshot per timestep.
+    events: list[tuple[datetime, int, Forecast]] = []
+    for forecast in relevant_forecasts:
+        events.append((forecast.start_time, 0, forecast))
+        if forecast.end_time and (not latest_time or forecast.end_time <= latest_time):
+            events.append((forecast.end_time, 1, forecast))
+    events.sort(key=lambda event: event[0])
+
+    # (author_id, prediction_values, start_time) per active forecast, keyed by
+    # forecast id. prediction_values is computed once per forecast (when it
+    # becomes active) and reused across every snapshot it appears in - same
+    # as the original implementation, which called get_prediction_values()
+    # once per forecast rather than once per (timestep, forecast) pair.
+    active: dict[int, tuple[int, list[float], datetime]] = {}
+    forecast_sets: list[ForecastSet] = []
+    event_index = 0
+    n_events = len(events)
+    for timestep in timesteps:
+        while event_index < n_events and events[event_index][0] <= timestep:
+            _, kind, forecast = events[event_index]
+            if kind == 0:
+                active[forecast.id] = (
+                    forecast.author_id,
+                    forecast.get_prediction_values(),
+                    forecast.start_time,
+                )
+            else:
+                active.pop(forecast.id, None)
+            event_index += 1
+        active_entries = list(active.values())
+        forecast_sets.append(
+            ForecastSet(
+                forecasts_values=[entry[1] for entry in active_entries],
+                timestep=timestep,
+                forecaster_ids=[entry[0] for entry in active_entries],
+                timesteps=[entry[2] for entry in active_entries],
+            )
+        )
+
+    return forecast_sets
 
 
 @sentry_sdk.trace
