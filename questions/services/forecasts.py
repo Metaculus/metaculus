@@ -1,3 +1,4 @@
+from bisect import bisect_left
 import logging
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone as dt_timezone
@@ -16,6 +17,7 @@ from posts.services.subscriptions import (
     create_subscription,
 )
 from posts.tasks import run_on_post_forecast
+from questions.serializers.aggregate_forecasts import serialize_aggregate_forecast
 from questions.services.multiple_choice_handlers import get_all_options_from_history
 from scoring.models import Score
 from users.constants import ApiForecastingAccess
@@ -577,3 +579,16 @@ def build_question_forecasts(
         AggregateForecast.objects.bulk_update(overwriters, fields, batch_size=50)
         AggregateForecast.objects.filter(id__in=[old.id for old in to_delete]).delete()
         AggregateForecast.objects.bulk_create(to_create, batch_size=50)
+
+        # get the latest aggregation and store its serialized form on the question
+        latest_index = bisect_left(
+            aggregation_history, timezone.now(), key=lambda af: af.start_time
+        )
+        if latest_index > 0:
+            latest = aggregation_history[latest_index - 1]
+            question.latest_aggregate_forecast = serialize_aggregate_forecast(
+                latest, question.type, full=True
+            )
+        else:
+            question.latest_aggregate_forecast = None
+        question.save(update_fields=["latest_aggregate_forecast"])
