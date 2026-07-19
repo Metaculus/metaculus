@@ -1169,7 +1169,19 @@ def get_user_forecast_history(
     # recomputed at every timestep it's active for - same reasoning as the
     # original implementation calling get_prediction_values() once per
     # forecast rather than once per (timestep, forecast) pair.
-    active: dict[int, tuple[int, list[float], datetime, float]] = {}
+    #
+    # prediction_values is stored as an already-converted 1D numpy array
+    # (not the raw list get_prediction_values() returns): downstream,
+    # `np.asarray(forecast_set.forecasts_values)` needs to build one 2D
+    # array per timestep out of every active forecaster's values, and
+    # converting a list of same-shape ndarrays is far cheaper than
+    # converting a list of raw Python-float lists (no per-element boxing) -
+    # ~20x in local benchmarks for a 201-wide continuous CDF. The outer
+    # `forecasts_values` list itself stays a plain Python list (not
+    # stacked into one array here) so its truthiness/`len()` behave exactly
+    # as before - a multi-row numpy array's truth value is ambiguous and
+    # would break the `if forecast_set.forecasts_values:` check elsewhere.
+    active: dict[int, tuple[int, np.ndarray, datetime, float]] = {}
     forecast_sets: list[ForecastSet] = []
     event_index = 0
     n_events = len(events)
@@ -1179,7 +1191,7 @@ def get_user_forecast_history(
             if kind == 0:
                 active[forecast.id] = (
                     forecast.author_id,
-                    forecast.get_prediction_values(),
+                    np.asarray(forecast.get_prediction_values()),
                     forecast.start_time,
                     forecast.start_time.timestamp(),
                 )

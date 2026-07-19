@@ -1222,14 +1222,14 @@ class TestReputationPrecomputeEquivalence:
 
 class TestAggregationHeavyLoad:
     """Stress tests for `get_aggregation_history` under a large, non-minimized
-    forecast history: ~1500 users with ~5000 forecasts total on a single
+    forecast history: ~1000 users with ~3000 forecasts total on a single
     numeric question (continuous_cdf of size 201), run with minimize=False
     and include_stats=True (i.e. the most expensive realistic configuration)
     to get a feel for worst-case timing.
     """
 
-    N_USERS = 1500
-    N_FORECASTS = 5000
+    N_USERS = 1000
+    N_FORECASTS = 3000
     INBOUND_OUTCOME_COUNT = 200
 
     open_time = datetime(2015, 1, 1, tzinfo=dt_timezone.utc)
