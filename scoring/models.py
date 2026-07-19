@@ -439,6 +439,27 @@ class LeaderboardsRanksEntry(TimeStampedModel):
         unique_together = ["user", "rank_type"]
 
 
+MINIMUM_REPUTATION = 1e-6
+
+
+class Reputation(TimeStampedModel):
+    class ReputationTypes(models.TextChoices):
+        YEAR_PERFORMANCE = "year_performance"
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
+    time = models.DateTimeField()
+    type = models.CharField(
+        max_length=200, choices=ReputationTypes.choices, db_index=True
+    )
+    value = models.FloatField()
+
+    def __str__(self):
+        return (
+            f"{self.type} Reputation for {self.user.username} at "
+            f"{self.time}: {self.value}"
+        )
+
+
 class MedalExclusionRecord(models.Model):
     id: int
     objects: models.Manager["MedalExclusionRecord"]
