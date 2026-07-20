@@ -271,4 +271,21 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
       </>
     ),
   },
+  {
+    date: "2026-07-13",
+    type: "insight",
+    content: (
+      <>
+        A group of leading economists signed a joint statement saying “We must
+        act now.” -{" "}
+        <a
+          href="https://www.wemustactnow.ai/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          We Must Act Now
+        </a>
+      </>
+    ),
+  },
 ];
