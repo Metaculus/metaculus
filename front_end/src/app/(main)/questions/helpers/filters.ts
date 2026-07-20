@@ -79,7 +79,6 @@ const EXPLICIT_FEED_FILTER_KEYS = [
   POST_CATEGORIES_FILTER,
   POST_COMMENTED_BY_FILTER,
   POST_FOLLOWING_FILTER,
-  POST_FOR_MAIN_FEED,
   POST_FORECASTER_ID_FILTER,
   POST_IDS_FILTER,
   POST_LEADERBOARD_TAGS_FILTER,
@@ -165,13 +164,15 @@ export function generateFiltersFromSearchParams(
         .filter((id) => !isNaN(id));
     }
   }
-  if (typeof searchParams[POST_FOR_MAIN_FEED] === "string") {
-    filters.for_main_feed = searchParams[POST_FOR_MAIN_FEED];
-  } else if (
-    typeof defaultForMainFeed !== "undefined" &&
-    !searchParams[POST_TEXT_SEARCH_FILTER] &&
-    !filters.ids
-  ) {
+  const hasIdsFilter = !!filters.ids?.length;
+  const requestedForMainFeed = searchParams[POST_FOR_MAIN_FEED];
+  const shouldUseRequestedForMainFeed =
+    typeof requestedForMainFeed === "string" &&
+    (requestedForMainFeed === "true" || hasIdsFilter);
+
+  if (shouldUseRequestedForMainFeed) {
+    filters.for_main_feed = requestedForMainFeed;
+  } else if (typeof defaultForMainFeed !== "undefined" && !hasIdsFilter) {
     filters.for_main_feed = defaultForMainFeed.toString();
   }
 
