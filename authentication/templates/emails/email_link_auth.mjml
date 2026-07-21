@@ -1,0 +1,59 @@
+<mjml>
+    <mj-include path="../../../templates/emails/email_styles.mjml"/>
+
+    <mj-body>
+        <mj-include path="../../../templates/emails/email_top.mjml"/>
+
+        <mj-raw>{% if not is_existing_user %}</mj-raw>
+        <mj-section>
+            <mj-column>
+                <mj-text color="#6B7280" font-size="13px">
+                    {% blocktrans %}
+                    By confirming your email, you acknowledge and agree to Metaculus's
+                    <a href="{{ public_app_url }}/terms-of-use/">Terms of Use</a>
+                    and
+                    <a href="{{ public_app_url }}/privacy-policy/">Privacy Policy</a>.
+                    {% endblocktrans %}
+                </mj-text>
+            </mj-column>
+        </mj-section>
+        <mj-raw>{% endif %}</mj-raw>
+
+        <mj-wrapper mj-class="content-block-wrapper" css-class="content-block-wrapper-loose">
+            <mj-section mj-class="content-block" padding="8px 24px">
+                <mj-column padding="0px">
+                    <mj-text
+                        align="center"
+                        color="#161C22"
+                        font-size="16px"
+                        font-weight="500"
+                        padding-bottom="6px"
+                        line-height="1.5">
+                        {% if is_existing_user %}
+                        {% blocktrans %}Click the button to sign in and complete your action.{% endblocktrans %}
+                        {% else %}
+                        {% blocktrans %}Click the button to confirm your email and complete your action.{% endblocktrans %}
+                        {% endif %}
+                    </mj-text>
+
+                    <mj-button mj-class="cta-button" href="{{ email_link }}">
+                        {% if is_existing_user %}Sign in to Metaculus{% else %}Confirm your email{% endif %}
+                    </mj-button>
+                </mj-column>
+            </mj-section>
+        </mj-wrapper>
+
+        <mj-section>
+            <mj-column>
+                <mj-text align="center" color="#6B7280" font-size="13px" padding-top="8px">
+                    {% blocktrans %}
+                    Or, copy and paste this link into your browser:
+                    {% endblocktrans %}
+                    <br/>
+                    <a href="{{ email_link }}" style="color: #0A66C2; word-break: break-all;">{{ email_link }}</a>
+                </mj-text>
+            </mj-column>
+        </mj-section>
+        <mj-include path="../../../templates/emails/email_greeting.mjml"/>
+    </mj-body>
+</mjml>

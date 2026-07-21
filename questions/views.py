@@ -15,17 +15,22 @@ from posts.utils import get_post_slug
 from projects.permissions import ObjectPermission
 from utils.requests import is_internal_request
 from utils.the_math.aggregations import get_aggregations_at_time
+
 from .constants import QuestionStatus
 from .models import Forecast, Question
 from .serializers.common import (
-    validate_question_resolution,
-    QuestionsCommunityPredictionsSerializer,
-    OldForecastWriteSerializer,
-    ForecastWriteSerializer,
     ForecastWithdrawSerializer,
+    ForecastWriteSerializer,
+    OldForecastWriteSerializer,
+    QuestionsCommunityPredictionsSerializer,
     serialize_question,
+    validate_question_resolution,
 )
-from .services.forecasts import create_forecast_bulk, withdraw_forecast_bulk
+from .services.forecasts import (
+    create_forecast_bulk,
+    validate_and_create_forecasts,
+    withdraw_forecast_bulk,
+)
 from .services.lifecycle import resolve_question, unresolve_question
 
 
@@ -91,7 +96,6 @@ def unresolve_api_view(request, pk: int):
 
 @api_view(["POST"])
 def bulk_create_forecasts_api_view(request):
-    now = timezone.now()
     serializer = ForecastWriteSerializer(data=request.data, many=True)
     serializer.is_valid(raise_exception=True)
 
@@ -106,47 +110,9 @@ def bulk_create_forecasts_api_view(request):
         else Forecast.SourceChoices.API
     )
 
-    # Prefetching questions for bulk optimization
-    questions = Question.objects.filter(
-        pk__in=[f["question"] for f in validated_data]
-    ).select_related("post")
-    questions_map: dict[int, Question] = {q.pk: q for q in questions}
-
-    # Replacing prefetched optimized questions
-    for forecast in validated_data:
-        question = questions_map.get(forecast["question"])
-
-        if not question:
-            raise ValidationError(f"Wrong question id {forecast['question']}")
-
-        forecast["question"] = question  # used in create_foreacst_bulk
-
-        # Check permissions
-        permission = get_post_permission_for_user(
-            question.get_post(), user=request.user
-        )
-        ObjectPermission.can_forecast(permission, raise_exception=True)
-
-        if (
-            question.post.curation_status != Post.CurationStatus.APPROVED
-            or not question.open_time
-        ):
-            return Response(
-                {
-                    "error": f"Question {question.id} is not scheduled for forecasting yet !"
-                },
-                status=status.HTTP_405_METHOD_NOT_ALLOWED,
-            )
-
-        if (question.scheduled_close_time < now) or (
-            question.actual_close_time and question.actual_close_time < now
-        ):
-            return Response(
-                {"error": f"Question {question.id} is already closed to forecasting !"},
-                status=status.HTTP_405_METHOD_NOT_ALLOWED,
-            )
-
-    create_forecast_bulk(user=request.user, forecasts=validated_data, source=source)
+    validate_and_create_forecasts(
+        user=request.user, validated_data=validated_data, source=source
+    )
 
     return Response({}, status=status.HTTP_201_CREATED)
 

@@ -1,5 +1,18 @@
 from django.db import models
 
+forbidden_usernames = [
+    "anonymous",
+    "moderator",
+    "moderators",
+    "predictor",
+    "predictors",
+    "metaculus",
+    "admin",
+    "admins",
+    "curator",
+    "curators",
+]
+
 
 class ApiAccessTier(models.TextChoices):
     RESTRICTED = "restricted"
