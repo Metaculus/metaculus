@@ -92,6 +92,25 @@ class TestCPAtResolutionTime:
         assert len(method_data["history"]) == 3
         # ...but the default preview is the CP at resolution time.
         assert method_data["latest"]["centers"] == [0.7]
+        # The capped preview is presented as the active final CP (end_time nulled),
+        # so the frontend keeps rendering the CP preview/PDF (which gates on liveness).
+        assert method_data["latest"]["end_time"] is None
+
+    def test_serialized_latest_on_feed_path_without_history(self):
+        # Feed cards fetch a single aggregate per question (include_cp_history=False).
+        question = self._build_retroactively_resolved_question()
+
+        forecasts_by_question = get_aggregated_forecasts_for_questions(
+            [question], include_cp_history=False
+        )
+        serialized = serialize_question_aggregations(
+            question, forecasts_by_question[question]
+        )
+        method_data = serialized[question.default_aggregation_method]
+
+        assert len(method_data["history"]) == 1
+        assert method_data["latest"]["centers"] == [0.7]
+        assert method_data["latest"]["end_time"] is None
 
     def test_open_question_still_uses_most_recent_cp(self):
         question = create_question(
