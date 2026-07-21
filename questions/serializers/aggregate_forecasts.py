@@ -56,6 +56,32 @@ def serialize_aggregate_forecast(
     return data
 
 
+def _get_latest_aggregate_forecast(
+    question: Question, forecasts: list[AggregateForecast]
+) -> AggregateForecast | None:
+    """
+    Pick the aggregate forecast used as the "latest"/default CP preview.
+
+    For questions that have effectively closed (closed or resolved), this is the last
+    forecast that was live at ``actual_close_time`` rather than the most recent one.
+    Questions resolved as of a past date can keep accumulating aggregate forecasts after
+    that date, and the default CP preview must reflect the value at resolution/close
+    time, not those later aggregations. ``forecasts`` are expected in ascending
+    ``start_time`` order.
+    """
+    if not forecasts:
+        return None
+
+    cutoff = question.actual_close_time
+    if cutoff is None:
+        return forecasts[-1]
+
+    eligible = [f for f in forecasts if f.start_time <= cutoff]
+    # Fall back to the earliest available forecast if every forecast starts after the
+    # cutoff (shouldn't normally happen, but keeps a CP visible rather than dropping it).
+    return eligible[-1] if eligible else forecasts[0]
+
+
 @sentry_sdk.trace
 def serialize_question_aggregations(
     question: Question,
@@ -133,9 +159,10 @@ def serialize_question_aggregations(
                 )
                 for forecast in forecasts
             ]
+            latest_forecast = _get_latest_aggregate_forecast(question, forecasts)
             serialized_data[method]["latest"] = (
-                serialize_aggregate_forecast(forecasts[-1], question.type, full=True)
-                if forecasts
+                serialize_aggregate_forecast(latest_forecast, question.type, full=True)
+                if latest_forecast
                 else None
             )
 
