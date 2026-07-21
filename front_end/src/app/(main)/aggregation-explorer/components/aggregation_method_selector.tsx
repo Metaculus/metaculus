@@ -237,8 +237,8 @@ export default function AggregationMethodSelector({
                 value={botMode}
                 onChange={(e) => setBotMode(e.target.value as BotMode)}
               >
-                <option value="exclude">{t("excludeBots")}</option>
-                <option value="include">{t("includeBots")}</option>
+                <option value="exclude">{t("humansOnly")}</option>
+                <option value="include">{t("humansAndBots")}</option>
                 <option value="only">{t("onlyBots")}</option>
               </StyledSelect>
             </div>
