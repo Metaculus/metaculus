@@ -110,6 +110,7 @@ class UserPrivateSerializer(UserPublicSerializer):
             "api_forecasting_access",
             "is_primary_bot",
             "has_password",
+            "username_set_at",
             "metaculus_news_subscription",
             "automatically_follow_on_predict",
             "follow_notify_cp_change_threshold",
