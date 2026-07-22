@@ -1,42 +1,28 @@
 import logging
 
 from django.conf import settings
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.utils.http import base36_to_int
 from rest_framework.exceptions import ValidationError
 
 from users.models import User
 from utils.email import send_account_email_with_template
 from utils.frontend import build_frontend_auth_email_url
+from utils.tokens import ScopedTokenGenerator
 
 logger = logging.getLogger(__name__)
 
 
-class EmailLinkTokenGenerator(PasswordResetTokenGenerator):
+class EmailLinkTokenGenerator(ScopedTokenGenerator):
     """
-    Token generator for email-link auth (gated CTA flow).
-
-    Dedicated key_salt is a security requirement: without it these tokens are
-    byte-identical to password-reset tokens for the same user, so a leaked
-    sign-in link could be replayed against the password-reset endpoint.
-    Inherits state-hash invalidation - any sign-in (last_login change)
-    invalidates all previously emailed links.
+    Token generator for email-link auth (gated CTA flow). Inherits state-hash
+    invalidation - any sign-in (last_login change) invalidates all previously
+    emailed links.
     """
 
     key_salt = "authentication.EmailLinkTokenGenerator"
 
-    def check_token(self, user, token) -> bool:
-        # Parent enforces signature + PASSWORD_RESET_TIMEOUT; additionally
-        # tighten to AUTH_EMAIL_LINK_TIMEOUT (effective TTL is the minimum
-        # of the two - keep AUTH_EMAIL_LINK_TIMEOUT <= PASSWORD_RESET_TIMEOUT).
-        if not super().check_token(user, token):
-            return False
-        try:
-            ts_b36, _ = token.split("-", 1)
-            ts = base36_to_int(ts_b36)
-        except ValueError:
-            return False
-        return (self._num_seconds(self._now()) - ts) <= settings.AUTH_EMAIL_LINK_TIMEOUT
+    @property
+    def token_timeout(self) -> int:
+        return settings.AUTH_EMAIL_LINK_TIMEOUT
 
 
 email_link_token_generator = EmailLinkTokenGenerator()
