@@ -30,9 +30,9 @@
                         padding-bottom="6px"
                         line-height="1.5">
                         {% if is_existing_user %}
-                        {% blocktrans %}Click the button to sign in and complete your action.{% endblocktrans %}
+                        {% blocktrans %}Sign in to continue.{% endblocktrans %}
                         {% else %}
-                        {% blocktrans %}Click the button to confirm your email and complete your action.{% endblocktrans %}
+                        {% blocktrans %}Confirm your email to continue.{% endblocktrans %}
                         {% endif %}
                     </mj-text>
 
