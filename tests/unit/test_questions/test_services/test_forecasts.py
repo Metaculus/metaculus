@@ -112,6 +112,41 @@ class TestCPAtResolutionTime:
         assert method_data["latest"]["centers"] == [0.7]
         assert method_data["latest"]["end_time"] is None
 
+    def test_no_preview_when_all_forecasts_start_after_close(self):
+        # Degenerate case: a resolved question whose only aggregations landed after
+        # actual_close_time. The history path must not expose a post-close forecast as
+        # the "latest" preview — it should be None, consistent with the feed path
+        # (get_last_aggregated_forecasts_for_questions excludes those forecasts).
+        question = create_question(
+            question_type=Question.QuestionType.BINARY,
+            default_aggregation_method=AggregationMethod.RECENCY_WEIGHTED,
+            open_time=_dt(2024, 1, 1),
+            scheduled_close_time=_dt(2024, 12, 31),
+            actual_resolve_time=_dt(2024, 3, 1),
+            actual_close_time=_dt(2024, 3, 1),
+            resolution="yes",
+            resolution_set_time=_dt(2024, 5, 1),
+        )
+        # Both aggregations start strictly after the close/resolution time.
+        _make_aggregate(question, _dt(2024, 4, 1), _dt(2024, 5, 1), 0.2)
+        _make_aggregate(question, _dt(2024, 5, 1), None, 0.1)
+
+        # Feed path: nothing qualifies, so no aggregate is fetched at all.
+        feed = get_aggregated_forecasts_for_questions(
+            [question], include_cp_history=False
+        )
+        assert feed[question] == []
+
+        # History path: history is present, but the latest preview is None (not a
+        # post-close forecast).
+        with_history = get_aggregated_forecasts_for_questions(
+            [question], include_cp_history=True
+        )
+        serialized = serialize_question_aggregations(question, with_history[question])
+        method_data = serialized[question.default_aggregation_method]
+        assert len(method_data["history"]) == 2
+        assert method_data["latest"] is None
+
     def test_open_question_still_uses_most_recent_cp(self):
         question = create_question(
             question_type=Question.QuestionType.BINARY,

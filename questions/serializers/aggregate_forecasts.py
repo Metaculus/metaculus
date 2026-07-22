@@ -77,9 +77,11 @@ def _get_latest_aggregate_forecast(
         return forecasts[-1]
 
     eligible = [f for f in forecasts if f.start_time <= cutoff]
-    # Fall back to the earliest available forecast if every forecast starts after the
-    # cutoff (shouldn't normally happen, but keeps a CP visible rather than dropping it).
-    return eligible[-1] if eligible else forecasts[0]
+    # If every forecast starts after the cutoff (e.g. a closed/resolved question whose
+    # only aggregations landed after it closed), expose no preview rather than a
+    # post-close forecast — matching get_last_aggregated_forecasts_for_questions, which
+    # excludes those forecasts on the feed path.
+    return eligible[-1] if eligible else None
 
 
 @sentry_sdk.trace
