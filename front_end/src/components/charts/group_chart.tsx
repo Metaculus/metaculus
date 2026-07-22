@@ -44,6 +44,7 @@ import {
   ScaleDirection,
   TickFormat,
   TimelineChartZoomOption,
+  TimelineYDomainOptions,
 } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import { ForecastAvailability, QuestionType, Scaling } from "@/types/question";
@@ -112,6 +113,7 @@ type Props = {
   withHighlightArea?: boolean;
   withHighlightEndpoint?: boolean;
   headerLeft?: ReactNode;
+  yDomainOptions?: TimelineYDomainOptions;
 };
 
 const BOTTOM_PADDING = 20;
@@ -158,6 +160,7 @@ const GroupChart: FC<Props> = ({
   withHighlightArea = true,
   withHighlightEndpoint = false,
   headerLeft,
+  yDomainOptions,
 }) => {
   const t = useTranslations();
   const {
@@ -204,6 +207,7 @@ const GroupChart: FC<Props> = ({
         openTime,
         forceAutoZoom,
         forFeedPage,
+        yDomainOptions,
       }),
     [
       timestamps,
@@ -221,6 +225,7 @@ const GroupChart: FC<Props> = ({
       openTime,
       forceAutoZoom,
       forFeedPage,
+      yDomainOptions,
     ]
   );
   const [localCursorTimestamp, setLocalCursorTimestamp] = useState<
@@ -929,6 +934,7 @@ function buildChartData({
   forceAutoZoom,
   forFeedPage,
   isEmbedded,
+  yDomainOptions,
 }: {
   timestamps: number[];
   actualCloseTime?: number | null;
@@ -946,6 +952,7 @@ function buildChartData({
   forceAutoZoom?: boolean;
   forFeedPage?: boolean;
   isEmbedded?: boolean;
+  yDomainOptions?: TimelineYDomainOptions;
 }): ChartData {
   const closeTimes = choiceItems
     .map(({ closeTime }) => closeTime)
@@ -1206,49 +1213,69 @@ function buildChartData({
   const areas: Area = graphs
     .filter((g) => !isNil(g.area) && g.active)
     .flatMap((g) => g.area);
+  const activeGraphs = graphs.filter((g) => g.active);
+  const scatterCenterValues = activeGraphs.flatMap((g) =>
+    (g.scatter ?? []).map((point) => ({
+      timestamp: point.x,
+      y: point.y,
+    }))
+  );
+  const resolutionValues = activeGraphs.flatMap((g) =>
+    !isNil(g.resolutionPoint)
+      ? [
+          {
+            timestamp: g.resolutionPoint.x ?? latestTimestamp,
+            y: g.resolutionPoint.y,
+          },
+        ]
+      : []
+  );
+  const centerValues = [
+    ...activeGraphs.flatMap((g) =>
+      g.line.map((point) => ({
+        timestamp: point.x,
+        y: point.y,
+      }))
+    ),
+    ...scatterCenterValues,
+    ...resolutionValues,
+  ];
+  const intervalMinValues = [
+    ...areas.map((a) => ({ timestamp: a.x, y: a.y0 })),
+    ...activeGraphs.flatMap((g) =>
+      (g.scatter ?? []).map((point) => ({
+        timestamp: point.x,
+        y: point.y1 ?? point.y,
+      }))
+    ),
+    ...resolutionValues,
+  ];
+  const intervalMaxValues = [
+    ...areas.map((a) => ({ timestamp: a.x, y: a.y })),
+    ...activeGraphs.flatMap((g) =>
+      (g.scatter ?? []).map((point) => ({
+        timestamp: point.x,
+        y: point.y2 ?? point.y,
+      }))
+    ),
+    ...resolutionValues,
+  ];
+  const useCenterValues = yDomainOptions?.source === "centers";
   const { originalYDomain, zoomedYDomain } = generateTimeSeriesYDomain({
     zoom,
     minTimestamp: xDomain[0],
+    maxTimestamp:
+      yDomainOptions?.scope === "visibleWindow" ? xDomain[1] : undefined,
     isChartEmpty: !domainTimestamps.length,
-    minValues: [
-      ...areas.map((a) => ({ timestamp: a.x, y: a.y0 })),
-      ...graphs
-        .filter((g) => g.active)
-        .flatMap((g) =>
-          (g.scatter ?? []).map((point) => ({
-            timestamp: point.x,
-            y: point.y1 ?? point.y,
-          }))
-        ),
-      ...graphs
-        .filter((g) => g.active && !isNil(g.resolutionPoint))
-        .map((g) => ({
-          timestamp: g.resolutionPoint?.x ?? latestTimestamp,
-          y: g.resolutionPoint?.y,
-        })),
-    ],
-    maxValues: [
-      ...areas.map((a) => ({ timestamp: a.x, y: a.y })),
-      ...graphs
-        .filter((g) => g.active)
-        .flatMap((g) =>
-          (g.scatter ?? []).map((point) => ({
-            timestamp: point.x,
-            y: point.y2 ?? point.y,
-          }))
-        ),
-      ...graphs
-        .filter((g) => g.active && !isNil(g.resolutionPoint))
-        .map((g) => ({
-          timestamp: g.resolutionPoint?.x ?? latestTimestamp,
-          y: g.resolutionPoint?.y,
-        })),
-    ],
+    minValues: useCenterValues ? centerValues : intervalMinValues,
+    maxValues: useCenterValues ? centerValues : intervalMaxValues,
     includeClosestBoundOnZoom: questionType === QuestionType.Binary,
-    forceAutoZoom,
-    useFullYDomain:
-      questionType === QuestionType.Numeric ||
-      questionType === QuestionType.Date,
+    forceAutoZoom: forceAutoZoom || !!yDomainOptions,
+    useFullYDomain: yDomainOptions
+      ? yDomainOptions.scope === "fullHistory"
+      : questionType === QuestionType.Numeric ||
+        questionType === QuestionType.Date,
+    paddingRatio: yDomainOptions?.paddingRatio,
   });
 
   const yScale = generateScale({

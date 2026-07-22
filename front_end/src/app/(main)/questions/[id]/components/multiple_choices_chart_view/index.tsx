@@ -19,7 +19,11 @@ import { GroupTimelineMarker } from "@/components/charts/primitives/timeline_mar
 import { getEffectiveVisibleCount } from "@/constants/questions";
 import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
-import { TickFormat, TimelineChartZoomOption } from "@/types/charts";
+import {
+  TickFormat,
+  TimelineChartZoomOption,
+  TimelineYDomainOptions,
+} from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
 import { ForecastAvailability, QuestionType, Scaling } from "@/types/question";
 import cn from "@/utils/core/cn";
@@ -63,6 +67,7 @@ type Props = {
   hideTooltip?: boolean;
   headerLeft?: ReactNode;
   hideChartTitle?: boolean;
+  yDomainOptions?: TimelineYDomainOptions;
 };
 
 const MultiChoicesChartView: FC<Props> = ({
@@ -101,6 +106,7 @@ const MultiChoicesChartView: FC<Props> = ({
   hideTooltip = false,
   headerLeft,
   hideChartTitle = false,
+  yDomainOptions,
 }) => {
   const { user } = useAuth();
   const isInteracted = useRef(false);
@@ -260,6 +266,7 @@ const MultiChoicesChartView: FC<Props> = ({
     attachRef,
     withHighlightArea,
     withHighlightEndpoint,
+    yDomainOptions,
     headerExtra:
       !embedMode && choiceItems.length > 1 ? (
         <ChoicesOptionsDropdown

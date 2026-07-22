@@ -51,6 +51,15 @@ export type YDomain = {
   zoomedYDomain: Tuple<number>;
 };
 
+export type TimelineYDomainOptions = {
+  /** Whether the y-domain follows the visible x-window or remains stable across all history. */
+  scope: "fullHistory" | "visibleWindow";
+  /** Values used to calculate the domain: forecast centers or uncertainty intervals. */
+  source: "intervals" | "centers";
+  /** Fraction of the observed value span added to both ends of the domain. */
+  paddingRatio: number;
+};
+
 export type FanDatum = {
   name: string;
   communityQuartiles?: Quartiles | null;

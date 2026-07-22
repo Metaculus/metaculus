@@ -346,4 +346,40 @@ describe("generateTimeSeriesYDomain", () => {
 
     expect(scale.zoomedYDomain).toEqual([0.25, 0.65]);
   });
+
+  it("should pad relative to the visible value span", () => {
+    const scale = generateTimeSeriesYDomain({
+      zoom: TimelineChartZoomOption.All,
+      isChartEmpty: false,
+      minValues: [
+        { timestamp: 100, y: 0.2 },
+        { timestamp: 200, y: 0.4 },
+        { timestamp: 300, y: 0 },
+      ],
+      maxValues: [
+        { timestamp: 100, y: 0.6 },
+        { timestamp: 200, y: 0.8 },
+        { timestamp: 300, y: 1 },
+      ],
+      minTimestamp: 150,
+      maxTimestamp: 250,
+      forceAutoZoom: true,
+      paddingRatio: 0.25,
+    });
+
+    expect(scale.zoomedYDomain).toEqual([0.3, 0.9]);
+  });
+
+  it("should use the legacy padding for a flat relative domain", () => {
+    const scale = generateTimeSeriesYDomain({
+      zoom: TimelineChartZoomOption.TwoMonths,
+      isChartEmpty: false,
+      minValues: [{ timestamp: 100, y: 0.5 }],
+      maxValues: [{ timestamp: 100, y: 0.5 }],
+      minTimestamp: 100,
+      paddingRatio: 0.15,
+    });
+
+    expect(scale.zoomedYDomain).toEqual([0.45, 0.55]);
+  });
 });
