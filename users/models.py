@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 import dateutil.parser
@@ -9,14 +9,14 @@ from django.db import models
 from django.db.models import QuerySet
 from django.utils import timezone
 
-from utils.models import TimeStampedModel
 from users.constants import ApiAccessTier, ApiForecastingAccess
 from users.managers import UserManager
+from utils.models import TimeStampedModel
 
 if TYPE_CHECKING:
     from comments.models import Comment
-    from posts.models import Post
     from misc.models import UserDataAccess
+    from posts.models import Post
 
 
 class User(TimeStampedModel, AbstractUser):
@@ -41,6 +41,11 @@ class User(TimeStampedModel, AbstractUser):
     check_for_spam = models.BooleanField(default=True)
 
     old_usernames = models.JSONField(default=list, null=False, editable=False)
+    # When the username was last set by a human. NULL means it was
+    # system-generated (e.g. social-auth signup) and never chosen by the user.
+    username_set_at = models.DateTimeField(
+        null=True, blank=True, editable=False, default=None
+    )
 
     # Social Link
     website = models.CharField(max_length=100, default=None, null=True, blank=True)
@@ -263,6 +268,7 @@ class User(TimeStampedModel, AbstractUser):
     def update_username(self, val: str):
         self.old_usernames.append((self.username, timezone.now().isoformat()))
         self.username = val
+        self.username_set_at = timezone.now()
 
 
 class UserCampaignRegistration(TimeStampedModel):
