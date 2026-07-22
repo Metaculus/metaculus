@@ -1231,18 +1231,20 @@ function buildChartData({
         ]
       : []
   );
+  const communityMedianValues = activeGraphs.flatMap((g) =>
+    g.line.map((point) => ({
+      timestamp: point.x,
+      y: point.y,
+    }))
+  );
   const centerValues = [
-    ...activeGraphs.flatMap((g) =>
-      g.line.map((point) => ({
-        timestamp: point.x,
-        y: point.y,
-      }))
-    ),
+    ...communityMedianValues,
     ...scatterCenterValues,
     ...resolutionValues,
   ];
   const intervalMinValues = [
     ...areas.map((a) => ({ timestamp: a.x, y: a.y0 })),
+    ...communityMedianValues,
     ...activeGraphs.flatMap((g) =>
       (g.scatter ?? []).map((point) => ({
         timestamp: point.x,
@@ -1253,6 +1255,7 @@ function buildChartData({
   ];
   const intervalMaxValues = [
     ...areas.map((a) => ({ timestamp: a.x, y: a.y })),
+    ...communityMedianValues,
     ...activeGraphs.flatMap((g) =>
       (g.scatter ?? []).map((point) => ({
         timestamp: point.x,
