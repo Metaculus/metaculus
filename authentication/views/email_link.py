@@ -38,7 +38,7 @@ def email_link_request_api_view(request):
 
     email = serializers.EmailField().run_validation(request.data.get("email"))
     redirect_url = request.data.get("redirect_url") or None
-    gated_action = request.data.get("action") or None
+    gated_action = request.data.get("gated_action") or None
 
     action_type, payload = None, None
     if gated_action is not None:

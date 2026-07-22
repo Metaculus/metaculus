@@ -90,7 +90,9 @@ class PostVoteAction(BaseGatedAction):
 
     def validate(self, payload) -> dict:
         if not isinstance(payload, dict):
-            raise ValidationError({"action": ["post_vote payload must be an object"]})
+            raise ValidationError(
+                {"gated_action": ["post_vote payload must be an object"]}
+            )
         return {
             "post": serializers.IntegerField().run_validation(payload.get("post")),
             "direction": serializers.ChoiceField(
@@ -111,7 +113,7 @@ class PostSubscribeAction(BaseGatedAction):
     def validate(self, payload) -> dict:
         if not isinstance(payload, dict):
             raise ValidationError(
-                {"action": ["post_subscribe payload must be an object"]}
+                {"gated_action": ["post_subscribe payload must be an object"]}
             )
         serializers.IntegerField().run_validation(payload.get("post"))
         items = serializers.ListField().run_validation(payload.get("subscriptions"))
@@ -165,16 +167,16 @@ def validate_gated_action(action) -> tuple[str, object]:
     stored; handlers re-validate it at apply time.
     """
     if not isinstance(action, dict):
-        raise ValidationError({"action": ["Must be an object with type/payload"]})
+        raise ValidationError({"gated_action": ["Must be an object with type/payload"]})
 
     slug = action.get("type")
     payload = action.get("payload")
 
     if slug not in GATED_ACTIONS:
-        raise ValidationError({"action": [f"Unknown action type: {slug}"]})
+        raise ValidationError({"gated_action": [f"Unknown action type: {slug}"]})
 
     if len(json.dumps(payload, default=str).encode()) > MAX_ACTION_PAYLOAD_BYTES:
-        raise ValidationError({"action": ["Payload is too large"]})
+        raise ValidationError({"gated_action": ["Payload is too large"]})
 
     GATED_ACTIONS[slug].validate(payload)
 
