@@ -50,6 +50,7 @@ import {
   getAxisLeftPadding,
   getAxisRightPadding,
   getTickLabelFontSize,
+  widenDomainToTicks,
 } from "@/utils/charts/axis";
 import {
   calculateCharWidth,
@@ -955,12 +956,13 @@ function buildChartData({
     }
   }
 
-  const { originalYDomain, zoomedYDomain } = generateFanGraphYDomain({
-    communityAreas,
-    userArea,
-    resolutionPoints: isBinaryGroup ? [] : resolutionPoints,
-    includeClosestBoundOnZoom: isBinaryGroup,
-  });
+  const { originalYDomain, zoomedYDomain, tickCoverageDomain } =
+    generateFanGraphYDomain({
+      communityAreas,
+      userArea,
+      resolutionPoints: isBinaryGroup ? [] : resolutionPoints,
+      includeClosestBoundOnZoom: isBinaryGroup,
+    });
 
   const finalOriginal = fixedInternal ?? originalYDomain;
   const finalZoom = fixedInternal ?? zoomedYDomain;
@@ -974,7 +976,9 @@ function buildChartData({
     zoomedDomain: finalZoom,
     forceTickCount: forceTickCount ?? (forFeedPage ? 3 : 5),
     alwaysShowTicks: true,
+    tickCoverageDomain: fixedInternal ? undefined : tickCoverageDomain,
   });
+  const yDomain = widenDomainToTicks(finalZoom, yScale.ticks);
 
   resolutionPoints.forEach((pt) => {
     if (pt.unsuccessfullyResolved) {
@@ -1002,7 +1006,7 @@ function buildChartData({
     resolutionPoints,
     emptyPoints,
     yScale,
-    yDomain: finalZoom,
+    yDomain,
   };
 }
 
@@ -1058,9 +1062,13 @@ function generateFanGraphYDomain({
   userArea: Area<string>;
   resolutionPoints: Array<FanGraphPoint>;
   includeClosestBoundOnZoom?: boolean;
-}): YDomain {
+}): YDomain & { tickCoverageDomain: Tuple<number> | undefined } {
   const originalYDomain: Tuple<number> = [0, 1];
-  const fallback = { originalYDomain, zoomedYDomain: originalYDomain };
+  const fallback = {
+    originalYDomain,
+    zoomedYDomain: originalYDomain,
+    tickCoverageDomain: undefined,
+  };
 
   const combinedAreaData = [
     ...communityAreas.map((a) => (a ? a : [])),
@@ -1083,7 +1091,10 @@ function generateFanGraphYDomain({
 
   if (isNil(minValue) || isNil(maxValue)) return fallback;
 
-  return generateYDomain({ minValue, maxValue, includeClosestBoundOnZoom });
+  return {
+    ...generateYDomain({ minValue, maxValue, includeClosestBoundOnZoom }),
+    tickCoverageDomain: [minValue, maxValue] as Tuple<number>,
+  };
 }
 
 function getOptionGraphData({

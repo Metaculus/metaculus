@@ -56,6 +56,7 @@ import {
   generateTimestampXScale,
   getAxisRightPadding,
   getTickLabelFontSize,
+  widenDomainToTicks,
   Y_AXIS_LABEL_ANCHOR_OFFSET,
   Y_AXIS_LABEL_RESERVED_PX,
 } from "@/utils/charts/axis";
@@ -1261,22 +1262,46 @@ function buildChartData({
     ...resolutionValues,
   ];
   const useCenterValues = yDomainOptions?.source === "centers";
+  const yMinValues = useCenterValues ? centerValues : intervalMinValues;
+  const yMaxValues = useCenterValues ? centerValues : intervalMaxValues;
+  const yDomainMaxTimestamp =
+    yDomainOptions?.scope === "visibleWindow" ? xDomain[1] : undefined;
+  const useFullYDomain = yDomainOptions
+    ? yDomainOptions.scope === "fullHistory"
+    : questionType === QuestionType.Numeric ||
+      questionType === QuestionType.Date;
   const { originalYDomain, zoomedYDomain } = generateTimeSeriesYDomain({
     zoom,
     minTimestamp: xDomain[0],
-    maxTimestamp:
-      yDomainOptions?.scope === "visibleWindow" ? xDomain[1] : undefined,
+    maxTimestamp: yDomainMaxTimestamp,
     isChartEmpty: !domainTimestamps.length,
-    minValues: useCenterValues ? centerValues : intervalMinValues,
-    maxValues: useCenterValues ? centerValues : intervalMaxValues,
+    minValues: yMinValues,
+    maxValues: yMaxValues,
     includeClosestBoundOnZoom: questionType === QuestionType.Binary,
     forceAutoZoom: forceAutoZoom || !!yDomainOptions,
-    useFullYDomain: yDomainOptions
-      ? yDomainOptions.scope === "fullHistory"
-      : questionType === QuestionType.Numeric ||
-        questionType === QuestionType.Date,
+    useFullYDomain,
     paddingRatio: yDomainOptions?.paddingRatio,
   });
+
+  const shouldIncludeTickCoverage = (timestamp: number) =>
+    useFullYDomain ||
+    (timestamp >= xDomain[0] &&
+      (isNil(yDomainMaxTimestamp) || timestamp <= yDomainMaxTimestamp));
+  const coverageMinValues = yMinValues
+    .filter(({ timestamp }) => shouldIncludeTickCoverage(timestamp))
+    .map(({ y }) => y)
+    .filter((value): value is number => !isNil(value));
+  const coverageMaxValues = yMaxValues
+    .filter(({ timestamp }) => shouldIncludeTickCoverage(timestamp))
+    .map(({ y }) => y)
+    .filter((value): value is number => !isNil(value));
+  const tickCoverageDomain =
+    coverageMinValues.length && coverageMaxValues.length
+      ? ([Math.min(...coverageMinValues), Math.max(...coverageMaxValues)] as [
+          number,
+          number,
+        ])
+      : undefined;
 
   const yScale = generateScale({
     displayType: questionType,
@@ -1287,9 +1312,12 @@ function buildChartData({
     zoomedDomain: zoomedYDomain,
     forceTickCount: isEmbedded ? 5 : forFeedPage ? 3 : 5,
     alwaysShowTicks: true,
+    tickCoverageDomain,
   });
 
-  return { xScale, yScale, graphs, xDomain, yDomain: zoomedYDomain };
+  const yDomain = widenDomainToTicks(zoomedYDomain, yScale.ticks);
+
+  return { xScale, yScale, graphs, xDomain, yDomain };
 }
 
 // Define a custom "X" symbol function

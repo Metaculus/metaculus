@@ -21,6 +21,7 @@ import {
   generateTimestampXScale,
   generateTimeSeriesYDomain,
   getTickLabelFontSize,
+  widenDomainToTicks,
 } from "@/utils/charts/axis";
 import {
   reduceStepAreaSegments,
@@ -225,29 +226,52 @@ export function buildNumericChartData({
   //   domain: xDomain,
   // });
 
+  const minValues = [
+    ...area.map((d) => ({ timestamp: d.x, y: d.y0 })),
+    ...points.map((d) => ({ timestamp: d.x, y: d.y1 ?? d.y })),
+    ...(resolutionPoint
+      ? [{ timestamp: resolutionPoint.x, y: resolutionPoint.y }]
+      : []),
+  ];
+  const maxValues = [
+    ...area.map((d) => ({ timestamp: d.x, y: d.y })),
+    ...points.map((d) => ({ timestamp: d.x, y: d.y2 ?? d.y })),
+    ...(resolutionPoint
+      ? [{ timestamp: resolutionPoint.x, y: resolutionPoint.y }]
+      : []),
+  ];
+  const useFullYDomain =
+    questionType === QuestionType.Numeric || questionType === QuestionType.Date;
   const { originalYDomain, zoomedYDomain } = generateTimeSeriesYDomain({
     zoom,
     minTimestamp: xDomain[0],
     isChartEmpty: !domainTimestamps.length,
-    minValues: [
-      ...area.map((d) => ({ timestamp: d.x, y: d.y0 })),
-      ...points.map((d) => ({ timestamp: d.x, y: d.y1 ?? d.y })),
-      ...(resolutionPoint
-        ? [{ timestamp: resolutionPoint.x, y: resolutionPoint.y }]
-        : []),
-    ],
-    maxValues: [
-      ...area.map((d) => ({ timestamp: d.x, y: d.y })),
-      ...points.map((d) => ({ timestamp: d.x, y: d.y2 ?? d.y })),
-      ...(resolutionPoint
-        ? [{ timestamp: resolutionPoint.x, y: resolutionPoint.y }]
-        : []),
-    ],
+    minValues,
+    maxValues,
     includeClosestBoundOnZoom: questionType === QuestionType.Binary,
-    useFullYDomain:
-      questionType === QuestionType.Numeric ||
-      questionType === QuestionType.Date,
+    useFullYDomain,
   });
+  const shouldIncludeTickCoverage = (timestamp: number) =>
+    useFullYDomain || timestamp >= xDomain[0];
+  const coverageMinValues = minValues
+    .filter(({ timestamp }) => shouldIncludeTickCoverage(timestamp))
+    .map(({ y }) => y)
+    .filter((value): value is number =>
+      typeof value === "number" ? Number.isFinite(value) : false
+    );
+  const coverageMaxValues = maxValues
+    .filter(({ timestamp }) => shouldIncludeTickCoverage(timestamp))
+    .map(({ y }) => y)
+    .filter((value): value is number =>
+      typeof value === "number" ? Number.isFinite(value) : false
+    );
+  const tickCoverageDomain =
+    coverageMinValues.length && coverageMaxValues.length
+      ? ([Math.min(...coverageMinValues), Math.max(...coverageMaxValues)] as [
+          number,
+          number,
+        ])
+      : undefined;
   const yScale: Scale = generateScale({
     displayType: questionType,
     axisLength: height,
@@ -259,12 +283,14 @@ export function buildNumericChartData({
     forceTickCount: forceYTickCount,
     inboundOutcomeCount,
     alwaysShowTicks: alwaysShowYTicks,
+    tickCoverageDomain,
   });
+  const yDomain = widenDomainToTicks(zoomedYDomain, yScale.ticks);
 
   return {
     line: reduceStepData ? reduceStepLineSegments(line) : line,
     area: reduceStepData ? reduceStepAreaSegments(area) : area,
-    yDomain: zoomedYDomain,
+    yDomain,
     xDomain,
     xScale,
     yScale,

@@ -1,7 +1,11 @@
 import { ScaleDirection, TimelineChartZoomOption } from "@/types/charts";
 import { QuestionType } from "@/types/question";
 
-import { generateScale, generateTimeSeriesYDomain } from "../axis";
+import {
+  generateScale,
+  generateTimeSeriesYDomain,
+  widenDomainToTicks,
+} from "../axis";
 
 describe("generateScale", () => {
   describe("numeric scale", () => {
@@ -72,6 +76,84 @@ describe("generateScale", () => {
   });
 
   describe("discrete scale", () => {
+    it("uses five round labels on vertical discrete timelines", () => {
+      const scale = generateScale({
+        displayType: QuestionType.Discrete,
+        axisLength: 151,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1],
+        zoomedDomain: [0, 1],
+        scaling: {
+          range_min: -0.005,
+          range_max: 8.205,
+          zero_point: null,
+        },
+        forceTickCount: 5,
+        alwaysShowTicks: true,
+      });
+
+      expect(scale.ticks.map((tick) => scale.tickFormat(tick))).toEqual([
+        "0",
+        "2",
+        "4",
+        "6",
+        "8",
+      ]);
+    });
+
+    it("does not place nice discrete ticks outside the forecast range", () => {
+      const scale = generateScale({
+        displayType: QuestionType.Discrete,
+        axisLength: 151,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1],
+        zoomedDomain: [0, 1],
+        scaling: {
+          range_min: 0.1,
+          range_max: 4.9,
+          zero_point: null,
+        },
+        forceTickCount: 5,
+        alwaysShowTicks: true,
+      });
+
+      expect(scale.ticks.map((tick) => scale.tickFormat(tick))).toEqual([
+        "1",
+        "2",
+        "3",
+        "4",
+      ]);
+      scale.ticks.forEach((tick) => {
+        expect(tick).toBeGreaterThanOrEqual(0);
+        expect(tick).toBeLessThanOrEqual(1);
+      });
+    });
+
+    it("shifts five nice ticks inside a discrete forecast range when possible", () => {
+      const scale = generateScale({
+        displayType: QuestionType.Discrete,
+        axisLength: 151,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1],
+        zoomedDomain: [0.8, 1],
+        scaling: {
+          range_min: -0.005,
+          range_max: 8.205,
+          zero_point: null,
+        },
+        forceTickCount: 5,
+        alwaysShowTicks: true,
+      });
+
+      expect(scale.ticks.map((tick) => scale.tickFormat(tick))).toEqual([
+        "6",
+        "6.5",
+        "7",
+        "7.5",
+        "8",
+      ]);
+    });
+
     it("should generate discrete scale with inbound outcome count", () => {
       // Given
       const params = {
@@ -201,6 +283,148 @@ describe("generateScale", () => {
         .filter((label) => label !== "");
       expect(formattedLabels.length).toBeGreaterThan(2);
     });
+
+    it("picks nice display labels on positive log axes", () => {
+      const scale = generateScale({
+        displayType: QuestionType.Numeric,
+        axisLength: 200,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1],
+        zoomedDomain: [0, 1],
+        scaling: {
+          range_min: 1,
+          range_max: 52.7,
+          zero_point: 0,
+        },
+        forceTickCount: 5,
+        alwaysShowTicks: true,
+      });
+      const labels = scale.ticks.map((tick) => scale.tickFormat(tick));
+
+      expect(labels).toEqual(["10", "20", "30", "40", "50"]);
+      expect(labels).not.toContain("52.7");
+      labels
+        .map(Number)
+        .forEach((value) => expect(Number.isFinite(value)).toBe(true));
+    });
+  });
+
+  describe("nice numeric ticks", () => {
+    it("uses a tighter nice step for a lower boundary guard", () => {
+      const scale = generateScale({
+        displayType: QuestionType.Numeric,
+        axisLength: 216,
+        direction: ScaleDirection.Vertical,
+        domain: [1899, 120000],
+        zoomedDomain: [1899, 23157],
+        scaling: {
+          range_min: 1899,
+          range_max: 120000,
+          zero_point: null,
+        },
+        tickCoverageDomain: [2398, 12500],
+        forceTickCount: 5,
+        alwaysShowTicks: true,
+      });
+
+      expect(scale.ticks.map((tick) => scale.tickFormat(tick))).toEqual([
+        "2500",
+        "5000",
+        "10k",
+        "15k",
+        "20k",
+        "25k",
+      ]);
+    });
+
+    it("uses a tighter nice step for an upper boundary guard", () => {
+      const scale = generateScale({
+        displayType: QuestionType.Numeric,
+        axisLength: 216,
+        direction: ScaleDirection.Vertical,
+        domain: [1899, 120000],
+        zoomedDomain: [1899, 23157],
+        scaling: {
+          range_min: 1899,
+          range_max: 120000,
+          zero_point: null,
+        },
+        tickCoverageDomain: [6000, 26200],
+        forceTickCount: 5,
+        alwaysShowTicks: true,
+      });
+
+      expect(scale.ticks.map((tick) => scale.tickFormat(tick))).toEqual([
+        "5000",
+        "10k",
+        "15k",
+        "20k",
+        "25k",
+        "27.5k",
+      ]);
+    });
+
+    it("uses round display values for normalized numeric domains", () => {
+      const scale = generateScale({
+        displayType: QuestionType.Numeric,
+        axisLength: 250,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1],
+        zoomedDomain: [0, 1],
+        scaling: {
+          range_min: -28.3,
+          range_max: 25.2,
+          zero_point: null,
+        },
+        forceTickCount: 5,
+        alwaysShowTicks: true,
+      });
+      const labels = scale.ticks.map((tick) => scale.tickFormat(tick));
+
+      expect(labels).toEqual(["-20", "-10", "0", "10", "20"]);
+      expect(labels).not.toContain("-28.3");
+      expect(labels).not.toContain("25.2");
+    });
+
+    it("prefers five integer ticks over six ticks including zero", () => {
+      const scale = generateScale({
+        displayType: QuestionType.Numeric,
+        axisLength: 150,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1],
+        zoomedDomain: [0, 1],
+        scaling: {
+          range_min: 0,
+          range_max: 5,
+          zero_point: null,
+        },
+        forceTickCount: 5,
+        alwaysShowTicks: true,
+      });
+      const labels = scale.ticks.map((tick) => scale.tickFormat(tick));
+
+      expect(labels).toEqual(["1", "2", "3", "4", "5"]);
+    });
+
+    it("uses meaningful half-step ticks when they fit the domain", () => {
+      const scale = generateScale({
+        displayType: QuestionType.Numeric,
+        axisLength: 150,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1],
+        zoomedDomain: [0, 1],
+        scaling: {
+          range_min: -2.5,
+          range_max: 7.5,
+          zero_point: null,
+        },
+        forceTickCount: 5,
+        alwaysShowTicks: true,
+      });
+      const labels = scale.ticks.map((tick) => scale.tickFormat(tick));
+
+      expect(labels).toEqual(["-2.5", "0", "2.5", "5", "7.5"]);
+    });
   });
 
   describe("graph ticks formatting", () => {
@@ -254,6 +478,35 @@ describe("generateScale", () => {
       // Then
       expect(scale.ticks.length).toBe(FORCE_TICK_COUNT);
     });
+
+    it("does not produce NaN when a date axis requests one tick", () => {
+      const scale = generateScale({
+        displayType: QuestionType.Date,
+        axisLength: 200,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1],
+        zoomedDomain: [0, 1],
+        scaling: {
+          range_min: 1678838400,
+          range_max: 1778803200,
+          zero_point: null,
+        },
+        forceTickCount: 1,
+      });
+
+      expect(scale.ticks).toHaveLength(2);
+      scale.ticks.forEach((tick) => expect(Number.isNaN(tick)).toBe(false));
+    });
+  });
+});
+
+describe("widenDomainToTicks", () => {
+  it("widens both bounds to contain generated ticks", () => {
+    expect(widenDomainToTicks([0.2, 0.8], [0.1, 0.5, 0.9])).toEqual([0.1, 0.9]);
+  });
+
+  it("preserves a domain that already contains its ticks", () => {
+    expect(widenDomainToTicks([0.2, 0.8], [0.3, 0.5, 0.7])).toEqual([0.2, 0.8]);
   });
 });
 
