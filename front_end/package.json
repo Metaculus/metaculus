@@ -30,7 +30,7 @@
     "@dqbd/tiktoken": "^1.0.22",
     "@extractus/article-extractor": "^8.1.0",
     "@floating-ui/react": "^0.27.19",
-    "@formatjs/intl-localematcher": "^0.5.4",
+    "@formatjs/intl-localematcher": "^0.8.13",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@fortawesome/free-regular-svg-icons": "^6.7.2",
