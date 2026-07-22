@@ -36,7 +36,7 @@
     "@fortawesome/free-regular-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.6",
-    "@github/relative-time-element": "^4.5.1",
+    "@github/relative-time-element": "^5.3.0",
     "@headlessui/react": "^2.2.10",
     "@hookform/resolvers": "^3.10.0",
     "@kodingdotninja/use-tailwind-breakpoint": "^1.0.0",
