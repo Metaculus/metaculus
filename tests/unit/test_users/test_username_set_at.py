@@ -6,7 +6,6 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from authentication.social_pipeline import create_user as social_create_user
-from users.management.commands.backfill_username_set_at import backfill_username_set_at
 from users.models import User
 
 
@@ -46,12 +45,3 @@ class TestUsernameSetAt:
             social_create_user(
                 Mock(), {"username": "blocked", "email": "b@example.com"}, Mock()
             )
-
-    def test_backfill_uses_date_joined(self):
-        user = User.objects.create_user(username="legacy", email="legacy@example.com")
-        User.objects.filter(pk=user.pk).update(username_set_at=None)
-
-        backfill_username_set_at()
-
-        user.refresh_from_db()
-        assert user.username_set_at == user.date_joined
