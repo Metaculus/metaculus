@@ -11,8 +11,7 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.types import AggregationMethod
 from questions.models import Question, AggregateForecast, Forecast
-from scoring.models import Leaderboard, LeaderboardEntry, Reputation, Score
-from scoring.constants import ScoreTypes
+from scoring.models import Leaderboard, LeaderboardEntry, Reputation
 from tests.unit.test_questions.factories import create_question
 from users.models import User
 from utils.the_math.aggregations import (
@@ -705,21 +704,18 @@ class TestAggregations:
             author=high_rep_user,
         )
 
-        Score.objects.create(
+        Reputation.objects.create(
             user=high_rep_user,
-            question=question_binary,
-            score=3000,
-            coverage=1,
-            score_type=ScoreTypes.PEER,
+            time=datetime(2020, 1, 1, tzinfo=dt_timezone.utc),
+            type=Reputation.ReputationTypes.AVERAGE_PEER_SCORE,
+            value=3000 / 31,
         )
-        Score.objects.create(
+        Reputation.objects.create(
             user=low_rep_user,
-            question=question_binary,
-            score=900,
-            coverage=1,
-            score_type=ScoreTypes.PEER,
+            time=datetime(2020, 1, 1, tzinfo=dt_timezone.utc),
+            type=Reputation.ReputationTypes.AVERAGE_PEER_SCORE,
+            value=900 / 31,
         )
-        Score.objects.update(edited_at=datetime(2020, 1, 1, tzinfo=dt_timezone.utc))
 
         timestep = datetime(2024, 1, 1, tzinfo=dt_timezone.utc)
         high_forecast = [0.2, 0.8]
@@ -1080,21 +1076,18 @@ class TestAggregationSpeed:
             author=user_1,
         )
 
-        Score.objects.create(
+        Reputation.objects.create(
             user=user_1,
-            question=question,
-            score=3000,
-            coverage=1,
-            score_type=ScoreTypes.PEER,
+            time=datetime(2020, 1, 1, tzinfo=dt_timezone.utc),
+            type=Reputation.ReputationTypes.AVERAGE_PEER_SCORE,
+            value=3000 / 31,
         )
-        Score.objects.create(
+        Reputation.objects.create(
             user=user_2,
-            question=question,
-            score=900,
-            coverage=1,
-            score_type=ScoreTypes.PEER,
+            time=datetime(2020, 1, 1, tzinfo=dt_timezone.utc),
+            type=Reputation.ReputationTypes.AVERAGE_PEER_SCORE,
+            value=900 / 31,
         )
-        Score.objects.update(edited_at=datetime(2020, 1, 1, tzinfo=dt_timezone.utc))
 
         Forecast.objects.create(
             question=question,
@@ -1331,20 +1324,16 @@ class TestAggregationHeavyLoad:
         )
 
         rng = random.Random(7)
-        Score.objects.bulk_create(
+        Reputation.objects.bulk_create(
             [
-                Score(
+                Reputation(
                     user=user,
-                    question=question,
-                    score=rng.uniform(-1000, 3000),
-                    coverage=1,
-                    score_type=ScoreTypes.PEER,
+                    time=datetime(2014, 6, 1, tzinfo=dt_timezone.utc),
+                    type=Reputation.ReputationTypes.AVERAGE_PEER_SCORE,
+                    value=max(rng.uniform(-1000, 3000) / 31, 1e-6),
                 )
                 for user in users
             ]
-        )
-        Score.objects.filter(question=question).update(
-            edited_at=datetime(2014, 6, 1, tzinfo=dt_timezone.utc)
         )
 
         self._create_forecasts(question, users)

@@ -28,8 +28,7 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.types import AggregationMethod
-from scoring.constants import ScoreTypes
-from scoring.models import MINIMUM_REPUTATION, Reputation, Score, LeaderboardEntry
+from scoring.models import MINIMUM_REPUTATION, Reputation, LeaderboardEntry
 from users.models import User
 from utils.the_math.measures import (
     weighted_percentile_2d,
@@ -387,83 +386,12 @@ class LearnedReputationWeighted(ReputationWeighted):
         return weights if weights.size else None
 
 
-class PeerScoreReputationWeighted(LearnedReputationWeighted):
-    @staticmethod
-    def reputation_value(scores: Sequence[Score]) -> float:
-        return max(
-            sum([score.score for score in scores])
-            / (30 + sum([score.coverage for score in scores])),
-            1e-6,
-        )
+class PrecomputedReputationWeighted(LearnedReputationWeighted):
+    """Base for ReputationWeighted subclasses backed by precomputed
+    `Reputation` records (rather than a live per-question calculation).
+    Subclasses just set `reputation_type`."""
 
-    def get_reputation_history(
-        self, all_forecaster_ids: list[int] | set[int]
-    ) -> dict[int, list[Reputation]]:
-
-        start = self.question.open_time
-        end = self.question.scheduled_close_time
-        if end is None:
-            end = timezone.now()
-        peer_scores = Score.objects.filter(
-            user_id__in=all_forecaster_ids,
-            score_type=ScoreTypes.PEER,
-            question__in=Question.objects.filter_public(),
-            edited_at__lte=end,
-        )
-
-        # setup
-        scores_by_user: dict[int, dict[int, Score]] = defaultdict(dict)
-        reputations: dict[int, list[Reputation]] = defaultdict(list)
-
-        # Establish reputations at the start of the interval.
-        old_peer_scores = list(
-            peer_scores.filter(edited_at__lte=start).order_by("edited_at")
-        )
-
-        with sentry_sdk.start_span(
-            op="compute", name="compute_initial_reputations"
-        ) as span:
-            span.set_data("forecaster_count", len(all_forecaster_ids))
-            span.set_data("old_peer_scores_count", len(old_peer_scores))
-            for score in old_peer_scores:
-                scores_by_user[score.user_id][score.question_id] = score
-            for user_id in all_forecaster_ids:
-                value = self.reputation_value(list(scores_by_user[user_id].values()))
-                reputations[user_id].append(
-                    Reputation(user_id=user_id, value=value, time=start)
-                )
-
-        # Then, for each new score, add a new reputation record
-        new_peer_scores = list(
-            peer_scores.filter(edited_at__gt=start).order_by("edited_at")
-        )
-
-        with sentry_sdk.start_span(
-            op="compute", name="compute_reputation_updates"
-        ) as span:
-            span.set_data("new_peer_scores_count", len(new_peer_scores))
-            for score in new_peer_scores:
-                # update the scores by user, then calculate the updated reputation
-                scores_by_user[score.user_id][score.question_id] = score
-                value = self.reputation_value(
-                    list(scores_by_user[score.user_id].values())
-                )
-                reputations[score.user_id].append(
-                    Reputation(user_id=score.user_id, value=value, time=score.edited_at)
-                )
-        return reputations
-
-
-class YearPerformanceReputationWeighted(LearnedReputationWeighted):
-    """Uses precomputed Reputation records to bypass the on-the-fly reputation
-    calculations other ReputationWeighted subclasses perform in
-    `get_reputation_history`.
-
-    # TODO: hardcoded to the only Reputation type that exists so far. Once more
-    # types are added, this should be properly genericized/renamed.
-    """
-
-    reputation_type = Reputation.ReputationTypes.YEAR_PERFORMANCE
+    reputation_type: str
 
     def get_reputation_history(
         self, all_forecaster_ids: list[int] | set[int]
@@ -485,6 +413,14 @@ class YearPerformanceReputationWeighted(LearnedReputationWeighted):
         for record in records:
             reputations[record.user_id].append(record)
         return reputations
+
+
+class PeerScoreReputationWeighted(PrecomputedReputationWeighted):
+    reputation_type = Reputation.ReputationTypes.AVERAGE_PEER_SCORE
+
+
+class YearPerformanceReputationWeighted(PrecomputedReputationWeighted):
+    reputation_type = Reputation.ReputationTypes.YEAR_PERFORMANCE
 
 
 class MedalistsReputationWeighted(ReputationWeighted):
@@ -1205,9 +1141,7 @@ def get_user_forecast_history(
                 timestep=timestep,
                 forecaster_ids=[entry[0] for entry in active_entries],
                 timesteps=[entry[2] for entry in active_entries],
-                _timesteps_epoch_cache=np.array(
-                    [entry[3] for entry in active_entries]
-                ),
+                _timesteps_epoch_cache=np.array([entry[3] for entry in active_entries]),
             )
         )
 
