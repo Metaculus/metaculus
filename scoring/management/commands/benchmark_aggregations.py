@@ -21,6 +21,7 @@ from scoring.fast_scoring import (
     MEDIAN_BASED_METHODS,
     REPUTATION_WEIGHTED_CLASSES,
     STATIC_FILTER_CLASSES,
+    ReputationArrays,
     compute_aggregation_series,
     compute_geometric_mean_series,
     compute_median_aggregation_series,
@@ -67,6 +68,7 @@ class AggregationSpec:
     label: str
     a: float | None = None
     b: float | None = None
+    b_spot: float | None = None
     joined_before: datetime | None = None
 
 
@@ -84,6 +86,10 @@ def _parse_aggregation_spec(raw: str) -> AggregationSpec:
     before (e.g. "unweighted"); "method,x,y..." attaches extra parameters:
       - single_aggregation / year_performance: "method,a,b" - per-spec a/b,
         overriding the global --a/--b for just this spec.
+      - spot_sensitive: "method,a,b" or "method,a,b,b_spot" - per-spec a/b
+        (used outside the spot-sensitive period) and, optionally, b_spot
+        (used strictly before the question's spot scoring time); omitting
+        b_spot defaults it to whatever b resolves to.
       - joined_before_date: "method,YYYY-MM-DD" - per-spec joined_before
         cutoff, overriding the global --joined-before for just this spec.
     Every other method takes no extra parameters.
@@ -91,6 +97,21 @@ def _parse_aggregation_spec(raw: str) -> AggregationSpec:
     parts = [p.strip() for p in raw.split(",")]
     method, extra = parts[0], parts[1:]
     label = ",".join(parts)
+
+    if method == "spot_sensitive":
+        if len(extra) not in (0, 2, 3):
+            raise CommandError(
+                f"{raw!r}: {method!r} takes 0, 2 (a,b), or 3 (a,b,b_spot) "
+                f"extra values, got {len(extra)}"
+            )
+        if not extra:
+            return AggregationSpec(method=method, label=label)
+        try:
+            a, b = float(extra[0]), float(extra[1])
+            b_spot = float(extra[2]) if len(extra) == 3 else None
+        except ValueError as e:
+            raise CommandError(f"{raw!r}: a/b/b_spot must be numbers ({e})")
+        return AggregationSpec(method=method, label=label, a=a, b=b, b_spot=b_spot)
 
     if method in DECAYED_REPUTATION_CLASSES:
         if len(extra) not in (0, 2):
@@ -146,7 +167,7 @@ def _score_question(
     totals: dict[str, dict],
     rebuild_cache: bool,
     sample_timesteps: bool,
-    reputation_histories: dict[str, dict[int, list]],
+    reputation_histories: dict[str, ReputationArrays],
     static_filters: dict[StaticFilterKey, set[int]],
 ) -> None:
     """Scores one question against every requested aggregation spec,
@@ -187,6 +208,7 @@ def _score_question(
                 spec.method,
                 a=spec.a,
                 b=spec.b,
+                b_spot=spec.b_spot,
                 reputation_history=reputation_histories.get(spec.method),
             )
         else:
@@ -229,7 +251,7 @@ def _init_worker(
     specs: list[AggregationSpec],
     rebuild_cache: bool,
     sample_timesteps: bool,
-    reputation_histories: dict[str, dict[int, list]],
+    reputation_histories: dict[str, ReputationArrays],
     static_filters: dict[StaticFilterKey, set[int]],
 ) -> None:
     global _worker_config
@@ -331,8 +353,10 @@ class Command(BaseCommand):
             "variants of the same method in one invocation - each gets its "
             "own row in the report, labeled with the full spec string: "
             "'single_aggregation,0.5,6.0' (per-spec a,b, repeatable with "
-            "different values) or 'joined_before_date,2024-01-01' (per-spec "
-            "joined_before cutoff).",
+            "different values), 'spot_sensitive,0.5,6.0' or "
+            "'spot_sensitive,0.5,6.0,8.0' (per-spec a,b and an optional "
+            "b_spot - defaults to b), or 'joined_before_date,2024-01-01' "
+            "(per-spec joined_before cutoff).",
         )
         parser.add_argument(
             "--exclude-question-type",
@@ -435,23 +459,30 @@ class Command(BaseCommand):
         default_joined_before = _parse_joined_before(options["joined_before"])
         raw_specs = options["aggregation_methods"] or DEFAULT_AGGREGATION_METHODS
         specs = [_parse_aggregation_spec(raw) for raw in raw_specs]
-        # Fill in each spec's a/b/joined_before from the global --a/--b/
-        # --joined-before defaults wherever it didn't attach its own - after
-        # this, every spec is fully self-contained and downstream code never
-        # needs to know about the global defaults again.
-        specs = [
-            replace(
-                spec,
-                a=spec.a if spec.a is not None else default_a,
-                b=spec.b if spec.b is not None else default_b,
-                joined_before=(
-                    spec.joined_before
-                    if spec.joined_before is not None
-                    else default_joined_before
-                ),
+        # Fill in each spec's a/b/b_spot/joined_before from the global
+        # --a/--b/--joined-before defaults wherever it didn't attach its
+        # own - after this, every spec is fully self-contained and
+        # downstream code never needs to know about the global defaults
+        # again. b_spot defaults to the spec's own *resolved* b (not a
+        # separate global), so it must be filled in after a/b are.
+        resolved_specs = []
+        for spec in specs:
+            resolved_a = spec.a if spec.a is not None else default_a
+            resolved_b = spec.b if spec.b is not None else default_b
+            resolved_specs.append(
+                replace(
+                    spec,
+                    a=resolved_a,
+                    b=resolved_b,
+                    b_spot=spec.b_spot if spec.b_spot is not None else resolved_b,
+                    joined_before=(
+                        spec.joined_before
+                        if spec.joined_before is not None
+                        else default_joined_before
+                    ),
+                )
             )
-            for spec in specs
-        ]
+        specs = resolved_specs
 
         self._validate_options(specs, exclude_question_types)
 
@@ -515,7 +546,7 @@ class Command(BaseCommand):
         specs: list[AggregationSpec],
         rebuild_cache: bool,
         sample_timesteps: bool,
-        reputation_histories: dict[str, dict[int, list]],
+        reputation_histories: dict[str, ReputationArrays],
         static_filters: dict[StaticFilterKey, set[int]],
         totals: dict[str, dict],
         eval_start: float,
@@ -551,7 +582,7 @@ class Command(BaseCommand):
         specs: list[AggregationSpec],
         rebuild_cache: bool,
         sample_timesteps: bool,
-        reputation_histories: dict[str, dict[int, list]],
+        reputation_histories: dict[str, ReputationArrays],
         static_filters: dict[StaticFilterKey, set[int]],
         totals: dict[str, dict],
         eval_start: float,
@@ -675,7 +706,7 @@ class Command(BaseCommand):
 
     def _preload_reputation_histories(
         self, question_ids: list[int], specs: list[AggregationSpec]
-    ) -> dict[str, dict[int, list]]:
+    ) -> dict[str, ReputationArrays]:
         """Fetches every reputation-weighted method's full user-reputation
         history once for the whole batch of questions, instead of once per
         question - the dominant cost otherwise, since the same active
@@ -701,10 +732,27 @@ class Command(BaseCommand):
             f"Preloading reputation history for {len(user_ids)} forecasters "
             f"({', '.join(methods_needing_reputation)})..."
         )
-        return {
-            method: preload_reputation_history(method, user_ids, end_time=end_time)
-            for method in methods_needing_reputation
-        }
+
+        # Methods that pull from the exact same underlying Reputation
+        # records (e.g. "single_aggregation" and "spot_sensitive" both read
+        # "average_peer_score" - SpotSensitiveReputationWeighted extends
+        # PeerScoreReputationWeighted without overriding
+        # get_reputation_history) share one preload instead of redundantly
+        # querying/holding the same data once per method - each preload can
+        # be millions of Reputation rows for a large batch, and duplicating
+        # that per method (then again per --workers process) is exactly
+        # what OOM-killed a run requesting several such methods at once.
+        cache: dict[str, ReputationArrays] = {}
+        result: dict[str, ReputationArrays] = {}
+        for method in methods_needing_reputation:
+            weighted_class = REPUTATION_WEIGHTED_CLASSES[method]
+            cache_key = getattr(weighted_class, "reputation_type", None) or method
+            if cache_key not in cache:
+                cache[cache_key] = preload_reputation_history(
+                    method, user_ids, end_time=end_time
+                )
+            result[method] = cache[cache_key]
+        return result
 
     def _preload_static_filters(
         self, question_ids: list[int], specs: list[AggregationSpec]

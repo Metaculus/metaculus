@@ -28,6 +28,7 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.types import AggregationMethod
+from scoring.constants import ScoreTypes
 from scoring.models import MINIMUM_REPUTATION, Reputation, LeaderboardEntry
 from users.models import User
 from utils.the_math.measures import (
@@ -363,12 +364,16 @@ class LearnedReputationWeighted(ReputationWeighted):
             self.question.scheduled_close_time - self.question.open_time
         ).total_seconds()
 
-    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
-        # Custom overwrite to uniquely combine time weighting with reputation
-        reputation_values = self.get_reputations(forecast_set)
-        # TODO: make these learned parameters
-        a = 0.5
-        b = 6.0
+    def _decay_reputation_weights(
+        self,
+        forecast_set: ForecastSet,
+        reputation_values: np.ndarray,
+        a: float,
+        b: float,
+    ) -> Weights:
+        """Shared decay/reputation blend formula, factored out so subclasses
+        (e.g. SpotSensitiveReputationWeighted) can reuse it with their own
+        a/b rather than duplicating the math."""
         # epoch-second floats (cached on the ForecastSet) instead of Python
         # datetime/timedelta arithmetic per element - lets the subtraction
         # and division below run as a single vectorized numpy op rather than
@@ -384,6 +389,14 @@ class LearnedReputationWeighted(ReputationWeighted):
         if np.all(weights == 0):
             return None
         return weights if weights.size else None
+
+    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
+        # Custom overwrite to uniquely combine time weighting with reputation
+        reputation_values = self.get_reputations(forecast_set)
+        # TODO: make these learned parameters
+        a = 0.5
+        b = 6.0
+        return self._decay_reputation_weights(forecast_set, reputation_values, a, b)
 
 
 class PrecomputedReputationWeighted(LearnedReputationWeighted):
@@ -417,6 +430,66 @@ class PrecomputedReputationWeighted(LearnedReputationWeighted):
 
 class PeerScoreReputationWeighted(PrecomputedReputationWeighted):
     reputation_type = Reputation.ReputationTypes.AVERAGE_PEER_SCORE
+
+
+class PeerThresholdReputationWeighted(PrecomputedReputationWeighted):
+    """Uses "peer_threshold_-20_coverage_50": average_peer_score hard
+    -floored to MINIMUM_REPUTATION for users below the reputation/coverage
+    threshold (rho=-20, gamma=50) - see scoring/migrations/0022_reputation.py
+    for the full derivation."""
+
+    reputation_type = Reputation.ReputationTypes.PEER_THRESHOLD_NEG20_COVERAGE_50
+
+
+class PeerContinuousReputationWeighted(PrecomputedReputationWeighted):
+    """Uses "peer_continuous_with_coverage": a softplus-smoothed threshold
+    (rho=0, gamma=50 - independent of PeerThresholdReputationWeighted's own
+    rho) - see scoring/migrations/0022_reputation.py for the full
+    derivation."""
+
+    reputation_type = Reputation.ReputationTypes.PEER_CONTINUOUS_WITH_COVERAGE
+
+
+class SpotSensitiveReputationWeighted(PeerScoreReputationWeighted):
+    """Same reputation source as PeerScoreReputationWeighted, but for
+    spot_peer-scored questions, uses a flat a_spot=0 (pure reputation, no
+    recency decay) and a separate b_spot exponent for any aggregation
+    timestep strictly before the question's spot scoring time - spot_peer
+    scoring only cares about who's active/credible at that single moment,
+    not a decay-weighted build-up beforehand. Falls back to the normal a/b
+    blend at or after the spot scoring time, or if the question isn't
+    spot_peer-scored, or has no spot scoring time.
+    """
+
+    a_spot = 0.0
+
+    def __init__(
+        self,
+        question: Question,
+        all_forecaster_ids: list[int] | set[int] | None,
+        b_spot: float | None = None,
+        **kwargs,
+    ):
+        super().__init__(question, all_forecaster_ids, **kwargs)
+        # Matches LearnedReputationWeighted.calculate_weights' current
+        # hardcoded default b - keep in sync if that changes.
+        self.b_spot = b_spot if b_spot is not None else 6.0
+        self._spot_scoring_epoch: float | None = None
+        if question.default_score_type == ScoreTypes.SPOT_PEER:
+            spot_time = question.get_spot_scoring_time()
+            if spot_time is not None:
+                self._spot_scoring_epoch = spot_time.timestamp()
+
+    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
+        if (
+            self._spot_scoring_epoch is not None
+            and forecast_set.timestep.timestamp() < self._spot_scoring_epoch
+        ):
+            reputation_values = self.get_reputations(forecast_set)
+            return self._decay_reputation_weights(
+                forecast_set, reputation_values, self.a_spot, self.b_spot
+            )
+        return super().calculate_weights(forecast_set)
 
 
 class YearPerformanceReputationWeighted(PrecomputedReputationWeighted):
@@ -812,6 +885,21 @@ class YearPerformanceAggregation(MeanAggregatorMixin, Aggregation):
     weighting_classes = [YearPerformanceReputationWeighted]
 
 
+class SpotSensitiveAggregation(MeanAggregatorMixin, Aggregation):
+    method = "spot_sensitive"
+    weighting_classes = [SpotSensitiveReputationWeighted]
+
+
+class PeerThresholdAggregation(MeanAggregatorMixin, Aggregation):
+    method = "peer_threshold_-20_coverage_50"
+    weighting_classes = [PeerThresholdReputationWeighted]
+
+
+class PeerContinuousAggregation(MeanAggregatorMixin, Aggregation):
+    method = "peer_continuous_with_coverage"
+    weighting_classes = [PeerContinuousReputationWeighted]
+
+
 class MedalistsAggregation(MedianAggregatorMixin, Aggregation):
     method = "medalists"
     weighting_classes = [RecencyWeighted, MedalistsReputationWeighted]
@@ -842,6 +930,9 @@ AGGREGATIONS: list[type[Aggregation]] = [
     RecencyWeightedAggregation,
     SingleAggregation,
     YearPerformanceAggregation,
+    SpotSensitiveAggregation,
+    PeerThresholdAggregation,
+    PeerContinuousAggregation,
     MedalistsAggregation,
     SilverMedalistsAggregation,
     GoldMedalistsAggregation,

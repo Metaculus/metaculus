@@ -27,6 +27,7 @@ from django.utils import timezone
 
 from questions.models import QUESTION_CONTINUOUS_TYPES, Forecast, Question
 from questions.services.multiple_choice_handlers import get_all_options_from_history
+from scoring.constants import ScoreTypes
 from scoring.models import MINIMUM_REPUTATION
 from utils.the_math.aggregations import (
     AGGREGATIONS,
@@ -35,9 +36,12 @@ from utils.the_math.aggregations import (
     MeanAggregatorMixin,
     MedalistsReputationWeighted,
     MedianAggregatorMixin,
+    PeerContinuousReputationWeighted,
     PeerScoreReputationWeighted,
+    PeerThresholdReputationWeighted,
     ProsFiltered,
     SilverMedalistsReputationWeighted,
+    SpotSensitiveReputationWeighted,
     YearPerformanceReputationWeighted,
 )
 from utils.the_math.formulas import string_location_to_bucket_index
@@ -49,10 +53,15 @@ from utils.the_math.formulas import string_location_to_bucket_index
 #
 # "decayed": mean-based methods whose weight blends the reputation value
 # with RecencyWeighted-style decay via LearnedReputationWeighted's formula
-# (see compute_aggregation_series).
+# (see compute_aggregation_series). "spot_sensitive" uses the same source as
+# "single_aggregation" (SpotSensitiveReputationWeighted extends
+# PeerScoreReputationWeighted) - see _spot_sensitive_ab.
 DECAYED_REPUTATION_CLASSES = {
     "single_aggregation": PeerScoreReputationWeighted,
     "year_performance": YearPerformanceReputationWeighted,
+    "spot_sensitive": SpotSensitiveReputationWeighted,
+    "peer_threshold_-20_coverage_50": PeerThresholdReputationWeighted,
+    "peer_continuous_with_coverage": PeerContinuousReputationWeighted,
 }
 # "raw": median-based methods that multiply the reputation value straight
 # into RecencyWeighted's rank-based weight - it's already a plain 0/1
@@ -86,10 +95,44 @@ MEDIAN_BASED_METHODS = {
 # preload_reputation_history) - must just be earlier than any real Score.
 _EARLY_ANCHOR = datetime(2015, 1, 1, tzinfo=dt_timezone.utc)
 
+ReputationArrays = dict[int, tuple[np.ndarray, np.ndarray]]
+
+
+def _reputation_to_arrays(reputations: dict[int, list]) -> ReputationArrays:
+    """Converts a `get_reputation_history()`-shaped dict (user_id -> list of
+    Reputation model instances) into a much more compact (user_id -> (times
+    epoch array, values array)) form, and drops the Django objects.
+
+    This matters well beyond a constant-factor speedup: `benchmark_
+    aggregations --workers N` hands a preloaded reputation_history dict to
+    every worker process via ProcessPoolExecutor's initargs (fork start
+    method - see _init_worker there). A large batch's *full* per-user
+    Reputation history (every historical score-update event, potentially
+    thousands per active forecaster) held as live Django model instances is
+    reference-counted Python objects throughout; under fork, every read
+    touches each object's refcount field, which forces copy-on-write page
+    duplication *per worker process* even for purely read-only access - in
+    practice this alone can multiply peak memory by roughly the worker
+    count and OOM-kill the run. Plain numpy arrays don't have this problem
+    (only the array object itself is refcounted, not each element), and are
+    far smaller per element besides. Converting once, immediately after
+    fetching - before the data is ever pickled to a worker or reused across
+    many questions - avoids rebuilding these arrays from Reputation objects
+    on every single lookup too (get_reputation_values/compute_spot_scores
+    used to do this once per question).
+    """
+    return {
+        user_id: (
+            np.array([r.time.timestamp() for r in history]),
+            np.array([r.value for r in history]),
+        )
+        for user_id, history in reputations.items()
+    }
+
 
 def preload_reputation_history(
     method: str, user_ids: list[int], end_time: datetime | None = None
-) -> dict[int, list]:
+) -> ReputationArrays:
     """Computes one method's full reputation history for every user in
     `user_ids` *once*, instead of the (very expensive - a full historical
     Score/Reputation query per call) per-question reconstruction
@@ -118,14 +161,20 @@ def preload_reputation_history(
     # (the "raw"/medal classes use them as the reputation-history window) or
     # via LearnedReputationWeighted.__init__'s question_duration_seconds
     # (the "decayed" classes) - so the fake question needs both regardless
-    # of which bucket `method` falls into.
+    # of which bucket `method` falls into. default_score_type=None (never
+    # equal to spot_peer) short-circuits SpotSensitiveReputationWeighted.
+    # __init__'s spot_scoring_time lookup, which this fake question has no
+    # sensible value for anyway - harmless, since preloading only ever reads
+    # get_reputation_history()'s dict, never calls calculate_weights().
     fake_question = SimpleNamespace(
         open_time=_EARLY_ANCHOR,
         scheduled_close_time=end_time or timezone.now(),
+        default_score_type=None,
     )
-    return weighted_class(
+    reputations = weighted_class(
         question=fake_question, all_forecaster_ids=list(user_ids)
     ).reputations
+    return _reputation_to_arrays(reputations)
 
 
 def preload_static_filter(
@@ -286,7 +335,7 @@ def get_reputation_values(
     data: "QuestionScoringData",
     question: Question,
     method: str,
-    reputation_history: dict[int, list] | None = None,
+    reputation_history: ReputationArrays | None = None,
 ) -> np.ndarray:
     """Reputation value per (user, timestep) for the reputation source
     `method`'s weighting needs, cached on `data.reputation_values` per
@@ -306,7 +355,7 @@ def get_reputation_values(
         return data.reputation_values[method]
 
     if reputation_history is not None:
-        reputations = reputation_history
+        reputation_arrays = reputation_history
     else:
         weighted_class = REPUTATION_WEIGHTED_CLASSES[method]
         # Constructing directly (without forecast_history) just to reuse
@@ -315,14 +364,14 @@ def get_reputation_values(
         reputations = weighted_class(
             question=question, all_forecaster_ids=data.user_ids.tolist()
         ).reputations
+        reputation_arrays = _reputation_to_arrays(reputations)
 
     result = np.full(data.values.shape, MINIMUM_REPUTATION)
     for row, user_id in enumerate(data.user_ids):
-        history = reputations.get(int(user_id))
-        if not history:
+        arrays = reputation_arrays.get(int(user_id))
+        if not arrays:
             continue
-        history_times = np.array([r.time.timestamp() for r in history])
-        history_values = np.array([r.value for r in history])
+        history_times, history_values = arrays
         indexes = np.searchsorted(history_times, data.timesteps, side="right") - 1
         found = indexes >= 0
         result[row, found] = history_values[np.clip(indexes[found], 0, None)]
@@ -331,18 +380,47 @@ def get_reputation_values(
     return result
 
 
+def _spot_sensitive_ab(
+    question: Question,
+    timesteps: np.ndarray,
+    a: float,
+    b: float,
+    b_spot: float | None,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Per-timestep (1, T) a/b arrays for "spot_sensitive": a_spot=0/b_spot
+    (defaulting to `b`) at any timestep strictly before the question's spot
+    scoring time, when it's spot_peer-scored and has one set - the normal
+    a/b everywhere else. Vectorized equivalent of
+    SpotSensitiveReputationWeighted.calculate_weights.
+    """
+    b_spot = b if b_spot is None else b_spot
+    a_row = np.full(timesteps.shape, a)
+    b_row = np.full(timesteps.shape, b)
+    if question.default_score_type == ScoreTypes.SPOT_PEER:
+        spot_time = question.get_spot_scoring_time()
+        if spot_time is not None:
+            before_spot = timesteps < spot_time.timestamp()
+            a_row[before_spot] = SpotSensitiveReputationWeighted.a_spot
+            b_row[before_spot] = b_spot
+    return a_row[None, :], b_row[None, :]
+
+
 def compute_aggregation_series(
     data: "QuestionScoringData",
     question: Question,
     method: str,
     a: float = 0.5,
     b: float = 6.0,
-    reputation_history: dict[int, list] | None = None,
+    b_spot: float | None = None,
+    reputation_history: ReputationArrays | None = None,
 ) -> np.ndarray:
     """The aggregate's PMF-at-resolution_bucket value at every timestep,
     for one mean-based aggregation method. NaN at timesteps with zero
     active forecasters (mirrors the "no forecasters -> no aggregation
     entry" gap-handling in get_aggregation_history).
+
+    `b_spot` is only used by "spot_sensitive" (see _spot_sensitive_ab) -
+    ignored for every other method.
     """
     if method not in MEAN_BASED_METHODS:
         raise NotImplementedError(
@@ -350,12 +428,16 @@ def compute_aggregation_series(
             f"got {method!r}"
         )
 
-    if method in REPUTATION_WEIGHTED_CLASSES:
+    if method in DECAYED_REPUTATION_CLASSES:
         reputation = get_reputation_values(data, question, method, reputation_history)
         duration_seconds = data.forecast_horizon_end - data.forecast_horizon_start
         decay_ratio = -(data.timesteps[None, :] - data.start_epochs) / duration_seconds
         decays = np.exp(decay_ratio)
-        weights = (decays**a * reputation ** (1 - a)) ** b
+        if method == "spot_sensitive":
+            a_row, b_row = _spot_sensitive_ab(question, data.timesteps, a, b, b_spot)
+            weights = (decays**a_row * reputation ** (1 - a_row)) ** b_row
+        else:
+            weights = (decays**a * reputation ** (1 - a)) ** b
     else:
         weights = np.ones_like(data.values)
 
@@ -410,7 +492,7 @@ def compute_median_aggregation_series(
     data: "QuestionScoringData",
     question: Question,
     method: str,
-    reputation_history: dict[int, list] | None = None,
+    reputation_history: ReputationArrays | None = None,
     static_filter: set[int] | None = None,
 ) -> np.ndarray:
     """The aggregate's PMF-at-resolution_bucket value at every timestep, for
@@ -665,7 +747,7 @@ def compute_spot_scores(
     score_type: str,
     a: float = 0.5,
     b: float = 6.0,
-    reputation_history: dict[int, list] | None = None,
+    reputation_history: ReputationArrays | None = None,
 ) -> tuple[float, float]:
     """End-to-end spot peer/baseline score for one mean-based aggregation
     method, evaluated at question.get_spot_scoring_time()."""
@@ -732,19 +814,19 @@ def compute_spot_scores(
         aggregate_now = max(grid_points) if grid_points else spot_timestamp
 
         if reputation_history is not None:
-            reputations = reputation_history
+            reputation_arrays = reputation_history
         else:
             weighted_class = DECAYED_REPUTATION_CLASSES[method]
             reputations = weighted_class(
                 question=question, all_forecaster_ids=user_ids.tolist()
             ).reputations
+            reputation_arrays = _reputation_to_arrays(reputations)
         reputation = np.full(values.shape, MINIMUM_REPUTATION)
         for i, uid in enumerate(user_ids):
-            history = reputations.get(int(uid))
-            if not history:
+            arrays = reputation_arrays.get(int(uid))
+            if not arrays:
                 continue
-            history_times = np.array([r.time.timestamp() for r in history])
-            history_values = np.array([r.value for r in history])
+            history_times, history_values = arrays
             idx = np.searchsorted(history_times, aggregate_now, side="right") - 1
             if idx >= 0:
                 reputation[i] = history_values[idx]

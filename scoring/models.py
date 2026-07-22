@@ -450,6 +450,8 @@ class Reputation(TimeStampedModel):
     class ReputationTypes(models.TextChoices):
         YEAR_PERFORMANCE = "year_performance"
         AVERAGE_PEER_SCORE = "average_peer_score"
+        PEER_THRESHOLD_NEG20_COVERAGE_50 = "peer_threshold_-20_coverage_50"
+        PEER_CONTINUOUS_WITH_COVERAGE = "peer_continuous_with_coverage"
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
     time = models.DateTimeField()
