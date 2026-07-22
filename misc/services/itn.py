@@ -12,6 +12,8 @@ import mysql.connector
 import numpy as np
 import paramiko
 from django.conf import settings
+from django.db.models import Count, OuterRef, Subquery
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from pgvector.django import CosineDistance
 
@@ -21,6 +23,10 @@ from utils.db import paginate_cursor
 from utils.openai import chunked_tokens, generate_text_embed_vector
 
 MAX_RELEVANT_DISTANCE = 0.5
+# Articles within this cosine distance of each other are treated as covering the
+# same story and grouped into one cluster, so repeated coverage of an event does
+# not add up multiple times in the news hotness score.
+ARTICLE_CLUSTER_MAX_DISTANCE = 0.1
 SSH_CONNECT_TIMEOUT_S = 10
 SSH_KEEPALIVE_S = 30
 MYSQL_CONNECT_TIMEOUT_S = 10
@@ -280,6 +286,57 @@ def generate_related_articles_for_post(post: Post):
             for article in relevant_articles
         ],
         ignore_conflicts=True,
+    )
+
+
+def assign_article_clusters():
+    """Group near-duplicate articles (same story, different outlets/rewrites) so
+    that repeated coverage counts only once towards a post's news hotness.
+
+    Uses single-link assignment against already-clustered articles: each not yet
+    clustered article joins the cluster of its nearest neighbour within
+    ARTICLE_CLUSTER_MAX_DISTANCE, or starts its own cluster otherwise. Processed
+    oldest-first so earlier articles act as cluster representatives.
+    """
+    unclustered = (
+        ITNArticle.objects.filter(
+            embedding_vector__isnull=False, cluster_id__isnull=True
+        )
+        .order_by("created_at")
+        .iterator(chunk_size=100)
+    )
+
+    for article in unclustered:
+        nearest_cluster_id = (
+            ITNArticle.objects.filter(
+                embedding_vector__isnull=False, cluster_id__isnull=False
+            )
+            .exclude(pk=article.pk)
+            .annotate(
+                distance=CosineDistance("embedding_vector", article.embedding_vector)
+            )
+            .filter(distance__lte=ARTICLE_CLUSTER_MAX_DISTANCE)
+            .order_by("distance")
+            .values_list("cluster_id", flat=True)
+            .first()
+        )
+
+        article.cluster_id = nearest_cluster_id or article.pk
+        article.save(update_fields=["cluster_id"])
+
+
+def refresh_article_post_counts():
+    """Recompute the number of distinct posts each article is matched to. Used as
+    an inverse document frequency signal when scoring news hotness."""
+    post_count_subquery = (
+        PostArticle.objects.filter(article_id=OuterRef("pk"))
+        .values("article_id")
+        .annotate(count=Count("post_id", distinct=True))
+        .values("count")
+    )
+
+    ITNArticle.objects.update(
+        post_count=Coalesce(Subquery(post_count_subquery), 0)
     )
 
 

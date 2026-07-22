@@ -1,5 +1,6 @@
 import datetime
 import logging
+import math
 import time
 from typing import Sequence
 
@@ -16,6 +17,12 @@ from users.models import User
 from utils.models import ModelBatchUpdater
 
 logger = logging.getLogger(__name__)
+
+# Only articles closer than this (cosine distance) contribute to news hotness.
+# Deliberately tighter than misc.services.itn.MAX_RELEVANT_DISTANCE (0.5, the
+# threshold for storing a match at all) so that the long tail of loosely related
+# articles no longer props up broad, high-volume-topic questions.
+NEWS_RELEVANCE_THRESHOLD = 0.42
 
 
 def decay(val: float, dt: datetime.datetime) -> float:
@@ -92,17 +99,43 @@ def compute_question_hotness(question: Question) -> float:
 #
 # Post hotness calculations
 #
+def _news_article_weight(distance: float, post_count: int) -> float:
+    """Per-article contribution to news hotness, before time decay.
+
+    Combines two signals:
+    - Relevance: linearly rewards closeness, and is zero at/beyond
+      NEWS_RELEVANCE_THRESHOLD so loose matches don't accumulate.
+    - Breadth penalty (inverse document frequency): a generic article matched to
+      many posts is discounted, so a question can't rank highly just by matching
+      every article in a busy news topic.
+    """
+    relevance = max(0.0, NEWS_RELEVANCE_THRESHOLD - distance)
+    if relevance <= 0:
+        return 0.0
+
+    return relevance / math.log(math.e + (post_count or 0))
+
+
 def _compute_hotness_relevant_news(post: Post) -> float:
     # Notebooks should not have news hotness score
     if post.notebook_id:
         return 0.0
 
-    post_articles = post.postarticle_set.all()
+    # Diminishing returns for repeated coverage of the same story: keep only the
+    # single strongest (time-decayed, breadth-penalized) contribution per
+    # near-duplicate article cluster, then sum across clusters.
+    best_by_cluster: dict[int, float] = {}
+    for post_article in post.postarticle_set.all():
+        article = post_article.article
+        weight = _news_article_weight(post_article.distance, article.post_count)
+        if weight <= 0:
+            continue
 
-    return sum(
-        decay(max(0, 0.5 - related_article.distance), related_article.created_at)
-        for related_article in post_articles
-    )
+        contribution = decay(weight, post_article.created_at)
+        cluster = article.cluster_id or article.id
+        best_by_cluster[cluster] = max(best_by_cluster.get(cluster, 0.0), contribution)
+
+    return sum(best_by_cluster.values())
 
 
 def _compute_hotness_post_votes(post: Post) -> float:
@@ -193,8 +226,18 @@ def compute_feed_hotness():
         ),
         Prefetch(
             "postarticle_set",
-            queryset=PostArticle.objects.filter(created_at__gte=min_creation_date).only(
-                "id", "distance", "created_at", "post_id"
+            queryset=PostArticle.objects.filter(created_at__gte=min_creation_date)
+            .select_related("article")
+            .only(
+                "id",
+                "distance",
+                "created_at",
+                "post_id",
+                # Article fields needed for clustering / breadth penalty. Note we
+                # intentionally avoid loading the large `embedding_vector`.
+                "article__id",
+                "article__cluster_id",
+                "article__post_count",
             ),
         ),
     )
@@ -205,10 +248,11 @@ def compute_feed_hotness():
 
     # Updating posts
     with ModelBatchUpdater(
-        model_class=Post, fields=["hotness"], batch_size=batch_size
+        model_class=Post, fields=["hotness", "news_hotness"], batch_size=batch_size
     ) as updater:
         for idx, post in enumerate(qs.iterator(chunk_size=batch_size)):
             post.hotness = compute_post_hotness(post)
+            post.news_hotness = _compute_hotness_relevant_news(post)
             updater.append(post)
 
             if idx % batch_size == 0:
