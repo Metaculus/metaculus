@@ -53,8 +53,7 @@ function buildStandaloneRace(
   r: StandaloneRace,
   post: PostWithForecasts | null
 ): SenateRaceWithQuestion {
-  const question =
-    (post?.question as QuestionWithNumericForecasts | undefined) ?? null;
+  const question = post?.question ?? null;
   const repProb = getMultipleChoiceOptionProbability(post, "Republican");
   const demWinPct = repProb != null ? 100 - Math.round(repProb * 100) : null;
   return {

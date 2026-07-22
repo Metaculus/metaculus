@@ -1,5 +1,9 @@
 import { PostWithForecasts } from "@/types/post";
-import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import {
+  QuestionType,
+  QuestionWithForecasts,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import { scaleInternalLocation } from "@/utils/math";
 
 import { SenateRace } from "../data";
@@ -8,8 +12,9 @@ export type SenateRaceWithQuestion = SenateRace & {
   /** The parent group post (shared across all races), or the standalone
    *  post for races that aren't part of a group. */
   parentPost: PostWithForecasts | null;
-  /** This race's specific subquestion (binary) or standalone question. */
-  question: QuestionWithNumericForecasts | null;
+  /** This race's specific subquestion (binary) or standalone question
+   *  (multiple-choice for standalone races). */
+  question: QuestionWithForecasts | null;
   /** Precomputed Democratic win probability (0–100). For standalone
    *  multiple-choice races this is `100 - P(Republican)`, so color and tooltip
    *  reflect the raw Republican win probability. Null when unavailable. */
