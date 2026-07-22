@@ -1,7 +1,13 @@
 import logging
+import multiprocessing
+import os
 import random
 import time
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from dataclasses import dataclass, replace
+from datetime import datetime, timezone as dt_timezone
 
+import numpy as np
 from django.core.management.base import BaseCommand, CommandError, CommandParser
 from django.db.models import Count, Max
 
@@ -9,17 +15,22 @@ from questions.constants import UnsuccessfulResolutionType
 from questions.models import Forecast, Question
 from scoring.constants import ScoreTypes
 from scoring.fast_scoring import (
+    DECAYED_REPUTATION_CLASSES,
+    MAX_SAMPLED_TIMESTEPS,
     MEAN_BASED_METHODS,
     MEDIAN_BASED_METHODS,
     REPUTATION_WEIGHTED_CLASSES,
+    STATIC_FILTER_CLASSES,
     compute_aggregation_series,
     compute_geometric_mean_series,
     compute_median_aggregation_series,
     compute_spot_scores,
     get_or_build_question_data,
     preload_reputation_history,
+    preload_static_filter,
     score_baseline,
     score_peer,
+    subsample_timesteps,
 )
 from utils.the_math.aggregations import AGGREGATIONS
 
@@ -34,6 +45,242 @@ DEFAULT_AGGREGATION_METHODS = [
 ]
 VALID_QUESTION_TYPES = [c.value for c in Question.QuestionType]
 SPOT_SCORE_TYPES = {"spot_peer", "spot_baseline"}
+StaticFilterKey = tuple[str, datetime | None]
+
+
+@dataclass(frozen=True)
+class AggregationSpec:
+    """One --aggregation-method entry, parsed from either a bare method name
+    or "method,param1,param2,..." - the latter attaches extra, method
+    -specific parameters so a grid search over them (e.g. single_aggregation's
+    a/b) can run as several specs in one invocation instead of one full run
+    per combination.
+
+    `method` is the real aggregation method name, used for all of
+    fast_scoring's dispatch logic. `label` is the raw, comma-joined spec
+    string - used as the totals dict key and shown in the report, so
+    grid-search variants of the same method stay distinguishable from each
+    other and from a plain, unparameterized run of it.
+    """
+
+    method: str
+    label: str
+    a: float | None = None
+    b: float | None = None
+    joined_before: datetime | None = None
+
+
+def _parse_joined_before(joined_before_str: str | None) -> datetime | None:
+    if not joined_before_str:
+        return None
+    parsed = datetime.fromisoformat(joined_before_str)
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=dt_timezone.utc)
+    return parsed
+
+
+def _parse_aggregation_spec(raw: str) -> AggregationSpec:
+    """Parses one --aggregation-method value. A bare method name works as
+    before (e.g. "unweighted"); "method,x,y..." attaches extra parameters:
+      - single_aggregation / year_performance: "method,a,b" - per-spec a/b,
+        overriding the global --a/--b for just this spec.
+      - joined_before_date: "method,YYYY-MM-DD" - per-spec joined_before
+        cutoff, overriding the global --joined-before for just this spec.
+    Every other method takes no extra parameters.
+    """
+    parts = [p.strip() for p in raw.split(",")]
+    method, extra = parts[0], parts[1:]
+    label = ",".join(parts)
+
+    if method in DECAYED_REPUTATION_CLASSES:
+        if len(extra) not in (0, 2):
+            raise CommandError(
+                f"{raw!r}: {method!r} takes 0 or 2 extra values (a,b), got "
+                f"{len(extra)}"
+            )
+        if not extra:
+            return AggregationSpec(method=method, label=label)
+        try:
+            a, b = float(extra[0]), float(extra[1])
+        except ValueError as e:
+            raise CommandError(f"{raw!r}: a/b must be numbers ({e})")
+        return AggregationSpec(method=method, label=label, a=a, b=b)
+
+    if method == "joined_before_date":
+        if len(extra) not in (0, 1):
+            raise CommandError(
+                f"{raw!r}: {method!r} takes 0 or 1 extra value (a "
+                f"joined_before date), got {len(extra)}"
+            )
+        if not extra:
+            return AggregationSpec(method=method, label=label)
+        return AggregationSpec(
+            method=method, label=label, joined_before=_parse_joined_before(extra[0])
+        )
+
+    if extra:
+        raise CommandError(
+            f"{raw!r}: {method!r} doesn't accept extra comma-separated "
+            f"parameters, got {extra}"
+        )
+    return AggregationSpec(method=method, label=label)
+
+
+def _detect_max_workers() -> int:
+    """Best-effort count of usable CPU cores, for --workers auto. Prefers
+    sched_getaffinity (Linux-only) over cpu_count(): it reflects this
+    process's actual CPU affinity/cgroup quota (e.g. inside a container with
+    a fractional core limit), which cpu_count() ignores - not a concern for
+    production correctness (this command isn't production code), just for
+    not spawning far more workers than can actually run concurrently."""
+    try:
+        return len(os.sched_getaffinity(0))
+    except AttributeError:
+        return os.cpu_count() or 1
+
+
+def _score_question(
+    question: Question,
+    question_score_type: str,
+    specs: list[AggregationSpec],
+    totals: dict[str, dict],
+    rebuild_cache: bool,
+    sample_timesteps: bool,
+    reputation_histories: dict[str, dict[int, list]],
+    static_filters: dict[StaticFilterKey, set[int]],
+) -> None:
+    """Scores one question against every requested aggregation spec,
+    accumulating into `totals` (keyed by spec.label) in place. Module-level
+    (not a Command method) so it can run identically in-process (--workers
+    1) or inside a worker process (--workers > 1, via _score_question_worker
+    below)."""
+    if question_score_type in SPOT_SCORE_TYPES:
+        for spec in specs:
+            score, _coverage = compute_spot_scores(
+                question,
+                spec.method,
+                question_score_type,
+                a=spec.a,
+                b=spec.b,
+                reputation_history=reputation_histories.get(spec.method),
+            )
+            totals[spec.label]["score"] += score
+            totals[spec.label]["count"] += 1
+            totals[spec.label]["scores"].append(score)
+        return
+
+    data = get_or_build_question_data(question, rebuild_cache=rebuild_cache)
+    if data is None:
+        return
+    if sample_timesteps:
+        data = subsample_timesteps(data)
+
+    gm_series = gm_counts = None
+    if question_score_type == ScoreTypes.PEER:
+        gm_series, gm_counts = compute_geometric_mean_series(data)
+
+    for spec in specs:
+        if spec.method in MEAN_BASED_METHODS:
+            series = compute_aggregation_series(
+                data,
+                question,
+                spec.method,
+                a=spec.a,
+                b=spec.b,
+                reputation_history=reputation_histories.get(spec.method),
+            )
+        else:
+            series = compute_median_aggregation_series(
+                data,
+                question,
+                spec.method,
+                reputation_history=reputation_histories.get(spec.method),
+                static_filter=static_filters.get((spec.method, spec.joined_before)),
+            )
+
+        if question_score_type == ScoreTypes.PEER:
+            score, _coverage = score_peer(data, series, gm_series, gm_counts)
+        elif question_score_type == ScoreTypes.BASELINE:
+            score, _coverage = score_baseline(data, series)
+        else:
+            raise NotImplementedError(
+                f"Unsupported score_type for interval scoring: "
+                f"{question_score_type!r}"
+            )
+        totals[spec.label]["score"] += score
+        totals[spec.label]["count"] += 1
+        totals[spec.label]["scores"].append(score)
+
+
+# Parallel (--workers > 1) scoring ###########################################
+# Each worker process scores its own questions independently and returns
+# only a small per-label totals dict to merge back in the parent - never
+# the (potentially large) QuestionScoringData itself, keeping inter-process
+# payloads tiny. Run config that's constant for the whole batch (in
+# particular reputation_histories, which can be large) is sent once via the
+# pool's initializer/initargs (pickled once per *worker process*), not via
+# per-task arguments (which would re-pickle it on every single question).
+
+_worker_config: dict | None = None
+
+
+def _init_worker(
+    score_type: str,
+    specs: list[AggregationSpec],
+    rebuild_cache: bool,
+    sample_timesteps: bool,
+    reputation_histories: dict[str, dict[int, list]],
+    static_filters: dict[StaticFilterKey, set[int]],
+) -> None:
+    global _worker_config
+    # Forked workers inherit the parent's already-open DB connection(s),
+    # which aren't safe to share across processes - force each worker to
+    # establish its own on first use instead.
+    from django.db import connections
+
+    connections.close_all()
+    _worker_config = {
+        "score_type": score_type,
+        "specs": specs,
+        "rebuild_cache": rebuild_cache,
+        "sample_timesteps": sample_timesteps,
+        "reputation_histories": reputation_histories,
+        "static_filters": static_filters,
+    }
+
+
+def _score_question_worker(question_id: int) -> dict[str, dict] | None:
+    """Runs inside a worker process (see _init_worker for the per-process
+    config this reads). Returns None (after logging) instead of raising, so
+    one bad question doesn't take down the whole pool - mirrors the
+    sequential loop's per-question try/except."""
+    config = _worker_config
+    assert config is not None, "_score_question_worker called before _init_worker"
+    try:
+        question = Question.objects.get(id=question_id)
+        question_score_type = (
+            question.default_score_type
+            if config["score_type"] == "default"
+            else config["score_type"]
+        )
+        totals = {
+            spec.label: {"score": 0.0, "count": 0, "scores": []}
+            for spec in config["specs"]
+        }
+        _score_question(
+            question,
+            question_score_type,
+            config["specs"],
+            totals,
+            config["rebuild_cache"],
+            config["sample_timesteps"],
+            config["reputation_histories"],
+            config["static_filters"],
+        )
+        return totals
+    except Exception:
+        logger.exception("Failed to evaluate question %s - skipping", question_id)
+        return None
 
 
 class Command(BaseCommand):
@@ -77,8 +324,15 @@ class Command(BaseCommand):
             default=None,
             help="Aggregation method to evaluate (repeatable, e.g. "
             "--aggregation-method single_aggregation --aggregation-method "
-            f"year_performance). Valid choices: {', '.join(VALID_AGGREGATION_METHODS)}. "
-            f"Default: {', '.join(DEFAULT_AGGREGATION_METHODS)}.",
+            "year_performance). Valid choices: "
+            f"{', '.join(VALID_AGGREGATION_METHODS)}. Default: "
+            f"{', '.join(DEFAULT_AGGREGATION_METHODS)}. For a grid search, "
+            "attach extra comma-separated parameters to run several "
+            "variants of the same method in one invocation - each gets its "
+            "own row in the report, labeled with the full spec string: "
+            "'single_aggregation,0.5,6.0' (per-spec a,b, repeatable with "
+            "different values) or 'joined_before_date,2024-01-01' (per-spec "
+            "joined_before cutoff).",
         )
         parser.add_argument(
             "--exclude-question-type",
@@ -115,22 +369,55 @@ class Command(BaseCommand):
             "if a question's forecasts have changed).",
         )
         parser.add_argument(
+            "--sample-timesteps",
+            action="store_true",
+            default=False,
+            help=f"For questions with a dense timestep grid (many forecast "
+            f"starts/ends), evenly subsample it down to at most "
+            f"{MAX_SAMPLED_TIMESTEPS} points before scoring - trades score "
+            "precision for speed, similar in spirit to how minimize_history "
+            "subsamples a display timeline. Has no effect on spot scoring "
+            "(already a single point). Default: use the full grid.",
+        )
+        parser.add_argument(
+            "--joined-before",
+            type=str,
+            default=None,
+            help="ISO-8601 date/datetime cutoff (e.g. 2024-01-01) for the "
+            "joined_before_date aggregation method - only forecasters who "
+            "joined before this are included. Default for any "
+            "joined_before_date spec that doesn't attach its own date (see "
+            "--aggregation-method); required if none do.",
+        )
+        parser.add_argument(
+            "--workers",
+            type=int,
+            default=None,
+            help="Number of worker processes to score questions in parallel. "
+            "Each question is scored independently, so this scales close to "
+            "linearly with core count - useful for large runs. Each worker "
+            "opens its own DB connection. Pass 1 to force sequential. "
+            "Default: auto-detect and use all available CPU cores.",
+        )
+        parser.add_argument(
             "--a",
             type=float,
             default=0.5,
-            help="Decay/reputation blend exponent for reputation-weighted "
-            "methods (single_aggregation, year_performance). Default: 0.5.",
+            help="Default decay/reputation blend exponent for "
+            "reputation-weighted methods (single_aggregation, "
+            "year_performance) - overridable per-spec, see "
+            "--aggregation-method. Default: 0.5.",
         )
         parser.add_argument(
             "--b",
             type=float,
             default=6.0,
-            help="Outer exponent for reputation-weighted methods' weight "
-            "formula. Default: 6.0.",
+            help="Default outer exponent for reputation-weighted methods' "
+            "weight formula - overridable per-spec, see "
+            "--aggregation-method. Default: 6.0.",
         )
 
     def handle(self, *args, **options):
-        start = time.perf_counter()
 
         seed = options["seed"]
         question_count = options["question_count"]
@@ -138,13 +425,35 @@ class Command(BaseCommand):
         min_forecasters = options["min_forecasters"]
         exclude_question_types = options["exclude_question_types"] or []
         rebuild_cache = options["rebuild_cache"]
-        a = options["a"]
-        b = options["b"]
-        aggregation_methods = (
-            options["aggregation_methods"] or DEFAULT_AGGREGATION_METHODS
-        )
+        sample_timesteps = options["sample_timesteps"]
+        workers = options["workers"]
+        workers_auto_detected = workers is None
+        if workers is None:
+            workers = _detect_max_workers()
+        default_a = options["a"]
+        default_b = options["b"]
+        default_joined_before = _parse_joined_before(options["joined_before"])
+        raw_specs = options["aggregation_methods"] or DEFAULT_AGGREGATION_METHODS
+        specs = [_parse_aggregation_spec(raw) for raw in raw_specs]
+        # Fill in each spec's a/b/joined_before from the global --a/--b/
+        # --joined-before defaults wherever it didn't attach its own - after
+        # this, every spec is fully self-contained and downstream code never
+        # needs to know about the global defaults again.
+        specs = [
+            replace(
+                spec,
+                a=spec.a if spec.a is not None else default_a,
+                b=spec.b if spec.b is not None else default_b,
+                joined_before=(
+                    spec.joined_before
+                    if spec.joined_before is not None
+                    else default_joined_before
+                ),
+            )
+            for spec in specs
+        ]
 
-        self._validate_options(aggregation_methods, exclude_question_types)
+        self._validate_options(specs, exclude_question_types)
 
         question_ids = self._select_question_ids(
             min_forecasters=min_forecasters,
@@ -153,49 +462,156 @@ class Command(BaseCommand):
             exclude_question_types=exclude_question_types,
         )
 
-        reputation_histories = self._preload_reputation_histories(
-            question_ids, aggregation_methods
-        )
+        reputation_histories = self._preload_reputation_histories(question_ids, specs)
+        static_filters = self._preload_static_filters(question_ids, specs)
 
         totals = {
-            method: {"score": 0.0, "coverage": 0.0, "count": 0}
-            for method in aggregation_methods
+            spec.label: {"score": 0.0, "count": 0, "scores": []} for spec in specs
         }
 
         total_questions = len(question_ids)
+        eval_start = time.perf_counter()
+        run_args = (
+            question_ids,
+            score_type,
+            specs,
+            rebuild_cache,
+            sample_timesteps,
+            reputation_histories,
+            static_filters,
+            totals,
+            eval_start,
+        )
+        if workers > 1:
+            self._run_parallel(*run_args, workers=workers)
+        else:
+            self._run_sequential(*run_args)
+
+        self.stdout.write("")  # move past the in-place progress line
+        if workers > 1:
+            self.stdout.write(f"Scored with {workers} worker processes")
+        self._print_settings(
+            specs,
+            seed=seed,
+            question_count=question_count,
+            score_type=score_type,
+            min_forecasters=min_forecasters,
+            exclude_question_types=exclude_question_types,
+            rebuild_cache=rebuild_cache,
+            sample_timesteps=sample_timesteps,
+            workers=workers,
+            workers_auto_detected=workers_auto_detected,
+            default_a=default_a,
+            default_b=default_b,
+            default_joined_before=default_joined_before,
+        )
+        elapsed = time.perf_counter() - eval_start
+        self._print_results(totals, elapsed, total_questions, score_type)
+
+    def _run_sequential(
+        self,
+        question_ids: list[int],
+        score_type: str,
+        specs: list[AggregationSpec],
+        rebuild_cache: bool,
+        sample_timesteps: bool,
+        reputation_histories: dict[str, dict[int, list]],
+        static_filters: dict[StaticFilterKey, set[int]],
+        totals: dict[str, dict],
+        eval_start: float,
+    ) -> None:
+        total_questions = len(question_ids)
         questions = Question.objects.filter(id__in=question_ids)
         for i, question in enumerate(questions.iterator(), start=1):
-            if i == 1 or i % 25 == 0 or i == total_questions:
-                self.stdout.write(f"  evaluating {i}/{total_questions}...")
             question_score_type = (
                 question.default_score_type if score_type == "default" else score_type
             )
             try:
-                self._score_question(
+                _score_question(
                     question,
                     question_score_type,
-                    aggregation_methods,
+                    specs,
                     totals,
                     rebuild_cache,
-                    a,
-                    b,
+                    sample_timesteps,
                     reputation_histories,
+                    static_filters,
                 )
             except Exception:
                 logger.exception(
                     "Failed to evaluate question %s - skipping", question.id
                 )
-                continue
+            finally:
+                self._report_progress(i, total_questions, eval_start)
 
-        elapsed = time.perf_counter() - start
-        self._print_results(totals, elapsed, total_questions, score_type)
+    def _run_parallel(
+        self,
+        question_ids: list[int],
+        score_type: str,
+        specs: list[AggregationSpec],
+        rebuild_cache: bool,
+        sample_timesteps: bool,
+        reputation_histories: dict[str, dict[int, list]],
+        static_filters: dict[StaticFilterKey, set[int]],
+        totals: dict[str, dict],
+        eval_start: float,
+        workers: int,
+    ) -> None:
+        total_questions = len(question_ids)
+        # fork (the Linux default): workers inherit the parent's
+        # already-loaded Django app registry, so there's no need to
+        # bootstrap Django itself in _init_worker - just give each worker
+        # its own DB connection.
+        context = multiprocessing.get_context("fork")
+        with ProcessPoolExecutor(
+            max_workers=workers,
+            mp_context=context,
+            initializer=_init_worker,
+            initargs=(
+                score_type,
+                specs,
+                rebuild_cache,
+                sample_timesteps,
+                reputation_histories,
+                static_filters,
+            ),
+        ) as executor:
+            futures = [
+                executor.submit(_score_question_worker, question_id)
+                for question_id in question_ids
+            ]
+            for i, future in enumerate(as_completed(futures), start=1):
+                result = future.result()
+                if result is not None:
+                    self._merge_totals(totals, result)
+                self._report_progress(i, total_questions, eval_start)
+
+    @staticmethod
+    def _merge_totals(totals: dict[str, dict], delta: dict[str, dict]) -> None:
+        for label, stats in delta.items():
+            totals[label]["score"] += stats["score"]
+            totals[label]["count"] += stats["count"]
+            totals[label]["scores"].extend(stats["scores"])
+
+    def _report_progress(self, completed: int, total: int, eval_start: float) -> None:
+        elapsed = time.perf_counter() - eval_start
+        avg_per_question = elapsed / completed
+        eta = avg_per_question * (total - completed)
+        self.stdout.write(
+            f"\r  evaluating {completed}/{total}... "
+            f"(elapsed: {elapsed:.1f}s, eta: {eta:.1f}s)",
+            ending="",
+        )
+        self.stdout.flush()
 
     def _validate_options(
-        self, aggregation_methods: list[str], exclude_question_types: list[str]
+        self,
+        specs: list[AggregationSpec],
+        exclude_question_types: list[str],
     ) -> None:
-        invalid_methods = sorted(
-            set(aggregation_methods) - set(VALID_AGGREGATION_METHODS)
-        )
+        methods = {spec.method for spec in specs}
+
+        invalid_methods = sorted(methods - set(VALID_AGGREGATION_METHODS))
         if invalid_methods:
             raise CommandError(
                 f"Unknown aggregation method(s): {', '.join(invalid_methods)}. "
@@ -209,7 +625,7 @@ class Command(BaseCommand):
                 f"Valid choices: {', '.join(VALID_QUESTION_TYPES)}"
             )
 
-        median_methods = sorted(set(aggregation_methods) & MEDIAN_BASED_METHODS)
+        median_methods = sorted(methods & MEDIAN_BASED_METHODS)
         if (
             median_methods
             and Question.QuestionType.MULTIPLE_CHOICE not in exclude_question_types
@@ -222,33 +638,58 @@ class Command(BaseCommand):
                 "--exclude-question-type multiple_choice, or drop these methods."
             )
 
-        unsupported_methods = sorted(
-            set(aggregation_methods) - MEAN_BASED_METHODS - MEDIAN_BASED_METHODS
+        missing_joined_before = any(
+            spec.method == "joined_before_date" and spec.joined_before is None
+            for spec in specs
         )
+        if missing_joined_before:
+            raise CommandError(
+                "joined_before_date requires --joined-before <ISO date/datetime>, "
+                "or a per-spec date via --aggregation-method "
+                "'joined_before_date,<date>'."
+            )
+
+        unsupported_methods = sorted(methods - MEAN_BASED_METHODS - MEDIAN_BASED_METHODS)
         if unsupported_methods:
             raise CommandError(
                 f"Aggregation method(s) {', '.join(unsupported_methods)} aren't "
                 "supported by this fast scoring path yet."
             )
 
-    def _preload_reputation_histories(
-        self, question_ids: list[int], aggregation_methods: list[str]
-    ) -> dict[str, dict[int, list]]:
-        """Fetches every reputation-weighted method's full user-reputation
-        history once for the whole batch of questions, instead of once per
-        question - the dominant cost otherwise, since the same active
-        forecasters reappear across most questions."""
-        methods_needing_reputation = [
-            m for m in aggregation_methods if m in REPUTATION_WEIGHTED_CLASSES
-        ]
-        if not methods_needing_reputation:
-            return {}
+        duplicate_labels = sorted(
+            {label for label in (spec.label for spec in specs) if
+             sum(1 for spec in specs if spec.label == label) > 1}
+        )
+        if duplicate_labels:
+            raise CommandError(
+                f"Duplicate --aggregation-method spec(s): {', '.join(duplicate_labels)}. "
+                "Each spec (including its parameters) must be unique."
+            )
 
-        user_ids = list(
+    def _gather_batch_forecaster_ids(self, question_ids: list[int]) -> list[int]:
+        return list(
             Forecast.objects.filter(question_id__in=question_ids)
             .values_list("author_id", flat=True)
             .distinct()
         )
+
+    def _preload_reputation_histories(
+        self, question_ids: list[int], specs: list[AggregationSpec]
+    ) -> dict[str, dict[int, list]]:
+        """Fetches every reputation-weighted method's full user-reputation
+        history once for the whole batch of questions, instead of once per
+        question - the dominant cost otherwise, since the same active
+        forecasters reappear across most questions. Keyed by base method
+        (not spec label): the reputation values a/b blend into a weight
+        don't depend on a/b themselves, so grid-search specs of the same
+        method share one preloaded history."""
+        methods_needing_reputation = sorted(
+            {spec.method for spec in specs if spec.method in REPUTATION_WEIGHTED_CLASSES}
+        )
+        if not methods_needing_reputation:
+            return {}
+
+        user_ids = self._gather_batch_forecaster_ids(question_ids)
         # Bound the preload to what this batch actually needs - the latest
         # close time among its questions - rather than "now", which would
         # fetch a decade of irrelevant future scores for a batch of old
@@ -265,65 +706,38 @@ class Command(BaseCommand):
             for method in methods_needing_reputation
         }
 
-    def _score_question(
-        self,
-        question: Question,
-        question_score_type: str,
-        aggregation_methods: list[str],
-        totals: dict[str, dict[str, float]],
-        rebuild_cache: bool,
-        a: float,
-        b: float,
-        reputation_histories: dict[str, dict[int, list]],
-    ) -> None:
-        if question_score_type in SPOT_SCORE_TYPES:
-            for method in aggregation_methods:
-                score, coverage = compute_spot_scores(
-                    question,
-                    method,
-                    question_score_type,
-                    a=a,
-                    b=b,
-                    reputation_history=reputation_histories.get(method),
-                )
-                totals[method]["score"] += score
-                totals[method]["coverage"] += coverage
-                totals[method]["count"] += 1
-            return
+    def _preload_static_filters(
+        self, question_ids: list[int], specs: list[AggregationSpec]
+    ) -> dict[StaticFilterKey, set[int]]:
+        """Fetches every static-filter method's full qualifying user_id set
+        once for the whole batch of questions, instead of once per question.
+        Keyed by (method, joined_before): unlike reputation histories, a
+        joined_before_date spec's *result* depends on its own date, so
+        distinct dates from a grid search each need their own preload -
+        metaculus_pros ignores joined_before entirely, so it always
+        collapses to a single key regardless of how many specs use it."""
+        filter_keys = sorted(
+            {
+                (spec.method, spec.joined_before)
+                for spec in specs
+                if spec.method in STATIC_FILTER_CLASSES
+            },
+            key=lambda k: (k[0], k[1] or datetime.min.replace(tzinfo=dt_timezone.utc)),
+        )
+        if not filter_keys:
+            return {}
 
-        data = get_or_build_question_data(question, rebuild_cache=rebuild_cache)
-        if data is None:
-            return
-
-        gm_series = gm_counts = None
-        if question_score_type == ScoreTypes.PEER:
-            gm_series, gm_counts = compute_geometric_mean_series(data)
-
-        for method in aggregation_methods:
-            if method in MEAN_BASED_METHODS:
-                series = compute_aggregation_series(
-                    data,
-                    question,
-                    method,
-                    a=a,
-                    b=b,
-                    reputation_history=reputation_histories.get(method),
-                )
-            else:
-                series = compute_median_aggregation_series(data, method)
-
-            if question_score_type == ScoreTypes.PEER:
-                score, coverage = score_peer(data, series, gm_series, gm_counts)
-            elif question_score_type == ScoreTypes.BASELINE:
-                score, coverage = score_baseline(data, series)
-            else:
-                raise NotImplementedError(
-                    f"Unsupported score_type for interval scoring: "
-                    f"{question_score_type!r}"
-                )
-            totals[method]["score"] += score
-            totals[method]["coverage"] += coverage
-            totals[method]["count"] += 1
+        user_ids = self._gather_batch_forecaster_ids(question_ids)
+        self.stdout.write(
+            f"Preloading static filters for {len(user_ids)} forecasters "
+            f"({', '.join(sorted({method for method, _ in filter_keys}))})..."
+        )
+        return {
+            (method, joined_before): preload_static_filter(
+                method, user_ids, joined_before=joined_before
+            )
+            for method, joined_before in filter_keys
+        }
 
     def _select_question_ids(
         self,
@@ -355,15 +769,61 @@ class Command(BaseCommand):
             question_ids = rng.sample(question_ids, question_count)
 
         self.stdout.write(
-            f"Evaluating {len(question_ids)} of {total_eligible} eligible questions "
-            f"(min_forecasters={min_forecasters}, seed={seed}, "
-            f"excluded_types={exclude_question_types or 'none'})"
+            f"Selected {len(question_ids)} of {total_eligible} eligible questions"
         )
         return question_ids
 
+    def _print_settings(
+        self,
+        specs: list[AggregationSpec],
+        *,
+        seed: int | None,
+        question_count: int | None,
+        score_type: str,
+        min_forecasters: int,
+        exclude_question_types: list[str],
+        rebuild_cache: bool,
+        sample_timesteps: bool,
+        workers: int,
+        workers_auto_detected: bool,
+        default_a: float,
+        default_b: float,
+        default_joined_before: datetime | None,
+    ) -> None:
+        rows = [
+            ("seed", seed if seed is not None else "none (non-reproducible sample)"),
+            ("question_count", question_count if question_count is not None else "all eligible"),
+            ("score_type", score_type),
+            ("min_forecasters", min_forecasters),
+            ("exclude_question_types", ", ".join(exclude_question_types) or "none"),
+            ("rebuild_cache", rebuild_cache),
+            ("sample_timesteps", f"{sample_timesteps} (max {MAX_SAMPLED_TIMESTEPS})"),
+            (
+                "workers",
+                f"{workers} (auto-detected)" if workers_auto_detected else workers,
+            ),
+            ("default a / b", f"{default_a} / {default_b}"),
+            (
+                "default joined_before",
+                default_joined_before.date().isoformat() if default_joined_before else "none",
+            ),
+        ]
+        key_width = max(len(key) for key, _ in rows) + 2
+
+        self.stdout.write("=" * 60)
+        self.stdout.write("Benchmark settings")
+        self.stdout.write("=" * 60)
+        for key, value in rows:
+            self.stdout.write(f"  {key:<{key_width}}{value}")
+        self.stdout.write(f"  aggregation methods ({len(specs)}):")
+        for spec in specs:
+            self.stdout.write(f"    - {spec.label}")
+        self.stdout.write("=" * 60)
+        self.stdout.write("")
+
     def _print_results(
         self,
-        totals: dict[str, dict[str, float]],
+        totals: dict[str, dict],
         elapsed: float,
         num_questions: int,
         score_type: str,
@@ -378,19 +838,30 @@ class Command(BaseCommand):
             f"Results across {num_questions} questions, score_type={score_type_label} "
             f"(elapsed: {elapsed:.2f}s)"
         )
+        label_width = max([len("method")] + [len(label) for label in totals]) + 2
         header = (
-            f"{'method':<20}{'questions':>10}{'total_score':>14}"
-            f"{'avg_score':>12}{'avg_coverage':>14}"
+            f"{'#':>3} {'method':<{label_width}}{'total_score':>14}{'avg_score':>12}"
+            f"{'vs_best':>10}{'p1_score':>12}{'p10_score':>12}"
         )
         self.stdout.write(header)
         self.stdout.write("-" * len(header))
-        for method, stats in sorted(
-            totals.items(), key=lambda kv: kv[1]["score"], reverse=True
-        ):
+
+        ranked = sorted(totals.items(), key=lambda kv: kv[1]["score"], reverse=True)
+        best_avg_score = None
+        for rank, (label, stats) in enumerate(ranked, start=1):
             count = stats["count"] or 1
             avg_score = stats["score"] / count
-            avg_coverage = stats["coverage"] / count
+            scores = stats["scores"]
+            if best_avg_score is None:
+                best_avg_score = avg_score
+            # 1st/10th percentile: how bad the worst-case tail gets, not just
+            # the average - lets a method with a great mean but occasional
+            # catastrophic misses be told apart from one that's consistently
+            # mediocre.
+            p1_score = np.percentile(scores, 1) if scores else float("nan")
+            p10_score = np.percentile(scores, 10) if scores else float("nan")
             self.stdout.write(
-                f"{method:<20}{stats['count']:>10}{stats['score']:>14.2f}"
-                f"{avg_score:>12.4f}{avg_coverage:>14.4f}"
+                f"{rank:>3} {label:<{label_width}}{stats['score']:>14.2f}"
+                f"{avg_score:>12.4f}{avg_score - best_avg_score:>10.4f}"
+                f"{p1_score:>12.4f}{p10_score:>12.4f}"
             )

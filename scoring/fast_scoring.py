@@ -17,7 +17,7 @@ MEDIAN_BASED_METHODS below.
 """
 
 import pickle
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone as dt_timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -30,19 +30,48 @@ from questions.services.multiple_choice_handlers import get_all_options_from_his
 from scoring.models import MINIMUM_REPUTATION
 from utils.the_math.aggregations import (
     AGGREGATIONS,
+    GoldMedalistsReputationWeighted,
+    JoinedBeforeFiltered,
     MeanAggregatorMixin,
+    MedalistsReputationWeighted,
     MedianAggregatorMixin,
     PeerScoreReputationWeighted,
+    ProsFiltered,
+    SilverMedalistsReputationWeighted,
     YearPerformanceReputationWeighted,
 )
 from utils.the_math.formulas import string_location_to_bucket_index
 
 # Which reputation source (a ReputationWeighted subclass's `.reputations`
-# dict) each mean-based method's weight formula needs, keyed by method name.
-# "unweighted"/"recency_weighted" aren't here - they don't use reputation.
-REPUTATION_WEIGHTED_CLASSES = {
+# dict, looked up the same way by get_reputation_values/preload_reputation_
+# history regardless of which bucket below it's in) each reputation-driven
+# method needs, keyed by method name.
+#
+# "decayed": mean-based methods whose weight blends the reputation value
+# with RecencyWeighted-style decay via LearnedReputationWeighted's formula
+# (see compute_aggregation_series).
+DECAYED_REPUTATION_CLASSES = {
     "single_aggregation": PeerScoreReputationWeighted,
     "year_performance": YearPerformanceReputationWeighted,
+}
+# "raw": median-based methods that multiply the reputation value straight
+# into RecencyWeighted's rank-based weight - it's already a plain 0/1
+# medal-holder indicator, not a magnitude to blend (see
+# compute_median_aggregation_series).
+RAW_REPUTATION_CLASSES = {
+    "medalists": MedalistsReputationWeighted,
+    "silver_medalists": SilverMedalistsReputationWeighted,
+    "gold_medalists": GoldMedalistsReputationWeighted,
+}
+REPUTATION_WEIGHTED_CLASSES = {**DECAYED_REPUTATION_CLASSES, **RAW_REPUTATION_CLASSES}
+
+# Median-based methods that combine RecencyWeighted with a static (not
+# time-varying) per-user 0/1 membership mask, computed once for the whole
+# batch of forecasters (see preload_static_filter) rather than looked up per
+# timestep like the reputation sources above.
+STATIC_FILTER_CLASSES = {
+    "metaculus_pros": ProsFiltered,
+    "joined_before_date": JoinedBeforeFiltered,
 }
 
 MEAN_BASED_METHODS = {
@@ -84,11 +113,12 @@ def preload_reputation_history(
     batches of older questions.
     """
     weighted_class = REPUTATION_WEIGHTED_CLASSES[method]
-    # Every ReputationWeighted subclass extends LearnedReputationWeighted,
-    # whose __init__ unconditionally computes question_duration_seconds from
-    # open_time/scheduled_close_time (even though YearPerformanceReputation
-    # Weighted's own get_reputation_history doesn't otherwise touch
-    # `question` at all) - so both need these attributes regardless.
+    # Every ReputationWeighted subclass's get_reputation_history touches
+    # `question.open_time`/`scheduled_close_time` in some form - directly
+    # (the "raw"/medal classes use them as the reputation-history window) or
+    # via LearnedReputationWeighted.__init__'s question_duration_seconds
+    # (the "decayed" classes) - so the fake question needs both regardless
+    # of which bucket `method` falls into.
     fake_question = SimpleNamespace(
         open_time=_EARLY_ANCHOR,
         scheduled_close_time=end_time or timezone.now(),
@@ -96,6 +126,23 @@ def preload_reputation_history(
     return weighted_class(
         question=fake_question, all_forecaster_ids=list(user_ids)
     ).reputations
+
+
+def preload_static_filter(
+    method: str, user_ids: list[int], joined_before: datetime | None = None
+) -> set[int]:
+    """Precomputes one static-filter method's full qualifying user_id subset
+    of `user_ids` *once* for a whole batch of questions, instead of
+    reconstructing it (a fresh User query) for every single question -
+    membership doesn't depend on which question is asking.
+
+    `joined_before` is only used by "joined_before_date" - ignored (accepted
+    and discarded by Filtered.__init__'s **kwargs) for other methods.
+    """
+    filter_class = STATIC_FILTER_CLASSES[method]
+    return filter_class(
+        all_forecaster_ids=list(user_ids), joined_before=joined_before
+    ).filter
 
 # Data-reduction cache: keyed by question id, invalidated wholesale by bumping
 # CACHE_VERSION if the reduction logic below changes.
@@ -360,11 +407,25 @@ def _weighted_percentile_masked(
 
 
 def compute_median_aggregation_series(
-    data: "QuestionScoringData", method: str
+    data: "QuestionScoringData",
+    question: Question,
+    method: str,
+    reputation_history: dict[int, list] | None = None,
+    static_filter: set[int] | None = None,
 ) -> np.ndarray:
     """The aggregate's PMF-at-resolution_bucket value at every timestep, for
     a median-based method - only valid when multiple_choice questions are
-    excluded from the run (see module docstring / MEDIAN_BASED_METHODS)."""
+    excluded from the run (see module docstring / MEDIAN_BASED_METHODS).
+
+    Every method other than "unweighted" starts from RecencyWeighted's
+    rank-based weight. "medalists"/"silver_medalists"/"gold_medalists"
+    additionally multiply in a medal-holder reputation value (0/1, looked up
+    exactly like the mean-based reputation sources - see
+    RAW_REPUTATION_CLASSES / get_reputation_values); pass `reputation_history`
+    from preload_reputation_history when scoring a batch. "metaculus_pros"/
+    "joined_before_date" instead multiply in a static per-user membership
+    mask - pass `static_filter` from preload_static_filter.
+    """
     if method not in MEDIAN_BASED_METHODS:
         raise NotImplementedError(
             f"compute_median_aggregation_series only supports median-based "
@@ -381,11 +442,15 @@ def compute_median_aggregation_series(
 
     if method == "unweighted":
         weights = np.ones_like(data.values)
-    elif method == "recency_weighted":
+    elif method in (
+        {"recency_weighted"} | RAW_REPUTATION_CLASSES.keys() | STATIC_FILTER_CLASSES.keys()
+    ):
         # RecencyWeighted.calculate_weights: exp(sqrt(rank) - sqrt(N)) where
         # rank is the forecaster's 1-indexed position among the currently
         # active ones, ordered by ascending start_time - and no weighting
-        # at all (uniform weight) once there are <= 2 active.
+        # at all (uniform weight) once there are <= 2 active. Shared base
+        # for every method below - see docstring above for what each one
+        # multiplies in on top of it.
         sort_keys = np.where(active, data.start_epochs, np.inf)
         order = np.argsort(sort_keys, axis=0)
         col_idx = np.arange(data.values.shape[1])[None, :]
@@ -396,6 +461,20 @@ def compute_median_aggregation_series(
         with np.errstate(invalid="ignore"):
             weights = np.exp(np.sqrt(ranks) - np.sqrt(n))
         weights = np.where(counts[None, :] <= 2, 1.0, weights)
+
+        if method in RAW_REPUTATION_CLASSES:
+            reputation = get_reputation_values(data, question, method, reputation_history)
+            weights = weights * reputation
+        elif method in STATIC_FILTER_CLASSES:
+            if static_filter is None:
+                raise ValueError(
+                    f"{method!r} requires static_filter - see preload_static_filter"
+                )
+            member_ids = np.fromiter(
+                static_filter, dtype=data.user_ids.dtype, count=len(static_filter)
+            )
+            mask = np.isin(data.user_ids, member_ids).astype(float)
+            weights = weights * mask[:, None]
     else:
         raise NotImplementedError(f"No median aggregation implementation for {method!r}")
 
@@ -537,6 +616,41 @@ def get_or_build_question_data(
     return data
 
 
+# Timestep subsampling, for --sample-timesteps in benchmark_aggregations #####
+
+MAX_SAMPLED_TIMESTEPS = 100
+
+
+def subsample_timesteps(
+    data: "QuestionScoringData", max_points: int = MAX_SAMPLED_TIMESTEPS
+) -> "QuestionScoringData":
+    """Approximates `data`'s full timestep grid by evenly subsampling it down
+    to at most `max_points` grid points, for fast/rough iteration on questions
+    with dense forecast histories - conceptually similar to how
+    `minimize_history` subsamples a display timeline, but a plain evenly
+    -spaced pick rather than that function's density-aware bucketing.
+
+    This is lossy, not integral-preserving: values are piecewise-constant
+    between the *original* grid points, so a value change at a dropped grid
+    point is invisible to whichever merged interval swallows it - scores
+    computed this way are an approximation, not an exact match to the full
+    grid's score. Applied post-build (not baked into the on-disk cache) so
+    the same cached QuestionScoringData is reusable for both sampled and
+    full-precision runs.
+    """
+    n = len(data.timesteps)
+    if n <= max_points:
+        return data
+    indexes = np.linspace(0, n - 1, max_points).astype(int)
+    return replace(
+        data,
+        timesteps=data.timesteps[indexes],
+        values=data.values[:, indexes],
+        start_epochs=data.start_epochs[:, indexes],
+        reputation_values={},
+    )
+
+
 # Spot scoring ###############################################################
 # Structurally different enough from interval scoring (no duration/coverage
 # integration - just a single instant) that it gets its own, simpler,
@@ -555,6 +669,15 @@ def compute_spot_scores(
 ) -> tuple[float, float]:
     """End-to-end spot peer/baseline score for one mean-based aggregation
     method, evaluated at question.get_spot_scoring_time()."""
+    if method in RAW_REPUTATION_CLASSES or method in STATIC_FILTER_CLASSES:
+        raise NotImplementedError(
+            f"Spot scoring isn't implemented for {method!r} - its weight "
+            "formula (RecencyWeighted combined with a medal/filter "
+            "multiplier) isn't the single blended decay/reputation formula "
+            "this spot-scoring path uses for single_aggregation/"
+            "year_performance - use interval (peer/baseline) scoring for "
+            "this method instead."
+        )
     resolution_bucket = string_location_to_bucket_index(question.resolution, question)
     if resolution_bucket is None:
         return 0.0, 0.0
@@ -591,7 +714,7 @@ def compute_spot_scores(
     values = np.array([r[3] for r in candidates])
     start_epochs = np.array([r[1] for r in candidates])
 
-    if method in REPUTATION_WEIGHTED_CLASSES:
+    if method in DECAYED_REPUTATION_CLASSES:
         # The aggregate's decay/reputation weighting is evaluated as of the
         # grid timestep that "created" the entry covering spot_timestamp -
         # i.e. the most recent forecast start/end at or before
@@ -611,7 +734,7 @@ def compute_spot_scores(
         if reputation_history is not None:
             reputations = reputation_history
         else:
-            weighted_class = REPUTATION_WEIGHTED_CLASSES[method]
+            weighted_class = DECAYED_REPUTATION_CLASSES[method]
             reputations = weighted_class(
                 question=question, all_forecaster_ids=user_ids.tolist()
             ).reputations
