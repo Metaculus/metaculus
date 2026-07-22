@@ -121,6 +121,7 @@ const ExpandableCommentContent = ({
               datetime={comment.created_at}
               format="relative"
               threshold="P1D"
+              prefix={t("onDate", { date: "" }).trim()}
               year="numeric"
               month="short"
               day="numeric"
