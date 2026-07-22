@@ -10,8 +10,9 @@ export type SenateRaceWithQuestion = SenateRace & {
   parentPost: PostWithForecasts | null;
   /** This race's specific subquestion (binary) or standalone question. */
   question: QuestionWithNumericForecasts | null;
-  /** Precomputed Democratic win probability (0–100), normalized to the two
-   *  major parties for multiple-choice races. Null when unavailable. */
+  /** Precomputed Democratic win probability (0–100). For standalone
+   *  multiple-choice races this is `100 - P(Republican)`, so color and tooltip
+   *  reflect the raw Republican win probability. Null when unavailable. */
   demWinPct: number | null;
   /** Precomputed link to the underlying question/subquestion. */
   href: string | null;
