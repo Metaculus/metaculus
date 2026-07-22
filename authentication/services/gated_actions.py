@@ -38,13 +38,11 @@ def set_pending_action(user_id: int, action_type: str, payload) -> None:
     """
     cache.set(
         _pending_action_key(user_id),
-        json.dumps(
-            {
-                "type": action_type,
-                "payload": payload,
-                "requested_at": timezone.now().isoformat(),
-            }
-        ),
+        {
+            "type": action_type,
+            "payload": payload,
+            "requested_at": timezone.now().isoformat(),
+        },
         timeout=settings.AUTH_EMAIL_LINK_TIMEOUT,
     )
 
@@ -58,11 +56,11 @@ def clear_pending_action(user_id: int) -> None:
 
 def pop_pending_action(user_id: int) -> dict | None:
     key = _pending_action_key(user_id)
-    raw = cache.get(key)
-    if raw is None:
+    entry = cache.get(key)
+    if entry is None:
         return None
     cache.delete(key)
-    return json.loads(raw)
+    return entry
 
 
 class BaseGatedAction:
@@ -192,7 +190,7 @@ def apply_pending_action(user: User) -> None:
     entry = pop_pending_action(user.id)
 
     if entry is None:
-        logger.info("email_link: no pending action for user=%s", user.id)
+        logger.info(f"email_link: no pending action for user={user.id}")
         return
 
     slug = entry["type"]
