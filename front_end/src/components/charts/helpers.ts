@@ -8,6 +8,7 @@ import {
   Scale,
   ScaleDirection,
   TimelineChartZoomOption,
+  TimelineYDomainOptions,
 } from "@/types/charts";
 import {
   AggregateForecastHistory,
@@ -35,6 +36,44 @@ export type ChartData = BaseChartData & {
   xDomain: DomainTuple;
 };
 
+type TimestampedYValue = {
+  timestamp: number;
+  y: number | null | undefined;
+};
+
+export function getTickCoverageDomain({
+  minValues,
+  maxValues,
+  minTimestamp,
+  maxTimestamp,
+  useFullYDomain,
+}: {
+  minValues: TimestampedYValue[];
+  maxValues: TimestampedYValue[];
+  minTimestamp: number;
+  maxTimestamp?: number;
+  useFullYDomain?: boolean;
+}): [number, number] | undefined {
+  const shouldIncludeValue = (timestamp: number) =>
+    useFullYDomain ||
+    (timestamp >= minTimestamp &&
+      (maxTimestamp === undefined || timestamp <= maxTimestamp));
+  const finiteValues = (values: TimestampedYValue[]) =>
+    values
+      .filter(({ timestamp }) => shouldIncludeValue(timestamp))
+      .map(({ y }) => y)
+      .filter(
+        (value): value is number =>
+          typeof value === "number" && Number.isFinite(value)
+      );
+  const coverageMinValues = finiteValues(minValues);
+  const coverageMaxValues = finiteValues(maxValues);
+
+  return coverageMinValues.length && coverageMaxValues.length
+    ? [Math.min(...coverageMinValues), Math.max(...coverageMaxValues)]
+    : undefined;
+}
+
 export function buildNumericChartData({
   questionType,
   actualCloseTime,
@@ -54,6 +93,7 @@ export function buildNumericChartData({
   alwaysShowYTicks,
   resolutionPoint,
   reduceStepData,
+  yDomainOptions,
 }: {
   questionType: QuestionType;
   actualCloseTime?: number | null;
@@ -73,6 +113,7 @@ export function buildNumericChartData({
   alwaysShowYTicks?: boolean;
   resolutionPoint?: LinePoint | null;
   reduceStepData?: boolean;
+  yDomainOptions?: TimelineYDomainOptions;
 }): ChartData {
   const line: Line = [];
   const area: Area = [];
@@ -226,22 +267,31 @@ export function buildNumericChartData({
   //   domain: xDomain,
   // });
 
-  const minValues = [
+  const resolutionValues = resolutionPoint
+    ? [{ timestamp: resolutionPoint.x, y: resolutionPoint.y }]
+    : [];
+  const centerValues = [
+    ...line.map((d) => ({ timestamp: d.x, y: d.y })),
+    ...points.map((d) => ({ timestamp: d.x, y: d.y })),
+    ...resolutionValues,
+  ];
+  const intervalMinValues = [
     ...area.map((d) => ({ timestamp: d.x, y: d.y0 })),
     ...points.map((d) => ({ timestamp: d.x, y: d.y1 ?? d.y })),
-    ...(resolutionPoint
-      ? [{ timestamp: resolutionPoint.x, y: resolutionPoint.y }]
-      : []),
+    ...resolutionValues,
   ];
-  const maxValues = [
+  const intervalMaxValues = [
     ...area.map((d) => ({ timestamp: d.x, y: d.y })),
     ...points.map((d) => ({ timestamp: d.x, y: d.y2 ?? d.y })),
-    ...(resolutionPoint
-      ? [{ timestamp: resolutionPoint.x, y: resolutionPoint.y }]
-      : []),
+    ...resolutionValues,
   ];
-  const useFullYDomain =
-    questionType === QuestionType.Numeric || questionType === QuestionType.Date;
+  const useCenterValues = yDomainOptions?.source === "centers";
+  const minValues = useCenterValues ? centerValues : intervalMinValues;
+  const maxValues = useCenterValues ? centerValues : intervalMaxValues;
+  const useFullYDomain = yDomainOptions
+    ? yDomainOptions.scope === "fullHistory"
+    : questionType === QuestionType.Numeric ||
+      questionType === QuestionType.Date;
   const { originalYDomain, zoomedYDomain } = generateTimeSeriesYDomain({
     zoom,
     minTimestamp: xDomain[0],
@@ -249,29 +299,16 @@ export function buildNumericChartData({
     minValues,
     maxValues,
     includeClosestBoundOnZoom: questionType === QuestionType.Binary,
+    forceAutoZoom: !!yDomainOptions,
+    useFullYDomain,
+    paddingRatio: yDomainOptions?.paddingRatio,
+  });
+  const tickCoverageDomain = getTickCoverageDomain({
+    minValues,
+    maxValues,
+    minTimestamp: xDomain[0],
     useFullYDomain,
   });
-  const shouldIncludeTickCoverage = (timestamp: number) =>
-    useFullYDomain || timestamp >= xDomain[0];
-  const coverageMinValues = minValues
-    .filter(({ timestamp }) => shouldIncludeTickCoverage(timestamp))
-    .map(({ y }) => y)
-    .filter((value): value is number =>
-      typeof value === "number" ? Number.isFinite(value) : false
-    );
-  const coverageMaxValues = maxValues
-    .filter(({ timestamp }) => shouldIncludeTickCoverage(timestamp))
-    .map(({ y }) => y)
-    .filter((value): value is number =>
-      typeof value === "number" ? Number.isFinite(value) : false
-    );
-  const tickCoverageDomain =
-    coverageMinValues.length && coverageMaxValues.length
-      ? ([Math.min(...coverageMinValues), Math.max(...coverageMaxValues)] as [
-          number,
-          number,
-        ])
-      : undefined;
   const yScale: Scale = generateScale({
     displayType: questionType,
     axisLength: height,

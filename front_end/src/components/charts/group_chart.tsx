@@ -67,6 +67,7 @@ import {
 } from "@/utils/charts/step_reducer";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
+import { getTickCoverageDomain } from "./helpers";
 import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
 import ChartContainer from "./primitives/chart_container";
 import ChartCursorLabel from "./primitives/chart_cursor_label";
@@ -1286,25 +1287,13 @@ function buildChartData({
     paddingRatio: yDomainOptions?.paddingRatio,
   });
 
-  const shouldIncludeTickCoverage = (timestamp: number) =>
-    useFullYDomain ||
-    (timestamp >= xDomain[0] &&
-      (isNil(yDomainMaxTimestamp) || timestamp <= yDomainMaxTimestamp));
-  const coverageMinValues = yMinValues
-    .filter(({ timestamp }) => shouldIncludeTickCoverage(timestamp))
-    .map(({ y }) => y)
-    .filter((value): value is number => !isNil(value));
-  const coverageMaxValues = yMaxValues
-    .filter(({ timestamp }) => shouldIncludeTickCoverage(timestamp))
-    .map(({ y }) => y)
-    .filter((value): value is number => !isNil(value));
-  const tickCoverageDomain =
-    coverageMinValues.length && coverageMaxValues.length
-      ? ([Math.min(...coverageMinValues), Math.max(...coverageMaxValues)] as [
-          number,
-          number,
-        ])
-      : undefined;
+  const tickCoverageDomain = getTickCoverageDomain({
+    minValues: yMinValues,
+    maxValues: yMaxValues,
+    minTimestamp: xDomain[0],
+    maxTimestamp: yDomainMaxTimestamp,
+    useFullYDomain,
+  });
 
   const yScale = generateScale({
     displayType: questionType,

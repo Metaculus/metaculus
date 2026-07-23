@@ -180,6 +180,7 @@ export function BasicQuestionContent({
           simplifiedCursor={false}
           inboundOutcomeCount={question.inbound_outcome_count}
           questionStatus={question.status}
+          yDomainOptions={yDomainOptions}
         />
       );
     }
