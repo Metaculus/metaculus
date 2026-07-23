@@ -248,6 +248,15 @@ class User(TimeStampedModel, AbstractUser):
 
         return not self.is_active and not self.last_login and not self.is_spam
 
+    @property
+    def is_deactivated(self) -> bool:
+        """
+        Was active once (has logged in) but is inactive now - deactivated by
+        an admin or self-deleted, as opposed to never-activated limbo accounts.
+        """
+
+        return not self.is_active and self.last_login is not None
+
     def get_old_usernames(self) -> list[tuple[str, datetime]]:
         return [
             (name, dateutil.parser.parse(date)) for name, date in self.old_usernames

@@ -108,6 +108,15 @@ class ServerAuthApiClass extends ApiService {
     );
   }
 
+  async verifyEmailLink(userId: string, token: string) {
+    return this.post<AuthResponse, { user_id: string; token: string }>(
+      "/auth/email-link/verify/",
+      { user_id: userId, token },
+      {},
+      { passAuthHeader: false }
+    );
+  }
+
   async passwordResetRequest(login: string) {
     return this.post<null, { login: string }>(
       "/auth/password-reset/",

@@ -7,15 +7,18 @@ import sentry_sdk
 from django.db import IntegrityError, transaction
 from django.db.models import F, Q, QuerySet, Subquery, OuterRef, Count
 from django.utils import timezone
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from notifications.constants import MailingTags
-from posts.models import PostUserSnapshot, PostSubscription
+from posts.models import Post, PostUserSnapshot, PostSubscription
+from posts.services.common import get_post_permission_for_user
 from posts.services.subscriptions import (
     create_subscription_cp_change,
     create_subscription,
 )
 from posts.tasks import run_on_post_forecast
+from projects.permissions import ObjectPermission
+from questions.services.exceptions import ForecastUnavailableError
 from questions.services.multiple_choice_handlers import get_all_options_from_history
 from scoring.models import Score
 from users.constants import ApiForecastingAccess
@@ -577,3 +580,52 @@ def build_question_forecasts(
         AggregateForecast.objects.bulk_update(overwriters, fields, batch_size=50)
         AggregateForecast.objects.filter(id__in=[old.id for old in to_delete]).delete()
         AggregateForecast.objects.bulk_create(to_create, batch_size=50)
+
+
+def validate_and_create_forecasts(
+    *,
+    user: User,
+    validated_data: list[dict],
+    source: Forecast.SourceChoices,
+) -> None:
+    """
+    Guard checks + bulk creation shared by the forecast endpoint and the
+    `forecast` gated action. `validated_data` is
+    ForecastWriteSerializer(many=True).validated_data.
+    Raises ForecastUnavailableError (question closed / not open yet),
+    DRF ValidationError (unknown question), PermissionDenied (no access).
+    """
+    now = timezone.now()
+
+    questions = Question.objects.filter(
+        pk__in=[f["question"] for f in validated_data]
+    ).select_related("post")
+    questions_map: dict[int, Question] = {q.pk: q for q in questions}
+
+    for forecast in validated_data:
+        question = questions_map.get(forecast["question"])
+
+        if not question:
+            raise ValidationError(f"Wrong question id {forecast['question']}")
+
+        forecast["question"] = question  # used in create_forecast_bulk
+
+        permission = get_post_permission_for_user(question.get_post(), user=user)
+        ObjectPermission.can_forecast(permission, raise_exception=True)
+
+        if (
+            question.post.curation_status != Post.CurationStatus.APPROVED
+            or not question.open_time
+        ):
+            raise ForecastUnavailableError(
+                f"Question {question.id} is not scheduled for forecasting yet !"
+            )
+
+        if (question.scheduled_close_time < now) or (
+            question.actual_close_time and question.actual_close_time < now
+        ):
+            raise ForecastUnavailableError(
+                f"Question {question.id} is already closed to forecasting !"
+            )
+
+    create_forecast_bulk(user=user, forecasts=validated_data, source=source)
