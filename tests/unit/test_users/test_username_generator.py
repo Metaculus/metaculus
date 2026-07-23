@@ -25,6 +25,18 @@ class TestGenerateUsername:
 
         assert generate_username() == f"{combo}4"
 
+    def test_unicode_digit_suffix_does_not_crash(self, mocker):
+        # A stored suffix like "²" passes isdigit() but int() rejects it; the
+        # fallback must skip such names, not raise ValueError. Written straight
+        # to the DB because create_user NFKC-normalizes "²" to "2".
+        mocker.patch("random.choice", side_effect=lambda seq: seq[0])
+        combo = f"{ADJECTIVES[0]}{NOUNS[0]}"
+        User.objects.create_user(username=combo, email="c0@example.com")
+        planted = User.objects.create_user(username=f"{combo}_x", email="c1@e.com")
+        User.objects.filter(pk=planted.pk).update(username=f"{combo}²")
+
+        assert generate_username() == f"{combo}2"
+
     def test_wordlists_not_forbidden(self):
         # Load-bearing: this invariant replaces any runtime forbidden-name
         # check in the generator.
