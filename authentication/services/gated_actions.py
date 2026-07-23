@@ -55,12 +55,20 @@ def clear_pending_action(user_id: int) -> None:
 
 
 def pop_pending_action(user_id: int) -> dict | None:
-    key = _pending_action_key(user_id)
-    entry = cache.get(key)
-    if entry is None:
+    """
+    Atomically fetch-and-delete the pending action. A plain cache.get +
+    cache.delete is a read-then-write race: two concurrent verifies of the
+    same token could both read the entry before either deletes it and apply
+    the action twice. GETDEL collapses both into one round trip, so exactly
+    one caller receives the entry.
+    """
+    client = cache.client
+    raw = client.get_client(write=True).getdel(
+        client.make_key(_pending_action_key(user_id))
+    )
+    if raw is None:
         return None
-    cache.delete(key)
-    return entry
+    return client.decode(raw)
 
 
 class BaseGatedAction:

@@ -91,8 +91,12 @@ def generate_username() -> str:
     existing = User.objects.filter(username__istartswith=combo).values_list(
         "username", flat=True
     )
+    # isascii() guards against Unicode digit-likes (e.g. "²") that pass
+    # isdigit() but crash int(); \w usernames can contain them.
     suffixes = {
-        int(rest) for name in existing if (rest := name[len(combo) :]).isdigit()
+        int(rest)
+        for name in existing
+        if (rest := name[len(combo) :]).isascii() and rest.isdigit()
     }
 
     suffix = 2
