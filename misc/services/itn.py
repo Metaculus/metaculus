@@ -335,9 +335,7 @@ def refresh_article_post_counts():
         .values("count")
     )
 
-    ITNArticle.objects.update(
-        post_count=Coalesce(Subquery(post_count_subquery), 0)
-    )
+    ITNArticle.objects.update(post_count=Coalesce(Subquery(post_count_subquery), 0))
 
 
 def get_post_similar_articles(post: Post):
