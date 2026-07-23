@@ -34,6 +34,7 @@ const LanguagePreferences: FC<Props> = ({ user }) => {
             posthog.capture("language_changed", {
               previous_language: previousLanguage,
               new_language: language,
+              source: "settings",
             });
 
             // Update user property for language

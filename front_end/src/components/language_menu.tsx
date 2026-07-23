@@ -3,6 +3,7 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { useLocale } from "next-intl";
+import posthog from "posthog-js";
 import { FC } from "react";
 
 import { updateLanguagePreference } from "@/app/(main)/accounts/profile/actions";
@@ -75,7 +76,19 @@ const LanguageMenu: FC<Props> = ({ className }) => {
               onClick={(e) => {
                 e.preventDefault();
                 updateLanguagePreference(item.locale, false)
-                  .then(() => window.location.reload())
+                  .then(() => {
+                    // Beacon transport so the event survives the reload
+                    posthog.capture(
+                      "language_changed",
+                      {
+                        previous_language: locale,
+                        new_language: item.locale,
+                        source: "header_menu",
+                      },
+                      { transport: "sendBeacon" }
+                    );
+                    window.location.reload();
+                  })
                   .catch(logError);
               }}
               name="language"
@@ -93,9 +106,20 @@ const LanguageMenu: FC<Props> = ({ className }) => {
 export const SetOriginalLanguage = (
   params: URLSearchParams,
   router: AppRouterInstance,
-  pathname: string
+  pathname: string,
+  currentLocale: string
 ) => {
   const originalLangCode = "original";
+  // Beacon transport so the event survives the hard navigation below
+  posthog.capture(
+    "language_changed",
+    {
+      previous_language: currentLocale,
+      new_language: originalLangCode,
+      source: "content_translated_banner",
+    },
+    { transport: "sendBeacon" }
+  );
   params.delete("locale");
   // TODO: fix this too. See more details above, at the previous call
   window.location.href = pathname + "?locale=" + originalLangCode;
