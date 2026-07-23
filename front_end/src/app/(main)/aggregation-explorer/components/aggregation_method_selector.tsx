@@ -15,6 +15,8 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import Switch from "@/components/ui/switch";
 import { useAuth } from "@/contexts/auth_context";
 
+type BotMode = "exclude" | "include" | "only";
+
 import AggregationLabel from "./aggregation_label";
 import {
   AGGREGATION_EXPLORER_OPTIONS,
@@ -99,6 +101,7 @@ type Props = {
     joinedBeforeDate?: string;
     userIds?: number[];
     includeBots?: boolean;
+    onlyBots?: boolean;
   }) => void;
   defaultIncludeBots?: boolean;
 };
@@ -120,7 +123,9 @@ export default function AggregationMethodSelector({
     AggregationMethod.recency_weighted
   );
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
-  const [includeBots, setIncludeBots] = useState(defaultIncludeBots);
+  const [botMode, setBotMode] = useState<BotMode>(
+    defaultIncludeBots ? "include" : "exclude"
+  );
   const [joinedBeforeDate, setJoinedBeforeDate] = useState("");
   const [userFilterEnabled, setUserFilterEnabled] = useState(false);
   const [userIdsText, setUserIdsText] = useState("");
@@ -224,11 +229,18 @@ export default function AggregationMethodSelector({
           ) : null}
 
           {showBotToggle ? (
-            <div className="mt-3 flex items-center justify-between">
+            <div className="mt-3">
               <label className="text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
-                {t("includeBots")}
+                {t("bots")}
               </label>
-              <Switch checked={includeBots} onChange={setIncludeBots} />
+              <StyledSelect
+                value={botMode}
+                onChange={(e) => setBotMode(e.target.value as BotMode)}
+              >
+                <option value="exclude">{t("humansOnly")}</option>
+                <option value="include">{t("humansAndBots")}</option>
+                <option value="only">{t("onlyBots")}</option>
+              </StyledSelect>
             </div>
           ) : null}
 
@@ -269,7 +281,10 @@ export default function AggregationMethodSelector({
                   parsedUserIds.length
                     ? parsedUserIds
                     : undefined,
-                includeBots: showBotToggle ? includeBots : undefined,
+                includeBots:
+                  showBotToggle && botMode === "include" ? true : undefined,
+                onlyBots:
+                  showBotToggle && botMode === "only" ? true : undefined,
               });
             }}
           >
