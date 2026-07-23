@@ -25,6 +25,16 @@ function safeRedirect(redirectUrl: string): string {
   }
 }
 
+// Add the confirmation marker as a query param. The URL API keeps the query
+// before any #fragment (where EmailLinkEventToast reads it), leaving the
+// fragment anchor intact. `url` must be a valid relative path - safeRedirect
+// guarantees that before we get here.
+function withConfirmedEvent(url: string): string {
+  const parsed = new URL(url, window.location.origin);
+  parsed.searchParams.set("event", "emailLinkConfirmed");
+  return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+}
+
 const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
   const t = useTranslations();
   const router = useRouter();
@@ -58,10 +68,7 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
 
       setUser(result.user);
 
-      const base = safeRedirect(redirectUrl);
-      router.replace(
-        `${base}${base.includes("?") ? "&" : "?"}event=emailLinkConfirmed`
-      );
+      router.replace(withConfirmedEvent(safeRedirect(redirectUrl)));
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

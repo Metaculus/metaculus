@@ -18,7 +18,8 @@ export default function EmailLinkEventToast() {
 
     const params = new URLSearchParams(searchParams.toString());
     params.delete("event");
-    router.replace(params.size ? `${pathname}?${params}` : pathname, {
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
       scroll: false,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
