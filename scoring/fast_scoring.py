@@ -31,17 +31,23 @@ from scoring.constants import ScoreTypes
 from scoring.models import MINIMUM_REPUTATION
 from utils.the_math.aggregations import (
     AGGREGATIONS,
+    Filtered,
     GoldMedalistsReputationWeighted,
     JoinedBeforeFiltered,
+    LearnedReputationWeighted,
     MeanAggregatorMixin,
     MedalistsReputationWeighted,
     MedianAggregatorMixin,
     PeerContinuousReputationWeighted,
     PeerScoreReputationWeighted,
     PeerThresholdReputationWeighted,
+    PrecomputedReputationWeighted,
     ProsFiltered,
+    RecencyWeighted,
+    ReputationWeighted,
     SilverMedalistsReputationWeighted,
     SpotSensitiveReputationWeighted,
+    Unweighted,
     YearPerformanceReputationWeighted,
 )
 from utils.the_math.formulas import string_location_to_bucket_index
@@ -88,6 +94,54 @@ MEAN_BASED_METHODS = {
 }
 MEDIAN_BASED_METHODS = {
     agg.method for agg in AGGREGATIONS if issubclass(agg, MedianAggregatorMixin)
+}
+
+# Weight classes composable via --method's compositional form (see
+# benchmark_aggregations): "<referent>,<reputation_type>,[<aggregator>],
+# <weight_class_1>[,<weight_class_2>...]" - each weight_class token is one of
+# these names, e.g. "SpotSensitiveReputationWeighted_0.7_10.0_9.5". Lets any
+# reputation_type be combined with any of these weighting formulas without
+# writing a dedicated Aggregation/method for every combination.
+WEIGHT_CLASS_REGISTRY: dict[str, type] = {
+    cls.__name__: cls
+    for cls in [
+        Unweighted,
+        RecencyWeighted,
+        PrecomputedReputationWeighted,
+        PeerScoreReputationWeighted,
+        YearPerformanceReputationWeighted,
+        PeerThresholdReputationWeighted,
+        PeerContinuousReputationWeighted,
+        SpotSensitiveReputationWeighted,
+        MedalistsReputationWeighted,
+        SilverMedalistsReputationWeighted,
+        GoldMedalistsReputationWeighted,
+        ProsFiltered,
+        JoinedBeforeFiltered,
+    ]
+}
+
+# Each composable weight class's own tunable parameters, in declaration
+# order - see benchmark_aggregations's WeightClassUse parsing. Suffix values
+# given for a class (e.g. the "0.7_10.0_9.5" in
+# "SpotSensitiveReputationWeighted_0.7_10.0_9.5") bind to the TRAILING N
+# entries of its param list (leaving earlier ones at their class default) -
+# e.g. one value for SpotSensitiveReputationWeighted sets only b_spot, two
+# set (b, b_spot), three set (a, b, b_spot).
+WEIGHT_CLASS_PARAMS: dict[str, tuple[str, ...]] = {
+    "Unweighted": (),
+    "RecencyWeighted": (),
+    "PrecomputedReputationWeighted": ("a", "b"),
+    "PeerScoreReputationWeighted": ("a", "b"),
+    "YearPerformanceReputationWeighted": ("a", "b"),
+    "PeerThresholdReputationWeighted": ("a", "b"),
+    "PeerContinuousReputationWeighted": ("a", "b"),
+    "SpotSensitiveReputationWeighted": ("a", "b", "b_spot"),
+    "MedalistsReputationWeighted": (),
+    "SilverMedalistsReputationWeighted": (),
+    "GoldMedalistsReputationWeighted": (),
+    "ProsFiltered": (),
+    "JoinedBeforeFiltered": ("joined_before",),
 }
 
 # Arbitrarily early: only used as an anchor point for PeerScoreReputationWeighted's
@@ -189,6 +243,54 @@ def preload_static_filter(
     and discarded by Filtered.__init__'s **kwargs) for other methods.
     """
     filter_class = STATIC_FILTER_CLASSES[method]
+    return filter_class(
+        all_forecaster_ids=list(user_ids), joined_before=joined_before
+    ).filter
+
+
+def preload_reputation_history_by_type(
+    reputation_type: str, user_ids: list[int], end_time: datetime | None = None
+) -> ReputationArrays:
+    """Like preload_reputation_history, but for an arbitrary Reputation.type
+    string (--method's compositional form) rather than a pre-registered
+    method name."""
+    fake_question = SimpleNamespace(
+        open_time=_EARLY_ANCHOR,
+        scheduled_close_time=end_time or timezone.now(),
+        default_score_type=None,
+    )
+    instance = PrecomputedReputationWeighted(
+        question=fake_question,
+        all_forecaster_ids=list(user_ids),
+        reputation_type=reputation_type,
+    )
+    return _reputation_to_arrays(instance.reputations)
+
+
+def preload_class_reputation_history(
+    class_name: str, user_ids: list[int], end_time: datetime | None = None
+) -> ReputationArrays:
+    """Like preload_reputation_history, but for a weight class used by name
+    in --method's compositional form whose reputation source is intrinsic to
+    the class itself (e.g. the medal-family classes)."""
+    weighted_class = WEIGHT_CLASS_REGISTRY[class_name]
+    fake_question = SimpleNamespace(
+        open_time=_EARLY_ANCHOR,
+        scheduled_close_time=end_time or timezone.now(),
+        default_score_type=None,
+    )
+    reputations = weighted_class(
+        question=fake_question, all_forecaster_ids=list(user_ids)
+    ).reputations
+    return _reputation_to_arrays(reputations)
+
+
+def preload_static_filter_by_class(
+    class_name: str, user_ids: list[int], joined_before: datetime | None = None
+) -> set[int]:
+    """Like preload_static_filter, but keyed by weight-class name (--method's
+    compositional form) rather than method name."""
+    filter_class = WEIGHT_CLASS_REGISTRY[class_name]
     return filter_class(
         all_forecaster_ids=list(user_ids), joined_before=joined_before
     ).filter
@@ -331,40 +433,24 @@ def _build_interval_data(
     return user_ids, timesteps, values, start_epochs
 
 
-def get_reputation_values(
+def _lookup_reputation_values(
     data: "QuestionScoringData",
-    question: Question,
-    method: str,
-    reputation_history: ReputationArrays | None = None,
+    cache_key: str,
+    reputation_arrays: ReputationArrays,
 ) -> np.ndarray:
-    """Reputation value per (user, timestep) for the reputation source
-    `method`'s weighting needs, cached on `data.reputation_values` per
-    method so multiple methods sharing a source only compute it once.
+    """Shared per-(user, timestep) searchsorted lookup against a preloaded/
+    freshly-fetched ReputationArrays dict, cached on data.reputation_values
+    by `cache_key`. Not part of the on-disk cache: unlike the forecast
+    reduction (which never changes once a question is resolved), Reputation
+    rows can be added between runs, so this is always recomputed fresh.
 
-    Not part of the on-disk cache: unlike the forecast reduction (which
-    never changes once a question is resolved), Reputation rows can be
-    added between runs, so this is always recomputed fresh. `question` is
-    passed in separately (rather than stored on QuestionScoringData) so the
-    cached bundle stays a plain-array/scalar structure, not a Django model.
-
-    Pass `reputation_history` (from preload_reputation_history) when scoring
-    many questions in one run - each user's full history only needs
-    fetching once, not once per question they happen to appear in.
+    Callers use distinct cache-key namespaces so they can't collide:
+    get_reputation_values keys by *method* name, get_reputation_values_by_type
+    by *reputation_type* string (prefixed "reptype:"), get_class_reputation_
+    values by weight-class name (prefixed "class:").
     """
-    if method in data.reputation_values:
-        return data.reputation_values[method]
-
-    if reputation_history is not None:
-        reputation_arrays = reputation_history
-    else:
-        weighted_class = REPUTATION_WEIGHTED_CLASSES[method]
-        # Constructing directly (without forecast_history) just to reuse
-        # get_reputation_history() - we do our own batched fill below rather
-        # than going through get_reputations()/calculate_weights().
-        reputations = weighted_class(
-            question=question, all_forecaster_ids=data.user_ids.tolist()
-        ).reputations
-        reputation_arrays = _reputation_to_arrays(reputations)
+    if cache_key in data.reputation_values:
+        return data.reputation_values[cache_key]
 
     result = np.full(data.values.shape, MINIMUM_REPUTATION)
     for row, user_id in enumerate(data.user_ids):
@@ -376,8 +462,108 @@ def get_reputation_values(
         found = indexes >= 0
         result[row, found] = history_values[np.clip(indexes[found], 0, None)]
 
-    data.reputation_values[method] = result
+    data.reputation_values[cache_key] = result
     return result
+
+
+def get_reputation_values(
+    data: "QuestionScoringData",
+    question: Question,
+    method: str,
+    reputation_history: ReputationArrays | None = None,
+) -> np.ndarray:
+    """Reputation value per (user, timestep) for the reputation source
+    `method`'s weighting needs, cached on `data.reputation_values` per
+    method so multiple methods sharing a source only compute it once.
+
+    Pass `reputation_history` (from preload_reputation_history) when scoring
+    many questions in one run - each user's full history only needs
+    fetching once, not once per question they happen to appear in.
+    """
+    if reputation_history is not None:
+        reputation_arrays = reputation_history
+    else:
+        weighted_class = REPUTATION_WEIGHTED_CLASSES[method]
+        # Constructing directly (without forecast_history) just to reuse
+        # get_reputation_history() - we do our own batched fill below rather
+        # than going through get_reputations()/calculate_weights().
+        reputations = weighted_class(
+            question=question, all_forecaster_ids=data.user_ids.tolist()
+        ).reputations
+        reputation_arrays = _reputation_to_arrays(reputations)
+    return _lookup_reputation_values(data, method, reputation_arrays)
+
+
+def get_reputation_values_by_type(
+    data: "QuestionScoringData",
+    question: Question,
+    reputation_type: str,
+    reputation_arrays: ReputationArrays | None = None,
+) -> np.ndarray:
+    """Like get_reputation_values, but for an arbitrary Reputation.type
+    string rather than a pre-registered method name - used by --method's
+    compositional form (see benchmark_aggregations), which lets any
+    LearnedReputationWeighted-family weight class read from any reputation
+    type without needing a dedicated subclass per type."""
+    cache_key = f"reptype:{reputation_type}"
+    if reputation_arrays is None:
+        instance = PrecomputedReputationWeighted(
+            question=question,
+            all_forecaster_ids=data.user_ids.tolist(),
+            reputation_type=reputation_type,
+        )
+        reputation_arrays = _reputation_to_arrays(instance.reputations)
+    return _lookup_reputation_values(data, cache_key, reputation_arrays)
+
+
+def get_class_reputation_values(
+    data: "QuestionScoringData",
+    question: Question,
+    class_name: str,
+    reputation_arrays: ReputationArrays | None = None,
+) -> np.ndarray:
+    """Like get_reputation_values, but for a weight class used by name in
+    --method's compositional form whose reputation source is intrinsic to
+    the class itself (e.g. the medal-family classes, which read
+    LeaderboardEntry rather than a Reputation.type) rather than overridable
+    via an outer reputation_type."""
+    cache_key = f"class:{class_name}"
+    if reputation_arrays is None:
+        cls = WEIGHT_CLASS_REGISTRY[class_name]
+        instance = cls(question=question, all_forecaster_ids=data.user_ids.tolist())
+        reputation_arrays = _reputation_to_arrays(instance.reputations)
+    return _lookup_reputation_values(data, cache_key, reputation_arrays)
+
+
+def _decay_formula(
+    data: "QuestionScoringData", reputation: np.ndarray, a, b
+) -> np.ndarray:
+    """(decays**a * reputation**(1-a))**b - LearnedReputationWeighted's
+    decay/reputation blend, vectorized. `a`/`b` may be scalars or arrays
+    broadcastable against (U, T) (see _spot_sensitive_ab)."""
+    duration_seconds = data.forecast_horizon_end - data.forecast_horizon_start
+    decay_ratio = -(data.timesteps[None, :] - data.start_epochs) / duration_seconds
+    decays = np.exp(decay_ratio)
+    return (decays**a * reputation ** (1 - a)) ** b
+
+
+def _recency_weight_array(data: "QuestionScoringData") -> np.ndarray:
+    """RecencyWeighted.calculate_weights, vectorized: exp(sqrt(rank) -
+    sqrt(N)) where rank is the forecaster's 1-indexed position among the
+    currently active ones (ordered by ascending start_time), and no
+    weighting at all (uniform 1.0) once there are <= 2 active."""
+    active = ~np.isnan(data.values)
+    counts = active.sum(axis=0)
+    sort_keys = np.where(active, data.start_epochs, np.inf)
+    order = np.argsort(sort_keys, axis=0)
+    col_idx = np.arange(data.values.shape[1])[None, :]
+    ranks = np.empty(data.values.shape, dtype=float)
+    row_idx = np.arange(data.values.shape[0])[:, None] + 1  # 1-indexed rank
+    ranks[order, col_idx] = np.broadcast_to(row_idx, data.values.shape)
+    n = counts[None, :]
+    with np.errstate(invalid="ignore"):
+        weights = np.exp(np.sqrt(ranks) - np.sqrt(n))
+    return np.where(counts[None, :] <= 2, 1.0, weights)
 
 
 def _spot_sensitive_ab(
@@ -405,6 +591,140 @@ def _spot_sensitive_ab(
     return a_row[None, :], b_row[None, :]
 
 
+# Composed --method support ###################################################
+# The fast-path equivalent of constructing an ad hoc Aggregation with an
+# arbitrary weighting_classes list and calling get_weights - see
+# benchmark_aggregations's WeightClassUse/ComposedMethodSpec. Dispatches on
+# each weight class's position in the real class hierarchy (WEIGHT_CLASS_
+# REGISTRY) rather than a hardcoded per-name lookup, so any combination of
+# reputation_type + weight classes works without adding a new branch here.
+
+
+def compute_weight_class_array(
+    class_name: str,
+    params: dict[str, float | datetime],
+    data: "QuestionScoringData",
+    question: Question,
+    reputation_type: str | None,
+    reputation_by_type: dict[str, ReputationArrays] | None = None,
+    class_reputations: dict[str, ReputationArrays] | None = None,
+    static_filter_members: dict[str, set[int]] | None = None,
+) -> np.ndarray:
+    """Vectorized (U,T)-broadcastable weight contribution for one weight
+    class instance within a composed --method spec - the fast-path
+    equivalent of that class's real calculate_weights()."""
+    cls = WEIGHT_CLASS_REGISTRY[class_name]
+
+    if cls is Unweighted:
+        return np.ones_like(data.values)
+    if cls is RecencyWeighted:
+        return _recency_weight_array(data)
+
+    if issubclass(cls, LearnedReputationWeighted):
+        # Every class in this bucket (PeerScoreReputationWeighted,
+        # YearPerformanceReputationWeighted, PeerThresholdReputationWeighted,
+        # PeerContinuousReputationWeighted, SpotSensitiveReputationWeighted,
+        # or the fully generic PrecomputedReputationWeighted itself) reads
+        # from an arbitrary Reputation.type via reputation_type, rather than
+        # each needing its own dedicated preload/lookup path.
+        if reputation_type is None:
+            raise ValueError(
+                f"{class_name!r} needs a reputation_type (see --method's "
+                "compositional form)"
+            )
+        reputation = get_reputation_values_by_type(
+            data,
+            question,
+            reputation_type,
+            (reputation_by_type or {}).get(reputation_type),
+        )
+        a = params.get("a", 0.5)
+        b = params.get("b", 6.0)
+        if cls is SpotSensitiveReputationWeighted:
+            a_row, b_row = _spot_sensitive_ab(
+                question, data.timesteps, a, b, params.get("b_spot")
+            )
+            return _decay_formula(data, reputation, a_row, b_row)
+        return _decay_formula(data, reputation, a, b)
+
+    if issubclass(cls, ReputationWeighted):
+        # medal-family: a plain 0/1 multiplier, from that class's own
+        # LeaderboardEntry-based reputation source (not reputation_type).
+        return get_class_reputation_values(
+            data, question, class_name, (class_reputations or {}).get(class_name)
+        )
+
+    if issubclass(cls, Filtered):
+        members = (static_filter_members or {}).get(class_name)
+        if not members:
+            return np.zeros((len(data.user_ids), 1))
+        member_ids = np.fromiter(
+            members, dtype=data.user_ids.dtype, count=len(members)
+        )
+        mask = np.isin(data.user_ids, member_ids).astype(float)
+        return mask[:, None]
+
+    raise NotImplementedError(
+        f"No fast-path weight computation for {class_name!r}"
+    )
+
+
+def compute_composed_aggregation_series(
+    data: "QuestionScoringData",
+    question: Question,
+    aggregator: str,
+    reputation_type: str | None,
+    weight_classes: list[tuple[str, dict[str, float | datetime]]],
+    reputation_by_type: dict[str, ReputationArrays] | None = None,
+    class_reputations: dict[str, ReputationArrays] | None = None,
+    static_filter_members: dict[str, set[int]] | None = None,
+) -> np.ndarray:
+    """The composed aggregate's PMF-at-resolution_bucket series for an
+    arbitrary --method composition: multiplies every (class_name, params) in
+    `weight_classes` together (matching Aggregation.get_weights' multiplicative
+    combination of weighting_classes), then reduces with `aggregator`
+    ("MeanAggregatorMixin" or "MedianAggregatorMixin" - the latter only valid
+    on non-multiple_choice questions, same constraint as
+    compute_median_aggregation_series, and actually a weighted mean too for
+    continuous questions - see that function's docstring)."""
+    if (
+        aggregator == "MedianAggregatorMixin"
+        and data.question_type == Question.QuestionType.MULTIPLE_CHOICE
+    ):
+        raise NotImplementedError(
+            "MedianAggregatorMixin isn't valid for multiple_choice questions "
+            "in this fast path - see module docstring."
+        )
+
+    weights = np.ones_like(data.values)
+    for class_name, params in weight_classes:
+        weights = weights * compute_weight_class_array(
+            class_name,
+            params,
+            data,
+            question,
+            reputation_type,
+            reputation_by_type,
+            class_reputations,
+            static_filter_members,
+        )
+
+    active = ~np.isnan(data.values)
+    if (
+        aggregator == "MedianAggregatorMixin"
+        and data.question_type not in QUESTION_CONTINUOUS_TYPES
+    ):
+        return _weighted_percentile_masked(data.values, weights, active, 50.0)
+
+    masked_values = np.where(active, data.values, 0.0)
+    masked_weights = np.where(active, weights, 0.0)
+    weight_sum = masked_weights.sum(axis=0)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        series = (masked_values * masked_weights).sum(axis=0) / weight_sum
+    series[weight_sum == 0] = np.nan
+    return series
+
+
 def compute_aggregation_series(
     data: "QuestionScoringData",
     question: Question,
@@ -430,14 +750,11 @@ def compute_aggregation_series(
 
     if method in DECAYED_REPUTATION_CLASSES:
         reputation = get_reputation_values(data, question, method, reputation_history)
-        duration_seconds = data.forecast_horizon_end - data.forecast_horizon_start
-        decay_ratio = -(data.timesteps[None, :] - data.start_epochs) / duration_seconds
-        decays = np.exp(decay_ratio)
         if method == "spot_sensitive":
             a_row, b_row = _spot_sensitive_ab(question, data.timesteps, a, b, b_spot)
-            weights = (decays**a_row * reputation ** (1 - a_row)) ** b_row
+            weights = _decay_formula(data, reputation, a_row, b_row)
         else:
-            weights = (decays**a * reputation ** (1 - a)) ** b
+            weights = _decay_formula(data, reputation, a, b)
     else:
         weights = np.ones_like(data.values)
 
@@ -520,29 +837,15 @@ def compute_median_aggregation_series(
         )
 
     active = ~np.isnan(data.values)
-    counts = active.sum(axis=0)
 
     if method == "unweighted":
         weights = np.ones_like(data.values)
     elif method in (
         {"recency_weighted"} | RAW_REPUTATION_CLASSES.keys() | STATIC_FILTER_CLASSES.keys()
     ):
-        # RecencyWeighted.calculate_weights: exp(sqrt(rank) - sqrt(N)) where
-        # rank is the forecaster's 1-indexed position among the currently
-        # active ones, ordered by ascending start_time - and no weighting
-        # at all (uniform weight) once there are <= 2 active. Shared base
-        # for every method below - see docstring above for what each one
-        # multiplies in on top of it.
-        sort_keys = np.where(active, data.start_epochs, np.inf)
-        order = np.argsort(sort_keys, axis=0)
-        col_idx = np.arange(data.values.shape[1])[None, :]
-        ranks = np.empty(data.values.shape, dtype=float)
-        row_idx = np.arange(data.values.shape[0])[:, None] + 1  # 1-indexed rank
-        ranks[order, col_idx] = np.broadcast_to(row_idx, data.values.shape)
-        n = counts[None, :]
-        with np.errstate(invalid="ignore"):
-            weights = np.exp(np.sqrt(ranks) - np.sqrt(n))
-        weights = np.where(counts[None, :] <= 2, 1.0, weights)
+        # Shared base for every method below - see docstring above for what
+        # each one multiplies in on top of it.
+        weights = _recency_weight_array(data)
 
         if method in RAW_REPUTATION_CLASSES:
             reputation = get_reputation_values(data, question, method, reputation_history)

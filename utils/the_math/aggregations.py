@@ -355,9 +355,16 @@ class LearnedReputationWeighted(ReputationWeighted):
         self,
         question: Question,
         all_forecaster_ids: list[int] | set[int] | None,
+        a: float = 0.5,
+        b: float = 6.0,
         **kwargs,
     ):
         super().__init__(question, all_forecaster_ids, **kwargs)
+        # Configurable per-instance now (rather than hardcoded locals in
+        # calculate_weights) so benchmark_aggregations's --method composition
+        # can set them per weight-class instance - see scoring/fast_scoring.py.
+        self.a = a
+        self.b = b
         # Cached once per aggregation run rather than re-derived from a
         # timedelta subtraction on every calculate_weights call.
         self.question_duration_seconds = (
@@ -393,18 +400,33 @@ class LearnedReputationWeighted(ReputationWeighted):
     def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
         # Custom overwrite to uniquely combine time weighting with reputation
         reputation_values = self.get_reputations(forecast_set)
-        # TODO: make these learned parameters
-        a = 0.5
-        b = 6.0
-        return self._decay_reputation_weights(forecast_set, reputation_values, a, b)
+        return self._decay_reputation_weights(forecast_set, reputation_values, self.a, self.b)
 
 
 class PrecomputedReputationWeighted(LearnedReputationWeighted):
     """Base for ReputationWeighted subclasses backed by precomputed
     `Reputation` records (rather than a live per-question calculation).
-    Subclasses just set `reputation_type`."""
+    Subclasses set a default `reputation_type`; passing `reputation_type`
+    explicitly overrides it per-instance (used by benchmark_aggregations's
+    --method composition to plug an arbitrary Reputation type into this or
+    any subclass, e.g. SpotSensitiveReputationWeighted, without needing a
+    dedicated subclass per type)."""
 
     reputation_type: str
+
+    def __init__(
+        self,
+        question: Question,
+        all_forecaster_ids: list[int] | set[int] | None,
+        reputation_type: str | None = None,
+        **kwargs,
+    ):
+        # Must be set *before* super().__init__() - ReputationWeighted's own
+        # __init__ calls get_reputation_history() (which reads
+        # self.reputation_type) as part of construction.
+        if reputation_type is not None:
+            self.reputation_type = reputation_type
+        super().__init__(question, all_forecaster_ids, **kwargs)
 
     def get_reputation_history(
         self, all_forecaster_ids: list[int] | set[int]
@@ -422,7 +444,7 @@ class PrecomputedReputationWeighted(LearnedReputationWeighted):
         records = Reputation.objects.filter(
             user_id__in=all_forecaster_ids,
             type=self.reputation_type,
-        ).order_by("time")
+        ).order_by("time", "id")
         for record in records:
             reputations[record.user_id].append(record)
         return reputations
@@ -471,9 +493,9 @@ class SpotSensitiveReputationWeighted(PeerScoreReputationWeighted):
         **kwargs,
     ):
         super().__init__(question, all_forecaster_ids, **kwargs)
-        # Matches LearnedReputationWeighted.calculate_weights' current
-        # hardcoded default b - keep in sync if that changes.
-        self.b_spot = b_spot if b_spot is not None else 6.0
+        # Defaults to whatever `b` resolved to (own default or an override
+        # passed through **kwargs) if not given explicitly.
+        self.b_spot = b_spot if b_spot is not None else self.b
         self._spot_scoring_epoch: float | None = None
         if question.default_score_type == ScoreTypes.SPOT_PEER:
             spot_time = question.get_spot_scoring_time()
