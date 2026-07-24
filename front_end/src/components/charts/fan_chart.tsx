@@ -50,6 +50,7 @@ import {
   getAxisLeftPadding,
   getAxisRightPadding,
   getTickLabelFontSize,
+  restrictScaleTicksToDomain,
   widenDomainToTicks,
 } from "@/utils/charts/axis";
 import {
@@ -979,6 +980,7 @@ function buildChartData({
     tickCoverageDomain: fixedInternal ? undefined : tickCoverageDomain,
   });
   const yDomain = widenDomainToTicks(finalZoom, yScale.ticks);
+  const visibleYScale = restrictScaleTicksToDomain(yScale, yDomain);
 
   resolutionPoints.forEach((pt) => {
     if (pt.unsuccessfullyResolved) {
@@ -1005,7 +1007,7 @@ function buildChartData({
     userPoints,
     resolutionPoints,
     emptyPoints,
-    yScale,
+    yScale: visibleYScale,
     yDomain,
   };
 }

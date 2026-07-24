@@ -60,6 +60,13 @@ export type TimelineYDomainOptions = {
   paddingRatio: number;
 };
 
+/** Platform-wide timeline behavior: fit active uncertainty ranges in the visible x-window. */
+export const DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS = {
+  scope: "visibleWindow",
+  source: "intervals",
+  paddingRatio: 0,
+} as const satisfies TimelineYDomainOptions;
+
 export type FanDatum = {
   name: string;
   communityQuartiles?: Quartiles | null;

@@ -1,9 +1,11 @@
-import { ScaleDirection, TimelineChartZoomOption } from "@/types/charts";
+import { ScaleDirection } from "@/types/charts";
 import { QuestionType } from "@/types/question";
+import { unscaleNominalLocation } from "@/utils/math";
 
 import {
   generateScale,
   generateTimeSeriesYDomain,
+  restrictScaleTicksToDomain,
   widenDomainToTicks,
 } from "../axis";
 
@@ -300,17 +302,185 @@ describe("generateScale", () => {
         alwaysShowTicks: true,
       });
       const labels = scale.ticks.map((tick) => scale.tickFormat(tick));
+      const visualGaps = scale.ticks
+        .slice(1)
+        .map((tick, index) => tick - (scale.ticks[index] as number));
 
-      expect(labels).toEqual(["10", "20", "30", "40", "50"]);
-      expect(labels).not.toContain("52.7");
+      expect(scale.ticks).toHaveLength(5);
+      expect(labels).toEqual(["1", "2.5", "8", "20", "52.7"]);
+      expect(scale.ticks[0]).toBeLessThanOrEqual(0);
+      expect(scale.ticks.at(-1)).toBeGreaterThanOrEqual(1);
+      expect(Math.max(...visualGaps) / Math.min(...visualGaps)).toBeLessThan(
+        1.45
+      );
       labels
         .map(Number)
         .forEach((value) => expect(Number.isFinite(value)).toBe(true));
     });
+
+    it("keeps negative log-axis ticks visually separated", () => {
+      const scale = generateScale({
+        displayType: QuestionType.Numeric,
+        axisLength: 200,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1],
+        zoomedDomain: [0, 1],
+        scaling: {
+          range_min: -52.7,
+          range_max: -1,
+          zero_point: 0,
+        },
+        forceTickCount: 5,
+        alwaysShowTicks: true,
+      });
+      const labels = scale.ticks.map((tick) => scale.tickFormat(tick));
+      const visualGaps = scale.ticks
+        .slice(1)
+        .map((tick, index) => tick - (scale.ticks[index] as number));
+
+      expect(scale.ticks).toHaveLength(5);
+      expect(labels).toEqual(["-52.7", "-20", "-8", "-2.5", "-1"]);
+      expect(scale.ticks[0]).toBeLessThanOrEqual(0);
+      expect(scale.ticks.at(-1)).toBeGreaterThanOrEqual(1);
+      expect(Math.max(...visualGaps) / Math.min(...visualGaps)).toBeLessThan(
+        1.45
+      );
+    });
+
+    it("uses nice guards around an interior logarithmic coverage window", () => {
+      const scaling = {
+        range_min: 1,
+        range_max: 52.7,
+        zero_point: 0,
+      };
+      const coverageDomain = [
+        unscaleNominalLocation(3.2, scaling),
+        unscaleNominalLocation(41, scaling),
+      ] as [number, number];
+      const scale = generateScale({
+        displayType: QuestionType.Numeric,
+        axisLength: 200,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1],
+        zoomedDomain: coverageDomain,
+        scaling,
+        tickCoverageDomain: coverageDomain,
+        forceTickCount: 5,
+        alwaysShowTicks: true,
+      });
+
+      expect(scale.ticks).toHaveLength(5);
+      expect(scale.ticks.map((tick) => scale.tickFormat(tick))).toEqual([
+        "3",
+        "6",
+        "12.5",
+        "25",
+        "50",
+      ]);
+      expect(scale.ticks[0]).toBeLessThanOrEqual(coverageDomain[0]);
+      expect(scale.ticks.at(-1)).toBeGreaterThanOrEqual(coverageDomain[1]);
+    });
+
+    it("prefers nice outward log guards over exact visible extrema", () => {
+      const scaling = {
+        range_min: 1_000_000_000,
+        range_max: 100_000_000_000,
+        zero_point: 0,
+      };
+      const coverageDomain = [
+        unscaleNominalLocation(18_900_000_000, scaling),
+        unscaleNominalLocation(42_900_000_000, scaling),
+      ] as [number, number];
+      const scale = generateScale({
+        displayType: QuestionType.Numeric,
+        axisLength: 216,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1],
+        zoomedDomain: coverageDomain,
+        scaling,
+        tickCoverageDomain: coverageDomain,
+        forceTickCount: 6,
+        alwaysShowTicks: true,
+      });
+
+      expect(scale.ticks.map((tick) => scale.tickFormat(tick))).toEqual([
+        "15B",
+        "20B",
+        "25B",
+        "30B",
+        "40B",
+        "50B",
+      ]);
+    });
+
+    it("snaps a sub-pixel coverage excess to a canonical log tick", () => {
+      const scaling = {
+        range_min: 1,
+        range_max: 52.7,
+        zero_point: 0,
+      };
+      const coverageDomain = [
+        unscaleNominalLocation(1, scaling),
+        unscaleNominalLocation(50.0001, scaling),
+      ] as [number, number];
+      const scale = generateScale({
+        displayType: QuestionType.Numeric,
+        axisLength: 200,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1],
+        zoomedDomain: coverageDomain,
+        scaling,
+        tickCoverageDomain: coverageDomain,
+        forceTickCount: 5,
+        alwaysShowTicks: true,
+      });
+
+      expect(scale.ticks).toHaveLength(5);
+      expect(scale.ticks.map((tick) => scale.tickFormat(tick))).toEqual([
+        "1",
+        "2.5",
+        "8",
+        "20",
+        "50",
+      ]);
+      expect(
+        Math.abs((scale.ticks.at(-1) as number) - (coverageDomain[1] as number))
+      ).toBeLessThan(1 / 200);
+    });
   });
 
   describe("nice numeric ticks", () => {
-    it("uses a tighter nice step for a lower boundary guard", () => {
+    it("uses one covering nice lattice instead of labeling visible extrema", () => {
+      const scaling = {
+        range_min: 0,
+        range_max: 3_000_000,
+        zero_point: null,
+      };
+      const visibleDomain = [
+        unscaleNominalLocation(1_050_000, scaling),
+        unscaleNominalLocation(2_450_000, scaling),
+      ] as [number, number];
+      const scale = generateScale({
+        displayType: QuestionType.Numeric,
+        axisLength: 216,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1],
+        zoomedDomain: visibleDomain,
+        scaling,
+        tickCoverageDomain: visibleDomain,
+        forceTickCount: 5,
+        alwaysShowTicks: true,
+      });
+
+      expect(scale.ticks.map((tick) => scale.tickFormat(tick))).toEqual([
+        "1M",
+        "1.5M",
+        "2M",
+        "2.5M",
+      ]);
+    });
+
+    it("covers a lower hard boundary without mixing interior steps", () => {
       const scale = generateScale({
         displayType: QuestionType.Numeric,
         axisLength: 216,
@@ -327,17 +497,16 @@ describe("generateScale", () => {
         alwaysShowTicks: true,
       });
 
+      expect(scale.ticks.length).toBeLessThanOrEqual(5);
       expect(scale.ticks.map((tick) => scale.tickFormat(tick))).toEqual([
-        "2500",
-        "5000",
+        "1899",
         "10k",
-        "15k",
         "20k",
-        "25k",
+        "30k",
       ]);
     });
 
-    it("uses a tighter nice step for an upper boundary guard", () => {
+    it("covers an upper value without exceeding the tick limit", () => {
       const scale = generateScale({
         displayType: QuestionType.Numeric,
         axisLength: 216,
@@ -354,13 +523,47 @@ describe("generateScale", () => {
         alwaysShowTicks: true,
       });
 
+      expect(scale.ticks.length).toBeLessThanOrEqual(5);
       expect(scale.ticks.map((tick) => scale.tickFormat(tick))).toEqual([
-        "5000",
+        "1899",
         "10k",
-        "15k",
         "20k",
-        "25k",
-        "27.5k",
+        "30k",
+      ]);
+    });
+
+    it("uses one nice lattice when both sides need coverage", () => {
+      const scaling = {
+        range_min: 0,
+        range_max: 5_000_000,
+        zero_point: null,
+      };
+      const visibleDomain = [
+        unscaleNominalLocation(1_850_000, scaling),
+        unscaleNominalLocation(2_350_000, scaling),
+      ] as [number, number];
+      const coverageDomain = [
+        unscaleNominalLocation(1_860_000, scaling),
+        unscaleNominalLocation(2_340_000, scaling),
+      ] as [number, number];
+      const scale = generateScale({
+        displayType: QuestionType.Numeric,
+        axisLength: 216,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1],
+        zoomedDomain: visibleDomain,
+        scaling,
+        tickCoverageDomain: coverageDomain,
+        forceTickCount: 5,
+        alwaysShowTicks: true,
+      });
+
+      expect(scale.ticks.length).toBeLessThanOrEqual(5);
+      expect(scale.ticks.map((tick) => scale.tickFormat(tick))).toEqual([
+        "1.8M",
+        "2M",
+        "2.2M",
+        "2.4M",
       ]);
     });
 
@@ -381,12 +584,10 @@ describe("generateScale", () => {
       });
       const labels = scale.ticks.map((tick) => scale.tickFormat(tick));
 
-      expect(labels).toEqual(["-20", "-10", "0", "10", "20"]);
-      expect(labels).not.toContain("-28.3");
-      expect(labels).not.toContain("25.2");
+      expect(labels).toEqual(["-28.3", "-20", "0", "20", "25.2"]);
     });
 
-    it("prefers five integer ticks over six ticks including zero", () => {
+    it("covers hard bounds without exceeding five ticks", () => {
       const scale = generateScale({
         displayType: QuestionType.Numeric,
         axisLength: 150,
@@ -403,7 +604,33 @@ describe("generateScale", () => {
       });
       const labels = scale.ticks.map((tick) => scale.tickFormat(tick));
 
-      expect(labels).toEqual(["1", "2", "3", "4", "5"]);
+      expect(labels).toEqual(["0", "2", "4", "5"]);
+    });
+
+    it("allows six ticks when six are requested", () => {
+      const scale = generateScale({
+        displayType: QuestionType.Numeric,
+        axisLength: 150,
+        direction: ScaleDirection.Vertical,
+        domain: [0, 1],
+        zoomedDomain: [0, 1],
+        scaling: {
+          range_min: 0,
+          range_max: 5,
+          zero_point: null,
+        },
+        forceTickCount: 6,
+        alwaysShowTicks: true,
+      });
+
+      expect(scale.ticks.map((tick) => scale.tickFormat(tick))).toEqual([
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+      ]);
     });
 
     it("uses meaningful half-step ticks when they fit the domain", () => {
@@ -508,23 +735,57 @@ describe("widenDomainToTicks", () => {
   it("preserves a domain that already contains its ticks", () => {
     expect(widenDomainToTicks([0.2, 0.8], [0.3, 0.5, 0.7])).toEqual([0.2, 0.8]);
   });
+
+  it("uses only the nearest tick beyond each boundary", () => {
+    expect(widenDomainToTicks([0.2, 0.8], [0, 0.1, 0.9, 1])).toEqual([
+      0.1, 0.9,
+    ]);
+  });
+});
+
+describe("restrictScaleTicksToDomain", () => {
+  it("removes ticks outside the finalized domain", () => {
+    const scale = generateScale({
+      displayType: QuestionType.Numeric,
+      axisLength: 200,
+    });
+
+    expect(restrictScaleTicksToDomain(scale, [0.2, 0.8]).ticks).toEqual(
+      scale.ticks.filter((tick) => tick >= 0.2 && tick <= 0.8)
+    );
+  });
 });
 
 describe("generateTimeSeriesYDomain", () => {
+  it("calculates a combined domain from step values active in the visible time range", () => {
+    const domain = generateTimeSeriesYDomain({
+      isChartEmpty: false,
+      timeRange: [300, 400],
+      sources: [
+        {
+          minValues: [{ timestamp: 100, y: 0.2 }],
+          maxValues: [{ timestamp: 100, y: 0.4 }],
+          carryForward: true,
+        },
+        {
+          minValues: [{ timestamp: 200, y: 0.6 }],
+          maxValues: [{ timestamp: 200, y: 0.8 }],
+          carryForward: true,
+        },
+      ],
+      paddingRatio: 0,
+    });
+
+    expect(domain.zoomedYDomain).toEqual([0.2, 0.8]);
+    expect(domain.tickCoverageDomain).toEqual([0.2, 0.8]);
+  });
+
   it("should return original domain if chart is empty", () => {
     // Given
     const params = {
-      zoom: TimelineChartZoomOption.All,
       isChartEmpty: true,
-      minValues: [] as Array<{
-        timestamp: number;
-        y: number | null | undefined;
-      }>,
-      maxValues: [] as Array<{
-        timestamp: number;
-        y: number | null | undefined;
-      }>,
-      minTimestamp: 0,
+      sources: [],
+      timeRange: [0, 0] as [number, number],
     };
 
     // When
@@ -538,19 +799,22 @@ describe("generateTimeSeriesYDomain", () => {
   it("should always return either 0 or 1 for binary question", () => {
     // Given
     const params = {
-      zoom: TimelineChartZoomOption.All,
       isChartEmpty: false,
-      minValues: [
-        { timestamp: 1751271599.875, y: 0.3 },
-        { timestamp: 1751537899.677, y: 0.33 },
-        { timestamp: 1751285580, y: 0.33 },
+      sources: [
+        {
+          minValues: [
+            { timestamp: 1751271599.875, y: 0.3 },
+            { timestamp: 1751537899.677, y: 0.33 },
+            { timestamp: 1751285580, y: 0.33 },
+          ],
+          maxValues: [
+            { timestamp: 1751271599.875, y: 0.3 },
+            { timestamp: 1751537899.677, y: 0.33 },
+            { timestamp: 1751285580, y: 0.33 },
+          ],
+        },
       ],
-      maxValues: [
-        { timestamp: 1751271599.875, y: 0.3 },
-        { timestamp: 1751537899.677, y: 0.33 },
-        { timestamp: 1751285580, y: 0.33 },
-      ],
-      minTimestamp: 1751271599.875,
+      timeRange: [1751271599.875, 1751537899.677] as [number, number],
       includeClosestBoundOnZoom: true,
     };
 
@@ -566,17 +830,20 @@ describe("generateTimeSeriesYDomain", () => {
 
   it("should ignore zoom window when useFullYDomain is enabled", () => {
     const params = {
-      zoom: TimelineChartZoomOption.OneDay,
       isChartEmpty: false,
-      minValues: [
-        { timestamp: 100, y: 0.2 },
-        { timestamp: 200, y: 0.45 },
+      sources: [
+        {
+          minValues: [
+            { timestamp: 100, y: 0.2 },
+            { timestamp: 200, y: 0.45 },
+          ],
+          maxValues: [
+            { timestamp: 100, y: 0.75 },
+            { timestamp: 200, y: 0.55 },
+          ],
+        },
       ],
-      maxValues: [
-        { timestamp: 100, y: 0.75 },
-        { timestamp: 200, y: 0.55 },
-      ],
-      minTimestamp: 150,
+      timeRange: [150, 200] as [number, number],
       useFullYDomain: true,
     };
 
@@ -587,11 +854,14 @@ describe("generateTimeSeriesYDomain", () => {
 
   it("should auto zoom for all when useFullYDomain is enabled", () => {
     const params = {
-      zoom: TimelineChartZoomOption.All,
       isChartEmpty: false,
-      minValues: [{ timestamp: 100, y: 0.3 }],
-      maxValues: [{ timestamp: 100, y: 0.6 }],
-      minTimestamp: 100,
+      sources: [
+        {
+          minValues: [{ timestamp: 100, y: 0.3 }],
+          maxValues: [{ timestamp: 100, y: 0.6 }],
+        },
+      ],
+      timeRange: [100, 100] as [number, number],
       useFullYDomain: true,
     };
 
@@ -600,39 +870,80 @@ describe("generateTimeSeriesYDomain", () => {
     expect(scale.zoomedYDomain).toEqual([0.25, 0.65]);
   });
 
+  it("should auto zoom to the visible window by default for all history", () => {
+    const scale = generateTimeSeriesYDomain({
+      isChartEmpty: false,
+      sources: [
+        {
+          minValues: [
+            { timestamp: 100, y: 0.1 },
+            { timestamp: 200, y: 0.4 },
+          ],
+          maxValues: [
+            { timestamp: 100, y: 0.9 },
+            { timestamp: 200, y: 0.6 },
+          ],
+        },
+      ],
+      timeRange: [150, 200],
+    });
+
+    expect(scale.zoomedYDomain).toEqual([0.35, 0.65]);
+  });
+
   it("should pad relative to the visible value span", () => {
     const scale = generateTimeSeriesYDomain({
-      zoom: TimelineChartZoomOption.All,
       isChartEmpty: false,
-      minValues: [
-        { timestamp: 100, y: 0.2 },
-        { timestamp: 200, y: 0.4 },
-        { timestamp: 300, y: 0 },
+      sources: [
+        {
+          minValues: [
+            { timestamp: 100, y: 0.2 },
+            { timestamp: 200, y: 0.4 },
+            { timestamp: 300, y: 0 },
+          ],
+          maxValues: [
+            { timestamp: 100, y: 0.6 },
+            { timestamp: 200, y: 0.8 },
+            { timestamp: 300, y: 1 },
+          ],
+        },
       ],
-      maxValues: [
-        { timestamp: 100, y: 0.6 },
-        { timestamp: 200, y: 0.8 },
-        { timestamp: 300, y: 1 },
-      ],
-      minTimestamp: 150,
-      maxTimestamp: 250,
-      forceAutoZoom: true,
+      timeRange: [150, 250],
       paddingRatio: 0.25,
     });
 
     expect(scale.zoomedYDomain).toEqual([0.3, 0.9]);
   });
 
-  it("should use the legacy padding for a flat relative domain", () => {
+  it("should not add explicit padding when the padding ratio is zero", () => {
     const scale = generateTimeSeriesYDomain({
-      zoom: TimelineChartZoomOption.TwoMonths,
       isChartEmpty: false,
-      minValues: [{ timestamp: 100, y: 0.5 }],
-      maxValues: [{ timestamp: 100, y: 0.5 }],
-      minTimestamp: 100,
+      sources: [
+        {
+          minValues: [{ timestamp: 100, y: 0.2 }],
+          maxValues: [{ timestamp: 100, y: 0.8 }],
+        },
+      ],
+      timeRange: [100, 100],
+      paddingRatio: 0,
+    });
+
+    expect(scale.zoomedYDomain).toEqual([0.2, 0.8]);
+  });
+
+  it("should use minimal safety padding for a flat relative domain", () => {
+    const scale = generateTimeSeriesYDomain({
+      isChartEmpty: false,
+      sources: [
+        {
+          minValues: [{ timestamp: 100, y: 0.5 }],
+          maxValues: [{ timestamp: 100, y: 0.5 }],
+        },
+      ],
+      timeRange: [100, 100],
       paddingRatio: 0.15,
     });
 
-    expect(scale.zoomedYDomain).toEqual([0.45, 0.55]);
+    expect(scale.zoomedYDomain).toEqual([0.49, 0.51]);
   });
 });

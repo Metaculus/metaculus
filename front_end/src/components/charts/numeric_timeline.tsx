@@ -178,7 +178,7 @@ const NumericTimeline: FC<Props> = ({
         isAggregationsEmpty: isEmptyDomain,
         openTime,
         unit,
-        forceYTickCount: forFeedPage ? 3 : 5,
+        forceYTickCount: forFeedPage ? 3 : isEmbedded ? 5 : 6,
         alwaysShowYTicks: true,
         inboundOutcomeCount,
         resolutionPoint,
@@ -200,6 +200,7 @@ const NumericTimeline: FC<Props> = ({
       inboundOutcomeCount,
       resolutionPoint,
       forFeedPage,
+      isEmbedded,
       yDomainOptions,
     ]
   );

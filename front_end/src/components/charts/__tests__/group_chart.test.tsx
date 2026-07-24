@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 
 import { METAC_COLORS } from "@/constants/colors";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import { QuestionType } from "@/types/question";
 
@@ -59,6 +60,32 @@ beforeAll(() => {
 });
 
 describe("GroupChart", () => {
+  it("uses visible uncertainty intervals with no span padding by default", () => {
+    render(
+      <NextIntlClientProvider locale="en" messages={messages}>
+        <GroupChart
+          timestamps={[100, 200]}
+          actualCloseTime={200_000}
+          choiceItems={[
+            {
+              ...choiceItem,
+              aggregationMinValues: [0.1, 0.1],
+              aggregationMaxValues: [0.9, 0.9],
+            },
+          ]}
+          height={216}
+          questionType={QuestionType.Numeric}
+          scaling={{ range_min: 0, range_max: 100, zero_point: null }}
+        />
+      </NextIntlClientProvider>
+    );
+
+    ["0", "20", "40", "60", "80", "100"].forEach((label) => {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    });
+    expect(screen.queryByText("25")).not.toBeInTheDocument();
+  });
+
   it("uses community medians when uncertainty bands are unavailable", () => {
     render(
       <NextIntlClientProvider locale="en" messages={messages}>
@@ -74,6 +101,36 @@ describe("GroupChart", () => {
             source: "intervals",
             paddingRatio: 0.1,
           }}
+        />
+      </NextIntlClientProvider>
+    );
+
+    expect(screen.getByText("40")).toBeInTheDocument();
+    expect(screen.getByText("60")).toBeInTheDocument();
+    expect(screen.queryByText("0")).not.toBeInTheDocument();
+    expect(screen.queryByText("100")).not.toBeInTheDocument();
+  });
+
+  it("carries an active uncertainty interval into a shorter zoom window", () => {
+    render(
+      <NextIntlClientProvider locale="en" messages={messages}>
+        <GroupChart
+          timestamps={[100]}
+          actualCloseTime={1_000_000_000}
+          choiceItems={[
+            {
+              ...choiceItem,
+              aggregationTimestamps: [100],
+              aggregationValues: [0.5],
+              aggregationMinValues: [0.4],
+              aggregationMaxValues: [0.6],
+              closeTime: 2_000_000_000,
+            },
+          ]}
+          defaultZoom={TimelineChartZoomOption.OneDay}
+          height={216}
+          questionType={QuestionType.Numeric}
+          scaling={{ range_min: 0, range_max: 100, zero_point: null }}
         />
       </NextIntlClientProvider>
     );

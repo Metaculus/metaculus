@@ -109,7 +109,6 @@ const MultiChoicesChartView: FC<Props> = ({
   yDomainOptions,
 }) => {
   const { user } = useAuth();
-  const isInteracted = useRef(false);
   const [isChartReady, setIsChartReady] = useState(false);
   const [isCursorOverLegend, setIsCursorOverLegend] = useState(false);
   const legendEnterProps = {
@@ -177,7 +176,6 @@ const MultiChoicesChartView: FC<Props> = ({
 
   const handleChoiceChange = useCallback(
     (choice: string, checked: boolean) => {
-      if (!isInteracted.current) isInteracted.current = true;
       onChoiceItemsUpdate(
         choiceItems.map((item) =>
           item.choice === choice
@@ -202,7 +200,6 @@ const MultiChoicesChartView: FC<Props> = ({
 
   const handleToggleAll = useCallback(
     (checked: boolean) => {
-      if (!isInteracted.current) isInteracted.current = true;
       onChoiceItemsUpdate(
         choiceItems.map((item) => ({
           ...item,
@@ -261,7 +258,6 @@ const MultiChoicesChartView: FC<Props> = ({
     withZoomPicker: true,
     defaultZoom: resolveDefaultZoom(defaultZoom, !!user),
     openTime,
-    forceAutoZoom: isInteracted.current,
     forecastAvailability,
     attachRef,
     withHighlightArea,

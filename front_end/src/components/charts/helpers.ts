@@ -3,6 +3,7 @@ import { DomainTuple, VictoryThemeDefinition } from "victory";
 import {
   Area,
   BaseChartData,
+  DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS,
   Line,
   LinePoint,
   Scale,
@@ -22,6 +23,7 @@ import {
   generateTimestampXScale,
   generateTimeSeriesYDomain,
   getTickLabelFontSize,
+  restrictScaleTicksToDomain,
   widenDomainToTicks,
 } from "@/utils/charts/axis";
 import {
@@ -35,44 +37,6 @@ export type ChartData = BaseChartData & {
   yDomain: DomainTuple;
   xDomain: DomainTuple;
 };
-
-type TimestampedYValue = {
-  timestamp: number;
-  y: number | null | undefined;
-};
-
-export function getTickCoverageDomain({
-  minValues,
-  maxValues,
-  minTimestamp,
-  maxTimestamp,
-  useFullYDomain,
-}: {
-  minValues: TimestampedYValue[];
-  maxValues: TimestampedYValue[];
-  minTimestamp: number;
-  maxTimestamp?: number;
-  useFullYDomain?: boolean;
-}): [number, number] | undefined {
-  const shouldIncludeValue = (timestamp: number) =>
-    useFullYDomain ||
-    (timestamp >= minTimestamp &&
-      (maxTimestamp === undefined || timestamp <= maxTimestamp));
-  const finiteValues = (values: TimestampedYValue[]) =>
-    values
-      .filter(({ timestamp }) => shouldIncludeValue(timestamp))
-      .map(({ y }) => y)
-      .filter(
-        (value): value is number =>
-          typeof value === "number" && Number.isFinite(value)
-      );
-  const coverageMinValues = finiteValues(minValues);
-  const coverageMaxValues = finiteValues(maxValues);
-
-  return coverageMinValues.length && coverageMaxValues.length
-    ? [Math.min(...coverageMinValues), Math.max(...coverageMaxValues)]
-    : undefined;
-}
 
 export function buildNumericChartData({
   questionType,
@@ -119,26 +83,30 @@ export function buildNumericChartData({
   const area: Area = [];
 
   aggregation.history.forEach((forecast) => {
+    const center = forecast.centers?.[aggregationIndex] ?? 0;
+    const lowerBound =
+      forecast.interval_lower_bounds?.[aggregationIndex] ?? center;
+    const upperBound =
+      forecast.interval_upper_bounds?.[aggregationIndex] ?? center;
+
     if (!line.length) {
       line.push({
         x: forecast.start_time,
-        y: forecast.centers?.[aggregationIndex] ?? 0,
+        y: center,
       });
       area.push({
         x: forecast.start_time,
-        y0: forecast.interval_lower_bounds?.[aggregationIndex] ?? 0,
-        y: forecast.interval_upper_bounds?.[aggregationIndex] ?? 0,
+        y0: lowerBound,
+        y: upperBound,
       });
     } else if (
       line.length &&
       line[line.length - 1]?.x === forecast.start_time
     ) {
       /* eslint-disable @typescript-eslint/no-non-null-assertion */
-      line[line.length - 1]!.y = forecast.centers?.[aggregationIndex] ?? 0;
-      area[area.length - 1]!.y0 =
-        forecast.interval_lower_bounds?.[aggregationIndex] ?? 0;
-      area[area.length - 1]!.y =
-        forecast.interval_upper_bounds?.[aggregationIndex] ?? 0;
+      line[line.length - 1]!.y = center;
+      area[area.length - 1]!.y0 = lowerBound;
+      area[area.length - 1]!.y = upperBound;
       /* eslint-enable @typescript-eslint/no-non-null-assertion */
     } else {
       // pushing null data terminates previous point (if any)
@@ -153,24 +121,24 @@ export function buildNumericChartData({
       });
       line.push({
         x: forecast.start_time,
-        y: forecast.centers?.[aggregationIndex] ?? 0,
+        y: center,
       });
       area.push({
         x: forecast.start_time,
-        y0: forecast.interval_lower_bounds?.[aggregationIndex] ?? 0,
-        y: forecast.interval_upper_bounds?.[aggregationIndex] ?? 0,
+        y0: lowerBound,
+        y: upperBound,
       });
     }
 
     if (!!forecast.end_time) {
       line.push({
         x: forecast.end_time,
-        y: forecast.centers?.[aggregationIndex] ?? 0,
+        y: center,
       });
       area.push({
         x: forecast.end_time,
-        y0: forecast.interval_lower_bounds?.[aggregationIndex] ?? 0,
-        y: forecast.interval_upper_bounds?.[aggregationIndex] ?? 0,
+        y0: lowerBound,
+        y: upperBound,
       });
     }
   });
@@ -178,28 +146,34 @@ export function buildNumericChartData({
   const latestTimestamp = actualCloseTime
     ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
     : Date.now() / 1000;
-  if (aggregation.latest?.end_time === null) {
+  const latestForecast = aggregation.latest;
+  const latestCenter = latestForecast?.centers?.[aggregationIndex] ?? 0;
+  const latestLowerBound =
+    latestForecast?.interval_lower_bounds?.[aggregationIndex] ?? latestCenter;
+  const latestUpperBound =
+    latestForecast?.interval_upper_bounds?.[aggregationIndex] ?? latestCenter;
+  if (latestForecast?.end_time === null) {
     line.push({
       x: latestTimestamp,
-      y: aggregation.latest.centers?.[aggregationIndex] ?? 0,
+      y: latestCenter,
     });
     area.push({
       x: latestTimestamp,
-      y0: aggregation.latest.interval_lower_bounds?.[aggregationIndex] ?? 0,
-      y: aggregation.latest.interval_upper_bounds?.[aggregationIndex] ?? 0,
+      y0: latestLowerBound,
+      y: latestUpperBound,
     });
   } else if (
-    aggregation.latest?.end_time &&
-    aggregation.latest.end_time >= latestTimestamp
+    latestForecast?.end_time &&
+    latestForecast.end_time >= latestTimestamp
   ) {
     line[line.length - 1] = {
       x: latestTimestamp,
-      y: aggregation.latest.centers?.[aggregationIndex] ?? 0,
+      y: latestCenter,
     };
     area[area.length - 1] = {
       x: latestTimestamp,
-      y0: aggregation.latest.interval_lower_bounds?.[aggregationIndex] ?? 0,
-      y: aggregation.latest.interval_upper_bounds?.[aggregationIndex] ?? 0,
+      y0: latestLowerBound,
+      y: latestUpperBound,
     };
   }
 
@@ -270,45 +244,76 @@ export function buildNumericChartData({
   const resolutionValues = resolutionPoint
     ? [{ timestamp: resolutionPoint.x, y: resolutionPoint.y }]
     : [];
-  const centerValues = [
-    ...line.map((d) => ({ timestamp: d.x, y: d.y })),
-    ...points.map((d) => ({ timestamp: d.x, y: d.y })),
-    ...resolutionValues,
+  const communityCenterValues = line.map((d) => ({
+    timestamp: d.x,
+    y: d.y,
+  }));
+  const communityIntervalMinValues = area.map((d) => ({
+    timestamp: d.x,
+    y: d.y0,
+  }));
+  const communityIntervalMaxValues = area.map((d) => ({
+    timestamp: d.x,
+    y: d.y,
+  }));
+  const scatterCenterValues = points.map((d) => ({
+    timestamp: d.x,
+    y: d.y,
+  }));
+  const communityCenterSource = {
+    minValues: communityCenterValues,
+    maxValues: communityCenterValues,
+    carryForward: true,
+  };
+  const scatterCenterSource = {
+    minValues: scatterCenterValues,
+    maxValues: scatterCenterValues,
+  };
+  const resolutionSource = {
+    minValues: resolutionValues,
+    maxValues: resolutionValues,
+  };
+  const centerSources = [
+    communityCenterSource,
+    scatterCenterSource,
+    resolutionSource,
   ];
-  const intervalMinValues = [
-    ...area.map((d) => ({ timestamp: d.x, y: d.y0 })),
-    ...points.map((d) => ({ timestamp: d.x, y: d.y1 ?? d.y })),
-    ...resolutionValues,
+  const intervalSources = [
+    {
+      minValues: communityIntervalMinValues,
+      maxValues: communityIntervalMaxValues,
+      carryForward: true,
+    },
+    // Keep medians as a fallback for histories without interval bounds.
+    communityCenterSource,
+    {
+      minValues: points.map((d) => ({
+        timestamp: d.x,
+        y: d.y1 ?? d.y,
+      })),
+      maxValues: points.map((d) => ({
+        timestamp: d.x,
+        y: d.y2 ?? d.y,
+      })),
+    },
+    resolutionSource,
   ];
-  const intervalMaxValues = [
-    ...area.map((d) => ({ timestamp: d.x, y: d.y })),
-    ...points.map((d) => ({ timestamp: d.x, y: d.y2 ?? d.y })),
-    ...resolutionValues,
-  ];
-  const useCenterValues = yDomainOptions?.source === "centers";
-  const minValues = useCenterValues ? centerValues : intervalMinValues;
-  const maxValues = useCenterValues ? centerValues : intervalMaxValues;
-  const useFullYDomain = yDomainOptions
-    ? yDomainOptions.scope === "fullHistory"
-    : questionType === QuestionType.Numeric ||
-      questionType === QuestionType.Date;
-  const { originalYDomain, zoomedYDomain } = generateTimeSeriesYDomain({
-    zoom,
-    minTimestamp: xDomain[0],
+  const effectiveYDomainOptions =
+    yDomainOptions ?? DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS;
+  const useCenterValues = effectiveYDomainOptions.source === "centers";
+  const useFullYDomain = effectiveYDomainOptions.scope === "fullHistory";
+  const generatedYDomain = generateTimeSeriesYDomain({
+    sources: useCenterValues ? centerSources : intervalSources,
+    timeRange: xDomain,
     isChartEmpty: !domainTimestamps.length,
-    minValues,
-    maxValues,
-    includeClosestBoundOnZoom: questionType === QuestionType.Binary,
-    forceAutoZoom: !!yDomainOptions,
     useFullYDomain,
-    paddingRatio: yDomainOptions?.paddingRatio,
+    paddingRatio: effectiveYDomainOptions.paddingRatio,
   });
-  const tickCoverageDomain = getTickCoverageDomain({
-    minValues,
-    maxValues,
-    minTimestamp: xDomain[0],
-    useFullYDomain,
-  });
+  const { originalYDomain, tickCoverageDomain } = generatedYDomain;
+  const zoomedYDomain =
+    questionType === QuestionType.Binary
+      ? originalYDomain
+      : generatedYDomain.zoomedYDomain;
   const yScale: Scale = generateScale({
     displayType: questionType,
     axisLength: height,
@@ -323,6 +328,7 @@ export function buildNumericChartData({
     tickCoverageDomain,
   });
   const yDomain = widenDomainToTicks(zoomedYDomain, yScale.ticks);
+  const visibleYScale = restrictScaleTicksToDomain(yScale, yDomain);
 
   return {
     line: reduceStepData ? reduceStepLineSegments(line) : line,
@@ -330,7 +336,7 @@ export function buildNumericChartData({
     yDomain,
     xDomain,
     xScale,
-    yScale,
+    yScale: visibleYScale,
     points,
   };
 }
