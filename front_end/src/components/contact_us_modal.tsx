@@ -66,7 +66,9 @@ const ContactUsModal: FC<Props> = ({ isOpen, onClose, defaultSubject }) => {
         await submitContactForm({
           ...data,
           source_url:
-            typeof window !== "undefined" ? window.location.href : undefined,
+            typeof window !== "undefined"
+              ? window.location.origin + window.location.pathname
+              : undefined,
         });
         onClose(false);
         setIsSuccessModalOpen(true);
