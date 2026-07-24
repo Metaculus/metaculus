@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { getSocialProviders } from "@/app/(main)/actions";
 import { SocialProvider } from "@/types/auth";
-import { rotateAndGetCsrfToken } from "@/utils/csrf";
+import { getOrMintCsrfToken } from "@/utils/csrf";
 import { addUrlParams } from "@/utils/navigation";
 
 const useSocialAuth = () => {
@@ -26,7 +26,7 @@ const useSocialAuth = () => {
         paramName: "state",
         paramValue: JSON.stringify({
           redirect: redirectUrl,
-          nonce: rotateAndGetCsrfToken(),
+          nonce: getOrMintCsrfToken(),
         }),
       },
     ]);

@@ -5,25 +5,40 @@
 import {
   assertValidCsrfNonce,
   CSRF_COOKIE_NAME,
-  rotateAndGetCsrfToken,
+  getOrMintCsrfToken,
+  rotateCsrfToken,
 } from "../csrf";
 
-describe("rotateAndGetCsrfToken", () => {
+describe("getOrMintCsrfToken", () => {
   beforeEach(() => {
     document.cookie = `${CSRF_COOKIE_NAME}=; Path=/; Secure; Max-Age=0`;
   });
 
   it("mints a token and persists it as a cookie when none exists", () => {
-    const token = rotateAndGetCsrfToken();
+    const token = getOrMintCsrfToken();
 
     expect(token).toMatch(/^[0-9a-f]{8}-[0-9a-f-]{27}$/);
     expect(document.cookie).toContain(`${CSRF_COOKIE_NAME}=${token}`);
   });
 
-  it("returns the new token instead of returning a previous one", () => {
-    const first = rotateAndGetCsrfToken();
+  it("returns the existing token instead of minting a new one", () => {
+    const first = getOrMintCsrfToken();
 
-    expect(rotateAndGetCsrfToken()).not.toBe(first);
+    expect(getOrMintCsrfToken()).toBe(first);
+  });
+});
+
+describe("rotateCsrfToken", () => {
+  beforeEach(() => {
+    document.cookie = `${CSRF_COOKIE_NAME}=; Path=/; Secure; Max-Age=0`;
+  });
+
+  it("replaces an existing token with a different persisted value", () => {
+    const original = getOrMintCsrfToken();
+
+    rotateCsrfToken();
+
+    expect(getOrMintCsrfToken()).not.toBe(original);
   });
 });
 
