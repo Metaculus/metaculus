@@ -74,7 +74,7 @@ def get_posts_feed(  # noqa: C901
 
     # Apply consumer views filter
     if for_consumer_view:
-        qs = filter_for_consumer_view(qs)
+        qs = filter_for_consumer_view(qs, is_search=bool(search))
 
     # Exclude Deleted posts
     qs = qs.exclude(curation_status=Post.CurationStatus.DELETED)
@@ -340,45 +340,58 @@ def get_posts_feed(  # noqa: C901
     return qs.distinct("id", order_type).only("pk")
 
 
-def filter_for_consumer_view(qs: QuerySet[Post]) -> QuerySet[Post]:
+def filter_for_consumer_view(
+    qs: QuerySet[Post], is_search: bool = False
+) -> QuerySet[Post]:
     """
     A special filter applied to default Consumer View feed representation
     https://github.com/Metaculus/metaculus/issues/3377
+
+    Curation filters shape what we offer someone browsing the feed, so they are
+    relaxed for search, where the user is looking up something specific. The
+    bots-only exclusion is a dedupe rather than curation and always applies:
+    those posts are cross-posted into a human-facing project, so keeping them
+    would surface duplicate-looking results.
     """
 
-    now = timezone.now()
+    if not is_search:
+        now = timezone.now()
 
-    allowed_projects = list(
-        Project.objects.filter(
-            type=Project.ProjectTypes.NEWS_CATEGORY,
-            slug__in=["programs", "research"],
-        )
-    )
-
-    # Display only programs/research notebooks
-    qs = qs.filter(
-        Q(default_project__in=allowed_projects)
-        | Q(notebook__isnull=True)
-        | Q(projects__in=allowed_projects)
-    )
-
-    # We should keep posts where at least one question has CP revealed.
-    # For group questions, also check they're still open.
-    qs = qs.filter(
-        Q(notebook__isnull=False)
-        | Q(question__cp_reveal_time__lt=now)
-        | Exists(
-            Question.objects.filter(
-                Q(actual_close_time__isnull=True) | Q(actual_close_time__gte=now),
-                cp_reveal_time__lt=now,
-                group_id__isnull=False,
-                post_id=OuterRef("pk"),
+        allowed_projects = list(
+            Project.objects.filter(
+                type=Project.ProjectTypes.NEWS_CATEGORY,
+                slug__in=["programs", "research"],
             )
         )
-    )
 
-    # Exclude resolved questions
-    qs = qs.exclude(resolved=True)
+        # Display only programs/research notebooks
+        qs = qs.filter(
+            Q(default_project__in=allowed_projects)
+            | Q(notebook__isnull=True)
+            | Q(projects__in=allowed_projects)
+        )
+
+        # We should keep posts where at least one question has CP revealed.
+        # For group questions, also check they're still open.
+        qs = qs.filter(
+            Q(notebook__isnull=False)
+            | Q(question__cp_reveal_time__lt=now)
+            | Exists(
+                Question.objects.filter(
+                    Q(actual_close_time__isnull=True) | Q(actual_close_time__gte=now),
+                    cp_reveal_time__lt=now,
+                    group_id__isnull=False,
+                    post_id=OuterRef("pk"),
+                )
+            )
+        )
+
+        # Exclude resolved questions
+        qs = qs.exclude(resolved=True)
+
+    qs = qs.exclude(
+        default_project__bot_leaderboard_status=Project.BotLeaderboardStatus.BOTS_ONLY
+    )
 
     return qs
 
