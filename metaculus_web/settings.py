@@ -306,6 +306,8 @@ EMAIL_ACCOUNTS_SENDER = os.environ.get(
 )
 EMAIL_FEEDBACK = os.environ.get("EMAIL_FEEDBACK", "feedback@metaculus.com")
 EMAIL_SUPPORT = os.environ.get("EMAIL_SUPPORT", "support@metaculus.com")
+EMAIL_PARTNERSHIPS = os.environ.get("EMAIL_PARTNERSHIPS", "partnerships@metaculus.com")
+EMAIL_PRESS = os.environ.get("EMAIL_PRESS", "press@metaculus.com")
 # TODO: reconsider after release
 EMAIL_ALLOW_SEND_TO_ALL_USERS = (
     os.environ.get("EMAIL_ALLOW_SEND_TO_ALL_USERS", "false").lower() == "true"

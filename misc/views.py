@@ -37,11 +37,32 @@ def contact_api_view(request: Request):
     serializer = ContactSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
+    subject = serializer.data.get("subject")
+    recipients_by_subject = {
+        ContactSerializer.SubjectType.PARTNERSHIP: settings.EMAIL_PARTNERSHIPS,
+        ContactSerializer.SubjectType.FEEDBACK: settings.EMAIL_FEEDBACK,
+        ContactSerializer.SubjectType.BUG: settings.EMAIL_SUPPORT,
+        ContactSerializer.SubjectType.FEATURE: settings.EMAIL_SUPPORT,
+        ContactSerializer.SubjectType.PRESS: settings.EMAIL_PRESS,
+        ContactSerializer.SubjectType.OTHER: settings.EMAIL_SUPPORT,
+    }
+
+    if subject not in recipients_by_subject:
+        subject = ContactSerializer.SubjectType.OTHER
+
+    recipient = recipients_by_subject[subject]
+    subject_label = ContactSerializer.SubjectType(subject).label
+
+    body = serializer.data["message"]
+    source_url = serializer.data.get("source_url")
+    if source_url:
+        body = f"{body}\n\n---\nSubmitted from: {source_url}"
+
     EmailMessage(
-        subject=serializer.data["subject"] or "Contact Form",
-        body=serializer.data["message"],
+        subject=subject_label,
+        body=body,
         from_email=settings.EMAIL_ACCOUNTS_SENDER,
-        to=[settings.EMAIL_FEEDBACK],
+        to=[recipient],
         reply_to=[serializer.data["email"]],
     ).send()
 
