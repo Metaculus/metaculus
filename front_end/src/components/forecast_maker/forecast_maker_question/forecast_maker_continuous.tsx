@@ -2,7 +2,15 @@
 import { isNil } from "lodash";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import React, { FC, ReactNode, useEffect, useMemo, useState } from "react";
+import React, {
+  FC,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   createForecasts,
@@ -22,6 +30,7 @@ import {
   DistributionQuantileComponent,
   DistributionSlider,
   DistributionSliderComponent,
+  QuantileValue,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { sendPredictEvent } from "@/utils/analytics";
@@ -83,6 +92,7 @@ const ForecastMakerContinuous: FC<Props> = ({
   const [isDirty, setIsDirty] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const skipModeSyncRef = useRef(false);
   const previousForecast = question.my_forecasts?.latest;
   const activeForecast = isOpenQuestionPredicted(question)
     ? previousForecast
@@ -463,6 +473,34 @@ const ForecastMakerContinuous: FC<Props> = ({
     );
   }
 
+  const handleClipboardPaste = useCallback(
+    (
+      type: ContinuousForecastInputType,
+      components: DistributionSliderComponent[] | DistributionQuantileComponent
+    ) => {
+      // Only skip the mode-sync effect if this paste actually changes the
+      // mode — if it fires while already on the target mode, the effect
+      // never runs to consume the flag, and it would wrongly suppress the
+      // next genuine manual mode toggle.
+      if (type !== forecastInputMode) {
+        skipModeSyncRef.current = true;
+      }
+      if (type === ContinuousForecastInputType.Slider) {
+        setSliderDistributionComponents(
+          components as DistributionSliderComponent[]
+        );
+      } else {
+        setQuantileDistributionComponents(
+          (components as QuantileValue[]).map((c) => ({ ...c, isDirty: true }))
+        );
+      }
+      setForecastInputMode(type);
+      setIsDirty(true);
+      setShowSuccessBox(false);
+    },
+    [forecastInputMode]
+  );
+
   return (
     <>
       <ForecastExpirationModal
@@ -517,6 +555,12 @@ const ForecastMakerContinuous: FC<Props> = ({
         submitControls={SubmitControls}
         disabled={!canPredict}
         predictionMessage={predictionMessage}
+        clipboardData={{
+          sliderComponents: sliderDistributionComponents,
+          quantileComponents: quantileDistributionComponents,
+          onPaste: handleClipboardPaste,
+        }}
+        skipModeSyncRef={skipModeSyncRef}
       />
     </>
   );
