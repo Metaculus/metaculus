@@ -480,7 +480,7 @@ describe("generateScale", () => {
       ]);
     });
 
-    it("covers a lower hard boundary without mixing interior steps", () => {
+    it("keeps a nice lattice near a lower hard boundary", () => {
       const scale = generateScale({
         displayType: QuestionType.Numeric,
         axisLength: 216,
@@ -499,14 +499,15 @@ describe("generateScale", () => {
 
       expect(scale.ticks.length).toBeLessThanOrEqual(5);
       expect(scale.ticks.map((tick) => scale.tickFormat(tick))).toEqual([
-        "1899",
+        "2500",
+        "5000",
+        "7500",
         "10k",
-        "20k",
-        "30k",
+        "12.5k",
       ]);
     });
 
-    it("covers an upper value without exceeding the tick limit", () => {
+    it("keeps a nice lattice near an upper coverage value", () => {
       const scale = generateScale({
         displayType: QuestionType.Numeric,
         axisLength: 216,
@@ -525,10 +526,11 @@ describe("generateScale", () => {
 
       expect(scale.ticks.length).toBeLessThanOrEqual(5);
       expect(scale.ticks.map((tick) => scale.tickFormat(tick))).toEqual([
-        "1899",
+        "5000",
         "10k",
+        "15k",
         "20k",
-        "30k",
+        "25k",
       ]);
     });
 
@@ -584,10 +586,10 @@ describe("generateScale", () => {
       });
       const labels = scale.ticks.map((tick) => scale.tickFormat(tick));
 
-      expect(labels).toEqual(["-28.3", "-20", "0", "20", "25.2"]);
+      expect(labels).toEqual(["-20", "-10", "0", "10", "20"]);
     });
 
-    it("covers hard bounds without exceeding five ticks", () => {
+    it("uses a covering nice lattice without exceeding five ticks", () => {
       const scale = generateScale({
         displayType: QuestionType.Numeric,
         axisLength: 150,
@@ -604,7 +606,7 @@ describe("generateScale", () => {
       });
       const labels = scale.ticks.map((tick) => scale.tickFormat(tick));
 
-      expect(labels).toEqual(["0", "2", "4", "5"]);
+      expect(labels).toEqual(["0", "2.5", "5"]);
     });
 
     it("allows six ticks when six are requested", () => {

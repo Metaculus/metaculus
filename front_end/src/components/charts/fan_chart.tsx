@@ -975,7 +975,7 @@ function buildChartData({
     scaling,
     domain: finalOriginal,
     zoomedDomain: finalZoom,
-    forceTickCount: forceTickCount ?? (forFeedPage ? 3 : 5),
+    forceTickCount: forceTickCount ?? (forFeedPage ? 3 : 6),
     alwaysShowTicks: true,
     tickCoverageDomain: fixedInternal ? undefined : tickCoverageDomain,
   });

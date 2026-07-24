@@ -48,8 +48,8 @@ describe("buildNumericChartData", () => {
       labels: chart.yScale.ticks.map((tick) => chart.yScale.tickFormat(tick)),
       yDomain: chart.yDomain,
     }).toEqual({
-      labels: ["1899", "5000", "10k", "15k", "20k"],
-      yDomain: [0, 0.153267],
+      labels: ["5000", "10k", "15k", "20k"],
+      yDomain: [0.0042, 0.153267],
     });
   });
 

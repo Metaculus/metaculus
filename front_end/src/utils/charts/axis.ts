@@ -476,8 +476,9 @@ function niceTicksNearCount(
 
 /**
  * Finds the densest single-step nice lattice that covers the requested range
- * without exceeding the label count. Exact hard bounds are used only when an
- * outward-aligned tick would be illegal.
+ * without exceeding the label count. If hard bounds make full coverage
+ * impossible, use the closest legal aligned window instead of an exact,
+ * off-lattice boundary label.
  */
 function niceCoveringTicks({
   rangeBounds,
@@ -508,6 +509,9 @@ function niceCoveringTicks({
     )
   ).sort((a, b) => a - b);
   const tolerance = Math.max(1, Math.abs(lower), Math.abs(upper)) * 1e-12;
+  let bestFallback: number[] = [];
+  let bestFallbackStepDistance = Infinity;
+  let bestFallbackError = Infinity;
 
   for (const step of stepCandidates) {
     const minimumLegalIndex = Math.ceil((hardLower - tolerance) / step);
@@ -522,24 +526,69 @@ function niceCoveringTicks({
     );
     const firstTick = firstIndex * step;
     const lastTick = lastIndex * step;
-    const needsHardLower = firstTick > lower + tolerance;
-    const needsHardUpper = lastTick < upper - tolerance;
     const alignedCount = Math.max(0, lastIndex - firstIndex + 1);
-    const tickCount =
-      alignedCount + Number(needsHardLower) + Number(needsHardUpper);
+    const coversRange =
+      firstTick <= lower + tolerance && lastTick >= upper - tolerance;
 
-    if (tickCount < 2 || tickCount > count) continue;
-
-    return [
-      ...(needsHardLower ? [hardLower] : []),
-      ...range(firstIndex, lastIndex + 1).map((index) =>
+    if (coversRange && alignedCount >= 2 && alignedCount <= count) {
+      return range(firstIndex, lastIndex + 1).map((index) =>
         Number((index * step).toPrecision(12))
-      ),
-      ...(needsHardUpper ? [hardUpper] : []),
-    ];
+      );
+    }
+
+    const legalCount = maximumLegalIndex - minimumLegalIndex + 1;
+    const fallbackCount = Math.min(count, legalCount);
+    if (fallbackCount < 2) continue;
+
+    const idealStart =
+      (lower + upper - step * (fallbackCount - 1)) / (2 * step);
+    const fallbackStartCandidates = Array.from(
+      new Set([
+        Math.floor(idealStart),
+        Math.ceil(idealStart),
+        Math.floor(lower / step),
+        Math.ceil(upper / step) - (fallbackCount - 1),
+        minimumLegalIndex,
+        maximumLegalIndex - (fallbackCount - 1),
+      ])
+    ).map((index) =>
+      Math.max(
+        minimumLegalIndex,
+        Math.min(maximumLegalIndex - (fallbackCount - 1), index)
+      )
+    );
+    const fallbackStart = fallbackStartCandidates.reduce((best, candidate) => {
+      const error = (index: number) =>
+        Math.abs(index * step - lower) +
+        Math.abs((index + fallbackCount - 1) * step - upper);
+      const candidateError = error(candidate);
+      const bestError = error(best);
+      if (candidateError < bestError) return candidate;
+      if (candidateError === bestError && candidate > best) return candidate;
+      return best;
+    });
+    const fallback = range(fallbackStart, fallbackStart + fallbackCount).map(
+      (index) => Number((index * step).toPrecision(12))
+    );
+    const fallbackError =
+      Math.abs((fallback[0] as number) - lower) +
+      Math.abs((fallback.at(-1) as number) - upper);
+    const fallbackStepDistance = Math.abs(Math.log(step / idealStep));
+
+    if (
+      fallbackStepDistance < bestFallbackStepDistance ||
+      (fallbackStepDistance === bestFallbackStepDistance &&
+        (fallbackError < bestFallbackError ||
+          (fallbackError === bestFallbackError &&
+            fallback.length > bestFallback.length)))
+    ) {
+      bestFallback = fallback;
+      bestFallbackStepDistance = fallbackStepDistance;
+      bestFallbackError = fallbackError;
+    }
   }
 
-  return [lower, upper];
+  return bestFallback.length ? bestFallback : [lower, upper];
 }
 
 /** Keeps an aligned nice-tick sequence inside a question's hard bounds. */
@@ -1334,10 +1383,16 @@ export function generateScale({
           unscaleNominalLocation(value, rangeScaling),
           domainScaling
         );
-      const relevantRange: Tuple<number> = [
-        Math.min(zoomedRangeMin, zoomedRangeMax, ...(tickCoverageRange ?? [])),
-        Math.max(zoomedRangeMin, zoomedRangeMax, ...(tickCoverageRange ?? [])),
-      ];
+      const coverageSpan = tickCoverageRange
+        ? Math.abs(tickCoverageRange[1] - tickCoverageRange[0])
+        : 0;
+      const relevantRange: Tuple<number> =
+        tickCoverageRange && coverageSpan > Number.EPSILON
+          ? tickCoverageRange
+          : [
+              Math.min(zoomedRangeMin, zoomedRangeMax),
+              Math.max(zoomedRangeMin, zoomedRangeMax),
+            ];
       const niceMajorRangeTicks =
         displayType === QuestionType.Numeric
           ? niceCoveringTicks({
