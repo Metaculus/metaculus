@@ -56,6 +56,34 @@ def serialize_aggregate_forecast(
     return data
 
 
+def _get_latest_aggregate_forecast(
+    question: Question, forecasts: list[AggregateForecast]
+) -> AggregateForecast | None:
+    """
+    Pick the aggregate forecast used as the "latest"/default CP preview.
+
+    For questions that have effectively closed (closed or resolved), this is the last
+    forecast that was live at ``actual_close_time`` rather than the most recent one.
+    Questions resolved as of a past date can keep accumulating aggregate forecasts after
+    that date, and the default CP preview must reflect the value at resolution/close
+    time, not those later aggregations. ``forecasts`` are expected in ascending
+    ``start_time`` order.
+    """
+    if not forecasts:
+        return None
+
+    cutoff = question.actual_close_time
+    if cutoff is None:
+        return forecasts[-1]
+
+    eligible = [f for f in forecasts if f.start_time <= cutoff]
+    # If every forecast starts after the cutoff (e.g. a closed/resolved question whose
+    # only aggregations landed after it closed), expose no preview rather than a
+    # post-close forecast — matching get_last_aggregated_forecasts_for_questions, which
+    # excludes those forecasts on the feed path.
+    return eligible[-1] if eligible else None
+
+
 @sentry_sdk.trace
 def serialize_question_aggregations(
     question: Question,
@@ -133,10 +161,22 @@ def serialize_question_aggregations(
                 )
                 for forecast in forecasts
             ]
-            serialized_data[method]["latest"] = (
-                serialize_aggregate_forecast(forecasts[-1], question.type, full=True)
-                if forecasts
-                else None
-            )
+            latest_forecast = _get_latest_aggregate_forecast(question, forecasts)
+            if latest_forecast is not None:
+                latest_data = serialize_aggregate_forecast(
+                    latest_forecast, question.type, full=True
+                )
+                # For a closed/resolved question the "latest" preview is the final CP
+                # capped at actual_close_time. That forecast may carry a real past
+                # end_time (a later aggregation closed it off, e.g. a question resolved
+                # as of a past date that kept accumulating forecasts). The frontend gates
+                # CP previews/PDFs on end_time liveness, so present it as the active final
+                # CP — matching how the last live aggregation was shown before capping —
+                # to keep those previews rendering.
+                if question.actual_close_time is not None:
+                    latest_data["end_time"] = None
+                serialized_data[method]["latest"] = latest_data
+            else:
+                serialized_data[method]["latest"] = None
 
     return dict(serialized_data)  # convert defaultdict to dict
