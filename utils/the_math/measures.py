@@ -16,7 +16,10 @@ def weighted_percentile_2d(
     weights: Weights | None = None,
     percentiles: Percentiles = None,
 ) -> Percentiles:
-    values = np.array(values)
+    # asarray: `values` itself is never mutated below (only the explicit
+    # `sorted_values` copy is), so reuse an already-converted shared array
+    # instead of copying it again here.
+    values = np.asarray(values)
     sorted_values = values.copy()  # avoid side effects
 
     if weights is None:

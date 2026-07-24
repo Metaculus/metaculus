@@ -1,20 +1,25 @@
+import random
+import time
+from unittest.mock import patch
+
 import pytest
 import numpy as np
-from datetime import datetime, timezone as dt_timezone
+from datetime import datetime, timedelta, timezone as dt_timezone
 
 from posts.models import Post
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.types import AggregationMethod
-from questions.models import Question, AggregateForecast
-from scoring.models import Leaderboard, LeaderboardEntry, Score
-from scoring.constants import ScoreTypes
+from questions.models import Question, AggregateForecast, Forecast
+from scoring.models import Leaderboard, LeaderboardEntry, Reputation
+from tests.unit.test_questions.factories import create_question
 from users.models import User
 from utils.the_math.aggregations import (
     AGGREGATIONS,
     summarize_array,
     ForecastSet,
     get_aggregation_by_name,
+    get_aggregation_history,
     UnweightedAggregation,
     RecencyWeightedAggregation,
     ProAggregation,
@@ -23,6 +28,8 @@ from utils.the_math.aggregations import (
     GoldMedalistsAggregation,
     JoinedBeforeDateAggregation,
     SingleAggregation,
+    YearPerformanceAggregation,
+    YearPerformanceReputationWeighted,
     compute_weighted_semi_standard_deviations,
 )
 from utils.typing import (
@@ -697,21 +704,18 @@ class TestAggregations:
             author=high_rep_user,
         )
 
-        Score.objects.create(
+        Reputation.objects.create(
             user=high_rep_user,
-            question=question_binary,
-            score=3000,
-            coverage=1,
-            score_type=ScoreTypes.PEER,
+            time=datetime(2020, 1, 1, tzinfo=dt_timezone.utc),
+            type=Reputation.ReputationTypes.AVERAGE_PEER_SCORE,
+            value=3000 / 31,
         )
-        Score.objects.create(
+        Reputation.objects.create(
             user=low_rep_user,
-            question=question_binary,
-            score=900,
-            coverage=1,
-            score_type=ScoreTypes.PEER,
+            time=datetime(2020, 1, 1, tzinfo=dt_timezone.utc),
+            type=Reputation.ReputationTypes.AVERAGE_PEER_SCORE,
+            value=900 / 31,
         )
-        Score.objects.update(edited_at=datetime(2020, 1, 1, tzinfo=dt_timezone.utc))
 
         timestep = datetime(2024, 1, 1, tzinfo=dt_timezone.utc)
         high_forecast = [0.2, 0.8]
@@ -731,6 +735,55 @@ class TestAggregations:
 
         assert new_aggregation
         assert new_aggregation.method == AggregationMethod.SINGLE_AGGREGATION
+        assert new_aggregation.forecaster_count == 2
+        assert new_aggregation.start_time == timestep
+        # aggregate should be closer to the user with a higher reputation
+        high_value = high_forecast[1]
+        low_value = low_forecast[1]
+        aggregate_value = new_aggregation.forecast_values[1]
+        assert abs(high_value - aggregate_value) < abs(low_value - aggregate_value)
+
+    def test_YearPerformanceAggregation(self, question_binary: Question):
+        question_binary.open_time = datetime(2022, 1, 1, tzinfo=dt_timezone.utc)
+        question_binary.scheduled_close_time = datetime(
+            2025, 1, 1, tzinfo=dt_timezone.utc
+        )
+        question_binary.save()
+
+        high_rep_user = User.objects.create(username="high_rep_user")
+        low_rep_user = User.objects.create(username="low_rep_user")
+
+        Reputation.objects.create(
+            user=high_rep_user,
+            time=datetime(2020, 1, 1, tzinfo=dt_timezone.utc),
+            type=Reputation.ReputationTypes.YEAR_PERFORMANCE,
+            value=3.0,
+        )
+        Reputation.objects.create(
+            user=low_rep_user,
+            time=datetime(2020, 1, 1, tzinfo=dt_timezone.utc),
+            type=Reputation.ReputationTypes.YEAR_PERFORMANCE,
+            value=0.3,
+        )
+
+        timestep = datetime(2024, 1, 1, tzinfo=dt_timezone.utc)
+        high_forecast = [0.2, 0.8]
+        low_forecast = [0.8, 0.2]
+        forecast_set = ForecastSet(
+            forecasts_values=[low_forecast, high_forecast],
+            timestep=timestep,
+            forecaster_ids=[low_rep_user.id, high_rep_user.id],
+            timesteps=[timestep, timestep],
+        )
+
+        aggregation = YearPerformanceAggregation(
+            question=question_binary,
+            all_forecaster_ids=[low_rep_user.id, high_rep_user.id],
+        )
+        new_aggregation = aggregation.calculate_aggregation_entry(forecast_set)
+
+        assert new_aggregation
+        assert new_aggregation.method == "year_performance"
         assert new_aggregation.forecaster_count == 2
         assert new_aggregation.start_time == timestep
         # aggregate should be closer to the user with a higher reputation
@@ -954,15 +1007,368 @@ class TestAggregations:
         assert new_aggregation.start_time == timestep
 
 
+class TestAggregationSpeed:
+    """Rough timing checks for `get_aggregation_history` end-to-end.
+
+    Not strict benchmarks (no fixed pass/fail threshold) - just a simple,
+    isolated setup per aggregation method so we can eyeball how each one
+    performs on its own, without other aggregations' data/setup muddying
+    the picture.
+    """
+
+    open_time = datetime(2022, 1, 1, tzinfo=dt_timezone.utc)
+    scheduled_close_time = datetime(2025, 1, 1, tzinfo=dt_timezone.utc)
+    forecast_start_time = datetime(2023, 1, 1, tzinfo=dt_timezone.utc)
+
+    def _setup_question(self, question_binary: Question) -> Question:
+        question_binary.open_time = self.open_time
+        question_binary.scheduled_close_time = self.scheduled_close_time
+        question_binary.save()
+        return question_binary
+
+    def _time_history(self, question: Question, method: str):
+        start = time.perf_counter()
+        result = get_aggregation_history(
+            question=question,
+            aggregation_methods=[method],
+        )
+        elapsed = time.perf_counter() - start
+        print(f"\n{method} get_aggregation_history: {elapsed:.6f}s")
+        return result
+
+    def test_RecencyWeightedAggregation_speed(self, question_binary: Question):
+        question = self._setup_question(question_binary)
+        user_1 = User.objects.create(username="user_1")
+        user_2 = User.objects.create(username="user_2")
+
+        Forecast.objects.create(
+            question=question,
+            author=user_1,
+            probability_yes=0.8,
+            start_time=self.forecast_start_time,
+            end_time=None,
+        )
+        Forecast.objects.create(
+            question=question,
+            author=user_2,
+            probability_yes=0.2,
+            start_time=self.forecast_start_time,
+            end_time=None,
+        )
+
+        result = self._time_history(question, AggregationMethod.RECENCY_WEIGHTED)
+        assert result[AggregationMethod.RECENCY_WEIGHTED]
+
+    def test_SingleAggregation_speed(self, question_binary: Question):
+        question = self._setup_question(question_binary)
+        user_1 = User.objects.create(username="user_1")
+        user_2 = User.objects.create(username="user_2")
+
+        project, _ = Project.objects.get_or_create(
+            name="test_project",
+            visibility="normal",
+            type=Project.ProjectTypes.TOURNAMENT,
+            default_permission=ObjectPermission.FORECASTER,
+        )
+        Post.objects.create(
+            default_project=project,
+            question=question,
+            author=user_1,
+        )
+
+        Reputation.objects.create(
+            user=user_1,
+            time=datetime(2020, 1, 1, tzinfo=dt_timezone.utc),
+            type=Reputation.ReputationTypes.AVERAGE_PEER_SCORE,
+            value=3000 / 31,
+        )
+        Reputation.objects.create(
+            user=user_2,
+            time=datetime(2020, 1, 1, tzinfo=dt_timezone.utc),
+            type=Reputation.ReputationTypes.AVERAGE_PEER_SCORE,
+            value=900 / 31,
+        )
+
+        Forecast.objects.create(
+            question=question,
+            author=user_1,
+            probability_yes=0.8,
+            start_time=self.forecast_start_time,
+            end_time=None,
+        )
+        Forecast.objects.create(
+            question=question,
+            author=user_2,
+            probability_yes=0.2,
+            start_time=self.forecast_start_time,
+            end_time=None,
+        )
+
+        result = self._time_history(question, AggregationMethod.SINGLE_AGGREGATION)
+        assert result[AggregationMethod.SINGLE_AGGREGATION]
+
+    def test_YearPerformanceAggregation_speed(self, question_binary: Question):
+        question = self._setup_question(question_binary)
+        user_1 = User.objects.create(username="user_1")
+        user_2 = User.objects.create(username="user_2")
+
+        Reputation.objects.create(
+            user=user_1,
+            time=datetime(2020, 1, 1, tzinfo=dt_timezone.utc),
+            type=Reputation.ReputationTypes.YEAR_PERFORMANCE,
+            value=3.0,
+        )
+        Reputation.objects.create(
+            user=user_2,
+            time=datetime(2020, 1, 1, tzinfo=dt_timezone.utc),
+            type=Reputation.ReputationTypes.YEAR_PERFORMANCE,
+            value=0.3,
+        )
+
+        Forecast.objects.create(
+            question=question,
+            author=user_1,
+            probability_yes=0.8,
+            start_time=self.forecast_start_time,
+            end_time=None,
+        )
+        Forecast.objects.create(
+            question=question,
+            author=user_2,
+            probability_yes=0.2,
+            start_time=self.forecast_start_time,
+            end_time=None,
+        )
+
+        result = self._time_history(question, "year_performance")
+        assert result["year_performance"]
+
+
+class TestReputationPrecomputeEquivalence:
+    """`ReputationWeighted` can either precompute reputation weights for a
+    whole known forecast_history up front (batched `np.searchsorted` per
+    user) or look them up live per call (per-(timestep, forecaster) bisect).
+    These must agree exactly regardless of which path is taken.
+    """
+
+    def test_precomputed_matches_live_lookup(self, question_binary: Question):
+        question_binary.open_time = datetime(2015, 1, 1, tzinfo=dt_timezone.utc)
+        question_binary.scheduled_close_time = datetime(2026, 1, 1, tzinfo=dt_timezone.utc)
+        question_binary.save()
+
+        rng = random.Random(99)
+        users = [User.objects.create(username=f"precompute_user_{i}") for i in range(25)]
+
+        reputations = []
+        for user in users:
+            n_entries = rng.randint(0, 5)
+            for _ in range(n_entries):
+                reputations.append(
+                    Reputation(
+                        user=user,
+                        time=datetime(2015, 1, 1, tzinfo=dt_timezone.utc)
+                        + timedelta(days=rng.randint(0, 4000)),
+                        type=Reputation.ReputationTypes.YEAR_PERFORMANCE,
+                        value=rng.uniform(0.01, 5.0),
+                    )
+                )
+        Reputation.objects.bulk_create(reputations)
+
+        user_ids = [u.id for u in users]
+
+        # Build a synthetic forecast history: each timestep has a random
+        # subset of users active (some users appear at many timesteps, some
+        # at none, some only once - all edge cases for the batching).
+        forecast_history = []
+        for _ in range(40):
+            timestep = datetime(2015, 1, 1, tzinfo=dt_timezone.utc) + timedelta(
+                days=rng.randint(0, 4000)
+            )
+            active_ids = rng.sample(user_ids, k=rng.randint(0, len(user_ids)))
+            forecast_history.append(
+                ForecastSet(
+                    forecasts_values=[[0.5, 0.5]] * len(active_ids),
+                    timestep=timestep,
+                    forecaster_ids=active_ids,
+                    timesteps=[timestep] * len(active_ids),
+                )
+            )
+
+        live = YearPerformanceReputationWeighted(
+            question=question_binary,
+            all_forecaster_ids=user_ids,
+            forecast_history=None,
+        )
+        precomputed = YearPerformanceReputationWeighted(
+            question=question_binary,
+            all_forecaster_ids=user_ids,
+            forecast_history=forecast_history,
+        )
+
+        for forecast_set in forecast_history:
+            live_values = live.get_reputations(forecast_set)
+            precomputed_values = precomputed.get_reputations(forecast_set)
+            assert np.allclose(live_values, precomputed_values), (
+                f"mismatch at timestep={forecast_set.timestep}"
+            )
+
+
+class TestAggregationHeavyLoad:
+    """Stress tests for `get_aggregation_history` under a large, non-minimized
+    forecast history: ~1000 users with ~3000 forecasts total on a single
+    numeric question (continuous_cdf of size 201), run with minimize=False
+    and include_stats=True (i.e. the most expensive realistic configuration)
+    to get a feel for worst-case timing.
+    """
+
+    N_USERS = 1000
+    N_FORECASTS = 3000
+    INBOUND_OUTCOME_COUNT = 200
+
+    open_time = datetime(2015, 1, 1, tzinfo=dt_timezone.utc)
+    scheduled_close_time = datetime(2026, 1, 1, tzinfo=dt_timezone.utc)
+
+    def _setup_question(self) -> Question:
+        return create_question(
+            question_type=Question.QuestionType.NUMERIC,
+            inbound_outcome_count=self.INBOUND_OUTCOME_COUNT,
+            range_min=0,
+            range_max=self.INBOUND_OUTCOME_COUNT,
+            open_lower_bound=False,
+            open_upper_bound=False,
+            open_time=self.open_time,
+            scheduled_close_time=self.scheduled_close_time,
+        )
+
+    def _create_users(self) -> list[User]:
+        User.objects.bulk_create(
+            [User(username=f"heavy_user_{i}") for i in range(self.N_USERS)]
+        )
+        return list(User.objects.filter(username__startswith="heavy_user_"))
+
+    def _random_cdf(self, rng: random.Random) -> list[float]:
+        # Monotonically increasing CDF of size inbound_outcome_count + 1,
+        # from 0.0 (closed lower bound) to 1.0 (closed upper bound).
+        size = self.INBOUND_OUTCOME_COUNT + 1
+        increments = [rng.random() + 1e-6 for _ in range(size - 1)]
+        total = sum(increments)
+        cdf = [0.0]
+        running = 0.0
+        for increment in increments:
+            running += increment / total
+            cdf.append(running)
+        cdf[-1] = 1.0
+        return cdf
+
+    def _create_forecasts(self, question: Question, users: list[User]) -> None:
+        rng = random.Random(42)
+        span = (self.scheduled_close_time - self.open_time).total_seconds()
+        base_count, remainder = divmod(self.N_FORECASTS, len(users))
+        forecasts = []
+        for i, user in enumerate(users):
+            count = base_count + (1 if i < remainder else 0)
+            offsets = sorted(rng.uniform(0, span) for _ in range(count))
+            times = [self.open_time + timedelta(seconds=offset) for offset in offsets]
+            for j, forecast_start_time in enumerate(times):
+                forecast_end_time = times[j + 1] if j + 1 < len(times) else None
+                forecasts.append(
+                    Forecast(
+                        question=question,
+                        author=user,
+                        continuous_cdf=self._random_cdf(rng),
+                        start_time=forecast_start_time,
+                        end_time=forecast_end_time,
+                    )
+                )
+        Forecast.objects.bulk_create(forecasts)
+
+    def _time_history(self, question: Question, method: str):
+        start = time.perf_counter()
+        result = get_aggregation_history(
+            question=question,
+            aggregation_methods=[method],
+            minimize=False,
+            include_stats=True,
+        )
+        elapsed = time.perf_counter() - start
+        print(
+            f"\n{method} get_aggregation_history "
+            f"(~{self.N_USERS} users, ~{self.N_FORECASTS} "
+            f"forecasts, numeric/cdf-{self.INBOUND_OUTCOME_COUNT + 1}, "
+            f"minimize=False, include_stats=True): {elapsed:.4f}s"
+        )
+        return result
+
+    def test_RecencyWeightedAggregation_heavy_load(self):
+        question = self._setup_question()
+        users = self._create_users()
+        self._create_forecasts(question, users)
+
+        result = self._time_history(question, AggregationMethod.RECENCY_WEIGHTED)
+        assert result[AggregationMethod.RECENCY_WEIGHTED]
+
+    def test_SingleAggregation_heavy_load(self):
+        question = self._setup_question()
+        users = self._create_users()
+
+        project, _ = Project.objects.get_or_create(
+            name="heavy_load_project",
+            visibility="normal",
+            type=Project.ProjectTypes.TOURNAMENT,
+            default_permission=ObjectPermission.FORECASTER,
+        )
+        Post.objects.create(
+            default_project=project,
+            question=question,
+            author=users[0],
+        )
+
+        rng = random.Random(7)
+        Reputation.objects.bulk_create(
+            [
+                Reputation(
+                    user=user,
+                    time=datetime(2014, 6, 1, tzinfo=dt_timezone.utc),
+                    type=Reputation.ReputationTypes.AVERAGE_PEER_SCORE,
+                    value=max(rng.uniform(-1000, 3000) / 31, 1e-6),
+                )
+                for user in users
+            ]
+        )
+
+        self._create_forecasts(question, users)
+
+        result = self._time_history(question, AggregationMethod.SINGLE_AGGREGATION)
+        assert result[AggregationMethod.SINGLE_AGGREGATION]
+
+    def test_YearPerformanceAggregation_heavy_load(self):
+        question = self._setup_question()
+        users = self._create_users()
+
+        rng = random.Random(13)
+        Reputation.objects.bulk_create(
+            [
+                Reputation(
+                    user=user,
+                    time=datetime(2014, 6, 1, tzinfo=dt_timezone.utc),
+                    type=Reputation.ReputationTypes.YEAR_PERFORMANCE,
+                    value=rng.uniform(0.01, 5.0),
+                )
+                for user in users
+            ]
+        )
+
+        self._create_forecasts(question, users)
+
+        result = self._time_history(question, "year_performance")
+        assert result["year_performance"]
+
+
 class TestGetAggregationHistoryCutoff:
     @pytest.mark.django_db
     def test_scheduled_close_cutoff_keeps_both_forecasters(
         self, question_binary: Question
     ):
-        from unittest.mock import patch
-        from questions.models import Forecast
-        from utils.the_math.aggregations import get_aggregation_history
-
         open_time = datetime(2025, 1, 1, tzinfo=dt_timezone.utc)
         scheduled_close = datetime(2025, 6, 1, tzinfo=dt_timezone.utc)
         forecast_time = datetime(2025, 2, 1, tzinfo=dt_timezone.utc)

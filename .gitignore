@@ -166,3 +166,6 @@ trace.zip
 # Email preview tools (local development only)
 email_previews/
 .email-tools/
+
+# benchmark_aggregations fast-scoring disk cache
+scoring/_fast_scoring_cache/

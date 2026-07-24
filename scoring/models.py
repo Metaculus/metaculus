@@ -439,6 +439,34 @@ class LeaderboardsRanksEntry(TimeStampedModel):
         unique_together = ["user", "rank_type"]
 
 
+MINIMUM_REPUTATION = 1e-6
+
+
+class Reputation(TimeStampedModel):
+    # typing
+    objects: models.Manager["Reputation"]
+    user_id: int
+
+    class ReputationTypes(models.TextChoices):
+        YEAR_PERFORMANCE = "year_performance"
+        AVERAGE_PEER_SCORE = "average_peer_score"
+        PEER_THRESHOLD_NEG20_COVERAGE_50 = "peer_threshold_-20_coverage_50"
+        PEER_CONTINUOUS_WITH_COVERAGE = "peer_continuous_with_coverage"
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
+    time = models.DateTimeField()
+    type = models.CharField(
+        max_length=200, choices=ReputationTypes.choices, db_index=True
+    )
+    value = models.FloatField()
+
+    def __str__(self):
+        return (
+            f"{self.type} Reputation for {self.user.username} at "
+            f"{self.time}: {self.value}"
+        )
+
+
 class MedalExclusionRecord(models.Model):
     id: int
     objects: models.Manager["MedalExclusionRecord"]
