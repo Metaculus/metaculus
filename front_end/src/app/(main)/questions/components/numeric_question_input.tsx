@@ -19,6 +19,8 @@ import {
 import { ContinuousQuestionType, QuestionType } from "@/types/question";
 import { getQuestionDraft } from "@/utils/drafts/questionForm";
 
+import ViewportRender from "./viewport_render";
+
 const NumericQuestionInput: React.FC<{
   onChange: ({
     range_min,
@@ -287,14 +289,24 @@ const NumericQuestionInput: React.FC<{
         );
         setZeroPoint(isNil(draftZeroPoint) ? zeroPoint : draftZeroPoint);
       } else {
-        onChange({
-          range_min: mn as number,
-          range_max: mx as number,
-          zero_point: zeroPoint,
-          open_lower_bound: openLowerBound,
-          open_upper_bound: openUpperBound,
-          inbound_outcome_count: inboundOutcomeCount,
-        });
+        const hasInitialValueChanges =
+          !Object.is(mn, defaultMin) ||
+          !Object.is(mx, defaultMax) ||
+          !Object.is(zeroPoint, defaultZeroPoint) ||
+          !Object.is(openLowerBound, defaultOpenLowerBound) ||
+          !Object.is(openUpperBound, defaultOpenUpperBound) ||
+          !Object.is(inboundOutcomeCount, defaultInboundOutcomeCount);
+
+        if (hasInitialValueChanges) {
+          onChange({
+            range_min: mn as number,
+            range_max: mx as number,
+            zero_point: zeroPoint,
+            open_lower_bound: openLowerBound,
+            open_upper_bound: openUpperBound,
+            inbound_outcome_count: inboundOutcomeCount,
+          });
+        }
         shouldUpdateParrent.current = true;
       }
       isMounted.current = true;
@@ -573,7 +585,9 @@ const NumericQuestionInput: React.FC<{
         {errors.length === 0 && !isNil(max) && !isNil(min) && (
           <div>
             Example input chart:
-            <ExampleContinuousInput question={question} />
+            <ViewportRender>
+              <ExampleContinuousInput question={question} />
+            </ViewportRender>
           </div>
         )}
       </div>
