@@ -19,7 +19,6 @@ import SimplifiedSignupModal from "@/components/simplified_signup_modal";
 import AppThemeProvider from "@/components/theme_provider";
 import { TailwindIndicator } from "@/components/ui/tailwind-indicator";
 import { METAC_COLORS } from "@/constants/colors";
-import { AUTOTRANSLATION_COOKIE_NAME } from "@/constants/experiments";
 import { FEED_LAYOUT_COOKIE } from "@/constants/posts_feed";
 import AuthProvider from "@/contexts/auth_context";
 import FeedLayoutProvider from "@/contexts/feed_layout_context";
@@ -30,7 +29,6 @@ import CSPostHogProvider from "@/contexts/posthog_context";
 import PublicSettingsProvider from "@/contexts/public_settings_context";
 import { TranslationsBannerProvider } from "@/contexts/translations_banner_context";
 import ServerProfileApi from "@/services/api/profile/profile.server";
-import { parseAssignment } from "@/services/autotranslation_experiment";
 import { CSRF_COOKIE_NAME } from "@/services/csrf";
 import { LanguageService } from "@/services/language_service";
 import { CurrentUser } from "@/types/users";
@@ -94,9 +92,6 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const csrfToken = cookieStore.get(CSRF_COOKIE_NAME)?.value || null;
   const feedLayoutCookie = cookieStore.get(FEED_LAYOUT_COOKIE)?.value;
-  const autotranslationAssignment = parseAssignment(
-    cookieStore.get(AUTOTRANSLATION_COOKIE_NAME)?.value
-  );
   const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
@@ -127,12 +122,7 @@ export default async function RootLayout({
         <NuqsAdapter>
           <QueryClientProviderWrapper>
             <PolyfillProvider>
-              <CSPostHogProvider
-                locale={locale}
-                autotranslationAssignment={
-                  autotranslationAssignment ?? undefined
-                }
-              >
+              <CSPostHogProvider locale={locale}>
                 <AuthProvider user={user} locale={locale} csrfToken={csrfToken}>
                   <AppThemeProvider nonce={nonce}>
                     <NextIntlClientProvider messages={messages}>

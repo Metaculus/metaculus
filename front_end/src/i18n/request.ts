@@ -4,8 +4,8 @@ import { getRequestConfig } from "next-intl/server";
 import {
   AUTOTRANSLATION_COOKIE_NAME,
   AUTOTRANSLATION_HEADER,
+  parseAssignment,
 } from "@/constants/experiments";
-import { parseAssignment } from "@/services/autotranslation_experiment";
 import {
   DEFAULT_LOCALE,
   LOCALE_COOKIE_NAME,

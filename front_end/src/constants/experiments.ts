@@ -14,3 +14,29 @@ export type AutotranslationAssignment = {
 };
 
 export const AUTOTRANSLATION_TARGET_LOCALES = ["cs", "es", "pt", "zh", "zh-TW"];
+
+export function parseAssignment(
+  raw: string | undefined
+): AutotranslationAssignment | null {
+  if (!raw) return null;
+
+  const separatorIndex = raw.lastIndexOf(":");
+  if (separatorIndex <= 0) return null;
+
+  try {
+    const distinctId = decodeURIComponent(raw.slice(0, separatorIndex));
+    const variant = raw.slice(separatorIndex + 1) as AutotranslationVariant;
+    if (!distinctId || !AUTOTRANSLATION_VARIANTS.includes(variant)) {
+      return null;
+    }
+    return { distinctId, variant };
+  } catch {
+    return null;
+  }
+}
+
+export function serializeAssignment(
+  assignment: AutotranslationAssignment
+): string {
+  return `${encodeURIComponent(assignment.distinctId)}:${assignment.variant}`;
+}

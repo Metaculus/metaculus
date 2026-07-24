@@ -7,43 +7,17 @@ import {
   AUTOTRANSLATION_COOKIE_NAME,
   AUTOTRANSLATION_FLAG_KEY,
   AUTOTRANSLATION_TARGET_LOCALES,
-  AUTOTRANSLATION_VARIANTS,
   AutotranslationAssignment,
-  AutotranslationVariant,
+  parseAssignment,
+  serializeAssignment,
 } from "@/constants/experiments";
 import { AuthCookieReader } from "@/services/auth_tokens";
 import {
   LOCALE_COOKIE_NAME,
   negotiateLocale,
 } from "@/services/language_service";
-import { getFeatureFlagVariantForDistinctId } from "@/utils/posthog_node_client";
+import { getFeatureFlagVariantForDistinctId } from "@/utils/posthog.server";
 import { getPublicSettings } from "@/utils/public_settings.server";
-
-export function parseAssignment(
-  raw: string | undefined
-): AutotranslationAssignment | null {
-  if (!raw) return null;
-
-  const separatorIndex = raw.lastIndexOf(":");
-  if (separatorIndex <= 0) return null;
-
-  try {
-    const distinctId = decodeURIComponent(raw.slice(0, separatorIndex));
-    const variant = raw.slice(separatorIndex + 1) as AutotranslationVariant;
-    if (!distinctId || !AUTOTRANSLATION_VARIANTS.includes(variant)) {
-      return null;
-    }
-    return { distinctId, variant };
-  } catch {
-    return null;
-  }
-}
-
-export function serializeAssignment(
-  assignment: AutotranslationAssignment
-): string {
-  return `${encodeURIComponent(assignment.distinctId)}:${assignment.variant}`;
-}
 
 export function setAssignmentCookieInResponse(
   response: NextResponse,
@@ -54,7 +28,8 @@ export function setAssignmentCookieInResponse(
     serializeAssignment(assignment),
     {
       maxAge: AUTOTRANSLATION_COOKIE_MAX_AGE,
-      httpOnly: true,
+      // Readable by the PostHog provider, which bootstraps from it client-side
+      httpOnly: false,
       secure: true,
       sameSite: "lax",
       path: "/",

@@ -106,20 +106,9 @@ const LanguageMenu: FC<Props> = ({ className }) => {
 export const SetOriginalLanguage = (
   params: URLSearchParams,
   router: AppRouterInstance,
-  pathname: string,
-  currentLocale: string
+  pathname: string
 ) => {
   const originalLangCode = "original";
-  // Beacon transport so the event survives the hard navigation below
-  posthog.capture(
-    "language_changed",
-    {
-      previous_language: currentLocale,
-      new_language: originalLangCode,
-      source: "content_translated_banner",
-    },
-    { transport: "sendBeacon" }
-  );
   params.delete("locale");
   // TODO: fix this too. See more details above, at the previous call
   window.location.href = pathname + "?locale=" + originalLangCode;
