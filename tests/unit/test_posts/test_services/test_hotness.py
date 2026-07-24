@@ -1,4 +1,5 @@
 import datetime
+import math
 
 import pytest
 from django.utils.timezone import make_aware
@@ -6,7 +7,7 @@ from freezegun import freeze_time
 
 from comments.services.common import create_comment
 from misc.models import PostArticle
-from posts.models import PostActivityBoost, Vote, Post
+from posts.models import PostActivityBoost, Vote
 from posts.services.common import vote_post
 from posts.services.hotness import (
     decay,
@@ -16,6 +17,7 @@ from posts.services.hotness import (
     _compute_hotness_relevant_news,
     compute_hotness_total_boosts,
     compute_post_hotness,
+    explain_post_news_hotness,
     handle_post_boost,
 )
 from questions.models import Question
@@ -25,7 +27,6 @@ from tests.unit.test_questions.factories import (
     create_question,
     factory_group_of_questions,
 )
-from tests.unit.utils import datetime_aware, mock_psql_now
 
 
 @pytest.mark.parametrize(
@@ -151,16 +152,102 @@ def test_compute_hotness_relevant_news(post_binary_public):
     assert _compute_hotness_relevant_news(post_binary_public) == 0
 
     with freeze_time("2025-04-11"):
+        # relevance max(0, 0.42 - 0.4) = 0.02, decayed by (7 / 3.5) ** -2 = 0.25
         PostArticle.objects.create(
             post=post_binary_public,
             article=factory_itn_article(),
             distance=0.4,
         )
+        # relevance max(0, 0.42 - 0.1) = 0.32, decayed by 0.25
         PostArticle.objects.create(
             post=post_binary_public, article=factory_itn_article(), distance=0.1
         )
 
-    assert _compute_hotness_relevant_news(post_binary_public) == 0.125
+    assert _compute_hotness_relevant_news(post_binary_public) == pytest.approx(0.085)
+
+
+@freeze_time("2025-04-18")
+def test_compute_hotness_relevant_news_deduplicates_article_clusters(
+    post_binary_public,
+):
+    # Two near-duplicate articles (same cluster) plus a distinct one. The cluster
+    # contributes only its single strongest match, not the sum of both.
+    PostArticle.objects.create(
+        post=post_binary_public,
+        article=factory_itn_article(cluster_id=1),
+        distance=0.1,  # relevance 0.32
+    )
+    PostArticle.objects.create(
+        post=post_binary_public,
+        article=factory_itn_article(cluster_id=1),
+        distance=0.2,  # relevance 0.22, dropped in favour of the closer one above
+    )
+    PostArticle.objects.create(
+        post=post_binary_public,
+        article=factory_itn_article(cluster_id=2),
+        distance=0.3,  # relevance 0.12
+    )
+
+    # 0.32 (best of cluster 1) + 0.12 (cluster 2); no time decay (created today)
+    assert _compute_hotness_relevant_news(post_binary_public) == pytest.approx(0.44)
+
+
+@freeze_time("2025-04-18")
+def test_compute_hotness_relevant_news_penalizes_broad_articles(post_binary_public):
+    # A generic article matched to many posts is discounted by the breadth
+    # (inverse document frequency) factor 1 / ln(e + post_count).
+    PostArticle.objects.create(
+        post=post_binary_public,
+        article=factory_itn_article(post_count=100),
+        distance=0.1,  # relevance 0.32
+    )
+
+    expected = 0.32 / math.log(math.e + 100)
+    assert _compute_hotness_relevant_news(post_binary_public) == pytest.approx(expected)
+
+
+@freeze_time("2025-04-18")
+def test_explain_post_news_hotness(post_binary_public):
+    # Two near-duplicate articles (cluster 1) plus a distinct one (cluster 2).
+    PostArticle.objects.create(
+        post=post_binary_public,
+        article=factory_itn_article(cluster_id=1),
+        distance=0.1,  # relevance 0.32 — cluster 1 winner
+    )
+    PostArticle.objects.create(
+        post=post_binary_public,
+        article=factory_itn_article(cluster_id=1),
+        distance=0.2,  # relevance 0.22 — deduped away
+    )
+    PostArticle.objects.create(
+        post=post_binary_public,
+        article=factory_itn_article(cluster_id=2, post_count=100),
+        distance=0.1,  # relevance 0.32 but heavy breadth penalty
+    )
+
+    breakdown = explain_post_news_hotness(post_binary_public)
+    articles = breakdown["articles"]
+
+    # Strongest contribution first, and every matched article is listed.
+    assert len(articles) == 3
+    assert [a["contribution"] for a in articles] == sorted(
+        (a["contribution"] for a in articles), reverse=True
+    )
+
+    # Exactly one article per cluster counts towards the score.
+    counted = [a for a in articles if a["counts_towards_score"]]
+    assert len(counted) == 2
+    assert {a["cluster_id"] for a in counted} == {1, 2}
+    # The deduped near-duplicate (distance 0.2) is not counted.
+    assert not next(a for a in articles if a["distance"] == 0.2)["counts_towards_score"]
+
+    # Total matches the sum of counted contributions and _compute_hotness_relevant_news.
+    assert breakdown["news_hotness"] == pytest.approx(
+        sum(a["contribution"] for a in counted)
+    )
+    assert breakdown["news_hotness"] == pytest.approx(
+        _compute_hotness_relevant_news(post_binary_public)
+    )
 
 
 @freeze_time("2025-04-18")
@@ -201,10 +288,10 @@ def test_compute_post_hotness(user1):
     # Add vote. Score: 1
     vote_post(post, user1, 1)
 
-    # Add ITN article
+    # Add ITN article. News score: max(0, 0.42 - 0.1) = 0.32
     PostArticle.objects.create(post=post, article=factory_itn_article(), distance=0.1)
 
-    assert compute_post_hotness(post) == 109.025
+    assert compute_post_hotness(post) == pytest.approx(108.945)
 
 
 @freeze_time("2025-04-18")
@@ -229,16 +316,19 @@ def test_handle_post_boost(user1):
 
 
 @pytest.mark.parametrize(
-    "psql_now,expected_hotness",
+    "now,expected_hotness",
     [
-        [datetime_aware(2025, 4, 14, 12), 0.5],
-        # 7 days from now
-        [datetime_aware(2025, 4, 18), 0.125],
-        # 14 days from now
-        [datetime_aware(2025, 4, 25), 0.03125],
+        # Within the 3.5 day grace window: no decay. 0.02 + 0.32 = 0.34
+        ["2025-04-14 12:00:00", 0.34],
+        # 7 days from creation: decayed by (7 / 3.5) ** -2 = 0.25
+        ["2025-04-18", 0.085],
+        # 14 days from creation: decayed by (14 / 3.5) ** -2 = 0.0625
+        ["2025-04-25", 0.02125],
     ],
 )
-def test_post_annotate_news_hotness(post_binary_public, psql_now, expected_hotness):
+def test_compute_hotness_relevant_news_time_decay(
+    post_binary_public, now, expected_hotness
+):
     with freeze_time("2025-04-11"):
         PostArticle.objects.create(
             post=post_binary_public,
@@ -249,12 +339,7 @@ def test_post_annotate_news_hotness(post_binary_public, psql_now, expected_hotne
             post=post_binary_public, article=factory_itn_article(), distance=0.1
         )
 
-    with mock_psql_now(psql_now):
-        hotness = (
-            Post.objects.filter(pk=post_binary_public.pk)
-            .annotate_news_hotness()
-            .get()
-            .news_hotness
+    with freeze_time(now):
+        assert _compute_hotness_relevant_news(post_binary_public) == pytest.approx(
+            expected_hotness
         )
-
-        assert hotness == expected_hotness

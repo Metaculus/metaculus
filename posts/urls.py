@@ -48,6 +48,11 @@ urlpatterns = [
         name="post-related-articles",
     ),
     path(
+        "posts/<int:pk>/news-hotness/",
+        views.post_news_hotness_breakdown_api_view,
+        name="post-news-hotness",
+    ),
+    path(
         "posts/<int:pk>/subscriptions/",
         views.post_subscriptions_create,
         name="post-subscriptions",

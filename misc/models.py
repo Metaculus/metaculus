@@ -28,6 +28,16 @@ class ITNArticle(TimeStampedModel):
     )
     is_removed = models.BooleanField(default=False)
 
+    # Id of the near-duplicate cluster this article belongs to (the id of the
+    # cluster's representative article). Articles covering the same story share a
+    # cluster so that repeated coverage counts only once towards news hotness.
+    cluster_id = models.BigIntegerField(null=True, blank=True, db_index=True)
+
+    # Number of distinct posts this article is matched to. Used as an inverse
+    # document frequency signal: generic articles that match many posts get a
+    # smaller per-post weight than articles specific to a handful of posts.
+    post_count = models.PositiveIntegerField(default=0)
+
 
 class PostArticle(TimeStampedModel):
     article = models.ForeignKey(ITNArticle, on_delete=models.CASCADE)

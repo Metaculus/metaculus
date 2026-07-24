@@ -632,3 +632,28 @@ def test_post_vote__private(user1, user1_client, user2_client):
     # Denied
     response = user2_client.post(url, {"direction": 1}, format="json")
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+class TestPostNewsHotnessBreakdown:
+    def _url(self, post):
+        return reverse("post-news-hotness", kwargs={"pk": post.pk})
+
+    def test_requires_admin(self, user1, user1_client, anon_client):
+        post = factory_post(author=user1)
+        url = self._url(post)
+
+        assert anon_client.get(url).status_code in (
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+        )
+        assert user1_client.get(url).status_code == status.HTTP_403_FORBIDDEN
+
+    def test_admin_gets_breakdown(self, user1, user_admin_client):
+        post = factory_post(author=user1)
+
+        response = user_admin_client.get(self._url(post))
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["news_hotness"] == 0
+        assert data["articles"] == []
