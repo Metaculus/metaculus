@@ -17,12 +17,15 @@ import {
 } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import Select from "@/components/ui/select";
+import { ContactSubject, ContactSubjectType } from "@/constants/contact";
 import { useAuth } from "@/contexts/auth_context";
 import { logError } from "@/utils/core/errors";
 
 const contactUsSchema = z.object({
   email: z.string().min(1, { message: "Email is required" }),
-  subject: z.string().min(1, { message: "Subject is required" }),
+  subject: z.nativeEnum(ContactSubject, {
+    errorMap: () => ({ message: "Subject is required" }),
+  }),
   message: z.string().min(1, { message: "Message is required" }),
 });
 type ContactUsSchema = z.infer<typeof contactUsSchema>;
@@ -30,17 +33,8 @@ type ContactUsSchema = z.infer<typeof contactUsSchema>;
 type Props = {
   isOpen: boolean;
   onClose: (isOpen: boolean) => void;
-  defaultSubject?: string;
+  defaultSubject?: ContactSubjectType;
 };
-
-const subjects = [
-  "Partnership inquiry",
-  "General feedback",
-  "Bug report",
-  "Feature request",
-  "Press request",
-  "Other",
-];
 
 const ContactUsModal: FC<Props> = ({ isOpen, onClose, defaultSubject }) => {
   const t = useTranslations();
@@ -57,7 +51,7 @@ const ContactUsModal: FC<Props> = ({ isOpen, onClose, defaultSubject }) => {
     handleSubmit,
   } = useForm<ContactUsSchema>({
     defaultValues: {
-      subject: defaultSubject ? defaultSubject : "",
+      subject: defaultSubject,
       email: user?.email,
     },
     resolver: zodResolver(contactUsSchema),
@@ -69,7 +63,13 @@ const ContactUsModal: FC<Props> = ({ isOpen, onClose, defaultSubject }) => {
       setError(undefined);
       try {
         // use form data to send request to the email api
-        await submitContactForm(data);
+        await submitContactForm({
+          ...data,
+          source_url:
+            typeof window !== "undefined"
+              ? window.location.origin + window.location.pathname
+              : undefined,
+        });
         onClose(false);
         setIsSuccessModalOpen(true);
       } catch (e) {
@@ -82,6 +82,18 @@ const ContactUsModal: FC<Props> = ({ isOpen, onClose, defaultSubject }) => {
     },
     [onClose]
   );
+
+  const subjectOptions: { value: ContactSubjectType; label: string }[] = [
+    {
+      value: ContactSubject.PARTNERSHIP,
+      label: t("contactSubjectPartnership"),
+    },
+    { value: ContactSubject.FEEDBACK, label: t("contactSubjectFeedback") },
+    { value: ContactSubject.BUG, label: t("contactSubjectBug") },
+    { value: ContactSubject.FEATURE, label: t("contactSubjectFeature") },
+    { value: ContactSubject.PRESS, label: t("contactSubjectPress") },
+    { value: ContactSubject.OTHER, label: t("contactSubjectOther") },
+  ];
 
   return (
     <>
@@ -112,14 +124,12 @@ const ContactUsModal: FC<Props> = ({ isOpen, onClose, defaultSubject }) => {
                 className="select-arrow mt-4 h-8 w-full rounded border border-gray-700 bg-inherit bg-[length:22px_20%] bg-no-repeat px-3 text-gray-900 dark:border-gray-700-dark dark:text-gray-900-dark"
                 {...register("subject")}
                 options={[
-                  { value: "", label: "Select Reason", disabled: true },
-                  ...subjects.map((subject) => {
-                    return {
-                      value: subject,
-                      label: subject,
-                      className: "text-gray-900",
-                    };
-                  }),
+                  { value: "", label: t("selectReason"), disabled: true },
+                  ...subjectOptions.map(({ value, label }) => ({
+                    value,
+                    label,
+                    className: "text-gray-900",
+                  })),
                 ]}
               ></Select>
               {errors.subject && (
