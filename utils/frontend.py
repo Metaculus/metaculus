@@ -27,6 +27,14 @@ def build_frontend_account_activation_url(
     )
 
 
+def build_frontend_auth_email_url(user_id: int, token: str, redirect_url: str | None):
+    redirect_params = {"redirect_url": redirect_url} if redirect_url else {}
+
+    return build_frontend_url(
+        f"/auth/email?{urlencode({'user_id': user_id, 'token': token, **redirect_params})}"
+    )
+
+
 def build_frontend_account_signup_invitation_url(email: str, invite_token: str):
     return build_frontend_url(
         f"/accounts/signup?{urlencode({'email': email, 'invite_token': invite_token})}"

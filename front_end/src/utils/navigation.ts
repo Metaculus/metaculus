@@ -215,7 +215,12 @@ export const getPostEditLink = (post: Post) => {
 export function ensureRelativeRedirect(input: string): string {
   if (!input) return "/";
 
-  let url = input.trim();
+  // Normalize as the URL parser will (strip tab/newline, backslash -> slash)
+  // so tricks like "/\evil.com" can't slip past the guards below.
+  let url = input
+    .trim()
+    .replace(/[\t\n\r]/g, "")
+    .replace(/\\/g, "/");
 
   if (url.startsWith("//")) {
     throw new Error(

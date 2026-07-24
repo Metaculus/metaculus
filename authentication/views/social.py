@@ -8,7 +8,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_social_auth.views import SocialTokenOnlyAuthView
 from social_core.backends.oauth import BaseOAuth2
 
-from authentication.services import get_tokens_for_user
+from authentication.services.common import get_tokens_for_user
 from users.models import User
 
 
