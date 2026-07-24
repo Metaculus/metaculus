@@ -534,6 +534,7 @@ def post_similar_posts_api_view(request: Request, pk):
         group_cutoff=1,
         include_cp_history=True,
         current_user=request.user if request.user.is_authenticated else None,
+        include_user_forecasts=True,
     )
 
     return Response(posts)
