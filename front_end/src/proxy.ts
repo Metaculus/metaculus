@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { AUTOTRANSLATION_HEADER } from "@/constants/experiments";
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import { AuthCookieManager, AuthCookieReader } from "@/services/auth_tokens";
+import {
+  getAutotranslationEnrollment,
+  setAssignmentCookieInResponse,
+} from "@/services/autotranslation_experiment";
 import { CsrfManager } from "@/services/csrf";
 import {
   LanguageService,
@@ -95,11 +100,32 @@ export async function proxy(request: NextRequest) {
     requestHeaders.set("Content-Security-Policy-Report-Only", cspHeader);
   }
 
+  // Auto-translation A/B experiment: enroll eligible anonymous visitors.
+  // The header lets getLocale() apply the variant on this same request
+  const autotranslationEnrollment = await getAutotranslationEnrollment(
+    request,
+    requestAuth,
+    shouldApplyCsp
+  );
+  if (autotranslationEnrollment) {
+    requestHeaders.set(
+      AUTOTRANSLATION_HEADER,
+      autotranslationEnrollment.variant
+    );
+  } else {
+    // Never trust a client-supplied variant header
+    requestHeaders.delete(AUTOTRANSLATION_HEADER);
+  }
+
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   if (cspHeader) {
     applyCspHeaders(response, cspHeader);
   }
   const responseAuth = new AuthCookieManager(response.cookies);
+
+  if (autotranslationEnrollment) {
+    setAssignmentCookieInResponse(response, autotranslationEnrollment);
+  }
 
   let hasSession = false;
   const accessToken = requestAuth.getAccessToken();
