@@ -1,10 +1,12 @@
+import { ContactSubjectType } from "@/constants/contact";
 import { ApiService } from "@/services/api/api_service";
 import { CombinedFeedTile } from "@/types/projects";
 
 export type ContactForm = {
   email: string;
   message: string;
-  subject: string;
+  subject: ContactSubjectType;
+  source_url?: string;
 };
 
 export type GetInTouchForm = {
