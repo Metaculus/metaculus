@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("posts", "0018_notebook_markdown_zh_tw_post_short_title_zh_tw_and_more"),
     ]
@@ -16,7 +15,7 @@ class Migration(migrations.Migration):
             field=models.JSONField(
                 blank=True,
                 default=None,
-                help_text="Custom JSON for HTML meta tags. Supported fields are: title, description, image_url",
+                help_text="Custom JSON for HTML meta tags. Supported fields are: title, description, image_url, canonical_url.<br>canonical_url: absolute URL to index instead of this post. Also disables the automatic noindex on bots-only posts.",
                 null=True,
             ),
         ),

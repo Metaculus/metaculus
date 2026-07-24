@@ -271,4 +271,39 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
       </>
     ),
   },
+  {
+    date: "2026-07-13",
+    type: "insight",
+    content: (
+      <>
+        A group of leading economists signed a joint statement saying “We must
+        act now.” -{" "}
+        <a
+          href="https://www.wemustactnow.ai/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          We Must Act Now
+        </a>
+      </>
+    ),
+  },
+  {
+    date: "2026-07-19",
+    type: "insight",
+    content: (
+      <>
+        A Harvard mathematician reported that Claude Fable 5 solved the Jacobian
+        conjecture, an 87-year-old math problem and the most difficult yet to be
+        solved by AI. -{" "}
+        <a
+          href="https://www.newscientist.com/article/2580374-ais-solution-to-87-year-old-riddle-takes-mathematicians-by-surprise/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          New Scientist
+        </a>
+      </>
+    ),
+  },
 ];

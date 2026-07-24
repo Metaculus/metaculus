@@ -11,7 +11,10 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from authentication.models import ApiKey
-from authentication.services import get_tokens_for_user, send_password_reset_email
+from authentication.services.common import (
+    get_tokens_for_user,
+    send_password_reset_email,
+)
 from projects.models import Project
 from users.models import User, UserSpamActivity
 from users.serializers import (

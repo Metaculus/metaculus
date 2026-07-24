@@ -238,6 +238,10 @@ AUTH_SIGNUP_VERIFY_EMAIL = (
 # Simplified signup flow. If contains token -> allows fast signup with username only
 AUTH_SIGNUP_SIMPLIFIED_TOKEN = os.environ.get("AUTH_SIGNUP_SIMPLIFIED_TOKEN")
 
+# Email-link auth (gated CTA flow): max age of emailed sign-in links AND the
+# Redis TTL of pending gated actions, in seconds.
+AUTH_EMAIL_LINK_TIMEOUT = int(os.environ.get("AUTH_EMAIL_LINK_TIMEOUT", 60 * 60 * 24))
+
 PUBLIC_AUTHENTICATION_REQUIRED = (
     os.environ.get("PUBLIC_AUTHENTICATION_REQUIRED", "false").lower() == "true"
 )
@@ -250,8 +254,7 @@ SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.social_auth.social_user",
     "social_core.pipeline.user.get_username",
     "social_core.pipeline.social_auth.associate_by_email",
-    "authentication.social_pipeline.check_signup_allowed",
-    "social_core.pipeline.user.create_user",
+    "authentication.social_pipeline.create_user",
     "social_core.pipeline.social_auth.associate_user",
     "social_core.pipeline.social_auth.load_extra_data",
     "social_core.pipeline.user.user_details",
