@@ -2,6 +2,7 @@
 
 import { FC } from "react";
 
+import { useAuth } from "@/contexts/auth_context";
 import { PostWithForecasts } from "@/types/post";
 
 import QuestionPageShellTabBar from "./tab_bar";
@@ -9,6 +10,7 @@ import CommentsTab from "./tabs/comments";
 import DistributionsTab from "./tabs/distributions";
 import KeyFactorsTab from "./tabs/key_factors";
 import MyScoresTab from "./tabs/my_scores";
+import NewsHotnessTab from "./tabs/news_hotness";
 import PrivateNotesTab from "./tabs/private_notes";
 import QuestionInfoTab from "./tabs/question_info";
 import QuestionLinksTab from "./tabs/question_links";
@@ -28,7 +30,8 @@ type Props = {
 const renderActivePanel = (
   activeTab: string | undefined,
   post: PostWithForecasts,
-  variant: Variant
+  variant: Variant,
+  isAdmin: boolean
 ) => {
   switch (activeTab) {
     case "similar-questions":
@@ -41,6 +44,8 @@ const renderActivePanel = (
       return <KeyFactorsTab post={post} />;
     case "info":
       return <QuestionInfoTab post={post} />;
+    case "news-hotness":
+      return isAdmin ? <NewsHotnessTab post={post} /> : null;
     case "question-links":
       return variant === "forecaster" ? <QuestionLinksTab post={post} /> : null;
     case "private-notes":
@@ -55,6 +60,8 @@ const renderActivePanel = (
 
 const QuestionPageShellTabs: FC<Props> = ({ post, variant, className }) => {
   const { activeTab } = useQuestionLayout();
+  const { user } = useAuth();
+  const isAdmin = !!(user?.is_staff || user?.is_superuser);
   const isKeyFactors = activeTab === "key-factors";
 
   return (
@@ -67,7 +74,7 @@ const QuestionPageShellTabs: FC<Props> = ({ post, variant, className }) => {
         </div>
       )}
       <div className="mt-4 md:mt-5">
-        {renderActivePanel(activeTab, post, variant)}
+        {renderActivePanel(activeTab, post, variant, isAdmin)}
       </div>
     </div>
   );

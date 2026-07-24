@@ -138,6 +138,58 @@ def _compute_hotness_relevant_news(post: Post) -> float:
     return sum(best_by_cluster.values())
 
 
+def explain_post_news_hotness(post: Post) -> dict:
+    """Per-matched-article breakdown of a post's "In the news" hotness, for admin
+    inspection.
+
+    Mirrors ``_compute_hotness_relevant_news``: each matched article contributes
+    ``max(0, NEWS_RELEVANCE_THRESHOLD - distance) / ln(e + post_count)``, time
+    decayed by age, and near-duplicate articles (sharing a ``cluster_id``) collapse
+    to their single strongest contribution. ``counts_towards_score`` flags the one
+    article per cluster that actually feeds the total.
+    """
+    articles = []
+    for post_article in post.postarticle_set.select_related("article").defer(
+        "article__embedding_vector"
+    ):
+        article = post_article.article
+        relevance = max(0.0, NEWS_RELEVANCE_THRESHOLD - post_article.distance)
+        breadth_penalty = math.log(math.e + (article.post_count or 0))
+        weight = relevance / breadth_penalty if relevance > 0 else 0.0
+        contribution = decay(weight, post_article.created_at) if weight > 0 else 0.0
+        articles.append(
+            {
+                "id": article.id,
+                "title": article.title,
+                "url": article.url,
+                "media_label": article.media_label,
+                "created_at": post_article.created_at,
+                "distance": post_article.distance,
+                "post_count": article.post_count,
+                "cluster_id": article.cluster_id or article.id,
+                "relevance": relevance,
+                "weight": weight,
+                "contribution": contribution,
+            }
+        )
+
+    # Strongest contribution first; within each cluster only the top one counts.
+    articles.sort(key=lambda a: a["contribution"], reverse=True)
+    counted_clusters: set[int] = set()
+    for article in articles:
+        counts = (
+            article["contribution"] > 0
+            and article["cluster_id"] not in counted_clusters
+        )
+        article["counts_towards_score"] = counts
+        if counts:
+            counted_clusters.add(article["cluster_id"])
+
+    total = sum(a["contribution"] for a in articles if a["counts_towards_score"])
+
+    return {"news_hotness": total, "articles": articles}
+
+
 def _compute_hotness_post_votes(post: Post) -> float:
     votes = post.votes.all()
 

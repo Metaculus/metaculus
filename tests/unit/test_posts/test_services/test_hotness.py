@@ -17,6 +17,7 @@ from posts.services.hotness import (
     _compute_hotness_relevant_news,
     compute_hotness_total_boosts,
     compute_post_hotness,
+    explain_post_news_hotness,
     handle_post_boost,
 )
 from questions.models import Question
@@ -203,6 +204,50 @@ def test_compute_hotness_relevant_news_penalizes_broad_articles(post_binary_publ
 
     expected = 0.32 / math.log(math.e + 100)
     assert _compute_hotness_relevant_news(post_binary_public) == pytest.approx(expected)
+
+
+@freeze_time("2025-04-18")
+def test_explain_post_news_hotness(post_binary_public):
+    # Two near-duplicate articles (cluster 1) plus a distinct one (cluster 2).
+    PostArticle.objects.create(
+        post=post_binary_public,
+        article=factory_itn_article(cluster_id=1),
+        distance=0.1,  # relevance 0.32 — cluster 1 winner
+    )
+    PostArticle.objects.create(
+        post=post_binary_public,
+        article=factory_itn_article(cluster_id=1),
+        distance=0.2,  # relevance 0.22 — deduped away
+    )
+    PostArticle.objects.create(
+        post=post_binary_public,
+        article=factory_itn_article(cluster_id=2, post_count=100),
+        distance=0.1,  # relevance 0.32 but heavy breadth penalty
+    )
+
+    breakdown = explain_post_news_hotness(post_binary_public)
+    articles = breakdown["articles"]
+
+    # Strongest contribution first, and every matched article is listed.
+    assert len(articles) == 3
+    assert [a["contribution"] for a in articles] == sorted(
+        (a["contribution"] for a in articles), reverse=True
+    )
+
+    # Exactly one article per cluster counts towards the score.
+    counted = [a for a in articles if a["counts_towards_score"]]
+    assert len(counted) == 2
+    assert {a["cluster_id"] for a in counted} == {1, 2}
+    # The deduped near-duplicate (distance 0.2) is not counted.
+    assert not next(a for a in articles if a["distance"] == 0.2)["counts_towards_score"]
+
+    # Total matches the sum of counted contributions and _compute_hotness_relevant_news.
+    assert breakdown["news_hotness"] == pytest.approx(
+        sum(a["contribution"] for a in counted)
+    )
+    assert breakdown["news_hotness"] == pytest.approx(
+        _compute_hotness_relevant_news(post_binary_public)
+    )
 
 
 @freeze_time("2025-04-18")

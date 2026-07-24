@@ -41,7 +41,11 @@ from posts.services.common import (
     vote_post,
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
-from posts.services.hotness import handle_post_boost, compute_hotness_total_boosts
+from posts.services.hotness import (
+    handle_post_boost,
+    compute_hotness_total_boosts,
+    explain_post_news_hotness,
+)
 from posts.services.notes import update_private_note, get_private_notes_feed
 from posts.services.onboarding import get_onboarding_feed
 from posts.services.spam_detection import check_and_handle_post_spam
@@ -607,6 +611,23 @@ def post_related_articles_api_view(request: Request, pk):
             for post_article in post_articles
         ]
     )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def post_news_hotness_breakdown_api_view(request: Request, pk):
+    """
+    Admin-only per-article breakdown of a post's "In the news" hotness score,
+    for debugging the ranking (distance, breadth penalty, decay and per-cluster
+    dedup for every matched ITN article).
+    """
+
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise PermissionDenied("You do not have permission to view this")
+
+    post = get_object_or_404(Post, pk=pk)
+
+    return Response(explain_post_news_hotness(post))
 
 
 @api_view(["POST"])

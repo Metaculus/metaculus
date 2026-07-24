@@ -6,6 +6,7 @@ import { FC, useEffect } from "react";
 import useCoherenceLinksContext from "@/app/(main)/components/coherence_links_provider";
 import { useCommentsFeedSafe } from "@/app/(main)/components/comments_feed_provider";
 import { Tabs, TabsList, TabsTab } from "@/components/ui/tabs";
+import { useAuth } from "@/contexts/auth_context";
 import { useHideCP } from "@/contexts/cp_context";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { PostStatus, PostWithForecasts } from "@/types/post";
@@ -21,6 +22,7 @@ type TabKey =
   | "comments"
   | "key-factors"
   | "info"
+  | "news-hotness"
   | "my-scores"
   | "question-links"
   | "private-notes"
@@ -52,6 +54,8 @@ const tabClassName = (isActive: boolean) =>
 const QuestionPageShellTabBar: FC<Props> = ({ post, variant, className }) => {
   const t = useTranslations();
   const { activeTab, setActiveTab } = useQuestionLayout();
+  const { user } = useAuth();
+  const isAdmin = !!(user?.is_staff || user?.is_superuser);
 
   const isSm = useBreakpoint("sm");
   const { hideCP } = useHideCP();
@@ -69,10 +73,16 @@ const QuestionPageShellTabBar: FC<Props> = ({ post, variant, className }) => {
   const hasSimilarQuestionsTab =
     !isSm && post.curation_status === PostStatus.APPROVED;
 
+  // Admin-only debugging tab for the "In the news" ranking, shown right after Info.
+  const newsHotnessTab: TabDef[] = isAdmin
+    ? [{ key: "news-hotness", label: t("newsHotness") }]
+    : [];
+
   const forecasterTabs: TabDef[] = [
     { key: "comments", label: t("comments"), count: commentCount },
     { key: "key-factors", label: t("keyFactors"), count: keyFactorsCount },
     { key: "info", label: t("info") },
+    ...newsHotnessTab,
     { key: "question-links", label: t("questionLinks") },
     { key: "private-notes", label: t("privateNotes") },
     ...(hasSimilarQuestionsTab
@@ -95,6 +105,7 @@ const QuestionPageShellTabBar: FC<Props> = ({ post, variant, className }) => {
       : []),
     { key: "key-factors", label: t("keyFactors"), count: keyFactorsCount },
     { key: "info", label: t("info") },
+    ...newsHotnessTab,
     ...(hasScores
       ? [{ key: "my-scores" as TabKey, label: t("myScores") }]
       : []),
