@@ -50,6 +50,8 @@ import {
   getAxisLeftPadding,
   getAxisRightPadding,
   getTickLabelFontSize,
+  restrictScaleTicksToDomain,
+  widenDomainToTicks,
 } from "@/utils/charts/axis";
 import {
   calculateCharWidth,
@@ -955,12 +957,13 @@ function buildChartData({
     }
   }
 
-  const { originalYDomain, zoomedYDomain } = generateFanGraphYDomain({
-    communityAreas,
-    userArea,
-    resolutionPoints: isBinaryGroup ? [] : resolutionPoints,
-    includeClosestBoundOnZoom: isBinaryGroup,
-  });
+  const { originalYDomain, zoomedYDomain, tickCoverageDomain } =
+    generateFanGraphYDomain({
+      communityAreas,
+      userArea,
+      resolutionPoints: isBinaryGroup ? [] : resolutionPoints,
+      includeClosestBoundOnZoom: isBinaryGroup,
+    });
 
   const finalOriginal = fixedInternal ?? originalYDomain;
   const finalZoom = fixedInternal ?? zoomedYDomain;
@@ -972,9 +975,12 @@ function buildChartData({
     scaling,
     domain: finalOriginal,
     zoomedDomain: finalZoom,
-    forceTickCount: forceTickCount ?? (forFeedPage ? 3 : 5),
+    forceTickCount: forceTickCount ?? (forFeedPage ? 3 : 6),
     alwaysShowTicks: true,
+    tickCoverageDomain: fixedInternal ? undefined : tickCoverageDomain,
   });
+  const yDomain = widenDomainToTicks(finalZoom, yScale.ticks);
+  const visibleYScale = restrictScaleTicksToDomain(yScale, yDomain);
 
   resolutionPoints.forEach((pt) => {
     if (pt.unsuccessfullyResolved) {
@@ -1001,8 +1007,8 @@ function buildChartData({
     userPoints,
     resolutionPoints,
     emptyPoints,
-    yScale,
-    yDomain: finalZoom,
+    yScale: visibleYScale,
+    yDomain,
   };
 }
 
@@ -1058,9 +1064,13 @@ function generateFanGraphYDomain({
   userArea: Area<string>;
   resolutionPoints: Array<FanGraphPoint>;
   includeClosestBoundOnZoom?: boolean;
-}): YDomain {
+}): YDomain & { tickCoverageDomain: Tuple<number> | undefined } {
   const originalYDomain: Tuple<number> = [0, 1];
-  const fallback = { originalYDomain, zoomedYDomain: originalYDomain };
+  const fallback = {
+    originalYDomain,
+    zoomedYDomain: originalYDomain,
+    tickCoverageDomain: undefined,
+  };
 
   const combinedAreaData = [
     ...communityAreas.map((a) => (a ? a : [])),
@@ -1083,7 +1093,10 @@ function generateFanGraphYDomain({
 
   if (isNil(minValue) || isNil(maxValue)) return fallback;
 
-  return generateYDomain({ minValue, maxValue, includeClosestBoundOnZoom });
+  return {
+    ...generateYDomain({ minValue, maxValue, includeClosestBoundOnZoom }),
+    tickCoverageDomain: [minValue, maxValue] as Tuple<number>,
+  };
 }
 
 function getOptionGraphData({

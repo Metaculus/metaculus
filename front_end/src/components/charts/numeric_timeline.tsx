@@ -5,7 +5,10 @@ import { useLocale } from "next-intl";
 import { FC, ReactNode, useCallback, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
-import { TimelineChartZoomOption } from "@/types/charts";
+import {
+  TimelineChartZoomOption,
+  TimelineYDomainOptions,
+} from "@/types/charts";
 import { KeyFactor } from "@/types/comment";
 import { QuestionStatus, Resolution } from "@/types/post";
 import {
@@ -63,6 +66,7 @@ type Props = {
   onToggleNewsAnnotations?: () => void;
   hideCursorValueLabel?: boolean;
   suppressEmptyOverlay?: boolean;
+  yDomainOptions?: TimelineYDomainOptions;
 };
 
 const NumericTimeline: FC<Props> = ({
@@ -102,6 +106,7 @@ const NumericTimeline: FC<Props> = ({
   onToggleNewsAnnotations,
   hideCursorValueLabel,
   suppressEmptyOverlay,
+  yDomainOptions,
 }) => {
   const locale = useLocale();
   const resolutionPoint = useMemo(() => {
@@ -173,11 +178,12 @@ const NumericTimeline: FC<Props> = ({
         isAggregationsEmpty: isEmptyDomain,
         openTime,
         unit,
-        forceYTickCount: forFeedPage ? 3 : 5,
+        forceYTickCount: forFeedPage ? 3 : isEmbedded ? 5 : 6,
         alwaysShowYTicks: true,
         inboundOutcomeCount,
         resolutionPoint,
         reduceStepData: forFeedPage,
+        yDomainOptions,
       }),
     [
       questionType,
@@ -194,6 +200,8 @@ const NumericTimeline: FC<Props> = ({
       inboundOutcomeCount,
       resolutionPoint,
       forFeedPage,
+      isEmbedded,
+      yDomainOptions,
     ]
   );
   const formattedResolution = formatResolution({

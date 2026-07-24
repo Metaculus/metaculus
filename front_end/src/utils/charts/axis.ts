@@ -115,83 +115,142 @@ export function getAxisRightPadding(
   };
 }
 
+type TimestampedYValue = {
+  timestamp: number;
+  y: number | null | undefined;
+};
+
+export type TimeSeriesYDomainSource = {
+  minValues: TimestampedYValue[];
+  maxValues: TimestampedYValue[];
+  /** Whether the last value before the visible window remains active within it. */
+  carryForward?: boolean;
+};
+
 type GenerateYDomainParams = {
-  minValues: Array<{ timestamp: number; y: number | null | undefined }>;
-  maxValues: Array<{ timestamp: number; y: number | null | undefined }>;
-  minTimestamp: number;
-  zoom: TimelineChartZoomOption;
+  sources: TimeSeriesYDomainSource[];
+  timeRange: Tuple<number>;
   isChartEmpty: boolean;
   zoomDomainPadding?: number;
   includeClosestBoundOnZoom?: boolean;
-  forceAutoZoom?: boolean;
   useFullYDomain?: boolean;
+  paddingRatio?: number;
 };
 
+function getValuesActiveInTimeRange(
+  values: TimestampedYValue[],
+  timeRange: Tuple<number>,
+  carryForward: boolean
+): TimestampedYValue[] {
+  const rangeStart = Math.min(...timeRange);
+  const rangeEnd = Math.max(...timeRange);
+  const valuesInRange = values.filter(
+    ({ timestamp }) => timestamp >= rangeStart && timestamp <= rangeEnd
+  );
+
+  if (!carryForward) return valuesInRange;
+
+  const valueActiveAtStart = values.reduce<TimestampedYValue | undefined>(
+    (latest, value) =>
+      value.timestamp < rangeStart &&
+      (!latest || value.timestamp >= latest.timestamp)
+        ? value
+        : latest,
+    undefined
+  );
+
+  return !valueActiveAtStart || isNil(valueActiveAtStart.y)
+    ? valuesInRange
+    : [{ ...valueActiveAtStart, timestamp: rangeStart }, ...valuesInRange];
+}
+
 export function generateTimeSeriesYDomain({
-  zoom,
   isChartEmpty,
-  minValues,
-  maxValues,
-  minTimestamp,
+  sources,
+  timeRange,
   zoomDomainPadding,
   includeClosestBoundOnZoom,
-  forceAutoZoom,
   useFullYDomain,
-}: GenerateYDomainParams): YDomain {
+  paddingRatio,
+}: GenerateYDomainParams): YDomain & {
+  tickCoverageDomain: Tuple<number> | undefined;
+} {
   const originalYDomain: Tuple<number> = [0, 1];
-  const fallback = { originalYDomain, zoomedYDomain: originalYDomain };
+  const fallback = {
+    originalYDomain,
+    zoomedYDomain: originalYDomain,
+    tickCoverageDomain: undefined,
+  };
 
-  if (
-    (zoom === TimelineChartZoomOption.All &&
-      !forceAutoZoom &&
-      !useFullYDomain) ||
-    isChartEmpty
-  ) {
+  if (isChartEmpty) {
     return fallback;
   }
 
-  const shouldIncludeValue = (timestamp: number) =>
-    useFullYDomain || timestamp >= minTimestamp;
-
-  const min = minValues
-    .filter((d) => shouldIncludeValue(d.timestamp))
+  const selectValues = (values: TimestampedYValue[], carryForward: boolean) =>
+    useFullYDomain
+      ? values
+      : getValuesActiveInTimeRange(values, timeRange, carryForward);
+  const min = sources
+    .flatMap(({ minValues, carryForward }) =>
+      selectValues(minValues, !!carryForward)
+    )
     .map((d) => d.y)
-    .filter((value) => !isNil(value));
+    .filter(
+      (value): value is number =>
+        typeof value === "number" && Number.isFinite(value)
+    );
   const minValue = min.length ? Math.min(...min) : null;
-  const max = maxValues
-    .filter((d) => shouldIncludeValue(d.timestamp))
+  const max = sources
+    .flatMap(({ maxValues, carryForward }) =>
+      selectValues(maxValues, !!carryForward)
+    )
     .map((d) => d.y)
-    .filter((value) => !isNil(value));
+    .filter(
+      (value): value is number =>
+        typeof value === "number" && Number.isFinite(value)
+    );
   const maxValue = max.length ? Math.max(...max) : null;
 
   if (isNil(minValue) || isNil(maxValue)) {
     return fallback;
   }
 
-  return generateYDomain({
-    minValue,
-    maxValue,
-    zoomDomainPadding,
-    includeClosestBoundOnZoom,
-  });
+  return {
+    ...generateYDomain({
+      minValue,
+      maxValue,
+      zoomDomainPadding,
+      paddingRatio,
+      includeClosestBoundOnZoom,
+    }),
+    tickCoverageDomain: [minValue, maxValue],
+  };
 }
 
 export function generateYDomain({
   minValue,
   maxValue,
   zoomDomainPadding = 0.05,
+  paddingRatio,
   includeClosestBoundOnZoom = false,
 }: {
   minValue: number;
   maxValue: number;
   zoomDomainPadding?: number;
+  paddingRatio?: number;
   includeClosestBoundOnZoom?: boolean;
 }): YDomain {
   const originalYDomain: Tuple<number> = [0, 1];
+  const valueSpan = maxValue - minValue;
+  const domainPadding = !isNil(paddingRatio)
+    ? valueSpan > 0
+      ? valueSpan * Math.max(0, paddingRatio)
+      : Math.min(zoomDomainPadding, 0.01)
+    : zoomDomainPadding;
 
   let zoomedYDomain: Tuple<number> = [0, 1];
-  const distanceToZero = Math.abs(minValue - zoomDomainPadding);
-  const distanceToOne = Math.abs(1 - (maxValue + zoomDomainPadding));
+  const distanceToZero = Math.abs(minValue - domainPadding);
+  const distanceToOne = Math.abs(1 - (maxValue + domainPadding));
 
   if (includeClosestBoundOnZoom) {
     if (distanceToZero === distanceToOne) {
@@ -200,13 +259,13 @@ export function generateYDomain({
       // Include the closer bound
       zoomedYDomain =
         distanceToZero < distanceToOne
-          ? [0, Math.min(1, maxValue + zoomDomainPadding)]
-          : [Number(Math.max(0, minValue - zoomDomainPadding).toFixed(8)), 1];
+          ? [0, Math.min(1, maxValue + domainPadding)]
+          : [Number(Math.max(0, minValue - domainPadding).toFixed(8)), 1];
     }
   } else {
     zoomedYDomain = [
-      Number(Math.max(0, minValue - zoomDomainPadding).toFixed(8)),
-      Math.min(1, maxValue + zoomDomainPadding),
+      Number(Math.max(0, minValue - domainPadding).toFixed(8)),
+      Math.min(1, maxValue + domainPadding),
     ];
   }
 
@@ -313,62 +372,6 @@ export function generateTimestampXScale(
   };
 }
 
-/**
- * Takes an array of values and rounds them to the minimum
- * number of significant digits such that no two values
- * are rounded to the same value.
- * Values must be sorted in ascending order.
- */
-function minimumSignificantRounding(values: number[]): number[] {
-  const roundedValues: number[] = [];
-  const EPS = 1e-12;
-
-  function sigfigRound(val: number, sigfigs: number): number {
-    if (val === 0) return 0; // Special case for zero
-    const divisor = 10 ** (sigfigs - Math.floor(Math.log10(Math.abs(val))) - 1);
-    return Math.round(val * divisor) / divisor;
-  }
-  // TODO: more intelligent ordering for rounded tick value selection
-  // TODO: add dextrous rounding reflecting sig fig cost algorithm
-  values.forEach((value, i) => {
-    if (i === 0 || i === values.length - 1) {
-      roundedValues.push(value);
-      return;
-    }
-    const prevValue = values[i - 1];
-    const nextValue = values[i + 1];
-
-    if (prevValue == null || nextValue == null) {
-      roundedValues.push(value);
-      return;
-    }
-
-    // flat/duplicate guards
-    if (
-      Math.abs(value - prevValue) < EPS ||
-      Math.abs(nextValue - value) < EPS
-    ) {
-      roundedValues.push(value);
-      return;
-    }
-
-    let candidate = value;
-    for (let digits = 1; digits <= 12; digits++) {
-      candidate = sigfigRound(value, digits);
-      const denom = value - prevValue;
-      if (
-        Math.abs(denom) < EPS ||
-        Math.abs((value - candidate) / denom) < 0.2
-      ) {
-        break;
-      }
-    }
-    roundedValues.push(candidate);
-  });
-
-  return roundedValues;
-}
-
 function getSigFigCost(value: number, logarithmic: boolean = false): number {
   const absValue = Math.abs(value);
   // take the length of mantissa of the exponential rounded
@@ -409,6 +412,736 @@ function getSigFigCost(value: number, logarithmic: boolean = false): number {
     }
   }
   return mantissa.length;
+}
+
+const NICE_TICK_MULTIPLIERS = [1, 2, 2.5, 5];
+const MAX_NUMERIC_MAJOR_TICK_COUNT = 6;
+
+/**
+ * Returns the requested number of evenly spaced, round display values.
+ * The sequence is positioned to follow the data range as closely as possible;
+ * when two positions fit equally well, prefer the one aligned to the upper end.
+ */
+function niceTicksNearCount(
+  start: number,
+  stop: number,
+  preferredCount: number
+): number[] {
+  if (!Number.isFinite(start) || !Number.isFinite(stop)) return [];
+  if (start === stop) return [start];
+
+  const count = Math.max(2, Math.round(preferredCount));
+  const idealStep = Math.abs(stop - start) / (count - 1);
+  const exponent = Math.floor(Math.log10(idealStep));
+  const stepCandidates = [-1, 0, 1].flatMap((offset) =>
+    NICE_TICK_MULTIPLIERS.map(
+      (multiplier) => multiplier * 10 ** (exponent + offset)
+    )
+  );
+  const step = stepCandidates.reduce((best, candidate) =>
+    Math.abs(Math.log(candidate / idealStep)) <
+    Math.abs(Math.log(best / idealStep))
+      ? candidate
+      : best
+  );
+
+  const tickSpan = step * (count - 1);
+  const centeredStart = (start + stop - tickSpan) / (2 * step);
+  const startIndices = Array.from(
+    new Set([
+      Math.floor(centeredStart),
+      Math.ceil(centeredStart),
+      Math.ceil(start / step),
+      Math.floor(stop / step) - (count - 1),
+    ])
+  );
+  const bestStartIndex = startIndices.reduce((best, candidate) => {
+    const score = (index: number) => {
+      const first = index * step;
+      const last = first + tickSpan;
+      return Math.abs(first - start) + Math.abs(last - stop);
+    };
+    const candidateScore = score(candidate);
+    const bestScore = score(best);
+    if (candidateScore < bestScore) return candidate;
+    if (candidateScore === bestScore && candidate > best) return candidate;
+    return best;
+  });
+
+  return range(0, count).map((index) => {
+    const value = (bestStartIndex + index) * step;
+    return Number(value.toPrecision(12));
+  });
+}
+
+/**
+ * Finds the densest single-step nice lattice that covers the requested range
+ * without exceeding the label count. If hard bounds make full coverage
+ * impossible, use the closest legal aligned window instead of an exact,
+ * off-lattice boundary label.
+ */
+function niceCoveringTicks({
+  rangeBounds,
+  hardBounds,
+  maximumCount,
+}: {
+  rangeBounds: Tuple<number>;
+  hardBounds: Tuple<number>;
+  maximumCount: number;
+}): number[] {
+  const hardLower = Math.min(...hardBounds);
+  const hardUpper = Math.max(...hardBounds);
+  const lower = Math.max(hardLower, Math.min(...rangeBounds));
+  const upper = Math.min(hardUpper, Math.max(...rangeBounds));
+  if (!Number.isFinite(lower) || !Number.isFinite(upper)) return [];
+  if (lower === upper) return [lower];
+
+  const count = Math.max(2, Math.round(maximumCount));
+  const idealStep = (upper - lower) / (count - 1);
+  const exponent = Math.floor(Math.log10(idealStep));
+  const stepCandidates = Array.from(
+    new Set(
+      range(-2, 5).flatMap((offset) =>
+        NICE_TICK_MULTIPLIERS.map(
+          (multiplier) => multiplier * 10 ** (exponent + offset)
+        )
+      )
+    )
+  ).sort((a, b) => a - b);
+  const tolerance = Math.max(1, Math.abs(lower), Math.abs(upper)) * 1e-12;
+  let bestFallback: number[] = [];
+  let bestFallbackStepDistance = Infinity;
+  let bestFallbackError = Infinity;
+
+  for (const step of stepCandidates) {
+    const minimumLegalIndex = Math.ceil((hardLower - tolerance) / step);
+    const maximumLegalIndex = Math.floor((hardUpper + tolerance) / step);
+    const firstIndex = Math.max(
+      Math.floor((lower + tolerance) / step),
+      minimumLegalIndex
+    );
+    const lastIndex = Math.min(
+      Math.ceil((upper - tolerance) / step),
+      maximumLegalIndex
+    );
+    const firstTick = firstIndex * step;
+    const lastTick = lastIndex * step;
+    const alignedCount = Math.max(0, lastIndex - firstIndex + 1);
+    const coversRange =
+      firstTick <= lower + tolerance && lastTick >= upper - tolerance;
+
+    if (coversRange && alignedCount >= 2 && alignedCount <= count) {
+      return range(firstIndex, lastIndex + 1).map((index) =>
+        Number((index * step).toPrecision(12))
+      );
+    }
+
+    const legalCount = maximumLegalIndex - minimumLegalIndex + 1;
+    const fallbackCount = Math.min(count, legalCount);
+    if (fallbackCount < 2) continue;
+
+    const idealStart =
+      (lower + upper - step * (fallbackCount - 1)) / (2 * step);
+    const fallbackStartCandidates = Array.from(
+      new Set([
+        Math.floor(idealStart),
+        Math.ceil(idealStart),
+        Math.floor(lower / step),
+        Math.ceil(upper / step) - (fallbackCount - 1),
+        minimumLegalIndex,
+        maximumLegalIndex - (fallbackCount - 1),
+      ])
+    ).map((index) =>
+      Math.max(
+        minimumLegalIndex,
+        Math.min(maximumLegalIndex - (fallbackCount - 1), index)
+      )
+    );
+    const fallbackStart = fallbackStartCandidates.reduce((best, candidate) => {
+      const error = (index: number) =>
+        Math.abs(index * step - lower) +
+        Math.abs((index + fallbackCount - 1) * step - upper);
+      const candidateError = error(candidate);
+      const bestError = error(best);
+      if (candidateError < bestError) return candidate;
+      if (candidateError === bestError && candidate > best) return candidate;
+      return best;
+    });
+    const fallback = range(fallbackStart, fallbackStart + fallbackCount).map(
+      (index) => Number((index * step).toPrecision(12))
+    );
+    const fallbackError =
+      Math.abs((fallback[0] as number) - lower) +
+      Math.abs((fallback.at(-1) as number) - upper);
+    const fallbackStepDistance = Math.abs(Math.log(step / idealStep));
+
+    if (
+      fallbackStepDistance < bestFallbackStepDistance ||
+      (fallbackStepDistance === bestFallbackStepDistance &&
+        (fallbackError < bestFallbackError ||
+          (fallbackError === bestFallbackError &&
+            fallback.length > bestFallback.length)))
+    ) {
+      bestFallback = fallback;
+      bestFallbackStepDistance = fallbackStepDistance;
+      bestFallbackError = fallbackError;
+    }
+  }
+
+  return bestFallback.length ? bestFallback : [lower, upper];
+}
+
+/** Keeps an aligned nice-tick sequence inside a question's hard bounds. */
+function fitNiceTicksWithinRange(
+  ticks: number[],
+  rangeStart: number,
+  rangeStop: number
+): number[] {
+  const lower = Math.min(rangeStart, rangeStop);
+  const upper = Math.max(rangeStart, rangeStop);
+  const tolerance = Math.max(1, Math.abs(lower), Math.abs(upper)) * 1e-12;
+  const inRange = (value: number) =>
+    value >= lower - tolerance && value <= upper + tolerance;
+
+  if (ticks.length < 2) return ticks.filter(inRange);
+
+  const step = (ticks[1] as number) - (ticks[0] as number);
+  if (!(step > 0)) return ticks.filter(inRange);
+
+  const tickSpan = step * (ticks.length - 1);
+  const minimumStartIndex = Math.ceil((lower - tolerance) / step);
+  const maximumStartIndex = Math.floor((upper - tickSpan + tolerance) / step);
+
+  if (minimumStartIndex <= maximumStartIndex) {
+    const currentStartIndex = Math.round((ticks[0] as number) / step);
+    const fittedStartIndex = Math.max(
+      minimumStartIndex,
+      Math.min(maximumStartIndex, currentStartIndex)
+    );
+    return range(0, ticks.length).map((index) =>
+      Number(((fittedStartIndex + index) * step).toPrecision(12))
+    );
+  }
+
+  return ticks.filter(inRange);
+}
+
+type LogTick = {
+  tick: number;
+  displayValue: number;
+};
+
+const LOG_MAJOR_MULTIPLIERS = [1, 2, 5];
+const LOG_GUARD_MULTIPLIERS = [1, 1.25, 1.5, 2, 2.5, 3, 4, 5, 6, 8];
+const LOG_GUARD_MAX_PADDING_RATIO = 0.08;
+const LOG_COVERAGE_TOLERANCE_PX = 1;
+const LOG_MIN_LABEL_SEPARATION_PX = 18;
+
+function createLogTick(displayValue: number, scaling: Scaling): LogTick {
+  return {
+    tick: Number(unscaleNominalLocation(displayValue, scaling).toFixed(6)),
+    displayValue: Number(displayValue.toPrecision(12)),
+  };
+}
+
+function getLogTickCandidates({
+  scaling,
+  hardLower,
+  hardUpper,
+  zeroPoint,
+  rangeDirection,
+  multipliers,
+}: {
+  scaling: Scaling;
+  hardLower: number;
+  hardUpper: number;
+  zeroPoint: number;
+  rangeDirection: -1 | 1;
+  multipliers: number[];
+}): LogTick[] {
+  const lowerDistance = Math.min(
+    Math.abs(hardLower - zeroPoint),
+    Math.abs(hardUpper - zeroPoint)
+  );
+  const upperDistance = Math.max(
+    Math.abs(hardLower - zeroPoint),
+    Math.abs(hardUpper - zeroPoint)
+  );
+  if (
+    !(lowerDistance > 0) ||
+    !Number.isFinite(lowerDistance) ||
+    !Number.isFinite(upperDistance)
+  ) {
+    return [];
+  }
+
+  const firstExponent = Math.floor(Math.log10(lowerDistance)) - 1;
+  const lastExponent = Math.ceil(Math.log10(upperDistance)) + 1;
+  const tolerance =
+    Math.max(1, Math.abs(hardLower), Math.abs(hardUpper)) * 1e-12;
+  const candidatesByTick = new Map<number, LogTick>();
+
+  for (let exponent = firstExponent; exponent <= lastExponent; exponent++) {
+    multipliers.forEach((multiplier) => {
+      const displayValue = Number(
+        (zeroPoint + rangeDirection * multiplier * 10 ** exponent).toPrecision(
+          12
+        )
+      );
+      if (
+        displayValue < hardLower - tolerance ||
+        displayValue > hardUpper + tolerance
+      ) {
+        return;
+      }
+
+      const candidate = createLogTick(
+        Math.max(hardLower, Math.min(hardUpper, displayValue)),
+        scaling
+      );
+      if (Number.isFinite(candidate.tick)) {
+        candidatesByTick.set(candidate.tick, candidate);
+      }
+    });
+  }
+
+  return Array.from(candidatesByTick.values()).sort((a, b) => a.tick - b.tick);
+}
+
+function getClosestLogGuard({
+  side,
+  coverageTick,
+  coverageDisplayValue,
+  hardBoundary,
+  coarseCandidates,
+  extendedCandidates,
+  scaling,
+  coverageTolerance,
+  coverageSpan,
+}: {
+  side: "lower" | "upper";
+  coverageTick: number;
+  coverageDisplayValue: number;
+  hardBoundary: number;
+  coarseCandidates: LogTick[];
+  extendedCandidates: LogTick[];
+  scaling: Scaling;
+  coverageTolerance: number;
+  coverageSpan: number;
+}): LogTick {
+  const hardBoundaryTick = createLogTick(hardBoundary, scaling);
+  if (Math.abs(hardBoundaryTick.tick - coverageTick) <= coverageTolerance) {
+    return hardBoundaryTick;
+  }
+
+  const closestWithinTolerance = coarseCandidates
+    .filter(
+      (candidate) =>
+        Math.abs(candidate.tick - coverageTick) <= coverageTolerance
+    )
+    .sort(
+      (a, b) =>
+        Math.abs(a.tick - coverageTick) - Math.abs(b.tick - coverageTick)
+    )
+    .at(0);
+  if (closestWithinTolerance) return closestWithinTolerance;
+
+  const findCoveringCandidate = (
+    candidates: LogTick[],
+    enforcePaddingLimit: boolean
+  ) => {
+    const coveringCandidates = candidates.filter((candidate) =>
+      side === "lower"
+        ? candidate.tick <= coverageTick
+        : candidate.tick >= coverageTick
+    );
+    const candidate =
+      side === "lower" ? coveringCandidates.at(-1) : coveringCandidates.at(0);
+    if (!candidate) return undefined;
+
+    const padding =
+      side === "lower"
+        ? coverageTick - candidate.tick
+        : candidate.tick - coverageTick;
+    return !enforcePaddingLimit ||
+      padding / coverageSpan <= LOG_GUARD_MAX_PADDING_RATIO
+      ? candidate
+      : undefined;
+  };
+
+  const coarseGuard = findCoveringCandidate(coarseCandidates, true);
+  if (coarseGuard) return coarseGuard;
+
+  // Extended guards are denser than the canonical 1/2/5 sequence. Prefer
+  // their nearest legal outward value to exposing a raw uncertainty extremum.
+  const extendedGuard = findCoveringCandidate(extendedCandidates, false);
+  if (extendedGuard) return extendedGuard;
+
+  return createLogTick(coverageDisplayValue, scaling);
+}
+
+function selectLogTicksNearTargets(
+  candidates: LogTick[],
+  targets: number[]
+): LogTick[] {
+  if (targets.length > candidates.length) return [];
+
+  const candidateCount = candidates.length;
+  const parents: number[][] = [
+    Array.from({ length: candidateCount }, () => -1),
+  ];
+  let previousCosts = candidates.map(
+    (candidate) => (candidate.tick - (targets[0] as number)) ** 2
+  );
+
+  for (let targetIndex = 1; targetIndex < targets.length; targetIndex++) {
+    const costs = Array.from({ length: candidateCount }, () => Infinity);
+    const rowParents = Array.from({ length: candidateCount }, () => -1);
+    let bestPreviousCost = Infinity;
+    let bestPreviousIndex = -1;
+
+    for (
+      let candidateIndex = 0;
+      candidateIndex < candidateCount;
+      candidateIndex++
+    ) {
+      const previousIndex = candidateIndex - 1;
+      if (
+        previousIndex >= 0 &&
+        (previousCosts[previousIndex] as number) < bestPreviousCost
+      ) {
+        bestPreviousCost = previousCosts[previousIndex] as number;
+        bestPreviousIndex = previousIndex;
+      }
+      if (bestPreviousIndex < 0) continue;
+
+      costs[candidateIndex] =
+        bestPreviousCost +
+        ((candidates[candidateIndex] as LogTick).tick -
+          (targets[targetIndex] as number)) **
+          2;
+      rowParents[candidateIndex] = bestPreviousIndex;
+    }
+
+    previousCosts = costs;
+    parents.push(rowParents);
+  }
+
+  let selectedIndex = previousCosts.reduce(
+    (bestIndex, cost, index) =>
+      cost < (previousCosts[bestIndex] as number) ? index : bestIndex,
+    0
+  );
+  if (!Number.isFinite(previousCosts[selectedIndex])) return [];
+
+  const selected = Array.from<LogTick>({ length: targets.length });
+  for (let targetIndex = targets.length - 1; targetIndex >= 0; targetIndex--) {
+    selected[targetIndex] = candidates[selectedIndex] as LogTick;
+    selectedIndex = (parents[targetIndex] as number[])[selectedIndex] as number;
+  }
+  return selected;
+}
+
+function removeCrowdedLogTicksNearGuards(
+  ticks: LogTick[],
+  axisLength: number
+): LogTick[] {
+  const selected = ticks.slice();
+  while (selected.length > 2) {
+    const gaps = selected
+      .slice(1)
+      .map((tick, index) => tick.tick - (selected[index] as LogTick).tick);
+    const sortedGaps = gaps.slice().sort((a, b) => a - b);
+    const middle = Math.floor(sortedGaps.length / 2);
+    const medianGap =
+      sortedGaps.length % 2
+        ? (sortedGaps[middle] as number)
+        : ((sortedGaps[middle - 1] as number) +
+            (sortedGaps[middle] as number)) /
+          2;
+    const visualSpan =
+      (selected.at(-1) as LogTick).tick - (selected[0] as LogTick).tick;
+    const minimumSeparation = Math.max(
+      medianGap * 0.6,
+      (LOG_MIN_LABEL_SEPARATION_PX / Math.max(axisLength, 1)) * visualSpan
+    );
+    const lowerGap = gaps[0] as number;
+    const upperGap = gaps.at(-1) as number;
+    const lowerIsCrowded = lowerGap < minimumSeparation;
+    const upperIsCrowded = upperGap < minimumSeparation;
+
+    if (!lowerIsCrowded && !upperIsCrowded) break;
+    if (lowerIsCrowded && (!upperIsCrowded || lowerGap <= upperGap)) {
+      selected.splice(1, 1);
+    } else {
+      selected.splice(-2, 1);
+    }
+  }
+  return selected;
+}
+
+/**
+ * Pins legal ticks around the plotted extrema, then optimizes canonical 1/2/5
+ * ticks between them for visual spacing and approximate count.
+ */
+function getVisuallySpacedLogTicks({
+  zoomedDomain,
+  scaling,
+  rangeBounds,
+  coverageRange,
+  tickCount,
+  zeroPoint,
+  axisLength,
+}: {
+  zoomedDomain: Tuple<number>;
+  scaling: Scaling;
+  rangeBounds: Tuple<number>;
+  coverageRange?: Tuple<number>;
+  tickCount: number;
+  zeroPoint: number;
+  axisLength: number;
+}): LogTick[] {
+  const visualStart = Math.min(...zoomedDomain);
+  const visualStop = Math.max(...zoomedDomain);
+  const hardLower = Math.min(...rangeBounds);
+  const hardUpper = Math.max(...rangeBounds);
+  const count = Math.max(2, Math.round(tickCount));
+  const rangeDirection =
+    hardLower >= zeroPoint ? 1 : hardUpper <= zeroPoint ? -1 : 0;
+
+  if (rangeDirection !== 0) {
+    const coarseCandidates = getLogTickCandidates({
+      scaling,
+      hardLower,
+      hardUpper,
+      zeroPoint,
+      rangeDirection,
+      multipliers: LOG_MAJOR_MULTIPLIERS,
+    });
+    const extendedCandidates = getLogTickCandidates({
+      scaling,
+      hardLower,
+      hardUpper,
+      zeroPoint,
+      rangeDirection,
+      multipliers: LOG_GUARD_MULTIPLIERS,
+    });
+    const fallbackCoverageRange = [
+      scaleInternalLocation(visualStart, scaling),
+      scaleInternalLocation(visualStop, scaling),
+    ] as Tuple<number>;
+    let coverageDisplayLower = Math.max(
+      hardLower,
+      Math.min(hardUpper, Math.min(...(coverageRange ?? fallbackCoverageRange)))
+    );
+    let coverageDisplayUpper = Math.max(
+      hardLower,
+      Math.min(hardUpper, Math.max(...(coverageRange ?? fallbackCoverageRange)))
+    );
+    let coverageTickLower = createLogTick(coverageDisplayLower, scaling).tick;
+    let coverageTickUpper = createLogTick(coverageDisplayUpper, scaling).tick;
+    const visualSpan = Math.max(visualStop - visualStart, Number.EPSILON);
+    const coverageTolerance =
+      (LOG_COVERAGE_TOLERANCE_PX / Math.max(axisLength, 1)) * visualSpan;
+
+    // A flat series still gets the chart's small safety domain as its guard
+    // range, instead of collapsing both labels onto the same plotted value.
+    if (coverageTickUpper - coverageTickLower <= coverageTolerance) {
+      coverageDisplayLower = Math.max(
+        hardLower,
+        scaleInternalLocation(visualStart, scaling)
+      );
+      coverageDisplayUpper = Math.min(
+        hardUpper,
+        scaleInternalLocation(visualStop, scaling)
+      );
+      coverageTickLower = createLogTick(coverageDisplayLower, scaling).tick;
+      coverageTickUpper = createLogTick(coverageDisplayUpper, scaling).tick;
+    }
+
+    const coverageSpan = Math.max(
+      coverageTickUpper - coverageTickLower,
+      visualSpan,
+      Number.EPSILON
+    );
+    const lowerGuard = getClosestLogGuard({
+      side: "lower",
+      coverageTick: coverageTickLower,
+      coverageDisplayValue: coverageDisplayLower,
+      hardBoundary: hardLower,
+      coarseCandidates,
+      extendedCandidates,
+      scaling,
+      coverageTolerance,
+      coverageSpan,
+    });
+    const upperGuard = getClosestLogGuard({
+      side: "upper",
+      coverageTick: coverageTickUpper,
+      coverageDisplayValue: coverageDisplayUpper,
+      hardBoundary: hardUpper,
+      coarseCandidates,
+      extendedCandidates,
+      scaling,
+      coverageTolerance,
+      coverageSpan,
+    });
+    const interiorCandidates = extendedCandidates.filter(
+      (candidate) =>
+        candidate.tick > lowerGuard.tick && candidate.tick < upperGuard.tick
+    );
+    const selectedTickCount = Math.min(interiorCandidates.length + 2, count);
+    const interiorCount = selectedTickCount - 2;
+    const targets = range(1, selectedTickCount - 1).map(
+      (index) =>
+        lowerGuard.tick +
+        (index / (selectedTickCount - 1)) * (upperGuard.tick - lowerGuard.tick)
+    );
+    const selectedInterior =
+      interiorCount > 0
+        ? selectLogTicksNearTargets(interiorCandidates, targets)
+        : [];
+    const selected =
+      selectedInterior.length === interiorCount
+        ? [lowerGuard, ...selectedInterior, upperGuard]
+        : [lowerGuard, upperGuard];
+
+    return removeCrowdedLogTicksNearGuards(selected, axisLength);
+  }
+
+  const displayStart = scaleInternalLocation(visualStart, scaling);
+  const displayStop = scaleInternalLocation(visualStop, scaling);
+  return fitNiceTicksWithinRange(
+    niceTicksNearCount(
+      Math.min(displayStart, displayStop),
+      Math.max(displayStart, displayStop),
+      count
+    ),
+    hardLower,
+    hardUpper
+  ).map((displayValue) => ({
+    tick: Number(unscaleNominalLocation(displayValue, scaling).toFixed(6)),
+    displayValue,
+  }));
+}
+
+/** Returns the next smaller interval from the nice-tick progression. */
+function getNextSmallerNiceStep(step: number): number {
+  const exponent = Math.floor(Math.log10(step));
+  const candidates = [-1, 0].flatMap((offset) =>
+    NICE_TICK_MULTIPLIERS.map(
+      (multiplier) => multiplier * 10 ** (exponent + offset)
+    )
+  );
+
+  return Math.max(
+    ...candidates.filter((candidate) => candidate < step * (1 - 1e-12))
+  );
+}
+
+/** Adds at most one tighter nice tick per side to cover plotted values. */
+function addGuardTicksToCoverRange(
+  ticks: number[],
+  coverageRange: Tuple<number> | undefined,
+  hardRange?: Tuple<number>
+): number[] {
+  if (!coverageRange || ticks.length < 2) return ticks;
+
+  const first = ticks[0] as number;
+  const last = ticks.at(-1) as number;
+  const step = (ticks[1] as number) - first;
+  if (!(step > 0)) return ticks;
+  const boundaryStep = getNextSmallerNiceStep(step);
+
+  const coverageLower = Math.min(...coverageRange);
+  const coverageUpper = Math.max(...coverageRange);
+  const hardLower = hardRange ? Math.min(...hardRange) : -Infinity;
+  const hardUpper = hardRange ? Math.max(...hardRange) : Infinity;
+  const tolerance =
+    Math.max(1, Math.abs(coverageLower), Math.abs(coverageUpper)) * 1e-12;
+  const guardedTicks = ticks.slice();
+
+  if (coverageLower < first - tolerance) {
+    const lowerGuard = Number((first - boundaryStep).toPrecision(12));
+    if (lowerGuard < first - tolerance && lowerGuard >= hardLower - tolerance) {
+      guardedTicks.unshift(lowerGuard);
+    }
+  }
+  if (coverageUpper > last + tolerance) {
+    const upperGuard = Number((last + boundaryStep).toPrecision(12));
+    if (upperGuard > last + tolerance && upperGuard <= hardUpper + tolerance) {
+      guardedTicks.push(upperGuard);
+    }
+  }
+
+  return guardedTicks;
+}
+
+/** Keeps coverage ticks while removing interior labels until the count fits. */
+function limitTicksPreservingCoverage(
+  ticks: number[],
+  maximumCount: number
+): number[] {
+  const count = Math.max(2, Math.round(maximumCount));
+  const selected = ticks.slice();
+
+  while (selected.length > count && selected.length > 2) {
+    let bestRemovalIndex = 1;
+    let bestGapVariance = Infinity;
+
+    for (let index = 1; index < selected.length - 1; index++) {
+      const candidate = selected.filter(
+        (_, candidateIndex) => candidateIndex !== index
+      );
+      const gaps = candidate
+        .slice(1)
+        .map((tick, gapIndex) => tick - (candidate[gapIndex] as number));
+      const meanGap = gaps.reduce((total, gap) => total + gap, 0) / gaps.length;
+      const gapVariance =
+        gaps.reduce((total, gap) => total + (gap - meanGap) ** 2, 0) /
+        gaps.length;
+
+      if (gapVariance < bestGapVariance) {
+        bestGapVariance = gapVariance;
+        bestRemovalIndex = index;
+      }
+    }
+
+    selected.splice(bestRemovalIndex, 1);
+  }
+
+  return selected;
+}
+
+/** Adds at most the nearest generated tick beyond each side of a chart domain. */
+export function widenDomainToTicks(
+  domain: Tuple<number>,
+  ticks: number[]
+): Tuple<number> {
+  const finiteTicks = ticks.filter(Number.isFinite).sort((a, b) => a - b);
+  const closestLowerTick = finiteTicks
+    .filter((tick) => tick < domain[0])
+    .at(-1);
+  const closestUpperTick = finiteTicks.find((tick) => tick > domain[1]);
+
+  return [
+    isNil(closestLowerTick) ? domain[0] : closestLowerTick,
+    isNil(closestUpperTick) ? domain[1] : closestUpperTick,
+  ];
+}
+
+/** Removes generated ticks that remain outside the finalized chart domain. */
+export function restrictScaleTicksToDomain(
+  scale: Scale,
+  domain: Tuple<number>
+): Scale {
+  const lower = Math.min(...domain);
+  const upper = Math.max(...domain);
+
+  return {
+    ...scale,
+    ticks: scale.ticks.filter((tick) => tick >= lower && tick <= upper),
+  };
 }
 
 /**
@@ -456,6 +1189,7 @@ type GenerateScaleParams = {
   question?: Question | GraphingQuestionProps;
   forceTickCount?: number;
   alwaysShowTicks?: boolean;
+  tickCoverageDomain?: Tuple<number>;
 };
 
 /**
@@ -491,6 +1225,7 @@ export function generateScale({
   question,
   forceTickCount,
   alwaysShowTicks,
+  tickCoverageDomain,
 }: GenerateScaleParams): Scale {
   const domainMin = domain[0];
   const domainMax = domain[1];
@@ -515,6 +1250,14 @@ export function generateScale({
     range_max: rangeMax,
     zero_point: zeroPoint,
   };
+  const tickCoverageRange: Tuple<number> | undefined = tickCoverageDomain
+    ? (tickCoverageDomain.map((value) =>
+        scaleInternalLocation(
+          unscaleNominalLocation(value, domainScaling),
+          rangeScaling
+        )
+      ) as Tuple<number>)
+    : undefined;
   const [zoomedDomainMin, zoomedDomainMax] = zoomedDomain;
   let discreteValueOptions: number[] | undefined = undefined;
   if (
@@ -589,6 +1332,7 @@ export function generateScale({
 
   let majorTicks: number[] = [];
   let minorTicks: number[] = [];
+  const niceDisplayValuesByTick = new Map<number, number>();
   if (
     displayType === QuestionType.Discrete &&
     direction === ScaleDirection.Horizontal
@@ -613,117 +1357,144 @@ export function generateScale({
       (x) => Math.round(x * 1000000) / 1000000
     );
     majorTicks.push(minorTicks.at(-1) ?? 1);
-  } else if (
-    displayType === QuestionType.Discrete &&
-    direction === "vertical"
-  ) {
-    // expect to have a forced tick count, and never include
-    // out of bounds values
-    const tickCount = forceTickCount
-      ? Math.min(forceTickCount, inbound_outcome_count)
-      : inbound_outcome_count;
-
-    const halfBucket = 0.5 / inbound_outcome_count;
-    const tickStart = halfBucket;
-    const tickEnd = 1 - halfBucket;
-
-    minorTicks = range(0, tickCount).map((i) => {
-      // round to the nearest outcome value
-      const x =
-        Math.round((i / (tickCount - 1)) * (inbound_outcome_count - 1)) /
-        (inbound_outcome_count - 1);
-      return (
-        Math.round((tickStart + (tickEnd - tickStart) * x) * 1000000) / 1000000
-      );
-    });
-
-    const step =
-      Math.max(1, Math.ceil((tickCount - 2) / maxLabelCount)) / tickCount;
-    majorTicks = range(tickStart, tickEnd - 0.6 * step, step).map(
-      (x) => Math.round(x * 1000000) / 1000000
-    );
-    majorTicks.push(minorTicks.at(-1) ?? 1);
   } else if (isNil(zeroPoint)) {
     // Linear Scaling
-    // Typical scaling, evenly spaced ticks
-    // choose optimal tick count to minimize the number
-    // of significant digits in the tick labels
-    const majorTickCount = forceTickCount
-      ? forceTickCount
-      : findOptimalTickCount(rangeMin, rangeMax, 4, maxLabelCount);
-    majorTicks = range(0, majorTickCount).map(
-      (i) =>
-        Math.round(
-          (zoomedDomainMin +
-            (i / (majorTickCount - 1)) * (zoomedDomainMax - zoomedDomainMin)) *
-            1000000
-        ) / 1000000
-    );
-    const minorTicksPerMajor = findOptimalTickCount(
-      rangeMin,
-      rangeMin + (rangeMax - rangeMin) * (majorTicks[1] ?? 1 / majorTickCount),
-      direction === "horizontal" ? 4 : 2,
-      direction === "horizontal" ? 10 : 5
-    );
-    const minorTickCount = forceTickCount
-      ? forceTickCount
-      : (majorTickCount - 1) * minorTicksPerMajor + 1;
-    minorTicks = range(0, minorTickCount).map(
-      (i) =>
-        Math.round(
-          (zoomedDomainMin +
-            (i / (minorTickCount - 1)) * (zoomedDomainMax - zoomedDomainMin)) *
-            1000000
-        ) / 1000000
-    );
+    if (
+      displayType === QuestionType.Numeric ||
+      displayType === QuestionType.Discrete
+    ) {
+      // Choose nice values in display space, then map them back into the
+      // chart's domain. This avoids awkward labels when the chart uses a
+      // normalized [0, 1] domain for a wider numeric question range.
+      const tickCountHint = Math.min(
+        MAX_NUMERIC_MAJOR_TICK_COUNT,
+        forceTickCount ?? maxLabelCount
+      );
+      const zoomedRangeMin = scaleInternalLocation(
+        unscaleNominalLocation(zoomedDomainMin, domainScaling),
+        rangeScaling
+      );
+      const zoomedRangeMax = scaleInternalLocation(
+        unscaleNominalLocation(zoomedDomainMax, domainScaling),
+        rangeScaling
+      );
+      const rangeToDomain = (value: number) =>
+        scaleInternalLocation(
+          unscaleNominalLocation(value, rangeScaling),
+          domainScaling
+        );
+      const coverageSpan = tickCoverageRange
+        ? Math.abs(tickCoverageRange[1] - tickCoverageRange[0])
+        : 0;
+      const relevantRange: Tuple<number> =
+        tickCoverageRange && coverageSpan > Number.EPSILON
+          ? tickCoverageRange
+          : [
+              Math.min(zoomedRangeMin, zoomedRangeMax),
+              Math.max(zoomedRangeMin, zoomedRangeMax),
+            ];
+      const niceMajorRangeTicks =
+        displayType === QuestionType.Numeric
+          ? niceCoveringTicks({
+              rangeBounds: relevantRange,
+              hardBounds: [rangeMin, rangeMax],
+              maximumCount: tickCountHint,
+            })
+          : limitTicksPreservingCoverage(
+              addGuardTicksToCoverRange(
+                fitNiceTicksWithinRange(
+                  niceTicksNearCount(
+                    Math.min(zoomedRangeMin, zoomedRangeMax),
+                    Math.max(zoomedRangeMin, zoomedRangeMax),
+                    tickCountHint
+                  ),
+                  rangeMin,
+                  rangeMax
+                ),
+                tickCoverageRange,
+                [Math.min(rangeMin, rangeMax), Math.max(rangeMin, rangeMax)]
+              ),
+              tickCountHint
+            );
+
+      majorTicks = niceMajorRangeTicks.map((value) => {
+        const tick = Math.round(rangeToDomain(value) * 1000000) / 1000000;
+        niceDisplayValuesByTick.set(tick, value);
+        return tick;
+      });
+
+      const majorRangeStep =
+        niceMajorRangeTicks.length >= 2
+          ? (niceMajorRangeTicks[1] as number) -
+            (niceMajorRangeTicks[0] as number)
+          : zoomedRangeMax - zoomedRangeMin;
+      const minorTicksPerMajor = findOptimalTickCount(
+        0,
+        majorRangeStep,
+        direction === "horizontal" ? 4 : 2,
+        direction === "horizontal" ? 10 : 5
+      );
+      const minorTickCount =
+        Math.max(majorTicks.length - 1, 1) * minorTicksPerMajor + 1;
+      const denseMinor = d3
+        .ticks(zoomedRangeMin, zoomedRangeMax, minorTickCount)
+        .map((value) => Math.round(rangeToDomain(value) * 1000000) / 1000000);
+
+      // Major ticks must be present in the minor array because tickFormat
+      // uses membership in majorTicks to decide which values get labels.
+      minorTicks = Array.from(new Set([...majorTicks, ...denseMinor])).sort(
+        (a, b) => a - b
+      );
+    } else {
+      // Date and other non-numeric linear axes retain exact evenly-spaced
+      // counts; d3 niceness is not meaningful for raw timestamps.
+      const tickCount = Math.max(2, forceTickCount ?? maxLabelCount);
+      const evenlySpaced = range(0, tickCount).map(
+        (index) =>
+          Math.round(
+            (zoomedDomainMin +
+              (index / (tickCount - 1)) * (zoomedDomainMax - zoomedDomainMin)) *
+              1000000
+          ) / 1000000
+      );
+      majorTicks = evenlySpaced;
+      minorTicks = evenlySpaced.slice();
+    }
   } else {
     // Logarithmic Scaling
-    // Labeled ticks are not spaced evenly, but rather rounded to the nearby
-    // values that have the fewest significant digits
-    // Then, minor ticks are spaced evenly in real space, showcasing the
-    // strength of the logarithmic scaling
-    const minLabelCount = forceTickCount ?? Math.ceil(maxLabelCount / 2) + 1;
-    let bestTicks: number[] = [];
-    let bestAvgDigits = Infinity;
-    for (let i = maxLabelCount; i >= minLabelCount; i--) {
-      const unscaledTargets = Array.from(
-        { length: i },
-        (_, j) =>
-          zoomedDomainMin +
-          ((zoomedDomainMax - zoomedDomainMin) * (j * 1)) / (i - 1)
-      );
-      const scaledTargets = unscaledTargets.map((x) =>
-        scaleInternalLocation(x, rangeScaling)
-      );
-      const roundedScaledTargets = minimumSignificantRounding(scaledTargets);
-      const sigFigCosts = roundedScaledTargets.map((x) =>
-        getSigFigCost(x, true)
-      );
-      const avgDigits = sigFigCosts.reduce((sum, cost) => sum + cost, 0) / i;
-      if (avgDigits < bestAvgDigits) {
-        bestAvgDigits = avgDigits;
-        bestTicks = roundedScaledTargets;
-      }
-    }
-    majorTicks = bestTicks.map(
-      (x) =>
-        Math.round(unscaleNominalLocation(x, rangeScaling) * 1000000) / 1000000
+    const tickCountHint = Math.min(
+      MAX_NUMERIC_MAJOR_TICK_COUNT,
+      forceTickCount ?? maxLabelCount
     );
+    const logTicks = getVisuallySpacedLogTicks({
+      zoomedDomain: [zoomedDomainMin, zoomedDomainMax],
+      scaling: rangeScaling,
+      rangeBounds: [rangeMin, rangeMax],
+      coverageRange: tickCoverageRange,
+      tickCount: tickCountHint,
+      zeroPoint,
+      axisLength,
+    });
+    majorTicks = logTicks.map(({ tick, displayValue }) => {
+      niceDisplayValuesByTick.set(tick, displayValue);
+      return tick;
+    });
 
-    const tickCount = forceTickCount
-      ? forceTickCount
-      : (maxLabelCount - 1) * (direction === "horizontal" ? 10 : 3) + 1;
-    const minorTicksPerMajorInterval = (tickCount - 1) / (maxLabelCount - 1);
+    const minorTicksPerMajorInterval = forceTickCount
+      ? 1
+      : direction === "horizontal"
+        ? 10
+        : 3;
     minorTicks = majorTicks.slice();
-    range(0, bestTicks.length - 1).forEach((i) => {
-      const prevMajor = bestTicks.at(i) ?? 0;
-      const nextMajor = bestTicks.at(i + 1) ?? 1;
-      const step = (nextMajor - prevMajor) / minorTicksPerMajorInterval;
-      for (let j = 0; j < minorTicksPerMajorInterval - 1; j++) {
-        const newMinorTick = prevMajor + (j + 1) * step;
-        minorTicks.push(unscaleNominalLocation(newMinorTick, rangeScaling));
+    range(0, majorTicks.length - 1).forEach((i) => {
+      const previousTick = majorTicks.at(i) ?? 0;
+      const nextTick = majorTicks.at(i + 1) ?? 1;
+      const step = (nextTick - previousTick) / minorTicksPerMajorInterval;
+      for (let j = 1; j < minorTicksPerMajorInterval; j++) {
+        minorTicks.push(previousTick + j * step);
       }
     });
+    minorTicks.sort((a, b) => a - b);
   }
 
   const conditionallyShowUnit = (value: string, idx?: number): string => {
@@ -746,7 +1517,26 @@ export function generateScale({
       alwaysShowTicks ||
       majorTicks.includes(Math.round(x * 1000000) / 1000000)
     ) {
-      if (displayType === QuestionType.Discrete) {
+      const niceDisplayValue = niceDisplayValuesByTick.get(
+        Math.round(x * 1000000) / 1000000
+      );
+      if (!isNil(niceDisplayValue)) {
+        return conditionallyShowUnit(
+          getPredictionDisplayValue(niceDisplayValue, {
+            questionType: displayType as QuestionType,
+            precision: 3,
+            actual_resolve_time: null,
+            dateFormatString: shortLabels ? "yyyy" : undefined,
+            adjustLabels,
+            skipQuartilesBorders: true,
+          }),
+          idx
+        );
+      }
+      if (
+        displayType === QuestionType.Discrete &&
+        direction === ScaleDirection.Horizontal
+      ) {
         return conditionallyShowUnit(
           getPredictionDisplayValue(x, {
             questionType: displayType as QuestionType,
@@ -893,7 +1683,9 @@ export function generateScale({
   // }
 
   return {
-    ticks: minorTicks,
+    // Callers using alwaysShowTicks label every returned value, so return the
+    // selected major set rather than the denser minor grid in that mode.
+    ticks: alwaysShowTicks ? majorTicks : minorTicks,
     tickFormat: tickFormat,
     cursorFormat: cursorFormat,
   };

@@ -40,10 +40,12 @@ import usePrevious from "@/hooks/use_previous";
 import {
   Area,
   BaseChartData,
+  DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS,
   Line,
   ScaleDirection,
   TickFormat,
   TimelineChartZoomOption,
+  TimelineYDomainOptions,
 } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import { ForecastAvailability, QuestionType, Scaling } from "@/types/question";
@@ -55,6 +57,8 @@ import {
   generateTimestampXScale,
   getAxisRightPadding,
   getTickLabelFontSize,
+  restrictScaleTicksToDomain,
+  widenDomainToTicks,
   Y_AXIS_LABEL_ANCHOR_OFFSET,
   Y_AXIS_LABEL_RESERVED_PX,
 } from "@/utils/charts/axis";
@@ -93,7 +97,6 @@ type Props = {
   aggregation?: boolean;
   isEmptyDomain?: boolean;
   openTime?: number | null;
-  forceAutoZoom?: boolean;
   cursorTimestamp?: number | null;
   forecastAvailability?: ForecastAvailability;
   forceShowLinePoints?: boolean;
@@ -112,6 +115,7 @@ type Props = {
   withHighlightArea?: boolean;
   withHighlightEndpoint?: boolean;
   headerLeft?: ReactNode;
+  yDomainOptions?: TimelineYDomainOptions;
 };
 
 const BOTTOM_PADDING = 20;
@@ -139,7 +143,6 @@ const GroupChart: FC<Props> = ({
   aggregation,
   isEmptyDomain,
   openTime,
-  forceAutoZoom,
   cursorTimestamp,
   forecastAvailability,
   forceShowLinePoints = false,
@@ -158,6 +161,7 @@ const GroupChart: FC<Props> = ({
   withHighlightArea = true,
   withHighlightEndpoint = false,
   headerLeft,
+  yDomainOptions,
 }) => {
   const t = useTranslations();
   const {
@@ -202,8 +206,8 @@ const GroupChart: FC<Props> = ({
         hideCP,
         isAggregationsEmpty: isEmptyDomain,
         openTime,
-        forceAutoZoom,
         forFeedPage,
+        yDomainOptions,
       }),
     [
       timestamps,
@@ -219,8 +223,8 @@ const GroupChart: FC<Props> = ({
       hideCP,
       isEmptyDomain,
       openTime,
-      forceAutoZoom,
       forFeedPage,
+      yDomainOptions,
     ]
   );
   const [localCursorTimestamp, setLocalCursorTimestamp] = useState<
@@ -926,9 +930,9 @@ function buildChartData({
   hideCP,
   isAggregationsEmpty,
   openTime,
-  forceAutoZoom,
   forFeedPage,
   isEmbedded,
+  yDomainOptions,
 }: {
   timestamps: number[];
   actualCloseTime?: number | null;
@@ -943,9 +947,9 @@ function buildChartData({
   hideCP?: boolean;
   isAggregationsEmpty?: boolean;
   openTime?: number | null;
-  forceAutoZoom?: boolean;
   forFeedPage?: boolean;
   isEmbedded?: boolean;
+  yDomainOptions?: TimelineYDomainOptions;
 }): ChartData {
   const closeTimes = choiceItems
     .map(({ closeTime }) => closeTime)
@@ -1202,54 +1206,84 @@ function buildChartData({
   const fontSize = extraTheme ? getTickLabelFontSize(extraTheme) : undefined;
   const xScale = generateTimestampXScale(xDomain, width, fontSize);
 
-  // @ts-expect-error we manually check, that areas are not nullable, this should be fixed on later ts versions
-  const areas: Area = graphs
-    .filter((g) => !isNil(g.area) && g.active)
-    .flatMap((g) => g.area);
-  const { originalYDomain, zoomedYDomain } = generateTimeSeriesYDomain({
-    zoom,
-    minTimestamp: xDomain[0],
-    isChartEmpty: !domainTimestamps.length,
-    minValues: [
-      ...areas.map((a) => ({ timestamp: a.x, y: a.y0 })),
-      ...graphs
-        .filter((g) => g.active)
-        .flatMap((g) =>
-          (g.scatter ?? []).map((point) => ({
-            timestamp: point.x,
-            y: point.y1 ?? point.y,
-          }))
-        ),
-      ...graphs
-        .filter((g) => g.active && !isNil(g.resolutionPoint))
-        .map((g) => ({
-          timestamp: g.resolutionPoint?.x ?? latestTimestamp,
-          y: g.resolutionPoint?.y,
-        })),
-    ],
-    maxValues: [
-      ...areas.map((a) => ({ timestamp: a.x, y: a.y })),
-      ...graphs
-        .filter((g) => g.active)
-        .flatMap((g) =>
-          (g.scatter ?? []).map((point) => ({
-            timestamp: point.x,
-            y: point.y2 ?? point.y,
-          }))
-        ),
-      ...graphs
-        .filter((g) => g.active && !isNil(g.resolutionPoint))
-        .map((g) => ({
-          timestamp: g.resolutionPoint?.x ?? latestTimestamp,
-          y: g.resolutionPoint?.y,
-        })),
-    ],
-    includeClosestBoundOnZoom: questionType === QuestionType.Binary,
-    forceAutoZoom,
-    useFullYDomain:
-      questionType === QuestionType.Numeric ||
-      questionType === QuestionType.Date,
+  const activeGraphs = graphs.filter((g) => g.active);
+  const communityCenterSources = activeGraphs.map((graph) => {
+    const values = graph.line.map((point) => ({
+      timestamp: point.x,
+      y: point.y,
+    }));
+    return {
+      minValues: values,
+      maxValues: values,
+      carryForward: true,
+    };
   });
+  const communityIntervalSources = activeGraphs.map((graph) => ({
+    minValues: (graph.area ?? []).map((point) => ({
+      timestamp: point.x,
+      y: point.y0,
+    })),
+    maxValues: (graph.area ?? []).map((point) => ({
+      timestamp: point.x,
+      y: point.y,
+    })),
+    carryForward: true,
+  }));
+  const scatterCenterSources = activeGraphs.map((graph) => {
+    const values = (graph.scatter ?? []).map((point) => ({
+      timestamp: point.x,
+      y: point.y,
+    }));
+    return {
+      minValues: values,
+      maxValues: values,
+    };
+  });
+  const scatterIntervalSources = activeGraphs.map((graph) => ({
+    minValues: (graph.scatter ?? []).map((point) => ({
+      timestamp: point.x,
+      y: point.y1 ?? point.y,
+    })),
+    maxValues: (graph.scatter ?? []).map((point) => ({
+      timestamp: point.x,
+      y: point.y2 ?? point.y,
+    })),
+  }));
+  const resolutionSources = activeGraphs.flatMap((graph) => {
+    if (isNil(graph.resolutionPoint)) return [];
+    const values = [
+      {
+        timestamp: graph.resolutionPoint.x ?? latestTimestamp,
+        y: graph.resolutionPoint.y,
+      },
+    ];
+    return [{ minValues: values, maxValues: values }];
+  });
+  const effectiveYDomainOptions =
+    yDomainOptions ?? DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS;
+  const useCenterValues = effectiveYDomainOptions.source === "centers";
+  const domainSources = useCenterValues
+    ? [...communityCenterSources, ...scatterCenterSources, ...resolutionSources]
+    : [
+        ...communityIntervalSources,
+        // Keep medians as a fallback for histories without interval bounds.
+        ...communityCenterSources,
+        ...scatterIntervalSources,
+        ...resolutionSources,
+      ];
+  const useFullYDomain = effectiveYDomainOptions.scope === "fullHistory";
+  const generatedYDomain = generateTimeSeriesYDomain({
+    sources: domainSources,
+    timeRange: xDomain,
+    isChartEmpty: !domainTimestamps.length,
+    useFullYDomain,
+    paddingRatio: effectiveYDomainOptions.paddingRatio,
+  });
+  const { originalYDomain, tickCoverageDomain } = generatedYDomain;
+  const zoomedYDomain =
+    questionType === QuestionType.Binary
+      ? originalYDomain
+      : generatedYDomain.zoomedYDomain;
 
   const yScale = generateScale({
     displayType: questionType,
@@ -1258,11 +1292,15 @@ function buildChartData({
     scaling: scaling,
     domain: originalYDomain,
     zoomedDomain: zoomedYDomain,
-    forceTickCount: isEmbedded ? 5 : forFeedPage ? 3 : 5,
+    forceTickCount: isEmbedded ? 5 : forFeedPage ? 3 : 6,
     alwaysShowTicks: true,
+    tickCoverageDomain,
   });
 
-  return { xScale, yScale, graphs, xDomain, yDomain: zoomedYDomain };
+  const yDomain = widenDomainToTicks(zoomedYDomain, yScale.ticks);
+  const visibleYScale = restrictScaleTicksToDomain(yScale, yDomain);
+
+  return { xScale, yScale: visibleYScale, graphs, xDomain, yDomain };
 }
 
 // Define a custom "X" symbol function
