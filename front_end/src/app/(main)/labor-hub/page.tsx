@@ -465,9 +465,9 @@ export default function LaborAutomationHubPage() {
             </ContentParagraph>
             <ContentParagraph>
               Four-year degrees are expected to decline modestly by 2035, with
-              humanities falling substantially and STEM increasingly too, led by
-              computer science, while trade schools and community colleges see
-              significant growth in degrees and certificates awarded.
+              humanities falling substantially and STEM declining more modestly,
+              while trade schools and community colleges see significant growth
+              in degrees and certificates awarded.
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight className="lg:mt-24 print:mt-12">
@@ -477,8 +477,8 @@ export default function LaborAutomationHubPage() {
               years of falling enrollment drive the decline; AI compounds it by
               making students doubt that degrees in automatable fields will lead
               to jobs, though students already enrolled delay its effect until
-              after 2030. Computer science is expected to be hit hardest, while
-              humanities continue their long slide.
+              after 2030. Humanities is expected to be hit hardest, while STEM
+              sees a more modest decline.
             </ContentParagraph>
             <FlippableMultiQuestionCard
               prefer="timeline"
