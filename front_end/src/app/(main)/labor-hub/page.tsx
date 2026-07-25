@@ -465,9 +465,9 @@ export default function LaborAutomationHubPage() {
             </ContentParagraph>
             <ContentParagraph>
               Four-year degrees are expected to decline modestly by 2035, with
-              humanities falling substantially and STEM increasingly too, led by
-              computer science, while trade schools and community colleges see
-              significant growth in degrees and certificates awarded.
+              humanities falling substantially and STEM increasingly too, while
+              trade schools and community colleges see significant growth in
+              degrees and certificates awarded.
             </ContentParagraph>
           </DualPaneSectionLeft>
           <DualPaneSectionRight className="lg:mt-24 print:mt-12">
