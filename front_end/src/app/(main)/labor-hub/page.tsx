@@ -477,8 +477,8 @@ export default function LaborAutomationHubPage() {
               years of falling enrollment drive the decline; AI compounds it by
               making students doubt that degrees in automatable fields will lead
               to jobs, though students already enrolled delay its effect until
-              after 2030. Humanities is expected to be hit hardest, while
-              computer science leads a more modest decline in STEM.
+              after 2030. Humanities is expected to be hit hardest, while STEM
+              sees a more modest decline.
             </ContentParagraph>
             <FlippableMultiQuestionCard
               prefer="timeline"
