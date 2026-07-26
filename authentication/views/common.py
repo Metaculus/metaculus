@@ -25,7 +25,7 @@ from authentication.serializers import (
     ConfirmationTokenSerializer,
     LoginSerializer,
 )
-from authentication.services import (
+from authentication.services.common import (
     check_and_activate_user,
     send_activation_email,
     send_password_reset_email,

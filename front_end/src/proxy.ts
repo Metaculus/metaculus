@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import { AuthCookieManager, AuthCookieReader } from "@/services/auth_tokens";
-import { CsrfManager } from "@/services/csrf";
 import {
   LanguageService,
   LOCALE_COOKIE_NAME,
@@ -175,10 +174,6 @@ export async function proxy(request: NextRequest) {
   if (locale_in_url && locale_in_url !== locale_in_cookie) {
     LanguageService.setLocaleCookieInResponse(response, locale_in_url);
   }
-
-  // Generate CSRF token if not present
-  const csrfManager = new CsrfManager(response.cookies);
-  csrfManager.generate(request.cookies);
 
   return response;
 }

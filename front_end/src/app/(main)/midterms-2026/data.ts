@@ -27,16 +27,10 @@ export const SENATE_RACES: SenateRace[] = [
   { state: "MI", name: "Michigan Senate", subQuestionLabel: "Michigan" },
   { state: "MN", name: "Minnesota Senate", subQuestionLabel: "Minnesota" },
   { state: "MS", name: "Mississippi Senate", subQuestionLabel: "Mississippi" },
-  { state: "MT", name: "Montana Senate", subQuestionLabel: "Montana" },
   {
     state: "NC",
     name: "North Carolina Senate",
     subQuestionLabel: "North Carolina",
-  },
-  {
-    state: "NE",
-    name: "Nebraska Senate",
-    subQuestionLabel: "Nebraska",
   },
   {
     state: "NH",
@@ -98,6 +92,13 @@ export type StandaloneRace = { state: string; name: string; postId: number };
 export const STANDALONE_GOVERNOR_RACES: StandaloneRace[] = [
   { state: "AK", name: "Alaska Governor", postId: 43462 },
   { state: "ME", name: "Maine Governor", postId: 43464 },
+];
+
+// Standalone multiple-choice senate posts (Democrat/Republican/Other) that are
+// NOT subquestions of SENATE_GROUP_POST_ID.
+export const STANDALONE_SENATE_RACES: StandaloneRace[] = [
+  { state: "MT", name: "Montana Senate", postId: 44711 },
+  { state: "NE", name: "Nebraska Senate", postId: 44710 },
 ];
 
 export type ChamberQuestionIds = {
