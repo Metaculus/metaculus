@@ -238,6 +238,125 @@ class ProsFiltered(Filtered):
         )
 
 
+# TimeDecays ##########################################
+#
+# Pluggable tau_i formulas for DecayReputationWeighted's decay/reputation
+# blend (decays**a * reputation**(1-a))**b - each subclass computes only the
+# `decays` term, given the forecast_set's own t_now/t_i and the question's
+# t_open/t_close. See TIME_DECAY_REGISTRY for the full name -> class mapping
+# benchmark_aggregations's --method interpreter dispatches through.
+
+
+class TimeDecay:
+    """Computes tau_i (the raw, pre-a/b-blend time-decay factor) for every
+    forecast in a ForecastSet, aligned with forecast_set.forecaster_ids."""
+
+    def __init__(self, question: Question, **kwargs):
+        self.question = question
+        # Cached once per instance rather than re-derived from a timedelta
+        # subtraction on every compute() call.
+        self.question_duration_seconds = (
+            question.scheduled_close_time - question.open_time
+        ).total_seconds()
+
+    def compute(self, forecast_set: ForecastSet) -> np.ndarray:
+        raise NotImplementedError("Implement in Child Class")
+
+
+class ExponentialLifetimeDecay(TimeDecay):
+    """tau_i = exp(-(t_now - t_i) / (t_close - t_open)) - the original
+    DecayReputationWeighted decay. Recency is normalized to the question's
+    own lifetime, so the same absolute gap decays faster on a short-lived
+    question than a long-lived one."""
+
+    def compute(self, forecast_set: ForecastSet) -> np.ndarray:
+        timesteps_epoch = forecast_set.timesteps_epoch()
+        timestep_epoch = forecast_set.timestep.timestamp()
+        decay_ratios = (
+            -(timestep_epoch - timesteps_epoch) / self.question_duration_seconds
+        )
+        return np.exp(decay_ratios)
+
+
+class ExponentialDaysDecay(TimeDecay):
+    """tau_i = exp(-(t_now - t_i)) with the gap measured in days rather than
+    a question-lifetime-normalized ratio - decay speed is an absolute,
+    question-independent rate instead of one scaled to each question's own
+    duration."""
+
+    SECONDS_PER_DAY = 86400.0
+
+    def compute(self, forecast_set: ForecastSet) -> np.ndarray:
+        timesteps_epoch = forecast_set.timesteps_epoch()
+        timestep_epoch = forecast_set.timestep.timestamp()
+        days_elapsed = (timestep_epoch - timesteps_epoch) / self.SECONDS_PER_DAY
+        return np.exp(-days_elapsed)
+
+
+class OldMetaculusStyleDecay(TimeDecay):
+    """tau_i = (t_i - t_open) / (t_close - t_open) - the pre-2022 Metaculus
+    Prediction's implicit time weight. Depends only on *when within the
+    question's lifetime* the forecast itself was made, never on t_now - for
+    small epsilon, tau_i**epsilon behaves similarly to
+    ExponentialLifetimeDecay's exp(-epsilon*(t_now-t_i)/(t_close-t_open)) for
+    forecasters spread uniformly through the question's lifetime, with this
+    version flattening for epsilon>0 (sharpening for epsilon<0) where the
+    exponential does the reverse."""
+
+    def compute(self, forecast_set: ForecastSet) -> np.ndarray:
+        timesteps_epoch = forecast_set.timesteps_epoch()
+        open_epoch = self.question.open_time.timestamp()
+        return (timesteps_epoch - open_epoch) / self.question_duration_seconds
+
+
+class LinearDecay(TimeDecay):
+    """tau_i = (t_close - t_open) / (t_close - t_i) - a linear-style decay
+    that, unlike a t_now-dependent formulation, depends only on t_i (and the
+    question's own open/close times) - it never needs recomputing as t_now
+    advances, at the cost of growing arbitrarily large for forecasts made
+    very close to t_close."""
+
+    def compute(self, forecast_set: ForecastSet) -> np.ndarray:
+        timesteps_epoch = forecast_set.timesteps_epoch()
+        close_epoch = self.question.scheduled_close_time.timestamp()
+        return self.question_duration_seconds / (close_epoch - timesteps_epoch)
+
+
+class OrdinalDecay(TimeDecay):
+    """tau_i based on each forecast's ordinal rank (by start_time) among the
+    currently active forecasters, rather than continuous time - the same
+    rank-based formula RecencyWeighted itself uses, just plugged in here as a
+    tau_i so it can be blended with a reputation value via LearnedReputation
+    Weighted's a/b exponents instead of applied on its own. Included mostly
+    as a baseline: throwing away the actual elapsed-time information is
+    expected to underperform every continuous-time variant above."""
+
+    def compute(self, forecast_set: ForecastSet) -> np.ndarray:
+        n = len(forecast_set.forecaster_ids)
+        if n == 0:
+            return np.array([])
+        return np.exp(np.sqrt(np.arange(n) + 1) - np.sqrt(n))
+
+
+class NoDecay(TimeDecay):
+    """tau_i = 1 for every forecast - a flat, no-time-decay baseline (the
+    "something else" placeholder) so reputation-only weighting can be
+    benchmarked against every time-aware variant above."""
+
+    def compute(self, forecast_set: ForecastSet) -> np.ndarray:
+        return np.ones(len(forecast_set.forecaster_ids))
+
+
+TIME_DECAY_REGISTRY: dict[str, type[TimeDecay]] = {
+    "exponential_lifetime": ExponentialLifetimeDecay,
+    "exponential_days": ExponentialDaysDecay,
+    "old_metaculus": OldMetaculusStyleDecay,
+    "linear": LinearDecay,
+    "ordinal": OrdinalDecay,
+    "none": NoDecay,
+}
+
+
 # ReputationWeightings ##########################################
 
 
@@ -350,75 +469,45 @@ class ReputationWeighted(Weighted):
         return self.get_reputations(forecast_set)
 
 
-class LearnedReputationWeighted(ReputationWeighted):
+class DecayReputationWeighted(ReputationWeighted):
+    """The general-purpose decay + reputation weighting: blends a per-
+    forecast time decay (tau_i - see the TimeDecay hierarchy above) with a
+    reputation value read from precomputed `Reputation` records of a given
+    `reputation_type`, via (decays**a * reputation**(1-a))**b.
+
+    `reputation_type` defaults to AVERAGE_PEER_SCORE (see SingleAggregation,
+    the one production caller that doesn't pass it explicitly) but is
+    normally overridden per-instance - used by benchmark_aggregations's
+    --method composition to plug in any Reputation type without needing a
+    dedicated subclass per type.
+
+    Optionally spot-sensitive (`pre_spot_decay=True`): for any aggregation
+    timestep strictly before the question's spot scoring time, uses a flat
+    a=0 (pure reputation, no recency decay) and a separate `b_spot` exponent
+    instead of the normal a/b - spot_peer scoring only cares about who's
+    active/credible at that single moment, not a decay-weighted build-up
+    beforehand. Falls back to the normal a/b blend at or after the spot
+    scoring time, or if the question isn't spot_peer-scored, or has no spot
+    scoring time. `b_spot` is required whenever `pre_spot_decay` is True.
+    """
+
+    reputation_type: str = Reputation.ReputationTypes.AVERAGE_PEER_SCORE
+    # Overridable per-subclass (see e.g. a decay-specific subclass) or
+    # per-instance via the `time_decay` constructor kwarg - defaults to the
+    # original decay formula so existing callers/tests are unaffected.
+    time_decay_class: type[TimeDecay] = ExponentialLifetimeDecay
+    a_spot = 0.0
+
     def __init__(
         self,
         question: Question,
         all_forecaster_ids: list[int] | set[int] | None,
         a: float = 0.5,
         b: float = 6.0,
-        **kwargs,
-    ):
-        super().__init__(question, all_forecaster_ids, **kwargs)
-        # Configurable per-instance now (rather than hardcoded locals in
-        # calculate_weights) so benchmark_aggregations's --method composition
-        # can set them per weight-class instance - see scoring/fast_scoring.py.
-        self.a = a
-        self.b = b
-        # Cached once per aggregation run rather than re-derived from a
-        # timedelta subtraction on every calculate_weights call.
-        self.question_duration_seconds = (
-            self.question.scheduled_close_time - self.question.open_time
-        ).total_seconds()
-
-    def _decay_reputation_weights(
-        self,
-        forecast_set: ForecastSet,
-        reputation_values: np.ndarray,
-        a: float,
-        b: float,
-    ) -> Weights:
-        """Shared decay/reputation blend formula, factored out so subclasses
-        (e.g. SpotSensitiveReputationWeighted) can reuse it with their own
-        a/b rather than duplicating the math."""
-        # epoch-second floats (cached on the ForecastSet) instead of Python
-        # datetime/timedelta arithmetic per element - lets the subtraction
-        # and division below run as a single vectorized numpy op rather than
-        # once per active forecaster in a Python loop.
-        timesteps_epoch = forecast_set.timesteps_epoch()
-        timestep_epoch = forecast_set.timestep.timestamp()
-        decay_ratios = (
-            -(timestep_epoch - timesteps_epoch) / self.question_duration_seconds
-        )
-        decays = np.exp(decay_ratios)
-
-        weights = (decays**a * reputation_values ** (1 - a)) ** b
-        if np.all(weights == 0):
-            return None
-        return weights if weights.size else None
-
-    def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
-        # Custom overwrite to uniquely combine time weighting with reputation
-        reputation_values = self.get_reputations(forecast_set)
-        return self._decay_reputation_weights(forecast_set, reputation_values, self.a, self.b)
-
-
-class PrecomputedReputationWeighted(LearnedReputationWeighted):
-    """Base for ReputationWeighted subclasses backed by precomputed
-    `Reputation` records (rather than a live per-question calculation).
-    Subclasses set a default `reputation_type`; passing `reputation_type`
-    explicitly overrides it per-instance (used by benchmark_aggregations's
-    --method composition to plug an arbitrary Reputation type into this or
-    any subclass, e.g. SpotSensitiveReputationWeighted, without needing a
-    dedicated subclass per type)."""
-
-    reputation_type: str
-
-    def __init__(
-        self,
-        question: Question,
-        all_forecaster_ids: list[int] | set[int] | None,
+        time_decay: str | type[TimeDecay] | None = None,
         reputation_type: str | None = None,
+        pre_spot_decay: bool = False,
+        b_spot: float | None = None,
         **kwargs,
     ):
         # Must be set *before* super().__init__() - ReputationWeighted's own
@@ -427,6 +516,34 @@ class PrecomputedReputationWeighted(LearnedReputationWeighted):
         if reputation_type is not None:
             self.reputation_type = reputation_type
         super().__init__(question, all_forecaster_ids, **kwargs)
+        # Configurable per-instance now (rather than hardcoded locals in
+        # calculate_weights) so benchmark_aggregations's --method composition
+        # can set them per weight-class instance - see scoring/fast_scoring.py.
+        self.a = a
+        self.b = b
+        # `time_decay` may be a TIME_DECAY_REGISTRY name (str, as used by
+        # benchmark_aggregations's --method composition) or a TimeDecay class
+        # directly - falls back to time_decay_class (the subclass's own
+        # default) when not given.
+        decay_class = self.time_decay_class
+        if time_decay is not None:
+            decay_class = (
+                TIME_DECAY_REGISTRY[time_decay]
+                if isinstance(time_decay, str)
+                else time_decay
+            )
+        self.time_decay = decay_class(question=self.question)
+
+        self.pre_spot_decay = pre_spot_decay
+        self._spot_scoring_epoch: float | None = None
+        if pre_spot_decay:
+            if b_spot is None:
+                raise ValueError("pre_spot_decay=True requires b_spot")
+            self.b_spot = b_spot
+            if question.default_score_type == ScoreTypes.SPOT_PEER:
+                spot_time = question.get_spot_scoring_time()
+                if spot_time is not None:
+                    self._spot_scoring_epoch = spot_time.timestamp()
 
     def get_reputation_history(
         self, all_forecaster_ids: list[int] | set[int]
@@ -449,73 +566,34 @@ class PrecomputedReputationWeighted(LearnedReputationWeighted):
             reputations[record.user_id].append(record)
         return reputations
 
-
-class PeerScoreReputationWeighted(PrecomputedReputationWeighted):
-    reputation_type = Reputation.ReputationTypes.AVERAGE_PEER_SCORE
-
-
-class PeerThresholdReputationWeighted(PrecomputedReputationWeighted):
-    """Uses "peer_threshold_-20_coverage_50": average_peer_score hard
-    -floored to MINIMUM_REPUTATION for users below the reputation/coverage
-    threshold (rho=-20, gamma=50) - see scoring/migrations/0022_reputation.py
-    for the full derivation."""
-
-    reputation_type = Reputation.ReputationTypes.PEER_THRESHOLD_NEG20_COVERAGE_50
-
-
-class PeerContinuousReputationWeighted(PrecomputedReputationWeighted):
-    """Uses "peer_continuous_with_coverage": a softplus-smoothed threshold
-    (rho=0, gamma=50 - independent of PeerThresholdReputationWeighted's own
-    rho) - see scoring/migrations/0022_reputation.py for the full
-    derivation."""
-
-    reputation_type = Reputation.ReputationTypes.PEER_CONTINUOUS_WITH_COVERAGE
-
-
-class SpotSensitiveReputationWeighted(PeerScoreReputationWeighted):
-    """Same reputation source as PeerScoreReputationWeighted, but for
-    spot_peer-scored questions, uses a flat a_spot=0 (pure reputation, no
-    recency decay) and a separate b_spot exponent for any aggregation
-    timestep strictly before the question's spot scoring time - spot_peer
-    scoring only cares about who's active/credible at that single moment,
-    not a decay-weighted build-up beforehand. Falls back to the normal a/b
-    blend at or after the spot scoring time, or if the question isn't
-    spot_peer-scored, or has no spot scoring time.
-    """
-
-    a_spot = 0.0
-
-    def __init__(
+    def _decay_reputation_weights(
         self,
-        question: Question,
-        all_forecaster_ids: list[int] | set[int] | None,
-        b_spot: float | None = None,
-        **kwargs,
-    ):
-        super().__init__(question, all_forecaster_ids, **kwargs)
-        # Defaults to whatever `b` resolved to (own default or an override
-        # passed through **kwargs) if not given explicitly.
-        self.b_spot = b_spot if b_spot is not None else self.b
-        self._spot_scoring_epoch: float | None = None
-        if question.default_score_type == ScoreTypes.SPOT_PEER:
-            spot_time = question.get_spot_scoring_time()
-            if spot_time is not None:
-                self._spot_scoring_epoch = spot_time.timestamp()
+        forecast_set: ForecastSet,
+        reputation_values: np.ndarray,
+        a: float,
+        b: float,
+    ) -> Weights:
+        """Shared decay/reputation blend formula, factored out so the
+        pre_spot_decay branch below can reuse it with a/b_spot rather than
+        duplicating the math. The decay (tau_i) itself is delegated to
+        self.time_decay - see the TimeDecay hierarchy above."""
+        decays = self.time_decay.compute(forecast_set)
+        weights = (decays**a * reputation_values ** (1 - a)) ** b
+        if np.all(weights == 0):
+            return None
+        return weights if weights.size else None
 
     def calculate_weights(self, forecast_set: ForecastSet) -> Weights:
+        reputation_values = self.get_reputations(forecast_set)
         if (
-            self._spot_scoring_epoch is not None
+            self.pre_spot_decay
+            and self._spot_scoring_epoch is not None
             and forecast_set.timestep.timestamp() < self._spot_scoring_epoch
         ):
-            reputation_values = self.get_reputations(forecast_set)
             return self._decay_reputation_weights(
                 forecast_set, reputation_values, self.a_spot, self.b_spot
             )
-        return super().calculate_weights(forecast_set)
-
-
-class YearPerformanceReputationWeighted(PrecomputedReputationWeighted):
-    reputation_type = Reputation.ReputationTypes.YEAR_PERFORMANCE
+        return self._decay_reputation_weights(forecast_set, reputation_values, self.a, self.b)
 
 
 class MedalistsReputationWeighted(ReputationWeighted):
@@ -896,30 +974,10 @@ class RecencyWeightedAggregation(MedianAggregatorMixin, Aggregation):
 
 class SingleAggregation(MeanAggregatorMixin, Aggregation):
     method = AggregationMethod.SINGLE_AGGREGATION
-    weighting_classes = [PeerScoreReputationWeighted]
+    weighting_classes = [DecayReputationWeighted]
 
 
 # Aggregations that can be calculated, but not stored in database
-
-
-class YearPerformanceAggregation(MeanAggregatorMixin, Aggregation):
-    method = "year_performance"
-    weighting_classes = [YearPerformanceReputationWeighted]
-
-
-class SpotSensitiveAggregation(MeanAggregatorMixin, Aggregation):
-    method = "spot_sensitive"
-    weighting_classes = [SpotSensitiveReputationWeighted]
-
-
-class PeerThresholdAggregation(MeanAggregatorMixin, Aggregation):
-    method = "peer_threshold_-20_coverage_50"
-    weighting_classes = [PeerThresholdReputationWeighted]
-
-
-class PeerContinuousAggregation(MeanAggregatorMixin, Aggregation):
-    method = "peer_continuous_with_coverage"
-    weighting_classes = [PeerContinuousReputationWeighted]
 
 
 class MedalistsAggregation(MedianAggregatorMixin, Aggregation):
@@ -951,10 +1009,6 @@ AGGREGATIONS: list[type[Aggregation]] = [
     UnweightedAggregation,
     RecencyWeightedAggregation,
     SingleAggregation,
-    YearPerformanceAggregation,
-    SpotSensitiveAggregation,
-    PeerThresholdAggregation,
-    PeerContinuousAggregation,
     MedalistsAggregation,
     SilverMedalistsAggregation,
     GoldMedalistsAggregation,

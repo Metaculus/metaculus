@@ -1,14 +1,23 @@
+import argparse
 import logging
 import multiprocessing
 import os
 import random
+import re
+import textwrap
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone as dt_timezone
+from typing import Any
 
 import numpy as np
-from django.core.management.base import BaseCommand, CommandError, CommandParser
+from django.core.management.base import (
+    BaseCommand,
+    CommandError,
+    CommandParser,
+    DjangoHelpFormatter,
+)
 from django.db.models import Count, Max
 
 from questions.constants import UnsuccessfulResolutionType
@@ -40,7 +49,13 @@ from scoring.fast_scoring import (
     subsample_timesteps,
 )
 from scoring.models import Reputation
-from utils.the_math.aggregations import AGGREGATIONS, Filtered, LearnedReputationWeighted, ReputationWeighted
+from utils.the_math.aggregations import (
+    AGGREGATIONS,
+    TIME_DECAY_REGISTRY,
+    DecayReputationWeighted,
+    Filtered,
+    ReputationWeighted,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -49,28 +64,111 @@ DEFAULT_AGGREGATION_METHODS = [
     "unweighted",
     "recency_weighted",
     "single_aggregation",
-    "year_performance",
 ]
 VALID_QUESTION_TYPES = [c.value for c in Question.QuestionType]
 VALID_REPUTATION_TYPES = [c.value for c in Reputation.ReputationTypes]
-VALID_AGGREGATORS = ("MeanAggregatorMixin", "MedianAggregatorMixin")
 SPOT_SCORE_TYPES = {"spot_peer", "spot_baseline"}
 StaticFilterKey = tuple[str, datetime | None]
+
+# --method's grammar is "key=value|key=value|..." (or a bare pre-established
+# method name, shorthand for "name=<that>"). Every key may be given by its
+# full name or a short alias, so a grid search over several params doesn't
+# get unreasonably long - e.g. "name=single_aggregation|t=linear|a=0.5".
+KEY_ALIASES: dict[str, str] = {
+    "name": "name",
+    "n": "name",
+    "a": "a",
+    "b": "b",
+    "b_spot": "b_spot",
+    "bs": "b_spot",
+    "pre_spot_decay": "pre_spot_decay",
+    "psd": "pre_spot_decay",
+    "joined_before": "joined_before",
+    "jb": "joined_before",
+    "time_decay": "time_decay",
+    "t": "time_decay",
+    "td": "time_decay",
+    "weight": "weight",
+    "w": "weight",
+    "reputation_type": "reputation_type",
+    "r": "reputation_type",
+    "aggregator": "aggregator",
+    "ag": "aggregator",
+    "label": "label",
+    "l": "label",
+}
+_CANONICAL_TO_ALIASES: dict[str, list[str]] = {}
+for _alias, _canonical in KEY_ALIASES.items():
+    _CANONICAL_TO_ALIASES.setdefault(_canonical, []).append(_alias)
+# e.g. "a, ag/aggregator, b, bs/b_spot, jb/joined_before, l/label, n/name,
+# r/reputation_type, t/td/time_decay, w/weight" - shortest alias first.
+VALID_KEYS_HELP = ", ".join(
+    "/".join(sorted(aliases, key=len))
+    for _, aliases in sorted(_CANONICAL_TO_ALIASES.items())
+)
+
+
+def _help(text: str, width: int = 78) -> str:
+    """Wraps a plain-prose --help string to `width` columns with real
+    newlines. _MethodHelpFormatter (see below) disables argparse's own
+    per-argument wrapping for this whole parser - that's needed for
+    --method's hand-formatted grammar reference, but as a side effect it'd
+    otherwise turn every other argument's help text into one giant
+    unwrapped line - so every plain-prose help string needs to go through
+    this instead."""
+    return textwrap.fill(text, width=width)
+
+
+def _wrapped_choices(values, indent: str = "     ", width: int = 78) -> str:
+    """Wraps a long comma-separated list of choices onto multiple indented
+    lines, for embedding in --method's --help text - argparse's own
+    line-wrapping is disabled there (see _MethodHelpFormatter) since it
+    would otherwise collapse all the manually-placed newlines/indentation
+    used to make that grammar readable, so long lists need to be wrapped
+    by hand instead."""
+    return textwrap.fill(
+        ", ".join(values), width=width, initial_indent=indent, subsequent_indent=indent
+    )
+
+
+class _MethodHelpFormatter(DjangoHelpFormatter, argparse.RawTextHelpFormatter):
+    """DjangoHelpFormatter (keeps command-specific args listed before the
+    common ones) plus RawTextHelpFormatter (preserves --method's own
+    hand-formatted newlines/indentation instead of re-wrapping/collapsing
+    them to fit the terminal width, which is what turned it into an
+    unreadable wall of text)."""
+
+
+AGGREGATOR_ALIASES: dict[str, str] = {
+    "mean": "MeanAggregatorMixin",
+    "median": "MedianAggregatorMixin",
+}
+
+# Extra key=value params each pre-established method accepts on top of
+# name=/label= - anything else is rejected. Methods not listed here (e.g.
+# unweighted, recency_weighted, the medal/pro methods) accept none.
+NAMED_METHOD_PARAMS: dict[str, frozenset[str]] = {
+    method: frozenset({"a", "b", "time_decay", "pre_spot_decay", "b_spot"})
+    for method in DECAYED_REPUTATION_CLASSES
+}
+NAMED_METHOD_PARAMS["joined_before_date"] = frozenset({"joined_before"})
 
 
 @dataclass(frozen=True)
 class AggregationSpec:
-    """One --method entry using a pre-established aggregation name, parsed
-    from either a bare method name or "method,param1,param2,..." - the
-    latter attaches extra, method-specific parameters so a grid search over
-    them (e.g. single_aggregation's a/b) can run as several specs in one
-    invocation instead of one full run per combination.
+    """One --method entry using a pre-established aggregation name (a
+    "name=<method>|..." spec, or a bare method name as shorthand for that
+    with no extra params) - the extra key=value params (a, b, b_spot,
+    pre_spot_decay, time_decay, joined_before) support a grid search over
+    them (e.g. single_aggregation's a/b) by running several specs in one
+    invocation instead of one full run per combination. See
+    NAMED_METHOD_PARAMS for which params each method accepts.
 
     `method` is the real aggregation method name, used for all of
-    fast_scoring's dispatch logic. `label` is the raw, comma-joined spec
-    string - used as the totals dict key and shown in the report, so
-    grid-search variants of the same method stay distinguishable from each
-    other and from a plain, unparameterized run of it.
+    fast_scoring's dispatch logic. `label` is the raw spec string (or an
+    explicit label= override) - used as the totals dict key and shown in
+    the report, so grid-search variants of the same method stay
+    distinguishable from each other and from a plain, unparameterized run.
     """
 
     method: str
@@ -79,32 +177,42 @@ class AggregationSpec:
     b: float | None = None
     b_spot: float | None = None
     joined_before: datetime | None = None
+    time_decay: str | None = None
+    pre_spot_decay: bool = False
 
 
 @dataclass(frozen=True)
 class WeightClassUse:
     """One weight class within a composed --method spec, e.g. the
-    "SpotSensitiveReputationWeighted_0.7_10.0_9.5" in
-    "continuous_spot,peer_continuous_with_coverage,
-    SpotSensitiveReputationWeighted_0.7_10.0_9.5". `params` holds only the
-    params resolved so far (explicitly given, or filled from global
-    defaults) - see WEIGHT_CLASS_PARAMS for each class's declared, ordered
-    param list."""
+    "DecayReputationWeighted:a=0.7,b=10.0,pre_spot_decay=true,b_spot=9.5,
+    time_decay=old_metaculus" in a "weight=..." field. `params` holds only
+    the params resolved so far (explicitly given, or filled from the global
+    --joined-before default) - see WEIGHT_CLASS_PARAMS for each class's
+    accepted param names."""
 
     name: str
-    params: dict[str, float | datetime] = field(default_factory=dict)
+    params: dict[str, float | datetime | str | bool | None] = field(
+        default_factory=dict
+    )
 
 
 @dataclass(frozen=True)
 class ComposedMethodSpec:
-    """One --method entry that composes an aggregation on the fly from a
-    reputation_type + aggregator + a list of weight classes, rather than
-    referencing a pre-established name - see --method's help text for the
-    full syntax. `label` is the referent (opaque report/totals-key name,
-    not parsed further)."""
+    """One --method entry that composes an aggregation on the fly from an
+    aggregator + a list of weight classes (one or more weight=... fields),
+    rather than referencing a pre-established name - see --method's help
+    text for the full syntax. `label` is the raw spec string (or an
+    explicit label= override) - opaque report/totals-key name, not parsed
+    further.
+
+    There's no spec-wide reputation_type: it's a per-weight-class param (see
+    WEIGHT_CLASS_PARAMS["DecayReputationWeighted"]), since it's only
+    meaningful attached to a specific DecayReputationWeighted instance - a
+    single spec can combine several, each reading its own independent
+    Reputation type (e.g. one decayed on average_peer_score, another on
+    year_performance)."""
 
     label: str
-    reputation_type: str | None
     aggregator: str
     weight_classes: list[WeightClassUse]
 
@@ -121,151 +229,270 @@ def _parse_joined_before(joined_before_str: str | None) -> datetime | None:
     return parsed
 
 
-def _parse_named_spec(parts: list[str], raw: str) -> AggregationSpec:
-    """Parses a --method value whose first part is a pre-established
-    aggregation name (form 1/2 - see --method's help text)."""
-    method, extra = parts[0], parts[1:]
-    label = ",".join(parts)
+def _resolve_key(raw_key: str, raw: str) -> str:
+    """Resolves one key=value field's key (full name or alias, see
+    KEY_ALIASES) to its canonical name."""
+    key = KEY_ALIASES.get(raw_key)
+    if key is None:
+        raise CommandError(
+            f"{raw!r}: unknown key {raw_key!r}. Valid keys (full name or "
+            f"alias): {VALID_KEYS_HELP}"
+        )
+    return key
 
-    if method == "spot_sensitive":
-        if len(extra) not in (0, 2, 3):
+
+_BOOL_VALUES = {"true": True, "false": False}
+
+
+def _parse_param_value(key: str, raw_value: str, raw: str) -> Any:
+    """Parses one param's raw string value according to what `key` expects -
+    shared between a named spec's top-level fields and a composed weight
+    class's own sub-params, since both draw from the same key set (a, b,
+    b_spot, pre_spot_decay, time_decay, joined_before, reputation_type -
+    the latter only within a weight= token, see WEIGHT_CLASS_PARAMS).
+    Returns Any rather than a precise union: which concrete type comes back
+    depends on `key`, and the caller already knows/enforces that via
+    NAMED_METHOD_PARAMS/WEIGHT_CLASS_PARAMS."""
+    if key == "joined_before":
+        return _parse_joined_before(raw_value)
+    if key == "time_decay":
+        if raw_value not in TIME_DECAY_REGISTRY:
             raise CommandError(
-                f"{raw!r}: {method!r} takes 0, 2 (a,b), or 3 (a,b,b_spot) "
-                f"extra values, got {len(extra)}"
+                f"{raw!r}: unknown time_decay {raw_value!r}. Valid choices: "
+                f"{', '.join(sorted(TIME_DECAY_REGISTRY))}"
             )
-        if not extra:
-            return AggregationSpec(method=method, label=label)
-        try:
-            a, b = float(extra[0]), float(extra[1])
-            b_spot = float(extra[2]) if len(extra) == 3 else None
-        except ValueError as e:
-            raise CommandError(f"{raw!r}: a/b/b_spot must be numbers ({e})")
-        return AggregationSpec(method=method, label=label, a=a, b=b, b_spot=b_spot)
-
-    if method in DECAYED_REPUTATION_CLASSES:
-        if len(extra) not in (0, 2):
+        return raw_value
+    if key == "reputation_type":
+        if raw_value not in VALID_REPUTATION_TYPES:
             raise CommandError(
-                f"{raw!r}: {method!r} takes 0 or 2 extra values (a,b), got "
-                f"{len(extra)}"
+                f"{raw!r}: unknown reputation_type {raw_value!r}. Valid "
+                f"choices: {', '.join(VALID_REPUTATION_TYPES)}"
             )
-        if not extra:
-            return AggregationSpec(method=method, label=label)
-        try:
-            a, b = float(extra[0]), float(extra[1])
-        except ValueError as e:
-            raise CommandError(f"{raw!r}: a/b must be numbers ({e})")
-        return AggregationSpec(method=method, label=label, a=a, b=b)
-
-    if method == "joined_before_date":
-        if len(extra) not in (0, 1):
+        return raw_value
+    if key == "pre_spot_decay":
+        lowered = raw_value.strip().lower()
+        if lowered not in _BOOL_VALUES:
             raise CommandError(
-                f"{raw!r}: {method!r} takes 0 or 1 extra value (a "
-                f"joined_before date), got {len(extra)}"
+                f"{raw!r}: pre_spot_decay must be true/false, got {raw_value!r}"
             )
-        if not extra:
-            return AggregationSpec(method=method, label=label)
-        return AggregationSpec(
-            method=method, label=label, joined_before=_parse_joined_before(extra[0])
-        )
+        return _BOOL_VALUES[lowered]
+    try:
+        return float(raw_value)
+    except ValueError as e:
+        raise CommandError(f"{raw!r}: {key!r} must be a number ({e})")
 
-    if extra:
+
+def _split_fields(raw: str) -> tuple[dict[str, str], list[str]]:
+    """Splits one --method value into (single-valued fields, weight= values)
+    - weight is the only key allowed to repeat, since a composed spec can
+    combine multiple weight classes. Raises on an unknown key, a malformed
+    field (no '='), or any non-weight key given more than once."""
+    fields: dict[str, str] = {}
+    weight_tokens: list[str] = []
+    for part in raw.split("|"):
+        part = part.strip()
+        if not part:
+            raise CommandError(f"{raw!r}: empty field in a '|'-delimited spec")
+        if "=" not in part:
+            raise CommandError(
+                f"{raw!r}: malformed field {part!r} - expected key=value"
+            )
+        raw_key, raw_value = (s.strip() for s in part.split("=", 1))
+        key = _resolve_key(raw_key, raw)
+        if key == "weight":
+            weight_tokens.append(raw_value)
+            continue
+        if key in fields:
+            raise CommandError(f"{raw!r}: key {key!r} given more than once")
+        fields[key] = raw_value
+    return fields, weight_tokens
+
+
+def _parse_named_spec(fields: dict[str, str], raw: str) -> AggregationSpec:
+    """Parses a --method spec with a name= key (a pre-established
+    aggregation name, optionally with extra key=value params for a grid
+    search - see NAMED_METHOD_PARAMS for what each method accepts)."""
+    method = fields["name"]
+    if method not in VALID_AGGREGATION_METHODS:
         raise CommandError(
-            f"{raw!r}: {method!r} doesn't accept extra comma-separated "
-            f"parameters, got {extra}"
-        )
-    return AggregationSpec(method=method, label=label)
-
-
-def _parse_weight_class_use(raw_class: str) -> WeightClassUse:
-    """Parses one weight-class token from a composed --method spec, e.g.
-    "SpotSensitiveReputationWeighted_0.7_10.0_9.5". Suffix values (split on
-    "_") bind to the TRAILING N entries of that class's declared param list
-    (WEIGHT_CLASS_PARAMS) - see the module docstring there for why."""
-    bits = raw_class.split("_")
-    name, raw_values = bits[0], bits[1:]
-    if name not in WEIGHT_CLASS_REGISTRY:
-        raise CommandError(
-            f"{raw_class!r}: unknown weight class {name!r}. Valid choices: "
-            f"{', '.join(sorted(WEIGHT_CLASS_REGISTRY))}"
-        )
-    param_names = WEIGHT_CLASS_PARAMS[name]
-    if len(raw_values) > len(param_names):
-        raise CommandError(
-            f"{raw_class!r}: {name!r} takes at most {len(param_names)} "
-            f"parameter(s) ({', '.join(param_names) or 'none'}), got "
-            f"{len(raw_values)}"
-        )
-    bound_names = param_names[len(param_names) - len(raw_values) :]
-    params: dict[str, float | datetime] = {}
-    for param_name, raw_value in zip(bound_names, raw_values):
-        if param_name == "joined_before":
-            params[param_name] = _parse_joined_before(raw_value)
-        else:
-            try:
-                params[param_name] = float(raw_value)
-            except ValueError as e:
-                raise CommandError(
-                    f"{raw_class!r}: {param_name!r} must be a number ({e})"
-                )
-    return WeightClassUse(name=name, params=params)
-
-
-def _parse_composed_spec(parts: list[str], raw: str) -> ComposedMethodSpec:
-    """Parses a --method value whose first part is *not* a pre-established
-    aggregation name - form 3, composing an ad hoc aggregation from
-    <referent>,<reputation_type>,[<aggregator>],<weight_class>[,...]."""
-    if len(parts) < 3:
-        raise CommandError(
-            f"{raw!r}: a composed --method needs at least "
-            "<referent>,<reputation_type>,<weight_class> (3+ comma-separated "
-            f"parts), got {len(parts)}. If {parts[0]!r} was meant to be a "
-            f"pre-established method, valid choices are: "
+            f"{raw!r}: unknown method {method!r}. Valid choices: "
             f"{', '.join(VALID_AGGREGATION_METHODS)}"
         )
-    label, reputation_type_str, *rest = parts
-    reputation_type = reputation_type_str or None
-    if reputation_type is not None and reputation_type not in VALID_REPUTATION_TYPES:
+    allowed = NAMED_METHOD_PARAMS.get(method, frozenset())
+    unsupported = set(fields) - {"name", "label"} - allowed
+    if unsupported:
         raise CommandError(
-            f"{raw!r}: unknown reputation_type {reputation_type_str!r}. Valid "
-            f"choices: {', '.join(VALID_REPUTATION_TYPES)} (leave blank - e.g. "
-            "'referent,,RecencyWeighted' - if no weight class here needs one)"
+            f"{raw!r}: {method!r} doesn't accept "
+            f"{', '.join(sorted(unsupported))} - valid extra param(s): "
+            f"{', '.join(sorted(allowed)) or 'none'}"
         )
+    a = _parse_param_value("a", fields["a"], raw) if "a" in fields else None
+    b = _parse_param_value("b", fields["b"], raw) if "b" in fields else None
+    b_spot = (
+        _parse_param_value("b_spot", fields["b_spot"], raw)
+        if "b_spot" in fields
+        else None
+    )
+    time_decay = (
+        _parse_param_value("time_decay", fields["time_decay"], raw)
+        if "time_decay" in fields
+        else None
+    )
+    joined_before = (
+        _parse_param_value("joined_before", fields["joined_before"], raw)
+        if "joined_before" in fields
+        else None
+    )
+    pre_spot_decay = (
+        _parse_param_value("pre_spot_decay", fields["pre_spot_decay"], raw)
+        if "pre_spot_decay" in fields
+        else False
+    )
+    if pre_spot_decay and b_spot is None:
+        raise CommandError(
+            f"{raw!r}: pre_spot_decay=true requires b_spot"
+        )
+    return AggregationSpec(
+        method=method,
+        label=fields.get("label", raw),
+        a=a,
+        b=b,
+        b_spot=b_spot,
+        joined_before=joined_before,
+        time_decay=time_decay,
+        pre_spot_decay=pre_spot_decay,
+    )
 
-    aggregator = "MeanAggregatorMixin"
-    if rest and rest[0] in VALID_AGGREGATORS:
-        aggregator, *rest = rest
-    if not rest:
+
+def _parse_weight_token(raw_value: str, raw: str) -> WeightClassUse:
+    """Parses one weight=<value> field, e.g.
+    "DecayReputationWeighted:reputation_type=peer_threshold_-20_coverage_50,
+    a=0.7,b=10.0,pre_spot_decay=true,b_spot=9.5,time_decay=old_metaculus" or
+    a bare "RecencyWeighted" (no params). reputation_type is required
+    whenever the class needs one (see _weight_class_needs_reputation_type) -
+    it's scoped to this weight-class instance rather than the whole spec, so
+    a single composed spec can combine several DecayReputationWeighted
+    instances each reading a different Reputation type.
+
+    The class name is split from its params on the first ':' or ';'
+    (interchangeable), and params are split on any run of ','/whitespace -
+    so a long --method value can be spread across multiple lines/indented
+    for readability (one param per line, with or without a trailing comma)
+    without changing its meaning. No valid value in this grammar (numbers,
+    dates, enum-like type/class names) legitimately contains whitespace, so
+    treating it as an interchangeable separator is unambiguous."""
+    split = re.split(r"[:;]", raw_value, maxsplit=1)
+    class_name = split[0].strip()
+    param_str = split[1] if len(split) > 1 else ""
+    if class_name not in WEIGHT_CLASS_REGISTRY:
         raise CommandError(
-            f"{raw!r}: a composed --method needs at least one weight class"
+            f"{raw!r}: unknown weight class {class_name!r}. Valid choices: "
+            f"{', '.join(sorted(WEIGHT_CLASS_REGISTRY))}"
         )
-    weight_classes = [_parse_weight_class_use(item) for item in rest]
+    allowed = WEIGHT_CLASS_PARAMS[class_name]
+    params: dict[str, float | datetime | str | bool | None] = {}
+    for pair in re.split(r"[,\s]+", param_str):
+        pair = pair.strip()
+        if not pair:
+            continue
+        if "=" not in pair:
+            raise CommandError(
+                f"{raw!r}: malformed weight param {pair!r} in {raw_value!r} "
+                "- expected key=value"
+            )
+        raw_key, raw_param_value = (s.strip() for s in pair.split("=", 1))
+        key = _resolve_key(raw_key, raw)
+        if key not in allowed:
+            raise CommandError(
+                f"{raw!r}: {class_name!r} doesn't accept {key!r} - valid "
+                f"param(s): {', '.join(sorted(allowed)) or 'none'}"
+            )
+        if key in params:
+            raise CommandError(f"{raw!r}: {class_name!r}'s {key!r} given more than once")
+        params[key] = _parse_param_value(key, raw_param_value, raw)
+    if params.get("pre_spot_decay") and params.get("b_spot") is None:
+        raise CommandError(
+            f"{raw!r}: {class_name!r}: pre_spot_decay=true requires b_spot"
+        )
+    if _weight_class_needs_reputation_type(class_name) and "reputation_type" not in params:
+        raise CommandError(
+            f"{raw!r}: {class_name!r} requires reputation_type (r=<type>) - "
+            f"valid choices: {', '.join(VALID_REPUTATION_TYPES)}"
+        )
+    return WeightClassUse(name=class_name, params=params)
+
+
+def _parse_composed_spec(
+    fields: dict[str, str], weight_tokens: list[str], raw: str
+) -> ComposedMethodSpec:
+    """Parses a --method spec with weight= keys - composing an ad hoc
+    aggregation from an aggregator + a list of weight classes, rather than
+    referencing a pre-established name. reputation_type isn't a top-level
+    key here - it's scoped to whichever weight= token needs one (see
+    _parse_weight_token)."""
+    if not weight_tokens:
+        raise CommandError(
+            f"{raw!r}: a composed spec needs at least one weight=<class> entry"
+        )
+    aggregator_key = fields.get("aggregator", "mean")
+    aggregator = AGGREGATOR_ALIASES.get(aggregator_key)
+    if aggregator is None:
+        raise CommandError(
+            f"{raw!r}: unknown aggregator {aggregator_key!r}. Valid choices: "
+            f"{', '.join(sorted(AGGREGATOR_ALIASES))}"
+        )
+    unsupported = set(fields) - {"aggregator", "label"}
+    if unsupported:
+        raise CommandError(
+            f"{raw!r}: composed specs don't accept top-level "
+            f"{', '.join(sorted(unsupported))} - attach per-weight-class "
+            "params to a weight=<class>:key=value,... entry instead"
+        )
+    weight_classes = [_parse_weight_token(token, raw) for token in weight_tokens]
     return ComposedMethodSpec(
-        label=label,
-        reputation_type=reputation_type,
+        label=fields.get("label", raw),
         aggregator=aggregator,
         weight_classes=weight_classes,
     )
 
 
 def _parse_method_spec(raw: str) -> MethodSpec:
-    """Parses one --method value. A pre-established name (optionally with
-    extra comma-separated parameters) is dispatched to _parse_named_spec;
-    anything else is treated as a composed spec (form 3) - see --method's
-    help text for the full syntax of both."""
-    parts = [p.strip() for p in raw.split(",")]
-    if parts[0] in VALID_AGGREGATION_METHODS:
-        return _parse_named_spec(parts, raw)
-    return _parse_composed_spec(parts, raw)
+    """Parses one --method value: "key=value|key=value|..." (aliases
+    allowed for every key - see KEY_ALIASES), or a bare pre-established
+    method name as shorthand for "name=<that>" (e.g. plain 'unweighted').
+    A spec is "named" if it has a name= key, "composed" if it has
+    reputation_type=/weight= - see --method's help text for the full
+    grammar."""
+    raw = raw.strip()
+    if "|" not in raw and "=" not in raw:
+        return _parse_named_spec({"name": raw}, raw)
+
+    fields, weight_tokens = _split_fields(raw)
+    has_name = "name" in fields
+    has_composed = "reputation_type" in fields or bool(weight_tokens)
+    if has_name and has_composed:
+        raise CommandError(
+            f"{raw!r}: can't combine name= (a pre-established method) with "
+            "reputation_type=/weight= (a composed spec) - use one or the other"
+        )
+    if not has_name and not has_composed:
+        raise CommandError(
+            f"{raw!r}: needs either name=<method> or reputation_type=/"
+            "weight=<class> - see --method's help text"
+        )
+    if has_name:
+        return _parse_named_spec(fields, raw)
+    return _parse_composed_spec(fields, weight_tokens, raw)
 
 
 def _weight_class_needs_reputation_type(name: str) -> bool:
-    return issubclass(WEIGHT_CLASS_REGISTRY[name], LearnedReputationWeighted)
+    return issubclass(WEIGHT_CLASS_REGISTRY[name], DecayReputationWeighted)
 
 
 def _weight_class_needs_class_reputation(name: str) -> bool:
     cls = WEIGHT_CLASS_REGISTRY[name]
     return issubclass(cls, ReputationWeighted) and not issubclass(
-        cls, LearnedReputationWeighted
+        cls, DecayReputationWeighted
     )
 
 
@@ -279,25 +506,23 @@ def _composed_specs(specs: list[MethodSpec]) -> list[ComposedMethodSpec]:
 
 def _resolve_composed_spec(
     spec: ComposedMethodSpec,
-    default_a: float,
-    default_b: float,
     default_joined_before: datetime | None,
 ) -> ComposedMethodSpec:
-    """Fills in each weight class's a/b/b_spot/joined_before from the global
-    --a/--b/--joined-before defaults wherever it didn't attach its own -
-    mirrors AggregationSpec's resolution for named specs. b_spot defaults to
-    whatever b resolves to for that same weight class instance."""
+    """Fills in each weight class's joined_before from the global
+    --joined-before default wherever it didn't attach its own date -
+    mirrors AggregationSpec's resolution for named specs.
+
+    a/b/b_spot/time_decay are deliberately *not* defaulted here: they're only
+    ever meaningful attached to a specific weight-class token (see
+    _parse_weight_token), and each one's own class-level default (0.5, 6.0,
+    b, "exponential_lifetime" respectively) already applies via
+    compute_weight_class_array's `params.get(...)` calls whenever a spec
+    leaves it unset - there is no separate, run-wide default to resolve
+    against."""
     resolved = []
     for wc in spec.weight_classes:
         params = dict(wc.params)
-        param_names = WEIGHT_CLASS_PARAMS[wc.name]
-        if "a" in param_names and "a" not in params:
-            params["a"] = default_a
-        if "b" in param_names and "b" not in params:
-            params["b"] = default_b
-        if "b_spot" in param_names and "b_spot" not in params:
-            params["b_spot"] = params.get("b", default_b)
-        if "joined_before" in param_names and "joined_before" not in params:
+        if "joined_before" in WEIGHT_CLASS_PARAMS[wc.name] and "joined_before" not in params:
             params["joined_before"] = default_joined_before
         resolved.append(WeightClassUse(name=wc.name, params=params))
     return replace(spec, weight_classes=resolved)
@@ -348,6 +573,7 @@ def _score_question(
                 question_score_type,
                 a=spec.a,
                 b=spec.b,
+                time_decay=spec.time_decay,
                 reputation_history=reputation_histories.get(spec.method),
             )
             totals[spec.label]["score"] += score
@@ -378,7 +604,6 @@ def _score_question(
                 data,
                 question,
                 spec.aggregator,
-                spec.reputation_type,
                 weight_class_tuples,
                 reputation_by_type=reputation_by_type,
                 class_reputations=class_reputations,
@@ -392,6 +617,8 @@ def _score_question(
                 a=spec.a,
                 b=spec.b,
                 b_spot=spec.b_spot,
+                time_decay=spec.time_decay,
+                pre_spot_decay=spec.pre_spot_decay,
                 reputation_history=reputation_histories.get(spec.method),
             )
         else:
@@ -517,131 +744,191 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser: CommandParser) -> None:
+        # --method's help text below relies on real newlines/indentation to
+        # stay readable (it documents a small grammar) - the default
+        # formatter re-wraps and collapses all of that to fit the terminal
+        # width, which is what made it unreadable in the first place.
+        parser.formatter_class = _MethodHelpFormatter
         parser.add_argument(
             "--seed",
             type=int,
             default=None,
-            help="Random seed used when --question-count samples a subset of "
-            "eligible questions, for repeatable runs.",
+            help=_help(
+                "Random seed used when --question-count samples a subset of "
+                "eligible questions, for repeatable runs."
+            ),
         )
         parser.add_argument(
             "--question-count",
             type=int,
             default=None,
-            help="If set, randomly sample this many eligible questions instead "
-            "of using all of them - for fast iteration. Default: use all "
-            "eligible questions.",
+            help=_help(
+                "If set, randomly sample this many eligible questions instead "
+                "of using all of them - for fast iteration. Default: use all "
+                "eligible questions."
+            ),
         )
         parser.add_argument(
             "--method",
             dest="methods",
             action="append",
             default=None,
-            help="Aggregation method to evaluate (repeatable). Three forms: "
-            "1) a pre-established name, e.g. 'recency_weighted'. Valid "
-            f"choices: {', '.join(VALID_AGGREGATION_METHODS)}. "
-            "2) that name plus extra comma-separated parameters for a grid "
-            "search, e.g. 'single_aggregation,0.5,6.0' (per-spec a,b), "
-            "'spot_sensitive,0.5,6.0,8.0' (a,b,b_spot - b_spot defaults to "
-            "b), or 'joined_before_date,2024-01-01'. "
-            "3) a composed spec built from scratch: "
-            "'<referent>,<reputation_type>,[<aggregator>],<weight_class>"
-            "[,<weight_class>...]' - referent is just a report label (not "
-            "parsed); reputation_type is one of "
-            f"{', '.join(VALID_REPUTATION_TYPES)} (blank if no weight class "
-            "needs one); aggregator is one of "
-            f"{'/'.join(VALID_AGGREGATORS)} (default Mean); each "
-            "weight_class is a class name from "
-            f"{', '.join(sorted(WEIGHT_CLASS_REGISTRY))}, optionally "
-            "suffixed with '_'-separated parameter values binding to the "
-            "TRAILING entries of that class's own param list (e.g. "
-            "'SpotSensitiveReputationWeighted_0.7_10.0_9.5' sets a,b,b_spot; "
-            "just '_9.5' would set only b_spot). Example: "
-            "'continuous_spot,peer_continuous_with_coverage,"
-            "SpotSensitiveReputationWeighted_0.70_9.5'. "
-            f"Default: {', '.join(DEFAULT_AGGREGATION_METHODS)}.",
+            help=(
+                "Aggregation method to evaluate (repeatable).\n"
+                "\n"
+                "Grammar: key=value|key=value|... - or a bare pre-established\n"
+                "method name as shorthand for name=<that> (e.g. plain\n"
+                "'unweighted'). Every key also accepts a short alias:\n"
+                f"{_wrapped_choices(VALID_KEYS_HELP.split(', '))}\n"
+                "Whitespace/newlines around any key=value or '|' are ignored, and\n"
+                "a weight=<class> token's own params (see form 2 below) may be\n"
+                "separated by whitespace/newlines instead of ',' - so a long spec\n"
+                "can be spread across multiple indented lines for readability,\n"
+                "e.g. quoted with one key per line. A weight=<class>'s params\n"
+                "start after a ':' or ';' (interchangeable).\n"
+                "\n"
+                "There are no global a/b/time_decay defaults - each falls back\n"
+                "to its own class-level default (a=0.5, b=6.0,\n"
+                "time_decay=exponential_lifetime - DecayReputationWeighted's\n"
+                "own defaults) whenever left unset.\n"
+                "\n"
+                "Two spec kinds:\n"
+                "\n"
+                "  1) name=<method> - a pre-established name.\n"
+                "     Valid choices:\n"
+                f"{_wrapped_choices(VALID_AGGREGATION_METHODS)}\n"
+                "     Extra params accepted for a grid search (single_aggregation\n"
+                "     only - every other decay/reputation-blend combination is\n"
+                "     reached via a composed spec, form 2 below):\n"
+                "       a, b            - the decay/reputation blend exponents\n"
+                "       time_decay      - the tau_i formula. Valid choices:\n"
+                f"{_wrapped_choices(sorted(TIME_DECAY_REGISTRY), indent=' ' * 25)}\n"
+                "       pre_spot_decay  - spot-sensitive mode (default false):\n"
+                "                         for any timestep strictly before the\n"
+                "                         question's spot scoring time, uses a\n"
+                "                         flat a=0 and b_spot instead of a/b.\n"
+                "                         Requires b_spot when true.\n"
+                "       b_spot          - required iff pre_spot_decay=true\n"
+                "       joined_before   - joined_before_date only\n"
+                "                         (an ISO-8601 date/datetime)\n"
+                "     Examples:\n"
+                "       name=single_aggregation|a=0.5|b=6.0|t=linear\n"
+                "       name=single_aggregation|psd=true|b_spot=7.0\n"
+                "\n"
+                "  2) [aggregator=<agg>]|weight=<class>[|weight=<class>...]\n"
+                "     - a composed spec built from scratch.\n"
+                "     aggregator:      'mean' (default) or 'median'\n"
+                "     weight:          repeats (one per class, combined\n"
+                "                      multiplicatively). Class name from:\n"
+                f"{_wrapped_choices(sorted(WEIGHT_CLASS_REGISTRY), indent=' ' * 23)}\n"
+                "                      optionally suffixed\n"
+                "                      ':key=value,key=value,...' for that\n"
+                "                      class's own params (restricted to what\n"
+                "                      the class supports). DecayReputationWeighted\n"
+                "                      requires reputation_type (r=<type>) here -\n"
+                "                      it's scoped to this weight-class instance,\n"
+                "                      not the whole spec, so one composed spec\n"
+                "                      can combine several DecayReputationWeighted\n"
+                "                      instances each reading a different type -\n"
+                "                      plus a, b, time_decay, pre_spot_decay,\n"
+                "                      b_spot (same meaning as form 1 above).\n"
+                "                      reputation_type valid choices:\n"
+                f"{_wrapped_choices(VALID_REPUTATION_TYPES, indent=' ' * 25)}\n"
+                "     Examples:\n"
+                "       w=DecayReputationWeighted:r=peer_threshold_-20_coverage_50,"
+                "a=0.7,b=10.0,td=linear,psd=true,bs=7.0|ag=mean\n"
+                "       w=RecencyWeighted|w=DecayReputationWeighted:"
+                "r=average_peer_score,a=0.5,t=linear|ag=median\n"
+                "       w=DecayReputationWeighted:r=average_peer_score,a=0.5|"
+                "w=DecayReputationWeighted:r=year_performance,a=0.5|ag=mean\n"
+                "\n"
+                "Both kinds accept an optional label= to override the\n"
+                "report/totals-key name (defaults to the raw spec string).\n"
+                "\n"
+                f"Default: {', '.join(DEFAULT_AGGREGATION_METHODS)}"
+            ),
         )
         parser.add_argument(
             "--exclude-question-type",
             dest="exclude_question_types",
             action="append",
             default=None,
-            help="Question type to exclude from the eligible pool (repeatable). "
-            f"Valid choices: {', '.join(VALID_QUESTION_TYPES)}. Median-based "
-            "aggregation methods (e.g. recency_weighted, unweighted, or a "
-            "composed spec using MedianAggregatorMixin) require "
-            "multiple_choice to be excluded - their median renormalization "
-            "needs the full PMF, which this fast path doesn't retain.",
+            help=_help(
+                "Question type to exclude from the eligible pool (repeatable). "
+                f"Valid choices: {', '.join(VALID_QUESTION_TYPES)}. Median-based "
+                "aggregation methods (e.g. recency_weighted, unweighted, or a "
+                "composed spec using MedianAggregatorMixin) require "
+                "multiple_choice to be excluded - their median renormalization "
+                "needs the full PMF, which this fast path doesn't retain."
+            ),
         )
         parser.add_argument(
             "--score-type",
             default="default",
             choices=[c.value for c in ScoreTypes] + ["default"],
-            help="Score type to compute. 'default' (the default) scores each "
-            "question using its own default_score_type field instead of one "
-            "fixed type for every question.",
+            help=_help(
+                "Score type to compute. 'default' (the default) scores each "
+                "question using its own default_score_type field instead of one "
+                "fixed type for every question."
+            ),
         )
         parser.add_argument(
             "--min-forecasters",
             type=int,
             default=8,
-            help="Minimum number of forecasters a question must have to be "
-            "included (default: 8).",
+            help=_help(
+                "Minimum number of forecasters a question must have to be "
+                "included (default: 8)."
+            ),
         )
         parser.add_argument(
             "--rebuild-cache",
             action="store_true",
             default=False,
-            help="Ignore any cached per-question data and rebuild it from the "
-            "database (use after changing the PMF-reduction logic itself, or "
-            "if a question's forecasts have changed).",
+            help=_help(
+                "Ignore any cached per-question data and rebuild it from the "
+                "database (use after changing the PMF-reduction logic itself, or "
+                "if a question's forecasts have changed). Also forces a fresh "
+                "fetch of any disk-cached reputation_type history (use after "
+                "running populate_reputations, or if Reputation rows changed)."
+            ),
         )
         parser.add_argument(
             "--sample-timesteps",
             action="store_true",
             default=False,
-            help=f"For questions with a dense timestep grid (many forecast "
-            f"starts/ends), evenly subsample it down to at most "
-            f"{MAX_SAMPLED_TIMESTEPS} points before scoring - trades score "
-            "precision for speed, similar in spirit to how minimize_history "
-            "subsamples a display timeline. Has no effect on spot scoring "
-            "(already a single point). Default: use the full grid.",
+            help=_help(
+                "For questions with a dense timestep grid (many forecast "
+                "starts/ends), evenly subsample it down to at most "
+                f"{MAX_SAMPLED_TIMESTEPS} points before scoring - trades score "
+                "precision for speed, similar in spirit to how minimize_history "
+                "subsamples a display timeline. Has no effect on spot scoring "
+                "(already a single point). Default: use the full grid."
+            ),
         )
         parser.add_argument(
             "--joined-before",
             type=str,
             default=None,
-            help="ISO-8601 date/datetime cutoff (e.g. 2024-01-01) for the "
-            "joined_before_date aggregation method / JoinedBeforeFiltered "
-            "weight class - only forecasters who joined before this are "
-            "included. Default for any spec that doesn't attach its own "
-            "date; required if none do.",
+            help=_help(
+                "ISO-8601 date/datetime cutoff (e.g. 2024-01-01) for the "
+                "joined_before_date aggregation method / JoinedBeforeFiltered "
+                "weight class - only forecasters who joined before this are "
+                "included. Default for any spec that doesn't attach its own "
+                "date; required if none do."
+            ),
         )
         parser.add_argument(
             "--workers",
             type=int,
             default=None,
-            help="Number of worker processes to score questions in parallel. "
-            "Each question is scored independently, so this scales close to "
-            "linearly with core count - useful for large runs. Each worker "
-            "opens its own DB connection. Pass 1 to force sequential. "
-            "Default: auto-detect and use all available CPU cores.",
-        )
-        parser.add_argument(
-            "--a",
-            type=float,
-            default=0.5,
-            help="Default decay/reputation blend exponent for "
-            "reputation-weighted methods/weight classes - overridable "
-            "per-spec, see --method. Default: 0.5.",
-        )
-        parser.add_argument(
-            "--b",
-            type=float,
-            default=6.0,
-            help="Default outer exponent for reputation-weighted "
-            "methods/weight classes' weight formula - overridable per-spec, "
-            "see --method. Default: 6.0.",
+            help=_help(
+                "Number of worker processes to score questions in parallel. "
+                "Each question is scored independently, so this scales close to "
+                "linearly with core count - useful for large runs. Each worker "
+                "opens its own DB connection. Pass 1 to force sequential. "
+                "Default: auto-detect and use all available CPU cores."
+            ),
         )
 
     def handle(self, *args, **options):
@@ -657,34 +944,29 @@ class Command(BaseCommand):
         workers_auto_detected = workers is None
         if workers is None:
             workers = _detect_max_workers()
-        default_a = options["a"]
-        default_b = options["b"]
         default_joined_before = _parse_joined_before(options["joined_before"])
         raw_specs = options["methods"] or DEFAULT_AGGREGATION_METHODS
         specs = [_parse_method_spec(raw) for raw in raw_specs]
-        # Fill in each spec's a/b/b_spot/joined_before from the global
-        # --a/--b/--joined-before defaults wherever it didn't attach its
-        # own - after this, every spec is fully self-contained and
-        # downstream code never needs to know about the global defaults
-        # again. b_spot defaults to the spec's own *resolved* b (not a
-        # separate global), so it must be filled in after a/b are.
+        # Fill in each spec's joined_before from the global --joined-before
+        # default wherever it didn't attach its own date - after this, every
+        # spec is fully self-contained and downstream code never needs to
+        # know about the global default again. a/b/b_spot/time_decay are
+        # deliberately left alone here: each is only ever meaningful
+        # attached to a specific method/weight-class token (see
+        # AggregationSpec's docstring and _resolve_composed_spec), so an
+        # unset one is passed through as None and resolved against its own
+        # method/class-level default downstream (fast_scoring.py /
+        # DecayReputationWeighted), not a separate run-wide default.
         resolved_specs: list[MethodSpec] = []
         for spec in specs:
             if isinstance(spec, ComposedMethodSpec):
                 resolved_specs.append(
-                    _resolve_composed_spec(
-                        spec, default_a, default_b, default_joined_before
-                    )
+                    _resolve_composed_spec(spec, default_joined_before)
                 )
                 continue
-            resolved_a = spec.a if spec.a is not None else default_a
-            resolved_b = spec.b if spec.b is not None else default_b
             resolved_specs.append(
                 replace(
                     spec,
-                    a=resolved_a,
-                    b=resolved_b,
-                    b_spot=spec.b_spot if spec.b_spot is not None else resolved_b,
                     joined_before=(
                         spec.joined_before
                         if spec.joined_before is not None
@@ -694,7 +976,7 @@ class Command(BaseCommand):
             )
         specs = resolved_specs
 
-        self._validate_options(specs, exclude_question_types)
+        self._validate_options(specs, raw_specs, exclude_question_types)
 
         question_ids = self._select_question_ids(
             min_forecasters=min_forecasters,
@@ -703,10 +985,12 @@ class Command(BaseCommand):
             exclude_question_types=exclude_question_types,
         )
 
-        reputation_histories = self._preload_reputation_histories(question_ids, specs)
+        reputation_histories = self._preload_reputation_histories(
+            question_ids, specs, rebuild_cache
+        )
         static_filters = self._preload_static_filters(question_ids, specs)
         reputation_by_type = self._preload_composed_reputation_by_type(
-            question_ids, specs
+            question_ids, specs, rebuild_cache
         )
         class_reputations = self._preload_composed_class_reputations(
             question_ids, specs
@@ -754,8 +1038,6 @@ class Command(BaseCommand):
             sample_timesteps=sample_timesteps,
             workers=workers,
             workers_auto_detected=workers_auto_detected,
-            default_a=default_a,
-            default_b=default_b,
             default_joined_before=default_joined_before,
         )
         elapsed = time.perf_counter() - eval_start
@@ -872,6 +1154,7 @@ class Command(BaseCommand):
     def _validate_options(
         self,
         specs: list[MethodSpec],
+        raw_specs: list[str],
         exclude_question_types: list[str],
     ) -> None:
         named_specs = [s for s in specs if isinstance(s, AggregationSpec)]
@@ -930,14 +1213,35 @@ class Command(BaseCommand):
                 "supported by this fast scoring path yet."
             )
 
-        duplicate_labels = sorted(
-            {label for label in (spec.label for spec in specs) if
-             sum(1 for spec in specs if spec.label == label) > 1}
-        )
-        if duplicate_labels:
+        # Keyed by label (spec.label - an explicit label=/l=, or the raw
+        # spec string itself when none was given) rather than by the spec's
+        # params: `totals` is keyed by label, so two specs sharing one
+        # collide there regardless of whether their underlying params
+        # actually differ. Reporting the raw --method strings that collided
+        # (not just the shared label) matters specifically because an
+        # explicit label= is free-text the user typed themselves - a typo
+        # there (e.g. copy-pasting a label across a grid search and missing
+        # one digit) produces exactly this: two spec strings with genuinely
+        # different params, but an accidentally identical label.
+        labels_to_raw: dict[str, list[str]] = {}
+        for spec, raw in zip(specs, raw_specs):
+            labels_to_raw.setdefault(spec.label, []).append(raw)
+        duplicates = {
+            label: raws for label, raws in labels_to_raw.items() if len(raws) > 1
+        }
+        if duplicates:
+            lines = [
+                f"  {label!r} used by:\n" + "\n".join(f"    - {r}" for r in raws)
+                for label, raws in sorted(duplicates.items())
+            ]
             raise CommandError(
-                f"Duplicate --method spec(s): {', '.join(duplicate_labels)}. "
-                "Each spec (including its parameters) must be unique."
+                "Duplicate --method label(s) - totals are keyed by label, so "
+                "specs sharing one can't be told apart in the report:\n"
+                + "\n".join(lines)
+                + "\nIf the --method strings above actually differ, the "
+                "params aren't the problem - check for a typo in the "
+                "label=/l= text itself (or drop label= to fall back to the "
+                "full spec string, which is unique whenever the params are)."
             )
 
     def _gather_batch_forecaster_ids(self, question_ids: list[int]) -> list[int]:
@@ -957,7 +1261,10 @@ class Command(BaseCommand):
         )["scheduled_close_time__max"]
 
     def _preload_reputation_histories(
-        self, question_ids: list[int], specs: list[MethodSpec]
+        self,
+        question_ids: list[int],
+        specs: list[MethodSpec],
+        rebuild_cache: bool = False,
     ) -> dict[str, ReputationArrays]:
         """Fetches every reputation-weighted named method's full
         user-reputation history once for the whole batch of questions,
@@ -965,7 +1272,12 @@ class Command(BaseCommand):
         the same active forecasters reappear across most questions. Keyed
         by base method (not spec label): the reputation values a/b blend
         into a weight don't depend on a/b themselves, so grid-search specs
-        of the same method share one preloaded history."""
+        of the same method share one preloaded history.
+
+        DECAYED_REPUTATION_CLASSES methods (single_aggregation) additionally
+        persist to disk across *runs* (see preload_reputation_history /
+        _get_or_build_full_reputation_history in fast_scoring.py) - pass
+        --rebuild-cache after populate_reputations adds new rows."""
         methods_needing_reputation = sorted(
             {
                 spec.method
@@ -985,14 +1297,15 @@ class Command(BaseCommand):
         )
 
         # Methods that pull from the exact same underlying Reputation
-        # records (e.g. "single_aggregation" and "spot_sensitive" both read
-        # "average_peer_score" - SpotSensitiveReputationWeighted extends
-        # PeerScoreReputationWeighted without overriding
-        # get_reputation_history) share one preload instead of redundantly
-        # querying/holding the same data once per method - each preload can
-        # be millions of Reputation rows for a large batch, and duplicating
-        # that per method (then again per --workers process) is exactly
-        # what OOM-killed a run requesting several such methods at once.
+        # records (i.e. share a DecayReputationWeighted subclass's
+        # reputation_type - none of the current named methods do, since
+        # single_aggregation is the only one left in DECAYED_REPUTATION_
+        # CLASSES, but this stays correct if more are added) share one
+        # preload instead of redundantly querying/holding the same data once
+        # per method - each preload can be millions of Reputation rows for a
+        # large batch, and duplicating that per method (then again per
+        # --workers process) is exactly what OOM-killed a run requesting
+        # several such methods at once.
         cache: dict[str, ReputationArrays] = {}
         result: dict[str, ReputationArrays] = {}
         for method in methods_needing_reputation:
@@ -1000,7 +1313,7 @@ class Command(BaseCommand):
             cache_key = getattr(weighted_class, "reputation_type", None) or method
             if cache_key not in cache:
                 cache[cache_key] = preload_reputation_history(
-                    method, user_ids, end_time=end_time
+                    method, user_ids, end_time=end_time, rebuild_cache=rebuild_cache
                 )
             result[method] = cache[cache_key]
         return result
@@ -1041,21 +1354,27 @@ class Command(BaseCommand):
         }
 
     def _preload_composed_reputation_by_type(
-        self, question_ids: list[int], specs: list[MethodSpec]
+        self,
+        question_ids: list[int],
+        specs: list[MethodSpec],
+        rebuild_cache: bool = False,
     ) -> dict[str, ReputationArrays]:
         """Like _preload_reputation_histories, but for composed specs'
-        reputation_type field, keyed by the reputation_type string itself
-        (shared across every composed spec/weight class using the same
-        type, regardless of a/b/b_spot)."""
+        weight classes' own reputation_type param, keyed by the
+        reputation_type string itself (shared across every weight class -
+        in the same spec or a different one - using the same type,
+        regardless of a/b/b_spot). reputation_type is required whenever a
+        weight class needs one (see _parse_weight_token), so a single spec
+        combining several DecayReputationWeighted instances each contributes
+        its own type here. Each type also persists to disk across *runs* -
+        see preload_reputation_history_by_type; pass --rebuild-cache after
+        populate_reputations adds new rows."""
         reputation_types = sorted(
             {
-                spec.reputation_type
+                wc.params["reputation_type"]
                 for spec in _composed_specs(specs)
-                if spec.reputation_type is not None
-                and any(
-                    _weight_class_needs_reputation_type(wc.name)
-                    for wc in spec.weight_classes
-                )
+                for wc in spec.weight_classes
+                if _weight_class_needs_reputation_type(wc.name)
             }
         )
         if not reputation_types:
@@ -1068,7 +1387,10 @@ class Command(BaseCommand):
         )
         return {
             reputation_type: preload_reputation_history_by_type(
-                reputation_type, user_ids, end_time=end_time
+                reputation_type,
+                user_ids,
+                end_time=end_time,
+                rebuild_cache=rebuild_cache,
             )
             for reputation_type in reputation_types
         }
@@ -1177,8 +1499,6 @@ class Command(BaseCommand):
         sample_timesteps: bool,
         workers: int,
         workers_auto_detected: bool,
-        default_a: float,
-        default_b: float,
         default_joined_before: datetime | None,
     ) -> None:
         rows = [
@@ -1193,7 +1513,6 @@ class Command(BaseCommand):
                 "workers",
                 f"{workers} (auto-detected)" if workers_auto_detected else workers,
             ),
-            ("default a / b", f"{default_a} / {default_b}"),
             (
                 "default joined_before",
                 default_joined_before.date().isoformat() if default_joined_before else "none",

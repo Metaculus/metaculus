@@ -28,8 +28,7 @@ from utils.the_math.aggregations import (
     GoldMedalistsAggregation,
     JoinedBeforeDateAggregation,
     SingleAggregation,
-    YearPerformanceAggregation,
-    YearPerformanceReputationWeighted,
+    DecayReputationWeighted,
     compute_weighted_semi_standard_deviations,
 )
 from utils.typing import (
@@ -743,55 +742,6 @@ class TestAggregations:
         aggregate_value = new_aggregation.forecast_values[1]
         assert abs(high_value - aggregate_value) < abs(low_value - aggregate_value)
 
-    def test_YearPerformanceAggregation(self, question_binary: Question):
-        question_binary.open_time = datetime(2022, 1, 1, tzinfo=dt_timezone.utc)
-        question_binary.scheduled_close_time = datetime(
-            2025, 1, 1, tzinfo=dt_timezone.utc
-        )
-        question_binary.save()
-
-        high_rep_user = User.objects.create(username="high_rep_user")
-        low_rep_user = User.objects.create(username="low_rep_user")
-
-        Reputation.objects.create(
-            user=high_rep_user,
-            time=datetime(2020, 1, 1, tzinfo=dt_timezone.utc),
-            type=Reputation.ReputationTypes.YEAR_PERFORMANCE,
-            value=3.0,
-        )
-        Reputation.objects.create(
-            user=low_rep_user,
-            time=datetime(2020, 1, 1, tzinfo=dt_timezone.utc),
-            type=Reputation.ReputationTypes.YEAR_PERFORMANCE,
-            value=0.3,
-        )
-
-        timestep = datetime(2024, 1, 1, tzinfo=dt_timezone.utc)
-        high_forecast = [0.2, 0.8]
-        low_forecast = [0.8, 0.2]
-        forecast_set = ForecastSet(
-            forecasts_values=[low_forecast, high_forecast],
-            timestep=timestep,
-            forecaster_ids=[low_rep_user.id, high_rep_user.id],
-            timesteps=[timestep, timestep],
-        )
-
-        aggregation = YearPerformanceAggregation(
-            question=question_binary,
-            all_forecaster_ids=[low_rep_user.id, high_rep_user.id],
-        )
-        new_aggregation = aggregation.calculate_aggregation_entry(forecast_set)
-
-        assert new_aggregation
-        assert new_aggregation.method == "year_performance"
-        assert new_aggregation.forecaster_count == 2
-        assert new_aggregation.start_time == timestep
-        # aggregate should be closer to the user with a higher reputation
-        high_value = high_forecast[1]
-        low_value = low_forecast[1]
-        aggregate_value = new_aggregation.forecast_values[1]
-        assert abs(high_value - aggregate_value) < abs(low_value - aggregate_value)
-
     def test_ProAggregation(self, question_binary: Question):
         timestep = datetime(2024, 1, 1, tzinfo=dt_timezone.utc)
         pro_user = User.objects.create(
@@ -1107,42 +1057,6 @@ class TestAggregationSpeed:
         result = self._time_history(question, AggregationMethod.SINGLE_AGGREGATION)
         assert result[AggregationMethod.SINGLE_AGGREGATION]
 
-    def test_YearPerformanceAggregation_speed(self, question_binary: Question):
-        question = self._setup_question(question_binary)
-        user_1 = User.objects.create(username="user_1")
-        user_2 = User.objects.create(username="user_2")
-
-        Reputation.objects.create(
-            user=user_1,
-            time=datetime(2020, 1, 1, tzinfo=dt_timezone.utc),
-            type=Reputation.ReputationTypes.YEAR_PERFORMANCE,
-            value=3.0,
-        )
-        Reputation.objects.create(
-            user=user_2,
-            time=datetime(2020, 1, 1, tzinfo=dt_timezone.utc),
-            type=Reputation.ReputationTypes.YEAR_PERFORMANCE,
-            value=0.3,
-        )
-
-        Forecast.objects.create(
-            question=question,
-            author=user_1,
-            probability_yes=0.8,
-            start_time=self.forecast_start_time,
-            end_time=None,
-        )
-        Forecast.objects.create(
-            question=question,
-            author=user_2,
-            probability_yes=0.2,
-            start_time=self.forecast_start_time,
-            end_time=None,
-        )
-
-        result = self._time_history(question, "year_performance")
-        assert result["year_performance"]
-
 
 class TestReputationPrecomputeEquivalence:
     """`ReputationWeighted` can either precompute reputation weights for a
@@ -1194,14 +1108,16 @@ class TestReputationPrecomputeEquivalence:
                 )
             )
 
-        live = YearPerformanceReputationWeighted(
+        live = DecayReputationWeighted(
             question=question_binary,
             all_forecaster_ids=user_ids,
+            reputation_type=Reputation.ReputationTypes.YEAR_PERFORMANCE,
             forecast_history=None,
         )
-        precomputed = YearPerformanceReputationWeighted(
+        precomputed = DecayReputationWeighted(
             question=question_binary,
             all_forecaster_ids=user_ids,
+            reputation_type=Reputation.ReputationTypes.YEAR_PERFORMANCE,
             forecast_history=forecast_history,
         )
 
@@ -1340,28 +1256,6 @@ class TestAggregationHeavyLoad:
 
         result = self._time_history(question, AggregationMethod.SINGLE_AGGREGATION)
         assert result[AggregationMethod.SINGLE_AGGREGATION]
-
-    def test_YearPerformanceAggregation_heavy_load(self):
-        question = self._setup_question()
-        users = self._create_users()
-
-        rng = random.Random(13)
-        Reputation.objects.bulk_create(
-            [
-                Reputation(
-                    user=user,
-                    time=datetime(2014, 6, 1, tzinfo=dt_timezone.utc),
-                    type=Reputation.ReputationTypes.YEAR_PERFORMANCE,
-                    value=rng.uniform(0.01, 5.0),
-                )
-                for user in users
-            ]
-        )
-
-        self._create_forecasts(question, users)
-
-        result = self._time_history(question, "year_performance")
-        assert result["year_performance"]
 
 
 class TestGetAggregationHistoryCutoff:

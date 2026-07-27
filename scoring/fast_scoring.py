@@ -17,6 +17,8 @@ MEDIAN_BASED_METHODS below.
 """
 
 import pickle
+import re
+from collections import defaultdict
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone as dt_timezone
 from pathlib import Path
@@ -28,27 +30,21 @@ from django.utils import timezone
 from questions.models import QUESTION_CONTINUOUS_TYPES, Forecast, Question
 from questions.services.multiple_choice_handlers import get_all_options_from_history
 from scoring.constants import ScoreTypes
-from scoring.models import MINIMUM_REPUTATION
+from scoring.models import MINIMUM_REPUTATION, Reputation
 from utils.the_math.aggregations import (
     AGGREGATIONS,
+    DecayReputationWeighted,
     Filtered,
     GoldMedalistsReputationWeighted,
     JoinedBeforeFiltered,
-    LearnedReputationWeighted,
     MeanAggregatorMixin,
     MedalistsReputationWeighted,
     MedianAggregatorMixin,
-    PeerContinuousReputationWeighted,
-    PeerScoreReputationWeighted,
-    PeerThresholdReputationWeighted,
-    PrecomputedReputationWeighted,
     ProsFiltered,
     RecencyWeighted,
     ReputationWeighted,
     SilverMedalistsReputationWeighted,
-    SpotSensitiveReputationWeighted,
     Unweighted,
-    YearPerformanceReputationWeighted,
 )
 from utils.the_math.formulas import string_location_to_bucket_index
 
@@ -58,16 +54,14 @@ from utils.the_math.formulas import string_location_to_bucket_index
 # method needs, keyed by method name.
 #
 # "decayed": mean-based methods whose weight blends the reputation value
-# with RecencyWeighted-style decay via LearnedReputationWeighted's formula
-# (see compute_aggregation_series). "spot_sensitive" uses the same source as
-# "single_aggregation" (SpotSensitiveReputationWeighted extends
-# PeerScoreReputationWeighted) - see _spot_sensitive_ab.
+# with RecencyWeighted-style decay via DecayReputationWeighted's formula
+# (see compute_aggregation_series). single_aggregation is the only
+# predefined method left in this bucket - year_performance/spot_sensitive/
+# peer_threshold_-20_coverage_50/peer_continuous_with_coverage were removed
+# as dedicated presets in favor of composing DecayReputationWeighted with an
+# arbitrary reputation_type via --method (see benchmark_aggregations).
 DECAYED_REPUTATION_CLASSES = {
-    "single_aggregation": PeerScoreReputationWeighted,
-    "year_performance": YearPerformanceReputationWeighted,
-    "spot_sensitive": SpotSensitiveReputationWeighted,
-    "peer_threshold_-20_coverage_50": PeerThresholdReputationWeighted,
-    "peer_continuous_with_coverage": PeerContinuousReputationWeighted,
+    "single_aggregation": DecayReputationWeighted,
 }
 # "raw": median-based methods that multiply the reputation value straight
 # into RecencyWeighted's rank-based weight - it's already a plain 0/1
@@ -97,22 +91,18 @@ MEDIAN_BASED_METHODS = {
 }
 
 # Weight classes composable via --method's compositional form (see
-# benchmark_aggregations): "<referent>,<reputation_type>,[<aggregator>],
-# <weight_class_1>[,<weight_class_2>...]" - each weight_class token is one of
-# these names, e.g. "SpotSensitiveReputationWeighted_0.7_10.0_9.5". Lets any
-# reputation_type be combined with any of these weighting formulas without
-# writing a dedicated Aggregation/method for every combination.
+# benchmark_aggregations): "reputation_type=<type>|[aggregator=<agg>]|
+# weight=<weight_class>[|weight=<weight_class>...]" - each weight_class
+# token is one of these names, e.g.
+# "DecayReputationWeighted:a=0.7,b=10.0,pre_spot_decay=true,b_spot=9.5".
+# Lets any reputation_type be combined with any of these weighting formulas
+# without writing a dedicated Aggregation/method for every combination.
 WEIGHT_CLASS_REGISTRY: dict[str, type] = {
     cls.__name__: cls
     for cls in [
         Unweighted,
         RecencyWeighted,
-        PrecomputedReputationWeighted,
-        PeerScoreReputationWeighted,
-        YearPerformanceReputationWeighted,
-        PeerThresholdReputationWeighted,
-        PeerContinuousReputationWeighted,
-        SpotSensitiveReputationWeighted,
+        DecayReputationWeighted,
         MedalistsReputationWeighted,
         SilverMedalistsReputationWeighted,
         GoldMedalistsReputationWeighted,
@@ -121,30 +111,27 @@ WEIGHT_CLASS_REGISTRY: dict[str, type] = {
     ]
 }
 
-# Each composable weight class's own tunable parameters, in declaration
-# order - see benchmark_aggregations's WeightClassUse parsing. Suffix values
-# given for a class (e.g. the "0.7_10.0_9.5" in
-# "SpotSensitiveReputationWeighted_0.7_10.0_9.5") bind to the TRAILING N
-# entries of its param list (leaving earlier ones at their class default) -
-# e.g. one value for SpotSensitiveReputationWeighted sets only b_spot, two
-# set (b, b_spot), three set (a, b, b_spot).
-WEIGHT_CLASS_PARAMS: dict[str, tuple[str, ...]] = {
-    "Unweighted": (),
-    "RecencyWeighted": (),
-    "PrecomputedReputationWeighted": ("a", "b"),
-    "PeerScoreReputationWeighted": ("a", "b"),
-    "YearPerformanceReputationWeighted": ("a", "b"),
-    "PeerThresholdReputationWeighted": ("a", "b"),
-    "PeerContinuousReputationWeighted": ("a", "b"),
-    "SpotSensitiveReputationWeighted": ("a", "b", "b_spot"),
-    "MedalistsReputationWeighted": (),
-    "SilverMedalistsReputationWeighted": (),
-    "GoldMedalistsReputationWeighted": (),
-    "ProsFiltered": (),
-    "JoinedBeforeFiltered": ("joined_before",),
+# Each composable weight class's own tunable parameters - a plain
+# unordered set (every param is given as key=value in --method's
+# "weight=ClassName:key=value,..." syntax, so there's no positional order
+# to track) used by benchmark_aggregations purely to validate that a given
+# key actually applies to that class. compute_weight_class_array reads
+# these by name (params.get("a", 0.5) etc.), each falling back to
+# DecayReputationWeighted's own class defaults when unset.
+WEIGHT_CLASS_PARAMS: dict[str, frozenset[str]] = {
+    "Unweighted": frozenset(),
+    "RecencyWeighted": frozenset(),
+    "DecayReputationWeighted": frozenset(
+        {"reputation_type", "a", "b", "time_decay", "pre_spot_decay", "b_spot"}
+    ),
+    "MedalistsReputationWeighted": frozenset(),
+    "SilverMedalistsReputationWeighted": frozenset(),
+    "GoldMedalistsReputationWeighted": frozenset(),
+    "ProsFiltered": frozenset(),
+    "JoinedBeforeFiltered": frozenset({"joined_before"}),
 }
 
-# Arbitrarily early: only used as an anchor point for PeerScoreReputationWeighted's
+# Arbitrarily early: only used as an anchor point for DecayReputationWeighted's
 # "reputation as of the very start" baseline entry when preloading (see
 # preload_reputation_history) - must just be earlier than any real Score.
 _EARLY_ANCHOR = datetime(2015, 1, 1, tzinfo=dt_timezone.utc)
@@ -184,8 +171,73 @@ def _reputation_to_arrays(reputations: dict[int, list]) -> ReputationArrays:
     }
 
 
+# On-disk cache for a reputation source's *complete* history (every user
+# who's ever had a row of it, full time range) - separate from CACHE_DIR's
+# per-question forecast-reduction cache above, since these have completely
+# different invalidation shapes: one entry per question (that question's
+# forecasts never change once resolved) vs. one entry per reputation_type/
+# class (shared, and reused regardless of which batch of questions/
+# forecasters any one benchmark_aggregations run happens to need).
+#
+# This is safe to cache *without* filtering to any particular batch's
+# user_ids because Reputation.type rows have no time-window dependency of
+# their own here: get_reputation_history's query only ever narrows by
+# user_id/type, never by a date range, since every consumer looks up "the
+# latest entry at or before my query time" via bisect/searchsorted - which
+# already ignores anything outside whichever question's own window is being
+# scored. So the full, all-users-ever history for a given type is exactly
+# what a *differently* -batched future run would need too; callers just
+# filter the cached dict down to their own user_ids in memory afterward
+# (preload_reputation_history_by_type below), which is far cheaper than
+# re-fetching from Postgres.
+REPUTATION_CACHE_DIR = Path(__file__).resolve().parent / "_reputation_cache"
+REPUTATION_CACHE_VERSION = 1
+_UNSAFE_CACHE_KEY_CHARS = re.compile(r"[^A-Za-z0-9_.-]")
+
+
+def _get_or_build_full_reputation_history(
+    cache_key: str,
+    fetch_rows,
+    rebuild_cache: bool = False,
+) -> ReputationArrays:
+    """Loads (or fetches via `fetch_rows` and caches) one reputation
+    source's complete history, keyed by `cache_key`. `fetch_rows` is a
+    zero-arg callable returning an iterable of (user_id, time, value)
+    triples - deferred (not a queryset passed directly) so nothing is
+    queried at all on a cache hit. Pass rebuild_cache=True (--rebuild-cache)
+    to force a fresh fetch, e.g. after `populate_reputations` adds rows."""
+    REPUTATION_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    safe_key = _UNSAFE_CACHE_KEY_CHARS.sub("_", cache_key)
+    cache_path = REPUTATION_CACHE_DIR / f"{safe_key}_v{REPUTATION_CACHE_VERSION}.pkl"
+
+    if not rebuild_cache and cache_path.exists():
+        with open(cache_path, "rb") as fh:
+            return pickle.load(fh)
+
+    # Grouped by user first (as plain Python lists of (epoch, value) pairs -
+    # cheap to append to) rather than building the final numpy arrays
+    # per-row, then converted to arrays once per user at the end.
+    by_user: dict[int, list[tuple[float, float]]] = defaultdict(list)
+    for user_id, time, value in fetch_rows():
+        by_user[user_id].append((time.timestamp(), value))
+    result: ReputationArrays = {
+        user_id: (
+            np.array([epoch for epoch, _ in pairs]),
+            np.array([value for _, value in pairs]),
+        )
+        for user_id, pairs in by_user.items()
+    }
+
+    with open(cache_path, "wb") as fh:
+        pickle.dump(result, fh)
+    return result
+
+
 def preload_reputation_history(
-    method: str, user_ids: list[int], end_time: datetime | None = None
+    method: str,
+    user_ids: list[int],
+    end_time: datetime | None = None,
+    rebuild_cache: bool = False,
 ) -> ReputationArrays:
     """Computes one method's full reputation history for every user in
     `user_ids` *once*, instead of the (very expensive - a full historical
@@ -194,32 +246,22 @@ def preload_reputation_history(
     batch, even though the same active forecasters reappear across most of
     them.
 
-    Safe because reputation histories are monotonically built up over
-    calendar time regardless of which question "asked" for them: querying
-    with an artificially early start bound produces the same per-timestamp
-    values a narrower, question-specific bound would have - every consumer
-    only ever looks up "the latest entry at or before my query time"
-    (bisect/searchsorted), which ignores anything outside its own
-    question's real window anyway.
-
-    `end_time` should be the *latest* close time among the questions this
-    preload will actually be used for (callers scoring a batch of questions
-    should pass the max across the batch) - defaulting to "now" fetches
-    every relevant Score/Reputation row regardless of how far in the past
-    the batch's questions actually resolved, which is wasted work for
-    batches of older questions.
+    `end_time` is only meaningful for RAW_REPUTATION_CLASSES (the medal
+    family - LeaderboardEntry-based, genuinely bounded by the fake
+    question's open/close window); DECAYED_REPUTATION_CLASSES methods
+    delegate to preload_reputation_history_by_type, which is disk-cached
+    and ignores it (see that function's docstring for why that's safe).
     """
     weighted_class = REPUTATION_WEIGHTED_CLASSES[method]
-    # Every ReputationWeighted subclass's get_reputation_history touches
-    # `question.open_time`/`scheduled_close_time` in some form - directly
-    # (the "raw"/medal classes use them as the reputation-history window) or
-    # via LearnedReputationWeighted.__init__'s question_duration_seconds
-    # (the "decayed" classes) - so the fake question needs both regardless
-    # of which bucket `method` falls into. default_score_type=None (never
-    # equal to spot_peer) short-circuits SpotSensitiveReputationWeighted.
-    # __init__'s spot_scoring_time lookup, which this fake question has no
-    # sensible value for anyway - harmless, since preloading only ever reads
-    # get_reputation_history()'s dict, never calls calculate_weights().
+    reputation_type = getattr(weighted_class, "reputation_type", None)
+    if reputation_type is not None:
+        return preload_reputation_history_by_type(
+            reputation_type, user_ids, end_time=end_time, rebuild_cache=rebuild_cache
+        )
+
+    # medal family: not disk-cached (see module docstring above) - genuinely
+    # depends on the fake question's open/close window, unlike the
+    # Reputation.type-based path.
     fake_question = SimpleNamespace(
         open_time=_EARLY_ANCHOR,
         scheduled_close_time=end_time or timezone.now(),
@@ -249,22 +291,39 @@ def preload_static_filter(
 
 
 def preload_reputation_history_by_type(
-    reputation_type: str, user_ids: list[int], end_time: datetime | None = None
+    reputation_type: str,
+    user_ids: list[int],
+    end_time: datetime | None = None,
+    rebuild_cache: bool = False,
 ) -> ReputationArrays:
     """Like preload_reputation_history, but for an arbitrary Reputation.type
     string (--method's compositional form) rather than a pre-registered
-    method name."""
-    fake_question = SimpleNamespace(
-        open_time=_EARLY_ANCHOR,
-        scheduled_close_time=end_time or timezone.now(),
-        default_score_type=None,
+    method name.
+
+    Disk-cached per reputation_type, across every user who's ever had a row
+    of it - not just `user_ids` (see _get_or_build_full_reputation_history) -
+    so a later run with a different --question-count/--seed sampling a
+    different batch of forecasters still gets a cache hit; `user_ids` only
+    filters the (already in-memory) result before returning. `end_time` is
+    accepted for signature compatibility with preload_reputation_history's
+    batch machinery but unused: the underlying query was never bounded by it
+    to begin with (no consumer needs anything but "the latest entry at or
+    before my own query time").
+    """
+    full_history = _get_or_build_full_reputation_history(
+        f"reptype_{reputation_type}",
+        lambda: Reputation.objects.filter(type=reputation_type)
+        .order_by("time", "id")
+        .values_list("user_id", "time", "value")
+        .iterator(),
+        rebuild_cache=rebuild_cache,
     )
-    instance = PrecomputedReputationWeighted(
-        question=fake_question,
-        all_forecaster_ids=list(user_ids),
-        reputation_type=reputation_type,
-    )
-    return _reputation_to_arrays(instance.reputations)
+    wanted = {int(uid) for uid in user_ids}
+    return {
+        user_id: arrays
+        for user_id, arrays in full_history.items()
+        if user_id in wanted
+    }
 
 
 def preload_class_reputation_history(
@@ -502,12 +561,12 @@ def get_reputation_values_by_type(
 ) -> np.ndarray:
     """Like get_reputation_values, but for an arbitrary Reputation.type
     string rather than a pre-registered method name - used by --method's
-    compositional form (see benchmark_aggregations), which lets any
-    LearnedReputationWeighted-family weight class read from any reputation
-    type without needing a dedicated subclass per type."""
+    compositional form (see benchmark_aggregations), which lets
+    DecayReputationWeighted read from any reputation type without needing a
+    dedicated subclass per type."""
     cache_key = f"reptype:{reputation_type}"
     if reputation_arrays is None:
-        instance = PrecomputedReputationWeighted(
+        instance = DecayReputationWeighted(
             question=question,
             all_forecaster_ids=data.user_ids.tolist(),
             reputation_type=reputation_type,
@@ -535,15 +594,42 @@ def get_class_reputation_values(
     return _lookup_reputation_values(data, cache_key, reputation_arrays)
 
 
-def _decay_formula(
-    data: "QuestionScoringData", reputation: np.ndarray, a, b
-) -> np.ndarray:
-    """(decays**a * reputation**(1-a))**b - LearnedReputationWeighted's
-    decay/reputation blend, vectorized. `a`/`b` may be scalars or arrays
-    broadcastable against (U, T) (see _spot_sensitive_ab)."""
+def _time_decay_array(data: "QuestionScoringData", time_decay: str) -> np.ndarray:
+    """Vectorized (U, T) tau_i array for one of utils.the_math.aggregations's
+    TimeDecay subclasses (see TIME_DECAY_REGISTRY there for the full name ->
+    class mapping this dispatches on by name, keeping fast_scoring's arrays
+    in lockstep with the real, per-forecast_set TimeDecay.compute()
+    implementations). "ordinal" reuses _recency_weight_array wholesale since
+    it's the exact same rank-based formula RecencyWeighted itself uses."""
     duration_seconds = data.forecast_horizon_end - data.forecast_horizon_start
-    decay_ratio = -(data.timesteps[None, :] - data.start_epochs) / duration_seconds
-    decays = np.exp(decay_ratio)
+    t_now = data.timesteps[None, :]
+    t_i = data.start_epochs
+    if time_decay == "exponential_lifetime":
+        return np.exp(-(t_now - t_i) / duration_seconds)
+    if time_decay == "exponential_days":
+        return np.exp(-(t_now - t_i) / 86400.0)
+    if time_decay == "old_metaculus":
+        return (t_i - data.forecast_horizon_start) / duration_seconds
+    if time_decay == "linear":
+        return duration_seconds / (data.forecast_horizon_end - t_i)
+    if time_decay == "ordinal":
+        return _recency_weight_array(data)
+    if time_decay == "none":
+        return np.ones_like(t_i)
+    raise ValueError(f"Unknown time_decay {time_decay!r}")
+
+
+def _decay_formula(
+    data: "QuestionScoringData",
+    reputation: np.ndarray,
+    a,
+    b,
+    time_decay: str = "exponential_lifetime",
+) -> np.ndarray:
+    """(decays**a * reputation**(1-a))**b - DecayReputationWeighted's
+    decay/reputation blend, vectorized. `a`/`b` may be scalars or arrays
+    broadcastable against (U, T) (see _pre_spot_decay_ab)."""
+    decays = _time_decay_array(data, time_decay)
     return (decays**a * reputation ** (1 - a)) ** b
 
 
@@ -566,27 +652,29 @@ def _recency_weight_array(data: "QuestionScoringData") -> np.ndarray:
     return np.where(counts[None, :] <= 2, 1.0, weights)
 
 
-def _spot_sensitive_ab(
+def _pre_spot_decay_ab(
     question: Question,
     timesteps: np.ndarray,
     a: float,
     b: float,
-    b_spot: float | None,
+    b_spot: float,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Per-timestep (1, T) a/b arrays for "spot_sensitive": a_spot=0/b_spot
-    (defaulting to `b`) at any timestep strictly before the question's spot
-    scoring time, when it's spot_peer-scored and has one set - the normal
-    a/b everywhere else. Vectorized equivalent of
-    SpotSensitiveReputationWeighted.calculate_weights.
+    """Per-timestep (1, T) a/b arrays for pre_spot_decay=True: a_spot=0/
+    b_spot at any timestep strictly before the question's spot scoring
+    time, when it's spot_peer-scored and has one set - the normal a/b
+    everywhere else. Vectorized equivalent of DecayReputationWeighted.
+    calculate_weights when pre_spot_decay is enabled. Unlike the old
+    SpotSensitiveReputationWeighted, `b_spot` is required (never defaults
+    to `b`) - callers must validate this before calling (see
+    compute_weight_class_array/compute_aggregation_series).
     """
-    b_spot = b if b_spot is None else b_spot
     a_row = np.full(timesteps.shape, a)
     b_row = np.full(timesteps.shape, b)
     if question.default_score_type == ScoreTypes.SPOT_PEER:
         spot_time = question.get_spot_scoring_time()
         if spot_time is not None:
             before_spot = timesteps < spot_time.timestamp()
-            a_row[before_spot] = SpotSensitiveReputationWeighted.a_spot
+            a_row[before_spot] = DecayReputationWeighted.a_spot
             b_row[before_spot] = b_spot
     return a_row[None, :], b_row[None, :]
 
@@ -598,14 +686,17 @@ def _spot_sensitive_ab(
 # each weight class's position in the real class hierarchy (WEIGHT_CLASS_
 # REGISTRY) rather than a hardcoded per-name lookup, so any combination of
 # reputation_type + weight classes works without adding a new branch here.
+# reputation_type itself is a per-weight-class param (see
+# WEIGHT_CLASS_PARAMS["DecayReputationWeighted"]), not a spec-wide setting -
+# this lets a single composed spec combine multiple DecayReputationWeighted
+# instances, each reading its own independent Reputation type.
 
 
 def compute_weight_class_array(
     class_name: str,
-    params: dict[str, float | datetime],
+    params: dict[str, float | datetime | str | bool | None],
     data: "QuestionScoringData",
     question: Question,
-    reputation_type: str | None,
     reputation_by_type: dict[str, ReputationArrays] | None = None,
     class_reputations: dict[str, ReputationArrays] | None = None,
     static_filter_members: dict[str, set[int]] | None = None,
@@ -620,13 +711,11 @@ def compute_weight_class_array(
     if cls is RecencyWeighted:
         return _recency_weight_array(data)
 
-    if issubclass(cls, LearnedReputationWeighted):
-        # Every class in this bucket (PeerScoreReputationWeighted,
-        # YearPerformanceReputationWeighted, PeerThresholdReputationWeighted,
-        # PeerContinuousReputationWeighted, SpotSensitiveReputationWeighted,
-        # or the fully generic PrecomputedReputationWeighted itself) reads
-        # from an arbitrary Reputation.type via reputation_type, rather than
-        # each needing its own dedicated preload/lookup path.
+    if cls is DecayReputationWeighted:
+        # Reads from an arbitrary Reputation.type via its own
+        # reputation_type param, rather than needing a dedicated
+        # preload/lookup path per type.
+        reputation_type = params.get("reputation_type")
         if reputation_type is None:
             raise ValueError(
                 f"{class_name!r} needs a reputation_type (see --method's "
@@ -640,12 +729,16 @@ def compute_weight_class_array(
         )
         a = params.get("a", 0.5)
         b = params.get("b", 6.0)
-        if cls is SpotSensitiveReputationWeighted:
-            a_row, b_row = _spot_sensitive_ab(
-                question, data.timesteps, a, b, params.get("b_spot")
-            )
-            return _decay_formula(data, reputation, a_row, b_row)
-        return _decay_formula(data, reputation, a, b)
+        time_decay = params.get("time_decay", "exponential_lifetime")
+        if params.get("pre_spot_decay", False):
+            b_spot = params.get("b_spot")
+            if b_spot is None:
+                raise ValueError(
+                    f"{class_name!r}: pre_spot_decay=True requires b_spot"
+                )
+            a_row, b_row = _pre_spot_decay_ab(question, data.timesteps, a, b, b_spot)
+            return _decay_formula(data, reputation, a_row, b_row, time_decay)
+        return _decay_formula(data, reputation, a, b, time_decay)
 
     if issubclass(cls, ReputationWeighted):
         # medal-family: a plain 0/1 multiplier, from that class's own
@@ -673,8 +766,7 @@ def compute_composed_aggregation_series(
     data: "QuestionScoringData",
     question: Question,
     aggregator: str,
-    reputation_type: str | None,
-    weight_classes: list[tuple[str, dict[str, float | datetime]]],
+    weight_classes: list[tuple[str, dict[str, float | datetime | str | bool | None]]],
     reputation_by_type: dict[str, ReputationArrays] | None = None,
     class_reputations: dict[str, ReputationArrays] | None = None,
     static_filter_members: dict[str, set[int]] | None = None,
@@ -703,7 +795,6 @@ def compute_composed_aggregation_series(
             params,
             data,
             question,
-            reputation_type,
             reputation_by_type,
             class_reputations,
             static_filter_members,
@@ -729,9 +820,11 @@ def compute_aggregation_series(
     data: "QuestionScoringData",
     question: Question,
     method: str,
-    a: float = 0.5,
-    b: float = 6.0,
+    a: float | None = None,
+    b: float | None = None,
     b_spot: float | None = None,
+    time_decay: str | None = None,
+    pre_spot_decay: bool = False,
     reputation_history: ReputationArrays | None = None,
 ) -> np.ndarray:
     """The aggregate's PMF-at-resolution_bucket value at every timestep,
@@ -739,22 +832,36 @@ def compute_aggregation_series(
     active forecasters (mirrors the "no forecasters -> no aggregation
     entry" gap-handling in get_aggregation_history).
 
-    `b_spot` is only used by "spot_sensitive" (see _spot_sensitive_ab) -
-    ignored for every other method.
+    `a`/`b`/`time_decay` default to DecayReputationWeighted's own class
+    defaults (0.5, 6.0, "exponential_lifetime") when left as None - there's
+    no separate, run-wide default for callers to resolve against first (see
+    benchmark_aggregations's AggregationSpec). `b_spot`/`pre_spot_decay` are
+    only used by methods in DECAYED_REPUTATION_CLASSES - ignored for every
+    other method; `b_spot` is required whenever `pre_spot_decay` is True
+    (see _pre_spot_decay_ab). `time_decay` (a TIME_DECAY_REGISTRY name from
+    utils.the_math.aggregations) likewise only applies to methods in
+    DECAYED_REPUTATION_CLASSES.
     """
     if method not in MEAN_BASED_METHODS:
         raise NotImplementedError(
             f"compute_aggregation_series only supports mean-based methods, "
             f"got {method!r}"
         )
+    a = 0.5 if a is None else a
+    b = 6.0 if b is None else b
+    time_decay = time_decay or "exponential_lifetime"
 
     if method in DECAYED_REPUTATION_CLASSES:
         reputation = get_reputation_values(data, question, method, reputation_history)
-        if method == "spot_sensitive":
-            a_row, b_row = _spot_sensitive_ab(question, data.timesteps, a, b, b_spot)
-            weights = _decay_formula(data, reputation, a_row, b_row)
+        if pre_spot_decay:
+            if b_spot is None:
+                raise ValueError(
+                    f"{method!r}: pre_spot_decay=True requires b_spot"
+                )
+            a_row, b_row = _pre_spot_decay_ab(question, data.timesteps, a, b, b_spot)
+            weights = _decay_formula(data, reputation, a_row, b_row, time_decay)
         else:
-            weights = _decay_formula(data, reputation, a, b)
+            weights = _decay_formula(data, reputation, a, b, time_decay)
     else:
         weights = np.ones_like(data.values)
 
@@ -1044,16 +1151,53 @@ def subsample_timesteps(
 # interval path would otherwise waste work on.
 
 
+def _spot_time_decay(
+    start_epochs: np.ndarray,
+    aggregate_now: float,
+    open_time: float,
+    close_time: float,
+    time_decay: str,
+) -> np.ndarray:
+    """Scalar/1D-array equivalent of _time_decay_array, for compute_spot_
+    scores' single-instant candidate set (every candidate is simultaneously
+    "active", so - unlike the (U, T) matrix path - "ordinal" ranks directly
+    over the whole array rather than needing a per-column active mask)."""
+    duration_seconds = close_time - open_time
+    if time_decay == "exponential_lifetime":
+        return np.exp(-(aggregate_now - start_epochs) / duration_seconds)
+    if time_decay == "exponential_days":
+        return np.exp(-(aggregate_now - start_epochs) / 86400.0)
+    if time_decay == "old_metaculus":
+        return (start_epochs - open_time) / duration_seconds
+    if time_decay == "linear":
+        return duration_seconds / (close_time - start_epochs)
+    if time_decay == "ordinal":
+        n = len(start_epochs)
+        ranks = np.argsort(np.argsort(start_epochs)) + 1  # 1-indexed, ascending start
+        with np.errstate(invalid="ignore"):
+            return np.exp(np.sqrt(ranks) - np.sqrt(n))
+    if time_decay == "none":
+        return np.ones_like(start_epochs, dtype=float)
+    raise ValueError(f"Unknown time_decay {time_decay!r}")
+
+
 def compute_spot_scores(
     question: Question,
     method: str,
     score_type: str,
-    a: float = 0.5,
-    b: float = 6.0,
+    a: float | None = None,
+    b: float | None = None,
+    time_decay: str | None = None,
     reputation_history: ReputationArrays | None = None,
 ) -> tuple[float, float]:
     """End-to-end spot peer/baseline score for one mean-based aggregation
-    method, evaluated at question.get_spot_scoring_time()."""
+    method, evaluated at question.get_spot_scoring_time(). `a`/`b`/
+    `time_decay` default to DecayReputationWeighted's own class defaults
+    (0.5, 6.0, "exponential_lifetime") when left as None - see
+    compute_aggregation_series's docstring."""
+    a = 0.5 if a is None else a
+    b = 6.0 if b is None else b
+    time_decay = time_decay or "exponential_lifetime"
     if method in RAW_REPUTATION_CLASSES or method in STATIC_FILTER_CLASSES:
         raise NotImplementedError(
             f"Spot scoring isn't implemented for {method!r} - its weight "
@@ -1133,10 +1277,13 @@ def compute_spot_scores(
             idx = np.searchsorted(history_times, aggregate_now, side="right") - 1
             if idx >= 0:
                 reputation[i] = history_values[idx]
-        duration_seconds = (
-            question.scheduled_close_time.timestamp() - question.open_time.timestamp()
+        decays = _spot_time_decay(
+            start_epochs,
+            aggregate_now,
+            question.open_time.timestamp(),
+            question.scheduled_close_time.timestamp(),
+            time_decay,
         )
-        decays = np.exp(-(aggregate_now - start_epochs) / duration_seconds)
         weights = (decays**a * reputation ** (1 - a)) ** b
     else:
         weights = np.ones_like(values)

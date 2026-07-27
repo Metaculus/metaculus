@@ -441,6 +441,31 @@ class LeaderboardsRanksEntry(TimeStampedModel):
 
 MINIMUM_REPUTATION = 1e-6
 
+# Grid searched by the two "derived peer reputation" formulas below (see
+# scoring/migrations/0022_reputation.py for the actual math) - rho is a
+# reputation threshold/anchor, gamma a minimum-coverage threshold.
+REPUTATION_RHOS = (-30, -20, -10, 0, 10, 20, 30)
+REPUTATION_GAMMAS = (20, 50, 100, 200)
+
+
+def reputation_grid_types() -> list[tuple[str, str]]:
+    """(enum_name, value) pairs for every (formula, rho, gamma) combination -
+    shared by ReputationTypes below and
+    scoring/migrations/0022_reputation.py's CreateModel/backfill (which need
+    the same value strings to create and later query these rows), so the two
+    can't drift apart."""
+    grid = []
+    for formula in ("peer_threshold", "peer_continuous"):
+        for rho in REPUTATION_RHOS:
+            for gamma in REPUTATION_GAMMAS:
+                enum_name = (
+                    f"{formula.upper()}_{'NEG' if rho < 0 else ''}{abs(rho)}"
+                    f"_COVERAGE_{gamma}"
+                )
+                value = f"{formula}_{rho}_coverage_{gamma}"
+                grid.append((enum_name, value))
+    return grid
+
 
 class Reputation(TimeStampedModel):
     # typing
@@ -448,10 +473,11 @@ class Reputation(TimeStampedModel):
     user_id: int
 
     class ReputationTypes(models.TextChoices):
+        _ignore_ = ["_enum_name", "_value"]
         YEAR_PERFORMANCE = "year_performance"
         AVERAGE_PEER_SCORE = "average_peer_score"
-        PEER_THRESHOLD_NEG20_COVERAGE_50 = "peer_threshold_-20_coverage_50"
-        PEER_CONTINUOUS_WITH_COVERAGE = "peer_continuous_with_coverage"
+        for _enum_name, _value in reputation_grid_types():
+            locals()[_enum_name] = _value
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
     time = models.DateTimeField()
