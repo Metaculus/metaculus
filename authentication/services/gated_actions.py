@@ -232,4 +232,9 @@ def apply_pending_action(user: User) -> None:
         logger.info(f"email_link: no pending action for user={user.id}")
         return
 
-    apply_gated_action(user, entry["type"], entry["payload"])
+    try:
+        apply_gated_action(user, entry["type"], entry["payload"])
+    except Exception as exc:
+        logger.warning(
+            f"email_link: malformed pending action for user={user.id}: {exc}"
+        )

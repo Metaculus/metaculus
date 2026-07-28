@@ -121,6 +121,28 @@ class TestApplyPendingAction:
 
         assert not Vote.objects.filter(user=user2).exists()
 
+    def test_malformed_entry_missing_keys_does_not_raise(self, mocker, user1):
+        # A cache entry missing "type"/"payload" must not raise; sign-in continues.
+        mocker.patch(
+            "authentication.services.gated_actions.pop_pending_action",
+            return_value={"payload": {"post": 1, "direction": 1}},
+        )
+
+        apply_pending_action(user1)
+
+        assert not Vote.objects.filter(user=user1).exists()
+
+    def test_non_dict_entry_does_not_raise(self, mocker, user1):
+        # A non-dict decoded cache value must not raise on entry["type"].
+        mocker.patch(
+            "authentication.services.gated_actions.pop_pending_action",
+            return_value=["not", "a", "dict"],
+        )
+
+        apply_pending_action(user1)
+
+        assert not Vote.objects.filter(user=user1).exists()
+
 
 class TestPostSubscribeAction:
     PAYLOAD_SUBS = [
