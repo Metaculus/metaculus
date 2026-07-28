@@ -1,3 +1,4 @@
+from django.db import models
 from django.utils.text import slugify
 from rest_framework import serializers
 
@@ -30,9 +31,20 @@ class AdTileSerializer(serializers.ModelSerializer):
 
 
 class ContactSerializer(serializers.Serializer):
+    class SubjectType(models.TextChoices):
+        PARTNERSHIP = "partnership", "Partnership inquiry"
+        FEEDBACK = "feedback", "General feedback"
+        BUG = "bug", "Bug report"
+        FEATURE = "feature", "Feature request"
+        PRESS = "press", "Press request"
+        OTHER = "other", "Other"
+
     email = serializers.EmailField()
     message = serializers.CharField()
-    subject = serializers.CharField(required=False, allow_blank=True)
+    subject = serializers.ChoiceField(
+        choices=SubjectType.choices, required=False, allow_blank=True
+    )
+    source_url = serializers.CharField(required=False, allow_blank=True)
 
 
 class ContactServicesSerializer(serializers.Serializer):

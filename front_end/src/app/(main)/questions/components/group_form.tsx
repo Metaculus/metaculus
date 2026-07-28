@@ -464,9 +464,20 @@ const GroupForm: React.FC<Props> = ({
   const { title: formattedQuestionType, description: questionDescription } =
     questionSubtypeDisplayMap[subtype] || { title: subtype, description: "" };
 
+  const updateSubQuestionAt = useCallback(
+    (index: number, patch: Partial<SubQuestionDraft>) => {
+      setSubQuestions((previous) =>
+        previous.map((subQuestion, iterIndex) =>
+          iterIndex === index ? { ...subQuestion, ...patch } : subQuestion
+        )
+      );
+    },
+    []
+  );
+
   const onBulkEdit = (attrs: BulkBulkQuestionAttrs) => {
-    setSubQuestions(
-      subQuestions.map((subQuestion) => ({
+    setSubQuestions((previous) =>
+      previous.map((subQuestion) => ({
         ...subQuestion,
         ...attrs,
       }))
@@ -791,14 +802,7 @@ const GroupForm: React.FC<Props> = ({
                 >
                   <Input
                     onChange={(e) => {
-                      setSubQuestions(
-                        subQuestions.map((subQuestion, iter_index) => {
-                          if (index === iter_index) {
-                            subQuestion["label"] = e.target.value;
-                          }
-                          return subQuestion;
-                        })
-                      );
+                      updateSubQuestionAt(index, { label: e.target.value });
                     }}
                     className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                     value={subQuestion?.label}
@@ -816,13 +820,9 @@ const GroupForm: React.FC<Props> = ({
                       >
                         <Input
                           onChange={(e) => {
-                            setSubQuestions(
-                              subQuestions.map((subQuestion, iter_index) => {
-                                if (index === iter_index)
-                                  subQuestion.unit = e.target.value;
-                                return subQuestion;
-                              })
-                            );
+                            updateSubQuestionAt(index, {
+                              unit: e.target.value,
+                            });
                           }}
                           className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                           value={subQuestion?.unit ?? ""}
@@ -841,14 +841,9 @@ const GroupForm: React.FC<Props> = ({
                             form.clearErrors(
                               `subQuestion-${index}-scheduled_close_time`
                             );
-                            setSubQuestions(
-                              subQuestions.map((subQuestion, iter_index) => {
-                                if (index === iter_index) {
-                                  subQuestion.scheduled_close_time = value;
-                                }
-                                return subQuestion;
-                              })
-                            );
+                            updateSubQuestionAt(index, {
+                              scheduled_close_time: value,
+                            });
                           }}
                           onError={(error) => {
                             form.setError(
@@ -880,14 +875,9 @@ const GroupForm: React.FC<Props> = ({
                             form.clearErrors(
                               `subQuestion-${index}-scheduled_resolve_time`
                             );
-                            setSubQuestions(
-                              subQuestions.map((subQuestion, iter_index) => {
-                                if (index === iter_index) {
-                                  subQuestion.scheduled_resolve_time = value;
-                                }
-                                return subQuestion;
-                              })
-                            );
+                            updateSubQuestionAt(index, {
+                              scheduled_resolve_time: value,
+                            });
                           }}
                           onError={(error) => {
                             form.setError(
@@ -918,14 +908,7 @@ const GroupForm: React.FC<Props> = ({
                           className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                           defaultValue={subQuestion.open_time}
                           onChange={(value) => {
-                            setSubQuestions(
-                              subQuestions.map((subQuestion, iter_index) => {
-                                if (index === iter_index) {
-                                  subQuestion.open_time = value;
-                                }
-                                return subQuestion;
-                              })
-                            );
+                            updateSubQuestionAt(index, { open_time: value });
                           }}
                         />
                       </InputContainer>
@@ -937,14 +920,9 @@ const GroupForm: React.FC<Props> = ({
                           className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                           defaultValue={subQuestion.cp_reveal_time}
                           onChange={(value) => {
-                            setSubQuestions(
-                              subQuestions.map((subQuestion, iter_index) => {
-                                if (index === iter_index) {
-                                  subQuestion.cp_reveal_time = value;
-                                }
-                                return subQuestion;
-                              })
-                            );
+                            updateSubQuestionAt(index, {
+                              cp_reveal_time: value,
+                            });
                           }}
                         />
                       </InputContainer>
@@ -979,23 +957,16 @@ const GroupForm: React.FC<Props> = ({
                           zero_point,
                           inbound_outcome_count,
                         }) => {
-                          setSubQuestions(
-                            subQuestions.map((subQuestion, iter_index) =>
-                              index === iter_index
-                                ? {
-                                    ...subQuestion,
-                                    open_lower_bound,
-                                    open_upper_bound,
-                                    inbound_outcome_count,
-                                    scaling: {
-                                      range_min,
-                                      range_max,
-                                      zero_point,
-                                    },
-                                  }
-                                : subQuestion
-                            )
-                          );
+                          updateSubQuestionAt(index, {
+                            open_lower_bound,
+                            open_upper_bound,
+                            inbound_outcome_count,
+                            scaling: {
+                              range_min,
+                              range_max,
+                              zero_point,
+                            },
+                          });
                         }}
                         control={form as unknown as UseFormReturn}
                         index={index}
@@ -1010,13 +981,10 @@ const GroupForm: React.FC<Props> = ({
                       size="sm"
                       variant="tertiary"
                       onClick={() => {
-                        setCollapsedSubQuestions(
-                          collapsedSubQuestions.map((x, iter_index) => {
-                            if (iter_index === index) {
-                              return !x;
-                            }
-                            return x;
-                          })
+                        setCollapsedSubQuestions((previous) =>
+                          previous.map((x, iter_index) =>
+                            iter_index === index ? !x : x
+                          )
                         );
                       }}
                     >
@@ -1037,16 +1005,16 @@ const GroupForm: React.FC<Props> = ({
                         }
                         onClick={() => {
                           if (!isManual) return;
-                          setSubQuestions(
-                            shiftArrayElement(subQuestions, index, -1).map(
+                          setSubQuestions((previous) =>
+                            shiftArrayElement(previous, index, -1).map(
                               (q, idx) => ({
                                 ...q,
                                 group_rank: idx,
                               })
                             )
                           );
-                          setCollapsedSubQuestions(
-                            shiftArrayElement(collapsedSubQuestions, index, -1)
+                          setCollapsedSubQuestions((previous) =>
+                            shiftArrayElement(previous, index, -1)
                           );
                         }}
                       >
@@ -1066,16 +1034,16 @@ const GroupForm: React.FC<Props> = ({
                         }
                         onClick={() => {
                           if (!isManual) return;
-                          setSubQuestions(
-                            shiftArrayElement(subQuestions, index, 1).map(
+                          setSubQuestions((previous) =>
+                            shiftArrayElement(previous, index, 1).map(
                               (q, idx) => ({
                                 ...q,
                                 group_rank: idx,
                               })
                             )
                           );
-                          setCollapsedSubQuestions(
-                            shiftArrayElement(collapsedSubQuestions, index, 1)
+                          setCollapsedSubQuestions((previous) =>
+                            shiftArrayElement(previous, index, 1)
                           );
                         }}
                       >
@@ -1090,15 +1058,11 @@ const GroupForm: React.FC<Props> = ({
                     variant="tertiary"
                     className="border-red-200 text-red-400 hover:border-red-400 active:border-red-600 active:bg-red-100/50 dark:border-red-400/50 dark:text-red-400 dark:hover:border-red-400 dark:active:border-red-300/75 dark:active:bg-red-400/15"
                     onClick={() => {
-                      setSubQuestions(
-                        subQuestions.filter(
-                          (subQuestion, iter_index) => index !== iter_index
-                        )
+                      setSubQuestions((previous) =>
+                        previous.filter((_, iter_index) => index !== iter_index)
                       );
-                      setCollapsedSubQuestions(
-                        collapsedSubQuestions.filter(
-                          (_, iter_index) => index !== iter_index
-                        )
+                      setCollapsedSubQuestions((previous) =>
+                        previous.filter((_, iter_index) => index !== iter_index)
                       );
                     }}
                   >
@@ -1161,11 +1125,11 @@ const GroupForm: React.FC<Props> = ({
                     }
                   }
 
-                  setSubQuestions([...subQuestions, clone]);
+                  setSubQuestions((previous) => [...previous, clone]);
                 } else {
                   if (subtype === QuestionType.Numeric) {
-                    setSubQuestions([
-                      ...subQuestions,
+                    setSubQuestions((previous) => [
+                      ...previous,
                       {
                         type: QuestionType.Numeric,
                         clientId: crypto.randomUUID(),
@@ -1184,8 +1148,8 @@ const GroupForm: React.FC<Props> = ({
                       },
                     ]);
                   } else if (subtype === QuestionType.Discrete) {
-                    setSubQuestions([
-                      ...subQuestions,
+                    setSubQuestions((previous) => [
+                      ...previous,
                       {
                         type: QuestionType.Discrete,
                         clientId: crypto.randomUUID(),
@@ -1205,8 +1169,8 @@ const GroupForm: React.FC<Props> = ({
                       },
                     ]);
                   } else if (subtype === QuestionType.Date) {
-                    setSubQuestions([
-                      ...subQuestions,
+                    setSubQuestions((previous) => [
+                      ...previous,
                       {
                         type: QuestionType.Date,
                         clientId: crypto.randomUUID(),
@@ -1225,8 +1189,8 @@ const GroupForm: React.FC<Props> = ({
                       },
                     ]);
                   } else {
-                    setSubQuestions([
-                      ...subQuestions,
+                    setSubQuestions((previous) => [
+                      ...previous,
                       {
                         type: QuestionType.Binary,
                         clientId: crypto.randomUUID(),
@@ -1239,7 +1203,7 @@ const GroupForm: React.FC<Props> = ({
                     ]);
                   }
                 }
-                setCollapsedSubQuestions([...collapsedSubQuestions, true]);
+                setCollapsedSubQuestions((previous) => [...previous, true]);
               }}
               className="w-fit capitalize"
             >

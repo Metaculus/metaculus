@@ -221,3 +221,27 @@ export async function simplifiedSignUpAction(
     };
   }
 }
+
+export async function verifyEmailLinkAction(
+  userId: string,
+  token: string
+): Promise<{ user: CurrentUser } | { errors: ApiErrorPayload }> {
+  try {
+    const response = await ServerAuthApi.verifyEmailLink(userId, token);
+
+    const authManager = await getAuthCookieManager();
+    authManager.setAuthTokens(response.tokens);
+
+    if (response.user.language) {
+      await LanguageService.setLocaleCookie(response.user.language);
+    }
+
+    return { user: response.user };
+  } catch (err: unknown) {
+    return {
+      errors: ApiError.isApiError(err)
+        ? (err.data as ApiErrorPayload)
+        : { detail: "Something went wrong. Please try again." },
+    };
+  }
+}

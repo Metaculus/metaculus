@@ -7,7 +7,6 @@ import {
   getAutotranslationEnrollment,
   setAssignmentCookieInResponse,
 } from "@/services/autotranslation_experiment";
-import { CsrfManager } from "@/services/csrf";
 import {
   LanguageService,
   LOCALE_COOKIE_NAME,
@@ -201,10 +200,6 @@ export async function proxy(request: NextRequest) {
   if (locale_in_url && locale_in_url !== locale_in_cookie) {
     LanguageService.setLocaleCookieInResponse(response, locale_in_url);
   }
-
-  // Generate CSRF token if not present
-  const csrfManager = new CsrfManager(response.cookies);
-  csrfManager.generate(request.cookies);
 
   return response;
 }
