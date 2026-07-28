@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 
 import { METAC_COLORS } from "@/constants/colors";
@@ -60,7 +60,7 @@ beforeAll(() => {
 });
 
 describe("GroupChart", () => {
-  it("uses visible uncertainty intervals with no span padding by default", () => {
+  it("uses visible uncertainty intervals with default span padding", () => {
     render(
       <NextIntlClientProvider locale="en" messages={messages}>
         <GroupChart
@@ -84,6 +84,51 @@ describe("GroupChart", () => {
       expect(screen.getByText(label)).toBeInTheDocument();
     });
     expect(screen.queryByText("25")).not.toBeInTheDocument();
+  });
+
+  it("toggles Y-axis scaling between uncertainty intervals and center lines", () => {
+    render(
+      <NextIntlClientProvider locale="en" messages={messages}>
+        <GroupChart
+          timestamps={[100, 200]}
+          actualCloseTime={200_000}
+          choiceItems={[
+            {
+              ...choiceItem,
+              aggregationValues: [0.5, 0.5],
+              aggregationMinValues: [0.1, 0.1],
+              aggregationMaxValues: [0.9, 0.9],
+            },
+          ]}
+          height={216}
+          questionType={QuestionType.Numeric}
+          scaling={{ range_min: 0, range_max: 100, zero_point: null }}
+          withZoomPicker
+        />
+      </NextIntlClientProvider>
+    );
+
+    const uncertaintyToggle = screen.getByRole("button", {
+      name: "Include uncertainty intervals in timeline scaling",
+    });
+    expect(uncertaintyToggle).toHaveAttribute("aria-pressed", "true");
+    expect(uncertaintyToggle.querySelector("svg")).toHaveAttribute(
+      "data-icon",
+      "up-right-and-down-left-from-center"
+    );
+    expect(screen.getByText("0")).toBeInTheDocument();
+    expect(screen.getByText("100")).toBeInTheDocument();
+
+    fireEvent.click(uncertaintyToggle);
+
+    expect(uncertaintyToggle).toHaveAttribute("aria-pressed", "false");
+    expect(uncertaintyToggle.querySelector("svg")).toHaveAttribute(
+      "data-icon",
+      "down-left-and-up-right-to-center"
+    );
+    expect(screen.getByText("50")).toBeInTheDocument();
+    expect(screen.queryByText("0")).not.toBeInTheDocument();
+    expect(screen.queryByText("100")).not.toBeInTheDocument();
   });
 
   it("uses community medians when uncertainty bands are unavailable", () => {

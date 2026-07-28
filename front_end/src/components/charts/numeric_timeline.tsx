@@ -6,8 +6,10 @@ import { FC, ReactNode, useCallback, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import {
+  DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS,
   TimelineChartZoomOption,
   TimelineYDomainOptions,
+  TimelineYDomainSource,
 } from "@/types/charts";
 import { KeyFactor } from "@/types/comment";
 import { QuestionStatus, Resolution } from "@/types/post";
@@ -163,7 +165,11 @@ const NumericTimeline: FC<Props> = ({
   );
 
   const buildChartData = useCallback(
-    (width: number, zoom: TimelineChartZoomOption) =>
+    (
+      width: number,
+      zoom: TimelineChartZoomOption,
+      yDomainSource: TimelineYDomainSource
+    ) =>
       buildNumericChartData({
         questionType,
         actualCloseTime,
@@ -183,7 +189,10 @@ const NumericTimeline: FC<Props> = ({
         inboundOutcomeCount,
         resolutionPoint,
         reduceStepData: forFeedPage,
-        yDomainOptions,
+        yDomainOptions: {
+          ...yDomainOptions,
+          source: yDomainSource,
+        },
       }),
     [
       questionType,
@@ -226,6 +235,12 @@ const NumericTimeline: FC<Props> = ({
       onCursorChange={onCursorChange}
       defaultZoom={defaultZoom}
       withZoomPicker={withZoomPicker}
+      withYDomainSourceToggle={
+        withZoomPicker && questionType !== QuestionType.Binary
+      }
+      defaultYDomainSource={
+        yDomainOptions?.source ?? DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS.source
+      }
       hideCP={hideCP}
       resolutionPoint={resolutionPoint ? [resolutionPoint] : undefined}
       getCursorValue={getCursorValue}

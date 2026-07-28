@@ -8,7 +8,7 @@ import {
 import { buildNumericChartData } from "../helpers";
 
 describe("buildNumericChartData", () => {
-  it("uses uncertainty intervals with no span padding by default", () => {
+  it("uses uncertainty intervals with 5% span padding by default", () => {
     const forecast = {
       question_id: 1,
       start_time: 100,
@@ -49,7 +49,7 @@ describe("buildNumericChartData", () => {
       yDomain: chart.yDomain,
     }).toEqual({
       labels: ["5000", "10k", "15k", "20k"],
-      yDomain: [0.0042, 0.153267],
+      yDomain: [0, 0.153267],
     });
   });
 
@@ -101,7 +101,7 @@ describe("buildNumericChartData", () => {
     const oneDayChart = buildChart(TimelineChartZoomOption.OneDay);
 
     expect(allHistoryChart.yDomain).toEqual([0, 0.8]);
-    expect(oneDayChart.yDomain).toEqual([0.5, 0.7]);
+    expect(oneDayChart.yDomain).toEqual([0.49, 0.71]);
   });
 
   it("keeps binary timelines fixed at 0–100 for every zoom", () => {
@@ -231,5 +231,53 @@ describe("buildNumericChartData", () => {
       labels: ["49", "49.5", "50", "50.5", "51"],
       yDomain: [0.49, 0.51],
     });
+  });
+
+  it("adds the default 5% span padding when options are omitted", () => {
+    const earlierForecast = {
+      question_id: 1,
+      start_time: 100,
+      end_time: 200,
+      forecast_values: [],
+      interval_lower_bounds: [0.1],
+      centers: [0.4],
+      interval_upper_bounds: [0.9],
+      method: AggregationMethod.recency_weighted,
+      forecaster_count: 10,
+      means: null,
+      histogram: null,
+    };
+    const latestForecast = {
+      ...earlierForecast,
+      start_time: 200,
+      end_time: null,
+      centers: [0.6],
+    };
+    const aggregation: AggregateForecastHistory = {
+      history: [earlierForecast, latestForecast],
+      latest: latestForecast,
+    };
+
+    const chart = buildNumericChartData({
+      questionType: QuestionType.Numeric,
+      actualCloseTime: 300_000,
+      scaling: {
+        range_min: 0,
+        range_max: 100,
+        zero_point: null,
+      },
+      height: 216,
+      aggregation,
+      aggregationIndex: 0,
+      width: 516,
+      zoom: TimelineChartZoomOption.All,
+      forceYTickCount: 5,
+      alwaysShowYTicks: true,
+      yDomainOptions: {
+        source: "centers",
+      },
+    });
+
+    expect(chart.yDomain).toEqual([0.39, 0.61]);
   });
 });

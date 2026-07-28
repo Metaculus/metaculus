@@ -395,6 +395,7 @@
   "allCategories": "Todas las categorías",
   "toggleAllTopics": "Alternar todos los temas",
   "toggleNewsAnnotations": "Alternar anotaciones de noticias",
+  "includeTimelineUncertainty": "Incluir intervalos de incertidumbre en la escala de la línea temporal",
   "Filter": "Filtrar",
   "sort": "Ordenar",
   "Done": "Hecho",

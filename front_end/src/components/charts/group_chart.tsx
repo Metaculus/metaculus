@@ -46,6 +46,8 @@ import {
   TickFormat,
   TimelineChartZoomOption,
   TimelineYDomainOptions,
+  TimelineYDomainSource,
+  resolveTimelineYDomainOptions,
 } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import { ForecastAvailability, QuestionType, Scaling } from "@/types/question";
@@ -190,6 +192,16 @@ const GroupChart: FC<Props> = ({
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const [zoom, setZoom] = useState<TimelineChartZoomOption>(defaultZoom);
+  const [yDomainSource, setYDomainSource] = useState<TimelineYDomainSource>(
+    yDomainOptions?.source ?? DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS.source
+  );
+  useEffect(
+    () =>
+      setYDomainSource(
+        yDomainOptions?.source ?? DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS.source
+      ),
+    [yDomainOptions?.source]
+  );
   const { xScale, yScale, graphs, xDomain, yDomain } = useMemo(
     () =>
       buildChartData({
@@ -207,7 +219,10 @@ const GroupChart: FC<Props> = ({
         isAggregationsEmpty: isEmptyDomain,
         openTime,
         forFeedPage,
-        yDomainOptions,
+        yDomainOptions: {
+          ...yDomainOptions,
+          source: yDomainSource,
+        },
       }),
     [
       timestamps,
@@ -225,6 +240,7 @@ const GroupChart: FC<Props> = ({
       openTime,
       forFeedPage,
       yDomainOptions,
+      yDomainSource,
     ]
   );
   const [localCursorTimestamp, setLocalCursorTimestamp] = useState<
@@ -372,6 +388,16 @@ const GroupChart: FC<Props> = ({
         height={height}
         zoom={withZoomPicker ? zoom : undefined}
         onZoomChange={setZoom}
+        yDomainSource={
+          withZoomPicker && questionType !== QuestionType.Binary
+            ? yDomainSource
+            : undefined
+        }
+        onYDomainSourceChange={
+          withZoomPicker && questionType !== QuestionType.Binary
+            ? setYDomainSource
+            : undefined
+        }
         chartTitle={chartTitle}
         headerLeft={headerLeft}
         headerExtra={headerExtra}
@@ -1259,8 +1285,7 @@ function buildChartData({
     ];
     return [{ minValues: values, maxValues: values }];
   });
-  const effectiveYDomainOptions =
-    yDomainOptions ?? DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS;
+  const effectiveYDomainOptions = resolveTimelineYDomainOptions(yDomainOptions);
   const useCenterValues = effectiveYDomainOptions.source === "centers";
   const domainSources = useCenterValues
     ? [...communityCenterSources, ...scatterCenterSources, ...resolutionSources]

@@ -3,13 +3,13 @@ import { DomainTuple, VictoryThemeDefinition } from "victory";
 import {
   Area,
   BaseChartData,
-  DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS,
   Line,
   LinePoint,
   Scale,
   ScaleDirection,
   TimelineChartZoomOption,
   TimelineYDomainOptions,
+  resolveTimelineYDomainOptions,
 } from "@/types/charts";
 import {
   AggregateForecastHistory,
@@ -298,8 +298,7 @@ export function buildNumericChartData({
     },
     resolutionSource,
   ];
-  const effectiveYDomainOptions =
-    yDomainOptions ?? DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS;
+  const effectiveYDomainOptions = resolveTimelineYDomainOptions(yDomainOptions);
   const useCenterValues = effectiveYDomainOptions.source === "centers";
   const useFullYDomain = effectiveYDomainOptions.scope === "fullHistory";
   const generatedYDomain = generateTimeSeriesYDomain({

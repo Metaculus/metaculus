@@ -611,6 +611,7 @@
   "seeAllCategories": "See all categories",
   "toggleAllTopics": "Toggle all topics",
   "toggleNewsAnnotations": "Toggle news annotations",
+  "includeTimelineUncertainty": "Include uncertainty intervals in timeline scaling",
   "Filter": "Filter",
   "sort": "Sort",
   "done": "done",

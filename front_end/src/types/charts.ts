@@ -52,20 +52,35 @@ export type YDomain = {
 };
 
 export type TimelineYDomainOptions = {
-  /** Whether the y-domain follows the visible x-window or remains stable across all history. */
-  scope: "fullHistory" | "visibleWindow";
-  /** Values used to calculate the domain: forecast centers or uncertainty intervals. */
-  source: "intervals" | "centers";
-  /** Fraction of the observed value span added to both ends of the domain. */
-  paddingRatio: number;
+  /** Whether the y-domain follows the visible x-window or remains stable across all history. Defaults to visibleWindow. */
+  scope?: "fullHistory" | "visibleWindow";
+  /** Values used to calculate the domain: forecast centers or uncertainty intervals. Defaults to intervals. */
+  source?: "intervals" | "centers";
+  /** Fraction of the observed value span added to both ends of the domain. Defaults to 0.05. */
+  paddingRatio?: number;
 };
+
+export type TimelineYDomainSource = NonNullable<
+  TimelineYDomainOptions["source"]
+>;
 
 /** Platform-wide timeline behavior: fit active uncertainty ranges in the visible x-window. */
 export const DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS = {
   scope: "visibleWindow",
   source: "intervals",
-  paddingRatio: 0,
-} as const satisfies TimelineYDomainOptions;
+  paddingRatio: 0.05,
+} as const satisfies Required<TimelineYDomainOptions>;
+
+export function resolveTimelineYDomainOptions(
+  options?: TimelineYDomainOptions
+): Required<TimelineYDomainOptions> {
+  return {
+    scope: options?.scope ?? DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS.scope,
+    source: options?.source ?? DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS.source,
+    paddingRatio:
+      options?.paddingRatio ?? DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS.paddingRatio,
+  };
+}
 
 export type FanDatum = {
   name: string;
