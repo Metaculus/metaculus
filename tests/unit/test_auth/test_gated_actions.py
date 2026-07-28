@@ -5,10 +5,12 @@ from django.utils import timezone as dj_timezone
 from rest_framework.exceptions import ValidationError
 
 from authentication.services.gated_actions import (
+    apply_gated_action,
     apply_pending_action,
     clear_pending_action,
     pop_pending_action,
     set_pending_action,
+    validate_and_apply_gated_action,
     validate_gated_action,
 )
 from posts.models import PostSubscription, Vote
@@ -231,3 +233,16 @@ class TestForecastAction:
         apply_pending_action(user2)
 
         assert not Forecast.objects.filter(author=user2).exists()
+
+
+class TestApplyGatedAction:
+    def test_applies_resolved_action(self, user1, user2, public_post):
+        apply_gated_action(user2, "post_vote", {"post": public_post.pk, "direction": 1})
+
+        assert Vote.objects.filter(user=user2, post=public_post, direction=1).exists()
+
+    def test_swallows_handler_failure(self, user1):
+        # Missing post -> handler raises; must be caught, not propagated.
+        apply_gated_action(user1, "post_vote", {"post": 999999, "direction": 1})
+
+        assert not Vote.objects.filter(user=user1).exists()

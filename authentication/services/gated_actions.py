@@ -189,6 +189,37 @@ def validate_gated_action(action) -> tuple[str, object]:
     return slug, payload
 
 
+def apply_gated_action(user: User, slug: str, payload) -> None:
+    """
+    Apply one already-resolved gated action and log the outcome. Never raises:
+    an action failure must not roll back a sign-in that already succeeded.
+    """
+    try:
+        GATED_ACTIONS[slug].apply(user, payload)
+
+        logger.info(f"Gated action {slug} applied for user {user.id}")
+    except Exception:
+        logger.exception(f"Gated action {slug} failed for user {user.id}")
+
+
+def validate_and_apply_gated_action(user: User, action) -> None:
+    """
+    Validate a raw action envelope and apply it in one shot, best-effort. Never
+    raises. For flows where capture and apply happen in the same authenticated
+    request (social auth), so there is no Redis round trip to bridge them.
+    """
+    if not action:
+        return
+
+    try:
+        slug, payload = validate_gated_action(action)
+    except Exception as exc:
+        logger.warning(f"Invalid inline gated action for user {user.id}: {exc}")
+        return
+
+    apply_gated_action(user, slug, payload)
+
+
 def apply_pending_action(user: User) -> None:
     """
     Pop and apply the user's pending gated action. Never raises - sign-in must
@@ -201,11 +232,4 @@ def apply_pending_action(user: User) -> None:
         logger.info(f"email_link: no pending action for user={user.id}")
         return
 
-    slug = entry["type"]
-
-    try:
-        GATED_ACTIONS[slug].apply(user, entry["payload"])
-    except Exception:
-        logger.exception(f"Gated action {slug} crashed for user {user.id}")
-    else:
-        logger.info(f"Gated action {slug} applied for user {user.id}")
+    apply_gated_action(user, entry["type"], entry["payload"])
