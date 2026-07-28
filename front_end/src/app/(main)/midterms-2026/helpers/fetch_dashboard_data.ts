@@ -16,6 +16,7 @@ import {
   SENATE_GROUP_POST_ID,
   SENATE_RACES,
   STANDALONE_GOVERNOR_RACES,
+  STANDALONE_SENATE_RACES,
   type SenateRace,
   type StandaloneRace,
 } from "../data";
@@ -45,21 +46,16 @@ function buildGroupRace(
   };
 }
 
-// Builds an enriched race from a standalone multiple-choice post. The
-// Democratic win pct is normalized to the two major parties so the map
-// color reads as a clean Dem-vs-Rep split (ignoring any "Other" share).
+// Builds an enriched race from a standalone multiple-choice post. The map
+// color and tooltip key off the raw Republican win probability (redness ∝
+// P(Republican)); the "Other" and Democratic shares are not redistributed.
 function buildStandaloneRace(
   r: StandaloneRace,
   post: PostWithForecasts | null
 ): SenateRaceWithQuestion {
-  const question =
-    (post?.question as QuestionWithNumericForecasts | undefined) ?? null;
-  const demProb = getMultipleChoiceOptionProbability(post, "Democrat");
+  const question = post?.question ?? null;
   const repProb = getMultipleChoiceOptionProbability(post, "Republican");
-  const demWinPct =
-    demProb != null && repProb != null && demProb + repProb > 0
-      ? Math.round((demProb / (demProb + repProb)) * 100)
-      : null;
+  const demWinPct = repProb != null ? 100 - Math.round(repProb * 100) : null;
   return {
     state: r.state,
     name: r.name,
@@ -76,18 +72,13 @@ export const fetchSenateRaces = cache(
     races: SenateRaceWithQuestion[];
     parentPost: PostWithForecasts | null;
   }> => {
-    if (!SENATE_GROUP_POST_ID) {
-      return {
-        races: SENATE_RACES.map((r) => buildGroupRace(r, null, new Map())),
-        parentPost: null,
-      };
-    }
-
     let parentPost: PostWithForecasts | null = null;
-    try {
-      parentPost = await ServerPostsApi.getPost(SENATE_GROUP_POST_ID, true);
-    } catch {
-      parentPost = null;
+    if (SENATE_GROUP_POST_ID) {
+      try {
+        parentPost = await ServerPostsApi.getPost(SENATE_GROUP_POST_ID, true);
+      } catch {
+        parentPost = null;
+      }
     }
 
     const subQuestions =
@@ -95,12 +86,30 @@ export const fetchSenateRaces = cache(
         | QuestionWithNumericForecasts[]
         | undefined) ?? [];
     const byLabel = new Map(subQuestions.map((q) => [q.label, q]));
-
-    const races = SENATE_RACES.map((r) =>
+    const groupRaces = SENATE_RACES.map((r) =>
       buildGroupRace(r, parentPost, byLabel)
     );
 
-    return { races, parentPost };
+    const standaloneIds = STANDALONE_SENATE_RACES.map((r) => r.postId).filter(
+      (id) => id > 0
+    );
+    let byId = new Map<number, PostWithForecasts>();
+    if (standaloneIds.length) {
+      try {
+        const { results } = await ServerPostsApi.getPostsWithCP({
+          ids: standaloneIds,
+          limit: standaloneIds.length,
+        });
+        byId = new Map(results.map((p) => [p.id, p]));
+      } catch {
+        byId = new Map();
+      }
+    }
+    const standaloneRaces = STANDALONE_SENATE_RACES.map((r) =>
+      buildStandaloneRace(r, byId.get(r.postId) ?? null)
+    );
+
+    return { races: [...groupRaces, ...standaloneRaces], parentPost };
   }
 );
 
