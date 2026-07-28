@@ -450,6 +450,54 @@ describe("generateScale", () => {
   });
 
   describe("nice numeric ticks", () => {
+    it("allows more labels as horizontal forecast axes get wider", () => {
+      const createScale = (axisLength: number) =>
+        generateScale({
+          displayType: QuestionType.Numeric,
+          axisLength,
+          direction: ScaleDirection.Horizontal,
+          domain: [0, 1],
+          zoomedDomain: [0, 1],
+          scaling: {
+            range_min: 0,
+            range_max: 100,
+            zero_point: null,
+          },
+        });
+      const narrowScale = createScale(400);
+      const narrowLabels = narrowScale.ticks
+        .map((tick) => narrowScale.tickFormat(tick))
+        .filter(Boolean);
+      const wideScale = createScale(1_000);
+      const wideLabels = wideScale.ticks
+        .map((tick) => wideScale.tickFormat(tick))
+        .filter(Boolean);
+
+      expect(narrowLabels).toHaveLength(6);
+      expect(wideLabels).toHaveLength(11);
+    });
+
+    it("keeps both horizontal forecast bounds visible", () => {
+      const scale = generateScale({
+        displayType: QuestionType.Numeric,
+        axisLength: 1200,
+        direction: ScaleDirection.Horizontal,
+        domain: [0, 1],
+        zoomedDomain: [0, 1],
+        scaling: {
+          range_min: 30_000_000_000,
+          range_max: 65_000_000_000,
+          zero_point: null,
+        },
+      });
+      const labels = scale.ticks
+        .map((tick) => scale.tickFormat(tick))
+        .filter(Boolean);
+
+      expect(labels.at(0)).toBe("30B");
+      expect(labels.at(-1)).toBe("65B");
+    });
+
     it("uses one covering nice lattice instead of labeling visible extrema", () => {
       const scaling = {
         range_min: 0,

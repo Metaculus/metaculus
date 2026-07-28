@@ -190,26 +190,32 @@ export function generateTimeSeriesYDomain({
     useFullYDomain
       ? values
       : getValuesActiveInTimeRange(values, timeRange, carryForward);
-  const min = sources
-    .flatMap(({ minValues, carryForward }) =>
-      selectValues(minValues, !!carryForward)
-    )
-    .map((d) => d.y)
-    .filter(
-      (value): value is number =>
-        typeof value === "number" && Number.isFinite(value)
-    );
-  const minValue = min.length ? Math.min(...min) : null;
-  const max = sources
-    .flatMap(({ maxValues, carryForward }) =>
-      selectValues(maxValues, !!carryForward)
-    )
-    .map((d) => d.y)
-    .filter(
-      (value): value is number =>
-        typeof value === "number" && Number.isFinite(value)
-    );
-  const maxValue = max.length ? Math.max(...max) : null;
+  const minValue = sources.reduce<number | null>(
+    (sourceMin, { minValues, carryForward }) =>
+      selectValues(minValues, !!carryForward).reduce<number | null>(
+        (pointMin, { y }) =>
+          typeof y !== "number" || !Number.isFinite(y)
+            ? pointMin
+            : isNil(pointMin)
+              ? y
+              : Math.min(pointMin, y),
+        sourceMin
+      ),
+    null
+  );
+  const maxValue = sources.reduce<number | null>(
+    (sourceMax, { maxValues, carryForward }) =>
+      selectValues(maxValues, !!carryForward).reduce<number | null>(
+        (pointMax, { y }) =>
+          typeof y !== "number" || !Number.isFinite(y)
+            ? pointMax
+            : isNil(pointMax)
+              ? y
+              : Math.max(pointMax, y),
+        sourceMax
+      ),
+    null
+  );
 
   if (isNil(minValue) || isNil(maxValue)) {
     return fallback;
@@ -415,7 +421,7 @@ function getSigFigCost(value: number, logarithmic: boolean = false): number {
 }
 
 const NICE_TICK_MULTIPLIERS = [1, 2, 2.5, 5];
-const MAX_NUMERIC_MAJOR_TICK_COUNT = 6;
+const MAX_VERTICAL_NUMERIC_MAJOR_TICK_COUNT = 6;
 
 /**
  * Returns the requested number of evenly spaced, round display values.
@@ -478,16 +484,18 @@ function niceTicksNearCount(
  * Finds the densest single-step nice lattice that covers the requested range
  * without exceeding the label count. If hard bounds make full coverage
  * impossible, use the closest legal aligned window instead of an exact,
- * off-lattice boundary label.
+ * off-lattice boundary label unless the caller requires visible range bounds.
  */
 function niceCoveringTicks({
   rangeBounds,
   hardBounds,
   maximumCount,
+  preserveRangeBounds = false,
 }: {
   rangeBounds: Tuple<number>;
   hardBounds: Tuple<number>;
   maximumCount: number;
+  preserveRangeBounds?: boolean;
 }): number[] {
   const hardLower = Math.min(...hardBounds);
   const hardUpper = Math.max(...hardBounds);
@@ -512,6 +520,7 @@ function niceCoveringTicks({
   let bestFallback: number[] = [];
   let bestFallbackStepDistance = Infinity;
   let bestFallbackError = Infinity;
+  let boundaryFallback: number[] = [];
 
   for (const step of stepCandidates) {
     const minimumLegalIndex = Math.ceil((hardLower - tolerance) / step);
@@ -534,6 +543,25 @@ function niceCoveringTicks({
       return range(firstIndex, lastIndex + 1).map((index) =>
         Number((index * step).toPrecision(12))
       );
+    }
+
+    const needsLowerBound = firstTick > lower + tolerance;
+    const needsUpperBound = lastTick < upper - tolerance;
+    const boundaryTickCount =
+      alignedCount + Number(needsLowerBound) + Number(needsUpperBound);
+    if (
+      preserveRangeBounds &&
+      !boundaryFallback.length &&
+      boundaryTickCount >= 2 &&
+      boundaryTickCount <= count
+    ) {
+      boundaryFallback = [
+        ...(needsLowerBound ? [lower] : []),
+        ...range(firstIndex, lastIndex + 1).map((index) =>
+          Number((index * step).toPrecision(12))
+        ),
+        ...(needsUpperBound ? [upper] : []),
+      ];
     }
 
     const legalCount = maximumLegalIndex - minimumLegalIndex + 1;
@@ -588,6 +616,7 @@ function niceCoveringTicks({
     }
   }
 
+  if (boundaryFallback.length) return boundaryFallback;
   return bestFallback.length ? bestFallback : [lower, upper];
 }
 
@@ -1366,10 +1395,13 @@ export function generateScale({
       // Choose nice values in display space, then map them back into the
       // chart's domain. This avoids awkward labels when the chart uses a
       // normalized [0, 1] domain for a wider numeric question range.
-      const tickCountHint = Math.min(
-        MAX_NUMERIC_MAJOR_TICK_COUNT,
-        forceTickCount ?? maxLabelCount
-      );
+      const tickCountHint =
+        direction === ScaleDirection.Horizontal
+          ? forceTickCount ?? maxLabelCount
+          : Math.min(
+              MAX_VERTICAL_NUMERIC_MAJOR_TICK_COUNT,
+              forceTickCount ?? maxLabelCount
+            );
       const zoomedRangeMin = scaleInternalLocation(
         unscaleNominalLocation(zoomedDomainMin, domainScaling),
         rangeScaling
@@ -1399,6 +1431,11 @@ export function generateScale({
               rangeBounds: relevantRange,
               hardBounds: [rangeMin, rangeMax],
               maximumCount: tickCountHint,
+              // Horizontal forecast axes represent the complete outcome range.
+              // Keep both ends visible even when no capped nice lattice can
+              // cover them without one exact boundary label.
+              preserveRangeBounds:
+                direction === ScaleDirection.Horizontal && !tickCoverageRange,
             })
           : limitTicksPreservingCoverage(
               addGuardTicksToCoverRange(
@@ -1462,10 +1499,13 @@ export function generateScale({
     }
   } else {
     // Logarithmic Scaling
-    const tickCountHint = Math.min(
-      MAX_NUMERIC_MAJOR_TICK_COUNT,
-      forceTickCount ?? maxLabelCount
-    );
+    const tickCountHint =
+      direction === ScaleDirection.Horizontal
+        ? forceTickCount ?? maxLabelCount
+        : Math.min(
+            MAX_VERTICAL_NUMERIC_MAJOR_TICK_COUNT,
+            forceTickCount ?? maxLabelCount
+          );
     const logTicks = getVisuallySpacedLogTicks({
       zoomedDomain: [zoomedDomainMin, zoomedDomainMax],
       scaling: rangeScaling,

@@ -51,7 +51,6 @@ import {
   generateNumericXDomain,
   generateScale,
   generateTimestampXScale,
-  generateTimeSeriesYDomain,
   getTickLabelFontSize,
   getAxisRightPadding,
   Y_AXIS_LABEL_ANCHOR_OFFSET,
@@ -883,23 +882,7 @@ function buildChartData({
   const fontSize = extraTheme ? getTickLabelFontSize(extraTheme) : undefined;
   const xScale = generateTimestampXScale(xDomain, width, fontSize);
 
-  const { originalYDomain } = generateTimeSeriesYDomain({
-    sources: graphs
-      .filter((graph) => !isNil(graph.line) && graph.active)
-      .map((graph) => {
-        const values = graph.line.map((linePoint) => ({
-          timestamp: linePoint.x,
-          y: linePoint.y,
-        }));
-        return {
-          minValues: values,
-          maxValues: values,
-          carryForward: true,
-        };
-      }),
-    timeRange: xDomain,
-    isChartEmpty: !domainTimestamps.length,
-  });
+  const originalYDomain: DomainTuple = [0, 1];
 
   const yScale = generateScale({
     displayType: QuestionType.MultipleChoice,
