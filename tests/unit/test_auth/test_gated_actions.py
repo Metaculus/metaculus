@@ -10,7 +10,6 @@ from authentication.services.gated_actions import (
     clear_pending_action,
     pop_pending_action,
     set_pending_action,
-    validate_and_apply_gated_action,
     validate_gated_action,
 )
 from posts.models import PostSubscription, Vote
