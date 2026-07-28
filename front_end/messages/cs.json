@@ -388,6 +388,7 @@
   "allCategories": "Všechny kategorie",
   "toggleAllTopics": "Přepnout všechna témata",
   "toggleNewsAnnotations": "Přepnout anotace zpráv",
+  "includeTimelineUncertainty": "Zahrnout intervaly nejistoty do měřítka časové osy",
   "Filter": "Filtr",
   "sort": "Řadit",
   "Done": "Hotovo",

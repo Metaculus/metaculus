@@ -392,6 +392,7 @@
   "allCategories": "所有类别",
   "toggleAllTopics": "切換所有主題",
   "toggleNewsAnnotations": "切换新闻注释",
+  "includeTimelineUncertainty": "在时间线缩放中包含不确定性区间",
   "Filter": "篩選",
   "sort": "排序",
   "Done": "完成",
