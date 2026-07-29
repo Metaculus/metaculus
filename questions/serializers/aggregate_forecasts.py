@@ -162,10 +162,12 @@ def serialize_question_aggregations(
                 for forecast in forecasts
             ]
             latest_forecast = _get_latest_aggregate_forecast(question, forecasts)
-            if latest_forecast is not None:
-                latest_data = serialize_aggregate_forecast(
-                    latest_forecast, question.type, full=True
-                )
+            latest_data = (
+                serialize_aggregate_forecast(latest_forecast, question.type, full=True)
+                if latest_forecast is not None
+                else None
+            )
+            if latest_data is not None and question.actual_close_time is not None:
                 # For a closed/resolved question the "latest" preview is the final CP
                 # capped at actual_close_time. That forecast may carry a real past
                 # end_time (a later aggregation closed it off, e.g. a question resolved
@@ -173,10 +175,7 @@ def serialize_question_aggregations(
                 # CP previews/PDFs on end_time liveness, so present it as the active final
                 # CP — matching how the last live aggregation was shown before capping —
                 # to keep those previews rendering.
-                if question.actual_close_time is not None:
-                    latest_data["end_time"] = None
-                serialized_data[method]["latest"] = latest_data
-            else:
-                serialized_data[method]["latest"] = None
+                latest_data["end_time"] = None
+            serialized_data[method]["latest"] = latest_data
 
     return dict(serialized_data)  # convert defaultdict to dict
