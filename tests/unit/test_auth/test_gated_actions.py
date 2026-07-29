@@ -12,6 +12,7 @@ from authentication.services.gated_actions import (
     set_pending_action,
     validate_gated_action,
 )
+from comments.models import Comment, KeyFactor
 from posts.models import PostSubscription, Vote
 from questions.models import Forecast, Question
 from tests.unit.test_posts.factories import factory_post
@@ -267,3 +268,63 @@ class TestApplyGatedAction:
         apply_gated_action(user1, "post_vote", {"post": 999999, "direction": 1})
 
         assert not Vote.objects.filter(user=user1).exists()
+
+
+class TestCreateCommentAction:
+    DRIVER_KF = {"text": "Key Factor Driver", "impact_direction": -1}
+
+    def test_validate_ok(self, user1, public_post):
+        slug, _ = validate_gated_action(
+            {
+                "type": "create_comment",
+                "payload": {"on_post": public_post.pk, "text": "Hello"},
+            }
+        )
+        assert slug == "create_comment"
+
+    def test_validate_rejects_text_less_comment(self, user1, public_post):
+        # Proves validate() actually runs CommentWriteSerializer, which requires
+        # text unless a base_rate/news key factor carries the content.
+        with pytest.raises(ValidationError):
+            validate_gated_action(
+                {"type": "create_comment", "payload": {"on_post": public_post.pk}}
+            )
+
+    def test_apply_creates_comment(self, user1, user2, public_post):
+        set_pending_action(
+            user2.id, "create_comment", {"on_post": public_post.pk, "text": "Hello"}
+        )
+
+        apply_pending_action(user2)
+
+        comment = Comment.objects.get(author=user2, on_post=public_post)
+        assert comment.text == "Hello"
+
+    def test_apply_creates_comment_with_key_factors(self, user1, user2, public_post):
+        set_pending_action(
+            user2.id,
+            "create_comment",
+            {
+                "on_post": public_post.pk,
+                "text": "Comment with Key Factors",
+                "key_factors": [{"driver": self.DRIVER_KF}],
+            },
+        )
+
+        apply_pending_action(user2)
+
+        comment = Comment.objects.get(author=user2, on_post=public_post)
+        key_factor = KeyFactor.objects.get(comment=comment)
+        assert key_factor.driver.text == "Key Factor Driver"
+
+    def test_apply_failed_on_invisible_post(self, user1, user2):
+        post = factory_post(
+            author=user1, default_project=factory_project(default_permission=None)
+        )
+        set_pending_action(
+            user2.id, "create_comment", {"on_post": post.pk, "text": "Hello"}
+        )
+
+        apply_pending_action(user2)
+
+        assert not Comment.objects.filter(author=user2).exists()
