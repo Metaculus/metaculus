@@ -5,6 +5,7 @@ from django.utils import timezone as dj_timezone
 from rest_framework.exceptions import ValidationError
 
 from authentication.services.gated_actions import (
+    apply_gated_action,
     apply_pending_action,
     clear_pending_action,
     pop_pending_action,
@@ -120,6 +121,28 @@ class TestApplyPendingAction:
 
         assert not Vote.objects.filter(user=user2).exists()
 
+    def test_malformed_entry_missing_keys_does_not_raise(self, mocker, user1):
+        # A cache entry missing "type"/"payload" must not raise; sign-in continues.
+        mocker.patch(
+            "authentication.services.gated_actions.pop_pending_action",
+            return_value={"payload": {"post": 1, "direction": 1}},
+        )
+
+        apply_pending_action(user1)
+
+        assert not Vote.objects.filter(user=user1).exists()
+
+    def test_non_dict_entry_does_not_raise(self, mocker, user1):
+        # A non-dict decoded cache value must not raise on entry["type"].
+        mocker.patch(
+            "authentication.services.gated_actions.pop_pending_action",
+            return_value=["not", "a", "dict"],
+        )
+
+        apply_pending_action(user1)
+
+        assert not Vote.objects.filter(user=user1).exists()
+
 
 class TestPostSubscribeAction:
     PAYLOAD_SUBS = [
@@ -231,3 +254,16 @@ class TestForecastAction:
         apply_pending_action(user2)
 
         assert not Forecast.objects.filter(author=user2).exists()
+
+
+class TestApplyGatedAction:
+    def test_applies_resolved_action(self, user1, user2, public_post):
+        apply_gated_action(user2, "post_vote", {"post": public_post.pk, "direction": 1})
+
+        assert Vote.objects.filter(user=user2, post=public_post, direction=1).exists()
+
+    def test_swallows_handler_failure(self, user1):
+        # Missing post -> handler raises; must be caught, not propagated.
+        apply_gated_action(user1, "post_vote", {"post": 999999, "direction": 1})
+
+        assert not Vote.objects.filter(user=user1).exists()

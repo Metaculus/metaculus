@@ -421,6 +421,7 @@
   "allCategories": "Todas as Categorias",
   "toggleAllTopics": "Alternar todos os tópicos",
   "toggleNewsAnnotations": "Alternar anotações de notícias",
+  "includeTimelineUncertainty": "Incluir intervalos de incerteza na escala da linha do tempo",
   "Filter": "Filtro",
   "sort": "Ordenar",
   "done": "concluído",

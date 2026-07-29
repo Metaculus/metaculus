@@ -9,6 +9,7 @@ import {
 import { ReactNode, Suspense } from "react";
 
 import { GroupTimelineMarker } from "@/components/charts/primitives/timeline_markers/types";
+import { TimelineYDomainOptions } from "@/types/charts";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import {
@@ -81,6 +82,7 @@ type QuestionLoaderProps = {
   fallbackTitle?: string;
   className?: string;
   timelineMarkers?: GroupTimelineMarker[];
+  yDomainOptions?: TimelineYDomainOptions;
 };
 
 /**
@@ -99,6 +101,7 @@ async function QuestionContent({
   fallbackTitle,
   className,
   timelineMarkers,
+  yDomainOptions,
 }: QuestionLoaderProps) {
   let postData;
   try {
@@ -137,6 +140,7 @@ async function QuestionContent({
               preferTimeline={false}
               chartHeight={chartHeight}
               timelineMarkers={timelineMarkers}
+              yDomainOptions={yDomainOptions}
             />
           }
           rightContent={
@@ -146,6 +150,7 @@ async function QuestionContent({
               preferTimeline={true}
               chartHeight={chartHeight}
               timelineMarkers={timelineMarkers}
+              yDomainOptions={yDomainOptions}
             />
           }
           leftIcon={getLeftIcon(postData, subQuestionId)}
@@ -181,6 +186,7 @@ async function QuestionContent({
           chartHeight={chartHeight}
           subQuestionId={subQuestionId}
           timelineMarkers={timelineMarkers}
+          yDomainOptions={yDomainOptions}
         />
       </QuestionCard>
       {note && (
@@ -209,6 +215,7 @@ export function QuestionLoader({
   fallbackTitle,
   className,
   timelineMarkers,
+  yDomainOptions,
 }: QuestionLoaderProps) {
   return (
     <Suspense
@@ -229,6 +236,7 @@ export function QuestionLoader({
         note={note}
         className={className}
         timelineMarkers={timelineMarkers}
+        yDomainOptions={yDomainOptions}
       />
     </Suspense>
   );
