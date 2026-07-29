@@ -168,17 +168,18 @@ def perform_create_comment(
         else None
     )
 
-    new_comment = create_comment(
-        user=user,
-        on_post=on_post,
-        parent=parent,
-        text=text,
-        is_private=is_private,
-        included_forecast=forecast,
-    )
+    with transaction.atomic():
+        new_comment = create_comment(
+            user=user,
+            on_post=on_post,
+            parent=parent,
+            text=text,
+            is_private=is_private,
+            included_forecast=forecast,
+        )
 
-    if key_factors:
-        create_key_factors(new_comment, key_factors)
+        if key_factors:
+            create_key_factors(new_comment, key_factors)
 
     return new_comment
 

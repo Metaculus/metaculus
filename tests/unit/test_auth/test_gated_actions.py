@@ -328,3 +328,23 @@ class TestCreateCommentAction:
         apply_pending_action(user2)
 
         assert not Comment.objects.filter(author=user2).exists()
+
+    def test_apply_rolls_back_comment_when_key_factors_rejected(
+        self, user1, user2, public_post
+    ):
+        # Key factor limits are enforced at creation, not by capture-time shape
+        # validation - exceeding them must not leave an orphaned comment.
+        set_pending_action(
+            user2.id,
+            "create_comment",
+            {
+                "on_post": public_post.pk,
+                "text": "Too many key factors",
+                "key_factors": [{"driver": dict(self.DRIVER_KF)} for _ in range(5)],
+            },
+        )
+
+        apply_pending_action(user2)
+
+        assert not Comment.objects.filter(author=user2).exists()
+        assert not KeyFactor.objects.filter(comment__author=user2).exists()
