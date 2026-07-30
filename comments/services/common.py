@@ -27,8 +27,10 @@ from comments.models import (
     KeyFactor,
     KeyFactorVote,
 )
+from comments.services.key_factors.common import create_key_factors
 from comments.services.spam_detection import check_and_handle_comment_spam
 from posts.models import Post, PostUserSnapshot
+from posts.services.common import get_post_permission_for_user
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Forecast
@@ -132,6 +134,54 @@ def create_comment(
     trigger_update_comment_translations(obj)
 
     return obj
+
+
+def perform_create_comment(
+    user: User,
+    on_post: Post,
+    parent: Comment | None = None,
+    text: str | None = None,
+    is_private: bool = False,
+    included_forecast: bool = False,
+    key_factors: list[dict] | None = None,
+) -> Comment:
+    """
+    Create a comment (optionally with key factors), including the permission
+    check and the included_forecast lookup. Shared by the comment-create
+    endpoint and the create_comment gated action, so both apply the same rules.
+
+    included_forecast is a flag here (as sent by the client); it is resolved to
+    the user's latest forecast before reaching create_comment.
+    """
+    permission = get_post_permission_for_user(
+        parent.on_post if parent else on_post, user=user
+    )
+    ObjectPermission.can_comment(permission, raise_exception=True)
+
+    forecast = (
+        (
+            on_post.question.user_forecasts.filter(author_id=user.id)
+            .order_by("-start_time")
+            .first()
+        )
+        if included_forecast and on_post.question_id
+        else None
+    )
+
+    with transaction.atomic():
+        new_comment = create_comment(
+            user=user,
+            on_post=on_post,
+            parent=parent,
+            text=text,
+            is_private=is_private,
+            included_forecast=forecast,
+        )
+
+        if key_factors:
+            create_key_factors(new_comment, key_factors)
+
+    return new_comment
 
 
 def update_comment(

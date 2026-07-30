@@ -8,6 +8,8 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from comments.serializers.common import CommentWriteSerializer
+from comments.services.common import perform_create_comment
 from posts.models import Post, Vote
 from posts.serializers import get_subscription_serializer_by_type
 from posts.services.common import vote_post
@@ -160,9 +162,34 @@ class ForecastAction(BaseGatedAction):
         )
 
 
+class CreateCommentAction(BaseGatedAction):
+    slug = "create_comment"
+
+    def validate(self, payload) -> dict:
+        if not isinstance(payload, dict):
+            raise ValidationError(
+                {"gated_action": ["create_comment payload must be an object"]}
+            )
+        serializer = CommentWriteSerializer(data=payload)
+        serializer.is_valid(raise_exception=True)
+
+        return payload
+
+    def apply(self, user: User, payload) -> None:
+        serializer = CommentWriteSerializer(data=payload)
+        serializer.is_valid(raise_exception=True)
+
+        perform_create_comment(user=user, **serializer.validated_data)
+
+
 GATED_ACTIONS: dict[str, BaseGatedAction] = {
     action.slug: action
-    for action in [PostVoteAction(), PostSubscribeAction(), ForecastAction()]
+    for action in [
+        PostVoteAction(),
+        PostSubscribeAction(),
+        ForecastAction(),
+        CreateCommentAction(),
+    ]
 }
 
 
