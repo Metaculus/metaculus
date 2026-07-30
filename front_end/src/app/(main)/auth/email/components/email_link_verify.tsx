@@ -1,13 +1,21 @@
 "use client";
 
+import { Turnstile, TurnstileInstance } from "@marsidev/react-turnstile";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useRef, useState } from "react";
 
-import { verifyEmailLinkAction } from "@/app/(main)/accounts/actions";
+import {
+  requestEmailLinkAction,
+  verifyEmailLinkAction,
+} from "@/app/(main)/accounts/actions";
+import { readPending } from "@/components/email_capture/pending_store";
 import Button from "@/components/ui/button";
+import { Input } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
+import { usePublicSettings } from "@/contexts/public_settings_context";
+import { useServerAction } from "@/hooks/use_server_action";
 import { ensureRelativeRedirect } from "@/utils/navigation";
 
 type Props = {
@@ -39,8 +47,21 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
   const t = useTranslations();
   const router = useRouter();
   const { user, setUser } = useAuth();
+  const { PUBLIC_TURNSTILE_SITE_KEY } = usePublicSettings();
   const firedRef = useRef(false);
   const [failed, setFailed] = useState(false);
+
+  // Recovery form state: a dead link should never be a dead end. The device's
+  // pending record (when present) supplies the address and the deferred action
+  // so the fresh link carries the same intent.
+  const [draft, setDraft] = useState("");
+  const [requestSent, setRequestSent] = useState(false);
+  const [sentWithAction, setSentWithAction] = useState(false);
+  const [isTurnstileValidated, setIsTurnstileValidated] = useState(
+    !PUBLIC_TURNSTILE_SITE_KEY
+  );
+  const turnstileRef = useRef<TurnstileInstance | null>(null);
+  const turnstileTokenRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     // Consumption is JS-gated (scanner protection) and must fire exactly once.
@@ -55,6 +76,7 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
 
     if (!userId || !token) {
       setFailed(true);
+      setDraft(readPending()?.email ?? "");
       return;
     }
 
@@ -63,6 +85,7 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
 
       if ("errors" in result) {
         setFailed(true);
+        setDraft(readPending()?.email ?? "");
         return;
       }
 
@@ -73,6 +96,24 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const requestNewLink = async () => {
+    const email = draft.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+    const pending = readPending();
+    const response = await requestEmailLinkAction({
+      email,
+      redirectUrl: pending?.redirectUrl ?? null,
+      gatedAction: pending?.gatedAction ?? null,
+      turnstileToken: turnstileTokenRef.current,
+    });
+    turnstileRef.current?.reset();
+    if (!response.errors) {
+      setSentWithAction(!!pending?.gatedAction);
+      setRequestSent(true);
+    }
+  };
+  const [submitRequest, isRequesting] = useServerAction(requestNewLink);
+
   if (failed) {
     // redirect_url is deliberately NOT honored on failure.
     return (
@@ -80,10 +121,51 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
         <h1 className="m-0 text-blue-800 dark:text-blue-800-dark">
           {t("emailLinkInvalidTitle")}
         </h1>
-        <p className="text-gray-600 dark:text-gray-600-dark">
+        <p className="m-0 text-gray-600 dark:text-gray-600-dark">
           {t("emailLinkInvalidDescription")}
         </p>
-        <Button href="/">{t("emailLinkGoHome")}</Button>
+        {requestSent ? (
+          <div className="flex max-w-xs items-center gap-2 rounded border border-mint-500 bg-mint-200 px-4 py-3 text-left text-sm font-semibold text-mint-800 dark:border-mint-500-dark dark:bg-mint-200-dark dark:text-mint-800-dark">
+            {sentWithAction
+              ? t("emailLinkNewSentWithAction", { email: draft.trim() })
+              : t("emailLinkNewSent", { email: draft.trim() })}
+          </div>
+        ) : (
+          <div className="flex w-full max-w-xs flex-col gap-2.5 pt-1">
+            <Input
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              aria-label={t("emailCaptureEmailLabel")}
+              placeholder="you@example.com"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              className="h-12 w-full rounded border-[1.5px] border-gray-400 bg-gray-0 px-3.5 text-center text-base text-gray-900 dark:border-gray-400-dark dark:bg-gray-0-dark dark:text-gray-900-dark"
+            />
+            <Button
+              variant="primary"
+              disabled={isRequesting || !isTurnstileValidated}
+              onClick={submitRequest}
+            >
+              {t("emailLinkRequestNew")}
+            </Button>
+            {PUBLIC_TURNSTILE_SITE_KEY && (
+              <Turnstile
+                ref={turnstileRef}
+                siteKey={PUBLIC_TURNSTILE_SITE_KEY}
+                onSuccess={(turnstileToken) => {
+                  turnstileTokenRef.current = turnstileToken;
+                  setIsTurnstileValidated(true);
+                }}
+                onError={() => setIsTurnstileValidated(false)}
+                onExpire={() => setIsTurnstileValidated(false)}
+              />
+            )}
+          </div>
+        )}
+        <Button variant="text" href="/">
+          {t("emailLinkGoHome")}
+        </Button>
       </div>
     );
   }
