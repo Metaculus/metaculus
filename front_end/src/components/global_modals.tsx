@@ -74,6 +74,11 @@ const DisputeKeyFactorModal = dynamic(
   { ssr: false }
 );
 
+const EmailCaptureDrawer = dynamic(
+  () => import("@/components/email_capture/email_capture_drawer"),
+  { ssr: false }
+);
+
 function isModal<T extends ModalType>(
   m: CurrentModal | null,
   type: T
@@ -151,6 +156,17 @@ const GlobalModals: FC = () => {
           onFinalize={currentModal.data.onFinalize}
           onRemove={currentModal.data.onRemove}
           onSubmitted={currentModal.data.onSubmitted}
+        />
+      )}
+      {isModal(currentModal, "emailCapture") && currentModal.data && (
+        <EmailCaptureDrawer
+          isOpen
+          onClose={onClose}
+          trigger={currentModal.data.trigger}
+          surface={currentModal.data.surface}
+          gatedAction={currentModal.data.gatedAction}
+          subscribePost={currentModal.data.subscribePost}
+          initialView={currentModal.data.initialView}
         />
       )}
       {isModal(currentModal, "copyQuestionLink") && currentModal.data && (
