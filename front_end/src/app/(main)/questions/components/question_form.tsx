@@ -482,6 +482,11 @@ const QuestionForm: FC<Props> = ({
         post?.question?.include_bots_in_aggregates ?? false,
       options_order:
         post?.question?.options_order ?? MultipleChoiceOptionsOrder.DEFAULT,
+      scaling: post?.question?.scaling ?? undefined,
+      open_lower_bound: post?.question?.open_lower_bound ?? undefined,
+      open_upper_bound: post?.question?.open_upper_bound ?? undefined,
+      inbound_outcome_count:
+        post?.question?.inbound_outcome_count ?? DefaultInboundOutcomeCount,
     },
   });
   useEffect(() => {
