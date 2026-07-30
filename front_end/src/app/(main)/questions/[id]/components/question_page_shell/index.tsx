@@ -49,6 +49,7 @@ import {
 } from "@/utils/questions/helpers";
 
 import MetaRow from "./meta_row";
+import NotifyMeCta from "./notify_me_cta";
 import QuestionPageShellTabs from "./tabs";
 import TitleRow from "./title_row";
 import KeyFactorsQuestionConsumerSection from "../key_factors/key_factors_question_consumer_section";
@@ -430,6 +431,9 @@ export const ConsumerShell: FC<{
           ) : (
             <ConsumerQuestionPrediction postData={postData} />
           )}
+        </div>
+        <div className="order-2 px-1 pt-2 sm:order-none md:hidden">
+          <NotifyMeCta />
         </div>
         {shouldShowKeyFactorsSection && (
           <div className="order-3 sm:order-none">
