@@ -5,7 +5,7 @@ from django.db.models import Q, QuerySet, Exists, Max, OuterRef
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError, PermissionDenied
 
-from posts.models import Post, Vote
+from posts.models import Post, Vote, projects_q
 from posts.serializers import PostFilterSerializer
 from posts.services.search import (
     perform_post_search,
@@ -145,12 +145,7 @@ def get_posts_feed(  # noqa: C901
             # Main-feed pending queue should only include posts attached to site_main,
             # not pending posts from tournaments/question series with visibility=NORMAL.
             if status == Post.CurationStatus.PENDING and for_main_feed:
-                site_main = get_site_main_project()
-                status_q &= Q(default_project=site_main) | Q(
-                    pk__in=Post.projects.through.objects.filter(
-                        project=site_main
-                    ).values("post_id")
-                )
+                status_q &= projects_q(get_site_main_project())
             post_status_q |= status_q
         if status == "open":
             post_status_q |= Q(
