@@ -27,6 +27,7 @@ import {
 import { ThemeColor } from "@/types/theme";
 import { calculateCharWidth } from "@/utils/charts/helpers";
 import { getResolutionPosition } from "@/utils/charts/resolution";
+import cn from "@/utils/core/cn";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { formatResolution } from "@/utils/formatters/resolution";
 import { truncateLabel } from "@/utils/formatters/string";
@@ -44,6 +45,8 @@ type Props = {
   variant?: "default" | "colorful";
   onBarHover?: (label: string | null) => void;
   hoveredBarLabel?: string | null;
+  onBarClick?: (label: string) => void;
+  selectedBarLabel?: string | null;
   forFeedPage?: boolean;
 };
 
@@ -55,12 +58,56 @@ const CHART_PADDING_TOP = 20;
 const CHART_PADDING_BOTTOM = 30;
 const HIGHLIGHT_WIDTH = 52;
 
+// Single source of truth for a bar's color so the fill and the selection
+// highlight stay in sync (resolved → purple, closed → gray, else MC scale).
+function resolveBarFillColor(
+  getThemeColor: (color: ThemeColor) => string,
+  datum: {
+    isEmpty?: boolean;
+    resolution?: Resolution | null;
+    isClosed?: boolean;
+    originalIndex?: number;
+  },
+  index: number | undefined,
+  variant: "default" | "colorful"
+): string {
+  if (variant === "colorful" && !datum.isEmpty) {
+    if (datum.resolution) {
+      return getThemeColor(METAC_COLORS.purple["500"]);
+    }
+    const safeIndex =
+      typeof datum.originalIndex === "number"
+        ? datum.originalIndex
+        : typeof index === "number"
+          ? index
+          : 0;
+    const color: ThemeColor =
+      MULTIPLE_CHOICE_COLOR_SCALE[
+        safeIndex % MULTIPLE_CHOICE_COLOR_SCALE.length
+      ] ?? (METAC_COLORS.blue["400"] as ThemeColor);
+    return getThemeColor(color);
+  }
+
+  if (datum.resolution) {
+    return getThemeColor(
+      ["no", "yes"].includes(datum.resolution as string)
+        ? METAC_COLORS.purple["400"]
+        : METAC_COLORS.purple["500"]
+    );
+  }
+
+  return datum.isClosed
+    ? getThemeColor(METAC_COLORS.gray["500"])
+    : getThemeColor(METAC_COLORS.blue["400"]);
+}
+
 interface HighlightBarProps {
   x?: number;
   index?: number;
   hoveredIndex: number | null;
   chartHeight: number;
   fill: string;
+  fillOpacity?: number;
 }
 
 const HighlightBar: FC<HighlightBarProps> = ({
@@ -69,6 +116,7 @@ const HighlightBar: FC<HighlightBarProps> = ({
   hoveredIndex,
   chartHeight,
   fill,
+  fillOpacity = 0.2,
 }) => {
   if (hoveredIndex === null || index !== hoveredIndex || x === undefined) {
     return null;
@@ -80,7 +128,7 @@ const HighlightBar: FC<HighlightBarProps> = ({
       width={HIGHLIGHT_WIDTH}
       height={chartHeight - CHART_PADDING_TOP - CHART_PADDING_BOTTOM}
       fill={fill}
-      fillOpacity={0.2}
+      fillOpacity={fillOpacity}
       rx={2}
     />
   );
@@ -106,6 +154,8 @@ const TimeSeriesChart: FC<Props> = ({
   variant = "default",
   onBarHover,
   hoveredBarLabel,
+  onBarClick,
+  selectedBarLabel,
   forFeedPage = false,
 }) => {
   const { theme, getThemeColor } = useAppTheme();
@@ -135,6 +185,22 @@ const TimeSeriesChart: FC<Props> = ({
     return idx === -1 ? null : idx;
   }, [hoveredBarLabel, adjustedChartData]);
   const effectiveHoveredIndex = hoveredIndex ?? externalHoveredIndex;
+
+  const selectedIndex = useMemo(() => {
+    if (!selectedBarLabel) return null;
+    const idx = adjustedChartData.findIndex((d) => d.x === selectedBarLabel);
+    return idx === -1 ? null : idx;
+  }, [selectedBarLabel, adjustedChartData]);
+  const selectedDatum =
+    selectedIndex !== null ? adjustedChartData[selectedIndex] : null;
+  const selectedBarColor = selectedDatum
+    ? resolveBarFillColor(
+        getThemeColor,
+        selectedDatum,
+        selectedIndex ?? undefined,
+        variant
+      )
+    : undefined;
   const domainPaddingX = useMemo(
     () => getDomainPaddingX(chartWidth, adjustedChartData.length),
     [adjustedChartData.length, chartWidth]
@@ -221,6 +287,36 @@ const TimeSeriesChart: FC<Props> = ({
     if (onBarHover) onBarHover(null);
   };
 
+  const closestIndexFromEvent = (e: React.MouseEvent<HTMLDivElement>) => {
+    const n = adjustedChartData.length;
+    if (n === 0) return null;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const availableWidth = chartWidth - domainPaddingX * 2;
+    let closestIndex = 0;
+    let minDist = Infinity;
+    for (let i = 0; i < n; i++) {
+      const barX =
+        n === 1
+          ? chartWidth / 2
+          : domainPaddingX + (i * availableWidth) / (n - 1);
+      const dist = Math.abs(mouseX - barX);
+      if (dist < minDist) {
+        minDist = dist;
+        closestIndex = i;
+      }
+    }
+    return closestIndex;
+  };
+
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!onBarClick) return;
+    const idx = closestIndexFromEvent(e);
+    if (idx === null) return;
+    const datum = adjustedChartData[idx];
+    if (datum && !datum.isEmpty) onBarClick(datum.x);
+  };
+
   const chartHeight = forFeedPage
     ? reservedChartHeight
     : allQuestionsEmpty
@@ -230,10 +326,14 @@ const TimeSeriesChart: FC<Props> = ({
   return (
     <div
       ref={chartContainerRef}
-      className="TimeSeriesChart relative w-full"
+      className={cn(
+        "TimeSeriesChart relative w-full",
+        onBarClick && "cursor-pointer"
+      )}
       style={forFeedPage ? { minHeight: reservedChartHeight } : undefined}
       onMouseMove={onBarHover ? handleMouseMove : undefined}
       onMouseLeave={onBarHover ? handleMouseLeave : undefined}
+      onClick={onBarClick ? handleClick : undefined}
     >
       {shouldDisplayChart && (
         <VictoryChart
@@ -262,6 +362,19 @@ const TimeSeriesChart: FC<Props> = ({
             />
           }
         >
+          {!allQuestionsEmpty && selectedIndex !== null && selectedBarColor && (
+            <VictoryBar
+              data={adjustedChartData.map(({ x, y }) => ({ x, y }))}
+              dataComponent={
+                <HighlightBar
+                  hoveredIndex={selectedIndex}
+                  chartHeight={chartHeight}
+                  fill={selectedBarColor}
+                  fillOpacity={0.3}
+                />
+              }
+            />
+          )}
           {!allQuestionsEmpty && effectiveHoveredIndex !== null && (
             <VictoryBar
               data={adjustedChartData.map(({ x, y }) => ({ x, y }))}
@@ -336,37 +449,13 @@ const TimeSeriesChart: FC<Props> = ({
             }
             style={{
               data: {
-                fill: ({ datum, index }) => {
-                  if (variant === "colorful" && !datum.isEmpty) {
-                    if (datum.resolution) {
-                      return getThemeColor(METAC_COLORS.purple["500"]);
-                    }
-                    const safeIndex =
-                      typeof datum.originalIndex === "number"
-                        ? datum.originalIndex
-                        : typeof index === "number"
-                          ? index
-                          : 0;
-                    const color: ThemeColor =
-                      MULTIPLE_CHOICE_COLOR_SCALE[
-                        safeIndex % MULTIPLE_CHOICE_COLOR_SCALE.length
-                      ] ?? (METAC_COLORS.blue["400"] as ThemeColor);
-
-                    return getThemeColor(color);
-                  }
-
-                  if (datum.resolution) {
-                    return getThemeColor(
-                      ["no", "yes"].includes(datum.resolution as string)
-                        ? METAC_COLORS.purple["400"]
-                        : METAC_COLORS.purple["500"]
-                    );
-                  }
-
-                  return datum.isClosed
-                    ? getThemeColor(METAC_COLORS.gray["500"])
-                    : getThemeColor(METAC_COLORS.blue["400"]);
-                },
+                fill: ({ datum, index }) =>
+                  resolveBarFillColor(
+                    getThemeColor,
+                    datum,
+                    typeof index === "number" ? index : undefined,
+                    variant
+                  ),
                 stroke: "transparent",
                 strokeWidth: 0,
                 width: ({ datum }) =>

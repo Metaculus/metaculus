@@ -59,6 +59,7 @@ export type CommentsFeedContextType = {
   ensureCommentLoaded: (id: number) => Promise<boolean>;
   refreshComment: (id: number) => Promise<void>;
   updateComment: (id: number, changes: Partial<CommentType>) => void;
+  fetchFocusedCommentThread: (id: number) => Promise<CommentType | null>;
 };
 
 const COMMENTS_PER_PAGE = 10;
@@ -361,6 +362,29 @@ const CommentsFeedProvider: FC<
     return tempId;
   };
 
+  const fetchFocusedCommentThread = useCallback(
+    async (id: number): Promise<CommentType | null> => {
+      try {
+        const response = await ClientCommentsApi.getComments({
+          post: postData?.id,
+          author: profileId,
+          focus_comment_id: String(id),
+          focus_thread_only: true,
+          use_root_comments_pagination: rootCommentStructure,
+        });
+        const parsed = parseCommentsArray(
+          response.results as unknown as BECommentType[],
+          rootCommentStructure
+        );
+        return parsed[0] ?? null;
+      } catch (e) {
+        logError(e);
+        return null;
+      }
+    },
+    [postData?.id, profileId, rootCommentStructure]
+  );
+
   return (
     <CommentsFeedContext.Provider
       value={{
@@ -386,6 +410,7 @@ const CommentsFeedProvider: FC<
         ensureCommentLoaded,
         refreshComment,
         updateComment,
+        fetchFocusedCommentThread,
       }}
     >
       {children}

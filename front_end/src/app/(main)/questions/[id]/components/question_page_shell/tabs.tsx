@@ -6,6 +6,7 @@ import { PostWithForecasts } from "@/types/post";
 
 import QuestionPageShellTabBar from "./tab_bar";
 import CommentsTab from "./tabs/comments";
+import DistributionsTab from "./tabs/distributions";
 import KeyFactorsTab from "./tabs/key_factors";
 import MyScoresTab from "./tabs/my_scores";
 import PrivateNotesTab from "./tabs/private_notes";
@@ -34,6 +35,8 @@ const renderActivePanel = (
       return <SimilarQuestionsTab post={post} variant={variant} />;
     case "timeline":
       return variant === "consumer" ? <TimelineTab post={post} /> : null;
+    case "distributions":
+      return variant === "consumer" ? <DistributionsTab post={post} /> : null;
     case "key-factors":
       return <KeyFactorsTab post={post} />;
     case "info":

@@ -8,7 +8,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_social_auth.views import SocialTokenOnlyAuthView
 from social_core.backends.oauth import BaseOAuth2
 
-from authentication.services import get_tokens_for_user
+from authentication.services.common import get_tokens_for_user
+from authentication.services.gated_actions import validate_and_apply_gated_action
 from users.models import User
 
 
@@ -58,3 +59,9 @@ class SocialCodeAuth(SocialTokenOnlyAuthView):
         response = super().respond_error(error)
 
         return Response({"detail": response.data}, status=status.HTTP_400_BAD_REQUEST)
+
+    def do_login(self, backend, user):
+        super().do_login(backend, user)
+        # Same request that mints the JWT carries the gated action, so apply it
+        # inline (best-effort, never blocks sign-in) - no Redis bridge needed.
+        validate_and_apply_gated_action(user, self.request.data.get("gated_action"))

@@ -2468,6 +2468,12 @@ paths:
           schema:
             type: integer
           description: The ID of a comment to place at the top of the results.
+        - name: focus_thread_only
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: When used alongside `focus_comment_id`, restricts the response to only the focused comment thread (the comment plus its root/siblings if it has a parent).
       responses:
         '200':
           description: List of comments

@@ -210,7 +210,7 @@ def _calculate_timeline_data(project: Project, questions: Iterable[Question]) ->
     all_questions_resolved = True
     all_questions_closed = True
 
-    cp_reveal_times = []
+    spot_scoring_times = []
     actual_resolve_times = []
     scheduled_resolve_times = []
 
@@ -233,8 +233,9 @@ def _calculate_timeline_data(project: Project, questions: Iterable[Question]) ->
                 or close_time > project_forecasting_end_date
             )
 
-        if question.cp_reveal_time:
-            cp_reveal_times.append(question.cp_reveal_time)
+        spot_scoring_time = question.get_spot_scoring_time()
+        if spot_scoring_time:
+            spot_scoring_times.append(spot_scoring_time)
 
         if question.actual_resolve_time:
             actual_resolve_times.append(question.actual_resolve_time)
@@ -249,7 +250,7 @@ def _calculate_timeline_data(project: Project, questions: Iterable[Question]) ->
         return max([x for x in data if x <= project_close_date], default=None)
 
     return {
-        "last_cp_reveal_time": get_max(cp_reveal_times),
+        "last_spot_scoring_time": get_max(spot_scoring_times),
         "latest_actual_resolve_time": get_max(actual_resolve_times),
         "latest_scheduled_resolve_time": get_max(scheduled_resolve_times),
         "all_questions_resolved": all_questions_resolved,
@@ -277,6 +278,7 @@ def get_timeline_data_for_projects(project_ids: list[int]) -> dict[int, dict]:
         "id",
         "post_id",
         "cp_reveal_time",
+        "spot_scoring_time",
         "actual_resolve_time",
         "scheduled_resolve_time",
         "actual_close_time",

@@ -52,7 +52,7 @@ const FutureEvalLeaderboardHero: React.FC<Props> = ({ upcomingModels }) => {
           <p
             className={`m-0 ${FE_TYPOGRAPHY.body} ${FE_COLORS.textSubheading}`}
           >
-            Uses our unified forecasting score. Updates daily.{" "}
+            Uses our unified forecasting score based on log scores.{" "}
             <Link
               href="/futureeval/methodology#model-leaderboard"
               className={`${FE_COLORS.textAccent} whitespace-nowrap`}

@@ -34,7 +34,7 @@ const TournamentTimeline: FC<Props> = async ({ tournament }) => {
       leaderboardDetails.score_type === "spot_baseline_tournament");
 
   const {
-    last_cp_reveal_time,
+    last_spot_scoring_time,
     latest_scheduled_resolve_time,
     latest_actual_resolve_time,
     all_questions_resolved,
@@ -58,7 +58,7 @@ const TournamentTimeline: FC<Props> = async ({ tournament }) => {
           tournament={tournament}
           lastParticipationDayTimestamp={
             showLastParticipationDay
-              ? getTimestampFromDateString(last_cp_reveal_time)
+              ? getTimestampFromDateString(last_spot_scoring_time)
               : null
           }
           latestScheduledCloseTimestamp={latestScheduledCloseTimestamp}

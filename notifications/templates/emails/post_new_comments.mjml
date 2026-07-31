@@ -11,9 +11,7 @@
                 </mj-text>
 
                 <mj-text font-size="15px" color="#6B7280" padding-bottom="4px">
-                    {% blocktrans with count=notifications|length %}
-                    There are new comments on these {{ count }} questions:
-                    {% endblocktrans %}
+                    {% trans "There are new comments on" %}
                 </mj-text>
             </mj-column>
         </mj-section>

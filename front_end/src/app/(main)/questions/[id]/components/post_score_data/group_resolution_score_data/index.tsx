@@ -44,9 +44,7 @@ const GroupResolutionScoreRow: FC<RowData> = ({
           {question.label}
         </span>
         <Tooltip
-          tooltipContent={
-            <AdditionalScoresTable question={question} variant="compact" />
-          }
+          tooltipContent={<AdditionalScoresTable question={question} />}
           className="cursor-help text-blue-500 hover:text-blue-800 dark:text-blue-500-dark dark:hover:text-blue-800-dark"
           tooltipClassName="p-0 border-none bg-transparent w-[320px]"
         >

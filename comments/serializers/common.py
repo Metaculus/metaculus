@@ -25,6 +25,7 @@ class CommentFilterSerializer(serializers.Serializer):
     author_is_staff = serializers.BooleanField(required=False, allow_null=True)
     sort = serializers.CharField(required=False, allow_null=True)
     focus_comment_id = serializers.IntegerField(required=False, allow_null=True)
+    focus_thread_only = serializers.BooleanField(required=False, default=False)
     is_private = serializers.BooleanField(required=False, allow_null=True)
     include_deleted = serializers.BooleanField(required=False, allow_null=True)
     last_viewed_at = serializers.DateTimeField(required=False, allow_null=True)

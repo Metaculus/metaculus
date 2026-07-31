@@ -5,6 +5,7 @@ from rest_framework.exceptions import PermissionDenied
 from posts.models import PostUserSnapshot, Post
 from posts.services.feed import get_posts_feed
 from questions.models import Question
+from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_questions.factories import create_question, factory_forecast
 from tests.unit.utils import datetime_aware
@@ -39,6 +40,40 @@ def test_get_posts_feed__forecaster_id(user1, user2):
 
     with pytest.raises(PermissionDenied):
         get_posts_feed(user=user2, forecaster_id=user1.id)
+
+
+def test_get_posts_feed__commented_by(user1, user2):
+    post_1 = factory_post(
+        author=user1,
+        question=create_question(question_type=Question.QuestionType.BINARY),
+    )
+    post_2 = factory_post(
+        author=user1,
+        question=create_question(question_type=Question.QuestionType.BINARY),
+    )
+    post_3 = factory_post(
+        author=user1,
+        question=create_question(question_type=Question.QuestionType.BINARY),
+    )
+
+    factory_comment(author=user1, on_post=post_1)
+    factory_comment(author=user2, on_post=post_2)
+    # Soft-deleted comments don't count
+    factory_comment(author=user1, on_post=post_3, is_soft_deleted=True)
+
+    posts = get_posts_feed(user=user1, commented_by=user1.id)
+    assert len(posts) == 1
+    assert posts[0].id == post_1.id
+
+    posts = get_posts_feed(user=user2, commented_by=user2.id)
+    assert len(posts) == 1
+    assert posts[0].id == post_2.id
+
+    with pytest.raises(PermissionDenied):
+        get_posts_feed(user=user1, commented_by=user2.id)
+
+    with pytest.raises(PermissionDenied):
+        get_posts_feed(user=None, commented_by=user1.id)
 
 
 @freeze_time("2025-01-10")

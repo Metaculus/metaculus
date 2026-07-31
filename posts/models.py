@@ -190,6 +190,24 @@ class PostQuerySet(models.QuerySet):
             )
         )
 
+    def filter_user_has_commented(self, author_id: int):
+        """
+        Filter to posts where user has commented.
+        Uses EXISTS which is more efficient than annotate + filter IS NOT NULL.
+        """
+        # Local import: comments.models imports Post
+        from comments.models import Comment
+
+        return self.filter(
+            Exists(
+                Comment.objects.filter(
+                    on_post_id=OuterRef("pk"),
+                    author_id=author_id,
+                    is_soft_deleted=False,
+                )
+            )
+        )
+
     def annotate_has_active_forecast(self, author_id: int):
         """
         Annotates if user has active forecast for post
@@ -639,7 +657,12 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     # Whether we should display Post/Notebook on the homepage
     show_on_homepage = models.BooleanField(default=False, db_index=True)
     html_metadata_json = models.JSONField(
-        help_text="Custom JSON for HTML meta tags. Supported fields are: title, description, image_url",
+        help_text=(
+            "Custom JSON for HTML meta tags. Supported fields are: title, description, "
+            "image_url, canonical_url.<br>"
+            "canonical_url: absolute URL to index instead of this post. "
+            "Also disables the automatic noindex on bots-only posts."
+        ),
         null=True,
         blank=True,
         default=None,

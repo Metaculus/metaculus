@@ -177,6 +177,36 @@ class TestPagination:
             comments["c5"].pk,
         ]
 
+    def test_focus_thread_only__root(self, user2, user1_client, comments):
+        # With focus_thread_only=true, only the focused root + its children
+        # are returned so the FE can render them as a separate "linked" section.
+        response = user1_client.get(
+            f"/api/comments/?limit=10&sort=created_at&use_root_comments_pagination=true"
+            f"&focus_comment_id={comments['c4'].pk}&focus_thread_only=true"
+            f"&post={comments['post'].pk}"
+        )
+
+        assert {x["id"] for x in response.data["results"]} == {
+            comments["c4"].pk,
+            comments["c4_1"].pk,
+            comments["c4_1_1"].pk,
+        }
+
+    def test_focus_thread_only__child(self, user2, user1_client, comments):
+        # When the focused comment is a child, the response still includes
+        # the root and all siblings of the focused comment.
+        response = user1_client.get(
+            f"/api/comments/?limit=10&sort=created_at&use_root_comments_pagination=true"
+            f"&focus_comment_id={comments['c4_1'].pk}&focus_thread_only=true"
+            f"&post={comments['post'].pk}"
+        )
+
+        assert {x["id"] for x in response.data["results"]} == {
+            comments["c4"].pk,
+            comments["c4_1"].pk,
+            comments["c4_1_1"].pk,
+        }
+
 
 def test_get_comments_feed_permissions(user1, user2):
     private_post = factory_post(

@@ -16,7 +16,7 @@ from authentication.jwt_session import (
     _get_whitelist_key,
     _get_grace_key,
 )
-from authentication.services import get_tokens_for_user
+from authentication.services.common import get_tokens_for_user
 from tests.unit.test_users.factories import factory_user
 
 

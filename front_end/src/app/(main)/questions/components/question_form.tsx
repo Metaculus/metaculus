@@ -321,6 +321,7 @@ const QuestionForm: FC<Props> = ({
   const router = useRouter();
   const t = useTranslations();
   const { user } = useAuth();
+  const isAdminOrModerator = !!user?.is_staff || !!user?.is_superuser;
   const { isDone, hasForecasts } = getQuestionStatus(post);
   const optionsLocked = hasForecasts && mode !== "create";
   const [isLoading, setIsLoading] = useState<boolean>();
@@ -496,6 +497,11 @@ const QuestionForm: FC<Props> = ({
         post?.question?.include_bots_in_aggregates ?? false,
       options_order:
         post?.question?.options_order ?? MultipleChoiceOptionsOrder.DEFAULT,
+      scaling: post?.question?.scaling ?? undefined,
+      open_lower_bound: post?.question?.open_lower_bound ?? undefined,
+      open_upper_bound: post?.question?.open_upper_bound ?? undefined,
+      inbound_outcome_count:
+        post?.question?.inbound_outcome_count ?? DefaultInboundOutcomeCount,
     },
   });
   useEffect(() => {
@@ -1071,24 +1077,26 @@ const QuestionForm: FC<Props> = ({
               />
             )}
 
-          <InputContainer
-            labelText={t("includeBotsInAggregatesLabel")}
-            explanation={t("includeBotsInAggregatesExplanation")}
-            isNativeFormControl={false}
-            className="mb-6"
-          >
-            <Checkbox
-              label={t("includeBotsInAggregatesLabel")}
-              checked={form.watch("include_bots_in_aggregates") ?? false}
-              onChange={(checked) => {
-                form.setValue("include_bots_in_aggregates", checked, {
-                  shouldDirty: true,
-                  shouldTouch: true,
-                  shouldValidate: true,
-                });
-              }}
-            />
-          </InputContainer>
+          {isAdminOrModerator && (
+            <InputContainer
+              labelText={t("includeBotsInAggregatesLabel")}
+              explanation={t("includeBotsInAggregatesExplanation")}
+              isNativeFormControl={false}
+              className="mb-6"
+            >
+              <Checkbox
+                label={t("includeBotsInAggregatesLabel")}
+                checked={form.watch("include_bots_in_aggregates") ?? false}
+                onChange={(checked) => {
+                  form.setValue("include_bots_in_aggregates", checked, {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                    shouldValidate: true,
+                  });
+                }}
+              />
+            </InputContainer>
+          )}
         </SectionToggle>
 
         <div className="flex-col">

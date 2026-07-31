@@ -51,7 +51,6 @@ import {
   generateNumericXDomain,
   generateScale,
   generateTimestampXScale,
-  generateTimeSeriesYDomain,
   getTickLabelFontSize,
   getAxisRightPadding,
   Y_AXIS_LABEL_ANCHOR_OFFSET,
@@ -98,7 +97,6 @@ type Props = {
   isClosed?: boolean;
   aggregation?: boolean;
   openTime?: number | null;
-  forceAutoZoom?: boolean;
   isEmbedded?: boolean;
   forecastAvailability?: ForecastAvailability;
   forFeedPage?: boolean;
@@ -129,7 +127,6 @@ const MultipleChoiceChart: FC<Props> = ({
   isClosed,
   aggregation,
   openTime,
-  forceAutoZoom,
   isEmbedded,
   forecastAvailability,
   forFeedPage,
@@ -187,7 +184,6 @@ const MultipleChoiceChart: FC<Props> = ({
         hideCP,
         isAggregationsEmpty: isEmptyDomain,
         openTime,
-        forceAutoZoom,
         forFeedPage,
       }),
     [
@@ -203,7 +199,6 @@ const MultipleChoiceChart: FC<Props> = ({
       hideCP,
       isEmptyDomain,
       openTime,
-      forceAutoZoom,
       forFeedPage,
     ]
   );
@@ -621,7 +616,6 @@ function buildChartData({
   hideCP?: boolean;
   isAggregationsEmpty?: boolean;
   openTime?: number | null;
-  forceAutoZoom?: boolean;
   forFeedPage?: boolean;
 }): ChartData {
   const closeTimes = choiceItems
@@ -888,16 +882,7 @@ function buildChartData({
   const fontSize = extraTheme ? getTickLabelFontSize(extraTheme) : undefined;
   const xScale = generateTimestampXScale(xDomain, width, fontSize);
 
-  const lines: Line = graphs
-    .filter((g) => !isNil(g.line) && g.active)
-    .flatMap((g) => g.line);
-  const { originalYDomain } = generateTimeSeriesYDomain({
-    zoom,
-    minTimestamp: xDomain[0],
-    isChartEmpty: !domainTimestamps.length,
-    minValues: lines.map((l) => ({ timestamp: l.x, y: l.y })),
-    maxValues: lines.map((l) => ({ timestamp: l.x, y: l.y })),
-  });
+  const originalYDomain: DomainTuple = [0, 1];
 
   const yScale = generateScale({
     displayType: QuestionType.MultipleChoice,
@@ -905,7 +890,7 @@ function buildChartData({
     direction: ScaleDirection.Vertical,
     scaling,
     domain: originalYDomain,
-    forceTickCount: forFeedPage ? 3 : 5,
+    forceTickCount: forFeedPage ? 3 : 6,
     alwaysShowTicks: true,
   });
 
