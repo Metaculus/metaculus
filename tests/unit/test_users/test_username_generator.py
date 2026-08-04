@@ -9,9 +9,6 @@ from users.services.username_generator import (
     generate_username,
 )
 
-# Every wordlist any pattern can draw from - the data that actually ships.
-PARTS = [part for pattern in PATTERNS for part in pattern]
-
 
 @pytest.fixture
 def pin_generator(mocker):

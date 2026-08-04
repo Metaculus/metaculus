@@ -14,9 +14,9 @@ from users.services.username_words import (
 # Output is NEVER derived from the user's email or profile data -
 # generate_username() takes no user input at all.
 
-# Longest name any pattern can produce. Held as a data invariant (the wordlists
-# obey it, a test proves it) rather than a runtime check that would have to
-# resample.
+# Longest name the patterns can produce - a budget the wordlists are curated to
+# obey, not a runtime check. The numeric fallback below can add a digit past it;
+# harmless, since the column holds 150 characters.
 MAX_GENERATED_LENGTH = 24
 
 _ALL_NOUNS = AGENT_NOUNS + CONCEPT_NOUNS

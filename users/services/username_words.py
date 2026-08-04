@@ -99,7 +99,6 @@ ADJECTIVES = [
     "Autumnal",
     "Halcyon",
     "Twilit",
-    "Meridian",
     "Equatorial",
     "Terrestrial",
     "Atmospheric",
