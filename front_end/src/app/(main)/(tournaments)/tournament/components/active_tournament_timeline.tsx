@@ -36,6 +36,9 @@ const ActiveTournamentTimeline: FC<Props> = async ({
     Math.min(100, (timeSincePublish / totalTime) * 100)
   );
   const isUpcoming = new Date(tournament.start_date).getTime() > Date.now();
+  const showLastParticipationDay =
+    !!lastParticipationDayTimestamp &&
+    tournament.bot_leaderboard_status !== BotLeaderboardStatus.BotsOnly;
   const lastParticipationPosition = calculateLastParticipationPosition(
     lastParticipationDayTimestamp,
     tournament.start_date,
@@ -77,7 +80,7 @@ const ActiveTournamentTimeline: FC<Props> = async ({
           <div className="h-1 w-full rounded bg-blue-400 dark:bg-blue-400-dark" />
         )}
 
-        {lastParticipationDayTimestamp && lastParticipationPosition && (
+        {showLastParticipationDay && lastParticipationPosition && (
           <LastDayParticipationChip
             lastParticipationDayTimestamp={lastParticipationDayTimestamp}
             position={lastParticipationPosition}
@@ -93,21 +96,20 @@ const ActiveTournamentTimeline: FC<Props> = async ({
           {format(new Date(latestScheduledCloseTimestamp), formatString)}
         </p>
       </div>
-      {lastParticipationDayTimestamp &&
-        tournament.bot_leaderboard_status !== BotLeaderboardStatus.BotsOnly && (
-          <div className="mt-4 flex w-full items-center justify-center">
-            <LastDayParticipationChip
-              lastParticipationDayTimestamp={lastParticipationDayTimestamp}
-              position={0}
-            />
-            <p className="m-0 ml-1.5 text-xs text-gray-600 dark:text-gray-600-dark sm:text-base">
-              <b className="text-gray-800 dark:text-gray-800-dark">
-                {format(new Date(lastParticipationDayTimestamp), formatString)}:
-              </b>{" "}
-              {t("lastDayForPrizeParticipation")}
-            </p>
-          </div>
-        )}
+      {showLastParticipationDay && (
+        <div className="mt-4 flex w-full items-center justify-center">
+          <LastDayParticipationChip
+            lastParticipationDayTimestamp={lastParticipationDayTimestamp}
+            position={0}
+          />
+          <p className="m-0 ml-1.5 text-xs text-gray-600 dark:text-gray-600-dark sm:text-base">
+            <b className="text-gray-800 dark:text-gray-800-dark">
+              {format(new Date(lastParticipationDayTimestamp), formatString)}:
+            </b>{" "}
+            {t("lastDayForPrizeParticipation")}
+          </p>
+        </div>
+      )}
     </div>
   );
 };
