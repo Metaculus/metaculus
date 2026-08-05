@@ -2437,5 +2437,6 @@
   "emailLinkNewSentWithAction": "We sent a new link to {email}. It carries the same action.",
   "notifyMeCtaLabel": "Notify me when this resolves",
   "notifyMeCtaFollowing": "You're following this question",
-  "emailCaptureSubscribeBodyRepeat": "We'll send a new link to {email}. It turns on these updates instead."
+  "emailCaptureSubscribeBodyRepeat": "We'll send a new link to {email}. It turns on these updates instead.",
+  "shareOpenedInNewTab": "Opened {target} in a new tab."
 }

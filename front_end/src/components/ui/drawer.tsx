@@ -1,6 +1,7 @@
 "use client";
 
 import { Drawer } from "@base-ui/react/drawer";
+import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren, useEffect, useState } from "react";
 
 import cn from "@/utils/core/cn";
@@ -9,23 +10,35 @@ type Props = PropsWithChildren<{
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onOpenChangeComplete?: (open: boolean) => void;
+  /** Renders the standard header row: wrapping title on the left, close
+   * button on the right. Most drawers should use this. */
+  title?: string;
+  /** Screen-reader-only label for drawers that render a custom header
+   * instead of `title` (see email_capture_drawer). */
   label?: string;
   className?: string;
+  titleClassName?: string;
 }>;
 
 /**
- * Bottom-sheet drawer for mobile flows, built on Base UI. Renders children
- * inside a swipe-down-dismissable sheet with a drag handle; header controls
- * (back/close) are the consumer's responsibility.
+ * Bottom-sheet drawer for mobile-only flows, built on Base UI. This is the
+ * house pattern for turning a desktop interaction (dropdown, modal) into a
+ * mobile sheet: gate on `useBreakpoint("sm")` at the call site, pass `title`
+ * for the standard header, and put the content in children (for action
+ * grids, compose DrawerActionButton in a `grid grid-cols-2 gap-2`).
+ * share_post_drawer.tsx is the reference example.
  */
 const BottomDrawer: FC<Props> = ({
   open,
   onOpenChange,
   onOpenChangeComplete,
+  title,
   label,
   className,
+  titleClassName,
   children,
 }) => {
+  const t = useTranslations();
   // Base UI skips the enter transition when the root mounts already open
   // (the global-modal registry mounts drawers on demand), so echo `open`
   // through state one tick later to always get the slide-up
@@ -51,12 +64,31 @@ const BottomDrawer: FC<Props> = ({
             )}
           >
             <Drawer.Content className="flex max-h-[calc(100dvh-8rem)] min-h-0 flex-col overflow-y-auto overscroll-contain">
-              {label && (
+              {!title && label && (
                 <Drawer.Title className="sr-only">{label}</Drawer.Title>
               )}
               <div className="flex justify-center pb-2.5 pt-1">
                 <div className="h-1 w-9 rounded-full bg-gray-400 dark:bg-gray-400-dark" />
               </div>
+              {title && (
+                <div className="flex items-start justify-between gap-3 pt-0.5">
+                  <Drawer.Title
+                    className={cn(
+                      "m-0 text-xl font-bold tracking-tight",
+                      titleClassName
+                    )}
+                  >
+                    {title}
+                  </Drawer.Title>
+                  <button
+                    onClick={() => onOpenChange(false)}
+                    aria-label={t("close")}
+                    className="flex size-8 flex-none items-center justify-center rounded-full border-none bg-gray-200 text-gray-600 dark:bg-gray-200-dark dark:text-gray-600-dark"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
               {children}
             </Drawer.Content>
           </Drawer.Popup>

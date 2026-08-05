@@ -70,16 +70,36 @@ export const useCopyUrl = (options: CurrentUrlOptions = {}) => {
   const url = useCurrentUrl(options);
 
   return useCallback(() => {
-    if (url) {
+    if (!url) return;
+
+    const notify = () =>
+      toast("URL is now copied to your clipboard", {
+        className: "dark:bg-blue-700-dark dark:text-gray-0-dark",
+      });
+
+    if (navigator.clipboard) {
       navigator.clipboard
         .writeText(url)
-        .then(() => {
-          toast("URL is now copied to your clipboard", {
-            className: "dark:bg-blue-700-dark dark:text-gray-0-dark",
-          });
-          // Optionally, show a notification to the user that the link was copied.
-        })
+        .then(notify)
         .catch((err) => console.error("Error copying link: ", err));
+      return;
+    }
+
+    // navigator.clipboard only exists in secure contexts; fall back to the
+    // legacy textarea trick so http://<lan-ip> dev sessions still copy
+    const textarea = document.createElement("textarea");
+    textarea.value = url;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand("copy");
+      notify();
+    } catch (err) {
+      console.error("Error copying link: ", err);
+    } finally {
+      textarea.remove();
     }
   }, [url]);
 };

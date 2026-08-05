@@ -62,20 +62,9 @@ const QuestionPredictButton: React.FC<Props> = ({ post, className }) => {
           onOpenChange={(open) => {
             if (!open) setIsOpen(false);
           }}
-          label={post.question?.title ?? ""}
+          title={post.question?.title ?? ""}
+          titleClassName="text-lg font-semibold leading-6"
         >
-          <div className="flex items-start justify-between gap-3 pt-0.5">
-            <h2 className="m-0 text-lg font-semibold leading-6">
-              {post.question?.title ?? ""}
-            </h2>
-            <button
-              onClick={() => setIsOpen(false)}
-              aria-label={t("close")}
-              className="flex size-8 flex-none items-center justify-center rounded-full border-none bg-gray-200 text-gray-600 dark:bg-gray-200-dark dark:text-gray-600-dark"
-            >
-              ✕
-            </button>
-          </div>
           <div className="pt-3">
             <ForecastMaker
               post={post}
