@@ -8,7 +8,7 @@ gitignored, produced by the `email_templates` Dockerfile stage for deployed imag
 This is how we compile all `metac_question` email templates locally:
 
 1. Install [mjml](https://mjml.io/) at the version in the Dockerfile's `ARG MJML_VERSION`: `bun add -g mjml@5.4.0`
-2. Compose mjml templates in django apps: `python manage.py mjml_compose`
+2. Compose mjml templates in django apps: `uv run python manage.py mjml_compose`
 
 Run step 2 after a fresh clone as well — without it the email templates do not exist yet. The command fails on MJML
 errors and on compiled HTML that no longer parses as a Django template, and CI runs it on every PR.
