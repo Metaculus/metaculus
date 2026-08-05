@@ -17,6 +17,10 @@ import {
 import Button from "@/components/ui/button";
 import BottomDrawer from "@/components/ui/drawer";
 import { Input } from "@/components/ui/form_field";
+import {
+  registerSubscribeCaptureExposure,
+  useSubscribeCaptureVariant,
+} from "@/contexts/experiments_context";
 import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useBreakpoint } from "@/hooks/tailwind";
@@ -72,11 +76,15 @@ const EmailCaptureDrawer: FC<Props> = ({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  const captureVariant = useSubscribeCaptureVariant();
   const openedAsRecap = initialView === "sent";
+  // Experiment test arm skips the options step: straight to email, and the
+  // default selection (resolution only) becomes the subscription payload
   const hasOptionsStep =
     trigger === "post_subscribe" &&
     !subscribePost?.isNotebook &&
-    !openedAsRecap;
+    !openedAsRecap &&
+    captureVariant !== "test";
 
   const [view, setView] = useState<EmailCaptureView>(
     initialView ?? (hasOptionsStep ? "options" : "input")
@@ -117,7 +125,14 @@ const EmailCaptureDrawer: FC<Props> = ({
   useEffect(() => {
     if (!isOpen) return;
     sentThisSessionRef.current = false;
-    sendAnalyticsEvent("emailCaptureShown", { trigger, surface });
+    sendAnalyticsEvent("emailCaptureShown", {
+      trigger,
+      surface,
+      captureVariant: captureVariant ?? "none",
+    });
+    if (trigger === "post_subscribe" && captureVariant) {
+      registerSubscribeCaptureExposure();
+    }
     if (hasOptionsStep) {
       sendAnalyticsEvent("subscribeOptionsShown", { trigger, surface });
     }
@@ -222,7 +237,11 @@ const EmailCaptureDrawer: FC<Props> = ({
     setSentEmail(email);
     setLastSendAt(sendAt);
     sentThisSessionRef.current = true;
-    sendAnalyticsEvent("emailSubmitted", { trigger, surface });
+    sendAnalyticsEvent("emailSubmitted", {
+      trigger,
+      surface,
+      captureVariant: captureVariant ?? "none",
+    });
     return true;
   };
 

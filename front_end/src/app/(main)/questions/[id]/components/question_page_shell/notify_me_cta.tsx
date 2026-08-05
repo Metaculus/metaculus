@@ -6,6 +6,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useRef } from "react";
 
+import {
+  registerSubscribeCaptureExposure,
+  useSubscribeCaptureVariant,
+} from "@/contexts/experiments_context";
 import { usePostSubscriptionContext } from "@/contexts/post_subscription_context";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
@@ -23,14 +27,21 @@ const NotifyMeCta: FC<Props> = ({ className }) => {
   const t = useTranslations();
   const { isSubscribed, isLoading, handleSubscribe, handleCustomize } =
     usePostSubscriptionContext();
+  const captureVariant = useSubscribeCaptureVariant();
   const shownTrackedRef = useRef(false);
 
   useEffect(() => {
     if (!shownTrackedRef.current) {
       shownTrackedRef.current = true;
-      sendAnalyticsEvent("notifyCtaShown", { surface: "questionPageCta" });
+      sendAnalyticsEvent("notifyCtaShown", {
+        surface: "questionPageCta",
+        captureVariant: captureVariant ?? "none",
+      });
+      if (captureVariant) {
+        registerSubscribeCaptureExposure();
+      }
     }
-  }, []);
+  }, [captureVariant]);
 
   if (isSubscribed) {
     return (
@@ -59,7 +70,10 @@ const NotifyMeCta: FC<Props> = ({ className }) => {
   return (
     <button
       onClick={() => {
-        sendAnalyticsEvent("notifyCtaClicked", { surface: "questionPageCta" });
+        sendAnalyticsEvent("notifyCtaClicked", {
+          surface: "questionPageCta",
+          captureVariant: captureVariant ?? "none",
+        });
         void handleSubscribe();
       }}
       disabled={isLoading}
@@ -69,7 +83,9 @@ const NotifyMeCta: FC<Props> = ({ className }) => {
       )}
     >
       <FontAwesomeIcon icon={faBellRegular} />
-      {t("notifyMeCtaLabel")}
+      {captureVariant === "control"
+        ? t("notifyMeCtaLabelUpdates")
+        : t("notifyMeCtaLabel")}
     </button>
   );
 };

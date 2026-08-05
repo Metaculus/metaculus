@@ -15,6 +15,20 @@ export type AutotranslationAssignment = {
 
 export const AUTOTRANSLATION_TARGET_LOCALES = ["cs", "es", "pt", "zh", "zh-TW"];
 
+// Subscribe-capture flow experiment: control shows the options step with
+// "Notify me of updates" copy, test goes straight to the email input with
+// "Notify me when this resolves" and subscribes to resolution only.
+// Shares the "distinctId:variant" cookie format (parse/serializeAssignment)
+// and the control/test variant set with the auto-translation experiment.
+export const SUBSCRIBE_CAPTURE_FLAG_KEY = "subscribe_capture_experiment";
+export const SUBSCRIBE_CAPTURE_COOKIE_NAME = "metaculus_subscribe_capture_ab";
+export const SUBSCRIBE_CAPTURE_HEADER = "x-subscribe-capture-variant";
+export const SUBSCRIBE_CAPTURE_COOKIE_MAX_AGE = 60 * 60 * 24 * 182; // 26 weeks
+
+export const EXPERIMENT_VARIANTS = AUTOTRANSLATION_VARIANTS;
+export type ExperimentVariant = AutotranslationVariant;
+export type ExperimentAssignment = AutotranslationAssignment;
+
 export function parseAssignment(
   raw: string | undefined
 ): AutotranslationAssignment | null {
