@@ -406,15 +406,26 @@ const EmailCaptureDrawer: FC<Props> = ({
     </div>
   );
 
+  // On mobile the shell renders a header row (back or title, plus close); the
+  // titles below only render inline on desktop, where BaseModal has no header
+  const backInHeader = view === "input" && hasOptionsStep;
+  const headerTitle =
+    view === "options"
+      ? t("emailCaptureOptionsTitle")
+      : view === "sent"
+        ? t("emailCaptureSentTitle")
+        : inputCopy.title;
+
+  const goBackToOptions = () => {
+    setError(null);
+    setView("options");
+  };
+
   const content = (
     <div className="flex flex-col gap-3.5 pt-0.5">
-      {/* Header row: back (subscribe email step only); close is provided by the shell */}
-      {view === "input" && hasOptionsStep && (
+      {isDesktop && backInHeader && (
         <button
-          onClick={() => {
-            setError(null);
-            setView("options");
-          }}
+          onClick={goBackToOptions}
           className="flex w-fit items-center gap-1.5 border-none bg-transparent p-1 text-sm font-medium text-blue-800 dark:text-blue-800-dark"
         >
           <FontAwesomeIcon icon={faArrowLeft} size="sm" />
@@ -425,9 +436,11 @@ const EmailCaptureDrawer: FC<Props> = ({
       {view === "options" && (
         <>
           <div className="flex flex-col gap-1.5">
-            <h2 className="m-0 text-xl font-bold tracking-tight">
-              {t("emailCaptureOptionsTitle")}
-            </h2>
+            {isDesktop && (
+              <h2 className="m-0 text-xl font-bold tracking-tight">
+                {t("emailCaptureOptionsTitle")}
+              </h2>
+            )}
             <p className="m-0 text-sm leading-relaxed text-gray-700 dark:text-gray-700-dark">
               {t("emailCaptureOptionsSubtitle")}
             </p>
@@ -492,9 +505,11 @@ const EmailCaptureDrawer: FC<Props> = ({
       {view === "input" && (
         <>
           <div className="flex flex-col gap-1.5">
-            <h2 className="m-0 text-xl font-bold tracking-tight">
-              {inputCopy.title}
-            </h2>
+            {(isDesktop || backInHeader) && (
+              <h2 className="m-0 text-xl font-bold tracking-tight">
+                {inputCopy.title}
+              </h2>
+            )}
             <p className="m-0 text-sm leading-relaxed text-gray-700 dark:text-gray-700-dark">
               {inputCopy.body}
             </p>
@@ -611,9 +626,11 @@ const EmailCaptureDrawer: FC<Props> = ({
         <>
           {envelopeBadge}
           <div className="flex flex-col gap-1.5">
-            <h2 className="m-0 text-xl font-bold tracking-tight">
-              {t("emailCaptureSentTitle")}
-            </h2>
+            {isDesktop && (
+              <h2 className="m-0 text-xl font-bold tracking-tight">
+                {t("emailCaptureSentTitle")}
+              </h2>
+            )}
             <p className="m-0 text-sm leading-relaxed text-gray-700 dark:text-gray-700-dark">
               {openedAsRecap
                 ? `${t("emailCaptureRecapSentTo", { email: sentEmail ?? "" })} ${recapAction}`
@@ -702,13 +719,26 @@ const EmailCaptureDrawer: FC<Props> = ({
       onOpenChangeComplete={(open) => {
         if (!open && !sheetOpen) handleClose();
       }}
-      label={inputCopy.title}
+      label={headerTitle}
     >
-      <div className="flex justify-end">
+      <div className="flex items-start justify-between gap-3 pt-0.5">
+        {backInHeader ? (
+          <button
+            onClick={goBackToOptions}
+            className="flex w-fit items-center gap-1.5 self-center border-none bg-transparent p-1 text-sm font-medium text-blue-800 dark:text-blue-800-dark"
+          >
+            <FontAwesomeIcon icon={faArrowLeft} size="sm" />
+            {t("emailCaptureBack")}
+          </button>
+        ) : (
+          <h2 className="m-0 text-xl font-bold tracking-tight">
+            {headerTitle}
+          </h2>
+        )}
         <button
           onClick={requestClose}
           aria-label={t("close")}
-          className="flex size-8 items-center justify-center rounded-full border-none bg-gray-200 text-gray-600 dark:bg-gray-200-dark dark:text-gray-600-dark"
+          className="flex size-8 flex-none items-center justify-center rounded-full border-none bg-gray-200 text-gray-600 dark:bg-gray-200-dark dark:text-gray-600-dark"
         >
           ✕
         </button>

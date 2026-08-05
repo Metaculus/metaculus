@@ -46,7 +46,7 @@ const BottomDrawer: FC<Props> = ({
         <Drawer.Viewport className="fixed inset-x-0 bottom-0 z-[201]">
           <Drawer.Popup
             className={cn(
-              "rounded-t-2xl bg-gray-0 pb-11 pl-5 pr-5 pt-2 text-gray-900 shadow-xl transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] data-[ending-style]:translate-y-full data-[starting-style]:translate-y-full data-[swiping]:transition-none dark:bg-gray-0-dark dark:text-gray-900-dark",
+              "rounded-t-2xl bg-gray-0 pb-8 pl-5 pr-5 pt-2 text-gray-900 shadow-xl transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] data-[ending-style]:translate-y-full data-[starting-style]:translate-y-full data-[swiping]:transition-none dark:bg-gray-0-dark dark:text-gray-900-dark",
               className
             )}
           >
@@ -54,7 +54,7 @@ const BottomDrawer: FC<Props> = ({
               {label && (
                 <Drawer.Title className="sr-only">{label}</Drawer.Title>
               )}
-              <div className="flex justify-center pb-0.5 pt-1">
+              <div className="flex justify-center pb-2.5 pt-1">
                 <div className="h-1 w-9 rounded-full bg-gray-400 dark:bg-gray-400-dark" />
               </div>
               {children}
