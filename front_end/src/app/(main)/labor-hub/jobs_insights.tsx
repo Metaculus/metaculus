@@ -8,9 +8,9 @@ export const JOBS_INSIGHTS = {
     ),
     negative: (
       <>
-        By 2027, <strong>sales representatives</strong> are expected to see
-        early declines as AI begins to automate outreach and client
-        interactions.
+        By 2027, <strong>designers</strong> and{" "}
+        <strong>sales representatives</strong> are expected to see early
+        declines as AI begins to automate creative and client-facing work.
       </>
     ),
   },
