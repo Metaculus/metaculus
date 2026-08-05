@@ -252,7 +252,6 @@ SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.social_auth.social_uid",
     "social_core.pipeline.social_auth.auth_allowed",
     "social_core.pipeline.social_auth.social_user",
-    "social_core.pipeline.user.get_username",
     "authentication.social_pipeline.associate_by_email",
     "authentication.social_pipeline.create_user",
     "social_core.pipeline.social_auth.associate_user",

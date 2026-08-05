@@ -1,10 +1,11 @@
 from unittest.mock import Mock
 
 import pytest
+from django.conf import settings
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from authentication.social_pipeline import associate_by_email
+from authentication.social_pipeline import associate_by_email, create_user
 from tests.unit.test_users.factories import factory_user
 from users.models import User
 
@@ -88,3 +89,25 @@ class TestAssociateByEmail:
         user_with_email()
 
         assert associate_by_email(Mock(), details(), user=factory_user()) is None
+
+
+class TestCreateUser:
+    """
+    Provider profiles must not name accounts: social_core derives a username
+    from the email local part, publishing a fragment of the address.
+    """
+
+    def test_username_comes_from_the_generator(self):
+        result = create_user(Mock(), details(), Mock())
+
+        assert result["is_new"]
+        assert result["user"].email == EMAIL
+        assert result["user"].username != details()["username"]
+        # Generated, not chosen, so it carries no human-set stamp.
+        assert result["user"].username_set_at is None
+
+    def test_pipeline_does_not_run_the_username_deriving_step(self):
+        assert (
+            "social_core.pipeline.user.get_username"
+            not in settings.SOCIAL_AUTH_PIPELINE
+        )
