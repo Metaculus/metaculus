@@ -9,7 +9,6 @@ from misc.services.itn import (
     check_itn_enabled,
     generate_related_posts_for_article,
     assign_article_clusters,
-    refresh_article_post_counts,
 )
 from utils.management import parallel_command_executor
 
@@ -66,9 +65,6 @@ def sync_itn_articles(num_processes: int = 1):
     # penalty respectively) and are computed here, after all matches exist.
     logger.info("Assigning ITN article clusters")
     assign_article_clusters()
-
-    logger.info("Refreshing ITN article post counts")
-    refresh_article_post_counts()
 
     print(
         f"\nCompleted processing {len(article_ids)} records in {round(time.time() - tm)}s"
