@@ -12,8 +12,6 @@ import mysql.connector
 import numpy as np
 import paramiko
 from django.conf import settings
-from django.db.models import Count, OuterRef, Subquery
-from django.db.models.functions import Coalesce
 from django.utils import timezone
 from pgvector.django import CosineDistance
 
@@ -297,45 +295,52 @@ def assign_article_clusters():
     clustered article joins the cluster of its nearest neighbour within
     ARTICLE_CLUSTER_MAX_DISTANCE, or starts its own cluster otherwise. Processed
     oldest-first so earlier articles act as cluster representatives.
+
+    Distances are computed in memory: embeddings are 3072-dimensional, above
+    pgvector's index limit, so in SQL every neighbour lookup is a sequential scan
+    of the whole table.
     """
-    unclustered = (
-        ITNArticle.objects.filter(
-            embedding_vector__isnull=False, cluster_id__isnull=True
-        )
-        .order_by("created_at")
-        .iterator(chunk_size=100)
+    articles = list(
+        ITNArticle.objects.filter(embedding_vector__isnull=False)
+        # Articles synced in the same batch share a timestamp, so break ties on id
+        # to keep cluster representatives stable between runs
+        .order_by("created_at", "id")
+        .values_list("pk", "cluster_id", "embedding_vector")
+        # Streamed: buffering every 3072-dim vector client-side costs a few hundred
+        # MB more than the vectors themselves
+        .iterator(chunk_size=500)
     )
+    if not articles:
+        return
 
-    for article in unclustered:
-        nearest_cluster_id = (
-            ITNArticle.objects.filter(
-                embedding_vector__isnull=False, cluster_id__isnull=False
-            )
-            .exclude(pk=article.pk)
-            .annotate(
-                distance=CosineDistance("embedding_vector", article.embedding_vector)
-            )
-            .filter(distance__lte=ARTICLE_CLUSTER_MAX_DISTANCE)
-            .order_by("distance")
-            .values_list("cluster_id", flat=True)
-            .first()
+    pks = [pk for pk, _, _ in articles]
+    # 0 marks an article that has no cluster yet, so it can't represent one either
+    cluster_ids = np.array([cluster_id or 0 for _, cluster_id, _ in articles])
+    # Cosine distance is 1 - dot product once the vectors are normalised
+    vectors = np.stack([vector for _, _, vector in articles])
+    vectors /= np.maximum(np.linalg.norm(vectors, axis=1, keepdims=True), 1e-12)
+
+    unclustered = np.flatnonzero(cluster_ids == 0)
+    for idx in unclustered:
+        # Nearest neighbour among the articles clustered so far, which includes the
+        # ones assigned by earlier iterations
+        candidates = np.where(cluster_ids > 0, vectors @ vectors[idx], -np.inf)
+        nearest = candidates.argmax()
+
+        cluster_ids[idx] = (
+            cluster_ids[nearest]
+            if candidates[nearest] >= 1 - ARTICLE_CLUSTER_MAX_DISTANCE
+            else pks[idx]
         )
 
-        article.cluster_id = nearest_cluster_id or article.pk
-        article.save(update_fields=["cluster_id"])
-
-
-def refresh_article_post_counts():
-    """Recompute the number of distinct posts each article is matched to. Used as
-    an inverse document frequency signal when scoring news hotness."""
-    post_count_subquery = (
-        PostArticle.objects.filter(article_id=OuterRef("pk"))
-        .values("article_id")
-        .annotate(count=Count("post_id", distinct=True))
-        .values("count")
+    ITNArticle.objects.bulk_update(
+        [
+            ITNArticle(pk=pks[idx], cluster_id=int(cluster_ids[idx]))
+            for idx in unclustered
+        ],
+        fields=["cluster_id"],
+        batch_size=1000,
     )
-
-    ITNArticle.objects.update(post_count=Coalesce(Subquery(post_count_subquery), 0))
 
 
 def get_post_similar_articles(post: Post):

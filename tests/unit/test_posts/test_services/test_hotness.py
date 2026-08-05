@@ -2,14 +2,16 @@ import datetime
 import math
 
 import pytest
+from django.db.models import Prefetch
 from django.utils.timezone import make_aware
 from freezegun import freeze_time
 
 from comments.services.common import create_comment
 from misc.models import PostArticle
-from posts.models import PostActivityBoost, Vote
+from posts.models import Post, PostActivityBoost, Vote
 from posts.services.common import vote_post
 from posts.services.hotness import (
+    compute_feed_hotness,
     decay,
     compute_question_hotness,
     _compute_hotness_post_votes,
@@ -22,11 +24,23 @@ from posts.services.hotness import (
 )
 from questions.models import Question
 from tests.unit.test_misc.factories import factory_itn_article
-from tests.unit.test_posts.factories import factory_post
+from tests.unit.test_posts.factories import factory_notebook, factory_post
 from tests.unit.test_questions.factories import (
     create_question,
     factory_group_of_questions,
 )
+
+
+def _annotated_matches() -> Prefetch:
+    """Minimal prefetch the scorer can read without querying: the breadth annotation
+    plus the joined article it takes cluster_id from. compute_feed_hotness's own
+    prefetch adds a date window and deferred fields these tests don't exercise."""
+    return Prefetch(
+        "postarticle_set",
+        queryset=PostArticle.objects.annotate_article_post_count().select_related(
+            "article"
+        ),
+    )
 
 
 @pytest.mark.parametrize(
@@ -193,21 +207,60 @@ def test_compute_hotness_relevant_news_deduplicates_article_clusters(
 
 
 @freeze_time("2025-04-18")
-def test_compute_hotness_relevant_news_penalizes_broad_articles(post_binary_public):
+def test_compute_hotness_relevant_news_penalizes_broad_articles(
+    post_binary_public, user1
+):
     # A generic article matched to many posts is discounted by the breadth
-    # (inverse document frequency) factor 1 / ln(e + post_count).
+    # (inverse document frequency) factor 1 / ln(e + post_count). The count is an
+    # annotation, so score through the prefetch compute_feed_hotness uses.
+    broad_article = factory_itn_article()
     PostArticle.objects.create(
         post=post_binary_public,
-        article=factory_itn_article(post_count=100),
+        article=broad_article,
         distance=0.1,  # relevance 0.32
     )
+    # Three further posts match it, so it is matched to 4 posts in total
+    for _ in range(3):
+        PostArticle.objects.create(
+            post=factory_post(author=user1), article=broad_article, distance=0.1
+        )
 
-    expected = 0.32 / math.log(math.e + 100)
-    assert _compute_hotness_relevant_news(post_binary_public) == pytest.approx(expected)
+    post = Post.objects.prefetch_related(_annotated_matches()).get(
+        pk=post_binary_public.pk
+    )
+
+    expected = 0.32 / math.log(math.e + 4)
+    assert _compute_hotness_relevant_news(post) == pytest.approx(expected)
+
+    # Without the annotation article_post_count falls back to its model default of
+    # 0, i.e. no breadth penalty, rather than raising.
+    assert _compute_hotness_relevant_news(post_binary_public) == pytest.approx(0.32)
 
 
 @freeze_time("2025-04-18")
-def test_explain_post_news_hotness(post_binary_public):
+def test_compute_feed_hotness_applies_breadth_penalty(post_binary_public, user1):
+    # Guards the wiring rather than the arithmetic: the feed job's prefetch has to
+    # carry the breadth annotation, because without it article_post_count silently
+    # falls back to 0 and every stored news_hotness loses the penalty.
+    broad_article = factory_itn_article()
+    PostArticle.objects.create(
+        post=post_binary_public,
+        article=broad_article,
+        distance=0.1,  # relevance 0.32
+    )
+    for _ in range(3):
+        PostArticle.objects.create(
+            post=factory_post(author=user1), article=broad_article, distance=0.1
+        )
+
+    compute_feed_hotness()
+
+    post_binary_public.refresh_from_db()
+    assert post_binary_public.news_hotness == pytest.approx(0.32 / math.log(math.e + 4))
+
+
+@freeze_time("2025-04-18")
+def test_explain_post_news_hotness(post_binary_public, user1):
     # Two near-duplicate articles (cluster 1) plus a distinct one (cluster 2).
     PostArticle.objects.create(
         post=post_binary_public,
@@ -219,11 +272,16 @@ def test_explain_post_news_hotness(post_binary_public):
         article=factory_itn_article(cluster_id=1),
         distance=0.2,  # relevance 0.22 — deduped away
     )
+    broad_article = factory_itn_article(cluster_id=2)
     PostArticle.objects.create(
         post=post_binary_public,
-        article=factory_itn_article(cluster_id=2, post_count=100),
-        distance=0.1,  # relevance 0.32 but heavy breadth penalty
+        article=broad_article,
+        distance=0.1,  # relevance 0.32 but breadth penalised
     )
+    for _ in range(3):
+        PostArticle.objects.create(
+            post=factory_post(author=user1), article=broad_article, distance=0.1
+        )
 
     breakdown = explain_post_news_hotness(post_binary_public)
     articles = breakdown["articles"]
@@ -241,13 +299,103 @@ def test_explain_post_news_hotness(post_binary_public):
     # The deduped near-duplicate (distance 0.2) is not counted.
     assert not next(a for a in articles if a["distance"] == 0.2)["counts_towards_score"]
 
-    # Total matches the sum of counted contributions and _compute_hotness_relevant_news.
+    # Total matches the sum of counted contributions, and the score the feed job
+    # stores for the post.
     assert breakdown["news_hotness"] == pytest.approx(
         sum(a["contribution"] for a in counted)
     )
     assert breakdown["news_hotness"] == pytest.approx(
-        _compute_hotness_relevant_news(post_binary_public)
+        _compute_hotness_relevant_news(
+            Post.objects.prefetch_related(_annotated_matches()).get(
+                pk=post_binary_public.pk
+            )
+        )
     )
+
+
+@freeze_time("2025-04-18")
+def test_compute_hotness_relevant_news_breadth_is_live(post_binary_public, user1):
+    # The breadth count is computed when scoring, so a match created by indexing a
+    # brand new post lands on the next hotness run instead of the next ITN sync.
+    article = factory_itn_article()
+    PostArticle.objects.create(
+        post=post_binary_public,
+        article=article,
+        distance=0.1,  # relevance 0.32
+    )
+
+    def score():
+        return _compute_hotness_relevant_news(
+            Post.objects.prefetch_related(_annotated_matches()).get(
+                pk=post_binary_public.pk
+            )
+        )
+
+    assert score() == pytest.approx(0.32 / math.log(math.e + 1))
+
+    PostArticle.objects.create(
+        post=factory_post(author=user1), article=article, distance=0.1
+    )
+
+    assert score() == pytest.approx(0.32 / math.log(math.e + 2))
+
+
+@freeze_time("2025-04-18")
+def test_compute_hotness_relevant_news_uses_prefetch(
+    post_binary_public, django_assert_num_queries
+):
+    # Scoring a prefetched post must not query: compute_feed_hotness relies on it,
+    # and one query per post would be an N+1 over the whole feed.
+    PostArticle.objects.create(
+        post=post_binary_public, article=factory_itn_article(), distance=0.1
+    )
+
+    post = Post.objects.prefetch_related(_annotated_matches()).get(
+        pk=post_binary_public.pk
+    )
+
+    with django_assert_num_queries(0):
+        assert _compute_hotness_relevant_news(post) > 0
+
+
+@freeze_time("2025-04-18")
+def test_explain_post_news_hotness_skips_notebooks(user1):
+    # Notebooks are excluded from the score, so the breakdown must not claim one
+    # for them either, even if legacy article matches exist.
+    notebook_post = factory_post(author=user1, notebook=factory_notebook())
+    PostArticle.objects.create(
+        post=notebook_post, article=factory_itn_article(), distance=0.1
+    )
+
+    assert _compute_hotness_relevant_news(notebook_post) == 0
+    assert explain_post_news_hotness(notebook_post) == {
+        "news_hotness": 0.0,
+        "articles": [],
+    }
+
+
+@freeze_time("2025-04-18")
+def test_explain_post_news_hotness_keeps_old_matches(post_binary_public):
+    # Article matches have no age cutoff — ITN articles are dropped after
+    # get_itn_max_age() and their matches cascade, so an old one is left to decay
+    # rather than filtered out, and the breakdown lists it like any other.
+    stale_at = make_aware(datetime.datetime(2025, 1, 1))
+    with freeze_time(stale_at):
+        PostArticle.objects.create(
+            post=post_binary_public, article=factory_itn_article(), distance=0.1
+        )
+    PostArticle.objects.create(
+        post=post_binary_public, article=factory_itn_article(), distance=0.1
+    )
+
+    breakdown = explain_post_news_hotness(post_binary_public)
+
+    # relevance max(0, 0.42 - 0.1), over a breadth of one post each
+    fresh = 0.32 / math.log(math.e + 1)
+    assert len(breakdown["articles"]) == 2
+    assert breakdown["news_hotness"] == pytest.approx(fresh + decay(fresh, stale_at))
+    # Decay alone makes the old match negligible, which is why no cutoff is needed
+    assert decay(fresh, stale_at) < fresh / 100
 
 
 @freeze_time("2025-04-18")

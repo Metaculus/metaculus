@@ -127,7 +127,9 @@ def _compute_hotness_relevant_news(post: Post) -> float:
     best_by_cluster: dict[int, float] = {}
     for post_article in post.postarticle_set.all():
         article = post_article.article
-        weight = _news_article_weight(post_article.distance, article.post_count)
+        weight = _news_article_weight(
+            post_article.distance, post_article.article_post_count
+        )
         if weight <= 0:
             continue
 
@@ -147,14 +149,24 @@ def explain_post_news_hotness(post: Post) -> dict:
     decayed by age, and near-duplicate articles (sharing a ``cluster_id``) collapse
     to their single strongest contribution. ``counts_towards_score`` flags the one
     article per cluster that actually feeds the total.
+
+    Notebooks are skipped for the same reason they are in the score: otherwise this
+    would explain a number the post does not have. Unlike the scorer this keeps the
+    article's own fields, so it cannot reuse compute_feed_hotness's deferred
+    prefetch.
     """
+    if post.notebook_id:
+        return {"news_hotness": 0.0, "articles": []}
+
     articles = []
-    for post_article in post.postarticle_set.select_related("article").defer(
-        "article__embedding_vector"
+    for post_article in (
+        post.postarticle_set.annotate_article_post_count()
+        .select_related("article")
+        .defer("article__embedding_vector")
     ):
         article = post_article.article
         relevance = max(0.0, NEWS_RELEVANCE_THRESHOLD - post_article.distance)
-        breadth_penalty = math.log(math.e + (article.post_count or 0))
+        breadth_penalty = math.log(math.e + (post_article.article_post_count or 0))
         weight = relevance / breadth_penalty if relevance > 0 else 0.0
         contribution = decay(weight, post_article.created_at) if weight > 0 else 0.0
         articles.append(
@@ -165,7 +177,7 @@ def explain_post_news_hotness(post: Post) -> dict:
                 "media_label": article.media_label,
                 "created_at": post_article.created_at,
                 "distance": post_article.distance,
-                "post_count": article.post_count,
+                "post_count": post_article.article_post_count,
                 "cluster_id": article.cluster_id or article.id,
                 "relevance": relevance,
                 "weight": weight,
@@ -278,18 +290,19 @@ def compute_feed_hotness():
         ),
         Prefetch(
             "postarticle_set",
-            queryset=PostArticle.objects.filter(created_at__gte=min_creation_date)
+            # The date filter bounds which matches are scored; the breadth
+            # annotation counts every post the article is matched to.
+            queryset=PostArticle.objects.annotate_article_post_count()
             .select_related("article")
             .only(
                 "id",
                 "distance",
                 "created_at",
                 "post_id",
-                # Article fields needed for clustering / breadth penalty. Note we
-                # intentionally avoid loading the large `embedding_vector`.
+                # Article fields needed for cluster dedup. Note we intentionally
+                # avoid loading the large `embedding_vector`.
                 "article__id",
                 "article__cluster_id",
-                "article__post_count",
             ),
         ),
     )

@@ -2,10 +2,8 @@ import datetime
 
 from django.utils.timezone import make_aware
 
-from misc.models import PostArticle
-from misc.services.itn import assign_article_clusters, refresh_article_post_counts
+from misc.services.itn import assign_article_clusters
 from tests.unit.test_misc.factories import factory_itn_article
-from tests.unit.test_posts.factories import factory_post
 
 
 def _article(vector, created_at, **kwargs):
@@ -60,26 +58,3 @@ def test_assign_article_clusters_skips_already_clustered_and_unembedded():
     unembedded.refresh_from_db()
     assert clustered.cluster_id == 999
     assert unembedded.cluster_id is None
-
-
-def test_refresh_article_post_counts_counts_distinct_posts(user1):
-    matched_twice = factory_itn_article(post_count=0)
-    matched_once = factory_itn_article(post_count=0)
-    # Stale count that must be reset to 0 since it matches no posts.
-    unmatched = factory_itn_article(post_count=99)
-
-    post1 = factory_post(author=user1)
-    post2 = factory_post(author=user1)
-
-    PostArticle.objects.create(article=matched_twice, post=post1, distance=0.1)
-    PostArticle.objects.create(article=matched_twice, post=post2, distance=0.2)
-    PostArticle.objects.create(article=matched_once, post=post1, distance=0.1)
-
-    refresh_article_post_counts()
-
-    matched_twice.refresh_from_db()
-    matched_once.refresh_from_db()
-    unmatched.refresh_from_db()
-    assert matched_twice.post_count == 2
-    assert matched_once.post_count == 1
-    assert unmatched.post_count == 0

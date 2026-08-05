@@ -15,9 +15,4 @@ class Migration(migrations.Migration):
             name='cluster_id',
             field=models.BigIntegerField(blank=True, db_index=True, null=True),
         ),
-        migrations.AddField(
-            model_name='itnarticle',
-            name='post_count',
-            field=models.PositiveIntegerField(default=0),
-        ),
     ]
