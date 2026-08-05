@@ -16,6 +16,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useServerAction } from "@/hooks/use_server_action";
+import cn from "@/utils/core/cn";
 import { ensureRelativeRedirect } from "@/utils/navigation";
 
 type Props = {
@@ -57,6 +58,9 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
   const [draft, setDraft] = useState("");
   const [requestSent, setRequestSent] = useState(false);
   const [sentWithAction, setSentWithAction] = useState(false);
+  const [requestError, setRequestError] = useState<"format" | "server" | null>(
+    null
+  );
   const [isTurnstileValidated, setIsTurnstileValidated] = useState(
     !PUBLIC_TURNSTILE_SITE_KEY
   );
@@ -98,7 +102,11 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
 
   const requestNewLink = async () => {
     const email = draft.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+    setRequestError(null);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setRequestError("format");
+      return;
+    }
     const pending = readPending();
     const response = await requestEmailLinkAction({
       email,
@@ -106,11 +114,17 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
       gatedAction: pending?.gatedAction ?? null,
       turnstileToken: turnstileTokenRef.current,
     });
+    // Turnstile tokens are single-use: drop the spent one and wait for the
+    // widget to hand us a fresh one before the button re-enables
     turnstileRef.current?.reset();
-    if (!response.errors) {
-      setSentWithAction(!!pending?.gatedAction);
-      setRequestSent(true);
+    turnstileTokenRef.current = undefined;
+    setIsTurnstileValidated(!PUBLIC_TURNSTILE_SITE_KEY);
+    if (response.errors) {
+      setRequestError("server");
+      return;
     }
+    setSentWithAction(!!pending?.gatedAction);
+    setRequestSent(true);
   };
   const [submitRequest, isRequesting] = useServerAction(requestNewLink);
 
@@ -139,9 +153,24 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
               aria-label={t("emailCaptureEmailLabel")}
               placeholder="you@example.com"
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              className="h-12 w-full rounded border-[1.5px] border-gray-400 bg-gray-0 px-3.5 text-center text-base text-gray-900 dark:border-gray-400-dark dark:bg-gray-0-dark dark:text-gray-900-dark"
+              onChange={(e) => {
+                setDraft(e.target.value);
+                if (requestError === "format") setRequestError(null);
+              }}
+              className={cn(
+                "h-12 w-full rounded border-[1.5px] bg-gray-0 px-3.5 text-center text-base text-gray-900 dark:bg-gray-0-dark dark:text-gray-900-dark",
+                requestError
+                  ? "border-salmon-500 dark:border-salmon-500-dark"
+                  : "border-gray-400 dark:border-gray-400-dark"
+              )}
             />
+            {requestError && (
+              <span className="text-sm text-salmon-800 dark:text-salmon-800-dark">
+                {requestError === "format"
+                  ? t("emailCaptureFormatError")
+                  : t("emailCaptureServerError")}
+              </span>
+            )}
             <Button
               variant="primary"
               disabled={isRequesting || !isTurnstileValidated}

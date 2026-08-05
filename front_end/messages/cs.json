@@ -2449,5 +2449,6 @@
   "notifyMeCtaLabelUpdates": "Upozorňovat mě na novinky",
   "notifyMeCtaFollowing": "Sledujete tuto otázku",
   "emailCaptureSubscribeBodyRepeat": "Pošleme nový odkaz na {email}. Místo toho zapne tyto novinky.",
-  "shareOpenedInNewTab": "{target} otevřeno v nové kartě."
+  "shareOpenedInNewTab": "{target} otevřeno v nové kartě.",
+  "copiedUrlMessage": "URL byla zkopírována do schránky"
 }

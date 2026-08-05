@@ -9,7 +9,7 @@ import {
   SUBSCRIBE_CAPTURE_COOKIE_NAME,
   SUBSCRIBE_CAPTURE_HEADER,
 } from "@/constants/experiments";
-import { COOKIE_NAME_REFRESH_TOKEN } from "@/services/auth_tokens";
+import { AuthCookieReader } from "@/services/auth_tokens";
 
 // Kept separate from subscribe_capture_experiment.ts on purpose: that module
 // is imported by the middleware (proxy.ts), and pulling next/headers into the
@@ -25,7 +25,8 @@ export async function getSubscribeCaptureVariantForRequest(): Promise<Experiment
   const requestHeaders = await headers();
   const cookieStore = await cookies();
 
-  if (cookieStore.has(COOKIE_NAME_REFRESH_TOKEN)) {
+  // Access OR refresh token, matching the middleware's enrollment check
+  if (new AuthCookieReader(cookieStore).hasAuthSession()) {
     return null;
   }
 

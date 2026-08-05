@@ -11,6 +11,8 @@ import {
   useSubscribeCaptureVariant,
 } from "@/contexts/experiments_context";
 import { usePostSubscriptionContext } from "@/contexts/post_subscription_context";
+import { useBreakpoint } from "@/hooks/tailwind";
+import useMounted from "@/hooks/use_mounted";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 
@@ -28,20 +30,31 @@ const NotifyMeCta: FC<Props> = ({ className }) => {
   const { isSubscribed, isLoading, handleSubscribe, handleCustomize } =
     usePostSubscriptionContext();
   const captureVariant = useSubscribeCaptureVariant();
+  const isMounted = useMounted();
+  // The CTA is md:hidden, so desktop mounts it without ever showing it. Those
+  // visitors stay in the experiment (they reach it via the Follow pill), but
+  // the events carry the viewport so the two can be analysed separately.
+  const isDesktopViewport = useBreakpoint("md");
   const shownTrackedRef = useRef(false);
+  const exposureTrackedRef = useRef(false);
 
   useEffect(() => {
+    // useBreakpoint is false until after mount, so wait for a true reading
+    if (!isMounted) return;
+
     if (!shownTrackedRef.current) {
       shownTrackedRef.current = true;
       sendAnalyticsEvent("notifyCtaShown", {
         surface: "questionPageCta",
         captureVariant: captureVariant ?? "none",
+        viewport: isDesktopViewport ? "desktop" : "mobile",
       });
-      if (captureVariant) {
-        registerSubscribeCaptureExposure();
-      }
     }
-  }, [captureVariant]);
+    if (captureVariant && !exposureTrackedRef.current) {
+      exposureTrackedRef.current = true;
+      registerSubscribeCaptureExposure();
+    }
+  }, [captureVariant, isMounted, isDesktopViewport]);
 
   if (isSubscribed) {
     return (
@@ -73,6 +86,7 @@ const NotifyMeCta: FC<Props> = ({ className }) => {
         sendAnalyticsEvent("notifyCtaClicked", {
           surface: "questionPageCta",
           captureVariant: captureVariant ?? "none",
+          viewport: isDesktopViewport ? "desktop" : "mobile",
         });
         void handleSubscribe();
       }}

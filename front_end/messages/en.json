@@ -2439,5 +2439,6 @@
   "notifyMeCtaLabelUpdates": "Notify me of updates",
   "notifyMeCtaFollowing": "You're following this question",
   "emailCaptureSubscribeBodyRepeat": "We'll send a new link to {email}. It turns on these updates instead.",
-  "shareOpenedInNewTab": "Opened {target} in a new tab."
+  "shareOpenedInNewTab": "Opened {target} in a new tab.",
+  "copiedUrlMessage": "URL is now copied to your clipboard"
 }

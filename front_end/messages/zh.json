@@ -2450,5 +2450,6 @@
   "notifyMeCtaLabelUpdates": "有更新时通知我",
   "notifyMeCtaFollowing": "你正在关注此问题",
   "emailCaptureSubscribeBodyRepeat": "我们将向 {email} 发送一个新链接。它将改为开启这些更新。",
-  "shareOpenedInNewTab": "已在新标签页中打开 {target}。"
+  "shareOpenedInNewTab": "已在新标签页中打开 {target}。",
+  "copiedUrlMessage": "链接已复制到剪贴板"
 }

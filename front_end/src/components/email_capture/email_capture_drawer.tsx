@@ -210,7 +210,11 @@ const EmailCaptureDrawer: FC<Props> = ({
       gatedAction: action,
       turnstileToken: turnstileTokenRef.current,
     });
+    // Turnstile tokens are single-use: drop the spent one so a retry or resend
+    // waits for the widget to issue a fresh one
     turnstileRef.current?.reset();
+    turnstileTokenRef.current = undefined;
+    setIsTurnstileValidated(!PUBLIC_TURNSTILE_SITE_KEY);
     if (response.errors) {
       setError("server");
       sendAnalyticsEvent("emailSubmitFailed", {
@@ -246,7 +250,17 @@ const EmailCaptureDrawer: FC<Props> = ({
   };
 
   const onSubmit = async () => {
-    const email = prefilled ? pending?.email ?? "" : draft.trim();
+    const storedEmail = pending?.email ?? "";
+    // A stored address that no longer validates would strand the user: the
+    // input and its error are both hidden while prefilled, so switch to the
+    // editable field before surfacing the error
+    if (prefilled && !validEmail(storedEmail)) {
+      setEditingEmail(true);
+      setDraft(storedEmail);
+      setError("format");
+      return;
+    }
+    const email = prefilled ? storedEmail : draft.trim();
     if (!validEmail(email)) {
       setError("format");
       sendAnalyticsEvent("emailSubmitFailed", {
@@ -626,18 +640,6 @@ const EmailCaptureDrawer: FC<Props> = ({
           >
             {t("emailCapturePassword")}
           </button>
-          {PUBLIC_TURNSTILE_SITE_KEY && (
-            <Turnstile
-              ref={turnstileRef}
-              siteKey={PUBLIC_TURNSTILE_SITE_KEY}
-              onSuccess={(token) => {
-                turnstileTokenRef.current = token;
-                setIsTurnstileValidated(true);
-              }}
-              onError={() => setIsTurnstileValidated(false)}
-              onExpire={() => setIsTurnstileValidated(false)}
-            />
-          )}
         </>
       )}
 
@@ -670,10 +672,17 @@ const EmailCaptureDrawer: FC<Props> = ({
                   {t("emailCaptureResendFeedback", { email: sentEmail ?? "" })}
                 </div>
               )}
+              {error === "server" && (
+                <div className="flex items-start gap-2 rounded border border-salmon-400 bg-salmon-200 px-3 py-2.5 text-xs leading-snug text-salmon-800 dark:border-salmon-400-dark dark:bg-salmon-200-dark dark:text-salmon-800-dark">
+                  {t("emailCaptureServerError")}
+                </div>
+              )}
               <Button
                 variant="primary"
                 className="w-full"
-                disabled={cooldownLeft > 0 || isResending}
+                disabled={
+                  cooldownLeft > 0 || isResending || !isTurnstileValidated
+                }
                 onClick={resend}
               >
                 {cooldownLeft > 0
@@ -713,6 +722,21 @@ const EmailCaptureDrawer: FC<Props> = ({
             </>
           )}
         </>
+      )}
+
+      {/* Mounted for both the send and resend paths: tokens are single-use, so
+      the widget has to stay alive past the input view to re-issue one */}
+      {PUBLIC_TURNSTILE_SITE_KEY && view !== "options" && (
+        <Turnstile
+          ref={turnstileRef}
+          siteKey={PUBLIC_TURNSTILE_SITE_KEY}
+          onSuccess={(token) => {
+            turnstileTokenRef.current = token;
+            setIsTurnstileValidated(true);
+          }}
+          onError={() => setIsTurnstileValidated(false)}
+          onExpire={() => setIsTurnstileValidated(false)}
+        />
       )}
     </div>
   );

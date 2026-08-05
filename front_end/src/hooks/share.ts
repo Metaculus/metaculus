@@ -1,5 +1,6 @@
 "use client";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -68,12 +69,13 @@ const useCurrentUrl = ({ includeHash = true }: CurrentUrlOptions = {}) => {
 
 export const useCopyUrl = (options: CurrentUrlOptions = {}) => {
   const url = useCurrentUrl(options);
+  const t = useTranslations();
 
   return useCallback(() => {
     if (!url) return;
 
     const notify = () =>
-      toast("URL is now copied to your clipboard", {
+      toast(t("copiedUrlMessage"), {
         className: "dark:bg-blue-700-dark dark:text-gray-0-dark",
       });
 
@@ -94,14 +96,19 @@ export const useCopyUrl = (options: CurrentUrlOptions = {}) => {
     document.body.appendChild(textarea);
     textarea.select();
     try {
-      document.execCommand("copy");
-      notify();
+      // execCommand reports refusal with `false` instead of throwing, so a
+      // success toast would otherwise fire on a failed copy
+      if (document.execCommand("copy")) {
+        notify();
+      } else {
+        console.error("Error copying link: execCommand returned false");
+      }
     } catch (err) {
       console.error("Error copying link: ", err);
     } finally {
       textarea.remove();
     }
-  }, [url]);
+  }, [url, t]);
 };
 
 export const useMetaImageUrl = (tagName: string) => {
