@@ -311,8 +311,9 @@ def get_posts_feed(  # noqa: C901
         if not order_desc:
             raise ValidationError('Ascending is not supported for "In the news" order')
 
-        # Annotate news hotness and exclude notebooks
-        qs = qs.annotate_news_hotness().filter(notebook__isnull=True)
+        # Order by the precomputed `news_hotness` column (see
+        # posts.services.hotness) and exclude notebooks
+        qs = qs.filter(notebook__isnull=True)
 
         # Include questions with actual close time in the past 7 days,
         # so that when the "open" filter is unselected you see
