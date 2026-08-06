@@ -88,8 +88,10 @@ const FIPS_TO_ABBR: Record<string, string> = {
 
 type Props = {
   races: SenateRaceWithQuestion[];
-  /** Tabs slot (rendered absolute top-left). */
+  /** Tabs slot (rendered top-left of the header overlay). */
   tabsSlot?: ReactNode;
+  /** Optional summary line, centered between the tabs and the legend. */
+  summarySlot?: ReactNode;
 };
 
 type HoverState = {
@@ -111,7 +113,7 @@ const MAP_TRANSLATE: [number, number] = [400, 270];
 const UNCONTESTED_OPACITY_DEFAULT = 0.75;
 const UNCONTESTED_OPACITY_HOVER = 1;
 
-const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
+const GeographicMap: FC<Props> = ({ races, tabsSlot, summarySlot }) => {
   const isDark = useIsDark();
 
   const strokeColor = isDark
@@ -232,13 +234,18 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot }) => {
       ref={containerRef}
       className="geo-map-container relative h-full w-full"
     >
-      {tabsSlot && (
-        <div className="absolute left-5 top-5 z-10 md:left-10 md:top-10">
-          {tabsSlot}
+      {/* Header overlay: tabs | summary | legend. Absolutely positioned as one
+          row so a wrapping summary grows over the map instead of pushing it
+          down, while the gap keeps it clear of both neighbors. The paddings
+          reproduce the standalone positions these two used to have. */}
+      <div className="absolute inset-x-0 top-5 z-10 flex items-start gap-6 px-5 md:top-10 md:gap-10 md:px-10 lg:pr-0">
+        {tabsSlot && <div className="shrink-0">{tabsSlot}</div>}
+        <div className="pointer-events-none min-w-0 flex-1 pt-1.5">
+          {summarySlot}
         </div>
-      )}
-      <div className="absolute right-5 top-5 z-10 md:right-10 md:top-12 lg:right-0">
-        <MapLegend />
+        <div className="shrink-0 md:pt-2">
+          <MapLegend />
+        </div>
       </div>
       <div className="h-full w-full">
         <svg

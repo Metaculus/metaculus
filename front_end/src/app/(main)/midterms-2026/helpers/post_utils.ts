@@ -94,3 +94,24 @@ export function getDemWinPct(
   if (prob == null) return null;
   return Math.round(prob * 100);
 }
+
+/**
+ * Counts races by favored side. The `>= 50` split matches the one
+ * `state_tooltip.tsx` uses, so a summary can never disagree with a tooltip.
+ * Races with no forecast are excluded from every count, and `total` is the sum
+ * of the two sides rather than `races.length` so the numbers always reconcile.
+ * Null when nothing is forecast yet.
+ */
+export function summarizeRaceLeans(
+  races: SenateRaceWithQuestion[]
+): { dem: number; rep: number; total: number } | null {
+  let dem = 0;
+  let rep = 0;
+  for (const race of races) {
+    if (race.demWinPct == null) continue;
+    if (race.demWinPct >= 50) dem += 1;
+    else rep += 1;
+  }
+  const total = dem + rep;
+  return total > 0 ? { dem, rep, total } : null;
+}

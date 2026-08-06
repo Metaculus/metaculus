@@ -4,6 +4,7 @@ import { FC, useState } from "react";
 
 import ChamberTabs, { ChamberView } from "./chamber_tabs";
 import GeographicMap from "./geographic_map";
+import RaceLeanSummary from "./race_lean_summary";
 import TileMap from "./tile_map";
 import { SenateRaceWithQuestion } from "../helpers/post_utils";
 
@@ -15,6 +16,9 @@ type Props = {
 const ResponsiveMap: FC<Props> = ({ senateRaces, governorRaces }) => {
   const [view, setView] = useState<ChamberView>("senate");
   const races = view === "senate" ? senateRaces : governorRaces;
+  // Governor-only: the Senate map deliberately has no summary line.
+  const summarySlot =
+    view === "governor" ? <RaceLeanSummary races={races} /> : null;
 
   return (
     <>
@@ -25,6 +29,7 @@ const ResponsiveMap: FC<Props> = ({ senateRaces, governorRaces }) => {
         <GeographicMap
           races={races}
           tabsSlot={<ChamberTabs value={view} onChange={setView} />}
+          summarySlot={summarySlot}
         />
       </div>
       <div className="flex h-full items-center p-5 lg:hidden">
@@ -32,6 +37,7 @@ const ResponsiveMap: FC<Props> = ({ senateRaces, governorRaces }) => {
           <div className="mb-4 flex justify-center">
             <ChamberTabs value={view} onChange={setView} />
           </div>
+          {summarySlot && <div className="mb-4">{summarySlot}</div>}
           <TileMap races={races} />
         </div>
       </div>
