@@ -100,7 +100,6 @@ class DataGetRequestSerializer(serializers.Serializer):
         valid_aggregation_methods = self.get_valid_aggregation_methods()
         if value is None:
             return
-        user: User = self.context.get("user")
         if value == ALL_AGGREGATION_METHODS:
             # Expanded in validate(), which can also see joined_before_date
             return value
@@ -112,12 +111,6 @@ class DataGetRequestSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 f"Invalid aggregation method(s): {', '.join(invalid_methods)}"
             )
-        if not user or not user.is_staff:
-            methods = [
-                method
-                for method in methods
-                if method != AggregationMethod.SINGLE_AGGREGATION
-            ]
         return methods
 
     def validate_user_ids(self, user_ids: list[int]):
@@ -160,26 +153,18 @@ class DataGetRequestSerializer(serializers.Serializer):
         user_ids = attrs.get("user_ids")
         include_bots = attrs.get("include_bots")
         minimize = attrs.get("minimize", True)
-
-        if not aggregation_methods and (
-            (user_ids is not None) or (include_bots is not None) or not minimize
-        ):
-            raise serializers.ValidationError(
-                "If user_ids, include_bots, or minimize is set, "
-                "aggregation_methods must also be set."
-            )
+        joined_before_date = attrs.get("joined_before_date")
 
         # Some methods can't be built without a joined_before_date. Asking for one by
         # name without it is an error, while "all" just means "every method we can
         # compute", so there we drop them instead.
         if aggregation_methods == ALL_AGGREGATION_METHODS:
-            attrs["aggregation_methods"] = [
+            aggregation_methods = [
                 method
                 for method in self.get_valid_aggregation_methods()
-                if attrs.get("joined_before_date")
-                or method not in METHODS_REQUIRING_JOINED_BEFORE
+                if joined_before_date or method not in METHODS_REQUIRING_JOINED_BEFORE
             ]
-        elif aggregation_methods and not attrs.get("joined_before_date"):
+        elif aggregation_methods and not joined_before_date:
             cohort_methods = [
                 method
                 for method in aggregation_methods
@@ -190,6 +175,24 @@ class DataGetRequestSerializer(serializers.Serializer):
                     "joined_before_date is required for aggregation method(s): "
                     f"{', '.join(cohort_methods)}"
                 )
+
+        if aggregation_methods:
+            user: User = self.context.get("user")
+            if not user or not user.is_staff:
+                aggregation_methods = [
+                    method
+                    for method in aggregation_methods
+                    if method != AggregationMethod.SINGLE_AGGREGATION
+                ]
+            attrs["aggregation_methods"] = aggregation_methods
+
+        if not aggregation_methods and (
+            (user_ids is not None) or (include_bots is not None) or not minimize
+        ):
+            raise serializers.ValidationError(
+                "If user_ids, include_bots, or minimize is set, "
+                "aggregation_methods must also be set."
+            )
 
         return attrs
 
@@ -213,7 +216,6 @@ class DataPostRequestSerializer(DataGetRequestSerializer):
     def validate_aggregation_methods(self, methods: str | None):
         if methods is None:
             return
-        user: User = self.context.get("user")
         valid_aggregation_methods = self.get_valid_aggregation_methods()
         invalid_methods = [
             method for method in methods if method not in valid_aggregation_methods
@@ -222,12 +224,6 @@ class DataPostRequestSerializer(DataGetRequestSerializer):
             raise serializers.ValidationError(
                 f"Invalid aggregation method(s): {', '.join(invalid_methods)}"
             )
-        if not user or not user.is_staff:
-            methods = [
-                method
-                for method in methods
-                if method != AggregationMethod.SINGLE_AGGREGATION
-            ]
         return methods
 
     def validate_user_ids(self, user_ids: list[int]):
