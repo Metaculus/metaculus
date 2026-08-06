@@ -8,6 +8,8 @@ screenshot/
 node_modules
 front_end/node_modules
 front_end/.next
+# Compiled by the email_templates stage; never ship a developer's local build
+**/templates/emails/*.html
 venv
 .venv
 __pycache__
