@@ -26,6 +26,7 @@ from comments.serializers.common import (
 from comments.services.common import (
     set_comment_excluded_from_week_top,
     create_comment,
+    perform_create_comment,
     pin_comment,
     unpin_comment,
     soft_delete_comment,
@@ -34,7 +35,6 @@ from comments.services.common import (
     toggle_cmm,
 )
 from comments.services.feed import get_comments_feed
-from comments.services.key_factors.common import create_key_factors
 from notifications.services import send_comment_report_notification_to_staff
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
@@ -130,33 +130,7 @@ def comment_create_api_view(request: Request):
     serializer = CommentWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    on_post = serializer.validated_data["on_post"]
-    parent = serializer.validated_data.get("parent")
-    included_forecast = serializer.validated_data.pop("included_forecast", False)
-    key_factors = serializer.validated_data.pop("key_factors", None)
-
-    # Small validation
-    permission = get_post_permission_for_user(
-        parent.on_post if parent else on_post, user=user
-    )
-    ObjectPermission.can_comment(permission, raise_exception=True)
-
-    forecast = (
-        (
-            on_post.question.user_forecasts.filter(author_id=user.id)
-            .order_by("-start_time")
-            .first()
-        )
-        if included_forecast and on_post.question_id
-        else None
-    )
-
-    new_comment = create_comment(
-        **serializer.validated_data, included_forecast=forecast, user=user
-    )
-
-    if key_factors:
-        create_key_factors(new_comment, key_factors)
+    new_comment = perform_create_comment(user=user, **serializer.validated_data)
 
     return Response(
         serialize_comment_many([new_comment], with_key_factors=True)[0],

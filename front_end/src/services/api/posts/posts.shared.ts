@@ -5,7 +5,7 @@ import {
   PaginatedPayload,
   PaginationParams,
 } from "@/types/fetch";
-import { NewsArticle } from "@/types/news";
+import { NewsArticle, NewsHotnessBreakdown } from "@/types/news";
 import { OnboardingTopic } from "@/types/onboarding";
 import {
   NotebookPost,
@@ -211,6 +211,10 @@ class PostsApi extends ApiService {
     return this.get<NewsArticle[]>(`/posts/${postId}/related-articles/`, {
       next: { revalidate: 3600, tags: ["related-articles"] },
     });
+  }
+
+  async getNewsHotnessBreakdown(postId: number): Promise<NewsHotnessBreakdown> {
+    return this.get<NewsHotnessBreakdown>(`/posts/${postId}/news-hotness/`);
   }
 
   async getRandomPostId(): Promise<{ id: number; post_slug: string }> {

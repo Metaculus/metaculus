@@ -16,16 +16,14 @@ import { CurrentUser } from "@/types/users";
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   setUser: () => {},
-  csrfToken: null,
 });
 
 const AuthProvider: FC<
   PropsWithChildren<{
     user: CurrentUser | null;
     locale?: string;
-    csrfToken: string | null;
   }>
-> = ({ user: initialUser, children, locale, csrfToken }) => {
+> = ({ user: initialUser, children, locale }) => {
   const [user, setUser] = useState<CurrentUser | null>(initialUser);
   const posthog = usePostHog();
 
@@ -50,7 +48,7 @@ const AuthProvider: FC<
   }, [initialUser, posthog]);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, csrfToken }}>
+    <AuthContext.Provider value={{ user, setUser }}>
       {children}
     </AuthContext.Provider>
   );

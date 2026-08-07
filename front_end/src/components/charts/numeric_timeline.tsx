@@ -5,7 +5,12 @@ import { useLocale } from "next-intl";
 import { FC, ReactNode, useCallback, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
-import { TimelineChartZoomOption } from "@/types/charts";
+import {
+  DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS,
+  TimelineChartZoomOption,
+  TimelineYDomainOptions,
+  TimelineYDomainSource,
+} from "@/types/charts";
 import { KeyFactor } from "@/types/comment";
 import { QuestionStatus, Resolution } from "@/types/post";
 import {
@@ -63,6 +68,7 @@ type Props = {
   onToggleNewsAnnotations?: () => void;
   hideCursorValueLabel?: boolean;
   suppressEmptyOverlay?: boolean;
+  yDomainOptions?: TimelineYDomainOptions;
 };
 
 const NumericTimeline: FC<Props> = ({
@@ -102,6 +108,7 @@ const NumericTimeline: FC<Props> = ({
   onToggleNewsAnnotations,
   hideCursorValueLabel,
   suppressEmptyOverlay,
+  yDomainOptions,
 }) => {
   const locale = useLocale();
   const resolutionPoint = useMemo(() => {
@@ -158,7 +165,11 @@ const NumericTimeline: FC<Props> = ({
   );
 
   const buildChartData = useCallback(
-    (width: number, zoom: TimelineChartZoomOption) =>
+    (
+      width: number,
+      zoom: TimelineChartZoomOption,
+      yDomainSource: TimelineYDomainSource
+    ) =>
       buildNumericChartData({
         questionType,
         actualCloseTime,
@@ -173,11 +184,15 @@ const NumericTimeline: FC<Props> = ({
         isAggregationsEmpty: isEmptyDomain,
         openTime,
         unit,
-        forceYTickCount: forFeedPage ? 3 : 5,
+        forceYTickCount: forFeedPage ? 3 : isEmbedded ? 5 : 6,
         alwaysShowYTicks: true,
         inboundOutcomeCount,
         resolutionPoint,
         reduceStepData: forFeedPage,
+        yDomainOptions: {
+          ...yDomainOptions,
+          source: yDomainSource,
+        },
       }),
     [
       questionType,
@@ -194,6 +209,8 @@ const NumericTimeline: FC<Props> = ({
       inboundOutcomeCount,
       resolutionPoint,
       forFeedPage,
+      isEmbedded,
+      yDomainOptions,
     ]
   );
   const formattedResolution = formatResolution({
@@ -218,6 +235,12 @@ const NumericTimeline: FC<Props> = ({
       onCursorChange={onCursorChange}
       defaultZoom={defaultZoom}
       withZoomPicker={withZoomPicker}
+      withYDomainSourceToggle={
+        withZoomPicker && questionType !== QuestionType.Binary
+      }
+      defaultYDomainSource={
+        yDomainOptions?.source ?? DEFAULT_TIMELINE_Y_DOMAIN_OPTIONS.source
+      }
       hideCP={hideCP}
       resolutionPoint={resolutionPoint ? [resolutionPoint] : undefined}
       getCursorValue={getCursorValue}

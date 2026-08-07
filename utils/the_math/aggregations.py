@@ -723,6 +723,13 @@ AGGREGATIONS: list[type[Aggregation]] = [
     JoinedBeforeDateAggregation,
 ]
 
+# Methods that cannot be built without an explicit `joined_before` date
+METHODS_REQUIRING_JOINED_BEFORE: list[str] = [
+    aggregation.method
+    for aggregation in AGGREGATIONS
+    if JoinedBeforeFiltered in aggregation.weighting_classes
+]
+
 
 def get_aggregation_by_name(method: str) -> type[Aggregation]:
     return next(agg for agg in AGGREGATIONS if agg.method == method)
