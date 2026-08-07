@@ -4,9 +4,11 @@ from rest_framework.exceptions import PermissionDenied
 
 from posts.models import PostUserSnapshot, Post
 from posts.services.feed import get_posts_feed
+from projects.models import Project
 from questions.models import Question
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
+from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.factories import create_question, factory_forecast
 from tests.unit.utils import datetime_aware
 
@@ -118,3 +120,75 @@ def test_get_posts_feed__exclude_unpublished(user1):
     posts = get_posts_feed(statuses=[Post.CurationStatus.PENDING])
     assert len(posts) == 1
     assert posts[0].id == post_pending.id
+
+
+def test_get_posts_feed__pinned_posts_on_top_of_project_feed(user1):
+    tournament = factory_project(type=Project.ProjectTypes.TOURNAMENT)
+
+    # A regular (unpinned) post that ranks higher on hotness
+    hot_post = factory_post(
+        author=user1,
+        default_project=tournament,
+        question=create_question(question_type=Question.QuestionType.BINARY),
+        hotness=100,
+    )
+    # A pinned post that ranks lower on hotness
+    pinned_post = factory_post(
+        author=user1,
+        default_project=tournament,
+        question=create_question(question_type=Question.QuestionType.BINARY),
+        hotness=1,
+        is_pinned=True,
+    )
+
+    # Within the tournament feed the pinned post is on top despite lower hotness
+    posts = get_posts_feed(tournaments=[tournament], order_by="-hotness")
+    assert [p.id for p in posts] == [pinned_post.id, hot_post.id]
+
+
+def test_get_posts_feed__pinned_only_affects_default_project_feed(user1):
+    tournament = factory_project(type=Project.ProjectTypes.TOURNAMENT)
+    other_tournament = factory_project(type=Project.ProjectTypes.TOURNAMENT)
+
+    hot_post = factory_post(
+        author=user1,
+        default_project=other_tournament,
+        projects=[tournament],
+        question=create_question(question_type=Question.QuestionType.BINARY),
+        hotness=100,
+    )
+    # Pinned in its own default project, but reposted into `tournament`
+    pinned_post = factory_post(
+        author=user1,
+        default_project=other_tournament,
+        projects=[tournament],
+        question=create_question(question_type=Question.QuestionType.BINARY),
+        hotness=1,
+        is_pinned=True,
+    )
+
+    # The pin must NOT apply in a feed the post is only reposted to
+    posts = get_posts_feed(tournaments=[tournament], order_by="-hotness")
+    assert [p.id for p in posts] == [hot_post.id, pinned_post.id]
+
+
+def test_get_posts_feed__pinned_ignored_on_unscoped_feed(user1):
+    tournament = factory_project(type=Project.ProjectTypes.TOURNAMENT)
+
+    hot_post = factory_post(
+        author=user1,
+        default_project=tournament,
+        question=create_question(question_type=Question.QuestionType.BINARY),
+        hotness=100,
+    )
+    pinned_post = factory_post(
+        author=user1,
+        default_project=tournament,
+        question=create_question(question_type=Question.QuestionType.BINARY),
+        hotness=1,
+        is_pinned=True,
+    )
+
+    # Without a single-project scope, pin ordering is not applied
+    posts = get_posts_feed(order_by="-hotness")
+    assert [p.id for p in posts] == [hot_post.id, pinned_post.id]

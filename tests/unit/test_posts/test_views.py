@@ -593,6 +593,40 @@ def test_repost(user1, user1_client, user2, user2_client, question_binary):
     assert target_tournament in post.projects.all()
 
 
+def test_post_toggle_pin(user1, user1_client, user2, user2_client, question_binary):
+    tournament = factory_project(
+        type=Project.ProjectTypes.TOURNAMENT,
+        override_permissions={user1.pk: ObjectPermission.ADMIN},
+    )
+    post = factory_post(
+        author=user2,
+        default_project=tournament,
+        question=question_binary,
+    )
+
+    url = reverse("post-toggle-pin", kwargs={"pk": post.pk})
+
+    # Non-admin can't pin
+    response = user2_client.post(url, {"pin": True}, format="json")
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    post.refresh_from_db()
+    assert post.is_pinned is False
+
+    # Admin pins the post
+    response = user1_client.post(url, {"pin": True}, format="json")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["is_pinned"] is True
+    post.refresh_from_db()
+    assert post.is_pinned is True
+
+    # Admin unpins the post
+    response = user1_client.post(url, {"pin": False}, format="json")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["is_pinned"] is False
+    post.refresh_from_db()
+    assert post.is_pinned is False
+
+
 def test_post_vote(user1, user1_client, user2_client, post_binary_public):
     url = reverse("post-vote", kwargs={"pk": post_binary_public.pk})
 
