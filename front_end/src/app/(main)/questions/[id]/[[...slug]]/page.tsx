@@ -4,6 +4,7 @@ import { defaultDescription } from "@/constants/metadata";
 import { SearchParams } from "@/types/navigation";
 import { getValidString } from "@/utils/formatters/string";
 import { getPostTitle } from "@/utils/questions/helpers";
+import { getPostSeoMetadata } from "@/utils/questions/metadata";
 
 import IndividualQuestionPage from "./page_component";
 import { cachedGetPostForMetadata } from "./utils/get_post";
@@ -13,6 +14,12 @@ type Props = {
   searchParams: Promise<SearchParams>;
 };
 
+const NOINDEX_DEFAULT_PROJECT_KEYWORDS = [
+  "futureeval",
+  "AI Forecasting Benchmark Tournament",
+  "minibench",
+];
+
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
   const postData = await cachedGetPostForMetadata(params.id);
@@ -21,7 +28,12 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     return {};
   }
   const questionTitle = getPostTitle(postData);
+  const defaultProjectName = postData.projects?.default_project?.name ?? "";
+  const shouldNoindex = NOINDEX_DEFAULT_PROJECT_KEYWORDS.some((keyword) =>
+    defaultProjectName.toLowerCase().includes(keyword.toLowerCase())
+  );
   return {
+    ...getPostSeoMetadata(postData),
     title:
       getValidString(postData.html_metadata_json?.title) ??
       getValidString(postData.short_title) ??
@@ -52,6 +64,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
         alt: "community predictions",
       },
     },
+    ...(shouldNoindex ? { robots: { index: false, follow: false } } : {}),
   };
 }
 

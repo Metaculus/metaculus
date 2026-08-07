@@ -4,13 +4,13 @@ from datetime import timedelta
 from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin, messages
 from django.contrib.admin.models import CHANGE, LogEntry
-from django.db.models import Count, Exists, OuterRef, Q, F, QuerySet
+from django.db.models import Count, Exists, F, OuterRef, Q, QuerySet
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import path, reverse
 from django.utils.html import format_html
 from sql_util.aggregates import SubqueryAggregate
 
-from authentication.services import generate_password_reset_link
+from authentication.services.common import generate_password_reset_link
 from projects.models import ProjectUserPermission
 from questions.models import Forecast
 from users.models import User, UserCampaignRegistration, UserSpamActivity
@@ -430,7 +430,8 @@ class UserAdmin(admin.ModelAdmin):
                     json.dumps(
                         json.loads(
                             '{"pro_details":{"is_current_pro":true,"pro_start_date":"2024-12-01","pro_end_date":null},'
-                            '"bot_details":{"metac_bot":true,"include_in_calculations":true,"display_in_leaderboard":true,"display_name":"OpenAI 4o","base_models":[{"name":"OpenAI 4o","model_release_date":"2024-05","estimated_cost_per_question":1.3}],"research_models":[{"name":"AskNews Research v1","model_release_date":"2024-05","estimated_cost_per_question":null}],"scaffolding":{"pipeline":"metac-bot-latest","notes":"Runs base model, then research follow-up if confidence < 0.7."}}}'
+                            '"bot_details":{"metac_bot":true,"include_in_calculations":true,"display_in_leaderboard":true,"display_name":"OpenAI 4o","base_models":[{"name":"OpenAI 4o","model_release_date":"2024-05","estimated_cost_per_question":1.3}],"research_models":[{"name":"AskNews Research v1","model_release_date":"2024-05","estimated_cost_per_question":null}],"scaffolding":{"pipeline":"metac-bot-latest","notes":"Runs base model, then research follow-up if confidence < 0.7."}},'
+                            '"signup_details":{"method":"email_link","action_type":"post_vote"}}'
                         ),
                         indent=2,
                     ),

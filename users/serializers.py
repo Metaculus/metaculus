@@ -7,20 +7,8 @@ from rest_framework.exceptions import ValidationError
 from comments.models import KeyFactor
 from projects.models import Project
 from scoring.models import LeaderboardEntry
+from users.constants import forbidden_usernames
 from users.models import User, UserCampaignRegistration
-
-forbidden_usernames = [
-    "anonymous",
-    "moderator",
-    "moderators",
-    "predictor",
-    "predictors",
-    "metaculus",
-    "admin",
-    "admins",
-    "curator",
-    "curators",
-]
 
 
 class BaseUserSerializer(serializers.ModelSerializer):
@@ -110,6 +98,7 @@ class UserPrivateSerializer(UserPublicSerializer):
             "api_forecasting_access",
             "is_primary_bot",
             "has_password",
+            "username_set_at",
             "metaculus_news_subscription",
             "automatically_follow_on_predict",
             "follow_notify_cp_change_threshold",

@@ -41,11 +41,15 @@ from posts.services.common import (
     vote_post,
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
-from posts.services.hotness import handle_post_boost, compute_hotness_total_boosts
+from posts.services.hotness import (
+    handle_post_boost,
+    compute_hotness_total_boosts,
+    explain_post_news_hotness,
+)
 from posts.services.notes import update_private_note, get_private_notes_feed
 from posts.services.onboarding import get_onboarding_feed
 from posts.services.spam_detection import check_and_handle_post_spam
-from posts.services.subscriptions import create_subscription
+from posts.services.subscriptions import update_post_subscriptions
 from posts.utils import check_can_edit_post, get_post_slug
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -487,58 +491,12 @@ def post_subscriptions_create(request, pk):
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
-    existing_subscriptions = post.subscriptions.filter(user=request.user).exclude(
-        is_global=True
-    )
-
-    # Validating data
-    validated_data = []
-    keep_ids = set()
-
-    for data in serializers.ListField().run_validation(request.data):
-        subscription_type = data.get("type")
-        subscription_id = data.pop("id", None)
-
-        serializer = get_subscription_serializer_by_type(subscription_type)(data=data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-        data.pop("created_at", None)
-
-        # Check changed
-        # Check whether subscription was changed
-        existing_subscription = next(
-            (sub for sub in existing_subscriptions if sub.id == subscription_id),
-            None,
-        )
-        create = not existing_subscription
-
-        if existing_subscription:
-            for key, value in data.items():
-                if getattr(existing_subscription, key) != value:
-                    # Notification was changed, so we want to re-create it
-                    create = True
-                    break
-
-        if create:
-            validated_data.append(data)
-        else:
-            keep_ids.add(subscription_id)
-
-    # Deleting subscriptions
-    existing_subscriptions.exclude(id__in=keep_ids).delete()
-
-    for data in validated_data:
-        create_subscription(
-            subscription_type=data.pop("type"),
-            post=post,
-            user=request.user,
-            **data,
-        )
+    subscriptions = update_post_subscriptions(request.user, post, request.data)
 
     return Response(
         [
             get_subscription_serializer_by_type(sub.type)(sub).data
-            for sub in existing_subscriptions.all()
+            for sub in subscriptions
         ],
         status=status.HTTP_201_CREATED,
     )
@@ -607,6 +565,23 @@ def post_related_articles_api_view(request: Request, pk):
             for post_article in post_articles
         ]
     )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def post_news_hotness_breakdown_api_view(request: Request, pk):
+    """
+    Admin-only per-article breakdown of a post's "In the news" hotness score,
+    for debugging the ranking (distance, breadth penalty, decay and per-cluster
+    dedup for every matched ITN article).
+    """
+
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise PermissionDenied("You do not have permission to view this")
+
+    post = get_object_or_404(Post, pk=pk)
+
+    return Response(explain_post_news_hotness(post))
 
 
 @api_view(["POST"])
