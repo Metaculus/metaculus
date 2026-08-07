@@ -127,8 +127,8 @@ export async function KeyInsightsSection({
             <>
               Financial specialists, lawyers, and laborers and movers are all
               expected to see the largest decreases in employment rates, while
-              registered nurses, physicians, and engineers are projected to
-              grow.
+              registered nurses, physicians, and law enforcement are projected
+              to grow.
             </>
           )}
         </KeyInsightItem>

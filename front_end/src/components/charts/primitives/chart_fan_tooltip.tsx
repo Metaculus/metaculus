@@ -309,8 +309,20 @@ const useClampedViewportX = (
       if (!el || typeof window === "undefined") return;
 
       const rect = el.getBoundingClientRect();
-      const minLeft = TOOLTIP_PADDING;
-      const maxRight = window.innerWidth - TOOLTIP_PADDING;
+      // The tooltip is portaled into #fan-graph-container, which lives inside a
+      // section with `overflow-x-clip`. Clamp within that container (not just the
+      // viewport) so an edge-aligned tooltip isn't cut off by the clip boundary.
+      const containerRect = el
+        .closest("#fan-graph-container")
+        ?.getBoundingClientRect();
+      const minLeft = Math.max(
+        TOOLTIP_PADDING,
+        (containerRect?.left ?? -Infinity) + TOOLTIP_PADDING
+      );
+      const maxRight = Math.min(
+        window.innerWidth - TOOLTIP_PADDING,
+        (containerRect?.right ?? Infinity) - TOOLTIP_PADDING
+      );
 
       let delta = 0;
       const overLeft = minLeft - rect.left;

@@ -69,11 +69,12 @@ const people: Person[] = [
       "Christian leads communications and marketing at Metaculus, working closely with the operations and program teams. Prior to joining Metaculus, he was a marketing operations lead in the aerospace and defense industry. Christian earned his master's degree in psychology from Rutgers University, where he conducted behavioral and fMRI research on moral judgment and decision-making. Before graduate school, he was a writer for The Onion AV Club and contributed material to Saturday Night Live.",
   },
   {
+    userId: 276406,
     name: "Cole Sussmeier",
-    position: "Research Engineer",
+    position: "AI Research Engineer",
     imgSrc: "https://cdn.metaculus.com/about/cole_sussmeier.webp",
     introduction:
-      "Cole is a Research Engineer at Metaculus, where he works on Radiant and on AI forecasting harnesses and experiments. Before joining Metaculus, he founded Automatic Industries, building predictive analytics models, machine learning pipelines, and dashboard applications for clients. He previously worked as a data science consultant at Deloitte and as a data scientist at COI Energy. Cole holds a master's degree in Data Analytics and a bachelor's degree in Business Analytics, with a minor in Mathematics, from Binghamton University.",
+      "Prior to joining Metaculus, Cole worked in data science consulting and specialized in time series forecasting. He also won a gold medal in the Bridgewater x Metaculus 2026 forecasting tournament. Cole holds a Master of Science in data analytics from Binghamton University, where he also studied business and mathematics for his bachelor's degree. Cole is passionate about forecasting systems, snowboarding, and factory automation games.",
   },
   {
     name: "Nikitas Angeletos Chrysaitis",

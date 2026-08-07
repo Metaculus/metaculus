@@ -28,11 +28,36 @@ class ITNArticle(TimeStampedModel):
     )
     is_removed = models.BooleanField(default=False)
 
+    # Id of the near-duplicate cluster this article belongs to (the id of the
+    # cluster's representative article). Articles covering the same story share a
+    # cluster so that repeated coverage counts only once towards news hotness.
+    cluster_id = models.BigIntegerField(null=True, blank=True, db_index=True)
+
+
+class PostArticleQuerySet(models.QuerySet):
+    def annotate_article_post_count(self):
+        """Annotate each match with the number of distinct posts its article is
+        matched to, shadowing PostArticle.article_post_count's default.
+
+        Counts the article's matches in full: callers narrow which matches they
+        *score*, not which ones make an article broad.
+        """
+        return self.annotate(
+            article_post_count=models.Count(
+                "article__postarticle__post_id", distinct=True
+            )
+        )
+
 
 class PostArticle(TimeStampedModel):
     article = models.ForeignKey(ITNArticle, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     distance = models.FloatField(null=False, db_index=True)
+
+    objects = PostArticleQuerySet.as_manager()
+
+    # Number of distinct posts the article is matched to
+    article_post_count: int = 0
 
     class Meta:
         constraints = [

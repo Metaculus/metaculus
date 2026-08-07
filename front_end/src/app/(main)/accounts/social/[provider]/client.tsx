@@ -7,6 +7,7 @@ import { useErrorBoundary } from "react-error-boundary";
 import { exchangeSocialOauthCode } from "@/app/(main)/accounts/social/[provider]/actions";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { SocialProviderType } from "@/types/auth";
+import { rotateCsrfToken } from "@/utils/csrf";
 
 type Props = {
   provider: SocialProviderType;
@@ -26,7 +27,12 @@ const SocialAuthClient: FC<Props> = ({
 
   useEffect(() => {
     exchangeSocialOauthCode(provider, code, nonce)
-      .then(() => router.push(redirectUrl))
+      .then(() => {
+        // Invalidate the nonce now that it has served its purpose (and been
+        // logged as a `state` param) — bounds any replay to the flow duration.
+        rotateCsrfToken();
+        router.push(redirectUrl);
+      })
       .catch(showBoundary);
   }, [provider, code, nonce, redirectUrl, router, showBoundary]);
 

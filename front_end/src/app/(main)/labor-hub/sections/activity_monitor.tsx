@@ -87,6 +87,9 @@ export function ActivityMonitorSection({
             isFlippable={false}
             timelineMarkers={timelineMarkers}
             chartHeight={250}
+            yDomainOptions={{
+              source: "centers",
+            }}
           />
         }
       />
