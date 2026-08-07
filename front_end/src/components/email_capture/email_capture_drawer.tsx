@@ -342,10 +342,9 @@ const EmailCaptureDrawer: FC<Props> = ({
 
   const handleGoogle = () => {
     if (!googleUrl) return;
-    const action = resolveGatedAction();
-    if (action) {
-      stashSocialGatedAction({ gatedAction: action, trigger });
-    }
+    // Stashed even without an action: its presence is how the callback knows
+    // the user arrived through the capture drawer rather than the full signup.
+    stashSocialGatedAction({ gatedAction: resolveGatedAction(), trigger });
     window.location.href = googleUrl;
   };
 

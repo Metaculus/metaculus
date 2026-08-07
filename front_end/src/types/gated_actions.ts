@@ -25,8 +25,11 @@ export type EmailCapturePendingRecord = {
   redirectUrl: string;
 };
 
+// Written whenever the capture drawer hands off to Google, so the callback can
+// tell a lightweight sign-in from an ordinary one. The action is null when the
+// drawer was opened without one (the "sign_in" entry point).
 export type SocialGatedActionStash = {
-  gatedAction: GatedActionInput;
+  gatedAction: GatedActionInput | null;
   trigger: CaptureTrigger;
   stashedAt: number;
 };

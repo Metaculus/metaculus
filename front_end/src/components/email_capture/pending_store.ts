@@ -112,7 +112,7 @@ export const takeSocialGatedAction = (): SocialGatedActionStash | null => {
   try {
     const stash = JSON.parse(raw) as SocialGatedActionStash;
     if (
-      !stash?.gatedAction ||
+      !stash?.trigger ||
       typeof stash.stashedAt !== "number" ||
       Date.now() - stash.stashedAt > SOCIAL_STASH_TTL_MS
     ) {
