@@ -351,6 +351,29 @@ class Question(TimeStampedModel, TranslatedModel):  # type: ignore
         if self.post_id:
             return self.post
 
+    def get_attainable_coverage(self) -> float:
+        """
+        The maximum coverage a forecaster could attain on this question, i.e. the
+        fraction of the scheduled forecasting window during which the question was
+        actually open for forecasting:
+
+            (effective_close_time - open_time) / (scheduled_close_time - open_time)
+
+        This is 1.0 for questions that stay open until (or past) their scheduled
+        close time, and less than 1.0 for questions that close early (e.g. because
+        they resolved before their scheduled close time).
+        """
+        if not self.open_time or not self.scheduled_close_time:
+            return 0.0
+        scheduled_duration = (
+            self.scheduled_close_time - self.open_time
+        ).total_seconds()
+        if scheduled_duration <= 0:
+            return 0.0
+        effective_close_time = self.actual_close_time or self.scheduled_close_time
+        effective_duration = (effective_close_time - self.open_time).total_seconds()
+        return max(0.0, min(1.0, effective_duration / scheduled_duration))
+
     @property
     def status(self) -> QuestionStatus:
         """

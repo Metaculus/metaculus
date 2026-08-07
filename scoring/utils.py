@@ -908,6 +908,7 @@ def update_leaderboard_from_csv_data(
 class Contribution:
     score: float | None
     coverage: float | None = None
+    attainable_coverage: float | None = None
     question: Question | None = None
     post: Post | None = None
     comment: Comment | None = None
@@ -1043,6 +1044,17 @@ def get_contribution_question_writing(user: User, leaderboard: Leaderboard):
     return contributions
 
 
+def _get_attainable_coverage(question: Question) -> float | None:
+    """
+    The maximum coverage attainable on a question, but only for successfully
+    resolved questions (so it lines up with the leaderboard's max coverage).
+    Returns None for unresolved or unsuccessfully resolved questions.
+    """
+    if not question.resolution or question.resolution in UnsuccessfulResolutionType:
+        return None
+    return question.get_attainable_coverage()
+
+
 def get_contributions(
     user: User,
     leaderboard: Leaderboard,
@@ -1120,6 +1132,7 @@ def get_contributions(
         Contribution(
             score=s.score,
             coverage=s.coverage,
+            attainable_coverage=_get_attainable_coverage(s.question),
             question=s.question,
             post=s.question.get_post(),
         )
@@ -1162,6 +1175,7 @@ def get_contributions(
                 contribution = Contribution(
                     score=None,
                     coverage=coverage or None,
+                    attainable_coverage=_get_attainable_coverage(question),
                     question=question,
                     post=question.get_post(),
                 )
