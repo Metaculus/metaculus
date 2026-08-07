@@ -89,15 +89,21 @@ export type ContinuousAreaGraphInput = Array<{
 }>;
 
 const TOP_PADDING = 10;
+// Discrete PMFs only: extra top padding reserved when an out-of-bounds bar
+// (below-lower / above-upper) is clamped to the axis top, so the break's
+// value label has room to render without being clipped.
+const OOB_BREAK_TOP_PADDING = 28;
+// Y-axis headroom above the tallest in-bounds bar, as a multiple of its
+// value. The larger ratio only kicks in when a bar needs to be broken, so
+// there's enough room above the tallest in-bounds bar for the notch (see
+// `getDiscreteBarPath`) without changing the axis proportions of ordinary
+// discrete charts.
+const BASE_AXIS_HEADROOM_RATIO = 1.2;
+const BREAK_AXIS_HEADROOM_RATIO = 1.5;
 const BOTTOM_PADDING = 20;
 const HORIZONTAL_PADDING = 10;
 const CURSOR_POINT_OFFSET = 5;
 const CURSOR_CHART_EXTENSION = 10;
-// For discrete PMFs: if an out-of-bounds bar (below-lower / above-upper) is more
-// than this many times taller than the tallest in-bounds bar, its rendered
-// height is clamped to this ratio and a broken-axis marker is drawn on top so
-// the in-bounds distribution isn't visually squashed.
-const OOB_BAR_DISPLAY_RATIO = 2;
 
 type Props = {
   question: Question | GraphingQuestionProps;
@@ -176,7 +182,53 @@ const ContinuousAreaChart: FC<Props> = ({
   const showYAxis =
     graphType === "cdf" ||
     (question.type === QuestionType.Discrete && !hideYAxis);
-  const paddingTop = graphType === "cdf" || discrete ? TOP_PADDING : 0;
+
+  // Discrete PMF only: the Y-axis top is derived from the tallest in-bounds
+  // bar, excluding the below-lower/above-upper edges, so a disproportionate
+  // OOB bar can't squash the rest of the distribution. OOB bars taller than
+  // this get clamped to it (see `charts` below) and get a broken-axis marker.
+  // When a break is needed, the axis gets extra headroom (BREAK_AXIS_HEADROOM_RATIO
+  // rather than BASE_AXIS_HEADROOM_RATIO) so the clamped bar's notch — see
+  // `getDiscreteBarPath` below, which relies on this same ratio — has enough
+  // room above the tallest in-bounds bar to read clearly.
+  const { oobAxisTop, hasOobOverflow, oobBreakThreshold } = useMemo(() => {
+    if (question.type !== QuestionType.Discrete || graphType === "cdf") {
+      return {
+        oobAxisTop: undefined,
+        hasOobOverflow: false,
+        oobBreakThreshold: undefined,
+      };
+    }
+    const inboundMax = Math.max(
+      0,
+      ...data.map((x) => x.pmf.slice(1, -1)).flat()
+    );
+    const base = inboundMax <= 0 ? 1 : inboundMax;
+    const needsBreak = data.some(
+      (x) =>
+        (x.pmf.at(0) ?? 0) > BASE_AXIS_HEADROOM_RATIO * base ||
+        (x.pmf.at(-1) ?? 0) > BASE_AXIS_HEADROOM_RATIO * base
+    );
+    const ratio = needsBreak
+      ? BREAK_AXIS_HEADROOM_RATIO
+      : BASE_AXIS_HEADROOM_RATIO;
+    return {
+      oobAxisTop: Math.min(1, ratio * base),
+      hasOobOverflow: needsBreak,
+      // The tallest in-bounds bar's value: the top of the "normal" scale
+      // region. Axis ticks above this fall in the reserved break headroom
+      // and are hidden, since that space no longer represents a regular
+      // linear continuation of the axis.
+      oobBreakThreshold: base,
+    };
+  }, [data, question.type, graphType]);
+
+  const paddingTop =
+    graphType === "cdf" || discrete
+      ? discrete && hasOobOverflow
+        ? OOB_BREAK_TOP_PADDING
+        : TOP_PADDING
+      : 0;
 
   const hasUserData = useMemo(
     () => data.some((d) => d.type === "user"),
@@ -203,18 +255,9 @@ const ContinuousAreaChart: FC<Props> = ({
       return { datum, scaled, componentCdfs };
     });
 
-    // Discrete PMF only: compute the tallest in-bounds bar across all series so
-    // outlying OOB bars can be capped at OOB_BAR_DISPLAY_RATIO * inbound max.
-    let oobCap: number | undefined;
-    if (question.type === QuestionType.Discrete && graphType !== "cdf") {
-      const inboundMax = Math.max(
-        0,
-        ...scaledPerDatum.flatMap(({ scaled }) => scaled.pmf.slice(1, -1))
-      );
-      if (inboundMax > 0) {
-        oobCap = OOB_BAR_DISPLAY_RATIO * inboundMax;
-      }
-    }
+    // Discrete PMF only: clamp OOB bars to the axis top computed above so
+    // they never render past the visible plot.
+    const oobCap = oobAxisTop;
 
     const chartData: NumericPredictionGraph[] = [];
     for (const { datum, scaled, componentCdfs } of scaledPerDatum) {
@@ -249,7 +292,7 @@ const ContinuousAreaChart: FC<Props> = ({
       }));
     }
     return chartData;
-  }, [data, graphType, hideCP, question, globalScaling, variant]);
+  }, [data, graphType, hideCP, question, globalScaling, variant, oobAxisTop]);
 
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;
@@ -308,16 +351,12 @@ const ContinuousAreaChart: FC<Props> = ({
     const xDomain: Tuple<number> = [xMin, xMax];
     if (graphType === "cdf") return { xDomain, yDomain: [0, 1] };
 
-    // Exclude OOB PMF values (pmf[0], pmf[-1]) so an outlying below/above-bound
-    // bar doesn't squash the in-bounds distribution. The OOB bars are clamped
-    // separately in generateNumericAreaGraph and a broken-axis marker is drawn
-    // on top.
-    const maxValue = Math.max(
-      ...data.map((x) => x.pmf.slice(1, x.pmf.length - 1)).flat()
-    );
+    // Excludes OOB PMF values (pmf[0], pmf[-1]) so an outlying below/above-bound
+    // bar doesn't squash the in-bounds distribution. OOB bars are clamped to
+    // this same top in `charts` above, with a broken-axis marker drawn on them.
     return {
       xDomain,
-      yDomain: [0, Math.min(1, 1.2 * (maxValue <= 0 ? 1 : maxValue))],
+      yDomain: [0, oobAxisTop ?? 1],
     };
   }, [
     data,
@@ -328,6 +367,7 @@ const ContinuousAreaChart: FC<Props> = ({
     globalScaling,
     question.inbound_outcome_count,
     question.scaling,
+    oobAxisTop,
   ]);
 
   const xScale = useMemo(
@@ -357,6 +397,17 @@ const ContinuousAreaChart: FC<Props> = ({
       }),
     [height, yDomain, paddingTop]
   );
+
+  // When a bar is broken, ticks above the break sit in headroom reserved for
+  // the notch rather than a real linear continuation of the axis, so regular
+  // tick labels up there would be misleading — the clamped bar's own value
+  // label (rendered on the bar itself) is the only annotation shown there.
+  const visibleYTicks = useMemo(() => {
+    if (!hasOobOverflow || oobBreakThreshold === undefined) {
+      return yScale.ticks;
+    }
+    return yScale.ticks.filter((tick) => tick <= oobBreakThreshold);
+  }, [yScale, hasOobOverflow, oobBreakThreshold]);
 
   const resolutionPoint =
     !isNil(question.resolution) && question.resolution !== ""
@@ -814,31 +865,21 @@ const ContinuousAreaChart: FC<Props> = ({
                     },
                   }}
                   barWidth={barWidth}
+                  getPath={
+                    chart.oobClamped
+                      ? (props) =>
+                          getDiscreteBarPath(
+                            props as unknown as BarPathProps,
+                            chart.oobClamped
+                          )
+                      : undefined
+                  }
                 />
               );
             })}
           {discrete &&
             charts.flatMap((chart, chartIndex) => {
               if (!chart.oobClamped) return [];
-              const barFill = (() => {
-                if (colorOverride && chart.type !== "user") {
-                  return colorOverride;
-                }
-                switch (chart.color) {
-                  case "orange":
-                    return getThemeColor(
-                      METAC_COLORS.orange[chart.type === "user" ? "500" : "400"]
-                    );
-                  case "green":
-                    return getThemeColor(METAC_COLORS.olive["500"]);
-                  case "gray":
-                    return getThemeColor(METAC_COLORS.gray["500"]);
-                  case "purple":
-                    return getThemeColor(METAC_COLORS.purple["500"]);
-                  default:
-                    return getThemeColor(METAC_COLORS.gray["0"]);
-                }
-              })();
               const points: Array<{
                 key: string;
                 x: number;
@@ -853,9 +894,7 @@ const ContinuousAreaChart: FC<Props> = ({
                   x: clamp.x,
                   y: clamp.clampedY,
                   datum: {
-                    barWidth,
                     trueValue: clamp.trueY,
-                    fill: barFill,
                     formatValue: (v: number) => `${(v * 100).toFixed(1)}%`,
                   },
                 });
@@ -936,7 +975,7 @@ const ContinuousAreaChart: FC<Props> = ({
                     strokeWidth: 1,
                   },
                 }}
-                tickValues={yScale.ticks}
+                tickValues={visibleYTicks}
                 tickFormat={yScale.tickFormat}
                 axisValue={xDomain[1]}
               />
@@ -1320,6 +1359,61 @@ type NumericPredictionGraph = {
     right?: OobClampedBar;
   };
 };
+
+type BarPathProps = {
+  x0: number;
+  x1: number;
+  y0: number;
+  y1: number;
+  datum?: { x?: number };
+};
+
+// The notch cut into a clamped OOB bar is anchored to the tallest in-bounds
+// bar's height (not an arbitrary fraction of the OOB bar's own height): the
+// solid lower segment rises to just above that neighboring bar, then a real
+// gap (a hole in the path — nothing painted, so the actual background shows
+// through) separates it from the cap, which fills the rest of the way up to
+// the axis top. Since the axis top is BREAK_AXIS_HEADROOM_RATIO × the
+// tallest in-bounds bar's value whenever a break is needed, the tallest
+// in-bounds bar's pixel height is `barHeight / BREAK_AXIS_HEADROOM_RATIO`.
+const OOB_NEIGHBOR_CLEARANCE = 4;
+const OOB_GAP_HEIGHT = 18;
+const OOB_GAP_SLANT = 6;
+const OOB_MIN_CAP_HEIGHT = 10;
+
+function getDiscreteBarPath(
+  props: BarPathProps,
+  oobClamped: NumericPredictionGraph["oobClamped"]
+): string {
+  const { x0, x1, y0, y1, datum } = props;
+  const isOobEdge =
+    !!oobClamped &&
+    (oobClamped.left?.x === datum?.x || oobClamped.right?.x === datum?.x);
+
+  const plainRect = `M ${x0},${y0} L ${x0},${y1} L ${x1},${y1} L ${x1},${y0} Z`;
+  if (!isOobEdge) {
+    return plainRect;
+  }
+
+  const barHeight = y0 - y1;
+  const neighborTop = y0 - barHeight / BREAK_AXIS_HEADROOM_RATIO;
+  const gapBottom = neighborTop - OOB_NEIGHBOR_CLEARANCE;
+  const gapTop = gapBottom - OOB_GAP_HEIGHT;
+  const capHeight = gapTop - y1;
+
+  // Not enough headroom above the neighboring bar for a legible notch (very
+  // short bar): fall back to a plain, un-broken rect rather than a cramped one.
+  if (capHeight < OOB_MIN_CAP_HEIGHT) {
+    return plainRect;
+  }
+
+  const slant = Math.min(OOB_GAP_SLANT, (x1 - x0) / 2);
+
+  return (
+    `M ${x0},${y0} L ${x0},${gapBottom} L ${x1},${gapBottom - slant} L ${x1},${y0} Z ` +
+    `M ${x0},${gapTop} L ${x0},${y1} L ${x1},${y1} L ${x1},${gapTop - slant} Z`
+  );
+}
 
 function generateNumericAreaGraph(data: {
   pmf: number[];
