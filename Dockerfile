@@ -67,6 +67,31 @@ COPY --from=backend_deps /app/venv /app/venv
 RUN . venv/bin/activate && ./manage.py collectstatic --noinput
 
 # ============================================================
+# EMAIL TEMPLATES (MJML -> HTML, runs in parallel with frontend build)
+# ============================================================
+FROM base AS email_templates
+WORKDIR /app
+
+COPY --from=backend_deps /app/venv /app/venv
+
+# Keep in sync with the mjml version in unit_tests.yml, integration_tests.yml
+# and the README. Installed before the source copy so editing a template does
+# not reinstall the compiler. npm is unavailable here (the base stage copies
+# only the node binary), so this uses bun.
+ARG MJML_VERSION=5.4.0
+ENV BUN_INSTALL=/opt/bun
+ENV PATH=/opt/bun/bin:$PATH
+RUN bun add -g "mjml@${MJML_VERSION}"
+
+COPY . /app/
+
+# Compile in place, then stage the output under repo-relative paths so the final
+# image picks up every app's templates with a single COPY.
+RUN . venv/bin/activate \
+    && ./manage.py mjml_compose \
+    && find . -path '*/templates/emails/*.html' -exec install -D {} /email_build/{} \;
+
+# ============================================================
 # FRONTEND BUILD
 # ============================================================
 FROM base AS frontend_build
@@ -114,6 +139,9 @@ COPY --chown=1001:0 --from=frontend_build /app/front_end/.next /app/front_end/.n
 
 # Copy pre-collected Django static files
 COPY --chown=1001:0 --from=backend_static /app/staticfiles /app/staticfiles
+
+# Copy compiled MJML email templates (never present in the build context)
+COPY --chown=1001:0 --from=email_templates /email_build/ /app/
 
 # Switch to non-root user
 RUN mkdir -p /home/app && chown 1001:0 /home/app

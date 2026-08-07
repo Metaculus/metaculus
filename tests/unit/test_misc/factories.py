@@ -4,8 +4,16 @@ from misc.models import AdTile, ITNArticle
 from utils.dtypes import setdefaults_not_null
 
 
-def factory_itn_article(*, title: str = None, **kwargs) -> ITNArticle:
-    return G(ITNArticle, **setdefaults_not_null(kwargs, title=title))
+def factory_itn_article(
+    *, title: str = None, cluster_id: int = None, **kwargs
+) -> ITNArticle:
+    # Default to a dedicated (own) cluster so each article is scored independently
+    # unless a test opts into clustering.
+    return G(
+        ITNArticle,
+        cluster_id=cluster_id,
+        **setdefaults_not_null(kwargs, title=title),
+    )
 
 
 def factory_ad_tile(

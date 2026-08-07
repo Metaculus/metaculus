@@ -15,12 +15,8 @@ from django.db.models import (
     FilteredRelation,
     Exists,
     Value,
-    Func,
-    FloatField,
-    Case,
-    When,
 )
-from django.db.models.functions import Coalesce, Greatest
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from pgvector.django import VectorField
@@ -296,43 +292,6 @@ class PostQuerySet(models.QuerySet):
     def annotate_divergence(self, user_id: int):
         return self.filter(snapshots__user_id=user_id).annotate(
             divergence=F("snapshots__divergence")
-        )
-
-    def annotate_news_hotness(self):
-        from misc.models import PostArticle
-
-        per_article = (
-            PostArticle.objects.filter(post_id=OuterRef("pk"))
-            .annotate(
-                contribution=(
-                    Greatest(Value(0.5) - F("distance"), Value(0.0))
-                    / Func(
-                        F("created_at"),
-                        function="POWER",
-                        template=(
-                            "CASE "
-                            "WHEN ((CAST(NOW() AS date) - CAST(%(expressions)s AS date))::float) <= 3.5 "
-                            "THEN 1 "
-                            "ELSE POWER(((CAST(NOW() AS date) - CAST(%(expressions)s AS date))::float / 3.5), 2) "
-                            "END"
-                        ),
-                        output_field=FloatField(),
-                    )
-                )
-            )
-            .values("post_id")
-            .annotate(hotness_sum=Sum("contribution", output_field=FloatField()))
-            .values("hotness_sum")
-        )
-
-        return self.annotate(
-            news_hotness=Case(
-                When(notebook_id__isnull=False, then=Value(0.0)),
-                default=Coalesce(
-                    Subquery(per_article, output_field=FloatField()), Value(0.0)
-                ),
-                output_field=FloatField(),
-            )
         )
 
     #
@@ -860,6 +819,10 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     )  # Jeffrey's Divergence
 
     hotness = models.FloatField(default=0, editable=False, db_index=True)
+    # "In the news" ranking score. Precomputed alongside `hotness` (see
+    # posts.services.hotness) so the feed can order by it without an expensive
+    # per-request aggregation over matched articles.
+    news_hotness = models.FloatField(default=0, editable=False, db_index=True)
     forecasts_count = models.PositiveIntegerField(
         default=0, editable=False, db_index=True
     )
