@@ -1,6 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
-import React, { FC } from "react";
+import React, { FC, useEffect } from "react";
 
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
@@ -96,6 +96,16 @@ const GlobalModals: FC = () => {
   // modal state) survives it. The tutorial is for signed-in forecasters
   // only, so never show it to a signed-out visitor whatever opened it.
   const { user } = useAuth();
+
+  // Hiding it is not enough: the request has to be dropped too. A sign-in that
+  // does not itself open a modal (SimplifiedSignupModal owns its own state and
+  // only calls setUser) would otherwise reveal the stale tutorial the moment a
+  // user reappears, with nothing having asked for it.
+  useEffect(() => {
+    if (!user && isModal(currentModal, "onboarding")) {
+      setCurrentModal(null);
+    }
+  }, [user, currentModal, setCurrentModal]);
 
   return (
     <>
