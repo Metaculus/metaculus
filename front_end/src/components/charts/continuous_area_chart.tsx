@@ -66,6 +66,9 @@ import {
 
 import ChartValueBox from "./primitives/chart_value_box";
 import LineCursorPoints from "./primitives/line_cursor_points";
+import OobBreakMarker, {
+  OobBreakMarkerDatum,
+} from "./primitives/oob_break_marker";
 import ResolutionDiamond from "./primitives/resolution_diamond";
 
 type ContinuousAreaColor = "orange" | "green" | "gray" | "purple";
@@ -90,6 +93,11 @@ const BOTTOM_PADDING = 20;
 const HORIZONTAL_PADDING = 10;
 const CURSOR_POINT_OFFSET = 5;
 const CURSOR_CHART_EXTENSION = 10;
+// For discrete PMFs: if an out-of-bounds bar (below-lower / above-upper) is more
+// than this many times taller than the tallest in-bounds bar, its rendered
+// height is clamped to this ratio and a broken-axis marker is drawn on top so
+// the in-bounds distribution isn't visually squashed.
+const OOB_BAR_DISPLAY_RATIO = 2;
 
 type Props = {
   question: Question | GraphingQuestionProps;
@@ -180,8 +188,7 @@ const ContinuousAreaChart: FC<Props> = ({
       ? [...data].filter((el) => el.type === "user")
       : data;
 
-    const chartData: NumericPredictionGraph[] = [];
-    for (const datum of parsedData) {
+    const scaledPerDatum = parsedData.map((datum) => {
       const { pmf, cdf, componentCdfs } = datum;
       const useRescaled = globalScaling && !isNil(question.scaling.zero_point);
       const scaled = useRescaled
@@ -193,13 +200,31 @@ const ContinuousAreaChart: FC<Props> = ({
             return { cdf: cdfRescaled, pmf: cdfToPmf(cdfRescaled) };
           })()
         : { cdf, pmf };
+      return { datum, scaled, componentCdfs };
+    });
 
+    // Discrete PMF only: compute the tallest in-bounds bar across all series so
+    // outlying OOB bars can be capped at OOB_BAR_DISPLAY_RATIO * inbound max.
+    let oobCap: number | undefined;
+    if (question.type === QuestionType.Discrete && graphType !== "cdf") {
+      const inboundMax = Math.max(
+        0,
+        ...scaledPerDatum.flatMap(({ scaled }) => scaled.pmf.slice(1, -1))
+      );
+      if (inboundMax > 0) {
+        oobCap = OOB_BAR_DISPLAY_RATIO * inboundMax;
+      }
+    }
+
+    const chartData: NumericPredictionGraph[] = [];
+    for (const { datum, scaled, componentCdfs } of scaledPerDatum) {
       chartData.push(
         generateNumericAreaGraph({
           ...scaled,
           graphType,
           type: datum.type,
           question,
+          oobCap,
         })
       );
       if (componentCdfs && componentCdfs.length > 1) {
@@ -211,6 +236,7 @@ const ContinuousAreaChart: FC<Props> = ({
               graphType,
               type: "user_components",
               question,
+              oobCap,
             })
           );
         }
@@ -282,7 +308,13 @@ const ContinuousAreaChart: FC<Props> = ({
     const xDomain: Tuple<number> = [xMin, xMax];
     if (graphType === "cdf") return { xDomain, yDomain: [0, 1] };
 
-    const maxValue = Math.max(...data.map((x) => x.pmf).flat());
+    // Exclude OOB PMF values (pmf[0], pmf[-1]) so an outlying below/above-bound
+    // bar doesn't squash the in-bounds distribution. The OOB bars are clamped
+    // separately in generateNumericAreaGraph and a broken-axis marker is drawn
+    // on top.
+    const maxValue = Math.max(
+      ...data.map((x) => x.pmf.slice(1, x.pmf.length - 1)).flat()
+    );
     return {
       xDomain,
       yDomain: [0, Math.min(1, 1.2 * (maxValue <= 0 ? 1 : maxValue))],
@@ -785,6 +817,61 @@ const ContinuousAreaChart: FC<Props> = ({
                 />
               );
             })}
+          {discrete &&
+            charts.flatMap((chart, chartIndex) => {
+              if (!chart.oobClamped) return [];
+              const barFill = (() => {
+                if (colorOverride && chart.type !== "user") {
+                  return colorOverride;
+                }
+                switch (chart.color) {
+                  case "orange":
+                    return getThemeColor(
+                      METAC_COLORS.orange[chart.type === "user" ? "500" : "400"]
+                    );
+                  case "green":
+                    return getThemeColor(METAC_COLORS.olive["500"]);
+                  case "gray":
+                    return getThemeColor(METAC_COLORS.gray["500"]);
+                  case "purple":
+                    return getThemeColor(METAC_COLORS.purple["500"]);
+                  default:
+                    return getThemeColor(METAC_COLORS.gray["0"]);
+                }
+              })();
+              const points: Array<{
+                key: string;
+                x: number;
+                y: number;
+                datum: OobBreakMarkerDatum;
+              }> = [];
+              for (const side of ["left", "right"] as const) {
+                const clamp = chart.oobClamped[side];
+                if (!clamp) continue;
+                points.push({
+                  key: `${chartIndex}-${side}`,
+                  x: clamp.x,
+                  y: clamp.clampedY,
+                  datum: {
+                    barWidth,
+                    trueValue: clamp.trueY,
+                    fill: barFill,
+                    formatValue: (v: number) => `${(v * 100).toFixed(1)}%`,
+                  },
+                });
+              }
+              return points.map((p) => (
+                <VictoryScatter
+                  key={`oob-break-${p.key}`}
+                  data={[{ x: p.x, y: p.y, ...p.datum }]}
+                  dataComponent={
+                    <VictoryPortal>
+                      <OobBreakMarker />
+                    </VictoryPortal>
+                  }
+                />
+              ));
+            })}
           {!discrete
             ? charts.map((chart, index) => (
                 <VictoryLine
@@ -1216,12 +1303,22 @@ const ContinuousAreaChart: FC<Props> = ({
   );
 };
 
+type OobClampedBar = {
+  x: number;
+  clampedY: number;
+  trueY: number;
+};
+
 type NumericPredictionGraph = {
   graphLine: Line;
   verticalLines: Line;
   color: ContinuousAreaColor;
   type: ContinuousAreaType;
   graphType: ContinuousAreaGraphType;
+  oobClamped?: {
+    left?: OobClampedBar;
+    right?: OobClampedBar;
+  };
 };
 
 function generateNumericAreaGraph(data: {
@@ -1230,10 +1327,12 @@ function generateNumericAreaGraph(data: {
   graphType: ContinuousAreaGraphType;
   type: ContinuousAreaType;
   question: Question | GraphingQuestionProps;
+  oobCap?: number;
 }): NumericPredictionGraph {
-  const { pmf, cdf, graphType, type, question } = data;
+  const { pmf, cdf, graphType, type, question, oobCap } = data;
 
   const graph: Line = [];
+  const oobClamped: { left?: OobClampedBar; right?: OobClampedBar } = {};
   if (question.type === QuestionType.Discrete) {
     if (graphType === "cdf") {
       if (question.open_lower_bound) {
@@ -1253,16 +1352,27 @@ function generateNumericAreaGraph(data: {
       }
     } else {
       if (question.open_lower_bound) {
-        graph.push({ x: -0.5 / (cdf.length - 1), y: pmf.at(0) ?? 0 });
+        const trueY = pmf.at(0) ?? 0;
+        const x = -0.5 / (cdf.length - 1);
+        const clampedY =
+          oobCap !== undefined && trueY > oobCap ? oobCap : trueY;
+        if (clampedY !== trueY) {
+          oobClamped.left = { x, clampedY, trueY };
+        }
+        graph.push({ x, y: clampedY });
       }
       pmf.slice(1, -1).forEach((value, index) => {
         graph.push({ x: (index + 0.5) / (cdf.length - 1), y: value });
       });
       if (question.open_upper_bound) {
-        graph.push({
-          x: (cdf.length - 0.5) / (cdf.length - 1),
-          y: pmf.at(-1) ?? 0,
-        });
+        const trueY = pmf.at(-1) ?? 0;
+        const x = (cdf.length - 0.5) / (cdf.length - 1);
+        const clampedY =
+          oobCap !== undefined && trueY > oobCap ? oobCap : trueY;
+        if (clampedY !== trueY) {
+          oobClamped.right = { x, clampedY, trueY };
+        }
+        graph.push({ x, y: clampedY });
       }
     }
   } else {
@@ -1297,6 +1407,7 @@ function generateNumericAreaGraph(data: {
     }
   }
 
+  const hasOobClamp = !!(oobClamped.left || oobClamped.right);
   if (type === "user_components") {
     return {
       graphLine: graph,
@@ -1304,6 +1415,7 @@ function generateNumericAreaGraph(data: {
       color: CHART_COLOR_MAP[type],
       type,
       graphType,
+      ...(hasOobClamp ? { oobClamped } : {}),
     };
   }
 
@@ -1348,6 +1460,7 @@ function generateNumericAreaGraph(data: {
     color: CHART_COLOR_MAP[type],
     type,
     graphType,
+    ...(hasOobClamp ? { oobClamped } : {}),
   };
 }
 
