@@ -37,7 +37,12 @@ export default function EmailLinkEventToast() {
   useEffect(() => {
     if (searchParams.get("event") !== "emailLinkConfirmed") return;
 
-    const message = t(messageKey(searchParams.get("applied")));
+    const applied = searchParams.get("applied");
+    const message = t(messageKey(applied));
+    // Only the action-specific wording has to be read to be understood, so
+    // that sticks until dismissed. A bare "you're signed in" is self-evident
+    // from the page around it and can see itself out.
+    const isGenericConfirmation = messageKey(applied) === "emailLinkSignedIn";
 
     // Persists until dismissed: this is the only confirmation that the
     // deferred action was applied, so it must not scroll past unread.
@@ -59,7 +64,7 @@ export default function EmailLinkEventToast() {
           </button>
         </div>
       ),
-      { duration: Infinity }
+      { duration: isGenericConfirmation ? 3500 : Infinity }
     );
 
     const params = new URLSearchParams(searchParams.toString());

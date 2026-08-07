@@ -9,6 +9,7 @@ import {
   requestEmailLinkAction,
   verifyEmailLinkAction,
 } from "@/app/(main)/accounts/actions";
+import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import { readPending } from "@/components/email_capture/pending_store";
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/form_field";
@@ -89,7 +90,27 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
       // page can no longer discover which action the link carried
       const appliedTrigger = readPending()?.trigger ?? null;
 
-      setUser(result.user);
+      // Arriving by magic link means exploring, not enrolling: skip the
+      // forecaster tutorial for good rather than interrupting the action the
+      // user actually came to complete. Persisted so it holds on every device.
+      // Awaited and revalidating, not fire-and-forget: the destination page is
+      // server-rendered during the redirect below, and staleTimes.dynamic
+      // would otherwise serve a cached payload carrying the old flag, opening
+      // the tutorial anyway. Never let this block signing in.
+      const skipsOnboarding = !result.user.is_onboarding_complete;
+      if (skipsOnboarding) {
+        try {
+          await updateProfileAction({ is_onboarding_complete: true });
+        } catch {
+          // Non-fatal: worst case the tutorial appears once
+        }
+      }
+
+      setUser(
+        skipsOnboarding
+          ? { ...result.user, is_onboarding_complete: true }
+          : result.user
+      );
 
       router.replace(
         withConfirmedEvent(safeRedirect(redirectUrl), appliedTrigger)
@@ -154,6 +175,17 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
               onChange={(e) => {
                 setDraft(e.target.value);
                 if (requestError === "format") setRequestError(null);
+              }}
+              // Not inside a <form>, so Enter needs wiring
+              onKeyDown={(e) => {
+                if (
+                  e.key === "Enter" &&
+                  !isRequesting &&
+                  isTurnstileValidated
+                ) {
+                  e.preventDefault();
+                  void submitRequest();
+                }
               }}
               className={cn(
                 "h-12 w-full rounded border-[1.5px] bg-gray-0 px-3.5 text-center text-base text-gray-900 dark:bg-gray-0-dark dark:text-gray-900-dark",

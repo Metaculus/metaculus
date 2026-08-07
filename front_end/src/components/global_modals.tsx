@@ -2,6 +2,7 @@
 import dynamic from "next/dynamic";
 import React, { FC } from "react";
 
+import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import type { CurrentModal, ModalType } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
@@ -91,6 +92,10 @@ const GlobalModals: FC = () => {
   const onClose = () => setCurrentModal(null);
 
   const { PUBLIC_ALLOW_TUTORIAL } = usePublicSettings();
+  // Logging out is a client-side navigation, so the root layout (and this
+  // modal state) survives it. The tutorial is for signed-in forecasters
+  // only, so never show it to a signed-out visitor whatever opened it.
+  const { user } = useAuth();
 
   return (
     <>
@@ -132,9 +137,11 @@ const GlobalModals: FC = () => {
       {isModal(currentModal, "contactUs") && (
         <ContactUsModal isOpen onClose={onClose} />
       )}
-      {PUBLIC_ALLOW_TUTORIAL && isModal(currentModal, "onboarding") && (
-        <OnboardingModal isOpen onClose={onClose} />
-      )}
+      {PUBLIC_ALLOW_TUTORIAL &&
+        !!user &&
+        isModal(currentModal, "onboarding") && (
+          <OnboardingModal isOpen onClose={onClose} />
+        )}
       {isModal(currentModal, "confirm") && (
         <ConfirmModal
           isOpen

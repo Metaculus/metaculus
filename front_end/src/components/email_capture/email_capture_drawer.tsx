@@ -609,6 +609,13 @@ const EmailCaptureDrawer: FC<Props> = ({
                   setDraft(e.target.value);
                   if (error === "format") setError(null);
                 }}
+                // The field is not inside a <form>, so Enter needs wiring
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && isTurnstileValidated) {
+                    e.preventDefault();
+                    onSubmit();
+                  }
+                }}
                 className={cn(
                   "h-12 w-full rounded border-[1.5px] bg-gray-0 px-3.5 text-base text-gray-900 dark:bg-gray-0-dark dark:text-gray-900-dark",
                   error === "format"
@@ -676,7 +683,7 @@ const EmailCaptureDrawer: FC<Props> = ({
           >
             {t("emailCapturePassword")}
           </button>
-          <span className="text-center text-xs leading-relaxed text-gray-500 dark:text-gray-500-dark">
+          <span className="text-balance text-center text-xs leading-relaxed text-gray-500 dark:text-gray-500-dark">
             {t.rich("registrationTerms", {
               terms: (chunks) => (
                 <Link target="_blank" href={"/terms-of-use/"}>
