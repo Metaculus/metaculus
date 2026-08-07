@@ -175,7 +175,10 @@ const PostApprovalModal: FC<{
       scheduled_close_time &&
       scheduled_resolve_time &&
       isAfter(new Date(scheduled_close_time), new Date(close_date)) &&
-      !isAfter(new Date(scheduled_resolve_time), new Date(winners_announced_date))
+      !isAfter(
+        new Date(scheduled_resolve_time),
+        new Date(winners_announced_date)
+      )
     ) {
       setActiveModal("confirmCloseDate");
     } else {

@@ -286,7 +286,10 @@ function pickResolveTs(nowTs: number, timeline: TournamentTimeline | null) {
   return (isAllResolved ? actual : null) ?? effectiveScheduled ?? null;
 }
 
-function pickWinnersTs(resolvedTs: number | null, winnersAnnouncedDate: string | null) {
+function pickWinnersTs(
+  resolvedTs: number | null,
+  winnersAnnouncedDate: string | null
+) {
   const closeTs = safeTs(winnersAnnouncedDate);
   if (closeTs) return closeTs;
   return resolvedTs ? resolvedTs + TWO_WEEKS_MS : null;

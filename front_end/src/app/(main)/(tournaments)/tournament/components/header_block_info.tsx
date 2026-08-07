@@ -49,7 +49,10 @@ const HeaderBlockInfo: FC<Props> = async ({ tournament }) => {
           {!isNil(tournament.winners_announced_date) && (
             <TournamentStat
               title={t("EndDate")}
-              text={formatDate(locale, new Date(tournament.winners_announced_date))}
+              text={formatDate(
+                locale,
+                new Date(tournament.winners_announced_date)
+              )}
             />
           )}
         </div>

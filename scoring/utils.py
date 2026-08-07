@@ -601,7 +601,10 @@ def calculate_medals_points_at_time(at_time):
     leaderboard_age_expr = Case(
         When(
             leaderboard__project__type="tournament",
-            then=(at_time.year - ExtractYear(F("leaderboard__project__winners_announced_date"))),
+            then=(
+                at_time.year
+                - ExtractYear(F("leaderboard__project__winners_announced_date"))
+            ),
         ),
         When(
             leaderboard__end_time__isnull=False,

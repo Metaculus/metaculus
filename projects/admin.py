@@ -371,7 +371,11 @@ class ProjectAdminForm(forms.ModelForm):
         close_date = cleaned_data.get("close_date")
         winners_announced_date = cleaned_data.get("winners_announced_date")
 
-        if close_date and winners_announced_date and close_date > winners_announced_date:
+        if (
+            close_date
+            and winners_announced_date
+            and close_date > winners_announced_date
+        ):
             self.add_error(
                 "close_date",
                 "Close date must be before the winners announced date.",
@@ -920,7 +924,9 @@ class ProjectAdmin(CustomTranslationAdmin):
             return None
         leaderboard = obj.primary_leaderboard
         if leaderboard:
-            return leaderboard.finalize_time or (obj.winners_announced_date if obj else None)
+            return leaderboard.finalize_time or (
+                obj.winners_announced_date if obj else None
+            )
 
     primary_leaderboard_finalize_time.short_description = (
         "Time when Primary Leaderboard is Finalized"
