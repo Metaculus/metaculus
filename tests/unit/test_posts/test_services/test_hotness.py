@@ -79,7 +79,7 @@ def test_decay(dt: datetime.datetime, expected: float):
                 "scheduled_close_time": make_aware(datetime.datetime(2025, 4, 25)),
                 "movement": 0.4,
             },
-            10.5,
+            9.25,
         ],
         # Resolved question
         [
@@ -92,7 +92,7 @@ def test_decay(dt: datetime.datetime, expected: float):
                 # Should be ignored
                 "movement": 0.4,
             },
-            5.625,
+            5.3125,
         ],
         # Unsuccessfully resolved question
         [
@@ -103,7 +103,7 @@ def test_decay(dt: datetime.datetime, expected: float):
                 "resolution_set_time": make_aware(datetime.datetime(2025, 4, 11)),
                 "resolution": "annulled",
             },
-            0.625,
+            0.3125,
         ],
     ],
 )
@@ -409,7 +409,7 @@ def test_compute_post_hotness(user1):
         scheduled_resolve_time=make_aware(datetime.datetime(2025, 5, 5)),
         group_of_questions=factory_group_of_questions(
             questions=[
-                # Will be scored as 15
+                # Scored as 5.3125: open decay(5) 0.3125 + resolution decay(20) 5
                 create_question(
                     question_type=Question.QuestionType.BINARY,
                     open_time=make_aware(datetime.datetime(2025, 4, 4)),
@@ -417,7 +417,7 @@ def test_compute_post_hotness(user1):
                     resolution_set_time=make_aware(datetime.datetime(2025, 4, 11)),
                     resolution="yes",
                 ),
-                # Will be scored as 18
+                # Scored as 1.25: open decay(5) only
                 create_question(
                     question_type=Question.QuestionType.BINARY,
                     open_time=make_aware(datetime.datetime(2025, 4, 11)),
@@ -439,7 +439,7 @@ def test_compute_post_hotness(user1):
     # Add ITN article. News score: max(0, 0.42 - 0.1) = 0.32
     PostArticle.objects.create(post=post, article=factory_itn_article(), distance=0.1)
 
-    assert compute_post_hotness(post) == pytest.approx(108.945)
+    assert compute_post_hotness(post) == pytest.approx(108.6325)
 
 
 @freeze_time("2025-04-18")
