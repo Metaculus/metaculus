@@ -12,6 +12,7 @@ import {
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { SocialProviderType } from "@/types/auth";
 import { rotateCsrfToken } from "@/utils/csrf";
+import { withConfirmedEvent } from "@/utils/email_link_confirmation";
 
 type Props = {
   provider: SocialProviderType;
@@ -40,7 +41,9 @@ const SocialAuthClient: FC<Props> = ({
         rotateCsrfToken();
         // Signed in now; any pending email-confirmation reminder is obsolete
         clearPending();
-        router.push(redirectUrl);
+        // Same confirmation the email-link path shows, so a carried-through
+        // action is acknowledged rather than applied silently
+        router.push(withConfirmedEvent(redirectUrl, stash?.trigger ?? null));
       })
       .catch(showBoundary);
   }, [provider, code, nonce, redirectUrl, router, showBoundary]);

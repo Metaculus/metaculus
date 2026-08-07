@@ -63,7 +63,7 @@ const BottomDrawer: FC<Props> = ({
               className
             )}
           >
-            <Drawer.Content className="flex max-h-[calc(100dvh-8rem)] min-h-0 flex-col overflow-y-auto overscroll-contain">
+            <Drawer.Content className="flex max-h-[calc(100dvh-8rem)] min-h-0 flex-col overflow-y-auto overscroll-contain no-scrollbar">
               {!title && label && (
                 <Drawer.Title className="sr-only">{label}</Drawer.Title>
               )}

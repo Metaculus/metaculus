@@ -2447,5 +2447,14 @@
   "notifyMeCtaFollowing": "你正在追蹤此問題",
   "emailCaptureSubscribeBodyRepeat": "我們將向 {email} 發送一個新連結。它將改為開啟這些更新。",
   "shareOpenedInNewTab": "已在新分頁中打開 {target}。",
-  "copiedUrlMessage": "連結已複製到剪貼簿"
+  "copiedUrlMessage": "連結已複製到剪貼簿",
+  "emailLinkSignedInSubscribe": "你已登入，現在正在追蹤此問題。",
+  "emailLinkSignedInVote": "你已登入，你的投票已儲存。",
+  "emailLinkSignedInForecast": "你已登入，你的預測已儲存。",
+  "emailCaptureSignInTitle": "使用魔法連結登入",
+  "emailCaptureSignInBody": "輸入你的電子郵件。我們將發送一個登入連結。",
+  "emailCaptureSentActionSignInOnly": "點擊它即可登入。",
+  "emailCaptureRecapActionSignIn": "點擊該郵件中的連結即可登入。",
+  "loginMagicLink": "使用魔法連結登入",
+  "registrationMagicLink": "使用魔法連結註冊"
 }

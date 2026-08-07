@@ -17,6 +17,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import cn from "@/utils/core/cn";
+import { withConfirmedEvent } from "@/utils/email_link_confirmation";
 import { ensureRelativeRedirect } from "@/utils/navigation";
 
 type Props = {
@@ -32,16 +33,6 @@ function safeRedirect(redirectUrl: string): string {
   } catch {
     return "/";
   }
-}
-
-// Add the confirmation marker as a query param. The URL API keeps the query
-// before any #fragment (where EmailLinkEventToast reads it), leaving the
-// fragment anchor intact. `url` must be a valid relative path - safeRedirect
-// guarantees that before we get here.
-function withConfirmedEvent(url: string): string {
-  const parsed = new URL(url, window.location.origin);
-  parsed.searchParams.set("event", "emailLinkConfirmed");
-  return `${parsed.pathname}${parsed.search}${parsed.hash}`;
 }
 
 const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
@@ -93,9 +84,16 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
         return;
       }
 
+      // Read before setUser: the confirm-email banner clears the pending
+      // record in an effect as soon as a user appears, so the destination
+      // page can no longer discover which action the link carried
+      const appliedTrigger = readPending()?.trigger ?? null;
+
       setUser(result.user);
 
-      router.replace(withConfirmedEvent(safeRedirect(redirectUrl)));
+      router.replace(
+        withConfirmedEvent(safeRedirect(redirectUrl), appliedTrigger)
+      );
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -182,6 +180,8 @@ const EmailLinkVerify: FC<Props> = ({ userId, token, redirectUrl }) => {
               <Turnstile
                 ref={turnstileRef}
                 siteKey={PUBLIC_TURNSTILE_SITE_KEY}
+                options={{ appearance: "interaction-only" }}
+                className="self-center"
                 onSuccess={(turnstileToken) => {
                   turnstileTokenRef.current = turnstileToken;
                   setIsTurnstileValidated(true);

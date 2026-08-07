@@ -3,9 +3,11 @@
 import { faArrowLeft, faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Turnstile, TurnstileInstance } from "@marsidev/react-turnstile";
+import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useMemo, useRef, useState } from "react";
+import toast from "react-hot-toast";
 
 import { requestEmailLinkAction } from "@/app/(main)/accounts/actions";
 import BaseModal from "@/components/base_modal";
@@ -26,12 +28,13 @@ import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { useServerAction } from "@/hooks/use_server_action";
 import useSocialAuth from "@/hooks/use_social_auth";
-import { GatedActionInput, GatedActionTrigger } from "@/types/gated_actions";
+import { CaptureTrigger, GatedActionInput } from "@/types/gated_actions";
 import { PostSubscription, PostSubscriptionType } from "@/types/post";
 import { sendAnalyticsEvent } from "@/utils/analytics";
 import cn from "@/utils/core/cn";
 
 import {
+  clearPending,
   readPending,
   stashSocialGatedAction,
   writePending,
@@ -46,7 +49,7 @@ type SubscribeOptionId = "resolve" | "forecast" | "discussion";
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  trigger: GatedActionTrigger;
+  trigger: CaptureTrigger;
   surface?: string;
   gatedAction?: GatedActionInput | null;
   subscribePost?: { postId: number; isNotebook: boolean };
@@ -229,18 +232,10 @@ const EmailCaptureDrawer: FC<Props> = ({
       });
       return false;
     }
-    const sendAt = Date.now();
-    writePending({
-      email,
-      sentAt: sendAt,
-      trigger,
-      surface,
-      gatedAction: action,
-      redirectUrl,
-    });
-    setSentEmail(email);
-    setLastSendAt(sendAt);
     sentThisSessionRef.current = true;
+    // Fires only on a confirmed send: this is the subscribe-capture
+    // experiment's primary metric, so an optimistic fire would count
+    // failures as conversions
     sendAnalyticsEvent("emailSubmitted", {
       trigger,
       surface,
@@ -249,7 +244,7 @@ const EmailCaptureDrawer: FC<Props> = ({
     return true;
   };
 
-  const onSubmit = async () => {
+  const onSubmit = () => {
     const storedEmail = pending?.email ?? "";
     // A stored address that no longer validates would strand the user: the
     // input and its error are both hidden while prefilled, so switch to the
@@ -271,20 +266,45 @@ const EmailCaptureDrawer: FC<Props> = ({
       return;
     }
     setError(null);
-    const wasRepeat = prefilled || !!pending;
-    const ok = await performSend(email, resolveGatedAction());
-    if (ok) {
-      setWasRepeatSend(wasRepeat);
-      setView("sent");
-    }
+
+    // Optimistic: the sent state (and the reminder banner behind it) appear
+    // straight away and the request runs in the background. Only a failure
+    // pulls the user back, with the address still in the field.
+    const action = resolveGatedAction();
+    const sendAt = Date.now();
+    writePending({
+      email,
+      sentAt: sendAt,
+      trigger,
+      surface,
+      gatedAction: action,
+      redirectUrl,
+    });
+    setSentEmail(email);
+    setLastSendAt(sendAt);
+    setWasRepeatSend(prefilled || !!pending);
+    setView("sent");
+
+    void performSend(email, action).then((ok) => {
+      if (ok) return;
+      clearPending();
+      setEditingEmail(true);
+      setDraft(email);
+      setView("input");
+      toast.error(t("emailCaptureServerError"));
+    });
   };
-  const [submit, isPending] = useServerAction(onSubmit);
 
   const onResend = async () => {
     const record = readPending();
     if (!record) return;
     const ok = await performSend(record.email, record.gatedAction);
-    if (ok) setResendFeedback(true);
+    if (!ok) return;
+    // Restart the cooldown from this send, keeping the record's own context
+    const sentAt = Date.now();
+    writePending({ ...record, sentAt });
+    setLastSendAt(sentAt);
+    setResendFeedback(true);
   };
   const [resend, isResending] = useServerAction(onResend);
 
@@ -332,6 +352,14 @@ const EmailCaptureDrawer: FC<Props> = ({
   const inputCopy = (() => {
     const email = pending?.email ?? "";
     switch (trigger) {
+      case "sign_in":
+        return {
+          title: t("emailCaptureSignInTitle"),
+          body: prefilled
+            ? t("emailCaptureBodyRepeat", { email })
+            : t("emailCaptureSignInBody"),
+          caption: t("emailCaptureSignInCaption"),
+        };
       case "post_vote":
         return {
           title: t("emailCaptureVoteTitle"),
@@ -371,6 +399,15 @@ const EmailCaptureDrawer: FC<Props> = ({
 
   const sentAction = (() => {
     if (trigger === "post_vote") return t("emailCaptureSentActionVote");
+    if (trigger === "sign_in") {
+      // A pending action from an earlier gate still rides along, so name it
+      const sentType = pending?.gatedAction?.type;
+      if (sentType === "forecast") return t("emailCaptureSentActionForecast");
+      if (sentType === "post_vote") return t("emailCaptureSentActionVote");
+      if (sentType === "post_subscribe")
+        return t("emailCaptureSentActionSubscribeAll");
+      return t("emailCaptureSentActionSignInOnly");
+    }
     if (trigger === "forecast") {
       // What actually went out: the fresh draft, else the still-pending
       // earlier action (resolveGatedAction keeps it so we never clear it)
@@ -407,6 +444,7 @@ const EmailCaptureDrawer: FC<Props> = ({
 
   const recapAction = (() => {
     const recapTrigger = pending?.trigger ?? trigger;
+    if (recapTrigger === "sign_in") return t("emailCaptureRecapActionSignIn");
     if (recapTrigger === "post_vote") return t("emailCaptureRecapActionVote");
     if (recapTrigger === "forecast")
       return t("emailCaptureRecapActionForecast");
@@ -588,16 +626,14 @@ const EmailCaptureDrawer: FC<Props> = ({
           <Button
             variant="primary"
             className="w-full"
-            disabled={isPending || !isTurnstileValidated}
-            onClick={submit}
+            disabled={!isTurnstileValidated}
+            onClick={onSubmit}
           >
-            {isPending
-              ? t("emailCaptureSending")
-              : error === "server"
-                ? t("emailCaptureTryAgain")
-                : prefilled
-                  ? t("emailCaptureSendNew")
-                  : t("emailCaptureSend")}
+            {error === "server"
+              ? t("emailCaptureTryAgain")
+              : prefilled
+                ? t("emailCaptureSendNew")
+                : t("emailCaptureSend")}
           </Button>
           {prefilled && (
             <button
@@ -605,7 +641,7 @@ const EmailCaptureDrawer: FC<Props> = ({
                 setEditingEmail(true);
                 setDraft("");
               }}
-              className={cn(secondaryLink, "self-start")}
+              className={cn(secondaryLink, "self-center")}
             >
               {t("emailCaptureUseDifferentEmail")}
             </button>
@@ -640,6 +676,20 @@ const EmailCaptureDrawer: FC<Props> = ({
           >
             {t("emailCapturePassword")}
           </button>
+          <span className="text-center text-xs leading-relaxed text-gray-500 dark:text-gray-500-dark">
+            {t.rich("registrationTerms", {
+              terms: (chunks) => (
+                <Link target="_blank" href={"/terms-of-use/"}>
+                  {chunks}
+                </Link>
+              ),
+              privacy: (chunks) => (
+                <Link target="_blank" href={"/privacy-policy/"}>
+                  {chunks}
+                </Link>
+              ),
+            })}
+          </span>
         </>
       )}
 
@@ -695,7 +745,7 @@ const EmailCaptureDrawer: FC<Props> = ({
                   setDraft("");
                   setView("input");
                 }}
-                className={cn(secondaryLink, "self-start")}
+                className={cn(secondaryLink, "self-center")}
               >
                 {t("emailCaptureUseDifferentEmail")}
               </button>
@@ -715,7 +765,7 @@ const EmailCaptureDrawer: FC<Props> = ({
                   setDraft("");
                   setView("input");
                 }}
-                className={cn(secondaryLink, "self-start")}
+                className={cn(secondaryLink, "self-center")}
               >
                 {t("emailCaptureWrongAddress")}
               </button>
@@ -730,6 +780,10 @@ const EmailCaptureDrawer: FC<Props> = ({
         <Turnstile
           ref={turnstileRef}
           siteKey={PUBLIC_TURNSTILE_SITE_KEY}
+          // Renders nothing unless Cloudflare actually needs a challenge, so
+          // the widget can stay mounted for resend without adding chrome
+          options={{ appearance: "interaction-only" }}
+          className="self-center"
           onSuccess={(token) => {
             turnstileTokenRef.current = token;
             setIsTurnstileValidated(true);

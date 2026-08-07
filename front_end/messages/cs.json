@@ -2450,5 +2450,14 @@
   "notifyMeCtaFollowing": "Sledujete tuto otázku",
   "emailCaptureSubscribeBodyRepeat": "Pošleme nový odkaz na {email}. Místo toho zapne tyto novinky.",
   "shareOpenedInNewTab": "{target} otevřeno v nové kartě.",
-  "copiedUrlMessage": "URL byla zkopírována do schránky"
+  "copiedUrlMessage": "URL byla zkopírována do schránky",
+  "emailLinkSignedInSubscribe": "Jste přihlášeni a nyní sledujete tuto otázku.",
+  "emailLinkSignedInVote": "Jste přihlášeni a váš hlas je uložen.",
+  "emailLinkSignedInForecast": "Jste přihlášeni a vaše prognóza je uložena.",
+  "emailCaptureSignInTitle": "Přihlásit se pomocí kouzelného odkazu",
+  "emailCaptureSignInBody": "Zadejte svůj e-mail. Pošleme vám odkaz, který vás přihlásí.",
+  "emailCaptureSentActionSignInOnly": "Klikněte na něj a přihlaste se.",
+  "emailCaptureRecapActionSignIn": "Klikněte na odkaz v tomto e-mailu a přihlaste se.",
+  "loginMagicLink": "Přihlásit se pomocí kouzelného odkazu",
+  "registrationMagicLink": "Zaregistrovat se pomocí kouzelného odkazu"
 }

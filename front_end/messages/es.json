@@ -2450,5 +2450,14 @@
   "notifyMeCtaFollowing": "Estás siguiendo esta pregunta",
   "emailCaptureSubscribeBodyRepeat": "Enviaremos un nuevo enlace a {email}. Activará estas novedades en su lugar.",
   "shareOpenedInNewTab": "Se abrió {target} en una pestaña nueva.",
-  "copiedUrlMessage": "La URL se ha copiado en tu portapapeles"
+  "copiedUrlMessage": "La URL se ha copiado en tu portapapeles",
+  "emailLinkSignedInSubscribe": "Has iniciado sesión y ahora sigues esta pregunta.",
+  "emailLinkSignedInVote": "Has iniciado sesión y tu voto está guardado.",
+  "emailLinkSignedInForecast": "Has iniciado sesión y tu pronóstico está guardado.",
+  "emailCaptureSignInTitle": "Iniciar sesión con un enlace mágico",
+  "emailCaptureSignInBody": "Introduce tu correo. Te enviaremos un enlace para iniciar sesión.",
+  "emailCaptureSentActionSignInOnly": "Haz clic en él para iniciar sesión.",
+  "emailCaptureRecapActionSignIn": "Haz clic en el enlace de ese correo para iniciar sesión.",
+  "loginMagicLink": "Iniciar sesión con un enlace mágico",
+  "registrationMagicLink": "Registrarse con un enlace mágico"
 }

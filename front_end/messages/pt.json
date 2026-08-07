@@ -2448,5 +2448,14 @@
   "notifyMeCtaFollowing": "Você está seguindo esta pergunta",
   "emailCaptureSubscribeBodyRepeat": "Enviaremos um novo link para {email}. Ele ativará estas novidades no lugar.",
   "shareOpenedInNewTab": "Abrimos {target} em uma nova aba.",
-  "copiedUrlMessage": "A URL foi copiada para sua área de transferência"
+  "copiedUrlMessage": "A URL foi copiada para sua área de transferência",
+  "emailLinkSignedInSubscribe": "Você entrou e agora está seguindo esta pergunta.",
+  "emailLinkSignedInVote": "Você entrou e seu voto foi salvo.",
+  "emailLinkSignedInForecast": "Você entrou e sua previsão foi salva.",
+  "emailCaptureSignInTitle": "Entrar com um link mágico",
+  "emailCaptureSignInBody": "Insira seu e-mail. Enviaremos um link que faz seu login.",
+  "emailCaptureSentActionSignInOnly": "Clique nele para entrar.",
+  "emailCaptureRecapActionSignIn": "Clique no link desse e-mail para entrar.",
+  "loginMagicLink": "Entrar com um link mágico",
+  "registrationMagicLink": "Cadastrar-se com um link mágico"
 }

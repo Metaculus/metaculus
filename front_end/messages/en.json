@@ -2440,5 +2440,14 @@
   "notifyMeCtaFollowing": "You're following this question",
   "emailCaptureSubscribeBodyRepeat": "We'll send a new link to {email}. It turns on these updates instead.",
   "shareOpenedInNewTab": "Opened {target} in a new tab.",
-  "copiedUrlMessage": "URL is now copied to your clipboard"
+  "copiedUrlMessage": "URL is now copied to your clipboard",
+  "emailLinkSignedInSubscribe": "You're signed in, and you're now following this question.",
+  "emailLinkSignedInVote": "You're signed in, and your vote is saved.",
+  "emailLinkSignedInForecast": "You're signed in, and your forecast is saved.",
+  "emailCaptureSignInTitle": "Sign in with a magic link",
+  "emailCaptureSignInBody": "Enter your email. We'll send a link that signs you in.",
+  "emailCaptureSentActionSignInOnly": "Click it to sign in.",
+  "emailCaptureRecapActionSignIn": "Click the link in that email to sign in.",
+  "loginMagicLink": "Sign in with a magic link",
+  "registrationMagicLink": "Sign up with a magic link"
 }

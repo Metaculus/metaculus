@@ -10,7 +10,7 @@ import {
 
 import { QuestionLinkDirection, QuestionLinkStrength } from "@/types/coherence";
 import { CommentType } from "@/types/comment";
-import { GatedActionInput, GatedActionTrigger } from "@/types/gated_actions";
+import { CaptureTrigger, GatedActionInput } from "@/types/gated_actions";
 import { CurrentUser } from "@/types/users";
 
 export type ModalType =
@@ -57,7 +57,7 @@ type ModalDataByType = {
     onSubmitted?: () => void;
   };
   emailCapture: {
-    trigger: GatedActionTrigger;
+    trigger: CaptureTrigger;
     surface?: string;
     gatedAction?: GatedActionInput | null;
     subscribePost?: { postId: number; isNotebook: boolean };

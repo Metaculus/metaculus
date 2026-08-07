@@ -2451,5 +2451,14 @@
   "notifyMeCtaFollowing": "你正在关注此问题",
   "emailCaptureSubscribeBodyRepeat": "我们将向 {email} 发送一个新链接。它将改为开启这些更新。",
   "shareOpenedInNewTab": "已在新标签页中打开 {target}。",
-  "copiedUrlMessage": "链接已复制到剪贴板"
+  "copiedUrlMessage": "链接已复制到剪贴板",
+  "emailLinkSignedInSubscribe": "你已登录，现在正在关注此问题。",
+  "emailLinkSignedInVote": "你已登录，你的投票已保存。",
+  "emailLinkSignedInForecast": "你已登录，你的预测已保存。",
+  "emailCaptureSignInTitle": "使用魔法链接登录",
+  "emailCaptureSignInBody": "输入你的邮箱。我们将发送一个登录链接。",
+  "emailCaptureSentActionSignInOnly": "点击它即可登录。",
+  "emailCaptureRecapActionSignIn": "点击该邮件中的链接即可登录。",
+  "loginMagicLink": "使用魔法链接登录",
+  "registrationMagicLink": "使用魔法链接注册"
 }
