@@ -4,9 +4,9 @@ import { DialogTitle } from "@headlessui/react";
 import Image from "next/image";
 import React, { FC } from "react";
 
+import { MetaculusMark } from "@/components/logos";
 import { sanitizeHtmlContent } from "@/utils/markdown";
 
-import MetaculusLogo from "./MetacLogo";
 import ModalWithArrows from "./ModalWithArrows";
 import { Group, Groups, Person } from "./TeamBlock";
 
@@ -78,7 +78,7 @@ const PersonModal: FC<Props> = ({
                   href={`/accounts/profile/${userId}/`}
                   className="inline-flex size-7 items-center justify-center rounded-sm bg-gray-400 text-gray-0 hover:bg-blue-700 hover:text-gray-0 dark:bg-gray-500 dark:text-gray-900 hover:dark:bg-blue-300"
                 >
-                  <MetaculusLogo className="h-7 w-7" />
+                  <MetaculusMark className="h-5 w-auto" />
                 </a>
               )}
               {socials &&

@@ -39,7 +39,7 @@ const ConditionalCard: FC<PropsWithChildren<Props>> = ({
 
   if (href) {
     return (
-      <Link href={href} className="no-underline">
+      <Link href={href} prefetch={false} className="no-underline">
         {CardContent}
       </Link>
     );

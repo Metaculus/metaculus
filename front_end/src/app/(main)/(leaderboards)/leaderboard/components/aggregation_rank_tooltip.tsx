@@ -40,7 +40,8 @@ const AggregationRankTooltip: FC<Props> = ({ aggregationMethod }) => {
             </RichText>
           }
           className="absolute left-full top-1/2 ml-0 inline-flex -translate-y-1/2 items-center justify-center font-sans text-base leading-none"
-          tooltipClassName="font-sans text-center text-gray-800 dark:text-gray-800-dark border-blue-400 dark:border-blue-400-dark bg-gray-0 dark:bg-gray-0-dark"
+          variant="light"
+          tooltipClassName="font-sans text-center"
         >
           <span className="leading-none">ⓘ</span>
         </Tooltip>

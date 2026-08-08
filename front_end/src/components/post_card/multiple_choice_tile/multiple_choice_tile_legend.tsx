@@ -64,6 +64,7 @@ const MultipleChoiceTileLegend: FC<Props> = ({
           displayedResolution,
           scaling,
           actual_resolve_time,
+          latestValue,
         }) => (
           <div
             key={`choice-option-${choice}`}
@@ -83,6 +84,7 @@ const MultipleChoiceTileLegend: FC<Props> = ({
               actual_resolve_time={actual_resolve_time}
               withIcon={withChoiceIcon}
               cursorTimestamp={cursorTimestamp}
+              latestValue={hideCP ? undefined : latestValue}
             />
           </div>
         )

@@ -13,7 +13,7 @@ import { ReactNode } from "react";
 import { ComponentProps, useCallback, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
-import { MetaculusTextLogo } from "@/app/(main)/components/MetaculusTextLogo";
+import { MetaculusWordmark } from "@/components/logos";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { METAC_COLORS } from "@/constants/colors";
@@ -306,6 +306,7 @@ export function QuestionCard({
   titleClassName,
   showMoreButton = true,
   postIds = [],
+  headerActions,
   ...props
 }: Omit<ComponentProps<"div">, "title"> & {
   title?: ReactNode;
@@ -317,6 +318,8 @@ export function QuestionCard({
   showMoreButton?: boolean;
   /** Post IDs for actions (view, export, share) */
   postIds?: number[];
+  /** Optional element(s) rendered in the top-right header, left of the "…" menu. */
+  headerActions?: ReactNode;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const titleVariant = titleVariantOverride ?? variant;
@@ -389,20 +392,23 @@ export function QuestionCard({
       )}
       {...props}
     >
-      {showMoreButton && postIds.length > 0 && (
+      {(headerActions || (showMoreButton && postIds.length > 0)) && (
         <div
           className={cn(
-            "absolute right-4 top-4 z-10 [visibility:var(--ss-hidden,visible)] print:hidden",
+            "absolute right-4 top-4 z-10 flex items-center gap-2 [visibility:var(--ss-hidden,visible)] print:hidden",
             variant === "section"
               ? "md:right-8 md:top-8"
               : "lg:right-5 lg:top-5"
           )}
         >
-          <MoreButton
-            postIds={postIds}
-            postTitle={titleString}
-            onExportPng={handleExportPng}
-          />
+          {headerActions}
+          {showMoreButton && postIds.length > 0 && (
+            <MoreButton
+              postIds={postIds}
+              postTitle={titleString}
+              onExportPng={handleExportPng}
+            />
+          )}
         </div>
       )}
       {title && (
@@ -444,7 +450,7 @@ export function QuestionCard({
       {/* Footer with Metaculus attribution */}
       <div className="-mb-4 mt-2 flex items-center justify-center gap-1.5 text-xs text-gray-500 [visibility:var(--ss-visible,hidden)] dark:text-gray-500-dark">
         <span>Data from</span>
-        <MetaculusTextLogo className="h-3 w-auto" />
+        <MetaculusWordmark className="h-3 w-auto" />
         <span>on {formatCurrentDate()}</span>
       </div>
     </div>

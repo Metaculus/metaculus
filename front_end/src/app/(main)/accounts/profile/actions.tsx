@@ -109,6 +109,12 @@ export async function updateProfileAction(
       | "app_theme"
       | "interface_type"
       | "language"
+      | "metaculus_news_subscription"
+      | "automatically_follow_on_predict"
+      | "follow_notify_cp_change_threshold"
+      | "follow_notify_comments_frequency"
+      | "follow_notify_milestone_step"
+      | "follow_notify_on_status_change"
     >
   >,
   revalidate = true

@@ -15,39 +15,45 @@ import { FE_COLORS, FE_TYPOGRAPHY } from "../theme";
 const FutureEvalTournaments: React.FC = () => {
   const CARDS_DATA = [
     {
-      title: "Spring 2026",
-      href: "/aib/2026/spring",
-      imgUrl: "https://cdn.metaculus.com/hires-spring.webp",
+      title: "Summer 2026",
+      href: "/tournament/summer-futureeval-2026/",
+      imgUrl: "https://cdn.metaculus.com/cover-summer_5fNCoRW.webp",
       prize: "$58,000",
       isLive: true,
     },
     {
+      title: "Spring 2026",
+      href: "/tournament/spring-aib-2026/",
+      imgUrl: "https://cdn.metaculus.com/hires-spring.webp",
+      prize: "$58,000",
+    },
+    {
       title: "Fall 2025",
-      href: "/aib/2025/fall",
+      href: "/tournament/fall-aib-2025/",
       imgUrl: "https://cdn.metaculus.com/aib-q3.webp",
       prize: "$58,000",
     },
     {
       title: "Q2 2025",
-      href: "/aib/2025/q2",
+      href: "/tournament/aibq2/",
       imgUrl: "https://cdn.metaculus.com/aib-q2.webp",
       prize: "$30,000",
     },
     {
       title: "Q1 2025",
-      href: "/aib/2025/q1",
+      href: "/tournament/aibq1/",
       imgUrl: "https://cdn.metaculus.com/2025-q1.webp",
       prize: "$30,000",
     },
     {
       title: "Q4 2024",
-      href: "/aib/2024/q4",
+      href: "/tournament/aibq4/",
       imgUrl: "https://cdn.metaculus.com/hires-q4.webp",
       prize: "$30,000",
     },
     {
       title: "Q3 2024",
-      href: "/aib/2024/q3",
+      href: "/tournament/aibq3/",
       imgUrl: "https://cdn.metaculus.com/hires-bw.webp",
       prize: "$30,000",
     },

@@ -30,6 +30,7 @@ export const MockCommentsFeedProvider: React.FC<PropsWithChildren> = ({
         ensureCommentLoaded: async () => false,
         refreshComment: async () => {},
         updateComment: () => {},
+        fetchFocusedCommentThread: async () => null,
       }}
     >
       {children}

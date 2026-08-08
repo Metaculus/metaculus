@@ -170,7 +170,8 @@ export const PostStatusBox: FC<{
           {canSendBackToDrafts && defaultProject && (
             <Button
               onClick={async () => {
-                await draftPost(post.id, defaultProject);
+                await draftPost(post.id);
+                router.refresh();
               }}
             >
               {t("sendBackToDrafts")}

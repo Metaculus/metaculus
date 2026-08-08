@@ -5,26 +5,26 @@ import io
 import zipfile
 
 import numpy as np
-from django.db.models import QuerySet, Q
+from django.db.models import Q, QuerySet
 from django.utils import timezone
 
 from coherence.models import AggregateCoherenceLink
 from comments.models import Comment, KeyFactor
 from posts.models import Post
 from questions.models import (
-    Question,
+    QUESTION_CONTINUOUS_TYPES,
     AggregateForecast,
     Forecast,
-    QUESTION_CONTINUOUS_TYPES,
+    Question,
 )
 from questions.services.multiple_choice_handlers import get_all_options_from_history
 from questions.types import AggregationMethod
-from scoring.models import Score, ArchivedScore
+from scoring.models import ArchivedScore, Score
 from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import (
-    unscaled_location_to_scaled_location,
     string_location_to_bucket_index,
+    unscaled_location_to_scaled_location,
 )
 from utils.the_math.measures import percent_point_function
 
@@ -1010,7 +1010,9 @@ def generate_data(
 
     # create a zip file with both csv files
     zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+    with zipfile.ZipFile(
+        zip_buffer, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9
+    ) as zip_file:
         zip_file.writestr("README.md", readme_output.getvalue())
         zip_file.writestr("question_data.csv", question_output.getvalue())
         zip_file.writestr("forecast_data.csv", forecast_output.getvalue())

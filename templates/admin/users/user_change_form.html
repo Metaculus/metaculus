@@ -1,0 +1,16 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls %}
+
+{% block object-tools-items %}
+{% if original.pk and original.is_bot %}
+<li>
+    <a href="{% url 'admin:privatize-user-comments' original.pk %}"
+       class="button"
+       style="background:#ba2121;color:#fff;padding:5px 10px;border-radius:4px;text-decoration:none;"
+       onclick="return confirm('Privatize all eligible comments for {{ original.username }}? Comments with replies from other users will be skipped. This cannot be undone.')">
+        Privatize Comments
+    </a>
+</li>
+{% endif %}
+{{ block.super }}
+{% endblock %}

@@ -23,6 +23,7 @@ type Props = {
   onMorePanelToggle?: (open: boolean) => void;
   isMorePanelOpen?: boolean;
   truncateText?: boolean;
+  large?: boolean;
 };
 
 const KeyFactorBaseRate: React.FC<Props> = ({
@@ -36,6 +37,7 @@ const KeyFactorBaseRate: React.FC<Props> = ({
   onMorePanelToggle,
   isMorePanelOpen,
   truncateText,
+  large,
 }) => {
   const t = useTranslations();
   if (!keyFactor.base_rate) return null;
@@ -60,7 +62,11 @@ const KeyFactorBaseRate: React.FC<Props> = ({
       <KeyFactorText
         text={baseRate.reference_class}
         className={
-          isCompact || isConsumer ? "text-xs leading-4" : "text-sm leading-5"
+          large
+            ? "text-base leading-6"
+            : isCompact || isConsumer
+              ? "text-xs leading-4"
+              : "text-sm leading-5"
         }
         truncate={truncateText}
       />

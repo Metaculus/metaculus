@@ -16,9 +16,11 @@ import {
 
 type Props = {
   question: QuestionWithForecasts;
-  size?: "md" | "lg";
+  size?: "sm" | "md" | "lg";
   variant?: "feed" | "question";
   colorOverride?: string;
+  overrideCenter?: number | null;
+  overrideBounds?: [number, number] | null;
 };
 
 const ContinuousCPBar: FC<Props> = ({
@@ -26,6 +28,8 @@ const ContinuousCPBar: FC<Props> = ({
   size = "md",
   variant = "feed",
   colorOverride,
+  overrideCenter,
+  overrideBounds,
 }) => {
   const latest =
     question.aggregations[question.default_aggregation_method]?.latest;
@@ -41,18 +45,20 @@ const ContinuousCPBar: FC<Props> = ({
   }
   const discreteValueOptions = getDiscreteValueOptions(question);
 
+  const effectiveCenter = overrideCenter ?? latest.centers?.[0];
+  const effectiveLower =
+    overrideBounds?.[0] ?? latest.interval_lower_bounds?.[0];
+  const effectiveUpper =
+    overrideBounds?.[1] ?? latest.interval_upper_bounds?.[0];
+
   const displayValue = getPredictionDisplayValue(
-    latest.centers?.[0],
+    effectiveCenter,
     {
       questionType: question.type,
       scaling: question.scaling,
       range:
-        !isNil(latest?.interval_lower_bounds?.[0]) &&
-        !isNil(latest?.interval_upper_bounds?.[0])
-          ? [
-              latest?.interval_lower_bounds?.[0] as number,
-              latest?.interval_upper_bounds?.[0] as number,
-            ]
+        !isNil(effectiveLower) && !isNil(effectiveUpper)
+          ? [effectiveLower as number, effectiveUpper as number]
           : [],
       unit: question.unit,
       actual_resolve_time: question.actual_resolve_time ?? null,
@@ -88,7 +94,9 @@ const ContinuousCPBar: FC<Props> = ({
     >
       <div
         style={accentStyle}
-        className={cn("text-sm font-bold md:text-base", {
+        className={cn("font-bold", {
+          "text-xs md:text-sm": size === "sm",
+          "text-sm md:text-base": size === "md",
           "mb-1 text-base": size === "lg",
           "mb-0 truncate text-sm md:text-sm": isEmbed,
           "text-olive-800 dark:text-olive-800-dark":
@@ -108,10 +116,14 @@ const ContinuousCPBar: FC<Props> = ({
       {!isNil(intervalLabel) && !isEmbedBelow376 && (
         <div
           style={accentStyle}
-          className={cn("text-[10px] font-normal tabular-nums md:text-xs", {
-            "text-sm": size === "lg",
+          className={cn("font-normal tabular-nums", {
+            "text-[10px] md:text-xs":
+              (size === "md" || size === "sm") && !isDate,
+            "text-sm": size === "lg" && !isDate,
+            "text-xs": isDate,
             "mb-0 text-xs md:text-xs": isEmbed && !isEmbedWide,
-            "mb-0 text-sm md:text-sm": isEmbedWide,
+            "mb-0 text-sm md:text-sm": isEmbedWide && !isDate,
+            "mb-0 text-xs": isEmbedWide && isDate,
             "whitespace-normal break-words": isEmbed && isDate,
             truncate: isEmbed && !isDate,
           })}

@@ -60,7 +60,11 @@ const HomepagePostCard: FC<Props> = ({ post, className }) => {
               )}
 
               {(isGroupOfQuestionsPost(post) || isMultipleChoicePost(post)) && (
-                <GroupForecastCard post={post} compact />
+                <GroupForecastCard
+                  post={post}
+                  compact
+                  buttonVariant="minimal"
+                />
               )}
             </HideCPProvider>
           </div>

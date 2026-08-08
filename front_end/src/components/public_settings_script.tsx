@@ -7,13 +7,16 @@ export const PUBLIC_SETTINGS_KEY = "PUBLIC_SETTINGS";
 
 type Props = {
   publicSettings: PublicSettings;
+  // Raw <script>, so next/script cannot attach the CSP nonce for us.
+  nonce?: string;
 };
 
-const PublicSettingsScript: FC<Props> = ({ publicSettings }) => {
+const PublicSettingsScript: FC<Props> = ({ publicSettings, nonce }) => {
   noStore(); // opt into dynamic rendering
 
   return (
     <script
+      nonce={nonce}
       dangerouslySetInnerHTML={{
         __html: `
         window['${PUBLIC_SETTINGS_KEY}'] = ${JSON.stringify(publicSettings)};

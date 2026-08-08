@@ -9,7 +9,7 @@ import {
 import { ReactNode, Suspense } from "react";
 
 import { GroupTimelineMarker } from "@/components/charts/primitives/timeline_markers/types";
-import ServerPostsApi from "@/services/api/posts/posts.server";
+import { TimelineYDomainOptions } from "@/types/charts";
 import { GroupOfQuestionsGraphType, PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import {
@@ -22,6 +22,7 @@ import { BasicQuestionContent } from "./basic_question";
 import { FlippableQuestionCard } from "./flippable_question_card";
 import { NoQuestionPlaceholder } from "./placeholder";
 import { QuestionCard, QuestionCardSkeleton } from "./question_card";
+import { fetchLaborHubPost } from "../../helpers/labor_hub_posts";
 
 function getLeftIcon(postData: PostWithForecasts, subQuestionId?: number) {
   if (isMultipleChoicePost(postData) && !subQuestionId) {
@@ -81,6 +82,7 @@ type QuestionLoaderProps = {
   fallbackTitle?: string;
   className?: string;
   timelineMarkers?: GroupTimelineMarker[];
+  yDomainOptions?: TimelineYDomainOptions;
 };
 
 /**
@@ -99,11 +101,16 @@ async function QuestionContent({
   fallbackTitle,
   className,
   timelineMarkers,
+  yDomainOptions,
 }: QuestionLoaderProps) {
   let postData;
   try {
-    postData = await ServerPostsApi.getPost(questionId, true);
+    postData = await fetchLaborHubPost(questionId);
   } catch {
+    postData = null;
+  }
+
+  if (!postData) {
     return (
       <QuestionCard
         title={title || fallbackTitle}
@@ -133,6 +140,7 @@ async function QuestionContent({
               preferTimeline={false}
               chartHeight={chartHeight}
               timelineMarkers={timelineMarkers}
+              yDomainOptions={yDomainOptions}
             />
           }
           rightContent={
@@ -142,6 +150,7 @@ async function QuestionContent({
               preferTimeline={true}
               chartHeight={chartHeight}
               timelineMarkers={timelineMarkers}
+              yDomainOptions={yDomainOptions}
             />
           }
           leftIcon={getLeftIcon(postData, subQuestionId)}
@@ -177,6 +186,7 @@ async function QuestionContent({
           chartHeight={chartHeight}
           subQuestionId={subQuestionId}
           timelineMarkers={timelineMarkers}
+          yDomainOptions={yDomainOptions}
         />
       </QuestionCard>
       {note && (
@@ -190,7 +200,7 @@ async function QuestionContent({
 
 /**
  * Server-side question loader with Suspense for async data fetching.
- * Uses ServerPostsApi.getPost to fetch post data on the server.
+ * Uses the Labor Hub post data layer to fetch post data on the server.
  */
 export function QuestionLoader({
   questionId,
@@ -205,6 +215,7 @@ export function QuestionLoader({
   fallbackTitle,
   className,
   timelineMarkers,
+  yDomainOptions,
 }: QuestionLoaderProps) {
   return (
     <Suspense
@@ -225,6 +236,7 @@ export function QuestionLoader({
         note={note}
         className={className}
         timelineMarkers={timelineMarkers}
+        yDomainOptions={yDomainOptions}
       />
     </Suspense>
   );

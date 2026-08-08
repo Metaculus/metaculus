@@ -93,7 +93,9 @@ class Command(BaseCommand):
         #
         scheduler.add_job(
             close_old_connections(job_compute_movement.send),
-            trigger=CronTrigger.from_crontab("0 * * * *"),  # Every Hour
+            trigger=CronTrigger.from_crontab(
+                "7 * * * *"
+            ),  # Every hour at :07 (offset from :00/:15/:30/:45 hotness job to avoid posts_post deadlocks)
             id="posts_job_compute_movement",
             max_instances=1,
             replace_existing=True,

@@ -43,8 +43,10 @@ const TimeSeriesLabel: FC<Props & any> = ({
     }
     return getThemeColor(METAC_COLORS.blue["700"]);
   };
-  if (isTickLabel && widthPerLabel) {
-    const textLines = wrapText(datum.x, widthPerLabel);
+  if (isTickLabel) {
+    const textLines = widthPerLabel
+      ? wrapText(datum.x, widthPerLabel)
+      : [datum.x as string];
     return (
       <VictoryLabel
         datum={datum}
@@ -104,15 +106,13 @@ const TimeSeriesLabel: FC<Props & any> = ({
         className="font-inter"
         style={{
           fontSize: 16,
-          fontWeight: colorful ? 500 : 700,
+          fontWeight: 700,
           lineHeight: "24px",
           fontFamily: "var(--font-inter-variable)",
           fill: ({ datum }: any) =>
-            colorful
-              ? getThemeColor(METAC_COLORS.gray["900"])
-              : datum.isEmpty
-                ? getThemeColor(METAC_COLORS.gray["500"])
-                : getLabelColor(datum),
+            datum.isEmpty
+              ? getThemeColor(METAC_COLORS.gray["500"])
+              : getLabelColor(datum),
         }}
         text={({ datum, index }: any) =>
           labelVisibilityMap[index] ? `${datum.label}` : ""

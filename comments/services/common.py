@@ -1,5 +1,6 @@
 import datetime
 import difflib
+from collections import defaultdict
 
 from django.db import IntegrityError, transaction
 from django.db.models import (
@@ -26,8 +27,10 @@ from comments.models import (
     KeyFactor,
     KeyFactorVote,
 )
+from comments.services.key_factors.common import create_key_factors
 from comments.services.spam_detection import check_and_handle_comment_spam
 from posts.models import Post, PostUserSnapshot
+from posts.services.common import get_post_permission_for_user
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Forecast
@@ -90,8 +93,11 @@ def create_comment(
     if root:
         is_private = root.is_private
 
-    if not is_private and user.is_bot and not user.is_primary_bot:
-        raise PermissionDenied("Only your primary bot can post public comments.")
+    if not is_private and not user.allow_public_comments:
+        raise PermissionDenied(
+            "This account is not allowed to post public comments. "
+            "Use is_private=true to post a private comment."
+        )
 
     with transaction.atomic():
         obj = Comment(
@@ -128,6 +134,54 @@ def create_comment(
     trigger_update_comment_translations(obj)
 
     return obj
+
+
+def perform_create_comment(
+    user: User,
+    on_post: Post,
+    parent: Comment | None = None,
+    text: str | None = None,
+    is_private: bool = False,
+    included_forecast: bool = False,
+    key_factors: list[dict] | None = None,
+) -> Comment:
+    """
+    Create a comment (optionally with key factors), including the permission
+    check and the included_forecast lookup. Shared by the comment-create
+    endpoint and the create_comment gated action, so both apply the same rules.
+
+    included_forecast is a flag here (as sent by the client); it is resolved to
+    the user's latest forecast before reaching create_comment.
+    """
+    permission = get_post_permission_for_user(
+        parent.on_post if parent else on_post, user=user
+    )
+    ObjectPermission.can_comment(permission, raise_exception=True)
+
+    forecast = (
+        (
+            on_post.question.user_forecasts.filter(author_id=user.id)
+            .order_by("-start_time")
+            .first()
+        )
+        if included_forecast and on_post.question_id
+        else None
+    )
+
+    with transaction.atomic():
+        new_comment = create_comment(
+            user=user,
+            on_post=on_post,
+            parent=parent,
+            text=text,
+            is_private=is_private,
+            included_forecast=forecast,
+        )
+
+        if key_factors:
+            create_key_factors(new_comment, key_factors)
+
+    return new_comment
 
 
 def update_comment(
@@ -453,3 +507,61 @@ def update_top_comments_of_week(week_start_date: datetime.date):
     ).exclude(
         id__in=[entry.id for entry in created_entries],
     ).delete()
+
+
+def privatize_user_comments(user) -> int:
+    """
+    Sets is_private=True on all of the user's comments that have no descendant
+    comments authored by a different user. Skips comments that already have
+    replies (direct or nested) from other users, since hiding those would break
+    the conversation context for the other participants.
+
+    Returns the number of comments that were privatized.
+    """
+    from django.db.models import Q
+
+    user_comments = list(
+        Comment.objects.filter(author=user).values("id", "root_id", "is_private")
+    )
+    if not user_comments:
+        return 0
+
+    # Collect thread root IDs: root-level comments are their own root
+    thread_root_ids: set[int] = set()
+    for c in user_comments:
+        if c["root_id"] is None:
+            thread_root_ids.add(c["id"])
+        else:
+            thread_root_ids.add(c["root_id"])
+
+    # Load every comment in those threads so we can traverse the reply tree
+    all_thread_comments = list(
+        Comment.objects.filter(
+            Q(id__in=thread_root_ids) | Q(root_id__in=thread_root_ids)
+        ).values("id", "author_id", "parent_id")
+    )
+
+    children_map: dict[int, list[int]] = defaultdict(list)
+    for c in all_thread_comments:
+        if c["parent_id"] is not None:
+            children_map[c["parent_id"]].append(c["id"])
+    comment_author_map = {c["id"]: c["author_id"] for c in all_thread_comments}
+
+    def has_non_user_descendant(comment_id: int) -> bool:
+        stack = list(children_map.get(comment_id, []))
+        while stack:
+            child_id = stack.pop()
+            if comment_author_map.get(child_id) != user.id:
+                return True
+            stack.extend(children_map.get(child_id, []))
+        return False
+
+    to_privatize = [
+        c["id"]
+        for c in user_comments
+        if not c["is_private"] and not has_non_user_descendant(c["id"])
+    ]
+
+    if to_privatize:
+        Comment.objects.filter(id__in=to_privatize).update(is_private=True)
+    return len(to_privatize)

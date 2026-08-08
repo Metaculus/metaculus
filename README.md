@@ -177,20 +177,24 @@ Here are some other useful things to know about
 
 ## MJML Email Templates
 
-We use **MJML** to generate HTML emails. To edit email templates, you'll work with MJML files. Follow these steps to
-ensure the HTML updates automatically after changes:
+We use **MJML** to generate HTML emails. You edit the `.mjml` files; the `.html` next to them is a build artifact that
+is compiled during the Docker build and is **not** committed (it's gitignored).
 
-1. **Install MJML Dependencies**\
-   Use the following command to globally install MJML and related dependencies:
+1. **Install MJML**\
+   Install the same version the Docker build uses (see `ARG MJML_VERSION` in the `Dockerfile`) — a different
+   version compiles to different HTML:
    ```bash
-   bun add -g mjml mjml-column
-	```
+   bun add -g mjml@5.4.0
+   ```
 2. **Compose MJML Templates**\
-   Run the following command to process and update the MJML templates:
+   Run this after a fresh clone and after every `.mjml` change, otherwise Django will not find the templates:
 
    ```bash
    uv run python manage.py mjml_compose
    ```
+
+   The command fails on MJML errors and on compiled HTML that is no longer a valid Django template. CI runs the same
+   command on every PR.
 
 ## Setup a test database
 If you want to populate your database with some example data, you can load our testing database dump (available as a [release](https://github.com/Metaculus/metaculus/releases/latest) artifact).
@@ -223,8 +227,6 @@ If you get an error that the playwright executable doesn't exist, run `uv run pl
 (TODO: add front end testing)
 When contributing to the project, adding tests is highly encouraged and will increase the likelihood of your PR being merged.
 
-## Linting
-We use Husky to run linter and typescript checks before committing (see `front_end/.husky`).
 
 ## Restricted Dev Access
 To enable restricted Dev access, you need to add `ALPHA_ACCESS_TOKEN=<token>` as an env variable for both the BE and the FE (both the FE server & the env where the FE is compiled, which should be the same in most cases)
@@ -237,7 +239,8 @@ By default, we use the Mailgun provider.
 `.env` Configuration:
 - `MAILGUN_API_KEY`
 - `EMAIL_HOST_USER`
-- `EMAIL_NOTIFICATIONS_USER`
+- `EMAIL_NOTIFICATIONS_SENDER`
+- `EMAIL_ACCOUNTS_SENDER`
 
 
 # Bug Bounty

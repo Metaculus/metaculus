@@ -7,12 +7,23 @@ FROM python:3.12-slim-bookworm AS base
 COPY --from=node /usr/local/bin/node /usr/local/bin/
 COPY --from=bun /usr/local/bin/bun /usr/local/bin/
 
+ARG NGINX_MIN_VERSION=1.30.1
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
     gettext \
+    gnupg \
     libpq5 \
-    nginx \
     libjemalloc2 \
+    && curl -fsSL https://nginx.org/keys/nginx_signing.key \
+        | gpg --dearmor -o /usr/share/keyrings/nginx-archive-keyring.gpg \
+    && printf "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] https://nginx.org/packages/debian bookworm nginx\n" \
+        > /etc/apt/sources.list.d/nginx.list \
+    && apt-get update && apt-get install -y --no-install-recommends nginx \
+    && nginx_version="$(nginx -v 2>&1 | sed -E 's#^nginx version: nginx/##')" \
+    && dpkg --compare-versions "$nginx_version" ge "$NGINX_MIN_VERSION" \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && ln -s /usr/lib/*/libjemalloc.so.2 /usr/lib/libjemalloc.so.2
@@ -54,6 +65,31 @@ COPY . /app/
 COPY --from=backend_deps /app/venv /app/venv
 
 RUN . venv/bin/activate && ./manage.py collectstatic --noinput
+
+# ============================================================
+# EMAIL TEMPLATES (MJML -> HTML, runs in parallel with frontend build)
+# ============================================================
+FROM base AS email_templates
+WORKDIR /app
+
+COPY --from=backend_deps /app/venv /app/venv
+
+# Keep in sync with the mjml version in unit_tests.yml, integration_tests.yml
+# and the README. Installed before the source copy so editing a template does
+# not reinstall the compiler. npm is unavailable here (the base stage copies
+# only the node binary), so this uses bun.
+ARG MJML_VERSION=5.4.0
+ENV BUN_INSTALL=/opt/bun
+ENV PATH=/opt/bun/bin:$PATH
+RUN bun add -g "mjml@${MJML_VERSION}"
+
+COPY . /app/
+
+# Compile in place, then stage the output under repo-relative paths so the final
+# image picks up every app's templates with a single COPY.
+RUN . venv/bin/activate \
+    && ./manage.py mjml_compose \
+    && find . -path '*/templates/emails/*.html' -exec install -D {} /email_build/{} \;
 
 # ============================================================
 # FRONTEND BUILD
@@ -103,6 +139,9 @@ COPY --chown=1001:0 --from=frontend_build /app/front_end/.next /app/front_end/.n
 
 # Copy pre-collected Django static files
 COPY --chown=1001:0 --from=backend_static /app/staticfiles /app/staticfiles
+
+# Copy compiled MJML email templates (never present in the build context)
+COPY --chown=1001:0 --from=email_templates /email_build/ /app/
 
 # Switch to non-root user
 RUN mkdir -p /home/app && chown 1001:0 /home/app

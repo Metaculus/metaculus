@@ -54,8 +54,8 @@ const createNotebookSchema = (t: ReturnType<typeof useTranslations>) => {
       .min(4, {
         message: t("errorMinLength", { field: "String", minLength: 4 }),
       })
-      .max(60, {
-        message: t("errorMaxLength", { field: "String", maxLength: 60 }),
+      .max(80, {
+        message: t("errorMaxLength", { field: "String", maxLength: 80 }),
       }),
     default_project: z.number(),
     markdown: z.string().min(1, {

@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import React, { Suspense } from "react";
 
 import CommunitySettings from "@/app/(main)/c/[slug]/settings/components/settings";
-import CommunityHeader from "@/app/(main)/components/headers/community_header";
+import { TopChromeHeaderSetter } from "@/app/(main)/components/top_chrome_header_context";
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
@@ -44,7 +44,7 @@ export default async function CommunityManagementSettings(props: Props) {
     CommunitySettingsMode.Questions) as CommunitySettingsMode;
   return (
     <>
-      <CommunityHeader community={community} />
+      <TopChromeHeaderSetter header={{ type: "community", community }} />
       <main className="mx-2 my-4 min-h-min max-w-full flex-auto rounded-lg border border-blue-500 bg-gray-0/50 px-3 py-4 dark:border-blue-600/50 dark:bg-gray-0-dark xs:mx-5 xs:px-8 xs:py-8 md:mx-auto md:max-w-[796px]">
         <CommunityManagement community={community} mode={mode} />
         {mode === CommunitySettingsMode.Questions && (
@@ -60,7 +60,11 @@ export default async function CommunityManagementSettings(props: Props) {
                   <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
                 }
               >
-                <AwaitedPostsFeed filters={pageFilters} isCommunity />
+                <AwaitedPostsFeed
+                  filters={pageFilters}
+                  isCommunity
+                  forceLayout="list"
+                />
               </Suspense>
             </div>
           </>

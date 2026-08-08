@@ -19,7 +19,7 @@ export const CommentDate: FC<{ comment: CommentType }> = ({ comment }) => {
   return (
     <a
       href={`#comment-${comment.id}`}
-      className="text-sm no-underline opacity-55 sm:text-base"
+      className="text-sm font-normal leading-5 text-gray-500 no-underline dark:text-gray-500-dark"
     >
       <RelativeTime datetime={comment.created_at} format="relative">
         {formatDate(locale, new Date(comment.created_at))}

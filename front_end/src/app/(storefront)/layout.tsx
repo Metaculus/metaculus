@@ -8,6 +8,7 @@ import { ThemeOverrideContainer } from "@/contexts/theme_override_context";
 import StorefrontFooter from "./components/storefront_footer";
 import FeedbackFloat from "../(main)/(home)/components/feedback_float";
 import CookiesBanner from "../(main)/components/cookies_banner";
+import { TopChrome } from "../(main)/components/top_chrome";
 import VersionChecker from "../(main)/components/version_checker";
 
 config.autoAddCss = false;
@@ -27,7 +28,8 @@ export default function StorefrontLayout({
       override="light"
       className="flex min-h-screen flex-col bg-blue-200"
     >
-      <div className="flex-grow">{children}</div>
+      <TopChrome hideHeader />
+      <div className="flex flex-grow flex-col">{children}</div>
       <FeedbackFloat />
       <StorefrontFooter />
       <CookiesBanner />

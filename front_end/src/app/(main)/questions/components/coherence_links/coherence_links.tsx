@@ -17,6 +17,7 @@ import cn from "@/utils/core/cn";
 
 type Props = {
   post: Post;
+  hideToggle?: boolean;
 };
 
 const DownArrow: FC<{ className?: string }> = ({ className }) => (
@@ -51,7 +52,7 @@ const ListLabel: FC<{ children: React.ReactNode; className?: string }> = ({
   </div>
 );
 
-export const CoherenceLinks: FC<Props> = ({ post }) => {
+export const CoherenceLinks: FC<Props> = ({ post, hideToggle }) => {
   const t = useTranslations();
   const { coherenceLinks } = useCoherenceLinksContext();
   const { user } = useAuth();
@@ -79,26 +80,8 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
   );
   const hasLinks = incomingLinks.length > 0 || outgoingLinks.length > 0;
 
-  return (
-    <SectionToggle
-      title={t("questionLinksPrivate")}
-      defaultOpen={true}
-      detailElement={(isOpen) =>
-        isOpen && hasLinks && !user?.is_bot ? (
-          <AddButton
-            as="div"
-            className="ml-auto"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsAddModalOpen(true);
-            }}
-          >
-            <span className="md:hidden">{t("add")}</span>
-            <span className="hidden md:inline">{t("linkQuestion")}</span>
-          </AddButton>
-        ) : null
-      }
-    >
+  const inner = (
+    <>
       <div className="mt-3 flex flex-col gap-3 px-[25px]">
         {hasLinks ? (
           <>
@@ -169,6 +152,34 @@ export const CoherenceLinks: FC<Props> = ({ post }) => {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
       />
+    </>
+  );
+
+  if (hideToggle) {
+    return inner;
+  }
+
+  return (
+    <SectionToggle
+      title={t("questionLinksPrivate")}
+      defaultOpen={true}
+      detailElement={(isOpen) =>
+        isOpen && hasLinks && !user?.is_bot ? (
+          <AddButton
+            as="div"
+            className="ml-auto"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsAddModalOpen(true);
+            }}
+          >
+            <span className="md:hidden">{t("add")}</span>
+            <span className="hidden md:inline">{t("linkQuestion")}</span>
+          </AddButton>
+        ) : null
+      }
+    >
+      {inner}
     </SectionToggle>
   );
 };

@@ -2,6 +2,7 @@ import { FC } from "react";
 
 import { getContinuousAreaChartData } from "@/components/charts/continuous_area_chart";
 import MinifiedContinuousAreaChart from "@/components/charts/minified_continuous_area_chart";
+import useDeferredRender from "@/hooks/use_deferred_render";
 import { QuestionStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
@@ -10,10 +11,16 @@ import ConsumerBinaryTile from "./consumer_binary_tile";
 import ConsumerContinuousTile from "./consumer_continuous_tile";
 type Props = {
   question: QuestionWithForecasts;
+  forFeedPage?: boolean;
 };
 
-const ConsumerQuestionTile: FC<Props> = ({ question }) => {
+const FEED_CHART_HEIGHT = 50;
+
+const ConsumerQuestionTile: FC<Props> = ({ question, forFeedPage = false }) => {
   const forecastAvailability = getQuestionForecastAvailability(question);
+  // Defer the chart mount until idle on the feed; render immediately elsewhere
+  // (question-page sidebar, homepage, comment previews).
+  const shouldRenderFeedChart = useDeferredRender(forFeedPage, question.id);
 
   // Hide chart if no forecasts or CP not yet revealed
   const shouldHideChart =
@@ -41,15 +48,18 @@ const ConsumerQuestionTile: FC<Props> = ({ question }) => {
             question={question}
             forecastAvailability={forecastAvailability}
           />
-          {!shouldHideChart && (
-            <MinifiedContinuousAreaChart
-              question={question}
-              data={continuousAreaChartData}
-              height={50}
-              forceTickCount={2}
-              variant="feed"
-            />
-          )}
+          {!shouldHideChart &&
+            (shouldRenderFeedChart ? (
+              <MinifiedContinuousAreaChart
+                question={question}
+                data={continuousAreaChartData}
+                height={FEED_CHART_HEIGHT}
+                forceTickCount={2}
+                variant="feed"
+              />
+            ) : (
+              <div style={{ height: FEED_CHART_HEIGHT }} />
+            ))}
         </div>
       );
     default:

@@ -1,0 +1,267 @@
+import { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
+
+import { MultiQuestionLineChart } from "@/app/(main)/labor-hub/components/question_cards/multi_question_line_chart";
+import { getPublicSettings } from "@/utils/public_settings.server";
+
+import { ALL_JOB_SLUGS, getJobBySlug } from "../../data";
+import { BentoLayout } from "../components/bento_layout";
+import { CuratedInsights } from "../components/curated_insights";
+import { ExposureMetrics } from "../components/exposure_metrics";
+import { HubCtaCard } from "../components/hub_cta_card";
+import { JobNavStrip } from "../components/job_nav_strip";
+import { ShareCard } from "../components/share_card";
+import { WageTile } from "../components/wage_tile";
+import { YearStats } from "../components/year_stats";
+import { getHistoricalPercentByYear } from "../data/oews_history";
+import { fetchJobInsights } from "../helpers/fetch_job_insights";
+import { fetchWage } from "../helpers/fetch_wage";
+import { fetchWallData } from "../helpers/fetch_wall_data";
+
+type Params = { slug: string };
+
+export function generateStaticParams(): Params[] {
+  return ALL_JOB_SLUGS.map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<Params>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const job = getJobBySlug(slug);
+  if (!job) return {};
+
+  const t = await getTranslations();
+  const { PUBLIC_APP_URL } = getPublicSettings();
+  const title = t("laborHubJobDetailTitle", { name: job.name });
+  const description = t("laborHubJobDetailDescription", { name: job.name });
+  const img = `${PUBLIC_APP_URL}/og/labor-hub/jobs/${slug}/route?year=2035`;
+  const canonical = `${PUBLIC_APP_URL}/labor-hub/jobs/${slug}/`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      title,
+      description,
+      images: [{ url: img, width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [img],
+    },
+  };
+}
+
+export default async function JobDetailPage({
+  params,
+}: {
+  params: Promise<Params>;
+}) {
+  const { slug } = await params;
+  const job = getJobBySlug(slug);
+  if (!job) notFound();
+
+  const t = await getTranslations();
+  const { PUBLIC_APP_URL } = getPublicSettings();
+  const [allJobs, insights, wage2035] = await Promise.all([
+    fetchWallData(),
+    fetchJobInsights(slug),
+    fetchWage(job.wage_post_id),
+  ]);
+  const wallEntry = allJobs.find((j) => j.slug === slug);
+  const forecasts = wallEntry?.forecasts ?? {
+    "2027": null,
+    "2030": null,
+    "2035": null,
+  };
+
+  const navItems = allJobs
+    .map((j) => ({
+      slug: j.slug,
+      name: j.name,
+      value2035: j.forecasts["2035"],
+    }))
+    // Order most decline → most growth (nulls last).
+    .sort((a, b) =>
+      a.value2035 == null
+        ? 1
+        : b.value2035 == null
+          ? -1
+          : a.value2035 - b.value2035
+    );
+
+  const canonical = `${PUBLIC_APP_URL}/labor-hub/jobs/${slug}/`;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    name: t("laborHubJobDetailTitle", { name: job.name }),
+    description: t("laborHubJobDetailDescription", { name: job.name }),
+    url: canonical,
+    isAccessibleForFree: true,
+    creator: {
+      "@type": "Organization",
+      name: "Metaculus",
+      url: `${PUBLIC_APP_URL}/`,
+    },
+    includedInDataCatalog: {
+      "@type": "DataCatalog",
+      name: "Labor Automation Forecasting Hub",
+      url: `${PUBLIC_APP_URL}/labor-hub/`,
+    },
+    distribution: {
+      "@type": "DataDownload",
+      encodingFormat: "image/png",
+      contentUrl: `${PUBLIC_APP_URL}/og/labor-hub/jobs/${slug}/route?year=2035`,
+    },
+  };
+
+  return (
+    <main className="mx-auto w-full max-w-7xl px-3 pb-16 pt-4 sm:px-8 md:pt-8 xl:px-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <div className="rounded-md bg-gray-0 dark:bg-gray-0-dark">
+        <div className="px-6 pb-2 pt-6 sm:px-9 sm:pb-4 sm:pt-8">
+          <nav
+            aria-label="Breadcrumb"
+            className="mb-3 flex items-center gap-2 text-sm text-blue-700 dark:text-blue-700-dark"
+          >
+            <Link
+              href="/labor-hub/"
+              className="font-medium no-underline transition-colors hover:text-blue-900 dark:hover:text-blue-900-dark"
+            >
+              {t("laborHub")}
+            </Link>
+            <span
+              aria-hidden="true"
+              className="text-blue-500 dark:text-blue-500-dark"
+            >
+              /
+            </span>
+            <Link
+              href="/labor-hub/jobs/"
+              className="font-medium no-underline transition-colors hover:text-blue-900 dark:hover:text-blue-900-dark"
+            >
+              {t("laborHubJobsBreadcrumb")}
+            </Link>
+            <span
+              aria-hidden="true"
+              className="hidden text-blue-500 dark:text-blue-500-dark sm:inline"
+            >
+              /
+            </span>
+            <span className="hidden truncate font-semibold text-blue-900 dark:text-blue-900-dark sm:inline">
+              {job.name}
+            </span>
+          </nav>
+
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+            <div className="flex flex-col">
+              <h1 className="m-0 text-3xl font-extrabold leading-[1.05] tracking-tight text-blue-900 dark:text-blue-900-dark sm:text-5xl">
+                {job.name}
+              </h1>
+              <p className="mt-3 max-w-xl text-base leading-relaxed text-blue-700 dark:text-blue-700-dark sm:text-lg">
+                {t("laborHubJobDetailSubtitle")}
+              </p>
+              <div className="mt-5">
+                <YearStats forecasts={forecasts} />
+              </div>
+            </div>
+            <div className="flex h-[228px] overflow-hidden lg:h-full">
+              <div className="h-full w-full">
+                <MultiQuestionLineChart
+                  fillHeight
+                  rows={[
+                    {
+                      // Historical actual employment (BLS/OEWS), rebased so the
+                      // latest actual (2025) is the 0% baseline. Static row →
+                      // drawn as one muted line spanning 2015→2025.
+                      title: job.name,
+                      historicalValues: getHistoricalPercentByYear(slug),
+                    },
+                    {
+                      questionId: job.post_id,
+                      title: job.name,
+                      // Forecast anchored at the 2025 baseline so history and
+                      // forecast share a single 0% point.
+                      historicalValues: { 2025: 0 },
+                    },
+                  ]}
+                  valueFormat="percentageChange"
+                  decimals={1}
+                  showLegend={false}
+                  showMoreButton={false}
+                  height={228}
+                  yAxisGutter={44}
+                  showTickLabels
+                  historicalLabelText="HISTORICAL"
+                  getSeriesOptions={(_row, index) =>
+                    index === 0
+                      ? {
+                          // Muted, neutral past trajectory.
+                          color: "gray",
+                          colorByValue: false,
+                          dotSize: 2.5,
+                        }
+                      : {
+                          colorByValue: true,
+                          // Base color (used for data-label badges) follows the
+                          // overall 2035 trajectory; the line/dots use per-value
+                          // red/green/gray via colorByValue.
+                          color:
+                            (forecasts["2035"] ?? 0) < 0
+                              ? "mc2"
+                              : (forecasts["2035"] ?? 0) > 0
+                                ? "mc3"
+                                : "mc1",
+                        }
+                  }
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mx-6 border-t border-blue-200 dark:border-blue-200-dark sm:mx-9" />
+
+        <div className="px-6 py-5 sm:px-9 sm:py-6">
+          <JobNavStrip current={slug} items={navItems} />
+        </div>
+      </div>
+
+      <section className="mt-6 rounded-md bg-gray-0 px-6 py-6 dark:bg-gray-0-dark sm:px-9 sm:py-10">
+        <BentoLayout
+          insights={<CuratedInsights insights={insights} jobName={job.name} />}
+          dataRail={
+            <div className="flex flex-col gap-2 md:gap-3">
+              {wage2035 != null && <WageTile value={wage2035} />}
+              <ExposureMetrics job={job} currentSlug={slug} />
+            </div>
+          }
+        />
+      </section>
+
+      <div className="mt-6">
+        <ShareCard
+          slug={slug}
+          jobName={job.name}
+          forecasts={forecasts}
+          pageUrl={`${PUBLIC_APP_URL}/labor-hub/jobs/${slug}/`}
+        />
+      </div>
+
+      <div className="mt-6">
+        <HubCtaCard />
+      </div>
+    </main>
+  );
+}

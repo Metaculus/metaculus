@@ -9,7 +9,7 @@ const TweetEmbed: React.FC<{ id: string }> = ({ id }) => {
   return (
     <div className="tweet-embed" data-embed="tweet">
       <div className="tweet-embed-scroll">
-        <Tweet id={id} apiUrl={`/tweet/${id}`} />
+        <Tweet id={id} apiUrl={`/tweet/${id}?v=2`} />
       </div>
     </div>
   );

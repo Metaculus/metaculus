@@ -55,17 +55,22 @@ const nextConfig = {
     return [
       {
         source: "/project/:slug",
-        destination: "/tournament/:slug",
+        destination: "/tournament/:slug/",
         permanent: true,
       },
       {
         source: "/bridgewater-reg",
-        destination: "/bridgewater",
+        destination: "/bridgewater/",
         permanent: true,
       },
       {
         source: "/aib",
-        destination: "/futureeval",
+        destination: "/futureeval/",
+        permanent: true,
+      },
+      {
+        source: "/pro-forecasters",
+        destination: "/services/pro-forecasters/",
         permanent: true,
       },
     ];

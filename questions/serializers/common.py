@@ -435,13 +435,6 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
 
     distribution_input = serializers.JSONField(allow_null=True, required=False)
 
-    source = serializers.ChoiceField(
-        allow_null=True,
-        required=False,
-        allow_blank=True,
-        choices=Forecast.SourceChoices.choices,
-    )
-
     class Meta:
         model = Forecast
         fields = (
@@ -451,7 +444,6 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             "probability_yes_per_category",
             "percentiles",
             "distribution_input",
-            "source",
             "end_time",
         )
 

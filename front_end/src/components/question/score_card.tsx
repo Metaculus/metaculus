@@ -466,8 +466,6 @@ export default function ScoreCard({
   const t = useTranslations();
   const isSpot = type.includes("spot");
 
-  console.log("isSpot", isSpot, type);
-
   if (type.includes("peer")) {
     return (
       <PeerScoreCard

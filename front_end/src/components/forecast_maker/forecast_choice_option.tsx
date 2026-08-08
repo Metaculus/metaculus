@@ -200,7 +200,9 @@ const ForecastChoiceOption = <T = string,>({
                 rail: {
                   height: "1px",
                   opacity: 0.35,
-                  backgroundColor: getThemeColor(METAC_COLORS.gray["1000"]),
+                  backgroundColor: mounted
+                    ? getThemeColor(METAC_COLORS.gray["1000"])
+                    : METAC_COLORS.gray["1000"].DEFAULT,
                 },
               }
             : {}

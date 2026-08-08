@@ -1,6 +1,8 @@
 import logging
 from collections import defaultdict
 
+from decimal import Decimal
+
 from django.core.management.base import BaseCommand
 from django.db.models import Exists, OuterRef, QuerySet, Q
 from django.utils import timezone
@@ -18,6 +20,7 @@ from scoring.score_math import (
     evaluate_forecasts_peer_spot_forecast,
     get_geometric_means,
 )
+from scoring.utils import assign_prize_percentages_, assign_prizes_
 from users.models import User
 from utils.the_math.formulas import string_location_to_bucket_index
 
@@ -138,9 +141,8 @@ def gather_data(
                 question_ids.append(q)
                 scores.append(u1s)
                 coverages.append(cov)
-    weights = coverages
 
-    return (competitor_ids, question_ids, scores, weights)
+    return (competitor_ids, question_ids, scores, coverages)
 
 
 def run_update_coherence_spring_2026_cup() -> None:
@@ -171,28 +173,32 @@ def run_update_coherence_spring_2026_cup() -> None:
     logger.info("Initializing... DONE")
 
     # Gather head to head scores
-    competitor_ids, question_ids, scores, weights = gather_data(
+    competitor_ids, question_ids, scores, coverages = gather_data(
         baseline_player, users, questions
     )
 
     # Scores
     competitor_score_record = defaultdict(list)
-    competitor_weight_record = defaultdict(list)
-    for uid, score, weight in zip(competitor_ids, scores, weights):
+    competitor_coverage_record = defaultdict(list)
+    for uid, score, coverage in zip(competitor_ids, scores, coverages):
         competitor_score_record[uid].append(score)
-        competitor_weight_record[uid].append(weight)
-    scores = [(baseline_player.id, 0.0, max(weights or [0.0]))]
+        competitor_coverage_record[uid].append(coverage)
+    cov_by_q = defaultdict(float)
+    for qid, coverage in zip(question_ids, coverages):
+        cov_by_q[qid] = max(cov_by_q[qid], coverage)
+    baseline_coverage = sum(cov_by_q.values())
+    records = [(baseline_player.id, 0.0, baseline_coverage)]
     for uid in competitor_score_record.keys():
-        scores.append(
+        records.append(
             (
                 uid,
                 # double the score to normalize it such that the baseline is given
                 # a score of 0
                 np.sum(competitor_score_record[uid]) * 2.0,
-                np.sum(competitor_weight_record[uid]),
+                np.sum(competitor_coverage_record[uid]),
             )
         )
-    ordered_scores = sorted(scores, key=lambda x: x[1], reverse=True)
+    ordered_scores = sorted(records, key=lambda x: x[1], reverse=True)
 
     ##########################################################################
     ##########################################################################
@@ -203,8 +209,15 @@ def run_update_coherence_spring_2026_cup() -> None:
     leaderboard, _ = Leaderboard.objects.get_or_create(
         project=project,
         name=f"Coherence Leaderboard for {project.name}",
-        score_type="manual",
+        score_type="relative_legacy_tournament",
         bot_status=Project.BotLeaderboardStatus.BOTS_ONLY,
+        prize_pool=Decimal("5000.00"),
+        display_config={
+            "display_name": "Question Links Leaderboard",
+            "display_order": 1,
+            "column_renames": {"Questions": "Question Links"},
+            "display_on_project": True,
+        },
     )
     entry_dict = {
         entry.user_id or entry.aggregation_method: entry
@@ -213,8 +226,8 @@ def run_update_coherence_spring_2026_cup() -> None:
     rank = 1
     question_ids_set = set(question_ids)
     question_count = len(question_ids_set) or 1
-    seen = set()
-    for uid, score, weight in ordered_scores:
+    entries = []
+    for uid, score, coverage in ordered_scores:
         huid = (User.objects.get(id=uid).metadata or {}).get(
             "coherence_bot_for_user_id"
         )
@@ -234,17 +247,33 @@ def run_update_coherence_spring_2026_cup() -> None:
         entry.aggregation_method = None
         entry.leaderboard = leaderboard
         entry.score = score
+        entry.take = max(score, 0.0) ** 2
         entry.rank = rank
         entry.excluded = exclusion_status != ExclusionStatuses.INCLUDE
         entry.show_when_excluded = True
         entry.exclusion_status = exclusion_status
         entry.contribution_count = relevant_links.count()
-        entry.coverage = weight / question_count
+        entry.coverage = coverage / question_count
         entry.calculated_on = timezone.now()
-        entry.save()
-        seen.add(entry.id)
+        entries.append(entry)
         if exclusion_status <= ExclusionStatuses.EXCLUDE_PRIZE_ONLY:
             rank += 1
+    # assign prize percentages
+    prize_pool = (
+        leaderboard.prize_pool
+        if leaderboard.prize_pool is not None
+        else project.prize_pool
+    )
+    minimum_prize_percent = (
+        float(leaderboard.minimum_prize_amount) / float(prize_pool) if prize_pool else 0
+    )
+    assign_prize_percentages_(entries, minimum_prize_percent)
+    if prize_pool:
+        assign_prizes_(entries, prize_pool)
+    seen = set()
+    for entry in entries:
+        entry.save()
+        seen.add(entry.id)
     logger.info("Updating leaderboard... DONE")
     # delete unseen entries
     leaderboard.entries.exclude(id__in=seen).delete()

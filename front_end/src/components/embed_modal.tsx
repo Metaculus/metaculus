@@ -12,6 +12,7 @@ import {
   CHART_TYPE_PARAM,
 } from "@/constants/global_search_params";
 import { ContinuousQuestionTypes } from "@/constants/questions";
+import { useBreakpoint } from "@/hooks/tailwind";
 import useAppTheme from "@/hooks/use_app_theme";
 import { EmbedChartType, TimelineChartZoomOption } from "@/types/charts";
 import { QuestionType } from "@/types/question";
@@ -41,6 +42,7 @@ const EmbedModal: FC<Props> = ({
   questionType,
 }) => {
   const t = useTranslations();
+  const isDesktop = useBreakpoint("sm");
   const { theme: appTheme } = useAppTheme();
 
   const [embedTheme, setEmbedTheme] = useState<AppTheme>(appTheme);
@@ -71,7 +73,18 @@ const EmbedModal: FC<Props> = ({
     ContinuousQuestionTypes.some((type) => type === questionType);
 
   return (
-    <BaseModal label={t("embedThisPage")} isOpen={isOpen} onClose={onClose}>
+    <BaseModal
+      label={t("embedThisPage")}
+      isOpen={isOpen}
+      onClose={onClose}
+      isImmersive={!isDesktop}
+      withCloseButton
+      className={
+        !isDesktop
+          ? "max-w-none rounded-none"
+          : "sm:!my-16 sm:max-h-[min(880px,calc(100svh-8rem))]"
+      }
+    >
       <div className="max-w-2xl">
         <p className="text-base leading-tight">{t("embedCodeSnippet")}</p>
         <div>

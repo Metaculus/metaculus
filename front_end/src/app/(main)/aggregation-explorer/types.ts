@@ -68,5 +68,6 @@ export type AggregationTooltip = {
   choice: string;
   label: string;
   includeBots: boolean;
+  onlyBots: boolean;
   color: ThemeColor;
 };

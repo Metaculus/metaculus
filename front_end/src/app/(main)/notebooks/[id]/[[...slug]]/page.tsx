@@ -7,6 +7,7 @@ import { defaultDescription } from "@/constants/metadata";
 import ServerPostsApi from "@/services/api/posts/posts.server";
 import { getValidString } from "@/utils/formatters/string";
 import { getPostLink } from "@/utils/navigation";
+import { getPostSeoMetadata } from "@/utils/questions/metadata";
 
 import IndividualNotebookPage from "./page_compotent";
 
@@ -16,7 +17,7 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
-  const postData = await ServerPostsApi.getPost(params.id);
+  const postData = await ServerPostsApi.getPost(params.id, false);
 
   if (!postData) {
     return {};
@@ -26,6 +27,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   const parsedDescription = String(file).split("\n")[0];
 
   return {
+    ...getPostSeoMetadata(postData),
     title:
       getValidString(postData.html_metadata_json?.title) ??
       getValidString(postData.short_title) ??

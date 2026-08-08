@@ -1,6 +1,5 @@
 import { type ReactNode } from "react";
 
-import ServerPostsApi from "@/services/api/posts/posts.server";
 import { type QuestionWithNumericForecasts } from "@/types/question";
 
 import {
@@ -8,6 +7,7 @@ import {
   type MultiLineChartColor,
 } from "./multi_line_chart.types";
 import { getSubQuestionValue } from "../../helpers/fetch_jobs_data";
+import { fetchLaborHubPostsByIds } from "../../helpers/labor_hub_posts";
 
 export type MultiQuestionRowConfig = {
   /** Omit for a static-only series whose values come entirely from historicalValues. */
@@ -64,12 +64,7 @@ export async function fetchMultiQuestionDataset(
   const postIds = rows
     .map((row) => row.questionId)
     .filter((id): id is number => id != null);
-  const { results: posts } = postIds.length
-    ? await ServerPostsApi.getPostsWithCP({
-        ids: postIds,
-        limit: postIds.length,
-      })
-    : { results: [] };
+  const posts = postIds.length ? await fetchLaborHubPostsByIds(postIds) : [];
 
   const postsById = new Map(posts.map((post) => [post.id, post]));
   const labelsSet = new Set<string>();

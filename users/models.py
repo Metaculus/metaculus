@@ -1,21 +1,22 @@
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 import dateutil.parser
 from django.conf import settings
-from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import QuerySet
 from django.utils import timezone
 
+from users.constants import ApiAccessTier, ApiForecastingAccess
+from users.managers import UserManager
 from utils.models import TimeStampedModel
-from users.constants import ApiAccessTier
 
 if TYPE_CHECKING:
     from comments.models import Comment
-    from posts.models import Post
     from misc.models import UserDataAccess
+    from posts.models import Post
 
 
 class User(TimeStampedModel, AbstractUser):
@@ -40,6 +41,11 @@ class User(TimeStampedModel, AbstractUser):
     check_for_spam = models.BooleanField(default=True)
 
     old_usernames = models.JSONField(default=list, null=False, editable=False)
+    # When the username was last set by a human. NULL means it was
+    # system-generated (e.g. social-auth signup) and never chosen by the user.
+    username_set_at = models.DateTimeField(
+        null=True, blank=True, editable=False, default=None
+    )
 
     # Social Link
     website = models.CharField(max_length=100, default=None, null=True, blank=True)
@@ -74,6 +80,32 @@ class User(TimeStampedModel, AbstractUser):
     prediction_expiration_percent = models.IntegerField(
         default=10, null=True, blank=True
     )
+    automatically_follow_on_predict = models.BooleanField(default=True)
+    # default follow notification settings - these follow values in PostSubscription
+    follow_notify_cp_change_threshold = models.FloatField(
+        null=True,
+        blank=True,
+        default=0.25,
+        help_text=(
+            "Jeffrey's divergence threshold for notifying user of forecasted CP changes."
+            "<br>Null means no default."
+            "<br>0.05 = small change"
+            "<br>0.25 = medium change"
+            "<br>0.6 = large change"
+        ),
+    )
+    follow_notify_comments_frequency = models.IntegerField(
+        null=True,
+        blank=True,
+        default=10,
+    )
+    follow_notify_milestone_step = models.FloatField(
+        null=True,
+        blank=True,
+        default=0.20,
+        help_text="Proportion of question lifetime to trigger notifications",
+    )
+    follow_notify_on_status_change = models.BooleanField(default=True)
 
     # Onboarding
     is_onboarding_complete = models.BooleanField(default=False)
@@ -118,15 +150,33 @@ class User(TimeStampedModel, AbstractUser):
         ),
     )
 
+    # Aggregation exclusion
+    exclude_from_aggregations = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text=(
+            "Explicitly excludes this user from aggregations and geometric mean for "
+            "peer scoring, regardless of bot status."
+        ),
+    )
+
     # Bot properties
     is_bot = models.BooleanField(default=False, db_index=True)
     is_primary_bot = models.BooleanField(
         default=False,
         db_index=True,
         help_text=(
-            "Marks the user’s primary bot. Only the primary bot can post public comments, "
-            "be eligible for prizes, count toward peer scores, "
-            "and appear on leaderboards."
+            "Marks the user's primary bot. The primary bot is "
+            "eligible for prizes, counts toward peer scores, "
+            "and appears on leaderboards."
+        ),
+    )
+    allow_public_comments = models.BooleanField(
+        default=True,
+        help_text=(
+            "Whether this account may post public comments. "
+            "Enabled by default for human accounts. "
+            "Bots are disabled by default; an admin can enable this for select bots."
         ),
     )
     bot_owner = models.ForeignKey(
@@ -144,6 +194,22 @@ class User(TimeStampedModel, AbstractUser):
         null=True,
         blank=True,
         help_text="All JWT tokens issued before this timestamp are invalid. Set on password change or 'log out everywhere'.",
+    )
+
+    # Controls whether the account may submit forecasts via the API.
+    api_forecasting_access = models.CharField(
+        max_length=32,
+        choices=ApiForecastingAccess.choices,
+        default=ApiForecastingAccess.ENABLED,
+        help_text=(
+            "Whether this account may submit forecasts via the API. "
+            "Bots start enabled; human accounts start disabled."
+            "<br>enabled — API forecasts are allowed."
+            "<br>disabled — Blocks API forecasts and hides the in-app banner."
+            "<br>pending — Blocks API forecasts and shows the in-app "
+            "confirmation banner; set automatically on the first blocked "
+            "API forecast."
+        ),
     )
 
     objects: models.Manager["User"] = UserManager()
@@ -182,6 +248,15 @@ class User(TimeStampedModel, AbstractUser):
 
         return not self.is_active and not self.last_login and not self.is_spam
 
+    @property
+    def is_deactivated(self) -> bool:
+        """
+        Was active once (has logged in) but is inactive now - deactivated by
+        an admin or self-deleted, as opposed to never-activated limbo accounts.
+        """
+
+        return not self.is_active and self.last_login is not None
+
     def get_old_usernames(self) -> list[tuple[str, datetime]]:
         return [
             (name, dateutil.parser.parse(date)) for name, date in self.old_usernames
@@ -202,6 +277,7 @@ class User(TimeStampedModel, AbstractUser):
     def update_username(self, val: str):
         self.old_usernames.append((self.username, timezone.now().isoformat()))
         self.username = val
+        self.username_set_at = timezone.now()
 
 
 class UserCampaignRegistration(TimeStampedModel):

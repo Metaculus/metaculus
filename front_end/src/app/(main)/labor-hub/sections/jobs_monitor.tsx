@@ -1,11 +1,17 @@
 "use client";
 
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { ComponentProps, useState } from "react";
 
+import Button from "@/components/ui/button";
 import ButtonGroup from "@/components/ui/button_group";
 import cn from "@/utils/core/cn";
 
 import { QuestionCard } from "../components/question_cards/question_card";
+import { getJobSlugByName } from "../data";
 import { JOBS_INSIGHTS } from "../jobs_insights";
 
 export type JobRow = {
@@ -15,12 +21,27 @@ export type JobRow = {
 
 const BAR_SCALE = 30; // as maximum percentage of the bar width
 
-function ContextualBar({ name, percent }: { name: string; percent: number }) {
+function ContextualBar({
+  name,
+  percent,
+  href,
+}: {
+  name: string;
+  percent: number;
+  href?: string;
+}) {
   const barWidth = `${Math.min(Math.abs(percent) * (100 / BAR_SCALE), 100)}%`;
   const isPositive = percent >= 0;
 
-  return (
-    <div className="group relative flex h-6 w-full cursor-default">
+  const rootClassName = cn(
+    "group relative flex h-6 w-full",
+    href
+      ? "cursor-pointer rounded-lg no-underline transition-colors hover:bg-blue-100 dark:hover:bg-blue-100-dark"
+      : "cursor-default"
+  );
+
+  const inner = (
+    <>
       <div
         className={cn(
           "absolute inset-0 flex",
@@ -60,7 +81,15 @@ function ContextualBar({ name, percent }: { name: string; percent: number }) {
           </span>
         </div>
       </div>
-    </div>
+    </>
+  );
+
+  return href ? (
+    <Link href={href} className={rootClassName}>
+      {inner}
+    </Link>
+  ) : (
+    <div className={rootClassName}>{inner}</div>
   );
 }
 
@@ -74,6 +103,7 @@ export function JobsMonitorSection({
   jobs: JobRow[];
   postIds?: number[];
 } & ComponentProps<"div">) {
+  const t = useTranslations();
   const [year, setYear] = useState(columns[columns.length - 1] ?? "");
 
   return (
@@ -84,6 +114,17 @@ export function JobsMonitorSection({
       subtitle="AI is reshaping the job market, but not all fields are affected equally."
       subtitleClassName="print:mx-auto print:text-center"
       postIds={postIds}
+      headerActions={
+        <Button
+          href="/labor-hub/jobs/"
+          variant="primary"
+          size="sm"
+          className="h-8 gap-1.5 px-3"
+        >
+          {t("laborHubJobsVisitCta")}
+          <FontAwesomeIcon icon={faArrowRight} />
+        </Button>
+      }
       {...props}
     >
       <div className="mb-4 mt-3 flex justify-start md:mb-8 md:mt-5 md:justify-center print:justify-center">
@@ -157,13 +198,17 @@ export function JobsMonitorChart({
             {jobsWithSelectedYearData
               .filter((job) => (job.values[year] ?? 0) >= 0)
               .sort((a, b) => (b.values[year] ?? 0) - (a.values[year] ?? 0))
-              .map((job) => (
-                <ContextualBar
-                  key={job.name}
-                  name={job.name}
-                  percent={job.values[year] ?? 0}
-                />
-              ))}
+              .map((job) => {
+                const slug = getJobSlugByName(job.name);
+                return (
+                  <ContextualBar
+                    key={job.name}
+                    name={job.name}
+                    percent={job.values[year] ?? 0}
+                    href={slug ? `/labor-hub/jobs/${slug}/` : undefined}
+                  />
+                );
+              })}
           </div>
         </div>
         {showInsights && (
@@ -181,13 +226,17 @@ export function JobsMonitorChart({
             {jobsWithSelectedYearData
               .filter((job) => (job.values[year] ?? 0) < 0)
               .sort((a, b) => (b.values[year] ?? 0) - (a.values[year] ?? 0))
-              .map((job) => (
-                <ContextualBar
-                  key={job.name}
-                  name={job.name}
-                  percent={job.values[year] ?? 0}
-                />
-              ))}
+              .map((job) => {
+                const slug = getJobSlugByName(job.name);
+                return (
+                  <ContextualBar
+                    key={job.name}
+                    name={job.name}
+                    percent={job.values[year] ?? 0}
+                    href={slug ? `/labor-hub/jobs/${slug}/` : undefined}
+                  />
+                );
+              })}
           </div>
           {showInsights && (
             <div className="pointer-events-none relative -mr-4 mt-4 hidden flex-col items-end gap-4 md:flex">

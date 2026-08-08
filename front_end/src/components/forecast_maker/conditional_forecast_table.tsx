@@ -70,7 +70,7 @@ const ConditionalForecastTable: FC<Props> = ({
           </th>
         </tr>
       </thead>
-      <RadioGroup value={value} as="tbody" onChange={onChange}>
+      <RadioGroup value={value ?? undefined} as="tbody" onChange={onChange}>
         {options.map((option) => (
           <Radio
             as="tr"

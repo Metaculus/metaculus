@@ -12,12 +12,9 @@ import {
 import cn from "@/utils/core/cn";
 import { formatNumberBipm } from "@/utils/formatters/number";
 import { formatUsername } from "@/utils/formatters/users";
+import { getContributionsUrl } from "@/utils/navigation";
 
 import MedalIcon from "../../../components/medal_icon";
-import {
-  SCORING_DURATION_FILTER,
-  SCORING_YEAR_FILTER,
-} from "../../../search_params";
 import AggregationRankTooltip from "../aggregation_rank_tooltip";
 import ExcludedEntryTooltip from "../excluded_entry_tooltop";
 
@@ -58,6 +55,10 @@ const LeaderboardRow: FC<Props> = ({
 
   const t = useTranslations();
 
+  const profileUrl = user ? `/accounts/profile/${user.id}/` : null;
+  const medalsUrl = user ? `/accounts/profile/${user.id}/medals/` : null;
+  const username = user ? formatUsername(user) : "";
+
   return (
     <tr
       className={cn(
@@ -74,30 +75,44 @@ const LeaderboardRow: FC<Props> = ({
       )}
     >
       <td className="w-16 p-0 text-sm font-normal">
-        <Link
-          href={href}
-          className="flex items-center justify-between gap-1.5 py-2.5 pl-2.5 text-gray-500 no-underline"
-          prefetch={false}
-        >
-          {!user &&
-          (aggregation_method === "recency_weighted" ||
-            aggregation_method === "unweighted") ? (
+        {!user &&
+        (aggregation_method === "recency_weighted" ||
+          aggregation_method === "unweighted") ? (
+          <Link
+            href={href}
+            className="flex items-center justify-between gap-1.5 py-2.5 pl-2.5 text-gray-500 no-underline"
+            prefetch={false}
+          >
             <AggregationRankTooltip aggregationMethod={aggregation_method} />
-          ) : (
-            <>
-              {!!medal && <MedalIcon type={medal} className="size-5" />}
-              <span className="flex-1 text-center">
-                {exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_ONLY ? (
-                  <>
-                    <ExcludedEntryTooltip />
-                  </>
-                ) : (
-                  rank
-                )}
-              </span>
-            </>
-          )}
-        </Link>
+          </Link>
+        ) : (
+          <div className="flex items-center justify-between gap-1.5 pl-2.5 text-gray-500">
+            {!!medal &&
+              (medalsUrl ? (
+                <Link
+                  href={medalsUrl}
+                  aria-label={t("userMedals", { username })}
+                  className="flex items-center self-stretch no-underline"
+                  prefetch={false}
+                >
+                  <MedalIcon type={medal} className="size-5" />
+                </Link>
+              ) : (
+                <MedalIcon type={medal} className="size-5" />
+              ))}
+            <Link
+              href={href}
+              className="flex-1 py-2.5 text-center text-gray-500 no-underline"
+              prefetch={false}
+            >
+              {exclusion_status > ExclusionStatuses.EXCLUDE_PRIZE_ONLY ? (
+                <ExcludedEntryTooltip />
+              ) : (
+                rank
+              )}
+            </Link>
+          </div>
+        )}
       </td>
       <td
         className={cn(
@@ -105,21 +120,37 @@ const LeaderboardRow: FC<Props> = ({
           isUserRow ? "font-bold" : "font-medium"
         )}
       >
-        <Link
-          href={href}
-          className="flex items-center px-4 py-2.5 no-underline"
-          prefetch={false}
-        >
-          <span className="truncate">
-            {user
-              ? formatUsername(user)
-              : aggregation_method == "recency_weighted"
+        {user && profileUrl ? (
+          <div className="flex items-center">
+            <Link
+              href={profileUrl}
+              className="block min-w-0 truncate py-2.5 pl-4 no-underline hover:underline"
+              prefetch={false}
+            >
+              {username}
+            </Link>
+            <Link
+              href={href}
+              aria-label={t("userContributions", { username })}
+              className="min-w-4 flex-1 self-stretch"
+              prefetch={false}
+            />
+          </div>
+        ) : (
+          <Link
+            href={href}
+            className="flex items-center px-4 py-2.5 no-underline"
+            prefetch={false}
+          >
+            <span className="truncate">
+              {aggregation_method == "recency_weighted"
                 ? t("communityPrediction")
                 : aggregation_method == "unweighted"
                   ? t("unweightedAggregate")
                   : aggregation_method}
-          </span>
-        </Link>
+            </span>
+          </Link>
+        )}
       </td>
       <td className="hidden w-24 p-0 text-base font-[425] tabular-nums leading-4 @md:!table-cell">
         <Link
@@ -184,11 +215,14 @@ export const UserLeaderboardRow: FC<UserLeaderboardRowProps> = ({
 }) => {
   // only show this row for users who are logged in and have any ranking data
   // in this category
-  if (!userEntry) return null;
+  if (!userEntry?.user) return null;
 
-  const userHref = userEntry.medal
-    ? "/medals"
-    : `/contributions/${category}/${userEntry.user?.id}/?${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`;
+  const userHref = getContributionsUrl({
+    category,
+    userId: userEntry.user.id,
+    year,
+    duration,
+  });
 
   return (
     <LeaderboardRow

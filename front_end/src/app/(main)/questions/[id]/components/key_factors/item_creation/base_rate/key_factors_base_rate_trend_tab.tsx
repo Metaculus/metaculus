@@ -140,7 +140,7 @@ const KeyFactorsBaseRateTrendTab: FC<Props> = ({
       >
         <RadioGroup
           value={br.extrapolation ?? ""}
-          onChange={(v: "linear" | "exponential" | "other") =>
+          onChange={(v: BaseRateDraft["base_rate"]["extrapolation"]) =>
             setDraft({ ...draft, base_rate: { ...br, extrapolation: v } })
           }
           as="ul"

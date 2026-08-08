@@ -1,0 +1,350 @@
+from datetime import timedelta
+
+import pytest
+from django.utils import timezone as dj_timezone
+from rest_framework.exceptions import ValidationError
+
+from authentication.services.gated_actions import (
+    apply_gated_action,
+    apply_pending_action,
+    clear_pending_action,
+    pop_pending_action,
+    set_pending_action,
+    validate_gated_action,
+)
+from comments.models import Comment, KeyFactor
+from posts.models import PostSubscription, Vote
+from questions.models import Forecast, Question
+from tests.unit.test_posts.factories import factory_post
+from tests.unit.test_projects.factories import factory_project
+from tests.unit.test_questions.factories import create_question
+
+
+@pytest.fixture
+def public_post(user1):
+    return factory_post(author=user1)
+
+
+class TestPendingActionStore:
+    def test_set_and_pop(self):
+        set_pending_action(1, "post_vote", {"post": 5, "direction": 1})
+
+        entry = pop_pending_action(1)
+        assert entry["type"] == "post_vote"
+        assert entry["payload"] == {"post": 5, "direction": 1}
+        assert entry["requested_at"]
+
+        # pop consumes
+        assert pop_pending_action(1) is None
+
+    def test_latest_wins_overwrite(self):
+        set_pending_action(1, "post_vote", {"post": 5, "direction": 1})
+        set_pending_action(1, "forecast", [{"question": 7, "probability_yes": 0.6}])
+
+        assert pop_pending_action(1)["type"] == "forecast"
+
+    def test_clear(self):
+        set_pending_action(1, "post_vote", {"post": 5, "direction": 1})
+        clear_pending_action(1)
+
+        assert pop_pending_action(1) is None
+
+    def test_ttl_uses_setting(self, mocker, settings):
+        settings.AUTH_EMAIL_LINK_TIMEOUT = 1234
+        mock_set = mocker.patch("authentication.services.gated_actions.cache.set")
+
+        set_pending_action(1, "post_vote", {"post": 5, "direction": 1})
+
+        assert mock_set.call_args.kwargs["timeout"] == 1234
+        # Stored as a dict; the cache backend handles serialization.
+        stored = mock_set.call_args.args[1]
+        assert stored["type"] == "post_vote"
+        assert stored["payload"] == {"post": 5, "direction": 1}
+
+
+class TestValidateGatedAction:
+    def test_post_vote_valid(self):
+        slug, payload = validate_gated_action(
+            {"type": "post_vote", "payload": {"post": 1, "direction": 1}}
+        )
+        assert slug == "post_vote"
+        assert payload == {"post": 1, "direction": 1}
+
+    def test_unknown_type(self):
+        with pytest.raises(ValidationError):
+            validate_gated_action({"type": "nope", "payload": {}})
+
+    def test_bad_direction(self):
+        with pytest.raises(ValidationError):
+            validate_gated_action(
+                {"type": "post_vote", "payload": {"post": 1, "direction": 5}}
+            )
+
+    def test_payload_size_cap(self):
+        with pytest.raises(ValidationError):
+            validate_gated_action(
+                {
+                    "type": "post_vote",
+                    "payload": {"post": 1, "direction": 1, "x": "a" * 70000},
+                }
+            )
+
+
+class TestApplyPendingAction:
+    def test_applies_vote(self, user1, user2, public_post):
+        set_pending_action(
+            user2.id, "post_vote", {"post": public_post.pk, "direction": 1}
+        )
+
+        apply_pending_action(user2)
+
+        assert Vote.objects.filter(user=user2, post=public_post, direction=1).exists()
+        # consumed
+        assert pop_pending_action(user2.id) is None
+
+    def test_no_pending_action_is_a_noop(self, user1):
+        apply_pending_action(user1)
+
+    def test_failed_on_missing_post(self, user1):
+        set_pending_action(user1.id, "post_vote", {"post": 999999, "direction": 1})
+
+        apply_pending_action(user1)
+
+        assert not Vote.objects.filter(user=user1).exists()
+
+    def test_failed_on_invisible_post(self, user1, user2):
+        post = factory_post(
+            author=user1, default_project=factory_project(default_permission=None)
+        )
+        set_pending_action(user2.id, "post_vote", {"post": post.pk, "direction": 1})
+
+        apply_pending_action(user2)
+
+        assert not Vote.objects.filter(user=user2).exists()
+
+    def test_malformed_entry_missing_keys_does_not_raise(self, mocker, user1):
+        # A cache entry missing "type"/"payload" must not raise; sign-in continues.
+        mocker.patch(
+            "authentication.services.gated_actions.pop_pending_action",
+            return_value={"payload": {"post": 1, "direction": 1}},
+        )
+
+        apply_pending_action(user1)
+
+        assert not Vote.objects.filter(user=user1).exists()
+
+    def test_non_dict_entry_does_not_raise(self, mocker, user1):
+        # A non-dict decoded cache value must not raise on entry["type"].
+        mocker.patch(
+            "authentication.services.gated_actions.pop_pending_action",
+            return_value=["not", "a", "dict"],
+        )
+
+        apply_pending_action(user1)
+
+        assert not Vote.objects.filter(user=user1).exists()
+
+
+class TestPostSubscribeAction:
+    PAYLOAD_SUBS = [
+        {"type": "new_comments", "comments_frequency": 10},
+        {"type": "status_change"},
+    ]
+
+    def test_validate_ok(self):
+        slug, _ = validate_gated_action(
+            {
+                "type": "post_subscribe",
+                "payload": {"post": 1, "subscriptions": self.PAYLOAD_SUBS},
+            }
+        )
+        assert slug == "post_subscribe"
+
+    def test_validate_bad_subscription_type(self):
+        with pytest.raises(ValidationError):
+            validate_gated_action(
+                {
+                    "type": "post_subscribe",
+                    "payload": {"post": 1, "subscriptions": [{"type": "nope"}]},
+                }
+            )
+
+    def test_apply_creates_subscriptions(self, user1, user2, public_post):
+        set_pending_action(
+            user2.id,
+            "post_subscribe",
+            {"post": public_post.pk, "subscriptions": self.PAYLOAD_SUBS},
+        )
+
+        apply_pending_action(user2)
+
+        assert (
+            PostSubscription.objects.filter(user=user2, post=public_post).count() == 2
+        )
+
+
+@pytest.fixture
+def open_binary_post(user1):
+    question = create_question(
+        question_type=Question.QuestionType.BINARY,
+        open_time=dj_timezone.now() - timedelta(days=1),
+        scheduled_close_time=dj_timezone.now() + timedelta(days=30),
+        scheduled_resolve_time=dj_timezone.now() + timedelta(days=40),
+    )
+    return factory_post(author=user1, question=question)
+
+
+class TestForecastAction:
+    def test_validate_ok(self, open_binary_post):
+        slug, _ = validate_gated_action(
+            {
+                "type": "forecast",
+                "payload": [
+                    {
+                        "question": open_binary_post.question.pk,
+                        "probability_yes": 0.6,
+                    }
+                ],
+            }
+        )
+        assert slug == "forecast"
+
+    def test_validate_rejects_unknown_question(self):
+        with pytest.raises(ValidationError):
+            validate_gated_action(
+                {
+                    "type": "forecast",
+                    "payload": [{"question": 999999, "probability_yes": 0.6}],
+                }
+            )
+
+    def test_validate_caps_items_at_10(self):
+        payload = [{"question": i, "probability_yes": 0.6} for i in range(11)]
+        with pytest.raises(ValidationError):
+            validate_gated_action({"type": "forecast", "payload": payload})
+
+    def test_validate_rejects_empty(self):
+        with pytest.raises(ValidationError):
+            validate_gated_action({"type": "forecast", "payload": []})
+
+    def test_apply_creates_forecast(self, user2, open_binary_post):
+        set_pending_action(
+            user2.id,
+            "forecast",
+            [{"question": open_binary_post.question.pk, "probability_yes": 0.6}],
+        )
+
+        apply_pending_action(user2)
+
+        forecast = Forecast.objects.get(
+            author=user2, question=open_binary_post.question
+        )
+        assert forecast.source == Forecast.SourceChoices.UI
+
+    def test_apply_failed_on_closed_question(self, user1, user2, open_binary_post):
+        question = open_binary_post.question
+        question.scheduled_close_time = dj_timezone.now() - timedelta(days=1)
+        question.save()
+
+        set_pending_action(
+            user2.id,
+            "forecast",
+            [{"question": question.pk, "probability_yes": 0.6}],
+        )
+
+        apply_pending_action(user2)
+
+        assert not Forecast.objects.filter(author=user2).exists()
+
+
+class TestApplyGatedAction:
+    def test_applies_resolved_action(self, user1, user2, public_post):
+        apply_gated_action(user2, "post_vote", {"post": public_post.pk, "direction": 1})
+
+        assert Vote.objects.filter(user=user2, post=public_post, direction=1).exists()
+
+    def test_swallows_handler_failure(self, user1):
+        # Missing post -> handler raises; must be caught, not propagated.
+        apply_gated_action(user1, "post_vote", {"post": 999999, "direction": 1})
+
+        assert not Vote.objects.filter(user=user1).exists()
+
+
+class TestCreateCommentAction:
+    DRIVER_KF = {"text": "Key Factor Driver", "impact_direction": -1}
+
+    def test_validate_ok(self, user1, public_post):
+        slug, _ = validate_gated_action(
+            {
+                "type": "create_comment",
+                "payload": {"on_post": public_post.pk, "text": "Hello"},
+            }
+        )
+        assert slug == "create_comment"
+
+    def test_validate_rejects_text_less_comment(self, user1, public_post):
+        # Proves validate() actually runs CommentWriteSerializer, which requires
+        # text unless a base_rate/news key factor carries the content.
+        with pytest.raises(ValidationError):
+            validate_gated_action(
+                {"type": "create_comment", "payload": {"on_post": public_post.pk}}
+            )
+
+    def test_apply_creates_comment(self, user1, user2, public_post):
+        set_pending_action(
+            user2.id, "create_comment", {"on_post": public_post.pk, "text": "Hello"}
+        )
+
+        apply_pending_action(user2)
+
+        comment = Comment.objects.get(author=user2, on_post=public_post)
+        assert comment.text == "Hello"
+
+    def test_apply_creates_comment_with_key_factors(self, user1, user2, public_post):
+        set_pending_action(
+            user2.id,
+            "create_comment",
+            {
+                "on_post": public_post.pk,
+                "text": "Comment with Key Factors",
+                "key_factors": [{"driver": self.DRIVER_KF}],
+            },
+        )
+
+        apply_pending_action(user2)
+
+        comment = Comment.objects.get(author=user2, on_post=public_post)
+        key_factor = KeyFactor.objects.get(comment=comment)
+        assert key_factor.driver.text == "Key Factor Driver"
+
+    def test_apply_failed_on_invisible_post(self, user1, user2):
+        post = factory_post(
+            author=user1, default_project=factory_project(default_permission=None)
+        )
+        set_pending_action(
+            user2.id, "create_comment", {"on_post": post.pk, "text": "Hello"}
+        )
+
+        apply_pending_action(user2)
+
+        assert not Comment.objects.filter(author=user2).exists()
+
+    def test_apply_rolls_back_comment_when_key_factors_rejected(
+        self, user1, user2, public_post
+    ):
+        # Key factor limits are enforced at creation, not by capture-time shape
+        # validation - exceeding them must not leave an orphaned comment.
+        set_pending_action(
+            user2.id,
+            "create_comment",
+            {
+                "on_post": public_post.pk,
+                "text": "Too many key factors",
+                "key_factors": [{"driver": dict(self.DRIVER_KF)} for _ in range(5)],
+            },
+        )
+
+        apply_pending_action(user2)
+
+        assert not Comment.objects.filter(author=user2).exists()
+        assert not KeyFactor.objects.filter(comment__author=user2).exists()

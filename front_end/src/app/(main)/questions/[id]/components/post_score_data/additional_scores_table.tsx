@@ -1,27 +1,31 @@
+import { faCircleInfo } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC } from "react";
+import React, { FC, ReactNode } from "react";
 
 import SectionToggle from "@/components/ui/section_toggle";
+import Tooltip from "@/components/ui/tooltip";
 import { QuestionWithForecasts, ScoreData } from "@/types/question";
 import { TranslationKey } from "@/types/translations";
 import cn from "@/utils/core/cn";
 
-type Variant = "auto" | "compact";
+import { getMaxCoverage } from "./utils";
+
 type Props = {
   question: QuestionWithForecasts;
   separateCoverage?: boolean;
-  variant?: Variant;
 };
 
+type ScoreRow = { label: string; value: string; valueSuffix?: ReactNode };
+
 const ScoreTable: FC<{
-  rows: { label: string; value: string }[];
+  rows: ScoreRow[];
   className?: string;
-  variant?: Variant;
-}> = ({ rows, className, variant = "auto" }) => (
+}> = ({ rows, className }) => (
   <div
     className={cn(
-      "overflow-hidden rounded border border-gray-300 bg-white dark:border-gray-300-dark dark:bg-gray-0-dark",
+      "rounded border border-gray-300 bg-white dark:border-gray-300-dark dark:bg-gray-0-dark",
       className
     )}
   >
@@ -30,23 +34,12 @@ const ScoreTable: FC<{
         key={index}
         className="flex items-center border-b border-gray-300 px-4 py-3 last:border-b-0 dark:border-gray-300-dark"
       >
-        <span
-          className={cn(
-            "w-[66%] pr-4 text-sm text-gray-700 dark:text-gray-700-dark",
-            {
-              "sm:w-1/2": variant === "auto",
-            }
-          )}
-        >
+        <span className="w-1/2 pr-4 text-sm text-gray-700 dark:text-gray-700-dark">
           {row.label}
         </span>
-        <span
-          className={cn(
-            "w-[34%] pl-4 text-center text-base text-gray-800 dark:text-gray-800-dark",
-            { "sm:w-1/2": variant === "auto" }
-          )}
-        >
+        <span className="flex w-1/2 items-center justify-center gap-1 pl-4 text-center text-base text-gray-800 dark:text-gray-800-dark">
           {row.value}
+          {row.valueSuffix}
         </span>
       </div>
     ))}
@@ -80,7 +73,6 @@ const buildScoreLabelKey = (
 export const AdditionalScoresTable: FC<Props> = ({
   question,
   separateCoverage,
-  variant,
 }) => {
   const t = useTranslations();
 
@@ -107,8 +99,39 @@ export const AdditionalScoresTable: FC<Props> = ({
     "weighted_coverage",
   ];
 
-  const coverageRows: { label: string; value: string }[] = [];
-  const otherRows: { label: string; value: string }[] = [];
+  // Peer coverage uses scheduled_close_time as total duration, so early
+  // resolution reduces the max attainable coverage.
+  const maxCoverage = getMaxCoverage(question);
+  const tooltipContent = t.rich("maxAttainableCoverageExplanation", {
+    link: (chunks) => (
+      <a
+        href="https://www.metaculus.com/help/scores-faq/#score-truncation"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline"
+      >
+        {chunks}
+      </a>
+    ),
+  });
+  let maxCoverageValueSuffix: ReactNode;
+  if (maxCoverage !== null) {
+    maxCoverageValueSuffix = (
+      <Tooltip tooltipContent={tooltipContent} renderInPortal={false}>
+        <span className="cursor-help text-sm text-gray-600 dark:text-gray-600-dark">
+          (max. {Math.round(maxCoverage * 100)}%
+          <FontAwesomeIcon
+            icon={faCircleInfo}
+            className="ml-0.5 text-blue-500 dark:text-blue-500-dark"
+          />
+          )
+        </span>
+      </Tooltip>
+    );
+  }
+
+  const coverageRows: ScoreRow[] = [];
+  const otherRows: ScoreRow[] = [];
 
   for (const key of scoreKeys) {
     if (key === peerKey || key === baselineKey) continue;
@@ -126,6 +149,8 @@ export const AdditionalScoresTable: FC<Props> = ({
       targetRows.push({
         label: t(buildScoreLabelKey(key, "user")),
         value: formattedValue,
+        // Only peer coverage (key === "coverage") is affected by early resolution
+        ...(key === "coverage" ? { valueSuffix: maxCoverageValueSuffix } : {}),
       });
     }
 
@@ -148,19 +173,13 @@ export const AdditionalScoresTable: FC<Props> = ({
   if (coverageRows.length === 0 && otherRows.length === 0) return null;
 
   if (!separateCoverage) {
-    return (
-      <ScoreTable rows={[...coverageRows, ...otherRows]} variant={variant} />
-    );
+    return <ScoreTable rows={[...coverageRows, ...otherRows]} />;
   }
 
   return (
     <>
-      {coverageRows.length > 0 && (
-        <ScoreTable rows={coverageRows} variant={variant} />
-      )}
-      {otherRows.length > 0 && (
-        <ScoreTable rows={otherRows} variant={variant} />
-      )}
+      {coverageRows.length > 0 && <ScoreTable rows={coverageRows} />}
+      {otherRows.length > 0 && <ScoreTable rows={otherRows} />}
     </>
   );
 };

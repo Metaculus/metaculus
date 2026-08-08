@@ -8,7 +8,6 @@ library,license,link
 @fortawesome/free-solid-svg-icons,CC-BY-4.0 AND MIT,https://www.npmjs.com/package/@fortawesome/free-solid-svg-icons
 @fortawesome/react-fontawesome,MIT,https://www.npmjs.com/package/@fortawesome/react-fontawesome
 @github/relative-time-element,MIT,https://www.npmjs.com/package/@github/relative-time-element
-@google-cloud/translate,Apache-2.0,https://www.npmjs.com/package/@google-cloud/translate
 @headlessui/react,MIT,https://www.npmjs.com/package/@headlessui/react
 @hookform/resolvers,MIT,https://www.npmjs.com/package/@hookform/resolvers
 @kodingdotninja/use-tailwind-breakpoint,MIT,https://www.npmjs.com/package/@kodingdotninja/use-tailwind-breakpoint
@@ -26,7 +25,6 @@ library,license,link
 @types/numeric,MIT,https://www.npmjs.com/package/@types/numeric
 @types/react,MIT,https://www.npmjs.com/package/@types/react
 @types/react-dom,MIT,https://www.npmjs.com/package/@types/react-dom
-@types/uuid,MIT,https://www.npmjs.com/package/@types/uuid
 clsx,MIT,https://www.npmjs.com/package/clsx
 core-js,MIT,https://www.npmjs.com/package/core-js
 d3,ISC,https://www.npmjs.com/package/d3
@@ -51,7 +49,6 @@ numeric,MIT,https://www.npmjs.com/package/numeric
 openai,Apache-2.0,https://www.npmjs.com/package/openai
 posthog-js,MIT,https://www.npmjs.com/package/posthog-js
 posthog-node,Apache-2.0,https://www.npmjs.com/package/posthog-node
-puppeteer,Apache-2.0,https://www.npmjs.com/package/puppeteer
 rc-slider,MIT,https://www.npmjs.com/package/rc-slider
 react,MIT,https://www.npmjs.com/package/react
 react-dom,MIT,https://www.npmjs.com/package/react-dom
@@ -73,8 +70,6 @@ eslint,MIT,https://www.npmjs.com/package/eslint
 eslint-config-next,MIT,https://www.npmjs.com/package/eslint-config-next
 eslint-config-prettier,MIT,https://www.npmjs.com/package/eslint-config-prettier
 eslint-plugin-prettier,MIT,https://www.npmjs.com/package/eslint-plugin-prettier
-husky,MIT,https://www.npmjs.com/package/husky
-lint-staged,MIT,https://www.npmjs.com/package/lint-staged
 npm-run-all,MIT,https://www.npmjs.com/package/npm-run-all
 postcss,MIT,https://www.npmjs.com/package/postcss
 prettier,MIT,https://www.npmjs.com/package/prettier

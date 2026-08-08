@@ -1,9 +1,11 @@
 "use server";
 
+import { cookies } from "next/headers";
+
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import { getAuthCookieManager } from "@/services/auth_tokens";
-import { getCsrfManager } from "@/services/csrf";
 import { SocialProviderType } from "@/types/auth";
+import { assertValidCsrfNonce, CSRF_COOKIE_NAME } from "@/utils/csrf";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 export async function exchangeSocialOauthCode(
@@ -11,12 +13,8 @@ export async function exchangeSocialOauthCode(
   code: string,
   nonce: string
 ) {
-  const csrfManager = await getCsrfManager();
-  try {
-    csrfManager.verify(nonce);
-  } finally {
-    csrfManager.rotate();
-  }
+  const cookieStore = await cookies();
+  assertValidCsrfNonce(cookieStore.get(CSRF_COOKIE_NAME)?.value, nonce);
 
   const { PUBLIC_APP_URL } = getPublicSettings();
   const response = await ServerAuthApi.exchangeSocialOauthCode(

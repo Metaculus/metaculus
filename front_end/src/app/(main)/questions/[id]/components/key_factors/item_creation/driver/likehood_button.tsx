@@ -1,5 +1,6 @@
-import cn from "classnames";
 import { ButtonHTMLAttributes, FC, PropsWithChildren } from "react";
+
+import cn from "@/utils/core/cn";
 
 type Variant = "green" | "red" | "neutral";
 

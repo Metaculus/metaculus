@@ -7,6 +7,7 @@ export type GroupButton<T> = {
   value: T;
   label: string | ReactNode;
   href?: string;
+  className?: string;
 };
 
 type Props<T> = {
@@ -19,6 +20,7 @@ type Props<T> = {
   className?: string;
   activeClassName?: string;
   containerClassName?: string;
+  disabled?: boolean;
 };
 
 const ButtonGroup = <T extends string>({
@@ -31,6 +33,7 @@ const ButtonGroup = <T extends string>({
   className,
   containerClassName,
   activeClassName,
+  disabled,
 }: Props<T>) => {
   return (
     <div className={cn("flex", containerClassName)}>
@@ -38,6 +41,7 @@ const ButtonGroup = <T extends string>({
         <Button
           key={button.value}
           variant={button.value === value ? activeVariant : variant}
+          disabled={disabled}
           onClick={() => {
             onChange(button.value);
             onClick?.(button.label);
@@ -51,7 +55,8 @@ const ButtonGroup = <T extends string>({
                 : index !== buttons.length - 1
                   ? "ml-[-1px] rounded-none"
                   : "ml-[-1px] rounded-l-none"),
-            value === button.value ? activeClassName : className
+            value === button.value ? activeClassName : className,
+            button.className
           )}
         >
           {button.label}

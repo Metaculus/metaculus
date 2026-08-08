@@ -10,6 +10,14 @@ on:
   pull_request_review:
     types: [submitted]
 
+# Queue rather than cancel: cancelling mid-run leaves a half-applied edit on the branch.
+# `queue: max` keeps every pending request; the default (`single`) would cancel an
+# already-pending run when a second @claude comment arrives, silently dropping it.
+concurrency:
+  group: claude-${{ github.event.issue.number || github.event.pull_request.number }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   claude:
     if: |
@@ -45,6 +53,18 @@ jobs:
       - name: "Install node_modules"
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: cd front_end && bun ci
+
+      # Backend toolchain, so Claude can run the ruff format/check steps CLAUDE.md
+      # requires after editing Python. Keep the uv version in sync with unit_tests.yml.
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.11.x"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - name: "Install Python dependencies"
+        run: uv sync --frozen
+
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
@@ -63,5 +83,5 @@ jobs:
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://docs.claude.com/en/docs/claude-code/cli-reference for available options
           claude_args: |
-            --model claude-opus-4-7
-            --allowedTools "Bash(bun ci:*),Bash(bun install:*),Bash(bun run:*),Bash(bun x:*),Bash(cd:*)"
+            --model claude-opus-5
+            --allowedTools "Bash(bun ci:*),Bash(bun install:*),Bash(bun run:*),Bash(bun x:*),Bash(cd:*),Bash(uv run ruff format:*),Bash(uv run ruff check:*),Bash(uv run pytest:*),Bash(git fetch:*),Bash(git remote set-branches:*),Bash(git log:*),Bash(git blame:*),Bash(git diff:*),Bash(git show:*)"

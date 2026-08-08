@@ -42,10 +42,12 @@ const ForecastMakerGroupCopyMenu: FC<Props> = ({
       handleCopy(option.id, targetOption.id);
 
       toast(
-        t.rich("forecastCopyToToastMessage", {
-          from_name: option.name,
-          to_name: targetOption.name,
-        })
+        <>
+          {t.rich("forecastCopyToToastMessage", {
+            from_name: option.name,
+            to_name: targetOption.name,
+          })}
+        </>
       );
 
       setForcedOpenId(targetOption.id);
@@ -63,9 +65,11 @@ const ForecastMakerGroupCopyMenu: FC<Props> = ({
     (targetOption: ContinuousGroupOption) => {
       handleCopy(targetOption.id, option.id);
       toast(
-        t.rich("forecastCopyFromToastMessage", {
-          name: targetOption.name,
-        })
+        <>
+          {t.rich("forecastCopyFromToastMessage", {
+            name: targetOption.name,
+          })}
+        </>
       );
     },
     [handleCopy, option.id, t]

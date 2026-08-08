@@ -2,8 +2,16 @@
 
 import { isNil, merge } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, memo, useEffect, useMemo, useRef, useState } from "react";
-import { v4 } from "uuid";
+import React, {
+  FC,
+  memo,
+  ReactNode,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   CursorCoordinatesPropType,
   DomainTuple,
@@ -22,7 +30,9 @@ import {
   VictoryThemeDefinition,
 } from "victory";
 
+import { CHART_DASH } from "@/constants/chart_dash";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { CHART_FONT_STYLE } from "@/constants/chart_typography";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
@@ -41,19 +51,22 @@ import {
   generateNumericXDomain,
   generateScale,
   generateTimestampXScale,
-  generateTimeSeriesYDomain,
   getTickLabelFontSize,
   getAxisRightPadding,
+  Y_AXIS_LABEL_ANCHOR_OFFSET,
+  Y_AXIS_LABEL_RESERVED_PX,
 } from "@/utils/charts/axis";
 import { findPreviousTimestamp } from "@/utils/charts/cursor";
+import { getSharedStepKeepMask } from "@/utils/charts/step_reducer";
+import { pickHighestContrastTextColor } from "@/utils/core/colors";
 import { truncateLabel } from "@/utils/formatters/string";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 
 import ChartContainer from "./primitives/chart_container";
 import ChartCursorLabel from "./primitives/chart_cursor_label";
+import SvgWrapper from "./primitives/svg_wrapper";
 import XTickLabel from "./primitives/x_tick_label";
 import ForecastAvailabilityChartOverflow from "../post_card/chart_overflow";
-import SvgWrapper from "./primitives/svg_wrapper";
 import YTickLabel from "./primitives/y_tick_label";
 
 type ColoredLinePoint = {
@@ -84,18 +97,17 @@ type Props = {
   isClosed?: boolean;
   aggregation?: boolean;
   openTime?: number | null;
-  forceAutoZoom?: boolean;
   isEmbedded?: boolean;
   forecastAvailability?: ForecastAvailability;
   forFeedPage?: boolean;
-  chartTitle?: string;
+  chartTitle?: ReactNode;
+  headerLeft?: ReactNode;
+  headerExtra?: ReactNode;
   animate?: object;
   leftPadding?: number;
 };
 
-const LABEL_FONT_FAMILY = "Inter";
 const BOTTOM_PADDING = 20;
-const TICK_FONT_SIZE = 10;
 
 const MultipleChoiceChart: FC<Props> = ({
   timestamps,
@@ -115,15 +127,16 @@ const MultipleChoiceChart: FC<Props> = ({
   isClosed,
   aggregation,
   openTime,
-  forceAutoZoom,
   isEmbedded,
   forecastAvailability,
   forFeedPage,
   chartTitle,
+  headerLeft,
+  headerExtra,
   animate,
   leftPadding = 0,
 }) => {
-  const questionKey = useMemo(() => v4(), []);
+  const questionKey = useId();
   const t = useTranslations();
   const {
     ref: chartContainerRef,
@@ -171,7 +184,6 @@ const MultipleChoiceChart: FC<Props> = ({
         hideCP,
         isAggregationsEmpty: isEmptyDomain,
         openTime,
-        forceAutoZoom,
         forFeedPage,
       }),
     [
@@ -187,7 +199,6 @@ const MultipleChoiceChart: FC<Props> = ({
       hideCP,
       isEmptyDomain,
       openTime,
-      forceAutoZoom,
       forFeedPage,
     ]
   );
@@ -214,7 +225,7 @@ const MultipleChoiceChart: FC<Props> = ({
       cursorDimension={"x"}
       defaultCursorValue={defaultCursor}
       style={{
-        touchAction: "pan-y",
+        touchAction: "none",
       }}
       cursorLabelOffset={{
         x: 0,
@@ -235,7 +246,7 @@ const MultipleChoiceChart: FC<Props> = ({
             isCursorActive
               ? {
                   stroke: getThemeColor(METAC_COLORS.gray["600"]),
-                  strokeDasharray: "2,1",
+                  strokeDasharray: CHART_DASH.cursor,
                 }
               : {
                   stroke: "transparent",
@@ -280,6 +291,8 @@ const MultipleChoiceChart: FC<Props> = ({
         zoom={withZoomPicker ? zoom : undefined}
         onZoomChange={setZoom}
         chartTitle={chartTitle}
+        headerLeft={headerLeft}
+        headerExtra={headerExtra}
       >
         {shouldDisplayChart && (
           <VictoryChart
@@ -317,11 +330,18 @@ const MultipleChoiceChart: FC<Props> = ({
                     setIsCursorActive(false);
                     onCursorActiveChange?.(false);
                   },
+                  onTouchCancelCapture: () => {
+                    if (!onCursorChange) return;
+                    setIsCursorActive(false);
+                    onCursorActiveChange?.(false);
+                  },
                 },
               },
             ]}
             containerComponent={
-              onCursorChange ? (
+              onCursorChange &&
+              !hideCP &&
+              !forecastAvailability?.cpRevealsOn ? (
                 CursorContainer
               ) : (
                 <VictoryContainer
@@ -382,35 +402,43 @@ const MultipleChoiceChart: FC<Props> = ({
                   stroke: "transparent",
                 },
                 axisLabel: {
-                  fontFamily: LABEL_FONT_FAMILY,
+                  ...CHART_FONT_STYLE.axisLabel,
                   fontSize: tickLabelFontSize,
                   fill: getThemeColor(METAC_COLORS.gray["500"]),
                 },
                 tickLabels: {
-                  fontFamily: LABEL_FONT_FAMILY,
-                  padding: 5,
+                  ...CHART_FONT_STYLE.tick,
+                  // Right-align labels at the right margin, reserving space
+                  // for the rotated yLabel when present.
+                  padding:
+                    maxRightPadding -
+                    (yLabel ? Y_AXIS_LABEL_RESERVED_PX : 0) -
+                    4,
+                  textAnchor: "end",
                   fontSize: tickLabelFontSize,
                   fill: getThemeColor(METAC_COLORS.gray["700"]),
                 },
                 axis: {
                   stroke: "transparent",
                 },
-                grid: isEmptyDomain
-                  ? {
-                      stroke: getThemeColor(METAC_COLORS.gray["300"]),
-                      strokeWidth: 1,
-                      strokeDasharray: "2, 5",
-                    }
-                  : {
-                      stroke: "transparent",
-                    },
+                grid:
+                  isEmptyDomain || hideCP
+                    ? {
+                        stroke: getThemeColor(METAC_COLORS.gray["300"]),
+                        strokeWidth: 1,
+                        strokeDasharray: CHART_DASH.grid,
+                      }
+                    : {
+                        stroke: "transparent",
+                      },
               }}
               label={yLabel}
-              offsetX={
-                isNil(yLabel) ? chartWidth + 5 : chartWidth - TICK_FONT_SIZE + 5
+              orientation="right"
+              axisLabelComponent={
+                yLabel ? (
+                  <VictoryLabel x={chartWidth - Y_AXIS_LABEL_ANCHOR_OFFSET} />
+                ) : undefined
               }
-              orientation={"left"}
-              axisLabelComponent={<VictoryLabel x={chartWidth} />}
             />
             <VictoryAxis
               tickValues={xScale.ticks}
@@ -426,7 +454,6 @@ const MultipleChoiceChart: FC<Props> = ({
                 <VictoryPortal>
                   <XTickLabel
                     chartWidth={chartWidth}
-                    withCursor={!!onCursorChange}
                     fontSize={tickLabelFontSize as number}
                     dx={isEmbedded ? 16 : 0}
                   />
@@ -440,6 +467,7 @@ const MultipleChoiceChart: FC<Props> = ({
                   stroke: "transparent",
                 },
                 tickLabels: {
+                  ...CHART_FONT_STYLE.tick,
                   fill: getThemeColor(METAC_COLORS.gray["700"]),
                 },
               }}
@@ -588,7 +616,6 @@ function buildChartData({
   hideCP?: boolean;
   isAggregationsEmpty?: boolean;
   openTime?: number | null;
-  forceAutoZoom?: boolean;
   forFeedPage?: boolean;
 }): ChartData {
   const closeTimes = choiceItems
@@ -605,6 +632,18 @@ function buildChartData({
 
   const activeItems = choiceItems.filter((c) => c.active);
   const shouldNormalize = activeItems.length > 1;
+
+  // Feed previews: downsample the CP timelines on a single shared index grid so
+  // every stacked option keeps identical x-coordinates. Reducing each option's
+  // line independently would desync the grids and corrupt VictoryStack. Keeping
+  // any index where some active option changes value is lossless for stepAfter.
+  const cpKeepMask =
+    forFeedPage && !hideCP && activeItems.length > 0
+      ? getSharedStepKeepMask(
+          activeItems.map((it) => it.aggregationValues),
+          activeItems[0]?.aggregationValues.length ?? 0
+        )
+      : null;
 
   // for MC questions userTimestamps will be the same array for every choice item
   const userTimestamps = choiceItems[0]?.userTimestamps ?? [];
@@ -701,6 +740,11 @@ function buildChartData({
           });
           if (!hideCP) {
             aggregationTimestamps.forEach((timestamp, timestampIndex) => {
+              // Drop indices no active option changes at (feed only). Endpoints
+              // and every value/null transition stay, so stepAfter is unchanged.
+              if (active && cpKeepMask?.[timestampIndex] === false) {
+                return;
+              }
               const aggregationValue = aggregationValues[timestampIndex];
               // build line (CP data)
               const val =
@@ -838,16 +882,7 @@ function buildChartData({
   const fontSize = extraTheme ? getTickLabelFontSize(extraTheme) : undefined;
   const xScale = generateTimestampXScale(xDomain, width, fontSize);
 
-  const lines: Line = graphs
-    .filter((g) => !isNil(g.line) && g.active)
-    .flatMap((g) => g.line);
-  const { originalYDomain } = generateTimeSeriesYDomain({
-    zoom,
-    minTimestamp: xDomain[0],
-    isChartEmpty: !domainTimestamps.length,
-    minValues: lines.map((l) => ({ timestamp: l.x, y: l.y })),
-    maxValues: lines.map((l) => ({ timestamp: l.x, y: l.y })),
-  });
+  const originalYDomain: DomainTuple = [0, 1];
 
   const yScale = generateScale({
     displayType: QuestionType.MultipleChoice,
@@ -855,7 +890,7 @@ function buildChartData({
     direction: ScaleDirection.Vertical,
     scaling,
     domain: originalYDomain,
-    forceTickCount: forFeedPage ? 3 : 5,
+    forceTickCount: forFeedPage ? 3 : 6,
     alwaysShowTicks: true,
   });
 
@@ -900,9 +935,7 @@ const ResolutionChip: FC<{
     ? METAC_COLORS.purple["800"].dark
     : METAC_COLORS.gray["0"].DEFAULT;
 
-  const chipTextColor = isDarkTheme
-    ? METAC_COLORS.purple["800"].dark
-    : METAC_COLORS.gray["0"].DEFAULT;
+  const chipTextColor = pickHighestContrastTextColor(color);
   const [textWidth, setTextWidth] = useState(0);
   const textRef = useRef<SVGTextElement>(null);
 

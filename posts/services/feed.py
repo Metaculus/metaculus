@@ -5,7 +5,7 @@ from django.db.models import Q, QuerySet, Exists, Max, OuterRef
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError, PermissionDenied
 
-from posts.models import Post, Vote
+from posts.models import Post, Vote, projects_q
 from posts.serializers import PostFilterSerializer
 from posts.services.search import (
     perform_post_search,
@@ -13,6 +13,7 @@ from posts.services.search import (
     posts_full_text_search,
 )
 from projects.models import Project
+from projects.services.common import get_site_main_project
 from questions.models import Question
 from users.models import User
 from utils.cache import cache_get_or_set
@@ -21,7 +22,7 @@ from utils.models import build_order_by
 from utils.serializers import parse_order_by
 
 
-def get_posts_feed(
+def get_posts_feed(  # noqa: C901
     qs: Post.objects = None,
     user: User = None,
     search: str = None,
@@ -48,6 +49,7 @@ def get_posts_feed(
     show_on_homepage: bool = None,
     following: bool = None,
     upvoted_by: int = None,
+    commented_by: int = None,
     **kwargs,
 ) -> Post.objects:
     """
@@ -61,6 +63,9 @@ def get_posts_feed(
     if not_forecaster_id and (not user or not_forecaster_id != user.id):
         raise PermissionDenied()
 
+    if commented_by and (not user or commented_by != user.id):
+        raise PermissionDenied()
+
     if qs is None:
         qs = Post.objects.all()
 
@@ -70,7 +75,7 @@ def get_posts_feed(
 
     # Apply consumer views filter
     if for_consumer_view:
-        qs = filter_for_consumer_view(qs)
+        qs = filter_for_consumer_view(qs, is_search=bool(search))
 
     # Exclude Deleted posts
     qs = qs.exclude(curation_status=Post.CurationStatus.DELETED)
@@ -136,7 +141,12 @@ def get_posts_feed(
 
     for status in statuses:
         if status in Post.CurationStatus:
-            post_status_q |= Q(curation_status=status)
+            status_q = Q(curation_status=status)
+            # Main-feed pending queue should only include posts attached to site_main,
+            # not pending posts from tournaments/question series with visibility=NORMAL.
+            if status == Post.CurationStatus.PENDING and for_main_feed:
+                status_q &= projects_q(get_site_main_project())
+            post_status_q |= status_q
         if status == "open":
             post_status_q |= Q(
                 Q(published_at__lte=now)
@@ -217,6 +227,9 @@ def get_posts_feed(
             votes__direction=Vote.VoteDirection.UP,
         )
 
+    if commented_by:
+        qs = qs.filter_user_has_commented(commented_by)
+
     # Followed posts
     if user and user.is_authenticated and following:
         qs = qs.annotate_user_is_following(user=user).filter(user_is_following=True)
@@ -226,6 +239,8 @@ def get_posts_feed(
         qs = qs.filter_private()
     if access == PostFilterSerializer.Access.PUBLIC:
         qs = qs.filter_public()
+    if access == PostFilterSerializer.Access.PERSONAL:
+        qs = qs.filter_personal()
 
     # Similar posts lookup
     if similar_to_post_id:
@@ -302,8 +317,9 @@ def get_posts_feed(
         if not order_desc:
             raise ValidationError('Ascending is not supported for "In the news" order')
 
-        # Annotate news hotness and exclude notebooks
-        qs = qs.annotate_news_hotness().filter(notebook__isnull=True)
+        # Order by the precomputed `news_hotness` column (see
+        # posts.services.hotness) and exclude notebooks
+        qs = qs.filter(notebook__isnull=True)
 
         # Include questions with actual close time in the past 7 days,
         # so that when the "open" filter is unselected you see
@@ -331,45 +347,58 @@ def get_posts_feed(
     return qs.distinct("id", order_type).only("pk")
 
 
-def filter_for_consumer_view(qs: QuerySet[Post]) -> QuerySet[Post]:
+def filter_for_consumer_view(
+    qs: QuerySet[Post], is_search: bool = False
+) -> QuerySet[Post]:
     """
     A special filter applied to default Consumer View feed representation
     https://github.com/Metaculus/metaculus/issues/3377
+
+    Curation filters shape what we offer someone browsing the feed, so they are
+    relaxed for search, where the user is looking up something specific. The
+    bots-only exclusion is a dedupe rather than curation and always applies:
+    those posts are cross-posted into a human-facing project, so keeping them
+    would surface duplicate-looking results.
     """
 
-    now = timezone.now()
+    if not is_search:
+        now = timezone.now()
 
-    allowed_projects = list(
-        Project.objects.filter(
-            type=Project.ProjectTypes.NEWS_CATEGORY,
-            slug__in=["programs", "research"],
-        )
-    )
-
-    # Display only programs/research notebooks
-    qs = qs.filter(
-        Q(default_project__in=allowed_projects)
-        | Q(notebook__isnull=True)
-        | Q(projects__in=allowed_projects)
-    )
-
-    # We should keep posts where at least one question has CP revealed.
-    # For group questions, also check they're still open.
-    qs = qs.filter(
-        Q(notebook__isnull=False)
-        | Q(question__cp_reveal_time__lt=now)
-        | Exists(
-            Question.objects.filter(
-                Q(actual_close_time__isnull=True) | Q(actual_close_time__gte=now),
-                cp_reveal_time__lt=now,
-                group_id__isnull=False,
-                post_id=OuterRef("pk"),
+        allowed_projects = list(
+            Project.objects.filter(
+                type=Project.ProjectTypes.NEWS_CATEGORY,
+                slug__in=["programs", "research"],
             )
         )
-    )
 
-    # Exclude resolved questions
-    qs = qs.exclude(resolved=True)
+        # Display only programs/research notebooks
+        qs = qs.filter(
+            Q(default_project__in=allowed_projects)
+            | Q(notebook__isnull=True)
+            | Q(projects__in=allowed_projects)
+        )
+
+        # We should keep posts where at least one question has CP revealed.
+        # For group questions, also check they're still open.
+        qs = qs.filter(
+            Q(notebook__isnull=False)
+            | Q(question__cp_reveal_time__lt=now)
+            | Exists(
+                Question.objects.filter(
+                    Q(actual_close_time__isnull=True) | Q(actual_close_time__gte=now),
+                    cp_reveal_time__lt=now,
+                    group_id__isnull=False,
+                    post_id=OuterRef("pk"),
+                )
+            )
+        )
+
+        # Exclude resolved questions
+        qs = qs.exclude(resolved=True)
+
+    qs = qs.exclude(
+        default_project__bot_leaderboard_status=Project.BotLeaderboardStatus.BOTS_ONLY
+    )
 
     return qs
 

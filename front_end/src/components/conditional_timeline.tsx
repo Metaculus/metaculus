@@ -8,6 +8,7 @@ import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_but
 import { useHideCP } from "@/contexts/cp_context";
 import { ConditionalPost, PostConditional, PostStatus } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
+import { getQuestionForecastAvailability } from "@/utils/questions/forecastAvailability";
 import { getPostDrivenTime } from "@/utils/questions/helpers";
 
 type Props = {
@@ -34,7 +35,12 @@ const ConditionalTimeline: FC<Props> = ({ post }) => {
         hideCP={hideCP}
         isClosed={status === PostStatus.CLOSED}
       />
-      {hideCP && <RevealCPButton className="mb-3" />}
+      {hideCP &&
+        !(
+          getQuestionForecastAvailability(conditional.question_yes)
+            .cpRevealsOn &&
+          getQuestionForecastAvailability(conditional.question_no).cpRevealsOn
+        ) && <RevealCPButton className="mb-3" />}
     </div>
   );
 };

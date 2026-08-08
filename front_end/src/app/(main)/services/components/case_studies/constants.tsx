@@ -105,7 +105,7 @@ export const CASE_STUDIES: TCaseStudyCard[] = [
     },
     cta: {
       labelKey: "readFullReport",
-      href: "/files/forecasting-owid-report.pdf",
+      href: "https://www.metaculus.com/files/OWID%2Breport",
     },
   },
 ];

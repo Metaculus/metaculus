@@ -238,6 +238,10 @@ AUTH_SIGNUP_VERIFY_EMAIL = (
 # Simplified signup flow. If contains token -> allows fast signup with username only
 AUTH_SIGNUP_SIMPLIFIED_TOKEN = os.environ.get("AUTH_SIGNUP_SIMPLIFIED_TOKEN")
 
+# Email-link auth (gated CTA flow): max age of emailed sign-in links AND the
+# Redis TTL of pending gated actions, in seconds.
+AUTH_EMAIL_LINK_TIMEOUT = int(os.environ.get("AUTH_EMAIL_LINK_TIMEOUT", 60 * 60 * 24))
+
 PUBLIC_AUTHENTICATION_REQUIRED = (
     os.environ.get("PUBLIC_AUTHENTICATION_REQUIRED", "false").lower() == "true"
 )
@@ -248,10 +252,8 @@ SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.social_auth.social_uid",
     "social_core.pipeline.social_auth.auth_allowed",
     "social_core.pipeline.social_auth.social_user",
-    "social_core.pipeline.user.get_username",
-    "social_core.pipeline.social_auth.associate_by_email",
-    "authentication.social_pipeline.check_signup_allowed",
-    "social_core.pipeline.user.create_user",
+    "authentication.social_pipeline.associate_by_email",
+    "authentication.social_pipeline.create_user",
     "social_core.pipeline.social_auth.associate_user",
     "social_core.pipeline.social_auth.load_extra_data",
     "social_core.pipeline.user.user_details",
@@ -286,15 +288,25 @@ EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "anymail.backends.mailgun.EmailB
 EMAIL_HOST_USER = os.environ.get(
     "EMAIL_HOST_USER", f"Metaculus Accounts <accounts@{MAILGUN_DOMAIN}>"
 )
-EMAIL_NOTIFICATIONS_USER = os.environ.get(
-    "EMAIL_NOTIFICATIONS_USER",
-    f"Metaculus Notifications <notifications@{MAILGUN_DOMAIN}>",
+# Per-stream senders. Defaults stay on MAILGUN_DOMAIN so standalone
+# instances are unaffected; point these at dedicated domains in production.
+EMAIL_NOTIFICATIONS_SENDER = os.environ.get(
+    "EMAIL_NOTIFICATIONS_SENDER",
+    # EMAIL_NOTIFICATIONS_USER is the deprecated env var name, kept for
+    # backward compatibility.
+    os.environ.get(
+        "EMAIL_NOTIFICATIONS_USER",
+        f"Metaculus Notifications <notifications@{MAILGUN_DOMAIN}>",
+    ),
 )
-EMAIL_SENDER_NO_REPLY = os.environ.get(
-    "EMAIL_SENDER_NO_REPLY", f"Metaculus NoReply <no-reply@{MAILGUN_DOMAIN}>"
+EMAIL_ACCOUNTS_SENDER = os.environ.get(
+    "EMAIL_ACCOUNTS_SENDER",
+    f"Metaculus Accounts <accounts@{MAILGUN_DOMAIN}>",
 )
 EMAIL_FEEDBACK = os.environ.get("EMAIL_FEEDBACK", "feedback@metaculus.com")
 EMAIL_SUPPORT = os.environ.get("EMAIL_SUPPORT", "support@metaculus.com")
+EMAIL_PARTNERSHIPS = os.environ.get("EMAIL_PARTNERSHIPS", "partnerships@metaculus.com")
+EMAIL_PRESS = os.environ.get("EMAIL_PRESS", "press@metaculus.com")
 # TODO: reconsider after release
 EMAIL_ALLOW_SEND_TO_ALL_USERS = (
     os.environ.get("EMAIL_ALLOW_SEND_TO_ALL_USERS", "false").lower() == "true"

@@ -1,9 +1,10 @@
 import Image from "next/image";
 import { FC } from "react";
 
-import LinkedInIcon from "@/app/(main)/pro-forecasters/assets/LinkedInIcon";
-import { ProForecaster } from "@/app/(main)/pro-forecasters/types";
 import cn from "@/utils/core/cn";
+
+import LinkedInIcon from "../assets/LinkedInIcon";
+import { ProForecaster } from "../types";
 
 type Props = {
   proForecaster: ProForecaster;

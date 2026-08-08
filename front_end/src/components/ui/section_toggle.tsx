@@ -120,8 +120,8 @@ const iconVariants = cva("h-4 duration-75 ease-linear print:hidden", {
       dark: "text-blue-900 dark:text-blue-900-dark",
     },
     open: {
-      true: "rotate-180",
-      false: null,
+      true: null,
+      false: "-rotate-90",
     },
   },
   defaultVariants: {

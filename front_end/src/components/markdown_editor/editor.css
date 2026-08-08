@@ -60,7 +60,7 @@
 }
 
 .mdxeditor-toolbar {
-  @apply sticky top-12 flex-wrap;
+  @apply sticky top-header flex-wrap;
   container-type: inline-size;
   & [class*="toolbarTitleMode"] {
     display: none; /* We render our custom source mode title instead */
@@ -88,7 +88,7 @@
 }
 
 [data-editor-block-type="image"] {
-  @apply mx-auto flex w-fit;
+  @apply mx-auto flex w-fit max-w-full;
 }
 
 [data-editor-block-type="image"] > :last-child:not(:only-child) {
@@ -130,6 +130,20 @@
 
 div:has(.prism-code) + p:has(> br:only-child) {
   display: none;
+}
+
+/*
+ * Keep the editor from being widened by long-content children (code blocks,
+ * tables, embeds) when a caller drops it in a flex/grid container. Flex/grid
+ * items default to min-width: auto (= intrinsic content width), which
+ * defeats `w-full` on the wrapper and lets a wide code fence push the whole
+ * editor sideways.
+ */
+.markdown-editor {
+  min-width: 0;
+}
+.mdx-content-editable pre {
+  max-width: 100%;
 }
 @media (min-width: 1024px) {
   .markdown-editor.markdown-editor-read .tweets-wrapper {
@@ -176,7 +190,6 @@ div:has(.prism-code) + p:has(> br:only-child) {
 .tweets-wrapper > p .tweet-embed-scroll {
   max-height: calc(150cqw);
   overflow-y: auto;
-  overscroll-behavior: contain;
 }
 
 .tweets-wrapper > p .tweet-embed {

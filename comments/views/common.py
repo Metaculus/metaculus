@@ -26,6 +26,7 @@ from comments.serializers.common import (
 from comments.services.common import (
     set_comment_excluded_from_week_top,
     create_comment,
+    perform_create_comment,
     pin_comment,
     unpin_comment,
     soft_delete_comment,
@@ -34,7 +35,6 @@ from comments.services.common import (
     toggle_cmm,
 )
 from comments.services.feed import get_comments_feed
-from comments.services.key_factors.common import create_key_factors
 from notifications.services import send_comment_report_notification_to_staff
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
@@ -112,9 +112,11 @@ def comments_list_api_view(request: Request):
 
 
 @api_view(["POST"])
-@permission_classes([IsAdminUser])
 def comment_delete_api_view(request: Request, pk: int):
     comment = get_object_or_404(Comment, pk=pk)
+
+    if comment.author_id != request.user.id and not request.user.is_staff:
+        raise PermissionDenied("You do not have permission to delete this comment.")
 
     soft_delete_comment(comment)
 
@@ -128,33 +130,7 @@ def comment_create_api_view(request: Request):
     serializer = CommentWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    on_post = serializer.validated_data["on_post"]
-    parent = serializer.validated_data.get("parent")
-    included_forecast = serializer.validated_data.pop("included_forecast", False)
-    key_factors = serializer.validated_data.pop("key_factors", None)
-
-    # Small validation
-    permission = get_post_permission_for_user(
-        parent.on_post if parent else on_post, user=user
-    )
-    ObjectPermission.can_comment(permission, raise_exception=True)
-
-    forecast = (
-        (
-            on_post.question.user_forecasts.filter(author_id=user.id)
-            .order_by("-start_time")
-            .first()
-        )
-        if included_forecast and on_post.question_id
-        else None
-    )
-
-    new_comment = create_comment(
-        **serializer.validated_data, included_forecast=forecast, user=user
-    )
-
-    if key_factors:
-        create_key_factors(new_comment, key_factors)
+    new_comment = perform_create_comment(user=user, **serializer.validated_data)
 
     return Response(
         serialize_comment_many([new_comment], with_key_factors=True)[0],
@@ -225,6 +201,9 @@ def comment_toggle_cmm_view(request, pk=int):
     enabled = request.data.get("enabled", False)
     comment = get_object_or_404(Comment, pk=pk)
 
+    permission = get_post_permission_for_user(comment.on_post, user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
     result = toggle_cmm(comment, request.user, enabled)
 
     if result is None:
@@ -241,12 +220,14 @@ def comment_report_api_view(request, pk=int):
     comment = get_object_or_404(Comment, pk=pk)
     post = comment.on_post
 
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
     reason = serializers.ChoiceField(choices=CommentReportType.choices).run_validation(
         request.data.get("reason")
     )
 
-    if post:
-        send_comment_report_notification_to_staff(comment, reason, request.user)
+    send_comment_report_notification_to_staff(comment, reason, request.user)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -329,7 +310,7 @@ def comments_of_week_view(request: Request):
 
     # Admins can see all top (max 18) candidates for the weekly top comments
     top_comments_of_week_entries = CommentsOfTheWeekEntry.objects.filter(
-        week_start_date=week_start_date
+        week_start_date=week_start_date,
     ).order_by("-score", "comment__created_at")
 
     # Users only see the top 6 comments which are not excluded

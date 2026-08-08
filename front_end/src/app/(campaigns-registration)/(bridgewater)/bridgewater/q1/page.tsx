@@ -10,7 +10,6 @@ import Hero from "./components/hero";
 import OpenLeaderboard from "./components/openLeaderboard";
 import Prize from "./components/prize";
 import UndergradLeaderboard from "./components/undergradLeaderboard";
-import GlobalHeader from "../../../../(main)/components/headers/global_header";
 
 export const metadata = {
   title: "Bridgewater | Metaculus",
@@ -21,8 +20,7 @@ export const metadata = {
 export default function BridgewaterTournamentPage() {
   return (
     <>
-      <GlobalHeader />
-      <main className="mt-12 flex h-fit flex-col items-center justify-start p-3 sm:p-5">
+      <main className="flex h-fit flex-col items-center justify-start p-3 sm:p-5">
         <div className="flex size-full flex-col items-center">
           <div className="flex w-full flex-col gap-3 md:flex-row">
             <div className="flex w-full flex-col gap-3 md:w-1/2 lg:flex-row">

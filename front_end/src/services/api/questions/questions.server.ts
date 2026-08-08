@@ -29,7 +29,6 @@ class ServerQuestionsApiClass extends ApiService {
           probability_yes: forecastData.probabilityYes,
           probability_yes_per_category: forecastData.probabilityYesPerCategory,
           distribution_input: distributionInput,
-          source: "ui",
           end_time: forecastEndTime,
         })
       )

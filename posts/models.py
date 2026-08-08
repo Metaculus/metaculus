@@ -15,12 +15,8 @@ from django.db.models import (
     FilteredRelation,
     Exists,
     Value,
-    Func,
-    FloatField,
-    Case,
-    When,
 )
-from django.db.models.functions import Coalesce, Greatest
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from pgvector.django import VectorField
@@ -36,6 +32,15 @@ from questions.models import (
 from scoring.models import Score, ArchivedScore
 from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel
+
+
+def projects_q(p: list[Project] | Project) -> Q:
+    if isinstance(p, Project):
+        p = [p]
+
+    return Q(default_project__in=p) | Exists(
+        Post.projects.through.objects.filter(post_id=OuterRef("pk"), project__in=p)
+    )
 
 
 class PostQuerySet(models.QuerySet):
@@ -190,6 +195,24 @@ class PostQuerySet(models.QuerySet):
             )
         )
 
+    def filter_user_has_commented(self, author_id: int):
+        """
+        Filter to posts where user has commented.
+        Uses EXISTS which is more efficient than annotate + filter IS NOT NULL.
+        """
+        # Local import: comments.models imports Post
+        from comments.models import Comment
+
+        return self.filter(
+            Exists(
+                Comment.objects.filter(
+                    on_post_id=OuterRef("pk"),
+                    author_id=author_id,
+                    is_soft_deleted=False,
+                )
+            )
+        )
+
     def annotate_has_active_forecast(self, author_id: int):
         """
         Annotates if user has active forecast for post
@@ -278,43 +301,6 @@ class PostQuerySet(models.QuerySet):
     def annotate_divergence(self, user_id: int):
         return self.filter(snapshots__user_id=user_id).annotate(
             divergence=F("snapshots__divergence")
-        )
-
-    def annotate_news_hotness(self):
-        from misc.models import PostArticle
-
-        per_article = (
-            PostArticle.objects.filter(post_id=OuterRef("pk"))
-            .annotate(
-                contribution=(
-                    Greatest(Value(0.5) - F("distance"), Value(0.0))
-                    / Func(
-                        F("created_at"),
-                        function="POWER",
-                        template=(
-                            "CASE "
-                            "WHEN ((CAST(NOW() AS date) - CAST(%(expressions)s AS date))::float) <= 3.5 "
-                            "THEN 1 "
-                            "ELSE POWER(((CAST(NOW() AS date) - CAST(%(expressions)s AS date))::float / 3.5), 2) "
-                            "END"
-                        ),
-                        output_field=FloatField(),
-                    )
-                )
-            )
-            .values("post_id")
-            .annotate(hotness_sum=Sum("contribution", output_field=FloatField()))
-            .values("hotness_sum")
-        )
-
-        return self.annotate(
-            news_hotness=Case(
-                When(notebook_id__isnull=False, then=Value(0.0)),
-                default=Coalesce(
-                    Subquery(per_article, output_field=FloatField()), Value(0.0)
-                ),
-                output_field=FloatField(),
-            )
         )
 
     #
@@ -446,6 +432,13 @@ class PostQuerySet(models.QuerySet):
 
         return self.filter(default_project__default_permission__isnull=True)
 
+    def filter_personal(self):
+        """
+        Filter posts that live in a user's Personal Project
+        """
+
+        return self.filter(default_project__type=Project.ProjectTypes.PERSONAL_PROJECT)
+
     def filter_published(self):
         """
         Filter approved published posts
@@ -474,17 +467,7 @@ class PostQuerySet(models.QuerySet):
         )
 
     def filter_projects(self, p: list[Project] | Project):
-        if isinstance(p, Project):
-            p = [p]
-
-        return self.filter(
-            Q(default_project__in=p)
-            | Exists(
-                Post.projects.through.objects.filter(
-                    post_id=OuterRef("pk"), project__in=p
-                )
-            )
-        )
+        return self.filter(projects_q(p))
 
     def filter_for_main_feed(self):
         """
@@ -528,12 +511,6 @@ class Notebook(TranslatedModel):
         blank=True, default="", help_text="Summary text displayed on feed tiles"
     )
 
-    # Indicates whether we triggered "handle_post_open" event
-    # And guarantees idempotency of "on post open" evens
-    open_time_triggered = models.BooleanField(
-        default=False, db_index=True, editable=False
-    )
-
     def __str__(self):
         return f"Notebook for {self.post} by {self.post.author}"
 
@@ -569,6 +546,7 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
         DELETED = "deleted"
 
     class PostStatusChange(models.TextChoices):
+        PUBLISHED = "published", _("Upcoming")
         OPEN = "open", _("Open")
         CLOSED = "closed", _("Closed")
         RESOLVED = "resolved", _("Resolved")
@@ -601,6 +579,14 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     )
     published_at = models.DateTimeField(db_index=True, null=True, blank=True)
 
+    # Indicates whether we fired the "post published" (Upcoming) event for
+    # tournament / project follower notifications. Publishing is a Post-level
+    # lifecycle event, so this guarantees idempotency and ensures adding
+    # questions to an already-published post does not re-notify followers.
+    published_at_triggered = models.BooleanField(
+        default=False, db_index=True, editable=False
+    )
+
     # Fields populated from Child Question objects
     open_time = models.DateTimeField(
         null=True, blank=True, db_index=True, editable=False
@@ -629,7 +615,12 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     # Whether we should display Post/Notebook on the homepage
     show_on_homepage = models.BooleanField(default=False, db_index=True)
     html_metadata_json = models.JSONField(
-        help_text="Custom JSON for HTML meta tags. Supported fields are: title, description, image_url",
+        help_text=(
+            "Custom JSON for HTML meta tags. Supported fields are: title, description, "
+            "image_url, canonical_url.<br>"
+            "canonical_url: absolute URL to index instead of this post. "
+            "Also disables the automatic noindex on bots-only posts."
+        ),
         null=True,
         blank=True,
         default=None,
@@ -827,6 +818,10 @@ class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     )  # Jeffrey's Divergence
 
     hotness = models.FloatField(default=0, editable=False, db_index=True)
+    # "In the news" ranking score. Precomputed alongside `hotness` (see
+    # posts.services.hotness) so the feed can order by it without an expensive
+    # per-request aggregation over matched articles.
+    news_hotness = models.FloatField(default=0, editable=False, db_index=True)
     forecasts_count = models.PositiveIntegerField(
         default=0, editable=False, db_index=True
     )

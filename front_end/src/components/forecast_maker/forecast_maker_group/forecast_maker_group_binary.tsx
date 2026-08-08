@@ -153,7 +153,8 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   const expirationState = useExpirationModalState(
     averageQuestionDuration,
     firstOpenQuestion?.my_forecasts?.latest, // Use first open question as reference
-    allQuestionsUpcoming
+    allQuestionsUpcoming,
+    firstOpenQuestion?.scheduled_close_time
   );
 
   const {

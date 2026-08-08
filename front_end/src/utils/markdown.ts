@@ -61,6 +61,10 @@ export function getMarkdownSummary({
   return result;
 }
 
+export function stripMarkdown(markdown: string): string {
+  return String(remark().use(strip).processSync(markdown)).trim();
+}
+
 export function estimateReadingTime(markdown: string) {
   const words = markdown.split(/\s+/).length;
   const wordsPerMinute = 225;

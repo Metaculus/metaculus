@@ -1,12 +1,12 @@
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { addWeeks } from "date-fns";
+import { addDays, addWeeks } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
 import Button from "@/components/ui/button";
-import DatetimeUtc from "@/components/ui/datetime_utc";
+import { Input } from "@/components/ui/form_field";
 import { SelectOption } from "@/components/ui/listbox";
 import Select from "@/components/ui/select";
 import {
@@ -17,6 +17,10 @@ import {
 import { formatDate } from "@/utils/formatters/date";
 
 import { SubscriptionSectionProps } from "./types";
+
+const getUtcDate = (iso: string): string => (iso ? iso.slice(0, 10) : "");
+
+const toUtcMidnight = (date: string): string => `${date}T00:00:00Z`;
 
 const SubscriptionSectionSpecificTime: FC<
   SubscriptionSectionProps<
@@ -39,19 +43,30 @@ const SubscriptionSectionSpecificTime: FC<
     [t]
   );
 
-  const currentDateTime = useMemo(
-    () => formatInTimeZone(new Date(), "UTC", "yyyy-MM-dd'T'HH:mm:ss'Z'"),
+  const today = useMemo(
+    () => formatInTimeZone(new Date(), "UTC", "yyyy-MM-dd"),
     []
   );
 
+  const selectedDates = useMemo(
+    () =>
+      subscription.subscriptions.map((sub) =>
+        getUtcDate(sub.next_trigger_datetime)
+      ),
+    [subscription.subscriptions]
+  );
+
   const handleAddSubscription = () => {
+    const taken = new Set(selectedDates.filter(Boolean));
+    let candidateDate = addWeeks(new Date(), 1);
+    let candidate = formatInTimeZone(candidateDate, "UTC", "yyyy-MM-dd");
+    while (taken.has(candidate) || candidate < today) {
+      candidateDate = addDays(candidateDate, 1);
+      candidate = formatInTimeZone(candidateDate, "UTC", "yyyy-MM-dd");
+    }
     const newSubscription: PostSubscriptionSpecificTime = {
       type: PostSubscriptionType.SPECIFIC_TIME,
-      next_trigger_datetime: formatInTimeZone(
-        addWeeks(new Date(), 1),
-        "UTC",
-        "yyyy-MM-dd'T'HH:mm:ss'Z'"
-      ),
+      next_trigger_datetime: toUtcMidnight(candidate),
       recurrence_interval: "",
     };
     onChange("subscriptions", [...subscription.subscriptions, newSubscription]);
@@ -64,35 +79,53 @@ const SubscriptionSectionSpecificTime: FC<
     onChange("subscriptions", newSubscriptions);
   };
 
+  const handleDateChange = (index: number, dateValue: string) => {
+    onChange(
+      "next_trigger_datetime",
+      dateValue ? toUtcMidnight(dateValue) : "",
+      index
+    );
+  };
+
   return (
     <div>
       <p>{t("reminderDateDescription")}: </p>
       {subscription.subscriptions.map((sub, index) => {
+        const currentDate = getUtcDate(sub.next_trigger_datetime);
+        const isDuplicate =
+          !!currentDate &&
+          selectedDates.findIndex((d) => d === currentDate) !== index;
         return (
-          <div key={index} className="mt-1 flex">
-            <DatetimeUtc
-              min={currentDateTime}
-              onChange={(dt) =>
-                onChange("next_trigger_datetime", dt ?? "", index)
-              }
-              defaultValue={sub.next_trigger_datetime}
-              className="max-w-[190px] !rounded-none"
-            />
-            <Select
-              defaultValue={sub.recurrence_interval}
-              onChange={(e) =>
-                onChange("recurrence_interval", e.target.value, index)
-              }
-              options={options}
-              className="ml-2 border-0"
-            />
-            <Button
-              variant="text"
-              className="ml-auto"
-              onClick={() => handleRemoveSubscription(index)}
-            >
-              <FontAwesomeIcon icon={faXmark} />
-            </Button>
+          <div key={index} className="mt-1">
+            <div className="flex">
+              <Input
+                type="date"
+                min={today}
+                value={currentDate}
+                onChange={(e) => handleDateChange(index, e.target.value)}
+                className="max-w-[190px] !rounded-none"
+              />
+              <Select
+                defaultValue={sub.recurrence_interval}
+                onChange={(e) =>
+                  onChange("recurrence_interval", e.target.value, index)
+                }
+                options={options}
+                className="ml-2 border-0"
+              />
+              <Button
+                variant="text"
+                className="ml-auto"
+                onClick={() => handleRemoveSubscription(index)}
+              >
+                <FontAwesomeIcon icon={faXmark} />
+              </Button>
+            </div>
+            {isDuplicate && (
+              <p className="mt-1 text-xs text-red-500 dark:text-red-500-dark">
+                {t("reminderErrorDuplicateDate")}
+              </p>
+            )}
           </div>
         );
       })}

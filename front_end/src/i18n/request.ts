@@ -1,43 +1,40 @@
-import { match } from "@formatjs/intl-localematcher";
-import Negotiator from "negotiator";
 import { cookies, headers } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
 
 import {
+  AUTOTRANSLATION_COOKIE_NAME,
+  AUTOTRANSLATION_HEADER,
+  parseAssignment,
+} from "@/constants/experiments";
+import {
   DEFAULT_LOCALE,
   LOCALE_COOKIE_NAME,
-  LOCALES,
+  matchLocale,
+  negotiateLocale,
 } from "@/services/language_service";
 
 async function getLocale(): Promise<string> {
   const headersStore = await headers();
-  const acceptLang = headersStore.get("accept-language");
-
   const cookieStore = await cookies();
+
+  // An explicit language choice always wins
   const cookieLocale = cookieStore.get(LOCALE_COOKIE_NAME)?.value;
-
-  let options = [DEFAULT_LOCALE];
-
   if (cookieLocale) {
-    options = [cookieLocale];
-  } else if (acceptLang) {
-    const parsedLanguages = new Negotiator({
-      headers: {
-        "accept-language": acceptLang,
-      },
-    }).languages();
-
-    if (parsedLanguages && parsedLanguages.length > 0) {
-      options = parsedLanguages;
-    }
+    return matchLocale([cookieLocale]);
   }
-  options = options.filter((opt) => opt !== "*");
 
-  try {
-    return match(options, LOCALES, DEFAULT_LOCALE);
-  } catch {
+  // Auto-translation experiment: the control arm gets the untranslated
+  // (English) site instead of Accept-Language negotiation. The header covers
+  // the enrollment request itself, before the assignment cookie exists.
+  const assignment = parseAssignment(
+    cookieStore.get(AUTOTRANSLATION_COOKIE_NAME)?.value
+  );
+  const enrollmentVariant = headersStore.get(AUTOTRANSLATION_HEADER);
+  if (assignment?.variant === "control" || enrollmentVariant === "control") {
     return DEFAULT_LOCALE;
   }
+
+  return negotiateLocale(headersStore.get("accept-language"));
 }
 
 export default getRequestConfig(async () => {

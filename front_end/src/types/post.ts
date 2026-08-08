@@ -166,6 +166,7 @@ type BasePost = {
     title: string;
     description: string;
     image_url: string;
+    canonical_url: string;
   };
 };
 

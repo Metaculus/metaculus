@@ -13,7 +13,7 @@ from misc.tasks import send_email_async
 from posts.models import Post
 from users.models import User, UserSpamActivity
 from users.serializers import UserUpdateProfileSerializer
-from utils.email import send_email_with_template
+from utils.email import send_notification_email_with_template
 from utils.openai import generate_text_async, run_spam_analysis
 
 logger = logging.getLogger(__name__)
@@ -48,7 +48,15 @@ def check_and_handle_content_spam(
     ):
         return False
 
-    result = run_spam_analysis(content_text, content_type)
+    try:
+        result = run_spam_analysis(content_text, content_type)
+    except Exception:
+        logger.exception(
+            "AI spam analysis failed for %s %s; defaulting to not spam",
+            content_type,
+            content_id,
+        )
+        return False
 
     # TODO: Remove this once we gain some confidence it the level of false positives is acceptable
     logging.info(f"Spam analysis result {result} from content {content_text}")
@@ -245,7 +253,7 @@ def send_suspected_spam_to_admins_email(
     content_url: str,
     content_text: str,
 ) -> None:
-    send_email_with_template(
+    send_notification_email_with_template(
         to_emails,
         f"Suspected spam {content_type} from user {author.username}",
         "emails/suspected_spam_to_admins.html",
@@ -255,7 +263,6 @@ def send_suspected_spam_to_admins_email(
             "content_url": content_url,
             "content_text": content_text,
         },
-        from_email=settings.EMAIL_NOTIFICATIONS_USER,
     )
 
 
@@ -266,7 +273,7 @@ def send_repeated_spam_to_admins_email(
     content_url: str,
     content_text: str,
 ) -> None:
-    send_email_with_template(
+    send_notification_email_with_template(
         to_emails,
         f"Repeated spam {content_type} from user {author.username}",
         "emails/repeated_spam_to_admins.html",
@@ -276,5 +283,4 @@ def send_repeated_spam_to_admins_email(
             "content_url": content_url,
             "content_text": content_text,
         },
-        from_email=settings.EMAIL_NOTIFICATIONS_USER,
     )

@@ -106,6 +106,12 @@ export default function FAQ() {
               <a href="#question-groups">O que são grupos questionados?</a>
             </li>
             <li>
+              <a href="#mc-vs-groups">
+                Qual é a diferença entre um Grupo de Perguntas e uma pergunta de
+                Múltipla Escolha?
+              </a>
+            </li>
+            <li>
               <a href="#conditionals">O que são pares condicionais?</a>
             </li>
             <li>
@@ -1096,6 +1102,33 @@ export default function FAQ() {
           porque um propulsor Super Heavy da SpaceX não foi lançado antes de 29
           de março de 2022, que era o limite superior.
         </p>
+        <h4 className="text-lg font-semibold">Múltipla Escolha</h4>
+        <p>
+          As perguntas de Múltipla Escolha apresentam um conjunto de opções que
+          são mutuamente exclusivas e cobrem todas as possibilidades, e resolvem
+          exatamente em uma delas. As opções podem ser adicionadas ou removidas
+          à medida que a pergunta evolui. Os previsores atribuem uma
+          probabilidade a cada opção, e essas probabilidades somam 100%. Por
+          exemplo, a pergunta &quot;
+          <Link href="/questions/20683/which-ai-world-before-2050/">
+            Qual mundo de IA se concretizará antes de 2050?
+          </Link>
+          &quot; pede aos previsores que distribuam a probabilidade entre vários
+          cenários mutuamente exclusivos de como a IA avançada pode chegar
+          primeiro, e será resolvida conforme o cenário que ocorrer primeiro.
+        </p>
+        <p>
+          Múltipla Escolha é o formato adequado quando a resposta é uma de uma
+          lista pequena e bem definida de possibilidades, e atribuir
+          probabilidade a todas as opções de uma vez é mais informativo do que
+          fazer uma pergunta separada para cada uma. Se você precisar que os
+          previsores tratem os resultados como independentes, ou se quiser
+          permitir que mais de um seja verdadeiro, use um{" "}
+          <Link href="/faq/#question-groups">Grupo de Perguntas</Link> em vez
+          disso. Veja{" "}
+          <a href="#mc-vs-groups">Múltipla Escolha vs. Grupos de Perguntas</a>{" "}
+          para mais detalhes.
+        </p>
         <h3
           className="scroll-mt-nav text-xl font-semibold"
           id="question-groups"
@@ -1179,6 +1212,42 @@ export default function FAQ() {
             perguntas
           </Link>
           .
+        </p>
+        <h4 className="scroll-mt-nav text-lg font-semibold" id="mc-vs-groups">
+          Qual é a diferença entre um Grupo de Perguntas e uma pergunta de
+          Múltipla Escolha?
+        </h4>
+        <p>
+          Os Grupos de Perguntas e as perguntas de{" "}
+          <Link href="/faq/#question-types">Múltipla Escolha</Link> parecem
+          semelhantes, já que ambos apresentam várias opções em uma única
+          página, mas modelam situações muito diferentes:
+        </p>
+        <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
+          <li>
+            <strong>Múltipla Escolha</strong> é uma única pergunta cujas opções
+            são mutuamente exclusivas e cobrem todas as possibilidades.
+            Exatamente uma opção será a correta, e as probabilidades previstas
+            entre as opções somam 100%. Por ser uma única pergunta, os
+            previsores recebem uma única pontuação por ela. Use quando estiver
+            perguntando &quot;qual?&quot; a partir de um conjunto de opções.
+          </li>
+          <li>
+            Um <strong>Grupo de Perguntas</strong> é um conjunto de subperguntas{" "}
+            <i>independentes</i> compartilhando uma página por conveniência.
+            Cada subpergunta é resolvida por conta própria, você não precisa
+            prever em todas elas, e as probabilidades da comunidade não estão
+            restritas a somar 100%. Cada subpergunta é pontuada separadamente,
+            portanto os previsores recebem uma pontuação por subpergunta. Use
+            quando vários resultados relacionados puderem ser verdadeiros ou
+            falsos por seus próprios méritos (por exemplo, &quot;X acontecerá
+            até 2025? Até 2026? Até 2027?&quot;).
+          </li>
+        </ul>
+        <p>
+          Regra geral: se exatamente uma opção deve ocorrer, prefira Múltipla
+          Escolha. Se os resultados podem coocorrer ou você quer que os
+          previsores possam pular alguns, prefira um Grupo de Perguntas.
         </p>
         <h3 className="scroll-mt-nav text-xl font-semibold" id="conditionals">
           O que são pares condicionais?
@@ -3103,16 +3172,16 @@ M834 80h400000v40h-400000z"
                       <span className="base">
                         <span className="strut"></span>
                         <span className="mopen">[</span>
-                        <span className="mord">0.001</span>
-                        <span className="mpunct">0,001,</span>
+                        <span className="mord">0,1%</span>
+                        <span className="mpunct">,</span>
                         <span className="mspace"></span>
-                        <span className="mord">0.999</span>
+                        <span className="mord">99,9%</span>
                         <span className="mclose">]</span>
                       </span>
                     </span>
                   </span>
                 </span>
-                ].
+                .
               </li>
               <li>
                 Para{""}

@@ -1,11 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
 
 import { SignUpSchema } from "@/app/(main)/accounts/schemas";
+import { DISMISSED_BULLETINS_COOKIE } from "@/app/(main)/components/bulletins_shared";
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 import { getAuthCookieManager } from "@/services/auth_tokens";
@@ -155,6 +156,10 @@ export async function LogOut() {
   const authManager = await getAuthCookieManager();
   authManager.clearAuthTokens();
   authManager.clearImpersonatorRefreshToken();
+  const cookieStore = await cookies();
+  // Keep anonymous dismissals through login/signup, but clear them on explicit
+  // logout so a shared browser does not hide bulletins for the next user.
+  cookieStore.delete(DISMISSED_BULLETINS_COOKIE);
 
   return redirect("/");
 }
@@ -213,6 +218,30 @@ export async function simplifiedSignUpAction(
       errors: ApiError.isApiError(err)
         ? (err.data as ApiErrorPayload)
         : undefined,
+    };
+  }
+}
+
+export async function verifyEmailLinkAction(
+  userId: string,
+  token: string
+): Promise<{ user: CurrentUser } | { errors: ApiErrorPayload }> {
+  try {
+    const response = await ServerAuthApi.verifyEmailLink(userId, token);
+
+    const authManager = await getAuthCookieManager();
+    authManager.setAuthTokens(response.tokens);
+
+    if (response.user.language) {
+      await LanguageService.setLocaleCookie(response.user.language);
+    }
+
+    return { user: response.user };
+  } catch (err: unknown) {
+    return {
+      errors: ApiError.isApiError(err)
+        ? (err.data as ApiErrorPayload)
+        : { detail: "Something went wrong. Please try again." },
     };
   }
 }

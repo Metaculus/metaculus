@@ -15,3 +15,4 @@ declare module "@tanstack/table-core" {
     className: string;
   }
 }
+

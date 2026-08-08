@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import MetaculusLogo from "../../about/components/MetacLogo";
+import { MetaculusMark } from "@/components/logos";
 
 type LeaderboardEntry = {
   rank: number;
@@ -34,7 +34,9 @@ function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
       <td className={tableCellClass}>
         <div className="flex items-center truncate">
           {entry.isMetacBot && (
-            <MetaculusLogo className="mr-2 size-5 rounded-sm bg-blue-700 text-gray-0 dark:bg-blue-700-dark dark:text-gray-0-dark" />
+            <span className="mr-2 flex size-5 shrink-0 items-center justify-center rounded-sm bg-blue-700 text-gray-0 dark:bg-blue-700-dark dark:text-gray-0-dark">
+              <MetaculusMark className="h-3 w-auto" />
+            </span>
           )}
           <Link href={`/accounts/profile/${entry.userId}/`}>
             {entry.username}

@@ -27,6 +27,7 @@ type Props = {
   variant?: ButtonVariant;
   presentationType?: PresentationType;
   as?: ElementType;
+  prefetch?: boolean | null;
 } & ButtonHTMLAttributes<HTMLButtonElement> &
   AnchorHTMLAttributes<HTMLAnchorElement>;
 
@@ -40,6 +41,7 @@ const Button = forwardRef<HTMLButtonElement, Props>(
       className,
       children,
       as,
+      prefetch,
       ...props
     },
     ref
@@ -49,6 +51,7 @@ const Button = forwardRef<HTMLButtonElement, Props>(
         ref={ref}
         href={href}
         as={as}
+        prefetch={prefetch}
         className={cn(
           "inline-flex items-center justify-center rounded-full disabled:opacity-30",
           {
@@ -86,14 +89,21 @@ Button.displayName = "Button";
 type ContainerProps = ButtonHTMLAttributes<HTMLButtonElement> &
   AnchorHTMLAttributes<HTMLAnchorElement> & {
     as?: ElementType;
+    prefetch?: boolean | null;
   };
 const Container = forwardRef<
   HTMLButtonElement,
   PropsWithChildren<ContainerProps>
->(({ href, children, as, ...props }, ref) => {
+>(({ href, children, as, prefetch, ...props }, ref) => {
   if (href) {
     return (
-      <HeadlessButton ref={ref} as={Link} href={href} {...props}>
+      <HeadlessButton
+        ref={ref}
+        as={Link}
+        href={href}
+        prefetch={prefetch}
+        {...props}
+      >
         {children}
       </HeadlessButton>
     );
