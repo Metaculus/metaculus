@@ -494,15 +494,7 @@ jobs:
 
           echo "status=${STATUS}" >> "$GITHUB_OUTPUT"
 
-      - name: Delete Neon Branch
-        continue-on-error: true
-        uses: neondatabase/delete-branch-action@v3
-        with:
-          project_id: ${{ secrets.NEON_PROJECT_ID }}
-          branch: ${{ needs.setup.outputs.neon_branch }}
-          api_key: ${{ secrets.NEON_API_KEY }}
-
-      - name: Delete leftover Neon branches
+      - name: Delete Neon branches
         id: neon_sweep
         continue-on-error: true
         env:
