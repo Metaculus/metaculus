@@ -34,6 +34,15 @@ from users.models import User
 from utils.models import TimeStampedModel, TranslatedModel
 
 
+def projects_q(p: list[Project] | Project) -> Q:
+    if isinstance(p, Project):
+        p = [p]
+
+    return Q(default_project__in=p) | Exists(
+        Post.projects.through.objects.filter(post_id=OuterRef("pk"), project__in=p)
+    )
+
+
 class PostQuerySet(models.QuerySet):
     def prefetch_user_forecasts(self, user_id: int):
         question_relations = [
@@ -458,17 +467,7 @@ class PostQuerySet(models.QuerySet):
         )
 
     def filter_projects(self, p: list[Project] | Project):
-        if isinstance(p, Project):
-            p = [p]
-
-        return self.filter(
-            Q(default_project__in=p)
-            | Exists(
-                Post.projects.through.objects.filter(
-                    post_id=OuterRef("pk"), project__in=p
-                )
-            )
-        )
+        return self.filter(projects_q(p))
 
     def filter_for_main_feed(self):
         """

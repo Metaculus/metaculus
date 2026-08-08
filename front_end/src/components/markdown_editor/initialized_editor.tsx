@@ -81,8 +81,8 @@ const PrismCodeBlock: FC<{ code?: string; language?: string }> = ({
   // Handle plain text without syntax highlighting
   if (normalizedLang === "text") {
     return (
-      <div className="my-4">
-        <pre className="overflow-x-auto rounded border border-gray-300 bg-gray-100 p-3 dark:border-gray-300-dark dark:bg-gray-100-dark">
+      <div className="my-4 w-full min-w-0 max-w-full">
+        <pre className="w-full max-w-full overflow-x-auto rounded border border-gray-300 bg-gray-100 p-3 dark:border-gray-300-dark dark:bg-gray-100-dark">
           {codeTrimmed}
         </pre>
       </div>
@@ -92,7 +92,7 @@ const PrismCodeBlock: FC<{ code?: string; language?: string }> = ({
   const prismLang = CANONICAL_TO_PRISM[normalizedLang] ?? "tsx";
 
   return (
-    <div className="my-4">
+    <div className="my-4 w-full min-w-0 max-w-full">
       <Highlight
         key={theme}
         theme={prismTheme}
@@ -101,7 +101,7 @@ const PrismCodeBlock: FC<{ code?: string; language?: string }> = ({
       >
         {({ className, tokens, getLineProps, getTokenProps }) => (
           <pre
-            className={`${className} overflow-x-auto rounded border border-gray-300 bg-gray-100 p-3 dark:border-gray-300-dark dark:bg-gray-100-dark`}
+            className={`${className} w-full max-w-full overflow-x-auto rounded border border-gray-300 bg-gray-100 p-3 dark:border-gray-300-dark dark:bg-gray-100-dark`}
           >
             {tokens.map((line, i) => (
               <div key={i} {...getLineProps({ line })}>
@@ -258,11 +258,11 @@ const InitializedMarkdownEditor: FC<
       equationPlugin(),
     ];
 
-    if (!withCodeBlocks) {
-      return common;
-    }
-
-    if (mode === "read") {
+    // Always register codeBlockPlugin so pre-existing ``` fences in the source
+    // markdown parse — otherwise MDXEditor throws on unknown "code" nodes.
+    // `withCodeBlocks` only gates the insert-code-block toolbar affordance and
+    // the rich CodeMirror editing experience.
+    if (!withCodeBlocks || mode === "read") {
       return [
         ...common,
         codeBlockPlugin({
