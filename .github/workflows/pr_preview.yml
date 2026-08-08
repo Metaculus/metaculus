@@ -516,9 +516,13 @@ jobs:
 
           # --fail-with-body so HTTP 4xx/5xx exits non-zero while still returning the
           # error body; plain `curl -sS` exits 0 on an error response, which would read
-          # as "no branches found". 10000 is the documented maximum for `limit`, far
-          # above any plausible branch count, so one request returns everything.
-          if ! BRANCH_IDS="$(curl -sS --fail-with-body -H "Authorization: Bearer ${NEON_API_KEY}" "${API}?limit=10000" \
+          # as "no branches found". curl applies no total timeout by default, so bound
+          # both calls explicitly — otherwise a hung connection stalls the whole job.
+          CURL_OPTS=(-sS --fail-with-body --connect-timeout 10 --max-time 120)
+
+          # 10000 is the documented maximum for `limit`, far above any plausible branch
+          # count, so one request returns everything and no cursor walk is needed.
+          if ! BRANCH_IDS="$(curl "${CURL_OPTS[@]}" -H "Authorization: Bearer ${NEON_API_KEY}" "${API}?limit=10000" \
             | jq -r --arg prefix "${BRANCH_PREFIX}" \
               '.branches[]? | select(.name | startswith($prefix)) | .id')"; then
             echo "⚠️ Could not list Neon branches"
@@ -535,7 +539,7 @@ jobs:
           while IFS= read -r BRANCH_ID; do
             [ -z "$BRANCH_ID" ] && continue
             echo "Deleting Neon branch: ${BRANCH_ID}"
-            if ! BODY="$(curl -sS --fail-with-body -X DELETE -H "Authorization: Bearer ${NEON_API_KEY}" "${API}/${BRANCH_ID}")"; then
+            if ! BODY="$(curl "${CURL_OPTS[@]}" -X DELETE -H "Authorization: Bearer ${NEON_API_KEY}" "${API}/${BRANCH_ID}")"; then
               echo "⚠️ Failed to delete ${BRANCH_ID}: ${BODY:-no response body}"
               STATUS=failed
             fi
