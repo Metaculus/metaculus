@@ -152,6 +152,11 @@ jobs:
       redis_name: ${{ steps.names.outputs.redis_name }}
       pr_head_ref: ${{ steps.pr_head_ref.outputs.pr_head_ref }}
     steps:
+      - name: Checkout scripts
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github/scripts
+
       - name: Resolve PR head ref
         id: pr_head_ref
         uses: actions/github-script@v7
@@ -182,7 +187,7 @@ jobs:
           BRANCH_REF: ${{ steps.pr_head_ref.outputs.pr_head_ref || github.head_ref }}
           PR_NUMBER: ${{ github.event.number || inputs.pr_number }}
         run: |
-          BRANCH_SLUG="$(printf '%s' "$BRANCH_REF" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--*/-/g' | cut -c1-30 | sed -e 's/^-*//' -e 's/-*$//')"
+          BRANCH_SLUG="$(bash .github/scripts/slugify_branch.sh "$BRANCH_REF" 30)"
 
           # Base preview identifier: pr-{number}-{branch_slug}
           PREVIEW_ID="pr-${PR_NUMBER}-${BRANCH_SLUG}"
@@ -448,11 +453,28 @@ jobs:
         with:
           version: 0.4.14
 
-      - name: Delete Fly app
+      # Resources are matched by `pr-{number}-` prefix rather than by the exact
+      # name computed in `setup`, so a preview created before a branch-slug
+      # change still gets destroyed instead of leaking.
+      - name: Delete Fly apps
         continue-on-error: true
+        env:
+          FLY_ORG: ${{ vars.FLY_ORG || 'personal' }}
+          APP_PREFIX: metaculus-pr-${{ github.event.number || inputs.pr_number }}-
         run: |
-          echo "Deleting Fly app: ${{ needs.setup.outputs.fly_app }}"
-          flyctl apps destroy "${{ needs.setup.outputs.fly_app }}" --yes || echo "App may not exist or already deleted"
+          APPS="$(flyctl apps list --json --org "${FLY_ORG}" \
+            | jq -r --arg prefix "${APP_PREFIX}" '.[].Name | select(startswith($prefix))')"
+
+          if [ -z "$APPS" ]; then
+            echo "ℹ️ No Fly apps matching ${APP_PREFIX}*"
+            exit 0
+          fi
+
+          echo "$APPS" | while read -r APP_NAME; do
+            [ -z "$APP_NAME" ] && continue
+            echo "Deleting Fly app: ${APP_NAME}"
+            flyctl apps destroy "${APP_NAME}" --yes || echo "⚠️ Failed to destroy ${APP_NAME}"
+          done
 
       - name: Delete Neon Branch
         continue-on-error: true
@@ -462,19 +484,54 @@ jobs:
           branch: ${{ needs.setup.outputs.neon_branch }}
           api_key: ${{ secrets.NEON_API_KEY }}
 
-      - name: Delete Fly Redis Database
+      - name: Delete leftover Neon branches
         continue-on-error: true
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
+          BRANCH_PREFIX: preview/pr-${{ github.event.number || inputs.pr_number }}-
         run: |
-          FLY_ORG="${{ vars.FLY_ORG || 'personal' }}"
-          REDIS_NAME="${{ needs.setup.outputs.redis_name }}"
+          API="https://console.neon.tech/api/v2/projects/${NEON_PROJECT_ID}/branches"
 
-          if flyctl redis list --org "${FLY_ORG}" | grep -qw "${REDIS_NAME}"; then
-            echo "Deleting Fly Redis database: ${REDIS_NAME}"
-            flyctl redis destroy "${REDIS_NAME}" --yes
-            echo "✅ Deleted Fly Redis database"
-          else
-            echo "ℹ️ Fly Redis database not found or already deleted"
+          # 10000 is the documented maximum for `limit`, far above any plausible branch
+          # count, so one request returns everything and no cursor walk is needed.
+          BRANCH_IDS="$(curl -sS -H "Authorization: Bearer ${NEON_API_KEY}" "${API}?limit=10000" \
+            | jq -r --arg prefix "${BRANCH_PREFIX}" \
+              '.branches[]? | select(.name | startswith($prefix)) | .id')"
+
+          if [ -z "$BRANCH_IDS" ]; then
+            echo "ℹ️ No Neon branches matching ${BRANCH_PREFIX}*"
+            exit 0
           fi
+
+          echo "$BRANCH_IDS" | while read -r BRANCH_ID; do
+            [ -z "$BRANCH_ID" ] && continue
+            echo "Deleting Neon branch: ${BRANCH_ID}"
+            curl -sS -X DELETE -H "Authorization: Bearer ${NEON_API_KEY}" "${API}/${BRANCH_ID}" > /dev/null \
+              || echo "⚠️ Failed to delete ${BRANCH_ID}"
+          done
+
+      - name: Delete Fly Redis Databases
+        continue-on-error: true
+        env:
+          FLY_ORG: ${{ vars.FLY_ORG || 'personal' }}
+          REDIS_PREFIX: mtc-redis-pr-${{ github.event.number || inputs.pr_number }}-
+        run: |
+          # `flyctl redis list` has no --json output (unlike `apps list`), so the names
+          # have to be scraped out of the table.
+          REDIS_NAMES="$(flyctl redis list --org "${FLY_ORG}" \
+            | grep -oE "${REDIS_PREFIX}[a-z0-9-]*" | sort -u)"
+
+          if [ -z "$REDIS_NAMES" ]; then
+            echo "ℹ️ No Fly Redis databases matching ${REDIS_PREFIX}*"
+            exit 0
+          fi
+
+          echo "$REDIS_NAMES" | while read -r REDIS_NAME; do
+            [ -z "$REDIS_NAME" ] && continue
+            echo "Deleting Fly Redis database: ${REDIS_NAME}"
+            flyctl redis destroy "${REDIS_NAME}" --yes || echo "⚠️ Failed to destroy ${REDIS_NAME}"
+          done
 
       - name: Delete PR Deployments from Preview Environment
         continue-on-error: true
