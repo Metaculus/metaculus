@@ -5,7 +5,7 @@ import type { LeaderboardEntry } from "@/types/scoring";
 
 import { getModelDetailsFromScoreEntry } from "./bot_meta";
 
-export const MIN_RESOLVED_FORECASTS = 190;
+export const MIN_RESOLVED_FORECASTS = 150;
 
 export function getResolvedCount(entry: Partial<LeaderboardEntry>): number {
   return entry?.contribution_count ?? 0;

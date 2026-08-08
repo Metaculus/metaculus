@@ -16,6 +16,7 @@ import KeyFactorsCarousel from "@/app/(main)/questions/[id]/components/key_facto
 import CommentVoter from "@/components/comment_feed/comment_voter";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
+import RelativeTime from "@/components/ui/relative_time";
 import { BECommentType, KeyFactor } from "@/types/comment";
 import { parseUserMentions } from "@/utils/comments";
 import cn from "@/utils/core/cn";
@@ -31,7 +32,7 @@ type Props = {
   keyFactorVotesScore: number;
   className?: string;
   expandOverride?: "auto" | "expanded" | "collapsed";
-  onViewComment?: () => void;
+  commentUrl?: string;
   disableVoting?: boolean;
   collapsedHeight?: number;
 };
@@ -84,14 +85,14 @@ const ExpandableCommentContent = ({
   isExpanded,
   needsExpand,
   contentRef,
-  onViewComment,
+  commentUrl,
   collapsedHeight,
 }: {
   comment: BECommentType;
   isExpanded: boolean;
   needsExpand: boolean;
   contentRef: React.RefObject<HTMLDivElement | null>;
-  onViewComment?: () => void;
+  commentUrl?: string;
   collapsedHeight: number;
 }) => {
   const locale = useLocale();
@@ -108,27 +109,35 @@ const ExpandableCommentContent = ({
     >
       {/* Author info */}
       <div className="flex items-start justify-between gap-1.5 text-gray-500 dark:text-gray-500-dark">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
+        <div className="flex min-w-0 flex-col">
           <Link
             href={`/accounts/profile/${comment.author.id}/`}
             className="truncate text-base font-bold leading-6 text-gray-800 no-underline hover:underline dark:text-gray-800-dark"
           >
             {formatUsername(comment.author)}
           </Link>
-          ·
-          <span
-            className="shrink-0 text-base font-normal leading-6"
-            suppressHydrationWarning
-          >
-            {t("onDate", {
-              date: formatDate(locale, new Date(comment.created_at)),
-            })}
+          <span className="shrink-0 text-sm font-normal leading-5 text-gray-500 dark:text-gray-500-dark">
+            <RelativeTime
+              datetime={comment.created_at}
+              format="relative"
+              threshold="P1D"
+              prefix={t("onDate", { date: "" }).trim()}
+              year="numeric"
+              month="short"
+              day="numeric"
+            >
+              {t("onDate", {
+                date: formatDate(locale, new Date(comment.created_at)),
+              })}
+            </RelativeTime>
           </span>
         </div>
-        {onViewComment && (
+        {commentUrl && (
           <Button
             variant="text"
-            onClick={onViewComment}
+            href={commentUrl}
+            target="_blank"
+            rel="noopener noreferrer"
             size="sm"
             className="gap-2 border-none px-2.5 py-1 font-normal text-blue-700 dark:text-blue-700-dark"
           >
@@ -177,7 +186,7 @@ const CommentCard: FC<Props> = ({
   changedMyMindCount,
   keyFactorVotesScore,
   expandOverride = "auto",
-  onViewComment,
+  commentUrl,
   disableVoting = false,
   collapsedHeight = DEFAULT_collapsedHeight,
 }) => {
@@ -278,7 +287,7 @@ const CommentCard: FC<Props> = ({
         isExpanded={effectiveExpanded}
         needsExpand={needsExpand}
         contentRef={contentRef}
-        onViewComment={onViewComment}
+        commentUrl={commentUrl}
         collapsedHeight={collapsedHeight}
       />
 

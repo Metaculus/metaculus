@@ -125,6 +125,12 @@ def clone_question(question: Question, title: str = None, **kwargs) -> Question:
         inbound_outcome_count=kwargs.pop(
             "inbound_outcome_count", question.inbound_outcome_count
         ),
+        include_bots_in_aggregates=kwargs.pop(
+            "include_bots_in_aggregates", question.include_bots_in_aggregates
+        ),
+        default_aggregation_method=kwargs.pop(
+            "default_aggregation_method", question.default_aggregation_method
+        ),
         options=kwargs.pop("options", question.options),
         group_variable=kwargs.pop("group_variable", question.group_variable),
         resolution_set_time=kwargs.pop(

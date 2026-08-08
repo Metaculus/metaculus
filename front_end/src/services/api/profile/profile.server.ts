@@ -3,7 +3,7 @@ import { getAuthCookieManager } from "@/services/auth_tokens";
 import { AuthTokens } from "@/types/auth";
 import { SubscriptionEmailType } from "@/types/notifications";
 import { ProfilePreferencesType } from "@/types/preferences";
-import { CurrentBot, CurrentUser } from "@/types/users";
+import { ApiForecastingAccess, CurrentBot, CurrentUser } from "@/types/users";
 import { serverFetcher } from "@/utils/core/fetch/fetch.server";
 
 import ProfileApi from "./profile.shared";
@@ -34,6 +34,7 @@ type UpdateProfileRequest = {
   follow_notify_comments_frequency?: number | null;
   follow_notify_milestone_step?: number | null;
   follow_notify_on_status_change?: boolean;
+  api_forecasting_access?: ApiForecastingAccess;
 };
 
 type UpdateBotRequest = {

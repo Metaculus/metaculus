@@ -1,6 +1,10 @@
 "use client";
 
-import { faList, faUsers } from "@fortawesome/free-solid-svg-icons";
+import {
+  faHourglassHalf,
+  faList,
+  faUsers,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import React, { useMemo } from "react";
@@ -132,14 +136,7 @@ function TournamentTimelineBar({
     return <ActiveMiniBar nowTs={now} startTs={startTs} endTs={closedTs} />;
   }
 
-  return (
-    <ClosedMiniBar
-      nowTs={now}
-      isResolved={isResolved}
-      closeDate={closeDate ?? null}
-      timeline={timeline}
-    />
-  );
+  return <ClosedStatus isResolved={isResolved} />;
 }
 
 function ActiveMiniBar({
@@ -192,80 +189,16 @@ function ActiveMiniBar({
   );
 }
 
-function ClosedMiniBar({
-  nowTs,
-  isResolved,
-  timeline,
-  closeDate,
-}: {
-  nowTs: number | null;
-  isResolved: boolean;
-  timeline: TournamentTimeline | null;
-  closeDate: string | null;
-}) {
+function ClosedStatus({ isResolved }: { isResolved: boolean }) {
   const t = useTranslations();
   const label = isResolved
-    ? t("tournamentTimelineAllResolved")
+    ? t("tournamentTimelinePendingWinners")
     : t("tournamentTimelineClosed");
-  let progress = isResolved ? 50 : 0;
-
-  if (nowTs != null) {
-    const resolvedTs = pickResolveTs(nowTs, timeline);
-    const winnersTs = pickWinnersTs(resolvedTs, closeDate);
-
-    if (resolvedTs && nowTs >= resolvedTs) progress = 50;
-    if (winnersTs && nowTs >= winnersTs) progress = 100;
-    if (isResolved) progress = Math.max(progress, 50);
-  }
 
   return (
-    <div>
-      <p className="my-0 hidden text-[10px] font-normal text-blue-700 dark:text-blue-700-dark lg:block">
-        {label}
-      </p>
-
-      <div className="relative mt-2 h-1 w-full rounded-full bg-blue-400 dark:bg-blue-400-dark">
-        <div
-          className="absolute inset-y-0 left-0 rounded-full bg-blue-700 dark:bg-blue-700-dark"
-          style={{ width: `${progress}%` }}
-        />
-
-        <ClosedChip left="0%" active />
-        <ClosedChip left="50%" active={progress >= 50} />
-        <ClosedChip left="100%" active={progress >= 100} />
-      </div>
-    </div>
-  );
-}
-
-function ClosedChip({
-  left,
-  active,
-}: {
-  left: "0%" | "50%" | "100%";
-  active: boolean;
-}) {
-  return (
-    <div
-      className={cn(
-        "absolute top-1/2 z-10 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full p-[3px]",
-        active
-          ? "bg-blue-700 dark:bg-blue-700-dark"
-          : "bg-blue-400 dark:bg-blue-400-dark"
-      )}
-      style={{
-        left:
-          left === "0%" ? "5px" : left === "100%" ? "calc(100% - 5px)" : left,
-      }}
-    >
-      <div
-        className={cn(
-          "h-full w-full rounded-full",
-          active
-            ? "bg-olive-400 dark:bg-olive-400-dark"
-            : "bg-blue-400 dark:bg-blue-400-dark"
-        )}
-      />
+    <div className="flex items-center justify-center gap-1.5 text-gray-700 dark:text-gray-700-dark">
+      <FontAwesomeIcon icon={faHourglassHalf} className="text-[10px]" />
+      <p className="my-0 text-[10px] font-normal">{label}</p>
     </div>
   );
 }
@@ -274,26 +207,6 @@ function clamp01(x: number) {
   return Math.max(0, Math.min(1, x));
 }
 
-function pickResolveTs(nowTs: number, timeline: TournamentTimeline | null) {
-  const scheduled = safeTs(timeline?.latest_scheduled_resolve_time);
-  const actual = safeTs(timeline?.latest_actual_resolve_time);
-  const isAllResolved = Boolean(timeline?.all_questions_resolved);
-  let effectiveScheduled = scheduled;
-  if (effectiveScheduled && nowTs >= effectiveScheduled && !isAllResolved) {
-    effectiveScheduled = nowTs + ONE_DAY_MS;
-  }
-
-  return (isAllResolved ? actual : null) ?? effectiveScheduled ?? null;
-}
-
-function pickWinnersTs(resolvedTs: number | null, closeDate: string | null) {
-  const closeTs = safeTs(closeDate);
-  if (closeTs) return closeTs;
-  return resolvedTs ? resolvedTs + TWO_WEEKS_MS : null;
-}
-
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-const TWO_WEEKS_MS = 14 * ONE_DAY_MS;
 const JUST_STARTED_MS = 36 * 60 * 60 * 1000;
 
 export default LiveTournamentCard;

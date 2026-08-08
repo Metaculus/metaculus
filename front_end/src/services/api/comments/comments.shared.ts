@@ -17,6 +17,7 @@ export type getCommentsParams = {
   sort?: string;
   use_root_comments_pagination?: boolean;
   focus_comment_id?: string;
+  focus_thread_only?: boolean;
   is_private?: boolean;
   last_viewed_at?: string;
   time_window?: "all_time" | "past_week" | "past_month" | "past_year";

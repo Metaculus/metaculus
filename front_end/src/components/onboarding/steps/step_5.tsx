@@ -7,11 +7,10 @@ import React, { useEffect, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import { createForecasts } from "@/app/(main)/questions/actions";
-import useFeed from "@/app/(main)/questions/hooks/use_feed";
 import { BINARY_FORECAST_PRECISION } from "@/components/forecast_maker/binary_slider";
 import Step from "@/components/onboarding/steps/step";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import { FeedType, POST_FORECASTER_ID_FILTER } from "@/constants/posts_feed";
+import { POST_FORECASTER_ID_FILTER } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import { OnboardingStep } from "@/types/onboarding";
 import { PostWithForecasts } from "@/types/post";
@@ -32,7 +31,6 @@ const Step5: React.FC<OnboardingStep> = ({
   onboardingState: { step2Prediction, step3Prediction },
 }) => {
   const router = useRouter();
-  const { switchFeed, clearInReview } = useFeed();
   const { user } = useAuth();
   const t = useTranslations();
 
@@ -63,9 +61,6 @@ const Step5: React.FC<OnboardingStep> = ({
     });
 
     if (user) {
-      clearInReview();
-      switchFeed(FeedType.MY_PREDICTIONS);
-
       const searchParams = new URLSearchParams();
       searchParams.set(POST_FORECASTER_ID_FILTER, user.id.toString());
       searchParams.set("order_by", "-weekly_movement");

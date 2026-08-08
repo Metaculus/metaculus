@@ -1,4 +1,4 @@
-export type ActivityType = "news" | "comment";
+export type ActivityType = "news" | "insight" | "comment";
 
 export type GroupTimelineMarker = {
   id: string;

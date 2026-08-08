@@ -14,7 +14,7 @@ const FutureEvalNavbar: React.FC = () => {
   return (
     <header
       className={cn(
-        "fixed left-0 top-0 z-[200] flex h-header w-full items-center pl-1 pr-3 sm:px-6 md:px-8",
+        "fixed left-0 top-0 z-[200] flex h-12 w-full items-center pl-1 pr-3 sm:px-6 md:px-8",
         "justify-between sm:justify-end",
         "bg-transparent"
       )}

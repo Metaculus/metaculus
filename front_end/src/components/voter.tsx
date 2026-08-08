@@ -18,6 +18,7 @@ type Props = {
   upChevronClassName?: string;
   downChevronClassName?: string;
   voteClassName?: string;
+  showZeroVotes?: boolean;
 };
 
 const Voter: FC<Props> = ({
@@ -31,6 +32,7 @@ const Voter: FC<Props> = ({
   upChevronClassName,
   downChevronClassName,
   voteClassName,
+  showZeroVotes,
 }) => {
   return (
     <div
@@ -78,12 +80,14 @@ const Voter: FC<Props> = ({
           />
         )}
       </Button>
-      {!!votes != null && votes !== 0 && (
+      {votes != null && (votes !== 0 || showZeroVotes) && (
         <span
           className={cn(
-            "text-gray-900 dark:text-gray-900-dark",
+            "text-sm font-normal leading-4",
             {
-              "font-bold": !!userVote,
+              "font-bold text-gray-900 dark:text-gray-900-dark": !!userVote,
+              "text-gray-900 dark:text-gray-900-dark": !userVote && votes !== 0,
+              "text-gray-500 dark:text-gray-500-dark": !userVote && votes === 0,
             },
             voteClassName
           )}

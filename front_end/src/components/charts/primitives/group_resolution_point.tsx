@@ -4,6 +4,7 @@ import { isNil } from "lodash";
 import { ComponentProps, FC } from "react";
 import { Point } from "victory";
 
+import { CHART_DASH } from "@/constants/chart_dash";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 
@@ -64,7 +65,7 @@ const GroupResolutionPoint: FC<Props> = ({
           y2={y - (text ? textOffset : 0)}
           stroke={strokeColor}
           strokeWidth={1}
-          strokeDasharray="2 2"
+          strokeDasharray={CHART_DASH.threshold}
           opacity={1}
         />
       )}

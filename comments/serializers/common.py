@@ -25,6 +25,7 @@ class CommentFilterSerializer(serializers.Serializer):
     author_is_staff = serializers.BooleanField(required=False, allow_null=True)
     sort = serializers.CharField(required=False, allow_null=True)
     focus_comment_id = serializers.IntegerField(required=False, allow_null=True)
+    focus_thread_only = serializers.BooleanField(required=False, default=False)
     is_private = serializers.BooleanField(required=False, allow_null=True)
     include_deleted = serializers.BooleanField(required=False, allow_null=True)
     last_viewed_at = serializers.DateTimeField(required=False, allow_null=True)
@@ -148,7 +149,10 @@ class CommentWriteSerializer(serializers.ModelSerializer):
         )
 
     def validate_on_post(self, value):
-        return Post.objects.get(pk=value)
+        try:
+            return Post.objects.get(pk=value)
+        except Post.DoesNotExist:
+            raise ValidationError("Post does not exist")
 
     def validate_parent(self, value):
         if not value:

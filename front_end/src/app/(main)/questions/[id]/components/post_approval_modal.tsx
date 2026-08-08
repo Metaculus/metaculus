@@ -73,7 +73,7 @@ const PostApprovalModal: FC<{
     cp_reveal_time:
       initial_cp_reveal_time ??
       formatInTimeZone(
-        addDays(new Date(), 5),
+        addDays(new Date(), 3),
         "UTC",
         "yyyy-MM-dd'T'HH:mm:ss'Z'"
       ),

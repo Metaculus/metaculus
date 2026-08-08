@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import GlobalHeader from "@/app/(main)/components/headers/global_header";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 import { getAllSheetsData } from "@/services/google_spreadsheets";
 
@@ -20,8 +19,7 @@ export default async function Page() {
 
   return (
     <>
-      <GlobalHeader />
-      <main className="mt-12 flex h-fit min-h-screen flex-col items-center justify-start p-3 sm:p-5">
+      <main className="flex h-fit min-h-screen flex-col items-center justify-start p-3 sm:p-5">
         <h1 className="mb-1 text-2xl font-bold">
           Bridgewater Forecasting Contest
         </h1>

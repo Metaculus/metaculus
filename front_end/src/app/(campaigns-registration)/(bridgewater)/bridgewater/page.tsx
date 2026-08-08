@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 
-import GlobalHeader from "@/app/(main)/components/headers/global_header";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 
 import DescriptionBlock from "./components/description-block";
@@ -28,8 +27,7 @@ export default async function BridgewaterLandingPage() {
 
   return (
     <>
-      <GlobalHeader />
-      <main className="mx-auto mb-16 mt-[48px] flex min-h-min w-full max-w-[780px] flex-auto flex-col gap-3 px-0 sm:mt-[90px]">
+      <main className="mx-auto mb-16 flex min-h-min w-full max-w-[780px] flex-auto flex-col gap-3 px-0 sm:mt-10">
         {/* Header with hero image and key info */}
         <HeaderBlock />
 

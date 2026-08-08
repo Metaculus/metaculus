@@ -3,7 +3,7 @@ import pytest
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework.exceptions import ValidationError
 
-from authentication.services import check_and_activate_user
+from authentication.services.common import check_and_activate_user
 from tests.unit.test_users.factories import factory_user
 
 

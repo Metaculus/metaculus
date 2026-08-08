@@ -1,0 +1,17 @@
+import { FC, SVGProps } from "react";
+
+const MetaculusMark: FC<SVGProps<SVGSVGElement>> = (props) => (
+  <svg
+    viewBox="0 0 13 17"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <path
+      d="M2.86441 4.9955V17H0V0H4.03955L6.46328 8.46177L8.88701 0H13V17H10.0621V4.9955L7.19774 17H5.72881L2.86441 4.9955Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+export default MetaculusMark;

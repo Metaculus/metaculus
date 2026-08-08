@@ -170,7 +170,9 @@ export function isContinuousQuestionType(type: QuestionType): boolean {
   ].includes(type);
 }
 
-export function isContinuousQuestion(question: QuestionWithForecasts): boolean {
+export function isContinuousQuestion(
+  question: QuestionWithForecasts
+): question is QuestionWithNumericForecasts {
   return isContinuousQuestionType(question.type);
 }
 

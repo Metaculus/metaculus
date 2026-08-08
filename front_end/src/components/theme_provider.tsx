@@ -31,7 +31,13 @@ const BlockCrossTabThemeSync: FC = () => {
 
 const ALLOWED: AppTheme[] = Object.values(AppTheme);
 
-const AppThemeProvided: FC<PropsWithChildren> = ({ children }) => {
+type Props = PropsWithChildren<{
+  // CSP nonce for the pre-hydration inline script next-themes injects;
+  // passed from the server layout since client code can't read next/headers
+  nonce?: string;
+}>;
+
+const AppThemeProvided: FC<Props> = ({ children, nonce }) => {
   const params = useSearchParams();
   const raw = params.get(ENFORCED_THEME_PARAM);
 
@@ -45,6 +51,7 @@ const AppThemeProvided: FC<PropsWithChildren> = ({ children }) => {
       defaultTheme="system"
       enableSystem
       forcedTheme={themeParam}
+      nonce={nonce}
     >
       <BlockCrossTabThemeSync />
       <InnerTheme>{children}</InnerTheme>

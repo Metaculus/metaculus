@@ -6,11 +6,14 @@ import {
   faReply,
   faThumbtack,
   faXmark,
+  faEllipsis,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { MDXEditorMethods } from "@mdxeditor/editor";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import toast from "react-hot-toast";
 
 import { softDeleteUserAction } from "@/app/(main)/accounts/profile/actions";
 import { useCommentsFeed } from "@/app/(main)/components/comments_feed_provider";
@@ -30,12 +33,14 @@ import CommentVoter from "@/components/comment_feed/comment_voter";
 import { Admin } from "@/components/icons/admin";
 import { Moderator } from "@/components/icons/moderator";
 import MarkdownEditor from "@/components/markdown_editor";
+import { processMarkdown } from "@/components/markdown_editor/helpers";
 import RichText from "@/components/rich_text";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { userTagPattern } from "@/constants/comments";
 import { useAuth } from "@/contexts/auth_context";
+import { useModal } from "@/contexts/modal_context";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import { useCommentDraft } from "@/hooks/use_comment_draft";
 import useContainerSize from "@/hooks/use_container_size";
@@ -49,7 +54,7 @@ import {
 } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { sendAnalyticsEvent } from "@/utils/analytics";
-import { parseUserMentions } from "@/utils/comments";
+import { hasPredictorsMention, parseUserMentions } from "@/utils/comments";
 import cn from "@/utils/core/cn";
 import { logError } from "@/utils/core/errors";
 import { isForecastActive } from "@/utils/forecasts/helpers";
@@ -78,6 +83,7 @@ type CommentChildrenTreeProps = {
   lastViewedAt?: string;
   shouldSuggestKeyFactors?: boolean;
   isSomeChildrenUnread?: boolean;
+  onReplyCreated?: (createdAt: string) => void;
 };
 
 const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
@@ -90,6 +96,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
   lastViewedAt,
   shouldSuggestKeyFactors = false,
   isSomeChildrenUnread = false,
+  onReplyCreated,
 }) => {
   const t = useTranslations();
   const sortedCommentChildren = sortComments([...commentChildren], sort);
@@ -210,6 +217,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
                   forceExpandedChildren={
                     forceExpandedChildren || forceExpandSubtree
                   }
+                  onReplyCreated={onReplyCreated}
                 />
               </div>
             );
@@ -231,6 +239,7 @@ type CommentProps = {
   isCommentJustCreated?: boolean;
   shouldSuggestKeyFactors?: boolean;
   forceExpandedChildren?: boolean;
+  onReplyCreated?: (createdAt: string) => void;
 };
 
 const Comment: FC<CommentProps> = ({
@@ -245,9 +254,11 @@ const Comment: FC<CommentProps> = ({
   isCommentJustCreated = false,
   shouldSuggestKeyFactors = false,
   forceExpandedChildren = false,
+  onReplyCreated,
 }) => {
   const t = useTranslations();
   const commentRef = useRef<HTMLDivElement>(null);
+  const editEditorRef = useRef<MDXEditorMethods>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editorKey, setEditorKey] = useState<number>(0);
   const originalTextRef = useRef<string>(comment.text);
@@ -269,6 +280,18 @@ const Comment: FC<CommentProps> = ({
       });
     }
   }, [questionLayout?.replyToCommentId, comment.id, questionLayout]);
+
+  useEffect(() => {
+    if (questionLayout?.scrollToCommentId === comment.id) {
+      questionLayout.clearScrollToComment();
+      requestAnimationFrame(() => {
+        commentRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      });
+    }
+  }, [questionLayout?.scrollToCommentId, comment.id, questionLayout]);
   const [errorMessage, setErrorMessage] = useState<string | ErrorResponse>();
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
   const [tempCommentMarkdown, setTempCommentMarkdown] = useState("");
@@ -280,6 +303,7 @@ const Comment: FC<CommentProps> = ({
   const { ref, width } = useContainerSize<HTMLDivElement>();
   const { PUBLIC_MINIMAL_UI } = usePublicSettings();
   const { user } = useAuth();
+  const { setCurrentModal } = useModal();
   const scrollTo = useScrollTo();
   const userCanPredict = postData && canPredictQuestion(postData, user);
   const userForecast =
@@ -351,7 +375,7 @@ const Comment: FC<CommentProps> = ({
   const [hasExhaustedSuggestions, setHasExhaustedSuggestions] = useState(false);
   const hasAutoOpenedKeyFactorsRef = useRef(false);
 
-  const { combinedKeyFactors } = useCommentsFeed();
+  const { combinedKeyFactors, totalCount, setTotalCount } = useCommentsFeed();
   const {
     suggestedKeyFactors,
     isLoadingSuggestedKeyFactors,
@@ -515,7 +539,11 @@ const Comment: FC<CommentProps> = ({
       setIsLoading(true);
       setErrorMessage("");
 
-      const parsedMarkdown = commentMarkdown.replace(userTagPattern, (match) =>
+      const latestMarkdown = processMarkdown(
+        editEditorRef.current?.getMarkdown() ?? commentMarkdown,
+        { revert: true, withTwitterPreview: false }
+      );
+      const parsedMarkdown = latestMarkdown.replace(userTagPattern, (match) =>
         match.replace(/[\\]/g, "")
       );
 
@@ -536,6 +564,18 @@ const Comment: FC<CommentProps> = ({
       if (response && "errors" in response) {
         setErrorMessage(response.errors as ErrorResponse);
       } else {
+        // Warn non-curators/admins if they used @predictors
+        const userPermission = postData?.user_permission;
+        if (
+          hasPredictorsMention(parsedMarkdown) &&
+          (!userPermission ||
+            ![ProjectPermissions.CURATOR, ProjectPermissions.ADMIN].includes(
+              userPermission
+            ))
+        ) {
+          toast(t("predictorsMentionWarning"));
+        }
+
         setCommentMarkdown(parsedMarkdown);
         setComments((prev) =>
           updateCommentTextInTree(prev, comment.id, parsedMarkdown)
@@ -598,6 +638,16 @@ const Comment: FC<CommentProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [comment.id]);
 
+  const handleDeleteComment = async () => {
+    const response = await softDeleteComment(comment.id);
+
+    if (response && "errors" in response) {
+      console.error("Error deleting comment:", response.errors);
+    } else {
+      setIsDeleted(true);
+    }
+  };
+
   const menuItems: MenuItemProps[] = [
     {
       hidden: !(user?.id === comment.author.id) || !!user?.is_bot,
@@ -644,19 +694,19 @@ const Comment: FC<CommentProps> = ({
       onClick: () => setIsReportModalOpen(true),
     },
     {
-      hidden: !user?.is_staff,
+      hidden: !(isCommentAuthor || user?.is_staff),
       id: "delete",
       name: t("delete"),
-      onClick: async () => {
-        //setDeleteModalOpen(true),
-        const response = await softDeleteComment(comment.id);
-
-        if (response && "errors" in response) {
-          console.error("Error deleting comment:", response.errors);
-        } else {
-          setIsDeleted(true);
-        }
-      },
+      onClick: () =>
+        setCurrentModal({
+          type: "confirm",
+          data: {
+            title: t("deleteCommentConfirmTitle"),
+            description: t("deleteCommentConfirmDescription"),
+            actionText: t("delete"),
+            onConfirm: handleDeleteComment,
+          },
+        }),
     },
     {
       hidden: !user?.is_staff,
@@ -759,9 +809,10 @@ const Comment: FC<CommentProps> = ({
               })}
             >
               <div
-                className={cn("flex sm:flex-row sm:items-center", {
-                  "flex-col": !isCollapsed,
-                  "items-center": isCollapsed,
+                className={cn("flex", {
+                  "flex-col": !isCollapsed && !onProfile,
+                  "flex-row items-center": isCollapsed,
+                  "sm:flex-row sm:items-center": onProfile && !isCollapsed,
                 })}
               >
                 <Link
@@ -781,8 +832,9 @@ const Comment: FC<CommentProps> = ({
                   )}
                 </Link>
                 <span
-                  className={cn("mx-1 opacity-55 sm:inline", {
-                    hidden: !isCollapsed,
+                  className={cn("mx-1 opacity-55", {
+                    hidden: !isCollapsed && !onProfile,
+                    "sm:inline": onProfile && !isCollapsed,
                   })}
                 >
                   ·
@@ -861,6 +913,7 @@ const Comment: FC<CommentProps> = ({
                   <div>
                     <MarkdownEditor
                       key={`edit-${comment.id}-${editorKey}`}
+                      ref={editEditorRef}
                       className="rounded border border-gray-500 dark:border-gray-500-dark"
                       markdown={commentMarkdown}
                       mode="write"
@@ -869,6 +922,8 @@ const Comment: FC<CommentProps> = ({
                         saveEditDraftDebounced(val);
                       }}
                       withUgcLinks
+                      withUserMentions
+                      userPermission={postData?.user_permission}
                       withCodeBlocks
                     />
                     {hadForecastAtCommentCreation && postData?.question && (
@@ -950,6 +1005,7 @@ const Comment: FC<CommentProps> = ({
                     withUgcLinks
                     withTwitterPreview
                     withCodeBlocks
+                    contentEditableClassName="text-base font-normal leading-6 [&_p]:!text-gray-700 dark:[&_p]:!text-gray-700-dark [&_ul]:!text-gray-700 dark:[&_ul]:!text-gray-700-dark [&_ol]:!text-gray-700 dark:[&_ol]:!text-gray-700-dark"
                   />
                 )}
                 {commentKeyFactors.length > 0 &&
@@ -1061,7 +1117,17 @@ const Comment: FC<CommentProps> = ({
                     </div>
 
                     <div className={cn(treeDepth > 0 && "pr-1.5 md:pr-2")}>
-                      <DropdownMenu items={menuItems} />
+                      <DropdownMenu items={menuItems}>
+                        <Button
+                          aria-label="menu"
+                          variant="tertiary"
+                          size="md"
+                          presentationType="icon"
+                          className="!rounded-[2px] !border !border-gray-300 !bg-gray-0 !text-[14px] !text-gray-500 dark:!border-gray-700 dark:!bg-gray-0-dark dark:!text-gray-500-dark"
+                        >
+                          <FontAwesomeIcon icon={faEllipsis} />
+                        </Button>
+                      </DropdownMenu>
                     </div>
                   </div>
                 </div>
@@ -1078,6 +1144,10 @@ const Comment: FC<CommentProps> = ({
             replyUsername={comment.author.username}
             onSubmit={(newComment: CommentType) => {
               addNewChildrenComment(comment, newComment);
+              onReplyCreated?.(newComment.created_at);
+              if (typeof totalCount === "number") {
+                setTotalCount(totalCount + 1);
+              }
               setIsReplying(false);
             }}
             isReplying={isReplying}
@@ -1111,6 +1181,7 @@ const Comment: FC<CommentProps> = ({
           lastViewedAt={lastViewedAt}
           shouldSuggestKeyFactors={shouldSuggestKeyFactors}
           isSomeChildrenUnread={isSomeChildrenUnread}
+          onReplyCreated={onReplyCreated}
         />
       )}
       <CommentReportModal

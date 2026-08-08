@@ -606,6 +606,7 @@ class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
 
         if obj.post_id:
             run_post_generate_history_snapshot.send(obj.post_id, request.user.id)
+            obj.post.update_pseudo_materialized_fields()
 
     def get_actions(self, request):
         actions = super().get_actions(request)

@@ -3,14 +3,12 @@ import { VictoryLabel } from "victory";
 
 type Props = ComponentProps<typeof VictoryLabel> & {
   chartWidth: number;
-  withCursor?: boolean;
   fontSize?: number;
   dx?: number;
 };
 
 const XTickLabel: FC<Props> = ({
   chartWidth,
-  withCursor,
   fontSize = 10,
   dx = 0,
   ...props
@@ -20,18 +18,18 @@ const XTickLabel: FC<Props> = ({
 
   const x = (props.x ?? 0) + dx;
 
-  const overlapsRightEdge = withCursor
-    ? x > chartWidth - estimatedTextWidth
-    : x > chartWidth - 12;
-
-  if (overlapsRightEdge) {
-    return null;
+  let textAnchor: "start" | "middle" | "end" = "middle";
+  if (x - estimatedTextWidth < 0) {
+    textAnchor = "start";
+  } else if (x > chartWidth - estimatedTextWidth) {
+    textAnchor = "end";
   }
 
   return (
     <VictoryLabel
       {...props}
       dx={dx}
+      textAnchor={textAnchor}
       style={{
         ...(props.style ?? {}),
         fontSize,

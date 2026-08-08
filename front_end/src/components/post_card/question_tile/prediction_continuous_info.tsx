@@ -63,17 +63,17 @@ const PredictionContinuousInfo: FC<Props> = ({
   return (
     <div
       className={cn(
-        "flex w-full flex-row gap-1.5 md:flex-col md:gap-0.5",
+        "flex w-full flex-row gap-1.5 @[550px]:flex-col @[550px]:gap-0.5",
         className
       )}
     >
-      <div className="flex w-full flex-col gap-1 md:gap-1.5">
+      <div className="flex w-full flex-col gap-1 @[550px]:gap-1.5">
         {!hideCP && (
           <>
             <ContinuousCPBar question={question} />
             <QuestionCPMovement
               question={question}
-              className="mx-auto max-w-[200px] md:mx-0"
+              className="mx-auto max-w-[200px] @[550px]:mx-0"
               size={"xs"}
               boldValueUnit={true}
             />
@@ -85,12 +85,12 @@ const PredictionContinuousInfo: FC<Props> = ({
               question.aggregations[question.default_aggregation_method]?.latest
                 ?.forecaster_count ?? undefined
             }
-            className="mx-auto md:mx-0"
+            className="mx-auto @[550px]:mx-0"
           />
         )}
       </div>
       {showMyPrediction && question.my_forecasts?.latest && (
-        <div className="mt-0 flex w-full border-0 border-dashed border-gray-300 pt-0 dark:border-gray-300-dark md:mt-1 md:border-t-[0.5px] md:pt-2">
+        <div className="mt-0 flex w-full border-0 border-dashed border-gray-300 pt-0 @[550px]:mt-1 @[550px]:border-t-[0.5px] @[550px]:pt-2 dark:border-gray-300-dark">
           <MyPredictionChip
             question={question}
             showUserForecast

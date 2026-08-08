@@ -2,7 +2,8 @@ import pytest
 from django.test import override_settings
 from rest_framework.reverse import reverse
 
-from authentication.services import SignupInviteService
+from authentication.jwt_session import SessionAccessToken, get_session_enforce_at
+from authentication.services.common import SignupInviteService, get_tokens_for_user
 from users.models import User
 
 
@@ -135,12 +136,6 @@ class TestLogout:
     url = "/api/auth/logout/"
 
     def test_logout_with_token_revokes_session(self, anon_client, user1):
-        from authentication.services import get_tokens_for_user
-        from authentication.jwt_session import (
-            SessionAccessToken,
-            get_session_enforce_at,
-        )
-
         # Get tokens for the user
         tokens = get_tokens_for_user(user1)
         access_token = tokens["access"]

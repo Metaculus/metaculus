@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import GlobalHeader from "../../../(main)/components/headers/global_header";
 import PageWrapper from "../../../(main)/components/pagewrapper";
 
 export const metadata = {
@@ -12,10 +11,8 @@ export const metadata = {
 export default function ContestRules() {
   return (
     <>
-      <GlobalHeader />
-
       <PageWrapper>
-        <h1 className="mt-16 md:mt-2">
+        <h1 className="mt-4 md:mt-2">
           Official Competition Rules for the RAND x Metaculus Policy Challenge
           2025 (the &quot;Tournament&quot;)
         </h1>

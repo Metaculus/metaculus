@@ -29,13 +29,7 @@ function KeyFactorsCarousel<T>({
       items={items}
       showArrows={(state) => {
         if (!isDesktop) return false;
-        // Desktop arrows logic:
-        // - At start: right gradient + right arrow
-        // - Middle: gradients on both ends, but NO arrows
-        // - At end: left gradient + left arrow
-        return (
-          (state.canPrev && !state.canNext) || (!state.canPrev && state.canNext)
-        );
+        return state.canPrev || state.canNext;
       }}
       showGradients={(state) =>
         !isDesktop

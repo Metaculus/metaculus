@@ -1,11 +1,11 @@
 import { cache } from "react";
 
-import ServerPostsApi from "@/services/api/posts/posts.server";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { scaleInternalLocation } from "@/utils/math";
 
-import { JOBS_DATA } from "../data";
+import { JOBS_DATA, LABOR_HUB_POST_IDS } from "../data";
+import { fetchLaborHubPost, fetchLaborHubPostsByIds } from "./labor_hub_posts";
 
 export type JobWithPost = (typeof JOBS_DATA)[number] & {
   post: PostWithForecasts | null;
@@ -17,10 +17,7 @@ export const fetchJobsData = cache(
     postsByIdMap: Map<number, PostWithForecasts>;
   }> => {
     const allPostIds = JOBS_DATA.map((job) => job.post_id);
-    const { results: posts } = await ServerPostsApi.getPostsWithCP({
-      ids: allPostIds,
-      limit: allPostIds.length,
-    });
+    const posts = await fetchLaborHubPostsByIds(allPostIds);
 
     const postsByIdMap = new Map(posts.map((post) => [post.id, post]));
 
@@ -83,10 +80,12 @@ export function getTopExtremeJobsForYear(
 
 export type YearValue = { year: number; value: number };
 
-export const OVERALL_POST_ID = 41307;
+export const OVERALL_POST_ID = LABOR_HUB_POST_IDS.overallEmployment;
 
 export const fetchOverallData = cache(async (): Promise<YearValue[]> => {
-  const post = await ServerPostsApi.getPost(OVERALL_POST_ID, true);
+  const post = await fetchLaborHubPost(OVERALL_POST_ID);
+  if (!post) return [];
+
   const questions = post.group_of_questions?.questions as
     | QuestionWithNumericForecasts[]
     | undefined;

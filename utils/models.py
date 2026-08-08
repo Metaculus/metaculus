@@ -346,11 +346,11 @@ class ModelBatchUpdater:
     def __init__(
         self,
         model_class: type[DjangoModelType],
-        fields: list[str],
+        fields: list[str] | None = None,
         batch_size: int = 100,
     ):
         self.model_class = model_class
-        self.fields = fields
+        self.fields = fields or []
         self.batch_size = batch_size
 
         self._batch: list[DjangoModelType] = []
@@ -370,7 +370,22 @@ class ModelBatchUpdater:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.flush()
+        if exc_type is None:
+            self.flush()
+
+
+class ModelBatchCreator(ModelBatchUpdater):
+    def __init__(
+        self,
+        model_class: type[DjangoModelType],
+        batch_size: int = 100,
+    ):
+        super().__init__(model_class, batch_size=batch_size)
+
+    def flush(self) -> None:
+        if self._batch:
+            self.model_class.objects.bulk_create(self._batch)
+            self._batch.clear()
 
 
 def get_by_pk_or_slug(

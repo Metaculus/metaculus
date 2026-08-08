@@ -1,13 +1,11 @@
-import logging
 import os
 import re
 
 from django.conf import settings
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
+from django.template import Template, TemplateSyntaxError
 from django.template.utils import get_app_template_dirs
 from mjml.tools import mjml_render
-
-logger = logging.getLogger(__name__)
 
 
 def process_mj_includes(mjml_content, base_path):
@@ -49,14 +47,24 @@ class Command(BaseCommand):
         return template_dirs
 
     def handle(self, *args, **options):
+        converted = 0
+
         for templates_path in self.get_template_paths():
             if not os.path.exists(templates_path):
                 continue
 
             for root, _, files in os.walk(templates_path):
-                for file in files:
+                for file in sorted(files):
                     if file.endswith(".mjml"):
                         self.convert_mjml_to_html(os.path.join(root, file))
+                        converted += 1
+
+        # Guards against the image being built with the templates missing, which
+        # would otherwise only surface when an email fails to send.
+        if not converted:
+            raise CommandError("No .mjml templates found in any app template dir.")
+
+        self.stdout.write(self.style.SUCCESS(f"Composed {converted} email templates"))
 
     def convert_mjml_to_html(self, mjml_file_path):
         with open(mjml_file_path, "r") as mjml_file:
@@ -69,9 +77,23 @@ class Command(BaseCommand):
 
         html_content = mjml_render(mjml_content)
 
-        if html_content:
-            html_file_path = mjml_file_path.replace(".mjml", ".html")
-            with open(html_file_path, "w") as html_file:
-                html_file.write(html_content)
+        if not html_content:
+            raise CommandError(f"{mjml_file_path}: mjml produced no output")
 
-            logger.info(f"Converted {mjml_file_path} to {html_file_path}")
+        html_file_path = mjml_file_path.replace(".mjml", ".html")
+        with open(html_file_path, "w") as html_file:
+            html_file.write(html_content)
+
+        # MJML does not preserve Django tags placed outside of ending tags, so a
+        # valid .mjml file can still compile to a broken template. Parsing here
+        # fails the build rather than the email send.
+        try:
+            Template(html_content)
+        except TemplateSyntaxError as e:
+            raise CommandError(
+                f"{html_file_path} is not a valid Django template: {e}"
+            ) from e
+
+        self.stdout.write(
+            f"Converted {os.path.relpath(mjml_file_path, settings.BASE_DIR)}"
+        )

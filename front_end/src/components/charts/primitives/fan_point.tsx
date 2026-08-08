@@ -4,6 +4,7 @@ import { isNil } from "lodash";
 import { ComponentProps, FC } from "react";
 import { Point } from "victory";
 
+import { CHART_DASH } from "@/constants/chart_dash";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 
@@ -147,7 +148,7 @@ const FanPoint: FC<Props> = ({
           y2={`calc(100% - ${bottomPadding}px)`}
           stroke={getThemeColor(METAC_COLORS.blue["700"])}
           strokeWidth={1}
-          strokeDasharray="6 2"
+          strokeDasharray={CHART_DASH.cursor}
           opacity={0.5}
         />
       )}

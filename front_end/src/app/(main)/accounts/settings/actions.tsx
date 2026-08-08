@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 import { getAuthCookieManager } from "@/services/auth_tokens";
+import { ApiForecastingAccess } from "@/types/users";
 import { ApiError } from "@/utils/core/errors";
 
 export async function changePassword(password: string, new_password: string) {
@@ -157,6 +158,27 @@ export async function rotateApiKeyAction() {
     return {
       key: data.key,
     };
+  } catch (err) {
+    if (!ApiError.isApiError(err)) {
+      throw err;
+    }
+
+    return {
+      errors: err.data,
+    };
+  }
+}
+
+export async function setApiForecastingAccessAction(
+  access: ApiForecastingAccess
+) {
+  try {
+    await ServerProfileApi.updateProfile({
+      api_forecasting_access: access,
+    });
+    revalidatePath("/accounts/settings/account");
+
+    return {};
   } catch (err) {
     if (!ApiError.isApiError(err)) {
       throw err;

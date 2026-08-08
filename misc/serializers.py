@@ -1,14 +1,50 @@
+from django.db import models
 from django.utils.text import slugify
 from rest_framework import serializers
 
-from misc.models import SidebarItem
+from misc.models import AdTile, SidebarItem
 from projects.models import Project
 
 
+class AdTileSerializer(serializers.ModelSerializer):
+    title = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AdTile
+        fields = (
+            "title",
+            "description",
+            "image",
+            "cta_text",
+            "url",
+            "exposure_rate",
+            "project_id",
+        )
+
+    def get_title(self, obj: AdTile) -> str:
+        return obj.display_title
+
+    def get_image(self, obj: AdTile):
+        image = obj.display_image
+        return image.url if image else None
+
+
 class ContactSerializer(serializers.Serializer):
+    class SubjectType(models.TextChoices):
+        PARTNERSHIP = "partnership", "Partnership inquiry"
+        FEEDBACK = "feedback", "General feedback"
+        BUG = "bug", "Bug report"
+        FEATURE = "feature", "Feature request"
+        PRESS = "press", "Press request"
+        OTHER = "other", "Other"
+
     email = serializers.EmailField()
     message = serializers.CharField()
-    subject = serializers.CharField(required=False, allow_blank=True)
+    subject = serializers.ChoiceField(
+        choices=SubjectType.choices, required=False, allow_blank=True
+    )
+    source_url = serializers.CharField(required=False, allow_blank=True)
 
 
 class ContactServicesSerializer(serializers.Serializer):

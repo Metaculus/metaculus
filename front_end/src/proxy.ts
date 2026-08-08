@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { AUTOTRANSLATION_HEADER } from "@/constants/experiments";
 import ServerAuthApi from "@/services/api/auth/auth.server";
 import { AuthCookieManager, AuthCookieReader } from "@/services/auth_tokens";
-import { CsrfManager } from "@/services/csrf";
+import {
+  getAutotranslationEnrollment,
+  setAssignmentCookieInResponse,
+} from "@/services/autotranslation_experiment";
 import {
   LanguageService,
   LOCALE_COOKIE_NAME,
@@ -10,6 +14,7 @@ import {
 import { getAlphaTokenSession } from "@/services/session";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
 import { ApiError } from "@/utils/core/errors";
+import { applyCspHeaders, buildCsp } from "@/utils/csp";
 import { getPublicSettings } from "@/utils/public_settings.server";
 
 /**
@@ -63,6 +68,19 @@ async function verifyToken(): Promise<boolean> {
   }
 }
 
+function shouldSkipCspHeaders(request: NextRequest): boolean {
+  const purpose = request.headers.get("purpose");
+  const secPurpose = request.headers.get("sec-purpose");
+
+  return (
+    request.nextUrl.searchParams.has("_rsc") ||
+    request.headers.get("rsc") === "1" ||
+    request.headers.has("next-router-prefetch") ||
+    purpose === "prefetch" ||
+    secPurpose?.includes("prefetch") === true
+  );
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const requestAuth = new AuthCookieReader(request.cookies);
@@ -70,8 +88,43 @@ export async function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-url", request.url);
 
+  const shouldApplyCsp = !shouldSkipCspHeaders(request);
+  const nonce = shouldApplyCsp ? btoa(crypto.randomUUID()) : null;
+  const cspHeader = nonce ? buildCsp(nonce) : null;
+
+  if (cspHeader && nonce) {
+    requestHeaders.set("x-nonce", nonce);
+    // Next.js reads the nonce from this request header to tag its own scripts
+    // (next/script, framework chunks) - it checks the report-only variant too
+    requestHeaders.set("Content-Security-Policy-Report-Only", cspHeader);
+  }
+
+  // Auto-translation A/B experiment: enroll eligible anonymous visitors.
+  // The header lets getLocale() apply the variant on this same request
+  const autotranslationEnrollment = await getAutotranslationEnrollment(
+    request,
+    requestAuth,
+    shouldApplyCsp
+  );
+  if (autotranslationEnrollment) {
+    requestHeaders.set(
+      AUTOTRANSLATION_HEADER,
+      autotranslationEnrollment.variant
+    );
+  } else {
+    // Never trust a client-supplied variant header
+    requestHeaders.delete(AUTOTRANSLATION_HEADER);
+  }
+
   const response = NextResponse.next({ request: { headers: requestHeaders } });
+  if (cspHeader) {
+    applyCspHeaders(response, cspHeader);
+  }
   const responseAuth = new AuthCookieManager(response.cookies);
+
+  if (autotranslationEnrollment) {
+    setAssignmentCookieInResponse(response, autotranslationEnrollment);
+  }
 
   let hasSession = false;
   const accessToken = requestAuth.getAccessToken();
@@ -106,7 +159,17 @@ export async function proxy(request: NextRequest) {
       !pathname.startsWith("/accounts/") &&
       !hasSession
     ) {
-      return NextResponse.rewrite(new URL("/not-found/", request.url));
+      const rewriteResponse = NextResponse.rewrite(
+        new URL("/not-found/", request.url),
+        { request: { headers: requestHeaders } }
+      );
+      if (cspHeader) {
+        applyCspHeaders(rewriteResponse, cspHeader);
+      }
+      response.cookies.getAll().forEach((cookie) => {
+        rewriteResponse.cookies.set(cookie);
+      });
+      return rewriteResponse;
     }
   }
 
@@ -138,10 +201,6 @@ export async function proxy(request: NextRequest) {
     LanguageService.setLocaleCookieInResponse(response, locale_in_url);
   }
 
-  // Generate CSRF token if not present
-  const csrfManager = new CsrfManager(response.cookies);
-  csrfManager.generate(request.cookies);
-
   return response;
 }
 
@@ -152,7 +211,7 @@ export const config = {
       // Ignores prefetch requests, all media files
       // And embedded urls
       source:
-        "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|questions/embed|experiments/embed|opengraph-image-|twitter-image-|app-version|.*\\..*).*)",
+        "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|csp-report|questions/embed|experiments/embed|opengraph-image-|twitter-image-|app-version|.*\\..*).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },

@@ -1,10 +1,36 @@
 import { ApiService } from "@/services/api/api_service";
-import { CurrentBot, UserProfile } from "@/types/users";
+import {
+  CurrentBot,
+  User,
+  UserProfile,
+  UserProfileWithStats,
+} from "@/types/users";
 import { encodeQueryParams } from "@/utils/navigation";
 
 class ProfileApi extends ApiService {
-  async getProfileById(id: number): Promise<UserProfile> {
-    return await this.get<UserProfile>(`/users/${id}/`);
+  async getProfileById(
+    id: number,
+    options: { includeStats: true }
+  ): Promise<UserProfileWithStats>;
+  async getProfileById(
+    id: number,
+    options?: { includeStats?: false }
+  ): Promise<UserProfile>;
+  async getProfileById(
+    id: number,
+    { includeStats = false }: { includeStats?: boolean } = {}
+  ): Promise<UserProfile | UserProfileWithStats> {
+    return await this.get<UserProfileWithStats>(
+      `/users/${id}/${encodeQueryParams({ include_stats: includeStats })}`
+    );
+  }
+
+  async getProfileIdByUsername(
+    username: string
+  ): Promise<{ id: number; username: string } | null> {
+    return await this.get<{ id: number; username: string } | null>(
+      `/users/by-username/${encodeURIComponent(username)}/`
+    );
   }
 
   async searchUsers(query: string, postId?: number) {
@@ -12,7 +38,7 @@ class ProfileApi extends ApiService {
     if (postId) {
       params.post_id = postId;
     }
-    return await this.get<UserProfile[]>(`/users/${encodeQueryParams(params)}`);
+    return await this.get<User[]>(`/users/${encodeQueryParams(params)}`);
   }
 
   async getMyBots() {

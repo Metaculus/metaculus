@@ -3,4 +3,4 @@
 minimumReleaseAge = 259200 # seconds
 
 # Exclude trusted packages from the age gate
-minimumReleaseAgeExcludes = []
+minimumReleaseAgeExcludes = ["sanitize-html", "launder"]

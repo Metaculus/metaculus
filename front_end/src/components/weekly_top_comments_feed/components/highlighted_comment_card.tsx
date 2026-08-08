@@ -130,7 +130,7 @@ const HighlightedCommentCard: FC<Props> = ({
         {comment.on_post_data && (
           <div
             className={cn(
-              "hidden items-start rounded-l border border-blue-500 dark:border-blue-500-dark md:flex md:w-[280px] md:shrink-0",
+              "hidden items-start overflow-hidden rounded-l border border-blue-500 dark:border-blue-500-dark md:flex md:w-[325px] md:shrink-0",
               placement === 1
                 ? "border-r-yellow-500 dark:border-r-yellow-500/40"
                 : "border-r-blue-400 dark:border-r-blue-400-dark"
@@ -140,6 +140,7 @@ const HighlightedCommentCard: FC<Props> = ({
               post={post}
               postTitle={comment.on_post_data.title}
               postId={comment.on_post_data.id}
+              className="w-full"
             />
           </div>
         )}

@@ -1,13 +1,13 @@
 from django.contrib.postgres.expressions import ArraySubquery
 from django.db import models
 from django.db.models import (
-    Count,
-    FilteredRelation,
-    Q,
-    F,
     BooleanField,
+    Count,
     Exists,
+    F,
+    FilteredRelation,
     OuterRef,
+    Q,
     Sum,
 )
 from django.db.models.functions import Coalesce
@@ -18,7 +18,7 @@ from projects.permissions import ObjectPermission
 from questions.constants import UnsuccessfulResolutionType
 from scoring.constants import LeaderboardScoreTypes
 from users.models import User
-from utils.models import validate_alpha_slug, TimeStampedModel, TranslatedModel
+from utils.models import TimeStampedModel, TranslatedModel, validate_alpha_slug
 
 
 class ProjectsQuerySet(models.QuerySet):
@@ -99,38 +99,49 @@ class ProjectsQuerySet(models.QuerySet):
     def annotate_questions_count(self):
         from posts.models import Post
 
+        posts_filter = Q(
+            posts__curation_status=Post.CurationStatus.APPROVED,
+            posts__questions__question_weight__gt=0,
+        ) & ~Q(
+            posts__questions__resolution__in=[
+                UnsuccessfulResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
+            ]
+        )
+        default_posts_filter = Q(
+            default_posts__curation_status=Post.CurationStatus.APPROVED,
+            default_posts__questions__question_weight__gt=0,
+        ) & ~Q(
+            default_posts__questions__resolution__in=[
+                UnsuccessfulResolutionType.AMBIGUOUS,
+                UnsuccessfulResolutionType.ANNULLED,
+            ]
+        )
+
         return self.annotate(
-            posts_questions_count=Count(
-                "posts__questions__id",
-                filter=Q(
-                    posts__curation_status=Post.CurationStatus.APPROVED,
-                    posts__questions__question_weight__gt=0,
-                )
-                & ~Q(
-                    posts__questions__resolution__in=[
-                        UnsuccessfulResolutionType.AMBIGUOUS,
-                        UnsuccessfulResolutionType.ANNULLED,
-                    ]
-                ),
+            _question_posts_in_default_project=Count(
+                "default_posts__id", filter=default_posts_filter, distinct=True
+            ),
+            _question_posts_in_secondary_projects=Count(
+                "posts__id", filter=posts_filter, distinct=True
+            ),
+            _questions_in_default_project=Count(
+                "default_posts__questions__id",
+                filter=default_posts_filter,
                 distinct=True,
             ),
-            default_posts_questions_count=Count(
-                "default_posts__questions__id",
-                filter=Q(
-                    default_posts__curation_status=Post.CurationStatus.APPROVED,
-                    default_posts__questions__question_weight__gt=0,
-                )
-                & ~Q(
-                    default_posts__questions__resolution__in=[
-                        UnsuccessfulResolutionType.AMBIGUOUS,
-                        UnsuccessfulResolutionType.ANNULLED,
-                    ]
-                ),
-                distinct=True,
+            _questions_in_secondary_projects=Count(
+                "posts__questions__id", filter=posts_filter, distinct=True
             ),
         ).annotate(
-            questions_count=Coalesce(F("posts_questions_count"), 0)
-            + Coalesce(F("default_posts_questions_count"), 0)
+            # Top-level count: each question post counts once, regardless of
+            # how many subquestions (group children, conditional branches) it has
+            questions_count=Coalesce(F("_question_posts_in_default_project"), 0)
+            + Coalesce(F("_question_posts_in_secondary_projects"), 0),
+            questions_count_including_subquestions=Coalesce(
+                F("_questions_in_default_project"), 0
+            )
+            + Coalesce(F("_questions_in_secondary_projects"), 0),
         )
 
     def annotate_is_subscribed(self, user: User, include_members: bool = False):

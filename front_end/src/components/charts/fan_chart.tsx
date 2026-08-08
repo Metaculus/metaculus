@@ -8,7 +8,6 @@ import {
   VictoryAxis,
   VictoryChart,
   VictoryContainer,
-  VictoryLabel,
   VictoryLine,
   VictoryPortal,
   VictoryScatter,
@@ -21,8 +20,11 @@ import FanPoint from "@/components/charts/primitives/fan_point";
 import PredictionWithRange from "@/components/charts/primitives/prediction_with_range";
 import ResolutionDiamond from "@/components/charts/primitives/resolution_diamond";
 import ForecastAvailabilityChartOverflow from "@/components/post_card/chart_overflow";
+import { CHART_DASH } from "@/constants/chart_dash";
+import { CHART_STROKE_WIDTH } from "@/constants/chart_stroke";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
+import { useBreakpoint } from "@/hooks/tailwind";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import {
@@ -48,6 +50,8 @@ import {
   getAxisLeftPadding,
   getAxisRightPadding,
   getTickLabelFontSize,
+  restrictScaleTicksToDomain,
+  widenDomainToTicks,
 } from "@/utils/charts/axis";
 import {
   calculateCharWidth,
@@ -95,6 +99,8 @@ type Props = {
   optionsLimit?: number;
   forFeedPage?: boolean;
   onLegendHeightChange?: (height: number) => void;
+  externalHighlightedLabel?: string | null;
+  alignPlotLeft?: boolean;
 };
 
 type NormalizedFanDatum = {
@@ -125,6 +131,8 @@ const FanChart: FC<Props> = ({
   optionsLimit,
   forFeedPage,
   onLegendHeightChange,
+  externalHighlightedLabel,
+  alignPlotLeft = false,
 }) => {
   const effectiveVariant: FanChartVariant = variant ?? "default";
 
@@ -146,6 +154,30 @@ const FanChart: FC<Props> = ({
   const tickLabelFontSize = getTickLabelFontSize(actualTheme);
 
   const [activePoint, setActivePoint] = useState<string | null>(null);
+  const effectiveActivePoint = externalHighlightedLabel ?? activePoint;
+  const isMobile = !useBreakpoint("md");
+
+  // Dismiss active point on mobile when clicking outside
+  useEffect(() => {
+    if (!isMobile || !activePoint) return;
+
+    const dismiss = () => setActivePoint(null);
+    const onTouchOutside = (e: TouchEvent) => {
+      if (
+        chartContainerRef.current &&
+        !chartContainerRef.current.contains(e.target as Node)
+      ) {
+        dismiss();
+      }
+    };
+
+    document.addEventListener("touchstart", onTouchOutside, { passive: true });
+    window.addEventListener("scroll", dismiss, { passive: true });
+    return () => {
+      document.removeEventListener("touchstart", onTouchOutside);
+      window.removeEventListener("scroll", dismiss);
+    };
+  }, [isMobile, activePoint, chartContainerRef]);
 
   const forecastAvailability = useMemo(() => {
     if (group) return getGroupForecastAvailability(group.questions);
@@ -213,8 +245,13 @@ const FanChart: FC<Props> = ({
     [normOptions, height, effectiveVariant, fixedYDomain, forFeedPage]
   );
 
+  const xCategories = useMemo(
+    () => normOptions.map((o) => o.name),
+    [normOptions]
+  );
+
   const labels = adjustLabelsForDisplay(
-    normOptions.map((o) => ({ name: o.name })),
+    xCategories.map((name) => ({ name })),
     chartWidth,
     actualTheme
   );
@@ -266,6 +303,7 @@ const FanChart: FC<Props> = ({
       maxLeftPadding: effectiveMaxLeftPadding,
       maxRightPadding: effectiveMaxRightPadding,
       isEmbedded,
+      forFeedPage,
       getThemeColor,
     }),
     [
@@ -275,13 +313,16 @@ const FanChart: FC<Props> = ({
       effectiveMaxLeftPadding,
       effectiveMaxRightPadding,
       isEmbedded,
+      forFeedPage,
       getThemeColor,
     ]
   );
 
   const chartPadding = useMemo(() => {
     const p = v.padding(variantArgs);
-    if (!isEmbedded) return p;
+    if (!isEmbedded) {
+      return alignPlotLeft ? { ...p, left: 0 } : p;
+    }
 
     const safeRight = Math.max(
       typeof p.right === "number" ? p.right : 0,
@@ -294,7 +335,14 @@ const FanChart: FC<Props> = ({
       left: EMBED_SIDE_PAD,
       right: safeRight,
     };
-  }, [v, variantArgs, isEmbedded, effectiveMaxRightPadding, MIN_RIGHT_PADDING]);
+  }, [
+    v,
+    variantArgs,
+    isEmbedded,
+    alignPlotLeft,
+    effectiveMaxRightPadding,
+    MIN_RIGHT_PADDING,
+  ]);
 
   const bottomPadForPoints = v.padding(variantArgs).bottom;
 
@@ -384,7 +432,9 @@ const FanChart: FC<Props> = ({
       {...tooltipConfig}
       onActivated={(points: { x: string }[]) => {
         const x = points[0]?.x;
-        if (!isNil(x)) setActivePoint(x);
+        if (!isNil(x)) {
+          setActivePoint(x);
+        }
       }}
     />
   );
@@ -429,6 +479,58 @@ const FanChart: FC<Props> = ({
   }, [isEmbedded, embedLegendNames, normOptions, yScale]);
   const isCompactEmbed = isEmbedded && !!chartWidth && chartWidth < 400;
 
+  const mobilePinnedOption = useMemo(
+    () =>
+      effectiveActivePoint
+        ? tooltipOptions.find((o) => o.name === effectiveActivePoint) ?? null
+        : null,
+    [effectiveActivePoint, tooltipOptions]
+  );
+
+  const pinnedBarX = useMemo(() => {
+    if (!effectiveActivePoint) return 1;
+    const dp = v.domainPadding(variantArgs).x[0];
+    const leftEdge = chartPadding.left + dp;
+    const rightEdge = chartWidth - chartPadding.right - dp;
+    const idx = normOptions.findIndex((o) => o.name === effectiveActivePoint);
+    return normOptions.length <= 1
+      ? leftEdge
+      : leftEdge + (idx / (normOptions.length - 1)) * (rightEdge - leftEdge);
+  }, [
+    effectiveActivePoint,
+    v,
+    variantArgs,
+    chartPadding,
+    chartWidth,
+    normOptions,
+  ]);
+
+  const handleTouchBar = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isMobile || !withTooltip) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const touchX = (e.touches[0]?.clientX ?? 0) - rect.left;
+    const dp = v.domainPadding(variantArgs).x[0];
+    const leftEdge = chartPadding.left + dp;
+    const rightEdge = chartWidth - chartPadding.right - dp;
+    const n = normOptions.length;
+    if (n === 0 || tooltipOptions.length === 0) return;
+
+    let nearestName: string | null = null;
+    let minDist = Infinity;
+    for (const opt of tooltipOptions) {
+      const idx = normOptions.findIndex((o) => o.name === opt.name);
+      if (idx < 0) continue;
+      const barX =
+        n <= 1 ? leftEdge : leftEdge + (idx / (n - 1)) * (rightEdge - leftEdge);
+      const dist = Math.abs(touchX - barX);
+      if (dist < minDist) {
+        minDist = dist;
+        nearestName = opt.name;
+      }
+    }
+    setActivePoint(nearestName);
+  };
+
   return (
     <div className="w-full">
       {isEmbedded && (
@@ -442,24 +544,30 @@ const FanChart: FC<Props> = ({
           ref={chartContainerRef}
           className="relative w-full"
           style={{ height }}
+          onTouchStartCapture={handleTouchBar}
+          onTouchMove={handleTouchBar}
         >
           {shouldDisplayChart && (
             <VictoryChart
               width={chartWidth}
               height={height}
               theme={actualTheme}
+              categories={xCategories.length ? { x: xCategories } : undefined}
               domain={{ y: yDomain }}
               domainPadding={v.domainPadding(variantArgs)}
               padding={chartPadding}
               containerComponent={
-                withTooltip ? (
+                withTooltip &&
+                !isMobile &&
+                !hideCP &&
+                !forecastAvailability?.cpRevealsOn ? (
                   containerWithTooltip
                 ) : (
                   <VictoryContainer
                     style={{
                       pointerEvents: "auto",
                       userSelect: "auto",
-                      touchAction: "auto",
+                      touchAction: isMobile ? "pan-y" : "auto",
                     }}
                   />
                 )
@@ -475,7 +583,7 @@ const FanChart: FC<Props> = ({
             >
               <VictoryAxis
                 dependentAxis
-                orientation={isEmbedded ? "right" : undefined}
+                orientation="right"
                 label={isEmbedded ? undefined : yLabel}
                 tickValues={
                   isEmbedded && embedLabelTicks ? embedLabelTicks : yScale.ticks
@@ -485,12 +593,6 @@ const FanChart: FC<Props> = ({
                   ...baseYAxisStyle,
                   grid: isEmbedded ? { display: "none" } : baseYAxisStyle?.grid,
                 }}
-                offsetX={
-                  isEmbedded ? undefined : v.axisLabelOffsetX(variantArgs)
-                }
-                axisLabelComponent={
-                  isEmbedded ? undefined : <VictoryLabel x={chartWidth} />
-                }
               />
 
               {isEmbedded && embedGridTicks && (
@@ -507,7 +609,7 @@ const FanChart: FC<Props> = ({
                     },
                     grid: {
                       ...baseYAxisStyle?.grid,
-                      strokeDasharray: "2,4",
+                      strokeDasharray: CHART_DASH.grid,
                     },
                   }}
                 />
@@ -515,7 +617,7 @@ const FanChart: FC<Props> = ({
 
               <VictoryPortal>
                 <VictoryAxis
-                  tickValues={normOptions.map((o) => o.name)}
+                  tickValues={xCategories}
                   tickFormat={hideCP ? () => "" : (_, i) => labels[i] ?? ""}
                   style={v.xAxisStyle({
                     tickLabelFontSize,
@@ -551,6 +653,7 @@ const FanChart: FC<Props> = ({
                     data={line ?? []}
                     style={{
                       data: {
+                        strokeOpacity: 1,
                         stroke: ({ datum }) =>
                           datum?.resolved
                             ? getThemeColor(METAC_COLORS.purple["700"])
@@ -576,14 +679,14 @@ const FanChart: FC<Props> = ({
                     data: {
                       fill: () => palette.communityPoint,
                       stroke: () => palette.communityPoint,
-                      strokeWidth: 6,
+                      strokeWidth: CHART_STROKE_WIDTH.fanCommunityLine,
                       strokeOpacity: ({ datum }) =>
-                        activePoint === datum.x ? 0.3 : 0,
+                        effectiveActivePoint === datum.x ? 0.3 : 0,
                     },
                   }}
                   dataComponent={
                     <FanPoint
-                      activePoint={activePoint}
+                      activePoint={effectiveActivePoint}
                       pointSize={isEmbedded ? 8 : pointSize}
                       pointColor={palette.communityPoint}
                       bottomPadding={bottomPadForPoints}
@@ -621,7 +724,7 @@ const FanChart: FC<Props> = ({
                       data: {
                         fill: v.resolutionPoint.fill({ getThemeColor }),
                         stroke: () => palette.resolutionStroke,
-                        strokeWidth: 2,
+                        strokeWidth: CHART_STROKE_WIDTH.resolutionLine,
                         strokeOpacity: 1,
                       },
                     }}
@@ -642,7 +745,7 @@ const FanChart: FC<Props> = ({
                   data={[{ ...point, symbol: "diamond" }]}
                   dataComponent={
                     <FanPoint
-                      activePoint={activePoint}
+                      activePoint={effectiveActivePoint}
                       pointSize={v.resolutionPoint.size}
                       strokeWidth={v.resolutionPoint.strokeWidth}
                       unsuccessfullyResolved={point.unsuccessfullyResolved}
@@ -661,6 +764,18 @@ const FanChart: FC<Props> = ({
               forecastAvailability={forecastAvailability}
               className="text-xs lg:text-sm"
               textClassName="!max-w-[300px]"
+            />
+          )}
+          {withTooltip && isMobile && mobilePinnedOption && (
+            <ChartFanTooltip
+              x={Math.max(pinnedBarX, 1)}
+              y={50}
+              datum={{ xName: mobilePinnedOption.name }}
+              options={tooltipOptions}
+              chartHeight={height}
+              hideCp={hideCP}
+              forecastAvailability={forecastAvailability}
+              skipOpacityHide
             />
           )}
         </div>
@@ -842,12 +957,13 @@ function buildChartData({
     }
   }
 
-  const { originalYDomain, zoomedYDomain } = generateFanGraphYDomain({
-    communityAreas,
-    userArea,
-    resolutionPoints: isBinaryGroup ? [] : resolutionPoints,
-    includeClosestBoundOnZoom: isBinaryGroup,
-  });
+  const { originalYDomain, zoomedYDomain, tickCoverageDomain } =
+    generateFanGraphYDomain({
+      communityAreas,
+      userArea,
+      resolutionPoints: isBinaryGroup ? [] : resolutionPoints,
+      includeClosestBoundOnZoom: isBinaryGroup,
+    });
 
   const finalOriginal = fixedInternal ?? originalYDomain;
   const finalZoom = fixedInternal ?? zoomedYDomain;
@@ -859,9 +975,12 @@ function buildChartData({
     scaling,
     domain: finalOriginal,
     zoomedDomain: finalZoom,
-    forceTickCount: forceTickCount ?? (forFeedPage ? 3 : 5),
+    forceTickCount: forceTickCount ?? (forFeedPage ? 3 : 6),
     alwaysShowTicks: true,
+    tickCoverageDomain: fixedInternal ? undefined : tickCoverageDomain,
   });
+  const yDomain = widenDomainToTicks(finalZoom, yScale.ticks);
+  const visibleYScale = restrictScaleTicksToDomain(yScale, yDomain);
 
   resolutionPoints.forEach((pt) => {
     if (pt.unsuccessfullyResolved) {
@@ -888,8 +1007,8 @@ function buildChartData({
     userPoints,
     resolutionPoints,
     emptyPoints,
-    yScale,
-    yDomain: finalZoom,
+    yScale: visibleYScale,
+    yDomain,
   };
 }
 
@@ -945,9 +1064,13 @@ function generateFanGraphYDomain({
   userArea: Area<string>;
   resolutionPoints: Array<FanGraphPoint>;
   includeClosestBoundOnZoom?: boolean;
-}): YDomain {
+}): YDomain & { tickCoverageDomain: Tuple<number> | undefined } {
   const originalYDomain: Tuple<number> = [0, 1];
-  const fallback = { originalYDomain, zoomedYDomain: originalYDomain };
+  const fallback = {
+    originalYDomain,
+    zoomedYDomain: originalYDomain,
+    tickCoverageDomain: undefined,
+  };
 
   const combinedAreaData = [
     ...communityAreas.map((a) => (a ? a : [])),
@@ -970,7 +1093,10 @@ function generateFanGraphYDomain({
 
   if (isNil(minValue) || isNil(maxValue)) return fallback;
 
-  return generateYDomain({ minValue, maxValue, includeClosestBoundOnZoom });
+  return {
+    ...generateYDomain({ minValue, maxValue, includeClosestBoundOnZoom }),
+    tickCoverageDomain: [minValue, maxValue] as Tuple<number>,
+  };
 }
 
 function getOptionGraphData({
@@ -1115,10 +1241,10 @@ function getFanOptionsFromContinuousGroup(
   return questions
     .map((q) => {
       const latest = q.my_forecasts?.latest;
+      const activeForecast =
+        latest && isForecastActive(latest) ? latest : undefined;
       const userForecast = extractPrevNumericForecastValue(
-        latest && isForecastActive(latest)
-          ? latest.distribution_input
-          : undefined
+        activeForecast?.distribution_input
       );
 
       let userCdf: number[] | null = null;
@@ -1132,6 +1258,10 @@ function getFanOptionsFromContinuousGroup(
               userForecast.components,
               q
             ).cdf);
+      } else if (activeForecast?.forecast_values.length) {
+        // distribution_input is absent for bots
+        // forecast_values still holds the full CDF, so fall back to it.
+        userCdf = activeForecast.forecast_values;
       }
 
       return {

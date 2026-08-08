@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FC } from "react";
 
+import { MetaculusMark } from "@/components/logos";
 import { usePublicSettings } from "@/contexts/public_settings_context";
 import cn from "@/utils/core/cn";
 
@@ -21,18 +22,7 @@ const NavbarLogo: FC<{ className?: string }> = ({ className }) => {
     >
       <h1 className="mx-[17px] my-0">
         <span>
-          <svg
-            width="14"
-            height="27"
-            viewBox="0 0 14 27"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M3.11212 27V8.50243L6.17541 27H7.74633L10.8096 8.50243V27H13.9515V0.804924H9.55289L6.96087 13.8436L4.36886 0.804924H0.0488281V27H3.11212Z"
-              fill="white"
-            />
-          </svg>
+          <MetaculusMark className="h-[24px] w-auto text-white" />
         </span>
       </h1>
     </Link>

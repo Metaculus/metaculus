@@ -9,6 +9,7 @@ import { PostWithForecasts } from "@/types/post";
 type Props = {
   postData: PostWithForecasts;
   compactVersion?: boolean;
+  showTitle?: boolean;
 };
 
 /**
@@ -22,6 +23,7 @@ type Props = {
 const ResponsiveCommentFeed: FC<Props> = ({
   postData,
   compactVersion = false,
+  showTitle,
 }) => {
   const isLargeScreen = useBreakpoint("lg");
 
@@ -33,7 +35,13 @@ const ResponsiveCommentFeed: FC<Props> = ({
     return null;
   }
 
-  return <CommentFeed postData={postData} compactVersion={compactVersion} />;
+  return (
+    <CommentFeed
+      postData={postData}
+      compactVersion={compactVersion}
+      showTitle={showTitle}
+    />
+  );
 };
 
 export default ResponsiveCommentFeed;

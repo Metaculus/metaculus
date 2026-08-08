@@ -458,20 +458,13 @@ export default function QuestionChecklist() {
           <li>
             <strong>Questions should be on topics that are notable.</strong>{" "}
             Questions should reasonably be expected to be of interest to at
-            least some other users. If your question idea is only interesting to
-            you or a small group of friends, you can make a private question,
-            and share it with them.
+            least some other users.
           </li>
           <li>
             <strong>
-              Public questions should not concern the personal lives of
-              non-public figures.
-            </strong>{" "}
-            Questions about non-public figures are generally only appropriate as{" "}
-            <a href="https://www.metaculus.com/help/faq/#question-private">
-              private questions
-            </a>
-            .
+              Questions should not concern the personal lives of non-public
+              figures.
+            </strong>
           </li>
           <li>
             <strong>
@@ -522,11 +515,6 @@ export default function QuestionChecklist() {
             launching those that pose a significant risk.
           </li>
         </ul>
-        <p>
-          Question content rules (with the exception of the notability
-          requirement, and the no non-public figures rule) apply equally to
-          private questions as they do to public ones.
-        </p>
 
         <h2 className="text-2xl font-bold" id="moderators">
           About the Community Moderators

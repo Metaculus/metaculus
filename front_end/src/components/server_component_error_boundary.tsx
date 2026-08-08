@@ -7,7 +7,7 @@ import RefreshButton from "./refresh_button";
 export default function WithServerComponentErrorBoundary<P extends object>(
   Component: FC<P>
 ): FC<P> {
-  const WrappedComponent = (async (props: P) => {
+  async function WrappedComponent(props: P) {
     try {
       return await Component(props);
     } catch (error: unknown) {
@@ -45,7 +45,11 @@ export default function WithServerComponentErrorBoundary<P extends object>(
         </div>
       );
     }
-  }) as unknown as FC<P>;
+  }
 
-  return WrappedComponent;
+  WrappedComponent.displayName = `WithServerComponentErrorBoundary(${
+    Component.displayName || Component.name || "Unknown"
+  })`;
+
+  return WrappedComponent as unknown as FC<P>;
 }

@@ -93,7 +93,11 @@ const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
   if (compact)
     return (
       <div>
-        <Link href={getPostLink({ id: otherQuestion.post_id })} target="_blank">
+        <Link
+          href={getPostLink({ id: otherQuestion.post_id })}
+          target="_blank"
+          prefetch={false}
+        >
           <b>{otherQuestion.title}</b>
         </Link>
         <Button
@@ -123,6 +127,7 @@ const DisplayCoherenceLink: FC<Props> = ({ link, post, compact }) => {
       <Link
         href={getPostLink({ id: otherQuestion.post_id })}
         target="_blank"
+        prefetch={false}
         className="font-normal text-blue-700 no-underline hover:text-blue-800 hover:underline dark:text-blue-700-dark dark:hover:text-blue-800-dark md:flex-grow"
       >
         {otherQuestion.title}

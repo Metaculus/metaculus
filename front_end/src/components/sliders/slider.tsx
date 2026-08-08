@@ -2,10 +2,22 @@
 import { clamp } from "lodash";
 import RcSlider from "rc-slider";
 import { SemanticName } from "rc-slider/lib/interface";
-import { CSSProperties, FC, ReactNode, useEffect, useState } from "react";
+import {
+  CSSProperties,
+  FC,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 
 import "./slider.css";
 
+import {
+  clampForecast,
+  parseForecastInput,
+  roundForecast,
+} from "@/components/forecast_maker/forecast_text_input";
 import SliderThumb from "@/components/sliders/primitives/thumb";
 
 type Props = {
@@ -22,6 +34,8 @@ type Props = {
   disabled?: boolean;
   styles?: Partial<Record<SemanticName, CSSProperties>>;
   showValue?: boolean;
+  editable?: boolean;
+  editAriaLabel?: string;
 };
 
 const Slider: FC<Props> = ({
@@ -38,15 +52,37 @@ const Slider: FC<Props> = ({
   disabled = false,
   styles,
   showValue = false,
+  editable = false,
+  editAriaLabel,
 }) => {
   const [controlledValue, setControlledValue] = useState(defaultValue);
   const [controlledStep, setControlledStep] = useState(step);
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftValue, setDraftValue] = useState("");
 
   useEffect(() => {
     if (shouldSyncWithDefault) {
       setControlledValue(defaultValue);
     }
   }, [defaultValue, shouldSyncWithDefault]);
+
+  const openEditor = useCallback(() => {
+    setDraftValue(String(controlledValue));
+    setControlledStep(step);
+    setIsEditing(true);
+  }, [controlledValue, step]);
+
+  const cancelEditor = useCallback(() => setIsEditing(false), []);
+
+  const commitEditor = useCallback(() => {
+    setIsEditing(false);
+    const parsed = parseForecastInput(draftValue);
+    if (parsed === null) return;
+    const rounded = roundForecast(clampForecast(parsed, inputMin, inputMax), 1);
+    if (rounded === controlledValue) return;
+    setControlledValue(rounded);
+    onChange(rounded);
+  }, [draftValue, inputMin, inputMax, controlledValue, onChange]);
 
   return (
     <RcSlider
@@ -73,9 +109,13 @@ const Slider: FC<Props> = ({
           onClickIn={() => {
             setControlledStep(step);
           }}
-          onTouchStartCapture={(e) => {
-            e.preventDefault();
-          }}
+          onTouchStartCapture={
+            editable && isEditing
+              ? undefined
+              : (e) => {
+                  e.preventDefault();
+                }
+          }
           active={!round}
           onArrowClickIn={
             arrowStep && !disabled
@@ -104,6 +144,14 @@ const Slider: FC<Props> = ({
               : undefined
           }
           arrowClassName={arrowClassName}
+          editable={editable}
+          isEditing={editable && isEditing}
+          draftValue={draftValue}
+          onRequestEdit={editable ? openEditor : undefined}
+          onDraftChange={editable ? setDraftValue : undefined}
+          onCommit={editable ? commitEditor : undefined}
+          onCancel={editable ? cancelEditor : undefined}
+          editAriaLabel={editAriaLabel}
         />
       )}
     />

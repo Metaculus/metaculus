@@ -27,6 +27,7 @@ type Props = {
   forCommunityFeed?: boolean;
   indexWeight?: number;
   minimalistic?: boolean;
+  useShortTitle?: boolean;
 };
 
 const BasicPostCard: FC<PropsWithChildren<Props>> = ({
@@ -38,8 +39,9 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
   forCommunityFeed,
   indexWeight,
   minimalistic = false,
+  useShortTitle = false,
 }) => {
-  const { title } = post;
+  const title = useShortTitle ? post.short_title || post.title : post.title;
 
   return (
     <div>
@@ -54,29 +56,34 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
         )}
       <div
         className={cn(
-          "flex flex-col overflow-hidden rounded bg-gray-0 px-5 py-4 dark:bg-gray-0-dark",
+          "flex flex-col overflow-hidden rounded bg-gray-0 px-5 py-4 transition-colors @container dark:bg-gray-0-dark",
           { regular: "border", highlighted: "border border-l-4" }[
             borderVariant
           ],
           {
-            blue: "border-blue-400 dark:border-blue-400-dark",
-            purple: "border-purple-500 dark:border-purple-500-dark",
+            blue: "border-blue-400 hover:border-blue-500 dark:border-blue-400-dark dark:hover:border-blue-500-dark dark:hover:bg-gray-100-dark",
+            purple:
+              "border-purple-500 hover:border-purple-600 dark:border-purple-500-dark dark:hover:border-purple-600-dark dark:hover:bg-gray-100-dark",
           }[borderColor]
         )}
       >
-        <Link href={getPostLink(post)} className="block no-underline">
+        <Link
+          href={getPostLink(post)}
+          prefetch={false}
+          className="block no-underline"
+        >
           {!hideTitle && (
-            <div className="mb-[18px] flex flex-col gap-[10px] sm:mb-0 sm:flex-row sm:gap-3">
+            <div className="mb-[18px] flex flex-col gap-[10px] @[480px]:mb-0 @[480px]:flex-row @[480px]:gap-3">
               <h4
                 className={cn(
-                  "relative mb-0 mt-0 text-base font-semibold text-gray-900 dark:text-gray-900-dark sm:mb-3",
+                  "relative mb-0 mt-0 text-base font-semibold text-gray-900 @[480px]:mb-3 dark:text-gray-900-dark",
                   minimalistic && " line-clamp-2"
                 )}
               >
                 {title}
               </h4>
               {typeof indexWeight === "number" && (
-                <div className="sm:ml-auto">
+                <div className="@[480px]:ml-auto">
                   <WeightBadge value={indexWeight} />
                 </div>
               )}

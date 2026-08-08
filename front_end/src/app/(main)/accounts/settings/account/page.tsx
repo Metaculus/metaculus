@@ -5,6 +5,7 @@ import ServerAuthApi from "@/services/api/auth/auth.server";
 import ServerProfileApi from "@/services/api/profile/profile.server";
 
 import ApiAccess from "./components/api_access";
+import ApiForecastingAccess from "./components/api_forecasting_access";
 import ChangePassword from "./components/change_password";
 import EmailChangeToast from "./components/email_change_toast";
 import EmailEdit from "./components/email_edit";
@@ -29,6 +30,7 @@ export default async function Settings() {
         <EmailEdit user={currentUser} />
         <ChangePassword hasPassword={currentUser.has_password} />
         <ApiAccess apiKey={apiKey} />
+        <ApiForecastingAccess access={currentUser.api_forecasting_access} />
         <EmailMeMyData />
       </PreferencesSection>
     </div>

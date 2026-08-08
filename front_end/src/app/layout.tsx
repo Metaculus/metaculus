@@ -2,7 +2,7 @@ import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
@@ -12,14 +12,16 @@ import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
 import GlobalModals from "@/components/global_modals";
+import GoogleTagManager from "@/components/google_tag_manager";
 import PublicSettingsScript from "@/components/public_settings_script";
 import QueryClientProviderWrapper from "@/components/query_client_provider";
 import SimplifiedSignupModal from "@/components/simplified_signup_modal";
 import AppThemeProvider from "@/components/theme_provider";
 import { TailwindIndicator } from "@/components/ui/tailwind-indicator";
 import { METAC_COLORS } from "@/constants/colors";
+import { FEED_LAYOUT_COOKIE } from "@/constants/posts_feed";
 import AuthProvider from "@/contexts/auth_context";
-import { GlobalSearchProvider } from "@/contexts/global_search_context";
+import FeedLayoutProvider from "@/contexts/feed_layout_context";
 import ModalProvider from "@/contexts/modal_context";
 import NavigationProvider from "@/contexts/navigation_context";
 import PolyfillProvider from "@/contexts/polyfill";
@@ -27,7 +29,6 @@ import CSPostHogProvider from "@/contexts/posthog_context";
 import PublicSettingsProvider from "@/contexts/public_settings_context";
 import { TranslationsBannerProvider } from "@/contexts/translations_banner_context";
 import ServerProfileApi from "@/services/api/profile/profile.server";
-import { CSRF_COOKIE_NAME } from "@/services/csrf";
 import { LanguageService } from "@/services/language_service";
 import { CurrentUser } from "@/types/users";
 import { logError } from "@/utils/core/errors";
@@ -88,7 +89,8 @@ export default async function RootLayout({
   const publicSettings = getPublicSettings();
 
   const cookieStore = await cookies();
-  const csrfToken = cookieStore.get(CSRF_COOKIE_NAME)?.value || null;
+  const feedLayoutCookie = cookieStore.get(FEED_LAYOUT_COOKIE)?.value;
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
     <html
@@ -99,7 +101,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <PublicSettingsScript publicSettings={publicSettings} />
+        <PublicSettingsScript publicSettings={publicSettings} nonce={nonce} />
         {/* Set default consent mode before GA loads */}
         <Script id="default-consent" strategy="beforeInteractive">
           {`
@@ -119,13 +121,13 @@ export default async function RootLayout({
           <QueryClientProviderWrapper>
             <PolyfillProvider>
               <CSPostHogProvider locale={locale}>
-                <AuthProvider user={user} locale={locale} csrfToken={csrfToken}>
-                  <AppThemeProvider>
+                <AuthProvider user={user} locale={locale}>
+                  <AppThemeProvider nonce={nonce}>
                     <NextIntlClientProvider messages={messages}>
                       <PublicSettingsProvider settings={publicSettings}>
                         <ModalProvider>
                           <NavigationProvider>
-                            <GlobalSearchProvider>
+                            <FeedLayoutProvider cookieLayout={feedLayoutCookie}>
                               <TranslationsBannerProvider>
                                 <NextTopLoader
                                   showSpinner={false}
@@ -135,8 +137,9 @@ export default async function RootLayout({
                                 <GlobalModals />
                                 <SimplifiedSignupModal />
                                 <Toaster />
+                                <GoogleTagManager />
                               </TranslationsBannerProvider>
-                            </GlobalSearchProvider>
+                            </FeedLayoutProvider>
                           </NavigationProvider>
                         </ModalProvider>
                       </PublicSettingsProvider>

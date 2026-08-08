@@ -5,7 +5,7 @@ import "./styles.scss";
 import { isNil } from "lodash";
 import { useLocale } from "next-intl";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC } from "react";
 import {
   VictoryAxis,
   VictoryChart,
@@ -16,8 +16,10 @@ import {
 import NumericForecastCard from "@/components/consumer_post_card/group_forecast_card/numeric_forecast_card";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
+import { useHideCP } from "@/contexts/cp_context";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
+import useDeferredRender from "@/hooks/use_deferred_render";
 import { ChoiceItem } from "@/types/choices";
 import { PostGroupOfQuestions, PostWithForecasts } from "@/types/post";
 import {
@@ -28,6 +30,7 @@ import {
 import { ThemeColor } from "@/types/theme";
 import { calculateTextWidth } from "@/utils/charts/helpers";
 import { getResolutionPoint } from "@/utils/charts/resolution";
+import cn from "@/utils/core/cn";
 import { getPredictionDisplayValue } from "@/utils/formatters/prediction";
 import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/math";
 import { generateChoiceItemsFromGroupQuestions } from "@/utils/questions/choices";
@@ -42,6 +45,11 @@ type Props = {
   post: PostWithForecasts;
   questionsGroup: PostGroupOfQuestions<QuestionWithNumericForecasts>;
   height?: number;
+  fillHeight?: boolean;
+  innerChartPaddingX?: number;
+  yearOnlyTicks?: boolean;
+  withHeader?: boolean;
+  forFeedPage?: boolean;
 };
 
 const TICK_LABEL_INDEXES = [0, 4, 8];
@@ -52,14 +60,26 @@ const DateForecastCard: FC<Props> = ({
   post,
   questionsGroup,
   height = 100,
+  fillHeight = false,
+  innerChartPaddingX = 0,
+  yearOnlyTicks = false,
+  withHeader = false,
+  forFeedPage = false,
 }) => {
   const { questions } = questionsGroup;
   const locale = useLocale();
   const t = useTranslations();
+  const { hideCP } = useHideCP();
+  const shouldRenderFeedChart = useDeferredRender(forFeedPage, post.id);
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
-  const { ref: chartContainerRef, width: chartWidth } =
-    useContainerSize<HTMLDivElement>();
+  const {
+    ref: chartContainerRef,
+    width: chartWidth,
+    height: containerHeight,
+  } = useContainerSize<HTMLDivElement>();
+  const chartHeight =
+    fillHeight && containerHeight > 0 ? containerHeight : height;
   const choices = generateChoiceItemsFromGroupQuestions(questionsGroup, {
     locale,
   });
@@ -70,44 +90,50 @@ const DateForecastCard: FC<Props> = ({
     choices,
     scaling
   );
-  const [labelOverlap, setLabelOverlap] = useState<
-    {
-      label: string;
-      color: ThemeColor;
-      x: number;
-    }[]
-  >([]);
-  const onLabelOverlap = (label: string, color: ThemeColor, x: number) => {
-    setLabelOverlap((prev) => {
-      if (prev.some((item) => item.label === label)) {
-        return prev;
-      }
-      return [...prev, { label, color, x }];
-    });
-  };
-
-  if (points.length === 0) {
+  if (points.length === 0 || hideCP) {
     // Render empty state taken from the Numeric representation
     return <NumericForecastCard post={post} />;
   }
 
   return (
-    <>
-      <div ref={chartContainerRef} className="DateForecastCard relative w-full">
-        {shouldDisplayChart && (
+    <div
+      className={cn(
+        "relative flex w-full flex-col",
+        fillHeight && "min-h-0 flex-1"
+      )}
+    >
+      {withHeader && (
+        <div
+          className="mb-2.5 text-xs font-normal text-blue-900 dark:text-gray-900-dark md:mb-5 md:text-base"
+          style={{
+            paddingLeft: innerChartPaddingX || undefined,
+          }}
+        >
+          {t("forecastTimelineHeading")}
+        </div>
+      )}
+      <div
+        ref={chartContainerRef}
+        className={cn(
+          "DateForecastCard relative w-full",
+          fillHeight && "min-h-0 flex-1"
+        )}
+        style={forFeedPage ? { minHeight: chartHeight } : undefined}
+      >
+        {shouldDisplayChart && !(forFeedPage && !shouldRenderFeedChart) && (
           <VictoryChart
             width={chartWidth}
-            height={height}
+            height={chartHeight}
             theme={chartTheme}
             padding={{
-              left: 0,
+              left: innerChartPaddingX,
               top: isBigChartView ? 5 : 20,
-              right: 0,
+              right: innerChartPaddingX,
               bottom: isBigChartView ? 20 : 5,
             }}
             domain={{ x: [0, 1], y: [0, 1] }}
             domainPadding={{
-              x: [10, 0],
+              x: [10, innerChartPaddingX > 0 ? 10 : 0],
               y: 20,
             }}
             containerComponent={
@@ -127,10 +153,20 @@ const DateForecastCard: FC<Props> = ({
                 }
                 if (!isNil(todayLine)) {
                   return tick < todayLine - 0.1 || tick > todayLine + 0.1
-                    ? formatTickLabel(tick, adjustedScaling, index)
+                    ? formatTickLabel(
+                        tick,
+                        adjustedScaling,
+                        index,
+                        yearOnlyTicks ? "yyyy" : "dd MMM yyyy"
+                      )
                     : "";
                 }
-                return formatTickLabel(tick, adjustedScaling, index);
+                return formatTickLabel(
+                  tick,
+                  adjustedScaling,
+                  index,
+                  yearOnlyTicks ? "yyyy" : "dd MMM yyyy"
+                );
               }}
               tickValues={TICKS_ARRAY}
               style={{
@@ -150,27 +186,6 @@ const DateForecastCard: FC<Props> = ({
                 },
               }}
             />
-            {/* add only a tick labels on top of the chart */}
-            {!isBigChartView && (
-              <VictoryAxis
-                tickFormat={(tick, index) =>
-                  formatTickLabel(tick, adjustedScaling, index)
-                }
-                tickValues={TICKS_ARRAY}
-                orientation="top"
-                style={{
-                  ticks: { stroke: "transparent" },
-                  grid: { stroke: "transparent" },
-                  axis: { stroke: "transparent" },
-                  tickLabels: {
-                    fill: () => getThemeColor(METAC_COLORS.gray["500"]),
-                    fontSize: 14,
-                  },
-                }}
-                offsetY={15}
-              />
-            )}
-
             <VictoryScatter
               data={points}
               size={8}
@@ -188,13 +203,33 @@ const DateForecastCard: FC<Props> = ({
                       : getThemeColor(METAC_COLORS.blue["800"]),
                 },
               }}
-              labelComponent={
-                <ScatterLabel
-                  chartWidth={chartWidth}
-                  onLabelOverlap={onLabelOverlap}
-                />
-              }
+              labelComponent={<ScatterLabel chartWidth={chartWidth} />}
             />
+            {/* Tick labels on top of the chart — rendered after scatter so they paint above points */}
+            {!isBigChartView && (
+              <VictoryAxis
+                tickFormat={(tick, index) =>
+                  formatTickLabel(
+                    tick,
+                    adjustedScaling,
+                    index,
+                    yearOnlyTicks ? "yyyy" : "dd MMM yyyy"
+                  )
+                }
+                tickValues={TICKS_ARRAY}
+                orientation="top"
+                style={{
+                  ticks: { stroke: "transparent" },
+                  grid: { stroke: "transparent" },
+                  axis: { stroke: "transparent" },
+                  tickLabels: {
+                    fill: () => getThemeColor(METAC_COLORS.gray["500"]),
+                    fontSize: 14,
+                  },
+                }}
+                offsetY={5}
+              />
+            )}
             {/* Today line */}
             {todayLine && (
               <VictoryAxis
@@ -218,12 +253,11 @@ const DateForecastCard: FC<Props> = ({
         )}
       </div>
       {chartWidth && !isBigChartView && (
-        <DateForecastCardTooltip points={points} />
+        <div className="mt-4 shrink-0">
+          <DateForecastCardTooltip points={points} />
+        </div>
       )}
-      {chartWidth && labelOverlap.length > 0 && isBigChartView && (
-        <DateForecastCardTooltip points={labelOverlap} />
-      )}
-    </>
+    </div>
   );
 };
 
@@ -337,7 +371,12 @@ function generateChartData(choices: ChoiceItem[], originalScaling: Scaling) {
   };
 }
 
-function formatTickLabel(tick: number, scaling: Scaling, index: number) {
+function formatTickLabel(
+  tick: number,
+  scaling: Scaling,
+  index: number,
+  dateFormatString: string
+) {
   if (!TICK_LABEL_INDEXES.includes(index)) {
     return "";
   }
@@ -346,7 +385,7 @@ function formatTickLabel(tick: number, scaling: Scaling, index: number) {
     scaling,
     precision: 3,
     actual_resolve_time: null,
-    dateFormatString: "dd MMM yyyy",
+    dateFormatString,
     skipQuartilesBorders: true,
   });
 }

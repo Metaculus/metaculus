@@ -2,6 +2,8 @@
 import { isNil } from "lodash";
 import React, { forwardRef, memo } from "react";
 
+import { CHART_DASH } from "@/constants/chart_dash";
+import { CHART_STROKE_WIDTH } from "@/constants/chart_stroke";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import { ThemeColor } from "@/types/theme";
@@ -135,8 +137,8 @@ const ResolutionDiamond = forwardRef<SVGGElement, Props>(function RD(
             x2={scale.x(d.x)}
             y2={scale.y(d.y)}
             stroke={darkColor}
-            strokeWidth={1}
-            strokeDasharray="2 2"
+            strokeWidth={CHART_STROKE_WIDTH.grid}
+            strokeDasharray={CHART_DASH.threshold}
             opacity={1}
           />
         )}

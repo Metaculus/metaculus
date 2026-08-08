@@ -8,6 +8,7 @@ import LanguageMenu from "@/components/language_menu";
 import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
 import { Community } from "@/types/projects";
+import cn from "@/utils/core/cn";
 
 import { useShowActiveCommunityContext } from "../../c/components/community_context";
 import CommunitiesDropdown from "../communities_dropdown";
@@ -16,15 +17,25 @@ import useNavbarLinks from "./hooks/useNavbarLinks";
 type Props = {
   community: Community | null;
   alwaysShowName?: boolean;
+  className?: string;
 };
 
-const CommunityHeader: FC<Props> = ({ community, alwaysShowName = true }) => {
+const CommunityHeader: FC<Props> = ({
+  community,
+  alwaysShowName = true,
+  className,
+}) => {
   const { showActiveCommunity } = useShowActiveCommunityContext();
   const [localShowName, setLocalShowName] = useState(alwaysShowName);
   const { navbarLinks } = useNavbarLinks({ community });
 
   return (
-    <header className="fixed left-0 top-0 z-100 flex min-h-12 w-full flex-auto flex-wrap items-stretch justify-between bg-blue-900 text-gray-0">
+    <header
+      className={cn(
+        "flex min-h-12 w-full flex-auto flex-wrap items-stretch justify-between bg-blue-900 text-gray-0",
+        className
+      )}
+    >
       <div className="flex items-center">
         <Link
           href="/questions"

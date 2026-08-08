@@ -723,6 +723,13 @@ AGGREGATIONS: list[type[Aggregation]] = [
     JoinedBeforeDateAggregation,
 ]
 
+# Methods that cannot be built without an explicit `joined_before` date
+METHODS_REQUIRING_JOINED_BEFORE: list[str] = [
+    aggregation.method
+    for aggregation in AGGREGATIONS
+    if JoinedBeforeFiltered in aggregation.weighting_classes
+]
+
 
 def get_aggregation_by_name(method: str) -> type[Aggregation]:
     return next(agg for agg in AGGREGATIONS if agg.method == method)
@@ -736,6 +743,7 @@ def get_aggregations_at_time(
     include_stats: bool = False,
     histogram: bool = False,
     include_bots: bool = False,
+    only_bots: bool = False,
     joined_before: datetime | None = None,
 ) -> dict[AggregationMethod, AggregateForecast]:
     """set include_stats to True if you want to include num_forecasters, q1s, medians,
@@ -747,11 +755,15 @@ def get_aggregations_at_time(
     )
     if only_include_user_ids:
         forecasts = forecasts.filter(author_id__in=only_include_user_ids)
+    elif only_bots:
+        forecasts = forecasts.filter(author__is_bot=True)
     else:
-        # only include forecasts by non-primary bots if user ids explicitly specified
+        # only include forecasts by non-primary bots or blacklisted users
+        # if user ids explicitly specified
         forecasts = forecasts.exclude_non_primary_bots()
-    if not include_bots:
-        forecasts = forecasts.exclude(author__is_bot=True)
+        forecasts = forecasts.exclude_blacklisted_users()
+        if not include_bots:
+            forecasts = forecasts.exclude(author__is_bot=True)
     if len(forecasts) == 0:
         return dict()
     forecast_set = ForecastSet(
@@ -922,14 +934,23 @@ def minimize_history(
 def get_user_forecast_history(
     forecasts: Sequence[Forecast],
     minimize: bool | int = False,
-    cutoff: datetime | None = None,
+    latest_time: datetime | None = None,
+    earliest_time: datetime | None = None,
 ) -> list[ForecastSet]:
+    if latest_time and earliest_time and latest_time <= earliest_time:
+        return []
     timestep_set: set[datetime] = set()
     for forecast in forecasts:
-        timestep_set.add(forecast.start_time)
-        if forecast.end_time:
-            if cutoff and forecast.end_time > cutoff:
-                continue
+        if (
+            earliest_time and forecast.end_time and forecast.end_time <= earliest_time
+        ) or (latest_time and forecast.start_time > latest_time):
+            continue
+        timestep_set.add(
+            max(forecast.start_time, earliest_time)
+            if earliest_time
+            else forecast.start_time
+        )
+        if forecast.end_time and (not latest_time or forecast.end_time <= latest_time):
             timestep_set.add(forecast.end_time)
     timesteps = sorted(timestep_set)
     if minimize > 1:
@@ -971,9 +992,11 @@ def get_aggregation_history(
     minimize: bool | int = True,
     include_stats: bool = True,
     include_bots: bool = False,
+    only_bots: bool = False,
     histogram: bool | None = None,
     include_future: bool = True,
     joined_before: datetime | None = None,
+    include_pre_predictions: bool = False,
 ) -> dict[AggregationMethod, list[AggregateForecast]]:
     full_summary: dict[AggregationMethod, list[AggregateForecast]] = dict()
 
@@ -989,23 +1012,34 @@ def get_aggregation_history(
 
         if only_include_user_ids:
             forecasts = forecasts.filter(author_id__in=only_include_user_ids)
+        elif only_bots:
+            forecasts = forecasts.filter(author__is_bot=True)
         else:
-            # only include forecasts by non-primary bots if user ids explicitly specified
+            # only include forecasts by non-primary bots or blacklisted users
+            # if user ids explicitly specified
             forecasts = forecasts.exclude_non_primary_bots()
-        if not include_bots:
-            forecasts = forecasts.exclude(author__is_bot=True)
+            forecasts = forecasts.exclude_blacklisted_users()
+            if not include_bots:
+                forecasts = forecasts.exclude(author__is_bot=True)
+
+    if include_pre_predictions:
+        earliest_time = None
+    else:
+        earliest_time = question.open_time
 
     if include_future:
-        cutoff = question.actual_close_time
+        latest_time = question.actual_close_time
     else:
-        cutoff = min(
+        latest_time = min(
             timezone.now(),
             question.scheduled_close_time or timezone.now(),
             question.actual_close_time or timezone.now(),
         )
 
     with sentry_sdk.start_span(op="compute", name="get_user_forecast_history"):
-        forecast_history = get_user_forecast_history(forecasts, minimize, cutoff=cutoff)
+        forecast_history = get_user_forecast_history(
+            forecasts, minimize, latest_time=latest_time, earliest_time=earliest_time
+        )
 
     forecaster_ids = set(forecast.author_id for forecast in forecasts)
     for method in aggregation_methods:

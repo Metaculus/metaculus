@@ -271,6 +271,7 @@ const QuestionLinkKeyFactorItem: FC<Props> = ({
             <Link
               href={getPostLink({ id: otherQuestion.post_id })}
               target="_blank"
+              prefetch={false}
               onClick={(e) => e.stopPropagation()}
               className={cn(
                 "min-w-0 font-medium text-gray-800 no-underline hover:underline dark:text-gray-800-dark",

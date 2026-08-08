@@ -28,6 +28,7 @@ const QuestionHeaderContinuousResolutionChip: FC<Props> = ({
   const continuousAreaChartData = getContinuousAreaChartData({
     question,
     isClosed: question.status === QuestionStatus.CLOSED,
+    isResolved: question.status === QuestionStatus.RESOLVED,
   });
 
   const isEmbed = useIsEmbedMode();

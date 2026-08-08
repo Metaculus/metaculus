@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
+import { MetaculusMarkBoxed } from "@/components/logos";
 import {
   POST_ORDER_BY_FILTER,
   POST_TEXT_SEARCH_FILTER,
@@ -23,7 +24,6 @@ import { QuestionOrder } from "@/types/question";
 import cn from "@/utils/core/cn";
 import { encodeQueryParams } from "@/utils/navigation";
 
-import MetaculusStorefrontLogo from "./metaculus_storefront_logo";
 import { LogOut } from "../../(main)/accounts/actions";
 
 type NavLink = {
@@ -173,7 +173,7 @@ const StorefrontNavbar: FC = () => {
       <div className="flex items-center justify-between">
         {/* Logo */}
         <Link href={logoHref} className="inline-flex items-center no-underline">
-          <MetaculusStorefrontLogo className="h-[38px] w-auto text-white md:h-[50px]" />
+          <MetaculusMarkBoxed className="h-[38px] w-auto text-white md:h-[50px]" />
           <div className="ml-3.5 flex flex-col gap-0.5">
             <span className="text-lg font-bold leading-tight tracking-[-0.36px] text-white md:text-xl">
               Metaculus

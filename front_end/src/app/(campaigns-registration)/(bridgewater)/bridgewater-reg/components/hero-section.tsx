@@ -2,6 +2,8 @@
 
 import { FC } from "react";
 
+import { MetaculusMark } from "@/components/logos";
+
 import { EmailRegistrationForm } from "./email-registration-form";
 
 export const Hero: FC = () => {
@@ -20,14 +22,7 @@ export const Hero: FC = () => {
                 width: "clamp(48px, 15vw, 96px)",
               }}
             >
-              <svg
-                className="h-3/4 w-3/4 text-white dark:text-blue-800-dark"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M7.76271 17V7.11394L9.52542 17H10.4294L12.1921 7.11394V17H14V3H11.4689L9.9774 9.96852L8.48588 3H6V17H7.76271Z" />
-              </svg>
+              <MetaculusMark className="h-3/4 w-auto text-white dark:text-blue-800-dark" />
             </div>
           </div>
 

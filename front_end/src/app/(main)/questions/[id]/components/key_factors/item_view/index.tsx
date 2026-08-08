@@ -44,6 +44,8 @@ type Props = {
   truncateText?: boolean;
   titleLinksToArticle?: boolean;
   disableHover?: boolean;
+  large?: boolean;
+  isActive?: boolean;
 };
 
 function getImpactMetadata(keyFactor: KeyFactor): ImpactMetadata | null {
@@ -64,6 +66,8 @@ export const KeyFactorItem: FC<Props> = ({
   truncateText,
   titleLinksToArticle: titleLinksToArticleProp,
   disableHover,
+  large,
+  isActive,
 }) => {
   const { user } = useAuth();
   const commentsFeed = useCommentsFeedSafe();
@@ -167,12 +171,14 @@ export const KeyFactorItem: FC<Props> = ({
         impactDirection={impactDirection}
         impactStrength={impactStrength}
         disableHover={disableHover}
+        isActive={isActive}
       >
         {liveKeyFactor.driver && (
           <KeyFactorDriver
             keyFactor={liveKeyFactor}
             mode={mode}
             isCompact={isCompact}
+            large={large}
             truncateText={truncateText}
             impactVoteRef={impactVoteRef}
             onVotePanelToggle={handleUpvotePanelToggle}
@@ -187,6 +193,7 @@ export const KeyFactorItem: FC<Props> = ({
             isCompact={isCompact}
             mode={mode}
             isSuggested={isSuggested}
+            large={large}
             truncateText={truncateText}
             impactVoteRef={impactVoteRef}
             onVotePanelToggle={handleUpvotePanelToggle}
@@ -200,6 +207,7 @@ export const KeyFactorItem: FC<Props> = ({
             keyFactor={liveKeyFactor}
             mode={mode}
             isCompact={isCompact}
+            large={large}
             truncateText={truncateText}
             impactVoteRef={impactVoteRef}
             onVotePanelToggle={handleUpvotePanelToggle}

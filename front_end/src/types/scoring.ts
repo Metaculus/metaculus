@@ -18,11 +18,6 @@ export type LeaderboardType =
   | "question_writing"
   | "manual";
 
-export enum MedalsPath {
-  Leaderboard = "leaderboard",
-  Profile = "profile",
-}
-
 export type MedalType = "gold" | "silver" | "bronze";
 
 export type Medal = {

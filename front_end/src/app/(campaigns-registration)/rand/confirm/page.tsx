@@ -1,7 +1,5 @@
 import { Suspense } from "react";
 
-import GlobalHeader from "@/app/(main)/components/headers/global_header";
-
 import { ConfirmationHandler } from "./components/confirmation-handler";
 
 export const metadata = {
@@ -13,7 +11,6 @@ export const metadata = {
 export default async function ConfirmPage() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <GlobalHeader />
       <main
         className="flex flex-1 flex-col items-center justify-center p-6"
         style={{ minHeight: "calc(100vh - 160px)" }}

@@ -75,15 +75,15 @@ body {
 .ConditionalSummary {
   grid-template-columns: 72px minmax(0, 1fr);
 
-  @media screen and (min-width: $embeds-min-width) {
+  @container (min-width: #{$embeds-min-width}) {
     grid-template-columns: minmax(0, 1fr) 88px minmax(0, 1fr);
   }
 
-  @media screen and (min-width: $embeds-max-width) {
+  @container (min-width: #{$embeds-max-width}) {
     grid-template-columns: minmax(0, 1fr) 166px minmax(0, 1fr);
   }
 
-  @media screen and (min-width: $embeds-min-width) {
+  @container (min-width: #{$embeds-min-width}) {
     height: 100%;
     align-items: center;
     &-arrows {

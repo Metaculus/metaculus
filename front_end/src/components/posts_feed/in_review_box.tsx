@@ -3,8 +3,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
-import { EXPRESSION_OF_INTEREST_FORM_URL } from "@/app/(main)/pro-forecasters/constants/expression_of_interest_form";
-
+import { EXPRESSION_OF_INTEREST_FORM_URL } from "../../app/(main)/services/pro-forecasters/constants/expression_of_interest_form";
 import CollapsibleBox from "../ui/collapsible_box";
 
 const InReviewBox: FC = () => {
