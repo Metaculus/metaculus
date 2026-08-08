@@ -926,7 +926,7 @@
   "totalLiveCoverageInfo": "The total amount of live coverage you have in the tournament. This is the sum of your live coverages divided by the number of resolved and open questions. If all questions resolved right now, you would have this much coverage in the tournament.",
   "totalCoverageInfo": "The average of your coverage across all resolved questions in the tournament (counting questions you didn't predict as 0% coverage).",
   "totalAttainableCoverageInfo": "The average of the maximum attainable coverage across all resolved questions in the tournament. This is less than 100% when some questions closed early.",
-  "effectiveCoverageInfo": "Your total coverage divided by the total attainable coverage: the sum of your coverage over all resolved questions divided by the sum of the maximum attainable coverage. This matches the coverage shown on the tournament leaderboard.",
+  "effectiveCoverageInfo": "Your total coverage divided by the total attainable coverage: the sum of your coverage over all resolved questions divided by the sum of the maximum attainable coverage, with both sums weighted by each question's weight. This matches the coverage shown on the tournament leaderboard.",
   "questionWeightInfo": "The weight of the question in the tournament. The score you earn from this question is multiplied by this weight.",
   "relativeTakeInfo": "Your Take is your coverage times e to the power of your total score. (c*e^s)",
   "backgroundInfo": "Background Info",
