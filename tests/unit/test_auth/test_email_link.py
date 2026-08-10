@@ -2,6 +2,8 @@ import datetime
 import re
 
 from django.contrib.auth.tokens import default_token_generator
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 from rest_framework.reverse import reverse
 
@@ -215,6 +217,23 @@ class TestEmailLinkVerify:
 
         assert first.status_code == 200
         assert second.status_code == 400  # last_login change invalidated it
+
+    def test_single_use_locks_the_user_row(self, anon_client, user1):
+        # test_single_use only covers sequential reuse. Concurrently, check_token
+        # and the last_login write that consumes the token would otherwise
+        # interleave and let both requests through, so verify takes a row lock.
+        token = email_link_token_generator.make_token(user1)
+
+        with CaptureQueriesContext(connection) as queries:
+            response = anon_client.post(
+                self.url, {"user_id": user1.id, "token": token}, format="json"
+            )
+
+        assert response.status_code == 200
+        assert any(
+            "FOR UPDATE" in q["sql"] and User._meta.db_table in q["sql"]
+            for q in queries
+        )
 
     def test_action_failure_still_signs_in(self, anon_client, user1):
         set_pending_action(user1.id, "post_vote", {"post": 999999, "direction": 1})

@@ -34,7 +34,7 @@ def verify_email_link_auth(user_id: int, token: str) -> User:
     returns them. One generic error for every failure mode (anti-enumeration).
     """
 
-    user = User.objects.filter(pk=user_id).first()
+    user = User.objects.select_for_update().filter(pk=user_id).first()
 
     if (
         not user
@@ -67,6 +67,7 @@ def send_email_link_auth_email(user: User, redirect_url: str | None) -> None:
         "emails/email_link_auth.html",
         context={
             "email": user.email,
+            "username": user.username,
             "email_subject_display": header,
             "is_existing_user": is_existing_user,
             "email_link": link,

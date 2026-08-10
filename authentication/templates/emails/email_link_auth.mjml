@@ -4,10 +4,35 @@
     <mj-body>
         <mj-include path="../../../templates/emails/email_top.mjml"/>
 
-        <mj-raw>{% if not is_existing_user %}</mj-raw>
+        <mj-raw>{% if is_existing_user %}</mj-raw>
         <mj-section>
             <mj-column>
-                <mj-text color="#6B7280" font-size="13px">
+                <mj-text padding-bottom="0px">
+                    {% blocktrans %}Welcome back, {{ username }}{% endblocktrans %}
+                </mj-text>
+
+                <mj-text padding-top="8px">
+                    {% blocktrans %}
+                    We received a request to sign in to your Metaculus account.
+                    If you did not make this request, ignore this email.
+                    {% endblocktrans %}
+                </mj-text>
+            </mj-column>
+        </mj-section>
+        <mj-raw>{% else %}</mj-raw>
+        <mj-section>
+            <mj-column>
+                <mj-text padding-bottom="0px">
+                    {% blocktrans %}Hello {{ username }}{% endblocktrans %}
+                </mj-text>
+
+                <mj-text padding-top="8px">
+                    {% blocktrans %}
+                    Confirm your email address to activate your Metaculus account.
+                    {% endblocktrans %}
+                </mj-text>
+
+                <mj-text color="#6B7280" font-size="13px" padding-top="0px">
                     {% blocktrans %}
                     By continuing, you acknowledge and agree to Metaculus's
                     <a href="{{ public_app_url }}/terms-of-use/">Terms of Use</a>
@@ -22,23 +47,18 @@
         <mj-wrapper mj-class="content-block-wrapper" css-class="content-block-wrapper-loose">
             <mj-section mj-class="content-block" padding="8px 24px">
                 <mj-column padding="0px">
-                    <mj-text
-                        align="center"
-                        color="#161C22"
-                        font-size="16px"
-                        font-weight="500"
-                        padding-bottom="6px"
-                        line-height="1.5">
-                        {% if is_existing_user %}
-                        {% blocktrans %}This link expires in {{ link_expiry_hours }} hours and can only be used once.{% endblocktrans %}
-                        {% else %}
-                        {% blocktrans %}Confirm your email address to activate your account.{% endblocktrans %}
-                        {% endif %}
-                    </mj-text>
-
-                    <mj-button mj-class="cta-button" href="{{ email_link }}">
+                    <mj-button mj-class="cta-button" href="{{ email_link }}" padding-top="16px">
                         {% if is_existing_user %}Sign in{% else %}Confirm and continue{% endif %}
                     </mj-button>
+
+                    <mj-text
+                        align="center"
+                        color="#7C8894"
+                        font-size="11px"
+                        line-height="16px"
+                        padding="10px 0px 6px">
+                        {% blocktrans %}Expires in {{ link_expiry_hours }} hours · single use{% endblocktrans %}
+                    </mj-text>
                 </mj-column>
             </mj-section>
 
@@ -62,5 +82,7 @@
                 </mj-text>
             </mj-column>
         </mj-section>
+
+        <mj-include path="../../../templates/emails/email_greeting.mjml"/>
     </mj-body>
 </mjml>
