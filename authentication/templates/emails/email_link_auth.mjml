@@ -57,7 +57,7 @@
                         font-size="11px"
                         line-height="16px"
                         padding="10px 0px 6px">
-                        {% blocktrans %}Expires in {{ link_expiry_hours }} hours · single use{% endblocktrans %}
+                        {% blocktrans %}Expires in 24 hours · single use{% endblocktrans %}
                     </mj-text>
                 </mj-column>
             </mj-section>

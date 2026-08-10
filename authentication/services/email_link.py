@@ -71,7 +71,6 @@ def send_email_link_auth_email(user: User, redirect_url: str | None) -> None:
             "email_subject_display": header,
             "is_existing_user": is_existing_user,
             "email_link": link,
-            "link_expiry_hours": settings.AUTH_EMAIL_LINK_TIMEOUT // 3600,
             "public_app_url": settings.PUBLIC_APP_URL,
         },
     )
