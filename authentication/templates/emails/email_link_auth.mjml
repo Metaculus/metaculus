@@ -9,7 +9,7 @@
             <mj-column>
                 <mj-text color="#6B7280" font-size="13px">
                     {% blocktrans %}
-                    By confirming your email, you acknowledge and agree to Metaculus's
+                    By continuing, you acknowledge and agree to Metaculus's
                     <a href="{{ public_app_url }}/terms-of-use/">Terms of Use</a>
                     and
                     <a href="{{ public_app_url }}/privacy-policy/">Privacy Policy</a>.
@@ -30,30 +30,37 @@
                         padding-bottom="6px"
                         line-height="1.5">
                         {% if is_existing_user %}
-                        {% blocktrans %}Sign in to continue.{% endblocktrans %}
+                        {% blocktrans %}This link expires in {{ link_expiry_hours }} hours and can only be used once.{% endblocktrans %}
                         {% else %}
-                        {% blocktrans %}Confirm your email to continue.{% endblocktrans %}
+                        {% blocktrans %}Confirm your email address to activate your account.{% endblocktrans %}
                         {% endif %}
                     </mj-text>
 
                     <mj-button mj-class="cta-button" href="{{ email_link }}">
-                        {% if is_existing_user %}Sign in to Metaculus{% else %}Confirm your email{% endif %}
+                        {% if is_existing_user %}Sign in{% else %}Confirm and continue{% endif %}
                     </mj-button>
                 </mj-column>
             </mj-section>
+
         </mj-wrapper>
 
-        <mj-section>
-            <mj-column>
-                <mj-text align="center" color="#6B7280" font-size="13px" padding-top="8px">
+        {% comment %}
+        The rule lives on the column, not a separate element, so it spans the same 24px
+        inset as the CTA block above. Link styles live on the anchor itself - juice
+        inlines the global bold/underline `a` rule, which only an inline style attribute
+        overrides.
+        {% endcomment %}
+        <mj-section padding="20px 24px 4px">
+            <mj-column padding="12px 0px 12px">
+                <mj-text color="#8B95A1" font-size="11px" line-height="16px" padding="0px">
                     {% blocktrans %}
-                    Or, copy and paste this link into your browser:
+                    Button not working? Paste this link into your browser:
                     {% endblocktrans %}
                     <br/>
-                    <a href="{{ email_link }}" style="color: #0A66C2; word-break: break-all;">{{ email_link }}</a>
+                    <a href="{{ email_link }}"
+                       style="color: #8B95A1; font-weight: 400; text-decoration: none; font-family: SFMono-Regular, Consolas, Menlo, monospace; word-break: break-all;">{{ email_link }}</a>
                 </mj-text>
             </mj-column>
         </mj-section>
-        <mj-include path="../../../templates/emails/email_greeting.mjml"/>
     </mj-body>
 </mjml>

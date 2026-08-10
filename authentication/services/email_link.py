@@ -55,7 +55,11 @@ def send_email_link_auth_email(user: User, redirect_url: str | None) -> None:
     token = email_link_token_generator.make_token(user)
     link = build_frontend_auth_email_url(user.id, token, redirect_url)
 
-    subject = "Sign in link" if user.is_active else "Confirm your email"
+    is_existing_user = user.is_active
+    subject = "Your sign-in link" if is_existing_user else "Confirm your email"
+    # Header differs from the subject on purpose: the subject is what scans well
+    # in an inbox list, the header is what reads well above the CTA.
+    header = "Sign in to Metaculus" if is_existing_user else "Welcome to Metaculus"
 
     send_account_email_with_template(
         user.email,
@@ -63,8 +67,10 @@ def send_email_link_auth_email(user: User, redirect_url: str | None) -> None:
         "emails/email_link_auth.html",
         context={
             "email": user.email,
-            "is_existing_user": user.is_active,
+            "email_subject_display": header,
+            "is_existing_user": is_existing_user,
             "email_link": link,
+            "link_expiry_hours": settings.AUTH_EMAIL_LINK_TIMEOUT // 3600,
             "public_app_url": settings.PUBLIC_APP_URL,
         },
     )
