@@ -64,12 +64,6 @@
 
         </mj-wrapper>
 
-        {% comment %}
-        The rule lives on the column, not a separate element, so it spans the same 24px
-        inset as the CTA block above. Link styles live on the anchor itself - juice
-        inlines the global bold/underline `a` rule, which only an inline style attribute
-        overrides.
-        {% endcomment %}
         <mj-section padding="20px 24px 4px">
             <mj-column padding="12px 0px 12px">
                 <mj-text color="#8B95A1" font-size="11px" line-height="16px" padding="0px">
