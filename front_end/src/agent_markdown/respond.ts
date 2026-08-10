@@ -5,9 +5,9 @@ import { serializeFrontmatter } from "./frontmatter";
 import { getMarkdownRoute, toRouteParams } from "./routes.mjs";
 import { MarkdownDocument } from "./types";
 
+// Can't also go on the HTML response: Next 16.2 overwrites Vary on the render
+// path, from both next.config headers() and proxy.ts.
 const NEGOTIATED_HEADERS = {
-  // Set here rather than on the HTML response: on Next 16.2 the router owns
-  // Vary for HTML renders and overwrites next.config headers() and proxy.ts.
   Vary: "Accept, Accept-Language",
 };
 
@@ -31,17 +31,18 @@ function absolute(path: string): string {
   return new URL(path, PUBLIC_APP_URL).toString();
 }
 
-/**
- * `/md` routes are excluded from `proxy.ts`, so the gate it enforces for HTML
- * is re-checked here, before any data is fetched.
- *
- * Alpha access is deliberately not checked: the proxy's alpha branch only runs
- * for requests that already have a session and merely redirects them to
- * /alpha-auth, so anonymous callers are not alpha-gated on the HTML side
- * either. Gating here would 404 all markdown on every alpha deployment.
- */
+// `/md` is excluded from proxy.ts, so its gate is re-checked here. Alpha access
+// is not: the proxy only alpha-gates requests that already have a session, so
+// gating here would 404 all markdown on every alpha deployment.
 function isGated(): boolean {
   return getPublicSettings().PUBLIC_AUTHENTICATION_REQUIRED;
+}
+
+// notFound()/redirect() throw with a `NEXT_`-prefixed digest; ApiError uses
+// `[API_ERROR]`, so the two never collide.
+function isNextControlFlow(error: unknown): boolean {
+  const digest = (error as { digest?: unknown } | null)?.digest;
+  return typeof digest === "string" && digest.startsWith("NEXT_");
 }
 
 function serialize(document: MarkdownDocument): string {
@@ -73,6 +74,10 @@ export async function renderMarkdownResponse(
       },
     });
   } catch (error) {
+    // Let Next render its own 404 instead of logging a 500. Inlined rather
+    // than next/navigation's unstable_rethrow, which next/jest stubs out.
+    if (isNextControlFlow(error)) throw error;
+
     logError(error, {
       message: "Markdown rendering failed",
       payload: { type, params },

@@ -11,17 +11,12 @@ export type FrontmatterValue =
 function isPresent(value: FrontmatterValue): boolean {
   if (value === null || value === undefined) return false;
   if (Array.isArray(value)) return value.length > 0;
-  // The API returns "" for unset text fields; emitting `key: ""` reads as a
-  // real but empty value, so treat blank as absent.
+  // The API returns "" for unset text fields; `key: ""` reads as a real value
   if (typeof value === "string") return value.trim() !== "";
   return true;
 }
 
-/**
- * Render frontmatter as a fenced YAML block. Key order is the caller's
- * insertion order, and absent values are dropped so builders can pass optional
- * fields through unconditionally.
- */
+/** Fenced YAML block in insertion order; absent values are dropped. */
 export function serializeFrontmatter(
   entries: Record<string, FrontmatterValue>
 ): string {

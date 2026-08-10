@@ -1,15 +1,9 @@
 /**
- * Every markdown-enabled page type is declared here once. `next.config.mjs`
- * reads `pattern` to generate rewrites; the `/md/[type]` route handler calls
- * `load` to get the builder, and derives its param names from the same
- * pattern. Plain JS because next.config is loaded raw by Node and cannot
- * import TypeScript — `load` is never executed there, so its specifier is
- * only resolved when the app bundles this module.
+ * Every markdown-enabled page type, declared once: add an entry here and a
+ * co-located `markdown.ts` builder. `pattern` is a restricted path-to-regexp
+ * subset — literals, `:name`, `:name(regex)`, and one trailing `:name?`.
  *
- * Adding a page type: one entry here, one co-located `markdown.ts` builder.
- *
- * `pattern` is a restricted path-to-regexp subset: literals, `:name`,
- * `:name(regex)`, and a single optional `:name?` in the final position.
+ * Plain JS so next.config.mjs, which Node loads raw, can import it.
  */
 export const MARKDOWN_ROUTES = {
   notebook: {
@@ -40,7 +34,6 @@ export function getMarkdownRoute(type) {
     : undefined;
 }
 
-/** Zip the positional URL segments onto the pattern's param names. */
 export function toRouteParams(route, args) {
   return Object.fromEntries(
     routeParamNames(route.pattern).map((name, index) => [name, args[index]])
@@ -67,9 +60,8 @@ function expandOptional(pattern) {
  */
 
 /**
- * Content negotiation on the canonical URL. Params travel as path segments
- * because a rewrite's destination query string is not readable from a Route
- * Handler — `request.nextUrl` there still reports the original URL.
+ * Params travel as path segments because a rewrite's destination query string
+ * is not readable from a Route Handler.
  *
  * @param {Record<string, { pattern: string }>} [routes]
  * @returns {MarkdownRewrite[]}
@@ -77,7 +69,7 @@ function expandOptional(pattern) {
 export function buildMarkdownRewrites(routes = MARKDOWN_ROUTES) {
   return Object.entries(routes).flatMap(([type, { pattern }]) =>
     expandOptional(pattern).map((segments) => ({
-      // trailingSlash: true means the matched request always carries it
+      // trailingSlash: true, so the matched request always carries one
       source: `/${segments.join("/")}/`,
       has: [ACCEPT_MARKDOWN],
       destination: `/md/${type}/${segments
