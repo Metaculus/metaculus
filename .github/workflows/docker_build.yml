@@ -155,8 +155,7 @@ jobs:
           # Compute branch prefix for SHA tag
           # - For PRs: use head_ref (source branch)
           # - For pushes: use ref_name
-          # Slugify: lowercase, replace invalid chars with dash
-          BRANCH_SLUG="$(printf '%s' "$BRANCH_REF" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//')"
+          BRANCH_SLUG="$(bash .github/scripts/slugify_branch.sh "$BRANCH_REF" 60)"
           echo "branch_slug=${BRANCH_SLUG}" >> $GITHUB_OUTPUT
           echo "Branch slug: ${BRANCH_SLUG}"
 
