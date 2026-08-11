@@ -157,7 +157,7 @@ const IndividualNotebookPage: FC<{
               unreadComments={postData.unread_comment_count}
             />
           </div>
-          <div className="w-full">
+          <div className="w-full min-w-0">
             <NotebookEditor
               postData={postData}
               contentId={NOTEBOOK_CONTENT_SECTION}

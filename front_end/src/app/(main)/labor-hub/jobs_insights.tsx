@@ -8,9 +8,9 @@ export const JOBS_INSIGHTS = {
     ),
     negative: (
       <>
-        By 2027, <strong>sales representatives</strong> are expected to see
-        early declines as AI begins to automate outreach and client
-        interactions.
+        By 2027, <strong>designers</strong> and{" "}
+        <strong>software developers</strong> are expected to see early declines
+        as AI begins to automate creative and coding work.
       </>
     ),
   },
@@ -18,10 +18,10 @@ export const JOBS_INSIGHTS = {
     positive: (
       <>
         By 2030, <strong>nurses</strong>, <strong>construction workers</strong>,
-        and <strong>restaurant servers</strong> are expected to see the largest
-        gains, driven by an aging population, infrastructure buildouts, and
-        continued demand for in-person service that AI is unlikely to displace
-        in the short term.
+        and <strong>physicians</strong> are expected to see the largest gains,
+        driven by an aging population, infrastructure buildouts, and continued
+        demand for in-person service that AI is unlikely to displace in the
+        short term.
       </>
     ),
     negative: (
