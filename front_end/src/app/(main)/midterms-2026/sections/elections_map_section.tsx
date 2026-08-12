@@ -32,7 +32,7 @@ export default async function ElectionsMapSection() {
             full height — grid items stretch, so it meets both card edges. Below
             md the layout is a single column, so the same rule becomes the
             horizontal separator above the panel instead. */}
-        <div className="border-t border-blue-300 p-5 dark:border-blue-300-dark md:border-l md:border-t-0 lg:p-8">
+        <div className="border-t border-blue-200 p-5 dark:border-blue-200-dark md:border-l md:border-t-0 lg:p-8">
           <BalanceOfPowerTimelines post={chamber.congressOutcome} />
         </div>
       </div>
