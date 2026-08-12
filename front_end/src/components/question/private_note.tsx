@@ -5,6 +5,7 @@ import { isNil } from "lodash";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useEffect, useMemo, useRef, useState } from "react";
 
+import { useQuestionLayoutSafe } from "@/app/(main)/questions/[id]/components/question_layout/question_layout_context";
 import { savePrivateNote } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
 import LoadingSpinner from "@/components/ui/loading_spiner";
@@ -59,7 +60,12 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id }, hideToggle }) => {
   const t = useTranslations();
   const locale = useLocale();
   const { text, updated_at } = private_note || {};
-  const [noteText, setNoteText] = useState(text || "");
+  const questionLayout = useQuestionLayoutSafe();
+  // Seed from context first so the note survives Private Notes tab-panel remounts
+  // (context persists the latest edit; the `post` prop stays at its page-load value).
+  const [noteText, setNoteText] = useState(
+    () => questionLayout?.privateNoteText ?? text ?? ""
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [savedAt, setSavedAt] = useState<undefined | Date>();
   const { user } = useAuth();
@@ -87,9 +93,12 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id }, hideToggle }) => {
     setIsLoading(false);
 
     setSavedAt(new Date());
+    questionLayout?.setPrivateNoteText(value);
   };
 
   const saveNoteDebounced = useDebouncedCallback(saveNote, 1500);
+
+  const hasNoteContent = noteText.trim().length > 0;
 
   if (!user) {
     return null;
@@ -124,19 +133,18 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id }, hideToggle }) => {
         <div className="scroll-mt-24 border border-gray-500 bg-gray-0 dark:border-gray-500-dark dark:bg-gray-0-dark">
           {editorBody}
         </div>
-        {(noteStatusDetails || updated_at) && (
-          <div className="text-right text-xs">
-            {noteStatusDetails ??
-              (updated_at &&
-                t.rich("privateNoteUpdatedFrom", {
+        <div className="text-right text-xs">
+          {noteStatusDetails ??
+            (updated_at
+              ? t.rich("privateNoteUpdatedFrom", {
                   date: () => (
                     <RelativeTime datetime={updated_at} format="relative">
                       {formatDate(locale, new Date(updated_at))}
                     </RelativeTime>
                   ),
-                }))}
-          </div>
-        )}
+                })
+              : t("privateNoteAutosaveHint"))}
+        </div>
       </div>
     );
   }
@@ -145,23 +153,25 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id }, hideToggle }) => {
     <SectionToggle
       title={t("privateNote")}
       variant={text ? "orange" : "primary"}
-      detailElement={(isOpen) => {
-        if (isOpen) {
-          return <div className="ml-auto text-xs">{noteStatusDetails}</div>;
-        } else if (updated_at) {
-          return (
-            <div className="ml-auto text-xs">
-              {t.rich("privateNoteUpdatedFrom", {
-                date: () => (
-                  <RelativeTime datetime={updated_at} format="relative">
-                    {formatDate(locale, new Date(updated_at))}
-                  </RelativeTime>
-                ),
-              })}
-            </div>
-          );
-        }
-      }}
+      titleSuffix={
+        hasNoteContent ? (
+          <span className="size-2.5 shrink-0 rounded-full bg-orange-500 dark:bg-orange-500-dark" />
+        ) : null
+      }
+      detailElement={(isOpen) => (
+        <div className="ml-auto text-xs">
+          {(isOpen ? noteStatusDetails : undefined) ??
+            (updated_at
+              ? t.rich("privateNoteUpdatedFrom", {
+                  date: () => (
+                    <RelativeTime datetime={updated_at} format="relative">
+                      {formatDate(locale, new Date(updated_at))}
+                    </RelativeTime>
+                  ),
+                })
+              : t("privateNoteAutosaveHint"))}
+        </div>
+      )}
     >
       {editor}
     </SectionToggle>
