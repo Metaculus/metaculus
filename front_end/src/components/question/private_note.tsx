@@ -14,6 +14,7 @@ import SectionToggle from "@/components/ui/section_toggle";
 import { useAuth } from "@/contexts/auth_context";
 import { useDebouncedCallback } from "@/hooks/use_debounce";
 import { Post } from "@/types/post";
+import { logError } from "@/utils/core/errors";
 import { formatDate } from "@/utils/formatters/date";
 
 type Props = {
@@ -70,6 +71,11 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id }, hideToggle }) => {
   const [savedAt, setSavedAt] = useState<undefined | Date>();
   const { user } = useAuth();
   const editorRef = useRef<MDXEditorMethods>(null);
+  const latestValueRef = useRef(noteText);
+  // Value of the most recent save request, kept apart from the displayed text so
+  // that mirroring edits eagerly doesn't make the editor look already-saved.
+  const lastRequestedRef = useRef(noteText);
+  const saveRequestIdRef = useRef(0);
 
   const noteStatusDetails = useMemo(() => {
     if (isLoading) {
@@ -81,22 +87,46 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id }, hideToggle }) => {
     }
   }, [savedAt, isLoading]);
 
-  const saveNote = async (value: string) => {
-    if (value === noteText) {
-      return;
-    }
-
+  // Publish every edit right away: the debounce and the request that follow can
+  // outlive this component (switching tabs unmounts the panel), and the context
+  // is what the next mount reads from.
+  const syncValue = (value: string) => {
+    latestValueRef.current = value;
     setNoteText(value);
-
-    setIsLoading(true);
-    await savePrivateNote(id, value);
-    setIsLoading(false);
-
-    setSavedAt(new Date());
     questionLayout?.setPrivateNoteText(value);
   };
 
+  const saveNote = async (value: string) => {
+    syncValue(value);
+
+    if (value === lastRequestedRef.current) {
+      return;
+    }
+    lastRequestedRef.current = value;
+
+    const requestId = ++saveRequestIdRef.current;
+    setIsLoading(true);
+    await savePrivateNote(id, value);
+
+    if (requestId !== saveRequestIdRef.current) {
+      // Superseded while in flight — the newest request reports the final status.
+      return;
+    }
+
+    setIsLoading(false);
+    setSavedAt(new Date());
+  };
+
   const saveNoteDebounced = useDebouncedCallback(saveNote, 1500);
+
+  // The debounce timer is dropped on unmount, so hand off anything still pending.
+  useEffect(() => {
+    return () => {
+      if (latestValueRef.current !== lastRequestedRef.current) {
+        savePrivateNote(id, latestValueRef.current).catch(logError);
+      }
+    };
+  }, [id]);
 
   const hasNoteContent = noteText.trim().length > 0;
 
@@ -110,6 +140,7 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id }, hideToggle }) => {
       markdown={noteText}
       mode="write"
       onChange={(val) => {
+        syncValue(val);
         saveNoteDebounced(val);
       }}
       onBlur={() => {
