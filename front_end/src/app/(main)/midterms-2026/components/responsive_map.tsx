@@ -32,7 +32,7 @@ const ResponsiveMap: FC<Props> = ({ senateRaces, governorRaces }) => {
           summarySlot={summarySlot}
         />
       </div>
-      <div className="flex h-full items-center p-5 lg:hidden">
+      <div className="flex h-full items-center lg:hidden">
         <div className="w-full">
           <div className="mb-4 flex justify-center">
             <ChamberTabs value={view} onChange={setView} />

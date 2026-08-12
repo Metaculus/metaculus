@@ -102,6 +102,13 @@ type Props = {
   cursorTimestamp?: number | null;
   forecastAvailability?: ForecastAvailability;
   forceShowLinePoints?: boolean;
+  /** Hide the y-axis tick labels and reclaim the space they reserve. Gridlines
+   *  stay. For compact charts that surface their values elsewhere. */
+  hideYAxis?: boolean;
+  /** Hide the x-axis tick labels permanently, not just while the cursor is
+   *  active. Pair with `showCursorLabel` so the hovered date is the only x value
+   *  ever shown. */
+  hideXAxis?: boolean;
   forFeedPage?: boolean;
   isEmbedded?: boolean;
   chartTitle?: ReactNode;
@@ -148,6 +155,8 @@ const GroupChart: FC<Props> = ({
   cursorTimestamp,
   forecastAvailability,
   forceShowLinePoints = false,
+  hideYAxis = false,
+  hideXAxis = false,
   forFeedPage,
   isEmbedded = false,
   chartTitle,
@@ -279,8 +288,11 @@ const GroupChart: FC<Props> = ({
     return getAxisRightPadding(yScale, tickLabelFontSize as number, yLabel);
   }, [yScale, tickLabelFontSize, yLabel]);
   const maxRightPadding = useMemo(() => {
+    // With the labels hidden there's nothing to reserve width for, but keep the
+    // floor so the last x-axis tick still has room.
+    if (hideYAxis) return MIN_RIGHT_PADDING;
     return Math.max(rightPadding, MIN_RIGHT_PADDING);
-  }, [rightPadding, MIN_RIGHT_PADDING]);
+  }, [hideYAxis, rightPadding, MIN_RIGHT_PADDING]);
   const chartPadding = useMemo(
     () => ({
       left: leftPadding,
@@ -597,7 +609,9 @@ const GroupChart: FC<Props> = ({
                       4,
                     textAnchor: "end",
                     fontSize: tickLabelFontSize,
-                    fill: getThemeColor(METAC_COLORS.gray["700"]),
+                    fill: hideYAxis
+                      ? "transparent"
+                      : getThemeColor(METAC_COLORS.gray["700"]),
                   },
                   axis: {
                     stroke: "transparent",
@@ -621,7 +635,7 @@ const GroupChart: FC<Props> = ({
                 <VictoryAxis
                   tickValues={xScale.ticks}
                   tickFormat={
-                    (hideCP && !hasUserForecasts) || isCursorActive
+                    hideXAxis || (hideCP && !hasUserForecasts) || isCursorActive
                       ? () => ""
                       : xScale.tickFormat
                   }

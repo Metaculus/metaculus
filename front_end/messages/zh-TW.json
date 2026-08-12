@@ -2323,6 +2323,7 @@
   "midtermsHubSeatAdvantageOverTooltip": "領先超過 {count} 席",
   "midtermsHubProbabilityTooltip": "{value}% 機率",
   "midtermsHubEvenTooltip": "持平",
+  "midtermsHubTimelineUnavailable": "暫無預測歷史",
   "midtermsHubEngagementReachTitle": "聯絡 Metaculus",
   "midtermsHubEngagementReachBody": "有想法、疑問，或發現了不清楚的地方？您的回饋能幫助我們改進這個面板。",
   "midtermsHubEngagementViewServices": "查看服務",

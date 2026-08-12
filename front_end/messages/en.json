@@ -2395,6 +2395,7 @@
   "midtermsHubSeatAdvantageOverTooltip": ">{count} seat advantage",
   "midtermsHubProbabilityTooltip": "{value}% probability",
   "midtermsHubEvenTooltip": "Even",
+  "midtermsHubTimelineUnavailable": "Forecast history unavailable",
   "midtermsHubEngagementReachTitle": "Reach out to Metaculus",
   "midtermsHubEngagementReachBody": "Have thoughts, questions, or spotted something unclear? Your input helps us improve this dashboard.",
   "midtermsHubEngagementViewServices": "View Services",

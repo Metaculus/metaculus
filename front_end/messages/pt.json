@@ -2324,6 +2324,7 @@
   "midtermsHubSeatAdvantageOverTooltip": ">{count} cadeiras de vantagem",
   "midtermsHubProbabilityTooltip": "{value}% de probabilidade",
   "midtermsHubEvenTooltip": "Empate",
+  "midtermsHubTimelineUnavailable": "Histórico de previsões indisponível",
   "midtermsHubEngagementReachTitle": "Fale com a Metaculus",
   "midtermsHubEngagementReachBody": "Tem ideias, dúvidas ou encontrou algo pouco claro? Sua opinião nos ajuda a melhorar este painel.",
   "midtermsHubEngagementViewServices": "Ver serviços",

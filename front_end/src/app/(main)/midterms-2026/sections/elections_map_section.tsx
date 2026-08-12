@@ -1,7 +1,6 @@
 import { SectionCard } from "@/app/(main)/labor-hub/components/section";
 
-import ChamberControlCard from "../components/chamber_control_card";
-import CongressOutcomeCard from "../components/congress_outcome_card";
+import BalanceOfPowerTimelines from "../components/balance_of_power_timelines";
 import ResponsiveMap from "../components/responsive_map";
 import {
   fetchChamberData,
@@ -19,20 +18,22 @@ export default async function ElectionsMapSection() {
 
   return (
     <SectionCard className="overflow-hidden !p-0">
-      <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(260px,35%)]">
-        {/* Map column: edge-to-edge of the SectionCard on md+. */}
-        <div className="self-stretch">
+      <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(300px,35%)]">
+        {/* Map column. Padding matches the panel's, so the map is inset the same
+            40px from the dividing rule as the panel's content is — and the tabs,
+            summary and legend overlay inherit it instead of setting their own. */}
+        <div className="self-stretch p-5 lg:p-8">
           <ResponsiveMap
             senateRaces={senateRaces}
             governorRaces={governorRaces}
           />
         </div>
-        {/* Sidebar column: capped at 30% of the container with its own
-            internal padding so the cards stay inset from the white card
-            edges. */}
-        <div className="space-y-4 p-5 lg:p-10">
-          <ChamberControlCard data={chamber} />
-          <CongressOutcomeCard post={chamber.congressOutcome} />
+        {/* Balance-of-power column. One rule divides it from the map and runs the
+            full height — grid items stretch, so it meets both card edges. Below
+            md the layout is a single column, so the same rule becomes the
+            horizontal separator above the panel instead. */}
+        <div className="border-t border-blue-300 p-5 dark:border-blue-300-dark md:border-l md:border-t-0 lg:p-8">
+          <BalanceOfPowerTimelines post={chamber.congressOutcome} />
         </div>
       </div>
     </SectionCard>

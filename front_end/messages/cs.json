@@ -2326,6 +2326,7 @@
   "midtermsHubSeatAdvantageOverTooltip": "Náskok více než {count} mandátů",
   "midtermsHubProbabilityTooltip": "{value}% pravděpodobnost",
   "midtermsHubEvenTooltip": "Remíza",
+  "midtermsHubTimelineUnavailable": "Historie předpovědí není dostupná",
   "midtermsHubEngagementReachTitle": "Kontaktujte Metaculus",
   "midtermsHubEngagementReachBody": "Máte postřehy, dotazy nebo jste našli něco nejasného? Vaše zpětná vazba nám pomáhá tento přehled zlepšovat.",
   "midtermsHubEngagementViewServices": "Zobrazit služby",

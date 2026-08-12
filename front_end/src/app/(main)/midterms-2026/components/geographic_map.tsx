@@ -238,7 +238,10 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot, summarySlot }) => {
           row so a wrapping summary grows over the map instead of pushing it
           down, while the gap keeps it clear of both neighbors. The paddings
           reproduce the standalone positions these two used to have. */}
-      <div className="absolute inset-x-0 top-5 z-10 flex items-start gap-6 px-5 md:top-10 md:gap-10 md:px-10 lg:pr-0">
+      {/* Flush to the container: the map column's own padding provides the inset,
+          so the legend clears the dividing rule by the same 40px as everything
+          else. */}
+      <div className="absolute inset-x-0 top-0 z-10 flex items-start gap-6 md:gap-10">
         {tabsSlot && <div className="shrink-0">{tabsSlot}</div>}
         <div className="pointer-events-none min-w-0 flex-1 pt-1.5">
           {summarySlot}
