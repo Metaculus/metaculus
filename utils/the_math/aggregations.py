@@ -723,6 +723,13 @@ AGGREGATIONS: list[type[Aggregation]] = [
     JoinedBeforeDateAggregation,
 ]
 
+# Methods that cannot be built without an explicit `joined_before` date
+METHODS_REQUIRING_JOINED_BEFORE: list[str] = [
+    aggregation.method
+    for aggregation in AGGREGATIONS
+    if JoinedBeforeFiltered in aggregation.weighting_classes
+]
+
 
 def get_aggregation_by_name(method: str) -> type[Aggregation]:
     return next(agg for agg in AGGREGATIONS if agg.method == method)
@@ -736,6 +743,7 @@ def get_aggregations_at_time(
     include_stats: bool = False,
     histogram: bool = False,
     include_bots: bool = False,
+    only_bots: bool = False,
     joined_before: datetime | None = None,
 ) -> dict[AggregationMethod, AggregateForecast]:
     """set include_stats to True if you want to include num_forecasters, q1s, medians,
@@ -747,13 +755,15 @@ def get_aggregations_at_time(
     )
     if only_include_user_ids:
         forecasts = forecasts.filter(author_id__in=only_include_user_ids)
+    elif only_bots:
+        forecasts = forecasts.filter(author__is_bot=True)
     else:
         # only include forecasts by non-primary bots or blacklisted users
         # if user ids explicitly specified
         forecasts = forecasts.exclude_non_primary_bots()
         forecasts = forecasts.exclude_blacklisted_users()
-    if not include_bots:
-        forecasts = forecasts.exclude(author__is_bot=True)
+        if not include_bots:
+            forecasts = forecasts.exclude(author__is_bot=True)
     if len(forecasts) == 0:
         return dict()
     forecast_set = ForecastSet(
@@ -982,6 +992,7 @@ def get_aggregation_history(
     minimize: bool | int = True,
     include_stats: bool = True,
     include_bots: bool = False,
+    only_bots: bool = False,
     histogram: bool | None = None,
     include_future: bool = True,
     joined_before: datetime | None = None,
@@ -1001,13 +1012,15 @@ def get_aggregation_history(
 
         if only_include_user_ids:
             forecasts = forecasts.filter(author_id__in=only_include_user_ids)
+        elif only_bots:
+            forecasts = forecasts.filter(author__is_bot=True)
         else:
             # only include forecasts by non-primary bots or blacklisted users
             # if user ids explicitly specified
             forecasts = forecasts.exclude_non_primary_bots()
             forecasts = forecasts.exclude_blacklisted_users()
-        if not include_bots:
-            forecasts = forecasts.exclude(author__is_bot=True)
+            if not include_bots:
+                forecasts = forecasts.exclude(author__is_bot=True)
 
     if include_pre_predictions:
         earliest_time = None

@@ -69,6 +69,39 @@ jobs:
         if: ${{ !cancelled() }}
         run: uv run pytest ./tests/unit
 
+  email-templates:
+    name: "Email Template Checks"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.11.x"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      # node runs the mjml binary; .nvmrc is the repo-wide node version.
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: front_end/.nvmrc
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+      # Keep this version in sync with ARG MJML_VERSION in the Dockerfile.
+      - name: Install mjml
+        run: bun add -g mjml@5.4.0
+
+      # Fails on MJML syntax errors, unresolved <mj-include> paths, and on
+      # compiled HTML that is no longer a valid Django template.
+      - name: Compose and validate MJML email templates
+        run: uv run python manage.py mjml_compose
+
   frontend-unit-tests:
     name: "Frontend Checks"
     runs-on: ubuntu-latest

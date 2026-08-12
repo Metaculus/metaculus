@@ -4,12 +4,37 @@
     <mj-body>
         <mj-include path="../../../templates/emails/email_top.mjml"/>
 
-        <mj-raw>{% if not is_existing_user %}</mj-raw>
+        <mj-raw>{% if is_existing_user %}</mj-raw>
         <mj-section>
             <mj-column>
-                <mj-text color="#6B7280" font-size="13px">
+                <mj-text padding-bottom="0px">
+                    {% blocktrans %}Welcome back, {{ username }}{% endblocktrans %}
+                </mj-text>
+
+                <mj-text padding-top="8px">
                     {% blocktrans %}
-                    By confirming your email, you acknowledge and agree to Metaculus's
+                    We received a request to sign in to your Metaculus account.
+                    If you did not make this request, ignore this email.
+                    {% endblocktrans %}
+                </mj-text>
+            </mj-column>
+        </mj-section>
+        <mj-raw>{% else %}</mj-raw>
+        <mj-section>
+            <mj-column>
+                <mj-text padding-bottom="0px">
+                    {% blocktrans %}Hello {{ username }}{% endblocktrans %}
+                </mj-text>
+
+                <mj-text padding-top="8px">
+                    {% blocktrans %}
+                    Confirm your email address to activate your Metaculus account.
+                    {% endblocktrans %}
+                </mj-text>
+
+                <mj-text color="#6B7280" font-size="13px" padding-top="0px">
+                    {% blocktrans %}
+                    By continuing, you acknowledge and agree to Metaculus's
                     <a href="{{ public_app_url }}/terms-of-use/">Terms of Use</a>
                     and
                     <a href="{{ public_app_url }}/privacy-policy/">Privacy Policy</a>.
@@ -22,38 +47,36 @@
         <mj-wrapper mj-class="content-block-wrapper" css-class="content-block-wrapper-loose">
             <mj-section mj-class="content-block" padding="8px 24px">
                 <mj-column padding="0px">
+                    <mj-button mj-class="cta-button" href="{{ email_link }}" padding-top="16px">
+                        {% if is_existing_user %}Sign in{% else %}Confirm and continue{% endif %}
+                    </mj-button>
+
                     <mj-text
                         align="center"
-                        color="#161C22"
-                        font-size="16px"
-                        font-weight="500"
-                        padding-bottom="6px"
-                        line-height="1.5">
-                        {% if is_existing_user %}
-                        {% blocktrans %}Sign in to continue.{% endblocktrans %}
-                        {% else %}
-                        {% blocktrans %}Confirm your email to continue.{% endblocktrans %}
-                        {% endif %}
+                        color="#7C8894"
+                        font-size="11px"
+                        line-height="16px"
+                        padding="10px 0px 6px">
+                        {% blocktrans %}Expires in 24 hours · single use{% endblocktrans %}
                     </mj-text>
-
-                    <mj-button mj-class="cta-button" href="{{ email_link }}">
-                        {% if is_existing_user %}Sign in to Metaculus{% else %}Confirm your email{% endif %}
-                    </mj-button>
                 </mj-column>
             </mj-section>
+
         </mj-wrapper>
 
-        <mj-section>
-            <mj-column>
-                <mj-text align="center" color="#6B7280" font-size="13px" padding-top="8px">
+        <mj-section padding="20px 24px 4px">
+            <mj-column padding="12px 0px 12px">
+                <mj-text color="#8B95A1" font-size="11px" line-height="16px" padding="0px">
                     {% blocktrans %}
-                    Or, copy and paste this link into your browser:
+                    Button not working? Paste this link into your browser:
                     {% endblocktrans %}
                     <br/>
-                    <a href="{{ email_link }}" style="color: #0A66C2; word-break: break-all;">{{ email_link }}</a>
+                    <a href="{{ email_link }}"
+                       style="color: #8B95A1; font-weight: 400; text-decoration: none; font-family: SFMono-Regular, Consolas, Menlo, monospace; word-break: break-all;">{{ email_link }}</a>
                 </mj-text>
             </mj-column>
         </mj-section>
+
         <mj-include path="../../../templates/emails/email_greeting.mjml"/>
     </mj-body>
 </mjml>

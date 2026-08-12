@@ -152,6 +152,11 @@ jobs:
       redis_name: ${{ steps.names.outputs.redis_name }}
       pr_head_ref: ${{ steps.pr_head_ref.outputs.pr_head_ref }}
     steps:
+      - name: Checkout scripts
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github/scripts
+
       - name: Resolve PR head ref
         id: pr_head_ref
         uses: actions/github-script@v7
@@ -182,7 +187,7 @@ jobs:
           BRANCH_REF: ${{ steps.pr_head_ref.outputs.pr_head_ref || github.head_ref }}
           PR_NUMBER: ${{ github.event.number || inputs.pr_number }}
         run: |
-          BRANCH_SLUG="$(printf '%s' "$BRANCH_REF" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--*/-/g' | cut -c1-30 | sed -e 's/^-*//' -e 's/-*$//')"
+          BRANCH_SLUG="$(bash .github/scripts/slugify_branch.sh "$BRANCH_REF" 30)"
 
           # Base preview identifier: pr-{number}-{branch_slug}
           PREVIEW_ID="pr-${PR_NUMBER}-${BRANCH_SLUG}"
@@ -448,35 +453,132 @@ jobs:
         with:
           version: 0.4.14
 
-      - name: Delete Fly app
+      # Resources are matched by `pr-{number}-` prefix rather than by the exact
+      # name computed in `setup`, so a preview created before a branch-slug
+      # change still gets destroyed instead of leaking.
+      - name: Delete Fly apps
+        id: fly_apps
         continue-on-error: true
+        env:
+          FLY_ORG: ${{ vars.FLY_ORG || 'personal' }}
+          APP_PREFIX: metaculus-pr-${{ github.event.number || inputs.pr_number }}-
         run: |
-          echo "Deleting Fly app: ${{ needs.setup.outputs.fly_app }}"
-          flyctl apps destroy "${{ needs.setup.outputs.fly_app }}" --yes || echo "App may not exist or already deleted"
+          # pipefail so a flyctl failure isn't masked by jq succeeding on empty input,
+          # which would otherwise look identical to "no apps found".
+          set -o pipefail
+          STATUS=ok
 
-      - name: Delete Neon Branch
-        continue-on-error: true
-        uses: neondatabase/delete-branch-action@v3
-        with:
-          project_id: ${{ secrets.NEON_PROJECT_ID }}
-          branch: ${{ needs.setup.outputs.neon_branch }}
-          api_key: ${{ secrets.NEON_API_KEY }}
-
-      - name: Delete Fly Redis Database
-        continue-on-error: true
-        run: |
-          FLY_ORG="${{ vars.FLY_ORG || 'personal' }}"
-          REDIS_NAME="${{ needs.setup.outputs.redis_name }}"
-
-          if flyctl redis list --org "${FLY_ORG}" | grep -qw "${REDIS_NAME}"; then
-            echo "Deleting Fly Redis database: ${REDIS_NAME}"
-            flyctl redis destroy "${REDIS_NAME}" --yes
-            echo "✅ Deleted Fly Redis database"
-          else
-            echo "ℹ️ Fly Redis database not found or already deleted"
+          if ! APPS="$(flyctl apps list --json --org "${FLY_ORG}" \
+            | jq -r --arg prefix "${APP_PREFIX}" '.[].Name | select(startswith($prefix))')"; then
+            echo "⚠️ Could not list Fly apps"
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
+          if [ -z "$APPS" ]; then
+            echo "ℹ️ No Fly apps matching ${APP_PREFIX}*"
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Here-string, not a pipe: a piped `while` runs in a subshell and STATUS
+          # changes would be discarded.
+          while IFS= read -r APP_NAME; do
+            [ -z "$APP_NAME" ] && continue
+            echo "Deleting Fly app: ${APP_NAME}"
+            if ! flyctl apps destroy "${APP_NAME}" --yes; then
+              echo "⚠️ Failed to destroy ${APP_NAME}"
+              STATUS=failed
+            fi
+          done <<< "$APPS"
+
+          echo "status=${STATUS}" >> "$GITHUB_OUTPUT"
+
+      - name: Delete Neon branches
+        id: neon_sweep
+        continue-on-error: true
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
+          BRANCH_PREFIX: preview/pr-${{ github.event.number || inputs.pr_number }}-
+        run: |
+          set -o pipefail
+          STATUS=ok
+          API="https://console.neon.tech/api/v2/projects/${NEON_PROJECT_ID}/branches"
+
+          # --fail-with-body so HTTP 4xx/5xx exits non-zero while still returning the
+          # error body; plain `curl -sS` exits 0 on an error response, which would read
+          # as "no branches found". curl applies no total timeout by default, so bound
+          # both calls explicitly — otherwise a hung connection stalls the whole job.
+          CURL_OPTS=(-sS --fail-with-body --connect-timeout 10 --max-time 120)
+
+          # 10000 is the documented maximum for `limit`, far above any plausible branch
+          # count, so one request returns everything and no cursor walk is needed.
+          if ! BRANCH_IDS="$(curl "${CURL_OPTS[@]}" -H "Authorization: Bearer ${NEON_API_KEY}" "${API}?limit=10000" \
+            | jq -r --arg prefix "${BRANCH_PREFIX}" \
+              '.branches[]? | select(.name | startswith($prefix)) | .id')"; then
+            echo "⚠️ Could not list Neon branches"
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ -z "$BRANCH_IDS" ]; then
+            echo "ℹ️ No Neon branches matching ${BRANCH_PREFIX}*"
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          while IFS= read -r BRANCH_ID; do
+            [ -z "$BRANCH_ID" ] && continue
+            echo "Deleting Neon branch: ${BRANCH_ID}"
+            if ! BODY="$(curl "${CURL_OPTS[@]}" -X DELETE -H "Authorization: Bearer ${NEON_API_KEY}" "${API}/${BRANCH_ID}")"; then
+              echo "⚠️ Failed to delete ${BRANCH_ID}: ${BODY:-no response body}"
+              STATUS=failed
+            fi
+          done <<< "$BRANCH_IDS"
+
+          echo "status=${STATUS}" >> "$GITHUB_OUTPUT"
+
+      - name: Delete Fly Redis Databases
+        id: fly_redis
+        continue-on-error: true
+        env:
+          FLY_ORG: ${{ vars.FLY_ORG || 'personal' }}
+          REDIS_PREFIX: mtc-redis-pr-${{ github.event.number || inputs.pr_number }}-
+        run: |
+          STATUS=ok
+
+          # `flyctl redis list` has no --json output (unlike `apps list`), so the names
+          # have to be scraped out of the table. Capture the listing first so a flyctl
+          # failure is distinguishable from grep simply finding no matches.
+          if ! REDIS_LIST="$(flyctl redis list --org "${FLY_ORG}")"; then
+            echo "⚠️ Could not list Fly Redis databases"
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          REDIS_NAMES="$(printf '%s' "$REDIS_LIST" \
+            | grep -oE "${REDIS_PREFIX}[a-z0-9-]*" | sort -u || true)"
+
+          if [ -z "$REDIS_NAMES" ]; then
+            echo "ℹ️ No Fly Redis databases matching ${REDIS_PREFIX}*"
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          while IFS= read -r REDIS_NAME; do
+            [ -z "$REDIS_NAME" ] && continue
+            echo "Deleting Fly Redis database: ${REDIS_NAME}"
+            if ! flyctl redis destroy "${REDIS_NAME}" --yes; then
+              echo "⚠️ Failed to destroy ${REDIS_NAME}"
+              STATUS=failed
+            fi
+          done <<< "$REDIS_NAMES"
+
+          echo "status=${STATUS}" >> "$GITHUB_OUTPUT"
+
       - name: Delete PR Deployments from Preview Environment
+        id: deployments
         continue-on-error: true
         uses: strumwolf/delete-deployment-environment@v3
         with:
@@ -504,30 +606,52 @@ jobs:
             const closedAt = ${{ toJSON(github.event.pull_request.closed_at || '') }};
             const actor = ${{ toJSON(github.actor) }};
 
+            // Cleanup steps are continue-on-error, so report what actually happened
+            // rather than asserting every resource was removed.
+            const failed = '⚠️ Failed — see workflow logs';
+            const stepStatus = {
+              app: ${{ toJSON(steps.fly_apps.outputs.status) }},
+              neon: ${{ toJSON(steps.neon_sweep.outputs.status) }},
+              redis: ${{ toJSON(steps.fly_redis.outputs.status) }},
+              deployments: ${{ toJSON(steps.deployments.outcome) }},
+            };
+            const ok = (key) => ['ok', 'success'].includes(stepStatus[key]);
+            const anyFailed = Object.keys(stepStatus).some((k) => !ok(k));
+
             const table = [
               '| Resource | Status |',
               '|----------|--------|',
-              '| 🌐 Preview App | Deleted |',
-              '| 🗄️ PostgreSQL Branch | Deleted |',
-              '| ⚡ Redis Database | Deleted |',
-              '| 🔧 GitHub Deployments | Removed |',
+              `| 🌐 Preview App | ${ok('app') ? 'Deleted' : failed} |`,
+              `| 🗄️ PostgreSQL Branch | ${ok('neon') ? 'Deleted' : failed} |`,
+              `| ⚡ Redis Database | ${ok('redis') ? 'Deleted' : failed} |`,
+              `| 🔧 GitHub Deployments | ${ok('deployments') ? 'Removed' : failed} |`,
               '| 📦 Docker Image | Retained (auto-cleanup via GHCR policies) |'
             ].join('\n');
 
+            const removedPhrase = anyFailed ? 'partially removed' : 'fully removed';
+            const heading = anyFailed
+              ? 'Cleanup: Preview Environment Partially Removed'
+              : 'Cleanup: Preview Environment Removed';
+            const warning = anyFailed
+              ? '> ⚠️ Some resources could not be removed and may still be billing. Check the workflow logs, then re-run cleanup via the `PR Preview Environment` workflow (`action: cleanup`).'
+              : '';
+
             let body;
             if (isClosed) {
-              body = `## Cleanup: Preview Environment Removed
+              body = `## ${heading}
+            ${warning}
 
-            The preview environment for this PR has been destroyed.
+            The preview environment for this PR has been ${removedPhrase}.
 
             ${table}
 
             ---
             *Cleanup triggered by PR close at ${closedAt}*`;
             } else if (cleanupReason.toLowerCase().includes('stale')) {
-              body = `## Cleanup: Preview Environment Removed (Stale)
+              body = `## ${heading} (Stale)
+            ${warning}
 
-            This preview environment has been deleted because the PR was marked as **Stale** (no activity detected).
+            This preview environment was ${removedPhrase} because the PR was marked as **Stale** (no activity detected).
 
             ${table}
 
@@ -536,9 +660,10 @@ jobs:
             ---
             *Automated cleanup by weekly maintenance*`;
             } else {
-              body = `## Cleanup: Preview Environment Removed
+              body = `## ${heading}
+            ${warning}
 
-            The preview environment has been manually destroyed.
+            The preview environment has been ${removedPhrase} (manual cleanup).
 
             ${table}
 
