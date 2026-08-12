@@ -2334,6 +2334,8 @@
   "midtermsHubEngagementShareTitle": "分享这个面板",
   "midtermsHubEngagementShareBody": "觉得这能帮助其他人了解 2026 年美国中期选举吗？分享给你的朋友。",
   "midtermsHubEngagementShareOnX": "在 X 上分享",
+  "midtermsHubEngagementCopySuccess": "链接已复制到剪贴板",
+  "midtermsHubEngagementCopyError": "复制链接失败，请重试。",
   "midtermsHubEngagementTweetText": "来看看 Metaculus 上的 2026 年美国中期选举预测面板",
   "midtermsHubEngagementNewsletterTitle": "订阅更新",
   "midtermsHubEngagementNewsletterBody": "注册后，我们会在预测发生变化或发布新的中期选举分析时通知您。",

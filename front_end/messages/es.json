@@ -2333,6 +2333,8 @@
   "midtermsHubEngagementShareTitle": "Comparte el panel",
   "midtermsHubEngagementShareBody": "¿Crees que esto puede ayudar a otras personas a seguir las elecciones de medio mandato de 2026? Compártelo con tu red.",
   "midtermsHubEngagementShareOnX": "Compartir en X",
+  "midtermsHubEngagementCopySuccess": "Enlace copiado al portapapeles",
+  "midtermsHubEngagementCopyError": "No se pudo copiar el enlace. Inténtalo de nuevo.",
   "midtermsHubEngagementTweetText": "Echa un vistazo al panel de previsiones de las elecciones de medio mandato de EE. UU. de 2026 en Metaculus",
   "midtermsHubEngagementNewsletterTitle": "Suscríbete para recibir novedades",
   "midtermsHubEngagementNewsletterBody": "Regístrate para recibir avisos cuando cambien las previsiones y publiquemos nuevos análisis electorales.",

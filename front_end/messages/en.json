@@ -2407,6 +2407,8 @@
   "midtermsHubEngagementShareTitle": "Share the dashboard",
   "midtermsHubEngagementShareBody": "Think this could help others follow the 2026 midterms? Share it with your network.",
   "midtermsHubEngagementShareOnX": "Share on X",
+  "midtermsHubEngagementCopySuccess": "Link copied to your clipboard",
+  "midtermsHubEngagementCopyError": "Couldn't copy the link. Please try again.",
   "midtermsHubEngagementTweetText": "Check out the 2026 US Midterm Elections forecasting dashboard on Metaculus",
   "midtermsHubEngagementNewsletterTitle": "Subscribe for updates",
   "midtermsHubEngagementNewsletterBody": "Sign up to get notified as forecasts shift and we publish new midterms insights.",

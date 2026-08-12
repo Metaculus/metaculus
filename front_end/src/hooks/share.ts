@@ -66,22 +66,40 @@ const useCurrentUrl = ({ includeHash = true }: CurrentUrlOptions = {}) => {
   }, [PUBLIC_APP_URL, hash, includeHash, pathname, searchParams]);
 };
 
-export const useCopyUrl = (options: CurrentUrlOptions = {}) => {
-  const url = useCurrentUrl(options);
+type CopyUrlOptions = CurrentUrlOptions & {
+  /** Localized success toast. Defaults to the original English string. */
+  successMessage?: string;
+  /** Localized failure toast. Omit to keep the log-only behavior. */
+  errorMessage?: string;
+};
+
+export const useCopyUrl = ({
+  successMessage = "URL is now copied to your clipboard",
+  errorMessage,
+  ...urlOptions
+}: CopyUrlOptions = {}) => {
+  const url = useCurrentUrl(urlOptions);
 
   return useCallback(() => {
-    if (url) {
-      navigator.clipboard
-        .writeText(url)
-        .then(() => {
-          toast("URL is now copied to your clipboard", {
-            className: "dark:bg-blue-700-dark dark:text-gray-0-dark",
-          });
-          // Optionally, show a notification to the user that the link was copied.
-        })
-        .catch((err) => console.error("Error copying link: ", err));
-    }
-  }, [url]);
+    if (!url) return;
+
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        toast(successMessage, {
+          className: "dark:bg-blue-700-dark dark:text-gray-0-dark",
+        });
+      })
+      .catch((err) => {
+        console.error("Error copying link: ", err);
+        // Clipboard writes fail for real reasons — denied permission, a
+        // non-secure context — and a click that silently does nothing reads as a
+        // broken button. Callers that pass a message get told.
+        if (errorMessage) {
+          toast.error(errorMessage);
+        }
+      });
+  }, [url, successMessage, errorMessage]);
 };
 
 export const useMetaImageUrl = (tagName: string) => {

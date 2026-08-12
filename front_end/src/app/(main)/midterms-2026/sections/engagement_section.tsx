@@ -55,7 +55,11 @@ function PartnerCard() {
 
 function ShareCard() {
   const t = useTranslations();
-  const copyUrl = useCopyUrl({ includeHash: false });
+  const copyUrl = useCopyUrl({
+    includeHash: false,
+    successMessage: t("midtermsHubEngagementCopySuccess"),
+    errorMessage: t("midtermsHubEngagementCopyError"),
+  });
   const shareOnTwitterLink = useShareOnTwitterLink(
     t("midtermsHubEngagementTweetText"),
     { includeHash: false }

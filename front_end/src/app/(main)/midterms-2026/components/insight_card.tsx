@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  faArrowUpRightFromSquare,
-  faChartLine,
-} from "@fortawesome/free-solid-svg-icons";
+import { faArrowRight, faChartLine } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -32,8 +29,6 @@ const InsightCard: FC<Props> = ({ insight }) => {
   return (
     <Link
       href={`/questions/${sourcePost.id}/#comment-${comment.id}`}
-      target="_blank"
-      rel="noreferrer"
       // A ceiling rather than a fixed height: a short comment lets the card
       // shrink to its content, and overflow-hidden is the backstop that keeps a
       // long one from spilling past the cap (the body's line clamp normally
@@ -72,8 +67,10 @@ const InsightCard: FC<Props> = ({ insight }) => {
             {t("midtermsHubMetaculusUser")}
           </div>
         </div>
+        {/* A plain arrow, not the open-in-new-window glyph: this navigates in
+            the current tab, and the external-link icon would promise otherwise. */}
         <FontAwesomeIcon
-          icon={faArrowUpRightFromSquare}
+          icon={faArrowRight}
           className="size-3 shrink-0 text-blue-600 opacity-70 transition-opacity group-hover:opacity-100 dark:text-blue-600-dark"
         />
       </div>

@@ -62,16 +62,18 @@ export function buildControlTimeline(
   // A single point can't draw a trend.
   if (timestamps.length < 2) return null;
 
+  // Resolved once and shared by every series, rather than rescanning `history`
+  // for each timestamp of each series.
+  const coverage = mapTimestampsToForecasts(timestamps, history);
+
   const choiceItems: ChoiceItem[] = series.map((config, i) => {
     const optionIndices = seriesIndices[i] ?? [];
-    const aggregationValues: (number | null)[] = [];
-    const aggregationForecasterCounts: number[] = [];
-
-    for (const timestamp of timestamps) {
-      const entry = findCoveringForecast(history, timestamp);
-      aggregationValues.push(sumCenters(entry, optionIndices));
-      aggregationForecasterCounts.push(entry?.forecaster_count ?? 0);
-    }
+    const aggregationValues = coverage.map((entry) =>
+      sumCenters(entry, optionIndices)
+    );
+    const aggregationForecasterCounts = coverage.map(
+      (entry) => entry?.forecaster_count ?? 0
+    );
 
     return {
       choice: config.label,
@@ -115,15 +117,37 @@ function collectTimestamps(
   return [...unique].sort((a, b) => a - b);
 }
 
-function findCoveringForecast(
-  history: MultipleChoiceAggregateForecast[],
-  timestamp: number
-): MultipleChoiceAggregateForecast | undefined {
-  return history.find(
-    (forecast) =>
-      forecast.start_time <= timestamp &&
-      (forecast.end_time === null || forecast.end_time > timestamp)
-  );
+/**
+ * The forecast window covering each timestamp, resolved in a single pass.
+ *
+ * Both sequences ascend — `timestamps` by construction, `history` sorted here —
+ * so one monotonic cursor replaces a scan per timestamp per series. Assumes
+ * non-overlapping aggregation windows, which is how CP history is built; were
+ * they to overlap, this picks the latest-starting match rather than the first.
+ * A timestamp no window covers maps to `undefined`, which `sumCenters` turns
+ * into a null and the chart renders as a gap.
+ */
+function mapTimestampsToForecasts(
+  timestamps: number[],
+  history: MultipleChoiceAggregateForecast[]
+): Array<MultipleChoiceAggregateForecast | undefined> {
+  const sorted = [...history].sort((a, b) => a.start_time - b.start_time);
+  let cursor = 0;
+
+  return timestamps.map((timestamp) => {
+    while (
+      cursor + 1 < sorted.length &&
+      (sorted[cursor + 1]?.start_time ?? Infinity) <= timestamp
+    ) {
+      cursor++;
+    }
+    const candidate = sorted[cursor];
+    const covers =
+      !!candidate &&
+      candidate.start_time <= timestamp &&
+      (candidate.end_time === null || candidate.end_time > timestamp);
+    return covers ? candidate : undefined;
+  });
 }
 
 /** Null if any contributing option is missing, so a gap stays a gap. */
