@@ -298,6 +298,12 @@ export async function changePostActivityBoost(
   return await ServerPostsApi.changePostActivityBoost(postId, direction);
 }
 
+export async function togglePinPost(postId: number, pin: boolean) {
+  const post = await ServerPostsApi.togglePinPost(postId, pin);
+  revalidatePath(`/questions/${postId}`);
+  return post;
+}
+
 export async function removeRelatedArticle(articleId: number) {
   await ServerPostsApi.removeRelatedArticle(articleId);
   revalidateTag("related-articles", "max");
