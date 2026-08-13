@@ -83,6 +83,18 @@ export const useCopyUrl = ({
   return useCallback(() => {
     if (!url) return;
 
+    // `navigator.clipboard` is undefined outside a secure context — plain http
+    // on a LAN address, for instance — so reading `.writeText` off it throws
+    // synchronously, where the promise's catch below cannot see it and the
+    // click ends in an uncaught error instead of a toast.
+    if (!navigator.clipboard?.writeText) {
+      console.error("Error copying link: clipboard unavailable");
+      if (errorMessage) {
+        toast.error(errorMessage);
+      }
+      return;
+    }
+
     navigator.clipboard
       .writeText(url)
       .then(() => {

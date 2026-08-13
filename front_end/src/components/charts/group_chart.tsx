@@ -223,10 +223,18 @@ const GroupChart: FC<Props> = ({
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   // Controlled/uncontrolled: an external picker can own the zoom, otherwise the
-  // chart keeps its own. Internal state still tracks so nothing jumps if a
-  // caller stops controlling it mid-life.
+  // chart keeps its own.
   const [internalZoom, setInternalZoom] =
     useState<TimelineChartZoomOption>(defaultZoom);
+  // Mirror the controlled value so nothing jumps if a caller stops controlling
+  // mid-life. Without this, internal state only saw changes made through the
+  // chart's own picker, so a parent that drives zoom from elsewhere would leave
+  // it at `defaultZoom` and the chart would snap back to that on release.
+  useEffect(() => {
+    if (!isNil(controlledZoom)) {
+      setInternalZoom(controlledZoom);
+    }
+  }, [controlledZoom]);
   const zoom = controlledZoom ?? internalZoom;
   const handleZoomChange = (next: TimelineChartZoomOption) => {
     setInternalZoom(next);
