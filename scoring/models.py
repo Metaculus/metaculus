@@ -177,7 +177,7 @@ class Leaderboard(TimeStampedModel):
     finalize_time = models.DateTimeField(
         null=True,
         blank=True,
-        help_text="""Optional. If not set, the Project's close_date will be used instead.
+        help_text="""Optional. If not set, the Project's winners_announced_date will be used instead.
         </br>- For all Leaderboards: used to filter out questions that have a resolution_set_time after this (as they were resolved after this Leaderboard was finalized).
         </br>- Filtering MedalExclusionRecords: If set and end_time is not set, MedalExclusionRecords that have a start_time less than this (and no end_time or an end_time later that this Leaderboard's start_time) will be triggered.
         """,

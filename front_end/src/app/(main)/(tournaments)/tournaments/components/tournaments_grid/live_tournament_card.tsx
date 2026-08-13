@@ -93,8 +93,8 @@ const LiveTournamentCard: React.FC<Props> = ({
             nowTs={nowTs}
             timeline={item.timeline ?? null}
             startDate={item.start_date ?? null}
-            forecastingEndDate={item.forecasting_end_date ?? null}
             closeDate={item.close_date ?? null}
+            winnersAnnouncedDate={item.winners_announced_date ?? null}
             isOngoing={Boolean(item.is_ongoing)}
           />
         )}
@@ -107,19 +107,19 @@ function TournamentTimelineBar({
   nowTs,
   timeline,
   startDate,
-  forecastingEndDate,
   closeDate,
+  winnersAnnouncedDate,
   isOngoing,
 }: {
   nowTs: number | null;
   timeline: TournamentTimeline | null;
   startDate?: string | null;
-  forecastingEndDate?: string | null;
   closeDate?: string | null;
+  winnersAnnouncedDate?: string | null;
   isOngoing: boolean;
 }) {
   const startTs = safeTs(startDate);
-  const closedTs = safeTs(forecastingEndDate ?? closeDate ?? null);
+  const closedTs = safeTs(closeDate ?? winnersAnnouncedDate ?? null);
   if (!startTs || !closedTs) return null;
 
   const now = nowTs ?? Date.now();
