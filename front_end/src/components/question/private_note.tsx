@@ -74,7 +74,8 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id }, hideToggle }) => {
   const latestValueRef = useRef(noteText);
   // Value of the most recent save request, kept apart from the displayed text so
   // that mirroring edits eagerly doesn't make the editor look already-saved.
-  const lastRequestedRef = useRef(noteText);
+  // null after a failed request, so retrying the same text isn't deduped away.
+  const lastRequestedRef = useRef<string | null>(noteText);
   const saveRequestIdRef = useRef(0);
 
   const noteStatusDetails = useMemo(() => {
@@ -106,14 +107,29 @@ const PrivateNote: FC<Props> = ({ post: { private_note, id }, hideToggle }) => {
 
     const requestId = ++saveRequestIdRef.current;
     setIsLoading(true);
-    await savePrivateNote(id, value);
+
+    try {
+      await savePrivateNote(id, value);
+    } catch (error) {
+      logError(error);
+
+      // Nothing reached the server, so let an identical retry through — unless a
+      // newer request has already claimed the ref.
+      if (lastRequestedRef.current === value) {
+        lastRequestedRef.current = null;
+      }
+      return;
+    } finally {
+      if (requestId === saveRequestIdRef.current) {
+        setIsLoading(false);
+      }
+    }
 
     if (requestId !== saveRequestIdRef.current) {
       // Superseded while in flight — the newest request reports the final status.
       return;
     }
 
-    setIsLoading(false);
     setSavedAt(new Date());
   };
 
