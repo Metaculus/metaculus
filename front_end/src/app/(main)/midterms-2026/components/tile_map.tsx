@@ -6,7 +6,6 @@ import cn from "@/utils/core/cn";
 
 import { MIDTERMS_COLORS, STATE_NAMES } from "../constants";
 import { US_TILE_GRID } from "../data";
-import MapLegend from "./map_legend";
 import MapTooltipPortal from "./map_tooltip_portal";
 import StateTooltipContent from "./state_tooltip";
 import { SenateRaceWithQuestion } from "../helpers/post_utils";
@@ -145,8 +144,6 @@ const TileMap: FC<Props> = ({ races }) => {
           />
         </MapTooltipPortal>
       )}
-
-      <MapLegend className="mt-4 flex-row items-center justify-center gap-4" />
     </div>
   );
 };

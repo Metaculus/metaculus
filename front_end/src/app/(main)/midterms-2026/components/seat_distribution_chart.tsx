@@ -368,28 +368,33 @@ const SeatDistributionChart: FC<Props> = ({
   const medianInk = isDark ? MEDIAN_INK_DARK : MEDIAN_INK_LIGHT;
   const medianLabelFill = isDark ? "#262f38" : "#ffffff";
   const medianSeats = Math.round(quartileXs.median);
-  // A median of exactly zero gets no callout at all: the EVEN bin already owns
-  // that spot, so a marker there would only restate it — and labelling the two
-  // separately at the same x invites reading them as the same claim (the EVEN
-  // bar is P(advantage = 0); the median is where the CDF crosses 50%). Returns
-  // on its own as soon as the median moves off zero.
-  const showMedian = medianSeats !== 0;
+  // Zero needs its own wording: it belongs to neither party, and without a branch
+  // it falls through to the Republican string as "R +0 seats" in red. It lands on
+  // the EVEN bin, which does state a different thing (that bar is
+  // P(advantage = 0); the median is where the CDF crosses 50%) — the callout is
+  // shown at every median regardless.
   const medianLabelText = t("midtermsHubMedianLabel");
   const medianValueText =
-    medianSeats < 0
-      ? t("midtermsHubMedianDem", { count: Math.abs(medianSeats) })
-      : t("midtermsHubMedianRep", { count: medianSeats });
+    medianSeats === 0
+      ? t("midtermsHubMedianEven")
+      : medianSeats < 0
+        ? t("midtermsHubMedianDem", { count: Math.abs(medianSeats) })
+        : t("midtermsHubMedianRep", { count: medianSeats });
   // Keyed off the flyout's own background, not the page: the light page's black
   // flyout needs the *Dark* swatches (the pair designed to read on dark
   // surfaces), and the dark page's white flyout needs the darker Border pair.
+  // Zero takes the label's own ink — party colors would assert a lean that isn't
+  // there.
   const medianValueFill =
-    medianSeats < 0
-      ? isDark
-        ? MIDTERMS_COLORS.demBorder
-        : MIDTERMS_COLORS.demPrimaryDark
-      : isDark
-        ? MIDTERMS_COLORS.repBorder
-        : MIDTERMS_COLORS.repPrimaryDark;
+    medianSeats === 0
+      ? medianLabelFill
+      : medianSeats < 0
+        ? isDark
+          ? MIDTERMS_COLORS.demBorder
+          : MIDTERMS_COLORS.demPrimaryDark
+        : isDark
+          ? MIDTERMS_COLORS.repBorder
+          : MIDTERMS_COLORS.repPrimaryDark;
 
   const BAR_FILL_OPACITY = 0.7;
   const BAR_FILL_OPACITY_HOVER = 1;
@@ -873,7 +878,7 @@ const SeatDistributionChart: FC<Props> = ({
               always-on flyout. Rendered last so it paints above the bars, and
               unmounted entirely while a bin is hovered so it never stacks with
               the hover tooltip. */}
-          {showMedian && !isBinHovered && (
+          {!isBinHovered && (
             <VictoryScatter
               name="median-marker"
               data={[{ x: medianSeats, y: 0 }]}

@@ -23,7 +23,6 @@ import type {
 } from "topojson-specification";
 
 import { MIDTERMS_COLORS, STATE_NAMES } from "../constants";
-import MapLegend from "./map_legend";
 import MapTooltipPortal from "./map_tooltip_portal";
 import StateTooltipContent from "./state_tooltip";
 import { SenateRaceWithQuestion } from "../helpers/post_utils";
@@ -234,20 +233,19 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot, summarySlot }) => {
       ref={containerRef}
       className="geo-map-container relative h-full w-full"
     >
-      {/* Header overlay: tabs | summary | legend. Absolutely positioned as one
-          row so a wrapping summary grows over the map instead of pushing it
-          down, while the gap keeps it clear of both neighbors. The paddings
-          reproduce the standalone positions these two used to have. */}
+      {/* Header overlay: tabs on the left, summary on the right. Absolutely
+          positioned as one row so a wrapping summary grows over the map instead
+          of pushing it down, while the gap keeps it clear of the tabs.
+          The summary occupies the corner the party legend used to; its own
+          alignment comes from the className the caller passes, since this cell
+          can't override a class the summary sets on itself. */}
       {/* Flush to the container: the map column's own padding provides the inset,
-          so the legend clears the dividing rule by the same 40px as everything
+          so the summary clears the dividing rule by the same 40px as everything
           else. */}
       <div className="absolute inset-x-0 top-0 z-10 flex items-start gap-6 md:gap-10">
         {tabsSlot && <div className="shrink-0">{tabsSlot}</div>}
         <div className="pointer-events-none min-w-0 flex-1 pt-1.5">
           {summarySlot}
-        </div>
-        <div className="shrink-0 md:pt-2">
-          <MapLegend />
         </div>
       </div>
       <div className="h-full w-full">

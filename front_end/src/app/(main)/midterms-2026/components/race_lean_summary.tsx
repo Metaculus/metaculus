@@ -14,10 +14,15 @@ import { useIsDark } from "../helpers/use_is_dark";
 
 type Props = {
   races: SenateRaceWithQuestion[];
+  /** Appends a toss-up count to the lean sentence. The Senate map uses it: with
+   *  a third of the chamber up, which seats are still in play says more than the
+   *  lean split alone. Omitted on the Governor map, where the count would be
+   *  noise next to 19 mostly-settled races. */
+  withCloseRaces?: boolean;
   className?: string;
 };
 
-const RaceLeanSummary: FC<Props> = ({ races, className }) => {
+const RaceLeanSummary: FC<Props> = ({ races, withCloseRaces, className }) => {
   const t = useTranslations();
   const isDark = useIsDark();
   const leans = summarizeRaceLeans(races);
@@ -55,6 +60,20 @@ const RaceLeanSummary: FC<Props> = ({ races, className }) => {
           </strong>
         ),
       })}
+      {/* The separator lives here rather than in either message so translators
+          don't inherit punctuation that only makes sense when both clauses are
+          present. Dropped entirely when nothing is close. */}
+      {withCloseRaces && leans.close > 0 && (
+        <>
+          <span
+            aria-hidden
+            className="mx-1.5 text-blue-500 dark:text-blue-500-dark"
+          >
+            &middot;
+          </span>
+          {t("midtermsHubCloseRacesSummary", { count: leans.close })}
+        </>
+      )}
     </p>
   );
 };
