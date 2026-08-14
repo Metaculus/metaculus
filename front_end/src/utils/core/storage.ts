@@ -101,3 +101,51 @@ export function readJSON<T>(key: string): T | null {
 export function writeJSON(key: string, val: unknown) {
   safeLocalStorage.setItem(key, JSON.stringify(val));
 }
+
+// document.cookie throws SecurityError in null-origin documents (pages
+// rendered under a sandbox without allow-same-origin, e.g. injected
+// `Content-Security-Policy: sandbox` or sandboxed iframes)
+type CookieOptions = {
+  path?: string;
+  maxAge?: number;
+  sameSite?: "lax" | "strict" | "none";
+  secure?: boolean;
+};
+
+export const safeDocumentCookie = {
+  get: (name: string): string | null => {
+    if (typeof document === "undefined") return null;
+    try {
+      return (
+        document.cookie
+          .split("; ")
+          .find((cookie) => cookie.startsWith(`${name}=`))
+          ?.slice(name.length + 1) ?? null
+      );
+    } catch (error) {
+      console.warn("document.cookie read error:", error);
+      return null;
+    }
+  },
+
+  // Omitting maxAge creates a session cookie. Values are stored as-is, without
+  // URL encoding - server-side readers expect the raw value
+  set: (name: string, value: string, options: CookieOptions = {}): void => {
+    if (typeof document === "undefined") return;
+    const { path = "/", maxAge, sameSite = "lax", secure = false } = options;
+
+    let cookie = `${name}=${value}; path=${path}; samesite=${sameSite}`;
+    if (maxAge !== undefined) {
+      cookie += `; max-age=${maxAge}`;
+    }
+    if (secure) {
+      cookie += "; secure";
+    }
+
+    try {
+      document.cookie = cookie;
+    } catch (error) {
+      console.warn("document.cookie write error:", error);
+    }
+  },
+};
