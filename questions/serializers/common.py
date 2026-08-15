@@ -451,9 +451,9 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         if probability_yes is None:
             raise serializers.ValidationError("probability_yes is required")
         probability_yes = float(probability_yes)
-        if probability_yes < 0.001 or probability_yes > 0.999:
+        if not (probability_yes >= 0.001 and probability_yes <= 0.999):
             raise serializers.ValidationError(
-                "probability_yes should be between 0.001 and 0.999"
+                "probability_yes should be between 0.001 and 0.999 (inclusive)"
             )
         return probability_yes
 
