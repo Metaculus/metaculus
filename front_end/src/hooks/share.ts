@@ -1,5 +1,6 @@
 "use client";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -68,20 +69,46 @@ const useCurrentUrl = ({ includeHash = true }: CurrentUrlOptions = {}) => {
 
 export const useCopyUrl = (options: CurrentUrlOptions = {}) => {
   const url = useCurrentUrl(options);
+  const t = useTranslations();
 
   return useCallback(() => {
-    if (url) {
+    if (!url) return;
+
+    const notify = () =>
+      toast(t("copiedUrlMessage"), {
+        className: "dark:bg-blue-700-dark dark:text-gray-0-dark",
+      });
+
+    if (navigator.clipboard) {
       navigator.clipboard
         .writeText(url)
-        .then(() => {
-          toast("URL is now copied to your clipboard", {
-            className: "dark:bg-blue-700-dark dark:text-gray-0-dark",
-          });
-          // Optionally, show a notification to the user that the link was copied.
-        })
+        .then(notify)
         .catch((err) => console.error("Error copying link: ", err));
+      return;
     }
-  }, [url]);
+
+    // navigator.clipboard only exists in secure contexts; fall back to the
+    // legacy textarea trick so http://<lan-ip> dev sessions still copy
+    const textarea = document.createElement("textarea");
+    textarea.value = url;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      // execCommand reports refusal with `false` instead of throwing, so a
+      // success toast would otherwise fire on a failed copy
+      if (document.execCommand("copy")) {
+        notify();
+      } else {
+        console.error("Error copying link: execCommand returned false");
+      }
+    } catch (err) {
+      console.error("Error copying link: ", err);
+    } finally {
+      textarea.remove();
+    }
+  }, [url, t]);
 };
 
 export const useMetaImageUrl = (tagName: string) => {

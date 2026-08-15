@@ -17,6 +17,17 @@ function writeCsrfToken(token: string): void {
   document.cookie = `${CSRF_COOKIE_NAME}=${token}; Path=/; Secure; SameSite=Lax; Max-Age=${CSRF_COOKIE_MAX_AGE_SECONDS}`;
 }
 
+// crypto.randomUUID only exists in secure contexts; getRandomValues does not
+// have that restriction, so http://<lan-ip> dev sessions don't crash on render
+function randomToken(): string {
+  if (typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 /**
  * Read the CSRF cookie, minting one only if absent. Client-side only. Called
  * when an OAuth flow starts, so the nonce embedded in `state` matches the
@@ -28,7 +39,7 @@ export function getOrMintCsrfToken(): string {
   const existing = readCsrfToken();
   if (existing) return existing;
 
-  const token = crypto.randomUUID();
+  const token = randomToken();
   writeCsrfToken(token);
   return token;
 }
@@ -39,7 +50,7 @@ export function getOrMintCsrfToken(): string {
  * request logs), bounding its usefulness to the duration of the flow.
  */
 export function rotateCsrfToken(): void {
-  writeCsrfToken(crypto.randomUUID());
+  writeCsrfToken(randomToken());
 }
 
 export function assertValidCsrfNonce(
