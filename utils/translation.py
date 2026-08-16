@@ -76,41 +76,77 @@ async def agoogle_translate_detect_language(text):
                 raise Exception(f"Error detecting language: {error}")
 
 
+def split_for_translation(text):
+    """
+    Splits text into the lines that need translating, plus a layout describing how
+    to put it back together. Each layout entry is either None (a placeholder for the
+    next translated line) or a literal string to emit as-is (blank lines).
+
+    Translating line by line keeps the line structure intact no matter how the
+    translation service handles whitespace, and lines map onto markdown paragraphs.
+    """
+    layout = []
+    translatable = []
+
+    for line in text.split("\n"):
+        if line.strip():
+            layout.append(None)
+            translatable.append(line)
+        else:
+            layout.append(line)
+
+    return translatable, layout
+
+
+def rejoin_translated(layout, translated):
+    expected = sum(1 for entry in layout if entry is None)
+    if len(translated) != expected:
+        raise ValueError(f"Expected {expected} translated lines, got {len(translated)}")
+
+    translated_iter = iter(translated)
+    return "\n".join(
+        next(translated_iter) if entry is None else entry for entry in layout
+    )
+
+
 async def agoogle_translate_text(source_language, target_language, text):
     token, project_id = get_and_cache_sa_info()
 
     if source_language == target_language:
         return text
 
-    # Google Translates doesn't preserve new lines, as it translates text as if it was HTML.
-    # so we use a hack by inserting a <br> element for each \n before translating,
-    # and then we replace it back with the new line after translation.
-    # In addition, it also html-escapes the input so we need to unescape it after the translation
-    text = text.replace("\n", "<br>")
+    translatable, layout = split_for_translation(text)
+    if not translatable:
+        return text
+
     url = f"https://translation.googleapis.com/v3/projects/{project_id}:translateText"
 
     headers = {
         "Authorization": f"Bearer {token}",
         "x-goog-user-project": project_id,
         "Content-Type": "application/json; charset=utf-8",
-        "mimeType": "text/plain",
     }
 
+    # mimeType must be part of the payload, not of the headers. It defaults to
+    # "text/html", which makes the service parse our markdown as HTML: inline tags
+    # split it into separate text nodes and the non-prose ones (like the "](url)"
+    # of a markdown link) get dropped, silently destroying links.
     data = {
         "sourceLanguageCode": source_language,
         "targetLanguageCode": target_language,
-        "contents": text,
+        "mimeType": "text/plain",
+        "contents": translatable,
     }
 
     async with aiohttp.ClientSession() as session:
         async with session.post(url, headers=headers, json=data) as response:
             if response.status == 200:
                 result = await response.json()
-                output = result["translations"][0]["translatedText"]
-                # See the comment above with the new lines
-                output = output.replace("<br>", "\n")
-                output = html.unescape(output)
-                return output
+                translated = [t["translatedText"] for t in result["translations"]]
+                # Kept from the text/html days: harmless if the response is already
+                # unescaped, and it still corrects the output if it is not.
+                translated = [html.unescape(t) for t in translated]
+                return rejoin_translated(layout, translated)
             else:
                 error = await response.text()
                 raise Exception(f"Error translating text: {error}")
