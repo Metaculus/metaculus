@@ -123,16 +123,19 @@ export const safeDocumentCookie = {
           ?.slice(name.length + 1) ?? null
       );
     } catch (error) {
-      console.warn("document.cookie read error:", error);
+      logError(error, { message: "document.cookie read error" });
       return null;
     }
   },
 
-  // Omitting maxAge creates a session cookie. Values are stored as-is, without
-  // URL encoding - server-side readers expect the raw value
+  // Omitting maxAge creates a session cookie. Values are written without URL
+  // encoding, so they must stay cookie-safe: Next's request cookie parser
+  // decodeURIComponents each value and silently drops any that fail to decode
   set: (name: string, value: string, options: CookieOptions = {}): void => {
     if (typeof document === "undefined") return;
-    const { path = "/", maxAge, sameSite = "lax", secure = false } = options;
+    const { path = "/", maxAge, sameSite = "lax" } = options;
+    // Browsers silently reject SameSite=None cookies that aren't Secure
+    const secure = options.secure || sameSite === "none";
 
     let cookie = `${name}=${value}; path=${path}; samesite=${sameSite}`;
     if (maxAge !== undefined) {
@@ -145,7 +148,7 @@ export const safeDocumentCookie = {
     try {
       document.cookie = cookie;
     } catch (error) {
-      console.warn("document.cookie write error:", error);
+      logError(error, { message: "document.cookie write error" });
     }
   },
 };
