@@ -2039,6 +2039,7 @@
   "copyQuestionLinkToAccount": "Copy",
   "privateNote": "Private Note",
   "privateNoteUpdatedFrom": "from <date></date>",
+  "privateNoteAutosaveHint": "changes are saved automatically",
   "savedAgo": "saved <date></date>",
   "loadMore": "Load More",
   "noPrivateNotes": "No private notes yet",

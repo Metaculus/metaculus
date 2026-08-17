@@ -1892,6 +1892,7 @@
   "mySpotPeerScore": "Mi Puntaje de Comparación de Spot",
   "privateNote": "Nota privada",
   "privateNoteUpdatedFrom": "de <date></date>",
+  "privateNoteAutosaveHint": "los cambios se guardan automáticamente",
   "savedAgo": "guardado <date></date>",
   "loadMore": "Cargar más",
   "noPrivateNotes": "Aún no hay notas privadas",
