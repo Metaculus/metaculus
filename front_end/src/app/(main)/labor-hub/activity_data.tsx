@@ -306,4 +306,20 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
       </>
     ),
   },
+  {
+    date: "2026-07-21",
+    type: "news",
+    content: (
+      <>
+        OpenAI announces major security incident during model evaluation. -{" "}
+        <a
+          href="https://openai.com/index/hugging-face-model-evaluation-security-incident/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          OpenAI
+        </a>
+      </>
+    ),
+  },
 ];
