@@ -94,3 +94,33 @@ export function getDemWinPct(
   if (prob == null) return null;
   return Math.round(prob * 100);
 }
+
+/** Half-width of the toss-up band, in points either side of 50. */
+const CLOSE_RACE_MARGIN = 10;
+
+/**
+ * Counts races by favored side, plus how many are close enough to be in play.
+ * The `>= 50` split matches the one `state_tooltip.tsx` uses, so a summary can
+ * never disagree with a tooltip. Races with no forecast are excluded from every
+ * count, and `total` is the sum of the two sides rather than `races.length` so
+ * the numbers always reconcile. Null when nothing is forecast yet.
+ *
+ * `close` deliberately overlaps `dem` and `rep` rather than partitioning them: a
+ * toss-up still leans one way, and pulling it out of its side's count would make
+ * the two figures contradict each other when read in one sentence.
+ */
+export function summarizeRaceLeans(
+  races: SenateRaceWithQuestion[]
+): { dem: number; rep: number; close: number; total: number } | null {
+  let dem = 0;
+  let rep = 0;
+  let close = 0;
+  for (const race of races) {
+    if (race.demWinPct == null) continue;
+    if (race.demWinPct >= 50) dem += 1;
+    else rep += 1;
+    if (Math.abs(race.demWinPct - 50) <= CLOSE_RACE_MARGIN) close += 1;
+  }
+  const total = dem + rep;
+  return total > 0 ? { dem, rep, close, total } : null;
+}
