@@ -76,6 +76,7 @@ class CommentSerializer(serializers.ModelSerializer):
             "text_edited_at",
             "is_soft_deleted",
             "text",
+            "is_text_archived",
             "on_post",
             "on_post_data",
             "included_forecast",

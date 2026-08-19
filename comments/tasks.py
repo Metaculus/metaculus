@@ -101,3 +101,30 @@ def update_current_top_comments_of_week():
     # Update the week before
     week_start_date = week_start_date - timedelta(days=7)
     update_top_comments_of_week(week_start_date)
+
+
+@dramatiq.actor
+def job_archive_bot_comment_texts():
+    # Import here to avoid circular imports
+    from comments.services.text_archive import (
+        archive_bot_comment_texts,
+        check_is_enabled,
+    )
+
+    if not check_is_enabled():
+        # Logged as an error rather than skipped silently: once this job is
+        # scheduled, a missing bucket means the monthly cleanup never runs
+        logger.error(
+            "AWS_STORAGE_BUCKET_COMMENTS_TEXT is not configured, "
+            "comment text archiving cannot run"
+        )
+
+        return
+
+    stats = archive_bot_comment_texts()
+
+    logger.info(
+        f"Archived the text of {stats.archived} bot comment(s), "
+        f"reclaiming {stats.chars_reclaimed} characters "
+        f"({stats.failed} failed, {stats.skipped} skipped)"
+    )

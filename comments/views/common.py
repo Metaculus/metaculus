@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -24,6 +24,7 @@ from comments.serializers.common import (
     serialize_comments_of_the_week_many,
 )
 from comments.services.common import (
+    get_comment_permission_for_user,
     set_comment_excluded_from_week_top,
     create_comment,
     perform_create_comment,
@@ -35,6 +36,7 @@ from comments.services.common import (
     toggle_cmm,
 )
 from comments.services.feed import get_comments_feed
+from comments.services.text_archive import get_full_text
 from notifications.services import send_comment_report_notification_to_staff
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
@@ -230,6 +232,31 @@ def comment_report_api_view(request, pk=int):
     send_comment_report_notification_to_staff(comment, reason, request.user)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["GET"])
+def comment_full_text_api_view(request: Request, pk: int):
+    """
+    Returns the untruncated text of a single comment, reading it back from the
+    archive if it has been moved out of the database.
+    """
+
+    comment = get_object_or_404(Comment, pk=pk)
+
+    # Private comments resolve to no permission for anyone but their author
+    permission = get_comment_permission_for_user(comment, user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
+    if comment.is_soft_deleted:
+        # Mirrors the comment serializer, which never exposes deleted text
+        raise PermissionDenied("This comment has been deleted.")
+
+    text = get_full_text(comment)
+
+    if text is None:
+        raise NotFound("The archived text of this comment could not be retrieved.")
+
+    return Response({"id": comment.pk, "text": text})
 
 
 @api_view(["POST"])

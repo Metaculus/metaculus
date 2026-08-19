@@ -187,6 +187,13 @@ def perform_create_comment(
 def update_comment(
     comment: Comment, text: str = None, included_forecast: Forecast = None
 ):
+    if comment.is_text_archived:
+        # Only a stub of the text remains in the db, so we can neither diff
+        # against it nor let it be overwritten
+        raise ValidationError(
+            "This comment's text has been archived and can no longer be edited."
+        )
+
     differ = difflib.Differ()
 
     diff = list(differ.compare(comment.text.splitlines(), text.splitlines()))

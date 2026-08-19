@@ -99,6 +99,15 @@ class Comment(TimeStampedModel, TranslatedModel):
     is_soft_deleted = models.BooleanField(default=False, db_index=True)
     # Some comments with KeyFactors can have empty text
     text = models.TextField(max_length=150_000, blank=True)
+    # Set by the `archive_bot_comment_texts` command. The full text lives in S3
+    # under a key derived from the comment id, so no pointer is stored here.
+    is_text_archived = models.BooleanField(
+        default=False,
+        editable=False,
+        help_text="True if the full text has been moved to S3 and only a "
+        "truncated stub remains in the text columns. Archived comments "
+        "cannot be edited; use the comment-full-text endpoint to read them.",
+    )
     on_post = models.ForeignKey(
         Post, models.CASCADE, null=True, related_name="comments"
     )

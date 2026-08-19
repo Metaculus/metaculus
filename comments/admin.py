@@ -1,8 +1,10 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.postgres.search import SearchQuery
 
-from utils.models import CustomTranslationAdmin
+from utils.models import CustomTranslationAdmin, uniques_ordered_list
+from utils.translation import build_supported_localized_fieldname
 from .models import Comment, KeyFactor, KeyFactorDriver
 
 
@@ -30,12 +32,14 @@ class CommentAdmin(CustomTranslationAdmin):
         "created_at",
         "is_soft_deleted",
         "is_private",
+        "is_text_archived",
     ]
     list_filter = [
         AutocompleteFilterFactory("Author", "author"),
         AutocompleteFilterFactory("Post", "on_post"),
         "is_soft_deleted",
         "is_private",
+        "is_text_archived",
         AutocompleteFilterFactory("Project", "on_project"),
     ]
     autocomplete_fields = [
@@ -43,7 +47,7 @@ class CommentAdmin(CustomTranslationAdmin):
         "on_post",
         "on_project",
     ]
-    readonly_fields = ["included_forecast"]
+    readonly_fields = ["included_forecast", "is_text_archived"]
     fields = [
         "author",
         "text",
@@ -52,6 +56,7 @@ class CommentAdmin(CustomTranslationAdmin):
         "is_soft_deleted",
         "included_forecast",
         "is_private",
+        "is_text_archived",
     ]
     # `search_fields` must be non-empty for Django admin to render the search box
     # and dispatch to `get_search_results`, but its contents are unused because we
@@ -61,6 +66,20 @@ class CommentAdmin(CustomTranslationAdmin):
 
     def should_update_translations(self, obj):
         return not obj.on_post.is_private()
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = list(super().get_readonly_fields(request, obj))
+
+        if obj and obj.is_text_archived:
+            # Only a stub of the text is left in the db, so editing it here
+            # would bypass the `update_comment` guard and leave the row out of
+            # sync with the archived original
+            readonly_fields += ["text"] + [
+                build_supported_localized_fieldname("text", lang)
+                for lang, _label in settings.LANGUAGES
+            ]
+
+        return uniques_ordered_list(readonly_fields)
 
     def get_search_results(self, request, queryset, search_term):
         search_term = search_term.strip()

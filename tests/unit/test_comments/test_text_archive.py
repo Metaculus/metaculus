@@ -1,0 +1,330 @@
+import json
+from datetime import timedelta
+from io import StringIO
+
+import pytest  # noqa
+from django.core.management import call_command
+from django.core.management.base import CommandError
+from django.urls import reverse
+from django.utils import timezone
+from rest_framework.exceptions import ValidationError
+
+from comments.models import Comment
+from comments.services.common import update_comment
+from comments.services.text_archive import (
+    ARCHIVE_MIN_TEXT_LENGTH,
+    ARCHIVE_STUB_LENGTH,
+    archive_bot_comment_texts,
+    build_key,
+    get_archivable_comments,
+)
+from posts.models import Post
+from projects.permissions import ObjectPermission
+from tests.unit.test_comments.factories import factory_comment
+from tests.unit.test_posts.factories import factory_post
+from tests.unit.test_projects.factories import factory_project
+from tests.unit.test_questions.conftest import *  # noqa
+from tests.unit.test_users.factories import factory_user
+
+LONG_TEXT = "b" * (ARCHIVE_MIN_TEXT_LENGTH + 500)
+
+
+@pytest.fixture()
+def bot(user1):
+    return factory_user(username="bot1", email="bot1@metaculus.com", is_bot=True)
+
+
+@pytest.fixture()
+def post(user1):
+    return factory_post(
+        author=user1,
+        default_project=factory_project(
+            default_permission=ObjectPermission.FORECASTER,
+        ),
+        curation_status=Post.CurationStatus.APPROVED,
+    )
+
+
+def factory_archivable_comment(author, post, text=LONG_TEXT, **kwargs):
+    kwargs.setdefault("created_at", timezone.now() - timedelta(days=60))
+    kwargs.setdefault("is_private", True)
+
+    return factory_comment(
+        author=author,
+        on_post=post,
+        text=text,
+        text_original=text,
+        **kwargs,
+    )
+
+
+@pytest.fixture()
+def s3_stub(mocker):
+    """
+    Minimal in-memory stand-in for the S3 client used by the archive service.
+    """
+
+    objects = {}
+
+    class Client:
+        class exceptions:
+            class NoSuchKey(Exception):
+                pass
+
+        def put_object(self, Bucket, Key, Body, **kwargs):
+            objects[Key] = Body
+
+        def get_object(self, Bucket, Key):
+            if Key not in objects:
+                raise Client.exceptions.NoSuchKey()
+
+            return {"Body": mocker.Mock(read=lambda: objects[Key].encode("utf-8"))}
+
+    mocker.patch(
+        "comments.services.text_archive.get_boto_client", return_value=Client()
+    )
+    mocker.patch("django.conf.settings.AWS_STORAGE_BUCKET_COMMENTS_TEXT", "test-bucket")
+
+    return objects
+
+
+class TestArchivableCommentsQueryset:
+    def test_includes_long_old_private_bot_comments(self, bot, post):
+        comment = factory_archivable_comment(bot, post)
+
+        assert list(get_archivable_comments()) == [comment]
+
+    def test_excludes_recent_comments(self, bot, post):
+        factory_archivable_comment(bot, post, created_at=timezone.now())
+
+        assert not get_archivable_comments().exists()
+
+    def test_excludes_short_comments(self, bot, post):
+        factory_archivable_comment(bot, post, text="a" * ARCHIVE_MIN_TEXT_LENGTH)
+
+        assert not get_archivable_comments().exists()
+
+    def test_excludes_public_comments(self, bot, post):
+        factory_archivable_comment(bot, post, is_private=False)
+
+        assert not get_archivable_comments().exists()
+
+    def test_excludes_human_comments(self, user1, post):
+        factory_archivable_comment(user1, post)
+
+        assert not get_archivable_comments().exists()
+
+    def test_excludes_already_archived_comments(self, bot, post):
+        factory_archivable_comment(bot, post, is_text_archived=True)
+
+        assert not get_archivable_comments().exists()
+
+    def test_includes_soft_deleted_comments(self, bot, post):
+        comment = factory_archivable_comment(bot, post, is_soft_deleted=True)
+
+        assert list(get_archivable_comments()) == [comment]
+
+
+class TestArchiveBotCommentTexts:
+    def test_archives_text_to_s3_and_truncates_row(self, bot, post, s3_stub):
+        comment = factory_archivable_comment(bot, post)
+
+        stats = archive_bot_comment_texts()
+
+        assert stats.archived == 1
+        assert stats.failed == 0
+        assert stats.skipped == 0
+        assert stats.chars_reclaimed == len(LONG_TEXT) - ARCHIVE_STUB_LENGTH
+
+        # Full text is in S3
+        payload = json.loads(s3_stub[build_key(comment.pk)])
+        assert payload["comment_id"] == comment.pk
+        assert payload["text"] == LONG_TEXT
+
+        # Only a stub is left in both copies of the original text
+        comment.refresh_from_db()
+        assert comment.is_text_archived is True
+        assert comment.text_original == LONG_TEXT[:ARCHIVE_STUB_LENGTH]
+        assert (
+            Comment.objects.filter(pk=comment.pk).values_list("text", flat=True)[0]
+            == LONG_TEXT[:ARCHIVE_STUB_LENGTH]
+        )
+
+    def test_drops_translations(self, bot, post, s3_stub):
+        comment = factory_archivable_comment(bot, post, text_en="translated")
+
+        archive_bot_comment_texts()
+
+        comment.refresh_from_db()
+        assert comment.text_en is None
+
+    def test_does_not_bump_edited_at(self, bot, post, s3_stub):
+        comment = factory_archivable_comment(bot, post)
+        edited_at = comment.edited_at
+
+        archive_bot_comment_texts()
+
+        comment.refresh_from_db()
+        assert comment.edited_at == edited_at
+
+    def test_is_idempotent(self, bot, post, s3_stub):
+        factory_archivable_comment(bot, post)
+
+        assert archive_bot_comment_texts().archived == 1
+        assert archive_bot_comment_texts().archived == 0
+
+    def test_dry_run_writes_nothing(self, bot, post, s3_stub):
+        comment = factory_archivable_comment(bot, post)
+
+        stats = archive_bot_comment_texts(dry_run=True)
+
+        assert stats.archived == 1
+        assert stats.chars_reclaimed == len(LONG_TEXT) - ARCHIVE_STUB_LENGTH
+        assert stats.sample_ids == [comment.pk]
+
+        assert s3_stub == {}
+        comment.refresh_from_db()
+        assert comment.is_text_archived is False
+        assert comment.text_original == LONG_TEXT
+
+    def test_upload_failure_leaves_comment_intact(self, bot, post, s3_stub, mocker):
+        comment = factory_archivable_comment(bot, post)
+        mocker.patch(
+            "comments.services.text_archive.upload_text",
+            side_effect=RuntimeError("s3 is down"),
+        )
+
+        stats = archive_bot_comment_texts()
+
+        assert stats.archived == 0
+        assert stats.failed == 1
+
+        comment.refresh_from_db()
+        assert comment.is_text_archived is False
+        assert comment.text_original == LONG_TEXT
+
+    def test_respects_limit(self, bot, post, s3_stub):
+        factory_archivable_comment(bot, post)
+        factory_archivable_comment(bot, post)
+
+        assert archive_bot_comment_texts(limit=1).archived == 1
+        assert get_archivable_comments().count() == 1
+
+    def test_processes_multiple_batches(self, bot, post, s3_stub):
+        for _ in range(5):
+            factory_archivable_comment(bot, post)
+
+        assert archive_bot_comment_texts(batch_size=2).archived == 5
+        assert not get_archivable_comments().exists()
+
+
+class TestArchiveCommand:
+    def test_dry_run_reports_without_writing(self, bot, post, s3_stub):
+        comment = factory_archivable_comment(bot, post)
+        out = StringIO()
+
+        call_command("archive_bot_comment_texts", "--dry-run", stdout=out)
+
+        assert "Would archive 1 comment(s)" in out.getvalue()
+        assert s3_stub == {}
+        comment.refresh_from_db()
+        assert comment.is_text_archived is False
+
+    def test_archives(self, bot, post, s3_stub):
+        comment = factory_archivable_comment(bot, post)
+        out = StringIO()
+
+        call_command("archive_bot_comment_texts", stdout=out)
+
+        assert "Archived 1 comment(s)" in out.getvalue()
+        comment.refresh_from_db()
+        assert comment.is_text_archived is True
+
+    def test_errors_when_bucket_is_not_configured(self, bot, post, mocker):
+        mocker.patch("django.conf.settings.AWS_STORAGE_BUCKET_COMMENTS_TEXT", None)
+
+        with pytest.raises(CommandError):
+            call_command("archive_bot_comment_texts", "--dry-run")
+
+
+class TestArchivedCommentEditing:
+    def test_archived_comment_cannot_be_edited(self, bot, post, s3_stub):
+        comment = factory_archivable_comment(bot, post)
+        archive_bot_comment_texts()
+        comment.refresh_from_db()
+
+        with pytest.raises(ValidationError):
+            update_comment(comment, text="new text")
+
+    def test_unarchived_comment_can_still_be_edited(self, bot, post):
+        comment = factory_archivable_comment(bot, post, created_at=timezone.now())
+
+        update_comment(comment, text="new text")
+
+        comment.refresh_from_db()
+        assert comment.text == "new text"
+
+
+class TestCommentFullTextApiView:
+    def test_author_reads_archived_text(
+        self, bot, post, s3_stub, create_client_for_user
+    ):
+        comment = factory_archivable_comment(bot, post)
+        archive_bot_comment_texts()
+
+        response = create_client_for_user(bot).get(
+            reverse("comment-full-text", kwargs={"pk": comment.pk})
+        )
+
+        assert response.status_code == 200
+        assert response.data["text"] == LONG_TEXT
+
+    def test_returns_db_text_when_not_archived(
+        self, bot, post, s3_stub, create_client_for_user
+    ):
+        comment = factory_archivable_comment(bot, post)
+
+        response = create_client_for_user(bot).get(
+            reverse("comment-full-text", kwargs={"pk": comment.pk})
+        )
+
+        assert response.status_code == 200
+        assert response.data["text"] == LONG_TEXT
+
+    def test_other_user_cannot_read_private_comment(
+        self, bot, post, s3_stub, user2, create_client_for_user
+    ):
+        comment = factory_archivable_comment(bot, post)
+        archive_bot_comment_texts()
+
+        response = create_client_for_user(user2).get(
+            reverse("comment-full-text", kwargs={"pk": comment.pk})
+        )
+
+        assert response.status_code == 403
+
+    def test_soft_deleted_comment_is_not_readable(
+        self, bot, post, s3_stub, create_client_for_user
+    ):
+        comment = factory_archivable_comment(bot, post)
+        archive_bot_comment_texts()
+        Comment.objects.filter(pk=comment.pk).update(is_soft_deleted=True)
+
+        response = create_client_for_user(bot).get(
+            reverse("comment-full-text", kwargs={"pk": comment.pk})
+        )
+
+        assert response.status_code == 403
+
+    def test_missing_archive_object_returns_404(
+        self, bot, post, s3_stub, create_client_for_user
+    ):
+        comment = factory_archivable_comment(bot, post)
+        archive_bot_comment_texts()
+        s3_stub.clear()
+
+        response = create_client_for_user(bot).get(
+            reverse("comment-full-text", kwargs={"pk": comment.pk})
+        )
+
+        assert response.status_code == 404
