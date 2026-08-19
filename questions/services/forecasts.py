@@ -409,13 +409,23 @@ def update_forecast_notification(
 def get_last_aggregated_forecasts_for_questions(
     questions: Iterable[Question], aggregated_forecast_qs: QuerySet[AggregateForecast]
 ):
-    # Return the most recent started forecast per (question, method), regardless of
-    # whether it is still live. Closed/resolved questions keep their final CP this way,
-    # and — crucially — this row is fully loaded, so serializing it with full=True does
-    # not trigger a deferred-field reload against the (heavy, deferred) CP history.
+    # Return the most recent started forecast per (question, method) that was live at
+    # the point the question effectively closed. For open questions actual_close_time
+    # is null, so we simply take the most recent started forecast. For closed/resolved
+    # questions we cap at actual_close_time: a question resolved as of a past date can
+    # keep accumulating aggregate forecasts after that date, and the default CP preview
+    # must reflect the value at resolution/close time, not those later aggregations.
+    # (actual_close_time == min(actual_resolve_time, scheduled_close_time), matching the
+    # horizon scoring uses.) Crucially, this row is also fully loaded, so serializing it
+    # with full=True does not trigger a deferred-field reload against the (heavy,
+    # deferred) CP history.
     return (
         aggregated_forecast_qs.filter(question__in=questions)
         .filter(start_time__lte=timezone.now())
+        .filter(
+            Q(question__actual_close_time__isnull=True)
+            | Q(start_time__lte=F("question__actual_close_time"))
+        )
         .order_by("question_id", "method", "-start_time")
         .distinct("question_id", "method")
     )
