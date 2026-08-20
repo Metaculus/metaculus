@@ -18,18 +18,18 @@ export const JOBS_INSIGHTS = {
     positive: (
       <>
         By 2030, <strong>nurses</strong>, <strong>construction workers</strong>,
-        and <strong>physicians</strong> are expected to see the largest gains,
+        and <strong>engineers</strong> are expected to see the largest gains,
         driven by an aging population, infrastructure buildouts, and continued
-        demand for in-person service that AI is unlikely to displace in the
-        short term.
+        demand for technical expertise that AI is unlikely to fully displace in
+        the short term.
       </>
     ),
     negative: (
       <>
         By 2030, <strong>software developers</strong>,{" "}
         <strong>financial specialists</strong>, and{" "}
-        <strong>lawyers and law clerks</strong> are expected to see the largest
-        declines as AI absorbs coding, rules-based analysis, and research work.
+        <strong>sales representatives</strong> are expected to see the largest
+        declines as AI absorbs coding, rules-based analysis, and outreach work.
         Software development leads the drop, with rapid AI adoption and no legal
         protections.
       </>
@@ -48,10 +48,10 @@ export const JOBS_INSIGHTS = {
       <>
         By 2035, <strong>financial specialists</strong>,{" "}
         <strong>software developers</strong>, and{" "}
-        <strong>lawyers and law clerks</strong> are expected to see sharp staff
-        reductions as AI takes over coding, analysis, and research work.{" "}
-        <strong>Sales representatives</strong> will also see reductions as AI
-        automates outreach and client work.
+        <strong>sales representatives</strong> are expected to see sharp staff
+        reductions as AI takes over coding, analysis, and outreach work.{" "}
+        <strong>Lawyers and law clerks</strong> will also see reductions as AI
+        automates legal research and drafting.
       </>
     ),
   },
