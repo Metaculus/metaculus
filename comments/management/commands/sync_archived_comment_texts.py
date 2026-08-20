@@ -1,7 +1,7 @@
+import time
+
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.utils.dateparse import parse_datetime
-from django.utils.timezone import is_naive, make_aware
 
 from comments.services.text_archive import (
     DEFAULT_BATCH_SIZE,
@@ -12,7 +12,59 @@ from comments.services.text_archive import (
     sync_archived_comment_texts,
 )
 
-from ._progress import ProgressWriter, format_duration
+
+def format_duration(seconds: float) -> str:
+    seconds = int(seconds)
+    hours, remainder = divmod(seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    if hours:
+        return f"{hours}h{minutes:02d}m"
+    if minutes:
+        return f"{minutes}m{seconds:02d}s"
+
+    return f"{seconds}s"
+
+
+class ProgressWriter:
+    """
+    Prints a running one-line summary with a rate and an ETA.
+
+    This command works through hundreds of thousands of objects over hours,
+    so the point is to make a long run observable rather than to look pretty.
+    Output is one line per batch, not a redrawn line, so it survives being
+    piped to a log file.
+    """
+
+    def __init__(self, stdout, total: int = 0):
+        self.stdout = stdout
+        self.total = total
+        self.started = time.monotonic()
+
+    @property
+    def elapsed(self) -> float:
+        return time.monotonic() - self.started
+
+    def write(self, line: str) -> None:
+        self.stdout.write(line)
+        self.stdout.flush()
+
+    def update(self, done: int, summary: str, detail: str = "") -> None:
+        elapsed = self.elapsed
+        rate = done / elapsed if elapsed else 0
+        percent = (done / self.total * 100) if self.total else 0
+        remaining = max(self.total - done, 0)
+        eta = format_duration(remaining / rate) if rate else "?"
+
+        line = (
+            f"  {done:,}/{self.total:,} ({percent:.1f}%)  {summary}  "
+            f"{rate:.1f}/s  elapsed {format_duration(elapsed)}  eta {eta}"
+        )
+
+        if detail:
+            line += f"  [{detail}]"
+
+        self.write(line)
 
 
 class Command(BaseCommand):
@@ -26,17 +78,6 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--snapshot-at",
-            required=True,
-            help=(
-                "When the database copy used for the uploads was taken, as an "
-                "ISO-8601 timestamp (e.g. 2026-08-20T17:00:00Z). Rows created "
-                "or touched after this are left alone, because the archived "
-                "copy of their text may be stale. Required: there is no safe "
-                "default."
-            ),
-        )
-        parser.add_argument(
             "--dry-run",
             action="store_true",
             help="Report what would be truncated without writing to the database",
@@ -47,7 +88,8 @@ class Command(BaseCommand):
             help=(
                 "Re-read every archived object and require it to match the row "
                 "before truncating. Much slower, and downloads the whole "
-                "archive, but does not rely on the timestamp guards alone"
+                "archive, but it is the only check that the archived copy is "
+                "still current"
             ),
         )
         parser.add_argument(
@@ -73,25 +115,12 @@ class Command(BaseCommand):
                 "comment text archiving is disabled."
             )
 
-        snapshot_at = parse_datetime(options["snapshot_at"])
-
-        if snapshot_at is None:
-            raise CommandError(
-                f"Could not parse --snapshot-at {options['snapshot_at']!r} as an "
-                "ISO-8601 timestamp."
-            )
-
-        if is_naive(snapshot_at):
-            # A naive timestamp here would be compared against tz-aware columns
-            # and blow up mid-run, after an unknown number of rows
-            snapshot_at = make_aware(snapshot_at)
-
         dry_run = options["dry_run"]
         progress = ProgressWriter(self.stdout)
 
         progress.write(
             f"Syncing against {settings.AWS_STORAGE_BUCKET_COMMENTS_TEXT}/"
-            f"{S3_KEY_PREFIX}/ as of {snapshot_at.isoformat()}"
+            f"{S3_KEY_PREFIX}/"
             + (" (verifying every object)" if options["verify"] else "")
         )
         progress.write("Listing the archive...")
@@ -102,7 +131,6 @@ class Command(BaseCommand):
                 stats.synced
                 + stats.already_archived
                 + stats.orphaned
-                + stats.skipped_stale
                 + stats.ineligible
                 + stats.mismatched
                 + stats.verify_failed
@@ -112,7 +140,6 @@ class Command(BaseCommand):
                 for label, count in (
                     ("already archived", stats.already_archived),
                     ("orphaned", stats.orphaned),
-                    ("stale", stats.skipped_stale),
                     ("ineligible", stats.ineligible),
                     ("mismatched", stats.mismatched),
                     ("unreadable", stats.verify_failed),
@@ -122,7 +149,6 @@ class Command(BaseCommand):
             progress.update(done, f"{stats.chars_reclaimed:,} chars reclaimed", detail)
 
         stats = sync_archived_comment_texts(
-            snapshot_at=snapshot_at,
             dry_run=dry_run,
             verify=options["verify"],
             batch_size=options["batch_size"],
@@ -140,7 +166,6 @@ class Command(BaseCommand):
         for label, count in (
             ("already truncated", stats.already_archived),
             ("orphaned (no such comment)", stats.orphaned),
-            ("skipped as touched since the snapshot", stats.skipped_stale),
             ("ineligible (not a long private bot comment)", stats.ineligible),
         ):
             if count:
@@ -152,7 +177,8 @@ class Command(BaseCommand):
 
         if stats.mismatched:
             # Not fatal: these keep their text and the monthly job re-archives
-            # them, but a large number means the snapshot is not what we think
+            # them, but a large number means the archive is further out of
+            # date than expected
             self.stdout.write(
                 self.style.WARNING(
                     f"{stats.mismatched:,} archived object(s) did not match the "
@@ -162,8 +188,7 @@ class Command(BaseCommand):
 
         if stats.verify_failed:
             # Distinct from a mismatch: nothing is known about these objects,
-            # so a non-zero count here means the bucket, not the snapshot, is
-            # what needs looking at
+            # so a non-zero count here means the bucket is what needs looking at
             self.stdout.write(
                 self.style.ERROR(
                     f"{stats.verify_failed:,} archived object(s) could not be read "
