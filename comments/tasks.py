@@ -101,3 +101,34 @@ def update_current_top_comments_of_week():
     # Update the week before
     week_start_date = week_start_date - timedelta(days=7)
     update_top_comments_of_week(week_start_date)
+
+
+# The monthly run walks a month of long private bot comments, so it needs far
+# more than dramatiq's default 10-minute time limit. Retries are capped at one:
+# every batch commits as it goes, so a failed run resumes rather than repeats,
+# and the default of 20 would just replay the same failure for hours.
+@dramatiq.actor(time_limit=1_800_000, max_retries=1)
+def job_archive_bot_comment_texts():
+    # Import here to avoid circular imports
+    from comments.services.text_archive import (
+        archive_bot_comment_texts,
+        check_is_enabled,
+    )
+
+    if not check_is_enabled():
+        # Logged as an error rather than skipped silently: once this job is
+        # scheduled, a missing bucket means the monthly cleanup never runs
+        logger.error(
+            "AWS_STORAGE_BUCKET_COMMENTS_TEXT is not configured, "
+            "comment text archiving cannot run"
+        )
+
+        return
+
+    stats = archive_bot_comment_texts()
+
+    logger.info(
+        f"Archived the text of {stats.archived} bot comment(s), "
+        f"reclaiming {stats.chars_reclaimed} characters "
+        f"({stats.failed} failed, {stats.skipped} skipped)"
+    )
