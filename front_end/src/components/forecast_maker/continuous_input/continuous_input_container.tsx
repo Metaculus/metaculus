@@ -1,7 +1,7 @@
 import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { FC, ReactNode, useCallback, useMemo, useState } from "react";
+import { FC, ReactNode, useCallback, useMemo, useRef, useState } from "react";
 
 import Checkbox from "@/components/ui/checkbox";
 import Switch from "@/components/ui/switch";
@@ -10,10 +10,17 @@ import {
   ContinuousAreaGraphType,
   ContinuousForecastInputType,
 } from "@/types/charts";
-import { QuestionType, NumericUserForecast } from "@/types/question";
+import {
+  QuestionType,
+  NumericUserForecast,
+  DistributionSliderComponent,
+  DistributionQuantileComponent,
+  Scaling,
+} from "@/types/question";
 import cn from "@/utils/core/cn";
 import { isForecastActive } from "@/utils/forecasts/helpers";
 
+import ContinuousClipboardMenu from "./continuous_clipboard_menu";
 import ContinuousInputModeSwitcher from "./continuous_input_mode_switcher";
 
 export type ContinuousInputContainerProps = {
@@ -24,6 +31,17 @@ export type ContinuousInputContainerProps = {
   previousForecast?: NumericUserForecast;
   menu?: ReactNode;
   copyMenu?: ReactNode;
+  clipboardData?: {
+    sliderComponents: DistributionSliderComponent[];
+    quantileComponents: DistributionQuantileComponent;
+    scaling: Scaling;
+    openLowerBound: boolean;
+    openUpperBound: boolean;
+    onPaste: (
+      type: ContinuousForecastInputType,
+      components: DistributionSliderComponent[] | DistributionQuantileComponent
+    ) => void;
+  };
   children?: (
     sliderGraphType: ContinuousAreaGraphType,
     tableGraphType: ContinuousAreaGraphType
@@ -40,11 +58,13 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
   onOverlayPreviousForecastChange,
   menu,
   copyMenu,
+  clipboardData,
   children,
   disabled,
   questionType,
 }) => {
   const t = useTranslations();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const [sliderGraphType, setSliderGraphType] =
     useState<ContinuousAreaGraphType>("pmf");
@@ -68,7 +88,11 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
   );
 
   return (
-    <div className="mr-0 flex flex-col sm:mr-2">
+    <div
+      ref={containerRef}
+      className="mr-0 flex flex-col sm:mr-2"
+      tabIndex={-1}
+    >
       <div className={cn("flex justify-between", disabled && "justify-end")}>
         {!disabled && (
           <ContinuousInputModeSwitcher
@@ -123,6 +147,21 @@ const ContinuousInputContainer: FC<ContinuousInputContainerProps> = ({
               />
             </Tooltip>
             <div className="flex gap-3">
+              {clipboardData && (
+                <div className="-mr-2 flex gap-1">
+                  <ContinuousClipboardMenu
+                    forecastInputMode={forecastInputMode}
+                    sliderComponents={clipboardData.sliderComponents}
+                    quantileComponents={clipboardData.quantileComponents}
+                    scaling={clipboardData.scaling}
+                    openLowerBound={clipboardData.openLowerBound}
+                    openUpperBound={clipboardData.openUpperBound}
+                    onPaste={clipboardData.onPaste}
+                    disabled={disabled}
+                    containerRef={containerRef}
+                  />
+                </div>
+              )}
               {copyMenu && (
                 <div className="-mr-2 size-[26px] rounded-full bg-gray-100 dark:bg-gray-100-dark">
                   {copyMenu}
