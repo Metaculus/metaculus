@@ -17,6 +17,9 @@ from comments.services.text_archive import (
     archive_bot_comment_texts,
     build_key,
     get_archivable_comments,
+    list_archived_comment_ids,
+    sync_archived_comment_texts,
+    upload_text,
 )
 from posts.models import Post
 from projects.permissions import ObjectPermission
@@ -79,6 +82,23 @@ def s3_stub(mocker):
                 raise Client.exceptions.NoSuchKey()
 
             return {"Body": mocker.Mock(read=lambda: objects[Key].encode("utf-8"))}
+
+        def get_paginator(self, operation_name):
+            assert operation_name == "list_objects_v2"
+
+            class Paginator:
+                def paginate(self, Bucket, Prefix):
+                    # One page is enough here; the real paginator's chunking
+                    # is botocore's concern, not ours
+                    yield {
+                        "Contents": [
+                            {"Key": key}
+                            for key in sorted(objects)
+                            if key.startswith(Prefix)
+                        ]
+                    }
+
+            return Paginator()
 
     mocker.patch(
         "comments.services.text_archive.get_boto_client", return_value=Client()
@@ -375,3 +395,184 @@ class TestCommentFullTextApiView:
         )
 
         assert response.status_code == 404
+
+
+@pytest.fixture()
+def archived_elsewhere(bot, post, s3_stub):
+    """
+    A comment whose text is in the archive while the row still holds it in
+    full: the state the production database is in after the uploads have been
+    performed against a copy of it.
+    """
+
+    comment = factory_archivable_comment(bot, post)
+    upload_text(comment.pk, LONG_TEXT)
+
+    return comment
+
+
+class TestListArchivedCommentIds:
+    def test_reads_ids_from_the_bucket(self, bot, post, s3_stub):
+        comments = [factory_archivable_comment(bot, post) for _ in range(3)]
+        for comment in comments:
+            upload_text(comment.pk, LONG_TEXT)
+
+        assert list_archived_comment_ids() == {c.pk for c in comments}
+
+    def test_ignores_keys_that_are_not_comment_ids(self, bot, post, s3_stub):
+        comment = factory_archivable_comment(bot, post)
+        upload_text(comment.pk, LONG_TEXT)
+        s3_stub["comments_text/not-an-id.json"] = "{}"
+
+        assert list_archived_comment_ids() == {comment.pk}
+
+
+class TestSyncArchivedCommentTexts:
+    def test_truncates_without_uploading(self, archived_elsewhere, s3_stub):
+        before = dict(s3_stub)
+
+        stats = sync_archived_comment_texts(snapshot_at=timezone.now())
+
+        assert stats.synced == 1
+        assert stats.chars_reclaimed == len(LONG_TEXT) - ARCHIVE_STUB_LENGTH
+        # Nothing was written back to the archive
+        assert s3_stub == before
+
+        archived_elsewhere.refresh_from_db()
+        assert archived_elsewhere.is_text_archived is True
+        assert archived_elsewhere.text_original == LONG_TEXT[:ARCHIVE_STUB_LENGTH]
+        assert (
+            Comment.objects.rewrite(False)
+            .filter(pk=archived_elsewhere.pk)
+            .values_list("text", flat=True)[0]
+            == LONG_TEXT[:ARCHIVE_STUB_LENGTH]
+        )
+
+    def test_does_not_bump_edited_at(self, archived_elsewhere, s3_stub):
+        edited_at = archived_elsewhere.edited_at
+
+        sync_archived_comment_texts(snapshot_at=timezone.now())
+
+        archived_elsewhere.refresh_from_db()
+        assert archived_elsewhere.edited_at == edited_at
+
+    def test_dry_run_writes_nothing(self, archived_elsewhere, s3_stub):
+        stats = sync_archived_comment_texts(snapshot_at=timezone.now(), dry_run=True)
+
+        assert stats.synced == 1
+        archived_elsewhere.refresh_from_db()
+        assert archived_elsewhere.is_text_archived is False
+        assert archived_elsewhere.text_original == LONG_TEXT
+
+    def test_skips_rows_edited_since_the_snapshot(self, archived_elsewhere, s3_stub):
+        """
+        The archived copy predates the edit, so truncating would lose it.
+        """
+
+        Comment.objects.rewrite(False).filter(pk=archived_elsewhere.pk).update(
+            edited_at=timezone.now()
+        )
+
+        stats = sync_archived_comment_texts(
+            snapshot_at=timezone.now() - timedelta(hours=1)
+        )
+
+        assert stats.synced == 0
+        assert stats.skipped_stale == 1
+
+        archived_elsewhere.refresh_from_db()
+        assert archived_elsewhere.is_text_archived is False
+        assert archived_elsewhere.text_original == LONG_TEXT
+
+    def test_skips_rows_whose_text_was_edited_since_the_snapshot(
+        self, archived_elsewhere, s3_stub
+    ):
+        Comment.objects.rewrite(False).filter(pk=archived_elsewhere.pk).update(
+            text_edited_at=timezone.now(), edited_at=None
+        )
+
+        stats = sync_archived_comment_texts(
+            snapshot_at=timezone.now() - timedelta(hours=1)
+        )
+
+        assert stats.synced == 0
+        assert stats.skipped_stale == 1
+
+    def test_skips_rows_created_since_the_snapshot(self, archived_elsewhere, s3_stub):
+        Comment.objects.rewrite(False).filter(pk=archived_elsewhere.pk).update(
+            created_at=timezone.now()
+        )
+
+        stats = sync_archived_comment_texts(
+            snapshot_at=timezone.now() - timedelta(hours=1)
+        )
+
+        assert stats.synced == 0
+        assert stats.skipped_stale == 1
+
+    def test_counts_already_truncated_rows(self, archived_elsewhere, s3_stub):
+        sync_archived_comment_texts(snapshot_at=timezone.now())
+
+        stats = sync_archived_comment_texts(snapshot_at=timezone.now())
+
+        assert stats.synced == 0
+        assert stats.already_archived == 1
+
+    def test_counts_objects_with_no_comment(self, bot, post, s3_stub):
+        upload_text(999_999_999, LONG_TEXT)
+
+        stats = sync_archived_comment_texts(snapshot_at=timezone.now())
+
+        assert stats.synced == 0
+        assert stats.orphaned == 1
+
+    def test_verify_skips_rows_whose_archive_no_longer_matches(
+        self, archived_elsewhere, s3_stub
+    ):
+        upload_text(archived_elsewhere.pk, "something else entirely")
+
+        stats = sync_archived_comment_texts(snapshot_at=timezone.now(), verify=True)
+
+        assert stats.synced == 0
+        assert stats.mismatched == 1
+
+        archived_elsewhere.refresh_from_db()
+        assert archived_elsewhere.text_original == LONG_TEXT
+
+    def test_verify_accepts_a_matching_archive(self, archived_elsewhere, s3_stub):
+        stats = sync_archived_comment_texts(snapshot_at=timezone.now(), verify=True)
+
+        assert stats.synced == 1
+        assert stats.mismatched == 0
+
+
+class TestSyncCommand:
+    def test_syncs(self, archived_elsewhere, s3_stub):
+        out = StringIO()
+
+        call_command(
+            "sync_archived_comment_texts",
+            "--snapshot-at",
+            timezone.now().isoformat(),
+            stdout=out,
+        )
+
+        assert "Synced 1 of 1 archived object(s)" in out.getvalue()
+        archived_elsewhere.refresh_from_db()
+        assert archived_elsewhere.is_text_archived is True
+
+    def test_requires_a_snapshot_timestamp(self, s3_stub):
+        with pytest.raises(CommandError):
+            call_command("sync_archived_comment_texts")
+
+    def test_rejects_an_unparseable_snapshot_timestamp(self, s3_stub):
+        with pytest.raises(CommandError):
+            call_command("sync_archived_comment_texts", "--snapshot-at", "yesterday")
+
+    def test_errors_when_bucket_is_not_configured(self, mocker):
+        mocker.patch("django.conf.settings.AWS_STORAGE_BUCKET_COMMENTS_TEXT", None)
+
+        with pytest.raises(CommandError):
+            call_command(
+                "sync_archived_comment_texts", "--snapshot-at", "2026-01-01T00:00:00Z"
+            )
