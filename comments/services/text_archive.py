@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from botocore.config import Config
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Count, Q, QuerySet, Sum, Value
+from django.db.models import Count, Q, QuerySet, Sum, TextField, Value
 from django.db.models.functions import Coalesce, Length, NullIf, Substr
 from django.utils import timezone
 
@@ -39,7 +39,13 @@ DEFAULT_CONCURRENCY = 8
 # `comment.text` resolve to `text_original` through the translation
 # descriptor). `text_original` may be NULL or empty on rows that were never
 # saved through the descriptor, so fall back to the base column.
-ORIGINAL_TEXT = Coalesce(NullIf("text_original", Value("")), "text")
+# `output_field` is required, not decorative: `text_original` is a
+# modeltranslation `TranslationTextField` and `Value("")` a `CharField`, which
+# Django refuses to reconcile on its own as soon as the expression is selected
+# rather than wrapped in `Length`/`Substr`.
+ORIGINAL_TEXT = Coalesce(
+    NullIf("text_original", Value("")), "text", output_field=TextField()
+)
 
 
 def check_is_enabled() -> bool:
@@ -257,10 +263,14 @@ def archive_bot_comment_texts(
         if limit is not None:
             page_size = min(batch_size, limit - stats.archived - stats.failed)
 
+        # `original_text` is annotated rather than selecting both columns:
+        # they hold the same content, and a page of 500 comments that may run
+        # to 150k characters each is worth not loading twice.
         rows = list(
             queryset.filter(id__gt=cursor)
             .order_by("id")
-            .values("id", "text", "text_original", "text_length")[:page_size]
+            .annotate(original_text=ORIGINAL_TEXT)
+            .values("id", "original_text", "text_length")[:page_size]
         )
 
         if not rows:
@@ -278,9 +288,7 @@ def archive_bot_comment_texts(
         # upload can never be outrun by its own truncation.
         with ThreadPoolExecutor(max_workers=concurrency) as pool:
             futures = {
-                pool.submit(
-                    upload_text, row["id"], row["text_original"] or row["text"], s3
-                ): row["id"]
+                pool.submit(upload_text, row["id"], row["original_text"], s3): row["id"]
                 for row in rows
             }
 
@@ -327,19 +335,18 @@ def archive_bot_comment_texts(
     return stats
 
 
-def list_archived_comment_ids(
-    on_progress: Callable[[int], None] | None = None,
-) -> set[int]:
+def list_archived_comment_ids(s3=None) -> set[int]:
     """
     Every comment id that already has an object in the archive, read straight
     from the bucket.
 
-    The bucket, not the database, is the authority on what has been archived:
-    the point of the sync below is to reconcile a database that knows nothing
-    about uploads performed elsewhere.
+    The bucket is the authority on what has been uploaded: the point of the
+    sync below is to reconcile a database that knows nothing about uploads
+    performed elsewhere. It is not, however, the authority on what may be
+    truncated — see `get_sync_candidates`.
     """
 
-    s3 = get_archive_s3_client()
+    s3 = s3 or get_archive_s3_client()
     prefix = f"{S3_KEY_PREFIX}/"
     comment_ids = set()
 
@@ -351,9 +358,6 @@ def list_archived_comment_ids(
 
             if stem.isdigit():
                 comment_ids.add(int(stem))
-
-        if on_progress is not None:
-            on_progress(len(comment_ids))
 
     return comment_ids
 
@@ -369,47 +373,77 @@ class SyncStats:
     orphaned: int = 0
     # Touched since the snapshot, so the archived copy may be stale
     skipped_stale: int = 0
+    # A row the archiver would never have uploaded, or one already at or
+    # below the stub length: nothing to reclaim, and a hint that the bucket
+    # holds keys this command did not put there
+    ineligible: int = 0
     # `--verify` only: the archived text no longer matches the row
     mismatched: int = 0
+    # `--verify` only: the archived object could not be read back at all,
+    # which says nothing about whether it matches
+    verify_failed: int = 0
     chars_reclaimed: int = 0
     sample_ids: list[int] = field(default_factory=list)
 
 
-def get_syncable_comments(comment_ids, snapshot_at: datetime) -> QuerySet[Comment]:
+def get_sync_candidates(comment_ids) -> QuerySet[Comment]:
     """
-    Rows that may be truncated against an archive uploaded elsewhere.
+    Rows this command is allowed to truncate at all, ignoring freshness.
 
-    Everything here is a guard against the archived copy being stale. The
-    upload happened against a database snapshot taken at `snapshot_at`; any
-    row created or touched since then may have text the archive does not
-    have, so it is left alone. Skipping costs nothing — the monthly job
-    re-archives it properly — while truncating it would destroy the edit.
+    Anything the archiver uploaded was a long, private bot comment, so those
+    invariants are re-asserted here rather than trusting the key alone: a
+    stray or mistyped object in the bucket must not be able to truncate a row
+    the archiver would never have touched.
     """
 
     return (
         Comment.objects.rewrite(False)
         .filter(
             pk__in=comment_ids,
+            author__is_bot=True,
+            is_private=True,
             is_text_archived=False,
-            created_at__lt=snapshot_at,
         )
-        # `edited_at` is bumped by every save; `text_edited_at` only by an
-        # edit to the text. Both are nullable on rows that predate them, and
-        # either one moving past the snapshot disqualifies the row.
-        .filter(Q(edited_at__lt=snapshot_at) | Q(edited_at__isnull=True))
-        .filter(Q(text_edited_at__lt=snapshot_at) | Q(text_edited_at__isnull=True))
         .annotate(text_length=Length(ORIGINAL_TEXT))
         .filter(text_length__gt=ARCHIVE_STUB_LENGTH)
     )
 
 
-def _verify_archived_text(rows, concurrency: int) -> set[int]:
+def get_syncable_comments(comment_ids, snapshot_at: datetime) -> QuerySet[Comment]:
     """
-    Ids whose archived object still matches the row's text exactly.
+    Candidates that are also safe to truncate against an archive uploaded
+    elsewhere.
+
+    Everything added here is a guard against the archived copy being stale.
+    The upload happened against a database snapshot taken at `snapshot_at`;
+    any row created or touched since then may have text the archive does not
+    have, so it is left alone. Skipping costs nothing — the monthly job
+    re-archives it properly — while truncating it would destroy the edit.
     """
 
-    s3 = get_archive_s3_client(concurrency)
+    return (
+        get_sync_candidates(comment_ids)
+        .filter(created_at__lt=snapshot_at)
+        # `edited_at` is bumped by every save; `text_edited_at` only by an
+        # edit to the text. Both are nullable on rows that predate them, and
+        # either one moving past the snapshot disqualifies the row.
+        .filter(Q(edited_at__lt=snapshot_at) | Q(edited_at__isnull=True))
+        .filter(Q(text_edited_at__lt=snapshot_at) | Q(text_edited_at__isnull=True))
+    )
+
+
+def _verify_archived_text(rows, s3, concurrency: int) -> tuple[set[int], set[int]]:
+    """
+    Ids whose archived object still matches the row's text exactly, and ids
+    whose object could not be read back at all.
+
+    The two are kept apart because they mean different things: a mismatch is
+    a stale archive, an unreadable object is an S3 problem. Both leave the
+    row alone.
+    """
+
     verified = set()
+    unreadable = set()
 
     with ThreadPoolExecutor(max_workers=concurrency) as pool:
         futures = {pool.submit(fetch_text, row["id"], s3): row for row in rows}
@@ -421,15 +455,17 @@ def _verify_archived_text(rows, concurrency: int) -> set[int]:
                 logger.exception(
                     "Failed to read archived text of comment %s", row["id"]
                 )
+                unreadable.add(row["id"])
 
                 continue
 
-            if archived is not None and archived == (
-                row["text_original"] or row["text"]
-            ):
+            if archived is None:
+                # `fetch_text` swallows a missing object and logs it
+                unreadable.add(row["id"])
+            elif archived == row["original_text"]:
                 verified.add(row["id"])
 
-    return verified
+    return verified, unreadable
 
 
 def sync_archived_comment_texts(
@@ -455,32 +491,46 @@ def sync_archived_comment_texts(
     """
 
     stats = SyncStats()
-    archived_ids = sorted(list_archived_comment_ids())
+    concurrency = max(concurrency, 1)
+    # One client for the whole run, listing and verification alike: building
+    # one is expensive, and the verification below would otherwise build a
+    # fresh one for every batch.
+    s3 = get_archive_s3_client(concurrency)
+    archived_ids = sorted(list_archived_comment_ids(s3))
     stats.total = len(archived_ids)
 
     truncate_kwargs = _build_truncate_kwargs()
-    columns = ["id", "text_length"] + (["text", "text_original"] if verify else [])
+    columns = ["id", "text_length"] + (["original_text"] if verify else [])
 
     for start in range(0, len(archived_ids), batch_size):
         chunk = archived_ids[start : start + batch_size]
 
-        # Two queries per chunk so the accounting is exact: what the database
-        # knows about these ids, then which of them are safe to truncate.
+        # Three queries per chunk so the accounting is exact: what the
+        # database knows about these ids, which of them this command may
+        # touch at all, and which of those are also fresh enough to truncate.
         states = dict(
             Comment.objects.rewrite(False)
             .filter(pk__in=chunk)
             .values_list("id", "is_text_archived")
         )
-        rows = list(get_syncable_comments(chunk, snapshot_at).values(*columns))
+        candidate_ids = set(get_sync_candidates(chunk).values_list("id", flat=True))
+        syncable = get_syncable_comments(chunk, snapshot_at)
+
+        if verify:
+            syncable = syncable.annotate(original_text=ORIGINAL_TEXT)
+
+        rows = list(syncable.values(*columns))
 
         stats.orphaned += len(chunk) - len(states)
         already = sum(1 for archived in states.values() if archived)
         stats.already_archived += already
-        stats.skipped_stale += len(states) - already - len(rows)
+        stats.ineligible += len(states) - already - len(candidate_ids)
+        stats.skipped_stale += len(candidate_ids) - len(rows)
 
         if verify and rows:
-            verified = _verify_archived_text(rows, concurrency)
-            stats.mismatched += len(rows) - len(verified)
+            verified, unreadable = _verify_archived_text(rows, s3, concurrency)
+            stats.mismatched += len(rows) - len(verified) - len(unreadable)
+            stats.verify_failed += len(unreadable)
             rows = [row for row in rows if row["id"] in verified]
 
         if rows and not dry_run:

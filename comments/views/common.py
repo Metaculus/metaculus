@@ -243,13 +243,17 @@ def comment_full_text_api_view(request: Request, pk: int):
 
     comment = get_object_or_404(Comment, pk=pk)
 
-    # Private comments resolve to no permission for anyone but their author
-    permission = get_comment_permission_for_user(comment, user=request.user)
-    ObjectPermission.can_view(permission, raise_exception=True)
+    # Staff read any comment, deleted or private. Archiving would otherwise
+    # take away the only view they had of a bot's full text:
+    # `get_comment_permission_for_user` resolves every private comment to no
+    # permission but the author's, and the row itself now holds only a stub.
+    if not (request.user.is_staff or request.user.is_superuser):
+        permission = get_comment_permission_for_user(comment, user=request.user)
+        ObjectPermission.can_view(permission, raise_exception=True)
 
-    if comment.is_soft_deleted:
-        # Mirrors the comment serializer, which never exposes deleted text
-        raise PermissionDenied("This comment has been deleted.")
+        if comment.is_soft_deleted:
+            # Mirrors the comment serializer, which never exposes deleted text
+            raise PermissionDenied("This comment has been deleted.")
 
     text = get_full_text(comment)
 

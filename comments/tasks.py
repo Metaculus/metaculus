@@ -103,7 +103,11 @@ def update_current_top_comments_of_week():
     update_top_comments_of_week(week_start_date)
 
 
-@dramatiq.actor
+# The monthly run walks a month of long private bot comments, so it needs far
+# more than dramatiq's default 10-minute time limit. Retries are capped at one:
+# every batch commits as it goes, so a failed run resumes rather than repeats,
+# and the default of 20 would just replay the same failure for hours.
+@dramatiq.actor(time_limit=1_800_000, max_retries=1)
 def job_archive_bot_comment_texts():
     # Import here to avoid circular imports
     from comments.services.text_archive import (

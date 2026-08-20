@@ -3,12 +3,14 @@ from datetime import timedelta
 from io import StringIO
 
 import pytest  # noqa
+from django.contrib import admin
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
+from comments.admin import CommentAdmin
 from comments.models import Comment
 from comments.services.common import update_comment
 from comments.services.text_archive import (
@@ -38,6 +40,11 @@ def bot(user1):
 
 
 @pytest.fixture()
+def staff_user():
+    return factory_user(username="staff1", email="staff1@metaculus.com", is_staff=True)
+
+
+@pytest.fixture()
 def post(user1):
     return factory_post(
         author=user1,
@@ -62,7 +69,7 @@ def factory_archivable_comment(author, post, text=LONG_TEXT, **kwargs):
 
 
 @pytest.fixture()
-def s3_stub(mocker):
+def s3_stub(mocker, settings):
     """
     Minimal in-memory stand-in for the S3 client used by the archive service.
     """
@@ -78,7 +85,9 @@ def s3_stub(mocker):
             objects[Key] = Body
 
         def get_object(self, Bucket, Key):
-            if Key not in objects:
+            # A key mapped to None is one the listing still reports but whose
+            # object has gone: exactly what S3 answers with NoSuchKey
+            if objects.get(Key) is None:
                 raise Client.exceptions.NoSuchKey()
 
             return {"Body": mocker.Mock(read=lambda: objects[Key].encode("utf-8"))}
@@ -103,7 +112,7 @@ def s3_stub(mocker):
     mocker.patch(
         "comments.services.text_archive.get_boto_client", return_value=Client()
     )
-    mocker.patch("django.conf.settings.AWS_STORAGE_BUCKET_COMMENTS_TEXT", "test-bucket")
+    settings.AWS_STORAGE_BUCKET_COMMENTS_TEXT = "test-bucket"
 
     return objects
 
@@ -307,8 +316,8 @@ class TestArchiveCommand:
         comment.refresh_from_db()
         assert comment.is_text_archived is True
 
-    def test_errors_when_bucket_is_not_configured(self, bot, post, mocker):
-        mocker.patch("django.conf.settings.AWS_STORAGE_BUCKET_COMMENTS_TEXT", None)
+    def test_errors_when_bucket_is_not_configured(self, bot, post, settings):
+        settings.AWS_STORAGE_BUCKET_COMMENTS_TEXT = None
 
         with pytest.raises(CommandError):
             call_command("archive_bot_comment_texts", "--dry-run")
@@ -383,6 +392,50 @@ class TestCommentFullTextApiView:
 
         assert response.status_code == 403
 
+    def test_staff_reads_someone_elses_private_archived_text(
+        self, bot, post, s3_stub, staff_user, create_client_for_user
+    ):
+        """
+        Archiving must not take away the view staff already had in the admin.
+        """
+
+        comment = factory_archivable_comment(bot, post)
+        archive_bot_comment_texts()
+
+        response = create_client_for_user(staff_user).get(
+            reverse("comment-full-text", kwargs={"pk": comment.pk})
+        )
+
+        assert response.status_code == 200
+        assert response.data["text"] == LONG_TEXT
+
+    def test_staff_reads_soft_deleted_archived_text(
+        self, bot, post, s3_stub, staff_user, create_client_for_user
+    ):
+        comment = factory_archivable_comment(bot, post)
+        archive_bot_comment_texts()
+        Comment.objects.filter(pk=comment.pk).update(is_soft_deleted=True)
+
+        response = create_client_for_user(staff_user).get(
+            reverse("comment-full-text", kwargs={"pk": comment.pk})
+        )
+
+        assert response.status_code == 200
+        assert response.data["text"] == LONG_TEXT
+
+    def test_superuser_reads_someone_elses_private_archived_text(
+        self, bot, post, s3_stub, user_admin, create_client_for_user
+    ):
+        comment = factory_archivable_comment(bot, post)
+        archive_bot_comment_texts()
+
+        response = create_client_for_user(user_admin).get(
+            reverse("comment-full-text", kwargs={"pk": comment.pk})
+        )
+
+        assert response.status_code == 200
+        assert response.data["text"] == LONG_TEXT
+
     def test_missing_archive_object_returns_404(
         self, bot, post, s3_stub, create_client_for_user
     ):
@@ -395,6 +448,61 @@ class TestCommentFullTextApiView:
         )
 
         assert response.status_code == 404
+
+
+class TestCommentAdminArchivedText:
+    """
+    The admin is where staff investigate a comment, so it has to show the
+    archived text rather than the stub the row was left with.
+    """
+
+    @pytest.fixture()
+    def comment_admin(self):
+        return CommentAdmin(Comment, admin.site)
+
+    def test_renders_the_archived_text(self, bot, post, s3_stub, comment_admin):
+        comment = factory_archivable_comment(bot, post)
+        archive_bot_comment_texts()
+        comment.refresh_from_db()
+
+        assert LONG_TEXT in comment_admin.archived_text(comment)
+
+    def test_says_so_when_the_archive_cannot_be_read(
+        self, bot, post, s3_stub, comment_admin
+    ):
+        comment = factory_archivable_comment(bot, post)
+        archive_bot_comment_texts()
+        comment.refresh_from_db()
+        s3_stub.clear()
+
+        assert "could not be retrieved" in comment_admin.archived_text(comment)
+
+    def test_field_is_only_added_for_archived_comments(
+        self, bot, post, s3_stub, comment_admin
+    ):
+        comment = factory_archivable_comment(bot, post)
+
+        assert "archived_text" not in comment_admin.get_fields(None, comment)
+
+        archive_bot_comment_texts()
+        comment.refresh_from_db()
+
+        assert "archived_text" in comment_admin.get_fields(None, comment)
+
+    def test_text_and_archived_text_are_read_only_once_archived(
+        self, bot, post, s3_stub, comment_admin
+    ):
+        comment = factory_archivable_comment(bot, post)
+
+        assert "text" not in comment_admin.get_readonly_fields(None, comment)
+
+        archive_bot_comment_texts()
+        comment.refresh_from_db()
+
+        readonly_fields = comment_admin.get_readonly_fields(None, comment)
+        assert "text" in readonly_fields
+        assert "text_original" in readonly_fields
+        assert "archived_text" in readonly_fields
 
 
 @pytest.fixture()
@@ -526,6 +634,37 @@ class TestSyncArchivedCommentTexts:
         assert stats.synced == 0
         assert stats.orphaned == 1
 
+    def test_ignores_keys_for_comments_the_archiver_would_never_upload(
+        self, user1, bot, post, s3_stub
+    ):
+        """
+        The bucket says what was uploaded, not what may be truncated. A key
+        pointing at a public human comment is a mistake, not an instruction.
+        """
+
+        human = factory_archivable_comment(user1, post, is_private=False)
+        upload_text(human.pk, LONG_TEXT)
+
+        stats = sync_archived_comment_texts(snapshot_at=timezone.now())
+
+        assert stats.synced == 0
+        assert stats.ineligible == 1
+        assert stats.skipped_stale == 0
+
+        human.refresh_from_db()
+        assert human.is_text_archived is False
+        assert human.text_original == LONG_TEXT
+
+    def test_counts_rows_too_short_to_truncate_as_ineligible(self, bot, post, s3_stub):
+        short = factory_archivable_comment(bot, post, text="c" * ARCHIVE_STUB_LENGTH)
+        upload_text(short.pk, short.text)
+
+        stats = sync_archived_comment_texts(snapshot_at=timezone.now())
+
+        assert stats.synced == 0
+        assert stats.ineligible == 1
+        assert stats.skipped_stale == 0
+
     def test_verify_skips_rows_whose_archive_no_longer_matches(
         self, archived_elsewhere, s3_stub
     ):
@@ -544,6 +683,42 @@ class TestSyncArchivedCommentTexts:
 
         assert stats.synced == 1
         assert stats.mismatched == 0
+        assert stats.verify_failed == 0
+
+    def test_verify_counts_an_unreadable_object_apart_from_a_mismatch(
+        self, archived_elsewhere, s3_stub, mocker
+    ):
+        """
+        A read failure says nothing about whether the archive matches, so it
+        must not be reported as drift.
+        """
+
+        mocker.patch(
+            "comments.services.text_archive.fetch_text",
+            side_effect=RuntimeError("s3 is down"),
+        )
+
+        stats = sync_archived_comment_texts(snapshot_at=timezone.now(), verify=True)
+
+        assert stats.synced == 0
+        assert stats.mismatched == 0
+        assert stats.verify_failed == 1
+
+        archived_elsewhere.refresh_from_db()
+        assert archived_elsewhere.text_original == LONG_TEXT
+
+    def test_verify_counts_a_missing_object_as_unreadable(
+        self, archived_elsewhere, s3_stub
+    ):
+        s3_stub.clear()
+        # Put the key back in the listing without a body behind it
+        s3_stub[build_key(archived_elsewhere.pk)] = None
+
+        stats = sync_archived_comment_texts(snapshot_at=timezone.now(), verify=True)
+
+        assert stats.synced == 0
+        assert stats.mismatched == 0
+        assert stats.verify_failed == 1
 
 
 class TestSyncCommand:
@@ -569,8 +744,8 @@ class TestSyncCommand:
         with pytest.raises(CommandError):
             call_command("sync_archived_comment_texts", "--snapshot-at", "yesterday")
 
-    def test_errors_when_bucket_is_not_configured(self, mocker):
-        mocker.patch("django.conf.settings.AWS_STORAGE_BUCKET_COMMENTS_TEXT", None)
+    def test_errors_when_bucket_is_not_configured(self, settings):
+        settings.AWS_STORAGE_BUCKET_COMMENTS_TEXT = None
 
         with pytest.raises(CommandError):
             call_command(

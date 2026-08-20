@@ -103,7 +103,9 @@ class Command(BaseCommand):
                 + stats.already_archived
                 + stats.orphaned
                 + stats.skipped_stale
+                + stats.ineligible
                 + stats.mismatched
+                + stats.verify_failed
             )
             detail = ", ".join(
                 f"{count} {label}"
@@ -111,7 +113,9 @@ class Command(BaseCommand):
                     ("already archived", stats.already_archived),
                     ("orphaned", stats.orphaned),
                     ("stale", stats.skipped_stale),
+                    ("ineligible", stats.ineligible),
                     ("mismatched", stats.mismatched),
+                    ("unreadable", stats.verify_failed),
                 )
                 if count
             )
@@ -137,6 +141,7 @@ class Command(BaseCommand):
             ("already truncated", stats.already_archived),
             ("orphaned (no such comment)", stats.orphaned),
             ("skipped as touched since the snapshot", stats.skipped_stale),
+            ("ineligible (not a long private bot comment)", stats.ineligible),
         ):
             if count:
                 progress.write(f"  {count:,} {label}")
@@ -152,5 +157,16 @@ class Command(BaseCommand):
                 self.style.WARNING(
                     f"{stats.mismatched:,} archived object(s) did not match the "
                     "current text and were left alone"
+                )
+            )
+
+        if stats.verify_failed:
+            # Distinct from a mismatch: nothing is known about these objects,
+            # so a non-zero count here means the bucket, not the snapshot, is
+            # what needs looking at
+            self.stdout.write(
+                self.style.ERROR(
+                    f"{stats.verify_failed:,} archived object(s) could not be read "
+                    "back and were left alone"
                 )
             )
