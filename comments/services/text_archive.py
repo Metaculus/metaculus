@@ -1,8 +1,11 @@
 import json
 import logging
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import timedelta
 
+from botocore.config import Config
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Count, Q, QuerySet, Sum, Value
@@ -26,6 +29,10 @@ ARCHIVE_STUB_LENGTH = 200
 S3_KEY_PREFIX = "comments_text"
 
 DEFAULT_BATCH_SIZE = 500
+# S3 has no multi-object PUT, so the only way to cut the wall-clock cost of the
+# uploads is to keep several of them in flight at once. They are latency bound,
+# not bandwidth bound, so this scales close to linearly.
+DEFAULT_CONCURRENCY = 8
 
 # `text` is the base column shadowed by modeltranslation: it holds a duplicate
 # of the original content that is written on save but never read back (reads of
@@ -49,7 +56,28 @@ def build_key(comment_id: int) -> str:
     return f"{S3_KEY_PREFIX}/{comment_id}.json"
 
 
-def upload_text(comment_id: int, text: str) -> str:
+def get_archive_s3_client(concurrency: int = 1):
+    """
+    S3 client for the archive. Building a client is expensive, so callers that
+    upload many objects should build one and pass it around. The connection
+    pool has to be at least as large as the number of concurrent uploads, or
+    botocore serialises them behind the default pool of 10.
+    """
+
+    return get_boto_client(
+        "s3",
+        config=Config(
+            max_pool_connections=max(concurrency, 10),
+            # S3 answers a request rate it cannot sustain with 503 SlowDown.
+            # We run far below the limit, but `standard` mode covers the
+            # throttling error codes explicitly and backs off with jitter,
+            # rather than relying on the looser `legacy` default.
+            retries={"mode": "standard", "max_attempts": 5},
+        ),
+    )
+
+
+def upload_text(comment_id: int, text: str, s3=None) -> str:
     """
     Uploads the full original text of a comment to S3 and returns the key.
 
@@ -58,7 +86,7 @@ def upload_text(comment_id: int, text: str) -> str:
     machine translations of an archived text would be pointless anyway.
     """
 
-    s3 = get_boto_client("s3")
+    s3 = s3 or get_archive_s3_client()
     key = build_key(comment_id)
 
     s3.put_object(
@@ -122,7 +150,13 @@ def get_archivable_comments() -> QuerySet[Comment]:
     cutoff = timezone.now() - timedelta(days=ARCHIVE_AGE_DAYS)
 
     return (
-        Comment.objects.filter(
+        # `rewrite(False)` is essential, not an optimisation. Comment is
+        # registered with modeltranslation, whose queryset rewrites every
+        # mention of `text` into the current language's column. Without it,
+        # `Length(ORIGINAL_TEXT)` degrades to measuring `text_original` twice
+        # and rows whose text only lives in the base column are never seen.
+        Comment.objects.rewrite(False)
+        .filter(
             author__is_bot=True,
             is_private=True,
             is_text_archived=False,
@@ -135,6 +169,10 @@ def get_archivable_comments() -> QuerySet[Comment]:
 
 @dataclass
 class ArchiveStats:
+    # Number of comments the run expects to process. Only populated when a
+    # progress callback asks for it, since counting means measuring the length
+    # of every candidate text.
+    total: int = 0
     archived: int = 0
     failed: int = 0
     skipped: int = 0
@@ -164,22 +202,30 @@ def archive_bot_comment_texts(
     dry_run: bool = False,
     limit: int | None = None,
     batch_size: int = DEFAULT_BATCH_SIZE,
+    concurrency: int = DEFAULT_CONCURRENCY,
+    on_progress: Callable[[ArchiveStats], None] | None = None,
 ) -> ArchiveStats:
     """
     Moves the full text of long, private, old bot comments to S3, leaving a
     truncated stub in the database.
+
+    `on_progress` is called with the running stats after every batch.
     """
 
     stats = ArchiveStats()
     queryset = get_archivable_comments()
 
     if dry_run:
-        # Aggregate without transferring any text
-        totals = queryset.aggregate(count=Count("id"), chars=Sum("text_length"))
-        count = totals["count"] or 0
+        # Aggregate without transferring any text. The limit has to be applied
+        # before aggregating, so that the reported totals describe the rows the
+        # real run would actually touch.
+        scoped = queryset.order_by("id")
 
         if limit is not None:
-            count = min(count, limit)
+            scoped = scoped[:limit]
+
+        totals = scoped.aggregate(count=Count("id"), chars=Sum("text_length"))
+        count = totals["count"] or 0
 
         stats.archived = count
         stats.chars_reclaimed = max(
@@ -191,9 +237,20 @@ def archive_bot_comment_texts(
 
         return stats
 
+    if on_progress is not None:
+        # Counting is not free: the eligibility filter measures the length of
+        # every candidate text, so this reads the whole candidate set
+        total = queryset.count()
+        stats.total = min(total, limit) if limit is not None else total
+
     started_at = timezone.now()
     truncate_kwargs = _build_truncate_kwargs()
     cursor = 0
+    concurrency = max(concurrency, 1)
+    # One client, shared by every worker: botocore clients are safe to call
+    # from multiple threads once built, and building one per upload is pure
+    # overhead
+    s3 = get_archive_s3_client(concurrency)
 
     while limit is None or stats.archived + stats.failed < limit:
         page_size = batch_size
@@ -215,38 +272,56 @@ def archive_bot_comment_texts(
         cursor = rows[-1]["id"]
         uploaded_ids = []
 
-        for row in rows:
-            text = row["text_original"] or row["text"]
+        # Each comment is still its own independently retrievable object; the
+        # requests are simply issued in parallel, since they are round-trip
+        # bound. The database update below waits for the whole page, so an
+        # upload can never be outrun by its own truncation.
+        with ThreadPoolExecutor(max_workers=concurrency) as pool:
+            futures = {
+                pool.submit(
+                    upload_text, row["id"], row["text_original"] or row["text"], s3
+                ): row["id"]
+                for row in rows
+            }
 
-            try:
-                upload_text(row["id"], text)
-            except Exception:
-                logger.exception("Failed to archive text of comment %s", row["id"])
-                stats.failed += 1
+            for future, comment_id in futures.items():
+                try:
+                    future.result()
+                except Exception:
+                    logger.exception("Failed to archive text of comment %s", comment_id)
+                    stats.failed += 1
 
-                continue
+                    continue
 
-            uploaded_ids.append(row["id"])
+                uploaded_ids.append(comment_id)
 
-        if not uploaded_ids:
-            continue
+        if uploaded_ids:
+            # Only truncate rows that have not been touched since the run
+            # began, so an edit racing the upload can never lose text.
+            # `edited_at` is nullable on rows that predate
+            # TimeStampedModel.save.
+            # `rewrite(False)` again: modeltranslation's `update()` rewrites
+            # the `text` kwarg to `text_original`, which collides with the
+            # `text_original` kwarg and leaves the base column holding the
+            # full text — silently forfeiting half the space this reclaims.
+            untouched = (
+                Comment.objects.rewrite(False)
+                .filter(pk__in=uploaded_ids)
+                .filter(Q(edited_at__lt=started_at) | Q(edited_at__isnull=True))
+            )
+            archived_ids = set(untouched.values_list("id", flat=True))
+            updated = untouched.update(**truncate_kwargs)
 
-        # Only truncate rows that have not been touched since the run began, so
-        # an edit racing the upload can never lose text. `edited_at` is
-        # nullable on rows that predate TimeStampedModel.save.
-        untouched = Comment.objects.filter(pk__in=uploaded_ids).filter(
-            Q(edited_at__lt=started_at) | Q(edited_at__isnull=True)
-        )
-        archived_ids = set(untouched.values_list("id", flat=True))
-        updated = untouched.update(**truncate_kwargs)
+            stats.archived += updated
+            stats.skipped += len(uploaded_ids) - updated
+            stats.chars_reclaimed += sum(
+                max(row["text_length"] - ARCHIVE_STUB_LENGTH, 0)
+                for row in rows
+                if row["id"] in archived_ids
+            )
+            stats.sample_ids = (stats.sample_ids + sorted(archived_ids))[:5]
 
-        stats.archived += updated
-        stats.skipped += len(uploaded_ids) - updated
-        stats.chars_reclaimed += sum(
-            max(row["text_length"] - ARCHIVE_STUB_LENGTH, 0)
-            for row in rows
-            if row["id"] in archived_ids
-        )
-        stats.sample_ids = (stats.sample_ids + sorted(archived_ids))[:5]
+        if on_progress is not None:
+            on_progress(stats)
 
     return stats

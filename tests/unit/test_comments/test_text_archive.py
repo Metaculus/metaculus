@@ -145,8 +145,14 @@ class TestArchiveBotCommentTexts:
         comment.refresh_from_db()
         assert comment.is_text_archived is True
         assert comment.text_original == LONG_TEXT[:ARCHIVE_STUB_LENGTH]
+        # `rewrite(False)` is what makes this assertion meaningful: a plain
+        # `values_list("text")` is rewritten by modeltranslation to read
+        # `text_original`, so it would pass even if the base column still
+        # held the full text.
         assert (
-            Comment.objects.filter(pk=comment.pk).values_list("text", flat=True)[0]
+            Comment.objects.rewrite(False)
+            .filter(pk=comment.pk)
+            .values_list("text", flat=True)[0]
             == LONG_TEXT[:ARCHIVE_STUB_LENGTH]
         )
 
@@ -187,6 +193,22 @@ class TestArchiveBotCommentTexts:
         assert comment.is_text_archived is False
         assert comment.text_original == LONG_TEXT
 
+    def test_dry_run_totals_are_scoped_to_the_limit(self, bot, post, s3_stub):
+        for _ in range(3):
+            factory_archivable_comment(bot, post)
+
+        per_comment = len(LONG_TEXT) - ARCHIVE_STUB_LENGTH
+        unlimited = archive_bot_comment_texts(dry_run=True)
+        limited = archive_bot_comment_texts(dry_run=True, limit=1)
+
+        assert unlimited.archived == 3
+        assert unlimited.chars_reclaimed == 3 * per_comment
+
+        # The limited estimate must describe only the rows a real run would
+        # touch, not the whole queryset
+        assert limited.archived == 1
+        assert limited.chars_reclaimed == per_comment
+
     def test_upload_failure_leaves_comment_intact(self, bot, post, s3_stub, mocker):
         comment = factory_archivable_comment(bot, post)
         mocker.patch(
@@ -209,6 +231,31 @@ class TestArchiveBotCommentTexts:
 
         assert archive_bot_comment_texts(limit=1).archived == 1
         assert get_archivable_comments().count() == 1
+
+    def test_archives_comments_whose_text_is_only_in_the_base_column(
+        self, bot, post, s3_stub
+    ):
+        """
+        Rows written before modeltranslation was introduced have an empty
+        `text_original`. They are the largest rows in the table, so they must
+        not fall through the eligibility filter.
+        """
+
+        comment = factory_archivable_comment(bot, post)
+        Comment.objects.rewrite(False).filter(pk=comment.pk).update(
+            text=LONG_TEXT, text_original=""
+        )
+
+        assert archive_bot_comment_texts().archived == 1
+
+        payload = json.loads(s3_stub[build_key(comment.pk)])
+        assert payload["text"] == LONG_TEXT
+        assert (
+            Comment.objects.rewrite(False)
+            .filter(pk=comment.pk)
+            .values_list("text", flat=True)[0]
+            == LONG_TEXT[:ARCHIVE_STUB_LENGTH]
+        )
 
     def test_processes_multiple_batches(self, bot, post, s3_stub):
         for _ in range(5):
