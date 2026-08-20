@@ -1,4 +1,3 @@
-import time
 from collections.abc import Callable
 
 from django.conf import settings
@@ -16,18 +15,7 @@ from comments.services.text_archive import (
     check_is_enabled,
 )
 
-
-def format_duration(seconds: float) -> str:
-    seconds = int(seconds)
-    hours, remainder = divmod(seconds, 3600)
-    minutes, seconds = divmod(remainder, 60)
-
-    if hours:
-        return f"{hours}h{minutes:02d}m"
-    if minutes:
-        return f"{minutes}m{seconds:02d}s"
-
-    return f"{seconds}s"
+from ._progress import ProgressWriter, format_duration
 
 
 class Command(BaseCommand):
@@ -68,26 +56,6 @@ class Command(BaseCommand):
             ),
         )
 
-    def _write_progress(self, stats, started: float):
-        elapsed = time.monotonic() - started
-        done = stats.archived + stats.failed + stats.skipped
-        rate = done / elapsed if elapsed else 0
-        percent = (done / stats.total * 100) if stats.total else 0
-        remaining = max(stats.total - done, 0)
-        eta = format_duration(remaining / rate) if rate else "?"
-
-        line = (
-            f"  {done:,}/{stats.total:,} ({percent:.1f}%)  "
-            f"{stats.chars_reclaimed:,} chars reclaimed  "
-            f"{rate:.1f}/s  elapsed {format_duration(elapsed)}  eta {eta}"
-        )
-
-        if stats.failed or stats.skipped:
-            line += f"  [{stats.failed} failed, {stats.skipped} skipped]"
-
-        self.stdout.write(line)
-        self.stdout.flush()
-
     def handle(self, *args, **options):
         dry_run = options["dry_run"]
 
@@ -97,20 +65,32 @@ class Command(BaseCommand):
                 "comment text archiving is disabled."
             )
 
-        started = time.monotonic()
+        progress = ProgressWriter(self.stdout)
         on_progress: Callable[[ArchiveStats], None] | None = None
 
         if not dry_run:
-            self.stdout.write(
+            progress.write(
                 f"Archiving to {settings.AWS_STORAGE_BUCKET_COMMENTS_TEXT}/"
                 f"{S3_KEY_PREFIX}/ with concurrency {options['concurrency']}, "
                 f"batches of {options['batch_size']}"
             )
-            self.stdout.write("Counting eligible comments...")
-            self.stdout.flush()
+            progress.write("Counting eligible comments...")
 
             def write_progress(stats: ArchiveStats) -> None:
-                self._write_progress(stats, started)
+                progress.total = stats.total
+                detail = ", ".join(
+                    f"{count} {label}"
+                    for label, count in (
+                        ("failed", stats.failed),
+                        ("skipped", stats.skipped),
+                    )
+                    if count
+                )
+                progress.update(
+                    stats.archived + stats.failed + stats.skipped,
+                    f"{stats.chars_reclaimed:,} chars reclaimed",
+                    detail,
+                )
 
             on_progress = write_progress
 
@@ -123,17 +103,15 @@ class Command(BaseCommand):
         )
 
         verb = "Would archive" if dry_run else "Archived"
-        elapsed = (
-            "" if dry_run else f" in {format_duration(time.monotonic() - started)}"
-        )
-        self.stdout.write(
+        elapsed = "" if dry_run else f" in {format_duration(progress.elapsed)}"
+        progress.write(
             f"{verb} {stats.archived:,} comment(s), "
             f"reclaiming {stats.chars_reclaimed:,} characters{elapsed}"
         )
 
         if stats.sample_ids:
             sample = ", ".join(str(pk) for pk in stats.sample_ids)
-            self.stdout.write(f"Sample comment ids: {sample}")
+            progress.write(f"Sample comment ids: {sample}")
 
         if stats.skipped:
             self.stdout.write(
