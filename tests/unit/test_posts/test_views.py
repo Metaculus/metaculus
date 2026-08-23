@@ -40,6 +40,7 @@ class TestPostCreate:
                         "zero_point": None,
                     },
                     "open_upper_bound": True,
+                    "inbound_outcome_count": 200,
                     "open_time": "2024-04-01T00:00:00Z",
                     "scheduled_close_time": "2024-05-01T00:00:00Z",
                     "scheduled_resolve_time": "2024-05-02T00:00:00Z",
@@ -64,6 +65,34 @@ class TestPostCreate:
         assert (
             response.data["question"]["scheduled_close_time"] == "2024-05-01T00:00:00Z"
         )
+
+    def test_create__question__inbound_outcome_count_required(self, user1_client):
+        response = user1_client.post(
+            self.url,
+            {
+                "title": "Question Post",
+                "default_project": get_site_main_project().pk,
+                "projects": {},
+                "question": {
+                    "title": "Question Post",
+                    "description": "Question description",
+                    "type": "numeric",
+                    "scaling": {
+                        "range_min": 1,
+                        "range_max": 100,
+                        "zero_point": None,
+                    },
+                    "open_upper_bound": True,
+                    "open_time": "2024-04-01T00:00:00Z",
+                    "scheduled_close_time": "2024-05-01T00:00:00Z",
+                    "scheduled_resolve_time": "2024-05-02T00:00:00Z",
+                },
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "Inbound Outcome Count is required" in str(response.data)
 
     def test_create__group(self, user1, user1_client):
         response = user1_client.post(
@@ -190,6 +219,7 @@ class TestPostCreate:
                         "zero_point": None,
                     },
                     "open_upper_bound": True,
+                    "inbound_outcome_count": 200,
                     "open_time": "2024-04-01T00:00:00Z",
                     "scheduled_close_time": "2024-05-01T00:00:00Z",
                     "scheduled_resolve_time": "2024-05-02T00:00:00Z",
