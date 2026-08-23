@@ -123,7 +123,12 @@ def clone_question(question: Question, title: str = None, **kwargs) -> Question:
         open_upper_bound=kwargs.pop("open_upper_bound", question.open_upper_bound),
         open_lower_bound=kwargs.pop("open_lower_bound", question.open_lower_bound),
         inbound_outcome_count=kwargs.pop(
-            "inbound_outcome_count", question.inbound_outcome_count
+            "inbound_outcome_count",
+            (
+                question.get_inbound_outcome_count()
+                if question.type in QUESTION_CONTINUOUS_TYPES
+                else question.inbound_outcome_count
+            ),
         ),
         include_bots_in_aggregates=kwargs.pop(
             "include_bots_in_aggregates", question.include_bots_in_aggregates
