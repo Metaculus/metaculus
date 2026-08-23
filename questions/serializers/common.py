@@ -221,29 +221,22 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
                 errors.append("Range Max is required for continuous questions")
             if data.get("range_min") is None:
                 errors.append("Range Min is required for continuous questions")
-            if self.requires_inbound_outcome_count(data):
-                inbound_outcome_count = data.get("inbound_outcome_count")
-                if inbound_outcome_count is None:
-                    errors.append(
-                        "Inbound Outcome Count is required for continuous questions "
-                        f"(default: {DEFAULT_INBOUND_OUTCOME_COUNT})"
-                    )
-                elif inbound_outcome_count < 1:
-                    errors.append("Inbound Outcome Count must be positive")
+            # Required on update as well as on create: questions that predate the
+            # field are serialized with DEFAULT_INBOUND_OUTCOME_COUNT, so any client
+            # editing one already holds a value to send back.
+            inbound_outcome_count = data.get("inbound_outcome_count")
+            if inbound_outcome_count is None:
+                errors.append(
+                    "Inbound Outcome Count is required for continuous questions "
+                    f"(default: {DEFAULT_INBOUND_OUTCOME_COUNT})"
+                )
+            elif inbound_outcome_count < 1:
+                errors.append("Inbound Outcome Count must be positive")
 
         if errors:
             raise serializers.ValidationError(errors)
 
         return data
-
-    def requires_inbound_outcome_count(self, data: dict) -> bool:
-        """
-        Only newly created questions must supply an explicit value. Questions that
-        predate the field stay readable/editable without one - reads fall back to
-        DEFAULT_INBOUND_OUTCOME_COUNT.
-        """
-
-        return True
 
 
 class QuestionUpdateSerializer(QuestionWriteSerializer):
@@ -255,10 +248,6 @@ class QuestionUpdateSerializer(QuestionWriteSerializer):
             "open_time",
             "cp_reveal_time",
         )
-
-    def requires_inbound_outcome_count(self, data: dict) -> bool:
-        # An `id` means we're updating an existing question, not creating one
-        return not data.get("id")
 
     def validate(self, data: dict):
         data = super().validate(data)
