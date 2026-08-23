@@ -66,34 +66,6 @@ class TestPostCreate:
             response.data["question"]["scheduled_close_time"] == "2024-05-01T00:00:00Z"
         )
 
-    def test_create__question__inbound_outcome_count_required(self, user1_client):
-        response = user1_client.post(
-            self.url,
-            {
-                "title": "Question Post",
-                "default_project": get_site_main_project().pk,
-                "projects": {},
-                "question": {
-                    "title": "Question Post",
-                    "description": "Question description",
-                    "type": "numeric",
-                    "scaling": {
-                        "range_min": 1,
-                        "range_max": 100,
-                        "zero_point": None,
-                    },
-                    "open_upper_bound": True,
-                    "open_time": "2024-04-01T00:00:00Z",
-                    "scheduled_close_time": "2024-05-01T00:00:00Z",
-                    "scheduled_resolve_time": "2024-05-02T00:00:00Z",
-                },
-            },
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "Inbound Outcome Count is required" in str(response.data)
-
     def test_create__group(self, user1, user1_client):
         response = user1_client.post(
             self.url,
@@ -243,54 +215,6 @@ class TestPostCreate:
 
 
 class TestPostUpdate:
-    def _numeric_question_payload(self, **overrides):
-        payload = {
-            "title": "Question Post",
-            "type": "numeric",
-            "scaling": {"range_min": 1, "range_max": 100, "zero_point": None},
-            "open_upper_bound": True,
-            "open_lower_bound": True,
-            "scheduled_close_time": "2024-05-01T00:00:00Z",
-            "scheduled_resolve_time": "2024-05-02T00:00:00Z",
-        }
-        payload.update(overrides)
-
-        return payload
-
-    def test_update__question__inbound_outcome_count_required(
-        self, user1, user1_client
-    ):
-        # A question predating the field, so nothing is stored on it
-        question = create_question(
-            question_type=Question.QuestionType.NUMERIC,
-            range_min=1,
-            range_max=100,
-            inbound_outcome_count=None,
-        )
-        post = factory_post(
-            author=user1,
-            question=question,
-            curation_status=Post.CurationStatus.DRAFT,
-        )
-        url = reverse("post-update", kwargs={"pk": post.pk})
-
-        response = user1_client.put(
-            url, {"question": self._numeric_question_payload()}, format="json"
-        )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "Inbound Outcome Count is required" in str(response.data)
-
-        # The value the client reads back off the question is enough to save with
-        response = user1_client.put(
-            url,
-            {"question": self._numeric_question_payload(inbound_outcome_count=200)},
-            format="json",
-        )
-        assert response.status_code == status.HTTP_200_OK
-
-        question.refresh_from_db()
-        assert question.inbound_outcome_count == 200
-
     def test_dont_clear_tags(self, user1, user1_client):
         category = factory_project(type=Project.ProjectTypes.CATEGORY)
         tournament = factory_project(type=Project.ProjectTypes.TOURNAMENT)

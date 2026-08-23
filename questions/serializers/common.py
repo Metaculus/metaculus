@@ -82,8 +82,6 @@ class QuestionSerializer(serializers.ModelSerializer):
         )
 
     def get_inbound_outcome_count(self, question: Question) -> int | None:
-        # Legacy continuous questions may have no value stored, in which case
-        # the default is what every consumer falls back to anyway.
         if question.type in QUESTION_CONTINUOUS_TYPES:
             return question.get_inbound_outcome_count()
 
@@ -221,9 +219,6 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
                 errors.append("Range Max is required for continuous questions")
             if data.get("range_min") is None:
                 errors.append("Range Min is required for continuous questions")
-            # Required on update as well as on create: questions that predate the
-            # field are serialized with DEFAULT_INBOUND_OUTCOME_COUNT, so any client
-            # editing one already holds a value to send back.
             inbound_outcome_count = data.get("inbound_outcome_count")
             if inbound_outcome_count is None:
                 errors.append(
