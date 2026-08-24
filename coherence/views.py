@@ -8,7 +8,6 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-
 from coherence.models import (
     CoherenceLink,
     AggregateCoherenceLink,
@@ -27,7 +26,9 @@ from coherence.services import (
     update_coherence_link,
     aggregate_coherence_link_vote,
 )
+from coherence.services.suggestions.read import get_suggestions_for_question
 from coherence.utils import get_aggregation_results, get_aggregations_links
+from posts.serializers import serialize_post_many
 from posts.services.common import get_post_permission_for_user
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -248,6 +249,57 @@ class CoherenceBotForecastSerializer(serializers.Serializer):
 
     class Meta:
         fields = ("coherence_user_id", "forecasts", "comments")
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def get_suggested_links_for_question_api_view(request: Request, pk: int):
+    """
+    Return AI-driven link suggestions for a question.
+
+    Response shape:
+        {"data": [{"post": {...}, "suggested_question_id": <int>,
+                   "score": <int>}, ...]}
+
+    The frontend uses `suggested_question_id` to pick the subquestion to
+    display from group posts.
+    """
+    target = get_object_or_404(Question, pk=pk)
+    # Private questions can be suggestion targets; their suggestions must
+    # only be visible to users who can see the question itself.
+    target_permission = get_post_permission_for_user(target.post, user=request.user)
+    ObjectPermission.can_view(target_permission, raise_exception=True)
+
+    suggestions = get_suggestions_for_question(
+        target_question=target,
+        user=request.user if request.user.is_authenticated else None,
+        limit=20,
+    )
+    if not suggestions:
+        return Response({"data": []})
+
+    # Batch-serialise the posts using the same path the existing
+    # similar-posts endpoint uses, so frontend types are unchanged.
+    post_ids = list({s.question.post_id for s in suggestions if s.question.post_id})
+    serialized_posts = serialize_post_many(
+        post_ids,
+        with_cp=True,
+        include_cp_history=True,
+        current_user=request.user if request.user.is_authenticated else None,
+        group_cutoff=1,
+    )
+    by_post_id = {p["id"]: p for p in serialized_posts}
+
+    data = [
+        {
+            "post": by_post_id[s.question.post_id],
+            "suggested_question_id": s.question.id,
+            "score": s.score,
+        }
+        for s in suggestions
+        if s.question.post_id in by_post_id
+    ]
+    return Response({"data": data})
 
 
 @api_view(["POST"])

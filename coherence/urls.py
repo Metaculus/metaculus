@@ -45,4 +45,9 @@ urlpatterns = [
         views.get_aggregate_links_for_question_api_view,
         name="get-aggregate-links-for-question",
     ),
+    path(
+        "coherence/question/<int:pk>/suggested-links/",
+        views.get_suggested_links_for_question_api_view,
+        name="get-suggested-links-for-question",
+    ),
 ]
