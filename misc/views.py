@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.core.mail import EmailMessage
-from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.cache import cache_control, cache_page
 from rest_framework import status
@@ -134,11 +133,10 @@ def get_dismissed_bulletin_ids(request):
     return Response({"dismissed_bulletin_ids": dismissed_bulletin_ids})
 
 
-@cache_control(public=True, max_age=60 * 60)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_site_stats(request):
-    return JsonResponse(get_cached_site_stats())
+    return Response(get_cached_site_stats())
 
 
 @api_view(["POST"])
