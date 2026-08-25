@@ -18,10 +18,10 @@ export const JOBS_INSIGHTS = {
     positive: (
       <>
         By 2030, <strong>nurses</strong>, <strong>construction workers</strong>,
-        and <strong>engineers</strong> are expected to see the largest gains,
+        and <strong>physicians</strong> are expected to see the largest gains,
         driven by an aging population, infrastructure buildouts, and continued
-        demand for technical expertise that AI is unlikely to fully displace in
-        the short term.
+        demand for in-person service that AI is unlikely to displace in the
+        short term.
       </>
     ),
     negative: (
