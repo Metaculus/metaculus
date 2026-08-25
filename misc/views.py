@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.utils import timezone
-from django.views.decorators.cache import cache_control, cache_page
+from django.views.decorators.cache import cache_page
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied
