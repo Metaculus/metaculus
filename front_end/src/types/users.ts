@@ -68,6 +68,8 @@ export type CurrentUser = User & {
   should_suggest_keyfactors: boolean;
   prediction_expiration_percent: number | null;
   has_password: boolean;
+  // null means unlimited
+  max_bots: number | null;
   app_theme?: AppTheme | null;
   interface_type: InterfaceType;
   language?: string | null;
