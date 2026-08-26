@@ -22,14 +22,23 @@ export default async function Settings() {
 
   const { key: apiKey } = await ServerAuthApi.getApiKey();
 
+  // Bots created for API forecasting have neither an email nor a password, so
+  // there are no credentials to manage.
+  const hasCredentials =
+    !currentUser.is_bot || !!currentUser.email || currentUser.has_password;
+
   return (
     <div className="flex flex-col gap-6">
-      {!currentUser.has_password && <NoPasswordBanner />}
+      {hasCredentials && !currentUser.has_password && <NoPasswordBanner />}
       <PreferencesSection className="gap-0">
         <EmailChangeToast />
-        <EmailEdit user={currentUser} />
-        <ChangePassword hasPassword={currentUser.has_password} />
-        <ApiAccess apiKey={apiKey} />
+        {hasCredentials && (
+          <>
+            <EmailEdit user={currentUser} />
+            <ChangePassword hasPassword={currentUser.has_password} />
+          </>
+        )}
+        <ApiAccess apiKey={apiKey} withDivider={hasCredentials} />
         <ApiForecastingAccess access={currentUser.api_forecasting_access} />
         <EmailMeMyData />
       </PreferencesSection>

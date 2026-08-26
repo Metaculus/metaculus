@@ -20,9 +20,13 @@ import { rotateApiKeyAction } from "../../actions";
 
 type Props = {
   apiKey: string | null;
+  withDivider?: boolean;
 };
 
-const ApiAccess: FC<Props> = ({ apiKey: initialApiKey }) => {
+const ApiAccess: FC<Props> = ({
+  apiKey: initialApiKey,
+  withDivider = true,
+}) => {
   const t = useTranslations();
   const [apiKey, setApiKey] = useState<string | null>(initialApiKey);
   const [isVisible, setIsVisible] = useState(false);
@@ -70,7 +74,9 @@ const ApiAccess: FC<Props> = ({ apiKey: initialApiKey }) => {
 
   return (
     <section id="api-access">
-      <hr className="my-6 border-gray-400 dark:border-gray-400-dark" />
+      {withDivider && (
+        <hr className="my-6 border-gray-400 dark:border-gray-400-dark" />
+      )}
       <div className="mb-4 text-gray-500 dark:text-gray-500-dark">
         {t("apiAccess")}
       </div>
