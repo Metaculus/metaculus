@@ -36,6 +36,7 @@ export default async function Settings() {
           <>
             <EmailEdit user={currentUser} />
             <ChangePassword hasPassword={currentUser.has_password} />
+            <hr className="my-6 border-gray-400 dark:border-gray-400-dark" />
           </>
         )}
         <ApiAccess apiKey={apiKey} withDivider={hasCredentials} />
