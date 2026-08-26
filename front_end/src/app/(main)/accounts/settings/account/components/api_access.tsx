@@ -20,7 +20,6 @@ import { rotateApiKeyAction } from "../../actions";
 
 type Props = {
   apiKey: string | null;
-  withDivider?: boolean;
 };
 
 const ApiAccess: FC<Props> = ({ apiKey: initialApiKey }) => {

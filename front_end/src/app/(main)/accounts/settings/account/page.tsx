@@ -39,7 +39,7 @@ export default async function Settings() {
             <hr className="my-6 border-gray-400 dark:border-gray-400-dark" />
           </>
         )}
-        <ApiAccess apiKey={apiKey} withDivider={hasCredentials} />
+        <ApiAccess apiKey={apiKey} />
         <ApiForecastingAccess access={currentUser.api_forecasting_access} />
         <EmailMeMyData />
       </PreferencesSection>
