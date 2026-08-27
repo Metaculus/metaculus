@@ -11,6 +11,7 @@ import { resolveQuestion } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import ButtonGroup from "@/components/ui/button_group";
+import Checkbox from "@/components/ui/checkbox";
 import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormError, Input } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
@@ -36,6 +37,7 @@ const schema = z.object({
   actualResolveTime: z
     .string()
     .transform((value) => new Date(value).toISOString()),
+  scoreAsTask: z.boolean(),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -92,11 +94,13 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
             ? resolutionTypeOptions[0]?.value ?? ""
             : "",
         actualResolveTime: currentDateTime,
+        scoreAsTask: false,
       },
     });
 
   const resolutionType = watch("resolutionType");
   const unambiguousType = watch("unambiguousType");
+  const scoreAsTask = watch("scoreAsTask");
 
   const unambiguousOptions = useMemo(() => {
     const options = [{ value: "knownValue", label: "Known value" }];
@@ -118,6 +122,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
       resolutionType,
       resolutionValue,
       actualResolveTime,
+      scoreAsTask,
     }: FormData) => {
       setSubmitErrors([]);
 
@@ -125,7 +130,8 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
       const responses = await resolveQuestion(
         question.id,
         resolutionValue || resolutionType,
-        actualResolveTime
+        actualResolveTime,
+        scoreAsTask
       );
 
       setIsSubmitting(false);
@@ -268,6 +274,21 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               }
             />
           </label>
+          <div className="flex flex-col gap-1 self-stretch text-left">
+            <Checkbox
+              checked={scoreAsTask}
+              onChange={(checked) => setValue("scoreAsTask", checked)}
+              label="Score asynchronously"
+              className="items-start"
+              inputClassName="text-gray-900 dark:text-gray-900-dark"
+            />
+            <p className="m-0 pl-7 text-sm text-gray-700 dark:text-gray-700-dark">
+              Try first with this off. If the resolution fails (most likely due
+              to a timeout), turn this on. Scoring will then be done
+              asynchronously by the server. Check back in 5 minutes to verify
+              that scores are populated.
+            </p>
+          </div>
           <div className="flex justify-center">
             <Button
               type="submit"

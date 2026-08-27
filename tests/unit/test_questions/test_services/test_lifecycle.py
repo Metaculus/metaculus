@@ -3,6 +3,7 @@ from datetime import datetime
 import freezegun
 import pytest  # noqa
 from django.utils.timezone import make_aware
+from rest_framework.exceptions import APIException
 
 from posts.models import Post
 from posts.services.common import create_post, approve_post
@@ -1142,3 +1143,88 @@ class TestResolveConditionalQuestion:
         # conditional branch questions status
         assert question_yes.status == QuestionStatus.CLOSED
         assert question_no.status == QuestionStatus.CLOSED
+
+
+@freezegun.freeze_time("2024-1-1")
+class TestResolveQuestionScoring:
+    """
+    The resolve endpoint asks for `score_as_task=False`, which scores inside the
+    request so that a failure undoes the resolution. `score_as_task` (the
+    default here, and what conditional branches always get) scores in the
+    background instead.
+    """
+
+    @pytest.fixture()
+    def question(self, user1: User) -> Question:  # noqa
+        question = create_question(
+            question_type=Question.QuestionType.BINARY,
+            open_time=make_aware(datetime(2024, 1, 1)),
+            scheduled_close_time=make_aware(datetime(2024, 1, 10)),
+        )
+        factory_post(author=user1, question=question)
+
+        return question
+
+    def test_scores_live_and_defers_only_notifications(
+        self, mocker, question: Question, django_capture_on_commit_callbacks
+    ):
+        score = mocker.patch("questions.services.lifecycle.score_resolved_question")
+        send_notifications = mocker.patch(
+            "questions.tasks.send_question_resolution_notifications.send"
+        )
+
+        with django_capture_on_commit_callbacks(execute=True):
+            resolve_question(
+                question,
+                "yes",
+                actual_resolve_time=make_aware(datetime(2024, 1, 1)),
+                score_as_task=False,
+            )
+
+        question.refresh_from_db()
+        assert question.resolution == "yes"
+        assert score.call_count == 1
+        send_notifications.assert_called_once_with(question.id)
+
+    def test_score_as_task_defers_everything(
+        self, mocker, question: Question, django_capture_on_commit_callbacks
+    ):
+        score = mocker.patch("questions.services.lifecycle.score_resolved_question")
+        send_resolve = mocker.patch(
+            "questions.tasks.resolve_question_and_send_notifications.send"
+        )
+
+        with django_capture_on_commit_callbacks(execute=True):
+            resolve_question(
+                question,
+                "yes",
+                actual_resolve_time=make_aware(datetime(2024, 1, 1)),
+                score_as_task=True,
+            )
+
+        question.refresh_from_db()
+        assert question.resolution == "yes"
+        score.assert_not_called()
+        send_resolve.assert_called_once_with(question.id)
+
+    def test_scoring_failure_undoes_the_resolution(self, mocker, question: Question):
+        mocker.patch(
+            "questions.services.lifecycle.score_resolved_question",
+            side_effect=RuntimeError("scoring blew up"),
+        )
+        send_notifications = mocker.patch(
+            "questions.tasks.send_question_resolution_notifications.send"
+        )
+
+        with pytest.raises(APIException):
+            resolve_question(
+                question,
+                "yes",
+                actual_resolve_time=make_aware(datetime(2024, 1, 1)),
+                score_as_task=False,
+            )
+
+        question.refresh_from_db()
+        assert question.resolution is None
+        assert question.actual_resolve_time is None
+        send_notifications.assert_not_called()
