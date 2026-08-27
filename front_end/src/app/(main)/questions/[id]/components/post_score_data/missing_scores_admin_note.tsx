@@ -20,8 +20,11 @@ const MissingScoresAdminNote: FC<Props> = ({ post }) => {
 
   return (
     <div className="rounded bg-blue-200 p-3 text-sm text-gray-700 dark:bg-blue-200-dark dark:text-gray-700-dark">
-      Not seeing scores? This question is resolved so scores should be visible.
-      Scoring can be triggered in the{" "}
+      <span className="text-red-500 dark:text-red-500-dark">
+        Not seeing scores?
+      </span>{" "}
+      This question is resolved so scores should be visible. Scoring can be
+      triggered in the{" "}
       <a
         href={`/admin/questions/question/?post__id__exact=${post.id}`}
         className="text-blue-700 underline dark:text-blue-700-dark"
@@ -29,7 +32,7 @@ const MissingScoresAdminNote: FC<Props> = ({ post }) => {
         Admin panel
       </a>{" "}
       by selecting the question and running the &ldquo;Trigger Scoring&rdquo;
-      action.
+      action. (This message is only visible to admins)
     </div>
   );
 };

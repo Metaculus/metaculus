@@ -61,7 +61,7 @@ export const shouldPostShowScores = (post: PostWithForecasts) =>
 const isQuestionMissingScores = (question: QuestionWithForecasts) =>
   !isNil(question.resolution) &&
   !isUnsuccessfullyResolved(question.resolution) &&
-  !shouldQuestionShowScores(question);
+  !shouldQuestionShowScores(question); // has no scores
 
 export const isPostMissingScores = (post: PostWithForecasts) =>
   someQuestionIn(post, isQuestionMissingScores);
