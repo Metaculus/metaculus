@@ -322,4 +322,22 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
       </>
     ),
   },
+  {
+    date: "2026-07-30",
+    type: "insight",
+    content: (
+      <>
+        Metaculus Pro Forecasters completed a quarterly forecasting update, with
+        the biggest moves on the number of humanities and STEM degrees awarded,
+        as well as lower unemployment disruption for 2030. -{" "}
+        <a
+          href="https://www.metaculus.com/notebooks/44978/labor-hub-updates-july-2026/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          Metaculus
+        </a>
+      </>
+    ),
+  },
 ];
