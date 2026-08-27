@@ -21,6 +21,10 @@ export type SenateRaceWithQuestion = SenateRace & {
   demWinPct: number | null;
   /** Precomputed link to the underlying question/subquestion. */
   href: string | null;
+  /** Seat rating for a race with no question: "D"/"R" when the seat is safe,
+   *  null when it is in play but unforecast. Always null for a race that has a
+   *  question — its forecast is the rating. */
+  rating: "D" | "R" | null;
 };
 
 export function getQuestionBinaryProbability(
@@ -101,26 +105,46 @@ const CLOSE_RACE_MARGIN = 10;
 /**
  * Counts races by favored side, plus how many are close enough to be in play.
  * The `>= 50` split matches the one `state_tooltip.tsx` uses, so a summary can
- * never disagree with a tooltip. Races with no forecast are excluded from every
- * count, and `total` is the sum of the two sides rather than `races.length` so
- * the numbers always reconcile. Null when nothing is forecast yet.
+ * never disagree with a tooltip. Null when the ballot is empty.
+ *
+ * A safe seat counts for its party without a forecast — that is the point of
+ * rating it — so the denominator is every race on the ballot, not only the ones
+ * carrying a question. `unrated` is the remainder: on the ballot, no question,
+ * too competitive to call. Those count toward `total` and toward neither side,
+ * so `dem + rep` deliberately falls short of `total`.
  *
  * `close` deliberately overlaps `dem` and `rep` rather than partitioning them: a
  * toss-up still leans one way, and pulling it out of its side's count would make
  * the two figures contradict each other when read in one sentence.
  */
-export function summarizeRaceLeans(
-  races: SenateRaceWithQuestion[]
-): { dem: number; rep: number; close: number; total: number } | null {
+export function summarizeRaceLeans(races: SenateRaceWithQuestion[]): {
+  dem: number;
+  rep: number;
+  close: number;
+  unrated: number;
+  total: number;
+} | null {
   let dem = 0;
   let rep = 0;
   let close = 0;
+  let unrated = 0;
   for (const race of races) {
-    if (race.demWinPct == null) continue;
+    if (race.rating === "D") {
+      dem += 1;
+      continue;
+    }
+    if (race.rating === "R") {
+      rep += 1;
+      continue;
+    }
+    if (race.demWinPct == null) {
+      unrated += 1;
+      continue;
+    }
     if (race.demWinPct >= 50) dem += 1;
     else rep += 1;
     if (Math.abs(race.demWinPct - 50) <= CLOSE_RACE_MARGIN) close += 1;
   }
-  const total = dem + rep;
-  return total > 0 ? { dem, rep, close, total } : null;
+  const total = dem + rep + unrated;
+  return total > 0 ? { dem, rep, close, unrated, total } : null;
 }

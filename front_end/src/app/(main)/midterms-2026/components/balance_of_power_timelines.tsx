@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useMemo, useState } from "react";
 
@@ -12,6 +13,7 @@ import {
   QuestionWithMultipleChoiceForecasts,
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
+import { getPostLink } from "@/utils/navigation";
 
 import { MIDTERMS_COLORS } from "../constants";
 import { CONGRESS_OUTCOME_LABELS } from "../data";
@@ -37,15 +39,19 @@ const REP: ThemeColor = {
   dark: MIDTERMS_COLORS.repPrimaryDark,
 };
 
-// The four congress outcomes use the shared multiple-choice palette rather than
-// party tints: two blues and two reds sit too close together to tell apart as
-// four separate lines.
+// The two single-party outcomes take the party colors, matching the Democrats and
+// Republicans lines in the charts above. The two split outcomes belong to neither
+// side, so they take the hues in the shared multiple-choice palette that sit
+// furthest from both red and blue — amber and teal. Purple and orange were the
+// other candidates and both read as a blend of the two parties.
 const NEUTRAL_FALLBACK: ThemeColor = {
   DEFAULT: MIDTERMS_COLORS.spectrumNeutral,
   dark: MIDTERMS_COLORS.spectrumNeutral,
 };
 const MC = (i: number): ThemeColor =>
   MULTIPLE_CHOICE_COLOR_SCALE[i] ?? NEUTRAL_FALLBACK;
+const SPLIT_AMBER = MC(4);
+const SPLIT_TEAL = MC(2);
 
 type Props = {
   /** The congress-control post (#34484) — the source for all three timelines. */
@@ -95,26 +101,28 @@ const BalanceOfPowerTimelines: FC<Props> = ({ post }) => {
         optionLabels: [CONGRESS_OUTCOME_LABELS.RR, CONGRESS_OUTCOME_LABELS.RD],
       },
     ]);
-    // The four outcomes read directly — no summing.
+    // The four outcomes read directly — no summing. Note the option strings are
+    // Senate-first ("Rep Senate / Rep House") while the labels read House-first;
+    // the pairing below is what keeps the two conventions aligned.
     const congress = buildControlTimeline(question, [
       {
         label: t("midtermsHubOutcomeRepRep"),
-        color: MC(0),
+        color: REP,
         optionLabels: [CONGRESS_OUTCOME_LABELS.RR],
       },
       {
         label: t("midtermsHubOutcomeRepDem"),
-        color: MC(1),
+        color: SPLIT_AMBER,
         optionLabels: [CONGRESS_OUTCOME_LABELS.RD],
       },
       {
         label: t("midtermsHubOutcomeDemRep"),
-        color: MC(2),
+        color: SPLIT_TEAL,
         optionLabels: [CONGRESS_OUTCOME_LABELS.DR],
       },
       {
         label: t("midtermsHubOutcomeDemDem"),
-        color: MC(3),
+        color: DEM,
         optionLabels: [CONGRESS_OUTCOME_LABELS.DD],
       },
     ]);
@@ -158,6 +166,10 @@ const BalanceOfPowerTimelines: FC<Props> = ({ post }) => {
           timeline={timelines.congress}
           unavailableLabel={unavailableLabel}
           zoom={zoom}
+          // The only route from the dashboard back to the question all three
+          // charts are built from — the snapshot card that used to carry it is
+          // gone.
+          href={post ? getPostLink(post) : undefined}
         />
       </div>
     </div>
@@ -171,7 +183,9 @@ const TimelineBlock: FC<{
   zoom: TimelineChartZoomOption;
   /** Optional control rendered on the title's row, right-aligned. */
   titleAccessory?: ReactNode;
-}> = ({ title, timeline, unavailableLabel, zoom, titleAccessory }) => {
+  /** Links the title to the underlying question. Omit to leave it plain text. */
+  href?: string;
+}> = ({ title, timeline, unavailableLabel, zoom, titleAccessory, href }) => {
   // Null = not hovering, so the legend shows the latest value. GroupChart reports
   // the hovered timestamp here and we look each series up at that point.
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
@@ -179,8 +193,19 @@ const TimelineBlock: FC<{
   return (
     <div>
       <div className="flex items-center justify-between gap-2">
+        {/* The link wraps the text, not the h4: the heading is a flex child of a
+            justify-between row, and wrapping it would collapse that layout. */}
         <h4 className="m-0 text-sm font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-700-dark">
-          {title}
+          {href ? (
+            <Link
+              href={href}
+              className="text-inherit no-underline decoration-1 underline-offset-4 hover:underline hover:decoration-blue-500 dark:hover:decoration-blue-500-dark"
+            >
+              {title}
+            </Link>
+          ) : (
+            title
+          )}
         </h4>
         {titleAccessory}
       </div>
