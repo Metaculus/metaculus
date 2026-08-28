@@ -116,13 +116,6 @@ def job_archive_bot_comment_texts():
     )
 
     if not check_is_enabled():
-        # Logged as an error rather than skipped silently: once this job is
-        # scheduled, a missing bucket means the monthly cleanup never runs
-        logger.error(
-            "AWS_STORAGE_BUCKET_COMMENTS_TEXT is not configured, "
-            "comment text archiving cannot run"
-        )
-
         return
 
     stats = archive_bot_comment_texts()

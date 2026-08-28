@@ -78,7 +78,7 @@ class CommentSerializer(serializers.ModelSerializer):
             "text",
             # TODO: consumed by the front end in a later commit, which will
             # replace the stub in `text` with a "load full text" affordance
-            # backed by the `comment-full-text` endpoint
+            # backed by the `comment-detail` endpoint
             "is_text_archived",
             "on_post",
             "on_post_data",

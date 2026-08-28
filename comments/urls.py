@@ -11,9 +11,7 @@ urlpatterns = [
     ),
     path("comments/<int:pk>/edit/", common.comment_edit_api_view, name="comment-edit"),
     path(
-        "comments/<int:pk>/full-text/",
-        common.comment_full_text_api_view,
-        name="comment-full-text",
+        "comments/<int:pk>/", common.comment_detail_api_view, name="comment-detail"
     ),
     path("comments/<int:pk>/vote/", common.comment_vote_api_view, name="comment-vote"),
     path(

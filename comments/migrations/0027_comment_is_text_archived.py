@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='comment',
             name='is_text_archived',
-            field=models.BooleanField(default=False, editable=False, help_text='True if the full text has been moved to S3 and only a truncated stub remains in the text columns. Archived comments cannot be edited; use the comment-full-text endpoint to read them.'),
+            field=models.BooleanField(db_index=True, default=False, editable=False, help_text='True if the full text has been moved to S3 and only a truncated stub remains in the text columns. Archived comments cannot be edited; use the comment-detail endpoint to read them.'),
         ),
     ]

@@ -101,12 +101,15 @@ class Comment(TimeStampedModel, TranslatedModel):
     text = models.TextField(max_length=150_000, blank=True)
     # Set by the `archive_bot_comment_texts` command. The full text lives in S3
     # under a key derived from the comment id, so no pointer is stored here.
+    # example path:
+    #     /s3/buckets/metaculus-web-content-blobs?prefix=comments_text/<comment_id>.json
     is_text_archived = models.BooleanField(
         default=False,
         editable=False,
         help_text="True if the full text has been moved to S3 and only a "
         "truncated stub remains in the text columns. Archived comments "
-        "cannot be edited; use the comment-full-text endpoint to read them.",
+        "cannot be edited; use the comment-detail endpoint to read them.",
+        db_index=True,
     )
     on_post = models.ForeignKey(
         Post, models.CASCADE, null=True, related_name="comments"

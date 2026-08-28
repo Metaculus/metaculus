@@ -235,10 +235,10 @@ def comment_report_api_view(request, pk=int):
 
 
 @api_view(["GET"])
-def comment_full_text_api_view(request: Request, pk: int):
+def comment_detail_api_view(request: Request, pk: int):
     """
-    Returns the untruncated text of a single comment, reading it back from the
-    archive if it has been moved out of the database.
+    Returns a single comment with its untruncated text, reading the text back
+    from the archive if it has been moved out of the database.
     """
 
     comment = get_object_or_404(Comment, pk=pk)
@@ -247,7 +247,9 @@ def comment_full_text_api_view(request: Request, pk: int):
     # take away the only view they had of a bot's full text:
     # `get_comment_permission_for_user` resolves every private comment to no
     # permission but the author's, and the row itself now holds only a stub.
-    if not (request.user.is_staff or request.user.is_superuser):
+    is_staff = request.user.is_staff or request.user.is_superuser
+
+    if not is_staff:
         permission = get_comment_permission_for_user(comment, user=request.user)
         ObjectPermission.can_view(permission, raise_exception=True)
 
@@ -260,7 +262,13 @@ def comment_full_text_api_view(request: Request, pk: int):
     if text is None:
         raise NotFound("The archived text of this comment could not be retrieved.")
 
-    return Response({"id": comment.pk, "text": text})
+    data = serialize_comment_many([comment], request.user, with_key_factors=True)[0]
+    # The serializer reads the row, which holds only a stub once the comment is
+    # archived, and blanks the text of deleted comments that only staff reach
+    # here.
+    data["text"] = text
+
+    return Response(data)
 
 
 @api_view(["POST"])
