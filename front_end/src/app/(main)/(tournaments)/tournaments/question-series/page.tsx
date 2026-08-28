@@ -5,9 +5,10 @@ import TournamentsScreen from "../components/tournaments_screen";
 
 const QuestionSeriesPage: React.FC = async () => {
   const tournaments = await ServerProjectsApi.getTournaments();
+  const nowTs = Date.now();
 
   return (
-    <TournamentsScreen current="series" tournaments={tournaments}>
+    <TournamentsScreen current="series" tournaments={tournaments} nowTs={nowTs}>
       <SeriesTournamentsGrid />
     </TournamentsScreen>
   );

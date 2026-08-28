@@ -101,6 +101,66 @@ export const STANDALONE_SENATE_RACES: StandaloneRace[] = [
   { state: "NE", name: "Nebraska Senate", postId: 44710 },
 ];
 
+// Races on the 2026 ballot that carry no Metaculus question. Without these the
+// map's denominator counts questions rather than races — "10 of 19" when 36
+// governorships are actually up — and the states read as if no election were
+// happening there at all.
+//
+// `rating` is a judgement about the seat, not a forecast: "D"/"R" marks one safe
+// enough that a question would not be interesting, and null marks one that is
+// genuinely in play and simply has not been posted yet. Unrated races count
+// toward the total but toward neither side.
+//
+// RATINGS NEED REVIEW BEFORE THEY SHIP — they are displayed publicly and are not
+// derived from any forecast. When a question is added for one of these states,
+// delete its row here; the fetch layer also filters out any state that gained a
+// real race, so a stale row degrades rather than duplicating.
+export type UnforecastRace = {
+  state: string;
+  name: string;
+  rating: "D" | "R" | null;
+};
+
+// Class II seats plus the FL and OH specials come to 35; the 23 forecast races
+// leave these 12. All are safe enough that none is left unrated.
+export const UNFORECAST_SENATE_RACES: UnforecastRace[] = [
+  { state: "AL", name: "Alabama Senate", rating: "R" },
+  { state: "DE", name: "Delaware Senate", rating: "D" },
+  { state: "IL", name: "Illinois Senate", rating: "D" },
+  { state: "MA", name: "Massachusetts Senate", rating: "D" },
+  { state: "NJ", name: "New Jersey Senate", rating: "D" },
+  { state: "NM", name: "New Mexico Senate", rating: "D" },
+  { state: "OK", name: "Oklahoma Senate", rating: "R" },
+  { state: "SD", name: "South Dakota Senate", rating: "R" },
+  { state: "TN", name: "Tennessee Senate", rating: "R" },
+  { state: "VA", name: "Virginia Senate", rating: "D" },
+  { state: "WV", name: "West Virginia Senate", rating: "R" },
+  { state: "WY", name: "Wyoming Senate", rating: "R" },
+];
+
+// 36 states elect a governor in 2026; the 19 forecast races leave these 17.
+// Colorado, Minnesota, New York and Pennsylvania are deliberately unrated —
+// open or competitive seats that would be wrong to paint as locks.
+export const UNFORECAST_GOVERNOR_RACES: UnforecastRace[] = [
+  { state: "AL", name: "Alabama Governor", rating: "R" },
+  { state: "AR", name: "Arkansas Governor", rating: "R" },
+  { state: "CA", name: "California Governor", rating: "D" },
+  { state: "CO", name: "Colorado Governor", rating: null },
+  { state: "CT", name: "Connecticut Governor", rating: "D" },
+  { state: "ID", name: "Idaho Governor", rating: "R" },
+  { state: "IL", name: "Illinois Governor", rating: "D" },
+  { state: "MD", name: "Maryland Governor", rating: "D" },
+  { state: "MA", name: "Massachusetts Governor", rating: "D" },
+  { state: "MN", name: "Minnesota Governor", rating: null },
+  { state: "NY", name: "New York Governor", rating: null },
+  { state: "OK", name: "Oklahoma Governor", rating: "R" },
+  { state: "PA", name: "Pennsylvania Governor", rating: null },
+  { state: "RI", name: "Rhode Island Governor", rating: "D" },
+  { state: "SD", name: "South Dakota Governor", rating: "R" },
+  { state: "TN", name: "Tennessee Governor", rating: "R" },
+  { state: "WY", name: "Wyoming Governor", rating: "R" },
+];
+
 export type ChamberQuestionIds = {
   /** Multiple-choice: "Democrats" / "Republicans" / "Other" */
   senateControl: number;
