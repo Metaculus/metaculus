@@ -109,13 +109,21 @@ const MAP_VIEWBOX_HEIGHT = 540;
 const MAP_SCALE = 1000;
 const MAP_TRANSLATE: [number, number] = [400, 270];
 
-// Light-mode default/hover opacities for uncontested states.
-const UNCONTESTED_OPACITY_DEFAULT = 0.75;
+// Rest opacity for states with no forecast. Light mode halves it: the toss-up
+// fill is a warm grey-beige that sits close enough to the uncontested grey that a
+// genuinely balanced race reads as an unforecast one. Letting the grey recede
+// further into the card separates them. Dark mode already does, so it keeps the
+// original value.
+const UNCONTESTED_OPACITY_DEFAULT_DARK = 0.75;
+const UNCONTESTED_OPACITY_DEFAULT_LIGHT = 0.375;
 const UNCONTESTED_OPACITY_HOVER = 1;
 
 const GeographicMap: FC<Props> = ({ races, tabsSlot, summarySlot }) => {
   const t = useTranslations();
   const isDark = useIsDark();
+  const uncontestedOpacity = isDark
+    ? UNCONTESTED_OPACITY_DEFAULT_DARK
+    : UNCONTESTED_OPACITY_DEFAULT_LIGHT;
 
   const strokeColor = isDark
     ? MIDTERMS_COLORS.cardBgDark
@@ -343,7 +351,7 @@ const GeographicMap: FC<Props> = ({ races, tabsSlot, summarySlot }) => {
                       strokeWidth: 1.5,
                       outline: "none",
                       cursor: canOpen ? "pointer" : "default",
-                      opacity: isFilled ? 1 : UNCONTESTED_OPACITY_DEFAULT,
+                      opacity: isFilled ? 1 : uncontestedOpacity,
                       transition:
                         "fill 150ms ease-out, opacity 150ms ease-out, filter 150ms ease-out",
                     };

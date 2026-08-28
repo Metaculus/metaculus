@@ -3,10 +3,12 @@
 import { faArrowRight, faChartLine } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
+import RelativeTime from "@/components/ui/relative_time";
 import { CommentType } from "@/types/comment";
+import { formatDate } from "@/utils/formatters/date";
 import { stripMarkdown } from "@/utils/markdown";
 
 import { CommunityInsight } from "../helpers/fetch_community_insights";
@@ -21,6 +23,7 @@ type Props = {
 
 const InsightCard: FC<Props> = ({ insight }) => {
   const t = useTranslations();
+  const locale = useLocale();
   const { comment, sourcePost } = insight;
   // Comments are fetched per post, so for the Senate / Governor group posts this
   // is the umbrella question title rather than the individual state race.
@@ -63,8 +66,27 @@ const InsightCard: FC<Props> = ({ insight }) => {
           <div className="truncate text-xs font-bold text-blue-700 dark:text-blue-700-dark">
             {comment.author.username}
           </div>
+          {/* The treatment comment_card.tsx uses, not CommentDate: that renders
+              its own anchor, and this card is already a Link. P1D keeps recent
+              comments relative and everything older an explicit date, and the
+              prefix comes from `onDate` because the element's own default is a
+              hardcoded English "on". The children are the server-rendered
+              fallback — without them the timestamp is blank until the custom
+              element upgrades. */}
           <div className="text-xs font-medium text-blue-600 dark:text-blue-600-dark">
-            {t("midtermsHubMetaculusUser")}
+            <RelativeTime
+              datetime={comment.created_at}
+              format="relative"
+              threshold="P1D"
+              prefix={t("onDate", { date: "" }).trim()}
+              year="numeric"
+              month="short"
+              day="numeric"
+            >
+              {t("onDate", {
+                date: formatDate(locale, new Date(comment.created_at)),
+              })}
+            </RelativeTime>
           </div>
         </div>
         {/* A plain arrow, not the open-in-new-window glyph: this navigates in

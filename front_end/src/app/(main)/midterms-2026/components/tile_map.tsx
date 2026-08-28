@@ -27,10 +27,16 @@ type HoverState = {
 const MAX_COL = Math.max(...US_TILE_GRID.map((c) => c.col));
 const MAX_ROW = Math.max(...US_TILE_GRID.map((c) => c.row));
 
-const UNCONTESTED_OPACITY_DEFAULT = 0.75;
+// Halved in light mode so the grey recedes and the warm toss-up fill separates
+// from it; dark mode already distinguishes the two. Matches geographic_map.tsx.
+const UNCONTESTED_OPACITY_DEFAULT_DARK = 0.75;
+const UNCONTESTED_OPACITY_DEFAULT_LIGHT = 0.375;
 
 const TileMap: FC<Props> = ({ races }) => {
   const isDark = useIsDark();
+  const uncontestedOpacity = isDark
+    ? UNCONTESTED_OPACITY_DEFAULT_DARK
+    : UNCONTESTED_OPACITY_DEFAULT_LIGHT;
   const uncontestedFill = isDark
     ? MIDTERMS_COLORS.uncontestedDark
     : MIDTERMS_COLORS.uncontestedLight;
@@ -134,7 +140,7 @@ const TileMap: FC<Props> = ({ races }) => {
                 gridColumn: col + 1,
                 gridRow: row + 1,
                 backgroundColor: fillColor,
-                opacity: isFilled ? 1 : UNCONTESTED_OPACITY_DEFAULT,
+                opacity: isFilled ? 1 : uncontestedOpacity,
                 // Dark mode: pastel tile fills make white text hard to
                 // read. Override to the dark navy token.
                 ...(isFilled && isDark

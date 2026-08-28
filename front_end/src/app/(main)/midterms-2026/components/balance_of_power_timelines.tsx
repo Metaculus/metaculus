@@ -7,6 +7,7 @@ import { FC, ReactNode, useMemo, useState } from "react";
 import GroupChart from "@/components/charts/group_chart";
 import { MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { TimelineChartZoomOption } from "@/types/charts";
+import { ChoiceItem } from "@/types/choices";
 import { PostWithForecasts } from "@/types/post";
 import {
   QuestionType,
@@ -126,7 +127,10 @@ const BalanceOfPowerTimelines: FC<Props> = ({ post }) => {
         optionLabels: [CONGRESS_OUTCOME_LABELS.DD],
       },
     ]);
-    return { house, senate, congress };
+    // Only the congress chart is sorted. House and Senate carry Democrats then
+    // Republicans, and ranking those by probability would flip the party order
+    // between two charts sitting one above the other, which reads as a bug.
+    return { house, senate, congress: sortByLatestValue(congress) };
   }, [question, demLabel, repLabel, t]);
 
   const unavailableLabel = t("midtermsHubTimelineUnavailable");
@@ -189,6 +193,10 @@ const TimelineBlock: FC<{
   // Null = not hovering, so the legend shows the latest value. GroupChart reports
   // the hovered timestamp here and we look each series up at that point.
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
+  const chartChoiceItems = useMemo(
+    () => (timeline ? [...timeline.choiceItems].reverse() : []),
+    [timeline]
+  );
 
   return (
     <div>
@@ -217,7 +225,11 @@ const TimelineBlock: FC<{
           />
           <GroupChart
             timestamps={timeline.timestamps}
-            choiceItems={timeline.choiceItems}
+            // Reversed: graphs paint in array order, so handing over the legend's
+            // descending order would draw the leading series first and let the
+            // trailing ones cross over it. Same data either way — every
+            // ChoiceItem carries its own color and values.
+            choiceItems={chartChoiceItems}
             questionType={QuestionType.Binary}
             height={CHART_HEIGHT}
             // Controlled by the panel's single range toggle.
@@ -286,6 +298,35 @@ const TimelineLegend: FC<{
     </div>
   );
 };
+
+/** The series' most recent real value, ignoring a trailing gap. */
+function latestValue(item: ChoiceItem): number {
+  for (let i = item.aggregationValues.length - 1; i >= 0; i--) {
+    const value = item.aggregationValues[i];
+    if (value != null) return value;
+  }
+  return -Infinity;
+}
+
+/**
+ * Orders series by current probability, highest first, so the leading outcome is
+ * the first thing read rather than the result of scanning four percentages.
+ *
+ * Sorted on the latest value and then left alone: the legend's numbers follow the
+ * cursor, but re-ranking them as it moves would make rows swap places under the
+ * pointer mid-read.
+ */
+function sortByLatestValue(
+  timeline: ControlTimeline | null
+): ControlTimeline | null {
+  if (!timeline) return null;
+  return {
+    ...timeline,
+    choiceItems: [...timeline.choiceItems].sort(
+      (a, b) => latestValue(b) - latestValue(a)
+    ),
+  };
+}
 
 /** Index of the last point at or before the cursor; the latest point when idle. */
 function resolveIndex(
