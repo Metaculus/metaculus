@@ -1,6 +1,8 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import createNextIntlPlugin from "next-intl/plugin";
 
+import { buildMarkdownRewrites } from "./src/agent_markdown/routes.mjs";
+
 const withNextIntl = createNextIntlPlugin();
 
 const AWS_STORAGE_BUCKET_NAME = process.env.AWS_STORAGE_BUCKET_NAME;
@@ -76,17 +78,23 @@ const nextConfig = {
     ];
   },
   async rewrites() {
-    return [
-      {
-        source: "/index/:slug",
-        destination: "/tournament/:slug",
-      },
-      {
-        source: "/files/forecasting-owid-report.pdf",
-        destination:
-          "https://metaculus-public.s3.us-west-2.amazonaws.com/OWID%2Breport.pdf",
-      },
-    ];
+    return {
+      // Must run before filesystem routes so an Accept: text/markdown request
+      // reaches the markdown handler instead of the page owning that path.
+      beforeFiles: buildMarkdownRewrites(),
+      // Previously a bare array, which Next treats as afterFiles
+      afterFiles: [
+        {
+          source: "/index/:slug",
+          destination: "/tournament/:slug",
+        },
+        {
+          source: "/files/forecasting-owid-report.pdf",
+          destination:
+            "https://metaculus-public.s3.us-west-2.amazonaws.com/OWID%2Breport.pdf",
+        },
+      ],
+    };
   },
   webpack: (config, { buildId, webpack }) => {
     // propagate buildId to environment so we could trigger prompt message on outdated version

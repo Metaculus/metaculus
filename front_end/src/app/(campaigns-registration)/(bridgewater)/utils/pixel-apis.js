@@ -1,4 +1,5 @@
 import { getAnalyticsCookieConsentGiven } from "@/app/(main)/components/cookies_banner";
+import { safeLocalStorage } from "@/utils/core/storage";
 
 import { PIXEL_CONSTANTS } from "./pixel-constants";
 
@@ -164,7 +165,7 @@ export const redditPixelTrack = (eventName = "PageVisit") => {
 
 export const bwInitAndTrackRegistrationIfConsent = () => {
   // Save to the local storage that the user has registered to this campaign
-  window.localStorage.setItem("bw_registration_campaign", "true");
+  safeLocalStorage.setItem("bw_registration_campaign", "true");
 
   const consent =
     typeof window !== "undefined"
@@ -208,7 +209,7 @@ export const bwTrackPredictionIfConsent = () => {
       ? getAnalyticsCookieConsentGiven()
       : "undecided";
 
-  const hasRegistered = window.localStorage.getItem("bw_registration_campaign");
+  const hasRegistered = safeLocalStorage.getItem("bw_registration_campaign");
   if (consent !== "yes" || !hasRegistered) return;
 
   fbPixelTrackEvent("SubmitApplication");

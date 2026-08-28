@@ -27,7 +27,14 @@ const SearchResultsGrid: React.FC = () => {
           return <QuestionSeriesCard key={item.id} item={item} showTypeLabel />;
         }
 
-        return <LiveTournamentCard key={item.id} item={item} nowTs={nowTs} />;
+        return (
+          <LiveTournamentCard
+            key={item.id}
+            item={item}
+            nowTs={nowTs}
+            hideTimeline={!item.is_ongoing}
+          />
+        );
       }}
     />
   );

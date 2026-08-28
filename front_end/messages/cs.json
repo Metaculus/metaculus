@@ -1893,6 +1893,7 @@
   "mySpotPeerScore": "Moje skóre podle spolužáků pro My Spot",
   "privateNote": "Soukromá poznámka",
   "privateNoteUpdatedFrom": "z <date></date>",
+  "privateNoteAutosaveHint": "změny se ukládají automaticky",
   "savedAgo": "uloženo <date></date>",
   "loadMore": "Načíst více",
   "noPrivateNotes": "Žádné soukromé poznámky",

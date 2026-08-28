@@ -306,4 +306,38 @@ export const RAW_ACTIVITY_MONITOR_DATA: RawActivityMonitorEntry[] = [
       </>
     ),
   },
+  {
+    date: "2026-07-21",
+    type: "news",
+    content: (
+      <>
+        OpenAI announces major security incident during model evaluation. -{" "}
+        <a
+          href="https://openai.com/index/hugging-face-model-evaluation-security-incident/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          OpenAI
+        </a>
+      </>
+    ),
+  },
+  {
+    date: "2026-07-30",
+    type: "insight",
+    content: (
+      <>
+        Metaculus Pro Forecasters completed a quarterly forecasting update, with
+        the biggest moves on the number of humanities and STEM degrees awarded,
+        as well as lower unemployment disruption for 2030. -{" "}
+        <a
+          href="https://www.metaculus.com/notebooks/44978/labor-hub-updates-july-2026/"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          Metaculus
+        </a>
+      </>
+    ),
+  },
 ];

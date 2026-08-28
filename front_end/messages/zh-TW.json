@@ -1889,6 +1889,7 @@
   "mySpotPeerScore": "我的地點同儕分數",
   "privateNote": "私人筆記",
   "privateNoteUpdatedFrom": "從 <date></date>",
+  "privateNoteAutosaveHint": "變更會自動儲存",
   "savedAgo": "已儲存 <date></date>",
   "loadMore": "載入更多",
   "noPrivateNotes": "尚無私人筆記",
