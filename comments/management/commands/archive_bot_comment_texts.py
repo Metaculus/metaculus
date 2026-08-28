@@ -77,7 +77,7 @@ class Command(BaseCommand):
         f"{ARCHIVE_AGE_DAYS} days and longer than {ARCHIVE_MIN_TEXT_LENGTH} "
         f"characters to S3, leaving a {ARCHIVE_STUB_LENGTH}-character stub in "
         "the database. Runs monthly as a cron job; the full text stays "
-        "readable through the comment-full-text endpoint."
+        "readable through the comment-detail endpoint."
     )
 
     def add_arguments(self, parser):
