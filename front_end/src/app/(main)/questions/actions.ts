@@ -167,13 +167,15 @@ export async function updateNotebook(
 export async function resolveQuestion(
   questionId: number,
   resolution: string,
-  actualResolveTime: string
+  actualResolveTime: string,
+  scoreAsTask: boolean
 ) {
   try {
     const { post_id } = await ServerQuestionsApi.resolve(
       questionId,
       resolution,
-      actualResolveTime
+      actualResolveTime,
+      scoreAsTask
     );
 
     revalidatePath(`/questions/${post_id}`);
