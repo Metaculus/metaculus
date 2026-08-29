@@ -77,9 +77,6 @@ class CommentSerializer(serializers.ModelSerializer):
             "text_edited_at",
             "is_soft_deleted",
             "text",
-            # `text` already carries a pointer to the full text when this is
-            # set (see `get_text`); the flag is exposed so API clients can act
-            # on it rather than parse the notice out of the prose.
             "is_text_archived",
             "on_post",
             "on_post_data",
