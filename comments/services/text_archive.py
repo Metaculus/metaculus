@@ -47,6 +47,14 @@ ORIGINAL_TEXT = Coalesce(
     NullIf("text_original", Value("")), "text", output_field=TextField()
 )
 
+# Eligibility asks whether a text is longer than `ARCHIVE_MIN_TEXT_LENGTH`, not
+# how long it is. Asking it as `length(text) > N` makes Postgres fetch and
+# decompress the whole out-of-line value — up to 150k characters — for every
+# row it considers. Slicing the first N+1 characters answers the same question
+# from the first few TOAST chunks, because a text is longer than N exactly when
+# its leading slice of N+1 characters is N+1 characters long.
+LONG_TEXT_PREFIX_LENGTH = Length(Substr(ORIGINAL_TEXT, 1, ARCHIVE_MIN_TEXT_LENGTH + 1))
+
 
 def check_is_enabled() -> bool:
     return bool(settings.AWS_STORAGE_BUCKET_COMMENTS_TEXT)
@@ -180,16 +188,14 @@ def get_archivable_comments() -> QuerySet[Comment]:
             is_text_archived=False,
             created_at__lt=cutoff,
         )
-        .annotate(text_length=Length(ORIGINAL_TEXT))
-        .filter(text_length__gt=ARCHIVE_MIN_TEXT_LENGTH)
+        .annotate(text_prefix_length=LONG_TEXT_PREFIX_LENGTH)
+        .filter(text_prefix_length__gt=ARCHIVE_MIN_TEXT_LENGTH)
     )
 
 
 @dataclass
 class ArchiveStats:
-    # Number of comments the run expects to process. Only populated when a
-    # progress callback asks for it, since counting means measuring the length
-    # of every candidate text.
+    # Number of comments the run expects to process
     total: int = 0
     archived: int = 0
     failed: int = 0
@@ -243,64 +249,71 @@ def archive_bot_comment_texts(
     if dry_run:
         # Aggregate without transferring any text. The limit has to be applied
         # before aggregating, so that the reported totals describe the rows the
-        # real run would actually touch.
+        # real run would actually touch. This is the one place that measures
+        # the full length of every candidate text rather than its leading
+        # slice, because the point of the report is the exact saving.
         scoped = queryset.order_by("id")
 
         if limit is not None:
             scoped = scoped[:limit]
 
-        totals = scoped.aggregate(count=Count("id"), chars=Sum("text_length"))
+        totals = scoped.annotate(text_length=Length(ORIGINAL_TEXT)).aggregate(
+            count=Count("id"), chars=Sum("text_length")
+        )
         count = totals["count"] or 0
 
+        stats.total = count
         stats.archived = count
         stats.chars_reclaimed = max(
             (totals["chars"] or 0) - count * ARCHIVE_STUB_LENGTH, 0
         )
-        stats.sample_ids = list(
-            queryset.order_by("id").values_list("id", flat=True)[:5]
-        )
+        sample = queryset.order_by("id").values_list("id", flat=True)[:5]
+        stats.sample_ids = list(sample)
 
         return stats
 
-    if on_progress is not None:
-        # Counting is not free: the eligibility filter measures the length of
-        # every candidate text, so this reads the whole candidate set
-        total = queryset.count()
-        stats.total = min(total, limit) if limit is not None else total
+    # The eligibility query is the expensive half of this command: it joins
+    # users, cannot use an index for the text-length test, and walks every
+    # private bot comment. Running it once and keeping the ids is what stops
+    # the run from re-issuing that scan on every batch — hundreds of heavy
+    # queries spread over the hours the uploads take, which is enough sustained
+    # load to matter to everything else using the database. Ids are all that is
+    # held: even a million of them is a few megabytes, and the text itself is
+    # still fetched a page at a time below.
+    candidate_ids = list(queryset.order_by("id").values_list("id", flat=True))
+
+    if limit is not None:
+        candidate_ids = candidate_ids[:limit]
+
+    stats.total = len(candidate_ids)
 
     started_at = timezone.now()
     truncate_kwargs = _build_truncate_kwargs()
-    cursor = 0
     concurrency = max(concurrency, 1)
     # One client, shared by every worker: botocore clients are safe to call
     # from multiple threads once built, and building one per upload is pure
     # overhead
     s3 = get_archive_s3_client(concurrency)
 
-    while limit is None or stats.archived + stats.failed < limit:
-        page_size = batch_size
-        if limit is not None:
-            page_size = min(batch_size, limit - stats.archived - stats.failed)
+    for offset in range(0, len(candidate_ids), batch_size):
+        page_ids = candidate_ids[offset : offset + batch_size]
 
+        # A plain primary-key lookup, with none of the eligibility work: the
+        # ids were already vetted. `is_text_archived` is re-checked because the
+        # id list is a snapshot and a concurrent run may have taken these rows
+        # in the meantime.
         # `original_text` is annotated rather than selecting both columns:
         # they hold the same content, and a page of 500 comments that may run
-        # to 150k characters each is worth not loading twice.
+        # to 150k characters each is worth not loading twice. Its length is
+        # measured in Python for the same reason — the text is in hand already,
+        # so asking the database for `length()` would detoast it a second time.
         rows = list(
-            queryset.filter(id__gt=cursor)
-            .order_by("id")
+            Comment.objects.rewrite(False)
+            .filter(id__in=page_ids, is_text_archived=False)
             .annotate(original_text=ORIGINAL_TEXT)
-            .values("id", "original_text", "text_length", "on_post_id", "author_id")[
-                :page_size
-            ]
+            .values("id", "original_text", "on_post_id", "author_id")
         )
 
-        if not rows:
-            break
-
-        # Advance past the whole page, including rows that failed to upload, so
-        # a persistent failure can never stall the run. Skipped rows stay
-        # eligible for the next one.
-        cursor = rows[-1]["id"]
         uploaded_ids = []
 
         # Each comment is still its own independently retrievable object; the
@@ -350,7 +363,7 @@ def archive_bot_comment_texts(
             stats.archived += updated
             stats.skipped += len(uploaded_ids) - updated
             stats.chars_reclaimed += sum(
-                max(row["text_length"] - ARCHIVE_STUB_LENGTH, 0)
+                max(len(row["original_text"]) - ARCHIVE_STUB_LENGTH, 0)
                 for row in rows
                 if row["id"] in archived_ids
             )

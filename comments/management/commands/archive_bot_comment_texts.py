@@ -127,7 +127,7 @@ class Command(BaseCommand):
                 f"{S3_KEY_PREFIX}/ with concurrency {options['concurrency']}, "
                 f"batches of {options['batch_size']}"
             )
-            progress.write("Counting eligible comments...")
+            progress.write("Finding eligible comments...")
 
             def write_progress(stats: ArchiveStats) -> None:
                 progress.total = stats.total
